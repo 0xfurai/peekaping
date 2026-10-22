@@ -111,6 +111,16 @@ type Config struct {
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
 
+	// How many days the hourly cleanup keeps notification history. The history stops a
+	// certificate expiry notification from being sent twice, so it must outlast the
+	// default thresholds (the largest is 21 days): the minimum is 30. 0 counts as unset
+	// and gives the default, as for every int setting.
+	NotificationHistoryRetentionDays int `env:"NOTIFICATION_HISTORY_RETENTION_DAYS" validate:"min=30" default:"90"`
+
+	// How many days the hourly cleanup keeps the TLS info that monitors record. 0 counts as
+	// unset and gives the default.
+	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
+
 	// Usage ping (ADR 0003). The ping is off until an admin opts in. TELEMETRY=off (or false, 0,
 	// no) and DO_NOT_TRACK=1 (or true) force it off whatever the admin chose; TelemetryForcedOff
 	// reads them. They stay strings so the config doesn't guess at other spellings.
@@ -246,6 +256,10 @@ func formatValidationError(err validator.FieldError) string {
 	case "duration_min":
 		return fmt.Sprintf("%s must be at least %s", field, err.Param())
 	case "min":
+		switch err.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return fmt.Sprintf("%s must be at least %s", field, err.Param())
+		}
 		return fmt.Sprintf("%s must be at least %s characters", field, err.Param())
 	case "max":
 		return fmt.Sprintf("%s must be at most %s", field, err.Param())

@@ -108,6 +108,21 @@ These are required in cluster mode, where the API reaches the producer, worker a
 |----------|------|----------|---------|-------------|
 | `METRICS_ENABLED` | bool | No | `false` | Serve the unauthenticated Prometheus `/metrics` endpoint, see [Prometheus Metrics](#prometheus-metrics) |
 
+### Cleanup Configuration
+
+Every hour, at the top of the hour in UTC, the API server deletes the heartbeats older than the data retention period (a setting in the web app), the expired stats, the old notification history and the old TLS information. The two variables below set how long the last two are kept.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `NOTIFICATION_HISTORY_RETENTION_DAYS` | int | No | `90` | How many days notification history is kept. At least `30`: the history stops a certificate expiry notification from being sent twice, and the default thresholds are 21, 14 and 7 days before expiry. If you set a threshold above this value, that notification can be sent again |
+| `TLS_INFO_RETENTION_DAYS` | int | No | `30` | How many days monitors' TLS information is kept. At least `1` |
+
+A value below its minimum stops startup with a configuration error. `0` counts as unset and gives the default.
+
+In cluster mode every API replica schedules the cleanup, and the first one to claim an hour runs it, so each hour's cleanup runs once however many replicas run. Only that replica logs `Running the hourly cleanup` with the hour; the others log at debug level that another replica has it. The claim is a Redis key, `peekaping:cleanup:<hour>` (the time rounded to the nearest hour, in UTC), that expires after two hours, so replicas whose clocks are less than an hour apart still share one claim per hour. If a replica can't reach Redis when the hour starts, it logs an error and skips that hour's cleanup instead of running it unguarded. The next hour tries again.
+
+In single mode the `peekaping` binary runs the cleanup itself every hour, with no Redis.
+
 ### Usage Statistics and Error Reporting Configuration
 
 The anonymous usage ping and the error reports are both off until an admin turns them on, each with its own switch. These variables switch them off whatever the admin chose. See [Usage statistics and error reporting](../self-hosting/telemetry.md).
