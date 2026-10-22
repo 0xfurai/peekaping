@@ -2,6 +2,7 @@ package cleanup
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -123,8 +124,21 @@ func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, olderThanDay
 	logger.Infow("Successfully cleaned up monitor TLS info records", "older_than_days", olderThanDays)
 }
 
-// StartCleanupCron starts the general cleanup cron job(s). Stop the returned cron to stop them:
-// its Stop returns a context that is done once the jobs running then have finished.
+// hourlySpec is when the cleanup runs: at minute 0 of every hour. It is a variable so that a
+// test can make the scheduling fail.
+var hourlySpec = "0 * * * *"
+
+// StartCleanupCron stores the data retention period of a new install, then schedules the
+// hourly cleanup: the heartbeats past the data retention period, the expired stats, the old
+// notification history and the old TLS info. It returns an error if the cleanup can't be
+// scheduled, and then nothing runs.
+//
+// Every process that calls it fires at the top of the hour, so in cluster mode, where several
+// api replicas do, the cleanup runs under lock: the first replica to claim the hour runs it and
+// the others skip it. Single mode passes a lock that always grants the run.
+//
+// Stop the returned cron to stop the cleanup: its Stop returns a context that is done once the
+// job running then has finished.
 func StartCleanupCron(
 	heartbeatService heartbeat.Service,
 	userRepository auth.Repository,
@@ -132,28 +146,34 @@ func StartCleanupCron(
 	statsService stats.Service,
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
+	lock RunLock,
+	retention Retention,
 	logger *zap.SugaredLogger,
-) *cron.Cron {
+) (*cron.Cron, error) {
 	initDataRetentionPeriod(heartbeatService, userRepository, settingService, logger)
 
-	c := cron.New()
+	hourly := &hourlyCleanup{
+		heartbeats:          heartbeatService,
+		settings:            settingService,
+		stats:               statsService,
+		notificationHistory: notificationHistoryService,
+		tlsInfo:             tlsInfoService,
+		lock:                lock,
+		retention:           retention,
+		logger:              logger,
+	}
 
-	c.AddFunc("0 * * * *", func() {
-		cleanupHeartbeats(heartbeatService, settingService, logger)
+	// The top of the hour in UTC, whatever TZ is: the claims round the time to the nearest UTC
+	// hour, so replicas must fire at the UTC hour, not at the top of a local hour that lies
+	// half an hour off it (India's, for one).
+	c := cron.New(cron.WithLocation(time.UTC))
+	_, err := c.AddFunc(hourlySpec, func() {
+		hourly.runHourly(context.Background(), time.Now())
 	})
-
-	c.AddFunc("0 * * * *", func() {
-		cleanupStats(statsService, logger)
-	})
-
-	c.AddFunc("0 * * * *", func() {
-		cleanupNotificationHistory(notificationHistoryService, 90, logger)
-	})
-
-	c.AddFunc("0 * * * *", func() {
-		cleanupMonitorTLSInfo(tlsInfoService, 30, logger)
-	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to schedule the hourly cleanup (%q): %w", hourlySpec, err)
+	}
 
 	c.Start()
-	return c
+	return c, nil
 }

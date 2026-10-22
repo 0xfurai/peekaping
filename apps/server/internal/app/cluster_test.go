@@ -13,6 +13,7 @@ import (
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/certificate"
+	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
@@ -30,6 +31,7 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
@@ -73,8 +75,8 @@ func TestRegisterClusterAPI_ResolvesWhatCmdAPIRuns(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
 
-	// What cmd/api invokes: the cleanup cron, the settings, the listeners, the status repair,
-	// the metrics collector, the server, and the database it closes on shutdown
+	// What cmd/api invokes: the cleanup cron with its run lock, the settings, the listeners, the
+	// status repair, the metrics collector, the server, and the database it closes on shutdown
 	require.NoError(t, container.Invoke(func(
 		_ heartbeat.Service,
 		_ auth.Repository,
@@ -82,6 +84,7 @@ func TestRegisterClusterAPI_ResolvesWhatCmdAPIRuns(t *testing.T) {
 		_ stats.Service,
 		_ notification_sent_history.Service,
 		_ monitor_tls_info.Service,
+		_ cleanup.RunLock,
 		_ *zap.SugaredLogger,
 		_ *notification_channel.NotificationEventListener,
 		_ *monitor.MonitorEventListener,
@@ -100,6 +103,27 @@ func TestRegisterClusterAPI_ResolvesWhatCmdAPIRuns(t *testing.T) {
 		t.Cleanup(func() { assert.NoError(t, client.Close()) })
 		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 	}))
+}
+
+// Every api replica runs the hourly cleanup's cron, so the replicas share its run lock in Redis
+func TestRegisterClusterAPI_ProvidesTheRunLockInRedis(t *testing.T) {
+	cfg := clusterConfig(t)
+	hour := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+	claim := func(replica string) bool {
+		container := dig.New()
+		require.NoError(t, RegisterClusterAPI(container, cfg), replica)
+		var claimed bool
+		require.NoError(t, container.Invoke(func(lock cleanup.RunLock, rdb *redis.Client) {
+			t.Cleanup(func() { assert.NoError(t, rdb.Close()) })
+			var err error
+			claimed, err = lock.Claim(context.Background(), hour)
+			require.NoError(t, err)
+		}), replica)
+		return claimed
+	}
+
+	assert.True(t, claim("first replica"), "first replica's claim of the hour")
+	assert.False(t, claim("second replica"), "second replica's claim of the same hour")
 }
 
 func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {

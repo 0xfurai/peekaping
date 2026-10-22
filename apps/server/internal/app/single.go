@@ -5,6 +5,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/certificate"
+	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
@@ -18,8 +19,9 @@ import (
 
 // RegisterSingle provides what cmd/peekaping runs: the HTTP API and the websocket, the scheduler
 // and its check pool, the ingest and the stale-monitor watchdog, in one process with no Redis
-// and no asynq. Events stay in the process, the stale monitors are kept in memory, and the
-// scheduler is the watchdog's stale.Rechecker. The scheduler and the push URL ingest through
+// and no asynq. Events stay in the process, the stale monitors are kept in memory, the hourly
+// cleanup's run lock grants every hour to the one process, and the scheduler is the watchdog's
+// stale.Rechecker. The scheduler and the push URL ingest through
 // one ingester.NewInOrderService, so the pushes and the checks of a monitor are stored one at a
 // time, in order.
 func RegisterSingle(container *dig.Container, cfg *config.Config) error {
@@ -27,7 +29,7 @@ func RegisterSingle(container *dig.Container, cfg *config.Config) error {
 		return err
 	}
 	return errors.Join(
-		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, provideInOrderIngester),
+		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock, provideInOrderIngester),
 		scheduler.RegisterDependencies(container),
 	)
 }

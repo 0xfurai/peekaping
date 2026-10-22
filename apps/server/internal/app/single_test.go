@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +15,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
@@ -69,6 +71,7 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 		_ stats.Service,
 		_ notification_sent_history.Service,
 		_ monitor_tls_info.Service,
+		_ cleanup.RunLock,
 		_ *zap.SugaredLogger,
 		_ *notification_channel.NotificationEventListener,
 		_ *monitor.MonitorEventListener,
@@ -84,6 +87,21 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
+	}))
+}
+
+// The one process runs every hour's cleanup, so its run lock needs no Redis and always grants it
+func TestRegisterSingle_ProvidesARunLockThatGrantsEveryHour(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, singleConfig(t)))
+
+	require.NoError(t, container.Invoke(func(lock cleanup.RunLock) {
+		hour := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+		for _, h := range []time.Time{hour, hour, hour.Add(time.Hour)} {
+			claimed, err := lock.Claim(context.Background(), h)
+			require.NoError(t, err)
+			assert.True(t, claimed, "claim of %s", h)
+		}
 	}))
 }
 

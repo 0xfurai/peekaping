@@ -51,7 +51,8 @@ func main() {
 		log.Fatalf("Failed to register API dependencies: %v", err)
 	}
 
-	// Start cleanup cron job(s)
+	// Start the hourly cleanup. Every api replica schedules it and the run lock lets one of them
+	// run each hour. A failure to schedule it stops startup.
 	err = container.Invoke(func(
 		heartbeatService heartbeat.Service,
 		userRepository auth.Repository,
@@ -59,12 +60,18 @@ func main() {
 		statsService stats.Service,
 		notificationHistoryService notification_sent_history.Service,
 		tlsInfoService monitor_tls_info.Service,
+		runLock cleanup.RunLock,
 		logger *zap.SugaredLogger,
-	) {
-		cleanup.StartCleanupCron(heartbeatService, userRepository, settingService, statsService, notificationHistoryService, tlsInfoService, logger)
+	) error {
+		retention := cleanup.Retention{
+			NotificationHistoryDays: internalCfg.NotificationHistoryRetentionDays,
+			TLSInfoDays:             internalCfg.TLSInfoRetentionDays,
+		}
+		_, err := cleanup.StartCleanupCron(heartbeatService, userRepository, settingService, statsService, notificationHistoryService, tlsInfoService, runLock, retention, logger)
+		return err
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to start the hourly cleanup: %v", err)
 	}
 
 	// Initialize JWT settings
