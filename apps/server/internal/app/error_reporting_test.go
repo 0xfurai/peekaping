@@ -62,7 +62,7 @@ func TestSetupErrorReporting_ReportsTheReleaseTheModeTheStorageAndThePlatform(t 
 			cfg.ErrorReportingDSN = testDSN
 			container := dig.New()
 			require.NoError(t, tc.register(container, cfg)) // provides the database, and connects to it only if something asks
-			t.Cleanup(func() { reporting.Setup(reporting.Options{}) })
+			t.Cleanup(func() { reporting.Setup(reporting.Options{ForcedOff: true}) })
 
 			require.NoError(t, SetupErrorReporting(container, cfg, withTransport(recorder)))
 			reporting.SetEnabled(true)
@@ -88,7 +88,7 @@ func TestSetupErrorReporting_SendsNothingWhenTheEnvironmentForcesItOff(t *testin
 			set(cfg)
 			container := dig.New()
 			require.NoError(t, RegisterSingle(container, cfg))
-			t.Cleanup(func() { reporting.Setup(reporting.Options{}) })
+			t.Cleanup(func() { reporting.Setup(reporting.Options{ForcedOff: true}) })
 
 			require.NoError(t, SetupErrorReporting(container, cfg, withTransport(recorder)))
 			reporting.SetEnabled(true) // the admin's choice

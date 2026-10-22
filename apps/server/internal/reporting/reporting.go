@@ -17,8 +17,11 @@ import (
 	"github.com/getsentry/sentry-go"
 )
 
-// DefaultDSN is the Sentry project error reports go to. An empty DSN sends nothing.
-const DefaultDSN = "" // TODO: set to the project's DSN before release
+// DefaultDSN is Peekaping's Sentry project, where error reports go unless ERROR_REPORTING_DSN names
+// another. A DSN is not a secret: it only lets a client send events to the project. An empty DSN
+// sends nothing. A test must give Setup a DSN of its own, a Transport or ForcedOff, so that none
+// can reach this project (see builtin_dsn_guard_test.go).
+const DefaultDSN = "https://21a7d557a242d6e6ec3f8551841ea2db@o90647.ingest.us.sentry.io/4512301050691584"
 
 // flushTimeout is how long a crash waits for its report to go out before the process dies
 const flushTimeout = 2 * time.Second
