@@ -95,13 +95,13 @@ func newService(cfg *config.Config) (Service, *fakeSettings, *recordingSwitch) {
 	return NewService(settings, cfg, sw, zap.NewNop().Sugar()), settings, sw
 }
 
-func TestState_IsOffByDefault(t *testing.T) {
+func TestState_IsOnByDefault(t *testing.T) {
 	service, settings, sw := newService(&config.Config{})
 
 	state, err := service.State(context.Background())
 
 	require.NoError(t, err)
-	assert.Equal(t, State{Enabled: false, ForcedOff: false}, state)
+	assert.Equal(t, State{Enabled: true, ForcedOff: false}, state)
 	assert.Empty(t, settings.values, "reading the state stores nothing")
 	assert.Empty(t, sw.set, "and tells no process anything")
 }
@@ -187,7 +187,10 @@ func TestApply_TellsTheProcessesTheStoredChoiceAtStart(t *testing.T) {
 		cfg    *config.Config
 		want   bool
 	}{
-		"nothing stored":                  {"", &config.Config{}, false},
+		"nothing stored":                  {"", &config.Config{}, true},
+		"nothing stored, forced off":      {"", &config.Config{ErrorReporting: "off"}, false},
+		"nothing stored, DO_NOT_TRACK":    {"", &config.Config{DoNotTrack: "1"}, false},
+		"nothing stored, the ping is off": {"", &config.Config{Telemetry: "off"}, true},
 		"opted in":                        {"true", &config.Config{}, true},
 		"opted out":                       {"false", &config.Config{}, false},
 		"opted in, forced off":            {"true", &config.Config{ErrorReporting: "off"}, false},
@@ -251,6 +254,33 @@ func TestRedisSwitch_AClusterProcessFollowsTheApisChoiceWithinOneRefresh(t *test
 	reporting.SetEnabled(true)
 	otherProcess.Refresh(context.Background())
 	assert.False(t, reporting.Enabled(), "and off again")
+}
+
+// With nothing stored the api publishes "true" at its start, so the producer, the worker and the
+// ingester report by default, and an opt-out reaches them within a refresh
+func TestRedisSwitch_TheApiPublishesTrueAtItsStartWhenNothingIsStored(t *testing.T) {
+	reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	server, client := newRedis(t)
+	settings := newFakeSettings()
+	service := NewService(settings, &config.Config{}, NewRedisSwitch(client), zap.NewNop().Sugar())
+	otherProcess := redissync.NewRefresher(client, time.Minute)
+
+	require.NoError(t, service.Apply(context.Background()))
+
+	value, err := server.Get(redissync.Key)
+	require.NoError(t, err)
+	assert.Equal(t, "true", value)
+	assert.True(t, reporting.Enabled(), "the api itself reports")
+	reporting.SetEnabled(false) // the other process, which has not read the key yet
+	otherProcess.Refresh(context.Background())
+	assert.True(t, reporting.Enabled(), "and so do the others, by default")
+	assert.Empty(t, settings.values, "nothing was stored as the admin's choice")
+
+	_, err = service.SetEnabled(context.Background(), false)
+	require.NoError(t, err)
+	otherProcess.Refresh(context.Background())
+	assert.False(t, reporting.Enabled(), "an opt-out reaches them")
 }
 
 func TestRedisSwitch_APeerThatStartsLaterReadsTheChoiceTheApiWroteAtItsStart(t *testing.T) {

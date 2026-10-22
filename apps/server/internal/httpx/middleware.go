@@ -11,8 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// Recovery answers a handler's panic with 500, logs it with its stack, and reports it when an admin
-// opted in to error reports. http.ErrAbortHandler is net/http's way for a handler to abort its
+// Recovery answers a handler's panic with 500, logs it with its stack, and reports it unless an
+// admin opted out of error reports. http.ErrAbortHandler is net/http's way for a handler to abort its
 // response, so it goes on to net/http, which closes the connection without a log.
 func Recovery(logger *zap.SugaredLogger) Middleware {
 	return func(next http.Handler) http.Handler {

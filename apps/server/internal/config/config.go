@@ -109,7 +109,7 @@ type Config struct {
 	// TelemetryURL is where the usage ping is sent. Tests and local stacks point it elsewhere.
 	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
 
-	// Error reports (ADR 0003). They are off until an admin opts in. ERROR_REPORTING=off (or
+	// Error reports (ADR 0003). They are on until an admin opts out. ERROR_REPORTING=off (or
 	// false, 0, no) and DO_NOT_TRACK=1 (or true) force them off whatever the admin chose;
 	// ErrorReportingForcedOff reads them.
 	ErrorReporting string `env:"ERROR_REPORTING"`

@@ -16,7 +16,8 @@ import (
 // the source of truth: the Switch only carries it to the processes, so a Switch that fails never
 // fails a change. It is told the stored choice again by Run.
 type Service interface {
-	// State reports the admin's choice and whether the environment forces reporting off
+	// State reports the admin's choice (on, until they choose) and whether the environment forces
+	// reporting off
 	State(ctx context.Context) (State, error)
 	// SetEnabled stores the admin's choice, turns reporting on or off in this process, tries to
 	// tell the others, and returns the new state. The choice is stored while the environment
@@ -48,7 +49,7 @@ func NewService(settings shared.SettingService, cfg *config.Config, sw Switch, l
 }
 
 func (s *ServiceImpl) State(ctx context.Context) (State, error) {
-	enabled, err := s.storedEnabled(ctx)
+	enabled, err := s.chosenEnabled(ctx)
 	if err != nil {
 		return State{}, err
 	}
@@ -100,7 +101,7 @@ func (s *ServiceImpl) Run(ctx context.Context, every time.Duration) {
 	}
 }
 
-// tell turns reporting on only when the admin chose it and the environment allows it
+// tell turns reporting on unless the admin opted out or the environment forces it off
 func (s *ServiceImpl) tell(ctx context.Context, state State) error {
 	if err := s.sw.Set(ctx, state.Enabled && !state.ForcedOff); err != nil {
 		return fmt.Errorf("tell the processes that report: %w", err)
@@ -108,11 +109,12 @@ func (s *ServiceImpl) tell(ctx context.Context, state State) error {
 	return nil
 }
 
-// storedEnabled reports whether the admin has opted in
-func (s *ServiceImpl) storedEnabled(ctx context.Context) (bool, error) {
+// chosenEnabled reports the admin's choice: on until they choose. A value that is not "true" counts
+// as off, since nothing but this service writes the key.
+func (s *ServiceImpl) chosenEnabled(ctx context.Context) (bool, error) {
 	stored, err := s.settings.GetByKey(ctx, EnabledKey)
 	if err != nil {
 		return false, fmt.Errorf("read %s: %w", EnabledKey, err)
 	}
-	return stored != nil && stored.Value == "true", nil
+	return stored == nil || stored.Value == "true", nil
 }

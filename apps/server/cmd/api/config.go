@@ -69,7 +69,7 @@ type Config struct {
 	DoNotTrack   string `env:"DO_NOT_TRACK"`
 	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
 
-	// Error reports (ADR 0003): off until an admin opts in. ERROR_REPORTING=off and DO_NOT_TRACK=1
+	// Error reports (ADR 0003): on until an admin opts out. ERROR_REPORTING=off and DO_NOT_TRACK=1
 	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
 	ErrorReporting    string `env:"ERROR_REPORTING"`
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`

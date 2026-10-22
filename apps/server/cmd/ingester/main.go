@@ -26,7 +26,7 @@ import (
 const errorReportingFlush = 2 * time.Second
 
 func main() {
-	// A panic that ends the process is reported before it does, if the admin opted in
+	// A panic that ends the process is reported before it does, unless the admin opted out
 	defer reporting.ReportCrash("main")
 
 	log.Printf("Starting Peekaping Ingester v%s", version.Version)

@@ -1,5 +1,5 @@
 // Package reporting is the error report (ticket #233, ADR 0003): a crash report sent to Sentry
-// after an admin opts in. It holds the state of the process (whether reporting is on) as package
+// until an admin opts out. It holds the state of the process (whether reporting is on) as package
 // state, because the places that recover a panic live in many packages and none of them should
 // need a dependency to report it.
 //

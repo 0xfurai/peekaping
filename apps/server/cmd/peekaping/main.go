@@ -82,7 +82,7 @@ var shutdownTimeouts = timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, 
 var telemetrySchedule = telemetry.DefaultSchedule
 
 func main() {
-	// A panic that ends the process is reported before it does, if the admin opted in
+	// A panic that ends the process is reported before it does, unless the admin opted out
 	defer reporting.ReportCrash("main")
 
 	utils.RegisterCustomValidators()
