@@ -27,7 +27,7 @@ func TestDefaultDSN_IsPeekapingsSentryProject(t *testing.T) {
 // Error reports are on by default and reporting.DefaultDSN is a real project, so a test that sets
 // reporting up without a DSN of its own would send a panic to Peekaping's Sentry. This reads every
 // Go test file of the server and fails on a call that could do that:
-//   - reporting.Setup with an Options literal that names none of DSN, Transport and ForcedOff
+//   - reporting.Setup with an Options literal that sets none of DSN, Transport and ForcedOff: true
 //     (ForcedOff builds no client at all, which is how a test resets reporting)
 //   - app.SetupErrorReporting without the option that gives it a transport
 //   - any use of reporting.DefaultDSN
@@ -64,8 +64,8 @@ func TestNoTestCanReachTheBuiltInDSN(t *testing.T) {
 				}
 				switch name {
 				case "reporting.Setup":
-					if len(n.Args) != 1 || !namesAnyOf(n.Args[0], "DSN", "Transport", "ForcedOff") {
-						problems = append(problems, fset.Position(n.Pos()).String()+": reporting.Setup without DSN, Transport or ForcedOff")
+					if len(n.Args) != 1 || !keepsOffTheBuiltInDSN(n.Args[0]) {
+						problems = append(problems, fset.Position(n.Pos()).String()+": reporting.Setup without a DSN, a Transport or ForcedOff: true")
 					}
 				case "SetupErrorReporting", "app.SetupErrorReporting", "wiring.SetupErrorReporting":
 					if len(n.Args) < 3 {
@@ -94,8 +94,11 @@ func calledName(call *ast.CallExpr) string {
 	return ""
 }
 
-// namesAnyOf reports whether arg is a composite literal that sets one of the named fields
-func namesAnyOf(arg ast.Expr, fields ...string) bool {
+// keepsOffTheBuiltInDSN reports whether arg is an Options literal whose client cannot send to the
+// built-in DSN: it sets a DSN or a Transport (anything but the empty string or nil), or ForcedOff
+// to true. A field named with its zero value, such as ForcedOff: false, leaves the built-in DSN in
+// use, and so does a literal this cannot read, such as a variable.
+func keepsOffTheBuiltInDSN(arg ast.Expr) bool {
 	lit, ok := arg.(*ast.CompositeLit)
 	if !ok {
 		return false
@@ -109,11 +112,45 @@ func namesAnyOf(arg ast.Expr, fields ...string) bool {
 		if !ok {
 			continue
 		}
-		for _, field := range fields {
-			if key.Name == field {
+		switch key.Name {
+		case "DSN":
+			if value, ok := kv.Value.(*ast.BasicLit); !ok || value.Kind != token.STRING || value.Value != `""` {
+				return true
+			}
+		case "Transport":
+			if value, ok := kv.Value.(*ast.Ident); !ok || value.Name != "nil" {
+				return true
+			}
+		case "ForcedOff":
+			if value, ok := kv.Value.(*ast.Ident); ok && value.Name == "true" {
 				return true
 			}
 		}
 	}
 	return false
+}
+
+// The guard accepts an Options literal only when the client it builds cannot send to the built-in
+// DSN: a DSN or a Transport that is really set, or ForcedOff set to true. Naming a field with its
+// zero value ("ForcedOff: false", `DSN: ""`, "Transport: nil") leaves the built-in DSN in use.
+func TestNoTestCanReachTheBuiltInDSN_JudgesOptionsLiterals(t *testing.T) {
+	for literal, safe := range map[string]bool{
+		`reporting.Options{DSN: "http://public@127.0.0.1:9/1"}`:  true,
+		`reporting.Options{Transport: transport}`:                true,
+		`reporting.Options{ForcedOff: true}`:                     true,
+		`reporting.Options{Release: "1", ForcedOff: true}`:       true,
+		`reporting.Options{ForcedOff: false}`:                    false,
+		`reporting.Options{ForcedOff: forcedOff}`:                false,
+		`reporting.Options{DSN: ""}`:                             false,
+		`reporting.Options{Transport: nil}`:                      false,
+		`reporting.Options{Release: "1", Mode: "single"}`:        false,
+		`reporting.Options{ForcedOff: false, DSN: "http://x/1"}`: true,
+		`reporting.Options{}`:                                    false,
+		`options`:                                                false,
+	} {
+		expr, err := parser.ParseExpr(literal)
+		require.NoError(t, err, literal)
+
+		assert.Equal(t, safe, keepsOffTheBuiltInDSN(expr), literal)
+	}
 }
