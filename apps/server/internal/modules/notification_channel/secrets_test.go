@@ -244,7 +244,14 @@ func TestRedactConfig(t *testing.T) {
 		{"an empty secret stays empty", provider, `{"url":"u","token":"","password":"hunter2"}`, `{"url":"u","token":"","password":"********"}`},
 		{"an absent secret stays absent", provider, `{"url":"u"}`, `{"url":"u"}`},
 		{"a null secret stays null", provider, `{"token":null}`, `{"token":null}`},
-		{"a secret that isn't a string stays as it is", provider, `{"token":123}`, `{"token":123}`},
+		{"a number in a secret is replaced", provider, `{"token":123}`, `{"token":"********"}`},
+		{"a zero in a secret is replaced", provider, `{"token":0}`, `{"token":"********"}`},
+		{"an object in a secret is replaced", provider, `{"token":{"abc":"def"},"password":"p"}`, `{"token":"********","password":"********"}`},
+		{"an empty object in a secret is replaced", provider, `{"token":{}}`, `{"token":"********"}`},
+		{"an array in a secret is replaced", provider, `{"token":["abc"]}`, `{"token":"********"}`},
+		{"true in a secret is replaced", provider, `{"token":true}`, `{"token":"********"}`},
+		{"false in a secret is replaced", provider, `{"token":false}`, `{"token":"********"}`},
+		{"a value that isn't a string is replaced under a key of another letter case", provider, `{"TOKEN":123}`, `{"TOKEN":"********"}`},
 		{"a key of another letter case is the same secret", provider, `{"Token":"abc","PASSWORD":"p"}`, `{"Token":"********","PASSWORD":"********"}`},
 		{"unknown fields stay", provider, `{"future":{"a":[1,2]},"token":"abc"}`, `{"future":{"a":[1,2]},"token":"********"}`},
 		{"a null config stays", provider, `null`, `null`},
@@ -253,7 +260,8 @@ func TestRedactConfig(t *testing.T) {
 		{"a config that isn't an object comes back empty", provider, `["abc"]`, ``},
 		{"a type with no secrets keeps its config", noSecretsProvider{}, `{"url":"u","token":"abc"}`, `{"url":"u","token":"abc"}`},
 		{"a type with no secrets keeps a config that isn't JSON", noSecretsProvider{}, `{"url":`, `{"url":`},
-		{"an unknown type keeps its config", nil, `{"token":"abc"}`, `{"token":"abc"}`},
+		{"an unknown type comes back empty", nil, `{"token":"abc"}`, ``},
+		{"an unknown type comes back empty, whatever the config is", nil, `{"url":"u"}`, ``},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -295,9 +303,19 @@ func TestRedactModels(t *testing.T) {
 	assert.Equal(t, `{"token":"********"}`, *redacted[1].Config)
 }
 
-func TestRedactModelKeepsTheConfigOfAnUnknownType(t *testing.T) {
+// A channel whose type has no provider (it was removed) can't be told which of its fields are
+// secrets, so none of its config is shown
+func TestRedactModelHidesTheConfigOfAnUnknownType(t *testing.T) {
 	providers, _ := newSecretTestRegistry()
 	config := `{"token":"abc"}`
-	redacted := redactModel(providers, &Model{ID: "channel-1", Type: "test-missing", Config: &config})
-	assert.Equal(t, `{"token":"abc"}`, *redacted.Config)
+	channel := &Model{ID: "channel-1", Name: "Alerts", Type: "test-missing", Config: &config}
+
+	redacted := redactModel(providers, channel)
+
+	assert.Equal(t, "", *redacted.Config)
+	assert.Equal(t, "Alerts", redacted.Name)
+	assert.Equal(t, `{"token":"abc"}`, *channel.Config, "the channel the service holds is untouched")
+
+	noConfig := &Model{ID: "channel-2", Type: "test-missing"}
+	assert.Nil(t, redactModel(providers, noConfig).Config, "a channel with no config has none to show")
 }

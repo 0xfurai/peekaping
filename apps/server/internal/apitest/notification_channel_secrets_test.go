@@ -1,6 +1,7 @@
 package apitest
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -218,6 +219,33 @@ func TestNotificationChannelsAPI_SecretChannelsCoverEveryProvider(t *testing.T) 
 	}
 	sort.Strings(fixtureTypes)
 	assert.Equal(t, a.registeredChannelTypes(t), fixtureTypes, "every notification channel type needs a case in secretChannels")
+}
+
+// A channel can outlive its type: the row stays when the provider is removed. Nothing knows which
+// of its fields are secrets, so its config is not shown.
+func TestNotificationChannelsAPI_AChannelOfAnUnknownTypeShowsNoConfig(t *testing.T) {
+	a := newSecretsApp(t)
+	var id string
+	require.NoError(t, a.container.Invoke(func(channels notification_channel.Service) error {
+		created, err := channels.Create(context.Background(), &notification_channel.CreateUpdateDto{
+			Name: "Retired", Type: "retired-type", Active: true, Config: `{"api_token":"retired-SECRET-token"}`,
+		})
+		if err != nil {
+			return err
+		}
+		id = created.ID
+		return nil
+	}))
+
+	w := a.request(t, http.MethodGet, "/api/v1/notification-channels/"+id, nil, a.asAdmin)
+	got := decode[channelWithConfig](t, w, http.StatusOK)
+	assert.Equal(t, "retired-type", got.Type)
+	assert.Empty(t, got.Config)
+	assert.NotContains(t, w.Body.String(), secretMarker)
+
+	w = a.request(t, http.MethodGet, "/api/v1/notification-channels?limit=1000", nil, a.asAdmin)
+	assert.Len(t, decode[[]channelWithConfig](t, w, http.StatusOK), 1)
+	assert.NotContains(t, w.Body.String(), secretMarker, "the list shows a secret")
 }
 
 func TestNotificationChannelsAPI_ResponsesHideSecrets(t *testing.T) {

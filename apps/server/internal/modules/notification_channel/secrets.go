@@ -171,12 +171,18 @@ func stringValue(raw json.RawMessage) (string, bool) {
 }
 
 // redactConfig returns config with each secret that is set replaced by the placeholder. A
-// secret that is absent or empty stays as it is, so a response tells set from unset. Fields
-// that aren't secrets are left alone.
+// secret that is absent, null or an empty string stays as it is, so a response tells set from
+// unset. Any other value under a secret's key (a number, a bool, an object, an array) is
+// replaced too: a provider can't have read it as a secret, but it may still be one. Fields that
+// aren't secrets are left alone.
 //
-// A config of a type with secrets that isn't a JSON object can't be read, so it comes back
-// empty rather than risk showing a secret in it.
+// It fails closed. A config of a type with secrets that isn't a JSON object can't be read, and a
+// config of a type with no provider (nil) can't be told secrets from the rest, so both come back
+// empty rather than risk showing a secret in them.
 func redactConfig(provider NotificationChannelProvider, config string) string {
+	if provider == nil {
+		return ""
+	}
 	secrets := secretFields(provider)
 	if len(secrets) == 0 {
 		return config
@@ -193,7 +199,8 @@ func redactConfig(provider NotificationChannelProvider, config string) string {
 		if _, isSecret := fieldForKey(secrets, key); !isSecret {
 			continue
 		}
-		if value, ok := stringValue(raw); ok && value != "" {
+		// stringValue reads null as the empty string
+		if value, isString := stringValue(raw); !isString || value != "" {
 			fields[key] = json.RawMessage(`"` + secretPlaceholder + `"`)
 		}
 	}
@@ -366,7 +373,8 @@ func endpointValue(field configField, value reflect.Value) any {
 }
 
 // redactModel returns a copy of channel with its secrets replaced, for a response. The channel
-// itself is left as it is: it may be the one the service holds.
+// itself is left as it is: it may be the one the service holds. A channel whose type has no
+// provider shows no config.
 func redactModel(providers *ProviderRegistry, channel *Model) *Model {
 	if channel == nil || channel.Config == nil {
 		return channel
