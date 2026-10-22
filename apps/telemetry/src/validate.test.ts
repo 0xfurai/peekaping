@@ -57,7 +57,7 @@ describe("validatePing accepts", () => {
     expect(validatePing(withField("mode", mode)).ok).toBe(true);
   });
 
-  test.each(["sqlite", "postgres", "mongo"])("the storage backend %s", (db) => {
+  test.each(["sqlite", "postgres", "mongo", "mysql"])("the storage backend %s", (db) => {
     expect(validatePing(withField("db", db)).ok).toBe(true);
   });
 
@@ -174,7 +174,7 @@ describe("validatePing rejects", () => {
     expect(validatePing(withField("mode", mode)).ok).toBe(false);
   });
 
-  test.each(["", "mysql", "mongodb", "SQLite", "postgresql", 1, null])("the storage backend %p", (db) => {
+  test.each(["", "mongodb", "SQLite", "MySQL", "postgresql", "mariadb", 1, null])("the storage backend %p", (db) => {
     expect(validatePing(withField("db", db)).ok).toBe(false);
   });
 
