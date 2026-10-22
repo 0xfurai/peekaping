@@ -122,6 +122,8 @@ func startAPI(t testing.TB, cfg *Config, logger *zap.SugaredLogger, logs *observ
 		}
 		select {
 		case err := <-in.done:
+			// Kept for stop, so that the cleanup doesn't wait for a result that already came
+			in.stopOnce.Do(func() { in.cancel(); in.stopErr = err })
 			require.FailNow(t, "the API stopped while starting", "%v", err)
 		case <-time.After(20 * time.Millisecond):
 		}
