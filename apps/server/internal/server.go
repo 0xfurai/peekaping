@@ -88,6 +88,7 @@ func ProvideServer(
 	logger *zap.SugaredLogger,
 	cfg *config.Config,
 	trustedProxies *httpx.TrustedProxies,
+	corsOrigins *httpx.CORSOrigins,
 	monitorRoute *monitor.MonitorRoute,
 	monitorController *monitor.MonitorController,
 	authRoute *auth.Route,
@@ -116,7 +117,7 @@ func ProvideServer(
 	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
-	middleware := []httpx.Middleware{httpx.Recovery(logger), httpx.CORS}
+	middleware := []httpx.Middleware{httpx.Recovery(logger), httpx.CORS(corsOrigins)}
 	if cfg.Mode == "dev" {
 		middleware = append([]httpx.Middleware{httpx.Logger(logger, trustedProxies)}, middleware...)
 	}

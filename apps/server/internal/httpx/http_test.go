@@ -28,38 +28,139 @@ func TestJSONAndText(t *testing.T) {
 	assert.Equal(t, "image/svg+xml", w.Header().Get("Content-Type"))
 }
 
-func TestCORSCompatibility(t *testing.T) {
-	for _, tc := range []struct {
-		method, origin string
-		want           int
-		cors           bool
-	}{
-		{"GET", "", 202, false},
-		{"GET", "http://example.com", 202, false},
-		{"GET", "https://client.example", 202, true},
-		{"OPTIONS", "https://client.example", 204, true},
-		{"OPTIONS", "", 202, false},
+// corsOrigins is the allowed set for the CORS_ORIGINS list, with https://peek.example as CLIENT_URL.
+func corsOrigins(t *testing.T, list string) *httpx.CORSOrigins {
+	t.Helper()
+	origins, err := httpx.ParseCORSOrigins(list, "https://peek.example/")
+	require.NoError(t, err)
+	return origins
+}
+
+// serveCORS sends a request for http://example.com/api from origin (none when empty) through
+// httpx.CORS, to a handler that answers 202, and reports whether the handler ran.
+func serveCORS(origins *httpx.CORSOrigins, method, origin string) (w *httptest.ResponseRecorder, ran bool) {
+	r := httptest.NewRequest(method, "http://example.com/api", nil)
+	if origin != "" {
+		r.Header.Set("Origin", origin)
+	}
+	if method == http.MethodOptions {
+		r.Header.Set("Access-Control-Request-Method", "POST")
+	}
+	w = httptest.NewRecorder()
+	httpx.CORS(origins)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ran = true
+		w.WriteHeader(202)
+	})).ServeHTTP(w, r)
+	return w, ran
+}
+
+func accessControlHeaders(w *httptest.ResponseRecorder) []string {
+	var names []string
+	for name := range w.Header() {
+		if strings.HasPrefix(name, "Access-Control-") {
+			names = append(names, name)
+		}
+	}
+	return names
+}
+
+func TestCORS_AnAllowedOriginReadsTheResponse(t *testing.T) {
+	w, ran := serveCORS(corsOrigins(t, "https://client.example,https://other.example"), "GET", "https://client.example")
+
+	assert.True(t, ran)
+	assert.Equal(t, 202, w.Code)
+	assert.Equal(t, "https://client.example", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "Authorization", w.Header().Get("Access-Control-Expose-Headers"))
+	assert.Equal(t, []string{"Origin"}, w.Header().Values("Vary"))
+	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
+}
+
+func TestCORS_APreflightFromAnAllowedOriginIsAnswered(t *testing.T) {
+	w, ran := serveCORS(corsOrigins(t, "https://client.example"), "OPTIONS", "https://client.example")
+
+	assert.False(t, ran)
+	assert.Equal(t, 204, w.Code)
+	assert.Equal(t, "https://client.example", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "GET,POST,PUT,DELETE,OPTIONS,PATCH", w.Header().Get("Access-Control-Allow-Methods"))
+	assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization", w.Header().Get("Access-Control-Allow-Headers"))
+	assert.Equal(t, []string{"Origin"}, w.Header().Values("Vary"))
+	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
+	assert.Empty(t, w.Header().Get("Access-Control-Max-Age"))
+}
+
+func TestCORS_AnOriginNotInTheListGetsNoCORSHeaders(t *testing.T) {
+	origins := corsOrigins(t, "https://client.example")
+	for _, origin := range []string{
+		"https://evil.example",
+		"http://client.example",       // another scheme
+		"https://client.example:8443", // another port
+		"https://sub.client.example",
+		"null",
 	} {
-		r := httptest.NewRequest(tc.method, "http://example.com/api", nil)
-		r.Header.Set("Origin", tc.origin)
-		w := httptest.NewRecorder()
-		ran := false
-		httpx.CORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ran = true
-			w.WriteHeader(202)
-		})).ServeHTTP(w, r)
-		assert.Equal(t, tc.want, w.Code)
-		assert.Equal(t, tc.want != 204, ran)
-		if tc.cors {
-			assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
-			assert.Equal(t, "true", w.Header().Get("Access-Control-Allow-Credentials"))
+		for _, method := range []string{"GET", "POST", "OPTIONS"} {
+			w, ran := serveCORS(origins, method, origin)
+
+			// The request is served as before; the browser just can't read the answer.
+			assert.True(t, ran, "%s from %s", method, origin)
+			assert.Equal(t, 202, w.Code, "%s from %s", method, origin)
+			assert.Empty(t, accessControlHeaders(w), "%s from %s", method, origin)
 		}
-		if tc.want == 204 {
-			assert.Equal(t, "GET,POST,PUT,DELETE,OPTIONS,PATCH", w.Header().Get("Access-Control-Allow-Methods"))
-			assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization", w.Header().Get("Access-Control-Allow-Headers"))
-			assert.Empty(t, w.Header().Get("Access-Control-Max-Age"))
-			assert.Empty(t, w.Header().Get("Vary"))
-		}
+	}
+}
+
+func TestCORS_ASameOriginRequestIsLeftAlone(t *testing.T) {
+	origins := corsOrigins(t, "https://client.example")
+	for _, tc := range []struct{ method, origin string }{
+		{"GET", ""},
+		{"OPTIONS", ""},
+		{"GET", "http://example.com"},
+		{"GET", "https://example.com"},
+		{"OPTIONS", "http://example.com"},
+	} {
+		w, ran := serveCORS(origins, tc.method, tc.origin)
+
+		assert.True(t, ran, "%s from %q", tc.method, tc.origin)
+		assert.Equal(t, 202, w.Code, "%s from %q", tc.method, tc.origin)
+		assert.Empty(t, accessControlHeaders(w), "%s from %q", tc.method, tc.origin)
+		assert.Empty(t, w.Header().Get("Vary"), "%s from %q", tc.method, tc.origin)
+	}
+}
+
+func TestCORS_AStarAllowsAnyOriginWithoutCredentials(t *testing.T) {
+	origins := corsOrigins(t, "*")
+
+	w, ran := serveCORS(origins, "GET", "https://anything.example")
+	assert.True(t, ran)
+	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "Authorization", w.Header().Get("Access-Control-Expose-Headers"))
+	assert.Equal(t, []string{"Origin"}, w.Header().Values("Vary"))
+	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
+
+	w, ran = serveCORS(origins, "OPTIONS", "https://anything.example")
+	assert.False(t, ran)
+	assert.Equal(t, 204, w.Code)
+	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "GET,POST,PUT,DELETE,OPTIONS,PATCH", w.Header().Get("Access-Control-Allow-Methods"))
+	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
+}
+
+func TestCORS_AnUnsetListAllowsTheOriginOfClientURL(t *testing.T) {
+	origins := corsOrigins(t, "")
+
+	w, _ := serveCORS(origins, "GET", "https://peek.example")
+	assert.Equal(t, "https://peek.example", w.Header().Get("Access-Control-Allow-Origin"))
+
+	w, ran := serveCORS(origins, "GET", "https://evil.example")
+	assert.True(t, ran)
+	assert.Empty(t, accessControlHeaders(w))
+}
+
+func TestCORS_WithoutOriginsNoOriginIsAllowed(t *testing.T) {
+	for _, origins := range []*httpx.CORSOrigins{nil, {}} {
+		w, ran := serveCORS(origins, "GET", "https://client.example")
+
+		assert.True(t, ran)
+		assert.Empty(t, accessControlHeaders(w))
 	}
 }
 

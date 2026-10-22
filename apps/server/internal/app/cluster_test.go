@@ -56,6 +56,7 @@ func clusterConfig(t *testing.T) *config.Config {
 		BruteforceMaxAttempts: 20,
 		BruteforceWindow:      time.Minute,
 		BruteforceLockout:     time.Minute,
+		ClientURL:             "http://localhost:3000",
 		ServiceName:           "peekaping:apptest",
 	}
 }

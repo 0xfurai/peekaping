@@ -50,23 +50,31 @@ func LimitBody(max int64) Middleware {
 	}
 }
 
-// CORS retains the existing wildcard-origin policy; PP-55 owns policy changes.
-func CORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		origin := r.Header.Get("Origin")
-		if origin == "" || origin == "http://"+r.Host || origin == "https://"+r.Host {
+// CORS lets a page on one of origins read the API's responses. A request from any other origin
+// is served as it is, without CORS headers, so its browser won't hand the response to the page.
+// A request with no Origin, or from the host it is sent to, isn't cross-origin and is left
+// alone. Responses never carry Access-Control-Allow-Credentials: the API's auth is a bearer
+// header, not a cookie.
+func CORS(origins *CORSOrigins) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+			sameOrigin := origin == "" || origin == "http://"+r.Host || origin == "https://"+r.Host
+			allowOrigin := origins.AllowOrigin(origin)
+			if sameOrigin || allowOrigin == "" {
+				next.ServeHTTP(w, r)
+				return
+			}
+			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+			w.Header().Add("Vary", "Origin")
+			if r.Method == http.MethodOptions {
+				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
+				w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization")
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			w.Header().Set("Access-Control-Expose-Headers", "Authorization")
 			next.ServeHTTP(w, r)
-			return
-		}
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		if r.Method == http.MethodOptions {
-			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
-			w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization")
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		w.Header().Set("Access-Control-Expose-Headers", "Authorization")
-		next.ServeHTTP(w, r)
-	})
+		})
+	}
 }
