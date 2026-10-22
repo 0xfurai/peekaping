@@ -27,9 +27,10 @@ import (
 )
 
 // shutdownTimeouts are the producer's, 30 seconds in all, Kubernetes' default grace period. The
-// producer stops as soon as its context is cancelled, but it releases the leadership with a call
-// to Redis that may take 5 seconds, and the claim in flight finishes enqueuing its check: the
-// jobs' share allows for both. The event bus gets the rest. A test may shorten them.
+// producer stops scheduling and its watchdog as soon as its context is cancelled, and the claim
+// in flight finishes enqueuing its check. Only then does it release the leadership, with a call
+// to Redis that may take 5 seconds: the jobs' share allows for both. The event bus gets the
+// rest. A test may shorten them.
 var shutdownTimeouts = graceful.Timeouts{Jobs: 20 * time.Second, EventBus: 10 * time.Second}
 
 // errorReportingFlush is how long the shutdown waits for the error reports still queued

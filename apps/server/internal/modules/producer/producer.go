@@ -68,15 +68,18 @@ func NewProducer(
 }
 
 // Start starts the producer with leader election. It runs until ctx is done or Stop is called:
-// either stops the scheduling and the watchdog, and releases the leadership. When Start fails,
-// what had started runs on until Stop.
+// either stops the scheduling and the watchdog, and releases the leadership (Stop in that order,
+// logging each step). When Start fails, what had started runs on until Stop.
 func (p *Producer) Start(ctx context.Context) error {
 	if err := p.begin(ctx); err != nil {
 		return err
 	}
 	p.logger.Info("Starting producer with leader election")
 
-	p.leaderElection.Start(p.ctx)
+	// The election ends with ctx, or when Stop ends it after the scheduling and the watchdog
+	electionCtx, electionCancel := context.WithCancel(ctx)
+	p.electionCancel = electionCancel
+	p.leaderElection.Start(electionCtx)
 	p.electionDone = p.leaderElection.Done()
 
 	if err := p.startJobProcessing(); err != nil {
@@ -102,17 +105,27 @@ func (p *Producer) begin(ctx context.Context) error {
 	return nil
 }
 
-// Stop stops the producer and waits for it: the claim loops, the schedule refresher and the
-// watchdog end, and the leadership it held is released. It does nothing when the producer didn't
-// start, and may be called again.
+// Stop stops the producer and waits for it, in order, logging each step once it is done: the
+// claim loops, the reclaimer and the schedule refresher end ("Stopped scheduling"), then the
+// watchdog ends ("Stopped the watchdog"), and last the leadership it held is released (the
+// election logs "Released leadership"). It does nothing when the producer didn't start, and may
+// be called again.
 func (p *Producer) Stop() {
 	if p.cancel == nil {
 		return
 	}
 	p.logger.Info("Stopping producer")
 	p.cancel()
+	// These end together, as p.ctx is done, and are waited for in the order of the stop
 	p.wg.Wait()
-	// The election releases the leadership as its context is done, beside the goroutines above
+	p.logger.Info("Stopped scheduling")
+	p.watchdogWg.Wait()
+	p.logger.Info("Stopped the watchdog")
+	// The leadership stays with this producer until nothing it runs is left: a watchdog that
+	// outlived its leadership could run beside the next leader's
+	if p.electionCancel != nil {
+		p.electionCancel()
+	}
 	if p.electionDone != nil {
 		<-p.electionDone
 	}

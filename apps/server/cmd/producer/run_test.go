@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -18,15 +19,28 @@ import (
 	"go.uber.org/zap"
 )
 
-// shutdownOrder is what a shutdown that stops everything in time logs, in this order
-var shutdownOrder = []string{
-	"Shutdown signal received, shutting down",
-	"Stopped the producer",
-	"Closed the event bus",
-	"SQLite database closed gracefully",
-	"Closed the database",
-	"Producer shut down",
+// producerStopOrder is what stopping the producer logs, in this order: it stops scheduling and
+// its watchdog, and only then releases the leadership
+var producerStopOrder = []string{
+	"Stopping producer",
+	"Stopped scheduling",
+	"Stopped the watchdog",
+	"Released leadership",
+	"Producer stopped",
 }
+
+// shutdownOrder is what a shutdown that stops everything in time logs, in this order
+var shutdownOrder = slices.Concat(
+	[]string{"Shutdown signal received, shutting down"},
+	producerStopOrder,
+	[]string{
+		"Stopped the producer",
+		"Closed the event bus",
+		"SQLite database closed gracefully",
+		"Closed the database",
+		"Producer shut down",
+	},
+)
 
 // waitUntilScheduling waits until the producer is the leader and has enqueued the check of the
 // monitor for the worker, so that the shutdown finds it at work
@@ -88,13 +102,16 @@ func TestServe_StopsWhatItStartedAndReturnsAnErrorWhenStartingFails(t *testing.T
 	assert.ErrorContains(t, err, "producer already started")
 	failed := logs.FilterMessage("Failed to start the producer, shutting down").All()
 	require.Len(t, failed, 1)
-	order := []string{
-		"Failed to start the producer, shutting down",
-		"Stopped the producer",
-		"Closed the event bus",
-		"SQLite database closed gracefully",
-		"Closed the database",
-	}
+	order := slices.Concat(
+		[]string{"Failed to start the producer, shutting down"},
+		producerStopOrder,
+		[]string{
+			"Stopped the producer",
+			"Closed the event bus",
+			"SQLite database closed gracefully",
+			"Closed the database",
+		},
+	)
 	assert.Equal(t, order, logged(logs, order), "what had started stopped, in order")
 	assert.False(t, redis.Exists(producer.LeaderKey), "the leadership is released")
 	assert.Zero(t, logs.FilterMessage("Producer shut down").Len())

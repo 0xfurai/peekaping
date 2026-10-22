@@ -89,9 +89,9 @@ func (p *Producer) startMonitorSyncing() error {
 	reporting.Go("producer", func() { p.runScheduleRefresher(syncCtx) })
 
 	// Start the stale-monitor watchdog
-	p.wg.Add(1)
+	p.watchdogWg.Add(1)
 	reporting.Go("watchdog", func() {
-		defer p.wg.Done()
+		defer p.watchdogWg.Done()
 		p.watchdog.Run(syncCtx)
 	})
 

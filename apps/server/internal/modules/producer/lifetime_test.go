@@ -2,6 +2,7 @@ package producer
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -14,6 +15,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// releasesLeadership is whether the Redis command is the election's release of the leadership,
+// not another script of the producer's
+func releasesLeadership(cmd string, args []string) bool {
+	return strings.EqualFold(cmd, "EVAL") && slices.Contains(args, LeaderKey)
+}
+
 // holdLeadershipRelease makes Redis hold the command that releases the leadership until the
 // returned function is called, which the test's cleanup does too
 func holdLeadershipRelease(t *testing.T, e *leaderEngine) (release func()) {
@@ -21,8 +28,8 @@ func holdLeadershipRelease(t *testing.T, e *leaderEngine) (release func()) {
 	released := make(chan struct{})
 	var once sync.Once
 	release = func() { once.Do(func() { close(released) }) }
-	e.mr.Server().SetPreHook(func(_ *server.Peer, cmd string, _ ...string) bool {
-		if strings.EqualFold(cmd, "EVAL") {
+	e.mr.Server().SetPreHook(func(_ *server.Peer, cmd string, args ...string) bool {
+		if releasesLeadership(cmd, args) {
 			<-released
 		}
 		return false
@@ -46,7 +53,12 @@ func startedLeader(t *testing.T, ctx context.Context) *leaderEngine {
 	e := newLeaderEngine(t, &monitor.Model{ID: "mon-1", Active: true, Interval: 60})
 	require.NoError(t, e.producer.Start(ctx))
 	t.Cleanup(e.producer.Stop)
-	e.eventuallyDueAt(t, "mon-1", t0)
+	// The claim loop takes the monitor from the due set as soon as it is due, so it may be leased
+	require.Eventually(t, func() bool {
+		_, due := e.score(SchedDueKey, "mon-1")
+		_, leased := e.score(SchedLeaseKey, "mon-1")
+		return due || leased
+	}, 5*time.Second, 2*time.Millisecond, "the producer never scheduled mon-1")
 	require.True(t, leaderKeyExists(t, e), "the producer isn't the leader")
 	return e
 }
@@ -88,6 +100,45 @@ func TestStop_ReturnsOnceTheLeadershipIsReleased(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "Stop didn't return once the leadership was released")
 	}
+	assert.False(t, leaderKeyExists(t, e), "the leader key is still there")
+}
+
+func TestStop_StopsSchedulingAndTheWatchdogBeforeItReleasesTheLeadership(t *testing.T) {
+	e := startedLeader(t, context.Background())
+	steps := []string{"Stopping producer", "Stopped scheduling", "Stopped the watchdog", "Producer stopped"}
+	// The steps Stop has logged when Redis gets the command that releases the leadership
+	var loggedAtRelease []string
+	atRelease := make(chan struct{})
+	releaseHeld := make(chan struct{})
+	var once sync.Once
+	t.Cleanup(func() { once.Do(func() { close(releaseHeld) }) })
+	e.mr.Server().SetPreHook(func(_ *server.Peer, cmd string, args ...string) bool {
+		if releasesLeadership(cmd, args) {
+			for _, entry := range e.logs.All() {
+				if slices.Contains(steps, entry.Message) {
+					loggedAtRelease = append(loggedAtRelease, entry.Message)
+				}
+			}
+			close(atRelease)
+			<-releaseHeld
+		}
+		return false
+	})
+
+	stopped := make(chan struct{})
+	go func() {
+		defer close(stopped)
+		e.producer.Stop()
+	}()
+
+	select {
+	case <-atRelease:
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "the leadership wasn't released")
+	}
+	assert.Equal(t, steps[:3], loggedAtRelease, "the leadership is released after scheduling and the watchdog stopped")
+	once.Do(func() { close(releaseHeld) })
+	<-stopped
 	assert.False(t, leaderKeyExists(t, e), "the leader key is still there")
 }
 
