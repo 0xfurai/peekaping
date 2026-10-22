@@ -382,3 +382,41 @@ func TestLeaveRoomStopsDelivery(t *testing.T) {
 	}
 	assert.False(t, deliversA(round+1), "monitor:%s delivered again after leave_room", monitorA)
 }
+
+// The room name is client input. A message without a string room name is
+// dropped, and the connection keeps working.
+func TestMalformedRoomMessagesDontCrashTheServer(t *testing.T) {
+	h := newHarness(t)
+
+	for _, event := range []string{"join_room", "leave_room"} {
+		for _, arg := range []struct{ name, json string }{
+			{"no argument", ""},
+			{"a number", ",1"},
+			{"an object", ",{}"},
+		} {
+			t.Run(event+" with "+arg.name, func(t *testing.T) {
+				c := h.connect(t)
+				require.NoError(t, c.post(`42["`+event+`"`+arg.json+`]`))
+
+				c.join(t, h.bus, "monitor:"+monitorA, monitorA)
+			})
+		}
+	}
+}
+
+// A logged-in client can post the bare packet "42", an EVENT with no payload. Older
+// socket.io parsers let it through with nil data, and socket.io then cast the data
+// unchecked in its own goroutine, so no handler recover could catch the panic. The
+// library now closes that client's session, and the server has to keep serving others.
+func TestEventPacketWithoutPayloadDoesntCrashTheServer(t *testing.T) {
+	h := newHarness(t)
+	bad := h.connect(t)
+	// The library closes the session and may abort this request with a 429, but the
+	// packet has to reach the server for the test to mean anything.
+	if err := bad.post("42"); err != nil {
+		require.EqualError(t, err, `POST "42": 429 Too Many Requests`)
+	}
+
+	c := h.connect(t)
+	c.join(t, h.bus, "monitor:"+monitorA, monitorA)
+}
