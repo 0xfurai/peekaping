@@ -160,7 +160,16 @@ func (s *ServiceImpl) NextPing(ctx context.Context, now time.Time) (*Payload, er
 	return &payload, nil
 }
 
-func (s *ServiceImpl) RecordSent(ctx context.Context, at time.Time) error {
+func (s *ServiceImpl) RecordSent(ctx context.Context, instanceID string, at time.Time) error {
+	// Opting out deletes the last-sent time with the instance ID. A ping that was already on its
+	// way must not bring it back: the next opt-in would wait up to a day for its first ping.
+	stored, err := s.storedValue(ctx, InstanceIDKey)
+	if err != nil {
+		return err
+	}
+	if instanceID == "" || stored != instanceID {
+		return nil
+	}
 	if _, err := s.settings.SetByKey(ctx, LastSentKey, &shared.SettingModel{Value: at.UTC().Format(time.RFC3339), Type: "string"}); err != nil {
 		return fmt.Errorf("store %s: %w", LastSentKey, err)
 	}

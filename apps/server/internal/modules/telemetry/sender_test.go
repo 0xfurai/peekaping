@@ -233,6 +233,54 @@ func TestSender_OptingOutAndInSendsAtOnceWithTheNewID(t *testing.T) {
 	assert.NotEqual(t, first.InstanceID, second.InstanceID)
 }
 
+// An admin who opts out while a ping is in flight gets no last-sent time back from it: the next
+// opt-in would find a ping "sent" a moment ago and wait up to a day for its first one. The same
+// goes for an admin who opts out and in again, and so has a new instance ID, since the ping that
+// was in flight carried the old one.
+func TestSender_ARecordedPingNeverOutlivesTheOptInItWasSentUnder(t *testing.T) {
+	for name, change := range map[string]func(t *testing.T, svc Service){
+		"opted out": func(t *testing.T, svc Service) {
+			_, err := svc.SetEnabled(context.Background(), false)
+			require.NoError(t, err)
+		},
+		"opted out and in again": func(t *testing.T, svc Service) {
+			_, err := svc.SetEnabled(context.Background(), false)
+			require.NoError(t, err)
+			_, err = svc.SetEnabled(context.Background(), true)
+			require.NoError(t, err)
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			inFlight := make(chan struct{})
+			release := make(chan struct{})
+			var once sync.Once
+			wk := newWorker(t, func(http.ResponseWriter, *http.Request) {
+				once.Do(func() { close(inFlight) })
+				<-release
+			})
+			st := newSenderTest(t, wk.URL, claimsAlways())
+			sending := make(chan struct{})
+			go func() {
+				defer close(sending)
+				st.sender.SendIfDue(context.Background())
+			}()
+			<-inFlight
+
+			change(t, st.svc)
+			close(release)
+			<-sending
+
+			assert.Equal(t, "", st.lastSent(t), "the ping that was in flight is not recorded")
+			if name == "opted out" {
+				_, err := st.svc.SetEnabled(context.Background(), true)
+				require.NoError(t, err)
+			}
+			st.sender.SendIfDue(context.Background())
+			assert.Equal(t, 2, wk.received(), "the new opt-in sends its first ping at the next check")
+		})
+	}
+}
+
 func TestSender_OnlyTheReplicaThatClaimsSends(t *testing.T) {
 	wk := newWorker(t, nil)
 	claim := false
