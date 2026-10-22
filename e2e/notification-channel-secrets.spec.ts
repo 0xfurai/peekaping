@@ -156,22 +156,64 @@ test('Changing the type leaves no saved secret placeholder in the form', async (
   }
 });
 
+test('A saved webhook URL passes the form checks untouched', async ({ page, request }) => {
+  const id = randomID();
+  const name = `Secrets ${id}`;
+  const created: string[] = [];
+  const api = await adminAPI(page);
+
+  try {
+    // A Discord channel's webhook URL is a secret, and the form requires it to be a URL
+    const channelID = await createChannel(api, created, name, 'discord', {
+      webhook_url: webhookURL(id),
+      bot_display_name: 'Peekaping',
+      message_type: 'send_to_channel',
+    });
+
+    await page.goto(`/notification-channels/${channelID}/edit`);
+    const urlItem = secretItem(page, 'webhook_url');
+    await expect(urlItem.locator('input')).toHaveValue('');
+    await expect(urlItem.getByText(savedHint)).toBeVisible();
+
+    await page.locator('input[name="name"]').fill(`${name} renamed`);
+    const updated = page.waitForResponse(
+      (response) => response.url().endsWith(`/notification-channels/${channelID}`) && response.request().method() === 'PUT',
+    );
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    const updatedResponse = await updated;
+    expect(updatedResponse.status(), await updatedResponse.text()).toBe(200);
+    await expect(page).toHaveURL(/\/notification-channels$/);
+
+    // The saved URL is the one the test notification goes to
+    await page.goto(`/notification-channels/${channelID}/edit`);
+    await pressTest(page);
+    await expectWebhooks(request, id, 1);
+  } finally {
+    for (const path of created) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
 // A webhook channel made through the API, which keeps its config as it is given.
-async function createWebhookChannel(
+function createWebhookChannel(
   api: APIRequestContext,
   created: string[],
   name: string,
   url: string,
   secrets: { webhook_additional_headers?: string; webhook_signing_secret?: string },
 ): Promise<string> {
+  return createChannel(api, created, name, 'webhook', { webhook_url: url, webhook_content_type: 'json', ...secrets });
+}
+
+async function createChannel(
+  api: APIRequestContext,
+  created: string[],
+  name: string,
+  type: string,
+  config: Record<string, unknown>,
+): Promise<string> {
   const response = await api.post('notification-channels', {
-    data: {
-      name,
-      type: 'webhook',
-      active: true,
-      is_default: false,
-      config: JSON.stringify({ webhook_url: url, webhook_content_type: 'json', ...secrets }),
-    },
+    data: { name, type, active: true, is_default: false, config: JSON.stringify(config) },
   });
   expect(response.status(), await response.text()).toBe(201);
   const channelID: string = (await response.json()).data.id;
