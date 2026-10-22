@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/felixge/httpsnoop"
 	"go.uber.org/zap"
@@ -21,9 +22,13 @@ func Recovery(logger *zap.SugaredLogger) Middleware {
 	}
 }
 
+// quietRoutes are the routes that monitoring polls, which Logger logs at debug level.
+var quietRoutes = []string{"/health", "/api/v1/health", "/metrics"}
+
 // Logger logs each request once it is done, after RequestID. It logs the pattern of the route
 // that served the request, empty when none did, and never the path or the query, which can hold
-// a secret such as a push token. The client address it logs is the one proxies resolves.
+// a secret such as a push token. The requests to quietRoutes go to debug level, and the others
+// to info level. The client address it logs is the one proxies resolves.
 func Logger(logger *zap.SugaredLogger, proxies *TrustedProxies) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +38,11 @@ func Logger(logger *zap.SugaredLogger, proxies *TrustedProxies) Middleware {
 			if info := requestInfoFrom(r.Context()); info != nil {
 				route = info.route
 			}
-			Log(r.Context(), logger).Infow("HTTP request", "method", r.Method, "route", route,
+			level := zap.InfoLevel
+			if slices.Contains(quietRoutes, route) {
+				level = zap.DebugLevel
+			}
+			Log(r.Context(), logger).Logw(level, "HTTP request", "method", r.Method, "route", route,
 				"status", metrics.Code, "client_ip", proxies.ClientIP(r), "size", metrics.Written, "duration", metrics.Duration)
 		})
 	}

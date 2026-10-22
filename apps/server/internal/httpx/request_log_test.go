@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 )
 
@@ -97,6 +98,48 @@ func TestRequestLogUsesRoutePattern(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRequestLogLevel(t *testing.T) {
+	newRouter := func(level zapcore.Level) (*httpx.Router, *observer.ObservedLogs) {
+		core, logs := observer.New(level)
+		router := httpx.NewRouter(httpx.RequestID, httpx.Logger(zap.New(core).Sugar(), nil))
+		ok := func(w http.ResponseWriter, r *http.Request) { httpx.Text(w, 200, "ok") }
+		router.Handle("GET", "/health", ok)
+		router.Handle("GET", "/metrics", ok)
+		router.Group("/api/v1").Handle("GET", "/health", ok)
+		router.Group("/api/v1").Handle("GET", "/monitors", ok)
+		return router, logs
+	}
+
+	for _, tc := range []struct {
+		path  string
+		level zapcore.Level
+	}{
+		{"/health", zap.DebugLevel},
+		{"/api/v1/health", zap.DebugLevel},
+		{"/metrics", zap.DebugLevel},
+		{"/api/v1/monitors", zap.InfoLevel},
+		{"/api/v1/monitors?next=/health", zap.InfoLevel},
+		{"/health/extra", zap.InfoLevel},
+		{"/nothing", zap.InfoLevel},
+	} {
+		t.Run(tc.path, func(t *testing.T) {
+			router, logs := newRouter(zap.DebugLevel)
+			router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", tc.path, nil))
+			all := logs.TakeAll()
+			require.Len(t, all, 1)
+			assert.Equal(t, tc.level, all[0].Level)
+		})
+	}
+
+	t.Run("the default log level skips the health checks", func(t *testing.T) {
+		router, logs := newRouter(zap.InfoLevel)
+		for _, path := range []string{"/health", "/api/v1/health", "/metrics", "/api/v1/monitors"} {
+			router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", path, nil))
+		}
+		assert.Equal(t, 1, logs.Len())
+	})
 }
 
 func TestLogFromContext(t *testing.T) {
