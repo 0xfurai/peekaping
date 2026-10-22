@@ -982,7 +982,7 @@ func TestMonitorService_Delete(t *testing.T) {
 		err := service.Delete(ctx, monitorID)
 
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"lookup", "notification links", "tag links", "heartbeats", "stats", "monitor"}, order, "the monitor is looked up first and its row is deleted last")
+		assert.Equal(t, []string{"lookup", "heartbeats", "stats", "monitor", "notification links", "tag links"}, order, "the monitor is looked up first, and its links go only after its row, so a live monitor never loses its notification channels")
 		assert.Equal(t, []string{monitorID}, eventstest.Published(bus, events.MonitorDeleted))
 		tx := transactionOf(service)
 		assert.Equal(t, 1, tx.committed, "everything is deleted in one transaction")
@@ -1030,35 +1030,35 @@ func TestMonitorService_Delete(t *testing.T) {
 	}
 
 	// Each case lets the deletes before the one that fails succeed, and sets up no call after it:
-	// a call the test didn't expect fails it, so the monitor row isn't deleted after a failure.
+	// a call the test didn't expect fails it, so nothing after the failing step runs.
 	for _, tc := range []struct {
 		name  string
 		setUp func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService)
 	}{
-		{"the notification channel links", func(_ *MockMonitorRepository, _ *MockHeartbeatService, notifications *MockMonitorNotificationService, _ *MockMonitorTagService, _ *MockStatsService) {
-			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
-		}},
-		{"the tag links", func(_ *MockMonitorRepository, _ *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, _ *MockStatsService) {
-			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
-			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
-		}},
-		{"the heartbeats", func(_ *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, _ *MockStatsService) {
-			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
-			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+		{"the heartbeats", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
 			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
 		}},
-		{"the stats", func(_ *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
-			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
-			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+		{"the stats", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
 			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
 			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
 		}},
 		{"the monitor", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
-			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
-			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
 			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
 			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
 			repo.On("Delete", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the notification channel links", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			repo.On("Delete", inTx, "monitor123").Return(nil)
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
+		}},
+		{"the tag links", func(repo *MockMonitorRepository, heartbeats *MockHeartbeatService, notifications *MockMonitorNotificationService, tags *MockMonitorTagService, statsService *MockStatsService) {
+			heartbeats.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			statsService.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			repo.On("Delete", inTx, "monitor123").Return(nil)
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("delete failed"))
 		}},
 	} {
 		t.Run("returns the error, rolls back and publishes nothing when deleting "+tc.name+" fails", func(t *testing.T) {

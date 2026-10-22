@@ -289,9 +289,10 @@ func (mr *MonitorServiceImpl) validatePartialConfig(current *Model, update *Part
 }
 
 func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
-	// The monitor goes with its links, heartbeats and stats, or stays with all of them. The
-	// monitor row is deleted last: on MongoDB, which has no transaction here, a delete that fails
-	// part way leaves the monitor, and the request can be sent again.
+	// The monitor goes with its links, heartbeats and stats, or stays with all of them. On
+	// MongoDB, which has no transaction here, the order decides what a delete that fails part way
+	// leaves: the monitor row goes after its heartbeats and stats, so the request can be sent
+	// again, and before its links, so a monitor that stays keeps its notification channels.
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
 		current, err := mr.FindByID(ctx, id)
 		if err != nil {
@@ -300,19 +301,22 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
 		if current == nil {
 			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
 		}
-		if err := mr.monitorNotificationService.DeleteByMonitorID(ctx, id); err != nil {
-			return fmt.Errorf("delete notification channel links: %w", err)
-		}
-		if err := mr.monitorTagService.DeleteByMonitorID(ctx, id); err != nil {
-			return fmt.Errorf("delete tag links: %w", err)
-		}
 		if err := mr.heartbeatService.DeleteByMonitorID(ctx, id); err != nil {
 			return fmt.Errorf("delete heartbeats: %w", err)
 		}
 		if err := mr.statPointsService.DeleteByMonitorID(ctx, id); err != nil {
 			return fmt.Errorf("delete stats: %w", err)
 		}
-		return mr.monitorRepository.Delete(ctx, id)
+		if err := mr.monitorRepository.Delete(ctx, id); err != nil {
+			return err
+		}
+		if err := mr.monitorNotificationService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete notification channel links: %w", err)
+		}
+		if err := mr.monitorTagService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete tag links: %w", err)
+		}
+		return nil
 	})
 	if err != nil {
 		return err
