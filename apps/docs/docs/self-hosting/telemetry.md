@@ -63,7 +63,7 @@ Every storage backend you can set with `DB_TYPE` is counted. `DB_TYPE=postgresql
 
 #### Instance ID
 
-The instance ID is a random UUID. Peekaping creates it the first time it is needed while the usage ping is on, which for an install that never chose is soon after it starts. It deletes the ID when an admin turns the usage ping off. If you turn the usage ping on again, you get a new ID. Replicas of a cluster that start together end up with the same ID. While `TELEMETRY=off` or `DO_NOT_TRACK=1` applies, Peekaping makes none. It is the only identifier in a usage ping, and nothing about your install goes into it.
+The instance ID is a random UUID. Peekaping creates it the first time it is needed while the usage ping is on, which for an install that never chose is soon after it starts. It deletes the ID when an admin turns the usage ping off. If you turn the usage ping on again, you get a new ID. On SQLite and PostgreSQL, replicas of a cluster that start together end up with the same ID. On MongoDB, replicas that start at the very same moment may create different IDs, because its settings have no unique key. While `TELEMETRY=off` or `DO_NOT_TRACK=1` applies, Peekaping makes none. It is the only identifier in a usage ping, and nothing about your install goes into it.
 
 The ID lets us count an install once instead of once a day. Because it changes when you opt out and in again, one install can be counted twice over time.
 
