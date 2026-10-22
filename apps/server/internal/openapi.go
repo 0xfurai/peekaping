@@ -13,6 +13,7 @@ import (
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/telemetry"
 
 	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/zap"
@@ -34,6 +35,7 @@ func OpenAPI() *huma.OpenAPI {
 		maintenance.NewRoute(nil, nil), nil, nil,
 		status_page.NewRoute(nil, nil), nil,
 		tag.NewRoute(nil, nil), nil,
+		telemetry.NewRoute(nil, nil, nil), nil,
 		badge.NewRoute(nil), nil,
 		api_key.NewRoute(nil, nil), nil, nil, nil,
 	)

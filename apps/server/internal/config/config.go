@@ -100,6 +100,28 @@ type Config struct {
 	// Set to true to expose an unauthenticated /metrics endpoint for Prometheus
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
+
+	// Usage ping (ADR 0003). The ping is off until an admin opts in. TELEMETRY=off (or false, 0,
+	// no) and DO_NOT_TRACK=1 (or true) force it off whatever the admin chose; TelemetryForcedOff
+	// reads them. They stay strings so the config doesn't guess at other spellings.
+	Telemetry  string `env:"TELEMETRY"`
+	DoNotTrack string `env:"DO_NOT_TRACK"`
+	// TelemetryURL is where the usage ping is sent. Tests and local stacks point it elsewhere.
+	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
+}
+
+// TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is
+// off, false, 0 or no, or DO_NOT_TRACK is 1 or true. Case and surrounding spaces don't matter.
+func (c *Config) TelemetryForcedOff() bool {
+	switch strings.ToLower(strings.TrimSpace(c.Telemetry)) {
+	case "off", "false", "0", "no":
+		return true
+	}
+	switch strings.ToLower(strings.TrimSpace(c.DoNotTrack)) {
+	case "1", "true":
+		return true
+	}
+	return false
 }
 
 var validate = validator.New()

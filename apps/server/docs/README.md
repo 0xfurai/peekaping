@@ -14,7 +14,7 @@ Generation uses pinned Huma, Hey API, and Prettier versions. CI regenerates the 
 
 ## Route inventory
 
-All 75 REST operations are represented, including non-JSON responses:
+All 77 REST operations are represented, including non-JSON responses:
 
 | Area | Operations |
 | --- | ---: |
@@ -28,6 +28,7 @@ All 75 REST operations are represented, including non-JSON responses:
 | Proxies | 6 |
 | Tags | 6 |
 | Settings | 3 |
+| Telemetry | 2 |
 | Push URL | 1 |
 | API health/version | 2 |
 | Root `/health` alias | 1 |

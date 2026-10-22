@@ -75,6 +75,8 @@ import {
   getTagsById,
   patchTagsById,
   putTagsById,
+  getTelemetry,
+  putTelemetry,
   getVersion,
   getHealthRoot,
 } from "../sdk.gen";
@@ -250,6 +252,10 @@ import type {
   PutTagsByIdData,
   PutTagsByIdError,
   PutTagsByIdResponse,
+  GetTelemetryData,
+  PutTelemetryData,
+  PutTelemetryError,
+  PutTelemetryResponse,
   GetVersionData,
   GetHealthRootData,
 } from "../types.gen";
@@ -2857,6 +2863,56 @@ export const putTagsByIdMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await putTagsById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getTelemetryQueryKey = (options?: Options<GetTelemetryData>) =>
+  createQueryKey("getTelemetry", options);
+
+/**
+ * Get the usage ping state
+ * Whether an admin opted in to the anonymous usage ping, whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, and the exact payload the next ping would send.
+ */
+export const getTelemetryOptions = (options?: Options<GetTelemetryData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getTelemetry({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getTelemetryQueryKey(options),
+  });
+};
+
+/**
+ * Opt in or out of the usage ping
+ * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins.
+ */
+export const putTelemetryMutation = (
+  options?: Partial<Options<PutTelemetryData>>
+): UseMutationOptions<
+  PutTelemetryResponse,
+  AxiosError<PutTelemetryError>,
+  Options<PutTelemetryData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutTelemetryResponse,
+    AxiosError<PutTelemetryError>,
+    Options<PutTelemetryData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putTelemetry({
         ...options,
         ...localOptions,
         throwOnError: true,

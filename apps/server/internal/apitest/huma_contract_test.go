@@ -139,7 +139,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 75, count)
+	assert.Equal(t, 77, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)
@@ -294,6 +294,39 @@ func TestOpenAPI_RequiredValuesMatchValidation(t *testing.T) {
 			check(true)
 			tc.body[tc.field] = tc.invalid
 			check(false)
+		})
+	}
+}
+
+func TestOpenAPI_TelemetryEnabledIsNotNullable(t *testing.T) {
+	a := newAppWithAdmin(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/telemetry.UpdateDto")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		body   string
+		valid  bool
+		status int
+	}{
+		{`{"enabled":true}`, true, 200},
+		{`{"enabled":false}`, true, 200},
+		{`{"enabled":null}`, false, 400},
+		{`{}`, false, 400},
+	} {
+		t.Run(tc.body, func(t *testing.T) {
+			value, err := jsonschema.UnmarshalJSON(strings.NewReader(tc.body))
+			require.NoError(t, err)
+			if tc.valid {
+				assert.NoError(t, schema.Validate(value))
+			} else {
+				assert.Error(t, schema.Validate(value))
+			}
+			w := a.request(t, "PUT", "/api/v1/telemetry", tc.body, a.asAdmin)
+			assert.Equal(t, tc.status, w.Code, w.Body.String())
 		})
 	}
 }

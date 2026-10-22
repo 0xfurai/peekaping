@@ -27,6 +27,7 @@ import (
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -95,6 +96,28 @@ func TestRegisterSingle_ProvidesNoRedisAndNoQueue(t *testing.T) {
 	assert.Error(t, container.Invoke(func(*asynq.Client) {}), "single mode has no asynq client")
 	assert.Error(t, container.Invoke(func(*asynq.Server) {}), "single mode has no asynq server")
 	assert.Error(t, container.Invoke(func(queue.Service) {}), "single mode has no queue")
+}
+
+// The usage ping reports the mode its registration gives it, not the MODE setting, and in single
+// mode the one process always sends the day's ping, without Redis.
+func TestRegisterSingle_RunsTheUsagePingInSingleModeWithoutRedis(t *testing.T) {
+	container := dig.New()
+	cfg := singleConfig(t)
+	cfg.Mode = "prod"
+	require.NoError(t, RegisterSingle(container, cfg))
+
+	require.NoError(t, container.Invoke(func(
+		mode telemetry.Mode,
+		claimer telemetry.Claimer,
+		_ *telemetry.Sender,
+		bus events.EventBus,
+		db *bun.DB,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		assert.Equal(t, telemetry.ModeSingle, mode)
+		assert.Equal(t, telemetry.AlwaysClaimer{}, claimer)
+	}))
 }
 
 // The scheduler wraps its ingester.Service in ingester.NewInOrderService, which returns a service

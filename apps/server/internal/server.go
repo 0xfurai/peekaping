@@ -23,6 +23,7 @@ import (
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/version"
 
@@ -104,6 +105,8 @@ func ProvideServer(
 	statusPageController *status_page.Controller,
 	tagRoute *tag.Route,
 	tagController *tag.Controller,
+	telemetryRoute *telemetry.Route,
+	telemetryController *telemetry.Controller,
 	badgeRoute *badge.Route,
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
@@ -134,6 +137,7 @@ func ProvideServer(
 	maintenanceRoute.ConnectRoute(router, maintenanceController)
 	statusPageRoute.ConnectRoute(router, statusPageController)
 	tagRoute.ConnectRoute(router, tagController)
+	telemetryRoute.ConnectRoute(router, telemetryController)
 	badgeRoute.ConnectRoute(router, badgeController)
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
 

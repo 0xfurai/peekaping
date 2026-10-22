@@ -21,6 +21,7 @@ import (
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/utils"
 	"syscall"
 	"time"
@@ -147,6 +148,18 @@ func main() {
 		}
 	}
 
+	// Start the usage ping sender. It sends nothing until an admin opts in, and a failed ping is
+	// dropped. Of the api replicas, the one that wins the claim in Redis sends the day's ping.
+	usagePingCtx, stopUsagePing := context.WithCancel(context.Background())
+	defer stopUsagePing()
+	var usagePingDone <-chan struct{}
+	err = container.Invoke(func(sender *telemetry.Sender) {
+		usagePingDone = sender.Start(usagePingCtx, telemetry.DefaultSchedule)
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Start the server with graceful shutdown
 	err = container.Invoke(func(
 		server *internal.Server,
@@ -180,6 +193,9 @@ func main() {
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
 		stopMetrics()
 		stopRepair()
+		// The usage ping reads the settings, so it stops before the database closes
+		stopUsagePing()
+		<-usagePingDone
 		// Stop taking notification events before the event bus closes, so none finds it closed
 		consumer.Stop()
 		// Close event bus: queued events get a few seconds to finish

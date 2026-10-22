@@ -731,6 +731,80 @@ export type TagPartialUpdateDto = {
     | undefined;
 };
 
+export type TelemetryFeatures = {
+  /**
+   * Whether there is any maintenance window
+   */
+  maintenance: boolean;
+  /**
+   * Whether the Prometheus metrics endpoint is on
+   */
+  metrics: boolean;
+  /**
+   * Whether there is any status page
+   */
+  status_pages: boolean;
+};
+
+export type TelemetryPayload = {
+  /**
+   * The storage backend: sqlite, postgres, mysql or mongo. Empty for a backend the ping doesn't report.
+   */
+  db: string;
+  /**
+   * Which features are on
+   */
+  features: TelemetryFeatures;
+  /**
+   * The random instance ID; empty until an admin opts in
+   */
+  instance_id: string;
+  /**
+   * How the install runs
+   */
+  mode: "single" | "cluster";
+  /**
+   * The distinct monitor types in use, lower case and sorted
+   */
+  monitor_types: Array<string>;
+  /**
+   * How many monitors there are, paused ones included, as a bucket
+   */
+  monitors: "0" | "1-10" | "11-50" | "51-200" | "201-1000" | "1000+";
+  /**
+   * The distinct notification channel types in use, lower case and sorted
+   */
+  notification_providers: Array<string>;
+  /**
+   * Operating system and architecture
+   */
+  os: string;
+  /**
+   * The Peekaping version
+   */
+  version: string;
+};
+
+export type TelemetryStateResponse = {
+  /**
+   * Whether an admin opted in to the usage ping
+   */
+  enabled: boolean;
+  /**
+   * Whether the TELEMETRY or DO_NOT_TRACK environment variable forces the ping off, whatever enabled says
+   */
+  forced_off: boolean;
+  /**
+   * The exact JSON the next usage ping would send; its instance_id is empty until an admin opts in
+   */
+  payload: TelemetryPayload;
+};
+
+export type TelemetryUpdateDto = {
+  enabled: boolean;
+  [key: string]: unknown | boolean;
+};
+
 export type UtilsApiResponseAny = {
   data: unknown;
   message: string;
@@ -4192,6 +4266,70 @@ export type PutTagsByIdResponses = {
 
 export type PutTagsByIdResponse =
   PutTagsByIdResponses[keyof PutTagsByIdResponses];
+
+export type GetTelemetryData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/telemetry";
+};
+
+export type GetTelemetryErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetTelemetryError = GetTelemetryErrors[keyof GetTelemetryErrors];
+
+export type GetTelemetryResponses = {
+  /**
+   * OK
+   */
+  200: TelemetryStateResponse;
+};
+
+export type GetTelemetryResponse =
+  GetTelemetryResponses[keyof GetTelemetryResponses];
+
+export type PutTelemetryData = {
+  body: TelemetryUpdateDto;
+  path?: never;
+  query?: never;
+  url: "/api/v1/telemetry";
+};
+
+export type PutTelemetryErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PutTelemetryError = PutTelemetryErrors[keyof PutTelemetryErrors];
+
+export type PutTelemetryResponses = {
+  /**
+   * OK
+   */
+  200: TelemetryStateResponse;
+};
+
+export type PutTelemetryResponse =
+  PutTelemetryResponses[keyof PutTelemetryResponses];
 
 export type GetVersionData = {
   body?: never;

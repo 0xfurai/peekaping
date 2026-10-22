@@ -38,6 +38,7 @@ import (
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
@@ -70,6 +71,10 @@ func (t timeouts) total() time.Duration { return t.HTTP + t.Jobs + t.EventBus }
 
 // shutdownTimeouts are peekaping's, 30 seconds in all. A test may shorten them.
 var shutdownTimeouts = timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, EventBus: 5 * time.Second}
+
+// telemetrySchedule is when the usage ping sender checks whether a ping is due. A test may shorten
+// it.
+var telemetrySchedule = telemetry.DefaultSchedule
 
 func main() {
 	utils.RegisterCustomValidators()
@@ -154,6 +159,7 @@ type parts struct {
 	NotificationListener *notification_channel.NotificationEventListener
 	MonitorListener      *monitor.MonitorEventListener
 	Metrics              *metrics.Collector
+	UsagePing            *telemetry.Sender
 	TrustedProxies       *httpx.TrustedProxies
 }
 
@@ -236,19 +242,21 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 
 // jobs are the background jobs run starts, and how to stop them
 type jobs struct {
-	scheduler    *scheduler.Scheduler
-	stopWatchdog context.CancelFunc
-	watchdogDone chan struct{}
-	cleanup      *cron.Cron
-	stopRepair   context.CancelFunc
-	repairDone   chan struct{}
-	stopMetrics  context.CancelFunc
-	metricsDone  <-chan struct{}
+	scheduler     *scheduler.Scheduler
+	stopWatchdog  context.CancelFunc
+	watchdogDone  chan struct{}
+	cleanup       *cron.Cron
+	stopRepair    context.CancelFunc
+	repairDone    chan struct{}
+	stopMetrics   context.CancelFunc
+	metricsDone   <-chan struct{}
+	stopUsagePing context.CancelFunc
+	usagePingDone <-chan struct{}
 }
 
 // startJobs starts what cmd/api starts beside the server (the cleanup cron, the settings, the
-// listeners, the status repair and the metrics collector), the stats aggregation that
-// cmd/ingester starts, and the scheduler and its watchdog in place of cmd/producer. Each runs
+// listeners, the status repair, the metrics collector and the usage ping), the stats aggregation
+// that cmd/ingester starts, and the scheduler and its watchdog in place of cmd/producer. Each runs
 // once: this process is the only one, and so always the leader.
 func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
@@ -311,15 +319,25 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 		p.Watchdog.Run(watchdogCtx)
 	}()
 
+	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. It runs
+	// once: this process is the only one, so there is no claim to win.
+	var usagePingCtx context.Context
+	usagePingCtx, j.stopUsagePing = context.WithCancel(context.Background())
+	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetrySchedule)
+
 	return j, nil
 }
 
-// stop stops the background jobs and waits for them until ctx is done. The watchdog stops first,
-// since it gets the stale monitors checked through the scheduler. The scheduler cancels its
-// running checks and waits for them.
+// stop stops the background jobs and waits for them until ctx is done. The usage ping stops
+// first, since it is the least needed. The watchdog stops before the scheduler, since it gets the
+// stale monitors checked through the scheduler. The scheduler cancels its running checks and
+// waits for them.
 func (j *jobs) stop(ctx context.Context) error {
+	j.stopUsagePing()
+	errs := []error{await(ctx, "the usage ping", j.usagePingDone)}
+
 	j.stopWatchdog()
-	errs := []error{await(ctx, "the watchdog", j.watchdogDone)}
+	errs = append(errs, await(ctx, "the watchdog", j.watchdogDone))
 
 	schedulerDone := make(chan struct{})
 	go func() {
