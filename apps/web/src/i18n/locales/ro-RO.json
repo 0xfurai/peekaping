@@ -1391,6 +1391,7 @@
     "docs_link": "Ce se trimite și cum se dezactivează",
     "label": "Trimite statistici anonime de utilizare",
     "never_sent": "Nu se trimit niciodată: numele monitoarelor, URL-uri, gazde, etichete, adresele paginilor de stare sau setările de notificare. Un ping de utilizare nu conține nicio adresă IP, iar Worker-ul Peekaping nu înregistrează IP-ul expeditorului.",
+    "not_saved": "Alegerea dvs. de a trimite statistici de utilizare nu a fost salvată. Activați-o în „Setări”.",
     "sent_features": "Dacă folosiți pagini de stare, ferestre de întreținere și metrici",
     "sent_id": "Un ID aleatoriu, creat când activați opțiunea și șters când o dezactivați",
     "sent_monitors": "Câte monitoare aveți, ca interval, de exemplu 11-50",

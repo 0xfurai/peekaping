@@ -329,8 +329,8 @@ func sortedNames(set map[string]struct{}) []string {
 	return names
 }
 
-// storageBackend is the storage backend as the Worker names it. A backend it doesn't know, such
-// as MySQL, is "", which the Worker rejects: nothing is reported for it.
+// storageBackend is the storage backend as the Worker names it. A backend it doesn't know is "",
+// which the Worker rejects: nothing is reported for it.
 func storageBackend(dbType string) string {
 	switch strings.ToLower(dbType) {
 	case "sqlite":
@@ -339,6 +339,8 @@ func storageBackend(dbType string) string {
 		return "postgres"
 	case "mongo", "mongodb":
 		return "mongo"
+	case "mysql":
+		return "mysql"
 	}
 	return ""
 }

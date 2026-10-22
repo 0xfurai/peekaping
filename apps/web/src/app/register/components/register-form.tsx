@@ -75,8 +75,10 @@ export function RegisterForm({
   const telemetryMutation = useMutation({
     ...putTelemetryMutation(),
     // Setup has already succeeded, so a failure here only costs the admin a visit to Settings.
+    // The toast tells them, as the console is not where they look.
     onError: (error) => {
       console.error("Failed to turn on usage statistics", error);
+      toast.warning(t("telemetry.not_saved"));
     },
   });
 

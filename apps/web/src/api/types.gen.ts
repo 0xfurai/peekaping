@@ -138,8 +138,8 @@ export type ErrorReportingStateResponse = {
 };
 
 export type ErrorReportingUpdateDto = {
-  enabled: boolean | null;
-  [key: string]: unknown | (boolean | null);
+  enabled: boolean;
+  [key: string]: unknown | boolean;
 };
 
 export type HealthcheckPushResponse = {
@@ -817,8 +817,8 @@ export type TelemetryStateResponse = {
 };
 
 export type TelemetryUpdateDto = {
-  enabled: boolean | null;
-  [key: string]: unknown | (boolean | null);
+  enabled: boolean;
+  [key: string]: unknown | boolean;
 };
 
 export type UtilsApiResponseAny = {

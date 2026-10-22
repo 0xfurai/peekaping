@@ -1392,6 +1392,7 @@
     "docs_link": "Mit küld, és hogyan kapcsolható ki",
     "label": "Névtelen használati statisztikák küldése",
     "never_sent": "Soha nem küld: figyelők nevét, URL-eket, gazdagépeket, címkéket, állapotlapok címét vagy értesítési beállításokat. A használati ping nem tartalmaz IP-címet, és a Peekaping Workere nem rögzíti a küldő IP-címét.",
+    "not_saved": "A használati statisztikák küldésére vonatkozó választását nem mentettük. Kapcsolja be a „Beállítások” részben.",
     "sent_features": "Használ-e állapotlapokat, karbantartási ablakokat és metrikákat",
     "sent_id": "Egy véletlenszerű azonosító, amely bekapcsoláskor jön létre, kikapcsoláskor pedig törlődik",
     "sent_monitors": "Hány figyelője van, tartományként megadva, például 11-50",

@@ -1287,7 +1287,7 @@
     "telemetry": {
       "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Tắt cho đến khi bạn bật.",
       "forced_off": "Biến môi trường TELEMETRY=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
-      "id_note": "ID phiên bản được tạo khi bạn bật mục này và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
+      "id_note": "ID bản cài đặt được tạo khi bạn bật mục này và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
       "payload_off": "Không có gì được gửi khi mục này đang tắt. Đây là nội dung ping sử dụng sẽ có nếu bạn bật.",
       "payload_title": "Ping sử dụng tiếp theo sẽ gửi gì",
       "title": "Thống kê sử dụng"
@@ -1392,6 +1392,7 @@
     "docs_link": "Những gì được gửi và cách tắt",
     "label": "Gửi thống kê sử dụng ẩn danh",
     "never_sent": "Không bao giờ gửi: tên giám sát, URL, máy chủ, thẻ, địa chỉ trang trạng thái hay cài đặt thông báo. Ping sử dụng không chứa địa chỉ IP, và Worker của Peekaping không ghi lại IP của người gửi.",
+    "not_saved": "Lựa chọn gửi thống kê sử dụng của bạn chưa được lưu. Hãy bật lại trong “Cài đặt”.",
     "sent_features": "Bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không",
     "sent_id": "Một ID ngẫu nhiên, được tạo khi bạn bật và bị xóa khi bạn tắt",
     "sent_monitors": "Bạn có bao nhiêu giám sát, dưới dạng một khoảng, chẳng hạn 11-50",
