@@ -2204,10 +2204,6 @@ export const putTelemetry = <ThrowOnError extends boolean = false>(
         scheme: "bearer",
         type: "http",
       },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
-      },
     ],
     url: "/api/v1/telemetry",
     ...options,

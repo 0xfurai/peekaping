@@ -44,8 +44,8 @@ var publicRoutes = map[string]string{
 	"GET /api/v1/push/{token}": "push URL, authenticated by its push token",
 }
 
-// jwtOnlyRoutes manage the account and its API keys, so an API key must not
-// reach them.
+// jwtOnlyRoutes manage the account, its API keys, and install-wide choices that are the
+// admin's alone, so an API key must not reach them.
 var jwtOnlyRoutes = map[string]bool{
 	"POST /api/v1/auth/2fa/setup":   true,
 	"POST /api/v1/auth/2fa/verify":  true,
@@ -56,6 +56,7 @@ var jwtOnlyRoutes = map[string]bool{
 	"GET /api/v1/api-keys/{id}":     true,
 	"PUT /api/v1/api-keys/{id}":     true,
 	"DELETE /api/v1/api-keys/{id}":  true,
+	"PUT /api/v1/telemetry":         true,
 }
 
 var pathParam = regexp.MustCompile(`\{[^}]+\}`)
