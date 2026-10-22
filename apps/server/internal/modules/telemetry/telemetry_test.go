@@ -568,3 +568,70 @@ func TestSetEnabled_AFailedOptOutNeverLeavesThePingOn(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, due)
 }
+
+func TestState_TheNoticeIsPendingUntilItIsMarkedSeen(t *testing.T) {
+	in := newInstall()
+	ctx := context.Background()
+
+	state, err := in.service().State(ctx)
+	require.NoError(t, err)
+	assert.True(t, state.NoticePending, "an install that upgrades starts sending and has not been told")
+
+	state, err = in.service().MarkNoticeSeen(ctx)
+	require.NoError(t, err)
+	assert.False(t, state.NoticePending)
+	assert.True(t, state.Enabled, "dismissing the notice is not a choice")
+	seen, err := in.settings.GetByKey(ctx, shared.TelemetryNoticeSeenKey)
+	require.NoError(t, err)
+	require.NotNil(t, seen)
+	assert.Equal(t, "TELEMETRY_NOTICE_SEEN", shared.TelemetryNoticeSeenKey)
+	assert.Equal(t, "true", seen.Value)
+	choice, err := in.settings.GetByKey(ctx, EnabledKey)
+	require.NoError(t, err)
+	assert.Nil(t, choice)
+
+	state, err = in.service().State(ctx)
+	require.NoError(t, err)
+	assert.False(t, state.NoticePending, "and a restart does not bring it back")
+}
+
+func TestSetEnabled_MarksTheNoticeSeen(t *testing.T) {
+	for _, enabled := range []bool{true, false} {
+		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
+			in := newInstall()
+
+			state, err := in.service().SetEnabled(context.Background(), enabled)
+
+			require.NoError(t, err)
+			assert.False(t, state.NoticePending)
+			seen, err := in.settings.GetByKey(context.Background(), shared.TelemetryNoticeSeenKey)
+			require.NoError(t, err)
+			require.NotNil(t, seen)
+		})
+	}
+}
+
+func TestState_NoNoticeWhenTheEnvironmentForcesBothFeaturesOff(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cfg     *config.Config
+		pending bool
+	}{
+		"nothing forced off":           {&config.Config{}, true},
+		"only the ping":                {&config.Config{Telemetry: "off"}, true},
+		"only the error reports":       {&config.Config{ErrorReporting: "off"}, true},
+		"both":                         {&config.Config{Telemetry: "off", ErrorReporting: "off"}, false},
+		"DO_NOT_TRACK":                 {&config.Config{DoNotTrack: "1"}, false},
+		"the ping and DO_NOT_TRACK":    {&config.Config{Telemetry: "off", DoNotTrack: "true"}, false},
+		"the reports and DO_NOT_TRACK": {&config.Config{ErrorReporting: "no", DoNotTrack: "1"}, false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			in := newInstall()
+			in.cfg = tc.cfg
+
+			state, err := in.service().State(context.Background())
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.pending, state.NoticePending)
+		})
+	}
+}

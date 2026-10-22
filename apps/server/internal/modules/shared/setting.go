@@ -16,6 +16,12 @@ const (
 	RefreshTokenSecretKey = "auth.refresh_token_secret"
 )
 
+// TelemetryNoticeSeenKey holds "true" once the one-time notice about the usage ping and error
+// reports is out of the way: the admin dismissed it, or made a choice for either feature. Until
+// then an install that upgraded shows the notice. It is not user-editable, so the settings API can't
+// reach it: the telemetry API is the only way to read or change it.
+const TelemetryNoticeSeenKey = "TELEMETRY_NOTICE_SEEN"
+
 type SettingService interface {
 	GetByKey(ctx context.Context, key string) (*SettingModel, error)
 	SetByKey(ctx context.Context, key string, entity *SettingModel) (*SettingModel, error)

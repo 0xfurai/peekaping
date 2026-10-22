@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/reporting/reportingtest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,9 +41,10 @@ type telemetryPayload struct {
 }
 
 type telemetryState struct {
-	Enabled   bool             `json:"enabled"`
-	ForcedOff bool             `json:"forced_off"`
-	Payload   telemetryPayload `json:"payload"`
+	Enabled       bool             `json:"enabled"`
+	ForcedOff     bool             `json:"forced_off"`
+	NoticePending bool             `json:"notice_pending"`
+	Payload       telemetryPayload `json:"payload"`
 }
 
 // telemetryBody checks the status code and returns the response body, which holds the state
@@ -355,7 +357,7 @@ func TestTelemetryAPI_SettingsAPICannotReadOrWriteItsKeys(t *testing.T) {
 	require.NotNil(t, a.storedSetting(t, "TELEMETRY_INSTANCE_ID"))
 	instanceID := a.telemetry(t).Payload.InstanceID
 
-	for _, key := range []string{"TELEMETRY_ENABLED", "TELEMETRY_INSTANCE_ID", "TELEMETRY_LAST_SENT"} {
+	for _, key := range []string{"TELEMETRY_ENABLED", "TELEMETRY_INSTANCE_ID", "TELEMETRY_LAST_SENT", "TELEMETRY_NOTICE_SEEN"} {
 		for _, creds := range []credentials{a.asAdmin, a.withAPIKey} {
 			path := "/api/v1/settings/key/" + key
 			assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, path, nil, creds).Code, "GET "+key)
@@ -368,4 +370,97 @@ func TestTelemetryAPI_SettingsAPICannotReadOrWriteItsKeys(t *testing.T) {
 	assert.True(t, state.Enabled, "the settings API did not opt the install out")
 	assert.Equal(t, instanceID, state.Payload.InstanceID, "or change its ID")
 	assert.Nil(t, a.storedSetting(t, "TELEMETRY_LAST_SENT"))
+}
+
+const telemetryNoticePath = telemetryPath + "/notice"
+
+func (a *app) markNoticeSeen(t *testing.T) telemetryState {
+	t.Helper()
+	return telemetryBody(t, a.request(t, http.MethodPost, telemetryNoticePath, nil, a.asAdmin), http.StatusOK)
+}
+
+// An install that upgrades has no stored choice and no notice flag, and starts sending: its admin
+// is told once
+func TestTelemetryAPI_NoticeIsPendingOnAnUpgradedInstall(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	state := a.telemetry(t)
+
+	assert.True(t, state.Enabled)
+	assert.True(t, state.NoticePending)
+	assert.Nil(t, a.storedSetting(t, "TELEMETRY_NOTICE_SEEN"), "reading the state does not mark it seen")
+	assert.True(t, a.telemetry(t).NoticePending, "and it stays pending until dismissed")
+}
+
+func TestTelemetryAPI_PostingTheNoticeMarksItSeenForGood(t *testing.T) {
+	a := newAppWithAdmin(t)
+	before := a.telemetry(t)
+
+	seen := a.markNoticeSeen(t)
+
+	assert.False(t, seen.NoticePending)
+	assert.Equal(t, before.Payload.InstanceID, seen.Payload.InstanceID)
+	assert.True(t, seen.Enabled, "dismissing the notice is not a choice")
+	assert.Equal(t, seen, a.telemetry(t))
+	require.NotNil(t, a.storedSetting(t, "TELEMETRY_NOTICE_SEEN"))
+	assert.Equal(t, "true", a.storedSetting(t, "TELEMETRY_NOTICE_SEEN").Value)
+	assert.Nil(t, a.storedSetting(t, "TELEMETRY_ENABLED"), "and stores no choice")
+	assert.Equal(t, seen, a.markNoticeSeen(t), "posting it again is harmless")
+	assert.False(t, a.restart(t).telemetry(t).NoticePending, "it stays seen after a restart")
+}
+
+func TestTelemetryAPI_AnyChoiceMarksTheNoticeSeen(t *testing.T) {
+	for name, choose := range map[string]func(*app, *testing.T){
+		"usage statistics on":  func(a *app, t *testing.T) { a.setTelemetry(t, true) },
+		"usage statistics off": func(a *app, t *testing.T) { a.setTelemetry(t, false) },
+		"error reports on":     func(a *app, t *testing.T) { a.setErrorReporting(t, true) },
+		"error reports off":    func(a *app, t *testing.T) { a.setErrorReporting(t, false) },
+	} {
+		t.Run(name, func(t *testing.T) {
+			reportingtest.Install(t)
+			a := newAppWithAdmin(t)
+			require.True(t, a.telemetry(t).NoticePending)
+
+			choose(a, t)
+
+			assert.False(t, a.telemetry(t).NoticePending)
+			assert.Equal(t, "true", a.storedSetting(t, "TELEMETRY_NOTICE_SEEN").Value)
+		})
+	}
+}
+
+// The PUT answers with the state, which no longer asks for the notice
+func TestTelemetryAPI_APutAnswersWithoutAPendingNotice(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	assert.False(t, a.setTelemetry(t, false).NoticePending)
+}
+
+func TestTelemetryAPI_NoNoticeWhenBothFeaturesAreForcedOff(t *testing.T) {
+	for name, tc := range map[string]struct {
+		options []func(*config.Config)
+		pending bool
+	}{
+		"nothing forced off":                 {nil, true},
+		"TELEMETRY=off only":                 {[]func(*config.Config){withTelemetryEnv("off")}, true},
+		"ERROR_REPORTING=off only":           {[]func(*config.Config){withErrorReportingEnv("off")}, true},
+		"TELEMETRY=off, ERROR_REPORTING=off": {[]func(*config.Config){withTelemetryEnv("off"), withErrorReportingEnv("off")}, false},
+		"DO_NOT_TRACK=1":                     {[]func(*config.Config){withDoNotTrack("1")}, false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			a := newAppWithAdmin(t, tc.options...)
+
+			assert.Equal(t, tc.pending, a.telemetry(t).NoticePending)
+		})
+	}
+}
+
+func TestTelemetryAPI_TheNoticeCannotBeMarkedSeenWithoutTheAdminsJWT(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodPost, telemetryNoticePath, nil).Code, "no credentials")
+	assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodPost, telemetryNoticePath, nil, a.withAPIKey).Code, "an API key")
+
+	assert.True(t, a.telemetry(t).NoticePending)
+	assert.Nil(t, a.storedSetting(t, "TELEMETRY_NOTICE_SEEN"))
 }

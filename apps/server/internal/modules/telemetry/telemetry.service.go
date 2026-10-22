@@ -50,8 +50,12 @@ type Service interface {
 	State(ctx context.Context) (State, error)
 	// SetEnabled stores the admin's choice and returns the new state. Opting in creates the
 	// instance ID unless there is one; opting out deletes it and the time of the last ping. The
-	// choice is stored while the environment forces the ping off: the environment still wins.
+	// choice is stored while the environment forces the ping off: the environment still wins. Any
+	// choice also marks the upgrade notice seen.
 	SetEnabled(ctx context.Context, enabled bool) (State, error)
+	// MarkNoticeSeen records that the admin dismissed the upgrade notice, which stops it showing.
+	// It is no choice: the usage ping and error reports stay as they were.
+	MarkNoticeSeen(ctx context.Context) (State, error)
 
 	// The sender's Source
 	Source
@@ -117,7 +121,11 @@ func (s *ServiceImpl) State(ctx context.Context) (State, error) {
 	if err != nil {
 		return State{}, err
 	}
-	return State{Enabled: enabled, ForcedOff: s.cfg.TelemetryForcedOff(), Payload: payload}, nil
+	pending, err := s.noticePending(ctx)
+	if err != nil {
+		return State{}, err
+	}
+	return State{Enabled: enabled, ForcedOff: s.cfg.TelemetryForcedOff(), NoticePending: pending, Payload: payload}, nil
 }
 
 func (s *ServiceImpl) SetEnabled(ctx context.Context, enabled bool) (State, error) {
@@ -128,7 +136,35 @@ func (s *ServiceImpl) SetEnabled(ctx context.Context, enabled bool) (State, erro
 	} else if err := s.optOut(ctx); err != nil {
 		return State{}, err
 	}
+	// The choice is stored. A failure here fails the request, and asking again is harmless.
+	if err := s.markNoticeSeen(ctx); err != nil {
+		return State{}, err
+	}
 	return s.State(ctx)
+}
+
+func (s *ServiceImpl) MarkNoticeSeen(ctx context.Context) (State, error) {
+	if err := s.markNoticeSeen(ctx); err != nil {
+		return State{}, err
+	}
+	return s.State(ctx)
+}
+
+func (s *ServiceImpl) markNoticeSeen(ctx context.Context) error {
+	if _, err := s.settings.SetByKey(ctx, shared.TelemetryNoticeSeenKey, &shared.SettingModel{Value: "true", Type: "bool"}); err != nil {
+		return fmt.Errorf("store %s: %w", shared.TelemetryNoticeSeenKey, err)
+	}
+	return nil
+}
+
+// noticePending reports whether the admin still has to be told that the usage ping and error
+// reports are on: the notice is not marked seen, and the environment does not force both off
+func (s *ServiceImpl) noticePending(ctx context.Context) (bool, error) {
+	if s.cfg.TelemetryForcedOff() && s.cfg.ErrorReportingForcedOff() {
+		return false, nil
+	}
+	seen, err := s.storedValue(ctx, shared.TelemetryNoticeSeenKey)
+	return seen != "true", err
 }
 
 func (s *ServiceImpl) NextPing(ctx context.Context, now time.Time) (*Payload, error) {

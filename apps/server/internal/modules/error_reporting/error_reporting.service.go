@@ -72,6 +72,11 @@ func (s *ServiceImpl) SetEnabled(ctx context.Context, enabled bool) (State, erro
 		// The choice is stored and this process follows it. Run tells the others.
 		s.logger.Warnw("Failed to tell the other processes the error reporting choice, Run will try again", "error", err)
 	}
+	// A choice answers the one-time notice that tells an upgraded install reports are on. The choice
+	// is stored and followed by now, so a failure here fails the request and asking again is harmless.
+	if _, err := s.settings.SetByKey(ctx, shared.TelemetryNoticeSeenKey, &shared.SettingModel{Value: "true", Type: "bool"}); err != nil {
+		return State{}, fmt.Errorf("store %s: %w", shared.TelemetryNoticeSeenKey, err)
+	}
 	return state, nil
 }
 

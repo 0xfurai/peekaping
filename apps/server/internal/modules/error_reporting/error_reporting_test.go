@@ -128,6 +128,29 @@ func TestSetEnabled_StoresTheChoiceAndTellsTheProcesses(t *testing.T) {
 	assert.Equal(t, []bool{true, false}, sw.set)
 }
 
+// Making a choice answers the notice that tells an upgraded install that reports are on
+func TestSetEnabled_MarksTheUpgradeNoticeSeen(t *testing.T) {
+	for _, enabled := range []bool{true, false} {
+		service, settings, _ := newService(&config.Config{})
+
+		_, err := service.SetEnabled(context.Background(), enabled)
+
+		require.NoError(t, err)
+		assert.Equal(t, "true", settings.value("TELEMETRY_NOTICE_SEEN"))
+		assert.Equal(t, shared.TelemetryNoticeSeenKey, "TELEMETRY_NOTICE_SEEN")
+	}
+}
+
+func TestState_DoesNotMarkTheNoticeSeen(t *testing.T) {
+	service, settings, _ := newService(&config.Config{})
+
+	_, err := service.State(context.Background())
+	require.NoError(t, err)
+	require.NoError(t, service.Apply(context.Background()))
+
+	assert.Empty(t, settings.values)
+}
+
 func TestSetEnabled_KeepsTheChoiceWhileTheEnvironmentForcesReportingOff(t *testing.T) {
 	for name, cfg := range map[string]*config.Config{
 		"ERROR_REPORTING=off": {ErrorReporting: "off"},

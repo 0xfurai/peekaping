@@ -128,7 +128,7 @@ export type BruteforceBlockResponse = {
 
 export type ErrorReportingStateResponse = {
   /**
-   * Whether an admin opted in to error reports
+   * Whether error reports are on: the admin's stored choice, which is on until they choose
    */
   enabled: boolean;
   /**
@@ -772,7 +772,7 @@ export type TelemetryPayload = {
    */
   features: TelemetryFeatures;
   /**
-   * The random instance ID; empty until an admin opts in
+   * The random instance ID; empty after an admin opts out, and while TELEMETRY or DO_NOT_TRACK forces the ping off and no ID was made before
    */
   instance_id: string;
   /**
@@ -803,7 +803,7 @@ export type TelemetryPayload = {
 
 export type TelemetryStateResponse = {
   /**
-   * Whether an admin opted in to the usage ping
+   * Whether the usage ping is on: the admin's stored choice, which is on until they choose
    */
   enabled: boolean;
   /**
@@ -811,7 +811,11 @@ export type TelemetryStateResponse = {
    */
   forced_off: boolean;
   /**
-   * The exact JSON the next usage ping would send; its instance_id is empty until an admin opts in
+   * Whether the one-time notice that the usage ping and error reports are on by default is still to be shown: it is not yet dismissed, no choice has been made for either, and the environment does not force both off
+   */
+  notice_pending: boolean;
+  /**
+   * The exact JSON the next usage ping would send; its instance_id is empty after an admin opts out
    */
   payload: TelemetryPayload;
 };
@@ -4412,6 +4416,37 @@ export type PutTelemetryResponses = {
 
 export type PutTelemetryResponse =
   PutTelemetryResponses[keyof PutTelemetryResponses];
+
+export type PostTelemetryNoticeData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/telemetry/notice";
+};
+
+export type PostTelemetryNoticeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostTelemetryNoticeError =
+  PostTelemetryNoticeErrors[keyof PostTelemetryNoticeErrors];
+
+export type PostTelemetryNoticeResponses = {
+  /**
+   * OK
+   */
+  200: TelemetryStateResponse;
+};
+
+export type PostTelemetryNoticeResponse =
+  PostTelemetryNoticeResponses[keyof PostTelemetryNoticeResponses];
 
 export type GetVersionData = {
   body?: never;
