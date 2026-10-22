@@ -99,15 +99,14 @@ func TestMonitorsAPI_CreateFailsWholeWhenALinkFails(t *testing.T) {
 	}
 }
 
-func TestMonitorsAPI_CreatedEventSeesTheMonitorsChannels(t *testing.T) {
-	a := newAppWithAdmin(t)
-	channelID := decode[created](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", webhookChannelBody("Ops webhook"), a.asAdmin), http.StatusCreated).ID
-
-	// What a listener that reads the new monitor's channels finds, by monitor name.
+// readChannelsOnEvent subscribes a listener to topic that reads the notification channels of the
+// monitor each event is about, as a listener in the app that sends to them would.
+func (a *app) readChannelsOnEvent(t *testing.T, topic events.Topic[shared.Monitor]) *monitorLinks {
+	t.Helper()
 	var links monitorLinks
 	var channels monitor_notification.Service
 	require.NoError(t, a.container.Invoke(func(s monitor_notification.Service) { channels = s }))
-	a.subscribeMonitors(t, "channels", events.MonitorCreated, func(ctx context.Context, m shared.Monitor) {
+	a.subscribeMonitors(t, "channels", topic, func(ctx context.Context, m shared.Monitor) {
 		rels, err := channels.FindByMonitorID(ctx, m.ID)
 		assert.NoError(t, err)
 		ids := make([]string, 0, len(rels))
@@ -116,12 +115,25 @@ func TestMonitorsAPI_CreatedEventSeesTheMonitorsChannels(t *testing.T) {
 		}
 		links.set(m.Name, ids)
 	})
+	return &links
+}
 
-	// A listener that wins the race against one create is luck, so create a few dozen.
-	names := make([]string, 30)
+// manyNames returns n monitor names. A listener that wins its race against one request is luck,
+// so a test that checks what a listener sees uses a few dozen requests.
+func manyNames(n int) []string {
+	names := make([]string, n)
 	for i := range names {
 		names[i] = fmt.Sprintf("Monitor %d", i+1)
 	}
+	return names
+}
+
+func TestMonitorsAPI_CreatedEventSeesTheMonitorsChannels(t *testing.T) {
+	a := newAppWithAdmin(t)
+	channelID := a.createChannel(t, "Ops webhook")
+	links := a.readChannelsOnEvent(t, events.MonitorCreated)
+
+	names := manyNames(30)
 	for _, name := range names {
 		body := with(pushMonitorBody(name, name+"-token"), "notification_ids", []string{channelID})
 		decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)
@@ -158,4 +170,139 @@ func (l *monitorLinks) count() int {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return len(l.found)
+}
+
+func (a *app) createChannel(t *testing.T, name string) string {
+	t.Helper()
+	return decode[created](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", webhookChannelBody(name), a.asAdmin), http.StatusCreated).ID
+}
+
+func (a *app) createTag(t *testing.T, name string) string {
+	t.Helper()
+	return decode[created](t, a.request(t, http.MethodPost, "/api/v1/tags", tagBody(name), a.asAdmin), http.StatusCreated).ID
+}
+
+// monitorWithLinks is a monitor as GET /monitors/{id} returns it.
+type monitorWithLinks struct {
+	ID              string   `json:"id"`
+	Name            string   `json:"name"`
+	Interval        int      `json:"interval"`
+	NotificationIDs []string `json:"notification_ids"`
+	TagIDs          []string `json:"tag_ids"`
+}
+
+func (a *app) getMonitorWithLinks(t *testing.T, id string) monitorWithLinks {
+	t.Helper()
+	return decode[monitorWithLinks](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin), http.StatusOK)
+}
+
+// monitorWithLinksBody is a push monitor linked to channelIDs and tagIDs.
+func monitorWithLinksBody(name string, channelIDs, tagIDs []string) map[string]any {
+	body := pushMonitorBody(name, name+"-token")
+	body["notification_ids"] = channelIDs
+	body["tag_ids"] = tagIDs
+	return body
+}
+
+func TestMonitorsAPI_FullUpdateReplacesTheLinks(t *testing.T) {
+	a := newAppWithAdmin(t)
+	channelA, channelB := a.createChannel(t, "Channel A"), a.createChannel(t, "Channel B")
+	tagA, tagB := a.createTag(t, "Tag A"), a.createTag(t, "Tag B")
+	id := decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", monitorWithLinksBody("Original", []string{channelA}, []string{tagA}), a.asAdmin), http.StatusCreated).ID
+	require.Equal(t, monitorWithLinks{ID: id, Name: "Original", Interval: 60, NotificationIDs: []string{channelA}, TagIDs: []string{tagA}}, a.getMonitorWithLinks(t, id))
+
+	decode[any](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+id, monitorWithLinksBody("Renamed", []string{channelB}, []string{tagB}), a.asAdmin), http.StatusOK)
+	assert.Equal(t, monitorWithLinks{ID: id, Name: "Renamed", Interval: 60, NotificationIDs: []string{channelB}, TagIDs: []string{tagB}}, a.getMonitorWithLinks(t, id))
+
+	decode[any](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+id, monitorWithLinksBody("Renamed", []string{}, []string{}), a.asAdmin), http.StatusOK)
+	assert.Equal(t, monitorWithLinks{ID: id, Name: "Renamed", Interval: 60, NotificationIDs: []string{}, TagIDs: []string{}}, a.getMonitorWithLinks(t, id), "a full update with no IDs unlinks everything")
+}
+
+func TestMonitorsAPI_PartialUpdateChangesLinksOnlyWhenIDsAreSent(t *testing.T) {
+	a := newAppWithAdmin(t)
+	channelA, channelB := a.createChannel(t, "Channel A"), a.createChannel(t, "Channel B")
+	tagA, tagB := a.createTag(t, "Tag A"), a.createTag(t, "Tag B")
+	id := decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", monitorWithLinksBody("Original", []string{channelA}, []string{tagA}), a.asAdmin), http.StatusCreated).ID
+	path := "/api/v1/monitors/" + id
+
+	decode[any](t, a.request(t, http.MethodPatch, path, map[string]any{"interval": 90}, a.asAdmin), http.StatusOK)
+	assert.Equal(t, monitorWithLinks{ID: id, Name: "Original", Interval: 90, NotificationIDs: []string{channelA}, TagIDs: []string{tagA}}, a.getMonitorWithLinks(t, id), "no IDs sent: the links stay")
+
+	decode[any](t, a.request(t, http.MethodPatch, path, map[string]any{"notification_ids": []string{}, "tag_ids": []string{}}, a.asAdmin), http.StatusOK)
+	assert.Equal(t, monitorWithLinks{ID: id, Name: "Original", Interval: 90, NotificationIDs: []string{channelA}, TagIDs: []string{tagA}}, a.getMonitorWithLinks(t, id), "empty lists count as not sent")
+
+	decode[any](t, a.request(t, http.MethodPatch, path, map[string]any{"notification_ids": []string{channelA, channelB}, "tag_ids": []string{tagB}}, a.asAdmin), http.StatusOK)
+	got := a.getMonitorWithLinks(t, id)
+	assert.ElementsMatch(t, []string{channelA, channelB}, got.NotificationIDs, "IDs sent: the links become exactly those")
+	assert.Equal(t, []string{tagB}, got.TagIDs)
+}
+
+func TestMonitorsAPI_UpdateFailsWholeWhenALinkFails(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		method string
+		// body is the update, with unknownID as the last link in the list that fails
+		body func(channelB, tagB string) map[string]any
+	}{
+		{"full update, unknown tag", http.MethodPut, func(channelB, tagB string) map[string]any {
+			return monitorWithLinksBody("Changed", []string{channelB}, []string{tagB, unknownID})
+		}},
+		{"full update, unknown notification channel", http.MethodPut, func(channelB, tagB string) map[string]any {
+			return monitorWithLinksBody("Changed", []string{channelB, unknownID}, []string{tagB})
+		}},
+		{"partial update, unknown tag", http.MethodPatch, func(channelB, tagB string) map[string]any {
+			return map[string]any{"name": "Changed", "interval": 90, "tag_ids": []string{tagB, unknownID}}
+		}},
+		{"partial update, unknown notification channel", http.MethodPatch, func(channelB, tagB string) map[string]any {
+			return map[string]any{"name": "Changed", "interval": 90, "notification_ids": []string{channelB, unknownID}}
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+			channelA, channelB := a.createChannel(t, "Channel A"), a.createChannel(t, "Channel B")
+			tagA, tagB := a.createTag(t, "Tag A"), a.createTag(t, "Tag B")
+			id := decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", monitorWithLinksBody("Original", []string{channelA}, []string{tagA}), a.asAdmin), http.StatusCreated).ID
+			controlID := a.createMonitor(t, "Control", "control-token")
+			updated := a.watchMonitors(t, "updated", events.MonitorUpdated)
+
+			w := a.request(t, tc.method, "/api/v1/monitors/"+id, tc.body(channelB, tagB), a.asAdmin)
+
+			assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+			assert.Equal(t, monitorWithLinks{ID: id, Name: "Original", Interval: 60, NotificationIDs: []string{channelA}, TagIDs: []string{tagA}}, a.getMonitorWithLinks(t, id),
+				"the monitor and its links are as they were")
+
+			// A change that works proves events flow, and once its event has arrived, the failed one's would have too.
+			decode[any](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+controlID, map[string]any{"interval": 90}, a.asAdmin), http.StatusOK)
+			updated.waitForMonitor(t, "Control")
+			assert.Equal(t, []string{"Control"}, updated.names(), "no MonitorUpdated for the failed update")
+		})
+	}
+}
+
+func TestMonitorsAPI_UpdatedEventSeesTheMonitorsChannels(t *testing.T) {
+	for _, method := range []string{http.MethodPut, http.MethodPatch} {
+		t.Run(method, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+			channelID := a.createChannel(t, "Ops webhook")
+			names := manyNames(30)
+			ids := make(map[string]string, len(names))
+			for _, name := range names {
+				ids[name] = a.createMonitor(t, name, name+"-token")
+			}
+			links := a.readChannelsOnEvent(t, events.MonitorUpdated)
+
+			for _, name := range names {
+				var body any = map[string]any{"notification_ids": []string{channelID}}
+				if method == http.MethodPut {
+					body = monitorWithLinksBody(name, []string{channelID}, []string{})
+				}
+				decode[any](t, a.request(t, method, "/api/v1/monitors/"+ids[name], body, a.asAdmin), http.StatusOK)
+			}
+
+			require.Eventually(t, func() bool { return links.count() == len(names) }, 5*time.Second, 5*time.Millisecond)
+			for _, name := range names {
+				assert.Equal(t, []string{channelID}, links.get(name), "the channels a MonitorUpdated listener reads for %s", name)
+			}
+		})
+	}
 }

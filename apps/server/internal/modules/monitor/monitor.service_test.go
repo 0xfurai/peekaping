@@ -498,23 +498,25 @@ func TestMonitorService_FindByID(t *testing.T) {
 }
 
 func TestMonitorService_UpdateFull(t *testing.T) {
-	service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 	ctx := context.Background()
 
 	t.Run("successful update", func(t *testing.T) {
+		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		updateDto := &CreateUpdateDto{
-			Type:           "tcp",
-			Name:           "Updated Monitor",
-			Interval:       120,
-			Timeout:        60,
-			MaxRetries:     5,
-			RetryInterval:  60,
-			ResendInterval: 20,
-			Active:         false,
-			Config:         "{\"host\":\"example.com\"}",
-			ProxyId:        "proxy456",
-			PushToken:      "token456",
+			Type:            "tcp",
+			Name:            "Updated Monitor",
+			Interval:        120,
+			Timeout:         60,
+			MaxRetries:      5,
+			RetryInterval:   60,
+			ResendInterval:  20,
+			Active:          false,
+			NotificationIds: []string{"channel-a", "channel-b"},
+			TagIds:          []string{"tag-a"},
+			Config:          "{\"host\":\"example.com\"}",
+			ProxyId:         "proxy456",
+			PushToken:       "token456",
 		}
 
 		stored := &Model{
@@ -524,51 +526,111 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 			Status:    shared.MonitorStatusDown,
 			CreatedAt: time.Date(2026, 10, 1, 9, 0, 0, 0, time.UTC),
 		}
-		mockRepo.On("UpdateFull", ctx, monitorID, mock.MatchedBy(func(m *Model) bool {
+		mockRepo.On("UpdateFull", inTx, monitorID, mock.MatchedBy(func(m *Model) bool {
 			return m.ID == monitorID &&
 				m.Type == updateDto.Type &&
 				m.Name == updateDto.Name &&
 				m.Interval == updateDto.Interval
 		})).Return(nil)
-		mockRepo.On("FindByID", ctx, monitorID).Return(stored, nil)
+		notifications.On("DeleteByMonitorID", inTx, monitorID).Return(nil).Once()
+		tags.On("DeleteByMonitorID", inTx, monitorID).Return(nil).Once()
+		notifications.On("Create", inTx, monitorID, "channel-a").Return(&monitor_notification.Model{}, nil).Once()
+		notifications.On("Create", inTx, monitorID, "channel-b").Return(&monitor_notification.Model{}, nil).Once()
+		tags.On("Create", inTx, monitorID, "tag-a").Return(&monitor_tag.Model{}, nil).Once()
+		mockRepo.On("FindByID", inTx, monitorID).Return(stored, nil)
 
 		result, err := service.UpdateFull(ctx, monitorID, updateDto)
 
 		assert.NoError(t, err)
 		assert.Same(t, stored, result, "the response is the monitor as stored, with its status and created_at")
 		assert.Equal(t, []shared.Monitor{*stored}, eventstest.Published(bus, events.MonitorUpdated), "the event carries it, too")
+		tx := transactionOf(service)
+		assert.Equal(t, 1, tx.committed, "the monitor and its links are one transaction")
+		assert.Equal(t, 0, tx.published, "the event is published once the transaction has committed, not before")
 		mockRepo.AssertExpectations(t)
+		notifications.AssertExpectations(t)
+		tags.AssertExpectations(t)
 	})
 
 	t.Run("monitor removed before it is read back", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
 		monitorID := "removed123"
-		mockRepo.On("UpdateFull", ctx, monitorID, mock.Anything).Return(nil)
-		mockRepo.On("FindByID", ctx, monitorID).Return(nil, nil)
+		mockRepo.On("UpdateFull", inTx, monitorID, mock.Anything).Return(nil)
+		notifications.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
+		tags.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(nil, nil)
 
 		result, err := service.UpdateFull(ctx, monitorID, &CreateUpdateDto{Type: "tcp", Name: "Updated Monitor"})
 
 		assert.ErrorIs(t, err, ErrMonitorNotFound)
 		assert.Nil(t, result)
+		assert.Equal(t, 1, transactionOf(service).rolledBack)
+		assert.Empty(t, bus.Topics())
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("repository error", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		updateDto := &CreateUpdateDto{
 			Type: "tcp",
 			Name: "Updated Monitor",
 		}
 
-		mockRepo.On("UpdateFull", ctx, monitorID, mock.Anything).Return(errors.New("update failed"))
+		mockRepo.On("UpdateFull", inTx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		result, err := service.UpdateFull(ctx, monitorID, updateDto)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "update failed")
+		assert.Empty(t, bus.Topics(), "nothing is published")
 		mockRepo.AssertExpectations(t)
 	})
+
+	for _, tc := range []struct {
+		name  string
+		fails func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService)
+	}{
+		{"unlinking the notification channels", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("link failed"))
+		}},
+		{"unlinking the tags", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(errors.New("link failed"))
+		}},
+		{"linking a notification channel", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return((*monitor_notification.Model)(nil), errors.New("link failed"))
+		}},
+		{"linking a tag", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return(&monitor_notification.Model{}, nil)
+			tags.On("Create", inTx, "monitor123", "tag-a").Return((*monitor_tag.Model)(nil), errors.New("link failed"))
+		}},
+	} {
+		t.Run("rolls back and publishes nothing when "+tc.name+" fails", func(t *testing.T) {
+			service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+			mockRepo.On("UpdateFull", inTx, "monitor123", mock.Anything).Return(nil)
+			tc.fails(notifications, tags)
+
+			result, err := service.UpdateFull(ctx, "monitor123", &CreateUpdateDto{
+				Type:            "tcp",
+				Name:            "Updated Monitor",
+				NotificationIds: []string{"channel-a"},
+				TagIds:          []string{"tag-a"},
+			})
+
+			require.ErrorContains(t, err, "link failed")
+			assert.Nil(t, result)
+			tx := transactionOf(service)
+			assert.Equal(t, 1, tx.rolledBack, "the monitor row and the links are rolled back together")
+			assert.Zero(t, tx.committed)
+			assert.Empty(t, bus.Topics(), "no MonitorUpdated")
+		})
+	}
 }
 
 func TestMonitorService_UpdatePartial(t *testing.T) {
@@ -591,23 +653,28 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 			Status: status,
 		}
 
-		mockRepo.On("UpdatePartial", ctx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
 			return *m.ID == monitorID &&
 				*m.Active == active &&
 				*m.Status == status
 		})).Return(nil)
 
-		mockRepo.On("FindByID", ctx, monitorID).Return(expectedModel, nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(expectedModel, nil)
 
 		result, err := service.UpdatePartial(ctx, monitorID, updateDto, false)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedModel, result)
 		assert.Equal(t, []shared.Monitor{*expectedModel}, eventstest.Published(bus, events.MonitorUpdated))
+		tx := transactionOf(service)
+		assert.Equal(t, 1, tx.committed)
+		assert.Equal(t, 0, tx.published, "the event is published once the transaction has committed, not before")
 		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("successful partial update without publish", func(t *testing.T) {
+		// The listener's status updates send no link IDs: the link mocks have no calls set up, so a
+		// call to them fails the test
 		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		active := false
@@ -621,8 +688,8 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 			Active: active,
 		}
 
-		mockRepo.On("UpdatePartial", ctx, monitorID, mock.Anything).Return(nil)
-		mockRepo.On("FindByID", ctx, monitorID).Return(expectedModel, nil)
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.Anything).Return(nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(expectedModel, nil)
 
 		result, err := service.UpdatePartial(ctx, monitorID, updateDto, true)
 
@@ -646,13 +713,13 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 			Config: config,
 		}
 
-		mockRepo.On("UpdatePartial", ctx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
 			return *m.ID == monitorID &&
 				m.Config != nil &&
 				*m.Config == config
 		})).Return(nil)
 
-		mockRepo.On("FindByID", ctx, monitorID).Return(expectedModel, nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(expectedModel, nil)
 
 		result, err := service.UpdatePartial(ctx, monitorID, updateDto, false)
 
@@ -662,19 +729,97 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 	})
 
 	t.Run("update error", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
 		updateDto := &PartialUpdateDto{}
 
-		mockRepo.On("UpdatePartial", ctx, monitorID, mock.Anything).Return(errors.New("update failed"))
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		result, err := service.UpdatePartial(ctx, monitorID, updateDto, false)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "update failed")
+		assert.Empty(t, bus.Topics())
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("links change to exactly the IDs sent", func(t *testing.T) {
+		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+		monitorID := "monitor123"
+		stored := &Model{ID: monitorID, Name: "Test Monitor"}
+		mockRepo.On("UpdatePartial", inTx, monitorID, mock.Anything).Return(nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(stored, nil)
+		notifications.On("FindByMonitorID", inTx, monitorID).Return([]*monitor_notification.Model{
+			{ID: "link-keep", MonitorID: monitorID, NotificationID: "channel-keep"},
+			{ID: "link-drop", MonitorID: monitorID, NotificationID: "channel-drop"},
+		}, nil)
+		notifications.On("Delete", inTx, "link-drop").Return(nil).Once()
+		notifications.On("Create", inTx, monitorID, "channel-new").Return(&monitor_notification.Model{}, nil).Once()
+		tags.On("FindByMonitorID", inTx, monitorID).Return([]*monitor_tag.Model{
+			{ID: "link-tag-drop", MonitorID: monitorID, TagID: "tag-drop"},
+		}, nil)
+		tags.On("Delete", inTx, "link-tag-drop").Return(nil).Once()
+		tags.On("Create", inTx, monitorID, "tag-new").Return(&monitor_tag.Model{}, nil).Once()
+
+		result, err := service.UpdatePartial(ctx, monitorID, &PartialUpdateDto{
+			NotificationIds: []string{"channel-keep", "channel-new", "channel-new"},
+			TagIds:          []string{"tag-new"},
+		}, false)
+
+		require.NoError(t, err)
+		assert.Same(t, stored, result)
+		assert.Equal(t, 1, transactionOf(service).committed)
+		assert.Equal(t, []shared.Monitor{*stored}, eventstest.Published(bus, events.MonitorUpdated))
+		notifications.AssertExpectations(t)
+		tags.AssertExpectations(t)
+		notifications.AssertNotCalled(t, "Create", mock.Anything, monitorID, "channel-keep")
+	})
+
+	for _, tc := range []struct {
+		name  string
+		fails func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService)
+	}{
+		{"finding the notification channel links", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return(([]*monitor_notification.Model)(nil), errors.New("link failed"))
+		}},
+		{"unlinking a notification channel", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_notification.Model{{ID: "link-old", NotificationID: "channel-old"}}, nil)
+			notifications.On("Delete", inTx, "link-old").Return(errors.New("link failed"))
+		}},
+		{"linking a notification channel", func(notifications *MockMonitorNotificationService, _ *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_notification.Model{}, nil)
+			notifications.On("Create", inTx, "monitor123", "channel-a").Return((*monitor_notification.Model)(nil), errors.New("link failed"))
+		}},
+		{"unlinking a tag", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_notification.Model{{ID: "link-a", NotificationID: "channel-a"}}, nil)
+			tags.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_tag.Model{{ID: "link-old", TagID: "tag-old"}}, nil)
+			tags.On("Delete", inTx, "link-old").Return(errors.New("link failed"))
+		}},
+		{"linking a tag", func(notifications *MockMonitorNotificationService, tags *MockMonitorTagService) {
+			notifications.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_notification.Model{{ID: "link-a", NotificationID: "channel-a"}}, nil)
+			tags.On("FindByMonitorID", inTx, "monitor123").Return([]*monitor_tag.Model{}, nil)
+			tags.On("Create", inTx, "monitor123", "tag-a").Return((*monitor_tag.Model)(nil), errors.New("link failed"))
+		}},
+	} {
+		t.Run("rolls back and publishes nothing when "+tc.name+" fails", func(t *testing.T) {
+			service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+			mockRepo.On("UpdatePartial", inTx, "monitor123", mock.Anything).Return(nil)
+			tc.fails(notifications, tags)
+
+			result, err := service.UpdatePartial(ctx, "monitor123", &PartialUpdateDto{
+				NotificationIds: []string{"channel-a"},
+				TagIds:          []string{"tag-a"},
+			}, false)
+
+			require.ErrorContains(t, err, "link failed")
+			assert.Nil(t, result)
+			tx := transactionOf(service)
+			assert.Equal(t, 1, tx.rolledBack, "the monitor row and the links are rolled back together")
+			assert.Zero(t, tx.committed)
+			assert.Empty(t, bus.Topics(), "no MonitorUpdated")
+		})
+	}
 }
 
 func TestMonitorService_Delete(t *testing.T) {

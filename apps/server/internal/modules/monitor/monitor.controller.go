@@ -235,38 +235,6 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	// Delete all existing notification relations and create new ones
-	err = ic.monitorNotificationService.DeleteByMonitorID(ctx, id)
-	if err != nil {
-		ic.logger.Errorw("Failed to delete existing monitor-notification relations", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-
-	// Create new notification relations
-	for _, notificationId := range monitor.NotificationIds {
-		_, err = ic.monitorNotificationService.Create(ctx, id, notificationId)
-		if err != nil {
-			ic.logger.Errorw("Failed to create monitor-notification record", "error", err)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		}
-	}
-
-	// Delete all existing tag relations and create new ones
-	err = ic.monitorTagService.DeleteByMonitorID(ctx, id)
-	if err != nil {
-		ic.logger.Errorw("Failed to delete existing monitor-tag relations", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-
-	// Create new tag relations
-	for _, tagId := range monitor.TagIds {
-		_, err = ic.monitorTagService.Create(ctx, id, tagId)
-		if err != nil {
-			ic.logger.Errorw("Failed to create monitor-tag record", "error", err)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		}
-	}
-
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
 }
 func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePartialInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
@@ -301,82 +269,6 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 	if err != nil {
 		ic.logger.Errorw("Failed to update monitor", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-
-	// Handle notification IDs if they are being updated
-	if len(monitor.NotificationIds) > 0 {
-		// Replace all monitor-notification relations in an optimized way
-		existing, err := ic.monitorNotificationService.FindByMonitorID(ctx, id)
-		if err != nil {
-			ic.logger.Errorw("Failed to fetch monitor-notification relations", "error", err)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		}
-
-		// Build sets for comparison
-		existingMap := make(map[string]string) // notificationID -> relationID
-		for _, rel := range existing {
-			existingMap[rel.NotificationID] = rel.ID
-		}
-		newSet := make(map[string]struct{})
-		for _, nid := range monitor.NotificationIds {
-			newSet[nid] = struct{}{}
-		}
-
-		// Delete relations not in the new list
-		for notificationID, relID := range existingMap {
-			if _, found := newSet[notificationID]; !found {
-				if err := ic.monitorNotificationService.Delete(ctx, relID); err != nil {
-					ic.logger.Warnw("Failed to delete monitor-notification relation", "error", err)
-				}
-			}
-		}
-
-		// Add new relations not already present
-		for _, nid := range monitor.NotificationIds {
-			if _, found := existingMap[nid]; !found {
-				if _, err := ic.monitorNotificationService.Create(ctx, id, nid); err != nil {
-					ic.logger.Warnw("Failed to create monitor-notification relation", "error", err)
-				}
-			}
-		}
-	}
-
-	// Handle tag IDs if they are being updated
-	if len(monitor.TagIds) > 0 {
-		// Replace all monitor-tag relations in an optimized way
-		existing, err := ic.monitorTagService.FindByMonitorID(ctx, id)
-		if err != nil {
-			ic.logger.Errorw("Failed to fetch monitor-tag relations", "error", err)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		}
-
-		// Build sets for comparison
-		existingMap := make(map[string]string) // tagID -> relationID
-		for _, rel := range existing {
-			existingMap[rel.TagID] = rel.ID
-		}
-		newSet := make(map[string]struct{})
-		for _, tid := range monitor.TagIds {
-			newSet[tid] = struct{}{}
-		}
-
-		// Delete relations not in the new list
-		for tagID, relID := range existingMap {
-			if _, found := newSet[tagID]; !found {
-				if err := ic.monitorTagService.Delete(ctx, relID); err != nil {
-					ic.logger.Warnw("Failed to delete monitor-tag relation", "error", err)
-				}
-			}
-		}
-
-		// Add new relations not already present
-		for _, tid := range monitor.TagIds {
-			if _, found := existingMap[tid]; !found {
-				if _, err := ic.monitorTagService.Create(ctx, id, tid); err != nil {
-					ic.logger.Warnw("Failed to create monitor-tag relation", "error", err)
-				}
-			}
-		}
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
