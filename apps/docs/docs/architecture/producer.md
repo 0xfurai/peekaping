@@ -87,7 +87,7 @@ These are required in cluster mode. In single mode, the `peekaping` binary sched
 |----------|------|----------|---------|-------------|
 | `PRODUCER_CONCURRENCY` | int | No | `10` | Number of concurrent producer workers (1-128) |
 | `MODE` | string | Yes | `dev` | Runtime mode: `dev`, `prod`, or `test` |
-| `LOG_LEVEL` | string | No | `debug` | Logging level: `debug`, `info`, `warn`, `error` |
+| `LOG_LEVEL` | string | No | `info` | Logging level: `debug`, `info`, `warn`, `error` |
 | `TZ` | string | Yes | `UTC` | Timezone for the producer |
 | `SERVICE_NAME` | string | Yes | `peekaping:producer` | Service identifier for logging |
 

@@ -21,6 +21,17 @@ func TestMetricsAreEnabledOnlyByMetricsEnabled(t *testing.T) {
 	assert.True(t, cfg.ToInternalConfig().MetricsEnabled)
 }
 
+func TestLogLevelDefaultsToInfo(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("LOG_LEVEL", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	assert.Equal(t, "info", cfg.ToInternalConfig().LogLevel)
+}
+
 func TestRedisUsernameIsLoadedFromEnv(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")
