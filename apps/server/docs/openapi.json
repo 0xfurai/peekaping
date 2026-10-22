@@ -9716,9 +9716,6 @@
         "security": [
           {
             "JwtAuth": []
-          },
-          {
-            "ApiKeyAuth": []
           }
         ],
         "summary": "Opt in or out of the usage ping",
