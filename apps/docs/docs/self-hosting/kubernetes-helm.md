@@ -145,6 +145,8 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `REDIS_USERNAME` | empty | A Redis ACL user. Leave it empty for password-only authentication. |
 | `REDIS_PASSWORD` | empty | Put it in the secret. |
 | `METRICS_ENABLED` | `false` | See [Metrics](#metrics). |
+| `NOTIFICATION_HISTORY_RETENTION_DAYS` | `90` | How many days the hourly cleanup keeps notification history. At least `30`. See [Cleanup Configuration](../architecture/api-server.md#cleanup-configuration). |
+| `TLS_INFO_RETENTION_DAYS` | `30` | How many days the hourly cleanup keeps monitors' TLS information. At least `1`. |
 | `TRUSTED_PROXIES` | loopback and the private ranges | The addresses the API believes `X-Forwarded-For` from. See [Client addresses](#client-addresses). |
 
 Leave `API_URL` unset. The web app then calls the API on its own address, which is where the Ingress sends `/api`. [API Server](../architecture/api-server.md#environment-variables) lists every variable.
