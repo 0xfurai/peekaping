@@ -15,7 +15,11 @@ import (
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
+	"go.uber.org/zap"
 )
+
+// sqliteClusterDocsURL is the part of the SQLite page that explains cluster mode on SQLite
+const sqliteClusterDocsURL = "https://docs.peekaping.com/self-hosting/docker-with-sqlite#cluster-mode"
 
 // RegisterClusterAPI provides what cmd/api runs: the HTTP API and the websocket, with the
 // stale monitors the producer's watchdog records in Redis. A push to a push URL is enqueued
@@ -29,6 +33,7 @@ func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
 			infra.ProvideNotificationAsynqServer,
 			notification_channel.NewQueueConsumer,
 		),
+		warnAboutSQLite(container, cfg),
 	)
 }
 
@@ -39,6 +44,7 @@ func RegisterClusterProducer(container *dig.Container, cfg *config.Config) error
 		registerCluster(container, cfg),
 		utils.Provide(container, producer.NewQueueRunner),
 		producer.RegisterDependencies(container),
+		warnAboutSQLite(container, cfg),
 	)
 }
 
@@ -59,7 +65,25 @@ func RegisterClusterIngester(container *dig.Container, cfg *config.Config) error
 		registerCluster(container, cfg),
 		utils.Provide(container, infra.ProvideIngesterAsynqServer),
 		ingester.RegisterDependencies(container),
+		warnAboutSQLite(container, cfg),
 	)
+}
+
+// warnAboutSQLite logs one warning when the storage backend is SQLite, for the binaries that open
+// the database: the api, the producer and the ingester. They run as separate processes on one
+// file, and SQLite lets one process write at a time, so each waits for the others' writes. That
+// works for a small install, but single mode runs all the roles in one process, and PostgreSQL
+// takes concurrent writers, so either fits better. The worker has no database and doesn't log it.
+// The warning comes before the database opens, so it is in the log when a startup check stops.
+func warnAboutSQLite(container *dig.Container, cfg *config.Config) error {
+	if cfg.DBType != "sqlite" {
+		return nil
+	}
+	return container.Invoke(func(logger *zap.SugaredLogger) {
+		logger.Warnf("SQLite in cluster mode: the api, producer and ingester share one database file "+
+			"and write to it one at a time. Single mode (the SQLite bundle image) or PostgreSQL fits better. "+
+			"See %s", sqliteClusterDocsURL)
+	})
 }
 
 // registerCluster provides what every cluster binary shares, then cluster mode's transport: the
