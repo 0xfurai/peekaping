@@ -148,7 +148,9 @@ A report has these fields and no others:
 | `os` | The operating system and CPU architecture, such as `linux/arm64` |
 | `component` | The part of Peekaping that caught the panic, such as `http`, `executor` or `scheduler` |
 | Level | `error` for a panic that was caught, `fatal` for one that ends the process |
-| Bookkeeping | A random event ID, the time of the crash and the platform, `go`. The protocol needs them to accept the report. |
+| Bookkeeping | A random event ID, the time of the crash, the platform, `go`, and the `dsn` in the envelope header, which is the address of the project the report goes to. The protocol needs them to accept the report. |
+
+One known limit: the Sentry library writes the time a report was sent (`sent_at`, also in the envelope header) in your server's local time, so your server's UTC offset reaches Sentry. The time of the crash itself is in UTC.
 
 ### What a report never holds
 
