@@ -2540,7 +2540,7 @@ func TestHTTPExecutor_Execute_ConcurrentChecksKeepTheirOwnClient(t *testing.T) {
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	slow := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		select {
-		case <-time.After(1500 * time.Millisecond):
+		case <-time.After(2 * time.Second):
 		case <-r.Context().Done():
 		}
 	}))
@@ -2555,13 +2555,14 @@ func TestHTTPExecutor_Execute_ConcurrentChecksKeepTheirOwnClient(t *testing.T) {
 	shortTimeout.Timeout = 1
 
 	type check struct {
-		monitor *Monitor
-		want    shared.MonitorStatus
+		monitor     *Monitor
+		want        shared.MonitorStatus
+		wantMessage string // a Down for another reason doesn't count
 	}
 	checks := []check{
-		{skipTLS, shared.MonitorStatusUp},
-		{strictTLS, shared.MonitorStatusDown},
-		{shortTimeout, shared.MonitorStatusDown},
+		{skipTLS, shared.MonitorStatusUp, "200"},
+		{strictTLS, shared.MonitorStatusDown, "certificate"},
+		{shortTimeout, shared.MonitorStatusDown, "exceeded"}, // "context deadline exceeded" or "Client.Timeout exceeded"
 	}
 
 	const rounds = 20
@@ -2582,6 +2583,7 @@ func TestHTTPExecutor_Execute_ConcurrentChecksKeepTheirOwnClient(t *testing.T) {
 		for j, c := range checks {
 			r := results[i*len(checks)+j]
 			assert.Equalf(t, c.want, r.Status, "%s (round %d): %s", c.monitor.Name, i, r.Message)
+			assert.Containsf(t, r.Message, c.wantMessage, "%s (round %d)", c.monitor.Name, i)
 		}
 	}
 }
