@@ -182,6 +182,18 @@ func TestOnlineInstances_WindowOf60s(t *testing.T) {
 	assert.Equal(t, 60*time.Second, protocol.InstanceOnlineWindow)
 }
 
+// A retired instance is out of the dealing the moment it says bye, even when the clock reads the
+// same instant again: the boundary of the window counts as online, so the retired time is a
+// second beyond it.
+func TestRetiredAt_IsOutsideTheOnlineWindowAtTheInstantOfBye(t *testing.T) {
+	now := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+	retired := []*probe.Instance{{ID: "retired", LastSeenAt: protocol.RetiredAt(now)}, {ID: "staying", LastSeenAt: now}}
+
+	assert.Equal(t, []string{"staying"}, protocol.OnlineInstances(retired, now, protocol.InstanceOnlineWindow), "at the instant of bye")
+	assert.Equal(t, []string{"staying"}, protocol.OnlineInstances(retired, now.Add(time.Nanosecond), protocol.InstanceOnlineWindow), "and after it")
+	assert.WithinDuration(t, now.Add(-protocol.InstanceOnlineWindow), protocol.RetiredAt(now), 2*time.Second, "about a window ago")
+}
+
 func TestOnlineInstances_NoneIsAnEmptyList(t *testing.T) {
 	require.NotNil(t, protocol.OnlineInstances(nil, time.Now(), time.Minute))
 }

@@ -219,7 +219,7 @@ func TestProbeProtocol_HelloRefusesAnInstanceIdAnotherProbeHas(t *testing.T) {
 	assert.Equal(t, "edge-1.example.com", a.getProbe(t, made.ID).Instances[0].Hostname)
 }
 
-// The stamp is made by the middleware every route after hello has. Bye removes the instance it
+// The stamp is made by the middleware every route after hello has. Bye retires the instance it
 // stamped, so the test calls a route that leaves the instance be.
 func TestProbeProtocol_StampsLastSeen(t *testing.T) {
 	a, made := probeApp(t)
@@ -358,7 +358,10 @@ func TestProbeProtocol_HelloRejectsABadBody(t *testing.T) {
 	assert.Empty(t, a.getProbe(t, made.ID).Instances)
 }
 
-func TestProbeProtocol_ByeRemovesTheInstance(t *testing.T) {
+// Bye takes the instance out of the dealing at once and leaves the row, so that the probe is not
+// without instances: it counts as offline only after PROBE_OFFLINE_AFTER, which a graceful restart
+// stays well inside of.
+func TestProbeProtocol_ByeRetiresTheInstance(t *testing.T) {
 	a, made := probeApp(t)
 	staying, leaving := uuid.NewString(), uuid.NewString()
 	a.sayHello(t, made.Token, staying)
@@ -369,11 +372,16 @@ func TestProbeProtocol_ByeRemovesTheInstance(t *testing.T) {
 
 	assert.Equal(t, http.StatusNoContent, w.Code, w.Body.String())
 	assert.Empty(t, w.Body.String())
-	instances := a.getProbe(t, made.ID).Instances
-	require.Len(t, instances, 1)
-	assert.Equal(t, staying, instances[0].ID)
-	assert.Equal(t, http.StatusConflict, a.request(t, http.MethodPost, byePath, nil, asProbe(made.Token, leaving)).Code,
-		"a probe that said bye has to say hello again")
+	lastSeen := map[string]time.Time{}
+	for _, instance := range a.getProbe(t, made.ID).Instances {
+		lastSeen[instance.ID] = instance.LastSeenAt
+	}
+	require.Len(t, lastSeen, 2, "the retired instance is still listed")
+	assert.WithinDuration(t, time.Now().Add(-protocol.InstanceOnlineWindow), lastSeen[leaving], 5*time.Second,
+		"last seen is the edge of the online window, which is outside it")
+	assert.WithinDuration(t, time.Now(), lastSeen[staying], 5*time.Second, "and the sibling's is untouched")
+	assert.Equal(t, http.StatusNoContent, a.request(t, http.MethodPost, byePath, nil, asProbe(made.Token, leaving)).Code,
+		"a bye that is sent again, as after a lost answer, retires the instance again")
 }
 
 func TestProbeProtocol_GzipBodiesAndReplies(t *testing.T) {
@@ -861,7 +869,8 @@ func TestProbeProtocol_StatusFlipKeepsTheVersion(t *testing.T) {
 	assert.True(t, again.Monitors[0].UpdatedAt.After(held.Monitors[0].UpdatedAt), "the row was touched by the status change, as the wire's updated_at shows")
 }
 
-func TestProbeProtocol_ByeRemovesTheInstanceAndRedeals(t *testing.T) {
+// The retired instance's row stays, and still the monitors are dealt among the sibling alone
+func TestProbeProtocol_ByeRetiresTheInstanceAndRedeals(t *testing.T) {
 	a := localProbeApp(t, nil)
 	const count = 24
 	all := make([]string, count)
