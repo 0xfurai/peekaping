@@ -116,7 +116,7 @@ Every hour, at the top of the hour in UTC, the API server deletes the heartbeats
 | `NOTIFICATION_HISTORY_RETENTION_DAYS` | int | No | `90` | How many days notification history is kept. At least `30`: the history stops a certificate expiry notification from being sent twice, and the default thresholds are 21, 14 and 7 days before expiry. If you set a threshold above this value, that notification can be sent again |
 | `TLS_INFO_RETENTION_DAYS` | int | No | `30` | How many days monitors' TLS information is kept. At least `1` |
 
-A value below its minimum stops startup with a configuration error.
+A value below its minimum stops startup with a configuration error. `0` counts as unset and gives the default.
 
 In cluster mode every API replica schedules the cleanup, and the first one to claim an hour runs it, so each hour's cleanup runs once however many replicas run. Only that replica logs `Running the hourly cleanup` with the hour; the others log at debug level that another replica has it. The claim is a Redis key, `peekaping:cleanup:<hour>` (the time rounded to the nearest hour, in UTC), that expires after two hours, so replicas whose clocks are less than an hour apart still share one claim per hour. If a replica can't reach Redis when the hour starts, it logs an error and skips that hour's cleanup instead of running it unguarded. The next hour tries again.
 

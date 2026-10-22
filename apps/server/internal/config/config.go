@@ -103,10 +103,12 @@ type Config struct {
 
 	// How many days the hourly cleanup keeps notification history. The history stops a
 	// certificate expiry notification from being sent twice, so it must outlast the
-	// default thresholds (the largest is 21 days): the minimum is 30.
+	// default thresholds (the largest is 21 days): the minimum is 30. 0 counts as unset
+	// and gives the default, as for every int setting.
 	NotificationHistoryRetentionDays int `env:"NOTIFICATION_HISTORY_RETENTION_DAYS" validate:"min=30" default:"90"`
 
-	// How many days the hourly cleanup keeps the TLS info that monitors record
+	// How many days the hourly cleanup keeps the TLS info that monitors record. 0 counts as
+	// unset and gives the default.
 	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 }
 
