@@ -163,6 +163,15 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 		channelType = *notification.Type
 	}
 
+	// The saved config would be read by the new type's provider, which doesn't know the old
+	// type's secret keys and so wouldn't hide them. The new type brings its own config.
+	if channelType != current.Type && notification.Config == nil {
+		if _, ok := ic.providers.Get(channelType); !ok {
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
+		}
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid config: send the config when changing the type"))
+	}
+
 	// A secret sent back as the placeholder keeps its saved value
 	if notification.Config != nil {
 		resolved, _, resolveErr := ic.resolveConfig(channelType, *notification.Config, current)

@@ -360,6 +360,92 @@ func TestNotificationChannelsAPI_AnEndpointLeftAtItsDefaultIsUnchanged(t *testin
 	})
 }
 
+// A PATCH that names no config keeps the stored one. Under another type that config is read by
+// another provider, which doesn't know the old type's secret keys: the old secret would come
+// back in the clear. A new type needs the config that goes with it.
+func TestNotificationChannelsAPI_PatchingTheTypeWithoutAConfigIsRefused(t *testing.T) {
+	a := newSecretsApp(t)
+
+	const wantMessage = "Invalid config: send the config when changing the type"
+	cases := []struct {
+		name string
+		from secretChannel
+		// extras are keys of the type it changes to, which the saved type keeps without knowing them
+		extras map[string]any
+		toType string
+	}{
+		{
+			name:   "telegram to signal",
+			from:   secretChannelOfType(t, "telegram"),
+			extras: map[string]any{"signal_url": "https://signal.example", "signal_number": "1", "signal_recipients": "2"},
+			toType: "signal",
+		},
+		{
+			name:   "discord to webhook",
+			from:   secretChannelOfType(t, "discord"),
+			extras: map[string]any{"webhook_content_type": "json"},
+			toType: "webhook",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			channel := tc.from.withVisible(tc.extras)
+			id := a.createSecretChannel(t, channel)
+			path := "/api/v1/notification-channels/" + id
+			// The way to get the extra keys in is a save of the form the API showed, with an addition
+			decode[any](t, a.put(t, id, channel.channelType, channel.withPlaceholders(nil)), http.StatusOK)
+
+			w := a.request(t, http.MethodPatch, path, map[string]any{"type": tc.toType}, a.asAdmin)
+
+			require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+			assert.Contains(t, w.Body.String(), wantMessage)
+			assert.NotContains(t, w.Body.String(), secretMarker)
+
+			w = a.request(t, http.MethodGet, path, nil, a.asAdmin)
+			got := decode[channelWithConfig](t, w, http.StatusOK)
+			assert.Equal(t, tc.from.channelType, got.Type)
+			assert.NotContains(t, w.Body.String(), secretMarker, "a later GET shows a secret")
+			assert.JSONEq(t, channel.redactedConfig(), got.Config)
+			assert.JSONEq(t, channel.config(nil), a.storedChannelConfig(t, id))
+		})
+	}
+
+	t.Run("a type with the config that goes with it is saved", func(t *testing.T) {
+		channel := secretChannelOfType(t, "telegram")
+		signal := secretChannelOfType(t, "signal")
+		id := a.createSecretChannel(t, channel)
+		path := "/api/v1/notification-channels/" + id
+
+		w := a.request(t, http.MethodPatch, path, map[string]any{"type": "signal", "config": signal.config(nil)}, a.asAdmin)
+
+		decode[any](t, w, http.StatusOK)
+		w = a.request(t, http.MethodGet, path, nil, a.asAdmin)
+		got := decode[channelWithConfig](t, w, http.StatusOK)
+		assert.Equal(t, "signal", got.Type)
+		assert.JSONEq(t, signal.config(nil), got.Config)
+		assert.NotContains(t, w.Body.String(), secretMarker)
+	})
+
+	t.Run("naming the stored type again needs no config", func(t *testing.T) {
+		channel := secretChannelOfType(t, "telegram")
+		id := a.createSecretChannel(t, channel)
+
+		w := a.request(t, http.MethodPatch, "/api/v1/notification-channels/"+id, map[string]any{"type": "telegram"}, a.asAdmin)
+
+		decode[any](t, w, http.StatusOK)
+		assert.JSONEq(t, channel.config(nil), a.storedChannelConfig(t, id))
+	})
+
+	t.Run("an unknown type is still unsupported", func(t *testing.T) {
+		id := a.createSecretChannel(t, secretChannelOfType(t, "telegram"))
+
+		w := a.request(t, http.MethodPatch, "/api/v1/notification-channels/"+id, map[string]any{"type": "carrier-pigeon"}, a.asAdmin)
+
+		require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+		assert.Contains(t, w.Body.String(), "Unsupported notification type")
+	})
+}
+
 func TestNotificationChannelsAPI_AChangedTypeDoesNotKeepTheOldSecrets(t *testing.T) {
 	a := newSecretsApp(t)
 	smtp := secretChannelOfType(t, "smtp")

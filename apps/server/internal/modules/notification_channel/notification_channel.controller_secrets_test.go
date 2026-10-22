@@ -377,6 +377,38 @@ func TestControllerUpdatePartialResolvesSecrets(t *testing.T) {
 	}
 }
 
+// A PATCH without a config keeps the stored one, which another type's provider can't redact
+func TestControllerUpdatePartialChangingTheTypeNeedsAConfig(t *testing.T) {
+	t.Run("a new type without a config is refused", func(t *testing.T) {
+		f := newSecretsFixture(t, storedChannelConfig)
+
+		rec := f.do(http.MethodPatch, "/channel-1", `{"type":"test-other-secrets"}`)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code, rec.Body.String())
+		assert.Contains(t, rec.Body.String(), "Invalid config: send the config when changing the type")
+		assert.Equal(t, storedChannelConfig, f.stored("channel-1"))
+		assert.Equal(t, "test-secrets", f.store.channels["channel-1"].Type)
+	})
+
+	t.Run("a new type with a config is saved", func(t *testing.T) {
+		f := newSecretsFixture(t, storedChannelConfig)
+
+		rec := f.do(http.MethodPatch, "/channel-1", `{"type":"test-other-secrets","config":`+quote(`{"server":"https://server.example","token":"fresh-token"}`)+`}`)
+
+		assert.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+		assert.Equal(t, "test-other-secrets", f.store.channels["channel-1"].Type)
+	})
+
+	t.Run("the stored type again needs no config", func(t *testing.T) {
+		f := newSecretsFixture(t, storedChannelConfig)
+
+		rec := f.do(http.MethodPatch, "/channel-1", `{"type":"test-secrets","name":"Renamed"}`)
+
+		assert.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+		assert.Equal(t, storedChannelConfig, f.stored("channel-1"))
+	})
+}
+
 func TestControllerCreateRefusesPlaceholders(t *testing.T) {
 	for _, config := range []string{
 		`{"server":"https://server.example","token":"********"}`,
