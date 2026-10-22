@@ -97,7 +97,7 @@ export const deserialize = (data: MonitorMonitorResponseDto): HttpJsonQueryFormV
     proxy_id: data.proxy_id || "",
     url: config.url || "https://example.com",
     accepted_statuscodes: config.accepted_statuscodes || ["2XX"],
-    max_redirects: config.max_redirects || 10,
+    max_redirects: config.max_redirects ?? 10,
     ignore_tls_errors: config.ignore_tls_errors || false,
     httpOptions: {
       method: config.method || "GET",

@@ -16,14 +16,15 @@ const generateToken = () =>
   );
 
 const PushForm = () => {
-  const { form, setNotifierSheetOpen } = useMonitorFormContext();
+  const { form, mode, setNotifierSheetOpen } = useMonitorFormContext();
   const pushToken = form.watch("pushToken");
   const { t } = useLocalizedTranslation();
 
+  // A new monitor gets its own token, also when it is a clone: the token identifies the monitor
+  // the push endpoint delivers to, so two monitors can't share one. An edited monitor keeps its.
   useEffect(() => {
-    if (!pushToken) {
-      const newToken = generateToken();
-      form.setValue("pushToken", newToken, { shouldDirty: true });
+    if (mode === "create" || !pushToken) {
+      form.setValue("pushToken", generateToken(), { shouldDirty: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

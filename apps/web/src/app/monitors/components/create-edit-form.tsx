@@ -54,7 +54,7 @@ const CreateEditForm = () => {
       >
         <definition.Form />
 
-        <Button type="submit">
+        <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="animate-spin" />}
           {mode === "create"
             ? t("monitors.form.buttons.create")
