@@ -273,7 +273,9 @@ func TestBuildPayload_StorageBackendIsNormalized(t *testing.T) {
 		"mongo":      "mongo",
 		"mongodb":    "mongo",
 		"MongoDB":    "mongo",
-		"mysql":      "",
+		"mysql":      "mysql",
+		"MySQL":      "mysql",
+		"mariadb":    "",
 		"":           "",
 	} {
 		t.Run(dbType, func(t *testing.T) {

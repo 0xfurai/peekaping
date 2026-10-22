@@ -3,7 +3,7 @@
 // The error is a fixed string naming only a contract field; it never repeats a key or value from the input.
 
 export const MODES = ["single", "cluster"] as const;
-export const DBS = ["sqlite", "postgres", "mongo"] as const;
+export const DBS = ["sqlite", "postgres", "mongo", "mysql"] as const;
 export const MONITOR_BUCKETS = ["0", "1-10", "11-50", "51-200", "201-1000", "1000+"] as const;
 export const FEATURE_KEYS = ["status_pages", "maintenance", "metrics"] as const;
 export const MAX_TYPES = 50;

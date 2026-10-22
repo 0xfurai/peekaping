@@ -75,6 +75,16 @@ describe("POST /v1/ping with a valid ping", () => {
     ]);
   });
 
+  test("accepts a mysql install and writes its storage backend", async () => {
+    const response = await handleRequest(postJson({ ...example(), db: "mysql" }), env);
+
+    expect(response.status).toBe(204);
+    expect(dataset.points[0]).toEqual({
+      indexes: [INSTANCE_ID],
+      blobs: ["ping", "0.0.48", "single", "mysql", "linux/arm64", "11-50", "true", "false", "true"],
+    });
+  });
+
   test("stores nothing from the request but the payload: no IP, header, country or cf data", async () => {
     const request = postJson(example(), {
       headers: {
@@ -244,7 +254,7 @@ describe("a body that is not a valid ping", () => {
     ["a missing field", { ...example(), os: undefined }],
     ["a bad version", { ...example(), version: "latest" }],
     ["a bad mode", { ...example(), mode: "multi" }],
-    ["a bad storage backend", { ...example(), db: "mysql" }],
+    ["a bad storage backend", { ...example(), db: "mariadb" }],
     ["a bad monitors bucket", { ...example(), monitors: "12" }],
     ["a duplicate monitor type", { ...example(), monitor_types: ["http", "http"] }],
     ["an upper-case instance ID", { ...example(), instance_id: INSTANCE_ID.toUpperCase() }],
