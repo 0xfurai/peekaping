@@ -4,9 +4,11 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
 	"testing"
 
+	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
@@ -157,6 +159,91 @@ func TestBadges_FallBackOnInvalidOptions(t *testing.T) {
 	} {
 		t.Run(path, func(t *testing.T) {
 			assertBadge(t, a.request(t, http.MethodGet, path, nil), title)
+		})
+	}
+}
+
+// storeCertExpiry gives a monitor a certificate with the days left, as a check of it would.
+func (a *app) storeCertExpiry(t *testing.T, monitorID string, days int) {
+	t.Helper()
+	require.NoError(t, a.container.Invoke(func(tlsInfo monitor_tls_info.Service) error {
+		return tlsInfo.StoreTLSInfoObject(context.Background(), monitorID, shared.TLSInfo{
+			CertInfo: &shared.CertificateInfo{DaysRemaining: days},
+		})
+	}))
+}
+
+// A color that isn't a color must neither add markup nor change the badge:
+// it's as if the option was left out.
+func TestBadges_IgnoreUnsafeColors(t *testing.T) {
+	a := newAppWithMonitorListener(t)
+	// upColor and downColor only show on a monitor that's Up or Down, and on a
+	// certificate expiry badge for a monitor with a certificate
+	pending := a.createMonitor(t, "Pending monitor", "pending-push-token")
+	up := a.createMonitor(t, "Up monitor", "up-push-token")
+	down := a.createMonitor(t, "Down monitor", "down-push-token")
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{pending, up, down}})
+	a.reportStatus(t, up, shared.MonitorStatusUp)
+	a.reportStatus(t, down, shared.MonitorStatusDown)
+	a.storeCertExpiry(t, up, 30)
+	a.storeCertExpiry(t, down, 3)
+
+	const hostile = `"><script>alert(1)</script>`
+	for name, monitorID := range map[string]string{"pending": pending, "up": up, "down": down} {
+		for path := range badgePaths(monitorID) {
+			for _, style := range []string{"flat", "flat-square", "plastic", "for-the-badge", "social"} {
+				plain := path + "?style=" + style
+				want := a.request(t, http.MethodGet, plain, nil)
+				require.Equal(t, http.StatusOK, want.Code, want.Body.String())
+				for _, option := range []string{"color", "labelColor", "upColor", "downColor"} {
+					t.Run(name+path+"/"+style+"/"+option, func(t *testing.T) {
+						w := a.request(t, http.MethodGet, plain+"&"+option+"="+url.QueryEscape(hostile), nil)
+						assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+						assert.NotContains(t, w.Body.String(), "<script")
+						assert.Equal(t, want.Body.String(), w.Body.String())
+					})
+				}
+			}
+		}
+	}
+}
+
+var badgeFills = regexp.MustCompile(`<rect (?:x="\d+" )?width="\d+" height="\d+" fill="([^"]*)"/>`)
+
+// The colors a badge accepts are drawn as hex, whichever way they're written.
+func TestBadges_DrawValidColors(t *testing.T) {
+	a := newAppWithMonitorListener(t)
+	pending := a.createMonitor(t, "Pending monitor", "pending-push-token")
+	up := a.createMonitor(t, "Up monitor", "up-push-token")
+	down := a.createMonitor(t, "Down monitor", "down-push-token")
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{pending, up, down}})
+	a.reportStatus(t, up, shared.MonitorStatusUp)
+	a.reportStatus(t, down, shared.MonitorStatusDown)
+
+	for _, tt := range []struct {
+		name, monitorID, query string
+		labelFill, valueFill   string
+	}{
+		{"no color", pending, "", "#555", "#fe7d37"},
+		{"bare hex", pending, "color=4c1", "#555", "#4c1"},
+		{"hex with hash", pending, "color=%234c1", "#555", "#4c1"},
+		{"long bare hex", pending, "color=ff0000", "#555", "#ff0000"},
+		{"hex keeps its case", pending, "color=%23ABCDEF", "#555", "#ABCDEF"},
+		{"color name", pending, "color=brightgreen", "#555", "#4c1"},
+		{"color name in any case", pending, "color=LightGray", "#555", "#9f9f9f"},
+		{"label hex", pending, "labelColor=333", "#333", "#fe7d37"},
+		{"label color name", pending, "labelColor=red", "#e05d44", "#fe7d37"},
+		{"up color", up, "upColor=orange", "#555", "#fe7d37"},
+		{"down color", down, "downColor=yellow", "#555", "#dfb317"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			path := "/api/v1/badge/" + tt.monitorID + "/status?" + tt.query
+			w := a.request(t, http.MethodGet, path, nil)
+			require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+			fills := badgeFills.FindAllStringSubmatch(w.Body.String(), -1)
+			require.GreaterOrEqual(t, len(fills), 2, w.Body.String())
+			assert.Equal(t, tt.labelFill, fills[0][1])
+			assert.Equal(t, tt.valueFill, fills[1][1])
 		})
 	}
 }

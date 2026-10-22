@@ -184,6 +184,47 @@ func FormatLabel(label, prefix, suffix string) string {
 	return result
 }
 
+// colorNames are the shields.io color names a badge accepts, with the hex each is drawn as
+var colorNames = map[string]string{
+	"brightgreen":   "#4c1",
+	"green":         "#97ca00",
+	"yellowgreen":   "#a4a61d",
+	"yellow":        "#dfb317",
+	"orange":        "#fe7d37",
+	"red":           "#e05d44",
+	"blue":          "#007ec6",
+	"grey":          "#555",
+	"gray":          "#555",
+	"lightgrey":     "#9f9f9f",
+	"lightgray":     "#9f9f9f",
+	"success":       "#4c1",
+	"important":     "#fe7d37",
+	"critical":      "#e05d44",
+	"informational": "#007ec6",
+	"inactive":      "#9f9f9f",
+}
+
+// parseColor turns the color of a badge URL into the hex color to draw: a hex
+// color with or without its leading #, or a shields.io color name. It reports
+// false for anything else, so no other text reaches the SVG.
+func parseColor(value string) (string, bool) {
+	hex := strings.TrimPrefix(value, "#")
+	if (len(hex) == 3 || len(hex) == 6) && isHex(hex) {
+		return "#" + hex, true
+	}
+	color, ok := colorNames[strings.ToLower(value)]
+	return color, ok
+}
+
+func isHex(s string) bool {
+	for _, c := range s {
+		if (c < '0' || c > '9') && (c < 'a' || c > 'f') && (c < 'A' || c > 'F') {
+			return false
+		}
+	}
+	return true
+}
+
 // SanitizeText sanitizes text for SVG output
 func SanitizeText(text string) string {
 	// Replace characters that could break SVG
