@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
+	"runtime/debug"
 
 	"github.com/zishang520/socket.io/v2/socket"
 	"go.uber.org/zap"
@@ -60,13 +61,13 @@ func NewServer(
 		next(nil)
 	})
 
-	io.On("connection", func(clients ...interface{}) {
+	io.On("connection", safe(logger, "connection", func(clients ...interface{}) {
 		client := clients[0].(*socket.Socket)
 		userId := client.Data().(SocketData).UserId
 
 		logger.Debugf("[WS]connection: %s", userId)
 
-		client.On("join_room", func(args ...interface{}) {
+		client.On("join_room", safe(logger, "join_room", func(args ...interface{}) {
 			roomName, ok := firstString(args)
 			if !ok {
 				logger.Debugf("join_room: dropped, no room name in %d arguments", len(args))
@@ -77,9 +78,9 @@ func NewServer(
 			// TODO: validate if user allowed to join room
 			client.Join(socket.Room(roomName))
 			// ack([]interface{}{map[string]string{"status": "ok"}}, nil)
-		})
+		}))
 
-		client.On("leave_room", func(args ...interface{}) {
+		client.On("leave_room", safe(logger, "leave_room", func(args ...interface{}) {
 			roomName, ok := firstString(args)
 			if !ok {
 				logger.Debugf("leave_room: dropped, no room name in %d arguments", len(args))
@@ -89,8 +90,8 @@ func NewServer(
 			// ack := args[1].(func([]interface{}, error))
 			client.Leave(socket.Room(roomName))
 			// ack([]interface{}{map[string]string{"status": "ok"}}, nil)
-		})
-	})
+		}))
+	}))
 
 	// Listen for heartbeat events and broadcast to room
 	events.Subscribe(events.NewSubscriber(eventBus, "websocket"), events.HeartbeatEvent, func(_ context.Context, hb heartbeat.Model) {
@@ -100,6 +101,25 @@ func NewServer(
 	})
 
 	return server, nil
+}
+
+// safe makes a socket handler recover from a panic: it logs the panic with the event
+// name and drops the message. engine.io runs each handler in its own goroutine with no
+// recover, and the HTTP recovery middleware doesn't cover that goroutine, so a panic
+// that gets out of a handler ends the process.
+func safe(logger *zap.SugaredLogger, event string, fn func(args ...interface{})) func(args ...interface{}) {
+	return func(args ...interface{}) {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Errorw("Socket handler panicked",
+					"event", event,
+					"panic", r,
+					"stack", string(debug.Stack()),
+				)
+			}
+		}()
+		fn(args...)
+	}
 }
 
 // firstString returns the first argument of a client's message if it's a string.
