@@ -29,8 +29,9 @@ var quietRoutes = []string{"/health", "/api/v1/health", "/metrics"}
 // Logger logs each request once it is done, after RequestID. It logs the pattern of the route
 // that served the request, empty when none did, and never the path or the query, which can hold
 // a secret such as a push token. The requests to quietRoutes go to debug level, and the others
-// to info level; a request that no route served is matched by its path. The client address it logs is the one proxies resolves. A request that an outer
-// Logger already handles is passed through, so that it is logged once.
+// to info level; a request that no route served is matched by its path. The client address it
+// logs is the one proxies resolves. A request that an outer Logger already handles is passed
+// through, so that it is logged once.
 func Logger(logger *zap.SugaredLogger, proxies *TrustedProxies) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
