@@ -69,6 +69,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		func() *config.Config { return cfg },
 		internal.ProvideLogger,
 		internal.ProvideTrustedProxies,
+		internal.ProvideCORSOrigins,
 	)
 	if err != nil {
 		return err

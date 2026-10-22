@@ -138,6 +138,7 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | Variable | Default | Notes |
 | --- | --- | --- |
 | `CLIENT_URL` | `http://localhost:3000` | The address people open, such as `https://status.example.com`. Notifications link to it. |
+| `CORS_ORIGINS` | the origin of `CLIENT_URL` | Origins whose pages may read the API's responses, comma-separated. The web app calls the API on its own address, which needs no entry. Set it only for a page on another origin. `*` allows any origin. |
 | `MODE` | `dev` | Set `prod`. With `dev`, the API logs every request. |
 | `TZ` | `UTC` | The server's time zone. |
 | `REDIS_HOST` | `redis` | Your Redis host. |

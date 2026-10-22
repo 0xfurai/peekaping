@@ -57,6 +57,7 @@ func clusterConfig(t *testing.T) *config.Config {
 		BruteforceMaxAttempts: 20,
 		BruteforceWindow:      time.Minute,
 		BruteforceLockout:     time.Minute,
+		ClientURL:             "http://localhost:3000",
 		ServiceName:           "peekaping:apptest",
 	}
 }
@@ -270,6 +271,37 @@ func TestRegister_ProvidesTheTrustedProxiesFromTheConfig(t *testing.T) {
 			assert.Equal(t, want, proxies.ClientIP(r), remote)
 		}
 	}))
+}
+
+func TestRegister_RefusesAnInvalidCORSOrigin(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.CORSOrigins = "https://peek.example,example.com"
+	container := dig.New()
+	require.NoError(t, Register(container, cfg))
+
+	err := container.Invoke(func(*httpx.CORSOrigins) {})
+
+	assert.ErrorContains(t, err, `invalid CORS_ORIGINS entry "example.com"`)
+}
+
+func TestRegister_ProvidesTheCORSOriginsFromTheConfig(t *testing.T) {
+	for name, tc := range map[string]struct{ origins, clientURL, allowed, denied string }{
+		"the list": {"https://a.example,https://b.example", "https://peek.example", "https://b.example", "https://peek.example"},
+		"the origin of CLIENT_URL when the list is unset": {"", "https://peek.example/status", "https://peek.example", "https://a.example"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := clusterConfig(t)
+			cfg.CORSOrigins = tc.origins
+			cfg.ClientURL = tc.clientURL
+			container := dig.New()
+			require.NoError(t, Register(container, cfg))
+
+			require.NoError(t, container.Invoke(func(origins *httpx.CORSOrigins) {
+				assert.Equal(t, tc.allowed, origins.AllowOrigin(tc.allowed))
+				assert.Empty(t, origins.AllowOrigin(tc.denied))
+			}))
+		})
+	}
 }
 
 func TestRegister_RefusesAnUnsupportedDBType(t *testing.T) {

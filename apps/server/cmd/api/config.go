@@ -56,6 +56,10 @@ type Config struct {
 	// ranges, comma-separated. Empty trusts nobody. Validated in Validate().
 	TrustedProxies string `env:"TRUSTED_PROXIES"`
 
+	// Origins whose pages may read the API's responses: comma-separated, "*" alone for any.
+	// Empty allows the origin of CLIENT_URL. Validated in Validate().
+	CORSOrigins string `env:"CORS_ORIGINS"`
+
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
 
 	// Prometheus metrics
@@ -139,6 +143,12 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	// So does a mistyped CORS_ORIGINS: ignoring it would leave the web app unable to read the
+	// API's responses, with no sign of why.
+	if _, err := httpx.ParseCORSOrigins(cfg.CORSOrigins, cfg.ClientURL); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -171,6 +181,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		BruteforceAccountWindow:      c.BruteforceAccountWindow,
 		BruteforceAccountLockout:     c.BruteforceAccountLockout,
 		TrustedProxies:               c.TrustedProxies,
+		CORSOrigins:                  c.CORSOrigins,
 		ServiceName:                  c.ServiceName,
 		MetricsEnabled:               c.MetricsEnabled,
 		Telemetry:                    c.Telemetry,

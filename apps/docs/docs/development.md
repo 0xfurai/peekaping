@@ -77,6 +77,8 @@ DB_PORT=5432
 DB_TYPE=postgres # or sqlite
 SERVER_PORT=8034
 CLIENT_URL="http://localhost:5173"
+# Origins that may read the API's responses from another origin. Default: the origin of CLIENT_URL
+# CORS_ORIGINS=http://localhost:8383
 MODE=prod
 TZ="America/New_York"
 
@@ -109,7 +111,7 @@ The repository root has these Docker Compose files. Each one comes in a variant 
 
 | File | What it is for |
 |------|----------------|
-| `docker-compose.dev.<backend>.yml` | The whole stack in cluster mode, built from source. `make docker-dev-<backend>` starts it. |
+| `docker-compose.dev.<backend>.yml` | The whole stack in cluster mode, built from source. `make docker-dev-<backend>` starts it. The web container on `localhost:8383` calls the API on `localhost:8034`, so the `api` service sets `CORS_ORIGINS` to `http://localhost:8383` unless your `.env` sets it. |
 | `docker-compose.prod.<backend>.yml` | The whole stack in cluster mode, from the published `0xfurai/peekaping-*` images, behind an nginx gateway. |
 | `docker-compose.bundle.<backend>.yml` | One bundle image, built from source. The SQLite and PostgreSQL bundles run single mode; the MongoDB bundle runs cluster mode inside the image. |
 | `docker-compose.deps.yml` | Redis, asynqmon and, with a profile, PostgreSQL or MongoDB, for running the Go binaries on your machine. |
