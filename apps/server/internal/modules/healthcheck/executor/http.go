@@ -576,8 +576,10 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		if cfg.OauthScopes != "" {
 			form.Set("scope", cfg.OauthScopes)
 		}
-		form.Set("client_id", cfg.OauthClientId)
-		form.Set("client_secret", cfg.OauthClientSecret)
+		if cfg.OauthAuthMethod == "client_secret_post" {
+			form.Set("client_id", cfg.OauthClientId)
+			form.Set("client_secret", cfg.OauthClientSecret)
+		}
 
 		tokenReq, err := http.NewRequestWithContext(ctx, "POST", cfg.OauthTokenUrl, strings.NewReader(form.Encode()))
 		if err != nil {
