@@ -340,8 +340,9 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 		p.Watchdog.Run(watchdogCtx)
 	})
 
-	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. It runs
-	// once: this process is the only one, so there is no claim to win.
+	// The usage ping is sent a few minutes after the start, unless an admin opted out or the
+	// environment forces it off, and a failed one is dropped. It runs once: this process is the
+	// only one, so there is no claim to win.
 	var usagePingCtx context.Context
 	usagePingCtx, j.stopUsagePing = context.WithCancel(context.Background())
 	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetrySchedule)

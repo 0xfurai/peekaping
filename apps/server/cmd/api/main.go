@@ -176,8 +176,9 @@ func main() {
 		}
 	}
 
-	// Start the usage ping sender. It sends nothing until an admin opts in, and a failed ping is
-	// dropped. Of the api replicas, the one that wins the claim in Redis sends the day's ping.
+	// Start the usage ping sender. It sends nothing once an admin opted out or while the
+	// environment forces the ping off, and a failed ping is dropped. Of the api replicas, the one
+	// that wins the claim in Redis sends the day's ping.
 	usagePingCtx, stopUsagePing := context.WithCancel(context.Background())
 	defer stopUsagePing()
 	var usagePingDone <-chan struct{}

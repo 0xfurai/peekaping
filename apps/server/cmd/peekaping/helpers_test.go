@@ -51,6 +51,9 @@ func loadConfig(t *testing.T, env map[string]string) *Config {
 	t.Setenv("METRICS_ENABLED", "")
 	t.Setenv("WEB_DIR", "")
 	t.Setenv("API_URL", "")
+	// The usage ping and error reports are on by default, so no test may reach the real endpoints
+	t.Setenv("TELEMETRY_URL", "http://127.0.0.1:9/v1/ping")
+	t.Setenv("ERROR_REPORTING_DSN", "http://public@127.0.0.1:9/1")
 	for name, value := range env {
 		t.Setenv(name, value)
 	}

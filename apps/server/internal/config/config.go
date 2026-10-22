@@ -101,7 +101,7 @@ type Config struct {
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
 
-	// Usage ping (ADR 0003). The ping is off until an admin opts in. TELEMETRY=off (or false, 0,
+	// Usage ping (ADR 0003). The ping is on until an admin opts out. TELEMETRY=off (or false, 0,
 	// no) and DO_NOT_TRACK=1 (or true) force it off whatever the admin chose; TelemetryForcedOff
 	// reads them. They stay strings so the config doesn't guess at other spellings.
 	Telemetry  string `env:"TELEMETRY"`

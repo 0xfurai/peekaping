@@ -1,14 +1,16 @@
 // Package telemetry is the usage ping (ticket #232, ADR 0003): an anonymous summary of how an
-// install is set up, sent at most once a day after an admin opts in. The payload is the
+// install is set up, sent at most once a day until an admin opts out. The payload is the
 // contract the Worker in apps/telemetry enforces field by field (apps/telemetry/src/validate.ts).
 package telemetry
 
 // Settings keys. They are not user-editable, so the settings API can't reach them: the telemetry
 // API is the only way to read or change them.
 const (
-	// EnabledKey holds "true" while an admin has opted in, "false" after they opted out.
+	// EnabledKey holds the admin's choice: "true" after they opted in, "false" after they opted
+	// out. Until they choose it is absent, which counts as on.
 	EnabledKey = "TELEMETRY_ENABLED"
-	// InstanceIDKey holds the instance ID. It exists while the admin is opted in.
+	// InstanceIDKey holds the instance ID. It exists while the ping is on: an install that never
+	// chose makes it on first use, and an opt-out deletes it.
 	InstanceIDKey = "TELEMETRY_INSTANCE_ID"
 	// LastSentKey holds when the last usage ping was attempted, as an RFC 3339 time in UTC.
 	LastSentKey = "TELEMETRY_LAST_SENT"
@@ -51,7 +53,8 @@ type Features struct {
 // State is what the telemetry API reports: the admin's choice, whether the environment overrides
 // it, and the payload the next ping would send.
 type State struct {
-	// Enabled is the admin's stored choice. It stays what they chose while ForcedOff is true.
+	// Enabled is the admin's stored choice, or on when they haven't chosen. It stays what they
+	// chose while ForcedOff is true.
 	Enabled bool
 	// ForcedOff is true when TELEMETRY or DO_NOT_TRACK switches the ping off whatever Enabled says
 	ForcedOff bool

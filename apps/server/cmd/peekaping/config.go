@@ -66,7 +66,7 @@ type Config struct {
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
 
-	// Usage ping (ADR 0003): off until an admin opts in. TELEMETRY=off and DO_NOT_TRACK=1 force
+	// Usage ping (ADR 0003): on until an admin opts out. TELEMETRY=off and DO_NOT_TRACK=1 force
 	// it off, and TELEMETRY_URL moves where it is sent.
 	Telemetry    string `env:"TELEMETRY"`
 	DoNotTrack   string `env:"DO_NOT_TRACK"`
