@@ -709,6 +709,7 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 
 		expectedModel := &Model{
 			ID:     monitorID,
+			Type:   "tcp",
 			Name:   "Test Monitor",
 			Config: config,
 		}
@@ -733,6 +734,7 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 		monitorID := "monitor123"
 		updateDto := &PartialUpdateDto{}
 
+		mockRepo.On("FindByID", inTx, monitorID).Return(&Model{ID: monitorID}, nil)
 		mockRepo.On("UpdatePartial", inTx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		result, err := service.UpdatePartial(ctx, monitorID, updateDto, false)
@@ -743,6 +745,95 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 		assert.Empty(t, bus.Topics())
 		mockRepo.AssertExpectations(t)
 	})
+
+	t.Run("monitor not found", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
+		mockRepo.On("FindByID", inTx, "gone123").Return(nil, nil)
+		mockRepo.On("UpdatePartial", mock.Anything, "gone123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+		name := "Renamed"
+
+		result, err := service.UpdatePartial(ctx, "gone123", &PartialUpdateDto{Name: &name}, false)
+
+		assert.ErrorIs(t, err, ErrMonitorNotFound)
+		assert.Nil(t, result)
+		mockRepo.AssertNotCalled(t, "UpdatePartial", mock.Anything, mock.Anything, mock.Anything)
+		assert.Equal(t, 1, transactionOf(service).rolledBack)
+		assert.Empty(t, bus.Topics(), "nothing is published")
+	})
+
+	t.Run("monitor lookup error", func(t *testing.T) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		mockRepo.On("FindByID", inTx, "monitor123").Return(nil, errors.New("lookup failed"))
+		mockRepo.On("UpdatePartial", mock.Anything, "monitor123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+
+		result, err := service.UpdatePartial(ctx, "monitor123", &PartialUpdateDto{}, false)
+
+		require.ErrorContains(t, err, "lookup failed")
+		assert.NotErrorIs(t, err, ErrMonitorNotFound)
+		assert.Nil(t, result)
+		mockRepo.AssertNotCalled(t, "UpdatePartial", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	const validHTTPConfig = `{"url":"https://example.com","method":"GET","encoding":"json","accepted_statuscodes":["2XX"],"authMethod":"none"}`
+	const validTCPConfig = `{"host":"example.com","port":443}`
+	const invalidConfig = `{"invalid":"config"}`
+	invalid := func(s string) *string { return &s }
+
+	for _, tc := range []struct {
+		name   string
+		stored Model
+		dto    PartialUpdateDto
+	}{
+		{"a config that does not fit the stored type", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Config: invalid(invalidConfig)}},
+		{"a type that does not fit the stored config", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Type: invalid("tcp")}},
+		{"a type and config that do not fit together", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Type: invalid("tcp"), Config: invalid(validHTTPConfig)}},
+	} {
+		t.Run("rejects "+tc.name+" and writes nothing", func(t *testing.T) {
+			service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
+			stored := tc.stored
+			stored.ID = "monitor123"
+			mockRepo.On("FindByID", inTx, "monitor123").Return(&stored, nil)
+			mockRepo.On("UpdatePartial", mock.Anything, "monitor123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+			dto := tc.dto
+
+			result, err := service.UpdatePartial(ctx, "monitor123", &dto, false)
+
+			var invalidConfig *InvalidConfigError
+			require.ErrorAs(t, err, &invalidConfig)
+			assert.Error(t, invalidConfig.Err, "it carries why the config is invalid")
+			assert.Nil(t, result)
+			mockRepo.AssertNotCalled(t, "UpdatePartial", mock.Anything, mock.Anything, mock.Anything)
+			assert.Equal(t, 1, transactionOf(service).rolledBack)
+			assert.Empty(t, bus.Topics(), "nothing is published")
+		})
+	}
+
+	for _, tc := range []struct {
+		name   string
+		stored Model
+		dto    PartialUpdateDto
+	}{
+		{"a config that fits the stored type", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Config: invalid(validHTTPConfig)}},
+		{"a type that fits the stored config", Model{Type: "http", Config: validTCPConfig}, PartialUpdateDto{Type: invalid("tcp")}},
+		{"a type and config that fit together", Model{Type: "http", Config: validHTTPConfig}, PartialUpdateDto{Type: invalid("tcp"), Config: invalid(validTCPConfig)}},
+		// A status update, like the listener's, or a rename does not check a config it leaves alone
+		{"a change that leaves the type and config alone", Model{Type: "http", Config: invalidConfig}, PartialUpdateDto{Name: invalid("Renamed")}},
+	} {
+		t.Run("accepts "+tc.name, func(t *testing.T) {
+			service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+			stored := tc.stored
+			stored.ID = "monitor123"
+			mockRepo.On("FindByID", inTx, "monitor123").Return(&stored, nil)
+			mockRepo.On("UpdatePartial", inTx, "monitor123", mock.Anything).Return(nil)
+			dto := tc.dto
+
+			result, err := service.UpdatePartial(ctx, "monitor123", &dto, false)
+
+			require.NoError(t, err)
+			assert.Same(t, &stored, result)
+			mockRepo.AssertCalled(t, "UpdatePartial", inTx, "monitor123", mock.Anything)
+		})
+	}
 
 	t.Run("links change to exactly the IDs sent", func(t *testing.T) {
 		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
@@ -804,6 +895,7 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 	} {
 		t.Run("rolls back and publishes nothing when "+tc.name+" fails", func(t *testing.T) {
 			service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+			mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123"}, nil)
 			mockRepo.On("UpdatePartial", inTx, "monitor123", mock.Anything).Return(nil)
 			tc.fails(notifications, tags)
 

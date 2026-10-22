@@ -246,33 +246,27 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id)
-	if lookupErr != nil {
-		return nil, lookupErr
-	}
-
-	// Validate the config against the type the monitor has after the update
-	if monitor.Type != nil || monitor.Config != nil {
-		monitorType, config := current.Type, current.Config
-		if monitor.Type != nil {
-			monitorType = *monitor.Type
-		}
-		if monitor.Config != nil {
-			config = *monitor.Config
-		}
-		if err := ic.monitorService.ValidateMonitorConfig(monitorType, config); err != nil {
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
-		}
-	}
-
 	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, id, &monitor, false)
 	if err != nil {
-		ic.logger.Errorw("Failed to update monitor", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+		return nil, ic.failWrite("update", err)
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
 }
+
+// failWrite maps the error of a write that looks up the monitor itself to its response.
+func (ic *MonitorController) failWrite(action string, err error) error {
+	var invalidConfig *InvalidConfigError
+	switch {
+	case errors.Is(err, ErrMonitorNotFound):
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
+	case errors.As(err, &invalidConfig):
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", invalidConfig.Err)))
+	}
+	ic.logger.Errorw("Failed to "+action+" monitor", "error", err)
+	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+}
+
 func (ic *MonitorController) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
 	r := input.Request
 	id := r.PathValue("id")

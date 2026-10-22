@@ -219,10 +219,21 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		PushToken:      monitor.PushToken,
 	}
 
-	// The monitor and its links change together or not at all. Links change only when IDs are
-	// sent: a request without them leaves the links as they are.
+	// The monitor and its links change together or not at all. The monitor is read inside the
+	// transaction, so that what the update is checked against is what it then changes. Links
+	// change only when IDs are sent: a request without them leaves the links as they are.
 	var updatedMonitor *Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		current, err := mr.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if current == nil {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
+		if err := mr.validatePartialConfig(current, monitor); err != nil {
+			return err
+		}
 		if err := mr.monitorRepository.UpdatePartial(ctx, id, model); err != nil {
 			return err
 		}
@@ -236,9 +247,14 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 				return err
 			}
 		}
-		var err error
 		updatedMonitor, err = mr.FindByID(ctx, id)
-		return err
+		if err != nil {
+			return err
+		}
+		if updatedMonitor == nil {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -250,6 +266,26 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 	}
 
 	return updatedMonitor, nil
+}
+
+// validatePartialConfig checks that the type and config the monitor has after the update fit
+// together. An update that changes neither leaves them unchecked: a status change, or a rename,
+// doesn't depend on them.
+func (mr *MonitorServiceImpl) validatePartialConfig(current *Model, update *PartialUpdateDto) error {
+	if update.Type == nil && update.Config == nil {
+		return nil
+	}
+	monitorType, config := current.Type, current.Config
+	if update.Type != nil {
+		monitorType = *update.Type
+	}
+	if update.Config != nil {
+		config = *update.Config
+	}
+	if err := mr.ValidateMonitorConfig(monitorType, config); err != nil {
+		return &InvalidConfigError{Err: err}
+	}
+	return nil
 }
 
 func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
