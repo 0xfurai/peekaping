@@ -98,8 +98,15 @@ func originOf(u *url.URL) (origin string, ok bool) {
 	if strings.Contains(host, ":") { // an IPv6 address
 		host = "[" + host + "]"
 	}
+	if strings.HasSuffix(u.Host, ":") { // a colon with no port after it
+		return "", false
+	}
 	port := u.Port()
-	if n, err := strconv.Atoi(port); err == nil {
+	if port != "" {
+		n, err := strconv.Atoi(port)
+		if err != nil || n < 1 || n > 65535 {
+			return "", false
+		}
 		port = strconv.Itoa(n) // 080 is 80
 	}
 	if port == "" || (scheme == "http" && port == "80") || (scheme == "https" && port == "443") {

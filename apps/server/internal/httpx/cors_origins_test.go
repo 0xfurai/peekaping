@@ -119,10 +119,17 @@ func TestParseCORSOrigins_Refuses(t *testing.T) {
 		{"a fragment", "https://x.example#top", "https://peek.example", `invalid CORS_ORIGINS entry "https://x.example#top"`},
 		{"userinfo", "https://user@x.example", "https://peek.example", `invalid CORS_ORIGINS entry "https://user@x.example"`},
 		{"a port that isn't a number", "https://x.example:http", "https://peek.example", `invalid CORS_ORIGINS entry "https://x.example:http"`},
+		{"an empty port", "https://x.example:", "https://peek.example", `invalid CORS_ORIGINS entry "https://x.example:"`},
+		{"an empty port on an IPv6 host", "https://[::1]:", "https://peek.example", `invalid CORS_ORIGINS entry "https://[::1]:"`},
+		{"port zero", "https://x.example:0", "https://peek.example", `invalid CORS_ORIGINS entry "https://x.example:0"`},
+		{"a port above 65535", "https://x.example:65536", "https://peek.example", `invalid CORS_ORIGINS entry "https://x.example:65536"`},
+		{"a port too long for a number", "https://x.example:99999999999999999999", "https://peek.example", `invalid CORS_ORIGINS entry "https://x.example:99999999999999999999"`},
 		{"a star mixed with other entries", "https://a.example,*", "https://peek.example", `invalid CORS_ORIGINS entry "*"`},
 		{"two stars", "*,*", "https://peek.example", `invalid CORS_ORIGINS entry "*"`},
 		{"a CLIENT_URL that is no origin when the list is unset", "", "peek.example", `invalid CLIENT_URL "peek.example"`},
 		{"an empty CLIENT_URL when the list is unset", "", "", `invalid CLIENT_URL ""`},
+		{"a CLIENT_URL with an empty port when the list is unset", "", "http://peek.example:", `invalid CLIENT_URL "http://peek.example:"`},
+		{"a CLIENT_URL with a port above 65535 when the list is unset", "", "http://peek.example:70000/app", `invalid CLIENT_URL "http://peek.example:70000/app"`},
 		{"a CLIENT_URL that isn't http or https when the list is unset", "", "ftp://peek.example", `invalid CLIENT_URL "ftp://peek.example"`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
