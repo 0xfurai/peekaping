@@ -16,6 +16,7 @@ import (
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/notification_channel/providers"
+	"peekaping/internal/modules/probe_notification"
 	"peekaping/internal/modules/tag"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -114,6 +115,7 @@ func TestProviderRegistry_ControllerAndListenerUseTheContainersRegistry(t *testi
 				"mon-1": {{MonitorID: "mon-1", NotificationID: "a"}},
 			}}
 		},
+		func() probe_notification.Service { return &fakeProbeNotificationService{} },
 		func() heartbeat.Service { return nil },
 		func() monitor_tag.Service { return &fakeMonitorTagService{} },
 		func() tag.Service { return &fakeTagService{} },

@@ -10,6 +10,7 @@ import (
 
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/stale"
 )
@@ -40,6 +41,8 @@ var queuedTopics = []string{
 	certificate.CertificateExpiry.Name(),
 	stale.MonitorStale.Name(),
 	stale.MonitorStaleRecovered.Name(),
+	probe.ProbeOffline.Name(),
+	probe.ProbeOnline.Name(),
 }
 
 // queuedEvent is the payload of a notification task: the topic's name, and the event's payload
