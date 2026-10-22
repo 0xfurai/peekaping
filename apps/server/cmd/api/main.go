@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"peekaping/internal"
 	"peekaping/internal/app"
+	"peekaping/internal/httpx"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
@@ -211,7 +211,7 @@ func main() {
 		// Start server in a goroutine
 		go func() {
 			logger.Infof("Starting server on port %s", port)
-			if err := http.ListenAndServe(port, server.Router); err != nil {
+			if err := httpx.NewServer(port, server.Router, httpx.DefaultTimeouts()).ListenAndServe(); err != nil {
 				logger.Fatalf("Failed to start server: %v", err)
 			}
 		}()

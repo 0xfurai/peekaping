@@ -52,9 +52,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// readHeaderTimeout is how long a client has to send a request's headers
-const readHeaderTimeout = 10 * time.Second
-
 // errorReportingFlush is how long the shutdown waits for the error reports still queued
 const errorReportingFlush = 2 * time.Second
 
@@ -223,7 +220,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	// handler has returned: the HTTP server's Close drops the connections still open, but doesn't
 	// wait for their handlers
 	handlers := &runningHandlers{handler: handler}
-	httpServer := &http.Server{Handler: handlers, ReadHeaderTimeout: readHeaderTimeout}
+	httpServer := httpx.NewServer("", handlers, httpx.DefaultTimeouts())
 	// The websocket server closes as soon as the HTTP server's Shutdown stops taking connections.
 	// Closing its sessions answers their open long polls, which Shutdown waits for like any
 	// request in flight: left open, they'd hold it up until the clients' next ping, 25 seconds
