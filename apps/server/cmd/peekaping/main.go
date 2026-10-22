@@ -27,6 +27,7 @@ import (
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/metrics"
@@ -40,6 +41,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
+	"peekaping/internal/reporting"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 	"peekaping/internal/web"
@@ -52,6 +54,9 @@ import (
 
 // readHeaderTimeout is how long a client has to send a request's headers
 const readHeaderTimeout = 10 * time.Second
+
+// errorReportingFlush is how long the shutdown waits for the error reports still queued
+const errorReportingFlush = 2 * time.Second
 
 // timeouts bound the steps of the shutdown. Each step has a share of its own, so that a step
 // that runs late doesn't take the time of the steps after it: the background jobs get theirs
@@ -77,6 +82,9 @@ var shutdownTimeouts = timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, 
 var telemetrySchedule = telemetry.DefaultSchedule
 
 func main() {
+	// A panic that ends the process is reported before it does, if the admin opted in
+	defer reporting.ReportCrash("main")
+
 	utils.RegisterCustomValidators()
 
 	cfg, err := LoadAndValidate("../..")
@@ -160,6 +168,7 @@ type parts struct {
 	MonitorListener      *monitor.MonitorEventListener
 	Metrics              *metrics.Collector
 	UsagePing            *telemetry.Sender
+	ErrorReporting       error_reporting.Service
 	TrustedProxies       *httpx.TrustedProxies
 }
 
@@ -173,13 +182,20 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	}
 
 	container := dig.New()
-	if err := app.RegisterSingle(container, cfg.ToInternalConfig()); err != nil {
+	internalCfg := cfg.ToInternalConfig()
+	if err := app.RegisterSingle(container, internalCfg); err != nil {
 		return fmt.Errorf("failed to register dependencies: %w", err)
 	}
 	// Every module logs through the caller's logger
 	if err := container.Decorate(func() *zap.SugaredLogger { return logger }); err != nil {
 		return fmt.Errorf("failed to decorate the logger: %w", err)
 	}
+	// Error reports stay off until startJobs applies the admin's choice. The reports still queued
+	// go out as the process ends.
+	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
+		return fmt.Errorf("failed to set up error reporting: %w", err)
+	}
+	defer reporting.Flush(errorReportingFlush)
 	var p parts
 	if err := container.Invoke(func(resolved parts) { p = resolved }); err != nil {
 		return fmt.Errorf("failed to build peekaping: %w", err)
@@ -263,6 +279,11 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
 	}
 
+	// The admin's choice from before the restart. A failure leaves error reports off.
+	if err := p.ErrorReporting.Apply(ctx); err != nil {
+		logger.Warnw("Failed to apply the error reporting choice, leaving error reports off", "error", err)
+	}
+
 	j := &jobs{scheduler: p.Scheduler}
 	j.cleanup = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, logger)
 
@@ -277,7 +298,7 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 	var repairCtx context.Context
 	repairCtx, j.stopRepair = context.WithCancel(context.Background())
 	j.repairDone = make(chan struct{})
-	go func() {
+	reporting.Go("repair", func() {
 		defer close(j.repairDone)
 		repaired, err := p.Monitors.RepairStoredStatuses(repairCtx)
 		if errors.Is(err, context.Canceled) {
@@ -289,7 +310,7 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 			return
 		}
 		logger.Infow("Repaired monitor statuses", "repaired", repaired)
-	}()
+	})
 
 	var metricsCtx context.Context
 	metricsCtx, j.stopMetrics = context.WithCancel(context.Background())
@@ -314,10 +335,10 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 	var watchdogCtx context.Context
 	watchdogCtx, j.stopWatchdog = context.WithCancel(context.Background())
 	j.watchdogDone = make(chan struct{})
-	go func() {
+	reporting.Go("watchdog", func() {
 		defer close(j.watchdogDone)
 		p.Watchdog.Run(watchdogCtx)
-	}()
+	})
 
 	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. It runs
 	// once: this process is the only one, so there is no claim to win.

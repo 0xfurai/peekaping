@@ -68,6 +68,11 @@ type Config struct {
 	Telemetry    string `env:"TELEMETRY"`
 	DoNotTrack   string `env:"DO_NOT_TRACK"`
 	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
+
+	// Error reports (ADR 0003): off until an admin opts in. ERROR_REPORTING=off and DO_NOT_TRACK=1
+	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
+	ErrorReporting    string `env:"ERROR_REPORTING"`
+	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -171,5 +176,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		Telemetry:                    c.Telemetry,
 		DoNotTrack:                   c.DoNotTrack,
 		TelemetryURL:                 c.TelemetryURL,
+		ErrorReporting:               c.ErrorReporting,
+		ErrorReportingDSN:            c.ErrorReportingDSN,
 	}
 }

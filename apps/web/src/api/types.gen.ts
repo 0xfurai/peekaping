@@ -126,6 +126,22 @@ export type BruteforceBlockResponse = {
   success: boolean;
 };
 
+export type ErrorReportingStateResponse = {
+  /**
+   * Whether an admin opted in to error reports
+   */
+  enabled: boolean;
+  /**
+   * Whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces error reports off, whatever enabled says
+   */
+  forced_off: boolean;
+};
+
+export type ErrorReportingUpdateDto = {
+  enabled: boolean;
+  [key: string]: unknown | boolean;
+};
+
 export type HealthcheckPushResponse = {
   ok: string;
 };
@@ -2058,6 +2074,72 @@ export type GetBadgeByMonitorIdUptimeByDurationResponses = {
 
 export type GetBadgeByMonitorIdUptimeByDurationResponse =
   GetBadgeByMonitorIdUptimeByDurationResponses[keyof GetBadgeByMonitorIdUptimeByDurationResponses];
+
+export type GetErrorReportingData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/error-reporting";
+};
+
+export type GetErrorReportingErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetErrorReportingError =
+  GetErrorReportingErrors[keyof GetErrorReportingErrors];
+
+export type GetErrorReportingResponses = {
+  /**
+   * OK
+   */
+  200: ErrorReportingStateResponse;
+};
+
+export type GetErrorReportingResponse =
+  GetErrorReportingResponses[keyof GetErrorReportingResponses];
+
+export type PutErrorReportingData = {
+  body: ErrorReportingUpdateDto;
+  path?: never;
+  query?: never;
+  url: "/api/v1/error-reporting";
+};
+
+export type PutErrorReportingErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PutErrorReportingError =
+  PutErrorReportingErrors[keyof PutErrorReportingErrors];
+
+export type PutErrorReportingResponses = {
+  /**
+   * OK
+   */
+  200: ErrorReportingStateResponse;
+};
+
+export type PutErrorReportingResponse =
+  PutErrorReportingResponses[keyof PutErrorReportingResponses];
 
 export type GetHealthData = {
   body?: never;

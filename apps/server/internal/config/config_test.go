@@ -93,3 +93,65 @@ func TestConfig_TelemetryForcedOff(t *testing.T) {
 		})
 	}
 }
+
+func TestLoadConfig_ErrorReportingSettingsComeFromTheEnvironment(t *testing.T) {
+	cfg, err := loadTestConfig(t, map[string]string{"ERROR_REPORTING": "off", "ERROR_REPORTING_DSN": "https://key@errors.example.com/7"})
+
+	require.NoError(t, err)
+	assert.Equal(t, "off", cfg.ErrorReporting)
+	assert.Equal(t, "https://key@errors.example.com/7", cfg.ErrorReportingDSN)
+}
+
+func TestLoadConfig_ErrorReportingSettingsAreEmptyByDefault(t *testing.T) {
+	cfg, err := loadTestConfig(t, map[string]string{"ERROR_REPORTING": "", "ERROR_REPORTING_DSN": ""})
+
+	require.NoError(t, err)
+	assert.Empty(t, cfg.ErrorReporting)
+	assert.Empty(t, cfg.ErrorReportingDSN, "the DSN built into the binary is used")
+	assert.False(t, cfg.ErrorReportingForcedOff())
+}
+
+func TestConfig_ErrorReportingForcedOff(t *testing.T) {
+	for _, tc := range []struct {
+		name                       string
+		errorReporting, doNotTrack string
+		want                       bool
+	}{
+		{"nothing set", "", "", false},
+		{"ERROR_REPORTING=on", "on", "", false},
+		{"ERROR_REPORTING=true", "true", "", false},
+		{"ERROR_REPORTING=off", "off", "", true},
+		{"ERROR_REPORTING=OFF", "OFF", "", true},
+		{"ERROR_REPORTING=false", "false", "", true},
+		{"ERROR_REPORTING=0", "0", "", true},
+		{"ERROR_REPORTING=no", "no", "", true},
+		{"ERROR_REPORTING=No", "No", "", true},
+		{"ERROR_REPORTING=off with spaces", " off ", "", true},
+		{"ERROR_REPORTING=1 is not an off value", "1", "", false},
+		{"ERROR_REPORTING=anything else", "maybe", "", false},
+		{"DO_NOT_TRACK=1", "", "1", true},
+		{"DO_NOT_TRACK=true", "", "true", true},
+		{"DO_NOT_TRACK=TRUE", "", "TRUE", true},
+		{"DO_NOT_TRACK=0", "", "0", false},
+		{"DO_NOT_TRACK=false", "", "false", false},
+		{"DO_NOT_TRACK=yes is not a kill switch value", "", "yes", false},
+		{"ERROR_REPORTING=on cannot undo DO_NOT_TRACK=1", "on", "1", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := Config{ErrorReporting: tc.errorReporting, DoNotTrack: tc.doNotTrack}
+
+			assert.Equal(t, tc.want, cfg.ErrorReportingForcedOff())
+		})
+	}
+}
+
+func TestConfig_TheTwoSwitchesAreIndependent(t *testing.T) {
+	assert.False(t, (&Config{Telemetry: "off"}).ErrorReportingForcedOff(), "TELEMETRY=off keeps error reports on")
+	assert.False(t, (&Config{ErrorReporting: "off"}).TelemetryForcedOff(), "ERROR_REPORTING=off keeps the usage ping on")
+	assert.True(t, (&Config{DoNotTrack: "1"}).TelemetryForcedOff())
+	assert.True(t, (&Config{DoNotTrack: "1"}).ErrorReportingForcedOff(), "DO_NOT_TRACK turns off both")
+}
+
+func TestMaskSensitiveValue_MasksTheErrorReportingDSN(t *testing.T) {
+	assert.Equal(t, "*****", maskSensitiveValue("ERROR_REPORTING_DSN", "https://key@errors.example.com/7"))
+}

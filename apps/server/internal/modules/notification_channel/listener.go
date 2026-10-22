@@ -11,6 +11,8 @@ import (
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/reporting"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"sync"
@@ -230,6 +232,7 @@ func (l *NotificationEventListener) send(
 	defer func() {
 		if r := recover(); r != nil {
 			l.logger.Errorf("Notification channel panicked: %s, panic: %v", notificationChannel.Name, r)
+			reporting.CapturePanic("notification", r, debug.Stack())
 		}
 	}()
 

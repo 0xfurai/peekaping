@@ -10,6 +10,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/worker"
+	"peekaping/internal/reporting"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -81,7 +82,7 @@ func (p *Producer) Start() error {
 
 	// Start a goroutine to monitor leadership changes for monitor syncing
 	p.wg.Add(1)
-	go p.runLeadershipMonitor()
+	reporting.Go("producer", p.runLeadershipMonitor)
 
 	p.logger.Info("Producer started successfully")
 	return nil

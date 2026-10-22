@@ -11,6 +11,8 @@ import (
 
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/events/eventstest"
+	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/reportingtest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -85,6 +87,38 @@ func TestBusLogsAPanicWithItsTopic(t *testing.T) {
 	assert.Equal(t, "panicky", entry.ContextMap()["subscriber"])
 	assert.Equal(t, "handler bug", entry.ContextMap()["panic"])
 }
+
+func TestBusReportsAPanicInAHandler(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	logger, logs := observedLogger()
+	bus := newLoopbackBus(t, false, events.WithLogger(logger))
+	events.Subscribe(events.NewSubscriber(bus, "panicky"), eventstest.Beta, panickyHandler)
+
+	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Beta, eventstest.Sample{MonitorID: "mon-1"}))
+
+	reported := recorder.Wait(t, 1)
+	assert.Equal(t, "events", reported[0].Tags["component"])
+	assert.Equal(t, "string", reported[0].Exception[0].Type)
+	frames := reported[0].Exception[0].Stacktrace.Frames
+	assert.Equal(t, "panickyHandler", frames[len(frames)-1].Function)
+	require.Eventually(t, func() bool { return logs.FilterMessage("Event handler panicked").Len() == 1 }, 5*time.Second, 5*time.Millisecond)
+}
+
+func TestBusReportsNothingForAPanicInAHandlerWhileReportingIsOff(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	logger, logs := observedLogger()
+	bus := newLoopbackBus(t, false, events.WithLogger(logger))
+	events.Subscribe(events.NewSubscriber(bus, "panicky"), eventstest.Beta, panickyHandler)
+
+	require.NoError(t, events.Publish(context.Background(), bus, eventstest.Beta, eventstest.Sample{MonitorID: "mon-1"}))
+
+	require.Eventually(t, func() bool { return logs.FilterMessage("Event handler panicked").Len() == 1 }, 5*time.Second, 5*time.Millisecond)
+	assert.Empty(t, recorder.Events())
+}
+
+//go:noinline
+func panickyHandler(context.Context, eventstest.Sample) { panic("handler bug") }
 
 func TestBusDropsAnEventItCannotDecode(t *testing.T) {
 	logger, logs := observedLogger()

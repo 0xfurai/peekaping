@@ -5,6 +5,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/notification_channel"
@@ -89,7 +90,14 @@ func registerCluster(container *dig.Container, cfg *config.Config) error {
 		infra.ProvideAsynqInspector,
 		infra.ProvideQueueService,
 		provideClusterMode,
+		provideClusterSwitch,
 	)
+}
+
+// provideClusterSwitch provides the error reporting switch of the api: it also copies the admin's
+// choice to Redis, where the other processes read it
+func provideClusterSwitch(client *redis.Client) error_reporting.Switch {
+	return error_reporting.NewRedisSwitch(client)
 }
 
 // provideClusterMode tells the usage ping that this install runs in cluster mode

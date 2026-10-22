@@ -61,6 +61,12 @@ import type {
   GetBadgeByMonitorIdUptimeByDurationData,
   GetBadgeByMonitorIdUptimeByDurationResponses,
   GetBadgeByMonitorIdUptimeByDurationErrors,
+  GetErrorReportingData,
+  GetErrorReportingResponses,
+  GetErrorReportingErrors,
+  PutErrorReportingData,
+  PutErrorReportingResponses,
+  PutErrorReportingErrors,
   GetHealthData,
   GetHealthResponses,
   GetMaintenancesData,
@@ -683,6 +689,62 @@ export const getBadgeByMonitorIdUptimeByDuration = <
     responseType: "blob",
     url: "/api/v1/badge/{monitorId}/uptime/{duration}",
     ...options,
+  });
+};
+
+/**
+ * Get the error reporting state
+ * Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+ */
+export const getErrorReporting = <ThrowOnError extends boolean = false>(
+  options?: Options<GetErrorReportingData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetErrorReportingResponses,
+    GetErrorReportingErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/error-reporting",
+    ...options,
+  });
+};
+
+/**
+ * Opt in or out of error reports
+ * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins.
+ */
+export const putErrorReporting = <ThrowOnError extends boolean = false>(
+  options: Options<PutErrorReportingData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).put<
+    PutErrorReportingResponses,
+    PutErrorReportingErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/error-reporting",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };
 

@@ -32,6 +32,7 @@ import (
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/domain_status_page"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
@@ -61,7 +62,8 @@ import (
 // it, so each binary builds just the part of the graph it runs: the worker, which has no
 // database, never builds a repository. The transport provides the rest: the event bus, the
 // stale.Store, the ingester.Service the push URL ingests through, and the telemetry.Mode that
-// says whether the usage ping reports single or cluster mode (the MODE setting does not).
+// says whether the usage ping reports single or cluster mode (the MODE setting does not),
+// and the error_reporting.Switch that tells the processes that report whether to.
 func Register(container *dig.Container, cfg *config.Config) error {
 	err := utils.Provide(container,
 		func() *config.Config { return cfg },
@@ -102,6 +104,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		middleware.RegisterDependencies(container),
 		metrics.RegisterDependencies(container),
 		telemetry.RegisterDependencies(container),
+		error_reporting.RegisterDependencies(container),
 		utils.Provide(container, websocket.NewServer, internal.ProvideServer),
 	)
 }
