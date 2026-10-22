@@ -1,6 +1,9 @@
 package probe
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // UnsupportedRepositoryImpl is the repository of a MongoDB install, which has no probes: the
 // first feature that is SQL-only under ADR 0001. Every method returns ErrUnsupportedStorage, so
@@ -43,4 +46,20 @@ func (r *UnsupportedRepositoryImpl) Delete(ctx context.Context, id string) error
 
 func (r *UnsupportedRepositoryImpl) FindInstances(ctx context.Context, probeID string) ([]*Instance, error) {
 	return nil, ErrUnsupportedStorage
+}
+
+func (r *UnsupportedRepositoryImpl) UpsertInstance(ctx context.Context, probeID string, inst *Instance) error {
+	return ErrUnsupportedStorage
+}
+
+func (r *UnsupportedRepositoryImpl) TouchInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) (bool, error) {
+	return false, ErrUnsupportedStorage
+}
+
+func (r *UnsupportedRepositoryImpl) DeleteInstance(ctx context.Context, probeID string, instanceID string) error {
+	return ErrUnsupportedStorage
+}
+
+func (r *UnsupportedRepositoryImpl) SetSupportedTypes(ctx context.Context, probeID string, types []string) error {
+	return ErrUnsupportedStorage
 }
