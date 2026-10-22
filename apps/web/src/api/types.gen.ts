@@ -1270,6 +1270,10 @@ export type PostAuthLoginErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Request Entity Too Large
+   */
+  413: HttpxErrorBody;
+  /**
    * Too Many Requests
    */
   429: BruteforceBlockResponse;

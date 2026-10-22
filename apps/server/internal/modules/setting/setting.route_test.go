@@ -53,6 +53,7 @@ func newSettingsAPI(t *testing.T) *settingsAPI {
 	authChain := middleware.NewAuthChain(
 		auth.NewMiddlewareProvider(tokenMaker),
 		api_key.NewMiddlewareProvider(acceptingAPIKeys{}),
+		nil,
 		logger,
 	)
 	controller := setting.NewController(setting.NewAPIService(settings), logger)

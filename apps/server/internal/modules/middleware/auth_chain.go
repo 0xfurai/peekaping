@@ -20,6 +20,7 @@ type authenticator interface {
 type AuthChain struct {
 	jwtMiddleware    authenticator
 	apiKeyMiddleware authenticator
+	trustedProxies   *httpx.TrustedProxies
 	logger           *zap.SugaredLogger
 }
 
@@ -27,11 +28,13 @@ type AuthChain struct {
 func NewAuthChain(
 	jwtMiddleware authenticator,
 	apiKeyMiddleware authenticator,
+	trustedProxies *httpx.TrustedProxies,
 	logger *zap.SugaredLogger,
 ) *AuthChain {
 	return &AuthChain{
 		jwtMiddleware:    jwtMiddleware,
 		apiKeyMiddleware: apiKeyMiddleware,
+		trustedProxies:   trustedProxies,
 		logger:           logger.Named("[auth_chain]"),
 	}
 }
@@ -50,15 +53,15 @@ func (ac *AuthChain) AllAuth() httpx.Middleware {
 
 			if apiKeyHeader != "" {
 				// Route to API key authentication
-				ac.logger.Debugw("Routing to API key authentication", "ip", httpx.ClientIP(r), "path", r.URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
+				ac.logger.Debugw("Routing to API key authentication", "ip", ac.trustedProxies.ClientIP(r), "path", r.URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
 				ac.apiKeyMiddleware.Auth()(next).ServeHTTP(w, r)
 			} else if authHeader != "" {
 				// Route to JWT authentication
-				ac.logger.Debugw("Routing to JWT authentication", "ip", httpx.ClientIP(r), "path", r.URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
+				ac.logger.Debugw("Routing to JWT authentication", "ip", ac.trustedProxies.ClientIP(r), "path", r.URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
 				ac.jwtMiddleware.Auth()(next).ServeHTTP(w, r)
 			} else {
 				// No authentication headers provided
-				ac.logger.Warnw("Missing authentication headers", "ip", httpx.ClientIP(r), "path", r.URL.Path)
+				ac.logger.Warnw("Missing authentication headers", "ip", ac.trustedProxies.ClientIP(r), "path", r.URL.Path)
 				httpx.JSON(w, http.StatusUnauthorized, utils.NewFailResponse("Authentication required: provide either X-API-Key header or Authorization header"))
 
 				return

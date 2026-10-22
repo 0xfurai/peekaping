@@ -199,7 +199,7 @@ func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID 
 	return notificationChannels, monitorModel
 }
 
-// sendToChannels sends a notification to each channel that can take it. Channels are sent
+// sendToChannels sends a notification to each active channel that can take it. Channels are sent
 // to concurrently, each with its own deadline, so a slow channel doesn't hold up the others.
 // It returns once every send has finished.
 func (l *NotificationEventListener) sendToChannels(
@@ -213,6 +213,10 @@ func (l *NotificationEventListener) sendToChannels(
 	slots := make(chan struct{}, maxConcurrentSends)
 
 	for _, notificationChannel := range notificationChannels {
+		if !notificationChannel.Active {
+			l.logger.Debugf("Skipping inactive notification channel: %s", notificationChannel.Name)
+			continue
+		}
 		provider, ok := GetNotificationChannelProvider(notificationChannel.Type)
 		if !ok {
 			l.logger.Warnf("No provider registered for notification type: %s", notificationChannel.Type)

@@ -93,9 +93,13 @@ These are required in cluster mode, where the API reaches the producer, worker a
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `BRUTEFORCE_MAX_ATTEMPTS` | int | No | `20` | Maximum login attempts before lockout |
+| `BRUTEFORCE_MAX_ATTEMPTS` | int | No | `20` | Maximum failed logins for one client address and email before lockout |
 | `BRUTEFORCE_WINDOW` | duration | No | `1m` | Time window for counting failed attempts |
 | `BRUTEFORCE_LOCKOUT` | duration | No | `1m` | Lockout duration after max attempts |
+| `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` | int | No | `100` | Failed logins for one account, from any addresses, that lock it. A successful login resets this count and the one above |
+| `BRUTEFORCE_ACCOUNT_WINDOW` | duration | No | `10m` | How long the count of an account's failed logins is kept, from the first of them. Until it has passed, each further failure after a lock ends locks the account again |
+| `BRUTEFORCE_ACCOUNT_LOCKOUT` | duration | No | `1m` | How long one lock lasts. After an attack stops, the owner is back in within `BRUTEFORCE_ACCOUNT_WINDOW` at most. An attacker who keeps going can keep the account locked |
+| `TRUSTED_PROXIES` | string | No | empty | Comma-separated IP addresses and CIDR ranges of the proxies whose `X-Forwarded-For` and `X-Real-IP` headers are believed, such as `127.0.0.1,10.0.0.0/8`. The login lockout counts failures per client address. A request from any other address counts as coming from the address it connected from, so with the setting empty (its own default, and the single-mode bundles' setting) no header is believed. The cluster Compose files and the Helm chart set loopback and the private ranges when it is unset, and an explicitly empty value there trusts nobody. For a request from a listed proxy, the client is the last `X-Forwarded-For` address that isn't listed here (the leftmost when all are), or `X-Real-IP` when there is no `X-Forwarded-For`; an `X-Forwarded-For` it can't read makes the client the proxy's own address. An invalid entry stops startup |
 
 ### Metrics Configuration
 
