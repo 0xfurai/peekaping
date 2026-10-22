@@ -57,10 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Login tokens are accepted only when signed with HS256. The signing secrets stay in memory and are read from the database again after a minute, instead of on every request, so a secret changed in the database is used within a minute.
   - API keys are checked with SHA-256 and a constant-time compare, which cost far less than bcrypt on every request. A key created before this change keeps working, and its stored hash is replaced on its first use.
   - A key with a usage limit is never accepted more often than its limit, also when requests arrive together: checking the limit and counting the use are one database update.
-  - A refresh token issued before a password change no longer works, so changing the password ends the sessions that were signed in with the old one.
+  - A refresh token issued before a password change no longer works, so the sessions signed in with the old password can't renew. An access token already issued stays valid until it expires, within 15 minutes by default.
   - Registrations that arrive together on a new install create one admin. The others fail with "admin already exists".
   - The websocket reads the access token from the socket.io `auth` payload. A token in the query string is no longer accepted, so it stops showing up in a proxy's access logs. The web app sends it that way.
   - Upgrade note: every user signs in again once, because refresh tokens issued by earlier releases are rejected.
+  - Upgrade note: after its first use, an API key is stored as a SHA-256 hash, which earlier releases can't check. After a rollback, recreate the keys used since the upgrade.
   - Upgrade note: a script or tool that opens the websocket itself must pass the token as `auth: { token }` instead of `query: { token }`.
 - fix: creating a monitor, notification channel or maintenance window with `active: false` now stores and returns it as inactive. Bun replaced the false value with the column's `true` default on insert, so creates always came back active; editing afterwards worked. Omitting `active` when creating still produces an active resource (#394)
 - fix: the Helm chart's web pods copy the web app from the web image you set. Before, an init container always used `0xfurai/peekaping-web:latest`, so pinning `web.image.tag` still served the latest web app. The chart's install notes now say it runs cluster mode and link to the Kubernetes (Helm) docs page
