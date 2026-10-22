@@ -15,7 +15,7 @@ import (
 )
 
 type LineConfig struct {
-	ChannelAccessToken string `json:"channel_access_token" validate:"required"`
+	ChannelAccessToken string `json:"channel_access_token" validate:"required" secret:"true"`
 	UserID             string `json:"user_id" validate:"required"`
 	Template           string `json:"template"`
 }
@@ -63,11 +63,6 @@ func (s *LineSender) Send(
 	if cfg.Template != "" {
 		engine := liquid.NewEngine()
 		bindings := PrepareTemplateBindings(monitor, heartbeat, message)
-
-		if s.logger != nil {
-			jsonDebug, _ := json.MarshalIndent(bindings, "", "  ")
-			s.logger.Debugf("Template bindings: %s", string(jsonDebug))
-		}
 
 		if rendered, err := engine.ParseAndRenderString(cfg.Template, bindings); err == nil {
 			messageText = rendered

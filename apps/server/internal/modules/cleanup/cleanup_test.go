@@ -293,9 +293,10 @@ func TestCleanupStatsLogsAFailure(t *testing.T) {
 func TestStartCleanupCronStopsWhenItsCronIsStopped(t *testing.T) {
 	in := newInstall(t)
 
-	// The hourly jobs don't run in the test, so they need no stats, history or TLS services
-	c := StartCleanupCron(in.heartbeats, in.users, in.settings, nil, nil, nil, zap.NewNop().Sugar())
-	require.Len(t, c.Entries(), 4, "the cleanup jobs are scheduled")
+	// The hourly job doesn't run in the test, so it needs no stats, history or TLS services
+	c, err := StartCleanupCron(in.heartbeats, in.users, in.settings, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	require.Len(t, c.Entries(), 1, "the hourly cleanup is scheduled")
 
 	select {
 	case <-c.Stop().Done():
@@ -303,4 +304,80 @@ func TestStartCleanupCronStopsWhenItsCronIsStopped(t *testing.T) {
 		require.FailNow(t, "the cron didn't stop")
 	}
 	assert.Equal(t, "180", in.storedPeriod(t), "it stored the new install's data retention period first")
+}
+
+// heldLock is a run lock whose hour another replica has claimed
+type heldLock struct{}
+
+func (heldLock) Claim(context.Context, time.Time) (bool, error) { return false, nil }
+
+// unreachableLock is a run lock that can't reach its Redis
+type unreachableLock struct{}
+
+func (unreachableLock) Claim(context.Context, time.Time) (bool, error) {
+	return false, errors.New("connection refused")
+}
+
+func TestStartCleanupCronsJobRunsTheHourlyCleanupUnderTheLock(t *testing.T) {
+	for name, tc := range map[string]struct {
+		lock RunLock
+		want [4]int32
+	}{
+		"the lock grants the hour":       {NewMemoryRunLock(), [4]int32{1, 1, 1, 1}},
+		"another replica holds the hour": {heldLock{}, [4]int32{}},
+		"the lock can't be reached":      {unreachableLock{}, [4]int32{}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			in := newInstall(t)
+			c := &cleanups{}
+			retention := Retention{NotificationHistoryDays: 45, TLSInfoDays: 7}
+
+			cron, err := StartCleanupCron(countingHeartbeats{Service: in.heartbeats, c: c}, in.users, in.settings,
+				countingStats{c: c}, countingNotificationHistory{c: c}, countingTLSInfo{c: c}, tc.lock, retention, zap.NewNop().Sugar())
+			require.NoError(t, err)
+			t.Cleanup(func() { <-cron.Stop().Done() })
+			require.Len(t, cron.Entries(), 1)
+
+			// The cron runs this when the hour starts
+			cron.Entries()[0].WrappedJob.Run()
+
+			assert.Equal(t, tc.want, c.all())
+			if tc.want[2] == 1 {
+				assert.Equal(t, int32(45), c.notificationHistoryDays.Load())
+				assert.Equal(t, int32(7), c.tlsInfoDays.Load())
+			}
+		})
+	}
+}
+
+func TestStartCleanupCronFailsWhenItCantScheduleTheCleanup(t *testing.T) {
+	in := newInstall(t)
+	spec := hourlySpec
+	hourlySpec = "not a cron spec"
+	t.Cleanup(func() { hourlySpec = spec })
+
+	c, err := StartCleanupCron(in.heartbeats, in.users, in.settings, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "failed to schedule the hourly cleanup")
+	assert.Nil(t, c)
+}
+
+// A time zone that is offset by part of an hour has its top of the hour inside a UTC
+// hour, and there the nearest-hour rounding of the claims would split replicas by a moment's
+// skew. The cron fires at the top of the UTC hour whatever TZ is.
+func TestStartCleanupCronFiresAtTheTopOfTheHourInUTC(t *testing.T) {
+	in := newInstall(t)
+
+	c, err := StartCleanupCron(in.heartbeats, in.users, in.settings, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	t.Cleanup(func() { <-c.Stop().Done() })
+
+	assert.Equal(t, "UTC", c.Location().String())
+	require.Len(t, c.Entries(), 1)
+	// From 11:17 in India (05:47 UTC), the next run is at 06:00 UTC, 11:30 in India. The cron
+	// asks its schedule with the time in its own location, as here.
+	india := time.FixedZone("IST", 5*3600+30*60)
+	next := c.Entries()[0].Schedule.Next(time.Date(2026, 10, 22, 11, 17, 0, 0, india).In(c.Location()))
+	assert.Equal(t, time.Date(2026, 10, 22, 6, 0, 0, 0, time.UTC), next.UTC())
 }

@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Vyberte typ notifikátoru"
     },
-    "search_placeholder": "Hledat notifikační kanály podle názvu..."
+    "search_placeholder": "Hledat notifikační kanály podle názvu...",
+    "secret": {
+      "reenter_error": "Zadejte tento tajný údaj znovu, nebo ho odeberte: změnilo se místo, kam se odesílá",
+      "reenter_hint": "Zadejte tento tajný údaj znovu: změnilo se místo, kam se odesílá",
+      "remove": "Odebrat",
+      "saved_hint": "Uloženo — pro nahrazení začněte psát"
+    }
   },
   "proxies": {
     "delete_dialog": {

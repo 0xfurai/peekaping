@@ -77,11 +77,17 @@ func Logger(logger *zap.SugaredLogger, proxies *TrustedProxies) Middleware {
 	}
 }
 
-// LimitBody makes reading a request body fail with *http.MaxBytesError once it passes max bytes,
-// so that a handler (or a guard that reads the body before it) never holds more than that.
+// LimitBody answers 413 to a request that declares a Content-Length over max bytes, without
+// running the handler. It makes reading any other body fail with *http.MaxBytesError once it
+// passes max bytes, so that a handler (or a guard that reads the body before it) never holds
+// more than that.
 func LimitBody(max int64) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.ContentLength > max {
+				JSON(w, http.StatusRequestEntityTooLarge, ErrorBody{Message: "request body too large"})
+				return
+			}
 			if r.Body != nil {
 				r.Body = http.MaxBytesReader(w, r.Body, max)
 			}
@@ -90,23 +96,34 @@ func LimitBody(max int64) Middleware {
 	}
 }
 
-// CORS retains the existing wildcard-origin policy; PP-55 owns policy changes.
-func CORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		origin := r.Header.Get("Origin")
-		if origin == "" || origin == "http://"+r.Host || origin == "https://"+r.Host {
+// CORS lets a page on one of origins read the API's responses. A request from any other origin
+// is served as it is, without CORS headers, so its browser won't hand the response to the page.
+// A request with no Origin, or from the host it is sent to, isn't cross-origin and is left
+// alone. Responses never carry Access-Control-Allow-Credentials: the API's auth is a bearer
+// header, not a cookie. With a list of origins every response gets Vary: Origin, since what it
+// carries depends on the request's Origin and a cache must not serve one origin's copy to another.
+func CORS(origins *CORSOrigins) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if origins.listed() {
+				w.Header().Add("Vary", "Origin")
+			}
+			origin := r.Header.Get("Origin")
+			sameOrigin := origin == "" || origin == "http://"+r.Host || origin == "https://"+r.Host
+			allowOrigin := origins.AllowOrigin(origin)
+			if sameOrigin || allowOrigin == "" {
+				next.ServeHTTP(w, r)
+				return
+			}
+			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+			if r.Method == http.MethodOptions {
+				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
+				w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID")
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID")
 			next.ServeHTTP(w, r)
-			return
-		}
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		if r.Method == http.MethodOptions {
-			w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
-			w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID")
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID")
-		next.ServeHTTP(w, r)
-	})
+		})
+	}
 }

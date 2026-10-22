@@ -9,17 +9,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
-import { PasswordInput } from "@/components/ui/password-input";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 
 export const schema = z.object({
   type: z.literal("twilio"),
   twilio_account_sid: z.string().min(1, {
     message: "Account SID is required",
   }),
-  twilio_api_key: z.string().optional(),
-  twilio_auth_token: z.string().min(1, {
-    message: "Auth Token is required",
-  }),
+  twilio_api_key: withSavedSecret(z.string()).optional(),
+  twilio_auth_token: withSavedSecret(
+    z.string().min(1, {
+      message: "Auth Token is required",
+    })
+  ),
   twilio_from_number: z.string()
     .min(1, { message: "From Number is required" })
     .regex(/^\+[1-9]\d{1,14}$/, {
@@ -77,8 +80,9 @@ export default function TwilioForm() {
           <FormItem>
             <FormLabel>API Key (optional)</FormLabel>
             <FormControl>
-              <Input
+              <SecretInput
                 placeholder="SK1234567890abcdef1234567890abcdef"
+                autoComplete="off"
                 {...field}
               />
             </FormControl>
@@ -98,7 +102,7 @@ export default function TwilioForm() {
           <FormItem>
             <FormLabel>Auth Token / API Key Secret</FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder="Your Auth Token or API Key Secret"
                 {...field}
               />

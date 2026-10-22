@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Valitse ilmoitustyyppi"
     },
-    "search_placeholder": "Etsi ilmoituskanavia nimellä…"
+    "search_placeholder": "Etsi ilmoituskanavia nimellä…",
+    "secret": {
+      "reenter_error": "Syötä tämä salaisuus uudelleen tai poista se: lähetyksen kohde on muuttunut",
+      "reenter_hint": "Syötä tämä salaisuus uudelleen: lähetyksen kohde on muuttunut",
+      "remove": "Poista",
+      "saved_hint": "Tallennettu — kirjoita korvataksesi"
+    }
   },
   "proxies": {
     "delete_dialog": {

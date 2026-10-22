@@ -2,21 +2,22 @@ package providers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"strings"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
 )
 
 type TelegramConfig struct {
-	BotToken          string `json:"bot_token" validate:"required"`
+	BotToken          string `json:"bot_token" validate:"required" secret:"true"`
 	ChatID            string `json:"chat_id" validate:"required"`
 	MessageThreadID   string `json:"message_thread_id"`
-	ServerUrl         string `json:"server_url" validate:"omitempty,url"`
+	ServerUrl         string `json:"server_url" validate:"omitempty,url" endpoint:"true" endpointDefault:"https://api.telegram.org"`
 	UseTemplate       bool   `json:"use_template"`
 	TemplateParseMode string `json:"template_parse_mode" validate:"omitempty,oneof=plain MarkdownV2 HTML Markdown"`
 	Template          string `json:"template"`
@@ -81,12 +82,6 @@ func (s *TelegramSender) Send(
 
 		bindings := PrepareTemplateBindings(monitor, heartbeat, message)
 
-		// Optional: Add debug output for development
-		if s.logger != nil {
-			jsonDebug, _ := json.MarshalIndent(bindings, "", "  ")
-			s.logger.Debugf("Template bindings: %s", string(jsonDebug))
-		}
-
 		if cfg.Template != "" {
 			if rendered, err := engine.ParseAndRenderString(cfg.Template, bindings); err == nil {
 				params["text"] = rendered
@@ -95,7 +90,6 @@ func (s *TelegramSender) Send(
 			}
 		}
 
-		fmt.Println("parse_mode", cfg.TemplateParseMode)
 		if cfg.TemplateParseMode != "plain" && cfg.TemplateParseMode != "" {
 			params["parse_mode"] = cfg.TemplateParseMode
 		}
@@ -116,8 +110,6 @@ func (s *TelegramSender) Send(
 	}
 	req.URL.RawQuery = q.Encode()
 
-	s.logger.Debugf("Sending telegram message: %s", req.URL.String())
-
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send telegram message: %w", err)
@@ -125,8 +117,13 @@ func (s *TelegramSender) Send(
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("telegram API returned status: %s, body: %s", resp.Status, resp.Body)
+		// A bounded read: the error carries Telegram's description, however long the response is
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		// A self-hosted Bot API server may echo the request path, and the path holds the token
+		text := strings.ReplaceAll(strings.TrimSpace(string(body)), cfg.BotToken, "[redacted]")
+		return fmt.Errorf("telegram API returned status: %s, body: %s", resp.Status, text)
 	}
 
+	s.logger.Infof("Telegram notification sent successfully")
 	return nil
 }

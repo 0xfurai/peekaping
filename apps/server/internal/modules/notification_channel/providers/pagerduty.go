@@ -18,8 +18,8 @@ import (
 
 // PagerDutyConfig holds the configuration for PagerDuty notifications
 type PagerDutyConfig struct {
-	IntegrationKey string `json:"pagerduty_integration_key" validate:"required"`
-	IntegrationURL string `json:"pagerduty_integration_url" validate:"required,url"`
+	IntegrationKey string `json:"pagerduty_integration_key" validate:"required" secret:"true"`
+	IntegrationURL string `json:"pagerduty_integration_url" validate:"required,url" endpoint:"true"`
 	Priority       string `json:"pagerduty_priority"`
 	AutoResolve    string `json:"pagerduty_auto_resolve"`
 }
@@ -121,9 +121,6 @@ func (p *PagerDutySender) Send(
 	}
 	cfg := cfgAny.(*PagerDutyConfig)
 
-	// Debug logging
-	jsonDebug, _ := json.MarshalIndent(cfg, "", "  ")
-	p.logger.Debugf("PagerDuty config: %s", string(jsonDebug))
 	p.logger.Infof("Sending PagerDuty notification to: %s", cfg.IntegrationURL)
 
 	// Determine event action
@@ -166,8 +163,6 @@ func (p *PagerDutySender) Send(
 	if err != nil {
 		return fmt.Errorf("failed to marshal PagerDuty payload: %w", err)
 	}
-
-	p.logger.Debugf("PagerDuty payload: %s", string(jsonPayload))
 
 	// Create HTTP request
 	req, err := http.NewRequestWithContext(ctx, "POST", cfg.IntegrationURL, bytes.NewBuffer(jsonPayload))

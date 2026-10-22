@@ -56,8 +56,6 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		cfg.Port = 161
 	}
 
-	s.logger.Debugf("execute snmp cfg: %+v", cfg)
-
 	startTime := time.Now().UTC()
 
 	// Create SNMP connection
