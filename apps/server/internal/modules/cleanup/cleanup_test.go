@@ -363,7 +363,7 @@ func TestStartCleanupCronFailsWhenItCantScheduleTheCleanup(t *testing.T) {
 	assert.Nil(t, c)
 }
 
-// A time zone that is offset by a half hour has its top of the hour in the middle of a UTC
+// A time zone that is offset by part of an hour has its top of the hour inside a UTC
 // hour, and there the nearest-hour rounding of the claims would split replicas by a moment's
 // skew. The cron fires at the top of the UTC hour whatever TZ is.
 func TestStartCleanupCronFiresAtTheTopOfTheHourInUTC(t *testing.T) {

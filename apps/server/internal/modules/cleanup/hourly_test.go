@@ -157,9 +157,9 @@ func TestHourlyCleanupRunsOnceAcrossTheReplicas(t *testing.T) {
 	assert.Equal(t, "2026-10-22T13:00:00Z", running[1].ContextMap()["hour"])
 }
 
-// Replicas whose clocks differ fire at slightly different times, or a timer wakes a little
-// early. They still agree on the hour: now is rounded to the nearest one.
-func TestHourlyCleanupAgreesOnTheHourDespiteClockSkew(t *testing.T) {
+// A timer wakes a little early, or a run starts late. Either way it claims the hour it was
+// scheduled for: now is rounded to the nearest one.
+func TestHourlyCleanupClaimsItsHourWhenTheCronFiresEarlyOrLate(t *testing.T) {
 	redis := miniredis.RunT(t)
 	c := &cleanups{}
 	logger := zap.NewNop().Sugar()

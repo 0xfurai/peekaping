@@ -38,8 +38,10 @@ type hourlyCleanup struct {
 
 // hourOf is the hour whose cleanup a replica that fires at now takes: now rounded to the
 // nearest hour, in UTC. The cron fires at the top of the hour by the replica's clock, so a
-// replica whose clock is a little ahead or behind still rounds to the hour the others do, and
-// a timer that wakes just before the hour doesn't claim the hour before.
+// timer that wakes just before the hour doesn't claim the hour before, and a run that starts
+// late, up to half an hour, still claims its own hour. Replicas whose clocks are apart claim
+// the same hour at different moments; the claim's two hour expiry keeps it until the last of
+// them fires, as long as their clocks are less than an hour apart.
 func hourOf(now time.Time) time.Time {
 	return now.Add(30 * time.Minute).UTC().Truncate(time.Hour)
 }
