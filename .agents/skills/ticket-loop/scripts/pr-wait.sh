@@ -8,12 +8,13 @@
 #   ACTION   all checks finished and something failed, a comment waits on us, or
 #            CodeRabbit never reviewed a head (a stacked PR needs `@coderabbitai review`)
 #   READY    all checks passed, CodeRabbit reviewed every head, nothing waits on us
+#   CONFLICT a PR no longer merges cleanly into its base
 #   MERGED   a PR was merged or closed during the wait
 #   PUSHED   a PR's head moved while idle (someone else pushed)
 #   TIMEOUT  none of the above before the deadline
 #
-# --idle waits for reviewers after READY: it never reports READY, only new
-# comments, failures, merges and pushes. --ignore drops a check you've judged
+# --idle waits for reviewers after READY, for up to two days: it never reports
+# READY, only new comments, failures, conflicts, merges and pushes. --ignore drops a check you've judged
 # unrelated (e.g. a known flake); `--ignore CodeRabbit` stops waiting for its review.
 set -uo pipefail
 
@@ -33,7 +34,7 @@ coderabbit_grace=$((20 * 60))
 
 while [ $# -gt 0 ]; do
     case $1 in
-    --idle) idle=true; timeout_min=240; interval=120; shift ;;
+    --idle) idle=true; timeout_min=$((2 * 24 * 60)); interval=120; shift ;;
     --timeout) timeout_min=$2; shift 2 ;;
     --interval) interval=$2; shift 2 ;;
     --ignore) ignore=$(jq -c --arg c "$2" '. + [$c]' <<<"$ignore"); shift 2 ;;
@@ -50,7 +51,7 @@ deadline=$((start + timeout_min * 60))
 status_line() {
     jq -r '"#\(.pr) \(.state) \(.base)<-\(.head) | checks: \(.checks.pending | length) pending, "
         + "\(.checks.failed | length) failed\(if (.checks.failed | length) > 0 then " (" + ([.checks.failed[].name] | join(", ")) + ")" else "" end), "
-        + "\(.checks.passed) passed | coderabbit \(.checks.coderabbit) | todo \(.todo)"' "$1"
+        + "\(.checks.passed) passed | coderabbit \(.checks.coderabbit) | mergeable \(.mergeable) | todo \(.todo)"' "$1"
 }
 
 finish() {
@@ -61,7 +62,7 @@ finish() {
 
 while :; do
     now=$(date +%s)
-    busy=false attention=false merged=false pushed=false open=0
+    busy=false attention=false merged=false pushed=false conflict=false open=0
     [ $((now - start)) -lt $min_wait ] && busy=true
 
     for pr in "$@"; do
@@ -78,6 +79,11 @@ while :; do
         open=$((open + 1))
 
         [ "$(jq -r .headSha "$tmp/$pr.start")" != "$(jq -r .headSha "$s")" ] && pushed=true
+        # GitHub computes mergeability lazily; UNKNOWN means ask again.
+        case $(jq -r .mergeable "$s") in
+        CONFLICTING) conflict=true ;;
+        UNKNOWN) busy=true ;;
+        esac
         jq -e --argjson ignore "$ignore" \
             '[.checks.pending[] | select(. as $n | $ignore | index($n) | not)] | length > 0' \
             "$s" >/dev/null && busy=true
@@ -97,6 +103,7 @@ while :; do
 
     $merged && finish MERGED
     [ $open -eq 0 ] && ls "$tmp"/*.now >/dev/null 2>&1 && finish MERGED
+    $conflict && finish CONFLICT
     $idle && $pushed && finish PUSHED
     if ! $busy; then
         $attention && finish ACTION
