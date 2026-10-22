@@ -3,14 +3,12 @@ package notification_channel
 import (
 	"context"
 	"fmt"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
-	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
 	"sort"
@@ -41,6 +39,7 @@ type NotificationEventListener struct {
 	monitorNotificationService monitor_notification.Service
 	monitorTagService          monitor_tag.Service
 	tagService                 tag.Service
+	providers                  *ProviderRegistry
 	logger                     *zap.SugaredLogger
 	sendTimeout                time.Duration
 }
@@ -53,36 +52,11 @@ type NotificationEventListenerParams struct {
 	MonitorNotificationService monitor_notification.Service
 	MonitorTagService          monitor_tag.Service
 	TagService                 tag.Service
+	Providers                  *ProviderRegistry
 	Logger                     *zap.SugaredLogger
-	Config                     *config.Config
 }
 
 func NewNotificationEventListener(p NotificationEventListenerParams) *NotificationEventListener {
-	client := providers.NewHTTPClient()
-	RegisterNotificationChannelProvider("smtp", providers.NewEmailSender(p.Logger))
-	RegisterNotificationChannelProvider("telegram", providers.NewTelegramSender(p.Logger, client))
-	RegisterNotificationChannelProvider("webhook", providers.NewWebhookSender(p.Logger, client))
-	RegisterNotificationChannelProvider("slack", providers.NewSlackSender(p.Logger, p.Config, client))
-	RegisterNotificationChannelProvider("ntfy", providers.NewNTFYSender(p.Logger, client))
-	RegisterNotificationChannelProvider("pagerduty", providers.NewPagerDutySender(p.Logger, p.Config, client))
-	RegisterNotificationChannelProvider("opsgenie", providers.NewOpsgenieSender(p.Logger, client))
-	RegisterNotificationChannelProvider("google_chat", providers.NewGoogleChatSender(p.Logger, p.Config, client))
-	RegisterNotificationChannelProvider("grafana_oncall", providers.NewGrafanaOncallSender(p.Logger, client))
-	RegisterNotificationChannelProvider("signal", providers.NewSignalSender(p.Logger, client))
-	RegisterNotificationChannelProvider("gotify", providers.NewGotifySender(p.Logger, client))
-	RegisterNotificationChannelProvider("pushover", providers.NewPushoverSender(p.Logger, client))
-	RegisterNotificationChannelProvider("mattermost", providers.NewMattermostSender(p.Logger, client))
-	RegisterNotificationChannelProvider("matrix", providers.NewMatrixSender(p.Logger, client))
-	RegisterNotificationChannelProvider("discord", providers.NewDiscordSender(p.Logger, client))
-	RegisterNotificationChannelProvider("wecom", providers.NewWeComSender(p.Logger, client))
-	RegisterNotificationChannelProvider("whatsapp", providers.NewWhatsAppSender(p.Logger, client))
-	RegisterNotificationChannelProvider("twilio", providers.NewTwilioSender(p.Logger, client))
-	RegisterNotificationChannelProvider("sendgrid", providers.NewSendGridSender(p.Logger, client))
-	RegisterNotificationChannelProvider("pushbullet", providers.NewPushbulletSender(p.Logger, client))
-	RegisterNotificationChannelProvider("pagertree", providers.NewPagerTreeSender(p.Logger, client))
-	RegisterNotificationChannelProvider("line", providers.NewLineSender(p.Logger, client))
-	RegisterNotificationChannelProvider("teams", providers.NewTeamsSender(p.Logger, p.Config, client))
-
 	return &NotificationEventListener{
 		service:                    p.Service,
 		monitorSvc:                 p.MonitorSvc,
@@ -90,6 +64,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 		monitorNotificationService: p.MonitorNotificationService,
 		monitorTagService:          p.MonitorTagService,
 		tagService:                 p.TagService,
+		providers:                  p.Providers,
 		logger:                     p.Logger,
 		sendTimeout:                sendTimeout,
 	}
@@ -215,7 +190,7 @@ func (l *NotificationEventListener) sendToChannels(
 			l.logger.Debugf("Skipping inactive notification channel: %s", notificationChannel.Name)
 			continue
 		}
-		provider, ok := GetNotificationChannelProvider(notificationChannel.Type)
+		provider, ok := l.providers.Get(notificationChannel.Type)
 		if !ok {
 			l.logger.Warnf("No provider registered for notification type: %s", notificationChannel.Type)
 			continue

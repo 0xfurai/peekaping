@@ -14,16 +14,19 @@ import (
 )
 
 type Controller struct {
-	service Service
-	logger  *zap.SugaredLogger
+	service   Service
+	providers *ProviderRegistry
+	logger    *zap.SugaredLogger
 }
 
 func NewController(
 	service Service,
+	providers *ProviderRegistry,
 	logger *zap.SugaredLogger,
 ) *Controller {
 	return &Controller{
 		service,
+		providers,
 		logger,
 	}
 }
@@ -62,7 +65,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
-	if _, err := validateConfig(notification_channel.Type, notification_channel.Config); err != nil {
+	if _, err := ic.validateConfig(notification_channel.Type, notification_channel.Config); err != nil {
 		return nil, err
 	}
 
@@ -103,7 +106,7 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if _, err := validateConfig(notification.Type, notification.Config); err != nil {
+	if _, err := ic.validateConfig(notification.Type, notification.Config); err != nil {
 		return nil, err
 	}
 
@@ -152,7 +155,7 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 			config = *notification.Config
 		}
 
-		if _, err := validateConfig(channelType, config); err != nil {
+		if _, err := ic.validateConfig(channelType, config); err != nil {
 			return nil, err
 		}
 	}
@@ -192,7 +195,7 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
-	integration, lookupErr := validateConfig(notificationChannel.Type, notificationChannel.Config)
+	integration, lookupErr := ic.validateConfig(notificationChannel.Type, notificationChannel.Config)
 	if lookupErr != nil {
 		return nil, lookupErr
 	}
@@ -223,8 +226,8 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 
 // validateConfig looks up the provider for channelType and checks config with it.
 // On failure it returns the existing 400 response.
-func validateConfig(channelType, config string) (NotificationChannelProvider, error) {
-	integration, ok := GetNotificationChannelProvider(channelType)
+func (ic *Controller) validateConfig(channelType, config string) (NotificationChannelProvider, error) {
+	integration, ok := ic.providers.Get(channelType)
 	if !ok {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
 	}

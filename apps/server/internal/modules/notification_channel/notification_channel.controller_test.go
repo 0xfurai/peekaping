@@ -47,11 +47,10 @@ func (s *updateRecordingService) UpdatePartial(_ context.Context, _ string, dto 
 }
 
 func TestControllerUpdateValidatesConfig(t *testing.T) {
-
-	RegisterNotificationChannelProvider("test-valid", validatingProvider{})
-	RegisterNotificationChannelProvider("test-rejecting", validatingProvider{err: errors.New("bad config")})
-	defer delete(NotificationChannelProviderRegistry, "test-valid")
-	defer delete(NotificationChannelProviderRegistry, "test-rejecting")
+	providers := newTestRegistry(map[string]NotificationChannelProvider{
+		"test-valid":     validatingProvider{},
+		"test-rejecting": validatingProvider{err: errors.New("bad config")},
+	})
 
 	cases := []struct {
 		name         string
@@ -69,7 +68,7 @@ func TestControllerUpdateValidatesConfig(t *testing.T) {
 		for _, tc := range cases {
 			t.Run(method+" "+tc.name, func(t *testing.T) {
 				service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
-				controller := NewController(service, zap.NewNop().Sugar())
+				controller := NewController(service, providers, zap.NewNop().Sugar())
 				router := httpx.NewRouter()
 				httpx.Register(router, "PUT", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, controller.UpdateFull)
 				httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, controller.UpdatePartial)
@@ -89,11 +88,10 @@ func TestControllerUpdateValidatesConfig(t *testing.T) {
 }
 
 func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
-
-	RegisterNotificationChannelProvider("test-valid", validatingProvider{})
-	RegisterNotificationChannelProvider("test-rejecting", validatingProvider{err: errors.New("bad config")})
-	defer delete(NotificationChannelProviderRegistry, "test-valid")
-	defer delete(NotificationChannelProviderRegistry, "test-rejecting")
+	providers := newTestRegistry(map[string]NotificationChannelProvider{
+		"test-valid":     validatingProvider{},
+		"test-rejecting": validatingProvider{err: errors.New("bad config")},
+	})
 
 	cases := []struct {
 		name         string
@@ -116,7 +114,7 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			service := &updateRecordingService{saved: tc.saved}
 			router := httpx.NewRouter()
-			httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+			httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 			req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(tc.body))
 			req.Header.Set("Content-Type", "application/json")
@@ -132,7 +130,7 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 	t.Run("omitted fields reach the service as nil", func(t *testing.T) {
 		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
 		router := httpx.NewRouter()
-		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, zap.NewNop().Sugar()).UpdatePartial)
+		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"name": "Renamed"}`))
 		req.Header.Set("Content-Type", "application/json")
@@ -149,14 +147,15 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 }
 
 func TestControllerTestSendsWithADeadline(t *testing.T) {
-
 	var hasDeadline bool
-	registerTestProvider(t, "test-valid", &recordingProvider{send: func(ctx context.Context) error {
-		_, hasDeadline = ctx.Deadline()
-		return nil
-	}})
+	providers := newTestRegistry(map[string]NotificationChannelProvider{
+		"test-valid": &recordingProvider{send: func(ctx context.Context) error {
+			_, hasDeadline = ctx.Deadline()
+			return nil
+		}},
+	})
 	router := httpx.NewRouter()
-	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, zap.NewNop().Sugar()).Test)
+	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, providers, zap.NewNop().Sugar()).Test)
 
 	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(`{"name": "Alerts", "type": "test-valid", "config": "{}"}`))
 	req.Header.Set("Content-Type", "application/json")
