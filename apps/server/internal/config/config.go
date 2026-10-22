@@ -71,6 +71,29 @@ type Config struct {
 	// Examples: "5m", "30m", "1h", "24h"
 	BruteforceLockout time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
 
+	// A second counter for the login lockout, per account and independent of the client's
+	// address, so that guessing one account's password from many addresses (or behind a proxy
+	// that hides them) still locks the account. A successful login resets both counters.
+	// Maximum number of failed logins for one account within the window
+	BruteforceAccountMaxAttempts int `env:"BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS" default:"100"`
+
+	// How long the count of an account's failed logins is kept, from the first of them. Until
+	// it has passed, each further failure after a lock ends locks the account again, so guessing
+	// is bounded to the maximum per window plus one attempt each time a lock ends.
+	// Examples: "10m", "1h"
+	BruteforceAccountWindow time.Duration `env:"BRUTEFORCE_ACCOUNT_WINDOW" default:"10m"`
+
+	// How long one lock lasts. After an attack stops, the owner is back in within the window at
+	// most; an attacker who keeps going can keep the account locked. Examples: "1m", "5m"
+	BruteforceAccountLockout time.Duration `env:"BRUTEFORCE_ACCOUNT_LOCKOUT" default:"1m"`
+
+	// Proxies whose X-Forwarded-For and X-Real-IP headers the server believes: a
+	// comma-separated list of IP addresses and CIDR ranges, such as "127.0.0.1,10.0.0.0/8".
+	// A request from any other address is attributed to the address it connected from, since a
+	// client can send those headers itself. The login lockout counts failures per client
+	// address. Empty (the default) trusts nobody.
+	TrustedProxies string `env:"TRUSTED_PROXIES"` // parsed by httpx.ParseTrustedProxies
+
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
 
 	// Prometheus metrics

@@ -3,12 +3,14 @@ package app
 import (
 	"context"
 	"net"
+	"net/http/httptest"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"peekaping/internal"
 	"peekaping/internal/config"
+	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
@@ -214,6 +216,33 @@ func TestRegisterClusterAPI_FailsNamingTheConstructorDigRefuses(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to provide peekaping/internal.ProvideLogger:")
+}
+
+func TestRegister_RefusesAnInvalidTrustedProxy(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.TrustedProxies = "10.0.0.0/8,my-proxy"
+	container := dig.New()
+	require.NoError(t, Register(container, cfg))
+
+	err := container.Invoke(func(*httpx.TrustedProxies) {})
+
+	assert.ErrorContains(t, err, `invalid TRUSTED_PROXIES entry "my-proxy"`)
+}
+
+func TestRegister_ProvidesTheTrustedProxiesFromTheConfig(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.TrustedProxies = "10.0.0.0/8"
+	container := dig.New()
+	require.NoError(t, Register(container, cfg))
+
+	require.NoError(t, container.Invoke(func(proxies *httpx.TrustedProxies) {
+		for remote, want := range map[string]string{"10.0.0.1:1234": "198.51.100.7", "192.0.2.1:1234": "192.0.2.1"} {
+			r := httptest.NewRequest("GET", "/", nil)
+			r.RemoteAddr = remote
+			r.Header.Set("X-Forwarded-For", "198.51.100.7")
+			assert.Equal(t, want, proxies.ClientIP(r), remote)
+		}
+	}))
 }
 
 func TestRegister_RefusesAnUnsupportedDBType(t *testing.T) {
