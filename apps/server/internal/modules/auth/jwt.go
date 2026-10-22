@@ -37,8 +37,8 @@ func passwordFingerprint(passwordHash string) string {
 }
 
 // secretTTL is how long a signing secret stays in memory before it is read from
-// the settings again. So a secret that changes in the database, on this pod or
-// on another one in cluster mode, is used within this time.
+// the settings again. So a secret that changes in the database, by this process
+// or by another one in cluster mode, is used within this time.
 const secretTTL = time.Minute
 
 type cachedSecret struct {
@@ -83,8 +83,11 @@ func (maker *TokenMaker) secret(ctx context.Context, key, name string) (string, 
 		return "", fmt.Errorf("%s setting not found", name)
 	}
 
+	// Concurrent requests may each read the secret; keep the newest read
 	maker.mu.Lock()
-	maker.secrets[key] = cachedSecret{value: setting.Value, fetchedAt: now}
+	if current, ok := maker.secrets[key]; !ok || !current.fetchedAt.After(now) {
+		maker.secrets[key] = cachedSecret{value: setting.Value, fetchedAt: now}
+	}
 	maker.mu.Unlock()
 	return setting.Value, nil
 }
