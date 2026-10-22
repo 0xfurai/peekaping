@@ -54,6 +54,9 @@ func TestCORSCompatibility(t *testing.T) {
 			assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
 			assert.Equal(t, "true", w.Header().Get("Access-Control-Allow-Credentials"))
 		}
+		if tc.cors && tc.want != 204 {
+			assert.Equal(t, "Authorization, X-Request-ID", w.Header().Get("Access-Control-Expose-Headers"))
+		}
 		if tc.want == 204 {
 			assert.Equal(t, "GET,POST,PUT,DELETE,OPTIONS,PATCH", w.Header().Get("Access-Control-Allow-Methods"))
 			assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization", w.Header().Get("Access-Control-Allow-Headers"))

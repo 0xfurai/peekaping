@@ -77,7 +77,7 @@ func CORS(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
-		w.Header().Set("Access-Control-Expose-Headers", "Authorization")
+		w.Header().Set("Access-Control-Expose-Headers", "Authorization, X-Request-ID")
 		next.ServeHTTP(w, r)
 	})
 }
