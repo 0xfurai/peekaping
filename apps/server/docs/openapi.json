@@ -5591,9 +5591,6 @@
         "security": [
           {
             "JwtAuth": []
-          },
-          {
-            "ApiKeyAuth": []
           }
         ],
         "summary": "Opt in or out of error reports",

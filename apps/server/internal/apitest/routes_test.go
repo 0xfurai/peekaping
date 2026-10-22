@@ -57,6 +57,7 @@ var jwtOnlyRoutes = map[string]bool{
 	"PUT /api/v1/api-keys/{id}":     true,
 	"DELETE /api/v1/api-keys/{id}":  true,
 	"PUT /api/v1/telemetry":         true,
+	"PUT /api/v1/error-reporting":   true,
 }
 
 var pathParam = regexp.MustCompile(`\{[^}]+\}`)

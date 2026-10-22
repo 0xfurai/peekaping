@@ -738,10 +738,6 @@ export const putErrorReporting = <ThrowOnError extends boolean = false>(
         scheme: "bearer",
         type: "http",
       },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
-      },
     ],
     url: "/api/v1/error-reporting",
     ...options,
