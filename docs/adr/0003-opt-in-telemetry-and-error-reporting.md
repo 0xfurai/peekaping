@@ -35,7 +35,7 @@ The payload has exactly these fields, and the server builds it from them, field 
 | `instance_id` | the random instance ID |
 | `version` | the Peekaping version |
 | `mode` | `single` or `cluster` |
-| `db` | the storage backend: `sqlite`, `postgres` or `mongo` |
+| `db` | the storage backend: `sqlite`, `postgres` or `mongo`. MySQL (`DB_TYPE=mysql`) is sent as `""`, which the Worker rejects, so nothing is kept for an install on it. |
 | `os` | OS and architecture, such as `linux/arm64` |
 | `monitors` | how many monitors, as a bucket: `0`, `1-10`, `11-50`, `51-200`, `201-1000` or `1000+` |
 | `monitor_types` | the monitor types in use, as type names only |
