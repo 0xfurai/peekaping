@@ -11,15 +11,21 @@ import (
 	"testing"
 	"time"
 
-	"peekaping/internal/httpx"
-
 	gorilla "github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+// restoreServerTimeouts puts serverTimeouts back when the test ends. Call it before startPeekaping:
+// cleanups run last in, first out, so the restore comes after the server stops.
+func restoreServerTimeouts(t *testing.T) {
+	t.Helper()
+	saved := serverTimeouts
+	t.Cleanup(func() { serverTimeouts = saved })
+}
+
 func TestRun_DisconnectsAClientThatSendsItsHeadersSlowly(t *testing.T) {
-	defer func(saved httpx.Timeouts) { serverTimeouts = saved }(serverTimeouts)
+	restoreServerTimeouts(t)
 	serverTimeouts.ReadHeader = 300 * time.Millisecond
 	logger, logs := observedLogger()
 	in := startPeekaping(t, loadConfig(t, nil), logger, logs)
@@ -38,7 +44,7 @@ func TestRun_DisconnectsAClientThatSendsItsHeadersSlowly(t *testing.T) {
 
 func TestRun_KeepsLongPollsAndWebsocketsOpenPastTheReadTimeout(t *testing.T) {
 	const read = 400 * time.Millisecond
-	defer func(saved httpx.Timeouts) { serverTimeouts = saved }(serverTimeouts)
+	restoreServerTimeouts(t)
 	serverTimeouts.Read = read
 	logger, logs := observedLogger()
 	in := startPeekaping(t, loadConfig(t, nil), logger, logs)
