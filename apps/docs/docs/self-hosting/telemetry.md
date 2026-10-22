@@ -205,4 +205,6 @@ Set the variable on the `peekaping` container in single mode. In cluster mode, s
 
 ### In cluster mode
 
-The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it, takes effect in the API at once, and is copied to Redis. The producer, worker and ingester read it from Redis once a minute. The API also copies the stored setting to Redis again every minute, so a change made while Redis was down reaches them within a minute of Redis coming back. A change in Settings reaches every process within a minute, with no restart.
+The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it, takes effect in the API at once, and is copied to Redis. The producer, worker and ingester read it from Redis once a minute. The API also copies the stored setting to Redis again every minute.
+
+While Redis is up, a change in Settings reaches every process within a minute. A change made while Redis was down can take up to about two minutes after Redis comes back: the API copies it again within a minute, and the other processes read it within another minute. Either way, no restart is needed.
