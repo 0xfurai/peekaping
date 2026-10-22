@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"strings"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -122,7 +124,9 @@ func (s *TelegramSender) Send(
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("telegram API returned status: %s, body: %s", resp.Status, resp.Body)
+		// A bounded read: the error carries Telegram's description, however long the response is
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return fmt.Errorf("telegram API returned status: %s, body: %s", resp.Status, strings.TrimSpace(string(body)))
 	}
 
 	s.logger.Infof("Telegram notification sent successfully")
