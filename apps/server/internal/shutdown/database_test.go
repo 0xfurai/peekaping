@@ -33,7 +33,7 @@ func TestDatabase_ClosesTheSQLDatabaseTheContainerProvides(t *testing.T) {
 	db.AddQueryHook(queries)
 	database := resolveDatabase(t, func() *bun.DB { return db })
 
-	require.NoError(t, database.Close("sqlite", logger))
+	require.NoError(t, database.Close(context.Background(), "sqlite", logger))
 
 	assert.Contains(t, queries.queries, "PRAGMA wal_checkpoint(TRUNCATE)")
 	assert.Error(t, db.Ping(), "the database is still open")
@@ -47,7 +47,7 @@ func TestDatabase_DisconnectsTheMongoClientTheContainerProvides(t *testing.T) {
 	require.NoError(t, err)
 	database := resolveDatabase(t, func() *mongo.Client { return client })
 
-	require.NoError(t, database.Close("mongo", logger))
+	require.NoError(t, database.Close(context.Background(), "mongo", logger))
 
 	assert.ErrorIs(t, client.Ping(context.Background(), nil), mongo.ErrClientDisconnected, "the client is still connected")
 	assert.Equal(t, 1, logs.FilterMessage("MongoDB client disconnected gracefully").Len())
@@ -59,7 +59,7 @@ func TestDatabase_ClosesNothingWhenTheContainerProvidesNoDatabase(t *testing.T) 
 	logger, logs := observedLogger()
 	database := resolveDatabase(t, nil)
 
-	require.NoError(t, database.Close("", logger))
+	require.NoError(t, database.Close(context.Background(), "", logger))
 
 	assert.Zero(t, logs.Len())
 }

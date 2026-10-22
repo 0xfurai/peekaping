@@ -22,13 +22,13 @@ type Database struct {
 }
 
 // Close closes the database. A SQL database closes as CloseDatabase does for dbType, and a
-// MongoDB client disconnects.
-func (d Database) Close(dbType string, logger *zap.SugaredLogger) error {
+// MongoDB client disconnects within ctx, which bounds its wait for the connections in use.
+func (d Database) Close(ctx context.Context, dbType string, logger *zap.SugaredLogger) error {
 	switch {
 	case d.SQL != nil:
 		return CloseDatabase(d.SQL, dbType, logger)
 	case d.Mongo != nil:
-		if err := d.Mongo.Disconnect(context.Background()); err != nil {
+		if err := d.Mongo.Disconnect(ctx); err != nil {
 			return fmt.Errorf("failed to disconnect the MongoDB client: %w", err)
 		}
 		logger.Info("MongoDB client disconnected gracefully")

@@ -395,7 +395,8 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 		logger.Errorw("Left the database open, since some of what uses it is still running", "running", running)
 		return errors.Join(errs...)
 	}
-	if err := p.Database.Close(dbType, logger); err != nil {
+	// In what is left of the event bus's share, so that a slow MongoDB doesn't hold up the exit
+	if err := p.Database.Close(busCtx, dbType, logger); err != nil {
 		errs = append(errs, err)
 	} else {
 		logger.Info("Closed the database")
