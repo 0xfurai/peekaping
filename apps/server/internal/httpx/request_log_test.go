@@ -1,6 +1,7 @@
 package httpx_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
@@ -8,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func TestRequestID(t *testing.T) {
@@ -51,4 +54,23 @@ func TestRequestID(t *testing.T) {
 		handler.ServeHTTP(second, httptest.NewRequest("GET", "/", nil))
 		assert.NotEqual(t, first.Header().Get("X-Request-ID"), second.Header().Get("X-Request-ID"))
 	})
+}
+
+func TestLogFromContext(t *testing.T) {
+	core, logs := observer.New(zap.DebugLevel)
+	base := zap.New(core).Sugar()
+
+	httpx.Log(context.Background(), base).Infow("outside a request")
+	handler := httpx.RequestID(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpx.Log(r.Context(), base).Infow("inside a request", "key", "value")
+	}))
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set("X-Request-ID", "client-id")
+	handler.ServeHTTP(httptest.NewRecorder(), r)
+
+	outside := logs.FilterMessage("outside a request").All()[0].ContextMap()
+	assert.NotContains(t, outside, "request_id")
+	inside := logs.FilterMessage("inside a request").All()[0].ContextMap()
+	assert.Equal(t, "client-id", inside["request_id"])
+	assert.Equal(t, "value", inside["key"])
 }

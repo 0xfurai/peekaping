@@ -1,15 +1,29 @@
 package httpx
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 const (
 	requestIDHeader = "X-Request-ID"
 	maxRequestIDLen = 64
 )
+
+// requestInfo is what the request's context carries for logging.
+type requestInfo struct {
+	id string
+}
+
+type requestInfoKey struct{}
+
+func requestInfoFrom(ctx context.Context) *requestInfo {
+	info, _ := ctx.Value(requestInfoKey{}).(*requestInfo)
+	return info
+}
 
 // RequestID gives each request an ID and sets it as the X-Request-ID header of the response. It
 // keeps the request's own X-Request-ID when that is up to 64 characters of A-Z, a-z, 0-9, '.',
@@ -21,8 +35,18 @@ func RequestID(next http.Handler) http.Handler {
 			id = uuid.NewString()
 		}
 		w.Header().Set(requestIDHeader, id)
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), requestInfoKey{}, &requestInfo{id: id})
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+// Log returns base with the request's ID as its request_id field, or base itself when ctx isn't
+// a request's context that RequestID prepared.
+func Log(ctx context.Context, base *zap.SugaredLogger) *zap.SugaredLogger {
+	if info := requestInfoFrom(ctx); info != nil {
+		return base.With("request_id", info.id)
+	}
+	return base
 }
 
 func validRequestID(id string) bool {
