@@ -15,7 +15,7 @@ import (
 )
 
 type WeComConfig struct {
-	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true"`
+	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true"`
 }
 
 type WeComSender struct {

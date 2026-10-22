@@ -1,7 +1,9 @@
 package notification_channel
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"reflect"
 	"regexp"
 	"sort"
@@ -9,6 +11,8 @@ import (
 	"testing"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/monitor"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -19,12 +23,26 @@ func newRealRegistry() *ProviderRegistry {
 	return NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{})
 }
 
+// fieldKeys returns the sorted keys of each channel type's fields that match
+func fieldKeys(registry *ProviderRegistry, match func(configField) bool) map[string][]string {
+	keys := map[string][]string{}
+	for _, channelType := range registry.Types() {
+		provider, _ := registry.Get(channelType)
+		keys[channelType] = []string{}
+		for _, field := range configFields(provider) {
+			if match(field) {
+				keys[channelType] = append(keys[channelType], field.key)
+			}
+		}
+		sort.Strings(keys[channelType])
+	}
+	return keys
+}
+
 // TestSecretKeysPerProvider pins which config keys of each notification channel type are hidden
 // from responses. A new type, or a new secret field, has to be added here, so that tagging it
 // is a decision somebody made.
 func TestSecretKeysPerProvider(t *testing.T) {
-	registry := newRealRegistry()
-
 	want := map[string][]string{
 		"discord":        {"webhook_url"},
 		"gotify":         {"application_token"},
@@ -51,13 +69,41 @@ func TestSecretKeysPerProvider(t *testing.T) {
 		"whatsapp":       {"api_key"},
 	}
 
-	got := map[string][]string{}
-	for _, channelType := range registry.Types() {
-		provider, _ := registry.Get(channelType)
-		keys := append([]string{}, secretKeys(provider)...)
-		sort.Strings(keys)
-		got[channelType] = keys
+	got := fieldKeys(newRealRegistry(), func(field configField) bool { return field.secret })
+	assert.Equal(t, want, got)
+}
+
+// TestEndpointKeysPerProvider pins which config keys of each notification channel type decide
+// where the channel sends its secrets. A secret is only kept while these stay as they are, so
+// a field that sends secrets somewhere new has to be added here.
+func TestEndpointKeysPerProvider(t *testing.T) {
+	want := map[string][]string{
+		"discord":        {"webhook_url"},
+		"gotify":         {"server_url"},
+		"google_chat":    {"webhook_url"},
+		"grafana_oncall": {"grafana_oncall_url"},
+		"line":           {},
+		"matrix":         {"homeserver_url"},
+		"mattermost":     {"webhook_url"},
+		"ntfy":           {"server_url"},
+		"opsgenie":       {},
+		"pagerduty":      {"pagerduty_integration_url"},
+		"pagertree":      {"integrationUrl"},
+		"pushbullet":     {},
+		"pushover":       {},
+		"sendgrid":       {},
+		"signal":         {},
+		"slack":          {"slack_webhook_url"},
+		"smtp":           {"smtp_host", "smtp_port", "smtp_secure"},
+		"teams":          {"webhook_url"},
+		"telegram":       {"server_url"},
+		"twilio":         {},
+		"webhook":        {"webhook_url"},
+		"wecom":          {"webhook_url"},
+		"whatsapp":       {"server_url"},
 	}
+
+	got := fieldKeys(newRealRegistry(), func(field configField) bool { return field.endpoint })
 	assert.Equal(t, want, got)
 }
 
@@ -86,18 +132,45 @@ func TestUntaggedConfigKeysAreNotSecretsByName(t *testing.T) {
 	}
 }
 
-// secretTestProvider is a notification channel provider whose config has two secrets
+// secretTestProvider is a notification channel provider whose config has a required secret, the
+// token, an optional one, the password, and a secret that is a URL, the hook URL. The server and
+// the hook URL decide where it sends. It records the configs it sends to.
 type secretTestProvider struct {
 	NotificationChannelProvider
+	sent []string
 }
 
 type secretTestConfig struct {
 	URL      string `json:"url"`
+	Server   string `json:"server" endpoint:"true"`
 	Token    string `json:"token" secret:"true"`
 	Password string `json:"password" secret:"true"`
+	HookURL  string `json:"hook_url" secret:"true" endpoint:"true"`
 }
 
-func (secretTestProvider) Unmarshal(string) (any, error) { return &secretTestConfig{}, nil }
+func (*secretTestProvider) Unmarshal(config string) (any, error) {
+	var cfg secretTestConfig
+	if err := json.Unmarshal([]byte(config), &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
+func (p *secretTestProvider) Validate(config string) error {
+	cfg, err := p.Unmarshal(config)
+	if err != nil {
+		return err
+	}
+	if cfg.(*secretTestConfig).Token == "" {
+		return errors.New("token is required")
+	}
+	return nil
+}
+
+func (p *secretTestProvider) Send(_ context.Context, configJSON, _ string, _ *monitor.Model, _ *heartbeat.Model) error {
+	p.sent = append(p.sent, configJSON)
+	return nil
+}
 
 // noSecretsProvider is a notification channel provider whose config has no secrets
 type noSecretsProvider struct {
@@ -106,12 +179,15 @@ type noSecretsProvider struct {
 
 func (noSecretsProvider) Unmarshal(string) (any, error) { return &struct{ URL string }{}, nil }
 
-// newSecretTestRegistry returns a registry with the channel types test-secrets and test-no-secrets
-func newSecretTestRegistry() *ProviderRegistry {
+// newSecretTestRegistry returns a registry with the channel types test-secrets and
+// test-other-secrets, which share one provider, and test-no-secrets. It returns the shared provider.
+func newSecretTestRegistry() (*ProviderRegistry, *secretTestProvider) {
+	provider := &secretTestProvider{}
 	return newTestRegistry(map[string]NotificationChannelProvider{
-		"test-secrets":    secretTestProvider{},
-		"test-no-secrets": noSecretsProvider{},
-	})
+		"test-secrets":       provider,
+		"test-other-secrets": provider,
+		"test-no-secrets":    noSecretsProvider{},
+	}), provider
 }
 
 // requireSameConfig compares configs as JSON where they are, since the order of keys doesn't matter
@@ -125,23 +201,25 @@ func requireSameConfig(t *testing.T, want, got string) {
 }
 
 func TestRedactConfig(t *testing.T) {
+	provider := &secretTestProvider{}
 	cases := []struct {
 		name     string
 		provider NotificationChannelProvider
 		config   string
 		want     string
 	}{
-		{"set secrets are replaced", secretTestProvider{}, `{"url":"https://example.com","token":"abc","password":"hunter2"}`, `{"url":"https://example.com","token":"********","password":"********"}`},
-		{"an empty secret stays empty", secretTestProvider{}, `{"url":"u","token":"","password":"hunter2"}`, `{"url":"u","token":"","password":"********"}`},
-		{"an absent secret stays absent", secretTestProvider{}, `{"url":"u"}`, `{"url":"u"}`},
-		{"a null secret stays null", secretTestProvider{}, `{"token":null}`, `{"token":null}`},
-		{"a secret that isn't a string stays as it is", secretTestProvider{}, `{"token":123}`, `{"token":123}`},
-		{"a key of another letter case is the same secret", secretTestProvider{}, `{"Token":"abc","PASSWORD":"p"}`, `{"Token":"********","PASSWORD":"********"}`},
-		{"unknown fields stay", secretTestProvider{}, `{"future":{"a":[1,2]},"token":"abc"}`, `{"future":{"a":[1,2]},"token":"********"}`},
-		{"a null config stays", secretTestProvider{}, `null`, `null`},
-		{"an empty config stays", secretTestProvider{}, ``, ``},
-		{"a config that isn't JSON comes back empty", secretTestProvider{}, `{"token":"abc"`, ``},
-		{"a config that isn't an object comes back empty", secretTestProvider{}, `["abc"]`, ``},
+		{"set secrets are replaced", provider, `{"url":"https://example.com","token":"abc","password":"hunter2","hook_url":"https://hook.example/x"}`, `{"url":"https://example.com","token":"********","password":"********","hook_url":"********"}`},
+		{"an endpoint that isn't a secret stays", provider, `{"server":"https://server.example","token":"abc"}`, `{"server":"https://server.example","token":"********"}`},
+		{"an empty secret stays empty", provider, `{"url":"u","token":"","password":"hunter2"}`, `{"url":"u","token":"","password":"********"}`},
+		{"an absent secret stays absent", provider, `{"url":"u"}`, `{"url":"u"}`},
+		{"a null secret stays null", provider, `{"token":null}`, `{"token":null}`},
+		{"a secret that isn't a string stays as it is", provider, `{"token":123}`, `{"token":123}`},
+		{"a key of another letter case is the same secret", provider, `{"Token":"abc","PASSWORD":"p"}`, `{"Token":"********","PASSWORD":"********"}`},
+		{"unknown fields stay", provider, `{"future":{"a":[1,2]},"token":"abc"}`, `{"future":{"a":[1,2]},"token":"********"}`},
+		{"a null config stays", provider, `null`, `null`},
+		{"an empty config stays", provider, ``, ``},
+		{"a config that isn't JSON comes back empty", provider, `{"token":"abc"`, ``},
+		{"a config that isn't an object comes back empty", provider, `["abc"]`, ``},
 		{"a type with no secrets keeps its config", noSecretsProvider{}, `{"url":"u","token":"abc"}`, `{"url":"u","token":"abc"}`},
 		{"a type with no secrets keeps a config that isn't JSON", noSecretsProvider{}, `{"url":`, `{"url":`},
 		{"an unknown type keeps its config", nil, `{"token":"abc"}`, `{"token":"abc"}`},
@@ -153,14 +231,14 @@ func TestRedactConfig(t *testing.T) {
 	}
 
 	t.Run("values stay as they were written", func(t *testing.T) {
-		got := redactConfig(secretTestProvider{}, `{"url":"https://example.com/?a=1&b=<2>","big":12345678901234567890,"token":"abc"}`)
+		got := redactConfig(provider, `{"url":"https://example.com/?a=1&b=<2>","big":12345678901234567890,"token":"abc"}`)
 		assert.Contains(t, got, `"url":"https://example.com/?a=1&b=<2>"`)
 		assert.Contains(t, got, `"big":12345678901234567890`)
 	})
 }
 
 func TestRedactModelLeavesTheChannelAlone(t *testing.T) {
-	providers := newSecretTestRegistry()
+	providers, _ := newSecretTestRegistry()
 	config := `{"token":"abc"}`
 	channel := &Model{ID: "channel-1", Name: "Alerts", Type: "test-secrets", Config: &config}
 
@@ -173,7 +251,7 @@ func TestRedactModelLeavesTheChannelAlone(t *testing.T) {
 }
 
 func TestRedactModels(t *testing.T) {
-	providers := newSecretTestRegistry()
+	providers, _ := newSecretTestRegistry()
 	config := `{"token":"abc"}`
 
 	assert.Nil(t, redactModels(providers, nil))
@@ -187,7 +265,8 @@ func TestRedactModels(t *testing.T) {
 }
 
 func TestRedactModelKeepsTheConfigOfAnUnknownType(t *testing.T) {
+	providers, _ := newSecretTestRegistry()
 	config := `{"token":"abc"}`
-	redacted := redactModel(newSecretTestRegistry(), &Model{ID: "channel-1", Type: "test-missing", Config: &config})
+	redacted := redactModel(providers, &Model{ID: "channel-1", Type: "test-missing", Config: &config})
 	assert.Equal(t, `{"token":"abc"}`, *redacted.Config)
 }

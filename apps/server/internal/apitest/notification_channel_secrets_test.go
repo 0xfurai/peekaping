@@ -2,9 +2,12 @@ package apitest
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"sort"
+	"sync"
 	"testing"
 
 	"peekaping/internal/modules/notification_channel"
@@ -20,6 +23,44 @@ const secretPlaceholder = "********"
 // escapes, so it shows up in a response body as it is, wherever a secret leaks to.
 const secretMarker = "SECRET"
 
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) { return f(req) }
+
+// blockExternalHTTP fails every HTTP request the test sends to a host that isn't on this machine,
+// and fails the test. The providers send with http.DefaultTransport, so a channel that reached
+// Send would otherwise go out to the real service of its type.
+func blockExternalHTTP(t *testing.T) {
+	t.Helper()
+	original := http.DefaultTransport
+	var mu sync.Mutex
+	var blocked []string
+	http.DefaultTransport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		host := req.URL.Hostname()
+		if ip := net.ParseIP(host); host == "localhost" || (ip != nil && ip.IsLoopback()) {
+			return original.RoundTrip(req)
+		}
+		mu.Lock()
+		blocked = append(blocked, req.URL.Host)
+		mu.Unlock()
+		return nil, fmt.Errorf("the test blocked a request to %s", req.URL.Host)
+	})
+	t.Cleanup(func() {
+		http.DefaultTransport = original
+		mu.Lock()
+		defer mu.Unlock()
+		assert.Empty(t, blocked, "the test sent requests outside this machine")
+	})
+}
+
+// newSecretsApp builds the API with an admin, as newAppWithAdmin does, and blocks the test from
+// sending anything outside this machine
+func newSecretsApp(t *testing.T) *app {
+	t.Helper()
+	blockExternalHTTP(t)
+	return newAppWithAdmin(t)
+}
+
 // secretChannel is a valid channel of one type with every one of its secrets set
 type secretChannel struct {
 	channelType string
@@ -29,8 +70,7 @@ type secretChannel struct {
 	secrets map[string]string
 }
 
-// config returns the config the channel is saved with. Overrides replace fields, and an empty
-// override removes the field.
+// config returns the config the channel is saved with. Overrides replace the value of a field.
 func (c secretChannel) config(overrides map[string]string) string {
 	fields := map[string]any{}
 	for key, value := range c.visible {
@@ -63,58 +103,59 @@ func (c secretChannel) body(name string) map[string]any {
 }
 
 // secretChannels has a valid channel for every notification channel type, built from the
-// validate tags of the provider's config
+// validate tags of the provider's config. Every address in them is on this machine and refuses
+// connections, so that a channel that is sent to by mistake reaches nothing.
 var secretChannels = []secretChannel{
 	{"smtp",
-		map[string]any{"smtp_host": "smtp.example.com", "smtp_port": 587, "username": "mailer", "from": "alerts@example.com", "to": "oncall@example.com"},
+		map[string]any{"smtp_host": "127.0.0.1", "smtp_port": 1, "username": "mailer", "from": "alerts@example.com", "to": "oncall@example.com"},
 		map[string]string{"password": "smtp-SECRET-password"}},
 	{"telegram",
-		map[string]any{"chat_id": "-100123"},
+		map[string]any{"chat_id": "-100123", "server_url": "http://127.0.0.1:1"},
 		map[string]string{"bot_token": "123456:SECRET-telegram-token"}},
 	{"webhook",
-		map[string]any{"webhook_url": "https://hooks.example/peekaping", "webhook_content_type": "json"},
+		map[string]any{"webhook_url": "http://127.0.0.1:1/hook", "webhook_content_type": "json"},
 		map[string]string{"webhook_signing_secret": "whsec-SECRET-signing", "webhook_additional_headers": `{"X-Api-Key":"SECRET-header"}`}},
 	{"slack",
 		map[string]any{"slack_channel": "#alerts", "slack_username": "peekaping"},
-		map[string]string{"slack_webhook_url": "https://hooks.slack.com/services/T000/B000/SECRET-slack-webhook", "slack_bot_token": "xoxb-SECRET-slack-bot"}},
+		map[string]string{"slack_webhook_url": "http://127.0.0.1:1/services/T000/B000/SECRET-slack-webhook", "slack_bot_token": "xoxb-SECRET-slack-bot"}},
 	{"ntfy",
-		map[string]any{"server_url": "https://ntfy.example", "topic": "alerts", "authentication_type": "basic", "username": "ntfy-user", "priority": 3},
+		map[string]any{"server_url": "http://127.0.0.1:1", "topic": "alerts", "authentication_type": "basic", "username": "ntfy-user", "priority": 3},
 		map[string]string{"password": "ntfy-SECRET-password", "token": "tk_SECRET-ntfy-token"}},
 	{"pagerduty",
-		map[string]any{"pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue", "pagerduty_priority": "critical"},
+		map[string]any{"pagerduty_integration_url": "http://127.0.0.1:1/v2/enqueue", "pagerduty_priority": "critical"},
 		map[string]string{"pagerduty_integration_key": "SECRET-pagerduty-key"}},
 	{"opsgenie",
 		map[string]any{"region": "eu", "priority": 2},
 		map[string]string{"api_key": "opsgenie-SECRET-key"}},
 	{"google_chat",
 		map[string]any{},
-		map[string]string{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=K&token=SECRET-google-chat"}},
+		map[string]string{"webhook_url": "http://127.0.0.1:1/v1/spaces/AAA/messages?key=K&token=SECRET-google-chat"}},
 	{"grafana_oncall",
 		map[string]any{},
-		map[string]string{"grafana_oncall_url": "https://oncall.example/integrations/v1/webhook/SECRET-grafana/"}},
+		map[string]string{"grafana_oncall_url": "http://127.0.0.1:1/integrations/v1/webhook/SECRET-grafana/"}},
 	{"signal",
-		map[string]any{"signal_url": "https://signal.example", "signal_number": "+15550001111", "signal_recipients": "+15550002222"},
+		map[string]any{"signal_url": "http://127.0.0.1:1", "signal_number": "+15550001111", "signal_recipients": "+15550002222"},
 		map[string]string{}},
 	{"gotify",
-		map[string]any{"server_url": "https://gotify.example", "priority": 5},
+		map[string]any{"server_url": "http://127.0.0.1:1", "priority": 5},
 		map[string]string{"application_token": "gotify-SECRET-token"}},
 	{"pushover",
 		map[string]any{"pushover_priority": 0, "pushover_device": "phone"},
 		map[string]string{"pushover_user_key": "pushover-SECRET-user", "pushover_app_token": "pushover-SECRET-app"}},
 	{"mattermost",
 		map[string]any{},
-		map[string]string{"webhook_url": "https://mattermost.example/hooks/SECRET-mattermost"}},
+		map[string]string{"webhook_url": "http://127.0.0.1:1/hooks/SECRET-mattermost"}},
 	{"matrix",
-		map[string]any{"homeserver_url": "https://matrix.example", "internal_room_id": "!room:matrix.example"},
+		map[string]any{"homeserver_url": "http://127.0.0.1:1", "internal_room_id": "!room:matrix.example"},
 		map[string]string{"access_token": "matrix-SECRET-token"}},
 	{"discord",
 		map[string]any{},
-		map[string]string{"webhook_url": "https://discord.com/api/webhooks/1/SECRET-discord"}},
+		map[string]string{"webhook_url": "http://127.0.0.1:1/api/webhooks/1/SECRET-discord"}},
 	{"wecom",
 		map[string]any{},
-		map[string]string{"webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=SECRET-wecom"}},
+		map[string]string{"webhook_url": "http://127.0.0.1:1/cgi-bin/webhook/send?key=SECRET-wecom"}},
 	{"whatsapp",
-		map[string]any{"server_url": "https://wa.example", "phone_number": "15550001111", "session": "default"},
+		map[string]any{"server_url": "http://127.0.0.1:1", "phone_number": "15550001111", "session": "default"},
 		map[string]string{"api_key": "whatsapp-SECRET-key"}},
 	{"twilio",
 		map[string]any{"twilio_account_sid": "AC123", "twilio_from_number": "+15550001111", "twilio_to_number": "+15550002222"},
@@ -127,13 +168,13 @@ var secretChannels = []secretChannel{
 		map[string]string{"pushbullet_access_token": "o.SECRET-pushbullet"}},
 	{"pagertree",
 		map[string]any{"urgency": "high", "autoResolve": true},
-		map[string]string{"integrationUrl": "https://api.pagertree.com/integration/SECRET-pagertree", "authToken": "pagertree-SECRET-auth"}},
+		map[string]string{"integrationUrl": "http://127.0.0.1:1/integration/SECRET-pagertree", "authToken": "pagertree-SECRET-auth"}},
 	{"line",
 		map[string]any{"user_id": "U123"},
 		map[string]string{"channel_access_token": "line-SECRET-token"}},
 	{"teams",
 		map[string]any{},
-		map[string]string{"webhook_url": "https://example.webhook.office.com/webhookb2/SECRET-teams"}},
+		map[string]string{"webhook_url": "http://127.0.0.1:1/webhookb2/SECRET-teams"}},
 }
 
 type channelWithConfig struct {
@@ -180,7 +221,7 @@ func TestNotificationChannelsAPI_SecretChannelsCoverEveryProvider(t *testing.T) 
 }
 
 func TestNotificationChannelsAPI_ResponsesHideSecrets(t *testing.T) {
-	a := newAppWithAdmin(t)
+	a := newSecretsApp(t)
 
 	for _, c := range secretChannels {
 		t.Run(c.channelType, func(t *testing.T) {

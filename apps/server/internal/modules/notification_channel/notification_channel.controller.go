@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
+	"strings"
 
 	"go.uber.org/zap"
 )
@@ -65,6 +66,13 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
+	// A new channel has no saved secrets for a placeholder to stand for
+	config, resolveErr := ic.resolveConfig(notification_channel.Type, notification_channel.Config, nil)
+	if resolveErr != nil {
+		return nil, resolveErr
+	}
+	notification_channel.Config = config
+
 	if _, err := ic.validateConfig(notification_channel.Type, notification_channel.Config); err != nil {
 		return nil, err
 	}
@@ -106,11 +114,19 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if _, err := ic.validateConfig(notification.Type, notification.Config); err != nil {
-		return nil, err
+	current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, id)
+	if lookupErr != nil {
+		return nil, lookupErr
 	}
 
-	if _, err := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, id); err != nil {
+	// A secret sent back as the placeholder keeps its saved value
+	config, resolveErr := ic.resolveConfig(notification.Type, notification.Config, current)
+	if resolveErr != nil {
+		return nil, resolveErr
+	}
+	notification.Config = config
+
+	if _, err := ic.validateConfig(notification.Type, notification.Config); err != nil {
 		return nil, err
 	}
 
@@ -141,16 +157,23 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 		return nil, lookupErr
 	}
 
+	channelType := current.Type
+	if notification.Type != nil {
+		channelType = *notification.Type
+	}
+
+	// A secret sent back as the placeholder keeps its saved value
+	if notification.Config != nil {
+		resolved, resolveErr := ic.resolveConfig(channelType, *notification.Config, current)
+		if resolveErr != nil {
+			return nil, resolveErr
+		}
+		notification.Config = &resolved
+	}
+
 	// Validate the type and config the channel will have after the update; omitted fields keep their saved values
 	if notification.Type != nil || notification.Config != nil {
-		channelType := current.Type
-		if notification.Type != nil {
-			channelType = *notification.Type
-		}
-		config := ""
-		if current.Config != nil {
-			config = *current.Config
-		}
+		config := configOf(current)
 		if notification.Config != nil {
 			config = *notification.Config
 		}
@@ -222,6 +245,38 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Test notification sent successfully", nil))
+}
+
+// configOf returns the config a channel is saved with, which is empty when it has none
+func configOf(channel *Model) string {
+	if channel.Config == nil {
+		return ""
+	}
+	return *channel.Config
+}
+
+// resolveConfig replaces each secret that config sends as the placeholder with the one the saved
+// channel holds. saved is the channel the request edits, or nil when there is none. A placeholder
+// that can't be resolved is a 400: that is, when there is no saved channel, when it has another
+// type, or when the config changed where the channel sends.
+//
+// A type without a provider is left for validateConfig to refuse.
+func (ic *Controller) resolveConfig(channelType, config string, saved *Model) (string, error) {
+	provider, ok := ic.providers.Get(channelType)
+	if !ok {
+		return config, nil
+	}
+	var savedConfig *string
+	if saved != nil && saved.Type == channelType {
+		savedConfigValue := configOf(saved)
+		savedConfig = &savedConfigValue
+	}
+	resolved, unresolved := resolveSecrets(provider, config, savedConfig)
+	if len(unresolved) > 0 {
+		return "", httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(
+			"Invalid config: re-enter the saved secrets ("+strings.Join(unresolved, ", ")+") when changing the type or where the channel sends"))
+	}
+	return resolved, nil
 }
 
 // validateConfig looks up the provider for channelType and checks config with it.

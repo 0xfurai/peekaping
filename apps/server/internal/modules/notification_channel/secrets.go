@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -11,10 +12,22 @@ import (
 // back in a secret field keeps the stored secret.
 const secretPlaceholder = "********"
 
-// secretKeys returns the config keys of a provider that hold secrets. A provider marks them with
-// a `secret:"true"` tag on the field of the config its Unmarshal returns. It returns nothing for
-// a nil provider (an unknown channel type) or a provider that has no config struct.
-func secretKeys(provider NotificationChannelProvider) []string {
+// configField is a field of a provider's config that its struct marks with `secret:"true"`,
+// `endpoint:"true"` or both. A secret is hidden from responses. An endpoint decides where the
+// channel sends its secrets, so a saved secret can only be kept while it stays as it is.
+type configField struct {
+	// key is the JSON key of the field
+	key string
+	// index is the position of the field in the config struct
+	index    int
+	secret   bool
+	endpoint bool
+}
+
+// configFields returns the secret and endpoint fields of a provider's config, which it reads from
+// the struct the provider's Unmarshal returns. It returns nothing for a nil provider (an unknown
+// channel type) or a provider that has no config struct.
+func configFields(provider NotificationChannelProvider) []configField {
 	if provider == nil {
 		return nil
 	}
@@ -30,10 +43,12 @@ func secretKeys(provider NotificationChannelProvider) []string {
 		return nil
 	}
 
-	var keys []string
+	var fields []configField
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		if !field.IsExported() || field.Tag.Get("secret") != "true" {
+		secret := field.Tag.Get("secret") == "true"
+		endpoint := field.Tag.Get("endpoint") == "true"
+		if !field.IsExported() || (!secret && !endpoint) {
 			continue
 		}
 		name, _, _ := strings.Cut(field.Tag.Get("json"), ",")
@@ -43,20 +58,40 @@ func secretKeys(provider NotificationChannelProvider) []string {
 		if name == "" {
 			name = field.Name
 		}
-		keys = append(keys, name)
+		fields = append(fields, configField{key: name, index: i, secret: secret, endpoint: endpoint})
+	}
+	return fields
+}
+
+// secretFields returns the fields that hold secrets
+func secretFields(provider NotificationChannelProvider) []configField {
+	var secrets []configField
+	for _, field := range configFields(provider) {
+		if field.secret {
+			secrets = append(secrets, field)
+		}
+	}
+	return secrets
+}
+
+// secretKeys returns the config keys of a provider that hold secrets
+func secretKeys(provider NotificationChannelProvider) []string {
+	var keys []string
+	for _, field := range secretFields(provider) {
+		keys = append(keys, field.key)
 	}
 	return keys
 }
 
-// isSecretKey reports whether a config key is one of keys. encoding/json fills a field from a
-// key of any letter case, so a secret under "Bot_Token" is as much a secret as "bot_token".
-func isSecretKey(keys []string, key string) bool {
-	for _, secret := range keys {
-		if strings.EqualFold(secret, key) {
-			return true
+// fieldForKey returns the field a config key fills. encoding/json fills a field from a key of
+// any letter case, so a secret under "Bot_Token" is as much a secret as "bot_token".
+func fieldForKey(fields []configField, key string) (configField, bool) {
+	for _, field := range fields {
+		if strings.EqualFold(field.key, key) {
+			return field, true
 		}
 	}
-	return false
+	return configField{}, false
 }
 
 // parseConfig reads a config as a JSON object, keeping every value as it is written, so that
@@ -98,8 +133,8 @@ func stringValue(raw json.RawMessage) (string, bool) {
 // A config of a type with secrets that isn't a JSON object can't be read, so it comes back
 // empty rather than risk showing a secret in it.
 func redactConfig(provider NotificationChannelProvider, config string) string {
-	keys := secretKeys(provider)
-	if len(keys) == 0 {
+	secrets := secretFields(provider)
+	if len(secrets) == 0 {
 		return config
 	}
 	fields, ok := parseConfig(config)
@@ -111,7 +146,7 @@ func redactConfig(provider NotificationChannelProvider, config string) string {
 	}
 
 	for key, raw := range fields {
-		if !isSecretKey(keys, key) {
+		if _, isSecret := fieldForKey(secrets, key); !isSecret {
 			continue
 		}
 		if value, ok := stringValue(raw); ok && value != "" {
@@ -119,6 +154,130 @@ func redactConfig(provider NotificationChannelProvider, config string) string {
 		}
 	}
 	return encodeConfig(fields)
+}
+
+// resolveSecrets returns incoming with each secret sent as the placeholder replaced by the
+// secret the saved config holds, so that saving or testing a channel the API showed with
+// placeholders keeps its secrets. saved is nil when there is no saved channel of the same type
+// to resolve from.
+//
+// A placeholder is never a value. One that can't be resolved is left in place, and its key is
+// returned in unresolved, sorted: the saved config isn't there, or holds no such secret, or the
+// incoming config changed an endpoint, a field that decides where the secrets are sent. An
+// endpoint that is itself a secret counts as unchanged when it is sent as the placeholder.
+//
+// An incoming config that isn't a JSON object is returned as it is, for validation to reject.
+func resolveSecrets(provider NotificationChannelProvider, incoming string, saved *string) (resolved string, unresolved []string) {
+	fields := configFields(provider)
+	secrets := secretFields(provider)
+	if len(secrets) == 0 {
+		return incoming, nil
+	}
+	incomingFields, ok := parseConfig(incoming)
+	if !ok || incomingFields == nil {
+		return incoming, nil
+	}
+
+	placeholders := map[string]configField{}
+	for key, raw := range incomingFields {
+		field, isSecret := fieldForKey(secrets, key)
+		if value, ok := stringValue(raw); isSecret && ok && value == secretPlaceholder {
+			placeholders[key] = field
+		}
+	}
+	if len(placeholders) == 0 {
+		return incoming, nil
+	}
+
+	var savedFields map[string]json.RawMessage
+	if saved != nil && endpointsUnchanged(provider, fields, incoming, *saved) {
+		savedFields, _ = parseConfig(*saved)
+	}
+
+	missing := map[string]bool{}
+	for key, field := range placeholders {
+		secret, ok := savedSecret(savedFields, key)
+		if !ok {
+			missing[field.key] = true
+			continue
+		}
+		incomingFields[key] = secret
+	}
+	if len(missing) > 0 {
+		for key := range missing {
+			unresolved = append(unresolved, key)
+		}
+		sort.Strings(unresolved)
+		return incoming, unresolved
+	}
+	return encodeConfig(incomingFields), nil
+}
+
+// savedSecret returns the value of a secret in a saved config, as the JSON string it is written
+// as. It is false when the saved config has no such secret, or an empty one.
+func savedSecret(saved map[string]json.RawMessage, key string) (json.RawMessage, bool) {
+	if raw, ok := saved[key]; ok {
+		value, isString := stringValue(raw)
+		return raw, isString && value != ""
+	}
+	// A key of another letter case is the same field to encoding/json. Go through the keys in
+	// order so that the same saved config always gives the same answer.
+	savedKeys := make([]string, 0, len(saved))
+	for savedKey := range saved {
+		savedKeys = append(savedKeys, savedKey)
+	}
+	sort.Strings(savedKeys)
+	for _, savedKey := range savedKeys {
+		if !strings.EqualFold(savedKey, key) {
+			continue
+		}
+		if value, isString := stringValue(saved[savedKey]); isString && value != "" {
+			return saved[savedKey], true
+		}
+	}
+	return nil, false
+}
+
+// endpointsUnchanged reports whether every endpoint field of the incoming config has the value
+// it has in the saved config. The configs are read the way the provider reads them, so letter
+// case and defaults don't matter. A secret endpoint sent as the placeholder is unchanged.
+func endpointsUnchanged(provider NotificationChannelProvider, fields []configField, incoming, saved string) bool {
+	var endpoints []configField
+	for _, field := range fields {
+		if field.endpoint {
+			endpoints = append(endpoints, field)
+		}
+	}
+	if len(endpoints) == 0 {
+		return true
+	}
+
+	if strings.TrimSpace(saved) == "" {
+		saved = "{}"
+	}
+	savedConfig, err := provider.Unmarshal(saved)
+	if err != nil {
+		return false
+	}
+	incomingConfig, err := provider.Unmarshal(incoming)
+	if err != nil {
+		return false
+	}
+	savedValues, incomingValues := reflect.Indirect(reflect.ValueOf(savedConfig)), reflect.Indirect(reflect.ValueOf(incomingConfig))
+	if savedValues.Kind() != reflect.Struct || incomingValues.Kind() != reflect.Struct {
+		return false
+	}
+
+	for _, field := range endpoints {
+		incomingValue, savedValue := incomingValues.Field(field.index), savedValues.Field(field.index)
+		if field.secret && incomingValue.Kind() == reflect.String && incomingValue.String() == secretPlaceholder {
+			continue
+		}
+		if !reflect.DeepEqual(incomingValue.Interface(), savedValue.Interface()) {
+			return false
+		}
+	}
+	return true
 }
 
 // redactModel returns a copy of channel with its secrets replaced, for a response. The channel

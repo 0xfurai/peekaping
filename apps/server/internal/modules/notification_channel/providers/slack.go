@@ -22,7 +22,7 @@ import (
 )
 
 type SlackConfig struct {
-	WebhookURL    string `json:"slack_webhook_url" validate:"omitempty,url" secret:"true"`
+	WebhookURL    string `json:"slack_webhook_url" validate:"omitempty,url" secret:"true" endpoint:"true"`
 	BotToken      string `json:"slack_bot_token" secret:"true"`
 	Username      string `json:"slack_username"`
 	IconEmoji     string `json:"slack_icon_emoji"`

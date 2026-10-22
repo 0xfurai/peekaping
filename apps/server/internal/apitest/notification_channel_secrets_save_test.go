@@ -1,0 +1,313 @@
+package apitest
+
+import (
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"sort"
+	"strings"
+	"testing"
+
+	"peekaping/internal/modules/notification_channel"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// optionalSecrets are the secrets a channel is valid without, by channel type
+var optionalSecrets = map[string][]string{
+	"webhook":   {"webhook_signing_secret", "webhook_additional_headers"},
+	"slack":     {"slack_webhook_url", "slack_bot_token"},
+	"ntfy":      {"password", "token"},
+	"pagertree": {"authToken"},
+	"twilio":    {"twilio_api_key"},
+	"whatsapp":  {"api_key"},
+}
+
+// visibleEndpoints are the config fields that decide where a channel sends its secrets and are
+// not secrets themselves, by channel type, each with a value to change it to
+var visibleEndpoints = map[string]map[string]any{
+	"smtp":      {"smtp_host": "127.0.0.2", "smtp_port": 2, "smtp_secure": true},
+	"telegram":  {"server_url": "http://127.0.0.1:2"},
+	"gotify":    {"server_url": "http://127.0.0.1:2"},
+	"matrix":    {"homeserver_url": "http://127.0.0.1:2"},
+	"ntfy":      {"server_url": "http://127.0.0.1:2"},
+	"pagerduty": {"pagerduty_integration_url": "http://127.0.0.1:2/v2/enqueue"},
+	"whatsapp":  {"server_url": "http://127.0.0.1:2"},
+	"webhook":   {"webhook_url": "http://127.0.0.1:2/hook"},
+}
+
+// secretEndpoints are the secrets that are themselves where a channel sends, by channel type
+var secretEndpoints = map[string]string{
+	"discord":        "webhook_url",
+	"google_chat":    "webhook_url",
+	"grafana_oncall": "grafana_oncall_url",
+	"mattermost":     "webhook_url",
+	"pagertree":      "integrationUrl",
+	"slack":          "slack_webhook_url",
+	"teams":          "webhook_url",
+	"wecom":          "webhook_url",
+}
+
+// storedChannelConfig returns the config a channel is saved with, which the API doesn't show
+func (a *app) storedChannelConfig(t *testing.T, id string) string {
+	t.Helper()
+	var config string
+	require.NoError(t, a.container.Invoke(func(channels notification_channel.Service) error {
+		channel, err := channels.FindByID(context.Background(), id)
+		if err != nil {
+			return err
+		}
+		require.NotNil(t, channel, id)
+		require.NotNil(t, channel.Config, id)
+		config = *channel.Config
+		return nil
+	}))
+	return config
+}
+
+// createSecretChannel saves the channel with its real secrets and returns its ID
+func (a *app) createSecretChannel(t *testing.T, c secretChannel) string {
+	t.Helper()
+	return decode[created](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", c.body("Channel"), a.asAdmin), http.StatusCreated).ID
+}
+
+func (c secretChannel) secretKeys() []string {
+	keys := []string{}
+	for key := range c.secrets {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// withPlaceholders returns the config with every secret as the placeholder, except the overrides
+func (c secretChannel) withPlaceholders(overrides map[string]string) string {
+	values := map[string]string{}
+	for key := range c.secrets {
+		values[key] = secretPlaceholder
+	}
+	for key, value := range overrides {
+		values[key] = value
+	}
+	return c.config(values)
+}
+
+// withVisible returns the channel with some of its visible config fields changed
+func (c secretChannel) withVisible(overrides map[string]any) secretChannel {
+	visible := map[string]any{}
+	for key, value := range c.visible {
+		visible[key] = value
+	}
+	for key, value := range overrides {
+		visible[key] = value
+	}
+	c.visible = visible
+	return c
+}
+
+func secretChannelOfType(t *testing.T, channelType string) secretChannel {
+	t.Helper()
+	for _, c := range secretChannels {
+		if c.channelType == channelType {
+			return c
+		}
+	}
+	t.Fatalf("no secret channel of type %s", channelType)
+	return secretChannel{}
+}
+
+// put replaces the channel with a channel of the given type and config
+func (a *app) put(t *testing.T, id, channelType, config string) *httptest.ResponseRecorder {
+	t.Helper()
+	body := map[string]any{"name": "Channel", "type": channelType, "active": true, "config": config}
+	return a.request(t, http.MethodPut, "/api/v1/notification-channels/"+id, body, a.asAdmin)
+}
+
+// patch changes the channel's config, and its type when channelType isn't empty
+func (a *app) patch(t *testing.T, id, channelType, config string) *httptest.ResponseRecorder {
+	t.Helper()
+	body := map[string]any{"config": config}
+	if channelType != "" {
+		body["type"] = channelType
+	}
+	return a.request(t, http.MethodPatch, "/api/v1/notification-channels/"+id, body, a.asAdmin)
+}
+
+// requireRefusedAsPlaceholder checks that a request was refused because a placeholder couldn't
+// be resolved, and that it named the secrets
+func requireRefusedAsPlaceholder(t *testing.T, w *httptest.ResponseRecorder, message string) {
+	t.Helper()
+	require.Equal(t, http.StatusBadRequest, w.Code, message+": "+w.Body.String())
+	assert.Contains(t, w.Body.String(), "re-enter the saved secrets (", message)
+	assert.NotContains(t, w.Body.String(), secretMarker, message)
+}
+
+func TestNotificationChannelsAPI_SavingWithPlaceholdersKeepsSecrets(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for _, c := range secretChannels {
+		t.Run(c.channelType, func(t *testing.T) {
+			id := a.createSecretChannel(t, c)
+			path := "/api/v1/notification-channels/" + id
+
+			decode[any](t, a.put(t, id, c.channelType, c.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, c.config(nil), a.storedChannelConfig(t, id), "PUT")
+
+			decode[any](t, a.patch(t, id, "", c.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, c.config(nil), a.storedChannelConfig(t, id), "PATCH")
+
+			// The form of the web app: the config it got, saved back as it is
+			shown := decode[channelWithConfig](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+			decode[any](t, a.put(t, id, c.channelType, shown.Config), http.StatusOK)
+			assert.JSONEq(t, c.config(nil), a.storedChannelConfig(t, id), "PUT of the config the API showed")
+		})
+	}
+}
+
+func TestNotificationChannelsAPI_SavingANewValueReplacesTheSecret(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for _, c := range secretChannels {
+		for _, key := range c.secretKeys() {
+			t.Run(c.channelType+"/"+key, func(t *testing.T) {
+				id := a.createSecretChannel(t, c)
+				replacement := strings.Replace(c.secrets[key], secretMarker, "NEW"+secretMarker, 1)
+				require.NotEqual(t, c.secrets[key], replacement)
+				replaced := c.config(map[string]string{key: replacement})
+
+				if secretEndpoints[c.channelType] == key && len(c.secrets) > 1 {
+					// A new secret URL sends the other secrets somewhere else, so they have to be entered again
+					requireRefusedAsPlaceholder(t, a.put(t, id, c.channelType, c.withPlaceholders(map[string]string{key: replacement})), "PUT")
+					requireRefusedAsPlaceholder(t, a.patch(t, id, "", c.withPlaceholders(map[string]string{key: replacement})), "PATCH")
+					assert.JSONEq(t, c.config(nil), a.storedChannelConfig(t, id), "refused")
+
+					decode[any](t, a.put(t, id, c.channelType, replaced), http.StatusOK)
+					assert.JSONEq(t, replaced, a.storedChannelConfig(t, id), "PUT with every secret entered again")
+					return
+				}
+
+				decode[any](t, a.put(t, id, c.channelType, c.withPlaceholders(map[string]string{key: replacement})), http.StatusOK)
+				assert.JSONEq(t, replaced, a.storedChannelConfig(t, id), "PUT")
+
+				decode[any](t, a.patch(t, id, "", c.withPlaceholders(map[string]string{key: c.secrets[key]})), http.StatusOK)
+				assert.JSONEq(t, c.config(nil), a.storedChannelConfig(t, id), "PATCH")
+			})
+		}
+	}
+}
+
+func TestNotificationChannelsAPI_SavingAnEmptyValueClearsAnOptionalSecret(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for _, c := range secretChannels {
+		for _, key := range optionalSecrets[c.channelType] {
+			t.Run(c.channelType+"/"+key, func(t *testing.T) {
+				id := a.createSecretChannel(t, c)
+				path := "/api/v1/notification-channels/" + id
+				cleared := c.config(map[string]string{key: ""})
+				withCleared := c.withPlaceholders(map[string]string{key: ""})
+
+				if secretEndpoints[c.channelType] == key && len(c.secrets) > 1 {
+					// Clearing a secret URL changes where the other secrets are sent
+					requireRefusedAsPlaceholder(t, a.put(t, id, c.channelType, withCleared), "PUT")
+					assert.JSONEq(t, c.config(nil), a.storedChannelConfig(t, id), "refused")
+					return
+				}
+
+				decode[any](t, a.put(t, id, c.channelType, withCleared), http.StatusOK)
+				assert.JSONEq(t, cleared, a.storedChannelConfig(t, id), "PUT")
+
+				// The other secrets are still there, and the response shows the cleared one as empty
+				shown := decode[channelWithConfig](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+				assert.JSONEq(t, withCleared, shown.Config)
+
+				decode[any](t, a.patch(t, id, "", c.config(nil)), http.StatusOK)
+				decode[any](t, a.patch(t, id, "", withCleared), http.StatusOK)
+				assert.JSONEq(t, cleared, a.storedChannelConfig(t, id), "PATCH")
+			})
+		}
+	}
+}
+
+func TestNotificationChannelsAPI_APlaceholderOnACreatedChannelIsRefused(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for _, c := range secretChannels {
+		if len(c.secrets) == 0 {
+			continue
+		}
+		t.Run(c.channelType, func(t *testing.T) {
+			for _, key := range c.secretKeys() {
+				body := with(c.body("Channel"), "config", c.config(map[string]string{key: secretPlaceholder}))
+				requireRefusedAsPlaceholder(t, a.request(t, http.MethodPost, "/api/v1/notification-channels", body, a.asAdmin), key)
+			}
+		})
+	}
+
+	list := decode[[]channelWithConfig](t, a.request(t, http.MethodGet, "/api/v1/notification-channels?limit=1000", nil, a.asAdmin), http.StatusOK)
+	assert.Empty(t, list, "no channel was created")
+}
+
+func TestNotificationChannelsAPI_AChangedEndpointRefusesThePlaceholders(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for channelType, changes := range visibleEndpoints {
+		c := secretChannelOfType(t, channelType)
+		for field, value := range changes {
+			t.Run(channelType+"/"+field, func(t *testing.T) {
+				id := a.createSecretChannel(t, c)
+				moved := c.withVisible(map[string]any{field: value})
+
+				requireRefusedAsPlaceholder(t, a.put(t, id, channelType, moved.withPlaceholders(nil)), "PUT")
+				requireRefusedAsPlaceholder(t, a.patch(t, id, "", moved.withPlaceholders(nil)), "PATCH")
+				assert.JSONEq(t, c.config(nil), a.storedChannelConfig(t, id), "refused")
+
+				// The same change with every secret entered again is saved
+				decode[any](t, a.put(t, id, channelType, moved.config(nil)), http.StatusOK)
+				assert.JSONEq(t, moved.config(nil), a.storedChannelConfig(t, id), "PUT with every secret entered again")
+			})
+		}
+	}
+}
+
+func TestNotificationChannelsAPI_AChangedTypeDoesNotKeepTheOldSecrets(t *testing.T) {
+	a := newSecretsApp(t)
+	smtp := secretChannelOfType(t, "smtp")
+	ntfy := secretChannelOfType(t, "ntfy")
+	sendgrid := secretChannelOfType(t, "sendgrid")
+	opsgenie := secretChannelOfType(t, "opsgenie")
+
+	t.Run("an optional secret with the same key is refused", func(t *testing.T) {
+		// Both types keep their password under "password"
+		id := a.createSecretChannel(t, smtp)
+		placeholder := ntfy.config(map[string]string{"password": secretPlaceholder, "token": "", "authentication_type": "none"})
+
+		requireRefusedAsPlaceholder(t, a.put(t, id, "ntfy", placeholder), "PUT")
+		requireRefusedAsPlaceholder(t, a.patch(t, id, "ntfy", placeholder), "PATCH")
+		assert.JSONEq(t, smtp.config(nil), a.storedChannelConfig(t, id))
+	})
+
+	t.Run("new values are saved, without the old secrets", func(t *testing.T) {
+		id := a.createSecretChannel(t, smtp)
+		entered := ntfy.config(map[string]string{"password": "ntfy-NEWSECRET-password", "token": "", "authentication_type": "none"})
+
+		decode[any](t, a.put(t, id, "ntfy", entered), http.StatusOK)
+
+		stored := a.storedChannelConfig(t, id)
+		assert.NotContains(t, stored, "smtp-SECRET-password")
+		assert.JSONEq(t, entered, stored)
+	})
+
+	t.Run("a required secret is refused", func(t *testing.T) {
+		// Both types keep their key under "api_key"
+		id := a.createSecretChannel(t, sendgrid)
+		path := "/api/v1/notification-channels/" + id
+
+		requireRefusedAsPlaceholder(t, a.put(t, id, "opsgenie", opsgenie.withPlaceholders(nil)), "PUT")
+		requireRefusedAsPlaceholder(t, a.patch(t, id, "opsgenie", opsgenie.withPlaceholders(nil)), "PATCH")
+
+		assert.JSONEq(t, sendgrid.config(nil), a.storedChannelConfig(t, id))
+		assert.Equal(t, "sendgrid", decode[channelWithConfig](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK).Type)
+	})
+}
