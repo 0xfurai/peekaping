@@ -20,7 +20,7 @@ At start, Peekaping checks the database. `SQLITE_STARTUP_CHECK` chooses the chec
 | `full` | `PRAGMA integrity_check` |
 | `off` | Nothing |
 
-Any other value fails the configuration check, and Peekaping doesn't start. [Startup check](./docker-with-sqlite.md#startup-check) shows how to set it.
+The values are lower case. Any other value fails the configuration check, and Peekaping doesn't start. [Startup check](./docker-with-sqlite.md#startup-check) shows how to set it.
 
 The quick check walks the b-tree pages (the pages that hold tables and indexes) and takes about 2 seconds for a 1.5 GB database. It finds malformed pages, bad free page lists and wrong page counts. It doesn't find an index that disagrees with its table. The full check, `PRAGMA integrity_check`, finds that too, but it reads the whole file and takes about 30 seconds for 1.5 GB, so it isn't the default. Set `SQLITE_STARTUP_CHECK=full` to run it at every start, for example on a database you suspect. In cluster mode, three processes then read the file at once. To run it only when you choose, see [Running the full check by hand](#running-the-full-check-by-hand).
 

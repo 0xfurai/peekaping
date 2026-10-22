@@ -475,7 +475,7 @@ At start, Peekaping checks the database file for corruption, and stops if the ch
 | `full` | `PRAGMA integrity_check`, which reads the whole file and also finds an index that disagrees with its table. | About 30 seconds, at every start |
 | `off` | Nothing. The log says that the check is skipped. | None |
 
-Any other value fails the configuration check, and Peekaping doesn't start.
+The values are lower case. Any other value fails the configuration check, and Peekaping doesn't start.
 
 In single mode, pass the setting to the container: `-e SQLITE_STARTUP_CHECK=full` with `docker run`, or `- SQLITE_STARTUP_CHECK=full` under `environment` in the Compose file above. In cluster mode, add `SQLITE_STARTUP_CHECK=full` to the `.env` file, which the `api`, `producer` and `ingester` all read.
 

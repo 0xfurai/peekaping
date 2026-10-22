@@ -110,6 +110,6 @@ Include it from a template that always renders: include "peekaping.requirePostgr
 {{- define "peekaping.requirePostgres" -}}
 {{- $dbType := toString (get (.Values.config.env | default (dict)) "DB_TYPE") -}}
 {{- if eq (lower $dbType) "sqlite" -}}
-{{- fail (printf "config.env.DB_TYPE is %q, but the chart supports PostgreSQL only: it runs Peekaping in cluster mode and has no volume for a SQLite file, so each pod and the migrate Job would get a separate database. For SQLite, run the single-mode bundle image (0xfurai/peekaping-bundle-sqlite) or its Docker Compose stack instead: https://docs.peekaping.com/self-hosting/docker-with-sqlite" $dbType) -}}
+{{- fail (printf "config.env.DB_TYPE is %q, but the chart supports PostgreSQL only: it runs Peekaping in cluster mode and has no volume for a SQLite file, so each pod and the migrate Job would get a separate database. For SQLite, run the single-mode bundle image (0xfurai/peekaping-bundle-sqlite) or the SQLite Docker Compose stack instead: https://docs.peekaping.com/self-hosting/docker-with-sqlite" $dbType) -}}
 {{- end -}}
 {{- end }}
