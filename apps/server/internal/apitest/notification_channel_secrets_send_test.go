@@ -228,6 +228,39 @@ func TestNotificationChannelsAPI_TestFailureDoesNotEchoASavedSecret(t *testing.T
 	}
 }
 
+// net/http prints the URL of a failed request with the password of its user info replaced, and
+// the path as net/url writes it, so the secret is not in the error as it was entered
+func TestNotificationChannelsAPI_TestFailureMasksASecretAsAURLPrintsIt(t *testing.T) {
+	a := newSecretsApp(t)
+
+	t.Run("a webhook URL with user info", func(t *testing.T) {
+		discord := secretChannelOfType(t, "discord")
+		discord.secrets = map[string]string{"webhook_url": "http://user:pw@127.0.0.1:1/api/webhooks/1/TOKENPATH"}
+		id := a.createSecretChannel(t, discord)
+
+		w := a.testChannel(t, id, "discord", discord.withPlaceholders(nil))
+
+		require.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+		assert.Contains(t, w.Body.String(), "connection refused", "the cause stays")
+		assert.NotContains(t, w.Body.String(), "TOKENPATH")
+		assert.NotContains(t, w.Body.String(), "user:")
+	})
+
+	t.Run("a bot token with a slash and a space", func(t *testing.T) {
+		telegram := secretChannelOfType(t, "telegram")
+		telegram.secrets = map[string]string{"bot_token": "123:ABC/def ghi"}
+		id := a.createSecretChannel(t, telegram)
+
+		w := a.testChannel(t, id, "telegram", telegram.withPlaceholders(nil))
+
+		require.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+		assert.Contains(t, w.Body.String(), "connection refused", "the cause stays")
+		assert.NotContains(t, w.Body.String(), "123:ABC")
+		assert.NotContains(t, w.Body.String(), "def")
+		assert.NotContains(t, w.Body.String(), "ghi")
+	})
+}
+
 // encoding/json fills a field from a key of any letter case, and the last one in the config wins.
 // A config that names the endpoint twice must not get past the check that the endpoint is the
 // saved one, and then send the saved token to the other one.

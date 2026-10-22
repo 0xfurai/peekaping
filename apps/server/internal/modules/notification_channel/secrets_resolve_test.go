@@ -269,6 +269,22 @@ func TestMaskSecrets(t *testing.T) {
 	assert.Equal(t, "get ********/send", maskSecrets("get a%2Fb%20c/send", []string{"a/b c"}), "as a path segment")
 	assert.Equal(t, "get ?t=********", maskSecrets("get ?t=a%2Fb+c%26d", []string{"a/b c&d"}), "as a query value")
 	assert.Equal(t, `Post "********": refused`, maskSecrets(`Post "https://hook.example/a%20b": refused`, []string{"https://hook.example/a b"}), "as a URL net/url writes back")
+
+	// A secret URL with user info: net/http prints it with the password replaced by ***, and
+	// URL.Redacted writes xxxxx
+	const hookWithUser = "http://user:pw@127.0.0.1:1/api/webhooks/1/TOKENPATH"
+	assert.Equal(t, `Post "********": dial tcp`, maskSecrets(`Post "http://user:***@127.0.0.1:1/api/webhooks/1/TOKENPATH": dial tcp`, []string{hookWithUser}), "as net/http prints it")
+	assert.Equal(t, `Post "********": dial tcp`, maskSecrets(`Post "http://user:xxxxx@127.0.0.1:1/api/webhooks/1/TOKENPATH": dial tcp`, []string{hookWithUser}), "as URL.Redacted writes it")
+	assert.Equal(t, "status 404 for ********", maskSecrets("status 404 for /api/webhooks/1/TOKENPATH", []string{hookWithUser}), "as its path and query")
+	assert.Equal(t, "got ?********", maskSecrets("got ?key=K&token=T", []string{"http://127.0.0.1:1/?key=K&token=T"}), "as its query")
+	assert.Equal(t, "see /, not ********", maskSecrets("see /, not /x", []string{"http://127.0.0.1:1/x"}), "a URL with no path to speak of doesn't mask every slash")
+	assert.Equal(t, "see /, host 127.0.0.1", maskSecrets("see /, host 127.0.0.1", []string{"http://127.0.0.1"}), "a bare host URL masks nothing but itself")
+
+	// A path secret with a slash: the slash stays in a printed URL, and a space is escaped
+	assert.Equal(t,
+		`Get "https://api.telegram.org/bot********/sendMessage?chat_id=1": refused`,
+		maskSecrets(`Get "https://api.telegram.org/bot123:ABC/def%20ghi/sendMessage?chat_id=1": refused`, []string{"123:ABC/def ghi"}),
+		"escaped segment by segment")
 }
 
 func TestDuplicateKey(t *testing.T) {

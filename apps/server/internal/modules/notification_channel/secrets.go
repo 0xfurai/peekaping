@@ -280,10 +280,9 @@ func maskSecrets(text string, secrets []string) string {
 		if secret == "" {
 			continue
 		}
-		forms = append(forms, secret, url.PathEscape(secret), url.QueryEscape(secret), strings.Trim(strconv.Quote(secret), `"`))
-		// a secret that is a URL is printed in the form net/url writes it back in
+		forms = append(forms, secret, url.PathEscape(secret), url.QueryEscape(secret), strings.Trim(strconv.Quote(secret), `"`), pathEscapedBySegment(secret))
 		if parsed, err := url.Parse(secret); err == nil && parsed.Scheme != "" {
-			forms = append(forms, parsed.String())
+			forms = append(forms, urlForms(parsed)...)
 		}
 	}
 	// A form that contains another is masked whole
@@ -292,6 +291,35 @@ func maskSecrets(text string, secrets []string) string {
 		text = strings.ReplaceAll(text, form, secretPlaceholder)
 	}
 	return text
+}
+
+// pathEscapedBySegment escapes each segment of a path secret and keeps its slashes, the way a
+// request URL prints it: url.PathEscape alone would turn the slashes into %2F
+func pathEscapedBySegment(secret string) string {
+	segments := strings.Split(secret, "/")
+	for i, segment := range segments {
+		segments[i] = url.PathEscape(segment)
+	}
+	return strings.Join(segments, "/")
+}
+
+// urlForms returns the ways a failed request prints a secret URL. net/http prints it with the
+// password of its user info replaced by ***, and URL.Redacted writes xxxxx, so the secret is not
+// in the error as it was entered. The path and the query are masked by themselves too, since
+// they hold the token and an error may print only them. A path of just a slash is not masked,
+// or every slash in the text would go.
+func urlForms(parsed *url.URL) []string {
+	forms := []string{parsed.String(), parsed.Redacted()}
+	if _, hasPassword := parsed.User.Password(); hasPassword {
+		forms = append(forms, strings.Replace(parsed.String(), parsed.User.String()+"@", parsed.User.Username()+":***@", 1))
+	}
+	if path := parsed.EscapedPath(); path != "" && path != "/" {
+		forms = append(forms, path, parsed.Path, parsed.RequestURI())
+	}
+	if parsed.RawQuery != "" {
+		forms = append(forms, parsed.RawQuery)
+	}
+	return forms
 }
 
 // savedSecret returns the value of a secret in a saved config, as the JSON string it is written
