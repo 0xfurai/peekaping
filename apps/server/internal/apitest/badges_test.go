@@ -18,11 +18,14 @@ import (
 
 var badgeTitle = regexp.MustCompile(`<title>(.*?)</title>`)
 
-// assertBadge checks that the response is an SVG badge reading title.
+// assertBadge checks that the response is an SVG badge reading title, which a
+// browser may show but not run anything from.
 func assertBadge(t *testing.T, w *httptest.ResponseRecorder, title string) {
 	t.Helper()
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	assert.Equal(t, "image/svg+xml", w.Header().Get("Content-Type"))
+	assert.Equal(t, "default-src 'none'; style-src 'unsafe-inline'", w.Header().Get("Content-Security-Policy"))
+	assert.Equal(t, "nosniff", w.Header().Get("X-Content-Type-Options"))
 	if match := badgeTitle.FindStringSubmatch(w.Body.String()); assert.NotNil(t, match, w.Body.String()) {
 		assert.Equal(t, title, match[1])
 	}
