@@ -3,12 +3,15 @@ package app
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/probe_notification"
 
 	"github.com/stretchr/testify/assert"
@@ -175,4 +178,39 @@ func TestBootstrapLocalProbe_RefusesATokenUnder32Characters(t *testing.T) {
 	err := BootstrapLocalProbe(context.Background(), container)
 
 	assert.ErrorContains(t, err, "PROBE_BOOTSTRAP_TOKEN must be at least 32 characters")
+}
+
+// A MongoDB install has no probes (ADR 0001), and the probe protocol's middleware, built by Register
+// the way cmd/api builds it, answers every call with 501 and the reason
+func TestRegister_MongoInstallAnswers501OnProbeRoutes(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.DBType, cfg.DBName = "mongo", "peekaping"
+	container := dig.New()
+	require.NoError(t, Register(container, cfg))
+
+	require.NoError(t, container.Invoke(func(auth *protocol.Auth) {
+		reached := false
+		guarded := auth.Authenticate()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { reached = true }))
+		req := httptest.NewRequest(http.MethodPost, "/probe/v1/hello", nil)
+		req.Header.Set("Authorization", "Bearer pkp_any-token-at-all")
+		req.Header.Set("X-Probe-Instance", "instance-1")
+		w := httptest.NewRecorder()
+
+		guarded.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotImplemented, w.Code)
+		assert.JSONEq(t, `{"message":"probes need SQLite or PostgreSQL storage","data":null}`, w.Body.String())
+		assert.False(t, reached)
+	}))
+}
+
+func TestRegister_SQLiteInstallResolvesTheProbeProtocol(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, Register(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(route *protocol.Route, controller *protocol.Controller, limiter *protocol.RateLimiter) {
+		assert.NotNil(t, route)
+		assert.NotNil(t, controller)
+		assert.NotNil(t, limiter)
+	}))
 }

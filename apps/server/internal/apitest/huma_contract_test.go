@@ -167,6 +167,9 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 	id := a.createMonitor(t, "Contract monitor", "contract-push")
 	a.createStatusPage(t, statusPage{slug: "contract", published: true, monitors: []string{id}, domains: []string{"contract.example"}})
 	decode[created](t, a.request(t, "POST", "/api/v1/tags", tagBody("Contract"), a.asAdmin), 201)
+	protocolProbe := a.createProbe(t, map[string]any{"name": "Contract protocol probe"})
+	oldHello := helloFrom("contract-old")
+	oldHello.ProtocolVersion = 0
 	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
 	require.NoError(t, err)
 	compiler := jsonschema.NewCompiler()
@@ -210,6 +213,12 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"local probe delete conflict", "DELETE", "/api/v1/probes/{id}", "/api/v1/probes/local", nil, 409, a.asAdmin},
 		{"local probe rotate conflict", "POST", "/api/v1/probes/{id}/rotate-token", "/api/v1/probes/local/rotate-token", nil, 409, a.asAdmin},
 		{"probe not found", "GET", "/api/v1/probes/{id}", "/api/v1/probes/missing", nil, 404, a.asAdmin},
+		{"probe protocol hello", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-instance"), 200, asProbe(protocolProbe.Token, "contract-instance")},
+		{"probe protocol hello, old version", "POST", "/probe/v1/hello", "/probe/v1/hello", oldHello, 426, asProbe(protocolProbe.Token, "contract-old")},
+		{"probe protocol hello, bad body", "POST", "/probe/v1/hello", "/probe/v1/hello", "{", 400, asProbe(protocolProbe.Token, "contract-bad")},
+		{"probe protocol, unknown token", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-instance"), 401, asProbe("pkp_no-probe-has-it", "contract-instance")},
+		{"probe protocol, no instance id", "POST", "/probe/v1/bye", "/probe/v1/bye", nil, 400, withHeader("Authorization", "Bearer "+protocolProbe.Token)},
+		{"probe protocol bye, unknown instance", "POST", "/probe/v1/bye", "/probe/v1/bye", nil, 409, asProbe(protocolProbe.Token, "contract-unknown")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var creds []credentials

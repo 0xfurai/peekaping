@@ -1,0 +1,180 @@
+package apitest
+
+import (
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"sync"
+	"testing"
+	"time"
+
+	"peekaping/internal/probeproto"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// routerTransport is an http.RoundTripper that serves each request with the app's router, in
+// process: there is no listening socket, so the probeproto client talks to the real handlers
+// without a network. It remembers what the client sent and what the server answered, so that a
+// test can check the wire's details too.
+type routerTransport struct {
+	a *app
+
+	mu        sync.Mutex
+	requests  []*http.Request
+	responses []*http.Response
+}
+
+func (rt *routerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// The server sees the request as net/http's server would hand it over
+	served := httptest.NewRequest(req.Method, req.URL.String(), req.Body).WithContext(req.Context())
+	served.Header = req.Header.Clone()
+	served.ContentLength = req.ContentLength
+	recorder := httptest.NewRecorder()
+	rt.a.router.ServeHTTP(recorder, served)
+
+	resp := recorder.Result()
+	resp.Request = req
+	rt.mu.Lock()
+	defer rt.mu.Unlock()
+	rt.requests = append(rt.requests, req)
+	rt.responses = append(rt.responses, resp)
+	return resp, nil
+}
+
+// last is the latest request the client made and the reply it got
+func (rt *routerTransport) last(t *testing.T) (*http.Request, *http.Response) {
+	t.Helper()
+	rt.mu.Lock()
+	defer rt.mu.Unlock()
+	require.NotEmpty(t, rt.requests, "the client made no request")
+	return rt.requests[len(rt.requests)-1], rt.responses[len(rt.responses)-1]
+}
+
+// probeClient is a probeproto client of the app's probe protocol with the token and instance id
+func (a *app) probeClient(token, instanceID string) (*probeproto.Client, *routerTransport) {
+	rt := &routerTransport{a: a}
+	return probeproto.NewClient("http://probe.test", token, instanceID, &http.Client{Transport: rt}), rt
+}
+
+// The wire package's client and the server's handlers agree: what the client sends the handlers
+// accept, and what they answer the client reads. The client's own tests speak to a stand-in
+// server, so this is the test that would notice the two drifting apart. Assignments and results
+// join it with their routes.
+func TestProbeContract_HelloAndBye(t *testing.T) {
+	a, made := probeApp(t)
+	instanceID := uuid.NewString()
+	client, rt := a.probeClient(made.Token, instanceID)
+	ctx := context.Background()
+
+	welcome, err := client.Hello(ctx, &probeproto.HelloRequest{
+		InstanceID:      instanceID,
+		ProtocolVersion: probeproto.ProtocolVersion,
+		ProbeVersion:    "0.1.0",
+		SupportedTypes:  []string{"http", "push"},
+		Hostname:        "edge-1.example.com",
+		OS:              "linux",
+		Arch:            "arm64",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, probeproto.ProtocolVersion, welcome.ProtocolVersion)
+	assert.NotEmpty(t, welcome.ServerVersion)
+	assert.WithinDuration(t, time.Now(), welcome.ServerTime, time.Minute)
+	assert.Equal(t, probeproto.ProbeInfo{ID: made.ID, Name: "Frankfurt", Location: "eu-central"}, welcome.Probe)
+	assert.Equal(t, 25000, welcome.PollTimeoutMs)
+	assert.Equal(t, 2000, welcome.FlushIntervalMs)
+	assert.Equal(t, 500, welcome.BatchMax)
+	assert.Equal(t, 10000, welcome.BufferMax)
+
+	req, resp := rt.last(t)
+	assert.Equal(t, "gzip", req.Header.Get("Content-Encoding"), "the client gzips the body it sends")
+	assert.Equal(t, "gzip", req.Header.Get("Accept-Encoding"))
+	assert.Equal(t, "gzip", resp.Header.Get("Content-Encoding"), "and the server gzips the reply it was allowed to")
+
+	got := a.getProbe(t, made.ID)
+	require.Len(t, got.Instances, 1)
+	assert.Equal(t, instanceID, got.Instances[0].ID)
+	assert.Equal(t, "edge-1.example.com", got.Instances[0].Hostname)
+	assert.Equal(t, "0.1.0", got.Instances[0].Version)
+	assert.Equal(t, []string{"http", "push"}, got.SupportedTypes)
+
+	require.NoError(t, client.Bye(ctx))
+	_, resp = rt.last(t)
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+	assert.Empty(t, a.getProbe(t, made.ID).Instances)
+
+	// A server that can't speak the probe's protocol version says so, as an error with a status
+	_, err = client.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: 0})
+	var upgrade *probeproto.Error
+	require.ErrorAs(t, err, &upgrade)
+	assert.Equal(t, http.StatusUpgradeRequired, upgrade.Status)
+	assert.Contains(t, upgrade.Message, "upgrade the probe")
+}
+
+func TestProbeContract_ErrorsComeBackAsTypedErrors(t *testing.T) {
+	a, made := probeApp(t)
+	instanceID := uuid.NewString()
+	client, _ := a.probeClient(made.Token, instanceID)
+	ctx := context.Background()
+
+	t.Run("a protocol version below the minimum is a 426", func(t *testing.T) {
+		_, err := client.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: 0})
+
+		var failure *probeproto.Error
+		require.ErrorAs(t, err, &failure)
+		assert.Equal(t, http.StatusUpgradeRequired, failure.Status)
+		assert.Equal(t, "protocol version 0 is below the server's minimum 1: upgrade the probe", failure.Message)
+		assert.Zero(t, failure.RetryAfter)
+		assert.Empty(t, a.getProbe(t, made.ID).Instances, "and the server recorded nothing")
+	})
+
+	t.Run("an instance that never said hello is a 409", func(t *testing.T) {
+		err := client.Bye(ctx)
+
+		var failure *probeproto.Error
+		require.ErrorAs(t, err, &failure)
+		assert.Equal(t, http.StatusConflict, failure.Status)
+		assert.Equal(t, "unknown instance: send hello first", failure.Message)
+	})
+
+	t.Run("a token no probe has is a 401", func(t *testing.T) {
+		stranger, _ := a.probeClient("pkp_a-token-no-probe-has", instanceID)
+
+		_, err := stranger.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: 1})
+
+		var failure *probeproto.Error
+		require.ErrorAs(t, err, &failure)
+		assert.Equal(t, http.StatusUnauthorized, failure.Status)
+		assert.Equal(t, "invalid probe token", failure.Message)
+	})
+
+	t.Run("a malformed instance id is a 400", func(t *testing.T) {
+		confused, _ := a.probeClient(made.Token, "two words")
+
+		_, err := confused.Hello(ctx, &probeproto.HelloRequest{InstanceID: "two words", ProtocolVersion: 1})
+
+		var failure *probeproto.Error
+		require.ErrorAs(t, err, &failure)
+		assert.Equal(t, http.StatusBadRequest, failure.Status)
+	})
+
+	t.Run("a probe that calls too often is a 429 that says when to come back", func(t *testing.T) {
+		eager := uuid.NewString()
+		impatient, _ := a.probeClient(made.Token, eager)
+		var failure *probeproto.Error
+		for range 5 {
+			_, err := impatient.Hello(ctx, &probeproto.HelloRequest{InstanceID: eager, ProtocolVersion: 1})
+			require.NoError(t, err)
+		}
+
+		_, err := impatient.Hello(ctx, &probeproto.HelloRequest{InstanceID: eager, ProtocolVersion: 1})
+
+		require.ErrorAs(t, err, &failure)
+		assert.Equal(t, http.StatusTooManyRequests, failure.Status)
+		assert.Equal(t, time.Second, failure.RetryAfter)
+		assert.Equal(t, "too many requests", failure.Message)
+	})
+}
