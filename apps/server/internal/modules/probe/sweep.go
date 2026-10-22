@@ -231,8 +231,9 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 		}
 		since := lastSeen
 		if len(instances) == 0 {
-			// It never lost an instance by going quiet: they were all removed, as when the last one
-			// said bye
+			// There is no instance to have seen it last: they were pruned, as after a server outage
+			// longer than InstanceRetention. (An instance that says bye is retired, not removed, so
+			// it counts from the time it was left with.)
 			since = now
 		}
 		s.logger.Infow("Probe is offline", "probeId", p.ID, "name", p.Name, "since", since, "disabled", p.Disabled)

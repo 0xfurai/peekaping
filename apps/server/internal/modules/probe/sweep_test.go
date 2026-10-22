@@ -133,6 +133,62 @@ func TestSweep_AProbeSeenExactlyOfflineAfterAgoIsStillOnline(t *testing.T) {
 	assert.Equal(t, probe.StatusOffline, f.status(t, edge.ID))
 }
 
+// A probe that restarts gracefully says bye and then hello again, with a new instance id, a few
+// seconds later. Bye retires the instance and does not delete it, so the sweep, which runs in
+// between, finds the probe's only instance last seen a minute ago: well inside OfflineAfter. The
+// probe stays online and no one is told.
+func TestSweep_GracefulRestartRaisesNoNotification(t *testing.T) {
+	ctx := context.Background()
+	f := newSweepFixture(t)
+	edge := f.probe(t, "Edge", probe.StatusOnline)
+	f.instance(t, edge.ID, "edge-1", 0)
+	f.run(t)
+	retired := probe.RetiredAt(f.clock.Now())
+	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", retired))
+
+	f.clock.Advance(20 * time.Second)
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOnline, f.status(t, edge.ID), "20 seconds after bye is inside OfflineAfter")
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOffline))
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOnline))
+	left, err := f.repo.FindInstances(ctx, edge.ID)
+	require.NoError(t, err)
+	require.Len(t, left, 1, "the retired instance stays until it has been silent for a day")
+
+	// The probe never says hello again: the threshold counted from the retired time all along
+	f.clock.Advance(probe.DefaultOfflineAfter)
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOffline, f.status(t, edge.ID))
+	offline := eventstest.Published(f.bus, probe.ProbeOffline)
+	require.Len(t, offline, 1)
+	assert.True(t, retired.Equal(offline[0].Since), "offline since the instance was retired: %s", offline[0].Since)
+}
+
+func TestSweep_ARestartThatSaysHelloAgainIsNotAnOutage(t *testing.T) {
+	ctx := context.Background()
+	f := newSweepFixture(t)
+	edge := f.probe(t, "Edge", probe.StatusOnline)
+	f.instance(t, edge.ID, "edge-1", 0)
+	f.run(t)
+	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", probe.RetiredAt(f.clock.Now())))
+
+	f.clock.Advance(5 * time.Second)
+	f.instance(t, edge.ID, "edge-2", 0)
+	f.clock.Advance(15 * time.Second)
+	f.run(t)
+	f.clock.Advance(2 * time.Minute)
+	f.instance(t, edge.ID, "edge-2", 0)
+	f.run(t)
+
+	assert.Equal(t, probe.StatusOnline, f.status(t, edge.ID))
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOffline))
+	assert.Empty(t, eventstest.Published(f.bus, probe.ProbeOnline))
+}
+
+// A probe is online with no instance only when its instances were pruned: the server was down for
+// longer than InstanceRetention, and the sweep forgot them in its first pass. A bye does not do it.
 func TestSweep_MarksAnOnlineProbeWithNoInstancesOffline(t *testing.T) {
 	f := newSweepFixture(t)
 	gone := f.probe(t, "Gone", probe.StatusOnline)
