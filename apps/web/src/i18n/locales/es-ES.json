@@ -1391,7 +1391,7 @@
   "telemetry": {
     "docs_link": "Qué se envía y cómo desactivarlo",
     "label": "Enviar estadísticas de uso anónimas",
-    "never_sent": "Nunca se envía: nombres de monitores, URL, hosts, etiquetas, direcciones de páginas de estado ni ajustes de notificaciones. Su dirección IP no se almacena.",
+    "never_sent": "Nunca se envía: nombres de monitores, URL, hosts, etiquetas, direcciones de páginas de estado ni ajustes de notificaciones. Un ping de uso no contiene ninguna dirección IP, y el Worker de Peekaping no registra la IP del remitente.",
     "sent_features": "Si usa páginas de estado, ventanas de mantenimiento y métricas",
     "sent_id": "Un ID aleatorio, que se crea al activarlo y se elimina al desactivarlo",
     "sent_monitors": "Cuántos monitores tiene, como un rango, por ejemplo 11-50",

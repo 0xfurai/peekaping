@@ -1391,7 +1391,7 @@
   "telemetry": {
     "docs_link": "Co jest wysyłane i jak to wyłączyć",
     "label": "Wysyłaj anonimowe statystyki użycia",
-    "never_sent": "Nigdy nie są wysyłane: nazwy monitorów, adresy URL, hosty, tagi, adresy stron statusu ani ustawienia powiadomień. Twój adres IP nie jest zapisywany.",
+    "never_sent": "Nigdy nie są wysyłane: nazwy monitorów, adresy URL, hosty, tagi, adresy stron statusu ani ustawienia powiadomień. Ping użycia nie zawiera adresu IP, a Worker Peekaping nie zapisuje adresu IP nadawcy.",
     "sent_features": "Czy używasz stron statusu, okien utrzymania i metryk",
     "sent_id": "Losowy identyfikator, tworzony po włączeniu tej opcji i usuwany po jej wyłączeniu",
     "sent_monitors": "Ile masz monitorów, jako zakres, na przykład 11-50",

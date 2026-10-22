@@ -1391,7 +1391,7 @@
   "telemetry": {
     "docs_link": "Mida saadetakse ja kuidas selle välja lülitada",
     "label": "Saada anonüümset kasutusstatistikat",
-    "never_sent": "Ei saadeta kunagi: monitoride nimesid, URL-e, hoste, silte, olekusivude aadresse ega teavituste seadeid. Teie IP-aadressi ei salvestata.",
+    "never_sent": "Ei saadeta kunagi: monitoride nimesid, URL-e, hoste, silte, olekusivude aadresse ega teavituste seadeid. Kasutusping ei sisalda IP-aadressi ning Peekapingi Worker ei salvesta saatja IP-d.",
     "sent_features": "Kas kasutate olekusivusid, hooldusaknaid ja mõõdikuid",
     "sent_id": "Juhuslik ID, mis luuakse sisselülitamisel ja kustutatakse väljalülitamisel",
     "sent_monitors": "Mitu monitoori teil on, vahemikuna, näiteks 11-50",

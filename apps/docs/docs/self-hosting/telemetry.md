@@ -53,7 +53,7 @@ For example:
 }
 ```
 
-An install on any other storage backend isn't counted: the Worker rejects its usage ping and keeps nothing.
+An install on any other storage backend isn't counted. With `DB_TYPE=mysql`, for example, Peekaping sends an empty `db`, the Worker rejects the usage ping and keeps nothing.
 
 #### Instance ID
 
@@ -88,7 +88,7 @@ The Worker never reads or stores your IP address or your country, and it stores 
 
 ### How often
 
-At most once a day. Peekaping checks a few minutes after it starts, and then every hour, whether a usage ping is due. A usage ping is due when the last one is more than 24 hours old. After an admin opts in, the first usage ping goes at the next check.
+At most once a day. Peekaping checks a few minutes after it starts, and then every hour, whether a usage ping is due. A usage ping is due when the last one is more than 24 hours old. After an admin opts in, the first usage ping goes at the next check. In cluster mode that can be later: the claim in Redis holds for 23 hours after a usage ping, and opting out doesn't release it. An install that opts out and back in within 23 hours of its last usage ping sends the first new one when the claim ends, up to 23 hours later.
 
 Only one process sends it. In [single mode](./deployment-modes.md#single-mode), that is the `peekaping` process. In [cluster mode](./deployment-modes.md#cluster-mode), it is one API replica, whichever claims the day's usage ping in Redis first. The producer, worker and ingester never send it.
 

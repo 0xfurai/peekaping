@@ -1391,7 +1391,7 @@
   "telemetry": {
     "docs_link": "What is sent, and how to turn it off",
     "label": "Send anonymous usage statistics",
-    "never_sent": "Never sent: monitor names, URLs, hosts, tags, status page addresses or notification settings. Your IP address is not stored.",
+    "never_sent": "Never sent: monitor names, URLs, hosts, tags, status page addresses or notification settings. A usage ping holds no IP address, and Peekaping's Worker doesn't record the sender's IP.",
     "sent_features": "Whether you use status pages, maintenance windows and metrics",
     "sent_id": "A random ID, created when you turn this on and deleted when you turn it off",
     "sent_monitors": "How many monitors you have, as a range such as 11-50",

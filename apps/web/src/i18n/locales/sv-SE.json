@@ -1391,7 +1391,7 @@
   "telemetry": {
     "docs_link": "Vad som skickas och hur du stänger av det",
     "label": "Skicka anonym användningsstatistik",
-    "never_sent": "Skickas aldrig: namn på övervakningar, webbadresser, värdar, taggar, adresser till statussidor eller aviseringsinställningar. Din IP-adress sparas inte.",
+    "never_sent": "Skickas aldrig: namn på övervakningar, webbadresser, värdar, taggar, adresser till statussidor eller aviseringsinställningar. En användningsping innehåller ingen IP-adress, och Peekapings Worker registrerar inte avsändarens IP.",
     "sent_features": "Om du använder statussidor, underhållsfönster och mätvärden",
     "sent_id": "Ett slumpmässigt ID, som skapas när du slår på det och raderas när du stänger av det",
     "sent_monitors": "Hur många övervakningar du har, som ett intervall, till exempel 11-50",

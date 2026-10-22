@@ -1391,7 +1391,7 @@
   "telemetry": {
     "docs_link": "Những gì được gửi và cách tắt",
     "label": "Gửi thống kê sử dụng ẩn danh",
-    "never_sent": "Không bao giờ gửi: tên giám sát, URL, máy chủ, thẻ, địa chỉ trang trạng thái hay cài đặt thông báo. Địa chỉ IP của bạn không được lưu.",
+    "never_sent": "Không bao giờ gửi: tên giám sát, URL, máy chủ, thẻ, địa chỉ trang trạng thái hay cài đặt thông báo. Ping sử dụng không chứa địa chỉ IP, và Worker của Peekaping không ghi lại IP của người gửi.",
     "sent_features": "Bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không",
     "sent_id": "Một ID ngẫu nhiên, được tạo khi bạn bật và bị xóa khi bạn tắt",
     "sent_monitors": "Bạn có bao nhiêu giám sát, dưới dạng một khoảng, chẳng hạn 11-50",
