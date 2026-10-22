@@ -23,15 +23,15 @@ const telemetryPath = "/api/v1/telemetry"
 var lowerUUIDv4 = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
 
 type telemetryPayload struct {
-	InstanceID            string   `json:"instance_id"`
-	Version               string   `json:"version"`
-	Mode                  string   `json:"mode"`
-	DB                    string   `json:"db"`
-	OS                    string   `json:"os"`
-	Monitors              string   `json:"monitors"`
-	MonitorTypes          []string `json:"monitor_types"`
-	NotificationProviders []string `json:"notification_providers"`
-	Features              struct {
+	InstanceID               string   `json:"instance_id"`
+	Version                  string   `json:"version"`
+	Mode                     string   `json:"mode"`
+	DB                       string   `json:"db"`
+	OS                       string   `json:"os"`
+	Monitors                 string   `json:"monitors"`
+	MonitorTypes             []string `json:"monitor_types"`
+	NotificationChannelTypes []string `json:"notification_providers"`
+	Features                 struct {
 		StatusPages bool `json:"status_pages"`
 		Maintenance bool `json:"maintenance"`
 		Metrics     bool `json:"metrics"`
@@ -199,7 +199,7 @@ func TestTelemetryAPI_PreviewShowsWhatTheInstallHolds(t *testing.T) {
 
 	assert.Equal(t, "1-10", state.Payload.Monitors, "paused monitors count")
 	assert.Equal(t, []string{"push"}, state.Payload.MonitorTypes)
-	assert.Equal(t, []string{"webhook"}, state.Payload.NotificationProviders)
+	assert.Equal(t, []string{"webhook"}, state.Payload.NotificationChannelTypes)
 	assert.True(t, state.Payload.Features.StatusPages)
 	assert.True(t, state.Payload.Features.Maintenance)
 	assert.True(t, state.Payload.Features.Metrics)

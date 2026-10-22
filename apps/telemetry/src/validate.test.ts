@@ -69,7 +69,7 @@ describe("validatePing accepts", () => {
     expect(validatePing(withField("os", os)).ok).toBe(true);
   });
 
-  test("50 monitor types and 50 notification providers, the largest allowed", () => {
+  test("50 monitor types and 50 notification channel types, the largest allowed", () => {
     const fifty = Array.from({ length: 50 }, (_, i) => `type_${i}`);
     const payload = { ...example(), monitor_types: fifty, notification_providers: fifty };
     expect(validatePing(payload).ok).toBe(true);

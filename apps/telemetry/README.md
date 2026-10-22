@@ -22,7 +22,7 @@ A Cloudflare Worker at `https://telemetry.peekaping.com/v1/ping`. It receives th
 
 A valid ping gets `204`. Another path gets `404`, another method `405`, a body that is too large, not JSON or not valid `400`. Nothing is stored for those, and the response never repeats the input. The validator is `src/validate.ts`.
 
-For each valid ping the Worker writes one data point with the instance ID as the index and the fields as blobs (`ping`, version, mode, db, os, monitors bucket, three feature flags), plus one point per monitor type (`monitor_type`, type) and one per notification provider (`notification_provider`, type). That is at most 101 points, under the limit of 250 per invocation. The client IP, headers, country and `request.cf` are never read. Logs, traces and Logpush are off in `wrangler.jsonc`.
+For each valid ping the Worker writes one data point with the instance ID as the index and the fields as blobs (`ping`, version, mode, db, os, monitors bucket, three feature flags), plus one point per monitor type (`monitor_type`, type) and one per notification channel type (`notification_channel`, type). That is at most 101 points, under the limit of 250 per invocation. The client IP, headers, country and `request.cf` are never read. Logs, traces and Logpush are off in `wrangler.jsonc`.
 
 ## Develop
 

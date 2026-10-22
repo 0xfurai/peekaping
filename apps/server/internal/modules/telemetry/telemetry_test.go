@@ -313,7 +313,7 @@ func TestBuildPayload_TypeListsAreDistinctSortedNamedAndCapped(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, []string{"9lives", "grpc-keyword", "http", "tcp", "under_score"}, payload.MonitorTypes)
-	assert.Equal(t, []string{"slack", "telegram", "thirty-two-characters-long-name1", "x"}, payload.NotificationProviders)
+	assert.Equal(t, []string{"slack", "telegram", "thirty-two-characters-long-name1", "x"}, payload.NotificationChannelTypes)
 }
 
 func TestBuildPayload_TypeListsStopAtFifty(t *testing.T) {
@@ -331,8 +331,8 @@ func TestBuildPayload_TypeListsStopAtFifty(t *testing.T) {
 	require.Len(t, payload.MonitorTypes, 50)
 	assert.Equal(t, "type-00", payload.MonitorTypes[0])
 	assert.Equal(t, "type-49", payload.MonitorTypes[49])
-	require.Len(t, payload.NotificationProviders, 50)
-	assert.Equal(t, "type-49", payload.NotificationProviders[49])
+	require.Len(t, payload.NotificationChannelTypes, 50)
+	assert.Equal(t, "type-49", payload.NotificationChannelTypes[49])
 }
 
 func TestBuildPayload_ReadsEveryMonitorAcrossPages(t *testing.T) {
@@ -354,7 +354,7 @@ func TestBuildPayload_ReadsEveryMonitorAcrossPages(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "1000+", payload.Monitors)
 	assert.Equal(t, []string{"http", "tcp"}, payload.MonitorTypes)
-	assert.Equal(t, []string{"ntfy", "slack"}, payload.NotificationProviders)
+	assert.Equal(t, []string{"ntfy", "slack"}, payload.NotificationChannelTypes)
 }
 
 func TestBuildPayload_FeaturesFollowWhatExists(t *testing.T) {

@@ -20,8 +20,10 @@ type Source interface {
 	// opted in, the environment forces the ping off, there is no instance ID, or the last ping
 	// was attempted less than a day ago.
 	NextPing(ctx context.Context, now time.Time) (*Payload, error)
-	// RecordSent records that a ping was attempted at the given time
-	RecordSent(ctx context.Context, at time.Time) error
+	// RecordSent records that the ping carrying instanceID was attempted at the given time. It
+	// records nothing when instanceID is no longer the stored one: the admin opted out, or out
+	// and in again, while the ping was on its way, and that ping is not the new opt-in's.
+	RecordSent(ctx context.Context, instanceID string, at time.Time) error
 }
 
 // Schedule is when a Sender checks whether a ping is due
@@ -141,7 +143,7 @@ func (s *Sender) SendIfDue(ctx context.Context) {
 	// Even when the shutdown cut the ping short: it may have got through
 	recordCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), recordTimeout)
 	defer cancel()
-	if err := s.source.RecordSent(recordCtx, s.now()); err != nil {
+	if err := s.source.RecordSent(recordCtx, payload.InstanceID, s.now()); err != nil {
 		s.logger.Debugw("Failed to record the usage ping", "error", err)
 	}
 }
