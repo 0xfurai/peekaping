@@ -124,7 +124,7 @@ The "Usage statistics" card in Settings shows the JSON the next usage ping would
 
 ## Error reporting
 
-Peekaping can send a report when its own code crashes. The report says what kind of error it was and where in the code it happened, so we can find the bug and fix it. A crash on your server reaches us only if you file an issue.
+Peekaping can send a report when its own code crashes. The report says what kind of error it was and where in the code it happened, so we can find the bug and fix it. Without error reporting, we learn of a crash only when someone files an issue. With it on, Peekaping sends a report on its own when its code panics.
 
 **It is off until an admin turns it on**, and it is a separate choice from the usage statistics.
 
