@@ -123,6 +123,29 @@ func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
 	}))
 }
 
+func TestRegisterClusterProducer_TheWatchdogNeverSkipsAMonitorOfTheLocalProbe(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(
+		probeOffline stale.ProbeOfflineFunc,
+		bus events.EventBus,
+		db *bun.DB,
+		client *asynq.Client,
+		inspector *asynq.Inspector,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		t.Cleanup(func() { assert.NoError(t, client.Close()) })
+		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+
+		offline, err := probeOffline(context.Background(), "any-monitor")
+
+		require.NoError(t, err)
+		assert.False(t, offline)
+	}))
+}
+
 func TestRegisterClusterWorker_ResolvesWhatCmdWorkerRunsWithoutADatabase(t *testing.T) {
 	// cmd/worker reads no database settings
 	cfg := clusterConfig(t)

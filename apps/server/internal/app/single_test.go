@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -85,6 +86,23 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
+	}))
+}
+
+// Every monitor is the local probe's until monitors can be assigned to probes, and the local probe
+// never counts as offline for the watchdog, so nothing changes for an install that has no remote probe
+func TestRegisterSingle_TheWatchdogNeverSkipsAMonitorOfTheLocalProbe(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, singleConfig(t)))
+
+	require.NoError(t, container.Invoke(func(probeOffline stale.ProbeOfflineFunc, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+
+		offline, err := probeOffline(context.Background(), "any-monitor")
+
+		require.NoError(t, err)
+		assert.False(t, offline)
 	}))
 }
 

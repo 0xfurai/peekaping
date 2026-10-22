@@ -56,6 +56,8 @@ func newSQLiteContainer(t testing.TB, cfg *config.Config, logger *zap.SugaredLog
 	provide(infra.ProvideSQLDB)
 	provide(func() events.EventBus { return newBus(t) })
 	provide(stale.ProvideMemoryStore)
+	// The probe module provides the real one. The scheduler's checks don't depend on probes.
+	provide(func() stale.ProbeOfflineFunc { return nil })
 
 	require.NoError(t, errors.Join(
 		heartbeat.RegisterDependencies(container, cfg),

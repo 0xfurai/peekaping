@@ -35,11 +35,13 @@ func ProvideProducer(
 	heartbeatService heartbeat.Service,
 	staleStore stale.Store,
 	eventBus events.EventBus,
+	probeOffline stale.ProbeOfflineFunc,
 	leaderElection *LeaderElection,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) *Producer {
-	return NewProducer(rdb, runner, monitorService, loader, heartbeatService, staleStore, eventBus, leaderElection, cfg, logger)
+	return NewProducer(rdb, runner, monitorService, loader, heartbeatService, staleStore, eventBus, leaderElection, cfg, logger,
+		WithProbeOffline(probeOffline))
 }
 
 // ProvideQueueRunner provides cluster mode's check.Runner. dig matches parameter types exactly,

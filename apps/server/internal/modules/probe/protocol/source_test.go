@@ -48,6 +48,19 @@ func TestLocalOnlySource_ARemoteProbeOwnsNone(t *testing.T) {
 	assert.Zero(t, monitors.calls, "and there is no need to read the database to know")
 }
 
+func TestLocalOnlySource_EveryMonitorBelongsToTheLocalProbe(t *testing.T) {
+	monitors := &stubMonitors{}
+	source := protocol.NewLocalOnlySource(monitors)
+
+	for _, monitorID := range []string{"http-1", "push-1", "a-monitor-that-was-deleted"} {
+		got, err := source.ProbeOf(context.Background(), monitorID)
+
+		require.NoError(t, err, monitorID)
+		assert.Equal(t, probe.LocalID, got, monitorID)
+	}
+	assert.Zero(t, monitors.calls, "until monitors can be assigned to probes there is nothing to read")
+}
+
 func TestLocalOnlySource_PassesOnAFailure(t *testing.T) {
 	failure := errors.New("database is down")
 	source := protocol.NewLocalOnlySource(&stubMonitors{err: failure})

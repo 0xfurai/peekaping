@@ -16,6 +16,19 @@ import (
 	"go.uber.org/zap"
 )
 
+// Option adds something to a producer that not every caller has
+type Option func(*options)
+
+type options struct {
+	probeOffline stale.ProbeOfflineFunc
+}
+
+// WithProbeOffline tells the producer's watchdog how to find out that a monitor's probe is
+// offline, so that it leaves such a monitor alone. Without it, no probe is ever offline.
+func WithProbeOffline(probeOffline stale.ProbeOfflineFunc) Option {
+	return func(o *options) { o.probeOffline = probeOffline }
+}
+
 // NewProducer creates a new producer instance. The runner runs the checks it schedules: in
 // cluster mode, NewQueueRunner enqueues them for the worker.
 func NewProducer(
@@ -29,7 +42,12 @@ func NewProducer(
 	leaderElection *LeaderElection,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
+	opts ...Option,
 ) *Producer {
+	var o options
+	for _, opt := range opts {
+		opt(&o)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Use configured concurrency, fallback to constant if not set
@@ -64,6 +82,7 @@ func NewProducer(
 		// Redis's clock is the one all producers share
 		Now:          func() time.Time { return time.UnixMilli(p.redisNowMs()).UTC() },
 		CheckTimeout: worker.HealthCheckTaskTimeout,
+		ProbeOffline: o.probeOffline,
 		Logger:       logger.With("component", "watchdog"),
 	})
 

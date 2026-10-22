@@ -103,7 +103,13 @@ func newWatchdogFixtureOn(t *testing.T, store Store, monitors ...*shared.Monitor
 		start:      start,
 		clock:      start,
 	}
-	f.w = NewWatchdog(WatchdogConfig{
+	f.w = NewWatchdog(f.config())
+	return f
+}
+
+// config is the fixture's watchdog config, which a test may change before it builds the watchdog
+func (f *watchdogFixture) config() WatchdogConfig {
+	return WatchdogConfig{
 		Store:      f.store,
 		Rechecker:  f.rechecker,
 		Monitors:   f.monitors,
@@ -115,8 +121,7 @@ func newWatchdogFixtureOn(t *testing.T, store Store, monitors ...*shared.Monitor
 		},
 		Now:    func() time.Time { return f.clock },
 		Logger: zap.NewNop().Sugar(),
-	})
-	return f
+	}
 }
 
 // at moves the clock to the given offset from the fixture's start
@@ -356,6 +361,109 @@ func TestWatchdog_TriesAgainWhenTheRecheckFails(t *testing.T) {
 	count, err = f.store.Count(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), count)
+}
+
+// probesOffline is a ProbeOffline that answers by monitor: true for the ones in the set
+type probesOffline struct {
+	offline map[string]bool
+	err     map[string]error
+	asked   []string
+}
+
+func (p *probesOffline) probeOffline(_ context.Context, monitorID string) (bool, error) {
+	p.asked = append(p.asked, monitorID)
+	return p.offline[monitorID], p.err[monitorID]
+}
+
+func TestWatchdog_SkipsMonitorsWhoseProbeIsOffline(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	away := testMonitor("away", 60, 10, now.Add(-time.Hour))
+	home := testMonitor("home", 60, 10, now.Add(-time.Hour))
+	f := newWatchdogFixture(t, away, home)
+	f.heartbeats.setLatest("away", now.Add(-4*time.Minute))
+	f.heartbeats.setLatest("home", now.Add(-4*time.Minute))
+	probes := &probesOffline{offline: map[string]bool{"away": true}}
+	cfg := f.config()
+	cfg.ProbeOffline = probes.probeOffline
+	f.w = NewWatchdog(cfg)
+	ctx := context.Background()
+
+	f.run(t)
+	f.at(time.Minute)
+	f.run(t)
+
+	assert.Equal(t, []string{"home"}, f.rechecker.calls, "a monitor whose probe is offline is not checked again: its probe can't")
+	entries, err := f.store.All(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"home"}, keys(entries), "and it is not recorded as stale")
+	sent := f.published(MonitorStale)
+	require.Len(t, sent, 1, "nor is anyone told that it was not checked")
+	assert.Equal(t, "home", sent[0].MonitorID)
+	assert.Contains(t, probes.asked, "away")
+
+	// The probe comes back: the monitor is looked after like any other
+	probes.offline["away"] = false
+	f.at(2 * time.Minute)
+	f.run(t)
+	assert.Equal(t, []string{"home", "away"}, f.rechecker.calls)
+	entries, err = f.store.All(ctx)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"home", "away"}, keys(entries))
+}
+
+func TestWatchdog_LeavesTheRecordOfAMonitorWhoseProbeWentOffline(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t, testMonitor("away", 60, 10, now.Add(-time.Hour)))
+	f.heartbeats.setLatest("away", now.Add(-4*time.Minute))
+	f.run(t)
+	ctx := context.Background()
+	before, err := f.store.All(ctx)
+	require.NoError(t, err)
+	require.Contains(t, before, "away", "found stale and asked to be checked again, but not yet notified")
+	require.False(t, before["away"].Notified)
+
+	// Then its probe goes offline, so the check that was asked for can't happen
+	probes := &probesOffline{offline: map[string]bool{"away": true}}
+	cfg := f.config()
+	cfg.ProbeOffline = probes.probeOffline
+	f.w = NewWatchdog(cfg)
+	f.at(5 * time.Minute)
+	f.run(t)
+
+	after, err := f.store.All(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, before, after, "the record stays until the probe is back to check the monitor, or the monitor is paused or deleted")
+	assert.Empty(t, f.published(MonitorStale), "the monitor was not checked because its probe is offline, which the probe's own notification says")
+	assert.Equal(t, []string{"away"}, f.rechecker.calls, "no second recheck")
+}
+
+func TestWatchdog_SkipsOnlyTheMonitorWhoseProbeCannotBeLookedUp(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t, testMonitor("unknown", 60, 10, now.Add(-time.Hour)), testMonitor("home", 60, 10, now.Add(-time.Hour)))
+	f.heartbeats.setLatest("unknown", now.Add(-4*time.Minute))
+	f.heartbeats.setLatest("home", now.Add(-4*time.Minute))
+	probes := &probesOffline{err: map[string]error{"unknown": errors.New("database is locked")}}
+	cfg := f.config()
+	cfg.ProbeOffline = probes.probeOffline
+	f.w = NewWatchdog(cfg)
+
+	f.run(t)
+
+	assert.Equal(t, []string{"home"}, f.rechecker.calls)
+	ranAt, err := f.store.RanAt(context.Background())
+	require.NoError(t, err)
+	assert.NotNil(t, ranAt, "the run finished")
+}
+
+func TestWatchdog_NilProbeOfflineMeansNever(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t, testMonitor("silent", 60, 10, now.Add(-time.Hour)))
+	f.heartbeats.setLatest("silent", now.Add(-4*time.Minute))
+	require.Nil(t, f.config().ProbeOffline, "the fixture sets none, as a caller that doesn't know probes sets none")
+
+	f.run(t)
+
+	assert.Equal(t, []string{"silent"}, f.rechecker.calls)
 }
 
 func TestWatchdog_RunLooksEveryIntervalUntilTheContextIsDone(t *testing.T) {
