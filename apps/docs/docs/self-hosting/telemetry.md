@@ -144,7 +144,7 @@ A report has these fields and no others:
 | Stack frames | For each frame, the function, the package, the file, the line and whether it is Peekaping's own code. The file is the package path and the file name, such as `peekaping/internal/httpx/middleware.go`, never a path on your machine. At most the 100 innermost frames. |
 | Release | The Peekaping version, such as `0.0.48` |
 | `mode` | `single` or `cluster`. See [Deployment modes](./deployment-modes.md). |
-| `db` | The storage backend: `sqlite`, `postgres` or `mongo`. A cluster worker has no database settings, so it says `unknown`. |
+| `db` | The storage backend: `sqlite`, `postgres`, `mongo` or `mysql`. A cluster worker has no database settings, so it says `unknown`. |
 | `os` | The operating system and CPU architecture, such as `linux/arm64` |
 | `component` | The part of Peekaping that caught the panic, such as `http`, `executor` or `scheduler` |
 | Level | `error` for a panic that was caught, `fatal` for one that ends the process |
