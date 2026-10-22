@@ -87,6 +87,8 @@ import {
   putTelemetry,
   getVersion,
   getHealthRoot,
+  probePostBye,
+  probePostHello,
 } from "../sdk.gen";
 import {
   queryOptions,
@@ -284,6 +286,12 @@ import type {
   PutTelemetryResponse,
   GetVersionData,
   GetHealthRootData,
+  ProbePostByeData,
+  ProbePostByeError,
+  ProbePostByeResponse,
+  ProbePostHelloData,
+  ProbePostHelloError,
+  ProbePostHelloResponse,
 } from "../types.gen";
 import type { AxiosError } from "axios";
 import { client as _heyApiClient } from "../client.gen";
@@ -3237,4 +3245,104 @@ export const getHealthRootOptions = (options?: Options<GetHealthRootData>) => {
     },
     queryKey: getHealthRootQueryKey(options),
   });
+};
+
+export const probePostByeQueryKey = (options: Options<ProbePostByeData>) =>
+  createQueryKey("probePostBye", options);
+
+/**
+ * Say bye
+ * Tells the server that this instance is stopping, so that it removes the instance. An instance that never said hello is answered 409.
+ */
+export const probePostByeOptions = (options: Options<ProbePostByeData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probePostBye({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probePostByeQueryKey(options),
+  });
+};
+
+/**
+ * Say bye
+ * Tells the server that this instance is stopping, so that it removes the instance. An instance that never said hello is answered 409.
+ */
+export const probePostByeMutation = (
+  options?: Partial<Options<ProbePostByeData>>
+): UseMutationOptions<
+  ProbePostByeResponse,
+  AxiosError<ProbePostByeError>,
+  Options<ProbePostByeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProbePostByeResponse,
+    AxiosError<ProbePostByeError>,
+    Options<ProbePostByeData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await probePostBye({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const probePostHelloQueryKey = (options: Options<ProbePostHelloData>) =>
+  createQueryKey("probePostHello", options);
+
+/**
+ * Say hello
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostHelloOptions = (options: Options<ProbePostHelloData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probePostHello({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probePostHelloQueryKey(options),
+  });
+};
+
+/**
+ * Say hello
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostHelloMutation = (
+  options?: Partial<Options<ProbePostHelloData>>
+): UseMutationOptions<
+  ProbePostHelloResponse,
+  AxiosError<ProbePostHelloError>,
+  Options<ProbePostHelloData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProbePostHelloResponse,
+    AxiosError<ProbePostHelloError>,
+    Options<ProbePostHelloData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await probePostHello({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
