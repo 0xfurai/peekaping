@@ -840,7 +840,7 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       config_sets "$work/default.yaml" TRUSTED_PROXIES \
       "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7" || true
   fi
-  # The chart has no volume for a SQLite file, and its pods would share one.
+  # The chart has no volume for a SQLite file, so each pod would get its own database.
   # The bundle image runs single mode on SQLite, so the message points to it.
   for db_type in sqlite SQLite SQLITE; do
     check "config.env.DB_TYPE=$db_type: rendering fails, saying the chart supports PostgreSQL only" \
