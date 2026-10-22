@@ -62,7 +62,6 @@ func (s *DiscordSender) Send(
 	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
 
 	s.logger.Infof("Sending Discord message: %s", message)
-	s.logger.Debugf("Available bindings: %s", bindings)
 
 	var finalMessage string
 

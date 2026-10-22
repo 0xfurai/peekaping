@@ -2,7 +2,6 @@ package providers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -82,12 +81,6 @@ func (s *TelegramSender) Send(
 		engine := liquid.NewEngine()
 
 		bindings := PrepareTemplateBindings(monitor, heartbeat, message)
-
-		// Optional: Add debug output for development
-		if s.logger != nil {
-			jsonDebug, _ := json.MarshalIndent(bindings, "", "  ")
-			s.logger.Debugf("Template bindings: %s", string(jsonDebug))
-		}
 
 		if cfg.Template != "" {
 			if rendered, err := engine.ParseAndRenderString(cfg.Template, bindings); err == nil {

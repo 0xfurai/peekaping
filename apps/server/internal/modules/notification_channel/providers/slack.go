@@ -216,12 +216,6 @@ func (s *SlackSender) Send(
 	// Prepare template bindings
 	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
 
-	// Debug template bindings
-	if s.logger != nil {
-		jsonDebug, _ := json.MarshalIndent(bindings, "", "  ")
-		s.logger.Debugf("Template bindings: %s", string(jsonDebug))
-	}
-
 	// Prepare message text
 	messageText := message
 	if cfg.UseTemplate && cfg.Template != "" {

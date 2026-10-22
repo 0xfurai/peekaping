@@ -3,6 +3,7 @@ package providers
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -120,6 +121,68 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 				assert.NotContains(t, logged, secret)
 			}
 			assert.Contains(t, strings.ToLower(logged), tc.channel+" notification sent", "the log says which channel the send went to and that it succeeded")
+		})
+	}
+}
+
+// stubTransport answers every request with 200, so a sender with a fixed endpoint (LINE,
+// Slack's API) can run without the network
+type stubTransport struct{}
+
+func (stubTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Status:     "200 OK",
+		Body:       io.NopCloser(strings.NewReader(`{"ok": true}`)),
+		Header:     http.Header{},
+		Request:    req,
+	}, nil
+}
+
+// Template bindings hold the whole monitor: its config (basic auth password, tokens, DSNs) and
+// push token. A channel that renders a template must not dump them into its debug logs.
+func TestSenders_DoNotLogTheMonitorsConfig(t *testing.T) {
+	client := &http.Client{Transport: stubTransport{}}
+	m := &monitor.Model{
+		ID:        "mon-1",
+		Name:      "Public API",
+		Type:      "http",
+		Config:    `{"url": "https://example.com", "authMethod": "basic", "basic_auth_pass": "secret-monitor-password"}`,
+		PushToken: "secret-push-token",
+	}
+
+	cases := []struct {
+		name string
+		send func(logger *zap.SugaredLogger) error
+	}{
+		{"slack", func(logger *zap.SugaredLogger) error {
+			cfg := `{"slack_webhook_url": "https://hooks.slack.com/services/T000/B000/xxx"}`
+			return NewSlackSender(logger, &config.Config{}, client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
+		}},
+		{"telegram", func(logger *zap.SugaredLogger) error {
+			cfg := `{"bot_token": "123456:token", "chat_id": "42", "use_template": true, "template": "{{ name }} is {{ status }}"}`
+			return NewTelegramSender(logger, client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
+		}},
+		{"line", func(logger *zap.SugaredLogger) error {
+			cfg := `{"channel_access_token": "token", "user_id": "user", "template": "{{ name }} is {{ status }}"}`
+			return NewLineSender(logger, client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
+		}},
+		{"discord", func(logger *zap.SugaredLogger) error {
+			cfg := `{"webhook_url": "https://discord.com/api/webhooks/1/xxx"}`
+			return NewDiscordSender(logger, client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
+		}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			core, logs := observer.New(zap.DebugLevel)
+
+			require.NoError(t, tc.send(zap.New(core).Sugar()))
+
+			logged := loggedText(logs)
+			assert.NotContains(t, logged, "secret-monitor-password")
+			assert.NotContains(t, logged, "secret-push-token")
+			assert.NotContains(t, logged, "basic_auth_pass")
 		})
 	}
 }
