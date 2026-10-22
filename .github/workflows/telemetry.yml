@@ -1,0 +1,99 @@
+name: Telemetry Worker
+
+# Tests apps/telemetry on pull requests and deploys it to Cloudflare when main changes.
+# The test job runs PR code and gets no secrets. Only the deploy job gets them: it runs only for a push to main,
+# after the tests pass, in the `cloudflare` environment, which only main may use.
+# The site workflows don't cover this app: they ship static assets, this one ships a Worker with code.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/telemetry/**'
+      - 'package.json'
+      - 'bun.lock'
+      - '.github/workflows/telemetry.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/telemetry/**'
+      - 'package.json'
+      - 'bun.lock'
+      - '.github/workflows/telemetry.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/telemetry
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Cache Bun packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile --filter telemetry
+
+      - name: Check types
+        run: bun run check-types
+
+      - name: Test
+        run: bun test
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: cloudflare
+    permissions:
+      contents: read
+    concurrency:
+      group: deploy-telemetry
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: apps/telemetry
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile --filter telemetry
+
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bunx wrangler deploy

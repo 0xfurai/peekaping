@@ -8,12 +8,9 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/monitor_notification"
-	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/worker"
+	"peekaping/internal/reporting"
 
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -24,11 +21,9 @@ import (
 func NewProducer(
 	rdb *redis.Client,
 	runner check.Runner,
-	monitorService monitor.Service,
+	monitorService MonitorFinder,
 	loader *check.Loader,
-	monitorNotificationSvc monitor_notification.Service,
-	settingService shared.SettingService,
-	heartbeatService heartbeat.Service,
+	heartbeatService stale.HeartbeatFinder,
 	staleStore stale.Store,
 	eventBus events.EventBus,
 	leaderElection *LeaderElection,
@@ -48,8 +43,6 @@ func NewProducer(
 		runner:                  runner,
 		monitorService:          monitorService,
 		loader:                  loader,
-		monitorNotificationSvc:  monitorNotificationSvc,
-		settingService:          settingService,
 		logger:                  logger.With("component", "producer"),
 		ctx:                     ctx,
 		cancel:                  cancel,
@@ -89,7 +82,7 @@ func (p *Producer) Start() error {
 
 	// Start a goroutine to monitor leadership changes for monitor syncing
 	p.wg.Add(1)
-	go p.runLeadershipMonitor()
+	reporting.Go("producer", p.runLeadershipMonitor)
 
 	p.logger.Info("Producer started successfully")
 	return nil

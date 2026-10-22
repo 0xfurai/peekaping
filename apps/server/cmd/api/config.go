@@ -62,6 +62,17 @@ type Config struct {
 	// Set to true to expose an unauthenticated /metrics endpoint for Prometheus
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
+
+	// Usage ping (ADR 0003): off until an admin opts in. TELEMETRY=off and DO_NOT_TRACK=1 force
+	// it off, and TELEMETRY_URL moves where it is sent.
+	Telemetry    string `env:"TELEMETRY"`
+	DoNotTrack   string `env:"DO_NOT_TRACK"`
+	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
+
+	// Error reports (ADR 0003): off until an admin opts in. ERROR_REPORTING=off and DO_NOT_TRACK=1
+	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
+	ErrorReporting    string `env:"ERROR_REPORTING"`
+	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -162,5 +173,10 @@ func (c *Config) ToInternalConfig() *config.Config {
 		TrustedProxies:               c.TrustedProxies,
 		ServiceName:                  c.ServiceName,
 		MetricsEnabled:               c.MetricsEnabled,
+		Telemetry:                    c.Telemetry,
+		DoNotTrack:                   c.DoNotTrack,
+		TelemetryURL:                 c.TelemetryURL,
+		ErrorReporting:               c.ErrorReporting,
+		ErrorReportingDSN:            c.ErrorReportingDSN,
 	}
 }

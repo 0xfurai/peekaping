@@ -5,11 +5,13 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/certificate"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
@@ -27,10 +29,19 @@ func RegisterSingle(container *dig.Container, cfg *config.Config) error {
 		return err
 	}
 	return errors.Join(
-		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, provideInOrderIngester),
+		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, provideInOrderIngester, provideSingleMode, provideSingleClaimer, provideSingleSwitch),
 		scheduler.RegisterDependencies(container),
 	)
 }
+
+// provideSingleMode tells the usage ping that this install runs in single mode
+func provideSingleMode() telemetry.Mode { return telemetry.ModeSingle }
+
+// provideSingleClaimer provides the claimer of the usage ping: the one process always sends
+func provideSingleClaimer() telemetry.Claimer { return telemetry.AlwaysClaimer{} }
+
+// provideSingleSwitch provides the error reporting switch: the one process is the only one to tell
+func provideSingleSwitch() error_reporting.Switch { return error_reporting.LocalSwitch{} }
 
 // provideMemoryEventBus provides the event bus that never leaves the process
 func provideMemoryEventBus(logger *zap.SugaredLogger) events.EventBus {

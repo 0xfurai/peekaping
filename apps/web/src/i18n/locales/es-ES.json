@@ -16,6 +16,7 @@
       "have_account": "¿Ya tienes una cuenta?",
       "sign_in": "Iniciar sesión",
       "submit": "Crear",
+      "telemetry_hint": "Desactivado salvo que marque esta casilla. Puede cambiarlo más tarde en «Configuración». Si la marca, Peekaping envía esto como máximo una vez al día:",
       "title": "Hola"
     },
     "twofa": {
@@ -83,6 +84,12 @@
     "up": "En línea",
     "update": "Actualizar",
     "verifying": "Verificando..."
+  },
+  "error_reporting": {
+    "label": "Enviar informes de errores",
+    "never_sent": "Nunca se envía: mensajes de error, URL, cabeceras, URL de webhooks, nombres ni nombres de host. Un informe no contiene ninguna dirección IP, y el proyecto de Sentry de Peekaping está configurado para no almacenar la IP del remitente. Con su propio ERROR_REPORTING_DSN, deciden los ajustes de su Sentry o GlitchTip.",
+    "not_saved": "No se guardó su elección de enviar informes de errores. Actívela en «Configuración».",
+    "sent": "Solo se envía cuando falla el propio Peekaping. Un informe contiene el tipo de error y el lugar del código donde ocurrió, la versión de Peekaping, el modo único o de clúster, el backend de almacenamiento y el sistema operativo."
   },
   "forms": {
     "labels": {
@@ -1272,6 +1279,20 @@
       "description": "Establecer cuántos días conservar los datos (KEEP_DATA_PERIOD_DAYS).",
       "title": "Período de retención de datos"
     },
+    "error_reporting": {
+      "cluster_note": "En modo clúster, un cambio llega a todos los procesos en menos de un minuto.",
+      "description": "Envía un informe a Sentry cuando el servidor falla. Desactivado hasta que lo active.",
+      "forced_off": "La variable de entorno ERROR_REPORTING=off o DO_NOT_TRACK=1 lo desactiva. No se envía nada, diga lo que diga este ajuste.",
+      "title": "Informes de errores"
+    },
+    "telemetry": {
+      "description": "Envía estadísticas anónimas sobre cómo está configurada esta instalación, como máximo una vez al día. Desactivado hasta que lo active.",
+      "forced_off": "La variable de entorno TELEMETRY=off o DO_NOT_TRACK=1 lo desactiva. No se envía nada, diga lo que diga este ajuste.",
+      "id_note": "El ID de instancia se crea al activarlo y se elimina al desactivarlo. Si lo activa de nuevo, se crea uno nuevo.",
+      "payload_off": "No se envía nada mientras esté desactivado. Esto es lo que contendría un ping de uso si lo activara.",
+      "payload_title": "Qué enviará el próximo ping de uso",
+      "title": "Estadísticas de uso"
+    },
     "timezone": {
       "description": "Selecciona tu zona horaria preferida para mostrar todas las horas en la aplicación.",
       "label": "Zona horaria",
@@ -1367,6 +1388,17 @@
     },
     "new_page_name": "Nueva etiqueta",
     "search_placeholder": "Buscar etiquetas..."
+  },
+  "telemetry": {
+    "docs_link": "Qué se envía y cómo desactivarlo",
+    "label": "Enviar estadísticas de uso anónimas",
+    "never_sent": "Nunca se envía: nombres de monitores, URL, hosts, etiquetas, direcciones de páginas de estado ni ajustes de notificaciones. Un ping de uso no contiene ninguna dirección IP, y el Worker de Peekaping no registra la IP del remitente.",
+    "not_saved": "No se guardó su elección de enviar estadísticas de uso. Actívela en «Configuración».",
+    "sent_features": "Si usa páginas de estado, ventanas de mantenimiento y métricas",
+    "sent_id": "Un ID aleatorio, que se crea al activarlo y se elimina al desactivarlo",
+    "sent_monitors": "Cuántos monitores tiene, como un rango, por ejemplo 11-50",
+    "sent_setup": "La versión de Peekaping, el modo único o de clúster, el backend de almacenamiento, y el sistema operativo y el tipo de CPU",
+    "sent_types": "Los tipos de monitores y de canales de notificación que usa, como http o telegram"
   },
   "theme": {
     "dark": "Oscuro",

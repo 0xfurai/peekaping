@@ -23,9 +23,11 @@ import (
 
 	"peekaping/internal"
 	"peekaping/internal/app"
+	"peekaping/internal/httpx"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
+	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/metrics"
@@ -37,7 +39,9 @@ import (
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
+	"peekaping/internal/reporting"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 	"peekaping/internal/web"
@@ -50,6 +54,9 @@ import (
 
 // readHeaderTimeout is how long a client has to send a request's headers
 const readHeaderTimeout = 10 * time.Second
+
+// errorReportingFlush is how long the shutdown waits for the error reports still queued
+const errorReportingFlush = 2 * time.Second
 
 // timeouts bound the steps of the shutdown. Each step has a share of its own, so that a step
 // that runs late doesn't take the time of the steps after it: the background jobs get theirs
@@ -70,7 +77,14 @@ func (t timeouts) total() time.Duration { return t.HTTP + t.Jobs + t.EventBus }
 // shutdownTimeouts are peekaping's, 30 seconds in all. A test may shorten them.
 var shutdownTimeouts = timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, EventBus: 5 * time.Second}
 
+// telemetrySchedule is when the usage ping sender checks whether a ping is due. A test may shorten
+// it.
+var telemetrySchedule = telemetry.DefaultSchedule
+
 func main() {
+	// A panic that ends the process is reported before it does, if the admin opted in
+	defer reporting.ReportCrash("main")
+
 	utils.RegisterCustomValidators()
 
 	cfg, err := LoadAndValidate("../..")
@@ -153,6 +167,9 @@ type parts struct {
 	NotificationListener *notification_channel.NotificationEventListener
 	MonitorListener      *monitor.MonitorEventListener
 	Metrics              *metrics.Collector
+	UsagePing            *telemetry.Sender
+	ErrorReporting       error_reporting.Service
+	TrustedProxies       *httpx.TrustedProxies
 }
 
 // run starts Peekaping and serves the API on the listener until ctx is done. Then it stops
@@ -165,27 +182,36 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	}
 
 	container := dig.New()
-	if err := app.RegisterSingle(container, cfg.ToInternalConfig()); err != nil {
+	internalCfg := cfg.ToInternalConfig()
+	if err := app.RegisterSingle(container, internalCfg); err != nil {
 		return fmt.Errorf("failed to register dependencies: %w", err)
 	}
 	// Every module logs through the caller's logger
 	if err := container.Decorate(func() *zap.SugaredLogger { return logger }); err != nil {
 		return fmt.Errorf("failed to decorate the logger: %w", err)
 	}
+	// Error reports stay off until startJobs applies the admin's choice. The reports still queued
+	// go out as the process ends.
+	if err := app.SetupErrorReporting(container, internalCfg); err != nil {
+		return fmt.Errorf("failed to set up error reporting: %w", err)
+	}
+	defer reporting.Flush(errorReportingFlush)
 	var p parts
 	if err := container.Invoke(func(resolved parts) { p = resolved }); err != nil {
 		return fmt.Errorf("failed to build peekaping: %w", err)
 	}
 
 	// The API router serves every request. With WEB_DIR set, the gateway sends it the API's
-	// paths and serves the web app on the others.
+	// paths and serves the web app on the others. The gateway answers some requests itself, so
+	// it gets the request ID and the request log too. The router's own pass a request that comes
+	// through the gateway.
 	handler := http.Handler(p.Server.Router)
 	if cfg.WebDir != "" {
 		gateway, err := web.NewGateway(web.Config{Dir: cfg.WebDir, APIURL: cfg.APIURL, Metrics: cfg.MetricsEnabled}, p.Server.Router, logger)
 		if err != nil {
 			return fmt.Errorf("failed to serve the web app from WEB_DIR: %w", err)
 		}
-		handler = gateway
+		handler = httpx.Chain(gateway, httpx.RequestID, httpx.Logger(logger, p.TrustedProxies))
 	}
 
 	jobs, err := startJobs(ctx, p, cfg.MetricsEnabled, logger)
@@ -232,23 +258,30 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 
 // jobs are the background jobs run starts, and how to stop them
 type jobs struct {
-	scheduler    *scheduler.Scheduler
-	stopWatchdog context.CancelFunc
-	watchdogDone chan struct{}
-	cleanup      *cron.Cron
-	stopRepair   context.CancelFunc
-	repairDone   chan struct{}
-	stopMetrics  context.CancelFunc
-	metricsDone  <-chan struct{}
+	scheduler     *scheduler.Scheduler
+	stopWatchdog  context.CancelFunc
+	watchdogDone  chan struct{}
+	cleanup       *cron.Cron
+	stopRepair    context.CancelFunc
+	repairDone    chan struct{}
+	stopMetrics   context.CancelFunc
+	metricsDone   <-chan struct{}
+	stopUsagePing context.CancelFunc
+	usagePingDone <-chan struct{}
 }
 
 // startJobs starts what cmd/api starts beside the server (the cleanup cron, the settings, the
-// listeners, the status repair and the metrics collector), the stats aggregation that
-// cmd/ingester starts, and the scheduler and its watchdog in place of cmd/producer. Each runs
+// listeners, the status repair, the metrics collector and the usage ping), the stats aggregation
+// that cmd/ingester starts, and the scheduler and its watchdog in place of cmd/producer. Each runs
 // once: this process is the only one, and so always the leader.
 func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
+	}
+
+	// The admin's choice from before the restart. A failure leaves error reports off.
+	if err := p.ErrorReporting.Apply(ctx); err != nil {
+		logger.Warnw("Failed to apply the error reporting choice, leaving error reports off", "error", err)
 	}
 
 	j := &jobs{scheduler: p.Scheduler}
@@ -265,7 +298,7 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 	var repairCtx context.Context
 	repairCtx, j.stopRepair = context.WithCancel(context.Background())
 	j.repairDone = make(chan struct{})
-	go func() {
+	reporting.Go("repair", func() {
 		defer close(j.repairDone)
 		repaired, err := p.Monitors.RepairStoredStatuses(repairCtx)
 		if errors.Is(err, context.Canceled) {
@@ -277,7 +310,7 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 			return
 		}
 		logger.Infow("Repaired monitor statuses", "repaired", repaired)
-	}()
+	})
 
 	var metricsCtx context.Context
 	metricsCtx, j.stopMetrics = context.WithCancel(context.Background())
@@ -302,20 +335,30 @@ func startJobs(ctx context.Context, p parts, metricsEnabled bool, logger *zap.Su
 	var watchdogCtx context.Context
 	watchdogCtx, j.stopWatchdog = context.WithCancel(context.Background())
 	j.watchdogDone = make(chan struct{})
-	go func() {
+	reporting.Go("watchdog", func() {
 		defer close(j.watchdogDone)
 		p.Watchdog.Run(watchdogCtx)
-	}()
+	})
+
+	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. It runs
+	// once: this process is the only one, so there is no claim to win.
+	var usagePingCtx context.Context
+	usagePingCtx, j.stopUsagePing = context.WithCancel(context.Background())
+	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetrySchedule)
 
 	return j, nil
 }
 
-// stop stops the background jobs and waits for them until ctx is done. The watchdog stops first,
-// since it gets the stale monitors checked through the scheduler. The scheduler cancels its
-// running checks and waits for them.
+// stop stops the background jobs and waits for them until ctx is done. The usage ping stops
+// first, since it is the least needed. The watchdog stops before the scheduler, since it gets the
+// stale monitors checked through the scheduler. The scheduler cancels its running checks and
+// waits for them.
 func (j *jobs) stop(ctx context.Context) error {
+	j.stopUsagePing()
+	errs := []error{await(ctx, "the usage ping", j.usagePingDone)}
+
 	j.stopWatchdog()
-	errs := []error{await(ctx, "the watchdog", j.watchdogDone)}
+	errs = append(errs, await(ctx, "the watchdog", j.watchdogDone))
 
 	schedulerDone := make(chan struct{})
 	go func() {

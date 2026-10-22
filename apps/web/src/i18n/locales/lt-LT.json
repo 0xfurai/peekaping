@@ -16,6 +16,7 @@
       "have_account": "Ar jau turite paskyrą?",
       "sign_in": "Prisijungti",
       "submit": "Sukurti",
+      "telemetry_hint": "Išjungta, nebent pažymėsite šį langelį. Vėliau tai galite pakeisti skiltyje „Nustatymai“. Jei pažymėsite, Peekaping tai siunčia ne dažniau kaip kartą per dieną:",
       "title": "Sveiki"
     },
     "twofa": {
@@ -83,6 +84,12 @@
     "up": "Veikia",
     "update": "Atnaujinti",
     "verifying": "Tikrinama..."
+  },
+  "error_reporting": {
+    "label": "Siųsti pranešimus apie klaidas",
+    "never_sent": "Niekada nesiunčiama: klaidų pranešimai, URL, antraštės, webhook URL, pavadinimai ar serverių pavadinimai. Pranešime nėra IP adreso, o Peekaping Sentry projektas nustatytas taip, kad nesaugotų siuntėjo IP. Jei naudojate savo ERROR_REPORTING_DSN, tai lemia jūsų Sentry ar GlitchTip nustatymai.",
+    "not_saved": "Jūsų pasirinkimas siųsti pranešimus apie klaidas neišsaugotas. Įjunkite jį skiltyje „Nustatymai“.",
+    "sent": "Siunčiama tik tada, kai sugenda pats Peekaping. Pranešime yra klaidos tipas ir vieta kode, kurioje ji įvyko, Peekaping versija, vieno proceso ar klasterio režimas, saugyklos pagrindas ir operacinė sistema."
   },
   "forms": {
     "labels": {
@@ -1272,6 +1279,20 @@
       "description": "Nustatykite, kiek dienų laikyti duomenis (KEEP_DATA_PERIOD_DAYS).",
       "title": "Duomenų saugojimo laikotarpis"
     },
+    "error_reporting": {
+      "cluster_note": "Klasterio režimu pakeitimas pasiekia kiekvieną procesą per minutę.",
+      "description": "Siųsti pranešimą į Sentry, kai sugenda serveris. Išjungta, kol neįjungsite.",
+      "forced_off": "Aplinkos kintamasis ERROR_REPORTING=off arba DO_NOT_TRACK=1 tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "title": "Pranešimai apie klaidas"
+    },
+    "telemetry": {
+      "description": "Siųsti anonimišką statistiką apie tai, kaip sukonfigūruotas šis diegimas, ne dažniau kaip kartą per dieną. Išjungta, kol neįjungsite.",
+      "forced_off": "Aplinkos kintamasis TELEMETRY=off arba DO_NOT_TRACK=1 tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "id_note": "Egzemplioriaus ID sukuriamas, kai tai įjungiate, ir ištrinamas, kai išjungiate. Įjungus iš naujo, sukuriamas naujas.",
+      "payload_off": "Kol tai išjungta, niekas nesiunčiama. Štai ką naudojimo pingas turėtų, jei tai įjungtumėte.",
+      "payload_title": "Ką išsiųs kitas naudojimo pingas",
+      "title": "Naudojimo statistika"
+    },
     "timezone": {
       "description": "Pasirinkite pageidaujamą laiko juostą, pagal kurią bus rodomi visi laikai programoje.",
       "label": "Laiko juosta",
@@ -1367,6 +1388,17 @@
     },
     "new_page_name": "Nauja žyma",
     "search_placeholder": "Ieškoti žymų..."
+  },
+  "telemetry": {
+    "docs_link": "Kas siunčiama ir kaip tai išjungti",
+    "label": "Siųsti anonimišką naudojimo statistiką",
+    "never_sent": "Niekada nesiunčiama: monitorių pavadinimai, URL, serveriai, žymos, būsenos puslapių adresai ar pranešimų nustatymai. Naudojimo pinge nėra IP adreso, o Peekaping Worker nesaugo siuntėjo IP.",
+    "not_saved": "Jūsų pasirinkimas siųsti naudojimo statistiką neišsaugotas. Įjunkite jį skiltyje „Nustatymai“.",
+    "sent_features": "Ar naudojate būsenos puslapius, priežiūros langus ir metrikas",
+    "sent_id": "Atsitiktinis ID, kuris sukuriamas, kai tai įjungiate, ir ištrinamas, kai išjungiate",
+    "sent_monitors": "Kiek turite monitorių, kaip intervalą, pavyzdžiui, 11-50",
+    "sent_setup": "Peekaping versija, vieno proceso ar klasterio režimas, saugyklos pagrindas, taip pat operacinė sistema ir procesoriaus tipas",
+    "sent_types": "Naudojamų monitorių ir pranešimų kanalų rūšys, pavyzdžiui, http arba telegram"
   },
   "theme": {
     "dark": "Tamsus",

@@ -250,7 +250,9 @@ func normalizeRequest(registry huma.Registry, t reflect.Type) {
 		if property == nil {
 			continue
 		}
-		if f.Type.Kind() == reflect.Pointer {
+		// A pointer field accepts null, as the validator treats it as unset. A field the validator
+		// requires rejects null, so it opts out with `nullable:"false"`.
+		if f.Type.Kind() == reflect.Pointer && f.Tag.Get("nullable") != "false" {
 			property.Nullable = true
 		}
 		rules := strings.Split(f.Tag.Get("validate"), ",")

@@ -19,9 +19,8 @@ import (
 
 const monitorID = "mon-1"
 
-// fakeMonitorService finds one monitor; the loader uses no other method
+// fakeMonitorService finds one monitor
 type fakeMonitorService struct {
-	monitor.Service
 	mon *monitor.Model
 	err error
 }
@@ -38,7 +37,6 @@ func (s *fakeMonitorService) FindByID(_ context.Context, id string) (*monitor.Mo
 
 // fakeProxyService finds proxies by ID
 type fakeProxyService struct {
-	proxy.Service
 	proxies map[string]*proxy.Model
 	err     error
 }
@@ -52,7 +50,6 @@ func (s *fakeProxyService) FindByID(_ context.Context, id string) (*proxy.Model,
 
 // fakeMaintenanceService has maintenance windows for the monitor, some of them active
 type fakeMaintenanceService struct {
-	maintenance.Service
 	windows []*maintenance.Model
 	active  map[string]bool
 	listErr error
@@ -74,7 +71,6 @@ func (s *fakeMaintenanceService) IsUnderMaintenance(_ context.Context, m *mainte
 // fakeHeartbeatService returns a monitor's latest heartbeat, and fails the test if asked
 // for a monitor that isn't expected to read one
 type fakeHeartbeatService struct {
-	heartbeat.Service
 	t      *testing.T
 	latest []*heartbeat.Model
 	err    error
