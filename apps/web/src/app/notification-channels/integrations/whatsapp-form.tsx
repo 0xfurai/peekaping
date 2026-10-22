@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormContext } from "react-hook-form";
@@ -16,7 +17,7 @@ import { useFormContext } from "react-hook-form";
 export const schema = z.object({
   type: z.literal("whatsapp"),
   server_url: z.string().url({ message: "Server URL must be a valid URL" }),
-  api_key: z.string().optional(),
+  api_key: withSavedSecret(z.string()).optional(),
   phone_number: z.string().min(1, { message: "Phone number is required" }),
   session: z.string().min(1, { message: "Session is required" }),
   use_template: z.boolean().optional(),
@@ -76,7 +77,7 @@ export default function WhatsAppForm() {
             <FormItem>
               <FormLabel>API Key</FormLabel>
               <FormControl>
-                <PasswordInput
+                <SecretInput
                   placeholder="Your WAHA API key"
                   {...field}
                 />

@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormContext } from "react-hook-form";
@@ -20,7 +21,7 @@ export const schema = z.object({
   smtp_host: z.string(),
   smtp_port: z.coerce.number().min(1, { message: "Port is required" }),
   username: z.string().min(1, { message: "Username is required" }),
-  password: z.string().min(1, { message: "Password is required" }),
+  password: withSavedSecret(z.string().min(1, { message: "Password is required" })),
   from: z.string().email({ message: "Sender email is required" }),
   to: z.string().min(1, { message: "Recipient(s) required" }),
   cc: z.string().optional(),
@@ -121,7 +122,7 @@ export default function SmtpForm() {
           <FormItem>
             <FormLabel>{t("forms.labels.password")}</FormLabel>
             <FormControl>
-              <PasswordInput placeholder={t("notifications.form.smtp.smtp_password_placeholder")} {...field} />
+              <SecretInput placeholder={t("notifications.form.smtp.smtp_password_placeholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

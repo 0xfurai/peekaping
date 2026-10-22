@@ -1,4 +1,3 @@
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -8,6 +7,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { useFormContext } from "react-hook-form";
 import {
   Select,
@@ -21,7 +22,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 export const schema = z.object({
   type: z.literal("opsgenie"),
   region: z.enum(["us", "eu"], { message: "Region is required" }),
-  api_key: z.string().min(1, { message: "API key is required" }),
+  api_key: withSavedSecret(z.string().min(1, { message: "API key is required" })),
   priority: z.number().min(1).max(5).optional(),
 });
 
@@ -80,7 +81,7 @@ export default function OpsgenieForm() {
               {t("notifications.form.opsgenie.api_key_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder="Enter your Opsgenie API key"
                 required
                 {...field}

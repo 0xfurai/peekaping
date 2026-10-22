@@ -8,7 +8,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors, type Resolver } from "react-hook-form";
 import {
   Select,
   SelectContent,
@@ -46,9 +46,17 @@ import * as PagerTreeForm from "../integrations/pagertree";
 import * as LineForm from "../integrations/line-form";
 import * as TeamsForm from "../integrations/teams-form";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import {
+  REENTER_ERROR_MESSAGE,
+  REENTER_ERROR_TYPE,
+  secretsToReenter,
+  withoutSavedSecrets,
+  withoutUnaskedSecrets,
+} from "../secrets";
+import { SavedSecrets } from "./saved-secrets";
 
 const typeFormRegistry = {
   smtp: SmtpForm,
@@ -144,20 +152,48 @@ export default function CreateEditNotificationChannel({
   },
   isLoading = false,
   mode = "create",
+  channelId,
 }: {
   onSubmit: (data: NotificationForm) => void;
   initialValues?: NotificationForm;
   isLoading?: boolean;
   mode?: "create" | "edit";
+  // The saved channel being edited
+  channelId?: string;
 }) {
   const { t } = useLocalizedTranslation();
+  // A saved config lacks any field added to its type since it was stored
+  const [openingValues] = useState(() => ({
+    ...typeFormRegistry[initialValues.type]?.defaultValues,
+    ...initialValues,
+  }));
+  // The values the saved channel opened the form with: its secrets are the placeholder
+  const savedValues = mode === "edit" ? openingValues : undefined;
+  // The secrets whose fields are on the form, kept up to date by SavedSecrets
+  const shownSecrets = useRef(new Set<string>());
+  // The server keeps a saved secret only while the channel sends to the same place. A secret
+  // still holding the placeholder after an endpoint moved is refused with an error on its field,
+  // until it is typed again or removed. One whose field isn't shown is not asked for: it is sent
+  // empty (see withoutUnaskedSecrets).
+  const resolver = useMemo<Resolver<NotificationForm>>(() => {
+    const validate = zodResolver(notificationSchema);
+    return async (values, context, options) => {
+      const result = await validate(values, context, options);
+      const reenter = savedValues
+        ? secretsToReenter(values, savedValues).filter((key) => shownSecrets.current.has(key))
+        : [];
+      if (reenter.length === 0) return result;
+
+      const errors: Record<string, unknown> = { ...result.errors };
+      for (const key of reenter) {
+        errors[key] = { type: REENTER_ERROR_TYPE, message: REENTER_ERROR_MESSAGE };
+      }
+      return { values: {}, errors: errors as FieldErrors<NotificationForm> };
+    };
+  }, [savedValues]);
   const baseForm = useForm<NotificationForm>({
-    resolver: zodResolver(notificationSchema),
-    // A saved config lacks any field added to its type since it was stored
-    defaultValues: {
-      ...typeFormRegistry[initialValues.type]?.defaultValues,
-      ...initialValues,
-    },
+    resolver,
+    defaultValues: openingValues,
   });
 
   const type = baseForm.watch("type");
@@ -165,17 +201,22 @@ export default function CreateEditNotificationChannel({
   const TypeFormComponent =
     typeFormRegistry[type as keyof typeof typeFormRegistry]?.default || null;
 
+  const previousType = useRef(type);
   useEffect(() => {
-    if (type === initialValues?.type) return;
-    if (!type) return;
+    if (!type || type === previousType.current) return;
+    previousType.current = type;
 
-    const values = baseForm.getValues();
-    baseForm.reset({
-      ...values,
-      ...(typeFormRegistry[type as keyof typeof typeFormRegistry]
-        .defaultValues || {}),
-    });
-  }, [type, baseForm, initialValues?.type]);
+    // A saved secret shows as a placeholder, which only stands for a secret of the saved
+    // channel's type: no other type keeps it
+    const values = withoutSavedSecrets(baseForm.getValues());
+    // Back to the type the form opened with, it has the values the form opened with
+    const typeValues =
+      type === openingValues.type
+        ? openingValues
+        : typeFormRegistry[type as keyof typeof typeFormRegistry]
+            .defaultValues || {};
+    baseForm.reset({ ...values, ...typeValues, name: values.name });
+  }, [type, baseForm, openingValues]);
 
   const testNotifierMutation = useMutation({
     ...postNotificationChannelsTestMutation(),
@@ -188,7 +229,27 @@ export default function CreateEditNotificationChannel({
   // Handle test notification
   function handleTest() {
     const values = baseForm.getValues();
-    const { name, type, ...typeConfig } = values;
+
+    // The same refusal as saving: a saved secret that can't be kept is not sent
+    const reenter = savedValues
+      ? secretsToReenter(values, savedValues).filter((key) => shownSecrets.current.has(key))
+      : [];
+    if (reenter.length > 0) {
+      reenter.forEach((key, index) =>
+        baseForm.setError(
+          key as Parameters<typeof baseForm.setError>[0],
+          { type: REENTER_ERROR_TYPE, message: REENTER_ERROR_MESSAGE },
+          { shouldFocus: index === 0 }
+        )
+      );
+      return;
+    }
+
+    const { name, type, ...typeConfig } = withoutUnaskedSecrets(
+      values,
+      savedValues,
+      shownSecrets.current
+    );
     testNotifierMutation.mutate({
       body: {
         name,
@@ -196,6 +257,8 @@ export default function CreateEditNotificationChannel({
         config: JSON.stringify(typeConfig),
         active: true,
         is_default: false,
+        // The saved channel: secrets the form leaves as placeholders are the ones it has stored
+        id: channelId,
       },
     });
   }
@@ -208,7 +271,9 @@ export default function CreateEditNotificationChannel({
 
       <Form {...baseForm}>
         <form
-          onSubmit={baseForm.handleSubmit(onSubmit)}
+          onSubmit={baseForm.handleSubmit((data) =>
+            onSubmit(withoutUnaskedSecrets(data, savedValues, shownSecrets.current))
+          )}
           className="space-y-6 max-w-[600px]"
         >
           <FormItem>
@@ -277,7 +342,9 @@ export default function CreateEditNotificationChannel({
             )}
           />
 
-          {TypeFormComponent && <TypeFormComponent />}
+          <SavedSecrets saved={savedValues} shown={shownSecrets}>
+            {TypeFormComponent && <TypeFormComponent />}
+          </SavedSecrets>
 
           <div className="flex gap-2">
             <Button type="submit" disabled={isLoading}>

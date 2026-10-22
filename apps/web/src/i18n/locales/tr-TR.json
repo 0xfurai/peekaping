@@ -1114,7 +1114,13 @@
     "placeholders": {
       "select_type": "Bildirim türünü seçin"
     },
-    "search_placeholder": "İsimle bildirim kanallarını ara..."
+    "search_placeholder": "İsimle bildirim kanallarını ara...",
+    "secret": {
+      "reenter_error": "Bu gizli anahtarı yeniden girin veya kaldırın: gönderildiği yer değişti",
+      "reenter_hint": "Bu gizli anahtarı yeniden girin: gönderildiği yer değişti",
+      "remove": "Kaldır",
+      "saved_hint": "Kaydedildi — değiştirmek için yazın"
+    }
   },
   "probes": {
     "page_name": "Problar",
