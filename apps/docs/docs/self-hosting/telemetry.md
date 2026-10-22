@@ -19,7 +19,7 @@ A usage ping has these fields and no others:
 | `mode` | `single` or `cluster`. See [Deployment modes](./deployment-modes.md). |
 | `db` | The storage backend: `sqlite`, `postgres`, `mongo` or `mysql` |
 | `os` | The operating system and CPU architecture, such as `linux/arm64` |
-| `monitors` | How many monitors you have, paused ones included, as a range: `0`, `1-10`, `11-50`, `51-200`, `201-1000` or `1000+` |
+| `monitors` | How many monitors you have, paused ones included, as a range: `0`, `1-10`, `11-50`, `51-200`, `201-1000` or `1000+`. `201-1000` includes 1,000, and `1000+` means more than 1,000. |
 | `monitor_types` | The monitor types you use, as names only, such as `http` or `docker`. Each type is listed once. |
 | `notification_providers` | The notification channel types you use, as names only, such as `slack` or `telegram`. Each type is listed once. |
 | `features` | Whether you have any status page (`status_pages`), any maintenance window (`maintenance`), and whether the metrics endpoint is on (`metrics`). Each is `true` or `false`. |
