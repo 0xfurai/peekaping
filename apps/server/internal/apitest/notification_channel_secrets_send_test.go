@@ -218,10 +218,11 @@ func TestNotificationChannelsAPI_TestFailureDoesNotEchoASavedSecret(t *testing.T
 
 			assert.NotContains(t, w.Body.String(), secretMarker, "the response repeats a saved secret")
 			if c.channelType == "telegram" || c.channelType == "discord" {
-				// The bot token is in the path of the URL, and the webhook URL is the secret
+				// The bot token is in the path of the URL, and the webhook URL is the secret. The
+				// request URL leaves the error whole, so neither is there to be masked.
 				require.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
 				assert.Contains(t, w.Body.String(), "Failed to send test notification")
-				assert.Contains(t, w.Body.String(), secretPlaceholder)
+				assert.Contains(t, w.Body.String(), "[redacted URL]")
 				assert.Contains(t, w.Body.String(), "connection refused", "the cause stays")
 			}
 		})
