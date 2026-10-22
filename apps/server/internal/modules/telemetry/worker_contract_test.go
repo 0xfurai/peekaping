@@ -121,7 +121,7 @@ func TestBuildPayload_PassesTheWorkersRules(t *testing.T) {
 				assert.Regexp(t, osRule, payload.OS)
 				assert.LessOrEqual(t, len(payload.OS), 32)
 				assert.Contains(t, workerList(t, source, "MONITOR_BUCKETS"), payload.Monitors)
-				for _, name := range append(append([]string(nil), payload.MonitorTypes...), payload.NotificationProviders...) {
+				for _, name := range append(append([]string(nil), payload.MonitorTypes...), payload.NotificationChannelTypes...) {
 					assert.Regexp(t, typeRule, name)
 				}
 			})

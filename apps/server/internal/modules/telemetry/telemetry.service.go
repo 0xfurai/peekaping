@@ -251,14 +251,14 @@ func (s *ServiceImpl) build(ctx context.Context, optedIn bool) (Payload, error) 
 	}
 
 	return Payload{
-		InstanceID:            instanceID,
-		Version:               version.Version,
-		Mode:                  string(s.mode),
-		DB:                    storageBackend(s.cfg.DBType),
-		OS:                    runtime.GOOS + "/" + runtime.GOARCH,
-		Monitors:              monitorBucket(monitorCount),
-		MonitorTypes:          sortedNames(monitorTypes),
-		NotificationProviders: sortedNames(channelTypes),
+		InstanceID:               instanceID,
+		Version:                  version.Version,
+		Mode:                     string(s.mode),
+		DB:                       storageBackend(s.cfg.DBType),
+		OS:                       runtime.GOOS + "/" + runtime.GOARCH,
+		Monitors:                 monitorBucket(monitorCount),
+		MonitorTypes:             sortedNames(monitorTypes),
+		NotificationChannelTypes: sortedNames(channelTypes),
 		Features: Features{
 			StatusPages: len(statusPages) > 0,
 			Maintenance: len(maintenances) > 0,
