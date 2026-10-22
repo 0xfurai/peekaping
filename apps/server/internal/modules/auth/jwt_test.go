@@ -705,6 +705,57 @@ func TestTokenMaker_VerifyToken_InvalidSigningMethod(t *testing.T) {
 	mockSettingService.AssertExpectations(t)
 }
 
+// Only HS256 is accepted: a token signed with another HMAC algorithm and the
+// right secret is rejected, as an access token and as a refresh token.
+func TestTokenMaker_VerifyToken_OnlyHS256(t *testing.T) {
+	ctx := context.Background()
+	secrets := map[string]string{
+		"access":  "test-access-secret",
+		"refresh": "test-refresh-secret",
+	}
+	mockSettingService := &MockSettingService{}
+	mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.AccessTokenSecretKey,
+		Value: secrets["access"],
+	}, nil)
+	mockSettingService.On("GetByKey", ctx, shared.RefreshTokenSecretKey).Return(&shared.SettingModel{
+		Key:   shared.RefreshTokenSecretKey,
+		Value: secrets["refresh"],
+	}, nil)
+	tokenMaker := NewTokenMaker(mockSettingService, zap.NewNop().Sugar())
+
+	for tokenType, secret := range secrets {
+		claims := &Claims{
+			UserID: "user123",
+			Email:  "test@example.com",
+			Type:   tokenType,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Hour)),
+				IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
+				NotBefore: jwt.NewNumericDate(time.Now().UTC()),
+			},
+		}
+		sign := func(method jwt.SigningMethod) string {
+			signed, err := jwt.NewWithClaims(method, claims).SignedString([]byte(secret))
+			require.NoError(t, err)
+			return signed
+		}
+
+		t.Run(tokenType+" HS256", func(t *testing.T) {
+			verified, err := tokenMaker.VerifyToken(ctx, sign(jwt.SigningMethodHS256), tokenType)
+			require.NoError(t, err)
+			assert.Equal(t, "user123", verified.UserID)
+		})
+		for _, method := range []jwt.SigningMethod{jwt.SigningMethodHS384, jwt.SigningMethodHS512} {
+			t.Run(tokenType+" "+method.Alg(), func(t *testing.T) {
+				verified, err := tokenMaker.VerifyToken(ctx, sign(method), tokenType)
+				assert.Equal(t, ErrInvalidToken, err)
+				assert.Nil(t, verified)
+			})
+		}
+	}
+}
+
 func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 	mockSettingService := &MockSettingService{}
 	logger := zap.NewNop().Sugar()

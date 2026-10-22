@@ -133,12 +133,10 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 		return nil, ErrInvalidToken
 	}
 
+	// Tokens are signed with HS256 only, so any other algorithm is rejected.
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, ErrInvalidToken
-		}
 		return []byte(secretKey), nil
-	})
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
