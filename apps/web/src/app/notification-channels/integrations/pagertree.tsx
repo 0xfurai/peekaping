@@ -1,6 +1,8 @@
 import { ExternalLink } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 
 import {
   FormControl,
@@ -10,7 +12,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -19,22 +20,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const pagerTreeSchema = z.object({
   type: z.literal("pagertree"),
-  integrationUrl: z
-    .string()
-    .min(1, "Integration URL is required")
-    .url("Please enter a valid URL")
-    .refine(
-      (url) => url.includes("api.pagertree.com/integration/"),
-      "URL must be a valid PagerTree integration endpoint"
-    ),
+  integrationUrl: withSavedSecret(
+    z
+      .string()
+      .min(1, "Integration URL is required")
+      .url("Please enter a valid URL")
+      .refine(
+        (url) => url.includes("api.pagertree.com/integration/"),
+        "URL must be a valid PagerTree integration endpoint"
+      )
+  ),
   urgency: z.enum(["silent", "low", "medium", "high", "critical"]),
   autoResolve: z.boolean(),
-  authToken: z.string().optional(),
+  authToken: withSavedSecret(z.string()).optional(),
 });
 
 export type PagerTreeConfig = z.infer<typeof pagerTreeSchema>;
@@ -64,11 +66,11 @@ const PagerTreeForm = () => {
               {t("notifications.form.pagertree.integration_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <SecretInput
                 placeholder="https://api.pagertree.com/integration/..."
                 required
                 {...field}
-                autoComplete="integration-url"
+                autoComplete="off"
               />
             </FormControl>
             <FormDescription>
@@ -144,7 +146,7 @@ const PagerTreeForm = () => {
           <FormItem>
             <FormLabel>{t("notifications.form.pagertree.authentication_token_label")}</FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder={t("notifications.form.pagertree.authentication_token_placeholder")}
                 {...field}
                 autoComplete="new-password"

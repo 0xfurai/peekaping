@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Välj notifieringstyp"
     },
-    "search_placeholder": "Sök notifikationskanaler efter namn..."
+    "search_placeholder": "Sök notifikationskanaler efter namn...",
+    "secret": {
+      "reenter_error": "Ange den här hemligheten igen eller ta bort den: platsen den skickas till har ändrats",
+      "reenter_hint": "Ange den här hemligheten igen: platsen den skickas till har ändrats",
+      "remove": "Ta bort",
+      "saved_hint": "Sparad — skriv för att ersätta"
+    }
   },
   "proxies": {
     "delete_dialog": {
