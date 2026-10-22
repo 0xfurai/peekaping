@@ -1112,7 +1112,13 @@
     "placeholders": {
       "select_type": "Roghnaigh cineál an fhaisnéiseoir"
     },
-    "search_placeholder": "Cuardaigh canálacha fógraí de réir ainm..."
+    "search_placeholder": "Cuardaigh canálacha fógraí de réir ainm...",
+    "secret": {
+      "reenter_error": "Cuir isteach an rún seo arís nó bain é: tá an áit a seoltar é athraithe",
+      "reenter_hint": "Cuir isteach an rún seo arís: tá an áit a seoltar é athraithe",
+      "remove": "Bain",
+      "saved_hint": "Sábháilte — clóscríobh chun a chur ina ionad"
+    }
   },
   "proxies": {
     "delete_dialog": {

@@ -15,8 +15,8 @@ import (
 )
 
 type PushoverConfig struct {
-	UserKey  string `json:"pushover_user_key" validate:"required"`
-	AppToken string `json:"pushover_app_token" validate:"required"`
+	UserKey  string `json:"pushover_user_key" validate:"required" secret:"true"`
+	AppToken string `json:"pushover_app_token" validate:"required" secret:"true"`
 	Device   string `json:"pushover_device"`
 	Title    string `json:"pushover_title"`
 	Priority int    `json:"pushover_priority" validate:"min=-2,max=2"`

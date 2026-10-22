@@ -17,7 +17,7 @@ import (
 )
 
 type MattermostConfig struct {
-	WebhookURL  string `json:"webhook_url" validate:"required,url"`
+	WebhookURL  string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true"`
 	Username    string `json:"username"`
 	Channel     string `json:"channel"`
 	IconURL     string `json:"icon_url"`

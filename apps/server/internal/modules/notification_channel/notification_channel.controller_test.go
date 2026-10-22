@@ -24,6 +24,8 @@ func (p validatingProvider) Validate(string) error {
 	return p.err
 }
 
+func (validatingProvider) Unmarshal(string) (any, error) { return nil, nil }
+
 type updateRecordingService struct {
 	Service
 	saved   *Model

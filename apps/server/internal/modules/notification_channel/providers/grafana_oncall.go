@@ -19,7 +19,7 @@ import (
 )
 
 type GrafanaOncallConfig struct {
-	GrafanaOncallURL string `json:"grafana_oncall_url" validate:"required,url"`
+	GrafanaOncallURL string `json:"grafana_oncall_url" validate:"required,url" secret:"true" endpoint:"true"`
 }
 
 type GrafanaOncallSender struct {

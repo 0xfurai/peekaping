@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -27,8 +28,8 @@ export const schema = z.object({
   topic: z.string().min(1, { message: "Topic is required" }),
   authentication_type: z.enum(["none", "basic", "token"]),
   username: z.string().optional(),
-  password: z.string().optional(),
-  token: z.string().optional(),
+  password: withSavedSecret(z.string()).optional(),
+  token: withSavedSecret(z.string()).optional(),
   priority: z.coerce.number().min(1).max(5),
   tags: z.string().optional(),
   title: z.string().optional(),
@@ -194,7 +195,7 @@ export default function NtfyForm() {
               <FormItem>
                 <FormLabel>{t("forms.labels.password")}</FormLabel>
                 <FormControl>
-                  <PasswordInput
+                  <SecretInput
                     placeholder="your-password"
                     required
                     {...field}
@@ -215,7 +216,7 @@ export default function NtfyForm() {
             <FormItem>
               <FormLabel>{t("notifications.form.ntfy.token_label")}</FormLabel>
               <FormControl>
-                <PasswordInput
+                <SecretInput
                   placeholder="tk_AgQdq7mVBoFD37zQVN29RhuMzNIz2"
                   required
                   {...field}
