@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/infra"
+	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 
@@ -95,6 +96,14 @@ func insertTxChannel(t *testing.T, db *bun.DB) string {
 	t.Helper()
 	id := uuid.NewString()
 	_, err := db.Exec("INSERT INTO notification_channels (id, name, type) VALUES (?, 'Ops', 'webhook')", id)
+	require.NoError(t, err)
+	return id
+}
+
+func insertTxProxy(t *testing.T, db *bun.DB) string {
+	t.Helper()
+	id := uuid.NewString()
+	_, err := db.Exec("INSERT INTO proxies (id, protocol, host, port) VALUES (?, 'http', 'localhost', 8080)", id)
 	require.NoError(t, err)
 	return id
 }
@@ -193,5 +202,81 @@ func TestMonitorNotificationRepository_RunsInTheTransactionInCtx(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, links, 1, "the rollback undid every write: the deletes and the last link")
 		assert.Equal(t, kept.ID, links[0].ID)
+	})
+}
+
+func TestMonitorRepository_RunsInTheTransactionInCtx(t *testing.T) {
+	forEachTxBackend(t, func(t *testing.T, ctx context.Context, db *bun.DB) {
+		repo := monitor.NewSQLRepository(db)
+		proxyID, tagID := insertTxProxy(t, db), insertTxTag(t, db)
+		newMonitor := func(name, pushToken string) *monitor.Model {
+			return &monitor.Model{Type: "push", Name: name, Interval: 60, Timeout: 16, MaxRetries: 1, RetryInterval: 60, Active: true, Config: `{}`, ProxyId: proxyID, PushToken: pushToken}
+		}
+		kept, err := repo.Create(ctx, newMonitor("kept", "kept-token"))
+		require.NoError(t, err)
+		_, err = db.Exec("INSERT INTO monitor_tags (id, monitor_id, tag_id) VALUES (?, ?, ?)", uuid.NewString(), kept.ID, tagID)
+		require.NoError(t, err)
+
+		// Every method runs in the transaction: each one sees what the ones before it wrote there.
+		err = dbtx.NewSQLTransactor(db).WithTx(ctx, func(ctx context.Context) error {
+			added, err := repo.Create(ctx, newMonitor("added", "added-token"))
+			require.NoError(t, err)
+			found, err := repo.FindByID(ctx, added.ID)
+			require.NoError(t, err)
+			require.NotNil(t, found, "FindByID sees the monitor Create wrote")
+			byIDs, err := repo.FindByIDs(ctx, []string{kept.ID, added.ID})
+			require.NoError(t, err)
+			assert.Len(t, byIDs, 2, "FindByIDs sees both monitors")
+			all, err := repo.FindAll(ctx, 0, 10, "", nil, nil, nil)
+			require.NoError(t, err)
+			assert.Len(t, all, 2, "FindAll sees both monitors")
+			tagged, err := repo.FindAll(ctx, 0, 10, "", nil, nil, []string{tagID})
+			require.NoError(t, err)
+			assert.Len(t, tagged, 1, "FindAll by tag joins the committed link")
+			active, err := repo.FindActive(ctx)
+			require.NoError(t, err)
+			assert.Len(t, active, 2, "FindActive sees both monitors")
+			page, err := repo.FindActivePaginated(ctx, 0, 10)
+			require.NoError(t, err)
+			assert.Len(t, page, 2, "FindActivePaginated sees both monitors")
+			byToken, err := repo.FindOneByPushToken(ctx, "added-token")
+			require.NoError(t, err)
+			require.NotNil(t, byToken, "FindOneByPushToken sees the monitor Create wrote")
+			assert.Equal(t, added.ID, byToken.ID)
+			byProxy, err := repo.FindByProxyId(ctx, proxyID)
+			require.NoError(t, err)
+			assert.Len(t, byProxy, 2, "FindByProxyId sees both monitors")
+
+			renamed := *added
+			renamed.Name = "added-renamed"
+			require.NoError(t, repo.UpdateFull(ctx, added.ID, &renamed))
+			found, err = repo.FindByID(ctx, added.ID)
+			require.NoError(t, err)
+			assert.Equal(t, "added-renamed", found.Name, "UpdateFull updated the monitor Create wrote")
+			name := "kept-renamed"
+			require.NoError(t, repo.UpdatePartial(ctx, kept.ID, &monitor.UpdateModel{Name: &name}))
+			found, err = repo.FindByID(ctx, kept.ID)
+			require.NoError(t, err)
+			assert.Equal(t, "kept-renamed", found.Name, "UpdatePartial updated the committed monitor")
+
+			require.NoError(t, repo.RemoveProxyReference(ctx, proxyID))
+			byProxy, err = repo.FindByProxyId(ctx, proxyID)
+			require.NoError(t, err)
+			assert.Empty(t, byProxy, "RemoveProxyReference cleared both monitors' proxy")
+
+			require.NoError(t, repo.Delete(ctx, added.ID))
+			found, err = repo.FindByID(ctx, added.ID)
+			require.NoError(t, err)
+			assert.Nil(t, found, "Delete removed the monitor Create wrote")
+			return errRollBack
+		})
+
+		require.ErrorIs(t, err, errRollBack)
+		all, err := repo.FindAll(ctx, 0, 10, "", nil, nil, nil)
+		require.NoError(t, err)
+		require.Len(t, all, 1, "the rollback undid the Create")
+		assert.Equal(t, kept.ID, all[0].ID)
+		assert.Equal(t, "kept", all[0].Name, "the rollback undid UpdatePartial")
+		assert.Equal(t, proxyID, all[0].ProxyId, "the rollback undid RemoveProxyReference")
 	})
 }
