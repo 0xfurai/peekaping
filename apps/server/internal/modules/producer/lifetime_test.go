@@ -13,6 +13,8 @@ import (
 	"github.com/alicebob/miniredis/v2/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // releasesLeadership is whether the Redis command is the election's release of the leadership,
@@ -159,4 +161,84 @@ func TestStop_DoesNothingBeforeStartAndMayBeCalledAgain(t *testing.T) {
 	e.producer.Stop()
 
 	waitForGoroutines(t, &e.producer.wg)
+}
+
+// observe makes the producer log to the returned logs
+func observe(p *Producer) *observer.ObservedLogs {
+	core, logs := observer.New(zap.DebugLevel)
+	p.logger = zap.New(core).Sugar()
+	return logs
+}
+
+// stopWhenRedisGets ends the producer's lifetime as Redis gets the command, the first time. The
+// command is answered, and the producer's next call finds its context done: it is what happens
+// when Stop cancels a loop that is between two calls to Redis.
+func stopWhenRedisGets(e *engine, command string) {
+	var once sync.Once
+	e.mr.Server().SetPreHook(func(_ *server.Peer, cmd string, _ ...string) bool {
+		if strings.EqualFold(cmd, command) {
+			once.Do(e.producer.cancel)
+		}
+		return false
+	})
+}
+
+func TestRunProducer_LogsNoErrorWhenTheProducerStopsDuringAClaim(t *testing.T) {
+	e := newEngine(t)
+	logs := observe(e.producer)
+	stopWhenRedisGets(e, "TIME") // the claim comes right after the time
+
+	e.producer.wg.Add(1)
+	err := e.producer.runProducer(0)
+
+	assert.ErrorIs(t, err, context.Canceled, "the loop ends with its context's error, which Start takes for no failure")
+	assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
+}
+
+func TestRunReclaimer_LogsNoErrorWhenTheProducerStopsDuringAReclaim(t *testing.T) {
+	e := newEngine(t)
+	logs := observe(e.producer)
+	stopWhenRedisGets(e, "TIME") // the reclaim comes right after the time
+
+	e.producer.wg.Add(1)
+	go e.producer.runReclaimer()
+
+	waitForGoroutines(t, &e.producer.wg)
+	assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
+}
+
+func TestRunScheduleRefresher_LogsNoErrorWhenTheProducerStopsDuringARefresh(t *testing.T) {
+	e := newEngine(t, &monitor.Model{ID: "mon-1", Active: true, Interval: 60})
+	logs := observe(e.producer)
+	e.producer.scheduleRefreshInterval = 5 * time.Millisecond
+	stopWhenRedisGets(e, "TIME") // the schedule is written right after the time
+	syncCtx, syncCancel := context.WithCancel(e.producer.ctx)
+	defer syncCancel()
+
+	e.producer.wg.Add(1)
+	go e.producer.runScheduleRefresher(syncCtx)
+
+	waitForGoroutines(t, &e.producer.wg)
+	assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
+}
+
+func TestRunLeadershipMonitor_LogsNoErrorWhenTheProducerStopsWhileSyncingStarts(t *testing.T) {
+	e := newLeaderEngine(t, &monitor.Model{ID: "mon-1", Active: true, Interval: 60})
+	stopWhenRedisGets(e.engine, "ZRANGE") // the schedule is read in two calls
+
+	e.start(t)
+
+	waitForGoroutines(t, &e.producer.wg)
+	assert.Empty(t, e.logs.FilterLevelExact(zap.ErrorLevel).All())
+}
+
+func TestRedisNowMs_DoesntWarnWhenTheProducerStopped(t *testing.T) {
+	e := newEngine(t)
+	logs := observe(e.producer)
+	e.producer.cancel()
+
+	nowMs := e.producer.redisNowMs()
+
+	assert.WithinDuration(t, time.Now(), time.UnixMilli(nowMs), time.Minute, "the local time stands in")
+	assert.Empty(t, logs.FilterLevelExact(zap.WarnLevel).All())
 }

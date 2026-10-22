@@ -32,6 +32,9 @@ func (p *Producer) runLeadershipMonitor() {
 			if isLeader && !isSyncing {
 				p.logger.Info("Starting monitor syncing as leader")
 				if err := p.startMonitorSyncing(); err != nil {
+					if p.ctx.Err() != nil {
+						return // the producer is stopping, which is why syncing failed to start
+					}
 					p.logger.Errorw("Failed to start monitor syncing", "error", err)
 				} else {
 					isSyncing = true
