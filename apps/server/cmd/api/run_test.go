@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"io"
 	"net"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 )
 
@@ -252,4 +254,78 @@ func logged(logs *observer.ObservedLogs, messages []string) []string {
 		}
 	}
 	return got
+}
+
+// runWith runs the API on the listener with a logger the test observes, and returns what run
+// returned. It fails the test if run takes longer than the shutdown deadline.
+func runWith(t *testing.T, ctx context.Context, cfg *Config, listener net.Listener) (error, *observer.ObservedLogs) {
+	t.Helper()
+	logger, logs := observedLogger()
+	done := make(chan error, 1)
+	go func() { done <- run(ctx, cfg, logger, listener) }()
+	select {
+	case err := <-done:
+		return err, logs
+	case <-time.After(shutdownTimeouts.Total() + 5*time.Second):
+		require.FailNow(t, "run didn't return within the shutdown deadline")
+		return nil, logs
+	}
+}
+
+func TestRun_StopsEverythingAndReturnsAnErrorWhenTheHTTPServerFails(t *testing.T) {
+	cfg := loadConfig(t, nil)
+	migrateDatabase(t, cfg)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	require.NoError(t, listener.Close())
+
+	// ctx stays open: the failure alone ends run
+	err, logs := runWith(t, context.Background(), cfg, listener)
+
+	require.Error(t, err, "the API exits 1")
+	assert.ErrorContains(t, err, "HTTP server failed")
+	assert.ErrorContains(t, err, "use of closed network connection")
+	failed := logs.FilterMessage("HTTP server failed, shutting down").All()
+	require.Len(t, failed, 1)
+	assert.Equal(t, zap.ErrorLevel, failed[0].Level)
+	order := []string{
+		"HTTP server failed, shutting down",
+		"Stopped the HTTP server",
+		"Closed the websocket server",
+		"Stopped the notification queue",
+		"Stopped the cleanup cron",
+		"Stopped the status repair",
+		"Closed the event bus",
+		"SQLite database closed gracefully",
+		"Closed the database",
+	}
+	assert.Equal(t, order, logged(logs, order), "everything that started stopped, in order")
+	assert.Zero(t, logs.FilterMessage("API stopped").Len())
+}
+
+func TestRun_StopsWhatItStartedAndReturnsAnErrorWhenStartingFails(t *testing.T) {
+	// The database isn't migrated, so the settings can't be initialized once the cleanup cron
+	// has started
+	cfg := loadConfig(t, nil)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	err, logs := runWith(t, context.Background(), cfg, listener)
+
+	require.Error(t, err, "the API exits 1")
+	assert.ErrorContains(t, err, "failed to initialize JWT settings")
+	assert.Zero(t, logs.FilterMessage("Serving the API").Len(), "it never served")
+	order := []string{
+		"Stopped the HTTP server",
+		"Closed the websocket server",
+		"Stopped the cleanup cron",
+		"Closed the event bus",
+		"SQLite database closed gracefully",
+		"Closed the database",
+	}
+	assert.Equal(t, order, logged(logs, order), "what had started stopped, in order")
+	assert.Zero(t, logs.FilterMessage("API stopped").Len())
+
+	_, err = net.Dial("tcp", listener.Addr().String())
+	assert.Error(t, err, "the listener is closed")
 }

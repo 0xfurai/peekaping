@@ -125,10 +125,14 @@ type parts struct {
 	ErrorReporting       error_reporting.Service
 }
 
-// run starts the API and serves it on the listener until ctx is done. Then it stops everything
-// in order, within shutdownTimeouts: the HTTP server, the websocket, the background jobs, the
-// event bus and the database. It returns nil when everything stopped in time.
+// run starts the API and serves it on the listener until ctx is done, or until serving fails.
+// Then it stops everything that started, in order, within shutdownTimeouts: the HTTP server,
+// the websocket, the background jobs, the event bus and the database. It returns nil when
+// serving ended with ctx and everything stopped in time. It closes the listener.
 func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener net.Listener) error {
+	// The HTTP server closes the listener once it serves, and a failure before leaves it open
+	defer func() { _ = listener.Close() }()
+
 	logger.Infow("Starting the API in cluster mode", "version", version.Version)
 	internalCfg := cfg.ToInternalConfig()
 	container := dig.New()
@@ -150,11 +154,6 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		return fmt.Errorf("failed to build the API: %w", err)
 	}
 
-	j, err := startJobs(ctx, p, internalCfg, logger)
-	if err != nil {
-		return err
-	}
-
 	// Counted, so that the database closes only once every handler has returned: the HTTP
 	// server's Close drops the connections still open, but doesn't wait for their handlers
 	handlers := graceful.NewRunningHandlers(p.Server.Router)
@@ -169,17 +168,32 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		defer close(websocketClosed)
 		p.WebSocket.Close()
 	})
-	go func() {
-		logger.Infow("Serving the API", "address", listener.Addr().String())
-		if err := httpServer.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Fatalf("Failed to start server: %v", err)
+
+	// A job that fails to start leaves the ones before it running, and the shutdown stops them
+	j, startErr := startJobs(ctx, p, internalCfg, logger)
+	var failure error
+	if startErr != nil {
+		failure = startErr
+		logger.Errorw("Failed to start the API, shutting down", "error", startErr)
+	} else {
+		served := make(chan error, 1)
+		go func() {
+			logger.Infow("Serving the API", "address", listener.Addr().String())
+			served <- httpServer.Serve(listener)
+		}()
+
+		// Serve returns http.ErrServerClosed once the shutdown below has begun, when nothing
+		// reads it any more: here it can only be a failure
+		select {
+		case <-ctx.Done():
+			logger.Info("Shutdown signal received, shutting down")
+		case serveErr := <-served:
+			failure = fmt.Errorf("HTTP server failed: %w", serveErr)
+			logger.Errorw("HTTP server failed, shutting down", "error", failure)
 		}
-	}()
+	}
 
-	<-ctx.Done()
-	logger.Info("Shutdown signal received, shutting down")
-
-	if err := shutdown(httpServer, handlers, websocketClosed, p, j, internalCfg.DBType, logger); err != nil {
+	if err := errors.Join(failure, shutdown(httpServer, handlers, websocketClosed, p, j, internalCfg.DBType, logger)); err != nil {
 		return err
 	}
 	logger.Info("API stopped")
@@ -203,7 +217,8 @@ type jobs struct {
 
 // startJobs starts the cleanup cron, the settings, the error reporting choice, the listeners, the
 // notification queue, the status repair, the metrics collector and the usage ping. The
-// notification listener subscribes before the queue consumer starts.
+// notification listener subscribes before the queue consumer starts. When one fails, it returns
+// the jobs that had started, to stop.
 func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.SugaredLogger) (*jobs, error) {
 	j := &jobs{}
 	// Every api replica schedules the hourly cleanup, and the run lock lets one of them run each
@@ -214,12 +229,12 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	}
 	hourly, err := cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.CleanupLock, retention, logger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start the hourly cleanup: %w", err)
+		return j, fmt.Errorf("failed to start the hourly cleanup: %w", err)
 	}
 	j.cleanup = hourly
 
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
-		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
+		return j, fmt.Errorf("failed to initialize JWT settings: %w", err)
 	}
 
 	// Apply the admin's choice from before the restart, which also copies it to Redis for the
@@ -245,7 +260,7 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	// one api replica, which hands it to the listener above, so it starts after the listener
 	// subscribed: an event handed to a bus with no handler for its topic is dropped.
 	if err := p.Consumer.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start taking notifications from the queue: %w", err)
+		return j, fmt.Errorf("failed to start taking notifications from the queue: %w", err)
 	}
 	j.consumer = p.Consumer
 
