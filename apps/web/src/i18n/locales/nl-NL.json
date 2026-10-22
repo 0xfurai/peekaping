@@ -1113,7 +1113,11 @@
     "placeholders": {
       "select_type": "Kies notifier-type"
     },
-    "search_placeholder": "Zoek notificatiekanalen op naam..."
+    "search_placeholder": "Zoek notificatiekanalen op naam...",
+    "secret": {
+      "reenter_hint": "Voer dit geheim opnieuw in: de bestemming waar het naartoe wordt verstuurd, is gewijzigd",
+      "saved_hint": "Opgeslagen — typ om te vervangen"
+    }
   },
   "proxies": {
     "delete_dialog": {

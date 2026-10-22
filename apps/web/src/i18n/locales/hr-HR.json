@@ -1113,7 +1113,11 @@
     "placeholders": {
       "select_type": "Odaberi tip notifikatora"
     },
-    "search_placeholder": "Pretraži kanale obavijesti po imenu..."
+    "search_placeholder": "Pretraži kanale obavijesti po imenu...",
+    "secret": {
+      "reenter_hint": "Ponovno unesite ovaj tajni ključ: promijenilo se mjesto na koje se šalje",
+      "saved_hint": "Spremljeno — upišite za zamjenu"
+    }
   },
   "proxies": {
     "delete_dialog": {

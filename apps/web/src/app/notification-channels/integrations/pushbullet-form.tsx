@@ -1,6 +1,8 @@
 
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 
 import {
   FormControl,
@@ -16,9 +18,11 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("pushbullet"),
-  pushbullet_access_token: z.string().min(1, {
-    message: "Access Token is required",
-  }),
+  pushbullet_access_token: withSavedSecret(
+    z.string().min(1, {
+      message: "Access Token is required",
+    })
+  ),
   pushbullet_device_id: z.string().optional(),
   pushbullet_channel_tag: z.string().optional(),
   pushbullet_custom_template: z.string().optional(),
@@ -49,8 +53,7 @@ export default function PushbulletForm() {
           <FormItem>
             <FormLabel>{t("notifications.form.pushbullet.access_token")}</FormLabel>
             <FormControl>
-              <Input
-                type="password"
+              <SecretInput
                 placeholder="o.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                 autoComplete="new-password"
                 {...field}

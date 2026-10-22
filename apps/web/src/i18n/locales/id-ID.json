@@ -1113,7 +1113,11 @@
     "placeholders": {
       "select_type": "Pilih tipe notifier"
     },
-    "search_placeholder": "Cari saluran notifikasi berdasarkan nama..."
+    "search_placeholder": "Cari saluran notifikasi berdasarkan nama...",
+    "secret": {
+      "reenter_hint": "Masukkan ulang rahasia ini: tujuan pengirimannya berubah",
+      "saved_hint": "Tersimpan — ketik untuk mengganti"
+    }
   },
   "proxies": {
     "delete_dialog": {

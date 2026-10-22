@@ -1113,7 +1113,11 @@
     "placeholders": {
       "select_type": "Benachrichtigungstyp auswählen"
     },
-    "search_placeholder": "Nach Benachrichtigungskanälen suchen..."
+    "search_placeholder": "Nach Benachrichtigungskanälen suchen...",
+    "secret": {
+      "reenter_hint": "Diesen geheimen Wert erneut eingeben: Das Ziel des Versands hat sich geändert",
+      "saved_hint": "Gespeichert — zum Ersetzen eingeben"
+    }
   },
   "proxies": {
     "delete_dialog": {

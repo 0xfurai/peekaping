@@ -46,9 +46,11 @@ import * as PagerTreeForm from "../integrations/pagertree";
 import * as LineForm from "../integrations/line-form";
 import * as TeamsForm from "../integrations/teams-form";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { withoutSavedSecrets } from "../secrets";
+import { SavedSecrets } from "./saved-secrets";
 
 const typeFormRegistry = {
   smtp: SmtpForm,
@@ -144,20 +146,24 @@ export default function CreateEditNotificationChannel({
   },
   isLoading = false,
   mode = "create",
+  channelId,
 }: {
   onSubmit: (data: NotificationForm) => void;
   initialValues?: NotificationForm;
   isLoading?: boolean;
   mode?: "create" | "edit";
+  // The saved channel being edited
+  channelId?: string;
 }) {
   const { t } = useLocalizedTranslation();
+  // A saved config lacks any field added to its type since it was stored
+  const [openingValues] = useState(() => ({
+    ...typeFormRegistry[initialValues.type]?.defaultValues,
+    ...initialValues,
+  }));
   const baseForm = useForm<NotificationForm>({
     resolver: zodResolver(notificationSchema),
-    // A saved config lacks any field added to its type since it was stored
-    defaultValues: {
-      ...typeFormRegistry[initialValues.type]?.defaultValues,
-      ...initialValues,
-    },
+    defaultValues: openingValues,
   });
 
   const type = baseForm.watch("type");
@@ -165,17 +171,22 @@ export default function CreateEditNotificationChannel({
   const TypeFormComponent =
     typeFormRegistry[type as keyof typeof typeFormRegistry]?.default || null;
 
+  const previousType = useRef(type);
   useEffect(() => {
-    if (type === initialValues?.type) return;
-    if (!type) return;
+    if (!type || type === previousType.current) return;
+    previousType.current = type;
 
-    const values = baseForm.getValues();
-    baseForm.reset({
-      ...values,
-      ...(typeFormRegistry[type as keyof typeof typeFormRegistry]
-        .defaultValues || {}),
-    });
-  }, [type, baseForm, initialValues?.type]);
+    // A saved secret shows as a placeholder, which only stands for a secret of the saved
+    // channel's type: no other type keeps it
+    const values = withoutSavedSecrets(baseForm.getValues());
+    // Back to the type the form opened with, it has the values the form opened with
+    const typeValues =
+      type === openingValues.type
+        ? openingValues
+        : typeFormRegistry[type as keyof typeof typeFormRegistry]
+            .defaultValues || {};
+    baseForm.reset({ ...values, ...typeValues, name: values.name });
+  }, [type, baseForm, openingValues]);
 
   const testNotifierMutation = useMutation({
     ...postNotificationChannelsTestMutation(),
@@ -196,6 +207,8 @@ export default function CreateEditNotificationChannel({
         config: JSON.stringify(typeConfig),
         active: true,
         is_default: false,
+        // The saved channel: secrets the form leaves as placeholders are the ones it has stored
+        id: channelId,
       },
     });
   }
@@ -277,7 +290,9 @@ export default function CreateEditNotificationChannel({
             )}
           />
 
-          {TypeFormComponent && <TypeFormComponent />}
+          <SavedSecrets saved={mode === "edit" ? openingValues : undefined}>
+            {TypeFormComponent && <TypeFormComponent />}
+          </SavedSecrets>
 
           <div className="flex gap-2">
             <Button type="submit" disabled={isLoading}>

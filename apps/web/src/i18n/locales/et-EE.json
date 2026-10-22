@@ -1113,7 +1113,11 @@
     "placeholders": {
       "select_type": "Vali teavitustüüp"
     },
-    "search_placeholder": "Otsige teavituskanaale nime järgi…"
+    "search_placeholder": "Otsige teavituskanaale nime järgi…",
+    "secret": {
+      "reenter_hint": "Sisesta see saladus uuesti: koht, kuhu saadetakse, muutus",
+      "saved_hint": "Salvestatud — asendamiseks sisesta uus"
+    }
   },
   "proxies": {
     "delete_dialog": {

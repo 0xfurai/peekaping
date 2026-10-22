@@ -1113,7 +1113,11 @@
     "placeholders": {
       "select_type": "選擇通知器類型"
     },
-    "search_placeholder": "按名稱搜尋通知頻道..."
+    "search_placeholder": "按名稱搜尋通知頻道...",
+    "secret": {
+      "reenter_hint": "請重新輸入此密鑰：發送目標已更改",
+      "saved_hint": "已儲存 — 輸入即可取代"
+    }
   },
   "proxies": {
     "delete_dialog": {

@@ -1112,7 +1112,11 @@
     "placeholders": {
       "select_type": "Xabarnoma turi tanlang"
     },
-    "search_placeholder": "Xabarnoma kanallarini nomi bilan qidirish..."
+    "search_placeholder": "Xabarnoma kanallarini nomi bilan qidirish...",
+    "secret": {
+      "reenter_hint": "Bu sirni qayta kiriting: yuboriladigan manzil o‘zgargan",
+      "saved_hint": "Saqlangan — almashtirish uchun yozing"
+    }
   },
   "proxies": {
     "delete_dialog": {

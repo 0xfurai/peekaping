@@ -1113,7 +1113,11 @@
     "placeholders": {
       "select_type": "Bildirim türünü seçin"
     },
-    "search_placeholder": "İsimle bildirim kanallarını ara..."
+    "search_placeholder": "İsimle bildirim kanallarını ara...",
+    "secret": {
+      "reenter_hint": "Bu gizli anahtarı yeniden girin: gönderildiği yer değişti",
+      "saved_hint": "Kaydedildi — değiştirmek için yazın"
+    }
   },
   "proxies": {
     "delete_dialog": {

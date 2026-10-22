@@ -1113,7 +1113,11 @@
     "placeholders": {
       "select_type": "Velg varslertype"
     },
-    "search_placeholder": "Søk i varselskanaler etter navn..."
+    "search_placeholder": "Søk i varselskanaler etter navn...",
+    "secret": {
+      "reenter_hint": "Skriv inn denne hemmeligheten på nytt: stedet den sendes til, er endret",
+      "saved_hint": "Lagret — skriv for å erstatte"
+    }
   },
   "proxies": {
     "delete_dialog": {

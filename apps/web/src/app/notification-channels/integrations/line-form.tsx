@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,13 +8,15 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { Textarea } from "@/components/ui/textarea";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("line"),
-  channel_access_token: z.string().min(1, { message: "Channel access token is required" }),
+  channel_access_token: withSavedSecret(z.string().min(1, { message: "Channel access token is required" })),
   user_id: z.string().min(1, { message: "User ID is required" }),
   template: z.string().optional(),
 });
@@ -47,7 +48,7 @@ export default function LineForm() {
           <FormItem>
             <FormLabel>{t("notifications.form.line.channel_access_token_label")}</FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder={t("notifications.form.line.channel_access_token_placeholder")}
                 autoComplete="new-password"
                 required

@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -9,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { useFormContext } from "react-hook-form";
 import {
   Select,
@@ -21,7 +22,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("pagerduty"),
-  pagerduty_integration_key: z.string().min(1, { message: "Integration key is required" }),
+  pagerduty_integration_key: withSavedSecret(z.string().min(1, { message: "Integration key is required" })),
   pagerduty_integration_url: z.string().url({ message: "Valid integration URL is required" }),
   pagerduty_priority: z.string().optional(),
   pagerduty_auto_resolve: z.string().optional(),
@@ -54,7 +55,7 @@ export default function PagerDutyForm() {
               {t("notifications.form.pagerduty.integration_key_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <PasswordInput
+              <SecretInput
                 placeholder={t("notifications.form.pagerduty.integration_key_placeholder")}
                 required
                 {...field}
