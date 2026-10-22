@@ -8,6 +8,7 @@ import {
   Vibrate,
   ListCheckIcon,
   Tag,
+  Radar,
 } from "lucide-react";
 
 import {
@@ -61,6 +62,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         title: t("navigation.proxies"),
         url: "/proxies",
         icon: Network,
+      },
+      {
+        title: t("navigation.probes"),
+        url: "/probes",
+        icon: Radar,
       },
       {
         title: t("navigation.notification_channels"),
