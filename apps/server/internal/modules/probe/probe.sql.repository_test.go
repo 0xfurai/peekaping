@@ -3,6 +3,7 @@ package probe_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/probe"
 
@@ -228,5 +230,50 @@ func TestSQLRepository_DeleteRemovesTheProbesInstances(t *testing.T) {
 		var left int
 		require.NoError(t, db.NewSelect().Table("probe_instances").ColumnExpr("count(*)").Where("probe_id = ?", created.ID).Scan(ctx, &left))
 		assert.Zero(t, left)
+	})
+}
+
+// Every repository call made with the ctx WithTx gives runs on that transaction. The database has
+// one connection here, as SQLite does in the app, so a call that ran on db instead would wait for
+// the connection the transaction holds, and fail when ctx times out.
+func TestSQLRepository_EveryMethodJoinsTheCallersTransaction(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		db.SetMaxOpenConns(1)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		t.Cleanup(cancel)
+		repo := probe.NewSQLRepository(db)
+		keep, err := repo.Create(ctx, &probe.CreateModel{Name: "Keep", TokenHash: "sha256$k1", TokenPrefix: "pkp_kkk1"})
+		require.NoError(t, err)
+		errRollBack := errors.New("roll back")
+
+		err = dbtx.NewSQLTransactor(db).WithTx(ctx, func(ctx context.Context) error {
+			created, err := repo.Create(ctx, &probe.CreateModel{Name: "Doomed", TokenHash: "sha256$d1", TokenPrefix: "pkp_ddd1"})
+			require.NoError(t, err)
+			name := "Renamed"
+			renamed, err := repo.Update(ctx, keep.ID, &probe.UpdateModel{Name: &name})
+			require.NoError(t, err)
+			assert.Equal(t, "Renamed", renamed.Name, "the transaction reads its own writes")
+			require.NoError(t, repo.UpdateToken(ctx, keep.ID, "sha256$k2", "pkp_kkk2"))
+			byHash, err := repo.FindByTokenHash(ctx, "sha256$k2")
+			require.NoError(t, err)
+			require.NotNil(t, byHash)
+			all, err := repo.FindAll(ctx)
+			require.NoError(t, err)
+			assert.Len(t, all, 3)
+			_, err = repo.FindInstances(ctx, keep.ID)
+			require.NoError(t, err)
+			require.NoError(t, repo.Delete(ctx, created.ID))
+			return errRollBack
+		})
+
+		require.ErrorIs(t, err, errRollBack)
+		kept, err := repo.FindByID(ctx, keep.ID)
+		require.NoError(t, err)
+		require.NotNil(t, kept)
+		assert.Equal(t, "Keep", kept.Name, "the rename was rolled back")
+		assert.Equal(t, "sha256$k1", kept.TokenHash, "and so was the new token")
+		all, err := repo.FindAll(ctx)
+		require.NoError(t, err)
+		assert.Len(t, all, 2, "local and Keep: Doomed was rolled back")
 	})
 }

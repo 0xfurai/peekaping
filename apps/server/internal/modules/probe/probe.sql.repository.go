@@ -7,6 +7,8 @@ import (
 	"errors"
 	"time"
 
+	"peekaping/internal/dbtx"
+
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -61,6 +63,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	}
 }
 
+// SQLRepositoryImpl runs its queries on the transaction ctx carries (see dbtx), or on db
 type SQLRepositoryImpl struct {
 	db *bun.DB
 }
@@ -88,7 +91,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, probe *CreateModel) (*Mo
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}
-	if _, err := r.db.NewInsert().Model(sm).Exec(ctx); err != nil {
+	if _, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Exec(ctx); err != nil {
 		return nil, err
 	}
 	return toDomainModelFromSQL(sm), nil
@@ -98,7 +101,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, probe *CreateModel) (*Mo
 func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	var sms []*sqlModel
 	// The local probe first, then the others in the order they were added
-	err := r.db.NewSelect().Model(&sms).
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(&sms).
 		OrderExpr("CASE WHEN id = ? THEN 0 ELSE 1 END", LocalID).
 		Order("created_at ASC", "id ASC").
 		Scan(ctx)
@@ -128,7 +131,7 @@ func (r *SQLRepositoryImpl) FindByTokenHash(ctx context.Context, tokenHash strin
 
 func (r *SQLRepositoryImpl) findOne(ctx context.Context, where string, arg any) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where(where, arg).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where(where, arg).Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -140,7 +143,7 @@ func (r *SQLRepositoryImpl) findOne(ctx context.Context, where string, arg any) 
 
 // MARK: Update
 func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Set("updated_at = ?", time.Now().UTC())
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Set("updated_at = ?", time.Now().UTC())
 	if update.Name != nil {
 		query = query.Set("name = ?", *update.Name)
 	}
@@ -158,7 +161,7 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 
 // MARK: UpdateToken
 func (r *SQLRepositoryImpl) UpdateToken(ctx context.Context, id string, tokenHash string, tokenPrefix string) error {
-	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("token_hash = ?", tokenHash).
 		Set("token_prefix = ?", tokenPrefix).
 		Set("updated_at = ?", time.Now().UTC()).
@@ -169,14 +172,14 @@ func (r *SQLRepositoryImpl) UpdateToken(ctx context.Context, id string, tokenHas
 
 // MARK: Delete
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
 }
 
 // MARK: FindInstances
 func (r *SQLRepositoryImpl) FindInstances(ctx context.Context, probeID string) ([]*Instance, error) {
 	var sis []*sqlInstance
-	err := r.db.NewSelect().Model(&sis).
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(&sis).
 		Where("probe_id = ?", probeID).
 		Order("last_seen_at DESC", "id ASC").
 		Scan(ctx)
