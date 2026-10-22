@@ -21,6 +21,7 @@ The `peekaping-bundle-sqlite` image runs Peekaping in single mode. One process, 
 docker run -d --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
+  -e TRUSTED_PROXIES \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
   0xfurai/peekaping-bundle-sqlite:latest
@@ -37,6 +38,9 @@ services:
     stop_grace_period: 35s
     ports:
       - "8383:8383"
+    environment:
+      # Behind a reverse proxy, set TRUSTED_PROXIES in .env (see Reverse proxy and HTTPS)
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES-}
     volumes:
       - ./.data/sqlite:/app/data
 ```
@@ -77,7 +81,43 @@ status.example.com {
 
 Set `CLIENT_URL` to the address people open, such as `https://status.example.com`, so links in notifications point there.
 
-The login lockout reads the client's address from the `X-Forwarded-For` header. Have your proxy set that header to the address the request came from, replacing any value the client sent. Caddy does this by default. In nginx, use `proxy_set_header X-Forwarded-For $remote_addr;`, not `$proxy_add_x_forwarded_for`. Don't let clients reach port 8383 past the proxy, because they could send their own `X-Forwarded-For`.
+The login lockout counts failed logins per client address. A client can send any `X-Forwarded-For` header it likes, so Peekaping believes that header (and `X-Real-IP`, when there is no `X-Forwarded-For`) only on requests from an address listed in `TRUSTED_PROXIES`. The list is comma-separated IP addresses and CIDR ranges. The setting is empty unless you set it, as in this image, and every request then counts as coming from the address it connected from. (The cluster Compose files and the Helm chart set loopback and the private ranges when it is unset, and an explicitly empty value there trusts nobody.) Behind a reverse proxy, set it up like this:
+
+1. Make the proxy put the client's address last in `X-Forwarded-For`. Caddy and Traefik do: they drop what the client sent and set their own. Plain nginx `proxy_pass` doesn't. It forwards the client's own `X-Forwarded-For` unchanged, and only `$proxy_add_x_forwarded_for` appends to it. So in nginx, add this next to `proxy_pass`:
+
+   ```
+   proxy_set_header X-Forwarded-For $remote_addr;
+   ```
+
+2. Set `TRUSTED_PROXIES` to the address the proxy connects from, as the container sees it. In the Compose example above, the `environment` line reads it from your `.env` file: Compose uses `.env` to fill in the file, but doesn't pass its variables to the container by itself. With `docker run`, `-e TRUSTED_PROXIES` passes on the variable from your shell, or give it a value: `-e TRUSTED_PROXIES=<address>`. List only proxies you run, because a listed address can claim to be anyone. Peekaping takes the last address in `X-Forwarded-For` that isn't in `TRUSTED_PROXIES`, so addresses a client adds to the left don't count.
+
+3. Don't let clients reach port 8383 past the proxy. When the proxy runs on the same host, publish the port on loopback only: `-p 127.0.0.1:8383:8383`, or `"127.0.0.1:8383:8383"` in Docker Compose. Then only the host can connect, and the proxy's address is usually the gateway of the container's Docker network. A Compose project has its own network, so read the gateway from the container itself (replace `peekaping` with your container's name):
+
+   ```bash
+   docker inspect -f '{{range $name, $net := .NetworkSettings.Networks}}{{$name}} {{$net.Gateway}}{{println}}{{end}}' peekaping
+   ```
+
+   It prints each network the container is on with its gateway. Use the gateway of the network your reverse proxy shares with the container. On Docker's default network that is usually `172.17.0.1`:
+
+   ```
+   TRUSTED_PROXIES=172.17.0.1
+   ```
+
+Don't trust the gateway address while port 8383 is published on all interfaces (`-p 8383:8383`). On Docker Desktop, in rootless Docker and with the userland proxy, connections made straight to the published port arrive from the gateway address too, so anyone could send their own `X-Forwarded-For` and be believed.
+
+When another proxy sits in front of yours, for example Cloudflare in front of Traefik, your proxy sees that proxy's address, not the client's. Make your proxy trust the front proxy's addresses, so that it keeps the client's address in `X-Forwarded-For`: in Traefik, `forwardedHeaders.trustedIPs`; in Caddy, `trusted_proxies`; in nginx, the real IP module, so that `$remote_addr` is the client's address and the `proxy_set_header X-Forwarded-For $remote_addr;` from step 1 passes it on:
+
+```
+set_real_ip_from <the front proxy's address ranges>;
+real_ip_header X-Forwarded-For;
+real_ip_recursive on;
+```
+
+Keep only your own proxy in `TRUSTED_PROXIES`, not the front proxy.
+
+With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from the proxy, so all clients behind it share the per-address counter and one person's failed logins can lock an account for everyone behind the proxy. The per-account counter below is account-wide whatever this setting is.
+
+Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) from any addresses within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes). A lock lasts `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute). The count of failures is kept until the window, measured from the first failure, has passed, so until then each further failure after a lock ends locks the account again. So guessing is bounded to the limit per window plus one attempt each time a lock ends, and after an attack stops the owner is back in within the window at most. An attacker who keeps going can keep the account locked. [API Server](../architecture/api-server.md#security-configuration) lists the lockout settings.
 
 ### Upgrading from a bundle with Redis and Caddy
 
@@ -190,6 +230,12 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      # The api isn't published: only the gateway and the other services on this network reach
+      # it, all from private addresses. The gateway (nginx.conf) sets X-Forwarded-For to the
+      # client's address, and the api believes that header from these addresses only. Set
+      # TRUSTED_PROXIES in .env to change them; an empty TRUSTED_PROXIES= trusts nobody.
+      TRUSTED_PROXIES: "${TRUSTED_PROXIES-127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}"
     volumes:
       - ./.data/sqlite:/app/data
     depends_on:
@@ -307,6 +353,8 @@ http {
       proxy_pass         http://api;
       proxy_set_header   Host $host;
       proxy_set_header   X-Real-IP $remote_addr;
+      # Replace the client's X-Forwarded-For: the api trusts this gateway's header
+      proxy_set_header   X-Forwarded-For $remote_addr;
     }
 
     # socket.io
@@ -314,6 +362,7 @@ http {
       proxy_pass http://api;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $remote_addr;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection "upgrade";
     }
@@ -325,6 +374,8 @@ http {
   }
 }
 ```
+
+The gateway replaces the `X-Forwarded-For` header of every request with the client's address, and the `api` service believes that header from loopback and the private ranges (`TRUSTED_PROXIES` in the compose file), which cover the Docker network. Don't publish the `api` service's port: a connection to a published port reaches the container from the Docker network's gateway address, which that setting trusts, so a client could send its own `X-Forwarded-For`. The default ranges are wide: narrowing `TRUSTED_PROXIES` to the gateway's network (`docker network inspect` shows its subnet) is safer, because a client with a private address behind a gateway that appends to `X-Forwarded-For`, unlike this one, would be skipped as a trusted proxy and could pick its own address from the entries to its left. The account counter still bounds guessing either way.
 
 
 
