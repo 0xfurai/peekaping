@@ -34,3 +34,61 @@ func TestRedisUsernameIsLoadedFromEnv(t *testing.T) {
 	assert.Equal(t, "peekaping", internalCfg.RedisUsername)
 	assert.Equal(t, "secret", internalCfg.RedisPassword)
 }
+
+func TestRetentionPeriodsDefaultTo90And30Days(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	internalCfg := cfg.ToInternalConfig()
+	assert.Equal(t, 90, internalCfg.NotificationHistoryRetentionDays)
+	assert.Equal(t, 30, internalCfg.TLSInfoRetentionDays)
+}
+
+func TestRetentionPeriodsAreSetByTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("NOTIFICATION_HISTORY_RETENTION_DAYS", "45")
+	t.Setenv("TLS_INFO_RETENTION_DAYS", "7")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	internalCfg := cfg.ToInternalConfig()
+	assert.Equal(t, 45, internalCfg.NotificationHistoryRetentionDays)
+	assert.Equal(t, 7, internalCfg.TLSInfoRetentionDays)
+}
+
+func TestRetentionPeriodsBelowTheirMinimumStopStartup(t *testing.T) {
+	for name, tc := range map[string]struct{ env, value, want string }{
+		"notification history, 29": {"NOTIFICATION_HISTORY_RETENTION_DAYS", "29", "NotificationHistoryRetentionDays must be at least 30"},
+		"TLS info, -1":             {"TLS_INFO_RETENTION_DAYS", "-1", "TLSInfoRetentionDays must be at least 1"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			t.Setenv(tc.env, tc.value)
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			assert.ErrorContains(t, err, tc.want)
+		})
+	}
+}
+
+// Validate is what stops startup for a config that didn't come through LoadAndValidate's loader
+func TestValidateRefusesRetentionPeriodsBelowTheirMinimum(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	cfg.NotificationHistoryRetentionDays = 0
+	assert.ErrorContains(t, Validate(cfg), "NotificationHistoryRetentionDays")
+
+	cfg.NotificationHistoryRetentionDays = 30
+	cfg.TLSInfoRetentionDays = 0
+	assert.ErrorContains(t, Validate(cfg), "TLSInfoRetentionDays")
+}

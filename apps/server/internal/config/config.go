@@ -100,6 +100,14 @@ type Config struct {
 	// Set to true to expose an unauthenticated /metrics endpoint for Prometheus
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
+
+	// How many days the hourly cleanup keeps notification history. The history stops a
+	// certificate expiry notification from being sent twice, so it must outlast the
+	// default thresholds (the largest is 21 days): the minimum is 30.
+	NotificationHistoryRetentionDays int `env:"NOTIFICATION_HISTORY_RETENTION_DAYS" validate:"min=30" default:"90"`
+
+	// How many days the hourly cleanup keeps the TLS info that monitors record
+	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 }
 
 var validate = validator.New()
@@ -183,6 +191,10 @@ func formatValidationError(err validator.FieldError) string {
 	case "duration_min":
 		return fmt.Sprintf("%s must be at least %s", field, err.Param())
 	case "min":
+		switch err.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return fmt.Sprintf("%s must be at least %s", field, err.Param())
+		}
 		return fmt.Sprintf("%s must be at least %s characters", field, err.Param())
 	case "max":
 		return fmt.Sprintf("%s must be at most %s", field, err.Param())

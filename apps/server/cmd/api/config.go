@@ -62,6 +62,14 @@ type Config struct {
 	// Set to true to expose an unauthenticated /metrics endpoint for Prometheus
 	// to scrape. Off by default since it exposes monitor names and status.
 	MetricsEnabled bool `env:"METRICS_ENABLED" default:"false"`
+
+	// How many days the hourly cleanup keeps notification history. The history stops a
+	// certificate expiry notification from being sent twice, so it must outlast the
+	// default thresholds (the largest is 21 days): the minimum is 30.
+	NotificationHistoryRetentionDays int `env:"NOTIFICATION_HISTORY_RETENTION_DAYS" validate:"min=30" default:"90"`
+
+	// How many days the hourly cleanup keeps the TLS info that monitors record
+	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -162,5 +170,8 @@ func (c *Config) ToInternalConfig() *config.Config {
 		TrustedProxies:               c.TrustedProxies,
 		ServiceName:                  c.ServiceName,
 		MetricsEnabled:               c.MetricsEnabled,
+
+		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
+		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,
 	}
 }
