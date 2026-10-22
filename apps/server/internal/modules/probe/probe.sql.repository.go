@@ -76,7 +76,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, probe *CreateModel) (*Mo
 	if id == "" {
 		id = uuid.New().String()
 	}
-	now := time.Now()
+	now := time.Now().UTC()
 	sm := &sqlModel{
 		ID:             id,
 		Name:           probe.Name,
@@ -140,7 +140,7 @@ func (r *SQLRepositoryImpl) findOne(ctx context.Context, where string, arg any) 
 
 // MARK: Update
 func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Set("updated_at = ?", time.Now())
+	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Set("updated_at = ?", time.Now().UTC())
 	if update.Name != nil {
 		query = query.Set("name = ?", *update.Name)
 	}
@@ -161,7 +161,7 @@ func (r *SQLRepositoryImpl) UpdateToken(ctx context.Context, id string, tokenHas
 	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
 		Set("token_hash = ?", tokenHash).
 		Set("token_prefix = ?", tokenPrefix).
-		Set("updated_at = ?", time.Now()).
+		Set("updated_at = ?", time.Now().UTC()).
 		Where("id = ?", id).
 		Exec(ctx)
 	return err

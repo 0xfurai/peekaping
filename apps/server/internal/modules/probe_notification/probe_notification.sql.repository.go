@@ -71,7 +71,7 @@ func (r *SQLRepositoryImpl) Replace(ctx context.Context, probeID string, notific
 		if len(ids) == 0 {
 			return nil
 		}
-		now := time.Now()
+		now := time.Now().UTC()
 		links := make([]*sqlModel, len(ids))
 		for i, id := range ids {
 			links[i] = &sqlModel{ProbeID: probeID, NotificationChannelID: id, CreatedAt: now}
