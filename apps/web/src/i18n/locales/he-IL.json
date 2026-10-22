@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "בחר את סוג המתריע"
     },
-    "search_placeholder": "חפש ערוצי התראות לפי שם..."
+    "search_placeholder": "חפש ערוצי התראות לפי שם...",
+    "secret": {
+      "reenter_error": "הזינו שוב את הסוד הזה או הסירו אותו: היעד שאליו נשלח השתנה",
+      "reenter_hint": "הזינו שוב את הסוד הזה: היעד שאליו נשלח השתנה",
+      "remove": "הסרה",
+      "saved_hint": "נשמר — הקלידו כדי להחליף"
+    }
   },
   "proxies": {
     "delete_dialog": {

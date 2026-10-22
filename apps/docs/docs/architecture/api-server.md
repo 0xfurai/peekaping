@@ -40,7 +40,7 @@ In single mode the `peekaping` binary is the only process and sends them itself,
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `SERVER_PORT` | string | Yes | `8034` | Port the API server listens on |
-| `CLIENT_URL` | string | Yes | `http://localhost:3000` | Frontend URL for CORS configuration |
+| `CLIENT_URL` | string | Yes | `http://localhost:3000` | The address people open. Notifications link to it, and its origin is the one `CORS_ORIGINS` allows when it is unset |
 | `MODE` | string | Yes | `dev` | Runtime mode: `dev`, `prod`, or `test` |
 | `LOG_LEVEL` | string | No | `info` | Logging level: `debug`, `info`, `warn`, `error` |
 | `TZ` | string | Yes | `UTC` | Timezone for the server |
@@ -100,12 +100,28 @@ These are required in cluster mode, where the API reaches the producer, worker a
 | `BRUTEFORCE_ACCOUNT_WINDOW` | duration | No | `10m` | How long the count of an account's failed logins is kept, from the first of them. Until it has passed, each further failure after a lock ends locks the account again |
 | `BRUTEFORCE_ACCOUNT_LOCKOUT` | duration | No | `1m` | How long one lock lasts. After an attack stops, the owner is back in within `BRUTEFORCE_ACCOUNT_WINDOW` at most. An attacker who keeps going can keep the account locked |
 | `TRUSTED_PROXIES` | string | No | empty | Comma-separated IP addresses and CIDR ranges of the proxies whose `X-Forwarded-For` and `X-Real-IP` headers are believed, such as `127.0.0.1,10.0.0.0/8`. The login lockout counts failures per client address. A request from any other address counts as coming from the address it connected from, so with the setting empty (its own default, and the single-mode bundles' setting) no header is believed. The cluster Compose files and the Helm chart set loopback and the private ranges when it is unset, and an explicitly empty value there trusts nobody. For a request from a listed proxy, the client is the last `X-Forwarded-For` address that isn't listed here (the leftmost when all are), or `X-Real-IP` when there is no `X-Forwarded-For`; an `X-Forwarded-For` it can't read makes the client the proxy's own address. An invalid entry stops startup |
+| `CORS_ORIGINS` | string | No | empty | Comma-separated origins whose pages may read the API's responses, such as `https://status.example.com,http://localhost:8383`. Empty (the default) allows the origin of `CLIENT_URL`: its scheme, host and port, without a path. A default port (`:80` for `http`, `:443` for `https`) is left out, as browsers leave it out. A request from any other origin is still served, but its browser won't hand the response to the page. `*` alone allows any origin. Responses never allow credentials, since the API takes its token in the `Authorization` header. The web app calling the API on its own origin needs no entry. With `API_URL` set to another origin, list the web app's origin and those of your status page custom domains. `/metrics` is never readable from another origin. An entry that isn't an origin (`https://x.example/path`, `example.com`, or `*` next to other entries) stops startup |
 
 ### Metrics Configuration
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `METRICS_ENABLED` | bool | No | `false` | Serve the unauthenticated Prometheus `/metrics` endpoint, see [Prometheus Metrics](#prometheus-metrics) |
+
+### Cleanup Configuration
+
+Every hour, at the top of the hour in UTC, the API server deletes the heartbeats older than the data retention period (a setting in the web app), the expired stats, the old notification history and the old TLS information. The two variables below set how long the last two are kept.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `NOTIFICATION_HISTORY_RETENTION_DAYS` | int | No | `90` | How many days notification history is kept. At least `30`: the history stops a certificate expiry notification from being sent twice, and the default thresholds are 21, 14 and 7 days before expiry. If you set a threshold above this value, that notification can be sent again |
+| `TLS_INFO_RETENTION_DAYS` | int | No | `30` | How many days monitors' TLS information is kept. At least `1` |
+
+A value below its minimum stops startup with a configuration error. `0` counts as unset and gives the default.
+
+In cluster mode every API replica schedules the cleanup, and the first one to claim an hour runs it, so each hour's cleanup runs once however many replicas run. Only that replica logs `Running the hourly cleanup` with the hour; the others log at debug level that another replica has it. The claim is a Redis key, `peekaping:cleanup:<hour>` (the time rounded to the nearest hour, in UTC), that expires after two hours, so replicas whose clocks are less than an hour apart still share one claim per hour. If a replica can't reach Redis when the hour starts, it logs an error and skips that hour's cleanup instead of running it unguarded. The next hour tries again.
+
+In single mode the `peekaping` binary runs the cleanup itself every hour, with no Redis.
 
 ### Usage Statistics and Error Reporting Configuration
 

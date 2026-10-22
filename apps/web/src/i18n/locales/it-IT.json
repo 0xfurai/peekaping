@@ -1113,7 +1113,13 @@
     "placeholders": {
       "select_type": "Seleziona il tipo di notifica"
     },
-    "search_placeholder": "Cerca canali di notifica per nome..."
+    "search_placeholder": "Cerca canali di notifica per nome...",
+    "secret": {
+      "reenter_error": "Inserisci di nuovo questo segreto o rimuovilo: la destinazione di invio è cambiata",
+      "reenter_hint": "Inserisci di nuovo questo segreto: la destinazione di invio è cambiata",
+      "remove": "Rimuovi",
+      "saved_hint": "Salvato — digita per sostituire"
+    }
   },
   "proxies": {
     "delete_dialog": {

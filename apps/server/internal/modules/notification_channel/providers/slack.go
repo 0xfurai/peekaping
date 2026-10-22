@@ -22,8 +22,8 @@ import (
 )
 
 type SlackConfig struct {
-	WebhookURL    string `json:"slack_webhook_url" validate:"omitempty,url"`
-	BotToken      string `json:"slack_bot_token"`
+	WebhookURL    string `json:"slack_webhook_url" validate:"omitempty,url" secret:"true" endpoint:"true"`
+	BotToken      string `json:"slack_bot_token" secret:"true"`
 	Username      string `json:"slack_username"`
 	IconEmoji     string `json:"slack_icon_emoji"`
 	Channel       string `json:"slack_channel"`
@@ -215,12 +215,6 @@ func (s *SlackSender) Send(
 
 	// Prepare template bindings
 	bindings := PrepareTemplateBindings(monitor, heartbeat, message)
-
-	// Debug template bindings
-	if s.logger != nil {
-		jsonDebug, _ := json.MarshalIndent(bindings, "", "  ")
-		s.logger.Debugf("Template bindings: %s", string(jsonDebug))
-	}
 
 	// Prepare message text
 	messageText := message

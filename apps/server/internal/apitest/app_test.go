@@ -44,6 +44,9 @@ const (
 	// maxFailedLoginsPerAccount is how many failed logins lock an email whatever the IP, the
 	// same as the BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS default.
 	maxFailedLoginsPerAccount = 100
+
+	// clientURL is the CLIENT_URL of the server under test: the web app's address.
+	clientURL = "https://peek.example/status"
 )
 
 // app is one API server with its own database and Redis.
@@ -58,6 +61,11 @@ type app struct {
 
 // withMetrics turns on the /metrics endpoint, which is off by default.
 func withMetrics(cfg *config.Config) { cfg.MetricsEnabled = true }
+
+// withCORSOrigins sets CORS_ORIGINS, which is unset by default.
+func withCORSOrigins(list string) func(*config.Config) {
+	return func(cfg *config.Config) { cfg.CORSOrigins = list }
+}
 
 // newApp builds an API server on the default config, changed by options.
 func newApp(t *testing.T, options ...func(*config.Config)) *app {
@@ -79,6 +87,7 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 	cfg := &config.Config{
 		DBType:                "sqlite",
 		DBName:                filepath.Join(t.TempDir(), "api.db"),
+		ClientURL:             clientURL,
 		Mode:                  "test",
 		LogLevel:              "fatal",
 		Timezone:              "UTC",

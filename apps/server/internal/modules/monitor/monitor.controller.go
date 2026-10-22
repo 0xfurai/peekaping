@@ -142,29 +142,8 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 		ic.logger.Errorw("Failed to create monitor", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
-	ic.logger.Infof("Created monitor: %+v\n", createdMonitor)
-
-	// Handle multiple notification IDs
-	if len(monitor.NotificationIds) > 0 {
-		for _, notificationId := range monitor.NotificationIds {
-			_, err = ic.monitorNotificationService.Create(ctx, createdMonitor.ID, notificationId)
-			if err != nil {
-				ic.logger.Errorw("Failed to create monitor-notification record", "error", err)
-				return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-			}
-		}
-	}
-
-	// Handle multiple tag IDs
-	if len(monitor.TagIds) > 0 {
-		for _, tagId := range monitor.TagIds {
-			_, err = ic.monitorTagService.Create(ctx, createdMonitor.ID, tagId)
-			if err != nil {
-				ic.logger.Errorw("Failed to create monitor-tag record", "error", err)
-				return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-			}
-		}
-	}
+	// Only the ID and type: the monitor's config holds credentials, and so does its push token
+	ic.logger.Infof("Created monitor: %s (type: %s)", createdMonitor.ID, createdMonitor.Type)
 
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Monitor created successfully", createdMonitor))
 }
@@ -257,38 +236,6 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	// Delete all existing notification relations and create new ones
-	err = ic.monitorNotificationService.DeleteByMonitorID(ctx, id)
-	if err != nil {
-		ic.logger.Errorw("Failed to delete existing monitor-notification relations", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-
-	// Create new notification relations
-	for _, notificationId := range monitor.NotificationIds {
-		_, err = ic.monitorNotificationService.Create(ctx, id, notificationId)
-		if err != nil {
-			ic.logger.Errorw("Failed to create monitor-notification record", "error", err)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		}
-	}
-
-	// Delete all existing tag relations and create new ones
-	err = ic.monitorTagService.DeleteByMonitorID(ctx, id)
-	if err != nil {
-		ic.logger.Errorw("Failed to delete existing monitor-tag relations", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-
-	// Create new tag relations
-	for _, tagId := range monitor.TagIds {
-		_, err = ic.monitorTagService.Create(ctx, id, tagId)
-		if err != nil {
-			ic.logger.Errorw("Failed to create monitor-tag record", "error", err)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		}
-	}
-
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
 }
 func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePartialInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
@@ -300,121 +247,33 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id)
-	if lookupErr != nil {
-		return nil, lookupErr
-	}
-
-	// Validate the config against the type the monitor has after the update
-	if monitor.Type != nil || monitor.Config != nil {
-		monitorType, config := current.Type, current.Config
-		if monitor.Type != nil {
-			monitorType = *monitor.Type
-		}
-		if monitor.Config != nil {
-			config = *monitor.Config
-		}
-		if err := ic.monitorService.ValidateMonitorConfig(monitorType, config); err != nil {
-			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
-		}
-	}
-
 	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, id, &monitor, false)
 	if err != nil {
-		ic.logger.Errorw("Failed to update monitor", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-
-	// Handle notification IDs if they are being updated
-	if len(monitor.NotificationIds) > 0 {
-		// Replace all monitor-notification relations in an optimized way
-		existing, err := ic.monitorNotificationService.FindByMonitorID(ctx, id)
-		if err != nil {
-			ic.logger.Errorw("Failed to fetch monitor-notification relations", "error", err)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		}
-
-		// Build sets for comparison
-		existingMap := make(map[string]string) // notificationID -> relationID
-		for _, rel := range existing {
-			existingMap[rel.NotificationID] = rel.ID
-		}
-		newSet := make(map[string]struct{})
-		for _, nid := range monitor.NotificationIds {
-			newSet[nid] = struct{}{}
-		}
-
-		// Delete relations not in the new list
-		for notificationID, relID := range existingMap {
-			if _, found := newSet[notificationID]; !found {
-				if err := ic.monitorNotificationService.Delete(ctx, relID); err != nil {
-					ic.logger.Warnw("Failed to delete monitor-notification relation", "error", err)
-				}
-			}
-		}
-
-		// Add new relations not already present
-		for _, nid := range monitor.NotificationIds {
-			if _, found := existingMap[nid]; !found {
-				if _, err := ic.monitorNotificationService.Create(ctx, id, nid); err != nil {
-					ic.logger.Warnw("Failed to create monitor-notification relation", "error", err)
-				}
-			}
-		}
-	}
-
-	// Handle tag IDs if they are being updated
-	if len(monitor.TagIds) > 0 {
-		// Replace all monitor-tag relations in an optimized way
-		existing, err := ic.monitorTagService.FindByMonitorID(ctx, id)
-		if err != nil {
-			ic.logger.Errorw("Failed to fetch monitor-tag relations", "error", err)
-			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		}
-
-		// Build sets for comparison
-		existingMap := make(map[string]string) // tagID -> relationID
-		for _, rel := range existing {
-			existingMap[rel.TagID] = rel.ID
-		}
-		newSet := make(map[string]struct{})
-		for _, tid := range monitor.TagIds {
-			newSet[tid] = struct{}{}
-		}
-
-		// Delete relations not in the new list
-		for tagID, relID := range existingMap {
-			if _, found := newSet[tagID]; !found {
-				if err := ic.monitorTagService.Delete(ctx, relID); err != nil {
-					ic.logger.Warnw("Failed to delete monitor-tag relation", "error", err)
-				}
-			}
-		}
-
-		// Add new relations not already present
-		for _, tid := range monitor.TagIds {
-			if _, found := existingMap[tid]; !found {
-				if _, err := ic.monitorTagService.Create(ctx, id, tid); err != nil {
-					ic.logger.Warnw("Failed to create monitor-tag relation", "error", err)
-				}
-			}
-		}
+		return nil, ic.failWrite("update", err)
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
 }
+
+// failWrite maps the error of a write that looks up the monitor itself to its response.
+func (ic *MonitorController) failWrite(action string, err error) error {
+	var invalidConfig *InvalidConfigError
+	switch {
+	case errors.Is(err, ErrMonitorNotFound):
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
+	case errors.As(err, &invalidConfig):
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", invalidConfig.Err)))
+	}
+	ic.logger.Errorw("Failed to "+action+" monitor", "error", err)
+	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+}
+
 func (ic *MonitorController) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
 	r := input.Request
 	id := r.PathValue("id")
 
-	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
-		return nil, err
-	}
-
-	err := ic.monitorService.Delete(ctx, id)
-	if err != nil {
-		ic.logger.Errorw("Failed to delete monitor", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	if err := ic.monitorService.Delete(ctx, id); err != nil {
+		return nil, ic.failWrite("delete", err)
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Monitor deleted successfully", nil))

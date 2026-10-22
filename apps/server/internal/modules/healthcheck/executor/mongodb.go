@@ -59,8 +59,6 @@ func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMo
 	}
 	cfg := cfgAny.(*MongoDBConfig)
 
-	m.logger.Debugf("execute mongodb cfg: %+v", cfg)
-
 	startTime := time.Now().UTC()
 
 	// Parse MongoDB command

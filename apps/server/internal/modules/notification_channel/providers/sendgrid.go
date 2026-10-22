@@ -18,7 +18,7 @@ import (
 // SendGridConfig holds the required configuration for SendGrid notifications
 // Should match the JSON structure stored in the DB
 type SendGridConfig struct {
-	APIKey    string `json:"api_key" validate:"required"`
+	APIKey    string `json:"api_key" validate:"required" secret:"true"`
 	FromEmail string `json:"from_email" validate:"required,email"`
 	ToEmail   string `json:"to_email" validate:"required"`
 	CCEmail   string `json:"cc_email"`

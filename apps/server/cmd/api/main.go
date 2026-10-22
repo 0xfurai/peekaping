@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"peekaping/internal"
 	"peekaping/internal/app"
+	"peekaping/internal/httpx"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
@@ -66,7 +66,8 @@ func main() {
 	}
 	defer reporting.Flush(errorReportingFlush)
 
-	// Start cleanup cron job(s)
+	// Start the hourly cleanup. Every api replica schedules it and the run lock lets one of them
+	// run each hour. A failure to schedule it stops startup.
 	err = container.Invoke(func(
 		heartbeatService heartbeat.Service,
 		userRepository auth.Repository,
@@ -74,12 +75,18 @@ func main() {
 		statsService stats.Service,
 		notificationHistoryService notification_sent_history.Service,
 		tlsInfoService monitor_tls_info.Service,
+		runLock cleanup.RunLock,
 		logger *zap.SugaredLogger,
-	) {
-		cleanup.StartCleanupCron(heartbeatService, userRepository, settingService, statsService, notificationHistoryService, tlsInfoService, logger)
+	) error {
+		retention := cleanup.Retention{
+			NotificationHistoryDays: internalCfg.NotificationHistoryRetentionDays,
+			TLSInfoDays:             internalCfg.TLSInfoRetentionDays,
+		}
+		_, err := cleanup.StartCleanupCron(heartbeatService, userRepository, settingService, statsService, notificationHistoryService, tlsInfoService, runLock, retention, logger)
+		return err
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to start the hourly cleanup: %v", err)
 	}
 
 	// Initialize JWT settings
@@ -217,7 +224,7 @@ func main() {
 		// Start server in a goroutine
 		go func() {
 			logger.Infof("Starting server on port %s", port)
-			if err := http.ListenAndServe(port, server.Router); err != nil {
+			if err := httpx.NewServer(port, server.Router, httpx.DefaultTimeouts()).ListenAndServe(); err != nil {
 				logger.Fatalf("Failed to start server: %v", err)
 			}
 		}()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/heartbeat"
@@ -56,6 +57,7 @@ type StatPoint struct {
 
 type MonitorServiceImpl struct {
 	monitorRepository          MonitorRepository
+	transactor                 dbtx.Transactor
 	heartbeatService           heartbeat.Service
 	eventBus                   events.EventBus
 	monitorNotificationService monitor_notification.Service
@@ -67,6 +69,7 @@ type MonitorServiceImpl struct {
 
 func NewMonitorService(
 	monitorRepository MonitorRepository,
+	transactor dbtx.Transactor,
 	heartbeatService heartbeat.Service,
 	eventBus events.EventBus,
 	monitorNotificationService monitor_notification.Service,
@@ -77,6 +80,7 @@ func NewMonitorService(
 ) Service {
 	return &MonitorServiceImpl{
 		monitorRepository,
+		transactor,
 		heartbeatService,
 		eventBus,
 		monitorNotificationService,
@@ -104,7 +108,17 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		PushToken:      monitorCreateDto.PushToken,
 	}
 
-	createdModel, err := mr.monitorRepository.Create(ctx, createModel)
+	// The monitor and its links are stored together or not at all, and the event comes after
+	// they are committed, so a listener that reads the monitor's links finds them.
+	var createdModel *Model
+	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		createdModel, err = mr.monitorRepository.Create(ctx, createModel)
+		if err != nil {
+			return err
+		}
+		return mr.createLinks(ctx, createdModel.ID, monitorCreateDto.NotificationIds, monitorCreateDto.TagIds)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -157,21 +171,32 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		PushToken:      monitor.PushToken,
 	}
 
-	err := mr.monitorRepository.UpdateFull(ctx, id, model)
+	// The monitor and its links change together or not at all. The monitor is read back inside
+	// the transaction: the response and the event carry what is stored, including its status and
+	// created_at.
+	var updatedMonitor *Model
+	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		if err := mr.monitorRepository.UpdateFull(ctx, id, model); err != nil {
+			return err
+		}
+		if err := mr.replaceLinks(ctx, id, monitor.NotificationIds, monitor.TagIds); err != nil {
+			return err
+		}
+		var err error
+		updatedMonitor, err = mr.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if updatedMonitor == nil {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Read the monitor back: the response and the event carry what is stored, including its status and created_at
-	updatedMonitor, err := mr.FindByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	if updatedMonitor == nil {
-		return nil, fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
-	}
-
-	// Emit monitor updated event
+	// Emit monitor updated event, once the update is committed
 	mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
 
 	return updatedMonitor, nil
@@ -194,18 +219,48 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		PushToken:      monitor.PushToken,
 	}
 
-	err := mr.monitorRepository.UpdatePartial(ctx, id, model)
+	// The monitor and its links change together or not at all. The monitor is read inside the
+	// transaction, so that what the update is checked against is what it then changes. Links
+	// change only when IDs are sent: a request without them leaves the links as they are.
+	var updatedMonitor *Model
+	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		current, err := mr.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if current == nil {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
+		if err := mr.validatePartialConfig(current, monitor); err != nil {
+			return err
+		}
+		if err := mr.monitorRepository.UpdatePartial(ctx, id, model); err != nil {
+			return err
+		}
+		if len(monitor.NotificationIds) > 0 {
+			if err := mr.syncNotificationLinks(ctx, id, monitor.NotificationIds); err != nil {
+				return err
+			}
+		}
+		if len(monitor.TagIds) > 0 {
+			if err := mr.syncTagLinks(ctx, id, monitor.TagIds); err != nil {
+				return err
+			}
+		}
+		updatedMonitor, err = mr.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if updatedMonitor == nil {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Get the updated monitor
-	updatedMonitor, err := mr.FindByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	// Emit monitor updated event
+	// Emit monitor updated event, once the update is committed
 	if !noPublish {
 		mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
 	}
@@ -213,22 +268,174 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 	return updatedMonitor, nil
 }
 
+// validatePartialConfig checks that the type and config the monitor has after the update fit
+// together. An update that changes neither leaves them unchecked: a status change, or a rename,
+// doesn't depend on them.
+func (mr *MonitorServiceImpl) validatePartialConfig(current *Model, update *PartialUpdateDto) error {
+	if update.Type == nil && update.Config == nil {
+		return nil
+	}
+	monitorType, config := current.Type, current.Config
+	if update.Type != nil {
+		monitorType = *update.Type
+	}
+	if update.Config != nil {
+		config = *update.Config
+	}
+	if err := mr.ValidateMonitorConfig(monitorType, config); err != nil {
+		return &InvalidConfigError{Err: err}
+	}
+	return nil
+}
+
 func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
-	err := mr.monitorRepository.Delete(ctx, id)
+	// The monitor goes with its links, heartbeats and stats, or stays with all of them. On
+	// MongoDB, which has no transaction here, the order decides what a delete that fails part way
+	// leaves: the monitor row goes after its heartbeats and stats, so the request can be sent
+	// again, and before its links, so a monitor that stays keeps its notification channels.
+	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		current, err := mr.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if current == nil {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
+		if err := mr.heartbeatService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete heartbeats: %w", err)
+		}
+		if err := mr.statPointsService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete stats: %w", err)
+		}
+		if err := mr.monitorRepository.Delete(ctx, id); err != nil {
+			return err
+		}
+		if err := mr.monitorNotificationService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete notification channel links: %w", err)
+		}
+		if err := mr.monitorTagService.DeleteByMonitorID(ctx, id); err != nil {
+			return fmt.Errorf("delete tag links: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
-	_ = mr.monitorNotificationService.DeleteByMonitorID(ctx, id)
-	_ = mr.monitorTagService.DeleteByMonitorID(ctx, id)
-	_ = mr.heartbeatService.DeleteByMonitorID(ctx, id)
-	_ = mr.statPointsService.DeleteByMonitorID(ctx, id)
-
-	// Emit monitor deleted event
+	// Emit monitor deleted event, once the delete is committed
 	if err := events.Publish(ctx, mr.eventBus, events.MonitorDeleted, id); err != nil {
 		mr.logger.Errorw("Failed to publish monitor deleted event", "monitor_id", id, "error", err)
 	}
 
+	return nil
+}
+
+// createLinks links the monitor to each notification channel and tag, once for each ID however
+// often the request repeats it. The first link that can't be saved fails the call; the caller's
+// transaction decides what that undoes.
+func (mr *MonitorServiceImpl) createLinks(ctx context.Context, monitorID string, notificationIDs, tagIDs []string) error {
+	for _, notificationID := range distinct(notificationIDs) {
+		if _, err := mr.monitorNotificationService.Create(ctx, monitorID, notificationID); err != nil {
+			return fmt.Errorf("link notification channel %s: %w", notificationID, err)
+		}
+	}
+	for _, tagID := range distinct(tagIDs) {
+		if _, err := mr.monitorTagService.Create(ctx, monitorID, tagID); err != nil {
+			return fmt.Errorf("link tag %s: %w", tagID, err)
+		}
+	}
+	return nil
+}
+
+// distinct returns the IDs without repeats, in the order they first appear.
+func distinct(ids []string) []string {
+	seen := make(map[string]bool, len(ids))
+	unique := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if !seen[id] {
+			seen[id] = true
+			unique = append(unique, id)
+		}
+	}
+	return unique
+}
+
+// replaceLinks unlinks the monitor from all its notification channels and tags and links it
+// to the given ones.
+func (mr *MonitorServiceImpl) replaceLinks(ctx context.Context, monitorID string, notificationIDs, tagIDs []string) error {
+	if err := mr.monitorNotificationService.DeleteByMonitorID(ctx, monitorID); err != nil {
+		return fmt.Errorf("unlink notification channels: %w", err)
+	}
+	if err := mr.monitorTagService.DeleteByMonitorID(ctx, monitorID); err != nil {
+		return fmt.Errorf("unlink tags: %w", err)
+	}
+	return mr.createLinks(ctx, monitorID, notificationIDs, tagIDs)
+}
+
+// syncNotificationLinks makes the given notification channels the monitor's only ones: it
+// unlinks the others and links the new ones, and leaves the links that stay as they are.
+func (mr *MonitorServiceImpl) syncNotificationLinks(ctx context.Context, monitorID string, notificationIDs []string) error {
+	existing, err := mr.monitorNotificationService.FindByMonitorID(ctx, monitorID)
+	if err != nil {
+		return fmt.Errorf("find notification channel links: %w", err)
+	}
+	wanted := make(map[string]bool, len(notificationIDs))
+	for _, notificationID := range notificationIDs {
+		wanted[notificationID] = true
+	}
+
+	linked := make(map[string]bool, len(notificationIDs))
+	for _, link := range existing {
+		if wanted[link.NotificationID] {
+			linked[link.NotificationID] = true
+			continue
+		}
+		if err := mr.monitorNotificationService.Delete(ctx, link.ID); err != nil {
+			return fmt.Errorf("unlink notification channel %s: %w", link.NotificationID, err)
+		}
+	}
+	for _, notificationID := range notificationIDs {
+		if linked[notificationID] {
+			continue
+		}
+		if _, err := mr.monitorNotificationService.Create(ctx, monitorID, notificationID); err != nil {
+			return fmt.Errorf("link notification channel %s: %w", notificationID, err)
+		}
+		linked[notificationID] = true
+	}
+	return nil
+}
+
+// syncTagLinks is syncNotificationLinks for tags.
+func (mr *MonitorServiceImpl) syncTagLinks(ctx context.Context, monitorID string, tagIDs []string) error {
+	existing, err := mr.monitorTagService.FindByMonitorID(ctx, monitorID)
+	if err != nil {
+		return fmt.Errorf("find tag links: %w", err)
+	}
+	wanted := make(map[string]bool, len(tagIDs))
+	for _, tagID := range tagIDs {
+		wanted[tagID] = true
+	}
+
+	linked := make(map[string]bool, len(tagIDs))
+	for _, link := range existing {
+		if wanted[link.TagID] {
+			linked[link.TagID] = true
+			continue
+		}
+		if err := mr.monitorTagService.Delete(ctx, link.ID); err != nil {
+			return fmt.Errorf("unlink tag %s: %w", link.TagID, err)
+		}
+	}
+	for _, tagID := range tagIDs {
+		if linked[tagID] {
+			continue
+		}
+		if _, err := mr.monitorTagService.Create(ctx, monitorID, tagID); err != nil {
+			return fmt.Errorf("link tag %s: %w", tagID, err)
+		}
+		linked[tagID] = true
+	}
 	return nil
 }
 

@@ -8,6 +8,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { z } from "zod";
+import { SecretInput } from "../components/saved-secrets";
+import { withSavedSecret } from "../secrets";
 import { useFormContext } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
@@ -15,7 +17,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export const schema = z.object({
   type: z.literal("teams"),
-  webhook_url: z.string().url({ message: "Valid webhook URL is required" }),
+  webhook_url: withSavedSecret(z.string().url({ message: "Valid webhook URL is required" })),
   server_url: z
     .string()
     .url({ message: "Valid server URL is required" })
@@ -48,9 +50,9 @@ export default function TeamsForm() {
               {t("notifications.form.teams.webhook_url_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <SecretInput
                 placeholder="https://…powerplatform.com/powerautomate/automations/direct/workflows/…"
-                type="url"
+                autoComplete="off"
                 required
                 {...field}
               />

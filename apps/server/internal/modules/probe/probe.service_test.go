@@ -2,9 +2,11 @@ package probe_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe_notification"
 
@@ -30,11 +32,47 @@ type fixture struct {
 
 func newFixture(t *testing.T) fixture {
 	t.Helper()
+	return newFixtureWith(t, func(repo probe.Repository) probe.Repository { return repo })
+}
+
+// newFixtureWith is newFixture over the SQL repository that wrap returns, to make a step fail
+func newFixtureWith(t *testing.T, wrap func(probe.Repository) probe.Repository) fixture {
+	t.Helper()
 	db := sqliteDB(t)
 	migrateDB(t, db)
 	logger := zap.NewNop().Sugar()
 	channels := probe_notification.NewService(probe_notification.NewSQLRepository(db), logger)
-	return fixture{svc: probe.NewService(probe.NewSQLRepository(db), channels, logger), db: db}
+	return fixture{svc: probe.NewService(wrap(probe.NewSQLRepository(db)), dbtx.NewSQLTransactor(db), channels, logger), db: db}
+}
+
+// failingRepo is the SQL repository with statements that fail, to see what a failed step leaves
+// behind in the steps around it
+type failingRepo struct {
+	probe.Repository
+	deleteErr error
+	updateErr error
+}
+
+func (r failingRepo) Delete(ctx context.Context, id string) error {
+	if r.deleteErr != nil {
+		return r.deleteErr
+	}
+	return r.Repository.Delete(ctx, id)
+}
+
+func (r failingRepo) Update(ctx context.Context, id string, update *probe.UpdateModel) (*probe.Model, error) {
+	if r.updateErr != nil {
+		return nil, r.updateErr
+	}
+	return r.Repository.Update(ctx, id, update)
+}
+
+// probeCount is how many probe rows have the name
+func (f fixture) probeCount(t *testing.T, name string) int {
+	t.Helper()
+	n, err := f.db.NewSelect().Table("probes").Where("name = ?", name).Count(context.Background())
+	require.NoError(t, err)
+	return n
 }
 
 // channel inserts a notification channel and returns its id
@@ -274,28 +312,60 @@ func TestService_UpdateChangesOnlyWhatItIsGiven(t *testing.T) {
 	assert.ErrorIs(t, err, probe.ErrNotFound)
 }
 
-func TestService_AnUnknownNotificationChannelFailsCreateAndUpdateAndChangesNothing(t *testing.T) {
+func TestService_CreateWithUnknownChannelLeavesNothing(t *testing.T) {
+	ctx := context.Background()
+	// A delete that fails: a create that undoes itself with a second statement would leave the
+	// probe behind. It must be one transaction that never held the probe.
+	f := newFixtureWith(t, func(repo probe.Repository) probe.Repository {
+		return failingRepo{Repository: repo, deleteErr: errors.New("the probe can't be deleted")}
+	})
+	slack := f.channel(t)
+
+	_, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", NotificationIDs: []string{slack, uuid.NewString()}})
+
+	require.ErrorIs(t, err, probe_notification.ErrUnknownChannel)
+	assert.Equal(t, 0, f.probeCount(t, "Frankfurt"), "no probe is left behind by a create that failed")
+	all, err := f.svc.FindAll(ctx)
+	require.NoError(t, err)
+	require.Len(t, all, 1)
+	assert.Equal(t, "local", all[0].ID)
+}
+
+func TestService_UpdateWithUnknownChannelChangesNothing(t *testing.T) {
 	ctx := context.Background()
 	f := newFixture(t)
 	slack := f.channel(t)
-	unknown := uuid.NewString()
-
-	_, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", NotificationIDs: []string{slack, unknown}})
-	require.ErrorIs(t, err, probe_notification.ErrUnknownChannel)
-	all, err := f.svc.FindAll(ctx)
+	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", Location: "eu-central", NotificationIDs: []string{slack}})
 	require.NoError(t, err)
-	require.Len(t, all, 1, "no probe is left behind by a create that failed")
-	assert.Equal(t, "local", all[0].ID)
 
-	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", NotificationIDs: []string{slack}})
-	require.NoError(t, err)
-	name := "Renamed"
-	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Name: &name, NotificationIDs: []string{unknown}})
+	name, location := "Renamed", "us-east"
+	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Name: &name, Location: &location, NotificationIDs: []string{uuid.NewString()}})
+
 	require.ErrorIs(t, err, probe_notification.ErrUnknownChannel)
 	unchanged, err := f.svc.FindByID(ctx, created.ID)
 	require.NoError(t, err)
+	assert.Equal(t, "Frankfurt", unchanged.Name, "the name stays")
+	assert.Equal(t, "eu-central", unchanged.Location)
+	assert.Equal(t, []string{slack}, unchanged.NotificationIDs, "and so do the channels")
+}
+
+func TestService_UpdateKeepsTheChannelsWhenTheProbeUpdateFails(t *testing.T) {
+	ctx := context.Background()
+	f := newFixtureWith(t, func(repo probe.Repository) probe.Repository {
+		return failingRepo{Repository: repo, updateErr: errors.New("the probe can't be updated")}
+	})
+	slack, email := f.channel(t), f.channel(t)
+	created, err := f.svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt", NotificationIDs: []string{slack}})
+	require.NoError(t, err)
+
+	name := "Renamed"
+	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Name: &name, NotificationIDs: []string{email}})
+
+	require.Error(t, err)
+	unchanged, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
 	assert.Equal(t, "Frankfurt", unchanged.Name)
-	assert.Equal(t, []string{slack}, unchanged.NotificationIDs)
+	assert.Equal(t, []string{slack}, unchanged.NotificationIDs, "a channel change is kept only with the update that came with it")
 }
 
 func TestService_FindAllListsLocalFirstWithInstancesAndChannels(t *testing.T) {

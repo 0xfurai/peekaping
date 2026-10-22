@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Docker + SQLite
 
-For the stats storage upgrade, backups and optional disk-space reclamation, see [Upgrading stats storage](./upgrading-stats.md). If Peekaping stops at start because the SQLite quick check found corruption, see [Recovering a corrupt SQLite database](./sqlite-recovery.md).
+For the stats storage upgrade, backups and optional disk-space reclamation, see [Upgrading stats storage](./upgrading-stats.md). If Peekaping stops at start because the SQLite quick check found corruption, see [Recovering a corrupt SQLite database](./sqlite-recovery.md). [Startup check](#startup-check) shows how to choose the check Peekaping runs at start.
 
 Peekaping runs in one of two modes. See [Deployment modes](./deployment-modes.md) for what each one runs:
 
@@ -58,6 +58,7 @@ The image reads the same environment variables as cluster mode (see the [`.env` 
 - There is no Redis, so `REDIS_*` variables are ignored.
 - `MODE` defaults to `prod`.
 - Leave `API_URL` unset, so the web app calls the API on its own origin. Set it only if the web app must call an API on another origin.
+- Leave `CORS_ORIGINS` unset. The web app calls the API on its own origin, which needs no CORS entry. Set it to a comma-separated list of origins, such as `https://app.example.com`, only if a page on another origin must read the API's responses. Unset, it allows the origin of `CLIENT_URL`. `*` allows any origin.
 
 ### Stopping
 
@@ -127,6 +128,18 @@ If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the 
 
 In cluster mode, the API, producer, worker and ingester run in separate containers and talk through Redis. An nginx gateway serves the web app and the API on port 8383.
 
+:::note Single mode fits SQLite better
+In cluster mode, the `api`, `producer` and `ingester` containers open the same SQLite file, and SQLite lets one process write to it at a time, so each waits for the others' writes. That works for a small install, but [single mode](#single-mode) runs every role in one process and fits SQLite better, and [PostgreSQL](./docker-with-postgres.md) takes concurrent writers. Prefer the SQLite bundle image, unless you need separate processes for the roles.
+
+Each of the three containers logs this warning at start:
+
+```text
+SQLite in cluster mode: the api, producer and ingester share one database file and write to it one at a time. Single mode (the SQLite bundle image) or PostgreSQL fits better. See https://docs.peekaping.com/self-hosting/docker-with-sqlite#cluster-mode
+```
+
+The [Helm chart](./kubernetes-helm.md) supports PostgreSQL only and refuses SQLite.
+:::
+
 The images run as a non-root user. See [Cluster user and permissions](./cluster-user.md) for the SQLite data folder, Docker monitors and ping monitors.
 
 ### Prerequisites
@@ -162,6 +175,8 @@ DB_TYPE=sqlite
 # and always listens on 8383.
 SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
+# Origins that may read the API's responses from another origin. Default: the origin of CLIENT_URL
+# CORS_ORIGINS=https://app.example.com
 
 # Application Settings
 MODE=prod
@@ -462,6 +477,22 @@ You have two options for persistent storage:
    ```
    In cluster mode, also mount `sqlite_data:/app/data` in the `data-permissions` service. See [Cluster user and permissions](./cluster-user.md#the-sqlite-data-folder).
 
+
+### Startup check
+
+At start, Peekaping checks the database file for corruption, and stops if the check finds any. In single mode, `peekaping` runs the check. In cluster mode, the `api`, `producer` and `ingester` each run it. `SQLITE_STARTUP_CHECK` chooses the check:
+
+| Value | What runs | Time for a 1.5 GB database |
+| --- | --- | --- |
+| `quick` (default) | `PRAGMA quick_check`, which walks the b-tree pages. It doesn't find an index that disagrees with its table. | About 2 seconds |
+| `full` | `PRAGMA integrity_check`, which reads the whole file and also finds an index that disagrees with its table. | About 30 seconds, at every start |
+| `off` | Nothing. The log says that the check is skipped. | None |
+
+The values are lower case. Any other value fails the configuration check, and Peekaping doesn't start.
+
+In single mode, pass the setting to the container: `-e SQLITE_STARTUP_CHECK=full` with `docker run`, or `- SQLITE_STARTUP_CHECK=full` under `environment` in the Compose file above. In cluster mode, add `SQLITE_STARTUP_CHECK=full` to the `.env` file, which the `api`, `producer` and `ingester` all read.
+
+With `off`, a damaged database goes unnoticed, and Peekaping keeps writing to it, which can make the damage worse. [Recovering a corrupt SQLite database](./sqlite-recovery.md#the-startup-check) says what each check finds and what to do when one fails.
 
 ### Updating Peekaping
 

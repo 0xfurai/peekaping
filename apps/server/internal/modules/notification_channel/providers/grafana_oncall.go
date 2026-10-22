@@ -19,7 +19,7 @@ import (
 )
 
 type GrafanaOncallConfig struct {
-	GrafanaOncallURL string `json:"grafana_oncall_url" validate:"required,url"`
+	GrafanaOncallURL string `json:"grafana_oncall_url" validate:"required,url" secret:"true" endpoint:"true"`
 }
 
 type GrafanaOncallSender struct {
@@ -60,7 +60,7 @@ func (g *GrafanaOncallSender) Send(
 	}
 	cfg := cfgAny.(*GrafanaOncallConfig)
 
-	g.logger.Infof("Sending Grafana OnCall notification to: %s", cfg.GrafanaOncallURL)
+	g.logger.Infof("Sending Grafana OnCall notification")
 
 	var payload map[string]interface{}
 

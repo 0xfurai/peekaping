@@ -140,8 +140,6 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 	}
 	cfg := cfgAny.(*MySQLConfig)
 
-	m.logger.Debugf("execute mysql cfg: %+v", cfg)
-
 	startTime := time.Now().UTC()
 
 	// Validate configuration before execution
