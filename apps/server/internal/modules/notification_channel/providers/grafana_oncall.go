@@ -60,7 +60,7 @@ func (g *GrafanaOncallSender) Send(
 	}
 	cfg := cfgAny.(*GrafanaOncallConfig)
 
-	g.logger.Infof("Sending Grafana OnCall notification to: %s", cfg.GrafanaOncallURL)
+	g.logger.Infof("Sending Grafana OnCall notification")
 
 	var payload map[string]interface{}
 

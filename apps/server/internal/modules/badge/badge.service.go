@@ -304,7 +304,7 @@ func (s *ServiceImpl) GenerateStatusBadge(ctx context.Context, monitorID string,
 		LabelColor: options.LabelColor,
 	}
 
-	if options.Color != "" && options.Color != DefaultBadgeOptions().Color {
+	if options.Color != "" {
 		badge.Color = options.Color
 	}
 
@@ -363,7 +363,7 @@ func (s *ServiceImpl) GenerateUptimeBadge(ctx context.Context, monitorID string,
 		LabelColor: options.LabelColor,
 	}
 
-	if options.Color != "" && options.Color != DefaultBadgeOptions().Color {
+	if options.Color != "" {
 		badge.Color = options.Color
 	}
 
@@ -421,7 +421,7 @@ func (s *ServiceImpl) GeneratePingBadge(ctx context.Context, monitorID string, d
 	}
 
 	if badge.Color == "" {
-		badge.Color = DefaultBadgeOptions().Color
+		badge.Color = defaultBadgeColor
 	}
 
 	return s.svgGenerator.GenerateBadge(badge), nil
@@ -455,7 +455,7 @@ func (s *ServiceImpl) GenerateCertExpBadge(ctx context.Context, monitorID string
 		LabelColor: options.LabelColor,
 	}
 
-	if options.Color != "" && options.Color != DefaultBadgeOptions().Color {
+	if options.Color != "" {
 		badge.Color = options.Color
 	}
 
@@ -494,7 +494,7 @@ func (s *ServiceImpl) GenerateResponseBadge(ctx context.Context, monitorID strin
 	}
 
 	if badge.Color == "" {
-		badge.Color = DefaultBadgeOptions().Color
+		badge.Color = defaultBadgeColor
 	}
 
 	return s.svgGenerator.GenerateBadge(badge), nil

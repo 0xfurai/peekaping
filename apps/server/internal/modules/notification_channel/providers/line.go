@@ -64,11 +64,6 @@ func (s *LineSender) Send(
 		engine := liquid.NewEngine()
 		bindings := PrepareTemplateBindings(monitor, heartbeat, message)
 
-		if s.logger != nil {
-			jsonDebug, _ := json.MarshalIndent(bindings, "", "  ")
-			s.logger.Debugf("Template bindings: %s", string(jsonDebug))
-		}
-
 		if rendered, err := engine.ParseAndRenderString(cfg.Template, bindings); err == nil {
 			messageText = rendered
 		} else {

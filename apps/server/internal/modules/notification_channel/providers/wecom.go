@@ -57,7 +57,7 @@ func (w *WeComSender) Send(
 	}
 	cfg := cfgAny.(*WeComConfig)
 
-	w.logger.Infof("Sending WeCom notification to webhook: %s", cfg.WebhookURL)
+	w.logger.Infof("Sending WeCom notification")
 
 	var content string
 	// Format message content differently based on whether monitor/healthbeat info is available

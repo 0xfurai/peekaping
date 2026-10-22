@@ -292,7 +292,6 @@ func (mr *ServiceImpl) SetActive(ctx context.Context, id string, active bool) (*
 // IsUnderMaintenance determines if the maintenance is currently active based on strategy and timing
 func (mr *ServiceImpl) IsUnderMaintenance(ctx context.Context, maintenance *Model) (bool, error) {
 	mr.logger.Debugf("Checking if maintenance %s is under maintenance", maintenance.ID)
-	mr.logger.Debugf("Maintenance: %+v", maintenance)
 
 	// If not active, return false
 	if !maintenance.Active {

@@ -16,6 +16,18 @@ func unsetRedis(t *testing.T) {
 	}
 }
 
+func TestLoadAndValidate_LogLevelDefaultsToInfo(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("LOG_LEVEL", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	assert.Equal(t, "info", cfg.ToInternalConfig().LogLevel)
+}
+
 func TestLoadAndValidate_NeedsNoRedis(t *testing.T) {
 	unsetRedis(t)
 	t.Setenv("DB_TYPE", "sqlite")

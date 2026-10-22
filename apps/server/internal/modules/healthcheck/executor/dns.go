@@ -48,8 +48,6 @@ func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 	}
 	cfg := cfgAny.(*DNSConfig)
 
-	d.logger.Debugf("execute dns cfg: %+v", cfg)
-
 	// The resolver's own timeouts come from resolv.conf, so bound the lookup
 	// by the monitor timeout here.
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(m.Timeout)*time.Second)
