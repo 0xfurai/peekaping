@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 )
 
 type sqlModel struct {
@@ -73,6 +74,63 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, user *Model) (*Model, er
 
 	// Let Bun handle ID generation based on the database type
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return toDomainModelFromSQL(sm), nil
+}
+
+// firstAdminLockKey is the PostgreSQL advisory lock that CreateFirst takes. Any
+// number would do; this one is just not used for anything else.
+const firstAdminLockKey = 0x70656b6166697273
+
+func (r *SQLRepositoryImpl) CreateFirst(ctx context.Context, user *Model) (*Model, error) {
+	sm := &sqlModel{
+		ID:             uuid.New().String(),
+		Email:          user.Email,
+		Password:       user.Password,
+		Active:         user.Active,
+		TwoFASecret:    user.TwoFASecret,
+		TwoFAStatus:    user.TwoFAStatus,
+		TwoFALastToken: user.TwoFALastToken,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
+	}
+
+	// One statement inserts the user only while the table is empty. SQLite
+	// serialises its writes, so that statement alone is atomic there.
+	insert := func(db bun.IDB) error {
+		res, err := db.ExecContext(ctx, `INSERT INTO users (id, email, password, active, twofa_secret, twofa_status, twofa_last_token, created_at, updated_at)
+			SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM users)`,
+			sm.ID, sm.Email, sm.Password, sm.Active, sm.TwoFASecret, sm.TwoFAStatus, sm.TwoFALastToken, sm.CreatedAt, sm.UpdatedAt)
+		if err != nil {
+			return err
+		}
+		inserted, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if inserted == 0 {
+			return ErrAdminExists
+		}
+		return nil
+	}
+
+	var err error
+	if r.db.Dialect().Name() == dialect.PG {
+		// Two PostgreSQL transactions can both see an empty table, so they take
+		// turns: the lock is held until the transaction ends, and the call that
+		// gets it next sees the user the one before it created.
+		err = r.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+			if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(?)", firstAdminLockKey); err != nil {
+				return err
+			}
+			return insert(tx)
+		})
+	} else {
+		err = insert(r.db)
+	}
 	if err != nil {
 		return nil, err
 	}

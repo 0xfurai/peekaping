@@ -70,7 +70,7 @@ func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx
 	response, err := c.service.Register(ctx, dto)
 	if err != nil {
 		c.logger.Errorw("Failed to register admin", "error", err)
-		if err.Error() == "admin already exists" {
+		if errors.Is(err, ErrAdminExists) {
 			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		}
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))

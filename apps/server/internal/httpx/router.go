@@ -73,6 +73,7 @@ func (r *Router) Handle(method, path string, handler http.HandlerFunc, middlewar
 			NotFound(w, req)
 			return
 		}
+		setRoute(req.Context(), pattern)
 		wrapped.ServeHTTP(w, req)
 	}))
 }

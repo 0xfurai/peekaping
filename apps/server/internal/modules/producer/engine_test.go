@@ -33,8 +33,6 @@ func ms(t time.Time) float64 { return float64(t.UnixMilli()) }
 // monitorStore is an in-memory monitor database. Like both repositories, it
 // pages active monitors by offset, highest ID first (ORDER BY id DESC).
 type monitorStore struct {
-	MockMonitorService // methods the producer doesn't call
-
 	mu       sync.Mutex
 	monitors map[string]*monitor.Model
 	findErrs map[string]error
@@ -136,7 +134,7 @@ func newEngine(t *testing.T, monitors ...*monitor.Model) *engine {
 
 	store := newMonitorStore(monitors...)
 	p := NewProducer(rdb, NewQueueRunner(queueSvc, logger), store, check.NewLoader(store, new(MockProxyService), maintenanceSvc, nil, logger),
-		nil, nil, nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, logger)
+		nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, logger)
 	p.reclaimInterval = 5 * time.Millisecond
 
 	return &engine{mr: mr, rdb: rdb, inspector: inspector, monitors: store, producer: p}

@@ -15,6 +15,9 @@ import (
 	gorilla "github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 const webIndex = "<!doctype html><title>Peekaping</title><script src=\"/env.js\"></script>"
@@ -79,7 +82,7 @@ func TestRun_ServesTheWebAppAndTheAPIOnOnePort(t *testing.T) {
 		in.registerAdmin(t)
 		in.dialSocket(t).close()
 
-		query := url.Values{"EIO": {"4"}, "transport": {"websocket"}, "token": {in.accessToken}}
+		query := url.Values{"EIO": {"4"}, "transport": {"websocket"}}
 		conn, resp, err := gorilla.DefaultDialer.Dial("ws"+strings.TrimPrefix(in.url, "http")+"/socket.io/?"+query.Encode(), nil)
 		require.NoError(t, err)
 		defer conn.Close()
@@ -89,11 +92,81 @@ func TestRun_ServesTheWebAppAndTheAPIOnOnePort(t *testing.T) {
 		_, open, err := conn.ReadMessage()
 		require.NoError(t, err)
 		assert.True(t, strings.HasPrefix(string(open), "0{") && strings.Contains(string(open), `"sid":`), "Engine.IO OPEN: %s", open)
-		require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte("40")))
+		require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte(in.socketConnect(t))))
 		_, connect, err := conn.ReadMessage()
 		require.NoError(t, err)
 		assert.True(t, strings.HasPrefix(string(connect), "40"), "socket.io CONNECT: %s", connect)
 	})
+
+	require.NoError(t, in.stop(t))
+}
+
+// The gateway answers some requests itself and passes the others to the API router, which has a
+// request ID and a request log of its own. Each request gets one ID and one log line either way.
+func TestRun_GivesEachRequestBehindTheWebAppOneRequestIDAndOneLogLine(t *testing.T) {
+	webDir := t.TempDir()
+	for name, content := range map[string]string{"index.html": webIndex, "assets/index-a1.js": "console.log('app')"} {
+		path := filepath.Join(webDir, filepath.FromSlash(name))
+		require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o755))
+		require.NoError(t, os.WriteFile(path, []byte(content), 0o644))
+	}
+	cfg := loadConfig(t, map[string]string{"WEB_DIR": webDir, "METRICS_ENABLED": "true"})
+	core, logs := observer.New(zap.DebugLevel)
+	in := startPeekaping(t, cfg, zap.New(core).Sugar(), logs)
+
+	for _, tc := range []struct {
+		name, method, path, route string
+		status                    int
+		level                     zapcore.Level
+	}{
+		{"a page of the web app", http.MethodGet, "/monitors/x?tab=1", "", http.StatusOK, zap.InfoLevel},
+		{"an asset", http.MethodGet, "/assets/index-a1.js", "", http.StatusOK, zap.InfoLevel},
+		{"a missing asset", http.MethodGet, "/assets/index-old.js", "", http.StatusNotFound, zap.InfoLevel},
+		{"env.js", http.MethodGet, "/env.js", "", http.StatusOK, zap.InfoLevel},
+		{"a method the gateway refuses", http.MethodPost, "/monitors", "", http.StatusMethodNotAllowed, zap.InfoLevel},
+		{"the gateway's /health, which is the web app's", http.MethodGet, "/health", "", http.StatusOK, zap.DebugLevel},
+		{"an API route", http.MethodGet, "/api/v1/version", "/api/v1/version", http.StatusOK, zap.InfoLevel},
+		{"the API's health endpoint", http.MethodGet, "/api/v1/health", "/api/v1/health", http.StatusOK, zap.DebugLevel},
+		{"metrics", http.MethodGet, "/metrics", "/metrics", http.StatusOK, zap.DebugLevel},
+		{"an API path with no route", http.MethodGet, "/api/v1/nothing", "", http.StatusNotFound, zap.InfoLevel},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, incoming := range []string{"client-request-7", ""} {
+				logs.TakeAll()
+				req, err := http.NewRequest(tc.method, in.url+tc.path, nil)
+				require.NoError(t, err)
+				if incoming != "" {
+					req.Header.Set("X-Request-ID", incoming)
+				}
+				resp, err := http.DefaultClient.Do(req)
+				require.NoError(t, err)
+				_, err = io.Copy(io.Discard, resp.Body)
+				require.NoError(t, err)
+				require.NoError(t, resp.Body.Close())
+				require.Equal(t, tc.status, resp.StatusCode)
+
+				require.Len(t, resp.Header.Values("X-Request-ID"), 1)
+				id := resp.Header.Get("X-Request-ID")
+				if incoming != "" {
+					assert.Equal(t, incoming, id)
+				} else {
+					assert.Regexp(t, `^[A-Za-z0-9._-]{1,64}$`, id)
+				}
+				lines := logs.FilterMessage("HTTP request").All()
+				require.Len(t, lines, 1)
+				assert.Equal(t, tc.level, lines[0].Level)
+				entry := lines[0].ContextMap()
+				assert.Equal(t, id, entry["request_id"])
+				assert.Equal(t, tc.method, entry["method"])
+				assert.Equal(t, tc.route, entry["route"])
+				assert.EqualValues(t, tc.status, entry["status"])
+				assert.Contains(t, entry, "client_ip")
+				assert.Contains(t, entry, "size")
+				assert.Contains(t, entry, "duration")
+				assert.Len(t, entry, 7)
+			}
+		})
+	}
 
 	require.NoError(t, in.stop(t))
 }
