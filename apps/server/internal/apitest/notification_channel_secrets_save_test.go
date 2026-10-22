@@ -106,6 +106,19 @@ func (c secretChannel) withVisible(overrides map[string]any) secretChannel {
 	return c
 }
 
+// without returns the channel with some of its visible config fields left out
+func (c secretChannel) without(keys ...string) secretChannel {
+	visible := map[string]any{}
+	for key, value := range c.visible {
+		visible[key] = value
+	}
+	for _, key := range keys {
+		delete(visible, key)
+	}
+	c.visible = visible
+	return c
+}
+
 func secretChannelOfType(t *testing.T, channelType string) secretChannel {
 	t.Helper()
 	for _, c := range secretChannels {
@@ -269,6 +282,82 @@ func TestNotificationChannelsAPI_AChangedEndpointRefusesThePlaceholders(t *testi
 			})
 		}
 	}
+}
+
+// The web form fills in a field a stored config leaves out with the value the sender uses. A form
+// the user didn't touch must still count as the saved endpoint.
+func TestNotificationChannelsAPI_AnEndpointLeftAtItsDefaultIsUnchanged(t *testing.T) {
+	a := newSecretsApp(t)
+
+	t.Run("telegram", func(t *testing.T) {
+		telegramAPI := startRequestReceiver(t)
+		routeHostTo(t, "api.telegram.org", telegramAPI)
+		withoutServer := secretChannelOfType(t, "telegram").without("server_url")
+		withDefault := withoutServer.withVisible(map[string]any{"server_url": "https://api.telegram.org"})
+
+		t.Run("a saved channel without a server_url, sent with the default one", func(t *testing.T) {
+			id := a.createSecretChannel(t, withoutServer)
+
+			decode[any](t, a.testChannel(t, id, "telegram", withDefault.withPlaceholders(nil)), http.StatusOK)
+			assert.Equal(t, "/bot123456:SECRET-telegram-token/sendMessage", telegramAPI.requireOne(t).path, "the saved token, to the default server")
+
+			decode[any](t, a.put(t, id, "telegram", withDefault.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, withDefault.config(nil), a.storedChannelConfig(t, id), "PUT")
+
+			otherID := a.createSecretChannel(t, withoutServer)
+			decode[any](t, a.patch(t, otherID, "", withDefault.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, withDefault.config(nil), a.storedChannelConfig(t, otherID), "PATCH")
+		})
+
+		t.Run("a saved channel with the default server_url, sent without one", func(t *testing.T) {
+			id := a.createSecretChannel(t, withDefault)
+
+			decode[any](t, a.testChannel(t, id, "telegram", withoutServer.withPlaceholders(nil)), http.StatusOK)
+			assert.Equal(t, "/bot123456:SECRET-telegram-token/sendMessage", telegramAPI.requireOne(t).path)
+
+			decode[any](t, a.put(t, id, "telegram", withoutServer.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, withoutServer.config(nil), a.storedChannelConfig(t, id), "PUT")
+		})
+
+		t.Run("another server is still refused", func(t *testing.T) {
+			id := a.createSecretChannel(t, withoutServer)
+			moved := withoutServer.withVisible(map[string]any{"server_url": "http://127.0.0.1:2"})
+
+			requireRefusedAsPlaceholder(t, a.put(t, id, "telegram", moved.withPlaceholders(nil)), "PUT")
+			requireRefusedAsPlaceholder(t, a.patch(t, id, "", moved.withPlaceholders(nil)), "PATCH")
+			requireRefusedAsPlaceholder(t, a.testChannel(t, id, "telegram", moved.withPlaceholders(nil)), "Test")
+			assert.Empty(t, telegramAPI.received())
+			assert.JSONEq(t, withoutServer.config(nil), a.storedChannelConfig(t, id))
+		})
+	})
+
+	t.Run("smtp", func(t *testing.T) {
+		smtp := secretChannelOfType(t, "smtp") // saved without smtp_secure
+		insecure := smtp.withVisible(map[string]any{"smtp_secure": false})
+		secure := smtp.withVisible(map[string]any{"smtp_secure": true})
+
+		t.Run("smtp_secure false is the saved endpoint of a config without it", func(t *testing.T) {
+			id := a.createSecretChannel(t, smtp)
+
+			decode[any](t, a.put(t, id, "smtp", insecure.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, insecure.config(nil), a.storedChannelConfig(t, id), "PUT")
+			decode[any](t, a.patch(t, id, "", smtp.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, smtp.config(nil), a.storedChannelConfig(t, id), "PATCH back to a config without it")
+
+			// The test goes on to send, to an address that refuses connections
+			w := a.testChannel(t, id, "smtp", insecure.withPlaceholders(nil))
+			assert.NotContains(t, w.Body.String(), "re-enter the saved secrets")
+		})
+
+		t.Run("smtp_secure true is another endpoint", func(t *testing.T) {
+			id := a.createSecretChannel(t, smtp)
+
+			requireRefusedAsPlaceholder(t, a.put(t, id, "smtp", secure.withPlaceholders(nil)), "PUT")
+			requireRefusedAsPlaceholder(t, a.patch(t, id, "", secure.withPlaceholders(nil)), "PATCH")
+			requireRefusedAsPlaceholder(t, a.testChannel(t, id, "smtp", secure.withPlaceholders(nil)), "Test")
+			assert.JSONEq(t, smtp.config(nil), a.storedChannelConfig(t, id))
+		})
+	})
 }
 
 func TestNotificationChannelsAPI_AChangedTypeDoesNotKeepTheOldSecrets(t *testing.T) {

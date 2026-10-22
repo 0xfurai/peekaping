@@ -82,6 +82,38 @@ func TestResolveSecrets(t *testing.T) {
 			want:     `{"token":"saved-token"}`,
 		},
 		{
+			name:     "an endpoint with a default is unchanged when the form fills the default in",
+			incoming: `{"server":"https://server.example","region":"us-east","token":"********"}`,
+			saved:    ptr(saved),
+			want:     `{"server":"https://server.example","region":"us-east","token":"saved-token"}`,
+		},
+		{
+			name:     "an endpoint with a default is unchanged when the form leaves the default out",
+			incoming: `{"server":"https://server.example","token":"********"}`,
+			saved:    ptr(`{"server":"https://server.example","region":"us-east","token":"saved-token"}`),
+			want:     `{"server":"https://server.example","token":"saved-token"}`,
+		},
+		{
+			name:     "an endpoint with a default is unchanged when the form sends it empty",
+			incoming: `{"server":"https://server.example","region":"","token":"********"}`,
+			saved:    ptr(`{"server":"https://server.example","region":"us-east","token":"saved-token"}`),
+			want:     `{"server":"https://server.example","region":"","token":"saved-token"}`,
+		},
+		{
+			name:           "an endpoint with a default is changed by another value",
+			incoming:       `{"server":"https://server.example","region":"eu-west","token":"********"}`,
+			saved:          ptr(saved),
+			want:           `{"server":"https://server.example","region":"eu-west","token":"********"}`,
+			wantUnresolved: []string{"token"},
+		},
+		{
+			name:           "an endpoint with a default is changed by a value saved other than the default",
+			incoming:       `{"server":"https://server.example","token":"********"}`,
+			saved:          ptr(`{"server":"https://server.example","region":"eu-west","token":"saved-token"}`),
+			want:           `{"server":"https://server.example","token":"********"}`,
+			wantUnresolved: []string{"token"},
+		},
+		{
 			name:           "a changed endpoint leaves the placeholders",
 			incoming:       `{"server":"https://elsewhere.example","token":"********","password":"********"}`,
 			saved:          ptr(saved),

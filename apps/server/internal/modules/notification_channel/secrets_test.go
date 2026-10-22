@@ -107,6 +107,30 @@ func TestEndpointKeysPerProvider(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
+// TestEndpointDefaultsPerProvider pins the endpoint fields whose sender treats an empty value as
+// a default server. The endpoint check reads such a field as that default on both sides, so a
+// stored config without it and a form that fills the default in are the same endpoint. A sender
+// with a fallback like that has to be added here.
+func TestEndpointDefaultsPerProvider(t *testing.T) {
+	registry := newRealRegistry()
+	got := map[string]map[string]string{}
+	for _, channelType := range registry.Types() {
+		provider, _ := registry.Get(channelType)
+		for _, field := range configFields(provider) {
+			if field.endpointDefault != "" {
+				if got[channelType] == nil {
+					got[channelType] = map[string]string{}
+				}
+				got[channelType][field.key] = field.endpointDefault
+			}
+		}
+	}
+
+	assert.Equal(t, map[string]map[string]string{
+		"telegram": {"server_url": "https://api.telegram.org"},
+	}, got)
+}
+
 // TestUntaggedConfigKeysAreNotSecretsByName catches a secret field that was added without its
 // tag: a key named like a credential has to be tagged, or listed here as the one that isn't.
 func TestUntaggedConfigKeysAreNotSecretsByName(t *testing.T) {
@@ -148,6 +172,8 @@ type secretTestConfig struct {
 	Token    string `json:"token" secret:"true"`
 	Password string `json:"password" secret:"true"`
 	HookURL  string `json:"hook_url" secret:"true" endpoint:"true"`
+	// Region is where the provider sends when it is empty
+	Region string `json:"region" endpoint:"true" endpointDefault:"us-east"`
 }
 
 func (*secretTestProvider) Unmarshal(config string) (any, error) {

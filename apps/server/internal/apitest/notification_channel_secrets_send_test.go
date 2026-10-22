@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"sync"
 	"testing"
 
@@ -42,6 +43,24 @@ func startRequestReceiver(t *testing.T) *requestReceiver {
 	t.Cleanup(server.Close)
 	receiver.url = server.URL
 	return receiver
+}
+
+// routeHostTo sends the requests the app makes to a host, which the test blocks, to the receiver
+// instead. Call it after newSecretsApp, which blocks the hosts that are not on this machine.
+func routeHostTo(t *testing.T, host string, receiver *requestReceiver) {
+	t.Helper()
+	target, err := url.Parse(receiver.url)
+	require.NoError(t, err)
+	previous := http.DefaultTransport
+	http.DefaultTransport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		if req.URL.Host != host {
+			return previous.RoundTrip(req)
+		}
+		redirected := req.Clone(req.Context())
+		redirected.URL.Scheme, redirected.URL.Host = target.Scheme, target.Host
+		return previous.RoundTrip(redirected)
+	})
+	t.Cleanup(func() { http.DefaultTransport = previous })
 }
 
 // received returns the requests the server has been sent

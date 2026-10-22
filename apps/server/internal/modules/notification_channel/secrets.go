@@ -24,6 +24,8 @@ type configField struct {
 	index    int
 	secret   bool
 	endpoint bool
+	// endpointDefault is, for an endpoint, the value the provider uses when the field is empty
+	endpointDefault string
 }
 
 // configFields returns the secret and endpoint fields of a provider's config, which it reads from
@@ -60,7 +62,10 @@ func configFields(provider NotificationChannelProvider) []configField {
 		if name == "" {
 			name = field.Name
 		}
-		fields = append(fields, configField{key: name, index: i, secret: secret, endpoint: endpoint})
+		fields = append(fields, configField{
+			key: name, index: i, secret: secret, endpoint: endpoint,
+			endpointDefault: field.Tag.Get("endpointDefault"),
+		})
 	}
 	return fields
 }
@@ -309,7 +314,9 @@ func savedSecret(saved map[string]json.RawMessage, key string) (json.RawMessage,
 
 // endpointsUnchanged reports whether every endpoint field of the incoming config has the value
 // it has in the saved config. The configs are read the way the provider reads them, so letter
-// case and defaults don't matter. A secret endpoint sent as the placeholder is unchanged.
+// case doesn't matter, a field left out is its zero value (false, 0 or empty), and an empty field
+// with an endpointDefault is that default. The web form fills in such defaults for a config that
+// lacks them, and that is not a move. A secret endpoint sent as the placeholder is unchanged.
 func endpointsUnchanged(provider NotificationChannelProvider, fields []configField, incoming, saved string) bool {
 	var endpoints []configField
 	for _, field := range fields {
@@ -342,11 +349,20 @@ func endpointsUnchanged(provider NotificationChannelProvider, fields []configFie
 		if field.secret && incomingValue.Kind() == reflect.String && incomingValue.String() == secretPlaceholder {
 			continue
 		}
-		if !reflect.DeepEqual(incomingValue.Interface(), savedValue.Interface()) {
+		if !reflect.DeepEqual(endpointValue(field, incomingValue), endpointValue(field, savedValue)) {
 			return false
 		}
 	}
 	return true
+}
+
+// endpointValue returns the value of an endpoint field as the provider sends with it: an empty
+// field with an endpointDefault is that default.
+func endpointValue(field configField, value reflect.Value) any {
+	if field.endpointDefault != "" && value.Kind() == reflect.String && value.String() == "" {
+		return field.endpointDefault
+	}
+	return value.Interface()
 }
 
 // redactModel returns a copy of channel with its secrets replaced, for a response. The channel
