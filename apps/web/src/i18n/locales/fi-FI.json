@@ -16,6 +16,7 @@
       "have_account": "Onko sinulla jo tili?",
       "sign_in": "Kirjaudu sisään",
       "submit": "Luo",
+      "telemetry_hint": "Pois päältä, ellet valitse tätä ruutua. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”. Jos valitset sen, Peekaping lähettää tämän enintään kerran päivässä:",
       "title": "Hei"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "Aseta kuinka monta päivää tietoa säilytetään (KEEP_DATA_PERIOD_DAYS).",
       "title": "Tietojen säilytysaika"
     },
+    "telemetry": {
+      "description": "Lähetä nimettömiä tilastoja siitä, miten tämä asennus on määritetty, enintään kerran päivässä. Pois päältä, kunnes otat sen käyttöön.",
+      "forced_off": "Ympäristömuuttuja TELEMETRY=off tai DO_NOT_TRACK=1 poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
+      "id_note": "Instanssin tunnus luodaan, kun otat tämän käyttöön, ja poistetaan, kun poistat sen käytöstä. Kun otat sen uudelleen käyttöön, luodaan uusi.",
+      "payload_off": "Mitään ei lähetetä, kun tämä on pois päältä. Tältä käyttöping näyttäisi, jos ottaisit sen käyttöön.",
+      "payload_title": "Mitä seuraava käyttöping lähettää",
+      "title": "Käyttötilastot"
+    },
     "timezone": {
       "description": "Valitse haluamasi aikavyöhyke, jolla kaikki ajat näytetään sovelluksessa.",
       "label": "Aikavyöhyke",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "Uusi tunniste",
     "search_placeholder": "Etsi tunnisteita..."
+  },
+  "telemetry": {
+    "docs_link": "Mitä lähetetään ja miten sen voi poistaa käytöstä",
+    "label": "Lähetä nimettömiä käyttötilastoja",
+    "never_sent": "Ei koskaan lähetetä: valvontojen nimiä, URL-osoitteita, isäntiä, tunnisteita, tila-sivujen osoitteita tai ilmoitusasetuksia. Käyttöping ei sisällä IP-osoitetta, eikä Peekapingin Worker tallenna lähettäjän IP-osoitetta.",
+    "not_saved": "Valintaasi lähettää käyttötilastoja ei tallennettu. Ota se käyttöön kohdassa ”Asetukset”.",
+    "sent_features": "Käytätkö tila-sivuja, huoltoikkunoita ja mittareita",
+    "sent_id": "Satunnainen tunnus, joka luodaan, kun otat tämän käyttöön, ja poistetaan, kun poistat sen käytöstä",
+    "sent_monitors": "Kuinka monta valvontaa sinulla on, vaihteluvälinä, esimerkiksi 11-50",
+    "sent_setup": "Peekapingin versio, yksi- tai klusteritila, tallennustausta sekä käyttöjärjestelmä ja suorittimen tyyppi",
+    "sent_types": "Käyttämiesi valvontojen ja ilmoituskanavien tyypit, esimerkiksi http tai telegram"
   },
   "theme": {
     "dark": "Tumma",

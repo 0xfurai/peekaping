@@ -16,6 +16,7 @@
       "have_account": "已有帳戶？",
       "sign_in": "登入",
       "submit": "創建",
+      "telemetry_hint": "除非你剔選呢個方格，否則係關閉嘅。你之後可以喺「設定」度更改。如果剔選，Peekaping 每日最多會傳送一次以下內容：",
       "title": "你好"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "設定保留資料的天數 (KEEP_DATA_PERIOD_DAYS)。",
       "title": "資料保留期限"
     },
+    "telemetry": {
+      "description": "每日最多一次傳送有關呢個安裝點樣設定嘅匿名統計。喺你開啟之前係關閉嘅。",
+      "forced_off": "環境變數 TELEMETRY=off 或者 DO_NOT_TRACK=1 將呢個選項關閉咗。無論呢個設定點樣，都唔會傳送任何嘢。",
+      "id_note": "實例 ID 會喺你開啟呢個選項時建立，關閉時刪除。再開啟會建立新嘅 ID。",
+      "payload_off": "關閉期間唔會傳送任何嘢。如果你開啟，使用情況 ping 就會包含以下內容。",
+      "payload_title": "下一次使用情況 ping 會傳送啲咩",
+      "title": "使用統計"
+    },
     "timezone": {
       "description": "揀選你想用嘅時區，應用程式中所有時間都會以此時區顯示。",
       "label": "時區",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "新增標籤",
     "search_placeholder": "搜尋標籤..."
+  },
+  "telemetry": {
+    "docs_link": "會傳送啲咩，同點樣關閉",
+    "label": "傳送匿名使用統計",
+    "never_sent": "永遠唔會傳送：監測名稱、URL、主機、標籤、狀態頁地址或者通知設定。使用情況 ping 唔包含 IP 地址，而 Peekaping 嘅 Worker 唔會記錄發送者嘅 IP。",
+    "not_saved": "你選擇傳送使用統計嘅設定未有儲存。請喺「設定」度開啟。",
+    "sent_features": "你有冇用狀態頁、維護時段同指標",
+    "sent_id": "一個隨機 ID，開啟時建立，關閉時刪除",
+    "sent_monitors": "你有幾多個監測，用範圍表示，例如 11-50",
+    "sent_setup": "Peekaping 版本、單一模式定叢集模式、儲存後端，仲有作業系統同 CPU 類型",
+    "sent_types": "你用緊嘅監測同通知頻道類型，例如 http 或者 telegram"
   },
   "theme": {
     "dark": "暗",

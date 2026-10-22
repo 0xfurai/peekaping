@@ -16,6 +16,7 @@
       "have_account": "Ai deja un cont?",
       "sign_in": "Autentificare",
       "submit": "Creează",
+      "telemetry_hint": "Dezactivat, dacă nu bifați această casetă. O puteți schimba mai târziu în „Setări”. Dacă o bifați, Peekaping trimite acestea cel mult o dată pe zi:",
       "title": "Salut"
     },
     "twofa": {
@@ -1271,6 +1272,14 @@
       "description": "Setează câte zile să păstrezi datele (KEEP_DATA_PERIOD_DAYS).",
       "title": "Perioada de păstrare a datelor"
     },
+    "telemetry": {
+      "description": "Trimite statistici anonime despre cum este configurată această instalare, cel mult o dată pe zi. Dezactivat până când îl activați.",
+      "forced_off": "Variabila de mediu TELEMETRY=off sau DO_NOT_TRACK=1 dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
+      "id_note": "ID-ul instanței este creat când activați opțiunea și șters când o dezactivați. Dacă o activați din nou, se creează unul nou.",
+      "payload_off": "Nu se trimite nimic cât timp opțiunea este dezactivată. Iată ce ar conține un ping de utilizare dacă ați activa-o.",
+      "payload_title": "Ce va trimite următorul ping de utilizare",
+      "title": "Statistici de utilizare"
+    },
     "timezone": {
       "description": "Selectați fusul orar preferat pentru afișarea tuturor orelor în aplicație.",
       "label": "Fus orar",
@@ -1366,6 +1375,17 @@
     },
     "new_page_name": "Etichetă nouă",
     "search_placeholder": "Căutare etichete..."
+  },
+  "telemetry": {
+    "docs_link": "Ce se trimite și cum se dezactivează",
+    "label": "Trimite statistici anonime de utilizare",
+    "never_sent": "Nu se trimit niciodată: numele monitoarelor, URL-uri, gazde, etichete, adresele paginilor de stare sau setările de notificare. Un ping de utilizare nu conține nicio adresă IP, iar Worker-ul Peekaping nu înregistrează IP-ul expeditorului.",
+    "not_saved": "Alegerea dvs. de a trimite statistici de utilizare nu a fost salvată. Activați-o în „Setări”.",
+    "sent_features": "Dacă folosiți pagini de stare, ferestre de întreținere și metrici",
+    "sent_id": "Un ID aleatoriu, creat când activați opțiunea și șters când o dezactivați",
+    "sent_monitors": "Câte monitoare aveți, ca interval, de exemplu 11-50",
+    "sent_setup": "Versiunea Peekaping, modul unic sau de cluster, backendul de stocare, sistemul de operare și tipul de procesor",
+    "sent_types": "Tipurile de monitoare și de canale de notificare pe care le folosiți, precum http sau telegram"
   },
   "theme": {
     "dark": "Întunecat",

@@ -16,6 +16,7 @@
       "have_account": "An bhfuil cuntas agat cheana féin?",
       "sign_in": "Logáil isteach",
       "submit": "Cruthaigh",
+      "telemetry_hint": "As, mura gcuireann tú tic sa bhosca seo. Is féidir leat é a athrú ar ball faoi “Socruithe”. Má chuireann tú tic ann, seolann Peekaping é seo uair amháin sa lá ar a mhéad:",
       "title": "Dia dhuit"
     },
     "twofa": {
@@ -1271,6 +1272,14 @@
       "description": "Socraigh líon na lá a choinneálfar sonraí (KEEP_DATA_PERIOD_DAYS).",
       "title": "Am Cothromaíochta na Sonraí"
     },
+    "telemetry": {
+      "description": "Seol staitisticí gan ainm faoin gcaoi a bhfuil an suiteáil seo socraithe, uair amháin sa lá ar a mhéad. As go dtí go gcuirfidh tú air é.",
+      "forced_off": "Múchann an t-athróg timpeallachta TELEMETRY=off nó DO_NOT_TRACK=1 é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
+      "id_note": "Cruthaítear ID an cháis nuair a chuireann tú air é agus scriostar é nuair a mhúchann tú é. Má chuireann tú air arís é, cruthaítear ID nua.",
+      "payload_off": "Ní sheoltar aon rud agus é seo as. Seo a bheadh i bpingeáil úsáide dá gcuirfeá air é.",
+      "payload_title": "Cad a sheolfaidh an chéad phingeáil úsáide eile",
+      "title": "Staitisticí úsáide"
+    },
     "timezone": {
       "description": "Roghnaigh do réimse ama is fearr leat chun gach ama a thaispeáint sa bhFeidhmchlár.",
       "label": "Crios ama",
@@ -1366,6 +1375,17 @@
     },
     "new_page_name": "Taga Nua",
     "search_placeholder": "Cuardaigh taganna..."
+  },
+  "telemetry": {
+    "docs_link": "Cad a sheoltar agus conas é a mhúchadh",
+    "label": "Seol staitisticí úsáide gan ainm",
+    "never_sent": "Ní sheoltar choíche: ainmneacha móntóirí, URLanna, óstaigh, tagaí, seoltaí leathanach stádais ná socruithe fógraí. Níl aon seoladh IP i bpingeáil úsáide, agus ní thaifeadann Worker Peekaping IP an tseoltóra.",
+    "not_saved": "Níor sábháladh do rogha staitisticí úsáide a sheoladh. Cuir air é faoi “Socruithe”.",
+    "sent_features": "An úsáideann tú leathanaigh stádais, fuinneoga cothabhála agus méadrachtaí",
+    "sent_id": "ID randamach, a chruthaítear nuair a chuireann tú air é agus a scriostar nuair a mhúchann tú é",
+    "sent_monitors": "Cé mhéad móntóir atá agat, mar raon, mar shampla 11-50",
+    "sent_setup": "Leagan Peekaping, mód aonair nó braisle, an backend stórála, agus an córas oibriúcháin agus cineál an LAP",
+    "sent_types": "Na cineálacha móntóirí agus cainéal fógra a úsáideann tú, mar http nó telegram"
   },
   "theme": {
     "dark": "Dorcha",

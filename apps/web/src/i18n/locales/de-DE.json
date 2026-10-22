@@ -16,6 +16,7 @@
       "have_account": "Haben Sie bereits ein Konto?",
       "sign_in": "Anmelden",
       "submit": "Registrieren",
+      "telemetry_hint": "Aus, solange Sie dieses Kästchen nicht anhaken. Sie können das später unter „Einstellungen“ ändern. Wenn Sie es anhaken, sendet Peekaping dies höchstens einmal am Tag:",
       "title": "Hallo"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "Legen Sie fest, wie viele Tage Daten gespeichert bleiben sollen (KEEP_DATA_PERIOD_DAYS).",
       "title": "Datenaufbewahrungsdauer"
     },
+    "telemetry": {
+      "description": "Anonyme Statistiken darüber senden, wie diese Installation eingerichtet ist, höchstens einmal am Tag. Aus, bis Sie es einschalten.",
+      "forced_off": "Die Umgebungsvariable TELEMETRY=off oder DO_NOT_TRACK=1 schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
+      "id_note": "Die Instanz-ID wird beim Einschalten erstellt und beim Ausschalten gelöscht. Beim erneuten Einschalten wird eine neue erstellt.",
+      "payload_off": "Solange dies ausgeschaltet ist, wird nichts gesendet. So sähe ein Nutzungs-Ping aus, wenn Sie es einschalten würden.",
+      "payload_title": "Was der nächste Nutzungs-Ping sendet",
+      "title": "Nutzungsstatistiken"
+    },
     "timezone": {
       "description": "Wählen Sie Ihre bevorzugte Zeitzone aus, damit alle Zeiten in der App angezeigt werden.",
       "label": "Zeitzone",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "Neuer Tag",
     "search_placeholder": "Tags durchsuchen..."
+  },
+  "telemetry": {
+    "docs_link": "Was gesendet wird und wie man es ausschaltet",
+    "label": "Anonyme Nutzungsstatistiken senden",
+    "never_sent": "Nie gesendet werden: Monitornamen, URLs, Hosts, Schlagwörter, Adressen von Statusseiten oder Benachrichtigungseinstellungen. Ein Nutzungs-Ping enthält keine IP-Adresse, und der Worker von Peekaping erfasst die IP des Absenders nicht.",
+    "not_saved": "Ihre Auswahl, Nutzungsstatistiken zu senden, wurde nicht gespeichert. Schalten Sie es unter „Einstellungen“ ein.",
+    "sent_features": "Ob Sie Statusseiten, Wartungsfenster und Metriken verwenden",
+    "sent_id": "Eine zufällige ID, die beim Einschalten erstellt und beim Ausschalten gelöscht wird",
+    "sent_monitors": "Wie viele Monitore Sie haben, als Bereich, zum Beispiel 11-50",
+    "sent_setup": "Die Peekaping-Version, Einzel- oder Cluster-Modus, das Speicher-Backend sowie Betriebssystem und CPU-Typ",
+    "sent_types": "Die Arten von Monitoren und Benachrichtigungskanälen, die Sie verwenden, zum Beispiel http oder telegram"
   },
   "theme": {
     "dark": "Dunkel",

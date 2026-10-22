@@ -16,6 +16,7 @@
       "have_account": "Har du allerede en konto?",
       "sign_in": "Log ind",
       "submit": "Opret",
+      "telemetry_hint": "Slået fra, medmindre du sætter kryds her. Du kan ændre det senere under “Indstillinger”. Hvis du sætter kryds, sender Peekaping dette højst én gang om dagen:",
       "title": "Hej"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "Indstil, hvor mange dage data skal opbevares (KEEP_DATA_PERIOD_DAYS).",
       "title": "Dataopbevaringsperiode"
     },
+    "telemetry": {
+      "description": "Send anonym statistik om, hvordan denne installation er sat op, højst én gang om dagen. Slået fra, indtil du slår det til.",
+      "forced_off": "Miljøvariablen TELEMETRY=off eller DO_NOT_TRACK=1 slår dette fra. Der sendes ikke noget, uanset hvad denne indstilling siger.",
+      "id_note": "Instans-ID'et oprettes, når du slår dette til, og slettes, når du slår det fra. Slår du det til igen, oprettes et nyt.",
+      "payload_off": "Der sendes ikke noget, mens dette er slået fra. Det er det, en brugsping ville indeholde, hvis du slog det til.",
+      "payload_title": "Hvad den næste brugsping sender",
+      "title": "Brugsstatistik"
+    },
     "timezone": {
       "description": "Vælg din foretrukne tidszone for at vise alle tidspunkter i appen.",
       "label": "Tidszone",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "Ny etiket",
     "search_placeholder": "Søg tags..."
+  },
+  "telemetry": {
+    "docs_link": "Hvad der sendes, og hvordan du slår det fra",
+    "label": "Send anonym brugsstatistik",
+    "never_sent": "Sendes aldrig: navne på monitorer, URL'er, værter, tags, adresser på statussider eller indstillinger for notifikationer. En brugsping indeholder ingen IP-adresse, og Peekapings Worker registrerer ikke afsenderens IP.",
+    "not_saved": "Dit valg om at sende brugsstatistik blev ikke gemt. Slå det til under “Indstillinger”.",
+    "sent_features": "Om du bruger statussider, vedligeholdelsesvinduer og målinger",
+    "sent_id": "Et tilfældigt ID, der oprettes, når du slår det til, og slettes, når du slår det fra",
+    "sent_monitors": "Hvor mange monitorer du har, som et interval, f.eks. 11-50",
+    "sent_setup": "Peekaping-versionen, enkelt- eller klyngetilstand, lagringsbackenden samt operativsystem og CPU-type",
+    "sent_types": "De slags monitorer og notifikationskanaler, du bruger, f.eks. http eller telegram"
   },
   "theme": {
     "dark": "Mørk",

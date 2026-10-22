@@ -16,6 +16,7 @@
       "have_account": "Zaten bir hesabınız var mı?",
       "sign_in": "Giriş Yap",
       "submit": "Oluştur",
+      "telemetry_hint": "Bu kutuyu işaretlemezseniz kapalıdır. Bunu daha sonra “Ayarlar” bölümünden değiştirebilirsiniz. İşaretlerseniz Peekaping bunu günde en fazla bir kez gönderir:",
       "title": "Merhaba"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "Veriyi saklayacağınız gün sayısını ayarlayın (KEEP_DATA_PERIOD_DAYS).",
       "title": "Veri Saklama Süresi"
     },
+    "telemetry": {
+      "description": "Bu kurulumun nasıl yapılandırıldığına dair anonim istatistikleri günde en fazla bir kez gönderin. Siz açana kadar kapalıdır.",
+      "forced_off": "TELEMETRY=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
+      "id_note": "Örnek kimliği, bunu açtığınızda oluşturulur ve kapattığınızda silinir. Yeniden açarsanız yeni bir kimlik oluşturulur.",
+      "payload_off": "Bu kapalıyken hiçbir şey gönderilmez. Açsaydınız bir kullanım ping'i şunları içerirdi.",
+      "payload_title": "Bir sonraki kullanım ping'inin göndereceği veriler",
+      "title": "Kullanım istatistikleri"
+    },
     "timezone": {
       "description": "Uygulamadaki tüm zamanları göstermek için tercih ettiğiniz saat dilimini seçin.",
       "label": "Saat Dilimi",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "Yeni Etiket",
     "search_placeholder": "Etiketleri ara..."
+  },
+  "telemetry": {
+    "docs_link": "Neler gönderilir ve nasıl kapatılır",
+    "label": "Anonim kullanım istatistikleri gönder",
+    "never_sent": "Asla gönderilmez: monitör adları, URL'ler, ana makineler, etiketler, durum sayfası adresleri veya bildirim ayarları. Bir kullanım ping'i IP adresi içermez ve Peekaping'in Worker'ı gönderenin IP'sini kaydetmez.",
+    "not_saved": "Kullanım istatistiklerini gönderme tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden açın.",
+    "sent_features": "Durum sayfaları, bakım pencereleri ve metrikleri kullanıp kullanmadığınız",
+    "sent_id": "Açtığınızda oluşturulan ve kapattığınızda silinen rastgele bir kimlik",
+    "sent_monitors": "Kaç monitörünüz olduğu, 11-50 gibi bir aralık olarak",
+    "sent_setup": "Peekaping sürümü, tekli veya küme modu, depolama arka ucu ile işletim sistemi ve işlemci türü",
+    "sent_types": "Kullandığınız monitör ve bildirim kanalı türleri, örneğin http veya telegram"
   },
   "theme": {
     "dark": "Koyu",

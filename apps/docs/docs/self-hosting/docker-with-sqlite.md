@@ -167,12 +167,20 @@ CLIENT_URL="http://localhost:8383"
 MODE=prod
 TZ="America/New_York"
 
+# Usage statistics are off until an admin turns them on. To switch them off
+# whatever the setting says, uncomment one of these. See "Usage statistics".
+# TELEMETRY=off
+# DO_NOT_TRACK=1
+
 # JWT settings are automatically managed in the database
 # Default settings are initialized on first startup:
 # - Access token expiration: 15 minutes
 # - Refresh token expiration: 720 hours (30 days)
 # - Secret keys are automatically generated securely
 ```
+
+`TELEMETRY=off` and `DO_NOT_TRACK=1` are optional. Either one switches off the anonymous [usage statistics](./telemetry.md) whatever an admin chose. Without them, nothing is sent until an admin turns it on.
+
 :::info JWT Settings
 JWT settings (access/refresh token expiration times and secret keys) are now automatically managed in the database. Default secure settings are initialized on first startup, and secret keys are generated automatically.
 :::

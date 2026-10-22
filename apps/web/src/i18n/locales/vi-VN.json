@@ -16,6 +16,7 @@
       "have_account": "Bạn đã có tài khoản?",
       "sign_in": "Đăng nhập",
       "submit": "Tạo",
+      "telemetry_hint": "Tắt trừ khi bạn đánh dấu ô này. Bạn có thể đổi lại sau trong “Cài đặt”. Nếu đánh dấu, Peekaping gửi những thông tin này nhiều nhất một lần mỗi ngày:",
       "title": "Xin chào"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "Đặt số ngày lưu dữ liệu (KEEP_DATA_PERIOD_DAYS).",
       "title": "Thời gian lưu trữ dữ liệu"
     },
+    "telemetry": {
+      "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Tắt cho đến khi bạn bật.",
+      "forced_off": "Biến môi trường TELEMETRY=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
+      "id_note": "ID bản cài đặt được tạo khi bạn bật mục này và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
+      "payload_off": "Không có gì được gửi khi mục này đang tắt. Đây là nội dung ping sử dụng sẽ có nếu bạn bật.",
+      "payload_title": "Ping sử dụng tiếp theo sẽ gửi gì",
+      "title": "Thống kê sử dụng"
+    },
     "timezone": {
       "description": "Chọn múi giờ ưu tiên của bạn để hiển thị tất cả thời gian trong ứng dụng.",
       "label": "Múi giờ",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "Thẻ mới",
     "search_placeholder": "Tìm kiếm thẻ..."
+  },
+  "telemetry": {
+    "docs_link": "Những gì được gửi và cách tắt",
+    "label": "Gửi thống kê sử dụng ẩn danh",
+    "never_sent": "Không bao giờ gửi: tên giám sát, URL, máy chủ, thẻ, địa chỉ trang trạng thái hay cài đặt thông báo. Ping sử dụng không chứa địa chỉ IP, và Worker của Peekaping không ghi lại IP của người gửi.",
+    "not_saved": "Lựa chọn gửi thống kê sử dụng của bạn chưa được lưu. Hãy bật lại trong “Cài đặt”.",
+    "sent_features": "Bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không",
+    "sent_id": "Một ID ngẫu nhiên, được tạo khi bạn bật và bị xóa khi bạn tắt",
+    "sent_monitors": "Bạn có bao nhiêu giám sát, dưới dạng một khoảng, chẳng hạn 11-50",
+    "sent_setup": "Phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ, cùng hệ điều hành và loại CPU",
+    "sent_types": "Các loại giám sát và kênh thông báo bạn dùng, chẳng hạn http hoặc telegram"
   },
   "theme": {
     "dark": "Tối",

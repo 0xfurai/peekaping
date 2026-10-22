@@ -16,6 +16,7 @@
       "have_account": "Har du redan ett konto?",
       "sign_in": "Logga in",
       "submit": "Skapa",
+      "telemetry_hint": "Av, om du inte kryssar i den här rutan. Du kan ändra det senare under ”Inställningar”. Om du kryssar i den skickar Peekaping detta högst en gång per dag:",
       "title": "Hej"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "Ange hur många dagar data ska sparas (KEEP_DATA_PERIOD_DAYS).",
       "title": "Lagringstid för data"
     },
+    "telemetry": {
+      "description": "Skicka anonym statistik om hur den här installationen är konfigurerad, högst en gång per dag. Av tills du slår på det.",
+      "forced_off": "Miljövariabeln TELEMETRY=off eller DO_NOT_TRACK=1 stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
+      "id_note": "Instans-ID:t skapas när du slår på detta och raderas när du stänger av det. Slår du på det igen skapas ett nytt.",
+      "payload_off": "Inget skickas medan detta är avstängt. Det här är vad en användningsping skulle innehålla om du slog på det.",
+      "payload_title": "Vad nästa användningsping skickar",
+      "title": "Användningsstatistik"
+    },
     "timezone": {
       "description": "Välj din föredragna tidszon för att visa alla tider i appen.",
       "label": "Tidszon",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "Ny tagg",
     "search_placeholder": "Sök taggar..."
+  },
+  "telemetry": {
+    "docs_link": "Vad som skickas och hur du stänger av det",
+    "label": "Skicka anonym användningsstatistik",
+    "never_sent": "Skickas aldrig: namn på övervakningar, webbadresser, värdar, taggar, adresser till statussidor eller aviseringsinställningar. En användningsping innehåller ingen IP-adress, och Peekapings Worker registrerar inte avsändarens IP.",
+    "not_saved": "Ditt val att skicka användningsstatistik sparades inte. Slå på det under ”Inställningar”.",
+    "sent_features": "Om du använder statussidor, underhållsfönster och mätvärden",
+    "sent_id": "Ett slumpmässigt ID, som skapas när du slår på det och raderas när du stänger av det",
+    "sent_monitors": "Hur många övervakningar du har, som ett intervall, till exempel 11-50",
+    "sent_setup": "Peekaping-versionen, enkelt läge eller klusterläge, lagringsbackenden samt operativsystem och processortyp",
+    "sent_types": "Vilka typer av övervakningar och aviseringskanaler du använder, till exempel http eller telegram"
   },
   "theme": {
     "dark": "Mörk",

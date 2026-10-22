@@ -16,6 +16,7 @@
       "have_account": "Already have an account?",
       "sign_in": "Sign in",
       "submit": "Create",
+      "telemetry_hint": "Off unless you tick this box. You can change it later under “Settings”. If you tick it, Peekaping sends this at most once a day:",
       "title": "Hello"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "Set how many days to keep data (KEEP_DATA_PERIOD_DAYS).",
       "title": "Data Retention Period"
     },
+    "telemetry": {
+      "description": "Send anonymous statistics about how this install is set up, at most once a day. Off until you turn it on.",
+      "forced_off": "The TELEMETRY=off or DO_NOT_TRACK=1 environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "id_note": "The instance ID is created when you turn this on and deleted when you turn it off. Turning it on again creates a new one.",
+      "payload_off": "Nothing is sent while this is off. This is what a usage ping would contain if you turned it on.",
+      "payload_title": "What the next usage ping sends",
+      "title": "Usage statistics"
+    },
     "timezone": {
       "description": "Select your preferred timezone for displaying all times in the app.",
       "label": "Timezone",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "New Tag",
     "search_placeholder": "Search tags..."
+  },
+  "telemetry": {
+    "docs_link": "What is sent, and how to turn it off",
+    "label": "Send anonymous usage statistics",
+    "never_sent": "Never sent: monitor names, URLs, hosts, tags, status page addresses or notification settings. A usage ping holds no IP address, and Peekaping's Worker doesn't record the sender's IP.",
+    "not_saved": "Your choice to send usage statistics wasn't saved. Turn it on in Settings.",
+    "sent_features": "Whether you use status pages, maintenance windows and metrics",
+    "sent_id": "A random ID, created when you turn this on and deleted when you turn it off",
+    "sent_monitors": "How many monitors you have, as a range such as 11-50",
+    "sent_setup": "The Peekaping version, single or cluster mode, the storage backend, and the operating system and CPU type",
+    "sent_types": "The kinds of monitors and notification channels you use, such as http or telegram"
   },
   "theme": {
     "dark": "Dark",

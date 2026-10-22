@@ -16,6 +16,7 @@
       "have_account": "Sul on juba konto?",
       "sign_in": "Logi sisse",
       "submit": "Loo",
+      "telemetry_hint": "Välja lülitatud, kuni te seda ruutu ei märgi. Saate seda hiljem muuta jaotises „Seaded“. Kui märgite, saadab Peekaping seda kõige rohkem kord päevas:",
       "title": "Tere"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "Määrake, mitu päeva andmeid hoitakse (KEEP_DATA_PERIOD_DAYS).",
       "title": "Andmete säilitamise periood"
     },
+    "telemetry": {
+      "description": "Saada anonüümset statistikat selle kohta, kuidas see paigaldus on seadistatud, kõige rohkem kord päevas. Välja lülitatud, kuni lülitate sisse.",
+      "forced_off": "Keskkonnamuutuja TELEMETRY=off või DO_NOT_TRACK=1 lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
+      "id_note": "Eksemplari ID luuakse sisselülitamisel ja kustutatakse väljalülitamisel. Uuesti sisselülitamisel luuakse uus.",
+      "payload_off": "Kuni see on välja lülitatud, ei saadeta midagi. Selline oleks kasutusping, kui selle sisse lülitaksite.",
+      "payload_title": "Mida järgmine kasutusping saadab",
+      "title": "Kasutusstatistika"
+    },
     "timezone": {
       "description": "Vali oma eelistatud ajavöönd, mille alusel rakendus kuvab kõik ajatükkid.",
       "label": "Ajavöönd",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "Uus silt",
     "search_placeholder": "Otsi sildid..."
+  },
+  "telemetry": {
+    "docs_link": "Mida saadetakse ja kuidas selle välja lülitada",
+    "label": "Saada anonüümset kasutusstatistikat",
+    "never_sent": "Ei saadeta kunagi: monitoride nimesid, URL-e, hoste, silte, olekusivude aadresse ega teavituste seadeid. Kasutusping ei sisalda IP-aadressi ning Peekapingi Worker ei salvesta saatja IP-d.",
+    "not_saved": "Teie valikut saata kasutusstatistikat ei salvestatud. Lülitage see sisse jaotises „Seaded“.",
+    "sent_features": "Kas kasutate olekusivusid, hooldusaknaid ja mõõdikuid",
+    "sent_id": "Juhuslik ID, mis luuakse sisselülitamisel ja kustutatakse väljalülitamisel",
+    "sent_monitors": "Mitu monitoori teil on, vahemikuna, näiteks 11-50",
+    "sent_setup": "Peekapingi versioon, ühe- või klastrirežiim, andmesalv ning operatsioonisüsteem ja protsessori tüüp",
+    "sent_types": "Kasutatavate monitoride ja teavituskanalite liigid, näiteks http või telegram"
   },
   "theme": {
     "dark": "Tumine",

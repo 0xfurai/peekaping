@@ -107,6 +107,15 @@ These are required in cluster mode, where the API reaches the producer, worker a
 |----------|------|----------|---------|-------------|
 | `METRICS_ENABLED` | bool | No | `false` | Serve the unauthenticated Prometheus `/metrics` endpoint, see [Prometheus Metrics](#prometheus-metrics) |
 
+### Usage Statistics Configuration
+
+The anonymous usage ping is off until an admin turns it on. These variables switch it off whatever the admin chose. See [Usage statistics](../self-hosting/telemetry.md).
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `TELEMETRY` | string | No | `""` | `off` (also `false`, `0` or `no`) turns the usage ping off |
+| `DO_NOT_TRACK` | string | No | `""` | `1` (or `true`) turns the usage ping off |
+
 ## API Endpoints
 
 ### Core Resources

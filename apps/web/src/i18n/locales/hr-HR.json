@@ -16,6 +16,7 @@
       "have_account": "Imate već račun?",
       "sign_in": "Prijavi se",
       "submit": "Kreiraj",
+      "telemetry_hint": "Isključeno ako ne označite ovaj okvir. To možete promijeniti kasnije u „Postavke“. Ako ga označite, Peekaping šalje ovo najviše jednom dnevno:",
       "title": "Pozdrav"
     },
     "twofa": {
@@ -1272,6 +1273,14 @@
       "description": "Postavite koliko dana podaci ostaju pohranjeni (KEEP_DATA_PERIOD_DAYS).",
       "title": "Rok zadržavanja podataka"
     },
+    "telemetry": {
+      "description": "Šalji anonimnu statistiku o tome kako je ova instalacija postavljena, najviše jednom dnevno. Isključeno dok ne uključite.",
+      "forced_off": "Varijabla okruženja TELEMETRY=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, što god ova postavka govorila.",
+      "id_note": "ID instance stvara se kad ovo uključite i briše kad ovo isključite. Ponovnim uključivanjem stvara se novi.",
+      "payload_off": "Dok je ovo isključeno, ništa se ne šalje. Ovo bi sadržavao ping upotrebe da ste ga uključili.",
+      "payload_title": "Što će poslati sljedeći ping upotrebe",
+      "title": "Statistika korištenja"
+    },
     "timezone": {
       "description": "Odaberite željeni vremenski pojas za prikaz svih vremena u aplikaciji.",
       "label": "Vremenska zona",
@@ -1367,6 +1376,17 @@
     },
     "new_page_name": "Nova oznaka",
     "search_placeholder": "Pretraži oznake..."
+  },
+  "telemetry": {
+    "docs_link": "Što se šalje i kako to isključiti",
+    "label": "Šalji anonimnu statistiku korištenja",
+    "never_sent": "Nikada se ne šalje: nazivi nadzora, URL-ovi, hostovi, oznake, adrese statusnih stranica ni postavke obavijesti. Ping upotrebe ne sadrži IP adresu, a Peekapingov Worker ne bilježi IP pošiljatelja.",
+    "not_saved": "Vaš odabir slanja statistike korištenja nije spremljen. Uključite to u „Postavke“.",
+    "sent_features": "Koristite li statusne stranice, prozore održavanja i metrike",
+    "sent_id": "Nasumični ID, koji se stvara kad ovo uključite i briše kad ovo isključite",
+    "sent_monitors": "Koliko nadzora imate, kao raspon, na primjer 11-50",
+    "sent_setup": "Verzija Peekapinga, pojedinačni ili klasterski način rada, pozadinski sustav za pohranu te operacijski sustav i vrsta procesora",
+    "sent_types": "Vrste nadzora i kanala obavijesti koje koristite, na primjer http ili telegram"
   },
   "theme": {
     "dark": "Tamna",

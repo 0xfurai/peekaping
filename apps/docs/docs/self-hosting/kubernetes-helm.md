@@ -146,6 +146,8 @@ The database settings have no defaults. For PostgreSQL, set `DB_TYPE` (the chart
 | `REDIS_PASSWORD` | empty | Put it in the secret. |
 | `METRICS_ENABLED` | `false` | See [Metrics](#metrics). |
 | `TRUSTED_PROXIES` | loopback and the private ranges | The addresses the API believes `X-Forwarded-For` from. See [Client addresses](#client-addresses). |
+| `TELEMETRY` | empty | Set `off` to switch off the anonymous [usage statistics](./telemetry.md) whatever an admin chose. |
+| `DO_NOT_TRACK` | empty | Set `1` for the same. |
 
 Leave `API_URL` unset. The web app then calls the API on its own address, which is where the Ingress sends `/api`. [API Server](../architecture/api-server.md#environment-variables) lists every variable.
 
