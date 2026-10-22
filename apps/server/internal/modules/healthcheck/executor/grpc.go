@@ -64,8 +64,6 @@ func (g *GRPCExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 	cfg := cfgAny.(*GRPCConfig)
 
-	g.logger.Debugf("execute grpc cfg: %+v", cfg)
-
 	// Set up connection options
 	var opts []grpc.DialOption
 	if cfg.GrpcEnableTls {

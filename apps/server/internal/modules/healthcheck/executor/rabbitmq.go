@@ -61,8 +61,6 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 	}
 	cfg := cfgAny.(*RabbitMQConfig)
 
-	r.logger.Debugf("execute rabbitmq cfg: %+v", cfg)
-
 	startTime := time.Now().UTC()
 
 	// Create a context with timeout for the entire operation

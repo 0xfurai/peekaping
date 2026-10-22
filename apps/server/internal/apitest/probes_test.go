@@ -55,11 +55,6 @@ func (a *app) createProbe(t *testing.T, body map[string]any) probeWithToken {
 	return decode[probeWithToken](t, a.request(t, http.MethodPost, probesPath, body, a.asAdmin), http.StatusCreated)
 }
 
-func (a *app) createChannel(t *testing.T, name string) string {
-	t.Helper()
-	return decode[created](t, a.request(t, http.MethodPost, "/api/v1/notification-channels", webhookChannelBody(name), a.asAdmin), http.StatusCreated).ID
-}
-
 // probeByToken is the probe a token finds, which is how the probe protocol will authenticate a probe
 func (a *app) probeByToken(t *testing.T, token string) *probe.Model {
 	t.Helper()

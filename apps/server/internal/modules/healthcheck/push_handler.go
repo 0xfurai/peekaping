@@ -44,11 +44,12 @@ func RegisterPushEndpoint(
 			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
 		}
 		if monitor == nil {
-			logger.Errorw("Monitor not found for push token", "pushToken", token)
+			logger.Errorw("Monitor not found for push token")
 			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
 		}
 		if !monitor.Active {
-			logger.Errorw("Monitor is not active", "monitor", monitor)
+			// Only the ID: the monitor's config holds credentials
+			logger.Errorw("Monitor is not active", "monitor_id", monitor.ID)
 			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
 		}
 

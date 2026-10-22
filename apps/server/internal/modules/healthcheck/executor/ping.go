@@ -81,8 +81,6 @@ func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		cfg.PacketSize = 32
 	}
 
-	p.logger.Debugf("execute ping cfg: %+v", cfg)
-
 	startTime := time.Now().UTC()
 	timeout := time.Duration(m.Timeout) * time.Second
 	pingCtx, cancel := context.WithTimeout(ctx, timeout)

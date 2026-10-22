@@ -17,8 +17,8 @@ They live in this skill's `scripts/` folder; call them by absolute path from ins
 
 | Script | Does |
 | --- | --- |
-| `pr-wait.sh [--idle] [--ignore CHECK]... <pr>...` | polls the stack, exits with `ACTION`, `READY`, `MERGED`, `PUSHED` or `TIMEOUT` and a status line per PR |
-| `pr-state.sh <pr>` | everything waiting on you, as JSON: failed checks, open threads, new reviews and comments |
+| `pr-wait.sh [--idle] [--ignore CHECK]... <pr>...` | polls the stack, exits with `ACTION`, `READY`, `CONFLICT`, `MERGED`, `PUSHED` or `TIMEOUT` and a status line per PR |
+| `pr-state.sh <pr>` | everything waiting on you, as JSON: failed checks, whether it merges cleanly, open threads, new reviews and comments |
 | `pr-state.sh --mark <pr> <fetchedAt>` | records reviews and comments up to that time as handled |
 | `pr-reply.sh thread <pr> <comment-id>` / `comment <pr>` / `resolve <thread-id>` | posts with the marker that tells the scripts the reply is yours (body on stdin) |
 
@@ -29,16 +29,34 @@ Post every reply through `pr-reply.sh`. Its hidden marker is how a thread you an
 1. **Wait.** Start `pr-wait.sh <every open PR in the stack>` with Bash `run_in_background`; its exit wakes you. Work on nothing else in the worktree meanwhile.
 2. **Act on the outcome.**
    - `ACTION`: run `pr-state.sh` on each PR with `todo` > 0 or failed checks, and handle every item (below).
-   - `READY` (the stack is green and nothing waits on you): if this is the first `READY` since the last push, send a `PushNotification` and a short message: the PRs, what CodeRabbit raised and how each point was settled, and that it's ready for the user's review. Then wait again with `--idle`.
+   - `READY` (the stack is green and nothing waits on you): if this is the first `READY` since the last push, send a `PushNotification` and a short message: the PRs, what CodeRabbit raised and how each point was settled, and that it's ready for the user's review. Then wait again with `--idle`, which watches for up to two days.
+   - `CONFLICT`: a PR no longer merges cleanly into its base (its status line says `mergeable CONFLICTING`). An agent resolves it ([Conflicts](#conflicts)); then wait again.
    - `MERGED`: an agent restacks ([STACK.md](../ticket/STACK.md), [DELEGATE.md](../ticket/DELEGATE.md)), briefed with the merged PR and every open branch; then wait again on the PRs still open. When none are open, wrap up.
    - `PUSHED`: someone else pushed. `git pull --no-rebase` on that branch, read what changed, and wait again.
    - `TIMEOUT`: wait again. After a non-idle timeout, check the status lines: a check stuck pending for an hour is worth telling the user.
 3. **Push once per round.** Batch every fix of the round into commits, run the full local run ([TESTING.md](../ticket/TESTING.md)), push each changed branch, carry fixes up the stack ([STACK.md](../ticket/STACK.md)), and post `@coderabbitai review` on every pushed PR whose base isn't `main`. Then post the replies, so each can cite its commit.
 4. **Mark.** `pr-state.sh --mark <pr> <fetchedAt>` with the `fetchedAt` of the state you handled, on each PR. Back to step 1.
 
-Between rounds there's nothing to say to the user unless you need a decision or the stack became `READY`.
+Between rounds there's nothing to say to the user unless you need a decision or the stack became `READY`. A resolved conflict gets one line in the next `READY` message.
 
 Done when: on every open PR all checks pass, CodeRabbit reviewed the head commit, and nothing waits on you. Then keep looping on the user's comments until they merge the last PR or tell you to stop.
+
+## Conflicts
+
+A conflict appears when the base moved: `main` for the bottom PR, the branch below for a stacked one. Resolve it by merging the base in, never by rebasing a pushed branch. Brief an agent ([DELEGATE.md](../ticket/DELEGATE.md)) with the PR, its branch and base, and this procedure:
+
+```sh
+git fetch origin
+git switch <branch> && git merge --no-edit origin/<base>   # a stacked PR merges the branch below instead
+# resolve each conflicted file so both sides' intent survives, then
+git add <files> && git merge --continue
+```
+
+The agent keeps both changes where they're independent, and where they collide it reads both commits' messages and the ticket to decide, reporting any file where it had to pick a side. Then the full local run ([TESTING.md](../ticket/TESTING.md)) on the merged tree, push, carry the merge up the stack ([STACK.md](../ticket/STACK.md), **Changing a lower PR**), and `@coderabbitai review` on every pushed PR whose base isn't `main`.
+
+A conflict that a merge can't settle sensibly (the base rewrote what the ticket builds on) is a plan break: stop and ask the user with the brief in [PLAN.md](../ticket-plan/PLAN.md).
+
+A `CONFLICT` right after a `MERGED` is the restack, not a merge: do the restack first and wait again before resolving anything.
 
 ## Handling an item
 

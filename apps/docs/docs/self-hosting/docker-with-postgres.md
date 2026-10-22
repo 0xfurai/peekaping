@@ -63,6 +63,7 @@ The image reads the same environment variables as cluster mode (see the [`.env` 
 - There is no Redis, so `REDIS_*` variables are ignored.
 - `MODE` defaults to `prod`.
 - Leave `API_URL` unset, so the web app calls the API on its own origin. Set it only if the web app must call an API on another origin.
+- Leave `CORS_ORIGINS` unset. The web app calls the API on its own origin, which needs no CORS entry. Set it to a comma-separated list of origins, such as `https://app.example.com`, only if a page on another origin must read the API's responses. Unset, it allows the origin of `CLIENT_URL`. `*` allows any origin.
 
 ### Stopping
 
@@ -169,6 +170,8 @@ DB_TYPE=postgres
 # and always listens on 8383.
 SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
+# Origins that may read the API's responses from another origin. Default: the origin of CLIENT_URL
+# CORS_ORIGINS=https://app.example.com
 
 # Application Settings
 MODE=prod

@@ -88,7 +88,7 @@ func (w *WebhookSender) Send(
 	}
 	cfg := cfgAny.(*WebhookConfig)
 
-	w.logger.Infof("Sending webhook notification to: %s", cfg.WebhookURL)
+	w.logger.Infof("Sending webhook notification")
 
 	// Prepare simple data structure matching JS implementation
 	data := map[string]any{
@@ -176,10 +176,9 @@ func (w *WebhookSender) Send(
 
 	// Parse and set additional headers
 	if cfg.WebhookAdditionalHeaders != "" {
-		w.logger.Debugf("Parsing additional headers: %q", cfg.WebhookAdditionalHeaders)
 		var additionalHeaders map[string]any
 		if err := json.Unmarshal([]byte(cfg.WebhookAdditionalHeaders), &additionalHeaders); err != nil {
-			return fmt.Errorf("additional Headers is not a valid JSON: %q - %w", cfg.WebhookAdditionalHeaders, err)
+			return fmt.Errorf("additional Headers is not a valid JSON: %w", err)
 		}
 
 		for key, value := range additionalHeaders {
@@ -197,8 +196,6 @@ func (w *WebhookSender) Send(
 
 	// Set default user agent
 	req.Header.Set("User-Agent", "Peekaping-Webhook/"+version.Version)
-
-	w.logger.Debugf("Sending webhook POST request to: %s", cfg.WebhookURL)
 
 	client := w.client
 	if cfg.WebhookSigningSecret != "" {
@@ -223,6 +220,6 @@ func (w *WebhookSender) Send(
 		return fmt.Errorf("webhook returned status %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	w.logger.Infof("Webhook notification sent successfully to: %s", cfg.WebhookURL)
+	w.logger.Infof("Webhook notification sent successfully")
 	return nil
 }

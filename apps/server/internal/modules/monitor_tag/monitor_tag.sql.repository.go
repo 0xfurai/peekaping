@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
+
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -52,7 +54,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, model *Model) (*Model, e
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +64,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, model *Model) (*Model, e
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -74,7 +76,7 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 
 func (r *SQLRepositoryImpl) FindByMonitorID(ctx context.Context, monitorID string) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("monitor_id = ?", monitorID).
 		Order("created_at DESC").
@@ -92,7 +94,7 @@ func (r *SQLRepositoryImpl) FindByMonitorID(ctx context.Context, monitorID strin
 
 func (r *SQLRepositoryImpl) FindByTagID(ctx context.Context, tagID string) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("tag_id = ?", tagID).
 		Order("created_at DESC").
@@ -109,21 +111,21 @@ func (r *SQLRepositoryImpl) FindByTagID(ctx context.Context, tagID string) ([]*M
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
 }
 
 func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("monitor_id = ?", monitorID).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("monitor_id = ?", monitorID).Exec(ctx)
 	return err
 }
 
 func (r *SQLRepositoryImpl) DeleteByTagID(ctx context.Context, tagID string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("tag_id = ?", tagID).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("tag_id = ?", tagID).Exec(ctx)
 	return err
 }
 
 func (r *SQLRepositoryImpl) DeleteByMonitorAndTag(ctx context.Context, monitorID string, tagID string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("monitor_id = ? AND tag_id = ?", monitorID, tagID).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("monitor_id = ? AND tag_id = ?", monitorID, tagID).Exec(ctx)
 	return err
 }

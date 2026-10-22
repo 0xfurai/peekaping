@@ -89,8 +89,6 @@ func (e *DockerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pr
 	}
 	cfg := cfgAny.(*DockerConfig)
 
-	e.logger.Debugf("execute docker cfg: %+v", cfg)
-
 	var cli *client.Client
 	var cliErr error
 
