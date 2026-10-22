@@ -107,5 +107,12 @@ func TestMonitorService_WritesInOneTransactionOnEverySQLBackend(t *testing.T) {
 		require.NoError(t, service.Delete(ctx, original.ID))
 		assert.Equal(t, []string{events.MonitorDeleted.Name()}, bus.Topics())
 		assert.Zero(t, count("monitors", original.ID)+count("heartbeats", original.ID)+count("monitor_notifications", original.ID)+count("monitor_tags", original.ID))
+
+		// A monitor that is gone is not found, rather than failing the transaction
+		bus.TakeTopics() // the delete's own event
+		_, err = service.UpdatePartial(ctx, original.ID, &monitor.PartialUpdateDto{Name: &name}, false)
+		assert.ErrorIs(t, err, monitor.ErrMonitorNotFound)
+		assert.ErrorIs(t, service.Delete(ctx, original.ID), monitor.ErrMonitorNotFound)
+		assert.Empty(t, bus.Topics(), "and nothing is published")
 	})
 }
