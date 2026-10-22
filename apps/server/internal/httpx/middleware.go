@@ -82,10 +82,14 @@ func LimitBody(max int64) Middleware {
 // is served as it is, without CORS headers, so its browser won't hand the response to the page.
 // A request with no Origin, or from the host it is sent to, isn't cross-origin and is left
 // alone. Responses never carry Access-Control-Allow-Credentials: the API's auth is a bearer
-// header, not a cookie.
+// header, not a cookie. With a list of origins every response gets Vary: Origin, since what it
+// carries depends on the request's Origin and a cache must not serve one origin's copy to another.
 func CORS(origins *CORSOrigins) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if origins.listed() {
+				w.Header().Add("Vary", "Origin")
+			}
 			origin := r.Header.Get("Origin")
 			sameOrigin := origin == "" || origin == "http://"+r.Host || origin == "https://"+r.Host
 			allowOrigin := origins.AllowOrigin(origin)
@@ -94,7 +98,6 @@ func CORS(origins *CORSOrigins) Middleware {
 				return
 			}
 			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
-			w.Header().Add("Vary", "Origin")
 			if r.Method == http.MethodOptions {
 				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
 				w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID")

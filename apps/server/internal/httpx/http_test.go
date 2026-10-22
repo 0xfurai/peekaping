@@ -122,7 +122,26 @@ func TestCORS_ASameOriginRequestIsLeftAlone(t *testing.T) {
 		assert.True(t, ran, "%s from %q", tc.method, tc.origin)
 		assert.Equal(t, 202, w.Code, "%s from %q", tc.method, tc.origin)
 		assert.Empty(t, accessControlHeaders(w), "%s from %q", tc.method, tc.origin)
-		assert.Empty(t, w.Header().Get("Vary"), "%s from %q", tc.method, tc.origin)
+	}
+}
+
+// With a list, the answer depends on the request's Origin, so a cache must keep a copy per Origin.
+// Otherwise a copy that has no CORS headers, made for a request without an Origin or from a
+// disallowed one, could be served to an allowed origin.
+func TestCORS_AListVariesEveryResponseByOrigin(t *testing.T) {
+	origins := corsOrigins(t, "https://client.example")
+	for _, tc := range []struct{ name, method, origin string }{
+		{"no Origin", "GET", ""},
+		{"no Origin, preflight", "OPTIONS", ""},
+		{"the same origin", "GET", "https://example.com"},
+		{"a disallowed origin", "GET", "https://evil.example"},
+		{"a disallowed origin, preflight", "OPTIONS", "https://evil.example"},
+		{"an allowed origin", "GET", "https://client.example"},
+		{"an allowed origin, preflight", "OPTIONS", "https://client.example"},
+	} {
+		w, _ := serveCORS(origins, tc.method, tc.origin)
+
+		assert.Equal(t, []string{"Origin"}, w.Header().Values("Vary"), tc.name)
 	}
 }
 
@@ -133,7 +152,7 @@ func TestCORS_AStarAllowsAnyOriginWithoutCredentials(t *testing.T) {
 	assert.True(t, ran)
 	assert.Equal(t, "*", w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "Authorization, X-Request-ID", w.Header().Get("Access-Control-Expose-Headers"))
-	assert.Equal(t, []string{"Origin"}, w.Header().Values("Vary"))
+	assert.Empty(t, w.Header().Values("Vary"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 
 	w, ran = serveCORS(origins, "OPTIONS", "https://anything.example")
@@ -161,6 +180,7 @@ func TestCORS_WithoutOriginsNoOriginIsAllowed(t *testing.T) {
 
 		assert.True(t, ran)
 		assert.Empty(t, accessControlHeaders(w))
+		assert.Empty(t, w.Header().Values("Vary"))
 	}
 }
 

@@ -129,3 +129,8 @@ func (o *CORSOrigins) AllowOrigin(origin string) string {
 	}
 	return ""
 }
+
+// listed reports whether the set is a list of origins, rather than any origin or none.
+func (o *CORSOrigins) listed() bool {
+	return o != nil && !o.any && len(o.origins) > 0
+}
