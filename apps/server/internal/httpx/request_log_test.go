@@ -2,13 +2,17 @@ package httpx_test
 
 import (
 	"context"
+	"fmt"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
 )
@@ -54,6 +58,45 @@ func TestRequestID(t *testing.T) {
 		handler.ServeHTTP(second, httptest.NewRequest("GET", "/", nil))
 		assert.NotEqual(t, first.Header().Get("X-Request-ID"), second.Header().Get("X-Request-ID"))
 	})
+}
+
+func TestRequestLogUsesRoutePattern(t *testing.T) {
+	core, logs := observer.New(zap.DebugLevel)
+	router := httpx.NewRouter(httpx.RequestID, httpx.Logger(zap.New(core).Sugar(), nil))
+	ok := func(w http.ResponseWriter, r *http.Request) { httpx.Text(w, 200, "ok") }
+	router.Group("/api/v1").Handle("GET", "/push/{token}", ok)
+	router.Handle("GET", "/socket.io/{f...}", ok)
+
+	for _, tc := range []struct {
+		name, path, route string
+		status            int
+		secrets           []string
+	}{
+		{"a path secret", "/api/v1/push/s3cr3t-token?status=up&msg=hi", "/api/v1/push/{token}", 200, []string{"s3cr3t-token", "status=up", "msg=hi"}},
+		{"a query secret", "/socket.io/?EIO=4&token=s3cr3t-jwt", "/socket.io/{f...}", 200, []string{"s3cr3t-jwt", "EIO=4", "token="}},
+		{"no matching route", "/nothing/s3cr3t-path?q=s3cr3t-query", "", 404, []string{"s3cr3t-path", "s3cr3t-query"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, httptest.NewRequest("GET", tc.path, nil))
+			require.Equal(t, tc.status, w.Code)
+
+			all := logs.TakeAll()
+			require.Len(t, all, 1)
+			assert.Equal(t, "HTTP request", all[0].Message)
+			entry := all[0].ContextMap()
+			assert.ElementsMatch(t, []string{"request_id", "method", "route", "status", "client_ip", "size", "duration"}, slices.Collect(maps.Keys(entry)))
+			assert.Equal(t, w.Header().Get("X-Request-ID"), entry["request_id"])
+			assert.Equal(t, "GET", entry["method"])
+			assert.Equal(t, tc.route, entry["route"])
+			assert.EqualValues(t, tc.status, entry["status"])
+			assert.Equal(t, "192.0.2.1", entry["client_ip"])
+			assert.EqualValues(t, w.Body.Len(), entry["size"])
+			for _, secret := range tc.secrets {
+				assert.NotContains(t, fmt.Sprint(all[0].Message, entry), secret)
+			}
+		})
+	}
 }
 
 func TestLogFromContext(t *testing.T) {

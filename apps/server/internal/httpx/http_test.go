@@ -123,7 +123,7 @@ func TestLimitBody(t *testing.T) {
 	}
 }
 
-func TestAccessLogIncludesResponseAndQuery(t *testing.T) {
+func TestAccessLogIncludesResponse(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
 	handler := httpx.Logger(zap.New(core).Sugar(), nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		httpx.Text(w, 418, "teapot")
@@ -131,7 +131,7 @@ func TestAccessLogIncludesResponseAndQuery(t *testing.T) {
 	handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/items?page=2", nil))
 	entry := logs.FilterMessage("HTTP request").All()[0].ContextMap()
 	assert.EqualValues(t, 418, entry["status"])
-	assert.Equal(t, "/items?page=2", entry["path"])
 	assert.EqualValues(t, 6, entry["size"])
 	assert.Equal(t, "GET", entry["method"])
+	assert.NotContains(t, entry, "path")
 }

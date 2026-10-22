@@ -21,17 +21,19 @@ func Recovery(logger *zap.SugaredLogger) Middleware {
 	}
 }
 
-// Logger logs each request. The client address it logs is the one proxies resolves.
+// Logger logs each request once it is done, after RequestID. It logs the pattern of the route
+// that served the request, empty when none did, and never the path or the query, which can hold
+// a secret such as a push token. The client address it logs is the one proxies resolves.
 func Logger(logger *zap.SugaredLogger, proxies *TrustedProxies) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Preserve optional ResponseWriter interfaces for streaming and upgrades.
 			metrics := httpsnoop.CaptureMetrics(next, w, r)
-			path := r.URL.Path
-			if r.URL.RawQuery != "" {
-				path += "?" + r.URL.RawQuery
+			route := ""
+			if info := requestInfoFrom(r.Context()); info != nil {
+				route = info.route
 			}
-			logger.Infow("HTTP request", "method", r.Method, "path", path,
+			Log(r.Context(), logger).Infow("HTTP request", "method", r.Method, "route", route,
 				"status", metrics.Code, "client_ip", proxies.ClientIP(r), "size", metrics.Written, "duration", metrics.Duration)
 		})
 	}

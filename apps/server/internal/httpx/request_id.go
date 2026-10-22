@@ -13,9 +13,12 @@ const (
 	maxRequestIDLen = 64
 )
 
-// requestInfo is what the request's context carries for logging.
+// requestInfo is what the request's context carries for logging. route is a slot the router
+// fills in: it hands ServeMux a clone of the request, so the middleware around the router can't
+// read the matched pattern from the request, but the clone shares the context.
 type requestInfo struct {
-	id string
+	id    string
+	route string
 }
 
 type requestInfoKey struct{}
@@ -23,6 +26,13 @@ type requestInfoKey struct{}
 func requestInfoFrom(ctx context.Context) *requestInfo {
 	info, _ := ctx.Value(requestInfoKey{}).(*requestInfo)
 	return info
+}
+
+// setRoute records the pattern of the route serving the request, such as /api/v1/push/{token}.
+func setRoute(ctx context.Context, pattern string) {
+	if info := requestInfoFrom(ctx); info != nil {
+		info.route = pattern
+	}
 }
 
 // RequestID gives each request an ID and sets it as the X-Request-ID header of the response. It
