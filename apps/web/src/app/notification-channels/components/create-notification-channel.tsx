@@ -1,6 +1,5 @@
-import CreateEditNotificationChannel, {
-  type NotificationForm,
-} from "../components/create-edit-notification-channel";
+import CreateEditNotificationChannel from "../components/create-edit-notification-channel";
+import type { NotificationChannelFormValues } from "../channel-types/registry";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getNotificationChannelsInfiniteQueryKey,
@@ -35,7 +34,7 @@ const CreateNotificationChannel = ({
     onError: commonMutationErrorHandler(t("notifications.messages.create_failed")),
   });
 
-  const handleSubmit = (data: NotificationForm) => {
+  const handleSubmit = (data: NotificationChannelFormValues) => {
     const payload: NotificationChannelCreateUpdateDto = {
       name: data.name,
       type: data.type,
