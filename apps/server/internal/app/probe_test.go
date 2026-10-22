@@ -10,6 +10,7 @@ import (
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/probe_notification"
@@ -207,10 +208,16 @@ func TestRegister_MongoInstallAnswers501OnProbeRoutes(t *testing.T) {
 func TestRegister_SQLiteInstallResolvesTheProbeProtocol(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, Register(container, clusterConfig(t)))
+	// The transport provides the event bus that the waker and the controller publish to
+	bus := events.NewMemoryBus()
+	t.Cleanup(func() { assert.NoError(t, bus.Close(context.Background())) })
+	require.NoError(t, container.Provide(func() events.EventBus { return bus }))
 
-	require.NoError(t, container.Invoke(func(route *protocol.Route, controller *protocol.Controller, limiter *protocol.RateLimiter) {
+	require.NoError(t, container.Invoke(func(route *protocol.Route, controller *protocol.Controller, limiter *protocol.RateLimiter, waker *protocol.Waker, source protocol.MonitorSource) {
 		assert.NotNil(t, route)
 		assert.NotNil(t, controller)
 		assert.NotNil(t, limiter)
+		assert.NotNil(t, waker)
+		assert.NotNil(t, source)
 	}))
 }
