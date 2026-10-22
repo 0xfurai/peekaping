@@ -860,6 +860,73 @@ func TestProbeProtocol_ByeRemovesTheInstanceAndRedeals(t *testing.T) {
 	assert.Subset(t, monitorIDs(after.Monitors), monitorIDs(stayingShare.Monitors))
 }
 
+func TestProbeProtocol_ByeAnswersTheWaitingPollsOfItsSiblings(t *testing.T) {
+	a := localProbeApp(t, nil)
+	const count = 24
+	for i := range count {
+		a.createHTTPMonitor(t, fmt.Sprintf("Monitor %02d", i), "")
+	}
+	staying, leaving := uuid.NewString(), uuid.NewString()
+	a.sayHello(t, localToken, staying)
+	a.sayHello(t, localToken, leaving)
+	share := decodeAssignments(t, a.assignments(t, localToken, staying, ""))
+	require.Less(t, len(share.Monitors), count)
+	answered := a.startPoll(localToken, staying, share.Version)
+	stillWaiting(t, answered)
+
+	require.Equal(t, http.StatusNoContent, a.request(t, http.MethodPost, byePath, nil, asProbe(localToken, leaving)).Code)
+
+	got := decodeAssignments(t, answeredWithin(t, answered, 2*time.Second))
+	assert.NotEqual(t, share.Version, got.Version)
+	assert.Len(t, got.Monitors, count)
+}
+
+func TestProbeProtocol_HelloWakesTheSiblingsPollsWhenSomethingChanged(t *testing.T) {
+	a := localProbeApp(t, nil)
+	const count = 24
+	for i := range count {
+		a.createHTTPMonitor(t, fmt.Sprintf("Monitor %02d", i), "")
+	}
+	first, second := uuid.NewString(), uuid.NewString()
+	a.sayHello(t, localToken, first)
+	alone := decodeAssignments(t, a.assignments(t, localToken, first, ""))
+	require.Len(t, alone.Monitors, count)
+
+	t.Run("an instance joins", func(t *testing.T) {
+		answered := a.startPoll(localToken, first, alone.Version)
+		stillWaiting(t, answered)
+
+		a.sayHello(t, localToken, second)
+
+		got := decodeAssignments(t, answeredWithin(t, answered, 2*time.Second))
+		assert.NotEqual(t, alone.Version, got.Version)
+		assert.Less(t, len(got.Monitors), count, "it gave the newcomer a share")
+		alone = got
+	})
+
+	// The poll of the next two cases: the hello of an instance that is already online does not end
+	// it, the hello with other monitor types does
+	answered := a.startPoll(localToken, first, alone.Version)
+	t.Run("an instance that is already online says hello again", func(t *testing.T) {
+		stillWaiting(t, answered)
+
+		a.sayHello(t, localToken, second)
+
+		stillWaiting(t, answered)
+	})
+
+	t.Run("an instance says hello with other monitor types", func(t *testing.T) {
+		hello := helloFrom(second)
+		hello.SupportedTypes = []string{"tcp"}
+
+		require.Equal(t, http.StatusOK, a.request(t, http.MethodPost, helloPath, hello, asProbe(localToken, second)).Code)
+
+		got := decodeAssignments(t, answeredWithin(t, answered, 2*time.Second))
+		assert.NotEqual(t, alone.Version, got.Version)
+		assert.Empty(t, got.Monitors, "none of the monitors are of a type the probe runs now")
+	})
+}
+
 func TestProbeProtocol_ShutdownAnswersTheWaitingPolls(t *testing.T) {
 	a := localProbeApp(t, nil)
 	instanceID := uuid.NewString()
