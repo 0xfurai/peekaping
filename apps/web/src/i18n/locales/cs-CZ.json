@@ -1406,7 +1406,7 @@
     "settings_errors": "Vypnout hlášení o chybách v části „Nastavení“",
     "settings_usage": "Vypnout statistiky využití v části „Nastavení“",
     "title": "Odesílání anonymních dat je ve výchozím nastavení zapnuto",
-    "usage_statistics": "Statistiky využití jsou zapnuté. Nejvýše jednou denně Peekaping odešle svou verzi, režim, úložiště dat a operační systém, rozsah počtu monitorů a druhy monitorů a kanálů oznámení, které používáte. Nikdy neodesílá názvy, adresy URL, hostitele ani nastavení."
+    "usage_statistics": "Statistiky využití jsou zapnuté. Nejvýše jednou denně Peekaping odešle náhodné ID instance, svou verzi, režim, úložiště dat a operační systém, rozsah počtu monitorů, druhy monitorů a kanálů oznámení, které používáte, a také to, zda používáte stránky stavu, okna údržby a metriky. Nikdy neodesílá názvy, adresy URL, hostitele ani nastavení."
   },
   "theme": {
     "dark": "Tmavý",

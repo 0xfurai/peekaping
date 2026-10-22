@@ -1406,7 +1406,7 @@
     "settings_errors": "Poista virheraportit käytöstä kohdassa ”Asetukset”",
     "settings_usage": "Poista käyttötilastot käytöstä kohdassa ”Asetukset”",
     "title": "Nimettömän tiedon lähetys on oletuksena päällä",
-    "usage_statistics": "Käyttötilastot ovat päällä. Enintään kerran päivässä Peekaping lähettää versionsa, tilansa, tallennustaustansa ja käyttöjärjestelmänsä, vaihteluvälin valvontojesi määrästä sekä käyttämiesi valvontojen ja ilmoituskanavien tyypit. Se ei koskaan lähetä nimiä, URL-osoitteita, isäntiä tai asetuksia."
+    "usage_statistics": "Käyttötilastot ovat päällä. Enintään kerran päivässä Peekaping lähettää satunnaisen instanssin tunnuksen, versionsa, tilansa, tallennustaustansa ja käyttöjärjestelmänsä, vaihteluvälin valvontojesi määrästä, käyttämiesi valvontojen ja ilmoituskanavien tyypit sekä sen, käytätkö tila-sivuja, huoltoikkunoita ja mittareita. Se ei koskaan lähetä nimiä, URL-osoitteita, isäntiä tai asetuksia."
   },
   "theme": {
     "dark": "Tumma",

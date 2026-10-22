@@ -1406,7 +1406,7 @@
     "settings_errors": "Slå fejlrapporter fra under “Indstillinger”",
     "settings_usage": "Slå brugsstatistik fra under “Indstillinger”",
     "title": "Deling af anonyme data er slået til som standard",
-    "usage_statistics": "Brugsstatistik er slået til. Højst én gang om dagen sender Peekaping sin version, tilstand, lagringsbackend og operativsystem, et interval for, hvor mange monitorer du har, og de slags monitorer og notifikationskanaler, du bruger. Den sender aldrig navne, URL'er, værter eller indstillinger."
+    "usage_statistics": "Brugsstatistik er slået til. Højst én gang om dagen sender Peekaping et tilfældigt instans-ID, sin version, tilstand, lagringsbackend og operativsystem, et interval for, hvor mange monitorer du har, de slags monitorer og notifikationskanaler, du bruger, og om du bruger statussider, vedligeholdelsesvinduer og målinger. Den sender aldrig navne, URL'er, værter eller indstillinger."
   },
   "theme": {
     "dark": "Mørk",

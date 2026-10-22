@@ -1405,7 +1405,7 @@
     "settings_errors": "Múch tuarascálacha earráide faoi “Socruithe”",
     "settings_usage": "Múch staitisticí úsáide faoi “Socruithe”",
     "title": "Tá seoladh sonraí gan ainm air de réir réamhshocraithe",
-    "usage_statistics": "Tá staitisticí úsáide air. Uair amháin sa lá ar a mhéad, seolann Peekaping a leagan, a mhód, an backend stórála agus an córas oibriúcháin, raon do líon na móntóirí atá agat, agus cineálacha na móntóirí agus na gcainéal fógra a úsáideann tú. Ní sheolann sé riamh ainmneacha, URLanna, óstaigh ná socruithe."
+    "usage_statistics": "Tá staitisticí úsáide air. Uair amháin sa lá ar a mhéad, seolann Peekaping ID randamach an cháis, a leagan, a mhód, an backend stórála agus an córas oibriúcháin, raon do líon na móntóirí atá agat, cineálacha na móntóirí agus na gcainéal fógra a úsáideann tú, agus cibé an úsáideann tú leathanaigh stádais, fuinneoga cothabhála agus méadrachtaí. Ní sheolann sé riamh ainmneacha, URLanna, óstaigh ná socruithe."
   },
   "theme": {
     "dark": "Dorcha",

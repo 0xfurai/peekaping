@@ -1406,7 +1406,7 @@
     "settings_errors": "Wyłącz raporty o błędach w sekcji „Ustawienia”",
     "settings_usage": "Wyłącz statystyki użycia w sekcji „Ustawienia”",
     "title": "Wysyłanie anonimowych danych jest domyślnie włączone",
-    "usage_statistics": "Statystyki użycia są włączone. Najwyżej raz dziennie Peekaping wysyła swoją wersję, tryb, zaplecze przechowywania danych i system operacyjny, przedział liczby monitorów oraz rodzaje używanych monitorów i kanałów powiadomień. Nigdy nie wysyła nazw, adresów URL, hostów ani ustawień."
+    "usage_statistics": "Statystyki użycia są włączone. Najwyżej raz dziennie Peekaping wysyła losowy identyfikator instancji, swoją wersję, tryb, zaplecze przechowywania danych i system operacyjny, przedział liczby monitorów, rodzaje używanych monitorów i kanałów powiadomień oraz informację, czy używasz stron statusu, okien utrzymania i metryk. Nigdy nie wysyła nazw, adresów URL, hostów ani ustawień."
   },
   "theme": {
     "dark": "Ciemny",

@@ -1406,7 +1406,7 @@
     "settings_errors": "Desativar os relatórios de erro em “Configurações”",
     "settings_usage": "Desativar as estatísticas de uso em “Configurações”",
     "title": "O envio de dados anônimos está ativado por padrão",
-    "usage_statistics": "As estatísticas de uso estão ativadas. No máximo uma vez por dia, o Peekaping envia a própria versão, o modo, o backend de armazenamento e o sistema operacional, uma faixa para o número de monitores e os tipos de monitores e de canais de notificação que você usa. Nunca envia nomes, URLs, hosts ou configurações."
+    "usage_statistics": "As estatísticas de uso estão ativadas. No máximo uma vez por dia, o Peekaping envia um ID de instância aleatório, a própria versão, o modo, o backend de armazenamento e o sistema operacional, uma faixa para o número de monitores, os tipos de monitores e de canais de notificação que você usa e se você usa páginas de status, janelas de manutenção e métricas. Nunca envia nomes, URLs, hosts ou configurações."
   },
   "theme": {
     "dark": "Escuro",

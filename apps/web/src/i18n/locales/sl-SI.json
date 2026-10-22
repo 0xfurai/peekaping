@@ -1406,7 +1406,7 @@
     "settings_errors": "Izklopi poročila o napakah v razdelku Nastavitve",
     "settings_usage": "Izklopi statistiko uporabe v razdelku Nastavitve",
     "title": "Pošiljanje anonimnih podatkov je privzeto vklopljeno",
-    "usage_statistics": "Statistika uporabe je vklopljena. Največ enkrat na dan Peekaping pošlje svojo različico, način, zaledje za shranjevanje in operacijski sistem, razpon za število nadzorov ter vrste nadzorov in kanalov za obvestila, ki jih uporabljate. Nikoli ne pošlje imen, naslovov URL, gostiteljev ali nastavitev."
+    "usage_statistics": "Statistika uporabe je vklopljena. Največ enkrat na dan Peekaping pošlje naključni ID primerka, svojo različico, način, zaledje za shranjevanje in operacijski sistem, razpon za število nadzorov, vrste nadzorov in kanalov za obvestila, ki jih uporabljate, ter podatek, ali uporabljate statusne strani, okna vzdrževanja in metrike. Nikoli ne pošlje imen, naslovov URL, gostiteljev ali nastavitev."
   },
   "theme": {
     "dark": "Temen",

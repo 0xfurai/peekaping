@@ -1406,7 +1406,7 @@
     "settings_errors": "Lülita veaaruanded välja jaotises „Seaded“",
     "settings_usage": "Lülita kasutusstatistika välja jaotises „Seaded“",
     "title": "Anonüümsete andmete saatmine on vaikimisi sisse lülitatud",
-    "usage_statistics": "Kasutusstatistika on sisse lülitatud. Kõige rohkem kord päevas saadab Peekaping oma versiooni, režiimi, andmesalve ja operatsioonisüsteemi, vahemiku monitoride arvu kohta ning kasutatavate monitoride ja teavituskanalite liigid. Kunagi ei saadeta nimesid, URL-e, hoste ega seadeid."
+    "usage_statistics": "Kasutusstatistika on sisse lülitatud. Kõige rohkem kord päevas saadab Peekaping juhusliku eksemplari ID, oma versiooni, režiimi, andmesalve ja operatsioonisüsteemi, vahemiku monitoride arvu kohta, kasutatavate monitoride ja teavituskanalite liigid ning selle, kas kasutate olekusivusid, hooldusaknaid ja mõõdikuid. Kunagi ei saadeta nimesid, URL-e, hoste ega seadeid."
   },
   "theme": {
     "dark": "Tumine",

@@ -1405,7 +1405,7 @@
     "settings_errors": "Dezactivați rapoartele de eroare în „Setări”",
     "settings_usage": "Dezactivați statisticile de utilizare în „Setări”",
     "title": "Trimiterea de date anonime este activată implicit",
-    "usage_statistics": "Statisticile de utilizare sunt activate. Cel mult o dată pe zi, Peekaping trimite versiunea sa, modul, backendul de stocare și sistemul de operare, un interval pentru numărul de monitoare și tipurile de monitoare și de canale de notificare pe care le folosiți. Nu trimite niciodată nume, URL-uri, gazde sau setări."
+    "usage_statistics": "Statisticile de utilizare sunt activate. Cel mult o dată pe zi, Peekaping trimite un ID de instanță aleatoriu, versiunea sa, modul, backendul de stocare și sistemul de operare, un interval pentru numărul de monitoare, tipurile de monitoare și de canale de notificare pe care le folosiți și dacă folosiți pagini de stare, ferestre de întreținere și metrici. Nu trimite niciodată nume, URL-uri, gazde sau setări."
   },
   "theme": {
     "dark": "Întunecat",

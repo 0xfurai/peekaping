@@ -1406,7 +1406,7 @@
     "settings_errors": "“Ayarlar” bölümünden hata raporlarını kapatın",
     "settings_usage": "“Ayarlar” bölümünden kullanım istatistiklerini kapatın",
     "title": "Anonim veri gönderimi varsayılan olarak açık",
-    "usage_statistics": "Kullanım istatistikleri açık. Peekaping günde en fazla bir kez kendi sürümünü, modunu, depolama arka ucunu ve işletim sistemini, monitör sayınız için bir aralığı ve kullandığınız monitör ve bildirim kanalı türlerini gönderir. Ad, URL, ana makine veya ayar göndermez."
+    "usage_statistics": "Kullanım istatistikleri açık. Peekaping günde en fazla bir kez rastgele bir örnek kimliğini, kendi sürümünü, modunu, depolama arka ucunu ve işletim sistemini, monitör sayınız için bir aralığı, kullandığınız monitör ve bildirim kanalı türlerini ve durum sayfaları, bakım pencereleri ve metrikleri kullanıp kullanmadığınızı gönderir. Ad, URL, ana makine veya ayar göndermez."
   },
   "theme": {
     "dark": "Koyu",

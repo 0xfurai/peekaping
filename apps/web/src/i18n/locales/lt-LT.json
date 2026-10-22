@@ -1406,7 +1406,7 @@
     "settings_errors": "Išjungti pranešimus apie klaidas skiltyje „Nustatymai“",
     "settings_usage": "Išjungti naudojimo statistiką skiltyje „Nustatymai“",
     "title": "Anoniminių duomenų siuntimas pagal numatytuosius nustatymus įjungtas",
-    "usage_statistics": "Naudojimo statistika įjungta. Ne dažniau kaip kartą per dieną Peekaping siunčia savo versiją, režimą, saugyklos pagrindą ir operacinę sistemą, monitorių skaičiaus intervalą bei naudojamų monitorių ir pranešimų kanalų rūšis. Niekada nesiunčia pavadinimų, URL, pagrindinių kompiuterių ar nustatymų."
+    "usage_statistics": "Naudojimo statistika įjungta. Ne dažniau kaip kartą per dieną Peekaping siunčia atsitiktinį egzemplioriaus ID, savo versiją, režimą, saugyklos pagrindą ir operacinę sistemą, monitorių skaičiaus intervalą, naudojamų monitorių ir pranešimų kanalų rūšis bei tai, ar naudojate būsenos puslapius, priežiūros langus ir metrikas. Niekada nesiunčia pavadinimų, URL, pagrindinių kompiuterių ar nustatymų."
   },
   "theme": {
     "dark": "Tamsus",

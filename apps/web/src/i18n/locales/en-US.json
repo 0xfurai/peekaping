@@ -1406,7 +1406,7 @@
     "settings_errors": "Turn off error reports in Settings",
     "settings_usage": "Turn off usage statistics in Settings",
     "title": "Sharing anonymous data is on by default",
-    "usage_statistics": "Usage statistics are on. At most once a day, Peekaping sends its version, mode, storage backend and operating system, a range for how many monitors you have, and the kinds of monitors and notification channels you use. It never sends names, URLs, hosts or settings."
+    "usage_statistics": "Usage statistics are on. At most once a day, Peekaping sends a random instance ID, its version, mode, storage backend and operating system, a range for how many monitors you have, the kinds of monitors and notification channels you use, and whether you use status pages, maintenance windows and metrics. It never sends names, URLs, hosts or settings."
   },
   "theme": {
     "dark": "Dark",

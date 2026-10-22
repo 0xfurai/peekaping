@@ -1406,7 +1406,7 @@
     "settings_errors": "A hibajelentések kikapcsolása a „Beállítások” részben",
     "settings_usage": "A használati statisztikák kikapcsolása a „Beállítások” részben",
     "title": "Az anonim adatok küldése alapértelmezés szerint be van kapcsolva",
-    "usage_statistics": "A használati statisztikák be vannak kapcsolva. Naponta legfeljebb egyszer a Peekaping elküldi a verzióját, az üzemmódját, a tárolási háttérrendszert és az operációs rendszert, a figyelők számának tartományát, valamint a használt figyelők és értesítési csatornák fajtáit. Soha nem küld neveket, URL-eket, gazdagépeket vagy beállításokat."
+    "usage_statistics": "A használati statisztikák be vannak kapcsolva. Naponta legfeljebb egyszer a Peekaping elküld egy véletlenszerű példányazonosítót, a verzióját, az üzemmódját, a tárolási háttérrendszert és az operációs rendszert, a figyelők számának tartományát, a használt figyelők és értesítési csatornák fajtáit, valamint azt, hogy használ-e állapotlapokat, karbantartási ablakokat és metrikákat. Soha nem küld neveket, URL-eket, gazdagépeket vagy beállításokat."
   },
   "theme": {
     "dark": "Sötét",

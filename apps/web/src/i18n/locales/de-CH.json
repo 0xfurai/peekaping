@@ -1406,7 +1406,7 @@
     "settings_errors": "Fehlerberichte unter «Einstellungen» ausschalten",
     "settings_usage": "Nutzungsstatistiken unter «Einstellungen» ausschalten",
     "title": "Das Senden anonymer Daten ist standardmässig eingeschaltet",
-    "usage_statistics": "Nutzungsstatistiken sind eingeschaltet. Höchstens einmal am Tag sendet Peekaping seine Version, den Modus, das Speicher-Backend und das Betriebssystem, einen Bereich für die Anzahl Ihrer Monitore sowie die Arten von Monitoren und Benachrichtigungskanälen, die Sie verwenden. Es sendet nie Namen, URLs, Hosts oder Einstellungen."
+    "usage_statistics": "Nutzungsstatistiken sind eingeschaltet. Höchstens einmal am Tag sendet Peekaping eine zufällige Instanz-ID, seine Version, den Modus, das Speicher-Backend und das Betriebssystem, einen Bereich für die Anzahl Ihrer Monitore, die Arten von Monitoren und Benachrichtigungskanälen, die Sie verwenden, sowie ob Sie Statusseiten, Wartungsfenster und Metriken verwenden. Es sendet nie Namen, URLs, Hosts oder Einstellungen."
   },
   "theme": {
     "dark": "Dunkel",

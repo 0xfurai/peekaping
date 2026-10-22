@@ -1405,7 +1405,7 @@
     "settings_errors": "Xato hisobotlarini «Sozlamalar» bo'limida o'chirish",
     "settings_usage": "Foydalanish statistikasini «Sozlamalar» bo'limida o'chirish",
     "title": "Anonim ma'lumotlarni yuborish standart bo'yicha yoqilgan",
-    "usage_statistics": "Foydalanish statistikasi yoqilgan. Kuniga ko'pi bilan bir marta Peekaping o'z versiyasini, rejimini, saqlash backendini va operatsion tizimini, monitorlar soni oralig'ini hamda foydalanayotgan monitorlar va bildirishnoma kanallari turlarini yuboradi. U hech qachon nomlar, URL manzillar, xostlar yoki sozlamalarni yubormaydi."
+    "usage_statistics": "Foydalanish statistikasi yoqilgan. Kuniga ko'pi bilan bir marta Peekaping nusxaning tasodifiy ID'sini, o'z versiyasini, rejimini, saqlash backendini va operatsion tizimini, monitorlar soni oralig'ini, foydalanayotgan monitorlar va bildirishnoma kanallari turlarini hamda status sahifalari, texnik xizmat oynalari va metrikalardan foydalanayotganingizni yuboradi. U hech qachon nomlar, URL manzillar, xostlar yoki sozlamalarni yubormaydi."
   },
   "theme": {
     "dark": "Qorong'i",

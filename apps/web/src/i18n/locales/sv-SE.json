@@ -1406,7 +1406,7 @@
     "settings_errors": "Stäng av felrapporter under ”Inställningar”",
     "settings_usage": "Stäng av användningsstatistik under ”Inställningar”",
     "title": "Att skicka anonyma data är påslaget som standard",
-    "usage_statistics": "Användningsstatistik är på. Högst en gång per dag skickar Peekaping sin version, sitt läge, lagringsbackend och operativsystem, ett intervall för hur många övervakningar du har samt vilka typer av övervakningar och aviseringskanaler du använder. Den skickar aldrig namn, URL:er, värdar eller inställningar."
+    "usage_statistics": "Användningsstatistik är på. Högst en gång per dag skickar Peekaping ett slumpmässigt instans-ID, sin version, sitt läge, lagringsbackend och operativsystem, ett intervall för hur många övervakningar du har, typerna av övervakningar och aviseringskanaler du använder samt om du använder statussidor, underhållsfönster och mätvärden. Den skickar aldrig namn, URL:er, värdar eller inställningar."
   },
   "theme": {
     "dark": "Mörk",

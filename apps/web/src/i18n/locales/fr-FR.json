@@ -1406,7 +1406,7 @@
     "settings_errors": "Désactiver les rapports d'erreur dans « Paramètres »",
     "settings_usage": "Désactiver les statistiques d'utilisation dans « Paramètres »",
     "title": "L'envoi de données anonymes est activé par défaut",
-    "usage_statistics": "Les statistiques d'utilisation sont activées. Au plus une fois par jour, Peekaping envoie sa version, son mode, son backend de stockage et son système d'exploitation, une fourchette pour votre nombre de moniteurs, ainsi que les types de moniteurs et de canaux de notification que vous utilisez. Il n'envoie jamais de noms, d'URL, d'hôtes ni de paramètres."
+    "usage_statistics": "Les statistiques d'utilisation sont activées. Au plus une fois par jour, Peekaping envoie un identifiant d'instance aléatoire, sa version, son mode, son backend de stockage et son système d'exploitation, une fourchette pour votre nombre de moniteurs, les types de moniteurs et de canaux de notification que vous utilisez, ainsi que le fait que vous utilisiez ou non des pages d'état, des fenêtres de maintenance et des métriques. Il n'envoie jamais de noms, d'URL, d'hôtes ni de paramètres."
   },
   "theme": {
     "dark": "Sombre",

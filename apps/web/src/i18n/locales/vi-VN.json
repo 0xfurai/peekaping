@@ -1406,7 +1406,7 @@
     "settings_errors": "Tắt báo cáo lỗi trong “Cài đặt”",
     "settings_usage": "Tắt thống kê sử dụng trong “Cài đặt”",
     "title": "Việc gửi dữ liệu ẩn danh được bật theo mặc định",
-    "usage_statistics": "Thống kê sử dụng đang bật. Nhiều nhất một lần mỗi ngày, Peekaping gửi phiên bản của nó, chế độ, backend lưu trữ và hệ điều hành, một khoảng cho số lượng giám sát của bạn, cùng các loại giám sát và kênh thông báo bạn dùng. Nó không bao giờ gửi tên, URL, máy chủ hay cài đặt."
+    "usage_statistics": "Thống kê sử dụng đang bật. Nhiều nhất một lần mỗi ngày, Peekaping gửi ID ngẫu nhiên của bản cài đặt, phiên bản của nó, chế độ, backend lưu trữ và hệ điều hành, một khoảng cho số lượng giám sát của bạn, các loại giám sát và kênh thông báo bạn dùng, cũng như việc bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không. Nó không bao giờ gửi tên, URL, máy chủ hay cài đặt."
   },
   "theme": {
     "dark": "Tối",

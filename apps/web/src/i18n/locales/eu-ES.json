@@ -1406,7 +1406,7 @@
     "settings_errors": "Desaktibatu errore-txostenak «Ezarpenak» atalean",
     "settings_usage": "Desaktibatu erabilera-estatistikak «Ezarpenak» atalean",
     "title": "Datu anonimoak bidaltzea lehenespenez aktibatuta dago",
-    "usage_statistics": "Erabilera-estatistikak aktibatuta daude. Egunean behin gehienez, Peekapingek bere bertsioa, modua, biltegiratze-backenda eta sistema eragilea bidaltzen ditu, baita zenbat monitore dituzun adierazten duen tarte bat eta erabiltzen dituzun monitore eta jakinarazpen-kanal motak ere. Ez ditu inoiz izenak, URLak, ostalariak edo ezarpenak bidaltzen."
+    "usage_statistics": "Erabilera-estatistikak aktibatuta daude. Egunean behin gehienez, Peekapingek honako hauek bidaltzen ditu: instantziaren ausazko ID bat, bere bertsioa, modua, biltegiratze-backenda eta sistema eragilea, zenbat monitore dituzun adierazten duen tarte bat, erabiltzen dituzun monitore eta jakinarazpen-kanal motak, eta egoera orriak, mantentze-leihoak eta metrikak erabiltzen dituzun ala ez. Ez ditu inoiz izenak, URLak, ostalariak edo ezarpenak bidaltzen."
   },
   "theme": {
     "dark": "Iluna",

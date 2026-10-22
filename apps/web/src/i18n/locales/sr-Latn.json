@@ -1406,7 +1406,7 @@
     "settings_errors": "Isključi izveštaje o greškama u „Podešavanja“",
     "settings_usage": "Isključi statistiku korišćenja u „Podešavanja“",
     "title": "Slanje anonimnih podataka je podrazumevano uključeno",
-    "usage_statistics": "Statistika korišćenja je uključena. Najviše jednom dnevno Peekaping šalje svoju verziju, režim, pozadinski sistem za skladištenje i operativni sistem, opseg za broj nadgledaja, kao i vrste nadgledaja i kanala obaveštenja koje koristite. Nikada ne šalje nazive, URL adrese, hostove ni podešavanja."
+    "usage_statistics": "Statistika korišćenja je uključena. Najviše jednom dnevno Peekaping šalje nasumični ID instance, svoju verziju, režim, pozadinski sistem za skladištenje i operativni sistem, opseg za broj nadgledaja, vrste nadgledaja i kanala obaveštenja koje koristite, kao i podatak da li koristite status stranice, prozore održavanja i metrike. Nikada ne šalje nazive, URL adrese, hostove ni podešavanja."
   },
   "theme": {
     "dark": "Tamni",

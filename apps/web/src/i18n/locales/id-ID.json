@@ -1406,7 +1406,7 @@
     "settings_errors": "Nonaktifkan laporan kesalahan di “Pengaturan”",
     "settings_usage": "Nonaktifkan statistik penggunaan di “Pengaturan”",
     "title": "Pengiriman data anonim aktif secara default",
-    "usage_statistics": "Statistik penggunaan aktif. Paling banyak sekali sehari, Peekaping mengirim versinya, mode, backend penyimpanan, dan sistem operasi, rentang jumlah pengawasan Anda, serta jenis pengawasan dan saluran notifikasi yang Anda gunakan. Tidak pernah mengirim nama, URL, host, atau pengaturan."
+    "usage_statistics": "Statistik penggunaan aktif. Paling banyak sekali sehari, Peekaping mengirim ID instans acak, versinya, mode, backend penyimpanan, dan sistem operasi, rentang jumlah pengawasan Anda, jenis pengawasan dan saluran notifikasi yang Anda gunakan, serta apakah Anda menggunakan halaman status, jendela pemeliharaan, dan metrik. Tidak pernah mengirim nama, URL, host, atau pengaturan."
   },
   "theme": {
     "dark": "Gelap",

@@ -1406,7 +1406,7 @@
     "settings_errors": "Foutrapporten uitzetten onder ‘Instellingen’",
     "settings_usage": "Gebruiksstatistieken uitzetten onder ‘Instellingen’",
     "title": "Het versturen van anonieme gegevens staat standaard aan",
-    "usage_statistics": "Gebruiksstatistieken staan aan. Hooguit één keer per dag verstuurt Peekaping zijn versie, modus, opslagbackend en besturingssysteem, een bereik voor het aantal monitoren en de soorten monitoren en meldingskanalen die je gebruikt. Het verstuurt nooit namen, URL's, hosts of instellingen."
+    "usage_statistics": "Gebruiksstatistieken staan aan. Hooguit één keer per dag verstuurt Peekaping een willekeurige instantie-ID, zijn versie, modus, opslagbackend en besturingssysteem, een bereik voor het aantal monitoren, de soorten monitoren en meldingskanalen die je gebruikt, en of je statuspagina's, onderhoudsvensters en statistieken gebruikt. Het verstuurt nooit namen, URL's, hosts of instellingen."
   },
   "theme": {
     "dark": "Donker",
