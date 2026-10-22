@@ -148,7 +148,6 @@ type HTTPConfig struct {
 }
 
 type HTTPExecutor struct {
-	client *http.Client
 	logger *zap.SugaredLogger
 }
 
@@ -209,7 +208,6 @@ func NewHTTPExecutor(logger *zap.SugaredLogger) *HTTPExecutor {
 	utils.Validate.RegisterStructValidation(HTTPConfigStructLevelValidation, HTTPConfig{})
 
 	return &HTTPExecutor{
-		client: &http.Client{},
 		logger: logger,
 	}
 }
@@ -550,6 +548,9 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// Set timeout from monitor configuration
 	timeout := time.Duration(m.Timeout) * time.Second
 
+	// Built for this check only: the executor is shared by every concurrent check.
+	var client *http.Client
+
 	// --- AUTHENTICATION LOGIC ---
 	switch cfg.AuthMethod {
 	case "basic":
@@ -559,7 +560,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		ntlmTransport := ntlmssp.Negotiator{
 			RoundTripper: tlsInterceptor,
 		}
-		h.client = &http.Client{
+		client = &http.Client{
 			Transport:     &ntlmTransport,
 			Timeout:       time.Duration(m.Timeout) * time.Second,
 			CheckRedirect: checkRedirect,
@@ -634,7 +635,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		mtlsTransportWithProxy := buildProxyTransport(mtlsTransport, proxyModel)
 		mtlsTLSInterceptor := NewTLSInterceptor(mtlsTransportWithProxy)
 		activeTLSInterceptor = mtlsTLSInterceptor // Update the active interceptor for mTLS
-		h.client = &http.Client{
+		client = &http.Client{
 			Transport:     mtlsTLSInterceptor,
 			Timeout:       time.Duration(m.Timeout) * time.Second,
 			CheckRedirect: checkRedirect,
@@ -642,7 +643,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	}
 
 	if cfg.AuthMethod != "mtls" && cfg.AuthMethod != "ntlm" {
-		h.client = &http.Client{
+		client = &http.Client{
 			Timeout:       timeout,
 			CheckRedirect: checkRedirect,
 			Transport:     tlsInterceptor,
@@ -652,7 +653,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// Set user agent and accept headers
 
 	startTime := time.Now().UTC()
-	resp, err := h.client.Do(req)
+	resp, err := client.Do(req)
 	endTime := time.Now().UTC()
 
 	if err != nil {

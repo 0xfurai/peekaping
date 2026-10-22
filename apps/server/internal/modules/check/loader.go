@@ -11,10 +11,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
-	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/shared"
 )
 
@@ -40,21 +37,42 @@ type Job struct {
 	LastHeartbeat *shared.HeartBeatModel
 }
 
+// MonitorFinder is the part of the monitor service the loader reads
+type MonitorFinder interface {
+	FindByID(ctx context.Context, id string) (*shared.Monitor, error)
+}
+
+// ProxyFinder is the part of the proxy service the loader reads
+type ProxyFinder interface {
+	FindByID(ctx context.Context, id string) (*shared.Proxy, error)
+}
+
+// MaintenanceReader is the part of the maintenance service the loader reads
+type MaintenanceReader interface {
+	GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*maintenance.Model, error)
+	IsUnderMaintenance(ctx context.Context, m *maintenance.Model) (bool, error)
+}
+
+// HeartbeatFinder is the part of the heartbeat service the loader reads
+type HeartbeatFinder interface {
+	FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*shared.HeartBeatModel, error)
+}
+
 // Loader loads the Job for a monitor's check
 type Loader struct {
-	monitorService     monitor.Service
-	proxyService       proxy.Service
-	maintenanceService maintenance.Service
-	heartbeatService   heartbeat.Service
+	monitorService     MonitorFinder
+	proxyService       ProxyFinder
+	maintenanceService MaintenanceReader
+	heartbeatService   HeartbeatFinder
 	logger             *zap.SugaredLogger
 }
 
 // NewLoader creates a loader
 func NewLoader(
-	monitorService monitor.Service,
-	proxyService proxy.Service,
-	maintenanceService maintenance.Service,
-	heartbeatService heartbeat.Service,
+	monitorService MonitorFinder,
+	proxyService ProxyFinder,
+	maintenanceService MaintenanceReader,
+	heartbeatService HeartbeatFinder,
 	logger *zap.SugaredLogger,
 ) *Loader {
 	return &Loader{

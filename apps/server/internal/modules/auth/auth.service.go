@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/base32"
 	"errors"
 	"time"
@@ -48,7 +49,7 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 	}
 
 	if count > 0 {
-		return nil, errors.New("admin already exists")
+		return nil, ErrAdminExists
 	}
 	// Check if admin with this email already exists
 	existingAdmin, err := s.repo.FindByEmail(ctx, dto.Email)
@@ -71,8 +72,8 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		UpdatedAt: time.Now().UTC(),
 	}
 
-	// Save to database
-	user, err = s.repo.Create(ctx, user)
+	// Save to database, unless another registration got there first
+	user, err = s.repo.CreateFirst(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +158,12 @@ func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*L
 	user, err := s.repo.FindByID(ctx, claims.UserID)
 	if err != nil || user == nil {
 		return nil, errors.New("user not found")
+	}
+
+	// A refresh token issued before the last password change, or by a release
+	// that didn't set the fingerprint, no longer works
+	if subtle.ConstantTimeCompare([]byte(claims.PasswordFingerprint), []byte(passwordFingerprint(user.Password))) != 1 {
+		return nil, errors.New("invalid refresh token")
 	}
 
 	// Generate new access token

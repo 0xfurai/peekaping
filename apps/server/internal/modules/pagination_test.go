@@ -116,7 +116,7 @@ func TestListEndpointsPagination(t *testing.T) {
 			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, proxy.NewController(&proxyPaginationService{paginationCall: call}, logger).FindAll)
 		}},
 		{"notification-channels", 10, func(router *httpx.Router, call *paginationCall) {
-			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, notification_channel.NewController(&notificationPaginationService{paginationCall: call}, logger).FindAll)
+			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, notification_channel.NewController(&notificationPaginationService{paginationCall: call}, nil, logger).FindAll)
 		}},
 		{"maintenances", 10, func(router *httpx.Router, call *paginationCall) {
 			httpx.Register(router, "GET", "/", huma.Operation{Errors: []int{400, 500}}, maintenance.NewController(&maintenancePaginationService{paginationCall: call}, logger).FindAll)
