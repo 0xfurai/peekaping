@@ -63,11 +63,17 @@ type BadgeOptions struct {
 	DownDays int `json:"down_days"`
 }
 
-// DefaultBadgeOptions returns default badge options
+// defaultBadgeColor is the color the ping and response badges draw when no color
+// is given. It's an ordinary color too: asking for blue gets the same hex.
+const defaultBadgeColor = "#007ec6"
+
+// DefaultBadgeOptions returns default badge options. Color is empty: no color was
+// given, so each badge draws its own (the status badge its status color, the
+// uptime badge its uptime color, and so on).
 func DefaultBadgeOptions() *BadgeOptions {
 	return &BadgeOptions{
 		Style:      BadgeStyleFlat,
-		Color:      "#007ec6", // Modern blue for general use
+		Color:      "",
 		LabelColor: "#555",
 		UpLabel:    "Up",
 		DownLabel:  "Down",

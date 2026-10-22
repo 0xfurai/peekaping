@@ -1849,7 +1849,7 @@ func TestDefaultBadgeOptions(t *testing.T) {
 
 	assert.NotNil(t, options)
 	assert.Equal(t, BadgeStyleFlat, options.Style)
-	assert.Equal(t, "#007ec6", options.Color)
+	assert.Equal(t, "", options.Color, "no color is given until the request names one")
 	assert.Equal(t, "#555", options.LabelColor)
 	assert.Equal(t, "Up", options.UpLabel)
 	assert.Equal(t, "Down", options.DownLabel)

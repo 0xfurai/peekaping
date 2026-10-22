@@ -222,25 +222,51 @@ func TestBadges_DrawValidColors(t *testing.T) {
 	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{pending, up, down}})
 	a.reportStatus(t, up, shared.MonitorStatusUp)
 	a.reportStatus(t, down, shared.MonitorStatusDown)
+	a.storeCertExpiry(t, up, 30)
 
 	for _, tt := range []struct {
-		name, monitorID, query string
-		labelFill, valueFill   string
+		name, monitorID, route, query string
+		labelFill, valueFill          string
 	}{
-		{"no color", pending, "", "#555", "#fe7d37"},
-		{"bare hex", pending, "color=4c1", "#555", "#4c1"},
-		{"hex with hash", pending, "color=%234c1", "#555", "#4c1"},
-		{"long bare hex", pending, "color=ff0000", "#555", "#ff0000"},
-		{"hex keeps its case", pending, "color=%23ABCDEF", "#555", "#ABCDEF"},
-		{"color name", pending, "color=brightgreen", "#555", "#4c1"},
-		{"color name in any case", pending, "color=LightGray", "#555", "#9f9f9f"},
-		{"label hex", pending, "labelColor=333", "#333", "#fe7d37"},
-		{"label color name", pending, "labelColor=red", "#e05d44", "#fe7d37"},
-		{"up color", up, "upColor=orange", "#555", "#fe7d37"},
-		{"down color", down, "downColor=yellow", "#555", "#dfb317"},
+		{"no color", pending, "status", "", "#555", "#fe7d37"},
+		{"bare hex", pending, "status", "color=4c1", "#555", "#4c1"},
+		{"hex with hash", pending, "status", "color=%234c1", "#555", "#4c1"},
+		{"long bare hex", pending, "status", "color=ff0000", "#555", "#ff0000"},
+		{"hex keeps its case", pending, "status", "color=%23ABCDEF", "#555", "#ABCDEF"},
+		{"color name", pending, "status", "color=brightgreen", "#555", "#4c1"},
+		{"color name in any case", pending, "status", "color=LightGray", "#555", "#9f9f9f"},
+		{"label hex", pending, "status", "labelColor=333", "#333", "#fe7d37"},
+		{"label color name", pending, "status", "labelColor=red", "#e05d44", "#fe7d37"},
+		{"up color", up, "status", "upColor=orange", "#555", "#fe7d37"},
+		{"down color", down, "status", "downColor=yellow", "#555", "#dfb317"},
+
+		// #007ec6 is also the color a badge draws when none is given, which
+		// must not make it count as no color
+		{"blue", pending, "status", "color=blue", "#555", "#007ec6"},
+		{"informational", pending, "status", "color=informational", "#555", "#007ec6"},
+		{"blue hex", pending, "status", "color=007ec6", "#555", "#007ec6"},
+		{"blue hex with hash", pending, "status", "color=%23007ec6", "#555", "#007ec6"},
+		{"uptime, no color", pending, "uptime", "", "#555", "#e05d44"},
+		{"uptime in blue", pending, "uptime", "color=blue", "#555", "#007ec6"},
+		{"uptime in informational", pending, "uptime", "color=informational", "#555", "#007ec6"},
+		{"uptime in blue hex", pending, "uptime", "color=007ec6", "#555", "#007ec6"},
+		{"uptime in blue hex with hash", pending, "uptime", "color=%23007ec6", "#555", "#007ec6"},
+		{"cert-exp, no color", up, "cert-exp", "", "#555", "#4c1"},
+		{"cert-exp in blue", up, "cert-exp", "color=blue", "#555", "#007ec6"},
+		{"cert-exp in informational", up, "cert-exp", "color=informational", "#555", "#007ec6"},
+		{"cert-exp in blue hex", up, "cert-exp", "color=007ec6", "#555", "#007ec6"},
+		{"cert-exp in blue hex with hash", up, "cert-exp", "color=%23007ec6", "#555", "#007ec6"},
+		{"cert-exp without a certificate, no color", pending, "cert-exp", "", "#555", "#9f9f9f"},
+		{"cert-exp without a certificate in blue", pending, "cert-exp", "color=blue", "#555", "#007ec6"},
+		{"ping, no color", pending, "ping", "", "#555", "#007ec6"},
+		{"ping in a color", pending, "ping", "color=4c1", "#555", "#4c1"},
+		{"ping in blue", pending, "ping", "color=blue", "#555", "#007ec6"},
+		{"response, no color", pending, "response", "", "#555", "#007ec6"},
+		{"response in a color", pending, "response", "color=4c1", "#555", "#4c1"},
+		{"response in blue", pending, "response", "color=blue", "#555", "#007ec6"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			path := "/api/v1/badge/" + tt.monitorID + "/status?" + tt.query
+			path := "/api/v1/badge/" + tt.monitorID + "/" + tt.route + "?" + tt.query
 			w := a.request(t, http.MethodGet, path, nil)
 			require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 			fills := badgeFills.FindAllStringSubmatch(w.Body.String(), -1)
