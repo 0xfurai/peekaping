@@ -40,6 +40,9 @@ spec:
       serviceAccountName: {{ .Release.Name }}-sa
       automountServiceAccountToken: false
 
+      # The worker takes up to 30 seconds to shut down cleanly
+      terminationGracePeriodSeconds: 35
+
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
