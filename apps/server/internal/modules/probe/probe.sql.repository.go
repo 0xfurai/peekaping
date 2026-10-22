@@ -254,6 +254,39 @@ func (r *SQLRepositoryImpl) DeleteInstance(ctx context.Context, probeID string, 
 	return err
 }
 
+// MARK: UpdateStatus
+func (r *SQLRepositoryImpl) UpdateStatus(ctx context.Context, id string, from Status, to Status) (bool, error) {
+	result, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
+		Set("status = ?", string(to)).
+		Set("updated_at = ?", time.Now().UTC()).
+		Where("id = ?", id).
+		Where("status = ?", string(from)).
+		Exec(ctx)
+	if err != nil {
+		return false, err
+	}
+	changed, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return changed > 0, nil
+}
+
+// MARK: DeleteInstancesUnseenSince
+func (r *SQLRepositoryImpl) DeleteInstancesUnseenSince(ctx context.Context, before time.Time) (int, error) {
+	result, err := r.db.NewDelete().Model((*sqlInstance)(nil)).
+		Where("last_seen_at < ?", before.UTC()).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	removed, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(removed), nil
+}
+
 // MARK: SetSupportedTypes
 func (r *SQLRepositoryImpl) SetSupportedTypes(ctx context.Context, probeID string, types []string) error {
 	if types == nil {

@@ -49,6 +49,12 @@ type Service interface {
 	TouchInstance(ctx context.Context, probeID string, instanceID string, at time.Time) (bool, error)
 	// RemoveInstance forgets the probe's instance, as when it says bye
 	RemoveInstance(ctx context.Context, probeID string, instanceID string) error
+	// MarkOnline sets an offline probe online. It returns true only when it changed the status, so
+	// that of the callers that race to bring a probe back (one request on each API replica, and
+	// the sweep), exactly one announces it.
+	MarkOnline(ctx context.Context, id string) (changed bool, err error)
+	// MarkOffline sets an online probe offline, and returns true only when it changed the status
+	MarkOffline(ctx context.Context, id string) (changed bool, err error)
 }
 
 // CreateRequest is a new probe
@@ -290,6 +296,16 @@ func (s *ServiceImpl) RemoveInstance(ctx context.Context, probeID string, instan
 	}
 	s.logger.Infow("Probe instance removed", "probeId", probeID, "instanceId", instanceID)
 	return nil
+}
+
+// MARK: MarkOnline
+func (s *ServiceImpl) MarkOnline(ctx context.Context, id string) (bool, error) {
+	return s.repo.UpdateStatus(ctx, id, StatusOffline, StatusOnline)
+}
+
+// MARK: MarkOffline
+func (s *ServiceImpl) MarkOffline(ctx context.Context, id string) (bool, error) {
+	return s.repo.UpdateStatus(ctx, id, StatusOnline, StatusOffline)
 }
 
 // withDetails adds a probe's instances and notification channels

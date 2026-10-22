@@ -381,3 +381,74 @@ func TestSQLRepository_SetSupportedTypesReplacesTheList(t *testing.T) {
 		assert.Equal(t, []string{}, got.SupportedTypes, "nil is an empty list, not null")
 	})
 }
+
+func TestSQLRepository_UpdateStatusChangesOnlyAProbeInTheStatusItIsGiven(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		before, err := repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		time.Sleep(10 * time.Millisecond)
+
+		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOnline, probe.StatusOffline)
+		require.NoError(t, err)
+		assert.False(t, changed, "the probe is offline, not online: nothing to change")
+
+		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		assert.True(t, changed)
+		got, err := repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Equal(t, probe.StatusOnline, got.Status)
+		assert.True(t, got.UpdatedAt.After(before.UpdatedAt), "a status change touches updated_at")
+
+		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		assert.False(t, changed, "the second of two racing callers changes nothing")
+
+		untouched, err := repo.FindByID(ctx, other.ID)
+		require.NoError(t, err)
+		assert.Equal(t, probe.StatusOffline, untouched.Status)
+
+		changed, err = repo.UpdateStatus(ctx, "no-such-probe", probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		assert.False(t, changed)
+	})
+}
+
+func TestSQLRepository_DeleteInstancesUnseenSinceRemovesTheOldOnes(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		cutoff := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+		for probeID, seen := range map[string]map[string]time.Time{
+			owner.ID: {"owner-old": cutoff.Add(-time.Hour), "owner-new": cutoff.Add(time.Hour), "owner-at-cutoff": cutoff},
+			other.ID: {"other-old": cutoff.Add(-48 * time.Hour)},
+		} {
+			for id, at := range seen {
+				require.NoError(t, repo.UpsertInstance(ctx, probeID, &probe.Instance{ID: id, LastSeenAt: at}))
+			}
+		}
+
+		removed, err := repo.DeleteInstancesUnseenSince(ctx, cutoff)
+
+		require.NoError(t, err)
+		assert.Equal(t, 2, removed)
+		left, err := repo.FindInstances(ctx, owner.ID)
+		require.NoError(t, err)
+		ids := []string{}
+		for _, instance := range left {
+			ids = append(ids, instance.ID)
+		}
+		assert.ElementsMatch(t, []string{"owner-new", "owner-at-cutoff"}, ids, "only what was last seen before the cutoff goes")
+		gone, err := repo.FindInstances(ctx, other.ID)
+		require.NoError(t, err)
+		assert.Empty(t, gone)
+
+		removed, err = repo.DeleteInstancesUnseenSince(ctx, cutoff)
+		require.NoError(t, err)
+		assert.Zero(t, removed)
+	})
+}

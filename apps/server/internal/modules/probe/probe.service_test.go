@@ -459,3 +459,35 @@ func TestService_RemoveInstanceForgetsTheInstance(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, found, "a removed instance has to say hello again")
 }
+
+func TestService_MarkOnlineAndOfflineChangeTheStatusOnce(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+
+	changed, err := f.svc.MarkOffline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.False(t, changed, "a new probe is offline already")
+
+	changed, err = f.svc.MarkOnline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.True(t, changed)
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, probe.StatusOnline, got.Status)
+
+	changed, err = f.svc.MarkOnline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.False(t, changed, "only the caller that changes the status hears true, so that two replicas don't both announce it")
+
+	changed, err = f.svc.MarkOffline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.True(t, changed)
+	got, err = f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, probe.StatusOffline, got.Status)
+
+	changed, err = f.svc.MarkOnline(ctx, "no-such-probe")
+	require.NoError(t, err)
+	assert.False(t, changed)
+}

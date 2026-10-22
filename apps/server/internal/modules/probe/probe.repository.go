@@ -33,4 +33,11 @@ type Repository interface {
 	DeleteInstance(ctx context.Context, probeID string, instanceID string) error
 	// SetSupportedTypes replaces the monitor types the probe reports it can run. Nil means none.
 	SetSupportedTypes(ctx context.Context, probeID string, types []string) error
+	// UpdateStatus moves the probe from one status to another in a single conditional update. It
+	// returns true when the probe was in the status from and is now in to, and false when it was
+	// not (or does not exist): of two callers racing to make the same change, one hears true.
+	UpdateStatus(ctx context.Context, id string, from Status, to Status) (bool, error)
+	// DeleteInstancesUnseenSince removes the instances of every probe that were last seen before
+	// the given time, and returns how many it removed
+	DeleteInstancesUnseenSince(ctx context.Context, before time.Time) (int, error)
 }
