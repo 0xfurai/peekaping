@@ -155,7 +155,7 @@ func newResultsServer(t *testing.T) *resultsServer {
 		Logger:      logger,
 	})
 	s.router = httpx.NewRouter()
-	protocol.NewRoute(protocol.NewAuth(probes, logger), protocol.NewRateLimiter()).ConnectRoute(s.router.Group("/probe/v1"), controller)
+	protocol.NewRoute(protocol.NewAuth(probes, nil, logger), protocol.NewRateLimiter()).ConnectRoute(s.router.Group("/probe/v1"), controller)
 	return s
 }
 

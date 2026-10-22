@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,12 +19,14 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
@@ -356,6 +359,97 @@ func TestProbeProtocol_HelloRejectsABadBody(t *testing.T) {
 		})
 	}
 	assert.Empty(t, a.getProbe(t, made.ID).Instances)
+}
+
+// queuedNotificationTopics are the topics of the notification events waiting for an api replica to
+// send them, oldest first. Cluster mode sends a probe's offline and online events this way, so
+// that one replica sends each. No replica takes them in these tests.
+func (a *app) queuedNotificationTopics(t *testing.T) []string {
+	t.Helper()
+	topics := []string{}
+	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
+		tasks, err := inspector.ListPendingTasks(notification_channel.QueueName)
+		if errors.Is(err, asynq.ErrQueueNotFound) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		for _, task := range tasks {
+			var queued struct {
+				Topic string `json:"topic"`
+			}
+			if err := json.Unmarshal(task.Payload, &queued); err != nil {
+				return err
+			}
+			topics = append(topics, queued.Topic)
+		}
+		return nil
+	}))
+	return topics
+}
+
+func (a *app) clearQueuedNotifications(t *testing.T) {
+	t.Helper()
+	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
+		_, err := inspector.DeleteAllPendingTasks(notification_channel.QueueName)
+		if errors.Is(err, asynq.ErrQueueNotFound) {
+			return nil
+		}
+		return err
+	}))
+}
+
+func TestProbeProtocol_RequestBringsAnOfflineProbeOnline(t *testing.T) {
+	// An offline probe whose instance said hello before: what the sweep leaves behind when the
+	// instance goes quiet
+	offlineProbe := func(t *testing.T) (a *app, made probeWithToken, instanceID string) {
+		a, made = probeApp(t)
+		instanceID = uuid.NewString()
+		a.sayHello(t, made.Token, instanceID)
+		require.Equal(t, "online", a.getProbe(t, made.ID).Status, "the first hello brings the probe online")
+		require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
+			changed, err := probes.MarkOffline(context.Background(), made.ID)
+			require.True(t, changed)
+			return err
+		}))
+		require.Equal(t, "offline", a.getProbe(t, made.ID).Status)
+		a.clearQueuedNotifications(t)
+		return a, made, instanceID
+	}
+
+	t.Run("a hello", func(t *testing.T) {
+		a, made, instanceID := offlineProbe(t)
+
+		a.sayHello(t, made.Token, instanceID)
+
+		assert.Equal(t, "online", a.getProbe(t, made.ID).Status)
+		assert.Equal(t, []string{"probe.online"}, a.queuedNotificationTopics(t), "announced once, through the notification queue")
+	})
+
+	t.Run("a request from an instance that said hello", func(t *testing.T) {
+		a, made, instanceID := offlineProbe(t)
+
+		w := a.assignments(t, made.Token, instanceID, "")
+
+		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+		assert.Equal(t, "online", a.getProbe(t, made.ID).Status, "at once, not at the next sweep")
+		assert.Equal(t, []string{"probe.online"}, a.queuedNotificationTopics(t))
+
+		a.assignments(t, made.Token, instanceID, "")
+		a.sayHello(t, made.Token, instanceID)
+		assert.Equal(t, []string{"probe.online"}, a.queuedNotificationTopics(t), "a probe that is online says nothing more")
+	})
+
+	t.Run("a request from an instance that never said hello", func(t *testing.T) {
+		a, made, _ := offlineProbe(t)
+
+		w := a.assignments(t, made.Token, uuid.NewString(), "")
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+		assert.Equal(t, "offline", a.getProbe(t, made.ID).Status, "none of its instances is connected")
+		assert.Empty(t, a.queuedNotificationTopics(t))
+	})
 }
 
 func TestProbeProtocol_ByeRemovesTheInstance(t *testing.T) {

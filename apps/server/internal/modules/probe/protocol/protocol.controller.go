@@ -155,6 +155,9 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 	if changesAssignments(before, instanceID, req.SupportedTypes, now) {
 		c.instancesChanged(r.Context(), owner.ID)
 	}
+	// The instance is on record, so the probe is connected. The middleware's stamp does this for
+	// every other route.
+	cameBack(r.Context(), c.service, c.bus, c.logger, owner, now)
 
 	return httpx.Reply(http.StatusOK, probeproto.HelloResponse{
 		ProtocolVersion: probeproto.ProtocolVersion,
