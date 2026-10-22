@@ -93,7 +93,9 @@ func (c *Client) Results(ctx context.Context, req *ResultsRequest) (*ResultsResp
 	return &response, nil
 }
 
-// Bye tells the server this instance is stopping, so that it forgets the instance
+// Bye tells the server this instance is stopping, so that it takes the instance out of the dealing
+// at once. The probe is not offline for it: say hello again, with a new instance id, within the
+// server's PROBE_OFFLINE_AFTER.
 func (c *Client) Bye(ctx context.Context) error {
 	_, err := c.do(ctx, http.MethodPost, "/bye", nil, nil)
 	return err

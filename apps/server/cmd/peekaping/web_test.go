@@ -123,8 +123,9 @@ func TestRun_ServesTheWebAppAndTheAPIOnOnePort(t *testing.T) {
 		assert.Equal(t, probeproto.ProbeInfo{ID: made.ID, Name: "Frankfurt", Location: "eu-central"}, welcome.Probe)
 		assert.Equal(t, version.Version, welcome.ServerVersion)
 		require.NoError(t, client.Bye(ctx))
+		stranger := probeproto.NewClient(in.url, made.Token, "never-said-hello", nil)
 		var refused *probeproto.Error
-		require.ErrorAs(t, client.Bye(ctx), &refused, "an instance that said bye is unknown")
+		require.ErrorAs(t, stranger.Bye(ctx), &refused, "an instance that never said hello is unknown")
 		assert.Equal(t, http.StatusConflict, refused.Status)
 	})
 

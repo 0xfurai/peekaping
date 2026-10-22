@@ -210,7 +210,7 @@ func (r *SQLRepositoryImpl) UpsertInstance(ctx context.Context, probeID string, 
 	// again. The WHERE keeps another probe's instance out of reach: no row changes then. The
 	// statement names the table in full and not by an alias, which PostgreSQL allows in this
 	// WHERE only for a table with no alias.
-	result, err := r.db.ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, last_seen_at)
+	result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, last_seen_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (id) DO UPDATE SET
 	hostname = EXCLUDED.hostname,
@@ -236,7 +236,7 @@ WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
 
 // MARK: TouchInstance
 func (r *SQLRepositoryImpl) TouchInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) (bool, error) {
-	result, err := r.db.NewUpdate().Model((*sqlInstance)(nil)).
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlInstance)(nil)).
 		Set("last_seen_at = ?", seenAt.UTC()).
 		Where("id = ?", instanceID).
 		Where("probe_id = ?", probeID).
@@ -251,9 +251,10 @@ func (r *SQLRepositoryImpl) TouchInstance(ctx context.Context, probeID string, i
 	return changed > 0, nil
 }
 
-// MARK: DeleteInstance
-func (r *SQLRepositoryImpl) DeleteInstance(ctx context.Context, probeID string, instanceID string) error {
-	_, err := r.db.NewDelete().Model((*sqlInstance)(nil)).
+// MARK: RetireInstance
+func (r *SQLRepositoryImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error {
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlInstance)(nil)).
+		Set("last_seen_at = ?", seenAt.UTC()).
 		Where("id = ?", instanceID).
 		Where("probe_id = ?", probeID).
 		Exec(ctx)
@@ -269,7 +270,7 @@ func (r *SQLRepositoryImpl) SetSupportedTypes(ctx context.Context, probeID strin
 	if err != nil {
 		return err
 	}
-	_, err = r.db.NewUpdate().Model((*sqlModel)(nil)).
+	_, err = dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("supported_types = ?", string(encoded)).
 		Where("id = ?", probeID).
 		Exec(ctx)

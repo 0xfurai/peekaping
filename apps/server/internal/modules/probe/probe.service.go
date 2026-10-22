@@ -48,8 +48,12 @@ type Service interface {
 	// TouchInstance stamps the time the probe's instance was last heard from. It returns false
 	// when the probe has no instance with that id, which has to say hello first.
 	TouchInstance(ctx context.Context, probeID string, instanceID string, at time.Time) (bool, error)
-	// RemoveInstance forgets the probe's instance, as when it says bye
-	RemoveInstance(ctx context.Context, probeID string, instanceID string) error
+	// RetireInstance leaves the probe's instance last seen at seenAt, as when it says bye: the
+	// caller passes a time outside the online window, so that the instance is out of the dealing
+	// at once. The instance stays listed and the probe counts as online until its offline
+	// threshold has passed since seenAt, so that a restart is not an outage. The sweep prunes the
+	// instance once it has been silent for a day. An instance that isn't there is not an error.
+	RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error
 }
 
 // CreateRequest is a new probe
@@ -296,12 +300,12 @@ func (s *ServiceImpl) TouchInstance(ctx context.Context, probeID string, instanc
 	return s.repo.TouchInstance(ctx, probeID, instanceID, at)
 }
 
-// MARK: RemoveInstance
-func (s *ServiceImpl) RemoveInstance(ctx context.Context, probeID string, instanceID string) error {
-	if err := s.repo.DeleteInstance(ctx, probeID, instanceID); err != nil {
+// MARK: RetireInstance
+func (s *ServiceImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error {
+	if err := s.repo.RetireInstance(ctx, probeID, instanceID, seenAt); err != nil {
 		return err
 	}
-	s.logger.Infow("Probe instance removed", "probeId", probeID, "instanceId", instanceID)
+	s.logger.Infow("Probe instance retired", "probeId", probeID, "instanceId", instanceID)
 	return nil
 }
 

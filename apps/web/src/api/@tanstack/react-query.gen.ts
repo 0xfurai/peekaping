@@ -3252,7 +3252,7 @@ export const probePostByeQueryKey = (options: Options<ProbePostByeData>) =>
 
 /**
  * Say bye
- * Tells the server that this instance is stopping, so that it removes the instance. An instance that never said hello is answered 409.
+ * Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
  */
 export const probePostByeOptions = (options: Options<ProbePostByeData>) => {
   return queryOptions({
@@ -3271,7 +3271,7 @@ export const probePostByeOptions = (options: Options<ProbePostByeData>) => {
 
 /**
  * Say bye
- * Tells the server that this instance is stopping, so that it removes the instance. An instance that never said hello is answered 409.
+ * Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
  */
 export const probePostByeMutation = (
   options?: Partial<Options<ProbePostByeData>>
