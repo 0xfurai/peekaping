@@ -243,6 +243,34 @@ func TestMonitorsAPI_PartialUpdateChangesLinksOnlyWhenIDsAreSent(t *testing.T) {
 	assert.Equal(t, []string{tagB}, got.TagIDs)
 }
 
+func TestMonitorsAPI_RepeatedLinkIDsAreLinkedOnce(t *testing.T) {
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch} {
+		t.Run(method, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+			channelA, channelB := a.createChannel(t, "Channel A"), a.createChannel(t, "Channel B")
+			tagA, tagB := a.createTag(t, "Tag A"), a.createTag(t, "Tag B")
+			channels := []string{channelA, channelB, channelA}
+			tags := []string{tagA, tagA, tagB, tagA}
+
+			var id string
+			switch method {
+			case http.MethodPost:
+				id = decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", monitorWithLinksBody("Repeated", channels, tags), a.asAdmin), http.StatusCreated).ID
+			case http.MethodPut:
+				id = a.createMonitor(t, "Repeated", "Repeated-token")
+				decode[any](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+id, monitorWithLinksBody("Repeated", channels, tags), a.asAdmin), http.StatusOK)
+			case http.MethodPatch:
+				id = a.createMonitor(t, "Repeated", "Repeated-token")
+				decode[any](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+id, map[string]any{"notification_ids": channels, "tag_ids": tags}, a.asAdmin), http.StatusOK)
+			}
+
+			got := a.getMonitorWithLinks(t, id)
+			assert.ElementsMatch(t, []string{channelA, channelB}, got.NotificationIDs, "one link for each channel")
+			assert.ElementsMatch(t, []string{tagA, tagB}, got.TagIDs, "one link for each tag")
+		})
+	}
+}
+
 func TestMonitorsAPI_UpdateFailsWholeWhenALinkFails(t *testing.T) {
 	for _, tc := range []struct {
 		name   string

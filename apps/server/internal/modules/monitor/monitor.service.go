@@ -326,20 +326,34 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// createLinks links the monitor to each notification channel and tag. The first link that
-// can't be saved fails the call; the caller's transaction decides what that undoes.
+// createLinks links the monitor to each notification channel and tag, once for each ID however
+// often the request repeats it. The first link that can't be saved fails the call; the caller's
+// transaction decides what that undoes.
 func (mr *MonitorServiceImpl) createLinks(ctx context.Context, monitorID string, notificationIDs, tagIDs []string) error {
-	for _, notificationID := range notificationIDs {
+	for _, notificationID := range distinct(notificationIDs) {
 		if _, err := mr.monitorNotificationService.Create(ctx, monitorID, notificationID); err != nil {
 			return fmt.Errorf("link notification channel %s: %w", notificationID, err)
 		}
 	}
-	for _, tagID := range tagIDs {
+	for _, tagID := range distinct(tagIDs) {
 		if _, err := mr.monitorTagService.Create(ctx, monitorID, tagID); err != nil {
 			return fmt.Errorf("link tag %s: %w", tagID, err)
 		}
 	}
 	return nil
+}
+
+// distinct returns the IDs without repeats, in the order they first appear.
+func distinct(ids []string) []string {
+	seen := make(map[string]bool, len(ids))
+	unique := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if !seen[id] {
+			seen[id] = true
+			unique = append(unique, id)
+		}
+	}
+	return unique
 }
 
 // replaceLinks unlinks the monitor from all its notification channels and tags and links it

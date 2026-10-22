@@ -411,6 +411,28 @@ func TestMonitorService_Create(t *testing.T) {
 		tags.AssertExpectations(t)
 	})
 
+	t.Run("links a repeated ID once", func(t *testing.T) {
+		service, mockRepo, _, _, notifications, tags, _, _ := setupMonitorService()
+		mockRepo.On("Create", inTx, mock.Anything).Return(&Model{ID: "monitor123"}, nil)
+		var linked []string
+		notifications.On("Create", inTx, "monitor123", mock.Anything).Run(func(args mock.Arguments) {
+			linked = append(linked, "channel "+args.String(2))
+		}).Return(&monitor_notification.Model{}, nil)
+		tags.On("Create", inTx, "monitor123", mock.Anything).Run(func(args mock.Arguments) {
+			linked = append(linked, "tag "+args.String(2))
+		}).Return(&monitor_tag.Model{}, nil)
+
+		_, err := service.Create(ctx, &CreateUpdateDto{
+			Type:            "http",
+			Name:            "Test Monitor",
+			NotificationIds: []string{"channel-b", "channel-a", "channel-b"},
+			TagIds:          []string{"tag-a", "tag-a"},
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{"channel channel-b", "channel channel-a", "tag tag-a"}, linked, "each ID once, in the order sent")
+	})
+
 	t.Run("repository error", func(t *testing.T) {
 		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		createDto := &CreateUpdateDto{
@@ -550,6 +572,31 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 		notifications.AssertExpectations(t)
 		tags.AssertExpectations(t)
+	})
+
+	t.Run("links a repeated ID once", func(t *testing.T) {
+		service, mockRepo, _, _, notifications, tags, _, _ := setupMonitorService()
+		mockRepo.On("UpdateFull", inTx, "monitor123", mock.Anything).Return(nil)
+		mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123"}, nil)
+		notifications.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+		tags.On("DeleteByMonitorID", inTx, "monitor123").Return(nil)
+		var linked []string
+		notifications.On("Create", inTx, "monitor123", mock.Anything).Run(func(args mock.Arguments) {
+			linked = append(linked, "channel "+args.String(2))
+		}).Return(&monitor_notification.Model{}, nil)
+		tags.On("Create", inTx, "monitor123", mock.Anything).Run(func(args mock.Arguments) {
+			linked = append(linked, "tag "+args.String(2))
+		}).Return(&monitor_tag.Model{}, nil)
+
+		_, err := service.UpdateFull(ctx, "monitor123", &CreateUpdateDto{
+			Type:            "http",
+			Name:            "Test Monitor",
+			NotificationIds: []string{"channel-b", "channel-a", "channel-b"},
+			TagIds:          []string{"tag-a", "tag-a"},
+		})
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{"channel channel-b", "channel channel-a", "tag tag-a"}, linked, "each ID once, in the order sent")
 	})
 
 	t.Run("monitor removed before it is read back", func(t *testing.T) {
