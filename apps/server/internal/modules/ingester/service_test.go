@@ -52,8 +52,9 @@ func TestService_IngestReturnsAFailedWrite(t *testing.T) {
 }
 
 func TestResult_DecodesTheIngesterTaskJSON(t *testing.T) {
-	// The payload as the worker and the push endpoint enqueue it
+	// The payload as the worker, the push endpoint and the probe protocol enqueue it
 	body := `{
+		"probe_id": "probe-1",
 		"monitor_id": "mon-1",
 		"monitor_name": "Test",
 		"monitor_type": "http",
@@ -77,6 +78,7 @@ func TestResult_DecodesTheIngesterTaskJSON(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(body), &got))
 
 	assert.Equal(t, Result{
+		ProbeID:            "probe-1",
 		MonitorID:          "mon-1",
 		MonitorName:        "Test",
 		MonitorType:        "http",

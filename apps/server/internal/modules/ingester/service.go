@@ -15,8 +15,12 @@ import (
 
 // Result is the outcome of one check, or of one push to a push monitor, with the monitor
 // settings the ingest logic reads. It is also the JSON payload of the ingester task: the
-// worker and the API's push URL encode it, and the ingester decodes it.
+// worker, the API's push URL and the probe protocol's results route encode it, and the ingester
+// decodes it.
 type Result struct {
+	// ProbeID is the probe that ran the check. It is empty for the local worker and the push URL
+	// until #254, and nothing reads it until #36 stores it on heartbeats.
+	ProbeID            string               `json:"probe_id,omitempty"`
 	MonitorID          string               `json:"monitor_id"`
 	MonitorName        string               `json:"monitor_name"`
 	MonitorType        string               `json:"monitor_type"`
