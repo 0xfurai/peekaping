@@ -358,3 +358,18 @@ func TestMalformedRoomMessagesDontCrashTheServer(t *testing.T) {
 		}
 	}
 }
+
+// A logged-in client can post the bare packet "42", an EVENT with no payload. Older
+// socket.io parsers let it through with nil data, and socket.io then cast the data
+// unchecked in its own goroutine, so no handler recover could catch the panic. The
+// library now closes that client's session, and the server has to keep serving others.
+func TestEventPacketWithoutPayloadDoesntCrashTheServer(t *testing.T) {
+	h := newHarness(t)
+	bad := h.connect(t)
+	// The library closes the session and aborts this request, so the POST's own
+	// result (200 or 429) isn't part of what the test checks.
+	_ = bad.post("42")
+
+	c := h.connect(t)
+	c.join(t, h.bus, "monitor:"+monitorA, monitorA)
+}
