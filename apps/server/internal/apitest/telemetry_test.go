@@ -241,17 +241,36 @@ func TestTelemetryAPI_RejectsInvalidInput(t *testing.T) {
 	assert.False(t, a.telemetry(t).Enabled)
 }
 
-func TestTelemetryAPI_RequiresCredentialsAndTakesAPIKeys(t *testing.T) {
+func TestTelemetryAPI_RequiresCredentials(t *testing.T) {
 	a := newAppWithAdmin(t)
 
 	for _, method := range []string{http.MethodGet, http.MethodPut} {
 		w := a.request(t, method, telemetryPath, map[string]any{"enabled": true})
 		assert.Equal(t, http.StatusUnauthorized, w.Code, method)
 	}
+	assert.Nil(t, a.storedSetting(t, "TELEMETRY_ENABLED"))
+}
 
-	// The same auth as the settings routes: an API key works too
+func TestTelemetryAPI_APIKeyCanReadButNotChangeTheChoice(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	// An API key reads the state, like the settings routes it shares auth with
+	state := telemetryBody(t, a.request(t, http.MethodGet, telemetryPath, nil, a.withAPIKey), http.StatusOK)
+	assert.False(t, state.Enabled)
+
+	// The opt-in is the admin's choice, so an API key can't make it
 	w := a.request(t, http.MethodPut, telemetryPath, map[string]any{"enabled": true}, a.withAPIKey)
-	assert.True(t, telemetryBody(t, w, http.StatusOK).Enabled)
+	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+	assert.False(t, a.telemetry(t).Enabled)
+	assert.Nil(t, a.storedSetting(t, "TELEMETRY_ENABLED"))
+	assert.Nil(t, a.storedSetting(t, "TELEMETRY_INSTANCE_ID"))
+
+	// Nor can it opt the admin out, which would delete the instance ID
+	optedIn := a.setTelemetry(t, true)
+	w = a.request(t, http.MethodPut, telemetryPath, map[string]any{"enabled": false}, a.withAPIKey)
+	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+	assert.Equal(t, optedIn, telemetryBody(t, a.request(t, http.MethodGet, telemetryPath, nil, a.withAPIKey), http.StatusOK))
+	assert.Equal(t, optedIn.Payload.InstanceID, a.storedSetting(t, "TELEMETRY_INSTANCE_ID").Value)
 }
 
 func TestTelemetryAPI_SettingsAPICannotReadOrWriteItsKeys(t *testing.T) {
