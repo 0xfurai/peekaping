@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -98,6 +99,43 @@ func TestAPIKeysAPI_KeyWithBcryptHashStillWorks(t *testing.T) {
 		assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/monitors", nil, withKey).Code)
 	}
 	assert.Regexp(t, `^sha256\$[0-9a-f]{64}$`, a.storedKeyHash(t, key.ID))
+}
+
+// A key with a usage limit is accepted no more times than its limit, however many
+// requests arrive at once.
+func TestAPIKeysAPI_LimitedKeyIsAcceptedOnlyUpToItsLimit(t *testing.T) {
+	a := newAppWithAdmin(t)
+	const limit, requests = 5, 20
+	key := decode[struct {
+		apiKeyResponse
+		Token string `json:"token"`
+	}](t, a.request(t, http.MethodPost, "/api/v1/api-keys", map[string]any{"name": "Limited", "max_usage_count": limit}, a.asAdmin), http.StatusCreated)
+	withKey := func(req *http.Request) { req.Header.Set("X-API-Key", key.Token) }
+
+	statuses := make(chan int, requests)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for range requests {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			statuses <- a.request(t, http.MethodGet, "/api/v1/monitors", nil, withKey).Code
+		}()
+	}
+	close(start)
+	wg.Wait()
+	close(statuses)
+
+	accepted := map[int]int{}
+	for status := range statuses {
+		accepted[status]++
+	}
+	assert.Equal(t, map[int]int{http.StatusOK: limit, http.StatusUnauthorized: requests - limit}, accepted)
+	used := decode[struct {
+		UsageCount int `json:"usage_count"`
+	}](t, a.request(t, http.MethodGet, "/api/v1/api-keys/"+key.ID, nil, a.asAdmin), http.StatusOK)
+	assert.Equal(t, limit, used.UsageCount)
 }
 
 func TestAPIKeysAPI_RejectsInvalidInput(t *testing.T) {

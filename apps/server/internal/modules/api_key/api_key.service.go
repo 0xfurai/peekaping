@@ -173,24 +173,25 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 		return nil, errors.New("API key has expired")
 	}
 
-	// Check if the key has exceeded max usage count
-	if apiKey.MaxUsageCount != nil && apiKey.UsageCount >= *apiKey.MaxUsageCount {
-		s.logger.Warnw("API key usage limit exceeded", "apiKeyId", apiKey.ID, "usageCount", apiKey.UsageCount, "maxUsageCount", *apiKey.MaxUsageCount)
-		return nil, errors.New("API key usage limit exceeded")
-	}
-
 	// Verify the actual key against the stored hash
 	if !s.verifyKeyHash(ctx, apiKey, actualKey) {
 		s.logger.Warnw("API key verification failed", "apiKeyId", apiKeyID)
 		return nil, errors.New("invalid API key")
 	}
 
-	// Update last used timestamp and usage count
-	err = s.repo.UpdateLastUsed(ctx, apiKey.ID)
+	// Check the usage limit and count the use in one step, so that concurrent
+	// requests can't go past the limit
+	consumed, err := s.repo.ConsumeUsage(ctx, apiKey.ID)
 	if err != nil {
-		// Log error but don't fail the validation
-		// This is a non-critical operation
 		s.logger.Errorw("Error updating last used timestamp and usage count", "apiKeyId", apiKey.ID, "error", err)
+		if apiKey.MaxUsageCount != nil {
+			// Without the count, the limit can't be enforced
+			return nil, err
+		}
+		// Without a limit, the count is non-critical: don't fail the validation
+	} else if !consumed {
+		s.logger.Warnw("API key usage limit exceeded", "apiKeyId", apiKey.ID, "maxUsageCount", apiKey.MaxUsageCount)
+		return nil, errors.New("API key usage limit exceeded")
 	}
 
 	s.logger.Infow("API key validation successful", "apiKeyId", apiKey.ID, "name", apiKey.Name)
