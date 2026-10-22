@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -86,12 +87,25 @@ func clientOrigin(clientURL string) (string, error) {
 	return origin, nil
 }
 
+// originOf is the origin of u as a browser sends it: the scheme and host in lowercase, and the
+// port unless it is the scheme's default (80 for http, 443 for https), which a browser leaves out.
 func originOf(u *url.URL) (origin string, ok bool) {
 	scheme := strings.ToLower(u.Scheme)
-	if (scheme != "http" && scheme != "https") || u.Hostname() == "" {
+	host := strings.ToLower(u.Hostname())
+	if (scheme != "http" && scheme != "https") || host == "" {
 		return "", false
 	}
-	return scheme + "://" + strings.ToLower(u.Host), true
+	if strings.Contains(host, ":") { // an IPv6 address
+		host = "[" + host + "]"
+	}
+	port := u.Port()
+	if n, err := strconv.Atoi(port); err == nil {
+		port = strconv.Itoa(n) // 080 is 80
+	}
+	if port == "" || (scheme == "http" && port == "80") || (scheme == "https" && port == "443") {
+		return scheme + "://" + host, true
+	}
+	return scheme + "://" + host + ":" + port, true
 }
 
 // AllowOrigin returns the Access-Control-Allow-Origin value for a request from origin, or ""

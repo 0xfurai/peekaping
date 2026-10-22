@@ -51,11 +51,25 @@ func TestParseCORSOrigins(t *testing.T) {
 			denied:    []string{"https://peek.example"},
 		},
 		{
-			name:      "scheme and host are lowercased, a trailing slash is dropped, and the port is kept as given",
-			list:      "HTTPS://Client.Example/,http://localhost:80,https://[::1]:8443",
+			name:      "scheme and host are lowercased, a trailing slash is dropped, and a port is kept",
+			list:      "HTTPS://Client.Example/,http://localhost:8080,https://[::1]:8443",
 			clientURL: "https://peek.example",
-			allowed:   []string{"https://client.example", "http://localhost:80", "https://[::1]:8443"},
-			denied:    []string{"https://Client.Example", "http://localhost", "https://client.example/", "https://[::1]"},
+			allowed:   []string{"https://client.example", "http://localhost:8080", "https://[::1]:8443"},
+			denied:    []string{"https://Client.Example", "http://localhost", "https://client.example/", "https://[::1]", "https://client.example:443"},
+		},
+		{
+			// A browser leaves the default port out of the Origin header, so that is the form that matches
+			name:      "a default port is dropped from an entry, and only its own scheme's",
+			list:      "http://a.example:80,https://b.example:443,https://c.example:80,http://d.example:443,https://[::1]:443,http://e.example:080",
+			clientURL: "https://peek.example",
+			allowed:   []string{"http://a.example", "https://b.example", "https://c.example:80", "http://d.example:443", "https://[::1]", "http://e.example"},
+			denied:    []string{"http://a.example:80", "https://b.example:443", "https://c.example", "http://d.example", "https://[::1]:443"},
+		},
+		{
+			name:      "a default port is dropped from the origin of CLIENT_URL",
+			clientURL: "https://Peek.Example:443/app/",
+			allowed:   []string{"https://peek.example"},
+			denied:    []string{"https://peek.example:443", "http://peek.example"},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
