@@ -79,6 +79,11 @@ func ProvideTrustedProxies(cfg *config.Config) (*httpx.TrustedProxies, error) {
 	return httpx.ParseTrustedProxies(cfg.TrustedProxies)
 }
 
+// ProvideCORSOrigins parses CORS_ORIGINS, which stops startup when an entry is invalid.
+func ProvideCORSOrigins(cfg *config.Config) (*httpx.CORSOrigins, error) {
+	return httpx.ParseCORSOrigins(cfg.CORSOrigins, cfg.ClientURL)
+}
+
 func ProvideServer(
 	logger *zap.SugaredLogger,
 	cfg *config.Config,

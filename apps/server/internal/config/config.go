@@ -94,6 +94,12 @@ type Config struct {
 	// address. Empty (the default) trusts nobody.
 	TrustedProxies string `env:"TRUSTED_PROXIES"` // parsed by httpx.ParseTrustedProxies
 
+	// Origins whose pages may read the API's responses: a comma-separated list such as
+	// "https://peek.example,http://localhost:8383". A page on any other origin can still send
+	// requests, but its browser won't let it read the answers. "*" alone allows any origin.
+	// Empty (the default) allows the origin of CLIENT_URL.
+	CORSOrigins string `env:"CORS_ORIGINS"` // parsed by httpx.ParseCORSOrigins
+
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
 
 	// Prometheus metrics
