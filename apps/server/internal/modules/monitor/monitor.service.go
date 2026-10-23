@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"peekaping/internal/dbtx"
@@ -91,6 +92,22 @@ func NewMonitorService(
 	}
 }
 
+// resolvePushToken returns the token a push monitor is looked up by. The push URL matches the
+// push_token column, but the API validates config.pushToken, so a client that sends only the
+// config one gets it copied over.
+func resolvePushToken(dto *CreateUpdateDto) string {
+	if dto.Type != "push" || dto.PushToken != "" {
+		return dto.PushToken
+	}
+	var cfg struct {
+		PushToken string `json:"pushToken"`
+	}
+	if err := json.Unmarshal([]byte(dto.Config), &cfg); err != nil {
+		return dto.PushToken
+	}
+	return cfg.PushToken
+}
+
 func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *CreateUpdateDto) (*Model, error) {
 	createModel := &Model{
 		Type:           monitorCreateDto.Type,
@@ -105,7 +122,7 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		CreatedAt:      time.Now().UTC(),
 		Config:         monitorCreateDto.Config,
 		ProxyId:        monitorCreateDto.ProxyId,
-		PushToken:      monitorCreateDto.PushToken,
+		PushToken:      resolvePushToken(monitorCreateDto),
 	}
 
 	// The monitor and its links are stored together or not at all, and the event comes after
@@ -168,7 +185,7 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		UpdatedAt:      time.Now().UTC(),
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
-		PushToken:      monitor.PushToken,
+		PushToken:      resolvePushToken(monitor),
 	}
 
 	// The monitor and its links change together or not at all. The monitor is read back inside
