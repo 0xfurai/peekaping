@@ -683,6 +683,7 @@
     "maintenance": "الصيانة",
     "monitors": "المراقبون",
     "notification_channels": "قنوات الإشعارات",
+    "probes": "المسابر",
     "proxies": "بروكسيات",
     "settings": "الإعدادات",
     "status_pages": "صفحات الحالة",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "أعد إدخال هذا السر: تغيّرت الوجهة التي يُرسل إليها",
       "remove": "إزالة",
       "saved_hint": "تم الحفظ — اكتب لاستبداله"
+    }
+  },
+  "probes": {
+    "page_name": "المسابر",
+    "description": "تشغّل المسابر فحوصات المراقبين من الأماكن التي تُثبَّت فيها. المسبار المحلي هو Peekaping نفسه.",
+    "empty_list": {
+      "title": "لم يتم العثور على مسابر",
+      "text": "أنشئ مسبارًا لتشغيل الفحوصات من مكان آخر.",
+      "action_text": "أنشئ أول مسبار لك"
+    },
+    "table": {
+      "headers": {
+        "name": "الاسم",
+        "location": "الموقع",
+        "status": "الحالة",
+        "disabled": "معطّل",
+        "token": "الرمز",
+        "instances": "المثيلات",
+        "actions": "الإجراءات"
+      },
+      "status": {
+        "online": "متصل",
+        "offline": "غير متصل"
+      },
+      "disabled": "معطّل",
+      "no_instances": "لا توجد مثيلات بعد",
+      "last_seen": "آخر ظهور {{date}}",
+      "actions": {
+        "edit": "تعديل المسبار {{name}}",
+        "rotate": "تغيير رمز المسبار {{name}}",
+        "delete": "حذف المسبار {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "إنشاء مسبار",
+      "description": "يشغّل المسبار الفحوصات من المكان الذي تثبّته فيه. يظهر رمزه مرة واحدة فقط بعد إنشائه.",
+      "submit": "إنشاء مسبار",
+      "creating": "جاري الإنشاء..."
+    },
+    "edit_dialog": {
+      "title": "تعديل المسبار",
+      "description": "غيّر إعدادات {{name}}."
+    },
+    "form": {
+      "name_label": "الاسم",
+      "name_placeholder": "مثال: فرانكفورت",
+      "location_label": "الموقع (اختياري)",
+      "location_placeholder": "مثال: فرانكفورت، ألمانيا",
+      "name_required": "الاسم مطلوب",
+      "name_too_long": "الاسم طويل جدًا",
+      "location_too_long": "الموقع طويل جدًا",
+      "disabled_label": "معطّل",
+      "disabled_description": "يتوقف رمز المسبار المعطّل عن العمل حتى تعيد تفعيله."
+    },
+    "rotate_dialog": {
+      "title": "تغيير الرمز",
+      "description": "يتوقف الرمز القديم للمسبار {{name}} عن العمل فورًا. يجب إعادة تشغيل مثيلاته بالرمز الجديد.",
+      "confirm": "تغيير الرمز",
+      "rotating": "جاري التغيير..."
+    },
+    "delete_dialog": {
+      "title": "حذف المسبار",
+      "description": "هل أنت متأكد أنك تريد حذف المسبار \"{{name}}\"؟ سيتوقف رمزه عن العمل. لا يمكن التراجع عن هذا الإجراء."
+    },
+    "token_alert": {
+      "title_created": "تم إنشاء المسبار {{name}}",
+      "title_rotated": "رمز جديد للمسبار {{name}}",
+      "note": "يقرأ هذا الرمز إعدادات المراقبين المسندين إلى المسبار. يُعرض مرة واحدة فقط.",
+      "token_label": "الرمز",
+      "docker_label": "شغّل المسبار باستخدام Docker",
+      "copy_token": "نسخ الرمز",
+      "copy_command": "نسخ أمر docker"
+    },
+    "messages": {
+      "created_successfully": "تم إنشاء المسبار بنجاح",
+      "updated_successfully": "تم تحديث المسبار بنجاح",
+      "rotated_successfully": "تم تغيير الرمز بنجاح",
+      "deleted_successfully": "تم حذف المسبار بنجاح",
+      "failed_to_create": "فشل إنشاء المسبار",
+      "failed_to_update": "فشل تحديث المسبار",
+      "failed_to_rotate": "فشل تغيير الرمز",
+      "failed_to_delete": "فشل حذف المسبار",
+      "failed_to_load": "فشل تحميل المسابر",
+      "copy_success": "تم النسخ إلى الحافظة",
+      "copy_failed": "تعذّر النسخ إلى الحافظة"
     }
   },
   "proxies": {

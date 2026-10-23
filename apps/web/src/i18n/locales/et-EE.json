@@ -683,6 +683,7 @@
     "maintenance": "Hooldus",
     "monitors": "Monitoorid",
     "notification_channels": "Teavituskanalid",
+    "probes": "Sondid",
     "proxies": "Proksid",
     "settings": "Seaded",
     "status_pages": "Olekusivud",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "Sisesta see saladus uuesti: koht, kuhu saadetakse, muutus",
       "remove": "Eemalda",
       "saved_hint": "Salvestatud — asendamiseks sisesta uus"
+    }
+  },
+  "probes": {
+    "page_name": "Sondid",
+    "description": "Sondid teostavad monitooride kontrolle kohtadest, kuhu need on paigaldatud. Kohalik sond on Peekaping ise.",
+    "empty_list": {
+      "title": "Sonde ei leitud",
+      "text": "Looge sond, et teha kontrolle mujalt.",
+      "action_text": "Looge oma esimene sond"
+    },
+    "table": {
+      "headers": {
+        "name": "Nimi",
+        "location": "Asukoht",
+        "status": "Olek",
+        "disabled": "Keelatud",
+        "token": "Token",
+        "instances": "Instantsid",
+        "actions": "Toimingud"
+      },
+      "status": {
+        "online": "Võrgus",
+        "offline": "Võrguühenduseta"
+      },
+      "disabled": "Keelatud",
+      "no_instances": "Instantse veel pole",
+      "last_seen": "viimati nähtud {{date}}",
+      "actions": {
+        "edit": "Muuda sondi {{name}}",
+        "rotate": "Vaheta sondi {{name}} token",
+        "delete": "Kustuta sond {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Loo sond",
+      "description": "Sond teeb kontrolle kohast, kuhu selle paigaldate. Selle token kuvatakse ainult üks kord, pärast loomist.",
+      "submit": "Loo sond",
+      "creating": "Loomine..."
+    },
+    "edit_dialog": {
+      "title": "Muuda sondi",
+      "description": "Muutke sondi {{name}} seadeid."
+    },
+    "form": {
+      "name_label": "Nimi",
+      "name_placeholder": "nt Frankfurt",
+      "location_label": "Asukoht (valikuline)",
+      "location_placeholder": "nt Frankfurt, Saksamaa",
+      "name_required": "Nimi on kohustuslik",
+      "name_too_long": "Nimi on liiga pikk",
+      "location_too_long": "Asukoht on liiga pikk",
+      "disabled_label": "Keelatud",
+      "disabled_description": "Keelatud sondi token lakkab töötamast, kuni selle uuesti lubate."
+    },
+    "rotate_dialog": {
+      "title": "Vaheta token",
+      "description": "Sondi {{name}} vana token lakkab kohe töötamast. Selle instantsid tuleb uue tokeniga taaskäivitada.",
+      "confirm": "Vaheta token",
+      "rotating": "Vahetamine..."
+    },
+    "delete_dialog": {
+      "title": "Kustuta sond",
+      "description": "Kas olete kindel, et soovite sondi „{{name}}“ kustutada? Selle token lakkab töötamast. Seda toimingut ei saa tagasi võtta."
+    },
+    "token_alert": {
+      "title_created": "Sond {{name}} loodud",
+      "title_rotated": "Uus token sondile {{name}}",
+      "note": "See token loeb sondile määratud monitooride konfiguratsioone. Seda kuvatakse ainult üks kord.",
+      "token_label": "Token",
+      "docker_label": "Käivitage sond Dockeriga",
+      "copy_token": "Kopeeri token",
+      "copy_command": "Kopeeri docker-käsk"
+    },
+    "messages": {
+      "created_successfully": "Sond loodi edukalt",
+      "updated_successfully": "Sond uuendati edukalt",
+      "rotated_successfully": "Token vahetati edukalt",
+      "deleted_successfully": "Sond kustutati edukalt",
+      "failed_to_create": "Sondi loomine ebaõnnestus",
+      "failed_to_update": "Sondi uuendamine ebaõnnestus",
+      "failed_to_rotate": "Tokeni vahetamine ebaõnnestus",
+      "failed_to_delete": "Sondi kustutamine ebaõnnestus",
+      "failed_to_load": "Sondide laadimine ebaõnnestus",
+      "copy_success": "Kopeeritud lõikelauale",
+      "copy_failed": "Lõikelauale kopeerimine ebaõnnestus"
     }
   },
   "proxies": {
