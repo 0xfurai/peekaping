@@ -256,6 +256,12 @@ import type {
   GetVersionResponses,
   GetHealthRootData,
   GetHealthRootResponses,
+  ProbePostByeData,
+  ProbePostByeResponses,
+  ProbePostByeErrors,
+  ProbePostHelloData,
+  ProbePostHelloResponses,
+  ProbePostHelloErrors,
 } from "./types.gen";
 import { client as _heyApiClient } from "./client.gen";
 
@@ -2521,5 +2527,56 @@ export const getHealthRoot = <ThrowOnError extends boolean = false>(
     responseType: "json",
     url: "/health",
     ...options,
+  });
+};
+
+/**
+ * Say bye
+ * Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
+ */
+export const probePostBye = <ThrowOnError extends boolean = false>(
+  options: Options<ProbePostByeData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ProbePostByeResponses,
+    ProbePostByeErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/probe/v1/bye",
+    ...options,
+  });
+};
+
+/**
+ * Say hello
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostHello = <ThrowOnError extends boolean = false>(
+  options: Options<ProbePostHelloData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ProbePostHelloResponses,
+    ProbePostHelloErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/probe/v1/hello",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };

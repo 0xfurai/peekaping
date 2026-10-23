@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/probeproto"
 	graceful "peekaping/internal/shutdown"
 	"peekaping/internal/version"
 
@@ -97,6 +99,34 @@ func TestRun_ServesTheWebAppAndTheAPIOnOnePort(t *testing.T) {
 		_, connect, err := conn.ReadMessage()
 		require.NoError(t, err)
 		assert.True(t, strings.HasPrefix(string(connect), "40"), "socket.io CONNECT: %s", connect)
+	})
+
+	t.Run("the probe protocol, over a real connection", func(t *testing.T) {
+		if in.accessToken == "" {
+			in.registerAdmin(t)
+		}
+		status, body := in.request(t, http.MethodPost, "/api/v1/probes", map[string]any{"name": "Frankfurt", "location": "eu-central"})
+		made := decode[struct {
+			ID    string `json:"id"`
+			Token string `json:"token"`
+		}](t, status, body, http.StatusCreated)
+		client := probeproto.NewClient(in.url, made.Token, "single-mode-instance", nil)
+		ctx, cancel := context.WithTimeout(context.Background(), wait)
+		defer cancel()
+
+		welcome, err := client.Hello(ctx, &probeproto.HelloRequest{
+			InstanceID: "single-mode-instance", ProtocolVersion: probeproto.ProtocolVersion, ProbeVersion: "0.1.0",
+			SupportedTypes: []string{"http"}, Hostname: "edge-1", OS: "linux", Arch: "arm64",
+		})
+
+		require.NoError(t, err, "/probe/v1/ is the API's and not the web app's")
+		assert.Equal(t, probeproto.ProbeInfo{ID: made.ID, Name: "Frankfurt", Location: "eu-central"}, welcome.Probe)
+		assert.Equal(t, version.Version, welcome.ServerVersion)
+		require.NoError(t, client.Bye(ctx))
+		stranger := probeproto.NewClient(in.url, made.Token, "never-said-hello", nil)
+		var refused *probeproto.Error
+		require.ErrorAs(t, stranger.Bye(ctx), &refused, "an instance that never said hello is unknown")
+		assert.Equal(t, http.StatusConflict, refused.Status)
 	})
 
 	require.NoError(t, in.stop(t))

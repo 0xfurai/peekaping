@@ -49,8 +49,9 @@ func newFixtureWith(t *testing.T, wrap func(probe.Repository) probe.Repository) 
 // behind in the steps around it
 type failingRepo struct {
 	probe.Repository
-	deleteErr error
-	updateErr error
+	deleteErr   error
+	updateErr   error
+	setTypesErr error
 }
 
 func (r failingRepo) Delete(ctx context.Context, id string) error {
@@ -65,6 +66,13 @@ func (r failingRepo) Update(ctx context.Context, id string, update *probe.Update
 		return nil, r.updateErr
 	}
 	return r.Repository.Update(ctx, id, update)
+}
+
+func (r failingRepo) SetSupportedTypes(ctx context.Context, probeID string, types []string) error {
+	if r.setTypesErr != nil {
+		return r.setTypesErr
+	}
+	return r.Repository.SetSupportedTypes(ctx, probeID, types)
 }
 
 // probeCount is how many probe rows have the name
@@ -409,4 +417,139 @@ func TestService_DeleteRemovesTheProbe(t *testing.T) {
 	none, err := f.svc.FindByToken(ctx, created.Token)
 	require.NoError(t, err)
 	assert.Nil(t, none)
+}
+
+func TestService_RegisterInstanceRecordsTheInstanceAndTheProbesTypes(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+
+	err := f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{
+		ID: "instance-1", Hostname: "host-1", OS: "linux", Arch: "arm64", Version: "1.2.3", ProtocolVersion: 1, LastSeenAt: seen,
+	}, []string{"http", "tcp"})
+
+	require.NoError(t, err)
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"http", "tcp"}, got.SupportedTypes)
+	require.Len(t, got.Instances, 1)
+	assert.Equal(t, "instance-1", got.Instances[0].ID)
+	assert.Equal(t, "host-1", got.Instances[0].Hostname)
+	assert.Equal(t, "linux", got.Instances[0].OS)
+	assert.Equal(t, "arm64", got.Instances[0].Arch)
+	assert.Equal(t, "1.2.3", got.Instances[0].Version)
+	assert.Equal(t, 1, got.Instances[0].ProtocolVersion)
+	assert.WithinDuration(t, seen, got.Instances[0].LastSeenAt, time.Second)
+}
+
+func TestService_RegisterInstanceAgainUpdatesTheSameInstance(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", Version: "1.0.0", LastSeenAt: seen}, []string{"http", "tcp"}))
+
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-2", Version: "1.1.0", LastSeenAt: seen.Add(time.Hour)}, []string{"http"}))
+
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	require.Len(t, got.Instances, 1, "a probe that says hello again is the same instance")
+	assert.Equal(t, "host-2", got.Instances[0].Hostname)
+	assert.Equal(t, "1.1.0", got.Instances[0].Version)
+	assert.WithinDuration(t, seen.Add(time.Hour), got.Instances[0].LastSeenAt, time.Second)
+	assert.Equal(t, []string{"http"}, got.SupportedTypes, "the latest hello's types replace the earlier ones")
+}
+
+func TestService_RegisterInstanceKeepsSeveralInstancesOfOneProbe(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen}, nil))
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-2", LastSeenAt: seen.Add(time.Minute)}, nil))
+
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	require.Len(t, got.Instances, 2)
+	assert.Equal(t, "instance-2", got.Instances[0].ID, "the most recently seen first")
+	assert.Equal(t, []string{}, got.SupportedTypes)
+}
+
+func TestService_RegisterInstanceRefusesAnotherProbesInstanceAndChangesNothing(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	owner, intruder := f.create(t, "Owner"), f.create(t, "Intruder")
+	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+	require.NoError(t, f.svc.RegisterInstance(ctx, owner.ID, &probe.Instance{ID: "instance-1", Hostname: "owner-host", LastSeenAt: seen}, []string{"http"}))
+
+	err := f.svc.RegisterInstance(ctx, intruder.ID, &probe.Instance{ID: "instance-1", Hostname: "intruder-host", LastSeenAt: seen}, []string{"dns"})
+
+	assert.ErrorIs(t, err, probe.ErrInstanceTaken)
+	got, err := f.svc.FindByID(ctx, intruder.ID)
+	require.NoError(t, err)
+	assert.Empty(t, got.Instances)
+	assert.Equal(t, []string{}, got.SupportedTypes, "a refused hello leaves the probe's types alone")
+	kept, err := f.svc.FindByID(ctx, owner.ID)
+	require.NoError(t, err)
+	require.Len(t, kept.Instances, 1)
+	assert.Equal(t, "owner-host", kept.Instances[0].Hostname)
+}
+
+func TestService_RegisterInstanceIsOneTransaction(t *testing.T) {
+	ctx := context.Background()
+	f := newFixtureWith(t, func(repo probe.Repository) probe.Repository {
+		return failingRepo{Repository: repo, setTypesErr: errors.New("the types can't be stored")}
+	})
+	created := f.create(t, "Frankfurt")
+
+	err := f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)}, []string{"http"})
+
+	require.Error(t, err)
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Empty(t, got.Instances, "a hello whose types failed to store leaves no instance row behind")
+}
+
+func TestService_TouchInstanceStampsTheLastSeenTime(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created, other := f.create(t, "Frankfurt"), f.create(t, "Paris")
+	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen}, nil))
+
+	found, err := f.svc.TouchInstance(ctx, created.ID, "instance-1", seen.Add(time.Minute))
+	require.NoError(t, err)
+	assert.True(t, found)
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.WithinDuration(t, seen.Add(time.Minute), got.Instances[0].LastSeenAt, time.Second)
+
+	found, err = f.svc.TouchInstance(ctx, created.ID, "instance-2", seen.Add(time.Hour))
+	require.NoError(t, err)
+	assert.False(t, found, "an instance that never said hello is not found")
+	found, err = f.svc.TouchInstance(ctx, other.ID, "instance-1", seen.Add(time.Hour))
+	require.NoError(t, err)
+	assert.False(t, found, "nor is another probe's")
+}
+
+func TestService_RetireInstanceLeavesTheInstanceLastSeenAtTheGivenTime(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+	retired := seen.Add(-time.Minute)
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen}, []string{"http"}))
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-2", LastSeenAt: seen}, []string{"http"}))
+
+	require.NoError(t, f.svc.RetireInstance(ctx, created.ID, "instance-1", retired))
+
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	require.Len(t, got.Instances, 2, "the instance stays: the sweep prunes it once it has been silent for a day")
+	assert.Equal(t, "instance-2", got.Instances[0].ID)
+	assert.Equal(t, "instance-1", got.Instances[1].ID)
+	assert.WithinDuration(t, retired, got.Instances[1].LastSeenAt, time.Second)
+	assert.WithinDuration(t, seen, got.Instances[0].LastSeenAt, time.Second)
 }

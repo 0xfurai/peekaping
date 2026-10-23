@@ -24,6 +24,9 @@ var (
 	ErrLocalProbe = errors.New("the local probe can't be changed this way")
 	// ErrNotFound is returned when the probe an operation names doesn't exist
 	ErrNotFound = errors.New("probe not found")
+	// ErrInstanceTaken is returned when a probe registers an instance id that another probe's
+	// instance already has
+	ErrInstanceTaken = errors.New("instance id belongs to another probe")
 	// ErrUnsupportedStorage is returned on a MongoDB install, which has no probes (ADR 0001). It
 	// is the error of the probe_notification module too, so that it means the same in both.
 	ErrUnsupportedStorage = probe_notification.ErrUnsupportedStorage

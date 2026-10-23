@@ -563,6 +563,34 @@ export type ProbeUpdateProbeDto = {
     | undefined;
 };
 
+export type ProbeprotoHelloRequest = {
+  arch?: string;
+  hostname?: string;
+  instance_id?: string;
+  os?: string;
+  probe_version?: string;
+  protocol_version?: number;
+  supported_types?: Array<string> | null;
+  [key: string]: unknown | string | number | (Array<string> | null) | undefined;
+};
+
+export type ProbeprotoHelloResponse = {
+  batch_max: number;
+  buffer_max: number;
+  flush_interval_ms: number;
+  poll_timeout_ms: number;
+  probe: ProbeprotoProbeInfo;
+  protocol_version: number;
+  server_time: string;
+  server_version: string;
+};
+
+export type ProbeprotoProbeInfo = {
+  id: string;
+  location: string;
+  name: string;
+};
+
 export type ProxyCreateUpdateDto = {
   auth?: boolean;
   host: string;
@@ -4821,6 +4849,119 @@ export type GetHealthRootResponses = {
 
 export type GetHealthRootResponse =
   GetHealthRootResponses[keyof GetHealthRootResponses];
+
+export type ProbePostByeData = {
+  body?: never;
+  headers: {
+    /**
+     * The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces.
+     */
+    "X-Probe-Instance": string;
+  };
+  path?: never;
+  query?: never;
+  url: "/probe/v1/bye";
+};
+
+export type ProbePostByeErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Not Implemented
+   */
+  501: HttpxErrorBody;
+};
+
+export type ProbePostByeError = ProbePostByeErrors[keyof ProbePostByeErrors];
+
+export type ProbePostByeResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type ProbePostByeResponse =
+  ProbePostByeResponses[keyof ProbePostByeResponses];
+
+export type ProbePostHelloData = {
+  body: ProbeprotoHelloRequest;
+  headers: {
+    /**
+     * The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces.
+     */
+    "X-Probe-Instance": string;
+  };
+  path?: never;
+  query?: never;
+  url: "/probe/v1/hello";
+};
+
+export type ProbePostHelloErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Request Entity Too Large
+   */
+  413: HttpxErrorBody;
+  /**
+   * Upgrade Required
+   */
+  426: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Not Implemented
+   */
+  501: HttpxErrorBody;
+};
+
+export type ProbePostHelloError =
+  ProbePostHelloErrors[keyof ProbePostHelloErrors];
+
+export type ProbePostHelloResponses = {
+  /**
+   * OK
+   */
+  200: ProbeprotoHelloResponse;
+};
+
+export type ProbePostHelloResponse =
+  ProbePostHelloResponses[keyof ProbePostHelloResponses];
 
 export type ClientOptions = {
   baseURL: `${string}://${string}` | (string & {});

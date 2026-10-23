@@ -203,3 +203,76 @@ func (r *SQLRepositoryImpl) FindInstances(ctx context.Context, probeID string) (
 	}
 	return instances, nil
 }
+
+// MARK: UpsertInstance
+func (r *SQLRepositoryImpl) UpsertInstance(ctx context.Context, probeID string, inst *Instance) error {
+	// The id is the table's primary key, so a conflict on it is the same instance saying hello
+	// again. The WHERE keeps another probe's instance out of reach: no row changes then. The
+	// statement names the table in full and not by an alias, which PostgreSQL allows in this
+	// WHERE only for a table with no alias.
+	result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, last_seen_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT (id) DO UPDATE SET
+	hostname = EXCLUDED.hostname,
+	os = EXCLUDED.os,
+	arch = EXCLUDED.arch,
+	version = EXCLUDED.version,
+	protocol_version = EXCLUDED.protocol_version,
+	last_seen_at = EXCLUDED.last_seen_at
+WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
+		inst.ID, probeID, inst.Hostname, inst.OS, inst.Arch, inst.Version, inst.ProtocolVersion, inst.LastSeenAt.UTC())
+	if err != nil {
+		return err
+	}
+	changed, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if changed == 0 {
+		return ErrInstanceTaken
+	}
+	return nil
+}
+
+// MARK: TouchInstance
+func (r *SQLRepositoryImpl) TouchInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) (bool, error) {
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlInstance)(nil)).
+		Set("last_seen_at = ?", seenAt.UTC()).
+		Where("id = ?", instanceID).
+		Where("probe_id = ?", probeID).
+		Exec(ctx)
+	if err != nil {
+		return false, err
+	}
+	changed, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return changed > 0, nil
+}
+
+// MARK: RetireInstance
+func (r *SQLRepositoryImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error {
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlInstance)(nil)).
+		Set("last_seen_at = ?", seenAt.UTC()).
+		Where("id = ?", instanceID).
+		Where("probe_id = ?", probeID).
+		Exec(ctx)
+	return err
+}
+
+// MARK: SetSupportedTypes
+func (r *SQLRepositoryImpl) SetSupportedTypes(ctx context.Context, probeID string, types []string) error {
+	if types == nil {
+		types = []string{}
+	}
+	encoded, err := json.Marshal(types)
+	if err != nil {
+		return err
+	}
+	_, err = dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
+		Set("supported_types = ?", string(encoded)).
+		Where("id = ?", probeID).
+		Exec(ctx)
+	return err
+}

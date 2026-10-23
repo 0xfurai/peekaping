@@ -233,6 +233,168 @@ func TestSQLRepository_DeleteRemovesTheProbesInstances(t *testing.T) {
 	})
 }
 
+// twoProbes makes two probes to register instances on
+func twoProbes(t *testing.T, repo probe.Repository) (first, second *probe.Model) {
+	t.Helper()
+	first, err := repo.Create(context.Background(), &probe.CreateModel{Name: "First", TokenHash: "sha256$a1", TokenPrefix: "pkp_a1"})
+	require.NoError(t, err)
+	second, err = repo.Create(context.Background(), &probe.CreateModel{Name: "Second", TokenHash: "sha256$b2", TokenPrefix: "pkp_b2"})
+	require.NoError(t, err)
+	return first, second
+}
+
+func TestSQLRepository_UpsertInstanceInsertsThenUpdatesEveryColumn(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		instanceID := uuid.NewString()
+		first := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+
+		require.NoError(t, repo.UpsertInstance(ctx, "local", &probe.Instance{
+			ID: instanceID, Hostname: "host-1", OS: "linux", Arch: "arm64", Version: "1.2.3", ProtocolVersion: 1, LastSeenAt: first,
+		}))
+		instances, err := repo.FindInstances(ctx, "local")
+		require.NoError(t, err)
+		require.Len(t, instances, 1)
+		assert.Equal(t, instanceID, instances[0].ID)
+		assert.Equal(t, "host-1", instances[0].Hostname)
+		assert.Equal(t, "linux", instances[0].OS)
+		assert.Equal(t, "arm64", instances[0].Arch)
+		assert.Equal(t, "1.2.3", instances[0].Version)
+		assert.Equal(t, 1, instances[0].ProtocolVersion)
+		assert.WithinDuration(t, first, instances[0].LastSeenAt, time.Second)
+
+		later := first.Add(time.Hour)
+		require.NoError(t, repo.UpsertInstance(ctx, "local", &probe.Instance{
+			ID: instanceID, Hostname: "host-2", OS: "darwin", Arch: "amd64", Version: "1.3.0", ProtocolVersion: 2, LastSeenAt: later,
+		}))
+		instances, err = repo.FindInstances(ctx, "local")
+		require.NoError(t, err)
+		require.Len(t, instances, 1, "the same instance id is the same instance")
+		assert.Equal(t, "host-2", instances[0].Hostname)
+		assert.Equal(t, "darwin", instances[0].OS)
+		assert.Equal(t, "amd64", instances[0].Arch)
+		assert.Equal(t, "1.3.0", instances[0].Version)
+		assert.Equal(t, 2, instances[0].ProtocolVersion)
+		assert.WithinDuration(t, later, instances[0].LastSeenAt, time.Second)
+	})
+}
+
+// An instance id is the primary key, so a probe's hello must not take over another probe's instance
+func TestSQLRepository_UpsertInstanceRefusesAnotherProbesInstance(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, intruder := twoProbes(t, repo)
+		seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "shared-id", Hostname: "owner-host", LastSeenAt: seen}))
+
+		err := repo.UpsertInstance(ctx, intruder.ID, &probe.Instance{ID: "shared-id", Hostname: "intruder-host", LastSeenAt: seen.Add(time.Hour)})
+
+		assert.ErrorIs(t, err, probe.ErrInstanceTaken)
+		ownersInstances, err := repo.FindInstances(ctx, owner.ID)
+		require.NoError(t, err)
+		require.Len(t, ownersInstances, 1)
+		assert.Equal(t, "owner-host", ownersInstances[0].Hostname)
+		assert.WithinDuration(t, seen, ownersInstances[0].LastSeenAt, time.Second)
+		intrudersInstances, err := repo.FindInstances(ctx, intruder.ID)
+		require.NoError(t, err)
+		assert.Empty(t, intrudersInstances)
+	})
+}
+
+func TestSQLRepository_TouchInstanceStampsOnlyTheProbesOwnInstance(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
+		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-1", Hostname: "host", LastSeenAt: seen}))
+
+		found, err := repo.TouchInstance(ctx, owner.ID, "instance-1", seen.Add(time.Minute))
+		require.NoError(t, err)
+		assert.True(t, found)
+		instances, err := repo.FindInstances(ctx, owner.ID)
+		require.NoError(t, err)
+		require.Len(t, instances, 1)
+		assert.WithinDuration(t, seen.Add(time.Minute), instances[0].LastSeenAt, time.Second)
+		assert.Equal(t, "host", instances[0].Hostname, "a touch changes only the last seen time")
+
+		found, err = repo.TouchInstance(ctx, owner.ID, "never-said-hello", seen.Add(time.Hour))
+		require.NoError(t, err)
+		assert.False(t, found, "no row, no stamp")
+
+		found, err = repo.TouchInstance(ctx, other.ID, "instance-1", seen.Add(time.Hour))
+		require.NoError(t, err)
+		assert.False(t, found, "another probe's token doesn't reach the instance")
+		instances, err = repo.FindInstances(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.WithinDuration(t, seen.Add(time.Minute), instances[0].LastSeenAt, time.Second)
+	})
+}
+
+func TestSQLRepository_RetireInstanceSetsOnlyTheProbesOwnInstancesLastSeen(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		now := time.Now().UTC()
+		retired := now.Add(-time.Minute)
+		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: now}))
+		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-2", LastSeenAt: now}))
+
+		require.NoError(t, repo.RetireInstance(ctx, other.ID, "instance-1", retired), "another probe's token retires nothing")
+		instances, err := repo.FindInstances(ctx, owner.ID)
+		require.NoError(t, err)
+		require.Len(t, instances, 2)
+		for _, instance := range instances {
+			assert.WithinDuration(t, now, instance.LastSeenAt, time.Second)
+		}
+
+		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "instance-1", retired))
+		instances, err = repo.FindInstances(ctx, owner.ID)
+		require.NoError(t, err)
+		require.Len(t, instances, 2, "the row stays")
+		assert.Equal(t, "instance-2", instances[0].ID, "the most recently seen is first")
+		assert.WithinDuration(t, now, instances[0].LastSeenAt, time.Second)
+		assert.Equal(t, "instance-1", instances[1].ID)
+		assert.WithinDuration(t, retired, instances[1].LastSeenAt, time.Second)
+		assert.Equal(t, "host-1", instances[1].Hostname, "and keeps what else it says")
+
+		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "never-there", retired), "retiring an instance that is gone is not an error")
+		instances, err = repo.FindInstances(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Len(t, instances, 2)
+	})
+}
+
+func TestSQLRepository_SetSupportedTypesReplacesTheList(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+
+		require.NoError(t, repo.SetSupportedTypes(ctx, owner.ID, []string{"http", "tcp"}))
+		got, err := repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"http", "tcp"}, got.SupportedTypes)
+
+		require.NoError(t, repo.SetSupportedTypes(ctx, owner.ID, []string{"ping"}))
+		got, err = repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"ping"}, got.SupportedTypes, "the new list replaces the old one")
+
+		untouched, err := repo.FindByID(ctx, other.ID)
+		require.NoError(t, err)
+		assert.Equal(t, []string{}, untouched.SupportedTypes)
+
+		require.NoError(t, repo.SetSupportedTypes(ctx, owner.ID, nil))
+		got, err = repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Equal(t, []string{}, got.SupportedTypes, "nil is an empty list, not null")
+	})
+}
+
 // Every repository call made with the ctx WithTx gives runs on that transaction. The database has
 // one connection here, as SQLite does in the app, so a call that ran on db instead would wait for
 // the connection the transaction holds, and fail when ctx times out.
@@ -262,6 +424,18 @@ func TestSQLRepository_EveryMethodJoinsTheCallersTransaction(t *testing.T) {
 			assert.Len(t, all, 3)
 			_, err = repo.FindInstances(ctx, keep.ID)
 			require.NoError(t, err)
+			seen := time.Now().UTC()
+			require.NoError(t, repo.UpsertInstance(ctx, keep.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: seen}))
+			require.NoError(t, repo.UpsertInstance(ctx, keep.ID, &probe.Instance{ID: "instance-2", Hostname: "host-2", LastSeenAt: seen}))
+			touched, err := repo.TouchInstance(ctx, keep.ID, "instance-1", seen.Add(time.Minute))
+			require.NoError(t, err)
+			assert.True(t, touched)
+			require.NoError(t, repo.RetireInstance(ctx, keep.ID, "instance-2", seen.Add(-time.Hour)))
+			require.NoError(t, repo.SetSupportedTypes(ctx, keep.ID, []string{"http"}))
+			instances, err := repo.FindInstances(ctx, keep.ID)
+			require.NoError(t, err)
+			require.Len(t, instances, 2)
+			assert.WithinDuration(t, seen.Add(-time.Hour), instances[1].LastSeenAt, time.Second, "the transaction reads its own instance writes")
 			require.NoError(t, repo.Delete(ctx, created.ID))
 			return errRollBack
 		})
@@ -272,6 +446,10 @@ func TestSQLRepository_EveryMethodJoinsTheCallersTransaction(t *testing.T) {
 		require.NotNil(t, kept)
 		assert.Equal(t, "Keep", kept.Name, "the rename was rolled back")
 		assert.Equal(t, "sha256$k1", kept.TokenHash, "and so was the new token")
+		assert.Empty(t, kept.SupportedTypes, "and the supported types")
+		instances, err := repo.FindInstances(ctx, keep.ID)
+		require.NoError(t, err)
+		assert.Empty(t, instances, "and the instance upserts")
 		all, err := repo.FindAll(ctx)
 		require.NoError(t, err)
 		assert.Len(t, all, 2, "local and Keep: Doomed was rolled back")

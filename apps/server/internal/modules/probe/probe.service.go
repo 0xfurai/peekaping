@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"errors"
 	"fmt"
+	"time"
 
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/probe_notification"
@@ -39,6 +40,20 @@ type Service interface {
 	// Bootstrap makes token the local probe's token, as PROBE_BOOTSTRAP_TOKEN asks at startup. An
 	// empty token leaves the local probe as it is.
 	Bootstrap(ctx context.Context, token string) error
+	// RegisterInstance records an instance that said hello with the probe's token, or updates
+	// the one with the same id, and makes supportedTypes the monitor types the probe can run. It
+	// returns ErrInstanceTaken when another probe has an instance with that id, and records
+	// nothing then.
+	RegisterInstance(ctx context.Context, probeID string, inst *Instance, supportedTypes []string) error
+	// TouchInstance stamps the time the probe's instance was last heard from. It returns false
+	// when the probe has no instance with that id, which has to say hello first.
+	TouchInstance(ctx context.Context, probeID string, instanceID string, at time.Time) (bool, error)
+	// RetireInstance leaves the probe's instance last seen at seenAt, as when it says bye: the
+	// caller passes a time outside the online window, so that the instance is out of the dealing
+	// at once. The instance stays listed and the probe counts as online until its offline
+	// threshold has passed since seenAt, so that a restart is not an outage. The sweep prunes the
+	// instance once it has been silent for a day. An instance that isn't there is not an error.
+	RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error
 }
 
 // CreateRequest is a new probe
@@ -265,6 +280,37 @@ func (s *ServiceImpl) Bootstrap(ctx context.Context, token string) error {
 		return nil
 	}
 	return s.repo.UpdateToken(ctx, LocalID, hash, prefix)
+}
+
+// MARK: RegisterInstance
+func (s *ServiceImpl) RegisterInstance(ctx context.Context, probeID string, inst *Instance, supportedTypes []string) error {
+	// One transaction: a hello that fails halfway leaves neither the instance nor the types.
+	// The instance goes first: a refused one must not change the probe's types.
+	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		if err := s.repo.UpsertInstance(ctx, probeID, inst); err != nil {
+			return err
+		}
+		return s.repo.SetSupportedTypes(ctx, probeID, supportedTypes)
+	})
+	if err != nil {
+		return err
+	}
+	s.logger.Infow("Probe instance registered", "probeId", probeID, "instanceId", inst.ID, "hostname", inst.Hostname, "version", inst.Version)
+	return nil
+}
+
+// MARK: TouchInstance
+func (s *ServiceImpl) TouchInstance(ctx context.Context, probeID string, instanceID string, at time.Time) (bool, error) {
+	return s.repo.TouchInstance(ctx, probeID, instanceID, at)
+}
+
+// MARK: RetireInstance
+func (s *ServiceImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error {
+	if err := s.repo.RetireInstance(ctx, probeID, instanceID, seenAt); err != nil {
+		return err
+	}
+	s.logger.Infow("Probe instance retired", "probeId", probeID, "instanceId", instanceID)
+	return nil
 }
 
 // withDetails adds a probe's instances and notification channels
