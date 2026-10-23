@@ -1,4 +1,7 @@
-import { type HeartbeatModel, type UtilsApiResponseMonitorModel } from "@/api";
+import {
+  type HeartbeatModel,
+  type UtilsApiResponseMonitorMonitorResponseDto,
+} from "@/api";
 import {
   deleteMonitorsByIdMutation,
   getMonitorsByIdHeartbeatsInfiniteQueryKey,
@@ -199,7 +202,7 @@ const MonitorPage = () => {
             id: id!,
           },
         }),
-        (oldData: UtilsApiResponseMonitorModel) => {
+        (oldData: UtilsApiResponseMonitorMonitorResponseDto) => {
           if (!oldData) return oldData;
           return {
             ...oldData,

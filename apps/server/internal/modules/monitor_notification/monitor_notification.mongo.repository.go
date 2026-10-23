@@ -145,6 +145,22 @@ func (r *RepositoryImpl) FindByMonitorID(ctx context.Context, monitorID string) 
 	return domainEntities, nil
 }
 
+// FindByMonitorIDs looks each monitor up on its own: MongoDB storage is frozen (ADR 0001), so this
+// only keeps the repository compiling.
+func (r *RepositoryImpl) FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*Model, error) {
+	links := map[string][]*Model{}
+	for _, monitorID := range monitorIDs {
+		found, err := r.FindByMonitorID(ctx, monitorID)
+		if err != nil {
+			return nil, err
+		}
+		if len(found) > 0 {
+			links[monitorID] = found
+		}
+	}
+	return links, nil
+}
+
 func (r *RepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	monitorObjectID, err := primitive.ObjectIDFromHex(monitorID)
 	if err != nil {

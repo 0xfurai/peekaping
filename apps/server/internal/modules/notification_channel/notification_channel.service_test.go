@@ -94,6 +94,14 @@ func (m *MockMonitorNotificationService) FindByMonitorID(ctx context.Context, mo
 	return args.Get(0).([]*monitor_notification.Model), args.Error(1)
 }
 
+func (m *MockMonitorNotificationService) FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*monitor_notification.Model, error) {
+	args := m.Called(ctx, monitorIDs)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[string][]*monitor_notification.Model), args.Error(1)
+}
+
 func (m *MockMonitorNotificationService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
