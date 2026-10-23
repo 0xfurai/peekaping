@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Trimite rapoarte de eroare",
-    "never_sent": "Nu se trimit niciodată: mesajele de eroare, URL-uri, anteturi, URL-uri de webhook, nume sau nume de gazdă. Un raport nu conține nicio adresă IP, iar proiectul Sentry al Peekaping este configurat să nu stocheze IP-ul expeditorului. Cu propriul dvs. ERROR_REPORTING_DSN, decid setările Sentry sau GlitchTip ale dvs.",
+    "never_sent": "Nu se trimit niciodată: mesajele de eroare, URL-uri, anteturi, URL-uri de webhook, nume sau nume de gazdă. Un raport nu conține nicio adresă IP, iar proiectul Sentry al Peekaping este configurat să nu stocheze IP-ul expeditorului.",
     "not_saved": "Alegerea dvs. privind rapoartele de eroare nu a fost salvată. Verificați-o în „Setări”.",
     "sent": "Se trimite doar când Peekaping însuși se oprește brusc. Un raport conține tipul erorii și locul din cod unde a apărut, versiunea Peekaping, modul unic sau de cluster, backendul de stocare și sistemul de operare."
   },
@@ -1282,12 +1282,12 @@
     "error_reporting": {
       "cluster_note": "În modul cluster, o modificare ajunge la toate procesele în cel mult un minut.",
       "description": "Trimite un raport către Sentry când serverul se oprește brusc. Activat implicit; îl puteți dezactiva oricând de aici.",
-      "forced_off": "Variabila de mediu ERROR_REPORTING=off sau DO_NOT_TRACK=1 dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
+      "forced_off": "Variabila de mediu ERROR_REPORTING=off dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
       "title": "Rapoarte de eroare"
     },
     "telemetry": {
       "description": "Trimite statistici anonime despre cum este configurată această instalare, cel mult o dată pe zi. Activat implicit; îl puteți dezactiva oricând de aici.",
-      "forced_off": "Variabila de mediu TELEMETRY=off sau DO_NOT_TRACK=1 dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
+      "forced_off": "Variabila de mediu TELEMETRY=off dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
       "id_note": "ID-ul instanței este creat cât timp opțiunea este activată și șters când o dezactivați. Dacă o activați din nou, se creează unul nou.",
       "payload_off": "Nu se trimite nimic cât timp opțiunea este dezactivată. Iată ce ar conține un ping de utilizare dacă ați activa-o.",
       "payload_title": "Ce va trimite următorul ping de utilizare",

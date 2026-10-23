@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "오류 보고서 보내기",
-    "never_sent": "다음은 절대 전송되지 않습니다: 오류 메시지, URL, 헤더, 웹훅 URL, 이름, 호스트 이름. 보고서에는 IP 주소가 들어 있지 않으며, Peekaping의 Sentry 프로젝트는 보낸 쪽의 IP를 저장하지 않도록 설정되어 있습니다. 직접 지정한 ERROR_REPORTING_DSN을 사용하면 사용 중인 Sentry 또는 GlitchTip의 설정이 이를 결정합니다.",
+    "never_sent": "다음은 절대 전송되지 않습니다: 오류 메시지, URL, 헤더, 웹훅 URL, 이름, 호스트 이름. 보고서에는 IP 주소가 들어 있지 않으며, Peekaping의 Sentry 프로젝트는 보낸 쪽의 IP를 저장하지 않도록 설정되어 있습니다.",
     "not_saved": "오류 보고서에 대한 선택이 저장되지 않았습니다. “설정”에서 확인해 주세요.",
     "sent": "Peekaping 자체가 충돌할 때만 전송됩니다. 보고서에는 오류 종류와 코드에서 발생한 위치, Peekaping 버전, 단일 모드 또는 클러스터 모드, 스토리지 백엔드, 운영 체제가 들어 있습니다."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "클러스터 모드에서는 변경 사항이 1분 안에 모든 프로세스에 전달됩니다.",
       "description": "서버가 충돌하면 Sentry로 보고서를 보냅니다. 기본적으로 켜져 있으며, 여기에서 언제든지 끌 수 있습니다.",
-      "forced_off": "환경 변수 ERROR_REPORTING=off 또는 DO_NOT_TRACK=1 때문에 꺼져 있습니다. 이 설정과 관계없이 아무것도 전송되지 않습니다.",
+      "forced_off": "환경 변수 ERROR_REPORTING=off 때문에 꺼져 있습니다. 이 설정과 관계없이 아무것도 전송되지 않습니다.",
       "title": "오류 보고서"
     },
     "telemetry": {
       "description": "이 설치가 어떻게 구성되어 있는지에 대한 익명 통계를 하루에 최대 한 번 보냅니다. 기본적으로 켜져 있으며, 여기에서 언제든지 끌 수 있습니다.",
-      "forced_off": "환경 변수 TELEMETRY=off 또는 DO_NOT_TRACK=1 때문에 꺼져 있습니다. 이 설정과 관계없이 아무것도 전송되지 않습니다.",
+      "forced_off": "환경 변수 TELEMETRY=off 때문에 꺼져 있습니다. 이 설정과 관계없이 아무것도 전송되지 않습니다.",
       "id_note": "인스턴스 ID는 이 기능이 켜져 있는 동안 만들어지고 끌 때 삭제됩니다. 다시 켜면 새 ID가 만들어집니다.",
       "payload_off": "꺼져 있는 동안에는 아무것도 전송되지 않습니다. 켜면 사용 현황 ping에 다음 내용이 담깁니다.",
       "payload_title": "다음 사용 현황 ping이 보내는 내용",

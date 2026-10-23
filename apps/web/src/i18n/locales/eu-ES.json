@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Bidali errore-txostenak",
-    "never_sent": "Ez da inoiz bidaltzen: errore-mezuak, URLak, goiburuak, webhook-en URLak, izenak edo ostalari-izenak. Txostenak ez du IP helbiderik, eta Peekaping-en Sentry proiektua bidaltzailearen IPa ez gordetzeko konfiguratuta dago. Zure ERROR_REPORTING_DSN propioa erabiltzen baduzu, zure Sentry edo GlitchTip-en ezarpenek erabakitzen dute.",
+    "never_sent": "Ez da inoiz bidaltzen: errore-mezuak, URLak, goiburuak, webhook-en URLak, izenak edo ostalari-izenak. Txostenak ez du IP helbiderik, eta Peekaping-en Sentry proiektua bidaltzailearen IPa ez gordetzeko konfiguratuta dago.",
     "not_saved": "Errore-txostenei buruzko aukeraketa ez da gorde. Egiaztatu «Ezarpenak» atalean.",
     "sent": "Peekaping bera huts egiten duenean bakarrik bidaltzen da. Txosten batek errorearen mota eta kodean non gertatu den, Peekaping-en bertsioa, modu bakarra edo kluster modua, biltegiratze-backenda eta sistema eragilea ditu."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "Kluster moduan, aldaketa prozesu guztietara iristen da minutu baten barruan.",
       "description": "Bidali txosten bat Sentry-ra zerbitzariak huts egiten duenean. Lehenespenez aktibatuta dago; hemen desaktibatu dezakezu edonoiz.",
-      "forced_off": "ERROR_REPORTING=off edo DO_NOT_TRACK=1 ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
+      "forced_off": "ERROR_REPORTING=off ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
       "title": "Errore-txostenak"
     },
     "telemetry": {
       "description": "Bidali instalazio hau nola konfiguratuta dagoenari buruzko estatistika anonimoak, egunean behin gehienez. Lehenespenez aktibatuta dago; hemen desaktibatu dezakezu edonoiz.",
-      "forced_off": "TELEMETRY=off edo DO_NOT_TRACK=1 ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
+      "forced_off": "TELEMETRY=off ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
       "id_note": "Instantziaren IDa aktibatuta dagoen bitartean sortzen da eta desaktibatzean ezabatzen da. Berriro aktibatzen baduzu, berri bat sortzen da.",
       "payload_off": "Ez da ezer bidaltzen hau desaktibatuta dagoen bitartean. Hau izango litzateke erabilera-pingaren edukia aktibatuko bazenu.",
       "payload_title": "Hurrengo erabilera-pingak zer bidaliko duen",

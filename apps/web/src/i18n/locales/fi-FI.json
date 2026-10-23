@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Lähetä virheraportteja",
-    "never_sent": "Ei koskaan lähetetä: virheilmoituksia, URL-osoitteita, otsakkeita, webhook-osoitteita, nimiä tai isäntänimiä. Raportti ei sisällä IP-osoitetta, ja Peekapingin Sentry-projekti on asetettu niin, ettei se tallenna lähettäjän IP-osoitetta. Jos käytät omaa ERROR_REPORTING_DSN-arvoa, oman Sentrysi tai GlitchTipisi asetukset ratkaisevat.",
+    "never_sent": "Ei koskaan lähetetä: virheilmoituksia, URL-osoitteita, otsakkeita, webhook-osoitteita, nimiä tai isäntänimiä. Raportti ei sisällä IP-osoitetta, ja Peekapingin Sentry-projekti on asetettu niin, ettei se tallenna lähettäjän IP-osoitetta.",
     "not_saved": "Valintaasi virheraporteista ei tallennettu. Tarkista se kohdassa ”Asetukset”.",
     "sent": "Lähetetään vain, kun Peekaping itse kaatuu. Raportti sisältää virheen tyypin ja kohdan koodissa, jossa se tapahtui, Peekapingin version, yksi- tai klusteritilan, tallennustaustan ja käyttöjärjestelmän."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "Klusteritilassa muutos tavoittaa jokaisen prosessin minuutissa.",
       "description": "Lähetä raportti Sentryyn, kun palvelin kaatuu. Oletuksena päällä; voit poistaa sen käytöstä täällä milloin tahansa.",
-      "forced_off": "Ympäristömuuttuja ERROR_REPORTING=off tai DO_NOT_TRACK=1 poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
+      "forced_off": "Ympäristömuuttuja ERROR_REPORTING=off poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
       "title": "Virheraportit"
     },
     "telemetry": {
       "description": "Lähetä nimettömiä tilastoja siitä, miten tämä asennus on määritetty, enintään kerran päivässä. Oletuksena päällä; voit poistaa sen käytöstä täällä milloin tahansa.",
-      "forced_off": "Ympäristömuuttuja TELEMETRY=off tai DO_NOT_TRACK=1 poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
+      "forced_off": "Ympäristömuuttuja TELEMETRY=off poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
       "id_note": "Instanssin tunnus luodaan, kun tämä on käytössä, ja poistetaan, kun poistat sen käytöstä. Kun otat sen uudelleen käyttöön, luodaan uusi.",
       "payload_off": "Mitään ei lähetetä, kun tämä on pois päältä. Tältä käyttöping näyttäisi, jos ottaisit sen käyttöön.",
       "payload_title": "Mitä seuraava käyttöping lähettää",

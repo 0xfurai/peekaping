@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Send error reports",
-    "never_sent": "Never sent: error messages, URLs, headers, webhook URLs, names or hostnames. A report holds no IP address, and Peekaping's Sentry project is set not to store the sender's IP. With your own ERROR_REPORTING_DSN, your Sentry or GlitchTip settings decide.",
+    "never_sent": "Never sent: error messages, URLs, headers, webhook URLs, names or hostnames. A report holds no IP address, and Peekaping's Sentry project is set not to store the sender's IP.",
     "not_saved": "Your choice about error reports wasn't saved. Check it in Settings.",
     "sent": "Sent only when Peekaping itself crashes. A report holds the error type and where in the code it happened, the Peekaping version, single or cluster mode, the storage backend, and the operating system."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "In cluster mode, a change reaches every process within a minute.",
       "description": "Send a report to Sentry when the server crashes. On by default; you can turn it off here at any time.",
-      "forced_off": "The ERROR_REPORTING=off or DO_NOT_TRACK=1 environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "forced_off": "The ERROR_REPORTING=off environment variable switches this off. Nothing is sent, whatever this setting says.",
       "title": "Error reports"
     },
     "telemetry": {
       "description": "Send anonymous statistics about how this install is set up, at most once a day. On by default; you can turn it off here at any time.",
-      "forced_off": "The TELEMETRY=off or DO_NOT_TRACK=1 environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "forced_off": "The TELEMETRY=off environment variable switches this off. Nothing is sent, whatever this setting says.",
       "id_note": "The instance ID is created while this is on and deleted when you turn it off. Turning it on again creates a new one.",
       "payload_off": "Nothing is sent while this is off. This is what a usage ping would contain if you turned it on.",
       "payload_title": "What the next usage ping sends",

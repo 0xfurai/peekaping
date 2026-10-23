@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Odesílat hlášení o chybách",
-    "never_sent": "Nikdy se neodesílá: text chybových hlášení, adresy URL, hlavičky, adresy URL webhooků, názvy ani názvy hostitelů. Hlášení neobsahuje žádnou IP adresu a projekt Peekaping v Sentry je nastaven tak, aby IP adresu odesílatele neukládal. Při vlastním ERROR_REPORTING_DSN o tom rozhodují nastavení vašeho Sentry nebo GlitchTip.",
+    "never_sent": "Nikdy se neodesílá: text chybových hlášení, adresy URL, hlavičky, adresy URL webhooků, názvy ani názvy hostitelů. Hlášení neobsahuje žádnou IP adresu a projekt Peekaping v Sentry je nastaven tak, aby IP adresu odesílatele neukládal.",
     "not_saved": "Vaše volba ohledně hlášení o chybách se neuložila. Zkontrolujte ji v části „Nastavení“.",
     "sent": "Odesílá se jen tehdy, když spadne samotný Peekaping. Hlášení obsahuje typ chyby a místo v kódu, kde nastala, verzi Peekaping, jednoduchý nebo clusterový režim, úložiště dat a operační systém."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "V clusterovém režimu se změna projeví ve všech procesech do jedné minuty.",
       "description": "Odesílat hlášení do Sentry, když server spadne. Ve výchozím nastavení zapnuto; zde to můžete kdykoli vypnout.",
-      "forced_off": "Proměnná prostředí ERROR_REPORTING=off nebo DO_NOT_TRACK=1 toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
+      "forced_off": "Proměnná prostředí ERROR_REPORTING=off toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
       "title": "Hlášení o chybách"
     },
     "telemetry": {
       "description": "Odesílat anonymní statistiky o tom, jak je tato instalace nastavena, nejvýše jednou denně. Ve výchozím nastavení zapnuto; zde to můžete kdykoli vypnout.",
-      "forced_off": "Proměnná prostředí TELEMETRY=off nebo DO_NOT_TRACK=1 toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
+      "forced_off": "Proměnná prostředí TELEMETRY=off toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
       "id_note": "ID instance se vytvoří, dokud je to zapnuté, a smaže při vypnutí. Při dalším zapnutí se vytvoří nové.",
       "payload_off": "Dokud je to vypnuto, nic se neodesílá. Takto by vypadal ping využití, kdybyste to zapnuli.",
       "payload_title": "Co odešle příští ping využití",

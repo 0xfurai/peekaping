@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "发送错误报告",
-    "never_sent": "绝不发送：错误消息、URL、请求头、Webhook URL、名称或主机名。报告不包含 IP 地址，Peekaping 的 Sentry 项目也已设置为不存储发送方的 IP。如果你使用自己的 ERROR_REPORTING_DSN，则由你的 Sentry 或 GlitchTip 设置决定。",
+    "never_sent": "绝不发送：错误消息、URL、请求头、Webhook URL、名称或主机名。报告不包含 IP 地址，Peekaping 的 Sentry 项目也已设置为不存储发送方的 IP。",
     "not_saved": "你关于错误报告的选择未能保存。请在“设置”中检查。",
     "sent": "仅在 Peekaping 自身崩溃时发送。报告包含错误类型及其在代码中发生的位置、Peekaping 版本、单机模式或集群模式、存储后端以及操作系统。"
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "在集群模式下，更改会在一分钟内传达到每个进程。",
       "description": "服务器崩溃时向 Sentry 发送报告。默认开启，你可以随时在这里关闭。",
-      "forced_off": "环境变量 ERROR_REPORTING=off 或 DO_NOT_TRACK=1 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
+      "forced_off": "环境变量 ERROR_REPORTING=off 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
       "title": "错误报告"
     },
     "telemetry": {
       "description": "每天最多一次发送关于此安装如何配置的匿名统计。默认开启，你可以随时在这里关闭。",
-      "forced_off": "环境变量 TELEMETRY=off 或 DO_NOT_TRACK=1 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
+      "forced_off": "环境变量 TELEMETRY=off 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
       "id_note": "实例 ID 在此选项开启期间创建，关闭时删除。再次开启会创建新的 ID。",
       "payload_off": "关闭期间不会发送任何内容。如果你开启，使用情况 ping 将包含以下内容。",
       "payload_title": "下一次使用情况 ping 会发送什么",

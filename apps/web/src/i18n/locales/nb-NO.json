@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Send feilrapporter",
-    "never_sent": "Sendes aldri: feilmeldinger, nettadresser, hoder, webhook-adresser, navn eller vertsnavn. En rapport inneholder ingen IP-adresse, og Peekapings Sentry-prosjekt er satt opp til ikke å lagre avsenderens IP. Med din egen ERROR_REPORTING_DSN bestemmer innstillingene i din Sentry eller GlitchTip.",
+    "never_sent": "Sendes aldri: feilmeldinger, nettadresser, hoder, webhook-adresser, navn eller vertsnavn. En rapport inneholder ingen IP-adresse, og Peekapings Sentry-prosjekt er satt opp til ikke å lagre avsenderens IP.",
     "not_saved": "Valget ditt om feilrapporter ble ikke lagret. Sjekk det under «Innstillinger».",
     "sent": "Sendes bare når Peekaping selv krasjer. En rapport inneholder feiltypen og stedet i koden der den skjedde, Peekaping-versjonen, enkeltmodus eller klyngemodus, lagringsbackenden og operativsystemet."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "I klyngemodus når en endring alle prosesser innen ett minutt.",
       "description": "Send en rapport til Sentry når serveren krasjer. På som standard; du kan slå det av her når som helst.",
-      "forced_off": "Miljøvariabelen ERROR_REPORTING=off eller DO_NOT_TRACK=1 slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
+      "forced_off": "Miljøvariabelen ERROR_REPORTING=off slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
       "title": "Feilrapporter"
     },
     "telemetry": {
       "description": "Send anonym statistikk om hvordan denne installasjonen er satt opp, høyst én gang per dag. På som standard; du kan slå det av her når som helst.",
-      "forced_off": "Miljøvariabelen TELEMETRY=off eller DO_NOT_TRACK=1 slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
+      "forced_off": "Miljøvariabelen TELEMETRY=off slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
       "id_note": "Instans-ID-en opprettes så lenge dette er på og slettes når du slår det av. Slår du det på igjen, opprettes en ny.",
       "payload_off": "Ingenting sendes mens dette er av. Dette er hva en bruksping ville inneholde hvis du slo det på.",
       "payload_title": "Hva den neste brukspingen sender",

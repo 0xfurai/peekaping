@@ -90,7 +90,7 @@ test.describe('Choices on the server', () => {
   });
 });
 
-// The e2e stack doesn't set TELEMETRY or DO_NOT_TRACK, so the server's answer is
+// The e2e stack doesn't set TELEMETRY, so the server's answer is
 // faked here to see how Settings shows an install the environment switches off.
 test('Settings shows the switch as forced off when the environment switches usage statistics off', async ({ page }) => {
   await page.route('**/api/v1/telemetry', (route) =>
@@ -103,10 +103,10 @@ test('Settings shows the switch as forced off when the environment switches usag
   await expect(toggle).toBeDisabled();
   await expect(toggle).not.toBeChecked();
   await expect(page.getByText('TELEMETRY=off')).toBeVisible();
-  await expect(page.getByText('DO_NOT_TRACK=1')).toBeVisible();
+  await expect(page.getByText('DO_NOT_TRACK')).toHaveCount(0);
 });
 
-// The e2e stack doesn't set ERROR_REPORTING or DO_NOT_TRACK, so the server's answer
+// The e2e stack doesn't set ERROR_REPORTING, so the server's answer
 // is faked here to see how Settings shows an install the environment switches off.
 test('Settings shows error reports as forced off when the environment switches them off', async ({ page }) => {
   await page.route('**/api/v1/error-reporting', (route) =>
@@ -119,7 +119,7 @@ test('Settings shows error reports as forced off when the environment switches t
   await expect(toggle).toBeDisabled();
   await expect(toggle).not.toBeChecked();
   await expect(page.getByText('ERROR_REPORTING=off')).toBeVisible();
-  await expect(page.getByText('DO_NOT_TRACK=1')).toBeVisible();
+  await expect(page.getByText('DO_NOT_TRACK')).toHaveCount(0);
 });
 
 // The notice for an install that upgraded. A server can show it only once: nothing but the

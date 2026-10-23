@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Fehlerberichte senden",
-    "never_sent": "Nie gesendet werden: Fehlermeldungen, URLs, Header, Webhook-URLs, Namen oder Hostnamen. Ein Bericht enthält keine IP-Adresse, und das Sentry-Projekt von Peekaping ist so eingestellt, dass es die IP des Absenders nicht speichert. Bei einer eigenen ERROR_REPORTING_DSN entscheiden die Einstellungen Ihres Sentry oder GlitchTip.",
+    "never_sent": "Nie gesendet werden: Fehlermeldungen, URLs, Header, Webhook-URLs, Namen oder Hostnamen. Ein Bericht enthält keine IP-Adresse, und das Sentry-Projekt von Peekaping ist so eingestellt, dass es die IP des Absenders nicht speichert.",
     "not_saved": "Ihre Auswahl zu den Fehlerberichten wurde nicht gespeichert. Prüfen Sie sie unter «Einstellungen».",
     "sent": "Wird nur gesendet, wenn Peekaping selbst abstürzt. Ein Bericht enthält den Fehlertyp und die Stelle im Code, an der er auftrat, die Peekaping-Version, Einzel- oder Cluster-Modus, das Speicher-Backend und das Betriebssystem."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "Im Cluster-Modus erreicht eine Änderung jeden Prozess innerhalb einer Minute.",
       "description": "Einen Bericht an Sentry senden, wenn der Server abstürzt. Standardmässig an; Sie können es hier jederzeit ausschalten.",
-      "forced_off": "Die Umgebungsvariable ERROR_REPORTING=off oder DO_NOT_TRACK=1 schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
+      "forced_off": "Die Umgebungsvariable ERROR_REPORTING=off schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
       "title": "Fehlerberichte"
     },
     "telemetry": {
       "description": "Anonyme Statistiken darüber senden, wie diese Installation eingerichtet ist, höchstens einmal am Tag. Standardmässig an; Sie können es hier jederzeit ausschalten.",
-      "forced_off": "Die Umgebungsvariable TELEMETRY=off oder DO_NOT_TRACK=1 schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
+      "forced_off": "Die Umgebungsvariable TELEMETRY=off schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
       "id_note": "Die Instanz-ID wird erstellt, solange dies eingeschaltet ist, und beim Ausschalten gelöscht. Beim erneuten Einschalten wird eine neue erstellt.",
       "payload_off": "Solange dies ausgeschaltet ist, wird nichts gesendet. So sähe ein Nutzungs-Ping aus, wenn Sie es einschalten würden.",
       "payload_title": "Was der nächste Nutzungs-Ping sendet",

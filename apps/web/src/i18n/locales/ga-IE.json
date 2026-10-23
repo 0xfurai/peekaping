@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Seol tuarascálacha earráide",
-    "never_sent": "Ní sheoltar choíche: teachtaireachtaí earráide, URLanna, ceanntásca, URLanna webhook, ainmneacha ná óstainmneacha. Níl aon seoladh IP i dtuarascáil, agus tá tionscadal Sentry Peekaping socraithe gan IP an tseoltóra a stóráil. Le do ERROR_REPORTING_DSN féin, socraíonn socruithe do Sentry nó do GlitchTip é.",
+    "never_sent": "Ní sheoltar choíche: teachtaireachtaí earráide, URLanna, ceanntásca, URLanna webhook, ainmneacha ná óstainmneacha. Níl aon seoladh IP i dtuarascáil, agus tá tionscadal Sentry Peekaping socraithe gan IP an tseoltóra a stóráil.",
     "not_saved": "Níor sábháladh do rogha maidir le tuarascálacha earráide. Seiceáil faoi “Socruithe” é.",
     "sent": "Ní sheoltar é ach nuair a thuairteann Peekaping féin. Tá in aon tuarascáil cineál an earráid agus an áit sa chód inar tharla sé, leagan Peekaping, mód aonair nó braisle, an backend stórála agus an córas oibriúcháin."
   },
@@ -1282,12 +1282,12 @@
     "error_reporting": {
       "cluster_note": "I mód braisle, sroicheann athrú gach próiseas laistigh de nóiméad.",
       "description": "Seol tuarascáil chuig Sentry nuair a thuairteann an freastalaí. Air de réir réamhshocraithe; is féidir leat é a mhúchadh anseo am ar bith.",
-      "forced_off": "Múchann an t-athróg timpeallachta ERROR_REPORTING=off nó DO_NOT_TRACK=1 é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
+      "forced_off": "Múchann an t-athróg timpeallachta ERROR_REPORTING=off é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
       "title": "Tuarascálacha earráide"
     },
     "telemetry": {
       "description": "Seol staitisticí gan ainm faoin gcaoi a bhfuil an suiteáil seo socraithe, uair amháin sa lá ar a mhéad. Air de réir réamhshocraithe; is féidir leat é a mhúchadh anseo am ar bith.",
-      "forced_off": "Múchann an t-athróg timpeallachta TELEMETRY=off nó DO_NOT_TRACK=1 é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
+      "forced_off": "Múchann an t-athróg timpeallachta TELEMETRY=off é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
       "id_note": "Cruthaítear ID an cháis fad is atá sé seo air agus scriostar é nuair a mhúchann tú é. Má chuireann tú air arís é, cruthaítear ID nua.",
       "payload_off": "Ní sheoltar aon rud agus é seo as. Seo a bheadh i bpingeáil úsáide dá gcuirfeá air é.",
       "payload_title": "Cad a sheolfaidh an chéad phingeáil úsáide eile",

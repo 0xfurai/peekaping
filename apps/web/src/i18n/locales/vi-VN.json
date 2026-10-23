@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Gửi báo cáo lỗi",
-    "never_sent": "Không bao giờ gửi: thông báo lỗi, URL, header, URL webhook, tên hay tên máy chủ. Báo cáo không chứa địa chỉ IP, và dự án Sentry của Peekaping được đặt để không lưu IP của người gửi. Với ERROR_REPORTING_DSN của riêng bạn, cài đặt Sentry hoặc GlitchTip của bạn sẽ quyết định.",
+    "never_sent": "Không bao giờ gửi: thông báo lỗi, URL, header, URL webhook, tên hay tên máy chủ. Báo cáo không chứa địa chỉ IP, và dự án Sentry của Peekaping được đặt để không lưu IP của người gửi.",
     "not_saved": "Lựa chọn của bạn về báo cáo lỗi chưa được lưu. Hãy kiểm tra trong “Cài đặt”.",
     "sent": "Chỉ được gửi khi chính Peekaping gặp sự cố. Một báo cáo chứa loại lỗi và vị trí trong mã nơi lỗi xảy ra, phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ và hệ điều hành."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "Ở chế độ cụm, thay đổi đến mọi tiến trình trong vòng một phút.",
       "description": "Gửi báo cáo đến Sentry khi máy chủ gặp sự cố. Bật theo mặc định; bạn có thể tắt tại đây bất cứ lúc nào.",
-      "forced_off": "Biến môi trường ERROR_REPORTING=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
+      "forced_off": "Biến môi trường ERROR_REPORTING=off đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
       "title": "Báo cáo lỗi"
     },
     "telemetry": {
       "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Bật theo mặc định; bạn có thể tắt tại đây bất cứ lúc nào.",
-      "forced_off": "Biến môi trường TELEMETRY=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
+      "forced_off": "Biến môi trường TELEMETRY=off đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
       "id_note": "ID bản cài đặt được tạo khi mục này đang bật và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
       "payload_off": "Không có gì được gửi khi mục này đang tắt. Đây là nội dung ping sử dụng sẽ có nếu bạn bật.",
       "payload_title": "Ping sử dụng tiếp theo sẽ gửi gì",

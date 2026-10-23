@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Skicka felrapporter",
-    "never_sent": "Skickas aldrig: felmeddelanden, webbadresser, rubriker, webhook-adresser, namn eller värdnamn. En rapport innehåller ingen IP-adress, och Peekapings Sentry-projekt är inställt på att inte spara avsändarens IP. Med din egen ERROR_REPORTING_DSN avgör inställningarna i din Sentry eller GlitchTip.",
+    "never_sent": "Skickas aldrig: felmeddelanden, webbadresser, rubriker, webhook-adresser, namn eller värdnamn. En rapport innehåller ingen IP-adress, och Peekapings Sentry-projekt är inställt på att inte spara avsändarens IP.",
     "not_saved": "Ditt val om felrapporter sparades inte. Kontrollera det under ”Inställningar”.",
     "sent": "Skickas bara när Peekaping självt kraschar. En rapport innehåller feltypen och platsen i koden där det hände, Peekaping-versionen, enkelt läge eller klusterläge, lagringsbackenden och operativsystemet."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "I klusterläge når en ändring alla processer inom en minut.",
       "description": "Skicka en rapport till Sentry när servern kraschar. På som standard. Du kan stänga av det här när som helst.",
-      "forced_off": "Miljövariabeln ERROR_REPORTING=off eller DO_NOT_TRACK=1 stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
+      "forced_off": "Miljövariabeln ERROR_REPORTING=off stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
       "title": "Felrapporter"
     },
     "telemetry": {
       "description": "Skicka anonym statistik om hur den här installationen är konfigurerad, högst en gång per dag. På som standard. Du kan stänga av det här när som helst.",
-      "forced_off": "Miljövariabeln TELEMETRY=off eller DO_NOT_TRACK=1 stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
+      "forced_off": "Miljövariabeln TELEMETRY=off stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
       "id_note": "Instans-ID:t skapas så länge detta är på och raderas när du stänger av det. Slår du på det igen skapas ett nytt.",
       "payload_off": "Inget skickas medan detta är avstängt. Det här är vad en användningsping skulle innehålla om du slog på det.",
       "payload_title": "Vad nästa användningsping skickar",

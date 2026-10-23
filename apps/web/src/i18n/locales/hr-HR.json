@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Šalji izvješća o pogreškama",
-    "never_sent": "Nikada se ne šalju: poruke o pogreškama, URL-ovi, zaglavlja, URL-ovi webhookova, imena ni nazivi hostova. Izvješće ne sadrži IP adresu, a Peekapingov Sentry projekt postavljen je da ne pohranjuje IP pošiljatelja. S vlastitim ERROR_REPORTING_DSN-om odlučuju postavke vašeg Sentryja ili GlitchTipa.",
+    "never_sent": "Nikada se ne šalju: poruke o pogreškama, URL-ovi, zaglavlja, URL-ovi webhookova, imena ni nazivi hostova. Izvješće ne sadrži IP adresu, a Peekapingov Sentry projekt postavljen je da ne pohranjuje IP pošiljatelja.",
     "not_saved": "Vaš odabir o izvješćima o pogreškama nije spremljen. Provjerite ga u „Postavke“.",
     "sent": "Šalje se samo kada sam Peekaping padne. Izvješće sadrži vrstu pogreške i mjesto u kodu na kojem se dogodila, verziju Peekapinga, pojedinačni ili klasterski način rada, pozadinski sustav za pohranu i operacijski sustav."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "U klasterskom načinu rada promjena stiže do svakog procesa unutar jedne minute.",
       "description": "Šalji izvješće u Sentry kada poslužitelj padne. Prema zadanim postavkama uključeno; ovdje to možete isključiti u bilo kojem trenutku.",
-      "forced_off": "Varijabla okruženja ERROR_REPORTING=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, što god ova postavka govorila.",
+      "forced_off": "Varijabla okruženja ERROR_REPORTING=off isključuje ovo. Ništa se ne šalje, što god ova postavka govorila.",
       "title": "Izvješća o pogreškama"
     },
     "telemetry": {
       "description": "Šalji anonimnu statistiku o tome kako je ova instalacija postavljena, najviše jednom dnevno. Prema zadanim postavkama uključeno; ovdje to možete isključiti u bilo kojem trenutku.",
-      "forced_off": "Varijabla okruženja TELEMETRY=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, što god ova postavka govorila.",
+      "forced_off": "Varijabla okruženja TELEMETRY=off isključuje ovo. Ništa se ne šalje, što god ova postavka govorila.",
       "id_note": "ID instance stvara se dok je ovo uključeno i briše kad ovo isključite. Ponovnim uključivanjem stvara se novi.",
       "payload_off": "Dok je ovo isključeno, ništa se ne šalje. Ovo bi sadržavao ping upotrebe da ste ga uključili.",
       "payload_title": "Što će poslati sljedeći ping upotrebe",

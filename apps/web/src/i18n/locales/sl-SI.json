@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Pošiljaj poročila o napakah",
-    "never_sent": "Nikoli se ne pošiljajo: sporočila o napakah, URL-ji, glave, URL-ji spletnih kljuk, imena ali imena gostiteljev. Poročilo ne vsebuje naslova IP, projekt Sentry za Peekaping pa je nastavljen tako, da ne shranjuje IP pošiljatelja. Pri lastnem ERROR_REPORTING_DSN odločajo nastavitve vašega Sentryja ali GlitchTipa.",
+    "never_sent": "Nikoli se ne pošiljajo: sporočila o napakah, URL-ji, glave, URL-ji spletnih kljuk, imena ali imena gostiteljev. Poročilo ne vsebuje naslova IP, projekt Sentry za Peekaping pa je nastavljen tako, da ne shranjuje IP pošiljatelja.",
     "not_saved": "Vaša izbira glede poročil o napakah ni bila shranjena. Preverite jo v razdelku Nastavitve.",
     "sent": "Pošlje se samo, ko se sam Peekaping zruši. Poročilo vsebuje vrsto napake in mesto v kodi, kjer se je zgodila, različico Peekapinga, enojni ali gručni način, zaledje za shranjevanje in operacijski sistem."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "V gručnem načinu pride sprememba do vsakega procesa v eni minuti.",
       "description": "Pošlji poročilo v Sentry, ko se strežnik zruši. Privzeto vklopljeno; tukaj lahko to kadar koli izklopite.",
-      "forced_off": "Spremenljivka okolja ERROR_REPORTING=off ali DO_NOT_TRACK=1 to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
+      "forced_off": "Spremenljivka okolja ERROR_REPORTING=off to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
       "title": "Poročila o napakah"
     },
     "telemetry": {
       "description": "Pošiljaj anonimno statistiko o tem, kako je ta namestitev nastavljena, največ enkrat na dan. Privzeto vklopljeno; tukaj lahko to kadar koli izklopite.",
-      "forced_off": "Spremenljivka okolja TELEMETRY=off ali DO_NOT_TRACK=1 to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
+      "forced_off": "Spremenljivka okolja TELEMETRY=off to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
       "id_note": "ID primerka se ustvari, dokler je to vklopljeno, in izbriše, ko to izklopite. Ob ponovnem vklopu se ustvari nov.",
       "payload_off": "Dokler je to izklopljeno, se nič ne pošilja. To bi vseboval ping uporabe, če bi to vklopili.",
       "payload_title": "Kaj bo poslal naslednji ping uporabe",

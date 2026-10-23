@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Invia segnalazioni di errore",
-    "never_sent": "Non vengono mai inviati: messaggi di errore, URL, intestazioni, URL di webhook, nomi o nomi host. Una segnalazione non contiene alcun indirizzo IP, e il progetto Sentry di Peekaping è impostato per non memorizzare l'IP del mittente. Con un tuo ERROR_REPORTING_DSN, decidono le impostazioni del tuo Sentry o GlitchTip.",
+    "never_sent": "Non vengono mai inviati: messaggi di errore, URL, intestazioni, URL di webhook, nomi o nomi host. Una segnalazione non contiene alcun indirizzo IP, e il progetto Sentry di Peekaping è impostato per non memorizzare l'IP del mittente.",
     "not_saved": "La tua scelta sulle segnalazioni di errore non è stata salvata. Controllala in «Impostazioni».",
     "sent": "Viene inviata solo quando Peekaping stesso va in crash. Una segnalazione contiene il tipo di errore e il punto del codice in cui si è verificato, la versione di Peekaping, la modalità singola o cluster, il backend di archiviazione e il sistema operativo."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "In modalità cluster, una modifica raggiunge ogni processo entro un minuto.",
       "description": "Invia una segnalazione a Sentry quando il server va in crash. Attivo per impostazione predefinita; puoi disattivarlo qui in qualsiasi momento.",
-      "forced_off": "La variabile d'ambiente ERROR_REPORTING=off o DO_NOT_TRACK=1 lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
+      "forced_off": "La variabile d'ambiente ERROR_REPORTING=off lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
       "title": "Segnalazioni di errore"
     },
     "telemetry": {
       "description": "Invia statistiche anonime su come è configurata questa installazione, al massimo una volta al giorno. Attivo per impostazione predefinita; puoi disattivarlo qui in qualsiasi momento.",
-      "forced_off": "La variabile d'ambiente TELEMETRY=off o DO_NOT_TRACK=1 lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
+      "forced_off": "La variabile d'ambiente TELEMETRY=off lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
       "id_note": "L'ID istanza viene creato finché questa opzione è attiva ed eliminato quando la disattivi. Se la riattivi, ne viene creato uno nuovo.",
       "payload_off": "Non viene inviato nulla finché è disattivato. Questo è ciò che conterrebbe un ping di utilizzo se lo attivassi.",
       "payload_title": "Cosa invierà il prossimo ping di utilizzo",

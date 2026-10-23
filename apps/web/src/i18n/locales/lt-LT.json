@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Siųsti pranešimus apie klaidas",
-    "never_sent": "Niekada nesiunčiama: klaidų pranešimai, URL, antraštės, webhook URL, pavadinimai ar serverių pavadinimai. Pranešime nėra IP adreso, o Peekaping Sentry projektas nustatytas taip, kad nesaugotų siuntėjo IP. Jei naudojate savo ERROR_REPORTING_DSN, tai lemia jūsų Sentry ar GlitchTip nustatymai.",
+    "never_sent": "Niekada nesiunčiama: klaidų pranešimai, URL, antraštės, webhook URL, pavadinimai ar serverių pavadinimai. Pranešime nėra IP adreso, o Peekaping Sentry projektas nustatytas taip, kad nesaugotų siuntėjo IP.",
     "not_saved": "Jūsų pasirinkimas dėl pranešimų apie klaidas neišsaugotas. Patikrinkite jį skiltyje „Nustatymai“.",
     "sent": "Siunčiama tik tada, kai sugenda pats Peekaping. Pranešime yra klaidos tipas ir vieta kode, kurioje ji įvyko, Peekaping versija, vieno proceso ar klasterio režimas, saugyklos pagrindas ir operacinė sistema."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "Klasterio režimu pakeitimas pasiekia kiekvieną procesą per minutę.",
       "description": "Siųsti pranešimą į Sentry, kai sugenda serveris. Pagal numatytuosius nustatymus įjungta; čia tai galite išjungti bet kada.",
-      "forced_off": "Aplinkos kintamasis ERROR_REPORTING=off arba DO_NOT_TRACK=1 tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "forced_off": "Aplinkos kintamasis ERROR_REPORTING=off tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
       "title": "Pranešimai apie klaidas"
     },
     "telemetry": {
       "description": "Siųsti anonimišką statistiką apie tai, kaip sukonfigūruotas šis diegimas, ne dažniau kaip kartą per dieną. Pagal numatytuosius nustatymus įjungta; čia tai galite išjungti bet kada.",
-      "forced_off": "Aplinkos kintamasis TELEMETRY=off arba DO_NOT_TRACK=1 tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "forced_off": "Aplinkos kintamasis TELEMETRY=off tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
       "id_note": "Egzemplioriaus ID sukuriamas, kol tai įjungta, ir ištrinamas, kai išjungiate. Įjungus iš naujo, sukuriamas naujas.",
       "payload_off": "Kol tai išjungta, niekas nesiunčiama. Štai ką naudojimo pingas turėtų, jei tai įjungtumėte.",
       "payload_title": "Ką išsiųs kitas naudojimo pingas",

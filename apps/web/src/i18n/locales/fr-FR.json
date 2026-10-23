@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Envoyer des rapports d'erreur",
-    "never_sent": "Jamais envoyés : les messages d'erreur, les URL, les en-têtes, les URL de webhook, les noms ni les noms d'hôte. Un rapport ne contient aucune adresse IP, et le projet Sentry de Peekaping est configuré pour ne pas conserver l'IP de l'expéditeur. Avec votre propre ERROR_REPORTING_DSN, ce sont les réglages de votre Sentry ou GlitchTip qui décident.",
+    "never_sent": "Jamais envoyés : les messages d'erreur, les URL, les en-têtes, les URL de webhook, les noms ni les noms d'hôte. Un rapport ne contient aucune adresse IP, et le projet Sentry de Peekaping est configuré pour ne pas conserver l'IP de l'expéditeur.",
     "not_saved": "Votre choix concernant les rapports d'erreur n'a pas été enregistré. Vérifiez-le dans « Paramètres ».",
     "sent": "Envoyé uniquement quand Peekaping lui-même plante. Un rapport contient le type d'erreur et l'endroit du code où elle s'est produite, la version de Peekaping, le mode unique ou cluster, le backend de stockage et le système d'exploitation."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "En mode cluster, un changement atteint tous les processus en moins d'une minute.",
       "description": "Envoyer un rapport à Sentry quand le serveur plante. Activé par défaut ; vous pouvez le désactiver ici à tout moment.",
-      "forced_off": "La variable d'environnement ERROR_REPORTING=off ou DO_NOT_TRACK=1 désactive cette option. Rien n'est envoyé, quel que soit ce paramètre.",
+      "forced_off": "La variable d'environnement ERROR_REPORTING=off désactive cette option. Rien n'est envoyé, quel que soit ce paramètre.",
       "title": "Rapports d'erreur"
     },
     "telemetry": {
       "description": "Envoyer des statistiques anonymes sur la configuration de cette installation, au plus une fois par jour. Activé par défaut ; vous pouvez le désactiver ici à tout moment.",
-      "forced_off": "La variable d'environnement TELEMETRY=off ou DO_NOT_TRACK=1 désactive cette option. Rien n'est envoyé, quel que soit ce paramètre.",
+      "forced_off": "La variable d'environnement TELEMETRY=off désactive cette option. Rien n'est envoyé, quel que soit ce paramètre.",
       "id_note": "L'identifiant d'instance est créé tant que cette option est activée et supprimé quand vous la désactivez. Si vous la réactivez, un nouvel identifiant est créé.",
       "payload_off": "Rien n'est envoyé tant que cette option est désactivée. Voici ce que contiendrait un ping d'utilisation si vous l'activiez.",
       "payload_title": "Ce que le prochain ping d'utilisation enverra",

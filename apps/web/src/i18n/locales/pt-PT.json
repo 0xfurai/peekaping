@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Enviar relatórios de erros",
-    "never_sent": "Nunca são enviados: mensagens de erro, URLs, cabeçalhos, URLs de webhook, nomes nem nomes de anfitrião. Um relatório não contém nenhum endereço IP, e o projeto Sentry do Peekaping está configurado para não guardar o IP do remetente. Com o seu próprio ERROR_REPORTING_DSN, quem decide são as definições do seu Sentry ou GlitchTip.",
+    "never_sent": "Nunca são enviados: mensagens de erro, URLs, cabeçalhos, URLs de webhook, nomes nem nomes de anfitrião. Um relatório não contém nenhum endereço IP, e o projeto Sentry do Peekaping está configurado para não guardar o IP do remetente.",
     "not_saved": "A sua escolha sobre os relatórios de erros não foi guardada. Verifique-a em «Definições».",
     "sent": "Enviado apenas quando o próprio Peekaping falha. Um relatório contém o tipo de erro e o ponto do código onde ocorreu, a versão do Peekaping, o modo único ou de cluster, o backend de armazenamento e o sistema operativo."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "No modo cluster, uma alteração chega a todos os processos no prazo de um minuto.",
       "description": "Envie um relatório ao Sentry quando o servidor falhar. Ativado por predefinição; pode desativá-lo aqui a qualquer momento.",
-      "forced_off": "A variável de ambiente ERROR_REPORTING=off ou DO_NOT_TRACK=1 desativa isto. Nada é enviado, seja qual for esta definição.",
+      "forced_off": "A variável de ambiente ERROR_REPORTING=off desativa isto. Nada é enviado, seja qual for esta definição.",
       "title": "Relatórios de erros"
     },
     "telemetry": {
       "description": "Envie estatísticas anónimas sobre como esta instalação está configurada, no máximo uma vez por dia. Ativado por predefinição; pode desativá-lo aqui a qualquer momento.",
-      "forced_off": "A variável de ambiente TELEMETRY=off ou DO_NOT_TRACK=1 desativa isto. Nada é enviado, seja qual for esta definição.",
+      "forced_off": "A variável de ambiente TELEMETRY=off desativa isto. Nada é enviado, seja qual for esta definição.",
       "id_note": "O ID da instância é criado enquanto isto está ativado e eliminado quando desativa. Ao ativar de novo, é criado um novo ID.",
       "payload_off": "Nada é enviado enquanto isto estiver desativado. Isto é o que um ping de utilização conteria se o ativasse.",
       "payload_title": "O que o próximo ping de utilização envia",

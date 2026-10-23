@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Send fejlrapporter",
-    "never_sent": "Sendes aldrig: fejlmeddelelser, URL'er, headere, webhook-URL'er, navne eller værtsnavne. En rapport indeholder ingen IP-adresse, og Peekapings Sentry-projekt er indstillet til ikke at gemme afsenderens IP. Hvis du bruger din egen ERROR_REPORTING_DSN, afgør indstillingerne i din Sentry eller GlitchTip det.",
+    "never_sent": "Sendes aldrig: fejlmeddelelser, URL'er, headere, webhook-URL'er, navne eller værtsnavne. En rapport indeholder ingen IP-adresse, og Peekapings Sentry-projekt er indstillet til ikke at gemme afsenderens IP.",
     "not_saved": "Dit valg om fejlrapporter blev ikke gemt. Tjek det under “Indstillinger”.",
     "sent": "Sendes kun, når Peekaping selv går ned. En rapport indeholder fejltypen og stedet i koden, hvor den opstod, Peekaping-versionen, enkelt- eller klyngetilstand, lagringsbackenden og operativsystemet."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "I klyngetilstand når en ændring alle processer inden for et minut.",
       "description": "Send en rapport til Sentry, når serveren går ned. Slået til som standard; du kan slå det fra her når som helst.",
-      "forced_off": "Miljøvariablen ERROR_REPORTING=off eller DO_NOT_TRACK=1 slår dette fra. Der sendes ikke noget, uanset hvad denne indstilling siger.",
+      "forced_off": "Miljøvariablen ERROR_REPORTING=off slår dette fra. Der sendes ikke noget, uanset hvad denne indstilling siger.",
       "title": "Fejlrapporter"
     },
     "telemetry": {
       "description": "Send anonym statistik om, hvordan denne installation er sat op, højst én gang om dagen. Slået til som standard; du kan slå det fra her når som helst.",
-      "forced_off": "Miljøvariablen TELEMETRY=off eller DO_NOT_TRACK=1 slår dette fra. Der sendes ikke noget, uanset hvad denne indstilling siger.",
+      "forced_off": "Miljøvariablen TELEMETRY=off slår dette fra. Der sendes ikke noget, uanset hvad denne indstilling siger.",
       "id_note": "Instans-ID'et oprettes, mens dette er slået til, og slettes, når du slår det fra. Slår du det til igen, oprettes et nyt.",
       "payload_off": "Der sendes ikke noget, mens dette er slået fra. Det er det, en brugsping ville indeholde, hvis du slog det til.",
       "payload_title": "Hvad den næste brugsping sender",

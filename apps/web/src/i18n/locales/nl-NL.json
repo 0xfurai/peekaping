@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Foutrapporten versturen",
-    "never_sent": "Nooit verstuurd: foutmeldingen, URL's, headers, webhook-URL's, namen of hostnamen. Een rapport bevat geen IP-adres, en het Sentry-project van Peekaping is ingesteld om het IP van de afzender niet op te slaan. Met je eigen ERROR_REPORTING_DSN bepalen de instellingen van je Sentry of GlitchTip dat.",
+    "never_sent": "Nooit verstuurd: foutmeldingen, URL's, headers, webhook-URL's, namen of hostnamen. Een rapport bevat geen IP-adres, en het Sentry-project van Peekaping is ingesteld om het IP van de afzender niet op te slaan.",
     "not_saved": "Je keuze over foutrapporten is niet opgeslagen. Controleer het onder ‘Instellingen’.",
     "sent": "Wordt alleen verstuurd wanneer Peekaping zelf crasht. Een rapport bevat het type fout en de plek in de code waar die optrad, de Peekaping-versie, enkele modus of clustermodus, de opslagbackend en het besturingssysteem."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "In clustermodus bereikt een wijziging elk proces binnen een minuut.",
       "description": "Verstuur een rapport naar Sentry wanneer de server crasht. Standaard aan; je kunt het hier altijd uitzetten.",
-      "forced_off": "De omgevingsvariabele ERROR_REPORTING=off of DO_NOT_TRACK=1 zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
+      "forced_off": "De omgevingsvariabele ERROR_REPORTING=off zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
       "title": "Foutrapporten"
     },
     "telemetry": {
       "description": "Verstuur anonieme statistieken over hoe deze installatie is ingesteld, hooguit één keer per dag. Standaard aan; je kunt het hier altijd uitzetten.",
-      "forced_off": "De omgevingsvariabele TELEMETRY=off of DO_NOT_TRACK=1 zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
+      "forced_off": "De omgevingsvariabele TELEMETRY=off zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
       "id_note": "De instantie-ID wordt aangemaakt zolang dit aan staat en verwijderd als je het uitzet. Als je het weer aanzet, wordt er een nieuwe aangemaakt.",
       "payload_off": "Er wordt niets verstuurd zolang dit uit staat. Dit is wat een gebruiksping zou bevatten als je het aanzette.",
       "payload_title": "Wat de volgende gebruiksping verstuurt",

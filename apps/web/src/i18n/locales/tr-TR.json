@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Hata raporları gönder",
-    "never_sent": "Asla gönderilmez: hata iletileri, URL'ler, başlıklar, webhook URL'leri, adlar veya ana makine adları. Bir rapor IP adresi içermez ve Peekaping'in Sentry projesi gönderenin IP'sini saklamayacak şekilde ayarlanmıştır. Kendi ERROR_REPORTING_DSN'inizi kullanırsanız bunu kendi Sentry veya GlitchTip ayarlarınız belirler.",
+    "never_sent": "Asla gönderilmez: hata iletileri, URL'ler, başlıklar, webhook URL'leri, adlar veya ana makine adları. Bir rapor IP adresi içermez ve Peekaping'in Sentry projesi gönderenin IP'sini saklamayacak şekilde ayarlanmıştır.",
     "not_saved": "Hata raporlarına ilişkin tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden kontrol edin.",
     "sent": "Yalnızca Peekaping'in kendisi çöktüğünde gönderilir. Bir rapor, hatanın türünü ve kodda nerede oluştuğunu, Peekaping sürümünü, tekli veya küme modunu, depolama arka ucunu ve işletim sistemini içerir."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "Küme modunda bir değişiklik her sürece bir dakika içinde ulaşır.",
       "description": "Sunucu çöktüğünde Sentry'ye bir rapor gönderin. Varsayılan olarak açıktır; buradan istediğiniz zaman kapatabilirsiniz.",
-      "forced_off": "ERROR_REPORTING=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
+      "forced_off": "ERROR_REPORTING=off ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
       "title": "Hata raporları"
     },
     "telemetry": {
       "description": "Bu kurulumun nasıl yapılandırıldığına dair anonim istatistikleri günde en fazla bir kez gönderin. Varsayılan olarak açıktır; buradan istediğiniz zaman kapatabilirsiniz.",
-      "forced_off": "TELEMETRY=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
+      "forced_off": "TELEMETRY=off ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
       "id_note": "Örnek kimliği, bu seçenek açık olduğu sürece oluşturulur ve kapattığınızda silinir. Yeniden açarsanız yeni bir kimlik oluşturulur.",
       "payload_off": "Bu kapalıyken hiçbir şey gönderilmez. Açsaydınız bir kullanım ping'i şunları içerirdi.",
       "payload_title": "Bir sonraki kullanım ping'inin göndereceği veriler",

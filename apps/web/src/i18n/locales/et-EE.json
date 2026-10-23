@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Saada veaaruandeid",
-    "never_sent": "Ei saadeta kunagi: veateateid, URL-e, päiseid, veebikonksu URL-e, nimesid ega hostinimesid. Aruanne ei sisalda IP-aadressi ning Peekapingi Sentry projekt on seadistatud saatja IP-d mitte salvestama. Oma ERROR_REPORTING_DSN-i korral otsustavad selle teie Sentry või GlitchTipi seaded.",
+    "never_sent": "Ei saadeta kunagi: veateateid, URL-e, päiseid, veebikonksu URL-e, nimesid ega hostinimesid. Aruanne ei sisalda IP-aadressi ning Peekapingi Sentry projekt on seadistatud saatja IP-d mitte salvestama.",
     "not_saved": "Teie valikut veaaruannete kohta ei salvestatud. Kontrollige seda jaotises „Seaded“.",
     "sent": "Saadetakse ainult siis, kui Peekaping ise kokku jookseb. Aruanne sisaldab vea tüüpi ja kohta koodis, kus see juhtus, Peekapingi versiooni, ühe- või klastrirežiimi, andmesalve ning operatsioonisüsteemi."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "Klastrirežiimis jõuab muudatus kõigi protsessideni ühe minuti jooksul.",
       "description": "Saada aruanne Sentryle, kui server kokku jookseb. Vaikimisi sisse lülitatud; saate selle siin igal ajal välja lülitada.",
-      "forced_off": "Keskkonnamuutuja ERROR_REPORTING=off või DO_NOT_TRACK=1 lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
+      "forced_off": "Keskkonnamuutuja ERROR_REPORTING=off lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
       "title": "Veaaruanded"
     },
     "telemetry": {
       "description": "Saada anonüümset statistikat selle kohta, kuidas see paigaldus on seadistatud, kõige rohkem kord päevas. Vaikimisi sisse lülitatud; saate selle siin igal ajal välja lülitada.",
-      "forced_off": "Keskkonnamuutuja TELEMETRY=off või DO_NOT_TRACK=1 lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
+      "forced_off": "Keskkonnamuutuja TELEMETRY=off lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
       "id_note": "Eksemplari ID luuakse sisselülitatud oleku ajal ja kustutatakse väljalülitamisel. Uuesti sisselülitamisel luuakse uus.",
       "payload_off": "Kuni see on välja lülitatud, ei saadeta midagi. Selline oleks kasutusping, kui selle sisse lülitaksite.",
       "payload_title": "Mida järgmine kasutusping saadab",

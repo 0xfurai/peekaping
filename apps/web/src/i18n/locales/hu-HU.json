@@ -88,7 +88,7 @@
   },
   "error_reporting": {
     "label": "Hibajelentések küldése",
-    "never_sent": "Soha nem küld: hibaüzeneteket, URL-eket, fejléceket, webhook-URL-eket, neveket vagy gazdagépneveket. A jelentés nem tartalmaz IP-címet, és a Peekaping Sentry-projektje úgy van beállítva, hogy ne tárolja a küldő IP-címét. Saját ERROR_REPORTING_DSN esetén a saját Sentry vagy GlitchTip beállításai döntenek.",
+    "never_sent": "Soha nem küld: hibaüzeneteket, URL-eket, fejléceket, webhook-URL-eket, neveket vagy gazdagépneveket. A jelentés nem tartalmaz IP-címet, és a Peekaping Sentry-projektje úgy van beállítva, hogy ne tárolja a küldő IP-címét.",
     "not_saved": "A hibajelentésekre vonatkozó választását nem mentettük. Ellenőrizze a „Beállítások” részben.",
     "sent": "Csak akkor küld, ha maga a Peekaping összeomlik. A jelentés tartalmazza a hiba típusát és a kód azon helyét, ahol történt, a Peekaping verzióját, az egyedi vagy fürt üzemmódot, a tárolási háttérrendszert és az operációs rendszert."
   },
@@ -1283,12 +1283,12 @@
     "error_reporting": {
       "cluster_note": "Fürt üzemmódban a módosítás egy percen belül eléri az összes folyamatot.",
       "description": "Jelentés küldése a Sentrynek, ha a kiszolgáló összeomlik. Alapértelmezés szerint be van kapcsolva; itt bármikor kikapcsolhatja.",
-      "forced_off": "A ERROR_REPORTING=off vagy a DO_NOT_TRACK=1 környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
+      "forced_off": "A ERROR_REPORTING=off környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
       "title": "Hibajelentések"
     },
     "telemetry": {
       "description": "Névtelen statisztikák küldése arról, hogyan van beállítva ez a telepítés, naponta legfeljebb egyszer. Alapértelmezés szerint be van kapcsolva; itt bármikor kikapcsolhatja.",
-      "forced_off": "A TELEMETRY=off vagy a DO_NOT_TRACK=1 környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
+      "forced_off": "A TELEMETRY=off környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
       "id_note": "A példányazonosító addig jön létre, amíg ez be van kapcsolva, kikapcsoláskor pedig törlődik. Újabb bekapcsoláskor új jön létre.",
       "payload_off": "Amíg ez ki van kapcsolva, semmi sem kerül elküldésre. Ezt tartalmazná a használati ping, ha bekapcsolná.",
       "payload_title": "Mit küld el a következő használati ping",
