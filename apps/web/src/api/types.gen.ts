@@ -340,6 +340,7 @@ export type MonitorCreateUpdateDto = {
   max_retries?: number;
   name: string;
   notification_ids: Array<string>;
+  probe_ids?: Array<string> | null;
   proxy_id?: string;
   push_token?: string;
   resend_interval?: number;
@@ -353,6 +354,7 @@ export type MonitorCreateUpdateDto = {
     | string
     | number
     | Array<string>
+    | (Array<string> | null)
     | (Array<string> | null)
     | undefined;
 };
@@ -373,6 +375,7 @@ export type MonitorModel = {
   last_heartbeat?: HeartbeatModel;
   max_retries: number;
   name: string;
+  probe_ids: Array<string> | null;
   proxy_id: string;
   push_token: string;
   resend_interval: number;
@@ -393,6 +396,7 @@ export type MonitorMonitorResponseDto = {
   max_retries: number;
   name: string;
   notification_ids: Array<string> | null;
+  probe_ids: Array<string> | null;
   proxy_id: string;
   push_token: string;
   resend_interval: number;
@@ -412,6 +416,7 @@ export type MonitorPartialUpdateDto = {
   max_retries?: number | null;
   name?: string | null;
   notification_ids?: Array<string> | null;
+  probe_ids?: Array<string> | null;
   proxy_id?: string | null;
   push_token?: string | null;
   resend_interval?: number | null;
@@ -427,6 +432,7 @@ export type MonitorPartialUpdateDto = {
     | (number | null)
     | (number | null)
     | (string | null)
+    | (Array<string> | null)
     | (Array<string> | null)
     | (string | null)
     | (string | null)

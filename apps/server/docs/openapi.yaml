@@ -794,6 +794,14 @@ components:
           items:
             type: string
           type: array
+        probe_ids:
+          examples:
+            - - local
+          items:
+            type: string
+          type:
+            - array
+            - "null"
         proxy_id:
           examples:
             - 6830ad485361f19c598d6d90
@@ -889,6 +897,12 @@ components:
           examples:
             - Monitor
           type: string
+        probe_ids:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
         proxy_id:
           type: string
         push_token:
@@ -935,6 +949,7 @@ components:
         - config
         - proxy_id
         - push_token
+        - probe_ids
         - created_at
         - updated_at
       type: object
@@ -973,6 +988,14 @@ components:
         notification_ids:
           examples:
             - - 6830ad485361f19c598d6d90
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        probe_ids:
+          examples:
+            - - local
           items:
             type: string
           type:
@@ -1042,6 +1065,7 @@ components:
         - proxy_id
         - config
         - push_token
+        - probe_ids
       type: object
     monitor.PartialUpdateDto:
       additionalProperties: true
@@ -1079,6 +1103,14 @@ components:
         notification_ids:
           examples:
             - - 6830ad485361f19c598d6d90
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        probe_ids:
+          examples:
+            - - local
           items:
             type: string
           type:
