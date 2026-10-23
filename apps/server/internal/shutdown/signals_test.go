@@ -1,6 +1,6 @@
 //go:build unix
 
-package main
+package shutdown_test
 
 import (
 	"os"
@@ -8,14 +8,16 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/shutdown"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestNotifyShutdown_ASecondSignalExitsWithoutWaitingForTheShutdown(t *testing.T) {
+func TestNotifySignals_ASecondSignalExitsWithoutWaitingForTheShutdown(t *testing.T) {
 	logger, logs := observedLogger()
 	exited := make(chan int, 1)
-	ctx, stop := notifyShutdown(logger, func(code int) { exited <- code })
+	ctx, stop := shutdown.NotifySignals(logger, func(code int) { exited <- code })
 	t.Cleanup(stop)
 
 	require.NoError(t, syscall.Kill(os.Getpid(), syscall.SIGTERM))

@@ -17,6 +17,7 @@ import (
 
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
+	graceful "peekaping/internal/shutdown"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -116,7 +117,7 @@ func TestRun_ShutsDownInOrderOnceTheRequestsInFlightAreAnswered(t *testing.T) {
 	select {
 	case err := <-stopped:
 		require.NoError(t, err, "run returns nil, so peekaping exits 0")
-	case <-time.After(shutdownTimeouts.total()):
+	case <-time.After(shutdownTimeouts.Total()):
 		require.FailNow(t, "run didn't return within the shutdown deadline")
 	}
 	t.Logf("shut down in %s", time.Since(startedAt).Round(time.Millisecond))
@@ -212,7 +213,7 @@ func (in *instance) ingestWaitingForTheDatabase(t *testing.T, cfg *Config) (moni
 
 func TestRun_ClosesTheDatabaseOnlyOnceTheSchedulerHasStoppedEvenAfterTheHTTPServerRanLate(t *testing.T) {
 	// A request in flight uses up the HTTP server's share of the shutdown
-	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	defer func(saved graceful.Timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
 	shutdownTimeouts.HTTP = 300 * time.Millisecond
 	cfg := loadConfig(t, nil)
 	logger, logs := observedLogger()
@@ -233,7 +234,7 @@ func TestRun_ClosesTheDatabaseOnlyOnceTheSchedulerHasStoppedEvenAfterTheHTTPServ
 	var err error
 	select {
 	case err = <-stopped:
-	case <-time.After(shutdownTimeouts.total()):
+	case <-time.After(shutdownTimeouts.Total()):
 		require.FailNow(t, "run didn't return within the shutdown deadline")
 	}
 	require.Error(t, err, "the HTTP server didn't stop in time")
@@ -254,7 +255,7 @@ func TestRun_ClosesTheDatabaseOnlyOnceTheSchedulerHasStoppedEvenAfterTheHTTPServ
 }
 
 func TestRun_LeavesTheDatabaseOpenWhenTheSchedulerDoesntStopInTime(t *testing.T) {
-	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	defer func(saved graceful.Timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
 	shutdownTimeouts.Jobs = 300 * time.Millisecond
 	cfg := loadConfig(t, nil)
 	logger, logs := observedLogger()
@@ -305,7 +306,7 @@ func (in *instance) createWaitingForTheDatabase(t *testing.T, cfg *Config) (unlo
 
 func TestRun_ClosesTheDatabaseOnlyOnceAnHTTPHandlerTheHTTPServerLeftRunningHasReturned(t *testing.T) {
 	// The handler outlives the HTTP server's share
-	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	defer func(saved graceful.Timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
 	shutdownTimeouts.HTTP = 300 * time.Millisecond
 	cfg := loadConfig(t, nil)
 	logger, logs := observedLogger()
@@ -324,7 +325,7 @@ func TestRun_ClosesTheDatabaseOnlyOnceAnHTTPHandlerTheHTTPServerLeftRunningHasRe
 	var err error
 	select {
 	case err = <-stopped:
-	case <-time.After(shutdownTimeouts.total()):
+	case <-time.After(shutdownTimeouts.Total()):
 		require.FailNow(t, "run didn't return within the shutdown deadline")
 	}
 	require.Error(t, err, "the HTTP server didn't stop in time")
@@ -349,7 +350,7 @@ func TestRun_ClosesTheDatabaseOnlyOnceAnHTTPHandlerTheHTTPServerLeftRunningHasRe
 
 func TestRun_LeavesTheDatabaseOpenWhenAnHTTPHandlerDoesntReturnInTime(t *testing.T) {
 	// The handler outlives the HTTP server's share and the background jobs' share
-	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	defer func(saved graceful.Timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
 	shutdownTimeouts.HTTP = 300 * time.Millisecond
 	shutdownTimeouts.Jobs = 300 * time.Millisecond
 	cfg := loadConfig(t, nil)
