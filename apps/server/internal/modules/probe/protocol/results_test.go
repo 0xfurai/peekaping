@@ -41,6 +41,7 @@ const (
 	monPaused    = "0a1b2c3d-0001-4000-8000-000000000005"
 	monElsewhere = "0a1b2c3d-0001-4000-8000-000000000006"
 	monGone      = "0a1b2c3d-0001-4000-8000-000000000007"
+	monSkipped   = "0a1b2c3d-0001-4000-8000-000000000008"
 )
 
 // recordingIngester is the ingester.Service of a test: it keeps what it was asked to store, and
@@ -140,20 +141,23 @@ type resultsServer struct {
 	maintenance *fakeMaintenance
 }
 
-// The monitors of the tests. probe-1 owns the active ones.
+// The monitors of the tests. probe-1 owns the active ones, and the source lists them. The others it
+// doesn't list: a paused one, another probe's, and one that a listing paged past.
 func resultsMonitors() (owned []*monitor.Model, others []*monitor.Model) {
 	checkout := &monitor.Model{
 		ID: monCheckout, Name: "Checkout", Type: "http", Active: true,
 		Interval: 60, Timeout: 16, MaxRetries: 3, RetryInterval: 30, ResendInterval: 10,
-		Config: `{"url":"https://example.com/health","check_cert_expiry":true}`,
+		Config:   `{"url":"https://example.com/health","check_cert_expiry":true}`,
+		ProbeIDs: []string{"probe-1"},
 	}
-	search := &monitor.Model{ID: monSearch, Name: "Search", Type: "tcp", Active: true, Interval: 30, Timeout: 10, Config: `{"host":"search.example.com","port":9200}`}
-	nightly := &monitor.Model{ID: monNightly, Name: "Nightly", Type: "push", Active: true, Config: `{"pushToken":"t"}`}
-	dns := &monitor.Model{ID: monDNS, Name: "DNS", Type: "dns", Active: true}
-	paused := &monitor.Model{ID: monPaused, Name: "Paused", Type: "http", Active: false}
-	elsewhere := &monitor.Model{ID: monElsewhere, Name: "Elsewhere", Type: "http", Active: true}
+	search := &monitor.Model{ID: monSearch, Name: "Search", Type: "tcp", Active: true, Interval: 30, Timeout: 10, Config: `{"host":"search.example.com","port":9200}`, ProbeIDs: []string{"probe-1"}}
+	nightly := &monitor.Model{ID: monNightly, Name: "Nightly", Type: "push", Active: true, Config: `{"pushToken":"t"}`, ProbeIDs: []string{"probe-1"}}
+	dns := &monitor.Model{ID: monDNS, Name: "DNS", Type: "dns", Active: true, ProbeIDs: []string{"probe-1"}}
+	paused := &monitor.Model{ID: monPaused, Name: "Paused", Type: "http", Active: false, ProbeIDs: []string{"probe-1"}}
+	elsewhere := &monitor.Model{ID: monElsewhere, Name: "Elsewhere", Type: "http", Active: true, ProbeIDs: []string{"probe-2"}}
+	skipped := &monitor.Model{ID: monSkipped, Name: "Skipped", Type: "http", Active: true, Interval: 60, Timeout: 16, Config: `{"url":"https://example.com/skipped"}`, ProbeIDs: []string{"probe-1"}}
 	// The source lists the active monitors of the probe, push monitors and types the probe can't run included
-	return []*monitor.Model{checkout, search, nightly, dns}, []*monitor.Model{paused, elsewhere}
+	return []*monitor.Model{checkout, search, nightly, dns}, []*monitor.Model{paused, elsewhere, skipped}
 }
 
 func newResultsServer(t *testing.T) *resultsServer {
@@ -301,6 +305,23 @@ func TestResults_RejectsUnknownNotAssignedTooOldDuplicateInvalid(t *testing.T) {
 			assert.Equal(t, recent.Add(time.Second), s.ingest.stored[0].StartTime)
 		})
 	}
+}
+
+func TestResults_AcceptsAResultOfAMonitorTheListingSkipped(t *testing.T) {
+	// Paging by offset skips a monitor when another is paused or deleted during the scan. The probe
+	// drops a result that is not_assigned for good, so the monitor's own read decides.
+	s := newResultsServer(t)
+	for _, m := range s.source.active {
+		require.NotEqual(t, monSkipped, m.ID, "the listing leaves the monitor out")
+	}
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t, checkResult("skipped", monSkipped, start), checkResult("control", monCheckout, start.Add(time.Second)))
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("skipped"), accepted("control")}, got)
+	require.Len(t, s.ingest.storedFor(monSkipped), 1)
+	assert.Equal(t, "Skipped", s.ingest.storedFor(monSkipped)[0].MonitorName, "it is stored with the monitor's own settings")
+	assert.Equal(t, []string{monSkipped}, s.monitors.finds)
 }
 
 func TestResults_NonUUIDMonitorIDIsUnknownMonitor(t *testing.T) {
