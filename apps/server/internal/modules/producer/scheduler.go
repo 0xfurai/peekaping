@@ -6,9 +6,12 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+
+	"peekaping/internal/modules/shared"
 )
 
-// initializeSchedule loads all active monitors and schedules them in a paginated manner
+// initializeSchedule loads all active monitors of the local probe and schedules them in a
+// paginated manner. A remote probe checks the monitors it runs, so they are left out.
 func (p *Producer) initializeSchedule() error {
 	p.logger.Info("Initializing schedule with active monitors")
 
@@ -48,7 +51,7 @@ func (p *Producer) initializeSchedule() error {
 
 	// Process monitors in pages
 	for {
-		monitors, err := p.monitorService.FindActivePaginated(p.ctx, page, pageSize)
+		monitors, err := p.monitorService.FindActiveByProbe(p.ctx, shared.LocalProbeID, page, pageSize)
 		if err != nil {
 			return fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
 		}
@@ -199,7 +202,8 @@ func (p *Producer) runScheduleRefresher(syncCtx context.Context) {
 	}
 }
 
-// refreshSchedule updates the schedule with any new or updated monitors in a paginated manner
+// refreshSchedule updates the schedule with any new or updated monitors of the local probe in a
+// paginated manner. A monitor that moved to a remote probe leaves the schedule.
 func (p *Producer) refreshSchedule() error {
 	// Pagination settings
 	const pageSize = 100
@@ -210,7 +214,7 @@ func (p *Producer) refreshSchedule() error {
 
 	// Process monitors in pages
 	for {
-		monitors, err := p.monitorService.FindActivePaginated(p.ctx, page, pageSize)
+		monitors, err := p.monitorService.FindActiveByProbe(p.ctx, shared.LocalProbeID, page, pageSize)
 		if err != nil {
 			return fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
 		}
@@ -349,8 +353,8 @@ func (p *Producer) scheduleMonitor(ctx context.Context, monitorID string, interv
 	return nil
 }
 
-// RunNow gets the monitor checked right away, without waiting for its next scheduled check.
-// It implements stale.Rechecker.
+// RunNow gets the monitor checked right away, without waiting for its next scheduled check. It
+// refuses a monitor that a remote probe runs. It implements stale.Rechecker.
 func (p *Producer) RunNow(ctx context.Context, monitorID string) error {
 	mon, err := p.monitorService.FindByID(ctx, monitorID)
 	if err != nil {
@@ -358,6 +362,9 @@ func (p *Producer) RunNow(ctx context.Context, monitorID string) error {
 	}
 	if mon == nil {
 		return fmt.Errorf("monitor %s not found", monitorID)
+	}
+	if !mon.RunsOn(shared.LocalProbeID) {
+		return fmt.Errorf("monitor %s runs on a remote probe", monitorID)
 	}
 	return p.scheduleMonitor(ctx, monitorID, mon.Interval, true)
 }
@@ -388,8 +395,8 @@ func (p *Producer) AddMonitor(ctx context.Context, monitorID string) error {
 		return fmt.Errorf("failed to find monitor: %w", err)
 	}
 
-	if !mon.Active || mon.Interval <= 0 {
-		p.logger.Infow("Skipping inactive or invalid monitor", "monitor_id", monitorID, "active", mon.Active, "interval", mon.Interval)
+	if !mon.Active || mon.Interval <= 0 || !mon.RunsOn(shared.LocalProbeID) {
+		p.logger.Infow("Skipping inactive, invalid or remote monitor", "monitor_id", monitorID, "active", mon.Active, "interval", mon.Interval, "probe_ids", mon.ProbeIDs)
 		return nil
 	}
 
@@ -411,6 +418,12 @@ func (p *Producer) UpdateMonitor(ctx context.Context, monitorID string) error {
 	if !mon.Active {
 		// If monitor is no longer active, unschedule it
 		p.logger.Infow("Monitor became inactive, unscheduling", "monitor_id", monitorID)
+		return p.UnscheduleMonitor(ctx, monitorID)
+	}
+
+	if !mon.RunsOn(shared.LocalProbeID) {
+		// A remote probe checks it now
+		p.logger.Infow("Monitor moved to a remote probe, unscheduling", "monitor_id", monitorID, "probe_ids", mon.ProbeIDs)
 		return p.UnscheduleMonitor(ctx, monitorID)
 	}
 
