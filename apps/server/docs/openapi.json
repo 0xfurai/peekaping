@@ -1205,7 +1205,7 @@
         ],
         "type": "object"
       },
-      "monitor.Model": {
+      "monitor.MonitorResponseDto": {
         "additionalProperties": false,
         "properties": {
           "active": {
@@ -1244,116 +1244,6 @@
             ],
             "type": "string"
           },
-          "proxy_id": {
-            "type": "string"
-          },
-          "push_token": {
-            "type": "string"
-          },
-          "resend_interval": {
-            "examples": [
-              10
-            ],
-            "format": "int64",
-            "type": "integer"
-          },
-          "retry_interval": {
-            "examples": [
-              60
-            ],
-            "format": "int64",
-            "type": "integer"
-          },
-          "stale_since": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "status": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "timeout": {
-            "examples": [
-              16
-            ],
-            "format": "int64",
-            "type": "integer"
-          },
-          "type": {
-            "examples": [
-              "http"
-            ],
-            "type": "string"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "type",
-          "name",
-          "interval",
-          "timeout",
-          "max_retries",
-          "retry_interval",
-          "resend_interval",
-          "active",
-          "status",
-          "config",
-          "proxy_id",
-          "push_token",
-          "created_at",
-          "updated_at"
-        ],
-        "type": "object"
-      },
-      "monitor.MonitorResponseDto": {
-        "additionalProperties": false,
-        "properties": {
-          "active": {
-            "default": true,
-            "examples": [
-              true
-            ],
-            "type": "boolean"
-          },
-          "config": {
-            "type": "string"
-          },
-          "created_at": {
-            "examples": [
-              "2024-06-01T12:00:00Z"
-            ],
-            "type": "string"
-          },
-          "id": {
-            "examples": [
-              "60c72b2f9b1e8b6f1f8e4b1a"
-            ],
-            "type": "string"
-          },
-          "interval": {
-            "examples": [
-              60
-            ],
-            "format": "int64",
-            "type": "integer"
-          },
-          "max_retries": {
-            "examples": [
-              3
-            ],
-            "format": "int64",
-            "type": "integer"
-          },
-          "name": {
-            "examples": [
-              "My Monitor"
-            ],
-            "type": "string"
-          },
           "notification_ids": {
             "examples": [
               [
@@ -1369,9 +1259,6 @@
             ]
           },
           "proxy_id": {
-            "examples": [
-              "6830ad485361f19c598d6d90"
-            ],
             "type": "string"
           },
           "push_token": {
@@ -1379,14 +1266,14 @@
           },
           "resend_interval": {
             "examples": [
-              3
+              10
             ],
             "format": "int64",
             "type": "integer"
           },
           "retry_interval": {
             "examples": [
-              10
+              60
             ],
             "format": "int64",
             "type": "integer"
@@ -1396,9 +1283,6 @@
             "type": "string"
           },
           "status": {
-            "examples": [
-              1
-            ],
             "format": "int64",
             "type": "integer"
           },
@@ -1419,7 +1303,7 @@
           },
           "timeout": {
             "examples": [
-              10
+              16
             ],
             "format": "int64",
             "type": "integer"
@@ -1431,30 +1315,28 @@
             "type": "string"
           },
           "updated_at": {
-            "examples": [
-              "2024-06-01T12:00:00Z"
-            ],
+            "format": "date-time",
             "type": "string"
           }
         },
         "required": [
+          "notification_ids",
+          "tag_ids",
           "id",
+          "type",
           "name",
           "interval",
           "timeout",
-          "type",
-          "active",
-          "status",
           "max_retries",
           "retry_interval",
           "resend_interval",
-          "created_at",
-          "updated_at",
-          "notification_ids",
-          "tag_ids",
-          "proxy_id",
+          "active",
+          "status",
           "config",
-          "push_token"
+          "proxy_id",
+          "push_token",
+          "created_at",
+          "updated_at"
         ],
         "type": "object"
       },
@@ -3140,12 +3022,12 @@
         ],
         "type": "object"
       },
-      "utils.ApiResponse_Array_monitor.Model": {
+      "utils.ApiResponse_Array_monitor.MonitorResponseDto": {
         "additionalProperties": false,
         "properties": {
           "data": {
             "items": {
-              "$ref": "#/components/schemas/monitor.Model"
+              "$ref": "#/components/schemas/monitor.MonitorResponseDto"
             },
             "type": [
               "array",
@@ -3395,22 +3277,6 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/monitor.CustomUptimeStatsDto"
-          },
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "message",
-          "data"
-        ],
-        "type": "object"
-      },
-      "utils.ApiResponse_monitor.Model": {
-        "additionalProperties": false,
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/monitor.Model"
           },
           "message": {
             "type": "string"
@@ -6645,7 +6511,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_Array_monitor.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_Array_monitor.MonitorResponseDto"
                 }
               }
             },
@@ -6712,7 +6578,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_monitor.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_monitor.MonitorResponseDto"
                 }
               }
             },
@@ -6783,7 +6649,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_Array_monitor.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_Array_monitor.MonitorResponseDto"
                 }
               }
             },
@@ -7002,7 +6868,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_monitor.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_monitor.MonitorResponseDto"
                 }
               }
             },
@@ -7091,7 +6957,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_monitor.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_monitor.MonitorResponseDto"
                 }
               }
             },

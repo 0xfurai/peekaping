@@ -210,6 +210,121 @@ func monitorWithLinksBody(name string, channelIDs, tagIDs []string) map[string]a
 	return body
 }
 
+// linkedMonitors is an app with a monitor that has a channel and a tag, a monitor that has
+// neither, and a second channel and tag to link to.
+type linkedMonitors struct {
+	channelA, channelB, tagA, tagB string
+	linked, bare                   string
+}
+
+func (a *app) createLinkedMonitors(t *testing.T) linkedMonitors {
+	t.Helper()
+	f := linkedMonitors{
+		channelA: a.createChannel(t, "Channel A"), channelB: a.createChannel(t, "Channel B"),
+		tagA: a.createTag(t, "Tag A"), tagB: a.createTag(t, "Tag B"),
+	}
+	f.linked = decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", monitorWithLinksBody("Linked", []string{f.channelA}, []string{f.tagA}), a.asAdmin), http.StatusCreated).ID
+	f.bare = a.createMonitor(t, "Bare", "bare-token")
+	return f
+}
+
+// withoutIDs clears the IDs, which a test can't know for a monitor it is about to create.
+func withoutIDs(monitors []monitorWithLinks) []monitorWithLinks {
+	cleared := make([]monitorWithLinks, len(monitors))
+	for i, m := range monitors {
+		m.ID = ""
+		cleared[i] = m
+	}
+	return cleared
+}
+
+func TestMonitorsAPI_EveryEndpointReturnsTheLinks(t *testing.T) {
+	linked := func(f linkedMonitors) monitorWithLinks {
+		return monitorWithLinks{Name: "Linked", Interval: 60, NotificationIDs: []string{f.channelA}, TagIDs: []string{f.tagA}}
+	}
+	bare := monitorWithLinks{Name: "Bare", Interval: 60, NotificationIDs: []string{}, TagIDs: []string{}}
+
+	for _, tc := range []struct {
+		name string
+		// send makes the request and returns the monitors the response holds
+		send func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks
+		want func(f linkedMonitors) []monitorWithLinks
+	}{
+		{"list", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			return decode[[]monitorWithLinks](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
+		}, func(f linkedMonitors) []monitorWithLinks { return []monitorWithLinks{linked(f), bare} }},
+
+		{"batch", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			return decode[[]monitorWithLinks](t, a.request(t, http.MethodGet, "/api/v1/monitors/batch?ids="+f.linked+","+f.bare, nil, a.asAdmin), http.StatusOK)
+		}, func(f linkedMonitors) []monitorWithLinks { return []monitorWithLinks{linked(f), bare} }},
+
+		{"create with links", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := monitorWithLinksBody("Created", []string{f.channelB}, []string{f.tagB})
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Created", Interval: 60, NotificationIDs: []string{f.channelB}, TagIDs: []string{f.tagB}}}
+		}},
+
+		{"create without links", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := pushMonitorBody("Created", "created-token")
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Created", Interval: 60, NotificationIDs: []string{}, TagIDs: []string{}}}
+		}},
+
+		{"full update with other links", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := monitorWithLinksBody("Linked", []string{f.channelB}, []string{f.tagB})
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+f.linked, body, a.asAdmin), http.StatusOK)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Linked", Interval: 60, NotificationIDs: []string{f.channelB}, TagIDs: []string{f.tagB}}}
+		}},
+
+		{"full update with no links", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := monitorWithLinksBody("Linked", []string{}, []string{})
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+f.linked, body, a.asAdmin), http.StatusOK)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Linked", Interval: 60, NotificationIDs: []string{}, TagIDs: []string{}}}
+		}},
+
+		{"partial update with IDs", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := map[string]any{"notification_ids": []string{f.channelB}, "tag_ids": []string{f.tagB}}
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+f.linked, body, a.asAdmin), http.StatusOK)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Linked", Interval: 60, NotificationIDs: []string{f.channelB}, TagIDs: []string{f.tagB}}}
+		}},
+
+		{"partial update without IDs", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+f.linked, map[string]any{"interval": 90}, a.asAdmin), http.StatusOK)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Linked", Interval: 90, NotificationIDs: []string{f.channelA}, TagIDs: []string{f.tagA}}}
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+			f := a.createLinkedMonitors(t)
+
+			got := tc.send(t, a, f)
+
+			assert.ElementsMatch(t, tc.want(f), withoutIDs(got))
+		})
+	}
+}
+
+func TestMonitorsAPI_GetByIDAnswersWithTheFieldsOfTheList(t *testing.T) {
+	a := newAppWithAdmin(t)
+	channelID, tagID := a.createChannel(t, "Channel A"), a.createTag(t, "Tag A")
+	id := decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", monitorWithLinksBody("Linked", []string{channelID}, []string{tagID}), a.asAdmin), http.StatusCreated).ID
+
+	byID := decode[map[string]any](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin), http.StatusOK)
+	list := decode[[]map[string]any](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
+
+	require.Len(t, list, 1)
+	assert.Equal(t, list[0], byID, "one monitor, the same fields from both endpoints")
+	assert.Equal(t, "Linked-token", byID["push_token"], "the push token sent on create")
+	assert.Equal(t, []any{channelID}, byID["notification_ids"])
+	assert.Equal(t, []any{tagID}, byID["tag_ids"])
+}
+
 func TestMonitorsAPI_FullUpdateReplacesTheLinks(t *testing.T) {
 	a := newAppWithAdmin(t)
 	channelA, channelB := a.createChannel(t, "Channel A"), a.createChannel(t, "Channel B")

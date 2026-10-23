@@ -2,9 +2,9 @@ package monitor
 
 import (
 	"encoding/json"
-	"time"
 
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
 )
 
@@ -75,27 +75,12 @@ type UptimeStatsDto struct {
 	Uptime365d float64 `json:"365d"`
 }
 
+// MonitorResponseDto is a monitor as the API returns it: the monitor itself and the IDs of the
+// notification channels and tags linked to it. A monitor with none gets empty lists.
 type MonitorResponseDto struct {
-	ID              string   `json:"id" example:"60c72b2f9b1e8b6f1f8e4b1a"`
-	Name            string   `json:"name" example:"My Monitor"`
-	Interval        int      `json:"interval" example:"60"`
-	Timeout         int      `json:"timeout" example:"10"`
-	Type            string   `json:"type" example:"http"`
-	Active          bool     `json:"active" example:"true" default:"true"`
-	Status          int      `json:"status" example:"1"`
-	MaxRetries      int      `json:"max_retries" example:"3"`
-	RetryInterval   int      `json:"retry_interval" example:"10"`
-	ResendInterval  int      `json:"resend_interval" example:"3"`
-	CreatedAt       string   `json:"created_at" example:"2024-06-01T12:00:00Z"`
-	UpdatedAt       string   `json:"updated_at" example:"2024-06-01T12:00:00Z"`
+	shared.Monitor
 	NotificationIds []string `json:"notification_ids" example:"6830ad485361f19c598d6d90"`
 	TagIds          []string `json:"tag_ids" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
-	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
-	Config          string   `json:"config"`
-	PushToken       string   `json:"push_token"`
-	// The later of the latest heartbeat and the monitor's last save or resume,
-	// set only while the stale-monitor watchdog counts it as stale
-	StaleSince *time.Time `json:"stale_since,omitempty"`
 }
 
 // StatPointsSummaryDto represents stat points and summary for a period

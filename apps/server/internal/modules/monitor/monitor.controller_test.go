@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/monitor_notification"
+	"peekaping/internal/modules/monitor_tag"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/stretchr/testify/assert"
@@ -26,9 +28,22 @@ func (creatingService) Create(_ context.Context, dto *CreateUpdateDto) (*Model, 
 	return &Model{ID: "mon-1", Type: dto.Type, Name: dto.Name, Config: dto.Config}, nil
 }
 
+// unlinkedNotifications and unlinkedTags are link services whose monitors have no links.
+type unlinkedNotifications struct{ monitor_notification.Service }
+
+func (unlinkedNotifications) FindByMonitorID(context.Context, string) ([]*monitor_notification.Model, error) {
+	return nil, nil
+}
+
+type unlinkedTags struct{ monitor_tag.Service }
+
+func (unlinkedTags) FindByMonitorID(context.Context, string) ([]*monitor_tag.Model, error) {
+	return nil, nil
+}
+
 func TestControllerCreateLogsTheMonitorsIDAndTypeButNotItsConfig(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
-	controller := NewMonitorController(creatingService{}, zap.New(core).Sugar(), nil, nil, nil, nil)
+	controller := NewMonitorController(creatingService{}, zap.New(core).Sugar(), unlinkedNotifications{}, unlinkedTags{}, nil, nil)
 	router := httpx.NewRouter()
 	httpx.Register(router, "POST", "/", huma.Operation{Errors: []int{400, 500}}, controller.Create)
 
