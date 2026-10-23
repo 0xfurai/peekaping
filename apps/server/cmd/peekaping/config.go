@@ -21,12 +21,13 @@ type Config struct {
 	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
 
 	// Database configuration. Single mode stores its data in SQLite or PostgreSQL.
-	DBHost string `env:"DB_HOST"`                           // validated in Validate()
-	DBPort string `env:"DB_PORT"`                           // validated in Validate()
-	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in Validate()
-	DBUser string `env:"DB_USER"`                           // validated in Validate()
-	DBPass string `env:"DB_PASS"`                           // validated in Validate()
-	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBHost    string `env:"DB_HOST"`                           // validated in Validate()
+	DBPort    string `env:"DB_PORT"`                           // validated in Validate()
+	DBName    string `env:"DB_NAME" validate:"required,min=1"` // validated in Validate()
+	DBUser    string `env:"DB_USER"`                           // validated in Validate()
+	DBPass    string `env:"DB_PASS"`                           // validated in Validate()
+	DBType    string `env:"DB_TYPE" validate:"required,db_type"`
+	DBSSLMode string `env:"DB_SSLMODE" validate:"omitempty,oneof=disable allow prefer require verify-ca verify-full" default:"disable"`
 
 	// Which check the process runs when it opens SQLite: quick (PRAGMA quick_check), full
 	// (PRAGMA integrity_check, which reads the whole file) or off. A finding stops startup.
@@ -136,12 +137,13 @@ func Validate(cfg *Config) error {
 
 	// Validate database-specific requirements
 	dbConfig := &config.DBConfig{
-		DBHost: cfg.DBHost,
-		DBPort: cfg.DBPort,
-		DBName: cfg.DBName,
-		DBUser: cfg.DBUser,
-		DBPass: cfg.DBPass,
-		DBType: cfg.DBType,
+		DBHost:    cfg.DBHost,
+		DBPort:    cfg.DBPort,
+		DBName:    cfg.DBName,
+		DBUser:    cfg.DBUser,
+		DBPass:    cfg.DBPass,
+		DBType:    cfg.DBType,
+		DBSSLMode: cfg.DBSSLMode,
 	}
 
 	if err := config.ValidateDatabaseCustomRules(dbConfig); err != nil {
@@ -220,6 +222,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		DBUser:                       c.DBUser,
 		DBPass:                       c.DBPass,
 		DBType:                       c.DBType,
+		DBSSLMode:                    c.DBSSLMode,
 		SQLiteStartupCheck:           c.SQLiteStartupCheck,
 		Mode:                         c.Mode,
 		LogLevel:                     c.LogLevel,
