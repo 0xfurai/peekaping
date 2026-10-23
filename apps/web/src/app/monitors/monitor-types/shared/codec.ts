@@ -1,8 +1,10 @@
 import type { MonitorCreateUpdateDto, MonitorMonitorResponseDto } from "@/api";
+import { LOCAL_PROBE_ID } from "@/app/probes/components/local-probe";
 import type { MonitorBaseValues } from "./schema";
 
 // The form values of the fields every monitor type has, read from a saved monitor. A field the
-// API left out gets the value a new monitor starts with.
+// API left out gets the value a new monitor starts with, and a monitor with no probe is on the
+// local one.
 export const deserializeMonitorBase = (data: MonitorMonitorResponseDto): MonitorBaseValues => ({
   name: data.name ?? "",
   interval: data.interval ?? 60,
@@ -12,6 +14,7 @@ export const deserializeMonitorBase = (data: MonitorMonitorResponseDto): Monitor
   resend_interval: data.resend_interval ?? 10,
   notification_ids: data.notification_ids ?? [],
   tag_ids: data.tag_ids ?? [],
+  probe_ids: data.probe_ids?.length ? data.probe_ids : [LOCAL_PROBE_ID],
 });
 
 // The request body fields every monitor type sends. The type's codec adds `type` and `config`.
@@ -27,6 +30,7 @@ export const serializeMonitorBase = (
   | "resend_interval"
   | "notification_ids"
   | "tag_ids"
+  | "probe_ids"
 > => ({
   name: values.name,
   interval: values.interval,
@@ -36,4 +40,5 @@ export const serializeMonitorBase = (
   resend_interval: values.resend_interval,
   notification_ids: values.notification_ids,
   tag_ids: values.tag_ids,
+  probe_ids: values.probe_ids,
 });
