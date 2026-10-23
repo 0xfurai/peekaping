@@ -651,7 +651,7 @@ func TestNotificationListener_ProbeOfflineAndOnline(t *testing.T) {
 			assert.Equal(t, tc.message, sent.message)
 			require.NotNil(t, sent.monitor, "the providers read the monitor's name and id, so they get a stand-in")
 			assert.Equal(t, "Probe Frankfurt", sent.monitor.Name)
-			assert.Equal(t, "probe-1", sent.monitor.ID, "which keeps one probe's alert apart from another's in a channel that deduplicates")
+			assert.Equal(t, "probe-1", sent.monitor.ID, "which keeps one probe's notification apart from another's in a channel that deduplicates")
 			assert.Nil(t, sent.heartbeat, "a probe notification carries no heartbeat")
 		})
 		t.Run(tc.topic.Name()+" for a probe with no channels", func(t *testing.T) {
