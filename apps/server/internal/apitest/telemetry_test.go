@@ -73,10 +73,6 @@ func withTelemetryEnv(value string) func(*config.Config) {
 	return func(cfg *config.Config) { cfg.Telemetry = value }
 }
 
-func withDoNotTrack(value string) func(*config.Config) {
-	return func(cfg *config.Config) { cfg.DoNotTrack = value }
-}
-
 // storedSetting returns the setting row for key, or nil
 func (a *app) storedSetting(t *testing.T, key string) *setting.Model {
 	t.Helper()
@@ -165,8 +161,7 @@ func TestTelemetryAPI_AnExplicitOptOutSurvivesARestart(t *testing.T) {
 
 func TestTelemetryAPI_KillSwitchesWinWhenNothingIsStored(t *testing.T) {
 	for name, option := range map[string]func(*config.Config){
-		"TELEMETRY=off":  withTelemetryEnv("off"),
-		"DO_NOT_TRACK=1": withDoNotTrack("1"),
+		"TELEMETRY=off": withTelemetryEnv("off"),
 	} {
 		t.Run(name, func(t *testing.T) {
 			a := newAppWithAdmin(t, option)
@@ -224,12 +219,10 @@ func TestTelemetryAPI_OptingOutTwiceChangesNothingTheSecondTime(t *testing.T) {
 
 func TestTelemetryAPI_ForcedOffByEnv(t *testing.T) {
 	for name, option := range map[string]func(*config.Config){
-		"TELEMETRY=off":     withTelemetryEnv("off"),
-		"TELEMETRY=false":   withTelemetryEnv("false"),
-		"TELEMETRY=0":       withTelemetryEnv("0"),
-		"TELEMETRY=No":      withTelemetryEnv("No"),
-		"DO_NOT_TRACK=1":    withDoNotTrack("1"),
-		"DO_NOT_TRACK=true": withDoNotTrack("true"),
+		"TELEMETRY=off":   withTelemetryEnv("off"),
+		"TELEMETRY=false": withTelemetryEnv("false"),
+		"TELEMETRY=0":     withTelemetryEnv("0"),
+		"TELEMETRY=No":    withTelemetryEnv("No"),
 	} {
 		t.Run(name, func(t *testing.T) {
 			a := newAppWithAdmin(t, option)
@@ -252,9 +245,8 @@ func TestTelemetryAPI_ForcedOffByEnv(t *testing.T) {
 
 func TestTelemetryAPI_OtherEnvValuesDoNotForceItOff(t *testing.T) {
 	for name, option := range map[string]func(*config.Config){
-		"TELEMETRY=on":   withTelemetryEnv("on"),
-		"TELEMETRY=1":    withTelemetryEnv("1"),
-		"DO_NOT_TRACK=0": withDoNotTrack("0"),
+		"TELEMETRY=on": withTelemetryEnv("on"),
+		"TELEMETRY=1":  withTelemetryEnv("1"),
 	} {
 		t.Run(name, func(t *testing.T) {
 			a := newAppWithAdmin(t, option)
@@ -447,7 +439,6 @@ func TestTelemetryAPI_NoNoticeWhenBothFeaturesAreForcedOff(t *testing.T) {
 		"TELEMETRY=off only":                 {[]func(*config.Config){withTelemetryEnv("off")}, true},
 		"ERROR_REPORTING=off only":           {[]func(*config.Config){withErrorReportingEnv("off")}, true},
 		"TELEMETRY=off, ERROR_REPORTING=off": {[]func(*config.Config){withTelemetryEnv("off"), withErrorReportingEnv("off")}, false},
-		"DO_NOT_TRACK=1":                     {[]func(*config.Config){withDoNotTrack("1")}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			a := newAppWithAdmin(t, tc.options...)

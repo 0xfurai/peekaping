@@ -27,11 +27,10 @@ type Config struct {
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:worker"`
 
-	// Error reports (ADR 0003): on until an admin opts out. ERROR_REPORTING=off and DO_NOT_TRACK=1
-	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
+	// Error reports (ADR 0003): on until an admin opts out. ERROR_REPORTING=off
+	// forces them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
 	ErrorReporting    string `env:"ERROR_REPORTING"`
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
-	DoNotTrack        string `env:"DO_NOT_TRACK"`
 }
 
 // LoadAndValidate loads and validates the Worker service configuration
@@ -82,6 +81,5 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ServiceName:       c.ServiceName,
 		ErrorReporting:    c.ErrorReporting,
 		ErrorReportingDSN: c.ErrorReportingDSN,
-		DoNotTrack:        c.DoNotTrack,
 	}
 }

@@ -526,8 +526,7 @@ func TestSetEnabled_AnExplicitOptOutIsStoredAndSurvivesARestart(t *testing.T) {
 
 func TestKillSwitchesWinWhenNothingIsStored(t *testing.T) {
 	for name, cfg := range map[string]*config.Config{
-		"TELEMETRY=off":  {DBType: "sqlite", Telemetry: "off"},
-		"DO_NOT_TRACK=1": {DBType: "sqlite", DoNotTrack: "1"},
+		"TELEMETRY=off": {DBType: "sqlite", Telemetry: "off"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			in := newInstall()
@@ -616,13 +615,10 @@ func TestState_NoNoticeWhenTheEnvironmentForcesBothFeaturesOff(t *testing.T) {
 		cfg     *config.Config
 		pending bool
 	}{
-		"nothing forced off":           {&config.Config{}, true},
-		"only the ping":                {&config.Config{Telemetry: "off"}, true},
-		"only the error reports":       {&config.Config{ErrorReporting: "off"}, true},
-		"both":                         {&config.Config{Telemetry: "off", ErrorReporting: "off"}, false},
-		"DO_NOT_TRACK":                 {&config.Config{DoNotTrack: "1"}, false},
-		"the ping and DO_NOT_TRACK":    {&config.Config{Telemetry: "off", DoNotTrack: "true"}, false},
-		"the reports and DO_NOT_TRACK": {&config.Config{ErrorReporting: "no", DoNotTrack: "1"}, false},
+		"nothing forced off":     {&config.Config{}, true},
+		"only the ping":          {&config.Config{Telemetry: "off"}, true},
+		"only the error reports": {&config.Config{ErrorReporting: "off"}, true},
+		"both":                   {&config.Config{Telemetry: "off", ErrorReporting: "off"}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			in := newInstall()

@@ -97,7 +97,7 @@ func reportAPanic() {
 func TestRun_ReportsPanicsByDefaultAndFlushesAtShutdown(t *testing.T) {
 	sentry := newFakeSentry(t)
 	t.Cleanup(func() { reporting.Setup(reporting.Options{ForcedOff: true}) })
-	cfg := loadConfig(t, map[string]string{"ERROR_REPORTING_DSN": sentry.dsn(), "ERROR_REPORTING": "", "DO_NOT_TRACK": ""})
+	cfg := loadConfig(t, map[string]string{"ERROR_REPORTING_DSN": sentry.dsn(), "ERROR_REPORTING": ""})
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)
@@ -123,7 +123,7 @@ func TestRun_ReportsPanicsByDefaultAndFlushesAtShutdown(t *testing.T) {
 func TestRun_StopsReportingWhenTheAdminOptsOutAndStaysOffAfterARestart(t *testing.T) {
 	sentry := newFakeSentry(t)
 	t.Cleanup(func() { reporting.Setup(reporting.Options{ForcedOff: true}) })
-	cfg := loadConfig(t, map[string]string{"ERROR_REPORTING_DSN": sentry.dsn(), "ERROR_REPORTING": "", "DO_NOT_TRACK": ""})
+	cfg := loadConfig(t, map[string]string{"ERROR_REPORTING_DSN": sentry.dsn(), "ERROR_REPORTING": ""})
 	logger, logs := observedLogger()
 	first := startPeekaping(t, cfg, logger, logs)
 	first.registerAdmin(t)
@@ -158,7 +158,6 @@ func TestRun_StopsReportingWhenTheAdminOptsOutAndStaysOffAfterARestart(t *testin
 func TestRun_SendsNoErrorReportWhenTheEnvironmentForcesThemOff(t *testing.T) {
 	for name, env := range map[string]map[string]string{
 		"ERROR_REPORTING=off": {"ERROR_REPORTING": "off"},
-		"DO_NOT_TRACK=1":      {"DO_NOT_TRACK": "1"},
 	} {
 		for _, choose := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s, admin chose=%v", name, choose), func(t *testing.T) {

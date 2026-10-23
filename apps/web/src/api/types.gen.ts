@@ -132,7 +132,7 @@ export type ErrorReportingStateResponse = {
    */
   enabled: boolean;
   /**
-   * Whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces error reports off, whatever enabled says
+   * Whether the ERROR_REPORTING environment variable forces error reports off, whatever enabled says
    */
   forced_off: boolean;
 };
@@ -772,7 +772,7 @@ export type TelemetryPayload = {
    */
   features: TelemetryFeatures;
   /**
-   * The random instance ID; empty after an admin opts out, and while TELEMETRY or DO_NOT_TRACK forces the ping off and no ID was made before
+   * The random instance ID; empty after an admin opts out, and while TELEMETRY forces the ping off and no ID was made before
    */
   instance_id: string;
   /**
@@ -807,7 +807,7 @@ export type TelemetryStateResponse = {
    */
   enabled: boolean;
   /**
-   * Whether the TELEMETRY or DO_NOT_TRACK environment variable forces the ping off, whatever enabled says
+   * Whether the TELEMETRY environment variable forces the ping off, whatever enabled says
    */
   forced_off: boolean;
   /**

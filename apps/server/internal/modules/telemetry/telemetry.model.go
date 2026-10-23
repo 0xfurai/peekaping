@@ -31,7 +31,7 @@ const (
 // and the service builds it field by field. Adding a field is a decision that changes the ADR and
 // the Worker's validator too.
 type Payload struct {
-	InstanceID   string   `json:"instance_id" doc:"The random instance ID; empty after an admin opts out, and while TELEMETRY or DO_NOT_TRACK forces the ping off and no ID was made before" example:"6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f"`
+	InstanceID   string   `json:"instance_id" doc:"The random instance ID; empty after an admin opts out, and while TELEMETRY forces the ping off and no ID was made before" example:"6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f"`
 	Version      string   `json:"version" doc:"The Peekaping version" example:"0.0.47"`
 	Mode         string   `json:"mode" doc:"How the install runs" enum:"single,cluster" example:"single"`
 	DB           string   `json:"db" doc:"The storage backend: sqlite, postgres, mysql or mongo. Empty for a backend the ping doesn't report." example:"sqlite"`
@@ -56,7 +56,7 @@ type State struct {
 	// Enabled is the admin's stored choice, or on when they haven't chosen. It stays what they
 	// chose while ForcedOff is true.
 	Enabled bool
-	// ForcedOff is true when TELEMETRY or DO_NOT_TRACK switches the ping off whatever Enabled says
+	// ForcedOff is true when TELEMETRY switches the ping off whatever Enabled says
 	ForcedOff bool
 	// NoticePending is true while the admin has not yet been told that the usage ping and error
 	// reports are on, and at least one of them is not forced off by the environment

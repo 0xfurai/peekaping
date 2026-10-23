@@ -18,7 +18,7 @@ type UpdateDto struct {
 // StateResponse is what the telemetry API returns
 type StateResponse struct {
 	Enabled   bool `json:"enabled" doc:"Whether the usage ping is on: the admin's stored choice, which is on until they choose"`
-	ForcedOff bool `json:"forced_off" doc:"Whether the TELEMETRY or DO_NOT_TRACK environment variable forces the ping off, whatever enabled says"`
+	ForcedOff bool `json:"forced_off" doc:"Whether the TELEMETRY environment variable forces the ping off, whatever enabled says"`
 	// NoticePending is a separate field from the choice: dismissing the notice is not a choice
 	NoticePending bool    `json:"notice_pending" doc:"Whether the one-time notice that the usage ping and error reports are on by default is still to be shown: it is not yet dismissed, and the environment does not force both off"`
 	Payload       Payload `json:"payload" doc:"The exact JSON the next usage ping would send; its instance_id is empty after an admin opts out"`

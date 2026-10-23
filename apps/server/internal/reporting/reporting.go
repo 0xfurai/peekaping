@@ -36,7 +36,7 @@ type Options struct {
 	Mode string
 	// DB is the storage backend: "sqlite", "postgres", "mongo", or "unknown"
 	DB string
-	// ForcedOff is true when ERROR_REPORTING or DO_NOT_TRACK switches reporting off. Nothing is
+	// ForcedOff is true when ERROR_REPORTING switches reporting off. Nothing is
 	// sent then, whatever SetEnabled is given.
 	ForcedOff bool
 	// Transport replaces the HTTP transport. Tests use it to catch the events.

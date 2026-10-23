@@ -80,7 +80,7 @@ func (in *instance) setTelemetry(t *testing.T, enabled bool) telemetryState {
 func TestRun_SendsTheUsagePingOnceADayByDefault(t *testing.T) {
 	checkOften(t)
 	wk := newUsagePingWorker(t)
-	cfg := loadConfig(t, map[string]string{"TELEMETRY_URL": wk.URL, "TELEMETRY": "", "DO_NOT_TRACK": ""})
+	cfg := loadConfig(t, map[string]string{"TELEMETRY_URL": wk.URL, "TELEMETRY": ""})
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)
@@ -102,7 +102,7 @@ func TestRun_SendsTheUsagePingOnceADayByDefault(t *testing.T) {
 func TestRun_SendsNoUsagePingAfterTheAdminOptsOutNotEvenAfterARestart(t *testing.T) {
 	checkOften(t)
 	wk := newUsagePingWorker(t)
-	cfg := loadConfig(t, map[string]string{"TELEMETRY_URL": wk.URL, "TELEMETRY": "", "DO_NOT_TRACK": ""})
+	cfg := loadConfig(t, map[string]string{"TELEMETRY_URL": wk.URL, "TELEMETRY": ""})
 	logger, logs := observedLogger()
 	first := startPeekaping(t, cfg, logger, logs)
 	first.registerAdmin(t)
@@ -124,8 +124,7 @@ func TestRun_SendsNoUsagePingAfterTheAdminOptsOutNotEvenAfterARestart(t *testing
 
 func TestRun_SendsNothingWhenTheEnvironmentForcesTheUsagePingOff(t *testing.T) {
 	for name, env := range map[string]map[string]string{
-		"TELEMETRY=off":  {"TELEMETRY": "off"},
-		"DO_NOT_TRACK=1": {"DO_NOT_TRACK": "1"},
+		"TELEMETRY=off": {"TELEMETRY": "off"},
 	} {
 		for _, choose := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s, admin chose=%v", name, choose), func(t *testing.T) {

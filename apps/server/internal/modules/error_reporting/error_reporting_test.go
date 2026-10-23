@@ -154,7 +154,6 @@ func TestState_DoesNotMarkTheNoticeSeen(t *testing.T) {
 func TestSetEnabled_KeepsTheChoiceWhileTheEnvironmentForcesReportingOff(t *testing.T) {
 	for name, cfg := range map[string]*config.Config{
 		"ERROR_REPORTING=off": {ErrorReporting: "off"},
-		"DO_NOT_TRACK=1":      {DoNotTrack: "1"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			service, settings, sw := newService(cfg)
@@ -212,12 +211,10 @@ func TestApply_TellsTheProcessesTheStoredChoiceAtStart(t *testing.T) {
 	}{
 		"nothing stored":                  {"", &config.Config{}, true},
 		"nothing stored, forced off":      {"", &config.Config{ErrorReporting: "off"}, false},
-		"nothing stored, DO_NOT_TRACK":    {"", &config.Config{DoNotTrack: "1"}, false},
 		"nothing stored, the ping is off": {"", &config.Config{Telemetry: "off"}, true},
 		"opted in":                        {"true", &config.Config{}, true},
 		"opted out":                       {"false", &config.Config{}, false},
 		"opted in, forced off":            {"true", &config.Config{ErrorReporting: "off"}, false},
-		"opted in, DO_NOT_TRACK":          {"true", &config.Config{DoNotTrack: "1"}, false},
 		"opted in, the usage ping is off": {"true", &config.Config{Telemetry: "off"}, true},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -323,7 +320,7 @@ func TestRedisSwitch_APeerThatStartsLaterReadsTheChoiceTheApiWroteAtItsStart(t *
 func TestRedisSwitch_ForcedOffWritesFalseSoNoProcessSendsWhatTheApiMustNot(t *testing.T) {
 	reportingtest.Install(t)
 	server, client := newRedis(t)
-	service := NewService(newFakeSettings(), &config.Config{DoNotTrack: "1"}, NewRedisSwitch(client), zap.NewNop().Sugar())
+	service := NewService(newFakeSettings(), &config.Config{ErrorReporting: "off"}, NewRedisSwitch(client), zap.NewNop().Sugar())
 
 	_, err := service.SetEnabled(context.Background(), true)
 	require.NoError(t, err)

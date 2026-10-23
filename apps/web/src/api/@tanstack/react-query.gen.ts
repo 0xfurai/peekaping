@@ -978,7 +978,7 @@ export const getErrorReportingQueryKey = (
 
 /**
  * Get the error reporting state
- * Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+ * Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING environment variable forces them off.
  */
 export const getErrorReportingOptions = (
   options?: Options<GetErrorReportingData>
@@ -2941,7 +2941,7 @@ export const getTelemetryQueryKey = (options?: Options<GetTelemetryData>) =>
 
 /**
  * Get the usage ping state
- * Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
+ * Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
  */
 export const getTelemetryOptions = (options?: Options<GetTelemetryData>) => {
   return queryOptions({

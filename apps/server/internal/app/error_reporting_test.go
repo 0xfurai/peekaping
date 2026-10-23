@@ -79,7 +79,6 @@ func TestSetupErrorReporting_ReportsTheReleaseTheModeTheStorageAndThePlatform(t 
 func TestSetupErrorReporting_SendsNothingWhenTheEnvironmentForcesItOff(t *testing.T) {
 	for name, set := range map[string]func(*config.Config){
 		"ERROR_REPORTING=off": func(c *config.Config) { c.ErrorReporting = "off" },
-		"DO_NOT_TRACK=1":      func(c *config.Config) { c.DoNotTrack = "1" },
 	} {
 		t.Run(name, func(t *testing.T) {
 			recorder := &reportingtest.Recorder{}

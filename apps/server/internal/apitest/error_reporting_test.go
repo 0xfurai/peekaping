@@ -106,7 +106,6 @@ func TestErrorReportingAPI_AnOptOutSurvivesARestart(t *testing.T) {
 func TestErrorReportingAPI_KillSwitchesWinWhenNothingIsStored(t *testing.T) {
 	for name, option := range map[string]func(*config.Config){
 		"ERROR_REPORTING=off": withErrorReportingEnv("off"),
-		"DO_NOT_TRACK=1":      withDoNotTrack("1"),
 	} {
 		t.Run(name, func(t *testing.T) {
 			reportingtest.Install(t)
@@ -199,8 +198,6 @@ func TestErrorReportingAPI_ForcedOffByEnv(t *testing.T) {
 		"ERROR_REPORTING=false": withErrorReportingEnv("false"),
 		"ERROR_REPORTING=0":     withErrorReportingEnv("0"),
 		"ERROR_REPORTING=No":    withErrorReportingEnv("No"),
-		"DO_NOT_TRACK=1":        withDoNotTrack("1"),
-		"DO_NOT_TRACK=true":     withDoNotTrack("true"),
 	} {
 		t.Run(name, func(t *testing.T) {
 			reportingtest.Install(t)
@@ -228,7 +225,6 @@ func TestErrorReportingAPI_OtherEnvValuesDoNotForceItOff(t *testing.T) {
 	for name, option := range map[string]func(*config.Config){
 		"ERROR_REPORTING=on": withErrorReportingEnv("on"),
 		"ERROR_REPORTING=1":  withErrorReportingEnv("1"),
-		"DO_NOT_TRACK=0":     withDoNotTrack("0"),
 		"TELEMETRY=off":      withTelemetryEnv("off"),
 	} {
 		t.Run(name, func(t *testing.T) {

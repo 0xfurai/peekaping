@@ -25,8 +25,8 @@ type State struct {
 	// Enabled is the admin's stored choice, or on when they haven't chosen. It stays what they
 	// chose while ForcedOff is true.
 	Enabled bool
-	// ForcedOff is true when ERROR_REPORTING or DO_NOT_TRACK switches error reports off whatever
-	// Enabled says
+	// ForcedOff is true when ERROR_REPORTING switches error reports off whatever Enabled
+	// says
 	ForcedOff bool
 }
 

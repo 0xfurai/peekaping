@@ -190,16 +190,9 @@ func TestSender_SendsNothingAfterAnOptOutOrWhileForcedOff(t *testing.T) {
 			st.in.settings.put(EnabledKey, "false", "bool")
 		},
 		"TELEMETRY=off": func(st *senderTest) { st.in.cfg.Telemetry = "off" },
-		"DO_NOT_TRACK=1": func(st *senderTest) {
-			st.in.cfg.DoNotTrack = "1"
-		},
 		"no choice stored, TELEMETRY=off": func(st *senderTest) {
 			st.in.settings = newFakeSettings()
 			st.in.cfg.Telemetry = "off"
-		},
-		"no choice stored, DO_NOT_TRACK=1": func(st *senderTest) {
-			st.in.settings = newFakeSettings()
-			st.in.cfg.DoNotTrack = "1"
 		},
 	} {
 		t.Run(name, func(t *testing.T) {

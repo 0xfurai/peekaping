@@ -245,7 +245,7 @@ func (s *ServiceImpl) optOut(ctx context.Context) error {
 
 // ensureInstanceID returns the instance ID, making one when there is none: an install that never
 // chose has no ID until the first state read or ping. Nothing is made while the environment forces
-// the ping off, so a DO_NOT_TRACK install is never given an identifier.
+// the ping off, so a TELEMETRY=off install is never given an identifier.
 func (s *ServiceImpl) ensureInstanceID(ctx context.Context) (string, error) {
 	id, err := s.storedValue(ctx, InstanceIDKey)
 	if err != nil || id != "" || s.cfg.TelemetryForcedOff() {

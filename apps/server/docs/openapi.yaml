@@ -318,7 +318,7 @@ components:
           description: "Whether error reports are on: the admin's stored choice, which is on until they choose"
           type: boolean
         forced_off:
-          description: Whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces error reports off, whatever enabled says
+          description: Whether the ERROR_REPORTING environment variable forces error reports off, whatever enabled says
           type: boolean
       required:
         - enabled
@@ -1915,7 +1915,7 @@ components:
           $ref: "#/components/schemas/telemetry.Features"
           description: Which features are on
         instance_id:
-          description: The random instance ID; empty after an admin opts out, and while TELEMETRY or DO_NOT_TRACK forces the ping off and no ID was made before
+          description: The random instance ID; empty after an admin opts out, and while TELEMETRY forces the ping off and no ID was made before
           examples:
             - 6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f
           type: string
@@ -1977,7 +1977,7 @@ components:
           description: "Whether the usage ping is on: the admin's stored choice, which is on until they choose"
           type: boolean
         forced_off:
-          description: Whether the TELEMETRY or DO_NOT_TRACK environment variable forces the ping off, whatever enabled says
+          description: Whether the TELEMETRY environment variable forces the ping off, whatever enabled says
           type: boolean
         notice_pending:
           description: "Whether the one-time notice that the usage ping and error reports are on by default is still to be shown: it is not yet dismissed, and the environment does not force both off"
@@ -3725,7 +3725,7 @@ paths:
         - badge
   /api/v1/error-reporting:
     get:
-      description: Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+      description: Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING environment variable forces them off.
       operationId: getErrorReporting
       responses:
         "200":
@@ -6294,7 +6294,7 @@ paths:
         - tag
   /api/v1/telemetry:
     get:
-      description: Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
+      description: Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
       operationId: getTelemetry
       responses:
         "200":

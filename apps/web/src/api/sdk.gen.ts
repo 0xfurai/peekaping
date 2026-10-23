@@ -697,7 +697,7 @@ export const getBadgeByMonitorIdUptimeByDuration = <
 
 /**
  * Get the error reporting state
- * Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+ * Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING environment variable forces them off.
  */
 export const getErrorReporting = <ThrowOnError extends boolean = false>(
   options?: Options<GetErrorReportingData, ThrowOnError>
@@ -2225,7 +2225,7 @@ export const putTagsById = <ThrowOnError extends boolean = false>(
 
 /**
  * Get the usage ping state
- * Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
+ * Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
  */
 export const getTelemetry = <ThrowOnError extends boolean = false>(
   options?: Options<GetTelemetryData, ThrowOnError>
