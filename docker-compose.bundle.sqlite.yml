@@ -13,10 +13,6 @@ services:
     environment:
       - DB_TYPE=sqlite
       - DB_NAME=/app/data/peekaping.db
-      # On by default, and not for a development stack (ADR 0003): point both at nothing. Set
-      # TELEMETRY_URL and ERROR_REPORTING_DSN in .env to try them against a test endpoint.
-      - TELEMETRY_URL=${TELEMETRY_URL:-http://127.0.0.1:9/v1/ping}
-      - ERROR_REPORTING_DSN=${ERROR_REPORTING_DSN:-http://public@127.0.0.1:9/1}
     volumes:
       # Database data persistence. Logs go to the container's output (docker compose logs).
       - ./.data/sqlite:/app/data

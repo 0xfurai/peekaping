@@ -93,7 +93,7 @@ docker compose down
 
 CI runs the suite twice against the same database, so a test must leave nothing behind that breaks its next run.
 
-The usage ping and error reports are on by default, so a test stack must not reach Peekaping's endpoints. The two lines at the end of the `.env` above point them at an address nothing listens on (an empty `ERROR_REPORTING_DSN` would mean Peekaping's own Sentry project, so it is a dead DSN instead). The dev and bundle compose files default to the same values, and CI's `.env` sets them. A Go test that starts the app, or sets up error reporting, gives it a server or DSN of its own: `go test ./internal/reporting/` fails on one that doesn't.
+The usage ping and error reports are on by default, so a test stack must not reach Peekaping's endpoints. The two lines at the end of the `.env` above point them at an address nothing listens on (an empty `ERROR_REPORTING_DSN` would mean Peekaping's own Sentry project, so it is a dead DSN instead). The dev compose files default to the same values, and CI's `.env` sets them. A Go test that starts the app, or sets up error reporting, gives it a server or DSN of its own: `go test ./internal/reporting/` fails on one that doesn't.
 
 UI text: every new string gets a key in `apps/web/src/i18n/locales/en-US.json` and a real translation in all 45 locale files. i18next returns the raw key for a missing entry, so `t("key") || "fallback"` shows the key to users. The files round-trip through Python `json.dumps(data, ensure_ascii=False, indent=2) + "\n"`, so a script can insert keys; check that `git diff` shows only additions.
 

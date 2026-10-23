@@ -96,7 +96,7 @@ The DSN is the only coupling to Sentry. Moving to GlitchTip, or to a server we r
 
 - The numbers count the installs that haven't opted out or set a kill switch, so they are closer to a census, but still a floor: an operator who sets `DO_NOT_TRACK=1` or blocks the Worker isn't counted. Opting out and in again gives a new instance ID, so one install can be counted twice over time.
 - Upgrading starts sending without a choice from the admin. The notice is the one place that says so, and the kill switches are for operators who must be sure nothing goes out. An operator who needs that before the first start sets them in the image or the compose file, as the install guides show.
-- The default has to be kept out of the repository's own dev and test setups: the dev and bundle compose files, the e2e stack and the Go tests all point the ping and the reports at an address nothing listens on, and a guard test fails on a test that could reach the built-in Sentry DSN.
+- The default has to be kept out of the repository's own dev and test setups: the dev compose files, the e2e stack and the Go tests all point the ping and the reports at an address nothing listens on, and a guard test fails on a test that could reach the built-in Sentry DSN.
 - Adding a field to either payload is a decision. It changes this ADR, the Worker's validator (or the `BeforeSend` allowlist) and the docs, which must list exactly what is sent. The Worker rejects the new field until it is changed.
 - An operator who wants to be sure sets the environment variables in their image or compose file, before the first start.
 - The usage ping numbers are read with `bun run report` in `apps/telemetry`, which needs a Cloudflare token with Account Analytics read access.
