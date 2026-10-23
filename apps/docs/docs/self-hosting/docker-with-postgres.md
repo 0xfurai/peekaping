@@ -143,6 +143,10 @@ DB_SSLMODE=require
 Supported values are `disable`, `allow`, `prefer`, `require`, `verify-ca`, and
 `verify-full`. Invalid values stop startup with a configuration error.
 
+The current PostgreSQL driver treats `allow` and `prefer` like `require`: they
+attempt TLS without verifying the certificate and do not fall back to an
+unencrypted connection if the server does not support TLS.
+
 `require` encrypts the connection without checking the server certificate.
 Use `verify-full` to also verify the certificate chain and server hostname, or
 `verify-ca` to verify only the chain. The certificate must be trusted by the
