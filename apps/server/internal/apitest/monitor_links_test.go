@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"slices"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -306,6 +308,79 @@ func TestMonitorsAPI_EveryEndpointReturnsTheLinks(t *testing.T) {
 			got := tc.send(t, a, f)
 
 			assert.ElementsMatch(t, tc.want(f), withoutIDs(got))
+		})
+	}
+}
+
+// linkQueries counts the SELECTs on the monitor_notifications and monitor_tags tables that run for
+// a request, as a bun query hook. Only queries run with the context of a request made by get
+// count, so a listener still reading links for an earlier write doesn't add to them.
+type linkQueries struct {
+	mu                  sync.Mutex
+	notifications, tags int
+}
+
+type countedRequest struct{}
+
+func (q *linkQueries) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context {
+	return ctx
+}
+
+func (q *linkQueries) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
+	if ctx.Value(countedRequest{}) != q || !strings.HasPrefix(event.Query, "SELECT") {
+		return
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if strings.Contains(event.Query, `"monitor_notifications"`) {
+		q.notifications++
+	}
+	if strings.Contains(event.Query, `"monitor_tags"`) {
+		q.tags++
+	}
+}
+
+// get sends a GET as the admin and counts the link queries it runs.
+func (q *linkQueries) get(t *testing.T, a *app, path string) *httptest.ResponseRecorder {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	req = req.WithContext(context.WithValue(req.Context(), countedRequest{}, q))
+	a.asAdmin(req)
+	w := httptest.NewRecorder()
+	a.router.ServeHTTP(w, req)
+	return w
+}
+
+func TestMonitorsAPI_ListsLoadTheLinksInOneQueryPerRelation(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		path func(ids []string) string
+	}{
+		{"list", func([]string) string { return "/api/v1/monitors?limit=5" }},
+		{"batch", func(ids []string) string { return "/api/v1/monitors/batch?ids=" + strings.Join(ids, ",") }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+			queries := &linkQueries{}
+			require.NoError(t, a.container.Invoke(func(db *bun.DB) { db.AddQueryHook(queries) }))
+			channelID, tagID := a.createChannel(t, "Ops webhook"), a.createTag(t, "Production")
+			var ids []string
+			for _, name := range manyNames(5) {
+				body := monitorWithLinksBody(name, []string{channelID}, []string{tagID})
+				ids = append(ids, decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated).ID)
+			}
+
+			monitors := decode[[]monitorWithLinks](t, queries.get(t, a, tc.path(ids)), http.StatusOK)
+
+			require.Len(t, monitors, 5)
+			for _, m := range monitors {
+				assert.Equal(t, []string{channelID}, m.NotificationIDs, m.Name)
+				assert.Equal(t, []string{tagID}, m.TagIDs, m.Name)
+			}
+			queries.mu.Lock()
+			defer queries.mu.Unlock()
+			assert.Equal(t, 1, queries.notifications, "queries on monitor_notifications for 5 monitors")
+			assert.Equal(t, 1, queries.tags, "queries on monitor_tags for 5 monitors")
 		})
 	}
 }

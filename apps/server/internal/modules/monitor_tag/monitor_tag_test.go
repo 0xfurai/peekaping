@@ -167,6 +167,46 @@ func TestMonitorTags_LinksAreListedFromBothSides(t *testing.T) {
 	})
 }
 
+// tagsByMonitor lists the tag IDs of each monitor's links, in the order they came.
+func tagsByMonitor(links map[string][]*monitor_tag.Model) map[string][]string {
+	byMonitor := map[string][]string{}
+	for monitorID, monitorLinks := range links {
+		for _, l := range monitorLinks {
+			byMonitor[monitorID] = append(byMonitor[monitorID], l.TagID)
+		}
+	}
+	return byMonitor
+}
+
+func TestMonitorTags_LinksOfManyMonitorsAreListedAtOnce(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		web, db, idle, other := f.monitor(), f.monitor(), f.monitor(), f.monitor()
+		prod, eu := f.tag(), f.tag()
+		link(t, f.svc, web, prod)
+		link(t, f.svc, web, eu)
+		link(t, f.svc, db, eu)
+		link(t, f.svc, other, prod)
+
+		found, err := f.svc.FindByMonitorIDs(ctx, []string{web, db, idle})
+		require.NoError(t, err)
+
+		byMonitor := tagsByMonitor(found)
+		assert.Len(t, byMonitor, 2, "the monitor with no links and the monitor not asked for have no entry")
+		assert.ElementsMatch(t, []string{prod, eu}, byMonitor[web])
+		assert.Equal(t, []string{eu}, byMonitor[db])
+		assert.Equal(t, tagsOf(t, f.svc, web), byMonitor[web], "each monitor's links come in the order FindByMonitorID lists them")
+
+		for _, l := range found[web] {
+			assert.Equal(t, web, l.MonitorID)
+		}
+
+		none, err := f.svc.FindByMonitorIDs(ctx, nil)
+		require.NoError(t, err)
+		assert.Empty(t, none, "no monitors asked for, no links")
+	})
+}
+
 func TestMonitorTags_DeletesRemoveOnlyTheLinksTheyName(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, f fixture) {
 		ctx := context.Background()

@@ -68,25 +68,33 @@ func (ic *MonitorController) withLinks(ctx context.Context, monitors []*Model) (
 		return nil, nil
 	}
 	responses := make([]*MonitorResponseDto, len(monitors))
+	if len(monitors) == 0 {
+		return responses, nil
+	}
+
+	// One query for each kind of link, whatever the number of monitors
+	ids := make([]string, len(monitors))
 	for i, m := range monitors {
-		notificationRels, err := ic.monitorNotificationService.FindByMonitorID(ctx, m.ID)
-		if err != nil {
-			return nil, fmt.Errorf("fetch monitor-notification relations: %w", err)
-		}
-		notificationIds := make([]string, 0, len(notificationRels))
-		for _, rel := range notificationRels {
+		ids[i] = m.ID
+	}
+	notificationRels, err := ic.monitorNotificationService.FindByMonitorIDs(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("fetch monitor-notification relations: %w", err)
+	}
+	tagRels, err := ic.monitorTagService.FindByMonitorIDs(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("fetch monitor-tag relations: %w", err)
+	}
+
+	for i, m := range monitors {
+		notificationIds := make([]string, 0, len(notificationRels[m.ID]))
+		for _, rel := range notificationRels[m.ID] {
 			notificationIds = append(notificationIds, rel.NotificationID)
 		}
-
-		tagRels, err := ic.monitorTagService.FindByMonitorID(ctx, m.ID)
-		if err != nil {
-			return nil, fmt.Errorf("fetch monitor-tag relations: %w", err)
-		}
-		tagIds := make([]string, 0, len(tagRels))
-		for _, rel := range tagRels {
+		tagIds := make([]string, 0, len(tagRels[m.ID]))
+		for _, rel := range tagRels[m.ID] {
 			tagIds = append(tagIds, rel.TagID)
 		}
-
 		responses[i] = &MonitorResponseDto{Monitor: *m, NotificationIds: notificationIds, TagIds: tagIds}
 	}
 	return responses, nil

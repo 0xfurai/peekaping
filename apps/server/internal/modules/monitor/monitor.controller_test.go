@@ -31,13 +31,13 @@ func (creatingService) Create(_ context.Context, dto *CreateUpdateDto) (*Model, 
 // unlinkedNotifications and unlinkedTags are link services whose monitors have no links.
 type unlinkedNotifications struct{ monitor_notification.Service }
 
-func (unlinkedNotifications) FindByMonitorID(context.Context, string) ([]*monitor_notification.Model, error) {
+func (unlinkedNotifications) FindByMonitorIDs(context.Context, []string) (map[string][]*monitor_notification.Model, error) {
 	return nil, nil
 }
 
 type unlinkedTags struct{ monitor_tag.Service }
 
-func (unlinkedTags) FindByMonitorID(context.Context, string) ([]*monitor_tag.Model, error) {
+func (unlinkedTags) FindByMonitorIDs(context.Context, []string) (map[string][]*monitor_tag.Model, error) {
 	return nil, nil
 }
 

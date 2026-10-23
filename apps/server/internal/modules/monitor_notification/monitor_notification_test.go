@@ -154,6 +154,46 @@ func TestMonitorNotifications_LinksAreListedPerMonitor(t *testing.T) {
 	})
 }
 
+// channelsByMonitor lists the channel IDs of each monitor's links, in the order they came.
+func channelsByMonitor(links map[string][]*monitor_notification.Model) map[string][]string {
+	byMonitor := map[string][]string{}
+	for monitorID, monitorLinks := range links {
+		for _, l := range monitorLinks {
+			byMonitor[monitorID] = append(byMonitor[monitorID], l.NotificationID)
+		}
+	}
+	return byMonitor
+}
+
+func TestMonitorNotifications_LinksOfManyMonitorsAreListedAtOnce(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		web, db, idle, other := f.monitor(), f.monitor(), f.monitor(), f.monitor()
+		slack, email := f.channel(), f.channel()
+		link(t, f.svc, web, slack)
+		link(t, f.svc, web, email)
+		link(t, f.svc, db, email)
+		link(t, f.svc, other, slack)
+
+		found, err := f.svc.FindByMonitorIDs(ctx, []string{web, db, idle})
+		require.NoError(t, err)
+
+		byMonitor := channelsByMonitor(found)
+		assert.Len(t, byMonitor, 2, "the monitor with no links and the monitor not asked for have no entry")
+		assert.ElementsMatch(t, []string{slack, email}, byMonitor[web])
+		assert.Equal(t, []string{email}, byMonitor[db])
+		assert.Equal(t, channelsOf(t, f.svc, web), byMonitor[web], "each monitor's links come in the order FindByMonitorID lists them")
+
+		for _, l := range found[web] {
+			assert.Equal(t, web, l.MonitorID)
+		}
+
+		none, err := f.svc.FindByMonitorIDs(ctx, nil)
+		require.NoError(t, err)
+		assert.Empty(t, none, "no monitors asked for, no links")
+	})
+}
+
 func TestMonitorNotifications_DeletesRemoveOnlyTheLinksTheyName(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, f fixture) {
 		ctx := context.Background()
