@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Yönetici hesabınızı oluşturun",
+      "error_reporting_hint": "Varsayılan olarak açık. Kapatmak için bu kutunun işaretini kaldırın. Bunu daha sonra “Ayarlar” bölümünden değiştirebilirsiniz.",
       "have_account": "Zaten bir hesabınız var mı?",
       "sign_in": "Giriş Yap",
       "submit": "Oluştur",
-      "telemetry_hint": "Bu kutuyu işaretlemezseniz kapalıdır. Bunu daha sonra “Ayarlar” bölümünden değiştirebilirsiniz. İşaretlerseniz Peekaping bunu günde en fazla bir kez gönderir:",
+      "telemetry_hint": "Varsayılan olarak açık. Kapatmak için bu kutunun işaretini kaldırın. Bunu daha sonra “Ayarlar” bölümünden değiştirebilirsiniz. Açık olduğu sürece Peekaping bunu günde en fazla bir kez gönderir:",
       "title": "Merhaba"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Hata raporları gönder",
-    "never_sent": "Asla gönderilmez: hata iletileri, URL'ler, başlıklar, webhook URL'leri, adlar veya ana makine adları. Bir rapor IP adresi içermez ve Peekaping'in Sentry projesi gönderenin IP'sini saklamayacak şekilde ayarlanmıştır. Kendi ERROR_REPORTING_DSN'inizi kullanırsanız bunu kendi Sentry veya GlitchTip ayarlarınız belirler.",
-    "not_saved": "Hata raporlarını gönderme tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden açın.",
+    "never_sent": "Asla gönderilmez: hata iletileri, URL'ler, başlıklar, webhook URL'leri, adlar veya ana makine adları. Bir rapor IP adresi içermez ve Peekaping'in Sentry projesi gönderenin IP'sini saklamayacak şekilde ayarlanmıştır.",
+    "not_saved": "Hata raporlarına ilişkin tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden kontrol edin.",
     "sent": "Yalnızca Peekaping'in kendisi çöktüğünde gönderilir. Bir rapor, hatanın türünü ve kodda nerede oluştuğunu, Peekaping sürümünü, tekli veya küme modunu, depolama arka ucunu ve işletim sistemini içerir."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "Küme modunda bir değişiklik her sürece bir dakika içinde ulaşır.",
-      "description": "Sunucu çöktüğünde Sentry'ye bir rapor gönderin. Siz açana kadar kapalıdır.",
-      "forced_off": "ERROR_REPORTING=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
+      "description": "Sunucu çöktüğünde Sentry'ye bir rapor gönderin. Varsayılan olarak açıktır; buradan istediğiniz zaman kapatabilirsiniz.",
+      "forced_off": "ERROR_REPORTING=off ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
       "title": "Hata raporları"
     },
     "telemetry": {
-      "description": "Bu kurulumun nasıl yapılandırıldığına dair anonim istatistikleri günde en fazla bir kez gönderin. Siz açana kadar kapalıdır.",
-      "forced_off": "TELEMETRY=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
-      "id_note": "Örnek kimliği, bunu açtığınızda oluşturulur ve kapattığınızda silinir. Yeniden açarsanız yeni bir kimlik oluşturulur.",
+      "description": "Bu kurulumun nasıl yapılandırıldığına dair anonim istatistikleri günde en fazla bir kez gönderin. Varsayılan olarak açıktır; buradan istediğiniz zaman kapatabilirsiniz.",
+      "forced_off": "TELEMETRY=off ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
+      "id_note": "Örnek kimliği, bu seçenek açık olduğu sürece oluşturulur ve kapattığınızda silinir. Yeniden açarsanız yeni bir kimlik oluşturulur.",
       "payload_off": "Bu kapalıyken hiçbir şey gönderilmez. Açsaydınız bir kullanım ping'i şunları içerirdi.",
       "payload_title": "Bir sonraki kullanım ping'inin göndereceği veriler",
       "title": "Kullanım istatistikleri"
@@ -1487,12 +1488,19 @@
     "docs_link": "Neler gönderilir ve nasıl kapatılır",
     "label": "Anonim kullanım istatistikleri gönder",
     "never_sent": "Asla gönderilmez: monitör adları, URL'ler, ana makineler, etiketler, durum sayfası adresleri veya bildirim ayarları. Bir kullanım ping'i IP adresi içermez ve Peekaping'in Worker'ı gönderenin IP'sini kaydetmez.",
-    "not_saved": "Kullanım istatistiklerini gönderme tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden açın.",
+    "not_saved": "Kullanım istatistiklerine ilişkin tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden kontrol edin.",
     "sent_features": "Durum sayfaları, bakım pencereleri ve metrikleri kullanıp kullanmadığınız",
-    "sent_id": "Açtığınızda oluşturulan ve kapattığınızda silinen rastgele bir kimlik",
+    "sent_id": "Açık olduğu sürece oluşturulan ve kapattığınızda silinen rastgele bir kimlik",
     "sent_monitors": "Kaç monitörünüz olduğu, 11-50 gibi bir aralık olarak",
     "sent_setup": "Peekaping sürümü, tekli veya küme modu, depolama arka ucu ile işletim sistemi ve işlemci türü",
     "sent_types": "Kullandığınız monitör ve bildirim kanalı türleri, örneğin http veya telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Hata raporları açık. Peekaping çökerse hatanın türünü ve kodda nerede oluştuğunu, kendi sürümünü, modunu, depolama arka ucunu ve işletim sistemini gönderir. Hata iletisi, URL veya ana makine adı göndermez.",
+    "settings_errors": "“Ayarlar” bölümünden hata raporlarını kapatın",
+    "settings_usage": "“Ayarlar” bölümünden kullanım istatistiklerini kapatın",
+    "title": "Anonim veri gönderimi varsayılan olarak açık",
+    "usage_statistics": "Kullanım istatistikleri açık. Peekaping günde en fazla bir kez rastgele bir örnek kimliğini, kendi sürümünü, modunu, depolama arka ucunu ve işletim sistemini, monitör sayınız için bir aralığı, kullandığınız monitör ve bildirim kanalı türlerini ve durum sayfaları, bakım pencereleri ve metrikleri kullanıp kullanmadığınızı gönderir. Ad, URL, ana makine veya ayar göndermez."
   },
   "theme": {
     "dark": "Koyu",

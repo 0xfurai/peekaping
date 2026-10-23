@@ -143,7 +143,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 87, count)
+	assert.Equal(t, 88, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)

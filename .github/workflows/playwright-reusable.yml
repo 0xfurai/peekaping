@@ -62,6 +62,12 @@ jobs:
         BUNDEBUG=2
         MODE=prod # logging
         TZ="America/New_York"
+
+        # The usage ping and error reports are on by default. A test run must not send either to
+        # Peekaping, so both point at an address nothing listens on. The DSN must not be empty:
+        # an empty one means Peekaping's own Sentry project.
+        TELEMETRY_URL=http://127.0.0.1:9/v1/ping
+        ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
         EOF
 
     - name: Update docker-compose file with container tag
@@ -210,6 +216,9 @@ jobs:
         # Common environment variables for all database types
         COMMON_ENV=(
           -e CLIENT_URL=http://localhost:8383
+          # On by default, and a test run must not send to Peekaping: point both at nothing
+          -e TELEMETRY_URL=http://127.0.0.1:9/v1/ping
+          -e ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
         )
 
         case "${{ matrix.database }}" in

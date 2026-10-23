@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Skapa ditt administratörskonto",
+      "error_reporting_hint": "På som standard. Ta bort kryssen i rutan för att stänga av det. Du kan ändra det senare under ”Inställningar”.",
       "have_account": "Har du redan ett konto?",
       "sign_in": "Logga in",
       "submit": "Skapa",
-      "telemetry_hint": "Av, om du inte kryssar i den här rutan. Du kan ändra det senare under ”Inställningar”. Om du kryssar i den skickar Peekaping detta högst en gång per dag:",
+      "telemetry_hint": "På som standard. Ta bort kryssen i rutan för att stänga av det. Du kan ändra det senare under ”Inställningar”. Så länge det är på skickar Peekaping detta högst en gång per dag:",
       "title": "Hej"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Skicka felrapporter",
-    "never_sent": "Skickas aldrig: felmeddelanden, webbadresser, rubriker, webhook-adresser, namn eller värdnamn. En rapport innehåller ingen IP-adress, och Peekapings Sentry-projekt är inställt på att inte spara avsändarens IP. Med din egen ERROR_REPORTING_DSN avgör inställningarna i din Sentry eller GlitchTip.",
-    "not_saved": "Ditt val att skicka felrapporter sparades inte. Slå på det under ”Inställningar”.",
+    "never_sent": "Skickas aldrig: felmeddelanden, webbadresser, rubriker, webhook-adresser, namn eller värdnamn. En rapport innehåller ingen IP-adress, och Peekapings Sentry-projekt är inställt på att inte spara avsändarens IP.",
+    "not_saved": "Ditt val om felrapporter sparades inte. Kontrollera det under ”Inställningar”.",
     "sent": "Skickas bara när Peekaping självt kraschar. En rapport innehåller feltypen och platsen i koden där det hände, Peekaping-versionen, enkelt läge eller klusterläge, lagringsbackenden och operativsystemet."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "I klusterläge når en ändring alla processer inom en minut.",
-      "description": "Skicka en rapport till Sentry när servern kraschar. Av tills du slår på det.",
-      "forced_off": "Miljövariabeln ERROR_REPORTING=off eller DO_NOT_TRACK=1 stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
+      "description": "Skicka en rapport till Sentry när servern kraschar. På som standard. Du kan stänga av det här när som helst.",
+      "forced_off": "Miljövariabeln ERROR_REPORTING=off stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
       "title": "Felrapporter"
     },
     "telemetry": {
-      "description": "Skicka anonym statistik om hur den här installationen är konfigurerad, högst en gång per dag. Av tills du slår på det.",
-      "forced_off": "Miljövariabeln TELEMETRY=off eller DO_NOT_TRACK=1 stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
-      "id_note": "Instans-ID:t skapas när du slår på detta och raderas när du stänger av det. Slår du på det igen skapas ett nytt.",
+      "description": "Skicka anonym statistik om hur den här installationen är konfigurerad, högst en gång per dag. På som standard. Du kan stänga av det här när som helst.",
+      "forced_off": "Miljövariabeln TELEMETRY=off stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
+      "id_note": "Instans-ID:t skapas så länge detta är på och raderas när du stänger av det. Slår du på det igen skapas ett nytt.",
       "payload_off": "Inget skickas medan detta är avstängt. Det här är vad en användningsping skulle innehålla om du slog på det.",
       "payload_title": "Vad nästa användningsping skickar",
       "title": "Användningsstatistik"
@@ -1487,12 +1488,19 @@
     "docs_link": "Vad som skickas och hur du stänger av det",
     "label": "Skicka anonym användningsstatistik",
     "never_sent": "Skickas aldrig: namn på övervakningar, webbadresser, värdar, taggar, adresser till statussidor eller aviseringsinställningar. En användningsping innehåller ingen IP-adress, och Peekapings Worker registrerar inte avsändarens IP.",
-    "not_saved": "Ditt val att skicka användningsstatistik sparades inte. Slå på det under ”Inställningar”.",
+    "not_saved": "Ditt val om användningsstatistik sparades inte. Kontrollera det under ”Inställningar”.",
     "sent_features": "Om du använder statussidor, underhållsfönster och mätvärden",
-    "sent_id": "Ett slumpmässigt ID, som skapas när du slår på det och raderas när du stänger av det",
+    "sent_id": "Ett slumpmässigt ID, som skapas så länge det är på och raderas när du stänger av det",
     "sent_monitors": "Hur många övervakningar du har, som ett intervall, till exempel 11-50",
     "sent_setup": "Peekaping-versionen, enkelt läge eller klusterläge, lagringsbackenden samt operativsystem och processortyp",
     "sent_types": "Vilka typer av övervakningar och aviseringskanaler du använder, till exempel http eller telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Felrapporter är på. Om Peekaping kraschar skickar den feltypen och platsen i koden där det hände, sin version, sitt läge, lagringsbackend och operativsystem. Den skickar aldrig felmeddelanden, URL:er eller värdnamn.",
+    "settings_errors": "Stäng av felrapporter under ”Inställningar”",
+    "settings_usage": "Stäng av användningsstatistik under ”Inställningar”",
+    "title": "Att skicka anonyma data är påslaget som standard",
+    "usage_statistics": "Användningsstatistik är på. Högst en gång per dag skickar Peekaping ett slumpmässigt instans-ID, sin version, sitt läge, lagringsbackend och operativsystem, ett intervall för hur många övervakningar du har, typerna av övervakningar och aviseringskanaler du använder samt om du använder statussidor, underhållsfönster och mätvärden. Den skickar aldrig namn, URL:er, värdar eller inställningar."
   },
   "theme": {
     "dark": "Mörk",

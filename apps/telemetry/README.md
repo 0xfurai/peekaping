@@ -1,6 +1,6 @@
 # Peekaping telemetry Worker
 
-A Cloudflare Worker at `https://telemetry.peekaping.com/v1/ping`. It receives the opt-in, anonymous daily **usage ping** that self-hosted Peekaping servers send, and writes it to Workers Analytics Engine (dataset `peekaping_telemetry`, kept for 3 months). The rules behind it are in [ADR 0003](../../docs/adr/0003-opt-in-telemetry-and-error-reporting.md).
+A Cloudflare Worker at `https://telemetry.peekaping.com/v1/ping`. It receives the anonymous daily **usage ping** that self-hosted Peekaping servers send (on by default, and an admin can opt out), and writes it to Workers Analytics Engine (dataset `peekaping_telemetry`, kept for 3 months). The rules behind it are in [ADR 0003](../../docs/adr/0003-telemetry-and-error-reporting.md).
 
 ## The endpoint
 

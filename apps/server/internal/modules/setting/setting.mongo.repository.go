@@ -83,6 +83,29 @@ func (r *MongoRepositoryImpl) SetByKey(ctx context.Context, key string, entity *
 	return toDomainModel(&mm), nil
 }
 
+// CreateIfAbsent is one upsert whose fields are all $setOnInsert, so a document that is already
+// there is returned untouched. Only the interface forces this method onto the frozen MongoDB
+// storage (ADR 0001). The collection has no unique index on key, and none is added, so two upserts
+// at the very same moment can still both insert; SQL is where the one-statement guarantee holds.
+func (r *MongoRepositoryImpl) CreateIfAbsent(ctx context.Context, key string, entity *Model) (*Model, error) {
+	now := time.Now().UTC()
+	filter := bson.M{"key": key}
+	update := bson.M{"$setOnInsert": bson.M{
+		"key":        key,
+		"value":      entity.Value,
+		"type":       entity.Type,
+		"created_at": now,
+		"updated_at": now,
+	}}
+	options := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+	var mm mongoModel
+	err := r.collection.FindOneAndUpdate(ctx, filter, update, options).Decode(&mm)
+	if err != nil {
+		return nil, err
+	}
+	return toDomainModel(&mm), nil
+}
+
 func (r *MongoRepositoryImpl) DeleteByKey(ctx context.Context, key string) error {
 	filter := bson.M{"key": key}
 	_, err := r.collection.DeleteOne(ctx, filter)

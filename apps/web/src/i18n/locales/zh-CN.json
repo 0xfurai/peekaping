@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "创建您的管理员账户",
+      "error_reporting_hint": "默认开启。取消勾选此框即可关闭。你以后可以在“设置”中更改。",
       "have_account": "已有账号？",
       "sign_in": "登录",
       "submit": "创建",
-      "telemetry_hint": "除非勾选此框，否则保持关闭。你以后可以在“设置”中更改。勾选后，Peekaping 每天最多发送一次以下内容：",
+      "telemetry_hint": "默认开启。取消勾选此框即可关闭。你以后可以在“设置”中更改。开启期间，Peekaping 每天最多发送一次以下内容：",
       "title": "你好"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "发送错误报告",
-    "never_sent": "绝不发送：错误消息、URL、请求头、Webhook URL、名称或主机名。报告不包含 IP 地址，Peekaping 的 Sentry 项目也已设置为不存储发送方的 IP。如果你使用自己的 ERROR_REPORTING_DSN，则由你的 Sentry 或 GlitchTip 设置决定。",
-    "not_saved": "你发送错误报告的选择未能保存。请在“设置”中开启。",
+    "never_sent": "绝不发送：错误消息、URL、请求头、Webhook URL、名称或主机名。报告不包含 IP 地址，Peekaping 的 Sentry 项目也已设置为不存储发送方的 IP。",
+    "not_saved": "你关于错误报告的选择未能保存。请在“设置”中检查。",
     "sent": "仅在 Peekaping 自身崩溃时发送。报告包含错误类型及其在代码中发生的位置、Peekaping 版本、单机模式或集群模式、存储后端以及操作系统。"
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "在集群模式下，更改会在一分钟内传达到每个进程。",
-      "description": "服务器崩溃时向 Sentry 发送报告。开启之前保持关闭。",
-      "forced_off": "环境变量 ERROR_REPORTING=off 或 DO_NOT_TRACK=1 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
+      "description": "服务器崩溃时向 Sentry 发送报告。默认开启，你可以随时在这里关闭。",
+      "forced_off": "环境变量 ERROR_REPORTING=off 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
       "title": "错误报告"
     },
     "telemetry": {
-      "description": "每天最多一次发送关于此安装如何配置的匿名统计。开启之前保持关闭。",
-      "forced_off": "环境变量 TELEMETRY=off 或 DO_NOT_TRACK=1 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
-      "id_note": "实例 ID 在你开启此选项时创建，关闭时删除。再次开启会创建新的 ID。",
+      "description": "每天最多一次发送关于此安装如何配置的匿名统计。默认开启，你可以随时在这里关闭。",
+      "forced_off": "环境变量 TELEMETRY=off 已将此选项关闭。无论此设置如何，都不会发送任何内容。",
+      "id_note": "实例 ID 在此选项开启期间创建，关闭时删除。再次开启会创建新的 ID。",
       "payload_off": "关闭期间不会发送任何内容。如果你开启，使用情况 ping 将包含以下内容。",
       "payload_title": "下一次使用情况 ping 会发送什么",
       "title": "使用统计"
@@ -1487,12 +1488,19 @@
     "docs_link": "会发送什么，以及如何关闭",
     "label": "发送匿名使用统计",
     "never_sent": "绝不发送：监控名称、URL、主机、标签、状态页面地址或通知设置。使用情况 ping 不包含 IP 地址，Peekaping 的 Worker 也不会记录发送方的 IP。",
-    "not_saved": "你发送使用统计的选择未能保存。请在“设置”中开启。",
+    "not_saved": "你关于使用统计的选择未能保存。请在“设置”中检查。",
     "sent_features": "你是否使用状态页面、维护窗口和指标",
-    "sent_id": "一个随机 ID，开启时创建，关闭时删除",
+    "sent_id": "一个随机 ID，开启期间创建，关闭时删除",
     "sent_monitors": "你有多少个监控，以范围表示，例如 11-50",
     "sent_setup": "Peekaping 版本、单机模式或集群模式、存储后端，以及操作系统和 CPU 类型",
     "sent_types": "你使用的监控和通知渠道的类型，例如 http 或 telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "错误报告已开启。如果 Peekaping 崩溃，会发送错误类型及其在代码中发生的位置、自身的版本、模式、存储后端和操作系统。绝不会发送错误消息、URL 或主机名。",
+    "settings_errors": "在“设置”中关闭错误报告",
+    "settings_usage": "在“设置”中关闭使用统计",
+    "title": "默认开启匿名数据发送",
+    "usage_statistics": "使用统计已开启。Peekaping 每天最多发送一次随机的实例 ID、自身的版本、模式、存储后端和操作系统、监控数量的范围、你使用的监控和通知渠道的类型，以及你是否使用状态页面、维护窗口和指标。绝不会发送名称、URL、主机或设置。"
   },
   "theme": {
     "dark": "深色",

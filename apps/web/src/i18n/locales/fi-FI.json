@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Luo ylläpitokäyttäjätilisi",
+      "error_reporting_hint": "Oletuksena päällä. Poista valinta ruudusta, jos haluat sen pois päältä. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”.",
       "have_account": "Onko sinulla jo tili?",
       "sign_in": "Kirjaudu sisään",
       "submit": "Luo",
-      "telemetry_hint": "Pois päältä, ellet valitse tätä ruutua. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”. Jos valitset sen, Peekaping lähettää tämän enintään kerran päivässä:",
+      "telemetry_hint": "Oletuksena päällä. Poista valinta ruudusta, jos haluat sen pois päältä. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”. Kun se on päällä, Peekaping lähettää tämän enintään kerran päivässä:",
       "title": "Hei"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Lähetä virheraportteja",
-    "never_sent": "Ei koskaan lähetetä: virheilmoituksia, URL-osoitteita, otsakkeita, webhook-osoitteita, nimiä tai isäntänimiä. Raportti ei sisällä IP-osoitetta, ja Peekapingin Sentry-projekti on asetettu niin, ettei se tallenna lähettäjän IP-osoitetta. Jos käytät omaa ERROR_REPORTING_DSN-arvoa, oman Sentrysi tai GlitchTipisi asetukset ratkaisevat.",
-    "not_saved": "Valintaasi lähettää virheraportteja ei tallennettu. Ota se käyttöön kohdassa ”Asetukset”.",
+    "never_sent": "Ei koskaan lähetetä: virheilmoituksia, URL-osoitteita, otsakkeita, webhook-osoitteita, nimiä tai isäntänimiä. Raportti ei sisällä IP-osoitetta, ja Peekapingin Sentry-projekti on asetettu niin, ettei se tallenna lähettäjän IP-osoitetta.",
+    "not_saved": "Valintaasi virheraporteista ei tallennettu. Tarkista se kohdassa ”Asetukset”.",
     "sent": "Lähetetään vain, kun Peekaping itse kaatuu. Raportti sisältää virheen tyypin ja kohdan koodissa, jossa se tapahtui, Peekapingin version, yksi- tai klusteritilan, tallennustaustan ja käyttöjärjestelmän."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "Klusteritilassa muutos tavoittaa jokaisen prosessin minuutissa.",
-      "description": "Lähetä raportti Sentryyn, kun palvelin kaatuu. Pois päältä, kunnes otat sen käyttöön.",
-      "forced_off": "Ympäristömuuttuja ERROR_REPORTING=off tai DO_NOT_TRACK=1 poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
+      "description": "Lähetä raportti Sentryyn, kun palvelin kaatuu. Oletuksena päällä; voit poistaa sen käytöstä täällä milloin tahansa.",
+      "forced_off": "Ympäristömuuttuja ERROR_REPORTING=off poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
       "title": "Virheraportit"
     },
     "telemetry": {
-      "description": "Lähetä nimettömiä tilastoja siitä, miten tämä asennus on määritetty, enintään kerran päivässä. Pois päältä, kunnes otat sen käyttöön.",
-      "forced_off": "Ympäristömuuttuja TELEMETRY=off tai DO_NOT_TRACK=1 poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
-      "id_note": "Instanssin tunnus luodaan, kun otat tämän käyttöön, ja poistetaan, kun poistat sen käytöstä. Kun otat sen uudelleen käyttöön, luodaan uusi.",
+      "description": "Lähetä nimettömiä tilastoja siitä, miten tämä asennus on määritetty, enintään kerran päivässä. Oletuksena päällä; voit poistaa sen käytöstä täällä milloin tahansa.",
+      "forced_off": "Ympäristömuuttuja TELEMETRY=off poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
+      "id_note": "Instanssin tunnus luodaan, kun tämä on käytössä, ja poistetaan, kun poistat sen käytöstä. Kun otat sen uudelleen käyttöön, luodaan uusi.",
       "payload_off": "Mitään ei lähetetä, kun tämä on pois päältä. Tältä käyttöping näyttäisi, jos ottaisit sen käyttöön.",
       "payload_title": "Mitä seuraava käyttöping lähettää",
       "title": "Käyttötilastot"
@@ -1487,12 +1488,19 @@
     "docs_link": "Mitä lähetetään ja miten sen voi poistaa käytöstä",
     "label": "Lähetä nimettömiä käyttötilastoja",
     "never_sent": "Ei koskaan lähetetä: valvontojen nimiä, URL-osoitteita, isäntiä, tunnisteita, tila-sivujen osoitteita tai ilmoitusasetuksia. Käyttöping ei sisällä IP-osoitetta, eikä Peekapingin Worker tallenna lähettäjän IP-osoitetta.",
-    "not_saved": "Valintaasi lähettää käyttötilastoja ei tallennettu. Ota se käyttöön kohdassa ”Asetukset”.",
+    "not_saved": "Valintaasi käyttötilastoista ei tallennettu. Tarkista se kohdassa ”Asetukset”.",
     "sent_features": "Käytätkö tila-sivuja, huoltoikkunoita ja mittareita",
-    "sent_id": "Satunnainen tunnus, joka luodaan, kun otat tämän käyttöön, ja poistetaan, kun poistat sen käytöstä",
+    "sent_id": "Satunnainen tunnus, joka luodaan, kun tämä on käytössä, ja poistetaan, kun poistat sen käytöstä",
     "sent_monitors": "Kuinka monta valvontaa sinulla on, vaihteluvälinä, esimerkiksi 11-50",
     "sent_setup": "Peekapingin versio, yksi- tai klusteritila, tallennustausta sekä käyttöjärjestelmä ja suorittimen tyyppi",
     "sent_types": "Käyttämiesi valvontojen ja ilmoituskanavien tyypit, esimerkiksi http tai telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Virheraportit ovat päällä. Jos Peekaping kaatuu, se lähettää virheen tyypin ja kohdan koodissa, jossa se tapahtui, versionsa, tilansa, tallennustaustansa ja käyttöjärjestelmänsä. Se ei koskaan lähetä virheilmoituksia, URL-osoitteita tai isäntänimiä.",
+    "settings_errors": "Poista virheraportit käytöstä kohdassa ”Asetukset”",
+    "settings_usage": "Poista käyttötilastot käytöstä kohdassa ”Asetukset”",
+    "title": "Nimettömän tiedon lähetys on oletuksena päällä",
+    "usage_statistics": "Käyttötilastot ovat päällä. Enintään kerran päivässä Peekaping lähettää satunnaisen instanssin tunnuksen, versionsa, tilansa, tallennustaustansa ja käyttöjärjestelmänsä, vaihteluvälin valvontojesi määrästä, käyttämiesi valvontojen ja ilmoituskanavien tyypit sekä sen, käytätkö tila-sivuja, huoltoikkunoita ja mittareita. Se ei koskaan lähetä nimiä, URL-osoitteita, isäntiä tai asetuksia."
   },
   "theme": {
     "dark": "Tumma",

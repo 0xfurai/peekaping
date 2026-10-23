@@ -16,9 +16,8 @@ import (
 
 // Source is where the sender gets the ping from, and where it records having tried
 type Source interface {
-	// NextPing returns the ping to send at now, or nil when none is due: the admin has not
-	// opted in, the environment forces the ping off, there is no instance ID, or the last ping
-	// was attempted less than a day ago.
+	// NextPing returns the ping to send at now, or nil when none is due: the admin opted out,
+	// the environment forces the ping off, or the last ping was attempted less than a day ago.
 	NextPing(ctx context.Context, now time.Time) (*Payload, error)
 	// RecordSent records that the ping carrying instanceID was attempted at the given time. It
 	// records nothing when instanceID is no longer the stored one: the admin opted out, or out

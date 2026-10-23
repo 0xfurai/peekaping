@@ -85,6 +85,7 @@ import {
   putTagsById,
   getTelemetry,
   putTelemetry,
+  postTelemetryNotice,
   getVersion,
   getHealthRoot,
   probePostBye,
@@ -284,6 +285,9 @@ import type {
   PutTelemetryData,
   PutTelemetryError,
   PutTelemetryResponse,
+  PostTelemetryNoticeData,
+  PostTelemetryNoticeError,
+  PostTelemetryNoticeResponse,
   GetVersionData,
   GetHealthRootData,
   ProbePostByeData,
@@ -1002,7 +1006,7 @@ export const getErrorReportingQueryKey = (
 
 /**
  * Get the error reporting state
- * Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+ * Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING environment variable forces them off.
  */
 export const getErrorReportingOptions = (
   options?: Options<GetErrorReportingData>
@@ -1023,7 +1027,7 @@ export const getErrorReportingOptions = (
 
 /**
  * Opt in or out of error reports
- * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins.
+ * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins. Any choice also marks the one-time usage ping and error reports notice as seen.
  */
 export const putErrorReportingMutation = (
   options?: Partial<Options<PutErrorReportingData>>
@@ -3160,7 +3164,7 @@ export const getTelemetryQueryKey = (options?: Options<GetTelemetryData>) =>
 
 /**
  * Get the usage ping state
- * Whether an admin opted in to the anonymous usage ping, whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, and the exact payload the next ping would send.
+ * Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
  */
 export const getTelemetryOptions = (options?: Options<GetTelemetryData>) => {
   return queryOptions({
@@ -3179,7 +3183,7 @@ export const getTelemetryOptions = (options?: Options<GetTelemetryData>) => {
 
 /**
  * Opt in or out of the usage ping
- * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins.
+ * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins. Any choice also marks the one-time notice as seen.
  */
 export const putTelemetryMutation = (
   options?: Partial<Options<PutTelemetryData>>
@@ -3195,6 +3199,59 @@ export const putTelemetryMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await putTelemetry({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postTelemetryNoticeQueryKey = (
+  options?: Options<PostTelemetryNoticeData>
+) => createQueryKey("postTelemetryNotice", options);
+
+/**
+ * Dismiss the usage ping and error reports notice
+ * An install that upgraded to a version with the usage ping and error reports on by default shows its admin a one-time notice. This marks it seen so it stops showing. It is not a choice: both features stay as they were. Making a choice with PUT /telemetry or PUT /error-reporting marks it seen too.
+ */
+export const postTelemetryNoticeOptions = (
+  options?: Options<PostTelemetryNoticeData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postTelemetryNotice({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postTelemetryNoticeQueryKey(options),
+  });
+};
+
+/**
+ * Dismiss the usage ping and error reports notice
+ * An install that upgraded to a version with the usage ping and error reports on by default shows its admin a one-time notice. This marks it seen so it stops showing. It is not a choice: both features stay as they were. Making a choice with PUT /telemetry or PUT /error-reporting marks it seen too.
+ */
+export const postTelemetryNoticeMutation = (
+  options?: Partial<Options<PostTelemetryNoticeData>>
+): UseMutationOptions<
+  PostTelemetryNoticeResponse,
+  AxiosError<PostTelemetryNoticeError>,
+  Options<PostTelemetryNoticeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostTelemetryNoticeResponse,
+    AxiosError<PostTelemetryNoticeError>,
+    Options<PostTelemetryNoticeData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postTelemetryNotice({
         ...options,
         ...localOptions,
         throwOnError: true,
