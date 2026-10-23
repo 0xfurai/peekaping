@@ -477,6 +477,23 @@ func TestProbeProtocol_TooManyRequestsAnswer429(t *testing.T) {
 		"and so has each route")
 }
 
+func TestProbeProtocol_HelloFromManyInstancesAnswers429(t *testing.T) {
+	a, made := probeApp(t)
+
+	// Every hello comes from an instance id the probe has not used, so no instance's own limit is met
+	for n := 1; n <= 10; n++ {
+		id := uuid.NewString()
+		w := a.request(t, http.MethodPost, helloPath, helloFrom(id), asProbe(made.Token, id))
+		require.Equal(t, http.StatusOK, w.Code, "hello %d is within the probe's burst of 10: %s", n, w.Body.String())
+	}
+	id := uuid.NewString()
+	w := a.request(t, http.MethodPost, helloPath, helloFrom(id), asProbe(made.Token, id))
+
+	require.Equal(t, http.StatusTooManyRequests, w.Code, w.Body.String())
+	assert.Equal(t, "1", w.Header().Get("Retry-After"))
+	assert.Equal(t, "too many requests", errorMessage(t, w.Body.Bytes()))
+}
+
 func TestProbeProtocol_LimitsOnlyAuthenticatedRequests(t *testing.T) {
 	a, _ := probeApp(t)
 
