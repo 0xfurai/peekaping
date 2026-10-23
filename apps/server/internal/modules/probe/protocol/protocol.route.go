@@ -74,6 +74,19 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 		},
 	}, controller.Assignments, r.auth.KnownInstance())
 
+	httpx.Register(calls, "POST", "results", huma.Operation{
+		Summary:       "Send check results",
+		Description:   "Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed (500) tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored or, in cluster mode, queued for the ingester. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.",
+		Tags:          []string{probeTag},
+		DefaultStatus: http.StatusOK,
+		Security:      httpx.ProbeAuth,
+		Parameters:    []*huma.Param{instanceHeaderParam},
+		Errors: []int{
+			http.StatusBadRequest, http.StatusUnauthorized, http.StatusConflict, http.StatusRequestEntityTooLarge,
+			http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusNotImplemented,
+		},
+	}, controller.Results, r.auth.KnownInstance())
+
 	httpx.Register(calls, "POST", "bye", huma.Operation{
 		Summary:       "Say bye",
 		Description:   "Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.",

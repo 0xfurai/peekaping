@@ -10,6 +10,9 @@ import (
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/maintenance"
+	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/probeproto"
@@ -31,37 +34,50 @@ const (
 )
 
 type Controller struct {
-	service probe.Service
-	source  MonitorSource
-	proxies proxy.Service
-	waker   *Waker
-	bus     events.EventBus
-	timing  Timing
-	now     func() time.Time
-	logger  *zap.SugaredLogger
+	service     probe.Service
+	source      MonitorSource
+	monitors    monitor.Service
+	proxies     proxy.Service
+	maintenance maintenance.Service
+	ingester    ingester.Service
+	waker       *Waker
+	bus         events.EventBus
+	timing      Timing
+	accepted    *acceptedWindow
+	now         func() time.Time
+	logger      *zap.SugaredLogger
 }
 
 type ControllerParams struct {
 	dig.In
-	Probes  probe.Service
-	Source  MonitorSource
-	Proxies proxy.Service
-	Waker   *Waker
-	Bus     events.EventBus
-	Timing  Timing
-	Logger  *zap.SugaredLogger
+	Probes      probe.Service
+	Source      MonitorSource
+	Monitors    monitor.Service
+	Proxies     proxy.Service
+	Maintenance maintenance.Service
+	// Ingester stores the results a probe sends: in cluster mode it enqueues them for the
+	// ingester, as it does the pushes
+	Ingester ingester.Service
+	Waker    *Waker
+	Bus      events.EventBus
+	Timing   Timing
+	Logger   *zap.SugaredLogger
 }
 
 func NewController(p ControllerParams) *Controller {
 	return &Controller{
-		service: p.Probes,
-		source:  p.Source,
-		proxies: p.Proxies,
-		waker:   p.Waker,
-		bus:     p.Bus,
-		timing:  p.Timing,
-		now:     time.Now,
-		logger:  p.Logger.Named("[probe-protocol-controller]"),
+		service:     p.Probes,
+		source:      p.Source,
+		monitors:    p.Monitors,
+		proxies:     p.Proxies,
+		maintenance: p.Maintenance,
+		ingester:    p.Ingester,
+		waker:       p.Waker,
+		bus:         p.Bus,
+		timing:      p.Timing,
+		accepted:    newAcceptedWindow(acceptedTTL),
+		now:         time.Now,
+		logger:      p.Logger.Named("[probe-protocol-controller]"),
 	}
 }
 

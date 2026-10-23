@@ -113,9 +113,8 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, b backend)) {
 	})
 }
 
-// heartbeat records a heartbeat now. The SQL repository stamps heartbeats with
-// the insert time and Mongo keeps the given one, so they can't be backdated;
-// the pause keeps their times apart on every backend.
+// heartbeat records a heartbeat now. The pause keeps the times of the
+// heartbeats apart on every backend.
 func (b backend) heartbeat(t *testing.T, monitorID string, status shared.MonitorStatus, msg string, important bool) *heartbeat.Model {
 	t.Helper()
 	created, err := b.svc.Create(context.Background(), &heartbeat.CreateUpdateDto{
@@ -163,6 +162,44 @@ func TestCreateStoresTheHeartbeatAndPublishesIt(t *testing.T) {
 		assert.Equal(t, []string{events.HeartbeatEvent.Name()}, b.bus.Topics())
 		assert.Equal(t, []heartbeat.Model{*created}, eventstest.Published(b.bus, events.HeartbeatEvent))
 	})
+}
+
+// A heartbeat is stored at the time its check started, as Mongo stores it, so that a result that
+// arrives late, such as a probe's buffered one, lands where it belongs in the monitor's history.
+// Only a heartbeat with no time is stamped with the insert time.
+func TestSQLRepository_CreateKeepsAGivenTime(t *testing.T) {
+	for _, backend := range []struct {
+		name string
+		open func(*testing.T) *bun.DB
+	}{{"SQLite", sqliteDB}, {"Postgres", postgresDB}} {
+		t.Run(backend.name, func(t *testing.T) {
+			ctx := context.Background()
+			db := backend.open(t)
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			require.NoError(t, migrator.Init(ctx))
+			_, err := migrator.Migrate(ctx)
+			require.NoError(t, err)
+			monitorID := uuid.NewString()
+			_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
+			require.NoError(t, err)
+			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), eventstest.NewBus(), zap.NewNop().Sugar())
+			checkedAt := time.Now().UTC().Add(-3 * time.Hour).Truncate(time.Millisecond)
+
+			given, err := svc.Create(ctx, &heartbeat.CreateUpdateDto{MonitorID: monitorID, Status: shared.MonitorStatusUp, Msg: "given", Time: checkedAt, EndTime: checkedAt.Add(time.Second)})
+			require.NoError(t, err)
+			unstamped, err := svc.Create(ctx, &heartbeat.CreateUpdateDto{MonitorID: monitorID, Status: shared.MonitorStatusUp, Msg: "unstamped"})
+			require.NoError(t, err)
+
+			assert.True(t, checkedAt.Equal(given.Time), "the time given: %s", given.Time)
+			stored, err := svc.FindByID(ctx, given.ID)
+			require.NoError(t, err)
+			assert.True(t, checkedAt.Equal(stored.Time), "and the time stored: %s", stored.Time)
+			assert.WithinDuration(t, time.Now(), unstamped.Time, time.Minute, "a heartbeat with no time is stamped now")
+			newestFirst, err := svc.FindByMonitorIDPaginated(ctx, monitorID, 10, 0, nil, false)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"unstamped", "given"}, msgs(newestFirst), "and the history is in the order of the times")
+		})
+	}
 }
 
 func TestFindByMonitorIDPaginatedReturnsTheNewestPageInTimeOrder(t *testing.T) {

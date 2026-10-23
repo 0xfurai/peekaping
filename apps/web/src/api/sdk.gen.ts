@@ -265,6 +265,9 @@ import type {
   ProbePostHelloData,
   ProbePostHelloResponses,
   ProbePostHelloErrors,
+  ProbePostResultsData,
+  ProbePostResultsResponses,
+  ProbePostResultsErrors,
 } from "./types.gen";
 import { client as _heyApiClient } from "./client.gen";
 
@@ -2600,6 +2603,34 @@ export const probePostHello = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/probe/v1/hello",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Send check results
+ * Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed (500) tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored or, in cluster mode, queued for the ingester. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostResults = <ThrowOnError extends boolean = false>(
+  options: Options<ProbePostResultsData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ProbePostResultsResponses,
+    ProbePostResultsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/probe/v1/results",
     ...options,
     headers: {
       "Content-Type": "application/json",

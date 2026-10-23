@@ -73,7 +73,11 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) Create(ctx context.Context, heartbeat *Model) (*Model, error) {
 	sm := toSQLModel(heartbeat)
 	sm.ID = uuid.New().String()
-	sm.Time = time.Now()
+	// A heartbeat is stored at the time its check started, as Mongo stores it; only one with no
+	// time is stamped with the insert time
+	if sm.Time.IsZero() {
+		sm.Time = time.Now()
+	}
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {

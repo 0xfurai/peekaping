@@ -11,6 +11,7 @@ import (
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/probe_notification"
@@ -205,13 +206,20 @@ func TestRegister_MongoInstallAnswers501OnProbeRoutes(t *testing.T) {
 	}))
 }
 
+// discardingIngester is an ingester.Service that stores nothing
+type discardingIngester struct{}
+
+func (discardingIngester) Ingest(context.Context, *ingester.Result) error { return nil }
+
 func TestRegister_SQLiteInstallResolvesTheProbeProtocol(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, Register(container, clusterConfig(t)))
-	// The transport provides the event bus that the waker and the controller publish to
+	// The transport provides the event bus that the waker and the controller publish to, and the
+	// ingester service that stores the results a probe sends
 	bus := events.NewMemoryBus()
 	t.Cleanup(func() { assert.NoError(t, bus.Close(context.Background())) })
 	require.NoError(t, container.Provide(func() events.EventBus { return bus }))
+	require.NoError(t, container.Provide(func() ingester.Service { return discardingIngester{} }))
 
 	require.NoError(t, container.Invoke(func(route *protocol.Route, controller *protocol.Controller, limiter *protocol.RateLimiter, waker *protocol.Waker, source protocol.MonitorSource) {
 		assert.NotNil(t, route)

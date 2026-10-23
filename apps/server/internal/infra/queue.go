@@ -358,7 +358,7 @@ func (s *queueServiceImpl) EnqueueUnique(
 			s.logger.Debugw("Task already queued (duplicate prevented by unique constraint)",
 				"task_type", taskType,
 				"unique_key", uniqueKey)
-			return nil, fmt.Errorf("task already exists: %w", err)
+			return nil, fmt.Errorf("task already exists: %w: %w", queue.ErrTaskIDConflict, err)
 		}
 
 		// This is a real error - log at error level

@@ -2,6 +2,8 @@ package apitest
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -223,4 +225,74 @@ func TestProbeContract_Assignments(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, other, "and a version it does not hold is answered at once")
 	assert.Equal(t, held.Version, other.Version)
+}
+
+func TestProbeContract_Results(t *testing.T) {
+	a := localProbeApp(t, nil)
+	monitorID := a.createHTTPMonitor(t, "Checkout", "")
+	instanceID := uuid.NewString()
+	client, rt := a.probeClient(localToken, instanceID)
+	ctx := context.Background()
+	welcome, err := client.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: probeproto.ProtocolVersion, SupportedTypes: []string{"http"}})
+	require.NoError(t, err)
+	up := checkResult("up", monitorID, checkedAt(0))
+	up.TLSInfo = json.RawMessage(`{"valid":true,"certInfo":{"subject":"CN=example.com","issuer":"CN=Example CA","daysRemaining":42}}`)
+	batch := &probeproto.ResultsRequest{Results: []probeproto.Result{
+		up,
+		checkResult("lost", "no-such-monitor", checkedAt(1)),
+		checkResult("stale", monitorID, time.Now().UTC().Add(-3*time.Hour)),
+	}}
+
+	got, err := client.Results(ctx, batch)
+
+	require.NoError(t, err)
+	assert.Equal(t, &probeproto.ResultsResponse{Results: []probeproto.ResultOutcome{
+		{ID: "up", Accepted: true},
+		{ID: "lost", Reason: probeproto.ReasonUnknownMonitor},
+		{ID: "stale", Reason: probeproto.ReasonTooOld},
+	}}, got, "the outcomes come back typed, in the order sent")
+	req, resp := rt.last(t)
+	assert.Equal(t, http.MethodPost, req.Method)
+	assert.Equal(t, "/probe/v1/results", req.URL.Path)
+	assert.Equal(t, "gzip", req.Header.Get("Content-Encoding"), "the client gzips the batch")
+	assert.Equal(t, "gzip", resp.Header.Get("Content-Encoding"), "and the server gzips the outcomes")
+	payloads := a.queuedPayloads(t)
+	require.Len(t, payloads, 1, "the accepted result is queued for the ingester, and the others are not")
+	assert.Equal(t, "local", payloads[0]["probe_id"])
+	assert.Equal(t, monitorID, payloads[0]["monitor_id"])
+	tlsInfo, _ := payloads[0]["tls_info"].(map[string]any)
+	require.NotNil(t, tlsInfo, "with the certificate information the probe read")
+	assert.Equal(t, true, tlsInfo["valid"])
+	certInfo, _ := tlsInfo["certInfo"].(map[string]any)
+	assert.Equal(t, "CN=example.com", certInfo["subject"])
+	assert.EqualValues(t, 42, certInfo["daysRemaining"])
+
+	again, err := client.Results(ctx, batch)
+
+	require.NoError(t, err)
+	assert.Equal(t, probeproto.ResultOutcome{ID: "up", Reason: probeproto.ReasonDuplicate}, again.Results[0], "a batch sent again is answered duplicate")
+
+	t.Run("a batch past the limit hello states is a 400", func(t *testing.T) {
+		tooMany := &probeproto.ResultsRequest{}
+		for i := range welcome.BatchMax + 1 {
+			tooMany.Results = append(tooMany.Results, checkResult(fmt.Sprintf("result-%d", i), monitorID, checkedAt(0)))
+		}
+
+		_, err := client.Results(ctx, tooMany)
+
+		var failure *probeproto.Error
+		require.ErrorAs(t, err, &failure)
+		assert.Equal(t, http.StatusBadRequest, failure.Status)
+		assert.Equal(t, "batch holds 501 results, the limit is 500", failure.Message)
+	})
+
+	t.Run("an instance that never said hello is a 409", func(t *testing.T) {
+		stranger, _ := a.probeClient(localToken, uuid.NewString())
+
+		_, err := stranger.Results(ctx, batch)
+
+		var failure *probeproto.Error
+		require.ErrorAs(t, err, &failure)
+		assert.Equal(t, http.StatusConflict, failure.Status)
+	})
 }

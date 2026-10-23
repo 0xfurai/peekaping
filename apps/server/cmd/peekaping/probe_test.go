@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 
 	"github.com/stretchr/testify/assert"
@@ -149,6 +150,46 @@ func TestRun_ShutsDownWithinSecondsWhileAProbeHoldsAnAssignmentPoll(t *testing.T
 		assert.Fail(t, "the poll was not answered")
 	}
 	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
+}
+
+// Single mode has no queue: the reply to a probe's results comes after they are stored as
+// heartbeats, with the times of the checks and not of their arrival.
+func TestRun_StoresTheResultsAProbeSendsAsHeartbeatsBeforeTheReplyWithoutRedis(t *testing.T) {
+	cfg := loadConfig(t, map[string]string{"PROBE_BOOTSTRAP_TOKEN": bootstrapToken})
+	logger, logs := observedLogger()
+	in := startPeekaping(t, cfg, logger, logs)
+	in.registerAdmin(t)
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer target.Close()
+	monitorID := in.createMonitor(t, httpMonitor("Checkout", target.URL, 3600))
+	client, _ := in.probeInstance(t, "probe-instance-1")
+	failedAt := time.Now().UTC().Add(-2 * time.Minute).Truncate(time.Millisecond)
+	recoveredAt := failedAt.Add(time.Minute)
+
+	got, err := client.Results(context.Background(), &probeproto.ResultsRequest{Results: []probeproto.Result{
+		{ID: "recovered", MonitorID: monitorID, Status: probeproto.StatusUp, Message: "probe: 200 OK", PingMs: 31,
+			StartTime: recoveredAt, EndTime: recoveredAt.Add(31 * time.Millisecond)},
+		{ID: "failed", MonitorID: monitorID, Status: probeproto.StatusDown, Message: "probe: connection refused", PingMs: 5,
+			StartTime: failedAt, EndTime: failedAt.Add(5 * time.Millisecond)},
+	}})
+
+	require.NoError(t, err)
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "recovered", Accepted: true}, {ID: "failed", Accepted: true}}, got.Results)
+	byMessage := map[string]shared.HeartBeatModel{}
+	for _, beat := range in.heartbeats(t, monitorID) {
+		byMessage[beat.Msg] = beat
+	}
+	failed, recovered := byMessage["probe: connection refused"], byMessage["probe: 200 OK"]
+	require.NotEmpty(t, failed.ID, "the heartbeat of the failed check is stored when the reply comes")
+	require.NotEmpty(t, recovered.ID)
+	assert.Equal(t, shared.MonitorStatusDown, failed.Status)
+	assert.Equal(t, 5, failed.Ping)
+	assert.True(t, failedAt.Equal(failed.Time), "the start of the check, not of its arrival: %s", failed.Time)
+	assert.True(t, failedAt.Add(5*time.Millisecond).Equal(failed.EndTime), "%s", failed.EndTime)
+	assert.Equal(t, shared.MonitorStatusUp, recovered.Status)
+	assert.Equal(t, 31, recovered.Ping)
+	assert.True(t, recoveredAt.Equal(recovered.Time), "%s", recovered.Time)
+	assert.True(t, recoveredAt.Add(31*time.Millisecond).Equal(recovered.EndTime), "%s", recovered.EndTime)
 }
 
 // login logs the admin in, who registered before a restart, and sends the requests that follow

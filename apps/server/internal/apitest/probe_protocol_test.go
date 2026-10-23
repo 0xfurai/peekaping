@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -1032,6 +1033,227 @@ func TestProbeProtocol_AssignmentsAreDocumented(t *testing.T) {
 	assert.Contains(t, op.Responses, "304", "the poll that times out")
 	assert.Empty(t, op.Responses["304"].Content, "and has no body")
 	for _, status := range []string{"400", "401", "409", "429", "500", "501"} {
+		assert.Contains(t, op.Responses, status)
+	}
+}
+
+const resultsPath = "/probe/v1/results"
+
+// checkedAt is when a check of a test's started: a minute ago, plus the seconds that tell the
+// checks of one test apart
+func checkedAt(seconds int) time.Time {
+	return time.Now().UTC().Add(-time.Minute + time.Duration(seconds)*time.Second).Truncate(time.Millisecond)
+}
+
+// checkResult is an Up result of the monitor that started at start
+func checkResult(id, monitorID string, start time.Time) probeproto.Result {
+	return probeproto.Result{
+		ID: id, MonitorID: monitorID, Status: probeproto.StatusUp, Message: "200 - OK", PingMs: 12,
+		StartTime: start, EndTime: start.Add(12 * time.Millisecond),
+	}
+}
+
+// sendResults sends the results as the instance and returns what the server answered
+func (a *app) sendResults(t *testing.T, token, instanceID string, results ...probeproto.Result) *httptest.ResponseRecorder {
+	t.Helper()
+	return a.request(t, http.MethodPost, resultsPath, probeproto.ResultsRequest{Results: results}, asProbe(token, instanceID))
+}
+
+// outcomesOf sends the results and returns the outcomes, which the server must have answered 200
+func (a *app) outcomesOf(t *testing.T, token, instanceID string, results ...probeproto.Result) []probeproto.ResultOutcome {
+	t.Helper()
+	w := a.sendResults(t, token, instanceID, results...)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	var reply probeproto.ResultsResponse
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &reply), w.Body.String())
+	return reply.Results
+}
+
+// queuedPayloads are the payloads of the heartbeats waiting for the ingester, oldest check first
+func (a *app) queuedPayloads(t *testing.T) []map[string]any {
+	t.Helper()
+	var payloads []map[string]any
+	for _, task := range a.queuedHeartbeats(t) {
+		var payload map[string]any
+		require.NoError(t, json.Unmarshal(task.Payload, &payload))
+		payloads = append(payloads, payload)
+	}
+	slices.SortFunc(payloads, func(x, y map[string]any) int {
+		return strings.Compare(x["start_time"].(string), y["start_time"].(string))
+	})
+	return payloads
+}
+
+func TestProbeProtocol_ResultsAreQueuedForTheIngester(t *testing.T) {
+	a := localProbeApp(t, nil)
+	monitorID := a.createHTTPMonitor(t, "Checkout", "")
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	up := checkResult("result-up", monitorID, checkedAt(0))
+	down := checkResult("result-down", monitorID, checkedAt(30))
+	down.Status, down.Message, down.PingMs = probeproto.StatusDown, "connection refused", 843
+	down.EndTime = down.StartTime.Add(843 * time.Millisecond)
+
+	got := a.outcomesOf(t, localToken, instanceID, down, up)
+
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "result-down", Accepted: true}, {ID: "result-up", Accepted: true}}, got,
+		"one outcome for each result, in the order sent")
+	tasks := a.queuedHeartbeats(t)
+	require.Len(t, tasks, 2, "the reply comes after the enqueue")
+	for _, task := range tasks {
+		assert.Equal(t, "monitor:ingest", task.Type)
+		assert.Equal(t, "ingester", task.Queue)
+	}
+	payloads := a.queuedPayloads(t)
+	require.Len(t, payloads, 2)
+	for i, want := range []probeproto.Result{up, down} {
+		payload := payloads[i]
+		assert.Equal(t, "local", payload["probe_id"], "the probe that ran the check")
+		assert.Equal(t, monitorID, payload["monitor_id"])
+		assert.Equal(t, "Checkout", payload["monitor_name"], "the monitor's settings are filled in as for a push")
+		assert.Equal(t, "http", payload["monitor_type"])
+		assert.EqualValues(t, 60, payload["monitor_interval"])
+		assert.EqualValues(t, 3, payload["monitor_max_retries"])
+		assert.Equal(t, false, payload["is_under_maintenance"])
+		assert.Equal(t, want.Message, payload["message"])
+		assert.EqualValues(t, want.PingMs, payload["ping_ms"])
+		startedAt, err := time.Parse(time.RFC3339Nano, payload["start_time"].(string))
+		require.NoError(t, err)
+		assert.True(t, want.StartTime.Equal(startedAt), "the result's own time, not the time it arrived: %s", payload["start_time"])
+		endedAt, err := time.Parse(time.RFC3339Nano, payload["end_time"].(string))
+		require.NoError(t, err)
+		assert.True(t, want.EndTime.Equal(endedAt))
+	}
+	assert.EqualValues(t, 1, payloads[0]["status"], "Up")
+	assert.EqualValues(t, 0, payloads[1]["status"], "Down")
+}
+
+func TestProbeProtocol_ResultsRejectReasonsEndToEnd(t *testing.T) {
+	a := localProbeApp(t, nil)
+	monitorID := a.createHTTPMonitor(t, "Checkout", "")
+	pushID := a.createMonitor(t, "Nightly cron", "nightly-cron-push-token")
+	pausedID := a.createHTTPMonitor(t, "Retired", "")
+	a.pauseMonitor(t, pausedID)
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	good := checkResult("good", monitorID, checkedAt(0))
+	old := checkResult("old", monitorID, time.Now().UTC().Add(-2*time.Hour))
+	ahead := checkResult("ahead", monitorID, time.Now().UTC().Add(5*time.Minute))
+	batch := []probeproto.Result{
+		good,
+		checkResult("unknown", uuid.NewString(), checkedAt(1)),
+		checkResult("not-a-uuid", "no-such-monitor", checkedAt(1)),
+		checkResult("push", pushID, checkedAt(2)),
+		checkResult("paused", pausedID, checkedAt(3)),
+		old,
+		ahead,
+	}
+
+	got := a.outcomesOf(t, localToken, instanceID, batch...)
+
+	assert.Equal(t, []probeproto.ResultOutcome{
+		{ID: "good", Accepted: true},
+		{ID: "unknown", Reason: "unknown_monitor"},
+		{ID: "not-a-uuid", Reason: "unknown_monitor"},
+		{ID: "push", Reason: "not_assigned"},
+		{ID: "paused", Reason: "not_assigned"},
+		{ID: "old", Reason: "too_old"},
+		{ID: "ahead", Reason: "invalid"},
+	}, got)
+	require.Len(t, a.queuedHeartbeats(t), 1, "only the good result is stored")
+
+	again := a.outcomesOf(t, localToken, instanceID, good, checkResult("next", monitorID, checkedAt(10)))
+
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "good", Reason: "duplicate"}, {ID: "next", Accepted: true}}, again,
+		"a result the server stored is a duplicate when the probe sends it again")
+	assert.Len(t, a.queuedHeartbeats(t), 2)
+}
+
+// Cluster mode's replicas each remember the ids they stored. A result that another replica took
+// is not among them, so the queue is what catches it: it holds a task for the monitor and the
+// start time. The test sends a second id for a check that started at the same time, which the
+// first replica's memory doesn't know either.
+func TestProbeProtocol_AResultTheQueueHoldsAlreadyIsADuplicate(t *testing.T) {
+	a := localProbeApp(t, nil)
+	monitorID := a.createHTTPMonitor(t, "Checkout", "")
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	started := checkedAt(0)
+	require.Equal(t, []probeproto.ResultOutcome{{ID: "first-try", Accepted: true}},
+		a.outcomesOf(t, localToken, instanceID, checkResult("first-try", monitorID, started)))
+
+	got := a.outcomesOf(t, localToken, instanceID, checkResult("another-id", monitorID, started))
+
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "another-id", Reason: "duplicate"}}, got, "and the probe is not told to try again")
+	assert.Len(t, a.queuedHeartbeats(t), 1, "the heartbeat is queued once")
+}
+
+func TestProbeProtocol_ResultsOver1MBAnswer413(t *testing.T) {
+	a, made := probeApp(t)
+	instanceID := uuid.NewString()
+	a.sayHello(t, made.Token, instanceID)
+	big := checkResult("big", "any-monitor", checkedAt(0))
+	big.Message = strings.Repeat("m", 1<<20+1)
+	body, err := json.Marshal(probeproto.ResultsRequest{Results: []probeproto.Result{big}})
+	require.NoError(t, err)
+
+	t.Run("a plain body over 1 MB", func(t *testing.T) {
+		w := a.request(t, http.MethodPost, resultsPath, string(body), asProbe(made.Token, instanceID))
+
+		assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code, w.Body.String())
+		assert.Equal(t, "request body too large", errorMessage(t, w.Body.Bytes()))
+	})
+
+	t.Run("a gzipped body that inflates past 1 MB", func(t *testing.T) {
+		compressed := gzipBytes(t, body)
+		require.Less(t, len(compressed), 100<<10, "it is small on the wire")
+
+		w := a.request(t, http.MethodPost, resultsPath, string(compressed), asProbe(made.Token, instanceID), withHeader("Content-Encoding", "gzip"))
+
+		assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code, w.Body.String())
+		assert.Equal(t, "request body too large", errorMessage(t, w.Body.Bytes()))
+	})
+	assert.Empty(t, a.queuedHeartbeats(t))
+}
+
+func TestProbeProtocol_ResultsBatchOver500Answers400(t *testing.T) {
+	a := localProbeApp(t, nil)
+	monitorID := a.createHTTPMonitor(t, "Checkout", "")
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	batch := make([]probeproto.Result, 501)
+	for i := range batch {
+		batch[i] = checkResult(fmt.Sprintf("result-%d", i), monitorID, checkedAt(0).Add(time.Duration(i)*time.Millisecond))
+	}
+
+	w := a.sendResults(t, localToken, instanceID, batch...)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	assert.Equal(t, "batch holds 501 results, the limit is 500", errorMessage(t, w.Body.Bytes()))
+	assert.Empty(t, a.queuedHeartbeats(t), "none of it is stored")
+	assert.Len(t, a.outcomesOf(t, localToken, instanceID, batch[:500]...), 500, "the batch the server hands out in hello is the most it takes")
+}
+
+func TestProbeProtocol_ResultsAreDocumented(t *testing.T) {
+	a := newApp(t)
+	var spec struct {
+		Paths map[string]map[string]struct {
+			OperationID string                `json:"operationId"`
+			Security    []map[string][]string `json:"security"`
+			Responses   map[string]struct {
+				Content map[string]json.RawMessage `json:"content"`
+			} `json:"responses"`
+		} `json:"paths"`
+	}
+	require.NoError(t, json.Unmarshal(a.request(t, http.MethodGet, "/openapi.json", nil).Body.Bytes(), &spec))
+
+	op, ok := spec.Paths[resultsPath]["post"]
+
+	require.True(t, ok, "POST %s is in the document", resultsPath)
+	assert.Equal(t, "probePostResults", op.OperationID)
+	assert.Equal(t, []map[string][]string{{"ProbeAuth": {}}}, op.Security)
+	assert.Contains(t, op.Responses["200"].Content, "application/json")
+	for _, status := range []string{"400", "401", "409", "413", "429", "500", "501"} {
 		assert.Contains(t, op.Responses, status)
 	}
 }

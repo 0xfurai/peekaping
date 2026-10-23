@@ -621,6 +621,32 @@ export type ProbeprotoProxy = {
   username?: string;
 };
 
+export type ProbeprotoResult = {
+  end_time: string;
+  id: string;
+  message: string;
+  monitor_id: string;
+  ping_ms: number;
+  start_time: string;
+  status: string;
+  tls_info?: unknown;
+};
+
+export type ProbeprotoResultOutcome = {
+  accepted: boolean;
+  id: string;
+  reason?: string;
+};
+
+export type ProbeprotoResultsRequest = {
+  results?: Array<ProbeprotoResult> | null;
+  [key: string]: unknown | (Array<ProbeprotoResult> | null) | undefined;
+};
+
+export type ProbeprotoResultsResponse = {
+  results: Array<ProbeprotoResultOutcome> | null;
+};
+
 export type ProxyCreateUpdateDto = {
   auth?: boolean;
   host: string;
@@ -5050,6 +5076,63 @@ export type ProbePostHelloResponses = {
 
 export type ProbePostHelloResponse =
   ProbePostHelloResponses[keyof ProbePostHelloResponses];
+
+export type ProbePostResultsData = {
+  body: ProbeprotoResultsRequest;
+  headers: {
+    /**
+     * The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces.
+     */
+    "X-Probe-Instance": string;
+  };
+  path?: never;
+  query?: never;
+  url: "/probe/v1/results";
+};
+
+export type ProbePostResultsErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Request Entity Too Large
+   */
+  413: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Not Implemented
+   */
+  501: HttpxErrorBody;
+};
+
+export type ProbePostResultsError =
+  ProbePostResultsErrors[keyof ProbePostResultsErrors];
+
+export type ProbePostResultsResponses = {
+  /**
+   * OK
+   */
+  200: ProbeprotoResultsResponse;
+};
+
+export type ProbePostResultsResponse =
+  ProbePostResultsResponses[keyof ProbePostResultsResponses];
 
 export type ClientOptions = {
   baseURL: `${string}://${string}` | (string & {});

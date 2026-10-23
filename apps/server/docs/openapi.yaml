@@ -1626,6 +1626,71 @@ components:
         - auth
         - updated_at
       type: object
+    probeproto.Result:
+      additionalProperties: false
+      properties:
+        end_time:
+          format: date-time
+          type: string
+        id:
+          type: string
+        message:
+          type: string
+        monitor_id:
+          type: string
+        ping_ms:
+          format: int64
+          type: integer
+        start_time:
+          format: date-time
+          type: string
+        status:
+          type: string
+        tls_info: {}
+      required:
+        - id
+        - monitor_id
+        - status
+        - message
+        - ping_ms
+        - start_time
+        - end_time
+      type: object
+    probeproto.ResultOutcome:
+      additionalProperties: false
+      properties:
+        accepted:
+          type: boolean
+        id:
+          type: string
+        reason:
+          type: string
+      required:
+        - id
+        - accepted
+      type: object
+    probeproto.ResultsRequest:
+      additionalProperties: true
+      properties:
+        results:
+          items:
+            $ref: "#/components/schemas/probeproto.Result"
+          type:
+            - array
+            - "null"
+      type: object
+    probeproto.ResultsResponse:
+      additionalProperties: false
+      properties:
+        results:
+          items:
+            $ref: "#/components/schemas/probeproto.ResultOutcome"
+          type:
+            - array
+            - "null"
+      required:
+        - results
+      type: object
     proxy.CreateUpdateDto:
       additionalProperties: true
       properties:
@@ -7295,6 +7360,79 @@ paths:
       security:
         - ProbeAuth: []
       summary: Say hello
+      tags:
+        - probe-protocol
+  /probe/v1/results:
+    post:
+      description: "Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed (500) tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored or, in cluster mode, queued for the ingester. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it."
+      operationId: probePostResults
+      parameters:
+        - description: "The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces."
+          in: header
+          name: X-Probe-Instance
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/probeproto.ResultsRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/probeproto.ResultsResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Request Entity Too Large
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Implemented
+      security:
+        - ProbeAuth: []
+      summary: Send check results
       tags:
         - probe-protocol
 security: []
