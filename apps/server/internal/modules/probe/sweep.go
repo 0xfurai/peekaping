@@ -25,8 +25,10 @@ const (
 	MinOfflineAfter = config.MinProbeOfflineAfter
 	// DefaultSweepInterval is how often the sweep looks at the probes
 	DefaultSweepInterval = 30 * time.Second
-	// DefaultInstanceRetention is how long an instance may go unseen before the sweep forgets it
-	DefaultInstanceRetention = 24 * time.Hour
+	// DefaultInstanceRetention is how long an instance may go unseen before the sweep forgets it.
+	// It is the config's cap on PROBE_OFFLINE_AFTER, so that the sweep never finds a probe online
+	// on an instance that it is about to prune.
+	DefaultInstanceRetention = config.MaxProbeOfflineAfter
 )
 
 // SweepConfig is what a Sweep reads and calls

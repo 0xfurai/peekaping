@@ -39,8 +39,8 @@ type Config struct {
 	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
 
 	// How long an online probe's instances may all go unseen before the probe counts as offline.
-	// A Go duration, at least config.MinProbeOfflineAfter. The leader producer's sweep sets the probe
-	// offline. Validated in Validate().
+	// A Go duration, from config.MinProbeOfflineAfter to config.MaxProbeOfflineAfter. The leader
+	// producer's sweep sets the probe offline. Validated in Validate().
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:producer"`
@@ -94,6 +94,11 @@ func Validate(cfg *Config) error {
 	// probe.RetiredAt)
 	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
 		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at least %s", config.MinProbeOfflineAfter)
+	}
+	// The sweep forgets an instance after that long, so a longer limit would set a probe online on
+	// an instance about to be pruned, and offline again (see config.MaxProbeOfflineAfter)
+	if cfg.ProbeOfflineAfter > config.MaxProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
 	}
 
 	return nil

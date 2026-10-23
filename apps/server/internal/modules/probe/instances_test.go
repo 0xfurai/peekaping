@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/config"
 	"peekaping/internal/modules/probe"
 
 	"github.com/stretchr/testify/assert"
@@ -53,6 +54,13 @@ func TestRetiredAt_LeavesRoomUnderTheSmallestOfflineAfter(t *testing.T) {
 
 	assert.GreaterOrEqual(t, room, 2*probe.DefaultSweepInterval-time.Second,
 		"a retired instance has %s to come back before the sweep can set its probe offline", room)
+}
+
+// The sweep forgets an instance after the retention, so a probe could not stay online on an instance
+// older than that. PROBE_OFFLINE_AFTER is capped at the retention so that the sweep never sets a probe
+// online on an instance it is about to prune.
+func TestInstanceRetention_IsTheCapOfProbeOfflineAfter(t *testing.T) {
+	assert.Equal(t, config.MaxProbeOfflineAfter, probe.DefaultInstanceRetention)
 }
 
 func TestOnlineInstances_NoneIsAnEmptyList(t *testing.T) {

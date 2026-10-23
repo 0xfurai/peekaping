@@ -84,6 +84,24 @@ func TestLoadConfig_ProbeOfflineAfterTooShort(t *testing.T) {
 	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at least 2m", "a probe that restarts gracefully must not be announced offline")
 }
 
+// The sweep forgets an instance that went unseen for 24 hours, so a longer limit would let it set a
+// quiet probe online on an instance that is about to be pruned, and offline again on the next pass.
+func TestLoadConfig_ProbeOfflineAfterTooLong(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	t.Setenv("PROBE_OFFLINE_AFTER", "24h")
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err, "24 hours is the longest there is")
+	assert.Equal(t, 24*time.Hour, cfg.ToInternalConfig().ProbeOfflineAfter)
+
+	t.Setenv("PROBE_OFFLINE_AFTER", "24h1s")
+	_, err = LoadAndValidate(t.TempDir())
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at most 24h0m0s", "the sweep forgets an instance after that")
+}
+
 func TestLoadConfig_ProbeOfflineAfterNegative(t *testing.T) {
 	unsetRedis(t)
 	t.Setenv("DB_TYPE", "sqlite")
