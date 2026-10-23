@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -48,9 +49,19 @@ type recordingIngester struct {
 	attempts []*ingester.Result
 	stored   []*ingester.Result
 	failOn   func(*ingester.Result) error
+	// hold, when set, runs as a result is handed over and before it is recorded, to keep a request
+	// in the middle of storing
+	hold func(*ingester.Result)
+
+	mu sync.Mutex
 }
 
 func (r *recordingIngester) Ingest(_ context.Context, result *ingester.Result) error {
+	if r.hold != nil {
+		r.hold(result)
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.attempts = append(r.attempts, result)
 	if r.failOn != nil {
 		if err := r.failOn(result); err != nil {
@@ -77,10 +88,13 @@ type fakeSource struct {
 	active []*monitor.Model
 	err    error
 	calls  int
+	mu     sync.Mutex
 }
 
 func (s *fakeSource) FindActiveByProbe(_ context.Context, probeID string) ([]*monitor.Model, error) {
+	s.mu.Lock()
 	s.calls++
+	s.mu.Unlock()
 	if probeID != "probe-1" {
 		return []*monitor.Model{}, nil
 	}
@@ -460,6 +474,90 @@ func TestResults_RetryAfterIngestErrorStoresNothingTwice(t *testing.T) {
 	assert.Equal(t, first.StartTime, s.ingest.stored[0].StartTime)
 	assert.Equal(t, second.StartTime, s.ingest.stored[1].StartTime)
 	assert.Len(t, s.ingest.attempts, 3, "the first result was tried once, and the second twice")
+}
+
+// A probe sends a batch again when it didn't hear the answer, and the retry can arrive while the
+// first request is still storing. The ids are claimed before anything is stored, so the retry finds
+// them taken.
+func TestResults_ConcurrentRetryStoresOnce(t *testing.T) {
+	s := newResultsServer(t)
+	start := time.Now().UTC().Add(-time.Minute)
+	batch := probeproto.ResultsRequest{Results: []probeproto.Result{
+		checkResult("first", monCheckout, start),
+		checkResult("second", monCheckout, start.Add(time.Second)),
+	}}
+	// Every result handed to the ingester waits at the gate, with a signal that it got there
+	entered := make(chan struct{}, 8)
+	gate := make(chan struct{})
+	s.ingest.hold = func(*ingester.Result) {
+		entered <- struct{}{}
+		<-gate
+	}
+	post := func() <-chan *httptest.ResponseRecorder {
+		done := make(chan *httptest.ResponseRecorder, 1)
+		go func() { done <- s.post(t, batch) }()
+		return done
+	}
+
+	firstDone := post()
+	<-entered // the first request is storing "first", with both ids claimed
+	retryDone := post()
+	var retry *httptest.ResponseRecorder
+	select {
+	case retry = <-retryDone:
+		// the retry was answered while the first request is still storing
+	case <-entered:
+		// the retry is storing the same result
+	case <-time.After(5 * time.Second):
+		t.Fatal("the retry was neither answered nor storing")
+	}
+	close(gate)
+	first := <-firstDone
+	if retry == nil {
+		retry = <-retryDone
+	}
+
+	outcomes := func(w *httptest.ResponseRecorder) []probeproto.ResultOutcome {
+		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+		var reply probeproto.ResultsResponse
+		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &reply))
+		return reply.Results
+	}
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("first"), accepted("second")}, outcomes(first))
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("first", probeproto.ReasonDuplicate), rejected("second", probeproto.ReasonDuplicate)}, outcomes(retry),
+		"the retry finds the ids taken")
+	require.Len(t, s.ingest.stored, 2, "one result for each id")
+	assert.Equal(t, start, s.ingest.stored[0].StartTime)
+	assert.Equal(t, start.Add(time.Second), s.ingest.stored[1].StartTime)
+}
+
+// A request that fails answers 500 for the whole batch, and the probe sends all of it again. What
+// it claimed and did not store has to be free for that retry.
+func TestResults_AFailedBatchFreesTheIdsItDidNotStore(t *testing.T) {
+	s := newResultsServer(t)
+	start := time.Now().UTC().Add(-time.Minute)
+	stored := checkResult("stored", monCheckout, start)
+	broken := checkResult("broken", monCheckout, start.Add(time.Second))
+	waiting := checkResult("waiting", monSearch, start)
+	down := true
+	s.ingest.failOn = func(r *ingester.Result) error {
+		if down && r.StartTime.Equal(broken.StartTime) {
+			return errors.New("the database is down")
+		}
+		return nil
+	}
+
+	// A monitor's results are stored in turn, so the search monitor's result is never tried
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{stored, broken, waiting}})
+	require.Equal(t, http.StatusInternalServerError, w.Code)
+	require.Len(t, s.ingest.stored, 1)
+
+	down = false
+	got := s.results(t, stored, broken, waiting)
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("stored", probeproto.ReasonDuplicate), accepted("broken"), accepted("waiting")}, got,
+		"only the result that was stored is a duplicate")
+	assert.Len(t, s.ingest.stored, 3)
 }
 
 // In cluster mode another replica may have queued the result already, for a retry that landed on
