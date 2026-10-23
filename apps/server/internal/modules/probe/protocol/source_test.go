@@ -20,7 +20,6 @@ type stubMonitors struct {
 	monitor.Service
 	// byProbe are the active monitors of each probe
 	byProbe map[string][]*monitor.Model
-	byID    map[string]*monitor.Model
 	err     error
 	// pages are the pages asked for, as "probe/page"
 	pages []string
@@ -35,10 +34,6 @@ func (s *stubMonitors) FindActiveByProbe(_ context.Context, probeID string, page
 	start := min(page*limit, len(all))
 	end := min(start+limit, len(all))
 	return all[start:end], nil
-}
-
-func (s *stubMonitors) FindByID(_ context.Context, id string) (*monitor.Model, error) {
-	return s.byID[id], s.err
 }
 
 func TestMonitorSource_ListsTheActiveMonitorsOfTheProbe(t *testing.T) {
@@ -75,35 +70,10 @@ func TestMonitorSource_PagesThroughAllTheMonitors(t *testing.T) {
 	assert.Equal(t, []string{"frankfurt/0", "frankfurt/1", "frankfurt/2"}, monitors.pages, "until a page comes up short")
 }
 
-func TestMonitorSource_AMonitorBelongsToItsProbe(t *testing.T) {
-	remote := monitorWith("http-1", "http")
-	remote.ProbeIDs = []string{"frankfurt"}
-	local := monitorWith("http-2", "http")
-	local.ProbeIDs = []string{probe.LocalID}
-	unassigned := monitorWith("http-3", "http") // read without its probes, as a monitor from before probes is
-	monitors := &stubMonitors{byID: map[string]*monitor.Model{"http-1": remote, "http-2": local, "http-3": unassigned}}
-	source := protocol.NewMonitorSource(monitors)
-
-	for monitorID, want := range map[string]string{
-		"http-1":                     "frankfurt",
-		"http-2":                     probe.LocalID,
-		"http-3":                     probe.LocalID,
-		"a-monitor-that-was-deleted": probe.LocalID,
-	} {
-		got, err := source.ProbeOf(context.Background(), monitorID)
-
-		require.NoError(t, err, monitorID)
-		assert.Equal(t, want, got, monitorID)
-	}
-}
-
 func TestMonitorSource_PassesOnAFailure(t *testing.T) {
 	failure := errors.New("database is down")
 	source := protocol.NewMonitorSource(&stubMonitors{err: failure})
 
 	_, err := source.FindActiveByProbe(context.Background(), probe.LocalID)
-	assert.ErrorIs(t, err, failure)
-
-	_, err = source.ProbeOf(context.Background(), "http-1")
 	assert.ErrorIs(t, err, failure)
 }

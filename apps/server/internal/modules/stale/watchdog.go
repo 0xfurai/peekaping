@@ -33,8 +33,9 @@ type HeartbeatFinder interface {
 
 // ProbeOfflineFunc reports whether the probe a monitor is assigned to is offline. A monitor
 // whose probe is offline isn't being checked for a reason that probe's own notification gives, so
-// the watchdog leaves it alone. The local probe never counts as offline.
-type ProbeOfflineFunc func(ctx context.Context, monitorID string) (bool, error)
+// the watchdog leaves it alone. The local probe never counts as offline. The monitor is the one
+// the watchdog holds, with its probes.
+type ProbeOfflineFunc func(ctx context.Context, mon *shared.Monitor) (bool, error)
 
 // WatchdogConfig is what a Watchdog reads and calls
 type WatchdogConfig struct {
@@ -191,7 +192,7 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 	// by the time the probe is back, which would notify with no recheck made. The monitor is
 	// found stale afresh then, with a new recheck and a new time to be checked in.
 	if w.probeOffline != nil {
-		offline, err := w.probeOffline(ctx, mon.ID)
+		offline, err := w.probeOffline(ctx, mon)
 		if err != nil {
 			return fmt.Errorf("failed to find out whether the monitor's probe is offline: %w", err)
 		}

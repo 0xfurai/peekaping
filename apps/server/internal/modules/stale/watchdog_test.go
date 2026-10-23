@@ -438,9 +438,9 @@ type probesOffline struct {
 	asked   []string
 }
 
-func (p *probesOffline) probeOffline(_ context.Context, monitorID string) (bool, error) {
-	p.asked = append(p.asked, monitorID)
-	return p.offline[monitorID], p.err[monitorID]
+func (p *probesOffline) probeOffline(_ context.Context, mon *shared.Monitor) (bool, error) {
+	p.asked = append(p.asked, mon.ID)
+	return p.offline[mon.ID], p.err[mon.ID]
 }
 
 func TestWatchdog_SkipsMonitorsWhoseProbeIsOffline(t *testing.T) {

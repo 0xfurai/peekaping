@@ -101,10 +101,6 @@ func (s *fakeSource) FindActiveByProbe(_ context.Context, probeID string) ([]*mo
 	return s.active, s.err
 }
 
-func (s *fakeSource) ProbeOf(context.Context, string) (string, error) {
-	return "probe-1", nil
-}
-
 // fakeMonitors is the monitor service that finds a monitor by its id, whoever's it is
 type fakeMonitors struct {
 	monitor.Service
