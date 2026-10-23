@@ -44,6 +44,7 @@ var (
 		Active:     true,
 		Status:     shared.MonitorStatusDown,
 		Config:     `{"url":"https://api.example.com/health","method":"GET"}`,
+		ProbeIDs:   []string{"local"},
 		Tags:       []string{"severity:critical", "team:core"},
 		CreatedAt:  time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
 		UpdatedAt:  time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
