@@ -63,6 +63,9 @@ type fixture struct {
 	svc     monitor_tag.Service
 	monitor func() string
 	tag     func() string
+	// newestFirst is whether the backend lists a monitor's links newest first. The SQL
+	// repositories sort; MongoDB's Find has no sort, and its storage is frozen (ADR 0001).
+	newestFirst bool
 }
 
 // forEachBackend runs fn against a monitor-tag service on every database backend.
@@ -76,7 +79,8 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
 			fn(t, fixture{
-				svc: monitor_tag.NewService(monitor_tag.NewSQLRepository(db), zap.NewNop().Sugar()),
+				svc:         monitor_tag.NewService(monitor_tag.NewSQLRepository(db), zap.NewNop().Sugar()),
+				newestFirst: true,
 				monitor: func() string {
 					id := uuid.NewString()
 					_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
@@ -113,7 +117,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 			require.NoError(t, client.Disconnect(context.Background()))
 		})
 		newID := func() string { return primitive.NewObjectID().Hex() }
-		fn(t, fixture{monitor_tag.NewService(monitor_tag.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), newID, newID})
+		fn(t, fixture{svc: monitor_tag.NewService(monitor_tag.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), monitor: newID, tag: newID})
 	})
 }
 
@@ -204,6 +208,34 @@ func TestMonitorTags_LinksOfManyMonitorsAreListedAtOnce(t *testing.T) {
 		none, err := f.svc.FindByMonitorIDs(ctx, nil)
 		require.NoError(t, err)
 		assert.Empty(t, none, "no monitors asked for, no links")
+	})
+}
+
+func TestMonitorTags_SQLListsLinksNewestFirst(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		if !f.newestFirst {
+			t.Skip("MongoDB's Find has no sort, and its storage is frozen (ADR 0001)")
+		}
+		web, db := f.monitor(), f.monitor()
+		prod, eu, edge := f.tag(), f.tag(), f.tag()
+		// The repository stamps a link with the time it is created, so each link needs its own
+		link(t, f.svc, web, prod)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, db, prod)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, web, eu)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, db, eu)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, web, edge)
+
+		found, err := f.svc.FindByMonitorIDs(context.Background(), []string{web, db})
+		require.NoError(t, err)
+
+		byMonitor := tagsByMonitor(found)
+		assert.Equal(t, []string{edge, eu, prod}, byMonitor[web], "FindByMonitorIDs: the newest link first")
+		assert.Equal(t, []string{eu, prod}, byMonitor[db])
+		assert.Equal(t, []string{edge, eu, prod}, tagsOf(t, f.svc, web), "FindByMonitorID: the newest link first")
 	})
 }
 
