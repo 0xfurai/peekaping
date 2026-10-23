@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"peekaping/internal/probeproto"
+	graceful "peekaping/internal/shutdown"
 	"peekaping/internal/version"
 
 	gorilla "github.com/gorilla/websocket"
@@ -223,7 +224,7 @@ func TestRun_ServesTheAPIAloneWithoutWebDir(t *testing.T) {
 func TestRun_LeavesTheDatabaseOpenWhenAnAPIHandlerBehindTheWebAppDoesntReturnInTime(t *testing.T) {
 	// The gateway passes the request to the API, whose handler outlives the HTTP server's share
 	// and the background jobs' share. It counts as running like one the API router gets directly.
-	defer func(saved timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
+	defer func(saved graceful.Timeouts) { shutdownTimeouts = saved }(shutdownTimeouts)
 	shutdownTimeouts.HTTP = 300 * time.Millisecond
 	shutdownTimeouts.Jobs = 300 * time.Millisecond
 	webDir := t.TempDir()

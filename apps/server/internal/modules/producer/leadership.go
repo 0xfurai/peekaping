@@ -2,6 +2,7 @@ package producer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -31,6 +32,9 @@ func (p *Producer) runLeadershipMonitor() {
 			if isLeader && !isSyncing {
 				p.logger.Info("Starting monitor syncing as leader")
 				if err := p.startMonitorSyncing(); err != nil {
+					if p.ctx.Err() != nil {
+						return // the producer is stopping, which is why syncing failed to start
+					}
 					p.logger.Errorw("Failed to start monitor syncing", "error", err)
 				} else {
 					isSyncing = true
@@ -59,7 +63,8 @@ func (p *Producer) startJobProcessing() error {
 		workerID := i
 		reporting.Go("producer", func() {
 			p.logger.Infow("Starting producer worker", "worker_id", workerID)
-			if err := p.runProducer(workerID); err != nil {
+			// A worker ends with its context's error when the producer stops: that is no failure
+			if err := p.runProducer(workerID); err != nil && !errors.Is(err, context.Canceled) {
 				p.logger.Errorw("Producer worker exited with error", "worker_id", workerID, "error", err)
 			} else {
 				p.logger.Infow("Producer worker stopped gracefully", "worker_id", workerID)
@@ -87,9 +92,9 @@ func (p *Producer) startMonitorSyncing() error {
 	reporting.Go("producer", func() { p.runScheduleRefresher(syncCtx) })
 
 	// Start the stale-monitor watchdog
-	p.wg.Add(1)
+	p.watchdogWg.Add(1)
 	reporting.Go("watchdog", func() {
-		defer p.wg.Done()
+		defer p.watchdogWg.Done()
 		p.watchdog.Run(syncCtx)
 	})
 

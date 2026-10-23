@@ -60,6 +60,10 @@ func ProvideAsynqServer(
 		// Error handler for logging failed tasks
 		ErrorHandler: logFailedTask(logger),
 
+		// How long to wait for the running checks when stopping. A check asynq gives up on goes
+		// back in the queue and its context is cancelled, so another worker runs it again.
+		ShutdownTimeout: cfg.QueueShutdownTimeout,
+
 		// Enable strict priority mode
 		StrictPriority: true,
 
@@ -108,9 +112,12 @@ func ProvideIngesterAsynqServer(cfg *config.Config, logger *zap.SugaredLogger) (
 		Queues: map[string]int{
 			"ingester": 10, // Only process ingester queue
 		},
-		ErrorHandler:   logFailedTask(logger),
-		StrictPriority: false, // We only have one queue, no need for strict priority
-		Logger:         NewAsynqLogger(logger),
+		ErrorHandler: logFailedTask(logger),
+		// How long to wait for the running ingests when stopping. An ingest asynq gives up on goes
+		// back in the queue and its context is cancelled, to be ingested again.
+		ShutdownTimeout: cfg.QueueShutdownTimeout,
+		StrictPriority:  false, // We only have one queue, no need for strict priority
+		Logger:          NewAsynqLogger(logger),
 	}
 
 	server := asynq.NewServer(redisOpt, serverCfg)
