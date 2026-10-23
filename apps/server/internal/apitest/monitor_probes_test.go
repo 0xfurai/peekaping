@@ -190,6 +190,30 @@ func TestMonitorProbes_PatchTypeCheckedAgainstProbe(t *testing.T) {
 	assert.Equal(t, []string{"local"}, a.monitorProbes(t, id))
 }
 
+func TestMonitorProbes_PutTypeCheckedAgainstProbe(t *testing.T) {
+	a := newAppWithAdmin(t)
+	httpOnly := a.probeThatRuns(t, "Paris", "http")
+	id := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), httpOnly.ID), a.asAdmin), http.StatusCreated).ID
+	path := monitorsPath + "/" + id
+
+	// A full update without probe_ids that only changes the type
+	w := a.request(t, http.MethodPut, path, tcpMonitorBody("Checkout"), a.asAdmin)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code, "the type alone moves the monitor to a type its probe doesn't run: "+w.Body.String())
+	assert.Equal(t, `Invalid probe_ids: probe "Paris" doesn't run tcp monitors`, errorMessage(t, w.Body.Bytes()))
+	got := decode[monitorWithProbes](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+	assert.Equal(t, "http", got.Type, "so it stays http")
+	assert.Equal(t, []string{httpOnly.ID}, got.ProbeIDs, "on its probe")
+
+	kept := a.request(t, http.MethodPut, path, httpMonitorBody("Checkout, renamed", ""), a.asAdmin)
+	assert.Equal(t, http.StatusOK, kept.Code, "a full update that keeps the type is fine: "+kept.Body.String())
+
+	// The probe moves with the type in one request
+	local := a.request(t, http.MethodPut, path, onProbes(tcpMonitorBody("Checkout"), "local"), a.asAdmin)
+	assert.Equal(t, http.StatusOK, local.Code, local.Body.String())
+	assert.Equal(t, []string{"local"}, a.monitorProbes(t, id))
+}
+
 func TestMonitorProbes_PutWithoutProbeIDsKeepsProbe(t *testing.T) {
 	a := newAppWithAdmin(t)
 	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})
