@@ -683,6 +683,7 @@
     "maintenance": "メンテナンス",
     "monitors": "モニター",
     "notification_channels": "通知チャネル",
+    "probes": "プローブ",
     "proxies": "プロキシ",
     "settings": "設定",
     "status_pages": "ステータスページ",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "このシークレットを再入力してください：送信先が変更されました",
       "remove": "削除",
       "saved_hint": "保存済み — 入力すると置き換えます"
+    }
+  },
+  "probes": {
+    "page_name": "プローブ",
+    "description": "プローブは、インストールされた場所からモニターのチェックを実行します。ローカルプローブは Peekaping 自身です。",
+    "empty_list": {
+      "title": "プローブが見つかりません",
+      "text": "プローブを作成して、別の場所からチェックを実行しましょう。",
+      "action_text": "最初のプローブを作成"
+    },
+    "table": {
+      "headers": {
+        "name": "名前",
+        "location": "場所",
+        "status": "ステータス",
+        "disabled": "無効",
+        "token": "トークン",
+        "instances": "インスタンス",
+        "actions": "アクション"
+      },
+      "status": {
+        "online": "オンライン",
+        "offline": "オフライン"
+      },
+      "disabled": "無効",
+      "no_instances": "インスタンスはまだありません",
+      "last_seen": "最終確認 {{date}}",
+      "actions": {
+        "edit": "プローブ {{name}} を編集",
+        "rotate": "プローブ {{name}} のトークンを更新",
+        "delete": "プローブ {{name}} を削除"
+      }
+    },
+    "create_dialog": {
+      "title": "プローブを作成",
+      "description": "プローブは、インストールした場所からチェックを実行します。トークンは作成後に一度だけ表示されます。",
+      "submit": "プローブを作成",
+      "creating": "作成中..."
+    },
+    "edit_dialog": {
+      "title": "プローブを編集",
+      "description": "{{name}} の設定を変更します。"
+    },
+    "form": {
+      "name_label": "名前",
+      "name_placeholder": "例: フランクフルト",
+      "location_label": "場所（任意）",
+      "location_placeholder": "例: フランクフルト、ドイツ",
+      "name_required": "名前は必須です",
+      "name_too_long": "名前が長すぎます",
+      "location_too_long": "場所が長すぎます",
+      "disabled_label": "無効",
+      "disabled_description": "無効にしたプローブのトークンは、再び有効にするまで使えなくなります。"
+    },
+    "rotate_dialog": {
+      "title": "トークンを更新",
+      "description": "プローブ {{name}} の古いトークンはすぐに使えなくなります。インスタンスは新しいトークンで再起動する必要があります。",
+      "confirm": "トークンを更新",
+      "rotating": "更新中..."
+    },
+    "delete_dialog": {
+      "title": "プローブを削除",
+      "description": "プローブ「{{name}}」を削除してもよろしいですか？ そのトークンは使えなくなります。この操作は元に戻せません。"
+    },
+    "token_alert": {
+      "title_created": "プローブ {{name}} を作成しました",
+      "title_rotated": "プローブ {{name}} の新しいトークン",
+      "note": "このトークンは、プローブに割り当てられたモニターの設定を読み取ります。一度だけ表示されます。",
+      "token_label": "トークン",
+      "docker_label": "Docker でプローブを起動",
+      "copy_token": "トークンをコピー",
+      "copy_command": "docker コマンドをコピー"
+    },
+    "messages": {
+      "created_successfully": "プローブを作成しました",
+      "updated_successfully": "プローブを更新しました",
+      "rotated_successfully": "トークンを更新しました",
+      "deleted_successfully": "プローブを削除しました",
+      "failed_to_create": "プローブの作成に失敗しました",
+      "failed_to_update": "プローブの更新に失敗しました",
+      "failed_to_rotate": "トークンの更新に失敗しました",
+      "failed_to_delete": "プローブの削除に失敗しました",
+      "failed_to_load": "プローブの読み込みに失敗しました",
+      "copy_success": "クリップボードにコピーしました",
+      "copy_failed": "クリップボードにコピーできませんでした"
     }
   },
   "proxies": {

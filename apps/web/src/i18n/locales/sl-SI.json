@@ -683,6 +683,7 @@
     "maintenance": "Vzdrževanje",
     "monitors": "Nadzori",
     "notification_channels": "Kanali obvestil",
+    "probes": "Sonde",
     "proxies": "Posredniki",
     "settings": "Nastavitve",
     "status_pages": "Statusne strani",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "Ponovno vnesite to skrivnost: mesto, kamor se pošilja, se je spremenilo",
       "remove": "Odstrani",
       "saved_hint": "Shranjeno — vnesite za zamenjavo"
+    }
+  },
+  "probes": {
+    "page_name": "Sonde",
+    "description": "Sonde izvajajo preverjanja nadzorov s krajev, kjer so nameščene. Lokalna sonda je sam Peekaping.",
+    "empty_list": {
+      "title": "Sond ni bilo mogoče najti",
+      "text": "Ustvarite sondo za izvajanje preverjanj z drugega kraja.",
+      "action_text": "Ustvarite svojo prvo sondo"
+    },
+    "table": {
+      "headers": {
+        "name": "Ime",
+        "location": "Lokacija",
+        "status": "Stanje",
+        "disabled": "Onemogočena",
+        "token": "Žeton",
+        "instances": "Primerki",
+        "actions": "Dejanja"
+      },
+      "status": {
+        "online": "Na spletu",
+        "offline": "Brez povezave"
+      },
+      "disabled": "Onemogočena",
+      "no_instances": "Primerkov še ni",
+      "last_seen": "nazadnje videna {{date}}",
+      "actions": {
+        "edit": "Uredi sondo {{name}}",
+        "rotate": "Zamenjaj žeton sonde {{name}}",
+        "delete": "Izbriši sondo {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Ustvari sondo",
+      "description": "Sonda izvaja preverjanja s kraja, kjer jo namestite. Njen žeton je prikazan samo enkrat, po ustvarjanju.",
+      "submit": "Ustvari sondo",
+      "creating": "Ustvarjanje..."
+    },
+    "edit_dialog": {
+      "title": "Uredi sondo",
+      "description": "Spremenite nastavitve sonde {{name}}."
+    },
+    "form": {
+      "name_label": "Ime",
+      "name_placeholder": "npr. Frankfurt",
+      "location_label": "Lokacija (neobvezno)",
+      "location_placeholder": "npr. Frankfurt, Nemčija",
+      "name_required": "Ime je obvezno",
+      "name_too_long": "Ime je predolgo",
+      "location_too_long": "Lokacija je predolga",
+      "disabled_label": "Onemogočena",
+      "disabled_description": "Žeton onemogočene sonde preneha delovati, dokler je znova ne omogočite."
+    },
+    "rotate_dialog": {
+      "title": "Zamenjaj žeton",
+      "description": "Stari žeton sonde {{name}} takoj preneha delovati. Njene primerke je treba znova zagnati z novim žetonom.",
+      "confirm": "Zamenjaj žeton",
+      "rotating": "Zamenjava..."
+    },
+    "delete_dialog": {
+      "title": "Izbriši sondo",
+      "description": "Ali ste prepričani, da želite izbrisati sondo »{{name}}«? Njen žeton bo prenehal delovati. Tega dejanja ni mogoče razveljaviti."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} je ustvarjena",
+      "title_rotated": "Nov žeton za sondo {{name}}",
+      "note": "Ta žeton bere konfiguracije nadzorov, dodeljenih sondi. Prikazan je samo enkrat.",
+      "token_label": "Žeton",
+      "docker_label": "Zaženite sondo z Dockerjem",
+      "copy_token": "Kopiraj žeton",
+      "copy_command": "Kopiraj ukaz docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda je bila uspešno ustvarjena",
+      "updated_successfully": "Sonda je bila uspešno posodobljena",
+      "rotated_successfully": "Žeton je bil uspešno zamenjan",
+      "deleted_successfully": "Sonda je bila uspešno izbrisana",
+      "failed_to_create": "Ustvarjanje sonde ni uspelo",
+      "failed_to_update": "Posodobitev sonde ni uspela",
+      "failed_to_rotate": "Zamenjava žetona ni uspela",
+      "failed_to_delete": "Brisanje sonde ni uspelo",
+      "failed_to_load": "Nalaganje sond ni uspelo",
+      "copy_success": "Kopirano v odložišče",
+      "copy_failed": "Kopiranje v odložišče ni uspelo"
     }
   },
   "proxies": {
