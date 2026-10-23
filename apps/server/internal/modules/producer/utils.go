@@ -17,7 +17,9 @@ func (p *Producer) redisNowMs() int64 {
 	// Prefer Redis TIME to keep a single clock for all producers
 	t, err := p.rdb.Time(p.ctx).Result()
 	if err != nil {
-		p.logger.Warnw("Failed to get Redis time, using local time", "error", err)
+		if p.ctx.Err() == nil { // a producer that is stopping has failed no call to Redis
+			p.logger.Warnw("Failed to get Redis time, using local time", "error", err)
+		}
 		return time.Now().UTC().UnixMilli()
 	}
 	return t.UnixMilli()

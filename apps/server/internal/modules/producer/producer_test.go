@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -48,8 +49,6 @@ func TestNewProducer(t *testing.T) {
 		assert.Equal(t, ReclaimEvery, producer.reclaimInterval)
 		assert.Equal(t, time.Second, producer.leadershipCheckInterval)
 		assert.NotNil(t, producer.monitorIntervals)
-		assert.NotNil(t, producer.ctx)
-		assert.NotNil(t, producer.cancel)
 	})
 
 	t.Run("create new producer with custom concurrency", func(t *testing.T) {
@@ -120,62 +119,11 @@ func TestProducerStartStop(t *testing.T) {
 		// When returning empty list, pagination stops immediately
 		mockMonitorSvc.On("FindActivePaginated", mock.Anything, 0, 100).Return([]*monitor.Model{}, nil)
 
-		err := producer.Start()
+		err := producer.Start(context.Background())
 		assert.NoError(t, err)
 
 		// Stop immediately
 		producer.Stop()
-	})
-}
-
-func TestProducerContext(t *testing.T) {
-	t.Run("context is cancelled on stop", func(t *testing.T) {
-		client, mr := setupTestRedis(t)
-		defer mr.Close()
-
-		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
-
-		cfg := &config.Config{
-			ProducerConcurrency: 1,
-		}
-
-		mockMonitorSvc := new(MockMonitorService)
-		mockMaintenanceSvc := new(MockMaintenanceService)
-		mockProxySvc := new(MockProxyService)
-		mockQueueSvc := new(MockQueueService)
-
-		producer := NewProducer(
-			client,
-			NewQueueRunner(mockQueueSvc, zap.NewNop().Sugar()),
-			mockMonitorSvc,
-			check.NewLoader(mockMonitorSvc, mockProxySvc, mockMaintenanceSvc, nil, logger),
-			nil,
-			nil,
-			nil,
-			le,
-			cfg,
-			logger,
-		)
-
-		// Context should not be cancelled initially
-		select {
-		case <-producer.ctx.Done():
-			t.Fatal("Context should not be cancelled before Stop()")
-		default:
-			// OK
-		}
-
-		// Stop the producer
-		producer.Stop()
-
-		// Context should be cancelled after Stop()
-		select {
-		case <-producer.ctx.Done():
-			// OK
-		default:
-			t.Fatal("Context should be cancelled after Stop()")
-		}
 	})
 }
 

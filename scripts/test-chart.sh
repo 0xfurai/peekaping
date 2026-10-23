@@ -12,8 +12,9 @@
 # one until `./bun db status` reports none unapplied, the migrate Job is named
 # after the release revision (and its name fits Kubernetes' limit of 63
 # characters for the longest release name Helm allows) and retries 6 times, so
-# it outlasts a restart of the bundled PostgreSQL, the web pod sets the sysctl
-# that lets its non-root nginx bind port 80 (web.sysctls) and mounts the
+# it outlasts a restart of the bundled PostgreSQL, the api, producer, worker and
+# ingester pods get 35 seconds to stop, the web pod sets the sysctl that lets
+# its non-root nginx bind port 80 (web.sysctls) and mounts the
 # writable paths that nginx needs under a read-only root filesystem, the
 # ConfigMap sets TRUSTED_PROXIES to loopback and the private ranges (and a
 # values file can change it), SQLite as the storage backend (config.env.DB_TYPE,
@@ -449,6 +450,25 @@ apparmor_off() {
   return $status
 }
 
+# grace_periods <rendered file>: the api, producer, worker and ingester pods get
+# 35 seconds to stop, the 30 their binaries take to shut down and a margin.
+# Kubernetes' default of 30 would kill a pod that uses its whole time.
+grace_periods() {
+  local component seconds status=0
+  for component in api producer worker ingester; do
+    seconds=$(awk -v template="$component-deploy" '
+      /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+      /^---$/ { in_template = 0 }
+      in_template && /^ *terminationGracePeriodSeconds:/ { print $2; exit }
+    ' "$1")
+    if [ "$seconds" != 35 ]; then
+      echo "       the $component pod's terminationGracePeriodSeconds is '${seconds:-<none>}', expected 35"
+      status=1
+    fi
+  done
+  return $status
+}
+
 # chart_field <package> <field>: the value of a top-level field of the
 # package's Chart.yaml, such as version or appVersion
 chart_field() {
@@ -803,6 +823,8 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
     check "default values: the api, producer, worker and ingester pods have no AppArmor annotation" \
       apparmor_off "$work/default.yaml" || true
+    check "default values: the api, producer, worker and ingester pods get 35 seconds to stop" \
+      grace_periods "$work/default.yaml" || true
     # The migrate Job skips the migrations for MongoDB (run-migrations.sh), and
     # `./bun db status` has no MongoDB support, so a script that only polls it
     # would keep the pods of an existing MongoDB install in Init for good.

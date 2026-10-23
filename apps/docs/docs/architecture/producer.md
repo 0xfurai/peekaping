@@ -140,18 +140,33 @@ The producer subscribes to monitor lifecycle events via Redis pub/sub:
 
 ## Graceful Shutdown
 
-On receiving `SIGTERM` or `SIGINT`:
+On receiving `SIGTERM` or `SIGINT`, the producer stops in this order and exits 0 within 30 seconds:
 
-1. Cancel all goroutines via context cancellation
-2. Wait for all workers to finish current tasks
-3. Close Redis event bus
-4. Close database connections
+1. Stop scheduling. The claim loops, the reclaimer and the schedule refresher end. A claim in flight finishes enqueuing its check.
+2. Stop the watchdog.
+3. Release the leadership, if the producer holds it, so that another producer can take over without waiting for the lease to expire.
+4. Close the event bus. The handlers of the events already queued finish.
+5. Close the database. SQLite checkpoints its write-ahead log first.
 
-The producer logs shutdown progress:
+The producer logs each step once it is done:
 ```
-INFO Shutdown signal received, stopping producer...
-INFO Producer stopped gracefully
+INFO Shutdown signal received, shutting down
+INFO Stopping producer
+INFO Stopped scheduling
+INFO Stopped the watchdog
+INFO Released leadership
+INFO Producer stopped
+INFO Stopped the producer
+INFO Closed the event bus
+INFO Closed the database
+INFO Producer shut down
 ```
+
+`Released leadership` appears only when the producer was the leader.
+
+The producer and the leadership release get 20 seconds, and the event bus gets 10. If a step doesn't finish in time, the producer logs an error, leaves the database open and exits 1. A second signal makes it exit 1 at once.
+
+Give the container 35 seconds to stop. Docker waits only 10 seconds by default, and Kubernetes 30. The cluster Compose files set `stop_grace_period: 35s`, and the Helm chart sets `terminationGracePeriodSeconds: 35`. In your own Compose file, set `stop_grace_period: 35s` on the `api`, `producer`, `worker` and `ingester` services.
 
 ## Scaling Considerations
 

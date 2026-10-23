@@ -185,3 +185,47 @@ func receive(t *testing.T, ch <-chan string) string {
 		return ""
 	}
 }
+
+// A queue server waits for its running tasks only until its ShutdownTimeout, asynq's 8 seconds
+// when the config sets none, then gives up on them and returns.
+func TestAsynqServersGiveUpOnRunningTasksAfterTheQueueShutdownTimeout(t *testing.T) {
+	servers := map[string]struct {
+		provide func(*config.Config, *zap.SugaredLogger) (*asynq.Server, error)
+		queue   string
+	}{
+		"worker":   {ProvideAsynqServer, "healthcheck"},
+		"ingester": {ProvideIngesterAsynqServer, "ingester"},
+	}
+	for name, tc := range servers {
+		t.Run(name, func(t *testing.T) {
+			cfg := newACLRedisConfig(t, "peekaping")
+			cfg.QueueShutdownTimeout = 300 * time.Millisecond
+			logger := zap.NewNop().Sugar()
+			running := make(chan struct{})
+			mux := asynq.NewServeMux()
+			mux.HandleFunc("test:stuck", func(ctx context.Context, _ *asynq.Task) error {
+				close(running)
+				<-ctx.Done() // asynq cancels it when it gives up on the task
+				return ctx.Err()
+			})
+			server, err := tc.provide(cfg, logger)
+			require.NoError(t, err)
+			require.NoError(t, server.Start(mux))
+			client, err := ProvideAsynqClient(cfg, logger)
+			require.NoError(t, err)
+			t.Cleanup(func() { _ = client.Close() })
+			_, err = client.Enqueue(asynq.NewTask("test:stuck", nil), asynq.Queue(tc.queue))
+			require.NoError(t, err)
+			select {
+			case <-running:
+			case <-time.After(10 * time.Second):
+				require.FailNow(t, "the server didn't run the task")
+			}
+
+			startedAt := time.Now()
+			server.Shutdown()
+
+			assert.Less(t, time.Since(startedAt), 6*time.Second, "the server waited for the task past its ShutdownTimeout")
+		})
+	}
+}

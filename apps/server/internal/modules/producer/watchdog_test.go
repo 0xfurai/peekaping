@@ -44,6 +44,7 @@ func TestWatchdog_RunsOnlyWhileLeader(t *testing.T) {
 
 	p.stopMonitorSyncing()
 	p.wg.Wait()
+	p.watchdogWg.Wait()
 	require.NoError(t, e.rdb.Del(context.Background(), stale.RanAtKey).Err())
 	time.Sleep(100 * time.Millisecond)
 	ranAt, err := store.RanAt(context.Background())
