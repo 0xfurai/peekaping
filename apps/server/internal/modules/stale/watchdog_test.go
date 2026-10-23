@@ -412,7 +412,7 @@ func TestWatchdog_SkipsMonitorsWhoseProbeIsOffline(t *testing.T) {
 	assert.ElementsMatch(t, []string{"home", "away"}, keys(entries))
 }
 
-func TestWatchdog_LeavesTheRecordOfAMonitorWhoseProbeWentOffline(t *testing.T) {
+func TestWatchdog_ForgetsAnUnnotifiedEntryWhileTheProbeIsOffline(t *testing.T) {
 	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
 	f := newWatchdogFixture(t, testMonitor("away", 60, 10, now.Add(-time.Hour)))
 	f.heartbeats.setLatest("away", now.Add(-4*time.Minute))
@@ -422,8 +422,10 @@ func TestWatchdog_LeavesTheRecordOfAMonitorWhoseProbeWentOffline(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, before, "away", "found stale and asked to be checked again, but not yet notified")
 	require.False(t, before["away"].Notified)
+	require.Equal(t, []string{"away"}, f.rechecker.calls)
 
-	// Then its probe goes offline, so the check that was asked for can't happen
+	// Then its probe goes offline, so the check that was asked for can't happen, and the time
+	// the recheck was given runs out with no check made
 	probes := &probesOffline{offline: map[string]bool{"away": true}}
 	cfg := f.config()
 	cfg.ProbeOffline = probes.probeOffline
@@ -431,11 +433,70 @@ func TestWatchdog_LeavesTheRecordOfAMonitorWhoseProbeWentOffline(t *testing.T) {
 	f.at(5 * time.Minute)
 	f.run(t)
 
+	during, err := f.store.All(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, during, "the record of a recheck that can't happen is forgotten, so the monitor is found afresh when its probe is back")
+	assert.Empty(t, f.published(MonitorStale), "the monitor was not checked because its probe is offline, which the probe's own notification says")
+	assert.Equal(t, []string{"away"}, f.rechecker.calls, "no second recheck while the probe is offline")
+
+	// The probe is back on the next tick: the monitor is rechecked, with a new time to be checked in
+	probes.offline["away"] = false
+	f.at(6 * time.Minute)
+	f.run(t)
+
+	assert.Equal(t, []string{"away", "away"}, f.rechecker.calls, "one recheck, which the probe can now run")
 	after, err := f.store.All(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, before, after, "the record stays until the probe is back to check the monitor, or the monitor is paused or deleted")
-	assert.Empty(t, f.published(MonitorStale), "the monitor was not checked because its probe is offline, which the probe's own notification says")
+	require.Contains(t, after, "away")
+	assert.True(t, after["away"].DetectedAt.Equal(f.clock), "a fresh record, detected when the probe came back: %s", after["away"].DetectedAt)
+	assert.True(t, after["away"].Since.Equal(now.Add(-4*time.Minute)), "of the same silence: %s", after["away"].Since)
+	assert.False(t, after["away"].Notified)
+	assert.Empty(t, f.published(MonitorStale), "and the recheck is not yet out of time")
+
+	f.at(7 * time.Minute)
+	f.run(t)
+	assert.Len(t, f.published(MonitorStale), 1, "it is notified once that recheck has had its time without a heartbeat")
+}
+
+func TestWatchdog_KeepsANotifiedEntryWhileTheProbeIsOffline(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t, testMonitor("away", 60, 10, now.Add(-time.Hour)))
+	f.heartbeats.setLatest("away", now.Add(-4*time.Minute))
+	f.run(t)
+	f.at(time.Minute)
+	f.run(t)
+	ctx := context.Background()
+	before, err := f.store.All(ctx)
+	require.NoError(t, err)
+	require.Contains(t, before, "away")
+	require.True(t, before["away"].Notified, "the recheck found nothing and the channels were told")
+	require.Len(t, f.published(MonitorStale), 1)
+
+	probes := &probesOffline{offline: map[string]bool{"away": true}}
+	cfg := f.config()
+	cfg.ProbeOffline = probes.probeOffline
+	f.w = NewWatchdog(cfg)
+	f.at(5 * time.Minute)
+	f.run(t)
+
+	during, err := f.store.All(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, before, during, "the record of a notification stays while the probe is offline")
+	assert.Len(t, f.published(MonitorStale), 1, "and nobody is told again")
 	assert.Equal(t, []string{"away"}, f.rechecker.calls, "no second recheck")
+
+	// The probe is back and the monitor is checked again: the notified monitor recovers
+	probes.offline["away"] = false
+	f.heartbeats.setLatest("away", f.start.Add(5*time.Minute+30*time.Second))
+	f.at(6 * time.Minute)
+	f.run(t)
+
+	recovered := f.published(MonitorStaleRecovered)
+	require.Len(t, recovered, 1, "the recovery of the notification that was kept")
+	assert.Equal(t, "away", recovered[0].MonitorID)
+	after, err := f.store.All(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, after)
 }
 
 func TestWatchdog_SkipsOnlyTheMonitorWhoseProbeCannotBeLookedUp(t *testing.T) {

@@ -183,7 +183,11 @@ func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 
 func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, now time.Time, entry Entry, wasStale bool) error {
 	// A monitor whose probe is offline has no checks to be late: the probe's own notification
-	// says so. It's left as it is, so a record it already has stays until the probe is back.
+	// says so. A record of a notification stays, so the monitor's recovery is still reported
+	// once it is checked again. A record of a recheck that wasn't notified yet is forgotten:
+	// that recheck can't run while the probe is offline, and the time it was given would run out
+	// by the time the probe is back, which would notify with no recheck made. The monitor is
+	// found stale afresh then, with a new recheck and a new time to be checked in.
 	if w.probeOffline != nil {
 		offline, err := w.probeOffline(ctx, mon.ID)
 		if err != nil {
@@ -191,6 +195,9 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 		}
 		if offline {
 			w.logger.Debugw("Skipping a monitor whose probe is offline", "monitor_id", mon.ID, "monitor_name", mon.Name)
+			if wasStale && !entry.Notified {
+				return w.store.Delete(ctx, mon.ID)
+			}
 			return nil
 		}
 	}
