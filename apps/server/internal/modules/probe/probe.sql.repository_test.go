@@ -273,7 +273,7 @@ func TestSQLRepository_DeleteIsRefusedForAProbeWithMonitors(t *testing.T) {
 		first, _ := twoProbes(t, repo)
 		addMonitorOn(t, db, first.ID, true)
 
-		assert.Error(t, repo.Delete(ctx, first.ID), "the database holds the line, even for a caller that didn't count")
+		assert.ErrorIs(t, repo.Delete(ctx, first.ID), probe.ErrProbeHasMonitors, "the database holds the line, even for a caller that didn't count")
 
 		found, err := repo.FindByID(ctx, first.ID)
 		require.NoError(t, err)

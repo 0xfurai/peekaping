@@ -198,7 +198,8 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest)
 // MARK: Delete
 func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
 	// The count and the delete are one transaction. The database holds the line as well: a monitor
-	// assigned to the probe after the count makes the delete fail, and nothing is deleted.
+	// assigned to the probe after the count makes the delete fail with ErrProbeHasMonitors, and
+	// nothing is deleted.
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		existing, err := s.repo.FindByID(ctx, id)
 		if err != nil {
@@ -219,6 +220,14 @@ func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
 		}
 		return s.repo.Delete(ctx, id)
 	})
+	var hasMonitors *HasMonitorsError
+	if errors.Is(err, ErrProbeHasMonitors) && !errors.As(err, &hasMonitors) {
+		// The refusal came from the database, so it rolled the transaction back, and PostgreSQL
+		// would fail a read in it. The monitors are counted again outside it for the message.
+		if monitors, countErr := s.repo.CountMonitors(ctx, id); countErr == nil && monitors > 0 {
+			return &HasMonitorsError{Monitors: monitors}
+		}
+	}
 	if err != nil {
 		return err
 	}
