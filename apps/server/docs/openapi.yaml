@@ -1467,6 +1467,21 @@ components:
             - array
             - "null"
       type: object
+    probeproto.AssignmentsResponse:
+      additionalProperties: false
+      properties:
+        monitors:
+          items:
+            $ref: "#/components/schemas/probeproto.Monitor"
+          type:
+            - array
+            - "null"
+        version:
+          type: string
+      required:
+        - version
+        - monitors
+      type: object
     probeproto.HelloRequest:
       additionalProperties: true
       properties:
@@ -1525,6 +1540,49 @@ components:
         - batch_max
         - buffer_max
       type: object
+    probeproto.Monitor:
+      additionalProperties: false
+      properties:
+        config:
+          type: string
+        id:
+          type: string
+        interval:
+          format: int64
+          type: integer
+        max_retries:
+          format: int64
+          type: integer
+        name:
+          type: string
+        proxy:
+          $ref: "#/components/schemas/probeproto.Proxy"
+        resend_interval:
+          format: int64
+          type: integer
+        retry_interval:
+          format: int64
+          type: integer
+        timeout:
+          format: int64
+          type: integer
+        type:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - type
+        - interval
+        - timeout
+        - max_retries
+        - retry_interval
+        - resend_interval
+        - config
+        - updated_at
+      type: object
     probeproto.ProbeInfo:
       additionalProperties: false
       properties:
@@ -1538,6 +1596,35 @@ components:
         - id
         - name
         - location
+      type: object
+    probeproto.Proxy:
+      additionalProperties: false
+      properties:
+        auth:
+          type: boolean
+        host:
+          type: string
+        id:
+          type: string
+        password:
+          type: string
+        port:
+          format: int64
+          type: integer
+        protocol:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        username:
+          type: string
+      required:
+        - id
+        - protocol
+        - host
+        - port
+        - auth
+        - updated_at
       type: object
     proxy.CreateUpdateDto:
       additionalProperties: true
@@ -7005,6 +7092,75 @@ paths:
       summary: Get server health
       tags:
         - System
+  /probe/v1/assignments:
+    get:
+      description: "A long poll. The answer is the monitors this instance of the probe runs, and a version that names the probe's assignment: its active monitors that are not push monitors and are of a type the probe supports, with their proxies, dealt among the probe's instances seen in the last 60 seconds so that each monitor runs on exactly one of them. Send the version you hold. If it is not the current one, or you send none, the server answers 200 at once. If it is, the server holds the request until a monitor of the probe is created, updated or deleted, or an instance of the probe joins or leaves, and answers 200 then; after 25 seconds without a change it answers 304 with no body, and the instance polls again. The reply is gzipped when Accept-Encoding allows it."
+      operationId: probeGetAssignments
+      parameters:
+        - description: "The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces."
+          in: header
+          name: X-Probe-Instance
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+        - description: The version of the assignments the instance holds, as the server last sent it. Leave it out for the first call. When it is the current one, the server holds the request until something changes, for up to 25 seconds, and answers 304 with no body at the timeout; when it is not, the server answers at once.
+          in: query
+          name: version
+          schema:
+            description: The version of the assignments the instance holds, as the server last sent it. Leave it out for the first call. When it is the current one, the server holds the request until something changes, for up to 25 seconds, and answers 304 with no body at the timeout; when it is not, the server answers at once.
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/probeproto.AssignmentsResponse"
+          description: OK
+        "304":
+          description: "Not modified: nothing changed in the time the server held the request. There is no body."
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Implemented
+      security:
+        - ProbeAuth: []
+      summary: Get the monitors this instance runs
+      tags:
+        - probe-protocol
   /probe/v1/bye:
     post:
       description: Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.

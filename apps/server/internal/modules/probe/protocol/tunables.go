@@ -19,6 +19,15 @@ const (
 	BufferMax = 10000
 )
 
+// Timing is how long the server holds a poll. It is provided as PollTimeout, and a test shortens
+// it by decorating the value, so that a poll that times out does not take 25 seconds.
+type Timing struct {
+	PollTimeout time.Duration
+}
+
+// DefaultTiming is the timing of a server that runs: hello tells the probes about it
+func DefaultTiming() Timing { return Timing{PollTimeout: PollTimeout} }
+
 const (
 	// MinProtocolVersion is the oldest protocol version the server speaks. A hello below it is
 	// answered 426.
@@ -28,3 +37,10 @@ const (
 	// MaxBody is the most bytes a request body may have once it is decompressed
 	MaxBody = 1 << 20
 )
+
+// RetiredAt is the last seen time an instance is left with when it says bye at now: a window and a
+// second ago. An instance seen exactly a window ago still counts as online (OnlineInstances is
+// inclusive), so the extra second is what takes the instance out of the dealing at once, even
+// when the next request reads the same clock instant or the database rounds the stored time. The
+// probe's offline threshold counts from this time, a second early.
+func RetiredAt(now time.Time) time.Time { return now.Add(-InstanceOnlineWindow - time.Second) }

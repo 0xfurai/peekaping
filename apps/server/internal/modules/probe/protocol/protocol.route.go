@@ -36,14 +36,14 @@ func NewRoute(auth *Auth, limiter *RateLimiter) *Route {
 // under: /probe/v1, a sibling of /api/v1. The admin's JWT and API keys do not open them: every
 // call carries the probe's token, which Authenticate checks.
 //
-// Every route takes the same three middleware, in this order, from the group: the token and
-// instance id check, the rate limit (which keys on the instance the check found), and gzip. A
-// route other than hello adds KnownInstance, which stamps the instance and refuses one that never
-// said hello. A route added for the protocol takes the group's middleware and, unless it is hello,
-// KnownInstance.
+// Every route takes the same middleware, in this order, from the group: the token and instance id
+// check, the rate limit (which keys on the instance the check found), gzip, and Bodyless, which
+// takes the Content-Type off a 204 or 304. A route other than hello adds KnownInstance, which
+// stamps the instance and refuses one that never said hello. A route added for the protocol takes
+// the group's middleware and, unless it is hello, KnownInstance.
 func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	calls := router.Group("")
-	calls.Use(r.auth.Authenticate(), r.limiter.Middleware(), Gzip)
+	calls.Use(r.auth.Authenticate(), r.limiter.Middleware(), Gzip, Bodyless)
 
 	httpx.Register(calls, "POST", "hello", huma.Operation{
 		Summary:       "Say hello",
@@ -57,6 +57,22 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 			http.StatusUpgradeRequired, http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusNotImplemented,
 		},
 	}, controller.Hello)
+
+	httpx.Register(calls, "GET", "assignments", huma.Operation{
+		Summary:       "Get the monitors this instance runs",
+		Description:   "A long poll. The answer is the monitors this instance of the probe runs, and a version that names the probe's assignment: its active monitors that are not push monitors and are of a type the probe supports, with their proxies, dealt among the probe's instances seen in the last 60 seconds so that each monitor runs on exactly one of them. Send the version you hold. If it is not the current one, or you send none, the server answers 200 at once. If it is, the server holds the request until a monitor of the probe is created, updated or deleted, or an instance of the probe joins or leaves, and answers 200 then; after 25 seconds without a change it answers 304 with no body, and the instance polls again. The reply is gzipped when Accept-Encoding allows it.",
+		Tags:          []string{probeTag},
+		DefaultStatus: http.StatusOK,
+		Security:      httpx.ProbeAuth,
+		Parameters:    []*huma.Param{instanceHeaderParam},
+		Responses: map[string]*huma.Response{
+			"304": {Description: "Not modified: nothing changed in the time the server held the request. There is no body."},
+		},
+		Errors: []int{
+			http.StatusBadRequest, http.StatusUnauthorized, http.StatusConflict,
+			http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusNotImplemented,
+		},
+	}, controller.Assignments, r.auth.KnownInstance())
 
 	httpx.Register(calls, "POST", "bye", huma.Operation{
 		Summary:       "Say bye",

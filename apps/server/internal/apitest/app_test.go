@@ -21,6 +21,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/utils"
 
@@ -135,6 +136,8 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 	require.NoError(t, container.Invoke(func(listener *notification_channel.NotificationEventListener, bus events.EventBus) {
 		listener.Subscribe(bus)
 	}))
+	// The waker ends the probes' waiting assignment polls when a monitor or an instance changes, as it does in cmd/api.
+	require.NoError(t, container.Invoke(func(waker *protocol.Waker) { waker.Subscribe() }))
 
 	// The metrics collector starts when the config asks for it, as cmd/api does. It stops before the event bus closes.
 	if cfg.MetricsEnabled {

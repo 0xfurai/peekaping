@@ -4,15 +4,19 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/proxy"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 
+	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
@@ -28,13 +32,45 @@ const (
 
 type Controller struct {
 	service probe.Service
+	source  MonitorSource
+	proxies proxy.Service
+	waker   *Waker
+	bus     events.EventBus
+	timing  Timing
+	now     func() time.Time
 	logger  *zap.SugaredLogger
 }
 
-func NewController(service probe.Service, logger *zap.SugaredLogger) *Controller {
+type ControllerParams struct {
+	dig.In
+	Probes  probe.Service
+	Source  MonitorSource
+	Proxies proxy.Service
+	Waker   *Waker
+	Bus     events.EventBus
+	Timing  Timing
+	Logger  *zap.SugaredLogger
+}
+
+func NewController(p ControllerParams) *Controller {
 	return &Controller{
-		service: service,
-		logger:  logger.Named("[probe-protocol-controller]"),
+		service: p.Probes,
+		source:  p.Source,
+		proxies: p.Proxies,
+		waker:   p.Waker,
+		bus:     p.Bus,
+		timing:  p.Timing,
+		now:     time.Now,
+		logger:  p.Logger.Named("[probe-protocol-controller]"),
+	}
+}
+
+// instancesChanged tells the API replicas that the instances a probe is dealt among have changed,
+// so that they answer the probe's waiting polls. The change is stored already, so a failure to say
+// so only delays the siblings until their poll times out.
+func (c *Controller) instancesChanged(ctx context.Context, probeID string) {
+	if err := events.Publish(ctx, c.bus, probe.InstancesChanged, probe.InstancesChangedEvent{ProbeID: probeID}); err != nil {
+		c.logger.Warnw("Failed to publish that the instances of a probe changed", "probeId", probeID, "error", err)
 	}
 }
 
@@ -81,25 +117,35 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(message))
 	}
 
-	err := c.service.RegisterInstance(r.Context(), owner.ID, &probe.Instance{
+	now := c.now().UTC()
+	// What the siblings were dealt among before this hello
+	before, err := c.service.FindByID(r.Context(), owner.ID)
+	if err != nil {
+		return nil, c.fail(err)
+	}
+
+	err = c.service.RegisterInstance(r.Context(), owner.ID, &probe.Instance{
 		ID:              instanceID,
 		Hostname:        req.Hostname,
 		OS:              req.OS,
 		Arch:            req.Arch,
 		Version:         req.ProbeVersion,
 		ProtocolVersion: req.ProtocolVersion,
-		LastSeenAt:      time.Now().UTC(),
+		LastSeenAt:      now,
 	}, req.SupportedTypes)
 	if err != nil {
 		return nil, c.fail(err)
+	}
+	if changesAssignments(before, instanceID, req.SupportedTypes, now) {
+		c.instancesChanged(r.Context(), owner.ID)
 	}
 
 	return httpx.Reply(http.StatusOK, probeproto.HelloResponse{
 		ProtocolVersion: probeproto.ProtocolVersion,
 		ServerVersion:   version.Version,
-		ServerTime:      time.Now().UTC(),
+		ServerTime:      now,
 		Probe:           probeproto.ProbeInfo{ID: owner.ID, Name: owner.Name, Location: owner.Location},
-		PollTimeoutMs:   int(PollTimeout / time.Millisecond),
+		PollTimeoutMs:   int(c.timing.PollTimeout / time.Millisecond),
 		FlushIntervalMs: int(FlushInterval / time.Millisecond),
 		BatchMax:        BatchMax,
 		BufferMax:       BufferMax,
@@ -107,9 +153,9 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 }
 
 // Bye retires the instance that says it is stopping. It does not delete it: the instance is left
-// last seen as long ago as the online window, so that it is out of the dealing at once, while the
-// probe's offline threshold keeps counting from that time. A probe that restarts gracefully says
-// hello again well within it, and so raises no notification.
+// last seen just outside the online window (RetiredAt), so that it is out of the dealing at once,
+// while the probe's offline threshold keeps counting from that time. A probe that restarts
+// gracefully says hello again well within it, and so raises no notification.
 func (c *Controller) Bye(ctx context.Context, input *ByeInput) (*httpx.Output[httpx.NoBody], error) {
 	// MARK: Bye
 
@@ -118,12 +164,25 @@ func (c *Controller) Bye(ctx context.Context, input *ByeInput) (*httpx.Output[ht
 	if !ok {
 		return nil, c.unauthenticated()
 	}
-	retiredAt := time.Now().UTC().Add(-InstanceOnlineWindow)
-	if err := c.service.RetireInstance(r.Context(), owner.ID, instanceID, retiredAt); err != nil {
+	if err := c.service.RetireInstance(r.Context(), owner.ID, instanceID, RetiredAt(c.now().UTC())); err != nil {
 		return nil, c.fail(err)
 	}
+	c.instancesChanged(r.Context(), owner.ID)
 
 	return httpx.Reply(http.StatusNoContent, httpx.NoBody{})
+}
+
+// changesAssignments reports whether a hello from instanceID changes what the probe's instances
+// are told: the instance was not online, so the others are dealt among one more, or the probe's
+// supported types change. before is the probe as it was, nil if it was not found.
+func changesAssignments(before *probe.Model, instanceID string, supportedTypes []string, now time.Time) bool {
+	if before == nil {
+		return true
+	}
+	if !slices.Contains(OnlineInstances(before.Instances, now, InstanceOnlineWindow), instanceID) {
+		return true
+	}
+	return !slices.Equal(sortedSet(before.SupportedTypes), sortedSet(supportedTypes))
 }
 
 // validateHello returns what is wrong with a hello, or "" when it is fine. instanceID is the one

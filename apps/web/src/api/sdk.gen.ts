@@ -256,6 +256,9 @@ import type {
   GetVersionResponses,
   GetHealthRootData,
   GetHealthRootResponses,
+  ProbeGetAssignmentsData,
+  ProbeGetAssignmentsResponses,
+  ProbeGetAssignmentsErrors,
   ProbePostByeData,
   ProbePostByeResponses,
   ProbePostByeErrors,
@@ -2526,6 +2529,30 @@ export const getHealthRoot = <ThrowOnError extends boolean = false>(
   >({
     responseType: "json",
     url: "/health",
+    ...options,
+  });
+};
+
+/**
+ * Get the monitors this instance runs
+ * A long poll. The answer is the monitors this instance of the probe runs, and a version that names the probe's assignment: its active monitors that are not push monitors and are of a type the probe supports, with their proxies, dealt among the probe's instances seen in the last 60 seconds so that each monitor runs on exactly one of them. Send the version you hold. If it is not the current one, or you send none, the server answers 200 at once. If it is, the server holds the request until a monitor of the probe is created, updated or deleted, or an instance of the probe joins or leaves, and answers 200 then; after 25 seconds without a change it answers 304 with no body, and the instance polls again. The reply is gzipped when Accept-Encoding allows it.
+ */
+export const probeGetAssignments = <ThrowOnError extends boolean = false>(
+  options: Options<ProbeGetAssignmentsData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    ProbeGetAssignmentsResponses,
+    ProbeGetAssignmentsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/probe/v1/assignments",
     ...options,
   });
 };

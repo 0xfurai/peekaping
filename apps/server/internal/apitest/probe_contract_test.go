@@ -180,3 +180,47 @@ func TestProbeContract_ErrorsComeBackAsTypedErrors(t *testing.T) {
 		assert.Equal(t, "too many requests", failure.Message)
 	})
 }
+
+func TestProbeContract_Assignments(t *testing.T) {
+	a := localProbeApp(t, shortPoll)
+	proxyID := decode[created](t, a.request(t, http.MethodPost, "/api/v1/proxies", map[string]any{
+		"protocol": "socks5", "host": "egress.example.com", "port": 1080, "auth": true, "username": "scout", "password": "s3cret",
+	}, a.asAdmin), http.StatusCreated).ID
+	monitorID := a.createHTTPMonitor(t, "Checkout", proxyID)
+	instanceID := uuid.NewString()
+	client, rt := a.probeClient(localToken, instanceID)
+	ctx := context.Background()
+	_, err := client.Hello(ctx, &probeproto.HelloRequest{InstanceID: instanceID, ProtocolVersion: probeproto.ProtocolVersion, SupportedTypes: []string{"http"}})
+	require.NoError(t, err)
+
+	held, err := client.Assignments(ctx, "")
+
+	require.NoError(t, err)
+	require.NotNil(t, held)
+	assert.NotEmpty(t, held.Version)
+	require.Len(t, held.Monitors, 1)
+	assert.Equal(t, monitorID, held.Monitors[0].ID)
+	assert.Equal(t, "Checkout", held.Monitors[0].Name)
+	assert.Equal(t, "http", held.Monitors[0].Type)
+	require.NotNil(t, held.Monitors[0].Proxy)
+	assert.Equal(t, probeproto.Proxy{
+		ID: proxyID, Protocol: "socks5", Host: "egress.example.com", Port: 1080, Auth: true, Username: "scout", Password: "s3cret",
+		UpdatedAt: held.Monitors[0].Proxy.UpdatedAt,
+	}, *held.Monitors[0].Proxy)
+	req, resp := rt.last(t)
+	assert.Equal(t, http.MethodGet, req.Method)
+	assert.Equal(t, "gzip", resp.Header.Get("Content-Encoding"), "the server gzips the reply it was allowed to")
+
+	unchanged, err := client.Assignments(ctx, held.Version)
+
+	require.NoError(t, err, "a poll that times out is not an error")
+	assert.Nil(t, unchanged, "it is (nil, nil)")
+	req, resp = rt.last(t)
+	assert.Equal(t, held.Version, req.URL.Query().Get("version"))
+	assert.Equal(t, http.StatusNotModified, resp.StatusCode)
+
+	other, err := client.Assignments(ctx, "a-version-the-server-never-made")
+	require.NoError(t, err)
+	require.NotNil(t, other, "and a version it does not hold is answered at once")
+	assert.Equal(t, held.Version, other.Version)
+}

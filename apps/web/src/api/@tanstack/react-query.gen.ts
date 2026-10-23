@@ -88,6 +88,7 @@ import {
   postTelemetryNotice,
   getVersion,
   getHealthRoot,
+  probeGetAssignments,
   probePostBye,
   probePostHello,
 } from "../sdk.gen";
@@ -290,6 +291,7 @@ import type {
   PostTelemetryNoticeResponse,
   GetVersionData,
   GetHealthRootData,
+  ProbeGetAssignmentsData,
   ProbePostByeData,
   ProbePostByeError,
   ProbePostByeResponse,
@@ -3301,6 +3303,31 @@ export const getHealthRootOptions = (options?: Options<GetHealthRootData>) => {
       return data;
     },
     queryKey: getHealthRootQueryKey(options),
+  });
+};
+
+export const probeGetAssignmentsQueryKey = (
+  options: Options<ProbeGetAssignmentsData>
+) => createQueryKey("probeGetAssignments", options);
+
+/**
+ * Get the monitors this instance runs
+ * A long poll. The answer is the monitors this instance of the probe runs, and a version that names the probe's assignment: its active monitors that are not push monitors and are of a type the probe supports, with their proxies, dealt among the probe's instances seen in the last 60 seconds so that each monitor runs on exactly one of them. Send the version you hold. If it is not the current one, or you send none, the server answers 200 at once. If it is, the server holds the request until a monitor of the probe is created, updated or deleted, or an instance of the probe joins or leaves, and answers 200 then; after 25 seconds without a change it answers 304 with no body, and the instance polls again. The reply is gzipped when Accept-Encoding allows it.
+ */
+export const probeGetAssignmentsOptions = (
+  options: Options<ProbeGetAssignmentsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probeGetAssignments({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probeGetAssignmentsQueryKey(options),
   });
 };
 

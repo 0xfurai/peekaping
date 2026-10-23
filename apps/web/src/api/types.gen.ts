@@ -563,6 +563,11 @@ export type ProbeUpdateProbeDto = {
     | undefined;
 };
 
+export type ProbeprotoAssignmentsResponse = {
+  monitors: Array<ProbeprotoMonitor> | null;
+  version: string;
+};
+
 export type ProbeprotoHelloRequest = {
   arch?: string;
   hostname?: string;
@@ -585,10 +590,35 @@ export type ProbeprotoHelloResponse = {
   server_version: string;
 };
 
+export type ProbeprotoMonitor = {
+  config: string;
+  id: string;
+  interval: number;
+  max_retries: number;
+  name: string;
+  proxy?: ProbeprotoProxy;
+  resend_interval: number;
+  retry_interval: number;
+  timeout: number;
+  type: string;
+  updated_at: string;
+};
+
 export type ProbeprotoProbeInfo = {
   id: string;
   location: string;
   name: string;
+};
+
+export type ProbeprotoProxy = {
+  auth: boolean;
+  host: string;
+  id: string;
+  password?: string;
+  port: number;
+  protocol: string;
+  updated_at: string;
+  username?: string;
 };
 
 export type ProxyCreateUpdateDto = {
@@ -4849,6 +4879,64 @@ export type GetHealthRootResponses = {
 
 export type GetHealthRootResponse =
   GetHealthRootResponses[keyof GetHealthRootResponses];
+
+export type ProbeGetAssignmentsData = {
+  body?: never;
+  headers: {
+    /**
+     * The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces.
+     */
+    "X-Probe-Instance": string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * The version of the assignments the instance holds, as the server last sent it. Leave it out for the first call. When it is the current one, the server holds the request until something changes, for up to 25 seconds, and answers 304 with no body at the timeout; when it is not, the server answers at once.
+     */
+    version?: string;
+  };
+  url: "/probe/v1/assignments";
+};
+
+export type ProbeGetAssignmentsErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Not Implemented
+   */
+  501: HttpxErrorBody;
+};
+
+export type ProbeGetAssignmentsError =
+  ProbeGetAssignmentsErrors[keyof ProbeGetAssignmentsErrors];
+
+export type ProbeGetAssignmentsResponses = {
+  /**
+   * OK
+   */
+  200: ProbeprotoAssignmentsResponse;
+};
+
+export type ProbeGetAssignmentsResponse =
+  ProbeGetAssignmentsResponses[keyof ProbeGetAssignmentsResponses];
 
 export type ProbePostByeData = {
   body?: never;

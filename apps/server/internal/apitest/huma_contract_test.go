@@ -143,7 +143,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 88, count)
+	assert.Equal(t, 89, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)
@@ -163,8 +163,12 @@ func TestOpenAPI_ExportMatchesRuntime(t *testing.T) {
 }
 
 func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
-	a := newAppWithAdmin(t)
+	a := localProbeApp(t, nil)
 	id := a.createMonitor(t, "Contract monitor", "contract-push")
+	contractProxy := decode[created](t, a.request(t, "POST", "/api/v1/proxies", map[string]any{
+		"protocol": "http", "host": "contract.proxy.example", "port": 3128, "auth": true, "username": "u", "password": "p",
+	}, a.asAdmin), 201).ID
+	a.createHTTPMonitor(t, "Contract http monitor", contractProxy)
 	a.createStatusPage(t, statusPage{slug: "contract", published: true, monitors: []string{id}, domains: []string{"contract.example"}})
 	decode[created](t, a.request(t, "POST", "/api/v1/tags", tagBody("Contract"), a.asAdmin), 201)
 	protocolProbe := a.createProbe(t, map[string]any{"name": "Contract protocol probe"})
@@ -214,6 +218,10 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"local probe rotate conflict", "POST", "/api/v1/probes/{id}/rotate-token", "/api/v1/probes/local/rotate-token", nil, 409, a.asAdmin},
 		{"probe not found", "GET", "/api/v1/probes/{id}", "/api/v1/probes/missing", nil, 404, a.asAdmin},
 		{"probe protocol hello", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-instance"), 200, asProbe(protocolProbe.Token, "contract-instance")},
+		{"probe protocol assignments", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 200, asProbe(protocolProbe.Token, "contract-instance")},
+		{"probe protocol hello of the local probe", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-local"), 200, asProbe(localToken, "contract-local")},
+		{"probe protocol assignments with a monitor and its proxy", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 200, asProbe(localToken, "contract-local")},
+		{"probe protocol assignments, unknown instance", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 409, asProbe(protocolProbe.Token, "contract-unknown")},
 		{"probe protocol hello, old version", "POST", "/probe/v1/hello", "/probe/v1/hello", oldHello, 426, asProbe(protocolProbe.Token, "contract-old")},
 		{"probe protocol hello, bad body", "POST", "/probe/v1/hello", "/probe/v1/hello", "{", 400, asProbe(protocolProbe.Token, "contract-bad")},
 		{"probe protocol, unknown token", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-instance"), 401, asProbe("pkp_no-probe-has-it", "contract-instance")},

@@ -65,8 +65,9 @@ var jwtOnlyRoutes = map[string]bool{
 // probeRoutes are the probe protocol's. A probe authenticates with its token and an instance id,
 // and the admin's JWT and API keys open none of them.
 var probeRoutes = map[string]bool{
-	"POST /probe/v1/hello": true,
-	"POST /probe/v1/bye":   true,
+	"POST /probe/v1/hello":      true,
+	"GET /probe/v1/assignments": true,
+	"POST /probe/v1/bye":        true,
 }
 
 var pathParam = regexp.MustCompile(`\{[^}]+\}`)

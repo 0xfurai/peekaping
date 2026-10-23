@@ -6,6 +6,7 @@ import (
 
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 
@@ -25,6 +26,12 @@ func TestTopicsKeepTheirNamesOnTheWire(t *testing.T) {
 	assert.Equal(t, "certificate.expiry", certificate.CertificateExpiry.Name())
 	assert.Equal(t, "monitor.stale", stale.MonitorStale.Name())
 	assert.Equal(t, "monitor.stale.recovered", stale.MonitorStaleRecovered.Name())
+	assert.Equal(t, "probe.instances.changed", probe.InstancesChanged.Name())
+}
+
+// A probe's instances belong to no monitor, so their events are handled with no order between them.
+func TestInstancesChangedBelongsToNoMonitor(t *testing.T) {
+	assert.Empty(t, orderedBy(t, probe.InstancesChanged, probe.InstancesChangedEvent{ProbeID: "probe-1"}))
 }
 
 // Every topic orders its events by the monitor they are about.

@@ -32,6 +32,7 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
@@ -122,6 +123,7 @@ type parts struct {
 	CleanupLock          cleanup.RunLock
 	Monitors             monitor.Service
 	Probes               probe.Service
+	ProbeWaker           *protocol.Waker
 	NotificationListener *notification_channel.NotificationEventListener
 	MonitorListener      *monitor.MonitorEventListener
 	Metrics              *metrics.Collector
@@ -172,6 +174,10 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		defer close(websocketClosed)
 		p.WebSocket.Close()
 	})
+	// A probe's assignment poll is held for up to 25 seconds, and Shutdown waits for it like any
+	// request in flight: answered now, it doesn't hold the shutdown up, or make the container's
+	// stop grace period run out
+	httpServer.RegisterOnShutdown(p.ProbeWaker.Close)
 
 	// A job that fails to start leaves the ones before it running, and the shutdown stops them
 	j, startErr := startJobs(ctx, p, internalCfg, logger)
@@ -265,6 +271,10 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 
 	p.NotificationListener.Subscribe(p.EventBus)
 	p.MonitorListener.Subscribe(p.EventBus)
+
+	// Answer the probes' waiting assignment polls when a monitor or one of a probe's instances
+	// changes. Every api replica listens: a change made on one reaches the polls held by the others.
+	p.ProbeWaker.Subscribe()
 
 	// Take the notification events the ingester and the producer's watchdog queue. Each goes to
 	// one api replica, which hands it to the listener above, so it starts after the listener

@@ -33,6 +33,7 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
@@ -111,6 +112,7 @@ type parts struct {
 	Config               *config.Config
 	Settings             setting.Service
 	Probes               probe.Service
+	ProbeWaker           *protocol.Waker
 	Heartbeats           heartbeat.Service
 	Users                auth.Repository
 	Stats                stats.Service
@@ -188,6 +190,10 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		defer close(websocketClosed)
 		p.WebSocket.Close()
 	})
+	// A probe's assignment poll is held for up to 25 seconds, and Shutdown waits for it like any
+	// request in flight: answered now, it doesn't hold the shutdown up, or make the container's
+	// stop grace period run out
+	httpServer.RegisterOnShutdown(p.ProbeWaker.Close)
 	served := make(chan error, 1)
 	go func() {
 		logger.Infow("Serving the API", "address", listener.Addr().String(), "web_dir", cfg.WebDir)
@@ -257,6 +263,8 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 
 	p.NotificationListener.Subscribe(p.EventBus)
 	p.MonitorListener.Subscribe(p.EventBus)
+	// The probes' waiting assignment polls answer when a monitor or one of a probe's instances changes
+	p.ProbeWaker.Subscribe()
 	if impl, ok := p.Stats.(*stats.ServiceImpl); ok {
 		impl.RegisterEventHandlers(p.EventBus)
 	}
