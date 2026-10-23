@@ -570,6 +570,8 @@
         "docker": "Docker konténer",
         "grpc": "gRPC Kulcsszófigyelő",
         "http": "HTTP(S) figyelő",
+        "http_json_query": "HTTP(s) - JSON lekérdezés",
+        "http_keyword": "HTTP(s) - Kulcsszó",
         "kafka": "Kafka Termelő Monitor",
         "mongodb": "MongoDB adatbázis monitor",
         "mqtt": "MQTT Broker figyelő",
