@@ -8,7 +8,7 @@ import Layout from "@/layout";
 import { useNavigate } from "react-router-dom";
 import {
   type HeartbeatModel,
-  type MonitorModel,
+  type MonitorMonitorResponseDto,
   type UtilsApiResponseArrayHeartbeatModel,
   type TagModel,
 } from "@/api";
@@ -139,7 +139,7 @@ const MonitorsPage = () => {
     });
 
   const allMonitors = (data?.pages.flatMap((page) => page.data || []) ||
-    []) as MonitorModel[];
+    []) as MonitorMonitorResponseDto[];
 
   // No more client-side filtering needed since API now supports tag filtering
   const monitors = allMonitors;

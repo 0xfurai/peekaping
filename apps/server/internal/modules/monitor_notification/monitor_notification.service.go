@@ -11,6 +11,9 @@ type Service interface {
 	FindByID(ctx context.Context, id string) (*Model, error)
 	Delete(ctx context.Context, id string) error
 	FindByMonitorID(ctx context.Context, monitorID string) ([]*Model, error)
+	// FindByMonitorIDs is FindByMonitorID for many monitors at once, by monitor ID. A monitor with
+	// no links has no entry.
+	FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*Model, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	DeleteByNotificationID(ctx context.Context, notificationID string) error
 }
@@ -49,6 +52,10 @@ func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
 
 func (mr *ServiceImpl) FindByMonitorID(ctx context.Context, monitorID string) ([]*Model, error) {
 	return mr.repository.FindByMonitorID(ctx, monitorID)
+}
+
+func (mr *ServiceImpl) FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*Model, error) {
+	return mr.repository.FindByMonitorIDs(ctx, monitorIDs)
 }
 
 func (mr *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {

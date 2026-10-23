@@ -1,4 +1,4 @@
-import type { MonitorModel } from "@/api";
+import type { MonitorMonitorResponseDto } from "@/api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,7 @@ import StaleMarker from "./stale-marker";
 import { getMonitorStatusView } from "./monitor-status";
 
 interface MonitorCardProps {
-  monitor: MonitorModel;
+  monitor: MonitorMonitorResponseDto;
   // The name of the probe the monitor runs on. Left out when the install has no remote probe.
   probeName?: string;
 }
