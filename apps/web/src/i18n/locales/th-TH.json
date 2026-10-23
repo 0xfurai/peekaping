@@ -571,6 +571,8 @@
         "docker": "คอนเทนเนอร์ Docker",
         "grpc": "ตรวจสอบคำสำคัญ gRPC",
         "http": "HTTP(S) มอนิเตอร์",
+        "http_json_query": "HTTP(s) - คิวรี JSON",
+        "http_keyword": "HTTP(s) - คำสำคัญ",
         "kafka": "ตัวตรวจสอบผู้ผลิต Kafka",
         "mongodb": "ตัวตรวจสอบฐานข้อมูล MongoDB",
         "mqtt": "ตัวตรวจสอบบูร์เกอร์ MQTT",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "เลือกประเภทตัวแจ้งเตือน"
     },
-    "search_placeholder": "ค้นหาช่องแจ้งเตือนตามชื่อ…"
+    "search_placeholder": "ค้นหาช่องแจ้งเตือนตามชื่อ…",
+    "secret": {
+      "reenter_error": "กรอกความลับนี้อีกครั้งหรือลบออก: ปลายทางที่ส่งไปมีการเปลี่ยนแปลง",
+      "reenter_hint": "กรอกความลับนี้อีกครั้ง: ปลายทางที่ส่งไปมีการเปลี่ยนแปลง",
+      "remove": "ลบ",
+      "saved_hint": "บันทึกแล้ว — พิมพ์เพื่อแทนที่"
+    }
   },
   "proxies": {
     "delete_dialog": {

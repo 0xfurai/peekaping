@@ -571,6 +571,8 @@
         "docker": "Docker-container",
         "grpc": "gRPC Zoekwoordmonitor",
         "http": "HTTP(S)-monitor",
+        "http_json_query": "HTTP(s) - JSON-query",
+        "http_keyword": "HTTP(s) - Zoekwoord",
         "kafka": "Kafka Producer Monitor",
         "mongodb": "MongoDB-databasemonitor",
         "mqtt": "MQTT-brokermonitor",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Kies notifier-type"
     },
-    "search_placeholder": "Zoek notificatiekanalen op naam..."
+    "search_placeholder": "Zoek notificatiekanalen op naam...",
+    "secret": {
+      "reenter_error": "Voer dit geheim opnieuw in of verwijder het: de bestemming waar het naartoe wordt verstuurd, is gewijzigd",
+      "reenter_hint": "Voer dit geheim opnieuw in: de bestemming waar het naartoe wordt verstuurd, is gewijzigd",
+      "remove": "Verwijderen",
+      "saved_hint": "Opgeslagen — typ om te vervangen"
+    }
   },
   "proxies": {
     "delete_dialog": {

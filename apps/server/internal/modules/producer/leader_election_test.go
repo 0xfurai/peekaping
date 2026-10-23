@@ -102,6 +102,24 @@ func TestLeaderElection_ReleaseLeadership(t *testing.T) {
 		assert.Equal(t, redis.Nil, err)
 	})
 
+	// A renewal that is under way when the election's context is cancelled fails on the context.
+	// That says nothing about the leadership: the release that follows still has to delete the key.
+	t.Run("release leadership after a renewal failed on a cancelled context", func(t *testing.T) {
+		client, mr := setupTestRedis(t)
+		defer mr.Close()
+		le := NewLeaderElection(client, "node1", zap.NewNop().Sugar())
+		le.tryBecomeLeader(context.Background())
+		require.True(t, le.IsLeader())
+
+		cancelled, cancel := context.WithCancel(context.Background())
+		cancel()
+		le.tryBecomeLeader(cancelled)
+		assert.True(t, le.IsLeader(), "a cancelled renewal made the node forget its leadership")
+
+		le.releaseLeadership(context.Background())
+		assert.False(t, mr.Exists(LeaderKey))
+	})
+
 	t.Run("release leadership when not leader", func(t *testing.T) {
 		client, mr := setupTestRedis(t)
 		defer mr.Close()

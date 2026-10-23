@@ -44,8 +44,6 @@ func (t *TCPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 	}
 	cfg := cfgAny.(*TCPConfig)
 
-	t.logger.Debugf("execute tcp cfg: %+v", cfg)
-
 	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 
 	startTime := time.Now().UTC()

@@ -142,7 +142,7 @@ func (in *instance) stop(t testing.TB) error {
 	t.Helper()
 	in.stopOnce.Do(func() {
 		in.cancel()
-		limit := shutdownTimeouts.total() + 5*time.Second
+		limit := shutdownTimeouts.Total() + 5*time.Second
 		select {
 		case in.stopErr = <-in.done:
 		case <-time.After(limit):
@@ -324,6 +324,8 @@ func countingListener(t *testing.T) (host, port string, accepted func() int64) {
 type socketClient struct {
 	url     string
 	packets chan string
+	// polls counts the long polls that got an answer
+	polls atomic.Int64
 }
 
 // socketEvent is a heartbeat the websocket pushed
@@ -393,6 +395,7 @@ func (c *socketClient) read() {
 		}
 		body, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
+		c.polls.Add(1)
 		if err != nil || resp.StatusCode != http.StatusOK {
 			return
 		}

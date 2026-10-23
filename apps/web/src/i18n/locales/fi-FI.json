@@ -571,6 +571,8 @@
         "docker": "Docker-kontti",
         "grpc": "gRPC-avainsanaseuranta",
         "http": "HTTP(S)-seuranta",
+        "http_json_query": "HTTP(s) - JSON-kysely",
+        "http_keyword": "HTTP(s) - Avainsana",
         "kafka": "Kafka-tuottajamonitori",
         "mongodb": "MongoDB-tietokannan valvonta",
         "mqtt": "MQTT-välittäjän valvonta",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Valitse ilmoitustyyppi"
     },
-    "search_placeholder": "Etsi ilmoituskanavia nimellä…"
+    "search_placeholder": "Etsi ilmoituskanavia nimellä…",
+    "secret": {
+      "reenter_error": "Syötä tämä salaisuus uudelleen tai poista se: lähetyksen kohde on muuttunut",
+      "reenter_hint": "Syötä tämä salaisuus uudelleen: lähetyksen kohde on muuttunut",
+      "remove": "Poista",
+      "saved_hint": "Tallennettu — kirjoita korvataksesi"
+    }
   },
   "proxies": {
     "delete_dialog": {

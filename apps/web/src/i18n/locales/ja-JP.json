@@ -571,6 +571,8 @@
         "docker": "Docker コンテナ",
         "grpc": "gRPC キーワードモニター",
         "http": "HTTP(S) 監視",
+        "http_json_query": "HTTP(s) - JSON クエリ",
+        "http_keyword": "HTTP(s) - キーワード",
         "kafka": "Kafkaプロデューサー監視",
         "mongodb": "MongoDB データベースモニター",
         "mqtt": "MQTTブローカー監視",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "通知タイプを選択"
     },
-    "search_placeholder": "名前で通知チャネルを検索..."
+    "search_placeholder": "名前で通知チャネルを検索...",
+    "secret": {
+      "reenter_error": "このシークレットを再入力するか削除してください：送信先が変更されました",
+      "reenter_hint": "このシークレットを再入力してください：送信先が変更されました",
+      "remove": "削除",
+      "saved_hint": "保存済み — 入力すると置き換えます"
+    }
   },
   "proxies": {
     "delete_dialog": {

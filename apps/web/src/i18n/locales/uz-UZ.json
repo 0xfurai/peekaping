@@ -571,6 +571,8 @@
         "docker": "Docker konteyneri",
         "grpc": "gRPC Kalit Soʻz Monitor",
         "http": "HTTP(S) nazorati",
+        "http_json_query": "HTTP(s) - JSON soʻrovi",
+        "http_keyword": "HTTP(s) - Kalit soʻz",
         "kafka": "Kafka ishlab chiqaruvchisi monitoringi",
         "mongodb": "MongoDB ma'lumotlar bazasini kuzatuvchi",
         "mqtt": "MQTT broker nazorati",
@@ -1113,7 +1115,13 @@
     "placeholders": {
       "select_type": "Xabarnoma turi tanlang"
     },
-    "search_placeholder": "Xabarnoma kanallarini nomi bilan qidirish..."
+    "search_placeholder": "Xabarnoma kanallarini nomi bilan qidirish...",
+    "secret": {
+      "reenter_error": "Bu sirni qayta kiriting yoki olib tashlang: yuboriladigan manzil o‘zgargan",
+      "reenter_hint": "Bu sirni qayta kiriting: yuboriladigan manzil o‘zgargan",
+      "remove": "Olib tashlash",
+      "saved_hint": "Saqlangan — almashtirish uchun yozing"
+    }
   },
   "proxies": {
     "delete_dialog": {

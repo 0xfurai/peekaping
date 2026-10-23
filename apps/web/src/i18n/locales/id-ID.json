@@ -571,6 +571,8 @@
         "docker": "Kontainer Docker",
         "grpc": "Pemantau Kata Kunci gRPC",
         "http": "Pemantau HTTP(S)",
+        "http_json_query": "HTTP(s) - Kueri JSON",
+        "http_keyword": "HTTP(s) - Kata Kunci",
         "kafka": "Pemantau Produser Kafka",
         "mongodb": "Pemantau Database MongoDB",
         "mqtt": "Pemantau Broker MQTT",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Pilih tipe notifier"
     },
-    "search_placeholder": "Cari saluran notifikasi berdasarkan nama..."
+    "search_placeholder": "Cari saluran notifikasi berdasarkan nama...",
+    "secret": {
+      "reenter_error": "Masukkan ulang rahasia ini atau hapus: tujuan pengirimannya berubah",
+      "reenter_hint": "Masukkan ulang rahasia ini: tujuan pengirimannya berubah",
+      "remove": "Hapus",
+      "saved_hint": "Tersimpan — ketik untuk mengganti"
+    }
   },
   "proxies": {
     "delete_dialog": {

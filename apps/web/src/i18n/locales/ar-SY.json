@@ -571,6 +571,8 @@
         "docker": "حاوية دوكر",
         "grpc": "مراقبة الكلمات المفتاحية باستخدام gRPC",
         "http": "مراقب HTTP(S)",
+        "http_json_query": "HTTP(s) - استعلام JSON",
+        "http_keyword": "HTTP(s) - كلمة مفتاحية",
         "kafka": "مراقب منتج كافكا",
         "mongodb": "مراقب قاعدة بيانات MongoDB",
         "mqtt": "مراقب MQTT",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "اختر نوع مُرسِل الإشعارات"
     },
-    "search_placeholder": "ابحث عن قنوات الإشعارات بالاسم..."
+    "search_placeholder": "ابحث عن قنوات الإشعارات بالاسم...",
+    "secret": {
+      "reenter_error": "أعد إدخال هذا السر أو أزله: تغيّرت الوجهة التي يُرسل إليها",
+      "reenter_hint": "أعد إدخال هذا السر: تغيّرت الوجهة التي يُرسل إليها",
+      "remove": "إزالة",
+      "saved_hint": "تم الحفظ — اكتب لاستبداله"
+    }
   },
   "proxies": {
     "delete_dialog": {

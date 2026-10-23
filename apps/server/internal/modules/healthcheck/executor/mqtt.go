@@ -78,8 +78,6 @@ func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel
 	}
 	cfg := cfgAny.(*MQTTConfig)
 
-	m.logger.Debugf("execute mqtt cfg: %+v", cfg)
-
 	startTime := time.Now().UTC()
 
 	// Set default check type if not specified

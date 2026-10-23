@@ -17,7 +17,7 @@ import (
 )
 
 type GoogleChatConfig struct {
-	WebhookURL string `json:"webhook_url" validate:"required,url"`
+	WebhookURL string `json:"webhook_url" validate:"required,url" secret:"true" endpoint:"true"`
 }
 
 type GoogleChatSender struct {
@@ -60,7 +60,7 @@ func (g *GoogleChatSender) Send(
 	}
 	cfg := cfgAny.(*GoogleChatConfig)
 
-	g.logger.Infof("Sending Google Chat notification to webhook: %s", cfg.WebhookURL)
+	g.logger.Infof("Sending Google Chat notification")
 
 	// Google Chat message formatting: https://developers.google.com/chat/api/guides/message-formats/basic
 	chatHeader := map[string]string{

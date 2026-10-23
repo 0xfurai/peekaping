@@ -58,18 +58,11 @@ func ProvideAsynqServer(
 		},
 
 		// Error handler for logging failed tasks
-		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
-			// Health checks are cancelled on purpose when their monitor is edited, paused or deleted
-			if errors.Is(err, context.Canceled) {
-				logger.Infow("Task cancelled", "type", task.Type())
-				return
-			}
-			logger.Errorw("Task processing failed",
-				"type", task.Type(),
-				"payload", string(task.Payload()),
-				"error", err,
-			)
-		}),
+		ErrorHandler: logFailedTask(logger),
+
+		// How long to wait for the running checks when stopping. A check asynq gives up on goes
+		// back in the queue and its context is cancelled, so another worker runs it again.
+		ShutdownTimeout: cfg.QueueShutdownTimeout,
 
 		// Enable strict priority mode
 		StrictPriority: true,
@@ -82,6 +75,24 @@ func ProvideAsynqServer(
 
 	logger.Info("Successfully created Asynq server")
 	return server, nil
+}
+
+// logFailedTask returns the error handler the asynq servers use: it logs a failed task's type,
+// ID and error. It never logs the payload, which holds the monitor's config and the proxy's password.
+func logFailedTask(logger *zap.SugaredLogger) asynq.ErrorHandler {
+	return asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
+		taskID, _ := asynq.GetTaskID(ctx)
+		// Health checks are cancelled on purpose when their monitor is edited, paused or deleted
+		if errors.Is(err, context.Canceled) {
+			logger.Infow("Task cancelled", "type", task.Type(), "task_id", taskID)
+			return
+		}
+		logger.Errorw("Task processing failed",
+			"type", task.Type(),
+			"task_id", taskID,
+			"error", err,
+		)
+	})
 }
 
 // ProvideIngesterAsynqServer creates the ingester's asynq.Server, which only processes tasks from
@@ -101,15 +112,12 @@ func ProvideIngesterAsynqServer(cfg *config.Config, logger *zap.SugaredLogger) (
 		Queues: map[string]int{
 			"ingester": 10, // Only process ingester queue
 		},
-		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
-			logger.Errorw("Task processing failed",
-				"type", task.Type(),
-				"payload", string(task.Payload()),
-				"error", err,
-			)
-		}),
-		StrictPriority: false, // We only have one queue, no need for strict priority
-		Logger:         NewAsynqLogger(logger),
+		ErrorHandler: logFailedTask(logger),
+		// How long to wait for the running ingests when stopping. An ingest asynq gives up on goes
+		// back in the queue and its context is cancelled, to be ingested again.
+		ShutdownTimeout: cfg.QueueShutdownTimeout,
+		StrictPriority:  false, // We only have one queue, no need for strict priority
+		Logger:          NewAsynqLogger(logger),
 	}
 
 	server := asynq.NewServer(redisOpt, serverCfg)
@@ -137,13 +145,7 @@ func ProvideNotificationAsynqServer(cfg *config.Config, logger *zap.SugaredLogge
 		Queues: map[string]int{
 			"notification": 1, // Only process the notification queue
 		},
-		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
-			logger.Errorw("Task processing failed",
-				"type", task.Type(),
-				"payload", string(task.Payload()),
-				"error", err,
-			)
-		}),
+		ErrorHandler:   logFailedTask(logger),
 		StrictPriority: false, // We only have one queue, no need for strict priority
 		Logger:         NewAsynqLogger(logger),
 	}

@@ -571,6 +571,8 @@
         "docker": "کانتینر داکر",
         "grpc": "ناظم کلیدواژه gRPC",
         "http": "مانیتور HTTP(S)",
+        "http_json_query": "HTTP(s) - کوئری JSON",
+        "http_keyword": "HTTP(s) - کلیدواژه",
         "kafka": "مانیتور تولیدکننده کافکا",
         "mongodb": "مانیتور پایگاه داده MongoDB",
         "mqtt": "نظارت بر کارگزار MQTT",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "انتخاب نوع اعلان‌گر"
     },
-    "search_placeholder": "جستجوی کانال‌های اعلان بر اساس نام..."
+    "search_placeholder": "جستجوی کانال‌های اعلان بر اساس نام...",
+    "secret": {
+      "reenter_error": "این رمز را دوباره وارد کنید یا آن را حذف کنید: مقصد ارسال تغییر کرده است",
+      "reenter_hint": "این رمز را دوباره وارد کنید: مقصد ارسال تغییر کرده است",
+      "remove": "حذف",
+      "saved_hint": "ذخیره شده — برای جایگزینی تایپ کنید"
+    }
   },
   "proxies": {
     "delete_dialog": {

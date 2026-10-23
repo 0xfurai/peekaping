@@ -571,6 +571,8 @@
         "docker": "Docker-beholder",
         "grpc": "gRPC Nøgleordovervågning",
         "http": "HTTP(S)-monitor",
+        "http_json_query": "HTTP(s) - JSON-forespørgsel",
+        "http_keyword": "HTTP(s) - Nøgleord",
         "kafka": "Kafka-producentovervågning",
         "mongodb": "MongoDB-databasemonitor",
         "mqtt": "MQTT-brokerovervågning",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Vælg notifiertype"
     },
-    "search_placeholder": "Søg notifikationskanaler efter navn..."
+    "search_placeholder": "Søg notifikationskanaler efter navn...",
+    "secret": {
+      "reenter_error": "Indtast denne hemmelighed igen eller fjern den: det sted, den sendes til, er ændret",
+      "reenter_hint": "Indtast denne hemmelighed igen: det sted, den sendes til, er ændret",
+      "remove": "Fjern",
+      "saved_hint": "Gemt — skriv for at erstatte"
+    }
   },
   "proxies": {
     "delete_dialog": {

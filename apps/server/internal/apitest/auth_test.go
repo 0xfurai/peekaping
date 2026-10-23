@@ -337,6 +337,13 @@ func TestAuthAPI_RefusesAnOversizedLoginBodyWithoutCountingIt(t *testing.T) {
 	assert.Equal(t, http.StatusTooManyRequests, a.login(t, wrong).Code)
 }
 
+func TestAuthAPI_RefusesA10MBLoginBody(t *testing.T) {
+	a := newAppWithAdmin(t)
+	// The right password, so that a login the limit let through would sign in
+	w := a.request(t, http.MethodPost, "/api/v1/auth/login", loginBody(t, 10<<20, adminPassword))
+	assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code, w.Body.String())
+}
+
 func TestAuthAPI_AccountLockoutCountsLoginsPaddedBeforeTheEmail(t *testing.T) {
 	const accountLimit = 30
 	a := newAppWithAdmin(t, withTrustedClient, withAccountLimit(accountLimit))

@@ -39,7 +39,7 @@ const tagSchema = z.object({
   description: z.string().optional(),
 });
 
-type TagFormData = z.infer<typeof tagSchema>;
+type TagFormValues = z.infer<typeof tagSchema>;
 
 interface TagFormProps {
   mode: "create" | "edit";
@@ -51,7 +51,7 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const form = useForm<TagFormData>({
+  const form = useForm<TagFormValues>({
     resolver: zodResolver(tagSchema),
     defaultValues: {
       name: tag?.name || "",
@@ -85,7 +85,7 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
     onError: commonMutationErrorHandler(t("messages.tag_update_error")),
   });
 
-  const onSubmit = (data: TagFormData) => {
+  const onSubmit = (data: TagFormValues) => {
     if (mode === "create") {
       createMutation.mutate({ body: data });
     } else {

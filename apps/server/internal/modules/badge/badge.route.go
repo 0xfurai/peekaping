@@ -16,9 +16,20 @@ func NewRoute(controller *Controller) *Route {
 	}
 }
 
+// restrictBrowser lets a browser show a badge but run nothing from it, so a
+// script that reached its SVG still wouldn't run.
+func restrictBrowser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		next.ServeHTTP(w, req)
+	})
+}
+
 func (r *Route) ConnectRoute(rg *httpx.Router, controller *Controller) {
 	// Badge routes - these are public endpoints
 	badge := rg.Group("badge")
+	badge.Use(restrictBrowser)
 	{
 		// Status badge
 		httpx.Register(badge, "GET", "/{monitorId}/status", huma.Operation{Summary: "Get status badge", Tags: []string{"badge"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetStatusBadge)

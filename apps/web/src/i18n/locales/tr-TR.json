@@ -571,6 +571,8 @@
         "docker": "Docker Konteyneri",
         "grpc": "gRPC Anahtar Kelime İzleyici",
         "http": "HTTP(S) İzleyici",
+        "http_json_query": "HTTP(s) - JSON Sorgusu",
+        "http_keyword": "HTTP(s) - Anahtar Kelime",
         "kafka": "Kafka Üretici İzleyici",
         "mongodb": "MongoDB Veri Tabanı İzleyici",
         "mqtt": "MQTT Broker İzleyici",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Bildirim türünü seçin"
     },
-    "search_placeholder": "İsimle bildirim kanallarını ara..."
+    "search_placeholder": "İsimle bildirim kanallarını ara...",
+    "secret": {
+      "reenter_error": "Bu gizli anahtarı yeniden girin veya kaldırın: gönderildiği yer değişti",
+      "reenter_hint": "Bu gizli anahtarı yeniden girin: gönderildiği yer değişti",
+      "remove": "Kaldır",
+      "saved_hint": "Kaydedildi — değiştirmek için yazın"
+    }
   },
   "proxies": {
     "delete_dialog": {

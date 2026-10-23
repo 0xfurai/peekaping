@@ -571,6 +571,8 @@
         "docker": "Hộp chứa Docker",
         "grpc": "Giám sát từ khóa gRPC",
         "http": "Giám sát HTTP(S)",
+        "http_json_query": "HTTP(s) - Truy vấn JSON",
+        "http_keyword": "HTTP(s) - Từ khóa",
         "kafka": "Giám sát Producer Kafka",
         "mongodb": "Giám sát Cơ sở dữ liệu MongoDB",
         "mqtt": "Giám sát MQTT Broker",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Chọn loại trình thông báo"
     },
-    "search_placeholder": "Tìm kiếm kênh thông báo theo tên…"
+    "search_placeholder": "Tìm kiếm kênh thông báo theo tên…",
+    "secret": {
+      "reenter_error": "Hãy nhập lại khóa bí mật này hoặc xóa nó: nơi gửi đã thay đổi",
+      "reenter_hint": "Hãy nhập lại khóa bí mật này: nơi gửi đã thay đổi",
+      "remove": "Xóa",
+      "saved_hint": "Đã lưu — nhập để thay thế"
+    }
   },
   "proxies": {
     "delete_dialog": {

@@ -70,7 +70,10 @@ services:
       - "8034:8034"
     env_file:
       - .env
-    environment: *no-reports
+    environment:
+      <<: *no-reports
+      # The web container on localhost:8383 calls the API on localhost:8034, another origin.
+      CORS_ORIGINS: "${CORS_ORIGINS-http://localhost:8383}"
     depends_on:
       database:
         condition: service_healthy

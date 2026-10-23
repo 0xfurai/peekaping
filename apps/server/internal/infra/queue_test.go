@@ -2,6 +2,8 @@ package infra
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -10,8 +12,10 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/hibiken/asynq"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // newACLRedisConfig starts a Redis that only accepts the ACL user "peekaping"
@@ -88,6 +92,88 @@ func TestAsynqClientWithoutRedisUsernameIsRejectedByACLRedis(t *testing.T) {
 	require.Error(t, err)
 }
 
+// A task's payload holds the monitor's config and the proxy's password, so a failed task logs
+// its type, ID and error but never its payload. All three servers log failures the same way.
+func TestAsynqServersLogAFailedTaskWithoutItsPayload(t *testing.T) {
+	const payload = `{"config": "{\"basic_auth_pass\": \"secret-monitor-password\"}", "proxy_password": "secret-proxy-password"}`
+	servers := []struct {
+		name    string
+		provide func(*config.Config, *zap.SugaredLogger) (*asynq.Server, error)
+		queue   string
+	}{
+		{"worker", ProvideAsynqServer, "healthcheck"},
+		{"ingester", ProvideIngesterAsynqServer, "ingester"},
+		{"notification", ProvideNotificationAsynqServer, "notification"},
+	}
+
+	for _, tc := range servers {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := newACLRedisConfig(t, "peekaping")
+			core, logs := observer.New(zap.DebugLevel)
+			logger := zap.New(core).Sugar()
+
+			mux := asynq.NewServeMux()
+			mux.HandleFunc("test:failing", func(context.Context, *asynq.Task) error {
+				return errors.New("the monitor could not be reached")
+			})
+			server, err := tc.provide(cfg, logger)
+			require.NoError(t, err)
+			require.NoError(t, server.Start(mux))
+			t.Cleanup(server.Shutdown)
+
+			client, err := ProvideAsynqClient(cfg, logger)
+			require.NoError(t, err)
+			t.Cleanup(func() { _ = client.Close() })
+			_, err = client.Enqueue(asynq.NewTask("test:failing", []byte(payload)), asynq.Queue(tc.queue), asynq.TaskID("task-123"), asynq.MaxRetry(0))
+			require.NoError(t, err)
+
+			require.Eventually(t, func() bool { return logs.FilterMessage("Task processing failed").Len() == 1 }, 10*time.Second, 20*time.Millisecond)
+
+			entry := logs.FilterMessage("Task processing failed").All()[0]
+			assert.Equal(t, zap.ErrorLevel, entry.Level)
+			assert.Equal(t, "test:failing", entry.ContextMap()["type"])
+			assert.Equal(t, "task-123", entry.ContextMap()["task_id"])
+			assert.Equal(t, "the monitor could not be reached", entry.ContextMap()["error"])
+			for _, logged := range logs.All() {
+				assert.NotContains(t, logged.Message, "secret-")
+				for key, value := range logged.ContextMap() {
+					assert.NotEqual(t, "payload", key)
+					assert.NotContains(t, fmt.Sprint(value), "secret-")
+				}
+			}
+		})
+	}
+}
+
+func TestAsynqServerLogsACancelledTaskAsInfo(t *testing.T) {
+	cfg := newACLRedisConfig(t, "peekaping")
+	core, logs := observer.New(zap.DebugLevel)
+	logger := zap.New(core).Sugar()
+
+	mux := asynq.NewServeMux()
+	mux.HandleFunc("test:cancelled", func(context.Context, *asynq.Task) error {
+		return fmt.Errorf("check stopped: %w", context.Canceled)
+	})
+	server, err := ProvideAsynqServer(cfg, logger)
+	require.NoError(t, err)
+	require.NoError(t, server.Start(mux))
+	t.Cleanup(server.Shutdown)
+
+	client, err := ProvideAsynqClient(cfg, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = client.Close() })
+	_, err = client.Enqueue(asynq.NewTask("test:cancelled", []byte("payload")), asynq.Queue("healthcheck"), asynq.TaskID("task-456"), asynq.MaxRetry(0))
+	require.NoError(t, err)
+
+	require.Eventually(t, func() bool { return logs.FilterMessage("Task cancelled").Len() == 1 }, 10*time.Second, 20*time.Millisecond)
+
+	entry := logs.FilterMessage("Task cancelled").All()[0]
+	assert.Equal(t, zap.InfoLevel, entry.Level)
+	assert.Equal(t, "test:cancelled", entry.ContextMap()["type"])
+	assert.Equal(t, "task-456", entry.ContextMap()["task_id"])
+	assert.Zero(t, logs.FilterMessage("Task processing failed").Len(), "a cancelled task is not a failure")
+}
+
 func receive(t *testing.T, ch <-chan string) string {
 	t.Helper()
 
@@ -97,5 +183,49 @@ func receive(t *testing.T, ch <-chan string) string {
 	case <-time.After(10 * time.Second):
 		t.Fatal("timed out waiting for the task to be processed")
 		return ""
+	}
+}
+
+// A queue server waits for its running tasks only until its ShutdownTimeout, asynq's 8 seconds
+// when the config sets none, then gives up on them and returns.
+func TestAsynqServersGiveUpOnRunningTasksAfterTheQueueShutdownTimeout(t *testing.T) {
+	servers := map[string]struct {
+		provide func(*config.Config, *zap.SugaredLogger) (*asynq.Server, error)
+		queue   string
+	}{
+		"worker":   {ProvideAsynqServer, "healthcheck"},
+		"ingester": {ProvideIngesterAsynqServer, "ingester"},
+	}
+	for name, tc := range servers {
+		t.Run(name, func(t *testing.T) {
+			cfg := newACLRedisConfig(t, "peekaping")
+			cfg.QueueShutdownTimeout = 300 * time.Millisecond
+			logger := zap.NewNop().Sugar()
+			running := make(chan struct{})
+			mux := asynq.NewServeMux()
+			mux.HandleFunc("test:stuck", func(ctx context.Context, _ *asynq.Task) error {
+				close(running)
+				<-ctx.Done() // asynq cancels it when it gives up on the task
+				return ctx.Err()
+			})
+			server, err := tc.provide(cfg, logger)
+			require.NoError(t, err)
+			require.NoError(t, server.Start(mux))
+			client, err := ProvideAsynqClient(cfg, logger)
+			require.NoError(t, err)
+			t.Cleanup(func() { _ = client.Close() })
+			_, err = client.Enqueue(asynq.NewTask("test:stuck", nil), asynq.Queue(tc.queue))
+			require.NoError(t, err)
+			select {
+			case <-running:
+			case <-time.After(10 * time.Second):
+				require.FailNow(t, "the server didn't run the task")
+			}
+
+			startedAt := time.Now()
+			server.Shutdown()
+
+			assert.Less(t, time.Since(startedAt), 6*time.Second, "the server waited for the task past its ShutdownTimeout")
+		})
 	}
 }

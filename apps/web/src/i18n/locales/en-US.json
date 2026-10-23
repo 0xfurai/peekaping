@@ -601,6 +601,8 @@
         "docker": "Docker Container",
         "grpc": "gRPC Keyword Monitor",
         "http": "HTTP(S) Monitor",
+        "http_json_query": "HTTP(s) - Json Query",
+        "http_keyword": "HTTP(s) - Keyword",
         "kafka": "Kafka Producer Monitor",
         "mongodb": "MongoDB Database Monitor",
         "mqtt": "MQTT Broker Monitor",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Select notifier type"
     },
-    "search_placeholder": "Search notification channels by name..."
+    "search_placeholder": "Search notification channels by name...",
+    "secret": {
+      "reenter_error": "Re-enter this secret or remove it: where it's sent changed",
+      "reenter_hint": "Re-enter this secret: where it's sent changed",
+      "remove": "Remove",
+      "saved_hint": "Saved — type to replace"
+    }
   },
   "proxies": {
     "delete_dialog": {

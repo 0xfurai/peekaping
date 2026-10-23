@@ -18,9 +18,13 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in Validate()
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
+	// Which check the process runs when it opens SQLite: quick (PRAGMA quick_check), full
+	// (PRAGMA integrity_check, which reads the whole file) or off. A finding stops startup.
+	SQLiteStartupCheck string `env:"SQLITE_STARTUP_CHECK" validate:"oneof=quick full off" default:"quick"`
+
 	// Common settings
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
-	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"debug"`
+	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
 	Timezone string `env:"TZ" validate:"required" default:"UTC"`
 
 	// Redis configuration
@@ -92,6 +96,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		DBUser:              c.DBUser,
 		DBPass:              c.DBPass,
 		DBType:              c.DBType,
+		SQLiteStartupCheck:  c.SQLiteStartupCheck,
 		Mode:                c.Mode,
 		LogLevel:            c.LogLevel,
 		Timezone:            c.Timezone,

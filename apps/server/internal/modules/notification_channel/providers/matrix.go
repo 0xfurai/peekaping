@@ -19,9 +19,9 @@ import (
 )
 
 type MatrixConfig struct {
-	HomeserverURL  string `json:"homeserver_url" validate:"required,url"`
+	HomeserverURL  string `json:"homeserver_url" validate:"required,url" endpoint:"true"`
 	InternalRoomID string `json:"internal_room_id" validate:"required"`
-	AccessToken    string `json:"access_token" validate:"required"`
+	AccessToken    string `json:"access_token" validate:"required" secret:"true"`
 	CustomMessage  string `json:"custom_message"`
 }
 

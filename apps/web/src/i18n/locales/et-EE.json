@@ -571,6 +571,8 @@
         "docker": "Docker konteiner",
         "grpc": "gRPC märksõna jälgija",
         "http": "HTTP(S) jälgija",
+        "http_json_query": "HTTP(s) - JSON-päring",
+        "http_keyword": "HTTP(s) - Märksõna",
         "kafka": "Kafka tootja monitor",
         "mongodb": "MongoDB andmebaasi jälgija",
         "mqtt": "MQTT Brokeri jälgija",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Vali teavitustüüp"
     },
-    "search_placeholder": "Otsige teavituskanaale nime järgi…"
+    "search_placeholder": "Otsige teavituskanaale nime järgi…",
+    "secret": {
+      "reenter_error": "Sisesta see saladus uuesti või eemalda see: koht, kuhu saadetakse, muutus",
+      "reenter_hint": "Sisesta see saladus uuesti: koht, kuhu saadetakse, muutus",
+      "remove": "Eemalda",
+      "saved_hint": "Salvestatud — asendamiseks sisesta uus"
+    }
   },
   "proxies": {
     "delete_dialog": {

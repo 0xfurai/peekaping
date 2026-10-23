@@ -571,6 +571,8 @@
         "docker": "Docker konteineris",
         "grpc": "gRPC raktinių žodžių monitorius",
         "http": "HTTP(S) stebėjas",
+        "http_json_query": "HTTP(s) - JSON užklausa",
+        "http_keyword": "HTTP(s) - Raktinis žodis",
         "kafka": "Kafka gamintojo monitorius",
         "mongodb": "MongoDB duomenų bazės monitorius",
         "mqtt": "MQTT brokerio monitorius",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Pasirinkite pranešimo tipą"
     },
-    "search_placeholder": "Paieška kanalų pagal pavadinimą..."
+    "search_placeholder": "Paieška kanalų pagal pavadinimą...",
+    "secret": {
+      "reenter_error": "Įveskite šią paslaptį iš naujo arba pašalinkite ją: pasikeitė vieta, į kurią siunčiama",
+      "reenter_hint": "Įveskite šią paslaptį iš naujo: pasikeitė vieta, į kurią siunčiama",
+      "remove": "Pašalinti",
+      "saved_hint": "Išsaugota — įveskite, kad pakeistumėte"
+    }
   },
   "proxies": {
     "delete_dialog": {

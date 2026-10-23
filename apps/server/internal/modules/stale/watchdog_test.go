@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // fakeMonitors is a monitor database: active ones are paged, any can be found by ID
@@ -385,6 +386,65 @@ func TestWatchdog_RunLooksEveryIntervalUntilTheContextIsDone(t *testing.T) {
 	ranAt, err := f.store.RanAt(context.Background())
 	require.NoError(t, err)
 	assert.Nil(t, ranAt, "the watchdog stopped with its context")
+}
+
+// stopsOnRead is a monitor database and heartbeat store that fail with the context's error, as a
+// driver does when the context is done during a query, the first time they are read: it makes the
+// context done. A watchdog stopped by its context finds that in the middle of a run.
+type stopsOnRead struct {
+	fakeMonitors
+	cancel         context.CancelFunc
+	failOnMonitors bool // fail the page read; otherwise the heartbeat read
+	heartbeatReads int
+}
+
+func (s *stopsOnRead) FindActivePaginated(ctx context.Context, page, limit int) ([]*shared.Monitor, error) {
+	if s.failOnMonitors {
+		s.cancel()
+		return nil, ctx.Err()
+	}
+	return s.fakeMonitors.FindActivePaginated(ctx, page, limit)
+}
+
+func (s *stopsOnRead) FindByMonitorIDPaginated(ctx context.Context, _ string, _, _ int, _ *bool, _ bool) ([]*shared.HeartBeatModel, error) {
+	s.heartbeatReads++
+	s.cancel()
+	return nil, ctx.Err()
+}
+
+func TestWatchdog_RunLogsNoErrorWhenItsContextIsDoneDuringARun(t *testing.T) {
+	for name, failOnMonitors := range map[string]bool{
+		"while it reads the monitors":  true,
+		"while it checks each monitor": false,
+	} {
+		t.Run(name, func(t *testing.T) {
+			now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+			f := newWatchdogFixture(t, testMonitor("a", 60, 10, now), testMonitor("b", 60, 10, now))
+			core, logs := observer.New(zap.DebugLevel)
+			f.w.logger = zap.New(core).Sugar()
+			f.w.interval = 5 * time.Millisecond
+			ctx, cancel := context.WithCancel(context.Background())
+			reads := &stopsOnRead{fakeMonitors: fakeMonitors{active: f.monitors.active}, cancel: cancel, failOnMonitors: failOnMonitors}
+			f.w.monitors = reads
+			f.w.heartbeats = reads
+
+			done := make(chan struct{})
+			go func() {
+				f.w.Run(ctx)
+				close(done)
+			}()
+			select {
+			case <-done:
+			case <-time.After(2 * time.Second):
+				t.Fatal("the watchdog kept running after its context was done")
+			}
+
+			assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
+			if !failOnMonitors {
+				assert.Equal(t, 1, reads.heartbeatReads, "the run ended with the context, not after checking each monitor")
+			}
+		})
+	}
 }
 
 func TestWatchdog_KeepsItsStaleMonitorsInAMemoryStore(t *testing.T) {

@@ -12,12 +12,15 @@
 # one until `./bun db status` reports none unapplied, the migrate Job is named
 # after the release revision (and its name fits Kubernetes' limit of 63
 # characters for the longest release name Helm allows) and retries 6 times, so
-# it outlasts a restart of the bundled PostgreSQL, the web pod sets the sysctl
-# that lets its non-root nginx bind port 80 (web.sysctls) and mounts the
+# it outlasts a restart of the bundled PostgreSQL, the api, producer, worker and
+# ingester pods get 35 seconds to stop, the web pod sets the sysctl that lets
+# its non-root nginx bind port 80 (web.sysctls) and mounts the
 # writable paths that nginx needs under a read-only root filesystem, the
 # ConfigMap sets TRUSTED_PROXIES to loopback and the private ranges (and a
-# values file can change it), and the install notes say Peekaping runs in
-# cluster mode and link to the Helm docs page.
+# values file can change it), SQLite as the storage backend (config.env.DB_TYPE,
+# in any case) is refused with a message that sends the reader to the bundle
+# image, and the install notes say Peekaping runs in cluster mode and link to
+# the Helm docs page.
 #
 # It also runs scripts/update-chart-deps.sh against a fake Docker Hub: a new
 # major version of a subchart is reported as such and refused by --write, a
@@ -73,6 +76,21 @@ render_from() {
 # render <name> [helm template args...]: renders charts/ into $work/<name>.yaml
 render() {
   render_from "$chart" "$@"
+}
+
+# render_refused <name> <text> [helm template args...]: rendering charts/ fails,
+# and the message says <text>. The output goes to $work/<name>.log.
+render_refused() {
+  local name=$1 text=$2
+  if helm template "$release" "$chart" "${@:3}" >"$work/$name.yaml" 2>"$work/$name.log"; then
+    echo "       helm template succeeded, expected it to fail"
+    return 1
+  fi
+  grep -qF -- "$text" "$work/$name.log" || {
+    echo "       no '$text' in the message:"
+    sed 's/^/       /' "$work/$name.log"
+    return 1
+  }
 }
 
 # container_of <rendered file> <template> <name>: the lines of the container or
@@ -426,6 +444,25 @@ apparmor_off() {
     if [ -n "$annotations" ]; then
       echo "       the $component Deployment has AppArmor annotations although apparmor.enabled is false:"
       sed 's/^/       /' <<<"$annotations"
+      status=1
+    fi
+  done
+  return $status
+}
+
+# grace_periods <rendered file>: the api, producer, worker and ingester pods get
+# 35 seconds to stop, the 30 their binaries take to shut down and a margin.
+# Kubernetes' default of 30 would kill a pod that uses its whole time.
+grace_periods() {
+  local component seconds status=0
+  for component in api producer worker ingester; do
+    seconds=$(awk -v template="$component-deploy" '
+      /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
+      /^---$/ { in_template = 0 }
+      in_template && /^ *terminationGracePeriodSeconds:/ { print $2; exit }
+    ' "$1")
+    if [ "$seconds" != 35 ]; then
+      echo "       the $component pod's terminationGracePeriodSeconds is '${seconds:-<none>}', expected 35"
       status=1
     fi
   done
@@ -786,6 +823,8 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
     check "default values: the api, producer, worker and ingester pods have no AppArmor annotation" \
       apparmor_off "$work/default.yaml" || true
+    check "default values: the api, producer, worker and ingester pods get 35 seconds to stop" \
+      grace_periods "$work/default.yaml" || true
     # The migrate Job skips the migrations for MongoDB (run-migrations.sh), and
     # `./bun db status` has no MongoDB support, so a script that only polls it
     # would keep the pods of an existing MongoDB install in Init for good.
@@ -823,6 +862,16 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       config_sets "$work/default.yaml" TRUSTED_PROXIES \
       "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7" || true
   fi
+  # The chart has no volume for a SQLite file, so each pod would get its own database.
+  # The bundle image runs single mode on SQLite, so the message points to it.
+  for db_type in sqlite SQLite SQLITE; do
+    check "config.env.DB_TYPE=$db_type: rendering fails, saying the chart supports PostgreSQL only" \
+      render_refused "refused-$db_type" "supports PostgreSQL only" --set "config.env.DB_TYPE=$db_type" || true
+    check "config.env.DB_TYPE=$db_type: the message points to the bundle image" \
+      grep -qF "0xfurai/peekaping-bundle-sqlite" "$work/refused-$db_type.log" || true
+    check "config.env.DB_TYPE=$db_type: the message links to the SQLite docs page" \
+      grep -qF "https://docs.peekaping.com/self-hosting/docker-with-sqlite" "$work/refused-$db_type.log" || true
+  done
   if check "config.env.TRUSTED_PROXIES=203.0.113.0/24 renders" render trusted-proxies --set config.env.TRUSTED_PROXIES=203.0.113.0/24; then
     check "config.env.TRUSTED_PROXIES=203.0.113.0/24: the ConfigMap sets TRUSTED_PROXIES to it" \
       config_sets "$work/trusted-proxies.yaml" TRUSTED_PROXIES 203.0.113.0/24 || true

@@ -1,7 +1,6 @@
 package infra
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -15,8 +14,6 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/extra/bundebug"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.uber.org/dig"
 	"go.uber.org/zap"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -140,12 +137,13 @@ func ProvideSQLDB(
 			logger.Warnf("Failed to set auto_vacuum (non-fatal): %v", err)
 		}
 
-		// Run a quick check on startup to detect existing corruption. The full integrity_check
-		// reads the whole file: about 30s for 1.5 GB (24h of 1,000 monitors at 20s), and it grows
-		// with the heartbeat history. quick_check walks the b-tree pages in about 2s. It misses an
-		// index that disagrees with its table, so the full check is one to run by hand (see the
-		// recovery page at sqliteRecoveryDocsURL).
-		if err := checkSQLiteOnStartup(db, dbPath, logger); err != nil {
+		// Check on startup to detect existing corruption, as SQLITE_STARTUP_CHECK says. The default,
+		// quick, runs quick_check. The full integrity_check reads the whole file: about 30s for
+		// 1.5 GB (24h of 1,000 monitors at 20s), and it grows with the heartbeat history.
+		// quick_check walks the b-tree pages in about 2s. It misses an index that disagrees with
+		// its table, so the full check is one to ask for with "full" or to run by hand (see the
+		// recovery page at sqliteRecoveryDocsURL). "off" runs none.
+		if err := checkSQLiteOnStartup(db, dbPath, cfg.SQLiteStartupCheck, logger); err != nil {
 			// Don't close db: closing SQLite's last connection checkpoints the write-ahead log
 			// into the main file and deletes the -wal and -shm files, which the operator is told
 			// to keep. The process exits right after this error.
@@ -171,14 +169,29 @@ func ProvideSQLDB(
 	return db, nil
 }
 
-// checkSQLiteOnStartup runs PRAGMA quick_check and returns an error when SQLite reports anything
-// but a single "ok", so startup stops before a process writes to a damaged database.
-func checkSQLiteOnStartup(db *bun.DB, dbPath string, logger *zap.SugaredLogger) error {
-	lines, err := readSQLiteQuickCheck(db)
+// checkSQLiteOnStartup runs the check the mode names and returns an error when SQLite reports
+// anything but a single "ok", so startup stops before a process writes to a damaged database.
+// "quick" runs PRAGMA quick_check, "full" runs PRAGMA integrity_check, and "off" runs nothing.
+// An empty mode is quick, for a config built without one.
+func checkSQLiteOnStartup(db *bun.DB, dbPath, mode string, logger *zap.SugaredLogger) error {
+	var name, pragma string
+	switch mode {
+	case "", "quick":
+		name, pragma = "quick", "quick_check"
+	case "full":
+		name, pragma = "full", "integrity_check"
+	case "off":
+		logger.Info("SQLite startup check skipped: SQLITE_STARTUP_CHECK is off")
+		return nil
+	default:
+		return fmt.Errorf("unsupported SQLITE_STARTUP_CHECK %q. Supported values: quick, full, off", mode)
+	}
+
+	lines, err := readSQLiteCheck(db, pragma)
 	healthy := len(lines) == 1 && lines[0] == "ok"
 	if healthy || len(lines) == 0 {
 		if err == nil && healthy {
-			logger.Info("SQLite quick check passed")
+			logger.Infof("SQLite %s check passed", name)
 			return nil
 		}
 		if err == nil {
@@ -186,13 +199,13 @@ func checkSQLiteOnStartup(db *bun.DB, dbPath string, logger *zap.SugaredLogger) 
 		}
 		// No finding rows: the database may only be locked, or a damaged header or schema page may
 		// fail the query itself. Startup goes on as agreed; its next queries fail on their own.
-		logger.Warnf("Failed to run the SQLite quick check (non-fatal): %v", err)
+		logger.Warnf("Failed to run the SQLite %s check (non-fatal): %v", name, err)
 		return nil
 	}
 
-	logger.Errorf("SQLite quick check found corruption in %s. Peekaping stops here and doesn't change the file.", dbPath)
+	logger.Errorf("SQLite %s check found corruption in %s. Peekaping stops here and doesn't change the file.", name, dbPath)
 	for _, line := range lines {
-		logger.Errorf("quick_check: %s", line)
+		logger.Errorf("%s: %s", pragma, line)
 	}
 	logger.Errorf("Stop every Peekaping process that uses this database, and its container's restarts. "+
 		"Keep the original database file together with its -wal and -shm files; don't repair it in place. "+
@@ -205,11 +218,12 @@ func checkSQLiteOnStartup(db *bun.DB, dbPath string, logger *zap.SugaredLogger) 
 	return fmt.Errorf("SQLite database %s is corrupt: %s. See %s", dbPath, first, sqliteRecoveryDocsURL)
 }
 
-// readSQLiteQuickCheck returns every row of PRAGMA quick_check: SQLite reports up to 100 findings,
-// one per row. A corrupt b-tree page ends the statement with SQLITE_CORRUPT after its findings, so
-// the rows read before an error are returned with it.
-func readSQLiteQuickCheck(db *bun.DB) ([]string, error) {
-	rows, err := db.Query("PRAGMA quick_check")
+// readSQLiteCheck returns every row of PRAGMA quick_check or PRAGMA integrity_check (pragma names
+// the one): SQLite reports up to 100 findings, one per row. A corrupt b-tree page ends the
+// statement with SQLITE_CORRUPT after its findings, so the rows read before an error are returned
+// with it.
+func readSQLiteCheck(db *bun.DB, pragma string) ([]string, error) {
+	rows, err := db.Query("PRAGMA " + pragma)
 	if err != nil {
 		return nil, err
 	}
@@ -259,30 +273,4 @@ func GracefulSQLiteShutdown(db *bun.DB, dbType string, logger *zap.SugaredLogger
 
 	logger.Info("SQLite database closed gracefully")
 	return nil
-}
-
-// GracefulDatabaseShutdown performs graceful shutdown for any database type
-// It uses the DI container to get the appropriate database connection
-func GracefulDatabaseShutdown(container *dig.Container, cfg *config.Config, logger *zap.SugaredLogger) error {
-	switch cfg.DBType {
-	case "postgres", "postgresql", "mysql", "sqlite":
-		// For SQL databases, perform graceful shutdown
-		return container.Invoke(func(db *bun.DB) {
-			if err := GracefulSQLiteShutdown(db, cfg.DBType, logger); err != nil {
-				logger.Errorw("Failed to gracefully shutdown database", "error", err)
-			}
-		})
-	case "mongo", "mongodb":
-		// For MongoDB, disconnect the client
-		return container.Invoke(func(client *mongo.Client) {
-			if err := client.Disconnect(context.Background()); err != nil {
-				logger.Errorw("Failed to disconnect MongoDB client", "error", err)
-			} else {
-				logger.Info("MongoDB client disconnected gracefully")
-			}
-		})
-	default:
-		logger.Warnf("Unknown database type for shutdown: %s", cfg.DBType)
-		return nil
-	}
 }

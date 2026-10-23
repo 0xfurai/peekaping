@@ -571,6 +571,8 @@
         "docker": "Docker konténer",
         "grpc": "gRPC Kulcsszófigyelő",
         "http": "HTTP(S) figyelő",
+        "http_json_query": "HTTP(s) - JSON lekérdezés",
+        "http_keyword": "HTTP(s) - Kulcsszó",
         "kafka": "Kafka Termelő Monitor",
         "mongodb": "MongoDB adatbázis monitor",
         "mqtt": "MQTT Broker figyelő",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Válasszon értesítő típust"
     },
-    "search_placeholder": "Értesítési csatornák keresése név szerint..."
+    "search_placeholder": "Értesítési csatornák keresése név szerint...",
+    "secret": {
+      "reenter_error": "Adja meg újra ezt a titkot, vagy távolítsa el: megváltozott a küldés célja",
+      "reenter_hint": "Adja meg újra ezt a titkot: megváltozott a küldés célja",
+      "remove": "Eltávolítás",
+      "saved_hint": "Mentve — írjon be újat a cseréhez"
+    }
   },
   "proxies": {
     "delete_dialog": {

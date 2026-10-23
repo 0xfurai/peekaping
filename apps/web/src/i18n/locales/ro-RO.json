@@ -571,6 +571,8 @@
         "docker": "Container Docker",
         "grpc": "Monitor de cuvinte cheie gRPC",
         "http": "Monitor HTTP(S)",
+        "http_json_query": "HTTP(s) - Interogare JSON",
+        "http_keyword": "HTTP(s) - Cuvânt cheie",
         "kafka": "Monitor de producător Kafka",
         "mongodb": "Monitor bază de date MongoDB",
         "mqtt": "Monitor broker MQTT",
@@ -1113,7 +1115,13 @@
     "placeholders": {
       "select_type": "Selectează tipul de notificator"
     },
-    "search_placeholder": "Căutați canalele de notificare după nume..."
+    "search_placeholder": "Căutați canalele de notificare după nume...",
+    "secret": {
+      "reenter_error": "Introduceți din nou acest secret sau eliminați-l: destinația de trimitere s-a schimbat",
+      "reenter_hint": "Introduceți din nou acest secret: destinația de trimitere s-a schimbat",
+      "remove": "Elimină",
+      "saved_hint": "Salvat — tastați pentru a înlocui"
+    }
   },
   "proxies": {
     "delete_dialog": {

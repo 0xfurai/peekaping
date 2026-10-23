@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -38,11 +39,11 @@ func signWebhookPayload(timestamp string, payload []byte, secret string) string 
 }
 
 type WebhookConfig struct {
-	WebhookURL               string `json:"webhook_url" validate:"required,url"`
+	WebhookURL               string `json:"webhook_url" validate:"required,url" endpoint:"true"`
 	WebhookContentType       string `json:"webhook_content_type" validate:"required,oneof=json form-data custom"`
 	WebhookCustomBody        string `json:"webhook_custom_body"`
-	WebhookAdditionalHeaders string `json:"webhook_additional_headers"`
-	WebhookSigningSecret     string `json:"webhook_signing_secret"`
+	WebhookAdditionalHeaders string `json:"webhook_additional_headers" secret:"true"`
+	WebhookSigningSecret     string `json:"webhook_signing_secret" secret:"true"`
 }
 
 type WebhookSender struct {
@@ -53,6 +54,16 @@ type WebhookSender struct {
 // NewWebhookSender creates a WebhookSender
 func NewWebhookSender(logger *zap.SugaredLogger, client *http.Client) *WebhookSender {
 	return &WebhookSender{logger: logger, client: client}
+}
+
+// invalidAdditionalHeaders is the error for additional headers that are not a JSON object. It
+// says where the JSON is wrong but not what it holds, since the headers usually carry a token.
+func invalidAdditionalHeaders(err error) error {
+	var syntaxErr *json.SyntaxError
+	if errors.As(err, &syntaxErr) {
+		return fmt.Errorf("additional Headers is not a valid JSON (it has a syntax error at byte %d)", syntaxErr.Offset)
+	}
+	return errors.New("additional Headers is not a valid JSON object")
 }
 
 func (w *WebhookSender) Unmarshal(configJSON string) (any, error) {
@@ -88,7 +99,7 @@ func (w *WebhookSender) Send(
 	}
 	cfg := cfgAny.(*WebhookConfig)
 
-	w.logger.Infof("Sending webhook notification to: %s", cfg.WebhookURL)
+	w.logger.Infof("Sending webhook notification")
 
 	// Prepare simple data structure matching JS implementation
 	data := map[string]any{
@@ -176,10 +187,10 @@ func (w *WebhookSender) Send(
 
 	// Parse and set additional headers
 	if cfg.WebhookAdditionalHeaders != "" {
-		w.logger.Debugf("Parsing additional headers: %q", cfg.WebhookAdditionalHeaders)
+		// The headers usually carry a token: they stay out of the log and out of the error
 		var additionalHeaders map[string]any
 		if err := json.Unmarshal([]byte(cfg.WebhookAdditionalHeaders), &additionalHeaders); err != nil {
-			return fmt.Errorf("additional Headers is not a valid JSON: %q - %w", cfg.WebhookAdditionalHeaders, err)
+			return invalidAdditionalHeaders(err)
 		}
 
 		for key, value := range additionalHeaders {
@@ -197,8 +208,6 @@ func (w *WebhookSender) Send(
 
 	// Set default user agent
 	req.Header.Set("User-Agent", "Peekaping-Webhook/"+version.Version)
-
-	w.logger.Debugf("Sending webhook POST request to: %s", cfg.WebhookURL)
 
 	client := w.client
 	if cfg.WebhookSigningSecret != "" {
@@ -223,6 +232,6 @@ func (w *WebhookSender) Send(
 		return fmt.Errorf("webhook returned status %d: %s", resp.StatusCode, string(bodyBytes))
 	}
 
-	w.logger.Infof("Webhook notification sent successfully to: %s", cfg.WebhookURL)
+	w.logger.Infof("Webhook notification sent successfully")
 	return nil
 }

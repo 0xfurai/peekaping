@@ -571,6 +571,8 @@
         "docker": "Docker 容器",
         "grpc": "gRPC 關鍵字監控",
         "http": "HTTP(S) 監控",
+        "http_json_query": "HTTP(s) - JSON 查詢",
+        "http_keyword": "HTTP(s) - 關鍵字",
         "kafka": "Kafka 生產者監控",
         "mongodb": "MongoDB 數據庫監控",
         "mqtt": "MQTT 代理監控",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "選擇通知器類型"
     },
-    "search_placeholder": "搜尋通知頻道名稱…"
+    "search_placeholder": "搜尋通知頻道名稱…",
+    "secret": {
+      "reenter_error": "請重新輸入呢個密鑰，或者移除佢：發送目的地已經變咗",
+      "reenter_hint": "請重新輸入呢個密鑰：發送目的地已經變咗",
+      "remove": "移除",
+      "saved_hint": "已儲存 — 輸入就可以取代"
+    }
   },
   "proxies": {
     "delete_dialog": {

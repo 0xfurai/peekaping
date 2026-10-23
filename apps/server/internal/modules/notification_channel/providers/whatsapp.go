@@ -16,8 +16,8 @@ import (
 )
 
 type WhatsAppConfig struct {
-	ServerURL     string `json:"server_url" validate:"required,url"`
-	APIKey        string `json:"api_key"`
+	ServerURL     string `json:"server_url" validate:"required,url" endpoint:"true"`
+	APIKey        string `json:"api_key" secret:"true"`
 	PhoneNumber   string `json:"phone_number" validate:"required"`
 	Session       string `json:"session" validate:"required"`
 	UseTemplate   bool   `json:"use_template"`
@@ -86,12 +86,11 @@ func (w *WhatsAppSender) Send(
 	}
 
 	// Send message to phone number
+	// The caller logs the error once it has taken the request URL out of it
 	if err := w.sendToPhoneNumber(ctx, cfg, cfg.PhoneNumber, finalMessage); err != nil {
-		w.logger.Errorf("Failed to send WhatsApp message to %s: %v", cfg.PhoneNumber, err)
 		return err
-	} else {
-		w.logger.Infof("WhatsApp message sent successfully to %s", cfg.PhoneNumber)
 	}
+	w.logger.Infof("WhatsApp message sent successfully to %s", cfg.PhoneNumber)
 
 	return nil
 }
@@ -140,7 +139,6 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 	// Send the request
 	resp, err := w.client.Do(req)
 	if err != nil {
-		w.logger.Errorf("HTTP request failed: %v", err)
 		return fmt.Errorf("failed to send HTTP request: %w", err)
 	}
 	defer resp.Body.Close()

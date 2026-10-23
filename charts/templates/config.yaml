@@ -1,3 +1,4 @@
+{{- include "peekaping.requirePostgres" . -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:

@@ -60,6 +60,8 @@ redis:
 config:
   existingSecret: "peekaping-config"
   env:
+    # The chart supports PostgreSQL only: it refuses DB_TYPE sqlite, since it has no
+    # volume for the file and each pod would get a database of its own. For SQLite, use the single-mode bundle image.
     DB_TYPE: "postgres"
     # Bundled service hosts: <release>-postgresql and <release>-redis-master in
     # the release's namespace (here release and namespace are both "peekaping").
@@ -73,6 +75,10 @@ config:
     # REDIS_USERNAME: "peekaping"
     # Serve the unauthenticated Prometheus /metrics endpoint on the API port (off by default).
     # METRICS_ENABLED: "true"
+    # How many days the hourly cleanup keeps notification history (default 90, at least 30)
+    # and monitor TLS info (default 30, at least 1).
+    # NOTIFICATION_HISTORY_RETENTION_DAYS: "90"
+    # TLS_INFO_RETENTION_DAYS: "30"
     # Proxies whose X-Forwarded-For and X-Real-IP the API believes: IP addresses and
     # CIDR ranges, comma-separated. The login lockout counts failed logins per client
     # address, and a client can send those headers itself, so the API ignores them from

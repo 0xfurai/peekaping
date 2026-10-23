@@ -571,6 +571,8 @@
         "docker": "Docker-Container",
         "grpc": "gRPC-Schlüsselwort-Monitor",
         "http": "HTTP(S)-Monitor",
+        "http_json_query": "HTTP(s) - JSON-Abfrage",
+        "http_keyword": "HTTP(s) - Schlüsselwort",
         "kafka": "Kafka-Producer-Monitor",
         "mongodb": "MongoDB-Datenbank-Monitor",
         "mqtt": "MQTT-Broker-Überwachung",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Benachrichtigungstyp auswählen"
     },
-    "search_placeholder": "Nach Benachrichtigungskanälen suchen..."
+    "search_placeholder": "Nach Benachrichtigungskanälen suchen...",
+    "secret": {
+      "reenter_error": "Diesen geheimen Wert erneut eingeben oder entfernen: Das Ziel des Versands hat sich geändert",
+      "reenter_hint": "Diesen geheimen Wert erneut eingeben: Das Ziel des Versands hat sich geändert",
+      "remove": "Entfernen",
+      "saved_hint": "Gespeichert — zum Ersetzen eingeben"
+    }
   },
   "proxies": {
     "delete_dialog": {

@@ -571,6 +571,8 @@
         "docker": "Докер контејнер",
         "grpc": "gRPC Монитор кључних речи",
         "http": "HTTP(S) монитор",
+        "http_json_query": "HTTP(s) - JSON упит",
+        "http_keyword": "HTTP(s) - Кључна реч",
         "kafka": "Монитор Kafka производитеља",
         "mongodb": "Монитор MongoDB базе података",
         "mqtt": "Монитор MQTT брокера",
@@ -1113,7 +1115,13 @@
     "placeholders": {
       "select_type": "Изаберите тип обавештавача"
     },
-    "search_placeholder": "Pretraži kanale obaveštenja po imenu..."
+    "search_placeholder": "Pretraži kanale obaveštenja po imenu...",
+    "secret": {
+      "reenter_error": "Поново унесите овај тајни кључ или га уклоните: промењено је место на које се шаље",
+      "reenter_hint": "Поново унесите овај тајни кључ: промењено је место на које се шаље",
+      "remove": "Уклони",
+      "saved_hint": "Сачувано — унесите за замену"
+    }
   },
   "proxies": {
     "delete_dialog": {

@@ -571,6 +571,8 @@
         "docker": "Contenedor Docker",
         "grpc": "Monitor de palabras clave gRPC",
         "http": "Monitor HTTP(S)",
+        "http_json_query": "HTTP(s) - Consulta JSON",
+        "http_keyword": "HTTP(s) - Palabra clave",
         "kafka": "Monitor de Productor Kafka",
         "mongodb": "Monitor de base de datos MongoDB",
         "mqtt": "Monitor de Broker MQTT",
@@ -1114,7 +1116,13 @@
     "placeholders": {
       "select_type": "Selecciona el tipo de notificador"
     },
-    "search_placeholder": "Buscar canales de notificación por nombre…"
+    "search_placeholder": "Buscar canales de notificación por nombre…",
+    "secret": {
+      "reenter_error": "Vuelve a introducir este secreto o quítalo: ha cambiado el destino de envío",
+      "reenter_hint": "Vuelve a introducir este secreto: ha cambiado el destino de envío",
+      "remove": "Quitar",
+      "saved_hint": "Guardado — escribe para reemplazar"
+    }
   },
   "proxies": {
     "delete_dialog": {

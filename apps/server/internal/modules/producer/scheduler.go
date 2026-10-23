@@ -161,6 +161,9 @@ func (p *Producer) runReclaimer() {
 			nowMs := p.redisNowMs()
 			reclaimedIDs, err := p.reclaimExpiredLeases(p.ctx, nowMs, maxReclaimItems)
 			if err != nil {
+				if p.ctx.Err() != nil {
+					return // the producer is stopping, which is why the reclaim failed
+				}
 				p.logger.Errorw("Reclaim error", "error", err)
 			} else if len(reclaimedIDs) > 0 {
 				p.logger.Infow("Reclaimed expired leases", "count", len(reclaimedIDs))
@@ -187,6 +190,9 @@ func (p *Producer) runScheduleRefresher(syncCtx context.Context) {
 			return
 		case <-ticker.C:
 			if err := p.refreshSchedule(); err != nil {
+				if p.ctx.Err() != nil {
+					return // the producer is stopping, which is why the refresh failed
+				}
 				p.logger.Errorw("Failed to refresh schedule", "error", err)
 			}
 		}
