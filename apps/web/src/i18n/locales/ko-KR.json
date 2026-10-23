@@ -570,6 +570,8 @@
         "docker": "Docker 컨테이너",
         "grpc": "gRPC 키워드 모니터",
         "http": "HTTP(S) 모니터",
+        "http_json_query": "HTTP(s) - JSON 쿼리",
+        "http_keyword": "HTTP(s) - 키워드",
         "kafka": "카프카 프로듀서 모니터",
         "mongodb": "MongoDB 데이터베이스 모니터",
         "mqtt": "MQTT 브로커 모니터",

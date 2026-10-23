@@ -570,6 +570,8 @@
         "docker": "Docker konteineris",
         "grpc": "gRPC raktinių žodžių monitorius",
         "http": "HTTP(S) stebėjas",
+        "http_json_query": "HTTP(s) - JSON užklausa",
+        "http_keyword": "HTTP(s) - Raktinis žodis",
         "kafka": "Kafka gamintojo monitorius",
         "mongodb": "MongoDB duomenų bazės monitorius",
         "mqtt": "MQTT brokerio monitorius",

@@ -25,15 +25,15 @@ import { commonMutationErrorHandler } from "@/lib/utils";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
-const enable2FAPasswordSchema = z.object({
+const enable2FaPasswordSchema = z.object({
   currentPassword: z.string().min(1, { message: "Old password is required" }),
 });
-type Enable2FAPasswordFormType = z.infer<typeof enable2FAPasswordSchema>;
+type Enable2FaPasswordFormValues = z.infer<typeof enable2FaPasswordSchema>;
 
-const enable2FASetupSchema = z.object({
+const enable2FaSetupSchema = z.object({
   code: z.string().min(6, { message: "Code is required" }),
 });
-type Enable2FASetupFormType = z.infer<typeof enable2FASetupSchema>;
+type Enable2FaSetupFormValues = z.infer<typeof enable2FaSetupSchema>;
 
 const Enable2FA = () => {
   const [step, setStep] = useState<"password" | "setup">("password");
@@ -45,15 +45,15 @@ const Enable2FA = () => {
   const { t } = useLocalizedTranslation();
 
   // Step 1: Verify old password
-  const passwordForm = useForm<Enable2FAPasswordFormType>({
+  const passwordForm = useForm<Enable2FaPasswordFormValues>({
     defaultValues: { currentPassword: "" },
-    resolver: zodResolver(enable2FAPasswordSchema),
+    resolver: zodResolver(enable2FaPasswordSchema),
   });
 
   // Step 2: 2FA setup
-  const setupForm = useForm<Enable2FASetupFormType>({
+  const setupForm = useForm<Enable2FaSetupFormValues>({
     defaultValues: { code: "" },
-    resolver: zodResolver(enable2FASetupSchema),
+    resolver: zodResolver(enable2FaSetupSchema),
   });
 
   const setup2FAMutation = useMutation({
@@ -93,7 +93,7 @@ const Enable2FA = () => {
     onError: commonMutationErrorHandler(t("security.enable_2fa.messages.failed_to_verify_2fa_code")),
   });
 
-  const handlePasswordSubmit = (data: Enable2FAPasswordFormType) => {
+  const handlePasswordSubmit = (data: Enable2FaPasswordFormValues) => {
     if (!email) {
       toast.error(t("security.enable_2fa.messages.user_email_not_found"));
       return;
@@ -103,7 +103,7 @@ const Enable2FA = () => {
     });
   };
 
-  const handle2FASubmit = (data: Enable2FASetupFormType) => {
+  const handle2FASubmit = (data: Enable2FaSetupFormValues) => {
     if (!email) {
       toast.error(t("security.enable_2fa.messages.user_email_not_found"));
       return;

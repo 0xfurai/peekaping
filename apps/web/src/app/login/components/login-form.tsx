@@ -35,12 +35,12 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 import { PasswordInput } from "@/components/ui/password-input";
 
-const formSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email("forms.validation.email_invalid"),
   password: z.string().min(1, "forms.validation.password_required"),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm({
   className,
@@ -95,15 +95,15 @@ export function LoginForm({
     },
   });
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  function onSubmit(data: FormValues) {
+  function onSubmit(data: LoginFormValues) {
     setServerError(null);
     loginMutation.mutate({
       body: data,

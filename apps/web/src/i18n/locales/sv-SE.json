@@ -570,6 +570,8 @@
         "docker": "Docker-kontainer",
         "grpc": "gRPC Nyckelordsövervakning",
         "http": "HTTP(S)-övervakning",
+        "http_json_query": "HTTP(s) - JSON-fråga",
+        "http_keyword": "HTTP(s) - Nyckelord",
         "kafka": "Kafka-producentövervakning",
         "mongodb": "MongoDB-databasövervakning",
         "mqtt": "MQTT-brokerövervakning",
