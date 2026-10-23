@@ -194,7 +194,8 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("PROBE_BOOTSTRAP_TOKEN must be at least %d characters", probe.MinBootstrapTokenLength)
 	}
 
-	// The sweep looks every 30 seconds, so a shorter limit could not be kept
+	// A shorter limit would announce a probe offline while it restarts gracefully (see
+	// probe.RetiredAt)
 	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
 		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at least %s", config.MinProbeOfflineAfter)
 	}

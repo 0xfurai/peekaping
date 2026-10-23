@@ -22,11 +22,11 @@ func TestLoadConfig_ProbeOfflineAfterDefault(t *testing.T) {
 func TestLoadConfig_ProbeOfflineAfterIsLoadedFromEnv(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")
-	t.Setenv("PROBE_OFFLINE_AFTER", "30s")
+	t.Setenv("PROBE_OFFLINE_AFTER", "2m")
 
 	cfg, err := LoadAndValidate(t.TempDir())
 	require.NoError(t, err)
-	assert.Equal(t, 30*time.Second, cfg.ToInternalConfig().ProbeOfflineAfter, "30 seconds is the shortest there is")
+	assert.Equal(t, 2*time.Minute, cfg.ToInternalConfig().ProbeOfflineAfter, "2 minutes is the shortest there is")
 
 	t.Setenv("PROBE_OFFLINE_AFTER", "10m")
 	cfg, err = LoadAndValidate(t.TempDir())
@@ -37,12 +37,12 @@ func TestLoadConfig_ProbeOfflineAfterIsLoadedFromEnv(t *testing.T) {
 func TestLoadConfig_ProbeOfflineAfterTooShort(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")
-	t.Setenv("PROBE_OFFLINE_AFTER", "29s")
+	t.Setenv("PROBE_OFFLINE_AFTER", "1m59s")
 
 	_, err := LoadAndValidate(t.TempDir())
 
 	require.Error(t, err)
-	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at least 30s", "the sweep runs every 30 seconds, so a shorter limit would only flap")
+	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at least 2m", "a probe that restarts gracefully must not be announced offline")
 }
 
 func TestLoadConfig_ProbeOfflineAfterNegative(t *testing.T) {
@@ -52,7 +52,7 @@ func TestLoadConfig_ProbeOfflineAfterNegative(t *testing.T) {
 
 	_, err := LoadAndValidate(t.TempDir())
 
-	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at least 30s")
+	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at least 2m")
 }
 
 func TestLogLevelDefaultsToInfo(t *testing.T) {

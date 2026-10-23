@@ -39,6 +39,22 @@ func TestRetiredAt_IsOutsideTheOnlineWindowAtTheInstantOfBye(t *testing.T) {
 	assert.WithinDuration(t, now.Add(-probe.InstanceOnlineWindow), probe.RetiredAt(now), 2*time.Second, "about a window ago")
 }
 
+// A graceful restart says bye and then hello again. Bye leaves the instance last seen a window and
+// a second ago, so the probe's time to come back is the shortest PROBE_OFFLINE_AFTER less that
+// backdate. The sweep must not be able to announce the probe offline in the meantime, so the room
+// that is left has to cover two passes of the sweep (less the second RetiredAt adds on top of the
+// window, which is why it is not quite 60 s).
+func TestRetiredAt_LeavesRoomUnderTheSmallestOfflineAfter(t *testing.T) {
+	now := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+	backdate := now.Sub(probe.RetiredAt(now))
+	require.Equal(t, probe.InstanceOnlineWindow+time.Second, backdate)
+
+	room := probe.MinOfflineAfter - backdate
+
+	assert.GreaterOrEqual(t, room, 2*probe.DefaultSweepInterval-time.Second,
+		"a retired instance has %s to come back before the sweep can set its probe offline", room)
+}
+
 func TestOnlineInstances_NoneIsAnEmptyList(t *testing.T) {
 	require.NotNil(t, probe.OnlineInstances(nil, time.Now(), time.Minute))
 }

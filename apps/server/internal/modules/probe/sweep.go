@@ -19,6 +19,10 @@ const (
 	// DefaultOfflineAfter is how long a probe's instances may go unseen before the probe counts as
 	// offline: PROBE_OFFLINE_AFTER's default
 	DefaultOfflineAfter = 3 * time.Minute
+	// MinOfflineAfter is the shortest PROBE_OFFLINE_AFTER, which the binaries that run the sweep
+	// refuse to start under. It is the config's floor, here for the checks that pin what it leaves
+	// a restarting probe: see RetiredAt.
+	MinOfflineAfter = config.MinProbeOfflineAfter
 	// DefaultSweepInterval is how often the sweep looks at the probes
 	DefaultSweepInterval = 30 * time.Second
 	// DefaultInstanceRetention is how long an instance may go unseen before the sweep forgets it

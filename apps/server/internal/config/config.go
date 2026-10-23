@@ -149,9 +149,12 @@ type Config struct {
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 }
 
-// MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. The sweep looks at the probes every 30
-// seconds, so a shorter limit could not be kept.
-const MinProbeOfflineAfter = 30 * time.Second
+// MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left
+// last seen a minute and a second ago (probe.RetiredAt), and the sweep looks at the probes every 30
+// seconds. A shorter limit would raise an offline notification for a probe that restarts
+// gracefully, before the new instance has said hello. The room the floor leaves is pinned in
+// TestRetiredAt_LeavesRoomUnderTheSmallestOfflineAfter.
+const MinProbeOfflineAfter = 2 * time.Minute
 
 // TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is
 // off, false, 0 or no, or DO_NOT_TRACK is 1 or true. Case and surrounding spaces don't matter.
