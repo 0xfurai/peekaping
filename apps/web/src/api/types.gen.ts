@@ -503,6 +503,66 @@ export type NotificationChannelTestDto = {
   [key: string]: unknown | boolean | string | undefined;
 };
 
+export type ProbeCreateProbeDto = {
+  location?: string;
+  name: string;
+  notification_ids?: Array<string> | null;
+  [key: string]: unknown | string | (Array<string> | null) | undefined;
+};
+
+export type ProbeProbeInstanceResponse = {
+  arch: string;
+  hostname: string;
+  id: string;
+  last_seen_at: string;
+  os: string;
+  protocol_version: number;
+  version: string;
+};
+
+export type ProbeProbeResponse = {
+  created_at: string;
+  disabled: boolean;
+  id: string;
+  instances: Array<ProbeProbeInstanceResponse>;
+  location: string;
+  name: string;
+  notification_ids: Array<string>;
+  status: "online" | "offline";
+  supported_types: Array<string>;
+  token_prefix: string;
+  updated_at: string;
+};
+
+export type ProbeProbeWithTokenResponse = {
+  created_at: string;
+  disabled: boolean;
+  id: string;
+  instances: Array<ProbeProbeInstanceResponse>;
+  location: string;
+  name: string;
+  notification_ids: Array<string>;
+  status: "online" | "offline";
+  supported_types: Array<string>;
+  token: string;
+  token_prefix: string;
+  updated_at: string;
+};
+
+export type ProbeUpdateProbeDto = {
+  disabled?: boolean | null;
+  location?: string | null;
+  name?: string | null;
+  notification_ids?: Array<string> | null;
+  [key: string]:
+    | unknown
+    | (boolean | null)
+    | (string | null)
+    | (string | null)
+    | (Array<string> | null)
+    | undefined;
+};
+
 export type ProxyCreateUpdateDto = {
   auth?: boolean;
   host: string;
@@ -861,6 +921,11 @@ export type UtilsApiResponseArrayNotificationChannelModel = {
   message: string;
 };
 
+export type UtilsApiResponseArrayProbeProbeResponse = {
+  data: Array<ProbeProbeResponse> | null;
+  message: string;
+};
+
 export type UtilsApiResponseArrayProxyModel = {
   data: Array<ProxyModel> | null;
   message: string;
@@ -933,6 +998,16 @@ export type UtilsApiResponseMonitorStatPointsSummaryDto = {
 
 export type UtilsApiResponseNotificationChannelModel = {
   data: NotificationChannelModel;
+  message: string;
+};
+
+export type UtilsApiResponseProbeProbeResponse = {
+  data: ProbeProbeResponse;
+  message: string;
+};
+
+export type UtilsApiResponseProbeProbeWithTokenResponse = {
+  data: ProbeProbeWithTokenResponse;
   message: string;
 };
 
@@ -3326,6 +3401,262 @@ export type PutNotificationChannelsByIdResponses = {
 
 export type PutNotificationChannelsByIdResponse =
   PutNotificationChannelsByIdResponses[keyof PutNotificationChannelsByIdResponses];
+
+export type GetProbesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/probes";
+};
+
+export type GetProbesErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetProbesError = GetProbesErrors[keyof GetProbesErrors];
+
+export type GetProbesResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayProbeProbeResponse;
+};
+
+export type GetProbesResponse = GetProbesResponses[keyof GetProbesResponses];
+
+export type PostProbesData = {
+  body: ProbeCreateProbeDto;
+  path?: never;
+  query?: never;
+  url: "/api/v1/probes";
+};
+
+export type PostProbesErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Not Implemented
+   */
+  501: HttpxErrorBody;
+};
+
+export type PostProbesError = PostProbesErrors[keyof PostProbesErrors];
+
+export type PostProbesResponses = {
+  /**
+   * Created
+   */
+  201: UtilsApiResponseProbeProbeWithTokenResponse;
+};
+
+export type PostProbesResponse = PostProbesResponses[keyof PostProbesResponses];
+
+export type DeleteProbesByIdData = {
+  body?: never;
+  path: {
+    /**
+     * Probe ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/probes/{id}";
+};
+
+export type DeleteProbesByIdErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Not Implemented
+   */
+  501: HttpxErrorBody;
+};
+
+export type DeleteProbesByIdError =
+  DeleteProbesByIdErrors[keyof DeleteProbesByIdErrors];
+
+export type DeleteProbesByIdResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteProbesByIdResponse =
+  DeleteProbesByIdResponses[keyof DeleteProbesByIdResponses];
+
+export type GetProbesByIdData = {
+  body?: never;
+  path: {
+    /**
+     * Probe ID, or local for the local probe
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/probes/{id}";
+};
+
+export type GetProbesByIdErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Not Implemented
+   */
+  501: HttpxErrorBody;
+};
+
+export type GetProbesByIdError = GetProbesByIdErrors[keyof GetProbesByIdErrors];
+
+export type GetProbesByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseProbeProbeResponse;
+};
+
+export type GetProbesByIdResponse =
+  GetProbesByIdResponses[keyof GetProbesByIdResponses];
+
+export type PutProbesByIdData = {
+  body: ProbeUpdateProbeDto;
+  path: {
+    /**
+     * Probe ID, or local for the local probe
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/probes/{id}";
+};
+
+export type PutProbesByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Not Implemented
+   */
+  501: HttpxErrorBody;
+};
+
+export type PutProbesByIdError = PutProbesByIdErrors[keyof PutProbesByIdErrors];
+
+export type PutProbesByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseProbeProbeResponse;
+};
+
+export type PutProbesByIdResponse =
+  PutProbesByIdResponses[keyof PutProbesByIdResponses];
+
+export type PostProbesByIdRotateTokenData = {
+  body?: never;
+  path: {
+    /**
+     * Probe ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/probes/{id}/rotate-token";
+};
+
+export type PostProbesByIdRotateTokenErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Not Implemented
+   */
+  501: HttpxErrorBody;
+};
+
+export type PostProbesByIdRotateTokenError =
+  PostProbesByIdRotateTokenErrors[keyof PostProbesByIdRotateTokenErrors];
+
+export type PostProbesByIdRotateTokenResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseProbeProbeWithTokenResponse;
+};
+
+export type PostProbesByIdRotateTokenResponse =
+  PostProbesByIdRotateTokenResponses[keyof PostProbesByIdRotateTokenResponses];
 
 export type GetProxiesData = {
   body?: never;

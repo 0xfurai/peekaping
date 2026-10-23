@@ -140,7 +140,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 79, count)
+	assert.Equal(t, 85, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)
@@ -201,6 +201,12 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"domain error", "POST", "/api/v1/status-pages", "/api/v1/status-pages", map[string]any{"slug": "another", "title": "Another", "domains": []string{"contract.example"}}, 400, a.asAdmin},
 		{"bare 2FA error", "POST", "/api/v1/auth/2fa/verify", "/api/v1/auth/2fa/verify", map[string]any{"email": adminEmail, "code": "123456"}, 400, a.asAdmin},
 		{"push", "GET", "/api/v1/push/{token}", "/api/v1/push/contract-push", nil, 200, nil},
+		{"probe with its token", "POST", "/api/v1/probes", "/api/v1/probes", map[string]any{"name": "Contract probe", "location": "eu"}, 201, a.asAdmin},
+		{"probe list", "GET", "/api/v1/probes", "/api/v1/probes", nil, 200, a.asAdmin},
+		{"probe detail", "GET", "/api/v1/probes/{id}", "/api/v1/probes/local", nil, 200, a.asAdmin},
+		{"local probe delete conflict", "DELETE", "/api/v1/probes/{id}", "/api/v1/probes/local", nil, 409, a.asAdmin},
+		{"local probe rotate conflict", "POST", "/api/v1/probes/{id}/rotate-token", "/api/v1/probes/local/rotate-token", nil, 409, a.asAdmin},
+		{"probe not found", "GET", "/api/v1/probes/{id}", "/api/v1/probes/missing", nil, 404, a.asAdmin},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var creds []credentials

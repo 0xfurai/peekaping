@@ -20,6 +20,7 @@ import (
 
 	"peekaping/internal"
 	"peekaping/internal/app"
+	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
@@ -31,6 +32,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
@@ -104,7 +106,9 @@ type parts struct {
 	EventBus  events.EventBus
 	DB        *bun.DB
 
+	Config               *config.Config
 	Settings             setting.Service
+	Probes               probe.Service
 	Heartbeats           heartbeat.Service
 	Users                auth.Repository
 	Stats                stats.Service
@@ -225,6 +229,12 @@ type jobs struct {
 func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
+	}
+
+	// PROBE_BOOTSTRAP_TOKEN becomes the local probe's token, so that a stack comes up with a probe
+	// token and no UI step. A token that can't be stored stops startup.
+	if err := app.BootstrapLocalProbeToken(ctx, p.Probes, p.Config.ProbeBootstrapToken, logger); err != nil {
+		return nil, fmt.Errorf("failed to bootstrap the local probe: %w", err)
 	}
 
 	// The admin's choice from before the restart. A failure leaves error reports off.

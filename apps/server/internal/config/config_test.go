@@ -202,3 +202,7 @@ func TestConfig_TheTwoSwitchesAreIndependent(t *testing.T) {
 func TestMaskSensitiveValue_MasksTheErrorReportingDSN(t *testing.T) {
 	assert.Equal(t, "*****", maskSensitiveValue("ERROR_REPORTING_DSN", "https://key@errors.example.com/7"))
 }
+
+func TestMaskSensitiveValue_MasksTheProbeBootstrapToken(t *testing.T) {
+	assert.Equal(t, "*****", maskSensitiveValue("PROBE_BOOTSTRAP_TOKEN", "0123456789abcdef0123456789abcdef"))
+}

@@ -150,6 +150,24 @@ import type {
   PutNotificationChannelsByIdData,
   PutNotificationChannelsByIdResponses,
   PutNotificationChannelsByIdErrors,
+  GetProbesData,
+  GetProbesResponses,
+  GetProbesErrors,
+  PostProbesData,
+  PostProbesResponses,
+  PostProbesErrors,
+  DeleteProbesByIdData,
+  DeleteProbesByIdResponses,
+  DeleteProbesByIdErrors,
+  GetProbesByIdData,
+  GetProbesByIdResponses,
+  GetProbesByIdErrors,
+  PutProbesByIdData,
+  PutProbesByIdResponses,
+  PutProbesByIdErrors,
+  PostProbesByIdRotateTokenData,
+  PostProbesByIdRotateTokenResponses,
+  PostProbesByIdRotateTokenErrors,
   GetProxiesData,
   GetProxiesResponses,
   GetProxiesErrors,
@@ -1549,6 +1567,175 @@ export const putNotificationChannelsById = <
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Get probes
+ */
+export const getProbes = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProbesData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProbesResponses,
+    GetProbesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes",
+    ...options,
+  });
+};
+
+/**
+ * Create probe
+ */
+export const postProbes = <ThrowOnError extends boolean = false>(
+  options: Options<PostProbesData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostProbesResponses,
+    PostProbesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Delete probe
+ */
+export const deleteProbesById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteProbesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteProbesByIdResponses,
+    DeleteProbesByIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Get probe
+ */
+export const getProbesById = <ThrowOnError extends boolean = false>(
+  options: Options<GetProbesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetProbesByIdResponses,
+    GetProbesByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Update probe
+ */
+export const putProbesById = <ThrowOnError extends boolean = false>(
+  options: Options<PutProbesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).put<
+    PutProbesByIdResponses,
+    PutProbesByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Rotate probe token
+ */
+export const postProbesByIdRotateToken = <ThrowOnError extends boolean = false>(
+  options: Options<PostProbesByIdRotateTokenData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostProbesByIdRotateTokenResponses,
+    PostProbesByIdRotateTokenErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}/rotate-token",
+    ...options,
   });
 };
 

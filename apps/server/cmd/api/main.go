@@ -237,6 +237,12 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		return j, fmt.Errorf("failed to initialize JWT settings: %w", err)
 	}
 
+	// PROBE_BOOTSTRAP_TOKEN becomes the local probe's token, so that a stack comes up with a probe
+	// token and no UI step. A token that can't be stored stops startup.
+	if err := app.BootstrapLocalProbe(context.Background(), container); err != nil {
+		log.Fatalf("Failed to bootstrap the local probe: %v", err)
+	}
+
 	// Apply the admin's choice from before the restart, which also copies it to Redis for the
 	// producer, the worker and the ingester. Then apply it again every minute, so that a copy
 	// that missed a Redis that was down is made up within a minute, and a change made on another
