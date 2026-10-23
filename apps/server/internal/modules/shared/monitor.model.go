@@ -90,6 +90,8 @@ type UpdateMonitor struct {
 	Config         *string        `json:"config"`
 	ProxyId        *string        `json:"proxy_id"`
 	PushToken      *string        `json:"push_token"`
+	// ProbeIDs replace the probes that run the monitor. Nil leaves them as they are.
+	ProbeIDs []string `json:"probe_ids"`
 
 	CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`

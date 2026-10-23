@@ -17,6 +17,8 @@ type MonitorRepository interface {
 	) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
 	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)
+	// FindActiveByProbe returns a page of the active monitors the probe runs
+	FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *Model) error
 	UpdatePartial(ctx context.Context, id string, monitor *UpdateModel) error
 	Delete(ctx context.Context, id string) error

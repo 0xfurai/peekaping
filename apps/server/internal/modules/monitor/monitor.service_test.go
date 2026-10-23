@@ -59,6 +59,11 @@ func (m *MockMonitorRepository) FindActivePaginated(ctx context.Context, page in
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
+func (m *MockMonitorRepository) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
+	args := m.Called(ctx, probeID, page, limit)
+	return args.Get(0).([]*Model), args.Error(1)
+}
+
 func (m *MockMonitorRepository) UpdateFull(ctx context.Context, id string, monitor *Model) error {
 	args := m.Called(ctx, id, monitor)
 	return args.Error(0)

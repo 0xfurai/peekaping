@@ -156,13 +156,8 @@ func (mr *MonitorServiceImpl) FindActivePaginated(ctx context.Context, page int,
 	return mr.monitorRepository.FindActivePaginated(ctx, page, limit)
 }
 
-// FindActiveByProbe is a stand-in until the repository can filter by probe: every active monitor
-// runs on the local probe, and a remote probe runs none.
 func (mr *MonitorServiceImpl) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
-	if probeID != shared.LocalProbeID {
-		return []*Model{}, nil
-	}
-	return mr.monitorRepository.FindActivePaginated(ctx, page, limit)
+	return mr.monitorRepository.FindActiveByProbe(ctx, probeID, page, limit)
 }
 
 func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error) {

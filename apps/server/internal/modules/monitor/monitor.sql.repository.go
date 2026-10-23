@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"peekaping/internal/dbtx"
@@ -30,6 +31,14 @@ type sqlModel struct {
 	Config         string               `bun:"config"`
 	ProxyId        *string              `bun:"proxy_id"`
 	PushToken      string               `bun:"push_token"`
+}
+
+// sqlProbeLink is the row that says a monitor runs on a probe
+type sqlProbeLink struct {
+	bun.BaseModel `bun:"table:monitor_probes,alias:mp"`
+
+	MonitorID string `bun:"monitor_id,pk"`
+	ProbeID   string `bun:"probe_id,pk"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
@@ -103,7 +112,79 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Model,
 		return nil, err
 	}
 
-	return toDomainModelFromSQL(sm), nil
+	// A monitor without probes runs on the local one
+	probeIDs := monitor.ProbeIDs
+	if len(probeIDs) == 0 {
+		probeIDs = []string{shared.LocalProbeID}
+	}
+	if err := r.replaceProbes(ctx, sm.ID, probeIDs); err != nil {
+		return nil, err
+	}
+
+	created := toDomainModelFromSQL(sm)
+	created.ProbeIDs = slices.Clone(probeIDs)
+	return created, nil
+}
+
+// replaceProbes makes the probes the only ones the monitor runs on. The caller's transaction, if
+// there is one, decides whether the monitor and its probes are stored together.
+func (r *SQLRepositoryImpl) replaceProbes(ctx context.Context, monitorID string, probeIDs []string) error {
+	db := dbtx.DB(ctx, r.db)
+	if _, err := db.NewDelete().Model((*sqlProbeLink)(nil)).Where("monitor_id = ?", monitorID).Exec(ctx); err != nil {
+		return err
+	}
+	links := make([]*sqlProbeLink, len(probeIDs))
+	for i, probeID := range probeIDs {
+		links[i] = &sqlProbeLink{MonitorID: monitorID, ProbeID: probeID}
+	}
+	_, err := db.NewInsert().Model(&links).Exec(ctx)
+	return err
+}
+
+// toDomainModels converts the monitors read and adds their probes, with one query for the lot.
+// A monitor without a row runs on the local probe: one created by a process from before probes
+// during an upgrade, or copied from MongoDB.
+func (r *SQLRepositoryImpl) toDomainModels(ctx context.Context, sms []*sqlModel) ([]*Model, error) {
+	var models []*Model
+	if len(sms) == 0 {
+		return models, nil
+	}
+	ids := make([]string, len(sms))
+	byID := make(map[string]*Model, len(sms))
+	for i, sm := range sms {
+		model := toDomainModelFromSQL(sm)
+		models = append(models, model)
+		ids[i], byID[sm.ID] = sm.ID, model
+	}
+
+	var links []*sqlProbeLink
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(&links).
+		Where("monitor_id IN (?)", bun.In(ids)).
+		Order("monitor_id", "probe_id").
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, link := range links {
+		if model := byID[link.MonitorID]; model != nil {
+			model.ProbeIDs = append(model.ProbeIDs, link.ProbeID)
+		}
+	}
+	for _, model := range models {
+		if len(model.ProbeIDs) == 0 {
+			model.ProbeIDs = []string{shared.LocalProbeID}
+		}
+	}
+	return models, nil
+}
+
+// toDomainModelWithProbes is toDomainModels for the one monitor
+func (r *SQLRepositoryImpl) toDomainModelWithProbes(ctx context.Context, sm *sqlModel) (*Model, error) {
+	models, err := r.toDomainModels(ctx, []*sqlModel{sm})
+	if err != nil {
+		return nil, err
+	}
+	return models[0], nil
 }
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
@@ -115,7 +196,7 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 		}
 		return nil, err
 	}
-	return toDomainModelFromSQL(sm), nil
+	return r.toDomainModelWithProbes(ctx, sm)
 }
 
 func (r *SQLRepositoryImpl) FindByIDs(ctx context.Context, ids []string) ([]*Model, error) {
@@ -132,11 +213,7 @@ func (r *SQLRepositoryImpl) FindByIDs(ctx context.Context, ids []string) ([]*Mod
 		return nil, err
 	}
 
-	var models []*Model
-	for _, sm := range sms {
-		models = append(models, toDomainModelFromSQL(sm))
-	}
-	return models, nil
+	return r.toDomainModels(ctx, sms)
 }
 
 func (r *SQLRepositoryImpl) FindAll(
@@ -183,11 +260,7 @@ func (r *SQLRepositoryImpl) FindAll(
 		return nil, err
 	}
 
-	var models []*Model
-	for _, sm := range sms {
-		models = append(models, toDomainModelFromSQL(sm))
-	}
-	return models, nil
+	return r.toDomainModels(ctx, sms)
 }
 
 func (r *SQLRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error) {
@@ -201,11 +274,7 @@ func (r *SQLRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error) {
 		return nil, err
 	}
 
-	var models []*Model
-	for _, sm := range sms {
-		models = append(models, toDomainModelFromSQL(sm))
-	}
-	return models, nil
+	return r.toDomainModels(ctx, sms)
 }
 
 func (r *SQLRepositoryImpl) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
@@ -221,11 +290,30 @@ func (r *SQLRepositoryImpl) FindActivePaginated(ctx context.Context, page int, l
 		return nil, err
 	}
 
-	var models []*Model
-	for _, sm := range sms {
-		models = append(models, toDomainModelFromSQL(sm))
+	return r.toDomainModels(ctx, sms)
+}
+
+func (r *SQLRepositoryImpl) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
+	var sms []*sqlModel
+	query := dbtx.DB(ctx, r.db).NewSelect().
+		Model(&sms).
+		Where("m.active = ?", true)
+	if probeID == shared.LocalProbeID {
+		// A monitor without a row runs on the local probe (see toDomainModels)
+		query = query.Where("(m.id IN (SELECT monitor_id FROM monitor_probes WHERE probe_id = ?) OR NOT EXISTS (SELECT 1 FROM monitor_probes WHERE monitor_id = m.id))", probeID)
+	} else {
+		query = query.Where("m.id IN (SELECT monitor_id FROM monitor_probes WHERE probe_id = ?)", probeID)
 	}
-	return models, nil
+	err := query.
+		Order("m.id DESC").
+		Limit(limit).
+		Offset(page * limit).
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.toDomainModels(ctx, sms)
 }
 
 func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *Model) error {
@@ -251,7 +339,11 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *
 		return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
 	}
 
-	return err
+	// A monitor without probes in the update keeps the ones it has
+	if monitor.ProbeIDs != nil {
+		return r.replaceProbes(ctx, id, monitor.ProbeIDs)
+	}
+	return nil
 }
 
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monitor *UpdateModel) error {
@@ -313,6 +405,13 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monito
 		hasUpdates = true
 	}
 
+	if monitor.ProbeIDs != nil {
+		if err := r.replaceProbes(ctx, id, monitor.ProbeIDs); err != nil {
+			return err
+		}
+		hasUpdates = true
+	}
+
 	if !hasUpdates {
 		return nil
 	}
@@ -348,11 +447,7 @@ func (r *SQLRepositoryImpl) FindByProxyId(ctx context.Context, proxyId string) (
 		return nil, err
 	}
 
-	var models []*Model
-	for _, sm := range sms {
-		models = append(models, toDomainModelFromSQL(sm))
-	}
-	return models, nil
+	return r.toDomainModels(ctx, sms)
 }
 
 func (r *SQLRepositoryImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {
@@ -364,5 +459,5 @@ func (r *SQLRepositoryImpl) FindOneByPushToken(ctx context.Context, pushToken st
 		}
 		return nil, err
 	}
-	return toDomainModelFromSQL(sm), nil
+	return r.toDomainModelWithProbes(ctx, sm)
 }
