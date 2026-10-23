@@ -315,10 +315,10 @@ components:
       additionalProperties: false
       properties:
         enabled:
-          description: Whether an admin opted in to error reports
+          description: "Whether error reports are on: the admin's stored choice, which is on until they choose"
           type: boolean
         forced_off:
-          description: Whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces error reports off, whatever enabled says
+          description: Whether the ERROR_REPORTING environment variable forces error reports off, whatever enabled says
           type: boolean
       required:
         - enabled
@@ -2328,7 +2328,7 @@ components:
           $ref: "#/components/schemas/telemetry.Features"
           description: Which features are on
         instance_id:
-          description: The random instance ID; empty until an admin opts in
+          description: The random instance ID; empty after an admin opts out, and while TELEMETRY forces the ping off and no ID was made before
           examples:
             - 6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f
           type: string
@@ -2387,17 +2387,21 @@ components:
       additionalProperties: false
       properties:
         enabled:
-          description: Whether an admin opted in to the usage ping
+          description: "Whether the usage ping is on: the admin's stored choice, which is on until they choose"
           type: boolean
         forced_off:
-          description: Whether the TELEMETRY or DO_NOT_TRACK environment variable forces the ping off, whatever enabled says
+          description: Whether the TELEMETRY environment variable forces the ping off, whatever enabled says
+          type: boolean
+        notice_pending:
+          description: "Whether the one-time notice that the usage ping and error reports are on by default is still to be shown: it is not yet dismissed, and the environment does not force both off"
           type: boolean
         payload:
           $ref: "#/components/schemas/telemetry.Payload"
-          description: The exact JSON the next usage ping would send; its instance_id is empty until an admin opts in
+          description: The exact JSON the next usage ping would send; its instance_id is empty after an admin opts out
       required:
         - enabled
         - forced_off
+        - notice_pending
         - payload
       type: object
     telemetry.UpdateDto:
@@ -4175,7 +4179,7 @@ paths:
         - badge
   /api/v1/error-reporting:
     get:
-      description: Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+      description: Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING environment variable forces them off.
       operationId: getErrorReporting
       responses:
         "200":
@@ -4203,7 +4207,7 @@ paths:
       tags:
         - error-reporting
     put:
-      description: "Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins."
+      description: "Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins. Any choice also marks the one-time usage ping and error reports notice as seen."
       operationId: putErrorReporting
       requestBody:
         content:
@@ -7033,7 +7037,7 @@ paths:
         - tag
   /api/v1/telemetry:
     get:
-      description: Whether an admin opted in to the anonymous usage ping, whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, and the exact payload the next ping would send.
+      description: Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
       operationId: getTelemetry
       responses:
         "200":
@@ -7061,7 +7065,7 @@ paths:
       tags:
         - telemetry
     put:
-      description: Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins.
+      description: Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins. Any choice also marks the one-time notice as seen.
       operationId: putTelemetry
       requestBody:
         content:
@@ -7097,6 +7101,34 @@ paths:
       security:
         - JwtAuth: []
       summary: Opt in or out of the usage ping
+      tags:
+        - telemetry
+  /api/v1/telemetry/notice:
+    post:
+      description: "An install that upgraded to a version with the usage ping and error reports on by default shows its admin a one-time notice. This marks it seen so it stops showing. It is not a choice: both features stay as they were. Making a choice with PUT /telemetry or PUT /error-reporting marks it seen too."
+      operationId: postTelemetryNotice
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/telemetry.StateResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Dismiss the usage ping and error reports notice
       tags:
         - telemetry
   /api/v1/version:

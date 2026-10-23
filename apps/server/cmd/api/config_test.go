@@ -108,7 +108,6 @@ func TestTelemetrySettingsAreLoadedFromEnv(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")
 	t.Setenv("TELEMETRY", "")
-	t.Setenv("DO_NOT_TRACK", "")
 	t.Setenv("TELEMETRY_URL", "")
 
 	cfg, err := LoadAndValidate(t.TempDir())
@@ -124,12 +123,6 @@ func TestTelemetrySettingsAreLoadedFromEnv(t *testing.T) {
 	internalCfg = cfg.ToInternalConfig()
 	assert.True(t, internalCfg.TelemetryForcedOff())
 	assert.Equal(t, "http://localhost:8787/v1/ping", internalCfg.TelemetryURL)
-
-	t.Setenv("TELEMETRY", "")
-	t.Setenv("DO_NOT_TRACK", "1")
-	cfg, err = LoadAndValidate(t.TempDir())
-	require.NoError(t, err)
-	assert.True(t, cfg.ToInternalConfig().TelemetryForcedOff())
 }
 
 // SQLITE_STARTUP_CHECK picks the check a process runs when it opens SQLite. Unset, it is the quick

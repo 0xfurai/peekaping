@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Create your admin account",
+      "error_reporting_hint": "On by default. Untick this box to turn it off. You can change it later under “Settings”.",
       "have_account": "Already have an account?",
       "sign_in": "Sign in",
       "submit": "Create",
-      "telemetry_hint": "Off unless you tick this box. You can change it later under “Settings”. If you tick it, Peekaping sends this at most once a day:",
+      "telemetry_hint": "On by default. Untick this box to turn it off. You can change it later under “Settings”. While it is on, Peekaping sends this at most once a day:",
       "title": "Hello"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Send error reports",
-    "never_sent": "Never sent: error messages, URLs, headers, webhook URLs, names or hostnames. A report holds no IP address, and Peekaping's Sentry project is set not to store the sender's IP. With your own ERROR_REPORTING_DSN, your Sentry or GlitchTip settings decide.",
-    "not_saved": "Your choice to send error reports wasn't saved. Turn it on in Settings.",
+    "never_sent": "Never sent: error messages, URLs, headers, webhook URLs, names or hostnames. A report holds no IP address, and Peekaping's Sentry project is set not to store the sender's IP.",
+    "not_saved": "Your choice about error reports wasn't saved. Check it in Settings.",
     "sent": "Sent only when Peekaping itself crashes. A report holds the error type and where in the code it happened, the Peekaping version, single or cluster mode, the storage backend, and the operating system."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "In cluster mode, a change reaches every process within a minute.",
-      "description": "Send a report to Sentry when the server crashes. Off until you turn it on.",
-      "forced_off": "The ERROR_REPORTING=off or DO_NOT_TRACK=1 environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "description": "Send a report to Sentry when the server crashes. On by default; you can turn it off here at any time.",
+      "forced_off": "The ERROR_REPORTING=off environment variable switches this off. Nothing is sent, whatever this setting says.",
       "title": "Error reports"
     },
     "telemetry": {
-      "description": "Send anonymous statistics about how this install is set up, at most once a day. Off until you turn it on.",
-      "forced_off": "The TELEMETRY=off or DO_NOT_TRACK=1 environment variable switches this off. Nothing is sent, whatever this setting says.",
-      "id_note": "The instance ID is created when you turn this on and deleted when you turn it off. Turning it on again creates a new one.",
+      "description": "Send anonymous statistics about how this install is set up, at most once a day. On by default; you can turn it off here at any time.",
+      "forced_off": "The TELEMETRY=off environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "id_note": "The instance ID is created while this is on and deleted when you turn it off. Turning it on again creates a new one.",
       "payload_off": "Nothing is sent while this is off. This is what a usage ping would contain if you turned it on.",
       "payload_title": "What the next usage ping sends",
       "title": "Usage statistics"
@@ -1487,12 +1488,19 @@
     "docs_link": "What is sent, and how to turn it off",
     "label": "Send anonymous usage statistics",
     "never_sent": "Never sent: monitor names, URLs, hosts, tags, status page addresses or notification settings. A usage ping holds no IP address, and Peekaping's Worker doesn't record the sender's IP.",
-    "not_saved": "Your choice to send usage statistics wasn't saved. Turn it on in Settings.",
+    "not_saved": "Your choice about usage statistics wasn't saved. Check it in Settings.",
     "sent_features": "Whether you use status pages, maintenance windows and metrics",
-    "sent_id": "A random ID, created when you turn this on and deleted when you turn it off",
+    "sent_id": "A random ID, created while this is on and deleted when you turn it off",
     "sent_monitors": "How many monitors you have, as a range such as 11-50",
     "sent_setup": "The Peekaping version, single or cluster mode, the storage backend, and the operating system and CPU type",
     "sent_types": "The kinds of monitors and notification channels you use, such as http or telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Error reports are on. If Peekaping crashes, it sends the error type and where in the code it happened, its version, mode, storage backend and operating system. It never sends error messages, URLs or hostnames.",
+    "settings_errors": "Turn off error reports in Settings",
+    "settings_usage": "Turn off usage statistics in Settings",
+    "title": "Sharing anonymous data is on by default",
+    "usage_statistics": "Usage statistics are on. At most once a day, Peekaping sends a random instance ID, its version, mode, storage backend and operating system, a range for how many monitors you have, the kinds of monitors and notification channels you use, and whether you use status pages, maintenance windows and metrics. It never sends names, URLs, hosts or settings."
   },
   "theme": {
     "dark": "Dark",

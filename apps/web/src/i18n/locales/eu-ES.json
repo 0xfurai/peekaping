@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Sortu zure administratzaile kontua",
+      "error_reporting_hint": "Lehenespenez aktibatuta dago. Desaktibatzeko, kendu markatzea laukitik. Geroago aldatu dezakezu «Ezarpenak» atalean.",
       "have_account": "Kontu bat baduzu?",
       "sign_in": "Sartu",
       "submit": "Sortu",
-      "telemetry_hint": "Desaktibatuta dago, laukia markatzen ez baduzu. Geroago aldatu dezakezu «Ezarpenak» atalean. Markatzen baduzu, Peekapingek hau bidaliko du, egunean behin gehienez:",
+      "telemetry_hint": "Lehenespenez aktibatuta dago. Desaktibatzeko, kendu markatzea laukitik. Geroago aldatu dezakezu «Ezarpenak» atalean. Aktibatuta dagoen bitartean, Peekapingek hau bidaliko du, egunean behin gehienez:",
       "title": "Kaixo"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Bidali errore-txostenak",
-    "never_sent": "Ez da inoiz bidaltzen: errore-mezuak, URLak, goiburuak, webhook-en URLak, izenak edo ostalari-izenak. Txostenak ez du IP helbiderik, eta Peekaping-en Sentry proiektua bidaltzailearen IPa ez gordetzeko konfiguratuta dago. Zure ERROR_REPORTING_DSN propioa erabiltzen baduzu, zure Sentry edo GlitchTip-en ezarpenek erabakitzen dute.",
-    "not_saved": "Errore-txostenak bidaltzeko aukeraketa ez da gorde. Aktibatu «Ezarpenak» atalean.",
+    "never_sent": "Ez da inoiz bidaltzen: errore-mezuak, URLak, goiburuak, webhook-en URLak, izenak edo ostalari-izenak. Txostenak ez du IP helbiderik, eta Peekaping-en Sentry proiektua bidaltzailearen IPa ez gordetzeko konfiguratuta dago.",
+    "not_saved": "Errore-txostenei buruzko aukeraketa ez da gorde. Egiaztatu «Ezarpenak» atalean.",
     "sent": "Peekaping bera huts egiten duenean bakarrik bidaltzen da. Txosten batek errorearen mota eta kodean non gertatu den, Peekaping-en bertsioa, modu bakarra edo kluster modua, biltegiratze-backenda eta sistema eragilea ditu."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "Kluster moduan, aldaketa prozesu guztietara iristen da minutu baten barruan.",
-      "description": "Bidali txosten bat Sentry-ra zerbitzariak huts egiten duenean. Desaktibatuta dago aktibatu arte.",
-      "forced_off": "ERROR_REPORTING=off edo DO_NOT_TRACK=1 ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
+      "description": "Bidali txosten bat Sentry-ra zerbitzariak huts egiten duenean. Lehenespenez aktibatuta dago; hemen desaktibatu dezakezu edonoiz.",
+      "forced_off": "ERROR_REPORTING=off ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
       "title": "Errore-txostenak"
     },
     "telemetry": {
-      "description": "Bidali instalazio hau nola konfiguratuta dagoenari buruzko estatistika anonimoak, egunean behin gehienez. Desaktibatuta dago aktibatu arte.",
-      "forced_off": "TELEMETRY=off edo DO_NOT_TRACK=1 ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
-      "id_note": "Instantziaren IDa aktibatzean sortzen da eta desaktibatzean ezabatzen da. Berriro aktibatzen baduzu, berri bat sortzen da.",
+      "description": "Bidali instalazio hau nola konfiguratuta dagoenari buruzko estatistika anonimoak, egunean behin gehienez. Lehenespenez aktibatuta dago; hemen desaktibatu dezakezu edonoiz.",
+      "forced_off": "TELEMETRY=off ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
+      "id_note": "Instantziaren IDa aktibatuta dagoen bitartean sortzen da eta desaktibatzean ezabatzen da. Berriro aktibatzen baduzu, berri bat sortzen da.",
       "payload_off": "Ez da ezer bidaltzen hau desaktibatuta dagoen bitartean. Hau izango litzateke erabilera-pingaren edukia aktibatuko bazenu.",
       "payload_title": "Hurrengo erabilera-pingak zer bidaliko duen",
       "title": "Erabilera-estatistikak"
@@ -1487,12 +1488,19 @@
     "docs_link": "Zer bidaltzen den eta nola desaktibatu",
     "label": "Bidali erabilera-estatistika anonimoak",
     "never_sent": "Ez da inoiz bidaltzen: monitoreen izenak, URLak, ostalariak, etiketak, egoera orrien helbideak edo jakinarazpenen ezarpenak. Erabilera-pingak ez du IP helbiderik, eta Peekaping-en Worker-ak ez du bidaltzailearen IPa erregistratzen.",
-    "not_saved": "Erabilera-estatistikak bidaltzeko aukeraketa ez da gorde. Aktibatu «Ezarpenak» atalean.",
+    "not_saved": "Erabilera-estatistikei buruzko aukeraketa ez da gorde. Egiaztatu «Ezarpenak» atalean.",
     "sent_features": "Egoera orriak, mantentze-leihoak eta metrikak erabiltzen dituzun ala ez",
-    "sent_id": "ID ausazko bat, aktibatzean sortzen dena eta desaktibatzean ezabatzen dena",
+    "sent_id": "ID ausazko bat, aktibatuta dagoen bitartean sortzen dena eta desaktibatzean ezabatzen dena",
     "sent_monitors": "Zenbat monitore dituzun, sorta gisa, adibidez 11-50",
     "sent_setup": "Peekaping-en bertsioa, modu bakarra edo kluster modua, biltegiratze-backenda, eta sistema eragilea eta CPU mota",
     "sent_types": "Erabiltzen dituzun monitore eta jakinarazpen-kanal motak, adibidez http edo telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Errore-txostenak aktibatuta daude. Peekapingek huts egiten badu, errorearen mota eta kodean non gertatu den, bere bertsioa, modua, biltegiratze-backenda eta sistema eragilea bidaltzen ditu. Ez ditu inoiz errore-mezuak, URLak edo ostalari-izenak bidaltzen.",
+    "settings_errors": "Desaktibatu errore-txostenak «Ezarpenak» atalean",
+    "settings_usage": "Desaktibatu erabilera-estatistikak «Ezarpenak» atalean",
+    "title": "Datu anonimoak bidaltzea lehenespenez aktibatuta dago",
+    "usage_statistics": "Erabilera-estatistikak aktibatuta daude. Egunean behin gehienez, Peekapingek honako hauek bidaltzen ditu: instantziaren ausazko ID bat, bere bertsioa, modua, biltegiratze-backenda eta sistema eragilea, zenbat monitore dituzun adierazten duen tarte bat, erabiltzen dituzun monitore eta jakinarazpen-kanal motak, eta egoera orriak, mantentze-leihoak eta metrikak erabiltzen dituzun ala ez. Ez ditu inoiz izenak, URLak, ostalariak edo ezarpenak bidaltzen."
   },
   "theme": {
     "dark": "Iluna",

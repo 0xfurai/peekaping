@@ -59,7 +59,9 @@ const errorReportingFlush = 2 * time.Second
 var shutdownTimeouts = graceful.Timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, EventBus: 5 * time.Second}
 
 func main() {
-	// A panic that ends the process is reported before it does, if the admin opted in
+	// A panic that ends the process is reported before it does, unless the admin opted out. Reports
+	// start only once app.ApplyErrorReporting has applied the stored choice (below), so a panic
+	// before that is not reported.
 	defer reporting.ReportCrash("main")
 
 	utils.RegisterCustomValidators()
@@ -307,8 +309,9 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		j.metricsDone = p.Metrics.Start(metricsCtx, p.EventBus)
 	}
 
-	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. Of the
-	// api replicas, the one that wins the claim in Redis sends the day's ping.
+	// The usage ping sends nothing once an admin opted out or while the environment forces the
+	// ping off, and a failed one is dropped. Of the api replicas, the one that wins the claim in
+	// Redis sends the day's ping.
 	var usagePingCtx context.Context
 	usagePingCtx, j.stopUsagePing = context.WithCancel(context.Background())
 	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetry.DefaultSchedule)

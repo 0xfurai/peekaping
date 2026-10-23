@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Opprett din admin-konto",
+      "error_reporting_hint": "På som standard. Fjern haken i denne boksen for å slå det av. Du kan endre det senere under «Innstillinger».",
       "have_account": "Har du allerede en konto?",
       "sign_in": "Logg inn",
       "submit": "Opprett",
-      "telemetry_hint": "Av, med mindre du krysser av for denne boksen. Du kan endre det senere under «Innstillinger». Hvis du krysser av, sender Peekaping dette høyst én gang per dag:",
+      "telemetry_hint": "På som standard. Fjern haken i denne boksen for å slå det av. Du kan endre det senere under «Innstillinger». Så lenge det er på, sender Peekaping dette høyst én gang per dag:",
       "title": "Hei"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Send feilrapporter",
-    "never_sent": "Sendes aldri: feilmeldinger, nettadresser, hoder, webhook-adresser, navn eller vertsnavn. En rapport inneholder ingen IP-adresse, og Peekapings Sentry-prosjekt er satt opp til ikke å lagre avsenderens IP. Med din egen ERROR_REPORTING_DSN bestemmer innstillingene i din Sentry eller GlitchTip.",
-    "not_saved": "Valget ditt om å sende feilrapporter ble ikke lagret. Slå det på under «Innstillinger».",
+    "never_sent": "Sendes aldri: feilmeldinger, nettadresser, hoder, webhook-adresser, navn eller vertsnavn. En rapport inneholder ingen IP-adresse, og Peekapings Sentry-prosjekt er satt opp til ikke å lagre avsenderens IP.",
+    "not_saved": "Valget ditt om feilrapporter ble ikke lagret. Sjekk det under «Innstillinger».",
     "sent": "Sendes bare når Peekaping selv krasjer. En rapport inneholder feiltypen og stedet i koden der den skjedde, Peekaping-versjonen, enkeltmodus eller klyngemodus, lagringsbackenden og operativsystemet."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "I klyngemodus når en endring alle prosesser innen ett minutt.",
-      "description": "Send en rapport til Sentry når serveren krasjer. Av til du slår det på.",
-      "forced_off": "Miljøvariabelen ERROR_REPORTING=off eller DO_NOT_TRACK=1 slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
+      "description": "Send en rapport til Sentry når serveren krasjer. På som standard; du kan slå det av her når som helst.",
+      "forced_off": "Miljøvariabelen ERROR_REPORTING=off slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
       "title": "Feilrapporter"
     },
     "telemetry": {
-      "description": "Send anonym statistikk om hvordan denne installasjonen er satt opp, høyst én gang per dag. Av til du slår det på.",
-      "forced_off": "Miljøvariabelen TELEMETRY=off eller DO_NOT_TRACK=1 slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
-      "id_note": "Instans-ID-en opprettes når du slår dette på og slettes når du slår det av. Slår du det på igjen, opprettes en ny.",
+      "description": "Send anonym statistikk om hvordan denne installasjonen er satt opp, høyst én gang per dag. På som standard; du kan slå det av her når som helst.",
+      "forced_off": "Miljøvariabelen TELEMETRY=off slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
+      "id_note": "Instans-ID-en opprettes så lenge dette er på og slettes når du slår det av. Slår du det på igjen, opprettes en ny.",
       "payload_off": "Ingenting sendes mens dette er av. Dette er hva en bruksping ville inneholde hvis du slo det på.",
       "payload_title": "Hva den neste brukspingen sender",
       "title": "Bruksstatistikk"
@@ -1487,12 +1488,19 @@
     "docs_link": "Hva som sendes, og hvordan du slår det av",
     "label": "Send anonym bruksstatistikk",
     "never_sent": "Sendes aldri: navn på overvåkninger, nettadresser, verter, merker, adresser til statussider eller varslingsinnstillinger. En bruksping inneholder ingen IP-adresse, og Peekapings Worker registrerer ikke avsenderens IP.",
-    "not_saved": "Valget ditt om å sende bruksstatistikk ble ikke lagret. Slå det på under «Innstillinger».",
+    "not_saved": "Valget ditt om bruksstatistikk ble ikke lagret. Sjekk det under «Innstillinger».",
     "sent_features": "Om du bruker statussider, vedlikeholdsvinduer og målinger",
-    "sent_id": "En tilfeldig ID, som opprettes når du slår det på og slettes når du slår det av",
+    "sent_id": "En tilfeldig ID, som opprettes så lenge det er på og slettes når du slår det av",
     "sent_monitors": "Hvor mange overvåkninger du har, som et område, for eksempel 11-50",
     "sent_setup": "Peekaping-versjonen, enkeltmodus eller klyngemodus, lagringsbackenden og operativsystem og CPU-type",
     "sent_types": "Typene overvåkninger og varslingskanaler du bruker, for eksempel http eller telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Feilrapporter er på. Hvis Peekaping krasjer, sender den feiltypen og stedet i koden der det skjedde, versjonen sin, modus, lagringsbackend og operativsystem. Den sender aldri feilmeldinger, URL-er eller vertsnavn.",
+    "settings_errors": "Slå av feilrapporter under «Innstillinger»",
+    "settings_usage": "Slå av bruksstatistikk under «Innstillinger»",
+    "title": "Sending av anonyme data er på som standard",
+    "usage_statistics": "Bruksstatistikk er på. Høyst én gang per dag sender Peekaping en tilfeldig instans-ID, versjonen sin, modus, lagringsbackend og operativsystem, et intervall for hvor mange overvåkninger du har, typene overvåkninger og varslingskanaler du bruker, og om du bruker statussider, vedlikeholdsvinduer og målinger. Den sender aldri navn, URL-er, verter eller innstillinger."
   },
   "theme": {
     "dark": "Mørk",

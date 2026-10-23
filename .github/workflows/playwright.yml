@@ -172,6 +172,12 @@ jobs:
         CLIENT_URL=http://localhost:8383
         SERVER_PORT=8034
         BUNDEBUG=2
+
+        # The usage ping and error reports are on by default. A test run must not send either to
+        # Peekaping, so both point at an address nothing listens on. The DSN must not be empty:
+        # an empty one means Peekaping's own Sentry project.
+        TELEMETRY_URL=http://127.0.0.1:9/v1/ping
+        ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
         EOF
 
     # Create and prepare data directories with proper permissions

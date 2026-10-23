@@ -79,7 +79,11 @@ cant_write() {
 
 # start <name> [docker run args...]: port 8383 goes to a free host port.
 start() {
-  docker run -d --name "$1" -p 127.0.0.1::8383 -e DB_USER=peekaping -e DB_PASS=bundle-test "${@:2}" "$image" >/dev/null
+  # The usage ping and error reports are on by default, and a test must not send either to
+  # Peekaping: both point at an address nothing listens on
+  docker run -d --name "$1" -p 127.0.0.1::8383 -e DB_USER=peekaping -e DB_PASS=bundle-test \
+    -e TELEMETRY_URL=http://127.0.0.1:9/v1/ping -e ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1 \
+    "${@:2}" "$image" >/dev/null
 }
 
 # url <container>: where the host reaches the container's port 8383
