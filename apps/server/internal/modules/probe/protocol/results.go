@@ -21,6 +21,8 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/utils"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -151,9 +153,15 @@ func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model) (map
 
 // otherMonitor reads a monitor that the probe is not dealt, to tell one that does not exist from
 // one that is not the probe's. It reads each monitor once for a batch: others holds what it read.
+// An id that is not a UUID names no monitor, and is not read: monitors.id is a UUID column, and
+// PostgreSQL fails the lookup of anything else, which would fail the whole batch for the probe to
+// send again for good.
 func (c *Controller) otherMonitor(ctx context.Context, others map[string]*monitor.Model, id string) (*monitor.Model, error) {
 	if m, read := others[id]; read {
 		return m, nil
+	}
+	if _, err := uuid.Parse(id); err != nil {
+		return nil, nil
 	}
 	m, err := c.monitors.FindByID(ctx, id)
 	if err != nil {

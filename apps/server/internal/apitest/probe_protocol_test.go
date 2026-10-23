@@ -1141,7 +1141,8 @@ func TestProbeProtocol_ResultsRejectReasonsEndToEnd(t *testing.T) {
 	ahead := checkResult("ahead", monitorID, time.Now().UTC().Add(5*time.Minute))
 	batch := []probeproto.Result{
 		good,
-		checkResult("unknown", "no-such-monitor", checkedAt(1)),
+		checkResult("unknown", uuid.NewString(), checkedAt(1)),
+		checkResult("not-a-uuid", "no-such-monitor", checkedAt(1)),
 		checkResult("push", pushID, checkedAt(2)),
 		checkResult("paused", pausedID, checkedAt(3)),
 		old,
@@ -1153,6 +1154,7 @@ func TestProbeProtocol_ResultsRejectReasonsEndToEnd(t *testing.T) {
 	assert.Equal(t, []probeproto.ResultOutcome{
 		{ID: "good", Accepted: true},
 		{ID: "unknown", Reason: "unknown_monitor"},
+		{ID: "not-a-uuid", Reason: "unknown_monitor"},
 		{ID: "push", Reason: "not_assigned"},
 		{ID: "paused", Reason: "not_assigned"},
 		{ID: "old", Reason: "too_old"},

@@ -30,6 +30,18 @@ import (
 
 const resultsPath = "/probe/v1/results"
 
+// The ids of the tests' monitors. Monitor ids are UUIDs, and a result naming anything else is
+// rejected before the monitor is looked up.
+const (
+	monCheckout  = "0a1b2c3d-0001-4000-8000-000000000001"
+	monSearch    = "0a1b2c3d-0001-4000-8000-000000000002"
+	monNightly   = "0a1b2c3d-0001-4000-8000-000000000003"
+	monDNS       = "0a1b2c3d-0001-4000-8000-000000000004"
+	monPaused    = "0a1b2c3d-0001-4000-8000-000000000005"
+	monElsewhere = "0a1b2c3d-0001-4000-8000-000000000006"
+	monGone      = "0a1b2c3d-0001-4000-8000-000000000007"
+)
+
 // recordingIngester is the ingester.Service of a test: it keeps what it was asked to store, and
 // fails the results that failOn names
 type recordingIngester struct {
@@ -117,15 +129,15 @@ type resultsServer struct {
 // The monitors of the tests. probe-1 owns the active ones.
 func resultsMonitors() (owned []*monitor.Model, others []*monitor.Model) {
 	checkout := &monitor.Model{
-		ID: "mon-checkout", Name: "Checkout", Type: "http", Active: true,
+		ID: monCheckout, Name: "Checkout", Type: "http", Active: true,
 		Interval: 60, Timeout: 16, MaxRetries: 3, RetryInterval: 30, ResendInterval: 10,
 		Config: `{"url":"https://example.com/health","check_cert_expiry":true}`,
 	}
-	search := &monitor.Model{ID: "mon-search", Name: "Search", Type: "tcp", Active: true, Interval: 30, Timeout: 10, Config: `{"host":"search.example.com","port":9200}`}
-	nightly := &monitor.Model{ID: "mon-nightly", Name: "Nightly", Type: "push", Active: true, Config: `{"pushToken":"t"}`}
-	dns := &monitor.Model{ID: "mon-dns", Name: "DNS", Type: "dns", Active: true}
-	paused := &monitor.Model{ID: "mon-paused", Name: "Paused", Type: "http", Active: false}
-	elsewhere := &monitor.Model{ID: "mon-elsewhere", Name: "Elsewhere", Type: "http", Active: true}
+	search := &monitor.Model{ID: monSearch, Name: "Search", Type: "tcp", Active: true, Interval: 30, Timeout: 10, Config: `{"host":"search.example.com","port":9200}`}
+	nightly := &monitor.Model{ID: monNightly, Name: "Nightly", Type: "push", Active: true, Config: `{"pushToken":"t"}`}
+	dns := &monitor.Model{ID: monDNS, Name: "DNS", Type: "dns", Active: true}
+	paused := &monitor.Model{ID: monPaused, Name: "Paused", Type: "http", Active: false}
+	elsewhere := &monitor.Model{ID: monElsewhere, Name: "Elsewhere", Type: "http", Active: true}
 	// The source lists the active monitors of the probe, push monitors and types the probe can't run included
 	return []*monitor.Model{checkout, search, nightly, dns}, []*monitor.Model{paused, elsewhere}
 }
@@ -226,11 +238,11 @@ func TestResults_RejectsUnknownNotAssignedTooOldDuplicateInvalid(t *testing.T) {
 		stored bool
 		want   string
 	}{
-		{name: "a monitor that doesn't exist", result: func(r *probeproto.Result) { r.MonitorID = "mon-gone" }, want: probeproto.ReasonUnknownMonitor},
-		{name: "a push monitor", result: func(r *probeproto.Result) { r.MonitorID = "mon-nightly" }, want: probeproto.ReasonNotAssigned},
-		{name: "another probe's monitor", result: func(r *probeproto.Result) { r.MonitorID = "mon-elsewhere" }, want: probeproto.ReasonNotAssigned},
-		{name: "a paused monitor of the probe", result: func(r *probeproto.Result) { r.MonitorID = "mon-paused" }, want: probeproto.ReasonNotAssigned},
-		{name: "a type the probe can't run", result: func(r *probeproto.Result) { r.MonitorID = "mon-dns" }, want: probeproto.ReasonNotAssigned},
+		{name: "a monitor that doesn't exist", result: func(r *probeproto.Result) { r.MonitorID = monGone }, want: probeproto.ReasonUnknownMonitor},
+		{name: "a push monitor", result: func(r *probeproto.Result) { r.MonitorID = monNightly }, want: probeproto.ReasonNotAssigned},
+		{name: "another probe's monitor", result: func(r *probeproto.Result) { r.MonitorID = monElsewhere }, want: probeproto.ReasonNotAssigned},
+		{name: "a paused monitor of the probe", result: func(r *probeproto.Result) { r.MonitorID = monPaused }, want: probeproto.ReasonNotAssigned},
+		{name: "a type the probe can't run", result: func(r *probeproto.Result) { r.MonitorID = monDNS }, want: probeproto.ReasonNotAssigned},
 		{name: "a start more than an hour ago", result: func(r *probeproto.Result) {
 			r.StartTime = now.Add(-time.Hour - time.Minute)
 			r.EndTime = r.StartTime.Add(time.Second)
@@ -250,22 +262,22 @@ func TestResults_RejectsUnknownNotAssignedTooOldDuplicateInvalid(t *testing.T) {
 		{name: "a negative response time", result: func(r *probeproto.Result) { r.PingMs = -1 }, want: probeproto.ReasonInvalid},
 		{name: "a response time past the column", result: func(r *probeproto.Result) { r.PingMs = 3_000_000_000 }, want: probeproto.ReasonInvalid},
 		{name: "TLS information that isn't an object", result: func(r *probeproto.Result) { r.TLSInfo = json.RawMessage(`"expires soon"`) }, want: probeproto.ReasonInvalid},
-		{name: "a malformed item beats an unknown monitor", result: func(r *probeproto.Result) { r.ID, r.MonitorID = "", "mon-gone" }, want: probeproto.ReasonInvalid},
+		{name: "a malformed item beats an unknown monitor", result: func(r *probeproto.Result) { r.ID, r.MonitorID = "", monGone }, want: probeproto.ReasonInvalid},
 		{name: "an old result of an unknown monitor is too old", result: func(r *probeproto.Result) {
-			r.MonitorID = "mon-gone"
+			r.MonitorID = monGone
 			r.StartTime = now.Add(-2 * time.Hour)
 			r.EndTime = r.StartTime.Add(time.Second)
 		}, want: probeproto.ReasonTooOld},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			s := newResultsServer(t)
-			subject := checkResult("result-under-test", "mon-checkout", recent)
+			subject := checkResult("result-under-test", monCheckout, recent)
 			tc.result(&subject)
 			if tc.stored {
 				require.Equal(t, []probeproto.ResultOutcome{accepted(subject.ID)}, s.results(t, subject))
 				s.ingest.stored, s.ingest.attempts = nil, nil
 			}
-			control := checkResult("control", "mon-checkout", recent.Add(time.Second))
+			control := checkResult("control", monCheckout, recent.Add(time.Second))
 
 			got := s.results(t, subject, control)
 
@@ -277,17 +289,39 @@ func TestResults_RejectsUnknownNotAssignedTooOldDuplicateInvalid(t *testing.T) {
 	}
 }
 
+func TestResults_NonUUIDMonitorIDIsUnknownMonitor(t *testing.T) {
+	s := newResultsServer(t)
+	start := time.Now().UTC().Add(-time.Minute)
+
+	// monitors.id is a UUID column, and PostgreSQL fails a lookup of anything else, which would
+	// fail the whole batch and have the probe send it again for good
+	got := s.results(t,
+		checkResult("words", "no-such-monitor", start),
+		checkResult("not-hex", "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz", start),
+		checkResult("too-short", "0a1b2c3d-0001-4000-8000-00000000000", start),
+		checkResult("control", monCheckout, start.Add(time.Second)),
+	)
+
+	assert.Equal(t, []probeproto.ResultOutcome{
+		rejected("words", probeproto.ReasonUnknownMonitor),
+		rejected("not-hex", probeproto.ReasonUnknownMonitor),
+		rejected("too-short", probeproto.ReasonUnknownMonitor),
+		accepted("control"),
+	}, got, "unknown_monitor for each, and the rest of the batch is not held back")
+	assert.Empty(t, s.monitors.finds, "no id that isn't a UUID reaches the database")
+}
+
 func TestResults_IngestsPerMonitorInStartTimeOrder(t *testing.T) {
 	s := newResultsServer(t)
 	base := time.Now().UTC().Add(-10 * time.Minute)
 	at := func(minutes int) time.Time { return base.Add(time.Duration(minutes) * time.Minute) }
 
 	got := s.results(t,
-		checkResult("c3", "mon-checkout", at(3)),
-		checkResult("s2", "mon-search", at(2)),
-		checkResult("c1", "mon-checkout", at(1)),
-		checkResult("s1", "mon-search", at(1)),
-		checkResult("c2", "mon-checkout", at(2)),
+		checkResult("c3", monCheckout, at(3)),
+		checkResult("s2", monSearch, at(2)),
+		checkResult("c1", monCheckout, at(1)),
+		checkResult("s1", monSearch, at(1)),
+		checkResult("c2", monCheckout, at(2)),
 	)
 
 	assert.Equal(t, []probeproto.ResultOutcome{accepted("c3"), accepted("s2"), accepted("c1"), accepted("s1"), accepted("c2")}, got,
@@ -299,14 +333,14 @@ func TestResults_IngestsPerMonitorInStartTimeOrder(t *testing.T) {
 		}
 		return times
 	}
-	assert.Equal(t, []time.Time{at(1), at(2), at(3)}, starts("mon-checkout"), "each monitor's results arrive oldest first")
-	assert.Equal(t, []time.Time{at(1), at(2)}, starts("mon-search"))
+	assert.Equal(t, []time.Time{at(1), at(2), at(3)}, starts(monCheckout), "each monitor's results arrive oldest first")
+	assert.Equal(t, []time.Time{at(1), at(2)}, starts(monSearch))
 }
 
 func TestResults_ResultsOfOneMonitorStartingTogetherKeepTheOrderSent(t *testing.T) {
 	s := newResultsServer(t)
 	start := time.Now().UTC().Add(-time.Minute)
-	first, second := checkResult("first", "mon-checkout", start), checkResult("second", "mon-checkout", start)
+	first, second := checkResult("first", monCheckout, start), checkResult("second", monCheckout, start)
 	first.Message, second.Message = "sent first", "sent second"
 
 	s.results(t, first, second)
@@ -322,7 +356,7 @@ func TestResults_FillsTheMonitorLikePush(t *testing.T) {
 	end := start.Add(843 * time.Millisecond)
 
 	got := s.results(t, probeproto.Result{
-		ID: "result-1", MonitorID: "mon-checkout", Status: probeproto.StatusDown, Message: "connection refused", PingMs: 843,
+		ID: "result-1", MonitorID: monCheckout, Status: probeproto.StatusDown, Message: "connection refused", PingMs: 843,
 		StartTime: start, EndTime: end,
 		TLSInfo: json.RawMessage(`{"valid":true}`),
 	})
@@ -332,7 +366,7 @@ func TestResults_FillsTheMonitorLikePush(t *testing.T) {
 	stored := s.ingest.stored[0]
 	assert.Equal(t, &ingester.Result{
 		ProbeID:            "probe-1",
-		MonitorID:          "mon-checkout",
+		MonitorID:          monCheckout,
 		MonitorName:        "Checkout",
 		MonitorType:        "http",
 		MonitorInterval:    60,
@@ -366,7 +400,7 @@ func TestResults_ReadsEachOfTheFourStatusWords(t *testing.T) {
 	i := 0
 	for word, want := range words {
 		i++
-		result := checkResult("result-"+word, "mon-search", start.Add(time.Duration(i)*time.Second))
+		result := checkResult("result-"+word, monSearch, start.Add(time.Duration(i)*time.Second))
 		result.Status = word
 
 		require.Equal(t, []probeproto.ResultOutcome{accepted(result.ID)}, s.results(t, result), word)
@@ -377,22 +411,22 @@ func TestResults_ReadsEachOfTheFourStatusWords(t *testing.T) {
 
 func TestResults_AMonitorInAMaintenanceWindowReportsMaintenance(t *testing.T) {
 	s := newResultsServer(t)
-	s.maintenance.under["mon-checkout"] = true
+	s.maintenance.under[monCheckout] = true
 	start := time.Now().UTC().Add(-time.Minute)
-	down := checkResult("down", "mon-checkout", start)
+	down := checkResult("down", monCheckout, start)
 	down.Status, down.Message, down.PingMs = probeproto.StatusDown, "connection refused", 250
-	other := checkResult("other", "mon-search", start)
+	other := checkResult("other", monSearch, start)
 	other.Status, other.Message = probeproto.StatusDown, "connection refused"
 
 	s.results(t, down, other)
 
 	require.Len(t, s.ingest.stored, 2)
-	inWindow := s.ingest.storedFor("mon-checkout")[0]
+	inWindow := s.ingest.storedFor(monCheckout)[0]
 	assert.True(t, inWindow.IsUnderMaintenance)
 	assert.Equal(t, shared.MonitorStatusMaintenance, inWindow.Status, "as the push URL does, planned downtime is neither Down nor Up")
 	assert.Equal(t, "Monitor under maintenance", inWindow.Message)
 	assert.Zero(t, inWindow.PingMs)
-	outside := s.ingest.storedFor("mon-search")[0]
+	outside := s.ingest.storedFor(monSearch)[0]
 	assert.False(t, outside.IsUnderMaintenance)
 	assert.Equal(t, shared.MonitorStatusDown, outside.Status)
 	assert.Equal(t, "connection refused", outside.Message)
@@ -401,8 +435,8 @@ func TestResults_AMonitorInAMaintenanceWindowReportsMaintenance(t *testing.T) {
 func TestResults_RetryAfterIngestErrorStoresNothingTwice(t *testing.T) {
 	s := newResultsServer(t)
 	start := time.Now().UTC().Add(-time.Minute)
-	first := checkResult("first", "mon-checkout", start)
-	second := checkResult("second", "mon-checkout", start.Add(time.Second))
+	first := checkResult("first", monCheckout, start)
+	second := checkResult("second", monCheckout, start.Add(time.Second))
 	broken := true
 	s.ingest.failOn = func(r *ingester.Result) error {
 		if broken && r.StartTime.Equal(second.StartTime) {
@@ -434,8 +468,8 @@ func TestResults_RetryAfterIngestErrorStoresNothingTwice(t *testing.T) {
 func TestResults_AResultTheQueueHoldsAlreadyIsADuplicate(t *testing.T) {
 	s := newResultsServer(t)
 	start := time.Now().UTC().Add(-time.Minute)
-	held := checkResult("held", "mon-checkout", start)
-	next := checkResult("next", "mon-checkout", start.Add(time.Second))
+	held := checkResult("held", monCheckout, start)
+	next := checkResult("next", monCheckout, start.Add(time.Second))
 	s.ingest.failOn = func(r *ingester.Result) error {
 		if r.StartTime.Equal(held.StartTime) {
 			return fmt.Errorf("task already exists: %w", queue.ErrTaskIDConflict)
@@ -459,7 +493,7 @@ func TestResults_AnIdTwiceInOneBatchIsStoredOnce(t *testing.T) {
 	s := newResultsServer(t)
 	start := time.Now().UTC().Add(-time.Minute)
 
-	got := s.results(t, checkResult("same", "mon-checkout", start), checkResult("same", "mon-checkout", start))
+	got := s.results(t, checkResult("same", monCheckout, start), checkResult("same", monCheckout, start))
 
 	assert.Equal(t, []probeproto.ResultOutcome{accepted("same"), rejected("same", probeproto.ReasonDuplicate)}, got)
 	assert.Len(t, s.ingest.stored, 1)
@@ -489,7 +523,7 @@ func TestResults_AcceptsBatchMaxResultsAndRefusesOneMore(t *testing.T) {
 	batch := func(n int) []probeproto.Result {
 		results := make([]probeproto.Result, n)
 		for i := range results {
-			results[i] = checkResult("result-"+strconv.Itoa(i), "mon-checkout", start.Add(time.Duration(i)*time.Millisecond))
+			results[i] = checkResult("result-"+strconv.Itoa(i), monCheckout, start.Add(time.Duration(i)*time.Millisecond))
 		}
 		return results
 	}
@@ -541,9 +575,9 @@ func TestResults_ReadsTheProbesMonitorsOncePerBatch(t *testing.T) {
 	var sent []probeproto.Result
 	for i := range 5 {
 		sent = append(sent,
-			checkResult("owned-"+strconv.Itoa(i), "mon-checkout", start.Add(time.Duration(i)*time.Second)),
-			checkResult("gone-"+strconv.Itoa(i), "mon-gone", start.Add(time.Duration(i)*time.Second)),
-			checkResult("elsewhere-"+strconv.Itoa(i), "mon-elsewhere", start.Add(time.Duration(i)*time.Second)),
+			checkResult("owned-"+strconv.Itoa(i), monCheckout, start.Add(time.Duration(i)*time.Second)),
+			checkResult("gone-"+strconv.Itoa(i), monGone, start.Add(time.Duration(i)*time.Second)),
+			checkResult("elsewhere-"+strconv.Itoa(i), monElsewhere, start.Add(time.Duration(i)*time.Second)),
 		)
 	}
 
@@ -551,7 +585,7 @@ func TestResults_ReadsTheProbesMonitorsOncePerBatch(t *testing.T) {
 
 	require.Len(t, got, 15)
 	assert.Equal(t, 1, s.source.calls)
-	assert.ElementsMatch(t, []string{"mon-gone", "mon-elsewhere"}, s.monitors.finds,
+	assert.ElementsMatch(t, []string{monGone, monElsewhere}, s.monitors.finds,
 		"a monitor that isn't the probe's is looked up once, and one the probe owns not at all")
 }
 
@@ -566,7 +600,7 @@ func TestResults_AFailureToReadTheMonitorsAnswers500(t *testing.T) {
 			break_(s)
 
 			w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{
-				checkResult("a", "mon-checkout", start), checkResult("b", "mon-elsewhere", start),
+				checkResult("a", monCheckout, start), checkResult("b", monElsewhere, start),
 			}})
 
 			assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
