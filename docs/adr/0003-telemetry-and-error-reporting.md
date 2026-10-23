@@ -4,7 +4,11 @@ Status: Accepted, amended 2026-10-22
 Date: 2026-10-21
 Ticket: #232, #233
 
-> **Amended 2026-10-22: changed to opt-out.** This ADR first decided that the usage ping and error reports are off by default and need an opt-in. They are now on by default, and an admin opts out. Section 1 is the decision as it stands. The original decision and the reasons it gave against opt-out stay below, under "Original decision (2026-10-21)" and "Rejected", so the change can be read in full. Everything else in this ADR (the kill switches, the two allowlists, where the data goes) is unchanged.
+> **Amended 2026-10-22: changed to opt-out.** This ADR first decided that the usage ping and error reports are off by default and need an opt-in. They are now on by default, and an admin opts out. Section 1 is the decision as it stands. The original decision and the reasons it gave against opt-out stay below, under "Original decision (2026-10-21)" and "Rejected", so the change can be read in full. The kill switches changed too, as the next paragraph says. Everything else in this ADR (the two allowlists, where the data goes) is unchanged.
+>
+> **Also amended 2026-10-22: `DO_NOT_TRACK` was dropped.** The kill switches are `TELEMETRY=off` and `ERROR_REPORTING=off` (section 2), and `DO_NOT_TRACK=1` no longer turns anything off.
+>
+> `ERROR_REPORTING_DSN` (section 4) still works as before and stays undocumented on purpose.
 
 ## Context
 
@@ -28,13 +32,12 @@ Off by default, two separate opt-ins. Neither was on until an admin turned it on
 
 ### 2. Environment kill switches
 
-Three environment variables override the settings and force the sending off:
+Two environment variables override the settings and force the sending off:
 
 - `TELEMETRY=off` turns the usage ping off.
 - `ERROR_REPORTING=off` turns error reports off.
-- `DO_NOT_TRACK=1` turns both off.
 
-While one applies, nothing is sent, whatever an admin chose.
+While one applies, nothing is sent for that feature, whatever an admin chose. To send neither, set both. `DO_NOT_TRACK` was a third switch for both at once, and was dropped on 2026-10-22: it is not read.
 
 ### 3. The usage ping is an allowlisted payload
 
@@ -94,7 +97,7 @@ The DSN is the only coupling to Sentry. Moving to GlitchTip, or to a server we r
 
 ## Consequences
 
-- The numbers count the installs that haven't opted out or set a kill switch, so they are closer to a census, but still a floor: an operator who sets `DO_NOT_TRACK=1` or blocks the Worker isn't counted. Opting out and in again gives a new instance ID, so one install can be counted twice over time.
+- The numbers count the installs that haven't opted out or set a kill switch, so they are closer to a census, but still a floor: an operator who sets `TELEMETRY=off` or blocks the Worker isn't counted. Opting out and in again gives a new instance ID, so one install can be counted twice over time.
 - Upgrading starts sending without a choice from the admin. The notice is the one place that says so, and the kill switches are for operators who must be sure nothing goes out. An operator who needs that before the first start sets them in the image or the compose file, as the install guides show.
 - The default has to be kept out of the repository's own dev and test setups: the dev compose files, the e2e stack and the Go tests all point the ping and the reports at an address nothing listens on, and a guard test fails on a test that could reach the built-in Sentry DSN.
 - Adding a field to either payload is a decision. It changes this ADR, the Worker's validator (or the `BeforeSend` allowlist) and the docs, which must list exactly what is sent. The Worker rejects the new field until it is changed.
