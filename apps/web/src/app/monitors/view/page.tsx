@@ -49,8 +49,8 @@ import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import clsx from "clsx";
-import { formatMonitorTarget } from "../components/monitor-registry";
-import { parseMonitorConfig } from "../components/monitor-target";
+import { formatMonitorTarget } from "../monitor-types/registry";
+import { parseMonitorConfig } from "../monitor-types/monitor-target";
 import StaleMarker from "../components/stale-marker";
 import { getMonitorStatusView } from "../components/monitor-status";
 

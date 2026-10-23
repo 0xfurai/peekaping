@@ -72,6 +72,10 @@ jobs:
         working-directory: apps/web
         run: bun run lint
 
+      - name: Run web tests
+        working-directory: apps/web
+        run: bun run test
+
       - name: Run web build
         working-directory: apps/web
         run: bun run build

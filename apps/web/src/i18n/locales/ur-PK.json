@@ -570,6 +570,8 @@
         "docker": "ڈاکر کنٹینر",
         "grpc": "gRPC کلیدی لفظ مانیٹر",
         "http": "HTTP(S) مانیٹر",
+        "http_json_query": "HTTP(s) - JSON کوئری",
+        "http_keyword": "HTTP(s) - کلیدی لفظ",
         "kafka": "کافکا پروڈیوسر مانیٹر",
         "mongodb": "MongoDB ڈیٹا بیس مانیٹر",
         "mqtt": "MQTT بروکر مانیٹر",

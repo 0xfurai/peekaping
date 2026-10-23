@@ -14,9 +14,10 @@ Tests go through public seams: what a caller of the service, the HTTP API, or a 
 | HTTP behaviour: status codes, payloads, auth, validation | the API router, real services over SQLite and miniredis | `apps/server/internal/apitest/` |
 | Repository or query behaviour | the repository | SQLite always; Postgres through `PEE_TEST_POSTGRES_DSN`; Mongo (`PEE_TEST_MONGO_URI`) only when the change is a Mongo fix ADR 0001 allows (see `internal/modules/persistence_test.go`) |
 | Queue or worker code | the handler, with asynq on miniredis | beside the package |
+| A monitor or channel type's schema or codec | the registry | `registry.test.ts` beside the registry covers every listed type; add a case there only for a rule the round trip can't see |
 | A user-visible web flow | the browser | Playwright spec in `e2e/` |
 
-`apps/web` has no unit-test runner. Cover web logic through an e2e spec, or ask the user before adding a runner.
+`apps/web` runs vitest (`bun run test`) for pure logic such as form codecs; see `docs/adr/0004-web-form-conventions.md`. A web flow a user clicks through is still covered by an e2e spec.
 
 An e2e spec earns its cost when the ticket changes a flow a user clicks through (create, edit, delete, settings, auth). A copy or style change doesn't need one.
 

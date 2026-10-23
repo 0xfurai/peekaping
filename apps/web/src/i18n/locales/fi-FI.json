@@ -570,6 +570,8 @@
         "docker": "Docker-kontti",
         "grpc": "gRPC-avainsanaseuranta",
         "http": "HTTP(S)-seuranta",
+        "http_json_query": "HTTP(s) - JSON-kysely",
+        "http_keyword": "HTTP(s) - Avainsana",
         "kafka": "Kafka-tuottajamonitori",
         "mongodb": "MongoDB-tietokannan valvonta",
         "mqtt": "MQTT-välittäjän valvonta",
