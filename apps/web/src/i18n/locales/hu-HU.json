@@ -683,6 +683,7 @@
     "maintenance": "Karbantartás",
     "monitors": "Figyelők",
     "notification_channels": "Értesítési csatornák",
+    "probes": "Szondák",
     "proxies": "Proxik",
     "settings": "Beállítások",
     "status_pages": "Állapotlapok",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "Adja meg újra ezt a titkot: megváltozott a küldés célja",
       "remove": "Eltávolítás",
       "saved_hint": "Mentve — írjon be újat a cseréhez"
+    }
+  },
+  "probes": {
+    "page_name": "Szondák",
+    "description": "A szondák a figyelők ellenőrzéseit azokról a helyekről futtatják, ahová telepítve vannak. A helyi szonda maga a Peekaping.",
+    "empty_list": {
+      "title": "Nem található szonda",
+      "text": "Hozzon létre egy szondát, hogy ellenőrzéseket futtasson egy másik helyről.",
+      "action_text": "Hozza létre az első szondáját"
+    },
+    "table": {
+      "headers": {
+        "name": "Név",
+        "location": "Helyszín",
+        "status": "Állapot",
+        "disabled": "Letiltva",
+        "token": "Token",
+        "instances": "Példányok",
+        "actions": "Műveletek"
+      },
+      "status": {
+        "online": "Elérhető",
+        "offline": "Nem elérhető"
+      },
+      "disabled": "Letiltva",
+      "no_instances": "Még nincs példány",
+      "last_seen": "utoljára látva: {{date}}",
+      "actions": {
+        "edit": "{{name}} szonda szerkesztése",
+        "rotate": "{{name}} szonda tokenjének cseréje",
+        "delete": "{{name}} szonda törlése"
+      }
+    },
+    "create_dialog": {
+      "title": "Szonda létrehozása",
+      "description": "A szonda azon a helyen futtat ellenőrzéseket, ahová telepíti. A tokenje csak egyszer jelenik meg, a létrehozás után.",
+      "submit": "Szonda létrehozása",
+      "creating": "Létrehozás..."
+    },
+    "edit_dialog": {
+      "title": "Szonda szerkesztése",
+      "description": "Módosítsa a(z) {{name}} beállításait."
+    },
+    "form": {
+      "name_label": "Név",
+      "name_placeholder": "pl. Frankfurt",
+      "location_label": "Helyszín (nem kötelező)",
+      "location_placeholder": "pl. Frankfurt, Németország",
+      "name_required": "A név megadása kötelező",
+      "name_too_long": "A név túl hosszú",
+      "location_too_long": "A helyszín túl hosszú",
+      "disabled_label": "Letiltva",
+      "disabled_description": "A letiltott szonda tokenje nem működik, amíg újra nem engedélyezi."
+    },
+    "rotate_dialog": {
+      "title": "Token cseréje",
+      "description": "A(z) {{name}} szonda régi tokenje azonnal megszűnik működni. A példányait újra kell indítani az új tokennel.",
+      "confirm": "Token cseréje",
+      "rotating": "Csere..."
+    },
+    "delete_dialog": {
+      "title": "Szonda törlése",
+      "description": "Biztosan törli a(z) „{{name}}” szondát? A tokenje megszűnik működni. Ez a művelet nem vonható vissza."
+    },
+    "token_alert": {
+      "title_created": "A(z) {{name}} szonda létrejött",
+      "title_rotated": "Új token a(z) {{name}} szondához",
+      "note": "Ez a token a szondához rendelt figyelők konfigurációját olvassa. Csak egyszer jelenik meg.",
+      "token_label": "Token",
+      "docker_label": "Indítsa el a szondát Dockerrel",
+      "copy_token": "Token másolása",
+      "copy_command": "Docker-parancs másolása"
+    },
+    "messages": {
+      "created_successfully": "A szonda sikeresen létrejött",
+      "updated_successfully": "A szonda sikeresen frissítve",
+      "rotated_successfully": "A token sikeresen kicserélve",
+      "deleted_successfully": "A szonda sikeresen törölve",
+      "failed_to_create": "A szonda létrehozása sikertelen",
+      "failed_to_update": "A szonda frissítése sikertelen",
+      "failed_to_rotate": "A token cseréje sikertelen",
+      "failed_to_delete": "A szonda törlése sikertelen",
+      "failed_to_load": "A szondák betöltése sikertelen",
+      "copy_success": "Vágólapra másolva",
+      "copy_failed": "A vágólapra másolás sikertelen"
     }
   },
   "proxies": {
