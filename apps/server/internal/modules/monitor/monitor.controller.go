@@ -200,10 +200,14 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	// Only the ID and type: the monitor's config holds credentials, and so does its push token
 	ic.logger.Infof("Created monitor: %s (type: %s)", createdMonitor.ID, createdMonitor.Type)
 
-	response, err := ic.withLinksOf(ctx, createdMonitor)
-	if err != nil {
-		ic.logger.Errorw("Failed to fetch monitor links", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	// The monitor and its links are committed, and a transaction that failed on a link would have
+	// returned an error above, so the links are exactly the IDs of the request. The response is
+	// built from them without a read: one that failed would answer 500 for a monitor that exists,
+	// and a client sending the POST again would create a second one.
+	response := &MonitorResponseDto{
+		Monitor:         *createdMonitor,
+		NotificationIds: distinct(monitor.NotificationIds),
+		TagIds:          distinct(monitor.TagIds),
 	}
 
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Monitor created successfully", response))
