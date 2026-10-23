@@ -215,6 +215,30 @@ func TestMonitorProbes_PutWithoutProbeIDsKeepsProbe(t *testing.T) {
 	assert.Equal(t, []string{"local"}, back.ProbeIDs, "and so does a partial update")
 }
 
+// A probe says which types it runs each time it says hello. A monitor of a type it no longer runs
+// is not dealt, but the admin can still rename, pause or resave it as it is, with the probe_ids
+// the web app read.
+func TestMonitorProbes_AMonitorWhoseProbeStoppedRunningItsTypeCanStillBeEdited(t *testing.T) {
+	a := newAppWithAdmin(t)
+	paris := a.probeThatRuns(t, "Paris", "http")
+	id := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), paris.ID), a.asAdmin), http.StatusCreated).ID
+	path := monitorsPath + "/" + id
+	instanceID := uuid.NewString()
+	hello := helloFrom(instanceID)
+	hello.SupportedTypes = []string{"dns"}
+	require.Equal(t, http.StatusOK, a.request(t, http.MethodPost, helloPath, hello, asProbe(paris.Token, instanceID)).Code)
+
+	renamed := a.request(t, http.MethodPut, path, onProbes(httpMonitorBody("Checkout, renamed", ""), paris.ID), a.asAdmin)
+	assert.Equal(t, http.StatusOK, renamed.Code, renamed.Body.String())
+	paused := a.request(t, http.MethodPatch, path, map[string]any{"active": false, "probe_ids": []string{paris.ID}}, a.asAdmin)
+	assert.Equal(t, http.StatusOK, paused.Code, paused.Body.String())
+
+	moved := a.request(t, http.MethodPatch, path, map[string]any{"probe_ids": []string{"local"}}, a.asAdmin)
+	assert.Equal(t, http.StatusOK, moved.Code, "and it can be moved to a probe that runs it: "+moved.Body.String())
+	back := a.request(t, http.MethodPatch, path, map[string]any{"probe_ids": []string{paris.ID}}, a.asAdmin)
+	assert.Equal(t, http.StatusBadRequest, back.Code, "but not back: "+back.Body.String())
+}
+
 func TestMonitorProbes_ListAndGetCarryProbeIDs(t *testing.T) {
 	a := newAppWithAdmin(t)
 	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})

@@ -78,25 +78,28 @@ func (mr *MonitorServiceImpl) findProbe(ctx context.Context, id string) (*ProbeI
 	return mr.probes.FindProbe(ctx, id)
 }
 
-// validateFullProbes checks the probes a full update leaves the monitor on. An update that sends
-// none and keeps the type changes nothing about them, so it is not checked: a monitor whose probe
-// stopped running its type can still be renamed.
-func (mr *MonitorServiceImpl) validateFullProbes(ctx context.Context, current *Model, update *CreateUpdateDto) error {
-	switch {
-	case update.ProbeIDs != nil:
-		return mr.validateProbes(ctx, update.Type, update.ProbeIDs)
-	case update.Type != current.Type:
-		return mr.validateProbes(ctx, update.Type, currentProbeIDs(current))
-	}
-	return nil
-}
-
-// validatePartialProbes is validateFullProbes for a partial update: only a type or probes it
-// sends are checked, against the probes or the type the monitor has.
-func (mr *MonitorServiceImpl) validatePartialProbes(ctx context.Context, current *Model, update *PartialUpdateDto) error {
-	if update.Type == nil && update.ProbeIDs == nil {
+// validateChangedProbes checks the type and probes a monitor has after an update, unless they are
+// the ones it has: an update that changes neither is not checked, so that a monitor whose probe
+// stopped running its type can still be renamed or paused.
+func (mr *MonitorServiceImpl) validateChangedProbes(ctx context.Context, current *Model, monitorType string, probeIDs []string) error {
+	if monitorType == current.Type && slices.Equal(probeIDs, currentProbeIDs(current)) {
 		return nil
 	}
+	return mr.validateProbes(ctx, monitorType, probeIDs)
+}
+
+// validateFullProbes checks the probes a full update leaves the monitor on. Probes it doesn't send
+// are the ones the monitor has.
+func (mr *MonitorServiceImpl) validateFullProbes(ctx context.Context, current *Model, update *CreateUpdateDto) error {
+	probeIDs := update.ProbeIDs
+	if probeIDs == nil {
+		probeIDs = currentProbeIDs(current)
+	}
+	return mr.validateChangedProbes(ctx, current, update.Type, probeIDs)
+}
+
+// validatePartialProbes is validateFullProbes for a partial update, which sends only what changes
+func (mr *MonitorServiceImpl) validatePartialProbes(ctx context.Context, current *Model, update *PartialUpdateDto) error {
 	monitorType, probeIDs := current.Type, currentProbeIDs(current)
 	if update.Type != nil {
 		monitorType = *update.Type
@@ -104,5 +107,5 @@ func (mr *MonitorServiceImpl) validatePartialProbes(ctx context.Context, current
 	if update.ProbeIDs != nil {
 		probeIDs = update.ProbeIDs
 	}
-	return mr.validateProbes(ctx, monitorType, probeIDs)
+	return mr.validateChangedProbes(ctx, current, monitorType, probeIDs)
 }
