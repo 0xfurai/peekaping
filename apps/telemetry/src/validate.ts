@@ -1,4 +1,4 @@
-// The usage ping contract (ticket #232, docs/adr/0003-opt-in-telemetry-and-error-reporting.md).
+// The usage ping contract (ticket #232, docs/adr/0003-telemetry-and-error-reporting.md).
 // A strict allowlist: every field is required, every value is checked, anything else is rejected.
 // The error is a fixed string naming only a contract field; it never repeats a key or value from the input.
 

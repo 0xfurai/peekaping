@@ -29,7 +29,7 @@ All 89 REST operations are represented, including non-JSON responses:
 | Proxies | 6 |
 | Tags | 6 |
 | Settings | 3 |
-| Telemetry | 2 |
+| Telemetry | 3 |
 | Error reporting | 2 |
 | Probe protocol (`/probe/v1`) | 4 |
 | Push URL | 1 |

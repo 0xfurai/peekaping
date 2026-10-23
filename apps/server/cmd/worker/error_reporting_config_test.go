@@ -10,7 +10,6 @@ import (
 func TestErrorReportingSettingsAreLoadedFromEnv(t *testing.T) {
 	t.Setenv("ERROR_REPORTING", "")
 	t.Setenv("ERROR_REPORTING_DSN", "")
-	t.Setenv("DO_NOT_TRACK", "")
 
 	cfg, err := LoadAndValidate(t.TempDir())
 	require.NoError(t, err)
@@ -25,10 +24,4 @@ func TestErrorReportingSettingsAreLoadedFromEnv(t *testing.T) {
 	internalCfg = cfg.ToInternalConfig()
 	assert.True(t, internalCfg.ErrorReportingForcedOff())
 	assert.Equal(t, "https://key@errors.example.com/7", internalCfg.ErrorReportingDSN)
-
-	t.Setenv("ERROR_REPORTING", "")
-	t.Setenv("DO_NOT_TRACK", "1")
-	cfg, err = LoadAndValidate(t.TempDir())
-	require.NoError(t, err)
-	assert.True(t, cfg.ToInternalConfig().ErrorReportingForcedOff())
 }

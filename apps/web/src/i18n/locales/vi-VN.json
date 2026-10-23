@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Tạo tài khoản quản trị của bạn",
+      "error_reporting_hint": "Bật theo mặc định. Bỏ đánh dấu ô này để tắt. Bạn có thể đổi lại sau trong “Cài đặt”.",
       "have_account": "Bạn đã có tài khoản?",
       "sign_in": "Đăng nhập",
       "submit": "Tạo",
-      "telemetry_hint": "Tắt trừ khi bạn đánh dấu ô này. Bạn có thể đổi lại sau trong “Cài đặt”. Nếu đánh dấu, Peekaping gửi những thông tin này nhiều nhất một lần mỗi ngày:",
+      "telemetry_hint": "Bật theo mặc định. Bỏ đánh dấu ô này để tắt. Bạn có thể đổi lại sau trong “Cài đặt”. Khi còn bật, Peekaping gửi những thông tin này nhiều nhất một lần mỗi ngày:",
       "title": "Xin chào"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Gửi báo cáo lỗi",
-    "never_sent": "Không bao giờ gửi: thông báo lỗi, URL, header, URL webhook, tên hay tên máy chủ. Báo cáo không chứa địa chỉ IP, và dự án Sentry của Peekaping được đặt để không lưu IP của người gửi. Với ERROR_REPORTING_DSN của riêng bạn, cài đặt Sentry hoặc GlitchTip của bạn sẽ quyết định.",
-    "not_saved": "Lựa chọn gửi báo cáo lỗi của bạn chưa được lưu. Hãy bật lại trong “Cài đặt”.",
+    "never_sent": "Không bao giờ gửi: thông báo lỗi, URL, header, URL webhook, tên hay tên máy chủ. Báo cáo không chứa địa chỉ IP, và dự án Sentry của Peekaping được đặt để không lưu IP của người gửi.",
+    "not_saved": "Lựa chọn của bạn về báo cáo lỗi chưa được lưu. Hãy kiểm tra trong “Cài đặt”.",
     "sent": "Chỉ được gửi khi chính Peekaping gặp sự cố. Một báo cáo chứa loại lỗi và vị trí trong mã nơi lỗi xảy ra, phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ và hệ điều hành."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "Ở chế độ cụm, thay đổi đến mọi tiến trình trong vòng một phút.",
-      "description": "Gửi báo cáo đến Sentry khi máy chủ gặp sự cố. Tắt cho đến khi bạn bật.",
-      "forced_off": "Biến môi trường ERROR_REPORTING=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
+      "description": "Gửi báo cáo đến Sentry khi máy chủ gặp sự cố. Bật theo mặc định; bạn có thể tắt tại đây bất cứ lúc nào.",
+      "forced_off": "Biến môi trường ERROR_REPORTING=off đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
       "title": "Báo cáo lỗi"
     },
     "telemetry": {
-      "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Tắt cho đến khi bạn bật.",
-      "forced_off": "Biến môi trường TELEMETRY=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
-      "id_note": "ID bản cài đặt được tạo khi bạn bật mục này và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
+      "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Bật theo mặc định; bạn có thể tắt tại đây bất cứ lúc nào.",
+      "forced_off": "Biến môi trường TELEMETRY=off đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
+      "id_note": "ID bản cài đặt được tạo khi mục này đang bật và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
       "payload_off": "Không có gì được gửi khi mục này đang tắt. Đây là nội dung ping sử dụng sẽ có nếu bạn bật.",
       "payload_title": "Ping sử dụng tiếp theo sẽ gửi gì",
       "title": "Thống kê sử dụng"
@@ -1487,12 +1488,19 @@
     "docs_link": "Những gì được gửi và cách tắt",
     "label": "Gửi thống kê sử dụng ẩn danh",
     "never_sent": "Không bao giờ gửi: tên giám sát, URL, máy chủ, thẻ, địa chỉ trang trạng thái hay cài đặt thông báo. Ping sử dụng không chứa địa chỉ IP, và Worker của Peekaping không ghi lại IP của người gửi.",
-    "not_saved": "Lựa chọn gửi thống kê sử dụng của bạn chưa được lưu. Hãy bật lại trong “Cài đặt”.",
+    "not_saved": "Lựa chọn của bạn về thống kê sử dụng chưa được lưu. Hãy kiểm tra trong “Cài đặt”.",
     "sent_features": "Bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không",
-    "sent_id": "Một ID ngẫu nhiên, được tạo khi bạn bật và bị xóa khi bạn tắt",
+    "sent_id": "Một ID ngẫu nhiên, được tạo khi tính năng đang bật và bị xóa khi bạn tắt",
     "sent_monitors": "Bạn có bao nhiêu giám sát, dưới dạng một khoảng, chẳng hạn 11-50",
     "sent_setup": "Phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ, cùng hệ điều hành và loại CPU",
     "sent_types": "Các loại giám sát và kênh thông báo bạn dùng, chẳng hạn http hoặc telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Báo cáo lỗi đang bật. Nếu Peekaping gặp sự cố, nó gửi loại lỗi và vị trí trong mã nơi lỗi xảy ra, phiên bản của nó, chế độ, backend lưu trữ và hệ điều hành. Nó không bao giờ gửi thông báo lỗi, URL hay tên máy chủ.",
+    "settings_errors": "Tắt báo cáo lỗi trong “Cài đặt”",
+    "settings_usage": "Tắt thống kê sử dụng trong “Cài đặt”",
+    "title": "Việc gửi dữ liệu ẩn danh được bật theo mặc định",
+    "usage_statistics": "Thống kê sử dụng đang bật. Nhiều nhất một lần mỗi ngày, Peekaping gửi ID ngẫu nhiên của bản cài đặt, phiên bản của nó, chế độ, backend lưu trữ và hệ điều hành, một khoảng cho số lượng giám sát của bạn, các loại giám sát và kênh thông báo bạn dùng, cũng như việc bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không. Nó không bao giờ gửi tên, URL, máy chủ hay cài đặt."
   },
   "theme": {
     "dark": "Tối",

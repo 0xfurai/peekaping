@@ -125,6 +125,10 @@ func (mr *ServiceImpl) SetByKey(ctx context.Context, key string, entity *Model) 
 	return mr.repository.SetByKey(ctx, key, entity)
 }
 
+func (mr *ServiceImpl) CreateIfAbsent(ctx context.Context, key string, entity *Model) (*Model, error) {
+	return mr.repository.CreateIfAbsent(ctx, key, entity)
+}
+
 func (mr *ServiceImpl) DeleteByKey(ctx context.Context, key string) error {
 	return mr.repository.DeleteByKey(ctx, key)
 }
