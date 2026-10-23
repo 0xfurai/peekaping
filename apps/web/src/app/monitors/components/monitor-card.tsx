@@ -1,4 +1,4 @@
-import type { MonitorModel } from "@/api";
+import type { MonitorMonitorResponseDto } from "@/api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import StaleMarker from "./stale-marker";
 import { getMonitorStatusView } from "./monitor-status";
 
-const MonitorCard = ({ monitor }: { monitor: MonitorModel }) => {
+const MonitorCard = ({ monitor }: { monitor: MonitorMonitorResponseDto }) => {
   const navigate = useNavigate();
   const { t } = useLocalizedTranslation();
 

@@ -171,6 +171,11 @@ func (m *MockMonitorNotificationService) FindByMonitorID(ctx context.Context, mo
 	return args.Get(0).([]*monitor_notification.Model), args.Error(1)
 }
 
+func (m *MockMonitorNotificationService) FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*monitor_notification.Model, error) {
+	args := m.Called(ctx, monitorIDs)
+	return args.Get(0).(map[string][]*monitor_notification.Model), args.Error(1)
+}
+
 func (m *MockMonitorNotificationService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
@@ -203,6 +208,11 @@ func (m *MockMonitorTagService) Delete(ctx context.Context, id string) error {
 func (m *MockMonitorTagService) FindByMonitorID(ctx context.Context, monitorID string) ([]*monitor_tag.Model, error) {
 	args := m.Called(ctx, monitorID)
 	return args.Get(0).([]*monitor_tag.Model), args.Error(1)
+}
+
+func (m *MockMonitorTagService) FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*monitor_tag.Model, error) {
+	args := m.Called(ctx, monitorIDs)
+	return args.Get(0).(map[string][]*monitor_tag.Model), args.Error(1)
 }
 
 func (m *MockMonitorTagService) FindByTagID(ctx context.Context, tagID string) ([]*monitor_tag.Model, error) {

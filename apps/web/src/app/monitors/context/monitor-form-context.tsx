@@ -28,7 +28,6 @@ import type {
   Options,
   PostMonitorsData,
   HttpxErrorBody,
-  UtilsApiResponseMonitorModel,
   PutMonitorsByIdResponse,
   PutMonitorsByIdError,
   PutMonitorsByIdData,
@@ -55,7 +54,7 @@ interface MonitorFormContextType {
   mode: Mode;
   isPending: boolean;
   createMonitorMutation: UseMutationResult<
-    UtilsApiResponseMonitorModel,
+    UtilsApiResponseMonitorMonitorResponseDto,
     AxiosError<HttpxErrorBody, unknown>,
     Options<PostMonitorsData>,
     unknown
