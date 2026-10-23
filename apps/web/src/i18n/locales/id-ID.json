@@ -683,6 +683,7 @@
     "maintenance": "Pemeliharaan",
     "monitors": "Pengawasan",
     "notification_channels": "Saluran Pemberitahuan",
+    "probes": "Probe",
     "proxies": "Proksi",
     "settings": "Pengaturan",
     "status_pages": "Halaman Status",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "Masukkan ulang rahasia ini: tujuan pengirimannya berubah",
       "remove": "Hapus",
       "saved_hint": "Tersimpan — ketik untuk mengganti"
+    }
+  },
+  "probes": {
+    "page_name": "Probe",
+    "description": "Probe menjalankan pemeriksaan monitor dari tempat probe tersebut dipasang. Probe lokal adalah Peekaping itu sendiri.",
+    "empty_list": {
+      "title": "Tidak ada probe ditemukan",
+      "text": "Buat probe untuk menjalankan pemeriksaan dari tempat lain.",
+      "action_text": "Buat probe pertama Anda"
+    },
+    "table": {
+      "headers": {
+        "name": "Nama",
+        "location": "Lokasi",
+        "status": "Status",
+        "disabled": "Nonaktif",
+        "token": "Token",
+        "instances": "Instans",
+        "actions": "Aksi"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Nonaktif",
+      "no_instances": "Belum ada instans",
+      "last_seen": "terakhir terlihat {{date}}",
+      "actions": {
+        "edit": "Edit probe {{name}}",
+        "rotate": "Ganti token probe {{name}}",
+        "delete": "Hapus probe {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Buat probe",
+      "description": "Probe menjalankan pemeriksaan dari tempat Anda memasangnya. Tokennya hanya ditampilkan sekali, setelah Anda membuatnya.",
+      "submit": "Buat probe",
+      "creating": "Membuat..."
+    },
+    "edit_dialog": {
+      "title": "Edit probe",
+      "description": "Ubah pengaturan {{name}}."
+    },
+    "form": {
+      "name_label": "Nama",
+      "name_placeholder": "mis., Frankfurt",
+      "location_label": "Lokasi (opsional)",
+      "location_placeholder": "mis., Frankfurt, Jerman",
+      "name_required": "Nama wajib diisi",
+      "name_too_long": "Nama terlalu panjang",
+      "location_too_long": "Lokasi terlalu panjang",
+      "disabled_label": "Nonaktif",
+      "disabled_description": "Token probe yang dinonaktifkan berhenti berfungsi sampai Anda mengaktifkannya lagi."
+    },
+    "rotate_dialog": {
+      "title": "Ganti token",
+      "description": "Token lama probe {{name}} langsung berhenti berfungsi. Instansnya harus dimulai ulang dengan token baru.",
+      "confirm": "Ganti token",
+      "rotating": "Mengganti..."
+    },
+    "delete_dialog": {
+      "title": "Hapus probe",
+      "description": "Yakin ingin menghapus probe \"{{name}}\"? Tokennya akan berhenti berfungsi. Tindakan ini tidak dapat dibatalkan."
+    },
+    "token_alert": {
+      "title_created": "Probe {{name}} dibuat",
+      "title_rotated": "Token baru untuk probe {{name}}",
+      "note": "Token ini membaca konfigurasi monitor yang ditetapkan ke probe. Token hanya ditampilkan sekali.",
+      "token_label": "Token",
+      "docker_label": "Jalankan probe dengan Docker",
+      "copy_token": "Salin token",
+      "copy_command": "Salin perintah docker"
+    },
+    "messages": {
+      "created_successfully": "Probe berhasil dibuat",
+      "updated_successfully": "Probe berhasil diperbarui",
+      "rotated_successfully": "Token berhasil diganti",
+      "deleted_successfully": "Probe berhasil dihapus",
+      "failed_to_create": "Gagal membuat probe",
+      "failed_to_update": "Gagal memperbarui probe",
+      "failed_to_rotate": "Gagal mengganti token",
+      "failed_to_delete": "Gagal menghapus probe",
+      "failed_to_load": "Gagal memuat probe",
+      "copy_success": "Disalin ke clipboard",
+      "copy_failed": "Tidak dapat menyalin ke clipboard"
     }
   },
   "proxies": {

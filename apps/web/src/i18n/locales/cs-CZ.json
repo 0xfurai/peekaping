@@ -683,6 +683,7 @@
     "maintenance": "Údržba",
     "monitors": "Monitory",
     "notification_channels": "Notifikační kanály",
+    "probes": "Sondy",
     "proxies": "Proxy servery",
     "settings": "Nastavení",
     "status_pages": "Stránky stavu",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "Zadejte tento tajný údaj znovu: změnilo se místo, kam se odesílá",
       "remove": "Odebrat",
       "saved_hint": "Uloženo — pro nahrazení začněte psát"
+    }
+  },
+  "probes": {
+    "page_name": "Sondy",
+    "description": "Sondy provádějí kontroly monitorů z míst, kde jsou nainstalovány. Lokální sonda je samotný Peekaping.",
+    "empty_list": {
+      "title": "Nebyly nalezeny žádné sondy",
+      "text": "Vytvořte sondu, která bude provádět kontroly z jiného místa.",
+      "action_text": "Vytvořte svou první sondu"
+    },
+    "table": {
+      "headers": {
+        "name": "Název",
+        "location": "Umístění",
+        "status": "Stav",
+        "disabled": "Zakázána",
+        "token": "Token",
+        "instances": "Instance",
+        "actions": "Akce"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Zakázána",
+      "no_instances": "Zatím žádné instance",
+      "last_seen": "naposledy viděna {{date}}",
+      "actions": {
+        "edit": "Upravit sondu {{name}}",
+        "rotate": "Vyměnit token sondy {{name}}",
+        "delete": "Smazat sondu {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Vytvořit sondu",
+      "description": "Sonda provádí kontroly z místa, kde ji nainstalujete. Její token se zobrazí pouze jednou, po vytvoření.",
+      "submit": "Vytvořit sondu",
+      "creating": "Vytváření..."
+    },
+    "edit_dialog": {
+      "title": "Upravit sondu",
+      "description": "Změňte nastavení sondy {{name}}."
+    },
+    "form": {
+      "name_label": "Název",
+      "name_placeholder": "např. Frankfurt",
+      "location_label": "Umístění (volitelné)",
+      "location_placeholder": "např. Frankfurt, Německo",
+      "name_required": "Název je povinný",
+      "name_too_long": "Název je příliš dlouhý",
+      "location_too_long": "Umístění je příliš dlouhé",
+      "disabled_label": "Zakázána",
+      "disabled_description": "Token zakázané sondy přestane fungovat, dokud ji znovu nepovolíte."
+    },
+    "rotate_dialog": {
+      "title": "Vyměnit token",
+      "description": "Starý token sondy {{name}} okamžitě přestane fungovat. Její instance je nutné restartovat s novým tokenem.",
+      "confirm": "Vyměnit token",
+      "rotating": "Výměna..."
+    },
+    "delete_dialog": {
+      "title": "Smazat sondu",
+      "description": "Opravdu chcete smazat sondu „{{name}}“? Její token přestane fungovat. Tuto akci nelze vrátit zpět."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} byla vytvořena",
+      "title_rotated": "Nový token pro sondu {{name}}",
+      "note": "Tento token čte konfigurace monitorů přiřazených sondě. Zobrazí se pouze jednou.",
+      "token_label": "Token",
+      "docker_label": "Spusťte sondu pomocí Dockeru",
+      "copy_token": "Kopírovat token",
+      "copy_command": "Kopírovat příkaz docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda byla úspěšně vytvořena",
+      "updated_successfully": "Sonda byla úspěšně aktualizována",
+      "rotated_successfully": "Token byl úspěšně vyměněn",
+      "deleted_successfully": "Sonda byla úspěšně smazána",
+      "failed_to_create": "Sondu se nepodařilo vytvořit",
+      "failed_to_update": "Sondu se nepodařilo aktualizovat",
+      "failed_to_rotate": "Token se nepodařilo vyměnit",
+      "failed_to_delete": "Sondu se nepodařilo smazat",
+      "failed_to_load": "Sondy se nepodařilo načíst",
+      "copy_success": "Zkopírováno do schránky",
+      "copy_failed": "Kopírování do schránky se nezdařilo"
     }
   },
   "proxies": {

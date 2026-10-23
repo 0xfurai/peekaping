@@ -683,6 +683,7 @@
     "maintenance": "Priežiūra",
     "monitors": "Monitoriai",
     "notification_channels": "Pranešimo kanalai",
+    "probes": "Zondai",
     "proxies": "Tarpiniai serveriai",
     "settings": "Nustatymai",
     "status_pages": "Statuso puslapiai",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "Įveskite šią paslaptį iš naujo: pasikeitė vieta, į kurią siunčiama",
       "remove": "Pašalinti",
       "saved_hint": "Išsaugota — įveskite, kad pakeistumėte"
+    }
+  },
+  "probes": {
+    "page_name": "Zondai",
+    "description": "Zondai atlieka monitorių patikras iš vietų, kuriose jie įdiegti. Vietinis zondas yra pats Peekaping.",
+    "empty_list": {
+      "title": "Zondų nerasta",
+      "text": "Sukurkite zondą, kad atliktumėte patikras iš kitos vietos.",
+      "action_text": "Sukurkite savo pirmąjį zondą"
+    },
+    "table": {
+      "headers": {
+        "name": "Pavadinimas",
+        "location": "Vieta",
+        "status": "Būsena",
+        "disabled": "Išjungtas",
+        "token": "Žetonas",
+        "instances": "Egzemplioriai",
+        "actions": "Veiksmai"
+      },
+      "status": {
+        "online": "Prisijungęs",
+        "offline": "Atsijungęs"
+      },
+      "disabled": "Išjungtas",
+      "no_instances": "Egzempliorių dar nėra",
+      "last_seen": "paskutinį kartą matytas {{date}}",
+      "actions": {
+        "edit": "Redaguoti zondą {{name}}",
+        "rotate": "Pakeisti zondo {{name}} žetoną",
+        "delete": "Ištrinti zondą {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Sukurti zondą",
+      "description": "Zondas atlieka patikras iš vietos, kurioje jį įdiegiate. Jo žetonas rodomas tik vieną kartą, po sukūrimo.",
+      "submit": "Sukurti zondą",
+      "creating": "Kuriama..."
+    },
+    "edit_dialog": {
+      "title": "Redaguoti zondą",
+      "description": "Pakeiskite {{name}} nustatymus."
+    },
+    "form": {
+      "name_label": "Pavadinimas",
+      "name_placeholder": "pvz., Frankfurtas",
+      "location_label": "Vieta (neprivaloma)",
+      "location_placeholder": "pvz., Frankfurtas, Vokietija",
+      "name_required": "Pavadinimas privalomas",
+      "name_too_long": "Pavadinimas per ilgas",
+      "location_too_long": "Vieta per ilga",
+      "disabled_label": "Išjungtas",
+      "disabled_description": "Išjungto zondo žetonas nustoja veikti, kol vėl jį įjungsite."
+    },
+    "rotate_dialog": {
+      "title": "Pakeisti žetoną",
+      "description": "Senas zondo {{name}} žetonas iškart nustoja veikti. Jo egzempliorius reikia paleisti iš naujo su nauju žetonu.",
+      "confirm": "Pakeisti žetoną",
+      "rotating": "Keičiama..."
+    },
+    "delete_dialog": {
+      "title": "Ištrinti zondą",
+      "description": "Ar tikrai norite ištrinti zondą „{{name}}“? Jo žetonas nustos veikti. Šio veiksmo atšaukti negalima."
+    },
+    "token_alert": {
+      "title_created": "Zondas {{name}} sukurtas",
+      "title_rotated": "Naujas zondo {{name}} žetonas",
+      "note": "Šis žetonas skaito zondui priskirtų monitorių konfigūracijas. Jis rodomas tik vieną kartą.",
+      "token_label": "Žetonas",
+      "docker_label": "Paleiskite zondą naudodami Docker",
+      "copy_token": "Kopijuoti žetoną",
+      "copy_command": "Kopijuoti docker komandą"
+    },
+    "messages": {
+      "created_successfully": "Zondas sėkmingai sukurtas",
+      "updated_successfully": "Zondas sėkmingai atnaujintas",
+      "rotated_successfully": "Žetonas sėkmingai pakeistas",
+      "deleted_successfully": "Zondas sėkmingai ištrintas",
+      "failed_to_create": "Nepavyko sukurti zondo",
+      "failed_to_update": "Nepavyko atnaujinti zondo",
+      "failed_to_rotate": "Nepavyko pakeisti žetono",
+      "failed_to_delete": "Nepavyko ištrinti zondo",
+      "failed_to_load": "Nepavyko įkelti zondų",
+      "copy_success": "Nukopijuota į iškarpinę",
+      "copy_failed": "Nepavyko nukopijuoti į iškarpinę"
     }
   },
   "proxies": {
