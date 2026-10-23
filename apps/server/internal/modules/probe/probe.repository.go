@@ -19,7 +19,8 @@ type Repository interface {
 	// UpdateToken replaces the probe's token hash and prefix, so the old token finds nothing
 	UpdateToken(ctx context.Context, id string, tokenHash string, tokenPrefix string) error
 	// Delete removes the probe, with its instances and its notification channel links. A probe that
-	// monitors run on stays: the database refuses to delete it.
+	// monitors run on stays: the database refuses to delete it, and Delete returns
+	// ErrProbeHasMonitors, without the count.
 	Delete(ctx context.Context, id string) error
 	// CountMonitors returns how many monitors, paused ones included, run on the probe
 	CountMonitors(ctx context.Context, id string) (int, error)

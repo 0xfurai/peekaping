@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/probe"
 )
 
 // MonitorSource lists the monitors assigned to a probe.
@@ -14,9 +13,6 @@ import (
 // types the probe can't run included. Dealable picks the ones to deal.
 type MonitorSource interface {
 	FindActiveByProbe(ctx context.Context, probeID string) ([]*monitor.Model, error)
-	// ProbeOf returns the id of the probe the monitor is assigned to. The stale-monitor watchdog
-	// asks it, to leave alone a monitor whose probe is offline.
-	ProbeOf(ctx context.Context, monitorID string) (string, error)
 }
 
 // sourcePageSize is how many monitors the source reads from the monitor service at a time
@@ -53,17 +49,4 @@ func (s *monitorSource) FindActiveByProbe(ctx context.Context, probeID string) (
 			return found, nil
 		}
 	}
-}
-
-// ProbeOf is the probe the monitor runs on. A monitor that doesn't exist (it was deleted), or that
-// is read without its probes, is the local probe's.
-func (s *monitorSource) ProbeOf(ctx context.Context, monitorID string) (string, error) {
-	m, err := s.monitors.FindByID(ctx, monitorID)
-	if err != nil {
-		return "", err
-	}
-	if m == nil || len(m.ProbeIDs) == 0 {
-		return probe.LocalID, nil
-	}
-	return m.ProbeIDs[0], nil
 }

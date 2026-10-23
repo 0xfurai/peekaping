@@ -129,7 +129,14 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 				if err != nil {
 					return nil, c.fail(err)
 				}
-				reason = notAssignedOrUnknown(other)
+				if dealtTo(other, owner) {
+					// The listing missed it: paging by offset skips a monitor when another is paused
+					// or deleted during the scan. The probe drops a not_assigned result for good, so
+					// the monitor's own read decides.
+					m = other
+				} else {
+					reason = notAssignedOrUnknown(other)
+				}
 			}
 		}
 		// The claim is the last check, so that only a result that goes on to be stored takes an id.
@@ -166,8 +173,16 @@ func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model) (map
 	return byID, nil
 }
 
-// otherMonitor reads a monitor that the probe is not dealt, to tell one that does not exist from
-// one that is not the probe's. It reads each monitor once for a batch: others holds what it read.
+// dealtTo reports whether the probe is dealt the monitor, by the rule that dealtMonitors lists by:
+// the monitor is active, runs on the probe, and is of a type the probe supports. m is nil when
+// there is no such monitor.
+func dealtTo(m *monitor.Model, owner *probe.Model) bool {
+	return m != nil && m.RunsOn(owner.ID) && len(Dealable([]*monitor.Model{m}, owner.SupportedTypes)) == 1
+}
+
+// otherMonitor reads a monitor that the listing did not deal the probe, to tell one that does not
+// exist from one that is not the probe's, or that the listing skipped. It reads each monitor once
+// for a batch: others holds what it read.
 // An id that is not a UUID names no monitor, and is not read: monitors.id is a UUID column, and
 // PostgreSQL fails the lookup of anything else, which would fail the whole batch for the probe to
 // send again for good.

@@ -214,17 +214,17 @@ func assertWatchdogSkipsOnlyOfflineRemote(t *testing.T, probeOffline stale.Probe
 	onRemote, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
 	require.NoError(t, err)
 
-	offline, err := probeOffline(ctx, onLocal.ID)
+	offline, err := probeOffline(ctx, onLocal)
 	require.NoError(t, err)
 	assert.False(t, offline, "the local probe is never offline")
-	offline, err = probeOffline(ctx, onRemote.ID)
+	offline, err = probeOffline(ctx, onRemote)
 	require.NoError(t, err)
 	assert.True(t, offline, "a probe that never connected is offline")
 
 	changed, err := probes.MarkOnline(ctx, remote.ID)
 	require.NoError(t, err)
 	require.True(t, changed)
-	offline, err = probeOffline(ctx, onRemote.ID)
+	offline, err = probeOffline(ctx, onRemote)
 	require.NoError(t, err)
 	assert.False(t, offline, "and not once it is online")
 }

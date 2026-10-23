@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"peekaping/internal/dbtx"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/driver/pgdriver"
 )
 
 type sqlModel struct {
@@ -176,7 +178,25 @@ func (r *SQLRepositoryImpl) UpdateToken(ctx context.Context, id string, tokenHas
 // MARK: Delete
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+	// monitor_probes is the one table that references a probe without cascading the delete
+	if isForeignKeyViolation(err) {
+		return ErrProbeHasMonitors
+	}
 	return err
+}
+
+// isForeignKeyViolation reports whether the database refused a statement because of a foreign key.
+// PostgreSQL says so with a code. SQLite's two drivers word it the same, and neither is a
+// dependency of ours.
+func isForeignKeyViolation(err error) bool {
+	if err == nil {
+		return false
+	}
+	var pgErr pgdriver.Error
+	if errors.As(err, &pgErr) {
+		return pgErr.Field('C') == "23503" // foreign_key_violation
+	}
+	return strings.Contains(err.Error(), "FOREIGN KEY constraint failed")
 }
 
 // MARK: CountMonitors

@@ -24,7 +24,7 @@ type CreateUpdateDto struct {
 	PushToken       string   `json:"push_token"`
 	// ProbeIDs is the one probe that runs the monitor. A create without it runs on the local
 	// probe, and an update without it keeps the monitor's probe.
-	ProbeIDs  []string `json:"probe_ids" example:"local"`
+	ProbeIDs  []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id. Exactly one for now. Omitted on create, the monitor runs on local; omitted on update, it keeps its probe. A push monitor runs on local only." example:"local"`
 	activeSet bool
 }
 
@@ -68,7 +68,7 @@ type PartialUpdateDto struct {
 	Config          *string                  `json:"config,omitempty"`
 	PushToken       *string                  `json:"push_token,omitempty"`
 	// ProbeIDs is the one probe that runs the monitor. Without it the monitor keeps its probe.
-	ProbeIDs []string `json:"probe_ids,omitempty" example:"local"`
+	ProbeIDs []string `json:"probe_ids,omitempty" doc:"The probes that run the monitor's checks, by id. Exactly one for now. Omitted, the monitor keeps its probe. A push monitor runs on local only." example:"local"`
 }
 
 // UptimeStatsDto represents uptime percentages for various periods
@@ -98,7 +98,7 @@ type MonitorResponseDto struct {
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`
-	ProbeIDs        []string `json:"probe_ids" example:"local"`
+	ProbeIDs        []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself." example:"local"`
 	// The later of the latest heartbeat and the monitor's last save or resume,
 	// set only while the stale-monitor watchdog counts it as stale
 	StaleSince *time.Time `json:"stale_since,omitempty"`

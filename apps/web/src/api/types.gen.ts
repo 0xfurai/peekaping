@@ -340,6 +340,9 @@ export type MonitorCreateUpdateDto = {
   max_retries?: number;
   name: string;
   notification_ids: Array<string>;
+  /**
+   * The probes that run the monitor's checks, by id. Exactly one for now. Omitted on create, the monitor runs on local; omitted on update, it keeps its probe. A push monitor runs on local only.
+   */
   probe_ids?: Array<string> | null;
   proxy_id?: string;
   push_token?: string;
@@ -375,6 +378,9 @@ export type MonitorModel = {
   last_heartbeat?: HeartbeatModel;
   max_retries: number;
   name: string;
+  /**
+   * The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself.
+   */
   probe_ids: Array<string> | null;
   proxy_id: string;
   push_token: string;
@@ -396,6 +402,9 @@ export type MonitorMonitorResponseDto = {
   max_retries: number;
   name: string;
   notification_ids: Array<string> | null;
+  /**
+   * The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself.
+   */
   probe_ids: Array<string> | null;
   proxy_id: string;
   push_token: string;
@@ -416,6 +425,9 @@ export type MonitorPartialUpdateDto = {
   max_retries?: number | null;
   name?: string | null;
   notification_ids?: Array<string> | null;
+  /**
+   * The probes that run the monitor's checks, by id. Exactly one for now. Omitted, the monitor keeps its probe. A push monitor runs on local only.
+   */
   probe_ids?: Array<string> | null;
   proxy_id?: string | null;
   push_token?: string | null;
