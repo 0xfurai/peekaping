@@ -29,15 +29,28 @@ func tcpMonitor(t *testing.T, addr string) *Monitor {
 }
 
 func TestTCPExecutor_Execute_OpenPort(t *testing.T) {
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-	defer l.Close()
-	port := l.Addr().(*net.TCPAddr).Port
+	for _, host := range []string{"127.0.0.1", "localhost", "::1", "[::1]"} {
+		t.Run(host, func(t *testing.T) {
+			listenAddr := "127.0.0.1:0"
+			if host == "::1" || host == "[::1]" {
+				if !hasLoopbackIPv6() {
+					t.Skip("no IPv6 loopback address")
+				}
+				listenAddr = "[::1]:0"
+			}
+			l, err := net.Listen("tcp", listenAddr)
+			require.NoError(t, err)
+			defer l.Close()
+			port := l.Addr().(*net.TCPAddr).Port
+			monitor := tcpMonitor(t, l.Addr().String())
+			monitor.Config = fmt.Sprintf(`{"host": %q, "port": %d}`, host, port)
 
-	result := NewTCPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), tcpMonitor(t, l.Addr().String()), nil)
+			result := NewTCPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), monitor, nil)
 
-	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
-	assert.Equal(t, fmt.Sprintf("TCP port %d is open", port), result.Message)
+			assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+			assert.Equal(t, fmt.Sprintf("TCP port %d is open", port), result.Message)
+		})
+	}
 }
 
 func TestTCPExecutor_Execute_ClosedPort(t *testing.T) {
