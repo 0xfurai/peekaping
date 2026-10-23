@@ -79,7 +79,7 @@ func (r *SQLRepositoryImpl) FindByMonitorID(ctx context.Context, monitorID strin
 	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("monitor_id = ?", monitorID).
-		Order("created_at DESC").
+		Order("created_at DESC", "id DESC").
 		Scan(ctx)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (r *SQLRepositoryImpl) FindByMonitorIDs(ctx context.Context, monitorIDs []s
 	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("monitor_id IN (?)", bun.In(monitorIDs)).
-		Order("created_at DESC").
+		Order("created_at DESC", "id DESC").
 		Scan(ctx)
 	if err != nil {
 		return nil, err
