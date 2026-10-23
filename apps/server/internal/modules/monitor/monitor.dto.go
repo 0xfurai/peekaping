@@ -79,8 +79,8 @@ type UptimeStatsDto struct {
 // notification channels and tags linked to it. A monitor with none gets empty lists.
 type MonitorResponseDto struct {
 	shared.Monitor
-	NotificationIds []string `json:"notification_ids" example:"6830ad485361f19c598d6d90"`
-	TagIds          []string `json:"tag_ids" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
+	NotificationIds []string `json:"notification_ids" nullable:"false" example:"6830ad485361f19c598d6d90"`
+	TagIds          []string `json:"tag_ids" nullable:"false" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 }
 
 // StatPointsSummaryDto represents stat points and summary for a period

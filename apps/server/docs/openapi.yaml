@@ -894,9 +894,7 @@ components:
             - - 6830ad485361f19c598d6d90
           items:
             type: string
-          type:
-            - array
-            - "null"
+          type: array
         proxy_id:
           type: string
         push_token:
@@ -923,9 +921,7 @@ components:
               - 6830ad485361f19c598d6d91
           items:
             type: string
-          type:
-            - array
-            - "null"
+          type: array
         timeout:
           examples:
             - 16

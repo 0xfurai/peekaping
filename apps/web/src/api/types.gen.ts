@@ -373,14 +373,14 @@ export type MonitorMonitorResponseDto = {
   last_heartbeat?: HeartbeatModel;
   max_retries: number;
   name: string;
-  notification_ids: Array<string> | null;
+  notification_ids: Array<string>;
   proxy_id: string;
   push_token: string;
   resend_interval: number;
   retry_interval: number;
   stale_since?: string;
   status: number;
-  tag_ids: Array<string> | null;
+  tag_ids: Array<string>;
   timeout: number;
   type: string;
   updated_at: string;
