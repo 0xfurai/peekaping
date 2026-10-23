@@ -24,6 +24,8 @@ type Service interface {
 	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
 	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)
+	// FindActiveByProbe returns a page of the active monitors the probe runs
+	FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error)
 	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
 	Delete(ctx context.Context, id string) error
@@ -151,6 +153,15 @@ func (mr *MonitorServiceImpl) FindActive(ctx context.Context) ([]*Model, error) 
 }
 
 func (mr *MonitorServiceImpl) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
+	return mr.monitorRepository.FindActivePaginated(ctx, page, limit)
+}
+
+// FindActiveByProbe is a stand-in until the repository can filter by probe: every active monitor
+// runs on the local probe, and a remote probe runs none.
+func (mr *MonitorServiceImpl) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
+	if probeID != shared.LocalProbeID {
+		return []*Model{}, nil
+	}
 	return mr.monitorRepository.FindActivePaginated(ctx, page, limit)
 }
 

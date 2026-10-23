@@ -38,6 +38,10 @@ type Monitor struct {
 	ProxyId   string `json:"proxy_id"`
 	PushToken string `json:"push_token"`
 
+	// ProbeIDs are the probes that run the monitor's checks. Until heartbeats record their probe
+	// (#36) a monitor has exactly one.
+	ProbeIDs []string `json:"probe_ids"`
+
 	// Names of the monitor's tags. Only the notification listener fills them in,
 	// for the providers to send; the API returns tag IDs instead.
 	Tags []string `json:"-"`
@@ -52,6 +56,24 @@ type Monitor struct {
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// LocalProbeID is the id of the local probe: the checks that Peekaping runs itself
+const LocalProbeID = "local"
+
+// RunsOn reports whether the probe runs the monitor's checks. A monitor read without its probes
+// runs on the local probe: that is every monitor of an install from before probes, and a
+// monitor event from a process that isn't upgraded yet.
+func (m *Monitor) RunsOn(probeID string) bool {
+	if len(m.ProbeIDs) == 0 {
+		return probeID == LocalProbeID
+	}
+	for _, id := range m.ProbeIDs {
+		if id == probeID {
+			return true
+		}
+	}
+	return false
 }
 
 type UpdateMonitor struct {

@@ -190,6 +190,14 @@ func (m *MockMonitorService) RepairStoredStatuses(ctx context.Context) (int, err
 	return args.Int(0), args.Error(1)
 }
 
+func (m *MockMonitorService) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error) {
+	args := m.Called(ctx, probeID, page, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*shared.Monitor), args.Error(1)
+}
+
 func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {
 	args := m.Called(ctx, page, limit)
 	if args.Get(0) == nil {
