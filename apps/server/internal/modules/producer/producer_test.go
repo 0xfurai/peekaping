@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -117,7 +118,7 @@ func TestProducerStartStop(t *testing.T) {
 
 		// Mock empty monitor list for initialization
 		// When returning empty list, pagination stops immediately
-		mockMonitorSvc.On("FindActivePaginated", mock.Anything, 0, 100).Return([]*monitor.Model{}, nil)
+		mockMonitorSvc.On("FindActiveByProbe", mock.Anything, shared.LocalProbeID, 0, 100).Return([]*monitor.Model{}, nil)
 
 		err := producer.Start(context.Background())
 		assert.NoError(t, err)

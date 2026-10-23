@@ -116,12 +116,23 @@ func (db *fakeDB) FindByID(_ context.Context, id string) (*shared.Monitor, error
 	return &copied, nil
 }
 
-func (db *fakeDB) FindActivePaginated(_ context.Context, page, limit int) ([]*shared.Monitor, error) {
+// FindActivePaginated pages every active monitor, whichever probe runs it, as the stale-monitor
+// watchdog reads them
+func (db *fakeDB) FindActivePaginated(ctx context.Context, page, limit int) ([]*shared.Monitor, error) {
+	return db.pageActive(page, limit, func(*shared.Monitor) bool { return true })
+}
+
+// FindActiveByProbe pages the active monitors the probe runs
+func (db *fakeDB) FindActiveByProbe(_ context.Context, probeID string, page, limit int) ([]*shared.Monitor, error) {
+	return db.pageActive(page, limit, func(m *shared.Monitor) bool { return m.RunsOn(probeID) })
+}
+
+func (db *fakeDB) pageActive(page, limit int, keep func(*shared.Monitor) bool) ([]*shared.Monitor, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 	var active []*shared.Monitor
 	for _, m := range db.byID {
-		if m.Active && !db.unlisted[m.ID] {
+		if m.Active && keep(m) && !db.unlisted[m.ID] {
 			copied := *m
 			active = append(active, &copied)
 		}
@@ -388,6 +399,9 @@ func ofType(monitorType string) monitorOption {
 	return func(m *shared.Monitor) { m.Type = monitorType }
 }
 func paused(m *shared.Monitor) { m.Active = false }
+
+// onProbes sets the probes that run the monitor. A monitor without any runs on the local probe.
+func onProbes(ids ...string) monitorOption { return func(m *shared.Monitor) { m.ProbeIDs = ids } }
 
 // monitorWith is an active HTTP monitor that is checked every second
 func monitorWith(id string, options ...monitorOption) shared.Monitor {

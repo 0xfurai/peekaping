@@ -14,7 +14,8 @@ import (
 // WatchdogInterval is how often the watchdog looks for monitors that stopped being checked
 const WatchdogInterval = time.Minute
 
-// Rechecker gets a monitor checked right away, without waiting for its next scheduled check
+// Rechecker gets a monitor checked right away, without waiting for its next scheduled check. It
+// checks the monitors of the local probe only, and refuses one that a remote probe runs.
 type Rechecker interface {
 	RunNow(ctx context.Context, monitorID string) error
 }
@@ -119,8 +120,9 @@ func (w *Watchdog) Run(ctx context.Context) {
 }
 
 // checkStaleMonitors finds active monitors whose latest heartbeat is older than their
-// stale threshold. A newly stale monitor gets a warning and a check right away. If it's
-// still stale once that check has had time to finish, its channels are notified once.
+// stale threshold, whichever probe runs them. A newly stale monitor gets a warning and a check
+// right away, unless a remote probe runs it: it gets no check from here. If it's still stale
+// once that check has had time to finish, its channels are notified once.
 // A notified monitor that's checked again gets a recovery notification.
 func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 	now := w.now().UTC()
@@ -235,6 +237,16 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 	}
 
 	if !wasStale {
+		// The rechecker checks the monitors of the local probe only. A remote probe's monitor
+		// gets no recheck from here, but the time a recheck is given still runs, so that its
+		// channels are notified if it stays unchecked.
+		if !mon.RunsOn(shared.LocalProbeID) {
+			w.logger.Warnw("Monitor on a remote probe has not been checked in too long",
+				"monitor_id", mon.ID,
+				"monitor_name", mon.Name,
+				"last_checked_at", since)
+			return w.store.Put(ctx, Entry{MonitorID: mon.ID, Since: since, DetectedAt: now})
+		}
 		w.logger.Warnw("Monitor has not been checked in too long, checking it again",
 			"monitor_id", mon.ID,
 			"monitor_name", mon.Name,

@@ -15,10 +15,12 @@ import (
 )
 
 // MonitorFinder is the part of the monitor service the producer reads. The watchdog reads
-// the same two methods.
+// FindByID and FindActivePaginated: it watches the monitors of every probe, the producer
+// schedules only those of the local probe.
 type MonitorFinder interface {
 	FindByID(ctx context.Context, id string) (*shared.Monitor, error)
 	FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error)
+	FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error)
 }
 
 // Producer is responsible for scheduling monitor health checks
