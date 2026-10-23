@@ -683,6 +683,7 @@
     "maintenance": "유지보수",
     "monitors": "모니터",
     "notification_channels": "알림 채널",
+    "probes": "프로브",
     "proxies": "프록시",
     "settings": "설정",
     "status_pages": "상태 페이지",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "이 시크릿을 다시 입력하세요: 전송 대상이 변경되었습니다",
       "remove": "제거",
       "saved_hint": "저장됨 — 입력하면 교체됩니다"
+    }
+  },
+  "probes": {
+    "page_name": "프로브",
+    "description": "프로브는 설치된 위치에서 모니터의 검사를 실행합니다. 로컬 프로브는 Peekaping 자체입니다.",
+    "empty_list": {
+      "title": "프로브를 찾을 수 없습니다",
+      "text": "프로브를 만들어 다른 위치에서 검사를 실행하세요.",
+      "action_text": "첫 번째 프로브 만들기"
+    },
+    "table": {
+      "headers": {
+        "name": "이름",
+        "location": "위치",
+        "status": "상태",
+        "disabled": "비활성화됨",
+        "token": "토큰",
+        "instances": "인스턴스",
+        "actions": "작업"
+      },
+      "status": {
+        "online": "온라인",
+        "offline": "오프라인"
+      },
+      "disabled": "비활성화됨",
+      "no_instances": "아직 인스턴스가 없습니다",
+      "last_seen": "마지막 확인 {{date}}",
+      "actions": {
+        "edit": "프로브 {{name}} 편집",
+        "rotate": "프로브 {{name}}의 토큰 교체",
+        "delete": "프로브 {{name}} 삭제"
+      }
+    },
+    "create_dialog": {
+      "title": "프로브 만들기",
+      "description": "프로브는 설치한 위치에서 검사를 실행합니다. 토큰은 만든 직후 한 번만 표시됩니다.",
+      "submit": "프로브 만들기",
+      "creating": "만드는 중..."
+    },
+    "edit_dialog": {
+      "title": "프로브 편집",
+      "description": "{{name}}의 설정을 변경합니다."
+    },
+    "form": {
+      "name_label": "이름",
+      "name_placeholder": "예: 프랑크푸르트",
+      "location_label": "위치(선택 사항)",
+      "location_placeholder": "예: 프랑크푸르트, 독일",
+      "name_required": "이름은 필수입니다",
+      "name_too_long": "이름이 너무 깁니다",
+      "location_too_long": "위치가 너무 깁니다",
+      "disabled_label": "비활성화됨",
+      "disabled_description": "비활성화된 프로브의 토큰은 다시 활성화할 때까지 작동하지 않습니다."
+    },
+    "rotate_dialog": {
+      "title": "토큰 교체",
+      "description": "프로브 {{name}}의 이전 토큰은 즉시 작동하지 않게 됩니다. 인스턴스를 새 토큰으로 다시 시작해야 합니다.",
+      "confirm": "토큰 교체",
+      "rotating": "교체 중..."
+    },
+    "delete_dialog": {
+      "title": "프로브 삭제",
+      "description": "프로브 \"{{name}}\"을(를) 삭제하시겠습니까? 해당 토큰은 작동하지 않게 됩니다. 이 작업은 되돌릴 수 없습니다."
+    },
+    "token_alert": {
+      "title_created": "프로브 {{name}}을(를) 만들었습니다",
+      "title_rotated": "프로브 {{name}}의 새 토큰",
+      "note": "이 토큰은 프로브에 할당된 모니터의 설정을 읽습니다. 한 번만 표시됩니다.",
+      "token_label": "토큰",
+      "docker_label": "Docker로 프로브 시작",
+      "copy_token": "토큰 복사",
+      "copy_command": "docker 명령 복사"
+    },
+    "messages": {
+      "created_successfully": "프로브를 만들었습니다",
+      "updated_successfully": "프로브를 업데이트했습니다",
+      "rotated_successfully": "토큰을 교체했습니다",
+      "deleted_successfully": "프로브를 삭제했습니다",
+      "failed_to_create": "프로브를 만들지 못했습니다",
+      "failed_to_update": "프로브를 업데이트하지 못했습니다",
+      "failed_to_rotate": "토큰을 교체하지 못했습니다",
+      "failed_to_delete": "프로브를 삭제하지 못했습니다",
+      "failed_to_load": "프로브를 불러오지 못했습니다",
+      "copy_success": "클립보드에 복사되었습니다",
+      "copy_failed": "클립보드에 복사할 수 없습니다"
     }
   },
   "proxies": {
