@@ -512,6 +512,13 @@
           "selected_channels": "Saluran Notifikasi yang Dipilih",
           "title": "Saluran Pemberitahuan"
         },
+        "probe": {
+          "label": "Probe",
+          "option_unsupported": "{{name}} (tidak menjalankan tipe ini)",
+          "placeholder": "Pilih probe",
+          "push_fixed": "Monitor Push selalu berjalan pada probe lokal.",
+          "unsupported": "Probe ini tidak menjalankan tipe monitor ini. Pilih probe lain."
+        },
         "proxy": {
           "add_proxy": "Tambahkan Proxy",
           "new_proxy": "+ Proxy Baru",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Probe",
     "description": "Probe menjalankan pemeriksaan monitor dari tempat probe tersebut dipasang. Probe lokal adalah Peekaping itu sendiri.",
+    "local_name": "Lokal",
+    "monitor_probe": "Probe: {{name}}",
     "empty_list": {
       "title": "Tidak ada probe ditemukan",
       "text": "Buat probe untuk menjalankan pemeriksaan dari tempat lain.",

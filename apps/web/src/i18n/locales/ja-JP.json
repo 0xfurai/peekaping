@@ -512,6 +512,13 @@
           "selected_channels": "選択済み通知チャネル",
           "title": "通知チャンネル"
         },
+        "probe": {
+          "label": "プローブ",
+          "option_unsupported": "{{name}}（このタイプは実行できません）",
+          "placeholder": "プローブを選択",
+          "push_fixed": "プッシュモニターは常にローカルプローブで実行されます。",
+          "unsupported": "このプローブはこのタイプのモニターを実行できません。別のプローブを選択してください。"
+        },
         "proxy": {
           "add_proxy": "プロキシを追加",
           "new_proxy": "+ 新しいプロキシ",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "プローブ",
     "description": "プローブは、インストールされた場所からモニターのチェックを実行します。ローカルプローブは Peekaping 自身です。",
+    "local_name": "ローカル",
+    "monitor_probe": "プローブ: {{name}}",
     "empty_list": {
       "title": "プローブが見つかりません",
       "text": "プローブを作成して、別の場所からチェックを実行しましょう。",

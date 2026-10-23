@@ -512,6 +512,13 @@
           "selected_channels": "Kiválasztott értesítési csatornák",
           "title": "Értesítési csatornák"
         },
+        "probe": {
+          "label": "Szonda",
+          "option_unsupported": "{{name}} (nem futtatja ezt a típust)",
+          "placeholder": "Szonda kiválasztása",
+          "push_fixed": "A Push monitor mindig a helyi szondán fut.",
+          "unsupported": "Ez a szonda nem futtatja ezt a monitortípust. Válasszon másik szondát."
+        },
         "proxy": {
           "add_proxy": "Proxy hozzáadása",
           "new_proxy": "+ Új proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Szondák",
     "description": "A szondák a figyelők ellenőrzéseit azokról a helyekről futtatják, ahová telepítve vannak. A helyi szonda maga a Peekaping.",
+    "local_name": "Helyi",
+    "monitor_probe": "Szonda: {{name}}",
     "empty_list": {
       "title": "Nem található szonda",
       "text": "Hozzon létre egy szondát, hogy ellenőrzéseket futtasson egy másik helyről.",

@@ -512,6 +512,13 @@
           "selected_channels": "Canais de notificação selecionados",
           "title": "Canais de notificação"
         },
+        "probe": {
+          "label": "Sonda",
+          "option_unsupported": "{{name}} (não executa este tipo)",
+          "placeholder": "Selecionar sonda",
+          "push_fixed": "Um Monitor de Push é sempre executado na sonda local.",
+          "unsupported": "Esta sonda não executa este tipo de monitor. Selecione outra sonda."
+        },
         "proxy": {
           "add_proxy": "Adicionar Proxy",
           "new_proxy": "+ Novo Proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Sondas",
     "description": "As sondas executam as verificações dos monitores a partir dos locais onde estão instaladas. A sonda local é o próprio Peekaping.",
+    "local_name": "Local",
+    "monitor_probe": "Sonda: {{name}}",
     "empty_list": {
       "title": "Nenhuma sonda encontrada",
       "text": "Crie uma sonda para executar verificações a partir de outro local.",

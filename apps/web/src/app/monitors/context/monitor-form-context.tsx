@@ -42,6 +42,8 @@ import {
   type MonitorFormValues,
 } from "../monitor-types/registry";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useProbes } from "@/hooks/useProbes";
+import { probeTypeError } from "../monitor-types/shared/probe-support";
 
 type Mode = "create" | "edit";
 
@@ -98,11 +100,20 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     enabled: mode === "edit" && !!monitorId,
   });
 
+  const { probes } = useProbes();
+
   const form = useForm<MonitorFormValues>({
     // A new monitor starts as the first type the registry lists. Read here, not at module
     // level: the type forms import this module, so the registry is still loading then.
     defaultValues: initialValues ?? monitorTypes[0].defaultValues,
-    resolver: zodResolver(monitorFormSchema),
+    // The schema, and a check of the probe that it can't make: which probes run which types
+    // comes from the probes query
+    resolver: async (values, context, options) => {
+      const result = await zodResolver(monitorFormSchema)(values, context, options);
+      const message = probeTypeError(values, probes, monitor?.data);
+      if (!message) return result;
+      return { values: {}, errors: { ...result.errors, probe_ids: { type: "probe", message } } };
+    },
   });
 
   // In edit mode the form shows the saved monitor once it is loaded

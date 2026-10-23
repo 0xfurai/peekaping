@@ -512,6 +512,13 @@
           "selected_channels": "Valitud teavituskanalid",
           "title": "Teavituskanalid"
         },
+        "probe": {
+          "label": "Sond",
+          "option_unsupported": "{{name}} (ei toeta seda tüüpi)",
+          "placeholder": "Vali sond",
+          "push_fixed": "Push-monitor töötab alati kohalikul sondil.",
+          "unsupported": "See sond ei toeta seda tüüpi monitori. Vali teine sond."
+        },
         "proxy": {
           "add_proxy": "Lisa proksi",
           "new_proxy": "+ Uus proksi",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Sondid",
     "description": "Sondid teostavad monitooride kontrolle kohtadest, kuhu need on paigaldatud. Kohalik sond on Peekaping ise.",
+    "local_name": "Kohalik",
+    "monitor_probe": "Sond: {{name}}",
     "empty_list": {
       "title": "Sonde ei leitud",
       "text": "Looge sond, et teha kontrolle mujalt.",

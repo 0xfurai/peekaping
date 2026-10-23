@@ -512,6 +512,13 @@
           "selected_channels": "Valda notifikationskanaler",
           "title": "Aviseringskanaler"
         },
+        "probe": {
+          "label": "Sond",
+          "option_unsupported": "{{name}} (kör inte den här typen)",
+          "placeholder": "Välj sond",
+          "push_fixed": "En push-övervakning körs alltid på den lokala sonden.",
+          "unsupported": "Den här sonden kör inte den här typen av övervakning. Välj en annan sond."
+        },
         "proxy": {
           "add_proxy": "Lägg till proxy",
           "new_proxy": "+ Ny proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Sonder",
     "description": "Sonder kör kontroller av övervakningar från de platser där de är installerade. Den lokala sonden är Peekaping självt.",
+    "local_name": "Lokal",
+    "monitor_probe": "Sond: {{name}}",
     "empty_list": {
       "title": "Inga sonder hittades",
       "text": "Skapa en sond för att köra kontroller från en annan plats.",

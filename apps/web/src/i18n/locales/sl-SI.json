@@ -512,6 +512,13 @@
           "selected_channels": "Izbrani kanali obvestil",
           "title": "Sporočilni kanali"
         },
+        "probe": {
+          "label": "Sonda",
+          "option_unsupported": "{{name}} (ne izvaja te vrste)",
+          "placeholder": "Izberi sondo",
+          "push_fixed": "Push Monitor vedno teče na lokalni sondi.",
+          "unsupported": "Ta sonda ne izvaja te vrste monitorja. Izberi drugo sondo."
+        },
         "proxy": {
           "add_proxy": "Dodaj posrednik",
           "new_proxy": "+ Nov Proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Sonde",
     "description": "Sonde izvajajo preverjanja nadzorov s krajev, kjer so nameščene. Lokalna sonda je sam Peekaping.",
+    "local_name": "Lokalna",
+    "monitor_probe": "Sonda: {{name}}",
     "empty_list": {
       "title": "Sond ni bilo mogoče najti",
       "text": "Ustvarite sondo za izvajanje preverjanj z drugega kraja.",

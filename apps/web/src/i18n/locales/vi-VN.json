@@ -512,6 +512,13 @@
           "selected_channels": "Kênh thông báo đã chọn",
           "title": "Kênh thông báo"
         },
+        "probe": {
+          "label": "Đầu dò",
+          "option_unsupported": "{{name}} (không chạy loại này)",
+          "placeholder": "Chọn đầu dò",
+          "push_fixed": "Giám sát Push luôn chạy trên đầu dò cục bộ.",
+          "unsupported": "Đầu dò này không chạy loại giám sát này. Hãy chọn đầu dò khác."
+        },
         "proxy": {
           "add_proxy": "Thêm Proxy",
           "new_proxy": "+ Proxy Mới",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Đầu dò",
     "description": "Đầu dò chạy các lần kiểm tra của giám sát từ những nơi chúng được cài đặt. Đầu dò cục bộ chính là Peekaping.",
+    "local_name": "Cục bộ",
+    "monitor_probe": "Đầu dò: {{name}}",
     "empty_list": {
       "title": "Không tìm thấy đầu dò nào",
       "text": "Tạo một đầu dò để chạy kiểm tra từ một nơi khác.",

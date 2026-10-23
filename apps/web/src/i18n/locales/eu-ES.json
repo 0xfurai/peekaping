@@ -512,6 +512,13 @@
           "selected_channels": "Hautatutako jakinarazpen kanalak",
           "title": "Jakinarazpen kanalenak"
         },
+        "probe": {
+          "label": "Zunda",
+          "option_unsupported": "{{name}} (ez du mota hau exekutatzen)",
+          "placeholder": "Hautatu zunda",
+          "push_fixed": "Push monitoreak beti zunda lokalean exekutatzen da.",
+          "unsupported": "Zunda honek ez du monitore mota hau exekutatzen. Hautatu beste zunda bat."
+        },
         "proxy": {
           "add_proxy": "Proxya Gehitu",
           "new_proxy": "+ Proxy berria",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Zundak",
     "description": "Zundek monitoreen egiaztapenak exekutatzen dituzte instalatuta dauden lekuetatik. Zunda lokala Peekaping bera da.",
+    "local_name": "Lokala",
+    "monitor_probe": "Zunda: {{name}}",
     "empty_list": {
       "title": "Ez da zundarik aurkitu",
       "text": "Sortu zunda bat egiaztapenak beste leku batetik exekutatzeko.",

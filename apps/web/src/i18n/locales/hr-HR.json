@@ -512,6 +512,13 @@
           "selected_channels": "Odabrani kanali obavijesti",
           "title": "Kanali obavijesti"
         },
+        "probe": {
+          "label": "Sonda",
+          "option_unsupported": "{{name}} (ne pokreće ovu vrstu)",
+          "placeholder": "Odaberi sondu",
+          "push_fixed": "Push nadzor uvijek radi na lokalnoj sondi.",
+          "unsupported": "Ova sonda ne pokreće ovu vrstu nadzora. Odaberi drugu sondu."
+        },
         "proxy": {
           "add_proxy": "Dodaj proxy",
           "new_proxy": "+ Novi Proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Sonde",
     "description": "Sonde izvršavaju provjere nadzora s mjesta na kojima su instalirane. Lokalna sonda je sam Peekaping.",
+    "local_name": "Lokalna",
+    "monitor_probe": "Sonda: {{name}}",
     "empty_list": {
       "title": "Nema pronađenih sondi",
       "text": "Stvorite sondu za izvođenje provjera s drugog mjesta.",

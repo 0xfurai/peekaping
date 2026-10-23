@@ -512,6 +512,13 @@
           "selected_channels": "Cánálacha fógraí roghnaithe",
           "title": "Cainéil Fógraí"
         },
+        "probe": {
+          "label": "Tóireadóir",
+          "option_unsupported": "{{name}} (ní reáchtálann sé an cineál seo)",
+          "placeholder": "Roghnaigh tóireadóir",
+          "push_fixed": "Ritheann monatóir Push i gcónaí ar an tóireadóir áitiúil.",
+          "unsupported": "Ní reáchtálann an tóireadóir seo an cineál monatóra seo. Roghnaigh tóireadóir eile."
+        },
         "proxy": {
           "add_proxy": "Cuir Próiseas",
           "new_proxy": "+ Próise Nua",
@@ -1127,6 +1134,8 @@
   "probes": {
     "page_name": "Tóireadóirí",
     "description": "Ritheann tóireadóirí seiceálacha móntóirí ó na háiteanna ina bhfuil siad suiteáilte. Is é Peekaping féin an tóireadóir áitiúil.",
+    "local_name": "Áitiúil",
+    "monitor_probe": "Tóireadóir: {{name}}",
     "empty_list": {
       "title": "Níor aimsíodh aon tóireadóir",
       "text": "Cruthaigh tóireadóir chun seiceálacha a rith ó áit eile.",

@@ -512,6 +512,13 @@
           "selected_channels": "Geselecteerde notificatiekanalen",
           "title": "Notificatiekanalen"
         },
+        "probe": {
+          "label": "Probe",
+          "option_unsupported": "{{name}} (voert dit type niet uit)",
+          "placeholder": "Kies een probe",
+          "push_fixed": "Een push-monitor draait altijd op de lokale probe.",
+          "unsupported": "Deze probe voert dit type monitor niet uit. Kies een andere probe."
+        },
         "proxy": {
           "add_proxy": "Proxy toevoegen",
           "new_proxy": "+ Nieuwe proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Probes",
     "description": "Probes voeren de controles van monitoren uit vanaf de plekken waar ze zijn geïnstalleerd. De lokale probe is Peekaping zelf.",
+    "local_name": "Lokaal",
+    "monitor_probe": "Probe: {{name}}",
     "empty_list": {
       "title": "Geen probes gevonden",
       "text": "Maak een probe aan om controles vanaf een andere plek uit te voeren.",

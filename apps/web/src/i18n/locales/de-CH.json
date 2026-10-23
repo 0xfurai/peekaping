@@ -512,6 +512,13 @@
           "selected_channels": "Ausgewählte Benachrichtigungskanäle",
           "title": "Benachrichtigungskanäle"
         },
+        "probe": {
+          "label": "Sonde",
+          "option_unsupported": "{{name}} (führt diesen Typ nicht aus)",
+          "placeholder": "Sonde auswählen",
+          "push_fixed": "Ein Push-Monitor läuft immer auf der lokalen Sonde.",
+          "unsupported": "Diese Sonde führt diesen Monitor-Typ nicht aus. Bitte eine andere Sonde auswählen."
+        },
         "proxy": {
           "add_proxy": "Proxy hinzufügen",
           "new_proxy": "+ Neuer Proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Sonden",
     "description": "Sonden führen die Prüfungen der Monitore von den Orten aus, an denen sie installiert sind. Die lokale Sonde ist Peekaping selbst.",
+    "local_name": "Lokal",
+    "monitor_probe": "Sonde: {{name}}",
     "empty_list": {
       "title": "Keine Sonden gefunden",
       "text": "Erstellen Sie eine Sonde, um Prüfungen von einem anderen Ort aus auszuführen.",
