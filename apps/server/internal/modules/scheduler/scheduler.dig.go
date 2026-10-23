@@ -47,8 +47,8 @@ func ProvideScheduler(
 }
 
 // ProvideWatchdog provides the stale-monitor watchdog. It records the stale monitors in the
-// store and gets them checked again with the scheduler's RunNow. It leaves alone a monitor whose
-// probe is offline, as probeOffline says. Its Run looks for them until its context is done.
+// store and gets those of the local probe checked again with the scheduler's RunNow. It leaves
+// alone a monitor whose probe is offline, as probeOffline says. Its Run looks for them until its context is done.
 func ProvideWatchdog(
 	s *Scheduler,
 	store stale.Store,
