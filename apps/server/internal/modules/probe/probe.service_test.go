@@ -49,8 +49,9 @@ func newFixtureWith(t *testing.T, wrap func(probe.Repository) probe.Repository) 
 // behind in the steps around it
 type failingRepo struct {
 	probe.Repository
-	deleteErr error
-	updateErr error
+	deleteErr   error
+	updateErr   error
+	setTypesErr error
 }
 
 func (r failingRepo) Delete(ctx context.Context, id string) error {
@@ -65,6 +66,13 @@ func (r failingRepo) Update(ctx context.Context, id string, update *probe.Update
 		return nil, r.updateErr
 	}
 	return r.Repository.Update(ctx, id, update)
+}
+
+func (r failingRepo) SetSupportedTypes(ctx context.Context, probeID string, types []string) error {
+	if r.setTypesErr != nil {
+		return r.setTypesErr
+	}
+	return r.Repository.SetSupportedTypes(ctx, probeID, types)
 }
 
 // probeCount is how many probe rows have the name
@@ -487,6 +495,21 @@ func TestService_RegisterInstanceRefusesAnotherProbesInstanceAndChangesNothing(t
 	require.NoError(t, err)
 	require.Len(t, kept.Instances, 1)
 	assert.Equal(t, "owner-host", kept.Instances[0].Hostname)
+}
+
+func TestService_RegisterInstanceIsOneTransaction(t *testing.T) {
+	ctx := context.Background()
+	f := newFixtureWith(t, func(repo probe.Repository) probe.Repository {
+		return failingRepo{Repository: repo, setTypesErr: errors.New("the types can't be stored")}
+	})
+	created := f.create(t, "Frankfurt")
+
+	err := f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)}, []string{"http"})
+
+	require.Error(t, err)
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Empty(t, got.Instances, "a hello whose types failed to store leaves no instance row behind")
 }
 
 func TestService_TouchInstanceStampsTheLastSeenTime(t *testing.T) {

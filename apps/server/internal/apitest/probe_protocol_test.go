@@ -566,6 +566,23 @@ func TestProbeProtocol_TooManyRequestsAnswer429(t *testing.T) {
 		"and so has each route")
 }
 
+func TestProbeProtocol_HelloFromManyInstancesAnswers429(t *testing.T) {
+	a, made := probeApp(t)
+
+	// Every hello comes from an instance id the probe has not used, so no instance's own limit is met
+	for n := 1; n <= 10; n++ {
+		id := uuid.NewString()
+		w := a.request(t, http.MethodPost, helloPath, helloFrom(id), asProbe(made.Token, id))
+		require.Equal(t, http.StatusOK, w.Code, "hello %d is within the probe's burst of 10: %s", n, w.Body.String())
+	}
+	id := uuid.NewString()
+	w := a.request(t, http.MethodPost, helloPath, helloFrom(id), asProbe(made.Token, id))
+
+	require.Equal(t, http.StatusTooManyRequests, w.Code, w.Body.String())
+	assert.Equal(t, "1", w.Header().Get("Retry-After"))
+	assert.Equal(t, "too many requests", errorMessage(t, w.Body.Bytes()))
+}
+
 func TestProbeProtocol_LimitsOnlyAuthenticatedRequests(t *testing.T) {
 	a, _ := probeApp(t)
 
@@ -1218,7 +1235,8 @@ func TestProbeProtocol_ResultsRejectReasonsEndToEnd(t *testing.T) {
 	ahead := checkResult("ahead", monitorID, time.Now().UTC().Add(5*time.Minute))
 	batch := []probeproto.Result{
 		good,
-		checkResult("unknown", "no-such-monitor", checkedAt(1)),
+		checkResult("unknown", uuid.NewString(), checkedAt(1)),
+		checkResult("not-a-uuid", "no-such-monitor", checkedAt(1)),
 		checkResult("push", pushID, checkedAt(2)),
 		checkResult("paused", pausedID, checkedAt(3)),
 		old,
@@ -1230,6 +1248,7 @@ func TestProbeProtocol_ResultsRejectReasonsEndToEnd(t *testing.T) {
 	assert.Equal(t, []probeproto.ResultOutcome{
 		{ID: "good", Accepted: true},
 		{ID: "unknown", Reason: "unknown_monitor"},
+		{ID: "not-a-uuid", Reason: "unknown_monitor"},
 		{ID: "push", Reason: "not_assigned"},
 		{ID: "paused", Reason: "not_assigned"},
 		{ID: "old", Reason: "too_old"},

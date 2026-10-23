@@ -21,6 +21,8 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/utils"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -42,7 +44,8 @@ var statusOfWord = map[string]shared.MonitorStatus{
 	probeproto.StatusMaintenance: shared.MonitorStatusMaintenance,
 }
 
-// candidate is a result that passed every check and waits to be stored
+// candidate is a result that passed every check and waits to be stored. Its id is claimed in the
+// accepted window from then on.
 type candidate struct {
 	result  *probeproto.Result
 	monitor *monitor.Model
@@ -50,6 +53,8 @@ type candidate struct {
 	tlsInfo *certificate.TLSInfo
 	// outcome is the result's place in the answer, accepted until the store says otherwise
 	outcome *probeproto.ResultOutcome
+	// stored is set once the ingester has taken the result, or the queue held it already
+	stored bool
 }
 
 // Results takes the results of the checks that an instance ran, and answers with one outcome for
@@ -59,7 +64,7 @@ type candidate struct {
 //   - unknown_monitor: there is no such monitor
 //   - not_assigned: the monitor is not one of the probe's that it is dealt (it is paused, a push
 //     monitor, a type the probe can't run, or another probe's)
-//   - duplicate: the probe sent this id before and the server stored it
+//   - duplicate: the probe sent this id before, and the server stored it or is storing it
 //
 // The rest are stored with the monitor's settings and maintenance state, as the push URL stores
 // a push, one monitor at a time and each monitor's results oldest first, because storing a result
@@ -67,6 +72,10 @@ type candidate struct {
 // cluster mode, queued. A result that fails to store is the server's failure and not the
 // result's: the whole batch is answered 500, so the probe sends it again, and the results that
 // were stored by then are answered duplicate.
+//
+// The ids of the rest are claimed in the accepted window before anything is stored, so that a
+// retry that arrives while this request is still storing is answered duplicate. An id whose result
+// was not stored when the request ends is given back.
 func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.Output[probeproto.ResultsResponse], error) {
 	// MARK: Results
 
@@ -97,9 +106,16 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 	// others are the monitors that results name and the probe is not dealt, read once each; a nil
 	// is a monitor that does not exist
 	others := map[string]*monitor.Model{}
-	// sent are the ids of the results of this batch that wait to be stored
-	sent := map[string]bool{}
 	var waiting []*candidate
+	// What was claimed and not stored goes back to the window, whether the request fails or panics:
+	// the probe sends such a result again, and it has to be accepted
+	defer func() {
+		for _, w := range waiting {
+			if !w.stored {
+				c.accepted.Release(owner.ID, w.result.ID)
+			}
+		}
+	}()
 	for i := range req.Results {
 		result := &req.Results[i]
 		outcomes[i] = probeproto.ResultOutcome{ID: result.ID}
@@ -116,14 +132,15 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 				reason = notAssignedOrUnknown(other)
 			}
 		}
-		if reason == "" && (sent[result.ID] || c.accepted.Seen(owner.ID, result.ID, now)) {
+		// The claim is the last check, so that only a result that goes on to be stored takes an id.
+		// An id twice in one batch is claimed by the first.
+		if reason == "" && !c.accepted.Claim(owner.ID, result.ID, now) {
 			reason = probeproto.ReasonDuplicate
 		}
 		if reason != "" {
 			outcomes[i].Reason = reason
 			continue
 		}
-		sent[result.ID] = true
 		outcomes[i].Accepted = true
 		waiting = append(waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo, outcome: &outcomes[i]})
 	}
@@ -151,9 +168,15 @@ func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model) (map
 
 // otherMonitor reads a monitor that the probe is not dealt, to tell one that does not exist from
 // one that is not the probe's. It reads each monitor once for a batch: others holds what it read.
+// An id that is not a UUID names no monitor, and is not read: monitors.id is a UUID column, and
+// PostgreSQL fails the lookup of anything else, which would fail the whole batch for the probe to
+// send again for good.
 func (c *Controller) otherMonitor(ctx context.Context, others map[string]*monitor.Model, id string) (*monitor.Model, error) {
 	if m, read := others[id]; read {
 		return m, nil
+	}
+	if _, err := uuid.Parse(id); err != nil {
+		return nil, nil
 	}
 	m, err := c.monitors.FindByID(ctx, id)
 	if err != nil {
@@ -208,7 +231,8 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 }
 
 // store hands the results to the ingester one monitor at a time, each monitor's oldest first, and
-// remembers each one's id once it is stored. It stops at the first that fails.
+// marks each one stored, which keeps its id claimed. It stops at the first that fails, leaving that
+// result and the ones after it not stored.
 //
 // In cluster mode the ingester enqueues the result, and the queue holds a task for the monitor and
 // the start time for an hour. A task the queue holds already is a result stored, by a replica that
@@ -246,7 +270,7 @@ func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*c
 			case err != nil:
 				return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
 			}
-			c.accepted.Add(owner.ID, w.result.ID, c.now().UTC())
+			w.stored = true
 		}
 	}
 	return nil
