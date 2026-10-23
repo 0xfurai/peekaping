@@ -326,6 +326,7 @@ func buildSetMapFromModelForUpdate(m *Model, preserveCreatedAt time.Time, includ
 		"created_at":      preserveCreatedAt, // Preserve original created_at
 		"updated_at":      time.Now().UTC(),
 		"config":          m.Config,
+		"push_token":      m.PushToken,
 	}
 	if includeProxyId {
 		set["proxy_id"] = proxyObjectID
@@ -370,6 +371,9 @@ func buildSetMapFromUpdateModel(mu *mongoUpdateModel, includeProxyId bool, proxy
 	}
 	if mu.Config != nil {
 		set["config"] = *mu.Config
+	}
+	if mu.PushToken != nil {
+		set["push_token"] = *mu.PushToken
 	}
 	if includeProxyId && proxyObjectID != nil {
 		set["proxy_id"] = *proxyObjectID
