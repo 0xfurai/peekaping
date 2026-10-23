@@ -39,7 +39,8 @@ type Config struct {
 	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
 
 	// How long an online probe's instances may all go unseen before the probe counts as offline.
-	// A Go duration, at least 30s. The leader producer's sweep sets the probe offline. Validated in Validate().
+	// A Go duration, at least config.MinProbeOfflineAfter. The leader producer's sweep sets the probe
+	// offline. Validated in Validate().
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:producer"`

@@ -100,7 +100,7 @@ type Config struct {
 	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
 
 	// How long an online probe's instances may all go unseen before the probe counts as offline.
-	// A Go duration, at least 30s. Validated in Validate().
+	// A Go duration, at least config.MinProbeOfflineAfter. Validated in Validate().
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 
 	// The web app (ADR 0002, section 7). With WEB_DIR set to the web build, peekaping serves it
