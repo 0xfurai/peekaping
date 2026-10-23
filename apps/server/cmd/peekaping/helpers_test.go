@@ -134,7 +134,7 @@ func (in *instance) stop(t testing.TB) error {
 	t.Helper()
 	in.stopOnce.Do(func() {
 		in.cancel()
-		limit := shutdownTimeouts.total() + 5*time.Second
+		limit := shutdownTimeouts.Total() + 5*time.Second
 		select {
 		case in.stopErr = <-in.done:
 		case <-time.After(limit):

@@ -15,9 +15,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/signal"
-	"sync"
-	"syscall"
 	"time"
 	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
@@ -25,7 +22,6 @@ import (
 	"peekaping/internal/app"
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
-	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/error_reporting"
@@ -44,6 +40,7 @@ import (
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/reporting"
+	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 	"peekaping/internal/web"
@@ -57,24 +54,8 @@ import (
 // errorReportingFlush is how long the shutdown waits for the error reports still queued
 const errorReportingFlush = 2 * time.Second
 
-// timeouts bound the steps of the shutdown. Each step has a share of its own, so that a step
-// that runs late doesn't take the time of the steps after it: the background jobs get theirs
-// however long the HTTP server took.
-type timeouts struct {
-	// HTTP is how long the HTTP server waits for the requests in flight
-	HTTP time.Duration
-	// Jobs is how long the scheduler, the watchdog and the other background jobs have to stop,
-	// and the HTTP handlers still running once HTTP is up have to return
-	Jobs time.Duration
-	// EventBus is how long the event bus has to handle the events queued
-	EventBus time.Duration
-}
-
-// total is the longest the shutdown takes, from the signal
-func (t timeouts) total() time.Duration { return t.HTTP + t.Jobs + t.EventBus }
-
 // shutdownTimeouts are peekaping's, 30 seconds in all. A test may shorten them.
-var shutdownTimeouts = timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, EventBus: 5 * time.Second}
+var shutdownTimeouts = graceful.Timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, EventBus: 5 * time.Second}
 
 // telemetrySchedule is when the usage ping sender checks whether a ping is due. A test may shorten
 // it.
@@ -106,45 +87,11 @@ func main() {
 		logger.Fatalw("Failed to listen", "port", cfg.Port, "error", err)
 	}
 
-	ctx, stop := notifyShutdown(logger, os.Exit)
+	ctx, stop := graceful.NotifySignals(logger, os.Exit)
 	defer stop()
 
 	if err := run(ctx, cfg, logger, listener); err != nil {
 		logger.Fatalw("Peekaping stopped with an error", "error", err)
-	}
-}
-
-// notifyShutdown returns a context that the first SIGTERM or SIGINT cancels, which starts the
-// shutdown. A second one doesn't wait for the shutdown to finish: it is logged and exit is
-// called with 1. stop stops listening for the signals.
-func notifyShutdown(logger *zap.SugaredLogger, exit func(code int)) (ctx context.Context, stop func()) {
-	signals := make(chan os.Signal, 2)
-	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
-	ctx, cancel := context.WithCancel(context.Background())
-	stopped := make(chan struct{})
-	go func() {
-		select {
-		case <-signals:
-			cancel()
-		case <-stopped:
-			return
-		}
-		select {
-		case sig := <-signals:
-			logger.Errorw("Second shutdown signal received, exiting without finishing the shutdown", "signal", sig.String())
-			_ = logger.Sync()
-			exit(1)
-		case <-stopped:
-		}
-	}()
-
-	var once sync.Once
-	return ctx, func() {
-		once.Do(func() {
-			signal.Stop(signals)
-			close(stopped)
-			cancel()
-		})
 	}
 }
 
@@ -227,7 +174,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	// Counted, the gateway's handlers included, so that the database closes only once every
 	// handler has returned: the HTTP server's Close drops the connections still open, but doesn't
 	// wait for their handlers
-	handlers := &runningHandlers{handler: handler}
+	handlers := graceful.NewRunningHandlers(handler)
 	httpServer := httpx.NewServer("", handlers, serverTimeouts)
 	// The websocket server closes as soon as the HTTP server's Shutdown stops taking connections.
 	// Closing its sessions answers their open long polls, which Shutdown waits for like any
@@ -374,86 +321,26 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 // waits for them.
 func (j *jobs) stop(ctx context.Context) error {
 	j.stopUsagePing()
-	errs := []error{await(ctx, "the usage ping", j.usagePingDone)}
+	errs := []error{graceful.Await(ctx, "the usage ping", j.usagePingDone)}
 
 	j.stopWatchdog()
-	errs = append(errs, await(ctx, "the watchdog", j.watchdogDone))
+	errs = append(errs, graceful.Await(ctx, "the watchdog", j.watchdogDone))
 
 	schedulerDone := make(chan struct{})
 	go func() {
 		defer close(schedulerDone)
 		j.scheduler.Stop()
 	}()
-	errs = append(errs, await(ctx, "the scheduler", schedulerDone))
+	errs = append(errs, graceful.Await(ctx, "the scheduler", schedulerDone))
 
-	errs = append(errs, await(ctx, "the cleanup cron", j.cleanup.Stop().Done()))
+	errs = append(errs, graceful.Await(ctx, "the cleanup cron", j.cleanup.Stop().Done()))
 
 	j.stopRepair()
-	errs = append(errs, await(ctx, "the status repair", j.repairDone))
+	errs = append(errs, graceful.Await(ctx, "the status repair", j.repairDone))
 
 	j.stopMetrics()
-	errs = append(errs, await(ctx, "the metrics collector", j.metricsDone))
+	errs = append(errs, graceful.Await(ctx, "the metrics collector", j.metricsDone))
 	return errors.Join(errs...)
-}
-
-// await waits for done to close, or fails when ctx is done first. done closed counts even once
-// ctx is done.
-func await(ctx context.Context, what string, done <-chan struct{}) error {
-	select {
-	case <-done:
-		return nil
-	default:
-	}
-	select {
-	case <-done:
-		return nil
-	case <-ctx.Done():
-		return fmt.Errorf("%s didn't stop in time: %w", what, ctx.Err())
-	}
-}
-
-// runningHandlers serves its handler and counts the requests it is serving. A handler that
-// hijacks its connection, as the websocket's does, counts until it returns, not until the
-// connection closes.
-type runningHandlers struct {
-	handler http.Handler
-
-	mu      sync.Mutex
-	running int
-	idle    []chan struct{} // closed once running drops to zero
-}
-
-func (h *runningHandlers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.mu.Lock()
-	h.running++
-	h.mu.Unlock()
-	defer h.returned()
-	h.handler.ServeHTTP(w, r)
-}
-
-func (h *runningHandlers) returned() {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	h.running--
-	if h.running == 0 {
-		for _, idle := range h.idle {
-			close(idle)
-		}
-		h.idle = nil
-	}
-}
-
-// done returns a channel that closes once no handler is running
-func (h *runningHandlers) done() <-chan struct{} {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	idle := make(chan struct{})
-	if h.running == 0 {
-		close(idle)
-	} else {
-		h.idle = append(h.idle, idle)
-	}
-	return idle
 }
 
 // shutdown stops everything in order, each step within its share of shutdownTimeouts. The HTTP
@@ -463,7 +350,7 @@ func (h *runningHandlers) done() <-chan struct{} {
 // any more, and the HTTP handlers the HTTP server left running return, in the jobs' share. The
 // event bus lets the handlers of the queued events finish. The database closes last, and only
 // once nothing uses it.
-func shutdown(httpServer *http.Server, handlers *runningHandlers, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
+func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, websocketClosed <-chan struct{}, p parts, j *jobs, dbType string, logger *zap.SugaredLogger) error {
 	var errs []error
 
 	httpCtx, cancelHTTP := context.WithTimeout(context.Background(), shutdownTimeouts.HTTP)
@@ -492,7 +379,7 @@ func shutdown(httpServer *http.Server, handlers *runningHandlers, websocketClose
 	}
 	// The HTTP handlers the HTTP server left running return in the jobs' share too, before the
 	// event bus closes, so that what they publish reaches it
-	if err := await(jobsCtx, "the HTTP handlers", handlers.done()); err != nil {
+	if err := graceful.Await(jobsCtx, "the HTTP handlers", handlers.Done()); err != nil {
 		errs = append(errs, err)
 		running = append(running, "HTTP handlers")
 	}
@@ -512,21 +399,10 @@ func shutdown(httpServer *http.Server, handlers *runningHandlers, websocketClose
 		logger.Errorw("Left the database open, since some of what uses it is still running", "running", running)
 		return errors.Join(errs...)
 	}
-	if err := closeDatabase(p.DB, dbType, logger); err != nil {
+	if err := graceful.CloseDatabase(p.DB, dbType, logger); err != nil {
 		errs = append(errs, err)
 	}
 	logger.Info("Closed the database")
 
 	return errors.Join(errs...)
-}
-
-// closeDatabase closes the database. SQLite checkpoints its write-ahead log first.
-func closeDatabase(db *bun.DB, dbType string, logger *zap.SugaredLogger) error {
-	if dbType == "sqlite" {
-		return infra.GracefulSQLiteShutdown(db, dbType, logger)
-	}
-	if err := db.Close(); err != nil {
-		return fmt.Errorf("failed to close database: %w", err)
-	}
-	return nil
 }
