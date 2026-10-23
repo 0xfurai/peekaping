@@ -26,7 +26,7 @@ type leaderEngine struct {
 
 func newLeaderEngine(t *testing.T, monitors ...*monitor.Model) *leaderEngine {
 	t.Helper()
-	e := newEngine(t, monitors...)
+	e := newUnstartedEngine(t, monitors...)
 	core, logs := observer.New(zap.InfoLevel)
 	e.producer.logger = zap.New(core).Sugar()
 	e.producer.leadershipCheckInterval = 2 * time.Millisecond
@@ -40,12 +40,13 @@ func newLeaderEngine(t *testing.T, monitors ...*monitor.Model) *leaderEngine {
 // start runs leader election and the leadership monitor until the test ends.
 func (e *leaderEngine) start(t *testing.T) {
 	t.Helper()
+	require.NoError(t, e.producer.begin(context.Background()))
 	e.election.Start(e.producer.ctx)
 	e.producer.wg.Add(1)
 	go e.producer.runLeadershipMonitor()
 	t.Cleanup(func() {
 		e.producer.Stop()
-		// Producer.Stop doesn't wait for the election (PP-61)
+		// Producer.Stop waits for an election that Start began, not for this one
 		<-e.election.doneChan
 	})
 }
@@ -136,6 +137,7 @@ func TestStartJobProcessing(t *testing.T) {
 			logger,
 		)
 
+		require.NoError(t, producer.begin(context.Background()))
 		err := producer.startJobProcessing()
 		assert.NoError(t, err)
 
@@ -185,6 +187,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 			logger,
 		)
 
+		require.NoError(t, producer.begin(context.Background()))
 		// Mock error
 		mockMonitorSvc.On("FindActivePaginated", producer.ctx, 0, 100).Return(nil, assert.AnError)
 

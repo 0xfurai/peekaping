@@ -110,7 +110,8 @@ func (w *Watchdog) Run(ctx context.Context) {
 			w.logger.Info("Stale-monitor watchdog stopped")
 			return
 		case <-ticker.C:
-			if err := w.checkStaleMonitors(ctx); err != nil {
+			// A run that fails because ctx is done is the watchdog stopping, not a failure
+			if err := w.checkStaleMonitors(ctx); err != nil && ctx.Err() == nil {
 				w.logger.Errorw("Stale-monitor watchdog run failed", "error", err)
 			}
 		}
@@ -146,6 +147,9 @@ func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 			seen[mon.ID] = true
 			entry, wasStale := known[mon.ID]
 			if err := w.checkStaleMonitor(ctx, mon, now, entry, wasStale); err != nil {
+				if ctx.Err() != nil {
+					return err // the rest would fail the same way
+				}
 				w.logger.Errorw("Failed to check whether monitor is stale", "monitor_id", mon.ID, "error", err)
 			}
 		}
@@ -160,6 +164,9 @@ func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 		}
 		mon, err := w.monitors.FindByID(ctx, id)
 		if err != nil {
+			if ctx.Err() != nil {
+				return err
+			}
 			w.logger.Errorw("Failed to find stale monitor", "monitor_id", id, "error", err)
 			continue
 		}

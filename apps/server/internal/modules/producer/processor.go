@@ -43,6 +43,10 @@ func (p *Producer) runProducer(workerID int) error {
 		// Atomically claim a batch of due monitors
 		ids, err := p.claimDueMonitors(p.ctx, nowMs, BatchClaim, leaseTTLMs)
 		if err != nil {
+			if p.ctx.Err() != nil {
+				// The producer is stopping, which is why the claim failed
+				return p.ctx.Err()
+			}
 			p.logger.Errorw("Claim error", "worker_id", workerID, "error", err)
 			time.Sleep(100 * time.Millisecond)
 			continue
