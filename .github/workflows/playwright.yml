@@ -53,7 +53,7 @@ jobs:
   # The dev images don't depend on the database, so all three dev jobs reuse them.
   build-images:
     name: Build ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -94,7 +94,7 @@ jobs:
     needs: build-images
     if: ${{ !cancelled() }}
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -117,7 +117,7 @@ jobs:
     # Run every combination whose images built, even if another image failed.
     if: ${{ !cancelled() }}
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
