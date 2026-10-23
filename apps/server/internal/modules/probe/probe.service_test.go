@@ -585,3 +585,27 @@ func TestService_MarkOnlineAndOfflineChangeTheStatusOnce(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, changed)
 }
+
+func TestService_MarkOnlineLeavesADisabledProbeOffline(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+	disabled := true
+	_, err := f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Disabled: &disabled})
+	require.NoError(t, err)
+
+	changed, err := f.svc.MarkOnline(ctx, created.ID)
+
+	require.NoError(t, err)
+	assert.False(t, changed, "a disabled probe's token is refused, so nothing has heard from it")
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, probe.StatusOffline, got.Status)
+
+	enabled := false
+	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Disabled: &enabled})
+	require.NoError(t, err)
+	changed, err = f.svc.MarkOnline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.True(t, changed, "enabled again, the probe comes online")
+}

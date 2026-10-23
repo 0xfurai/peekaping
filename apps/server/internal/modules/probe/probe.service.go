@@ -56,7 +56,7 @@ type Service interface {
 	RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error
 	// MarkOnline sets an offline probe online. It returns true only when it changed the status, so
 	// that of the callers that race to bring a probe back (one request on each API replica, and
-	// the sweep), exactly one announces it.
+	// the sweep), exactly one announces it. A disabled probe stays offline.
 	MarkOnline(ctx context.Context, id string) (changed bool, err error)
 	// MarkOffline sets an online probe offline, and returns true only when it changed the status
 	MarkOffline(ctx context.Context, id string) (changed bool, err error)

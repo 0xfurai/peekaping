@@ -263,12 +263,16 @@ func (r *SQLRepositoryImpl) RetireInstance(ctx context.Context, probeID string, 
 
 // MARK: UpdateStatus
 func (r *SQLRepositoryImpl) UpdateStatus(ctx context.Context, id string, from Status, to Status) (bool, error) {
-	result, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("status = ?", string(to)).
 		Set("updated_at = ?", time.Now().UTC()).
 		Where("id = ?", id).
-		Where("status = ?", string(from)).
-		Exec(ctx)
+		Where("status = ?", string(from))
+	if to == StatusOnline {
+		// A request that authenticated an enabled probe may be answered after an admin disabled it
+		query = query.Where("disabled = ?", false)
+	}
+	result, err := query.Exec(ctx)
 	if err != nil {
 		return false, err
 	}

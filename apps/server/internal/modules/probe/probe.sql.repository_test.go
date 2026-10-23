@@ -430,6 +430,55 @@ func TestSQLRepository_UpdateStatusChangesOnlyAProbeInTheStatusItIsGiven(t *test
 	})
 }
 
+// A request authenticates while the probe is enabled, an admin disables it, and then the request
+// brings the probe online: the update has to see the probe as it is now
+func TestSQLRepository_UpdateStatusLeavesADisabledProbeOffline(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		disabled := true
+		_, err := repo.Update(ctx, owner.ID, &probe.UpdateModel{Disabled: &disabled})
+		require.NoError(t, err)
+
+		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+
+		require.NoError(t, err)
+		assert.False(t, changed, "a disabled probe is not brought online")
+		got, err := repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Equal(t, probe.StatusOffline, got.Status)
+
+		changed, err = repo.UpdateStatus(ctx, other.ID, probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		assert.True(t, changed, "an enabled probe still comes online")
+	})
+}
+
+// The sweep sets a disabled probe offline once it goes quiet, which it must still be able to do
+func TestSQLRepository_UpdateStatusStillSetsADisabledProbeOffline(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, _ := twoProbes(t, repo)
+		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		require.True(t, changed)
+		disabled := true
+		_, err = repo.Update(ctx, owner.ID, &probe.UpdateModel{Disabled: &disabled})
+		require.NoError(t, err)
+
+		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOnline, probe.StatusOffline)
+
+		require.NoError(t, err)
+		assert.True(t, changed)
+		got, err := repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Equal(t, probe.StatusOffline, got.Status)
+		assert.True(t, got.Disabled, "the status change leaves the probe disabled")
+	})
+}
+
 func TestSQLRepository_DeleteInstancesUnseenSinceRemovesTheOldOnes(t *testing.T) {
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		ctx := context.Background()

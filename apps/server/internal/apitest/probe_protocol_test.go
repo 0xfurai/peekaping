@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -450,6 +451,53 @@ func TestProbeProtocol_RequestBringsAnOfflineProbeOnline(t *testing.T) {
 		assert.Equal(t, "offline", a.getProbe(t, made.ID).Status, "none of its instances is connected")
 		assert.Empty(t, a.queuedNotificationTopics(t))
 	})
+}
+
+// racingAdmin is the probe service with an admin who disables a probe in the moment between a
+// request's authentication, which found the probe enabled, and the status change the request causes
+type racingAdmin struct {
+	probe.Service
+	disableOnNextTouch atomic.Bool
+}
+
+func (s *racingAdmin) TouchInstance(ctx context.Context, probeID string, instanceID string, at time.Time) (bool, error) {
+	found, err := s.Service.TouchInstance(ctx, probeID, instanceID, at)
+	if err != nil || !s.disableOnNextTouch.CompareAndSwap(true, false) {
+		return found, err
+	}
+	disabled := true
+	_, err = s.Service.Update(ctx, probeID, &probe.UpdateRequest{Disabled: &disabled})
+	return found, err
+}
+
+func TestProbeProtocol_ADisabledProbeIsNotBroughtOnline(t *testing.T) {
+	racing := &racingAdmin{}
+	a := newAppDecorated(t, func(c *dig.Container) error {
+		return c.Decorate(func(probes probe.Service) probe.Service {
+			racing.Service = probes
+			return racing
+		})
+	})
+	a.registerAdmin(t)
+	made := a.createProbe(t, map[string]any{"name": "Frankfurt", "location": "eu-central"})
+	instanceID := uuid.NewString()
+	a.sayHello(t, made.Token, instanceID)
+	require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
+		changed, err := probes.MarkOffline(context.Background(), made.ID)
+		require.True(t, changed)
+		return err
+	}))
+	a.clearQueuedNotifications(t)
+	racing.disableOnNextTouch.Store(true)
+
+	// The assignments handler reads the probe again and answers 401 for a disabled one. The status
+	// of the answer is not the point: what the request leaves behind is.
+	a.assignments(t, made.Token, instanceID, "")
+
+	got := a.getProbe(t, made.ID)
+	require.True(t, got.Disabled, "the admin disabled the probe during the request")
+	assert.Equal(t, "offline", got.Status, "a disabled probe is not set online by a request that began before it was disabled")
+	assert.Empty(t, a.queuedNotificationTopics(t), "and nobody is told that it is back")
 }
 
 // Bye takes the instance out of the dealing at once and leaves the row, so that the probe is not

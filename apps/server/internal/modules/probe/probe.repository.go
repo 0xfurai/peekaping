@@ -38,7 +38,9 @@ type Repository interface {
 	SetSupportedTypes(ctx context.Context, probeID string, types []string) error
 	// UpdateStatus moves the probe from one status to another in a single conditional update. It
 	// returns true when the probe was in the status from and is now in to, and false when it was
-	// not (or does not exist): of two callers racing to make the same change, one hears true.
+	// not (or does not exist): of two callers racing to make the same change, one hears true. A
+	// disabled probe can be set offline but not online, since nothing can have heard from it: its
+	// token is refused, and a request that began before an admin disabled it must not bring it back.
 	UpdateStatus(ctx context.Context, id string, from Status, to Status) (bool, error)
 	// DeleteInstancesUnseenSince removes the instances of every probe that were last seen before
 	// the given time, and returns how many it removed

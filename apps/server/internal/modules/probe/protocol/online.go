@@ -16,7 +16,9 @@ import (
 //
 // MarkOnline changes the status in one conditional update, so when several requests find the probe
 // offline at once, on this replica or on another, exactly one changes it and publishes
-// probe.online. The channels hear about the probe's return once.
+// probe.online. The channels hear about the probe's return once. A probe that an admin disabled
+// after the request authenticated is not changed, and so not announced: the update leaves a
+// disabled probe offline.
 //
 // A probe that can't be marked online doesn't fail the request that found it: the request is
 // fine, and the sweep sets the probe online within its interval.
