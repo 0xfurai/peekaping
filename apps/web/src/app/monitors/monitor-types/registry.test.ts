@@ -77,7 +77,10 @@ describe("monitor type registry", () => {
   it("puts a monitor whose response has no probe on the local probe", () => {
     const [http] = monitorTypes;
     const saved = savedMonitor(http.serialize(http.defaultValues));
-    expect(deserializeMonitor({ ...saved, probe_ids: null }).probe_ids).toEqual([LOCAL_PROBE_ID]);
+    // A server from before probes sends no probe_ids at all
+    const withoutProbes: Partial<MonitorMonitorResponseDto> = { ...saved };
+    delete withoutProbes.probe_ids;
+    expect(deserializeMonitor(withoutProbes as MonitorMonitorResponseDto).probe_ids).toEqual([LOCAL_PROBE_ID]);
     expect(deserializeMonitor({ ...saved, probe_ids: [] }).probe_ids).toEqual([LOCAL_PROBE_ID]);
   });
 
