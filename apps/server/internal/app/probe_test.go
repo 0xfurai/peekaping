@@ -1,0 +1,178 @@
+package app
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"testing"
+
+	"peekaping/cmd/bun/migrations"
+	"peekaping/internal/config"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe_notification"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/migrate"
+	"go.uber.org/dig"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
+)
+
+// bootstrapToken is 43 characters
+const bootstrapToken = "bootstrap-token-0123456789-abcdefghijklmnop"
+
+// probeContainer registers the app on cfg, with a logger the test reads, and migrates its SQLite
+// database unless cfg names another storage backend
+func probeContainer(t *testing.T, cfg *config.Config, migrateDatabase bool) (*dig.Container, *observer.ObservedLogs) {
+	t.Helper()
+	container := dig.New()
+	require.NoError(t, Register(container, cfg))
+	core, logs := observer.New(zap.DebugLevel)
+	require.NoError(t, container.Decorate(func() *zap.SugaredLogger { return zap.New(core).Sugar() }))
+	if cfg.DBType == "sqlite" {
+		require.NoError(t, container.Invoke(func(db *bun.DB) error {
+			t.Cleanup(func() { assert.NoError(t, db.Close()) })
+			if !migrateDatabase {
+				return nil
+			}
+			ctx := context.Background()
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			if err := migrator.Init(ctx); err != nil {
+				return err
+			}
+			_, err := migrator.Migrate(ctx)
+			return err
+		}))
+	}
+	return container, logs
+}
+
+func findByToken(t *testing.T, container *dig.Container, token string) *probe.Model {
+	t.Helper()
+	var found *probe.Model
+	require.NoError(t, container.Invoke(func(service probe.Service) error {
+		var err error
+		found, err = service.FindByToken(context.Background(), token)
+		return err
+	}))
+	return found
+}
+
+// noEntryHolds asserts that nothing the logger recorded, message or fields, contains text
+func noEntryHolds(t *testing.T, logs *observer.ObservedLogs, text string) {
+	t.Helper()
+	for _, entry := range logs.All() {
+		assert.NotContains(t, entry.Message, text)
+		assert.NotContains(t, fmt.Sprint(entry.ContextMap()), text)
+	}
+}
+
+// A MongoDB install has no probes (ADR 0001), and must still start: the probe services resolve,
+// without a Mongo repository, and list no probes.
+func TestRegister_MongoInstallResolvesTheProbeServices(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.DBType, cfg.DBName = "mongo", "peekaping"
+	container := dig.New()
+	require.NoError(t, Register(container, cfg))
+
+	require.NoError(t, container.Invoke(func(probes probe.Service, channels probe_notification.Service) {
+		all, err := probes.FindAll(context.Background())
+		require.NoError(t, err)
+		assert.Empty(t, all)
+		assert.NoError(t, channels.DeleteByNotificationID(context.Background(), "any"))
+	}))
+}
+
+func TestRegister_SQLiteInstallResolvesTheProbeServices(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, Register(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(probes probe.Service, channels probe_notification.Service) {
+		assert.NotNil(t, probes)
+		assert.NotNil(t, channels)
+	}))
+}
+
+func TestBootstrapLocalProbe_StoresTheTokenOnLocal(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.ProbeBootstrapToken = bootstrapToken
+	container, logs := probeContainer(t, cfg, true)
+
+	require.NoError(t, BootstrapLocalProbe(context.Background(), container))
+
+	local := findByToken(t, container, bootstrapToken)
+	require.NotNil(t, local, "the bootstrap token finds the local probe")
+	assert.Equal(t, "local", local.ID)
+	assert.Equal(t, "bootstra", local.TokenPrefix)
+	applied := logs.FilterMessageSnippet("PROBE_BOOTSTRAP_TOKEN").All()
+	require.Len(t, applied, 1)
+	assert.Equal(t, zap.InfoLevel, applied[0].Level)
+	assert.Contains(t, applied[0].Message, "local probe")
+	noEntryHolds(t, logs, bootstrapToken)
+	noEntryHolds(t, logs, "bootstra")
+
+	// A restart with the same token changes nothing
+	require.NoError(t, BootstrapLocalProbe(context.Background(), container))
+	assert.NotNil(t, findByToken(t, container, bootstrapToken))
+}
+
+func TestBootstrapLocalProbe_WithoutATokenLeavesLocal(t *testing.T) {
+	cfg := clusterConfig(t)
+	container, logs := probeContainer(t, cfg, true)
+
+	require.NoError(t, BootstrapLocalProbe(context.Background(), container))
+
+	assert.Empty(t, logs.FilterMessageSnippet("PROBE_BOOTSTRAP_TOKEN").All())
+	require.NoError(t, container.Invoke(func(service probe.Service) error {
+		local, err := service.FindByID(context.Background(), probe.LocalID)
+		require.NotNil(t, local)
+		assert.Equal(t, "", local.TokenHash, "local has no token")
+		assert.Equal(t, "", local.TokenPrefix)
+		return err
+	}))
+}
+
+func TestBootstrapLocalProbe_WithoutATokenNeedsNoProbesTable(t *testing.T) {
+	cfg := clusterConfig(t)
+	container, _ := probeContainer(t, cfg, false)
+
+	assert.NoError(t, BootstrapLocalProbe(context.Background(), container), "with no token it doesn't read the database")
+}
+
+func TestBootstrapLocalProbe_OnMongoWarnsAndSkips(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.DBType, cfg.DBName = "mongo", "peekaping"
+	cfg.ProbeBootstrapToken = bootstrapToken
+	container, logs := probeContainer(t, cfg, false)
+
+	require.NoError(t, BootstrapLocalProbe(context.Background(), container))
+
+	warnings := logs.FilterLevelExact(zap.WarnLevel).All()
+	require.Len(t, warnings, 1)
+	assert.Contains(t, warnings[0].Message, "PROBE_BOOTSTRAP_TOKEN")
+	assert.Contains(t, warnings[0].Message, "SQLite or PostgreSQL")
+	noEntryHolds(t, logs, bootstrapToken)
+}
+
+func TestBootstrapLocalProbe_FailsWhenTheTokenCantBeStored(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.ProbeBootstrapToken = bootstrapToken
+	container, _ := probeContainer(t, cfg, false)
+
+	err := BootstrapLocalProbe(context.Background(), container)
+
+	require.Error(t, err, "a token that can't be stored would leave the local probe with none, so startup stops")
+	assert.NotContains(t, err.Error(), bootstrapToken)
+}
+
+func TestBootstrapLocalProbe_RefusesATokenUnder32Characters(t *testing.T) {
+	cfg := clusterConfig(t)
+	cfg.ProbeBootstrapToken = strings.Repeat("k", 31)
+	container, _ := probeContainer(t, cfg, true)
+
+	err := BootstrapLocalProbe(context.Background(), container)
+
+	assert.ErrorContains(t, err, "PROBE_BOOTSTRAP_TOKEN must be at least 32 characters")
+}

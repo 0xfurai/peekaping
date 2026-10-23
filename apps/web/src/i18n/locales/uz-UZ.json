@@ -684,6 +684,7 @@
     "maintenance": "Texnik xizmat",
     "monitors": "Monitoring",
     "notification_channels": "Xabarnoma kanallari",
+    "probes": "Zondlar",
     "proxies": "Proksilar",
     "settings": "Sozlamalar",
     "status_pages": "Status sahifalari",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "Bu sirni qayta kiriting: yuboriladigan manzil o‘zgargan",
       "remove": "Olib tashlash",
       "saved_hint": "Saqlangan — almashtirish uchun yozing"
+    }
+  },
+  "probes": {
+    "page_name": "Zondlar",
+    "description": "Zondlar monitorlarning tekshiruvlarini ular o‘rnatilgan joylardan bajaradi. Mahalliy zond — bu Peekapingning o‘zi.",
+    "empty_list": {
+      "title": "Zondlar topilmadi",
+      "text": "Tekshiruvlarni boshqa joydan bajarish uchun zond yarating.",
+      "action_text": "Birinchi zondingizni yarating"
+    },
+    "table": {
+      "headers": {
+        "name": "Nomi",
+        "location": "Joylashuv",
+        "status": "Holat",
+        "disabled": "O‘chirilgan",
+        "token": "Token",
+        "instances": "Nusxalar",
+        "actions": "Amallar"
+      },
+      "status": {
+        "online": "Onlayn",
+        "offline": "Oflayn"
+      },
+      "disabled": "O‘chirilgan",
+      "no_instances": "Hozircha nusxalar yo‘q",
+      "last_seen": "oxirgi marta ko‘rilgan: {{date}}",
+      "actions": {
+        "edit": "{{name}} zondini tahrirlash",
+        "rotate": "{{name}} zondining tokenini almashtirish",
+        "delete": "{{name}} zondini o‘chirish"
+      }
+    },
+    "create_dialog": {
+      "title": "Zond yaratish",
+      "description": "Zond tekshiruvlarni siz o‘rnatgan joydan bajaradi. Uning tokeni faqat bir marta, yaratilgandan so‘ng ko‘rsatiladi.",
+      "submit": "Zond yaratish",
+      "creating": "Yaratilmoqda..."
+    },
+    "edit_dialog": {
+      "title": "Zondni tahrirlash",
+      "description": "{{name}} sozlamalarini o‘zgartiring."
+    },
+    "form": {
+      "name_label": "Nomi",
+      "name_placeholder": "masalan, Frankfurt",
+      "location_label": "Joylashuv (ixtiyoriy)",
+      "location_placeholder": "masalan, Frankfurt, Germaniya",
+      "name_required": "Nomi kiritilishi shart",
+      "name_too_long": "Nomi juda uzun",
+      "location_too_long": "Joylashuv juda uzun",
+      "disabled_label": "O‘chirilgan",
+      "disabled_description": "O‘chirilgan zondning tokeni uni qayta yoqmaguningizcha ishlamaydi."
+    },
+    "rotate_dialog": {
+      "title": "Tokenni almashtirish",
+      "description": "{{name}} zondining eski tokeni darhol ishlashdan to‘xtaydi. Uning nusxalarini yangi token bilan qayta ishga tushirish kerak.",
+      "confirm": "Tokenni almashtirish",
+      "rotating": "Almashtirilmoqda..."
+    },
+    "delete_dialog": {
+      "title": "Zondni o‘chirish",
+      "description": "\"{{name}}\" zondini o‘chirishni xohlaysizmi? Uning tokeni ishlashdan to‘xtaydi. Bu amalni bekor qilib bo‘lmaydi."
+    },
+    "token_alert": {
+      "title_created": "{{name}} zondi yaratildi",
+      "title_rotated": "{{name}} zondi uchun yangi token",
+      "note": "Bu token zondga biriktirilgan monitorlarning konfiguratsiyasini o‘qiydi. U faqat bir marta ko‘rsatiladi.",
+      "token_label": "Token",
+      "docker_label": "Zondni Docker bilan ishga tushiring",
+      "copy_token": "Tokenni nusxalash",
+      "copy_command": "docker buyrug‘ini nusxalash"
+    },
+    "messages": {
+      "created_successfully": "Zond muvaffaqiyatli yaratildi",
+      "updated_successfully": "Zond muvaffaqiyatli yangilandi",
+      "rotated_successfully": "Token muvaffaqiyatli almashtirildi",
+      "deleted_successfully": "Zond muvaffaqiyatli o‘chirildi",
+      "failed_to_create": "Zondni yaratib bo‘lmadi",
+      "failed_to_update": "Zondni yangilab bo‘lmadi",
+      "failed_to_rotate": "Tokenni almashtirib bo‘lmadi",
+      "failed_to_delete": "Zondni o‘chirib bo‘lmadi",
+      "failed_to_load": "Zondlarni yuklab bo‘lmadi",
+      "copy_success": "Vaqtinchalik xotiraga nusxalandi",
+      "copy_failed": "Vaqtinchalik xotiraga nusxalab bo‘lmadi"
     }
   },
   "proxies": {

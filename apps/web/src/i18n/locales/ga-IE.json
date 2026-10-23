@@ -684,6 +684,7 @@
     "maintenance": "Cothromaíocht",
     "monitors": "Móntóirí",
     "notification_channels": "Canálacha Fógairtí",
+    "probes": "Tóireadóirí",
     "proxies": "Próiseasanna",
     "settings": "Socruithe",
     "status_pages": "Leathanacha stádas",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "Cuir isteach an rún seo arís: tá an áit a seoltar é athraithe",
       "remove": "Bain",
       "saved_hint": "Sábháilte — clóscríobh chun a chur ina ionad"
+    }
+  },
+  "probes": {
+    "page_name": "Tóireadóirí",
+    "description": "Ritheann tóireadóirí seiceálacha móntóirí ó na háiteanna ina bhfuil siad suiteáilte. Is é Peekaping féin an tóireadóir áitiúil.",
+    "empty_list": {
+      "title": "Níor aimsíodh aon tóireadóir",
+      "text": "Cruthaigh tóireadóir chun seiceálacha a rith ó áit eile.",
+      "action_text": "Cruthaigh do chéad tóireadóir"
+    },
+    "table": {
+      "headers": {
+        "name": "Ainm",
+        "location": "Suíomh",
+        "status": "Stádas",
+        "disabled": "Díchumasaithe",
+        "token": "Comhartha",
+        "instances": "Cásanna",
+        "actions": "Gníomhartha"
+      },
+      "status": {
+        "online": "Ar líne",
+        "offline": "As líne"
+      },
+      "disabled": "Díchumasaithe",
+      "no_instances": "Gan aon chás fós",
+      "last_seen": "feicthe go deireanach {{date}}",
+      "actions": {
+        "edit": "Cuir tóireadóir {{name}} in eagar",
+        "rotate": "Athraigh comhartha an tóireadóra {{name}}",
+        "delete": "Scrios tóireadóir {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Cruthaigh tóireadóir",
+      "description": "Ritheann tóireadóir seiceálacha ón áit ina suiteálann tú é. Ní thaispeántar a chomhartha ach uair amháin, tar éis duit é a chruthú.",
+      "submit": "Cruthaigh tóireadóir",
+      "creating": "Á chruthú..."
+    },
+    "edit_dialog": {
+      "title": "Cuir tóireadóir in eagar",
+      "description": "Athraigh socruithe {{name}}."
+    },
+    "form": {
+      "name_label": "Ainm",
+      "name_placeholder": "m.sh., Frankfurt",
+      "location_label": "Suíomh (roghnach)",
+      "location_placeholder": "m.sh., Frankfurt, an Ghearmáin",
+      "name_required": "Tá ainm de dhíth",
+      "name_too_long": "Tá an t-ainm rófhada",
+      "location_too_long": "Tá an suíomh rófhada",
+      "disabled_label": "Díchumasaithe",
+      "disabled_description": "Stopann comhartha tóireadóra dhíchumasaithe ag obair go dtí go gcumasaíonn tú arís é."
+    },
+    "rotate_dialog": {
+      "title": "Athraigh an comhartha",
+      "description": "Stopann seanchomhartha an tóireadóra {{name}} ag obair láithreach. Caithfear a chásanna a atosú leis an gcomhartha nua.",
+      "confirm": "Athraigh an comhartha",
+      "rotating": "Á athrú..."
+    },
+    "delete_dialog": {
+      "title": "Scrios tóireadóir",
+      "description": "An bhfuil tú cinnte gur mhaith leat an tóireadóir \"{{name}}\" a scriosadh? Stopfaidh a chomhartha ag obair. Ní féidir an gníomh seo a chealú."
+    },
+    "token_alert": {
+      "title_created": "Cruthaíodh an tóireadóir {{name}}",
+      "title_rotated": "Comhartha nua don tóireadóir {{name}}",
+      "note": "Léann an comhartha seo cumraíochtaí na móntóirí a shanntar don tóireadóir. Ní thaispeántar é ach uair amháin.",
+      "token_label": "Comhartha",
+      "docker_label": "Tosaigh an tóireadóir le Docker",
+      "copy_token": "Cóipeáil an comhartha",
+      "copy_command": "Cóipeáil an t-ordú docker"
+    },
+    "messages": {
+      "created_successfully": "Cruthaíodh an tóireadóir go rathúil",
+      "updated_successfully": "Nuashonraíodh an tóireadóir go rathúil",
+      "rotated_successfully": "Athraíodh an comhartha go rathúil",
+      "deleted_successfully": "Scriosadh an tóireadóir go rathúil",
+      "failed_to_create": "Theip ar chruthú an tóireadóra",
+      "failed_to_update": "Theip ar nuashonrú an tóireadóra",
+      "failed_to_rotate": "Theip ar athrú an chomhartha",
+      "failed_to_delete": "Theip ar scriosadh an tóireadóra",
+      "failed_to_load": "Theip ar lódáil na dtóireadóirí",
+      "copy_success": "Cóipeáilte chuig an ghearrthaisce",
+      "copy_failed": "Níorbh fhéidir cóipeáil chuig an ghearrthaisce"
     }
   },
   "proxies": {

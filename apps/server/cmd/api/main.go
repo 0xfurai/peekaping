@@ -31,6 +31,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
@@ -120,6 +121,7 @@ type parts struct {
 	TLSInfo              monitor_tls_info.Service
 	CleanupLock          cleanup.RunLock
 	Monitors             monitor.Service
+	Probes               probe.Service
 	NotificationListener *notification_channel.NotificationEventListener
 	MonitorListener      *monitor.MonitorEventListener
 	Metrics              *metrics.Collector
@@ -217,9 +219,9 @@ type jobs struct {
 	usagePingDone      <-chan struct{}
 }
 
-// startJobs starts the cleanup cron, the settings, the error reporting choice, the listeners, the
-// notification queue, the status repair, the metrics collector and the usage ping. The
-// notification listener subscribes before the queue consumer starts. When one fails, it returns
+// startJobs starts the cleanup cron, the settings, the local probe's token, the error reporting
+// choice, the listeners, the notification queue, the status repair, the metrics collector and the
+// usage ping. The notification listener subscribes before the queue consumer starts. When one fails, it returns
 // the jobs that had started, to stop.
 func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.SugaredLogger) (*jobs, error) {
 	j := &jobs{}
@@ -237,6 +239,12 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return j, fmt.Errorf("failed to initialize JWT settings: %w", err)
+	}
+
+	// PROBE_BOOTSTRAP_TOKEN becomes the local probe's token, so that a stack comes up with a probe
+	// token and no UI step. A token that can't be stored stops startup.
+	if err := app.BootstrapLocalProbeToken(ctx, p.Probes, cfg.ProbeBootstrapToken, logger); err != nil {
+		return j, fmt.Errorf("failed to bootstrap the local probe: %w", err)
 	}
 
 	// Apply the admin's choice from before the restart, which also copies it to Redis for the

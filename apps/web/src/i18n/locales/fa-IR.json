@@ -684,6 +684,7 @@
     "maintenance": "نگهداری",
     "monitors": "نظارت‌ها",
     "notification_channels": "کانال‌های اعلان",
+    "probes": "پروب‌ها",
     "proxies": "پروکسی‌ها",
     "settings": "تنظیمات",
     "status_pages": "صفحات وضعیت",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "این رمز را دوباره وارد کنید: مقصد ارسال تغییر کرده است",
       "remove": "حذف",
       "saved_hint": "ذخیره شده — برای جایگزینی تایپ کنید"
+    }
+  },
+  "probes": {
+    "page_name": "پروب‌ها",
+    "description": "پروب‌ها بررسی‌های پایشگرها را از مکان‌هایی که نصب شده‌اند اجرا می‌کنند. پروب محلی خود Peekaping است.",
+    "empty_list": {
+      "title": "هیچ پروبی یافت نشد",
+      "text": "یک پروب ایجاد کنید تا بررسی‌ها را از مکانی دیگر اجرا کند.",
+      "action_text": "اولین پروب خود را ایجاد کنید"
+    },
+    "table": {
+      "headers": {
+        "name": "نام",
+        "location": "مکان",
+        "status": "وضعیت",
+        "disabled": "غیرفعال",
+        "token": "توکن",
+        "instances": "نمونه‌ها",
+        "actions": "اقدامات"
+      },
+      "status": {
+        "online": "آنلاین",
+        "offline": "آفلاین"
+      },
+      "disabled": "غیرفعال",
+      "no_instances": "هنوز نمونه‌ای وجود ندارد",
+      "last_seen": "آخرین بازدید {{date}}",
+      "actions": {
+        "edit": "ویرایش پروب {{name}}",
+        "rotate": "تعویض توکن پروب {{name}}",
+        "delete": "حذف پروب {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "ایجاد پروب",
+      "description": "پروب بررسی‌ها را از مکانی که آن را نصب می‌کنید اجرا می‌کند. توکن آن فقط یک بار و پس از ایجاد نمایش داده می‌شود.",
+      "submit": "ایجاد پروب",
+      "creating": "در حال ایجاد..."
+    },
+    "edit_dialog": {
+      "title": "ویرایش پروب",
+      "description": "تنظیمات {{name}} را تغییر دهید."
+    },
+    "form": {
+      "name_label": "نام",
+      "name_placeholder": "مثلاً فرانکفورت",
+      "location_label": "مکان (اختیاری)",
+      "location_placeholder": "مثلاً فرانکفورت، آلمان",
+      "name_required": "نام الزامی است",
+      "name_too_long": "نام خیلی طولانی است",
+      "location_too_long": "مکان خیلی طولانی است",
+      "disabled_label": "غیرفعال",
+      "disabled_description": "توکن پروب غیرفعال تا زمانی که دوباره آن را فعال کنید کار نمی‌کند."
+    },
+    "rotate_dialog": {
+      "title": "تعویض توکن",
+      "description": "توکن قدیمی پروب {{name}} بلافاصله از کار می‌افتد. نمونه‌های آن باید با توکن جدید دوباره راه‌اندازی شوند.",
+      "confirm": "تعویض توکن",
+      "rotating": "در حال تعویض..."
+    },
+    "delete_dialog": {
+      "title": "حذف پروب",
+      "description": "آیا مطمئن هستید که می‌خواهید پروب «{{name}}» را حذف کنید؟ توکن آن از کار می‌افتد. این عمل قابل بازگشت نیست."
+    },
+    "token_alert": {
+      "title_created": "پروب {{name}} ایجاد شد",
+      "title_rotated": "توکن جدید برای پروب {{name}}",
+      "note": "این توکن پیکربندی پایشگرهای اختصاص‌یافته به پروب را می‌خواند. فقط یک بار نمایش داده می‌شود.",
+      "token_label": "توکن",
+      "docker_label": "پروب را با Docker راه‌اندازی کنید",
+      "copy_token": "کپی توکن",
+      "copy_command": "کپی دستور docker"
+    },
+    "messages": {
+      "created_successfully": "پروب با موفقیت ایجاد شد",
+      "updated_successfully": "پروب با موفقیت به‌روزرسانی شد",
+      "rotated_successfully": "توکن با موفقیت تعویض شد",
+      "deleted_successfully": "پروب با موفقیت حذف شد",
+      "failed_to_create": "ایجاد پروب ناموفق بود",
+      "failed_to_update": "به‌روزرسانی پروب ناموفق بود",
+      "failed_to_rotate": "تعویض توکن ناموفق بود",
+      "failed_to_delete": "حذف پروب ناموفق بود",
+      "failed_to_load": "بارگذاری پروب‌ها ناموفق بود",
+      "copy_success": "در کلیپ‌بورد کپی شد",
+      "copy_failed": "کپی در کلیپ‌بورد ممکن نشد"
     }
   },
   "proxies": {

@@ -684,6 +684,7 @@
     "maintenance": "Maintenance",
     "monitors": "Monitors",
     "notification_channels": "Notification Channels",
+    "probes": "Probes",
     "proxies": "Proxies",
     "settings": "Settings",
     "status_pages": "Status Pages",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Re-enter this secret: where it's sent changed",
       "remove": "Remove",
       "saved_hint": "Saved — type to replace"
+    }
+  },
+  "probes": {
+    "page_name": "Probes",
+    "description": "Probes run monitor checks from the places where they are installed. The local probe is Peekaping itself.",
+    "empty_list": {
+      "title": "No probes found",
+      "text": "Create a probe to run checks from another place.",
+      "action_text": "Create your first probe"
+    },
+    "table": {
+      "headers": {
+        "name": "Name",
+        "location": "Location",
+        "status": "Status",
+        "disabled": "Disabled",
+        "token": "Token",
+        "instances": "Instances",
+        "actions": "Actions"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Disabled",
+      "no_instances": "No instances yet",
+      "last_seen": "last seen {{date}}",
+      "actions": {
+        "edit": "Edit probe {{name}}",
+        "rotate": "Rotate token of probe {{name}}",
+        "delete": "Delete probe {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Create probe",
+      "description": "A probe runs checks from the place where you install it. Its token is shown only once, after you create it.",
+      "submit": "Create probe",
+      "creating": "Creating..."
+    },
+    "edit_dialog": {
+      "title": "Edit probe",
+      "description": "Change the settings of {{name}}."
+    },
+    "form": {
+      "name_label": "Name",
+      "name_placeholder": "e.g., Frankfurt",
+      "location_label": "Location (optional)",
+      "location_placeholder": "e.g., Frankfurt, Germany",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "location_too_long": "Location is too long",
+      "disabled_label": "Disabled",
+      "disabled_description": "A disabled probe's token stops working until you enable it again."
+    },
+    "rotate_dialog": {
+      "title": "Rotate token",
+      "description": "The old token of probe {{name}} stops working at once. Its instances must restart with the new token.",
+      "confirm": "Rotate token",
+      "rotating": "Rotating..."
+    },
+    "delete_dialog": {
+      "title": "Delete probe",
+      "description": "Are you sure you want to delete the probe \"{{name}}\"? Its token stops working. This action cannot be undone."
+    },
+    "token_alert": {
+      "title_created": "Probe {{name}} created",
+      "title_rotated": "New token for probe {{name}}",
+      "note": "This token reads the configs of the monitors assigned to the probe. It is shown only once.",
+      "token_label": "Token",
+      "docker_label": "Start the probe with Docker",
+      "copy_token": "Copy token",
+      "copy_command": "Copy docker command"
+    },
+    "messages": {
+      "created_successfully": "Probe created successfully",
+      "updated_successfully": "Probe updated successfully",
+      "rotated_successfully": "Token rotated successfully",
+      "deleted_successfully": "Probe deleted successfully",
+      "failed_to_create": "Failed to create probe",
+      "failed_to_update": "Failed to update probe",
+      "failed_to_rotate": "Failed to rotate the token",
+      "failed_to_delete": "Failed to delete probe",
+      "failed_to_load": "Failed to load probes",
+      "copy_success": "Copied to clipboard",
+      "copy_failed": "Could not copy to clipboard"
     }
   },
   "proxies": {

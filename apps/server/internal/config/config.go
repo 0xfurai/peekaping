@@ -141,6 +141,12 @@ type Config struct {
 	// ErrorReportingDSN replaces the Sentry DSN built into the binary, to send the reports to
 	// another Sentry, to GlitchTip or to a server of your own
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
+
+	// ProbeBootstrapToken is the token of the local probe. With it set, the api and peekaping
+	// store its hash on the local probe at startup, so that a compose or Helm stack comes up with
+	// a probe token and no UI step. At least 32 characters, checked by each binary's Validate.
+	// Empty leaves the local probe as it is.
+	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
 }
 
 // TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is

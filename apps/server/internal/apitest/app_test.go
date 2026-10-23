@@ -129,6 +129,8 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 	require.NoError(t, container.Invoke(func(settings setting.Service) error {
 		return settings.InitializeSettings(ctx)
 	}))
+	// PROBE_BOOTSTRAP_TOKEN is applied after the settings initialise, as cmd/api does at startup.
+	require.NoError(t, wiring.BootstrapLocalProbe(ctx, container))
 	// Notification channel providers register when the listener is built, as cmd/api does at startup.
 	require.NoError(t, container.Invoke(func(listener *notification_channel.NotificationEventListener, bus events.EventBus) {
 		listener.Subscribe(bus)

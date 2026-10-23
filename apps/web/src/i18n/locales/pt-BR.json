@@ -684,6 +684,7 @@
     "maintenance": "Manutenção",
     "monitors": "Monitores",
     "notification_channels": "Canais de Notificação",
+    "probes": "Sondas",
     "proxies": "Proxies",
     "settings": "Configurações",
     "status_pages": "Páginas de Status",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Digite este segredo novamente: o destino do envio mudou",
       "remove": "Remover",
       "saved_hint": "Salvo — digite para substituir"
+    }
+  },
+  "probes": {
+    "page_name": "Sondas",
+    "description": "As sondas executam as verificações dos monitores a partir dos locais onde estão instaladas. A sonda local é o próprio Peekaping.",
+    "empty_list": {
+      "title": "Nenhuma sonda encontrada",
+      "text": "Crie uma sonda para executar verificações a partir de outro lugar.",
+      "action_text": "Crie sua primeira sonda"
+    },
+    "table": {
+      "headers": {
+        "name": "Nome",
+        "location": "Localização",
+        "status": "Status",
+        "disabled": "Desativada",
+        "token": "Token",
+        "instances": "Instâncias",
+        "actions": "Ações"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Desativada",
+      "no_instances": "Ainda não há instâncias",
+      "last_seen": "vista pela última vez em {{date}}",
+      "actions": {
+        "edit": "Editar a sonda {{name}}",
+        "rotate": "Renovar o token da sonda {{name}}",
+        "delete": "Excluir a sonda {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Criar sonda",
+      "description": "Uma sonda executa verificações a partir do local onde você a instala. O token dela é exibido apenas uma vez, depois que você a cria.",
+      "submit": "Criar sonda",
+      "creating": "Criando..."
+    },
+    "edit_dialog": {
+      "title": "Editar sonda",
+      "description": "Altere as configurações de {{name}}."
+    },
+    "form": {
+      "name_label": "Nome",
+      "name_placeholder": "ex.: Frankfurt",
+      "location_label": "Localização (opcional)",
+      "location_placeholder": "ex.: Frankfurt, Alemanha",
+      "name_required": "O nome é obrigatório",
+      "name_too_long": "O nome é muito longo",
+      "location_too_long": "A localização é muito longa",
+      "disabled_label": "Desativada",
+      "disabled_description": "O token de uma sonda desativada deixa de funcionar até que você a ative novamente."
+    },
+    "rotate_dialog": {
+      "title": "Renovar token",
+      "description": "O token antigo da sonda {{name}} deixa de funcionar imediatamente. As instâncias dela precisam ser reiniciadas com o novo token.",
+      "confirm": "Renovar token",
+      "rotating": "Renovando..."
+    },
+    "delete_dialog": {
+      "title": "Excluir sonda",
+      "description": "Tem certeza de que deseja excluir a sonda \"{{name}}\"? O token dela deixará de funcionar. Esta ação não pode ser desfeita."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} criada",
+      "title_rotated": "Novo token para a sonda {{name}}",
+      "note": "Este token lê as configurações dos monitores atribuídos à sonda. Ele é exibido apenas uma vez.",
+      "token_label": "Token",
+      "docker_label": "Inicie a sonda com o Docker",
+      "copy_token": "Copiar token",
+      "copy_command": "Copiar comando docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda criada com sucesso",
+      "updated_successfully": "Sonda atualizada com sucesso",
+      "rotated_successfully": "Token renovado com sucesso",
+      "deleted_successfully": "Sonda excluída com sucesso",
+      "failed_to_create": "Falha ao criar a sonda",
+      "failed_to_update": "Falha ao atualizar a sonda",
+      "failed_to_rotate": "Falha ao renovar o token",
+      "failed_to_delete": "Falha ao excluir a sonda",
+      "failed_to_load": "Falha ao carregar as sondas",
+      "copy_success": "Copiado para a área de transferência",
+      "copy_failed": "Não foi possível copiar para a área de transferência"
     }
   },
   "proxies": {

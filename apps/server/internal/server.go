@@ -19,6 +19,7 @@ import (
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
@@ -124,6 +125,8 @@ func ProvideServer(
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
+	probeRoute *probe.Route,
+	probeController *probe.Controller,
 	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
@@ -154,6 +157,7 @@ func ProvideServer(
 	errorReportingRoute.ConnectRoute(router, errorReportingController)
 	badgeRoute.ConnectRoute(router, badgeController)
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
+	probeRoute.ConnectRoute(router, probeController)
 
 	// Register push endpoint
 	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, ingesterService, maintenanceService, logger)

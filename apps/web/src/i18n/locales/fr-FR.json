@@ -684,6 +684,7 @@
     "maintenance": "Maintenance",
     "monitors": "Moniteurs",
     "notification_channels": "Canaux de notification",
+    "probes": "Sondes",
     "proxies": "Proxies",
     "settings": "Paramètres",
     "status_pages": "Pages d'état",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Saisissez à nouveau ce secret : la destination d'envoi a changé",
       "remove": "Retirer",
       "saved_hint": "Enregistré — saisissez pour remplacer"
+    }
+  },
+  "probes": {
+    "page_name": "Sondes",
+    "description": "Les sondes exécutent les vérifications des moniteurs depuis les endroits où elles sont installées. La sonde locale est Peekaping lui-même.",
+    "empty_list": {
+      "title": "Aucune sonde trouvée",
+      "text": "Créez une sonde pour exécuter des vérifications depuis un autre endroit.",
+      "action_text": "Créez votre première sonde"
+    },
+    "table": {
+      "headers": {
+        "name": "Nom",
+        "location": "Emplacement",
+        "status": "Statut",
+        "disabled": "Désactivée",
+        "token": "Jeton",
+        "instances": "Instances",
+        "actions": "Actions"
+      },
+      "status": {
+        "online": "En ligne",
+        "offline": "Hors ligne"
+      },
+      "disabled": "Désactivée",
+      "no_instances": "Aucune instance pour le moment",
+      "last_seen": "vue pour la dernière fois le {{date}}",
+      "actions": {
+        "edit": "Modifier la sonde {{name}}",
+        "rotate": "Renouveler le jeton de la sonde {{name}}",
+        "delete": "Supprimer la sonde {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Créer une sonde",
+      "description": "Une sonde exécute des vérifications depuis l'endroit où vous l'installez. Son jeton n'est affiché qu'une seule fois, après sa création.",
+      "submit": "Créer la sonde",
+      "creating": "Création en cours..."
+    },
+    "edit_dialog": {
+      "title": "Modifier la sonde",
+      "description": "Modifiez les paramètres de {{name}}."
+    },
+    "form": {
+      "name_label": "Nom",
+      "name_placeholder": "p. ex., Francfort",
+      "location_label": "Emplacement (facultatif)",
+      "location_placeholder": "p. ex., Francfort, Allemagne",
+      "name_required": "Le nom est obligatoire",
+      "name_too_long": "Le nom est trop long",
+      "location_too_long": "L'emplacement est trop long",
+      "disabled_label": "Désactivée",
+      "disabled_description": "Le jeton d'une sonde désactivée cesse de fonctionner jusqu'à ce que vous la réactiviez."
+    },
+    "rotate_dialog": {
+      "title": "Renouveler le jeton",
+      "description": "L'ancien jeton de la sonde {{name}} cesse de fonctionner immédiatement. Ses instances doivent être redémarrées avec le nouveau jeton.",
+      "confirm": "Renouveler le jeton",
+      "rotating": "Renouvellement..."
+    },
+    "delete_dialog": {
+      "title": "Supprimer la sonde",
+      "description": "Voulez-vous vraiment supprimer la sonde « {{name}} » ? Son jeton cessera de fonctionner. Cette action est irréversible."
+    },
+    "token_alert": {
+      "title_created": "Sonde {{name}} créée",
+      "title_rotated": "Nouveau jeton pour la sonde {{name}}",
+      "note": "Ce jeton lit les configurations des moniteurs affectés à la sonde. Il n'est affiché qu'une seule fois.",
+      "token_label": "Jeton",
+      "docker_label": "Démarrez la sonde avec Docker",
+      "copy_token": "Copier le jeton",
+      "copy_command": "Copier la commande docker"
+    },
+    "messages": {
+      "created_successfully": "Sonde créée avec succès",
+      "updated_successfully": "Sonde mise à jour avec succès",
+      "rotated_successfully": "Jeton renouvelé avec succès",
+      "deleted_successfully": "Sonde supprimée avec succès",
+      "failed_to_create": "Échec de la création de la sonde",
+      "failed_to_update": "Échec de la mise à jour de la sonde",
+      "failed_to_rotate": "Échec du renouvellement du jeton",
+      "failed_to_delete": "Échec de la suppression de la sonde",
+      "failed_to_load": "Échec du chargement des sondes",
+      "copy_success": "Copié dans le presse-papiers",
+      "copy_failed": "Impossible de copier dans le presse-papiers"
     }
   },
   "proxies": {

@@ -6,6 +6,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/probe"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -90,6 +91,9 @@ type Config struct {
 	// forces them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
 	ErrorReporting    string `env:"ERROR_REPORTING"`
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
+
+	// The local probe's token. Set, it is stored on the local probe at startup. Validated in Validate().
+	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -162,6 +166,12 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	// A short token is easy to guess, and it would give a probe's access to the monitors' configs.
+	// The message doesn't repeat it.
+	if cfg.ProbeBootstrapToken != "" && len(cfg.ProbeBootstrapToken) < probe.MinBootstrapTokenLength {
+		return fmt.Errorf("PROBE_BOOTSTRAP_TOKEN must be at least %d characters", probe.MinBootstrapTokenLength)
+	}
+
 	return nil
 }
 
@@ -202,6 +212,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		TelemetryURL:                 c.TelemetryURL,
 		ErrorReporting:               c.ErrorReporting,
 		ErrorReportingDSN:            c.ErrorReportingDSN,
+		ProbeBootstrapToken:          c.ProbeBootstrapToken,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

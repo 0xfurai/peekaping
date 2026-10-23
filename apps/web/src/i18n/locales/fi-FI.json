@@ -684,6 +684,7 @@
     "maintenance": "Huolto",
     "monitors": "Valvonta",
     "notification_channels": "Ilmoituskanavat",
+    "probes": "Luotaimet",
     "proxies": "Välityspalvelimet",
     "settings": "Asetukset",
     "status_pages": "Tila-sivut",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Syötä tämä salaisuus uudelleen: lähetyksen kohde on muuttunut",
       "remove": "Poista",
       "saved_hint": "Tallennettu — kirjoita korvataksesi"
+    }
+  },
+  "probes": {
+    "page_name": "Luotaimet",
+    "description": "Luotaimet suorittavat valvontojen tarkistukset paikoista, joihin ne on asennettu. Paikallinen luotain on Peekaping itse.",
+    "empty_list": {
+      "title": "Luotaimia ei löytynyt",
+      "text": "Luo luotain suorittaaksesi tarkistuksia toisesta paikasta.",
+      "action_text": "Luo ensimmäinen luotaimesi"
+    },
+    "table": {
+      "headers": {
+        "name": "Nimi",
+        "location": "Sijainti",
+        "status": "Tila",
+        "disabled": "Poistettu käytöstä",
+        "token": "Token",
+        "instances": "Instanssit",
+        "actions": "Toiminnot"
+      },
+      "status": {
+        "online": "Verkossa",
+        "offline": "Ei verkossa"
+      },
+      "disabled": "Poistettu käytöstä",
+      "no_instances": "Ei vielä instansseja",
+      "last_seen": "viimeksi nähty {{date}}",
+      "actions": {
+        "edit": "Muokkaa luotainta {{name}}",
+        "rotate": "Vaihda luotaimen {{name}} token",
+        "delete": "Poista luotain {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Luo luotain",
+      "description": "Luotain suorittaa tarkistuksia paikasta, johon asennat sen. Sen token näytetään vain kerran luomisen jälkeen.",
+      "submit": "Luo luotain",
+      "creating": "Luodaan..."
+    },
+    "edit_dialog": {
+      "title": "Muokkaa luotainta",
+      "description": "Muuta luotaimen {{name}} asetuksia."
+    },
+    "form": {
+      "name_label": "Nimi",
+      "name_placeholder": "esim. Frankfurt",
+      "location_label": "Sijainti (valinnainen)",
+      "location_placeholder": "esim. Frankfurt, Saksa",
+      "name_required": "Nimi on pakollinen",
+      "name_too_long": "Nimi on liian pitkä",
+      "location_too_long": "Sijainti on liian pitkä",
+      "disabled_label": "Poistettu käytöstä",
+      "disabled_description": "Käytöstä poistetun luotaimen token lakkaa toimimasta, kunnes otat luotaimen uudelleen käyttöön."
+    },
+    "rotate_dialog": {
+      "title": "Vaihda token",
+      "description": "Luotaimen {{name}} vanha token lakkaa toimimasta heti. Sen instanssit on käynnistettävä uudelleen uudella tokenilla.",
+      "confirm": "Vaihda token",
+      "rotating": "Vaihdetaan..."
+    },
+    "delete_dialog": {
+      "title": "Poista luotain",
+      "description": "Haluatko varmasti poistaa luotaimen \"{{name}}\"? Sen token lakkaa toimimasta. Tätä toimintoa ei voi kumota."
+    },
+    "token_alert": {
+      "title_created": "Luotain {{name}} luotu",
+      "title_rotated": "Uusi token luotaimelle {{name}}",
+      "note": "Tämä token lukee luotaimelle määritettyjen valvontojen asetukset. Se näytetään vain kerran.",
+      "token_label": "Token",
+      "docker_label": "Käynnistä luotain Dockerilla",
+      "copy_token": "Kopioi token",
+      "copy_command": "Kopioi docker-komento"
+    },
+    "messages": {
+      "created_successfully": "Luotain luotu onnistuneesti",
+      "updated_successfully": "Luotain päivitetty onnistuneesti",
+      "rotated_successfully": "Token vaihdettu onnistuneesti",
+      "deleted_successfully": "Luotain poistettu onnistuneesti",
+      "failed_to_create": "Luotaimen luominen epäonnistui",
+      "failed_to_update": "Luotaimen päivittäminen epäonnistui",
+      "failed_to_rotate": "Tokenin vaihtaminen epäonnistui",
+      "failed_to_delete": "Luotaimen poistaminen epäonnistui",
+      "failed_to_load": "Luotaimien lataaminen epäonnistui",
+      "copy_success": "Kopioitu leikepöydälle",
+      "copy_failed": "Leikepöydälle kopioiminen epäonnistui"
     }
   },
   "proxies": {

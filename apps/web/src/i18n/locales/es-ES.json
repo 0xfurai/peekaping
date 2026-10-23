@@ -684,6 +684,7 @@
     "maintenance": "Mantenimiento",
     "monitors": "Monitores",
     "notification_channels": "Canales de notificación",
+    "probes": "Sondas",
     "proxies": "Proxies",
     "settings": "Configuración",
     "status_pages": "Páginas de estado",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Vuelve a introducir este secreto: ha cambiado el destino de envío",
       "remove": "Quitar",
       "saved_hint": "Guardado — escribe para reemplazar"
+    }
+  },
+  "probes": {
+    "page_name": "Sondas",
+    "description": "Las sondas ejecutan las comprobaciones de los monitores desde los lugares donde están instaladas. La sonda local es el propio Peekaping.",
+    "empty_list": {
+      "title": "No se encontraron sondas",
+      "text": "Cree una sonda para ejecutar comprobaciones desde otro lugar.",
+      "action_text": "Cree su primera sonda"
+    },
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "location": "Ubicación",
+        "status": "Estado",
+        "disabled": "Desactivada",
+        "token": "Token",
+        "instances": "Instancias",
+        "actions": "Acciones"
+      },
+      "status": {
+        "online": "En línea",
+        "offline": "Sin conexión"
+      },
+      "disabled": "Desactivada",
+      "no_instances": "Aún no hay instancias",
+      "last_seen": "vista por última vez {{date}}",
+      "actions": {
+        "edit": "Editar la sonda {{name}}",
+        "rotate": "Renovar el token de la sonda {{name}}",
+        "delete": "Eliminar la sonda {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Crear sonda",
+      "description": "Una sonda ejecuta comprobaciones desde el lugar donde la instala. Su token se muestra una sola vez, después de crearla.",
+      "submit": "Crear sonda",
+      "creating": "Creando..."
+    },
+    "edit_dialog": {
+      "title": "Editar sonda",
+      "description": "Cambie la configuración de {{name}}."
+    },
+    "form": {
+      "name_label": "Nombre",
+      "name_placeholder": "p. ej., Fráncfort",
+      "location_label": "Ubicación (opcional)",
+      "location_placeholder": "p. ej., Fráncfort, Alemania",
+      "name_required": "El nombre es obligatorio",
+      "name_too_long": "El nombre es demasiado largo",
+      "location_too_long": "La ubicación es demasiado larga",
+      "disabled_label": "Desactivada",
+      "disabled_description": "El token de una sonda desactivada deja de funcionar hasta que la vuelva a activar."
+    },
+    "rotate_dialog": {
+      "title": "Renovar token",
+      "description": "El token anterior de la sonda {{name}} deja de funcionar de inmediato. Sus instancias deben reiniciarse con el nuevo token.",
+      "confirm": "Renovar token",
+      "rotating": "Renovando..."
+    },
+    "delete_dialog": {
+      "title": "Eliminar sonda",
+      "description": "¿Seguro que desea eliminar la sonda «{{name}}»? Su token dejará de funcionar. Esta acción no se puede deshacer."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} creada",
+      "title_rotated": "Nuevo token para la sonda {{name}}",
+      "note": "Este token lee las configuraciones de los monitores asignados a la sonda. Se muestra una sola vez.",
+      "token_label": "Token",
+      "docker_label": "Inicie la sonda con Docker",
+      "copy_token": "Copiar token",
+      "copy_command": "Copiar comando docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda creada correctamente",
+      "updated_successfully": "Sonda actualizada correctamente",
+      "rotated_successfully": "Token renovado correctamente",
+      "deleted_successfully": "Sonda eliminada correctamente",
+      "failed_to_create": "No se pudo crear la sonda",
+      "failed_to_update": "No se pudo actualizar la sonda",
+      "failed_to_rotate": "No se pudo renovar el token",
+      "failed_to_delete": "No se pudo eliminar la sonda",
+      "failed_to_load": "No se pudieron cargar las sondas",
+      "copy_success": "Copiado al portapapeles",
+      "copy_failed": "No se pudo copiar al portapapeles"
     }
   },
   "proxies": {

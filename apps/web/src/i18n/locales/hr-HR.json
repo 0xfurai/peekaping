@@ -684,6 +684,7 @@
     "maintenance": "Održavanje",
     "monitors": "Nadzori",
     "notification_channels": "Kanali obavijesti",
+    "probes": "Sonde",
     "proxies": "Proksi",
     "settings": "Postavke",
     "status_pages": "Statusne stranice",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Ponovno unesite ovaj tajni ključ: promijenilo se mjesto na koje se šalje",
       "remove": "Ukloni",
       "saved_hint": "Spremljeno — upišite za zamjenu"
+    }
+  },
+  "probes": {
+    "page_name": "Sonde",
+    "description": "Sonde izvršavaju provjere nadzora s mjesta na kojima su instalirane. Lokalna sonda je sam Peekaping.",
+    "empty_list": {
+      "title": "Nema pronađenih sondi",
+      "text": "Stvorite sondu za izvođenje provjera s drugog mjesta.",
+      "action_text": "Stvorite svoju prvu sondu"
+    },
+    "table": {
+      "headers": {
+        "name": "Naziv",
+        "location": "Lokacija",
+        "status": "Status",
+        "disabled": "Onemogućena",
+        "token": "Token",
+        "instances": "Instance",
+        "actions": "Radnje"
+      },
+      "status": {
+        "online": "Na mreži",
+        "offline": "Izvan mreže"
+      },
+      "disabled": "Onemogućena",
+      "no_instances": "Još nema instanci",
+      "last_seen": "zadnji put viđena {{date}}",
+      "actions": {
+        "edit": "Uredi sondu {{name}}",
+        "rotate": "Zamijeni token sonde {{name}}",
+        "delete": "Izbriši sondu {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Stvori sondu",
+      "description": "Sonda izvršava provjere s mjesta na kojem je instalirate. Njezin se token prikazuje samo jednom, nakon stvaranja.",
+      "submit": "Stvori sondu",
+      "creating": "Stvaranje..."
+    },
+    "edit_dialog": {
+      "title": "Uredi sondu",
+      "description": "Promijenite postavke sonde {{name}}."
+    },
+    "form": {
+      "name_label": "Naziv",
+      "name_placeholder": "npr. Frankfurt",
+      "location_label": "Lokacija (neobavezno)",
+      "location_placeholder": "npr. Frankfurt, Njemačka",
+      "name_required": "Naziv je obavezan",
+      "name_too_long": "Naziv je predugačak",
+      "location_too_long": "Lokacija je preduga",
+      "disabled_label": "Onemogućena",
+      "disabled_description": "Token onemogućene sonde prestaje raditi dok je ponovno ne omogućite."
+    },
+    "rotate_dialog": {
+      "title": "Zamijeni token",
+      "description": "Stari token sonde {{name}} odmah prestaje raditi. Njezine instance treba ponovno pokrenuti s novim tokenom.",
+      "confirm": "Zamijeni token",
+      "rotating": "Zamjena..."
+    },
+    "delete_dialog": {
+      "title": "Izbriši sondu",
+      "description": "Jeste li sigurni da želite izbrisati sondu „{{name}}”? Njezin token prestaje raditi. Ova se radnja ne može poništiti."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} je stvorena",
+      "title_rotated": "Novi token za sondu {{name}}",
+      "note": "Ovaj token čita konfiguracije nadzora dodijeljenih sondi. Prikazuje se samo jednom.",
+      "token_label": "Token",
+      "docker_label": "Pokrenite sondu pomoću Dockera",
+      "copy_token": "Kopiraj token",
+      "copy_command": "Kopiraj docker naredbu"
+    },
+    "messages": {
+      "created_successfully": "Sonda je uspješno stvorena",
+      "updated_successfully": "Sonda je uspješno ažurirana",
+      "rotated_successfully": "Token je uspješno zamijenjen",
+      "deleted_successfully": "Sonda je uspješno izbrisana",
+      "failed_to_create": "Stvaranje sonde nije uspjelo",
+      "failed_to_update": "Ažuriranje sonde nije uspjelo",
+      "failed_to_rotate": "Zamjena tokena nije uspjela",
+      "failed_to_delete": "Brisanje sonde nije uspjelo",
+      "failed_to_load": "Učitavanje sondi nije uspjelo",
+      "copy_success": "Kopirano u međuspremnik",
+      "copy_failed": "Kopiranje u međuspremnik nije uspjelo"
     }
   },
   "proxies": {

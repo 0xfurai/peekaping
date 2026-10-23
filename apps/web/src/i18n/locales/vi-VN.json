@@ -684,6 +684,7 @@
     "maintenance": "Bảo trì",
     "monitors": "Giám sát",
     "notification_channels": "Kênh thông báo",
+    "probes": "Đầu dò",
     "proxies": "Proxy",
     "settings": "Cài đặt",
     "status_pages": "Trang trạng thái",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Hãy nhập lại khóa bí mật này: nơi gửi đã thay đổi",
       "remove": "Xóa",
       "saved_hint": "Đã lưu — nhập để thay thế"
+    }
+  },
+  "probes": {
+    "page_name": "Đầu dò",
+    "description": "Đầu dò chạy các lần kiểm tra của giám sát từ những nơi chúng được cài đặt. Đầu dò cục bộ chính là Peekaping.",
+    "empty_list": {
+      "title": "Không tìm thấy đầu dò nào",
+      "text": "Tạo một đầu dò để chạy kiểm tra từ một nơi khác.",
+      "action_text": "Tạo đầu dò đầu tiên của bạn"
+    },
+    "table": {
+      "headers": {
+        "name": "Tên",
+        "location": "Vị trí",
+        "status": "Trạng thái",
+        "disabled": "Đã vô hiệu hóa",
+        "token": "Mã thông báo",
+        "instances": "Instance",
+        "actions": "Hành động"
+      },
+      "status": {
+        "online": "Trực tuyến",
+        "offline": "Ngoại tuyến"
+      },
+      "disabled": "Đã vô hiệu hóa",
+      "no_instances": "Chưa có instance nào",
+      "last_seen": "thấy lần cuối {{date}}",
+      "actions": {
+        "edit": "Chỉnh sửa đầu dò {{name}}",
+        "rotate": "Đổi mã thông báo của đầu dò {{name}}",
+        "delete": "Xóa đầu dò {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Tạo đầu dò",
+      "description": "Đầu dò chạy các lần kiểm tra từ nơi bạn cài đặt nó. Mã thông báo của đầu dò chỉ hiển thị một lần, sau khi bạn tạo.",
+      "submit": "Tạo đầu dò",
+      "creating": "Đang tạo..."
+    },
+    "edit_dialog": {
+      "title": "Chỉnh sửa đầu dò",
+      "description": "Thay đổi cài đặt của {{name}}."
+    },
+    "form": {
+      "name_label": "Tên",
+      "name_placeholder": "ví dụ: Frankfurt",
+      "location_label": "Vị trí (không bắt buộc)",
+      "location_placeholder": "ví dụ: Frankfurt, Đức",
+      "name_required": "Tên là bắt buộc",
+      "name_too_long": "Tên quá dài",
+      "location_too_long": "Vị trí quá dài",
+      "disabled_label": "Đã vô hiệu hóa",
+      "disabled_description": "Mã thông báo của đầu dò bị vô hiệu hóa sẽ ngừng hoạt động cho đến khi bạn bật lại."
+    },
+    "rotate_dialog": {
+      "title": "Đổi mã thông báo",
+      "description": "Mã thông báo cũ của đầu dò {{name}} ngừng hoạt động ngay lập tức. Các instance của nó phải được khởi động lại với mã thông báo mới.",
+      "confirm": "Đổi mã thông báo",
+      "rotating": "Đang đổi..."
+    },
+    "delete_dialog": {
+      "title": "Xóa đầu dò",
+      "description": "Bạn có chắc muốn xóa đầu dò \"{{name}}\" không? Mã thông báo của nó sẽ ngừng hoạt động. Hành động này không thể hoàn tác."
+    },
+    "token_alert": {
+      "title_created": "Đã tạo đầu dò {{name}}",
+      "title_rotated": "Mã thông báo mới cho đầu dò {{name}}",
+      "note": "Mã thông báo này đọc cấu hình của các giám sát được gán cho đầu dò. Nó chỉ hiển thị một lần.",
+      "token_label": "Mã thông báo",
+      "docker_label": "Khởi động đầu dò bằng Docker",
+      "copy_token": "Sao chép mã thông báo",
+      "copy_command": "Sao chép lệnh docker"
+    },
+    "messages": {
+      "created_successfully": "Đã tạo đầu dò thành công",
+      "updated_successfully": "Đã cập nhật đầu dò thành công",
+      "rotated_successfully": "Đã đổi mã thông báo thành công",
+      "deleted_successfully": "Đã xóa đầu dò thành công",
+      "failed_to_create": "Không thể tạo đầu dò",
+      "failed_to_update": "Không thể cập nhật đầu dò",
+      "failed_to_rotate": "Không thể đổi mã thông báo",
+      "failed_to_delete": "Không thể xóa đầu dò",
+      "failed_to_load": "Không thể tải danh sách đầu dò",
+      "copy_success": "Đã sao chép vào clipboard",
+      "copy_failed": "Không thể sao chép vào clipboard"
     }
   },
   "proxies": {

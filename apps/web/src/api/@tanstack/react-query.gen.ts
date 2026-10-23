@@ -52,6 +52,12 @@ import {
   getNotificationChannelsById,
   patchNotificationChannelsById,
   putNotificationChannelsById,
+  getProbes,
+  postProbes,
+  deleteProbesById,
+  getProbesById,
+  putProbesById,
+  postProbesByIdRotateToken,
   getProxies,
   postProxies,
   deleteProxiesById,
@@ -202,6 +208,20 @@ import type {
   PutNotificationChannelsByIdData,
   PutNotificationChannelsByIdError,
   PutNotificationChannelsByIdResponse,
+  GetProbesData,
+  PostProbesData,
+  PostProbesError,
+  PostProbesResponse,
+  DeleteProbesByIdData,
+  DeleteProbesByIdError,
+  DeleteProbesByIdResponse,
+  GetProbesByIdData,
+  PutProbesByIdData,
+  PutProbesByIdError,
+  PutProbesByIdResponse,
+  PostProbesByIdRotateTokenData,
+  PostProbesByIdRotateTokenError,
+  PostProbesByIdRotateTokenResponse,
   GetProxiesData,
   GetProxiesError,
   GetProxiesResponse,
@@ -2086,6 +2106,201 @@ export const putNotificationChannelsByIdMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await putNotificationChannelsById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProbesQueryKey = (options?: Options<GetProbesData>) =>
+  createQueryKey("getProbes", options);
+
+/**
+ * Get probes
+ */
+export const getProbesOptions = (options?: Options<GetProbesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesQueryKey(options),
+  });
+};
+
+export const postProbesQueryKey = (options: Options<PostProbesData>) =>
+  createQueryKey("postProbes", options);
+
+/**
+ * Create probe
+ */
+export const postProbesOptions = (options: Options<PostProbesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postProbes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postProbesQueryKey(options),
+  });
+};
+
+/**
+ * Create probe
+ */
+export const postProbesMutation = (
+  options?: Partial<Options<PostProbesData>>
+): UseMutationOptions<
+  PostProbesResponse,
+  AxiosError<PostProbesError>,
+  Options<PostProbesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostProbesResponse,
+    AxiosError<PostProbesError>,
+    Options<PostProbesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postProbes({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Delete probe
+ */
+export const deleteProbesByIdMutation = (
+  options?: Partial<Options<DeleteProbesByIdData>>
+): UseMutationOptions<
+  DeleteProbesByIdResponse,
+  AxiosError<DeleteProbesByIdError>,
+  Options<DeleteProbesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteProbesByIdResponse,
+    AxiosError<DeleteProbesByIdError>,
+    Options<DeleteProbesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteProbesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProbesByIdQueryKey = (options: Options<GetProbesByIdData>) =>
+  createQueryKey("getProbesById", options);
+
+/**
+ * Get probe
+ */
+export const getProbesByIdOptions = (options: Options<GetProbesByIdData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbesById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesByIdQueryKey(options),
+  });
+};
+
+/**
+ * Update probe
+ */
+export const putProbesByIdMutation = (
+  options?: Partial<Options<PutProbesByIdData>>
+): UseMutationOptions<
+  PutProbesByIdResponse,
+  AxiosError<PutProbesByIdError>,
+  Options<PutProbesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutProbesByIdResponse,
+    AxiosError<PutProbesByIdError>,
+    Options<PutProbesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putProbesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postProbesByIdRotateTokenQueryKey = (
+  options: Options<PostProbesByIdRotateTokenData>
+) => createQueryKey("postProbesByIdRotateToken", options);
+
+/**
+ * Rotate probe token
+ */
+export const postProbesByIdRotateTokenOptions = (
+  options: Options<PostProbesByIdRotateTokenData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postProbesByIdRotateToken({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postProbesByIdRotateTokenQueryKey(options),
+  });
+};
+
+/**
+ * Rotate probe token
+ */
+export const postProbesByIdRotateTokenMutation = (
+  options?: Partial<Options<PostProbesByIdRotateTokenData>>
+): UseMutationOptions<
+  PostProbesByIdRotateTokenResponse,
+  AxiosError<PostProbesByIdRotateTokenError>,
+  Options<PostProbesByIdRotateTokenData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostProbesByIdRotateTokenResponse,
+    AxiosError<PostProbesByIdRotateTokenError>,
+    Options<PostProbesByIdRotateTokenData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postProbesByIdRotateToken({
         ...options,
         ...localOptions,
         throwOnError: true,

@@ -684,6 +684,7 @@
     "maintenance": "Onderhoud",
     "monitors": "Monitoren",
     "notification_channels": "Notificatiekanalen",
+    "probes": "Probes",
     "proxies": "Proxy's",
     "settings": "Instellingen",
     "status_pages": "Statuspagina's",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Voer dit geheim opnieuw in: de bestemming waar het naartoe wordt verstuurd, is gewijzigd",
       "remove": "Verwijderen",
       "saved_hint": "Opgeslagen — typ om te vervangen"
+    }
+  },
+  "probes": {
+    "page_name": "Probes",
+    "description": "Probes voeren de controles van monitoren uit vanaf de plekken waar ze zijn geïnstalleerd. De lokale probe is Peekaping zelf.",
+    "empty_list": {
+      "title": "Geen probes gevonden",
+      "text": "Maak een probe aan om controles vanaf een andere plek uit te voeren.",
+      "action_text": "Maak je eerste probe aan"
+    },
+    "table": {
+      "headers": {
+        "name": "Naam",
+        "location": "Locatie",
+        "status": "Status",
+        "disabled": "Uitgeschakeld",
+        "token": "Token",
+        "instances": "Instanties",
+        "actions": "Acties"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Uitgeschakeld",
+      "no_instances": "Nog geen instanties",
+      "last_seen": "laatst gezien {{date}}",
+      "actions": {
+        "edit": "Probe {{name}} bewerken",
+        "rotate": "Token van probe {{name}} vernieuwen",
+        "delete": "Probe {{name}} verwijderen"
+      }
+    },
+    "create_dialog": {
+      "title": "Probe aanmaken",
+      "description": "Een probe voert controles uit vanaf de plek waar je hem installeert. Het token wordt maar één keer getoond, nadat je de probe hebt aangemaakt.",
+      "submit": "Probe aanmaken",
+      "creating": "Aanmaken..."
+    },
+    "edit_dialog": {
+      "title": "Probe bewerken",
+      "description": "Wijzig de instellingen van {{name}}."
+    },
+    "form": {
+      "name_label": "Naam",
+      "name_placeholder": "bijv. Frankfurt",
+      "location_label": "Locatie (optioneel)",
+      "location_placeholder": "bijv. Frankfurt, Duitsland",
+      "name_required": "Naam is verplicht",
+      "name_too_long": "De naam is te lang",
+      "location_too_long": "De locatie is te lang",
+      "disabled_label": "Uitgeschakeld",
+      "disabled_description": "Het token van een uitgeschakelde probe werkt niet meer totdat je de probe weer inschakelt."
+    },
+    "rotate_dialog": {
+      "title": "Token vernieuwen",
+      "description": "Het oude token van probe {{name}} werkt meteen niet meer. De instanties moeten opnieuw worden gestart met het nieuwe token.",
+      "confirm": "Token vernieuwen",
+      "rotating": "Vernieuwen..."
+    },
+    "delete_dialog": {
+      "title": "Probe verwijderen",
+      "description": "Weet je zeker dat je de probe \"{{name}}\" wilt verwijderen? Het token werkt dan niet meer. Deze actie kan niet ongedaan worden gemaakt."
+    },
+    "token_alert": {
+      "title_created": "Probe {{name}} aangemaakt",
+      "title_rotated": "Nieuw token voor probe {{name}}",
+      "note": "Dit token leest de configuraties van de monitoren die aan de probe zijn toegewezen. Het wordt maar één keer getoond.",
+      "token_label": "Token",
+      "docker_label": "Start de probe met Docker",
+      "copy_token": "Token kopiëren",
+      "copy_command": "Docker-commando kopiëren"
+    },
+    "messages": {
+      "created_successfully": "Probe succesvol aangemaakt",
+      "updated_successfully": "Probe succesvol bijgewerkt",
+      "rotated_successfully": "Token succesvol vernieuwd",
+      "deleted_successfully": "Probe succesvol verwijderd",
+      "failed_to_create": "Probe aanmaken mislukt",
+      "failed_to_update": "Probe bijwerken mislukt",
+      "failed_to_rotate": "Token vernieuwen mislukt",
+      "failed_to_delete": "Probe verwijderen mislukt",
+      "failed_to_load": "Probes laden mislukt",
+      "copy_success": "Gekopieerd naar klembord",
+      "copy_failed": "Kopiëren naar klembord mislukt"
     }
   },
   "proxies": {

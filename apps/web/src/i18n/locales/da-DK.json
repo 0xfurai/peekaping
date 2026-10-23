@@ -684,6 +684,7 @@
     "maintenance": "Vedligeholdelse",
     "monitors": "Monitorer",
     "notification_channels": "Notifikationskanaler",
+    "probes": "Probes",
     "proxies": "Proxyer",
     "settings": "Indstillinger",
     "status_pages": "Status-sider",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Indtast denne hemmelighed igen: det sted, den sendes til, er ændret",
       "remove": "Fjern",
       "saved_hint": "Gemt — skriv for at erstatte"
+    }
+  },
+  "probes": {
+    "page_name": "Probes",
+    "description": "Probes kører kontroller af monitorer fra de steder, hvor de er installeret. Den lokale probe er Peekaping selv.",
+    "empty_list": {
+      "title": "Ingen probes fundet",
+      "text": "Opret en probe for at køre kontroller fra et andet sted.",
+      "action_text": "Opret din første probe"
+    },
+    "table": {
+      "headers": {
+        "name": "Navn",
+        "location": "Placering",
+        "status": "Status",
+        "disabled": "Deaktiveret",
+        "token": "Token",
+        "instances": "Instanser",
+        "actions": "Handlinger"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Deaktiveret",
+      "no_instances": "Ingen instanser endnu",
+      "last_seen": "sidst set {{date}}",
+      "actions": {
+        "edit": "Rediger probe {{name}}",
+        "rotate": "Skift token for probe {{name}}",
+        "delete": "Slet probe {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Opret probe",
+      "description": "En probe kører kontroller fra det sted, hvor du installerer den. Dens token vises kun én gang, efter du har oprettet den.",
+      "submit": "Opret probe",
+      "creating": "Opretter..."
+    },
+    "edit_dialog": {
+      "title": "Rediger probe",
+      "description": "Ændr indstillingerne for {{name}}."
+    },
+    "form": {
+      "name_label": "Navn",
+      "name_placeholder": "f.eks. Frankfurt",
+      "location_label": "Placering (valgfri)",
+      "location_placeholder": "f.eks. Frankfurt, Tyskland",
+      "name_required": "Navn er påkrævet",
+      "name_too_long": "Navnet er for langt",
+      "location_too_long": "Placeringen er for lang",
+      "disabled_label": "Deaktiveret",
+      "disabled_description": "En deaktiveret probes token holder op med at virke, indtil du aktiverer den igen."
+    },
+    "rotate_dialog": {
+      "title": "Skift token",
+      "description": "Det gamle token for probe {{name}} holder straks op med at virke. Dens instanser skal genstartes med det nye token.",
+      "confirm": "Skift token",
+      "rotating": "Skifter..."
+    },
+    "delete_dialog": {
+      "title": "Slet probe",
+      "description": "Er du sikker på, at du vil slette proben \"{{name}}\"? Dens token holder op med at virke. Denne handling kan ikke fortrydes."
+    },
+    "token_alert": {
+      "title_created": "Probe {{name}} er oprettet",
+      "title_rotated": "Nyt token til probe {{name}}",
+      "note": "Dette token læser konfigurationerne for de monitorer, der er tildelt proben. Det vises kun én gang.",
+      "token_label": "Token",
+      "docker_label": "Start proben med Docker",
+      "copy_token": "Kopiér token",
+      "copy_command": "Kopiér docker-kommando"
+    },
+    "messages": {
+      "created_successfully": "Proben blev oprettet",
+      "updated_successfully": "Proben blev opdateret",
+      "rotated_successfully": "Token blev skiftet",
+      "deleted_successfully": "Proben blev slettet",
+      "failed_to_create": "Kunne ikke oprette proben",
+      "failed_to_update": "Kunne ikke opdatere proben",
+      "failed_to_rotate": "Kunne ikke skifte token",
+      "failed_to_delete": "Kunne ikke slette proben",
+      "failed_to_load": "Kunne ikke indlæse probes",
+      "copy_success": "Kopieret til udklipsholderen",
+      "copy_failed": "Kunne ikke kopiere til udklipsholderen"
     }
   },
   "proxies": {

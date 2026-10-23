@@ -684,6 +684,7 @@
     "maintenance": "Mantentzea",
     "monitors": "Monitoreak",
     "notification_channels": "Joparpen kanalak",
+    "probes": "Zundak",
     "proxies": "Proxyak",
     "settings": "Ezarpenak",
     "status_pages": "Egoera orriak",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Sartu berriro sekretu hau: bidaltzen den helmuga aldatu da",
       "remove": "Kendu",
       "saved_hint": "Gordeta — idatzi ordezkatzeko"
+    }
+  },
+  "probes": {
+    "page_name": "Zundak",
+    "description": "Zundek monitoreen egiaztapenak exekutatzen dituzte instalatuta dauden lekuetatik. Zunda lokala Peekaping bera da.",
+    "empty_list": {
+      "title": "Ez da zundarik aurkitu",
+      "text": "Sortu zunda bat egiaztapenak beste leku batetik exekutatzeko.",
+      "action_text": "Sortu zure lehen zunda"
+    },
+    "table": {
+      "headers": {
+        "name": "Izena",
+        "location": "Kokalekua",
+        "status": "Egoera",
+        "disabled": "Desgaituta",
+        "token": "Tokena",
+        "instances": "Instantziak",
+        "actions": "Ekintzak"
+      },
+      "status": {
+        "online": "Linean",
+        "offline": "Lineaz kanpo"
+      },
+      "disabled": "Desgaituta",
+      "no_instances": "Oraindik ez dago instantziarik",
+      "last_seen": "azkenekoz ikusia {{date}}",
+      "actions": {
+        "edit": "Editatu {{name}} zunda",
+        "rotate": "Aldatu {{name}} zundaren tokena",
+        "delete": "Ezabatu {{name}} zunda"
+      }
+    },
+    "create_dialog": {
+      "title": "Sortu zunda",
+      "description": "Zunda batek instalatzen duzun lekutik exekutatzen ditu egiaztapenak. Bere tokena behin bakarrik erakusten da, sortu ondoren.",
+      "submit": "Sortu zunda",
+      "creating": "Sortzen..."
+    },
+    "edit_dialog": {
+      "title": "Editatu zunda",
+      "description": "Aldatu {{name}} zundaren ezarpenak."
+    },
+    "form": {
+      "name_label": "Izena",
+      "name_placeholder": "adib., Frankfurt",
+      "location_label": "Kokalekua (aukerakoa)",
+      "location_placeholder": "adib., Frankfurt, Alemania",
+      "name_required": "Izena beharrezkoa da",
+      "name_too_long": "Izena luzeegia da",
+      "location_too_long": "Kokalekua luzeegia da",
+      "disabled_label": "Desgaituta",
+      "disabled_description": "Desgaitutako zunda baten tokenak funtzionatzeari uzten dio berriro gaitu arte."
+    },
+    "rotate_dialog": {
+      "title": "Aldatu tokena",
+      "description": "{{name}} zundaren token zaharrak berehala uzten dio funtzionatzeari. Bere instantziak token berriarekin berrabiarazi behar dira.",
+      "confirm": "Aldatu tokena",
+      "rotating": "Aldatzen..."
+    },
+    "delete_dialog": {
+      "title": "Ezabatu zunda",
+      "description": "Ziur zaude \"{{name}}\" zunda ezabatu nahi duzula? Bere tokenak funtzionatzeari utziko dio. Ekintza hau ezin da desegin."
+    },
+    "token_alert": {
+      "title_created": "{{name}} zunda sortu da",
+      "title_rotated": "Token berria {{name}} zundarentzat",
+      "note": "Token honek zundari esleitutako monitoreen konfigurazioak irakurtzen ditu. Behin bakarrik erakusten da.",
+      "token_label": "Tokena",
+      "docker_label": "Abiarazi zunda Dockerrekin",
+      "copy_token": "Kopiatu tokena",
+      "copy_command": "Kopiatu docker komandoa"
+    },
+    "messages": {
+      "created_successfully": "Zunda behar bezala sortu da",
+      "updated_successfully": "Zunda behar bezala eguneratu da",
+      "rotated_successfully": "Tokena behar bezala aldatu da",
+      "deleted_successfully": "Zunda behar bezala ezabatu da",
+      "failed_to_create": "Ezin izan da zunda sortu",
+      "failed_to_update": "Ezin izan da zunda eguneratu",
+      "failed_to_rotate": "Ezin izan da tokena aldatu",
+      "failed_to_delete": "Ezin izan da zunda ezabatu",
+      "failed_to_load": "Ezin izan dira zundak kargatu",
+      "copy_success": "Arbelera kopiatu da",
+      "copy_failed": "Ezin izan da arbelera kopiatu"
     }
   },
   "proxies": {

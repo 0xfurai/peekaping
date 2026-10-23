@@ -684,6 +684,7 @@
     "maintenance": "Bakım",
     "monitors": "Monitörler",
     "notification_channels": "Bildirim Kanalları",
+    "probes": "Problar",
     "proxies": "Proxy'ler",
     "settings": "Ayarlar",
     "status_pages": "Durum Sayfaları",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Bu gizli anahtarı yeniden girin: gönderildiği yer değişti",
       "remove": "Kaldır",
       "saved_hint": "Kaydedildi — değiştirmek için yazın"
+    }
+  },
+  "probes": {
+    "page_name": "Problar",
+    "description": "Problar, monitörlerin kontrollerini kurulu oldukları yerlerden çalıştırır. Yerel prob, Peekaping'in kendisidir.",
+    "empty_list": {
+      "title": "Prob bulunamadı",
+      "text": "Başka bir yerden kontrol çalıştırmak için bir prob oluşturun.",
+      "action_text": "İlk probunuzu oluşturun"
+    },
+    "table": {
+      "headers": {
+        "name": "Ad",
+        "location": "Konum",
+        "status": "Durum",
+        "disabled": "Devre dışı",
+        "token": "Belirteç",
+        "instances": "Örnekler",
+        "actions": "İşlemler"
+      },
+      "status": {
+        "online": "Çevrimiçi",
+        "offline": "Çevrimdışı"
+      },
+      "disabled": "Devre dışı",
+      "no_instances": "Henüz örnek yok",
+      "last_seen": "son görülme: {{date}}",
+      "actions": {
+        "edit": "{{name}} probunu düzenle",
+        "rotate": "{{name}} probunun belirtecini yenile",
+        "delete": "{{name}} probunu sil"
+      }
+    },
+    "create_dialog": {
+      "title": "Prob oluştur",
+      "description": "Bir prob, kurduğunuz yerden kontrol çalıştırır. Belirteci yalnızca bir kez, oluşturduktan sonra gösterilir.",
+      "submit": "Prob oluştur",
+      "creating": "Oluşturuluyor..."
+    },
+    "edit_dialog": {
+      "title": "Probu düzenle",
+      "description": "{{name}} ayarlarını değiştirin."
+    },
+    "form": {
+      "name_label": "Ad",
+      "name_placeholder": "örn. Frankfurt",
+      "location_label": "Konum (isteğe bağlı)",
+      "location_placeholder": "örn. Frankfurt, Almanya",
+      "name_required": "Ad gereklidir",
+      "name_too_long": "Ad çok uzun",
+      "location_too_long": "Konum çok uzun",
+      "disabled_label": "Devre dışı",
+      "disabled_description": "Devre dışı bırakılan bir probun belirteci, probu yeniden etkinleştirene kadar çalışmaz."
+    },
+    "rotate_dialog": {
+      "title": "Belirteci yenile",
+      "description": "{{name}} probunun eski belirteci hemen çalışmayı durdurur. Örneklerinin yeni belirteçle yeniden başlatılması gerekir.",
+      "confirm": "Belirteci yenile",
+      "rotating": "Yenileniyor..."
+    },
+    "delete_dialog": {
+      "title": "Probu sil",
+      "description": "\"{{name}}\" probunu silmek istediğinizden emin misiniz? Belirteci çalışmayı durduracak. Bu işlem geri alınamaz."
+    },
+    "token_alert": {
+      "title_created": "{{name}} probu oluşturuldu",
+      "title_rotated": "{{name}} probu için yeni belirteç",
+      "note": "Bu belirteç, probe atanan monitörlerin yapılandırmalarını okur. Yalnızca bir kez gösterilir.",
+      "token_label": "Belirteç",
+      "docker_label": "Probu Docker ile başlatın",
+      "copy_token": "Belirteci kopyala",
+      "copy_command": "Docker komutunu kopyala"
+    },
+    "messages": {
+      "created_successfully": "Prob başarıyla oluşturuldu",
+      "updated_successfully": "Prob başarıyla güncellendi",
+      "rotated_successfully": "Belirteç başarıyla yenilendi",
+      "deleted_successfully": "Prob başarıyla silindi",
+      "failed_to_create": "Prob oluşturulamadı",
+      "failed_to_update": "Prob güncellenemedi",
+      "failed_to_rotate": "Belirteç yenilenemedi",
+      "failed_to_delete": "Prob silinemedi",
+      "failed_to_load": "Problar yüklenemedi",
+      "copy_success": "Panoya kopyalandı",
+      "copy_failed": "Panoya kopyalanamadı"
     }
   },
   "proxies": {

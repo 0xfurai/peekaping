@@ -13,6 +13,7 @@ import StatusPagesPage from "@/app/status-pages/page";
 import NewStatusPage from "@/app/status-pages/new/page";
 import SecurityPage from "@/app/security/page";
 import EditProxy from "@/app/proxies/edit/page";
+import ProbesPage from "@/app/probes/page";
 import MaintenancePage from "@/app/maintenance/page";
 import NewMaintenance from "@/app/maintenance/new/page";
 import EditMaintenance from "@/app/maintenance/edit/page";
@@ -37,6 +38,9 @@ export const protectedRoutes = [
   <Route path="/proxies" element={<ProxiesPage />} />,
   <Route path="/proxies/new" element={<NewProxy />} />,
   <Route path="/proxies/:id/edit" element={<EditProxy />} />,
+
+  // Probe routes
+  <Route path="/probes" element={<ProbesPage />} />,
 
   // Notification channel routes
   <Route path="/notification-channels" element={<NotificationChannelsPage />} />,

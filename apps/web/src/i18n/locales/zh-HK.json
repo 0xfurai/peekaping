@@ -684,6 +684,7 @@
     "maintenance": "維護",
     "monitors": "監控",
     "notification_channels": "通知頻道",
+    "probes": "探針",
     "proxies": "代理伺服器",
     "settings": "設定",
     "status_pages": "狀態頁面",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "請重新輸入此密鑰：發送目標已更改",
       "remove": "移除",
       "saved_hint": "已儲存 — 輸入即可取代"
+    }
+  },
+  "probes": {
+    "page_name": "探針",
+    "description": "探針會在其安裝的位置執行監控的檢查。本機探針就是 Peekaping 本身。",
+    "empty_list": {
+      "title": "找不到探針",
+      "text": "建立探針，從其他位置執行檢查。",
+      "action_text": "建立您的第一個探針"
+    },
+    "table": {
+      "headers": {
+        "name": "名稱",
+        "location": "位置",
+        "status": "狀態",
+        "disabled": "已停用",
+        "token": "令牌",
+        "instances": "實例",
+        "actions": "操作"
+      },
+      "status": {
+        "online": "在線",
+        "offline": "離線"
+      },
+      "disabled": "已停用",
+      "no_instances": "暫無實例",
+      "last_seen": "最後在線時間：{{date}}",
+      "actions": {
+        "edit": "編輯探針 {{name}}",
+        "rotate": "更換探針 {{name}} 的令牌",
+        "delete": "刪除探針 {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "建立探針",
+      "description": "探針從您安裝它的位置執行檢查。它的令牌只會在建立後顯示一次。",
+      "submit": "建立探針",
+      "creating": "建立中…"
+    },
+    "edit_dialog": {
+      "title": "編輯探針",
+      "description": "更改 {{name}} 的設定。"
+    },
+    "form": {
+      "name_label": "名稱",
+      "name_placeholder": "例如：法蘭克福",
+      "location_label": "位置（選填）",
+      "location_placeholder": "例如：法蘭克福，德國",
+      "name_required": "名稱為必填項目",
+      "name_too_long": "名稱過長",
+      "location_too_long": "位置過長",
+      "disabled_label": "已停用",
+      "disabled_description": "已停用探針的令牌會失效，直至您重新啟用它。"
+    },
+    "rotate_dialog": {
+      "title": "更換令牌",
+      "description": "探針 {{name}} 的舊令牌會立即失效。其實例必須使用新令牌重新啟動。",
+      "confirm": "更換令牌",
+      "rotating": "更換中…"
+    },
+    "delete_dialog": {
+      "title": "刪除探針",
+      "description": "確定要刪除探針「{{name}}」嗎？其令牌將會失效。此操作無法復原。"
+    },
+    "token_alert": {
+      "title_created": "已建立探針 {{name}}",
+      "title_rotated": "探針 {{name}} 的新令牌",
+      "note": "此令牌用於讀取分配給該探針的監控配置。它只會顯示一次。",
+      "token_label": "令牌",
+      "docker_label": "使用 Docker 啟動探針",
+      "copy_token": "複製令牌",
+      "copy_command": "複製 docker 指令"
+    },
+    "messages": {
+      "created_successfully": "成功建立探針",
+      "updated_successfully": "成功更新探針",
+      "rotated_successfully": "成功更換令牌",
+      "deleted_successfully": "成功刪除探針",
+      "failed_to_create": "建立探針失敗",
+      "failed_to_update": "更新探針失敗",
+      "failed_to_rotate": "更換令牌失敗",
+      "failed_to_delete": "刪除探針失敗",
+      "failed_to_load": "載入探針失敗",
+      "copy_success": "已複製到剪貼簿",
+      "copy_failed": "無法複製到剪貼簿"
     }
   },
   "proxies": {

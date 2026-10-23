@@ -684,6 +684,7 @@
     "maintenance": "Underhåll",
     "monitors": "Övervakningar",
     "notification_channels": "Aviseringskanaler",
+    "probes": "Sonder",
     "proxies": "Proxys",
     "settings": "Inställningar",
     "status_pages": "Status-sidor",
@@ -1122,6 +1123,91 @@
       "reenter_hint": "Ange den här hemligheten igen: platsen den skickas till har ändrats",
       "remove": "Ta bort",
       "saved_hint": "Sparad — skriv för att ersätta"
+    }
+  },
+  "probes": {
+    "page_name": "Sonder",
+    "description": "Sonder kör kontroller av övervakningar från de platser där de är installerade. Den lokala sonden är Peekaping självt.",
+    "empty_list": {
+      "title": "Inga sonder hittades",
+      "text": "Skapa en sond för att köra kontroller från en annan plats.",
+      "action_text": "Skapa din första sond"
+    },
+    "table": {
+      "headers": {
+        "name": "Namn",
+        "location": "Plats",
+        "status": "Status",
+        "disabled": "Inaktiverad",
+        "token": "Token",
+        "instances": "Instanser",
+        "actions": "Åtgärder"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Inaktiverad",
+      "no_instances": "Inga instanser ännu",
+      "last_seen": "senast sedd {{date}}",
+      "actions": {
+        "edit": "Redigera sonden {{name}}",
+        "rotate": "Byt token för sonden {{name}}",
+        "delete": "Ta bort sonden {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Skapa sond",
+      "description": "En sond kör kontroller från den plats där du installerar den. Dess token visas bara en gång, efter att du har skapat den.",
+      "submit": "Skapa sond",
+      "creating": "Skapar..."
+    },
+    "edit_dialog": {
+      "title": "Redigera sond",
+      "description": "Ändra inställningarna för {{name}}."
+    },
+    "form": {
+      "name_label": "Namn",
+      "name_placeholder": "t.ex. Frankfurt",
+      "location_label": "Plats (valfritt)",
+      "location_placeholder": "t.ex. Frankfurt, Tyskland",
+      "name_required": "Namn krävs",
+      "name_too_long": "Namnet är för långt",
+      "location_too_long": "Platsen är för lång",
+      "disabled_label": "Inaktiverad",
+      "disabled_description": "Token för en inaktiverad sond slutar fungera tills du aktiverar den igen."
+    },
+    "rotate_dialog": {
+      "title": "Byt token",
+      "description": "Den gamla token för sonden {{name}} slutar fungera direkt. Dess instanser måste startas om med den nya token.",
+      "confirm": "Byt token",
+      "rotating": "Byter..."
+    },
+    "delete_dialog": {
+      "title": "Ta bort sond",
+      "description": "Är du säker på att du vill ta bort sonden \"{{name}}\"? Dess token slutar fungera. Den här åtgärden kan inte ångras."
+    },
+    "token_alert": {
+      "title_created": "Sonden {{name}} har skapats",
+      "title_rotated": "Ny token för sonden {{name}}",
+      "note": "Den här token läser konfigurationerna för de övervakningar som är tilldelade sonden. Den visas bara en gång.",
+      "token_label": "Token",
+      "docker_label": "Starta sonden med Docker",
+      "copy_token": "Kopiera token",
+      "copy_command": "Kopiera docker-kommando"
+    },
+    "messages": {
+      "created_successfully": "Sonden skapades",
+      "updated_successfully": "Sonden uppdaterades",
+      "rotated_successfully": "Token byttes",
+      "deleted_successfully": "Sonden togs bort",
+      "failed_to_create": "Det gick inte att skapa sonden",
+      "failed_to_update": "Det gick inte att uppdatera sonden",
+      "failed_to_rotate": "Det gick inte att byta token",
+      "failed_to_delete": "Det gick inte att ta bort sonden",
+      "failed_to_load": "Det gick inte att läsa in sonder",
+      "copy_success": "Kopierat till urklipp",
+      "copy_failed": "Det gick inte att kopiera till urklipp"
     }
   },
   "proxies": {

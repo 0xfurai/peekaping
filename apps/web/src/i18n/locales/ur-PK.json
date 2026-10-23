@@ -684,6 +684,7 @@
     "maintenance": "رکھ رکھاؤ",
     "monitors": "مانیٹرز",
     "notification_channels": "نوٹیفکیشن چینلز",
+    "probes": "پروبز",
     "proxies": "پروکسیز",
     "settings": "ترتیبات",
     "status_pages": "حیثیت صفحات",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "یہ راز دوبارہ درج کریں: جہاں یہ بھیجا جاتا ہے وہ بدل گیا ہے",
       "remove": "ہٹائیں",
       "saved_hint": "محفوظ ہے — بدلنے کے لیے ٹائپ کریں"
+    }
+  },
+  "probes": {
+    "page_name": "پروبز",
+    "description": "پروبز مانیٹرز کی جانچ ان جگہوں سے چلاتے ہیں جہاں وہ انسٹال ہوں۔ مقامی پروب خود Peekaping ہے۔",
+    "empty_list": {
+      "title": "کوئی پروب نہیں ملا",
+      "text": "دوسری جگہ سے جانچ چلانے کے لیے ایک پروب بنائیں۔",
+      "action_text": "اپنا پہلا پروب بنائیں"
+    },
+    "table": {
+      "headers": {
+        "name": "نام",
+        "location": "مقام",
+        "status": "اسٹیٹس",
+        "disabled": "غیر فعال",
+        "token": "ٹوکن",
+        "instances": "انسٹینسز",
+        "actions": "اقدامات"
+      },
+      "status": {
+        "online": "آن لائن",
+        "offline": "آف لائن"
+      },
+      "disabled": "غیر فعال",
+      "no_instances": "ابھی تک کوئی انسٹینس نہیں",
+      "last_seen": "آخری بار دیکھا گیا {{date}}",
+      "actions": {
+        "edit": "پروب {{name}} میں ترمیم کریں",
+        "rotate": "پروب {{name}} کا ٹوکن تبدیل کریں",
+        "delete": "پروب {{name}} حذف کریں"
+      }
+    },
+    "create_dialog": {
+      "title": "پروب بنائیں",
+      "description": "پروب اس جگہ سے جانچ چلاتا ہے جہاں آپ اسے انسٹال کرتے ہیں۔ اس کا ٹوکن بنانے کے بعد صرف ایک بار دکھایا جاتا ہے۔",
+      "submit": "پروب بنائیں",
+      "creating": "بنایا جا رہا ہے…"
+    },
+    "edit_dialog": {
+      "title": "پروب میں ترمیم کریں",
+      "description": "{{name}} کی سیٹنگز تبدیل کریں۔"
+    },
+    "form": {
+      "name_label": "نام",
+      "name_placeholder": "مثلاً فرینکفرٹ",
+      "location_label": "مقام (اختیاری)",
+      "location_placeholder": "مثلاً فرینکفرٹ، جرمنی",
+      "name_required": "نام ضروری ہے",
+      "name_too_long": "نام بہت لمبا ہے",
+      "location_too_long": "مقام بہت لمبا ہے",
+      "disabled_label": "غیر فعال",
+      "disabled_description": "غیر فعال پروب کا ٹوکن اس وقت تک کام نہیں کرتا جب تک آپ اسے دوبارہ فعال نہ کریں۔"
+    },
+    "rotate_dialog": {
+      "title": "ٹوکن تبدیل کریں",
+      "description": "پروب {{name}} کا پرانا ٹوکن فوراً کام کرنا بند کر دیتا ہے۔ اس کے انسٹینسز کو نئے ٹوکن کے ساتھ دوبارہ شروع کرنا ہوگا۔",
+      "confirm": "ٹوکن تبدیل کریں",
+      "rotating": "تبدیل کیا جا رہا ہے…"
+    },
+    "delete_dialog": {
+      "title": "پروب حذف کریں",
+      "description": "کیا آپ واقعی پروب \"{{name}}\" حذف کرنا چاہتے ہیں؟ اس کا ٹوکن کام کرنا بند کر دے گا۔ یہ عمل واپس نہیں کیا جا سکتا۔"
+    },
+    "token_alert": {
+      "title_created": "پروب {{name}} بن گیا",
+      "title_rotated": "پروب {{name}} کے لیے نیا ٹوکن",
+      "note": "یہ ٹوکن پروب کو تفویض کیے گئے مانیٹرز کی کنفیگریشنز پڑھتا ہے۔ یہ صرف ایک بار دکھایا جاتا ہے۔",
+      "token_label": "ٹوکن",
+      "docker_label": "پروب کو Docker کے ساتھ شروع کریں",
+      "copy_token": "ٹوکن کاپی کریں",
+      "copy_command": "docker کمانڈ کاپی کریں"
+    },
+    "messages": {
+      "created_successfully": "پروب کامیابی سے بن گیا",
+      "updated_successfully": "پروب کامیابی سے اپ ڈیٹ ہو گیا",
+      "rotated_successfully": "ٹوکن کامیابی سے تبدیل ہو گیا",
+      "deleted_successfully": "پروب کامیابی سے حذف ہو گیا",
+      "failed_to_create": "پروب بنانے میں ناکامی",
+      "failed_to_update": "پروب اپ ڈیٹ کرنے میں ناکامی",
+      "failed_to_rotate": "ٹوکن تبدیل کرنے میں ناکامی",
+      "failed_to_delete": "پروب حذف کرنے میں ناکامی",
+      "failed_to_load": "پروبز لوڈ کرنے میں ناکامی",
+      "copy_success": "کلپ بورڈ پر کاپی ہو گیا",
+      "copy_failed": "کلپ بورڈ پر کاپی نہیں ہو سکا"
     }
   },
   "proxies": {

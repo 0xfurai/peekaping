@@ -684,6 +684,7 @@
     "maintenance": "Întreținere",
     "monitors": "Monitoare",
     "notification_channels": "Canale de notificare",
+    "probes": "Sonde",
     "proxies": "Proxy-uri",
     "settings": "Setări",
     "status_pages": "Pagini de stare",
@@ -1121,6 +1122,91 @@
       "reenter_hint": "Introduceți din nou acest secret: destinația de trimitere s-a schimbat",
       "remove": "Elimină",
       "saved_hint": "Salvat — tastați pentru a înlocui"
+    }
+  },
+  "probes": {
+    "page_name": "Sonde",
+    "description": "Sondele execută verificările monitoarelor din locurile în care sunt instalate. Sonda locală este chiar Peekaping.",
+    "empty_list": {
+      "title": "Nu a fost găsită nicio sondă",
+      "text": "Creează o sondă pentru a rula verificări dintr-un alt loc.",
+      "action_text": "Creează prima ta sondă"
+    },
+    "table": {
+      "headers": {
+        "name": "Nume",
+        "location": "Locație",
+        "status": "Stare",
+        "disabled": "Dezactivată",
+        "token": "Token",
+        "instances": "Instanțe",
+        "actions": "Acțiuni"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Dezactivată",
+      "no_instances": "Încă nu există instanțe",
+      "last_seen": "văzută ultima dată la {{date}}",
+      "actions": {
+        "edit": "Editează sonda {{name}}",
+        "rotate": "Schimbă tokenul sondei {{name}}",
+        "delete": "Șterge sonda {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Creează sondă",
+      "description": "O sondă rulează verificări din locul în care o instalezi. Tokenul ei este afișat o singură dată, după ce o creezi.",
+      "submit": "Creează sondă",
+      "creating": "Se creează..."
+    },
+    "edit_dialog": {
+      "title": "Editează sonda",
+      "description": "Modifică setările pentru {{name}}."
+    },
+    "form": {
+      "name_label": "Nume",
+      "name_placeholder": "ex.: Frankfurt",
+      "location_label": "Locație (opțional)",
+      "location_placeholder": "ex.: Frankfurt, Germania",
+      "name_required": "Numele este obligatoriu",
+      "name_too_long": "Numele este prea lung",
+      "location_too_long": "Locația este prea lungă",
+      "disabled_label": "Dezactivată",
+      "disabled_description": "Tokenul unei sonde dezactivate nu mai funcționează până când o reactivezi."
+    },
+    "rotate_dialog": {
+      "title": "Schimbă tokenul",
+      "description": "Vechiul token al sondei {{name}} nu mai funcționează imediat. Instanțele ei trebuie repornite cu noul token.",
+      "confirm": "Schimbă tokenul",
+      "rotating": "Se schimbă..."
+    },
+    "delete_dialog": {
+      "title": "Șterge sonda",
+      "description": "Sigur vrei să ștergi sonda „{{name}}”? Tokenul ei nu va mai funcționa. Această acțiune nu poate fi anulată."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} a fost creată",
+      "title_rotated": "Token nou pentru sonda {{name}}",
+      "note": "Acest token citește configurațiile monitoarelor atribuite sondei. Este afișat o singură dată.",
+      "token_label": "Token",
+      "docker_label": "Pornește sonda cu Docker",
+      "copy_token": "Copiază tokenul",
+      "copy_command": "Copiază comanda docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda a fost creată cu succes",
+      "updated_successfully": "Sonda a fost actualizată cu succes",
+      "rotated_successfully": "Tokenul a fost schimbat cu succes",
+      "deleted_successfully": "Sonda a fost ștearsă cu succes",
+      "failed_to_create": "Crearea sondei a eșuat",
+      "failed_to_update": "Actualizarea sondei a eșuat",
+      "failed_to_rotate": "Schimbarea tokenului a eșuat",
+      "failed_to_delete": "Ștergerea sondei a eșuat",
+      "failed_to_load": "Încărcarea sondelor a eșuat",
+      "copy_success": "Copiat în clipboard",
+      "copy_failed": "Nu s-a putut copia în clipboard"
     }
   },
   "proxies": {
