@@ -26,7 +26,8 @@ type Service interface {
 	// Update returns ErrNotFound when there is no such probe, and ErrLocalProbe when it would
 	// disable the local probe
 	Update(ctx context.Context, id string, req *UpdateRequest) (*Model, error)
-	// Delete returns ErrNotFound when there is no such probe, and ErrLocalProbe for the local one
+	// Delete returns ErrNotFound when there is no such probe, ErrLocalProbe for the local one, and
+	// ErrProbeHasMonitors (a HasMonitorsError) when monitors run on it: it deletes nothing then
 	Delete(ctx context.Context, id string) error
 	// RotateToken replaces the probe's token with a new one, which is in the result only. The
 	// old token finds nothing from then on. It returns ErrNotFound when there is no such probe,
@@ -196,17 +197,29 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest)
 
 // MARK: Delete
 func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
-	existing, err := s.repo.FindByID(ctx, id)
+	// The count and the delete are one transaction. The database holds the line as well: a monitor
+	// assigned to the probe after the count makes the delete fail, and nothing is deleted.
+	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		existing, err := s.repo.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if existing == nil {
+			return ErrNotFound
+		}
+		if id == LocalID {
+			return ErrLocalProbe
+		}
+		monitors, err := s.repo.CountMonitors(ctx, id)
+		if err != nil {
+			return err
+		}
+		if monitors > 0 {
+			return &HasMonitorsError{Monitors: monitors}
+		}
+		return s.repo.Delete(ctx, id)
+	})
 	if err != nil {
-		return err
-	}
-	if existing == nil {
-		return ErrNotFound
-	}
-	if id == LocalID {
-		return ErrLocalProbe
-	}
-	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
 	s.logger.Infow("Probe deleted", "probeId", id)

@@ -35,6 +35,8 @@ func TestUnsupportedRepository_EveryMethodReportsUnsupportedStorage(t *testing.T
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	assert.ErrorIs(t, repo.UpdateToken(ctx, "local", "sha256$aa", "pkp_aaaa"), probe.ErrUnsupportedStorage)
 	assert.ErrorIs(t, repo.Delete(ctx, "local"), probe.ErrUnsupportedStorage)
+	_, err = repo.CountMonitors(ctx, "local")
+	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	_, err = repo.FindInstances(ctx, "local")
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	assert.ErrorIs(t, repo.UpsertInstance(ctx, "local", &probe.Instance{ID: "instance-1"}), probe.ErrUnsupportedStorage)

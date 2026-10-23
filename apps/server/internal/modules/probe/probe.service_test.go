@@ -419,6 +419,34 @@ func TestService_DeleteRemovesTheProbe(t *testing.T) {
 	assert.Nil(t, none)
 }
 
+func TestService_DeleteRefusesAProbeWithMonitors(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+	for _, active := range []bool{true, false, true} {
+		id := uuid.NewString()
+		_, err := f.db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, active)
+		require.NoError(t, err)
+		_, err = f.db.Exec("INSERT INTO monitor_probes (monitor_id, probe_id) VALUES (?, ?)", id, created.ID)
+		require.NoError(t, err)
+	}
+
+	err := f.svc.Delete(ctx, created.ID)
+
+	require.ErrorIs(t, err, probe.ErrProbeHasMonitors)
+	var hasMonitors *probe.HasMonitorsError
+	require.ErrorAs(t, err, &hasMonitors)
+	assert.Equal(t, 3, hasMonitors.Monitors)
+	stays, err := f.svc.FindByToken(ctx, created.Token)
+	require.NoError(t, err)
+	require.NotNil(t, stays, "the probe and its token are as they were")
+	assert.Equal(t, 1, f.probeCount(t, "Frankfurt"))
+
+	_, err = f.db.Exec("DELETE FROM monitor_probes WHERE probe_id = ?", created.ID)
+	require.NoError(t, err)
+	assert.NoError(t, f.svc.Delete(ctx, created.ID), "it can be deleted once no monitor runs on it")
+}
+
 func TestService_RegisterInstanceRecordsTheInstanceAndTheProbesTypes(t *testing.T) {
 	ctx := context.Background()
 	f := newFixture(t)

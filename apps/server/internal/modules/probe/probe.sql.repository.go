@@ -179,6 +179,13 @@ func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 	return err
 }
 
+// MARK: CountMonitors
+func (r *SQLRepositoryImpl) CountMonitors(ctx context.Context, id string) (int, error) {
+	var monitors int
+	err := dbtx.DB(ctx, r.db).NewSelect().Table("monitor_probes").ColumnExpr("count(*)").Where("probe_id = ?", id).Scan(ctx, &monitors)
+	return monitors, err
+}
+
 // MARK: FindInstances
 func (r *SQLRepositoryImpl) FindInstances(ctx context.Context, probeID string) ([]*Instance, error) {
 	var sis []*sqlInstance
