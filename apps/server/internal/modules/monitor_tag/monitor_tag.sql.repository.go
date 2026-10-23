@@ -79,7 +79,7 @@ func (r *SQLRepositoryImpl) FindByMonitorID(ctx context.Context, monitorID strin
 	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("monitor_id = ?", monitorID).
-		Order("created_at DESC").
+		Order("created_at DESC", "id DESC").
 		Scan(ctx)
 	if err != nil {
 		return nil, err
@@ -90,6 +90,28 @@ func (r *SQLRepositoryImpl) FindByMonitorID(ctx context.Context, monitorID strin
 		models = append(models, toDomainModelFromSQL(sm))
 	}
 	return models, nil
+}
+
+func (r *SQLRepositoryImpl) FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*Model, error) {
+	links := map[string][]*Model{}
+	if len(monitorIDs) == 0 {
+		return links, nil
+	}
+
+	var sms []*sqlModel
+	err := dbtx.DB(ctx, r.db).NewSelect().
+		Model(&sms).
+		Where("monitor_id IN (?)", bun.In(monitorIDs)).
+		Order("created_at DESC", "id DESC").
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, sm := range sms {
+		links[sm.MonitorID] = append(links[sm.MonitorID], toDomainModelFromSQL(sm))
+	}
+	return links, nil
 }
 
 func (r *SQLRepositoryImpl) FindByTagID(ctx context.Context, tagID string) ([]*Model, error) {

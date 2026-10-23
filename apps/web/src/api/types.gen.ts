@@ -364,7 +364,7 @@ export type MonitorCustomUptimeStatsDto = {
   "7d": number;
 };
 
-export type MonitorModel = {
+export type MonitorMonitorResponseDto = {
   active: boolean;
   config: string;
   created_at: string;
@@ -373,33 +373,14 @@ export type MonitorModel = {
   last_heartbeat?: HeartbeatModel;
   max_retries: number;
   name: string;
+  notification_ids: Array<string>;
   proxy_id: string;
   push_token: string;
   resend_interval: number;
   retry_interval: number;
   stale_since?: string;
   status: number;
-  timeout: number;
-  type: string;
-  updated_at: string;
-};
-
-export type MonitorMonitorResponseDto = {
-  active: boolean;
-  config: string;
-  created_at: string;
-  id: string;
-  interval: number;
-  max_retries: number;
-  name: string;
-  notification_ids: Array<string> | null;
-  proxy_id: string;
-  push_token: string;
-  resend_interval: number;
-  retry_interval: number;
-  stale_since?: string;
-  status: number;
-  tag_ids: Array<string> | null;
+  tag_ids: Array<string>;
   timeout: number;
   type: string;
   updated_at: string;
@@ -999,8 +980,8 @@ export type UtilsApiResponseArrayMaintenanceModel = {
   message: string;
 };
 
-export type UtilsApiResponseArrayMonitorModel = {
-  data: Array<MonitorModel> | null;
+export type UtilsApiResponseArrayMonitorMonitorResponseDto = {
+  data: Array<MonitorMonitorResponseDto> | null;
   message: string;
 };
 
@@ -1066,11 +1047,6 @@ export type UtilsApiResponseMaintenanceModel = {
 
 export type UtilsApiResponseMonitorCustomUptimeStatsDto = {
   data: MonitorCustomUptimeStatsDto;
-  message: string;
-};
-
-export type UtilsApiResponseMonitorModel = {
-  data: MonitorModel;
   message: string;
 };
 
@@ -2718,7 +2694,7 @@ export type GetMonitorsResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseArrayMonitorModel;
+  200: UtilsApiResponseArrayMonitorMonitorResponseDto;
 };
 
 export type GetMonitorsResponse =
@@ -2752,7 +2728,7 @@ export type PostMonitorsResponses = {
   /**
    * Created
    */
-  201: UtilsApiResponseMonitorModel;
+  201: UtilsApiResponseMonitorMonitorResponseDto;
 };
 
 export type PostMonitorsResponse =
@@ -2792,7 +2768,7 @@ export type GetMonitorsBatchResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseArrayMonitorModel;
+  200: UtilsApiResponseArrayMonitorMonitorResponseDto;
 };
 
 export type GetMonitorsBatchResponse =
@@ -2916,7 +2892,7 @@ export type PatchMonitorsByIdResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseMonitorModel;
+  200: UtilsApiResponseMonitorMonitorResponseDto;
 };
 
 export type PatchMonitorsByIdResponse =
@@ -2960,7 +2936,7 @@ export type PutMonitorsByIdResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseMonitorModel;
+  200: UtilsApiResponseMonitorMonitorResponseDto;
 };
 
 export type PutMonitorsByIdResponse =

@@ -63,6 +63,9 @@ type fixture struct {
 	svc     monitor_notification.Service
 	monitor func() string
 	channel func() string
+	// newestFirst is whether the backend lists a monitor's links newest first. The SQL
+	// repositories sort; MongoDB's Find has no sort, and its storage is frozen (ADR 0001).
+	newestFirst bool
 }
 
 // forEachBackend runs fn against a monitor-notification service on every database backend.
@@ -76,7 +79,8 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
 			fn(t, fixture{
-				svc: monitor_notification.NewService(monitor_notification.NewSQLRepository(db), zap.NewNop().Sugar()),
+				svc:         monitor_notification.NewService(monitor_notification.NewSQLRepository(db), zap.NewNop().Sugar()),
+				newestFirst: true,
 				monitor: func() string {
 					id := uuid.NewString()
 					_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
@@ -113,7 +117,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 			require.NoError(t, client.Disconnect(context.Background()))
 		})
 		newID := func() string { return primitive.NewObjectID().Hex() }
-		fn(t, fixture{monitor_notification.NewService(monitor_notification.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), newID, newID})
+		fn(t, fixture{svc: monitor_notification.NewService(monitor_notification.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), monitor: newID, channel: newID})
 	})
 }
 
@@ -151,6 +155,74 @@ func TestMonitorNotifications_LinksAreListedPerMonitor(t *testing.T) {
 
 		assert.ElementsMatch(t, []string{slack, email}, channelsOf(t, f.svc, web))
 		assert.ElementsMatch(t, []string{email}, channelsOf(t, f.svc, db))
+	})
+}
+
+// channelsByMonitor lists the channel IDs of each monitor's links, in the order they came.
+func channelsByMonitor(links map[string][]*monitor_notification.Model) map[string][]string {
+	byMonitor := map[string][]string{}
+	for monitorID, monitorLinks := range links {
+		for _, l := range monitorLinks {
+			byMonitor[monitorID] = append(byMonitor[monitorID], l.NotificationID)
+		}
+	}
+	return byMonitor
+}
+
+func TestMonitorNotifications_LinksOfManyMonitorsAreListedAtOnce(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		web, db, idle, other := f.monitor(), f.monitor(), f.monitor(), f.monitor()
+		slack, email := f.channel(), f.channel()
+		link(t, f.svc, web, slack)
+		link(t, f.svc, web, email)
+		link(t, f.svc, db, email)
+		link(t, f.svc, other, slack)
+
+		found, err := f.svc.FindByMonitorIDs(ctx, []string{web, db, idle})
+		require.NoError(t, err)
+
+		byMonitor := channelsByMonitor(found)
+		assert.Len(t, byMonitor, 2, "the monitor with no links and the monitor not asked for have no entry")
+		assert.ElementsMatch(t, []string{slack, email}, byMonitor[web])
+		assert.Equal(t, []string{email}, byMonitor[db])
+		assert.Equal(t, channelsOf(t, f.svc, web), byMonitor[web], "each monitor's links come in the order FindByMonitorID lists them")
+
+		for _, l := range found[web] {
+			assert.Equal(t, web, l.MonitorID)
+		}
+
+		none, err := f.svc.FindByMonitorIDs(ctx, nil)
+		require.NoError(t, err)
+		assert.Empty(t, none, "no monitors asked for, no links")
+	})
+}
+
+func TestMonitorNotifications_SQLListsLinksNewestFirst(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		if !f.newestFirst {
+			t.Skip("MongoDB's Find has no sort, and its storage is frozen (ADR 0001)")
+		}
+		web, db := f.monitor(), f.monitor()
+		slack, email, pager := f.channel(), f.channel(), f.channel()
+		// The repository stamps a link with the time it is created, so each link needs its own
+		link(t, f.svc, web, slack)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, db, slack)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, web, email)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, db, email)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, web, pager)
+
+		found, err := f.svc.FindByMonitorIDs(context.Background(), []string{web, db})
+		require.NoError(t, err)
+
+		byMonitor := channelsByMonitor(found)
+		assert.Equal(t, []string{pager, email, slack}, byMonitor[web], "FindByMonitorIDs: the newest link first")
+		assert.Equal(t, []string{email, slack}, byMonitor[db])
+		assert.Equal(t, []string{pager, email, slack}, channelsOf(t, f.svc, web), "FindByMonitorID: the newest link first")
 	})
 }
 
