@@ -47,7 +47,7 @@ A monitor that's switched off. It runs no checks until it's resumed.
 _Avoid_: Inactive, disabled, stopped
 
 **Stale monitor**:
-An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The watchdog looks for them every minute, gets each one checked again right away, and notifies the monitor's channels if that doesn't help.
+An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The watchdog looks for them every minute, gets each one checked again right away, and notifies the monitor's channels if that doesn't help. A monitor on a remote probe isn't checked again from here: its channels are notified once that same wait has passed.
 _Avoid_: Stuck monitor, dead monitor, overdue
 
 ### Status
