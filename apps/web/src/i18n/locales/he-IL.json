@@ -570,6 +570,8 @@
         "docker": "קונטיינר Docker",
         "grpc": "מעקב מילות מפתח gRPC",
         "http": "מעקב HTTP(S)",
+        "http_json_query": "HTTP(s) - שאילתת JSON",
+        "http_keyword": "HTTP(s) - מילת מפתח",
         "kafka": "מעקב מפיק Kafka",
         "mongodb": "מעקב מסד נתונים MongoDB",
         "mqtt": "מעקב בורקר MQTT",

@@ -570,6 +570,8 @@
         "docker": "Docker 容器",
         "grpc": "gRPC 关键字监控",
         "http": "HTTP(S) 监控",
+        "http_json_query": "HTTP(s) - JSON 查询",
+        "http_keyword": "HTTP(s) - 关键字",
         "kafka": "Kafka 生产者监控",
         "mongodb": "MongoDB 数据库监控",
         "mqtt": "MQTT 代理监控",

@@ -570,6 +570,8 @@
         "docker": "Hộp chứa Docker",
         "grpc": "Giám sát từ khóa gRPC",
         "http": "Giám sát HTTP(S)",
+        "http_json_query": "HTTP(s) - Truy vấn JSON",
+        "http_keyword": "HTTP(s) - Từ khóa",
         "kafka": "Giám sát Producer Kafka",
         "mongodb": "Giám sát Cơ sở dữ liệu MongoDB",
         "mqtt": "Giám sát MQTT Broker",

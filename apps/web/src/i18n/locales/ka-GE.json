@@ -570,6 +570,8 @@
         "docker": "Docker კონტეინერი",
         "grpc": "gRPC საკვანძო სიტყვების მონიტორი",
         "http": "HTTP(S) მონიტორი",
+        "http_json_query": "HTTP(s) - JSON მოთხოვნა",
+        "http_keyword": "HTTP(s) - საკვანძო სიტყვა",
         "kafka": "Kafka პროდიუსერის მონიტორი",
         "mongodb": "MongoDB მონაცემთა ბაზის მონიტორი",
         "mqtt": "MQTT ბროკერის მონიტორი",

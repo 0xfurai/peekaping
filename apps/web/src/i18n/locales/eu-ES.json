@@ -570,6 +570,8 @@
         "docker": "Docker Konteinerra",
         "grpc": "gRPC gako-hizkuntza monitorra",
         "http": "HTTP(S) monitorea",
+        "http_json_query": "HTTP(s) - JSON kontsulta",
+        "http_keyword": "HTTP(s) - Gako-hitza",
         "kafka": "Kafka Erretzale Monitor",
         "mongodb": "MongoDB datu-basearen monitorea",
         "mqtt": "MQTT Broker Monitorea",
