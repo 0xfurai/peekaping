@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Buat akun admin Anda",
+      "error_reporting_hint": "Aktif secara default. Hapus centang kotak ini untuk menonaktifkannya. Anda dapat mengubahnya nanti di “Pengaturan”.",
       "have_account": "Sudah punya akun?",
       "sign_in": "Masuk",
       "submit": "Buat",
-      "telemetry_hint": "Nonaktif kecuali Anda mencentang kotak ini. Anda dapat mengubahnya nanti di “Pengaturan”. Jika Anda mencentangnya, Peekaping mengirim data ini paling banyak sekali sehari:",
+      "telemetry_hint": "Aktif secara default. Hapus centang kotak ini untuk menonaktifkannya. Anda dapat mengubahnya nanti di “Pengaturan”. Selama aktif, Peekaping mengirim data ini paling banyak sekali sehari:",
       "title": "Halo"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Kirim laporan kesalahan",
-    "never_sent": "Tidak pernah dikirim: pesan kesalahan, URL, header, URL webhook, nama, atau nama host. Laporan tidak berisi alamat IP, dan proyek Sentry milik Peekaping diatur agar tidak menyimpan IP pengirim. Dengan ERROR_REPORTING_DSN Anda sendiri, pengaturan Sentry atau GlitchTip Anda yang menentukan.",
-    "not_saved": "Pilihan Anda untuk mengirim laporan kesalahan tidak tersimpan. Aktifkan di “Pengaturan”.",
+    "never_sent": "Tidak pernah dikirim: pesan kesalahan, URL, header, URL webhook, nama, atau nama host. Laporan tidak berisi alamat IP, dan proyek Sentry milik Peekaping diatur agar tidak menyimpan IP pengirim.",
+    "not_saved": "Pilihan Anda tentang laporan kesalahan tidak tersimpan. Periksa di “Pengaturan”.",
     "sent": "Hanya dikirim saat Peekaping sendiri mengalami crash. Laporan berisi jenis kesalahan dan lokasi di dalam kode tempat terjadinya, versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "Dalam mode klaster, perubahan sampai ke setiap proses dalam waktu satu menit.",
-      "description": "Kirim laporan ke Sentry saat server mengalami crash. Nonaktif sampai Anda mengaktifkannya.",
-      "forced_off": "Variabel lingkungan ERROR_REPORTING=off atau DO_NOT_TRACK=1 menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
+      "description": "Kirim laporan ke Sentry saat server mengalami crash. Aktif secara default; Anda dapat menonaktifkannya di sini kapan saja.",
+      "forced_off": "Variabel lingkungan ERROR_REPORTING=off menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
       "title": "Laporan kesalahan"
     },
     "telemetry": {
-      "description": "Kirim statistik anonim tentang cara instalasi ini diatur, paling banyak sekali sehari. Nonaktif sampai Anda mengaktifkannya.",
-      "forced_off": "Variabel lingkungan TELEMETRY=off atau DO_NOT_TRACK=1 menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
-      "id_note": "ID instans dibuat saat Anda mengaktifkan ini dan dihapus saat Anda menonaktifkannya. Mengaktifkannya lagi akan membuat ID baru.",
+      "description": "Kirim statistik anonim tentang cara instalasi ini diatur, paling banyak sekali sehari. Aktif secara default; Anda dapat menonaktifkannya di sini kapan saja.",
+      "forced_off": "Variabel lingkungan TELEMETRY=off menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
+      "id_note": "ID instans dibuat selama opsi ini aktif dan dihapus saat Anda menonaktifkannya. Mengaktifkannya lagi akan membuat ID baru.",
       "payload_off": "Tidak ada yang dikirim selama ini nonaktif. Inilah isi ping penggunaan jika Anda mengaktifkannya.",
       "payload_title": "Apa yang akan dikirim ping penggunaan berikutnya",
       "title": "Statistik penggunaan"
@@ -1487,12 +1488,19 @@
     "docs_link": "Apa yang dikirim dan cara mematikannya",
     "label": "Kirim statistik penggunaan anonim",
     "never_sent": "Tidak pernah dikirim: nama pengawasan, URL, host, tag, alamat halaman status, atau pengaturan notifikasi. Ping penggunaan tidak berisi alamat IP, dan Worker milik Peekaping tidak mencatat IP pengirim.",
-    "not_saved": "Pilihan Anda untuk mengirim statistik penggunaan tidak tersimpan. Aktifkan di “Pengaturan”.",
+    "not_saved": "Pilihan Anda tentang statistik penggunaan tidak tersimpan. Periksa di “Pengaturan”.",
     "sent_features": "Apakah Anda menggunakan halaman status, jendela pemeliharaan, dan metrik",
-    "sent_id": "ID acak, dibuat saat Anda mengaktifkannya dan dihapus saat Anda menonaktifkannya",
+    "sent_id": "ID acak, dibuat selama opsi ini aktif dan dihapus saat Anda menonaktifkannya",
     "sent_monitors": "Berapa banyak pengawasan yang Anda miliki, sebagai rentang, misalnya 11-50",
     "sent_setup": "Versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi dan jenis CPU",
     "sent_types": "Jenis pengawasan dan saluran notifikasi yang Anda gunakan, misalnya http atau telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Laporan kesalahan aktif. Jika Peekaping mengalami crash, ia mengirim jenis kesalahan dan lokasi di dalam kode tempat terjadinya, versinya, mode, backend penyimpanan, dan sistem operasi. Tidak pernah mengirim pesan kesalahan, URL, atau nama host.",
+    "settings_errors": "Nonaktifkan laporan kesalahan di “Pengaturan”",
+    "settings_usage": "Nonaktifkan statistik penggunaan di “Pengaturan”",
+    "title": "Pengiriman data anonim aktif secara default",
+    "usage_statistics": "Statistik penggunaan aktif. Paling banyak sekali sehari, Peekaping mengirim ID instans acak, versinya, mode, backend penyimpanan, dan sistem operasi, rentang jumlah pengawasan Anda, jenis pengawasan dan saluran notifikasi yang Anda gunakan, serta apakah Anda menggunakan halaman status, jendela pemeliharaan, dan metrik. Tidak pernah mengirim nama, URL, host, atau pengaturan."
   },
   "theme": {
     "dark": "Gelap",

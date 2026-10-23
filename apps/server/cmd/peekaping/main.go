@@ -65,7 +65,9 @@ var telemetrySchedule = telemetry.DefaultSchedule
 var serverTimeouts = httpx.DefaultTimeouts()
 
 func main() {
-	// A panic that ends the process is reported before it does, if the admin opted in
+	// A panic that ends the process is reported before it does, unless the admin opted out. Reports
+	// start only once startJobs has applied the stored choice (ErrorReporting.Apply), so a panic
+	// before that is not reported.
 	defer reporting.ReportCrash("main")
 
 	utils.RegisterCustomValidators()
@@ -306,8 +308,9 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 		p.Watchdog.Run(watchdogCtx)
 	})
 
-	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. It runs
-	// once: this process is the only one, so there is no claim to win.
+	// The usage ping is sent a few minutes after the start, unless an admin opted out or the
+	// environment forces it off, and a failed one is dropped. It runs once: this process is the
+	// only one, so there is no claim to win.
 	var usagePingCtx context.Context
 	usagePingCtx, j.stopUsagePing = context.WithCancel(context.Background())
 	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetrySchedule)

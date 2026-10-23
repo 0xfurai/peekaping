@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Crea il tuo account amministratore",
+      "error_reporting_hint": "Attivo per impostazione predefinita. Deseleziona questa casella per disattivarlo. Puoi cambiarlo in seguito in «Impostazioni».",
       "have_account": "Hai già un account?",
       "sign_in": "Accedi",
       "submit": "Crea",
-      "telemetry_hint": "Disattivato a meno che tu non selezioni questa casella. Puoi cambiarlo in seguito in «Impostazioni». Se la selezioni, Peekaping invia questi dati al massimo una volta al giorno:",
+      "telemetry_hint": "Attivo per impostazione predefinita. Deseleziona questa casella per disattivarlo. Puoi cambiarlo in seguito in «Impostazioni». Finché è attivo, Peekaping invia questi dati al massimo una volta al giorno:",
       "title": "Ciao"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Invia segnalazioni di errore",
-    "never_sent": "Non vengono mai inviati: messaggi di errore, URL, intestazioni, URL di webhook, nomi o nomi host. Una segnalazione non contiene alcun indirizzo IP, e il progetto Sentry di Peekaping è impostato per non memorizzare l'IP del mittente. Con un tuo ERROR_REPORTING_DSN, decidono le impostazioni del tuo Sentry o GlitchTip.",
-    "not_saved": "La tua scelta di inviare segnalazioni di errore non è stata salvata. Attivala in «Impostazioni».",
+    "never_sent": "Non vengono mai inviati: messaggi di errore, URL, intestazioni, URL di webhook, nomi o nomi host. Una segnalazione non contiene alcun indirizzo IP, e il progetto Sentry di Peekaping è impostato per non memorizzare l'IP del mittente.",
+    "not_saved": "La tua scelta sulle segnalazioni di errore non è stata salvata. Controllala in «Impostazioni».",
     "sent": "Viene inviata solo quando Peekaping stesso va in crash. Una segnalazione contiene il tipo di errore e il punto del codice in cui si è verificato, la versione di Peekaping, la modalità singola o cluster, il backend di archiviazione e il sistema operativo."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "In modalità cluster, una modifica raggiunge ogni processo entro un minuto.",
-      "description": "Invia una segnalazione a Sentry quando il server va in crash. Disattivato finché non lo attivi.",
-      "forced_off": "La variabile d'ambiente ERROR_REPORTING=off o DO_NOT_TRACK=1 lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
+      "description": "Invia una segnalazione a Sentry quando il server va in crash. Attivo per impostazione predefinita; puoi disattivarlo qui in qualsiasi momento.",
+      "forced_off": "La variabile d'ambiente ERROR_REPORTING=off lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
       "title": "Segnalazioni di errore"
     },
     "telemetry": {
-      "description": "Invia statistiche anonime su come è configurata questa installazione, al massimo una volta al giorno. Disattivato finché non lo attivi.",
-      "forced_off": "La variabile d'ambiente TELEMETRY=off o DO_NOT_TRACK=1 lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
-      "id_note": "L'ID istanza viene creato quando lo attivi ed eliminato quando lo disattivi. Se lo riattivi, ne viene creato uno nuovo.",
+      "description": "Invia statistiche anonime su come è configurata questa installazione, al massimo una volta al giorno. Attivo per impostazione predefinita; puoi disattivarlo qui in qualsiasi momento.",
+      "forced_off": "La variabile d'ambiente TELEMETRY=off lo disattiva. Non viene inviato nulla, qualunque cosa dica questa impostazione.",
+      "id_note": "L'ID istanza viene creato finché questa opzione è attiva ed eliminato quando la disattivi. Se la riattivi, ne viene creato uno nuovo.",
       "payload_off": "Non viene inviato nulla finché è disattivato. Questo è ciò che conterrebbe un ping di utilizzo se lo attivassi.",
       "payload_title": "Cosa invierà il prossimo ping di utilizzo",
       "title": "Statistiche di utilizzo"
@@ -1487,12 +1488,19 @@
     "docs_link": "Cosa viene inviato e come disattivarlo",
     "label": "Invia statistiche di utilizzo anonime",
     "never_sent": "Non vengono mai inviati: nomi dei monitor, URL, host, tag, indirizzi delle pagine di stato o impostazioni di notifica. Un ping di utilizzo non contiene alcun indirizzo IP, e il Worker di Peekaping non registra l'IP del mittente.",
-    "not_saved": "La tua scelta di inviare statistiche di utilizzo non è stata salvata. Attivala in «Impostazioni».",
+    "not_saved": "La tua scelta sulle statistiche di utilizzo non è stata salvata. Controllala in «Impostazioni».",
     "sent_features": "Se usi pagine di stato, finestre di manutenzione e metriche",
-    "sent_id": "Un ID casuale, creato quando lo attivi ed eliminato quando lo disattivi",
+    "sent_id": "Un ID casuale, creato finché è attivo ed eliminato quando lo disattivi",
     "sent_monitors": "Quanti monitor hai, come intervallo, ad esempio 11-50",
     "sent_setup": "La versione di Peekaping, la modalità singola o cluster, il backend di archiviazione, il sistema operativo e il tipo di CPU",
     "sent_types": "I tipi di monitor e di canali di notifica che usi, come http o telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Le segnalazioni di errore sono attive. Se Peekaping va in crash, invia il tipo di errore e il punto del codice in cui si è verificato, la propria versione, la modalità, il backend di archiviazione e il sistema operativo. Non invia mai messaggi di errore, URL o nomi host.",
+    "settings_errors": "Disattiva le segnalazioni di errore in «Impostazioni»",
+    "settings_usage": "Disattiva le statistiche di utilizzo in «Impostazioni»",
+    "title": "L'invio di dati anonimi è attivo per impostazione predefinita",
+    "usage_statistics": "Le statistiche di utilizzo sono attive. Al massimo una volta al giorno, Peekaping invia un ID istanza casuale, la propria versione, la modalità, il backend di archiviazione e il sistema operativo, un intervallo per il numero di monitor, i tipi di monitor e di canali di notifica che usi e se usi pagine di stato, finestre di manutenzione e metriche. Non invia mai nomi, URL, host o impostazioni."
   },
   "theme": {
     "dark": "Scuro",

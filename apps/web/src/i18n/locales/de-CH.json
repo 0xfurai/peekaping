@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Erstelle dein Admin-Konto",
+      "error_reporting_hint": "Standardmässig an. Entfernen Sie das Häkchen, um es auszuschalten. Sie können das später unter «Einstellungen» ändern.",
       "have_account": "Sie haben bereits ein Konto?",
       "sign_in": "Anmelden",
       "submit": "Erstellen",
-      "telemetry_hint": "Aus, solange Sie dieses Kästchen nicht anhaken. Sie können das später unter «Einstellungen» ändern. Wenn Sie es anhaken, sendet Peekaping dies höchstens einmal am Tag:",
+      "telemetry_hint": "Standardmässig an. Entfernen Sie das Häkchen, um es auszuschalten. Sie können das später unter «Einstellungen» ändern. Solange es an ist, sendet Peekaping dies höchstens einmal am Tag:",
       "title": "Willkommen"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Fehlerberichte senden",
-    "never_sent": "Nie gesendet werden: Fehlermeldungen, URLs, Header, Webhook-URLs, Namen oder Hostnamen. Ein Bericht enthält keine IP-Adresse, und das Sentry-Projekt von Peekaping ist so eingestellt, dass es die IP des Absenders nicht speichert. Bei einer eigenen ERROR_REPORTING_DSN entscheiden die Einstellungen Ihres Sentry oder GlitchTip.",
-    "not_saved": "Ihre Auswahl, Fehlerberichte zu senden, wurde nicht gespeichert. Schalten Sie es unter «Einstellungen» ein.",
+    "never_sent": "Nie gesendet werden: Fehlermeldungen, URLs, Header, Webhook-URLs, Namen oder Hostnamen. Ein Bericht enthält keine IP-Adresse, und das Sentry-Projekt von Peekaping ist so eingestellt, dass es die IP des Absenders nicht speichert.",
+    "not_saved": "Ihre Auswahl zu den Fehlerberichten wurde nicht gespeichert. Prüfen Sie sie unter «Einstellungen».",
     "sent": "Wird nur gesendet, wenn Peekaping selbst abstürzt. Ein Bericht enthält den Fehlertyp und die Stelle im Code, an der er auftrat, die Peekaping-Version, Einzel- oder Cluster-Modus, das Speicher-Backend und das Betriebssystem."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "Im Cluster-Modus erreicht eine Änderung jeden Prozess innerhalb einer Minute.",
-      "description": "Einen Bericht an Sentry senden, wenn der Server abstürzt. Aus, bis Sie es einschalten.",
-      "forced_off": "Die Umgebungsvariable ERROR_REPORTING=off oder DO_NOT_TRACK=1 schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
+      "description": "Einen Bericht an Sentry senden, wenn der Server abstürzt. Standardmässig an; Sie können es hier jederzeit ausschalten.",
+      "forced_off": "Die Umgebungsvariable ERROR_REPORTING=off schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
       "title": "Fehlerberichte"
     },
     "telemetry": {
-      "description": "Anonyme Statistiken darüber senden, wie diese Installation eingerichtet ist, höchstens einmal am Tag. Aus, bis Sie es einschalten.",
-      "forced_off": "Die Umgebungsvariable TELEMETRY=off oder DO_NOT_TRACK=1 schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
-      "id_note": "Die Instanz-ID wird beim Einschalten erstellt und beim Ausschalten gelöscht. Beim erneuten Einschalten wird eine neue erstellt.",
+      "description": "Anonyme Statistiken darüber senden, wie diese Installation eingerichtet ist, höchstens einmal am Tag. Standardmässig an; Sie können es hier jederzeit ausschalten.",
+      "forced_off": "Die Umgebungsvariable TELEMETRY=off schaltet dies aus. Es wird nichts gesendet, egal was diese Einstellung sagt.",
+      "id_note": "Die Instanz-ID wird erstellt, solange dies eingeschaltet ist, und beim Ausschalten gelöscht. Beim erneuten Einschalten wird eine neue erstellt.",
       "payload_off": "Solange dies ausgeschaltet ist, wird nichts gesendet. So sähe ein Nutzungs-Ping aus, wenn Sie es einschalten würden.",
       "payload_title": "Was der nächste Nutzungs-Ping sendet",
       "title": "Nutzungsstatistiken"
@@ -1487,12 +1488,19 @@
     "docs_link": "Was gesendet wird und wie man es ausschaltet",
     "label": "Anonyme Nutzungsstatistiken senden",
     "never_sent": "Nie gesendet werden: Monitornamen, URLs, Hosts, Schlagwörter, Adressen von Statusseiten oder Benachrichtigungseinstellungen. Ein Nutzungs-Ping enthält keine IP-Adresse, und der Worker von Peekaping erfasst die IP des Absenders nicht.",
-    "not_saved": "Ihre Auswahl, Nutzungsstatistiken zu senden, wurde nicht gespeichert. Schalten Sie es unter «Einstellungen» ein.",
+    "not_saved": "Ihre Auswahl zu den Nutzungsstatistiken wurde nicht gespeichert. Prüfen Sie sie unter «Einstellungen».",
     "sent_features": "Ob Sie Statusseiten, Wartungsfenster und Metriken verwenden",
-    "sent_id": "Eine zufällige ID, die beim Einschalten erstellt und beim Ausschalten gelöscht wird",
+    "sent_id": "Eine zufällige ID, die erstellt wird, solange dies eingeschaltet ist, und beim Ausschalten gelöscht wird",
     "sent_monitors": "Wie viele Monitore Sie haben, als Bereich, zum Beispiel 11-50",
     "sent_setup": "Die Peekaping-Version, Einzel- oder Cluster-Modus, das Speicher-Backend sowie Betriebssystem und CPU-Typ",
     "sent_types": "Die Arten von Monitoren und Benachrichtigungskanälen, die Sie verwenden, zum Beispiel http oder telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Fehlerberichte sind eingeschaltet. Wenn Peekaping abstürzt, sendet es den Fehlertyp und die Stelle im Code, an der er auftrat, seine Version, den Modus, das Speicher-Backend und das Betriebssystem. Es sendet nie Fehlermeldungen, URLs oder Hostnamen.",
+    "settings_errors": "Fehlerberichte unter «Einstellungen» ausschalten",
+    "settings_usage": "Nutzungsstatistiken unter «Einstellungen» ausschalten",
+    "title": "Das Senden anonymer Daten ist standardmässig eingeschaltet",
+    "usage_statistics": "Nutzungsstatistiken sind eingeschaltet. Höchstens einmal am Tag sendet Peekaping eine zufällige Instanz-ID, seine Version, den Modus, das Speicher-Backend und das Betriebssystem, einen Bereich für die Anzahl Ihrer Monitore, die Arten von Monitoren und Benachrichtigungskanälen, die Sie verwenden, sowie ob Sie Statusseiten, Wartungsfenster und Metriken verwenden. Es sendet nie Namen, URLs, Hosts oder Einstellungen."
   },
   "theme": {
     "dark": "Dunkel",

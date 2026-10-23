@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Crea tu cuenta de administrador",
+      "error_reporting_hint": "Activado de forma predeterminada. Desmarque esta casilla para desactivarlo. Puede cambiarlo más tarde en «Configuración».",
       "have_account": "¿Ya tienes una cuenta?",
       "sign_in": "Iniciar sesión",
       "submit": "Crear",
-      "telemetry_hint": "Desactivado salvo que marque esta casilla. Puede cambiarlo más tarde en «Configuración». Si la marca, Peekaping envía esto como máximo una vez al día:",
+      "telemetry_hint": "Activado de forma predeterminada. Desmarque esta casilla para desactivarlo. Puede cambiarlo más tarde en «Configuración». Mientras esté activado, Peekaping envía esto como máximo una vez al día:",
       "title": "Hola"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Enviar informes de errores",
-    "never_sent": "Nunca se envía: mensajes de error, URL, cabeceras, URL de webhooks, nombres ni nombres de host. Un informe no contiene ninguna dirección IP, y el proyecto de Sentry de Peekaping está configurado para no almacenar la IP del remitente. Con su propio ERROR_REPORTING_DSN, deciden los ajustes de su Sentry o GlitchTip.",
-    "not_saved": "No se guardó su elección de enviar informes de errores. Actívela en «Configuración».",
+    "never_sent": "Nunca se envía: mensajes de error, URL, cabeceras, URL de webhooks, nombres ni nombres de host. Un informe no contiene ninguna dirección IP, y el proyecto de Sentry de Peekaping está configurado para no almacenar la IP del remitente.",
+    "not_saved": "No se guardó su elección sobre los informes de errores. Compruébela en «Configuración».",
     "sent": "Solo se envía cuando falla el propio Peekaping. Un informe contiene el tipo de error y el lugar del código donde ocurrió, la versión de Peekaping, el modo único o de clúster, el backend de almacenamiento y el sistema operativo."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "En modo clúster, un cambio llega a todos los procesos en menos de un minuto.",
-      "description": "Envía un informe a Sentry cuando el servidor falla. Desactivado hasta que lo active.",
-      "forced_off": "La variable de entorno ERROR_REPORTING=off o DO_NOT_TRACK=1 lo desactiva. No se envía nada, diga lo que diga este ajuste.",
+      "description": "Envía un informe a Sentry cuando el servidor falla. Activado de forma predeterminada; puede desactivarlo aquí en cualquier momento.",
+      "forced_off": "La variable de entorno ERROR_REPORTING=off lo desactiva. No se envía nada, diga lo que diga este ajuste.",
       "title": "Informes de errores"
     },
     "telemetry": {
-      "description": "Envía estadísticas anónimas sobre cómo está configurada esta instalación, como máximo una vez al día. Desactivado hasta que lo active.",
-      "forced_off": "La variable de entorno TELEMETRY=off o DO_NOT_TRACK=1 lo desactiva. No se envía nada, diga lo que diga este ajuste.",
-      "id_note": "El ID de instancia se crea al activarlo y se elimina al desactivarlo. Si lo activa de nuevo, se crea uno nuevo.",
+      "description": "Envía estadísticas anónimas sobre cómo está configurada esta instalación, como máximo una vez al día. Activado de forma predeterminada; puede desactivarlo aquí en cualquier momento.",
+      "forced_off": "La variable de entorno TELEMETRY=off lo desactiva. No se envía nada, diga lo que diga este ajuste.",
+      "id_note": "El ID de instancia se crea mientras esto está activado y se elimina al desactivarlo. Si lo activa de nuevo, se crea uno nuevo.",
       "payload_off": "No se envía nada mientras esté desactivado. Esto es lo que contendría un ping de uso si lo activara.",
       "payload_title": "Qué enviará el próximo ping de uso",
       "title": "Estadísticas de uso"
@@ -1487,12 +1488,19 @@
     "docs_link": "Qué se envía y cómo desactivarlo",
     "label": "Enviar estadísticas de uso anónimas",
     "never_sent": "Nunca se envía: nombres de monitores, URL, hosts, etiquetas, direcciones de páginas de estado ni ajustes de notificaciones. Un ping de uso no contiene ninguna dirección IP, y el Worker de Peekaping no registra la IP del remitente.",
-    "not_saved": "No se guardó su elección de enviar estadísticas de uso. Actívela en «Configuración».",
+    "not_saved": "No se guardó su elección sobre las estadísticas de uso. Compruébela en «Configuración».",
     "sent_features": "Si usa páginas de estado, ventanas de mantenimiento y métricas",
-    "sent_id": "Un ID aleatorio, que se crea al activarlo y se elimina al desactivarlo",
+    "sent_id": "Un ID aleatorio, que se crea mientras está activado y se elimina al desactivarlo",
     "sent_monitors": "Cuántos monitores tiene, como un rango, por ejemplo 11-50",
     "sent_setup": "La versión de Peekaping, el modo único o de clúster, el backend de almacenamiento, y el sistema operativo y el tipo de CPU",
     "sent_types": "Los tipos de monitores y de canales de notificación que usa, como http o telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Los informes de errores están activados. Si Peekaping falla, envía el tipo de error y el lugar del código donde ocurrió, su versión, el modo, el backend de almacenamiento y el sistema operativo. Nunca envía mensajes de error, URL ni nombres de host.",
+    "settings_errors": "Desactivar los informes de errores en «Configuración»",
+    "settings_usage": "Desactivar las estadísticas de uso en «Configuración»",
+    "title": "El envío de datos anónimos está activado de forma predeterminada",
+    "usage_statistics": "Las estadísticas de uso están activadas. Como máximo una vez al día, Peekaping envía un ID de instancia aleatorio, su versión, el modo, el backend de almacenamiento y el sistema operativo, un intervalo con el número de monitores, los tipos de monitores y de canales de notificación que usa, y si usa páginas de estado, ventanas de mantenimiento y métricas. Nunca envía nombres, URL, hosts ni ajustes."
   },
   "theme": {
     "dark": "Oscuro",

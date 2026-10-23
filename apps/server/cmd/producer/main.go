@@ -37,7 +37,9 @@ var shutdownTimeouts = graceful.Timeouts{Jobs: 20 * time.Second, EventBus: 10 * 
 const errorReportingFlush = 2 * time.Second
 
 func main() {
-	// A panic that ends the process is reported before it does, if the admin opted in
+	// A panic that ends the process is reported before it does, unless the admin opted out. Reports
+	// start only once StartErrorReportingRefresher has made its first read of the api's copy of the
+	// choice in Redis (below), so a panic before that is not reported.
 	defer reporting.ReportCrash("main")
 
 	cfg, err := LoadAndValidate("../..")

@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Kreiraj svoj admin nalog",
+      "error_reporting_hint": "Podrazumevano uključeno. Uklonite oznaku sa ovog polja da to isključite. To možete da promenite kasnije u „Podešavanja“.",
       "have_account": "Već imate nalog?",
       "sign_in": "Prijavi se",
       "submit": "Kreiraj",
-      "telemetry_hint": "Isključeno ako ne označite ovo polje. To možete da promenite kasnije u „Podešavanja“. Ako ga označite, Peekaping ovo šalje najviše jednom dnevno:",
+      "telemetry_hint": "Podrazumevano uključeno. Uklonite oznaku sa ovog polja da to isključite. To možete da promenite kasnije u „Podešavanja“. Dok je uključeno, Peekaping ovo šalje najviše jednom dnevno:",
       "title": "Zdravo"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Šalji izveštaje o greškama",
-    "never_sent": "Nikada se ne šalju: poruke o greškama, URL adrese, zaglavlja, URL adrese vebhukova, imena ni nazivi hostova. Izveštaj ne sadrži IP adresu, a Peekaping-ov Sentry projekat je podešen da ne čuva IP pošiljaoca. Sa vašim sopstvenim ERROR_REPORTING_DSN-om odlučuju podešavanja vašeg Sentry-ja ili GlitchTip-a.",
-    "not_saved": "Vaš izbor slanja izveštaja o greškama nije sačuvan. Uključite to u „Podešavanja“.",
+    "never_sent": "Nikada se ne šalju: poruke o greškama, URL adrese, zaglavlja, URL adrese vebhukova, imena ni nazivi hostova. Izveštaj ne sadrži IP adresu, a Peekaping-ov Sentry projekat je podešen da ne čuva IP pošiljaoca.",
+    "not_saved": "Vaš izbor o izveštajima o greškama nije sačuvan. Proverite ga u „Podešavanja“.",
     "sent": "Šalje se samo kada se sam Peekaping sruši. Izveštaj sadrži vrstu greške i mesto u kodu gde se dogodila, verziju Peekaping-a, pojedinačni ili klasterski režim, pozadinski sistem za skladištenje i operativni sistem."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "U klasterskom režimu promena stiže do svakog procesa u roku od minuta.",
-      "description": "Šalji izveštaj u Sentry kada se server sruši. Isključeno dok ne uključite.",
-      "forced_off": "Promenljiva okruženja ERROR_REPORTING=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
+      "description": "Šalji izveštaj u Sentry kada se server sruši. Podrazumevano uključeno; ovde to možete da isključite u bilo kom trenutku.",
+      "forced_off": "Promenljiva okruženja ERROR_REPORTING=off isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
       "title": "Izveštaji o greškama"
     },
     "telemetry": {
-      "description": "Šalji anonimnu statistiku o tome kako je ova instalacija podešena, najviše jednom dnevno. Isključeno dok ne uključite.",
-      "forced_off": "Promenljiva okruženja TELEMETRY=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
-      "id_note": "ID instance se pravi kada ovo uključite i briše kada ovo isključite. Ponovnim uključivanjem pravi se novi.",
+      "description": "Šalji anonimnu statistiku o tome kako je ova instalacija podešena, najviše jednom dnevno. Podrazumevano uključeno; ovde to možete da isključite u bilo kom trenutku.",
+      "forced_off": "Promenljiva okruženja TELEMETRY=off isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
+      "id_note": "ID instance se pravi dok je ovo uključeno i briše kada ovo isključite. Ponovnim uključivanjem pravi se novi.",
       "payload_off": "Dok je ovo isključeno, ništa se ne šalje. Ovo bi sadržao ping korišćenja da ste ga uključili.",
       "payload_title": "Šta će poslati sledeći ping korišćenja",
       "title": "Statistika korišćenja"
@@ -1487,12 +1488,19 @@
     "docs_link": "Šta se šalje i kako to isključiti",
     "label": "Šalji anonimnu statistiku korišćenja",
     "never_sent": "Nikada se ne šalju: nazivi nadgledaja, URL adrese, hostovi, tagovi, adrese status stranica ni podešavanja obaveštenja. Ping korišćenja ne sadrži IP adresu, a Peekaping-ov Worker ne beleži IP pošiljaoca.",
-    "not_saved": "Vaš izbor slanja statistike korišćenja nije sačuvan. Uključite to u „Podešavanja“.",
+    "not_saved": "Vaš izbor o statistici korišćenja nije sačuvan. Proverite ga u „Podešavanja“.",
     "sent_features": "Da li koristite status stranice, prozore održavanja i metrike",
-    "sent_id": "Nasumični ID, koji se pravi kada ovo uključite i briše kada ovo isključite",
+    "sent_id": "Nasumični ID, koji se pravi dok je ovo uključeno i briše kada ovo isključite",
     "sent_monitors": "Koliko nadgledaja imate, kao opseg, na primer 11-50",
     "sent_setup": "Verzija Peekaping-a, pojedinačni ili klasterski režim, pozadinski sistem za skladištenje, kao i operativni sistem i vrsta procesora",
     "sent_types": "Vrste nadgledaja i kanala obaveštenja koje koristite, na primer http ili telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Izveštaji o greškama su uključeni. Ako se Peekaping sruši, šalje vrstu greške i mesto u kodu gde se dogodila, svoju verziju, režim, pozadinski sistem za skladištenje i operativni sistem. Nikada ne šalje poruke o greškama, URL adrese ni nazive hostova.",
+    "settings_errors": "Isključi izveštaje o greškama u „Podešavanja“",
+    "settings_usage": "Isključi statistiku korišćenja u „Podešavanja“",
+    "title": "Slanje anonimnih podataka je podrazumevano uključeno",
+    "usage_statistics": "Statistika korišćenja je uključena. Najviše jednom dnevno Peekaping šalje nasumični ID instance, svoju verziju, režim, pozadinski sistem za skladištenje i operativni sistem, opseg za broj nadgledaja, vrste nadgledaja i kanala obaveštenja koje koristite, kao i podatak da li koristite status stranice, prozore održavanja i metrike. Nikada ne šalje nazive, URL adrese, hostove ni podešavanja."
   },
   "theme": {
     "dark": "Tamni",
