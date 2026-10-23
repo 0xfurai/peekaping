@@ -11,7 +11,7 @@ Peekaping can send two kinds of anonymous data to the Peekaping project:
 
 **Both are on until an admin turns them off.** A new install sends both, and so does an install that upgrades from an older version, where they didn't exist. Each one has its own box on the setup screen, ticked, and its own switch in Settings, and turning one off does not turn off the other. An install that upgrades shows its admin a one-time notice, see [The upgrade notice](#the-upgrade-notice).
 
-An environment variable switches either one off whatever the setting says, and nothing is sent while it applies. See [Turn it on or off](#turn-it-on-or-off) for the usage statistics and [Turn error reporting on or off](#turn-error-reporting-on-or-off) for the error reports. To send neither, set `DO_NOT_TRACK=1`.
+An environment variable switches either one off whatever the setting says, and nothing is sent while it applies. See [Turn it on or off](#turn-it-on-or-off) for the usage statistics and [Turn error reporting on or off](#turn-error-reporting-on-or-off) for the error reports. To send neither, set both `TELEMETRY=off` and `ERROR_REPORTING=off`.
 
 ## The upgrade notice
 
@@ -63,7 +63,7 @@ Every storage backend you can set with `DB_TYPE` is counted. `DB_TYPE=postgresql
 
 #### Instance ID
 
-The instance ID is a random UUID. Peekaping creates it the first time it is needed while the usage ping is on, which for an install that never chose is soon after it starts. It deletes the ID when an admin turns the usage ping off. If you turn the usage ping on again, you get a new ID. On SQLite and PostgreSQL, replicas of a cluster that start together end up with the same ID. On MongoDB, replicas that start at the very same moment may create different IDs, because its settings have no unique key. While `TELEMETRY=off` or `DO_NOT_TRACK=1` applies, Peekaping makes none. It is the only identifier in a usage ping, and nothing about your install goes into it.
+The instance ID is a random UUID. Peekaping creates it the first time it is needed while the usage ping is on, which for an install that never chose is soon after it starts. It deletes the ID when an admin turns the usage ping off. If you turn the usage ping on again, you get a new ID. On SQLite and PostgreSQL, replicas of a cluster that start together end up with the same ID. On MongoDB, replicas that start at the very same moment may create different IDs, because its settings have no unique key. While `TELEMETRY=off` applies, Peekaping makes none. It is the only identifier in a usage ping, and nothing about your install goes into it.
 
 The ID lets us count an install once instead of once a day. Because it changes when you opt out and in again, one install can be counted twice over time.
 
@@ -112,7 +112,6 @@ An environment variable switches it off whatever the setting says. While one app
 | Variable | Value | Effect |
 | --- | --- | --- |
 | `TELEMETRY` | `off` (also `false`, `0` or `no`) | Turns the usage ping off |
-| `DO_NOT_TRACK` | `1` (also `true`) | Turns the usage ping off, and error reporting too. [Do Not Track](https://consoledonottrack.com/) is a convention many tools follow. |
 
 `TELEMETRY=off` turns off only the usage ping. Case doesn't matter. To be sure an install never sends, set the variable in your image or your compose file. In Docker Compose that is a line in the `.env` file:
 
@@ -170,13 +169,13 @@ Peekaping builds each report from the list above, field by field. It copies noth
 - a user, an email address or any other account data
 - the name, URL, host or setting of a monitor, status page or notification channel, such as a webhook URL
 
-A report holds no IP address. The Sentry server still sees the address a request comes from, as any server does. Peekaping's Sentry project is set not to store the sender's IP address, but that is a setting of the project, which this repository can't enforce. If you set your own `ERROR_REPORTING_DSN`, the settings of your Sentry or GlitchTip decide whether it keeps the address.
+A report holds no IP address. The Sentry server still sees the address a request comes from, as any server does. Peekaping's Sentry project is set not to store the sender's IP address, but that is a setting of the project, which this repository can't enforce.
 
 ### Where it goes
 
 Reports go to a Sentry project that the Peekaping project runs. [Sentry](https://sentry.io) is an error tracking service. Peekaping sends them with Sentry's Go library.
 
-The only link to Sentry is one setting, the DSN, which is the address of the project. The Peekaping project may move to a self-hosted [GlitchTip](https://glitchtip.com) later. That is a change of the DSN, and nothing in what is sent. You can set `ERROR_REPORTING_DSN` to send the reports to your own Sentry or GlitchTip instead. See [Turn error reporting on or off](#turn-error-reporting-on-or-off).
+The only link to Sentry is one setting, the DSN, which is the address of the project. The Peekaping project may move to a self-hosted [GlitchTip](https://glitchtip.com) later. That is a change of the DSN, and nothing in what is sent.
 
 ### How often reports are sent
 
@@ -196,8 +195,6 @@ An environment variable switches it off whatever the setting says. While one app
 | Variable | Value | Effect |
 | --- | --- | --- |
 | `ERROR_REPORTING` | `off` (also `false`, `0` or `no`) | Turns error reporting off. The usage statistics are not affected. |
-| `DO_NOT_TRACK` | `1` (also `true`) | Turns off both error reporting and the usage statistics |
-| `ERROR_REPORTING_DSN` | A Sentry or GlitchTip DSN | Sends the reports to your own project instead of Peekaping's. A report holds the same fields, and every rule on this page still applies. |
 
 `ERROR_REPORTING=off` turns off only error reporting. Case doesn't matter. In Docker Compose, put the variable in the `.env` file:
 

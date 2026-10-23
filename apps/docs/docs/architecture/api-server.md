@@ -115,8 +115,6 @@ The anonymous usage ping and the error reports are both on until an admin turns 
 |----------|------|----------|---------|-------------|
 | `TELEMETRY` | string | No | `""` | `off` (also `false`, `0` or `no`) turns the usage ping off |
 | `ERROR_REPORTING` | string | No | `""` | `off` (also `false`, `0` or `no`) turns error reports off. In cluster mode, set it on the API, producer, worker and ingester. |
-| `ERROR_REPORTING_DSN` | string | No | `""` | Send error reports to this Sentry or GlitchTip DSN instead of Peekaping's. Set it on the same processes as `ERROR_REPORTING`. |
-| `DO_NOT_TRACK` | string | No | `""` | `1` (or `true`) turns off both the usage ping and error reports |
 
 ## API Endpoints
 
