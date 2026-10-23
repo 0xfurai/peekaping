@@ -77,6 +77,12 @@ func (le *LeaderElection) Start(ctx context.Context) {
 	})
 }
 
+// Done returns a channel that closes once the election has stopped, after it released the
+// leadership it held. It stops when the context given to Start is done, or on Stop.
+func (le *LeaderElection) Done() <-chan struct{} {
+	return le.doneChan
+}
+
 // Stop stops the leader election process
 func (le *LeaderElection) Stop() {
 	close(le.stopChan)
@@ -93,6 +99,9 @@ func (le *LeaderElection) tryBecomeLeader(ctx context.Context) {
 	// Try to set the key with NX (only if not exists) and EX (expiration)
 	success, err := le.client.SetNX(ctx, LeaderKey, le.nodeID, LeaderTTL).Result()
 	if err != nil {
+		if ctx.Err() != nil {
+			return // stopping: the release that follows needs the status as it was
+		}
 		le.logger.Errorw("Failed to acquire leadership", "error", err)
 		le.setLeaderStatus(false)
 		return
@@ -110,6 +119,9 @@ func (le *LeaderElection) tryBecomeLeader(ctx context.Context) {
 	// Key already exists, check if we are the current leader
 	currentLeader, err := le.client.Get(ctx, LeaderKey).Result()
 	if err != nil {
+		if ctx.Err() != nil {
+			return
+		}
 		if err != redis.Nil {
 			le.logger.Errorw("Failed to check current leader", "error", err)
 		}
@@ -121,6 +133,9 @@ func (le *LeaderElection) tryBecomeLeader(ctx context.Context) {
 		// We are already the leader, renew the lock
 		err = le.client.Expire(ctx, LeaderKey, LeaderTTL).Err()
 		if err != nil {
+			if ctx.Err() != nil {
+				return
+			}
 			le.logger.Errorw("Failed to renew leadership", "error", err)
 			le.setLeaderStatus(false)
 			return

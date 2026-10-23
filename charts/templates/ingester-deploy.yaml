@@ -39,6 +39,9 @@ spec:
       serviceAccountName: {{ .Release.Name }}-sa
       automountServiceAccountToken: false
 
+      # The ingester takes up to 30 seconds to shut down cleanly
+      terminationGracePeriodSeconds: 35
+
       # Spread replicas across nodes/azs if possible
       topologySpreadConstraints:
         - maxSkew: 1

@@ -253,6 +253,8 @@ services:
   api:
     image: 0xfurai/peekaping-api:latest
     restart: unless-stopped
+    # the api takes up to 30 seconds to shut down cleanly
+    stop_grace_period: 35s
     env_file:
       - .env
     environment:
@@ -284,6 +286,8 @@ services:
   producer:
     image: 0xfurai/peekaping-producer:latest
     restart: unless-stopped
+    # the producer takes up to 30 seconds to shut down cleanly
+    stop_grace_period: 35s
     env_file:
       - .env
     volumes:
@@ -299,6 +303,8 @@ services:
   worker:
     image: 0xfurai/peekaping-worker:latest
     restart: unless-stopped
+    # the worker takes up to 30 seconds to shut down cleanly
+    stop_grace_period: 35s
     env_file:
       - .env
     depends_on:
@@ -310,6 +316,8 @@ services:
   ingester:
     image: 0xfurai/peekaping-ingester:latest
     restart: unless-stopped
+    # the ingester takes up to 30 seconds to shut down cleanly
+    stop_grace_period: 35s
     env_file:
       - .env
     volumes:
