@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
+	"slices"
 	"testing"
 	"time"
 
@@ -348,6 +349,7 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 		mockTagService,
 		realExecutorRegistry,
 		mockStatsService,
+		nil,
 		logger,
 	).(*MonitorServiceImpl)
 
@@ -607,10 +609,11 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 	t.Run("monitor removed before it is read back", func(t *testing.T) {
 		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
 		monitorID := "removed123"
+		mockRepo.On("FindByID", inTx, monitorID).Return(&Model{ID: monitorID, Type: "tcp"}, nil).Once()
 		mockRepo.On("UpdateFull", inTx, monitorID, mock.Anything).Return(nil)
 		notifications.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
 		tags.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
-		mockRepo.On("FindByID", inTx, monitorID).Return(nil, nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(nil, nil).Once()
 
 		result, err := service.UpdateFull(ctx, monitorID, &CreateUpdateDto{Type: "tcp", Name: "Updated Monitor"})
 
@@ -621,6 +624,19 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("monitor gone before the update", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
+		mockRepo.On("FindByID", inTx, "gone123").Return(nil, nil)
+		mockRepo.On("UpdateFull", mock.Anything, "gone123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+
+		result, err := service.UpdateFull(ctx, "gone123", &CreateUpdateDto{Type: "tcp", Name: "Updated Monitor"})
+
+		assert.ErrorIs(t, err, ErrMonitorNotFound)
+		assert.Nil(t, result)
+		assert.Empty(t, bus.Topics())
+		mockRepo.AssertNotCalled(t, "UpdateFull", mock.Anything, mock.Anything, mock.Anything)
+	})
+
 	t.Run("repository error", func(t *testing.T) {
 		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
@@ -629,6 +645,7 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 			Name: "Updated Monitor",
 		}
 
+		mockRepo.On("FindByID", inTx, monitorID).Return(&Model{ID: monitorID, Type: "tcp"}, nil)
 		mockRepo.On("UpdateFull", inTx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		result, err := service.UpdateFull(ctx, monitorID, updateDto)
@@ -665,6 +682,7 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 	} {
 		t.Run("rolls back and publishes nothing when "+tc.name+" fails", func(t *testing.T) {
 			service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+			mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123", Type: "tcp"}, nil)
 			mockRepo.On("UpdateFull", inTx, "monitor123", mock.Anything).Return(nil)
 			tc.fails(notifications, tags)
 
@@ -1711,6 +1729,7 @@ func TestNewMonitorService(t *testing.T) {
 		mockTagService,
 		realExecutorRegistry,
 		mockStatsService,
+		nil,
 		logger,
 	)
 
@@ -1819,5 +1838,125 @@ func TestMonitorService_RepairStoredStatuses(t *testing.T) {
 		assert.Equal(t, 1, repaired)
 		assert.ErrorIs(t, err, context.Canceled)
 		mockRepo.AssertNotCalled(t, "FindAll", cancelled, 1, StatusRepairPageSize, "", unset, noStatus, noTags)
+	})
+}
+
+// fakeProbes is a ProbeLookup over the probes it holds, by id
+type fakeProbes struct {
+	probes map[string]*ProbeInfo
+	err    error
+}
+
+func (f fakeProbes) FindProbe(_ context.Context, id string) (*ProbeInfo, error) {
+	return f.probes[id], f.err
+}
+
+// A MongoDB install has no probes (ADR 0001): the probe side says so, and only the local probe,
+// which is all there is, is accepted.
+func TestMonitorService_MongoOnlyAcceptsLocal(t *testing.T) {
+	ctx := context.Background()
+	newService := func() (*MonitorServiceImpl, *MockMonitorRepository) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service.probes = fakeProbes{err: ErrNoProbes}
+		return service, mockRepo
+	}
+	dto := func(probeIDs ...string) *CreateUpdateDto {
+		return &CreateUpdateDto{Type: "http", Name: "Checkout", Config: "{}", ProbeIDs: probeIDs}
+	}
+
+	t.Run("local is accepted", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("Create", inTx, mock.MatchedBy(func(m *Model) bool { return slices.Equal(m.ProbeIDs, []string{"local"}) })).Return(&Model{ID: "monitor123"}, nil)
+
+		_, err := service.Create(ctx, dto("local"))
+
+		require.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("a monitor without probes is accepted", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("Create", inTx, mock.MatchedBy(func(m *Model) bool { return m.ProbeIDs == nil })).Return(&Model{ID: "monitor123"}, nil)
+
+		_, err := service.Create(ctx, &CreateUpdateDto{Type: "http", Name: "Checkout", Config: "{}"})
+
+		require.NoError(t, err)
+	})
+
+	t.Run("any other probe is refused", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(&Model{ID: "monitor123"}, nil).Maybe() // asserted below to be uncalled
+
+		_, err := service.Create(ctx, dto("frankfurt"))
+
+		var invalid *InvalidProbesError
+		require.ErrorAs(t, err, &invalid)
+		assert.ErrorIs(t, err, ErrNoProbes)
+		assert.EqualError(t, err, `invalid probe_ids: probe "frankfurt" can't be used: probes need SQLite or PostgreSQL storage`)
+		mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+	})
+
+	t.Run("a partial update to another probe is refused", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123", Type: "http", ProbeIDs: []string{"local"}}, nil)
+		mockRepo.On("UpdatePartial", mock.Anything, "monitor123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+
+		_, err := service.UpdatePartial(ctx, "monitor123", &PartialUpdateDto{ProbeIDs: []string{"frankfurt"}}, false)
+
+		var invalid *InvalidProbesError
+		require.ErrorAs(t, err, &invalid)
+		mockRepo.AssertNotCalled(t, "UpdatePartial", mock.Anything, mock.Anything, mock.Anything)
+	})
+}
+
+func TestMonitorService_ChecksTheProbeOfAMonitor(t *testing.T) {
+	ctx := context.Background()
+	probes := fakeProbes{probes: map[string]*ProbeInfo{
+		"local":     {Name: "Local"},
+		"frankfurt": {Name: "Frankfurt", SupportedTypes: []string{"http", "tcp"}},
+		"paris":     {Name: "Paris", SupportedTypes: []string{"dns"}},
+	}}
+
+	for _, tc := range []struct {
+		name     string
+		typ      string
+		probeIDs []string
+		want     string // the reason, empty when the monitor is accepted
+	}{
+		{"one probe that runs the type", "http", []string{"frankfurt"}, ""},
+		{"a probe with no types runs every type", "docker", []string{"local"}, ""},
+		{"no probes", "http", []string{}, "a monitor runs on exactly one probe"},
+		{"two probes", "http", []string{"local", "frankfurt"}, "a monitor runs on exactly one probe"},
+		{"an unknown probe", "http", []string{"berlin"}, `probe "berlin" doesn't exist`},
+		{"a probe that runs other types", "http", []string{"paris"}, `probe "Paris" doesn't run http monitors`},
+		{"a push monitor on a remote probe", "push", []string{"frankfurt"}, "a push monitor runs on the local probe only"},
+		{"a push monitor on the local probe", "push", []string{"local"}, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+			service.probes = probes
+			mockRepo.On("Create", inTx, mock.Anything).Return(&Model{ID: "monitor123"}, nil).Maybe()
+
+			_, err := service.Create(ctx, &CreateUpdateDto{Type: tc.typ, Name: "Checkout", Config: "{}", ProbeIDs: tc.probeIDs})
+
+			if tc.want == "" {
+				require.NoError(t, err)
+				mockRepo.AssertCalled(t, "Create", inTx, mock.Anything)
+				return
+			}
+			require.EqualError(t, err, "invalid probe_ids: "+tc.want)
+			mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		})
+	}
+
+	t.Run("a failure to look the probe up is not the client's", func(t *testing.T) {
+		service, _, _, _, _, _, _, _ := setupMonitorService()
+		service.probes = fakeProbes{err: errors.New("database is down")}
+
+		_, err := service.Create(ctx, &CreateUpdateDto{Type: "http", Name: "Checkout", ProbeIDs: []string{"local"}})
+
+		require.EqualError(t, err, "database is down")
+		var invalid *InvalidProbesError
+		assert.False(t, errors.As(err, &invalid))
 	})
 }

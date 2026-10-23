@@ -43,7 +43,7 @@ func TestMonitorService_WritesInOneTransactionOnEverySQLBackend(t *testing.T) {
 		heartbeats := heartbeat.NewService(heartbeat.NewSQLRepository(db), bus, logger)
 		statService := stats.NewService(stats.NewSQLRepository(db), logger)
 		newService := func(statService stats.Service) monitor.Service {
-			return monitor.NewMonitorService(monitor.NewSQLRepository(db), dbtx.NewSQLTransactor(db), heartbeats, bus, channels, tags, nil, statService, logger)
+			return monitor.NewMonitorService(monitor.NewSQLRepository(db), dbtx.NewSQLTransactor(db), heartbeats, bus, channels, tags, nil, statService, nil, logger)
 		}
 		service := newService(statService)
 

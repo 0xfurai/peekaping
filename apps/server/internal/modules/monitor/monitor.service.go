@@ -66,6 +66,7 @@ type MonitorServiceImpl struct {
 	monitorTagService          monitor_tag.Service
 	executorRegistry           *executor.ExecutorRegistry
 	statPointsService          stats.Service
+	probes                     ProbeLookup
 	logger                     *zap.SugaredLogger
 }
 
@@ -78,6 +79,7 @@ func NewMonitorService(
 	monitorTagService monitor_tag.Service,
 	executorRegistry *executor.ExecutorRegistry,
 	statPointsService stats.Service,
+	probes ProbeLookup,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &MonitorServiceImpl{
@@ -89,6 +91,7 @@ func NewMonitorService(
 		monitorTagService,
 		executorRegistry,
 		statPointsService,
+		probes,
 		logger.Named("[monitor-service]"),
 	}
 }
@@ -108,6 +111,14 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		Config:         monitorCreateDto.Config,
 		ProxyId:        monitorCreateDto.ProxyId,
 		PushToken:      monitorCreateDto.PushToken,
+		ProbeIDs:       monitorCreateDto.ProbeIDs,
+	}
+
+	// A monitor created without probes runs on the local one
+	if monitorCreateDto.ProbeIDs != nil {
+		if err := mr.validateProbes(ctx, monitorCreateDto.Type, monitorCreateDto.ProbeIDs); err != nil {
+			return nil, err
+		}
 	}
 
 	// The monitor and its links are stored together or not at all, and the event comes after
@@ -175,20 +186,30 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
 		PushToken:      monitor.PushToken,
+		ProbeIDs:       monitor.ProbeIDs,
 	}
 
-	// The monitor and its links change together or not at all. The monitor is read back inside
-	// the transaction: the response and the event carry what is stored, including its status and
-	// created_at.
+	// The monitor and its links change together or not at all. The monitor is read before the
+	// update, to check its probes against the type it will have, and back after it: the response
+	// and the event carry what is stored, including its status and created_at.
 	var updatedMonitor *Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		current, err := mr.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if current == nil {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
+		if err := mr.validateFullProbes(ctx, current, monitor); err != nil {
+			return err
+		}
 		if err := mr.monitorRepository.UpdateFull(ctx, id, model); err != nil {
 			return err
 		}
 		if err := mr.replaceLinks(ctx, id, monitor.NotificationIds, monitor.TagIds); err != nil {
 			return err
 		}
-		var err error
 		updatedMonitor, err = mr.FindByID(ctx, id)
 		if err != nil {
 			return err
@@ -223,6 +244,7 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
 		PushToken:      monitor.PushToken,
+		ProbeIDs:       monitor.ProbeIDs,
 	}
 
 	// The monitor and its links change together or not at all. The monitor is read inside the
@@ -238,6 +260,9 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
 		}
 		if err := mr.validatePartialConfig(current, monitor); err != nil {
+			return err
+		}
+		if err := mr.validatePartialProbes(ctx, current, monitor); err != nil {
 			return err
 		}
 		if err := mr.monitorRepository.UpdatePartial(ctx, id, model); err != nil {

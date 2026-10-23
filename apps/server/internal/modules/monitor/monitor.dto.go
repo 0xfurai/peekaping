@@ -22,7 +22,10 @@ type CreateUpdateDto struct {
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`
-	activeSet       bool
+	// ProbeIDs is the one probe that runs the monitor. A create without it runs on the local
+	// probe, and an update without it keeps the monitor's probe.
+	ProbeIDs  []string `json:"probe_ids" example:"local"`
+	activeSet bool
 }
 
 // UnmarshalJSON records whether active was present so create requests can apply
@@ -64,6 +67,8 @@ type PartialUpdateDto struct {
 	Status          *heartbeat.MonitorStatus `json:"status,omitempty" example:"1"`
 	Config          *string                  `json:"config,omitempty"`
 	PushToken       *string                  `json:"push_token,omitempty"`
+	// ProbeIDs is the one probe that runs the monitor. Without it the monitor keeps its probe.
+	ProbeIDs []string `json:"probe_ids,omitempty" example:"local"`
 }
 
 // UptimeStatsDto represents uptime percentages for various periods
@@ -93,6 +98,7 @@ type MonitorResponseDto struct {
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`
+	ProbeIDs        []string `json:"probe_ids" example:"local"`
 	// The later of the latest heartbeat and the monitor's last save or resume,
 	// set only while the stale-monitor watchdog counts it as stale
 	StaleSince *time.Time `json:"stale_since,omitempty"`
