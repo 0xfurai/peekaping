@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"peekaping/internal/config"
+	"peekaping/internal/infra"
 	"peekaping/internal/mongoimport"
 	"peekaping/internal/mongoimport/mongoimporttest"
 
@@ -15,6 +17,7 @@ import (
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 )
 
 func runImportMongo(args ...string) error {
@@ -43,6 +46,54 @@ func TestImportMongoCommandCopiesIntoTheDatabaseTheEnvironmentNames(t *testing.T
 	// The database is no longer empty, so a second run changes nothing and says why
 	err = runImportMongo("--mongo-uri", in.URI, "--mongo-db", in.Database)
 	assert.ErrorIs(t, err, mongoimport.ErrTargetNotEmpty)
+}
+
+func TestImportMongoCommandPostgresSSLMode(t *testing.T) {
+	in := mongoimporttest.Seed(t)
+	for _, mode := range []string{"", "disable", "require"} {
+		t.Run("mode="+mode, func(t *testing.T) {
+			cfg := postgresConfig(t)
+			probe, err := connectToDatabase(cfg)
+			require.NoError(t, err)
+			var serverSSL string
+			err = probe.NewRaw("SHOW ssl").Scan(t.Context(), &serverSSL)
+			require.NoError(t, probe.Close())
+			require.NoError(t, err)
+
+			t.Setenv("DB_TYPE", cfg.DBType)
+			t.Setenv("DB_HOST", cfg.DBHost)
+			t.Setenv("DB_PORT", cfg.DBPort)
+			t.Setenv("DB_USER", cfg.DBUser)
+			t.Setenv("DB_PASS", cfg.DBPass)
+			t.Setenv("DB_NAME", cfg.DBName)
+			t.Setenv("DB_SSLMODE", mode)
+			err = runImportMongo("--mongo-uri", in.URI, "--mongo-db", in.Database)
+			if mode == "require" && serverSSL == "off" {
+				require.ErrorContains(t, err, "SSL")
+			} else {
+				require.NoError(t, err)
+			}
+
+			// The application must use the same transport as the command that imported its data.
+			db, err := infra.ProvideSQLDB(&config.Config{
+				DBType: cfg.DBType, DBHost: cfg.DBHost, DBPort: cfg.DBPort,
+				DBUser: cfg.DBUser, DBPass: cfg.DBPass, DBName: cfg.DBName, DBSSLMode: mode,
+			}, zap.NewNop().Sugar())
+			if mode == "require" && serverSSL == "off" {
+				require.ErrorContains(t, err, "SSL")
+				return
+			}
+			require.NoError(t, err)
+			t.Cleanup(func() { require.NoError(t, db.Close()) })
+			var encrypted bool
+			err = db.NewRaw("SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()").Scan(t.Context(), &encrypted)
+			require.NoError(t, err)
+			require.Equal(t, mode == "require", encrypted)
+			n, err := db.NewSelect().Table("heartbeats").Count(t.Context())
+			require.NoError(t, err)
+			require.Equal(t, 7, n)
+		})
+	}
 }
 
 func TestImportMongoCommandTakesTheDatabaseFromTheURI(t *testing.T) {

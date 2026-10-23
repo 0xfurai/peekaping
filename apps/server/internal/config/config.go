@@ -13,24 +13,26 @@ import (
 )
 
 type DBConfig struct {
-	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
-	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
-	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
-	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
-	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
-	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBHost    string `env:"DB_HOST"`                           // validated in validateCustomRules
+	DBPort    string `env:"DB_PORT"`                           // validated in validateCustomRules
+	DBName    string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
+	DBUser    string `env:"DB_USER"`                           // validated in validateCustomRules
+	DBPass    string `env:"DB_PASS"`                           // validated in validateCustomRules
+	DBType    string `env:"DB_TYPE" validate:"required,db_type"`
+	DBSSLMode string `env:"DB_SSLMODE" validate:"omitempty,oneof=disable allow prefer require verify-ca verify-full" default:"disable"`
 }
 
 type Config struct {
 	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
 
-	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
-	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
-	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
-	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
-	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
-	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBHost    string `env:"DB_HOST"`                           // validated in validateCustomRules
+	DBPort    string `env:"DB_PORT"`                           // validated in validateCustomRules
+	DBName    string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
+	DBUser    string `env:"DB_USER"`                           // validated in validateCustomRules
+	DBPass    string `env:"DB_PASS"`                           // validated in validateCustomRules
+	DBType    string `env:"DB_TYPE" validate:"required,db_type"`
+	DBSSLMode string `env:"DB_SSLMODE" validate:"omitempty,oneof=disable allow prefer require verify-ca verify-full" default:"disable"`
 
 	// Which check a process that opens SQLite runs at startup: "quick" runs PRAGMA quick_check,
 	// "full" runs PRAGMA integrity_check, and "off" runs none. A finding stops startup.

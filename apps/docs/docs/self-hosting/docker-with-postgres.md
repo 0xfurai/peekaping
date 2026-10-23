@@ -129,6 +129,32 @@ Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_
 
 If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the container, see [Upgrading to single mode](./upgrading-to-single-mode.md).
 
+## PostgreSQL TLS
+
+Set `DB_SSLMODE` when connecting to a PostgreSQL server that provides TLS. The
+default is `disable`, which preserves existing installations. The setting applies
+to single mode, the cluster services that connect to the database, and the `bun`
+migration commands.
+
+```env
+DB_SSLMODE=require
+```
+
+Supported values are `disable`, `allow`, `prefer`, `require`, `verify-ca`, and
+`verify-full`. Invalid values stop startup with a configuration error.
+
+The current PostgreSQL driver treats `allow` and `prefer` like `require`: they
+attempt TLS without verifying the certificate and do not fall back to an
+unencrypted connection if the server does not support TLS.
+
+`require` encrypts the connection without checking the server certificate.
+Use `verify-full` to also verify the certificate chain and server hostname, or
+`verify-ca` to verify only the chain. The certificate must be trusted by the
+system CA store inside the container running Peekaping and its migrations.
+
+This setting does not enable TLS on the PostgreSQL server itself. Keep the
+default for the bundled PostgreSQL unless you have also configured it for TLS.
+
 ## Cluster mode
 
 In cluster mode, the API, producer, worker and ingester run in separate containers and talk through Redis. An nginx gateway serves the web app and the API on port 8383.
@@ -164,6 +190,8 @@ DB_NAME=peekaping
 DB_HOST=database
 DB_PORT=5432
 DB_TYPE=postgres
+# PostgreSQL TLS: disable (default), allow, prefer, require, verify-ca, verify-full
+DB_SSLMODE=disable
 
 # Server Configuration
 # The API's port inside the Docker network. The single-mode image ignores it
