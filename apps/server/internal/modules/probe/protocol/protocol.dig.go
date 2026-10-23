@@ -12,5 +12,5 @@ import (
 // service, which probe.RegisterDependencies provides, on a MongoDB install too: there it answers
 // every call 501.
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, NewAuth, NewRateLimiter, NewWaker, NewLocalOnlySource, MonitorProbeOffline, DefaultTiming, NewController, NewRoute)
+	return utils.Provide(container, NewAuth, NewRateLimiter, NewWaker, NewMonitorSource, MonitorProbeOffline, DefaultTiming, NewController, NewRoute)
 }

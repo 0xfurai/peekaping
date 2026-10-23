@@ -7,12 +7,11 @@ import (
 	"peekaping/internal/modules/probe"
 )
 
-// MonitorSource lists the monitors assigned to a probe. Until #34 adds monitor_probes, the local
-// probe owns every active monitor and a remote probe owns none.
+// MonitorSource lists the monitors assigned to a probe.
 //
-// It is the seam #34 replaces: the handlers ask it which monitors are a probe's, and know nothing
-// about how they are assigned. What it returns is every monitor of the probe that is active, push
-// monitors and types the probe can't run included. Dealable picks the ones to deal.
+// It is the seam the handlers ask which monitors are a probe's, and know nothing about how they
+// are assigned. What it returns is every monitor of the probe that is active, push monitors and
+// types the probe can't run included. Dealable picks the ones to deal.
 type MonitorSource interface {
 	FindActiveByProbe(ctx context.Context, probeID string) ([]*monitor.Model, error)
 	// ProbeOf returns the id of the probe the monitor is assigned to. The stale-monitor watchdog
@@ -20,25 +19,51 @@ type MonitorSource interface {
 	ProbeOf(ctx context.Context, monitorID string) (string, error)
 }
 
-// localOnlySource is the MonitorSource until monitors can be assigned to probes
-type localOnlySource struct {
+// sourcePageSize is how many monitors the source reads from the monitor service at a time
+const sourcePageSize = 200
+
+// monitorSource is the MonitorSource over the monitors' own probes
+type monitorSource struct {
 	monitors monitor.Service
 }
 
-// NewLocalOnlySource returns the MonitorSource of an install where monitors are not yet assigned to
-// probes: every active monitor is the local probe's, and a remote probe has none.
-func NewLocalOnlySource(monitorService monitor.Service) MonitorSource {
-	return &localOnlySource{monitors: monitorService}
+// NewMonitorSource returns the MonitorSource that reads the probe of each monitor from the
+// monitor service
+func NewMonitorSource(monitorService monitor.Service) MonitorSource {
+	return &monitorSource{monitors: monitorService}
 }
 
-// ProbeOf is the local probe's, for every monitor
-func (s *localOnlySource) ProbeOf(_ context.Context, _ string) (string, error) {
-	return probe.LocalID, nil
-}
-
-func (s *localOnlySource) FindActiveByProbe(ctx context.Context, probeID string) ([]*monitor.Model, error) {
-	if probeID != probe.LocalID {
-		return []*monitor.Model{}, nil
+// FindActiveByProbe pages through the probe's monitors. A monitor created or deleted while it reads
+// can move one across a page edge, so a monitor read twice is listed once.
+func (s *monitorSource) FindActiveByProbe(ctx context.Context, probeID string) ([]*monitor.Model, error) {
+	found := []*monitor.Model{}
+	seen := map[string]bool{}
+	for page := 0; ; page++ {
+		monitors, err := s.monitors.FindActiveByProbe(ctx, probeID, page, sourcePageSize)
+		if err != nil {
+			return nil, err
+		}
+		for _, m := range monitors {
+			if !seen[m.ID] {
+				seen[m.ID] = true
+				found = append(found, m)
+			}
+		}
+		if len(monitors) < sourcePageSize {
+			return found, nil
+		}
 	}
-	return s.monitors.FindActive(ctx)
+}
+
+// ProbeOf is the probe the monitor runs on. A monitor that doesn't exist (it was deleted), or that
+// is read without its probes, is the local probe's.
+func (s *monitorSource) ProbeOf(ctx context.Context, monitorID string) (string, error) {
+	m, err := s.monitors.FindByID(ctx, monitorID)
+	if err != nil {
+		return "", err
+	}
+	if m == nil || len(m.ProbeIDs) == 0 {
+		return probe.LocalID, nil
+	}
+	return m.ProbeIDs[0], nil
 }

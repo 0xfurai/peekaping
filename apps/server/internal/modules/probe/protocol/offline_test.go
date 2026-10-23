@@ -13,8 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ownedSource is a MonitorSource that knows which probe each monitor belongs to, as the one that
-// reads monitor_probes (#34) will
+// ownedSource is a MonitorSource that knows which probe each monitor belongs to
 type ownedSource struct {
 	owners map[string]string
 	err    error
@@ -45,7 +44,7 @@ func TestMonitorProbeOffline_TheLocalProbeIsNeverOffline(t *testing.T) {
 	probes := &statusProbes{byID: map[string]*probe.Model{probe.LocalID: {ID: probe.LocalID, Status: probe.StatusOffline}}}
 	// Nothing speaks the protocol on most installs, so the local probe reads offline there; its
 	// monitors run in the process and are watched all the same
-	offline := protocol.MonitorProbeOffline(protocol.NewLocalOnlySource(&stubMonitors{}), probes)
+	offline := protocol.MonitorProbeOffline(protocol.NewMonitorSource(&stubMonitors{}), probes)
 
 	got, err := offline(context.Background(), "http-1")
 

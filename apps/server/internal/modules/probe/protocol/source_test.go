@@ -3,6 +3,7 @@ package protocol_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"peekaping/internal/modules/monitor"
@@ -13,59 +14,96 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// stubMonitors is the part of the monitor service that lists the active monitors
+// stubMonitors is the part of the monitor service that finds the monitors of a probe, as the
+// repository pages them: by probe, a page of limit at a time
 type stubMonitors struct {
 	monitor.Service
-	active []*monitor.Model
-	err    error
-	calls  int
+	// byProbe are the active monitors of each probe
+	byProbe map[string][]*monitor.Model
+	byID    map[string]*monitor.Model
+	err     error
+	// pages are the pages asked for, as "probe/page"
+	pages []string
 }
 
-func (s *stubMonitors) FindActive(context.Context) ([]*monitor.Model, error) {
-	s.calls++
-	return s.active, s.err
+func (s *stubMonitors) FindActiveByProbe(_ context.Context, probeID string, page int, limit int) ([]*monitor.Model, error) {
+	s.pages = append(s.pages, fmt.Sprintf("%s/%d", probeID, page))
+	if s.err != nil {
+		return nil, s.err
+	}
+	all := s.byProbe[probeID]
+	start := min(page*limit, len(all))
+	end := min(start+limit, len(all))
+	return all[start:end], nil
 }
 
-func TestLocalOnlySource_TheLocalProbeOwnsEveryActiveMonitor(t *testing.T) {
-	monitors := &stubMonitors{active: []*monitor.Model{monitorWith("http-1", "http"), monitorWith("push-1", "push")}}
-	source := protocol.NewLocalOnlySource(monitors)
+func (s *stubMonitors) FindByID(_ context.Context, id string) (*monitor.Model, error) {
+	return s.byID[id], s.err
+}
 
-	got, err := source.FindActiveByProbe(context.Background(), probe.LocalID)
+func TestMonitorSource_ListsTheActiveMonitorsOfTheProbe(t *testing.T) {
+	monitors := &stubMonitors{byProbe: map[string][]*monitor.Model{
+		probe.LocalID: {monitorWith("http-1", "http"), monitorWith("push-1", "push")},
+		"frankfurt":   {monitorWith("tcp-1", "tcp")},
+	}}
+	source := protocol.NewMonitorSource(monitors)
+
+	local, err := source.FindActiveByProbe(context.Background(), probe.LocalID)
+	require.NoError(t, err)
+	remote, err := source.FindActiveByProbe(context.Background(), "frankfurt")
+	require.NoError(t, err)
+	none, err := source.FindActiveByProbe(context.Background(), "paris")
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"http-1", "push-1"}, idsOf(local), "it lists them all: telling which can be dealt is Dealable's job")
+	assert.Equal(t, []string{"tcp-1"}, idsOf(remote))
+	assert.NotNil(t, none)
+	assert.Empty(t, none)
+}
+
+func TestMonitorSource_PagesThroughAllTheMonitors(t *testing.T) {
+	var all []*monitor.Model
+	for i := range 450 {
+		all = append(all, monitorWith(fmt.Sprintf("monitor-%03d", i), "http"))
+	}
+	monitors := &stubMonitors{byProbe: map[string][]*monitor.Model{"frankfurt": all}}
+
+	got, err := protocol.NewMonitorSource(monitors).FindActiveByProbe(context.Background(), "frankfurt")
 
 	require.NoError(t, err)
-	assert.Equal(t, []string{"http-1", "push-1"}, idsOf(got), "it lists them all: telling which can be dealt is Dealable's job")
+	assert.Equal(t, idsOf(all), idsOf(got), "every monitor, once, in the order of the pages")
+	assert.Equal(t, []string{"frankfurt/0", "frankfurt/1", "frankfurt/2"}, monitors.pages, "until a page comes up short")
 }
 
-func TestLocalOnlySource_ARemoteProbeOwnsNone(t *testing.T) {
-	monitors := &stubMonitors{active: []*monitor.Model{monitorWith("http-1", "http")}}
-	source := protocol.NewLocalOnlySource(monitors)
+func TestMonitorSource_AMonitorBelongsToItsProbe(t *testing.T) {
+	remote := monitorWith("http-1", "http")
+	remote.ProbeIDs = []string{"frankfurt"}
+	local := monitorWith("http-2", "http")
+	local.ProbeIDs = []string{probe.LocalID}
+	unassigned := monitorWith("http-3", "http") // read without its probes, as a monitor from before probes is
+	monitors := &stubMonitors{byID: map[string]*monitor.Model{"http-1": remote, "http-2": local, "http-3": unassigned}}
+	source := protocol.NewMonitorSource(monitors)
 
-	got, err := source.FindActiveByProbe(context.Background(), "probe-in-frankfurt")
-
-	require.NoError(t, err)
-	assert.NotNil(t, got)
-	assert.Empty(t, got)
-	assert.Zero(t, monitors.calls, "and there is no need to read the database to know")
-}
-
-func TestLocalOnlySource_EveryMonitorBelongsToTheLocalProbe(t *testing.T) {
-	monitors := &stubMonitors{}
-	source := protocol.NewLocalOnlySource(monitors)
-
-	for _, monitorID := range []string{"http-1", "push-1", "a-monitor-that-was-deleted"} {
+	for monitorID, want := range map[string]string{
+		"http-1":                     "frankfurt",
+		"http-2":                     probe.LocalID,
+		"http-3":                     probe.LocalID,
+		"a-monitor-that-was-deleted": probe.LocalID,
+	} {
 		got, err := source.ProbeOf(context.Background(), monitorID)
 
 		require.NoError(t, err, monitorID)
-		assert.Equal(t, probe.LocalID, got, monitorID)
+		assert.Equal(t, want, got, monitorID)
 	}
-	assert.Zero(t, monitors.calls, "until monitors can be assigned to probes there is nothing to read")
 }
 
-func TestLocalOnlySource_PassesOnAFailure(t *testing.T) {
+func TestMonitorSource_PassesOnAFailure(t *testing.T) {
 	failure := errors.New("database is down")
-	source := protocol.NewLocalOnlySource(&stubMonitors{err: failure})
+	source := protocol.NewMonitorSource(&stubMonitors{err: failure})
 
 	_, err := source.FindActiveByProbe(context.Background(), probe.LocalID)
+	assert.ErrorIs(t, err, failure)
 
+	_, err = source.ProbeOf(context.Background(), "http-1")
 	assert.ErrorIs(t, err, failure)
 }

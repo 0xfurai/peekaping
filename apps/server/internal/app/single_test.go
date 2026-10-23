@@ -109,20 +109,19 @@ func TestRegisterSingle_ResolvesTheProbeSweep(t *testing.T) {
 	}))
 }
 
-// Every monitor is the local probe's until monitors can be assigned to probes, and the local probe
-// never counts as offline for the watchdog, so nothing changes for an install that has no remote probe
-func TestRegisterSingle_TheWatchdogNeverSkipsAMonitorOfTheLocalProbe(t *testing.T) {
+// The local probe never counts as offline for the watchdog, so nothing changes for an install that
+// has no remote probe. A monitor of a remote probe that is offline is left to the probe's own
+// notification.
+func TestRegisterSingle_TheWatchdogSkipsOnlyTheMonitorsOfAnOfflineRemoteProbe(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, RegisterSingle(container, singleConfig(t)))
 
-	require.NoError(t, container.Invoke(func(probeOffline stale.ProbeOfflineFunc, bus events.EventBus, db *bun.DB) {
+	require.NoError(t, container.Invoke(func(probeOffline stale.ProbeOfflineFunc, monitors monitor.Service, probes probe.Service, bus events.EventBus, db *bun.DB) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
+		require.NoError(t, migrateDB(db))
 
-		offline, err := probeOffline(context.Background(), "any-monitor")
-
-		require.NoError(t, err)
-		assert.False(t, offline)
+		assertWatchdogSkipsOnlyOfflineRemote(t, probeOffline, monitors, probes)
 	}))
 }
 

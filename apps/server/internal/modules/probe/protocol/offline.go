@@ -11,11 +11,10 @@ import (
 // stale: whether the probe the monitor belongs to is offline. Such a monitor isn't late, its probe
 // is gone, and the probe's own offline notification says so.
 //
-// The source says which probe a monitor belongs to, so that when monitors can be assigned to probes
-// (#34) only the source changes. The local probe is never offline for this purpose: its checks run
-// in the Peekaping process itself, whether or not any remote instance ever said hello, so a stuck
-// local monitor is the watchdog's to find. A monitor whose probe doesn't exist isn't skipped
-// either: nothing is checking it, and nothing says why.
+// The source says which probe a monitor belongs to. The local probe is never offline for this
+// purpose: its checks run in the Peekaping process itself, whether or not any remote instance ever
+// said hello, so a stuck local monitor is the watchdog's to find. A monitor whose probe doesn't
+// exist isn't skipped either: nothing is checking it, and nothing says why.
 func MonitorProbeOffline(source MonitorSource, probes probe.Service) stale.ProbeOfflineFunc {
 	return func(ctx context.Context, monitorID string) (bool, error) {
 		probeID, err := source.ProbeOf(ctx, monitorID)

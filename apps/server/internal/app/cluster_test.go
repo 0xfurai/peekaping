@@ -178,12 +178,14 @@ func TestRegisterClusterProducer_ResolvesTheProbeSweepAndTheAPIDoesNot(t *testin
 	assert.Error(t, apiContainer.Invoke(func(*probe.Sweep) {}), "only the producer runs the sweep")
 }
 
-func TestRegisterClusterProducer_TheWatchdogNeverSkipsAMonitorOfTheLocalProbe(t *testing.T) {
+func TestRegisterClusterProducer_TheWatchdogSkipsOnlyTheMonitorsOfAnOfflineRemoteProbe(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
 
 	require.NoError(t, container.Invoke(func(
 		probeOffline stale.ProbeOfflineFunc,
+		monitors monitor.Service,
+		probes probe.Service,
 		bus events.EventBus,
 		db *bun.DB,
 		client *asynq.Client,
@@ -193,12 +195,38 @@ func TestRegisterClusterProducer_TheWatchdogNeverSkipsAMonitorOfTheLocalProbe(t 
 		closeDB(t, db)
 		t.Cleanup(func() { assert.NoError(t, client.Close()) })
 		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+		require.NoError(t, migrateDB(db))
 
-		offline, err := probeOffline(context.Background(), "any-monitor")
-
-		require.NoError(t, err)
-		assert.False(t, offline)
+		assertWatchdogSkipsOnlyOfflineRemote(t, probeOffline, monitors, probes)
 	}))
+}
+
+// assertWatchdogSkipsOnlyOfflineRemote checks the watchdog's question against the real services: a
+// monitor of the local probe is never skipped, and one of a remote probe is while it is offline
+// (a probe starts offline) and not once it is online.
+func assertWatchdogSkipsOnlyOfflineRemote(t *testing.T, probeOffline stale.ProbeOfflineFunc, monitors monitor.Service, probes probe.Service) {
+	t.Helper()
+	ctx := context.Background()
+	remote, err := probes.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
+	require.NoError(t, err)
+	onLocal, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+	require.NoError(t, err)
+	onRemote, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
+	require.NoError(t, err)
+
+	offline, err := probeOffline(ctx, onLocal.ID)
+	require.NoError(t, err)
+	assert.False(t, offline, "the local probe is never offline")
+	offline, err = probeOffline(ctx, onRemote.ID)
+	require.NoError(t, err)
+	assert.True(t, offline, "a probe that never connected is offline")
+
+	changed, err := probes.MarkOnline(ctx, remote.ID)
+	require.NoError(t, err)
+	require.True(t, changed)
+	offline, err = probeOffline(ctx, onRemote.ID)
+	require.NoError(t, err)
+	assert.False(t, offline, "and not once it is online")
 }
 
 func TestRegisterClusterWorker_ResolvesWhatCmdWorkerRunsWithoutADatabase(t *testing.T) {
