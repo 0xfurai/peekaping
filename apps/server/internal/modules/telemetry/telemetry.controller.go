@@ -34,6 +34,15 @@ func (c *Controller) Get(ctx context.Context, _ *GetInput) (*httpx.Output[StateR
 	return httpx.Reply(http.StatusOK, newStateResponse(state))
 }
 
+func (c *Controller) MarkNotice(ctx context.Context, _ *MarkNoticeInput) (*httpx.Output[StateResponse], error) {
+	state, err := c.service.MarkNoticeSeen(ctx)
+	if err != nil {
+		c.logger.Errorw("Failed to mark the telemetry notice seen", "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return httpx.Reply(http.StatusOK, newStateResponse(state))
+}
+
 func (c *Controller) Set(ctx context.Context, input *SetInput) (*httpx.Output[StateResponse], error) {
 	dto, err := input.Decode()
 	if err != nil {

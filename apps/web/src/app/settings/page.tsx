@@ -34,6 +34,7 @@ import {
   putTelemetryMutation,
 } from "@/api/@tanstack/react-query.gen";
 import React from "react";
+import { useLocation } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { Switch } from "@/components/ui/switch";
@@ -155,7 +156,7 @@ const TelemetrySetting = () => {
   });
 
   return (
-    <Card>
+    <Card id="usage-statistics">
       <CardHeader>
         <CardTitle>{t("settings.telemetry.title")}</CardTitle>
         <CardDescription>
@@ -234,12 +235,15 @@ const ErrorReportingSetting = () => {
       toast.success(t("messages.setting_update_success"));
       queryClient.setQueryData(getErrorReportingQueryKey(), state);
       queryClient.invalidateQueries({ queryKey: getErrorReportingQueryKey() });
+      // Any choice marks the upgrade notice seen, and the usage statistics state says whether
+      // it is still pending
+      queryClient.invalidateQueries({ queryKey: getTelemetryQueryKey() });
     },
     onError: commonMutationErrorHandler(t("messages.setting_update_error")),
   });
 
   return (
-    <Card>
+    <Card id="error-reports">
       <CardHeader>
         <CardTitle>{t("settings.error_reporting.title")}</CardTitle>
         <CardDescription>
@@ -294,6 +298,11 @@ const ErrorReportingSetting = () => {
 
 const SettingsPage = () => {
   const { t } = useLocalizedTranslation();
+  // The upgrade notice links to a card, such as /settings#error-reports
+  const { hash } = useLocation();
+  React.useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
+  }, [hash]);
   return (
     <Layout pageName={t("navigation.settings")}>
       <div className="max-w-xl flex flex-col gap-6">

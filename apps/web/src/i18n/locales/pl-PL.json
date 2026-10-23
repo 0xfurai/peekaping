@@ -13,10 +13,11 @@
     },
     "register": {
       "description": "Utwórz swoje konto administratora",
+      "error_reporting_hint": "Domyślnie włączone. Odznacz to pole, aby to wyłączyć. Możesz to później zmienić w sekcji „Ustawienia”.",
       "have_account": "Masz już konto?",
       "sign_in": "Zaloguj się",
       "submit": "Utwórz",
-      "telemetry_hint": "Wyłączone, dopóki nie zaznaczysz tego pola. Możesz to później zmienić w sekcji „Ustawienia”. Jeśli je zaznaczysz, Peekaping wysyła te dane najwyżej raz dziennie:",
+      "telemetry_hint": "Domyślnie włączone. Odznacz to pole, aby to wyłączyć. Możesz to później zmienić w sekcji „Ustawienia”. Dopóki jest włączone, Peekaping wysyła te dane najwyżej raz dziennie:",
       "title": "Cześć"
     },
     "twofa": {
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Wysyłaj raporty o błędach",
-    "never_sent": "Nigdy nie są wysyłane: komunikaty o błędach, adresy URL, nagłówki, adresy URL webhooków, nazwy ani nazwy hostów. Raport nie zawiera adresu IP, a projekt Sentry Peekaping jest ustawiony tak, aby nie zapisywać adresu IP nadawcy. Przy własnym ERROR_REPORTING_DSN decydują o tym ustawienia Twojego Sentry lub GlitchTip.",
-    "not_saved": "Twój wybór wysyłania raportów o błędach nie został zapisany. Włącz to w sekcji „Ustawienia”.",
+    "never_sent": "Nigdy nie są wysyłane: komunikaty o błędach, adresy URL, nagłówki, adresy URL webhooków, nazwy ani nazwy hostów. Raport nie zawiera adresu IP, a projekt Sentry Peekaping jest ustawiony tak, aby nie zapisywać adresu IP nadawcy.",
+    "not_saved": "Twój wybór dotyczący raportów o błędach nie został zapisany. Sprawdź go w sekcji „Ustawienia”.",
     "sent": "Wysyłane tylko wtedy, gdy sam Peekaping ulegnie awarii. Raport zawiera typ błędu i miejsce w kodzie, w którym wystąpił, wersję Peekaping, tryb pojedynczy lub klastrowy, zaplecze przechowywania danych oraz system operacyjny."
   },
   "forms": {
@@ -1375,14 +1376,14 @@
     },
     "error_reporting": {
       "cluster_note": "W trybie klastrowym zmiana dociera do każdego procesu w ciągu minuty.",
-      "description": "Wysyłaj raport do Sentry, gdy serwer ulegnie awarii. Wyłączone, dopóki tego nie włączysz.",
-      "forced_off": "Zmienna środowiskowa ERROR_REPORTING=off lub DO_NOT_TRACK=1 wyłącza tę opcję. Nic nie jest wysyłane, niezależnie od tego, co mówi to ustawienie.",
+      "description": "Wysyłaj raport do Sentry, gdy serwer ulegnie awarii. Domyślnie włączone; możesz to tutaj wyłączyć w dowolnej chwili.",
+      "forced_off": "Zmienna środowiskowa ERROR_REPORTING=off wyłącza tę opcję. Nic nie jest wysyłane, niezależnie od tego, co mówi to ustawienie.",
       "title": "Raporty o błędach"
     },
     "telemetry": {
-      "description": "Wysyłaj anonimowe statystyki o tym, jak skonfigurowana jest ta instalacja, najwyżej raz dziennie. Wyłączone, dopóki tego nie włączysz.",
-      "forced_off": "Zmienna środowiskowa TELEMETRY=off lub DO_NOT_TRACK=1 wyłącza tę opcję. Nic nie jest wysyłane, niezależnie od tego, co mówi to ustawienie.",
-      "id_note": "Identyfikator instancji jest tworzony po włączeniu tej opcji i usuwany po jej wyłączeniu. Ponowne włączenie tworzy nowy.",
+      "description": "Wysyłaj anonimowe statystyki o tym, jak skonfigurowana jest ta instalacja, najwyżej raz dziennie. Domyślnie włączone; możesz to tutaj wyłączyć w dowolnej chwili.",
+      "forced_off": "Zmienna środowiskowa TELEMETRY=off wyłącza tę opcję. Nic nie jest wysyłane, niezależnie od tego, co mówi to ustawienie.",
+      "id_note": "Identyfikator instancji jest tworzony, gdy ta opcja jest włączona, i usuwany po jej wyłączeniu. Ponowne włączenie tworzy nowy.",
       "payload_off": "Dopóki ta opcja jest wyłączona, nic nie jest wysyłane. Tyle zawierałby ping użycia, gdybyś ją włączył.",
       "payload_title": "Co wyśle następny ping użycia",
       "title": "Statystyki użycia"
@@ -1487,12 +1488,19 @@
     "docs_link": "Co jest wysyłane i jak to wyłączyć",
     "label": "Wysyłaj anonimowe statystyki użycia",
     "never_sent": "Nigdy nie są wysyłane: nazwy monitorów, adresy URL, hosty, tagi, adresy stron statusu ani ustawienia powiadomień. Ping użycia nie zawiera adresu IP, a Worker Peekaping nie zapisuje adresu IP nadawcy.",
-    "not_saved": "Twój wybór wysyłania statystyk użycia nie został zapisany. Włącz to w sekcji „Ustawienia”.",
+    "not_saved": "Twój wybór dotyczący statystyk użycia nie został zapisany. Sprawdź go w sekcji „Ustawienia”.",
     "sent_features": "Czy używasz stron statusu, okien utrzymania i metryk",
-    "sent_id": "Losowy identyfikator, tworzony po włączeniu tej opcji i usuwany po jej wyłączeniu",
+    "sent_id": "Losowy identyfikator, tworzony, gdy ta opcja jest włączona, i usuwany po jej wyłączeniu",
     "sent_monitors": "Ile masz monitorów, jako zakres, na przykład 11-50",
     "sent_setup": "Wersja Peekaping, tryb pojedynczy lub klastrowy, zaplecze przechowywania danych oraz system operacyjny i typ procesora",
     "sent_types": "Rodzaje używanych monitorów i kanałów powiadomień, na przykład http lub telegram"
+  },
+  "telemetry_notice": {
+    "error_reports": "Raporty o błędach są włączone. Jeśli Peekaping ulegnie awarii, wysyła typ błędu i miejsce w kodzie, w którym wystąpił, swoją wersję, tryb, zaplecze przechowywania danych i system operacyjny. Nigdy nie wysyła komunikatów o błędach, adresów URL ani nazw hostów.",
+    "settings_errors": "Wyłącz raporty o błędach w sekcji „Ustawienia”",
+    "settings_usage": "Wyłącz statystyki użycia w sekcji „Ustawienia”",
+    "title": "Wysyłanie anonimowych danych jest domyślnie włączone",
+    "usage_statistics": "Statystyki użycia są włączone. Najwyżej raz dziennie Peekaping wysyła losowy identyfikator instancji, swoją wersję, tryb, zaplecze przechowywania danych i system operacyjny, przedział liczby monitorów, rodzaje używanych monitorów i kanałów powiadomień oraz informację, czy używasz stron statusu, okien utrzymania i metryk. Nigdy nie wysyła nazw, adresów URL, hostów ani ustawień."
   },
   "theme": {
     "dark": "Ciemny",

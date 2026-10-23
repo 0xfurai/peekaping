@@ -13,18 +13,20 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// EnabledKey is the setting that holds "true" while an admin has opted in to error reports and
-// "false" after they opted out. It is not user-editable, so the settings API can't reach it: the
-// error reporting API is the only way to read or change it.
+// EnabledKey is the setting that holds the admin's choice: "true" after they opted in to error
+// reports, "false" after they opted out. Until they choose it is absent, which counts as on. It is
+// not user-editable, so the settings API can't reach it: the error reporting API is the only way
+// to read or change it.
 const EnabledKey = "ERROR_REPORTING_ENABLED"
 
 // State is what the error reporting API reports: the admin's choice, and whether the
 // environment overrides it.
 type State struct {
-	// Enabled is the admin's stored choice. It stays what they chose while ForcedOff is true.
+	// Enabled is the admin's stored choice, or on when they haven't chosen. It stays what they
+	// chose while ForcedOff is true.
 	Enabled bool
-	// ForcedOff is true when ERROR_REPORTING or DO_NOT_TRACK switches error reports off whatever
-	// Enabled says
+	// ForcedOff is true when ERROR_REPORTING switches error reports off whatever Enabled
+	// says
 	ForcedOff bool
 }
 

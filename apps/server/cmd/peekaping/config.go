@@ -85,14 +85,13 @@ type Config struct {
 	// unset and gives the default.
 	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 
-	// Usage ping (ADR 0003): off until an admin opts in. TELEMETRY=off and DO_NOT_TRACK=1 force
+	// Usage ping (ADR 0003): on until an admin opts out. TELEMETRY=off forces
 	// it off, and TELEMETRY_URL moves where it is sent.
 	Telemetry    string `env:"TELEMETRY"`
-	DoNotTrack   string `env:"DO_NOT_TRACK"`
 	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
 
-	// Error reports (ADR 0003): off until an admin opts in. ERROR_REPORTING=off and DO_NOT_TRACK=1
-	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
+	// Error reports (ADR 0003): on until an admin opts out. ERROR_REPORTING=off
+	// forces them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
 	ErrorReporting    string `env:"ERROR_REPORTING"`
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
 
@@ -246,7 +245,6 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ServiceName:                  c.ServiceName,
 		MetricsEnabled:               c.MetricsEnabled,
 		Telemetry:                    c.Telemetry,
-		DoNotTrack:                   c.DoNotTrack,
 		TelemetryURL:                 c.TelemetryURL,
 		ErrorReporting:               c.ErrorReporting,
 		ErrorReportingDSN:            c.ErrorReportingDSN,

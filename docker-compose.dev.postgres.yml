@@ -1,3 +1,10 @@
+# The usage ping and error reports are on by default (ADR 0003), and a development stack must not
+# send either to Peekaping. These point both at an address nothing listens on. To try them against
+# a test endpoint, set TELEMETRY_URL and ERROR_REPORTING_DSN in .env.
+x-no-reports: &no-reports
+  TELEMETRY_URL: ${TELEMETRY_URL:-http://127.0.0.1:9/v1/ping}
+  ERROR_REPORTING_DSN: ${ERROR_REPORTING_DSN:-http://public@127.0.0.1:9/1}
+
 networks:
   appnet:
 
@@ -64,6 +71,7 @@ services:
     env_file:
       - .env
     environment:
+      <<: *no-reports
       # The web container on localhost:8383 calls the API on localhost:8034, another origin.
       CORS_ORIGINS: "${CORS_ORIGINS-http://localhost:8383}"
     depends_on:
@@ -90,6 +98,7 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment: *no-reports
     depends_on:
       database:
         condition: service_healthy
@@ -107,6 +116,7 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment: *no-reports
     depends_on:
       redis:
         condition: service_healthy
@@ -120,6 +130,7 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment: *no-reports
     depends_on:
       database:
         condition: service_healthy

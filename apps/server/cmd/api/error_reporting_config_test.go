@@ -12,7 +12,6 @@ func TestErrorReportingSettingsAreLoadedFromEnv(t *testing.T) {
 	t.Setenv("DB_NAME", "peekaping.db")
 	t.Setenv("ERROR_REPORTING", "")
 	t.Setenv("ERROR_REPORTING_DSN", "")
-	t.Setenv("DO_NOT_TRACK", "")
 
 	cfg, err := LoadAndValidate(t.TempDir())
 	require.NoError(t, err)
@@ -28,11 +27,4 @@ func TestErrorReportingSettingsAreLoadedFromEnv(t *testing.T) {
 	assert.True(t, internalCfg.ErrorReportingForcedOff())
 	assert.Equal(t, "https://key@errors.example.com/7", internalCfg.ErrorReportingDSN)
 	assert.False(t, internalCfg.TelemetryForcedOff(), "ERROR_REPORTING=off leaves the usage ping to its own switch")
-
-	t.Setenv("ERROR_REPORTING", "")
-	t.Setenv("DO_NOT_TRACK", "1")
-	cfg, err = LoadAndValidate(t.TempDir())
-	require.NoError(t, err)
-	assert.True(t, cfg.ToInternalConfig().ErrorReportingForcedOff())
-	assert.True(t, cfg.ToInternalConfig().TelemetryForcedOff())
 }
