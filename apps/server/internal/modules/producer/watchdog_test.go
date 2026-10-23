@@ -3,10 +3,14 @@ package producer
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"peekaping/internal/config"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/worker"
 
@@ -50,6 +54,78 @@ func TestWatchdog_RunsOnlyWhileLeader(t *testing.T) {
 	ranAt, err := store.RanAt(context.Background())
 	require.NoError(t, err)
 	assert.Nil(t, ranAt, "the watchdog stopped with leadership")
+}
+
+// sweepCounter is a probe repository that counts the passes of a sweep over it. There are no
+// probes to look at.
+type sweepCounter struct {
+	probe.Repository
+	passes atomic.Int32
+}
+
+func (c *sweepCounter) FindAll(context.Context) ([]*probe.Model, error) {
+	c.passes.Add(1)
+	return nil, nil
+}
+
+func (c *sweepCounter) DeleteInstancesUnseenSince(context.Context, time.Time) (int, error) {
+	return 0, nil
+}
+
+func newCountingSweep(counter *sweepCounter) *probe.Sweep {
+	return probe.NewSweep(probe.SweepConfig{
+		Repo:     counter,
+		EventBus: eventstest.NewBus(),
+		Interval: 10 * time.Millisecond,
+		Logger:   zap.NewNop().Sugar(),
+	})
+}
+
+func TestNewProducer_KeepsTheProbeSweepItIsGiven(t *testing.T) {
+	e := newEngine(t)
+	assert.Nil(t, e.producer.probeSweep, "a producer built without one has none")
+
+	sweep := newCountingSweep(&sweepCounter{})
+	p := NewProducer(e.rdb, e.producer.runner, e.monitors, e.producer.loader, nil, nil, nil, nil, &config.Config{ProducerConcurrency: 1}, zap.NewNop().Sugar(),
+		WithProbeSweep(sweep))
+
+	assert.Same(t, sweep, p.probeSweep)
+}
+
+func TestProbeSweep_RunsOnlyWhileLeader(t *testing.T) {
+	e := newEngine(t)
+	p := e.producer
+	p.scheduleRefreshInterval = time.Hour
+	counter := &sweepCounter{}
+	p.probeSweep = newCountingSweep(counter)
+	defer p.cancel()
+
+	require.NoError(t, p.startMonitorSyncing())
+	require.Eventually(t, func() bool { return counter.passes.Load() > 0 }, 2*time.Second, 5*time.Millisecond,
+		"the sweep never ran while the producer led")
+
+	p.stopMonitorSyncing()
+	p.wg.Wait()
+	stopped := counter.passes.Load()
+	time.Sleep(100 * time.Millisecond)
+	assert.Equal(t, stopped, counter.passes.Load(), "the sweep stopped with leadership")
+}
+
+func TestProbeSweep_ARestartedLeaderSweepsAgain(t *testing.T) {
+	e := newEngine(t)
+	p := e.producer
+	p.scheduleRefreshInterval = time.Hour
+	counter := &sweepCounter{}
+	p.probeSweep = newCountingSweep(counter)
+	defer p.cancel()
+
+	require.NoError(t, p.startMonitorSyncing())
+	p.stopMonitorSyncing()
+	p.wg.Wait()
+	before := counter.passes.Load()
+	require.NoError(t, p.startMonitorSyncing())
+
+	require.Eventually(t, func() bool { return counter.passes.Load() > before }, 2*time.Second, 5*time.Millisecond)
 }
 
 func TestRunNow(t *testing.T) {

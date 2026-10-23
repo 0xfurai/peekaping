@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,6 +42,75 @@ func TestLoadAndValidate_NeedsNoRedis(t *testing.T) {
 	assert.Empty(t, internalCfg.RedisHost, "single mode has no Redis to connect to")
 	assert.Equal(t, "8034", internalCfg.Port, "SERVER_PORT keeps the API's default")
 	assert.Equal(t, 128, internalCfg.CheckConcurrency)
+}
+
+func TestLoadConfig_ProbeOfflineAfterDefault(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("PROBE_OFFLINE_AFTER", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	assert.Equal(t, 3*time.Minute, cfg.ToInternalConfig().ProbeOfflineAfter)
+}
+
+func TestLoadConfig_ProbeOfflineAfterIsLoadedFromEnv(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("PROBE_OFFLINE_AFTER", "2m")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 2*time.Minute, cfg.ToInternalConfig().ProbeOfflineAfter, "2 minutes is the shortest there is")
+
+	t.Setenv("PROBE_OFFLINE_AFTER", "10m")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 10*time.Minute, cfg.ToInternalConfig().ProbeOfflineAfter)
+}
+
+func TestLoadConfig_ProbeOfflineAfterTooShort(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("PROBE_OFFLINE_AFTER", "1m59s")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at least 2m", "a probe that restarts gracefully must not be announced offline")
+}
+
+// The sweep forgets an instance that went unseen for 24 hours, so a longer limit would let it set a
+// quiet probe online on an instance that is about to be pruned, and offline again on the next pass.
+func TestLoadConfig_ProbeOfflineAfterTooLong(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	t.Setenv("PROBE_OFFLINE_AFTER", "24h")
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err, "24 hours is the longest there is")
+	assert.Equal(t, 24*time.Hour, cfg.ToInternalConfig().ProbeOfflineAfter)
+
+	t.Setenv("PROBE_OFFLINE_AFTER", "24h1s")
+	_, err = LoadAndValidate(t.TempDir())
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at most 24h0m0s", "the sweep forgets an instance after that")
+}
+
+func TestLoadConfig_ProbeOfflineAfterNegative(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("PROBE_OFFLINE_AFTER", "-5m")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at least 2m")
 }
 
 func TestLoadAndValidate_ReadsTheTelemetrySettings(t *testing.T) {

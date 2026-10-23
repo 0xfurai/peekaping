@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/utils"
@@ -39,12 +40,15 @@ const maxInstanceIDLength = 255
 // X-Probe-Instance on every request; the admin's JWT and API keys open none of these routes.
 type Auth struct {
 	probes probe.Service
+	bus    events.EventBus
 	logger *zap.SugaredLogger
 	now    func() time.Time
 }
 
-func NewAuth(probes probe.Service, logger *zap.SugaredLogger) *Auth {
-	return &Auth{probes: probes, logger: logger.Named("[probe-protocol]"), now: time.Now}
+// NewAuth returns the bearer middleware. The bus carries probe.online, which the middleware
+// publishes when a request brings an offline probe back.
+func NewAuth(probes probe.Service, bus events.EventBus, logger *zap.SugaredLogger) *Auth {
+	return &Auth{probes: probes, bus: bus, logger: logger.Named("[probe-protocol]"), now: time.Now}
 }
 
 // Authenticate finds the probe the bearer token belongs to and reads the instance id. It answers
@@ -86,7 +90,9 @@ func (a *Auth) Authenticate() httpx.Middleware {
 
 // KnownInstance goes after Authenticate on every route except hello. It stamps the instance's last
 // seen time, and answers 409 when the instance has not said hello: the probe has to introduce the
-// instance first, as it does when the server was reinstalled or the instance was removed.
+// instance first, as it does when the server was reinstalled or the instance was removed. A probe
+// that was offline is online from the stamp on, at once; hello does the same once it has recorded
+// the instance.
 func (a *Auth) KnownInstance() httpx.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -97,7 +103,8 @@ func (a *Auth) KnownInstance() httpx.Middleware {
 				a.reject(w, r, http.StatusUnauthorized, messageTokenRequired)
 				return
 			}
-			found, err := a.probes.TouchInstance(r.Context(), p.ID, instanceID, a.now().UTC())
+			at := a.now().UTC()
+			found, err := a.probes.TouchInstance(r.Context(), p.ID, instanceID, at)
 			if err != nil {
 				a.fail(w, r, err)
 				return
@@ -106,6 +113,7 @@ func (a *Auth) KnownInstance() httpx.Middleware {
 				a.reject(w, r, http.StatusConflict, messageUnknownInstance)
 				return
 			}
+			cameBack(r.Context(), a.probes, a.bus, a.logger, p, at)
 			next.ServeHTTP(w, r)
 		})
 	}

@@ -98,6 +98,11 @@ type Config struct {
 	// The local probe's token. Set, it is stored on the local probe at startup. Validated in Validate().
 	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
 
+	// How long an online probe's instances may all go unseen before the probe counts as offline.
+	// A Go duration, from config.MinProbeOfflineAfter to config.MaxProbeOfflineAfter. Validated in
+	// Validate().
+	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
+
 	// The web app (ADR 0002, section 7). With WEB_DIR set to the web build, peekaping serves it
 	// on SERVER_PORT beside the API. Unset, it serves the API alone.
 	WebDir string `env:"WEB_DIR"` // validated in Validate()
@@ -189,6 +194,17 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("PROBE_BOOTSTRAP_TOKEN must be at least %d characters", probe.MinBootstrapTokenLength)
 	}
 
+	// A shorter limit would announce a probe offline while it restarts gracefully (see
+	// probe.RetiredAt)
+	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at least %s", config.MinProbeOfflineAfter)
+	}
+	// The sweep forgets an instance after that long, so a longer limit would set a probe online on
+	// an instance about to be pruned, and offline again (see config.MaxProbeOfflineAfter)
+	if cfg.ProbeOfflineAfter > config.MaxProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
+	}
+
 	// A WEB_DIR without a web build fails at startup, not on every page load
 	if cfg.WebDir != "" {
 		if err := web.CheckDir(cfg.WebDir); err != nil {
@@ -249,6 +265,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ErrorReporting:               c.ErrorReporting,
 		ErrorReportingDSN:            c.ErrorReportingDSN,
 		ProbeBootstrapToken:          c.ProbeBootstrapToken,
+		ProbeOfflineAfter:            c.ProbeOfflineAfter,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

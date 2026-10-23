@@ -1,6 +1,33 @@
 package probe
 
-import "peekaping/internal/modules/events"
+import (
+	"time"
+
+	"peekaping/internal/modules/events"
+)
+
+// Event is the payload of the ProbeOffline and ProbeOnline topics
+type Event struct {
+	ProbeID   string `json:"probe_id"`
+	ProbeName string `json:"probe_name"`
+	// Since is the last time any instance of the probe was seen, for ProbeOffline, and the time
+	// of the request that brought the probe back, for ProbeOnline
+	Since time.Time `json:"since"`
+}
+
+// The topics of Event. The sweep and the probe protocol's bearer middleware publish them, and
+// the notification channels listen. Events of one probe are handled in the order they were
+// published: the probe's ID takes the place of the monitor's ID as the key that orders them,
+// which cannot collide with a monitor's.
+//
+// The names are the topics' names on the wire, so keep them as they are.
+var (
+	// ProbeOffline is published when the sweep finds that none of an online probe's instances was
+	// seen within PROBE_OFFLINE_AFTER
+	ProbeOffline = events.NewTopic("probe.offline", func(e Event) string { return e.ProbeID })
+	// ProbeOnline is published when an offline probe is heard from again
+	ProbeOnline = events.NewTopic("probe.online", func(e Event) string { return e.ProbeID })
+)
 
 // InstancesChangedEvent is the payload of InstancesChanged
 type InstancesChangedEvent struct {

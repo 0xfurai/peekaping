@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 )
@@ -31,7 +32,7 @@ type Producer struct {
 	cancel                  context.CancelFunc
 	syncCtx                 context.Context    // context for monitor syncing (leader-only tasks)
 	syncCancel              context.CancelFunc // cancel function for monitor syncing
-	wg                      sync.WaitGroup     // the goroutines that schedule: claim loops, reclaimer, schedule refresher and the leadership monitor
+	wg                      sync.WaitGroup     // the goroutines that schedule: claim loops, reclaimer, schedule refresher, probe sweep and the leadership monitor
 	watchdogWg              sync.WaitGroup     // the watchdog's, apart from wg so that Stop can tell when each has stopped
 	mu                      sync.RWMutex
 	monitorIntervals        map[string]int // monitor_id -> interval in seconds
@@ -44,4 +45,5 @@ type Producer struct {
 	stopOnce                sync.Once          // runs the stop once, whether Stop or the end of Start's ctx asks first
 	concurrency             int                // number of concurrent producer goroutines
 	watchdog                *stale.Watchdog
+	probeSweep              *probe.Sweep // nil when the producer has none to run
 }

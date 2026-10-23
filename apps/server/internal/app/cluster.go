@@ -10,6 +10,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/stale"
@@ -50,10 +51,11 @@ func provideClusterClaimer(client *redis.Client) telemetry.Claimer {
 
 // RegisterClusterProducer provides what cmd/producer runs: the producer, which schedules the
 // checks and enqueues them for the worker while it is the leader, and its stale-monitor watchdog
+// and the sweep that sets silent probes offline, which run beside it
 func RegisterClusterProducer(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
 		registerCluster(container, cfg),
-		utils.Provide(container, producer.ProvideQueueRunner),
+		utils.Provide(container, producer.ProvideQueueRunner, probe.ProvideSweep),
 		producer.RegisterDependencies(container),
 		warnAboutSQLite(container, cfg),
 	)

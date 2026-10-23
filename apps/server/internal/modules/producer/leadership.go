@@ -98,6 +98,16 @@ func (p *Producer) startMonitorSyncing() error {
 		p.watchdog.Run(syncCtx)
 	})
 
+	// Start the sweep that sets silent probes offline. Like the watchdog it runs on the leader
+	// only, so that each probe is announced offline once.
+	if p.probeSweep != nil {
+		p.wg.Add(1)
+		reporting.Go("probe-sweep", func() {
+			defer p.wg.Done()
+			p.probeSweep.Run(syncCtx)
+		})
+	}
+
 	p.logger.Info("Monitor syncing started successfully")
 	return nil
 }

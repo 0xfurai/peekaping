@@ -30,6 +30,11 @@ type HeartbeatFinder interface {
 	FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*shared.HeartBeatModel, error)
 }
 
+// ProbeOfflineFunc reports whether the probe a monitor is assigned to is offline. A monitor
+// whose probe is offline isn't being checked for a reason that probe's own notification gives, so
+// the watchdog leaves it alone. The local probe never counts as offline.
+type ProbeOfflineFunc func(ctx context.Context, monitorID string) (bool, error)
+
 // WatchdogConfig is what a Watchdog reads and calls
 type WatchdogConfig struct {
 	Store      Store
@@ -46,7 +51,11 @@ type WatchdogConfig struct {
 	Now func() time.Time
 	// Interval is how often the watchdog runs; WatchdogInterval when it's zero
 	Interval time.Duration
-	Logger   *zap.SugaredLogger
+	// ProbeOffline says whether a monitor's probe is offline. The watchdog skips such a monitor
+	// entirely: no recheck, no record, no notification. Nil means no monitor's probe is ever
+	// offline.
+	ProbeOffline ProbeOfflineFunc
+	Logger       *zap.SugaredLogger
 }
 
 // Watchdog looks for active monitors that stopped being checked, gets them checked
@@ -61,6 +70,7 @@ type Watchdog struct {
 	checkTimeout func(timeoutSeconds int) time.Duration
 	now          func() time.Time
 	interval     time.Duration
+	probeOffline ProbeOfflineFunc
 	logger       *zap.SugaredLogger
 }
 
@@ -83,6 +93,7 @@ func NewWatchdog(cfg WatchdogConfig) *Watchdog {
 		checkTimeout: cfg.CheckTimeout,
 		now:          now,
 		interval:     interval,
+		probeOffline: cfg.ProbeOffline,
 		logger:       cfg.Logger,
 	}
 }
@@ -171,6 +182,26 @@ func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 }
 
 func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, now time.Time, entry Entry, wasStale bool) error {
+	// A monitor whose probe is offline has no checks to be late: the probe's own notification
+	// says so. A record of a notification stays, so the monitor's recovery is still reported
+	// once it is checked again. A record of a recheck that wasn't notified yet is forgotten:
+	// that recheck can't run while the probe is offline, and the time it was given would run out
+	// by the time the probe is back, which would notify with no recheck made. The monitor is
+	// found stale afresh then, with a new recheck and a new time to be checked in.
+	if w.probeOffline != nil {
+		offline, err := w.probeOffline(ctx, mon.ID)
+		if err != nil {
+			return fmt.Errorf("failed to find out whether the monitor's probe is offline: %w", err)
+		}
+		if offline {
+			w.logger.Debugw("Skipping a monitor whose probe is offline", "monitor_id", mon.ID, "monitor_name", mon.Name)
+			if wasStale && !entry.Notified {
+				return w.store.Delete(ctx, mon.ID)
+			}
+			return nil
+		}
+	}
+
 	heartbeatAt, err := w.latestHeartbeatAt(ctx, mon.ID)
 	if err != nil {
 		return err

@@ -395,6 +395,126 @@ func TestSQLRepository_SetSupportedTypesReplacesTheList(t *testing.T) {
 	})
 }
 
+func TestSQLRepository_UpdateStatusChangesOnlyAProbeInTheStatusItIsGiven(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		before, err := repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		time.Sleep(10 * time.Millisecond)
+
+		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOnline, probe.StatusOffline)
+		require.NoError(t, err)
+		assert.False(t, changed, "the probe is offline, not online: nothing to change")
+
+		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		assert.True(t, changed)
+		got, err := repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Equal(t, probe.StatusOnline, got.Status)
+		assert.True(t, got.UpdatedAt.After(before.UpdatedAt), "a status change touches updated_at")
+
+		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		assert.False(t, changed, "the second of two racing callers changes nothing")
+
+		untouched, err := repo.FindByID(ctx, other.ID)
+		require.NoError(t, err)
+		assert.Equal(t, probe.StatusOffline, untouched.Status)
+
+		changed, err = repo.UpdateStatus(ctx, "no-such-probe", probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		assert.False(t, changed)
+	})
+}
+
+// A request authenticates while the probe is enabled, an admin disables it, and then the request
+// brings the probe online: the update has to see the probe as it is now
+func TestSQLRepository_UpdateStatusLeavesADisabledProbeOffline(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		disabled := true
+		_, err := repo.Update(ctx, owner.ID, &probe.UpdateModel{Disabled: &disabled})
+		require.NoError(t, err)
+
+		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+
+		require.NoError(t, err)
+		assert.False(t, changed, "a disabled probe is not brought online")
+		got, err := repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Equal(t, probe.StatusOffline, got.Status)
+
+		changed, err = repo.UpdateStatus(ctx, other.ID, probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		assert.True(t, changed, "an enabled probe still comes online")
+	})
+}
+
+// The sweep sets a disabled probe offline once it goes quiet, which it must still be able to do
+func TestSQLRepository_UpdateStatusStillSetsADisabledProbeOffline(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, _ := twoProbes(t, repo)
+		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		require.NoError(t, err)
+		require.True(t, changed)
+		disabled := true
+		_, err = repo.Update(ctx, owner.ID, &probe.UpdateModel{Disabled: &disabled})
+		require.NoError(t, err)
+
+		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOnline, probe.StatusOffline)
+
+		require.NoError(t, err)
+		assert.True(t, changed)
+		got, err := repo.FindByID(ctx, owner.ID)
+		require.NoError(t, err)
+		assert.Equal(t, probe.StatusOffline, got.Status)
+		assert.True(t, got.Disabled, "the status change leaves the probe disabled")
+	})
+}
+
+func TestSQLRepository_DeleteInstancesUnseenSinceRemovesTheOldOnes(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		cutoff := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+		for probeID, seen := range map[string]map[string]time.Time{
+			owner.ID: {"owner-old": cutoff.Add(-time.Hour), "owner-new": cutoff.Add(time.Hour), "owner-at-cutoff": cutoff},
+			other.ID: {"other-old": cutoff.Add(-48 * time.Hour)},
+		} {
+			for id, at := range seen {
+				require.NoError(t, repo.UpsertInstance(ctx, probeID, &probe.Instance{ID: id, LastSeenAt: at}))
+			}
+		}
+
+		removed, err := repo.DeleteInstancesUnseenSince(ctx, cutoff)
+
+		require.NoError(t, err)
+		assert.Equal(t, 2, removed)
+		left, err := repo.FindInstances(ctx, owner.ID)
+		require.NoError(t, err)
+		ids := []string{}
+		for _, instance := range left {
+			ids = append(ids, instance.ID)
+		}
+		assert.ElementsMatch(t, []string{"owner-new", "owner-at-cutoff"}, ids, "only what was last seen before the cutoff goes")
+		gone, err := repo.FindInstances(ctx, other.ID)
+		require.NoError(t, err)
+		assert.Empty(t, gone)
+
+		removed, err = repo.DeleteInstancesUnseenSince(ctx, cutoff)
+		require.NoError(t, err)
+		assert.Zero(t, removed)
+	})
+}
+
 // Every repository call made with the ctx WithTx gives runs on that transaction. The database has
 // one connection here, as SQLite does in the app, so a call that ran on db instead would wait for
 // the connection the transaction holds, and fail when ctx times out.
@@ -432,6 +552,11 @@ func TestSQLRepository_EveryMethodJoinsTheCallersTransaction(t *testing.T) {
 			assert.True(t, touched)
 			require.NoError(t, repo.RetireInstance(ctx, keep.ID, "instance-2", seen.Add(-time.Hour)))
 			require.NoError(t, repo.SetSupportedTypes(ctx, keep.ID, []string{"http"}))
+			flipped, err := repo.UpdateStatus(ctx, keep.ID, probe.StatusOffline, probe.StatusOnline)
+			require.NoError(t, err)
+			assert.True(t, flipped)
+			_, err = repo.DeleteInstancesUnseenSince(ctx, seen.Add(-24*time.Hour))
+			require.NoError(t, err)
 			instances, err := repo.FindInstances(ctx, keep.ID)
 			require.NoError(t, err)
 			require.Len(t, instances, 2)
@@ -447,6 +572,7 @@ func TestSQLRepository_EveryMethodJoinsTheCallersTransaction(t *testing.T) {
 		assert.Equal(t, "Keep", kept.Name, "the rename was rolled back")
 		assert.Equal(t, "sha256$k1", kept.TokenHash, "and so was the new token")
 		assert.Empty(t, kept.SupportedTypes, "and the supported types")
+		assert.Equal(t, probe.StatusOffline, kept.Status, "and the status flip")
 		instances, err := repo.FindInstances(ctx, keep.ID)
 		require.NoError(t, err)
 		assert.Empty(t, instances, "and the instance upserts")

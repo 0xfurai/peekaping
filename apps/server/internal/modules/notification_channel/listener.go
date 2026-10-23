@@ -10,6 +10,8 @@ import (
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/notification_channel/providers"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe_notification"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/reporting"
@@ -40,6 +42,7 @@ type NotificationEventListener struct {
 	monitorSvc                 monitor.Service
 	heartbeatService           heartbeat.Service
 	monitorNotificationService monitor_notification.Service
+	probeNotificationService   probe_notification.Service
 	monitorTagService          monitor_tag.Service
 	tagService                 tag.Service
 	providers                  *ProviderRegistry
@@ -53,6 +56,7 @@ type NotificationEventListenerParams struct {
 	MonitorSvc                 monitor.Service
 	HeartbeatService           heartbeat.Service
 	MonitorNotificationService monitor_notification.Service
+	ProbeNotificationService   probe_notification.Service
 	MonitorTagService          monitor_tag.Service
 	TagService                 tag.Service
 	Providers                  *ProviderRegistry
@@ -65,6 +69,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 		monitorSvc:                 p.MonitorSvc,
 		heartbeatService:           p.HeartbeatService,
 		monitorNotificationService: p.MonitorNotificationService,
+		probeNotificationService:   p.ProbeNotificationService,
 		monitorTagService:          p.MonitorTagService,
 		tagService:                 p.TagService,
 		providers:                  p.Providers,
@@ -88,10 +93,46 @@ func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
 	events.Subscribe(subscriber, stale.MonitorStaleRecovered, func(ctx context.Context, staleEvent stale.Event) {
 		l.handleStaleMonitorEvent(ctx, staleEvent, true)
 	})
+	events.Subscribe(subscriber, probe.ProbeOffline, func(ctx context.Context, probeEvent probe.Event) {
+		l.handleProbeEvent(ctx, probeEvent, false)
+	})
+	events.Subscribe(subscriber, probe.ProbeOnline, func(ctx context.Context, probeEvent probe.Event) {
+		l.handleProbeEvent(ctx, probeEvent, true)
+	})
 }
 
-// staleTimeFormat is how stale-monitor notifications show the time of the last check
+// staleTimeFormat is how stale-monitor and probe notifications show a time
 const staleTimeFormat = "2006-01-02 15:04:05 UTC"
+
+// handleProbeEvent notifies that a probe went offline, or that it is online. The providers take a
+// monitor, and several read its name and id without checking for nil, so a stand-in carries the
+// probe: its name says it is a probe, and its id is the probe's, which keeps the notifications of
+// two probes apart in a channel that deduplicates by it.
+func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeEvent probe.Event, online bool) {
+	l.logger.Infof("Probe event received for probe: %s (online: %t)", probeEvent.ProbeID, online)
+
+	links, err := l.probeNotificationService.FindByProbeID(ctx, probeEvent.ProbeID)
+	if err != nil {
+		l.logger.Errorf("Failed to get probe-notification records: %v", err)
+		return
+	}
+	if len(links) == 0 {
+		l.logger.Debugf("No notification channels configured for probe %s", probeEvent.ProbeID)
+		return
+	}
+	ids := make([]string, len(links))
+	for i, link := range links {
+		ids[i] = link.NotificationID
+	}
+
+	message := fmt.Sprintf("Probe %s has been offline since %s", probeEvent.ProbeName, probeEvent.Since.UTC().Format(staleTimeFormat))
+	if online {
+		message = fmt.Sprintf("Probe %s is online", probeEvent.ProbeName)
+	}
+	standIn := &monitor.Model{ID: probeEvent.ProbeID, Name: "Probe " + probeEvent.ProbeName}
+	// A probe notification carries no heartbeat
+	l.sendToChannels(ctx, l.channelsByID(ctx, ids), message, standIn, nil)
+}
 
 // handleStaleMonitorEvent notifies that a monitor stopped being checked, or that it is being checked again
 func (l *NotificationEventListener) handleStaleMonitorEvent(ctx context.Context, staleEvent stale.Event, recovered bool) {
@@ -149,20 +190,12 @@ func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID 
 		return nil, nil
 	}
 
-	var notificationChannels []*Model
-	for _, mn := range monitorNotifications {
+	ids := make([]string, len(monitorNotifications))
+	for i, mn := range monitorNotifications {
 		l.logger.Infof("Monitor notification: %s", mn.NotificationID)
-		notification, err := l.service.FindByID(ctx, mn.NotificationID)
-		if err != nil {
-			l.logger.Errorf("Failed to get notification by ID: %s, error: %v", mn.NotificationID, err)
-			continue
-		}
-		if notification != nil {
-			notificationChannels = append(notificationChannels, notification)
-		} else {
-			l.logger.Warnf("Notification not found for monitor-notification: %s", mn.NotificationID)
-		}
+		ids[i] = mn.NotificationID
 	}
+	notificationChannels := l.channelsByID(ctx, ids)
 
 	// Fetch monitor details for context
 	monitorModel, err := l.monitorSvc.FindByID(ctx, monitorID)
@@ -173,6 +206,25 @@ func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID 
 	l.loadMonitorTags(ctx, monitorModel)
 
 	return notificationChannels, monitorModel
+}
+
+// channelsByID returns the notification channels with the given ids. A channel that can't be
+// read, or that no longer exists, is logged and left out.
+func (l *NotificationEventListener) channelsByID(ctx context.Context, ids []string) []*Model {
+	var notificationChannels []*Model
+	for _, id := range ids {
+		notification, err := l.service.FindByID(ctx, id)
+		if err != nil {
+			l.logger.Errorf("Failed to get notification by ID: %s, error: %v", id, err)
+			continue
+		}
+		if notification != nil {
+			notificationChannels = append(notificationChannels, notification)
+		} else {
+			l.logger.Warnf("Notification not found for notification link: %s", id)
+		}
+	}
+	return notificationChannels
 }
 
 // sendToChannels sends a notification to each active channel that can take it. Channels are sent

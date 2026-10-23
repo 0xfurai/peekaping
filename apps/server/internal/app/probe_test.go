@@ -189,6 +189,10 @@ func TestRegister_MongoInstallAnswers501OnProbeRoutes(t *testing.T) {
 	cfg.DBType, cfg.DBName = "mongo", "peekaping"
 	container := dig.New()
 	require.NoError(t, Register(container, cfg))
+	// The transport provides the event bus the middleware publishes probe.online to
+	bus := events.NewMemoryBus()
+	t.Cleanup(func() { assert.NoError(t, bus.Close(context.Background())) })
+	require.NoError(t, container.Provide(func() events.EventBus { return bus }))
 
 	require.NoError(t, container.Invoke(func(auth *protocol.Auth) {
 		reached := false

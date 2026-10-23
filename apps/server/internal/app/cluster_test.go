@@ -23,6 +23,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
@@ -150,6 +151,53 @@ func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
 		closeDB(t, db)
 		t.Cleanup(func() { assert.NoError(t, client.Close()) })
 		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+	}))
+}
+
+// The sweep runs on the leader producer, beside the watchdog, and sends its events over the
+// cluster's bus. The api serves requests, and a replica of it must not run a sweep of its own.
+func TestRegisterClusterProducer_ResolvesTheProbeSweepAndTheAPIDoesNot(t *testing.T) {
+	producerContainer := dig.New()
+	require.NoError(t, RegisterClusterProducer(producerContainer, clusterConfig(t)))
+	require.NoError(t, producerContainer.Invoke(func(
+		sweep *probe.Sweep,
+		bus events.EventBus,
+		db *bun.DB,
+		client *asynq.Client,
+		inspector *asynq.Inspector,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		t.Cleanup(func() { assert.NoError(t, client.Close()) })
+		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+		assert.NotNil(t, sweep)
+	}))
+
+	apiContainer := dig.New()
+	require.NoError(t, RegisterClusterAPI(apiContainer, clusterConfig(t)))
+	assert.Error(t, apiContainer.Invoke(func(*probe.Sweep) {}), "only the producer runs the sweep")
+}
+
+func TestRegisterClusterProducer_TheWatchdogNeverSkipsAMonitorOfTheLocalProbe(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(
+		probeOffline stale.ProbeOfflineFunc,
+		bus events.EventBus,
+		db *bun.DB,
+		client *asynq.Client,
+		inspector *asynq.Inspector,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		t.Cleanup(func() { assert.NoError(t, client.Close()) })
+		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
+
+		offline, err := probeOffline(context.Background(), "any-monitor")
+
+		require.NoError(t, err)
+		assert.False(t, offline)
 	}))
 }
 

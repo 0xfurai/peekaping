@@ -384,6 +384,7 @@ var shutdownOrder = []string{
 	"Stopped the HTTP server",
 	"Closed the websocket server",
 	"Stale-monitor watchdog stopped",
+	"Probe sweep stopped",
 	"Scheduler stopped",
 	"Stopped the scheduler, the watchdog and the other background jobs",
 	"Closed the event bus",

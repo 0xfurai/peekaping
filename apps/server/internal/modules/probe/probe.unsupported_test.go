@@ -42,6 +42,10 @@ func TestUnsupportedRepository_EveryMethodReportsUnsupportedStorage(t *testing.T
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	assert.ErrorIs(t, repo.RetireInstance(ctx, "local", "instance-1", time.Now()), probe.ErrUnsupportedStorage)
 	assert.ErrorIs(t, repo.SetSupportedTypes(ctx, "local", []string{"http"}), probe.ErrUnsupportedStorage)
+	_, err = repo.UpdateStatus(ctx, "local", probe.StatusOffline, probe.StatusOnline)
+	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
+	_, err = repo.DeleteInstancesUnseenSince(ctx, time.Now())
+	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 
 	assert.EqualError(t, probe.ErrUnsupportedStorage, "probes need SQLite or PostgreSQL storage")
 }
@@ -72,6 +76,10 @@ func TestService_OnMongoListsNoProbesAndRefusesTheRest(t *testing.T) {
 	_, err = svc.TouchInstance(ctx, "local", "instance-1", time.Now())
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	assert.ErrorIs(t, svc.RetireInstance(ctx, "local", "instance-1", time.Now()), probe.ErrUnsupportedStorage)
+	_, err = svc.MarkOnline(ctx, "local")
+	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
+	_, err = svc.MarkOffline(ctx, "local")
+	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 
 	assert.NoError(t, svc.Bootstrap(ctx, ""), "with no bootstrap token there is nothing to store")
 	assert.ErrorIs(t, svc.Bootstrap(ctx, bootstrapToken), probe.ErrUnsupportedStorage)

@@ -15,6 +15,9 @@ import (
 // monitors and types the probe can't run included. Dealable picks the ones to deal.
 type MonitorSource interface {
 	FindActiveByProbe(ctx context.Context, probeID string) ([]*monitor.Model, error)
+	// ProbeOf returns the id of the probe the monitor is assigned to. The stale-monitor watchdog
+	// asks it, to leave alone a monitor whose probe is offline.
+	ProbeOf(ctx context.Context, monitorID string) (string, error)
 }
 
 // localOnlySource is the MonitorSource until monitors can be assigned to probes
@@ -26,6 +29,11 @@ type localOnlySource struct {
 // probes: every active monitor is the local probe's, and a remote probe has none.
 func NewLocalOnlySource(monitorService monitor.Service) MonitorSource {
 	return &localOnlySource{monitors: monitorService}
+}
+
+// ProbeOf is the local probe's, for every monitor
+func (s *localOnlySource) ProbeOf(_ context.Context, _ string) (string, error) {
+	return probe.LocalID, nil
 }
 
 func (s *localOnlySource) FindActiveByProbe(ctx context.Context, probeID string) ([]*monitor.Model, error) {

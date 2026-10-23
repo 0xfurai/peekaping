@@ -147,7 +147,26 @@ type Config struct {
 	// a probe token and no UI step. At least 32 characters, checked by each binary's Validate.
 	// Empty leaves the local probe as it is.
 	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
+
+	// ProbeOfflineAfter is how long an online probe's instances may all go unseen before the
+	// sweep sets the probe offline. A Go duration such as "3m" or "90s". The producer and peekaping,
+	// which run the sweep, check that it is from MinProbeOfflineAfter to MaxProbeOfflineAfter.
+	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 }
+
+// MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left
+// last seen a minute and a second ago (probe.RetiredAt), and the sweep looks at the probes every 30
+// seconds. A shorter limit would raise an offline notification for a probe that restarts
+// gracefully, before the new instance has said hello. The room the floor leaves is pinned in
+// TestRetiredAt_LeavesRoomUnderTheSmallestOfflineAfter.
+const MinProbeOfflineAfter = 2 * time.Minute
+
+// MaxProbeOfflineAfter is the longest PROBE_OFFLINE_AFTER. It equals how long the sweep keeps an
+// instance that went unseen (probe.DefaultInstanceRetention, which is this constant), because an
+// instance older than that is about to be pruned. A longer limit would let the sweep's backstop set
+// an offline probe online on such an instance, publish probe.online, and set the probe offline
+// again on the next pass, once the instance was gone: a false pair of notifications.
+const MaxProbeOfflineAfter = 24 * time.Hour
 
 // TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is
 // off, false, 0 or no. Case and surrounding spaces don't matter.

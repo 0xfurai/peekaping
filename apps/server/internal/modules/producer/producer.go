@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/worker"
 	"peekaping/internal/reporting"
@@ -16,6 +17,26 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
+
+// Option adds something to a producer that not every caller has
+type Option func(*options)
+
+type options struct {
+	probeOffline stale.ProbeOfflineFunc
+	probeSweep   *probe.Sweep
+}
+
+// WithProbeSweep gives the producer the sweep that sets silent probes offline, which it runs
+// beside its watchdog while it is the leader. Without it, no sweep runs.
+func WithProbeSweep(sweep *probe.Sweep) Option {
+	return func(o *options) { o.probeSweep = sweep }
+}
+
+// WithProbeOffline tells the producer's watchdog how to find out that a monitor's probe is
+// offline, so that it leaves such a monitor alone. Without it, no probe is ever offline.
+func WithProbeOffline(probeOffline stale.ProbeOfflineFunc) Option {
+	return func(o *options) { o.probeOffline = probeOffline }
+}
 
 // NewProducer creates a new producer instance. The runner runs the checks it schedules: in
 // cluster mode, NewQueueRunner enqueues them for the worker.
@@ -30,7 +51,13 @@ func NewProducer(
 	leaderElection *LeaderElection,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
+	opts ...Option,
 ) *Producer {
+	var o options
+	for _, opt := range opts {
+		opt(&o)
+	}
+
 	// Use configured concurrency, fallback to constant if not set
 	concurrency := cfg.ProducerConcurrency
 	if concurrency <= 0 {
@@ -49,6 +76,7 @@ func NewProducer(
 		leadershipCheckInterval: 1 * time.Second,
 		leaderElection:          leaderElection,
 		concurrency:             concurrency,
+		probeSweep:              o.probeSweep,
 	}
 
 	// The watchdog gets stale monitors checked again by scheduling them to run now
@@ -61,6 +89,7 @@ func NewProducer(
 		// Redis's clock is the one all producers share
 		Now:          func() time.Time { return time.UnixMilli(p.redisNowMs()).UTC() },
 		CheckTimeout: worker.HealthCheckTaskTimeout,
+		ProbeOffline: o.probeOffline,
 		Logger:       logger.With("component", "watchdog"),
 	})
 

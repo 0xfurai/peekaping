@@ -553,3 +553,59 @@ func TestService_RetireInstanceLeavesTheInstanceLastSeenAtTheGivenTime(t *testin
 	assert.WithinDuration(t, retired, got.Instances[1].LastSeenAt, time.Second)
 	assert.WithinDuration(t, seen, got.Instances[0].LastSeenAt, time.Second)
 }
+
+func TestService_MarkOnlineAndOfflineChangeTheStatusOnce(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+
+	changed, err := f.svc.MarkOffline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.False(t, changed, "a new probe is offline already")
+
+	changed, err = f.svc.MarkOnline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.True(t, changed)
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, probe.StatusOnline, got.Status)
+
+	changed, err = f.svc.MarkOnline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.False(t, changed, "only the caller that changes the status hears true, so that two replicas don't both announce it")
+
+	changed, err = f.svc.MarkOffline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.True(t, changed)
+	got, err = f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, probe.StatusOffline, got.Status)
+
+	changed, err = f.svc.MarkOnline(ctx, "no-such-probe")
+	require.NoError(t, err)
+	assert.False(t, changed)
+}
+
+func TestService_MarkOnlineLeavesADisabledProbeOffline(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+	disabled := true
+	_, err := f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Disabled: &disabled})
+	require.NoError(t, err)
+
+	changed, err := f.svc.MarkOnline(ctx, created.ID)
+
+	require.NoError(t, err)
+	assert.False(t, changed, "a disabled probe's token is refused, so nothing has heard from it")
+	got, err := f.svc.FindByID(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, probe.StatusOffline, got.Status)
+
+	enabled := false
+	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Disabled: &enabled})
+	require.NoError(t, err)
+	changed, err = f.svc.MarkOnline(ctx, created.ID)
+	require.NoError(t, err)
+	assert.True(t, changed, "enabled again, the probe comes online")
+}

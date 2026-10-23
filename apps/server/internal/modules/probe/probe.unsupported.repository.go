@@ -63,3 +63,11 @@ func (r *UnsupportedRepositoryImpl) RetireInstance(ctx context.Context, probeID 
 func (r *UnsupportedRepositoryImpl) SetSupportedTypes(ctx context.Context, probeID string, types []string) error {
 	return ErrUnsupportedStorage
 }
+
+func (r *UnsupportedRepositoryImpl) UpdateStatus(ctx context.Context, id string, from Status, to Status) (bool, error) {
+	return false, ErrUnsupportedStorage
+}
+
+func (r *UnsupportedRepositoryImpl) DeleteInstancesUnseenSince(ctx context.Context, before time.Time) (int, error) {
+	return 0, ErrUnsupportedStorage
+}

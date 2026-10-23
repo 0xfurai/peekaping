@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
 
@@ -31,6 +32,11 @@ type stubProbes struct {
 	findErr  error
 	touchErr error
 	touched  []touch
+
+	// markOnline is what MarkOnline answers: whether this caller changed the probe's status
+	markOnline    bool
+	markOnlineErr error
+	markedOnline  []string // the ids of the probes MarkOnline was asked about
 }
 
 type touch struct {
@@ -54,17 +60,24 @@ func (s *stubProbes) TouchInstance(ctx context.Context, probeID, id string, at t
 	return s.known[probeID+"/"+id], s.touchErr
 }
 
+func (s *stubProbes) MarkOnline(ctx context.Context, id string) (bool, error) {
+	s.markedOnline = append(s.markedOnline, id)
+	return s.markOnline, s.markOnlineErr
+}
+
 // request goes through the middleware to a handler that records what the middleware left on the context
 type outcome struct {
 	called     bool
 	probe      *probe.Model
 	instanceID string
 	hasProbe   bool
+	// bus is where the middleware published
+	bus *eventstest.Bus
 }
 
 func run(stub *stubProbes, middleware func(*protocol.Auth) httpx.Middleware, headers map[string]string) (*httptest.ResponseRecorder, *outcome) {
-	got := &outcome{}
-	auth := protocol.NewAuth(stub, zap.NewNop().Sugar())
+	got := &outcome{bus: eventstest.NewBus()}
+	auth := protocol.NewAuth(stub, got.bus, zap.NewNop().Sugar())
 	handler := middleware(auth)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		got.called = true
 		got.probe, got.instanceID, got.hasProbe = protocol.ProbeFromContext(r.Context())
@@ -181,7 +194,7 @@ func TestAuthenticate_Answers400ForAMissingOrMalformedInstanceId(t *testing.T) {
 
 func TestAuthenticate_Answers400ForARepeatedInstanceHeader(t *testing.T) {
 	stub := newStub()
-	auth := protocol.NewAuth(stub, zap.NewNop().Sugar())
+	auth := protocol.NewAuth(stub, eventstest.NewBus(), zap.NewNop().Sugar())
 	handler := auth.Authenticate()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { t.Fatal("must not be called") }))
 	req := httptest.NewRequest(http.MethodPost, "/probe/v1/hello", nil)
 	req.Header.Set("Authorization", "Bearer "+goodToken)
@@ -255,9 +268,86 @@ func TestKnownInstance_ReportsFailuresOfTheStamp(t *testing.T) {
 	assert.False(t, got.called)
 }
 
+func offlineStub(markChangesIt bool) *stubProbes {
+	stub := newStub()
+	stub.probes[goodToken].Status = probe.StatusOffline
+	stub.markOnline = markChangesIt
+	return stub
+}
+
+func TestKnownInstance_BringsAnOfflineProbeOnlineAndSaysSo(t *testing.T) {
+	stub := offlineStub(true)
+
+	w, got := run(stub, knownInstance, credentials(goodToken, instanceID))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.True(t, got.called)
+	assert.Equal(t, []string{"probe-1"}, stub.markedOnline)
+	online := eventstest.Published(got.bus, probe.ProbeOnline)
+	require.Len(t, online, 1)
+	assert.Equal(t, "probe-1", online[0].ProbeID)
+	assert.Equal(t, "Frankfurt", online[0].ProbeName)
+	assert.WithinDuration(t, time.Now(), online[0].Since, time.Minute, "since is the time of the request that brought the probe back")
+	assert.Empty(t, eventstest.Published(got.bus, probe.ProbeOffline))
+}
+
+// Two API replicas may both see an offline probe and ask. Only the one that changed it announces it.
+func TestKnownInstance_SaysNothingWhenAnotherCallerBroughtTheProbeOnline(t *testing.T) {
+	stub := offlineStub(false)
+
+	w, got := run(stub, knownInstance, credentials(goodToken, instanceID))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.True(t, got.called)
+	assert.Equal(t, []string{"probe-1"}, stub.markedOnline, "it asked")
+	assert.Empty(t, eventstest.Published(got.bus, probe.ProbeOnline))
+}
+
+func TestKnownInstance_CostsAnOnlineProbeNoExtraQuery(t *testing.T) {
+	stub := newStub()
+	stub.probes[goodToken].Status = probe.StatusOnline
+	stub.markOnline = true
+
+	w, got := run(stub, knownInstance, credentials(goodToken, instanceID))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Empty(t, stub.markedOnline)
+	assert.Empty(t, eventstest.Published(got.bus, probe.ProbeOnline))
+}
+
+func TestKnownInstance_DoesNotBringAProbeOnlineForAnInstanceThatNeverSaidHello(t *testing.T) {
+	stub := offlineStub(true)
+
+	w, got := run(stub, knownInstance, credentials(goodToken, "a-new-instance"))
+
+	assert.Equal(t, http.StatusConflict, w.Code)
+	assert.Empty(t, stub.markedOnline, "no instance is connected, so the probe is not")
+	assert.Empty(t, eventstest.Published(got.bus, probe.ProbeOnline))
+}
+
+func TestKnownInstance_LetsTheRequestThroughWhenTheStatusCannotBeChanged(t *testing.T) {
+	stub := offlineStub(true)
+	stub.markOnlineErr = errors.New("database is locked")
+
+	w, got := run(stub, knownInstance, credentials(goodToken, instanceID))
+
+	assert.Equal(t, http.StatusOK, w.Code, "the sweep sets the probe online within its interval")
+	assert.True(t, got.called)
+	assert.Empty(t, eventstest.Published(got.bus, probe.ProbeOnline))
+}
+
+func TestAuthenticate_LeavesAnOfflineProbeOfflineUntilItsInstanceIsKnown(t *testing.T) {
+	stub := offlineStub(true)
+
+	w, _ := run(stub, authenticate, credentials(goodToken, instanceID))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Empty(t, stub.markedOnline, "hello records the instance first, then brings the probe online")
+}
+
 func TestKnownInstance_RefusesARouteThatDoesNotAuthenticateTheProbe(t *testing.T) {
 	stub := newStub()
-	auth := protocol.NewAuth(stub, zap.NewNop().Sugar())
+	auth := protocol.NewAuth(stub, eventstest.NewBus(), zap.NewNop().Sugar())
 	handler := auth.KnownInstance()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { t.Fatal("must not be called") }))
 	w := httptest.NewRecorder()
 

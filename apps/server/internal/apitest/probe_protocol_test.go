@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,18 +13,21 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
@@ -358,6 +362,144 @@ func TestProbeProtocol_HelloRejectsABadBody(t *testing.T) {
 	assert.Empty(t, a.getProbe(t, made.ID).Instances)
 }
 
+// queuedNotificationTopics are the topics of the notification events waiting for an api replica to
+// send them, oldest first. Cluster mode sends a probe's offline and online events this way, so
+// that one replica sends each. No replica takes them in these tests.
+func (a *app) queuedNotificationTopics(t *testing.T) []string {
+	t.Helper()
+	topics := []string{}
+	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
+		tasks, err := inspector.ListPendingTasks(notification_channel.QueueName)
+		if errors.Is(err, asynq.ErrQueueNotFound) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		for _, task := range tasks {
+			var queued struct {
+				Topic string `json:"topic"`
+			}
+			if err := json.Unmarshal(task.Payload, &queued); err != nil {
+				return err
+			}
+			topics = append(topics, queued.Topic)
+		}
+		return nil
+	}))
+	return topics
+}
+
+func (a *app) clearQueuedNotifications(t *testing.T) {
+	t.Helper()
+	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
+		_, err := inspector.DeleteAllPendingTasks(notification_channel.QueueName)
+		if errors.Is(err, asynq.ErrQueueNotFound) {
+			return nil
+		}
+		return err
+	}))
+}
+
+func TestProbeProtocol_RequestBringsAnOfflineProbeOnline(t *testing.T) {
+	// An offline probe whose instance said hello before: what the sweep leaves behind when the
+	// instance goes quiet
+	offlineProbe := func(t *testing.T) (a *app, made probeWithToken, instanceID string) {
+		a, made = probeApp(t)
+		instanceID = uuid.NewString()
+		a.sayHello(t, made.Token, instanceID)
+		require.Equal(t, "online", a.getProbe(t, made.ID).Status, "the first hello brings the probe online")
+		require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
+			changed, err := probes.MarkOffline(context.Background(), made.ID)
+			require.True(t, changed)
+			return err
+		}))
+		require.Equal(t, "offline", a.getProbe(t, made.ID).Status)
+		a.clearQueuedNotifications(t)
+		return a, made, instanceID
+	}
+
+	t.Run("a hello", func(t *testing.T) {
+		a, made, instanceID := offlineProbe(t)
+
+		a.sayHello(t, made.Token, instanceID)
+
+		assert.Equal(t, "online", a.getProbe(t, made.ID).Status)
+		assert.Equal(t, []string{"probe.online"}, a.queuedNotificationTopics(t), "announced once, through the notification queue")
+	})
+
+	t.Run("a request from an instance that said hello", func(t *testing.T) {
+		a, made, instanceID := offlineProbe(t)
+
+		w := a.assignments(t, made.Token, instanceID, "")
+
+		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+		assert.Equal(t, "online", a.getProbe(t, made.ID).Status, "at once, not at the next sweep")
+		assert.Equal(t, []string{"probe.online"}, a.queuedNotificationTopics(t))
+
+		a.assignments(t, made.Token, instanceID, "")
+		a.sayHello(t, made.Token, instanceID)
+		assert.Equal(t, []string{"probe.online"}, a.queuedNotificationTopics(t), "a probe that is online says nothing more")
+	})
+
+	t.Run("a request from an instance that never said hello", func(t *testing.T) {
+		a, made, _ := offlineProbe(t)
+
+		w := a.assignments(t, made.Token, uuid.NewString(), "")
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+		assert.Equal(t, "offline", a.getProbe(t, made.ID).Status, "none of its instances is connected")
+		assert.Empty(t, a.queuedNotificationTopics(t))
+	})
+}
+
+// racingAdmin is the probe service with an admin who disables a probe in the moment between a
+// request's authentication, which found the probe enabled, and the status change the request causes
+type racingAdmin struct {
+	probe.Service
+	disableOnNextTouch atomic.Bool
+}
+
+func (s *racingAdmin) TouchInstance(ctx context.Context, probeID string, instanceID string, at time.Time) (bool, error) {
+	found, err := s.Service.TouchInstance(ctx, probeID, instanceID, at)
+	if err != nil || !s.disableOnNextTouch.CompareAndSwap(true, false) {
+		return found, err
+	}
+	disabled := true
+	_, err = s.Service.Update(ctx, probeID, &probe.UpdateRequest{Disabled: &disabled})
+	return found, err
+}
+
+func TestProbeProtocol_ADisabledProbeIsNotBroughtOnline(t *testing.T) {
+	racing := &racingAdmin{}
+	a := newAppDecorated(t, func(c *dig.Container) error {
+		return c.Decorate(func(probes probe.Service) probe.Service {
+			racing.Service = probes
+			return racing
+		})
+	})
+	a.registerAdmin(t)
+	made := a.createProbe(t, map[string]any{"name": "Frankfurt", "location": "eu-central"})
+	instanceID := uuid.NewString()
+	a.sayHello(t, made.Token, instanceID)
+	require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
+		changed, err := probes.MarkOffline(context.Background(), made.ID)
+		require.True(t, changed)
+		return err
+	}))
+	a.clearQueuedNotifications(t)
+	racing.disableOnNextTouch.Store(true)
+
+	// The assignments handler reads the probe again and answers 401 for a disabled one. The status
+	// of the answer is not the point: what the request leaves behind is.
+	a.assignments(t, made.Token, instanceID, "")
+
+	got := a.getProbe(t, made.ID)
+	require.True(t, got.Disabled, "the admin disabled the probe during the request")
+	assert.Equal(t, "offline", got.Status, "a disabled probe is not set online by a request that began before it was disabled")
+	assert.Empty(t, a.queuedNotificationTopics(t), "and nobody is told that it is back")
+}
+
 // Bye takes the instance out of the dealing at once and leaves the row, so that the probe is not
 // without instances: it counts as offline only after PROBE_OFFLINE_AFTER, which a graceful restart
 // stays well inside of.
@@ -377,7 +519,7 @@ func TestProbeProtocol_ByeRetiresTheInstance(t *testing.T) {
 		lastSeen[instance.ID] = instance.LastSeenAt
 	}
 	require.Len(t, lastSeen, 2, "the retired instance is still listed")
-	assert.WithinDuration(t, time.Now().Add(-protocol.InstanceOnlineWindow), lastSeen[leaving], 5*time.Second,
+	assert.WithinDuration(t, time.Now().Add(-probe.InstanceOnlineWindow), lastSeen[leaving], 5*time.Second,
 		"last seen is the edge of the online window, which is outside it")
 	assert.WithinDuration(t, time.Now(), lastSeen[staying], 5*time.Second, "and the sibling's is untouched")
 	assert.Equal(t, http.StatusNoContent, a.request(t, http.MethodPost, byePath, nil, asProbe(made.Token, leaving)).Code,
