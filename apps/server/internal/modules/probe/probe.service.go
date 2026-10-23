@@ -284,11 +284,15 @@ func (s *ServiceImpl) Bootstrap(ctx context.Context, token string) error {
 
 // MARK: RegisterInstance
 func (s *ServiceImpl) RegisterInstance(ctx context.Context, probeID string, inst *Instance, supportedTypes []string) error {
-	// The instance first: a refused one must not change the probe's types
-	if err := s.repo.UpsertInstance(ctx, probeID, inst); err != nil {
-		return err
-	}
-	if err := s.repo.SetSupportedTypes(ctx, probeID, supportedTypes); err != nil {
+	// One transaction: a hello that fails halfway leaves neither the instance nor the types.
+	// The instance goes first: a refused one must not change the probe's types.
+	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		if err := s.repo.UpsertInstance(ctx, probeID, inst); err != nil {
+			return err
+		}
+		return s.repo.SetSupportedTypes(ctx, probeID, supportedTypes)
+	})
+	if err != nil {
 		return err
 	}
 	s.logger.Infow("Probe instance registered", "probeId", probeID, "instanceId", inst.ID, "hostname", inst.Hostname, "version", inst.Version)

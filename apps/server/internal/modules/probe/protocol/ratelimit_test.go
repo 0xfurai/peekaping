@@ -116,6 +116,64 @@ func TestRateLimiter_KeepsABucketForEachProbeInstanceAndRoute(t *testing.T) {
 	}
 }
 
+func TestRateLimit_HelloIsAlsoLimitedPerProbe(t *testing.T) {
+	clk := newClock()
+	handler, served := limited(newRateLimiter(1, 5, clk.Now))
+
+	// Hello takes any new instance id, so a probe that rotates them gets a fresh instance bucket
+	// each time. Its own bucket for the route is what stops it.
+	for n := 1; n <= 10; n++ {
+		assert.Equal(t, http.StatusOK, status(handler, as("POST", "/probe/v1/hello", "p1", "instance-"+strconv.Itoa(n))).Code, "hello %d is within the burst of 10", n)
+	}
+	w := status(handler, as("POST", "/probe/v1/hello", "p1", "instance-11"))
+
+	assert.Equal(t, http.StatusTooManyRequests, w.Code)
+	assert.Equal(t, "1", w.Header().Get("Retry-After"))
+	assert.JSONEq(t, `{"message":"too many requests","data":null}`, w.Body.String())
+	assert.EqualValues(t, 10, served.Load(), "the denied hello never reaches the handler")
+
+	assert.Equal(t, http.StatusOK, status(handler, as("POST", "/probe/v1/hello", "p2", "instance-1")).Code, "another probe has a limit of its own")
+	for n := 1; n <= 11; n++ {
+		assert.Equal(t, http.StatusOK, status(handler, as("POST", "/probe/v1/bye", "p1", "instance-"+strconv.Itoa(n))).Code, "only hello has the limit per probe, bye %d", n)
+	}
+
+	clk.Advance(time.Second)
+	assert.Equal(t, http.StatusOK, status(handler, as("POST", "/probe/v1/hello", "p1", "instance-12")).Code, "one hello a second once the burst is used")
+	assert.Equal(t, http.StatusTooManyRequests, status(handler, as("POST", "/probe/v1/hello", "p1", "instance-13")).Code, "and one only")
+}
+
+func TestRateLimit_ADeniedHelloDoesNotDrainTheProbesBucket(t *testing.T) {
+	clk := newClock()
+	handler, _ := limited(newRateLimiter(1, 5, clk.Now))
+	for range 5 {
+		require.Equal(t, http.StatusOK, status(handler, as("POST", "/probe/v1/hello", "p1", "i1")).Code)
+	}
+
+	// The instance's own bucket is empty, and the hellos it denies must not take from the probe's:
+	// five of the probe's ten are left for its other instances
+	for range 20 {
+		require.Equal(t, http.StatusTooManyRequests, status(handler, as("POST", "/probe/v1/hello", "p1", "i1")).Code)
+	}
+	for n := 1; n <= 5; n++ {
+		assert.Equal(t, http.StatusOK, status(handler, as("POST", "/probe/v1/hello", "p1", "other-"+strconv.Itoa(n))).Code, "hello %d of another instance", n)
+	}
+	assert.Equal(t, http.StatusTooManyRequests, status(handler, as("POST", "/probe/v1/hello", "p1", "other-6")).Code)
+}
+
+func TestRateLimit_AProbesHelloBucketIsForgottenWithTheRest(t *testing.T) {
+	clk := newClock()
+	limiter := newRateLimiter(1, 5, clk.Now)
+	handler, _ := limited(limiter)
+	status(handler, as("POST", "/probe/v1/hello", "p1", "i1"))
+	require.Equal(t, 2, limiter.size(), "the instance's bucket and the probe's")
+
+	clk.Advance(2 * time.Hour)
+	status(handler, as("POST", "/probe/v1/hello", "p2", "i1"))
+
+	assert.Equal(t, 2, limiter.size(), "p1's two are gone, and p2's two are left")
+	assert.False(t, limiter.has("p1", "i1", "POST /probe/v1/hello"))
+}
+
 func TestRateLimiter_KeysByThePathOfARequestTheRouterDidNotMatch(t *testing.T) {
 	clk := newClock()
 	handler, _ := limited(newRateLimiter(1, 1, clk.Now))
@@ -149,23 +207,23 @@ func TestRateLimiter_ForgetsAnInstanceAfterAnHourWithoutRequests(t *testing.T) {
 	clk := newClock()
 	limiter := newRateLimiter(1, 5, clk.Now)
 	handler, _ := limited(limiter)
-	status(handler, as("POST", "/probe/v1/hello", "p1", "old"))
+	status(handler, as("GET", "/probe/v1/assignments", "p1", "old"))
 	clk.Advance(30 * time.Minute)
-	status(handler, as("POST", "/probe/v1/hello", "p1", "recent"))
+	status(handler, as("GET", "/probe/v1/assignments", "p1", "recent"))
 	require.Equal(t, 2, limiter.size())
 
 	// "old" has been idle for 59 minutes: not yet
 	clk.Advance(29 * time.Minute)
-	status(handler, as("POST", "/probe/v1/hello", "p1", "new-1"))
+	status(handler, as("GET", "/probe/v1/assignments", "p1", "new-1"))
 	assert.Equal(t, 3, limiter.size())
 
 	// "old" has been idle for 70 minutes, "recent" for 40
 	clk.Advance(11 * time.Minute)
-	status(handler, as("POST", "/probe/v1/hello", "p1", "new-2"))
+	status(handler, as("GET", "/probe/v1/assignments", "p1", "new-2"))
 	assert.Equal(t, 3, limiter.size(), "old is gone, and recent, new-1 and new-2 are left")
 
 	clk.Advance(2 * time.Hour)
-	status(handler, as("POST", "/probe/v1/hello", "p1", "new-3"))
+	status(handler, as("GET", "/probe/v1/assignments", "p1", "new-3"))
 	assert.Equal(t, 1, limiter.size(), "what has been idle for two hours is gone")
 }
 
@@ -177,15 +235,15 @@ func TestRateLimiter_AnInstanceInUseIsNotForgotten(t *testing.T) {
 	// "busy" is heard from every half minute for two hours, while a new instance appears each time
 	// and makes the limiter look for what to forget
 	for n := range 240 {
-		status(handler, as("POST", "/probe/v1/hello", "p1", "busy"))
-		status(handler, as("POST", "/probe/v1/hello", "p1", "passer-by-"+strconv.Itoa(n)))
+		status(handler, as("GET", "/probe/v1/assignments", "p1", "busy"))
+		status(handler, as("GET", "/probe/v1/assignments", "p1", "passer-by-"+strconv.Itoa(n)))
 		clk.Advance(30 * time.Second)
 	}
 
 	// The passers-by of the last hour are left, 120 of them and "busy"
 	assert.InDelta(t, 121, limiter.size(), 25, "busy stays and the passers-by of the last hour or so with it")
-	assert.True(t, limiter.has("p1", "busy", "POST /probe/v1/hello"))
-	assert.False(t, limiter.has("p1", "passer-by-0", "POST /probe/v1/hello"))
+	assert.True(t, limiter.has("p1", "busy", "GET /probe/v1/assignments"))
+	assert.False(t, limiter.has("p1", "passer-by-0", "GET /probe/v1/assignments"))
 }
 
 func TestRateLimiter_IsSafeForConcurrentRequests(t *testing.T) {
