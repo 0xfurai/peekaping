@@ -53,7 +53,7 @@ func checkHistory(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report 
 			}
 		}
 		// They are all the monitor's, and the one of a deleted monitor is not
-		history, err := sqlBeats.FindByMonitorIDPaginated(ctx, uuidOf(t, checkout), 100, 0, nil, true)
+		history, err := sqlBeats.FindByMonitorIDPaginated(ctx, uuidOf(t, checkout), "", 100, 0, nil, true)
 		require.NoError(t, err)
 		assert.Len(t, history, len(mongoimporttest.HeartbeatNames))
 		all, err := sqlBeats.FindAll(ctx, 0, 100)
@@ -76,9 +76,9 @@ func checkHistory(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report 
 
 		// Every stat reads back through the stats service as it did on MongoDB
 		for _, period := range []stats.StatPeriod{stats.StatMinutely, stats.StatHourly, stats.StatDaily} {
-			want, err := mongoStats.FindStatsByMonitorIDAndTimeRange(ctx, checkout, since, until, period)
+			want, err := mongoStats.FindStatsByMonitorIDAndTimeRange(ctx, checkout, "", since, until, period)
 			require.NoError(t, err)
-			got, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, uuidOf(t, checkout), since, until, period)
+			got, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, uuidOf(t, checkout), "", since, until, period)
 			require.NoError(t, err)
 			require.NotEmpty(t, want, period)
 			require.Len(t, got, len(want), period)
@@ -96,7 +96,7 @@ func checkHistory(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report 
 
 		// And the numbers are the ones the checks add up to: in the first minute two Up checks of
 		// 100 and 200 ms, a Down and a Maintenance one
-		minute, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, uuidOf(t, checkout), mongoimporttest.HistoryStart, mongoimporttest.HistoryStart, stats.StatMinutely)
+		minute, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, uuidOf(t, checkout), "", mongoimporttest.HistoryStart, mongoimporttest.HistoryStart, stats.StatMinutely)
 		require.NoError(t, err)
 		require.Len(t, minute, 1)
 		assert.Equal(t, 3, minute[0].Up)
@@ -107,7 +107,7 @@ func checkHistory(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report 
 		assert.Equal(t, 100.0, minute[0].PingMin)
 		assert.Equal(t, 200.0, minute[0].PingMax)
 		// An hour of Maintenance checks alone has no response time
-		maintenance, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, uuidOf(t, checkout), mongoimporttest.HistoryStart.Add(2*time.Hour), mongoimporttest.HistoryStart.Add(2*time.Hour), stats.StatHourly)
+		maintenance, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, uuidOf(t, checkout), "", mongoimporttest.HistoryStart.Add(2*time.Hour), mongoimporttest.HistoryStart.Add(2*time.Hour), stats.StatHourly)
 		require.NoError(t, err)
 		require.Len(t, maintenance, 1)
 		assert.Equal(t, 2, maintenance[0].Up)
@@ -121,7 +121,7 @@ func checkHistory(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report 
 		// Two documents for one minute add up
 		nightly := uuidOf(t, in.ID("monitor", "nightly"))
 		at := mongoimporttest.HistoryStart.Add(3 * time.Hour)
-		merged, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, nightly, at, at, stats.StatMinutely)
+		merged, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, nightly, "", at, at, stats.StatMinutely)
 		require.NoError(t, err)
 		require.Len(t, merged, 1)
 		assert.Equal(t, 5, merged[0].Up)
@@ -132,7 +132,7 @@ func checkHistory(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report 
 		assert.Equal(t, 40.0, merged[0].PingMin)
 		assert.Equal(t, 110.0, merged[0].PingMax)
 		// More Maintenance than Up checks can't have response times
-		odd, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, nightly, at.Add(time.Minute), at.Add(time.Minute), stats.StatMinutely)
+		odd, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, nightly, "", at.Add(time.Minute), at.Add(time.Minute), stats.StatMinutely)
 		require.NoError(t, err)
 		require.Len(t, odd, 1)
 		assert.Zero(t, odd[0].PingCount)

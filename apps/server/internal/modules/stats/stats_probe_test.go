@@ -54,7 +54,7 @@ func TestStatsOfEveryProbeAddUpInOneBucket(t *testing.T) {
 		assert.Equal(t, want, findBucket(t, svc, monitorID, minute, stats.StatHourly))
 		assert.Equal(t, want, findBucket(t, svc, monitorID, minute.Truncate(24*time.Hour), stats.StatDaily))
 
-		summary, err := svc.Summarize(context.Background(), monitorID, minute, minute.Add(time.Minute))
+		summary, err := svc.Summarize(context.Background(), monitorID, "", minute, minute.Add(time.Minute))
 		require.NoError(t, err)
 		require.NotNil(t, summary.Uptime)
 		assert.Equal(t, 75.0, *summary.Uptime)

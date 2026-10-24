@@ -151,6 +151,7 @@ func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 	ctx context.Context,
 	monitorID string,
+	probeID string,
 	limit int,
 	page int,
 	important *bool,
@@ -161,6 +162,10 @@ func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 		Where("monitor_id = ?", monitorID).
 		Limit(limit).
 		Offset(page * limit)
+
+	if probeID != "" {
+		query = query.Where("probe_id = ?", probeID)
+	}
 
 	if important != nil {
 		query = query.Where("important = ?", *important)

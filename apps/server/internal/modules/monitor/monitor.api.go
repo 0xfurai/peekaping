@@ -44,6 +44,7 @@ type FindByMonitorIDPaginatedParams struct {
 	Page      int    `query:"page" doc:"Page number (default 0)" default:"0" minimum:"0"`
 	Important bool   `query:"important" doc:"Filter by important heartbeats only"`
 	Reverse   bool   `query:"reverse" doc:"Reverse the order of heartbeats"`
+	ProbeID   string `query:"probe_id" doc:"Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe." example:"local"`
 }
 type FindByMonitorIDPaginatedInput = httpx.Input[httpx.NoBody, FindByMonitorIDPaginatedParams]
 
@@ -52,11 +53,13 @@ type GetStatPointsParams struct {
 	Since       string `query:"since" doc:"Start time (RFC3339)" required:"true" format:"date-time"`
 	Until       string `query:"until" doc:"End time (RFC3339, default now)" format:"date-time"`
 	Granularity string `query:"granularity" doc:"Granularity (minute, hour, day)"`
+	ProbeID     string `query:"probe_id" doc:"Only the checks this probe ran, by probe id. Omitted, the checks of every probe count." example:"local"`
 }
 type GetStatPointsInput = httpx.Input[httpx.NoBody, GetStatPointsParams]
 
 type GetUptimeStatsParams struct {
-	Id string `path:"id" doc:"Monitor ID" required:"true"`
+	Id      string `path:"id" doc:"Monitor ID" required:"true"`
+	ProbeID string `query:"probe_id" doc:"Only the checks this probe ran, by probe id. Omitted, the checks of every probe count." example:"local"`
 }
 type GetUptimeStatsInput = httpx.Input[httpx.NoBody, GetUptimeStatsParams]
 

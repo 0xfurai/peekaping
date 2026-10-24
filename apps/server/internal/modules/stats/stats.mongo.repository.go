@@ -168,6 +168,7 @@ func (r *MongoRepository) AddToStat(ctx context.Context, stat *Stat, period Stat
 func (r *MongoRepository) FindStatsByMonitorIDAndTimeRange(
 	ctx context.Context,
 	monitorID string,
+	_ string, // a Mongo install has no remote probes, so there is no probe to narrow to
 	since,
 	until time.Time,
 	period StatPeriod,

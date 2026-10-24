@@ -109,7 +109,7 @@ func TestUpgradeRebuildsStatsFromHeartbeats(t *testing.T) {
 
 			end := start.Add(25 * time.Hour)
 			for period, want := range map[stats.StatPeriod]int{stats.StatMinutely: 1500, stats.StatHourly: 25, stats.StatDaily: 2} {
-				all, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, start.Truncate(24*time.Hour), end, period)
+				all, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, "", start.Truncate(24*time.Hour), end, period)
 				require.NoError(t, err)
 				assert.Len(t, all, want, period)
 			}

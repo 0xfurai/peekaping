@@ -259,6 +259,7 @@ func (r *RepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) 
 func (r *RepositoryImpl) FindByMonitorIDPaginated(
 	ctx context.Context,
 	monitorID string,
+	_ string, // a Mongo install has no remote probes, so there is no probe to narrow to
 	limit,
 	page int,
 	important *bool,

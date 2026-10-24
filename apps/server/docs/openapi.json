@@ -505,6 +505,13 @@
             "format": "int64",
             "type": "integer"
           },
+          "probe_id": {
+            "description": "The probe that ran the check: local for the local probe, otherwise a remote probe's id",
+            "examples": [
+              "local"
+            ],
+            "type": "string"
+          },
           "retries": {
             "format": "int64",
             "type": "integer"
@@ -521,6 +528,7 @@
         "required": [
           "id",
           "monitor_id",
+          "probe_id",
           "status",
           "msg",
           "ping",
@@ -1210,6 +1218,13 @@
           "7d": {
             "format": "double",
             "type": "number"
+          },
+          "probe_id": {
+            "description": "The probe the percentages count. Omitted when they count every probe's checks.",
+            "examples": [
+              "local"
+            ],
+            "type": "string"
           }
         },
         "required": [
@@ -1590,6 +1605,13 @@
               "array",
               "null"
             ]
+          },
+          "probe_id": {
+            "description": "The probe the figures count. Omitted when they count every probe's checks.",
+            "examples": [
+              "local"
+            ],
+            "type": "string"
           },
           "uptime": {
             "format": "double",
@@ -7422,6 +7444,18 @@
               "description": "Reverse the order of heartbeats",
               "type": "boolean"
             }
+          },
+          {
+            "description": "Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.",
+            "in": "query",
+            "name": "probe_id",
+            "schema": {
+              "description": "Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.",
+              "examples": [
+                "local"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7604,6 +7638,18 @@
               "description": "Granularity (minute, hour, day)",
               "type": "string"
             }
+          },
+          {
+            "description": "Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.",
+            "in": "query",
+            "name": "probe_id",
+            "schema": {
+              "description": "Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.",
+              "examples": [
+                "local"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7683,6 +7729,18 @@
             "required": true,
             "schema": {
               "description": "Monitor ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.",
+            "in": "query",
+            "name": "probe_id",
+            "schema": {
+              "description": "Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.",
+              "examples": [
+                "local"
+              ],
               "type": "string"
             }
           }

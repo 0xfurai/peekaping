@@ -116,10 +116,11 @@ func (r *SQLRepositoryImpl) AddToStat(ctx context.Context, stat *Stat, period St
 	return err
 }
 
-func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
-	// A bucket holds a row for each probe that ran checks in it; the monitor's figures add them up
+func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
+	// A bucket holds a row for each probe that ran checks in it. Without a probe the monitor's
+	// figures add them up; with one there is a single row to add up.
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	query := r.db.NewSelect().
 		Model(&sms).
 		ModelTableExpr(statTable(period)).
 		ColumnExpr("timestamp").
@@ -132,13 +133,15 @@ func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context
 		ColumnExpr("MAX(ping_max) AS ping_max").
 		Where("monitor_id = ? AND timestamp BETWEEN ? AND ?", monitorID, since, until).
 		GroupExpr("timestamp").
-		Order("timestamp ASC").
-		Scan(ctx)
-	if err != nil {
+		Order("timestamp ASC")
+	if probeID != "" {
+		query = query.Where("probe_id = ?", probeID)
+	}
+	if err := query.Scan(ctx); err != nil {
 		return nil, err
 	}
 	for _, sm := range sms {
-		sm.MonitorID = monitorID
+		sm.MonitorID, sm.ProbeID = monitorID, probeID
 	}
 
 	var stats []*Stat
