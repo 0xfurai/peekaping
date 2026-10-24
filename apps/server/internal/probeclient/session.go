@@ -119,11 +119,16 @@ func NewSession(cfg SessionConfig) *Session {
 	return s
 }
 
-// sleepFor waits for d, or returns the context's error when it ends first
-func sleepFor(ctx context.Context, d time.Duration) error {
+// wait waits for d, or returns the context's error when it ends first. A wait of nothing is no wait.
+func (s *Session) wait(ctx context.Context, d time.Duration) error {
 	if d <= 0 {
 		return ctx.Err()
 	}
+	return s.sleep(ctx, d)
+}
+
+// sleepFor waits for d, or returns the context's error when it ends first
+func sleepFor(ctx context.Context, d time.Duration) error {
 	timer := time.NewTimer(d)
 	defer timer.Stop()
 	select {
@@ -204,7 +209,7 @@ func (s *Session) Connect(ctx context.Context) error {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		if err := s.sleep(ctx, s.Failure("say hello", err, &backoff)); err != nil {
+		if err := s.wait(ctx, s.Failure("say hello", err, &backoff)); err != nil {
 			return err
 		}
 	}

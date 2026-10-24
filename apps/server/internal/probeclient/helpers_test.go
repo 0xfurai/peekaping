@@ -14,6 +14,7 @@ import (
 
 	"peekaping/internal/probeproto"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -69,6 +70,8 @@ type sleeper struct {
 	mu    sync.Mutex
 	slept []time.Duration
 	after func(n int, d time.Duration)
+	// block makes a wait last until its context ends
+	block bool
 }
 
 func (s *sleeper) Sleep(ctx context.Context, d time.Duration) error {
@@ -78,6 +81,9 @@ func (s *sleeper) Sleep(ctx context.Context, d time.Duration) error {
 	s.mu.Unlock()
 	if s.after != nil {
 		s.after(n, d)
+	}
+	if s.block {
+		<-ctx.Done()
 	}
 	return ctx.Err()
 }
@@ -105,4 +111,130 @@ func logged(logs *observer.ObservedLogs, level string) []string {
 		}
 	}
 	return out
+}
+
+// holdingSleeper is a sleeper that, after it notes a wait, does not return until its context ends,
+// for a test that wants the probe parked in its backoff
+func holdingSleeper() *sleeper {
+	return &sleeper{block: true}
+}
+
+// pollStep is how the stand-in server answers one long poll
+type pollStep func(w http.ResponseWriter)
+
+// assignmentServer is a stand-in for the probe server that welcomes every hello and answers the
+// n-th poll with the n-th step. Once the steps are used up a poll is held until the probe hangs up,
+// as a long poll with nothing to say is. It notes the hellos and polls in the order they came.
+type assignmentServer struct {
+	*httptest.Server
+
+	mu       sync.Mutex
+	events   []string
+	versions []string
+	polls    int
+}
+
+func newAssignmentServer(t *testing.T, steps ...pollStep) *assignmentServer {
+	t.Helper()
+	s := &assignmentServer{}
+	s.Server = newServer(t, func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/probe/v1/hello":
+			s.note("hello")
+			reply(w, http.StatusOK, welcomeFrom(time.Now()))
+		case "/probe/v1/assignments":
+			s.mu.Lock()
+			n := s.polls
+			s.polls++
+			s.events = append(s.events, "poll")
+			s.versions = append(s.versions, r.URL.Query().Get("version"))
+			s.mu.Unlock()
+			if n < len(steps) {
+				steps[n](w)
+				return
+			}
+			<-r.Context().Done()
+		default:
+			http.NotFound(w, r)
+		}
+	})
+	return s
+}
+
+func (s *assignmentServer) note(event string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.events = append(s.events, event)
+}
+
+// sequence is the hellos and polls the server has seen, in order
+func (s *assignmentServer) sequence() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.events...)
+}
+
+// polledVersions are the versions the polls named, in order
+func (s *assignmentServer) polledVersions() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.versions...)
+}
+
+// snapshot answers a poll with the probe's monitors at a version
+func snapshot(version string, monitors ...probeproto.Monitor) pollStep {
+	return func(w http.ResponseWriter) {
+		reply(w, http.StatusOK, probeproto.AssignmentsResponse{Version: version, Monitors: monitors})
+	}
+}
+
+// unchanged answers a poll with 304
+func unchanged() pollStep {
+	return func(w http.ResponseWriter) { w.WriteHeader(http.StatusNotModified) }
+}
+
+// failing answers a poll with an error
+func failing(status int, message string, retryAfter time.Duration) pollStep {
+	return func(w http.ResponseWriter) { fail(w, status, message, retryAfter) }
+}
+
+// dropped cuts a poll's answer short and closes the connection, which the probe sees as a network
+// error. (A connection closed before any answer is tried again by net/http, behind the probe's back.)
+func dropped() pollStep {
+	return func(w http.ResponseWriter) {
+		conn, _, err := w.(http.Hijacker).Hijack()
+		if err != nil {
+			return
+		}
+		_, _ = conn.Write([]byte("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 100\r\n\r\n{\"version\":"))
+		_ = conn.Close()
+	}
+}
+
+var monitorTime = time.Date(2026, 10, 23, 9, 0, 0, 0, time.UTC)
+
+// httpMonitor is a monitor of the probe's assignment
+func httpMonitor(id string, mods ...func(*probeproto.Monitor)) probeproto.Monitor {
+	m := probeproto.Monitor{
+		ID: id, Name: "Monitor " + id, Type: "http", Interval: 60, Timeout: 16, MaxRetries: 3, RetryInterval: 60, ResendInterval: 10,
+		Config: `{"url":"https://example.com"}`, UpdatedAt: monitorTime,
+	}
+	for _, mod := range mods {
+		mod(&m)
+	}
+	return m
+}
+
+// behindProxy gives the monitor a proxy
+func behindProxy(host string) func(*probeproto.Monitor) {
+	return func(m *probeproto.Monitor) {
+		m.Proxy = &probeproto.Proxy{ID: "px1", Protocol: "socks5", Host: host, Port: 1080, Auth: true, Username: "scout", Password: "s3cret", UpdatedAt: monitorTime}
+	}
+}
+
+// expectSequence waits for the server to have seen the hellos and polls in this order
+func (s *assignmentServer) expectSequence(t *testing.T, want []string, msgAndArgs ...any) {
+	t.Helper()
+	require.Eventually(t, func() bool { return len(s.sequence()) >= len(want) }, 5*time.Second, time.Millisecond, msgAndArgs...)
+	assert.Equal(t, want, s.sequence(), msgAndArgs...)
 }
