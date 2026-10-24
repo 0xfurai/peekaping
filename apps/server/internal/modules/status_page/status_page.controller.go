@@ -257,9 +257,13 @@ func (c *Controller) publicLocations(ctx context.Context, m *shared.Monitor, hea
 		if err != nil {
 			return nil, err
 		}
-		uptime, err := c.monitorService.GetUptimeStats(ctx, m.ID, location.ProbeID)
-		if err != nil {
-			return nil, err
+		// Only the last 24 hours are shown. A visitor's page doesn't fail for want of this number:
+		// the location is listed with a null uptime.
+		var uptime24h *float64
+		if uptime, err := c.monitorService.GetUptime24h(ctx, m.ID, location.ProbeID); err != nil {
+			c.logger.Errorw("Failed to get the 24h uptime of a location", "error", err, "monitorID", m.ID, "probeID", location.ProbeID)
+		} else {
+			uptime24h = &uptime
 		}
 		status := shared.MonitorStatusPending
 		if location.Status != nil {
@@ -268,7 +272,7 @@ func (c *Controller) publicLocations(ctx context.Context, m *shared.Monitor, hea
 		public = append(public, &PublicLocationDTO{
 			Name:       location.ProbeName,
 			Status:     status,
-			Uptime24h:  uptime.Uptime24h,
+			Uptime24h:  uptime24h,
 			Heartbeats: publicHeartbeats(heartbeats),
 		})
 	}

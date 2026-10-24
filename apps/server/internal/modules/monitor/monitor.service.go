@@ -38,6 +38,9 @@ type Service interface {
 
 	GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
 	GetUptimeStats(ctx context.Context, id, probeID string) (*CustomUptimeStatsDto, error)
+	// GetUptime24h returns the monitor's uptime over the last 24 hours as a percentage, from the
+	// checks one probe ran (all of them when probeID is empty), with one stats read
+	GetUptime24h(ctx context.Context, id, probeID string) (float64, error)
 
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
 	ResetMonitorData(ctx context.Context, id string) error
@@ -589,6 +592,18 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id, probeID st
 	}
 
 	return stats, nil
+}
+
+func (mr *MonitorServiceImpl) GetUptime24h(ctx context.Context, id, probeID string) (float64, error) {
+	now := time.Now().UTC()
+	summary, err := mr.statPointsService.Summarize(ctx, id, probeID, now.Add(-24*time.Hour), now)
+	if err != nil {
+		return 0, err
+	}
+	if summary.Uptime == nil {
+		return 0, nil
+	}
+	return *summary.Uptime, nil
 }
 
 func (mr *MonitorServiceImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {

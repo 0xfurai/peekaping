@@ -868,7 +868,10 @@ export type StatusPagePublicLocationDto = {
    * The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports.
    */
   status: number;
-  uptime_24h: number;
+  /**
+   * The uptime of this location over the last 24 hours, in percent. Null when it could not be read.
+   */
+  uptime_24h: number | null;
 };
 
 export type StatusPageStatusPageWithMonitorsResponseDto = {

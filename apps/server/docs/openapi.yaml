@@ -2112,8 +2112,11 @@ components:
           format: int64
           type: integer
         uptime_24h:
+          description: The uptime of this location over the last 24 hours, in percent. Null when it could not be read.
           format: double
-          type: number
+          type:
+            - number
+            - "null"
       required:
         - name
         - status
