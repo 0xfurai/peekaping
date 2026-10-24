@@ -52,8 +52,11 @@ const BarHistory: React.FC<BarHistoryProps> = ({
     };
 
     updateCount();
-    window.addEventListener("resize", updateCount);
-    return () => window.removeEventListener("resize", updateCount);
+    // Watch the container, not the window: opening or closing the sidebar changes
+    // the container's width without a window resize.
+    const observer = new ResizeObserver(updateCount);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, [segmentWidth, gap]);
 
   const trimmedData = data.slice(-visibleCount);
