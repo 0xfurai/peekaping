@@ -93,6 +93,7 @@ type Scheduler struct {
 	ctx       context.Context      // the scheduler's lifetime; nil until it starts
 	cancel    context.CancelFunc
 	stopped   bool
+	stopping  chan struct{} // closed once the scheduler is stopped
 	wg        sync.WaitGroup
 }
 
@@ -131,6 +132,7 @@ func New(cfg Config) *Scheduler {
 		reconcileInterval: reconcileInterval,
 		logger:            cfg.Logger.With("component", "scheduler"),
 		slots:             make(chan struct{}, concurrency),
+		stopping:          make(chan struct{}),
 		schedules:         make(map[string]*schedule),
 		checks:            make(map[string]*checkRun),
 	}
@@ -178,25 +180,57 @@ func (s *Scheduler) Start(ctx context.Context) error {
 // Stop stops the timers, cancels the running checks and waits for them to end. Their
 // results are dropped.
 func (s *Scheduler) Stop() {
-	s.mu.Lock()
-	if s.ctx == nil || s.stopped {
-		s.mu.Unlock()
+	if !s.halt() {
 		return
 	}
-	s.stopped = true
-	for id, sc := range s.schedules {
-		sc.timer.Stop()
-		delete(s.schedules, id)
-	}
 	s.cancel()
-	s.mu.Unlock()
-
 	s.wg.Wait()
 	s.logger.Info("Scheduler stopped")
 }
 
-// reconcileEvery reconciles the timers with the source every reconcile interval until
-// ctx is done
+// Drain stops the timers and lets the running checks finish and their results be ingested,
+// for as long as ctx lasts. When ctx is done first, it cancels the checks that are left and
+// drops their results, as Stop does. A check waiting for a slot in the pool never starts.
+// Drain returns once every check has ended, and the scheduler is stopped: Stop does nothing
+// after it.
+func (s *Scheduler) Drain(ctx context.Context) {
+	if !s.halt() {
+		return
+	}
+	ended := make(chan struct{})
+	go func() {
+		s.wg.Wait()
+		close(ended)
+	}()
+	select {
+	case <-ended:
+	case <-ctx.Done():
+		s.logger.Warn("Drain ran out of time, cancelling the checks that are still running")
+	}
+	s.cancel()
+	<-ended
+	s.logger.Info("Scheduler stopped")
+}
+
+// halt stops the timers and keeps any new check from starting. It reports false when the
+// scheduler has not started, or is stopped already.
+func (s *Scheduler) halt() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.ctx == nil || s.stopped {
+		return false
+	}
+	s.stopped = true
+	close(s.stopping)
+	for id, sc := range s.schedules {
+		sc.timer.Stop()
+		delete(s.schedules, id)
+	}
+	return true
+}
+
+// reconcileEvery reconciles the timers with the source every reconcile interval until ctx is
+// done or the scheduler stops
 func (s *Scheduler) reconcileEvery(ctx context.Context) {
 	defer s.wg.Done()
 	ticker := time.NewTicker(s.reconcileInterval)
@@ -205,6 +239,8 @@ func (s *Scheduler) reconcileEvery(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			return
+		case <-s.stopping:
 			return
 		case <-ticker.C:
 			if err := s.reconcile(ctx); err != nil && ctx.Err() == nil {
@@ -406,6 +442,8 @@ func (s *Scheduler) takeSlot(ctx context.Context) bool {
 	select {
 	case s.slots <- struct{}{}:
 	case <-ctx.Done():
+		return false
+	case <-s.stopping:
 		return false
 	}
 	// The slot can win over a cancel that was ready too, or come free while a stop is
