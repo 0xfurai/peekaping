@@ -126,6 +126,37 @@ describe("mergeHeartbeats", () => {
     const merged = mergeHeartbeats([beat("1", "local"), beat("2", "local")], [beat("3", "local")], 2);
     expect(merged.map((b) => b.id)).toEqual(["2", "3"]);
   });
+
+  it("puts a live heartbeat that is older than the fetched ones in time order", () => {
+    const at = (id: string, time: string) => ({ ...beat(id, "local"), time });
+    const merged = mergeHeartbeats(
+      [at("1", "2026-10-24T00:01:00Z"), at("3", "2026-10-24T00:03:00Z")],
+      [at("2", "2026-10-24T00:02:00Z")],
+      150
+    );
+    expect(merged.map((b) => b.id)).toEqual(["1", "2", "3"]);
+  });
+
+  it("keeps the newest by time, not by position, when over the limit", () => {
+    const at = (id: string, time: string) => ({ ...beat(id, "local"), time });
+    const merged = mergeHeartbeats(
+      [at("1", "2026-10-24T00:01:00Z"), at("3", "2026-10-24T00:03:00Z")],
+      [at("2", "2026-10-24T00:02:00Z")],
+      2
+    );
+    expect(merged.map((b) => b.id)).toEqual(["2", "3"]);
+  });
+
+  it("keeps one of two heartbeats with the same id, in its place by time", () => {
+    const at = (id: string, time: string) => ({ ...beat(id, "local"), time });
+    const merged = mergeHeartbeats(
+      [at("1", "2026-10-24T00:01:00Z"), at("2", "2026-10-24T00:02:00Z")],
+      [at("2", "2026-10-24T00:09:00Z"), at("3", "2026-10-24T00:03:00Z")],
+      150
+    );
+    expect(merged.map((b) => b.id)).toEqual(["1", "2", "3"]);
+    expect(merged[1].time).toBe("2026-10-24T00:02:00Z");
+  });
 });
 
 describe("currentStatus", () => {

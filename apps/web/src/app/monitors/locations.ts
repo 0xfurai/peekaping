@@ -53,10 +53,13 @@ export const heartbeatsOfProbe = (heartbeats: HeartbeatModel[], probeId: string)
   heartbeats.filter((heartbeat) => heartbeat.probe_id === probeId);
 
 // The heartbeats a page shows for a probe: the ones it fetched, then the ones that arrived live
-// since, minus the ones a later fetch returned too. Oldest first, at most `limit` of them.
+// since, minus the ones a later fetch returned too. Oldest first by time, so a live heartbeat never
+// sits out of order, and at most the newest `limit` of them.
 export const mergeHeartbeats = (fetched: HeartbeatModel[], live: HeartbeatModel[], limit: number): HeartbeatModel[] => {
   const known = new Set(fetched.map((heartbeat) => heartbeat.id));
-  return [...fetched, ...live.filter((heartbeat) => !known.has(heartbeat.id))].slice(-limit);
+  return [...fetched, ...live.filter((heartbeat) => !known.has(heartbeat.id))]
+    .sort((a, b) => Date.parse(a.time) - Date.parse(b.time))
+    .slice(-limit);
 };
 
 // A location's status: its latest heartbeat's, else the one the monitor reported when it loaded

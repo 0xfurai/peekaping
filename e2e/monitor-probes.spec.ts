@@ -297,3 +297,50 @@ test('Two probes picked in the form are both saved', async ({ page }) => {
     await cleanUp(page, { probe, monitor });
   }
 });
+
+test('A probe is picked with the keyboard alone', async ({ page }) => {
+  const { probe, monitor } = names();
+
+  await page.goto('/monitors');
+  try {
+    const api = await adminAPI(page);
+    await createProbe(api, probe);
+    await api.dispose();
+
+    await page.goto('/monitors/new');
+    await page.locator('input[name="name"]').fill(monitor);
+    await page.locator('input[name="url"]').fill(targetURL('monitor-probes'));
+
+    // Enter on the focused select opens the list, with the search field focused. The search keeps
+    // the selected Local probe in the list, so the probe is the second option.
+    await probeSelect(page).focus();
+    await page.keyboard.press('Enter');
+    const search = page.getByPlaceholder('Search...');
+    await expect(search).toBeFocused();
+    await search.fill(probe);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    const option = page.getByRole('option', { name: probe, exact: true });
+    await expect(search).toHaveAttribute('aria-activedescendant', (await option.getAttribute('id')) ?? 'no id');
+    await page.keyboard.press('Enter');
+    await expect(option).toHaveAttribute('aria-selected', 'true');
+
+    // A space picks too, but only while the search is empty: before that it is a character of
+    // the search. The probe stays the active option when the search clears.
+    await search.fill('');
+    await page.keyboard.press('Space');
+    await expect(option).toHaveAttribute('aria-selected', 'false');
+    await page.keyboard.press('Enter');
+    await expect(option).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Escape');
+    await expect(probeSelect(page).getByText(probe, { exact: true })).toBeVisible();
+
+    await submit(page);
+    await expect(page).toHaveURL(monitorPageURL, { timeout: 10000 });
+    const locations = page.getByTestId('monitor-location');
+    await expect(locations).toHaveCount(2);
+    await expect(locations.nth(1).getByTestId('monitor-location-name')).toHaveText(probe);
+  } finally {
+    await cleanUp(page, { probe, monitor });
+  }
+});

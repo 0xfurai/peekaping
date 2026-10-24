@@ -15,6 +15,14 @@ export const probeRunsType = (probe: Pick<ProbeProbeResponse, "supported_types">
 export const probeIdsOf = (type: string, probeIds: string[]): string[] =>
   type === "push" ? [LOCAL_PROBE_ID] : probeIds;
 
+// The form's values as they are checked and submitted: a push monitor is on the local probe even
+// when the form holds none (the field shows Local). The form itself keeps what the user chose, so
+// a switch away from push brings the earlier selection back.
+export const withEffectiveProbes = <T extends { type: string; probe_ids: string[] }>(values: T): T => ({
+  ...values,
+  probe_ids: probeIdsOf(values.type, values.probe_ids),
+});
+
 // Whether the lists hold the same probes, whatever their order
 const sameProbes = (a: string[], b: string[]): boolean =>
   a.length === b.length && [...a].sort().join("\0") === [...b].sort().join("\0");
