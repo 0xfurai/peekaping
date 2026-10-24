@@ -194,7 +194,7 @@ func (s *Session) Tunables() Tunables {
 // Connect says hello unless the probe already has, and until the server answers it: a probe that
 // is refused keeps trying, and never gives up. It returns only when hello is answered or ctx ends.
 //
-// Callers say Connect before every call, since a failed call loses the hello (Failure): whoever
+// Callers say Connect before every call, since a failed call loses the hello: whoever
 // finds it lost says hello again, and the others wait for that one.
 func (s *Session) Connect(ctx context.Context) error {
 	select {
@@ -219,7 +219,7 @@ func (s *Session) Connect(ctx context.Context) error {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		if err := s.wait(ctx, s.Failure("say hello", err, &backoff)); err != nil {
+		if err := s.wait(ctx, s.failed("say hello", err, &backoff)); err != nil {
 			return err
 		}
 	}
@@ -262,7 +262,7 @@ func (s *Session) greet(welcome *probeproto.HelloResponse) {
 	}
 }
 
-// Failure decides what a failed call means, logs it, and returns how long to wait before the next
+// failed decides what a failed call means, logs it, and returns how long to wait before the next
 // attempt. call names what failed. backoff is the caller's own: the wait it advances is the one for
 // a server that doesn't answer, and the caller resets it when a call is answered.
 //
@@ -276,7 +276,7 @@ func (s *Session) greet(welcome *probeproto.HelloResponse) {
 //
 // A network error or a 5xx also loses the hello, since the server may have restarted. After a 401,
 // too: the instance was never recorded.
-func (s *Session) Failure(call string, err error, backoff *Backoff) time.Duration {
+func (s *Session) failed(call string, err error, backoff *Backoff) time.Duration {
 	var failure *probeproto.Error
 	if !errors.As(err, &failure) {
 		s.lose()
@@ -320,16 +320,16 @@ func (s *Session) Failure(call string, err error, backoff *Backoff) time.Duratio
 	}
 }
 
-// Assignments long-polls for the probe's monitors, as probeproto's client does, bounded by the
-// poll timeout the server stated plus some slack
-func (s *Session) Assignments(ctx context.Context, version string) (*probeproto.AssignmentsResponse, error) {
+// poll long-polls for the probe's monitors, as probeproto's client does, bounded by the poll
+// timeout the server stated plus some slack
+func (s *Session) poll(ctx context.Context, version string) (*probeproto.AssignmentsResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.Tunables().PollTimeout+pollSlack)
 	defer cancel()
 	return s.client.Assignments(ctx, version)
 }
 
-// Results posts a batch, as probeproto's client does, bounded by the request timeout
-func (s *Session) Results(ctx context.Context, req *probeproto.ResultsRequest) (*probeproto.ResultsResponse, error) {
+// post sends a batch of results, as probeproto's client does, bounded by the request timeout
+func (s *Session) post(ctx context.Context, req *probeproto.ResultsRequest) (*probeproto.ResultsResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
 	defer cancel()
 	return s.client.Results(ctx, req)

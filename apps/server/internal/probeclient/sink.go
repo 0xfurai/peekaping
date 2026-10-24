@@ -230,7 +230,7 @@ func (s *Sink) drain(ctx context.Context) error {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		if err := s.session.wait(ctx, s.session.Failure("send results", err, &backoff)); err != nil {
+		if err := s.session.wait(ctx, s.session.failed("send results", err, &backoff)); err != nil {
 			return err
 		}
 	}
@@ -251,7 +251,7 @@ func (s *Sink) sendBatch(ctx context.Context) error {
 	for i, e := range batch {
 		results[i] = e.result
 	}
-	answer, err := s.session.Results(ctx, &probeproto.ResultsRequest{Results: results})
+	answer, err := s.session.post(ctx, &probeproto.ResultsRequest{Results: results})
 	if err != nil {
 		return s.refusedBatch(batch, err)
 	}

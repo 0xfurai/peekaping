@@ -59,19 +59,19 @@ func (s *Source) Ready() bool {
 
 // Run follows the assignment until ctx ends: it says hello, then polls the server with the version
 // it holds, taking each assignment the server answers with. A call that fails is dealt with by the
-// session's rules (Session.Failure), and the poll goes on from the assignment held.
+// session's rules, and the poll goes on from the assignment held.
 func (s *Source) Run(ctx context.Context) {
 	var backoff Backoff
 	for ctx.Err() == nil {
 		if err := s.session.Connect(ctx); err != nil {
 			return
 		}
-		assignment, err := s.session.Assignments(ctx, s.heldVersion())
+		assignment, err := s.session.poll(ctx, s.heldVersion())
 		if err != nil {
 			if ctx.Err() != nil {
 				return
 			}
-			if err := s.session.wait(ctx, s.session.Failure("poll for assignments", err, &backoff)); err != nil {
+			if err := s.session.wait(ctx, s.session.failed("poll for assignments", err, &backoff)); err != nil {
 				return
 			}
 			continue
