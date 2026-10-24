@@ -49,7 +49,8 @@ async function sayHello(page: Page, token: string, supportedTypes: string[]) {
 // when the spec failed can still be saving its monitor, so a refused probe delete lists the
 // monitors again and tries once more, instead of failing the spec with a message that hides why
 // it failed in the first place.
-async function cleanUp(page: Page, { monitor, probe }: { monitor: string; probe: string }) {
+async function cleanUp(page: Page, { monitor, probe }: { monitor: string; probe: string | string[] }) {
+  const probeNames = [probe].flat();
   const api = await adminAPI(page);
   try {
     await expect(async () => {
@@ -60,7 +61,7 @@ async function cleanUp(page: Page, { monitor, probe }: { monitor: string; probe:
         await deleteCreated(api, `monitors/${found.id}`);
       }
       const probes = await (await api.get('probes')).json();
-      for (const found of probes.data.filter((p: { name: string }) => p.name === probe)) {
+      for (const found of probes.data.filter((p: { name: string }) => probeNames.includes(p.name))) {
         const response = await api.delete(`probes/${found.id}`);
         expect(response.ok(), `DELETE probes/${found.id}: ${response.status()} ${await response.text()}`).toBeTruthy();
       }
@@ -342,5 +343,78 @@ test('A probe is picked with the keyboard alone', async ({ page }) => {
     await expect(locations.nth(1).getByTestId('monitor-location-name')).toHaveText(probe);
   } finally {
     await cleanUp(page, { probe, monitor });
+  }
+});
+
+const ruleSelect = (page: Page) => page.getByTestId('monitor-location-rule');
+const thresholdInput = (page: Page) => page.getByTestId('monitor-location-threshold');
+const tooHigh = "Can't be more than the number of probes you chose";
+
+test("A monitor's location rule is chosen once it has two probes, and saved with its number", async ({ page }) => {
+  const { probe, monitor } = names();
+  const second = `${probe} two`;
+
+  await page.goto('/monitors');
+  try {
+    const api = await adminAPI(page);
+    await createProbe(api, probe);
+    await createProbe(api, second);
+    const { id } = await createHTTPMonitor(api, monitor, targetURL('monitor-probes'));
+    await api.dispose();
+
+    await page.goto(`/monitors/${id}/edit`);
+    // One probe is one location: there is no rule to choose.
+    await expect(probeSelect(page)).toHaveText('Local');
+    await expect(ruleSelect(page)).toHaveCount(0);
+
+    await chooseProbes(page, ['Local', probe, second]);
+    await expect(ruleSelect(page)).toHaveText('Any location is Down');
+    await expect(thresholdInput(page)).toHaveCount(0);
+
+    await ruleSelect(page).click();
+    await page.getByRole('option', { name: 'At least N locations are Down', exact: true }).click();
+    await expect(ruleSelect(page)).toHaveText('At least N locations are Down');
+    // The number starts at 2 and can't be more than the three probes chosen.
+    await expect(thresholdInput(page)).toHaveValue('2');
+    await thresholdInput(page).fill('4');
+    await page.getByRole('button', { name: 'Update' }).click();
+    await expect(page.getByText(tooHigh)).toBeVisible();
+    await expect(page).toHaveURL(/\/edit$/);
+    await thresholdInput(page).fill('2');
+    await expect(page.getByText(tooHigh)).toHaveCount(0);
+    await page.getByRole('button', { name: 'Update' }).click();
+    await page.waitForURL(monitorPageURL, { timeout: 10000 });
+
+    const check = await adminAPI(page);
+    const saved = (await (await check.get(`monitors/${id}`)).json()).data;
+    await check.dispose();
+    expect(saved.probe_ids).toHaveLength(3);
+    expect(saved.location_rule).toBe('at_least');
+    expect(saved.location_threshold).toBe(2);
+
+    // The saved rule and number come back in the form.
+    await page.goto(`/monitors/${id}/edit`);
+    await expect(ruleSelect(page)).toHaveText('At least N locations are Down');
+    await expect(thresholdInput(page)).toHaveValue('2');
+
+    // Dropping a probe under the number is flagged; the number can come down with it.
+    await thresholdInput(page).fill('3');
+    await chooseProbes(page, ['Local', probe]);
+    await expect(page.getByText(tooHigh)).toBeVisible();
+    await thresholdInput(page).fill('2');
+    await expect(page.getByText(tooHigh)).toHaveCount(0);
+
+    // Back to one probe, the rule goes back to any: a number over the one location can't be saved.
+    await chooseProbes(page, ['Local']);
+    await expect(ruleSelect(page)).toHaveCount(0);
+    await page.getByRole('button', { name: 'Update' }).click();
+    await page.waitForURL(monitorPageURL, { timeout: 10000 });
+    const after = await adminAPI(page);
+    const reset = (await (await after.get(`monitors/${id}`)).json()).data;
+    await after.dispose();
+    expect(reset.location_rule).toBe('any');
+    expect(reset.location_threshold).toBeNull();
+  } finally {
+    await cleanUp(page, { probe: [probe, second], monitor });
   }
 });

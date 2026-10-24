@@ -35,10 +35,12 @@ const LocationRuleField = () => {
     }
   }, [isPush, probeCount, rule, threshold, setValue]);
 
-  // The threshold's limit moves with the probes: check it when they change, as the probe field does
+  // The threshold's limit moves with the probes: check it when they or the number change, as the
+  // probe field does, so that a message clears as soon as the number is right (the form only
+  // rechecks a field on change after a first submit)
   useEffect(() => {
     if (visible && rule === "at_least") void trigger("location_threshold");
-  }, [trigger, visible, rule, probeCount]);
+  }, [trigger, visible, rule, probeCount, threshold]);
 
   if (!visible) return null;
 
@@ -92,12 +94,12 @@ const LocationRuleField = () => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("monitors.form.shared.location_rule.threshold_label")}</FormLabel>
+              {/* No min or max on the input: the browser would block the submit with its own bubble,
+                  and the form's message says what is wrong, in the app's language */}
               <FormControl>
                 <Input
                   data-testid="monitor-location-threshold"
                   type="number"
-                  min={1}
-                  max={probeCount}
                   {...field}
                   value={field.value ?? ""}
                 />
