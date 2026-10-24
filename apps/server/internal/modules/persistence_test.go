@@ -21,6 +21,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/status_page"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -69,6 +70,7 @@ type repositories struct {
 	maintenance   maintenance.Repository
 	monitors      monitor_status_page.Repository
 	domains       domain_status_page.Repository
+	pages         status_page.Repository
 	settings      setting.Repository
 	tls           monitor_tls_info.Repository
 	history       notification_sent_history.Repository
@@ -78,6 +80,9 @@ type repositories struct {
 	// uniqueSettingKeys is whether the storage refuses a second setting with the same key. SQL does
 	// (the key is the primary key); MongoDB has no unique index on it and is frozen (ADR 0001).
 	uniqueSettingKeys bool
+	// storesShowLocations is whether the storage keeps a status page's show-locations setting. SQL
+	// does; MongoDB is frozen (ADR 0001), keeps nothing of it and always reads false.
+	storesShowLocations bool
 }
 
 func sqlRepositories(t *testing.T, db *bun.DB) repositories {
@@ -96,9 +101,9 @@ func sqlRepositories(t *testing.T, db *bun.DB) repositories {
 		require.NoError(t, err)
 	}
 	return repositories{
-		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db),
+		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db), status_page.NewSQLRepository(db),
 		setting.NewSQLRepository(db), monitor_tls_info.NewSQLRepository(db), notification_sent_history.NewSQLRepository(db),
-		statusID, monitorID, replacementID, true,
+		statusID, monitorID, replacementID, true, true,
 	}
 }
 
@@ -142,9 +147,9 @@ func TestRepositoriesUseDomainModels(t *testing.T) {
 			require.NoError(t, client.Disconnect(context.Background()))
 		})
 		exerciseRepositories(t, repositories{
-			maintenance.NewMongoRepository(client, cfg), monitor_status_page.NewMongoRepository(client, cfg), domain_status_page.NewMongoRepository(client, cfg),
+			maintenance.NewMongoRepository(client, cfg), monitor_status_page.NewMongoRepository(client, cfg), domain_status_page.NewMongoRepository(client, cfg), status_page.NewMongoRepository(client, cfg),
 			setting.NewMongoRepository(client, cfg), monitor_tls_info.NewMongoRepository(client, cfg), notification_sent_history.NewMongoRepository(client, cfg),
-			primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), false,
+			primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), false, false,
 		})
 	})
 }
@@ -177,6 +182,37 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		actual, err = repos.maintenance.FindByID(ctx, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, input.Title, actual.Title)
+	})
+	t.Run("StatusPageShowLocations", func(t *testing.T) {
+		plain, err := repos.pages.Create(ctx, &status_page.Model{Slug: "plain-page", Title: "Plain"})
+		require.NoError(t, err)
+		assert.False(t, plain.ShowLocations, "a page made without the setting")
+		eachPlace, err := repos.pages.Create(ctx, &status_page.Model{Slug: "each-place", Title: "Each place", ShowLocations: true})
+		require.NoError(t, err)
+		found, err := repos.pages.FindByID(ctx, eachPlace.ID)
+		require.NoError(t, err)
+		if !repos.storesShowLocations {
+			on := true
+			require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{ShowLocations: &on}))
+			found, err = repos.pages.FindByID(ctx, eachPlace.ID)
+			require.NoError(t, err)
+			assert.False(t, found.ShowLocations, "this storage keeps nothing of the setting")
+			return
+		}
+		assert.True(t, found.ShowLocations, "stored on create")
+		title, off, on := "Renamed", false, true
+		require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{Title: &title}))
+		found, err = repos.pages.FindBySlug(ctx, "each-place")
+		require.NoError(t, err)
+		assert.True(t, found.ShowLocations, "an update that leaves it out keeps it")
+		require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{ShowLocations: &off}))
+		found, err = repos.pages.FindByID(ctx, eachPlace.ID)
+		require.NoError(t, err)
+		assert.False(t, found.ShowLocations, "turned off")
+		require.NoError(t, repos.pages.Update(ctx, plain.ID, &status_page.UpdateModel{ShowLocations: &on}))
+		found, err = repos.pages.FindByID(ctx, plain.ID)
+		require.NoError(t, err)
+		assert.True(t, found.ShowLocations, "turned on")
 	})
 	t.Run("StatusPageMonitors", func(t *testing.T) {
 		created, err := repos.monitors.Create(ctx, &monitor_status_page.Model{StatusPageID: repos.statusPageID, MonitorID: repos.monitorID, Active: true, Order: 3})

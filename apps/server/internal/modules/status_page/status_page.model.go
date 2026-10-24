@@ -10,6 +10,7 @@ type Model struct {
 	Icon                string `json:"icon" bson:"icon"`
 	Theme               string `json:"theme" bson:"theme"`
 	Published           bool   `json:"published" bson:"published"`
+	ShowLocations       bool   `json:"show_locations" bson:"show_locations"`
 	FooterText          string `json:"footer_text" bson:"footer_text"`
 	AutoRefreshInterval int    `json:"auto_refresh_interval" bson:"auto_refresh_interval"`
 
@@ -24,6 +25,7 @@ type UpdateModel struct {
 	Icon                *string `json:"icon,omitempty" bson:"icon,omitempty"`
 	Theme               *string `json:"theme,omitempty" bson:"theme,omitempty"`
 	Published           *bool   `json:"published,omitempty" bson:"published,omitempty"`
+	ShowLocations       *bool   `json:"show_locations,omitempty" bson:"show_locations,omitempty"`
 	FooterText          *string `json:"footer_text,omitempty" bson:"footer_text,omitempty"`
 	AutoRefreshInterval *int    `json:"auto_refresh_interval,omitempty" bson:"auto_refresh_interval,omitempty"`
 }

@@ -1472,6 +1472,8 @@
     "published_status": "Publicat",
     "search_label": "Căutare",
     "search_placeholder": "Caută pagini de stare după titlu...",
+    "show_locations": "Afișează fiecare locație",
+    "show_locations_info": "Pentru monitoarele verificate din mai multe locații, afișează starea și istoricul fiecărei locații",
     "update_status_page": "Actualizează pagina de stare",
     "view_page": "Vezi pagina"
   },

@@ -1406,6 +1406,41 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 	})
 }
 
+func TestMonitorService_GetUptime24h(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("reads the last 24 hours of one probe with one stats read", func(t *testing.T) {
+		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
+		uptime := 87.5
+		mockStatsService.On("Summarize", ctx, "monitor123", "probe-frankfurt", sinceAgo(24*time.Hour), mock.AnythingOfType("time.Time")).Return(&stats.Stats{Uptime: &uptime}, nil).Once()
+
+		result, err := service.GetUptime24h(ctx, "monitor123", "probe-frankfurt")
+
+		assert.NoError(t, err)
+		assert.Equal(t, 87.5, result)
+		mockStatsService.AssertExpectations(t)
+	})
+
+	t.Run("no checks in the period is 0", func(t *testing.T) {
+		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
+		mockStatsService.On("Summarize", ctx, "monitor123", "", sinceAgo(24*time.Hour), mock.AnythingOfType("time.Time")).Return(&stats.Stats{}, nil).Once()
+
+		result, err := service.GetUptime24h(ctx, "monitor123", "")
+
+		assert.NoError(t, err)
+		assert.Equal(t, 0.0, result)
+	})
+
+	t.Run("a stats error is returned", func(t *testing.T) {
+		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
+		mockStatsService.On("Summarize", ctx, "monitor123", "p", sinceAgo(24*time.Hour), mock.AnythingOfType("time.Time")).Return(nil, errors.New("stats error")).Once()
+
+		_, err := service.GetUptime24h(ctx, "monitor123", "p")
+
+		assert.Error(t, err)
+	})
+}
+
 func TestMonitorService_ResetMonitorData(t *testing.T) {
 	ctx := context.Background()
 

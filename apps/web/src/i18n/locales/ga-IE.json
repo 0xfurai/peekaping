@@ -1472,6 +1472,8 @@
     "published_status": "Foilsithe",
     "search_label": "Cuardaigh",
     "search_placeholder": "Cuardaigh leathanacha stádas de réir teideal…",
+    "show_locations": "Taispeáin gach suíomh",
+    "show_locations_info": "Maidir le monatóirí a sheiceáiltear ó roinnt suíomhanna, taispeántar stádas agus stair gach suímh",
     "update_status_page": "Nuashonraigh Leathanach Stádas",
     "view_page": "Féach an leathanach"
   },

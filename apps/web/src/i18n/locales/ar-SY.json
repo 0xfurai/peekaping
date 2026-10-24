@@ -1473,6 +1473,8 @@
     "published_status": "تم النشر",
     "search_label": "بحث",
     "search_placeholder": "ابحث عن صفحات الحالة بالعنوان...",
+    "show_locations": "إظهار كل موقع",
+    "show_locations_info": "لمراقبة تُفحص من عدة مواقع، اعرض حالة كل موقع وسجله",
     "update_status_page": "تحديث صفحة الحالة",
     "view_page": "عرض الصفحة"
   },

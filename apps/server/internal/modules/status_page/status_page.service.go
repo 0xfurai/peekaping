@@ -97,6 +97,7 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 		Icon:                dto.Icon,
 		Theme:               dto.Theme,
 		Published:           dto.Published,
+		ShowLocations:       dto.ShowLocations,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
 	}
@@ -232,6 +233,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		Icon:                dto.Icon,
 		Theme:               dto.Theme,
 		Published:           dto.Published,
+		ShowLocations:       dto.ShowLocations,
 		FooterText:          dto.FooterText,
 		AutoRefreshInterval: dto.AutoRefreshInterval,
 	}
@@ -378,6 +380,7 @@ func (s *ServiceImpl) mapModelToStatusPageWithMonitorsDTO(model *Model, monitorI
 		Icon:                model.Icon,
 		Theme:               model.Theme,
 		Published:           model.Published,
+		ShowLocations:       model.ShowLocations,
 		CreatedAt:           model.CreatedAt,
 		UpdatedAt:           model.UpdatedAt,
 		FooterText:          model.FooterText,

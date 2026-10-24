@@ -1940,6 +1940,9 @@ components:
           type: boolean
         show_certificate_expiry:
           type: boolean
+        show_locations:
+          description: List each location of a monitor that runs on several probes on the public page. Off by default.
+          type: boolean
         show_powered_by:
           type: boolean
         show_tags:
@@ -1994,6 +1997,8 @@ components:
           type: string
         published:
           type: boolean
+        show_locations:
+          type: boolean
         slug:
           type: string
         theme:
@@ -2011,6 +2016,7 @@ components:
         - icon
         - theme
         - published
+        - show_locations
         - footer_text
         - auto_refresh_interval
         - created_at
@@ -2029,10 +2035,23 @@ components:
             - "null"
         id:
           type: string
+        locations:
+          description: One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe.
+          items:
+            $ref: "#/components/schemas/status_page.PublicLocationDTO"
+          type:
+            - array
+            - "null"
         name:
           examples:
             - Monitor
           type: string
+        status:
+          description: "The monitor's status: 0 Down, 1 Up, 2 Pending, 3 Maintenance"
+          examples:
+            - 1
+          format: int64
+          type: integer
         type:
           examples:
             - http
@@ -2047,6 +2066,7 @@ components:
         - type
         - name
         - active
+        - status
       type: object
     status_page.PublicHeartbeatDTO:
       additionalProperties: false
@@ -2071,6 +2091,37 @@ components:
         - time
         - end_time
         - ping
+      type: object
+    status_page.PublicLocationDTO:
+      additionalProperties: false
+      properties:
+        heartbeats:
+          items:
+            $ref: "#/components/schemas/status_page.PublicHeartbeatDTO"
+          type:
+            - array
+            - "null"
+        name:
+          examples:
+            - Frankfurt
+          type: string
+        status:
+          description: "The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports."
+          examples:
+            - 1
+          format: int64
+          type: integer
+        uptime_24h:
+          description: The uptime of this location over the last 24 hours, in percent. Null when it could not be read.
+          format: double
+          type:
+            - number
+            - "null"
+      required:
+        - name
+        - status
+        - uptime_24h
+        - heartbeats
       type: object
     status_page.StatusPageWithMonitorsResponseDTO:
       additionalProperties: false
@@ -2113,6 +2164,8 @@ components:
           type: boolean
         show_certificate_expiry:
           type: boolean
+        show_locations:
+          type: boolean
         show_powered_by:
           type: boolean
         show_tags:
@@ -2134,6 +2187,7 @@ components:
         - icon
         - theme
         - published
+        - show_locations
         - search_engine_index
         - show_tags
         - created_at
@@ -2200,6 +2254,11 @@ components:
             - boolean
             - "null"
         show_certificate_expiry:
+          type:
+            - boolean
+            - "null"
+        show_locations:
+          description: List each location of a monitor that runs on several probes on the public page.
           type:
             - boolean
             - "null"

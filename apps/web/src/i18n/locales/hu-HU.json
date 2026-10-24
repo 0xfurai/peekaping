@@ -1473,6 +1473,8 @@
     "published_status": "Közzétéve",
     "search_label": "Keresés",
     "search_placeholder": "Keresés a státuszlapok címén...",
+    "show_locations": "Minden helyszín megjelenítése",
+    "show_locations_info": "A több helyszínről ellenőrzött monitorok esetén minden helyszín állapotát és előzményeit megjeleníti",
     "update_status_page": "Állapotlap frissítése",
     "view_page": "Oldal megtekintése"
   },

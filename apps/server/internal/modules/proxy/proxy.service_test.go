@@ -180,6 +180,11 @@ func (m *MockMonitorService) FindOneByPushToken(ctx context.Context, pushToken s
 	return args.Get(0).(*shared.Monitor), args.Error(1)
 }
 
+func (m *MockMonitorService) GetUptime24h(ctx context.Context, id, probeID string) (float64, error) {
+	args := m.Called(ctx, id, probeID)
+	return args.Get(0).(float64), args.Error(1)
+}
+
 func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)

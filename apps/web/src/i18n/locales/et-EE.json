@@ -1473,6 +1473,8 @@
     "published_status": "Avaldatud",
     "search_label": "Otsi",
     "search_placeholder": "Otsi olekupäevikke pealkirja järgi...",
+    "show_locations": "Näita iga asukohta",
+    "show_locations_info": "Mitmest asukohast kontrollitavate monitooride puhul näidatakse iga asukoha olekut ja ajalugu",
     "update_status_page": "Uuenda olekulehte",
     "view_page": "Vaata lehte"
   },

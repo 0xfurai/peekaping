@@ -1473,6 +1473,8 @@
     "published_status": "Argitaratuta",
     "search_label": "Bilatu",
     "search_placeholder": "Bilatu egoera orriak izenbururako...",
+    "show_locations": "Erakutsi kokaleku bakoitza",
+    "show_locations_info": "Hainbat kokalekutatik egiaztatzen diren monitoreetan, kokaleku bakoitzaren egoera eta historia erakusten dira",
     "update_status_page": "Egoera orria eguneratu",
     "view_page": "Orria ikusi"
   },

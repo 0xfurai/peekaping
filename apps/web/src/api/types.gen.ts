@@ -793,6 +793,10 @@ export type StatusPageCreateStatusPageDto = {
   published?: boolean;
   search_engine_index?: boolean;
   show_certificate_expiry?: boolean;
+  /**
+   * List each location of a monitor that runs on several probes on the public page. Off by default.
+   */
+  show_locations?: boolean;
   show_powered_by?: boolean;
   show_tags?: boolean;
   slug: string;
@@ -825,6 +829,7 @@ export type StatusPageModel = {
   icon: string;
   id: string;
   published: boolean;
+  show_locations: boolean;
   slug: string;
   theme: string;
   title: string;
@@ -835,7 +840,15 @@ export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
   active: boolean;
   heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
   id: string;
+  /**
+   * One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe.
+   */
+  locations?: Array<StatusPagePublicLocationDto> | null;
   name: string;
+  /**
+   * The monitor's status: 0 Down, 1 Up, 2 Pending, 3 Maintenance
+   */
+  status: number;
   type: string;
   uptime_24h: number;
 };
@@ -846,6 +859,19 @@ export type StatusPagePublicHeartbeatDto = {
   ping: number;
   status: number;
   time: string;
+};
+
+export type StatusPagePublicLocationDto = {
+  heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
+  name: string;
+  /**
+   * The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports.
+   */
+  status: number;
+  /**
+   * The uptime of this location over the last 24 hours, in percent. Null when it could not be read.
+   */
+  uptime_24h: number | null;
 };
 
 export type StatusPageStatusPageWithMonitorsResponseDto = {
@@ -863,6 +889,7 @@ export type StatusPageStatusPageWithMonitorsResponseDto = {
   published: boolean;
   search_engine_index: boolean;
   show_certificate_expiry: boolean;
+  show_locations: boolean;
   show_powered_by: boolean;
   show_tags: boolean;
   slug: string;
@@ -884,6 +911,10 @@ export type StatusPageUpdateStatusPageDto = {
   published?: boolean | null;
   search_engine_index?: boolean | null;
   show_certificate_expiry?: boolean | null;
+  /**
+   * List each location of a monitor that runs on several probes on the public page.
+   */
+  show_locations?: boolean | null;
   show_powered_by?: boolean | null;
   show_tags?: boolean | null;
   slug?: string | null;
@@ -900,6 +931,7 @@ export type StatusPageUpdateStatusPageDto = {
     | (string | null)
     | (Array<string> | null)
     | (string | null)
+    | (boolean | null)
     | (boolean | null)
     | (boolean | null)
     | (boolean | null)

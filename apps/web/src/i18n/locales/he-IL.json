@@ -1473,6 +1473,8 @@
     "published_status": "פורסם",
     "search_label": "חיפוש",
     "search_placeholder": "חפש דפי סטטוס לפי כותרת...",
+    "show_locations": "הצג כל מיקום",
+    "show_locations_info": "עבור מוניטורים הנבדקים ממספר מיקומים, יוצגו המצב וההיסטוריה של כל מיקום",
     "update_status_page": "עדכן דף סטטוס",
     "view_page": "הצג עמוד"
   },

@@ -1473,6 +1473,8 @@
     "published_status": "Julkaistu",
     "search_label": "Etsi",
     "search_placeholder": "Etsi tilanne-sivut otsikon perusteella...",
+    "show_locations": "Näytä jokainen sijainti",
+    "show_locations_info": "Useasta sijainnista tarkistettaville valvonnoille näytetään kunkin sijainnin tila ja historia",
     "update_status_page": "Päivitä tilasivu",
     "view_page": "Näytä sivu"
   },
