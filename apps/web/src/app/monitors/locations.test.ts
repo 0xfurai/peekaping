@@ -175,25 +175,89 @@ describe("monitorStatusOf", () => {
   const status = (probeId: string, value: number | undefined, online = true) => ({ probeId, online, status: value });
 
   it("is Down while any online location is Down", () => {
-    expect(monitorStatusOf([status("a", MONITORING.up), status("b", MONITORING.down)])).toBe(MONITORING.down);
+    expect(monitorStatusOf([status("a", MONITORING.up), status("b", MONITORING.down)], "any", null)).toBe(MONITORING.down);
   });
 
   it("is Maintenance while any location is, and none is Down", () => {
-    expect(monitorStatusOf([status("a", MONITORING.up), status("b", MONITORING.maintenance)])).toBe(
+    expect(monitorStatusOf([status("a", MONITORING.up), status("b", MONITORING.maintenance)], "any", null)).toBe(
       MONITORING.maintenance
     );
   });
 
   it("is Up while any location is Up", () => {
-    expect(monitorStatusOf([status("a", MONITORING.up), status("b", MONITORING.pending)])).toBe(MONITORING.up);
+    expect(monitorStatusOf([status("a", MONITORING.up), status("b", MONITORING.pending)], "any", null)).toBe(MONITORING.up);
   });
 
   it("doesn't count an offline location or one without a status", () => {
-    expect(monitorStatusOf([status("a", MONITORING.up), status("b", MONITORING.down, false)])).toBe(MONITORING.up);
-    expect(monitorStatusOf([status("a", MONITORING.up), status("b", undefined)])).toBe(MONITORING.up);
+    expect(monitorStatusOf([status("a", MONITORING.up), status("b", MONITORING.down, false)], "any", null)).toBe(MONITORING.up);
+    expect(monitorStatusOf([status("a", MONITORING.up), status("b", undefined)], "any", null)).toBe(MONITORING.up);
   });
 
   it("is Pending when no location is known", () => {
-    expect(monitorStatusOf([status("a", undefined), status("b", MONITORING.up, false)])).toBe(MONITORING.pending);
+    expect(monitorStatusOf([status("a", undefined), status("b", MONITORING.up, false)], "any", null)).toBe(MONITORING.pending);
+  });
+
+  describe("under the all rule", () => {
+    it("is Down only when every location that counts is Down", () => {
+      expect(monitorStatusOf([status("a", MONITORING.down), status("b", MONITORING.down)], "all", null)).toBe(
+        MONITORING.down
+      );
+      expect(monitorStatusOf([status("a", MONITORING.down), status("b", MONITORING.up)], "all", null)).toBe(
+        MONITORING.up
+      );
+    });
+
+    it("doesn't count an offline location or one without a status", () => {
+      expect(
+        monitorStatusOf(
+          [status("a", MONITORING.down), status("b", MONITORING.up, false), status("c", undefined)],
+          "all",
+          null
+        )
+      ).toBe(MONITORING.down);
+    });
+
+    it("is not Down when no location counts", () => {
+      expect(monitorStatusOf([status("a", MONITORING.down, false), status("b", undefined)], "all", null)).toBe(
+        MONITORING.pending
+      );
+    });
+
+    it("is Maintenance when a location is in maintenance and not every one is Down", () => {
+      expect(monitorStatusOf([status("a", MONITORING.down), status("b", MONITORING.maintenance)], "all", null)).toBe(
+        MONITORING.maintenance
+      );
+    });
+  });
+
+  describe("under the at_least rule", () => {
+    const threeLocations = (a: number, b: number, c: number) => [
+      status("a", a),
+      status("b", b),
+      status("c", c),
+    ];
+
+    it("is Down when at least N locations are Down", () => {
+      const { down, up } = MONITORING;
+      expect(monitorStatusOf(threeLocations(down, up, up), "at_least", 2)).toBe(MONITORING.up);
+      expect(monitorStatusOf(threeLocations(down, down, up), "at_least", 2)).toBe(MONITORING.down);
+      expect(monitorStatusOf(threeLocations(down, down, down), "at_least", 2)).toBe(MONITORING.down);
+    });
+
+    it("doesn't count an offline Down location or one without a status", () => {
+      const { down, up } = MONITORING;
+      expect(
+        monitorStatusOf([status("a", down), status("b", down, false), status("c", up)], "at_least", 2)
+      ).toBe(MONITORING.up);
+      expect(monitorStatusOf([status("a", down), status("b", undefined), status("c", up)], "at_least", 2)).toBe(
+        MONITORING.up
+      );
+    });
+
+    it("is never Down for a threshold more than can report, or none", () => {
+      const { down } = MONITORING;
+      expect(monitorStatusOf([status("a", down), status("b", down)], "at_least", 3)).toBe(MONITORING.pending);
+      expect(monitorStatusOf([status("a", down)], "at_least", null)).toBe(MONITORING.pending);
+    });
   });
 });
