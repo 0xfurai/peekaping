@@ -434,3 +434,31 @@ func TestIngester_TheMonitorRecoversOnlyOnAnUpResult(t *testing.T) {
 	assert.Equal(t, []string{changed, notified}, bUp.events)
 	assert.Equal(t, up, bUp.published[len(bUp.published)-1].Status)
 }
+
+// Another location's retries don't take a Down monitor to Pending: it stays Down until an Up
+// result recovers it, and that recovery is the one that is notified.
+func TestIngester_ADownMonitorStaysDownWhileAnotherLocationRetries(t *testing.T) {
+	ti := newTestIngester(runningOn(probeA, probeB))
+	m := monitorSettings{maxRetries: 1}
+	ti.from(t, probeB, m, up)
+	ti.from(t, probeA, m, up)
+	ti.from(t, probeA, m, down)
+	aDown := ti.from(t, probeA, m, down)
+	require.Equal(t, []string{changed, notified}, aDown.events, "the monitor is Down")
+	ti.locations.setOffline(probeA)
+
+	bRetrying := ti.from(t, probeB, m, down)
+
+	assert.Equal(t, pending, bRetrying.status, "B has a retry left")
+	assert.Empty(t, bRetrying.events, "B's retry doesn't move the Down monitor")
+	require.Len(t, bRetrying.published, 2)
+
+	bUp := ti.from(t, probeB, m, up)
+
+	assert.Equal(t, up, bUp.status)
+	assert.True(t, bUp.important, "the monitor went Down to Up")
+	assert.True(t, bUp.notified)
+	assert.Equal(t, []string{changed, notified}, bUp.events)
+	require.Len(t, bUp.published, 3)
+	assert.Equal(t, up, bUp.published[2].Status)
+}
