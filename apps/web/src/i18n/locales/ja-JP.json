@@ -502,6 +502,16 @@
           "request_timeout": "リクエストタイムアウト（{{seconds}} 秒後にタイムアウト）",
           "resend_notification": "ダウンがX回連続した場合に再送通知（再送無効）"
         },
+        "location_rule": {
+          "all": "すべての場所が停止中",
+          "any": "いずれかの場所が停止中",
+          "at_least": "N か所以上の場所が停止中",
+          "description": "プローブがオフラインの場所、またはまだ結果を報告していない場所は数に含まれません。",
+          "label": "モニターを停止とみなす条件",
+          "threshold_invalid": "1以上の整数を入力してください",
+          "threshold_label": "場所の数",
+          "threshold_too_high": "選択したプローブの数を超えることはできません"
+        },
         "notifications": {
           "add_notifier": "通知を追加",
           "new_notifier": "+ 新しい通知先",

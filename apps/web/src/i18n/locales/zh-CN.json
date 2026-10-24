@@ -502,6 +502,16 @@
           "request_timeout": "请求超时（{{seconds}} 秒后超时）",
           "resend_notification": "若连续宕机 X 次，重新发送通知（已禁用）"
         },
+        "location_rule": {
+          "all": "所有位置都宕机",
+          "any": "任一位置宕机",
+          "at_least": "至少 N 个位置宕机",
+          "description": "探针离线或尚未上报的位置不计入。",
+          "label": "在以下情况下将监控标记为宕机",
+          "threshold_invalid": "请输入 1 或更大的整数",
+          "threshold_label": "位置数量",
+          "threshold_too_high": "不能超过你选择的探针数量"
+        },
         "notifications": {
           "add_notifier": "添加通知器",
           "new_notifier": "+ 新建通知器",

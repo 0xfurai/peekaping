@@ -502,6 +502,16 @@
           "request_timeout": "Request Timeout (Timeout after {{seconds}} seconds)",
           "resend_notification": "Resend Notification if Down X times consecutively (Resend disabled)"
         },
+        "location_rule": {
+          "all": "All locations are Down",
+          "any": "Any location is Down",
+          "at_least": "At least N locations are Down",
+          "description": "A location whose probe is offline, or that hasn't reported yet, doesn't count.",
+          "label": "Mark the monitor Down when",
+          "threshold_invalid": "Enter a whole number, 1 or more",
+          "threshold_label": "Number of locations",
+          "threshold_too_high": "Can't be more than the number of probes you chose"
+        },
         "notifications": {
           "add_notifier": "Add Notifier",
           "new_notifier": "+ New Notifier",

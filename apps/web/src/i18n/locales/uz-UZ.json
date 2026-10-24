@@ -502,6 +502,16 @@
           "request_timeout": "So'rovning muddat tugashi ({{seconds}} soniya o'tgach)",
           "resend_notification": "X ta uzluksiz down bo'lsa, xabarni qayta yuborish (Qayta yuborish o'chirilgan)"
         },
+        "location_rule": {
+          "all": "barcha joylashuvlar ishlamasa",
+          "any": "istalgan joylashuv ishlamasa",
+          "at_least": "kamida N ta joylashuv ishlamasa",
+          "description": "Zondi oflayn bo'lgan yoki hali natija bermagan joylashuv hisobga olinmaydi.",
+          "label": "Monitorni quyidagi holatda ishlamayapti deb belgilash",
+          "threshold_invalid": "Butun son kiriting, 1 yoki undan ko'p",
+          "threshold_label": "Joylashuvlar soni",
+          "threshold_too_high": "Tanlangan zondlar sonidan ko'p bo'lishi mumkin emas"
+        },
         "notifications": {
           "add_notifier": "Bildirishnoma qo'shish",
           "new_notifier": "+ Yangi bildirishchi",

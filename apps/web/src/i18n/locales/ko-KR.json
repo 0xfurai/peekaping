@@ -502,6 +502,16 @@
           "request_timeout": "요청 타임아웃 ({{seconds}}초 후)",
           "resend_notification": "연속 X회 다운 시 알림 재전송 (재전송 비활성화)"
         },
+        "location_rule": {
+          "all": "모든 위치가 다운일 때",
+          "any": "위치 중 하나라도 다운일 때",
+          "at_least": "N개 이상의 위치가 다운일 때",
+          "description": "프로브가 오프라인이거나 아직 보고하지 않은 위치는 포함되지 않습니다.",
+          "label": "모니터를 다운으로 표시하는 조건",
+          "threshold_invalid": "1 이상의 정수를 입력하세요",
+          "threshold_label": "위치 수",
+          "threshold_too_high": "선택한 프로브 수보다 클 수 없습니다"
+        },
         "notifications": {
           "add_notifier": "알림기 추가",
           "new_notifier": "+ 새 알림기",

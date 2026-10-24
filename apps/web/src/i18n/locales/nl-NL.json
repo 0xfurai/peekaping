@@ -502,6 +502,16 @@
           "request_timeout": "Verzoek time-out (Time-out na {{seconds}} seconden)",
           "resend_notification": "Notificatie opnieuw verzenden bij X opeenvolgende keren uitgevallen (Verzenden uitgeschakeld)"
         },
+        "location_rule": {
+          "all": "alle locaties zijn uitgevallen",
+          "any": "een willekeurige locatie is uitgevallen",
+          "at_least": "minstens N locaties zijn uitgevallen",
+          "description": "Een locatie waarvan de probe offline is, of die nog niets heeft gerapporteerd, telt niet mee.",
+          "label": "Markeer de monitor als uitgevallen wanneer",
+          "threshold_invalid": "Voer een geheel getal in, 1 of meer",
+          "threshold_label": "Aantal locaties",
+          "threshold_too_high": "Mag niet hoger zijn dan het aantal gekozen probes"
+        },
         "notifications": {
           "add_notifier": "Notifier toevoegen",
           "new_notifier": "+ Nieuwe notificatiebron",

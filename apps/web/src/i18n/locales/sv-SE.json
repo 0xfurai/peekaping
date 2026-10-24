@@ -502,6 +502,16 @@
           "request_timeout": "Begäran timeout (Timeout efter {{seconds}} sekunder)",
           "resend_notification": "Skicka om varning vid nedgång X gånger i rad (Skicka om inaktiverat)"
         },
+        "location_rule": {
+          "all": "alla platser är nere",
+          "any": "någon plats är nere",
+          "at_least": "minst N platser är nere",
+          "description": "En plats vars sond är offline, eller som inte har rapporterat ännu, räknas inte.",
+          "label": "Markera monitorn som nere när",
+          "threshold_invalid": "Ange ett heltal, 1 eller mer",
+          "threshold_label": "Antal platser",
+          "threshold_too_high": "Kan inte vara högre än antalet valda sonder"
+        },
         "notifications": {
           "add_notifier": "Lägg till notifierare",
           "new_notifier": "+ Ny notifierare",

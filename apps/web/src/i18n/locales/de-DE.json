@@ -502,6 +502,16 @@
           "request_timeout": "Zeitüberschreitung der Anfrage (Timeout nach {{seconds}} Sekunden)",
           "resend_notification": "Benachrichtigung erneut senden, wenn der Monitor X Mal hintereinander ausfällt (Wiederholung deaktiviert)"
         },
+        "location_rule": {
+          "all": "alle Standorte ausgefallen sind",
+          "any": "ein beliebiger Standort ausgefallen ist",
+          "at_least": "mindestens N Standorte ausgefallen sind",
+          "description": "Ein Standort, dessen Sonde offline ist oder noch nichts gemeldet hat, zählt nicht mit.",
+          "label": "Monitor als ausgefallen markieren, wenn",
+          "threshold_invalid": "Gib eine ganze Zahl ab 1 ein",
+          "threshold_label": "Anzahl der Standorte",
+          "threshold_too_high": "Darf nicht größer sein als die Anzahl der gewählten Sonden"
+        },
         "notifications": {
           "add_notifier": "Notifier hinzufügen",
           "new_notifier": "+ Neuer Benachrichtigungsdienst",

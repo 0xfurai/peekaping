@@ -502,6 +502,16 @@
           "request_timeout": "Časovna omejitev (Pretek po {{seconds}} sekundah)",
           "resend_notification": "Ponovno pošlji obvestilo, če je izpala X-krat zaporedno (Ponovno pošiljanje onemogočeno)"
         },
+        "location_rule": {
+          "all": "vse lokacije ne delujejo",
+          "any": "katera koli lokacija ne deluje",
+          "at_least": "vsaj N lokacij ne deluje",
+          "description": "Lokacija, katere sonda je brez povezave ali se še ni javila, se ne šteje.",
+          "label": "Označi monitor kot nedelujoč, ko",
+          "threshold_invalid": "Vnesite celo število, 1 ali več",
+          "threshold_label": "Število lokacij",
+          "threshold_too_high": "Ne sme biti večje od števila izbranih sond"
+        },
         "notifications": {
           "add_notifier": "Dodaj obveščevalnik",
           "new_notifier": "+ Nov opozorilnik",

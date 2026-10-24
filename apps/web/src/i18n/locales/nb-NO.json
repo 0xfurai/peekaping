@@ -502,6 +502,16 @@
           "request_timeout": "Forespørsel timeout (Timeout etter {{seconds}} sekunder)",
           "resend_notification": "Send varsel på nytt hvis ned i X påfølgende ganger (Send på nytt deaktivert)"
         },
+        "location_rule": {
+          "all": "alle plasseringer er nede",
+          "any": "en hvilken som helst plassering er nede",
+          "at_least": "minst N plasseringer er nede",
+          "description": "En plassering der proben er offline, eller som ikke har rapportert ennå, regnes ikke med.",
+          "label": "Merk monitoren som nede når",
+          "threshold_invalid": "Skriv inn et helt tall, 1 eller mer",
+          "threshold_label": "Antall plasseringer",
+          "threshold_too_high": "Kan ikke være høyere enn antallet valgte prober"
+        },
         "notifications": {
           "add_notifier": "Legg til varsel",
           "new_notifier": "+ Ny varsler",

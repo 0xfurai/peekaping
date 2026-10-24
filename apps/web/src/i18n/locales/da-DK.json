@@ -502,6 +502,16 @@
           "request_timeout": "Anmodning timeout (Timeout efter {{seconds}} sekunder)",
           "resend_notification": "Gen-send, hvis ned X gange i træk (Gen-send deaktiveret)"
         },
+        "location_rule": {
+          "all": "alle placeringer er nede",
+          "any": "en vilkårlig placering er nede",
+          "at_least": "mindst N placeringer er nede",
+          "description": "En placering, hvis probe er offline eller endnu ikke har rapporteret, tæller ikke med.",
+          "label": "Markér monitoren som nede, når",
+          "threshold_invalid": "Angiv et helt tal på 1 eller mere",
+          "threshold_label": "Antal placeringer",
+          "threshold_too_high": "Må ikke være højere end antallet af valgte prober"
+        },
         "notifications": {
           "add_notifier": "Tilføj notifikator",
           "new_notifier": "+ Ny notifier",

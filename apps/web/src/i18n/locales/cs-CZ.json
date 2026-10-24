@@ -502,6 +502,16 @@
           "request_timeout": "Čas vypršení požadavku (po {{seconds}} sekundách vyprší)",
           "resend_notification": "Znovu odeslat upozornění, pokud dojde k výpadku X krát po sobě (Znovu odesílání je vypnuto)"
         },
+        "location_rule": {
+          "all": "jsou nedostupná všechna umístění",
+          "any": "je nedostupné libovolné umístění",
+          "at_least": "je nedostupných alespoň N umístění",
+          "description": "Umístění, jehož sonda je offline nebo se ještě nenahlásila, se nepočítá.",
+          "label": "Označit monitor jako nedostupný, když",
+          "threshold_invalid": "Zadejte celé číslo, 1 nebo více",
+          "threshold_label": "Počet umístění",
+          "threshold_too_high": "Nesmí být vyšší než počet vybraných sond"
+        },
         "notifications": {
           "add_notifier": "Přidat notifikátor",
           "new_notifier": "+ Nový notifikátor",

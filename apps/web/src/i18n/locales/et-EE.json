@@ -502,6 +502,16 @@
           "request_timeout": "Päringu aegumine (aegumine pärast {{seconds}} sekundit)",
           "resend_notification": "Saada teavitus uuesti, kui alla X korda järjest (Uuesti saatmine keelatud)"
         },
+        "location_rule": {
+          "all": "kõik asukohad on all",
+          "any": "mis tahes asukoht on all",
+          "at_least": "vähemalt N asukohta on all",
+          "description": "Asukohta, mille sond on võrguühenduseta või pole veel tulemust andnud, ei arvestata.",
+          "label": "Märgi monitor alla, kui",
+          "threshold_invalid": "Sisesta täisarv, 1 või rohkem",
+          "threshold_label": "Asukohtade arv",
+          "threshold_too_high": "Ei tohi olla suurem kui valitud sondide arv"
+        },
         "notifications": {
           "add_notifier": "Lisa teavitaja",
           "new_notifier": "+ Lisa uus teavituskanal",

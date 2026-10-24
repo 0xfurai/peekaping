@@ -502,6 +502,16 @@
           "request_timeout": "Timeout della Richiesta (Timeout dopo {{seconds}} secondi)",
           "resend_notification": "Rinvia notifica se il servizio è down X volte consecutivamente (Rinviamento disabilitato)"
         },
+        "location_rule": {
+          "all": "tutte le posizioni non sono disponibili",
+          "any": "una qualsiasi posizione non è disponibile",
+          "at_least": "almeno N posizioni non sono disponibili",
+          "description": "Una posizione la cui sonda è offline, o che non ha ancora riportato, non viene contata.",
+          "label": "Segna il monitor come non disponibile quando",
+          "threshold_invalid": "Inserisci un numero intero, 1 o più",
+          "threshold_label": "Numero di posizioni",
+          "threshold_too_high": "Non può superare il numero di sonde scelte"
+        },
         "notifications": {
           "add_notifier": "Aggiungi Notificatore",
           "new_notifier": "+ Nuovo Notificatore",

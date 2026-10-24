@@ -502,6 +502,16 @@
           "request_timeout": "Pyyntö aikakatkaisu (Aika {{seconds}} sekunnin kuluttua)",
           "resend_notification": "Lähetä ilmoitus uudelleen, jos Down X kertaa peräkkäin (Uudelleenlähetys poistettu käytöstä)"
         },
+        "location_rule": {
+          "all": "kaikki sijainnit ovat alhaalla",
+          "any": "mikä tahansa sijainti on alhaalla",
+          "at_least": "vähintään N sijaintia on alhaalla",
+          "description": "Sijaintia, jonka luotain on offline-tilassa tai ei ole vielä raportoinut, ei lasketa.",
+          "label": "Merkitse valvonta alas, kun",
+          "threshold_invalid": "Anna kokonaisluku, vähintään 1",
+          "threshold_label": "Sijaintien määrä",
+          "threshold_too_high": "Ei voi olla suurempi kuin valittujen luotainten määrä"
+        },
         "notifications": {
           "add_notifier": "Lisää ilmoitin",
           "new_notifier": "+ Uusi ilmoitin",

@@ -502,6 +502,16 @@
           "request_timeout": "Timeout żądania (po {{seconds}} sekundach)",
           "resend_notification": "Ponowne wysłanie powiadomienia, jeśli usługa będzie niedostępna X razy z rzędu (Ponowne wysłanie wyłączone)"
         },
+        "location_rule": {
+          "all": "wszystkie lokalizacje są niedostępne",
+          "any": "dowolna lokalizacja jest niedostępna",
+          "at_least": "co najmniej N lokalizacji jest niedostępnych",
+          "description": "Lokalizacja, której sonda jest offline lub jeszcze nie przesłała wyniku, nie jest liczona.",
+          "label": "Oznacz monitor jako niedostępny, gdy",
+          "threshold_invalid": "Wpisz liczbę całkowitą, 1 lub więcej",
+          "threshold_label": "Liczba lokalizacji",
+          "threshold_too_high": "Nie może być większa niż liczba wybranych sond"
+        },
         "notifications": {
           "add_notifier": "Dodaj notyfikator",
           "new_notifier": "+ Nowy notyfikator",

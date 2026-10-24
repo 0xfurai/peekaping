@@ -502,6 +502,16 @@
           "request_timeout": "Expiration de la requête (Timeout après {{seconds}} secondes)",
           "resend_notification": "Renvoyer la notification si en panne X fois de suite (renvoi désactivé)"
         },
+        "location_rule": {
+          "all": "tous les emplacements sont hors service",
+          "any": "n'importe quel emplacement est hors service",
+          "at_least": "au moins N emplacements sont hors service",
+          "description": "Un emplacement dont la sonde est hors ligne, ou qui n'a pas encore fait de rapport, n'est pas compté.",
+          "label": "Marquer le moniteur comme hors service quand",
+          "threshold_invalid": "Saisissez un nombre entier, 1 ou plus",
+          "threshold_label": "Nombre d'emplacements",
+          "threshold_too_high": "Ne peut pas dépasser le nombre de sondes choisies"
+        },
         "notifications": {
           "add_notifier": "Ajouter un notificateur",
           "new_notifier": "+ Nouveau notificateur",
