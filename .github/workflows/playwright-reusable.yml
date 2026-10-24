@@ -25,6 +25,8 @@ jobs:
     env:
       # Every docker compose command below runs the stack plus the e2e target.
       COMPOSE_FILE: docker-compose.test.${{ matrix.database }}.yml:docker-compose.e2e.yml
+      # The probe image the remote probe specs run, published with the other images of this tag.
+      E2E_PROBE_IMAGE: 0xfurai/peekaping-probe:${{ inputs.container-tag }}
     steps:
     # prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -55,6 +57,9 @@ jobs:
         REDIS_PORT=6379
         REDIS_PASSWORD=""
         REDIS_DB=0
+
+        # The shortest time before a remote probe that stopped is reported offline (default 3m).
+        PROBE_OFFLINE_AFTER=2m
 
         # Server Configuration
         CLIENT_URL=http://localhost:8383
@@ -103,6 +108,12 @@ jobs:
           docker compose logs gateway || echo "No gateway service logs"
           exit 1
         fi
+
+    # The remote probe specs start this image themselves, on the stack's network. MongoDB has no
+    # probes, so they skip there. Pulled here so that a pull failure fails this step.
+    - name: Pull the probe image
+      if: ${{ matrix.database != 'mongo' }}
+      run: docker pull "$E2E_PROBE_IMAGE"
 
     - name: Show container logs
       run: |
@@ -201,6 +212,12 @@ jobs:
           exit 1
         fi
 
+    # The remote probe specs start this image themselves, at the tag the bundle is tested at.
+    # MongoDB has no probes, so they skip there. Pulled here so that a pull failure fails this step.
+    - name: Pull the probe image
+      if: ${{ matrix.database != 'mongo' }}
+      run: docker pull "ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ steps.bundle_tag.outputs.tag }}"
+
     - name: Start the e2e target
       run: |
         docker network create peekaping-e2e
@@ -219,6 +236,8 @@ jobs:
           # On by default, and a test run must not send to Peekaping: point both at nothing
           -e TELEMETRY_URL=http://127.0.0.1:9/v1/ping
           -e ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
+          # The shortest time before a remote probe that stopped is reported offline (default 3m).
+          -e PROBE_OFFLINE_AFTER=2m
         )
 
         case "${{ matrix.database }}" in
@@ -282,8 +301,14 @@ jobs:
         fi
         echo "The bundle is healthy"
 
+    # The bundle and the e2e target run with plain docker, not compose, so the specs can't find
+    # their network: the probe container joins peekaping-e2e and reaches the bundle by its name.
     - name: Run Playwright tests against bundle
       run: PLAYWRIGHT_BASE_URL=http://localhost:8383 bunx playwright test
+      env:
+        E2E_PROBE_NETWORK: peekaping-e2e
+        E2E_PROBE_URL: http://peekaping-bundle-test-${{ matrix.database }}:8383
+        E2E_PROBE_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ steps.bundle_tag.outputs.tag }}
 
     # The single-mode bundles' user, ports and shutdown, on the published image
     - name: Test the bundle's user, ports and shutdown
