@@ -53,9 +53,9 @@ func TestScheduler_DrainCancelsAtTheDeadline(t *testing.T) {
 	cancelled := h.holdFirstCheck()
 	h.start()
 	eventually(t, 2*time.Second, func() bool { return h.exec.runningNow() == 1 }, "the first check is running")
+	startedAt := time.Now()
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
 	defer cancel()
-	startedAt := time.Now()
 
 	h.s.Drain(ctx)
 

@@ -52,7 +52,9 @@ type SessionConfig struct {
 	// SupportedTypes are the monitor types the probe runs, which hello states
 	SupportedTypes []string
 	// HTTPClient makes the requests; http.DefaultClient when nil. The session bounds each call
-	// itself, so the client needs no timeout, and one it has must outlast the long poll.
+	// itself, so the client needs no timeout, and one it has must outlast the long poll. The
+	// session uses a copy of it that refuses a redirect from https to http; the client itself is
+	// not changed.
 	HTTPClient *http.Client
 	Logger     *zap.SugaredLogger
 
@@ -104,7 +106,7 @@ func NewSession(cfg SessionConfig) *Session {
 	hostname, _ := os.Hostname()
 	instanceID := uuid.NewString()
 	s := &Session{
-		client: probeproto.NewClient(cfg.URL, cfg.Token, instanceID, cfg.HTTPClient),
+		client: probeproto.NewClient(cfg.URL, cfg.Token, instanceID, guardRedirects(cfg.HTTPClient)),
 		hello: probeproto.HelloRequest{
 			InstanceID:      instanceID,
 			ProtocolVersion: probeproto.ProtocolVersion,
@@ -271,8 +273,10 @@ func (s *Session) greet(welcome *probeproto.HelloResponse) {
 // attempt. call names what failed. backoff is the caller's own: the wait it advances is the one for
 // a server that doesn't answer, and the caller resets it when a call is answered.
 //
-//   - 409: the server doesn't know this instance. Say hello again at once. Said to hello itself it
-//     can't mean that, so it is any other failure: back off.
+//   - 409: the server doesn't know this instance. Say hello again at once, but only the first time
+//     since a call was answered: a 409 after that hello means the server doesn't keep the
+//     instance, so back off. Said to hello itself it can't mean that, so it is any other failure:
+//     back off.
 //   - 426: the server needs a newer protocol than the probe speaks. Log the server's message and
 //     come back in an hour: an upgrade of the probe is what helps.
 //   - 401: the token is refused, which an operator can put right on the server. Back off.
@@ -294,6 +298,12 @@ func (s *Session) failed(call string, err error, backoff *Backoff) time.Duration
 	switch {
 	case failure.Status == http.StatusConflict && call != callHello:
 		s.lose()
+		if backoff.conflicted {
+			wait := backoff.Next()
+			s.logger.Warnw("The server doesn't know this instance, though it was greeted since the last answer", "call", call, "message", failure.Message, "retry_in", wait.String())
+			return wait
+		}
+		backoff.conflicted = true
 		s.logger.Infow("The server doesn't know this instance; saying hello again", "call", call, "message", failure.Message)
 		return 0
 	case failure.Status == http.StatusUpgradeRequired:

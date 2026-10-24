@@ -31,7 +31,7 @@ type Config struct {
 	// Version is the version of the probe's program, which hello states
 	Version string
 	// HTTPClient makes the requests to the server; http.DefaultClient when nil. Tests give it a
-	// transport that serves the requests in process.
+	// transport that serves the requests in process. See SessionConfig for what the probe does to it.
 	HTTPClient *http.Client
 	// Concurrency is how many checks run at the same time; scheduler.DefaultConcurrency when zero
 	Concurrency int
