@@ -464,6 +464,34 @@ func TestSink_HelloAgainOn409(t *testing.T) {
 	assert.Len(t, server.storedResults(), 1)
 }
 
+// The first 409 is a server that forgot the instance, which hello puts right at once. A 409 again
+// after that hello is a server that keeps forgetting it, which must not be said hello to in a tight loop.
+func TestSink_BacksOffOnA409AfterHello(t *testing.T) {
+	server := newResultsServer(t, nil)
+	server.answer = func(attempt int, batch []probeproto.Result, w http.ResponseWriter) {
+		if attempt <= 5 {
+			fail(w, http.StatusConflict, "unknown instance: send hello first", 0)
+			return
+		}
+		server.accept(w, batch)
+	}
+	pause := &sleeper{}
+	sink, _ := newSink(server, pause, nil)
+	ingest(t, sink, checked("m1", 0, shared.MonitorStatusUp, "ok"))
+
+	require.NoError(t, sink.Flush(context.Background()))
+
+	waits := pause.waits()
+	require.Len(t, waits, 4, "the first 409 is followed by no wait, each one after it by a wait")
+	for i, step := range []time.Duration{1, 2, 4, 8} {
+		assert.GreaterOrEqual(t, waits[i], step*time.Second/2, "wait %d", i+1)
+		assert.LessOrEqual(t, waits[i], step*time.Second, "wait %d: the backoff starts at its minimum", i+1)
+	}
+	assert.Equal(t, []string{"hello", "results", "hello", "results", "hello", "results", "hello", "results", "hello", "results", "hello", "results"}, server.sequence(),
+		"every 409 is followed by a hello")
+	assert.Len(t, server.storedResults(), 1)
+}
+
 func TestSink_IngestDoesNotWaitForTheServer(t *testing.T) {
 	hung := make(chan struct{})
 	server := newResultsServer(t, nil)

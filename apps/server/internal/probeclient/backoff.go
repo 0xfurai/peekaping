@@ -31,6 +31,9 @@ type Backoff struct {
 	Rand func() float64
 
 	failures int
+	// conflicted is set once a 409 has been met since the server last answered. The session says
+	// hello at once for the first, and backs off for the ones after it.
+	conflicted bool
 }
 
 // Next returns the wait after one more failure
@@ -60,4 +63,7 @@ func (b *Backoff) Next() time.Duration {
 }
 
 // Reset starts the waits over from Min, after the server has answered
-func (b *Backoff) Reset() { b.failures = 0 }
+func (b *Backoff) Reset() {
+	b.failures = 0
+	b.conflicted = false
+}

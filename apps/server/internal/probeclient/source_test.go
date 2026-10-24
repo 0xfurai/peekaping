@@ -159,6 +159,40 @@ func TestSource_HelloAgainOn409(t *testing.T) {
 	assert.Empty(t, pause.waits(), "the second hello is said at once")
 }
 
+// The first 409 is a server that forgot the instance, which hello puts right at once. A 409 again
+// after that hello is a server that keeps forgetting it, which must not be said hello to in a tight loop.
+func TestSource_BacksOffOnA409AfterHello(t *testing.T) {
+	conflict := failing(http.StatusConflict, "unknown instance: send hello first", 0)
+	server := newAssignmentServer(t,
+		conflict, conflict, conflict, conflict, conflict,
+		snapshot("v1", httpMonitor("a")),
+		conflict,
+		snapshot("v2", httpMonitor("a"), httpMonitor("b")),
+	)
+	pause := &sleeper{}
+	source := startSource(t, server, pause)
+
+	assignedTo(t, source, "a", "b")
+
+	waits := pause.waits()
+	require.Len(t, waits, 4, "the first 409 is followed by no wait, each one after it by a wait, and the answer to poll 6 puts the next 409 back to the first")
+	for i, step := range []time.Duration{1, 2, 4, 8} {
+		assert.GreaterOrEqual(t, waits[i], step*time.Second/2, "wait %d", i+1)
+		assert.LessOrEqual(t, waits[i], step*time.Second, "wait %d: the backoff starts at its minimum", i+1)
+	}
+	server.expectSequence(t, []string{
+		"hello", "poll", // 409: hello again at once
+		"hello", "poll", // 409: wait 1
+		"hello", "poll", // 409: wait 2
+		"hello", "poll", // 409: wait 3
+		"hello", "poll", // 409: wait 4
+		"hello", "poll", // v1
+		"poll",          // 409: hello again at once
+		"hello", "poll", // v2
+		"poll", // the one held
+	}, "every 409 is followed by a hello")
+}
+
 func TestSource_HonoursRetryAfter(t *testing.T) {
 	server := newAssignmentServer(t,
 		failing(http.StatusTooManyRequests, "too many requests", 7*time.Second),
