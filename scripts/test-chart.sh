@@ -20,7 +20,8 @@
 # values file can change it), SQLite as the storage backend (config.env.DB_TYPE,
 # in any case) is refused with a message that sends the reader to the bundle
 # image, and the install notes say Peekaping runs in cluster mode and link to
-# the Helm docs page.
+# the Helm docs page. The Ingress and the Istio VirtualService send the probe
+# protocol (/probe) to the api.
 #
 # It also runs scripts/update-chart-deps.sh against a fake Docker Hub: a new
 # major version of a subchart is reported as such and refused by --write, a
@@ -799,6 +800,38 @@ notes_say() {
   grep -qiF -- "$1" <<<"$notes" || { echo "       no '$1' in the notes:"; sed 's/^/       /' <<<"$notes"; return 1; }
 }
 
+# ingress_routes <rendered file> <path> <service>: the rendered Ingress sends
+# the path to the service
+ingress_routes() {
+  local routed
+  routed=$(awk '
+    /^---/ { kind = ""; current = "" }
+    /^kind: / { kind = $2 }
+    kind == "Ingress" && $1 == "-" && $2 == "path:" { current = $3 }
+    kind == "Ingress" && $1 == "name:" && current != "" { print current " " $2; current = "" }
+  ' "$1")
+  grep -qxF -- "$2 $3" <<<"$routed" && return 0
+  echo "       no '$2 $3' among the Ingress routes:"
+  sed 's/^/       /' <<<"$routed"
+  return 1
+}
+
+# virtualservice_routes <rendered file> <prefix> <host>: the rendered
+# VirtualService sends the URI prefix to the host
+virtualservice_routes() {
+  local routed
+  routed=$(awk '
+    /^---/ { kind = ""; prefix = "" }
+    /^kind: / { kind = $2 }
+    kind == "VirtualService" && $1 == "prefix:" { prefix = $2 }
+    kind == "VirtualService" && $1 == "host:" && prefix != "" { print prefix " " $2; prefix = "" }
+  ' "$1")
+  grep -qxF -- "$2 $3" <<<"$routed" && return 0
+  echo "       no '$2 $3' among the VirtualService routes:"
+  sed 's/^/       /' <<<"$routed"
+  return 1
+}
+
 echo "# Updating the dependencies"
 check "update-chart-deps.sh calls a new major version of a subchart a new major version, and --write refuses it" \
   deps_refuses_new_major_chart || true
@@ -875,6 +908,17 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
   if check "config.env.TRUSTED_PROXIES=203.0.113.0/24 renders" render trusted-proxies --set config.env.TRUSTED_PROXIES=203.0.113.0/24; then
     check "config.env.TRUSTED_PROXIES=203.0.113.0/24: the ConfigMap sets TRUSTED_PROXIES to it" \
       config_sets "$work/trusted-proxies.yaml" TRUSTED_PROXIES 203.0.113.0/24 || true
+  fi
+  # The probe protocol (/probe/v1/) is served by the api, like /api and /socket.io, so
+  # the Ingress or the Istio VirtualService has to send it there and not to the web app
+  if check "ingress.enabled=true renders" render ingress --set ingress.enabled=true --set ingress.host=peekaping.example.com; then
+    check "ingress.enabled=true: the Ingress routes /probe to the api" \
+      ingress_routes "$work/ingress.yaml" /probe "$release-api" || true
+  fi
+  if check "istio.virtualservice.enabled=true renders" render istio \
+    --set ingress.enabled=true --set ingress.host=peekaping.example.com --set istio.virtualservice.enabled=true; then
+    check "istio.virtualservice.enabled=true: the VirtualService routes /probe/ to the api" \
+      virtualservice_routes "$work/istio.yaml" /probe/ "$release-api.default.svc.cluster.local" || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
     check "bundled PostgreSQL runs an image pinned by digest" pinned_by_digest "$work/bundled.yaml" postgresql || true
