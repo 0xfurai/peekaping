@@ -439,6 +439,52 @@ func TestSQLRepository_DeletingAMonitorRemovesItsProbeRows(t *testing.T) {
 	})
 }
 
+// A query whose context is cancelled costs SQLite its connection, and the next query runs on a new
+// one. Deleting a monitor then must still cascade to its rows: that needs foreign keys on.
+func TestSQLRepository_DeletingAMonitorAfterACancelledQueryStillRemovesItsRows(t *testing.T) {
+	t.Setenv("BUNDEBUG", "0") // the query hook prints a cancelled query as a failure
+	db := sqliteDB(t)
+	migrateUp(t, db, migrations.Migrations)
+	repo := NewSQLRepository(db)
+	ctx := context.Background()
+	addProbe(t, db, "frankfurt")
+	created, err := repo.Create(ctx, monitorOn("Checkout", true, "frankfurt"))
+	require.NoError(t, err)
+	for range 3 {
+		_, err = db.Exec("INSERT INTO heartbeats (id, monitor_id, status) VALUES (?, ?, 1)", uuid.NewString(), created.ID)
+		require.NoError(t, err)
+	}
+
+	// A TEMP table lives as long as its connection, so it is the marker: when it is gone, the delete
+	// runs on a new connection, and the test can't pass when the cancel never reached the driver.
+	replaced := false
+	for attempt := 0; attempt < 20 && !replaced; attempt++ {
+		_, err = db.Exec("CREATE TEMP TABLE IF NOT EXISTS connection_marker (x INTEGER)")
+		require.NoError(t, err)
+		slowCtx, cancel := context.WithCancel(ctx)
+		timer := time.AfterFunc(50*time.Millisecond, cancel)
+		var n int64
+		err := db.NewRaw("WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x < 2000000000) SELECT count(*) FROM c").Scan(slowCtx, &n)
+		timer.Stop()
+		cancel()
+		if err != nil {
+			require.ErrorIs(t, err, context.Canceled)
+		}
+		var markers int
+		require.NoError(t, db.NewRaw("SELECT count(*) FROM sqlite_temp_master WHERE name = 'connection_marker'").Scan(ctx, &markers))
+		replaced = markers == 0
+	}
+	require.True(t, replaced, "the cancelled query never cost the connection")
+
+	require.NoError(t, repo.Delete(ctx, created.ID))
+
+	for _, table := range []string{"monitor_probes", "heartbeats"} {
+		var rows int
+		require.NoError(t, db.NewSelect().Table(table).ColumnExpr("count(*)").Where("monitor_id = ?", created.ID).Scan(ctx, &rows))
+		assert.Zero(t, rows, table)
+	}
+}
+
 func TestSQLRepository_TheDatabaseRefusesToDeleteAProbeWithMonitors(t *testing.T) {
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		repo := NewSQLRepository(db)
