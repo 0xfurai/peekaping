@@ -55,7 +55,8 @@ async function cleanUp(page: Page, { monitor, probe }: { monitor: string; probe:
     await expect(async () => {
       const monitors = await api.get('monitors', { params: { q: monitor, limit: 100 } });
       expect(monitors.ok(), `GET monitors: ${await monitors.text()}`).toBeTruthy();
-      for (const found of (await monitors.json()).data.filter((m: { name: string }) => m.name === monitor)) {
+      // A list with no match has null for data
+      for (const found of ((await monitors.json()).data ?? []).filter((m: { name: string }) => m.name === monitor)) {
         await deleteCreated(api, `monitors/${found.id}`);
       }
       const probes = await (await api.get('probes')).json();
