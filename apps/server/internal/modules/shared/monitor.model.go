@@ -83,6 +83,14 @@ type Monitor struct {
 // LocalProbeID is the id of the local probe: the checks that Peekaping runs itself
 const LocalProbeID = "local"
 
+// LocationThresholdValue is the threshold of the monitor's location rule, 0 for a rule that has none
+func (m *Monitor) LocationThresholdValue() int {
+	if m.LocationThreshold == nil {
+		return 0
+	}
+	return *m.LocationThreshold
+}
+
 // RunsOn reports whether the probe runs the monitor's checks. A monitor read without its probes
 // runs on the local probe: that is every monitor of an install from before probes, and a
 // monitor event from a process that isn't upgraded yet.
