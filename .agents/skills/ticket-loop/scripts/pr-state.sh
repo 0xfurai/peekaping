@@ -45,7 +45,7 @@ query='query($owner: String!, $name: String!, $pr: Int!) {
       mergeable mergeStateStatus
       commits(last: 1) { nodes { commit { statusCheckRollup { contexts(first: 100) { nodes {
         __typename
-        ... on CheckRun { name status conclusion detailsUrl }
+        ... on CheckRun { name status conclusion detailsUrl completedAt }
         ... on StatusContext { context state targetUrl description }
       } } } } } }
       reviewThreads(first: 100) { nodes {
@@ -86,6 +86,7 @@ gh api graphql -f query="$query" -F owner="${repo%/*}" -F name="${repo#*/}" -F p
             | select((.name // .context) != "codecov/project" or $p.baseRefName == "main")
             | {name: (.name // .context), url: (.detailsUrl // .targetUrl)}],
           passed: ([$ctx[] | select(.conclusion == "SUCCESS" or .state == "SUCCESS")] | length),
+          completedAt: ([$ctx[] | select(.__typename == "CheckRun" and .completedAt != null) | {(.name): .completedAt}] | add // {}),
           ci: ([$ctx[] | select(.context != "CodeRabbit")] | length),
           coderabbit: ([$ctx[] | select(.context == "CodeRabbit") | .state][0] // "MISSING")
         },

@@ -39,8 +39,9 @@ ci_grace=$((10 * 60))
 # both its queue and a stacked PR waiting for an `@coderabbitai review` trigger.
 coderabbit_grace=$((20 * 60))
 # The checks that upload coverage. Codecov posts its statuses after each upload,
-# so they count only once none of these is pending or failed (a failed one never
-# uploaded). One that didn't run on the PR (path filters) holds nothing.
+# so a failed one counts only once none of these is pending or failed (a failed
+# one never uploaded) and it was posted after the last of them finished. One that
+# didn't run on the PR (path filters) holds nothing. A held result keeps the PR busy.
 coverage_uploads='["test", "import-mongo"]'
 
 while [ $# -gt 0 ]; do
@@ -106,13 +107,18 @@ while :; do
         age=$((now - $(cat "$seen_dir/$pr.since")))
         [ $age -lt $min_wait ] && busy=true
         # The items waiting on us; the ones not reported before end the wait.
-        jq -r --argjson ignore "$ignore" --argjson uploads "$coverage_uploads" '
-            ([.checks.pending[], .checks.failed[].name] | any(IN($uploads[]))) as $uploading
-            | . as $s
+        held=$(jq --argjson uploads "$coverage_uploads" '
+            .checks.completedAt as $at
+            | ([$at[$uploads[]] // empty] | max) as $uploaded
+            | ([.checks.pending[], .checks.failed[].name] | any(IN($uploads[])))
+              or any(.checks.failed[] | select(.name | startswith("codecov/")); ($at[.name] // "") <= ($uploaded // ""))' "$s")
+        $held && busy=true
+        jq -r --argjson ignore "$ignore" --argjson held "$held" '
+            . as $s
             | [.checks.failed[] | select(.name | IN($ignore[])) | "check:\(.name):\(.url):\($s.headSha)"] as $ignored
             | .keys[]
             | select(IN($ignored[]) | not)
-            | select($uploading and startswith("check:codecov/") | not)' \
+            | select($held and startswith("check:codecov/") | not)' \
             "$s" >"$tmp/$pr.keys"
         # GitHub computes mergeability lazily; UNKNOWN means ask again.
         case $(jq -r .mergeable "$s") in
