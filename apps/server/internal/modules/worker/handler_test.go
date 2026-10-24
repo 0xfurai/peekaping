@@ -182,6 +182,7 @@ func TestProcessTask_EnqueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 	pinned, err := json.Marshal(payload)
 	require.NoError(t, err)
 	assert.JSONEq(t, fmt.Sprintf(`{
+		"probe_id": "local",
 		"monitor_id": "mon-1",
 		"monitor_name": "Test",
 		"monitor_type": "http",

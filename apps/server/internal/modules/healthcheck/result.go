@@ -14,7 +14,8 @@ import (
 )
 
 // ResultFromMonitor is a result that something outside the worker reports for a monitor, as the
-// ingest logic takes it: the push URL's pushes and a probe's results. It carries the monitor's
+// ingest logic takes it: the push URL's pushes and a probe's results. It names the local probe,
+// which a probe's results replace with the probe that sent them. It carries the monitor's
 // settings as they stand, and what is reported: the status, the message, the response time, the
 // times of the check and the TLS information.
 //
@@ -47,6 +48,7 @@ func ResultFromMonitor(
 			"error", err)
 	}
 	return &ingester.Result{
+		ProbeID:            shared.LocalProbeID,
 		MonitorID:          m.ID,
 		MonitorName:        m.Name,
 		MonitorType:        m.Type,
@@ -82,13 +84,14 @@ type TickResult struct {
 	IsUnderMaintenance bool
 }
 
-// IngestResult is the result as the ingest logic takes it, with the settings of the monitor
+// IngestResult is the result as the ingest logic takes it, from the local probe, with the settings of the monitor
 // that was checked. checkCertExpiry is whether the monitor's config asks for its TLS
 // certificate's expiry to be checked. Cluster mode's worker and single mode's scheduler both
 // build what they ingest here.
 func (r *TickResult) IngestResult(checkCertExpiry bool) *ingester.Result {
 	m := r.Monitor
 	return &ingester.Result{
+		ProbeID:            shared.LocalProbeID,
 		MonitorID:          m.ID,
 		MonitorName:        m.Name,
 		MonitorType:        m.Type,

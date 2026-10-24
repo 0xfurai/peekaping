@@ -52,6 +52,7 @@ var (
 	goldenDown = &heartbeat.Model{
 		ID:        "hb-1",
 		MonitorID: "mon-1",
+		ProbeID:   "local",
 		Status:    shared.MonitorStatusDown,
 		Msg:       "connection refused",
 		Important: true,
@@ -60,6 +61,7 @@ var (
 	goldenUp = &heartbeat.Model{
 		ID:        "hb-2",
 		MonitorID: "mon-1",
+		ProbeID:   "local",
 		Status:    shared.MonitorStatusUp,
 		Msg:       "200 - OK",
 		Ping:      42,

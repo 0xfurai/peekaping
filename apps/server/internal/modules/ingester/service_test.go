@@ -30,6 +30,19 @@ func TestService_IngestStoresTheResultAndPublishesItsEvents(t *testing.T) {
 	assert.Equal(t, []string{events.MonitorStatusChanged.Name(), events.ImportantHeartbeat.Name()}, ti.bus.TakeTopics())
 }
 
+func TestService_IngestRecordsTheProbeThatRanTheCheck(t *testing.T) {
+	ti := newTestIngester()
+
+	fromLocal := checkResult(monitorSettings{}, up)
+	require.NoError(t, ti.service.Ingest(context.Background(), &fromLocal))
+	assert.Equal(t, "local", ti.heartbeats.latest().ProbeID, "a result with no probe came from the local probe")
+
+	fromRemote := checkResult(monitorSettings{}, up)
+	fromRemote.ProbeID = "probe-frankfurt"
+	require.NoError(t, ti.service.Ingest(context.Background(), &fromRemote))
+	assert.Equal(t, "probe-frankfurt", ti.heartbeats.latest().ProbeID)
+}
+
 func TestService_IngestSeesThePreviousResult(t *testing.T) {
 	ti := newTestIngester()
 	monitor := monitorSettings{maxRetries: 1}

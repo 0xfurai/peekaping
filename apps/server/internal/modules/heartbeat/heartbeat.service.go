@@ -42,6 +42,7 @@ func NewService(
 func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
 	createModel := &Model{
 		MonitorID: entity.MonitorID,
+		ProbeID:   entity.ProbeID,
 		Status:    entity.Status,
 		Msg:       entity.Msg,
 		Ping:      entity.Ping,

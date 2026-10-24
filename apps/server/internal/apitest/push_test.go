@@ -95,6 +95,7 @@ func TestPush_QueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 	pinned, err := json.Marshal(payload)
 	require.NoError(t, err)
 	assert.JSONEq(t, fmt.Sprintf(`{
+		"probe_id": "local",
 		"monitor_id": %q,
 		"monitor_name": "Nightly backup",
 		"monitor_type": "push",
