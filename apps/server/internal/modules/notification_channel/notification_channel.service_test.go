@@ -544,6 +544,26 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			name: "active only leaves every other field nil",
+			id:   "test-id",
+			input: &PartialUpdateDto{
+				Active: boolPtr(false),
+			},
+			mockSetup: func(mr *MockRepository) {
+				mr.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
+					return model.Active != nil && *model.Active == false &&
+						model.Name == nil &&
+						model.Type == nil &&
+						model.IsDefault == nil &&
+						model.Config == nil
+				})).Return(nil)
+
+				mr.On("FindByID", mock.Anything, "test-id").Return(&Model{ID: "test-id", Name: "Alerts", Type: "email", Active: false}, nil)
+			},
+			expectedModel: &Model{ID: "test-id", Name: "Alerts", Type: "email", Active: false},
+			expectedError: nil,
+		},
+		{
 			name: "update error",
 			id:   "test-id",
 			input: &PartialUpdateDto{
