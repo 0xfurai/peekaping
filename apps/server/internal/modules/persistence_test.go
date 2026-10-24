@@ -80,6 +80,9 @@ type repositories struct {
 	// uniqueSettingKeys is whether the storage refuses a second setting with the same key. SQL does
 	// (the key is the primary key); MongoDB has no unique index on it and is frozen (ADR 0001).
 	uniqueSettingKeys bool
+	// storesShowLocations is whether the storage keeps a status page's show-locations setting. SQL
+	// does; MongoDB is frozen (ADR 0001), keeps nothing of it and always reads false.
+	storesShowLocations bool
 }
 
 func sqlRepositories(t *testing.T, db *bun.DB) repositories {
@@ -100,7 +103,7 @@ func sqlRepositories(t *testing.T, db *bun.DB) repositories {
 	return repositories{
 		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db), status_page.NewSQLRepository(db),
 		setting.NewSQLRepository(db), monitor_tls_info.NewSQLRepository(db), notification_sent_history.NewSQLRepository(db),
-		statusID, monitorID, replacementID, true,
+		statusID, monitorID, replacementID, true, true,
 	}
 }
 
@@ -146,7 +149,7 @@ func TestRepositoriesUseDomainModels(t *testing.T) {
 		exerciseRepositories(t, repositories{
 			maintenance.NewMongoRepository(client, cfg), monitor_status_page.NewMongoRepository(client, cfg), domain_status_page.NewMongoRepository(client, cfg), status_page.NewMongoRepository(client, cfg),
 			setting.NewMongoRepository(client, cfg), monitor_tls_info.NewMongoRepository(client, cfg), notification_sent_history.NewMongoRepository(client, cfg),
-			primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), false,
+			primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), false, false,
 		})
 	})
 }
@@ -188,6 +191,14 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		require.NoError(t, err)
 		found, err := repos.pages.FindByID(ctx, eachPlace.ID)
 		require.NoError(t, err)
+		if !repos.storesShowLocations {
+			on := true
+			require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{ShowLocations: &on}))
+			found, err = repos.pages.FindByID(ctx, eachPlace.ID)
+			require.NoError(t, err)
+			assert.False(t, found.ShowLocations, "this storage keeps nothing of the setting")
+			return
+		}
 		assert.True(t, found.ShowLocations, "stored on create")
 		title, off, on := "Renamed", false, true
 		require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{Title: &title}))

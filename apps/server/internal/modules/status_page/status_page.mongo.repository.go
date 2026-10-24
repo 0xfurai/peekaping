@@ -20,7 +20,6 @@ type mongoModel struct {
 	Icon                 string             `bson:"icon"`
 	Theme                string             `bson:"theme"`
 	Published            bool               `bson:"published"`
-	ShowLocations        bool               `bson:"show_locations"`
 	SearchEngineIndex    bool               `bson:"search_engine_index"`
 	Password             string             `bson:"password,omitempty"`
 	FooterText           string             `bson:"footer_text"`
@@ -40,7 +39,6 @@ func toDomainModel(m *mongoModel) *Model {
 		Icon:                m.Icon,
 		Theme:               m.Theme,
 		Published:           m.Published,
-		ShowLocations:       m.ShowLocations,
 		FooterText:          m.FooterText,
 		AutoRefreshInterval: m.AutoRefreshInterval,
 
@@ -86,7 +84,6 @@ func (r *MongoRepository) Create(ctx context.Context, statusPage *Model) (*Model
 		Icon:                statusPage.Icon,
 		Theme:               statusPage.Theme,
 		Published:           statusPage.Published,
-		ShowLocations:       statusPage.ShowLocations,
 		CreatedAt:           time.Now().UTC(),
 		UpdatedAt:           time.Now().UTC(),
 		FooterText:          statusPage.FooterText,
@@ -189,9 +186,6 @@ func (r *MongoRepository) Update(ctx context.Context, id string, statusPage *Upd
 	}
 	if statusPage.Published != nil {
 		updatePayload["published"] = *statusPage.Published
-	}
-	if statusPage.ShowLocations != nil {
-		updatePayload["show_locations"] = *statusPage.ShowLocations
 	}
 	if statusPage.FooterText != nil {
 		updatePayload["footer_text"] = *statusPage.FooterText
