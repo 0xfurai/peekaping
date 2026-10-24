@@ -16,19 +16,27 @@ import (
 	"peekaping/internal/utils"
 )
 
-// RegisterDependencies registers single mode's scheduler and its stale-monitor watchdog. The
-// binary provides the stale.Store they share with the API (stale.ProvideMemoryStore) and the
-// ingester.Service. Pushes to a push URL are ordered with the monitor's checks only when they
+// RegisterDependencies registers single mode's scheduler, its source of monitors and its
+// stale-monitor watchdog. The binary provides the stale.Store they share with the API
+// (stale.ProvideMemoryStore) and the ingester.Service. Pushes to a push URL are ordered with the monitor's checks only when they
 // are ingested through the same ingester.NewInOrderService as the scheduler's, so the binary
 // should provide that one to both.
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, ProvideScheduler, ProvideWatchdog)
+	return utils.Provide(container, ProvideSource, ProvideScheduler, ProvideWatchdog)
+}
+
+// ProvideSource provides the scheduler's source: the database and the event bus
+func ProvideSource(
+	loader *check.Loader,
+	monitorService monitor.Service,
+	eventBus events.EventBus,
+) Source {
+	return NewDatabaseSource(monitorService, loader, eventBus)
 }
 
 // ProvideScheduler provides the scheduler. Its pool runs CHECK_CONCURRENCY checks at a time.
 func ProvideScheduler(
-	loader *check.Loader,
-	monitorService monitor.Service,
+	source Source,
 	executorRegistry *executor.ExecutorRegistry,
 	supervisor *healthcheck.HealthCheckSupervisor,
 	ingesterService ingester.Service,
@@ -36,8 +44,7 @@ func ProvideScheduler(
 	logger *zap.SugaredLogger,
 ) *Scheduler {
 	return New(Config{
-		Loader:      loader,
-		Monitors:    monitorService,
+		Source:      source,
 		Executors:   executorRegistry,
 		Supervisor:  supervisor,
 		Ingester:    ingesterService,

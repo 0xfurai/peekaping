@@ -304,7 +304,6 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 
 	// The scheduler and the watchdog run until the shutdown stops them, not until ctx is done,
 	// so that they stop after the HTTP server
-	p.Scheduler.Subscribe(p.EventBus)
 	if err := p.Scheduler.Start(context.Background()); err != nil {
 		j.stopRepair()
 		j.stopMetrics()

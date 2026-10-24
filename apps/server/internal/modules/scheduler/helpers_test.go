@@ -324,8 +324,8 @@ type harness struct {
 	s      *Scheduler
 }
 
-// newHarness builds a scheduler that is subscribed to an in-memory event bus and not started.
-// Its reconcile is off unless a test sets an interval.
+// newHarness builds a scheduler on the database source, over the fake database and an in-memory
+// event bus, and does not start it. Its reconcile is off unless a test sets an interval.
 func newHarness(t *testing.T, options ...func(*Config)) *harness {
 	t.Helper()
 	logger := zap.NewNop().Sugar()
@@ -337,8 +337,7 @@ func newHarness(t *testing.T, options ...func(*Config)) *harness {
 		bus:    newBus(t),
 	}
 	cfg := Config{
-		Loader:            h.db,
-		Monitors:          h.db,
+		Source:            NewDatabaseSource(h.db, h.db, h.bus),
 		Executors:         h.exec,
 		Supervisor:        healthcheck.NewHealthCheck(nil, nil, logger),
 		Ingester:          h.ingest,
@@ -350,8 +349,23 @@ func newHarness(t *testing.T, options ...func(*Config)) *harness {
 		option(&cfg)
 	}
 	h.s = New(cfg)
-	h.s.Subscribe(h.bus)
 	return h
+}
+
+// loadingWith is a Source whose checks are loaded by the loader, and which is the source
+// it wraps in all else
+type loadingWith struct {
+	Source
+	loader Loader
+}
+
+func (s loadingWith) Load(ctx context.Context, monitorID string) (*check.Job, error) {
+	return s.loader.Load(ctx, monitorID)
+}
+
+// withLoader makes the scheduler's source load its checks with the loader
+func withLoader(loader Loader) func(*Config) {
+	return func(cfg *Config) { cfg.Source = loadingWith{Source: cfg.Source, loader: loader} }
 }
 
 // start starts the scheduler and stops it when the test ends
