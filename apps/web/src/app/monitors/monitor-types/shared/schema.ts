@@ -68,7 +68,9 @@ export type LocationRule = (typeof LOCATION_RULES)[number];
 
 // How many of the monitor's locations must be Down for it to be Down. The threshold is the N of
 // "at least N"; it is null for the other rules. The number input hands the form a string, and an
-// emptied one an empty string. The messages are i18n keys, which FormMessage translates.
+// emptied one an empty string. The field takes any number, since a value typed under "at least"
+// stays in the form after the user switches rule: only that rule checks it, in
+// locationThresholdError. The messages are i18n keys, which FormMessage translates.
 export const LOCATION_THRESHOLD_INVALID = "monitors.form.shared.location_rule.threshold_invalid";
 export const LOCATION_THRESHOLD_TOO_HIGH = "monitors.form.shared.location_rule.threshold_too_high";
 
@@ -76,10 +78,11 @@ export const locationRuleSchema = z.object({
   location_rule: z.enum(LOCATION_RULES),
   // Typed as the number the form holds, as for the coerced fields (the input hands it a string),
   // so that the key stays required in the form's input type
-  location_threshold: z.preprocess(
-    (value) => (value === "" || value === null || value === undefined ? null : Number(value)),
-    z.number().int(LOCATION_THRESHOLD_INVALID).min(1, LOCATION_THRESHOLD_INVALID).nullable()
-  ) as z.ZodType<number | null>,
+  location_threshold: z.preprocess((value) => {
+    if (value === "" || value === null || value === undefined) return null;
+    const number = Number(value);
+    return Number.isNaN(number) ? null : number;
+  }, z.number().nullable()) as z.ZodType<number | null>,
 });
 
 export const locationRuleDefaultValues = {

@@ -146,6 +146,19 @@ describe("monitor type registry", () => {
         expect(result.error?.issues.filter((issue) => issue.path[0] === "location_threshold") ?? []).toHaveLength(0);
       });
 
+      it("saves a leftover threshold of another rule as no threshold", () => {
+        // A user types a bad N under "at least", then switches to a rule with no number input
+        const probe_ids = ["probe-1", "probe-2"];
+        for (const location_rule of type === "push" ? [] : (["any", "all"] as const)) {
+          for (const location_threshold of [0, 3, "0", "", null]) {
+            const values = { ...definition.defaultValues, probe_ids, location_rule, location_threshold };
+            const result = checkedMonitorFormSchema.safeParse(values);
+            expect(result.error?.issues.filter((issue) => issue.path[0] === "location_threshold") ?? []).toHaveLength(0);
+            expect(serializeMonitor(values as never).location_threshold).toBeNull();
+          }
+        }
+      });
+
       it("refuses a monitor on no probe", () => {
         const result = definition.schema.safeParse({ ...definition.defaultValues, probe_ids: [] });
         expect(result.success).toBe(false);
