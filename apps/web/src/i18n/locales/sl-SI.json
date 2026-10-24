@@ -668,6 +668,14 @@
       "expiring_soon": "Skoraj izteče",
       "for": "za",
       "live_status": "Stanje v živo",
+      "locations": {
+        "all": "Vse lokacije",
+        "no_result": "Še ni rezultata",
+        "probe_offline": "Sonda je brez povezave",
+        "response_time": "Čas odziva",
+        "select_label": "Lokacija",
+        "title": "Lokacije"
+      },
       "monitor_for": "monitoriraj za",
       "no_certificate_data": "Ni podatkov o certifikatu",
       "seconds": "sekunde",

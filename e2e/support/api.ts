@@ -28,9 +28,9 @@ export async function createHTTPMonitor(
   api: APIRequestContext,
   name: string,
   url: string,
-  { maxRetries = 0 } = {},
+  { maxRetries = 0, probeIds }: { maxRetries?: number; probeIds?: string[] } = {},
 ): Promise<{ id: string }> {
-  const response = await api.post('monitors', { data: httpMonitorBody(name, url, maxRetries) });
+  const response = await api.post('monitors', { data: { ...httpMonitorBody(name, url, maxRetries), probe_ids: probeIds } });
   expect(response.status(), await response.text()).toBe(201);
   return (await response.json()).data;
 }

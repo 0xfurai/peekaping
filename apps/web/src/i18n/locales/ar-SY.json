@@ -668,6 +668,14 @@
       "expiring_soon": "قريب من الانتهاء",
       "for": "لـ",
       "live_status": "الحالة المباشرة",
+      "locations": {
+        "all": "كل المواقع",
+        "no_result": "لا توجد نتيجة بعد",
+        "probe_offline": "المسبار غير متصل",
+        "response_time": "زمن الاستجابة",
+        "select_label": "الموقع",
+        "title": "المواقع"
+      },
       "monitor_for": "مراقبة لـ",
       "no_certificate_data": "لا توجد بيانات الشهادة",
       "seconds": "ثوانٍ",

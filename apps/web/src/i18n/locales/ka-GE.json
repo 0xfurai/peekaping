@@ -668,6 +668,14 @@
       "expiring_soon": "ვადა მალე",
       "for": "თვის",
       "live_status": "ცოცხალი სტატუსი",
+      "locations": {
+        "all": "ყველა მდებარეობა",
+        "no_result": "შედეგი ჯერ არ არის",
+        "probe_offline": "ზონდი ოფლაინ რეჟიმშია",
+        "response_time": "პასუხის დრო",
+        "select_label": "მდებარეობა",
+        "title": "მდებარეობები"
+      },
       "monitor_for": "მონიტორირება",
       "no_certificate_data": "სერტიფიკატის მონაცემები არ არის",
       "seconds": "წამები",

@@ -668,6 +668,14 @@
       "expiring_soon": "Segera kedaluwarsa",
       "for": "untuk",
       "live_status": "Status Langsung",
+      "locations": {
+        "all": "Semua lokasi",
+        "no_result": "Belum ada hasil",
+        "probe_offline": "Probe offline",
+        "response_time": "Waktu respons",
+        "select_label": "Lokasi",
+        "title": "Lokasi"
+      },
       "monitor_for": "Pantau untuk",
       "no_certificate_data": "Tidak ada data sertifikat",
       "seconds": "detik",

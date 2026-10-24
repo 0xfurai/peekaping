@@ -668,6 +668,14 @@
       "expiring_soon": "Expira em breve",
       "for": "para",
       "live_status": "Estado ao vivo",
+      "locations": {
+        "all": "Todas as localizações",
+        "no_result": "Ainda sem resultado",
+        "probe_offline": "Sonda offline",
+        "response_time": "Tempo de resposta",
+        "select_label": "Localização",
+        "title": "Localizações"
+      },
       "monitor_for": "monitorizar por",
       "no_certificate_data": "Sem dados de certificado",
       "seconds": "segundos",

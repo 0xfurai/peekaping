@@ -668,6 +668,14 @@
       "expiring_soon": "即將到期",
       "for": "為",
       "live_status": "即時狀態",
+      "locations": {
+        "all": "所有位置",
+        "no_result": "暫時未有結果",
+        "probe_offline": "探針離線",
+        "response_time": "響應時間",
+        "select_label": "位置",
+        "title": "位置"
+      },
       "monitor_for": "監測對象",
       "no_certificate_data": "無憑證資料",
       "seconds": "秒",

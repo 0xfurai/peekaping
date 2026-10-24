@@ -668,6 +668,14 @@
       "expiring_soon": "Scade a breve",
       "for": "per",
       "live_status": "Stato Live",
+      "locations": {
+        "all": "Tutte le posizioni",
+        "no_result": "Ancora nessun risultato",
+        "probe_offline": "Sonda offline",
+        "response_time": "Tempo di risposta",
+        "select_label": "Posizione",
+        "title": "Posizioni"
+      },
       "monitor_for": "Monitora per",
       "no_certificate_data": "Nessun dato del certificato",
       "seconds": "secondi",

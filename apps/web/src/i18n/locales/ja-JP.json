@@ -668,6 +668,14 @@
       "expiring_soon": "まもなく期限切れ",
       "for": "対象",
       "live_status": "ライブステータス",
+      "locations": {
+        "all": "すべての場所",
+        "no_result": "まだ結果がありません",
+        "probe_offline": "プローブはオフラインです",
+        "response_time": "応答時間",
+        "select_label": "場所",
+        "title": "場所"
+      },
       "monitor_for": "監視対象",
       "no_certificate_data": "証明書データなし",
       "seconds": "秒",

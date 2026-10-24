@@ -668,6 +668,14 @@
       "expiring_soon": "Artėja baigti",
       "for": "skirta",
       "live_status": "Gyva būsena",
+      "locations": {
+        "all": "Visos vietos",
+        "no_result": "Rezultato dar nėra",
+        "probe_offline": "Zondas atsijungęs",
+        "response_time": "Atsakymo laikas",
+        "select_label": "Vieta",
+        "title": "Vietos"
+      },
       "monitor_for": "Steigti",
       "no_certificate_data": "Nėra sertifikato duomenų",
       "seconds": "sekundės",

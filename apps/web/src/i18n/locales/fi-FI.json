@@ -668,6 +668,14 @@
       "expiring_soon": "Viemässä pian",
       "for": "jolle",
       "live_status": "Reaaliaikainen tila",
+      "locations": {
+        "all": "Kaikki sijainnit",
+        "no_result": "Ei vielä tulosta",
+        "probe_offline": "Luotain ei ole verkossa",
+        "response_time": "Vastausaika",
+        "select_label": "Sijainti",
+        "title": "Sijainnit"
+      },
       "monitor_for": "seuraa",
       "no_certificate_data": "Ei sertifikaattitietoja",
       "seconds": "sekuntia",

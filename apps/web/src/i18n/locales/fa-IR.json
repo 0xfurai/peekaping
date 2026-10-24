@@ -668,6 +668,14 @@
       "expiring_soon": "انقضا نزدیک",
       "for": "برای",
       "live_status": "وضعیت زنده",
+      "locations": {
+        "all": "همه مکان‌ها",
+        "no_result": "هنوز نتیجه‌ای وجود ندارد",
+        "probe_offline": "پروب آفلاین است",
+        "response_time": "زمان پاسخ",
+        "select_label": "مکان",
+        "title": "مکان‌ها"
+      },
       "monitor_for": "نظارت بر",
       "no_certificate_data": "داده گواهی وجود ندارد",
       "seconds": "ثانیه",

@@ -668,6 +668,14 @@
       "expiring_soon": "Brzy vyprší",
       "for": "pro",
       "live_status": "Aktuální stav",
+      "locations": {
+        "all": "Všechna umístění",
+        "no_result": "Zatím žádný výsledek",
+        "probe_offline": "Sonda je offline",
+        "response_time": "Doba odezvy",
+        "select_label": "Umístění",
+        "title": "Umístění"
+      },
       "monitor_for": "monitor pro",
       "no_certificate_data": "Žádná data o certifikátu",
       "seconds": "sekundy",

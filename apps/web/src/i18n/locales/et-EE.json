@@ -668,6 +668,14 @@
       "expiring_soon": "Aegumine varsti",
       "for": "selleks",
       "live_status": "Reaalajas olek",
+      "locations": {
+        "all": "Kõik asukohad",
+        "no_result": "Tulemust pole veel",
+        "probe_offline": "Sond on võrguühenduseta",
+        "response_time": "Vastusaeg",
+        "select_label": "Asukoht",
+        "title": "Asukohad"
+      },
       "monitor_for": "Monitoorimiseks",
       "no_certificate_data": "Sertifikaatiandmeid pole",
       "seconds": "sekundit",

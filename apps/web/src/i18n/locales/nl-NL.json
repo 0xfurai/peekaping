@@ -668,6 +668,14 @@
       "expiring_soon": "Verloopt binnenkort",
       "for": "voor",
       "live_status": "Live-status",
+      "locations": {
+        "all": "Alle locaties",
+        "no_result": "Nog geen resultaat",
+        "probe_offline": "Probe offline",
+        "response_time": "Reactietijd",
+        "select_label": "Locatie",
+        "title": "Locaties"
+      },
       "monitor_for": "monitor voor",
       "no_certificate_data": "Geen certificaatgegevens",
       "seconds": "seconden",

@@ -668,6 +668,14 @@
       "expiring_soon": "Utgår snart",
       "for": "för",
       "live_status": "Direktstatus",
+      "locations": {
+        "all": "Alla platser",
+        "no_result": "Inget resultat än",
+        "probe_offline": "Sonden är offline",
+        "response_time": "Svarstid",
+        "select_label": "Plats",
+        "title": "Platser"
+      },
       "monitor_for": "Övervaka för",
       "no_certificate_data": "Ingen certifikatdata",
       "seconds": "sekunder",

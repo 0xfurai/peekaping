@@ -668,6 +668,14 @@
       "expiring_soon": "Expiring soon",
       "for": "for",
       "live_status": "Live Status",
+      "locations": {
+        "all": "All locations",
+        "no_result": "No result yet",
+        "probe_offline": "Probe offline",
+        "response_time": "Response time",
+        "select_label": "Location",
+        "title": "Locations"
+      },
       "monitor_for": "monitor for",
       "no_certificate_data": "No certificate data",
       "seconds": "seconds",

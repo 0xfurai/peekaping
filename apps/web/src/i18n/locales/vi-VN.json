@@ -668,6 +668,14 @@
       "expiring_soon": "Sắp hết hạn",
       "for": "cho",
       "live_status": "Tình trạng trực tiếp",
+      "locations": {
+        "all": "Tất cả vị trí",
+        "no_result": "Chưa có kết quả",
+        "probe_offline": "Đầu dò ngoại tuyến",
+        "response_time": "Thời gian phản hồi",
+        "select_label": "Vị trí",
+        "title": "Vị trí"
+      },
       "monitor_for": "Giám sát",
       "no_certificate_data": "Không có dữ liệu chứng chỉ",
       "seconds": "giây",

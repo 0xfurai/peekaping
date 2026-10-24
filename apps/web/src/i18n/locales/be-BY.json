@@ -668,6 +668,14 @@
       "expiring_soon": "Хутка заканчваецца",
       "for": "для",
       "live_status": "Жывы стан",
+      "locations": {
+        "all": "Усе месцазнаходжанні",
+        "no_result": "Вынікаў пакуль няма",
+        "probe_offline": "Зонд не ў сетцы",
+        "response_time": "Час адказу",
+        "select_label": "Месцазнаходжанне",
+        "title": "Месцазнаходжанні"
+      },
       "monitor_for": "Манітор для",
       "no_certificate_data": "Няма дадзеных аб сертыфікаце",
       "seconds": "sekundy",

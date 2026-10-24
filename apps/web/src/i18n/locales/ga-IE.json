@@ -668,6 +668,14 @@
       "expiring_soon": "Ag léiriú go luath",
       "for": "do",
       "live_status": "Stáit Beo",
+      "locations": {
+        "all": "Gach suíomh",
+        "no_result": "Níl aon toradh ann go fóill",
+        "probe_offline": "Tóireadóir as líne",
+        "response_time": "Am freagartha",
+        "select_label": "Suíomh",
+        "title": "Suíomhanna"
+      },
       "monitor_for": "monatóireacht ar",
       "no_certificate_data": "Níl sonraí ar an gceartúireacht",
       "seconds": "soicindí",

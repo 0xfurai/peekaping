@@ -668,6 +668,14 @@
       "expiring_soon": "即将到期",
       "for": "针对",
       "live_status": "实时状态",
+      "locations": {
+        "all": "所有位置",
+        "no_result": "暂无结果",
+        "probe_offline": "探针离线",
+        "response_time": "响应时间",
+        "select_label": "位置",
+        "title": "位置"
+      },
       "monitor_for": "监测",
       "no_certificate_data": "无证书数据",
       "seconds": "秒",

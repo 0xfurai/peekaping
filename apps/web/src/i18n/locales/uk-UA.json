@@ -668,6 +668,14 @@
       "expiring_soon": "Скоро закінчується термін дії",
       "for": "для",
       "live_status": "Статус в реальному часі",
+      "locations": {
+        "all": "Усі розташування",
+        "no_result": "Результату ще немає",
+        "probe_offline": "Зонд офлайн",
+        "response_time": "Час відповіді",
+        "select_label": "Розташування",
+        "title": "Розташування"
+      },
       "monitor_for": "монітор для",
       "no_certificate_data": "Немає даних сертифіката",
       "seconds": "секунд",

@@ -668,6 +668,14 @@
       "expiring_soon": "만료 임박",
       "for": "대상",
       "live_status": "실시간 상태",
+      "locations": {
+        "all": "모든 위치",
+        "no_result": "아직 결과 없음",
+        "probe_offline": "프로브 오프라인",
+        "response_time": "응답 시간",
+        "select_label": "위치",
+        "title": "위치"
+      },
       "monitor_for": "모니터링 대상",
       "no_certificate_data": "인증서 데이터 없음",
       "seconds": "초",

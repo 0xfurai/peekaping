@@ -668,6 +668,14 @@
       "expiring_soon": "Utløper snart",
       "for": "for",
       "live_status": "Direkte status",
+      "locations": {
+        "all": "Alle plasseringer",
+        "no_result": "Ingen resultat ennå",
+        "probe_offline": "Proben er offline",
+        "response_time": "Svartid",
+        "select_label": "Plassering",
+        "title": "Plasseringer"
+      },
       "monitor_for": "overvåk for",
       "no_certificate_data": "Ingen sertifikatdata",
       "seconds": "sekunder",

@@ -668,6 +668,14 @@
       "expiring_soon": "פוג בקרוב",
       "for": "ל",
       "live_status": "מצב חי",
+      "locations": {
+        "all": "כל המיקומים",
+        "no_result": "אין תוצאה עדיין",
+        "probe_offline": "הגשושית לא מחוברת",
+        "response_time": "זמן תגובה",
+        "select_label": "מיקום",
+        "title": "מיקומים"
+      },
       "monitor_for": "מעקב אחר",
       "no_certificate_data": "אין נתוני תעודה",
       "seconds": "שניות",
