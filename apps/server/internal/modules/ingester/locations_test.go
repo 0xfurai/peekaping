@@ -377,3 +377,60 @@ func TestIngester_AFailedHeartbeatLeavesTheLocationAsItWas(t *testing.T) {
 	assert.Equal(t, down, *ti.locations.states[probeA].Status)
 	assert.Equal(t, []string{changed, notified}, retried.events, "the retry still finds the monitor going Down, so its notification is not lost")
 }
+
+// A result moves the monitor to Down only when its own location is Down, and to Up only when its
+// own location is Up: it is the heartbeat of that result that is saved as important and notified,
+// and it must say what the notification says.
+func TestIngester_AnUpResultNeverWentDownTheMonitor(t *testing.T) {
+	ti := newTestIngester(runningOn(probeA, probeB))
+	m := monitorSettings{}
+	ti.from(t, probeB, m, up)
+	aDown := ti.from(t, probeA, m, down)
+	require.Equal(t, []string{changed, notified}, aDown.events, "the monitor is Down")
+	ti.locations.setOffline(probeA)
+	recovered := ti.from(t, probeB, m, up)
+	require.Equal(t, []string{changed, notified}, recovered.events, "A is unknown, and B is Up: the monitor is Up")
+	delete(ti.locations.offline, probeA) // A comes back, with the Down it had
+
+	bUp := ti.from(t, probeB, m, up)
+
+	assert.Equal(t, up, bUp.status)
+	assert.False(t, bUp.important, "an Up heartbeat is not the monitor going Down")
+	assert.False(t, bUp.notified)
+	assert.Empty(t, bUp.events, "the monitor is still Up as far as anyone was told")
+	require.Len(t, bUp.published, 3)
+
+	aStillDown := ti.from(t, probeA, m, down)
+
+	assert.Equal(t, down, aStillDown.status)
+	assert.True(t, aStillDown.important, "A's own Down result carries the change")
+	assert.True(t, aStillDown.notified)
+	assert.Equal(t, []string{changed, notified}, aStillDown.events)
+	require.Len(t, aStillDown.published, 4)
+	assert.Equal(t, down, aStillDown.published[3].Status)
+}
+
+func TestIngester_TheMonitorRecoversOnlyOnAnUpResult(t *testing.T) {
+	ti := newTestIngester(runningOn(probeA, probeB))
+	m := monitorSettings{}
+	ti.from(t, probeA, m, up)
+	ti.from(t, probeB, m, up)
+	ti.from(t, probeA, m, down)
+	ti.from(t, probeB, m, down)
+	ti.locations.setOffline(probeA)
+
+	bStillDown := ti.from(t, probeB, m, down)
+	assert.Empty(t, bStillDown.events, "A being offline doesn't end B's outage")
+
+	delete(ti.locations.offline, probeA)
+	aBack := ti.from(t, probeA, m, up)
+	assert.Empty(t, aBack.events, "A is Up, and B is still Down")
+
+	bUp := ti.from(t, probeB, m, up)
+
+	assert.Equal(t, up, bUp.status)
+	assert.True(t, bUp.important, "the Up result is the one that recovers the monitor")
+	assert.True(t, bUp.notified)
+	assert.Equal(t, []string{changed, notified}, bUp.events)
+	assert.Equal(t, up, bUp.published[len(bUp.published)-1].Status)
+}

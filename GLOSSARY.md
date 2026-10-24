@@ -67,7 +67,7 @@ One running copy of a probe's program. Every copy started with the probe's token
 _Avoid_: Agent, worker, node; "instance ID" alone, which is the usage ping's
 
 **Location**:
-A monitor's results from one of its probes: that probe's latest status, response time and heartbeats for the monitor. A monitor on three probes has three locations.
+A monitor's results from one of its probes: that probe's latest status, response time and heartbeats for the monitor. A monitor on three probes has three locations. A monitor's status follows its locations: it is Down while any location whose probe is online is Down, and Up once none is; a location whose probe is offline doesn't count.
 _Avoid_: Region, probe (that's the place the checks run from)
 
 **Assignment**:

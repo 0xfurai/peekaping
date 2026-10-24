@@ -14,10 +14,10 @@ import { getMonitorStatusView } from "./monitor-status";
 interface MonitorCardProps {
   monitor: MonitorMonitorResponseDto;
   // The names of the probes the monitor runs on. Left out when the install has no remote probe.
-  probeNames?: string[];
+  probes?: { id: string; name: string }[];
 }
 
-const MonitorCard = ({ monitor, probeNames }: MonitorCardProps) => {
+const MonitorCard = ({ monitor, probes }: MonitorCardProps) => {
   const navigate = useNavigate();
   const { t } = useLocalizedTranslation();
 
@@ -77,9 +77,9 @@ const MonitorCard = ({ monitor, probeNames }: MonitorCardProps) => {
               <h3 className="font-bold mb-1">{monitor.name}</h3>
               <div className="flex flex-wrap gap-1">
                 <Badge variant={"outline"}>{monitor.type}</Badge>
-                {probeNames?.map((name) => (
+                {probes?.map(({ id, name }) => (
                   <Badge
-                    key={name}
+                    key={id}
                     variant={"outline"}
                     title={t("probes.monitor_probe", { name })}
                     data-testid="monitor-probe-badge"

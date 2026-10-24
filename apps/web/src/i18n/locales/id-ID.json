@@ -671,7 +671,7 @@
       "locations": {
         "all": "Semua lokasi",
         "no_result": "Belum ada hasil",
-        "probe_offline": "Probe offline",
+        "probe_offline": "Probe sedang offline",
         "response_time": "Waktu respons",
         "select_label": "Lokasi",
         "title": "Lokasi"
