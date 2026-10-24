@@ -118,11 +118,10 @@ func TestScheduler_LogsNoErrorForACheckCancelledWhileItLoads(t *testing.T) {
 			core, logs := observer.New(zap.WarnLevel)
 			loading := make(chan struct{}, 1)
 			var h *harness
-			h = newHarness(t, func(cfg *Config) {
-				cfg.Logger = zap.New(core).Sugar()
+			h = newHarness(t, func(cfg *Config) { cfg.Logger = zap.New(core).Sugar() },
 				// The first load waits for its check to be cancelled, then fails as the
 				// database does on a cancelled context
-				cfg.Loader = loaderFunc(func(ctx context.Context, monitorID string) (*check.Job, error) {
+				withLoader(loaderFunc(func(ctx context.Context, monitorID string) (*check.Job, error) {
 					select {
 					case loading <- struct{}{}:
 						<-ctx.Done()
@@ -130,8 +129,7 @@ func TestScheduler_LogsNoErrorForACheckCancelledWhileItLoads(t *testing.T) {
 					default:
 						return h.db.Load(ctx, monitorID)
 					}
-				})
-			})
+				})))
 			h.db.put(monitorWith("mon", withInterval(day)))
 			h.start()
 			<-loading
