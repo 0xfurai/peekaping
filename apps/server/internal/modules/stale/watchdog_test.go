@@ -324,6 +324,73 @@ func TestWatchdog_SavingANotifiedMonitorIsNotARecovery(t *testing.T) {
 	assert.Len(t, f.published(MonitorStaleRecovered), 1)
 }
 
+func TestWatchdog_RemoteMonitorIsNotRecheckedLocally(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	remote := testMonitor("remote", 60, 10, now.Add(-time.Hour))
+	remote.ProbeIDs = []string{"probe-1"}
+	local := testMonitor("local", 60, 10, now.Add(-time.Hour))
+	local.ProbeIDs = []string{shared.LocalProbeID}
+	f := newWatchdogFixture(t, remote, local)
+	f.heartbeats.setLatest("remote", now.Add(-4*time.Minute))
+	f.heartbeats.setLatest("local", now.Add(-4*time.Minute))
+
+	f.run(t)
+
+	assert.Equal(t, []string{"local"}, f.rechecker.calls, "the local scheduler can't check a monitor that a remote probe runs")
+	entries, err := f.store.All(context.Background())
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"remote", "local"}, keys(entries), "but the stale monitor is recorded all the same")
+}
+
+func TestWatchdog_StaleRemoteMonitorNotifiesAfterTheCheckTimeout(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	remote := testMonitor("remote", 60, 10, now.Add(-time.Hour))
+	remote.ProbeIDs = []string{"probe-1"}
+	f := newWatchdogFixture(t, remote)
+	f.heartbeats.setLatest("remote", now.Add(-4*time.Minute))
+	// The scheduler and the producer refuse a monitor that a remote probe runs
+	f.rechecker.err = errors.New("monitor remote runs on a remote probe")
+
+	f.run(t)
+	f.at(5 * time.Second)
+	f.run(t)
+	assert.Empty(t, f.published(MonitorStale), "not before the check timeout of 10s + 10s")
+
+	f.at(time.Minute)
+	f.run(t)
+
+	sent := f.published(MonitorStale)
+	require.Len(t, sent, 1)
+	assert.Equal(t, Event{MonitorID: "remote", MonitorName: "Monitor remote", Since: now.Add(-4 * time.Minute)}, normalize(sent[0]))
+
+	f.at(2 * time.Minute)
+	f.run(t)
+	assert.Len(t, f.published(MonitorStale), 1, "one notification per stale period")
+	assert.Empty(t, f.rechecker.calls)
+}
+
+func TestWatchdog_LeavesARemoteMonitorWhoseProbeIsOfflineAlone(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	remote := testMonitor("remote", 60, 10, now.Add(-time.Hour))
+	remote.ProbeIDs = []string{"probe-1"}
+	f := newWatchdogFixture(t, remote)
+	f.heartbeats.setLatest("remote", now.Add(-4*time.Minute))
+	probes := &probesOffline{offline: map[string]bool{"remote": true}}
+	cfg := f.config()
+	cfg.ProbeOffline = probes.probeOffline
+	f.w = NewWatchdog(cfg)
+
+	f.run(t)
+	f.at(time.Minute)
+	f.run(t)
+
+	assert.Empty(t, f.rechecker.calls)
+	count, err := f.store.Count(context.Background())
+	require.NoError(t, err)
+	assert.Zero(t, count, "an offline probe's monitor isn't recorded as stale")
+	assert.Empty(t, f.published(MonitorStale), "nor is anyone told that it was not checked")
+}
+
 func TestWatchdog_KeepsRecordsOfActiveMonitorsMissedByTheScan(t *testing.T) {
 	// A monitor paused mid-scan shifts the pages, so an active monitor can be missed
 	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
@@ -371,9 +438,9 @@ type probesOffline struct {
 	asked   []string
 }
 
-func (p *probesOffline) probeOffline(_ context.Context, monitorID string) (bool, error) {
-	p.asked = append(p.asked, monitorID)
-	return p.offline[monitorID], p.err[monitorID]
+func (p *probesOffline) probeOffline(_ context.Context, mon *shared.Monitor) (bool, error) {
+	p.asked = append(p.asked, mon.ID)
+	return p.offline[mon.ID], p.err[mon.ID]
 }
 
 func TestWatchdog_SkipsMonitorsWhoseProbeIsOffline(t *testing.T) {

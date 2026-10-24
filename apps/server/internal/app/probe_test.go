@@ -42,16 +42,21 @@ func probeContainer(t *testing.T, cfg *config.Config, migrateDatabase bool) (*di
 			if !migrateDatabase {
 				return nil
 			}
-			ctx := context.Background()
-			migrator := migrate.NewMigrator(db, migrations.Migrations)
-			if err := migrator.Init(ctx); err != nil {
-				return err
-			}
-			_, err := migrator.Migrate(ctx)
-			return err
+			return migrateDB(db)
 		}))
 	}
 	return container, logs
+}
+
+// migrateDB migrates the database as the startup script does with cmd/bun
+func migrateDB(db *bun.DB) error {
+	ctx := context.Background()
+	migrator := migrate.NewMigrator(db, migrations.Migrations)
+	if err := migrator.Init(ctx); err != nil {
+		return err
+	}
+	_, err := migrator.Migrate(ctx)
+	return err
 }
 
 func findByToken(t *testing.T, container *dig.Container, token string) *probe.Model {

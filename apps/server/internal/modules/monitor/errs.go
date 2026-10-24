@@ -18,3 +18,12 @@ type InvalidConfigError struct {
 func (e *InvalidConfigError) Error() string { return "invalid monitor configuration: " + e.Err.Error() }
 
 func (e *InvalidConfigError) Unwrap() error { return e.Err }
+
+// InvalidProbesError is a probe_ids that a monitor can't have. Err says why.
+type InvalidProbesError struct {
+	Err error
+}
+
+func (e *InvalidProbesError) Error() string { return "invalid probe_ids: " + e.Err.Error() }
+
+func (e *InvalidProbesError) Unwrap() error { return e.Err }

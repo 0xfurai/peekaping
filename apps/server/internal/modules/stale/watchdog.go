@@ -14,7 +14,8 @@ import (
 // WatchdogInterval is how often the watchdog looks for monitors that stopped being checked
 const WatchdogInterval = time.Minute
 
-// Rechecker gets a monitor checked right away, without waiting for its next scheduled check
+// Rechecker gets a monitor checked right away, without waiting for its next scheduled check. It
+// checks the monitors of the local probe only, and refuses one that a remote probe runs.
 type Rechecker interface {
 	RunNow(ctx context.Context, monitorID string) error
 }
@@ -32,8 +33,9 @@ type HeartbeatFinder interface {
 
 // ProbeOfflineFunc reports whether the probe a monitor is assigned to is offline. A monitor
 // whose probe is offline isn't being checked for a reason that probe's own notification gives, so
-// the watchdog leaves it alone. The local probe never counts as offline.
-type ProbeOfflineFunc func(ctx context.Context, monitorID string) (bool, error)
+// the watchdog leaves it alone. The local probe never counts as offline. The monitor is the one
+// the watchdog holds, with its probes.
+type ProbeOfflineFunc func(ctx context.Context, mon *shared.Monitor) (bool, error)
 
 // WatchdogConfig is what a Watchdog reads and calls
 type WatchdogConfig struct {
@@ -119,8 +121,9 @@ func (w *Watchdog) Run(ctx context.Context) {
 }
 
 // checkStaleMonitors finds active monitors whose latest heartbeat is older than their
-// stale threshold. A newly stale monitor gets a warning and a check right away. If it's
-// still stale once that check has had time to finish, its channels are notified once.
+// stale threshold, whichever probe runs them. A newly stale monitor gets a warning and a check
+// right away, unless a remote probe runs it: it gets no check from here. If it's still stale
+// once that check has had time to finish, its channels are notified once.
 // A notified monitor that's checked again gets a recovery notification.
 func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 	now := w.now().UTC()
@@ -189,7 +192,7 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 	// by the time the probe is back, which would notify with no recheck made. The monitor is
 	// found stale afresh then, with a new recheck and a new time to be checked in.
 	if w.probeOffline != nil {
-		offline, err := w.probeOffline(ctx, mon.ID)
+		offline, err := w.probeOffline(ctx, mon)
 		if err != nil {
 			return fmt.Errorf("failed to find out whether the monitor's probe is offline: %w", err)
 		}
@@ -235,6 +238,16 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 	}
 
 	if !wasStale {
+		// The rechecker checks the monitors of the local probe only. A remote probe's monitor
+		// gets no recheck from here, but the time a recheck is given still runs, so that its
+		// channels are notified if it stays unchecked.
+		if !mon.RunsOn(shared.LocalProbeID) {
+			w.logger.Warnw("Monitor on a remote probe has not been checked in too long",
+				"monitor_id", mon.ID,
+				"monitor_name", mon.Name,
+				"last_checked_at", since)
+			return w.store.Put(ctx, Entry{MonitorID: mon.ID, Since: since, DetectedAt: now})
+		}
 		w.logger.Warnw("Monitor has not been checked in too long, checking it again",
 			"monitor_id", mon.ID,
 			"monitor_name", mon.Name,

@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -189,7 +190,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 
 		require.NoError(t, producer.begin(context.Background()))
 		// Mock error
-		mockMonitorSvc.On("FindActivePaginated", producer.ctx, 0, 100).Return(nil, assert.AnError)
+		mockMonitorSvc.On("FindActiveByProbe", producer.ctx, shared.LocalProbeID, 0, 100).Return(nil, assert.AnError)
 
 		err := producer.startMonitorSyncing()
 		assert.Error(t, err)

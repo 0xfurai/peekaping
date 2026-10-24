@@ -233,6 +233,54 @@ func TestSQLRepository_DeleteRemovesTheProbesInstances(t *testing.T) {
 	})
 }
 
+// addMonitorOn stores a monitor that runs on the probe
+func addMonitorOn(t *testing.T, db *bun.DB, probeID string, active bool) string {
+	t.Helper()
+	id := uuid.NewString()
+	_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, active)
+	require.NoError(t, err)
+	_, err = db.Exec("INSERT INTO monitor_probes (monitor_id, probe_id) VALUES (?, ?)", id, probeID)
+	require.NoError(t, err)
+	return id
+}
+
+func TestSQLRepository_CountMonitorsCountsTheMonitorsOfTheProbe(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		first, second := twoProbes(t, repo)
+		addMonitorOn(t, db, first.ID, true)
+		addMonitorOn(t, db, first.ID, false)
+		addMonitorOn(t, db, second.ID, true)
+
+		onFirst, err := repo.CountMonitors(ctx, first.ID)
+		require.NoError(t, err)
+		onLocal, err := repo.CountMonitors(ctx, probe.LocalID)
+		require.NoError(t, err)
+		onUnknown, err := repo.CountMonitors(ctx, uuid.NewString())
+		require.NoError(t, err)
+
+		assert.Equal(t, 2, onFirst, "a paused monitor runs on its probe, too")
+		assert.Zero(t, onLocal)
+		assert.Zero(t, onUnknown)
+	})
+}
+
+func TestSQLRepository_DeleteIsRefusedForAProbeWithMonitors(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		first, _ := twoProbes(t, repo)
+		addMonitorOn(t, db, first.ID, true)
+
+		assert.ErrorIs(t, repo.Delete(ctx, first.ID), probe.ErrProbeHasMonitors, "the database holds the line, even for a caller that didn't count")
+
+		found, err := repo.FindByID(ctx, first.ID)
+		require.NoError(t, err)
+		assert.NotNil(t, found)
+	})
+}
+
 // twoProbes makes two probes to register instances on
 func twoProbes(t *testing.T, repo probe.Repository) (first, second *probe.Model) {
 	t.Helper()

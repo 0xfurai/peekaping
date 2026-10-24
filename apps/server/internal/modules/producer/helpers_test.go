@@ -60,6 +60,24 @@ func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, 
 	return nil, args.Error(1)
 }
 
+func (m *MockMonitorService) FindActiveByProbe(ctx context.Context, probeID string, page int, pageSize int) ([]*monitor.Model, error) {
+	args := m.Called(ctx, probeID, page, pageSize)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	switch v := args.Get(0).(type) {
+	case []monitor.Model:
+		result := make([]*monitor.Model, len(v))
+		for i := range v {
+			result[i] = &v[i]
+		}
+		return result, args.Error(1)
+	case []*monitor.Model:
+		return v, args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 // MockMaintenanceService mocks the maintenance service's methods the check loader reads
 type MockMaintenanceService struct {
 	mock.Mock

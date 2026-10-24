@@ -371,3 +371,31 @@ func TestProbesAPI_MongoInstallListsNoProbesAndRefusesTheRest(t *testing.T) {
 		})
 	}
 }
+
+func TestProbes_DeleteWithMonitorsAnswers409(t *testing.T) {
+	a := newAppWithAdmin(t)
+	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})
+	path := probesPath + "/" + frankfurt.ID
+	first := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), frankfurt.ID), a.asAdmin), http.StatusCreated).ID
+	second := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Search", ""), frankfurt.ID), a.asAdmin), http.StatusCreated).ID
+	a.pauseMonitor(t, second)
+
+	w := a.request(t, http.MethodDelete, path, nil, a.asAdmin)
+
+	assert.Equal(t, http.StatusConflict, w.Code, w.Body.String())
+	assert.Equal(t, "The probe can't be deleted: 2 monitors run on it. Move them to another probe or delete them first", errorMessage(t, w.Body.Bytes()),
+		"a paused monitor counts, too")
+	assert.Equal(t, frankfurt.probeResponse, a.getProbe(t, frankfurt.ID), "the probe stays as it was")
+	assert.Equal(t, []string{frankfurt.ID}, a.monitorProbes(t, first), "and so do its monitors")
+	assert.Equal(t, []string{frankfurt.ID}, a.monitorProbes(t, second))
+
+	a.moveMonitor(t, first, "local")
+	w = a.request(t, http.MethodDelete, path, nil, a.asAdmin)
+	assert.Equal(t, http.StatusConflict, w.Code, w.Body.String())
+	assert.Equal(t, "The probe can't be deleted: 1 monitor runs on it. Move them to another probe or delete them first", errorMessage(t, w.Body.Bytes()))
+
+	decode[any](t, a.request(t, http.MethodDelete, monitorsPath+"/"+second, nil, a.asAdmin), http.StatusOK)
+	w = a.request(t, http.MethodDelete, path, nil, a.asAdmin)
+	assert.Equal(t, http.StatusNoContent, w.Code, "the probe goes once its last monitor is gone: "+w.Body.String())
+	assert.Equal(t, []string{"local"}, a.monitorProbes(t, first))
+}

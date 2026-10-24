@@ -9,6 +9,7 @@ import (
 
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/shared"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -594,7 +595,7 @@ func TestInitializeSchedule(t *testing.T) {
 			monsPointers[i] = &monitors[i]
 		}
 		// Since we're returning less than pageSize (100) monitors, it will not call page 1
-		mockMonitorSvc.On("FindActivePaginated", ctx, 0, 100).Return(monsPointers, nil)
+		mockMonitorSvc.On("FindActiveByProbe", ctx, shared.LocalProbeID, 0, 100).Return(monsPointers, nil)
 
 		err := producer.initializeSchedule()
 		assert.NoError(t, err)
@@ -638,7 +639,7 @@ func TestInitializeSchedule(t *testing.T) {
 			monsPointers[i] = &monitors[i]
 		}
 		// Since we're returning less than pageSize monitors, it won't call page 1
-		mockMonitorSvc.On("FindActivePaginated", ctx, 0, 100).Return(monsPointers, nil)
+		mockMonitorSvc.On("FindActiveByProbe", ctx, shared.LocalProbeID, 0, 100).Return(monsPointers, nil)
 
 		err := producer.initializeSchedule()
 		assert.NoError(t, err)
@@ -683,7 +684,7 @@ func TestInitializeSchedule(t *testing.T) {
 		monitors := []*monitor.Model{&activeMon}
 
 		// Since we're returning less than pageSize monitors, it won't call page 1
-		mockMonitorSvc.On("FindActivePaginated", ctx, 0, 100).Return(monitors, nil)
+		mockMonitorSvc.On("FindActiveByProbe", ctx, shared.LocalProbeID, 0, 100).Return(monitors, nil)
 
 		err := producer.initializeSchedule()
 		assert.NoError(t, err)
@@ -731,7 +732,7 @@ func TestRefreshSchedule(t *testing.T) {
 		monitors := []*monitor.Model{&mon1, &mon2}
 
 		// Since we're returning less than pageSize monitors, it won't call page 1
-		mockMonitorSvc.On("FindActivePaginated", ctx, 0, 100).Return(monitors, nil)
+		mockMonitorSvc.On("FindActiveByProbe", ctx, shared.LocalProbeID, 0, 100).Return(monitors, nil)
 
 		err := producer.refreshSchedule()
 		assert.NoError(t, err)
@@ -778,7 +779,7 @@ func TestRefreshSchedule(t *testing.T) {
 		monitors := []*monitor.Model{&mon2}
 
 		// Since we're returning less than pageSize monitors, it won't call page 1
-		mockMonitorSvc.On("FindActivePaginated", ctx, 0, 100).Return(monitors, nil)
+		mockMonitorSvc.On("FindActiveByProbe", ctx, shared.LocalProbeID, 0, 100).Return(monitors, nil)
 
 		err := producer.refreshSchedule()
 		assert.NoError(t, err)

@@ -40,9 +40,14 @@ func newFixtureWith(t *testing.T, wrap func(probe.Repository) probe.Repository) 
 	t.Helper()
 	db := sqliteDB(t)
 	migrateDB(t, db)
+	return fixture{svc: serviceOn(db, wrap), db: db}
+}
+
+// serviceOn is a probe service over the migrated database and the SQL repository that wrap returns
+func serviceOn(db *bun.DB, wrap func(probe.Repository) probe.Repository) probe.Service {
 	logger := zap.NewNop().Sugar()
 	channels := probe_notification.NewService(probe_notification.NewSQLRepository(db), logger)
-	return fixture{svc: probe.NewService(wrap(probe.NewSQLRepository(db)), dbtx.NewSQLTransactor(db), channels, logger), db: db}
+	return probe.NewService(wrap(probe.NewSQLRepository(db)), dbtx.NewSQLTransactor(db), channels, logger)
 }
 
 // failingRepo is the SQL repository with statements that fail, to see what a failed step leaves
@@ -52,6 +57,21 @@ type failingRepo struct {
 	deleteErr   error
 	updateErr   error
 	setTypesErr error
+}
+
+// countedBeforeAssigned is the SQL repository whose count of a probe's monitors is read before a
+// monitor is assigned to the probe: it finds none
+type countedBeforeAssigned struct {
+	probe.Repository
+	counted bool
+}
+
+func (r *countedBeforeAssigned) CountMonitors(ctx context.Context, id string) (int, error) {
+	if !r.counted {
+		r.counted = true
+		return 0, nil
+	}
+	return r.Repository.CountMonitors(ctx, id)
 }
 
 func (r failingRepo) Delete(ctx context.Context, id string) error {
@@ -417,6 +437,55 @@ func TestService_DeleteRemovesTheProbe(t *testing.T) {
 	none, err := f.svc.FindByToken(ctx, created.Token)
 	require.NoError(t, err)
 	assert.Nil(t, none)
+}
+
+func TestService_DeleteRefusesAProbeWithMonitors(t *testing.T) {
+	ctx := context.Background()
+	f := newFixture(t)
+	created := f.create(t, "Frankfurt")
+	for _, active := range []bool{true, false, true} {
+		id := uuid.NewString()
+		_, err := f.db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, active)
+		require.NoError(t, err)
+		_, err = f.db.Exec("INSERT INTO monitor_probes (monitor_id, probe_id) VALUES (?, ?)", id, created.ID)
+		require.NoError(t, err)
+	}
+
+	err := f.svc.Delete(ctx, created.ID)
+
+	require.ErrorIs(t, err, probe.ErrProbeHasMonitors)
+	var hasMonitors *probe.HasMonitorsError
+	require.ErrorAs(t, err, &hasMonitors)
+	assert.Equal(t, 3, hasMonitors.Monitors)
+	stays, err := f.svc.FindByToken(ctx, created.Token)
+	require.NoError(t, err)
+	require.NotNil(t, stays, "the probe and its token are as they were")
+	assert.Equal(t, 1, f.probeCount(t, "Frankfurt"))
+
+	_, err = f.db.Exec("DELETE FROM monitor_probes WHERE probe_id = ?", created.ID)
+	require.NoError(t, err)
+	assert.NoError(t, f.svc.Delete(ctx, created.ID), "it can be deleted once no monitor runs on it")
+}
+
+func TestService_DeleteRefusesAProbeThatAMonitorWasAssignedToAfterTheCount(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		svc := serviceOn(db, func(repo probe.Repository) probe.Repository { return &countedBeforeAssigned{Repository: repo} })
+		created, err := svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
+		require.NoError(t, err)
+		addMonitorOn(t, db, created.ID, true)
+		addMonitorOn(t, db, created.ID, false)
+
+		err = svc.Delete(ctx, created.ID)
+
+		require.ErrorIs(t, err, probe.ErrProbeHasMonitors, "the foreign key refuses the delete, which is not a failure of the server")
+		var hasMonitors *probe.HasMonitorsError
+		require.ErrorAs(t, err, &hasMonitors)
+		assert.Equal(t, 2, hasMonitors.Monitors, "the count is read again for the message")
+		stays, err := svc.FindByToken(ctx, created.Token)
+		require.NoError(t, err)
+		assert.NotNil(t, stays, "the probe is as it was")
+	})
 }
 
 func TestService_RegisterInstanceRecordsTheInstanceAndTheProbesTypes(t *testing.T) {

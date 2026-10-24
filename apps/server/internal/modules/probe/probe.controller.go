@@ -3,6 +3,7 @@ package probe
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"peekaping/internal/httpx"
@@ -32,6 +33,15 @@ const (
 	localProbeCantBeRotated  = "The local probe's token is set with PROBE_BOOTSTRAP_TOKEN: set or change it and restart Peekaping"
 )
 
+// probeHasMonitors is why a probe with monitors on it can't be deleted
+func probeHasMonitors(monitors int) string {
+	runs := "monitors run"
+	if monitors == 1 {
+		runs = "monitor runs"
+	}
+	return fmt.Sprintf("The probe can't be deleted: %d %s on it. Move them to another probe or delete them first", monitors, runs)
+}
+
 // fail turns a service error into the response that tells the caller what went wrong.
 // localMessage says why the local probe can't be changed the way the request asked.
 func (c *Controller) fail(err error, localMessage string) error {
@@ -42,6 +52,12 @@ func (c *Controller) fail(err error, localMessage string) error {
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Probe not found"))
 	case errors.Is(err, ErrLocalProbe):
 		return httpx.Fail(http.StatusConflict, utils.NewFailResponse(localMessage))
+	case errors.Is(err, ErrProbeHasMonitors):
+		var hasMonitors *HasMonitorsError
+		if errors.As(err, &hasMonitors) {
+			return httpx.Fail(http.StatusConflict, utils.NewFailResponse(probeHasMonitors(hasMonitors.Monitors)))
+		}
+		return httpx.Fail(http.StatusConflict, utils.NewFailResponse(err.Error()))
 	case errors.Is(err, probe_notification.ErrUnknownChannel):
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}

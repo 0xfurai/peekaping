@@ -36,7 +36,7 @@ type monitorStore struct {
 	mu       sync.Mutex
 	monitors map[string]*monitor.Model
 	findErrs map[string]error
-	// afterPage runs after FindActivePaginated reads a page, to change the
+	// afterPage runs after FindActivePaginated or FindActiveByProbe reads a page, to change the
 	// database between pages
 	afterPage func(page int)
 }
@@ -84,11 +84,21 @@ func (s *monitorStore) FindByID(_ context.Context, id string) (*monitor.Model, e
 	return &copied, nil
 }
 
+// FindActivePaginated pages every active monitor, whichever probe runs it, as the watchdog reads them
 func (s *monitorStore) FindActivePaginated(_ context.Context, page int, limit int) ([]*monitor.Model, error) {
+	return s.pageActive(page, limit, func(*monitor.Model) bool { return true }), nil
+}
+
+// FindActiveByProbe pages the active monitors the probe runs
+func (s *monitorStore) FindActiveByProbe(_ context.Context, probeID string, page int, limit int) ([]*monitor.Model, error) {
+	return s.pageActive(page, limit, func(m *monitor.Model) bool { return m.RunsOn(probeID) }), nil
+}
+
+func (s *monitorStore) pageActive(page int, limit int, keep func(*monitor.Model) bool) []*monitor.Model {
 	s.mu.Lock()
 	var active []*monitor.Model
 	for _, m := range s.monitors {
-		if m.Active {
+		if m.Active && keep(m) {
 			copied := *m
 			active = append(active, &copied)
 		}
@@ -103,7 +113,7 @@ func (s *monitorStore) FindActivePaginated(_ context.Context, page int, limit in
 	if afterPage != nil {
 		afterPage(page)
 	}
-	return result, nil
+	return result
 }
 
 // engine is a producer running against miniredis, with the real asynq queue

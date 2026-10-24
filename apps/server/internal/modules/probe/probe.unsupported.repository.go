@@ -44,6 +44,10 @@ func (r *UnsupportedRepositoryImpl) Delete(ctx context.Context, id string) error
 	return ErrUnsupportedStorage
 }
 
+func (r *UnsupportedRepositoryImpl) CountMonitors(ctx context.Context, id string) (int, error) {
+	return 0, ErrUnsupportedStorage
+}
+
 func (r *UnsupportedRepositoryImpl) FindInstances(ctx context.Context, probeID string) ([]*Instance, error) {
 	return nil, ErrUnsupportedStorage
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/shared"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -70,8 +71,10 @@ func toDomainModel(mm *mongoModel) *Model {
 		Config:         mm.Config,
 		ProxyId:        proxyId,
 		PushToken:      mm.PushToken,
-		CreatedAt:      mm.CreatedAt,
-		UpdatedAt:      mm.UpdatedAt,
+		// MongoDB has no probes (ADR 0001): every monitor runs on the local one
+		ProbeIDs:  []string{shared.LocalProbeID},
+		CreatedAt: mm.CreatedAt,
+		UpdatedAt: mm.UpdatedAt,
 	}
 }
 
@@ -553,6 +556,15 @@ func (r *MonitorRepositoryImpl) FindActivePaginated(ctx context.Context, page in
 		return nil, err
 	}
 	return monitors, nil
+}
+
+// FindActiveByProbe retrieves the active monitors of the probe. MongoDB has no probes (ADR 0001):
+// the local probe runs every monitor and no other probe runs any.
+func (r *MonitorRepositoryImpl) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
+	if probeID != shared.LocalProbeID {
+		return []*Model{}, nil
+	}
+	return r.FindActivePaginated(ctx, page, limit)
 }
 
 // RemoveProxyReference sets proxy_id to an empty string for all monitors with the given proxyId.

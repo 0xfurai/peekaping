@@ -794,6 +794,15 @@ components:
           items:
             type: string
           type: array
+        probe_ids:
+          description: The probes that run the monitor's checks, by id. Exactly one for now. Omitted on create, the monitor runs on local; omitted on update, it keeps its probe. A push monitor runs on local only.
+          examples:
+            - - local
+          items:
+            type: string
+          type:
+            - array
+            - "null"
         proxy_id:
           examples:
             - 6830ad485361f19c598d6d90
@@ -895,6 +904,11 @@ components:
           items:
             type: string
           type: array
+        probe_ids:
+          description: The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself.
+          items:
+            type: string
+          type: array
         proxy_id:
           type: string
         push_token:
@@ -950,6 +964,7 @@ components:
         - config
         - proxy_id
         - push_token
+        - probe_ids
         - created_at
         - updated_at
       type: object
@@ -989,6 +1004,15 @@ components:
         notification_ids:
           examples:
             - - 6830ad485361f19c598d6d90
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        probe_ids:
+          description: The probes that run the monitor's checks, by id. Exactly one for now. Omitted, the monitor keeps its probe. A push monitor runs on local only.
+          examples:
+            - - local
           items:
             type: string
           type:

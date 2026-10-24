@@ -18,9 +18,10 @@ const wakerSubscriber = "probe-protocol"
 // runs in each API process, and the event bus carries a change that another process made to it.
 //
 // A monitor created, updated or deleted wakes the waiters of every probe: telling which probes a
-// monitor belongs to is the work of the poll that wakes, one query for each probe, and until a
-// monitor can be assigned to a probe (#34) every probe may hold it. An InstancesChanged event wakes
-// the waiters of that probe alone.
+// monitor belongs to is the work of the poll that wakes, one query for each probe. A monitor moved
+// from one probe to another is in the event only as its new probe's, and the probe it left has to
+// hear of it as well, so every probe wakes. An InstancesChanged event wakes the waiters of that
+// probe alone.
 //
 // An event is only a notice. The poll that wakes reads the database and answers if its version
 // differs, so a wake that changes nothing for it, and a wake that arrives twice, are harmless.

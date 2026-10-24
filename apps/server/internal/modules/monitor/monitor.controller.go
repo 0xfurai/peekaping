@@ -194,6 +194,10 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 
 	createdMonitor, err := ic.monitorService.Create(ctx, monitor)
 	if err != nil {
+		var invalidProbes *InvalidProbesError
+		if errors.As(err, &invalidProbes) {
+			return nil, invalidProbesResponse(invalidProbes)
+		}
 		ic.logger.Errorw("Failed to create monitor", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -259,6 +263,10 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 
 	updatedMonitor, err := ic.monitorService.UpdateFull(ctx, id, &monitor)
 	if err != nil {
+		var invalidProbes *InvalidProbesError
+		if errors.As(err, &invalidProbes) {
+			return nil, invalidProbesResponse(invalidProbes)
+		}
 		ic.logger.Errorw("Failed to update monitor", "error", err)
 		if errors.Is(err, ErrMonitorNotFound) {
 			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse(err.Error()))
@@ -300,14 +308,22 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 // failWrite maps the error of a write that looks up the monitor itself to its response.
 func (ic *MonitorController) failWrite(action string, err error) error {
 	var invalidConfig *InvalidConfigError
+	var invalidProbes *InvalidProbesError
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
 	case errors.As(err, &invalidConfig):
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", invalidConfig.Err)))
+	case errors.As(err, &invalidProbes):
+		return invalidProbesResponse(invalidProbes)
 	}
 	ic.logger.Errorw("Failed to "+action+" monitor", "error", err)
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+}
+
+// invalidProbesResponse tells the client why the probes it sent don't fit the monitor
+func invalidProbesResponse(err *InvalidProbesError) error {
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid probe_ids: %v", err.Err)))
 }
 
 func (ic *MonitorController) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {

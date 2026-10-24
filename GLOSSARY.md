@@ -47,8 +47,20 @@ A monitor that's switched off. It runs no checks until it's resumed.
 _Avoid_: Inactive, disabled, stopped
 
 **Stale monitor**:
-An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The watchdog looks for them every minute, gets each one checked again right away, and notifies the monitor's channels if that doesn't help.
+An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The watchdog looks for them every minute, gets each one checked again right away, and notifies the monitor's channels if that doesn't help. A monitor on a remote probe isn't checked again from here: its channels are notified once that same wait has passed.
 _Avoid_: Stuck monitor, dead monitor, overdue
+
+**Probe**:
+A place Peekaping runs checks from. Each monitor runs on one probe, the local probe unless it's assigned to a remote one.
+_Avoid_: Agent, location, worker
+
+**Local probe**:
+The probe that is Peekaping itself: its own process checks the monitors on it. Every install has it, and it can't be deleted.
+_Avoid_: Built-in probe, default probe
+
+**Remote probe**:
+A probe that runs on another machine. It connects out to Peekaping with its token, gets the monitors assigned to it, and sends back their results.
+_Avoid_: Private location, remote agent
 
 ### Status
 

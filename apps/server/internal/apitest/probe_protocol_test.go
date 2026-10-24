@@ -698,8 +698,7 @@ func TestProbeProtocol_MongoInstallAnswers501(t *testing.T) {
 
 const assignmentsPath = "/probe/v1/assignments"
 
-// localToken is the bootstrap token of the local probe in the tests that need it: the one probe
-// that is dealt monitors until #34
+// localToken is the bootstrap token of the local probe in the tests that need it
 const localToken = "bootstrap-token-0123456789-abcdefghijklmnop"
 
 // shortPoll shortens the time a poll waits to 200 ms, so that a test of the timeout is quick
@@ -863,21 +862,108 @@ func TestProbeProtocol_AssignmentsSkipTheTypesAProbeCannotRun(t *testing.T) {
 	assert.Equal(t, []string{httpID}, monitorIDs(got.Monitors))
 }
 
-func TestProbeProtocol_RemoteProbeGetsNothingUntil34(t *testing.T) {
-	a, made := probeApp(t)
-	a.createHTTPMonitor(t, "Checkout", "")
-	instanceID := uuid.NewString()
-	a.sayHello(t, made.Token, instanceID)
+// moveMonitor moves a monitor to the probe, as an admin does
+func (a *app) moveMonitor(t *testing.T, monitorID, probeID string) {
+	t.Helper()
+	w := a.request(t, http.MethodPatch, monitorsPath+"/"+monitorID, map[string]any{"probe_ids": []string{probeID}}, a.asAdmin)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+}
 
-	w := a.assignments(t, made.Token, instanceID, "")
+func TestProbeProtocol_RemoteProbeGetsItsMonitors(t *testing.T) {
+	a := localProbeApp(t, nil)
+	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})
+	paris := a.createProbe(t, map[string]any{"name": "Paris"})
+	frankfurtOnly := httpMonitorBody("Checkout", "")
+	frankfurtID := decode[created](t, a.request(t, http.MethodPost, monitorsPath, onProbes(frankfurtOnly, frankfurt.ID), a.asAdmin), http.StatusCreated).ID
+	retired := decode[created](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Retired", ""), frankfurt.ID), a.asAdmin), http.StatusCreated).ID
+	a.pauseMonitor(t, retired)
+	parisID := decode[created](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Search", ""), paris.ID), a.asAdmin), http.StatusCreated).ID
+	localID := a.createHTTPMonitor(t, "Home", "")
+	a.createMonitor(t, "Nightly cron", "nightly-cron-push-token")
+	frankfurtInstance, parisInstance, localInstance := uuid.NewString(), uuid.NewString(), uuid.NewString()
+	a.sayHello(t, frankfurt.Token, frankfurtInstance)
+	a.sayHello(t, paris.Token, parisInstance)
+	a.sayHello(t, localToken, localInstance)
 
-	got := decodeAssignments(t, w)
-	assert.Empty(t, got.Monitors)
-	assert.Contains(t, w.Body.String(), `"monitors":[]`, "an empty list, not null")
-	assert.NotEmpty(t, got.Version)
-	assert.Equal(t, got.Version, decodeAssignments(t, a.assignments(t, made.Token, instanceID, "")).Version, "the version is the same until something changes")
-	a.createHTTPMonitor(t, "Another", "")
-	assert.Equal(t, got.Version, decodeAssignments(t, a.assignments(t, made.Token, instanceID, "")).Version, "and a monitor that is not the probe's is nothing to it")
+	remote := a.assignments(t, frankfurt.Token, frankfurtInstance, "")
+	parisShare := decodeAssignments(t, a.assignments(t, paris.Token, parisInstance, ""))
+	local := decodeAssignments(t, a.assignments(t, localToken, localInstance, ""))
+
+	got := decodeAssignments(t, remote)
+	assert.Equal(t, []string{frankfurtID}, monitorIDs(got.Monitors), "its own active monitor: not a paused one, nor another probe's")
+	assert.Equal(t, "Checkout", got.Monitors[0].Name)
+	assert.Equal(t, []string{parisID}, monitorIDs(parisShare.Monitors))
+	assert.Equal(t, []string{localID}, monitorIDs(local.Monitors), "the local probe is dealt its own monitors only, and no push monitor")
+	assert.NotEqual(t, got.Version, parisShare.Version)
+
+	t.Run("a probe with no monitors gets an empty list", func(t *testing.T) {
+		lyon := a.createProbe(t, map[string]any{"name": "Lyon"})
+		instanceID := uuid.NewString()
+		a.sayHello(t, lyon.Token, instanceID)
+
+		w := a.assignments(t, lyon.Token, instanceID, "")
+
+		assert.Empty(t, decodeAssignments(t, w).Monitors)
+		assert.Contains(t, w.Body.String(), `"monitors":[]`, "an empty list, not null")
+	})
+}
+
+func TestProbeProtocol_ResultForAnotherProbesMonitorIsNotAssigned(t *testing.T) {
+	a := localProbeApp(t, nil)
+	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})
+	frankfurtMonitor := decode[created](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), frankfurt.ID), a.asAdmin), http.StatusCreated).ID
+	localMonitor := a.createHTTPMonitor(t, "Home", "")
+	frankfurtInstance, localInstance := uuid.NewString(), uuid.NewString()
+	a.sayHello(t, frankfurt.Token, frankfurtInstance)
+	a.sayHello(t, localToken, localInstance)
+
+	fromFrankfurt := a.outcomesOf(t, frankfurt.Token, frankfurtInstance,
+		checkResult("own", frankfurtMonitor, checkedAt(0)),
+		checkResult("local-monitors", localMonitor, checkedAt(1)))
+	fromLocal := a.outcomesOf(t, localToken, localInstance,
+		checkResult("own", localMonitor, checkedAt(2)),
+		checkResult("frankfurts", frankfurtMonitor, checkedAt(3)))
+
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "own", Accepted: true}, {ID: "local-monitors", Reason: "not_assigned"}}, fromFrankfurt)
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "own", Accepted: true}, {ID: "frankfurts", Reason: "not_assigned"}}, fromLocal)
+	payloads := a.queuedPayloads(t)
+	require.Len(t, payloads, 2, "only the results of the monitors a probe runs are stored")
+	probeOf := map[string]string{}
+	for _, payload := range payloads {
+		probeOf[payload["monitor_id"].(string)] = payload["probe_id"].(string)
+	}
+	assert.Equal(t, map[string]string{frankfurtMonitor: frankfurt.ID, localMonitor: "local"}, probeOf, "each heartbeat is the probe's that ran the check")
+}
+
+func TestProbeProtocol_MovingAMonitorWakesBothProbes(t *testing.T) {
+	a := localProbeApp(t, nil)
+	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})
+	paris := a.createProbe(t, map[string]any{"name": "Paris"})
+	monitorID := decode[created](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), frankfurt.ID), a.asAdmin), http.StatusCreated).ID
+	frankfurtInstance, parisInstance := uuid.NewString(), uuid.NewString()
+	a.sayHello(t, frankfurt.Token, frankfurtInstance)
+	a.sayHello(t, paris.Token, parisInstance)
+	frankfurtBefore := decodeAssignments(t, a.assignments(t, frankfurt.Token, frankfurtInstance, ""))
+	parisBefore := decodeAssignments(t, a.assignments(t, paris.Token, parisInstance, ""))
+	require.Equal(t, []string{monitorID}, monitorIDs(frankfurtBefore.Monitors))
+	require.Empty(t, parisBefore.Monitors)
+	frankfurtPoll := a.startPoll(frankfurt.Token, frankfurtInstance, frankfurtBefore.Version)
+	parisPoll := a.startPoll(paris.Token, parisInstance, parisBefore.Version)
+	stillWaiting(t, frankfurtPoll)
+	stillWaiting(t, parisPoll)
+
+	a.moveMonitor(t, monitorID, paris.ID)
+
+	frankfurtAfter := decodeAssignments(t, answeredWithin(t, frankfurtPoll, 2*time.Second))
+	parisAfter := decodeAssignments(t, answeredWithin(t, parisPoll, 2*time.Second))
+	assert.NotEqual(t, frankfurtBefore.Version, frankfurtAfter.Version, "the probe the monitor left is told")
+	assert.Empty(t, frankfurtAfter.Monitors)
+	assert.NotEqual(t, parisBefore.Version, parisAfter.Version, "and so is the one it went to")
+	assert.Equal(t, []string{monitorID}, monitorIDs(parisAfter.Monitors))
+
+	// The version is the same one a fresh poll sees, so a probe that holds it is not woken again for nothing
+	assert.Equal(t, parisAfter.Version, decodeAssignments(t, a.assignments(t, paris.Token, parisInstance, "")).Version)
+	assert.Equal(t, frankfurtAfter.Version, decodeAssignments(t, a.assignments(t, frankfurt.Token, frankfurtInstance, "")).Version)
 }
 
 func TestProbeProtocol_AssignmentsNeedTheProbesToken(t *testing.T) {

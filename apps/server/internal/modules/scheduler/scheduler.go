@@ -34,7 +34,7 @@ type Loader interface {
 // MonitorFinder is the part of the monitor service the scheduler reads
 type MonitorFinder interface {
 	FindByID(ctx context.Context, id string) (*shared.Monitor, error)
-	FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error)
+	FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error)
 }
 
 // Executors finds the executor for a monitor type. executor.ExecutorRegistry is one.
@@ -158,8 +158,8 @@ func nextAligned(after time.Time, period time.Duration) time.Time {
 	return time.UnixMilli(((ms / p) + 1) * p).UTC()
 }
 
-// Start checks every active monitor right away, then on each next multiple of its check
-// interval. Events that arrive before it starts are ignored: it reads the monitors itself.
+// Start checks every active monitor of the local probe right away, then on each next multiple
+// of its check interval. Events that arrive before it starts are ignored: it reads the monitors itself.
 // From then on it reconciles its timers with the database every reconcile interval. ctx
 // ends the scheduler like Stop does.
 func (s *Scheduler) Start(ctx context.Context) error {
@@ -232,11 +232,12 @@ type reconciled struct {
 	added, rescheduled, removed int
 }
 
-// reconcile compares the timers with the active monitors in the database, as the producer's
-// refreshSchedule does, so that a missed event can't leave a monitor unscheduled or a
-// deleted one checked. A monitor without a timer is checked right away. One whose check
-// interval changed is checked next on a multiple of the new interval. One that is no longer
-// active loses its timer, and its running check is cancelled.
+// reconcile compares the timers with the active monitors of the local probe in the database,
+// as the producer's refreshSchedule does, so that a missed event can't leave a monitor
+// unscheduled or a deleted one checked. A monitor without a timer is checked right away. One
+// whose check interval changed is checked next on a multiple of the new interval. One that is
+// no longer active, or has moved to a remote probe, loses its timer, and its running check is
+// cancelled.
 func (s *Scheduler) reconcile(ctx context.Context) error {
 	s.syncMu.Lock()
 	defer s.syncMu.Unlock()
@@ -244,7 +245,7 @@ func (s *Scheduler) reconcile(ctx context.Context) error {
 	var counts reconciled
 	listed := make(map[string]bool)
 	for page := 0; ; page++ {
-		monitors, err := s.monitors.FindActivePaginated(ctx, page, pageSize)
+		monitors, err := s.monitors.FindActiveByProbe(ctx, shared.LocalProbeID, page, pageSize)
 		if err != nil {
 			return fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
 		}
@@ -319,9 +320,10 @@ func checkInterval(mon *shared.Monitor) time.Duration {
 	return time.Duration(mon.Interval) * time.Second
 }
 
-// schedulable reports whether a monitor gets checks: it is active and has a check interval
+// schedulable reports whether a monitor gets checks here: it is active, has a check interval
+// and runs on the local probe. A remote probe checks the monitors it runs.
 func schedulable(mon *shared.Monitor) bool {
-	return mon != nil && mon.Active && mon.Interval > 0
+	return mon != nil && mon.Active && mon.Interval > 0 && mon.RunsOn(shared.LocalProbeID)
 }
 
 // set gives the monitor a timer for its next multiple of its check interval, replacing any
@@ -536,7 +538,8 @@ func (s *Scheduler) onCreated(monitorID string) {
 	s.set(mon, !scheduled)
 }
 
-// onUpdated reschedules a monitor, or stops scheduling it if it was paused
+// onUpdated reschedules a monitor, or stops scheduling it if it was paused or moved to a
+// remote probe
 func (s *Scheduler) onUpdated(monitorID string) {
 	// A running check carries the config from before the update
 	s.cancelBeforeSync(monitorID)
@@ -598,7 +601,7 @@ func (s *Scheduler) RunNow(ctx context.Context, monitorID string) error {
 		return fmt.Errorf("monitor %s not found", monitorID)
 	}
 	if !schedulable(mon) {
-		return fmt.Errorf("monitor %s is paused or has no check interval", monitorID)
+		return fmt.Errorf("monitor %s is paused, has no check interval or runs on a remote probe", monitorID)
 	}
 	if !s.set(mon, true) {
 		return errors.New("scheduler is not running")
