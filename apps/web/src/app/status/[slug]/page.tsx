@@ -336,9 +336,10 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
                         {/* One row for each location, when the page shows them */}
                         {hasPublicLocations(monitor) && (
                           <div className="w-full space-y-3">
-                            {monitor.locations?.map((location) => (
+                            {monitor.locations?.map((location, index) => (
                               <div
-                                key={location.name}
+                                // Probe names aren't unique, and a location names no probe id
+                                key={index}
                                 className="space-y-1"
                                 data-testid="status-page-location"
                               >
@@ -350,13 +351,15 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
                                     {location.name}
                                   </span>
                                   <div className="flex items-center gap-2">
-                                    <Badge
-                                      variant="outline"
-                                      className="flex items-center gap-1"
-                                    >
-                                      <TrendingUp className="h-3 w-3" />
-                                      {formatUptime(location.uptime_24h)}
-                                    </Badge>
+                                    {location.uptime_24h !== null && (
+                                      <Badge
+                                        variant="outline"
+                                        className="flex items-center gap-1"
+                                      >
+                                        <TrendingUp className="h-3 w-3" />
+                                        {formatUptime(location.uptime_24h)}
+                                      </Badge>
+                                    )}
                                     <Badge
                                       variant={getStatusVariant(location.status)}
                                       data-testid="status-page-location-status"
