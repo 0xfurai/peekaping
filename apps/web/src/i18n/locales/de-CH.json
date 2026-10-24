@@ -513,10 +513,12 @@
           "title": "Benachrichtigungskanäle"
         },
         "probe": {
+          "description": "Der Monitor läuft auf jeder gewählten Sonde und zeigt deren Ergebnisse als Standort.",
           "label": "Sonde",
           "option_unsupported": "{{name}} (führt diesen Typ nicht aus)",
           "placeholder": "Sonde auswählen",
           "push_fixed": "Ein Push-Monitor läuft immer auf der lokalen Sonde.",
+          "required": "Wähle mindestens eine Sonde",
           "unsupported": "Diese Sonde führt diesen Monitor-Typ nicht aus. Bitte eine andere Sonde auswählen."
         },
         "proxy": {

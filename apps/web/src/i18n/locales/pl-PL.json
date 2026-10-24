@@ -513,10 +513,12 @@
           "title": "Kanały powiadomień"
         },
         "probe": {
+          "description": "Monitor działa na każdej wybranej sondzie i pokazuje wyniki każdej z nich jako lokalizację.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (nie obsługuje tego typu)",
           "placeholder": "Wybierz sondę",
           "push_fixed": "Monitor Push zawsze działa na sondzie lokalnej.",
+          "required": "Wybierz co najmniej jedną sondę",
           "unsupported": "Ta sonda nie obsługuje tego typu monitora. Wybierz inną sondę."
         },
         "proxy": {

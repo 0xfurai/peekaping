@@ -513,10 +513,12 @@
           "title": "Saluran Pemberitahuan"
         },
         "probe": {
+          "description": "Monitor berjalan di setiap probe yang Anda pilih dan menampilkan hasil masing-masing sebagai lokasi.",
           "label": "Probe",
           "option_unsupported": "{{name}} (tidak menjalankan tipe ini)",
           "placeholder": "Pilih probe",
           "push_fixed": "Monitor Push selalu berjalan pada probe lokal.",
+          "required": "Pilih setidaknya satu probe",
           "unsupported": "Probe ini tidak menjalankan tipe monitor ini. Pilih probe lain."
         },
         "proxy": {

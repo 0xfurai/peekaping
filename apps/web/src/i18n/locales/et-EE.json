@@ -513,10 +513,12 @@
           "title": "Teavituskanalid"
         },
         "probe": {
+          "description": "Monitor töötab igal valitud sondil ja näitab iga sondi tulemusi asukohana.",
           "label": "Sond",
           "option_unsupported": "{{name}} (ei toeta seda tüüpi)",
           "placeholder": "Vali sond",
           "push_fixed": "Push-monitor töötab alati kohalikul sondil.",
+          "required": "Vali vähemalt üks sond",
           "unsupported": "See sond ei toeta seda tüüpi monitori. Vali teine sond."
         },
         "proxy": {

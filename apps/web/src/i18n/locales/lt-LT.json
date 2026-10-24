@@ -513,10 +513,12 @@
           "title": "Pranešimų kanalai"
         },
         "probe": {
+          "description": "Monitorius veikia kiekviename pasirinktame zonde ir kiekvieno rezultatus rodo kaip vietą.",
           "label": "Zondas",
           "option_unsupported": "{{name}} (nevykdo šio tipo)",
           "placeholder": "Pasirinkite zondą",
           "push_fixed": "Push monitorius visada veikia vietiniame zonde.",
+          "required": "Pasirinkite bent vieną zondą",
           "unsupported": "Šis zondas nevykdo šio tipo monitoriaus. Pasirinkite kitą zondą."
         },
         "proxy": {

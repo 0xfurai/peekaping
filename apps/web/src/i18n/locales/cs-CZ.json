@@ -513,10 +513,12 @@
           "title": "Notifikační kanály"
         },
         "probe": {
+          "description": "Monitor běží na každé vybrané sondě a výsledky každé z nich ukazuje jako umístění.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (tento typ nespouští)",
           "placeholder": "Vyberte sondu",
           "push_fixed": "Push monitor vždy běží na lokální sondě.",
+          "required": "Vyberte alespoň jednu sondu",
           "unsupported": "Tato sonda tento typ monitoru nespouští. Vyberte jinou sondu."
         },
         "proxy": {

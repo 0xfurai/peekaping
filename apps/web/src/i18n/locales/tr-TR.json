@@ -513,10 +513,12 @@
           "title": "Bildirim kanalları"
         },
         "probe": {
+          "description": "İzleyici seçtiğiniz her probda çalışır ve her birinin sonuçlarını bir konum olarak gösterir.",
           "label": "Prob",
           "option_unsupported": "{{name}} (bu türü çalıştırmaz)",
           "placeholder": "Prob seçin",
           "push_fixed": "Push izleyici her zaman yerel probda çalışır.",
+          "required": "En az bir prob seçin",
           "unsupported": "Bu prob bu tür izleyiciyi çalıştırmaz. Başka bir prob seçin."
         },
         "proxy": {

@@ -48,7 +48,7 @@ const MonitorsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
-  const { hasRemoteProbe, probeName } = useProbes();
+  const { hasRemoteProbe, probeNames } = useProbes();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
 
@@ -413,7 +413,7 @@ const MonitorsPage = () => {
           <MonitorCard
             key={monitor.id}
             monitor={monitor}
-            probeName={hasRemoteProbe ? probeName(monitor.probe_ids) : undefined}
+            probeNames={hasRemoteProbe ? probeNames(monitor.probe_ids) : undefined}
           />
         ))}
 

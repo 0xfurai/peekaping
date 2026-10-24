@@ -513,10 +513,12 @@
           "title": "Értesítési csatornák"
         },
         "probe": {
+          "description": "A monitor minden kiválasztott szondán fut, és mindegyik eredményeit helyszínként mutatja.",
           "label": "Szonda",
           "option_unsupported": "{{name}} (nem futtatja ezt a típust)",
           "placeholder": "Szonda kiválasztása",
           "push_fixed": "A Push monitor mindig a helyi szondán fut.",
+          "required": "Válasszon legalább egy szondát",
           "unsupported": "Ez a szonda nem futtatja ezt a monitortípust. Válasszon másik szondát."
         },
         "proxy": {

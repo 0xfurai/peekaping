@@ -513,10 +513,12 @@
           "title": "通知渠道"
         },
         "probe": {
+          "description": "监控会在你选择的每个探针上运行，并把每个探针的结果作为一个位置显示。",
           "label": "探针",
           "option_unsupported": "{{name}}（不支持此类型）",
           "placeholder": "选择探针",
           "push_fixed": "推送监控始终在本地探针上运行。",
+          "required": "请至少选择一个探针",
           "unsupported": "此探针不支持该类型的监控，请选择其他探针。"
         },
         "proxy": {

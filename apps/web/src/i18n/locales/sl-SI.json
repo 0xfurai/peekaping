@@ -513,10 +513,12 @@
           "title": "Sporočilni kanali"
         },
         "probe": {
+          "description": "Monitor teče na vsaki izbrani sondi in rezultate vsake prikaže kot lokacijo.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (ne izvaja te vrste)",
           "placeholder": "Izberi sondo",
           "push_fixed": "Push Monitor vedno teče na lokalni sondi.",
+          "required": "Izberite vsaj eno sondo",
           "unsupported": "Ta sonda ne izvaja te vrste monitorja. Izberi drugo sondo."
         },
         "proxy": {

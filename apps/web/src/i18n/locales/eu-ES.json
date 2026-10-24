@@ -513,10 +513,12 @@
           "title": "Jakinarazpen kanalenak"
         },
         "probe": {
+          "description": "Monitoreak aukeratzen duzun zunda bakoitzean exekutatzen da, eta zunda bakoitzaren emaitzak kokaleku gisa erakusten ditu.",
           "label": "Zunda",
           "option_unsupported": "{{name}} (ez du mota hau exekutatzen)",
           "placeholder": "Hautatu zunda",
           "push_fixed": "Push monitoreak beti zunda lokalean exekutatzen da.",
+          "required": "Aukeratu zunda bat gutxienez",
           "unsupported": "Zunda honek ez du monitore mota hau exekutatzen. Hautatu beste zunda bat."
         },
         "proxy": {

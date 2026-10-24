@@ -513,10 +513,12 @@
           "title": "Canaux de notification"
         },
         "probe": {
+          "description": "Le moniteur s'exécute sur chaque sonde choisie et affiche les résultats de chacune comme un emplacement.",
           "label": "Sonde",
           "option_unsupported": "{{name}} (n'exécute pas ce type)",
           "placeholder": "Sélectionner une sonde",
           "push_fixed": "Un moniteur Push s'exécute toujours sur la sonde locale.",
+          "required": "Choisissez au moins une sonde",
           "unsupported": "Cette sonde n'exécute pas ce type de moniteur. Choisissez une autre sonde."
         },
         "proxy": {

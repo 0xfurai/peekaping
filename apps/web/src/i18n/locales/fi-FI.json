@@ -513,10 +513,12 @@
           "title": "Ilmoituskanavat"
         },
         "probe": {
+          "description": "Valvonta toimii jokaisella valitsemallasi luotaimella ja näyttää kunkin tulokset sijaintina.",
           "label": "Luotain",
           "option_unsupported": "{{name}} (ei suorita tätä tyyppiä)",
           "placeholder": "Valitse luotain",
           "push_fixed": "Push-valvonta toimii aina paikallisella luotaimella.",
+          "required": "Valitse vähintään yksi luotain",
           "unsupported": "Tämä luotain ei suorita tämän tyyppistä valvontaa. Valitse toinen luotain."
         },
         "proxy": {

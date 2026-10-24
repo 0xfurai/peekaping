@@ -513,10 +513,12 @@
           "title": "Aviseringskanaler"
         },
         "probe": {
+          "description": "Övervakningen körs på varje sond du väljer och visar resultaten från var och en som en plats.",
           "label": "Sond",
           "option_unsupported": "{{name}} (kör inte den här typen)",
           "placeholder": "Välj sond",
           "push_fixed": "En push-övervakning körs alltid på den lokala sonden.",
+          "required": "Välj minst en sond",
           "unsupported": "Den här sonden kör inte den här typen av övervakning. Välj en annan sond."
         },
         "proxy": {

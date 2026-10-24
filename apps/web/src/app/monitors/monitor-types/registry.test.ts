@@ -66,6 +66,23 @@ describe("monitor type registry", () => {
         expect(deserializeMonitor(savedMonitor(body)).probe_ids).toEqual([probe]);
       });
 
+      it("reads back several probes in the order it writes them", () => {
+        // A push monitor runs on the local probe whichever probes the form holds
+        const probes = type === "push" ? [LOCAL_PROBE_ID] : ["probe-2", LOCAL_PROBE_ID, "probe-1"];
+        const body = definition.serialize({
+          ...definition.defaultValues,
+          probe_ids: ["probe-2", LOCAL_PROBE_ID, "probe-1"],
+        } as never);
+        expect(body.probe_ids).toEqual(probes);
+        expect(deserializeMonitor(savedMonitor(body)).probe_ids).toEqual(probes);
+      });
+
+      it("refuses a monitor on no probe", () => {
+        const result = definition.schema.safeParse({ ...definition.defaultValues, probe_ids: [] });
+        expect(result.success).toBe(false);
+        expect(result.error?.issues.some((issue) => issue.path[0] === "probe_ids")).toBe(true);
+      });
+
       it("serializes through the registry by the values' type", () => {
         expect(serializeMonitor(definition.defaultValues)).toEqual(
           definition.serialize(definition.defaultValues as never)

@@ -513,10 +513,12 @@
           "title": "Kanali obaveštenja"
         },
         "probe": {
+          "description": "Monitor radi na svakoj izabranoj sondi i rezultate svake prikazuje kao lokaciju.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (ne pokreće ovaj tip)",
           "placeholder": "Izaberi sondu",
           "push_fixed": "Push monitor uvek radi na lokalnoj sondi.",
+          "required": "Izaberite bar jednu sondu",
           "unsupported": "Ova sonda ne pokreće ovaj tip monitora. Izaberi drugu sondu."
         },
         "proxy": {

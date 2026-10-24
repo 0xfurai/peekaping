@@ -513,10 +513,12 @@
           "title": "Kanali obavijesti"
         },
         "probe": {
+          "description": "Nadzor radi na svakoj odabranoj sondi i rezultate svake prikazuje kao lokaciju.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (ne pokreće ovu vrstu)",
           "placeholder": "Odaberi sondu",
           "push_fixed": "Push nadzor uvijek radi na lokalnoj sondi.",
+          "required": "Odaberite barem jednu sondu",
           "unsupported": "Ova sonda ne pokreće ovu vrstu nadzora. Odaberi drugu sondu."
         },
         "proxy": {

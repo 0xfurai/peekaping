@@ -513,10 +513,12 @@
           "title": "Kênh thông báo"
         },
         "probe": {
+          "description": "Giám sát chạy trên mọi đầu dò bạn chọn và hiển thị kết quả của từng đầu dò như một vị trí.",
           "label": "Đầu dò",
           "option_unsupported": "{{name}} (không chạy loại này)",
           "placeholder": "Chọn đầu dò",
           "push_fixed": "Giám sát Push luôn chạy trên đầu dò cục bộ.",
+          "required": "Chọn ít nhất một đầu dò",
           "unsupported": "Đầu dò này không chạy loại giám sát này. Hãy chọn đầu dò khác."
         },
         "proxy": {

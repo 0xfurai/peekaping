@@ -13,11 +13,11 @@ import { getMonitorStatusView } from "./monitor-status";
 
 interface MonitorCardProps {
   monitor: MonitorMonitorResponseDto;
-  // The name of the probe the monitor runs on. Left out when the install has no remote probe.
-  probeName?: string;
+  // The names of the probes the monitor runs on. Left out when the install has no remote probe.
+  probeNames?: string[];
 }
 
-const MonitorCard = ({ monitor, probeName }: MonitorCardProps) => {
+const MonitorCard = ({ monitor, probeNames }: MonitorCardProps) => {
   const navigate = useNavigate();
   const { t } = useLocalizedTranslation();
 
@@ -75,17 +75,18 @@ const MonitorCard = ({ monitor, probeName }: MonitorCardProps) => {
 
             <div className="flex flex-col min-w-[100px]">
               <h3 className="font-bold mb-1">{monitor.name}</h3>
-              <div className="flex gap-1">
+              <div className="flex flex-wrap gap-1">
                 <Badge variant={"outline"}>{monitor.type}</Badge>
-                {probeName && (
+                {probeNames?.map((name) => (
                   <Badge
+                    key={name}
                     variant={"outline"}
-                    title={t("probes.monitor_probe", { name: probeName })}
+                    title={t("probes.monitor_probe", { name })}
                     data-testid="monitor-probe-badge"
                   >
-                    {probeName}
+                    {name}
                   </Badge>
-                )}
+                ))}
               </div>
             </div>
           </div>

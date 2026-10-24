@@ -513,10 +513,12 @@
           "title": "Varslingskanaler"
         },
         "probe": {
+          "description": "Monitoren kjører på hver probe du velger og viser resultatene fra hver av dem som en plassering.",
           "label": "Probe",
           "option_unsupported": "{{name}} (kjører ikke denne typen)",
           "placeholder": "Velg probe",
           "push_fixed": "En Push Monitor kjører alltid på den lokale proben.",
+          "required": "Velg minst én probe",
           "unsupported": "Denne proben kjører ikke denne typen monitor. Velg en annen probe."
         },
         "proxy": {

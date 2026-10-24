@@ -513,10 +513,12 @@
           "title": "Cainéil Fógraí"
         },
         "probe": {
+          "description": "Ritheann an monatóir ar gach tóireadóir a roghnaíonn tú agus taispeánann sé torthaí gach ceann acu mar shuíomh.",
           "label": "Tóireadóir",
           "option_unsupported": "{{name}} (ní reáchtálann sé an cineál seo)",
           "placeholder": "Roghnaigh tóireadóir",
           "push_fixed": "Ritheann monatóir Push i gcónaí ar an tóireadóir áitiúil.",
+          "required": "Roghnaigh tóireadóir amháin ar a laghad",
           "unsupported": "Ní reáchtálann an tóireadóir seo an cineál monatóra seo. Roghnaigh tóireadóir eile."
         },
         "proxy": {

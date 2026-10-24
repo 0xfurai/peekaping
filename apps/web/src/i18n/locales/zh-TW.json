@@ -513,10 +513,12 @@
           "title": "通知頻道"
         },
         "probe": {
+          "description": "監控會在你選擇的每個探針上執行，並把每個探針的結果顯示為一個位置。",
           "label": "探針",
           "option_unsupported": "{{name}}（不支援此類型）",
           "placeholder": "選擇探針",
           "push_fixed": "推送監控一律在本機探針上執行。",
+          "required": "請至少選擇一個探針",
           "unsupported": "此探針不支援這種類型的監控，請選擇其他探針。"
         },
         "proxy": {

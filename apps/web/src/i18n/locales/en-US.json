@@ -513,10 +513,12 @@
           "title": "Notification channels"
         },
         "probe": {
+          "description": "The monitor runs on every probe you choose and shows each one's results as a location.",
           "label": "Probe",
           "option_unsupported": "{{name}} (doesn't run this type)",
           "placeholder": "Select probe",
           "push_fixed": "A push monitor always runs on the local probe.",
+          "required": "Choose at least one probe",
           "unsupported": "This probe doesn't run this type of monitor. Choose another probe."
         },
         "proxy": {

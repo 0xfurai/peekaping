@@ -61,6 +61,8 @@ interface MultiSelectProps
     value: string;
     /** Optional icon component to display alongside the option. */
     icon?: React.ComponentType<{ className?: string }>;
+    /** A disabled option can't be selected. A selected one can still be unselected. */
+    disabled?: boolean;
   }[];
 
   /**
@@ -204,6 +206,8 @@ export const MultiSelect = React.forwardRef<
     };
 
     const toggleOption = (option: string) => {
+      const disabled = options.find((o) => o.value === option)?.disabled;
+      if (disabled && !selectedValues.includes(option)) return;
       const newSelectedValues = selectedValues.includes(option)
         ? selectedValues.filter((value) => value !== option)
         : [...selectedValues, option];
@@ -337,10 +341,14 @@ export const MultiSelect = React.forwardRef<
               return (
                 <div
                   key={option.value}
+                  role="option"
+                  aria-selected={isSelected}
+                  aria-disabled={option.disabled && !isSelected ? true : undefined}
                   onClick={() => toggleOption(option.value)}
                   className={cn(
                     "cursor-pointer flex items-center gap-2 px-3 py-2.5 text-sm text-foreground/90 hover:bg-muted/80 hover:text-foreground transition-colors duration-150 ease-in-out rounded-sm",
-                    isSelected && "bg-muted/50"
+                    isSelected && "bg-muted/50",
+                    option.disabled && !isSelected && "cursor-not-allowed opacity-50 hover:bg-transparent"
                   )}
                 >
                   <div

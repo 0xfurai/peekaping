@@ -513,10 +513,12 @@
           "title": "Bildirish kanallari"
         },
         "probe": {
+          "description": "Monitor tanlangan har bir zondda ishlaydi va har birining natijalarini joylashuv sifatida ko'rsatadi.",
           "label": "Zond",
           "option_unsupported": "{{name}} (bu turni ishga tushirmaydi)",
           "placeholder": "Zondni tanlang",
           "push_fixed": "Push Monitor doim mahalliy zondda ishlaydi.",
+          "required": "Kamida bitta zondni tanlang",
           "unsupported": "Bu zond ushbu turdagi monitorni ishga tushirmaydi. Boshqa zondni tanlang."
         },
         "proxy": {

@@ -513,10 +513,12 @@
           "title": "Canales de notificación"
         },
         "probe": {
+          "description": "El monitor se ejecuta en cada sonda que elijas y muestra los resultados de cada una como una ubicación.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (no ejecuta este tipo)",
           "placeholder": "Seleccionar sonda",
           "push_fixed": "Un monitor de push siempre se ejecuta en la sonda local.",
+          "required": "Elige al menos una sonda",
           "unsupported": "Esta sonda no ejecuta este tipo de monitor. Selecciona otra sonda."
         },
         "proxy": {
