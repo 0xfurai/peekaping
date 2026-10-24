@@ -106,7 +106,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
         <div className="text-xs text-muted-foreground w-full mb-2 select-none px-4">
-          v{VERSION}
+          <a
+            href={`https://github.com/0xfurai/peekaping/releases/tag/${VERSION}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline focus-visible:underline"
+          >
+            v{VERSION}
+          </a>
         </div>
       </SidebarContent>
 
