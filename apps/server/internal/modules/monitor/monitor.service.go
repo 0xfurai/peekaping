@@ -115,13 +115,21 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		ProxyId:        monitorCreateDto.ProxyId,
 		PushToken:      monitorCreateDto.PushToken,
 		ProbeIDs:       monitorCreateDto.ProbeIDs,
+
+		LocationRule:      locationRuleOrAny(monitorCreateDto.LocationRule),
+		LocationThreshold: monitorCreateDto.LocationThreshold,
 	}
 
 	// A monitor created without probes runs on the local one
+	probes := 1
 	if monitorCreateDto.ProbeIDs != nil {
 		if err := mr.validateProbes(ctx, monitorCreateDto.Type, monitorCreateDto.ProbeIDs); err != nil {
 			return nil, err
 		}
+		probes = len(monitorCreateDto.ProbeIDs)
+	}
+	if err := validateLocationRule(createModel.LocationRule, createModel.LocationThreshold, probes); err != nil {
+		return nil, err
 	}
 
 	// The monitor and its links are stored together or not at all, and the event comes after
@@ -207,6 +215,12 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		if err := mr.validateFullProbes(ctx, current, monitor); err != nil {
 			return err
 		}
+		// The rule is checked against the probes the monitor will have, and a request without one
+		// keeps the monitor's
+		model.LocationRule, model.LocationThreshold, err = validateFullLocationRule(current, monitor)
+		if err != nil {
+			return err
+		}
 		if err := mr.monitorRepository.UpdateFull(ctx, id, model); err != nil {
 			return err
 		}
@@ -267,6 +281,14 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		}
 		if err := mr.validatePartialProbes(ctx, current, monitor); err != nil {
 			return err
+		}
+		// The rule is checked against the probes the monitor will have, so an update that only
+		// removes probes is checked too
+		if err := validatePartialLocationRule(current, monitor); err != nil {
+			return err
+		}
+		if rule, threshold, set := partialLocationRule(current, monitor); set {
+			model.LocationRule, model.LocationThreshold = &rule, threshold
 		}
 		if err := mr.monitorRepository.UpdatePartial(ctx, id, model); err != nil {
 			return err
