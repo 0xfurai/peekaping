@@ -29,9 +29,11 @@ WORKDIR /app
 COPY --from=builder /app/peekaping-probe .
 
 # /ready answers 200 once the probe has its first assignment, and stays 200 while the server is
-# unreachable. busybox wget exits non-zero on the 503 before that.
+# unreachable. busybox wget exits non-zero on the 503 before that. PROBE_READY_ADDR may leave the
+# host out (":8081") or name every interface ("0.0.0.0:8081", "[::]:8081"); the check then asks
+# 127.0.0.1, which is this container.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
-  CMD wget -q -O- "http://${PROBE_READY_ADDR:-127.0.0.1:8081}/ready" || exit 1
+  CMD a="${PROBE_READY_ADDR:-127.0.0.1:8081}"; h="${a%:*}"; case "$h" in ""|0.0.0.0|"[::]") h=127.0.0.1;; esac; wget -q -O- "http://$h:${a##*:}/ready" || exit 1
 
 # Command to run the executable
 CMD ["./peekaping-probe"]
