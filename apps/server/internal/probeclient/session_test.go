@@ -136,6 +136,29 @@ func TestSession_BacksOffOn401(t *testing.T) {
 	assert.Contains(t, errors[0], "invalid probe token")
 }
 
+// A 409 answers a call that needs a hello first. Said of hello itself it makes no sense, and a
+// server that goes on saying it must not be asked again in a tight loop.
+func TestSession_BacksOffOn409ToHello(t *testing.T) {
+	url, hellos := helloServer(t, time.Now(), func(n int) (int, string) {
+		if n <= 4 {
+			return http.StatusConflict, "unknown instance: send hello first"
+		}
+		return 0, ""
+	})
+	pause := &sleeper{}
+	session := newSession(url, func(c *probeclient.SessionConfig) { c.Sleep = pause.Sleep })
+
+	require.NoError(t, session.Connect(context.Background()))
+
+	assert.EqualValues(t, 5, hellos.Load())
+	waits := pause.waits()
+	require.Len(t, waits, 4, "every refused hello is followed by a wait")
+	for i, step := range []time.Duration{1, 2, 4, 8} {
+		assert.GreaterOrEqual(t, waits[i], step*time.Second/2, "wait %d", i+1)
+		assert.LessOrEqual(t, waits[i], step*time.Second, "wait %d", i+1)
+	}
+}
+
 func TestSession_WarnsOnClockSkew(t *testing.T) {
 	local := time.Date(2026, 10, 23, 12, 0, 0, 0, time.UTC)
 	tests := []struct {

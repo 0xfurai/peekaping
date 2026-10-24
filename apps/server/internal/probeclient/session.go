@@ -26,6 +26,8 @@ const (
 	requestTimeout = 30 * time.Second
 	// pollSlack is how long past the server's poll timeout the probe waits for the poll's answer
 	pollSlack = 30 * time.Second
+	// callHello names the call that says hello, as failed is told of it
+	callHello = "say hello"
 )
 
 // The limits the probe works within until the server's hello states them: the server's own defaults
@@ -219,7 +221,7 @@ func (s *Session) Connect(ctx context.Context) error {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		if err := s.wait(ctx, s.failed("say hello", err, &backoff)); err != nil {
+		if err := s.wait(ctx, s.failed(callHello, err, &backoff)); err != nil {
 			return err
 		}
 	}
@@ -266,7 +268,8 @@ func (s *Session) greet(welcome *probeproto.HelloResponse) {
 // attempt. call names what failed. backoff is the caller's own: the wait it advances is the one for
 // a server that doesn't answer, and the caller resets it when a call is answered.
 //
-//   - 409: the server doesn't know this instance. Say hello again at once.
+//   - 409: the server doesn't know this instance. Say hello again at once. Said to hello itself it
+//     can't mean that, so it is any other failure: back off.
 //   - 426: the server needs a newer protocol than the probe speaks. Log the server's message and
 //     come back in an hour: an upgrade of the probe is what helps.
 //   - 401: the token is refused, which an operator can put right on the server. Back off.
@@ -286,7 +289,7 @@ func (s *Session) failed(call string, err error, backoff *Backoff) time.Duration
 	}
 
 	switch {
-	case failure.Status == http.StatusConflict:
+	case failure.Status == http.StatusConflict && call != callHello:
 		s.lose()
 		s.logger.Infow("The server doesn't know this instance; saying hello again", "call", call, "message", failure.Message)
 		return 0
