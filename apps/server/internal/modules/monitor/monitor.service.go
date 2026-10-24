@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"peekaping/internal/dbtx"
@@ -96,6 +97,22 @@ func NewMonitorService(
 	}
 }
 
+// pushTokenFromConfig extracts the push token from a push monitor's JSON
+// config. It is used as a fallback when the top-level push_token field is
+// empty, so that FindOneByPushToken can locate the monitor. See issue 234.
+func pushTokenFromConfig(config string) string {
+	if config == "" {
+		return ""
+	}
+	var cfg struct {
+		PushToken string `json:"pushToken"`
+	}
+	if err := json.Unmarshal([]byte(config), &cfg); err != nil {
+		return ""
+	}
+	return cfg.PushToken
+}
+
 func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *CreateUpdateDto) (*Model, error) {
 	createModel := &Model{
 		Type:           monitorCreateDto.Type,
@@ -119,6 +136,10 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		if err := mr.validateProbes(ctx, monitorCreateDto.Type, monitorCreateDto.ProbeIDs); err != nil {
 			return nil, err
 		}
+	}
+
+	if createModel.Type == "push" && createModel.PushToken == "" {
+		createModel.PushToken = pushTokenFromConfig(createModel.Config)
 	}
 
 	// The monitor and its links are stored together or not at all, and the event comes after
@@ -187,6 +208,10 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		ProxyId:        monitor.ProxyId,
 		PushToken:      monitor.PushToken,
 		ProbeIDs:       monitor.ProbeIDs,
+	}
+
+	if model.Type == "push" && model.PushToken == "" {
+		model.PushToken = pushTokenFromConfig(model.Config)
 	}
 
 	// The monitor and its links change together or not at all. The monitor is read before the
@@ -264,6 +289,19 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		}
 		if err := mr.validatePartialProbes(ctx, current, monitor); err != nil {
 			return err
+		}
+		// A PATCH can change the token without sending push_token: when it does, the column
+		// follows the config, as it does on create and full update. The type the monitor has
+		// after the update decides, which the request does not always carry.
+		if monitor.Config != nil && monitor.PushToken == nil {
+			monitorType := current.Type
+			if monitor.Type != nil {
+				monitorType = *monitor.Type
+			}
+			if monitorType == "push" {
+				token := pushTokenFromConfig(*monitor.Config)
+				model.PushToken = &token
+			}
 		}
 		if err := mr.monitorRepository.UpdatePartial(ctx, id, model); err != nil {
 			return err

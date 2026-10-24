@@ -336,6 +336,26 @@ func transactionOf(service *MonitorServiceImpl) *fakeTransactor {
 	return service.transactor.(*fakeTransactor)
 }
 
+func TestPushTokenFromConfig(t *testing.T) {
+	// The fallback has to stay quiet when it cannot read a token: an empty config, a config that
+	// is not JSON, or one that carries no pushToken all leave the column empty rather than
+	// failing the write.
+	for _, tc := range []struct {
+		name   string
+		config string
+		want   string
+	}{
+		{"an empty config", "", ""},
+		{"a config that is not JSON", "not json", ""},
+		{"a config without a token", `{"host":"example.com","port":443}`, ""},
+		{"a config with a token", `{"pushToken":"token-from-config"}`, "token-from-config"},
+	} {
+		t.Run("reads "+tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, pushTokenFromConfig(tc.config))
+		})
+	}
+}
+
 // Test setup helper
 func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHeartbeatService, *eventstest.Bus, *MockMonitorNotificationService, *MockMonitorTagService, *MockExecutorRegistry, *MockStatsService) {
 	mockRepo := &MockMonitorRepository{}
@@ -448,6 +468,30 @@ func TestMonitorService_Create(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Equal(t, []string{"channel channel-b", "channel channel-a", "tag tag-a"}, linked, "each ID once, in the order sent")
+	})
+
+	t.Run("push token extracted from config", func(t *testing.T) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		// See issue 234: a push monitor created with the token only in
+		// config.pushToken must still have push_token populated so that
+		// FindOneByPushToken can locate it.
+		createDto := &CreateUpdateDto{
+			Type:   "push",
+			Name:   "Push Monitor",
+			Config: `{"pushToken":"token-from-config"}`,
+		}
+
+		var saved *Model
+		mockRepo.On("Create", inTx, mock.Anything).Run(func(args mock.Arguments) {
+			saved = args.Get(1).(*Model)
+		}).Return(&Model{ID: "monitor123"}, nil).Once()
+
+		_, err := service.Create(ctx, createDto)
+
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		assert.Equal(t, "token-from-config", saved.PushToken)
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("repository error", func(t *testing.T) {
@@ -614,6 +658,36 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 
 		require.NoError(t, err)
 		assert.Equal(t, []string{"channel channel-b", "channel channel-a", "tag tag-a"}, linked, "each ID once, in the order sent")
+	})
+
+	t.Run("push token extracted from config", func(t *testing.T) {
+		// See issue 234: updating a push monitor with the token only in
+		// config.pushToken must still populate push_token.
+		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+		monitorID := "monitor123"
+		updateDto := &CreateUpdateDto{
+			Type:   "push",
+			Name:   "Push Monitor",
+			Config: `{"pushToken":"token-from-config"}`,
+		}
+
+		notifications.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
+		tags.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
+		// UpdateFull reads the monitor once before the update, to check its probes
+		// against the type it will have, and once after it, to return what is
+		// stored, so FindByID answers both reads.
+		stored := &Model{ID: monitorID, Type: "push", PushToken: "token-from-config"}
+		mockRepo.On("FindByID", inTx, monitorID).Return(stored, nil)
+		mockRepo.On("UpdateFull", inTx, monitorID, mock.MatchedBy(func(m *Model) bool {
+			return m.PushToken == "token-from-config"
+		})).Return(nil).Once()
+
+		result, err := service.UpdateFull(ctx, monitorID, updateDto)
+
+		assert.NoError(t, err)
+		assert.Same(t, stored, result, "the response is the monitor as stored")
+		assert.Equal(t, []shared.Monitor{*stored}, eventstest.Published(bus, events.MonitorUpdated), "the event carries it, too")
+		mockRepo.AssertExpectations(t)
 	})
 
 	t.Run("monitor removed before it is read back", func(t *testing.T) {
@@ -858,6 +932,45 @@ func TestMonitorService_UpdatePartial(t *testing.T) {
 	const validTCPConfig = `{"host":"example.com","port":443}`
 	const invalidConfig = `{"invalid":"config"}`
 	invalid := func(s string) *string { return &s }
+
+	// A PATCH that moves the token into config.pushToken without sending push_token must still
+	// fill the column, or FindOneByPushToken stops finding the monitor. The type the monitor has
+	// after the update decides, which the request does not always carry.
+	pushConfig := `{"pushToken":"token-from-config"}`
+	for _, tc := range []struct {
+		name      string
+		stored    Model
+		dto       PartialUpdateDto
+		wantToken string // empty means the column is left untouched
+	}{
+		{"the type only on the stored record", Model{Type: "push"}, PartialUpdateDto{Config: &pushConfig}, "token-from-config"},
+		{"the type sent with the update", Model{Type: "tcp"}, PartialUpdateDto{Type: invalid("push"), Config: &pushConfig}, "token-from-config"},
+		{"a monitor that is not a push monitor", Model{Type: "tcp"}, PartialUpdateDto{Config: invalid(validTCPConfig)}, ""},
+		{"push_token sent with the update", Model{Type: "push"}, PartialUpdateDto{Config: &pushConfig, PushToken: invalid("token-sent")}, "token-sent"},
+		{"a config that is left alone", Model{Type: "push", PushToken: "token-stored"}, PartialUpdateDto{Name: invalid("Renamed")}, ""},
+	} {
+		t.Run("push token follows the config when "+tc.name, func(t *testing.T) {
+			service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+			monitorID := "monitor123"
+			stored := tc.stored
+			stored.ID = monitorID
+			dto := tc.dto
+
+			mockRepo.On("FindByID", inTx, monitorID).Return(&stored, nil)
+			mockRepo.On("UpdatePartial", inTx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
+				if tc.wantToken == "" {
+					return m.PushToken == nil
+				}
+				return m.PushToken != nil && *m.PushToken == tc.wantToken
+			})).Return(nil).Once()
+
+			result, err := service.UpdatePartial(ctx, monitorID, &dto, false)
+
+			require.NoError(t, err)
+			assert.Same(t, &stored, result)
+			mockRepo.AssertExpectations(t)
+		})
+	}
 
 	for _, tc := range []struct {
 		name   string
