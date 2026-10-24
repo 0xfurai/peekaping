@@ -80,6 +80,7 @@ const BarHistory: React.FC<BarHistoryProps> = ({
               <Tooltip key={idx}>
                 <TooltipTrigger asChild>
                   <div
+                    data-testid="heartbeat-bar-segment"
                     className={cn("flex-shrink-0 h-full bg-gray-300", {
                       "bg-green-500": value?.status === 1,
                       "bg-red-500": value?.status === 0 || value?.status === 2,
