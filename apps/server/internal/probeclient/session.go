@@ -26,6 +26,9 @@ const (
 	requestTimeout = 30 * time.Second
 	// pollSlack is how long past the server's poll timeout the probe waits for the poll's answer
 	pollSlack = 30 * time.Second
+	// maxRetryAfter is the longest the probe waits on a Retry-After, whatever the server asks, so
+	// that a server gone wrong can't silence the probe for hours
+	maxRetryAfter = 5 * time.Minute
 	// callHello names the call that says hello, as failed is told of it
 	callHello = "say hello"
 )
@@ -273,7 +276,7 @@ func (s *Session) greet(welcome *probeproto.HelloResponse) {
 //   - 426: the server needs a newer protocol than the probe speaks. Log the server's message and
 //     come back in an hour: an upgrade of the probe is what helps.
 //   - 401: the token is refused, which an operator can put right on the server. Back off.
-//   - 429 and 503: wait for the Retry-After the server states.
+//   - 429 and 503: wait for the Retry-After the server states, up to five minutes.
 //   - a network error or any other 5xx: back off, and say hello again when the server is back.
 //   - any other status: back off.
 //
@@ -307,7 +310,7 @@ func (s *Session) failed(call string, err error, backoff *Backoff) time.Duration
 		if failure.Status == http.StatusServiceUnavailable {
 			s.lose()
 		}
-		wait := failure.RetryAfter
+		wait := min(failure.RetryAfter, maxRetryAfter)
 		if wait <= 0 {
 			wait = backoff.Next()
 		}

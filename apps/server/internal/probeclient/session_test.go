@@ -212,6 +212,31 @@ func TestSession_HonoursRetryAfterOnHello(t *testing.T) {
 	assert.Equal(t, []time.Duration{7 * time.Second, 3 * time.Second}, pause.waits())
 }
 
+func TestSession_CapsRetryAfterAtFiveMinutes(t *testing.T) {
+	var hellos atomic.Int32
+	server := newServer(t, func(w http.ResponseWriter, r *http.Request) {
+		switch hellos.Add(1) {
+		case 1:
+			fail(w, http.StatusTooManyRequests, "too many requests", 24*time.Hour)
+		case 2:
+			fail(w, http.StatusServiceUnavailable, "starting up", 301*time.Second)
+		case 3:
+			fail(w, http.StatusServiceUnavailable, "starting up", 5*time.Minute)
+		case 4:
+			fail(w, http.StatusTooManyRequests, "too many requests", 299*time.Second)
+		default:
+			reply(w, http.StatusOK, welcomeFrom(time.Now()))
+		}
+	})
+	pause := &sleeper{}
+	session := newSession(server.URL, func(c *probeclient.SessionConfig) { c.Sleep = pause.Sleep })
+
+	require.NoError(t, session.Connect(context.Background()))
+
+	assert.Equal(t, []time.Duration{5 * time.Minute, 5 * time.Minute, 5 * time.Minute, 299 * time.Second}, pause.waits(),
+		"a Retry-After past five minutes is cut to five, and one within them is obeyed as is")
+}
+
 func TestSession_ConnectStopsWithItsContext(t *testing.T) {
 	url, _ := helloServer(t, time.Now(), func(int) (int, string) { return http.StatusUpgradeRequired, "upgrade" })
 	ctx, cancel := context.WithCancel(context.Background())
