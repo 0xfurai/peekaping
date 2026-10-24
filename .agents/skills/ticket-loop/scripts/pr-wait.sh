@@ -38,6 +38,9 @@ ci_grace=$((10 * 60))
 # A head CodeRabbit hasn't reviewed counts as busy for this long, which covers
 # both its queue and a stacked PR waiting for an `@coderabbitai review` trigger.
 coderabbit_grace=$((20 * 60))
+# The checks that upload coverage. Codecov posts its statuses after each upload,
+# so they count only once none of these is pending.
+coverage_uploads='["test", "import-mongo"]'
 
 while [ $# -gt 0 ]; do
     case $1 in
@@ -102,8 +105,11 @@ while :; do
         age=$((now - $(cat "$tmp/$pr.since")))
         [ $age -lt $min_wait ] && busy=true
         # The items waiting on us; the ones not reported before end the wait.
-        jq -r --argjson ignore "$ignore" \
-            '.keys[] | select([$ignore[] as $n | startswith("check:\($n):")] | any | not)' \
+        jq -r --argjson ignore "$ignore" --argjson uploads "$coverage_uploads" '
+            ([.checks.pending[] | IN($uploads[])] | any) as $uploading
+            | .keys[]
+            | select([$ignore[] as $n | startswith("check:\($n):")] | any | not)
+            | select($uploading and startswith("check:codecov/") | not)' \
             "$s" >"$tmp/$pr.keys"
         # GitHub computes mergeability lazily; UNKNOWN means ask again.
         case $(jq -r .mergeable "$s") in

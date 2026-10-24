@@ -9,7 +9,7 @@ argument-hint: "#<n> | <pr>..."
 
 Start with [setup](../ticket/SETUP.md). The PRs are the ticket's open PRs, or the ones named; a PR whose base is another open PR's branch belongs to the same stack.
 
-Reviewers here are CodeRabbit (automatic, minutes after each push) and the user (whenever they get to it). CI is `test.yml` (server tests, web lint and build), `test-import-mongo.yml` and `playwright.yml` (e2e on three databases), on PRs into `main` only. `test` and CodeRabbit report within about ten minutes, e2e in 15 to 35; Codecov posts `codecov/patch` and `codecov/project` once `test` and `import-mongo` upload coverage. A push cancels the PR's runs still in progress.
+Reviewers here are CodeRabbit (automatic, minutes after each push) and the user (whenever they get to it). CI is `test.yml` (server tests, web lint and build), `test-import-mongo.yml` and `playwright.yml` (e2e on three databases), on PRs into `main` only. `test` and CodeRabbit report within about ten minutes, e2e in 15 to 35; Codecov posts `codecov/patch` and `codecov/project` after each of `test` and `import-mongo` uploads coverage; `pr-wait.sh` reports them only once both are done, since a result from one upload compares half the coverage with `main`'s whole. A push cancels the PR's runs still in progress.
 
 ## Scripts
 
