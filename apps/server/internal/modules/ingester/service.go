@@ -254,6 +254,14 @@ func countsResends(locations []shared.MonitorLocation, probeID string) bool {
 	return true
 }
 
+// resendsWhile reports whether a Down notification is resent while the monitor has the status. A
+// location can be Down while the monitor is not: under "all" or "at least" the monitor can be Up or
+// in maintenance, and a Down notification then would say it is down when it isn't. A Pending
+// monitor keeps resending, as it did before location rules.
+func resendsWhile(monitor shared.MonitorStatus) bool {
+	return monitor == shared.MonitorStatusDown || monitor == shared.MonitorStatusPending
+}
+
 // Ingest stores the result as a heartbeat and publishes the events that follow from it.
 //
 // The heartbeat is judged against the previous one of the same monitor and probe: its retries, and
@@ -389,7 +397,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	} else {
 		hb.Important = false
 
-		if r.Status == shared.MonitorStatusDown && r.MonitorResendInt > 0 && countsResends(locationsAfter, probeID) {
+		if r.Status == shared.MonitorStatusDown && resendsWhile(currentStatus) && r.MonitorResendInt > 0 && countsResends(locationsAfter, probeID) {
 			hb.DownCount += 1
 
 			if hb.DownCount >= r.MonitorResendInt {

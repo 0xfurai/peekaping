@@ -156,3 +156,37 @@ func TestIngester_AnEmptyRuleIsAny(t *testing.T) {
 
 	assert.Equal(t, statusChanged, aDown.events, "one Down location is enough")
 }
+
+func TestIngester_AtLeastTwoOfThree_ADownLocationDoesNotResendWhileTheMonitorIsUp(t *testing.T) {
+	m := monitorSettings{locationRule: shared.LocationRuleAtLeast, locationThreshold: 2, resendInterval: 3}
+	ti := newTestIngester(runningOn(probeA, probeB, probeC))
+	ti.bringUp(t, m, probeA, probeB, probeC)
+
+	for i := 1; i <= 7; i++ {
+		beat := ti.from(t, probeA, m, down)
+
+		assert.Empty(t, beat.events, "Down heartbeat %d of A: the monitor is Up, so there is nothing to resend", i)
+		assert.False(t, beat.notified, "Down heartbeat %d of A", i)
+	}
+	require.NotNil(t, ti.locations.recorded)
+	assert.Equal(t, up, *ti.locations.recorded)
+}
+
+func TestIngester_AtLeastTwoOfThree_ResendsFollowTheFirstDownLocationWhileTheMonitorIsDown(t *testing.T) {
+	m := monitorSettings{locationRule: shared.LocationRuleAtLeast, locationThreshold: 2, resendInterval: 2}
+	ti := newTestIngester(runningOn(probeA, probeB, probeC))
+	ti.bringUp(t, m, probeA, probeB, probeC)
+	ti.from(t, probeA, m, down)
+	goesDown := ti.from(t, probeB, m, down)
+	require.Equal(t, statusChanged, goesDown.events, "A and B are Down: the monitor is Down")
+
+	aFirst := ti.from(t, probeA, m, down)
+	bFirst := ti.from(t, probeB, m, down)
+	aSecond := ti.from(t, probeA, m, down)
+	bSecond := ti.from(t, probeB, m, down)
+
+	assert.Empty(t, aFirst.events)
+	assert.Empty(t, bFirst.events, "B is not the first Down location, so its heartbeats don't count")
+	assert.Equal(t, []string{notified}, aSecond.events, "A resends on its second Down heartbeat")
+	assert.Empty(t, bSecond.events)
+}
