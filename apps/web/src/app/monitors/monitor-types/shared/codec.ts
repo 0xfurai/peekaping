@@ -18,6 +18,8 @@ export const deserializeMonitorBase = (data: MonitorMonitorResponseDto): Monitor
   notification_ids: data.notification_ids ?? [],
   tag_ids: data.tag_ids ?? [],
   probe_ids: monitorProbeIds(data),
+  location_rule: data.location_rule ?? "any",
+  location_threshold: data.location_threshold ?? null,
 });
 
 // The request body fields every monitor type sends. The type's codec adds `type` and `config`.
@@ -34,6 +36,8 @@ export const serializeMonitorBase = (
   | "notification_ids"
   | "tag_ids"
   | "probe_ids"
+  | "location_rule"
+  | "location_threshold"
 > => ({
   name: values.name,
   interval: values.interval,
@@ -44,4 +48,7 @@ export const serializeMonitorBase = (
   notification_ids: values.notification_ids,
   tag_ids: values.tag_ids,
   probe_ids: values.probe_ids,
+  location_rule: values.location_rule,
+  // The threshold is only for "at least"; the form keeps one typed before a switch to another rule
+  location_threshold: values.location_rule === "at_least" ? values.location_threshold : null,
 });

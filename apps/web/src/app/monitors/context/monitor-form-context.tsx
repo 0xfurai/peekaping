@@ -36,7 +36,7 @@ import type { UtilsApiResponseMonitorMonitorResponseDto } from "@/api/types.gen"
 import { commonMutationErrorHandler } from "@/lib/utils";
 import {
   deserializeMonitor,
-  monitorFormSchema,
+  checkedMonitorFormSchema,
   monitorTypes,
   type MonitorFormValues,
 } from "../monitor-types/registry";
@@ -111,7 +111,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       // A push monitor is checked and submitted on the local probe, as its probe field shows it
       // (the form keeps the earlier selection for when the type changes back)
       const effective = withEffectiveProbes(values);
-      const result = await zodResolver(monitorFormSchema)(effective, context, options);
+      const result = await zodResolver(checkedMonitorFormSchema)(effective, context, options);
       const message = probeTypeError(effective, probes, monitor?.data);
       if (!message) return result;
       return { values: {}, errors: { ...result.errors, probe_ids: { type: "probe", message } } };

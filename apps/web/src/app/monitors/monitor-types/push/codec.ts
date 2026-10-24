@@ -34,6 +34,9 @@ export const serialize = (values: PushFormValues): MonitorCreateUpdateDto => {
     // The monitored service pushes to this process, so the monitor runs on the local probe
     // whichever probe the form holds (the probe section shows it fixed to Local)
     probe_ids: [LOCAL_PROBE_ID],
+    // One location, so no rule to choose
+    location_rule: "any",
+    location_threshold: null,
     config: JSON.stringify(config),
     push_token: values.pushToken,
   };
