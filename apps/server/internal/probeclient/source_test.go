@@ -22,7 +22,7 @@ var _ scheduler.Source = (*probeclient.Source)(nil)
 // newSource creates a source of the server's assignment. Its waits are the sleeper's.
 func newSource(server *assignmentServer, pause *sleeper) *probeclient.Source {
 	session := newSession(server.URL, func(c *probeclient.SessionConfig) { c.Sleep = pause.Sleep })
-	return probeclient.NewSource(session, nopLogger())
+	return probeclient.NewSource(session)
 }
 
 // run runs the source's poll until the test ends

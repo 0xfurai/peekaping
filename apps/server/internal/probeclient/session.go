@@ -76,6 +76,7 @@ type Tunables struct {
 type Session struct {
 	client *probeproto.Client
 	hello  probeproto.HelloRequest
+	base   *zap.SugaredLogger
 	logger *zap.SugaredLogger
 	sleep  func(ctx context.Context, d time.Duration) error
 	now    func() time.Time
@@ -92,6 +93,9 @@ type Session struct {
 
 // NewSession creates a session with a random instance id. It makes no call: Connect says hello.
 func NewSession(cfg SessionConfig) *Session {
+	if cfg.Logger == nil {
+		cfg.Logger = zap.NewNop().Sugar()
+	}
 	hostname, _ := os.Hostname()
 	instanceID := uuid.NewString()
 	s := &Session{
@@ -105,6 +109,7 @@ func NewSession(cfg SessionConfig) *Session {
 			OS:              runtime.GOOS,
 			Arch:            runtime.GOARCH,
 		},
+		base:   cfg.Logger,
 		logger: cfg.Logger.With("component", "probe_session"),
 		sleep:  cfg.Sleep,
 		now:    cfg.Now,
@@ -137,6 +142,11 @@ func sleepFor(ctx context.Context, d time.Duration) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+// loggerOf is the session's logger for a component of the probe client
+func (s *Session) loggerOf(component string) *zap.SugaredLogger {
+	return s.base.With("component", component)
 }
 
 // InstanceID is the random id of this process, which every request carries

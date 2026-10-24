@@ -72,6 +72,8 @@ type sleeper struct {
 	after func(n int, d time.Duration)
 	// block makes a wait last until its context ends
 	block bool
+	// gate, if set, makes a wait last until it receives from it or its context ends
+	gate chan struct{}
 }
 
 func (s *sleeper) Sleep(ctx context.Context, d time.Duration) error {
@@ -84,6 +86,12 @@ func (s *sleeper) Sleep(ctx context.Context, d time.Duration) error {
 	}
 	if s.block {
 		<-ctx.Done()
+	}
+	if s.gate != nil {
+		select {
+		case <-s.gate:
+		case <-ctx.Done():
+		}
 	}
 	return ctx.Err()
 }

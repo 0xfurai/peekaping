@@ -41,10 +41,10 @@ type watcher struct {
 }
 
 // NewSource creates a source that follows the assignment over the session. It makes no call: Run does.
-func NewSource(session *Session, logger *zap.SugaredLogger) *Source {
+func NewSource(session *Session) *Source {
 	return &Source{
 		session:  session,
-		logger:   logger.With("component", "probe_source"),
+		logger:   session.loggerOf("probe_source"),
 		monitors: map[string]probeproto.Monitor{},
 	}
 }
