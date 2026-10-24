@@ -52,7 +52,7 @@ _Avoid_: Stuck monitor, dead monitor, overdue
 
 **Probe**:
 A place Peekaping runs checks from. A monitor runs on one or more probes, the local probe unless it's assigned to remote ones.
-_Avoid_: Agent, location, worker
+_Avoid_: Agent, worker
 
 **Local probe**:
 The probe that is Peekaping itself: its own process checks the monitors on it. Every install has it, and it can't be deleted.
@@ -65,6 +65,10 @@ _Avoid_: Private location, remote agent
 **Probe instance**:
 One running copy of a probe's program. Every copy started with the probe's token is an instance of that probe, with a random id of its own, and the probe's monitors are dealt among its instances.
 _Avoid_: Agent, worker, node; "instance ID" alone, which is the usage ping's
+
+**Location**:
+A monitor's results from one of its probes: that probe's latest status, response time and heartbeats for the monitor. A monitor on three probes has three locations.
+_Avoid_: Region, probe (that's the place the checks run from)
 
 **Assignment**:
 The monitors a probe instance checks, with what each check needs, as the server deals them. The instance keeps checking its last assignment while it can't reach the server.
