@@ -3,8 +3,10 @@ package executor
 import (
 	"context"
 	"fmt"
+	"maps"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/shared"
+	"slices"
 	"time"
 
 	"go.uber.org/zap"
@@ -88,6 +90,11 @@ func NewExecutorRegistry(
 func (f *ExecutorRegistry) GetExecutor(name string) (Executor, bool) {
 	e, ok := f.registry[name]
 	return e, ok
+}
+
+// Types lists the monitor types the registry has an executor for, sorted
+func (f *ExecutorRegistry) Types() []string {
+	return slices.Sorted(maps.Keys(f.registry))
 }
 
 func (er *ExecutorRegistry) ValidateConfig(monitorType string, configJSON string) error {

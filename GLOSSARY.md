@@ -62,6 +62,14 @@ _Avoid_: Built-in probe, default probe
 A probe that runs on another machine. It connects out to Peekaping with its token, gets the monitors assigned to it, and sends back their results.
 _Avoid_: Private location, remote agent
 
+**Probe instance**:
+One running copy of a probe's program. Every copy started with the probe's token is an instance of that probe, with a random id of its own, and the probe's monitors are dealt among its instances.
+_Avoid_: Agent, worker, node; "instance ID" alone, which is the usage ping's
+
+**Assignment**:
+The monitors a probe instance checks, with what each check needs, as the server deals them. The instance keeps checking its last assignment while it can't reach the server.
+_Avoid_: Job list, schedule
+
 ### Status
 
 **Status**:
