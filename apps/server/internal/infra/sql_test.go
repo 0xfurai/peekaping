@@ -420,24 +420,35 @@ func assertSQLiteSettings(t *testing.T, ctx context.Context, db bun.IDB, when st
 	}
 }
 
-// cancelASlowQuery runs a query that takes seconds, cancels its context mid-flight and returns
-// once the driver has reported the cancellation. database/sql then drops the connection the
-// query ran on, and the next query gets a new one.
+// cancelASlowQuery runs a query that takes seconds and cancels its context mid-flight, until the
+// connection it ran on has been replaced. database/sql drops that connection once the driver
+// reports the cancellation, and the next query gets a new one. A TEMP table lives as long as its
+// connection, so it is the marker: when it is gone, the settings checked next are a new
+// connection's, and the test can't pass when the cancel never reached the driver.
 func cancelASlowQuery(t *testing.T, db *bun.DB) {
 	t.Helper()
+	ctx := context.Background()
 	for attempt := 0; attempt < 20; attempt++ {
-		ctx, cancel := context.WithCancel(context.Background())
+		_, err := db.ExecContext(ctx, "CREATE TEMP TABLE IF NOT EXISTS connection_marker (x INTEGER)")
+		require.NoError(t, err)
+
+		slowCtx, cancel := context.WithCancel(ctx)
 		timer := time.AfterFunc(50*time.Millisecond, cancel)
 		var n int64
-		err := db.NewRaw("WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x < 2000000000) SELECT count(*) FROM c").Scan(ctx, &n)
+		err = db.NewRaw("WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x < 2000000000) SELECT count(*) FROM c").Scan(slowCtx, &n)
 		timer.Stop()
 		cancel()
 		if err != nil {
 			require.ErrorIs(t, err, context.Canceled)
+		}
+
+		var markers int
+		require.NoError(t, db.NewRaw("SELECT count(*) FROM sqlite_temp_master WHERE name = 'connection_marker'").Scan(ctx, &markers))
+		if markers == 0 {
 			return
 		}
 	}
-	t.Fatal("the slow query was never cancelled")
+	t.Fatal("the cancelled query never cost the connection")
 }
 
 // A query whose context is cancelled costs its connection: database/sql closes it and opens a new

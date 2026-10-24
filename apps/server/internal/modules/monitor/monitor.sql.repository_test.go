@@ -455,20 +455,26 @@ func TestSQLRepository_DeletingAMonitorAfterACancelledQueryStillRemovesItsRows(t
 		require.NoError(t, err)
 	}
 
-	cancelled := false
-	for attempt := 0; attempt < 20 && !cancelled; attempt++ {
+	// A TEMP table lives as long as its connection, so it is the marker: when it is gone, the delete
+	// runs on a new connection, and the test can't pass when the cancel never reached the driver.
+	replaced := false
+	for attempt := 0; attempt < 20 && !replaced; attempt++ {
+		_, err = db.Exec("CREATE TEMP TABLE IF NOT EXISTS connection_marker (x INTEGER)")
+		require.NoError(t, err)
 		slowCtx, cancel := context.WithCancel(ctx)
 		timer := time.AfterFunc(50*time.Millisecond, cancel)
 		var n int64
 		err := db.NewRaw("WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x < 2000000000) SELECT count(*) FROM c").Scan(slowCtx, &n)
 		timer.Stop()
 		cancel()
-		cancelled = err != nil
 		if err != nil {
 			require.ErrorIs(t, err, context.Canceled)
 		}
+		var markers int
+		require.NoError(t, db.NewRaw("SELECT count(*) FROM sqlite_temp_master WHERE name = 'connection_marker'").Scan(ctx, &markers))
+		replaced = markers == 0
 	}
-	require.True(t, cancelled, "the slow query was never cancelled")
+	require.True(t, replaced, "the cancelled query never cost the connection")
 
 	require.NoError(t, repo.Delete(ctx, created.ID))
 

@@ -23,23 +23,31 @@ func TestConnectToDatabase_SQLiteSettingsSurviveACancelledQuery(t *testing.T) {
 	t.Cleanup(func() { _ = db.Close() })
 	assertSQLiteSettings(t, db, "at startup")
 
-	cancelled := false
-	for attempt := 0; attempt < 20 && !cancelled; attempt++ {
+	// A TEMP table lives as long as its connection, so it is the marker: when it is gone, the
+	// settings checked next are a new connection's, and the test can't pass when the cancel never
+	// reached the driver.
+	replaced := false
+	for attempt := 0; attempt < 20 && !replaced; attempt++ {
+		if _, err := db.Exec("CREATE TEMP TABLE IF NOT EXISTS connection_marker (x INTEGER)"); err != nil {
+			t.Fatalf("create the marker: %v", err)
+		}
 		ctx, cancel := context.WithCancel(context.Background())
 		timer := time.AfterFunc(50*time.Millisecond, cancel)
 		var n int64
 		err := db.NewRaw("WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x < 2000000000) SELECT count(*) FROM c").Scan(ctx, &n)
 		timer.Stop()
 		cancel()
-		if err != nil {
-			if !errors.Is(err, context.Canceled) {
-				t.Fatalf("the slow query failed for another reason: %v", err)
-			}
-			cancelled = true
+		if err != nil && !errors.Is(err, context.Canceled) {
+			t.Fatalf("the slow query failed for another reason: %v", err)
 		}
+		var markers int
+		if err := db.NewRaw("SELECT count(*) FROM sqlite_temp_master WHERE name = 'connection_marker'").Scan(context.Background(), &markers); err != nil {
+			t.Fatalf("look for the marker: %v", err)
+		}
+		replaced = markers == 0
 	}
-	if !cancelled {
-		t.Fatal("the slow query was never cancelled")
+	if !replaced {
+		t.Fatal("the cancelled query never cost the connection")
 	}
 
 	assertSQLiteSettings(t, db, "after a cancelled query")
