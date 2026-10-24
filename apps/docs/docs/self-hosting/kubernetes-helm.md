@@ -213,7 +213,7 @@ A new digest or subchart version restarts the bundled PostgreSQL. The migrate Jo
 
 ## Ingress or Istio
 
-People open the web app and Peekaping's API at one address. Two paths, `/api` and `/socket.io`, go to the API Service. Every other path goes to the web Service. The chart sets this up for you with an Ingress or with Istio. The API's websocket uses `/socket.io`, so your ingress controller must pass WebSocket connections.
+People open the web app and Peekaping's API at one address. Three paths, `/api`, `/probe` and `/socket.io`, go to the API Service. Every other path goes to the web Service. The chart sets this up for you with an Ingress or with Istio. The API's websocket uses `/socket.io`, so your ingress controller must pass WebSocket connections.
 
 ### Ingress
 
@@ -222,12 +222,13 @@ Set `ingress.enabled` to `true` and `ingress.host` to your host name. Also set `
 | Path | Goes to |
 | --- | --- |
 | `/api` | `<release>-api`, port 8034 |
+| `/probe` | `<release>-api`, port 8034 |
 | `/socket.io` | `<release>-api`, port 8034 |
 | `/` | `<release>-web`, port 80 |
 
 Other values:
 
-- `ingress.annotations` sets annotations on the Ingress. `values.yaml` has examples for an AWS ALB.
+- `ingress.annotations` sets annotations on the Ingress. `values.yaml` has examples for an AWS ALB. With ingress-nginx, set `nginx.ingress.kubernetes.io/proxy-body-size: "2m"` here if you use [remote probes](./remote-probes.md): ingress-nginx refuses request bodies over 1 MiB by default, and a probe's batch of results can be a little over that.
 - `ingress.tlsSecretName` is the Secret with your certificate. The Ingress has a `tls` section for `ingress.host` whether you set it or not.
 - `ingress.namespace` is the namespace of the Ingress. It defaults to the release's.
 
@@ -236,7 +237,7 @@ Other values:
 Set `istio.gateway.enabled` and `istio.virtualservice.enabled` to `true`. The chart then creates:
 
 - A Gateway, `<release>-gateway`, for `ingress.host`. It listens on port 80 for HTTP (`istio.gateway.port` and `istio.gateway.protocol`), and selects the Istio ingress gateway pods by the label `istio: <istio.gateway.selector>`. The selector is `ingressgateway` by default.
-- A VirtualService, `<release>-virtualservice`, that sends `/api/` and `/socket.io/` to the `<release>-api` Service and everything else to the `<release>-web` Service.
+- A VirtualService, `<release>-virtualservice`, that sends `/api/`, `/probe/` and `/socket.io/` to the `<release>-api` Service and everything else to the `<release>-web` Service.
 
 The Gateway and VirtualService match `ingress.host`, so set it even if you don't enable the Ingress. If your Istio ingress gateway is already reachable from outside, you are done.
 
