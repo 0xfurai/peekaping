@@ -17,6 +17,13 @@ on:
       - '.github/workflows/test-import-mongo.yml'
     branches: [ main, master ]
 
+# A new push to a PR replaces its run in progress, which would otherwise keep
+# its runners busy testing a commit nobody waits for. Other runs get a group of
+# their own: a shared one would cancel the queued runs of busy pushes to main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   import-mongo:
     runs-on: ubuntu-latest
