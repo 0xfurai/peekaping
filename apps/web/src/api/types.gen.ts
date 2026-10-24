@@ -840,7 +840,15 @@ export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
   active: boolean;
   heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
   id: string;
+  /**
+   * One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe.
+   */
+  locations?: Array<StatusPagePublicLocationDto> | null;
   name: string;
+  /**
+   * The monitor's status: 0 Down, 1 Up, 2 Pending, 3 Maintenance
+   */
+  status: number;
   type: string;
   uptime_24h: number;
 };
@@ -851,6 +859,16 @@ export type StatusPagePublicHeartbeatDto = {
   ping: number;
   status: number;
   time: string;
+};
+
+export type StatusPagePublicLocationDto = {
+  heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
+  name: string;
+  /**
+   * The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports.
+   */
+  status: number;
+  uptime_24h: number;
 };
 
 export type StatusPageStatusPageWithMonitorsResponseDto = {

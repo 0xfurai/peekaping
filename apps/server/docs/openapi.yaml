@@ -2035,10 +2035,23 @@ components:
             - "null"
         id:
           type: string
+        locations:
+          description: One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe.
+          items:
+            $ref: "#/components/schemas/status_page.PublicLocationDTO"
+          type:
+            - array
+            - "null"
         name:
           examples:
             - Monitor
           type: string
+        status:
+          description: "The monitor's status: 0 Down, 1 Up, 2 Pending, 3 Maintenance"
+          examples:
+            - 1
+          format: int64
+          type: integer
         type:
           examples:
             - http
@@ -2053,6 +2066,7 @@ components:
         - type
         - name
         - active
+        - status
       type: object
     status_page.PublicHeartbeatDTO:
       additionalProperties: false
@@ -2077,6 +2091,34 @@ components:
         - time
         - end_time
         - ping
+      type: object
+    status_page.PublicLocationDTO:
+      additionalProperties: false
+      properties:
+        heartbeats:
+          items:
+            $ref: "#/components/schemas/status_page.PublicHeartbeatDTO"
+          type:
+            - array
+            - "null"
+        name:
+          examples:
+            - Frankfurt
+          type: string
+        status:
+          description: "The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports."
+          examples:
+            - 1
+          format: int64
+          type: integer
+        uptime_24h:
+          format: double
+          type: number
+      required:
+        - name
+        - status
+        - uptime_24h
+        - heartbeats
       type: object
     status_page.StatusPageWithMonitorsResponseDTO:
       additionalProperties: false
