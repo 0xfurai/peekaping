@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SECRET_PLACEHOLDER, configFieldKeys } from "../secrets";
-import { channelTypes, channelFormSchema, getChannelType, isChannelType } from "./registry";
+import { channelTypeOptions, channelTypes, channelFormSchema, getChannelType, isChannelType } from "./registry";
 
 describe("notification channel type registry", () => {
   it("lists each type once, under the type its schema declares", () => {
@@ -13,6 +13,43 @@ describe("notification channel type registry", () => {
       expect(getChannelType(definition.type)).toBe(definition);
     }
     expect(isChannelType("carrier-pigeon")).toBe(false);
+  });
+
+  it("lists the Type select's options alphabetically by label, ignoring case", () => {
+    expect(channelTypeOptions.map((option) => option.label)).toEqual([
+      "Discord",
+      "Email (SMTP)",
+      "Google Chat",
+      "Gotify",
+      "Grafana OnCall",
+      "LINE messaging",
+      "Matrix",
+      "Mattermost",
+      "Microsoft Teams",
+      "NTFY",
+      "Opsgenie",
+      "PagerDuty",
+      "PagerTree",
+      "Pushbullet",
+      "Pushover",
+      "SendGrid",
+      "Signal",
+      "Slack",
+      "Telegram",
+      "Twilio",
+      "Webhook",
+      "WeCom (企业微信)",
+      "WhatsApp (WAHA)",
+    ]);
+    // Each option carries the type of the definition it was made from
+    for (const option of channelTypeOptions) {
+      expect(getChannelType(option.value)?.displayName).toBe(option.label);
+    }
+  });
+
+  it("starts a new channel on Email (SMTP)", () => {
+    expect(channelTypes[0].type).toBe("smtp");
+    expect(channelTypes[0].displayName).toBe("Email (SMTP)");
   });
 
   it("knows the secret and endpoint fields of every listed type", () => {
