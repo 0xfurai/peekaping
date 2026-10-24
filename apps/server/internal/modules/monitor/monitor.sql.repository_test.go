@@ -51,7 +51,9 @@ func setupTestDB(t *testing.T) *bun.DB {
 			config TEXT,
 			proxy_id TEXT,
 			push_token TEXT,
-			locations_status INTEGER
+			locations_status INTEGER,
+			location_rule TEXT NOT NULL DEFAULT 'any',
+			location_threshold INTEGER
 		)
 	`)
 	require.NoError(t, err)

@@ -99,23 +99,23 @@ func (m *Monitor) RunsOn(probeID string) bool {
 }
 
 type UpdateMonitor struct {
-	ID             *string        `json:"id"`
-	Type           *string        `json:"type"`
-	Name           *string        `json:"name"`
-	Interval       *int           `json:"interval"`
-	Timeout        *int           `json:"timeout"`
-	MaxRetries     *int           `json:"max_retries"`
-	RetryInterval  *int           `json:"retry_interval"`
-	ResendInterval *int           `json:"resend_interval"`
+	ID             *string `json:"id"`
+	Type           *string `json:"type"`
+	Name           *string `json:"name"`
+	Interval       *int    `json:"interval"`
+	Timeout        *int    `json:"timeout"`
+	MaxRetries     *int    `json:"max_retries"`
+	RetryInterval  *int    `json:"retry_interval"`
+	ResendInterval *int    `json:"resend_interval"`
 	// LocationRule and LocationThreshold replace the monitor's location rule when LocationRule is
 	// set: the threshold goes with it, nil for any rule but at_least.
-	LocationRule      *LocationRule `json:"location_rule"`
-	LocationThreshold *int          `json:"location_threshold"`
-	Active            *bool         `json:"active"`
-	Status         *MonitorStatus `json:"status"`
-	Config         *string        `json:"config"`
-	ProxyId        *string        `json:"proxy_id"`
-	PushToken      *string        `json:"push_token"`
+	LocationRule      *LocationRule  `json:"location_rule"`
+	LocationThreshold *int           `json:"location_threshold"`
+	Active            *bool          `json:"active"`
+	Status            *MonitorStatus `json:"status"`
+	Config            *string        `json:"config"`
+	ProxyId           *string        `json:"proxy_id"`
+	PushToken         *string        `json:"push_token"`
 	// ProbeIDs replace the probes that run the monitor. Nil leaves them as they are.
 	ProbeIDs []string `json:"probe_ids"`
 
