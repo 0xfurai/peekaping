@@ -1473,6 +1473,8 @@
     "published_status": "公開済み",
     "search_label": "検索",
     "search_placeholder": "タイトルでステータスページを検索…",
+    "show_locations": "各場所を表示",
+    "show_locations_info": "複数の場所からチェックされるモニターについて、場所ごとのステータスと履歴を表示します",
     "update_status_page": "ステータスページを更新",
     "view_page": "ページを表示"
   },

@@ -1473,6 +1473,8 @@
     "published_status": "Publicado",
     "search_label": "Pesquisar",
     "search_placeholder": "Pesquisar páginas de status por título...",
+    "show_locations": "Mostrar cada localização",
+    "show_locations_info": "Para monitores verificados a partir de várias localizações, mostra o estado e o histórico de cada uma",
     "update_status_page": "Actualizar Página de Estado",
     "view_page": "Ver página"
   },

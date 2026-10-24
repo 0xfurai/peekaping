@@ -1473,6 +1473,8 @@
     "published_status": "Offentliggjort",
     "search_label": "Søg",
     "search_placeholder": "Søg status-sider efter titel...",
+    "show_locations": "Vis hver placering",
+    "show_locations_info": "For overvågninger, der kontrolleres fra flere placeringer, vises status og historik for hver placering",
     "update_status_page": "Opdater Statusside",
     "view_page": "Vis side"
   },

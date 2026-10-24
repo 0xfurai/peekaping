@@ -1473,6 +1473,8 @@
     "published_status": "已發布",
     "search_label": "搜尋",
     "search_placeholder": "按標題搜尋狀態頁面...",
+    "show_locations": "顯示每個位置",
+    "show_locations_info": "對於從多個位置檢查的監測項目，顯示每個位置的狀態和歷史記錄",
     "update_status_page": "更新狀態頁面",
     "view_page": "查看頁面"
   },

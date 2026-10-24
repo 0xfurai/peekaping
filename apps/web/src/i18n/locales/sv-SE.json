@@ -1473,6 +1473,8 @@
     "published_status": "Publicerad",
     "search_label": "Sök",
     "search_placeholder": "Sök status-sidor efter titel...",
+    "show_locations": "Visa varje plats",
+    "show_locations_info": "För övervakningar som kontrolleras från flera platser visas status och historik för varje plats",
     "update_status_page": "Uppdatera status­sida",
     "view_page": "Visa sida"
   },

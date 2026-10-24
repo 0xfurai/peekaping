@@ -1473,6 +1473,8 @@
     "published_status": "게시됨",
     "search_label": "검색",
     "search_placeholder": "제목으로 상태 페이지 검색...",
+    "show_locations": "각 위치 표시",
+    "show_locations_info": "여러 위치에서 확인하는 모니터에 대해 위치별 상태와 기록을 표시합니다",
     "update_status_page": "상태 페이지 업데이트",
     "view_page": "페이지 보기"
   },

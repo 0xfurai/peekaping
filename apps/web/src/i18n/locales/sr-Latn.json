@@ -1473,6 +1473,8 @@
     "published_status": "Objavljeno",
     "search_label": "Pretraga",
     "search_placeholder": "Pretraži stranice statusa po naslovu...",
+    "show_locations": "Prikaži svaku lokaciju",
+    "show_locations_info": "Za monitore koji se proveravaju sa više lokacija prikazuje status i istoriju svake lokacije",
     "update_status_page": "Ažuriraj stranicu statusa",
     "view_page": "Pogledaj stranicu"
   },
