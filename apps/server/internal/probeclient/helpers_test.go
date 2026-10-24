@@ -145,12 +145,22 @@ type assignmentServer struct {
 
 func newAssignmentServer(t *testing.T, steps ...pollStep) *assignmentServer {
 	t.Helper()
+	return newAssignmentServerWith(t, nil, steps...)
+}
+
+// newAssignmentServerWith is newAssignmentServer for a server whose hello states other limits
+func newAssignmentServerWith(t *testing.T, limits func(*probeproto.HelloResponse), steps ...pollStep) *assignmentServer {
+	t.Helper()
 	s := &assignmentServer{}
 	s.Server = newServer(t, func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/probe/v1/hello":
 			s.note("hello")
-			reply(w, http.StatusOK, welcomeFrom(time.Now()))
+			welcome := welcomeFrom(time.Now())
+			if limits != nil {
+				limits(&welcome)
+			}
+			reply(w, http.StatusOK, welcome)
 		case "/probe/v1/assignments":
 			s.mu.Lock()
 			n := s.polls

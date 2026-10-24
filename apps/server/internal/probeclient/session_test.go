@@ -136,6 +136,29 @@ func TestSession_BacksOffOn401(t *testing.T) {
 	assert.Contains(t, errors[0], "invalid probe token")
 }
 
+// A 409 answers a call that needs a hello first. Said of hello itself it makes no sense, and a
+// server that goes on saying it must not be asked again in a tight loop.
+func TestSession_BacksOffOn409ToHello(t *testing.T) {
+	url, hellos := helloServer(t, time.Now(), func(n int) (int, string) {
+		if n <= 4 {
+			return http.StatusConflict, "unknown instance: send hello first"
+		}
+		return 0, ""
+	})
+	pause := &sleeper{}
+	session := newSession(url, func(c *probeclient.SessionConfig) { c.Sleep = pause.Sleep })
+
+	require.NoError(t, session.Connect(context.Background()))
+
+	assert.EqualValues(t, 5, hellos.Load())
+	waits := pause.waits()
+	require.Len(t, waits, 4, "every refused hello is followed by a wait")
+	for i, step := range []time.Duration{1, 2, 4, 8} {
+		assert.GreaterOrEqual(t, waits[i], step*time.Second/2, "wait %d", i+1)
+		assert.LessOrEqual(t, waits[i], step*time.Second, "wait %d", i+1)
+	}
+}
+
 func TestSession_WarnsOnClockSkew(t *testing.T) {
 	local := time.Date(2026, 10, 23, 12, 0, 0, 0, time.UTC)
 	tests := []struct {
@@ -187,6 +210,31 @@ func TestSession_HonoursRetryAfterOnHello(t *testing.T) {
 	require.NoError(t, session.Connect(context.Background()))
 
 	assert.Equal(t, []time.Duration{7 * time.Second, 3 * time.Second}, pause.waits())
+}
+
+func TestSession_CapsRetryAfterAtFiveMinutes(t *testing.T) {
+	var hellos atomic.Int32
+	server := newServer(t, func(w http.ResponseWriter, r *http.Request) {
+		switch hellos.Add(1) {
+		case 1:
+			fail(w, http.StatusTooManyRequests, "too many requests", 24*time.Hour)
+		case 2:
+			fail(w, http.StatusServiceUnavailable, "starting up", 301*time.Second)
+		case 3:
+			fail(w, http.StatusServiceUnavailable, "starting up", 5*time.Minute)
+		case 4:
+			fail(w, http.StatusTooManyRequests, "too many requests", 299*time.Second)
+		default:
+			reply(w, http.StatusOK, welcomeFrom(time.Now()))
+		}
+	})
+	pause := &sleeper{}
+	session := newSession(server.URL, func(c *probeclient.SessionConfig) { c.Sleep = pause.Sleep })
+
+	require.NoError(t, session.Connect(context.Background()))
+
+	assert.Equal(t, []time.Duration{5 * time.Minute, 5 * time.Minute, 5 * time.Minute, 299 * time.Second}, pause.waits(),
+		"a Retry-After past five minutes is cut to five, and one within them is obeyed as is")
 }
 
 func TestSession_ConnectStopsWithItsContext(t *testing.T) {
