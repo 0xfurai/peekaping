@@ -14,8 +14,13 @@ import (
 	"peekaping/internal/modules/scheduler"
 )
 
-// DefaultFlushTimeout is how long Shutdown gives the last flush of the results, and then bye
-const DefaultFlushTimeout = 10 * time.Second
+const (
+	// DefaultFlushTimeout is how long Shutdown gives the last flush of the results, and then bye
+	DefaultFlushTimeout = 10 * time.Second
+	// shutdownReserve is what Shutdown keeps of the deadline it is given for the last flush and the
+	// bye, which share it: the running checks get the time before it
+	shutdownReserve = 5 * time.Second
+)
 
 // Config is what a Probe needs
 type Config struct {
@@ -30,7 +35,7 @@ type Config struct {
 	HTTPClient *http.Client
 	// Concurrency is how many checks run at the same time; scheduler.DefaultConcurrency when zero
 	Concurrency int
-	// FlushTimeout is how long Shutdown gives the last flush, and again the bye;
+	// FlushTimeout is the most Shutdown gives the last flush, and again the bye, when it has the time;
 	// DefaultFlushTimeout when zero
 	FlushTimeout time.Duration
 	Logger       *zap.SugaredLogger
@@ -157,18 +162,55 @@ func (p *Probe) Run(ctx context.Context) error {
 }
 
 // Shutdown stops the probe: the scheduler stops its timers and lets the checks that are running
-// finish, for as long as ctx lasts, and cancels what is left; the poll stops; the results still in
-// the buffer are sent; and the server is told that this instance is gone, so that it deals the
-// instance's monitors to the others at once. The flush and the bye each get the flush timeout of
-// the config, whether ctx has run out or not. The drops of results that the log has not told of yet
-// are logged. It returns what failed of the flush and the bye, joined.
+// finish, and cancels what is left; the poll stops; the results still in the buffer are sent; and
+// the server is told that this instance is gone, so that it deals the instance's monitors to the
+// others at once. The drops of results that the log has not told of yet are logged. It returns what
+// failed of the flush and the bye, joined.
+//
+// When ctx has a deadline, Shutdown is over by then. The checks that are running get the time up to
+// a reserve before the deadline: five seconds, or half of the time left if that is less. The flush
+// and the bye share the reserve: the flush may use it up to its last two fifths (two seconds of the
+// five), and the bye gets the rest, so a step that finishes early leaves its time to the next. The
+// flush timeout of the config bounds each of them too. A ctx cancelled before its deadline
+// cancels the checks at once, and the flush and the bye run in the time left.
+//
+// When ctx has no deadline, the checks go on for as long as ctx lasts, and then the flush and the
+// bye get the flush timeout each.
 func (p *Probe) Shutdown(ctx context.Context) error {
 	p.shutdownOnce.Do(func() { p.shutdownErr = p.shutdown(ctx) })
 	return p.shutdownErr
 }
 
+// shutdownTimes are when the steps of Shutdown must end. A step with no time has none to keep.
+type shutdownTimes struct {
+	drain, flush, bye time.Time
+}
+
+// splitShutdown divides the time ctx has left among the steps of Shutdown, or gives them none to
+// keep when ctx has no deadline
+func splitShutdown(ctx context.Context) shutdownTimes {
+	end, ok := ctx.Deadline()
+	if !ok {
+		return shutdownTimes{}
+	}
+	reserve := max(0, min(shutdownReserve, time.Until(end)/2))
+	byeShare := reserve * 2 / 5
+	return shutdownTimes{drain: end.Add(-reserve), flush: end.Add(-byeShare), bye: end}
+}
+
+// endingAt is ctx cut off at end, or ctx as it is when end is the zero time
+func endingAt(ctx context.Context, end time.Time) (context.Context, context.CancelFunc) {
+	if end.IsZero() {
+		return ctx, func() {}
+	}
+	return context.WithDeadline(ctx, end)
+}
+
 func (p *Probe) shutdown(ctx context.Context) error {
-	p.scheduler.Drain(ctx)
+	times := splitShutdown(ctx)
+	drainCtx, cancelDrain := endingAt(ctx, times.drain)
+	defer cancelDrain()
+	p.scheduler.Drain(drainCtx)
 
 	// No more polls: a poll after bye would count the instance in again
 	p.mu.Lock()
@@ -181,6 +223,8 @@ func (p *Probe) shutdown(ctx context.Context) error {
 	tail := context.WithoutCancel(ctx)
 	flushCtx, cancelFlush := context.WithTimeout(tail, p.flushTimeout)
 	defer cancelFlush()
+	flushCtx, cancelFlushEnd := endingAt(flushCtx, times.flush)
+	defer cancelFlushEnd()
 	var flushErr, byeErr error
 	buffered := p.sink.Buffered()
 	if err := p.sink.Flush(flushCtx); err != nil {
@@ -199,6 +243,8 @@ func (p *Probe) shutdown(ctx context.Context) error {
 	if p.session.Welcome() != nil {
 		byeCtx, cancelBye := context.WithTimeout(tail, p.flushTimeout)
 		defer cancelBye()
+		byeCtx, cancelByeEnd := endingAt(byeCtx, times.bye)
+		defer cancelByeEnd()
 		if err := p.session.Bye(byeCtx); err != nil {
 			byeErr = err
 			p.logger.Warnw("Failed to tell the server this instance is stopping", "error", err)

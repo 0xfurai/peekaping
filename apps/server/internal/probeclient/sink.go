@@ -43,8 +43,9 @@ type Sink struct {
 	logger  *zap.SugaredLogger
 	ids     ulidGenerator
 
-	// sendMu lets one batch on the wire at a time, the flusher's or a Flush's
-	sendMu sync.Mutex
+	// sendGate lets one batch on the wire at a time, the flusher's or a Flush's. It is a channel
+	// so that a caller waiting for its turn can give up when its context ends.
+	sendGate chan struct{}
 
 	mu    sync.Mutex
 	items []entry // oldest first
@@ -68,9 +69,10 @@ type entry struct {
 // NewSink creates a sink that sends over the session. It sends nothing until Run or Flush does.
 func NewSink(session *Session) *Sink {
 	return &Sink{
-		session: session,
-		logger:  session.loggerOf("probe_sink"),
-		arrived: make(chan struct{}, 1),
+		session:  session,
+		logger:   session.loggerOf("probe_sink"),
+		sendGate: make(chan struct{}, 1),
+		arrived:  make(chan struct{}, 1),
 	}
 }
 
@@ -257,8 +259,12 @@ func (s *Sink) drain(ctx context.Context) error {
 // sendBatch sends the oldest results, as many as a batch holds, and takes from the buffer the ones
 // the server answered
 func (s *Sink) sendBatch(ctx context.Context) error {
-	s.sendMu.Lock()
-	defer s.sendMu.Unlock()
+	select {
+	case s.sendGate <- struct{}{}:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	defer func() { <-s.sendGate }()
 
 	batch := s.oldest(s.session.Tunables().BatchMax)
 	if len(batch) == 0 {

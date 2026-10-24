@@ -172,6 +172,136 @@ func TestProbe_ShutdownLogsTheDropsNotLoggedYet(t *testing.T) {
 	assert.EqualValues(t, 1, dropped[1].ContextMap()["buffer_max"])
 }
 
+// A container is stopped on a clock (35 s in the compose files, 30 s in Kubernetes), so Shutdown has
+// to be over by the deadline it is given, however long a check runs. The checks get the time before
+// the flush and the bye's share of it, and the last results are sent and the bye said in the rest.
+func TestProbe_ShutdownEndsWithinItsDeadlineWhenACheckNeverEnds(t *testing.T) {
+	release := make(chan struct{})
+	stuck := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-release:
+		case <-r.Context().Done():
+		}
+	}))
+	t.Cleanup(stuck.Close)
+	t.Cleanup(func() { close(release) })
+	url, checks := httpTarget(t)
+	server := newAssignmentServer(t, snapshot("v1", monitorOf("stuck", stuck.URL), monitorOf("quick", url)))
+	probe := newProbe(server)
+	runProbe(t, probe)
+	require.Eventually(t, func() bool { return checks.Load() == 1 }, 5*time.Second, time.Millisecond, "the quick monitor is checked at once, and the stuck one never ends")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	err := probe.Shutdown(ctx)
+
+	assert.NoError(t, ctx.Err(), "Shutdown returned before its deadline")
+	assert.NoError(t, err)
+	var monitors []string
+	for _, result := range server.storedResults() {
+		monitors = append(monitors, result.MonitorID)
+	}
+	assert.Contains(t, monitors, "quick", "the result that was held is sent")
+	events := server.sequence()
+	require.NotEmpty(t, events)
+	assert.Equal(t, "bye", events[len(events)-1], "and the last thing the probe says is bye")
+}
+
+// The server being unreachable is the case a probe is built for, and it must not make Shutdown
+// overstay either: a batch the server holds without an answer is given up with the flush.
+func TestProbe_ShutdownEndsWithinItsDeadlineWhenTheServerStopsAnswering(t *testing.T) {
+	release := make(chan struct{})
+	var posted atomic.Int32
+	url, _ := httpTarget(t)
+	server := newServer(t, func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/probe/v1/hello":
+			welcome := welcomeFrom(time.Now())
+			welcome.FlushIntervalMs = 10
+			reply(w, http.StatusOK, welcome)
+		case "/probe/v1/assignments":
+			if r.URL.Query().Get("version") == "" {
+				reply(w, http.StatusOK, probeproto.AssignmentsResponse{Version: "v1", Monitors: []probeproto.Monitor{monitorOf("a", url)}})
+				return
+			}
+			<-r.Context().Done()
+		case "/probe/v1/results":
+			posted.Add(1)
+			select { // the batch is never answered
+			case <-release:
+			case <-r.Context().Done():
+			}
+		case "/probe/v1/bye":
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+	t.Cleanup(func() { close(release) })
+	probe := probeclient.New(probeclient.Config{URL: server.URL, Token: probeToken, Version: "0.0.48", Logger: nopLogger()})
+	runProbe(t, probe)
+	require.Eventually(t, func() bool { return posted.Load() >= 1 }, 5*time.Second, time.Millisecond, "the flusher is waiting for the server's answer")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	finished := make(chan error, 1)
+	go func() { finished <- probe.Shutdown(ctx) }()
+	var err error
+	select {
+	case err = <-finished:
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "Shutdown did not end")
+	}
+
+	assert.NoError(t, ctx.Err(), "Shutdown returned before its deadline")
+	assert.ErrorIs(t, err, context.DeadlineExceeded, "the results that could not be sent are reported")
+}
+
+// Without a deadline, Shutdown waits for the checks for as long as ctx lasts; cancelling ctx then
+// cancels the checks, and the results are still sent and the bye said.
+func TestProbe_ShutdownWithoutADeadlineWaitsForTheChecksUntilCancelled(t *testing.T) {
+	release := make(chan struct{})
+	stuck := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-release:
+		case <-r.Context().Done():
+		}
+	}))
+	t.Cleanup(stuck.Close)
+	t.Cleanup(func() { close(release) })
+	url, checks := httpTarget(t)
+	server := newAssignmentServer(t, snapshot("v1", monitorOf("stuck", stuck.URL), monitorOf("quick", url)))
+	probe := newProbe(server)
+	runProbe(t, probe)
+	require.Eventually(t, func() bool { return checks.Load() == 1 }, 5*time.Second, time.Millisecond)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	finished := make(chan error, 1)
+	go func() { finished <- probe.Shutdown(ctx) }()
+	select {
+	case <-finished:
+		require.Fail(t, "Shutdown did not wait for the check that never ends")
+	case <-time.After(500 * time.Millisecond):
+	}
+	cancel()
+
+	select {
+	case err := <-finished:
+		assert.NoError(t, err)
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "Shutdown did not end when ctx was cancelled")
+	}
+	var monitors []string
+	for _, result := range server.storedResults() {
+		monitors = append(monitors, result.MonitorID)
+	}
+	assert.Contains(t, monitors, "quick")
+	events := server.sequence()
+	require.NotEmpty(t, events)
+	assert.Equal(t, "bye", events[len(events)-1])
+}
+
 func TestProbe_KeepsCheckingWhileTheServerIsUnreachable(t *testing.T) {
 	url, checks := httpTarget(t)
 	server := newAssignmentServer(t, snapshot("v1", httpMonitor("a", func(m *probeproto.Monitor) {
