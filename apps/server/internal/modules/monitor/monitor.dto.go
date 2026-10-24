@@ -90,6 +90,7 @@ type MonitorResponseDto struct {
 
 // StatPointsSummaryDto represents stat points and summary for a period
 type StatPointsSummaryDto struct {
+	ProbeID string       `json:"probe_id,omitempty" doc:"The probe the figures count. Omitted when they count every probe's checks." example:"local"`
 	Points  []*StatPoint `json:"points"`
 	MaxPing *float64     `json:"maxPing"`
 	MinPing *float64     `json:"minPing"`
@@ -100,6 +101,7 @@ type StatPointsSummaryDto struct {
 // CustomUptimeStatsDto represents uptime percentages for 24h, 30d, 365d
 // All values are percentages (0-100)
 type CustomUptimeStatsDto struct {
+	ProbeID    string  `json:"probe_id,omitempty" doc:"The probe the percentages count. Omitted when they count every probe's checks." example:"local"`
 	Uptime24h  float64 `json:"24h"`
 	Uptime7d   float64 `json:"7d"`
 	Uptime30d  float64 `json:"30d"`

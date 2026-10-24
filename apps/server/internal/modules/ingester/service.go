@@ -18,8 +18,9 @@ import (
 // worker, the API's push URL and the probe protocol's results route encode it, and the ingester
 // decodes it.
 type Result struct {
-	// ProbeID is the probe that ran the check. It is empty for the local worker and the push URL
-	// until #254, and nothing reads it until #36 stores it on heartbeats.
+	// ProbeID is the probe that ran the check, stored on the heartbeat. The local worker and the
+	// push URL set it to the local probe; a task queued before they did leaves it empty, which
+	// the ingester also takes as the local probe.
 	ProbeID            string               `json:"probe_id,omitempty"`
 	MonitorID          string               `json:"monitor_id"`
 	MonitorName        string               `json:"monitor_name"`
@@ -114,8 +115,14 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 
 	isFirstBeat := previousBeat == nil
 
+	probeID := r.ProbeID
+	if probeID == "" {
+		probeID = shared.LocalProbeID
+	}
+
 	hb := &heartbeat.CreateUpdateDto{
 		MonitorID: r.MonitorID,
+		ProbeID:   probeID,
 		Status:    r.Status,
 		Msg:       r.Message,
 		Ping:      r.PingMs,

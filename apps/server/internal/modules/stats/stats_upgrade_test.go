@@ -109,19 +109,66 @@ func TestUpgradeRebuildsStatsFromHeartbeats(t *testing.T) {
 
 			end := start.Add(25 * time.Hour)
 			for period, want := range map[stats.StatPeriod]int{stats.StatMinutely: 1500, stats.StatHourly: 25, stats.StatDaily: 2} {
-				all, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, start.Truncate(24*time.Hour), end, period)
+				all, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, "", start.Truncate(24*time.Hour), end, period)
 				require.NoError(t, err)
 				assert.Len(t, all, want, period)
 			}
 
 			_, err = db.Exec("SELECT 1 FROM stats")
 			assert.Error(t, err, "the old stats table should be dropped")
+		})
+	}
+}
 
-			// A rerun, as after a migrate that failed or was killed, succeeds and leaves
-			// the stats matching the heartbeats again.
-			aggregate(t, svc, monitorID, shared.MonitorStatusDown, 0, hour.Add(time.Minute))
+// afterBackfillMigration is the first migration after the one that rebuilds the stats.
+const afterBackfillMigration = "20261018120000"
+
+// A rerun, as after a migrate that failed or was killed, succeeds and leaves the stats matching
+// the heartbeats again. It runs on the schema the backfill ran on: later migrations change the
+// stats tables' keys.
+func TestUpgradeBackfillRerunsAfterAFailedMigrate(t *testing.T) {
+	for _, backend := range []struct {
+		name string
+		open func(*testing.T) *bun.DB
+	}{{"SQLite", sqliteDB}, {"Postgres", postgresDB}} {
+		t.Run(backend.name, func(t *testing.T) {
+			ctx := context.Background()
+			db := backend.open(t)
+			migrateUp(t, db, migrationsBefore(firstPerPeriodMigration))
+			monitorID := insertMonitor(t, db)
+			hour := time.Date(2026, 10, 16, 5, 0, 0, 0, time.UTC)
+			ping30, ping50 := 30, 50
+			rows := []heartbeatRow{
+				{ID: uuid.NewString(), MonitorID: monitorID, Status: int(shared.MonitorStatusDown), Time: hour.Add(10 * time.Second)},
+				{ID: uuid.NewString(), MonitorID: monitorID, Status: int(shared.MonitorStatusUp), Ping: &ping30, Time: hour.Add(70 * time.Second)},
+				{ID: uuid.NewString(), MonitorID: monitorID, Status: int(shared.MonitorStatusUp), Ping: &ping50, Time: hour.Add(100 * time.Second)},
+			}
+			_, err := db.NewInsert().Model(&rows).Exec(ctx)
+			require.NoError(t, err)
+			migrateUp(t, db, migrationsBefore(afterBackfillMigration))
+
+			type hourStat struct {
+				Up        int      `bun:"up"`
+				Down      int      `bun:"down"`
+				PingSum   float64  `bun:"ping_sum"`
+				PingCount int      `bun:"ping_count"`
+				PingMin   *float64 `bun:"ping_min"`
+				PingMax   *float64 `bun:"ping_max"`
+			}
+			readHour := func() hourStat {
+				var got hourStat
+				require.NoError(t, db.NewRaw("SELECT up, down, ping_sum, ping_count, ping_min, ping_max FROM stat_hourly WHERE monitor_id = ?", monitorID).Scan(ctx, &got))
+				return got
+			}
+			low, high := 30.0, 50.0
+			want := hourStat{Up: 2, Down: 1, PingSum: 80, PingCount: 2, PingMin: &low, PingMax: &high}
+			require.Equal(t, want, readHour())
+
+			// A check counted while the backfill ran
+			_, err = db.Exec("UPDATE stat_hourly SET down = down + 1 WHERE monitor_id = ?", monitorID)
+			require.NoError(t, err)
 			require.NoError(t, backfillMigration(t).Up(ctx, db, nil))
-			assert.Equal(t, bucket{Up: 96, Down: 24, Maintenance: 12, Ping: 60, PingMin: 30, PingMax: 90}, findBucket(t, svc, monitorID, hour, stats.StatHourly))
+			assert.Equal(t, want, readHour())
 		})
 	}
 }

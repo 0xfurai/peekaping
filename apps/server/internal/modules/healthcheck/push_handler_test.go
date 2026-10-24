@@ -215,6 +215,7 @@ func TestPushEndpoint_EnqueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 	pinned, err := json.Marshal(payload)
 	require.NoError(t, err)
 	assert.JSONEq(t, `{
+		"probe_id": "local",
 		"monitor_id": "mon-1",
 		"monitor_name": "Nightly backup",
 		"monitor_type": "push",

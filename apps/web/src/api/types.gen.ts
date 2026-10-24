@@ -156,6 +156,10 @@ export type HeartbeatModel = {
   msg: string;
   notified: boolean;
   ping: number;
+  /**
+   * The probe that ran the check: local for the local probe, otherwise a remote probe's id
+   */
+  probe_id: string;
   retries: number;
   status: number;
   time: string;
@@ -367,6 +371,10 @@ export type MonitorCustomUptimeStatsDto = {
   "30d": number;
   "365d": number;
   "7d": number;
+  /**
+   * The probe the percentages count. Omitted when they count every probe's checks.
+   */
+  probe_id?: string;
 };
 
 export type MonitorMonitorResponseDto = {
@@ -449,6 +457,10 @@ export type MonitorStatPointsSummaryDto = {
   maxPing: number | null;
   minPing: number | null;
   points: Array<MonitorStatPoint> | null;
+  /**
+   * The probe the figures count. Omitted when they count every probe's checks.
+   */
+  probe_id?: string;
   uptime: number | null;
 };
 
@@ -2981,6 +2993,10 @@ export type GetMonitorsByIdHeartbeatsData = {
      * Reverse the order of heartbeats
      */
     reverse?: boolean;
+    /**
+     * Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.
+     */
+    probe_id?: string;
   };
   url: "/api/v1/monitors/{id}/heartbeats";
 };
@@ -3078,6 +3094,10 @@ export type GetMonitorsByIdStatsPointsData = {
      * Granularity (minute, hour, day)
      */
     granularity?: string;
+    /**
+     * Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+     */
+    probe_id?: string;
   };
   url: "/api/v1/monitors/{id}/stats/points";
 };
@@ -3122,7 +3142,12 @@ export type GetMonitorsByIdStatsUptimeData = {
      */
     id: string;
   };
-  query?: never;
+  query?: {
+    /**
+     * Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+     */
+    probe_id?: string;
+  };
   url: "/api/v1/monitors/{id}/stats/uptime";
 };
 

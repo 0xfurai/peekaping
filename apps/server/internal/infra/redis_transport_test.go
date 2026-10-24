@@ -171,7 +171,11 @@ func TestRedisBusSubscribesToManyTopicsQuicklyWhileRedisIsDown(t *testing.T) {
 	assert.Less(t, time.Since(start), time.Second, "a process starting without Redis subscribes to all its topics without waiting on each")
 }
 
+// heartbeatEnvelope is an event as a version before heartbeats carried a probe published it
 const heartbeatEnvelope = `{"type":"heartbeat","payload":{"id":"hb-1","monitor_id":"mon-1","status":0,"msg":"connection refused","ping":42,"duration":7,"down_count":2,"retries":1,"important":true,"time":"2026-10-17T09:30:00Z","end_time":"2026-10-17T09:30:01Z","notified":true}}`
+
+// probeHeartbeatEnvelope is the same event as a version that records the probe publishes it
+const probeHeartbeatEnvelope = `{"type":"heartbeat","payload":{"id":"hb-1","monitor_id":"mon-1","probe_id":"local","status":0,"msg":"connection refused","ping":42,"duration":7,"down_count":2,"retries":1,"important":true,"time":"2026-10-17T09:30:00Z","end_time":"2026-10-17T09:30:01Z","notified":true}}`
 
 func heartbeat() shared.HeartBeatModel {
 	return shared.HeartBeatModel{
@@ -253,11 +257,13 @@ func TestRedisBusWireFormat(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, server.PubSubNumSub("peekaping:events:heartbeat")["peekaping:events:heartbeat"])
 
-		require.NoError(t, events.Publish(context.Background(), bus, heartbeatTopic, heartbeat()))
+		fromLocal := heartbeat()
+		fromLocal.ProbeID = "local"
+		require.NoError(t, events.Publish(context.Background(), bus, heartbeatTopic, fromLocal))
 		require.NoError(t, events.Publish(context.Background(), bus, deletedTopic, "mon-1"))
 
 		for _, want := range []struct{ channel, envelope string }{
-			{"peekaping:events:heartbeat", heartbeatEnvelope},
+			{"peekaping:events:heartbeat", probeHeartbeatEnvelope},
 			{"peekaping:events:monitor.deleted", `{"type":"monitor.deleted","payload":"mon-1"}`},
 		} {
 			msg, err := raw.ReceiveMessage(context.Background())

@@ -32,6 +32,7 @@ func TestResultFromMonitor_CarriesTheMonitorSettingsAndTheCheck(t *testing.T) {
 	got := ResultFromMonitor(m, false, shared.MonitorStatusDown, "503 - Service Unavailable", 12, start, end, tlsInfo, zap.NewNop().Sugar())
 
 	assert.Equal(t, &ingester.Result{
+		ProbeID:            "local",
 		MonitorID:          "mon-1",
 		MonitorName:        "Checkout",
 		MonitorType:        "http",

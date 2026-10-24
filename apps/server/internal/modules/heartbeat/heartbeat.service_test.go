@@ -419,7 +419,7 @@ func TestMigrationsKeepOnlyTheHeartbeatIndexesQueriesUse(t *testing.T) {
 			migrator := migrate.NewMigrator(db, migrations.Migrations)
 			_, err = migrator.Migrate(ctx)
 			require.NoError(t, err)
-			assert.Equal(t, []string{"idx_heartbeats_monitor_important", "idx_heartbeats_monitor_time_important", "idx_heartbeats_time"}, heartbeatIndexes(t, db))
+			assert.Equal(t, []string{"idx_heartbeats_monitor_important", "idx_heartbeats_monitor_probe_time", "idx_heartbeats_monitor_time_important", "idx_heartbeats_time"}, heartbeatIndexes(t, db))
 
 			_, err = migrator.Rollback(ctx)
 			require.NoError(t, err)

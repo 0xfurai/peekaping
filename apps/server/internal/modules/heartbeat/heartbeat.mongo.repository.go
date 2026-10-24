@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"peekaping/internal/config"
+	"peekaping/internal/modules/shared"
 
 	"time"
 
@@ -38,6 +39,7 @@ func toDomainModel(mm *mongoModel) *Model {
 	return &Model{
 		ID:        mm.ID.Hex(),
 		MonitorID: mm.MonitorID.Hex(),
+		ProbeID:   shared.LocalProbeID, // a Mongo install has no remote probes
 		Status:    mm.Status,
 		Msg:       mm.Msg,
 		Ping:      mm.Ping,
@@ -257,6 +259,7 @@ func (r *RepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) 
 func (r *RepositoryImpl) FindByMonitorIDPaginated(
 	ctx context.Context,
 	monitorID string,
+	_ string, // a Mongo install has no remote probes, so there is no probe to narrow to
 	limit,
 	page int,
 	important *bool,

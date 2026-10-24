@@ -55,6 +55,7 @@ func (s *fakeHeartbeatService) Create(_ context.Context, dto *heartbeat.CreateUp
 	hb := &heartbeat.Model{
 		ID:        fmt.Sprintf("hb-%d", len(s.stored)+1),
 		MonitorID: dto.MonitorID,
+		ProbeID:   dto.ProbeID,
 		Status:    dto.Status,
 		Msg:       dto.Msg,
 		Ping:      dto.Ping,

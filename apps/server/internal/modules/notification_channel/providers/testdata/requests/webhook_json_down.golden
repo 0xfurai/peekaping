@@ -6,6 +6,7 @@ User-Agent: Peekaping-Webhook/<version>
   "heartbeat": {
     "id": "hb-1",
     "monitor_id": "mon-1",
+    "probe_id": "local",
     "status": 0,
     "msg": "connection refused",
     "ping": 0,
