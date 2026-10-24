@@ -313,6 +313,33 @@ func TestSink_FullBufferDropsTheOldest(t *testing.T) {
 		"the two oldest are the ones lost")
 }
 
+func TestSink_LogDropsLogsTheDropsNotLoggedYet(t *testing.T) {
+	const message = "The result buffer is full; dropped the oldest results"
+	server := newResultsServer(t, func(h *probeproto.HelloResponse) { h.BufferMax = 2 })
+	logger, logs := observedLogger()
+	sink, session := newSink(server, &sleeper{}, func(c *probeclient.SessionConfig) { c.Logger = logger })
+	require.NoError(t, session.Connect(context.Background()))
+
+	sink.LogDrops()
+	assert.Empty(t, logs.FilterMessage(message).All(), "nothing was dropped, so nothing is logged")
+
+	for i := range 5 {
+		ingest(t, sink, checked("m1", i, shared.MonitorStatusUp, "ok"))
+	}
+	require.Len(t, logs.FilterMessage(message).All(), 1, "three results were dropped, and only the first drop was logged as it happened")
+
+	sink.LogDrops()
+
+	dropped := logs.FilterMessage(message).All()
+	require.Len(t, dropped, 2)
+	assert.EqualValues(t, 2, dropped[1].ContextMap()["dropped"], "the drops since the log before")
+	assert.EqualValues(t, 3, dropped[1].ContextMap()["total_dropped"])
+	assert.EqualValues(t, 2, dropped[1].ContextMap()["buffer_max"])
+
+	sink.LogDrops()
+	assert.Len(t, logs.FilterMessage(message).All(), 2, "and they are logged once")
+}
+
 func TestSink_FlushesAtBatchMaxOrInterval(t *testing.T) {
 	small := func(h *probeproto.HelloResponse) { h.BatchMax = 3; h.FlushIntervalMs = 2000 }
 

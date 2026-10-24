@@ -148,6 +148,30 @@ func TestProbe_ShutdownLogsTheDrainTheFlushAndTheBye(t *testing.T) {
 	assert.EqualValues(t, 1, flushed[0].ContextMap()["buffered"], "the result of the check that was running")
 }
 
+// Drops are logged once in a while as they happen, and the ones after the last such log would
+// never be logged at all, so the shutdown logs them.
+func TestProbe_ShutdownLogsTheDropsNotLoggedYet(t *testing.T) {
+	url, checks := httpTarget(t)
+	server := newAssignmentServerWith(t,
+		func(h *probeproto.HelloResponse) { h.BufferMax = 1; h.FlushIntervalMs = 60000 },
+		snapshot("v1", monitorOf("a", url), monitorOf("b", url), monitorOf("c", url)))
+	logger, logs := observedLogger()
+	probe := probeclient.New(probeclient.Config{URL: server.URL, Token: probeToken, Version: "0.0.48", Logger: logger, FlushTimeout: 2 * time.Second})
+	runProbe(t, probe)
+	require.Eventually(t, func() bool { return checks.Load() == 3 }, 5*time.Second, time.Millisecond, "the three monitors are checked at once")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	require.NoError(t, probe.Shutdown(ctx))
+
+	dropped := logs.FilterMessage("The result buffer is full; dropped the oldest results").All()
+	require.Len(t, dropped, 2, "the first drop is logged as it happens, and the second when the probe stops")
+	assert.EqualValues(t, 1, dropped[0].ContextMap()["dropped"])
+	assert.EqualValues(t, 1, dropped[1].ContextMap()["dropped"], "the drops since the log before")
+	assert.EqualValues(t, 2, dropped[1].ContextMap()["total_dropped"])
+	assert.EqualValues(t, 1, dropped[1].ContextMap()["buffer_max"])
+}
+
 func TestProbe_KeepsCheckingWhileTheServerIsUnreachable(t *testing.T) {
 	url, checks := httpTarget(t)
 	server := newAssignmentServer(t, snapshot("v1", httpMonitor("a", func(m *probeproto.Monitor) {

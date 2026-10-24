@@ -160,7 +160,8 @@ func (p *Probe) Run(ctx context.Context) error {
 // finish, for as long as ctx lasts, and cancels what is left; the poll stops; the results still in
 // the buffer are sent; and the server is told that this instance is gone, so that it deals the
 // instance's monitors to the others at once. The flush and the bye each get the flush timeout of
-// the config, whether ctx has run out or not. It returns what failed of the last two, joined.
+// the config, whether ctx has run out or not. The drops of results that the log has not told of yet
+// are logged. It returns what failed of the flush and the bye, joined.
 func (p *Probe) Shutdown(ctx context.Context) error {
 	p.shutdownOnce.Do(func() { p.shutdownErr = p.shutdown(ctx) })
 	return p.shutdownErr
@@ -188,6 +189,7 @@ func (p *Probe) shutdown(ctx context.Context) error {
 	} else {
 		p.logger.Infow("Flushed the buffered results", "buffered", buffered)
 	}
+	p.sink.LogDrops()
 	if stopSink != nil {
 		stopSink()
 	}

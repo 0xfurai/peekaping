@@ -161,9 +161,26 @@ func (s *Sink) drop(bufferMax int) {
 	s.dropped++
 	s.unlogged++
 	if now := s.session.now(); now.Sub(s.lastDropLog) >= dropLogEvery {
-		s.logger.Warnw("The result buffer is full; dropped the oldest results",
-			"dropped", s.unlogged, "total_dropped", s.dropped, "buffer_max", bufferMax)
-		s.lastDropLog, s.unlogged = now, 0
+		s.logDrops(now, bufferMax)
+	}
+}
+
+// logDrops logs the drops that have not been logged. The caller holds mu.
+func (s *Sink) logDrops(now time.Time, bufferMax int) {
+	s.logger.Warnw("The result buffer is full; dropped the oldest results",
+		"dropped", s.unlogged, "total_dropped", s.dropped, "buffer_max", bufferMax)
+	s.lastDropLog, s.unlogged = now, 0
+}
+
+// LogDrops logs the results dropped since the last drop log, if there are any. A drop is logged
+// only once in a while, so those after the last log would be lost to the log if the probe stopped
+// now.
+func (s *Sink) LogDrops() {
+	bufferMax := s.session.Tunables().BufferMax
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.unlogged > 0 {
+		s.logDrops(s.session.now(), bufferMax)
 	}
 }
 
