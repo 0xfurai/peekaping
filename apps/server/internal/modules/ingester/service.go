@@ -150,8 +150,11 @@ func monitorStatus(locations []shared.MonitorLocation) shared.MonitorStatus {
 // important and notified, so a result can move the monitor to Up only if its own location is not
 // Down, and to Down only if it is not Up: another location's stale status, back with its probe,
 // must wait for that location's own result, which carries the change. A Pending or Maintenance
-// location is neither, so it can move the monitor either way.
-func carriesChange(location, from, to shared.MonitorStatus) bool {
+// location is neither, so it can move the monitor either way. A result does not move a Down
+// monitor to Pending unless its location was Down before the result (locationBefore): otherwise
+// another location put the monitor Down, and this one's retries must not hide the outage. The
+// monitor stays Down until an Up result takes it Up, and that Down to Up is the one notified.
+func carriesChange(location, locationBefore, from, to shared.MonitorStatus) bool {
 	if from == to {
 		return true
 	}
@@ -160,6 +163,8 @@ func carriesChange(location, from, to shared.MonitorStatus) bool {
 		return location != shared.MonitorStatusDown
 	case shared.MonitorStatusDown:
 		return location != shared.MonitorStatusUp
+	case shared.MonitorStatusPending:
+		return from != shared.MonitorStatusDown || locationBefore == shared.MonitorStatusDown
 	default:
 		return true
 	}
@@ -277,6 +282,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		rowsBefore      []shared.MonitorLocation
 		recordedBefore  *shared.MonitorStatus
 		isFirstBeat     bool
+		locationBefore  shared.MonitorStatus
 		previousStatus  shared.MonitorStatus
 		currentStatus   shared.MonitorStatus
 		locationsAfter  []shared.MonitorLocation
@@ -292,6 +298,9 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 				l.Status = &previousStatus
 			}
 		})
+		if i := slices.IndexFunc(locationsBefore, func(l shared.MonitorLocation) bool { return l.ProbeID == probeID }); i >= 0 && locationsBefore[i].Status != nil {
+			locationBefore = *locationsBefore[i].Status
+		}
 		locationsAfter = withLocation(j.After, probeID, func(l *shared.MonitorLocation) {
 			l.Status, l.LastPing, l.LastHeartbeatAt = &locationStatus, &r.PingMs, &r.StartTime
 		})
@@ -305,7 +314,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 			previousStatus = monitorStatus(locationsBefore)
 		}
 		currentStatus = monitorStatus(locationsAfter)
-		if !isFirstBeat && !carriesChange(locationStatus, previousStatus, currentStatus) {
+		if !isFirstBeat && !carriesChange(locationStatus, locationBefore, previousStatus, currentStatus) {
 			currentStatus = previousStatus
 		}
 		return &currentStatus
