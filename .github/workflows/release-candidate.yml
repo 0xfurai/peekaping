@@ -259,6 +259,65 @@ jobs:
           docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
+  build-probe:
+    runs-on: ${{ matrix.runner }}
+    needs: prepare-and-test
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            arch: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            arch: arm64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update version in main.go (server) - temp
+        run: |
+          sed -i.bak -E 's/(Version[[:space:]]*=[[:space:]]*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
+          rm version.go.bak
+        working-directory: ./apps/server/internal/version
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Probe image (without DockerHub login to avoid pull limits)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/server
+          file: ./apps/server/infra/Dockerfile.probe
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Probe image to registries
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+
   build-producer:
     runs-on: ${{ matrix.runner }}
     needs: prepare-and-test
@@ -528,7 +587,7 @@ jobs:
 
   create-manifest:
     runs-on: ubuntu-latest
-    needs: [build-ui, build-api, build-worker, build-producer, build-ingester, build-migrate, build-bundle-containers]
+    needs: [build-ui, build-api, build-worker, build-probe, build-producer, build-ingester, build-migrate, build-bundle-containers]
     steps:
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -562,6 +621,12 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-amd64 \
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-arm64
           docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
+
+          # Probe manifest
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }} \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
 
           # Producer manifest
           docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }} \
@@ -617,6 +682,15 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-arm64
           docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
           echo "✓ Worker manifest pushed"
+          sleep 5
+
+          # Probe manifest
+          echo "Creating Probe manifest..."
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }} \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
+          echo "✓ Probe manifest pushed"
           sleep 5
 
           # Producer manifest
@@ -693,6 +767,7 @@ jobs:
             - UI: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}`
             - API: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}`
             - Worker: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}`
+            - Probe: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}`
             - Producer: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}`
             - Ingester: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}`
             - Migrate: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}`
@@ -706,6 +781,7 @@ jobs:
             - UI: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}`
             - API: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}`
             - Worker: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}`
+            - Probe: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}`
             - Producer: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}`
             - Ingester: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}`
             - Migrate: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}`
@@ -722,6 +798,7 @@ jobs:
             # - UI: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}
             # - API: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}
             # - Worker: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
+            # - Probe: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
             # - Producer: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}
             # - Ingester: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}
             # - Migrate: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}
@@ -766,6 +843,7 @@ jobs:
                     - UI: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}\`
                     - API: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}\`
                     - Worker: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}\`
+                    - Probe: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}\`
                     - Producer: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}\`
                     - Ingester: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}\`
                     - Migrate: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}\`
