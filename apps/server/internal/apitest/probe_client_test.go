@@ -96,16 +96,20 @@ func (rt inProcessTransport) RoundTrip(req *http.Request) (*http.Response, error
 }
 
 // startProbe runs a probe client of the app with the token, until the test ends, when it shuts down
-// as the program would
-func (a *app) startProbe(t *testing.T, token string) *probeclient.Probe {
+// as the program would. change, if given, changes the probe's config before it is made.
+func (a *app) startProbe(t *testing.T, token string, change ...func(*probeclient.Config)) *probeclient.Probe {
 	t.Helper()
-	probe := probeclient.New(probeclient.Config{
+	cfg := probeclient.Config{
 		URL:        "http://probe.test",
 		Token:      token,
 		Version:    "0.0.0-test",
 		HTTPClient: &http.Client{Transport: inProcessTransport{router: a.router}},
 		Logger:     zap.NewNop().Sugar(),
-	})
+	}
+	for _, apply := range change {
+		apply(&cfg)
+	}
+	probe := probeclient.New(cfg)
 	ctx, stop := context.WithCancel(context.Background())
 	done := make(chan struct{})
 	go func() {
