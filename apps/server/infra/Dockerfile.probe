@@ -1,0 +1,37 @@
+# Start from the official Golang image as a build stage
+FROM golang:1.26.4-alpine AS builder
+
+# Set the Current Working Directory inside the container
+WORKDIR /app
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+RUN go mod download
+
+# Copy the source code into the container
+COPY . .
+
+# Build the Go app
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o peekaping-probe -ldflags="-s -w" ./cmd/probe
+
+# Start a new stage from scratch
+FROM alpine
+
+# Not root. Ping then needs net.ipv4.ping_group_range to include group 65532, as for the worker
+# image: Docker sets it for every group by default (see architecture/worker.md in the docs).
+USER 65532:65532
+
+WORKDIR /app
+
+# Copy the pre-built binary file from the previous stage
+COPY --from=builder /app/peekaping-probe .
+
+# /ready answers 200 once the probe has its first assignment, and stays 200 while the server is
+# unreachable. busybox wget exits non-zero on the 503 before that.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+  CMD wget -q -O- "http://${PROBE_READY_ADDR:-127.0.0.1:8081}/ready" || exit 1
+
+# Command to run the executable
+CMD ["./peekaping-probe"]

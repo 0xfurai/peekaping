@@ -61,6 +61,8 @@ jobs:
           - { name: dev-api, tag: peekaping-api, context: apps/server, file: apps/server/infra/Dockerfile.api }
           - { name: dev-producer, tag: peekaping-producer, context: apps/server, file: apps/server/infra/Dockerfile.producer }
           - { name: dev-worker, tag: peekaping-worker, context: apps/server, file: apps/server/infra/Dockerfile.worker }
+          # Not used by the e2e jobs yet (#253): named without "dev-" so that the dev jobs, which download image-dev-*, don't load it.
+          - { name: probe, tag: peekaping-probe, context: apps/server, file: apps/server/infra/Dockerfile.probe }
           - { name: dev-ingester, tag: peekaping-ingester, context: apps/server, file: apps/server/infra/Dockerfile.ingester }
           - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
           - { name: dev-web, tag: peekaping-web, context: ., file: apps/web/Dockerfile }
