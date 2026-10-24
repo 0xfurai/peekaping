@@ -9,3 +9,10 @@ coverage:
     patch:
       default:
         target: 70%
+
+# Each workflow uploads under its own flag. The MongoDB import workflow runs only
+# when apps/server changes, so a web-only PR has one upload where main has two;
+# carryforward reuses the base commit's report for a flag the PR didn't upload.
+flag_management:
+  default_rules:
+    carryforward: true

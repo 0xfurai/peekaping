@@ -505,6 +505,13 @@
             "format": "int64",
             "type": "integer"
           },
+          "probe_id": {
+            "description": "The probe that ran the check: local for the local probe, otherwise a remote probe's id",
+            "examples": [
+              "local"
+            ],
+            "type": "string"
+          },
           "retries": {
             "format": "int64",
             "type": "integer"
@@ -521,6 +528,7 @@
         "required": [
           "id",
           "monitor_id",
+          "probe_id",
           "status",
           "msg",
           "ping",
@@ -1112,7 +1120,7 @@
             "type": "array"
           },
           "probe_ids": {
-            "description": "The probes that run the monitor's checks, by id. Exactly one for now. Omitted on create, the monitor runs on local; omitted on update, it keeps its probe. A push monitor runs on local only.",
+            "description": "The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only.",
             "examples": [
               [
                 "local"
@@ -1210,6 +1218,13 @@
           "7d": {
             "format": "double",
             "type": "number"
+          },
+          "probe_id": {
+            "description": "The probe the percentages count. Omitted when they count every probe's checks.",
+            "examples": [
+              "local"
+            ],
+            "type": "string"
           }
         },
         "required": [
@@ -1217,6 +1232,68 @@
           "7d",
           "30d",
           "365d"
+        ],
+        "type": "object"
+      },
+      "monitor.ModelLocation": {
+        "additionalProperties": false,
+        "properties": {
+          "last_heartbeat_at": {
+            "description": "When this probe's latest heartbeat was made. Null until the probe reports.",
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_ping": {
+            "description": "The response time of this probe's latest heartbeat, in milliseconds. Null until the probe reports.",
+            "examples": [
+              120
+            ],
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "online": {
+            "description": "Whether the probe has an instance connected. The local probe is always online.",
+            "type": "boolean"
+          },
+          "probe_id": {
+            "description": "The probe the monitor runs on",
+            "examples": [
+              "local"
+            ],
+            "type": "string"
+          },
+          "probe_name": {
+            "description": "The probe's name",
+            "examples": [
+              "Local"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "description": "The status of this probe's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Null until the probe reports.",
+            "examples": [
+              1
+            ],
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "probe_id",
+          "probe_name",
+          "online",
+          "status",
+          "last_ping",
+          "last_heartbeat_at"
         ],
         "type": "object"
       },
@@ -1246,6 +1323,13 @@
           "last_heartbeat": {
             "$ref": "#/components/schemas/heartbeat.Model"
           },
+          "locations": {
+            "description": "Where the monitor runs and how it is doing there, one entry for each probe in probe_ids and in the same order",
+            "items": {
+              "$ref": "#/components/schemas/monitor.ModelLocation"
+            },
+            "type": "array"
+          },
           "max_retries": {
             "examples": [
               3
@@ -1271,7 +1355,7 @@
             "type": "array"
           },
           "probe_ids": {
-            "description": "The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself.",
+            "description": "The probes that run the monitor's checks, by id: one or more. local is Peekaping itself.",
             "items": {
               "type": "string"
             },
@@ -1352,6 +1436,7 @@
           "proxy_id",
           "push_token",
           "probe_ids",
+          "locations",
           "created_at",
           "updated_at"
         ],
@@ -1419,7 +1504,7 @@
             ]
           },
           "probe_ids": {
-            "description": "The probes that run the monitor's checks, by id. Exactly one for now. Omitted, the monitor keeps its probe. A push monitor runs on local only.",
+            "description": "The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only.",
             "examples": [
               [
                 "local"
@@ -1590,6 +1675,13 @@
               "array",
               "null"
             ]
+          },
+          "probe_id": {
+            "description": "The probe the figures count. Omitted when they count every probe's checks.",
+            "examples": [
+              "local"
+            ],
+            "type": "string"
           },
           "uptime": {
             "format": "double",
@@ -2624,6 +2716,10 @@
           "show_certificate_expiry": {
             "type": "boolean"
           },
+          "show_locations": {
+            "description": "List each location of a monitor that runs on several probes on the public page. Off by default.",
+            "type": "boolean"
+          },
           "show_powered_by": {
             "type": "boolean"
           },
@@ -2702,6 +2798,9 @@
           "published": {
             "type": "boolean"
           },
+          "show_locations": {
+            "type": "boolean"
+          },
           "slug": {
             "type": "string"
           },
@@ -2724,6 +2823,7 @@
           "icon",
           "theme",
           "published",
+          "show_locations",
           "footer_text",
           "auto_refresh_interval",
           "created_at",
@@ -2749,11 +2849,29 @@
           "id": {
             "type": "string"
           },
+          "locations": {
+            "description": "One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe.",
+            "items": {
+              "$ref": "#/components/schemas/status_page.PublicLocationDTO"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
           "name": {
             "examples": [
               "Monitor"
             ],
             "type": "string"
+          },
+          "status": {
+            "description": "The monitor's status: 0 Down, 1 Up, 2 Pending, 3 Maintenance",
+            "examples": [
+              1
+            ],
+            "format": "int64",
+            "type": "integer"
           },
           "type": {
             "examples": [
@@ -2772,7 +2890,8 @@
           "id",
           "type",
           "name",
-          "active"
+          "active",
+          "status"
         ],
         "type": "object"
       },
@@ -2805,6 +2924,49 @@
           "time",
           "end_time",
           "ping"
+        ],
+        "type": "object"
+      },
+      "status_page.PublicLocationDTO": {
+        "additionalProperties": false,
+        "properties": {
+          "heartbeats": {
+            "items": {
+              "$ref": "#/components/schemas/status_page.PublicHeartbeatDTO"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "name": {
+            "examples": [
+              "Frankfurt"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "description": "The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports.",
+            "examples": [
+              1
+            ],
+            "format": "int64",
+            "type": "integer"
+          },
+          "uptime_24h": {
+            "description": "The uptime of this location over the last 24 hours, in percent. Null when it could not be read.",
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "uptime_24h",
+          "heartbeats"
         ],
         "type": "object"
       },
@@ -2867,6 +3029,9 @@
           "show_certificate_expiry": {
             "type": "boolean"
           },
+          "show_locations": {
+            "type": "boolean"
+          },
           "show_powered_by": {
             "type": "boolean"
           },
@@ -2895,6 +3060,7 @@
           "icon",
           "theme",
           "published",
+          "show_locations",
           "search_engine_index",
           "show_tags",
           "created_at",
@@ -2987,6 +3153,13 @@
             ]
           },
           "show_certificate_expiry": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "show_locations": {
+            "description": "List each location of a monitor that runs on several probes on the public page.",
             "type": [
               "boolean",
               "null"
@@ -7422,6 +7595,18 @@
               "description": "Reverse the order of heartbeats",
               "type": "boolean"
             }
+          },
+          {
+            "description": "Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.",
+            "in": "query",
+            "name": "probe_id",
+            "schema": {
+              "description": "Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.",
+              "examples": [
+                "local"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7604,6 +7789,18 @@
               "description": "Granularity (minute, hour, day)",
               "type": "string"
             }
+          },
+          {
+            "description": "Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.",
+            "in": "query",
+            "name": "probe_id",
+            "schema": {
+              "description": "Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.",
+              "examples": [
+                "local"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7683,6 +7880,18 @@
             "required": true,
             "schema": {
               "description": "Monitor ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.",
+            "in": "query",
+            "name": "probe_id",
+            "schema": {
+              "description": "Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.",
+              "examples": [
+                "local"
+              ],
               "type": "string"
             }
           }

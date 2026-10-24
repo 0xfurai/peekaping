@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/shared"
 )
 
 // queueService ingests results by enqueueing each one as an ingester task, which cluster mode's
@@ -13,7 +14,8 @@ import (
 type queueService struct {
 	queue queue.Service
 	// uniqueKeyPrefix and uniqueTTL dedupe a result's task. Its key is the prefix, the
-	// monitor ID and the result's start time.
+	// monitor ID, the probe that ran the check and the result's start time, so that two probes'
+	// results of one monitor with the same start time are two tasks.
 	uniqueKeyPrefix string
 	uniqueTTL       time.Duration
 }
@@ -43,8 +45,12 @@ func (s *queueService) Ingest(ctx context.Context, r *Result) error {
 	}
 
 	// Use EnqueueUnique to prevent duplicate ingester tasks
-	// The unique key includes monitor ID and start time to ensure each result is processed only once
-	uniqueKey := fmt.Sprintf("%s%s:%d", s.uniqueKeyPrefix, r.MonitorID, r.StartTime.UnixNano())
+	// The unique key includes monitor ID, probe and start time to ensure each result is processed only once
+	probeID := r.ProbeID
+	if probeID == "" {
+		probeID = shared.LocalProbeID
+	}
+	uniqueKey := fmt.Sprintf("%s%s:%s:%d", s.uniqueKeyPrefix, r.MonitorID, probeID, r.StartTime.UnixNano())
 
 	_, err := s.queue.EnqueueUnique(ctx, TaskTypeIngester, r, uniqueKey, s.uniqueTTL, opts)
 	return err

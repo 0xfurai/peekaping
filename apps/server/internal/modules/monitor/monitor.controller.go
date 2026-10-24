@@ -373,7 +373,7 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx context.Context, input
 		return nil, err
 	}
 
-	results, err := ic.monitorService.GetHeartbeats(ctx, id, limit, page, importantPtr, reverse)
+	results, err := ic.monitorService.GetHeartbeats(ctx, id, r.URL.Query().Get("probe_id"), limit, page, importantPtr, reverse)
 	if err != nil {
 		ic.logger.Errorw("Failed to get heartbeats", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -432,7 +432,7 @@ func (ic *MonitorController) GetStatPoints(ctx context.Context, input *GetStatPo
 		return nil, err
 	}
 
-	summary, err := ic.monitorService.GetStatPoints(ctx, id, since, until, granularity)
+	summary, err := ic.monitorService.GetStatPoints(ctx, id, r.URL.Query().Get("probe_id"), since, until, granularity)
 	if err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
@@ -446,7 +446,7 @@ func (ic *MonitorController) GetUptimeStats(ctx context.Context, input *GetUptim
 		return nil, err
 	}
 
-	stats, err := ic.monitorService.GetUptimeStats(ctx, id)
+	stats, err := ic.monitorService.GetUptimeStats(ctx, id, r.URL.Query().Get("probe_id"))
 	if err != nil {
 		ic.logger.Errorw("Failed to get uptime stats (short)", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

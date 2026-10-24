@@ -513,10 +513,12 @@
           "title": "Bildirim kanalları"
         },
         "probe": {
+          "description": "İzleyici seçtiğiniz her probda çalışır ve her birinin sonuçlarını bir konum olarak gösterir.",
           "label": "Prob",
           "option_unsupported": "{{name}} (bu türü çalıştırmaz)",
           "placeholder": "Prob seçin",
           "push_fixed": "Push izleyici her zaman yerel probda çalışır.",
+          "required": "En az bir prob seçin",
           "unsupported": "Bu prob bu tür izleyiciyi çalıştırmaz. Başka bir prob seçin."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Süresi yakında dolacak",
       "for": "için",
       "live_status": "Canlı Durum",
+      "locations": {
+        "all": "Tüm konumlar",
+        "no_result": "Henüz sonuç yok",
+        "probe_offline": "Prob çevrimdışı",
+        "response_time": "Yanıt süresi",
+        "select_label": "Konum",
+        "title": "Konumlar"
+      },
       "monitor_for": "İzlenecek",
       "no_certificate_data": "Sertifika verisi yok",
       "seconds": "saniye",
@@ -1463,6 +1473,8 @@
     "published_status": "Yayınlandı",
     "search_label": "Ara",
     "search_placeholder": "Başlığa göre durum sayfalarını ara…",
+    "show_locations": "Her konumu göster",
+    "show_locations_info": "Birden çok konumdan denetlenen izleyiciler için her konumun durumunu ve geçmişini gösterir",
     "update_status_page": "Durum Sayfasını Güncelle",
     "view_page": "Sayfayı Görüntüle"
   },

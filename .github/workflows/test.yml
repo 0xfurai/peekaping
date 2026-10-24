@@ -101,5 +101,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: 0xfurai/peekaping
           file: apps/server/coverage.txt
+          flags: server
 
 

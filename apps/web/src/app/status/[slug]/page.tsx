@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import type { StatusPageMonitorWithHeartbeatsAndUptimeDto } from "@/api/types.gen";
 import BarHistory from "@/components/bars";
-import { last } from "@/lib/utils";
+import { hasPublicLocations, publicMonitorStatus } from "../public-status";
 import { ThemeToggle } from "../../../components/theme-toggle";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
@@ -197,21 +197,35 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
     }
   };
 
+  const getStatusVariant = (
+    status: number | undefined
+  ): "default" | "destructive" | "secondary" | "outline" => {
+    switch (status) {
+      case 1:
+        return "default";
+      case 0:
+      case 2:
+        return "destructive";
+      case 3:
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
   const getOverallStatus = () => {
     if (monitors.length === 0)
       return { status: 1, text: t("status.messages.all_systems_operational") };
 
     const hasDown = monitors.some(
       (m: StatusPageMonitorWithHeartbeatsAndUptimeDto) => {
-        const lastHeartbeat = last(m.heartbeats || []);
-        return lastHeartbeat?.status === 0 || lastHeartbeat?.status === 2;
+        const status = publicMonitorStatus(m);
+        return status === 0 || status === 2;
       }
     );
     const hasMaintenance = monitors.some(
-      (m: StatusPageMonitorWithHeartbeatsAndUptimeDto) => {
-        const lastHeartbeat = last(m.heartbeats || []);
-        return lastHeartbeat?.status === 3;
-      }
+      (m: StatusPageMonitorWithHeartbeatsAndUptimeDto) =>
+        publicMonitorStatus(m) === 3
     );
 
     if (hasDown) return { status: 0, text: t("status.messages.partial_system_outage") };
@@ -285,15 +299,14 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
               monitors.length > 0 &&
               monitors.map(
                 (monitor: StatusPageMonitorWithHeartbeatsAndUptimeDto) => {
-                  const lastHeartbeat = last(monitor.heartbeats || []);
-                  const lastHeartbeatStatus = lastHeartbeat?.status;
+                  const monitorStatus = publicMonitorStatus(monitor);
 
                   return (
-                    <Card key={monitor.id}>
+                    <Card key={monitor.id} data-testid="status-page-monitor">
                       <CardContent className="flex flex-col items-center justify-between gap-2 md:flex-row">
                         <div className="flex justify-between items-center gap-2 w-full">
                           <div className="flex items-center gap-2">
-                            {getStatusIcon(lastHeartbeatStatus || 0)}
+                            {getStatusIcon(monitorStatus || 0)}
                             <div>
                               <h3 className="font-semibold">{monitor.name}</h3>
                             </div>
@@ -312,23 +325,68 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
 
                             <Badge
                               variant={
-                                lastHeartbeatStatus === 1
-                                  ? "default"
-                                  : lastHeartbeatStatus === 0 ||
-                                    lastHeartbeatStatus === 2
-                                  ? "destructive"
-                                  : lastHeartbeatStatus === 3
-                                  ? "secondary"
-                                  : "outline"
+                                getStatusVariant(monitorStatus)
                               }
                             >
-                              {getStatusText(lastHeartbeatStatus || 0)}
+                              {getStatusText(monitorStatus || 0)}
                             </Badge>
                           </div>
                         </div>
 
+                        {/* One row for each location, when the page shows them */}
+                        {hasPublicLocations(monitor) && (
+                          <div className="w-full space-y-3">
+                            {monitor.locations?.map((location, index) => (
+                              <div
+                                // Probe names aren't unique, and a location names no probe id
+                                key={index}
+                                className="space-y-1"
+                                data-testid="status-page-location"
+                              >
+                                <div className="flex justify-between items-center gap-2">
+                                  <span
+                                    className="text-sm font-medium"
+                                    data-testid="status-page-location-name"
+                                  >
+                                    {location.name}
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    {location.uptime_24h !== null && (
+                                      <Badge
+                                        variant="outline"
+                                        className="flex items-center gap-1"
+                                      >
+                                        <TrendingUp className="h-3 w-3" />
+                                        {formatUptime(location.uptime_24h)}
+                                      </Badge>
+                                    )}
+                                    <Badge
+                                      variant={getStatusVariant(location.status)}
+                                      data-testid="status-page-location-status"
+                                    >
+                                      {getStatusText(location.status)}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                {location.heartbeats &&
+                                  location.heartbeats.length > 0 && (
+                                    <BarHistory
+                                      data={location.heartbeats}
+                                      segmentWidth={6}
+                                      gap={2}
+                                      barHeight={16}
+                                      borderRadius={2}
+                                      tooltip={false}
+                                    />
+                                  )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
                         {/* Heartbeats Section - Only show if there are heartbeats */}
-                        {monitor.heartbeats &&
+                        {!hasPublicLocations(monitor) &&
+                          monitor.heartbeats &&
                           monitor.heartbeats.length > 0 && (
                             <div className="w-full">
                               <BarHistory

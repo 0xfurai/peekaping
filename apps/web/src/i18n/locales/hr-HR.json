@@ -513,10 +513,12 @@
           "title": "Kanali obavijesti"
         },
         "probe": {
+          "description": "Nadzor radi na svakoj odabranoj sondi i rezultate svake prikazuje kao lokaciju.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (ne pokreće ovu vrstu)",
           "placeholder": "Odaberi sondu",
           "push_fixed": "Push nadzor uvijek radi na lokalnoj sondi.",
+          "required": "Odaberite barem jednu sondu",
           "unsupported": "Ova sonda ne pokreće ovu vrstu nadzora. Odaberi drugu sondu."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Uskoro isteka",
       "for": "za",
       "live_status": "Status uživo",
+      "locations": {
+        "all": "Sve lokacije",
+        "no_result": "Još nema rezultata",
+        "probe_offline": "Sonda je izvan mreže",
+        "response_time": "Vrijeme odziva",
+        "select_label": "Lokacija",
+        "title": "Lokacije"
+      },
       "monitor_for": "nadgledaj za",
       "no_certificate_data": "Nema podataka o certifikatu",
       "seconds": "sekunde",
@@ -1463,6 +1473,8 @@
     "published_status": "Objavljeno",
     "search_label": "Traži",
     "search_placeholder": "Pretraži statusne stranice po nazivu...",
+    "show_locations": "Prikaži svaku lokaciju",
+    "show_locations_info": "Za monitore koji se provjeravaju s više lokacija prikazuje status i povijest svake lokacije",
     "update_status_page": "Ažuriraj statusnu stranicu",
     "view_page": "Pogledaj stranicu"
   },

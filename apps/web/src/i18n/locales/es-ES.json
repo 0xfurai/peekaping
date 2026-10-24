@@ -513,10 +513,12 @@
           "title": "Canales de notificación"
         },
         "probe": {
+          "description": "El monitor se ejecuta en cada sonda que elijas y muestra los resultados de cada una como una ubicación.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (no ejecuta este tipo)",
           "placeholder": "Seleccionar sonda",
           "push_fixed": "Un monitor de push siempre se ejecuta en la sonda local.",
+          "required": "Elige al menos una sonda",
           "unsupported": "Esta sonda no ejecuta este tipo de monitor. Selecciona otra sonda."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Vencimiento próximo",
       "for": "para",
       "live_status": "Estado en vivo",
+      "locations": {
+        "all": "Todas las ubicaciones",
+        "no_result": "Aún no hay resultados",
+        "probe_offline": "Sonda sin conexión",
+        "response_time": "Tiempo de respuesta",
+        "select_label": "Ubicación",
+        "title": "Ubicaciones"
+      },
       "monitor_for": "monitorizar por",
       "no_certificate_data": "Sin datos de certificado",
       "seconds": "segundos",
@@ -1463,6 +1473,8 @@
     "published_status": "Publicado",
     "search_label": "Buscar",
     "search_placeholder": "Buscar páginas de estado por título...",
+    "show_locations": "Mostrar cada ubicación",
+    "show_locations_info": "En los monitores que se comprueban desde varias ubicaciones, muestra el estado y el historial de cada una",
     "update_status_page": "Actualizar página de estado",
     "view_page": "Ver página"
   },

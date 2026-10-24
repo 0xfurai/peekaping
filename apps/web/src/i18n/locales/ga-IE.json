@@ -513,10 +513,12 @@
           "title": "Cainéil Fógraí"
         },
         "probe": {
+          "description": "Ritheann an monatóir ar gach tóireadóir a roghnaíonn tú agus taispeánann sé torthaí gach ceann acu mar shuíomh.",
           "label": "Tóireadóir",
           "option_unsupported": "{{name}} (ní reáchtálann sé an cineál seo)",
           "placeholder": "Roghnaigh tóireadóir",
           "push_fixed": "Ritheann monatóir Push i gcónaí ar an tóireadóir áitiúil.",
+          "required": "Roghnaigh tóireadóir amháin ar a laghad",
           "unsupported": "Ní reáchtálann an tóireadóir seo an cineál monatóra seo. Roghnaigh tóireadóir eile."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Ag léiriú go luath",
       "for": "do",
       "live_status": "Stáit Beo",
+      "locations": {
+        "all": "Gach suíomh",
+        "no_result": "Níl aon toradh ann go fóill",
+        "probe_offline": "Tóireadóir as líne",
+        "response_time": "Am freagartha",
+        "select_label": "Suíomh",
+        "title": "Suíomhanna"
+      },
       "monitor_for": "monatóireacht ar",
       "no_certificate_data": "Níl sonraí ar an gceartúireacht",
       "seconds": "soicindí",
@@ -1462,6 +1472,8 @@
     "published_status": "Foilsithe",
     "search_label": "Cuardaigh",
     "search_placeholder": "Cuardaigh leathanacha stádas de réir teideal…",
+    "show_locations": "Taispeáin gach suíomh",
+    "show_locations_info": "Maidir le monatóirí a sheiceáiltear ó roinnt suíomhanna, taispeántar stádas agus stair gach suímh",
     "update_status_page": "Nuashonraigh Leathanach Stádas",
     "view_page": "Féach an leathanach"
   },

@@ -513,10 +513,12 @@
           "title": "通知頻道"
         },
         "probe": {
+          "description": "監控會喺你揀嘅每個探針上運行，並將每個探針嘅結果當作一個位置顯示。",
           "label": "探針",
           "option_unsupported": "{{name}}（唔支援呢個類型）",
           "placeholder": "選擇探針",
           "push_fixed": "推送監控一定喺本機探針上運行。",
+          "required": "請至少選擇一個探針",
           "unsupported": "呢個探針唔支援呢種監控類型，請揀另一個探針。"
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "即將到期",
       "for": "為",
       "live_status": "即時狀態",
+      "locations": {
+        "all": "所有位置",
+        "no_result": "暫時未有結果",
+        "probe_offline": "探針離線",
+        "response_time": "響應時間",
+        "select_label": "位置",
+        "title": "位置"
+      },
       "monitor_for": "監測對象",
       "no_certificate_data": "無憑證資料",
       "seconds": "秒",
@@ -1463,6 +1473,8 @@
     "published_status": "已發佈",
     "search_label": "搜尋",
     "search_placeholder": "按標題搜尋狀態頁面…",
+    "show_locations": "顯示每個位置",
+    "show_locations_info": "對於由多個位置檢查嘅監測，會顯示每個位置嘅狀態同歷史",
     "update_status_page": "更新狀態頁面",
     "view_page": "查看頁面"
   },

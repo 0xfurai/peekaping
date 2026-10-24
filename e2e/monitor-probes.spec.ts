@@ -1,6 +1,6 @@
 import { test, expect, request, type APIRequestContext, type Page } from '@playwright/test';
 import { apiBaseURL } from './support/admin';
-import { adminAPI, deleteCreated, randomID } from './support/api';
+import { adminAPI, cleanupRetry, createHTTPMonitor, deleteCreated, randomID } from './support/api';
 import { targetHost, targetPort, targetURL } from './support/fake-target';
 import { listFor } from './support/monitor-list';
 
@@ -45,28 +45,51 @@ async function sayHello(page: Page, token: string, supportedTypes: string[]) {
 }
 
 // Deletes what a spec made, whatever state it was left in, so reruns start clean. The monitors go
-// first: a probe that has monitors can't be deleted.
+// first: a probe that has monitors can't be deleted (it answers 409). A form that was submitted
+// when the spec failed can still be saving its monitor, so a refused probe delete lists the
+// monitors again and tries once more, instead of failing the spec with a message that hides why
+// it failed in the first place.
 async function cleanUp(page: Page, { monitor, probe }: { monitor: string; probe: string }) {
   const api = await adminAPI(page);
-  const monitors = await (await api.get('monitors', { params: { q: monitor, limit: 100 } })).json();
-  for (const found of monitors.data.filter((m: { name: string }) => m.name === monitor)) {
-    await deleteCreated(api, `monitors/${found.id}`);
+  try {
+    await expect(async () => {
+      const monitors = await api.get('monitors', { params: { q: monitor, limit: 100 } });
+      expect(monitors.ok(), `GET monitors: ${await monitors.text()}`).toBeTruthy();
+      // A list with no match has null for data
+      for (const found of ((await monitors.json()).data ?? []).filter((m: { name: string }) => m.name === monitor)) {
+        await deleteCreated(api, `monitors/${found.id}`);
+      }
+      const probes = await (await api.get('probes')).json();
+      for (const found of probes.data.filter((p: { name: string }) => p.name === probe)) {
+        const response = await api.delete(`probes/${found.id}`);
+        expect(response.ok(), `DELETE probes/${found.id}: ${response.status()} ${await response.text()}`).toBeTruthy();
+      }
+    }).toPass(cleanupRetry);
+  } finally {
+    await api.dispose();
   }
-  const probes = await (await api.get('probes')).json();
-  for (const found of probes.data.filter((p: { name: string }) => p.name === probe)) {
-    await deleteCreated(api, `probes/${found.id}`);
-  }
-  await api.dispose();
 }
 
 const probeSelect = (page: Page) => page.getByTestId('monitor-probe-select');
 
-async function chooseProbe(page: Page, name: string) {
-  const select = probeSelect(page);
-  await select.click();
-  await page.getByRole('option', { name, exact: true }).click();
-  await expect(select).toHaveText(name);
+// The probe select is a multi-select: this picks exactly the probes named, toggling the ones that
+// differ from what is selected.
+async function chooseProbes(page: Page, names: string[]) {
+  await probeSelect(page).click();
+  const options = page.getByRole('option');
+  for (let i = 0; i < (await options.count()); i++) {
+    const option = options.nth(i);
+    const label = (await option.textContent())?.trim() ?? '';
+    const selected = (await option.getAttribute('aria-selected')) === 'true';
+    if (names.includes(label) !== selected) await option.click();
+  }
+  await page.keyboard.press('Escape');
+  for (const name of names) {
+    await expect(probeSelect(page).getByText(name, { exact: true })).toBeVisible();
+  }
 }
+
+const chooseProbe = (page: Page, name: string) => chooseProbes(page, [name]);
 
 async function chooseType(page: Page, option: string) {
   const type = page.getByRole('combobox', { name: 'Type', exact: true });
@@ -176,15 +199,147 @@ test("A probe that doesn't run the monitor's type can't be picked", async ({ pag
     await submit(page);
     await expect(page).toHaveURL(/\/monitors\/new$/);
 
-    // It stays in the list, but can't be picked for this type.
+    // It can be unselected, and then it can't be picked again for this type.
     await probeSelect(page).click();
+    await page.getByRole('option', { name: unsupported, exact: true }).click();
     await expect(page.getByRole('option', { name: unsupported, exact: true })).toBeDisabled();
     await page.getByRole('option', { name: 'Local', exact: true }).click();
+    await page.keyboard.press('Escape');
     await expect(page.getByText("This probe doesn't run this type of monitor")).toHaveCount(0);
     await submit(page);
 
     await expect(page).toHaveURL(monitorPageURL, { timeout: 10000 });
     await expect(page.getByTestId('monitor-probe')).toHaveText('Probe: Local');
+  } finally {
+    await cleanUp(page, { probe, monitor });
+  }
+});
+
+test('A monitor on Local and a remote probe shows each location on its page and its card', async ({ page }) => {
+  const { probe, monitor } = names();
+
+  await page.goto('/monitors');
+  try {
+    const api = await adminAPI(page);
+    const { id: probeID } = await createProbe(api, probe);
+    // The probe has no instance, so it is offline and never reports.
+    const { id } = await createHTTPMonitor(api, monitor, targetURL('monitor-locations'), {
+      probeIds: ['local', probeID],
+    });
+    await api.dispose();
+
+    await page.goto(listFor(monitor));
+    await expect(cardOf(page, monitor).getByTestId('monitor-probe-badge')).toHaveText(['Local', probe]);
+
+    await page.goto(`/monitors/${id}`);
+    // The locations replace the single probe line and the single heartbeat bar.
+    await expect(page.getByTestId('monitor-probe')).toHaveCount(0);
+    const locations = page.getByTestId('monitor-location');
+    await expect(locations).toHaveCount(2);
+    await expect(locations.nth(0).getByTestId('monitor-location-name')).toHaveText('Local');
+    await expect(locations.nth(1).getByTestId('monitor-location-name')).toHaveText(probe);
+
+    // The remote probe has no instance: it is offline and has not reported.
+    await expect(locations.nth(1).getByTestId('monitor-location-offline')).toHaveText('Probe offline');
+    await expect(locations.nth(1).getByTestId('monitor-location-status')).toHaveText('No result yet');
+    await expect(locations.nth(0).getByTestId('monitor-location-offline')).toHaveCount(0);
+
+    // Local checks the monitor, and its row follows with a status and a response time.
+    await expect(locations.nth(0).getByTestId('monitor-location-status')).toHaveText('Up', { timeout: 45000 });
+    await expect(locations.nth(0).getByTestId('monitor-location-ping')).toHaveText(/Response time: \d+ ms/);
+
+    // The chart can be narrowed to one location.
+    const filtered = page.waitForRequest(
+      (request) =>
+        request.url().includes(`/monitors/${id}/stats/points`) && request.url().includes(`probe_id=${probeID}`),
+    );
+    await page.getByTestId('chart-location-select').click();
+    await page.getByRole('option', { name: probe, exact: true }).click();
+    await filtered;
+    await expect(page.getByTestId('chart-location-select')).toHaveText(probe);
+  } finally {
+    await cleanUp(page, { probe, monitor });
+  }
+});
+
+test('Two probes picked in the form are both saved', async ({ page }) => {
+  const { probe, monitor } = names();
+
+  await page.goto('/monitors');
+  try {
+    const api = await adminAPI(page);
+    await createProbe(api, probe);
+    await api.dispose();
+
+    await page.goto('/monitors/new');
+    await page.locator('input[name="name"]').fill(monitor);
+    await page.locator('input[name="url"]').fill(targetURL('monitor-probes'));
+
+    // A monitor needs a probe to run on.
+    await chooseProbes(page, []);
+    await submit(page);
+    await expect(page.getByText('Choose at least one probe')).toBeVisible();
+    await expect(page).toHaveURL(/\/monitors\/new$/);
+
+    await chooseProbes(page, ['Local', probe]);
+    await expect(page.getByText('Choose at least one probe')).toHaveCount(0);
+    await submit(page);
+
+    await expect(page).toHaveURL(monitorPageURL, { timeout: 10000 });
+    const locations = page.getByTestId('monitor-location');
+    await expect(locations).toHaveCount(2);
+    await expect(locations.nth(0).getByTestId('monitor-location-name')).toHaveText('Local');
+    await expect(locations.nth(1).getByTestId('monitor-location-name')).toHaveText(probe);
+
+    await page.goto(listFor(monitor));
+    await expect(cardOf(page, monitor).getByTestId('monitor-probe-badge')).toHaveText(['Local', probe]);
+  } finally {
+    await cleanUp(page, { probe, monitor });
+  }
+});
+
+test('A probe is picked with the keyboard alone', async ({ page }) => {
+  const { probe, monitor } = names();
+
+  await page.goto('/monitors');
+  try {
+    const api = await adminAPI(page);
+    await createProbe(api, probe);
+    await api.dispose();
+
+    await page.goto('/monitors/new');
+    await page.locator('input[name="name"]').fill(monitor);
+    await page.locator('input[name="url"]').fill(targetURL('monitor-probes'));
+
+    // Enter on the focused select opens the list, with the search field focused. The search keeps
+    // the selected Local probe in the list, so the probe is the second option.
+    await probeSelect(page).focus();
+    await page.keyboard.press('Enter');
+    const search = page.getByPlaceholder('Search...');
+    await expect(search).toBeFocused();
+    await search.fill(probe);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    const option = page.getByRole('option', { name: probe, exact: true });
+    await expect(search).toHaveAttribute('aria-activedescendant', (await option.getAttribute('id')) ?? 'no id');
+    await page.keyboard.press('Enter');
+    await expect(option).toHaveAttribute('aria-selected', 'true');
+
+    // A space picks too, but only while the search is empty: before that it is a character of
+    // the search. The probe stays the active option when the search clears.
+    await search.fill('');
+    await page.keyboard.press('Space');
+    await expect(option).toHaveAttribute('aria-selected', 'false');
+    await page.keyboard.press('Enter');
+    await expect(option).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Escape');
+    await expect(probeSelect(page).getByText(probe, { exact: true })).toBeVisible();
+
+    await submit(page);
+    await expect(page).toHaveURL(monitorPageURL, { timeout: 10000 });
+    const locations = page.getByTestId('monitor-location');
+    await expect(locations).toHaveCount(2);
+    await expect(locations.nth(1).getByTestId('monitor-location-name')).toHaveText(probe);
   } finally {
     await cleanUp(page, { probe, monitor });
   }

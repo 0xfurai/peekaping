@@ -174,7 +174,7 @@ func TestProcessTask_EnqueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 	require.NoError(t, json.Unmarshal(got.payload, &payload))
 	startedAt, err := time.Parse(time.RFC3339Nano, payload["start_time"].(string))
 	require.NoError(t, err)
-	assert.Equal(t, fmt.Sprintf("ingest:mon-1:%d", startedAt.UnixNano()), got.uniqueKey)
+	assert.Equal(t, fmt.Sprintf("ingest:mon-1:local:%d", startedAt.UnixNano()), got.uniqueKey)
 	// The times and the response time are the check's own
 	assert.IsType(t, "", payload["end_time"])
 	assert.IsType(t, float64(0), payload["ping_ms"])
@@ -182,6 +182,7 @@ func TestProcessTask_EnqueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 	pinned, err := json.Marshal(payload)
 	require.NoError(t, err)
 	assert.JSONEq(t, fmt.Sprintf(`{
+		"probe_id": "local",
 		"monitor_id": "mon-1",
 		"monitor_name": "Test",
 		"monitor_type": "http",

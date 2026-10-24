@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProbeProbeResponse } from "@/api/types.gen";
-import { probeOf, probeRunsType, probeTypeError, UNSUPPORTED_PROBE_MESSAGE } from "./probe-support";
+import { probeIdsOf, probeRunsType, probeTypeError, UNSUPPORTED_PROBE_MESSAGE } from "./probe-support";
 
 const probe = (id: string, supportedTypes: string[]): ProbeProbeResponse => ({
   id,
@@ -29,14 +29,17 @@ describe("probeRunsType", () => {
   });
 });
 
-describe("probeOf", () => {
-  it("is the monitor's probe, or the local one without any", () => {
-    expect(probeOf("http", ["web-only"])).toBe("web-only");
-    expect(probeOf("http", [])).toBe("local");
+describe("probeIdsOf", () => {
+  it("is the monitor's probes in their order", () => {
+    expect(probeIdsOf("http", ["web-only", "local"])).toEqual(["web-only", "local"]);
   });
 
-  it("is the local probe for a push monitor", () => {
-    expect(probeOf("push", ["web-only"])).toBe("local");
+  it("keeps a monitor with none on none, for the form to refuse", () => {
+    expect(probeIdsOf("http", [])).toEqual([]);
+  });
+
+  it("is the local probe alone for a push monitor", () => {
+    expect(probeIdsOf("push", ["web-only", "other"])).toEqual(["local"]);
   });
 });
 
@@ -70,5 +73,22 @@ describe("probeTypeError", () => {
     expect(probeTypeError({ type: "docker", probe_ids: ["web-only"] }, probes, saved)).toBe(UNSUPPORTED_PROBE_MESSAGE);
     expect(probeTypeError({ type: "docker", probe_ids: ["web-only"] }, probes, { type: "http", probe_ids: ["web-only"] }))
       .toBe(UNSUPPORTED_PROBE_MESSAGE);
+  });
+
+  it("flags a monitor when any of its probes doesn't run the type", () => {
+    expect(probeTypeError({ type: "docker", probe_ids: ["local", "web-only"] }, probes)).toBe(UNSUPPORTED_PROBE_MESSAGE);
+    expect(probeTypeError({ type: "http", probe_ids: ["local", "web-only"] }, probes)).toBeUndefined();
+  });
+
+  it("lets a saved monitor keep its probes, whatever their order", () => {
+    const saved = { type: "docker", probe_ids: ["web-only", "local"] };
+    expect(probeTypeError({ type: "docker", probe_ids: ["local", "web-only"] }, probes, saved)).toBeUndefined();
+  });
+
+  it("flags a saved monitor that adds a probe that doesn't run its type", () => {
+    const saved = { type: "docker", probe_ids: ["local"] };
+    expect(probeTypeError({ type: "docker", probe_ids: ["local", "web-only"] }, probes, saved)).toBe(
+      UNSUPPORTED_PROBE_MESSAGE
+    );
   });
 });

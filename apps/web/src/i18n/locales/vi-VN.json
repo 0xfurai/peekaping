@@ -513,10 +513,12 @@
           "title": "Kênh thông báo"
         },
         "probe": {
+          "description": "Giám sát chạy trên mọi đầu dò bạn chọn và hiển thị kết quả của từng đầu dò như một vị trí.",
           "label": "Đầu dò",
           "option_unsupported": "{{name}} (không chạy loại này)",
           "placeholder": "Chọn đầu dò",
           "push_fixed": "Giám sát Push luôn chạy trên đầu dò cục bộ.",
+          "required": "Chọn ít nhất một đầu dò",
           "unsupported": "Đầu dò này không chạy loại giám sát này. Hãy chọn đầu dò khác."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Sắp hết hạn",
       "for": "cho",
       "live_status": "Tình trạng trực tiếp",
+      "locations": {
+        "all": "Tất cả vị trí",
+        "no_result": "Chưa có kết quả",
+        "probe_offline": "Đầu dò ngoại tuyến",
+        "response_time": "Thời gian phản hồi",
+        "select_label": "Vị trí",
+        "title": "Vị trí"
+      },
       "monitor_for": "Giám sát",
       "no_certificate_data": "Không có dữ liệu chứng chỉ",
       "seconds": "giây",
@@ -1463,6 +1473,8 @@
     "published_status": "Đã xuất bản",
     "search_label": "Tìm kiếm",
     "search_placeholder": "Tìm trang trạng thái theo tiêu đề...",
+    "show_locations": "Hiển thị từng vị trí",
+    "show_locations_info": "Với các monitor được kiểm tra từ nhiều vị trí, hiển thị trạng thái và lịch sử của từng vị trí",
     "update_status_page": "Cập nhật trang trạng thái",
     "view_page": "Xem trang"
   },

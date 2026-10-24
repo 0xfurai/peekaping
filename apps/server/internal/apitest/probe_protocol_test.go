@@ -935,6 +935,25 @@ func TestProbeProtocol_ResultForAnotherProbesMonitorIsNotAssigned(t *testing.T) 
 	assert.Equal(t, map[string]string{frankfurtMonitor: frankfurt.ID, localMonitor: "local"}, probeOf, "each heartbeat is the probe's that ran the check")
 }
 
+func TestProbeProtocol_AMonitorOnSeveralProbesIsDealtToEachOfThem(t *testing.T) {
+	a := localProbeApp(t, nil)
+	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})
+	paris := a.createProbe(t, map[string]any{"name": "Paris"})
+	shared := decode[created](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), "local", frankfurt.ID), a.asAdmin), http.StatusCreated).ID
+	parisOnly := decode[created](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Search", ""), paris.ID), a.asAdmin), http.StatusCreated).ID
+	frankfurtInstance, parisInstance, localInstance := uuid.NewString(), uuid.NewString(), uuid.NewString()
+	a.sayHello(t, frankfurt.Token, frankfurtInstance)
+	a.sayHello(t, paris.Token, parisInstance)
+	a.sayHello(t, localToken, localInstance)
+
+	assert.Equal(t, []string{shared}, monitorIDs(decodeAssignments(t, a.assignments(t, frankfurt.Token, frankfurtInstance, "")).Monitors), "the remote probe in the list")
+	assert.Equal(t, []string{shared}, monitorIDs(decodeAssignments(t, a.assignments(t, localToken, localInstance, "")).Monitors), "and the local one")
+	assert.Equal(t, []string{parisOnly}, monitorIDs(decodeAssignments(t, a.assignments(t, paris.Token, parisInstance, "")).Monitors), "but not a probe outside it")
+
+	fromFrankfurt := a.outcomesOf(t, frankfurt.Token, frankfurtInstance, checkResult("own", shared, checkedAt(0)), checkResult("parises", parisOnly, checkedAt(1)))
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "own", Accepted: true}, {ID: "parises", Reason: "not_assigned"}}, fromFrankfurt, "each probe may send results for the monitor")
+}
+
 func TestProbeProtocol_MovingAMonitorWakesBothProbes(t *testing.T) {
 	a := localProbeApp(t, nil)
 	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})

@@ -513,10 +513,12 @@
           "title": "Ilmoituskanavat"
         },
         "probe": {
+          "description": "Valvonta toimii jokaisella valitsemallasi luotaimella ja näyttää kunkin tulokset sijaintina.",
           "label": "Luotain",
           "option_unsupported": "{{name}} (ei suorita tätä tyyppiä)",
           "placeholder": "Valitse luotain",
           "push_fixed": "Push-valvonta toimii aina paikallisella luotaimella.",
+          "required": "Valitse vähintään yksi luotain",
           "unsupported": "Tämä luotain ei suorita tämän tyyppistä valvontaa. Valitse toinen luotain."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Viemässä pian",
       "for": "jolle",
       "live_status": "Reaaliaikainen tila",
+      "locations": {
+        "all": "Kaikki sijainnit",
+        "no_result": "Ei vielä tulosta",
+        "probe_offline": "Luotain ei ole verkossa",
+        "response_time": "Vastausaika",
+        "select_label": "Sijainti",
+        "title": "Sijainnit"
+      },
       "monitor_for": "seuraa",
       "no_certificate_data": "Ei sertifikaattitietoja",
       "seconds": "sekuntia",
@@ -1463,6 +1473,8 @@
     "published_status": "Julkaistu",
     "search_label": "Etsi",
     "search_placeholder": "Etsi tilanne-sivut otsikon perusteella...",
+    "show_locations": "Näytä jokainen sijainti",
+    "show_locations_info": "Useasta sijainnista tarkistettaville valvonnoille näytetään kunkin sijainnin tila ja historia",
     "update_status_page": "Päivitä tilasivu",
     "view_page": "Näytä sivu"
   },

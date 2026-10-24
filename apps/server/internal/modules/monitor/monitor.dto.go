@@ -22,9 +22,9 @@ type CreateUpdateDto struct {
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`
-	// ProbeIDs is the one probe that runs the monitor. A create without it runs on the local
-	// probe, and an update without it keeps the monitor's probe.
-	ProbeIDs  []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id. Exactly one for now. Omitted on create, the monitor runs on local; omitted on update, it keeps its probe. A push monitor runs on local only." example:"local"`
+	// ProbeIDs are the probes that run the monitor, one or more. A create without it runs on the
+	// local probe, and an update without it keeps the monitor's probes.
+	ProbeIDs  []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only." example:"local"`
 	activeSet bool
 }
 
@@ -67,8 +67,9 @@ type PartialUpdateDto struct {
 	Status          *heartbeat.MonitorStatus `json:"status,omitempty" example:"1"`
 	Config          *string                  `json:"config,omitempty"`
 	PushToken       *string                  `json:"push_token,omitempty"`
-	// ProbeIDs is the one probe that runs the monitor. Without it the monitor keeps its probe.
-	ProbeIDs []string `json:"probe_ids,omitempty" doc:"The probes that run the monitor's checks, by id. Exactly one for now. Omitted, the monitor keeps its probe. A push monitor runs on local only." example:"local"`
+	// ProbeIDs are the probes that run the monitor, one or more. Without it the monitor keeps its
+	// probes.
+	ProbeIDs []string `json:"probe_ids,omitempty" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only." example:"local"`
 }
 
 // UptimeStatsDto represents uptime percentages for various periods
@@ -90,6 +91,7 @@ type MonitorResponseDto struct {
 
 // StatPointsSummaryDto represents stat points and summary for a period
 type StatPointsSummaryDto struct {
+	ProbeID string       `json:"probe_id,omitempty" doc:"The probe the figures count. Omitted when they count every probe's checks." example:"local"`
 	Points  []*StatPoint `json:"points"`
 	MaxPing *float64     `json:"maxPing"`
 	MinPing *float64     `json:"minPing"`
@@ -100,6 +102,7 @@ type StatPointsSummaryDto struct {
 // CustomUptimeStatsDto represents uptime percentages for 24h, 30d, 365d
 // All values are percentages (0-100)
 type CustomUptimeStatsDto struct {
+	ProbeID    string  `json:"probe_id,omitempty" doc:"The probe the percentages count. Omitted when they count every probe's checks." example:"local"`
 	Uptime24h  float64 `json:"24h"`
 	Uptime7d   float64 `json:"7d"`
 	Uptime30d  float64 `json:"30d"`

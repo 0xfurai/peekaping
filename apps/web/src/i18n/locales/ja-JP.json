@@ -513,10 +513,12 @@
           "title": "通知チャンネル"
         },
         "probe": {
+          "description": "モニターは選択したすべてのプローブで実行され、各プローブの結果を場所として表示します。",
           "label": "プローブ",
           "option_unsupported": "{{name}}（このタイプは実行できません）",
           "placeholder": "プローブを選択",
           "push_fixed": "プッシュモニターは常にローカルプローブで実行されます。",
+          "required": "プローブを1つ以上選択してください",
           "unsupported": "このプローブはこのタイプのモニターを実行できません。別のプローブを選択してください。"
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "まもなく期限切れ",
       "for": "対象",
       "live_status": "ライブステータス",
+      "locations": {
+        "all": "すべての場所",
+        "no_result": "まだ結果がありません",
+        "probe_offline": "プローブはオフラインです",
+        "response_time": "応答時間",
+        "select_label": "場所",
+        "title": "場所"
+      },
       "monitor_for": "監視対象",
       "no_certificate_data": "証明書データなし",
       "seconds": "秒",
@@ -1463,6 +1473,8 @@
     "published_status": "公開済み",
     "search_label": "検索",
     "search_placeholder": "タイトルでステータスページを検索…",
+    "show_locations": "各場所を表示",
+    "show_locations_info": "複数の場所からチェックされるモニターについて、場所ごとのステータスと履歴を表示します",
     "update_status_page": "ステータスページを更新",
     "view_page": "ページを表示"
   },

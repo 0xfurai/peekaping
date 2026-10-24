@@ -41,18 +41,34 @@ func currentProbeIDs(m *Model) []string {
 	return m.ProbeIDs
 }
 
-// validateProbes checks that a monitor of the type can run on the probes: it has exactly one, it
-// exists, it runs the type, and a push monitor is on the local probe. The caller passes the ctx of
-// its transaction, if it has one, since a SQLite database has a single connection.
+// validateProbes checks that a monitor of the type can run on the probes: it has one or more,
+// none twice, each exists and runs the type, and a push monitor is on the local probe alone. The
+// caller passes the ctx of its transaction, if it has one, since a SQLite database has a single
+// connection.
 func (mr *MonitorServiceImpl) validateProbes(ctx context.Context, monitorType string, probeIDs []string) error {
-	if len(probeIDs) != 1 {
-		return &InvalidProbesError{Err: errors.New("a monitor runs on exactly one probe")}
+	if len(probeIDs) == 0 {
+		return &InvalidProbesError{Err: errors.New("a monitor runs on at least one probe")}
 	}
-	probeID := probeIDs[0]
-	if monitorType == pushType && probeID != shared.LocalProbeID {
+	seen := make(map[string]bool, len(probeIDs))
+	for _, probeID := range probeIDs {
+		if seen[probeID] {
+			return &InvalidProbesError{Err: fmt.Errorf("probe %q is listed twice", probeID)}
+		}
+		seen[probeID] = true
+	}
+	if monitorType == pushType && !slices.Equal(probeIDs, []string{shared.LocalProbeID}) {
 		return &InvalidProbesError{Err: errors.New("a push monitor runs on the local probe only")}
 	}
+	for _, probeID := range probeIDs {
+		if err := mr.validateProbe(ctx, monitorType, probeID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
+// validateProbe checks that the probe exists and runs the monitor type
+func (mr *MonitorServiceImpl) validateProbe(ctx context.Context, monitorType, probeID string) error {
 	info, err := mr.findProbe(ctx, probeID)
 	switch {
 	case errors.Is(err, ErrNoProbes):
@@ -82,10 +98,21 @@ func (mr *MonitorServiceImpl) findProbe(ctx context.Context, id string) (*ProbeI
 // the ones it has: an update that changes neither is not checked, so that a monitor whose probe
 // stopped running its type can still be renamed or paused.
 func (mr *MonitorServiceImpl) validateChangedProbes(ctx context.Context, current *Model, monitorType string, probeIDs []string) error {
-	if monitorType == current.Type && slices.Equal(probeIDs, currentProbeIDs(current)) {
+	if monitorType == current.Type && sameProbes(probeIDs, currentProbeIDs(current)) {
 		return nil
 	}
 	return mr.validateProbes(ctx, monitorType, probeIDs)
+}
+
+// sameProbes reports whether the lists hold the same probes, whatever their order
+func sameProbes(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	a, b = slices.Clone(a), slices.Clone(b)
+	slices.Sort(a)
+	slices.Sort(b)
+	return slices.Equal(a, b)
 }
 
 // validateFullProbes checks the probes a full update leaves the monitor on. Probes it doesn't send

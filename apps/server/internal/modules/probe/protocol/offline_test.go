@@ -76,6 +76,29 @@ func TestMonitorProbeOffline_AMonitorOfARemoteProbeFollowsTheProbesStatus(t *tes
 	assert.Equal(t, []string{"probe-1", "probe-2", "probe-3"}, probes.finds, "one read for each monitor, of its probe")
 }
 
+func TestMonitorProbeOffline_AMonitorOnSeveralProbesIsOfflineOnlyWhenEveryProbeIs(t *testing.T) {
+	probes := &statusProbes{byID: map[string]*probe.Model{
+		"probe-1": {ID: "probe-1", Status: probe.StatusOffline},
+		"probe-2": {ID: "probe-2", Status: probe.StatusOffline},
+		"probe-3": {ID: "probe-3", Status: probe.StatusOnline},
+	}}
+	offline := protocol.MonitorProbeOffline(probes)
+
+	for _, tc := range []struct {
+		monitor *monitor.Model
+		want    bool
+	}{
+		{monitorOn("all-away", "probe-1", "probe-2"), true},
+		{monitorOn("one-home", "probe-1", "probe-3"), false},
+		{monitorOn("one-gone", "probe-1", "probe-4"), false}, // a probe that is gone is no reason to stop watching
+	} {
+		got, err := offline(context.Background(), tc.monitor)
+
+		require.NoError(t, err, tc.monitor.ID)
+		assert.Equal(t, tc.want, got, tc.monitor.ID)
+	}
+}
+
 func TestMonitorProbeOffline_PassesOnAFailure(t *testing.T) {
 	failure := errors.New("database is down")
 

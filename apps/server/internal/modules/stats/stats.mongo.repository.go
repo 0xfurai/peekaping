@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"peekaping/internal/config"
+	"peekaping/internal/modules/shared"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -98,6 +99,7 @@ func toDomainModel(mm *mongoModel) *Stat {
 	return &Stat{
 		ID:          mm.ID.Hex(),
 		MonitorID:   mm.MonitorID.Hex(),
+		ProbeID:     shared.LocalProbeID, // a Mongo install has no remote probes
 		Timestamp:   mm.Timestamp,
 		Ping:        mm.Ping,
 		PingMin:     mm.PingMin,
@@ -166,6 +168,7 @@ func (r *MongoRepository) AddToStat(ctx context.Context, stat *Stat, period Stat
 func (r *MongoRepository) FindStatsByMonitorIDAndTimeRange(
 	ctx context.Context,
 	monitorID string,
+	_ string, // a Mongo install has no remote probes, so there is no probe to narrow to
 	since,
 	until time.Time,
 	period StatPeriod,

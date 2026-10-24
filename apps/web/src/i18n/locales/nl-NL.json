@@ -513,10 +513,12 @@
           "title": "Notificatiekanalen"
         },
         "probe": {
+          "description": "De monitor draait op elke probe die je kiest en toont de resultaten van elke probe als een locatie.",
           "label": "Probe",
           "option_unsupported": "{{name}} (voert dit type niet uit)",
           "placeholder": "Kies een probe",
           "push_fixed": "Een push-monitor draait altijd op de lokale probe.",
+          "required": "Kies minstens één probe",
           "unsupported": "Deze probe voert dit type monitor niet uit. Kies een andere probe."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Verloopt binnenkort",
       "for": "voor",
       "live_status": "Live-status",
+      "locations": {
+        "all": "Alle locaties",
+        "no_result": "Nog geen resultaat",
+        "probe_offline": "Probe is offline",
+        "response_time": "Reactietijd",
+        "select_label": "Locatie",
+        "title": "Locaties"
+      },
       "monitor_for": "monitor voor",
       "no_certificate_data": "Geen certificaatgegevens",
       "seconds": "seconden",
@@ -1463,6 +1473,8 @@
     "published_status": "Gepubliceerd",
     "search_label": "Zoek",
     "search_placeholder": "Zoek statuspagina's op titel...",
+    "show_locations": "Elke locatie tonen",
+    "show_locations_info": "Toont bij monitors die vanaf meerdere locaties worden gecontroleerd de status en geschiedenis van elke locatie",
     "update_status_page": "Statuspagina bijwerken",
     "view_page": "Pagina bekijken"
   },

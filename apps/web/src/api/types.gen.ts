@@ -156,6 +156,10 @@ export type HeartbeatModel = {
   msg: string;
   notified: boolean;
   ping: number;
+  /**
+   * The probe that ran the check: local for the local probe, otherwise a remote probe's id
+   */
+  probe_id: string;
   retries: number;
   status: number;
   time: string;
@@ -341,7 +345,7 @@ export type MonitorCreateUpdateDto = {
   name: string;
   notification_ids: Array<string>;
   /**
-   * The probes that run the monitor's checks, by id. Exactly one for now. Omitted on create, the monitor runs on local; omitted on update, it keeps its probe. A push monitor runs on local only.
+   * The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only.
    */
   probe_ids?: Array<string> | null;
   proxy_id?: string;
@@ -367,6 +371,37 @@ export type MonitorCustomUptimeStatsDto = {
   "30d": number;
   "365d": number;
   "7d": number;
+  /**
+   * The probe the percentages count. Omitted when they count every probe's checks.
+   */
+  probe_id?: string;
+};
+
+export type MonitorModelLocation = {
+  /**
+   * When this probe's latest heartbeat was made. Null until the probe reports.
+   */
+  last_heartbeat_at: string | null;
+  /**
+   * The response time of this probe's latest heartbeat, in milliseconds. Null until the probe reports.
+   */
+  last_ping: number | null;
+  /**
+   * Whether the probe has an instance connected. The local probe is always online.
+   */
+  online: boolean;
+  /**
+   * The probe the monitor runs on
+   */
+  probe_id: string;
+  /**
+   * The probe's name
+   */
+  probe_name: string;
+  /**
+   * The status of this probe's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Null until the probe reports.
+   */
+  status: number | null;
 };
 
 export type MonitorMonitorResponseDto = {
@@ -376,11 +411,15 @@ export type MonitorMonitorResponseDto = {
   id: string;
   interval: number;
   last_heartbeat?: HeartbeatModel;
+  /**
+   * Where the monitor runs and how it is doing there, one entry for each probe in probe_ids and in the same order
+   */
+  locations: Array<MonitorModelLocation>;
   max_retries: number;
   name: string;
   notification_ids: Array<string>;
   /**
-   * The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself.
+   * The probes that run the monitor's checks, by id: one or more. local is Peekaping itself.
    */
   probe_ids: Array<string>;
   proxy_id: string;
@@ -403,7 +442,7 @@ export type MonitorPartialUpdateDto = {
   name?: string | null;
   notification_ids?: Array<string> | null;
   /**
-   * The probes that run the monitor's checks, by id. Exactly one for now. Omitted, the monitor keeps its probe. A push monitor runs on local only.
+   * The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only.
    */
   probe_ids?: Array<string> | null;
   proxy_id?: string | null;
@@ -449,6 +488,10 @@ export type MonitorStatPointsSummaryDto = {
   maxPing: number | null;
   minPing: number | null;
   points: Array<MonitorStatPoint> | null;
+  /**
+   * The probe the figures count. Omitted when they count every probe's checks.
+   */
+  probe_id?: string;
   uptime: number | null;
 };
 
@@ -750,6 +793,10 @@ export type StatusPageCreateStatusPageDto = {
   published?: boolean;
   search_engine_index?: boolean;
   show_certificate_expiry?: boolean;
+  /**
+   * List each location of a monitor that runs on several probes on the public page. Off by default.
+   */
+  show_locations?: boolean;
   show_powered_by?: boolean;
   show_tags?: boolean;
   slug: string;
@@ -782,6 +829,7 @@ export type StatusPageModel = {
   icon: string;
   id: string;
   published: boolean;
+  show_locations: boolean;
   slug: string;
   theme: string;
   title: string;
@@ -792,7 +840,15 @@ export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
   active: boolean;
   heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
   id: string;
+  /**
+   * One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe.
+   */
+  locations?: Array<StatusPagePublicLocationDto> | null;
   name: string;
+  /**
+   * The monitor's status: 0 Down, 1 Up, 2 Pending, 3 Maintenance
+   */
+  status: number;
   type: string;
   uptime_24h: number;
 };
@@ -803,6 +859,19 @@ export type StatusPagePublicHeartbeatDto = {
   ping: number;
   status: number;
   time: string;
+};
+
+export type StatusPagePublicLocationDto = {
+  heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
+  name: string;
+  /**
+   * The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports.
+   */
+  status: number;
+  /**
+   * The uptime of this location over the last 24 hours, in percent. Null when it could not be read.
+   */
+  uptime_24h: number | null;
 };
 
 export type StatusPageStatusPageWithMonitorsResponseDto = {
@@ -820,6 +889,7 @@ export type StatusPageStatusPageWithMonitorsResponseDto = {
   published: boolean;
   search_engine_index: boolean;
   show_certificate_expiry: boolean;
+  show_locations: boolean;
   show_powered_by: boolean;
   show_tags: boolean;
   slug: string;
@@ -841,6 +911,10 @@ export type StatusPageUpdateStatusPageDto = {
   published?: boolean | null;
   search_engine_index?: boolean | null;
   show_certificate_expiry?: boolean | null;
+  /**
+   * List each location of a monitor that runs on several probes on the public page.
+   */
+  show_locations?: boolean | null;
   show_powered_by?: boolean | null;
   show_tags?: boolean | null;
   slug?: string | null;
@@ -857,6 +931,7 @@ export type StatusPageUpdateStatusPageDto = {
     | (string | null)
     | (Array<string> | null)
     | (string | null)
+    | (boolean | null)
     | (boolean | null)
     | (boolean | null)
     | (boolean | null)
@@ -2981,6 +3056,10 @@ export type GetMonitorsByIdHeartbeatsData = {
      * Reverse the order of heartbeats
      */
     reverse?: boolean;
+    /**
+     * Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.
+     */
+    probe_id?: string;
   };
   url: "/api/v1/monitors/{id}/heartbeats";
 };
@@ -3078,6 +3157,10 @@ export type GetMonitorsByIdStatsPointsData = {
      * Granularity (minute, hour, day)
      */
     granularity?: string;
+    /**
+     * Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+     */
+    probe_id?: string;
   };
   url: "/api/v1/monitors/{id}/stats/points";
 };
@@ -3122,7 +3205,12 @@ export type GetMonitorsByIdStatsUptimeData = {
      */
     id: string;
   };
-  query?: never;
+  query?: {
+    /**
+     * Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+     */
+    probe_id?: string;
+  };
   url: "/api/v1/monitors/{id}/stats/uptime";
 };
 

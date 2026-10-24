@@ -513,10 +513,12 @@
           "title": "Notifikační kanály"
         },
         "probe": {
+          "description": "Monitor běží na každé vybrané sondě a výsledky každé z nich ukazuje jako umístění.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (tento typ nespouští)",
           "placeholder": "Vyberte sondu",
           "push_fixed": "Push monitor vždy běží na lokální sondě.",
+          "required": "Vyberte alespoň jednu sondu",
           "unsupported": "Tato sonda tento typ monitoru nespouští. Vyberte jinou sondu."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Brzy vyprší",
       "for": "pro",
       "live_status": "Aktuální stav",
+      "locations": {
+        "all": "Všechna umístění",
+        "no_result": "Zatím žádný výsledek",
+        "probe_offline": "Sonda je offline",
+        "response_time": "Doba odezvy",
+        "select_label": "Umístění",
+        "title": "Umístění"
+      },
       "monitor_for": "monitor pro",
       "no_certificate_data": "Žádná data o certifikátu",
       "seconds": "sekundy",
@@ -1463,6 +1473,8 @@
     "published_status": "Publikováno",
     "search_label": "Hledat",
     "search_placeholder": "Hledat stránky stavu podle názvu...",
+    "show_locations": "Zobrazit každé umístění",
+    "show_locations_info": "U monitorů kontrolovaných z více umístění zobrazí stav a historii každého z nich",
     "update_status_page": "Aktualizovat stránku stavu",
     "view_page": "Zobrazit stránku"
   },

@@ -16,6 +16,7 @@ const (
 type HeartBeatModel struct {
 	ID        string        `json:"id"`
 	MonitorID string        `json:"monitor_id"`
+	ProbeID   string        `json:"probe_id" doc:"The probe that ran the check: local for the local probe, otherwise a remote probe's id" example:"local"`
 	Status    MonitorStatus `json:"status"`
 	Msg       string        `json:"msg"`
 	Ping      int           `json:"ping"`

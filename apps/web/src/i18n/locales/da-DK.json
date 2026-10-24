@@ -513,10 +513,12 @@
           "title": "Varslingskanaler"
         },
         "probe": {
+          "description": "Monitoren kører på hver probe, du vælger, og viser hver probes resultater som en placering.",
           "label": "Probe",
           "option_unsupported": "{{name}} (kører ikke denne type)",
           "placeholder": "Vælg probe",
           "push_fixed": "En push-monitor kører altid på den lokale probe.",
+          "required": "Vælg mindst én probe",
           "unsupported": "Denne probe kører ikke denne type monitor. Vælg en anden probe."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Udløber snart",
       "for": "for",
       "live_status": "Live-status",
+      "locations": {
+        "all": "Alle placeringer",
+        "no_result": "Intet resultat endnu",
+        "probe_offline": "Proben er offline",
+        "response_time": "Svartid",
+        "select_label": "Placering",
+        "title": "Placeringer"
+      },
       "monitor_for": "overvåg for",
       "no_certificate_data": "Ingen certifikatdata",
       "seconds": "sekunder",
@@ -1463,6 +1473,8 @@
     "published_status": "Offentliggjort",
     "search_label": "Søg",
     "search_placeholder": "Søg status-sider efter titel...",
+    "show_locations": "Vis hver placering",
+    "show_locations_info": "For overvågninger, der kontrolleres fra flere placeringer, vises status og historik for hver placering",
     "update_status_page": "Opdater Statusside",
     "view_page": "Vis side"
   },

@@ -513,10 +513,12 @@
           "title": "Kanały powiadomień"
         },
         "probe": {
+          "description": "Monitor działa na każdej wybranej sondzie i pokazuje wyniki każdej z nich jako lokalizację.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (nie obsługuje tego typu)",
           "placeholder": "Wybierz sondę",
           "push_fixed": "Monitor Push zawsze działa na sondzie lokalnej.",
+          "required": "Wybierz co najmniej jedną sondę",
           "unsupported": "Ta sonda nie obsługuje tego typu monitora. Wybierz inną sondę."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Wygasa wkrótce",
       "for": "dla",
       "live_status": "Status na żywo",
+      "locations": {
+        "all": "Wszystkie lokalizacje",
+        "no_result": "Brak jeszcze wyniku",
+        "probe_offline": "Sonda offline",
+        "response_time": "Czas odpowiedzi",
+        "select_label": "Lokalizacja",
+        "title": "Lokalizacje"
+      },
       "monitor_for": "Monitoruj",
       "no_certificate_data": "Brak danych certyfikatu",
       "seconds": "sekundy",
@@ -1463,6 +1473,8 @@
     "published_status": "Opublikowane",
     "search_label": "Szukaj",
     "search_placeholder": "Wyszukaj strony statusu według tytułu...",
+    "show_locations": "Pokaż każdą lokalizację",
+    "show_locations_info": "W przypadku monitorów sprawdzanych z wielu lokalizacji pokazuje status i historię każdej z nich",
     "update_status_page": "Zaktualizuj stronę statusu",
     "view_page": "Zobacz stronę"
   },

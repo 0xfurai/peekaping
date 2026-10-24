@@ -31,13 +31,16 @@ type Service interface {
 	Delete(ctx context.Context, id string) error
 	ValidateMonitorConfig(monitorType string, configJSON string) error
 
-	GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
+	GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
 
 	RemoveProxyReference(ctx context.Context, proxyId string) error
 	FindByProxyId(ctx context.Context, proxyId string) ([]*Model, error)
 
-	GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
-	GetUptimeStats(ctx context.Context, id string) (*CustomUptimeStatsDto, error)
+	GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
+	GetUptimeStats(ctx context.Context, id, probeID string) (*CustomUptimeStatsDto, error)
+	// GetUptime24h returns the monitor's uptime over the last 24 hours as a percentage, from the
+	// checks one probe ran (all of them when probeID is empty), with one stats read
+	GetUptime24h(ctx context.Context, id, probeID string) (float64, error)
 
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
 	ResetMonitorData(ctx context.Context, id string) error
@@ -491,8 +494,8 @@ func (mr *MonitorServiceImpl) ValidateMonitorConfig(
 	return mr.executorRegistry.ValidateConfig(monitorType, configJSON)
 }
 
-func (mr *MonitorServiceImpl) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
-	return mr.heartbeatService.FindByMonitorIDPaginated(ctx, id, limit, page, important, reverse)
+func (mr *MonitorServiceImpl) GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+	return mr.heartbeatService.FindByMonitorIDAndProbeIDPaginated(ctx, id, probeID, limit, page, important, reverse)
 }
 
 func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, proxyId string) error {
@@ -503,7 +506,7 @@ func (mr *MonitorServiceImpl) FindByProxyId(ctx context.Context, proxyId string)
 	return mr.monitorRepository.FindByProxyId(ctx, proxyId)
 }
 
-func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error) {
+func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error) {
 	var period stats.StatPeriod
 	switch granularity {
 	case "minute":
@@ -526,7 +529,7 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 	}
 
 	// Use the new method that accepts monitor interval
-	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRangeWithInterval(ctx, id, since, until, period, monitor.Interval)
+	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRangeWithInterval(ctx, id, probeID, since, until, period, monitor.Interval)
 	if err != nil {
 		return nil, err
 	}
@@ -547,6 +550,7 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 	stats := mr.statPointsService.StatPointsSummary(statsList)
 
 	return &StatPointsSummaryDto{
+		ProbeID: probeID,
 		Points:  points,
 		MaxPing: stats.MaxPing,
 		MinPing: stats.MinPing,
@@ -556,7 +560,7 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 }
 
 // GetCustomUptimeStatsShort returns uptime percentages for 24h, 30d, 365d
-func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*CustomUptimeStatsDto, error) {
+func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id, probeID string) (*CustomUptimeStatsDto, error) {
 	now := time.Now().UTC()
 	periods := map[string]time.Duration{
 		"24h":  24 * time.Hour,
@@ -568,7 +572,7 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*C
 	uptimes := make(map[string]float64)
 	for key, duration := range periods {
 		since := now.Add(-duration)
-		summary, err := mr.statPointsService.Summarize(ctx, id, since, now)
+		summary, err := mr.statPointsService.Summarize(ctx, id, probeID, since, now)
 		if err != nil {
 			return nil, err
 		}
@@ -580,6 +584,7 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*C
 	}
 
 	stats := &CustomUptimeStatsDto{
+		ProbeID:    probeID,
 		Uptime24h:  uptimes["24h"],
 		Uptime7d:   uptimes["7d"],
 		Uptime30d:  uptimes["30d"],
@@ -587,6 +592,18 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*C
 	}
 
 	return stats, nil
+}
+
+func (mr *MonitorServiceImpl) GetUptime24h(ctx context.Context, id, probeID string) (float64, error) {
+	now := time.Now().UTC()
+	summary, err := mr.statPointsService.Summarize(ctx, id, probeID, now.Add(-24*time.Hour), now)
+	if err != nil {
+		return 0, err
+	}
+	if summary.Uptime == nil {
+		return 0, nil
+	}
+	return *summary.Uptime, nil
 }
 
 func (mr *MonitorServiceImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {
@@ -615,6 +632,12 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 	if err != nil {
 		mr.logger.Errorw("Failed to delete stats for monitor", "monitorID", id, "error", err)
 		return fmt.Errorf("failed to delete stats: %w", err)
+	}
+
+	// Forget where the monitor stood on each probe, so that its next result is its first
+	if err := mr.monitorRepository.ResetLocations(ctx, id); err != nil {
+		mr.logger.Errorw("Failed to reset the locations of monitor", "monitorID", id, "error", err)
+		return fmt.Errorf("failed to reset locations: %w", err)
 	}
 
 	// Reset monitor status to pending (like a fresh monitor)

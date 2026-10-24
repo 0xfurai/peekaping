@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { getMonitorsByIdStatsPointsOptions } from "@/api/@tanstack/react-query.gen";
-import type { MonitorStatPoint } from "@/api";
+import type { MonitorModelLocation, MonitorStatPoint } from "@/api";
 import { useTimezone } from "../context/timezone-context";
 import { formatDateToTimezone } from "../lib/formatDateToTimezone";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -104,10 +104,27 @@ const chartConfig = {
   // },
 } satisfies ChartConfig;
 
-export function Chart({ id }: { id: string }) {
+// The location select's value for the monitor as a whole. A probe's id can't be this: ids are
+// generated, and the local probe's is "local".
+const ALL_LOCATIONS = "all-locations";
+
+// `locations` are the monitor's, given when it runs on more than one probe: the chart can then be
+// filtered to one of them.
+export function Chart({
+  id,
+  locations,
+}: {
+  id: string;
+  locations?: MonitorModelLocation[];
+}) {
   const [timeRange, setTimeRange] = React.useState<
     "30m" | "3h" | "6h" | "24h" | "1week"
   >("30m");
+  const [location, setLocation] = React.useState(ALL_LOCATIONS);
+  // A location the monitor no longer has, such as after its probes changed, is all of them
+  const probeId = locations?.some((l) => l.probe_id === location)
+    ? location
+    : undefined;
   const { timezone } = useTimezone();
   const { t } = useLocalizedTranslation();
 
@@ -156,7 +173,7 @@ export function Chart({ id }: { id: string }) {
   const { data: statpointsDataRaw } = useQuery({
     ...getMonitorsByIdStatsPointsOptions({
       path: { id: id! },
-      query: getCustomUptimeParams(timeRange),
+      query: { ...getCustomUptimeParams(timeRange), probe_id: probeId },
     }),
     refetchInterval: 20 * 1000,
     enabled: !!id,
@@ -220,6 +237,31 @@ export function Chart({ id }: { id: string }) {
           <CardTitle>{t("timezone.response_time")}</CardTitle>
         </div>
         <div className="flex gap-2 items-center">
+          {locations && locations.length > 1 && (
+            <Select value={probeId ?? ALL_LOCATIONS} onValueChange={setLocation}>
+              <SelectTrigger
+                className="w-[180px] rounded-lg sm:ml-auto"
+                aria-label={t("monitors.view.locations.select_label")}
+                data-testid="chart-location-select"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value={ALL_LOCATIONS} className="rounded-lg">
+                  {t("monitors.view.locations.all")}
+                </SelectItem>
+                {locations.map((l) => (
+                  <SelectItem
+                    key={l.probe_id}
+                    value={l.probe_id}
+                    className="rounded-lg"
+                  >
+                    {l.probe_name || l.probe_id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select
             value={timeRange}
             onValueChange={(v: typeof timeRange) => setTimeRange(v)}

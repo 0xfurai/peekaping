@@ -513,10 +513,12 @@
           "title": "Értesítési csatornák"
         },
         "probe": {
+          "description": "A monitor minden kiválasztott szondán fut, és mindegyik eredményeit helyszínként mutatja.",
           "label": "Szonda",
           "option_unsupported": "{{name}} (nem futtatja ezt a típust)",
           "placeholder": "Szonda kiválasztása",
           "push_fixed": "A Push monitor mindig a helyi szondán fut.",
+          "required": "Válasszon legalább egy szondát",
           "unsupported": "Ez a szonda nem futtatja ezt a monitortípust. Válasszon másik szondát."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Szorosan lejár",
       "for": "höz",
       "live_status": "Élő állapot",
+      "locations": {
+        "all": "Minden helyszín",
+        "no_result": "Még nincs eredmény",
+        "probe_offline": "A szonda nem elérhető",
+        "response_time": "Válaszidő",
+        "select_label": "Helyszín",
+        "title": "Helyszínek"
+      },
       "monitor_for": "Figyelés",
       "no_certificate_data": "Nincs tanúsítvány adat",
       "seconds": "másodperc",
@@ -1463,6 +1473,8 @@
     "published_status": "Közzétéve",
     "search_label": "Keresés",
     "search_placeholder": "Keresés a státuszlapok címén...",
+    "show_locations": "Minden helyszín megjelenítése",
+    "show_locations_info": "A több helyszínről ellenőrzött monitorok esetén minden helyszín állapotát és előzményeit megjeleníti",
     "update_status_page": "Állapotlap frissítése",
     "view_page": "Oldal megtekintése"
   },

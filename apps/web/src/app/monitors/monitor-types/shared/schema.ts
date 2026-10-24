@@ -53,10 +53,9 @@ export const tagsSchema = z.object({
   tag_ids: z.array(z.string()),
 });
 
-// A monitor runs on exactly one probe. The API takes a list, so the form holds one, and the probe
-// section edits its single entry.
+// A monitor runs on one or more probes. The message is an i18n key, which FormMessage translates.
 export const probeSchema = z.object({
-  probe_ids: z.array(z.string()),
+  probe_ids: z.array(z.string()).min(1, "monitors.form.shared.probe.required"),
 });
 
 export const probeDefaultValues = {

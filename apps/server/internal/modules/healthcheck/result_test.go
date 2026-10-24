@@ -39,6 +39,7 @@ func TestTickResult_IngestResultCarriesTheCheckAndTheMonitorSettings(t *testing.
 	}
 
 	assert.Equal(t, &ingester.Result{
+		ProbeID:            "local",
 		MonitorID:          "mon-1",
 		MonitorName:        "Test",
 		MonitorType:        "http",

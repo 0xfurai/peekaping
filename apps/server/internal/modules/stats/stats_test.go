@@ -160,7 +160,7 @@ type bucket struct {
 // findBucket returns the stat row that starts at start, which must be the only one there.
 func findBucket(t *testing.T, svc stats.Service, monitorID string, start time.Time, period stats.StatPeriod) bucket {
 	t.Helper()
-	rows, err := svc.FindStatsByMonitorIDAndTimeRange(context.Background(), monitorID, start, start, period)
+	rows, err := svc.FindStatsByMonitorIDAndTimeRange(context.Background(), monitorID, "", start, start, period)
 	require.NoError(t, err)
 	require.Len(t, rows, 1, "%s rows at %s", period, start)
 	s := rows[0]
@@ -216,7 +216,7 @@ func TestDeleteByMonitorIDClearsEveryPeriod(t *testing.T) {
 		aggregate(t, svc, monitorID, shared.MonitorStatusUp, 100, at)
 		require.NoError(t, svc.DeleteByMonitorID(ctx, monitorID))
 		for _, period := range []stats.StatPeriod{stats.StatMinutely, stats.StatHourly, stats.StatDaily} {
-			rows, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, at.Add(-24*time.Hour), at, period)
+			rows, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, "", at.Add(-24*time.Hour), at, period)
 			require.NoError(t, err)
 			assert.Empty(t, rows, period)
 		}
@@ -231,13 +231,13 @@ func TestSummaryAveragesResponseTimesOverUpChecks(t *testing.T) {
 		aggregate(t, svc, monitorID, shared.MonitorStatusUp, 200, minute.Add(time.Minute))
 		aggregate(t, svc, monitorID, shared.MonitorStatusUp, 300, minute.Add(time.Minute+10*time.Second))
 
-		rows, err := svc.FindStatsByMonitorIDAndTimeRange(context.Background(), monitorID, minute, minute.Add(time.Minute), stats.StatMinutely)
+		rows, err := svc.FindStatsByMonitorIDAndTimeRange(context.Background(), monitorID, "", minute, minute.Add(time.Minute), stats.StatMinutely)
 		require.NoError(t, err)
 		summary := svc.StatPointsSummary(rows)
 		require.NotNil(t, summary.AvgPing)
 		assert.Equal(t, 200.0, *summary.AvgPing)
 
-		grouped, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(context.Background(), monitorID, minute, minute.Add(2*time.Minute), stats.StatMinutely, 120)
+		grouped, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(context.Background(), monitorID, "", minute, minute.Add(2*time.Minute), stats.StatMinutely, 120)
 		require.NoError(t, err)
 		require.Len(t, grouped, 1)
 		assert.Equal(t, 200.0, grouped[0].Ping)
@@ -250,13 +250,13 @@ func TestSummaryKeepsA0msMinimumResponseTime(t *testing.T) {
 		aggregate(t, svc, monitorID, shared.MonitorStatusUp, 100, minute)
 		aggregate(t, svc, monitorID, shared.MonitorStatusUp, 0, minute.Add(time.Minute))
 
-		rows, err := svc.FindStatsByMonitorIDAndTimeRange(context.Background(), monitorID, minute, minute.Add(time.Minute), stats.StatMinutely)
+		rows, err := svc.FindStatsByMonitorIDAndTimeRange(context.Background(), monitorID, "", minute, minute.Add(time.Minute), stats.StatMinutely)
 		require.NoError(t, err)
 		summary := svc.StatPointsSummary(rows)
 		require.NotNil(t, summary.MinPing)
 		assert.Equal(t, 0.0, *summary.MinPing)
 
-		grouped, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(context.Background(), monitorID, minute, minute.Add(2*time.Minute), stats.StatMinutely, 120)
+		grouped, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(context.Background(), monitorID, "", minute, minute.Add(2*time.Minute), stats.StatMinutely, 120)
 		require.NoError(t, err)
 		require.Len(t, grouped, 1)
 		assert.Equal(t, 0.0, grouped[0].PingMin)
@@ -344,7 +344,7 @@ func TestMongoStatWrittenBeforeUpgradeKeepsCounting(t *testing.T) {
 	aggregate(t, svc, monitorID.Hex(), shared.MonitorStatusUp, 300, minute.Add(30*time.Second))
 	aggregate(t, svc, monitorID.Hex(), shared.MonitorStatusUp, 50, minute.Add(time.Minute+30*time.Second))
 
-	rows, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID.Hex(), minute, minute.Add(time.Minute), stats.StatMinutely)
+	rows, err := svc.FindStatsByMonitorIDAndTimeRange(ctx, monitorID.Hex(), "", minute, minute.Add(time.Minute), stats.StatMinutely)
 	require.NoError(t, err)
 	require.Len(t, rows, 2)
 	got := func(s *stats.Stat) bucket { return bucket{s.Up, s.Down, s.Maintenance, s.Ping, s.PingMin, s.PingMax} }
@@ -391,7 +391,7 @@ func TestSummarizeCountsDownHeartbeats20HoursAgoIn24HourUptime(t *testing.T) {
 			aggregate(t, svc, monitorID, status, 100, at)
 		}
 
-		summary, err := svc.Summarize(context.Background(), monitorID, now.Add(-24*time.Hour), now)
+		summary, err := svc.Summarize(context.Background(), monitorID, "", now.Add(-24*time.Hour), now)
 		require.NoError(t, err)
 		require.NotNil(t, summary.Uptime)
 		assert.InDelta(t, 100*22.0/24, *summary.Uptime, 1e-9)
@@ -416,7 +416,7 @@ func TestSummarizeCountsDownHeartbeatsAtTheStartOf7And30DayUptime(t *testing.T) 
 					aggregate(t, svc, monitorID, status, 100, at)
 				}
 
-				summary, err := svc.Summarize(context.Background(), monitorID, since, now)
+				summary, err := svc.Summarize(context.Background(), monitorID, "", since, now)
 				require.NoError(t, err)
 				require.NotNil(t, summary.Uptime)
 				checks := float64(days * 24)
@@ -490,7 +490,7 @@ func TestUptimeForOneMonitorReadsAtMost2700StatsRows(t *testing.T) {
 			db.AddQueryHook(rowCounter{db, &read})
 			svc := stats.NewService(stats.NewSQLRepository(db), zap.NewNop().Sugar())
 			for _, window := range []time.Duration{24 * time.Hour, 7 * 24 * time.Hour, 30 * 24 * time.Hour, 365 * 24 * time.Hour} {
-				_, err := svc.Summarize(ctx, monitorID, now.Add(-window), now)
+				_, err := svc.Summarize(ctx, monitorID, "", now.Add(-window), now)
 				require.NoError(t, err)
 			}
 

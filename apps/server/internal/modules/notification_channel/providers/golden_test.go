@@ -45,6 +45,7 @@ var (
 		Status:     shared.MonitorStatusDown,
 		Config:     `{"url":"https://api.example.com/health","method":"GET"}`,
 		ProbeIDs:   []string{"local"},
+		Locations:  []shared.MonitorLocation{{ProbeID: "local", ProbeName: "Local", Online: true}},
 		Tags:       []string{"severity:critical", "team:core"},
 		CreatedAt:  time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
 		UpdatedAt:  time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
@@ -52,6 +53,7 @@ var (
 	goldenDown = &heartbeat.Model{
 		ID:        "hb-1",
 		MonitorID: "mon-1",
+		ProbeID:   "local",
 		Status:    shared.MonitorStatusDown,
 		Msg:       "connection refused",
 		Important: true,
@@ -60,6 +62,7 @@ var (
 	goldenUp = &heartbeat.Model{
 		ID:        "hb-2",
 		MonitorID: "mon-1",
+		ProbeID:   "local",
 		Status:    shared.MonitorStatusUp,
 		Msg:       "200 - OK",
 		Ping:      42,
