@@ -84,3 +84,12 @@ func TestSupportedTypes_LeaveOutPush(t *testing.T) {
 
 	assert.Equal(t, []string{"http", "ping", "tcp"}, executors.SupportedTypes())
 }
+
+func TestSupportedTypes_OfTheRealRegistry(t *testing.T) {
+	executors := probeclient.NewExecutors(executor.NewExecutorRegistry(nopLogger()))
+
+	assert.Equal(t, []string{
+		"dns", "docker", "grpc-keyword", "http", "http-json-query", "http-keyword", "kafka-producer", "mongodb", "mqtt",
+		"mysql", "ping", "postgres", "rabbitmq", "redis", "smtp", "snmp", "sqlserver", "tcp",
+	}, executors.SupportedTypes(), "every executor it has but push")
+}
