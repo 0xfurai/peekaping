@@ -7,7 +7,7 @@ import (
 	"os"
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
-	"peekaping/internal/infra"
+	"peekaping/internal/sqlitedb"
 	"strings"
 
 	"github.com/uptrace/bun"
@@ -273,8 +273,8 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 		if dbPath == "" {
 			dbPath = "./data.db"
 		}
-		// Same opener as the server's, so both run with the same settings (see infra.SQLiteDSN)
-		sqldb, err = infra.OpenSQLite(dbPath)
+		// Same opener as the server's, so both run with the same settings (see sqlitedb.DSN)
+		sqldb, err = sqlitedb.Open(dbPath)
 		if err != nil {
 			return nil, err
 		}
