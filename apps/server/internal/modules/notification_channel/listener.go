@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe_notification"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/reporting"
@@ -160,7 +161,23 @@ func (l *NotificationEventListener) handleNotifyEvent(ctx context.Context, hb he
 		return
 	}
 
-	l.sendToChannels(ctx, notificationChannels, hb.Msg, monitorModel, &hb)
+	l.sendToChannels(ctx, notificationChannels, withLocations(hb.Msg, monitorModel, hb.Status), monitorModel, &hb)
+}
+
+// withLocations adds to the message of a Down or Up notification where the monitor is Down or Up,
+// when it runs on more than one probe: "Down at Frankfurt, Tokyo (2 of 3 locations): <message>".
+// The heartbeat itself is not changed. The message of any other notification, and of a monitor on
+// one probe, is as it was.
+func withLocations(message string, m *monitor.Model, status shared.MonitorStatus) string {
+	summary := providers.LocationSummary(m, status)
+	switch {
+	case summary == "":
+		return message
+	case message == "":
+		return summary
+	default:
+		return summary + ": " + message
+	}
 }
 
 func (l *NotificationEventListener) handleCertificateExpiryEvent(ctx context.Context, certEvent certificate.CertificateExpiryEvent) {
