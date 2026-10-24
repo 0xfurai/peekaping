@@ -109,6 +109,45 @@ func TestProbe_ShutdownLetsTheCheckFinishFlushesAndSaysBye(t *testing.T) {
 	assert.Equal(t, "results", events[len(events)-2])
 }
 
+// A probe in a container is watched through its log, so a shutdown tells each step: the checks
+// have finished, the held results are sent, and the server has been told.
+func TestProbe_ShutdownLogsTheDrainTheFlushAndTheBye(t *testing.T) {
+	slow := make(chan struct{})
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-slow
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(target.Close)
+	server := newAssignmentServer(t, snapshot("v1", monitorOf("a", target.URL)))
+	logger, logs := observedLogger()
+	probe := probeclient.New(probeclient.Config{URL: server.URL, Token: probeToken, Version: "0.0.48", Logger: logger, FlushTimeout: 2 * time.Second})
+	runProbe(t, probe)
+	require.Eventually(t, probe.Ready, 5*time.Second, time.Millisecond)
+	time.Sleep(100 * time.Millisecond) // the check is under way, held by the target
+	close(slow)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	require.NoError(t, probe.Shutdown(ctx))
+
+	var steps []string
+	for _, entry := range logs.All() {
+		switch entry.Message {
+		case "Scheduler stopped", "Flushed the buffered results", "Told the server this instance is stopping", "Probe stopped":
+			steps = append(steps, entry.Message)
+		}
+	}
+	assert.Equal(t, []string{
+		"Scheduler stopped",
+		"Flushed the buffered results",
+		"Told the server this instance is stopping",
+		"Probe stopped",
+	}, steps)
+	flushed := logs.FilterMessage("Flushed the buffered results").All()
+	require.Len(t, flushed, 1)
+	assert.EqualValues(t, 1, flushed[0].ContextMap()["buffered"], "the result of the check that was running")
+}
+
 func TestProbe_KeepsCheckingWhileTheServerIsUnreachable(t *testing.T) {
 	url, checks := httpTarget(t)
 	server := newAssignmentServer(t, snapshot("v1", httpMonitor("a", func(m *probeproto.Monitor) {

@@ -181,9 +181,12 @@ func (p *Probe) shutdown(ctx context.Context) error {
 	flushCtx, cancelFlush := context.WithTimeout(tail, p.flushTimeout)
 	defer cancelFlush()
 	var flushErr, byeErr error
+	buffered := p.sink.Buffered()
 	if err := p.sink.Flush(flushCtx); err != nil {
 		flushErr = err
 		p.logger.Errorw("Failed to send the buffered results; they are lost", "buffered", p.sink.Buffered(), "error", err)
+	} else {
+		p.logger.Infow("Flushed the buffered results", "buffered", buffered)
 	}
 	if stopSink != nil {
 		stopSink()
@@ -197,6 +200,8 @@ func (p *Probe) shutdown(ctx context.Context) error {
 		if err := p.session.Bye(byeCtx); err != nil {
 			byeErr = err
 			p.logger.Warnw("Failed to tell the server this instance is stopping", "error", err)
+		} else {
+			p.logger.Info("Told the server this instance is stopping")
 		}
 	}
 	p.logger.Info("Probe stopped")
