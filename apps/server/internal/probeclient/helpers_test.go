@@ -140,6 +140,7 @@ type assignmentServer struct {
 	events   []string
 	versions []string
 	polls    int
+	stored   []probeproto.Result
 }
 
 func newAssignmentServer(t *testing.T, steps ...pollStep) *assignmentServer {
@@ -162,11 +163,33 @@ func newAssignmentServer(t *testing.T, steps ...pollStep) *assignmentServer {
 				return
 			}
 			<-r.Context().Done()
+		case "/probe/v1/results":
+			var req probeproto.ResultsRequest
+			readJSON(t, r, &req)
+			outcomes := make([]probeproto.ResultOutcome, len(req.Results))
+			for i, result := range req.Results {
+				outcomes[i] = probeproto.ResultOutcome{ID: result.ID, Accepted: true}
+			}
+			s.mu.Lock()
+			s.events = append(s.events, "results")
+			s.stored = append(s.stored, req.Results...)
+			s.mu.Unlock()
+			reply(w, http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
+		case "/probe/v1/bye":
+			s.note("bye")
+			w.WriteHeader(http.StatusNoContent)
 		default:
 			http.NotFound(w, r)
 		}
 	})
 	return s
+}
+
+// storedResults are the results the server has accepted, in order
+func (s *assignmentServer) storedResults() []probeproto.Result {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]probeproto.Result(nil), s.stored...)
 }
 
 func (s *assignmentServer) note(event string) {
