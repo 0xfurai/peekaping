@@ -396,3 +396,123 @@ func TestCheckSQLiteOnStartup_WarnsAndGoesOnWhenTheCheckCantRun(t *testing.T) {
 	require.Equal(t, zapcore.WarnLevel, entries[0].Level)
 	require.Contains(t, entries[0].Message, "Failed to run the SQLite quick check (non-fatal): ")
 }
+
+// sqliteSettings is what a SQLite connection of the app must have, read back with the PRAGMA
+// that reports each one
+var sqliteSettings = []struct {
+	pragma string
+	want   int
+}{
+	{"foreign_keys", 1},
+	{"busy_timeout", 5000},
+	{"synchronous", 1},
+	{"temp_store", 2},
+	{"wal_autocheckpoint", 1000},
+	{"cache_size", -64000},
+}
+
+func assertSQLiteSettings(t *testing.T, ctx context.Context, db bun.IDB, when string) {
+	t.Helper()
+	for _, s := range sqliteSettings {
+		var got int
+		require.NoError(t, db.NewRaw("PRAGMA "+s.pragma).Scan(ctx, &got), s.pragma)
+		require.Equal(t, s.want, got, "%s %s", s.pragma, when)
+	}
+}
+
+// cancelASlowQuery runs a query that takes seconds and cancels its context mid-flight, until the
+// connection it ran on has been replaced. database/sql drops that connection once the driver
+// reports the cancellation, and the next query gets a new one. A TEMP table lives as long as its
+// connection, so it is the marker: when it is gone, the settings checked next are a new
+// connection's, and the test can't pass when the cancel never reached the driver.
+func cancelASlowQuery(t *testing.T, db *bun.DB) {
+	t.Helper()
+	ctx := context.Background()
+	for attempt := 0; attempt < 20; attempt++ {
+		_, err := db.ExecContext(ctx, "CREATE TEMP TABLE IF NOT EXISTS connection_marker (x INTEGER)")
+		require.NoError(t, err)
+
+		slowCtx, cancel := context.WithCancel(ctx)
+		timer := time.AfterFunc(50*time.Millisecond, cancel)
+		var n int64
+		err = db.NewRaw("WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x < 2000000000) SELECT count(*) FROM c").Scan(slowCtx, &n)
+		timer.Stop()
+		cancel()
+		if err != nil {
+			require.ErrorIs(t, err, context.Canceled)
+		}
+
+		var markers int
+		require.NoError(t, db.NewRaw("SELECT count(*) FROM sqlite_temp_master WHERE name = 'connection_marker'").Scan(ctx, &markers))
+		if markers == 0 {
+			return
+		}
+	}
+	t.Fatal("the cancelled query never cost the connection")
+}
+
+// A query whose context is cancelled costs its connection: database/sql closes it and opens a new
+// one, which must have the same settings.
+func TestProvideSQLDB_ASettingSurvivesACancelledQuery(t *testing.T) {
+	// The query hook prints every failed query, and a cancelled one is one
+	t.Setenv("BUNDEBUG", "0")
+	db, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: filepath.Join(t.TempDir(), "peekaping.db")}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = db.Close() })
+	assertSQLiteSettings(t, context.Background(), db, "at startup")
+
+	cancelASlowQuery(t, db)
+
+	assertSQLiteSettings(t, context.Background(), db, "after a cancelled query")
+}
+
+// A transaction that reads and then writes must wait for a writer that got in between, like any
+// write does, and not fail with "database is locked (517)". The monitor status update and the
+// monitor delete are such transactions. A is the server, B another process that writes to the same
+// file (the ingester). B has no shared cache, since processes don't share one; two connections of
+// one process would lock each other by table instead, and hide the failure.
+func TestProvideSQLDB_ATransactionThatReadsThenWritesWaitsForAnotherWriter(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "peekaping.db")
+	a, err := ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: path}, zap.NewNop().Sugar())
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = a.Close() })
+	b, err := sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?mode=rwc&_pragma=busy_timeout(5000)", path))
+	require.NoError(t, err)
+	b.SetMaxOpenConns(1)
+	t.Cleanup(func() { _ = b.Close() })
+	_, err = a.ExecContext(ctx, "CREATE TABLE writes (id INTEGER PRIMARY KEY, who TEXT)")
+	require.NoError(t, err)
+
+	tx, err := a.BeginTx(ctx, nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = tx.Rollback() })
+	var rows int
+	require.NoError(t, tx.NewRaw("SELECT count(*) FROM writes").Scan(ctx, &rows))
+
+	bDone := make(chan error, 1)
+	go func() {
+		_, err := b.ExecContext(ctx, "INSERT INTO writes (who) VALUES ('B')")
+		bDone <- err
+	}()
+	// Let B get its write in if the lock doesn't keep it out
+	select {
+	case err := <-bDone:
+		bDone <- err
+	case <-time.After(300 * time.Millisecond):
+	}
+
+	_, err = tx.ExecContext(ctx, "INSERT INTO writes (who) VALUES ('A')")
+	require.NoError(t, err, "A's write after its read")
+	require.NoError(t, tx.Commit())
+
+	select {
+	case err := <-bDone:
+		require.NoError(t, err, "B's write")
+	case <-time.After(10 * time.Second):
+		t.Fatal("B's write never finished")
+	}
+	var who []string
+	require.NoError(t, a.NewRaw("SELECT who FROM writes ORDER BY id").Scan(ctx, &who))
+	require.Equal(t, []string{"A", "B"}, who, "B waits for A's transaction")
+}

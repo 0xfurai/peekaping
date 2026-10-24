@@ -213,9 +213,11 @@ func (r *SQLRepositoryImpl) locationsOf(ctx context.Context, db bun.IDB, ids []s
 
 // RecordLocation stores what a result left on the monitor's row for the probe that ran it, then
 // calls judge with the monitor's recorded status and its rows from just before and just after, and
-// records what judge returns. The monitor is locked from the first read to the last write, so two
+// records what judge returns. The monitor is held from the first read to the last write, so two
 // results recorded at once see one another in turn: each one's recorded status is what the other
-// recorded. A probe the monitor doesn't run on has no row to write, and none is made.
+// recorded. PostgreSQL holds the monitor's row with SELECT ... FOR UPDATE. SQLite has no row locks:
+// its transaction begins with BEGIN IMMEDIATE (see sqlitedb.DSN) and so holds the one writer for the
+// whole database. A probe the monitor doesn't run on has no row to write, and none is made.
 func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
 	return dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
 		db := dbtx.DB(ctx, r.db)
@@ -224,13 +226,6 @@ func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string
 			var locked []string
 			lock := db.NewSelect().Model((*sqlModel)(nil)).Column("id").Where("id = ?", monitorID).For("UPDATE")
 			if err := lock.Scan(ctx, &locked); err != nil {
-				return err
-			}
-		} else {
-			// SQLite has no row locks: its transaction holds the one writer. A transaction that reads
-			// first and writes later fails at once, without waiting, when another writer got in
-			// between, so it takes the writer's place with a write that changes nothing.
-			if _, err := db.NewUpdate().Model((*sqlModel)(nil)).Set("locations_status = locations_status").Where("id = ?", monitorID).Exec(ctx); err != nil {
 				return err
 			}
 		}
