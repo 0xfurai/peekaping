@@ -50,7 +50,8 @@ func setupTestDB(t *testing.T) *bun.DB {
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			config TEXT,
 			proxy_id TEXT,
-			push_token TEXT
+			push_token TEXT,
+			locations_status INTEGER
 		)
 	`)
 	require.NoError(t, err)

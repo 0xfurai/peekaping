@@ -2,6 +2,8 @@ package monitor
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -31,6 +33,9 @@ type sqlModel struct {
 	Config         string               `bun:"config"`
 	ProxyId        *string              `bun:"proxy_id"`
 	PushToken      string               `bun:"push_token"`
+	// LocationsStatus is the status the monitor's locations last added up to. Only the ingester's
+	// RecordLocation writes it.
+	LocationsStatus *int `bun:"locations_status,scanonly"`
 }
 
 // sqlProbeLink is the row that says a monitor runs on a probe. It is what is written when a
@@ -206,17 +211,18 @@ func (r *SQLRepositoryImpl) locationsOf(ctx context.Context, db bun.IDB, ids []s
 	return rows, err
 }
 
-// RecordLocation stores what a result left on the monitor's row for the probe that ran it, and
-// returns the monitor's rows as they were just before and just after. The monitor's rows are
-// locked from the read to the write, so two results of one monitor recorded at once see one
-// another in turn: each one's before is what the other's after left. A probe the monitor doesn't
-// run on has no row to write, and none is made.
-func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState) (before, after []shared.MonitorLocation, err error) {
-	err = dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
+// RecordLocation stores what a result left on the monitor's row for the probe that ran it, then
+// calls judge with the monitor's recorded status and its rows from just before and just after, and
+// records what judge returns. The monitor is locked from the first read to the last write, so two
+// results recorded at once see one another in turn: each one's recorded status is what the other
+// recorded. A probe the monitor doesn't run on has no row to write, and none is made.
+func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
+	return dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
 		db := dbtx.DB(ctx, r.db)
+		// The monitor's own row is what is held, so that a monitor without probe rows is held too
 		if r.db.Dialect().Name() == dialect.PG {
 			var locked []string
-			lock := db.NewSelect().Model((*sqlProbeLink)(nil)).Column("probe_id").Where("monitor_id = ?", monitorID).For("UPDATE")
+			lock := db.NewSelect().Model((*sqlModel)(nil)).Column("id").Where("id = ?", monitorID).For("UPDATE")
 			if err := lock.Scan(ctx, &locked); err != nil {
 				return err
 			}
@@ -224,15 +230,25 @@ func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string
 			// SQLite has no row locks: its transaction holds the one writer. A transaction that reads
 			// first and writes later fails at once, without waiting, when another writer got in
 			// between, so it takes the writer's place with a write that changes nothing.
-			if _, err := db.NewUpdate().Model((*sqlProbeLink)(nil)).Set("probe_id = probe_id").Where("monitor_id = ?", monitorID).Exec(ctx); err != nil {
+			if _, err := db.NewUpdate().Model((*sqlModel)(nil)).Set("locations_status = locations_status").Where("id = ?", monitorID).Exec(ctx); err != nil {
 				return err
 			}
+		}
+		var recorded sql.NullInt64
+		// A monitor that is gone has no row: nothing is recorded for it
+		if err := db.NewSelect().Model((*sqlModel)(nil)).Column("locations_status").Where("id = ?", monitorID).Scan(ctx, &recorded); err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+		judgement := shared.LocationJudgement{}
+		if recorded.Valid {
+			status := shared.MonitorStatus(recorded.Int64)
+			judgement.Recorded = &status
 		}
 		rows, err := r.locationsOf(ctx, db, []string{monitorID})
 		if err != nil {
 			return err
 		}
-		before = toLocations(rows)
+		judgement.Before = toLocations(rows)
 
 		update := db.NewUpdate().Model((*sqlProbeLink)(nil)).
 			Where("monitor_id = ?", monitorID).Where("probe_id = ?", state.ProbeID).
@@ -250,13 +266,25 @@ func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string
 		if err != nil {
 			return err
 		}
-		after = toLocations(rows)
-		return nil
+		judgement.After = toLocations(rows)
+
+		_, err = db.NewUpdate().Model((*sqlModel)(nil)).Set("locations_status = ?", statusColumn(judge(judgement))).Where("id = ?", monitorID).Exec(ctx)
+		return err
 	})
-	if err != nil {
-		return nil, nil, err
-	}
-	return before, after, nil
+}
+
+// ResetLocations clears the state of the monitor's rows and its recorded status
+func (r *SQLRepositoryImpl) ResetLocations(ctx context.Context, monitorID string) error {
+	return dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
+		db := dbtx.DB(ctx, r.db)
+		if _, err := db.NewUpdate().Model((*sqlProbeLink)(nil)).
+			Set("status = NULL").Set("last_ping = NULL").Set("last_heartbeat_at = NULL").
+			Where("monitor_id = ?", monitorID).Exec(ctx); err != nil {
+			return err
+		}
+		_, err := db.NewUpdate().Model((*sqlModel)(nil)).Set("locations_status = NULL").Where("id = ?", monitorID).Exec(ctx)
+		return err
+	})
 }
 
 func statusColumn(status *shared.MonitorStatus) *int {

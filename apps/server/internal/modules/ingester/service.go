@@ -59,12 +59,13 @@ type Service interface {
 // LocationStore keeps a monitor's state on each probe it runs on, which the ingester reads and
 // writes to judge the monitor as a whole. The monitor repository is one.
 type LocationStore interface {
-	// RecordLocation stores what the result left on the monitor's row for the probe, and returns
-	// the monitor's rows as they were just before and just after, in probe id order. It makes
-	// two results of one monitor, recorded at once, see one another in turn. A monitor without a
-	// row for the probe has nothing stored, and a monitor without rows (MongoDB's, or one from
-	// before probes) returns none.
-	RecordLocation(ctx context.Context, monitorID string, state shared.LocationState) (before, after []shared.MonitorLocation, err error)
+	// RecordLocation stores what the result left on the monitor's row for the probe, calls judge
+	// with the monitor's last recorded status and its rows from just before and just after, and
+	// records the status judge returns (nil clears it). All of it happens with the monitor held,
+	// so two results of one monitor, recorded at once, see one another in turn. A monitor without
+	// a row for the probe has nothing stored on a row, and a monitor without rows (MongoDB's, or
+	// one from before probes) is judged on none.
+	RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error
 }
 
 type ServiceImpl struct {
@@ -247,31 +248,48 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		hb.DownCount = 0
 	}
 
-	// Record the location's status, and read the monitor's locations from before and after
+	// Record the location's status, and judge the monitor while it is held: its status before this
+	// result is the one last recorded for it, and its status after is what its locations add up to
 	locationStatus := hb.Status
 	state := shared.LocationState{ProbeID: probeID, Status: &locationStatus, LastPing: &r.PingMs, LastHeartbeatAt: &r.StartTime}
-	recordedBefore, recordedAfter, err := s.locations.RecordLocation(ctx, r.MonitorID, state)
+	var (
+		rowsBefore      []shared.MonitorLocation
+		recordedBefore  *shared.MonitorStatus
+		isFirstBeat     bool
+		previousStatus  shared.MonitorStatus
+		currentStatus   shared.MonitorStatus
+		locationsAfter  []shared.MonitorLocation
+		locationsBefore []shared.MonitorLocation
+	)
+	err = s.locations.RecordLocation(ctx, r.MonitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
+		rowsBefore, recordedBefore = j.Before, j.Recorded
+		// A location with no status yet but a heartbeat on the probe has that heartbeat's status: the
+		// row of a monitor from before it kept one, and MongoDB's has none
+		locationsBefore = withLocation(j.Before, probeID, func(l *shared.MonitorLocation) {
+			if l.Status == nil && previousBeat != nil {
+				previousStatus := previousBeat.Status
+				l.Status = &previousStatus
+			}
+		})
+		locationsAfter = withLocation(j.After, probeID, func(l *shared.MonitorLocation) {
+			l.Status, l.LastPing, l.LastHeartbeatAt = &locationStatus, &r.PingMs, &r.StartTime
+		})
+		// A monitor with a status recorded is first judged by it, whatever its locations say now:
+		// a probe that went offline since then must not hide a change. One with none recorded, such
+		// as MongoDB's, goes by its locations, and is on its first heartbeat when none has a status.
+		isFirstBeat = j.Recorded == nil && !anyStatusKnown(locationsBefore)
+		if j.Recorded != nil {
+			previousStatus = *j.Recorded
+		} else {
+			previousStatus = monitorStatus(locationsBefore)
+		}
+		currentStatus = monitorStatus(locationsAfter)
+		return &currentStatus
+	})
 	if err != nil {
 		s.logger.Errorw("Failed to record the location of monitor", "monitor_id", r.MonitorID, "probe_id", probeID, "error", err)
 		return fmt.Errorf("failed to record the location: %w", err)
 	}
-	// A location with no status yet but a heartbeat on the probe has that heartbeat's status: the
-	// row of a monitor from before it kept one, and MongoDB's has none
-	locationsBefore := withLocation(recordedBefore, probeID, func(l *shared.MonitorLocation) {
-		if l.Status == nil && previousBeat != nil {
-			previousStatus := previousBeat.Status
-			l.Status = &previousStatus
-		}
-	})
-	locationsAfter := withLocation(recordedAfter, probeID, func(l *shared.MonitorLocation) {
-		l.Status, l.LastPing, l.LastHeartbeatAt = &locationStatus, &r.PingMs, &r.StartTime
-	})
-
-	// The monitor's status before this result and after it. The monitor's first heartbeat is the
-	// first any of its locations has made.
-	isFirstBeat := !anyStatusKnown(locationsBefore)
-	previousStatus := monitorStatus(locationsBefore)
-	currentStatus := monitorStatus(locationsAfter)
 
 	isImportant := isFirstBeat || s.isImportantBeat(previousStatus, currentStatus)
 	shouldNotify := false
@@ -364,7 +382,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 			"monitor_id", r.MonitorID,
 			"error", err,
 		)
-		s.restoreLocation(ctx, r.MonitorID, probeID, recordedBefore)
+		s.restoreLocation(ctx, r.MonitorID, probeID, rowsBefore, recordedBefore)
 		return fmt.Errorf("failed to create heartbeat: %w", err)
 	}
 
@@ -387,20 +405,22 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	return nil
 }
 
-// restoreLocation puts the probe's row back as it was before the result was recorded on it, for a
-// result that could not be stored: the task is tried again, and judged against the monitor as it
-// was, so the notification it is due is not lost. It cannot do more than log a failure, and a row
-// the monitor has not got is not made.
-func (s *ServiceImpl) restoreLocation(ctx context.Context, monitorID, probeID string, before []shared.MonitorLocation) {
-	i := slices.IndexFunc(before, func(l shared.MonitorLocation) bool { return l.ProbeID == probeID })
-	if i < 0 {
-		return
+// restoreLocation puts the probe's row, and the monitor's recorded status, back as they were before
+// the result was recorded, for a result that could not be stored: the task is tried again, and
+// judged against the monitor as it was, so the notification it is due is not lost. It cannot do
+// more than log a failure, and a row the monitor has not got is not made.
+func (s *ServiceImpl) restoreLocation(ctx context.Context, monitorID, probeID string, before []shared.MonitorLocation, recorded *shared.MonitorStatus) {
+	var old shared.LocationState
+	if i := slices.IndexFunc(before, func(l shared.MonitorLocation) bool { return l.ProbeID == probeID }); i >= 0 {
+		old = shared.LocationState{ProbeID: probeID, Status: before[i].Status, LastPing: before[i].LastPing, LastHeartbeatAt: before[i].LastHeartbeatAt}
+	} else {
+		// No row to put back: a state for a probe the monitor has no row for stores nothing
+		old = shared.LocationState{ProbeID: probeID}
 	}
 	// The failure may be the context's own
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 	defer cancel()
-	old := before[i]
-	_, _, err := s.locations.RecordLocation(ctx, monitorID, shared.LocationState{ProbeID: probeID, Status: old.Status, LastPing: old.LastPing, LastHeartbeatAt: old.LastHeartbeatAt})
+	err := s.locations.RecordLocation(ctx, monitorID, old, func(shared.LocationJudgement) *shared.MonitorStatus { return recorded })
 	if err != nil {
 		s.logger.Errorw("Failed to put the location of monitor back after a failed heartbeat", "monitor_id", monitorID, "probe_id", probeID, "error", err)
 	}

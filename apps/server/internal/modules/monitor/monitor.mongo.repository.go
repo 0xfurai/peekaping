@@ -568,11 +568,16 @@ func (r *MonitorRepositoryImpl) FindActiveByProbe(ctx context.Context, probeID s
 	return r.FindActivePaginated(ctx, page, limit)
 }
 
-// RecordLocation stores nothing: MongoDB has no probes (ADR 0001), so a monitor has no rows, and
-// the ingester takes the local probe's state from its previous heartbeat, as it always has.
-func (r *MonitorRepositoryImpl) RecordLocation(context.Context, string, shared.LocationState) (before, after []shared.MonitorLocation, err error) {
-	return nil, nil, nil
+// RecordLocation judges a monitor with no rows and no recorded status and stores nothing: MongoDB
+// has no probes (ADR 0001), so the ingester takes the local probe's state from its previous
+// heartbeat, as it always has.
+func (r *MonitorRepositoryImpl) RecordLocation(_ context.Context, _ string, _ shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
+	judge(shared.LocationJudgement{})
+	return nil
 }
+
+// ResetLocations does nothing: a MongoDB monitor keeps no state of its locations
+func (r *MonitorRepositoryImpl) ResetLocations(context.Context, string) error { return nil }
 
 // RemoveProxyReference sets proxy_id to an empty string for all monitors with the given proxyId.
 func (r *MonitorRepositoryImpl) RemoveProxyReference(ctx context.Context, proxyId string) error {

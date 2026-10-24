@@ -111,6 +111,8 @@ type fakeLocations struct {
 	err     error
 	// records are the states recorded, oldest first
 	records []shared.LocationState
+	// recorded is the status the monitor last added up to, nil until a result is recorded
+	recorded *shared.MonitorStatus
 }
 
 func (f *fakeLocations) rows() []shared.MonitorLocation {
@@ -126,16 +128,18 @@ func (f *fakeLocations) rows() []shared.MonitorLocation {
 	return rows
 }
 
-func (f *fakeLocations) RecordLocation(_ context.Context, _ string, state shared.LocationState) ([]shared.MonitorLocation, []shared.MonitorLocation, error) {
+func (f *fakeLocations) RecordLocation(_ context.Context, _ string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
 	if f.err != nil {
-		return nil, nil, f.err
+		return f.err
 	}
-	before := f.rows()
+	judgement := shared.LocationJudgement{Recorded: f.recorded, Before: f.rows()}
 	f.records = append(f.records, state)
 	if slices.Contains(f.probes, state.ProbeID) {
 		f.states[state.ProbeID] = state
 	}
-	return before, f.rows(), nil
+	judgement.After = f.rows()
+	f.recorded = judge(judgement)
+	return nil
 }
 
 // setOffline takes the probe's instances away

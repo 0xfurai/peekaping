@@ -88,3 +88,53 @@ func TestService_IngestJudgesEachProbeOfAMonitorOverSQLite(t *testing.T) {
 	require.NotEmpty(t, statusChanges)
 	assert.Equal(t, down, statusChanges[len(statusChanges)-1].Status, "the monitor went Down when local did, and stays Down while it is")
 }
+
+// The same over the real repositories: the monitor's recorded status survives a probe going offline,
+// and a reset makes the next result the monitor's first
+func TestService_IngestAnnouncesAChangeThatAnOfflineProbeWouldHideOverSQLite(t *testing.T) {
+	ctx := context.Background()
+	logger := zap.NewNop().Sugar()
+	db, err := infra.ProvideSQLDB(&config.Config{DBType: "sqlite", DBName: filepath.Join(t.TempDir(), "ingester.db")}, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, db.Close()) })
+	migrator := migrate.NewMigrator(db, migrations.Migrations)
+	require.NoError(t, migrator.Init(ctx))
+	_, err = migrator.Migrate(ctx)
+	require.NoError(t, err)
+	_, err = db.Exec("INSERT INTO probes (id, name, status) VALUES (?, ?, 'online')", probeA, "Frankfurt")
+	require.NoError(t, err)
+	monitors := monitor.NewSQLRepository(db)
+	created, err := monitors.Create(ctx, &shared.Monitor{Type: "http", Name: "Checkout", Interval: 60, Timeout: 16, Active: true, ProbeIDs: []string{"local", probeA}})
+	require.NoError(t, err)
+	bus := eventstest.NewBus()
+	heartbeats := heartbeat.NewService(heartbeat.NewSQLRepository(db), bus, logger)
+	service := NewService(heartbeats, &fakeCertificateService{}, monitors, bus, logger)
+	at := time.Date(2026, 10, 24, 12, 0, 0, 0, time.UTC)
+	minute := 0
+	ingest := func(probeID string, status shared.MonitorStatus) []string {
+		t.Helper()
+		minute++
+		start := at.Add(time.Duration(minute) * time.Minute)
+		require.NoError(t, service.Ingest(ctx, &Result{ProbeID: probeID, MonitorID: created.ID, MonitorName: "Checkout", MonitorType: "http", Status: status, StartTime: start, EndTime: start}))
+		var topics []string
+		for _, topic := range bus.TakeTopics() {
+			if topic != events.HeartbeatEvent.Name() {
+				topics = append(topics, topic)
+			}
+		}
+		return topics
+	}
+
+	assert.Equal(t, []string{changed, notified}, ingest("local", up), "the first result")
+	assert.Equal(t, []string{changed, notified}, ingest(probeA, down), "the monitor goes Down")
+	_, err = db.Exec("UPDATE probes SET status = 'offline' WHERE id = ?", probeA)
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{changed, notified}, ingest("local", up), "A is offline, so the monitor is Up: Down to Up, announced")
+	assert.Empty(t, ingest("local", up), "and only once")
+
+	// A reset, as the monitor service does it
+	require.NoError(t, heartbeats.DeleteByMonitorID(ctx, created.ID))
+	require.NoError(t, monitors.ResetLocations(ctx, created.ID))
+	assert.Equal(t, []string{changed, notified}, ingest("local", up), "after a reset the next result is the monitor's first")
+}

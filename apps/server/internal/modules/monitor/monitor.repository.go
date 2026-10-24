@@ -29,10 +29,14 @@ type MonitorRepository interface {
 	RemoveProxyReference(ctx context.Context, proxyId string) error
 	FindByProxyId(ctx context.Context, proxyId string) ([]*Model, error)
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
-	// RecordLocation stores what a result left on the monitor's row for the probe that ran it, and
-	// returns the monitor's rows (the probes it runs on, in id order) as they were just before and
-	// just after, read together with the write so that two results of one monitor see one another
-	// in turn. A monitor without a row for the probe has nothing stored; one without rows returns
-	// none.
-	RecordLocation(ctx context.Context, monitorID string, state shared.LocationState) (before, after []shared.MonitorLocation, err error)
+	// RecordLocation stores what a result left on the monitor's row for the probe that ran it,
+	// then calls judge with the monitor's last recorded status and its rows from just before and
+	// just after, and records the status judge returns as the monitor's (nil clears it). All of it
+	// happens with the monitor held, so two results of one monitor see one another in turn: each
+	// one's recorded status is what the other's judge returned. A monitor without a row for the
+	// probe has nothing stored on the row, and one without rows is judged on none.
+	RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error
+	// ResetLocations forgets where the monitor stood: its probes' rows lose their state and the
+	// monitor loses its recorded status, so that its next result is its first
+	ResetLocations(ctx context.Context, monitorID string) error
 }

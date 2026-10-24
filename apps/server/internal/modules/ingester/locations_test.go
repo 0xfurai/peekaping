@@ -144,9 +144,48 @@ func TestIngester_AnOfflineProbeIsUnknownNotDown(t *testing.T) {
 	assert.Equal(t, up, beat.status)
 	require.Len(t, beat.published, 3, "the monitor's status changed")
 	assert.Equal(t, up, beat.published[2].Status, "A counts as unknown, and B is Up")
-	assert.Equal(t, []string{changed}, beat.events)
+	assert.Equal(t, []string{changed, notified}, beat.events, "Down to Up: the monitor had been Down")
 	assert.True(t, beat.important)
-	assert.False(t, beat.notified)
+	assert.True(t, beat.notified)
+}
+
+// The monitor's status before a result is the one last recorded for it, not what its locations add
+// up to now: a probe that went offline since then must not hide a change
+func TestIngester_AnOfflineProbeThatWasDownIsAnnouncedWhenAnotherReportsUp(t *testing.T) {
+	ti := newTestIngester(runningOn(probeA, probeB))
+	m := monitorSettings{}
+	ti.from(t, probeB, m, up)
+	down1 := ti.from(t, probeA, m, down)
+	require.Equal(t, []string{changed, notified}, down1.events, "the monitor is Down")
+	ti.locations.setOffline(probeA)
+
+	recovered := ti.from(t, probeB, m, up)
+
+	assert.Equal(t, up, recovered.status)
+	assert.True(t, recovered.important)
+	assert.True(t, recovered.notified, "the monitor went Down to Up: one Up notification")
+	assert.Equal(t, []string{changed, notified}, recovered.events)
+	require.Len(t, recovered.published, 3)
+	assert.Equal(t, up, recovered.published[2].Status, "and the monitor's stored status follows")
+
+	again := ti.from(t, probeB, m, up)
+	assert.Empty(t, again.events, "B being Up again changes nothing")
+	assert.False(t, again.important)
+}
+
+func TestIngester_AnOfflineProbeThatWasUpIsLeftOutWhenAnotherGoesDown(t *testing.T) {
+	ti := newTestIngester(runningOn(probeA, probeB))
+	m := monitorSettings{}
+	ti.from(t, probeA, m, up)
+	ti.from(t, probeB, m, up)
+	ti.locations.setOffline(probeA)
+
+	wentDown := ti.from(t, probeB, m, down)
+	stillDown := ti.from(t, probeB, m, down)
+
+	assert.Equal(t, []string{changed, notified}, wentDown.events, "the monitor went Up to Down: one Down notification")
+	assert.Equal(t, down, wentDown.published[len(wentDown.published)-1].Status)
+	assert.Empty(t, stillDown.events, "and not another")
 }
 
 func TestIngester_AProbeThatSendsAResultIsOnlineForIt(t *testing.T) {

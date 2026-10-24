@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"database/sql"
 	"sync"
 	"testing"
 	"time"
@@ -42,6 +43,29 @@ func statuses(locations []shared.MonitorLocation) map[string]string {
 	}
 	return got
 }
+
+// recordLocation records the state, answers the judge with answer, and returns what the judge was
+// given: the rows from before and after, and the status recorded before
+func recordLocation(ctx context.Context, repo MonitorRepository, monitorID string, state shared.LocationState, answer *shared.MonitorStatus) (before, after []shared.MonitorLocation, recorded *shared.MonitorStatus, err error) {
+	err = repo.RecordLocation(ctx, monitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
+		before, after, recorded = j.Before, j.After, j.Recorded
+		return answer
+	})
+	return before, after, recorded, err
+}
+
+func recordedStatus(t *testing.T, db *bun.DB, monitorID string) *int {
+	t.Helper()
+	var recorded sql.NullInt64
+	require.NoError(t, db.NewSelect().Table("monitors").Column("locations_status").Where("id = ?", monitorID).Scan(context.Background(), &recorded))
+	if !recorded.Valid {
+		return nil
+	}
+	status := int(recorded.Int64)
+	return &status
+}
+
+func statusPtr(status shared.MonitorStatus) *shared.MonitorStatus { return &status }
 
 func setProbeStatus(t *testing.T, db *bun.DB, id, status string) {
 	t.Helper()
@@ -100,7 +124,7 @@ func TestSQLRepository_RecordLocationKeepsEachProbesState(t *testing.T) {
 		require.NoError(t, err)
 		at := time.Date(2026, 10, 24, 12, 0, 0, 0, time.UTC)
 
-		before, after, err := repo.RecordLocation(ctx, created.ID, stateOf("frankfurt", down, 450, at))
+		before, after, _, err := recordLocation(ctx, repo, created.ID, stateOf("frankfurt", down, 450, at), nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, map[string]string{"frankfurt": "unknown", "local": "unknown"}, statuses(before))
@@ -110,7 +134,7 @@ func TestSQLRepository_RecordLocationKeepsEachProbesState(t *testing.T) {
 		require.NotNil(t, after[0].LastHeartbeatAt)
 		assert.True(t, at.Equal(*after[0].LastHeartbeatAt), "got %s", after[0].LastHeartbeatAt)
 
-		before, after, err = repo.RecordLocation(ctx, created.ID, stateOf("local", up, 20, at.Add(time.Minute)))
+		before, after, _, err = recordLocation(ctx, repo, created.ID, stateOf("local", up, 20, at.Add(time.Minute)), nil)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]string{"frankfurt": "down", "local": "unknown"}, statuses(before), "the next result sees the last one")
 		assert.Equal(t, map[string]string{"frankfurt": "down", "local": "up"}, statuses(after), "and the other probe keeps its state")
@@ -132,7 +156,7 @@ func TestSQLRepository_RecordLocationForAProbeTheMonitorDoesNotRunOn(t *testing.
 		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
 		require.NoError(t, err)
 
-		before, after, err := repo.RecordLocation(ctx, created.ID, stateOf("frankfurt", up, 20, time.Now()))
+		before, after, _, err := recordLocation(ctx, repo, created.ID, stateOf("frankfurt", up, 20, time.Now()), nil)
 
 		require.NoError(t, err)
 		assert.Equal(t, map[string]string{"local": "unknown"}, statuses(before))
@@ -149,10 +173,10 @@ func TestSQLRepository_RecordLocationCanClearTheState(t *testing.T) {
 		ctx := context.Background()
 		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
 		require.NoError(t, err)
-		_, _, err = repo.RecordLocation(ctx, created.ID, stateOf("local", up, 20, time.Now()))
+		_, _, _, err = recordLocation(ctx, repo, created.ID, stateOf("local", up, 20, time.Now()), nil)
 		require.NoError(t, err)
 
-		_, after, err := repo.RecordLocation(ctx, created.ID, shared.LocationState{ProbeID: "local"})
+		_, after, _, err := recordLocation(ctx, repo, created.ID, shared.LocationState{ProbeID: "local"}, nil)
 
 		require.NoError(t, err)
 		assert.Equal(t, shared.MonitorLocation{ProbeID: "local", ProbeName: "Local", Online: true}, after[0], "a state of nils puts the row back as it was before the first result")
@@ -168,9 +192,9 @@ func TestSQLRepository_ChangingProbesKeepsTheStateOfTheOnesThatStay(t *testing.T
 		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local", "frankfurt"))
 		require.NoError(t, err)
 		at := time.Date(2026, 10, 24, 12, 0, 0, 0, time.UTC)
-		_, _, err = repo.RecordLocation(ctx, created.ID, stateOf("local", up, 20, at))
+		_, _, _, err = recordLocation(ctx, repo, created.ID, stateOf("local", up, 20, at), nil)
 		require.NoError(t, err)
-		_, _, err = repo.RecordLocation(ctx, created.ID, stateOf("frankfurt", down, 450, at))
+		_, _, _, err = recordLocation(ctx, repo, created.ID, stateOf("frankfurt", down, 450, at), nil)
 		require.NoError(t, err)
 
 		renamed := *created
@@ -199,7 +223,7 @@ func TestSQLRepository_AMonitorWithoutARowHasALocalLocation(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, []shared.MonitorLocation{{ProbeID: "local", ProbeName: "Local", Online: true}}, found.Locations)
 
-		before, after, err := repo.RecordLocation(ctx, rowless, stateOf("local", up, 20, time.Now()))
+		before, after, _, err := recordLocation(ctx, repo, rowless, stateOf("local", up, 20, time.Now()), nil)
 		require.NoError(t, err)
 		assert.Empty(t, before, "there is no row to hold the state")
 		assert.Empty(t, after)
@@ -217,34 +241,113 @@ func TestSQLRepository_RecordLocationSerializesResultsOfOneMonitor(t *testing.T)
 		for round := range 20 {
 			created, err := repo.Create(ctx, monitorOn("Checkout", true, "local", "frankfurt"))
 			require.NoError(t, err)
-			_, _, err = repo.RecordLocation(ctx, created.ID, stateOf("local", up, 20, time.Now()))
+			_, _, _, err = recordLocation(ctx, repo, created.ID, stateOf("local", up, 20, time.Now()), statusPtr(up))
 			require.NoError(t, err)
-			_, _, err = repo.RecordLocation(ctx, created.ID, stateOf("frankfurt", up, 20, time.Now()))
+			_, _, _, err = recordLocation(ctx, repo, created.ID, stateOf("frankfurt", up, 20, time.Now()), statusPtr(up))
 			require.NoError(t, err)
 
 			var wg sync.WaitGroup
-			var seen [2]struct{ before, after map[string]string }
+			var seen [2]struct {
+				before, after map[string]string
+				recorded      *shared.MonitorStatus
+			}
+			answers := []shared.MonitorStatus{pending, maintenance}
 			for i, probeID := range []string{"local", "frankfurt"} {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					before, after, err := repo.RecordLocation(ctx, created.ID, stateOf(probeID, down, 20, time.Now()))
+					before, after, recorded, err := recordLocation(ctx, repo, created.ID, stateOf(probeID, down, 20, time.Now()), &answers[i])
 					assert.NoError(t, err)
-					seen[i].before, seen[i].after = statuses(before), statuses(after)
+					seen[i].before, seen[i].after, seen[i].recorded = statuses(before), statuses(after), recorded
 				}()
 			}
 			wg.Wait()
 
 			bothDown := map[string]string{"local": "down", "frankfurt": "down"}
 			bothUp := map[string]string{"local": "up", "frankfurt": "up"}
-			first, second := seen[0], seen[1]
+			first, second, firstAnswer := seen[0], seen[1], answers[0]
 			if !assert.ObjectsAreEqual(bothUp, first.before) {
-				first, second = second, first
+				first, second, firstAnswer = second, first, answers[1]
 			}
 			assert.Equal(t, bothUp, first.before, "round %d: one result is first and sees the old state", round)
 			assert.Equal(t, second.before, first.after, "round %d: and the other sees what the first left", round)
 			assert.Equal(t, bothDown, second.after, "round %d", round)
+			require.NotNil(t, first.recorded, "round %d", round)
+			assert.Equal(t, up, *first.recorded, "round %d: the first sees the status recorded before", round)
+			require.NotNil(t, second.recorded, "round %d", round)
+			assert.Equal(t, firstAnswer, *second.recorded, "round %d: and the other sees the one the first recorded", round)
 		}
+	})
+}
+
+func TestSQLRepository_RecordLocationHandsTheJudgeTheStatusRecordedBefore(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		repo := NewSQLRepository(db)
+		ctx := context.Background()
+		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
+		require.NoError(t, err)
+		at := time.Date(2026, 10, 24, 12, 0, 0, 0, time.UTC)
+		answer := func(status shared.MonitorStatus) *shared.MonitorStatus { return &status }
+
+		_, _, recorded, err := recordLocation(ctx, repo, created.ID, stateOf("local", up, 20, at), answer(up))
+		require.NoError(t, err)
+		assert.Nil(t, recorded, "nothing is recorded for a new monitor")
+		assert.Equal(t, 1, *recordedStatus(t, db, created.ID))
+
+		_, _, recorded, err = recordLocation(ctx, repo, created.ID, stateOf("local", down, 20, at), answer(down))
+		require.NoError(t, err)
+		require.NotNil(t, recorded)
+		assert.Equal(t, up, *recorded)
+		assert.Equal(t, 0, *recordedStatus(t, db, created.ID))
+
+		_, _, recorded, err = recordLocation(ctx, repo, created.ID, shared.LocationState{ProbeID: "local"}, nil)
+		require.NoError(t, err)
+		require.NotNil(t, recorded)
+		assert.Equal(t, down, *recorded)
+		assert.Nil(t, recordedStatus(t, db, created.ID), "a judge that answers nil clears it")
+	})
+}
+
+func TestSQLRepository_RecordLocationRecordsTheStatusOfAMonitorWithoutRows(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		repo := NewSQLRepository(db)
+		rowless := uuid.NewString()
+		_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, rowless, true)
+		require.NoError(t, err)
+		status := pending
+
+		_, _, _, err = recordLocation(context.Background(), repo, rowless, stateOf("local", pending, 20, time.Now()), &status)
+
+		require.NoError(t, err)
+		assert.Equal(t, 2, *recordedStatus(t, db, rowless))
+	})
+}
+
+func TestSQLRepository_ResetLocationsForgetsWhereTheMonitorStood(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		repo := NewSQLRepository(db)
+		ctx := context.Background()
+		addProbe(t, db, "frankfurt")
+		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local", "frankfurt"))
+		require.NoError(t, err)
+		other, err := repo.Create(ctx, monitorOn("Search", true, "local"))
+		require.NoError(t, err)
+		status := down
+		for _, id := range []string{created.ID, other.ID} {
+			_, _, _, err = recordLocation(ctx, repo, id, stateOf("local", down, 20, time.Now()), &status)
+			require.NoError(t, err)
+		}
+
+		require.NoError(t, repo.ResetLocations(ctx, created.ID))
+
+		found, err := repo.FindByID(ctx, created.ID)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]string{"frankfurt": "unknown", "local": "unknown"}, statuses(found.Locations))
+		assert.Nil(t, recordedStatus(t, db, created.ID))
+		untouched, err := repo.FindByID(ctx, other.ID)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]string{"local": "down"}, statuses(untouched.Locations), "another monitor is left alone")
+		assert.NotNil(t, recordedStatus(t, db, other.ID))
 	})
 }
 
@@ -286,6 +389,8 @@ func TestSQLRepository_ProbeStateIsBackfilledFromTheLatestHeartbeat(t *testing.T
 			onProbe := newMonitor("frankfurt")
 			beat(onProbe, "frankfurt", up, 80, noon)
 			neverChecked := newMonitor("local")
+			noProbeRow := newMonitor()
+			beat(noProbeRow, "local", pending, 10, noon)
 
 			migrateUp(t, db, migrations.Migrations)
 
@@ -301,6 +406,10 @@ func TestSQLRepository_ProbeStateIsBackfilledFromTheLatestHeartbeat(t *testing.T
 			found, err = repo.FindByID(ctx, onProbe)
 			require.NoError(t, err)
 			assert.Equal(t, "up", statusOf(found.Locations[0]), "a remote probe's row too")
+			assert.Equal(t, 0, *recordedStatus(t, db, checked), "what the monitor last added up to is its latest heartbeat's status")
+			assert.Equal(t, 1, *recordedStatus(t, db, onProbe))
+			assert.Equal(t, 2, *recordedStatus(t, db, noProbeRow), "a monitor without a probe row too")
+			assert.Nil(t, recordedStatus(t, db, neverChecked), "and one with no heartbeat has none recorded")
 			found, err = repo.FindByID(ctx, neverChecked)
 			require.NoError(t, err)
 			assert.Equal(t, shared.MonitorLocation{ProbeID: "local", ProbeName: "Local", Online: true}, found.Locations[0], "a probe with no heartbeat has no state")

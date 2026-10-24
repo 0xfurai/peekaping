@@ -65,9 +65,14 @@ func (m *MockMonitorRepository) FindActiveByProbe(ctx context.Context, probeID s
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
-func (m *MockMonitorRepository) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState) ([]shared.MonitorLocation, []shared.MonitorLocation, error) {
+func (m *MockMonitorRepository) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, _ func(shared.LocationJudgement) *shared.MonitorStatus) error {
 	args := m.Called(ctx, monitorID, state)
-	return nil, nil, args.Error(0)
+	return args.Error(0)
+}
+
+func (m *MockMonitorRepository) ResetLocations(ctx context.Context, monitorID string) error {
+	args := m.Called(ctx, monitorID)
+	return args.Error(0)
 }
 
 func (m *MockMonitorRepository) UpdateFull(ctx context.Context, id string, monitor *Model) error {
@@ -1421,6 +1426,7 @@ func TestMonitorService_ResetMonitorData(t *testing.T) {
 		mockRepo.On("FindByID", ctx, monitorID).Return(monitor, nil).Once()
 		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
 		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
+		mockRepo.On("ResetLocations", ctx, monitorID).Return(nil)
 		mockRepo.On("UpdatePartial", ctx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
 			return *m.ID == monitorID && *m.Status == shared.MonitorStatusPending
 		})).Return(nil)
@@ -1511,6 +1517,7 @@ func TestMonitorService_ResetMonitorData(t *testing.T) {
 		mockRepo.On("FindByID", ctx, monitorID).Return(monitor, nil)
 		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
 		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
+		mockRepo.On("ResetLocations", ctx, monitorID).Return(nil)
 		mockRepo.On("UpdatePartial", ctx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		err := service.ResetMonitorData(ctx, monitorID)

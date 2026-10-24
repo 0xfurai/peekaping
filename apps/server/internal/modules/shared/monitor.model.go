@@ -120,3 +120,14 @@ type LocationState struct {
 	LastPing        *int
 	LastHeartbeatAt *time.Time
 }
+
+// LocationJudgement is what a monitor's locations looked like around one result, handed to the
+// judge that RecordLocation calls while it holds the monitor
+type LocationJudgement struct {
+	// Recorded is the status the judge last returned for the monitor: its last recorded status.
+	// Nil when none was recorded yet.
+	Recorded *MonitorStatus
+	// Before and After are the monitor's rows, in probe id order, as they were just before the
+	// result was written to its row and just after
+	Before, After []MonitorLocation
+}
