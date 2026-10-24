@@ -1,16 +1,17 @@
-// Command probe runs the checks of a remote probe (ADR 0003, the probe protocol of ticket #31).
+// Command probe runs the checks of a remote probe, over the probe protocol designed in ticket #31.
 // It connects out to a Peekaping server with its token, runs the checks of the monitors assigned
 // to it, and sends their results back. It has no database and no Redis. Error reports stay off:
 // they follow an admin's choice that the probe has no way to read.
 package main
 
 import (
-	"errors"
 	"log"
 	"os"
 	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
+	"peekaping/internal/probeclient"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
+	"peekaping/internal/version"
 
 	"go.uber.org/zap"
 )
@@ -58,6 +59,11 @@ func newLogger(cfg *Config) (*zap.SugaredLogger, error) {
 
 // newRuntime builds the probe's runtime from the configuration
 func newRuntime(cfg *Config, logger *zap.SugaredLogger) (runtime, error) {
-	// TODO(#33 glue): connect this to internal/probeclient
-	return nil, errors.New("not wired yet")
+	return probeclient.New(probeclient.Config{
+		URL:         cfg.URL,
+		Token:       cfg.Token,
+		Version:     version.Version,
+		Concurrency: cfg.Concurrency,
+		Logger:      logger,
+	}), nil
 }
