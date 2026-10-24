@@ -12,7 +12,7 @@ A **probe** is a place Peekaping runs checks from. Every install has the **local
 
 A monitor runs on one or more probes. Each probe's results for the monitor are a **location** of that monitor. See [several probes per monitor](#several-probes-per-monitor).
 
-A remote probe runs the monitor types it has a check for. A push monitor runs on the local probe only, because pushes arrive at Peekaping. MongoDB storage has no probes, so the Mongo bundle and the Mongo Docker Compose stacks can't use them.
+A remote probe runs the monitor types it has a check for. A push monitor runs on the local probe only, because pushes arrive at Peekaping. Remote probes need SQLite or PostgreSQL storage: MongoDB storage doesn't support them, so the Mongo bundle and the Mongo Docker Compose stacks can't use them.
 
 ## Run a probe
 
@@ -55,7 +55,7 @@ The probe connects out to Peekaping over HTTP or HTTPS, to paths under `/probe/v
 - **The single-mode bundles** (SQLite and PostgreSQL): port 8383 serves `/probe/`, like everything else.
 - **Helm**: the Ingress and the Istio VirtualService send `/probe` to the API Service. With ingress-nginx, which refuses request bodies over 1 MiB, also set the annotation `nginx.ingress.kubernetes.io/proxy-body-size: "2m"` in `ingress.annotations`, because a batch of results can be a little over 1 MiB.
 - **Your own reverse proxy** in front of port 8383 (see [Reverse proxy and HTTPS](./docker-with-sqlite.md#reverse-proxy-and-https)): it has to pass `/probe/` too. If it limits the size of request bodies, allow 2 MiB. In nginx that is `client_max_body_size 2m;`.
-- **The dev stack**: point `PEEKAPING_URL` at the API port, `http://localhost:8034`.
+- **The dev stack**: point `PEEKAPING_URL` at the API port. A probe run on the host uses `http://localhost:8034`. A probe in a container can't reach the host's `localhost`: join it to the stack's network and use `http://api:8034` (for example `--network peekaping_appnet`), or use the host's address from the container (`http://host.docker.internal:8034` on Docker Desktop). Either way, set `PROBE_ALLOW_INSECURE=true` for the plain `http://` URL.
 
 Use `https://` for any probe that isn't on the same machine as Peekaping. The probe sends its token with every call, and it refuses a plain `http://` address to a host that isn't this machine, unless you set `PROBE_ALLOW_INSECURE=true`.
 
@@ -86,7 +86,7 @@ The token is shown once, when you create the probe or rotate its token. Peekapin
 
 - **Rotate** the token on the Probes page if it leaked or was lost. The old token stops working at once, and the probe's instances must restart with the new one.
 - **Disable** a probe to stop its token working until you enable it again.
-- **Delete** a probe to remove it. Its token stops working.
+- **Delete** a probe to remove it. A probe that still has monitors can't be deleted: move them to another probe or delete them first. Once the probe is deleted, its token stops working.
 
 ## Several instances
 
