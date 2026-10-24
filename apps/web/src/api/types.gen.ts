@@ -345,7 +345,7 @@ export type MonitorCreateUpdateDto = {
   name: string;
   notification_ids: Array<string>;
   /**
-   * The probes that run the monitor's checks, by id. Exactly one for now. Omitted on create, the monitor runs on local; omitted on update, it keeps its probe. A push monitor runs on local only.
+   * The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only.
    */
   probe_ids?: Array<string> | null;
   proxy_id?: string;
@@ -377,6 +377,33 @@ export type MonitorCustomUptimeStatsDto = {
   probe_id?: string;
 };
 
+export type MonitorModelLocation = {
+  /**
+   * When this probe's latest heartbeat was made. Null until the probe reports.
+   */
+  last_heartbeat_at: string | null;
+  /**
+   * The response time of this probe's latest heartbeat, in milliseconds. Null until the probe reports.
+   */
+  last_ping: number | null;
+  /**
+   * Whether the probe has an instance connected. The local probe is always online.
+   */
+  online: boolean;
+  /**
+   * The probe the monitor runs on
+   */
+  probe_id: string;
+  /**
+   * The probe's name
+   */
+  probe_name: string;
+  /**
+   * The status of this probe's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Null until the probe reports.
+   */
+  status: number | null;
+};
+
 export type MonitorMonitorResponseDto = {
   active: boolean;
   config: string;
@@ -384,11 +411,15 @@ export type MonitorMonitorResponseDto = {
   id: string;
   interval: number;
   last_heartbeat?: HeartbeatModel;
+  /**
+   * Where the monitor runs and how it is doing there, one entry for each probe in probe_ids and in the same order
+   */
+  locations: Array<MonitorModelLocation>;
   max_retries: number;
   name: string;
   notification_ids: Array<string>;
   /**
-   * The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself.
+   * The probes that run the monitor's checks, by id: one or more. local is Peekaping itself.
    */
   probe_ids: Array<string>;
   proxy_id: string;
@@ -411,7 +442,7 @@ export type MonitorPartialUpdateDto = {
   name?: string | null;
   notification_ids?: Array<string> | null;
   /**
-   * The probes that run the monitor's checks, by id. Exactly one for now. Omitted, the monitor keeps its probe. A push monitor runs on local only.
+   * The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only.
    */
   probe_ids?: Array<string> | null;
   proxy_id?: string | null;

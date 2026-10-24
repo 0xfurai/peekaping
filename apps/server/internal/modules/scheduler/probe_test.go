@@ -98,3 +98,17 @@ func TestScheduler_RunNowRefusesRemote(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 	assert.Zero(t, h.exec.countFor("mon"))
 }
+
+func TestScheduler_AMonitorOnLocalAndARemoteProbeIsCheckedHere(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t, reconcileEvery(50*time.Millisecond))
+	h.db.put(monitorWith("both", withInterval(day), onProbes("probe-1", shared.LocalProbeID)))
+	h.db.put(monitorWith("remote-only", withInterval(day), onProbes("probe-1", "probe-2")))
+	h.start()
+
+	eventually(t, 2*time.Second, func() bool { return h.exec.countFor("both") == 1 }, "the monitor that runs on local too is checked here")
+
+	assert.NoError(t, h.s.RunNow(context.Background(), "both"))
+	assert.Error(t, h.s.RunNow(context.Background(), "remote-only"))
+	assert.Zero(t, h.exec.countFor("remote-only"))
+}

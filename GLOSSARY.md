@@ -47,12 +47,12 @@ A monitor that's switched off. It runs no checks until it's resumed.
 _Avoid_: Inactive, disabled, stopped
 
 **Stale monitor**:
-An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The watchdog looks for them every minute, gets each one checked again right away, and notifies the monitor's channels if that doesn't help. A monitor on a remote probe isn't checked again from here: its channels are notified once that same wait has passed.
+An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The watchdog looks for them every minute, gets each one checked again right away, and notifies the monitor's channels if that doesn't help. A monitor that doesn't run on the local probe isn't checked again from here: its channels are notified once that same wait has passed.
 _Avoid_: Stuck monitor, dead monitor, overdue
 
 **Probe**:
-A place Peekaping runs checks from. Each monitor runs on one probe, the local probe unless it's assigned to a remote one.
-_Avoid_: Agent, location, worker
+A place Peekaping runs checks from. A monitor runs on one or more probes, the local probe unless it's assigned to remote ones.
+_Avoid_: Agent, worker
 
 **Local probe**:
 The probe that is Peekaping itself: its own process checks the monitors on it. Every install has it, and it can't be deleted.
@@ -65,6 +65,10 @@ _Avoid_: Private location, remote agent
 **Probe instance**:
 One running copy of a probe's program. Every copy started with the probe's token is an instance of that probe, with a random id of its own, and the probe's monitors are dealt among its instances.
 _Avoid_: Agent, worker, node; "instance ID" alone, which is the usage ping's
+
+**Location**:
+A monitor's results from one of its probes: that probe's latest status, response time and heartbeats for the monitor. A monitor on three probes has three locations. A monitor's status follows its locations: it is Down while any location whose probe is online is Down, otherwise Maintenance while any is in Maintenance, otherwise Up while any is Up, otherwise Pending. A location whose probe is offline, or that hasn't reported yet, doesn't count. Only a result can change the monitor's status, and only toward its own: an Up result never takes the monitor Down, a Down result never takes it Up, and a Down monitor stays Down while another location retries, until an Up result arrives.
+_Avoid_: Region, probe (that's the place the checks run from)
 
 **Assignment**:
 The monitors a probe instance checks, with what each check needs, as the server deals them. The instance keeps checking its last assignment while it can't reach the server.

@@ -801,7 +801,7 @@ components:
             type: string
           type: array
         probe_ids:
-          description: The probes that run the monitor's checks, by id. Exactly one for now. Omitted on create, the monitor runs on local; omitted on update, it keeps its probe. A push monitor runs on local only.
+          description: "The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only."
           examples:
             - - local
           items:
@@ -881,6 +881,52 @@ components:
         - 30d
         - 365d
       type: object
+    monitor.ModelLocation:
+      additionalProperties: false
+      properties:
+        last_heartbeat_at:
+          description: When this probe's latest heartbeat was made. Null until the probe reports.
+          format: date-time
+          type:
+            - string
+            - "null"
+        last_ping:
+          description: The response time of this probe's latest heartbeat, in milliseconds. Null until the probe reports.
+          examples:
+            - 120
+          format: int64
+          type:
+            - integer
+            - "null"
+        online:
+          description: Whether the probe has an instance connected. The local probe is always online.
+          type: boolean
+        probe_id:
+          description: The probe the monitor runs on
+          examples:
+            - local
+          type: string
+        probe_name:
+          description: The probe's name
+          examples:
+            - Local
+          type: string
+        status:
+          description: "The status of this probe's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Null until the probe reports."
+          examples:
+            - 1
+          format: int64
+          type:
+            - integer
+            - "null"
+      required:
+        - probe_id
+        - probe_name
+        - online
+        - status
+        - last_ping
+        - last_heartbeat_at
+      type: object
     monitor.MonitorResponseDto:
       additionalProperties: false
       properties:
@@ -900,6 +946,11 @@ components:
           type: integer
         last_heartbeat:
           $ref: "#/components/schemas/heartbeat.Model"
+        locations:
+          description: Where the monitor runs and how it is doing there, one entry for each probe in probe_ids and in the same order
+          items:
+            $ref: "#/components/schemas/monitor.ModelLocation"
+          type: array
         max_retries:
           examples:
             - 3
@@ -916,7 +967,7 @@ components:
             type: string
           type: array
         probe_ids:
-          description: The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself.
+          description: "The probes that run the monitor's checks, by id: one or more. local is Peekaping itself."
           items:
             type: string
           type: array
@@ -976,6 +1027,7 @@ components:
         - proxy_id
         - push_token
         - probe_ids
+        - locations
         - created_at
         - updated_at
       type: object
@@ -1021,7 +1073,7 @@ components:
             - array
             - "null"
         probe_ids:
-          description: The probes that run the monitor's checks, by id. Exactly one for now. Omitted, the monitor keeps its probe. A push monitor runs on local only.
+          description: "The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only."
           examples:
             - - local
           items:

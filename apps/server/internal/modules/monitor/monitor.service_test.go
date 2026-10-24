@@ -65,6 +65,16 @@ func (m *MockMonitorRepository) FindActiveByProbe(ctx context.Context, probeID s
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
+func (m *MockMonitorRepository) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, _ func(shared.LocationJudgement) *shared.MonitorStatus) error {
+	args := m.Called(ctx, monitorID, state)
+	return args.Error(0)
+}
+
+func (m *MockMonitorRepository) ResetLocations(ctx context.Context, monitorID string) error {
+	args := m.Called(ctx, monitorID)
+	return args.Error(0)
+}
+
 func (m *MockMonitorRepository) UpdateFull(ctx context.Context, id string, monitor *Model) error {
 	args := m.Called(ctx, id, monitor)
 	return args.Error(0)
@@ -1416,6 +1426,7 @@ func TestMonitorService_ResetMonitorData(t *testing.T) {
 		mockRepo.On("FindByID", ctx, monitorID).Return(monitor, nil).Once()
 		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
 		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
+		mockRepo.On("ResetLocations", ctx, monitorID).Return(nil)
 		mockRepo.On("UpdatePartial", ctx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
 			return *m.ID == monitorID && *m.Status == shared.MonitorStatusPending
 		})).Return(nil)
@@ -1506,6 +1517,7 @@ func TestMonitorService_ResetMonitorData(t *testing.T) {
 		mockRepo.On("FindByID", ctx, monitorID).Return(monitor, nil)
 		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
 		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
+		mockRepo.On("ResetLocations", ctx, monitorID).Return(nil)
 		mockRepo.On("UpdatePartial", ctx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		err := service.ResetMonitorData(ctx, monitorID)
@@ -1942,8 +1954,11 @@ func TestMonitorService_ChecksTheProbeOfAMonitor(t *testing.T) {
 	}{
 		{"one probe that runs the type", "http", []string{"frankfurt"}, ""},
 		{"a probe with no types runs every type", "docker", []string{"local"}, ""},
-		{"no probes", "http", []string{}, "a monitor runs on exactly one probe"},
-		{"two probes", "http", []string{"local", "frankfurt"}, "a monitor runs on exactly one probe"},
+		{"no probes", "http", []string{}, "a monitor runs on at least one probe"},
+		{"two probes that run the type", "http", []string{"local", "frankfurt"}, ""},
+		{"the same probe twice", "http", []string{"frankfurt", "frankfurt"}, `probe "frankfurt" is listed twice`},
+		{"one of two probes runs other types", "http", []string{"frankfurt", "paris"}, `probe "Paris" doesn't run http monitors`},
+		{"a push monitor on local and a remote probe", "push", []string{"local", "frankfurt"}, "a push monitor runs on the local probe only"},
 		{"an unknown probe", "http", []string{"berlin"}, `probe "berlin" doesn't exist`},
 		{"a probe that runs other types", "http", []string{"paris"}, `probe "Paris" doesn't run http monitors`},
 		{"a push monitor on a remote probe", "push", []string{"frankfurt"}, "a push monitor runs on the local probe only"},

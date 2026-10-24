@@ -89,7 +89,7 @@ func TestPush_QueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 	require.NoError(t, json.Unmarshal(task.Payload, &payload))
 	pushedAt, err := time.Parse(time.RFC3339Nano, payload["start_time"].(string))
 	require.NoError(t, err)
-	assert.Equal(t, fmt.Sprintf("ingest:push:%s:%d", monitorID, pushedAt.UnixNano()), task.ID)
+	assert.Equal(t, fmt.Sprintf("ingest:push:%s:local:%d", monitorID, pushedAt.UnixNano()), task.ID)
 	assert.Equal(t, payload["start_time"], payload["end_time"])
 	payload["start_time"], payload["end_time"] = "pushed at", "pushed at"
 	pinned, err := json.Marshal(payload)

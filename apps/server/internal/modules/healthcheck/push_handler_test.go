@@ -209,7 +209,7 @@ func TestPushEndpoint_EnqueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 	require.NoError(t, json.Unmarshal(got.payload, &payload))
 	pushedAt, err := time.Parse(time.RFC3339Nano, payload["start_time"].(string))
 	require.NoError(t, err)
-	assert.Equal(t, fmt.Sprintf("ingest:push:mon-1:%d", pushedAt.UnixNano()), got.uniqueKey)
+	assert.Equal(t, fmt.Sprintf("ingest:push:mon-1:local:%d", pushedAt.UnixNano()), got.uniqueKey)
 	assert.Equal(t, payload["start_time"], payload["end_time"])
 	payload["start_time"], payload["end_time"] = "pushed at", "pushed at"
 	pinned, err := json.Marshal(payload)

@@ -619,6 +619,12 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 		return fmt.Errorf("failed to delete stats: %w", err)
 	}
 
+	// Forget where the monitor stood on each probe, so that its next result is its first
+	if err := mr.monitorRepository.ResetLocations(ctx, id); err != nil {
+		mr.logger.Errorw("Failed to reset the locations of monitor", "monitorID", id, "error", err)
+		return fmt.Errorf("failed to reset locations: %w", err)
+	}
+
 	// Reset monitor status to pending (like a fresh monitor)
 	pendingStatus := shared.MonitorStatusPending
 	err = mr.monitorRepository.UpdatePartial(ctx, id, &UpdateModel{
