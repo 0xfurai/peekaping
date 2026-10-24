@@ -1,6 +1,6 @@
 import { test, expect, request, type APIRequestContext, type Page } from '@playwright/test';
 import { apiBaseURL } from './support/admin';
-import { adminAPI, createHTTPMonitor, deleteCreated, randomID } from './support/api';
+import { adminAPI, cleanupRetry, createHTTPMonitor, deleteCreated, randomID } from './support/api';
 import { targetHost, targetPort, targetURL } from './support/fake-target';
 import { listFor } from './support/monitor-list';
 
@@ -45,18 +45,28 @@ async function sayHello(page: Page, token: string, supportedTypes: string[]) {
 }
 
 // Deletes what a spec made, whatever state it was left in, so reruns start clean. The monitors go
-// first: a probe that has monitors can't be deleted.
+// first: a probe that has monitors can't be deleted (it answers 409). A form that was submitted
+// when the spec failed can still be saving its monitor, so a refused probe delete lists the
+// monitors again and tries once more, instead of failing the spec with a message that hides why
+// it failed in the first place.
 async function cleanUp(page: Page, { monitor, probe }: { monitor: string; probe: string }) {
   const api = await adminAPI(page);
-  const monitors = await (await api.get('monitors', { params: { q: monitor, limit: 100 } })).json();
-  for (const found of monitors.data.filter((m: { name: string }) => m.name === monitor)) {
-    await deleteCreated(api, `monitors/${found.id}`);
+  try {
+    await expect(async () => {
+      const monitors = await api.get('monitors', { params: { q: monitor, limit: 100 } });
+      expect(monitors.ok(), `GET monitors: ${await monitors.text()}`).toBeTruthy();
+      for (const found of (await monitors.json()).data.filter((m: { name: string }) => m.name === monitor)) {
+        await deleteCreated(api, `monitors/${found.id}`);
+      }
+      const probes = await (await api.get('probes')).json();
+      for (const found of probes.data.filter((p: { name: string }) => p.name === probe)) {
+        const response = await api.delete(`probes/${found.id}`);
+        expect(response.ok(), `DELETE probes/${found.id}: ${response.status()} ${await response.text()}`).toBeTruthy();
+      }
+    }).toPass(cleanupRetry);
+  } finally {
+    await api.dispose();
   }
-  const probes = await (await api.get('probes')).json();
-  for (const found of probes.data.filter((p: { name: string }) => p.name === probe)) {
-    await deleteCreated(api, `probes/${found.id}`);
-  }
-  await api.dispose();
 }
 
 const probeSelect = (page: Page) => page.getByTestId('monitor-probe-select');
