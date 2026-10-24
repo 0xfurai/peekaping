@@ -47,6 +47,15 @@ test('A status page lists each location of a monitor only once it is asked to', 
   const slug = `located-${id}`;
   const created: string[] = [];
 
+  // A MongoDB install has no probes, not even the local one (ADR 0001). The workflow runs every
+  // spec on Mongo and no variable names the database, so the empty list is the signal to skip.
+  const probes = await api.get('probes');
+  expect(probes.ok(), `GET probes: ${await probes.text()}`).toBeTruthy();
+  if ((await probes.json()).data.length === 0) {
+    await api.dispose();
+    test.skip(true, 'probes need SQLite or PostgreSQL storage (ADR 0001)');
+  }
+
   try {
     // The probe has no instance, so it is offline and never reports. It is deleted last: a probe
     // that has monitors can't be deleted.
