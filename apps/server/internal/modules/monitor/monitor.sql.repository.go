@@ -121,8 +121,9 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Model,
 		return nil, err
 	}
 
+	// The probes read back in id order, so the create answers in that order too
 	created := toDomainModelFromSQL(sm)
-	created.ProbeIDs = slices.Clone(probeIDs)
+	created.ProbeIDs = slices.Sorted(slices.Values(probeIDs))
 	return created, nil
 }
 

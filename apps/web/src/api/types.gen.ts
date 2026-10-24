@@ -345,7 +345,7 @@ export type MonitorCreateUpdateDto = {
   name: string;
   notification_ids: Array<string>;
   /**
-   * The probes that run the monitor's checks, by id. Exactly one for now. Omitted on create, the monitor runs on local; omitted on update, it keeps its probe. A push monitor runs on local only.
+   * The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only.
    */
   probe_ids?: Array<string> | null;
   proxy_id?: string;
@@ -388,7 +388,7 @@ export type MonitorMonitorResponseDto = {
   name: string;
   notification_ids: Array<string>;
   /**
-   * The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself.
+   * The probes that run the monitor's checks, by id: one or more. local is Peekaping itself.
    */
   probe_ids: Array<string>;
   proxy_id: string;
@@ -411,7 +411,7 @@ export type MonitorPartialUpdateDto = {
   name?: string | null;
   notification_ids?: Array<string> | null;
   /**
-   * The probes that run the monitor's checks, by id. Exactly one for now. Omitted, the monitor keeps its probe. A push monitor runs on local only.
+   * The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only.
    */
   probe_ids?: Array<string> | null;
   proxy_id?: string | null;

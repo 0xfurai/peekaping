@@ -38,9 +38,8 @@ type Monitor struct {
 	ProxyId   string `json:"proxy_id"`
 	PushToken string `json:"push_token"`
 
-	// ProbeIDs are the probes that run the monitor's checks. Until heartbeats record their probe
-	// (#36) a monitor has exactly one.
-	ProbeIDs []string `json:"probe_ids" nullable:"false" doc:"The probes that run the monitor's checks, by id. Exactly one for now. local is Peekaping itself."`
+	// ProbeIDs are the probes that run the monitor's checks: one or more, in id order.
+	ProbeIDs []string `json:"probe_ids" nullable:"false" doc:"The probes that run the monitor's checks, by id: one or more. local is Peekaping itself."`
 
 	// Names of the monitor's tags. Only the notification listener fills them in,
 	// for the providers to send; the API returns tag IDs instead.

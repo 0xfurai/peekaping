@@ -1942,8 +1942,11 @@ func TestMonitorService_ChecksTheProbeOfAMonitor(t *testing.T) {
 	}{
 		{"one probe that runs the type", "http", []string{"frankfurt"}, ""},
 		{"a probe with no types runs every type", "docker", []string{"local"}, ""},
-		{"no probes", "http", []string{}, "a monitor runs on exactly one probe"},
-		{"two probes", "http", []string{"local", "frankfurt"}, "a monitor runs on exactly one probe"},
+		{"no probes", "http", []string{}, "a monitor runs on at least one probe"},
+		{"two probes that run the type", "http", []string{"local", "frankfurt"}, ""},
+		{"the same probe twice", "http", []string{"frankfurt", "frankfurt"}, `probe "frankfurt" is listed twice`},
+		{"one of two probes runs other types", "http", []string{"frankfurt", "paris"}, `probe "Paris" doesn't run http monitors`},
+		{"a push monitor on local and a remote probe", "push", []string{"local", "frankfurt"}, "a push monitor runs on the local probe only"},
 		{"an unknown probe", "http", []string{"berlin"}, `probe "berlin" doesn't exist`},
 		{"a probe that runs other types", "http", []string{"paris"}, `probe "Paris" doesn't run http monitors`},
 		{"a push monitor on a remote probe", "push", []string{"frankfurt"}, "a push monitor runs on the local probe only"},

@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"net/http"
+	"slices"
 	"testing"
 
 	"peekaping/internal/modules/events"
@@ -73,32 +74,70 @@ func TestMonitorProbes_CreateOnARemoteProbe(t *testing.T) {
 	assert.Equal(t, []string{frankfurt.ID}, a.monitorProbes(t, made.ID))
 }
 
-func TestMonitorProbes_RejectsTwoEntries(t *testing.T) {
+func TestMonitorProbes_AcceptsSeveralProbes(t *testing.T) {
+	a := newAppWithAdmin(t)
+	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})
+	paris := a.createProbe(t, map[string]any{"name": "Paris"})
+	want := func(ids ...string) []string { slices.Sort(ids); return ids }
+
+	made := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), "local", frankfurt.ID), a.asAdmin), http.StatusCreated)
+	assert.Equal(t, want("local", frankfurt.ID), made.ProbeIDs, "the response to the create")
+	assert.Equal(t, want("local", frankfurt.ID), a.monitorProbes(t, made.ID), "and what is stored")
+	path := monitorsPath + "/" + made.ID
+
+	put := decode[monitorWithProbes](t, a.request(t, http.MethodPut, path, onProbes(httpMonitorBody("Checkout", ""), frankfurt.ID, paris.ID, "local"), a.asAdmin), http.StatusOK)
+	assert.Equal(t, want("local", frankfurt.ID, paris.ID), put.ProbeIDs, "a full update")
+
+	patch := decode[monitorWithProbes](t, a.request(t, http.MethodPatch, path, map[string]any{"probe_ids": []string{paris.ID, frankfurt.ID}}, a.asAdmin), http.StatusOK)
+	assert.Equal(t, want(frankfurt.ID, paris.ID), patch.ProbeIDs, "a partial update, which can leave local out")
+}
+
+func TestMonitorProbes_RejectsDuplicatesAndNone(t *testing.T) {
 	a := newAppWithAdmin(t)
 	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})
 	id := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, httpMonitorBody("Checkout", ""), a.asAdmin), http.StatusCreated).ID
 	path := monitorsPath + "/" + id
 
-	for name, probeIDs := range map[string][]string{
-		"two probes":       {"local", frankfurt.ID},
-		"the same twice":   {frankfurt.ID, frankfurt.ID},
-		"no probes at all": {},
+	for name, tc := range map[string]struct {
+		probeIDs []string
+		message  string
+	}{
+		"the same twice":           {[]string{frankfurt.ID, frankfurt.ID}, `Invalid probe_ids: probe "` + frankfurt.ID + `" is listed twice`},
+		"local twice among others": {[]string{"local", frankfurt.ID, "local"}, `Invalid probe_ids: probe "local" is listed twice`},
+		"no probes at all":         {[]string{}, "Invalid probe_ids: a monitor runs on at least one probe"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			for _, tc := range []call{
-				{"create", http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Search", ""), probeIDs...)},
-				{"full update", http.MethodPut, path, onProbes(httpMonitorBody("Checkout", ""), probeIDs...)},
-				{"partial update", http.MethodPatch, path, map[string]any{"probe_ids": probeIDs}},
+			for _, c := range []call{
+				{"create", http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Search", ""), tc.probeIDs...)},
+				{"full update", http.MethodPut, path, onProbes(httpMonitorBody("Checkout", ""), tc.probeIDs...)},
+				{"partial update", http.MethodPatch, path, map[string]any{"probe_ids": tc.probeIDs}},
 			} {
-				w := a.request(t, tc.method, tc.path, tc.body, a.asAdmin)
+				w := a.request(t, c.method, c.path, c.body, a.asAdmin)
 
-				assert.Equal(t, http.StatusBadRequest, w.Code, tc.name+": "+w.Body.String())
-				assert.Equal(t, "Invalid probe_ids: a monitor runs on exactly one probe", errorMessage(t, w.Body.Bytes()), tc.name)
+				assert.Equal(t, http.StatusBadRequest, w.Code, c.name+": "+w.Body.String())
+				assert.Equal(t, tc.message, errorMessage(t, w.Body.Bytes()), c.name)
 			}
 		})
 	}
 	assert.Equal(t, []string{"local"}, a.monitorProbes(t, id), "the monitor stays where it was")
 	assert.Len(t, decode[[]monitorWithProbes](t, a.request(t, http.MethodGet, monitorsPath, nil, a.asAdmin), http.StatusOK), 1, "and no monitor is created")
+}
+
+func TestMonitorProbes_EveryProbeMustRunTheType(t *testing.T) {
+	a := newAppWithAdmin(t)
+	tcpOnly := a.probeThatRuns(t, "Paris", "tcp")
+	httpOnly := a.probeThatRuns(t, "Oslo", "http")
+
+	w := a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), httpOnly.ID, tcpOnly.ID, "local"), a.asAdmin)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	assert.Equal(t, `Invalid probe_ids: probe "Paris" doesn't run http monitors`, errorMessage(t, w.Body.Bytes()))
+	assert.Empty(t, decode[[]monitorWithProbes](t, a.request(t, http.MethodGet, monitorsPath, nil, a.asAdmin), http.StatusOK), "no monitor is created")
+
+	id := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), httpOnly.ID, "local"), a.asAdmin), http.StatusCreated).ID
+	patch := a.request(t, http.MethodPatch, monitorsPath+"/"+id, map[string]any{"probe_ids": []string{httpOnly.ID, tcpOnly.ID}}, a.asAdmin)
+	assert.Equal(t, http.StatusBadRequest, patch.Code, patch.Body.String())
+	assert.Equal(t, `Invalid probe_ids: probe "Paris" doesn't run http monitors`, errorMessage(t, patch.Body.Bytes()))
 }
 
 func TestMonitorProbes_RejectsUnknownProbe(t *testing.T) {
@@ -155,6 +194,7 @@ func TestMonitorProbes_RejectsPushOnRemote(t *testing.T) {
 		{"full update moving it", http.MethodPut, monitorsPath + "/" + pushID, with(pushOnFrankfurt, "push_token", "existing-cron-token")},
 		{"partial update moving it", http.MethodPatch, monitorsPath + "/" + pushID, map[string]any{"probe_ids": []string{frankfurt.ID}}},
 		{"partial update making it push", http.MethodPatch, monitorsPath + "/" + httpID, map[string]any{"type": "push", "config": `{"pushToken":"x"}`, "push_token": "x"}},
+		{"create on local and a remote probe", http.MethodPost, monitorsPath, onProbes(pushMonitorBody("Nightly cron", "nightly-cron-token"), "local", frankfurt.ID)},
 	} {
 		w := a.request(t, tc.method, tc.path, tc.body, a.asAdmin)
 
