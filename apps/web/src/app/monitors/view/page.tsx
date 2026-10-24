@@ -104,7 +104,7 @@ interface TLSInfo {
   certInfo?: CertificateInfo;
 }
 
-const MonitorPage = () => {
+const MonitorPageContent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useLocalizedTranslation();
@@ -807,6 +807,13 @@ const MonitorPage = () => {
       </AlertDialog>
     </Layout>
   );
+};
+
+// The route /monitors/:id keeps the page mounted when only the id changes, so its state would carry
+// the previous monitor's heartbeats and dialogs over. Keyed by id, each monitor starts clean.
+const MonitorPage = () => {
+  const { id } = useParams();
+  return <MonitorPageContent key={id} />;
 };
 
 export default MonitorPage;
