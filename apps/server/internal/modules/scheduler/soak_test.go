@@ -98,15 +98,13 @@ func TestSoak(t *testing.T) {
 			}
 		}
 		s = New(Config{
-			Loader:      loader,
-			Monitors:    monitorService,
+			Source:      NewDatabaseSource(monitorService, loader, bus),
 			Executors:   executorsByType{"http": soakExecutor{}},
 			Supervisor:  supervisor,
 			Ingester:    ingesterService,
 			Concurrency: concurrency,
 			Logger:      logger,
 		})
-		s.Subscribe(bus)
 		watchdog = stale.NewWatchdog(stale.WatchdogConfig{
 			Store:        staleStore,
 			Rechecker:    s,

@@ -105,7 +105,6 @@ func TestRegisterDependencies_ChecksAMonitorAndStoresItsHeartbeatThroughTheRealS
 	) {
 		ctx := context.Background()
 		require.NotNil(t, watchdog)
-		s.Subscribe(bus)
 		require.NoError(t, s.Start(ctx))
 		t.Cleanup(s.Stop)
 
