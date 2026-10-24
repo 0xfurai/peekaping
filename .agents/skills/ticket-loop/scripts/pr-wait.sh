@@ -28,8 +28,8 @@ idle=false
 timeout_min=60
 interval=60
 ignore='[]'
-# The graces below count from when the wait first saw a PR's head, so a push
-# during the wait starts them again.
+# The graces below count from when a wait first saw a PR's head, kept beside the
+# reported keys: a new wait on the same head doesn't start them again, a push does.
 # Checks that haven't registered yet on a fresh push look like "no checks".
 min_wait=90
 # A PR into main with no CI checks counts as busy for this long; after it, the
@@ -98,11 +98,11 @@ while :; do
 
         head=$(jq -r .headSha "$s")
         [ "$(jq -r .headSha "$tmp/$pr.start")" != "$head" ] && pushed=true
-        if [ "$(cat "$tmp/$pr.head" 2>/dev/null)" != "$head" ]; then
-            echo "$head" >"$tmp/$pr.head"
-            echo "$now" >"$tmp/$pr.since"
+        if [ "$(cat "$seen_dir/$pr.head" 2>/dev/null)" != "$head" ]; then
+            echo "$head" >"$seen_dir/$pr.head"
+            echo "$now" >"$seen_dir/$pr.since"
         fi
-        age=$((now - $(cat "$tmp/$pr.since")))
+        age=$((now - $(cat "$seen_dir/$pr.since")))
         [ $age -lt $min_wait ] && busy=true
         # The items waiting on us; the ones not reported before end the wait.
         jq -r --argjson ignore "$ignore" --argjson uploads "$coverage_uploads" '
