@@ -103,7 +103,7 @@ while :; do
         [ $age -lt $min_wait ] && busy=true
         # The items waiting on us; the ones not reported before end the wait.
         jq -r --argjson ignore "$ignore" \
-            '.keys[] | select((startswith("check:") | not) or (ltrimstr("check:") | split(":")[0] | IN($ignore[]) | not))' \
+            '.keys[] | select([$ignore[] as $n | startswith("check:\($n):")] | any | not)' \
             "$s" >"$tmp/$pr.keys"
         # GitHub computes mergeability lazily; UNKNOWN means ask again.
         case $(jq -r .mergeable "$s") in
