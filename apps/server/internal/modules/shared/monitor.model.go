@@ -41,6 +41,10 @@ type Monitor struct {
 	// ProbeIDs are the probes that run the monitor's checks: one or more, in id order.
 	ProbeIDs []string `json:"probe_ids" nullable:"false" doc:"The probes that run the monitor's checks, by id: one or more. local is Peekaping itself."`
 
+	// Locations are the probes in ProbeIDs, in the same order, with how the monitor is doing on
+	// each. Only a repository that reads the probes fills them in.
+	Locations []MonitorLocation `json:"locations" nullable:"false" doc:"Where the monitor runs and how it is doing there, one entry for each probe in probe_ids and in the same order"`
+
 	// Names of the monitor's tags. Only the notification listener fills them in,
 	// for the providers to send; the API returns tag IDs instead.
 	Tags []string `json:"-"`
@@ -94,4 +98,25 @@ type UpdateMonitor struct {
 
 	CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
+}
+
+// MonitorLocation is where a monitor runs and how it is doing there: one probe it is assigned to,
+// and the status of that probe's latest heartbeat.
+type MonitorLocation struct {
+	ProbeID   string `json:"probe_id" doc:"The probe the monitor runs on" example:"local"`
+	ProbeName string `json:"probe_name" doc:"The probe's name" example:"Local"`
+	// Online is whether the probe has an instance connected. The local probe is always online.
+	Online bool `json:"online" doc:"Whether the probe has an instance connected. The local probe is always online."`
+	// Status is the status of the probe's latest heartbeat, nil until the probe has sent one
+	Status          *MonitorStatus `json:"status" nullable:"true" doc:"The status of this probe's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Null until the probe reports." example:"1"`
+	LastPing        *int           `json:"last_ping" nullable:"true" doc:"The response time of this probe's latest heartbeat, in milliseconds. Null until the probe reports." example:"120"`
+	LastHeartbeatAt *time.Time     `json:"last_heartbeat_at" nullable:"true" doc:"When this probe's latest heartbeat was made. Null until the probe reports."`
+}
+
+// LocationState is what a result leaves on a monitor's row for the probe that ran it
+type LocationState struct {
+	ProbeID         string
+	Status          *MonitorStatus
+	LastPing        *int
+	LastHeartbeatAt *time.Time
 }

@@ -65,6 +65,11 @@ func (m *MockMonitorRepository) FindActiveByProbe(ctx context.Context, probeID s
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
+func (m *MockMonitorRepository) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState) ([]shared.MonitorLocation, []shared.MonitorLocation, error) {
+	args := m.Called(ctx, monitorID, state)
+	return nil, nil, args.Error(0)
+}
+
 func (m *MockMonitorRepository) UpdateFull(ctx context.Context, id string, monitor *Model) error {
 	args := m.Called(ctx, id, monitor)
 	return args.Error(0)

@@ -1,6 +1,10 @@
 package monitor
 
-import "context"
+import (
+	"context"
+
+	"peekaping/internal/modules/shared"
+)
 
 type MonitorRepository interface {
 	Create(ctx context.Context, monitor *Model) (*Model, error)
@@ -25,4 +29,10 @@ type MonitorRepository interface {
 	RemoveProxyReference(ctx context.Context, proxyId string) error
 	FindByProxyId(ctx context.Context, proxyId string) ([]*Model, error)
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
+	// RecordLocation stores what a result left on the monitor's row for the probe that ran it, and
+	// returns the monitor's rows (the probes it runs on, in id order) as they were just before and
+	// just after, read together with the write so that two results of one monitor see one another
+	// in turn. A monitor without a row for the probe has nothing stored; one without rows returns
+	// none.
+	RecordLocation(ctx context.Context, monitorID string, state shared.LocationState) (before, after []shared.MonitorLocation, err error)
 }

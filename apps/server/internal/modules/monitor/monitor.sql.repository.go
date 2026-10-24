@@ -3,7 +3,6 @@ package monitor
 import (
 	"context"
 	"fmt"
-	"slices"
 	"time"
 
 	"peekaping/internal/dbtx"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 )
 
 type sqlModel struct {
@@ -33,12 +33,56 @@ type sqlModel struct {
 	PushToken      string               `bun:"push_token"`
 }
 
-// sqlProbeLink is the row that says a monitor runs on a probe
+// sqlProbeLink is the row that says a monitor runs on a probe. It is what is written when a
+// monitor gets a probe; the state the row holds is written by RecordLocation alone.
 type sqlProbeLink struct {
 	bun.BaseModel `bun:"table:monitor_probes,alias:mp"`
 
 	MonitorID string `bun:"monitor_id,pk"`
 	ProbeID   string `bun:"probe_id,pk"`
+}
+
+// sqlLocation is a probe row of a monitor as it is read: with the state the row holds, and the
+// name and status of the probe it names
+type sqlLocation struct {
+	bun.BaseModel `bun:"table:monitor_probes,alias:mp"`
+
+	MonitorID       string     `bun:"monitor_id"`
+	ProbeID         string     `bun:"probe_id"`
+	Status          *int       `bun:"status"`
+	LastPing        *int       `bun:"last_ping"`
+	LastHeartbeatAt *time.Time `bun:"last_heartbeat_at"`
+	ProbeName       string     `bun:"probe_name"`
+	ProbeStatus     string     `bun:"probe_status"`
+}
+
+// probeOnline is the status the probes table keeps for a probe with an instance connected
+const probeOnline = "online"
+
+func (l *sqlLocation) toLocation() shared.MonitorLocation {
+	location := shared.MonitorLocation{
+		ProbeID:   l.ProbeID,
+		ProbeName: l.ProbeName,
+		// The local probe's checks run in the Peekaping process itself, whether or not any instance
+		// ever said hello
+		Online:   l.ProbeID == shared.LocalProbeID || l.ProbeStatus == probeOnline,
+		LastPing: l.LastPing,
+	}
+	if l.Status != nil {
+		status := shared.MonitorStatus(*l.Status)
+		location.Status = &status
+	}
+	if l.LastHeartbeatAt != nil {
+		at := l.LastHeartbeatAt.UTC()
+		location.LastHeartbeatAt = &at
+	}
+	return location
+}
+
+// localLocation is where a monitor without a probe row runs: on the local probe, which has not
+// reported
+func localLocation() shared.MonitorLocation {
+	return shared.MonitorLocation{ProbeID: shared.LocalProbeID, ProbeName: "Local", Online: true}
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
@@ -121,25 +165,108 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Model,
 		return nil, err
 	}
 
-	// The probes read back in id order, so the create answers in that order too
-	created := toDomainModelFromSQL(sm)
-	created.ProbeIDs = slices.Sorted(slices.Values(probeIDs))
-	return created, nil
+	// Read the probes back, so the create answers as every read does: in id order, with where
+	// the monitor runs
+	return r.toDomainModelWithProbes(ctx, sm)
 }
 
-// replaceProbes makes the probes the only ones the monitor runs on. The caller's transaction, if
-// there is one, decides whether the monitor and its probes are stored together.
+// replaceProbes makes the probes the only ones the monitor runs on. A probe that stays keeps its
+// row, and with it the state the row holds. The caller's transaction, if there is one, decides
+// whether the monitor and its probes are stored together.
 func (r *SQLRepositoryImpl) replaceProbes(ctx context.Context, monitorID string, probeIDs []string) error {
 	db := dbtx.DB(ctx, r.db)
-	if _, err := db.NewDelete().Model((*sqlProbeLink)(nil)).Where("monitor_id = ?", monitorID).Exec(ctx); err != nil {
+	remove := db.NewDelete().Model((*sqlProbeLink)(nil)).Where("monitor_id = ?", monitorID)
+	if len(probeIDs) > 0 {
+		remove = remove.Where("probe_id NOT IN (?)", bun.In(probeIDs))
+	}
+	if _, err := remove.Exec(ctx); err != nil {
 		return err
+	}
+	if len(probeIDs) == 0 {
+		return nil
 	}
 	links := make([]*sqlProbeLink, len(probeIDs))
 	for i, probeID := range probeIDs {
 		links[i] = &sqlProbeLink{MonitorID: monitorID, ProbeID: probeID}
 	}
-	_, err := db.NewInsert().Model(&links).Exec(ctx)
+	_, err := db.NewInsert().Model(&links).On("CONFLICT (monitor_id, probe_id) DO NOTHING").Exec(ctx)
 	return err
+}
+
+// locationsOf reads the probe rows of the monitors, with one query for the lot, in id order
+func (r *SQLRepositoryImpl) locationsOf(ctx context.Context, db bun.IDB, ids []string) ([]*sqlLocation, error) {
+	var rows []*sqlLocation
+	err := db.NewSelect().Model(&rows).
+		ColumnExpr("mp.monitor_id, mp.probe_id, mp.status, mp.last_ping, mp.last_heartbeat_at").
+		ColumnExpr("COALESCE(p.name, '') AS probe_name, COALESCE(p.status, '') AS probe_status").
+		Join("LEFT JOIN probes AS p ON p.id = mp.probe_id").
+		Where("mp.monitor_id IN (?)", bun.In(ids)).
+		Order("mp.monitor_id", "mp.probe_id").
+		Scan(ctx)
+	return rows, err
+}
+
+// RecordLocation stores what a result left on the monitor's row for the probe that ran it, and
+// returns the monitor's rows as they were just before and just after. The monitor's rows are
+// locked from the read to the write, so two results of one monitor recorded at once see one
+// another in turn: each one's before is what the other's after left. A probe the monitor doesn't
+// run on has no row to write, and none is made.
+func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState) (before, after []shared.MonitorLocation, err error) {
+	err = dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
+		db := dbtx.DB(ctx, r.db)
+		if r.db.Dialect().Name() == dialect.PG {
+			// SQLite has no row locks: its transaction holds the one writer
+			var locked []string
+			lock := db.NewSelect().Model((*sqlProbeLink)(nil)).Column("probe_id").Where("monitor_id = ?", monitorID).For("UPDATE")
+			if err := lock.Scan(ctx, &locked); err != nil {
+				return err
+			}
+		}
+		rows, err := r.locationsOf(ctx, db, []string{monitorID})
+		if err != nil {
+			return err
+		}
+		before = toLocations(rows)
+
+		update := db.NewUpdate().Model((*sqlProbeLink)(nil)).
+			Where("monitor_id = ?", monitorID).Where("probe_id = ?", state.ProbeID).
+			Set("status = ?", statusColumn(state.Status)).
+			Set("last_ping = ?", state.LastPing)
+		if state.LastHeartbeatAt != nil {
+			update = update.Set("last_heartbeat_at = ?", state.LastHeartbeatAt.UTC())
+		} else {
+			update = update.Set("last_heartbeat_at = ?", nil)
+		}
+		if _, err := update.Exec(ctx); err != nil {
+			return err
+		}
+		rows, err = r.locationsOf(ctx, db, []string{monitorID})
+		if err != nil {
+			return err
+		}
+		after = toLocations(rows)
+		return nil
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return before, after, nil
+}
+
+func statusColumn(status *shared.MonitorStatus) *int {
+	if status == nil {
+		return nil
+	}
+	column := int(*status)
+	return &column
+}
+
+func toLocations(rows []*sqlLocation) []shared.MonitorLocation {
+	locations := make([]shared.MonitorLocation, len(rows))
+	for i, row := range rows {
+		locations[i] = row.toLocation()
+	}
+	return locations
 }
 
 // toDomainModels converts the monitors read and adds their probes, with one query for the lot.
@@ -158,22 +285,20 @@ func (r *SQLRepositoryImpl) toDomainModels(ctx context.Context, sms []*sqlModel)
 		ids[i], byID[sm.ID] = sm.ID, model
 	}
 
-	var links []*sqlProbeLink
-	err := dbtx.DB(ctx, r.db).NewSelect().Model(&links).
-		Where("monitor_id IN (?)", bun.In(ids)).
-		Order("monitor_id", "probe_id").
-		Scan(ctx)
+	rows, err := r.locationsOf(ctx, dbtx.DB(ctx, r.db), ids)
 	if err != nil {
 		return nil, err
 	}
-	for _, link := range links {
-		if model := byID[link.MonitorID]; model != nil {
-			model.ProbeIDs = append(model.ProbeIDs, link.ProbeID)
+	for _, row := range rows {
+		if model := byID[row.MonitorID]; model != nil {
+			model.ProbeIDs = append(model.ProbeIDs, row.ProbeID)
+			model.Locations = append(model.Locations, row.toLocation())
 		}
 	}
 	for _, model := range models {
 		if len(model.ProbeIDs) == 0 {
 			model.ProbeIDs = []string{shared.LocalProbeID}
+			model.Locations = []shared.MonitorLocation{localLocation()}
 		}
 	}
 	return models, nil

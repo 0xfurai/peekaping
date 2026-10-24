@@ -73,6 +73,7 @@ func toDomainModel(mm *mongoModel) *Model {
 		PushToken:      mm.PushToken,
 		// MongoDB has no probes (ADR 0001): every monitor runs on the local one
 		ProbeIDs:  []string{shared.LocalProbeID},
+		Locations: []shared.MonitorLocation{localLocation()},
 		CreatedAt: mm.CreatedAt,
 		UpdatedAt: mm.UpdatedAt,
 	}
@@ -565,6 +566,12 @@ func (r *MonitorRepositoryImpl) FindActiveByProbe(ctx context.Context, probeID s
 		return []*Model{}, nil
 	}
 	return r.FindActivePaginated(ctx, page, limit)
+}
+
+// RecordLocation stores nothing: MongoDB has no probes (ADR 0001), so a monitor has no rows, and
+// the ingester takes the local probe's state from its previous heartbeat, as it always has.
+func (r *MonitorRepositoryImpl) RecordLocation(context.Context, string, shared.LocationState) (before, after []shared.MonitorLocation, err error) {
+	return nil, nil, nil
 }
 
 // RemoveProxyReference sets proxy_id to an empty string for all monitors with the given proxyId.

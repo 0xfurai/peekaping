@@ -71,9 +71,24 @@ func setupTestDB(t *testing.T) *bun.DB {
 		CREATE TABLE monitor_probes (
 			monitor_id TEXT NOT NULL,
 			probe_id TEXT NOT NULL,
+			status INTEGER,
+			last_ping INTEGER,
+			last_heartbeat_at DATETIME,
 			PRIMARY KEY (monitor_id, probe_id)
 		)
 	`)
+	require.NoError(t, err)
+
+	// and the probes table they point at, which the monitors' locations are read with
+	_, err = db.Exec(`
+		CREATE TABLE probes (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			status TEXT NOT NULL DEFAULT 'offline'
+		)
+	`)
+	require.NoError(t, err)
+	_, err = db.Exec(`INSERT INTO probes (id, name) VALUES ('local', 'Local')`)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
