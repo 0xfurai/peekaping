@@ -513,10 +513,12 @@
           "title": "Benachrichtigungskanäle"
         },
         "probe": {
+          "description": "Der Monitor läuft auf jeder gewählten Sonde und zeigt deren Ergebnisse als Standort.",
           "label": "Sonde",
           "option_unsupported": "{{name}} (führt diesen Typ nicht aus)",
           "placeholder": "Sonde auswählen",
           "push_fixed": "Ein Push-Monitor läuft immer auf der lokalen Sonde.",
+          "required": "Wähle mindestens eine Sonde",
           "unsupported": "Diese Sonde führt diesen Monitor-Typ nicht aus. Bitte eine andere Sonde auswählen."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Bald ablaufend",
       "for": "für",
       "live_status": "Live-Status",
+      "locations": {
+        "all": "Alle Standorte",
+        "no_result": "Noch kein Ergebnis",
+        "probe_offline": "Sonde offline",
+        "response_time": "Antwortzeit",
+        "select_label": "Standort",
+        "title": "Standorte"
+      },
       "monitor_for": "überwachen für",
       "no_certificate_data": "Keine Zertifikatsdaten",
       "seconds": "Sekunden",

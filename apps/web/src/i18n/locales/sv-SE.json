@@ -513,10 +513,12 @@
           "title": "Aviseringskanaler"
         },
         "probe": {
+          "description": "Övervakningen körs på varje sond du väljer och visar resultaten från var och en som en plats.",
           "label": "Sond",
           "option_unsupported": "{{name}} (kör inte den här typen)",
           "placeholder": "Välj sond",
           "push_fixed": "En push-övervakning körs alltid på den lokala sonden.",
+          "required": "Välj minst en sond",
           "unsupported": "Den här sonden kör inte den här typen av övervakning. Välj en annan sond."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Utgår snart",
       "for": "för",
       "live_status": "Direktstatus",
+      "locations": {
+        "all": "Alla platser",
+        "no_result": "Inget resultat än",
+        "probe_offline": "Sonden är offline",
+        "response_time": "Svarstid",
+        "select_label": "Plats",
+        "title": "Platser"
+      },
       "monitor_for": "Övervaka för",
       "no_certificate_data": "Ingen certifikatdata",
       "seconds": "sekunder",

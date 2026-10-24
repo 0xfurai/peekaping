@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getProbesOptions } from "@/api/@tanstack/react-query.gen";
 import { LOCAL_PROBE_ID } from "@/app/probes/components/local-probe";
+import { monitorProbes, probeNames } from "@/app/monitors/locations";
 import { useLocalizedTranslation } from "./useTranslation";
 
 // The install's probes, for the places that show the probe a monitor runs on. Every caller shares
@@ -18,13 +19,14 @@ export const useProbes = () => {
     // Until the install has a probe besides the local one there is nothing to choose, so the
     // monitor form and list leave probes out
     hasRemoteProbe: probes.some((probe) => probe.id !== LOCAL_PROBE_ID),
-    // The name of the probe a monitor runs on. The local probe is named even when the list is
-    // empty.
-    probeName: (probeIds: string[] | null | undefined): string => {
-      const id = probeIds?.[0] ?? LOCAL_PROBE_ID;
-      const probe = probes.find((candidate) => candidate.id === id);
-      if (probe) return probe.name;
-      return id === LOCAL_PROBE_ID ? t("probes.local_name") : id;
-    },
+    // The names of the probes a monitor runs on, in the monitor's order. The local probe is named
+    // even when the list is empty.
+    probeNames: (probeIds: string[] | null | undefined): string[] =>
+      probeNames(probeIds, probes, t("probes.local_name")),
+    // The probes a monitor runs on, with their ids, for keying a list of them
+    monitorProbes: (probeIds: string[] | null | undefined): { id: string; name: string }[] =>
+      monitorProbes(probeIds, probes, t("probes.local_name")),
+    // The name of one probe, such as a location's
+    probeName: (probeId: string): string => probeNames([probeId], probes, t("probes.local_name"))[0],
   };
 };

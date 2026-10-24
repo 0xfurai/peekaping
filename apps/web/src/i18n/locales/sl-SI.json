@@ -513,10 +513,12 @@
           "title": "Sporočilni kanali"
         },
         "probe": {
+          "description": "Monitor teče na vsaki izbrani sondi in rezultate vsake prikaže kot lokacijo.",
           "label": "Sonda",
           "option_unsupported": "{{name}} (ne izvaja te vrste)",
           "placeholder": "Izberi sondo",
           "push_fixed": "Push Monitor vedno teče na lokalni sondi.",
+          "required": "Izberite vsaj eno sondo",
           "unsupported": "Ta sonda ne izvaja te vrste monitorja. Izberi drugo sondo."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Skoraj izteče",
       "for": "za",
       "live_status": "Stanje v živo",
+      "locations": {
+        "all": "Vse lokacije",
+        "no_result": "Še ni rezultata",
+        "probe_offline": "Sonda je brez povezave",
+        "response_time": "Čas odziva",
+        "select_label": "Lokacija",
+        "title": "Lokacije"
+      },
       "monitor_for": "monitoriraj za",
       "no_certificate_data": "Ni podatkov o certifikatu",
       "seconds": "sekunde",

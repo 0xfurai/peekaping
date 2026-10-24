@@ -513,10 +513,12 @@
           "title": "Jakinarazpen kanalenak"
         },
         "probe": {
+          "description": "Monitoreak aukeratzen duzun zunda bakoitzean exekutatzen da, eta zunda bakoitzaren emaitzak kokaleku gisa erakusten ditu.",
           "label": "Zunda",
           "option_unsupported": "{{name}} (ez du mota hau exekutatzen)",
           "placeholder": "Hautatu zunda",
           "push_fixed": "Push monitoreak beti zunda lokalean exekutatzen da.",
+          "required": "Aukeratu zunda bat gutxienez",
           "unsupported": "Zunda honek ez du monitore mota hau exekutatzen. Hautatu beste zunda bat."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Iraungitzen ari da",
       "for": "etarako",
       "live_status": "Zuzeneko egoera",
+      "locations": {
+        "all": "Kokaleku guztiak",
+        "no_result": "Oraindik ez dago emaitzarik",
+        "probe_offline": "Zundak ez du konexiorik",
+        "response_time": "Erantzun denbora",
+        "select_label": "Kokalekua",
+        "title": "Kokalekuak"
+      },
       "monitor_for": "monitoratu",
       "no_certificate_data": "Ez dago ziurtagiri daturik",
       "seconds": "segundoak",

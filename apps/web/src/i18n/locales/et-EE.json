@@ -513,10 +513,12 @@
           "title": "Teavituskanalid"
         },
         "probe": {
+          "description": "Monitor töötab igal valitud sondil ja näitab iga sondi tulemusi asukohana.",
           "label": "Sond",
           "option_unsupported": "{{name}} (ei toeta seda tüüpi)",
           "placeholder": "Vali sond",
           "push_fixed": "Push-monitor töötab alati kohalikul sondil.",
+          "required": "Vali vähemalt üks sond",
           "unsupported": "See sond ei toeta seda tüüpi monitori. Vali teine sond."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Aegumine varsti",
       "for": "selleks",
       "live_status": "Reaalajas olek",
+      "locations": {
+        "all": "Kõik asukohad",
+        "no_result": "Tulemust pole veel",
+        "probe_offline": "Sond on võrguühenduseta",
+        "response_time": "Vastusaeg",
+        "select_label": "Asukoht",
+        "title": "Asukohad"
+      },
       "monitor_for": "Monitoorimiseks",
       "no_certificate_data": "Sertifikaatiandmeid pole",
       "seconds": "sekundit",

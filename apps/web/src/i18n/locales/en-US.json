@@ -513,10 +513,12 @@
           "title": "Notification channels"
         },
         "probe": {
+          "description": "The monitor runs on every probe you choose and shows each one's results as a location.",
           "label": "Probe",
           "option_unsupported": "{{name}} (doesn't run this type)",
           "placeholder": "Select probe",
           "push_fixed": "A push monitor always runs on the local probe.",
+          "required": "Choose at least one probe",
           "unsupported": "This probe doesn't run this type of monitor. Choose another probe."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Expiring soon",
       "for": "for",
       "live_status": "Live Status",
+      "locations": {
+        "all": "All locations",
+        "no_result": "No result yet",
+        "probe_offline": "Probe offline",
+        "response_time": "Response time",
+        "select_label": "Location",
+        "title": "Locations"
+      },
       "monitor_for": "monitor for",
       "no_certificate_data": "No certificate data",
       "seconds": "seconds",

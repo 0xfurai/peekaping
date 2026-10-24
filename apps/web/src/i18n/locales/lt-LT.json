@@ -513,10 +513,12 @@
           "title": "Pranešimų kanalai"
         },
         "probe": {
+          "description": "Monitorius veikia kiekviename pasirinktame zonde ir kiekvieno rezultatus rodo kaip vietą.",
           "label": "Zondas",
           "option_unsupported": "{{name}} (nevykdo šio tipo)",
           "placeholder": "Pasirinkite zondą",
           "push_fixed": "Push monitorius visada veikia vietiniame zonde.",
+          "required": "Pasirinkite bent vieną zondą",
           "unsupported": "Šis zondas nevykdo šio tipo monitoriaus. Pasirinkite kitą zondą."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Artėja baigti",
       "for": "skirta",
       "live_status": "Gyva būsena",
+      "locations": {
+        "all": "Visos vietos",
+        "no_result": "Rezultato dar nėra",
+        "probe_offline": "Zondas atsijungęs",
+        "response_time": "Atsakymo laikas",
+        "select_label": "Vieta",
+        "title": "Vietos"
+      },
       "monitor_for": "Steigti",
       "no_certificate_data": "Nėra sertifikato duomenų",
       "seconds": "sekundės",

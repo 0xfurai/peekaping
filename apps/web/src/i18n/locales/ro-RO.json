@@ -513,10 +513,12 @@
           "title": "Canale de notificare"
         },
         "probe": {
+          "description": "Monitorul rulează pe fiecare sondă aleasă și afișează rezultatele fiecăreia ca locație.",
           "label": "Sondă",
           "option_unsupported": "{{name}} (nu rulează acest tip)",
           "placeholder": "Selectează sonda",
           "push_fixed": "Un monitor Push rulează întotdeauna pe sonda locală.",
+          "required": "Alege cel puțin o sondă",
           "unsupported": "Această sondă nu rulează acest tip de monitor. Selectează altă sondă."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "În curând expiră",
       "for": "pentru",
       "live_status": "Stare live",
+      "locations": {
+        "all": "Toate locațiile",
+        "no_result": "Încă niciun rezultat",
+        "probe_offline": "Sondă offline",
+        "response_time": "Timp de răspuns",
+        "select_label": "Locație",
+        "title": "Locații"
+      },
       "monitor_for": "Monitorizare pentru",
       "no_certificate_data": "Fără date despre certificat",
       "seconds": "secunde",

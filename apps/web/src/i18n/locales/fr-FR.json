@@ -513,10 +513,12 @@
           "title": "Canaux de notification"
         },
         "probe": {
+          "description": "Le moniteur s'exécute sur chaque sonde choisie et affiche les résultats de chacune comme un emplacement.",
           "label": "Sonde",
           "option_unsupported": "{{name}} (n'exécute pas ce type)",
           "placeholder": "Sélectionner une sonde",
           "push_fixed": "Un moniteur Push s'exécute toujours sur la sonde locale.",
+          "required": "Choisissez au moins une sonde",
           "unsupported": "Cette sonde n'exécute pas ce type de moniteur. Choisissez une autre sonde."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "À expirer bientôt",
       "for": "pour",
       "live_status": "Statut en direct",
+      "locations": {
+        "all": "Tous les emplacements",
+        "no_result": "Pas encore de résultat",
+        "probe_offline": "Sonde hors ligne",
+        "response_time": "Temps de réponse",
+        "select_label": "Emplacement",
+        "title": "Emplacements"
+      },
       "monitor_for": "Surveiller pour",
       "no_certificate_data": "Aucune donnée de certificat",
       "seconds": "secondes",

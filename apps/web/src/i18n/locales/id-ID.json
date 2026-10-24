@@ -513,10 +513,12 @@
           "title": "Saluran Pemberitahuan"
         },
         "probe": {
+          "description": "Monitor berjalan di setiap probe yang Anda pilih dan menampilkan hasil masing-masing sebagai lokasi.",
           "label": "Probe",
           "option_unsupported": "{{name}} (tidak menjalankan tipe ini)",
           "placeholder": "Pilih probe",
           "push_fixed": "Monitor Push selalu berjalan pada probe lokal.",
+          "required": "Pilih setidaknya satu probe",
           "unsupported": "Probe ini tidak menjalankan tipe monitor ini. Pilih probe lain."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "Segera kedaluwarsa",
       "for": "untuk",
       "live_status": "Status Langsung",
+      "locations": {
+        "all": "Semua lokasi",
+        "no_result": "Belum ada hasil",
+        "probe_offline": "Probe sedang offline",
+        "response_time": "Waktu respons",
+        "select_label": "Lokasi",
+        "title": "Lokasi"
+      },
       "monitor_for": "Pantau untuk",
       "no_certificate_data": "Tidak ada data sertifikat",
       "seconds": "detik",

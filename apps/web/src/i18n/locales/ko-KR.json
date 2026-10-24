@@ -513,10 +513,12 @@
           "title": "알림 채널"
         },
         "probe": {
+          "description": "모니터는 선택한 모든 프로브에서 실행되며 각 프로브의 결과를 위치로 표시합니다.",
           "label": "프로브",
           "option_unsupported": "{{name}} (이 유형을 실행하지 않음)",
           "placeholder": "프로브 선택",
           "push_fixed": "푸시 모니터는 항상 로컬 프로브에서 실행됩니다.",
+          "required": "프로브를 하나 이상 선택하세요",
           "unsupported": "이 프로브는 이 유형의 모니터를 실행하지 않습니다. 다른 프로브를 선택하세요."
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "만료 임박",
       "for": "대상",
       "live_status": "실시간 상태",
+      "locations": {
+        "all": "모든 위치",
+        "no_result": "아직 결과 없음",
+        "probe_offline": "프로브 오프라인",
+        "response_time": "응답 시간",
+        "select_label": "위치",
+        "title": "위치"
+      },
       "monitor_for": "모니터링 대상",
       "no_certificate_data": "인증서 데이터 없음",
       "seconds": "초",

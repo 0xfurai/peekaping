@@ -42,7 +42,7 @@ import {
 } from "../monitor-types/registry";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
-import { probeTypeError } from "../monitor-types/shared/probe-support";
+import { probeTypeError, withEffectiveProbes } from "../monitor-types/shared/probe-support";
 
 type Mode = "create" | "edit";
 
@@ -108,8 +108,11 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     // The schema, and a check of the probe that it can't make: which probes run which types
     // comes from the probes query
     resolver: async (values, context, options) => {
-      const result = await zodResolver(monitorFormSchema)(values, context, options);
-      const message = probeTypeError(values, probes, monitor?.data);
+      // A push monitor is checked and submitted on the local probe, as its probe field shows it
+      // (the form keeps the earlier selection for when the type changes back)
+      const effective = withEffectiveProbes(values);
+      const result = await zodResolver(monitorFormSchema)(effective, context, options);
+      const message = probeTypeError(effective, probes, monitor?.data);
       if (!message) return result;
       return { values: {}, errors: { ...result.errors, probe_ids: { type: "probe", message } } };
     },

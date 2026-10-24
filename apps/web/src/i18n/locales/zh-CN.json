@@ -513,10 +513,12 @@
           "title": "通知渠道"
         },
         "probe": {
+          "description": "监控会在你选择的每个探针上运行，并把每个探针的结果作为一个位置显示。",
           "label": "探针",
           "option_unsupported": "{{name}}（不支持此类型）",
           "placeholder": "选择探针",
           "push_fixed": "推送监控始终在本地探针上运行。",
+          "required": "请至少选择一个探针",
           "unsupported": "此探针不支持该类型的监控，请选择其他探针。"
         },
         "proxy": {
@@ -666,6 +668,14 @@
       "expiring_soon": "即将到期",
       "for": "针对",
       "live_status": "实时状态",
+      "locations": {
+        "all": "所有位置",
+        "no_result": "暂无结果",
+        "probe_offline": "探针离线",
+        "response_time": "响应时间",
+        "select_label": "位置",
+        "title": "位置"
+      },
       "monitor_for": "监测",
       "no_certificate_data": "无证书数据",
       "seconds": "秒",
