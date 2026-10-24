@@ -22,14 +22,16 @@ const LocationRuleField = () => {
   const isPush = type === "push";
   const visible = hasRemoteProbe && !isPush && probeCount > 1;
 
-  // A rule that needs more locations than the monitor has can't be saved, and with one probe the
+  // A rule whose number is missing, not a whole number from 1 up, or more than the monitor's
+  // locations can't be saved, and with one probe the
   // field is hidden, so there is nothing to correct it with: it goes back to any. A hidden rule that
   // can be saved, such as "all" or "at least 1", is left as it is. A push monitor keeps what the
   // form holds (the serializer sends it on the any rule) for when the type changes back.
   const { setValue, trigger } = form;
   useEffect(() => {
     if (isPush || probeCount > 1 || rule !== "at_least") return;
-    if (threshold === null || Number(threshold) > probeCount) {
+    const n = Number(threshold);
+    if (threshold === null || !Number.isInteger(n) || n < 1 || n > probeCount) {
       setValue("location_rule", "any");
       setValue("location_threshold", null);
     }
