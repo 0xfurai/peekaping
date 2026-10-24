@@ -215,10 +215,16 @@ func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string
 	err = dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
 		db := dbtx.DB(ctx, r.db)
 		if r.db.Dialect().Name() == dialect.PG {
-			// SQLite has no row locks: its transaction holds the one writer
 			var locked []string
 			lock := db.NewSelect().Model((*sqlProbeLink)(nil)).Column("probe_id").Where("monitor_id = ?", monitorID).For("UPDATE")
 			if err := lock.Scan(ctx, &locked); err != nil {
+				return err
+			}
+		} else {
+			// SQLite has no row locks: its transaction holds the one writer. A transaction that reads
+			// first and writes later fails at once, without waiting, when another writer got in
+			// between, so it takes the writer's place with a write that changes nothing.
+			if _, err := db.NewUpdate().Model((*sqlProbeLink)(nil)).Set("probe_id = probe_id").Where("monitor_id = ?", monitorID).Exec(ctx); err != nil {
 				return err
 			}
 		}

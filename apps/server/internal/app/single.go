@@ -32,7 +32,7 @@ func RegisterSingle(container *dig.Container, cfg *config.Config) error {
 		return err
 	}
 	return errors.Join(
-		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock, provideInOrderIngester, provideSingleMode, provideSingleClaimer, provideSingleSwitch, probe.ProvideSweep),
+		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock, ingester.ProvideLocationStore, provideInOrderIngester, provideSingleMode, provideSingleClaimer, provideSingleSwitch, probe.ProvideSweep),
 		scheduler.RegisterDependencies(container),
 	)
 }
@@ -57,8 +57,9 @@ func provideMemoryEventBus(logger *zap.SugaredLogger) events.EventBus {
 func provideInOrderIngester(
 	heartbeatService heartbeat.Service,
 	certificateService certificate.Service,
+	locations ingester.LocationStore,
 	eventBus events.EventBus,
 	logger *zap.SugaredLogger,
 ) ingester.Service {
-	return ingester.NewInOrderService(ingester.NewService(heartbeatService, certificateService, eventBus, logger))
+	return ingester.NewInOrderService(ingester.NewService(heartbeatService, certificateService, locations, eventBus, logger))
 }

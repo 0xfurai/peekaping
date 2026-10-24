@@ -1,6 +1,7 @@
 package ingester
 
 import (
+	"peekaping/internal/modules/monitor"
 	"peekaping/internal/utils"
 
 	"github.com/hibiken/asynq"
@@ -11,7 +12,13 @@ import (
 // RegisterDependencies registers ingester dependencies in the DI container: the service that
 // stores check results, the ingester task handler and the ingester
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, NewService, ProvideIngesterTaskHandler, ProvideIngester)
+	return utils.Provide(container, ProvideLocationStore, NewService, ProvideIngesterTaskHandler, ProvideIngester)
+}
+
+// ProvideLocationStore has the ingester keep a monitor's state on each probe in the monitor's own
+// repository, where the monitor API reads it from
+func ProvideLocationStore(repository monitor.MonitorRepository) LocationStore {
+	return repository
 }
 
 // ProvideIngesterTaskHandler provides an ingester task handler

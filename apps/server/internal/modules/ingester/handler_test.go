@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -37,13 +38,16 @@ type fakeHeartbeatService struct {
 	createErr error
 }
 
-// FindByMonitorIDPaginated returns the latest heartbeat, which is all the handler asks for
-func (s *fakeHeartbeatService) FindByMonitorIDPaginated(_ context.Context, _ string, _, _ int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
+// FindByMonitorIDAndProbeIDPaginated returns the latest heartbeat of the probe, which is all the
+// handler asks for. A heartbeat that names no probe is the local probe's.
+func (s *fakeHeartbeatService) FindByMonitorIDAndProbeIDPaginated(_ context.Context, _, probeID string, _, _ int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
 	if s.findErr != nil {
 		return nil, s.findErr
 	}
-	if hb := s.latest(); hb != nil {
-		return []*heartbeat.Model{hb}, nil
+	for i := len(s.stored) - 1; i >= 0; i-- {
+		if hb := s.stored[i]; hb.ProbeID == probeID || (hb.ProbeID == "" && probeID == shared.LocalProbeID) {
+			return []*heartbeat.Model{hb}, nil
+		}
 	}
 	return nil, nil
 }
@@ -96,22 +100,77 @@ func (s *fakeCertificateService) CheckCertificateExpiry(_ context.Context, _ *ce
 	return s.err
 }
 
+// fakeLocations keeps the state of one monitor's probe rows in memory, as the monitor repository
+// keeps it in monitor_probes
+type fakeLocations struct {
+	// probes are the probes the monitor runs on, in id order
+	probes []string
+	// offline are the probes that have no instance connected
+	offline map[string]bool
+	states  map[string]shared.LocationState
+	err     error
+	// records are the states recorded, oldest first
+	records []shared.LocationState
+}
+
+func (f *fakeLocations) rows() []shared.MonitorLocation {
+	rows := make([]shared.MonitorLocation, len(f.probes))
+	for i, probeID := range f.probes {
+		state := f.states[probeID]
+		rows[i] = shared.MonitorLocation{
+			ProbeID: probeID, ProbeName: "Probe " + probeID,
+			Online: probeID == shared.LocalProbeID || !f.offline[probeID],
+			Status: state.Status, LastPing: state.LastPing, LastHeartbeatAt: state.LastHeartbeatAt,
+		}
+	}
+	return rows
+}
+
+func (f *fakeLocations) RecordLocation(_ context.Context, _ string, state shared.LocationState) ([]shared.MonitorLocation, []shared.MonitorLocation, error) {
+	if f.err != nil {
+		return nil, nil, f.err
+	}
+	before := f.rows()
+	f.records = append(f.records, state)
+	if slices.Contains(f.probes, state.ProbeID) {
+		f.states[state.ProbeID] = state
+	}
+	return before, f.rows(), nil
+}
+
+// setOffline takes the probe's instances away
+func (f *fakeLocations) setOffline(probeID string) { f.offline[probeID] = true }
+
 type testIngester struct {
 	heartbeats *fakeHeartbeatService
 	certs      *fakeCertificateService
+	locations  *fakeLocations
 	bus        *eventstest.Bus
 	service    Service
 	handler    *IngesterTaskHandler
+	// statusEvents are the status changes published so far, which a step of locations_test.go
+	// collects before it takes the topics
+	statusEvents []shared.HeartBeatModel
 }
 
-func newTestIngester() *testIngester {
+// runningOn sets the probes the test monitor runs on. The default is the local probe alone.
+func runningOn(probeIDs ...string) func(*fakeLocations) {
+	return func(f *fakeLocations) { f.probes = slices.Sorted(slices.Values(probeIDs)) }
+}
+
+func newTestIngester(options ...func(*fakeLocations)) *testIngester {
 	heartbeats := &fakeHeartbeatService{}
 	certs := &fakeCertificateService{}
+	locations := &fakeLocations{probes: []string{shared.LocalProbeID}, offline: map[string]bool{}, states: map[string]shared.LocationState{}}
+	for _, option := range options {
+		option(locations)
+	}
 	bus := eventstest.NewBus()
-	service := NewService(heartbeats, certs, bus, zap.NewNop().Sugar())
+	service := NewService(heartbeats, certs, locations, bus, zap.NewNop().Sugar())
 	return &testIngester{
 		heartbeats: heartbeats,
 		certs:      certs,
+		locations:  locations,
 		bus:        bus,
 		service:    service,
 		handler:    NewIngesterTaskHandler(service, zap.NewNop().Sugar()),
