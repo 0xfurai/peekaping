@@ -139,6 +139,21 @@ func TestService_Register_CreatesTheOnlyAdmin(t *testing.T) {
 	assert.EqualError(t, err, "admin already exists")
 }
 
+// countBeforeCommit is a repository that still counts no users, as Register
+// sees it when it counts before a concurrent registration commits.
+type countBeforeCommit struct{ auth.Repository }
+
+func (countBeforeCommit) FindAllCount(context.Context) (int64, error) { return 0, nil }
+
+func TestService_Register_LosingTheRaceWithTheSameEmailIsAdminExists(t *testing.T) {
+	h := newHarness(t)
+	h.register(t)
+
+	racing := auth.NewService(countBeforeCommit{auth.NewSQLRepository(h.db)}, h.tokens, zap.NewNop().Sugar())
+	_, err := racing.Register(context.Background(), auth.RegisterDto{Email: adminEmail, Password: adminPassword})
+	assert.ErrorIs(t, err, auth.ErrAdminExists)
+}
+
 func TestService_Login(t *testing.T) {
 	h := newHarness(t)
 	admin := h.register(t).User
