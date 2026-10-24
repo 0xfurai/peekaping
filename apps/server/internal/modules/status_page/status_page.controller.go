@@ -253,12 +253,15 @@ func (c *Controller) publicLocations(ctx context.Context, m *shared.Monitor, hea
 
 	public := make([]*PublicLocationDTO, 0, len(locations))
 	for _, location := range locations {
+		// A visitor's page doesn't fail for want of a location's heartbeats, as it doesn't for the
+		// monitor's own: the location is listed without them
 		heartbeats, err := c.monitorService.GetHeartbeats(ctx, m.ID, location.ProbeID, heartbeatLimit, 0, nil, true)
 		if err != nil {
-			return nil, err
+			c.logger.Errorw("Failed to get the heartbeats of a location", "error", err, "monitorID", m.ID, "probeID", location.ProbeID)
+			heartbeats = nil
 		}
-		// Only the last 24 hours are shown. A visitor's page doesn't fail for want of this number:
-		// the location is listed with a null uptime.
+		// Only the last 24 hours are shown. Nor does the page fail for want of this number: the
+		// location is listed with a null uptime.
 		var uptime24h *float64
 		if uptime, err := c.monitorService.GetUptime24h(ctx, m.ID, location.ProbeID); err != nil {
 			c.logger.Errorw("Failed to get the 24h uptime of a location", "error", err, "monitorID", m.ID, "probeID", location.ProbeID)
