@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"peekaping/internal/dbtx"
+	"peekaping/internal/modules/shared"
 
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
@@ -18,6 +19,7 @@ type sqlModel struct {
 
 	MonitorID   string    `bun:"monitor_id,pk"`
 	Timestamp   time.Time `bun:"timestamp,pk"`
+	ProbeID     string    `bun:"probe_id,pk"`
 	Up          int       `bun:"up,notnull"`
 	Down        int       `bun:"down,notnull"`
 	Maintenance int       `bun:"maintenance,notnull"`
@@ -30,6 +32,7 @@ type sqlModel struct {
 func toDomainModelFromSQL(sm *sqlModel) *Stat {
 	s := &Stat{
 		MonitorID:   sm.MonitorID,
+		ProbeID:     sm.ProbeID,
 		Timestamp:   sm.Timestamp,
 		PingCount:   sm.PingCount,
 		Up:          sm.Up,
@@ -51,6 +54,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Stat {
 func toSQLModel(s *Stat) *sqlModel {
 	sm := &sqlModel{
 		MonitorID:   s.MonitorID,
+		ProbeID:     s.ProbeID,
 		Timestamp:   s.Timestamp,
 		Up:          s.Up,
 		Down:        s.Down,
@@ -87,14 +91,18 @@ func statTable(period StatPeriod) string {
 	return table + " AS s"
 }
 
-// AddToStat adds stat's counts and response times to the row for its monitor and
+// AddToStat adds stat's counts and response times to the row for its monitor, probe and
 // timestamp, and creates the row if there isn't one, in one statement. Concurrent
 // heartbeats in the same bucket therefore can't overwrite each other's counts.
 func (r *SQLRepositoryImpl) AddToStat(ctx context.Context, stat *Stat, period StatPeriod) error {
+	sm := toSQLModel(stat)
+	if sm.ProbeID == "" {
+		sm.ProbeID = shared.LocalProbeID
+	}
 	_, err := r.db.NewInsert().
-		Model(toSQLModel(stat)).
+		Model(sm).
 		ModelTableExpr(statTable(period)).
-		On("CONFLICT (monitor_id, timestamp) DO UPDATE").
+		On("CONFLICT (monitor_id, timestamp, probe_id) DO UPDATE").
 		Set("up = s.up + EXCLUDED.up").
 		Set("down = s.down + EXCLUDED.down").
 		Set("maintenance = s.maintenance + EXCLUDED.maintenance").
@@ -109,15 +117,28 @@ func (r *SQLRepositoryImpl) AddToStat(ctx context.Context, stat *Stat, period St
 }
 
 func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
+	// A bucket holds a row for each probe that ran checks in it; the monitor's figures add them up
 	var sms []*sqlModel
 	err := r.db.NewSelect().
 		Model(&sms).
 		ModelTableExpr(statTable(period)).
+		ColumnExpr("timestamp").
+		ColumnExpr("SUM(up) AS up").
+		ColumnExpr("SUM(down) AS down").
+		ColumnExpr("SUM(maintenance) AS maintenance").
+		ColumnExpr("SUM(ping_sum) AS ping_sum").
+		ColumnExpr("SUM(ping_count) AS ping_count").
+		ColumnExpr("MIN(ping_min) AS ping_min").
+		ColumnExpr("MAX(ping_max) AS ping_max").
 		Where("monitor_id = ? AND timestamp BETWEEN ? AND ?", monitorID, since, until).
+		GroupExpr("timestamp").
 		Order("timestamp ASC").
 		Scan(ctx)
 	if err != nil {
 		return nil, err
+	}
+	for _, sm := range sms {
+		sm.MonitorID = monitorID
 	}
 
 	var stats []*Stat
@@ -140,13 +161,13 @@ func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, period StatPeri
 		batch := r.db.NewSelect().
 			Model((*sqlModel)(nil)).
 			ModelTableExpr(statTable(period)).
-			Column("monitor_id", "timestamp").
+			Column("monitor_id", "timestamp", "probe_id").
 			Where("timestamp < ?", cutoff).
 			Limit(deleteBatchSize)
 		result, err := r.db.NewDelete().
 			Model((*sqlModel)(nil)).
 			ModelTableExpr(statTable(period)).
-			Where("(monitor_id, timestamp) IN (?)", batch).
+			Where("(monitor_id, timestamp, probe_id) IN (?)", batch).
 			Exec(ctx)
 		if err != nil {
 			return deleted, err

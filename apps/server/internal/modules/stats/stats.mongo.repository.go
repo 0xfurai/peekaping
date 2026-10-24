@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"peekaping/internal/config"
+	"peekaping/internal/modules/shared"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -98,6 +99,7 @@ func toDomainModel(mm *mongoModel) *Stat {
 	return &Stat{
 		ID:          mm.ID.Hex(),
 		MonitorID:   mm.MonitorID.Hex(),
+		ProbeID:     shared.LocalProbeID, // a Mongo install has no remote probes
 		Timestamp:   mm.Timestamp,
 		Ping:        mm.Ping,
 		PingMin:     mm.PingMin,

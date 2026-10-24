@@ -15,6 +15,7 @@ const (
 type Stat struct {
 	ID          string    `json:"id"`
 	MonitorID   string    `json:"monitor_id"`
+	ProbeID     string    `json:"probe_id"` // the probe the stat counts; empty for a stat that adds up every probe's
 	Timestamp   time.Time `json:"timestamp"`
 	Ping        float64   `json:"ping"` // average response time over PingCount checks
 	PingMin     float64   `json:"ping_min"`

@@ -12,6 +12,7 @@ import (
 
 type HeartbeatPayload struct {
 	MonitorID string
+	ProbeID   string // the probe that ran the check; empty means the local probe
 	Status    int
 	Ping      int
 	Time      int64 // Unix seconds
@@ -59,7 +60,10 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 	}
 
 	// The heartbeat's counts and response time, which the repository adds to each period's stat
-	add := Stat{MonitorID: hb.MonitorID}
+	add := Stat{MonitorID: hb.MonitorID, ProbeID: hb.ProbeID}
+	if add.ProbeID == "" {
+		add.ProbeID = shared.LocalProbeID
+	}
 
 	// Up/Down logic (flattened)
 	if s.flatStatus(hb.Status) == 1 { // MonitorStatusUp
@@ -92,6 +96,7 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus events.EventBus) {
 	events.Subscribe(events.NewSubscriber(eventBus, "stats"), events.HeartbeatEvent, func(ctx context.Context, payload shared.HeartBeatModel) {
 		hb := &HeartbeatPayload{
 			MonitorID: payload.MonitorID,
+			ProbeID:   payload.ProbeID,
 			Status:    int(payload.Status),
 			Ping:      payload.Ping,
 			Time:      payload.Time.Unix(),
