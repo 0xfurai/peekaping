@@ -145,6 +145,26 @@ func monitorStatus(locations []shared.MonitorLocation) shared.MonitorStatus {
 	}
 }
 
+// carriesChange reports whether a result whose location has the status can be the one that changes
+// the monitor from one status to another. The heartbeat of the result is the one saved as
+// important and notified, so a result can move the monitor to Up only if its own location is not
+// Down, and to Down only if it is not Up: another location's stale status, back with its probe,
+// must wait for that location's own result, which carries the change. A Pending or Maintenance
+// location is neither, so it can move the monitor either way.
+func carriesChange(location, from, to shared.MonitorStatus) bool {
+	if from == to {
+		return true
+	}
+	switch to {
+	case shared.MonitorStatusUp:
+		return location != shared.MonitorStatusDown
+	case shared.MonitorStatusDown:
+		return location != shared.MonitorStatusUp
+	default:
+		return true
+	}
+}
+
 // anyStatusKnown reports whether any location, online or not, has a status
 func anyStatusKnown(locations []shared.MonitorLocation) bool {
 	for _, l := range locations {
@@ -190,7 +210,8 @@ func countsResends(locations []shared.MonitorLocation, probeID string) bool {
 // monitor's own status follows from its locations (see monitorStatus), and whether the heartbeat
 // is important, whether to notify and whether the monitor changed status follow from the monitor's
 // status before the result and after it. A monitor on one probe is judged exactly as it was when a
-// monitor had no locations.
+// monitor had no locations. A result changes the monitor's status only when it can carry the change
+// (see carriesChange); otherwise the monitor keeps the status last recorded for it.
 func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	probeID := r.ProbeID
 	if probeID == "" {
@@ -284,6 +305,9 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 			previousStatus = monitorStatus(locationsBefore)
 		}
 		currentStatus = monitorStatus(locationsAfter)
+		if !isFirstBeat && !carriesChange(locationStatus, previousStatus, currentStatus) {
+			currentStatus = previousStatus
+		}
 		return &currentStatus
 	})
 	if err != nil {
