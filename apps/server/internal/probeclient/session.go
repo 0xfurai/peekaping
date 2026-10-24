@@ -52,7 +52,9 @@ type SessionConfig struct {
 	// SupportedTypes are the monitor types the probe runs, which hello states
 	SupportedTypes []string
 	// HTTPClient makes the requests; http.DefaultClient when nil. The session bounds each call
-	// itself, so the client needs no timeout, and one it has must outlast the long poll.
+	// itself, so the client needs no timeout, and one it has must outlast the long poll. The
+	// session uses a copy of it that refuses a redirect from https to http; the client itself is
+	// not changed.
 	HTTPClient *http.Client
 	Logger     *zap.SugaredLogger
 
@@ -104,7 +106,7 @@ func NewSession(cfg SessionConfig) *Session {
 	hostname, _ := os.Hostname()
 	instanceID := uuid.NewString()
 	s := &Session{
-		client: probeproto.NewClient(cfg.URL, cfg.Token, instanceID, cfg.HTTPClient),
+		client: probeproto.NewClient(cfg.URL, cfg.Token, instanceID, guardRedirects(cfg.HTTPClient)),
 		hello: probeproto.HelloRequest{
 			InstanceID:      instanceID,
 			ProtocolVersion: probeproto.ProtocolVersion,
