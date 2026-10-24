@@ -22,24 +22,28 @@ type Result struct {
 	// ProbeID is the probe that ran the check, stored on the heartbeat. The local worker and the
 	// push URL set it to the local probe; a task queued before they did leaves it empty, which
 	// the ingester also takes as the local probe.
-	ProbeID            string               `json:"probe_id,omitempty"`
-	MonitorID          string               `json:"monitor_id"`
-	MonitorName        string               `json:"monitor_name"`
-	MonitorType        string               `json:"monitor_type"`
-	MonitorInterval    int                  `json:"monitor_interval"`
-	MonitorTimeout     int                  `json:"monitor_timeout"`
-	MonitorMaxRetries  int                  `json:"monitor_max_retries"`
-	MonitorRetryInt    int                  `json:"monitor_retry_interval"`
-	MonitorResendInt   int                  `json:"monitor_resend_interval"`
-	MonitorConfig      string               `json:"monitor_config"`
-	Status             shared.MonitorStatus `json:"status"`
-	Message            string               `json:"message"`
-	PingMs             int                  `json:"ping_ms"`
-	StartTime          time.Time            `json:"start_time"`
-	EndTime            time.Time            `json:"end_time"`
-	IsUnderMaintenance bool                 `json:"is_under_maintenance"`
-	TLSInfo            *certificate.TLSInfo `json:"tls_info,omitempty"`
-	CheckCertExpiry    bool                 `json:"check_cert_expiry"`
+	ProbeID           string `json:"probe_id,omitempty"`
+	MonitorID         string `json:"monitor_id"`
+	MonitorName       string `json:"monitor_name"`
+	MonitorType       string `json:"monitor_type"`
+	MonitorInterval   int    `json:"monitor_interval"`
+	MonitorTimeout    int    `json:"monitor_timeout"`
+	MonitorMaxRetries int    `json:"monitor_max_retries"`
+	MonitorRetryInt   int    `json:"monitor_retry_interval"`
+	MonitorResendInt  int    `json:"monitor_resend_interval"`
+	// MonitorLocationRule and MonitorLocationThreshold are the monitor's location rule. A result
+	// from before they existed has none, which means any.
+	MonitorLocationRule      shared.LocationRule  `json:"monitor_location_rule,omitempty"`
+	MonitorLocationThreshold int                  `json:"monitor_location_threshold,omitempty"`
+	MonitorConfig            string               `json:"monitor_config"`
+	Status                   shared.MonitorStatus `json:"status"`
+	Message                  string               `json:"message"`
+	PingMs                   int                  `json:"ping_ms"`
+	StartTime                time.Time            `json:"start_time"`
+	EndTime                  time.Time            `json:"end_time"`
+	IsUnderMaintenance       bool                 `json:"is_under_maintenance"`
+	TLSInfo                  *certificate.TLSInfo `json:"tls_info,omitempty"`
+	CheckCertExpiry          bool                 `json:"check_cert_expiry"`
 }
 
 // Service turns check results into heartbeats: ADR 0002's "ingest a result". NewService stores
@@ -116,19 +120,59 @@ func (s *ServiceImpl) isImportantForNotification(prevBeatStatus, currBeatStatus 
 		(prevBeatStatus == pending && currBeatStatus == down)
 }
 
-// monitorStatus is the status of a monitor from its locations: Down while any online location is
-// Down, otherwise Maintenance while any is in maintenance, otherwise Up while any is Up, otherwise
-// Pending. A location with no status yet, and one whose probe is offline, is unknown and counts for
-// nothing: an offline probe is not Down, and a monitor none of whose locations is known is Pending.
-func monitorStatus(locations []shared.MonitorLocation) shared.MonitorStatus {
+// locationRule is a monitor's location rule as the ingester judges by it: how many of the
+// locations that count must be Down for the monitor to be Down
+type locationRule struct {
+	rule shared.LocationRule
+	// threshold is how many Down locations at_least asks for
+	threshold int
+}
+
+// ruleOf is the location rule a result carries. An empty or unknown rule is any, which is also the
+// rule of a result queued before rules existed.
+func ruleOf(r *Result) locationRule {
+	switch r.MonitorLocationRule {
+	case shared.LocationRuleAll:
+		return locationRule{rule: shared.LocationRuleAll}
+	case shared.LocationRuleAtLeast:
+		return locationRule{rule: shared.LocationRuleAtLeast, threshold: r.MonitorLocationThreshold}
+	default:
+		return locationRule{rule: shared.LocationRuleAny}
+	}
+}
+
+// met reports whether the Down locations among those that count are enough to take the monitor
+// Down. At least needs a threshold that is met outright, so that a threshold of zero, which no
+// monitor is given, never takes a monitor down on no evidence.
+func (l locationRule) met(down, counted int) bool {
+	switch l.rule {
+	case shared.LocationRuleAll:
+		return counted > 0 && down == counted
+	case shared.LocationRuleAtLeast:
+		return l.threshold > 0 && down >= l.threshold
+	default:
+		return down > 0
+	}
+}
+
+// monitorStatus is the status of a monitor from its locations: Down while the location rule is met
+// by the online locations that have a status, otherwise Maintenance while any of them is in
+// maintenance, otherwise Up while any is Up, otherwise Pending. A location with no status yet, and
+// one whose probe is offline, is unknown and counts for nothing, neither as Down nor in the number
+// "all" and "at least" are measured against: an offline probe is not Down, a monitor needing more
+// Down locations than can report is never Down, and a monitor none of whose locations is known is
+// Pending.
+func monitorStatus(locations []shared.MonitorLocation, rule locationRule) shared.MonitorStatus {
+	var counted, down int
 	var anyUp, anyMaintenance bool
 	for _, l := range locations {
 		if !l.Online || l.Status == nil {
 			continue
 		}
+		counted++
 		switch *l.Status {
 		case shared.MonitorStatusDown:
-			return shared.MonitorStatusDown
+			down++
 		case shared.MonitorStatusUp:
 			anyUp = true
 		case shared.MonitorStatusMaintenance:
@@ -136,6 +180,8 @@ func monitorStatus(locations []shared.MonitorLocation) shared.MonitorStatus {
 		}
 	}
 	switch {
+	case rule.met(down, counted):
+		return shared.MonitorStatusDown
 	case anyMaintenance:
 		return shared.MonitorStatusMaintenance
 	case anyUp:
@@ -274,6 +320,8 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		hb.DownCount = 0
 	}
 
+	rule := ruleOf(r)
+
 	// Record the location's status, and judge the monitor while it is held: its status before this
 	// result is the one last recorded for it, and its status after is what its locations add up to
 	locationStatus := hb.Status
@@ -311,9 +359,9 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		if j.Recorded != nil {
 			previousStatus = *j.Recorded
 		} else {
-			previousStatus = monitorStatus(locationsBefore)
+			previousStatus = monitorStatus(locationsBefore, rule)
 		}
-		currentStatus = monitorStatus(locationsAfter)
+		currentStatus = monitorStatus(locationsAfter, rule)
 		if !isFirstBeat && !carriesChange(locationStatus, locationBefore, previousStatus, currentStatus) {
 			currentStatus = previousStatus
 		}

@@ -4,6 +4,18 @@ import (
 	"time"
 )
 
+// LocationRule is how many of a monitor's locations must be Down for the monitor to be Down
+type LocationRule string
+
+const (
+	// LocationRuleAny: one location is enough. It is the default, and what an empty rule means.
+	LocationRuleAny LocationRule = "any"
+	// LocationRuleAll: every location that counts, and at least one
+	LocationRuleAll LocationRule = "all"
+	// LocationRuleAtLeast: at least LocationThreshold locations
+	LocationRuleAtLeast LocationRule = "at_least"
+)
+
 type Monitor struct {
 	ID string `json:"id"`
 
@@ -30,6 +42,13 @@ type Monitor struct {
 
 	// Resend Notification if Down X times consecutively
 	ResendInterval int `json:"resend_interval" example:"10"`
+
+	// LocationRule is how many of the monitor's locations must be Down for it to be Down. Empty
+	// means any: a monitor read from MongoDB, or from an event of a process that isn't upgraded.
+	LocationRule LocationRule `json:"location_rule" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough, the default), all (every location that counts), or at_least (location_threshold of them). Locations whose probe is offline, or that haven't reported, don't count." example:"any"`
+
+	// LocationThreshold is the number of Down locations at_least asks for, and nil with any other rule
+	LocationThreshold *int `json:"location_threshold" nullable:"true" doc:"With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Null with any other rule." example:"2"`
 
 	Active bool          `json:"active"`
 	Status MonitorStatus `json:"status"`
@@ -88,7 +107,11 @@ type UpdateMonitor struct {
 	MaxRetries     *int           `json:"max_retries"`
 	RetryInterval  *int           `json:"retry_interval"`
 	ResendInterval *int           `json:"resend_interval"`
-	Active         *bool          `json:"active"`
+	// LocationRule and LocationThreshold replace the monitor's location rule when LocationRule is
+	// set: the threshold goes with it, nil for any rule but at_least.
+	LocationRule      *LocationRule `json:"location_rule"`
+	LocationThreshold *int          `json:"location_threshold"`
+	Active            *bool         `json:"active"`
 	Status         *MonitorStatus `json:"status"`
 	Config         *string        `json:"config"`
 	ProxyId        *string        `json:"proxy_id"`

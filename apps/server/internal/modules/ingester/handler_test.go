@@ -185,6 +185,9 @@ func newTestIngester(options ...func(*fakeLocations)) *testIngester {
 type monitorSettings struct {
 	maxRetries     int
 	resendInterval int
+	// locationRule and locationThreshold are the monitor's location rule: empty means any
+	locationRule      shared.LocationRule
+	locationThreshold int
 }
 
 func checkResult(m monitorSettings, status shared.MonitorStatus) Result {
@@ -198,11 +201,14 @@ func checkResult(m monitorSettings, status shared.MonitorStatus) Result {
 		MonitorMaxRetries: m.maxRetries,
 		MonitorRetryInt:   60,
 		MonitorResendInt:  m.resendInterval,
-		Status:            status,
-		Message:           "check message",
-		PingMs:            12,
-		StartTime:         start,
-		EndTime:           start.Add(12 * time.Millisecond),
+
+		MonitorLocationRule:      m.locationRule,
+		MonitorLocationThreshold: m.locationThreshold,
+		Status:                   status,
+		Message:                  "check message",
+		PingMs:                   12,
+		StartTime:                start,
+		EndTime:                  start.Add(12 * time.Millisecond),
 	}
 }
 
