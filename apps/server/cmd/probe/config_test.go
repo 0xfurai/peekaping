@@ -47,6 +47,7 @@ func TestConfig_DefaultsConcurrencyReadyAddrAndLogLevel(t *testing.T) {
 	assert.Equal(t, 128, cfg.Concurrency)
 	assert.Equal(t, "127.0.0.1:8081", cfg.ReadyAddr)
 	assert.Equal(t, "info", cfg.LogLevel)
+	assert.Equal(t, "prod", cfg.Mode, "a probe started with docker run logs as in production")
 	assert.False(t, cfg.AllowInsecure)
 }
 

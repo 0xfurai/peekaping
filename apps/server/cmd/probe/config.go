@@ -28,7 +28,7 @@ type Config struct {
 	// ReadyAddr is where the /ready endpoint listens
 	ReadyAddr string `env:"PROBE_READY_ADDR" default:"127.0.0.1:8081"`
 
-	Mode     string `env:"MODE" default:"dev"`
+	Mode     string `env:"MODE" default:"prod"`
 	LogLevel string `env:"LOG_LEVEL" default:"info"`
 }
 
