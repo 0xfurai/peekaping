@@ -39,7 +39,8 @@ ci_grace=$((10 * 60))
 # both its queue and a stacked PR waiting for an `@coderabbitai review` trigger.
 coderabbit_grace=$((20 * 60))
 # The checks that upload coverage. Codecov posts its statuses after each upload,
-# so they count only once none of these is pending.
+# so they count only once none of these is pending or failed (a failed one never
+# uploaded). One that didn't run on the PR (path filters) holds nothing.
 coverage_uploads='["test", "import-mongo"]'
 
 while [ $# -gt 0 ]; do
@@ -106,7 +107,7 @@ while :; do
         [ $age -lt $min_wait ] && busy=true
         # The items waiting on us; the ones not reported before end the wait.
         jq -r --argjson ignore "$ignore" --argjson uploads "$coverage_uploads" '
-            ([.checks.pending[] | IN($uploads[])] | any) as $uploading
+            ([.checks.pending[], .checks.failed[].name] | any(IN($uploads[]))) as $uploading
             | . as $s
             | [.checks.failed[] | select(.name | IN($ignore[])) | "check:\(.name):\(.url):\($s.headSha)"] as $ignored
             | .keys[]

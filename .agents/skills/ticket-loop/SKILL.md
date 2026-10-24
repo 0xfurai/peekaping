@@ -85,7 +85,7 @@ Where items live in `pr-state.sh` output:
 
 Codecov fails `codecov/patch` when under 70% of the PR's changed lines run in CI's tests, and `codecov/project` when the whole project's coverage drops more than 1% (`codecov.yml`). `pr-state.sh` leaves out `codecov/project` on a stacked PR: Codecov compares it with a stale commit of its base branch. CI runs the server tests on SQLite only, so code that runs only on Postgres or Mongo never counts as covered there.
 
-Run `pr-coverage.sh <pr>` and sort each file's `missed` and `partial` lines:
+While `test` or `import-mongo` is pending or failed, a Codecov failure compares a partial upload, and `pr-wait.sh` holds it back: leave it until both are done, even though `pr-state.sh` lists it. Then run `pr-coverage.sh <pr>` and sort each file's `missed` and `partial` lines:
 
 - **Reachable from a test on SQLite**: an agent ([DELEGATE.md](../ticket/DELEGATE.md)) adds the test, on the behaviour those lines carry, not on the line count. Brief it with the PR, the files and line numbers, and [TESTING.md](../ticket/TESTING.md).
 - **Runs only on Postgres or Mongo** (`*.mongo.repository.go`, a dialect branch): covered by the real-database checks of [TESTING.md](../ticket/TESTING.md). Run them if this round's diff touched the file.
