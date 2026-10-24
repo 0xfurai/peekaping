@@ -42,6 +42,9 @@ func LoadAndValidate(path string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
+	// Validation reads the URL and the token trimmed, so the probe runs with them trimmed too
+	cfg.URL = strings.TrimSpace(cfg.URL)
+	cfg.Token = strings.TrimSpace(cfg.Token)
 	if err := Validate(&cfg); err != nil {
 		return nil, err
 	}

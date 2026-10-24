@@ -89,6 +89,19 @@ func TestConfig_MissingBothReportsBoth(t *testing.T) {
 	assert.Contains(t, err.Error(), "PROBE_TOKEN is required")
 }
 
+// A token read from a file or a secret often ends in a newline, and validation passes it: the
+// probe must run with the value it validated, not send the newline to the server
+func TestConfig_TheURLAndTheTokenAreTrimmedAsValidated(t *testing.T) {
+	env := with(minimal(), "PEEKAPING_URL", "  https://peekaping.example.com/base\n")
+	env["PROBE_TOKEN"] = "secret-token\n"
+
+	cfg, err := loadConfig(t, env)
+
+	require.NoError(t, err)
+	assert.Equal(t, "https://peekaping.example.com/base", cfg.URL)
+	assert.Equal(t, "secret-token", cfg.Token)
+}
+
 func TestConfig_AWhitespaceTokenIsMissing(t *testing.T) {
 	_, err := loadConfig(t, with(minimal(), "PROBE_TOKEN", "  "))
 
