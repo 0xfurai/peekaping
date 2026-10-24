@@ -249,7 +249,7 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 // marks each one stored, which keeps its id claimed. It stops at the first that fails, leaving that
 // result and the ones after it not stored.
 //
-// In cluster mode the ingester enqueues the result, and the queue holds a task for the monitor and
+// In cluster mode the ingester enqueues the result, and the queue holds a task for the monitor, the probe and
 // the start time for an hour. A task the queue holds already is a result stored, by a replica that
 // the probe's first attempt reached: the result's outcome becomes duplicate, and it is not a failure.
 func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*candidate) error {
