@@ -14,21 +14,28 @@ const byProbe = (a: { id: string; name: string }, b: { id: string; name: string 
   return a.name.localeCompare(b.name);
 };
 
-// The names of the probes a monitor runs on: the local probe first, then the others by name. A
-// monitor with none is on the local probe, which is named even when the probes list is empty. A
-// probe the list doesn't hold, such as one deleted since, shows its id.
-export const probeNames = (
+// The probes a monitor runs on, with their names: the local probe first, then the others by name.
+// A monitor with none is on the local probe, which is named even when the probes list is empty. A
+// probe the list doesn't hold, such as one deleted since, shows its id. Probe names aren't unique,
+// so the id is what tells two probes apart.
+export const monitorProbes = (
   probeIds: string[] | null | undefined,
   probes: { id: string; name: string }[],
   localName: string
-): string[] =>
+): { id: string; name: string }[] =>
   (probeIds?.length ? probeIds : [LOCAL_PROBE_ID])
     .map((id) => {
       const probe = probes.find((candidate) => candidate.id === id);
       return { id, name: probe ? probe.name : id === LOCAL_PROBE_ID ? localName : id };
     })
-    .sort(byProbe)
-    .map((probe) => probe.name);
+    .sort(byProbe);
+
+// The names of the probes a monitor runs on, in the order of monitorProbes
+export const probeNames = (
+  probeIds: string[] | null | undefined,
+  probes: { id: string; name: string }[],
+  localName: string
+): string[] => monitorProbes(probeIds, probes, localName).map((probe) => probe.name);
 
 // A monitor's locations in the order the page shows them: the local probe first, then the others
 // by name

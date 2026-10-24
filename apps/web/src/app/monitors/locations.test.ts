@@ -6,6 +6,7 @@ import {
   heartbeatsOfProbe,
   mergeHeartbeats,
   monitorStatusOf,
+  monitorProbes,
   probeNames,
   sortLocations,
 } from "./locations";
@@ -67,6 +68,17 @@ describe("probeNames", () => {
 
   it("shows the id of a probe that is gone", () => {
     expect(probeNames(["local", "gone-probe"], probes, "Local")).toEqual(["Local", "gone-probe"]);
+  });
+});
+
+describe("monitorProbes", () => {
+  it("keeps the id of each probe, so that two probes with one name are told apart", () => {
+    const same = [...probes, { id: "ams", name: "Frankfurt" }];
+    expect(monitorProbes(["ams", "fra", "local"], same, "Local")).toEqual([
+      { id: "local", name: "Local" },
+      { id: "ams", name: "Frankfurt" },
+      { id: "fra", name: "Frankfurt" },
+    ]);
   });
 });
 
