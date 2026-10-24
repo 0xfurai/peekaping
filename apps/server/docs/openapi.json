@@ -2716,6 +2716,10 @@
           "show_certificate_expiry": {
             "type": "boolean"
           },
+          "show_locations": {
+            "description": "List each location of a monitor that runs on several probes on the public page. Off by default.",
+            "type": "boolean"
+          },
           "show_powered_by": {
             "type": "boolean"
           },
@@ -2794,6 +2798,9 @@
           "published": {
             "type": "boolean"
           },
+          "show_locations": {
+            "type": "boolean"
+          },
           "slug": {
             "type": "string"
           },
@@ -2816,6 +2823,7 @@
           "icon",
           "theme",
           "published",
+          "show_locations",
           "footer_text",
           "auto_refresh_interval",
           "created_at",
@@ -2959,6 +2967,9 @@
           "show_certificate_expiry": {
             "type": "boolean"
           },
+          "show_locations": {
+            "type": "boolean"
+          },
           "show_powered_by": {
             "type": "boolean"
           },
@@ -2987,6 +2998,7 @@
           "icon",
           "theme",
           "published",
+          "show_locations",
           "search_engine_index",
           "show_tags",
           "created_at",
@@ -3079,6 +3091,13 @@
             ]
           },
           "show_certificate_expiry": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "show_locations": {
+            "description": "List each location of a monitor that runs on several probes on the public page.",
             "type": [
               "boolean",
               "null"

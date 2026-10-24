@@ -1940,6 +1940,9 @@ components:
           type: boolean
         show_certificate_expiry:
           type: boolean
+        show_locations:
+          description: List each location of a monitor that runs on several probes on the public page. Off by default.
+          type: boolean
         show_powered_by:
           type: boolean
         show_tags:
@@ -1994,6 +1997,8 @@ components:
           type: string
         published:
           type: boolean
+        show_locations:
+          type: boolean
         slug:
           type: string
         theme:
@@ -2011,6 +2016,7 @@ components:
         - icon
         - theme
         - published
+        - show_locations
         - footer_text
         - auto_refresh_interval
         - created_at
@@ -2113,6 +2119,8 @@ components:
           type: boolean
         show_certificate_expiry:
           type: boolean
+        show_locations:
+          type: boolean
         show_powered_by:
           type: boolean
         show_tags:
@@ -2134,6 +2142,7 @@ components:
         - icon
         - theme
         - published
+        - show_locations
         - search_engine_index
         - show_tags
         - created_at
@@ -2200,6 +2209,11 @@ components:
             - boolean
             - "null"
         show_certificate_expiry:
+          type:
+            - boolean
+            - "null"
+        show_locations:
+          description: List each location of a monitor that runs on several probes on the public page.
           type:
             - boolean
             - "null"

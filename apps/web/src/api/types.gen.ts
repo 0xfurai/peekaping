@@ -793,6 +793,10 @@ export type StatusPageCreateStatusPageDto = {
   published?: boolean;
   search_engine_index?: boolean;
   show_certificate_expiry?: boolean;
+  /**
+   * List each location of a monitor that runs on several probes on the public page. Off by default.
+   */
+  show_locations?: boolean;
   show_powered_by?: boolean;
   show_tags?: boolean;
   slug: string;
@@ -825,6 +829,7 @@ export type StatusPageModel = {
   icon: string;
   id: string;
   published: boolean;
+  show_locations: boolean;
   slug: string;
   theme: string;
   title: string;
@@ -863,6 +868,7 @@ export type StatusPageStatusPageWithMonitorsResponseDto = {
   published: boolean;
   search_engine_index: boolean;
   show_certificate_expiry: boolean;
+  show_locations: boolean;
   show_powered_by: boolean;
   show_tags: boolean;
   slug: string;
@@ -884,6 +890,10 @@ export type StatusPageUpdateStatusPageDto = {
   published?: boolean | null;
   search_engine_index?: boolean | null;
   show_certificate_expiry?: boolean | null;
+  /**
+   * List each location of a monitor that runs on several probes on the public page.
+   */
+  show_locations?: boolean | null;
   show_powered_by?: boolean | null;
   show_tags?: boolean | null;
   slug?: string | null;
@@ -900,6 +910,7 @@ export type StatusPageUpdateStatusPageDto = {
     | (string | null)
     | (Array<string> | null)
     | (string | null)
+    | (boolean | null)
     | (boolean | null)
     | (boolean | null)
     | (boolean | null)

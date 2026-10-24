@@ -12,6 +12,7 @@ type CreateStatusPageDTO struct {
 	Icon                  string   `json:"icon"`
 	Theme                 string   `json:"theme"`
 	Published             bool     `json:"published"`
+	ShowLocations         bool     `json:"show_locations" doc:"List each location of a monitor that runs on several probes on the public page. Off by default."`
 	SearchEngineIndex     bool     `json:"search_engine_index"`
 	ShowTags              bool     `json:"show_tags"`
 	Password              string   `json:"password,omitempty"`
@@ -32,6 +33,7 @@ type UpdateStatusPageDTO struct {
 	Icon                  *string   `json:"icon,omitempty"`
 	Theme                 *string   `json:"theme,omitempty"`
 	Published             *bool     `json:"published,omitempty"`
+	ShowLocations         *bool     `json:"show_locations,omitempty" doc:"List each location of a monitor that runs on several probes on the public page."`
 	SearchEngineIndex     *bool     `json:"search_engine_index,omitempty"`
 	ShowTags              *bool     `json:"show_tags,omitempty"`
 	Password              *string   `json:"password,omitempty"`
@@ -53,6 +55,7 @@ type StatusPageWithMonitorsResponseDTO struct {
 	Icon                  string    `json:"icon"`
 	Theme                 string    `json:"theme"`
 	Published             bool      `json:"published"`
+	ShowLocations         bool      `json:"show_locations"`
 	SearchEngineIndex     bool      `json:"search_engine_index"`
 	ShowTags              bool      `json:"show_tags"`
 	Password              string    `json:"password,omitempty"`
