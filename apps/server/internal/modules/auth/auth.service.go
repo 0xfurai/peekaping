@@ -51,10 +51,11 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 	if count > 0 {
 		return nil, ErrAdminExists
 	}
-	// Check if admin with this email already exists
+	// The count found no admin, so one with this email is a concurrent
+	// registration that committed since: this one lost the race
 	existingAdmin, err := s.repo.FindByEmail(ctx, dto.Email)
 	if err == nil && existingAdmin != nil {
-		return nil, errors.New("admin with this email already exists")
+		return nil, ErrAdminExists
 	}
 
 	// Hash password

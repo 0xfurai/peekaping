@@ -35,16 +35,12 @@ import {
 import { SavedSecrets } from "./saved-secrets";
 import {
   channelFormSchema,
+  channelTypeOptions,
   channelTypes,
   getChannelType,
   isChannelType,
   type NotificationChannelFormValues,
 } from "../channel-types/registry";
-
-const notificationTypes = channelTypes.map((definition) => ({
-  label: definition.displayName,
-  value: definition.type,
-}));
 
 export default function CreateEditNotificationChannel({
   onSubmit,
@@ -190,7 +186,7 @@ export default function CreateEditNotificationChannel({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {notificationTypes.map((item) => (
+                {channelTypeOptions.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>
