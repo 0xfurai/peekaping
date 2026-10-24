@@ -107,8 +107,10 @@ while :; do
         # The items waiting on us; the ones not reported before end the wait.
         jq -r --argjson ignore "$ignore" --argjson uploads "$coverage_uploads" '
             ([.checks.pending[] | IN($uploads[])] | any) as $uploading
+            | . as $s
+            | [.checks.failed[] | select(.name | IN($ignore[])) | "check:\(.name):\(.url):\($s.headSha)"] as $ignored
             | .keys[]
-            | select([$ignore[] as $n | startswith("check:\($n):")] | any | not)
+            | select(IN($ignored[]) | not)
             | select($uploading and startswith("check:codecov/") | not)' \
             "$s" >"$tmp/$pr.keys"
         # GitHub computes mergeability lazily; UNKNOWN means ask again.
