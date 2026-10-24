@@ -11,7 +11,13 @@ import { cn } from "@/lib/utils";
 import StaleMarker from "./stale-marker";
 import { getMonitorStatusView } from "./monitor-status";
 
-const MonitorCard = ({ monitor }: { monitor: MonitorMonitorResponseDto }) => {
+interface MonitorCardProps {
+  monitor: MonitorMonitorResponseDto;
+  // The name of the probe the monitor runs on. Left out when the install has no remote probe.
+  probeName?: string;
+}
+
+const MonitorCard = ({ monitor, probeName }: MonitorCardProps) => {
   const navigate = useNavigate();
   const { t } = useLocalizedTranslation();
 
@@ -69,7 +75,18 @@ const MonitorCard = ({ monitor }: { monitor: MonitorMonitorResponseDto }) => {
 
             <div className="flex flex-col min-w-[100px]">
               <h3 className="font-bold mb-1">{monitor.name}</h3>
-              <Badge variant={"outline"}>{monitor.type}</Badge>
+              <div className="flex gap-1">
+                <Badge variant={"outline"}>{monitor.type}</Badge>
+                {probeName && (
+                  <Badge
+                    variant={"outline"}
+                    title={t("probes.monitor_probe", { name: probeName })}
+                    data-testid="monitor-probe-badge"
+                  >
+                    {probeName}
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
 

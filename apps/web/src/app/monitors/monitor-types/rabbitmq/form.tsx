@@ -6,6 +6,7 @@ import Intervals from "../shared/intervals";
 import General from "../shared/general";
 import Notifications from "../shared/notifications";
 import Tags from "../shared/tags";
+import Probe from "../shared/probe";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -173,6 +174,7 @@ const RabbitMQForm = () => {
       <Card>
         <CardContent className="space-y-4">
           <Tags />
+          <Probe />
         </CardContent>
       </Card>
     </>

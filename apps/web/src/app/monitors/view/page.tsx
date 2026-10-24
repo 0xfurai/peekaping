@@ -51,6 +51,7 @@ import ImportantNotificationsList from "../components/important-notifications-li
 import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useProbes } from "@/hooks/useProbes";
 import clsx from "clsx";
 import { formatMonitorTarget } from "../monitor-types/registry";
 import { parseMonitorConfig } from "../monitor-types/monitor-target";
@@ -107,6 +108,7 @@ const MonitorPage = () => {
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const { socket, status: socketStatus } = useWebSocket();
+  const { probeName, isPending: probesPending } = useProbes();
 
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showConfirmPause, setShowConfirmPause] = useState(false);
@@ -442,6 +444,11 @@ const MonitorPage = () => {
               {monitorTarget.label}
             </span>
           ) : null}
+          {monitor && !probesPending && (
+            <div className="text-sm text-muted-foreground" data-testid="monitor-probe">
+              {t("probes.monitor_probe", { name: probeName(monitor.probe_ids) })}
+            </div>
+          )}
         </div>
 
         <div className="mt-4 mb-4">

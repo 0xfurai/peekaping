@@ -11,6 +11,7 @@ import Proxies from "../shared/proxies";
 import Intervals from "../shared/intervals";
 import General from "../shared/general";
 import Tags from "../shared/tags";
+import Probe from "../shared/probe";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
@@ -97,6 +98,7 @@ const HttpKeywordForm = () => {
       <Card>
         <CardContent className="space-y-4">
           <Tags />
+          <Probe />
         </CardContent>
       </Card>
 

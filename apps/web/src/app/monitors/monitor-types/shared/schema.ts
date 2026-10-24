@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LOCAL_PROBE_ID } from "@/app/probes/components/local-probe";
 
 export const generalDefaultValues = {
   name: "My monitor",
@@ -52,12 +53,24 @@ export const tagsSchema = z.object({
   tag_ids: z.array(z.string()),
 });
 
-// The fields every monitor type has: the general, intervals, notifications and tags sections.
-// A type's schema merges this and adds its own fields; proxies are added by the types that use one.
+// A monitor runs on exactly one probe. The API takes a list, so the form holds one, and the probe
+// section edits its single entry.
+export const probeSchema = z.object({
+  probe_ids: z.array(z.string()),
+});
+
+export const probeDefaultValues = {
+  probe_ids: [LOCAL_PROBE_ID],
+};
+
+// The fields every monitor type has: the general, intervals, notifications, tags and probe
+// sections. A type's schema merges this and adds its own fields; proxies are added by the types
+// that use one.
 export const monitorBaseSchema = generalSchema
   .merge(intervalsSchema)
   .merge(notificationsSchema)
-  .merge(tagsSchema);
+  .merge(tagsSchema)
+  .merge(probeSchema);
 
 export type MonitorBaseValues = z.infer<typeof monitorBaseSchema>;
 
@@ -66,4 +79,5 @@ export const monitorBaseDefaultValues: MonitorBaseValues = {
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
   ...tagsDefaultValues,
+  ...probeDefaultValues,
 };

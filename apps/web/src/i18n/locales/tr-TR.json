@@ -512,6 +512,13 @@
           "selected_channels": "Seçilen Bildirim Kanalları",
           "title": "Bildirim kanalları"
         },
+        "probe": {
+          "label": "Prob",
+          "option_unsupported": "{{name}} (bu türü çalıştırmaz)",
+          "placeholder": "Prob seçin",
+          "push_fixed": "Push izleyici her zaman yerel probda çalışır.",
+          "unsupported": "Bu prob bu tür izleyiciyi çalıştırmaz. Başka bir prob seçin."
+        },
         "proxy": {
           "add_proxy": "Proxy Ekle",
           "new_proxy": "+ Yeni Proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Problar",
     "description": "Problar, monitörlerin kontrollerini kurulu oldukları yerlerden çalıştırır. Yerel prob, Peekaping'in kendisidir.",
+    "local_name": "Yerel",
+    "monitor_probe": "Prob: {{name}}",
     "empty_list": {
       "title": "Prob bulunamadı",
       "text": "Başka bir yerden kontrol çalıştırmak için bir prob oluşturun.",

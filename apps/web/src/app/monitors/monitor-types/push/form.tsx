@@ -6,6 +6,7 @@ import Intervals from "../shared/intervals";
 import General from "../shared/general";
 import Notifications from "../shared/notifications";
 import Tags from "../shared/tags";
+import Probe from "../shared/probe";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
@@ -85,6 +86,7 @@ const PushForm = () => {
       <Card>
         <CardContent className="space-y-4">
           <Tags />
+          <Probe />
         </CardContent>
       </Card>
 

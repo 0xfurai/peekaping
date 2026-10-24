@@ -512,6 +512,13 @@
           "selected_channels": "Vybrané kanály notifikací",
           "title": "Notifikační kanály"
         },
+        "probe": {
+          "label": "Sonda",
+          "option_unsupported": "{{name}} (tento typ nespouští)",
+          "placeholder": "Vyberte sondu",
+          "push_fixed": "Push monitor vždy běží na lokální sondě.",
+          "unsupported": "Tato sonda tento typ monitoru nespouští. Vyberte jinou sondu."
+        },
         "proxy": {
           "add_proxy": "Přidat proxy",
           "new_proxy": "+ Nový proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Sondy",
     "description": "Sondy provádějí kontroly monitorů z míst, kde jsou nainstalovány. Lokální sonda je samotný Peekaping.",
+    "local_name": "Lokální",
+    "monitor_probe": "Sonda: {{name}}",
     "empty_list": {
       "title": "Nebyly nalezeny žádné sondy",
       "text": "Vytvořte sondu, která bude provádět kontroly z jiného místa.",

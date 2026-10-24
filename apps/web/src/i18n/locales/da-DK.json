@@ -512,6 +512,13 @@
           "selected_channels": "Valgte notifikationskanaler",
           "title": "Varslingskanaler"
         },
+        "probe": {
+          "label": "Probe",
+          "option_unsupported": "{{name}} (kører ikke denne type)",
+          "placeholder": "Vælg probe",
+          "push_fixed": "En push-monitor kører altid på den lokale probe.",
+          "unsupported": "Denne probe kører ikke denne type monitor. Vælg en anden probe."
+        },
         "proxy": {
           "add_proxy": "Tilføj proxy",
           "new_proxy": "+ Ny Proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Probes",
     "description": "Probes kører kontroller af monitorer fra de steder, hvor de er installeret. Den lokale probe er Peekaping selv.",
+    "local_name": "Lokal",
+    "monitor_probe": "Probe: {{name}}",
     "empty_list": {
       "title": "Ingen probes fundet",
       "text": "Opret en probe for at køre kontroller fra et andet sted.",

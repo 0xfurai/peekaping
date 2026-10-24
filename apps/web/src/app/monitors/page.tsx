@@ -42,11 +42,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { getContrastingTextColor } from "@/lib/utils";
 import { useDelayedLoading } from "@/hooks/useDelayedLoading";
+import { useProbes } from "@/hooks/useProbes";
 
 const MonitorsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
+  const { hasRemoteProbe, probeName } = useProbes();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
 
@@ -408,7 +410,11 @@ const MonitorsPage = () => {
 
         {/* Monitors list */}
         {monitors.map((monitor) => (
-          <MonitorCard key={monitor.id} monitor={monitor} />
+          <MonitorCard
+            key={monitor.id}
+            monitor={monitor}
+            probeName={hasRemoteProbe ? probeName(monitor.probe_ids) : undefined}
+          />
         ))}
 
         {/* Sentinel for infinite scroll */}

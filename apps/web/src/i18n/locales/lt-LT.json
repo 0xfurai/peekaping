@@ -512,6 +512,13 @@
           "selected_channels": "Pasirinkti pranešimų kanalai",
           "title": "Pranešimų kanalai"
         },
+        "probe": {
+          "label": "Zondas",
+          "option_unsupported": "{{name}} (nevykdo šio tipo)",
+          "placeholder": "Pasirinkite zondą",
+          "push_fixed": "Push monitorius visada veikia vietiniame zonde.",
+          "unsupported": "Šis zondas nevykdo šio tipo monitoriaus. Pasirinkite kitą zondą."
+        },
         "proxy": {
           "add_proxy": "Pridėti proxy",
           "new_proxy": "+ Naujas proxy",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Zondai",
     "description": "Zondai atlieka monitorių patikras iš vietų, kuriose jie įdiegti. Vietinis zondas yra pats Peekaping.",
+    "local_name": "Vietinis",
+    "monitor_probe": "Zondas: {{name}}",
     "empty_list": {
       "title": "Zondų nerasta",
       "text": "Sukurkite zondą, kad atliktumėte patikras iš kitos vietos.",

@@ -512,6 +512,13 @@
           "selected_channels": "已選的通知頻道",
           "title": "通知頻道"
         },
+        "probe": {
+          "label": "探針",
+          "option_unsupported": "{{name}}（唔支援呢個類型）",
+          "placeholder": "選擇探針",
+          "push_fixed": "推送監控一定喺本機探針上運行。",
+          "unsupported": "呢個探針唔支援呢種監控類型，請揀另一個探針。"
+        },
         "proxy": {
           "add_proxy": "新增代理",
           "new_proxy": "+ 新代理",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "探針",
     "description": "探針會喺佢哋安裝嘅地方執行監測嘅檢查。本機探針就係 Peekaping 自己。",
+    "local_name": "本機",
+    "monitor_probe": "探針：{{name}}",
     "empty_list": {
       "title": "搵唔到探針",
       "text": "建立一個探針，從另一個地方執行檢查。",

@@ -512,6 +512,13 @@
           "selected_channels": "Valitut ilmoituskanavat",
           "title": "Ilmoituskanavat"
         },
+        "probe": {
+          "label": "Luotain",
+          "option_unsupported": "{{name}} (ei suorita tätä tyyppiä)",
+          "placeholder": "Valitse luotain",
+          "push_fixed": "Push-valvonta toimii aina paikallisella luotaimella.",
+          "unsupported": "Tämä luotain ei suorita tämän tyyppistä valvontaa. Valitse toinen luotain."
+        },
         "proxy": {
           "add_proxy": "Lisää välityspalvelin",
           "new_proxy": "+ Uusi välityspalvelin",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "Luotaimet",
     "description": "Luotaimet suorittavat valvontojen tarkistukset paikoista, joihin ne on asennettu. Paikallinen luotain on Peekaping itse.",
+    "local_name": "Paikallinen",
+    "monitor_probe": "Luotain: {{name}}",
     "empty_list": {
       "title": "Luotaimia ei löytynyt",
       "text": "Luo luotain suorittaaksesi tarkistuksia toisesta paikasta.",

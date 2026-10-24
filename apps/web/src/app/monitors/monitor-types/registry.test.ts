@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MonitorMonitorResponseDto } from "@/api";
+import { LOCAL_PROBE_ID } from "@/app/probes/components/local-probe";
 import { monitorTypes, monitorFormSchema, deserializeMonitor, serializeMonitor, cloneMonitor } from "./registry";
 
 // What the API returns for a monitor saved from the given request body
@@ -45,6 +46,18 @@ describe("monitor type registry", () => {
         expect(deserializeMonitor(savedMonitor(body))).toEqual(definition.defaultValues);
       });
 
+      it("starts on the local probe", () => {
+        expect(definition.defaultValues.probe_ids).toEqual([LOCAL_PROBE_ID]);
+      });
+
+      it("reads back the probe it writes", () => {
+        // A push monitor runs on the local probe whichever probe the form holds
+        const probe = type === "push" ? LOCAL_PROBE_ID : "probe-1";
+        const body = definition.serialize({ ...definition.defaultValues, probe_ids: ["probe-1"] } as never);
+        expect(body.probe_ids).toEqual([probe]);
+        expect(deserializeMonitor(savedMonitor(body)).probe_ids).toEqual([probe]);
+      });
+
       it("serializes through the registry by the values' type", () => {
         expect(serializeMonitor(definition.defaultValues)).toEqual(
           definition.serialize(definition.defaultValues as never)
@@ -59,6 +72,22 @@ describe("monitor type registry", () => {
     const clone = cloneMonitor(savedMonitor({ ...body, name: "Site" }));
     expect(clone?.name).toBe("Site Copy");
     expect(clone?.type).toBe("http");
+  });
+
+  it("puts a monitor whose response has no probe on the local probe", () => {
+    const [http] = monitorTypes;
+    const saved = savedMonitor(http.serialize(http.defaultValues));
+    // A server from before probes sends no probe_ids at all
+    const withoutProbes: Partial<MonitorMonitorResponseDto> = { ...saved };
+    delete withoutProbes.probe_ids;
+    expect(deserializeMonitor(withoutProbes as MonitorMonitorResponseDto).probe_ids).toEqual([LOCAL_PROBE_ID]);
+    expect(deserializeMonitor({ ...saved, probe_ids: [] }).probe_ids).toEqual([LOCAL_PROBE_ID]);
+  });
+
+  it("keeps a push monitor on the local probe", () => {
+    const push = monitorTypes.find((definition) => definition.type === "push")!;
+    const body = push.serialize({ ...push.defaultValues, probe_ids: ["probe-1"] });
+    expect(body.probe_ids).toEqual([LOCAL_PROBE_ID]);
   });
 
   it("refuses a monitor of an unknown type", () => {

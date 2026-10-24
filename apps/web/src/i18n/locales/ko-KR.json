@@ -512,6 +512,13 @@
           "selected_channels": "선택된 알림 채널",
           "title": "알림 채널"
         },
+        "probe": {
+          "label": "프로브",
+          "option_unsupported": "{{name}} (이 유형을 실행하지 않음)",
+          "placeholder": "프로브 선택",
+          "push_fixed": "푸시 모니터는 항상 로컬 프로브에서 실행됩니다.",
+          "unsupported": "이 프로브는 이 유형의 모니터를 실행하지 않습니다. 다른 프로브를 선택하세요."
+        },
         "proxy": {
           "add_proxy": "프록시 추가",
           "new_proxy": "+ 새 프록시",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "프로브",
     "description": "프로브는 설치된 위치에서 모니터의 검사를 실행합니다. 로컬 프로브는 Peekaping 자체입니다.",
+    "local_name": "로컬",
+    "monitor_probe": "프로브: {{name}}",
     "empty_list": {
       "title": "프로브를 찾을 수 없습니다",
       "text": "프로브를 만들어 다른 위치에서 검사를 실행하세요.",

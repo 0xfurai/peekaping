@@ -512,6 +512,13 @@
           "selected_channels": "已选通知渠道",
           "title": "通知渠道"
         },
+        "probe": {
+          "label": "探针",
+          "option_unsupported": "{{name}}（不支持此类型）",
+          "placeholder": "选择探针",
+          "push_fixed": "推送监控始终在本地探针上运行。",
+          "unsupported": "此探针不支持该类型的监控，请选择其他探针。"
+        },
         "proxy": {
           "add_proxy": "添加代理",
           "new_proxy": "新增代理",
@@ -1128,6 +1135,8 @@
   "probes": {
     "page_name": "探针",
     "description": "探针在其安装的位置运行监控的检查。本地探针就是 Peekaping 本身。",
+    "local_name": "本地",
+    "monitor_probe": "探针：{{name}}",
     "empty_list": {
       "title": "未找到探针",
       "text": "创建探针，从其他位置运行检查。",

@@ -512,6 +512,13 @@
           "selected_channels": "Tanlangan Xabarnoma kanallari",
           "title": "Bildirish kanallari"
         },
+        "probe": {
+          "label": "Zond",
+          "option_unsupported": "{{name}} (bu turni ishga tushirmaydi)",
+          "placeholder": "Zondni tanlang",
+          "push_fixed": "Push Monitor doim mahalliy zondda ishlaydi.",
+          "unsupported": "Bu zond ushbu turdagi monitorni ishga tushirmaydi. Boshqa zondni tanlang."
+        },
         "proxy": {
           "add_proxy": "Proxy qo'shish",
           "new_proxy": "+ Yangi Proksi",
@@ -1127,6 +1134,8 @@
   "probes": {
     "page_name": "Zondlar",
     "description": "Zondlar monitorlarning tekshiruvlarini ular o‘rnatilgan joylardan bajaradi. Mahalliy zond — bu Peekapingning o‘zi.",
+    "local_name": "Mahalliy",
+    "monitor_probe": "Zond: {{name}}",
     "empty_list": {
       "title": "Zondlar topilmadi",
       "text": "Tekshiruvlarni boshqa joydan bajarish uchun zond yarating.",
