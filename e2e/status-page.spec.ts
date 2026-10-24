@@ -39,6 +39,79 @@ test('A published status page shows visitors its own monitors, and a draft shows
   }
 });
 
+test('A status page lists each location of a monitor only once it is asked to', async ({ page, browser }) => {
+  const id = randomID();
+  const api = await adminAPI(page);
+  const probeName = `Frankfurt ${id}`;
+  const monitorName = `Located monitor ${id}`;
+  const slug = `located-${id}`;
+  const created: string[] = [];
+
+  try {
+    // The probe has no instance, so it is offline and never reports. It is deleted last: a probe
+    // that has monitors can't be deleted.
+    const probe = await api.post('probes', { data: { name: probeName } });
+    expect(probe.status(), await probe.text()).toBe(201);
+    const probeID = (await probe.json()).data.id;
+    created.push(`probes/${probeID}`);
+    const monitor = await createHTTPMonitor(api, monitorName, targetURL(id), { probeIds: ['local', probeID] });
+    created.push(`monitors/${monitor.id}`);
+
+    await createStatusPage(page, created, `Located ${id}`, slug, monitorName, true);
+    const statusPageID = created[created.length - 1].replace('status-pages/', '');
+
+    const visitor = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      storageState: { cookies: [], origins: [] },
+    });
+    const visitorPage = await visitor.newPage();
+    const locations = visitorPage.getByTestId('status-page-location');
+
+    // The setting is off by default: the card is the monitor's own, with one bar.
+    await visitorPage.goto(`/status/${slug}`);
+    await expect(visitorPage.getByRole('heading', { level: 3 })).toHaveText([monitorName]);
+    await expect(locations).toHaveCount(0);
+
+    const setShowLocations = async (on: boolean) => {
+      await page.goto(`/status-pages/${statusPageID}/edit`);
+      const showLocations = page.getByRole('switch', { name: 'Show each location' });
+      await expect(showLocations).toBeChecked({ checked: !on });
+      await showLocations.setChecked(on);
+      const saved = page.waitForResponse(
+        (response) => response.url().endsWith(`/status-pages/${statusPageID}`) && response.request().method() === 'PATCH',
+      );
+      await page.getByRole('button', { name: 'Update Status Page' }).click();
+      const response = await saved;
+      expect(response.status(), await response.text()).toBe(200);
+      await expect(page).toHaveURL(/\/status-pages$/);
+    };
+
+    // Turned on in the form, the card lists Local, then the remote probe, each with its own row.
+    await setShowLocations(true);
+    await visitorPage.reload();
+    await expect(locations).toHaveCount(2);
+    await expect(visitorPage.getByTestId('status-page-location-name')).toHaveText(['Local', probeName]);
+    // Local checks the monitor, and its row follows. The page refreshes every five minutes, so reload.
+    await expect(async () => {
+      await visitorPage.reload();
+      await expect(visitorPage.getByTestId('status-page-location-status').first()).toHaveText('Operational', {
+        timeout: 2000,
+      });
+    }).toPass({ timeout: 60000 });
+
+    // Turned off again, the single bar is back.
+    await setShowLocations(false);
+    await visitorPage.reload();
+    await expect(visitorPage.getByRole('heading', { level: 3 })).toHaveText([monitorName]);
+    await expect(locations).toHaveCount(0);
+
+    await visitor.close();
+  } finally {
+    for (const path of created.reverse()) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
 async function createStatusPage(
   page: Page,
   created: string[],
