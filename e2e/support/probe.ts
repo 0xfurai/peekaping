@@ -53,7 +53,12 @@ function stackNetwork(): { network: string; url: string } {
     '\n',
   )[0];
   if (!target) {
-    throw new Error('no e2e-target container is running: start the stack, or set E2E_PROBE_NETWORK and E2E_PROBE_URL');
+    throw new Error(
+      'no e2e-target container with a docker compose label is running, so the stack cannot be found: ' +
+        'start it with docker compose, or set E2E_PROBE_NETWORK (the Docker network the server is on, ' +
+        'e.g. peekaping-e2e) and E2E_PROBE_URL (the server\'s address on that network, ' +
+        'e.g. http://peekaping-bundle-test-sqlite:8383)',
+    );
   }
   const project = docker('inspect', '--format', '{{index .Config.Labels "com.docker.compose.project"}}', target);
   const hasAPI = !!docker(
@@ -79,8 +84,45 @@ export function startProbeContainer(name: string, token: string) {
 // docker stop sends SIGTERM, which the probe answers by saying goodbye to the server.
 export const stopProbeContainer = (name: string) => void docker('stop', name);
 
-// Removes the container if there is one, running or not.
-export const removeProbeContainer = (name: string) => void docker('rm', '-f', name);
+// Removes the container if there is one, running or not. A spec whose `docker run` failed has none,
+// which is not an error: `docker rm -f` succeeds for a missing name, and other runtimes' "No such
+// container" is let through here too. Anything else it fails with is real.
+export function removeProbeContainer(name: string) {
+  try {
+    docker('rm', '-f', name);
+  } catch (error) {
+    if (!/no such container/i.test(String((error as { stderr?: unknown }).stderr ?? error))) {
+      throw error;
+    }
+  }
+}
+
+// Removes the spec's container, then its monitor and probe. The second step runs whether or not the
+// first one failed, so a container that can't be removed doesn't leave the probe in the database.
+async function tearDown(page: Page, names: { monitor: string; probe: string; container: string }) {
+  try {
+    removeProbeContainer(names.container);
+  } finally {
+    await cleanUp(page, names);
+  }
+}
+
+// Runs a spec's body and then tears down what it made, even when it throws. The body's own error is
+// the one that reaches the report: a teardown error is only raised when the body passed, and is
+// logged otherwise, so that a failed startup is not reported as a failed cleanup.
+export async function withTearDown(
+  page: Page,
+  names: { monitor: string; probe: string; container: string },
+  body: () => Promise<void>,
+) {
+  try {
+    await body();
+  } catch (error) {
+    await tearDown(page, names).catch((teardownError) => console.warn('teardown also failed:', teardownError));
+    throw error;
+  }
+  await tearDown(page, names);
+}
 
 // The end of the container's output, for the message of a spec that waited for it in vain.
 export function probeContainerLogs(name: string): string {

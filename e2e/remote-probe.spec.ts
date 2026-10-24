@@ -3,12 +3,11 @@ import { adminAPI, createHTTPMonitor, randomID } from './support/api';
 import { targetURL } from './support/fake-target';
 import { cardStatusOf, listFor } from './support/monitor-list';
 import {
-  cleanUp,
   createProbe,
   probeContainerLogs,
-  removeProbeContainer,
   startProbeContainer,
   stopProbeContainer,
+  withTearDown,
 } from './support/probe';
 
 // These specs run a real probe: a peekaping-probe container, started with docker on the machine
@@ -66,7 +65,7 @@ test('A monitor on a running remote probe shows the probe up', async ({ page }) 
   const n = names();
 
   await page.goto('/monitors');
-  try {
+  await withTearDown(page, n, async () => {
     const id = await startMonitorOnProbe(page, n);
 
     await page.goto(`/monitors/${id}`);
@@ -77,10 +76,7 @@ test('A monitor on a running remote probe shows the probe up', async ({ page }) 
     await expectRemoteUp(page, n.probe, n.container);
     await expect(remoteLocation(page).getByTestId('monitor-location-ping')).toHaveText(/Response time: \d+ ms/);
     await expect(remoteLocation(page).getByTestId('monitor-location-offline')).toHaveCount(0);
-  } finally {
-    removeProbeContainer(n.container);
-    await cleanUp(page, n);
-  }
+  });
 });
 
 test('A stopped remote probe is reported offline and its monitor stays up', async ({ page }) => {
@@ -90,7 +86,7 @@ test('A stopped remote probe is reported offline and its monitor stays up', asyn
   const n = names();
 
   await page.goto('/monitors');
-  try {
+  await withTearDown(page, n, async () => {
     const id = await startMonitorOnProbe(page, n);
 
     await page.goto(`/monitors/${id}`);
@@ -110,8 +106,5 @@ test('A stopped remote probe is reported offline and its monitor stays up', asyn
     // The offline probe doesn't count toward the monitor's status, and Local still checks it.
     await page.goto(listFor(n.monitor));
     await expect(cardStatusOf(page, n.monitor)).toHaveText('Up');
-  } finally {
-    removeProbeContainer(n.container);
-    await cleanUp(page, n);
-  }
+  });
 });
