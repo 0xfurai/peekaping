@@ -195,8 +195,12 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	createdMonitor, err := ic.monitorService.Create(ctx, monitor)
 	if err != nil {
 		var invalidProbes *InvalidProbesError
-		if errors.As(err, &invalidProbes) {
+		var invalidRule *InvalidLocationRuleError
+		switch {
+		case errors.As(err, &invalidProbes):
 			return nil, invalidProbesResponse(invalidProbes)
+		case errors.As(err, &invalidRule):
+			return nil, invalidLocationRuleResponse(invalidRule)
 		}
 		ic.logger.Errorw("Failed to create monitor", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -264,8 +268,12 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 	updatedMonitor, err := ic.monitorService.UpdateFull(ctx, id, &monitor)
 	if err != nil {
 		var invalidProbes *InvalidProbesError
-		if errors.As(err, &invalidProbes) {
+		var invalidRule *InvalidLocationRuleError
+		switch {
+		case errors.As(err, &invalidProbes):
 			return nil, invalidProbesResponse(invalidProbes)
+		case errors.As(err, &invalidRule):
+			return nil, invalidLocationRuleResponse(invalidRule)
 		}
 		ic.logger.Errorw("Failed to update monitor", "error", err)
 		if errors.Is(err, ErrMonitorNotFound) {
@@ -309,6 +317,7 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 func (ic *MonitorController) failWrite(action string, err error) error {
 	var invalidConfig *InvalidConfigError
 	var invalidProbes *InvalidProbesError
+	var invalidRule *InvalidLocationRuleError
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
@@ -316,6 +325,8 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", invalidConfig.Err)))
 	case errors.As(err, &invalidProbes):
 		return invalidProbesResponse(invalidProbes)
+	case errors.As(err, &invalidRule):
+		return invalidLocationRuleResponse(invalidRule)
 	}
 	ic.logger.Errorw("Failed to "+action+" monitor", "error", err)
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -521,4 +532,9 @@ func (ic *MonitorController) GetTLSInfo(ctx context.Context, input *GetTLSInfoIn
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewNullableSuccessResponse("success", tlsInfo))
+}
+
+// invalidLocationRuleResponse tells the client why the location rule it sent doesn't fit the monitor
+func invalidLocationRuleResponse(err *InvalidLocationRuleError) error {
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid location_rule: %v", err.Err)))
 }

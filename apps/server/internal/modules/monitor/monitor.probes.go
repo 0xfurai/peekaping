@@ -136,3 +136,84 @@ func (mr *MonitorServiceImpl) validatePartialProbes(ctx context.Context, current
 	}
 	return mr.validateChangedProbes(ctx, current, monitorType, probeIDs)
 }
+
+// validateLocationRule checks a monitor's location rule against the probes it runs on: the rule
+// exists, at_least has a threshold and no other rule does, and the threshold is from 1 to the
+// number of probes, since a monitor can't have more Down locations than locations.
+func validateLocationRule(rule shared.LocationRule, threshold *int, probes int) error {
+	switch rule {
+	case shared.LocationRuleAny, shared.LocationRuleAll:
+		if threshold != nil {
+			return &InvalidLocationRuleError{Err: errors.New("location_threshold is only for the at_least rule")}
+		}
+	case shared.LocationRuleAtLeast:
+		if threshold == nil {
+			return &InvalidLocationRuleError{Err: errors.New("at_least needs a location_threshold")}
+		}
+		if *threshold < 1 || *threshold > probes {
+			noun, takes := "probes", fmt.Sprintf("1 to %d", probes)
+			if probes == 1 {
+				noun, takes = "probe", "only 1"
+			}
+			return &InvalidLocationRuleError{Err: fmt.Errorf("at_least %d is out of range: the monitor runs on %d %s, so it takes %s", *threshold, probes, noun, takes)}
+		}
+	default:
+		return &InvalidLocationRuleError{Err: fmt.Errorf("%q is not a rule: use any, all or at_least", rule)}
+	}
+	return nil
+}
+
+// fullLocationRule is the rule a full update leaves the monitor with. One that sends neither a
+// rule nor a threshold keeps the monitor's, as older clients send the whole monitor without them;
+// a threshold sent alone goes with the rule the monitor has.
+func fullLocationRule(current *Model, update *CreateUpdateDto) (shared.LocationRule, *int) {
+	switch {
+	case update.LocationRule != "":
+		return update.LocationRule, update.LocationThreshold
+	case update.LocationThreshold != nil:
+		return locationRuleOrAny(current.LocationRule), update.LocationThreshold
+	default:
+		return locationRuleOrAny(current.LocationRule), current.LocationThreshold
+	}
+}
+
+// validateFullLocationRule checks the location rule a full update leaves the monitor with against
+// the probes it then runs on, and returns the rule
+func validateFullLocationRule(current *Model, update *CreateUpdateDto) (shared.LocationRule, *int, error) {
+	rule, threshold := fullLocationRule(current, update)
+	probeIDs := update.ProbeIDs
+	if probeIDs == nil {
+		probeIDs = currentProbeIDs(current)
+	}
+	return rule, threshold, validateLocationRule(rule, threshold, len(probeIDs))
+}
+
+// partialLocationRule is the rule a partial update leaves the monitor with, and whether the update
+// sets it. A rule sent replaces the monitor's, threshold included; a threshold sent alone goes with
+// the rule the monitor has.
+func partialLocationRule(current *Model, update *PartialUpdateDto) (rule shared.LocationRule, threshold *int, set bool) {
+	switch {
+	case update.LocationRule != nil:
+		return *update.LocationRule, update.LocationThreshold, true
+	case update.LocationThreshold != nil:
+		return locationRuleOrAny(current.LocationRule), update.LocationThreshold, true
+	default:
+		return locationRuleOrAny(current.LocationRule), current.LocationThreshold, false
+	}
+}
+
+// validatePartialLocationRule checks the location rule a partial update leaves the monitor with
+// against the probes it then runs on, so that an update that only removes probes is checked too.
+// An update that changes neither the rule nor the probes is not checked: a monitor can still be
+// paused or renamed.
+func validatePartialLocationRule(current *Model, update *PartialUpdateDto) error {
+	rule, threshold, set := partialLocationRule(current, update)
+	if !set && update.ProbeIDs == nil {
+		return nil
+	}
+	probeIDs := update.ProbeIDs
+	if probeIDs == nil {
+		probeIDs = currentProbeIDs(current)
+	}
+	return validateLocationRule(rule, threshold, len(probeIDs))
+}

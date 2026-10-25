@@ -27,6 +27,8 @@ User-Agent: Peekaping-Webhook/<version>
     "max_retries": 3,
     "retry_interval": 0,
     "resend_interval": 0,
+    "location_rule": "any",
+    "location_threshold": null,
     "active": true,
     "status": 0,
     "config": "{\"url\":\"https://api.example.com/health\",\"method\":\"GET\"}",

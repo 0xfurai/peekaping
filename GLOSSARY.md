@@ -67,8 +67,12 @@ One running copy of a probe's program. Every copy started with the probe's token
 _Avoid_: Agent, worker, node; "instance ID" alone, which is the usage ping's
 
 **Location**:
-A monitor's results from one of its probes: that probe's latest status, response time and heartbeats for the monitor. A monitor on three probes has three locations. A monitor's status follows its locations: it is Down while any location whose probe is online is Down, otherwise Maintenance while any is in Maintenance, otherwise Up while any is Up, otherwise Pending. A location whose probe is offline, or that hasn't reported yet, doesn't count. Only a result can change the monitor's status, and only toward its own: an Up result never takes the monitor Down, a Down result never takes it Up, and a Down monitor stays Down while another location retries, until an Up result arrives.
+A monitor's results from one of its probes: that probe's latest status, response time and heartbeats for the monitor. A monitor on three probes has three locations. A monitor's status follows its locations: it is Down while its location rule is met, otherwise Maintenance while any location is in Maintenance, otherwise Up while any is Up, otherwise Pending. A location whose probe is offline, or that hasn't reported yet, doesn't count. Only a result can change the monitor's status, and only toward its own: an Up result never takes the monitor Down, a Down result never takes it Up, and a Down monitor stays Down while another location retries, until an Up result arrives.
 _Avoid_: Region, probe (that's the place the checks run from)
+
+**Location rule**:
+How many of a monitor's locations must be Down for the monitor to be Down: any of them (the default), all of them, or at least a given number. Locations whose probe is offline or that haven't reported don't count, neither as Down nor in the number "all" is measured against, so "all" needs at least one location that counts, and a number higher than the locations that can report never takes the monitor Down.
+_Avoid_: Alert rule, quorum
 
 **Assignment**:
 The monitors a probe instance checks, with what each check needs, as the server deals them. The instance keeps checking its last assignment while it can't reach the server.

@@ -4,6 +4,18 @@ import (
 	"time"
 )
 
+// LocationRule is how many of a monitor's locations must be Down for the monitor to be Down
+type LocationRule string
+
+const (
+	// LocationRuleAny: one location is enough. It is the default, and what an empty rule means.
+	LocationRuleAny LocationRule = "any"
+	// LocationRuleAll: every location that counts, and at least one
+	LocationRuleAll LocationRule = "all"
+	// LocationRuleAtLeast: at least LocationThreshold locations
+	LocationRuleAtLeast LocationRule = "at_least"
+)
+
 type Monitor struct {
 	ID string `json:"id"`
 
@@ -30,6 +42,13 @@ type Monitor struct {
 
 	// Resend Notification if Down X times consecutively
 	ResendInterval int `json:"resend_interval" example:"10"`
+
+	// LocationRule is how many of the monitor's locations must be Down for it to be Down. Empty
+	// means any: a monitor read from MongoDB, or from an event of a process that isn't upgraded.
+	LocationRule LocationRule `json:"location_rule" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough, the default), all (every location that counts), or at_least (location_threshold of them). Locations whose probe is offline, or that haven't reported, don't count." example:"any"`
+
+	// LocationThreshold is the number of Down locations at_least asks for, and nil with any other rule
+	LocationThreshold *int `json:"location_threshold" nullable:"true" doc:"With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Null with any other rule." example:"2"`
 
 	Active bool          `json:"active"`
 	Status MonitorStatus `json:"status"`
@@ -64,6 +83,14 @@ type Monitor struct {
 // LocalProbeID is the id of the local probe: the checks that Peekaping runs itself
 const LocalProbeID = "local"
 
+// LocationThresholdValue is the threshold of the monitor's location rule, 0 for a rule that has none
+func (m *Monitor) LocationThresholdValue() int {
+	if m.LocationThreshold == nil {
+		return 0
+	}
+	return *m.LocationThreshold
+}
+
 // RunsOn reports whether the probe runs the monitor's checks. A monitor read without its probes
 // runs on the local probe: that is every monitor of an install from before probes, and a
 // monitor event from a process that isn't upgraded yet.
@@ -80,19 +107,23 @@ func (m *Monitor) RunsOn(probeID string) bool {
 }
 
 type UpdateMonitor struct {
-	ID             *string        `json:"id"`
-	Type           *string        `json:"type"`
-	Name           *string        `json:"name"`
-	Interval       *int           `json:"interval"`
-	Timeout        *int           `json:"timeout"`
-	MaxRetries     *int           `json:"max_retries"`
-	RetryInterval  *int           `json:"retry_interval"`
-	ResendInterval *int           `json:"resend_interval"`
-	Active         *bool          `json:"active"`
-	Status         *MonitorStatus `json:"status"`
-	Config         *string        `json:"config"`
-	ProxyId        *string        `json:"proxy_id"`
-	PushToken      *string        `json:"push_token"`
+	ID             *string `json:"id"`
+	Type           *string `json:"type"`
+	Name           *string `json:"name"`
+	Interval       *int    `json:"interval"`
+	Timeout        *int    `json:"timeout"`
+	MaxRetries     *int    `json:"max_retries"`
+	RetryInterval  *int    `json:"retry_interval"`
+	ResendInterval *int    `json:"resend_interval"`
+	// LocationRule and LocationThreshold replace the monitor's location rule when LocationRule is
+	// set: the threshold goes with it, nil for any rule but at_least.
+	LocationRule      *LocationRule  `json:"location_rule"`
+	LocationThreshold *int           `json:"location_threshold"`
+	Active            *bool          `json:"active"`
+	Status            *MonitorStatus `json:"status"`
+	Config            *string        `json:"config"`
+	ProxyId           *string        `json:"proxy_id"`
+	PushToken         *string        `json:"push_token"`
 	// ProbeIDs replace the probes that run the monitor. Nil leaves them as they are.
 	ProbeIDs []string `json:"probe_ids"`
 

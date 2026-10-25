@@ -11,6 +11,8 @@ const savedMonitor = (body: ReturnType<typeof serializeMonitor>): MonitorMonitor
   config: body.config ?? "{}",
   max_retries: body.max_retries ?? 0,
   resend_interval: body.resend_interval ?? 0,
+  location_rule: body.location_rule ?? "any",
+  location_threshold: body.location_threshold ?? null,
   proxy_id: body.proxy_id ?? "",
   push_token: body.push_token ?? "",
   probe_ids: body.probe_ids ?? ["local"],

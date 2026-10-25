@@ -46,14 +46,18 @@ type ProxyData struct {
 
 // HealthCheckTaskPayload is the payload for health check tasks
 type HealthCheckTaskPayload struct {
-	MonitorID          string                 `json:"monitor_id"`
-	MonitorName        string                 `json:"monitor_name"`
-	MonitorType        string                 `json:"monitor_type"`
-	Interval           int                    `json:"interval"`
-	Timeout            int                    `json:"timeout"`
-	MaxRetries         int                    `json:"max_retries"`
-	RetryInterval      int                    `json:"retry_interval"`
-	ResendInterval     int                    `json:"resend_interval"`
+	MonitorID      string `json:"monitor_id"`
+	MonitorName    string `json:"monitor_name"`
+	MonitorType    string `json:"monitor_type"`
+	Interval       int    `json:"interval"`
+	Timeout        int    `json:"timeout"`
+	MaxRetries     int    `json:"max_retries"`
+	RetryInterval  int    `json:"retry_interval"`
+	ResendInterval int    `json:"resend_interval"`
+	// LocationRule and LocationThreshold are the monitor's location rule, which the result of the
+	// check carries to the ingester. A task queued before they existed has none, which is any.
+	LocationRule       shared.LocationRule    `json:"location_rule,omitempty"`
+	LocationThreshold  int                    `json:"location_threshold,omitempty"`
 	Config             string                 `json:"config"`
 	Proxy              *ProxyData             `json:"proxy,omitempty"`
 	LastHeartbeat      *shared.HeartBeatModel `json:"last_heartbeat,omitempty"`
@@ -136,8 +140,12 @@ func (h *HealthCheckTaskHandler) ProcessTask(ctx context.Context, task *asynq.Ta
 		MaxRetries:     payload.MaxRetries,
 		RetryInterval:  payload.RetryInterval,
 		ResendInterval: payload.ResendInterval,
+		LocationRule:   payload.LocationRule,
 		Config:         payload.Config,
 		LastHeartbeat:  payload.LastHeartbeat,
+	}
+	if payload.LocationThreshold > 0 {
+		m.LocationThreshold = &payload.LocationThreshold
 	}
 
 	// Create proxy model from payload if present

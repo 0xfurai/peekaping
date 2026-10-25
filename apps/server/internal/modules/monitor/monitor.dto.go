@@ -24,8 +24,12 @@ type CreateUpdateDto struct {
 	PushToken       string   `json:"push_token"`
 	// ProbeIDs are the probes that run the monitor, one or more. A create without it runs on the
 	// local probe, and an update without it keeps the monitor's probes.
-	ProbeIDs  []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only." example:"local"`
-	activeSet bool
+	ProbeIDs []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only." example:"local"`
+	// LocationRule and LocationThreshold are how many of the monitor's locations must be Down for
+	// it to be Down. Without a rule a create is any and an update keeps the monitor's rule.
+	LocationRule      shared.LocationRule `json:"location_rule,omitempty" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough), all (every location that counts) or at_least (location_threshold of them). Omitted on create, the rule is any; omitted on update, the monitor keeps its rule. Locations whose probe is offline, or that haven't reported, don't count." example:"any"`
+	LocationThreshold *int                `json:"location_threshold,omitempty" doc:"With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Required with at_least and not allowed with any other rule." example:"2"`
+	activeSet         bool
 }
 
 // UnmarshalJSON records whether active was present so create requests can apply
@@ -70,6 +74,11 @@ type PartialUpdateDto struct {
 	// ProbeIDs are the probes that run the monitor, one or more. Without it the monitor keeps its
 	// probes.
 	ProbeIDs []string `json:"probe_ids,omitempty" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only." example:"local"`
+	// LocationRule and LocationThreshold replace the monitor's location rule. Sent alone, a
+	// threshold changes the one the monitor's at_least rule has. Without either, the monitor keeps
+	// its rule, which is checked against the probes it has after the update.
+	LocationRule      *shared.LocationRule `json:"location_rule,omitempty" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any, all or at_least. Omitted, the monitor keeps its rule." example:"any"`
+	LocationThreshold *int                 `json:"location_threshold,omitempty" doc:"With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Sent with a rule other than at_least it is rejected; a rule sent without it has none." example:"2"`
 }
 
 // UptimeStatsDto represents uptime percentages for various periods

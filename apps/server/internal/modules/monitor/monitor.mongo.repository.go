@@ -74,8 +74,10 @@ func toDomainModel(mm *mongoModel) *Model {
 		// MongoDB has no probes (ADR 0001): every monitor runs on the local one
 		ProbeIDs:  []string{shared.LocalProbeID},
 		Locations: []shared.MonitorLocation{localLocation()},
-		CreatedAt: mm.CreatedAt,
-		UpdatedAt: mm.UpdatedAt,
+		// and a single location, so a location rule has nothing to decide: it is stored nowhere
+		LocationRule: shared.LocationRuleAny,
+		CreatedAt:    mm.CreatedAt,
+		UpdatedAt:    mm.UpdatedAt,
 	}
 }
 

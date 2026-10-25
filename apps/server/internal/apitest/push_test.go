@@ -104,6 +104,7 @@ func TestPush_QueuesTheIngesterTaskClusterModeReads(t *testing.T) {
 		"monitor_max_retries": 0,
 		"monitor_retry_interval": 60,
 		"monitor_resend_interval": 0,
+		"monitor_location_rule": "any",
 		"monitor_config": "{\"pushToken\":\"backup-push-token\"}",
 		"status": 0,
 		"message": "disk full",

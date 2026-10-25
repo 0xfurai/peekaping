@@ -432,6 +432,7 @@ func TestMonitorService_Create(t *testing.T) {
 			MaxRetries:     3,
 			RetryInterval:  45,
 			ResendInterval: 10,
+			LocationRule:   shared.LocationRuleAny,
 			Active:         true,
 			Status:         shared.MonitorStatusPending,
 			Config:         "{}",

@@ -71,6 +71,8 @@ func (r *queueRunner) Run(ctx context.Context, job *check.Job, scheduledAt time.
 		MaxRetries:         mon.MaxRetries,
 		RetryInterval:      mon.RetryInterval,
 		ResendInterval:     mon.ResendInterval,
+		LocationRule:       mon.LocationRule,
+		LocationThreshold:  mon.LocationThresholdValue(),
 		Config:             mon.Config,
 		Proxy:              proxyData,
 		LastHeartbeat:      job.LastHeartbeat,

@@ -341,6 +341,14 @@ export type MonitorCreateUpdateDto = {
   active?: boolean;
   config?: string;
   interval: number;
+  /**
+   * How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough), all (every location that counts) or at_least (location_threshold of them). Omitted on create, the rule is any; omitted on update, the monitor keeps its rule. Locations whose probe is offline, or that haven't reported, don't count.
+   */
+  location_rule?: "any" | "all" | "at_least";
+  /**
+   * With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Required with at_least and not allowed with any other rule.
+   */
+  location_threshold?: number | null;
   max_retries?: number;
   name: string;
   notification_ids: Array<string>;
@@ -360,6 +368,8 @@ export type MonitorCreateUpdateDto = {
     | boolean
     | string
     | number
+    | ("any" | "all" | "at_least")
+    | (number | null)
     | Array<string>
     | (Array<string> | null)
     | (Array<string> | null)
@@ -412,6 +422,14 @@ export type MonitorMonitorResponseDto = {
   interval: number;
   last_heartbeat?: HeartbeatModel;
   /**
+   * How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough, the default), all (every location that counts), or at_least (location_threshold of them). Locations whose probe is offline, or that haven't reported, don't count.
+   */
+  location_rule: "any" | "all" | "at_least";
+  /**
+   * With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Null with any other rule.
+   */
+  location_threshold: number | null;
+  /**
    * Where the monitor runs and how it is doing there, one entry for each probe in probe_ids and in the same order
    */
   locations: Array<MonitorModelLocation>;
@@ -438,6 +456,14 @@ export type MonitorPartialUpdateDto = {
   active?: boolean | null;
   config?: string | null;
   interval?: number | null;
+  /**
+   * How many of the monitor's locations must be Down for the monitor to be Down: any, all or at_least. Omitted, the monitor keeps its rule.
+   */
+  location_rule?: "any" | "all" | "at_least";
+  /**
+   * With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Sent with a rule other than at_least it is rejected; a rule sent without it has none.
+   */
+  location_threshold?: number | null;
   max_retries?: number | null;
   name?: string | null;
   notification_ids?: Array<string> | null;
@@ -457,6 +483,8 @@ export type MonitorPartialUpdateDto = {
     | unknown
     | (boolean | null)
     | (string | null)
+    | (number | null)
+    | ("any" | "all" | "at_least")
     | (number | null)
     | (number | null)
     | (string | null)

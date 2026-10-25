@@ -18,21 +18,24 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:monitors,alias:m"`
 
-	ID             string               `bun:"id,pk"`
-	Type           string               `bun:"type,notnull"`
-	Name           string               `bun:"name,notnull"`
-	Interval       int                  `bun:"interval,notnull"`
-	Timeout        int                  `bun:"timeout,notnull"`
-	MaxRetries     int                  `bun:"max_retries,notnull"`
-	RetryInterval  int                  `bun:"retry_interval,notnull"`
-	ResendInterval int                  `bun:"resend_interval,notnull"`
-	Active         bool                 `bun:"active,notnull"` // no Bun default: it would replace false with the column default
-	Status         shared.MonitorStatus `bun:"status,notnull,default:0"`
-	CreatedAt      time.Time            `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt      time.Time            `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
-	Config         string               `bun:"config"`
-	ProxyId        *string              `bun:"proxy_id"`
-	PushToken      string               `bun:"push_token"`
+	ID             string `bun:"id,pk"`
+	Type           string `bun:"type,notnull"`
+	Name           string `bun:"name,notnull"`
+	Interval       int    `bun:"interval,notnull"`
+	Timeout        int    `bun:"timeout,notnull"`
+	MaxRetries     int    `bun:"max_retries,notnull"`
+	RetryInterval  int    `bun:"retry_interval,notnull"`
+	ResendInterval int    `bun:"resend_interval,notnull"`
+	// LocationRule is any, all or at_least. LocationThreshold is set with at_least and NULL otherwise.
+	LocationRule      string               `bun:"location_rule,notnull"`
+	LocationThreshold *int                 `bun:"location_threshold"`
+	Active            bool                 `bun:"active,notnull"` // no Bun default: it would replace false with the column default
+	Status            shared.MonitorStatus `bun:"status,notnull,default:0"`
+	CreatedAt         time.Time            `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt         time.Time            `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	Config            string               `bun:"config"`
+	ProxyId           *string              `bun:"proxy_id"`
+	PushToken         string               `bun:"push_token"`
 	// LocationsStatus is the status the monitor's locations last added up to. Only the ingester's
 	// RecordLocation writes it.
 	LocationsStatus *int `bun:"locations_status,scanonly"`
@@ -98,22 +101,32 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	}
 
 	return &Model{
-		ID:             sm.ID,
-		Type:           sm.Type,
-		Name:           sm.Name,
-		Interval:       sm.Interval,
-		Timeout:        sm.Timeout,
-		MaxRetries:     sm.MaxRetries,
-		RetryInterval:  sm.RetryInterval,
-		ResendInterval: sm.ResendInterval,
-		Active:         sm.Active,
-		Status:         sm.Status,
-		CreatedAt:      sm.CreatedAt,
-		UpdatedAt:      sm.UpdatedAt,
-		Config:         sm.Config,
-		ProxyId:        proxyId,
-		PushToken:      sm.PushToken,
+		ID:                sm.ID,
+		Type:              sm.Type,
+		Name:              sm.Name,
+		Interval:          sm.Interval,
+		Timeout:           sm.Timeout,
+		MaxRetries:        sm.MaxRetries,
+		RetryInterval:     sm.RetryInterval,
+		ResendInterval:    sm.ResendInterval,
+		LocationRule:      shared.LocationRule(sm.LocationRule),
+		LocationThreshold: sm.LocationThreshold,
+		Active:            sm.Active,
+		Status:            sm.Status,
+		CreatedAt:         sm.CreatedAt,
+		UpdatedAt:         sm.UpdatedAt,
+		Config:            sm.Config,
+		ProxyId:           proxyId,
+		PushToken:         sm.PushToken,
 	}
+}
+
+// locationRuleOrAny is the rule, or any for a monitor that has none
+func locationRuleOrAny(rule shared.LocationRule) shared.LocationRule {
+	if rule == "" {
+		return shared.LocationRuleAny
+	}
+	return rule
 }
 
 func toSQLModel(m *Model) *sqlModel {
@@ -124,21 +137,23 @@ func toSQLModel(m *Model) *sqlModel {
 	}
 
 	return &sqlModel{
-		ID:             m.ID,
-		Type:           m.Type,
-		Name:           m.Name,
-		Interval:       m.Interval,
-		Timeout:        m.Timeout,
-		MaxRetries:     m.MaxRetries,
-		RetryInterval:  m.RetryInterval,
-		ResendInterval: m.ResendInterval,
-		Active:         m.Active,
-		Status:         m.Status,
-		CreatedAt:      m.CreatedAt,
-		UpdatedAt:      m.UpdatedAt,
-		Config:         m.Config,
-		ProxyId:        proxyId,
-		PushToken:      m.PushToken,
+		ID:                m.ID,
+		Type:              m.Type,
+		Name:              m.Name,
+		Interval:          m.Interval,
+		Timeout:           m.Timeout,
+		MaxRetries:        m.MaxRetries,
+		RetryInterval:     m.RetryInterval,
+		ResendInterval:    m.ResendInterval,
+		LocationRule:      string(locationRuleOrAny(m.LocationRule)),
+		LocationThreshold: m.LocationThreshold,
+		Active:            m.Active,
+		Status:            m.Status,
+		CreatedAt:         m.CreatedAt,
+		UpdatedAt:         m.UpdatedAt,
+		Config:            m.Config,
+		ProxyId:           proxyId,
+		PushToken:         m.PushToken,
 	}
 }
 
@@ -532,6 +547,11 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monito
 	}
 	if monitor.ResendInterval != nil {
 		query = query.Set("resend_interval = ?", *monitor.ResendInterval)
+		hasUpdates = true
+	}
+	if monitor.LocationRule != nil {
+		// The threshold goes with the rule: a rule without one clears it
+		query = query.Set("location_rule = ?", string(*monitor.LocationRule)).Set("location_threshold = ?", monitor.LocationThreshold)
 		hasUpdates = true
 	}
 	if monitor.Active != nil {

@@ -75,6 +75,10 @@ func PrepareTemplateBindings(monitor *monitor.Model, heartbeat *heartbeat.Model,
 		}
 
 		bindings["monitor"] = monitorJSON
+		// Where the monitor is Down, for templates: the names of the locations that are, and how many
+		// the monitor has
+		bindings["locations_down"] = LocationsDown(monitor)
+		bindings["locations_total"] = LocationsTotal(monitor)
 		// Use JSON field name for consistency
 		if name, ok := monitorJSON["name"].(string); ok {
 			bindings["name"] = name
