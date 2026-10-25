@@ -137,6 +137,10 @@ type parts struct {
 	// LeaderJobs runs the stale-monitor watchdog and the probe sweep on the replica that holds the
 	// leader lock. A MongoDB install has none: its producer runs them.
 	LeaderJobs *app.LeaderJobs `optional:"true"`
+	// SilentWatch finds a local probe that has monitors to run and no instance: a cluster upgraded
+	// without deploying probes. A MongoDB install has none.
+	SilentWatch     *probe.SilentWatch `optional:"true"`
+	ProbeRepository probe.Repository   `optional:"true"`
 	// LocalBus delivers the heartbeats this replica stored to the stats aggregation. A MongoDB
 	// install has none: its ingester aggregates the stats.
 	LocalBus *app.LocalBus `optional:"true"`
@@ -263,6 +267,14 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	// token and no UI step. A token that can't be stored stops startup.
 	if err := app.BootstrapLocalProbeToken(ctx, p.Probes, cfg.ProbeBootstrapToken, logger); err != nil {
 		return j, fmt.Errorf("failed to bootstrap the local probe: %w", err)
+	}
+
+	// A cluster on SQLite or PostgreSQL that was upgraded without deploying probes has monitors and
+	// nothing that checks them: say so in the log of the replica the operator just started
+	if p.SilentWatch != nil {
+		if _, err := p.SilentWatch.WarnIfSilent(ctx, p.ProbeRepository, logger); err != nil {
+			logger.Warnw("Failed to find out whether the local probe has an instance", "error", err)
+		}
 	}
 
 	// Apply the admin's choice from before the restart, which also copies it to Redis for the

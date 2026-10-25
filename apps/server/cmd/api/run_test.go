@@ -65,6 +65,32 @@ func TestRun_HoldsTheLeaderLockWhileRunningAndReleasesItWhenItStops(t *testing.T
 	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the leader jobs stop right after the websocket closes")
 }
 
+// A cluster on SQLite or PostgreSQL that was upgraded without deploying probes has monitors and
+// nothing that checks them. The api says so at startup, whether or not it is the leader.
+func TestRun_WarnsAtStartupOfALocalProbeWithMonitorsAndNoInstance(t *testing.T) {
+	const warning = "the local probe has 1 active monitors and no instance: deploy peekaping-probe with PROBE_TOKEN set to PROBE_BOOTSTRAP_TOKEN"
+	cfg := loadConfig(t, nil)
+
+	logger, logs := observedLogger()
+	first := startAPI(t, cfg, logger, logs)
+	assert.Zero(t, logs.FilterMessage(warning).Len(), "a new install has no monitors to leave without a probe")
+	first.registerAdmin(t)
+	status, body := first.request(t, http.MethodPost, "/api/v1/monitors", map[string]any{
+		"type": "http", "name": "Home", "interval": 60, "retry_interval": 60, "timeout": 16, "max_retries": 3,
+		"active": true, "notification_ids": []string{},
+		"config": `{"url":"https://example.com/health","method":"GET","encoding":"json","accepted_statuscodes":["2XX"],"authMethod":"none"}`,
+	})
+	require.Equal(t, http.StatusCreated, status, string(body))
+	require.NoError(t, first.stop(t))
+
+	logger, logs = observedLogger()
+	startAPI(t, cfg, logger, logs)
+
+	warnings := logs.FilterMessage(warning).All()
+	require.Len(t, warnings, 1)
+	assert.Equal(t, zap.WarnLevel, warnings[0].Level)
+}
+
 func TestRun_ShutsDownInOrderOnceTheRequestsInFlightAreAnswered(t *testing.T) {
 	// With the metrics collector too, whose sync the shutdown waits for
 	cfg := loadConfig(t, map[string]string{"METRICS_ENABLED": "true"})

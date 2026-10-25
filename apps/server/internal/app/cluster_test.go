@@ -207,6 +207,7 @@ func TestRegisterClusterAPI_ResolvesTheLeaderJobsOnSQLStorage(t *testing.T) {
 		jobs *LeaderJobs,
 		watchdog *stale.Watchdog,
 		sweep *probe.Sweep,
+		silent *probe.SilentWatch,
 		elector *leader.Elector,
 		bus events.EventBus,
 		db *bun.DB,
@@ -216,7 +217,38 @@ func TestRegisterClusterAPI_ResolvesTheLeaderJobsOnSQLStorage(t *testing.T) {
 		assert.NotNil(t, jobs)
 		assert.NotNil(t, watchdog)
 		assert.NotNil(t, sweep)
+		assert.NotNil(t, silent, "the sweep reports a local probe that has monitors and no instance")
 		assert.NotNil(t, elector)
+	}))
+}
+
+// A cluster upgraded without deploying probes has a local probe that was never online, with monitors
+// nothing checks. What the sweep counts as monitors that need an instance are the active monitors of
+// the local probe that run checks.
+func TestRegisterClusterAPI_TheSilentWatchCountsTheActiveMonitorsThatNeedAnInstance(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(silent *probe.SilentWatch, monitors monitor.Service, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		require.NoError(t, migrateDB(db))
+		ctx := context.Background()
+		count := func() int {
+			n, err := silent.Monitors(ctx)
+			require.NoError(t, err)
+			return n
+		}
+		assert.Zero(t, count(), "no monitors")
+
+		_, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+		require.NoError(t, err)
+		_, err = monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "push", Name: "Backup", Active: true, Config: "{}", PushToken: "backup-token"})
+		require.NoError(t, err)
+		_, err = monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Retired", Active: false, Config: "{}"})
+		require.NoError(t, err)
+
+		assert.Equal(t, 1, count(), "the http monitor: a push monitor runs no checks, and a paused one is not running")
 	}))
 }
 
@@ -233,6 +265,7 @@ func TestRegisterClusterAPI_ProvidesNoLeaderJobsOnMongoStorage(t *testing.T) {
 			assert.Error(t, container.Invoke(func(*LeaderJobs) {}), "no jobs under the leader lock")
 			assert.Error(t, container.Invoke(func(*leader.Elector) {}), "and no election")
 			assert.Error(t, container.Invoke(func(*probe.Sweep) {}), "and no sweep")
+			assert.Error(t, container.Invoke(func(*probe.SilentWatch) {}), "and nothing to find a local probe with no instance: the producer, worker and ingester check")
 		})
 	}
 }

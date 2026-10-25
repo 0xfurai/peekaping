@@ -193,7 +193,20 @@ func runProbeSoak(t *testing.T, a *app) {
 	// flushed before it said bye, and the others send theirs every two seconds
 	require.Eventually(t, func() bool { return storedHeartbeats(t, a) >= checksB }, 15*time.Second, 500*time.Millisecond,
 		"a heartbeat is stored for each check")
-	t.Logf("%d heartbeats stored for %d checks", storedHeartbeats(t, a), checksB)
+
+	// The two that are left say bye, flushing what they hold first, and then there is one heartbeat
+	// for each check that was made: none lost, none stored twice
+	for _, p := range probes[:2] {
+		shutdown, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		require.NoError(t, p.Shutdown(shutdown))
+		cancel()
+	}
+	checksTotal, _ := checked()
+	require.Eventually(t, func() bool { return storedHeartbeats(t, a) >= checksTotal }, 15*time.Second, 200*time.Millisecond,
+		"a heartbeat is stored for each check")
+	time.Sleep(time.Second)
+	t.Logf("%d heartbeats stored for %d checks", storedHeartbeats(t, a), checksTotal)
+	assert.Equal(t, checksTotal, storedHeartbeats(t, a), "one heartbeat for each check")
 
 	// The API's memory: the live heap after a collection, when the instances settled, after the first
 	// span and after the last. A run of a few minutes shows a leak that grows with the checks.

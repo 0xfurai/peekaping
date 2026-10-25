@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 
 	"peekaping/internal/config"
@@ -73,9 +74,34 @@ func registerAPIStorage(container *dig.Container, mongo bool) error {
 		provideInOrderIngester,
 		leader.ProvideElector,
 		provideClusterWatchdog,
-		probe.ProvideSweep,
+		provideAnnouncements,
+		provideSilentWatch,
+		probe.ProvideSilentSweep,
 		provideLeaderJobs,
 	)
+}
+
+// provideAnnouncements provides the record, in the Redis the api replicas share, of the probes the
+// leader reported offline
+func provideAnnouncements(client *redis.Client) probe.Announcements {
+	return probe.NewRedisAnnouncements(client)
+}
+
+// provideSilentWatch provides what makes the sweep report the local probe offline when it has
+// monitors to run and no instance. A cluster upgraded without deploying probes has such a local
+// probe, which was never online, so the sweep would never see it go quiet. The monitors that need an
+// instance are the active monitors of the local probe that run checks, which a push monitor does not.
+func provideSilentWatch(source protocol.MonitorSource, announced probe.Announcements) *probe.SilentWatch {
+	return &probe.SilentWatch{
+		Monitors: func(ctx context.Context) (int, error) {
+			monitors, err := source.FindActiveByProbe(ctx, probe.LocalID)
+			if err != nil {
+				return 0, err
+			}
+			return len(protocol.Dealable(monitors, nil)), nil
+		},
+		Announced: announced,
+	}
 }
 
 // provideClusterWatchdog provides the stale-monitor watchdog of the api. No process of its own runs
