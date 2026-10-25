@@ -106,9 +106,9 @@ func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
 const staleTimeFormat = "2006-01-02 15:04:05 UTC"
 
 // handleProbeEvent notifies that a probe went offline, or that it is online. The providers take a
-// monitor, and several read its name and id without checking for nil, so a stand-in carries the
-// probe: its name says it is a probe, and its id is the probe's, which keeps the notifications of
-// two probes apart in a channel that deduplicates by it.
+// monitor, so a stand-in carries the probe: its name says it is a probe, and its id is the
+// probe's, which keeps the notifications of two probes apart in a channel that deduplicates by it.
+// Its type marks it as a probe's, so a provider that links to the monitor links to the Probes page.
 func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeEvent probe.Event, online bool) {
 	l.logger.Infof("Probe event received for probe: %s (online: %t)", probeEvent.ProbeID, online)
 
@@ -130,7 +130,7 @@ func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeE
 	if online {
 		message = fmt.Sprintf("Probe %s is online", probeEvent.ProbeName)
 	}
-	standIn := &monitor.Model{ID: probeEvent.ProbeID, Name: "Probe " + probeEvent.ProbeName}
+	standIn := &monitor.Model{ID: probeEvent.ProbeID, Type: shared.MonitorTypeProbe, Name: "Probe " + probeEvent.ProbeName}
 	// A probe notification carries no heartbeat
 	l.sendToChannels(ctx, l.channelsByID(ctx, ids), message, standIn, nil)
 }
