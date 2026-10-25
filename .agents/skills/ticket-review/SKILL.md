@@ -2,7 +2,7 @@
 name: ticket-review
 description: "Review a ticket's branch, Claude's or your own, against the ticket: every acceptance criterion implemented and tested, gaps fixed, full local run green."
 disable-model-invocation: true
-argument-hint: "#<n> | <branch>"
+argument-hint: "PP-<n> | <branch>"
 ---
 
 # Ticket: review
@@ -33,4 +33,4 @@ The same agent then runs the full local run in [TESTING.md](../ticket/TESTING.md
 
 Done when: every criterion has code and test evidence in a table, no finding is open, and the full local run passes.
 
-Show the user the table. Run alone, end by telling them the next step: `/ticket #<n> from pr`.
+Show the user the table. Run alone, end by telling them the next step: `/ticket <PP-n> from pr`.
