@@ -293,8 +293,8 @@ func (r *SQLRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID str
 	if err != nil {
 		return err
 	}
-	if len(oldest) == 0 {
-		return nil
+	if len(oldest) < needed {
+		return ErrTooManyInstances
 	}
 	_, err = db.NewDelete().Model((*sqlInstance)(nil)).Where("id IN (?)", bun.In(oldest)).Exec(ctx)
 	return err

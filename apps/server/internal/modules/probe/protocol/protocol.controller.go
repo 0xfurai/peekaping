@@ -19,6 +19,7 @@ import (
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 
+	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
@@ -102,6 +103,19 @@ func (c *Controller) fail(err error) error {
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(messageInternalError))
 }
 
+// tooManyInstances is the 429 for a hello from a new instance of a probe that has all
+// probe.MaxInstancesPerProbe of its instances running. Retry-After is a window: by then an instance
+// that has stopped is no longer online, and the hello can take its place. The probe client waits
+// for it, as for any 429.
+func tooManyInstances(owner *probe.Model) error {
+	message := "probe " + owner.Name + " already has " + strconv.Itoa(probe.MaxInstancesPerProbe) + " running instances, the most one probe may have"
+	retryAfter := strconv.Itoa(int(probe.InstanceOnlineWindow / time.Second))
+	return huma.ErrorWithHeaders(
+		httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse(message)),
+		http.Header{"Retry-After": {retryAfter}},
+	)
+}
+
 // unauthenticated is for a route that the bearer middleware does not guard, which is a mistake in
 // the route's setup and not the probe's
 func (c *Controller) unauthenticated() error {
@@ -149,6 +163,9 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		ProtocolVersion: req.ProtocolVersion,
 		LastSeenAt:      now,
 	}, req.SupportedTypes)
+	if errors.Is(err, probe.ErrTooManyInstances) {
+		return nil, tooManyInstances(owner)
+	}
 	if err != nil {
 		return nil, c.fail(err)
 	}

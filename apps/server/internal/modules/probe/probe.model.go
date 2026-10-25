@@ -31,6 +31,9 @@ var (
 	// ErrInstanceTaken is returned when a probe registers an instance id that another probe's
 	// instance already has
 	ErrInstanceTaken = errors.New("instance id belongs to another probe")
+	// ErrTooManyInstances is returned when a probe registers an instance it doesn't hold yet while
+	// it holds MaxInstancesPerProbe, all of them online: there is no instance to replace
+	ErrTooManyInstances = errors.New("the probe already has the most instances it may have")
 	// ErrUnsupportedStorage is returned on a MongoDB install, which has no probes (ADR 0001). It
 	// is the error of the probe_notification module too, so that it means the same in both.
 	ErrUnsupportedStorage = probe_notification.ErrUnsupportedStorage

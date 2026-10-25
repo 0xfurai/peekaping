@@ -347,6 +347,26 @@ func TestProbeProtocol_HelloPastTheCapReplacesTheOldestQuietInstance(t *testing.
 	assert.Contains(t, ids, "quiet-for-2-minutes")
 }
 
+// When all 64 instances are running there is nothing to replace, so the newcomer is told to wait:
+// the probe client waits out Retry-After and says hello again.
+func TestProbeProtocol_HelloPastTheCapWithEveryInstanceOnlineAnswers429(t *testing.T) {
+	a, made := probeApp(t)
+	now := time.Now()
+	for n := 1; n <= instanceCap; n++ {
+		a.holdInstance(t, made.ID, fmt.Sprintf("online-%d", n), now.Add(-time.Duration(n)*100*time.Millisecond))
+	}
+	held := a.instanceIDs(t, made.ID)
+	require.Len(t, held, instanceCap)
+	newcomer := uuid.NewString()
+
+	w := a.request(t, http.MethodPost, helloPath, helloFrom(newcomer), asProbe(made.Token, newcomer))
+
+	require.Equal(t, http.StatusTooManyRequests, w.Code, w.Body.String())
+	assert.Equal(t, "60", w.Header().Get("Retry-After"))
+	assert.Equal(t, "probe Frankfurt already has 64 running instances, the most one probe may have", errorMessage(t, w.Body.Bytes()))
+	assert.ElementsMatch(t, held, a.instanceIDs(t, made.ID), "the refused hello changed nothing")
+}
+
 func TestProbeProtocol_TheLocalProbeSaysHelloWithTheBootstrapToken(t *testing.T) {
 	const token = "bootstrap-token-0123456789-abcdefghijklmnop"
 	a := newAppWithAdmin(t, func(cfg *config.Config) { cfg.ProbeBootstrapToken = token })

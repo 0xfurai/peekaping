@@ -32,7 +32,8 @@ type Repository interface {
 	UpsertInstance(ctx context.Context, probeID string, inst *Instance) error
 	// MakeRoomForInstance leaves the probe room for one more instance, called inside the
 	// transaction that then upserts it: when the probe holds limit instances or more, it deletes
-	// the oldest ones last seen before quietBefore, as many as it takes.
+	// the oldest ones last seen before quietBefore, as many as it takes. It returns
+	// ErrTooManyInstances, and deletes nothing, when there are not that many to delete.
 	MakeRoomForInstance(ctx context.Context, probeID string, instanceID string, limit int, quietBefore time.Time) error
 	// TouchInstance sets the last seen time of the probe's instance. It returns false when the
 	// probe has no such instance.
