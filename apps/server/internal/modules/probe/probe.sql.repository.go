@@ -288,36 +288,37 @@ func (r *SQLRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID str
 	if err != nil || known {
 		return err
 	}
-	var oldest []string
-	err = db.NewSelect().Model((*sqlInstance)(nil)).Column("id").
-		Where("probe_id = ?", probeID).
-		Where("last_seen_at < ?", quietBefore.UTC()).
-		OrderExpr("last_seen_at ASC, id ASC").
-		Limit(needed).
-		Scan(ctx, &oldest)
-	if err != nil {
-		return err
-	}
-	if len(oldest) < needed {
-		return ErrTooManyInstances
-	}
-	// An instance among them can be in contact again since they were read (its touch doesn't wait
-	// for the probe's lock), so delete only those still quiet, and refuse when that frees too few
-	// places: the transaction then rolls back what was deleted and adds nothing
-	result, err := db.NewDelete().Model((*sqlInstance)(nil)).
-		Where("id IN (?)", bun.In(oldest)).
-		Where("probe_id = ?", probeID).
-		Where("last_seen_at < ?", quietBefore.UTC()).
-		Exec(ctx)
-	if err != nil {
-		return err
-	}
-	deleted, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if deleted < int64(needed) {
-		return ErrTooManyInstances
+	// An instance picked can be in contact again before it is deleted (its touch doesn't wait for
+	// the probe's lock), so only those still quiet are deleted, and the next oldest quiet ones are
+	// picked for the places still missing. When no quiet one is left, the hello is refused: the
+	// transaction then rolls back what was deleted and adds nothing.
+	for needed > 0 {
+		var oldest []string
+		err = db.NewSelect().Model((*sqlInstance)(nil)).Column("id").
+			Where("probe_id = ?", probeID).
+			Where("last_seen_at < ?", quietBefore.UTC()).
+			OrderExpr("last_seen_at ASC, id ASC").
+			Limit(needed).
+			Scan(ctx, &oldest)
+		if err != nil {
+			return err
+		}
+		if len(oldest) < needed {
+			return ErrTooManyInstances
+		}
+		result, err := db.NewDelete().Model((*sqlInstance)(nil)).
+			Where("id IN (?)", bun.In(oldest)).
+			Where("probe_id = ?", probeID).
+			Where("last_seen_at < ?", quietBefore.UTC()).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+		deleted, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		needed -= int(deleted)
 	}
 	return nil
 }
