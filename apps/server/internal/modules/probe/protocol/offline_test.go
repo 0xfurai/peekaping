@@ -35,6 +35,13 @@ func monitorOn(id string, probeIDs ...string) *monitor.Model {
 	return m
 }
 
+// pushMonitorOn is a push monitor assigned to the probes
+func pushMonitorOn(id string, probeIDs ...string) *monitor.Model {
+	m := monitorOn(id, probeIDs...)
+	m.Type = "push"
+	return m
+}
+
 func TestMonitorProbeOffline_TheLocalProbeIsNeverOffline(t *testing.T) {
 	probes := &statusProbes{byID: map[string]*probe.Model{probe.LocalID: {ID: probe.LocalID, Status: probe.StatusOffline}}}
 	// Nothing speaks the protocol on most installs, so the local probe reads offline there; its
@@ -42,10 +49,10 @@ func TestMonitorProbeOffline_TheLocalProbeIsNeverOffline(t *testing.T) {
 	offline := protocol.MonitorProbeOffline(probes)
 
 	for name, m := range map[string]*monitor.Model{
-		"assigned to local":              monitorOn("http-1", probe.LocalID),
-		"read without its probes":        monitorOn("http-2"),
-		"on local and a remote one":      monitorOn("http-3", "probe-1", probe.LocalID),
-		"on local, as a push monitor is": monitorOn("push-1", probe.LocalID),
+		"assigned to local":         monitorOn("http-1", probe.LocalID),
+		"read without its probes":   monitorOn("http-2"),
+		"on local and a remote one": monitorOn("http-3", "probe-1", probe.LocalID),
+		"a push monitor":            pushMonitorOn("push-1", probe.LocalID),
 	} {
 		got, err := offline(context.Background(), m)
 
@@ -72,7 +79,6 @@ func TestMonitorProbeOffline_InClusterModeTheLocalProbeFollowsItsInstances(t *te
 		for name, m := range map[string]*monitor.Model{
 			"assigned to local":                      monitorOn("http-1", probe.LocalID),
 			"read without its probes":                monitorOn("http-2"),
-			"on local, as a push monitor is":         monitorOn("push-1", probe.LocalID),
 			"on local and a remote probe that is up": monitorOn("http-3", "probe-1", probe.LocalID),
 		} {
 			got, err := offline(context.Background(), m)
@@ -81,6 +87,24 @@ func TestMonitorProbeOffline_InClusterModeTheLocalProbeFollowsItsInstances(t *te
 			// The last one has a probe that is up: the monitor is checked there
 			assert.Equal(t, name != "on local and a remote probe that is up", got, name)
 		}
+	})
+
+	// A push monitor runs no checks: its pushes arrive at the api, with or without an instance of the
+	// local probe. The watchdog is what finds out that the job that judges missing pushes has failed
+	// or stalled, so it must not skip a push monitor because the local probe has no instance.
+	t.Run("never for a push monitor, whatever its probe's status", func(t *testing.T) {
+		offline, probes := offlineOf(probe.StatusOffline)
+
+		for name, m := range map[string]*monitor.Model{
+			"assigned to local":       pushMonitorOn("push-1", probe.LocalID),
+			"read without its probes": pushMonitorOn("push-2"),
+		} {
+			got, err := offline(context.Background(), m)
+
+			require.NoError(t, err, name)
+			assert.False(t, got, name)
+		}
+		assert.Empty(t, probes.finds, "no probe is read for a push monitor")
 	})
 
 	t.Run("online while an instance is connected", func(t *testing.T) {
