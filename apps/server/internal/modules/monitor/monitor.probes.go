@@ -67,7 +67,8 @@ func (mr *MonitorServiceImpl) validateProbes(ctx context.Context, monitorType st
 	return nil
 }
 
-// validateProbe checks that the probe exists and runs the monitor type
+// validateProbe checks that the probe exists and runs the monitor type. A push monitor runs on the
+// local probe whatever types it lists.
 func (mr *MonitorServiceImpl) validateProbe(ctx context.Context, monitorType, probeID string) error {
 	info, err := mr.findProbe(ctx, probeID)
 	switch {
@@ -81,6 +82,10 @@ func (mr *MonitorServiceImpl) validateProbe(ctx context.Context, monitorType, pr
 		return err
 	case info == nil:
 		return &InvalidProbesError{Err: fmt.Errorf("probe %q doesn't exist", probeID)}
+	case monitorType == pushType:
+		// A push monitor needs no executor on a probe: its pushes arrive at the api. The types a
+		// probe lists are the ones it can check, and a probe's instances leave push out of them.
+		return nil
 	case len(info.SupportedTypes) > 0 && !slices.Contains(info.SupportedTypes, monitorType):
 		return &InvalidProbesError{Err: fmt.Errorf("probe %q doesn't run %s monitors", info.Name, monitorType)}
 	}

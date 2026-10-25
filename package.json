@@ -9,6 +9,7 @@
     "dev:producer": "turbo run dev:producer",
     "dev:worker": "turbo run dev:worker",
     "dev:ingester": "turbo run dev:ingester",
+    "dev:probe": "turbo run dev:probe",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
     "e2e": "playwright test",

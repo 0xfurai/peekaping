@@ -288,6 +288,46 @@ func TestSink_UnansweredResultsAreKeptAndSentAgain(t *testing.T) {
 	assert.Equal(t, []string{"first", "second", "third"}, []string{stored[0].Message, stored[1].Message, stored[2].Message})
 }
 
+// The server answers a batch 503 with a Retry-After when another request holds the id of one of its
+// results (it may be storing it, or have died storing it). That is no answer about the results: the
+// probe keeps the whole batch, waits as asked, says hello again and sends the same batch. It is the
+// server's way of not answering duplicate for a result that may never be stored, which the probe
+// would drop for good.
+func TestSink_ABatchAnswered503WithARetryAfterIsKeptAndSentAgainAfterThatLong(t *testing.T) {
+	server := newResultsServer(t, nil)
+	server.answer = func(attempt int, batch []probeproto.Result, w http.ResponseWriter) {
+		if attempt == 1 {
+			fail(w, http.StatusServiceUnavailable, "a result in this batch is being stored by another request: send the batch again", 5*time.Second)
+			return
+		}
+		// The other request stored the first result, and the second is the probe's to be stored now
+		server.mu.Lock()
+		server.stored = append(server.stored, batch[1])
+		server.mu.Unlock()
+		reply(w, http.StatusOK, probeproto.ResultsResponse{Results: []probeproto.ResultOutcome{
+			{ID: batch[0].ID, Reason: probeproto.ReasonDuplicate},
+			{ID: batch[1].ID, Accepted: true},
+		}})
+	}
+	pause := &sleeper{}
+	sink, _ := newSink(server, pause, nil)
+	ingest(t, sink,
+		checked("m1", 0, shared.MonitorStatusUp, "first"),
+		checked("m1", 1, shared.MonitorStatusUp, "second"),
+	)
+
+	require.NoError(t, sink.Flush(context.Background()))
+
+	assert.Equal(t, []int{2, 2}, server.batchSizes(), "the same two results are sent again, none was dropped")
+	assert.Equal(t, []time.Duration{5 * time.Second}, pause.waits(), "after the Retry-After")
+	assert.Equal(t, []string{"hello", "results", "hello", "results"}, server.sequence(), "with a hello in between, as after any 503")
+	stored := server.storedResults()
+	require.Len(t, stored, 1)
+	assert.Equal(t, "second", stored[0].Message)
+	assert.Zero(t, sink.Buffered())
+	assert.Zero(t, sink.Dropped())
+}
+
 func TestSink_FullBufferDropsTheOldest(t *testing.T) {
 	server := newResultsServer(t, func(h *probeproto.HelloResponse) { h.BufferMax = 3 })
 	logger, logs := observedLogger()

@@ -5,9 +5,12 @@
 //
 // Cluster mode's transport is in cluster.go: Redis, the event bus over it, the stale.Store and
 // the cleanup.RunLock in it, asynq and the leader election, and the cluster side of ADR 0002's
-// two seams. "Run a check" (check.Runner) enqueues the producer's checks for the worker, and
-// "ingest a result" (ingester.Service) enqueues the worker's and the push URL's results for the
-// ingester. Its RegisterCluster functions build each cluster binary's graph.
+// two seams. On SQLite and PostgreSQL the probes run the checks, so the api ingests what it takes
+// (a push, or the results of a probe) with ingester.NewInOrderService, counts the stats of what it
+// stored, and runs the stale-monitor watchdog and the probe sweep under the leader lock. On
+// MongoDB, which has no probes, "run a check" (check.Runner) enqueues the producer's checks for the
+// worker, and "ingest a result" (ingester.Service) enqueues the worker's and the push URL's
+// results for the ingester. Its RegisterCluster functions build each cluster binary's graph.
 //
 // Single mode's transport is in single.go: Register, then the in-memory event bus and
 // stale.Store, the cleanup.RunLock that grants every hour, the scheduler and its watchdog, and

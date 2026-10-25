@@ -58,6 +58,8 @@ env:
 jobs:
   # Build each image once, on its own runner, and share it with the test jobs.
   # The dev images don't depend on the database, so all three dev jobs reuse them.
+  # The dev producer, worker and ingester images are for the MongoDB stack alone: on SQLite and
+  # PostgreSQL the api runs the producer's and the ingester's work, and the probe image the worker's.
   build-images:
     name: Build ${{ matrix.name }}
     runs-on: ubuntu-24.04
@@ -68,8 +70,10 @@ jobs:
           - { name: dev-api, tag: peekaping-api, context: apps/server, file: apps/server/infra/Dockerfile.api }
           - { name: dev-producer, tag: peekaping-producer, context: apps/server, file: apps/server/infra/Dockerfile.producer }
           - { name: dev-worker, tag: peekaping-worker, context: apps/server, file: apps/server/infra/Dockerfile.worker }
-          # The e2e jobs run it as a remote probe (e2e/remote-probe.spec.ts). Named without "dev-" because
-          # the bundle jobs need it too, and they don't download image-dev-*; every e2e job asks for it by name.
+          # The dev SQLite and PostgreSQL stacks run it as their `probe` service (it is the local probe's
+          # instances), and the e2e jobs run it as a remote probe (e2e/remote-probe.spec.ts). Named without
+          # "dev-" because the bundle jobs need it too, and they don't download image-dev-*; every e2e job
+          # asks for it by name.
           - { name: probe, tag: peekaping-probe, context: apps/server, file: apps/server/infra/Dockerfile.probe }
           - { name: dev-ingester, tag: peekaping-ingester, context: apps/server, file: apps/server/infra/Dockerfile.ingester }
           - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
@@ -155,7 +159,8 @@ jobs:
         pattern: ${{ matrix.config == 'dev' && 'image-dev-*' || format('image-bundle-{0}', matrix.database) }}
         path: ${{ runner.temp }}/images
         merge-multiple: true
-    # The remote probe specs start this image themselves. MongoDB has no probes, so they skip there.
+    # The dev stack runs this image as its `probe` service, and the remote probe specs start it
+    # themselves. MongoDB has no probes, so its stack has no `probe` service and the specs skip.
     - name: Download the probe image
       if: ${{ matrix.database != 'mongo' }}
       uses: actions/download-artifact@v4
@@ -187,6 +192,11 @@ jobs:
 
         # The shortest time before a remote probe that stopped is reported offline (default 3m).
         PROBE_OFFLINE_AFTER=2m
+
+        # The local probe's token: the api stores it and the dev stack's probe service sends it. The
+        # dev SQLite and PostgreSQL compose files refuse to start without it. The MongoDB stack and
+        # the bundles have no use for it, so they don't get it.
+        ${{ matrix.config == 'dev' && matrix.database != 'mongo' && 'PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789' || '' }}
 
         # Server Configuration
         CLIENT_URL=http://localhost:8383

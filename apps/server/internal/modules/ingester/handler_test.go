@@ -526,6 +526,21 @@ func TestIngester_ADownMonitorStaysDownUntilItIsUp(t *testing.T) {
 				{check: up, want: up, important: true, notified: true},
 			},
 		},
+		{
+			// A Pending check result of a Down monitor is stored as Down, so it counts toward the
+			// resend interval like any other Down heartbeat
+			name:    "a container that keeps starting while Down resends on the resend interval",
+			monitor: monitorSettings{maxRetries: 0, resendInterval: 2},
+			steps: []step{
+				{check: up, want: up, important: true, notified: true},
+				{check: down, want: down, retries: 1, important: true, notified: true},
+				{check: pending, want: down, retries: 2, downCount: 1},
+				{check: pending, want: down, retries: 3, notified: true},
+				{check: pending, want: down, retries: 4, downCount: 1},
+				{check: pending, want: down, retries: 5, notified: true},
+				{check: up, want: up, important: true, notified: true},
+			},
+		},
 	})
 }
 

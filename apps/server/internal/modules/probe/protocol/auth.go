@@ -29,6 +29,7 @@ const (
 	messageInstanceHeader  = "the " + probeproto.HeaderInstanceID + " header must carry the instance id once, 1 to 255 visible characters with no spaces"
 	messageUnknownInstance = "unknown instance: send hello first"
 	messageInternalError   = "Internal server error"
+	messageUnavailable     = "the server could not take the request just now: send it again"
 )
 
 // maxInstanceIDLength is the most characters an instance id may have, as many as the column that

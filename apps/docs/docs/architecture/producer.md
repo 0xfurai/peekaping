@@ -1,10 +1,14 @@
 ---
-sidebar_position: 3
+sidebar_position: 5
 ---
 
 # Producer
 
-The Producer is the scheduling component of Peekaping, responsible for determining when monitors should be checked and enqueueing health check tasks for workers to execute.
+:::note MongoDB storage only
+The producer runs only on MongoDB storage, which is deprecated and has no [probes](./probe.md). On SQLite and PostgreSQL it refuses to start: it exits with status 1 and points to [Upgrading to probes](../self-hosting/upgrading-to-probes.md). There the probes run the checks, and the API replica that holds the leader lock runs the jobs the producer ran (see [Leader Jobs](./api-server.md#leader-jobs)). This page stays until MongoDB storage is removed.
+:::
+
+The Producer is the scheduling component of Peekaping on MongoDB storage, responsible for determining when monitors should be checked and enqueueing health check tasks for workers to execute.
 
 ## Role & Responsibilities
 
@@ -166,7 +170,7 @@ INFO Producer shut down
 
 The producer and the leadership release get 20 seconds, and the event bus gets 10. If a step doesn't finish in time, the producer logs an error, leaves the database open and exits 1. A second signal makes it exit 1 at once.
 
-Give the container 35 seconds to stop. Docker waits only 10 seconds by default, and Kubernetes 30. The cluster Compose files set `stop_grace_period: 35s`, and the Helm chart sets `terminationGracePeriodSeconds: 35`. In your own Compose file, set `stop_grace_period: 35s` on the `api`, `producer`, `worker` and `ingester` services.
+Give the container 35 seconds to stop. Docker waits only 10 seconds by default, and Kubernetes 30. The MongoDB Compose file sets `stop_grace_period: 35s`. In your own Compose file, set `stop_grace_period: 35s` on the `api`, `producer`, `worker` and `ingester` services.
 
 ## Scaling Considerations
 

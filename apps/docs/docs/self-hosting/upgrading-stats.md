@@ -8,7 +8,7 @@ The SQL stats upgrade separates minute, hour and day stats into three tables and
 
 ## Before upgrading
 
-Schedule a maintenance window and stop every Peekaping process that uses the database, including every replica. For a bundle image, stop the container. In cluster mode, stop the API, producer, worker and ingester, and make sure no migration is running.
+Schedule a maintenance window and stop every Peekaping process that uses the database, including every replica. For a bundle image, stop the container. In cluster mode, stop every API replica and, if your install still runs them, the producer, worker and ingester, and make sure no migration is running. The probes use no database, so they can keep running, but only for a while. A probe holds at most 10,000 results in memory and drops the oldest when that is full, and the API refuses results from checks that started more than one hour ago. A longer maintenance window leaves a gap in the heartbeats, and a probe that restarts meanwhile loses what it holds.
 
 Back up the complete database before starting the new version or its migration container. For PostgreSQL, use your usual tested database backup and restore procedure. For SQLite, use the host's `sqlite3` CLI and the actual host path of the mounted database file. For example, `/app/data/peekaping.db` inside the container maps to `.data/sqlite/peekaping.db` with the volume in the [SQLite deployment guide](./docker-with-sqlite.md).
 

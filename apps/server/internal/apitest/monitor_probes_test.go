@@ -208,6 +208,24 @@ func TestMonitorProbes_RejectsPushOnRemote(t *testing.T) {
 	assert.Equal(t, []string{"local"}, onLocal.ProbeIDs, "a push monitor can say local itself")
 }
 
+// An instance of the local probe says which monitor types it can run, and it leaves push out: pushes
+// arrive at the api, so a probe runs no push monitor. That must not stop the web app, which sends
+// probe_ids ["local"] for every monitor, from creating a push monitor.
+func TestMonitorProbes_APushMonitorOnTheLocalProbeWhoseInstancesLeavePushOut(t *testing.T) {
+	a := localProbeApp(t, nil)
+	a.sayHello(t, localToken, uuid.NewString())
+	httpID := a.createHTTPMonitor(t, "Checkout", "")
+
+	created := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, onProbes(pushMonitorBody("Nightly cron", "nightly-cron-token"), "local"), a.asAdmin), http.StatusCreated)
+	assert.Equal(t, []string{"local"}, created.ProbeIDs)
+
+	w := a.request(t, http.MethodPatch, monitorsPath+"/"+httpID, map[string]any{"type": "push", "config": `{"pushToken":"x"}`, "push_token": "x"}, a.asAdmin)
+	assert.Equal(t, http.StatusOK, w.Code, "a monitor becomes a push monitor: "+w.Body.String())
+
+	w = a.request(t, http.MethodPost, monitorsPath, onProbes(with(httpMonitorBody("Containers", ""), "type", "docker"), "local"), a.asAdmin)
+	assert.Equal(t, http.StatusBadRequest, w.Code, "a type the instances don't run is still refused: "+w.Body.String())
+}
+
 func TestMonitorProbes_PatchTypeCheckedAgainstProbe(t *testing.T) {
 	a := newAppWithAdmin(t)
 	httpOnly := a.probeThatRuns(t, "Paris", "http")

@@ -44,9 +44,11 @@ type Controller struct {
 	waker       *Waker
 	bus         events.EventBus
 	timing      Timing
-	accepted    *acceptedWindow
-	now         func() time.Time
-	logger      *zap.SugaredLogger
+	accepted    Window
+	// storeSlots limits the monitors all the results requests store at the same time
+	storeSlots chan struct{}
+	now        func() time.Time
+	logger     *zap.SugaredLogger
 }
 
 type ControllerParams struct {
@@ -56,16 +58,28 @@ type ControllerParams struct {
 	Monitors    monitor.Service
 	Proxies     proxy.Service
 	Maintenance maintenance.Service
-	// Ingester stores the results a probe sends: in cluster mode it enqueues them for the
-	// ingester, as it does the pushes
+	// Ingester stores the results a probe sends, as it does the pushes: in the process, in order,
+	// on SQLite and PostgreSQL; on MongoDB, which has no probes, it enqueues them for the ingester
 	Ingester ingester.Service
-	Waker    *Waker
-	Bus      events.EventBus
-	Timing   Timing
-	Logger   *zap.SugaredLogger
+	// Window remembers the result ids already taken: Redis in cluster mode, so that a retry on
+	// another API replica is found, and the process's memory in single mode. A container that
+	// provides none gets the memory window.
+	Window Window `optional:"true"`
+	Waker  *Waker
+	Bus    events.EventBus
+	Timing Timing
+	Logger *zap.SugaredLogger
 }
 
 func NewController(p ControllerParams) *Controller {
+	window := p.Window
+	if window == nil {
+		window = NewMemoryWindow()
+	}
+	timing := p.Timing
+	if timing.StoreDeadline <= 0 {
+		timing.StoreDeadline = StoreDeadline
+	}
 	return &Controller{
 		service:     p.Probes,
 		source:      p.Source,
@@ -75,8 +89,9 @@ func NewController(p ControllerParams) *Controller {
 		ingester:    p.Ingester,
 		waker:       p.Waker,
 		bus:         p.Bus,
-		timing:      p.Timing,
-		accepted:    newAcceptedWindow(acceptedTTL),
+		timing:      timing,
+		accepted:    window,
+		storeSlots:  make(chan struct{}, StoreConcurrencyTotal),
 		now:         time.Now,
 		logger:      p.Logger.Named("[probe-protocol-controller]"),
 	}
@@ -114,6 +129,13 @@ func tooManyInstances(owner *probe.Model) error {
 		httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse(message)),
 		http.Header{"Retry-After": {retryAfter}},
 	)
+}
+
+// unavailable answers 503 for a request that failed because something the server shares could not
+// be reached, so that the probe sends it again: its client waits and says hello first
+func (c *Controller) unavailable(what string, err error) error {
+	c.logger.Errorw("Probe protocol request could not be served", "what", what, "error", err)
+	return httpx.Fail(http.StatusServiceUnavailable, utils.NewFailResponse(messageUnavailable))
 }
 
 // unauthenticated is for a route that the bearer middleware does not guard, which is a mistake in

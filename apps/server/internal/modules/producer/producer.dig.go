@@ -1,10 +1,8 @@
 package producer
 
 import (
-	"fmt"
-	"os"
-
 	"peekaping/internal/config"
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
@@ -22,7 +20,7 @@ import (
 // RegisterDependencies registers producer dependencies with the DI container: the leader
 // election, the producer and its event listener
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, ProvideLeaderElection, ProvideProducer, NewEventListener)
+	return utils.Provide(container, leader.ProvideElector, ProvideProducer, NewEventListener)
 }
 
 // ProvideProducer provides the producer. dig matches parameter types exactly, so it hands the
@@ -39,7 +37,7 @@ func ProvideProducer(
 	probeOffline stale.ProbeOfflineFunc,
 	probes stale.ProbeLookup,
 	probeSweep *probe.Sweep,
-	leaderElection *LeaderElection,
+	leaderElection *leader.Elector,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) *Producer {
@@ -52,16 +50,4 @@ func ProvideProducer(
 // narrower interface.
 func ProvideQueueRunner(queueService queue.Service, logger *zap.SugaredLogger) check.Runner {
 	return NewQueueRunner(queueService, logger)
-}
-
-// ProvideLeaderElection provides the leader election, as this process's node
-func ProvideLeaderElection(client *redis.Client, logger *zap.SugaredLogger) *LeaderElection {
-	// Generate a unique node ID (hostname + PID)
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = "unknown"
-	}
-	nodeID := fmt.Sprintf("%s-%d", hostname, os.Getpid())
-
-	return NewLeaderElection(client, nodeID, logger)
 }

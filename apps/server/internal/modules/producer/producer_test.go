@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -21,7 +22,7 @@ func TestNewProducer(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		le := leader.New(client, "node1", logger)
 
 		cfg := &config.Config{
 			ProducerConcurrency: 0, // Not set
@@ -57,7 +58,7 @@ func TestNewProducer(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		le := leader.New(client, "node1", logger)
 
 		cfg := &config.Config{
 			ProducerConcurrency: 64,
@@ -92,7 +93,7 @@ func TestProducerStartStop(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		le := leader.New(client, "node1", logger)
 
 		cfg := &config.Config{
 			ProducerConcurrency: 2, // Use small concurrency for testing
@@ -134,7 +135,7 @@ func TestProducerMonitorIntervals(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		le := leader.New(client, "node1", logger)
 
 		cfg := &config.Config{
 			ProducerConcurrency: 1,
@@ -167,7 +168,7 @@ func TestProducerMonitorIntervals(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		le := leader.New(client, "node1", logger)
 
 		cfg := &config.Config{
 			ProducerConcurrency: 1,

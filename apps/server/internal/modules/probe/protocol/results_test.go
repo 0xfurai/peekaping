@@ -24,6 +24,7 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -53,13 +54,25 @@ type recordingIngester struct {
 	// hold, when set, runs as a result is handed over and before it is recorded, to keep a request
 	// in the middle of storing
 	hold func(*ingester.Result)
+	// blockOn, when set, makes the ingester wait for the results it returns true for until the
+	// context it was given ends, and fail with the context's error: a database that does not answer
+	blockOn func(*ingester.Result) bool
 
 	mu sync.Mutex
 }
 
-func (r *recordingIngester) Ingest(_ context.Context, result *ingester.Result) error {
+func (r *recordingIngester) Ingest(ctx context.Context, result *ingester.Result) error {
 	if r.hold != nil {
 		r.hold(result)
+	}
+	if r.blockOn != nil && r.blockOn(result) {
+		// A server that never ends a store would hang the test: give up after a while
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(3 * time.Second):
+			return errors.New("the test's database never answered")
+		}
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -162,6 +175,19 @@ func resultsMonitors() (owned []*monitor.Model, others []*monitor.Model) {
 
 func newResultsServer(t *testing.T) *resultsServer {
 	t.Helper()
+	return newResultsServerWith(t, nil)
+}
+
+// newResultsServerWith is newResultsServer with a window of its own, instead of the memory window
+func newResultsServerWith(t *testing.T, window protocol.Window) *resultsServer {
+	t.Helper()
+	return newResultsServerTimed(t, window, protocol.Timing{})
+}
+
+// newResultsServerTimed is newResultsServerWith with the server's timing, of which a zero value
+// leaves the default
+func newResultsServerTimed(t *testing.T, window protocol.Window, timing protocol.Timing) *resultsServer {
+	t.Helper()
 	owned, others := resultsMonitors()
 	byID := map[string]*monitor.Model{}
 	for _, m := range append(append([]*monitor.Model{}, owned...), others...) {
@@ -182,6 +208,8 @@ func newResultsServer(t *testing.T) *resultsServer {
 		Monitors:    s.monitors,
 		Ingester:    s.ingest,
 		Maintenance: s.maintenance,
+		Window:      window,
+		Timing:      timing,
 		Logger:      logger,
 	})
 	s.router = httpx.NewRouter()
@@ -499,8 +527,9 @@ func TestResults_RetryAfterIngestErrorStoresNothingTwice(t *testing.T) {
 
 // A probe sends a batch again when it didn't hear the answer, and the retry can arrive while the
 // first request is still storing. The ids are claimed before anything is stored, so the retry finds
-// them taken.
-func TestResults_ConcurrentRetryStoresOnce(t *testing.T) {
+// them taken. It is not told they are duplicates, though: the first request may still fail, and the
+// probe drops a duplicate for good. It is told to come back, and finds them stored.
+func TestResults_ARetryWhileTheFirstRequestIsStoringIsToldToComeBack(t *testing.T) {
 	s := newResultsServer(t)
 	start := time.Now().UTC().Add(-time.Minute)
 	batch := probeproto.ResultsRequest{Results: []probeproto.Result{
@@ -514,42 +543,60 @@ func TestResults_ConcurrentRetryStoresOnce(t *testing.T) {
 		entered <- struct{}{}
 		<-gate
 	}
-	post := func() <-chan *httptest.ResponseRecorder {
-		done := make(chan *httptest.ResponseRecorder, 1)
-		go func() { done <- s.post(t, batch) }()
-		return done
-	}
-
-	firstDone := post()
+	firstDone := make(chan *httptest.ResponseRecorder, 1)
+	go func() { firstDone <- s.post(t, batch) }()
 	<-entered // the first request is storing "first", with both ids claimed
-	retryDone := post()
-	var retry *httptest.ResponseRecorder
-	select {
-	case retry = <-retryDone:
-		// the retry was answered while the first request is still storing
-	case <-entered:
-		// the retry is storing the same result
-	case <-time.After(5 * time.Second):
-		t.Fatal("the retry was neither answered nor storing")
-	}
+
+	retry := s.post(t, batch)
+
+	assert.Equal(t, http.StatusServiceUnavailable, retry.Code, retry.Body.String())
+	assert.Equal(t, strconv.Itoa(int(protocol.PendingRetryAfter/time.Second)), retry.Header().Get("Retry-After"),
+		"the probe waits that long before it sends the batch again")
+	assert.Empty(t, s.ingest.attempts, "and the retry handed nothing to the ingester: the first request is still at its first result")
 	close(gate)
 	first := <-firstDone
-	if retry == nil {
-		retry = <-retryDone
-	}
+	require.Equal(t, http.StatusOK, first.Code, first.Body.String())
+	var reply probeproto.ResultsResponse
+	require.NoError(t, json.Unmarshal(first.Body.Bytes(), &reply))
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("first"), accepted("second")}, reply.Results)
 
-	outcomes := func(w *httptest.ResponseRecorder) []probeproto.ResultOutcome {
-		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
-		var reply probeproto.ResultsResponse
-		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &reply))
-		return reply.Results
-	}
-	assert.Equal(t, []probeproto.ResultOutcome{accepted("first"), accepted("second")}, outcomes(first))
-	assert.Equal(t, []probeproto.ResultOutcome{rejected("first", probeproto.ReasonDuplicate), rejected("second", probeproto.ReasonDuplicate)}, outcomes(retry),
-		"the retry finds the ids taken")
+	again := s.results(t, batch.Results...)
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("first", probeproto.ReasonDuplicate), rejected("second", probeproto.ReasonDuplicate)}, again,
+		"once the first request has stored them, the ids are taken")
 	require.Len(t, s.ingest.stored, 2, "one result for each id")
 	assert.Equal(t, start, s.ingest.stored[0].StartTime)
 	assert.Equal(t, start.Add(time.Second), s.ingest.stored[1].StartTime)
+}
+
+// A result whose id another request claimed and has not kept (it may be storing it, or it may have
+// died) is neither stored nor answered duplicate. The rest of the batch is stored as usual, and the
+// answer is 503 with a Retry-After, so that the probe sends the batch again: the results stored
+// by now are duplicates then, and the one that was waiting is stored if its claim is gone.
+func TestResults_AResultAnotherRequestHoldsIsNotStoredAndTheBatchIsToldToComeBack(t *testing.T) {
+	window := protocol.NewMemoryWindow()
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+	away := checkResult("away", monCheckout, start)
+	other := checkResult("other", monSearch, start)
+	claim, err := window.Claim(context.Background(), "probe-1", "away", time.Now())
+	require.NoError(t, err)
+	require.Equal(t, protocol.ClaimWon, claim, "another request's claim")
+
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{away, other}})
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	assert.Equal(t, "5", w.Header().Get("Retry-After"))
+	assert.Equal(t, "a result in this batch is being stored by another request: send the batch again", errorMessageOf(t, w))
+	require.Len(t, s.ingest.stored, 1, "the rest of the batch is stored as usual")
+	assert.Equal(t, monSearch, s.ingest.stored[0].MonitorID)
+
+	require.NoError(t, window.Release(context.Background(), "probe-1", "away"), "the other request gave it up")
+	got := s.results(t, away, other)
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("away"), rejected("other", probeproto.ReasonDuplicate)}, got,
+		"on the probe's retry the waiting result is stored, and the one stored before is a duplicate")
+	assert.Len(t, s.ingest.stored, 2)
 }
 
 // A request that fails answers 500 for the whole batch, and the probe sends all of it again. What
@@ -568,16 +615,21 @@ func TestResults_AFailedBatchFreesTheIdsItDidNotStore(t *testing.T) {
 		return nil
 	}
 
-	// A monitor's results are stored in turn, so the search monitor's result is never tried
+	// The monitors' results are stored side by side, so the search monitor's result may or may not
+	// have been tried when the checkout monitor's second one failed
 	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{stored, broken, waiting}})
 	require.Equal(t, http.StatusInternalServerError, w.Code)
-	require.Len(t, s.ingest.stored, 1)
+	waitingWasStored := len(s.ingest.storedFor(monSearch)) == 1
+	require.Len(t, s.ingest.storedFor(monCheckout), 1, "a monitor's results are stored in turn: the one after the failure is not tried")
 
 	down = false
 	got := s.results(t, stored, broken, waiting)
 
-	assert.Equal(t, []probeproto.ResultOutcome{rejected("stored", probeproto.ReasonDuplicate), accepted("broken"), accepted("waiting")}, got,
-		"only the result that was stored is a duplicate")
+	want := []probeproto.ResultOutcome{rejected("stored", probeproto.ReasonDuplicate), accepted("broken"), accepted("waiting")}
+	if waitingWasStored {
+		want[2] = rejected("waiting", probeproto.ReasonDuplicate)
+	}
+	assert.Equal(t, want, got, "only the results that were stored are duplicates")
 	assert.Len(t, s.ingest.stored, 3)
 }
 
@@ -606,6 +658,352 @@ func TestResults_AResultTheQueueHoldsAlreadyIsADuplicate(t *testing.T) {
 
 	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonDuplicate), rejected("next", probeproto.ReasonDuplicate)}, again)
 	assert.Len(t, s.ingest.attempts, 2, "and the server doesn't ask the queue again")
+}
+
+// brokenWindow is a window whose claims fail from the nth on, as a Redis that stopped answering
+// does, and that keeps what was released and what was kept
+type brokenWindow struct {
+	protocol.Window
+	failFrom int
+	claims   int
+	released []string
+	// kept are the ids of every Keep call, and keepErr is what Keep fails with, when set
+	kept    []string
+	keepErr error
+	mu      sync.Mutex
+}
+
+func (w *brokenWindow) Keep(ctx context.Context, probeID string, ids ...string) error {
+	w.mu.Lock()
+	w.kept = append(w.kept, ids...)
+	w.mu.Unlock()
+	if w.keepErr != nil {
+		return w.keepErr
+	}
+	return w.Window.Keep(ctx, probeID, ids...)
+}
+
+func (w *brokenWindow) Claim(ctx context.Context, probeID, id string, now time.Time) (protocol.ClaimOutcome, error) {
+	w.claims++
+	if w.claims >= w.failFrom {
+		return 0, errors.New("redis: connection refused")
+	}
+	return w.Window.Claim(ctx, probeID, id, now)
+}
+
+func (w *brokenWindow) Release(ctx context.Context, probeID, id string) error {
+	w.released = append(w.released, id)
+	return w.Window.Release(ctx, probeID, id)
+}
+
+// The ids of the results that were stored are kept as the results are stored, whatever happens to
+// the rest of the request: a request that dies afterwards must not leave them to run out. What was
+// not stored is released, not kept.
+func TestResults_KeepsTheIdsOfTheResultsItStored(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 1000}
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+	stored := checkResult("stored", monCheckout, start)
+	broken := checkResult("broken", monCheckout, start.Add(time.Second))
+	s.ingest.failOn = func(r *ingester.Result) error {
+		if r.StartTime.Equal(broken.StartTime) {
+			return errors.New("the database is down")
+		}
+		return nil
+	}
+
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{stored, broken}})
+
+	require.Equal(t, http.StatusInternalServerError, w.Code)
+	assert.Equal(t, []string{"stored"}, window.kept, "the stored one, though the batch failed")
+	assert.Equal(t, []string{"broken"}, window.released, "and the one that was not stored is given back")
+}
+
+// A result the queue holds already is stored, by a replica that the probe's first attempt reached:
+// its id is kept too
+func TestResults_KeepsTheIdOfAResultTheQueueHoldsAlready(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 1000}
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+	held := checkResult("held", monCheckout, start)
+	s.ingest.failOn = func(*ingester.Result) error { return fmt.Errorf("task already exists: %w", queue.ErrTaskIDConflict) }
+
+	got := s.results(t, held)
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonDuplicate)}, got)
+	assert.Equal(t, []string{"held"}, window.kept)
+}
+
+// keepCalls is a window that records the ids of each Keep call
+type keepCalls struct {
+	protocol.Window
+	mu    sync.Mutex
+	calls [][]string
+}
+
+func (w *keepCalls) Keep(ctx context.Context, probeID string, ids ...string) error {
+	w.mu.Lock()
+	w.calls = append(w.calls, append([]string(nil), ids...))
+	w.mu.Unlock()
+	return w.Window.Keep(ctx, probeID, ids...)
+}
+
+// The ids of a monitor's results are kept in one call (one pipeline in Redis), and the monitors'
+// results are stored side by side: a batch of several monitors' results makes one call for each
+func TestResults_KeepsAMonitorsIdsInOneCall(t *testing.T) {
+	calls := &keepCalls{Window: protocol.NewMemoryWindow()}
+	s := newResultsServerWith(t, calls)
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t,
+		checkResult("a1", monCheckout, start),
+		checkResult("a2", monCheckout, start.Add(time.Second)),
+		checkResult("b1", monSearch, start))
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("a1"), accepted("a2"), accepted("b1")}, got)
+	calls.mu.Lock()
+	defer calls.mu.Unlock()
+	assert.ElementsMatch(t, [][]string{{"a1", "a2"}, {"b1"}}, calls.calls)
+}
+
+// A Keep that fails is logged and not the request's failure: the results are stored already, and a
+// 500 would have the probe send them again
+func TestResults_AKeepThatFailsDoesNotFailTheRequest(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 1000, keepErr: errors.New("redis: connection refused")}
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t, checkResult("first", monCheckout, start))
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("first")}, got)
+	assert.Len(t, s.ingest.stored, 1)
+	assert.Empty(t, window.released, "a stored result is not given back")
+}
+
+// A window that can't say whether an id was taken fails the batch with 503, for the probe to send
+// it again. Storing a result that was not recorded could store it twice.
+func TestResults_AWindowThatFailsAnswers503AndStoresNothing(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 2}
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+	first := checkResult("first", monCheckout, start)
+	second := checkResult("second", monSearch, start)
+
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{first, second}})
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	assert.Empty(t, s.ingest.attempts, "nothing is stored, the ids of the batch are claimed before any is")
+	assert.Equal(t, []string{"first"}, window.released, "and the id that was claimed is given back")
+
+	window.failFrom = 1000
+	got := s.results(t, first, second)
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("first"), accepted("second")}, got, "the probe's retry is accepted")
+	assert.Len(t, s.ingest.stored, 2)
+}
+
+// The longest a request stores for is shorter than a claim lasts, so that a request can't be at it
+// when its claims have run out, and longer than the probe waits for an answer, so that a probe that
+// is still listening gets one
+func TestStoreDeadline_IsLongerThanTheProbeWaitsAndShorterThanAClaimLasts(t *testing.T) {
+	assert.Greater(t, protocol.StoreDeadline, 30*time.Second, "the probe gives up on a call after 30 seconds")
+	assert.Less(t, protocol.StoreDeadline+10*time.Second, protocol.ClaimTTL, "with room for the claims, the keep and the release around it")
+}
+
+// A request stores for StoreDeadline at the most. When the ingester is still at it then (a database
+// that does not answer), what was stored is kept, what was not is given back, and the answer is a
+// 503 with a Retry-After, as for an id another request holds: the probe sends the batch again, and
+// the claims of this request are gone or stored by then, never left to run out under a request that
+// is still storing.
+func TestResults_AStoreThatOutlivesTheDeadlineGivesBackWhatItDidNotStoreAndToldToComeBack(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 1000}
+	s := newResultsServerTimed(t, window, protocol.Timing{StoreDeadline: 100 * time.Millisecond})
+	start := time.Now().UTC().Add(-time.Minute)
+	fast := checkResult("fast", monCheckout, start)
+	stuck := checkResult("stuck", monSearch, start)
+	s.ingest.blockOn = func(r *ingester.Result) bool { return r.MonitorID == monSearch }
+
+	began := time.Now()
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{fast, stuck}})
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	assert.Equal(t, "5", w.Header().Get("Retry-After"))
+	assert.Equal(t, "storing the results took too long: send the batch again", errorMessageOf(t, w))
+	assert.Less(t, time.Since(began), 5*time.Second, "the request ended at the deadline")
+	require.Len(t, s.ingest.stored, 1)
+	assert.Equal(t, monCheckout, s.ingest.stored[0].MonitorID)
+	assert.Equal(t, []string{"fast"}, window.kept, "what was stored is kept")
+	assert.Equal(t, []string{"stuck"}, window.released, "and what was not is given back")
+
+	s.ingest.blockOn = nil
+	got := s.results(t, fast, stuck)
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("fast", probeproto.ReasonDuplicate), accepted("stuck")}, got,
+		"on the probe's retry the stored result is a duplicate and the other is stored")
+}
+
+// inFlight watches the results the ingester is storing at the same time, and holds each for a
+// moment so that the ones that can overlap do
+type inFlight struct {
+	mu        sync.Mutex
+	now, most int
+	byMonitor map[string]int
+	mostOfOne int
+	holdFor   time.Duration
+	// waitForAll, when set, has each result wait until this many are being stored, or a second
+	waitForAll int
+}
+
+func newInFlight(holdFor time.Duration) *inFlight {
+	return &inFlight{byMonitor: map[string]int{}, holdFor: holdFor}
+}
+
+func (f *inFlight) hold(r *ingester.Result) {
+	f.mu.Lock()
+	f.now++
+	f.most = max(f.most, f.now)
+	f.byMonitor[r.MonitorID]++
+	f.mostOfOne = max(f.mostOfOne, f.byMonitor[r.MonitorID])
+	f.mu.Unlock()
+
+	deadline := time.Now().Add(time.Second)
+	for f.waitForAll > 0 && time.Now().Before(deadline) {
+		f.mu.Lock()
+		enough := f.now >= f.waitForAll
+		f.mu.Unlock()
+		if enough {
+			break
+		}
+		time.Sleep(time.Millisecond)
+	}
+	time.Sleep(f.holdFor)
+
+	f.mu.Lock()
+	f.now--
+	f.byMonitor[r.MonitorID]--
+	f.mu.Unlock()
+}
+
+// addMonitors gives the probe n more monitors to send results for
+func (s *resultsServer) addMonitors(n int) []string {
+	ids := make([]string, n)
+	for i := range ids {
+		m := &monitor.Model{
+			ID: uuid.NewString(), Name: "Extra", Type: "http", Active: true, Interval: 60, Timeout: 16,
+			Config: `{"url":"https://example.com/extra"}`, ProbeIDs: []string{"probe-1"},
+		}
+		s.source.active = append(s.source.active, m)
+		s.monitors.byID[m.ID] = m
+		ids[i] = m.ID
+	}
+	return ids
+}
+
+// A probe's batch holds results of many monitors, and each is a few queries to the database. Stored
+// one after another, a batch of 500 takes as long as the database is far away, times 500. The results
+// of different monitors don't depend on one another, so they are stored side by side.
+func TestResults_StoresTheResultsOfDifferentMonitorsAtTheSameTime(t *testing.T) {
+	s := newResultsServer(t)
+	extra := s.addMonitors(1)[0]
+	watch := newInFlight(0)
+	watch.waitForAll = 4
+	s.ingest.hold = watch.hold
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t,
+		checkResult("checkout", monCheckout, start),
+		checkResult("search", monSearch, start),
+		checkResult("extra", extra, start),
+		checkResult("skipped", monSkipped, start),
+	)
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("checkout"), accepted("search"), accepted("extra"), accepted("skipped")}, got,
+		"the outcomes are in the order the results were sent")
+	assert.Equal(t, 4, watch.most, "the four monitors' results were being stored at once")
+}
+
+// Ingest reads a monitor's previous heartbeat, so a monitor's results are stored one at a time,
+// oldest first, whatever else is stored beside them
+func TestResults_StoresOneMonitorsResultsInTurnWhileTheOthersGoOn(t *testing.T) {
+	s := newResultsServer(t)
+	watch := newInFlight(5 * time.Millisecond)
+	s.ingest.hold = watch.hold
+	base := time.Now().UTC().Add(-10 * time.Minute)
+	at := func(minutes int) time.Time { return base.Add(time.Duration(minutes) * time.Minute) }
+
+	got := s.results(t,
+		checkResult("c3", monCheckout, at(3)),
+		checkResult("s2", monSearch, at(2)),
+		checkResult("c1", monCheckout, at(1)),
+		checkResult("s1", monSearch, at(1)),
+		checkResult("c2", monCheckout, at(2)),
+	)
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("c3"), accepted("s2"), accepted("c1"), accepted("s1"), accepted("c2")}, got)
+	assert.Equal(t, 1, watch.mostOfOne, "never two results of one monitor at once")
+	assert.Equal(t, 2, watch.most, "but the two monitors side by side")
+	var checkout []time.Time
+	for _, stored := range s.ingest.storedFor(monCheckout) {
+		checkout = append(checkout, stored.StartTime)
+	}
+	assert.Equal(t, []time.Time{at(1), at(2), at(3)}, checkout, "oldest first")
+}
+
+// A batch of 500 monitors is not 500 connections to the database
+func TestResults_StoresAtMostStoreConcurrencyMonitorsAtATime(t *testing.T) {
+	s := newResultsServer(t)
+	ids := s.addMonitors(3 * protocol.StoreConcurrency)
+	watch := newInFlight(20 * time.Millisecond)
+	s.ingest.hold = watch.hold
+	start := time.Now().UTC().Add(-time.Minute)
+	var batch []probeproto.Result
+	for i, id := range ids {
+		batch = append(batch, checkResult(fmt.Sprintf("r%d", i), id, start))
+	}
+
+	got := s.results(t, batch...)
+
+	require.Len(t, got, len(batch))
+	for _, outcome := range got {
+		assert.True(t, outcome.Accepted)
+	}
+	assert.Equal(t, protocol.StoreConcurrency, watch.most, "as many as the limit, and no more")
+	assert.Len(t, s.ingest.stored, len(batch))
+}
+
+// The database allows a number of connections, and every result being stored holds one: the requests
+// of all a server's probe instances together store no more than StoreConcurrencyTotal at a time
+func TestResults_StoresAtMostStoreConcurrencyTotalResultsAtATimeForAllRequests(t *testing.T) {
+	s := newResultsServer(t)
+	ids := s.addMonitors(2 * protocol.StoreConcurrency)
+	watch := newInFlight(50 * time.Millisecond)
+	s.ingest.hold = watch.hold
+	const requests = 5 // the limiter lets an instance post 5 at once
+	require.Greater(t, requests*protocol.StoreConcurrency, protocol.StoreConcurrencyTotal, "the requests ask for more than the total")
+	start := time.Now().UTC().Add(-time.Minute)
+
+	var wg sync.WaitGroup
+	codes := make(chan int, requests)
+	for request := range requests {
+		var batch []probeproto.Result
+		for i, id := range ids {
+			batch = append(batch, checkResult(fmt.Sprintf("q%d-r%d", request, i), id, start.Add(time.Duration(request)*time.Second)))
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			codes <- s.post(t, probeproto.ResultsRequest{Results: batch}).Code
+		}()
+	}
+	wg.Wait()
+	close(codes)
+
+	for code := range codes {
+		assert.Equal(t, http.StatusOK, code)
+	}
+	assert.Len(t, s.ingest.stored, requests*len(ids), "every result is stored")
+	assert.LessOrEqual(t, watch.most, protocol.StoreConcurrencyTotal, "never more than the total")
+	assert.GreaterOrEqual(t, watch.most, protocol.StoreConcurrencyTotal-protocol.StoreConcurrency, "but the requests do share it")
 }
 
 func TestResults_AnIdTwiceInOneBatchIsStoredOnce(t *testing.T) {
