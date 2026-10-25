@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
 
@@ -23,15 +24,14 @@ func checkHistory(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report 
 	checkout := in.ID("monitor", "checkout")
 
 	t.Run("heartbeats", func(t *testing.T) {
-		mongoBeats, sqlBeats := heartbeat.NewMongoRepository(in.Client, in.Config), heartbeat.NewSQLRepository(db)
+		sqlBeats := heartbeat.NewSQLRepository(db)
 		for _, name := range mongoimporttest.HeartbeatNames {
-			want, err := mongoBeats.FindByID(ctx, in.ID("heartbeat", name))
-			require.NoError(t, err)
-			got, err := sqlBeats.FindByID(ctx, uuidOf(t, want.ID))
+			want := mongoimporttest.GetByID[mongoimporttest.HeartbeatDocument](t, in, "heartbeat", in.ID("heartbeat", name))
+			got, err := sqlBeats.FindByID(ctx, uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 			assert.Equal(t, uuidOf(t, checkout), got.MonitorID, name)
-			assert.Equal(t, want.Status, got.Status, name)
+			assert.Equal(t, want.Status, int(got.Status), name)
 			assert.Equal(t, want.Msg, got.Msg, name)
 			assert.Equal(t, want.Ping, got.Ping, name)
 			assert.Equal(t, want.Duration, got.Duration, name)
@@ -41,7 +41,7 @@ func checkHistory(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report 
 			assert.Equal(t, want.Notified, got.Notified, name)
 			if name == "no time" {
 				// It was made when its ObjectID was
-				assert.True(t, got.Time.Equal(mustObjectID(t, want.ID).Timestamp()), "%s", got.Time)
+				assert.True(t, got.Time.Equal(want.ID.Timestamp()), "%s", got.Time)
 			} else {
 				assertSameTime(t, want.Time, got.Time, name)
 			}
@@ -69,28 +69,30 @@ func checkHistory(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report 
 	})
 
 	t.Run("stats", func(t *testing.T) {
-		logger := zap.NewNop().Sugar()
-		mongoStats := stats.NewService(stats.NewMongoRepository(in.Client, in.Config), logger)
-		sqlStats := stats.NewService(stats.NewSQLRepository(db), logger)
+		sqlStats := stats.NewService(stats.NewSQLRepository(db), zap.NewNop().Sugar())
 		since, until := mongoimporttest.HistoryStart.Add(-time.Hour), mongoimporttest.HistoryStart.Add(48*time.Hour)
 
-		// Every stat reads back through the stats service as it did on MongoDB
-		for _, period := range []stats.StatPeriod{stats.StatMinutely, stats.StatHourly, stats.StatDaily} {
-			want, err := mongoStats.FindStatsByMonitorIDAndTimeRange(ctx, checkout, "", since, until, period)
+		// Every stat reads back through the stats service as the document of MongoDB says
+		for _, period := range []struct {
+			collection string
+			period     stats.StatPeriod
+		}{{"stat_minutely", stats.StatMinutely}, {"stat_hourly", stats.StatHourly}, {"stat_daily", stats.StatDaily}} {
+			want := mongoimporttest.List[mongoimporttest.StatDocument](t, in, period.collection, bson.M{
+				"monitor_id": mustObjectID(t, checkout), "timestamp": bson.M{"$gte": since, "$lte": until},
+			}, bson.D{{Key: "timestamp", Value: 1}})
+			got, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, uuidOf(t, checkout), "", since, until, period.period)
 			require.NoError(t, err)
-			got, err := sqlStats.FindStatsByMonitorIDAndTimeRange(ctx, uuidOf(t, checkout), "", since, until, period)
-			require.NoError(t, err)
-			require.NotEmpty(t, want, period)
-			require.Len(t, got, len(want), period)
+			require.NotEmpty(t, want, period.period)
+			require.Len(t, got, len(want), period.period)
 			for i := range want {
-				assert.True(t, want[i].Timestamp.Equal(got[i].Timestamp), "%s %d: %s is not %s", period, i, got[i].Timestamp, want[i].Timestamp)
-				assert.Equal(t, want[i].Up, got[i].Up, "%s %d", period, i)
-				assert.Equal(t, want[i].Down, got[i].Down, "%s %d", period, i)
-				assert.Equal(t, want[i].Maintenance, got[i].Maintenance, "%s %d", period, i)
-				assert.Equal(t, want[i].PingCount, got[i].PingCount, "%s %d", period, i)
-				assert.InDelta(t, want[i].Ping, got[i].Ping, 1e-9, "%s %d", period, i)
-				assert.Equal(t, want[i].PingMin, got[i].PingMin, "%s %d", period, i)
-				assert.Equal(t, want[i].PingMax, got[i].PingMax, "%s %d", period, i)
+				assert.True(t, want[i].Timestamp.Equal(got[i].Timestamp), "%s %d: %s is not %s", period.period, i, got[i].Timestamp, want[i].Timestamp)
+				assert.Equal(t, want[i].Up, got[i].Up, "%s %d", period.period, i)
+				assert.Equal(t, want[i].Down, got[i].Down, "%s %d", period.period, i)
+				assert.Equal(t, want[i].Maintenance, got[i].Maintenance, "%s %d", period.period, i)
+				assert.Equal(t, want[i].PingCount(), got[i].PingCount, "%s %d", period.period, i)
+				assert.InDelta(t, want[i].Ping, got[i].Ping, 1e-9, "%s %d", period.period, i)
+				assert.Equal(t, want[i].PingMin, got[i].PingMin, "%s %d", period.period, i)
+				assert.Equal(t, want[i].PingMax, got[i].PingMax, "%s %d", period.period, i)
 			}
 		}
 
