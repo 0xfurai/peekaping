@@ -2,7 +2,7 @@
 
 You plan the ticket and answer PR review comments yourself. The rest of the work (code, tests, fixes, local runs, restacks, opening PRs) goes to agents: you brief them, wait for their reports, check what they did, and connect it. Linear and the user stay with you.
 
-Each agent is `general-purpose` on Sonnet at extra-high effort: `model: "sonnet"`, `effort: "xhigh"`.
+Each agent is `general-purpose` on Sonnet at high effort: `model: "sonnet"`, `effort: "high"`.
 
 ## Where it works
 
