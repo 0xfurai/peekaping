@@ -187,7 +187,7 @@ A monitor type that checks someone else's MongoDB server. It has nothing to do w
 _Avoid_: Mongo storage, MongoDB database
 
 **Single mode**:
-Peekaping running as one process (the `peekaping` binary) with every role inside it (api, producer, worker and ingester) and no Redis. The SQLite and PostgreSQL bundle images run it. It supports those two storage backends only. See [ADR 0002](docs/adr/0002-single-process-runtime.md).
+Peekaping running as one process (the `peekaping` binary) with everything inside it (the api, the scheduler and its check pool, ingest and the watchdog) and no Redis. The SQLite and PostgreSQL bundle images run it. It supports those two storage backends only. See [ADR 0002](docs/adr/0002-single-process-runtime.md).
 _Avoid_: Monolithic mode, standalone, all-in-one
 
 **Cluster mode**:

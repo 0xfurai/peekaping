@@ -161,3 +161,32 @@ MongoDB has no probes (ADR 0001), so MongoDB installs keep the layout this ADR d
 Single mode is unchanged. Its one process is the local probe, as before.
 
 Measured on the api alone: it stores about 2,000 probe results a second on PostgreSQL 17 and on SQLite. The ingester queue stored about 1,350 a second on PostgreSQL. A soak of 3 probe instances and 1,000 monitors at 20 seconds, with one instance stopped, missed no check and kept the api's heap at 14 to 17 MiB.
+
+## Update
+
+Date: 2026-10-25
+Ticket: PP-277
+
+The producer, worker and ingester are removed, as the #254 update said they would be once MongoDB storage was removed. That has happened (ADR 0001). Some statements above no longer hold:
+
+- The Context says Peekaping runs as four processes, that the producer schedules checks, the worker runs them and the ingester stores their results, and that asynq carries exactly two hops, `monitor:healthcheck` and `monitor:ingest`.
+- Section 1 says `cmd/api`, `cmd/producer`, `cmd/worker` and `cmd/ingester` stay unchanged and are the cluster-mode binaries.
+- Section 2's table says cluster mode is unchanged, and gives its check dispatch, ingest dispatch and leadership as the producer, worker and ingester. The #254 update already replaced those rows for SQLite and PostgreSQL. Now no backend uses them.
+- Section 5 says the Mongo bundle keeps its multi-process layout, and section 6 says `peekaping-bundle-mongo` is unchanged. The #254 update says MongoDB installs keep the producer, worker and ingester until MongoDB storage is removed, and that the Mongo bundle and compose stacks are unchanged. MongoDB storage is gone, and so are the Mongo bundle and the Mongo compose stacks. A Mongo `DB_TYPE` stops every binary.
+- The #254 update says the producer and the ingester refuse to start on SQLite and PostgreSQL, and the worker logs that it has no work. That is how the images of earlier releases behave. The programs are no longer in the repository.
+- The Consequences say cluster behaviour doesn't change, and that anything that changes check dispatch or ingest has to be made on both sides of a seam.
+
+Cluster mode is now the api plus probe instances, on every storage backend. SQLite and PostgreSQL are the only ones left, so there is no backend where it is anything else.
+
+What went:
+
+- `cmd/producer`, `cmd/worker` and `cmd/ingester`, and the producer and worker modules.
+- The queue-based check and ingest dispatch: the `monitor:healthcheck` and `monitor:ingest` queues, `PRODUCER_CONCURRENCY` and the queue shutdown timeout. In cluster mode the probe protocol carries the checks and the api stores the results itself. In single mode the scheduler's pool runs the checks. The ingest logic stays as a package that the api and `peekaping` call in process.
+- The Dockerfiles, the image builds and manifests in the release, release candidate and e2e workflows, the dev scripts, the `make` targets and the three architecture pages. The `peekaping-producer`, `peekaping-worker` and `peekaping-ingester` images get no new tags. The ones already published stay where they are.
+
+What stays:
+
+- The `notification` asynq queue from the #29 update. It is the only queue left, and the api serves it.
+- The leader lock key `peekaping:producer:leader`. It keeps its name so that api replicas of an earlier release and of this one share one leader while a rolling upgrade runs.
+
+The api used to copy the admin's error reporting choice to Redis so that the producer, worker and ingester could follow it (ADR 0003). The copy is gone with the three processes. The cluster api turns reporting on or off in its own process, as `peekaping` does. Each replica applies the stored choice again every minute, so a change made on another replica reaches it.

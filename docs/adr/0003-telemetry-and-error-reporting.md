@@ -109,3 +109,15 @@ Waiting tickets:
 
 - **#232** (usage ping): the Worker in `apps/telemetry`, then the server side (the choice, the instance ID, the payload, the daily send) and the setup screen and Settings.
 - **#233** (error reports): the Sentry SDK, the `BeforeSend` allowlist, and its own switch on the setup screen and in Settings.
+
+## Update
+
+Date: 2026-10-25
+Ticket: PP-277
+
+The producer, worker and ingester are removed (ADR 0002). Some statements above no longer hold:
+
+- Section 3 says the api sends the usage ping in cluster mode because it has the config the payload reads and the producer leader does not. There is no producer leader. The api still sends it.
+- Section 4's `db` tag row says the cluster worker has no `DB_TYPE`, so its `db` tag is `unknown`. The worker is gone. The api and `peekaping` are the only processes that send error reports, and both have a `DB_TYPE`. `unknown` stays for a value that names none of the backends.
+
+The api used to copy the admin's error reporting choice to Redis, so that the producer, worker and ingester could follow it. The copy is gone with them. The cluster api turns error reports on or off in its own process, as `peekaping` does. It applies the stored choice at start and again every minute, so a change made on another api replica reaches it within a minute. The stored setting is still the source of truth, and the kill switch, the allowlist and the destination are unchanged.
