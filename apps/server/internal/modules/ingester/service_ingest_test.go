@@ -2,7 +2,6 @@ package ingester
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -15,7 +14,6 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
 
-	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -30,7 +28,7 @@ const (
 	monitorID = "mon-1"
 )
 
-// fakeHeartbeatService keeps one monitor's heartbeats in memory; the handler uses no other method
+// fakeHeartbeatService keeps one monitor's heartbeats in memory; the service uses no other method
 type fakeHeartbeatService struct {
 	heartbeat.Service
 	stored    []*heartbeat.Model
@@ -39,7 +37,7 @@ type fakeHeartbeatService struct {
 }
 
 // FindByMonitorIDAndProbeIDPaginated returns the latest heartbeat of the probe, which is all the
-// handler asks for. A heartbeat that names no probe is the local probe's.
+// service asks for. A heartbeat that names no probe is the local probe's.
 func (s *fakeHeartbeatService) FindByMonitorIDAndProbeIDPaginated(_ context.Context, _, probeID string, _, _ int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
 	if s.findErr != nil {
 		return nil, s.findErr
@@ -151,7 +149,6 @@ type testIngester struct {
 	locations  *fakeLocations
 	bus        *eventstest.Bus
 	service    Service
-	handler    *IngesterTaskHandler
 	// statusEvents are the status changes published so far, which a step of locations_test.go
 	// collects before it takes the topics
 	statusEvents []shared.HeartBeatModel
@@ -177,7 +174,6 @@ func newTestIngester(options ...func(*fakeLocations)) *testIngester {
 		locations:  locations,
 		bus:        bus,
 		service:    service,
-		handler:    NewIngesterTaskHandler(service, zap.NewNop().Sugar()),
 	}
 }
 
@@ -214,9 +210,7 @@ func checkResult(m monitorSettings, status shared.MonitorStatus) Result {
 
 func (ti *testIngester) ingest(t *testing.T, payload Result) error {
 	t.Helper()
-	body, err := json.Marshal(payload)
-	require.NoError(t, err)
-	return ti.handler.ProcessTask(context.Background(), asynq.NewTask(TaskTypeIngester, body))
+	return ti.service.Ingest(context.Background(), &payload)
 }
 
 // previousHeartbeat is a stored heartbeat for seeding the monitor's history
@@ -658,16 +652,7 @@ func TestIngester_PublishesEvents(t *testing.T) {
 }
 
 func TestIngester_HandlesFailures(t *testing.T) {
-	t.Run("a malformed payload fails the task", func(t *testing.T) {
-		ti := newTestIngester()
-
-		err := ti.handler.ProcessTask(context.Background(), asynq.NewTask(TaskTypeIngester, []byte("{")))
-		assert.Error(t, err)
-		assert.Empty(t, ti.heartbeats.stored)
-		assert.Empty(t, ti.bus.TakeTopics())
-	})
-
-	t.Run("a failed write fails the task and publishes nothing", func(t *testing.T) {
+	t.Run("a failed write returns the error and publishes nothing", func(t *testing.T) {
 		ti := newTestIngester()
 		ti.heartbeats.createErr = errors.New("db down")
 
@@ -676,7 +661,7 @@ func TestIngester_HandlesFailures(t *testing.T) {
 		assert.Empty(t, ti.bus.TakeTopics())
 	})
 
-	// PP-66 changes this: the task should fail so asynq retries it, and send no notification
+	// PP-66 changes this: the ingest should fail, and send no notification
 	t.Run("a failed read of the previous heartbeat is handled as the monitor's first", func(t *testing.T) {
 		ti := newTestIngester()
 		ti.heartbeats.stored = []*heartbeat.Model{previousHeartbeat(down, 1)}
