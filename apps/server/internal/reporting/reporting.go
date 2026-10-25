@@ -34,7 +34,7 @@ type Options struct {
 	Release string
 	// Mode is how the install runs: "single" or "cluster"
 	Mode string
-	// DB is the storage backend: "sqlite", "postgres", "mongo", or "unknown"
+	// DB is the storage backend: "sqlite", "postgres", "mysql", or "unknown"
 	DB string
 	// ForcedOff is true when ERROR_REPORTING switches reporting off. Nothing is
 	// sent then, whatever SetEnabled is given.
