@@ -35,7 +35,7 @@ type Elector struct {
 	client          *redis.Client
 	logger          *zap.SugaredLogger
 	nodeID          string
-	isLeader        atomic.Bool
+	state           atomic.Uint64 // the leadership term and whether the node leads: see leadership
 	renewalInterval time.Duration // how often the lock is taken or renewed
 	stopChan        chan struct{}
 	stopOnce        sync.Once
@@ -129,9 +129,28 @@ func (e *Elector) Stop() {
 	<-e.doneChan
 }
 
+// leadingBit is the bit of the elector's state that says the node leads. The rest of the state
+// counts the terms of leadership, so that one read says both.
+const (
+	leadingBit = 1
+	termUnit   = 2
+)
+
 // IsLeader returns true if this node is currently the leader. It may be called from any goroutine.
 func (e *Elector) IsLeader() bool {
-	return e.isLeader.Load()
+	leads, _ := e.leadership()
+	return leads
+}
+
+// leadership says whether this node leads, and in which term. A term is one stretch of
+// leadership: it starts when the node becomes the leader and ends when it loses the lock, so a
+// node that lost the leadership and got it back leads in a new term. The term is how a job that
+// runs only while the node leads tells that it lost the leadership, when the node got it back
+// before the job looked: it counts the terms the node has led in, so it doesn't change while the
+// node follows. It may be called from any goroutine.
+func (e *Elector) leadership() (leads bool, term uint64) {
+	state := e.state.Load()
+	return state&leadingBit != 0, state / termUnit
 }
 
 // tryBecomeLeader attempts to acquire or renew leadership
@@ -215,9 +234,22 @@ func (e *Elector) releaseLeadership(ctx context.Context) {
 	e.setLeaderStatus(false)
 }
 
-// setLeaderStatus updates the leader status
+// setLeaderStatus updates the leader status. A node that was not the leader and now is starts a
+// new term.
 func (e *Elector) setLeaderStatus(status bool) {
-	e.isLeader.Store(status)
+	for {
+		old := e.state.Load()
+		next := old &^ leadingBit
+		if status {
+			next = old | leadingBit
+			if old&leadingBit == 0 {
+				next += termUnit
+			}
+		}
+		if e.state.CompareAndSwap(old, next) {
+			return
+		}
+	}
 }
 
 // WaitForLeadership blocks until this node becomes the leader or context is cancelled
