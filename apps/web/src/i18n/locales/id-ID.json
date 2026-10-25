@@ -918,7 +918,7 @@
         "authentication_token_description": "Token autentikasi opsional untuk keamanan yang lebih baik. Token ini akan dikirim dalam header pagertree-token.",
         "authentication_token_label": "Token Autentikasi (Opsional)",
         "authentication_token_placeholder": "Masukkan token otentikasi jika diperlukan",
-        "auto_resolve_alerts_description": "Secara otomatis menyelesaikan peringatan PagerTree ketika monitor pulih.",
+        "auto_resolve_alerts_description": "Secara otomatis menyelesaikan peringatan PagerTree ketika monitor kembali berjalan atau probe kembali online.",
         "auto_resolve_alerts_label": "Selesaikan Peringatan Otomatis",
         "how_to_get_integration_url_label": "Cara mendapatkan URL integrasi",
         "integration_url_description": "Masukkan URL integrasi webhook PagerTree Anda.",

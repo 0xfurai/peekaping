@@ -918,7 +918,7 @@
         "authentication_token_description": "Valfri autentiseringstoken för ökad säkerhet. Detta kommer att skickas i pagertree-token-huvudet.",
         "authentication_token_label": "Autentiseringstoken (valfritt)",
         "authentication_token_placeholder": "Ange autentiseringstoken om det behövs",
-        "auto_resolve_alerts_description": "Lös automatiskt PagerTree-varningar när övervakningen återhämtar sig",
+        "auto_resolve_alerts_description": "Lös automatiskt PagerTree-varningar när en övervakning fungerar igen eller en sond går tillbaka online",
         "auto_resolve_alerts_label": "Automatiskt lösa larm",
         "how_to_get_integration_url_label": "Hur får du integrations-URL",
         "integration_url_description": "Ange din PagerTree webhook-integration-URL.",

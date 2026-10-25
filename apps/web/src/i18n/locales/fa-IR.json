@@ -918,7 +918,7 @@
         "authentication_token_description": "توکن احراز هویت اختیاری برای امنیت تقویت‌شده. این در هدر pagertree-token ارسال می‌شود.",
         "authentication_token_label": "توکن احراز هویت (اختیاری)",
         "authentication_token_placeholder": "در صورت لزوم، توکن احراز هویت را وارد کنید",
-        "auto_resolve_alerts_description": "به‌صورت خودکار هشدارهای PagerTree را وقتی مانیتور بهبود یافت، حل کنید",
+        "auto_resolve_alerts_description": "به‌صورت خودکار هشدارهای PagerTree را در زمان بازگشت مانیتور یا آنلاین شدن دوباره پروب حل کنید",
         "auto_resolve_alerts_label": "رفع خودکار هشدارها",
         "how_to_get_integration_url_label": "چگونه URL یکپارچه‌سازی را دریافت کنیم",
         "integration_url_description": "آدرس وب‌هوک یکپارچه‌سازی PagerTree خود را وارد کنید.",

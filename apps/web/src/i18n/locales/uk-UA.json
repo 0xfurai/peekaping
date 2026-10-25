@@ -918,7 +918,7 @@
         "authentication_token_description": "Опціональний токен автентифікації для підвищення безпеки. Він буде надісланий в заголовку pagertree-token.",
         "authentication_token_label": "Токен автентифікації (Опціонально)",
         "authentication_token_placeholder": "Введіть токен автентифікації, якщо потрібен",
-        "auto_resolve_alerts_description": "Автоматично вирішувати сповіщення PagerTree, коли монітор відновлює роботу",
+        "auto_resolve_alerts_description": "Автоматично вирішувати сповіщення PagerTree, коли монітор відновлює роботу або зонд знову стає онлайн",
         "auto_resolve_alerts_label": "Автоматичне вирішення сповіщень",
         "how_to_get_integration_url_label": "Як отримати URL інтеграції",
         "integration_url_description": "Введіть URL інтеграції вашого вебхука PagerTree.",

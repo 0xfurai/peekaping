@@ -918,7 +918,7 @@
         "authentication_token_description": "可选的身份验证令牌，以增强安全性。此令牌将通过 pagertree-token 头部发送。",
         "authentication_token_label": "身份验证令牌（可选）",
         "authentication_token_placeholder": "如需，请输入授权令牌",
-        "auto_resolve_alerts_description": "监控恢复时自动解决 PagerTree 警报",
+        "auto_resolve_alerts_description": "监控恢复或探针重新上线时自动解决 PagerTree 警报",
         "auto_resolve_alerts_label": "自动解决告警",
         "how_to_get_integration_url_label": "如何获取集成 URL",
         "integration_url_description": "输入您的 PagerTree Webhook 集成 URL。",

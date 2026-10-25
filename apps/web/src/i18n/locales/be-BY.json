@@ -918,7 +918,7 @@
         "authentication_token_description": "Неабавязковы токен аўтэнтыфікацыі для павышэння бяспекі. Ён будзе адпраўляцца ў загалоўку pagertree-token.",
         "authentication_token_label": "Аўтэнтыфікацыйны токен (неабавязковы)",
         "authentication_token_placeholder": "Увядзіце аўтэнтыфікацыйны токен (калі патрабуецца)",
-        "auto_resolve_alerts_description": "Аўтаматычна вырашаць алерты PagerTree, калі манітор аднавіцца",
+        "auto_resolve_alerts_description": "Аўтаматычна вырашаць алерты PagerTree, калі манітор зноў стане даступным або зонд вернецца ў сетку",
         "auto_resolve_alerts_label": "Аўтаматычнае ліквідаванне апавяшчэнняў",
         "how_to_get_integration_url_label": "Як атрымаць інтэграцыйны URL",
         "integration_url_description": "Увядзіце URL інтэграцыі webhook PagerTree.",

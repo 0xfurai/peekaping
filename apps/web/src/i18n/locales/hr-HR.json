@@ -918,7 +918,7 @@
         "authentication_token_description": "Opcionalni autentikacijski token za poboljšanu sigurnost. Ovo će se poslati u pagertree-token zaglavlju.",
         "authentication_token_label": "Token za autentifikaciju (Opcionalno)",
         "authentication_token_placeholder": "Unesite token za autentikaciju ako je potreban",
-        "auto_resolve_alerts_description": "Automatski riješi PagerTree upozorenja kada monitor oporavi",
+        "auto_resolve_alerts_description": "Automatski riješi PagerTree upozorenja kada se monitor oporavi ili se sonda vrati na mrežu",
         "auto_resolve_alerts_label": "Automatsko rješavanje upozorenja",
         "how_to_get_integration_url_label": "Kako dobiti URL integracije",
         "integration_url_description": "Unesite URL integracije PagerTree webhooka.",

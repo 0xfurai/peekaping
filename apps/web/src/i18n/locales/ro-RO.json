@@ -918,7 +918,7 @@
         "authentication_token_description": "Token de autentificare opțional pentru securitate sporită. Acesta va fi trimis în antetul pagertree-token.",
         "authentication_token_label": "Token de autentificare (Opțional)",
         "authentication_token_placeholder": "Introduceți token de autentificare dacă este necesar",
-        "auto_resolve_alerts_description": "Rezolva automat alertele PagerTree când monitorul se restabilește",
+        "auto_resolve_alerts_description": "Rezolvă automat alertele PagerTree când un monitor se restabilește sau o sondă revine online",
         "auto_resolve_alerts_label": "Rezolvare automată a alertelor",
         "how_to_get_integration_url_label": "Cum obții URL‑ul de integrare",
         "integration_url_description": "Introduceți URL‑ul webhook PagerTree.",

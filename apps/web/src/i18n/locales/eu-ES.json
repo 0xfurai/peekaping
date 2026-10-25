@@ -918,7 +918,7 @@
         "authentication_token_description": "Token autentifikazio aukerakoa segurtasun handiagoa lortzeko. Pagertree-token goiburuan bidaliko da.",
         "authentication_token_label": "Autentifikazio token (aukerazkoa)",
         "authentication_token_placeholder": "Sartu autentifikazio tokena, beharrezkoa bada",
-        "auto_resolve_alerts_description": "PagerTree abisuak automatikoki konpontu monitorea berreskuratzen denean",
+        "auto_resolve_alerts_description": "PagerTree abisuak automatikoki konpontu monitorea berriro martxan dagoenean edo zunda berriro linean dagoenean",
         "auto_resolve_alerts_label": "Alerta automatikoki desaktibatzea",
         "how_to_get_integration_url_label": "Integrazioaren URLa nola lortu",
         "integration_url_description": "Sartu PagerTree webhook integrazioaren URLa.",

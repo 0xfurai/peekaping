@@ -918,7 +918,7 @@
         "authentication_token_description": "高度なセキュリティのための任意の認証トークン。これは pagertree-token ヘッダーに送信されます。",
         "authentication_token_label": "認証トークン（任意）",
         "authentication_token_placeholder": "必要な場合は認証トークンを入力してください",
-        "auto_resolve_alerts_description": "モニターが回復したときにPagerTreeアラートを自動的に解消する",
+        "auto_resolve_alerts_description": "モニターが復旧したとき、またはプローブがオンラインに戻ったときにPagerTreeアラートを自動的に解消する",
         "auto_resolve_alerts_label": "自動でアラートを解決",
         "how_to_get_integration_url_label": "統合URLの取得方法",
         "integration_url_description": "PagerTree ウェブフック統合 URL を入力してください。",
