@@ -918,7 +918,7 @@
         "authentication_token_description": "Opcionális hitelesítési token a biztonság fokozásához. Ez a pagertree-token fejlécben kerül elküldésre.",
         "authentication_token_label": "Hitelesítési token (opcionális)",
         "authentication_token_placeholder": "Adja meg a hitelesítési tokent, ha szükséges",
-        "auto_resolve_alerts_description": "Automatikusan feloldja a PagerTree riasztásokat, amikor a monitor helyreáll",
+        "auto_resolve_alerts_description": "Automatikusan feloldja a PagerTree riasztásokat, amikor egy monitor újra működésbe kerül, vagy egy szonda újra elérhetővé válik",
         "auto_resolve_alerts_label": "Automatikus riasztások feloldása",
         "how_to_get_integration_url_label": "Hogyan kapjuk meg az integrációs URL-t",
         "integration_url_description": "Adja meg a PagerTree webhook integrációs URL-jét.",

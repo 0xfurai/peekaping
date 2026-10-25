@@ -918,7 +918,7 @@
         "authentication_token_description": "Valikuline autentimiskood kõrgema turvalisuse tagamiseks. See saadetakse pagertree-token päises.",
         "authentication_token_label": "Autentimisetoken (Valikuline)",
         "authentication_token_placeholder": "Sisesta autentimiste token, kui see on vajalik",
-        "auto_resolve_alerts_description": "Automaatselt lahendatakse PagerTree hoiatused, kui monitor taastub",
+        "auto_resolve_alerts_description": "Automaatselt lahendatakse PagerTree hoiatused, kui monitoor taastub või sond on taas võrgus",
         "auto_resolve_alerts_label": "Automaatne häirete lahendamine",
         "how_to_get_integration_url_label": "Kuidas saada integratsiooni URL",
         "integration_url_description": "Sisesta oma PagerTree webhooki integreerimise URL.",

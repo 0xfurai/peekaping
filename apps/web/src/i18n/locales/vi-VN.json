@@ -918,7 +918,7 @@
         "authentication_token_description": "Token xác thực tùy chọn để tăng cường bảo mật. Token này sẽ được gửi trong header pagertree-token.",
         "authentication_token_label": "Token xác thực (Tuỳ chọn)",
         "authentication_token_placeholder": "Nhập mã xác thực nếu cần",
-        "auto_resolve_alerts_description": "Tự động giải quyết cảnh báo PagerTree khi máy giám sát phục hồi",
+        "auto_resolve_alerts_description": "Tự động giải quyết cảnh báo PagerTree khi giám sát khôi phục hoặc đầu dò trực tuyến trở lại",
         "auto_resolve_alerts_label": "Tự động giải quyết cảnh báo",
         "how_to_get_integration_url_label": "Cách lấy URL tích hợp",
         "integration_url_description": "Nhập URL tích hợp webhook PagerTree của bạn.",

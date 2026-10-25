@@ -918,7 +918,7 @@
         "authentication_token_description": "بہتر سیکیورٹی کے لیے اختیاری توثیقی ٹوکن۔ یہ pagertree-token ہیڈر میں بھیجا جائے گا۔",
         "authentication_token_label": "تصدیقی ٹوکن (اختیاری)",
         "authentication_token_placeholder": "اگر ضرورت ہو تو auth ٹوکن درج کریں",
-        "auto_resolve_alerts_description": "جب مانیٹر بحال ہو جائے تو PagerTree الرٹس خود بخود حل کریں",
+        "auto_resolve_alerts_description": "جب مانیٹر دوبارہ آن ہو جائے یا پروب دوبارہ آن لائن آ جائے تو PagerTree الرٹس خود بخود حل کریں",
         "auto_resolve_alerts_label": "خودکار طور پر الرٹس حل کریں",
         "how_to_get_integration_url_label": "انٹیگریشن URL کیسے حاصل کریں",
         "integration_url_description": "اپنا PagerTree ویب ہُک انٹیگریشن URL درج کریں۔",

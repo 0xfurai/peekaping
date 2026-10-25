@@ -918,7 +918,7 @@
         "authentication_token_description": "Tóin aitheantais roghnach chun slándáil níos fearr a chur i bhfeidhm. Beidh sé seo seolta i gteideal pagertree-token.",
         "authentication_token_label": "Token Fíordheimhnithe (Roghnach)",
         "authentication_token_placeholder": "Cuir isteach an t-iontráil cód údaraithe, má teastaíonn sé.",
-        "auto_resolve_alerts_description": "Réitigh na n-éireachtaí PagerTree go huathoibríoch nuair a bhuaíonn an monatóire.",
+        "auto_resolve_alerts_description": "Réitigh na n-éireachtaí PagerTree go huathoibríoch nuair a fhilleann móntóir ar líne nó nuair a fhilleann tóireadóir ar líne.",
         "auto_resolve_alerts_label": "Réiteach Uathúil na Fógraí",
         "how_to_get_integration_url_label": "Conas URL an tintegraíochta a fháil",
         "integration_url_description": "Iontráil URL do chomhsholú webhook PagerTree.",

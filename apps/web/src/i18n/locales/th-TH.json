@@ -918,7 +918,7 @@
         "authentication_token_description": "โทเค็นการยืนยันตัวตนที่เลือกใช้เพื่อเพิ่มความปลอดภัย. ข้อมูลนี้จะถูกส่งในหัวข้อ pagertree-token.",
         "authentication_token_label": "โทเค็นการตรวจสอบสิทธิ์ (ไม่บังคับ)",
         "authentication_token_placeholder": "ใส่โทเค็นยืนยันตัวตนหากจำเป็น",
-        "auto_resolve_alerts_description": "แก้ไขการแจ้งเตือนของ PagerTree โดยอัตโนมัติเมื่อมอนิเตอร์ฟื้นตัว",
+        "auto_resolve_alerts_description": "แก้ไขการแจ้งเตือนของ PagerTree โดยอัตโนมัติเมื่อมอนิเตอร์กลับมาออนไลน์หรือโพรบกลับมาออนไลน์",
         "auto_resolve_alerts_label": "แก้ไขแจ้งเตือนอัตโนมัติ",
         "how_to_get_integration_url_label": "วิธีรับ URL การบูรณาการ",
         "integration_url_description": "ป้อน URL ของเว็บฮุกสำหรับการรวม PagerTree ของคุณ",

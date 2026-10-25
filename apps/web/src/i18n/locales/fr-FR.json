@@ -918,7 +918,7 @@
         "authentication_token_description": "Jeton d'authentification facultatif pour une sécurité renforcée. Il sera envoyé dans l'en-tête pagertree-token.",
         "authentication_token_label": "Jeton d'authentification (facultatif)",
         "authentication_token_placeholder": "Saisissez le jeton d'authentification si nécessaire",
-        "auto_resolve_alerts_description": "Résoudre automatiquement les alertes PagerTree lorsque le moniteur se rétablit",
+        "auto_resolve_alerts_description": "Résoudre automatiquement les alertes PagerTree lorsqu'un moniteur revient en ligne ou qu'une sonde est de nouveau en ligne",
         "auto_resolve_alerts_label": "Résolution automatique des alertes",
         "how_to_get_integration_url_label": "Comment obtenir l'URL d'intégration",
         "integration_url_description": "Entrez votre URL d’intégration webhook PagerTree.",

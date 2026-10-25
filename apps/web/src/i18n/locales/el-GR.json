@@ -918,7 +918,7 @@
         "authentication_token_description": "Προαιρετικό token αυθεντικοποίησης για ενισχυμένη ασφάλεια. Αυτό θα σταλεί στο κεφαλίδα pagertree-token.",
         "authentication_token_label": "Token ταυτοποίησης (Προαιρετικό)",
         "authentication_token_placeholder": "Εισάγετε το token αυθεντικοποίησης, αν απαιτείται",
-        "auto_resolve_alerts_description": "Αυτόματα επιλύστε τις ειδοποιήσεις PagerTree όταν το μονιτάρισμα αποκατασταθεί",
+        "auto_resolve_alerts_description": "Αυτόματα επιλύστε τις ειδοποιήσεις PagerTree όταν μια παρακολούθηση επανέρχεται σε λειτουργία ή ένας ανιχνευτής επανέρχεται σε σύνδεση",
         "auto_resolve_alerts_label": "Αυτόματη επίλυση ειδοποιήσεων",
         "how_to_get_integration_url_label": "Πώς να πάρετε το URL ενσωμάτωσης",
         "integration_url_description": "Εισάγετε το URL ενσωμάτωσης webhook του PagerTree.",

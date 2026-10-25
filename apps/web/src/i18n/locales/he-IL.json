@@ -918,7 +918,7 @@
         "authentication_token_description": "אסימון אימות אופציונלי להגברת אבטחה. זה יישלח בכותרת pagertree-token.",
         "authentication_token_label": "אסימון אימות (אופציונלי)",
         "authentication_token_placeholder": "הזן אסימון אימות אם נדרש",
-        "auto_resolve_alerts_description": "פתרון אוטומטי של התראות PagerTree כאשר המוניטור מתאושש",
+        "auto_resolve_alerts_description": "פתרון אוטומטי של התראות PagerTree כאשר המוניטור חוזר לפעילות או כאשר הגשושית חוזרת להיות מחוברת",
         "auto_resolve_alerts_label": "פתרון אוטומטי של התראות",
         "how_to_get_integration_url_label": "כיצד לקבל את כתובת האינטגרציה",
         "integration_url_description": "הזן את כתובת ה-Webhook של אינטגרציית PagerTree שלך.",

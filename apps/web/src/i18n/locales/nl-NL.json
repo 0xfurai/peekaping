@@ -918,7 +918,7 @@
         "authentication_token_description": "Optioneel authenticatietoken voor extra beveiliging. Dit wordt verzonden in de pagertree-token header.",
         "authentication_token_label": "Authenticatietoken (optioneel)",
         "authentication_token_placeholder": "Voer autorisatietoken in, indien nodig",
-        "auto_resolve_alerts_description": "Automatisch PagerTree-waarschuwingen oplossen wanneer de monitor herstelt",
+        "auto_resolve_alerts_description": "Automatisch PagerTree-waarschuwingen oplossen wanneer een monitor weer online is of een probe weer online komt",
         "auto_resolve_alerts_label": "Meldingen automatisch oplossen",
         "how_to_get_integration_url_label": "Hoe verkrijg je de integratie-URL",
         "integration_url_description": "Voer uw PagerTree-webhook-integratie-URL in.",

@@ -918,7 +918,7 @@
         "authentication_token_description": "Token de autenticación opcional para mayor seguridad. Se enviará en el encabezado pagertree-token.",
         "authentication_token_label": "Token de autenticación (opcional)",
         "authentication_token_placeholder": "Introduce el token de autenticación si es necesario",
-        "auto_resolve_alerts_description": "Resuelve automáticamente las alertas de PagerTree cuando el monitor se recupere",
+        "auto_resolve_alerts_description": "Resuelve automáticamente las alertas de PagerTree cuando un monitor se recupere o una sonda vuelva a estar en línea",
         "auto_resolve_alerts_label": "Resolver alertas automáticamente",
         "how_to_get_integration_url_label": "Cómo obtener la URL de integración",
         "integration_url_description": "Introduzca su URL de integración webhook de PagerTree.",

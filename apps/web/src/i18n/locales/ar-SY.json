@@ -918,7 +918,7 @@
         "authentication_token_description": "رمز مصادقة اختياري لتعزيز الأمان. سيتم إرساله في رأس pagertree-token.",
         "authentication_token_label": "رمز المصادقة (اختياري)",
         "authentication_token_placeholder": "أدخل رمز المصادقة إذا لزم الأمر",
-        "auto_resolve_alerts_description": "حل إشعارات PagerTree تلقائياً عند استعادة المراقبة",
+        "auto_resolve_alerts_description": "حل إشعارات PagerTree تلقائياً عند عودة المراقب إلى الخدمة أو عودة المسبار إلى الاتصال",
         "auto_resolve_alerts_label": "إغلاق الإنذارات تلقائياً",
         "how_to_get_integration_url_label": "كيفية الحصول على رابط التكامل",
         "integration_url_description": "أدخل عنوان URL الخاص بتكامل PagerTree مع Webhook.",

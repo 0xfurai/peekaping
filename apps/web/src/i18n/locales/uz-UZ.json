@@ -918,7 +918,7 @@
         "authentication_token_description": "Qoʻshimcha xavfsizlik uchun ixtiyoriy autentifikatsiya tokeni. Bu token pagertree-token sarlavhasiga yuboriladi.",
         "authentication_token_label": "Autentifikatsiya Tokeni (Ixtiyoriy)",
         "authentication_token_placeholder": "Kerak bo'lsa, avtorizatsiya tokenini kiriting.",
-        "auto_resolve_alerts_description": "Monitor tiklanganda PagerTree ogohlantirishlari avtomatik ravishda yechiladi.",
+        "auto_resolve_alerts_description": "Monitor qayta ishga tushganda yoki zond qayta onlayn bo‘lganda PagerTree ogohlantirishlari avtomatik ravishda yechiladi.",
         "auto_resolve_alerts_label": "Ogohlantirishlarni avtomatik ravishda hal qilish",
         "how_to_get_integration_url_label": "Integratsiya URLini olish usuli",
         "integration_url_description": "PagerTree webhook integratsiyasi URLini kiriting.",
