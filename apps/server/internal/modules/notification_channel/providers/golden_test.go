@@ -244,6 +244,9 @@ var goldenCases = []goldenCase{
 	// The probe coming back online resolves the incident its offline notification opened
 	{name: "pagerduty_probe_online_resolve", sender: pagerDuty, event: probeOnlineEvent,
 		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue", "pagerduty_auto_resolve": "resolve"}`},
+	// Set to do nothing, as a monitor's Up does: no second trigger, and the incident stays open
+	{name: "pagerduty_probe_online_without_auto_resolve", sender: pagerDuty, event: probeOnlineEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue", "pagerduty_auto_resolve": "0"}`},
 	// Known issue: the dedup key is the monitor's, so this merges into an open Down incident
 	// and the next Up resolves it
 	{name: "pagerduty_certificate_expiry", sender: pagerDuty, event: certExpiryEvent,
@@ -330,6 +333,9 @@ var goldenCases = []goldenCase{
 	{name: "webhook_custom_body_down", sender: webhook, event: downEvent,
 		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "custom", "webhook_custom_body": "{\"text\": \"{{ name }} is {{ status }}: {{ msg }}\", \"url\": \"{{ monitor.config.url }}\"}", "webhook_additional_headers": "{\"Authorization\": \"Bearer hook-token\", \"X-Priority\": 1}"}`},
 	{name: "webhook_json_certificate_expiry", sender: webhook, event: certExpiryEvent,
+		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "json"}`},
+	// The stand-in monitor's status says the probe is Up again
+	{name: "webhook_json_probe_online", sender: webhook, event: probeOnlineEvent,
 		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "json"}`},
 
 	{name: "wecom_down", sender: weCom, event: downEvent,
