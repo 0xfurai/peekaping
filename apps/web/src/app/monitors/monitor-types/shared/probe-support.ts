@@ -27,6 +27,18 @@ export const withEffectiveProbes = <T extends { type: string; probe_ids: string[
 const sameProbes = (a: string[], b: string[]): boolean =>
   a.length === b.length && [...a].sort().join("\0") === [...b].sort().join("\0");
 
+// The ids of the probes a monitor runs on that don't run its type, in the monitor's order. A monitor
+// with no probes is on the local probe, as is a push monitor, and the local probe runs every type.
+// A probe the list doesn't hold isn't named: nothing says what it runs.
+export const unsupportedProbeIds = (
+  monitor: { type: string; probe_ids?: string[] | null },
+  probes: ProbeProbeResponse[]
+): string[] =>
+  probeIdsOf(monitor.type, monitorProbeIds(monitor)).filter((id) => {
+    const probe = probes.find((candidate) => candidate.id === id);
+    return probe !== undefined && !probeRunsType(probe, monitor.type);
+  });
+
 // The message for a monitor on a probe that doesn't run its type, if it is on one. The type's
 // schema can't tell, since which probes run which types comes from the probes query. A probe the
 // list doesn't hold is left to the server.
@@ -41,9 +53,5 @@ export const probeTypeError = (
   if (saved && saved.type === values.type && sameProbes(probeIds, monitorProbeIds(saved))) {
     return undefined;
   }
-  const unsupported = probeIds.some((id) => {
-    const probe = probes.find((candidate) => candidate.id === id);
-    return probe && !probeRunsType(probe, values.type);
-  });
-  return unsupported ? UNSUPPORTED_PROBE_MESSAGE : undefined;
+  return unsupportedProbeIds(values, probes).length > 0 ? UNSUPPORTED_PROBE_MESSAGE : undefined;
 };
