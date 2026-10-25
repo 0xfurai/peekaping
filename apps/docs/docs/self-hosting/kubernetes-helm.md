@@ -189,15 +189,16 @@ probe:
 
 The API and the probe pods read the token from the Secret when they start. Changing the Secret doesn't change the value a running pod holds, and the chart doesn't restart the pods for you. The API stores the token when it starts, and a probe is accepted only if it sends the stored one. So the old token stays active until the API restarts: the running probe pods keep working, and a probe pod that restarts first is refused.
 
-To change the token, update the Secret, then restart the API and the probe pods, the API first:
+To change the token, update the Secret, then restart the API, wait until every API pod runs with the new token, and restart the probe pods:
 
 ```bash
 kubectl rollout restart deployment/peekaping-api --namespace peekaping
+kubectl rollout status deployment/peekaping-api --namespace peekaping
 kubectl rollout restart deployment/peekaping-probe --namespace peekaping
 kubectl rollout status deployment/peekaping-probe --namespace peekaping
 ```
 
-Between the two restarts, the old probe pods send a token the API no longer holds, so they are refused and the local probe stops being checked. The new probe pods become ready as soon as they connect. If the gap lasts longer than `PROBE_OFFLINE_AFTER` (3 minutes by default), the leader reports the local probe offline, and it comes back online when a new pod connects. See [When a probe is offline](./remote-probes.md#when-a-probe-is-offline).
+Between the two restarts, the old probe pods send a token the API no longer holds, so they are refused and the local probe stops being checked. The new probe pods are accepted as soon as they connect, and become ready with their first assignment. If the gap lasts longer than `PROBE_OFFLINE_AFTER` (3 minutes by default), the leader reports the local probe offline, and it comes back online when a new pod connects. See [When a probe is offline](./remote-probes.md#when-a-probe-is-offline).
 
 ### Client addresses
 
