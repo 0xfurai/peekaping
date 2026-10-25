@@ -9,7 +9,7 @@ argument-hint: "PP-<n> | <pr>..."
 
 Start with [setup](../ticket/SETUP.md). The PRs are the ticket's open PRs, or the ones named; a PR whose base is another open PR's branch belongs to the same stack.
 
-Reviewers here are CodeRabbit (automatic, minutes after each push) and the user (whenever they get to it). CI is `test.yml` (server tests, web lint and build), `test-import-mongo.yml` and `playwright.yml` (e2e on two databases), on PRs into `main` only. `test` and CodeRabbit report within about ten minutes, e2e in 15 to 35; Codecov posts `codecov/patch` and `codecov/project` after each of `test` and `import-mongo` uploads coverage; `pr-wait.sh` reports them only once both are done, since a result from one upload compares half the coverage with `main`'s whole. A push cancels the PR's runs still in progress.
+Reviewers here are CodeRabbit (automatic, minutes after each push) and the user (whenever they get to it). CI is `test.yml` (server tests, web lint and build), `test-import-mongo.yml` and `playwright.yml` (e2e on two databases), on PRs into `main` only. `test` and CodeRabbit report within about ten minutes, e2e in 15 to 35; Codecov posts `codecov/patch` and `codecov/project` after each of `test`, `import-mongo` and `executor` (the Integration tests job) uploads coverage; `pr-wait.sh` reports them only once all are done, since a result from one upload compares half the coverage with `main`'s whole. A push cancels the PR's runs still in progress.
 
 ## Scripts
 
@@ -85,7 +85,7 @@ Where items live in `pr-state.sh` output:
 
 Codecov fails `codecov/patch` when under 70% of the PR's changed lines run in CI's tests, and `codecov/project` when the whole project's coverage drops more than 1% (`codecov.yml`). `pr-state.sh` leaves out `codecov/project` on a stacked PR: Codecov compares it with a stale commit of its base branch. CI runs the server tests on SQLite only, so code that runs only on Postgres never counts as covered there.
 
-While `test` or `import-mongo` is pending or failed, or Codecov hasn't posted since the last of them finished (it takes a minute or two to process an upload), a Codecov failure compares a partial upload, and `pr-wait.sh` holds it back: leave it, even though `pr-state.sh` lists it. Then run `pr-coverage.sh <pr>` and sort each file's `missed` and `partial` lines:
+While `test`, `import-mongo` or `executor` is pending or failed, or Codecov hasn't posted since the last of them finished (it takes a minute or two to process an upload), a Codecov failure compares a partial upload, and `pr-wait.sh` holds it back: leave it, even though `pr-state.sh` lists it. Then run `pr-coverage.sh <pr>` and sort each file's `missed` and `partial` lines:
 
 - **Reachable from a test on SQLite**: an agent ([DELEGATE.md](../ticket/DELEGATE.md)) adds the test, on the behaviour those lines carry, not on the line count. Brief it with the PR, the files and line numbers, and [TESTING.md](../ticket/TESTING.md).
 - **Runs only on Postgres** (a dialect branch): covered by the real-database checks of [TESTING.md](../ticket/TESTING.md). Run them if this round's diff touched the file.
