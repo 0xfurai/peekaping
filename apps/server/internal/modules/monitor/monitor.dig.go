@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
@@ -15,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
+func RegisterDependencies(container *dig.Container) error {
 	// The dbtx.Transactor is provided here, beside the repository, so that it resolves wherever the
 	// monitor service does: it writes a monitor and its links in one transaction
 	return utils.Provide(container, provideSQLRepository, dbtx.NewSQLTransactor,

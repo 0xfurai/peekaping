@@ -190,7 +190,7 @@ func TestRegisterDependencies_TheRepositoryTakesTheLocalProbesLiveness(t *testin
 				require.NoError(t, container.Provide(func() *config.Config { return cfg }))
 				require.NoError(t, container.Provide(func() *bun.DB { return db }))
 				require.NoError(t, tc.provide(container))
-				require.NoError(t, RegisterDependencies(container, cfg))
+				require.NoError(t, RegisterDependencies(container))
 				setProbeStatus(t, db, "local", "offline")
 
 				require.NoError(t, container.Invoke(func(repo MonitorRepository) {

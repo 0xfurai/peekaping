@@ -25,7 +25,7 @@ func transactorOf(t *testing.T, dbType string, db *bun.DB) dbtx.Transactor {
 	container := dig.New()
 	require.NoError(t, container.Provide(func() *config.Config { return cfg }))
 	require.NoError(t, container.Provide(func() *bun.DB { return db }))
-	require.NoError(t, monitor.RegisterDependencies(container, cfg))
+	require.NoError(t, monitor.RegisterDependencies(container))
 
 	var transactor dbtx.Transactor
 	require.NoError(t, container.Invoke(func(provided dbtx.Transactor) { transactor = provided }))

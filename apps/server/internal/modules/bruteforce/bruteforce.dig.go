@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
+func RegisterDependencies(container *dig.Container) error {
 	return utils.Provide(container, NewSQLRepository, NewService, NewGuard, NewAccountGuard)
 }
 
