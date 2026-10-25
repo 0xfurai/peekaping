@@ -12,8 +12,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// ResultFromMonitor is a result that something outside the worker reports for a monitor, as the
-// ingest logic takes it: the push URL's pushes and a probe's results. It names the local probe,
+// ResultFromMonitor is a result that something outside the monitor's own check reports for it, as
+// the ingest logic takes it: the push URL's pushes and a probe's results. It names the local probe,
 // which a probe's results replace with the probe that sent them. It carries the monitor's
 // settings as they stand, and what is reported: the status, the message, the response time, the
 // times of the check and the TLS information.
@@ -22,7 +22,7 @@ import (
 // underMaintenance replaces the status and the message, and the response time is dropped, so
 // planned downtime shows as neither Down nor Up and raises no notification.
 //
-// CheckCertExpiry follows the monitor's config, as the check loader reads it for the worker. A
+// CheckCertExpiry follows the monitor's config, as the check loader reads it for a check. A
 // config that can't be read asks for nothing and is logged.
 func ResultFromMonitor(
 	m *monitor.Model,

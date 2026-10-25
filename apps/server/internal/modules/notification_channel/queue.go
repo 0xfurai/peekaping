@@ -52,16 +52,16 @@ type queuedEvent struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
-// QueuedBus is the event bus of a cluster binary: the Redis event bus, except that publishing
-// one of the notification topics enqueues a task on the notification queue. The ingester and the
-// producer's watchdog publish those topics as they would on any bus, and the api, which runs a
-// QueueConsumer, takes each task on one replica and hands it to that replica's own bus, so the
+// QueuedBus is the event bus of the cluster api: the Redis event bus, except that publishing one
+// of the notification topics enqueues a task on the notification queue. The stored heartbeats, the
+// watchdog and the probe sweep publish those topics as they would on any bus, and the api's
+// QueueConsumer takes each task on one replica and hands it to that replica's own bus, so the
 // notification listener sends each notification once however many replicas run.
 //
 // The bus still subscribes to the Redis channels of the notification topics when a listener asks
-// for them. Nothing publishes there now, but an ingester or producer of the version before this
-// one does, and during a rolling upgrade each api replica sends such a notification, as they all
-// did before, instead of losing it.
+// for them. Nothing publishes there now, but an ingester or producer of an earlier version does,
+// and during a rolling upgrade each api replica sends such a notification, as they all did
+// before, instead of losing it.
 type QueuedBus struct {
 	*events.Bus
 	queue  queue.Service
@@ -96,11 +96,11 @@ func (b *QueuedBus) PublishMessage(ctx context.Context, msg events.Message) erro
 		Queue:    QueueName,
 		MaxRetry: taskMaxRetry,
 		Timeout:  taskTimeout,
-		// No retention: a finished task is of no use, and its payload holds a heartbeat
+		// asynq keeps no finished task: it is of no use, and its payload holds a heartbeat
 	}
 	// An event announces a change that is already stored, so it is queued even if the request
 	// behind it is cancelled: see events.Publish
-	_, err := b.queue.Enqueue(context.WithoutCancel(ctx), TaskTypeNotification, queuedEvent{Topic: msg.Topic, Payload: payload}, opts)
+	err := b.queue.Enqueue(context.WithoutCancel(ctx), TaskTypeNotification, queuedEvent{Topic: msg.Topic, Payload: payload}, opts)
 	if err != nil {
 		return fmt.Errorf("enqueue on the %s queue: %w", QueueName, err)
 	}

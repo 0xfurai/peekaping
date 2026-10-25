@@ -16,37 +16,30 @@ import (
 	"time"
 
 	"peekaping/internal/config"
-	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/probeproto"
 
 	"github.com/google/uuid"
-	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"go.uber.org/dig"
-	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 )
 
-// TestIngestRate_APIAgainstTheIngesterQueue measures how fast the cluster API stores what the probes
-// send, against how fast the ingester it replaces stored the same results from its queue (asynq on
-// Redis, 128 workers, no per-monitor order). Three probe instances post batches of results of 500
-// monitors, 20 rounds of them, 10,000 results in all, as fast as the API answers. The rate is the
-// results over the time from the first post to the last heartbeat stored.
+// TestIngestRate_TheAPIStoresWhatTheProbesSend measures how fast the cluster API stores what the
+// probes send. Three probe instances post batches of results of 500 monitors, 20 rounds of them,
+// 10,000 results in all, as fast as the API answers. The rate is the results over the time from the
+// first post to the last heartbeat stored.
 //
 // It runs on SQLite, and on PostgreSQL too when PEE_TEST_POSTGRES_DSN names a server. A Redis of
-// its own, PEE_TEST_REDIS_ADDR (host:port), keeps the queue and the duplicate window off the
-// in-process miniredis, which is not what either runs against in production. From apps/server:
+// its own, PEE_TEST_REDIS_ADDR (host:port), keeps the duplicate window off the in-process
+// miniredis, which is not what it runs against in production. From apps/server:
 //
 //	go test -tags soak -run TestIngestRate -count=1 -timeout 15m -v ./internal/apitest/
-func TestIngestRate_APIAgainstTheIngesterQueue(t *testing.T) {
+func TestIngestRate_TheAPIStoresWhatTheProbesSend(t *testing.T) {
 	backends := map[string]func(*config.Config){
 		"sqlite": func(*config.Config) {},
 	}
@@ -55,11 +48,9 @@ func TestIngestRate_APIAgainstTheIngesterQueue(t *testing.T) {
 	}
 	for name, backend := range backends {
 		t.Run(name, func(t *testing.T) {
-			api := measureIngest(t, backend, false)
-			queued := measureIngest(t, backend, true)
-			t.Logf("RESULT %s: the API stores %.0f results/s (%d results in %s); the ingester queue %.0f results/s (%d results in %s, of which the API enqueued them in %s: %.0f/s)",
-				name, api.rate(), api.results, api.stored.Round(time.Millisecond),
-				queued.rate(), queued.results, queued.stored.Round(time.Millisecond), queued.posted.Round(time.Millisecond), float64(queued.results)/queued.posted.Seconds())
+			api := measureIngest(t, backend)
+			t.Logf("RESULT %s: the API stores %.0f results/s (%d results in %s)",
+				name, api.rate(), api.results, api.stored.Round(time.Millisecond))
 			assert.NotZero(t, api.rate())
 		})
 	}
@@ -74,9 +65,8 @@ const (
 // ingestRun is what one run of measureIngest saw
 type ingestRun struct {
 	results int
-	// posted is the time until the last post was answered, and stored the time until the last
-	// heartbeat was stored
-	posted, stored time.Duration
+	// stored is the time until the last heartbeat was stored
+	stored time.Duration
 }
 
 func (r ingestRun) rate() float64 { return float64(r.results) / r.stored.Seconds() }
@@ -105,38 +95,27 @@ func usePostgres(t *testing.T, dsn string) func(*config.Config) {
 	}
 }
 
-// measureIngest posts the results through the API, which stores them itself, or, with queued, which
-// enqueues them for an ingester that runs beside it, and waits for all of them to be stored
-func measureIngest(t *testing.T, backend func(*config.Config), queued bool) ingestRun {
+// measureIngest posts the results through the API, which stores them itself, and waits for all of
+// them to be stored
+func measureIngest(t *testing.T, backend func(*config.Config)) ingestRun {
 	t.Helper()
 	options := []func(*config.Config){func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken }, backend}
-	var redisAddr string
 	if addr := os.Getenv("PEE_TEST_REDIS_ADDR"); addr != "" {
 		host, port, err := net.SplitHostPort(addr)
 		require.NoError(t, err)
-		redisAddr = addr
 		options = append(options, func(cfg *config.Config) { cfg.RedisHost, cfg.RedisPort = host, port })
 	}
 	decorate := func(container *dig.Container) error {
 		// The measurement posts faster than a probe does: one batch a second is a probe's limit
-		if err := container.Decorate(func() *protocol.RateLimiter { return protocol.NewRateLimiterOf(rate.Inf, 1<<20) }); err != nil {
-			return err
-		}
-		if queued {
-			return withQueuedIngest(container)
-		}
-		return nil
+		return container.Decorate(func() *protocol.RateLimiter { return protocol.NewRateLimiterOf(rate.Inf, 1<<20) })
 	}
 	a := newAppDecorated(t, decorate, options...)
 	a.registerAdmin(t)
-	if redisAddr == "" {
-		redisAddr = a.redis.Addr()
-	}
-	// The stats are counted in both, as the ingester counted them for the heartbeats it stored
+	// The stats count the heartbeats the API stored, as the API does
 	a.countStatsOnTheLocalBus(t)
 	// database/sql keeps two idle connections, and closes and opens the rest again and again; through
 	// the port forwarding of a Docker Desktop PostgreSQL that churn resets connections. A pool that
-	// keeps what it opens, the same for both runs, measures the ingest and not the forwarding.
+	// keeps what it opens measures the ingest and not the forwarding.
 	require.NoError(t, a.container.Invoke(func(db *bun.DB) {
 		if db.Dialect().Name() != dialect.PG {
 			return // SQLite is opened with one connection, which serializes its access
@@ -153,9 +132,6 @@ func measureIngest(t *testing.T, backend func(*config.Config), queued bool) inge
 	for i := range instances {
 		instances[i] = uuid.NewString()
 		a.sayHello(t, localToken, instances[i])
-	}
-	if queued {
-		a.startIngester(t, redisAddr)
 	}
 
 	// Each sender posts the results of its share of the monitors, one round at a time
@@ -193,7 +169,6 @@ func measureIngest(t *testing.T, backend func(*config.Config), queued bool) inge
 		}()
 	}
 	wg.Wait()
-	postedIn := time.Since(started)
 	close(answers)
 	outcomes := map[string]int{}
 	for answer := range answers {
@@ -208,29 +183,5 @@ func measureIngest(t *testing.T, backend func(*config.Config), queued bool) inge
 	require.Eventually(t, func() bool { return storedHeartbeats(t, a) >= total }, 5*time.Minute, 5*time.Millisecond, "every result is stored")
 	stored := time.Since(started)
 	assert.Equal(t, total, storedHeartbeats(t, a), "none twice")
-	// Let go of the connections now, for the run that follows
-	require.NoError(t, a.container.Invoke(func(db *bun.DB) {
-		if db.Dialect().Name() == dialect.PG {
-			db.SetMaxIdleConns(0)
-		}
-	}))
-	return ingestRun{results: total, posted: postedIn, stored: stored}
-}
-
-// startIngester runs what cmd/ingester ran beside the API: an asynq server of 128 workers on the
-// ingester queue, which stores each task with the ingest service and no order among a monitor's
-// results
-func (a *app) startIngester(t *testing.T, redisAddr string) {
-	t.Helper()
-	require.NoError(t, a.container.Invoke(func(heartbeats heartbeat.Service, certs certificate.Service, locations ingester.LocationStore, bus events.EventBus, logger *zap.SugaredLogger) {
-		handler := ingester.NewIngesterTaskHandler(ingester.NewService(heartbeats, certs, locations, bus, logger), logger)
-		server := asynq.NewServer(asynq.RedisClientOpt{Addr: redisAddr}, asynq.Config{
-			Concurrency: 128,
-			Queues:      map[string]int{"ingester": 10},
-		})
-		mux := asynq.NewServeMux()
-		mux.HandleFunc(ingester.TaskTypeIngester, handler.ProcessTask)
-		require.NoError(t, server.Start(mux))
-		t.Cleanup(server.Shutdown)
-	}))
+	return ingestRun{results: total, stored: stored}
 }

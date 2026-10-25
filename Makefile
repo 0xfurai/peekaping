@@ -180,28 +180,6 @@ lint-web: ## Test the web
 	@echo "Testing the web..."
 	cd apps/web && bun run lint && bun run build
 
-# Producer targets
-.PHONY: build-producer
-build-producer: ## Build the producer binary
-	@echo "Building producer..."
-	cd $(GO_SERVER_DIR) && go build -o ../../bin/producer ./cmd/producer
-
-.PHONY: run-producer
-run-producer: ## Run the producer service
-	@echo "Running producer..."
-	cd $(GO_SERVER_DIR) && go run ./cmd/producer/main.go
-
-# Ingester targets
-.PHONY: build-ingester
-build-ingester: ## Build the ingester binary
-	@echo "Building ingester..."
-	cd $(GO_SERVER_DIR) && go build -o ../../bin/ingester ./cmd/ingester
-
-.PHONY: run-ingester
-run-ingester: ## Run the ingester service
-	@echo "Running ingester..."
-	cd $(GO_SERVER_DIR) && go run ./cmd/ingester/main.go
-
 .PHONY: sync-skills
 sync-skills: ## Link shared agent skills into Claude Code
 	./scripts/sync-skills.sh
@@ -219,9 +197,8 @@ install: ## Install all dependencies (bun install + go mod tidy)
 	cd apps/server && go mod tidy
 	@echo "✅ All dependencies installed successfully!"
 
-# The api runs the producer's and the ingester's work, and a probe checks the monitors: it needs
-# PEEKAPING_URL and PROBE_TOKEN, which .env.dev.example sets. The producer and ingester refuse to
-# start.
+# The api stores the results and runs the watchdog, and a probe checks the monitors: it needs
+# PEEKAPING_URL and PROBE_TOKEN, which .env.dev.example sets.
 .PHONY: dev
 dev: ## Start development environment
 	bun run dev dev:api dev:probe docs:watch

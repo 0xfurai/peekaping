@@ -1033,7 +1033,7 @@ export const getErrorReportingOptions = (
 
 /**
  * Opt in or out of error reports
- * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins. Any choice also marks the one-time usage ping and error reports notice as seen.
+ * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode a change made on one api replica reaches the others within a minute. The choice is stored while the environment forces error reports off, and the environment still wins. Any choice also marks the one-time usage ping and error reports notice as seen.
  */
 export const putErrorReportingMutation = (
   options?: Partial<Options<PutErrorReportingData>>

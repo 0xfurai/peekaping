@@ -1,7 +1,7 @@
 // Command peekaping runs Peekaping in single mode (ADR 0002): the API and the websocket, the
 // scheduler and its check pool, the ingest and the stale-monitor watchdog, in one process with
-// no Redis. Cluster mode runs cmd/api, cmd/producer, cmd/worker and cmd/ingester instead. With
-// WEB_DIR set, it serves the web app on the API's port too.
+// no Redis. Cluster mode runs cmd/api and cmd/probe instead. With WEB_DIR set, it serves the web
+// app on the API's port too.
 //
 // It doesn't migrate the database: the startup script runs the migrations with cmd/bun before
 // it starts the server, as it does in cluster mode.
@@ -236,9 +236,9 @@ type jobs struct {
 }
 
 // startJobs starts what cmd/api starts beside the server (the cleanup cron, the settings, the
-// listeners, the status repair, the metrics collector and the usage ping), the stats aggregation
-// that cmd/ingester starts, and the scheduler, its watchdog and the probe sweep in place of
-// cmd/producer. Each runs once: this process is the only one, and so always the leader.
+// listeners, the status repair, the metrics collector and the usage ping), the stats aggregation,
+// and the scheduler, its watchdog and the probe sweep that the api's leader runs in cluster mode.
+// Each runs once: this process is the only one, and so always the leader.
 func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
@@ -321,7 +321,7 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 	})
 
 	// The sweep that sets silent probes offline. This process is the only one, so it runs the
-	// sweep once, as the leader producer does in cluster mode.
+	// sweep once, as the leader api replica does in cluster mode.
 	var sweepCtx context.Context
 	sweepCtx, j.stopSweep = context.WithCancel(context.Background())
 	j.sweepDone = make(chan struct{})

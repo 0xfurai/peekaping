@@ -1,7 +1,7 @@
-// Package scheduler is single mode's replacement for the producer, the queue and the worker:
-// it keeps a timer for each active monitor and runs the checks that fall due in a bounded
-// pool, in the same process, then ingests their results directly. Cluster mode keeps its
-// producer and worker. See ADR 0002, section 4.
+// Package scheduler is single mode's check scheduler: it keeps a timer for each active
+// monitor and runs the checks that fall due in a bounded pool, in the same process, then
+// ingests their results directly. Cluster mode has no scheduler: its probes run the checks.
+// See ADR 0002, section 4.
 package scheduler
 
 import (
@@ -57,8 +57,8 @@ const (
 	pageSize = 100
 	// ingestTimeout bounds one result's ingest, which a cancelled check doesn't interrupt
 	ingestTimeout = 2 * time.Minute
-	// ingestGrace is what CheckTimeout allows for a result's ingest: as long as the worker
-	// allows for its result to be enqueued, so the watchdog waits as long in both modes
+	// ingestGrace is what CheckTimeout allows for a result's ingest. The watchdog of the cluster
+	// api uses CheckTimeout too, so it waits as long in both modes.
 	ingestGrace = 8 * time.Second
 )
 
@@ -135,8 +135,7 @@ func New(cfg Config) *Scheduler {
 	}
 }
 
-// nextAligned is the next multiple of the period after the time, counted from the Unix
-// epoch: the same rule as the producer's
+// nextAligned is the next multiple of the period after the time, counted from the Unix epoch
 func nextAligned(after time.Time, period time.Duration) time.Time {
 	ms := after.UnixMilli()
 	p := period.Milliseconds()
@@ -252,9 +251,8 @@ type reconciled struct {
 	added, rescheduled, removed int
 }
 
-// reconcile compares the timers with the active monitors of the source, as the producer's
-// refreshSchedule does, so that a missed signal can't leave a monitor unscheduled or a
-// deleted one checked. A monitor without a timer is checked right away. One whose check
+// reconcile compares the timers with the active monitors of the source, so that a missed
+// signal can't leave a monitor unscheduled or a deleted one checked. A monitor without a timer is checked right away. One whose check
 // interval changed is checked next on a multiple of the new interval. One that is no longer
 // active, or has moved to a remote probe, loses its timer, and its running check is cancelled.
 func (s *Scheduler) reconcile(ctx context.Context) error {
@@ -419,8 +417,8 @@ func (s *Scheduler) startCheck(monitorID string) {
 	}()
 }
 
-// recoverCheck logs a panic in the monitor's check and ends that check alone, as asynq does
-// for a task in cluster mode: in single mode an unrecovered panic would stop every monitor.
+// recoverCheck logs a panic in the monitor's check and ends that check alone: an unrecovered
+// panic would stop every monitor.
 // The check frees its slot and ends as any other, so the monitor's next check runs.
 func (s *Scheduler) recoverCheck(monitorID string) {
 	if r := recover(); r != nil {
@@ -501,7 +499,7 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		return
 	}
 	mon := loaded.Monitor
-	// A push monitor's check judges its latest push, as the worker's does
+	// A push monitor's check judges its latest push
 	mon.LastHeartbeat = loaded.LastHeartbeat
 
 	exec, ok := s.executors.GetExecutor(mon.Type)

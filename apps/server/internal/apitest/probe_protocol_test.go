@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -485,37 +484,27 @@ func TestProbeProtocol_HelloRejectsABadBody(t *testing.T) {
 func (a *app) queuedNotificationTopics(t *testing.T) []string {
 	t.Helper()
 	topics := []string{}
-	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
-		tasks, err := inspector.ListPendingTasks(notification_channel.QueueName)
-		if errors.Is(err, asynq.ErrQueueNotFound) {
-			return nil
+	tasks, err := a.inspector(t).ListPendingTasks(notification_channel.QueueName)
+	if errors.Is(err, asynq.ErrQueueNotFound) {
+		return topics
+	}
+	require.NoError(t, err)
+	for _, task := range tasks {
+		var queued struct {
+			Topic string `json:"topic"`
 		}
-		if err != nil {
-			return err
-		}
-		for _, task := range tasks {
-			var queued struct {
-				Topic string `json:"topic"`
-			}
-			if err := json.Unmarshal(task.Payload, &queued); err != nil {
-				return err
-			}
-			topics = append(topics, queued.Topic)
-		}
-		return nil
-	}))
+		require.NoError(t, json.Unmarshal(task.Payload, &queued))
+		topics = append(topics, queued.Topic)
+	}
 	return topics
 }
 
 func (a *app) clearQueuedNotifications(t *testing.T) {
 	t.Helper()
-	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
-		_, err := inspector.DeleteAllPendingTasks(notification_channel.QueueName)
-		if errors.Is(err, asynq.ErrQueueNotFound) {
-			return nil
-		}
-		return err
-	}))
+	_, err := a.inspector(t).DeleteAllPendingTasks(notification_channel.QueueName)
+	if !errors.Is(err, asynq.ErrQueueNotFound) {
+		require.NoError(t, err)
+	}
 }
 
 func TestProbeProtocol_RequestBringsAnOfflineProbeOnline(t *testing.T) {
@@ -1415,21 +1404,6 @@ func (a *app) outcomesOf(t *testing.T, token, instanceID string, results ...prob
 	return reply.Results
 }
 
-// queuedPayloads are the payloads of the heartbeats waiting for the ingester, oldest check first
-func (a *app) queuedPayloads(t *testing.T) []map[string]any {
-	t.Helper()
-	var payloads []map[string]any
-	for _, task := range a.queuedHeartbeats(t) {
-		var payload map[string]any
-		require.NoError(t, json.Unmarshal(task.Payload, &payload))
-		payloads = append(payloads, payload)
-	}
-	slices.SortFunc(payloads, func(x, y map[string]any) int {
-		return strings.Compare(x["start_time"].(string), y["start_time"].(string))
-	})
-	return payloads
-}
-
 // AC3: the api stores the results of its probes as heartbeats, on the replica that took the request,
 // before it answers
 func TestProbeProtocol_ResultsAreStoredAsHeartbeats(t *testing.T) {
@@ -1458,7 +1432,6 @@ func TestProbeProtocol_ResultsAreStoredAsHeartbeats(t *testing.T) {
 	assert.Equal(t, shared.MonitorStatusUp, beats[0].Status)
 	// A check that failed on its first try, with retries left, is Pending until they run out
 	assert.Equal(t, shared.MonitorStatusPending, beats[1].Status)
-	assert.Empty(t, a.queuedHeartbeats(t), "nothing is queued for an ingester")
 }
 
 func TestProbeProtocol_ResultsRejectReasonsEndToEnd(t *testing.T) {

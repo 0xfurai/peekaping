@@ -44,9 +44,6 @@ type Config struct {
 	// Queue configuration
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
-	// Producer configuration (for push endpoint)
-	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
-
 	// Bruteforce protection settings
 	BruteforceMaxAttempts int           `env:"BRUTEFORCE_MAX_ATTEMPTS" default:"20"`
 	BruteforceWindow      time.Duration `env:"BRUTEFORCE_WINDOW" default:"1m"`
@@ -219,7 +216,6 @@ func (c *Config) ToInternalConfig() *config.Config {
 		RedisPassword:                c.RedisPassword,
 		RedisDB:                      c.RedisDB,
 		QueueConcurrency:             c.QueueConcurrency,
-		ProducerConcurrency:          c.ProducerConcurrency,
 		BruteforceMaxAttempts:        c.BruteforceMaxAttempts,
 		BruteforceWindow:             c.BruteforceWindow,
 		BruteforceLockout:            c.BruteforceLockout,

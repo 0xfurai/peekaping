@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -20,7 +19,6 @@ import (
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/reporting"
@@ -65,9 +63,7 @@ type candidate struct {
 	monitor *monitor.Model
 	status  shared.MonitorStatus
 	tlsInfo *certificate.TLSInfo
-	// outcome is the result's place in the answer, accepted until the store says otherwise
-	outcome *probeproto.ResultOutcome
-	// stored is set once the ingester has taken the result, or the queue held it already
+	// stored is set once the ingester has taken the result
 	stored bool
 }
 
@@ -214,7 +210,7 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 			continue
 		}
 		outcomes[i].Accepted = true
-		waiting = append(waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo, outcome: &outcomes[i]})
+		waiting = append(waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo})
 	}
 
 	// A request stores for StoreDeadline at the most, so that it is over before its claims run out
@@ -348,12 +344,6 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 // stored when the request ends are the ones its answer, a 500, leaves to be answered duplicate when
 // the probe sends the batch again. The error returned is the first failed monitor's, in the order
 // the monitors were sent.
-//
-// A Service that enqueues the result, which no storage backend uses now, finds a task for the
-// monitor, the probe and the start time held for an hour. A task the queue holds already is a result
-// stored, by a replica that the probe's first attempt reached: the result's outcome becomes
-// duplicate, and it is not a failure. (The Window answers a retry on another replica, by the
-// result's id.)
 func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*candidate) error {
 	var order []string
 	byMonitor := map[string][]*candidate{}
@@ -432,11 +422,7 @@ func (c *Controller) storeMonitor(ctx context.Context, owner *probe.Model, monit
 		result := healthcheck.ResultFromMonitor(w.monitor, underMaintenance, w.status, w.result.Message, w.result.PingMs,
 			w.result.StartTime.UTC(), w.result.EndTime.UTC(), w.tlsInfo, c.logger)
 		result.ProbeID = owner.ID
-		err := c.ingester.Ingest(ctx, result)
-		switch {
-		case errors.Is(err, queue.ErrTaskIDConflict):
-			w.outcome.Accepted, w.outcome.Reason = false, probeproto.ReasonDuplicate
-		case err != nil:
+		if err := c.ingester.Ingest(ctx, result); err != nil {
 			return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
 		}
 		w.stored = true

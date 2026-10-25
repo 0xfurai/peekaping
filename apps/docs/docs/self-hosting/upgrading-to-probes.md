@@ -6,6 +6,8 @@ sidebar_position: 5
 
 This page takes a cluster on SQLite or PostgreSQL from the layout with a producer, a worker and an ingester to the layout with the API and probes. In the new layout, `peekaping-probe` instances check the local probe's monitors, and the API replicas store the results. See [Deployment modes](./deployment-modes.md#cluster-mode) for the cluster, and [Probe](../architecture/probe.md) for what the probe does.
 
+The producer, worker and ingester are gone. The `peekaping-producer`, `peekaping-worker` and `peekaping-ingester` images are no longer published: 0.0.47 is the last release that has them, and the tags already published stay where they are.
+
 ## Who this is for
 
 You need this page if you run [cluster mode](./deployment-modes.md#cluster-mode) on SQLite or PostgreSQL and upgrade to the release that retires the producer, worker and ingester:
@@ -19,7 +21,7 @@ You don't need it for these:
 - **MongoDB.** See [MongoDB storage was removed](#mongodb-storage-was-removed).
 - **A new install.** The setup pages already describe the new layout.
 
-A producer or an ingester image of the release that retires them refuses to start on SQLite or PostgreSQL. It exits with status 1 and logs a message that points here. A worker image of that release starts and logs `The worker has no work left on SQLite or PostgreSQL storage`. So a stack that you upgrade without following this page tells you.
+No image of this release runs a producer, worker or ingester. A stack that pulls `latest` for them keeps the 0.0.47 images, which this release's API doesn't use, so follow this page to remove them.
 
 ## What changes
 
@@ -41,7 +43,7 @@ These things behave differently afterwards:
 - **A stale monitor is notified, not checked again.** The watchdog can't make a probe check right away, so it notifies the monitor's channels once the wait has passed.
 - **`PROBE_OFFLINE_AFTER` is read by the API.** The producer read it before. Set it on the API replicas now.
 - **Docker monitors and ping monitors need the probe's permissions.** The Docker socket mount and `group_add` move from the `worker` service to the `probe` service, and so does a `sysctls` entry for ping. See [Cluster user and permissions](./cluster-user.md).
-- **`QUEUE_CONCURRENCY` and `PRODUCER_CONCURRENCY` no longer size anything for the checks.** `PROBE_CONCURRENCY` (128 by default) sets how many checks one probe instance runs at the same time.
+- **`QUEUE_CONCURRENCY` and `PRODUCER_CONCURRENCY` no longer size anything for the checks.** `PROBE_CONCURRENCY` (128 by default) sets how many checks one probe instance runs at the same time. `PRODUCER_CONCURRENCY` is no longer read, and `QUEUE_CONCURRENCY` only sizes the API's `notification` queue.
 - **`ERROR_REPORTING=off` is needed on the API only.** The probe sends no error reports.
 
 ## Before you start
@@ -182,7 +184,7 @@ To fix it, start probe instances with `PEEKAPING_URL` set to the API's address a
 
 Go back to the previous images with the previous compose file or chart revision. The upgrade changes nothing in the database, so you restore nothing.
 
-- **Docker Compose.** Put back your earlier compose file and set each image to the tag you ran before, such as `0xfurai/peekaping-api:<previous>`. Run `docker compose up -d --remove-orphans`, which removes the `probe` container and starts the producer, worker and ingester.
+- **Docker Compose.** Put back your earlier compose file and set each image to the tag you ran before, such as `0xfurai/peekaping-api:<previous>`. Run `docker compose up -d --remove-orphans`, which removes the `probe` container and starts the producer, worker and ingester. Their images are no longer published, but the tags of earlier releases stay on the registries.
 - **Helm.** Run `helm rollback <release> <revision>`, with the revision from `helm history`. It brings back the earlier Deployments and removes the probe Deployment and the token Secret. It doesn't undo database migrations, and this upgrade has none.
 
 The local probe's token stays in the database. It is harmless: it opens only the probe protocol, which no probe uses once the probe deployment is gone. You can leave `PROBE_BOOTSTRAP_TOKEN` in `.env`, because an older API either ignores it or stores the same token again.

@@ -7,9 +7,9 @@ const DOWN = 0;
 const UP = 1;
 
 // A new monitor is checked at once and then every 20 seconds, the minimum
-// check interval. If the producer misses the create event, its 30-second
-// refresh picks the monitor up. The heartbeat then still has to reach the page
-// and the notification channel.
+// check interval. If whatever runs the checks misses the create event, its next
+// refresh (within about 30 seconds) picks the monitor up. The heartbeat then still has to reach
+// the page and the notification channel.
 const nextCheck = { timeout: 60_000 };
 
 test('An HTTP monitor goes Down, sends a webhook notification, and comes back Up', async ({ page, request }) => {

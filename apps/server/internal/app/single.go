@@ -3,7 +3,6 @@ package app
 import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/cleanup"
-	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/probe"
@@ -32,7 +31,7 @@ func RegisterSingle(container *dig.Container, cfg *config.Config) error {
 		provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock,
 		ingester.ProvideLocationStore, provideInOrderIngester,
 		provideSchedulerSource, provideScheduler, provideWatchdog,
-		provideSingleMode, provideSingleClaimer, provideSingleSwitch, provideSingleWindow, provideSingleLocalProbe,
+		provideSingleMode, provideSingleClaimer, provideSingleWindow, provideSingleLocalProbe,
 		probe.ProvideSweep,
 	)
 }
@@ -42,9 +41,6 @@ func provideSingleMode() telemetry.Mode { return telemetry.ModeSingle }
 
 // provideSingleClaimer provides the claimer of the usage ping: the one process always sends
 func provideSingleClaimer() telemetry.Claimer { return telemetry.AlwaysClaimer{} }
-
-// provideSingleSwitch provides the error reporting switch: the one process is the only one to tell
-func provideSingleSwitch() error_reporting.Switch { return error_reporting.LocalSwitch{} }
 
 // provideSingleLocalProbe provides how the local probe is known to be online: it is the process
 // itself, which runs its checks, and is never offline

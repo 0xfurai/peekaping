@@ -11,12 +11,30 @@ import (
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/stale"
 
-	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"go.uber.org/dig"
+	"go.uber.org/zap"
 )
+
+// AC4: the api's watchdog waits for a stale monitor's new check as long as it did when the producer
+// ran it (with the worker's task timeout): the check's timeout, plus the 2 seconds the executor may
+// keep running after the check gave up, plus 8 seconds for its result to be stored. The expected
+// values are worked out by hand from that formula (timeout + 2s + 8s), so a change to either grace
+// shows here.
+func TestClusterWatchdog_WaitsForANewCheckTheCheckTimeoutPlusTenSeconds(t *testing.T) {
+	cfg := clusterWatchdogParams{Logger: zap.NewNop().Sugar()}.config()
+
+	for timeoutSeconds, want := range map[int]time.Duration{
+		0:   10 * time.Second,
+		16:  26 * time.Second,
+		48:  58 * time.Second,
+		120: 130 * time.Second,
+	} {
+		assert.Equal(t, want, cfg.CheckTimeout(timeoutSeconds), "a check with a timeout of %d seconds", timeoutSeconds)
+	}
+}
 
 // The watchdog reads the probes' supported types from the probe service, in single mode
 func TestRegisterSingle_TheWatchdogReadsTheTypesOfRealProbes(t *testing.T) {
@@ -32,30 +50,7 @@ func TestRegisterSingle_TheWatchdogReadsTheTypesOfRealProbes(t *testing.T) {
 	}))
 }
 
-// and in cluster mode, where the producer's leader runs the watchdog
-func TestRegisterClusterProducer_TheWatchdogReadsTheTypesOfRealProbes(t *testing.T) {
-	container := dig.New()
-	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
-
-	require.NoError(t, container.Invoke(func(
-		lookup stale.ProbeLookup,
-		probes probe.Service,
-		bus events.EventBus,
-		db *bun.DB,
-		client *asynq.Client,
-		inspector *asynq.Inspector,
-	) {
-		closeEventBus(t, bus)
-		closeDB(t, db)
-		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
-		require.NoError(t, migrateDB(db))
-
-		assertProbeLookupReadsRealProbes(t, lookup, probes)
-	}))
-}
-
-// and in SQL cluster mode, where the api replica that holds the leader lock runs the watchdog: its
+// and in cluster mode, where the api replica that holds the leader lock runs the watchdog: its
 // notification of a stale monitor names the probes that don't run the monitor's type, as single
 // mode's does
 func TestRegisterClusterAPI_TheLeadersWatchdogNamesTheProbesThatDoNotRunAStaleMonitorsType(t *testing.T) {

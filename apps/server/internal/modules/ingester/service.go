@@ -90,8 +90,7 @@ type locationRule struct {
 	threshold int
 }
 
-// ruleOf is the location rule a result carries. An empty or unknown rule is any, which is also the
-// rule of a result queued before rules existed.
+// ruleOf is the location rule a result carries. An empty or unknown rule is any.
 func ruleOf(r *Result) locationRule {
 	switch r.MonitorLocationRule {
 	case shared.LocationRuleAll:

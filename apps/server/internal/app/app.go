@@ -1,14 +1,14 @@
-// Package app builds the dependency graph of each Peekaping binary, in two layers (ADR 0002,
-// section 3). Register provides what every binary shares: the config, the logger, the
+// Package app builds the dependency graph of the binaries that run the server, in two layers
+// (ADR 0002, section 3). Register provides what both share: the config, the logger, the
 // database, and the modules' repositories, services, check executors, listeners and HTTP
 // routes. A transport then provides how the parts reach each other.
 //
 // Cluster mode's transport is in cluster.go: Redis, the event bus over it, the stale.Store and
-// the cleanup.RunLock in it, asynq and the leader election, and the cluster side of ADR 0002's
-// two seams. The probes run the checks, so the api ingests what it takes (a push, or the results of
-// a probe) with ingest.NewInOrderService, counts the stats of what it stored, and runs the
-// stale-monitor watchdog and the probe sweep under the leader lock. Its RegisterCluster functions
-// build each cluster binary's graph.
+// the cleanup.RunLock in it, asynq (for the notification queue) and the leader election, and the
+// cluster side of ADR 0002's two seams. The probes run the checks, so the api ingests what it takes
+// (a push, or the results of a probe) with ingest.NewInOrderService, counts the stats of what it
+// stored, and runs the stale-monitor watchdog and the probe sweep under the leader lock.
+// RegisterClusterAPI builds cmd/api's graph.
 //
 // Single mode's transport is in single.go: Register, then the in-memory event bus and
 // stale.Store, the cleanup.RunLock that grants every hour, the scheduler and its watchdog, and
@@ -62,12 +62,10 @@ import (
 	"go.uber.org/dig"
 )
 
-// Register provides what every binary shares. dig builds a value only when an Invoke needs
-// it, so each binary builds just the part of the graph it runs: the worker, which has no
-// database, never builds a repository. The transport provides the rest: the event bus, the
-// stale.Store, the ingester.Service the push URL ingests through, and the telemetry.Mode that
-// says whether the usage ping reports single or cluster mode (the MODE setting does not),
-// and the error_reporting.Switch that tells the processes that report whether to.
+// Register provides what both binaries share. dig builds a value only when an Invoke needs it.
+// The transport provides the rest: the event bus, the stale.Store, the ingester.Service the push
+// URL ingests through, and the telemetry.Mode that says whether the usage ping reports single or
+// cluster mode (the MODE setting does not).
 func Register(container *dig.Container, cfg *config.Config) error {
 	err := utils.Provide(container,
 		func() *config.Config { return cfg },
@@ -119,9 +117,9 @@ func Register(container *dig.Container, cfg *config.Config) error {
 	)
 }
 
-// registerDatabase provides the storage backend DB_TYPE names. The worker has no DB_TYPE and
-// gets no database. MongoDB storage was removed: a config that names it is refused already, and
-// this refuses it again for a graph built from a Config that wasn't validated.
+// registerDatabase provides the storage backend DB_TYPE names. MongoDB storage was removed: a
+// config that names it is refused already, and this refuses it again for a graph built from a
+// Config that wasn't validated.
 func registerDatabase(container *dig.Container, cfg *config.Config) error {
 	if err := config.RefuseMongoStorage(cfg.DBType); err != nil {
 		return err
@@ -129,8 +127,6 @@ func registerDatabase(container *dig.Container, cfg *config.Config) error {
 	switch cfg.DBType {
 	case "postgres", "postgresql", "mysql", "sqlite":
 		return utils.Provide(container, infra.ProvideSQLDB)
-	case "":
-		return nil
 	default:
 		return fmt.Errorf("unsupported DB_TYPE %q", cfg.DBType)
 	}

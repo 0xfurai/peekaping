@@ -91,7 +91,7 @@ func (s *HealthCheckSupervisor) executeWithDeadline(
 	startTime := time.Now().UTC()
 	done := make(chan *executor.Result, 1)
 	go func() {
-		// asynq only recovers panics in the handler goroutine, not this one
+		// A panic in this goroutine would stop the process, so it is recovered here
 		defer func() {
 			if r := recover(); r != nil {
 				stack := debug.Stack()

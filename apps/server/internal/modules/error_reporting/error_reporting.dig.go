@@ -9,12 +9,13 @@ import (
 	"go.uber.org/zap"
 )
 
-// RegisterDependencies provides the error reporting module. The transport of each binary
-// provides the Switch: single mode's turns reporting on in its one process, and cluster mode's
-// also copies the choice to Redis for the other processes.
+// RegisterDependencies provides the error reporting module. Each api replica, like the single-mode
+// process, turns reporting on or off in its own process (LocalSwitch).
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, provideService, NewController, NewRoute)
+	return utils.Provide(container, provideService, provideSwitch, NewController, NewRoute)
 }
+
+func provideSwitch() Switch { return LocalSwitch{} }
 
 func provideService(settings shared.SettingService, cfg *config.Config, sw Switch, logger *zap.SugaredLogger) Service {
 	return NewService(settings, cfg, sw, logger)

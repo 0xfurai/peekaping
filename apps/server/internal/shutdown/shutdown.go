@@ -1,8 +1,8 @@
-// Package shutdown holds the tools every Peekaping binary stops with: the time its steps are
-// given, the stop that runs them in order, and the close of the database that comes last.
-// cmd/peekaping and the cluster binaries share them so that all five stop the same way (ADR 0002).
-// The signal handling that starts a shutdown and the wait that keeps a step within its time are in
-// package lifecycle, which has no storage or queue behind it and which the remote probe uses too.
+// Package shutdown holds the tools the server binaries stop with: the time their steps are given,
+// the count of the HTTP handlers still running, and the close of the database that comes last.
+// cmd/peekaping and cmd/api share them so that both stop the same way (ADR 0002). The signal
+// handling that starts a shutdown and the wait that keeps a step within its time are in package
+// lifecycle, which has no storage or queue behind it and which the remote probe uses too.
 package shutdown
 
 import (

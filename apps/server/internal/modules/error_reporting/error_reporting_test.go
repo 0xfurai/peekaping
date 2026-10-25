@@ -10,11 +10,8 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/reporting"
-	"peekaping/internal/reporting/redissync"
 	"peekaping/internal/reporting/reportingtest"
 
-	"github.com/alicebob/miniredis/v2"
-	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -78,7 +75,7 @@ func (f *fakeSettings) value(key string) string {
 	return ""
 }
 
-// recordingSwitch keeps what the service tells the processes
+// recordingSwitch keeps what the service tells the switch
 type recordingSwitch struct {
 	set []bool
 	err error
@@ -103,10 +100,10 @@ func TestState_IsOnByDefault(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, State{Enabled: true, ForcedOff: false}, state)
 	assert.Empty(t, settings.values, "reading the state stores nothing")
-	assert.Empty(t, sw.set, "and tells no process anything")
+	assert.Empty(t, sw.set, "and tells the switch nothing")
 }
 
-func TestSetEnabled_StoresTheChoiceAndTellsTheProcesses(t *testing.T) {
+func TestSetEnabled_StoresTheChoiceAndTellsTheSwitch(t *testing.T) {
 	service, settings, sw := newService(&config.Config{})
 
 	state, err := service.SetEnabled(context.Background(), true)
@@ -163,7 +160,7 @@ func TestSetEnabled_KeepsTheChoiceWhileTheEnvironmentForcesReportingOff(t *testi
 			require.NoError(t, err)
 			assert.Equal(t, State{Enabled: true, ForcedOff: true}, state, "the choice is stored, and the environment still wins")
 			assert.Equal(t, "true", settings.value(EnabledKey))
-			assert.Equal(t, []bool{false}, sw.set, "the processes are told it is off")
+			assert.Equal(t, []bool{false}, sw.set, "the switch is told it is off")
 		})
 	}
 }
@@ -177,19 +174,18 @@ func TestSetEnabled_TheOtherSwitchesDoNotForceItOff(t *testing.T) {
 	assert.False(t, state.ForcedOff, "TELEMETRY=off is the usage ping's switch")
 }
 
-// The stored setting is the source of truth. Redis is only how the choice reaches the other
-// processes, so a Redis that is down must not fail the change: the api republishes the stored
-// choice every minute (Run).
-func TestSetEnabled_StoresTheChoiceAndSucceedsWhenTheProcessesCannotBeTold(t *testing.T) {
+// The stored setting is the source of truth. A switch that fails must not fail the change: the api
+// applies the stored choice again every minute (Run).
+func TestSetEnabled_StoresTheChoiceAndSucceedsWhenTheSwitchFails(t *testing.T) {
 	service, settings, sw := newService(&config.Config{})
-	sw.err = errors.New("redis: connection refused")
+	sw.err = errors.New("the switch is stuck")
 
 	state, err := service.SetEnabled(context.Background(), true)
 
 	require.NoError(t, err)
 	assert.Equal(t, State{Enabled: true}, state)
 	assert.Equal(t, "true", settings.value(EnabledKey))
-	assert.Equal(t, []bool{true}, sw.set, "this process was changed and the others were tried")
+	assert.Equal(t, []bool{true}, sw.set, "the switch was tried")
 }
 
 func TestState_FailsWhenTheSettingCannotBeRead(t *testing.T) {
@@ -203,7 +199,7 @@ func TestState_FailsWhenTheSettingCannotBeRead(t *testing.T) {
 	assert.Error(t, service.Apply(context.Background()))
 }
 
-func TestApply_TellsTheProcessesTheStoredChoiceAtStart(t *testing.T) {
+func TestApply_TellsTheSwitchTheStoredChoiceAtStart(t *testing.T) {
 	for name, tc := range map[string]struct {
 		stored string
 		cfg    *config.Config
@@ -241,107 +237,6 @@ func TestLocalSwitch_TurnsReportingOnAndOffInThisProcess(t *testing.T) {
 	assert.False(t, reporting.Enabled())
 }
 
-func newRedis(t *testing.T) (*miniredis.Miniredis, *redis.Client) {
-	t.Helper()
-	server := miniredis.RunT(t)
-	client := redis.NewClient(&redis.Options{Addr: server.Addr()})
-	t.Cleanup(func() { _ = client.Close() })
-	return server, client
-}
-
-// AC6: a change in Settings reaches every process of the cluster without a restart
-func TestRedisSwitch_AClusterProcessFollowsTheApisChoiceWithinOneRefresh(t *testing.T) {
-	reportingtest.Install(t)
-	reporting.SetEnabled(false)
-	server, client := newRedis(t)
-	service := NewService(newFakeSettings(), &config.Config{}, NewRedisSwitch(client), zap.NewNop().Sugar())
-	// The producer, the worker and the ingester are other processes with a refresher of their own
-	otherProcess := redissync.NewRefresher(client, time.Minute)
-
-	_, err := service.SetEnabled(context.Background(), true)
-	require.NoError(t, err)
-	value, err := server.Get(redissync.Key)
-	require.NoError(t, err)
-	assert.Equal(t, "true", value, "the api writes the choice on a change")
-	assert.True(t, reporting.Enabled(), "and follows it itself at once")
-
-	reporting.SetEnabled(false) // the other process, which has not read the key yet
-	otherProcess.Refresh(context.Background())
-	assert.True(t, reporting.Enabled(), "the other process turns reporting on by reading the key")
-
-	_, err = service.SetEnabled(context.Background(), false)
-	require.NoError(t, err)
-	reporting.SetEnabled(true)
-	otherProcess.Refresh(context.Background())
-	assert.False(t, reporting.Enabled(), "and off again")
-}
-
-// With nothing stored the api publishes "true" at its start, so the producer, the worker and the
-// ingester report by default, and an opt-out reaches them within a refresh
-func TestRedisSwitch_TheApiPublishesTrueAtItsStartWhenNothingIsStored(t *testing.T) {
-	reportingtest.Install(t)
-	reporting.SetEnabled(false)
-	server, client := newRedis(t)
-	settings := newFakeSettings()
-	service := NewService(settings, &config.Config{}, NewRedisSwitch(client), zap.NewNop().Sugar())
-	otherProcess := redissync.NewRefresher(client, time.Minute)
-
-	require.NoError(t, service.Apply(context.Background()))
-
-	value, err := server.Get(redissync.Key)
-	require.NoError(t, err)
-	assert.Equal(t, "true", value)
-	assert.True(t, reporting.Enabled(), "the api itself reports")
-	reporting.SetEnabled(false) // the other process, which has not read the key yet
-	otherProcess.Refresh(context.Background())
-	assert.True(t, reporting.Enabled(), "and so do the others, by default")
-	assert.Empty(t, settings.values, "nothing was stored as the admin's choice")
-
-	_, err = service.SetEnabled(context.Background(), false)
-	require.NoError(t, err)
-	otherProcess.Refresh(context.Background())
-	assert.False(t, reporting.Enabled(), "an opt-out reaches them")
-}
-
-func TestRedisSwitch_APeerThatStartsLaterReadsTheChoiceTheApiWroteAtItsStart(t *testing.T) {
-	reportingtest.Install(t)
-	server, client := newRedis(t)
-	settings := newFakeSettings()
-	settings.values[EnabledKey] = &shared.SettingModel{Key: EnabledKey, Value: "true", Type: "bool"}
-	service := NewService(settings, &config.Config{}, NewRedisSwitch(client), zap.NewNop().Sugar())
-
-	require.NoError(t, service.Apply(context.Background()))
-
-	value, err := server.Get(redissync.Key)
-	require.NoError(t, err)
-	assert.Equal(t, "true", value)
-}
-
-func TestRedisSwitch_ForcedOffWritesFalseSoNoProcessSendsWhatTheApiMustNot(t *testing.T) {
-	reportingtest.Install(t)
-	server, client := newRedis(t)
-	service := NewService(newFakeSettings(), &config.Config{ErrorReporting: "off"}, NewRedisSwitch(client), zap.NewNop().Sugar())
-
-	_, err := service.SetEnabled(context.Background(), true)
-	require.NoError(t, err)
-
-	value, err := server.Get(redissync.Key)
-	require.NoError(t, err)
-	assert.Equal(t, "false", value)
-}
-
-func TestRedisSwitch_ChangesThisProcessEvenWhenRedisIsDown(t *testing.T) {
-	reportingtest.Install(t)
-	reporting.SetEnabled(false)
-	server, client := newRedis(t)
-	server.Close()
-
-	err := NewRedisSwitch(client).Set(context.Background(), true)
-
-	assert.Error(t, err)
-	assert.True(t, reporting.Enabled())
-}
-
 // run starts service.Run and returns how to stop it and wait for it
 func run(t *testing.T, service Service, every time.Duration) (stop func()) {
 	t.Helper()
@@ -366,96 +261,49 @@ func run(t *testing.T, service Service, every time.Duration) (stop func()) {
 	return stop
 }
 
-func keyIs(server *miniredis.Miniredis, want string) func() bool {
-	return func() bool {
-		value, err := server.Get(redissync.Key)
-		return err == nil && value == want
-	}
-}
-
-// AC6: an opt-out made while Redis is down still reaches the other processes, within one refresh
-// of Redis coming back. The setting is the source of truth, and Redis only carries it.
-func TestRun_APublishThatMissedARedisThatWasDownCatchesUpAtTheNextTick(t *testing.T) {
-	reportingtest.Install(t)
-	reporting.SetEnabled(false)
-	server, client := newRedis(t)
-	settings := newFakeSettings()
-	service := NewService(settings, &config.Config{}, NewRedisSwitch(client), zap.NewNop().Sugar())
-	ctx := context.Background()
-	_, err := service.SetEnabled(ctx, true)
-	require.NoError(t, err)
-	require.True(t, keyIs(server, "true")(), "the cluster was told to report")
-
-	server.Close()
-	state, err := service.SetEnabled(ctx, false)
-
-	require.NoError(t, err, "a Redis that is down does not fail the change")
-	assert.Equal(t, State{Enabled: false}, state)
-	assert.Equal(t, "false", settings.value(EnabledKey), "the choice is stored")
-	assert.False(t, reporting.Enabled(), "this process stopped reporting")
-
-	require.NoError(t, server.Restart())
-	assert.True(t, keyIs(server, "true")(), "Redis comes back with the old choice: the others would report")
-	run(t, service, 10*time.Millisecond)
-	require.Eventually(t, keyIs(server, "false"), 2*time.Second, 5*time.Millisecond, "and the next tick tells them")
-}
-
-func TestRun_AKeyRedisLostComesBackAtTheNextTick(t *testing.T) {
-	reportingtest.Install(t)
-	server, client := newRedis(t)
-	settings := newFakeSettings()
-	settings.put(EnabledKey, "true", "bool")
-	service := NewService(settings, &config.Config{}, NewRedisSwitch(client), zap.NewNop().Sugar())
-	run(t, service, 10*time.Millisecond)
-	require.Eventually(t, keyIs(server, "true"), 2*time.Second, 5*time.Millisecond)
-
-	server.Del(redissync.Key) // Redis was flushed
-
-	require.Eventually(t, keyIs(server, "true"), 2*time.Second, 5*time.Millisecond)
-}
-
-func TestRun_PublishesFalseWhileTheEnvironmentForcesReportingOff(t *testing.T) {
-	reportingtest.Install(t)
-	server, client := newRedis(t)
-	require.NoError(t, redissync.Publish(context.Background(), client, true)) // what an older api left
-	settings := newFakeSettings()
-	settings.put(EnabledKey, "true", "bool")
-	service := NewService(settings, &config.Config{ErrorReporting: "off"}, NewRedisSwitch(client), zap.NewNop().Sugar())
-
-	run(t, service, 10*time.Millisecond)
-
-	require.Eventually(t, keyIs(server, "false"), 2*time.Second, 5*time.Millisecond)
-	assert.False(t, reporting.Enabled())
-}
-
 // A change made on another api replica is in the shared database, so this replica follows it
 func TestRun_FollowsTheStoredChoiceWhoeverChangedIt(t *testing.T) {
 	reportingtest.Install(t)
 	reporting.SetEnabled(false)
-	server, client := newRedis(t)
 	settings := newFakeSettings()
-	service := NewService(settings, &config.Config{}, NewRedisSwitch(client), zap.NewNop().Sugar())
+	service := NewService(settings, &config.Config{}, LocalSwitch{}, zap.NewNop().Sugar())
 	run(t, service, 10*time.Millisecond)
 
 	settings.put(EnabledKey, "true", "bool") // the other replica's change
 
 	require.Eventually(t, reporting.Enabled, 2*time.Second, 5*time.Millisecond)
-	require.Eventually(t, keyIs(server, "true"), 2*time.Second, 5*time.Millisecond)
+
+	settings.put(EnabledKey, "false", "bool")
+
+	require.Eventually(t, func() bool { return !reporting.Enabled() }, 2*time.Second, 5*time.Millisecond)
+}
+
+func TestRun_ReportsNothingWhileTheEnvironmentForcesReportingOff(t *testing.T) {
+	reportingtest.Install(t)
+	reporting.SetEnabled(true)
+	settings := newFakeSettings()
+	settings.put(EnabledKey, "true", "bool")
+	service := NewService(settings, &config.Config{ErrorReporting: "off"}, LocalSwitch{}, zap.NewNop().Sugar())
+
+	run(t, service, 10*time.Millisecond)
+
+	require.Eventually(t, func() bool { return !reporting.Enabled() }, 2*time.Second, 5*time.Millisecond)
 }
 
 func TestRun_KeepsGoingWhenTheSettingCannotBeRead(t *testing.T) {
 	reportingtest.Install(t)
-	server, client := newRedis(t)
+	reporting.SetEnabled(false)
 	settings := newFakeSettings()
 	settings.readErr = errors.New("database is locked")
-	service := NewService(settings, &config.Config{}, NewRedisSwitch(client), zap.NewNop().Sugar())
+	service := NewService(settings, &config.Config{}, LocalSwitch{}, zap.NewNop().Sugar())
 	run(t, service, 10*time.Millisecond)
 	time.Sleep(50 * time.Millisecond)
+	assert.False(t, reporting.Enabled(), "nothing is read, so nothing is applied")
 
 	settings.mu.Lock()
 	settings.readErr = nil
 	settings.mu.Unlock()
 	settings.put(EnabledKey, "true", "bool")
 
-	require.Eventually(t, keyIs(server, "true"), 2*time.Second, 5*time.Millisecond)
+	require.Eventually(t, reporting.Enabled, 2*time.Second, 5*time.Millisecond)
 }

@@ -41,7 +41,6 @@ import (
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/reporting"
-	"peekaping/internal/reporting/redissync"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
 	"peekaping/internal/shutdown/lifecycle"
 	"peekaping/internal/validation"
@@ -57,6 +56,10 @@ var serverTimeouts = httpx.DefaultTimeouts()
 
 // errorReportingFlush is how long the shutdown waits for the error reports still queued
 const errorReportingFlush = 2 * time.Second
+
+// errorReportingEvery is how often the api applies the stored error reporting choice again, so
+// that a change made on another api replica reaches this one
+const errorReportingEvery = time.Minute
 
 // shutdownTimeouts are the API's, 30 seconds in all, Kubernetes' default grace period. A test
 // may shorten them.
@@ -133,15 +136,15 @@ type parts struct {
 	Metrics              *metrics.Collector
 	UsagePing            *telemetry.Sender
 	ErrorReporting       error_reporting.Service
-	// LeaderJobs runs the stale-monitor watchdog and the probe sweep on the replica that holds the
-	// leader lock.
-	LeaderJobs *app.LeaderJobs `optional:"true"`
+	// LeaderJobs runs the stale-monitor watchdog, the probe sweep and the push monitors' checks on
+	// the replica that holds the leader lock.
+	LeaderJobs *app.LeaderJobs
 	// SilentWatch finds a local probe that has monitors to run and no instance: a cluster upgraded
 	// without deploying probes.
-	SilentWatch     *probe.SilentWatch `optional:"true"`
-	ProbeRepository probe.Repository   `optional:"true"`
+	SilentWatch     *probe.SilentWatch
+	ProbeRepository probe.Repository
 	// LocalBus delivers the heartbeats this replica stored to the stats aggregation
-	LocalBus *app.LocalBus `optional:"true"`
+	LocalBus *app.LocalBus
 }
 
 // run starts the API and serves it on the listener until ctx is done, or until serving fails.
@@ -267,19 +270,15 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		return j, fmt.Errorf("failed to bootstrap the local probe: %w", err)
 	}
 
-	// A cluster on SQLite or PostgreSQL that was upgraded without deploying probes has monitors and
-	// nothing that checks them: say so in the log of the replica the operator just started
-	if p.SilentWatch != nil {
-		if _, err := p.SilentWatch.WarnIfSilent(ctx, p.ProbeRepository, logger); err != nil {
-			logger.Warnw("Failed to find out whether the local probe has an instance", "error", err)
-		}
+	// A cluster that was upgraded without deploying probes has monitors and nothing that checks
+	// them: say so in the log of the replica the operator just started
+	if _, err := p.SilentWatch.WarnIfSilent(ctx, p.ProbeRepository, logger); err != nil {
+		logger.Warnw("Failed to find out whether the local probe has an instance", "error", err)
 	}
 
-	// Apply the admin's choice from before the restart, which also copies it to Redis for the
-	// producer, the worker and the ingester. Then apply it again every minute, so that a copy
-	// that missed a Redis that was down is made up within a minute, and a change made on another
-	// api replica reaches this one. The stored setting is the source of truth; Redis only
-	// carries it. A failure leaves error reports off.
+	// Apply the admin's choice from before the restart. Then apply it again every minute, so that
+	// a change made on another api replica reaches this one. The stored setting is the source of
+	// truth. A failure leaves error reports off.
 	if err := p.ErrorReporting.Apply(ctx); err != nil {
 		logger.Warnw("Failed to apply the error reporting choice, leaving error reports off", "error", err)
 	}
@@ -288,24 +287,22 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	j.errorReportingDone = make(chan struct{})
 	reporting.Go("error-reporting", func() {
 		defer close(j.errorReportingDone)
-		p.ErrorReporting.Run(errorReportingCtx, redissync.DefaultEvery)
+		p.ErrorReporting.Run(errorReportingCtx, errorReportingEvery)
 	})
 
 	p.NotificationListener.Subscribe(p.EventBus)
 	p.MonitorListener.Subscribe(p.EventBus)
 	// The stats count the heartbeats this replica stored, which its local bus carries: on the
 	// cluster's bus every replica would hear every heartbeat, and count it
-	if p.LocalBus != nil {
-		p.Stats.RegisterEventHandlers(p.LocalBus)
-	}
+	p.Stats.RegisterEventHandlers(p.LocalBus)
 
 	// Answer the probes' waiting assignment polls when a monitor or one of a probe's instances
 	// changes. Every api replica listens: a change made on one reaches the polls held by the others.
 	p.ProbeWaker.Subscribe()
 
-	// Take the notification events the ingester and the producer's watchdog queue. Each goes to
-	// one api replica, which hands it to the listener above, so it starts after the listener
-	// subscribed: an event handed to a bus with no handler for its topic is dropped.
+	// Take the notification events the api replicas queue. Each goes to one replica, which hands it
+	// to the listener above, so it starts after the listener subscribed: an event handed to a bus
+	// with no handler for its topic is dropped.
 	if err := p.Consumer.Start(); err != nil {
 		return j, fmt.Errorf("failed to start taking notifications from the queue: %w", err)
 	}
@@ -347,10 +344,8 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	// lock, and publish their events like any job here: after the listeners subscribed and the
 	// notification queue started. Another replica takes over within the lock's TTL when this one
 	// stops.
-	if p.LeaderJobs != nil {
-		p.LeaderJobs.Start()
-		j.leaderJobs = p.LeaderJobs
-	}
+	p.LeaderJobs.Start()
+	j.leaderJobs = p.LeaderJobs
 
 	return j, nil
 }
@@ -404,7 +399,7 @@ func (j *jobs) stop(ctx context.Context, logger *zap.SugaredLogger) error {
 	}
 	if j.stopErrorReporting != nil {
 		j.stopErrorReporting()
-		await("the error reporting choice's copy to Redis", j.errorReportingDone)
+		await("the error reporting choice's refresh", j.errorReportingDone)
 	}
 	return errors.Join(errs...)
 }

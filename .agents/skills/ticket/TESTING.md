@@ -13,7 +13,7 @@ Tests go through public seams: what a caller of the service, the HTTP API, or a 
 | Service or domain logic | the service's exported methods | `<module>_test.go` beside the package in `apps/server/internal/modules/<module>/` |
 | HTTP behaviour: status codes, payloads, auth, validation | the API router, real services over SQLite and miniredis | `apps/server/internal/apitest/` |
 | Repository or query behaviour | the repository | SQLite always; Postgres through `PEE_TEST_POSTGRES_DSN` (see `internal/modules/persistence_test.go`) |
-| Queue or worker code | the handler, with asynq on miniredis | beside the package |
+| Queue code | the handler, with asynq on miniredis | beside the package |
 | A monitor or channel type's schema or codec | the registry | `registry.test.ts` beside the registry covers every listed type; add a case there only for a rule the round trip can't see |
 | A user-visible web flow | the browser | Playwright spec in `e2e/` |
 
@@ -101,7 +101,7 @@ docker compose down
 
 `PROBE_OFFLINE_AFTER=2m`, the shortest the server takes, lets `e2e/remote-probe.spec.ts` wait for a stopped probe to be reported offline in about a minute and a half. That spec starts and stops `peekaping-probe` containers itself, on the stack's network (`E2E_PROBE_NETWORK` and `E2E_PROBE_URL` name them when it can't find them).
 
-`PROBE_BOOTSTRAP_TOKEN` is the token of the local probe (at least 32 characters, any value in a test stack). The api stores it at startup, and the stack's `probe` service sends it: on SQLite and PostgreSQL the `probe` service is what checks the monitors, since the cluster has no producer, worker or ingester there. The compose files refuse to start without it.
+`PROBE_BOOTSTRAP_TOKEN` is the token of the local probe (at least 32 characters, any value in a test stack). The api stores it at startup, and the stack's `probe` service sends it. The `probe` service is what checks the monitors. The compose files refuse to start without it.
 
 CI runs the suite twice against the same database, so a test must leave nothing behind that breaks its next run.
 

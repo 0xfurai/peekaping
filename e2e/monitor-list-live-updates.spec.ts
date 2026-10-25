@@ -15,7 +15,7 @@ import {
 //
 // The test opens the monitor list, drops the page's socket the way a restarting API would, lets
 // socket.io-client reconnect by itself, and then pushes a heartbeat to a push monitor. The
-// push goes through the real stack (push endpoint, queue, ingester, event bus, websocket), so
+// push goes through the real stack (push endpoint, ingest, event bus, websocket), so
 // the only way the card can change is through the room subscription. It never reloads or
 // navigates, because a fresh page load subscribes again and would hide the bug.
 
@@ -105,8 +105,9 @@ async function connectToApi(context: BrowserContext): Promise<Api> {
 }
 
 // Max retries 0 makes a failed push Down straight away (otherwise it would be Pending, which
-// the card shows as Up), and the long check interval keeps the producer from adding a Down
-// heartbeat of its own, for a push that did not arrive in time, while the test runs.
+// the card shows as Up), and the long check interval keeps the timeout check of push monitors
+// from adding a Down heartbeat of its own, for a push that did not arrive in time, while the
+// test runs.
 async function createPushMonitor(
   request: APIRequestContext,
   api: Api,

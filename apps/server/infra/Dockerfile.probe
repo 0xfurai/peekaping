@@ -24,8 +24,8 @@ RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -tags "$GO_TAGS" -o peekaping-pro
 # Start a new stage from scratch
 FROM alpine
 
-# Not root. Ping then needs net.ipv4.ping_group_range to include group 65532, as for the worker
-# image: Docker sets it for every group by default (see architecture/worker.md in the docs).
+# Not root. Ping then needs net.ipv4.ping_group_range to include group 65532: Docker sets it for
+# every group by default (see architecture/probe.md in the docs).
 USER 65532:65532
 
 WORKDIR /app

@@ -53,19 +53,9 @@ type Config struct {
 	// Number of concurrent workers to process tasks
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
-	// How long the worker's and the ingester's queue servers wait for the tasks they are running
-	// when they stop, before they give up on them: asynq puts the tasks back in the queue. The
-	// two binaries set it from their shutdown timeouts, no environment variable does. Zero keeps
-	// asynq's default of 8 seconds.
-	QueueShutdownTimeout time.Duration
-
 	// Single mode's scheduler runs this many checks at the same time. A check that is due
 	// while the pool is full waits for a free slot.
 	CheckConcurrency int `env:"CHECK_CONCURRENCY" validate:"min=1" default:"128"`
-
-	// Producer configuration
-	// Number of concurrent producer goroutines for claiming and processing monitors
-	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
 
 	// Bruteforce protection settings
 	// Maximum number of failed login attempts allowed within the time window
@@ -150,7 +140,7 @@ type Config struct {
 	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
 
 	// ProbeOfflineAfter is how long an online probe's instances may all go unseen before the
-	// sweep sets the probe offline. A Go duration such as "3m" or "90s". The producer and peekaping,
+	// sweep sets the probe offline. A Go duration such as "3m" or "90s". The api and peekaping,
 	// which run the sweep, check that it is from MinProbeOfflineAfter to MaxProbeOfflineAfter.
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 }
@@ -190,16 +180,6 @@ func RefuseMongoStorage(dbType string) error {
 		return fmt.Errorf("DB_TYPE=%s: %w", dbType, ErrMongoStorageRemoved)
 	}
 	return nil
-}
-
-// IsSQLDBType reports whether a DB_TYPE names SQL storage: SQLite, PostgreSQL or MySQL, whose
-// migrations are Postgres-only (ADR 0001). Case doesn't matter.
-func IsSQLDBType(dbType string) bool {
-	switch strings.ToLower(strings.TrimSpace(dbType)) {
-	case "sqlite", "postgres", "postgresql", "mysql":
-		return true
-	}
-	return false
 }
 
 // TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is

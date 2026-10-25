@@ -29,10 +29,10 @@ const (
 
 // PushChecks judges the push monitors in the cluster on SQLite and PostgreSQL. A push monitor
 // runs no check of its own: its check finds that no push arrived within its interval, and ingests a
-// Down. The producer used to schedule it for the worker; now the probes run the checks, and they are
-// never dealt a push monitor, since pushes arrive at the api. So the api replica that holds the leader
-// lock runs the single-mode scheduler over the push monitors alone, ingesting through the same
-// in-order service as the push URL, so that a push and the check of its absence are stored in turn.
+// Down. The probes are never dealt a push monitor, since pushes arrive at the api. So the api replica
+// that holds the leader lock runs the single-mode scheduler over the push monitors alone, ingesting
+// through the same in-order service as the push URL, so that a push and the check of its absence are
+// stored in turn.
 type PushChecks struct {
 	source     *scheduler.PushSource
 	executors  scheduler.Executors

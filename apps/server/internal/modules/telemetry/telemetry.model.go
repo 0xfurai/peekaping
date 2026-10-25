@@ -23,7 +23,7 @@ type Mode string
 const (
 	// ModeSingle is the one-process runtime (cmd/peekaping)
 	ModeSingle Mode = "single"
-	// ModeCluster is the api, producer, worker and ingester processes over Redis
+	// ModeCluster is the api replicas and the probes, with Redis between the replicas
 	ModeCluster Mode = "cluster"
 )
 

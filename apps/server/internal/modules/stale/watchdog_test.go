@@ -348,7 +348,7 @@ func TestWatchdog_StaleRemoteMonitorNotifiesAfterTheCheckTimeout(t *testing.T) {
 	remote.ProbeIDs = []string{"probe-1"}
 	f := newWatchdogFixture(t, remote)
 	f.heartbeats.setLatest("remote", now.Add(-4*time.Minute))
-	// The scheduler and the producer refuse a monitor that a remote probe runs
+	// The scheduler refuses a monitor that a remote probe runs
 	f.rechecker.err = errors.New("monitor remote runs on a remote probe")
 
 	f.run(t)
