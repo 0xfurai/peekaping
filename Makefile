@@ -138,11 +138,11 @@ docker-down: down-dev-$(DEFAULT_DEV_DB) ## Stop default development services
 .PHONY: docker-down-all
 docker-down-all: ## Stop all Docker Compose services
 	@echo "Stopping all Docker services..."
-	@docker-compose -f $(COMPOSE_DEV_POSTGRES) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_DEV_SQLITE) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_PROD_POSTGRES) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_PROD_SQLITE) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_DEPS) --profile postgres down 2>/dev/null || true
+	@docker-compose -f $(COMPOSE_DEV_POSTGRES) down --remove-orphans 2>/dev/null || true
+	@docker-compose -f $(COMPOSE_DEV_SQLITE) down --remove-orphans 2>/dev/null || true
+	@docker-compose -f $(COMPOSE_PROD_POSTGRES) down --remove-orphans 2>/dev/null || true
+	@docker-compose -f $(COMPOSE_PROD_SQLITE) down --remove-orphans 2>/dev/null || true
+	@docker-compose -f $(COMPOSE_DEPS) --profile postgres down --remove-orphans 2>/dev/null || true
 
 # Database targets
 .PHONY: migrate-init
