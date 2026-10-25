@@ -54,7 +54,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 		Parameters:    []*huma.Param{instanceHeaderParam},
 		Errors: []int{
 			http.StatusBadRequest, http.StatusUnauthorized, http.StatusConflict, http.StatusRequestEntityTooLarge,
-			http.StatusUpgradeRequired, http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusNotImplemented,
+			http.StatusUpgradeRequired, http.StatusTooManyRequests, http.StatusInternalServerError,
 		},
 	}, controller.Hello)
 
@@ -70,7 +70,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 		},
 		Errors: []int{
 			http.StatusBadRequest, http.StatusUnauthorized, http.StatusConflict,
-			http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusNotImplemented,
+			http.StatusTooManyRequests, http.StatusInternalServerError,
 		},
 	}, controller.Assignments, r.auth.KnownInstance())
 
@@ -83,7 +83,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 		Parameters:    []*huma.Param{instanceHeaderParam},
 		Errors: []int{
 			http.StatusBadRequest, http.StatusUnauthorized, http.StatusConflict, http.StatusRequestEntityTooLarge,
-			http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusNotImplemented, http.StatusServiceUnavailable,
+			http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusServiceUnavailable,
 		},
 	}, controller.Results, r.auth.KnownInstance())
 
@@ -96,7 +96,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 		Parameters:    []*huma.Param{instanceHeaderParam},
 		Errors: []int{
 			http.StatusBadRequest, http.StatusUnauthorized, http.StatusConflict,
-			http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusNotImplemented,
+			http.StatusTooManyRequests, http.StatusInternalServerError,
 		},
 	}, controller.Bye, r.auth.KnownInstance())
 }

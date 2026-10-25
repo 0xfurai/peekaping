@@ -1378,7 +1378,7 @@ func TestProbeProtocol_AssignmentsAreDocumented(t *testing.T) {
 	assert.Contains(t, op.Responses["200"].Content, "application/json")
 	assert.Contains(t, op.Responses, "304", "the poll that times out")
 	assert.Empty(t, op.Responses["304"].Content, "and has no body")
-	for _, status := range []string{"400", "401", "409", "429", "500", "501"} {
+	for _, status := range []string{"400", "401", "409", "429", "500"} {
 		assert.Contains(t, op.Responses, status)
 	}
 }
@@ -1754,7 +1754,7 @@ func TestProbeProtocol_ResultsAreDocumented(t *testing.T) {
 	assert.Equal(t, "probePostResults", op.OperationID)
 	assert.Equal(t, []map[string][]string{{"ProbeAuth": {}}}, op.Security)
 	assert.Contains(t, op.Responses["200"].Content, "application/json")
-	for _, status := range []string{"400", "401", "409", "413", "429", "500", "501"} {
+	for _, status := range []string{"400", "401", "409", "413", "429", "500"} {
 		assert.Contains(t, op.Responses, status)
 	}
 }

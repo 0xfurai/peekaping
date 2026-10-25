@@ -3646,10 +3646,6 @@ export type PostProbesErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
-  /**
-   * Not Implemented
-   */
-  501: HttpxErrorBody;
 };
 
 export type PostProbesError = PostProbesErrors[keyof PostProbesErrors];
@@ -3692,10 +3688,6 @@ export type DeleteProbesByIdErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
-  /**
-   * Not Implemented
-   */
-  501: HttpxErrorBody;
 };
 
 export type DeleteProbesByIdError =
@@ -3736,10 +3728,6 @@ export type GetProbesByIdErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
-  /**
-   * Not Implemented
-   */
-  501: HttpxErrorBody;
 };
 
 export type GetProbesByIdError = GetProbesByIdErrors[keyof GetProbesByIdErrors];
@@ -3787,10 +3775,6 @@ export type PutProbesByIdErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
-  /**
-   * Not Implemented
-   */
-  501: HttpxErrorBody;
 };
 
 export type PutProbesByIdError = PutProbesByIdErrors[keyof PutProbesByIdErrors];
@@ -3834,10 +3818,6 @@ export type PostProbesByIdRotateTokenErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
-  /**
-   * Not Implemented
-   */
-  501: HttpxErrorBody;
 };
 
 export type PostProbesByIdRotateTokenError =
@@ -5052,10 +5032,6 @@ export type ProbeGetAssignmentsErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
-  /**
-   * Not Implemented
-   */
-  501: HttpxErrorBody;
 };
 
 export type ProbeGetAssignmentsError =
@@ -5105,10 +5081,6 @@ export type ProbePostByeErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
-  /**
-   * Not Implemented
-   */
-  501: HttpxErrorBody;
 };
 
 export type ProbePostByeError = ProbePostByeErrors[keyof ProbePostByeErrors];
@@ -5165,10 +5137,6 @@ export type ProbePostHelloErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
-  /**
-   * Not Implemented
-   */
-  501: HttpxErrorBody;
 };
 
 export type ProbePostHelloError =
@@ -5222,10 +5190,6 @@ export type ProbePostResultsErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
-  /**
-   * Not Implemented
-   */
-  501: HttpxErrorBody;
   /**
    * Service Unavailable
    */

@@ -8753,16 +8753,6 @@
               }
             },
             "description": "Internal Server Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -8837,16 +8827,6 @@
               }
             },
             "description": "Internal Server Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -8916,16 +8896,6 @@
               }
             },
             "description": "Internal Server Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -9025,16 +8995,6 @@
               }
             },
             "description": "Internal Server Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -9116,16 +9076,6 @@
               }
             },
             "description": "Internal Server Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -11362,16 +11312,6 @@
               }
             },
             "description": "Internal Server Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -11455,16 +11395,6 @@
               }
             },
             "description": "Internal Server Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -11585,16 +11515,6 @@
               }
             },
             "description": "Internal Server Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
-                }
-              }
-            },
-            "description": "Not Implemented"
           }
         },
         "security": [
@@ -11705,16 +11625,6 @@
               }
             },
             "description": "Internal Server Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
-                }
-              }
-            },
-            "description": "Not Implemented"
           },
           "503": {
             "content": {
