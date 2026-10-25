@@ -64,7 +64,7 @@ Peekaping is built with modern technologies:
 - **Database**: SQLite/Postgres for data persistence (MongoDB storage is [deprecated](./self-hosting/docker-with-mongo.md))
 - **Real-time**: WebSocket connections for live updates
 - **API**: RESTful API with OpenAPI documentation
-- **Deployment**: single mode, one process with no Redis, is the default for new installs. Cluster mode, with separate API, producer, worker and ingester processes that talk through Redis, is for installs that need to scale out, on Kubernetes with Helm or with Docker Compose. See [Deployment modes](./self-hosting/deployment-modes.md)
+- **Deployment**: single mode, one process with no Redis, is the default for new installs. Cluster mode, with separate API and probe processes (the API replicas talk through Redis, and the probes run the checks), is for installs that need to scale out, on Kubernetes with Helm or with Docker Compose. See [Deployment modes](./self-hosting/deployment-modes.md)
 
 ## 💡 Why Peekaping?
 

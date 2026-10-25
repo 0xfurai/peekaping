@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 4
 ---
 
 # Migrate
@@ -166,5 +166,4 @@ The container:
 ## Related Components
 
 - [API Server](./api-server.md) - Requires migrated database schema
-- [Producer](./producer.md) - Requires migrated database schema
-- [Ingester](./ingester.md) - Requires migrated database schema
+- [Probe](./probe.md) - Needs no database, so it doesn't wait for migrations

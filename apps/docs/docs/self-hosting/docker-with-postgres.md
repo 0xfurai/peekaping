@@ -7,7 +7,7 @@ sidebar_position: 1
 Peekaping runs in one of two modes. See [Deployment modes](./deployment-modes.md) for what each one runs:
 
 - **[Single mode](#single-mode)**: one container runs one Peekaping process, `peekaping`, beside its own PostgreSQL, with no Redis. Start here.
-- **[Cluster mode](#cluster-mode)**: the API, producer, worker and ingester run in separate containers and talk through Redis. Use it when one process isn't enough, for example to run several workers.
+- **[Cluster mode](#cluster-mode)**: the API and the probe run in separate containers. The API replicas share the database and talk to each other through Redis, and the probes run the checks. Use it when one process isn't enough, for example to run several probe instances.
 
 Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-to-sqlite-or-postgresql) copies your install, with its history, into a new PostgreSQL database.
 
@@ -131,9 +131,11 @@ If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the 
 
 ## Cluster mode
 
-In cluster mode, the API, producer, worker and ingester run in separate containers and talk through Redis. An nginx gateway serves the web app and the API on port 8383.
+In cluster mode, the API and the probe run in separate containers. The API replicas share the database and talk to each other through Redis. The `probe` service runs the checks of the local probe's monitors: it connects to the API, gets its monitors and sends the results back, and it needs no database, no Redis and no volume. Run more probe containers to check more monitors, and more API containers for availability. An nginx gateway serves the web app and the API on port 8383.
 
 The images run as a non-root user. See [Cluster user and permissions](./cluster-user.md) for what Docker monitors and ping monitors need.
+
+Moving from a compose file with `producer`, `worker` and `ingester` services? See [Upgrading to probes](./upgrading-to-probes.md).
 
 ### Prerequisites
 
@@ -173,6 +175,12 @@ CLIENT_URL="http://localhost:8383"
 # Origins that may read the API's responses from another origin. Default: the origin of CLIENT_URL
 # CORS_ORIGINS=https://app.example.com
 
+# The token of the local probe, which checks the monitors that run on Peekaping
+# itself. The api stores it and the probe service sends it. Make it a random
+# string of at least 32 characters, such as the output of: openssl rand -hex 32
+# The compose file below refuses to start while it is empty.
+PROBE_BOOTSTRAP_TOKEN=
+
 # Application Settings
 MODE=prod
 TZ="America/New_York"
@@ -190,6 +198,8 @@ TZ="America/New_York"
 # - Secret keys are automatically generated securely
 ```
 
+`PROBE_BOOTSTRAP_TOKEN` is required: run `openssl rand -hex 32` and paste the result after the `=`. It is the token of the local probe, which gives access to the config of the monitors on it, so keep it secret. If you change it, run `docker compose up -d` again: it recreates the `api` and the `probe` with the new value. `docker compose up` stops with `PROBE_BOOTSTRAP_TOKEN is not set` while it is missing or empty.
+
 `TELEMETRY=off` and `ERROR_REPORTING=off` are optional. The first switches off the anonymous [usage statistics](./telemetry.md) and the second switches off the [error reports](./telemetry.md#error-reporting), whatever an admin chose. Without them, both are on until an admin turns them off in Settings.
 
 :::info JWT Settings
@@ -203,7 +213,9 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 
 #### `docker-compose.yml` file
 
-Create a `docker-compose.yml` file:
+Create a `docker-compose.yml` file. The `probe` service checks the local probe's monitors. To run more of them, use `docker compose up -d --scale probe=3`: the monitors are dealt among the containers.
+
+The `probe` reaches the `api` over plain HTTP inside `appnet`, so it sets `PROBE_ALLOW_INSECURE: "true"`. Its token crosses `appnet` unencrypted. Keep `appnet` trusted and isolated: put only the services of this stack on it, and don't publish the `api` port. If the probe has to reach the API through a network you don't trust, point `PEEKAPING_URL` at an `https://` address and remove `PROBE_ALLOW_INSECURE`.
 
 <!-- snippet: docker-compose.prod.postgres.yml -->
 ```yaml
@@ -425,6 +437,8 @@ docker compose ps
 docker compose logs -f
 ```
 
+`docker compose ps` should list the `api` and the `probe` as running. The `probe` starts once the `api` is healthy, and the Probes page in Peekaping shows the local probe as online once it has connected.
+
 ### 4. Access Peekaping
 
 Once all containers are running:
@@ -444,15 +458,9 @@ Single mode:
 Cluster mode:
 
 - **API**: [`0xfurai/peekaping-api`](https://hub.docker.com/r/0xfurai/peekaping-api)
-- **Producer**: [`0xfurai/peekaping-producer`](https://hub.docker.com/r/0xfurai/peekaping-producer)
-- **Worker**: [`0xfurai/peekaping-worker`](https://hub.docker.com/r/0xfurai/peekaping-worker)
-- **Ingester**: [`0xfurai/peekaping-ingester`](https://hub.docker.com/r/0xfurai/peekaping-ingester)
+- **Probe**: [`0xfurai/peekaping-probe`](https://hub.docker.com/r/0xfurai/peekaping-probe) runs the checks of the local probe's monitors. It also runs checks from another machine, as a remote probe. See [Remote probes](./remote-probes.md)
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
 - **Migrate**: [`0xfurai/peekaping-migrate`](https://hub.docker.com/r/0xfurai/peekaping-migrate), which applies the database migrations
-
-Remote probes:
-
-- **Probe**: [`0xfurai/peekaping-probe`](https://hub.docker.com/r/0xfurai/peekaping-probe) runs checks from another machine. See [Remote probes](./remote-probes.md)
 
 ### Image Tags
 
