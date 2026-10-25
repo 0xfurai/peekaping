@@ -1,3 +1,5 @@
+//go:build !slim
+
 package executor
 
 import (
@@ -42,6 +44,8 @@ func NewGRPCExecutor(logger *zap.SugaredLogger) *GRPCExecutor {
 		logger: logger,
 	}
 }
+
+func init() { registerOptional("grpc-keyword", NewGRPCExecutor) }
 
 func (g *GRPCExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[GRPCConfig](configJSON)

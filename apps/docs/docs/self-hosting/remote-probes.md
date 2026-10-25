@@ -45,6 +45,25 @@ The image is `0xfurai/peekaping-probe` on Docker Hub and `ghcr.io/0xfurai/peekap
 
 The image has a Docker health check on the probe's `/ready` endpoint. It answers 200 once the probe has its first assignment, and keeps answering 200 while the server is unreachable.
 
+## The slim image
+
+The image above runs every monitor type but push. The **slim** image is the same probe without the checks for five types whose drivers make up much of its size: **Docker**, **gRPC keyword**, **Kafka producer**, **MongoDB** and **SQL Server**. The image is about 40% smaller, so use it on a machine that doesn't need those checks.
+
+| | Image |
+| --- | --- |
+| Full | `0xfurai/peekaping-probe:latest`, `0xfurai/peekaping-probe:<version>` |
+| Slim | `0xfurai/peekaping-probe:slim`, `0xfurai/peekaping-probe:<version>-slim` |
+
+Both are also on GHCR as `ghcr.io/0xfurai/peekaping-probe`, for amd64 and arm64. Start the slim image the way you start the full one, with its tag:
+
+```bash
+docker run -d --name peekaping-probe -e PEEKAPING_URL=https://peekaping.example.com -e PROBE_TOKEN=<token> 0xfurai/peekaping-probe:slim
+```
+
+The probe tells Peekaping which monitor types it runs when it connects, so Peekaping won't let you assign a Docker, gRPC keyword, Kafka producer, MongoDB or SQL Server monitor to a probe that runs the slim image. Every other type works as it does on the full image.
+
+Run the same image on all the instances of a probe. Peekaping keeps one list of monitor types for a probe, the one its latest instance sent, and it doesn't yet know which instance runs what. With full and slim instances under one token, Peekaping can deal a Docker monitor to a slim instance, which reports it Down with "monitor type docker not supported by this probe". To have both, create a second probe for the slim machines and give it its own token.
+
 ## What the probe needs to reach
 
 The probe connects out to Peekaping over HTTP or HTTPS, to paths under `/probe/v1/` on the API. It never listens for connections from outside. Its only listener is `/ready`, on loopback by default. So the probe's machine needs no inbound port, and it works behind NAT and a firewall that allows outbound traffic.
