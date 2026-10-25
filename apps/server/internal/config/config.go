@@ -192,16 +192,6 @@ func RefuseMongoStorage(dbType string) error {
 	return nil
 }
 
-// IsSQLDBType reports whether a DB_TYPE names SQL storage: SQLite, PostgreSQL or MySQL, whose
-// migrations are Postgres-only (ADR 0001). Case doesn't matter.
-func IsSQLDBType(dbType string) bool {
-	switch strings.ToLower(strings.TrimSpace(dbType)) {
-	case "sqlite", "postgres", "postgresql", "mysql":
-		return true
-	}
-	return false
-}
-
 // TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is
 // off, false, 0 or no. Case and surrounding spaces don't matter.
 func (c *Config) TelemetryForcedOff() bool {

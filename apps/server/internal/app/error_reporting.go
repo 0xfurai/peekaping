@@ -9,10 +9,8 @@ import (
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/reporting"
-	"peekaping/internal/reporting/redissync"
 	"peekaping/internal/version"
 
-	"github.com/redis/go-redis/v9"
 	"go.uber.org/dig"
 )
 
@@ -20,9 +18,8 @@ import (
 // registered its dependencies: the release, the mode its registration gives it (single or cluster,
 // as for the usage ping), the storage backend, the DSN and whether the environment forces
 // reporting off. Reporting stays off until the admin's choice is applied (ApplyErrorReporting in
-// the api and in single mode; then StartErrorReportingPublisher in the cluster api and
-// StartErrorReportingRefresher in the other cluster processes). A test may change the options, to
-// catch the events.
+// the api and in single mode; then StartErrorReportingPublisher in the cluster api). A test may
+// change the options, to catch the events.
 func SetupErrorReporting(container *dig.Container, cfg *config.Config, change ...func(*reporting.Options)) error {
 	return container.Invoke(func(mode telemetry.Mode) {
 		opts := errorReportingOptions(cfg, mode)
@@ -43,8 +40,8 @@ func errorReportingOptions(cfg *config.Config, mode telemetry.Mode) reporting.Op
 	}
 }
 
-// storageTag is the storage backend as an error report names it. The worker has no database
-// settings, so it is "unknown" there.
+// storageTag is the storage backend as an error report names it, or "unknown" for a DB_TYPE that
+// names none of the backends
 func storageTag(dbType string) string {
 	switch strings.ToLower(dbType) {
 	case "sqlite":
@@ -77,24 +74,6 @@ func StartErrorReportingPublisher(ctx context.Context, container *dig.Container,
 		reporting.Go("error-reporting", func() {
 			defer close(done)
 			service.Run(ctx, every)
-		})
-	})
-	if err != nil {
-		return nil, err
-	}
-	return done, nil
-}
-
-// StartErrorReportingRefresher makes a cluster process follow the admin's choice: it reads the
-// choice the api copied to Redis now and every interval until ctx is done, with no restart. The
-// producer, the worker and the ingester run it. The channel it returns closes once it has stopped.
-func StartErrorReportingRefresher(ctx context.Context, container *dig.Container, every time.Duration) (<-chan struct{}, error) {
-	done := make(chan struct{})
-	err := container.Invoke(func(client *redis.Client) {
-		refresher := redissync.NewRefresher(client, every)
-		reporting.Go("error-reporting", func() {
-			defer close(done)
-			refresher.Run(ctx)
 		})
 	})
 	if err != nil {

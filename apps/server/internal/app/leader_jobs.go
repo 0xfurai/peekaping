@@ -10,7 +10,7 @@ import (
 )
 
 // leaderCheckEvery is how often a replica looks at whether it holds the leader lock, to start or
-// stop the jobs that run only under it. It is the producer's old leadership check.
+// stop the jobs that run only under it
 const leaderCheckEvery = time.Second
 
 // LeaderJob is a job that runs on one api replica at a time, the one that holds the leader lock
@@ -22,9 +22,9 @@ type LeaderJob struct {
 }
 
 // LeaderJobs runs the jobs that only one api replica may run at a time, on the replica that holds
-// the leader lock in Redis: cluster mode's stale-monitor watchdog and probe sweep, which the
-// producer ran while the producer was a process of its own. When the replica stops, or loses the
-// lock, its jobs stop, and another replica takes the lock within its TTL and starts them.
+// the leader lock in Redis: cluster mode's stale-monitor watchdog, probe sweep and push monitors'
+// checks. When the replica stops, or loses the lock, its jobs stop, and another replica takes the
+// lock within its TTL and starts them.
 type LeaderJobs struct {
 	elector *leader.Elector
 	jobs    []LeaderJob

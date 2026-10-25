@@ -11,7 +11,6 @@ import (
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/stale"
 
-	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
@@ -50,30 +49,7 @@ func TestRegisterSingle_TheWatchdogReadsTheTypesOfRealProbes(t *testing.T) {
 	}))
 }
 
-// and in cluster mode, where the producer's leader runs the watchdog
-func TestRegisterClusterProducer_TheWatchdogReadsTheTypesOfRealProbes(t *testing.T) {
-	container := dig.New()
-	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
-
-	require.NoError(t, container.Invoke(func(
-		lookup stale.ProbeLookup,
-		probes probe.Service,
-		bus events.EventBus,
-		db *bun.DB,
-		client *asynq.Client,
-		inspector *asynq.Inspector,
-	) {
-		closeEventBus(t, bus)
-		closeDB(t, db)
-		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
-		require.NoError(t, migrateDB(db))
-
-		assertProbeLookupReadsRealProbes(t, lookup, probes)
-	}))
-}
-
-// and in SQL cluster mode, where the api replica that holds the leader lock runs the watchdog: its
+// and in cluster mode, where the api replica that holds the leader lock runs the watchdog: its
 // notification of a stale monitor names the probes that don't run the monitor's type, as single
 // mode's does
 func TestRegisterClusterAPI_TheLeadersWatchdogNamesTheProbesThatDoNotRunAStaleMonitorsType(t *testing.T) {
