@@ -76,7 +76,7 @@ MongoDB storage is removed, as the Removal bullet above says. It ships in 0.0.50
 What went:
 
 - The Mongo repositories of every module, `infra/mongo.go`, and the helpers that only they used.
-- The `mongo` and `mongodb` values of `DB_TYPE`. A Mongo `DB_TYPE` stops every binary, and `bun db` and the migrate image with them, with an error that says MongoDB storage was removed and links to the move guide. The Helm chart refuses the two values at render time with the same message.
+- The `mongo` and `mongodb` values of `DB_TYPE`. A Mongo `DB_TYPE` stops every binary, and `bun db` and the migrate image with them, with an error that says MongoDB storage was removed and links to the move guide. The Helm chart refuses the two values at render time, with a message that points PostgreSQL installs to the same guide.
 - The `peekaping-bundle-mongo` image, which gets no new tags, the Mongo compose files, the `mongo` profile of `docker-compose.deps.yml`, the Makefile targets, the CI jobs that built and published the image, and the Mongo leg of the e2e matrix. The e2e specs no longer skip on MongoDB.
 - The self-hosting page for MongoDB, down to the move guide. It keeps its URL and its `#move-to-sqlite-or-postgresql` anchor, so the links to it, and the one in the error, still work.
 
