@@ -4,28 +4,46 @@ package scheduler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand/v2"
 	"os"
+	"path/filepath"
 	"runtime"
 	"slices"
 	"testing"
 	"time"
 
+	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
+	"peekaping/internal/infra"
+	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/monitor_maintenance"
+	"peekaping/internal/modules/monitor_notification"
+	"peekaping/internal/modules/monitor_tag"
+	"peekaping/internal/modules/monitor_tls_info"
+	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/proxy"
+	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/tag"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/migrate"
+	"go.uber.org/dig"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -252,3 +270,55 @@ func (soakExecutor) Execute(ctx context.Context, _ *executor.Monitor, _ *executo
 
 func (soakExecutor) Validate(string) error         { return nil }
 func (soakExecutor) Unmarshal(string) (any, error) { return nil, nil }
+
+// newSQLiteContainer registers the real services the scheduler's source, supervisor and ingest
+// need over a migrated SQLite database, as a single-mode binary would, with the given config: the
+// event bus and the stale monitors are in memory. The test builds the scheduler and the watchdog
+// itself.
+func newSQLiteContainer(t testing.TB, cfg *config.Config, logger *zap.SugaredLogger) *dig.Container {
+	t.Helper()
+	cfg.DBType = "sqlite"
+	cfg.DBName = filepath.Join(t.TempDir(), "scheduler.db")
+
+	container := dig.New()
+	provide := func(constructor any) {
+		t.Helper()
+		require.NoError(t, container.Provide(constructor))
+	}
+	provide(func() *config.Config { return cfg })
+	provide(func() *zap.SugaredLogger { return logger })
+	provide(infra.ProvideSQLDB)
+	provide(func() events.EventBus { return newBus(t) })
+	provide(stale.ProvideMemoryStore)
+
+	require.NoError(t, errors.Join(
+		heartbeat.RegisterDependencies(container, cfg),
+		healthcheck.RegisterDependencies(container),
+		tag.RegisterDependencies(container, cfg),
+		monitor_tag.RegisterDependencies(container, cfg),
+		monitor.RegisterDependencies(container, cfg),
+		proxy.RegisterDependencies(container, cfg),
+		maintenance.RegisterDependencies(container, cfg),
+		monitor_maintenance.RegisterDependencies(container, cfg),
+		monitor_notification.RegisterDependencies(container, cfg),
+		setting.RegisterDependencies(container, cfg),
+		notification_sent_history.RegisterDependencies(container, cfg),
+		monitor_tls_info.RegisterDependencies(container, cfg),
+		certificate.RegisterDependencies(container),
+		stats.RegisterDependencies(container, cfg),
+		check.RegisterDependencies(container),
+		ingester.RegisterDependencies(container),
+	))
+
+	require.NoError(t, container.Invoke(func(db *bun.DB) error {
+		t.Cleanup(func() { _ = db.Close() })
+		ctx := context.Background()
+		migrator := migrate.NewMigrator(db, migrations.Migrations)
+		if err := migrator.Init(ctx); err != nil {
+			return err
+		}
+		_, err := migrator.Migrate(ctx)
+		return err
+	}))
+	return container
+}

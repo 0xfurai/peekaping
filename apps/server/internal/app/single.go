@@ -1,8 +1,6 @@
 package app
 
 import (
-	"errors"
-
 	"peekaping/internal/config"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/cleanup"
@@ -12,7 +10,6 @@ import (
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/probe"
-	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/utils"
@@ -32,9 +29,11 @@ func RegisterSingle(container *dig.Container, cfg *config.Config) error {
 	if err := Register(container, cfg); err != nil {
 		return err
 	}
-	return errors.Join(
-		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock, ingester.ProvideLocationStore, provideInOrderIngester, provideSingleMode, provideSingleClaimer, provideSingleSwitch, probe.ProvideSweep),
-		scheduler.RegisterDependencies(container),
+	return utils.Provide(container,
+		provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock,
+		ingester.ProvideLocationStore, provideInOrderIngester,
+		provideSchedulerSource, provideScheduler, provideWatchdog,
+		provideSingleMode, provideSingleClaimer, provideSingleSwitch, probe.ProvideSweep,
 	)
 }
 

@@ -19,10 +19,8 @@ import (
 	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/healthcheck/supervisor"
-	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
-	"peekaping/internal/modules/stale"
 	"peekaping/internal/reporting"
 )
 
@@ -40,7 +38,7 @@ type Config struct {
 	// Ingester takes the results of the checks. The scheduler ingests a monitor's results one
 	// at a time, in order. Pushes to a push monitor must go through the same
 	// ingest.NewInOrderService to be ordered with its checks.
-	Ingester ingester.Service
+	Ingester ingest.Service
 	// Concurrency is how many checks run at the same time; DefaultConcurrency when it's zero
 	Concurrency int
 	// ReconcileInterval is how often the timers are compared with the active monitors of the
@@ -72,12 +70,12 @@ func CheckTimeout(timeoutSeconds int) time.Duration {
 }
 
 // Scheduler checks the active monitors when their check intervals pass. It implements
-// stale.Rechecker.
+// stale.Rechecker, which package app checks where it hands the scheduler to the watchdog.
 type Scheduler struct {
 	source            Source
 	executors         Executors
 	supervisor        *supervisor.HealthCheckSupervisor
-	ingester          ingester.Service
+	ingester          ingest.Service
 	reconcileInterval time.Duration
 	logger            *zap.SugaredLogger
 
@@ -97,8 +95,6 @@ type Scheduler struct {
 	stopping  chan struct{} // closed once the scheduler is stopped
 	wg        sync.WaitGroup
 }
-
-var _ stale.Rechecker = (*Scheduler)(nil)
 
 // schedule is the timer of one monitor
 type schedule struct {
