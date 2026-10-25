@@ -682,6 +682,7 @@
         "all": "Tüm konumlar",
         "no_result": "Henüz sonuç yok",
         "probe_offline": "Prob çevrimdışı",
+        "probe_unsupported": "Bu türü çalıştırmaz",
         "response_time": "Yanıt süresi",
         "select_label": "Konum",
         "title": "Konumlar"
@@ -1157,6 +1158,7 @@
     "description": "Problar, monitörlerin kontrollerini kurulu oldukları yerlerden çalıştırır. Yerel prob, Peekaping'in kendisidir.",
     "local_name": "Yerel",
     "monitor_probe": "Prob: {{name}}",
+    "monitor_probe_unsupported": "{{name}} {{type}} izleyicilerini çalıştırmaz",
     "empty_list": {
       "title": "Prob bulunamadı",
       "text": "Başka bir yerden kontrol çalıştırmak için bir prob oluşturun.",

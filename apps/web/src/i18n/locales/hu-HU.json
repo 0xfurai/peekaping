@@ -682,6 +682,7 @@
         "all": "Minden helyszín",
         "no_result": "Még nincs eredmény",
         "probe_offline": "A szonda nem elérhető",
+        "probe_unsupported": "Nem futtatja ezt a típust",
         "response_time": "Válaszidő",
         "select_label": "Helyszín",
         "title": "Helyszínek"
@@ -1157,6 +1158,7 @@
     "description": "A szondák a figyelők ellenőrzéseit azokról a helyekről futtatják, ahová telepítve vannak. A helyi szonda maga a Peekaping.",
     "local_name": "Helyi",
     "monitor_probe": "Szonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nem futtat {{type}} típusú monitorokat",
     "empty_list": {
       "title": "Nem található szonda",
       "text": "Hozzon létre egy szondát, hogy ellenőrzéseket futtasson egy másik helyről.",

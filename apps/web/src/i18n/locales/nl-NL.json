@@ -682,6 +682,7 @@
         "all": "Alle locaties",
         "no_result": "Nog geen resultaat",
         "probe_offline": "Probe is offline",
+        "probe_unsupported": "Voert dit type niet uit",
         "response_time": "Reactietijd",
         "select_label": "Locatie",
         "title": "Locaties"
@@ -1157,6 +1158,7 @@
     "description": "Probes voeren de controles van monitoren uit vanaf de plekken waar ze zijn geïnstalleerd. De lokale probe is Peekaping zelf.",
     "local_name": "Lokaal",
     "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} voert geen {{type}}-monitors uit",
     "empty_list": {
       "title": "Geen probes gevonden",
       "text": "Maak een probe aan om controles vanaf een andere plek uit te voeren.",

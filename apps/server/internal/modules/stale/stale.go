@@ -38,6 +38,9 @@ type Event struct {
 	MonitorID   string    `json:"monitor_id"`
 	MonitorName string    `json:"monitor_name"`
 	Since       time.Time `json:"since"`
+	// UnsupportedProbes are the names of the monitor's probes that don't run its type, which is why
+	// no probe checks it. Only MonitorStale carries them, and only when there are any.
+	UnsupportedProbes []string `json:"unsupported_probes,omitempty"`
 }
 
 // The topics of Event. The watchdog publishes them and the notification channels listen.

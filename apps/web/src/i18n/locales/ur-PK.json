@@ -682,6 +682,7 @@
         "all": "تمام مقامات",
         "no_result": "ابھی تک کوئی نتیجہ نہیں",
         "probe_offline": "پروب آف لائن",
+        "probe_unsupported": "یہ قسم نہیں چلاتا",
         "response_time": "جواب کا وقت",
         "select_label": "مقام",
         "title": "مقامات"
@@ -1156,6 +1157,7 @@
     "description": "پروبز مانیٹرز کی جانچ ان جگہوں سے چلاتے ہیں جہاں وہ انسٹال ہوں۔ مقامی پروب خود Peekaping ہے۔",
     "local_name": "مقامی",
     "monitor_probe": "پروب: {{name}}",
+    "monitor_probe_unsupported": "{{name}} {{type}} مانیٹرز نہیں چلاتا",
     "empty_list": {
       "title": "کوئی پروب نہیں ملا",
       "text": "دوسری جگہ سے جانچ چلانے کے لیے ایک پروب بنائیں۔",

@@ -682,6 +682,7 @@
         "all": "Wszystkie lokalizacje",
         "no_result": "Brak jeszcze wyniku",
         "probe_offline": "Sonda offline",
+        "probe_unsupported": "Nie obsługuje tego typu",
         "response_time": "Czas odpowiedzi",
         "select_label": "Lokalizacja",
         "title": "Lokalizacje"
@@ -1157,6 +1158,7 @@
     "description": "Sondy wykonują sprawdzenia monitorów z miejsc, w których są zainstalowane. Sondą lokalną jest sam Peekaping.",
     "local_name": "Lokalna",
     "monitor_probe": "Sonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nie obsługuje monitorów typu {{type}}",
     "empty_list": {
       "title": "Nie znaleziono sond",
       "text": "Utwórz sondę, aby wykonywać sprawdzenia z innego miejsca.",

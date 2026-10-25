@@ -682,6 +682,7 @@
         "all": "Todas las ubicaciones",
         "no_result": "Aún no hay resultados",
         "probe_offline": "Sonda sin conexión",
+        "probe_unsupported": "No ejecuta este tipo",
         "response_time": "Tiempo de respuesta",
         "select_label": "Ubicación",
         "title": "Ubicaciones"
@@ -1157,6 +1158,7 @@
     "description": "Las sondas ejecutan las comprobaciones de los monitores desde los lugares donde están instaladas. La sonda local es el propio Peekaping.",
     "local_name": "Local",
     "monitor_probe": "Sonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} no ejecuta monitores {{type}}",
     "empty_list": {
       "title": "No se encontraron sondas",
       "text": "Cree una sonda para ejecutar comprobaciones desde otro lugar.",

@@ -83,6 +83,17 @@ type Monitor struct {
 // LocalProbeID is the id of the local probe: the checks that Peekaping runs itself
 const LocalProbeID = "local"
 
+// MonitorTypeProbe is the type of the stand-in monitor that carries a probe's notification: the
+// channel types take a monitor, and a probe is not one. No monitor has this type.
+const MonitorTypeProbe = "probe"
+
+// IsProbeEvent reports whether the monitor is the stand-in of a probe's notification, whose id is
+// the probe's. A channel type that links a notification back to Peekaping links it to the Probes
+// page, since no monitor page has that id.
+func (m *Monitor) IsProbeEvent() bool {
+	return m != nil && m.Type == MonitorTypeProbe
+}
+
 // LocationThresholdValue is the threshold of the monitor's location rule, 0 for a rule that has none
 func (m *Monitor) LocationThresholdValue() int {
 	if m.LocationThreshold == nil {

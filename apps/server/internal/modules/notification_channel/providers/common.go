@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/validation"
 	"strconv"
+	"strings"
 )
 
 func GenericValidator[T any](cfg *T) error {
@@ -20,6 +21,24 @@ func GenericUnmarshal[T any](configJSON string) (*T, error) {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 	return &cfg, nil
+}
+
+// unknownMonitorName names the monitor of a notification that comes with none
+const unknownMonitorName = "Unknown Monitor"
+
+// peekapingLink returns the page of Peekaping that a notification links to: the Probes page for a
+// probe's notification, whose stand-in monitor has no page of its own, and otherwise the
+// monitor's page. baseURL is where the web app is served; with none, or with no monitor, there is
+// no link and it returns "".
+func peekapingLink(baseURL string, m *monitor.Model) string {
+	baseURL = strings.TrimRight(baseURL, "/")
+	if baseURL == "" || m == nil {
+		return ""
+	}
+	if m.IsProbeEvent() {
+		return baseURL + "/probes"
+	}
+	return baseURL + "/monitors/" + m.ID
 }
 
 // monitorAddress returns what a monitor checks: the URL of an HTTP monitor, or the host of a
