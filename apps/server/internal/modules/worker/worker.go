@@ -1,7 +1,7 @@
 package worker
 
 import (
-	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/asynqmw"
 	"peekaping/internal/shutdown"
 
 	"github.com/hibiken/asynq"
@@ -23,7 +23,7 @@ func NewWorker(
 	logger *zap.SugaredLogger,
 ) *Worker {
 	mux := asynq.NewServeMux()
-	mux.Use(reporting.AsynqMiddleware)
+	mux.Use(asynqmw.ReportPanics)
 
 	w := &Worker{
 		server: server,

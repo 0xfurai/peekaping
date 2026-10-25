@@ -1,4 +1,4 @@
-package reporting_test
+package asynqmw_test
 
 import (
 	"context"
@@ -8,13 +8,24 @@ import (
 	"time"
 
 	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/asynqmw"
 	"peekaping/internal/reporting/reportingtest"
 
 	"github.com/alicebob/miniredis/v2"
+	"github.com/getsentry/sentry-go"
 	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// functions are the names of the frames' functions
+func functions(frames []sentry.Frame) []string {
+	names := make([]string, 0, len(frames))
+	for _, f := range frames {
+		names = append(names, f.Function)
+	}
+	return names
+}
 
 //go:noinline
 func panickingTask(context.Context, *asynq.Task) error {
@@ -46,7 +57,7 @@ func asynqRun(t *testing.T, handler asynq.HandlerFunc) error {
 		}),
 	})
 	mux := asynq.NewServeMux()
-	mux.Use(reporting.AsynqMiddleware)
+	mux.Use(asynqmw.ReportPanics)
 	mux.HandleFunc("test:task", handler)
 	require.NoError(t, server.Start(mux))
 	t.Cleanup(server.Shutdown)
@@ -68,7 +79,7 @@ func asynqRun(t *testing.T, handler asynq.HandlerFunc) error {
 
 // asynq turns a panic into an error that holds a message and no stack, so the ErrorHandler can't
 // report it with a stack trace. The middleware sits inside asynq's recover instead.
-func TestAsynqMiddleware_ReportsAPanicWithItsStackAndLeavesAsynqToHandleIt(t *testing.T) {
+func TestReportPanics_ReportsAPanicWithItsStackAndLeavesAsynqToHandleIt(t *testing.T) {
 	recorder := reportingtest.Install(t)
 
 	err := asynqRun(t, panickingTask)
@@ -83,7 +94,7 @@ func TestAsynqMiddleware_ReportsAPanicWithItsStackAndLeavesAsynqToHandleIt(t *te
 	assert.Equal(t, "panickingTask", event.Exception[0].Stacktrace.Frames[len(event.Exception[0].Stacktrace.Frames)-1].Function)
 }
 
-func TestAsynqMiddleware_ReportsNothingForATaskThatReturnsAnError(t *testing.T) {
+func TestReportPanics_ReportsNothingForATaskThatReturnsAnError(t *testing.T) {
 	recorder := reportingtest.Install(t)
 
 	err := asynqRun(t, failingTask)
@@ -92,7 +103,7 @@ func TestAsynqMiddleware_ReportsNothingForATaskThatReturnsAnError(t *testing.T) 
 	assert.Empty(t, recorder.Events(), "a failed check or a task error is not a panic")
 }
 
-func TestAsynqMiddleware_ReportsNothingWhileReportingIsOff(t *testing.T) {
+func TestReportPanics_ReportsNothingWhileReportingIsOff(t *testing.T) {
 	recorder := reportingtest.Install(t)
 	reporting.SetEnabled(false)
 
