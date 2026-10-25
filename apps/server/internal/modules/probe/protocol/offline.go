@@ -27,9 +27,15 @@ func MonitorProbeOffline(probes probe.Service) stale.ProbeOfflineFunc {
 // MonitorProbeOfflineWith is MonitorProbeOffline for an install where the local probe may be its
 // instances (shared.LocalProbeIsItsInstances): the cluster on SQLite and PostgreSQL, where no
 // process of Peekaping's own runs checks. The local probe is then offline when its status says so,
-// as a remote probe is, and a monitor that runs on it alone is left alone by the watchdog.
+// as a remote probe is, and a monitor that runs on it alone is left alone by the watchdog. A push
+// monitor is the exception: it runs no checks, its pushes arrive at the api with or without an
+// instance, so the watchdog still looks at it. The job that judges missing pushes can fail or
+// stall, and the watchdog is what finds that out.
 func MonitorProbeOfflineWith(probes probe.Service, local shared.LocalProbeLiveness) stale.ProbeOfflineFunc {
 	return func(ctx context.Context, m *shared.Monitor) (bool, error) {
+		if m.Type == pushType {
+			return false, nil
+		}
 		if local == shared.LocalProbeIsTheProcess && m.RunsOn(shared.LocalProbeID) {
 			return false, nil
 		}

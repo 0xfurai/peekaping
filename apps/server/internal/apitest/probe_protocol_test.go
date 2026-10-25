@@ -28,6 +28,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
@@ -1512,6 +1513,62 @@ func TestProbeProtocol_TheSharedWindowForgetsAResultAfterAnHour(t *testing.T) {
 	got := b.outcomesOf(t, localToken, instanceID, result)
 
 	assert.Equal(t, []probeproto.ResultOutcome{{ID: "first", Accepted: true}}, got, "the window forgot the id")
+}
+
+// A replica that dies while it stores a batch (OOM, SIGKILL, eviction of its pod) never gives back
+// what it claimed. The probe sends the batch again, to another replica, and the dead replica's
+// claims have to run out within minutes: if they stood for the hour, the retry would be answered
+// duplicate, which the probe drops for good, and the batch would be lost without a trace.
+func TestProbeProtocol_ABatchWhoseReplicaDiedIsAcceptedOnRetryOnceItsClaimsRunOut(t *testing.T) {
+	a := localProbeApp(t, nil)
+	b := newReplica(t, a, func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
+	monitorID := a.createHTTPMonitor(t, "Checkout", "")
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	batch := []probeproto.Result{
+		checkResult("first", monitorID, checkedAt(0)),
+		checkResult("second", monitorID, checkedAt(10)),
+	}
+	// What the dead replica did before it died: claimed the ids, and neither stored, released nor
+	// kept them
+	client := redis.NewClient(&redis.Options{Addr: a.redis.Addr()})
+	t.Cleanup(func() { assert.NoError(t, client.Close()) })
+	window := protocol.NewRedisWindow(client)
+	for _, result := range batch {
+		claimed, err := window.Claim(context.Background(), shared.LocalProbeID, result.ID, time.Now())
+		require.NoError(t, err)
+		require.True(t, claimed)
+	}
+
+	a.redis.FastForward(protocol.ClaimTTL - time.Second)
+	got := b.outcomesOf(t, localToken, instanceID, batch...)
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "first", Reason: "duplicate"}, {ID: "second", Reason: "duplicate"}}, got,
+		"while the first request could still be storing, the ids are taken")
+
+	a.redis.FastForward(time.Second)
+	got = b.outcomesOf(t, localToken, instanceID, batch...)
+
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "first", Accepted: true}, {ID: "second", Accepted: true}}, got,
+		"the claims of the replica that died ran out, and the retry is accepted")
+	assert.Len(t, b.storedHeartbeats(t, monitorID), 2)
+}
+
+// A result that was stored is remembered for the hour, though a claim lasts minutes: the request
+// keeps its ids once they are stored
+func TestProbeProtocol_AStoredResultIsRememberedPastTheTimeAClaimLasts(t *testing.T) {
+	a := localProbeApp(t, nil)
+	b := newReplica(t, a, func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
+	monitorID := a.createHTTPMonitor(t, "Checkout", "")
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	batch := []probeproto.Result{checkResult("first", monitorID, checkedAt(0))}
+	require.Equal(t, []probeproto.ResultOutcome{{ID: "first", Accepted: true}}, a.outcomesOf(t, localToken, instanceID, batch...))
+
+	a.redis.FastForward(protocol.ClaimTTL + time.Minute)
+	got := b.outcomesOf(t, localToken, instanceID, batch...)
+
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "first", Reason: "duplicate"}}, got)
+	assert.Len(t, b.storedHeartbeats(t, monitorID), 1, "and nothing is stored twice")
 }
 
 // A Redis that cannot be asked fails the batch with 503, and stores nothing, so the probe sends it

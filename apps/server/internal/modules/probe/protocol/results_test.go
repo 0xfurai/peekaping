@@ -622,12 +622,26 @@ func TestResults_AResultTheQueueHoldsAlreadyIsADuplicate(t *testing.T) {
 }
 
 // brokenWindow is a window whose claims fail from the nth on, as a Redis that stopped answering
-// does, and that keeps what was released
+// does, and that keeps what was released and what was kept
 type brokenWindow struct {
 	protocol.Window
 	failFrom int
 	claims   int
 	released []string
+	// kept are the ids of every Keep call, and keepErr is what Keep fails with, when set
+	kept    []string
+	keepErr error
+	mu      sync.Mutex
+}
+
+func (w *brokenWindow) Keep(ctx context.Context, probeID string, ids ...string) error {
+	w.mu.Lock()
+	w.kept = append(w.kept, ids...)
+	w.mu.Unlock()
+	if w.keepErr != nil {
+		return w.keepErr
+	}
+	return w.Window.Keep(ctx, probeID, ids...)
 }
 
 func (w *brokenWindow) Claim(ctx context.Context, probeID, id string, now time.Time) (bool, error) {
@@ -641,6 +655,90 @@ func (w *brokenWindow) Claim(ctx context.Context, probeID, id string, now time.T
 func (w *brokenWindow) Release(ctx context.Context, probeID, id string) error {
 	w.released = append(w.released, id)
 	return w.Window.Release(ctx, probeID, id)
+}
+
+// The ids of the results that were stored are kept as the results are stored, whatever happens to
+// the rest of the request: a request that dies afterwards must not leave them to run out. What was
+// not stored is released, not kept.
+func TestResults_KeepsTheIdsOfTheResultsItStored(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 1000}
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+	stored := checkResult("stored", monCheckout, start)
+	broken := checkResult("broken", monCheckout, start.Add(time.Second))
+	s.ingest.failOn = func(r *ingester.Result) error {
+		if r.StartTime.Equal(broken.StartTime) {
+			return errors.New("the database is down")
+		}
+		return nil
+	}
+
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{stored, broken}})
+
+	require.Equal(t, http.StatusInternalServerError, w.Code)
+	assert.Equal(t, []string{"stored"}, window.kept, "the stored one, though the batch failed")
+	assert.Equal(t, []string{"broken"}, window.released, "and the one that was not stored is given back")
+}
+
+// A result the queue holds already is stored, by a replica that the probe's first attempt reached:
+// its id is kept too
+func TestResults_KeepsTheIdOfAResultTheQueueHoldsAlready(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 1000}
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+	held := checkResult("held", monCheckout, start)
+	s.ingest.failOn = func(*ingester.Result) error { return fmt.Errorf("task already exists: %w", queue.ErrTaskIDConflict) }
+
+	got := s.results(t, held)
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonDuplicate)}, got)
+	assert.Equal(t, []string{"held"}, window.kept)
+}
+
+// keepCalls is a window that records the ids of each Keep call
+type keepCalls struct {
+	protocol.Window
+	mu    sync.Mutex
+	calls [][]string
+}
+
+func (w *keepCalls) Keep(ctx context.Context, probeID string, ids ...string) error {
+	w.mu.Lock()
+	w.calls = append(w.calls, append([]string(nil), ids...))
+	w.mu.Unlock()
+	return w.Window.Keep(ctx, probeID, ids...)
+}
+
+// The ids of a monitor's results are kept in one call (one pipeline in Redis), and the monitors'
+// results are stored side by side: a batch of several monitors' results makes one call for each
+func TestResults_KeepsAMonitorsIdsInOneCall(t *testing.T) {
+	calls := &keepCalls{Window: protocol.NewMemoryWindow()}
+	s := newResultsServerWith(t, calls)
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t,
+		checkResult("a1", monCheckout, start),
+		checkResult("a2", monCheckout, start.Add(time.Second)),
+		checkResult("b1", monSearch, start))
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("a1"), accepted("a2"), accepted("b1")}, got)
+	calls.mu.Lock()
+	defer calls.mu.Unlock()
+	assert.ElementsMatch(t, [][]string{{"a1", "a2"}, {"b1"}}, calls.calls)
+}
+
+// A Keep that fails is logged and not the request's failure: the results are stored already, and a
+// 500 would have the probe send them again
+func TestResults_AKeepThatFailsDoesNotFailTheRequest(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 1000, keepErr: errors.New("redis: connection refused")}
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t, checkResult("first", monCheckout, start))
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("first")}, got)
+	assert.Len(t, s.ingest.stored, 1)
+	assert.Empty(t, window.released, "a stored result is not given back")
 }
 
 // A window that can't say whether an id was taken fails the batch with 503, for the probe to send

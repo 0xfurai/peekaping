@@ -11,13 +11,23 @@ import (
 // too old to be stored, so a result that is old enough to be stored again has been forgotten.
 const acceptedTTL = time.Hour
 
+// ClaimTTL is how long a window shared between processes holds a claim that is neither kept nor
+// released. A request claims its ids, stores the results and then keeps them; a request that dies
+// in between (OOM, SIGKILL, eviction of the pod) does neither, and the claim has to run out by
+// itself, or the probe's retry would be answered duplicate for the whole hour and the results lost.
+// It is longer than a request can run: the probe gives up on a call after 30 seconds
+// (probeclient.requestTimeout), which cancels the request's context.
+const ClaimTTL = 2 * time.Minute
+
 // Window remembers, for each probe, the ids of the results that were taken in the last hour. A
 // probe sends a batch again when it didn't hear the answer, and the window is what keeps that from
 // storing the same results twice.
 //
 // A request claims an id before it stores the result, so that a retry that arrives while the first
 // request is still storing finds the id taken. A result that fails to store gives its id back
-// (Release), for the probe's retry to be accepted.
+// (Release), for the probe's retry to be accepted. A result that is stored has its id kept (Keep),
+// for the rest of the hour. A claim that is neither released nor kept belongs to a request that
+// died, and a window that outlives the process (Redis) forgets it after ClaimTTL.
 //
 // Which replica a retry reaches is up to the load balancer, however long after the first try, so
 // in cluster mode the window is shared by the API replicas: the Redis window. Single mode has one
@@ -26,10 +36,17 @@ const acceptedTTL = time.Hour
 // Redis and guards it.
 type Window interface {
 	// Claim takes the probe's result id at now, and reports whether it was free: false when the id
-	// was claimed less than an hour before. Of any number of claims of an id at once, one
-	// succeeds. Claiming an id the window still holds leaves the time it was first claimed. An
-	// error means the window could not say, and the id is not claimed.
+	// is held. A claim holds the id until it is released or kept, and a window shared between
+	// processes forgets a claim that is neither after ClaimTTL. Of any number of claims of an id at
+	// once, one succeeds. Claiming an id the window still holds leaves the time it was first
+	// claimed. An error means the window could not say, and the id is not claimed.
 	Claim(ctx context.Context, probeID, id string, now time.Time) (bool, error)
+	// Keep marks ids that were claimed for results that were stored: the window holds them for the
+	// hour from now, whatever happens to the claims' own time. It is called as soon as the results
+	// are stored, with all of one batch's ids at once, and finishes even if the request was
+	// cancelled. It sets the hour on an id whose claim ran out meanwhile too, since the result is
+	// stored all the same. An error means the ids may be forgotten after ClaimTTL.
+	Keep(ctx context.Context, probeID string, ids ...string) error
 	// Release gives back an id that was claimed for a result that was not stored, so that the
 	// probe's next attempt at it is accepted. It is called when the request is ending, and
 	// finishes even if the request was cancelled.
@@ -81,6 +98,10 @@ func (w *acceptedWindow) Claim(_ context.Context, probeID, id string, now time.T
 	ids[id] = now
 	return true, nil
 }
+
+// Keep implements Window. A claim in memory is held for the whole hour from the start: there is
+// no shorter time for it to run out in, as the memory goes with the process that died.
+func (w *acceptedWindow) Keep(context.Context, string, ...string) error { return nil }
 
 // Release implements Window
 func (w *acceptedWindow) Release(_ context.Context, probeID, id string) error {
