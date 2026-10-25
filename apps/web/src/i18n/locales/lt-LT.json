@@ -682,6 +682,7 @@
         "all": "Visos vietos",
         "no_result": "Rezultato dar nėra",
         "probe_offline": "Zondas atsijungęs",
+        "probe_unsupported": "Nevykdo šio tipo",
         "response_time": "Atsakymo laikas",
         "select_label": "Vieta",
         "title": "Vietos"
@@ -1157,6 +1158,7 @@
     "description": "Zondai atlieka monitorių patikras iš vietų, kuriose jie įdiegti. Vietinis zondas yra pats Peekaping.",
     "local_name": "Vietinis",
     "monitor_probe": "Zondas: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nevykdo {{type}} tipo monitorių",
     "empty_list": {
       "title": "Zondų nerasta",
       "text": "Sukurkite zondą, kad atliktumėte patikras iš kitos vietos.",

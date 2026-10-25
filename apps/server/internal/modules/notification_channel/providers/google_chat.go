@@ -11,7 +11,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"strings"
 
 	"go.uber.org/zap"
 )
@@ -95,10 +94,8 @@ func (g *GoogleChatSender) Send(
 		})
 	}
 
-	// Add button for monitor link if available
-	if m != nil && g.config.ClientURL != "" {
-		buttonURL := fmt.Sprintf("%s/monitors/%s", strings.TrimRight(g.config.ClientURL, "/"), m.ID)
-
+	// Add button for the monitor's page, or the Probes page for a probe, if available
+	if buttonURL := peekapingLink(g.config.ClientURL, m); buttonURL != "" {
 		sectionWidgets = append(sectionWidgets, map[string]any{
 			"buttonList": map[string][]map[string]any{
 				"buttons": {

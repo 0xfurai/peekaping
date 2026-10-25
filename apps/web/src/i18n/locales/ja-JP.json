@@ -682,6 +682,7 @@
         "all": "すべての場所",
         "no_result": "まだ結果がありません",
         "probe_offline": "プローブはオフラインです",
+        "probe_unsupported": "このタイプは実行できません",
         "response_time": "応答時間",
         "select_label": "場所",
         "title": "場所"
@@ -1157,6 +1158,7 @@
     "description": "プローブは、インストールされた場所からモニターのチェックを実行します。ローカルプローブは Peekaping 自身です。",
     "local_name": "ローカル",
     "monitor_probe": "プローブ: {{name}}",
+    "monitor_probe_unsupported": "{{name}} は {{type}} タイプのモニターを実行できません",
     "empty_list": {
       "title": "プローブが見つかりません",
       "text": "プローブを作成して、別の場所からチェックを実行しましょう。",

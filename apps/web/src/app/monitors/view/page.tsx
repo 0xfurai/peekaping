@@ -110,7 +110,7 @@ const MonitorPageContent = () => {
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const { socket, status: socketStatus } = useWebSocket();
-  const { probeNames, isPending: probesPending } = useProbes();
+  const { probeNames, unsupportedProbeIds, isPending: probesPending } = useProbes();
 
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showConfirmPause, setShowConfirmPause] = useState(false);
@@ -471,8 +471,14 @@ const MonitorPageContent = () => {
           ) : null}
           {/* A monitor on several probes lists them as locations below */}
           {monitor && !probesPending && !showLocations && (
-            <div className="text-sm text-muted-foreground" data-testid="monitor-probe">
-              {t("probes.monitor_probe", { name: probeNames(monitor.probe_ids)[0] })}
+            <div className="flex flex-wrap items-center gap-x-3 text-sm text-muted-foreground" data-testid="monitor-probe">
+              <span>{t("probes.monitor_probe", { name: probeNames(monitor.probe_ids)[0] })}</span>
+              {unsupportedProbeIds(monitor).length > 0 && (
+                <span className="flex items-center gap-1 text-amber-500" data-testid="monitor-probe-unsupported">
+                  <AlertTriangle className="w-3 h-3 shrink-0" aria-hidden />
+                  {t("probes.monitor_probe_unsupported", { name: probeNames(monitor.probe_ids)[0], type: monitor.type })}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -671,7 +677,13 @@ const MonitorPageContent = () => {
               )}
             >
               {showLocations && id ? (
-                <LocationsSection monitorId={id} locations={locations} liveHeartbeats={liveHeartbeats} />
+                <LocationsSection
+                  monitorId={id}
+                  monitorType={monitor?.type ?? ""}
+                  locations={locations}
+                  unsupportedProbeIds={monitor ? unsupportedProbeIds(monitor) : []}
+                  liveHeartbeats={liveHeartbeats}
+                />
               ) : (
                 <>
                   <div className="text-white font-semibold">{t("monitors.view.live_status")}</div>

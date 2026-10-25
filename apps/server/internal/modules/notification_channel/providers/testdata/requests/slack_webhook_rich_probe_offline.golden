@@ -1,0 +1,44 @@
+POST https://hooks.slack.com/services/T/B/X
+Content-Type: application/json
+User-Agent: Peekaping-Slack/<version>
+
+{
+  "attachments": [
+    {
+      "blocks": [
+        {
+          "text": {
+            "text": "Peekaping Alert",
+            "type": "plain_text"
+          },
+          "type": "header"
+        },
+        {
+          "fields": [
+            {
+              "text": "*Message*\nProbe Frankfurt has been offline since 2026-10-22 08:30:00 UTC",
+              "type": "mrkdwn"
+            }
+          ],
+          "type": "section"
+        },
+        {
+          "elements": [
+            {
+              "text": {
+                "text": "Visit Peekaping",
+                "type": "plain_text"
+              },
+              "type": "button",
+              "url": "https://peekaping.example.com/probes",
+              "value": "Peekaping"
+            }
+          ],
+          "type": "actions"
+        }
+      ],
+      "color": "#808080"
+    }
+  ],
+  "text": "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"
+}

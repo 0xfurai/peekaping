@@ -682,6 +682,7 @@
         "all": "Alle Standorte",
         "no_result": "Noch kein Ergebnis",
         "probe_offline": "Sonde offline",
+        "probe_unsupported": "Führt diesen Typ nicht aus",
         "response_time": "Antwortzeit",
         "select_label": "Standort",
         "title": "Standorte"
@@ -1157,6 +1158,7 @@
     "description": "Sonden führen die Prüfungen der Monitore von den Orten aus, an denen sie installiert sind. Die lokale Sonde ist Peekaping selbst.",
     "local_name": "Lokal",
     "monitor_probe": "Sonde: {{name}}",
+    "monitor_probe_unsupported": "{{name}} führt keine {{type}}-Monitore aus",
     "empty_list": {
       "title": "Keine Sonden gefunden",
       "text": "Erstellen Sie eine Sonde, um Prüfungen von einem anderen Ort aus auszuführen.",

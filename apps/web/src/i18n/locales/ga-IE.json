@@ -682,6 +682,7 @@
         "all": "Gach suíomh",
         "no_result": "Níl aon toradh ann go fóill",
         "probe_offline": "Tóireadóir as líne",
+        "probe_unsupported": "Ní reáchtálann sé an cineál seo",
         "response_time": "Am freagartha",
         "select_label": "Suíomh",
         "title": "Suíomhanna"
@@ -1156,6 +1157,7 @@
     "description": "Ritheann tóireadóirí seiceálacha móntóirí ó na háiteanna ina bhfuil siad suiteáilte. Is é Peekaping féin an tóireadóir áitiúil.",
     "local_name": "Áitiúil",
     "monitor_probe": "Tóireadóir: {{name}}",
+    "monitor_probe_unsupported": "Ní reáchtálann {{name}} monatóirí {{type}}",
     "empty_list": {
       "title": "Níor aimsíodh aon tóireadóir",
       "text": "Cruthaigh tóireadóir chun seiceálacha a rith ó áit eile.",
