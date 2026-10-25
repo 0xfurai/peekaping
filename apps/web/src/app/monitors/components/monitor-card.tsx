@@ -81,21 +81,20 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
                 <Badge variant={"outline"}>{monitor.type}</Badge>
                 {probes?.map(({ id, name }) => {
                   const unsupported = !!unsupportedProbeIds?.includes(id);
+                  const unsupportedText = t("probes.monitor_probe_unsupported", { name, type: monitor.type });
                   return (
                     <Badge
                       key={id}
                       variant={"outline"}
                       className={cn(unsupported && "border-amber-500 text-amber-500")}
-                      title={
-                        unsupported
-                          ? t("probes.monitor_probe_unsupported", { name, type: monitor.type })
-                          : t("probes.monitor_probe", { name })
-                      }
+                      title={unsupported ? unsupportedText : t("probes.monitor_probe", { name })}
                       data-testid="monitor-probe-badge"
                       data-unsupported={unsupported || undefined}
                     >
                       {unsupported && <AlertTriangle className="w-3 h-3" aria-hidden />}
                       {name}
+                      {/* The tooltip needs a pointer: screen readers, and keyboard users on the card's link, read this */}
+                      {unsupported && <span className="sr-only">{unsupportedText}</span>}
                     </Badge>
                   );
                 })}
