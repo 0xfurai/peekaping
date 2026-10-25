@@ -30,7 +30,7 @@ func NewController(service Service, logger *zap.SugaredLogger) *Controller {
 const (
 	localProbeCantBeDeleted  = "The local probe can't be deleted: it runs the checks Peekaping makes itself"
 	localProbeCantBeDisabled = "The local probe can't be disabled: it runs the checks Peekaping makes itself"
-	localProbeCantBeRotated  = "The local probe's token is set with PROBE_BOOTSTRAP_TOKEN: set or change it and restart Peekaping"
+	localProbeCantBeRotated  = "The local probe's token can't be rotated. In cluster mode it is set with PROBE_BOOTSTRAP_TOKEN: set or change it and restart Peekaping. In single mode the local probe takes no token: the peekaping process checks its monitors"
 )
 
 // probeHasMonitors is why a probe with monitors on it can't be deleted
