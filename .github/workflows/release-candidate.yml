@@ -26,7 +26,7 @@ on:
 
 jobs:
   validate-version:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
     outputs:
       is_valid_rc: ${{ steps.check.outputs.is_valid_rc }}
     steps:
@@ -666,7 +666,7 @@ jobs:
       container-tag: ${{ github.event.inputs.version }}
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
     needs: playwright-tests
     steps:
       - name: Checkout code

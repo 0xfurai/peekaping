@@ -117,7 +117,7 @@ jobs:
     # Run every combination whose images built, even if another image failed.
     if: ${{ !cancelled() }}
     timeout-minutes: 60
-    runs-on: nexus-runner
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
