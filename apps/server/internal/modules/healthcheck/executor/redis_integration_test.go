@@ -5,6 +5,7 @@ package executor
 import (
 	"context"
 	"encoding/json"
+	"net/url"
 	"testing"
 
 	"peekaping/internal/modules/shared"
@@ -22,7 +23,7 @@ func TestRedisExecutor_Integration(t *testing.T) {
 	run := func(t *testing.T, password string) *Result {
 		t.Helper()
 		cfg, err := json.Marshal(RedisConfig{
-			DatabaseConnectionString: "redis://:" + password + "@" + srv.Addr,
+			DatabaseConnectionString: (&url.URL{Scheme: "redis", User: url.UserPassword("", password), Host: srv.Addr}).String(),
 		})
 		require.NoError(t, err)
 		return exec.Execute(context.Background(), &Monitor{
