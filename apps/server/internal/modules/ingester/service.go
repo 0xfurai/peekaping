@@ -318,9 +318,10 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	downBefore := !isFirstOnProbe && previousBeat.Status == shared.MonitorStatusDown
 
 	switch {
-	case downBefore && r.Status == shared.MonitorStatusPending:
-		// A check that reports Pending, such as a Docker container that is still starting, is not
-		// the recovery of a Down location: it is a failed check
+	case downBefore && (r.Status == shared.MonitorStatusDown || r.Status == shared.MonitorStatusPending):
+		// A failed check keeps it Down, whatever max retries is now: raised since it went Down, it
+		// does not send the location back to Pending. A check that reports Pending, such as a
+		// Docker container that is still starting, is no recovery either: it is a failed check.
 		hb.Status = shared.MonitorStatusDown
 		hb.Retries++
 	case r.Status == shared.MonitorStatusDown:

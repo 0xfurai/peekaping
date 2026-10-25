@@ -226,6 +226,8 @@ func previousHeartbeat(status shared.MonitorStatus, retries int) *heartbeat.Mode
 
 // step is one check result and the heartbeat it should produce
 type step struct {
+	// settings, when set, are the monitor's settings from this step on, as when the monitor is edited
+	settings  *monitorSettings
 	check     shared.MonitorStatus
 	want      shared.MonitorStatus
 	retries   int
@@ -248,6 +250,9 @@ func runSteps(t *testing.T, previous *heartbeat.Model, m monitorSettings, steps 
 	}
 
 	for i, s := range steps {
+		if s.settings != nil {
+			m = *s.settings
+		}
 		require.NoError(t, ti.ingest(t, checkResult(m, s.check)), "step %d", i+1)
 
 		got := ti.heartbeats.latest()
@@ -361,11 +366,10 @@ func TestIngester_StatusTransitions(t *testing.T) {
 			step:     step{check: maintenance, want: maintenance},
 		},
 		{
-			// PP-133 changes this: the later Pending to Down sends a second Down notification
-			name:     "Down goes back to Pending when max retries is raised above the failed checks so far",
+			name:     "Down stays Down when max retries is raised above the failed checks so far",
 			previous: previousHeartbeat(down, 1),
 			monitor:  monitorSettings{maxRetries: 3},
-			step:     step{check: down, want: pending, retries: 2},
+			step:     step{check: down, want: down, retries: 2},
 		},
 		{
 			name:     "Down to a Pending check result stays Down and counts as a failed check",
@@ -506,6 +510,19 @@ func TestIngester_ADownMonitorStaysDownUntilItIsUp(t *testing.T) {
 				{check: down, want: down, retries: 1, important: true, notified: true},
 				{check: pending, want: down, retries: 2},
 				{check: pending, want: down, retries: 3},
+				{check: up, want: up, important: true, notified: true},
+			},
+		},
+		{
+			name:    "raising max retries while Down sends no second Down notification",
+			monitor: monitorSettings{maxRetries: 0},
+			steps: []step{
+				{check: up, want: up, important: true, notified: true},
+				{check: down, want: down, retries: 1, important: true, notified: true},
+				{settings: &monitorSettings{maxRetries: 3}, check: down, want: down, retries: 2},
+				{check: down, want: down, retries: 3},
+				{check: down, want: down, retries: 4},
+				{check: down, want: down, retries: 5},
 				{check: up, want: up, important: true, notified: true},
 			},
 		},
