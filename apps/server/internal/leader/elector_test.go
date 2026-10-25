@@ -25,7 +25,7 @@ func TestElector_New(t *testing.T) {
 
 	assert.NotNil(t, le)
 	assert.Equal(t, nodeID, le.nodeID)
-	assert.False(t, le.isLeader.Load())
+	assert.False(t, le.IsLeader())
 	assert.Equal(t, RenewalInterval, le.renewalInterval)
 	assert.NotNil(t, le.stopChan)
 	assert.NotNil(t, le.doneChan)
@@ -150,7 +150,7 @@ func TestElector_ReleaseLeadership(t *testing.T) {
 
 		// Node 2 tries to release (but it's not the leader)
 		le2 := New(client, "node2", logger)
-		le2.isLeader.Store(true) // Force it to think it's leader
+		le2.setLeaderStatus(true) // Force it to think it's leader
 		le2.releaseLeadership(ctx)
 
 		// Verify node1 is still the leader
@@ -323,6 +323,38 @@ func TestElector_SetLeaderStatus(t *testing.T) {
 
 	le.setLeaderStatus(false)
 	assert.False(t, le.IsLeader())
+}
+
+// A term of leadership starts when the node becomes the leader, and lasts through the renewals
+func TestElector_LeadershipTerm(t *testing.T) {
+	le := New(nil, "node1", zap.NewNop().Sugar())
+
+	leads, term := le.leadership()
+	assert.False(t, leads)
+	assert.Zero(t, term, "a node that never led is in no term")
+
+	le.setLeaderStatus(true)
+	leads, first := le.leadership()
+	assert.True(t, leads)
+	assert.NotZero(t, first)
+
+	le.setLeaderStatus(true) // a renewal
+	leads, term = le.leadership()
+	assert.True(t, leads)
+	assert.Equal(t, first, term, "a renewal started a new term")
+
+	le.setLeaderStatus(false)
+	leads, term = le.leadership()
+	assert.False(t, leads)
+	assert.Equal(t, first, term, "a follower is still in the term it lost")
+	le.setLeaderStatus(false)
+	_, term = le.leadership()
+	assert.Equal(t, first, term)
+
+	le.setLeaderStatus(true)
+	leads, term = le.leadership()
+	assert.True(t, leads)
+	assert.Greater(t, term, first, "the node led again in the same term")
 }
 
 // The api reads IsLeader from the goroutines of the jobs it runs, while the election renews the
