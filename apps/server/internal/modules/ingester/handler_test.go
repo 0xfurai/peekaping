@@ -542,15 +542,13 @@ func TestIngester_ResendInterval(t *testing.T) {
 			},
 		},
 		{
-			// PP-132 changes this: GLOSSARY.md says the resend interval counts Down heartbeats, so a Pending monitor
-			// shouldn't notify
-			name:    "Pending heartbeats count toward the resend interval and notify",
+			name:    "Pending heartbeats don't count toward the resend interval",
 			monitor: monitorSettings{maxRetries: 3, resendInterval: 2},
 			steps: []step{
 				{check: up, want: up, important: true, notified: true},
-				{check: down, want: pending, retries: 1, downCount: 1},
-				{check: down, want: pending, retries: 2, notified: true},
-				{check: down, want: pending, retries: 3, downCount: 1},
+				{check: down, want: pending, retries: 1},
+				{check: down, want: pending, retries: 2},
+				{check: down, want: pending, retries: 3},
 				{check: down, want: down, retries: 4, important: true, notified: true},
 			},
 		},

@@ -397,7 +397,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	} else {
 		hb.Important = false
 
-		if r.Status == shared.MonitorStatusDown && resendsWhile(currentStatus) && r.MonitorResendInt > 0 && countsResends(locationsAfter, probeID) {
+		if hb.Status == shared.MonitorStatusDown && resendsWhile(currentStatus) && r.MonitorResendInt > 0 && countsResends(locationsAfter, probeID) {
 			hb.DownCount += 1
 
 			if hb.DownCount >= r.MonitorResendInt {
