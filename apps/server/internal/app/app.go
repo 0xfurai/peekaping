@@ -11,7 +11,7 @@
 //
 // Single mode's transport is in single.go: Register, then the in-memory event bus and
 // stale.Store, the cleanup.RunLock that grants every hour, the scheduler and its watchdog, and
-// one ingester.NewInOrderService as the ingester.Service that both the scheduler and the push
+// one ingest.NewInOrderService as the ingester.Service that both the scheduler and the push
 // URL ingest through. RegisterSingle builds cmd/peekaping's graph.
 //
 // Every provide is checked, so a refused one stops startup with an error that names its

@@ -10,6 +10,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/stale"
@@ -25,7 +26,7 @@ import (
 // probes offline, in one process with no Redis and no asynq. Events stay in the process, the
 // stale monitors are kept in memory, the hourly cleanup's run lock grants every hour to the one
 // process, and the scheduler is the watchdog's stale.Rechecker. The scheduler and the push URL
-// ingest through one ingester.NewInOrderService, so the pushes and the checks of a monitor are
+// ingest through one ingest.NewInOrderService, so the pushes and the checks of a monitor are
 // stored one at a time, in order.
 func RegisterSingle(container *dig.Container, cfg *config.Config) error {
 	if err := Register(container, cfg); err != nil {
@@ -61,5 +62,5 @@ func provideInOrderIngester(
 	eventBus events.EventBus,
 	logger *zap.SugaredLogger,
 ) ingester.Service {
-	return ingester.NewInOrderService(ingester.NewService(heartbeatService, certificateService, locations, eventBus, logger))
+	return ingest.NewInOrderService(ingester.NewService(heartbeatService, certificateService, locations, eventBus, logger))
 }

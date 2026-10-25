@@ -20,6 +20,7 @@ import (
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/reporting"
@@ -38,7 +39,7 @@ type Config struct {
 	Supervisor *healthcheck.HealthCheckSupervisor
 	// Ingester takes the results of the checks. The scheduler ingests a monitor's results one
 	// at a time, in order. Pushes to a push monitor must go through the same
-	// ingester.NewInOrderService to be ordered with its checks.
+	// ingest.NewInOrderService to be ordered with its checks.
 	Ingester ingester.Service
 	// Concurrency is how many checks run at the same time; DefaultConcurrency when it's zero
 	Concurrency int
@@ -128,7 +129,7 @@ func New(cfg Config) *Scheduler {
 		source:            cfg.Source,
 		executors:         cfg.Executors,
 		supervisor:        cfg.Supervisor,
-		ingester:          ingester.NewInOrderService(cfg.Ingester),
+		ingester:          ingest.NewInOrderService(cfg.Ingester),
 		reconcileInterval: reconcileInterval,
 		logger:            cfg.Logger.With("component", "scheduler"),
 		slots:             make(chan struct{}, concurrency),
