@@ -13,10 +13,9 @@ A probe is a place Peekaping runs checks from. The same program runs the **local
 | Layout | What checks the local probe's monitors |
 | --- | --- |
 | [Single mode](../self-hosting/deployment-modes.md#single-mode) | The `peekaping` process itself, in memory. There is no `peekaping-probe`. |
-| [Cluster mode](../self-hosting/deployment-modes.md#cluster-mode) on SQLite and PostgreSQL | `peekaping-probe` instances that hold the local probe's token. This page describes them. |
-| Cluster mode on MongoDB (deprecated) | The [worker](./worker.md). MongoDB has no probes, so the producer, worker and ingester keep the old layout until MongoDB storage is removed. |
+| [Cluster mode](../self-hosting/deployment-modes.md#cluster-mode) | `peekaping-probe` instances that hold the local probe's token. This page describes them. |
 
-In cluster mode on SQLite and PostgreSQL, the api stores the local probe's token at startup from `PROBE_BOOTSTRAP_TOKEN` (32 characters or more). Every probe instance gets the same value in `PROBE_TOKEN` and the api's address in `PEEKAPING_URL`. The compose files and the Helm chart set all three for you. See [Upgrading to probes](../self-hosting/upgrading-to-probes.md) if you run an older layout.
+In cluster mode, the api stores the local probe's token at startup from `PROBE_BOOTSTRAP_TOKEN` (32 characters or more). Every probe instance gets the same value in `PROBE_TOKEN` and the api's address in `PEEKAPING_URL`. The compose files and the Helm chart set all three for you. See [Upgrading to probes](../self-hosting/upgrading-to-probes.md) if you run an older layout.
 
 ## Role & Responsibilities
 
@@ -51,12 +50,12 @@ A monitor of a type the probe has no executor for is Down with `monitor type <ty
 
 ### Ping Monitors and ICMP Permissions
 
-Ping monitors send ICMP echo requests from the probe (or from the worker on MongoDB storage, or from the `peekaping` process in single mode). IPv4 and IPv6 targets are supported; a hostname with both kinds of address is pinged over IPv4. The probe opens one of two kinds of socket:
+Ping monitors send ICMP echo requests from the probe (or from the `peekaping` process in single mode). IPv4 and IPv6 targets are supported; a hostname with both kinds of address is pinged over IPv4. The probe opens one of two kinds of socket:
 
 1. **Unprivileged ICMP socket** (tried first). Linux allows it for processes whose group, or one of their other groups, is in the `net.ipv4.ping_group_range` sysctl, for IPv4 and IPv6 alike. It needs no capability, and allows ICMP echo only.
 2. **Raw ICMP socket**. Needs the `NET_RAW` capability in the process's effective set. A root process in a container has it when the runtime grants it. A non-root process has it only when the runtime or the image sets it as effective for that process, for example through ambient or file capabilities, which the Peekaping images don't.
 
-If neither socket can be opened, the probe runs the system `ping` command. The `peekaping-probe` and `peekaping-worker` images and the SQLite bundle have BusyBox `ping`, which needs the same permissions. The PostgreSQL and MongoDB bundles have no `ping`. Either way the monitor reports DOWN with `cannot open an ICMP socket` and a hint on how to fix it.
+If neither socket can be opened, the probe runs the system `ping` command. The `peekaping-probe` and `peekaping-worker` images and the SQLite bundle have BusyBox `ping`, which needs the same permissions. The PostgreSQL bundle has no `ping`. Either way the monitor reports DOWN with `cannot open an ICMP socket` and a hint on how to fix it.
 
 None of the images runs Peekaping as root: the `peekaping-probe` and `peekaping-worker` images run as group 65532, and the bundle images as group 1000 (`PGID`). So ping needs `net.ipv4.ping_group_range` to include that group. What this means for each deployment:
 

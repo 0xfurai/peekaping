@@ -44,11 +44,10 @@ type Result struct {
 }
 
 // Service turns check results into heartbeats: ADR 0002's "ingest a result". Package ingester's
-// NewService stores them. On MongoDB the worker and the API's push URL get its NewQueueService and
-// NewPushQueueService, which enqueue the results for the ingester, and the ingester stores them
-// with NewService. Single mode's checks and pushes, and the cluster API's pushes and probe results
-// on SQLite and PostgreSQL, call NewInOrderService over NewService. A remote probe's checks go to
-// a Service that sends the results to the server.
+// NewService stores them. NewQueueService and NewPushQueueService, which no storage backend uses
+// now, enqueue the results for the ingester, and the ingester stores them with NewService. Single
+// mode's checks and pushes, and the cluster API's pushes and probe results, call NewInOrderService
+// over NewService. A remote probe's checks go to a Service that sends the results to the server.
 type Service interface {
 	// Ingest stores the result as a heartbeat and publishes the events that follow from it, or
 	// hands it to the ingester that does. Storing reads the previous heartbeat of the monitor on

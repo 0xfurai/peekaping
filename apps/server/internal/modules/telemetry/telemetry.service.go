@@ -21,8 +21,7 @@ import (
 )
 
 // The modules the payload is read from, through their existing FindAll methods. Each is the
-// part of the module's service the telemetry needs, so no repository interface changes and the
-// MongoDB storage stays untouched (ADR 0001).
+// part of the module's service the telemetry needs, so no repository interface changes.
 type (
 	MonitorLister interface {
 		FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*monitor.Model, error)
@@ -410,8 +409,6 @@ func storageBackend(dbType string) string {
 		return "sqlite"
 	case "postgres", "postgresql":
 		return "postgres"
-	case "mongo", "mongodb":
-		return "mongo"
 	case "mysql":
 		return "mysql"
 	}

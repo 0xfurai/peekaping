@@ -11,7 +11,6 @@ import { useLocalizedTranslation } from "./useTranslation";
 export const useProbes = () => {
   const { t } = useLocalizedTranslation();
   const { data, isPending } = useQuery({ ...getProbesOptions() });
-  // MongoDB has no probes (ADR 0001): its list is empty
   const probes = useMemo(() => data?.data ?? [], [data]);
 
   return {

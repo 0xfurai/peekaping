@@ -223,14 +223,6 @@ jobs:
           - platform: linux/amd64
             runner: ubuntu-latest
             arch: amd64
-            database: mongo
-          - platform: linux/arm64
-            runner: ubuntu-24.04-arm
-            arch: arm64
-            database: mongo
-          - platform: linux/amd64
-            runner: ubuntu-latest
-            arch: amd64
             database: postgres
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -407,7 +399,7 @@ jobs:
           docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:latest
 
           # Bundle manifests
-          for db in sqlite mongo postgres; do
+          for db in sqlite postgres; do
             # Bundle manifest for each database - versioned
             docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
@@ -520,7 +512,7 @@ jobs:
           docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest
 
           # Bundle manifests
-          for db in sqlite mongo postgres; do
+          for db in sqlite postgres; do
             # Bundle manifest for each database - versioned
             docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
@@ -740,7 +732,6 @@ jobs:
 
             ### Bundle Containers (GHCR)
             - SQLite Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:latest`
-            - MongoDB Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo:latest`
             - PostgreSQL Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:latest`
 
             ### Docker Hub
@@ -755,7 +746,6 @@ jobs:
 
             ### Bundle Containers (Docker Hub)
             - SQLite Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest`
-            - MongoDB Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo:latest`
             - PostgreSQL Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:latest`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

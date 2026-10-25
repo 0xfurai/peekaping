@@ -51,8 +51,6 @@ func storageTag(dbType string) string {
 		return "sqlite"
 	case "postgres", "postgresql":
 		return "postgres"
-	case "mongo", "mongodb":
-		return "mongo"
 	case "mysql":
 		return "mysql"
 	}

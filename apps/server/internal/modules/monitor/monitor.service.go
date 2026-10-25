@@ -345,10 +345,7 @@ func (mr *MonitorServiceImpl) validatePartialConfig(current *Model, update *Part
 }
 
 func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
-	// The monitor goes with its links, heartbeats and stats, or stays with all of them. On
-	// MongoDB, which has no transaction here, the order decides what a delete that fails part way
-	// leaves: the monitor row goes after its heartbeats and stats, so the request can be sent
-	// again, and before its links, so a monitor that stays keeps its notification channels.
+	// The monitor goes with its links, heartbeats and stats, or stays with all of them
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
 		current, err := mr.FindByID(ctx, id)
 		if err != nil {

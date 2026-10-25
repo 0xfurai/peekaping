@@ -14,18 +14,6 @@ import {
 // that runs the suite and joined to the stack's network (e2e/support/probe.ts). The stack sets
 // PROBE_OFFLINE_AFTER=2m, the shortest the server takes, which the offline spec waits out.
 
-// A MongoDB install has no probes, not even the local one (ADR 0001), so there is nothing to
-// run. The workflow runs every spec on Mongo and no variable names the database, so the empty
-// list is the signal to skip.
-test.beforeEach(async ({ page }) => {
-  const api = await adminAPI(page);
-  const response = await api.get('probes');
-  expect(response.ok(), `GET probes: ${await response.text()}`).toBeTruthy();
-  const { data: probes } = await response.json();
-  await api.dispose();
-  test.skip(probes.length === 0, 'probes need SQLite or PostgreSQL storage (ADR 0001)');
-});
-
 // The names are lowercase: on Postgres the monitor list search matches only a lowercase term
 // (PP-72), and cleanUp and listFor search for them.
 const names = () => {

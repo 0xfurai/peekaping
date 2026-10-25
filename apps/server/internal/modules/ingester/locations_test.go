@@ -389,7 +389,7 @@ func TestIngester_ADownMonitorNeverGoesPendingWhenItsLocationsAddUpToPending(t *
 }
 
 func TestIngester_ALocationWithNoRowIsStillJudged(t *testing.T) {
-	// MongoDB has no probe rows, and a monitor can have lost one by being moved
+	// A monitor can have lost its row for the probe by being moved
 	ti := newTestIngester(runningOn())
 	m := monitorSettings{maxRetries: 1}
 

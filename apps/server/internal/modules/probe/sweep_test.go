@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest/observer"
 )
 
 // clock is a hand-set clock for the sweep
@@ -395,40 +394,6 @@ func TestSweep_RemovesInstancesUnseenForADay(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, left, 1)
 	assert.Equal(t, "edge-this-morning", left[0].ID)
-}
-
-func TestSweep_MongoWarnsOnceAndStops(t *testing.T) {
-	core, logs := observer.New(zap.InfoLevel)
-	sweep := probe.NewSweep(probe.SweepConfig{
-		Repo:     probe.NewUnsupportedRepository(),
-		EventBus: eventstest.NewBus(),
-		Interval: 5 * time.Millisecond,
-		Logger:   zap.New(core).Sugar(),
-	})
-
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		sweep.Run(context.Background())
-	}()
-	select {
-	case <-done:
-	case <-time.After(5 * time.Second):
-		t.Fatal("Run kept going on a MongoDB install, where there are no probes to sweep")
-	}
-
-	// A second Run, as when the producer wins the leadership again, stays silent
-	done = make(chan struct{})
-	go func() {
-		defer close(done)
-		sweep.Run(context.Background())
-	}()
-	select {
-	case <-done:
-	case <-time.After(5 * time.Second):
-		t.Fatal("the second Run kept going")
-	}
-	assert.Equal(t, 1, logs.FilterLevelExact(zap.WarnLevel).Len(), "one warning: %v", logs.All())
 }
 
 func TestSweep_RunSweepsEveryIntervalUntilItsContextIsDone(t *testing.T) {

@@ -2441,7 +2441,7 @@ components:
       additionalProperties: false
       properties:
         db:
-          description: "The storage backend: sqlite, postgres, mysql or mongo. Empty for a backend the ping doesn't report."
+          description: "The storage backend: sqlite, postgres or mysql. Empty for a backend the ping doesn't report."
           examples:
             - sqlite
           type: string
@@ -5782,12 +5782,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
-          description: Not Implemented
       security:
         - JwtAuth: []
         - ApiKeyAuth: []
@@ -5832,12 +5826,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
-          description: Not Implemented
       security:
         - JwtAuth: []
         - ApiKeyAuth: []
@@ -5879,12 +5867,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
-          description: Not Implemented
       security:
         - JwtAuth: []
         - ApiKeyAuth: []
@@ -5944,12 +5926,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
-          description: Not Implemented
       security:
         - JwtAuth: []
         - ApiKeyAuth: []
@@ -5998,12 +5974,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
-          description: Not Implemented
       security:
         - JwtAuth: []
         - ApiKeyAuth: []
@@ -7349,12 +7319,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
-          description: Not Implemented
       security:
         - ProbeAuth: []
       summary: Get the monitors this instance runs
@@ -7406,12 +7370,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
-          description: Not Implemented
       security:
         - ProbeAuth: []
       summary: Say bye
@@ -7485,12 +7443,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
-          description: Not Implemented
       security:
         - ProbeAuth: []
       summary: Say hello
@@ -7498,7 +7450,7 @@ paths:
         - probe-protocol
   /probe/v1/results:
     post:
-      description: "Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. A request fails with 500, or with 503 when the server could not take it just now, and also when another request holds the id of one of the results and has not stored it yet (it may still be at it, or it died), or when storing took longer than 90 seconds; that 503 carries a Retry-After of 5 seconds, which the instance waits before it sends the batch again. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored, by the API replica that took the request, on SQLite and PostgreSQL; only with MongoDB storage are they queued for the ingester instead. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it."
+      description: "Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. A request fails with 500, or with 503 when the server could not take it just now, and also when another request holds the id of one of the results and has not stored it yet (it may still be at it, or it died), or when storing took longer than 90 seconds; that 503 carries a Retry-After of 5 seconds, which the instance waits before it sends the batch again. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored, by the API replica that took the request. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it."
       operationId: probePostResults
       parameters:
         - description: "The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces."
@@ -7558,12 +7510,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Internal Server Error
-        "501":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
-          description: Not Implemented
         "503":
           content:
             application/json:

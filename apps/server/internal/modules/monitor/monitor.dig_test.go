@@ -25,7 +25,7 @@ func transactorOf(t *testing.T, dbType string, db *bun.DB) dbtx.Transactor {
 	container := dig.New()
 	require.NoError(t, container.Provide(func() *config.Config { return cfg }))
 	require.NoError(t, container.Provide(func() *bun.DB { return db }))
-	require.NoError(t, monitor.RegisterDependencies(container, cfg))
+	require.NoError(t, monitor.RegisterDependencies(container))
 
 	var transactor dbtx.Transactor
 	require.NoError(t, container.Invoke(func(provided dbtx.Transactor) { transactor = provided }))
@@ -54,7 +54,4 @@ func TestRegisterDependencies_ProvidesTheTransactorOfTheStorageBackend(t *testin
 			assert.True(t, insideTx(t, transactorOf(t, dbType, db), db), "a SQL storage backend gets a transaction")
 		})
 	}
-	t.Run("mongo", func(t *testing.T) {
-		assert.False(t, insideTx(t, transactorOf(t, "mongo", db), db), "MongoDB gets no transaction (ADR 0001)")
-	})
 }

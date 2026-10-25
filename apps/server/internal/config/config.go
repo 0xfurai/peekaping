@@ -2,6 +2,7 @@ package config
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -168,15 +169,27 @@ const MinProbeOfflineAfter = 2 * time.Minute
 // again on the next pass, once the instance was gone: a false pair of notifications.
 const MaxProbeOfflineAfter = 24 * time.Hour
 
-// IsMongoDBType reports whether a DB_TYPE names MongoDB storage (mongo or mongodb). It is the
-// storage the producer, worker and ingester still run for (ADR 0001): on SQLite and PostgreSQL the
-// api runs their work, and the probes run the checks. Case doesn't matter.
-func IsMongoDBType(dbType string) bool {
+// MongoStorageRemovedDocsURL is the page that explains how to move a MongoDB install to SQLite or
+// PostgreSQL with "bun db import-mongo"
+const MongoStorageRemovedDocsURL = "https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql"
+
+// ErrMongoStorageRemoved is why every binary stops when DB_TYPE names MongoDB (mongo or mongodb):
+// MongoDB storage was removed (ADR 0001). The MongoDB monitor type, which checks someone else's
+// MongoDB server, is not affected. RefuseMongoStorage wraps it with the DB_TYPE the install set.
+var ErrMongoStorageRemoved = errors.New("MongoDB storage was removed. " +
+	"Move this install's data to SQLite or PostgreSQL with \"bun db import-mongo\", then set DB_TYPE to sqlite or postgres. " +
+	"See " + MongoStorageRemovedDocsURL)
+
+// RefuseMongoStorage returns the error a binary stops with when dbType names MongoDB storage, and
+// nil for any other value. It matches mongo and mongodb whatever the case, as the db_type validator
+// does, and the error wraps ErrMongoStorageRemoved. The db_type validator doesn't accept those
+// values, so a binary calls this first to give this error and not the validator's.
+func RefuseMongoStorage(dbType string) error {
 	switch strings.ToLower(strings.TrimSpace(dbType)) {
 	case "mongo", "mongodb":
-		return true
+		return fmt.Errorf("DB_TYPE=%s: %w", dbType, ErrMongoStorageRemoved)
 	}
-	return false
+	return nil
 }
 
 // IsSQLDBType reports whether a DB_TYPE names SQL storage: SQLite, PostgreSQL or MySQL, whose
@@ -262,6 +275,12 @@ func validateConfig[T any](config *T) error {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			var errorMessages []string
 			for _, fieldError := range validationErrors {
+				// MongoDB storage was removed: say so, not that the value is invalid
+				if fieldError.Tag() == "db_type" {
+					if err := RefuseMongoStorage(fmt.Sprint(fieldError.Value())); err != nil {
+						return err
+					}
+				}
 				errorMessages = append(errorMessages, formatValidationError(fieldError))
 			}
 			return fmt.Errorf("validation errors: %s", strings.Join(errorMessages, "; "))
@@ -286,7 +305,7 @@ func formatValidationError(err validator.FieldError) string {
 	case "port":
 		return fmt.Sprintf("%s must be a valid port number (1-65535)", field)
 	case "db_type":
-		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, sqlite, mongo, mongodb", field)
+		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, sqlite", field)
 	case "log_level":
 		return fmt.Sprintf("%s must be one of: debug, info, warn, warning, error, dpanic, panic, fatal", field)
 	case "duration_min":
@@ -310,23 +329,6 @@ func ValidateDatabaseCustomRules(config *DBConfig) error {
 	// Validate database-specific requirements
 	switch config.DBType {
 	case "postgres", "postgresql", "mysql":
-		if config.DBHost == "" {
-			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
-		}
-		if config.DBPort == "" {
-			return fmt.Errorf("DB_PORT is required for %s database", config.DBType)
-		}
-		if config.DBUser == "" {
-			return fmt.Errorf("DB_USER is required for %s database", config.DBType)
-		}
-		if config.DBPass == "" {
-			return fmt.Errorf("DB_PASS is required for %s database", config.DBType)
-		}
-		// Validate port format for database connection
-		if _, err := strconv.Atoi(config.DBPort); err != nil {
-			return fmt.Errorf("DB_PORT must be a valid number for %s database", config.DBType)
-		}
-	case "mongo", "mongodb":
 		if config.DBHost == "" {
 			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
 		}

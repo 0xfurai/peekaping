@@ -44,7 +44,7 @@ type Monitor struct {
 	ResendInterval int `json:"resend_interval" example:"10"`
 
 	// LocationRule is how many of the monitor's locations must be Down for it to be Down. Empty
-	// means any: a monitor read from MongoDB, or from an event of a process that isn't upgraded.
+	// means any: a monitor from an event of a process that isn't upgraded.
 	LocationRule LocationRule `json:"location_rule" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough, the default), all (every location that counts), or at_least (location_threshold of them). Locations whose probe is offline, or that haven't reported, don't count." example:"any"`
 
 	// LocationThreshold is the number of Down locations at_least asks for, and nil with any other rule
@@ -88,12 +88,11 @@ const LocalProbeID = "local"
 type LocalProbeLiveness int
 
 const (
-	// LocalProbeIsTheProcess is single mode, and the MongoDB cluster, whose producer, worker and
-	// ingester still run the checks: Peekaping's own processes run the local probe's monitors,
-	// whether or not any peekaping-probe ever said hello. The local probe is never offline, and
-	// its monitors are always watched.
+	// LocalProbeIsTheProcess is single mode: Peekaping's own process runs the local probe's
+	// monitors, whether or not any peekaping-probe ever said hello. The local probe is never
+	// offline, and its monitors are always watched.
 	LocalProbeIsTheProcess LocalProbeLiveness = iota
-	// LocalProbeIsItsInstances is the cluster on SQLite and PostgreSQL, where no process of
+	// LocalProbeIsItsInstances is cluster mode, where no process of
 	// Peekaping's own runs checks: peekaping-probe instances started with the local probe's token
 	// (PROBE_BOOTSTRAP_TOKEN) do. The local probe is online while one of them is connected, and
 	// offline when they stop, like a remote probe, and the watchdog leaves its monitors alone

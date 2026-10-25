@@ -19,7 +19,7 @@ type Service interface {
 	// service knows the token's hash alone.
 	Create(ctx context.Context, req *CreateRequest) (*ModelWithToken, error)
 	// FindAll returns every probe with its instances and notification channels, the local probe
-	// first. On a MongoDB install it returns none.
+	// first.
 	FindAll(ctx context.Context) ([]*Model, error)
 	// FindByID returns nil when there is no such probe
 	FindByID(ctx context.Context, id string) (*Model, error)
@@ -142,10 +142,6 @@ func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*ModelWit
 // MARK: FindAll
 func (s *ServiceImpl) FindAll(ctx context.Context) ([]*Model, error) {
 	probes, err := s.repo.FindAll(ctx)
-	if errors.Is(err, ErrUnsupportedStorage) {
-		// A MongoDB install has no probes
-		return []*Model{}, nil
-	}
 	if err != nil {
 		return nil, err
 	}

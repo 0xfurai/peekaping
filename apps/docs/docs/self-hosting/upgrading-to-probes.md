@@ -16,7 +16,7 @@ You need this page if you run [cluster mode](./deployment-modes.md#cluster-mode)
 You don't need it for these:
 
 - **Single mode.** The SQLite and PostgreSQL bundle images don't change. Their one process is the local probe.
-- **MongoDB.** See [MongoDB doesn't upgrade this way](#mongodb-doesnt-upgrade-this-way).
+- **MongoDB.** See [MongoDB storage was removed](#mongodb-storage-was-removed).
 - **A new install.** The setup pages already describe the new layout.
 
 A producer or an ingester image of the release that retires them refuses to start on SQLite or PostgreSQL. It exits with status 1 and logs a message that points here. A worker image of that release starts and logs `The worker has no work left on SQLite or PostgreSQL storage`. So a stack that you upgrade without following this page tells you.
@@ -189,8 +189,6 @@ The local probe's token stays in the database. It is harmless: it opens only the
 
 If you came from a release that has no remote probes, the upgrade also ran the migrations that add them, and those do change the database. To go back to that release, restore your backup. See the [release notes](https://github.com/0xfurai/peekaping/blob/main/CHANGELOG.md).
 
-## MongoDB doesn't upgrade this way
+## MongoDB storage was removed
 
-MongoDB has no probes, so a cluster on MongoDB storage can't run its checks through probe instances. The MongoDB bundle image and the MongoDB Docker Compose stack keep the producer, worker and ingester, and the old images and binaries stay for them until MongoDB storage is removed. There is nothing to do on this page for them: the compose file and the images of a MongoDB install don't change. See [Docker + MongoDB](./docker-with-mongo.md).
-
-To get to probes from MongoDB, [move to SQLite or PostgreSQL](./docker-with-mongo.md#move-to-sqlite-or-postgresql) first, and then set up the new layout from the start.
+MongoDB has no probes, and MongoDB storage was removed, so a MongoDB install has no producer, worker and ingester to retire and nothing to upgrade on this page. [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-to-sqlite-or-postgresql) first, and then set up the new layout from the start.

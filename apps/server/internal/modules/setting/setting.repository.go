@@ -8,8 +8,7 @@ type Repository interface {
 	// CreateIfAbsent stores entity under key unless the key is already stored, in one statement, and
 	// returns what is stored under the key afterwards: the new row, or the one that was there first.
 	// Callers that race to create the same key, such as api replicas starting together, all get the
-	// one value that won on SQL storage. MongoDB has no unique index on key (storage frozen, ADR 0001),
-	// so there two callers at the very same moment can each create one.
+	// one value that won.
 	CreateIfAbsent(ctx context.Context, key string, entity *Model) (*Model, error)
 	DeleteByKey(ctx context.Context, key string) error
 }

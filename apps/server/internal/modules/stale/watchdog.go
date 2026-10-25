@@ -124,8 +124,7 @@ func NewWatchdog(cfg WatchdogConfig) *Watchdog {
 }
 
 // Run looks for stale monitors every interval until ctx is done. Only one watchdog should
-// run at a time: cluster mode runs it on the api replica that holds the leader lock (the leader
-// producer, on MongoDB).
+// run at a time: cluster mode runs it on the api replica that holds the leader lock.
 func (w *Watchdog) Run(ctx context.Context) {
 	ticker := time.NewTicker(w.interval)
 	defer ticker.Stop()

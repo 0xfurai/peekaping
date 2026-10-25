@@ -6,7 +6,7 @@ sidebar_position: 4
 
 The images of [cluster mode](./deployment-modes.md#cluster-mode) run as a non-root user:
 
-- **`peekaping-api`, `-probe` and `-migrate`** run as user and group 65532 (`65532:65532`). The binaries belong to root, so Peekaping can't change them. The `-producer`, `-worker` and `-ingester` images, which only MongoDB storage still runs, do the same.
+- **`peekaping-api`, `-probe` and `-migrate`** run as user and group 65532 (`65532:65532`). The binaries belong to root, so Peekaping can't change them.
 - **`peekaping-web`** runs nginx as the user `nginx`, UID 101, on top of [`nginxinc/nginx-unprivileged`](https://hub.docker.com/r/nginxinc/nginx-unprivileged). It listens on port 80 as before.
 
 The bundle images run as another user. See [Bundle user and permissions](./bundle-user.md). The Helm chart sets its own user, 10001, on every pod.

@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"peekaping/internal/config"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe"
@@ -58,38 +57,12 @@ func TestRegisterSingle_TheLocalProbeIsTheProcessAndNeverOffline(t *testing.T) {
 	assert.True(t, localLocationOnline(t, container), "the process runs the checks")
 }
 
-// The MongoDB cluster keeps its producer, worker and ingester, which run the local probe's checks,
-// so the local probe is the process there too. It has no probes at all (ADR 0001).
-func TestRegisterCluster_OnMongoStorageTheLocalProbeIsTheProcess(t *testing.T) {
-	for name, register := range map[string]func(*dig.Container) error{
-		"api":      func(c *dig.Container) error { return RegisterClusterAPI(c, mongoClusterConfig(t)) },
-		"producer": func(c *dig.Container) error { return RegisterClusterProducer(c, mongoClusterConfig(t)) },
-	} {
-		t.Run(name, func(t *testing.T) {
-			container := dig.New()
-			require.NoError(t, register(container))
-
-			require.NoError(t, container.Invoke(func(liveness shared.LocalProbeLiveness) {
-				assert.Equal(t, shared.LocalProbeIsTheProcess, liveness)
-			}))
-		})
-	}
-}
-
-func TestRegisterCluster_OnSQLStorageTheLocalProbeIsItsInstances(t *testing.T) {
+// In cluster mode the local probe is its instances, like a remote probe
+func TestRegisterCluster_TheLocalProbeIsItsInstances(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
 
 	require.NoError(t, container.Invoke(func(liveness shared.LocalProbeLiveness) {
 		assert.Equal(t, shared.LocalProbeIsItsInstances, liveness)
 	}))
-}
-
-// mongoClusterConfig is a cluster binary's config on MongoDB. Nothing in the tests that use it
-// opens the database.
-func mongoClusterConfig(t *testing.T) *config.Config {
-	t.Helper()
-	cfg := clusterConfig(t)
-	cfg.DBType = "mongo"
-	return cfg
 }

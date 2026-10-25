@@ -5,12 +5,10 @@
 //
 // Cluster mode's transport is in cluster.go: Redis, the event bus over it, the stale.Store and
 // the cleanup.RunLock in it, asynq and the leader election, and the cluster side of ADR 0002's
-// two seams. On SQLite and PostgreSQL the probes run the checks, so the api ingests what it takes
-// (a push, or the results of a probe) with ingest.NewInOrderService, counts the stats of what it
-// stored, and runs the stale-monitor watchdog and the probe sweep under the leader lock. On
-// MongoDB, which has no probes, "run a check" (check.Runner) enqueues the producer's checks for the
-// worker, and "ingest a result" (ingester.Service) enqueues the worker's and the push URL's
-// results for the ingester. Its RegisterCluster functions build each cluster binary's graph.
+// two seams. The probes run the checks, so the api ingests what it takes (a push, or the results of
+// a probe) with ingest.NewInOrderService, counts the stats of what it stored, and runs the
+// stale-monitor watchdog and the probe sweep under the leader lock. Its RegisterCluster functions
+// build each cluster binary's graph.
 //
 // Single mode's transport is in single.go: Register, then the in-memory event bus and
 // stale.Store, the cleanup.RunLock that grants every hour, the scheduler and its watchdog, and
@@ -87,32 +85,32 @@ func Register(container *dig.Container, cfg *config.Config) error {
 	}
 
 	return errors.Join(
-		heartbeat.RegisterDependencies(container, cfg),
-		monitor.RegisterDependencies(container, cfg),
+		heartbeat.RegisterDependencies(container),
+		monitor.RegisterDependencies(container),
 		healthcheck.RegisterDependencies(container),
 		check.RegisterDependencies(container),
-		bruteforce.RegisterDependencies(container, cfg),
-		auth.RegisterDependencies(container, cfg),
-		notification_channel.RegisterDependencies(container, cfg),
-		monitor_notification.RegisterDependencies(container, cfg),
-		probe_notification.RegisterDependencies(container, cfg),
-		probe.RegisterDependencies(container, cfg),
+		bruteforce.RegisterDependencies(container),
+		auth.RegisterDependencies(container),
+		notification_channel.RegisterDependencies(container),
+		monitor_notification.RegisterDependencies(container),
+		probe_notification.RegisterDependencies(container),
+		probe.RegisterDependencies(container),
 		protocol.RegisterDependencies(container),
-		proxy.RegisterDependencies(container, cfg),
-		setting.RegisterDependencies(container, cfg),
-		notification_sent_history.RegisterDependencies(container, cfg),
-		monitor_tls_info.RegisterDependencies(container, cfg),
+		proxy.RegisterDependencies(container),
+		setting.RegisterDependencies(container),
+		notification_sent_history.RegisterDependencies(container),
+		monitor_tls_info.RegisterDependencies(container),
 		certificate.RegisterDependencies(container),
-		stats.RegisterDependencies(container, cfg),
-		monitor_maintenance.RegisterDependencies(container, cfg),
-		maintenance.RegisterDependencies(container, cfg),
-		status_page.RegisterDependencies(container, cfg),
-		monitor_status_page.RegisterDependencies(container, cfg),
-		domain_status_page.RegisterDependencies(container, cfg),
-		tag.RegisterDependencies(container, cfg),
-		monitor_tag.RegisterDependencies(container, cfg),
-		badge.RegisterDependencies(container, cfg),
-		api_key.RegisterDependencies(container, cfg),
+		stats.RegisterDependencies(container),
+		monitor_maintenance.RegisterDependencies(container),
+		maintenance.RegisterDependencies(container),
+		status_page.RegisterDependencies(container),
+		monitor_status_page.RegisterDependencies(container),
+		domain_status_page.RegisterDependencies(container),
+		tag.RegisterDependencies(container),
+		monitor_tag.RegisterDependencies(container),
+		badge.RegisterDependencies(container),
+		api_key.RegisterDependencies(container),
 		middleware.RegisterDependencies(container),
 		metrics.RegisterDependencies(container),
 		telemetry.RegisterDependencies(container),
@@ -122,13 +120,15 @@ func Register(container *dig.Container, cfg *config.Config) error {
 }
 
 // registerDatabase provides the storage backend DB_TYPE names. The worker has no DB_TYPE and
-// gets no database.
+// gets no database. MongoDB storage was removed: a config that names it is refused already, and
+// this refuses it again for a graph built from a Config that wasn't validated.
 func registerDatabase(container *dig.Container, cfg *config.Config) error {
+	if err := config.RefuseMongoStorage(cfg.DBType); err != nil {
+		return err
+	}
 	switch cfg.DBType {
 	case "postgres", "postgresql", "mysql", "sqlite":
 		return utils.Provide(container, infra.ProvideSQLDB)
-	case "mongo", "mongodb":
-		return utils.Provide(container, infra.ProvideMongoDB)
 	case "":
 		return nil
 	default:

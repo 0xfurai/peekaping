@@ -32,7 +32,7 @@ A usage ping has these fields and no others:
 | `instance_id` | A random ID that belongs to nothing about your install. See [Instance ID](#instance-id). |
 | `version` | The Peekaping version, such as `0.0.48` |
 | `mode` | `single` or `cluster`. See [Deployment modes](./deployment-modes.md). |
-| `db` | The storage backend: `sqlite`, `postgres`, `mongo` or `mysql` |
+| `db` | The storage backend: `sqlite`, `postgres` or `mysql` |
 | `os` | The operating system and CPU architecture, such as `linux/arm64` |
 | `monitors` | How many monitors you have, paused ones included, as a range: `0`, `1-10`, `11-50`, `51-200`, `201-1000` or `1000+`. `201-1000` includes 1,000, and `1000+` means more than 1,000. |
 | `monitor_types` | The monitor types you use, as names only, such as `http` or `docker`. Each type is listed once. |
@@ -59,11 +59,11 @@ For example:
 }
 ```
 
-Every storage backend you can set with `DB_TYPE` is counted. `DB_TYPE=postgresql` is sent as `postgres`, and `DB_TYPE=mongodb` as `mongo`.
+Every storage backend you can set with `DB_TYPE` is counted. `DB_TYPE=postgresql` is sent as `postgres`.
 
 #### Instance ID
 
-The instance ID is a random UUID. Peekaping creates it the first time it is needed while the usage ping is on, which for an install that never chose is soon after it starts. It deletes the ID when an admin turns the usage ping off. If you turn the usage ping on again, you get a new ID. On SQLite and PostgreSQL, replicas of a cluster that start together end up with the same ID. On MongoDB, replicas that start at the very same moment may create different IDs, because its settings have no unique key. While `TELEMETRY=off` applies, Peekaping makes none. It is the only identifier in a usage ping, and nothing about your install goes into it.
+The instance ID is a random UUID. Peekaping creates it the first time it is needed while the usage ping is on, which for an install that never chose is soon after it starts. It deletes the ID when an admin turns the usage ping off. If you turn the usage ping on again, you get a new ID. Replicas of a cluster that start together end up with the same ID. While `TELEMETRY=off` applies, Peekaping makes none. It is the only identifier in a usage ping, and nothing about your install goes into it.
 
 The ID lets us count an install once instead of once a day. Because it changes when you opt out and in again, one install can be counted twice over time.
 
@@ -82,7 +82,7 @@ Counts are ranges, and types are names of kinds, never of single things.
 
 ### Why
 
-Peekaping is self-hosted, so we can't see how it is used. Without the usage ping we don't know which versions are still in use, whether anyone runs cluster mode or MongoDB storage, or which monitor types matter. The usage ping is the only way we can tell.
+Peekaping is self-hosted, so we can't see how it is used. Without the usage ping we don't know which versions are still in use, whether anyone runs cluster mode, or which monitor types matter. The usage ping is the only way we can tell.
 
 ### Where it goes and how long it is kept
 
@@ -96,7 +96,7 @@ The Worker never reads or stores your IP address or your country, and it stores 
 
 At most once a day. Peekaping checks a few minutes after it starts, and then every hour, whether a usage ping is due. A usage ping is due when the last one is more than 24 hours old. An install that never chose sends its first one at the first check, a few minutes after it starts. After an admin opts out and in again, the first usage ping goes at the next check. In cluster mode that can be later: the claim in Redis holds for 23 hours after a usage ping, and opting out doesn't release it. An install that opts out and back in within 23 hours of its last usage ping sends the first new one when the claim ends, up to 23 hours later.
 
-Only one process sends it. In [single mode](./deployment-modes.md#single-mode), that is the `peekaping` process. In [cluster mode](./deployment-modes.md#cluster-mode), it is one API replica, whichever claims the day's usage ping in Redis first. The probe, and on MongoDB storage the producer, worker and ingester, never send it.
+Only one process sends it. In [single mode](./deployment-modes.md#single-mode), that is the `peekaping` process. In [cluster mode](./deployment-modes.md#cluster-mode), it is one API replica, whichever claims the day's usage ping in Redis first. The probe never sends it.
 
 A usage ping that fails to reach the Worker is dropped, not retried. A failure never affects your monitors or the API.
 
@@ -149,7 +149,7 @@ A report has these fields and no others:
 | Stack frames | For each frame, the function, the package, the file, the line and whether it is Peekaping's own code. The file is the package path and the file name, such as `peekaping/internal/httpx/middleware.go`, never a path on your machine. At most the 100 innermost frames. |
 | Release | The Peekaping version, such as `0.0.48` |
 | `mode` | `single` or `cluster`. See [Deployment modes](./deployment-modes.md). |
-| `db` | The storage backend: `sqlite`, `postgres`, `mongo` or `mysql`. A MongoDB cluster's worker has no database settings, so it says `unknown`. |
+| `db` | The storage backend: `sqlite`, `postgres` or `mysql`. A process that has no database settings says `unknown`. |
 | `os` | The operating system and CPU architecture, such as `linux/arm64` |
 | `component` | The part of Peekaping that caught the panic, such as `http`, `executor` or `scheduler` |
 | Level | `error` for a panic that was caught, `fatal` for one that ends the process |
@@ -204,10 +204,8 @@ ERROR_REPORTING=off
 
 In Kubernetes, put `ERROR_REPORTING: "off"` under `config.env` in your Helm values. See [Kubernetes (Helm)](./kubernetes-helm.md#configuration).
 
-Set the variable on the `peekaping` container in single mode. In cluster mode, set it on the API, which reports the crashes in its own process. The probe sends no error reports. On MongoDB storage, set it on the producer, the worker and the ingester too. The `.env` file of the Compose stacks and `config.env` in Helm already reach all of them.
+Set the variable on the `peekaping` container in single mode. In cluster mode, set it on the API, which reports the crashes in its own process. The probe sends no error reports. The `.env` file of the Compose stacks and `config.env` in Helm already reach the API.
 
 ### In cluster mode
 
-The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it, takes effect in the API at once, and is copied to Redis. On MongoDB storage, the producer, worker and ingester read it from Redis once a minute. The API also copies the stored setting to Redis again every minute. With no stored choice, the API copies "on" when it starts, so the producer, worker and ingester report by default; until the API has copied it, they report nothing. On SQLite and PostgreSQL the API is the only process that reports, so it reads the setting itself.
-
-While Redis is up, a change in Settings reaches every process within a minute. A change made while Redis was down can take up to about two minutes after Redis comes back: the API copies it again within a minute, and the other processes read it within another minute. Either way, no restart is needed.
+The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it and takes effect in the API at once, with no restart. The API is the only process that reports, so it reads the setting itself.

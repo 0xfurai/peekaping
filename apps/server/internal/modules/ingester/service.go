@@ -29,8 +29,8 @@ type LocationStore interface {
 	// with the monitor's last recorded status and its rows from just before and just after, and
 	// records the status judge returns (nil clears it). All of it happens with the monitor held,
 	// so two results of one monitor, recorded at once, see one another in turn. A monitor without
-	// a row for the probe has nothing stored on a row, and a monitor without rows (MongoDB's, or
-	// one from before probes) is judged on none.
+	// a row for the probe has nothing stored on a row, and a monitor without rows (one from before
+	// probes) is judged on none.
 	RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error
 }
 
@@ -190,8 +190,8 @@ func anyStatusKnown(locations []shared.MonitorLocation) bool {
 
 // withLocation returns the locations with the probe's among them, changed by update. The probe that
 // sent the result is online for as long as it takes to judge it, whatever its status says, and a
-// monitor that has no row for it (MongoDB's, or one moved off the probe while its result was on
-// the way) is judged on it all the same.
+// monitor that has no row for it (one moved off the probe while its result was on the way) is
+// judged on it all the same.
 func withLocation(locations []shared.MonitorLocation, probeID string, update func(*shared.MonitorLocation)) []shared.MonitorLocation {
 	judged := slices.Clone(locations)
 	i := slices.IndexFunc(judged, func(l shared.MonitorLocation) bool { return l.ProbeID == probeID })
@@ -321,7 +321,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	err = s.locations.RecordLocation(ctx, r.MonitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
 		rowsBefore, recordedBefore = j.Before, j.Recorded
 		// A location with no status yet but a heartbeat on the probe has that heartbeat's status: the
-		// row of a monitor from before it kept one, and MongoDB's has none
+		// row of a monitor from before it kept one
 		locationsBefore = withLocation(j.Before, probeID, func(l *shared.MonitorLocation) {
 			if l.Status == nil && previousBeat != nil {
 				previousStatus := previousBeat.Status
@@ -332,8 +332,8 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 			l.Status, l.LastPing, l.LastHeartbeatAt = &locationStatus, &r.PingMs, &r.StartTime
 		})
 		// A monitor with a status recorded is first judged by it, whatever its locations say now:
-		// a probe that went offline since then must not hide a change. One with none recorded, such
-		// as MongoDB's, goes by its locations, and is on its first heartbeat when none has a status.
+		// a probe that went offline since then must not hide a change. One with none recorded goes by
+		// its locations, and is on its first heartbeat when none has a status.
 		isFirstBeat = j.Recorded == nil && !anyStatusKnown(locationsBefore)
 		if j.Recorded != nil {
 			previousStatus = *j.Recorded

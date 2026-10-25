@@ -29,7 +29,7 @@ var serverOnly = []struct{ path, why string }{
 	{"peekaping/internal/infra", "the server's database and queue setup"},
 	{"peekaping/internal/sqlitedb", "the server's SQLite setup"},
 	{"peekaping/internal/dbtx", "the server's database transactions"},
-	{"peekaping/internal/utils", "the server's helpers: its HTTP responses, the dig container and MongoDB's bson"},
+	{"peekaping/internal/utils", "the server's helpers: its HTTP responses and the dig container"},
 }
 
 // modulesPrefix holds the server's modules, nearly all of which keep a repository. The probe

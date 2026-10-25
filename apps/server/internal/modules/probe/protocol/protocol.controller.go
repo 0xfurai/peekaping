@@ -58,8 +58,7 @@ type ControllerParams struct {
 	Monitors    monitor.Service
 	Proxies     proxy.Service
 	Maintenance maintenance.Service
-	// Ingester stores the results a probe sends, as it does the pushes: in the process, in order,
-	// on SQLite and PostgreSQL; on MongoDB, which has no probes, it enqueues them for the ingester
+	// Ingester stores the results a probe sends, as it does the pushes: in the process, in order
 	Ingester ingester.Service
 	// Window remembers the result ids already taken: Redis in cluster mode, so that a retry on
 	// another API replica is found, and the process's memory in single mode. A container that
@@ -109,8 +108,6 @@ func (c *Controller) instancesChanged(ctx context.Context, probeID string) {
 // fail turns a service error into the response that tells the probe what went wrong
 func (c *Controller) fail(err error) error {
 	switch {
-	case errors.Is(err, probe.ErrUnsupportedStorage):
-		return httpx.Fail(http.StatusNotImplemented, utils.NewFailResponse(err.Error()))
 	case errors.Is(err, probe.ErrInstanceTaken):
 		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("this instance id belongs to another probe: use a new one"))
 	}

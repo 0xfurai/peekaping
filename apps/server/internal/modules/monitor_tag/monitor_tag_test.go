@@ -21,9 +21,6 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -63,9 +60,6 @@ type fixture struct {
 	svc     monitor_tag.Service
 	monitor func() string
 	tag     func() string
-	// newestFirst is whether the backend lists a monitor's links newest first. The SQL
-	// repositories sort; MongoDB's Find has no sort, and its storage is frozen (ADR 0001).
-	newestFirst bool
 }
 
 // forEachBackend runs fn against a monitor-tag service on every database backend.
@@ -79,8 +73,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
 			fn(t, fixture{
-				svc:         monitor_tag.NewService(monitor_tag.NewSQLRepository(db), zap.NewNop().Sugar()),
-				newestFirst: true,
+				svc: monitor_tag.NewService(monitor_tag.NewSQLRepository(db), zap.NewNop().Sugar()),
 				monitor: func() string {
 					id := uuid.NewString()
 					_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
@@ -98,27 +91,6 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 	}
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		if err := client.Ping(ctx, nil); err != nil {
-			_ = client.Disconnect(context.Background())
-			require.NoError(t, err)
-		}
-		cfg := &config.Config{DBName: "monitor_tag_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		newID := func() string { return primitive.NewObjectID().Hex() }
-		fn(t, fixture{svc: monitor_tag.NewService(monitor_tag.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), monitor: newID, tag: newID})
-	})
 }
 
 func link(t *testing.T, svc monitor_tag.Service, monitorID, tagID string) *monitor_tag.Model {
@@ -213,9 +185,6 @@ func TestMonitorTags_LinksOfManyMonitorsAreListedAtOnce(t *testing.T) {
 
 func TestMonitorTags_SQLListsLinksNewestFirst(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, f fixture) {
-		if !f.newestFirst {
-			t.Skip("MongoDB's Find has no sort, and its storage is frozen (ADR 0001)")
-		}
 		web, db := f.monitor(), f.monitor()
 		prod, eu, edge := f.tag(), f.tag(), f.tag()
 		// The repository stamps a link with the time it is created, so each link needs its own

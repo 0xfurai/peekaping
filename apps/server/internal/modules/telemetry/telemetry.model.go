@@ -34,7 +34,7 @@ type Payload struct {
 	InstanceID   string   `json:"instance_id" doc:"The random instance ID; empty after an admin opts out, and while TELEMETRY forces the ping off and no ID was made before" example:"6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f"`
 	Version      string   `json:"version" doc:"The Peekaping version" example:"0.0.47"`
 	Mode         string   `json:"mode" doc:"How the install runs" enum:"single,cluster" example:"single"`
-	DB           string   `json:"db" doc:"The storage backend: sqlite, postgres, mysql or mongo. Empty for a backend the ping doesn't report." example:"sqlite"`
+	DB           string   `json:"db" doc:"The storage backend: sqlite, postgres or mysql. Empty for a backend the ping doesn't report." example:"sqlite"`
 	OS           string   `json:"os" doc:"Operating system and architecture" example:"linux/arm64"`
 	Monitors     string   `json:"monitors" doc:"How many monitors there are, paused ones included, as a bucket" enum:"0,1-10,11-50,51-200,201-1000,1000+" example:"1-10"`
 	MonitorTypes []string `json:"monitor_types" doc:"The distinct monitor types in use, lower case and sorted" nullable:"false"`

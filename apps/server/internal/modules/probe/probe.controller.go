@@ -46,8 +46,6 @@ func probeHasMonitors(monitors int) string {
 // localMessage says why the local probe can't be changed the way the request asked.
 func (c *Controller) fail(err error, localMessage string) error {
 	switch {
-	case errors.Is(err, ErrUnsupportedStorage):
-		return httpx.Fail(http.StatusNotImplemented, utils.NewFailResponse(err.Error()))
 	case errors.Is(err, ErrNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Probe not found"))
 	case errors.Is(err, ErrLocalProbe):
@@ -89,7 +87,7 @@ func (c *Controller) CreateProbe(ctx context.Context, input *CreateProbeInput) (
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Probe created successfully. Copy its token now: it is shown only once", ToProbeWithTokenResponse(created)))
 }
 
-// GetProbes lists the probes, the local probe first. A MongoDB install has none.
+// GetProbes lists the probes, the local probe first
 func (c *Controller) GetProbes(ctx context.Context, input *GetProbesInput) (*httpx.Output[utils.ApiResponse[[]*ProbeResponse]], error) {
 	// MARK: GetProbes
 

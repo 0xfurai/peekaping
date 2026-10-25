@@ -1961,9 +1961,9 @@ func TestMonitorService_APushMonitorIsNeverRefusedForTheTypesAProbeRuns(t *testi
 	})
 }
 
-// A MongoDB install has no probes (ADR 0001): the probe side says so, and only the local probe,
-// which is all there is, is accepted.
-func TestMonitorService_MongoOnlyAcceptsLocal(t *testing.T) {
+// A graph without probes: the probe side says so, and only the local probe, which is all there is,
+// is accepted.
+func TestMonitorService_WithoutProbesOnlyAcceptsLocal(t *testing.T) {
 	ctx := context.Background()
 	newService := func() (*MonitorServiceImpl, *MockMonitorRepository) {
 		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
@@ -2002,7 +2002,7 @@ func TestMonitorService_MongoOnlyAcceptsLocal(t *testing.T) {
 		var invalid *InvalidProbesError
 		require.ErrorAs(t, err, &invalid)
 		assert.ErrorIs(t, err, ErrNoProbes)
-		assert.EqualError(t, err, `invalid probe_ids: probe "frankfurt" can't be used: probes need SQLite or PostgreSQL storage`)
+		assert.EqualError(t, err, `invalid probe_ids: probe "frankfurt" can't be used: probes aren't available here`)
 		mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 

@@ -11,10 +11,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"peekaping/cmd/bun/migrations"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor_status_page"
@@ -32,9 +30,6 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func TestRepositoryInterfacesUseDomainTypes(t *testing.T) {
@@ -77,12 +72,6 @@ type repositories struct {
 	statusPageID  string
 	monitorID     string
 	replacementID string
-	// uniqueSettingKeys is whether the storage refuses a second setting with the same key. SQL does
-	// (the key is the primary key); MongoDB has no unique index on it and is frozen (ADR 0001).
-	uniqueSettingKeys bool
-	// storesShowLocations is whether the storage keeps a status page's show-locations setting. SQL
-	// does; MongoDB is frozen (ADR 0001), keeps nothing of it and always reads false.
-	storesShowLocations bool
 }
 
 func sqlRepositories(t *testing.T, db *bun.DB) repositories {
@@ -103,7 +92,7 @@ func sqlRepositories(t *testing.T, db *bun.DB) repositories {
 	return repositories{
 		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db), status_page.NewSQLRepository(db),
 		setting.NewSQLRepository(db), monitor_tls_info.NewSQLRepository(db), notification_sent_history.NewSQLRepository(db),
-		statusID, monitorID, replacementID, true, true,
+		statusID, monitorID, replacementID,
 	}
 }
 
@@ -130,27 +119,6 @@ func TestRepositoriesUseDomainModels(t *testing.T) {
 		})
 		connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn), pgdriver.WithConnParams(map[string]interface{}{"search_path": schema}))
 		exerciseRepositories(t, sqlRepositories(t, bun.NewDB(sql.OpenDB(connector), pgdialect.New())))
-	})
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run MongoDB integration checks")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
-		cfg := &config.Config{DBName: "pee90_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		exerciseRepositories(t, repositories{
-			maintenance.NewMongoRepository(client, cfg), monitor_status_page.NewMongoRepository(client, cfg), domain_status_page.NewMongoRepository(client, cfg), status_page.NewMongoRepository(client, cfg),
-			setting.NewMongoRepository(client, cfg), monitor_tls_info.NewMongoRepository(client, cfg), notification_sent_history.NewMongoRepository(client, cfg),
-			primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), false, false,
-		})
 	})
 }
 
@@ -191,14 +159,6 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		require.NoError(t, err)
 		found, err := repos.pages.FindByID(ctx, eachPlace.ID)
 		require.NoError(t, err)
-		if !repos.storesShowLocations {
-			on := true
-			require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{ShowLocations: &on}))
-			found, err = repos.pages.FindByID(ctx, eachPlace.ID)
-			require.NoError(t, err)
-			assert.False(t, found.ShowLocations, "this storage keeps nothing of the setting")
-			return
-		}
 		assert.True(t, found.ShowLocations, "stored on create")
 		title, off, on := "Renamed", false, true
 		require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{Title: &title}))
@@ -254,10 +214,7 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 	// The usage ping's instance ID is created by whichever api replica gets there first. All of
 	// them must end up with the one value that was stored, whoever raced.
 	t.Run("SettingsCreateIfAbsent", func(t *testing.T) {
-		racers := 1
-		if repos.uniqueSettingKeys {
-			racers = 12
-		}
+		const racers = 12
 		returned := make([]string, racers)
 		var wg sync.WaitGroup
 		for n := range racers {

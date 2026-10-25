@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
@@ -15,16 +14,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
-	if err := utils.RegisterRepositoryByDBType(container, cfg, provideSQLRepository, NewMongoRepository); err != nil {
-		return err
-	}
-	// The dbtx.Transactor is provided here, beside the repositories, so that it resolves
-	// wherever the monitor service does: it writes a monitor and its links in one transaction
-	if err := utils.RegisterRepositoryByDBType(container, cfg, dbtx.NewSQLTransactor, dbtx.NewMongoTransactor); err != nil {
-		return err
-	}
-	return utils.Provide(container, provideMonitorService, NewMonitorController, NewMonitorRoute, NewMonitorEventListener)
+func RegisterDependencies(container *dig.Container) error {
+	// The dbtx.Transactor is provided here, beside the repository, so that it resolves wherever the
+	// monitor service does: it writes a monitor and its links in one transaction
+	return utils.Provide(container, provideSQLRepository, dbtx.NewSQLTransactor,
+		provideMonitorService, NewMonitorController, NewMonitorRoute, NewMonitorEventListener)
 }
 
 // serviceParams are what NewMonitorService takes
@@ -40,7 +34,7 @@ type serviceParams struct {
 	ExecutorRegistry *executor.ExecutorRegistry
 	Stats            stats.Service
 	// Probes is provided by internal/app, with the probe module. A container without it has no
-	// probes but the local one, as an install on MongoDB does.
+	// probes but the local one.
 	Probes ProbeLookup `optional:"true"`
 	Logger *zap.SugaredLogger
 }

@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"peekaping/internal/config"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -58,10 +60,10 @@ func TestMain_TheProducerRefusesToStartOnSQLStorage(t *testing.T) {
 	}
 }
 
-// MongoDB has no probes (ADR 0001): its producer runs as it always did, so its config still
-// validates and its storage is not refused
-func TestCheckStorage_TheProducerStillRunsOnMongoDB(t *testing.T) {
-	for _, dbType := range []string{"mongo", "mongodb"} {
+// MongoDB storage was removed, so the producer refuses it with the error every binary gives. It
+// stops at its config, before it connects to anything.
+func TestLoadAndValidate_TheProducerRefusesMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MongoDB"} {
 		t.Run(dbType, func(t *testing.T) {
 			t.Setenv("DB_TYPE", dbType)
 			t.Setenv("DB_HOST", "mongo")
@@ -70,10 +72,10 @@ func TestCheckStorage_TheProducerStillRunsOnMongoDB(t *testing.T) {
 			t.Setenv("DB_USER", "peekaping")
 			t.Setenv("DB_PASS", "secret")
 
-			cfg, err := LoadAndValidate(t.TempDir())
+			_, err := LoadAndValidate(t.TempDir())
 
-			require.NoError(t, err, "the config validates as before")
-			assert.NoError(t, checkStorage(cfg))
+			require.ErrorIs(t, err, config.ErrMongoStorageRemoved)
+			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+": MongoDB storage was removed.")
 		})
 	}
 }

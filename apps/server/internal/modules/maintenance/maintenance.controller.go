@@ -8,7 +8,6 @@ import (
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
 
@@ -40,14 +39,6 @@ func (ic *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.
 
 	q := r.URL.Query().Get("q")
 	strategy := r.URL.Query().Get("strategy")
-
-	filter := bson.M{}
-	if q != "" {
-		filter["$or"] = bson.A{
-			bson.M{"title": bson.M{"$regex": q, "$options": "i"}},
-			bson.M{"description": bson.M{"$regex": q, "$options": "i"}},
-		}
-	}
 
 	entities, err := ic.service.FindAll(ctx, page, limit, q, strategy)
 	if err != nil {

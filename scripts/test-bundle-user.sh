@@ -9,13 +9,13 @@
 # PostgreSQL's own role and database as DB_USER and DB_NAME, and a first start
 # that fails once PostgreSQL runs.
 #
-# Usage: scripts/test-bundle-user.sh <sqlite|mongo|postgres> [image]
+# Usage: scripts/test-bundle-user.sh <sqlite|postgres> [image]
 # Without an image, it builds Dockerfile.bundle.<db> from the repo root. Set
 # BUNDLE_TEST_PREFIX to name the test containers something else.
 # Needs docker, curl and jq.
 set -u
 
-db=${1:?usage: $0 <sqlite|mongo|postgres> [image]}
+db=${1:?usage: $0 <sqlite|postgres> [image]}
 image=${2:-}
 root=$(cd "$(dirname "$0")/.." && pwd)
 prefix=${BUNDLE_TEST_PREFIX:-peekaping-bundle-test-$db}
@@ -23,10 +23,9 @@ socket=/var/run/docker.sock
 failures=0
 
 case "$db" in
-  sqlite | postgres) single=true ;;
-  mongo) single=false ;;
+  sqlite | postgres) ;;
   *)
-    echo "usage: $0 <sqlite|mongo|postgres> [image]"
+    echo "usage: $0 <sqlite|postgres> [image]"
     exit 2
     ;;
 esac
@@ -237,18 +236,10 @@ monitor_up() {
   return 1
 }
 
-if [ "$single" = true ]; then
-  services="peekaping"
-  root_procs="tini"
-  # Nothing of the old bundle may run
-  gone_procs="supervisord caddy redis-server api producer worker ingester"
-else
-  services="api producer worker ingester"
-  root_procs="supervisord caddy redis-server"
-  gone_procs=
-fi
+root_procs="tini"
+# Nothing of the old bundle may run
+gone_procs="supervisord caddy redis-server api producer worker ingester"
 case "$db" in
-  mongo) db_proc=mongod db_user=mongodb ;;
   postgres) db_proc=postgres db_user=postgres ;;
   *) db_proc= ;;
 esac
@@ -261,25 +252,17 @@ socket_args=()
 # The ${a[@]+...} form keeps bash 3.2 (macOS) from failing on an empty array under set -u.
 start "$prefix-default" -e SERVER_PORT=8034 -e REDIS_HOST=redis ${socket_args[@]+"${socket_args[@]}"}
 if check "starts and reports healthy" wait_healthy "$prefix-default"; then
-  for svc in $services; do
-    check "$svc runs as 1000:1000" eq "$(ids "$prefix-default" "$svc")" 1000:1000
-  done
+  check "peekaping runs as 1000:1000" eq "$(ids "$prefix-default" peekaping)" 1000:1000
   for proc in $root_procs; do
     check "$proc keeps running as root" eq "$(ids "$prefix-default" "$proc" | cut -d: -f1)" 0
   done
-  if [ -n "$gone_procs" ]; then
-    # shellcheck disable=SC2086 # a list of names
-    check "runs no supervisord, Caddy, Redis or cluster-mode services" runs_none "$prefix-default" $gone_procs
-  fi
+  # shellcheck disable=SC2086 # a list of names
+  check "runs no supervisord, Caddy, Redis or cluster-mode services" runs_none "$prefix-default" $gone_procs
   if [ -n "$db_proc" ]; then
     check "$db_proc keeps running as $db_user" eq \
       "$(ids "$prefix-default" "$db_proc" | cut -d: -f1)" "$(docker exec "$prefix-default" id -u "$db_user")"
   fi
-  if [ "$single" = true ]; then
-    check "peekaping can't write its binary" cant_write "$prefix-default" /app/server/peekaping
-  else
-    check "peekaping can't write the api binary" cant_write "$prefix-default" /app/server/api
-  fi
+  check "peekaping can't write its binary" cant_write "$prefix-default" /app/server/peekaping
   check "peekaping can't write the web assets" cant_write "$prefix-default" /app/web/index.html
   check "peekaping owns /app/data" eq "$(owner "$prefix-default" /app/data)" 1000:1000
   if [ "$db" = sqlite ]; then
@@ -289,47 +272,34 @@ if check "starts and reports healthy" wait_healthy "$prefix-default"; then
   # Remote probes reach the API through port 8383, whichever gateway the bundle runs
   check "port 8383 sends POST /probe/v1/hello to the API: 401 without a token, in JSON" \
     answers_probe_with_json_error "$prefix-default"
-  if [ "$single" = true ]; then
-    check "port 8383 serves the web app" serves "$prefix-default" / '<div id="root">'
-    check "port 8383 serves a client-side route with the web app" serves "$prefix-default" /monitors '<div id="root">'
-    check "port 8383 serves /env.js with the API on the same origin" serves "$prefix-default" /env.js 'API_URL: ""'
-    check "port 8383 serves the API" serves "$prefix-default" /api/v1/health '"status":"success"'
-    check "port 8383 serves the websocket" serves "$prefix-default" '/socket.io/?EIO=4&transport=polling' '"sid"'
-    check "peekaping listens on 8383, not on SERVER_PORT=8034" logs_mention "$prefix-default" '"Serving the API".*:8383'
-    check "the API is reachable as the e2e admin" login "$prefix-default"
-    check "a ping monitor to 127.0.0.1 is Up as non-root" monitor_up "$prefix-default" ping \
-      '{"host":"127.0.0.1","packet_size":32}'
-  fi
+  check "port 8383 serves the web app" serves "$prefix-default" / '<div id="root">'
+  check "port 8383 serves a client-side route with the web app" serves "$prefix-default" /monitors '<div id="root">'
+  check "port 8383 serves /env.js with the API on the same origin" serves "$prefix-default" /env.js 'API_URL: ""'
+  check "port 8383 serves the API" serves "$prefix-default" /api/v1/health '"status":"success"'
+  check "port 8383 serves the websocket" serves "$prefix-default" '/socket.io/?EIO=4&transport=polling' '"sid"'
+  check "peekaping listens on 8383, not on SERVER_PORT=8034" logs_mention "$prefix-default" '"Serving the API".*:8383'
+  check "the API is reachable as the e2e admin" login "$prefix-default"
+  check "a ping monitor to 127.0.0.1 is Up as non-root" monitor_up "$prefix-default" ping \
+    '{"host":"127.0.0.1","packet_size":32}'
   if [ -S "$socket" ]; then
     socket_gid=$(docker exec "$prefix-default" stat -c %g "$socket")
-    for svc in $services; do
-      if [ "$svc" = peekaping ] || [ "$svc" = worker ]; then
-        check "$svc has the Docker socket's group ($socket_gid)" has_word "$(groups_of "$prefix-default" "$svc")" "$socket_gid"
-      fi
-    done
-    if [ "$single" = true ]; then
-      check "a Docker monitor on its own container is Up" monitor_up "$prefix-default" docker \
-        "{\"container_id\":\"$prefix-default\",\"connection_type\":\"socket\",\"docker_daemon\":\"$socket\"}"
-    else
-      check "peekaping can use the Docker socket" eq \
-        "$(docker exec -u peekaping "$prefix-default" curl -s -o /dev/null -w '%{http_code}' --unix-socket "$socket" http://docker/_ping)" 200
-    fi
+    check "peekaping has the Docker socket's group ($socket_gid)" has_word "$(groups_of "$prefix-default" peekaping)" "$socket_gid"
+    check "a Docker monitor on its own container is Up" monitor_up "$prefix-default" docker \
+      "{\"container_id\":\"$prefix-default\",\"connection_type\":\"socket\",\"docker_daemon\":\"$socket\"}"
     check "no Docker socket warning" logs_lack "$prefix-default" "Docker monitors can't use"
   else
     echo "skip - no $socket on this host, so the Docker socket checks didn't run"
   fi
-  if [ "$single" = true ]; then
-    docker stop -t 40 "$prefix-default" >/dev/null
-    check "docker stop exits 0" eq "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-default")" 0
-    if [ "$db" = postgres ]; then
-      check "docker stop stops peekaping, then PostgreSQL" logs_in_order "$prefix-default" \
-        "Shutdown signal received" "Closed the database" "Peekaping stopped" "Stopping PostgreSQL" \
-        "database system is shut down"
-    else
-      check "docker stop shuts peekaping down in order" logs_in_order "$prefix-default" \
-        "Shutdown signal received" "Stopped the HTTP server" "Closed the event bus" "Closed the database" \
-        "Peekaping stopped"
-    fi
+  docker stop -t 40 "$prefix-default" >/dev/null
+  check "docker stop exits 0" eq "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-default")" 0
+  if [ "$db" = postgres ]; then
+    check "docker stop stops peekaping, then PostgreSQL" logs_in_order "$prefix-default" \
+      "Shutdown signal received" "Closed the database" "Peekaping stopped" "Stopping PostgreSQL" \
+      "database system is shut down"
+  else
+    check "docker stop shuts peekaping down in order" logs_in_order "$prefix-default" \
+      "Shutdown signal received" "Stopped the HTTP server" "Closed the event bus" "Closed the database" \
+      "Peekaping stopped"
   fi
 fi
 docker rm -f "$prefix-default" >/dev/null
@@ -337,9 +307,7 @@ docker rm -f "$prefix-default" >/dev/null
 echo "# PUID=1500 PGID=1600"
 start "$prefix-ids" -e PUID=1500 -e PGID=1600
 if check "starts and reports healthy" wait_healthy "$prefix-ids"; then
-  for svc in $services; do
-    check "$svc runs as 1500:1600" eq "$(ids "$prefix-ids" "$svc")" 1500:1600
-  done
+  check "peekaping runs as 1500:1600" eq "$(ids "$prefix-ids" peekaping)" 1500:1600
   check "1500:1600 owns /app/data" eq "$(owner "$prefix-ids" /app/data)" 1500:1600
   if [ "$db" = sqlite ]; then
     check "1500:1600 owns the SQLite database" eq "$(owner "$prefix-ids" /app/data/peekaping.db)" 1500:1600
@@ -368,16 +336,14 @@ start "$prefix-shadow-gid" -e PGID=42
 check "PGID=42 (the shadow group, which can read /etc/shadow) stops the container" wait_exited "$prefix-shadow-gid"
 check "PGID=42 is named in the error" logs_mention "$prefix-shadow-gid" "PGID 42 is already used"
 
-if [ "$single" = true ]; then
-  echo "# PUID=405 PGID=999, IDs Alpine gives users and groups nothing in the image uses"
-  # Alpine's guest user and ping group, which nothing in the image uses. Debian,
-  # which earlier bundles and the PostgreSQL bundle run on, has neither ID.
-  start "$prefix-free-ids" -e PUID=405 -e PGID=999
-  if check "starts and reports healthy" wait_healthy "$prefix-free-ids"; then
-    check "peekaping runs as 405:999" eq "$(ids "$prefix-free-ids" peekaping)" 405:999
-  fi
-  docker rm -f "$prefix-free-ids" >/dev/null
+echo "# PUID=405 PGID=999, IDs Alpine gives users and groups nothing in the image uses"
+# Alpine's guest user and ping group, which nothing in the image uses. Debian,
+# which earlier bundles and the PostgreSQL bundle run on, has neither ID.
+start "$prefix-free-ids" -e PUID=405 -e PGID=999
+if check "starts and reports healthy" wait_healthy "$prefix-free-ids"; then
+  check "peekaping runs as 405:999" eq "$(ids "$prefix-free-ids" peekaping)" 405:999
 fi
+docker rm -f "$prefix-free-ids" >/dev/null
 
 echo "# A Docker socket its group can't use"
 # A stand-in socket, mode 600, so the user's new group gives no access.
@@ -416,41 +382,39 @@ if check "starts and reports healthy" wait_healthy "$prefix-ping"; then
   check "startup warns about ping_group_range" logs_mention "$prefix-ping" "net.ipv4.ping_group_range"
 fi
 
-if [ "$single" = true ]; then
-  echo "# docker run --user 1500:1600"
-  # The user owns the data volume, as the docs ask
-  if [ "$db" = sqlite ]; then
-    data_dir=/app/data
-  else
-    data_dir=/var/lib/postgresql/data
+echo "# docker run --user 1500:1600"
+# The user owns the data volume, as the docs ask
+if [ "$db" = sqlite ]; then
+  data_dir=/app/data
+else
+  data_dir=/var/lib/postgresql/data
+fi
+start "$prefix-user" --user 1500:1600 --tmpfs "$data_dir:uid=1500,gid=1600,mode=0700"
+if check "starts and reports healthy" wait_healthy "$prefix-user"; then
+  check "peekaping runs as 1500:1600" eq "$(ids "$prefix-user" peekaping)" 1500:1600
+  if [ -n "$db_proc" ]; then
+    check "$db_proc runs as 1500:1600" eq "$(ids "$prefix-user" "$db_proc")" 1500:1600
   fi
-  start "$prefix-user" --user 1500:1600 --tmpfs "$data_dir:uid=1500,gid=1600,mode=0700"
-  if check "starts and reports healthy" wait_healthy "$prefix-user"; then
-    check "peekaping runs as 1500:1600" eq "$(ids "$prefix-user" peekaping)" 1500:1600
-    if [ -n "$db_proc" ]; then
-      check "$db_proc runs as 1500:1600" eq "$(ids "$prefix-user" "$db_proc")" 1500:1600
-    fi
-    check "startup says PUID and PGID don't apply" logs_mention "$prefix-user" "docker run --user"
-    docker stop -t 40 "$prefix-user" >/dev/null
-    check "docker stop exits 0" eq "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-user")" 0
-  fi
+  check "startup says PUID and PGID don't apply" logs_mention "$prefix-user" "docker run --user"
+  docker stop -t 40 "$prefix-user" >/dev/null
+  check "docker stop exits 0" eq "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-user")" 0
+fi
 
-  echo "# Ctrl+C under docker run -it"
-  start "$prefix-ctrl-c" -it
-  if check "starts and reports healthy" wait_healthy "$prefix-ctrl-c"; then
-    check "the terminal's foreground process group takes SIGINT" ctrl_c "$prefix-ctrl-c"
-    check "Ctrl+C stops the container" wait_exited "$prefix-ctrl-c"
-    check "Ctrl+C exits 0" eq "$(exit_code "$prefix-ctrl-c")" 0
-    check "peekaping takes one shutdown signal" logs_lack "$prefix-ctrl-c" "Second shutdown signal"
-    if [ "$db" = postgres ]; then
-      # PostgreSQL takes its shutdown request from the startup script, once peekaping has stopped
-      check "Ctrl+C stops peekaping, then PostgreSQL" logs_in_order "$prefix-ctrl-c" \
-        "Shutdown signal received" "Closed the database" "Peekaping stopped" "Stopping PostgreSQL" \
-        "received fast shutdown request" "database system is shut down"
-    else
-      check "Ctrl+C shuts peekaping down in order" logs_in_order "$prefix-ctrl-c" \
-        "Shutdown signal received" "Closed the database" "Peekaping stopped"
-    fi
+echo "# Ctrl+C under docker run -it"
+start "$prefix-ctrl-c" -it
+if check "starts and reports healthy" wait_healthy "$prefix-ctrl-c"; then
+  check "the terminal's foreground process group takes SIGINT" ctrl_c "$prefix-ctrl-c"
+  check "Ctrl+C stops the container" wait_exited "$prefix-ctrl-c"
+  check "Ctrl+C exits 0" eq "$(exit_code "$prefix-ctrl-c")" 0
+  check "peekaping takes one shutdown signal" logs_lack "$prefix-ctrl-c" "Second shutdown signal"
+  if [ "$db" = postgres ]; then
+    # PostgreSQL takes its shutdown request from the startup script, once peekaping has stopped
+    check "Ctrl+C stops peekaping, then PostgreSQL" logs_in_order "$prefix-ctrl-c" \
+      "Shutdown signal received" "Closed the database" "Peekaping stopped" "Stopping PostgreSQL" \
+      "received fast shutdown request" "database system is shut down"
+  else
+    check "Ctrl+C shuts peekaping down in order" logs_in_order "$prefix-ctrl-c" \
+      "Shutdown signal received" "Closed the database" "Peekaping stopped"
   fi
 fi
 

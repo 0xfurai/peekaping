@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/config"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest/observer"
@@ -37,30 +39,31 @@ func TestRun_TheWorkerLogsThatItHasNoWorkLeftOnSQLStorage(t *testing.T) {
 }
 
 // The worker has no database, so it reads no DB_TYPE unless the install passes one. Without it, the
-// worker says what is true on any storage.
-func TestRun_TheWorkerWithNoStorageSaysItHasWorkOnMongoDBOnly(t *testing.T) {
+// worker says it has no work left without naming a storage.
+func TestRun_TheWorkerWithNoStorageSaysItHasNoWorkLeft(t *testing.T) {
 	cfg, _ := loadConfig(t, nil)
 	logger, logs := observedLogger()
 
 	in := startWorker(t, cfg, logger)
 	serving(t, logs)
 
-	notices := logs.FilterMessageSnippet("work only on MongoDB storage").All()
+	notices := logs.FilterMessageSnippet("has no work left").All()
 	require.Len(t, notices, 1)
-	assert.Contains(t, notices[0].Message, "no work left")
+	assert.NotContains(t, notices[0].Message, "DB_TYPE")
+	assert.Contains(t, notices[0].Message, "https://docs.peekaping.com/self-hosting/upgrading-to-probes")
 	assert.NoError(t, in.stop(t))
 }
 
-// MongoDB has no probes (ADR 0001): its worker runs the checks as it always did, and says nothing
-// about its job
-func TestRun_TheWorkerOnMongoDBStorageSaysNothingAboutItsJob(t *testing.T) {
-	cfg, _ := loadConfig(t, map[string]string{"DB_TYPE": "mongo"})
-	logger, logs := observedLogger()
+// MongoDB storage was removed, so a worker that is told it refuses it, as every binary does
+func TestLoadAndValidate_TheWorkerRefusesMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MongoDB"} {
+		t.Run(dbType, func(t *testing.T) {
+			t.Setenv("DB_TYPE", dbType)
 
-	in := startWorker(t, cfg, logger)
-	serving(t, logs)
+			_, err := LoadAndValidate(t.TempDir())
 
-	assert.Zero(t, logs.FilterMessageSnippet("no work left").Len())
-	assert.Zero(t, logs.FilterMessageSnippet("work only on MongoDB").Len())
-	assert.NoError(t, in.stop(t))
+			require.ErrorIs(t, err, config.ErrMongoStorageRemoved)
+			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+": MongoDB storage was removed.")
+		})
+	}
 }

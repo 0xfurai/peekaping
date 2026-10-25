@@ -39,7 +39,7 @@ If you need to run migrations manually outside of Docker:
    ./bun db rollback
    ```
 
-5. **Import a MongoDB install** into a SQLite or PostgreSQL database that holds no data of its own, which `DB_TYPE` and the other `DB_*` variables name:
+5. **Import a MongoDB install** (MongoDB storage was removed) into a SQLite or PostgreSQL database that holds no data of its own, which `DB_TYPE` and the other `DB_*` variables name:
    ```bash
    ./bun db import-mongo --mongo-uri mongodb://localhost:27017 --mongo-db peekaping
    ```

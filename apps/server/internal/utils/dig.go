@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"peekaping/internal/config"
 	"reflect"
 	"runtime"
 
@@ -33,17 +32,4 @@ func constructorName(constructor interface{}) string {
 		return fn.Name()
 	}
 	return value.Type().String()
-}
-
-// RegisterRepositoryByDBType registers the appropriate repository based on database type
-// sqlRepoConstructor: constructor function for SQL repositories (e.g., NewSQLRepository)
-// mongoRepoConstructor: constructor function for MongoDB repositories (e.g., NewMongoRepository)
-func RegisterRepositoryByDBType(container *dig.Container, cfg *config.Config, sqlRepoConstructor, mongoRepoConstructor interface{}) error {
-	switch cfg.DBType {
-	case "postgres", "postgresql", "mysql", "sqlite":
-		return Provide(container, sqlRepoConstructor)
-	case "mongo":
-		return Provide(container, mongoRepoConstructor)
-	}
-	return nil
 }

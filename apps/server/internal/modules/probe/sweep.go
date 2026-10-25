@@ -2,11 +2,9 @@ package probe
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"peekaping/internal/config"
@@ -33,8 +31,7 @@ const (
 
 // SweepConfig is what a Sweep reads and calls
 type SweepConfig struct {
-	// Repo is where the probes and their instances are. A MongoDB install's repository answers
-	// ErrUnsupportedStorage, which stops the sweep.
+	// Repo is where the probes and their instances are
 	Repo     Repository
 	EventBus events.EventBus
 	// OfflineAfter is how long an online probe's instances may all go unseen before the probe is
@@ -79,7 +76,7 @@ type SweepConfig struct {
 // pass goes on meanwhile.
 //
 // Only one sweep should run at a time: cluster mode runs it on the api replica that holds the
-// leader lock (the leader producer, on MongoDB, which has no probes and so nothing to sweep).
+// leader lock.
 type Sweep struct {
 	repo         Repository
 	eventBus     events.EventBus
@@ -91,9 +88,6 @@ type Sweep struct {
 	now          func() time.Time
 	silent       *SilentWatch
 	logger       *zap.SugaredLogger
-
-	// warned is set once the sweep has said that it has nothing to do on this storage backend
-	warned atomic.Bool
 
 	mu sync.Mutex // one pass at a time; guards online and termStart
 	// online is the ids of each probe's online instances as of the last pass
@@ -166,8 +160,7 @@ func NewSweep(cfg SweepConfig) *Sweep {
 	return s
 }
 
-// Run sweeps every interval until ctx is done. On a MongoDB install, which has no probes, it
-// warns once and returns.
+// Run sweeps every interval until ctx is done
 func (s *Sweep) Run(ctx context.Context) {
 	// The last pass of an earlier run says nothing about the instances now
 	s.BeginTerm()
@@ -182,12 +175,6 @@ func (s *Sweep) Run(ctx context.Context) {
 			return
 		case <-ticker.C:
 			err := s.sweepOnce(ctx)
-			if errors.Is(err, ErrUnsupportedStorage) {
-				if s.warned.CompareAndSwap(false, true) {
-					s.logger.Warn("Probes need SQLite or PostgreSQL storage: not looking for offline probes")
-				}
-				return
-			}
 			if err != nil && ctx.Err() == nil {
 				s.logger.Errorw("Probe sweep failed", "error", err)
 			}

@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe"
@@ -21,9 +20,6 @@ func provideProbeLookup(probes probe.Service) monitor.ProbeLookup {
 
 func (l *probeLookup) FindProbe(ctx context.Context, id string) (*monitor.ProbeInfo, error) {
 	found, err := l.probes.FindByID(ctx, id)
-	if errors.Is(err, probe.ErrUnsupportedStorage) {
-		return nil, monitor.ErrNoProbes
-	}
 	if err != nil || found == nil {
 		return nil, err
 	}
@@ -42,10 +38,6 @@ func provideStaleProbeLookup(probes probe.Service) stale.ProbeLookup {
 
 func (l *staleProbeLookup) FindProbe(ctx context.Context, id string) (*stale.ProbeInfo, error) {
 	found, err := l.probes.FindByID(ctx, id)
-	if errors.Is(err, probe.ErrUnsupportedStorage) {
-		// An install without probes has none to find
-		return nil, nil
-	}
 	if err != nil || found == nil {
 		return nil, err
 	}

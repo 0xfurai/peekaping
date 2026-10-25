@@ -9,7 +9,7 @@ argument-hint: "PP-<n> | <pr>..."
 
 Start with [setup](../ticket/SETUP.md). The PRs are the ticket's open PRs, or the ones named; a PR whose base is another open PR's branch belongs to the same stack.
 
-Reviewers here are CodeRabbit (automatic, minutes after each push) and the user (whenever they get to it). CI is `test.yml` (server tests, web lint and build), `test-import-mongo.yml` and `playwright.yml` (e2e on three databases), on PRs into `main` only. `test` and CodeRabbit report within about ten minutes, e2e in 15 to 35; Codecov posts `codecov/patch` and `codecov/project` after each of `test` and `import-mongo` uploads coverage; `pr-wait.sh` reports them only once both are done, since a result from one upload compares half the coverage with `main`'s whole. A push cancels the PR's runs still in progress.
+Reviewers here are CodeRabbit (automatic, minutes after each push) and the user (whenever they get to it). CI is `test.yml` (server tests, web lint and build), `test-import-mongo.yml` and `playwright.yml` (e2e on two databases), on PRs into `main` only. `test` and CodeRabbit report within about ten minutes, e2e in 15 to 35; Codecov posts `codecov/patch` and `codecov/project` after each of `test` and `import-mongo` uploads coverage; `pr-wait.sh` reports them only once both are done, since a result from one upload compares half the coverage with `main`'s whole. A push cancels the PR's runs still in progress.
 
 ## Scripts
 
@@ -83,12 +83,12 @@ Where items live in `pr-state.sh` output:
 
 ## Coverage
 
-Codecov fails `codecov/patch` when under 70% of the PR's changed lines run in CI's tests, and `codecov/project` when the whole project's coverage drops more than 1% (`codecov.yml`). `pr-state.sh` leaves out `codecov/project` on a stacked PR: Codecov compares it with a stale commit of its base branch. CI runs the server tests on SQLite only, so code that runs only on Postgres or Mongo never counts as covered there.
+Codecov fails `codecov/patch` when under 70% of the PR's changed lines run in CI's tests, and `codecov/project` when the whole project's coverage drops more than 1% (`codecov.yml`). `pr-state.sh` leaves out `codecov/project` on a stacked PR: Codecov compares it with a stale commit of its base branch. CI runs the server tests on SQLite only, so code that runs only on Postgres never counts as covered there.
 
 While `test` or `import-mongo` is pending or failed, or Codecov hasn't posted since the last of them finished (it takes a minute or two to process an upload), a Codecov failure compares a partial upload, and `pr-wait.sh` holds it back: leave it, even though `pr-state.sh` lists it. Then run `pr-coverage.sh <pr>` and sort each file's `missed` and `partial` lines:
 
 - **Reachable from a test on SQLite**: an agent ([DELEGATE.md](../ticket/DELEGATE.md)) adds the test, on the behaviour those lines carry, not on the line count. Brief it with the PR, the files and line numbers, and [TESTING.md](../ticket/TESTING.md).
-- **Runs only on Postgres or Mongo** (`*.mongo.repository.go`, a dialect branch): covered by the real-database checks of [TESTING.md](../ticket/TESTING.md). Run them if this round's diff touched the file.
+- **Runs only on Postgres** (a dialect branch): covered by the real-database checks of [TESTING.md](../ticket/TESTING.md). Run them if this round's diff touched the file.
 - **Not worth a test**: a defensive branch nothing reaches, or a wrapped error from a call that doesn't fail in tests. Leave it.
 
 Then post one PR comment: the patch coverage Codecov reported, the tests you added, the files whose lines you left and why, and which real-database checks you ran. Don't reply to Codecov's own comment. A `codecov/project` drop on a PR into `main` comes from new uncovered code, which the files list shows, or from tests the PR deleted or narrowed, which it doesn't: the lines those tests covered are in files the PR didn't change. Read the PR's test changes before anything else, and restore the coverage like a patch failure. A drop neither explains, often several percent with `lines` in the head's totals far from `main`'s, is Codecov merging a different set of uploads for the head than for `main` (tracker #237): say so in the comment and ignore the check. After your push, Codecov reports again for the new head, and a check that still fails only on the lines you explained gets `--ignore codecov/patch` (or `codecov/project`) on the next wait.

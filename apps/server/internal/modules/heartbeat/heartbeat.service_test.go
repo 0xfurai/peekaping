@@ -25,9 +25,6 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -93,24 +90,6 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, b backend)) {
 	}
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
-		cfg := &config.Config{DBName: "heartbeat_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		bus := eventstest.NewBus()
-		fn(t, backend{heartbeat.NewService(heartbeat.NewMongoRepository(client, cfg), bus, zap.NewNop().Sugar()), bus, primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex()})
-	})
 }
 
 // heartbeat records a heartbeat now. The pause keeps the times of the
@@ -164,7 +143,7 @@ func TestCreateStoresTheHeartbeatAndPublishesIt(t *testing.T) {
 	})
 }
 
-// A heartbeat is stored at the time its check started, as Mongo stores it, so that a result that
+// A heartbeat is stored at the time its check started, so that a result that
 // arrives late, such as a probe's buffered one, lands where it belongs in the monitor's history.
 // Only a heartbeat with no time is stamped with the insert time.
 func TestSQLRepository_CreateKeepsAGivenTime(t *testing.T) {

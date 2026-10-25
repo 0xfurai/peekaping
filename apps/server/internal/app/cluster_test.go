@@ -177,8 +177,8 @@ func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
 	}))
 }
 
-// On MongoDB the producer elects the leader, and runs the sweep beside the watchdog, and sends its
-// events over the cluster's bus
+// The producer, which is on its way out, runs the sweep beside the watchdog, and sends its events
+// over the cluster's bus
 func TestRegisterClusterProducer_ResolvesTheProbeSweep(t *testing.T) {
 	producerContainer := dig.New()
 	require.NoError(t, RegisterClusterProducer(producerContainer, clusterConfig(t)))
@@ -258,21 +258,28 @@ func TestRegisterClusterAPI_TheSilentWatchCountsTheActiveMonitorsThatNeedAnInsta
 	}))
 }
 
-// A MongoDB install's producer runs them: an api replica that contested the lock could win it from
-// the producer, and then nothing would schedule the checks
-func TestRegisterClusterAPI_ProvidesNoLeaderJobsOnMongoStorage(t *testing.T) {
-	for _, dbType := range []string{"mongo", "mongodb"} {
-		t.Run(dbType, func(t *testing.T) {
-			cfg := clusterConfig(t)
-			cfg.DBType = dbType
-			container := dig.New()
-			require.NoError(t, RegisterClusterAPI(container, cfg))
+// AC1: MongoDB storage was removed, so no binary's graph is built on it, whatever binary it is and
+// whether or not its config was validated
+func TestRegister_RefusesMongoStorage(t *testing.T) {
+	registers := map[string]func(*dig.Container, *config.Config) error{
+		"Register":                Register,
+		"RegisterSingle":          RegisterSingle,
+		"RegisterClusterAPI":      RegisterClusterAPI,
+		"RegisterClusterProducer": RegisterClusterProducer,
+		"RegisterClusterIngester": RegisterClusterIngester,
+	}
+	for name, register := range registers {
+		for _, dbType := range []string{"mongo", "mongodb", "MongoDB"} {
+			t.Run(name+" "+dbType, func(t *testing.T) {
+				cfg := clusterConfig(t)
+				cfg.DBType = dbType
 
-			assert.Error(t, container.Invoke(func(*LeaderJobs) {}), "no jobs under the leader lock")
-			assert.Error(t, container.Invoke(func(*leader.Elector) {}), "and no election")
-			assert.Error(t, container.Invoke(func(*probe.Sweep) {}), "and no sweep")
-			assert.Error(t, container.Invoke(func(*probe.SilentWatch) {}), "and nothing to find a local probe with no instance: the producer, worker and ingester check")
-		})
+				err := register(dig.New(), cfg)
+
+				require.ErrorIs(t, err, config.ErrMongoStorageRemoved)
+				assert.ErrorContains(t, err, "DB_TYPE="+dbType+": MongoDB storage was removed.")
+			})
+		}
 	}
 }
 

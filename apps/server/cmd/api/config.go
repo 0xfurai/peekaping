@@ -97,8 +97,8 @@ type Config struct {
 
 	// How long an online probe's instances may all go unseen before the probe counts as offline.
 	// A Go duration, from config.MinProbeOfflineAfter to config.MaxProbeOfflineAfter. The sweep that
-	// sets the probe offline runs on the api replica that holds the leader lock (on SQLite and
-	// PostgreSQL; MongoDB has no probes). Validated in Validate().
+	// sets the probe offline runs on the api replica that holds the leader lock. Validated in
+	// Validate().
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 }
 
@@ -118,6 +118,11 @@ func LoadAndValidate(path string) (*Config, error) {
 
 // Validate validates the API service configuration
 func Validate(cfg *Config) error {
+	// MongoDB storage was removed, and the db_type validator below would only call the value invalid
+	if err := config.RefuseMongoStorage(cfg.DBType); err != nil {
+		return err
+	}
+
 	// Validate using struct tags
 	v := validator.New()
 	config.RegisterCustomValidators(v)

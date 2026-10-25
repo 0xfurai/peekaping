@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
-	"go.uber.org/dig"
 )
 
 type probeInstanceResponse struct {
@@ -345,32 +344,6 @@ func TestProbesAPI_NeedsCredentials(t *testing.T) {
 		})
 	}
 	assert.Len(t, decode[[]probeResponse](t, a.request(t, http.MethodGet, probesPath, nil, a.asAdmin), http.StatusOK), 1)
-}
-
-// A MongoDB install has no probes (ADR 0001): it lists none, and answers every other probe route
-// with 501.
-func TestProbesAPI_MongoInstallListsNoProbesAndRefusesTheRest(t *testing.T) {
-	a := newAppDecorated(t, func(c *dig.Container) error {
-		return c.Decorate(func() probe.Repository { return probe.NewUnsupportedRepository() })
-	})
-	a.registerAdmin(t)
-	path := probesPath + "/local"
-
-	assert.Equal(t, []probeResponse{}, decode[[]probeResponse](t, a.request(t, http.MethodGet, probesPath, nil, a.asAdmin), http.StatusOK))
-
-	for _, c := range []call{
-		{"create", http.MethodPost, probesPath, map[string]any{"name": "Paris"}},
-		{"get", http.MethodGet, path, nil},
-		{"update", http.MethodPut, path, map[string]any{"name": "Paris"}},
-		{"delete", http.MethodDelete, path, nil},
-		{"rotate", http.MethodPost, path + "/rotate-token", nil},
-	} {
-		t.Run(c.name, func(t *testing.T) {
-			w := a.request(t, c.method, c.path, c.body, a.asAdmin)
-			assert.Equal(t, http.StatusNotImplemented, w.Code, w.Body.String())
-			assert.Equal(t, "probes need SQLite or PostgreSQL storage", errorMessage(t, w.Body.Bytes()))
-		})
-	}
 }
 
 func TestProbes_DeleteWithMonitorsAnswers409(t *testing.T) {

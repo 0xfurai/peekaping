@@ -82,7 +82,7 @@ var statTables = map[StatPeriod]string{
 	StatDaily:    "stat_daily",
 }
 
-// statTable returns the table expression for period, like the Mongo repository's getStatCollection.
+// statTable returns the table expression for period
 func statTable(period StatPeriod) string {
 	table, ok := statTables[period]
 	if !ok {

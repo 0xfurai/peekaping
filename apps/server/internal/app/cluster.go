@@ -36,39 +36,26 @@ const sqliteClusterDocsURL = "https://docs.peekaping.com/self-hosting/docker-wit
 // notification events from the notification queue, which gives each to one replica, with its own
 // asynq server.
 //
-// On SQLite and PostgreSQL the probes run the checks, so the api does the rest. It stores what it
-// takes, a push to a push URL or the results of a probe, through ingest.NewInOrderService on the
-// replica that took the request, as single mode does (see ingestOnTheAPI), and aggregates the stats
-// of the heartbeats it stored. And it has the jobs the producer ran: the stale-monitor watchdog and
-// the probe sweep, which run on the one replica that holds the leader lock (LeaderJobs).
-//
-// On MongoDB, which has no probes (ADR 0001), the producer, the worker and the ingester still run
-// the checks and store their results, and the api only enqueues what it takes for the ingester.
+// The probes run the checks, so the api does the rest. It stores what it takes, a push to a push
+// URL or the results of a probe, through ingest.NewInOrderService on the replica that took the
+// request, as single mode does (see ingestOnTheAPI), and aggregates the stats of the heartbeats it
+// stored. And it has the jobs the producer ran: the stale-monitor watchdog and the probe sweep,
+// which run on the one replica that holds the leader lock (LeaderJobs).
 func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
-	mongo := config.IsMongoDBType(cfg.DBType)
-	eventBus := any(provideAPIEventBus)
-	if mongo {
-		eventBus = provideClusterEventBus
-	}
 	return errors.Join(
-		registerCluster(container, cfg, eventBus),
+		registerCluster(container, cfg, provideAPIEventBus),
 		utils.Provide(container,
 			infra.ProvideNotificationAsynqServer,
 			notification_channel.NewQueueConsumer,
 			provideClusterClaimer,
 		),
-		registerAPIStorage(container, mongo),
+		registerAPIStorage(container),
 		warnAboutSQLite(container, cfg),
 	)
 }
 
-// registerAPIStorage provides what the api does with the storage backend it runs on: on MongoDB,
-// which has no probes, it enqueues a push for the ingester, and the producer elects the leader that
-// runs the watchdog and the sweep; on SQLite and PostgreSQL it ingests, and runs the leader jobs.
-func registerAPIStorage(container *dig.Container, mongo bool) error {
-	if mongo {
-		return utils.Provide(container, ingester.NewPushQueueService)
-	}
+// registerAPIStorage provides what the api does with its storage: it ingests, and runs the leader jobs
+func registerAPIStorage(container *dig.Container) error {
 	return utils.Provide(container,
 		ingester.ProvideLocationStore,
 		provideInOrderIngester,
@@ -120,7 +107,7 @@ type clusterWatchdogParams struct {
 }
 
 // config is the watchdog's configuration. Probes is what lets a stale monitor's notification name
-// the probes that don't run its type, as single mode's and the MongoDB producer's do.
+// the probes that don't run its type, as single mode's does.
 func (p clusterWatchdogParams) config() stale.WatchdogConfig {
 	return stale.WatchdogConfig{
 		Store:        p.Store,
@@ -157,11 +144,10 @@ func provideClusterClaimer(client *redis.Client) telemetry.Claimer {
 	return telemetry.NewRedisClaimer(client)
 }
 
-// RegisterClusterProducer provides what cmd/producer runs on MongoDB, the only storage it still
-// runs on: the producer, which schedules the checks and enqueues them for the worker while it is
-// the leader, and its stale-monitor watchdog and the sweep that sets silent probes offline, which
-// run beside it. On SQLite and PostgreSQL the api runs the watchdog and the sweep, and the probes
-// run the checks.
+// RegisterClusterProducer provides what cmd/producer runs: the producer, which schedules the checks
+// and enqueues them for the worker while it is the leader, and its stale-monitor watchdog and the
+// sweep that sets silent probes offline, which run beside it. No storage backend runs it any more:
+// the api runs the watchdog and the sweep, and the probes run the checks.
 func RegisterClusterProducer(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
 		registerCluster(container, cfg, provideClusterEventBus),
@@ -232,21 +218,15 @@ func registerCluster(container *dig.Container, cfg *config.Config, eventBus any)
 		provideClusterMode,
 		provideClusterSwitch,
 		provideClusterWindow,
-		provideClusterLocalProbe(cfg),
+		provideClusterLocalProbe,
 	)
 }
 
-// provideClusterLocalProbe provides how the local probe is known to be online in the cluster. On
-// SQLite and PostgreSQL no process of Peekaping's own runs checks: peekaping-probe instances
-// started with the local probe's token (PROBE_BOOTSTRAP_TOKEN) do, so the local probe is online
-// while one of them is connected, like a remote probe. On MongoDB, which has no probes, the
-// producer, worker and ingester still run the checks, and the local probe is never offline.
-func provideClusterLocalProbe(cfg *config.Config) func() shared.LocalProbeLiveness {
-	if config.IsMongoDBType(cfg.DBType) {
-		return func() shared.LocalProbeLiveness { return shared.LocalProbeIsTheProcess }
-	}
-	return func() shared.LocalProbeLiveness { return shared.LocalProbeIsItsInstances }
-}
+// provideClusterLocalProbe provides how the local probe is known to be online in the cluster. No
+// process of Peekaping's own runs checks there: peekaping-probe instances started with the local
+// probe's token (PROBE_BOOTSTRAP_TOKEN) do, so the local probe is online while one of them is
+// connected, like a remote probe.
+func provideClusterLocalProbe() shared.LocalProbeLiveness { return shared.LocalProbeIsItsInstances }
 
 // provideClusterWindow provides the duplicate window of the probe protocol's results route in
 // Redis, so that the API replicas share it: a batch retried on another replica finds the ids of the

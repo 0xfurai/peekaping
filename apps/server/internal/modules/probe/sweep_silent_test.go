@@ -170,7 +170,7 @@ func TestSweep_TheLocalProbeComesBackAndGoesOfflineAsAnyProbeDoes(t *testing.T) 
 	assert.Len(t, f.offlineEvents(), 2)
 }
 
-// Single mode and the MongoDB cluster are the process itself: nothing is watched
+// Single mode is the process itself: nothing is watched
 func TestSweep_WithNoSilentWatchTheLocalProbeIsLeftAlone(t *testing.T) {
 	f := newSweepFixture(t)
 	f.clock.Advance(time.Hour)

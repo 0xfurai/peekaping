@@ -77,7 +77,7 @@ func (s *ServiceImpl) ResolveMonitorID(ctx context.Context, id string) string {
 		return id
 	}
 	// The lookup of the ObjectID may fail instead of finding nothing: PostgreSQL
-	// rejects it as a UUID. A MongoDB install finds its monitor here and stops.
+	// rejects it as a UUID.
 	if found, err := s.monitorService.FindByID(ctx, id); err == nil && found != nil {
 		return id
 	}
