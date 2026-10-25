@@ -918,7 +918,7 @@
         "authentication_token_description": "Valinnainen autentikointitunniste lisäturvallisuuden takaamiseksi. Tämä lähetetään pagertree-token-otsakkeen.",
         "authentication_token_label": "Todennusmerkki (Valinnainen)",
         "authentication_token_placeholder": "Syötä valtuutusmerkki, jos se on vaadittu",
-        "auto_resolve_alerts_description": "Poista PagerTree-hälytykset automaattisesti, kun valvonta palautuu tai luotain on taas verkossa",
+        "auto_resolve_alerts_description": "Ratkaise PagerTree-hälytykset automaattisesti, kun valvonta palautuu tai luotain on taas verkossa",
         "auto_resolve_alerts_label": "Ilmoitusten automaattinen ratkaisu",
         "how_to_get_integration_url_label": "Kuinka saada integraation URL",
         "integration_url_description": "Syötä PagerTree-webhook‑integraation URL-osoite.",
