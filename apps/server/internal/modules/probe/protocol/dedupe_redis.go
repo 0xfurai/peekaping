@@ -18,19 +18,26 @@ const (
 )
 
 // redisWindow is the window of cluster mode, shared by the API replicas through Redis: a claim is
-// SET NX of the id's key with the window's hour as its TTL, and a release is DEL. Redis decides
-// which of any number of claims at once wins, and when the hour is out, so the replicas need
-// agree on nothing but the Redis.
+// SET NX of the id's key with ClaimTTL as its TTL, keeping it is SET of the key with the window's
+// hour, and a release is DEL. Redis decides which of any number of claims at once wins, and when
+// each runs out, so the replicas need agree on nothing but the Redis.
+//
+// A claim is short because the request that made it may die, and then nothing gives it back: the
+// key would stand for the hour, and the probe's retry on another replica would be answered
+// duplicate, which the probe drops for good. The request keeps its ids once the results are stored.
 type redisWindow struct {
 	client *redis.Client
-	ttl    time.Duration
+	// claimTTL is how long a claim stands that is neither kept nor released
+	claimTTL time.Duration
+	// ttl is how long a kept id stands
+	ttl time.Duration
 }
 
 var _ Window = (*redisWindow)(nil)
 
 // NewRedisWindow is cluster mode's window, in the Redis the API replicas share
 func NewRedisWindow(client *redis.Client) Window {
-	return &redisWindow{client: client, ttl: acceptedTTL}
+	return &redisWindow{client: client, claimTTL: ClaimTTL, ttl: acceptedTTL}
 }
 
 func (w *redisWindow) key(probeID, id string) string { return acceptedKeyPrefix + probeID + ":" + id }
@@ -41,11 +48,30 @@ func (w *redisWindow) key(probeID, id string) string { return acceptedKeyPrefix 
 func (w *redisWindow) Claim(ctx context.Context, probeID, id string, _ time.Time) (bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, redisWindowTimeout)
 	defer cancel()
-	claimed, err := w.client.SetNX(ctx, w.key(probeID, id), 1, w.ttl).Result()
+	claimed, err := w.client.SetNX(ctx, w.key(probeID, id), 1, w.claimTTL).Result()
 	if err != nil {
 		return false, fmt.Errorf("claim result %s of probe %s in redis: %w", id, probeID, err)
 	}
 	return claimed, nil
+}
+
+// Keep implements Window. It sets the keys outright rather than extending them: a request that ran
+// longer than ClaimTTL finds its claims gone, and the results are stored all the same. The ids go
+// out in one pipeline. Like Release, it ignores the cancellation of ctx.
+func (w *redisWindow) Keep(ctx context.Context, probeID string, ids ...string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), redisWindowTimeout)
+	defer cancel()
+	pipe := w.client.Pipeline()
+	for _, id := range ids {
+		pipe.Set(ctx, w.key(probeID, id), 1, w.ttl)
+	}
+	if _, err := pipe.Exec(ctx); err != nil {
+		return fmt.Errorf("keep %d result ids of probe %s in redis: %w", len(ids), probeID, err)
+	}
+	return nil
 }
 
 // Release implements Window. It ignores the cancellation of ctx: the request that gives its ids

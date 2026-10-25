@@ -78,7 +78,9 @@ type candidate struct {
 //
 // The ids of the rest are claimed in the accepted window before anything is stored, so that a
 // retry that arrives while this request is still storing is answered duplicate. An id whose result
-// was not stored when the request ends is given back.
+// was not stored when the request ends is given back. An id whose result was stored is kept for the
+// hour as soon as its monitor's results are stored: a claim alone runs out in ClaimTTL, for the
+// retry of a request that died to be accepted.
 func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.Output[probeproto.ResultsResponse], error) {
 	// MARK: Results
 
@@ -264,7 +266,7 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 
 // store hands the results to the ingester, those of different monitors at the same time, up to
 // StoreConcurrency monitors, and each monitor's one at a time, oldest first, and marks each one
-// stored, which keeps its id claimed. Ingest reads a monitor's previous heartbeat, so a monitor's
+// stored and its id kept in the window. Ingest reads a monitor's previous heartbeat, so a monitor's
 // results can't overlap; those of different monitors don't depend on one another, and storing a
 // result is a few queries, which a batch of hundreds stored one after another would wait for in turn.
 //
@@ -340,6 +342,12 @@ func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*c
 func (c *Controller) storeMonitor(ctx context.Context, owner *probe.Model, monitorID string, group []*candidate) error {
 	slices.SortStableFunc(group, func(a, b *candidate) int { return a.result.StartTime.Compare(b.result.StartTime) })
 
+	// The ids of the results stored so far are kept when this returns, the failed or panicked
+	// storing of a later result included: a claim runs out in minutes, and a result that was stored
+	// must stay taken for the probe's retry. One call for the group, one pipeline in Redis.
+	var stored []string
+	defer func() { c.keepStored(ctx, owner.ID, stored) }()
+
 	// The window the monitor is in is the same for each result of the batch
 	underMaintenance, err := healthcheck.MonitorUnderMaintenance(ctx, c.maintenance, monitorID)
 	if err != nil {
@@ -359,6 +367,21 @@ func (c *Controller) storeMonitor(ctx context.Context, owner *probe.Model, monit
 			return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
 		}
 		w.stored = true
+		stored = append(stored, w.result.ID)
 	}
 	return nil
+}
+
+// keepStored has the window hold the ids of results that were stored for the rest of the hour. A
+// window that fails to is the log's business, not the request's: the results are stored already,
+// and failing the request would have the probe send them again. The ids run out of the window with
+// their claims, in minutes, and a retry after that stores the results twice.
+func (c *Controller) keepStored(ctx context.Context, probeID string, ids []string) {
+	if len(ids) == 0 {
+		return
+	}
+	if err := c.accepted.Keep(ctx, probeID, ids...); err != nil {
+		c.logger.Errorw("Failed to keep the ids of results that were stored",
+			"probeId", probeID, "resultIds", len(ids), "error", err)
+	}
 }
