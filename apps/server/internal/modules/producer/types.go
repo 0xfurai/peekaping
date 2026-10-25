@@ -33,10 +33,8 @@ type Producer struct {
 	logger                  *zap.SugaredLogger
 	ctx                     context.Context // set by Start, which makes it end with the caller's ctx or with Stop
 	cancel                  context.CancelFunc
-	syncCtx                 context.Context    // context for monitor syncing (leader-only tasks)
-	syncCancel              context.CancelFunc // cancel function for monitor syncing
-	wg                      sync.WaitGroup     // the goroutines that schedule: claim loops, reclaimer, schedule refresher, probe sweep and the leadership monitor
-	watchdogWg              sync.WaitGroup     // the watchdog's, apart from wg so that Stop can tell when each has stopped
+	wg                      sync.WaitGroup // the goroutines that schedule: claim loops, reclaimer, schedule refresher, probe sweep and the leadership monitor
+	watchdogWg              sync.WaitGroup // the watchdog's, apart from wg so that Stop can tell when each has stopped
 	mu                      sync.RWMutex
 	monitorIntervals        map[string]int // monitor_id -> interval in seconds
 	scheduleRefreshInterval time.Duration

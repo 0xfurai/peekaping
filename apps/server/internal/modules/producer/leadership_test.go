@@ -54,6 +54,16 @@ func (e *leaderEngine) start(t *testing.T) {
 	})
 }
 
+// startSyncing starts the producer's monitor syncing, as the leadership monitor does when the node
+// gets the leadership, and returns what the loss of the leadership does to it: it ends syncing.
+func startSyncing(t *testing.T, p *Producer) (stop context.CancelFunc) {
+	t.Helper()
+	ctx, cancel := context.WithCancel(p.ctx)
+	t.Cleanup(cancel)
+	require.NoError(t, p.startMonitorSyncing(ctx))
+	return cancel
+}
+
 // eventuallyStoppedSyncing waits for the schedule refresher to exit because
 // leadership was lost. Outside the producer, its log line is the only sign.
 func (e *leaderEngine) eventuallyStoppedSyncing(t *testing.T, times int) {
@@ -154,7 +164,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 		e := newEngine(t, &monitor.Model{ID: "mon-1", Name: "Monitor 1", Active: true, Interval: 60})
 		t.Cleanup(e.producer.Stop)
 
-		err := e.producer.startMonitorSyncing()
+		err := e.producer.startMonitorSyncing(e.producer.ctx)
 		assert.NoError(t, err)
 
 		// The schedule is synced before it returns
@@ -194,7 +204,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 		// Mock error
 		mockMonitorSvc.On("FindActiveByProbe", producer.ctx, shared.LocalProbeID, 0, 100).Return(nil, assert.AnError)
 
-		err := producer.startMonitorSyncing()
+		err := producer.startMonitorSyncing(producer.ctx)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to initialize schedule")
 
@@ -202,27 +212,15 @@ func TestStartMonitorSyncing(t *testing.T) {
 	})
 }
 
-func TestStopMonitorSyncing(t *testing.T) {
-	// PP-61: stopMonitorSyncing sets syncCtx to nil, and the refresher reads that
-	// field on every loop. Stopping before the refresher's first select makes it
-	// call Done on a nil context and crash the process.
-	t.Run("stops the schedule refresher", func(t *testing.T) {
-		t.Skip("PP-61: stopping right after starting crashes the refresher on a nil syncCtx")
-		e := newEngine(t)
-		t.Cleanup(e.producer.Stop)
-		require.NoError(t, e.producer.startMonitorSyncing())
+// Syncing ends when the node loses the leadership, which cancels the context it was started with
+func TestStartMonitorSyncing_EndsWithItsContext(t *testing.T) {
+	e := newEngine(t)
+	t.Cleanup(e.producer.Stop)
+	stopSyncing := startSyncing(t, e.producer)
 
-		e.producer.stopMonitorSyncing()
+	stopSyncing()
 
-		// The refresher was the producer's only goroutine
-		waitForGoroutines(t, &e.producer.wg)
-	})
-
-	t.Run("does nothing when not syncing", func(t *testing.T) {
-		e := newEngine(t)
-
-		e.producer.stopMonitorSyncing()
-
-		assert.Nil(t, e.producer.syncCancel)
-	})
+	// The refresher is the producer's only goroutine but the watchdog
+	waitForGoroutines(t, &e.producer.wg)
+	waitForGoroutines(t, &e.producer.watchdogWg)
 }
