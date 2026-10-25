@@ -97,7 +97,7 @@ PEEKAPING_URL=http://localhost:8034
 # - Secret keys are automatically generated securely
 ```
 
-`.env.prod.example` leaves `PROBE_BOOTSTRAP_TOKEN` empty, so give it a value and add the other two lines. `.env.dev.example` has all three set. `make dev` starts the api, a probe and the docs watcher, so the probe checks your monitors. The producer and the ingester refuse to start.
+`.env.prod.example` leaves `PROBE_BOOTSTRAP_TOKEN` empty, so give it a value and add the other two lines. `.env.dev.example` has all three set. `make dev` starts the api, a probe and the docs watcher, so the probe checks your monitors.
 
 ---
 

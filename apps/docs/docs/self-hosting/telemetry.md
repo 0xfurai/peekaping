@@ -149,7 +149,7 @@ A report has these fields and no others:
 | Stack frames | For each frame, the function, the package, the file, the line and whether it is Peekaping's own code. The file is the package path and the file name, such as `peekaping/internal/httpx/middleware.go`, never a path on your machine. At most the 100 innermost frames. |
 | Release | The Peekaping version, such as `0.0.48` |
 | `mode` | `single` or `cluster`. See [Deployment modes](./deployment-modes.md). |
-| `db` | The storage backend: `sqlite`, `postgres` or `mysql`. A process that has no database settings says `unknown`. |
+| `db` | The storage backend: `sqlite`, `postgres` or `mysql` |
 | `os` | The operating system and CPU architecture, such as `linux/arm64` |
 | `component` | The part of Peekaping that caught the panic, such as `http`, `executor` or `scheduler` |
 | Level | `error` for a panic that was caught, `fatal` for one that ends the process |
@@ -208,4 +208,4 @@ Set the variable on the `peekaping` container in single mode. In cluster mode, s
 
 ### In cluster mode
 
-The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it and takes effect in the API at once, with no restart. The API is the only process that reports, so it reads the setting itself.
+The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it and takes effect in the API at once, with no restart. The API is the only process that reports, so it reads the setting itself. With several API replicas, the replica that took the change applies it at once, and each of the others follows the stored setting within a minute.
