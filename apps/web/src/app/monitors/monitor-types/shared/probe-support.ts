@@ -6,9 +6,11 @@ import { monitorProbeIds } from "./codec";
 // The i18n key of the message the form shows for a probe that doesn't run the monitor's type
 export const UNSUPPORTED_PROBE_MESSAGE = "monitors.form.shared.probe.unsupported";
 
-// A probe that lists no types runs every type
+// A probe that lists no types runs every type. A push monitor needs no executor on a probe, since
+// its pushes arrive at the server, and the types a probe lists are the ones it can check: a probe's
+// instances leave push out of them, so push runs wherever it is put (on the local probe alone).
 export const probeRunsType = (probe: Pick<ProbeProbeResponse, "supported_types">, type: string): boolean =>
-  probe.supported_types.length === 0 || probe.supported_types.includes(type);
+  type === "push" || probe.supported_types.length === 0 || probe.supported_types.includes(type);
 
 // The probes a monitor of the type runs on. A push monitor is fixed to the local probe, whichever
 // probes the form holds.

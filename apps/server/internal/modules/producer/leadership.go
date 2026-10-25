@@ -4,48 +4,28 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"peekaping/internal/reporting"
 )
 
-// runLeadershipMonitor monitors leadership status and starts/stops monitor syncing accordingly
+// runLeadershipMonitor runs monitor syncing while this node is the leader: it starts when the node
+// gets the leadership and stops when it loses it, and stops when the producer does.
 // Note: Job processing (runProducer, runReclaimer) runs on all producers regardless of leadership
 func (p *Producer) runLeadershipMonitor() {
 	defer p.wg.Done()
 
-	ticker := time.NewTicker(p.leadershipCheckInterval)
-	defer ticker.Stop()
+	p.leaderElection.RunWhileLeader(p.ctx, "monitor syncing", p.leadershipCheckInterval, p.syncWhileLeader)
+}
 
-	var isSyncing bool
-
-	for {
-		select {
-		case <-p.ctx.Done():
-			if isSyncing {
-				p.logger.Info("Context cancelled, stopping monitor syncing")
-			}
-			return
-		case <-ticker.C:
-			isLeader := p.leaderElection.IsLeader()
-
-			if isLeader && !isSyncing {
-				p.logger.Info("Starting monitor syncing as leader")
-				if err := p.startMonitorSyncing(); err != nil {
-					if p.ctx.Err() != nil {
-						return // the producer is stopping, which is why syncing failed to start
-					}
-					p.logger.Errorw("Failed to start monitor syncing", "error", err)
-				} else {
-					isSyncing = true
-				}
-			} else if !isLeader && isSyncing {
-				p.logger.Info("Lost leadership, stopping monitor syncing")
-				p.stopMonitorSyncing()
-				isSyncing = false
-			}
-		}
+// syncWhileLeader starts monitor syncing, and returns once ctx is done: the node lost the
+// leadership, or the producer is stopping. What syncing started ends with ctx, on goroutines that
+// Stop waits for.
+func (p *Producer) syncWhileLeader(ctx context.Context) error {
+	if err := p.startMonitorSyncing(ctx); err != nil {
+		return err
 	}
+	<-ctx.Done()
+	return nil
 }
 
 // startJobProcessing starts job processing tasks (runs on all producers)
@@ -76,11 +56,8 @@ func (p *Producer) startJobProcessing() error {
 	return nil
 }
 
-// startMonitorSyncing initializes and starts monitor syncing (leader only)
-func (p *Producer) startMonitorSyncing() error {
-	// Create a new context for monitor syncing that can be cancelled independently
-	p.syncCtx, p.syncCancel = context.WithCancel(p.ctx)
-
+// startMonitorSyncing initializes and starts monitor syncing (leader only), which ends with ctx
+func (p *Producer) startMonitorSyncing(syncCtx context.Context) error {
 	// Initialize schedule with active monitors from database
 	if err := p.initializeSchedule(); err != nil {
 		return fmt.Errorf("failed to initialize schedule: %w", err)
@@ -88,7 +65,6 @@ func (p *Producer) startMonitorSyncing() error {
 
 	// Start schedule refresher to keep Redis in sync with database
 	p.wg.Add(1)
-	syncCtx := p.syncCtx
 	reporting.Go("producer", func() { p.runScheduleRefresher(syncCtx) })
 
 	// Start the stale-monitor watchdog
@@ -110,15 +86,4 @@ func (p *Producer) startMonitorSyncing() error {
 
 	p.logger.Info("Monitor syncing started successfully")
 	return nil
-}
-
-// stopMonitorSyncing is called when this node loses leadership
-func (p *Producer) stopMonitorSyncing() {
-	// Cancel the sync context to stop all monitor syncing goroutines
-	if p.syncCancel != nil {
-		p.logger.Info("Stopping monitor syncing due to leadership loss")
-		p.syncCancel()
-		p.syncCancel = nil
-		p.syncCtx = nil
-	}
 }

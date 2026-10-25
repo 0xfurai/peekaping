@@ -17,16 +17,31 @@ const (
 	// BufferMax is the most results a probe holds while the server can't be reached; the oldest
 	// go first
 	BufferMax = 10000
+	// StoreConcurrency is how many monitors' results one results request stores at the same time.
+	// Storing a result is a few queries, so a batch stored one result after another takes as long as
+	// the database is far away, times the size of the batch.
+	StoreConcurrency = 16
+	// StoreConcurrencyTotal is how many monitors' results all the results requests of one server
+	// store at the same time. Each result being stored holds a connection to the database, which
+	// allows PostgreSQL's 100 by default, and the probe instances of an install can post together.
+	StoreConcurrencyTotal = 64
+	// StoreDeadline is the longest a results request stores for. It outlasts the 30 seconds the
+	// probe waits for an answer, and a batch of BatchMax results stored in turn by a slow database,
+	// and it ends well before ClaimTTL: the claims of a request that is still storing must not run
+	// out, or another request could claim and store the same ids at the same time.
+	StoreDeadline = 90 * time.Second
 )
 
-// Timing is how long the server holds a poll. It is provided as PollTimeout, and a test shortens
-// it by decorating the value, so that a poll that times out does not take 25 seconds.
+// Timing is how long the server holds a poll, and how long a results request stores for. It is
+// provided as PollTimeout and StoreDeadline, and a test shortens it by decorating the value, so
+// that a poll that times out does not take 25 seconds. A zero value is the default.
 type Timing struct {
-	PollTimeout time.Duration
+	PollTimeout   time.Duration
+	StoreDeadline time.Duration
 }
 
 // DefaultTiming is the timing of a server that runs: hello tells the probes about it
-func DefaultTiming() Timing { return Timing{PollTimeout: PollTimeout} }
+func DefaultTiming() Timing { return Timing{PollTimeout: PollTimeout, StoreDeadline: StoreDeadline} }
 
 const (
 	// MinProtocolVersion is the oldest protocol version the server speaks. A hello below it is

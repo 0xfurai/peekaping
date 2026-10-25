@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/monitor"
@@ -20,7 +21,7 @@ func TestEventListener_NewEventListener(t *testing.T) {
 	defer mr.Close()
 
 	logger := zap.NewNop().Sugar()
-	le := NewLeaderElection(client, "node1", logger)
+	le := leader.New(client, "node1", logger)
 	producer := &Producer{leaderElection: le}
 
 	eventListener := NewEventListener(producer, logger)
@@ -34,7 +35,7 @@ func TestEventListener_Subscribe(t *testing.T) {
 	defer mr.Close()
 
 	logger := zap.NewNop().Sugar()
-	le := NewLeaderElection(client, "node1", logger)
+	le := leader.New(client, "node1", logger)
 	producer := &Producer{leaderElection: le}
 
 	eventListener := NewEventListener(producer, logger)
@@ -49,16 +50,20 @@ func TestEventListener_Subscribe(t *testing.T) {
 
 // newListener subscribes an event listener on a producer that is the leader,
 // or a follower of node2, and returns the bus it listens on.
-func newListener(t *testing.T, leader bool, monitors ...*monitor.Model) (*engine, *eventstest.Bus) {
+func newListener(t *testing.T, isLeader bool, monitors ...*monitor.Model) (*engine, *eventstest.Bus) {
 	t.Helper()
 	ctx := context.Background()
 	e := newEngine(t, monitors...)
-	if !leader {
-		require.NoError(t, e.rdb.Set(ctx, LeaderKey, "node2", LeaderTTL).Err())
+	if !isLeader {
+		require.NoError(t, e.rdb.Set(ctx, leader.Key, "node2", leader.TTL).Err())
 	}
-	le := NewLeaderElection(e.rdb, "node1", zap.NewNop().Sugar())
-	le.tryBecomeLeader(ctx)
-	require.Equal(t, leader, le.IsLeader())
+	le := leader.New(e.rdb, "node1", zap.NewNop().Sugar())
+	le.Start(ctx)
+	t.Cleanup(le.Stop)
+	if isLeader {
+		require.Eventually(t, le.IsLeader, 5*time.Second, time.Millisecond, "the node never became the leader")
+	}
+	require.Equal(t, isLeader, le.IsLeader())
 	e.producer.leaderElection = le
 
 	bus := eventstest.NewBus()

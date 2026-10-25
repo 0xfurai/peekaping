@@ -83,6 +83,31 @@ type Monitor struct {
 // LocalProbeID is the id of the local probe: the checks that Peekaping runs itself
 const LocalProbeID = "local"
 
+// LocalProbeLiveness is how Peekaping knows that the local probe is up. The binary that builds the
+// dependency graph provides it; a graph that provides none has LocalProbeIsTheProcess.
+type LocalProbeLiveness int
+
+const (
+	// LocalProbeIsTheProcess is single mode, and the MongoDB cluster, whose producer, worker and
+	// ingester still run the checks: Peekaping's own processes run the local probe's monitors,
+	// whether or not any peekaping-probe ever said hello. The local probe is never offline, and
+	// its monitors are always watched.
+	LocalProbeIsTheProcess LocalProbeLiveness = iota
+	// LocalProbeIsItsInstances is the cluster on SQLite and PostgreSQL, where no process of
+	// Peekaping's own runs checks: peekaping-probe instances started with the local probe's token
+	// (PROBE_BOOTSTRAP_TOKEN) do. The local probe is online while one of them is connected, and
+	// offline when they stop, like a remote probe, and the watchdog leaves its monitors alone
+	// while it is offline.
+	LocalProbeIsItsInstances
+)
+
+// FollowsItsStatus reports whether the probe is up exactly when its status says so. It is so for
+// every remote probe, and for the local one when its instances run its checks. The local probe that
+// the process itself is, is up whatever its status says: nothing connects to say so.
+func (l LocalProbeLiveness) FollowsItsStatus(probeID string) bool {
+	return probeID != LocalProbeID || l == LocalProbeIsItsInstances
+}
+
 // MonitorTypeProbe is the type of the stand-in monitor that carries a probe's notification: the
 // channel types take a monitor, and a probe is not one. No monitor has this type.
 const MonitorTypeProbe = "probe"

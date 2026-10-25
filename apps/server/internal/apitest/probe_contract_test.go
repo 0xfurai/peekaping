@@ -256,16 +256,24 @@ func TestProbeContract_Results(t *testing.T) {
 	assert.Equal(t, "/probe/v1/results", req.URL.Path)
 	assert.Equal(t, "gzip", req.Header.Get("Content-Encoding"), "the client gzips the batch")
 	assert.Equal(t, "gzip", resp.Header.Get("Content-Encoding"), "and the server gzips the outcomes")
-	payloads := a.queuedPayloads(t)
-	require.Len(t, payloads, 1, "the accepted result is queued for the ingester, and the others are not")
-	assert.Equal(t, "local", payloads[0]["probe_id"])
-	assert.Equal(t, monitorID, payloads[0]["monitor_id"])
-	tlsInfo, _ := payloads[0]["tls_info"].(map[string]any)
-	require.NotNil(t, tlsInfo, "with the certificate information the probe read")
-	assert.Equal(t, true, tlsInfo["valid"])
-	certInfo, _ := tlsInfo["certInfo"].(map[string]any)
-	assert.Equal(t, "CN=example.com", certInfo["subject"])
-	assert.EqualValues(t, 42, certInfo["daysRemaining"])
+	beats := a.storedHeartbeats(t, monitorID)
+	require.Len(t, beats, 1, "the accepted result is stored, and the others are not")
+	assert.Equal(t, "local", beats[0].ProbeID)
+	tls := a.request(t, http.MethodGet, "/api/v1/monitors/"+monitorID+"/tls", nil, a.asAdmin)
+	require.Equal(t, http.StatusOK, tls.Code, tls.Body.String())
+	var tlsInfo struct {
+		Data struct {
+			Valid    bool `json:"valid"`
+			CertInfo struct {
+				Subject       string `json:"subject"`
+				DaysRemaining int    `json:"daysRemaining"`
+			} `json:"certInfo"`
+		} `json:"data"`
+	}
+	require.NoError(t, json.Unmarshal(tls.Body.Bytes(), &tlsInfo), tls.Body.String())
+	assert.True(t, tlsInfo.Data.Valid, "with the certificate information the probe read: %s", tls.Body.String())
+	assert.Equal(t, "CN=example.com", tlsInfo.Data.CertInfo.Subject)
+	assert.Equal(t, 42, tlsInfo.Data.CertInfo.DaysRemaining)
 
 	again, err := client.Results(ctx, batch)
 

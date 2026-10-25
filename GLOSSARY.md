@@ -47,7 +47,7 @@ A monitor that's switched off. It runs no checks until it's resumed.
 _Avoid_: Inactive, disabled, stopped
 
 **Stale monitor**:
-An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The watchdog looks for them every minute, gets each one checked again right away, and notifies the monitor's channels if that doesn't help. A monitor that doesn't run on the local probe isn't checked again from here: its channels are notified once that same wait has passed.
+An active monitor Peekaping has stopped checking: its latest heartbeat is older than max(3 × check interval, check interval + timeout + 60s). The watchdog looks for them every minute, gets each one checked again right away, and notifies the monitor's channels if that doesn't help. A monitor that doesn't run on the local probe isn't checked again from here, and neither is any monitor in cluster mode on SQLite or PostgreSQL, where probe instances do the checks: its channels are notified once that same wait has passed. A monitor whose probe is offline isn't stale: the probe's own notification says so.
 _Avoid_: Stuck monitor, dead monitor, overdue
 
 **Probe**:
@@ -55,7 +55,7 @@ A place Peekaping runs checks from. A monitor runs on one or more probes, the lo
 _Avoid_: Agent, worker
 
 **Local probe**:
-The probe that is Peekaping itself: its own process checks the monitors on it. Every install has it, and it can't be deleted.
+The probe that is Peekaping itself. Every install has it, and it can't be deleted. In single mode the `peekaping` process checks its monitors. In cluster mode on SQLite and PostgreSQL its probe instances do: `peekaping-probe` copies started with its token (`PROBE_BOOTSTRAP_TOKEN` on the api, the same value as `PROBE_TOKEN` on the probe), so it is offline while none is connected, as a remote probe is. On MongoDB the worker checks them, and it is never offline.
 _Avoid_: Built-in probe, default probe
 
 **Remote probe**:
@@ -191,7 +191,7 @@ Peekaping running as one process (the `peekaping` binary) with every role inside
 _Avoid_: Monolithic mode, standalone, all-in-one
 
 **Cluster mode**:
-Peekaping running as separate api, producer, worker and ingester processes that talk through Redis. Helm, the compose stacks and the Mongo bundle run it.
+Peekaping running as separate processes: api replicas that share the database and talk to each other through Redis, and probe instances that connect to the api and run the checks. The api stores the results, and the api replica that holds the leader lock runs the watchdog. Helm and the SQLite and PostgreSQL compose stacks run it. On MongoDB storage it is still four processes that talk through Redis (api, producer, worker and ingester), which the Mongo bundle and the Mongo compose stacks run until MongoDB is removed. See [ADR 0002](docs/adr/0002-single-process-runtime.md).
 _Avoid_: Microservice mode, distributed mode, HA mode
 
 ### Telemetry

@@ -8,6 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/shared"
@@ -32,16 +33,14 @@ type Producer struct {
 	logger                  *zap.SugaredLogger
 	ctx                     context.Context // set by Start, which makes it end with the caller's ctx or with Stop
 	cancel                  context.CancelFunc
-	syncCtx                 context.Context    // context for monitor syncing (leader-only tasks)
-	syncCancel              context.CancelFunc // cancel function for monitor syncing
-	wg                      sync.WaitGroup     // the goroutines that schedule: claim loops, reclaimer, schedule refresher, probe sweep and the leadership monitor
-	watchdogWg              sync.WaitGroup     // the watchdog's, apart from wg so that Stop can tell when each has stopped
+	wg                      sync.WaitGroup // the goroutines that schedule: claim loops, reclaimer, schedule refresher, probe sweep and the leadership monitor
+	watchdogWg              sync.WaitGroup // the watchdog's, apart from wg so that Stop can tell when each has stopped
 	mu                      sync.RWMutex
 	monitorIntervals        map[string]int // monitor_id -> interval in seconds
 	scheduleRefreshInterval time.Duration
 	reclaimInterval         time.Duration // how often expired leases are swept back to the due set
 	leadershipCheckInterval time.Duration // how often syncing is started or stopped to follow leadership
-	leaderElection          *LeaderElection
+	leaderElection          *leader.Elector
 	electionCancel          context.CancelFunc // ends the election, which releases the leadership; Stop does that last. Nil until Start
 	electionDone            <-chan struct{}    // closes once the election has released the leadership; nil until Start
 	stopOnce                sync.Once          // runs the stop once, whether Stop or the end of Start's ctx asks first

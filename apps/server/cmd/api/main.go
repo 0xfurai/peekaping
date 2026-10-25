@@ -1,6 +1,11 @@
-// Command api runs the HTTP API and the websocket of Peekaping in cluster mode (ADR 0002),
-// beside cmd/producer, cmd/worker and cmd/ingester. It also takes the notification events the
-// ingester and the producer's watchdog queue, and runs the cleanup cron and the status repair.
+// Command api runs the HTTP API and the websocket of Peekaping in cluster mode (ADR 0002). It takes
+// the notification events that are queued for it, and runs the cleanup cron and the status repair.
+//
+// On SQLite and PostgreSQL, the probes run the checks and the api does the rest: it stores what they
+// send and what the push URLs take, on the replica that took the request, counts the stats of those
+// heartbeats, and runs the stale-monitor watchdog and the probe sweep on the one replica that holds
+// the leader lock. On MongoDB, which has no probes, cmd/producer, cmd/worker and cmd/ingester still
+// run the checks and store their results, and the api only enqueues a push.
 //
 // It doesn't migrate the database: the startup script runs the migrations with cmd/bun before
 // it starts the server.
@@ -130,6 +135,16 @@ type parts struct {
 	Metrics              *metrics.Collector
 	UsagePing            *telemetry.Sender
 	ErrorReporting       error_reporting.Service
+	// LeaderJobs runs the stale-monitor watchdog and the probe sweep on the replica that holds the
+	// leader lock. A MongoDB install has none: its producer runs them.
+	LeaderJobs *app.LeaderJobs `optional:"true"`
+	// SilentWatch finds a local probe that has monitors to run and no instance: a cluster upgraded
+	// without deploying probes. A MongoDB install has none.
+	SilentWatch     *probe.SilentWatch `optional:"true"`
+	ProbeRepository probe.Repository   `optional:"true"`
+	// LocalBus delivers the heartbeats this replica stored to the stats aggregation. A MongoDB
+	// install has none: its ingester aggregates the stats.
+	LocalBus *app.LocalBus `optional:"true"`
 }
 
 // run starts the API and serves it on the listener until ctx is done, or until serving fails.
@@ -214,6 +229,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 // jobs are the background jobs run starts, and how to stop them. A field is nil until its job
 // has started.
 type jobs struct {
+	leaderJobs         *app.LeaderJobs
 	consumer           *notification_channel.QueueConsumer
 	cleanup            *cron.Cron
 	stopErrorReporting context.CancelFunc
@@ -254,6 +270,14 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		return j, fmt.Errorf("failed to bootstrap the local probe: %w", err)
 	}
 
+	// A cluster on SQLite or PostgreSQL that was upgraded without deploying probes has monitors and
+	// nothing that checks them: say so in the log of the replica the operator just started
+	if p.SilentWatch != nil {
+		if _, err := p.SilentWatch.WarnIfSilent(ctx, p.ProbeRepository, logger); err != nil {
+			logger.Warnw("Failed to find out whether the local probe has an instance", "error", err)
+		}
+	}
+
 	// Apply the admin's choice from before the restart, which also copies it to Redis for the
 	// producer, the worker and the ingester. Then apply it again every minute, so that a copy
 	// that missed a Redis that was down is made up within a minute, and a change made on another
@@ -272,6 +296,11 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 
 	p.NotificationListener.Subscribe(p.EventBus)
 	p.MonitorListener.Subscribe(p.EventBus)
+	// The stats count the heartbeats this replica stored, which its local bus carries: on the
+	// cluster's bus every replica would hear every heartbeat, and count it
+	if p.LocalBus != nil {
+		p.Stats.RegisterEventHandlers(p.LocalBus)
+	}
 
 	// Answer the probes' waiting assignment polls when a monitor or one of a probe's instances
 	// changes. Every api replica listens: a change made on one reaches the polls held by the others.
@@ -317,6 +346,15 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	usagePingCtx, j.stopUsagePing = context.WithCancel(context.Background())
 	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetry.DefaultSchedule)
 
+	// The stale-monitor watchdog and the probe sweep run on the one replica that holds the leader
+	// lock, and publish their events like any job here: after the listeners subscribed and the
+	// notification queue started. Another replica takes over within the lock's TTL when this one
+	// stops.
+	if p.LeaderJobs != nil {
+		p.LeaderJobs.Start()
+		j.leaderJobs = p.LeaderJobs
+	}
+
 	return j, nil
 }
 
@@ -332,6 +370,17 @@ func (j *jobs) stop(ctx context.Context, logger *zap.SugaredLogger) error {
 		logger.Infof("Stopped %s", what)
 	}
 
+	// The leader jobs stop first, and the leader lock goes with them, so that another replica takes
+	// over while this one finishes stopping. They publish events, so they stop before the
+	// notification queue and the event bus do.
+	if j.leaderJobs != nil {
+		leaderDone := make(chan struct{})
+		go func() {
+			defer close(leaderDone)
+			j.leaderJobs.Stop()
+		}()
+		await("the leader jobs", leaderDone)
+	}
 	if j.consumer != nil {
 		consumerDone := make(chan struct{})
 		go func() {

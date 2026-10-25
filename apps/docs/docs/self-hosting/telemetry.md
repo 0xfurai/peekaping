@@ -96,7 +96,7 @@ The Worker never reads or stores your IP address or your country, and it stores 
 
 At most once a day. Peekaping checks a few minutes after it starts, and then every hour, whether a usage ping is due. A usage ping is due when the last one is more than 24 hours old. An install that never chose sends its first one at the first check, a few minutes after it starts. After an admin opts out and in again, the first usage ping goes at the next check. In cluster mode that can be later: the claim in Redis holds for 23 hours after a usage ping, and opting out doesn't release it. An install that opts out and back in within 23 hours of its last usage ping sends the first new one when the claim ends, up to 23 hours later.
 
-Only one process sends it. In [single mode](./deployment-modes.md#single-mode), that is the `peekaping` process. In [cluster mode](./deployment-modes.md#cluster-mode), it is one API replica, whichever claims the day's usage ping in Redis first. The producer, worker and ingester never send it.
+Only one process sends it. In [single mode](./deployment-modes.md#single-mode), that is the `peekaping` process. In [cluster mode](./deployment-modes.md#cluster-mode), it is one API replica, whichever claims the day's usage ping in Redis first. The probe, and on MongoDB storage the producer, worker and ingester, never send it.
 
 A usage ping that fails to reach the Worker is dropped, not retried. A failure never affects your monitors or the API.
 
@@ -149,7 +149,7 @@ A report has these fields and no others:
 | Stack frames | For each frame, the function, the package, the file, the line and whether it is Peekaping's own code. The file is the package path and the file name, such as `peekaping/internal/httpx/middleware.go`, never a path on your machine. At most the 100 innermost frames. |
 | Release | The Peekaping version, such as `0.0.48` |
 | `mode` | `single` or `cluster`. See [Deployment modes](./deployment-modes.md). |
-| `db` | The storage backend: `sqlite`, `postgres`, `mongo` or `mysql`. A cluster worker has no database settings, so it says `unknown`. |
+| `db` | The storage backend: `sqlite`, `postgres`, `mongo` or `mysql`. A MongoDB cluster's worker has no database settings, so it says `unknown`. |
 | `os` | The operating system and CPU architecture, such as `linux/arm64` |
 | `component` | The part of Peekaping that caught the panic, such as `http`, `executor` or `scheduler` |
 | Level | `error` for a panic that was caught, `fatal` for one that ends the process |
@@ -204,10 +204,10 @@ ERROR_REPORTING=off
 
 In Kubernetes, put `ERROR_REPORTING: "off"` under `config.env` in your Helm values. See [Kubernetes (Helm)](./kubernetes-helm.md#configuration).
 
-Set the variable on the `peekaping` container in single mode. In cluster mode, set it on every process, which means the API, the producer, the worker and the ingester, because each one reports the crashes in its own process. The `.env` file of the Compose stacks and `config.env` in Helm already reach all of them.
+Set the variable on the `peekaping` container in single mode. In cluster mode, set it on the API, which reports the crashes in its own process. The probe sends no error reports. On MongoDB storage, set it on the producer, the worker and the ingester too. The `.env` file of the Compose stacks and `config.env` in Helm already reach all of them.
 
 ### In cluster mode
 
-The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it, takes effect in the API at once, and is copied to Redis. The producer, worker and ingester read it from Redis once a minute. The API also copies the stored setting to Redis again every minute. With no stored choice, the API copies "on" when it starts, so the producer, worker and ingester report by default; until the API has copied it, they report nothing.
+The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it, takes effect in the API at once, and is copied to Redis. On MongoDB storage, the producer, worker and ingester read it from Redis once a minute. The API also copies the stored setting to Redis again every minute. With no stored choice, the API copies "on" when it starts, so the producer, worker and ingester report by default; until the API has copied it, they report nothing. On SQLite and PostgreSQL the API is the only process that reports, so it reads the setting itself.
 
 While Redis is up, a change in Settings reaches every process within a minute. A change made while Redis was down can take up to about two minutes after Redis comes back: the API copies it again within a minute, and the other processes read it within another minute. Either way, no restart is needed.

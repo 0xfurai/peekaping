@@ -96,9 +96,10 @@ func TestRunScheduleRefresher(t *testing.T) {
 	e := newEngine(t)
 	p := e.producer
 	p.scheduleRefreshInterval = 5 * time.Millisecond
-	p.syncCtx, p.syncCancel = context.WithCancel(p.ctx)
+	syncCtx, syncCancel := context.WithCancel(p.ctx)
+	defer syncCancel()
 	p.wg.Add(1)
-	go p.runScheduleRefresher(p.syncCtx)
+	go p.runScheduleRefresher(syncCtx)
 	t.Cleanup(p.Stop)
 
 	// A monitor that reached the database without an event shows up on the next refresh
@@ -106,7 +107,7 @@ func TestRunScheduleRefresher(t *testing.T) {
 	e.eventuallyDueAt(t, "mon-new", t0)
 
 	// When syncing stops, the refresher exits while the producer runs on
-	p.syncCancel()
+	syncCancel()
 	waitForGoroutines(t, &p.wg)
 }
 

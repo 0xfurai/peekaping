@@ -60,6 +60,9 @@ services:
       <<: *no-reports
       # The web container on localhost:8383 calls the API on localhost:8034, another origin.
       CORS_ORIGINS: "${CORS_ORIGINS-http://localhost:8383}"
+      # The local probe's token: the api stores it, and the probe sends it. Without it no
+      # monitor is checked.
+      PROBE_BOOTSTRAP_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
     volumes:
       - ./.data/sqlite:/app/data
     depends_on:
@@ -77,53 +80,26 @@ services:
       start_period: 30s
       start_interval: 1s
 
-  producer:
+  # The local probe: its instances run the checks of the monitors that run on the local probe.
+  # They connect to the api, so they need no database, no Redis and no volume.
+  probe:
     build:
       context: ./apps/server
-      dockerfile: infra/Dockerfile.producer
+      dockerfile: infra/Dockerfile.probe
     restart: unless-stopped
-    env_file:
-      - .env
-    environment: *no-reports
-    volumes:
-      - ./.data/sqlite:/app/data
+    # the probe takes up to 25 seconds to shut down cleanly
+    stop_grace_period: 30s
+    environment:
+      PEEKAPING_URL: http://api:8034
+      # The probe refuses a plain http:// address to another host unless told otherwise.
+      # This one stays on the compose network.
+      PROBE_ALLOW_INSECURE: "true"
+      # The token the api stores on the local probe (PROBE_BOOTSTRAP_TOKEN)
+      PROBE_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
-      redis:
-        condition: service_started
-      migrate:
-        condition: service_completed_successfully
-    networks:
-      - appnet
-
-  worker:
-    build:
-      context: ./apps/server
-      dockerfile: infra/Dockerfile.worker
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment: *no-reports
-    depends_on:
-      redis:
-        condition: service_started
-    networks:
-      - appnet
-
-  ingester:
-    build:
-      context: ./apps/server
-      dockerfile: infra/Dockerfile.ingester
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment: *no-reports
-    volumes:
-      - ./.data/sqlite:/app/data
-    depends_on:
-      redis:
-        condition: service_started
-      migrate:
-        condition: service_completed_successfully
+      api:
+        condition: service_healthy
     networks:
       - appnet
 

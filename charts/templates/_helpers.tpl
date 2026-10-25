@@ -12,10 +12,49 @@ Use it with: include "peekaping.image" (dict "image" .Values.api.image "root" .)
 {{- end }}
 
 {{/*
+The name of the Secret that holds the local probe's token: the one in
+probe.token.existingSecret, or the one this chart makes. The api reads the token
+from it as PROBE_BOOTSTRAP_TOKEN and the probe pods as PROBE_TOKEN.
+*/}}
+{{- define "peekaping.probeTokenSecretName" -}}
+{{ .Values.probe.token.existingSecret | default (printf "%s-probe-token" .Release.Name) }}
+{{- end }}
+
+{{/*
+The key of the token in that Secret. The Secret this chart makes uses
+PROBE_BOOTSTRAP_TOKEN, and so does probe.token.existingSecretKey by default.
+*/}}
+{{- define "peekaping.probeTokenSecretKey" -}}
+{{ if .Values.probe.token.existingSecret }}{{ .Values.probe.token.existingSecretKey }}{{ else }}PROBE_BOOTSTRAP_TOKEN{{ end }}
+{{- end }}
+
+{{/*
+The local probe's token, base64 encoded for the Secret this chart makes: the one
+the Secret already holds in the cluster, so that an upgrade keeps it, otherwise 48
+random characters. `helm template` and `helm install --dry-run` can't look at the
+cluster, so they render a new token every time; only an install or an upgrade
+that talks to the cluster keeps it. Set probe.token.existingSecret where the
+chart is rendered without the cluster (Argo CD, for one).
+*/}}
+{{- define "peekaping.probeToken" -}}
+{{- $token := "" -}}
+{{- $existing := lookup "v1" "Secret" .Release.Namespace (printf "%s-probe-token" .Release.Name) -}}
+{{- if $existing -}}
+{{- if $existing.data -}}
+{{- $token = index $existing.data "PROBE_BOOTSTRAP_TOKEN" | default "" -}}
+{{- end -}}
+{{- end -}}
+{{- if not $token -}}
+{{- $token = randAlphaNum 48 | b64enc -}}
+{{- end -}}
+{{- $token -}}
+{{- end }}
+
+{{/*
 The init container that holds a pod until the migrate Job has applied every
-migration. The api, producer, worker and ingester Deployments include it, so a
-fresh install or an upgrade never starts them on a schema the migrations haven't
-reached yet. The web Deployment doesn't use the database and has none.
+migration. The api Deployment includes it, so a fresh install or an upgrade never
+starts it on a schema the migrations haven't reached yet. The probe and web
+Deployments don't use the database and have none.
 
 It runs the migrate image, so the migrations it checks are the ones the Job
 applies, and it reads the same ConfigMap and Secret as the app containers. It
@@ -94,16 +133,19 @@ Put it under initContainers with: include "peekaping.waitForMigrations" . | nind
 {{- end }}
 
 {{/*
-Fails the render when config.env.DB_TYPE is sqlite, in any case. The chart runs
-Peekaping in cluster mode, and it has no volume for a SQLite file: each pod
-and the migrate Job would get an empty file of its own, so the migrations and
-each replica's writes would land in separate databases. The single-mode bundle
-image runs Peekaping on SQLite in one process, so the message sends the reader
-there.
+Fails the render when config.env.DB_TYPE is sqlite, mongo or mongodb, in any
+case. The chart runs Peekaping in cluster mode, and it has no volume for a SQLite
+file: each pod and the migrate Job would get an empty file of its own, so the
+migrations and each replica's writes would land in separate databases. The
+single-mode bundle image runs Peekaping on SQLite in one process, so the message
+sends the reader there. MongoDB storage still needs the producer, worker and
+ingester, and the chart renders only the api, web and probe: an install would
+look healthy and run no checks, so the message sends the reader to the Mongo
+compose stack, or to the move to SQLite or PostgreSQL.
 
 It reads config.env only. Helm doesn't read Secrets at render time, so a DB_TYPE
-in config.existingSecret isn't seen here. The api, producer and ingester warn
-about SQLite in cluster mode when they start, which covers that case.
+in config.existingSecret isn't seen here. The api warns about SQLite in cluster
+mode when it starts, which covers that case for SQLite.
 
 Include it from a template that always renders: include "peekaping.requirePostgres" .
 */}}
@@ -111,5 +153,8 @@ Include it from a template that always renders: include "peekaping.requirePostgr
 {{- $dbType := toString (get (.Values.config.env | default (dict)) "DB_TYPE") -}}
 {{- if eq (lower $dbType) "sqlite" -}}
 {{- fail (printf "config.env.DB_TYPE is %q, but the chart supports PostgreSQL only: it runs Peekaping in cluster mode and has no volume for a SQLite file, so each pod and the migrate Job would get a separate database. For SQLite, run the single-mode bundle image (0xfurai/peekaping-bundle-sqlite) or the SQLite Docker Compose stack instead: https://docs.peekaping.com/self-hosting/docker-with-sqlite" $dbType) -}}
+{{- end -}}
+{{- if or (eq (lower $dbType) "mongo") (eq (lower $dbType) "mongodb") -}}
+{{- fail (printf "config.env.DB_TYPE is %q, but the chart supports PostgreSQL only. MongoDB storage needs the producer, worker and ingester, which this chart no longer runs: use the Mongo compose stack, or move to SQLite or PostgreSQL with bun db import-mongo (https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql)" $dbType) -}}
 {{- end -}}
 {{- end }}

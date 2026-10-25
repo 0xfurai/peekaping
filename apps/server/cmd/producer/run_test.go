@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"peekaping/internal/modules/producer"
+	"peekaping/internal/leader"
 	graceful "peekaping/internal/shutdown"
 
 	"github.com/alicebob/miniredis/v2"
@@ -49,7 +49,7 @@ func waitUntilScheduling(t *testing.T, redis *miniredis.Miniredis) {
 	queues := inspector(t, redis)
 	require.Eventually(t, func() bool {
 		tasks, err := queues.ListPendingTasks("healthcheck")
-		return redis.Exists(producer.LeaderKey) && err == nil && len(tasks) == 1
+		return redis.Exists(leader.Key) && err == nil && len(tasks) == 1
 	}, wait, 10*time.Millisecond, "the producer didn't become the leader and enqueue a check")
 }
 
@@ -66,7 +66,7 @@ func TestRun_StopsSchedulingReleasesLeadershipAndClosesTheDatabaseInOrder(t *tes
 	t.Logf("shut down in %s", time.Since(startedAt).Round(time.Millisecond))
 
 	require.NoError(t, err, "run returns nil, so the producer exits 0")
-	assert.False(t, redis.Exists(producer.LeaderKey), "the leadership is released")
+	assert.False(t, redis.Exists(leader.Key), "the leadership is released")
 	assert.Equal(t, shutdownOrder, logged(logs, shutdownOrder), "the shutdown's steps, in the order logged")
 	assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All(), "a clean shutdown logs no error")
 }
@@ -93,7 +93,7 @@ func TestServe_StopsWhatItStartedAndReturnsAnErrorWhenStartingFails(t *testing.T
 	// The producer is started already, so that serve's Start fails. What had started is serve's
 	// event listener, the event bus and the database, and this producer, which it stops.
 	require.NoError(t, p.Producer.Start(context.Background()))
-	require.Eventually(t, func() bool { return redis.Exists(producer.LeaderKey) }, wait, 10*time.Millisecond)
+	require.Eventually(t, func() bool { return redis.Exists(leader.Key) }, wait, 10*time.Millisecond)
 
 	err = serve(context.Background(), p, cfg.DBType, logger)
 
@@ -113,7 +113,7 @@ func TestServe_StopsWhatItStartedAndReturnsAnErrorWhenStartingFails(t *testing.T
 		},
 	)
 	assert.Equal(t, order, logged(logs, order), "what had started stopped, in order")
-	assert.False(t, redis.Exists(producer.LeaderKey), "the leadership is released")
+	assert.False(t, redis.Exists(leader.Key), "the leadership is released")
 	assert.Zero(t, logs.FilterMessage("Producer shut down").Len())
 }
 
@@ -126,7 +126,7 @@ func TestRun_FailsAndLeavesTheDatabaseOpenWhenTheProducerDoesntStopInTime(t *tes
 	migrateDatabase(t, cfg)
 	logger, logs := observedLogger()
 	in := startProducer(t, cfg, logger)
-	require.Eventually(t, func() bool { return redis.Exists(producer.LeaderKey) }, wait, 10*time.Millisecond)
+	require.Eventually(t, func() bool { return redis.Exists(leader.Key) }, wait, 10*time.Millisecond)
 	released := make(chan struct{})
 	var once sync.Once
 	release := func() { once.Do(func() { close(released) }) }
@@ -151,5 +151,5 @@ func TestRun_FailsAndLeavesTheDatabaseOpenWhenTheProducerDoesntStopInTime(t *tes
 
 	// The release goes through once Redis answers, past the deadline
 	release()
-	require.Eventually(t, func() bool { return !redis.Exists(producer.LeaderKey) }, wait, 10*time.Millisecond)
+	require.Eventually(t, func() bool { return !redis.Exists(leader.Key) }, wait, 10*time.Millisecond)
 }

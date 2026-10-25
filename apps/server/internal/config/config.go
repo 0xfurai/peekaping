@@ -168,6 +168,27 @@ const MinProbeOfflineAfter = 2 * time.Minute
 // again on the next pass, once the instance was gone: a false pair of notifications.
 const MaxProbeOfflineAfter = 24 * time.Hour
 
+// IsMongoDBType reports whether a DB_TYPE names MongoDB storage (mongo or mongodb). It is the
+// storage the producer, worker and ingester still run for (ADR 0001): on SQLite and PostgreSQL the
+// api runs their work, and the probes run the checks. Case doesn't matter.
+func IsMongoDBType(dbType string) bool {
+	switch strings.ToLower(strings.TrimSpace(dbType)) {
+	case "mongo", "mongodb":
+		return true
+	}
+	return false
+}
+
+// IsSQLDBType reports whether a DB_TYPE names SQL storage: SQLite, PostgreSQL or MySQL, whose
+// migrations are Postgres-only (ADR 0001). Case doesn't matter.
+func IsSQLDBType(dbType string) bool {
+	switch strings.ToLower(strings.TrimSpace(dbType)) {
+	case "sqlite", "postgres", "postgresql", "mysql":
+		return true
+	}
+	return false
+}
+
 // TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is
 // off, false, 0 or no. Case and surrounding spaces don't matter.
 func (c *Config) TelemetryForcedOff() bool {

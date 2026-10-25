@@ -33,6 +33,13 @@ describe("probeRunsType", () => {
     expect(probeRunsType(probes[1], "http")).toBe(true);
     expect(probeRunsType(probes[1], "docker")).toBe(false);
   });
+
+  // peekaping-probe lists every type it can check, and push is none of them: pushes arrive at the
+  // server, so a push monitor needs no executor on a probe
+  it("runs a push monitor on any probe, whatever types it lists", () => {
+    expect(probeRunsType(probes[1], "push")).toBe(true);
+    expect(probeRunsType(probe("local", ["http", "tcp", "dns"]), "push")).toBe(true);
+  });
 });
 
 describe("probeIdsOf", () => {

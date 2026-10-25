@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/httpx"
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/cleanup"
@@ -24,6 +25,7 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
@@ -133,6 +135,27 @@ func TestRegisterClusterAPI_ProvidesTheRunLockInRedis(t *testing.T) {
 	assert.False(t, claim("second replica"), "second replica's claim of the same hour")
 }
 
+// The API replicas share the window of the probe protocol's results route in Redis: what one
+// replica took, another finds taken
+func TestRegisterClusterAPI_ProvidesTheDuplicateWindowInRedis(t *testing.T) {
+	cfg := clusterConfig(t)
+	claim := func(replica string) protocol.ClaimOutcome {
+		container := dig.New()
+		require.NoError(t, RegisterClusterAPI(container, cfg), replica)
+		var outcome protocol.ClaimOutcome
+		require.NoError(t, container.Invoke(func(window protocol.Window, rdb *redis.Client) {
+			t.Cleanup(func() { assert.NoError(t, rdb.Close()) })
+			var err error
+			outcome, err = window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+			require.NoError(t, err)
+		}), replica)
+		return outcome
+	}
+
+	assert.Equal(t, protocol.ClaimWon, claim("first replica"), "first replica's claim of the id")
+	assert.Equal(t, protocol.ClaimPending, claim("second replica"), "second replica's claim of the same id")
+}
+
 func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
 	container := dig.New()
 	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
@@ -154,9 +177,9 @@ func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
 	}))
 }
 
-// The sweep runs on the leader producer, beside the watchdog, and sends its events over the
-// cluster's bus. The api serves requests, and a replica of it must not run a sweep of its own.
-func TestRegisterClusterProducer_ResolvesTheProbeSweepAndTheAPIDoesNot(t *testing.T) {
+// On MongoDB the producer elects the leader, and runs the sweep beside the watchdog, and sends its
+// events over the cluster's bus
+func TestRegisterClusterProducer_ResolvesTheProbeSweep(t *testing.T) {
 	producerContainer := dig.New()
 	require.NoError(t, RegisterClusterProducer(producerContainer, clusterConfig(t)))
 	require.NoError(t, producerContainer.Invoke(func(
@@ -172,15 +195,93 @@ func TestRegisterClusterProducer_ResolvesTheProbeSweepAndTheAPIDoesNot(t *testin
 		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 		assert.NotNil(t, sweep)
 	}))
-
-	apiContainer := dig.New()
-	require.NoError(t, RegisterClusterAPI(apiContainer, clusterConfig(t)))
-	assert.Error(t, apiContainer.Invoke(func(*probe.Sweep) {}), "only the producer runs the sweep")
 }
 
-func TestRegisterClusterProducer_TheWatchdogSkipsOnlyTheMonitorsOfAnOfflineRemoteProbe(t *testing.T) {
+// On SQLite and PostgreSQL the probes run the checks, so the api runs the watchdog and the probe
+// sweep, on the replica that holds the leader lock
+func TestRegisterClusterAPI_ResolvesTheLeaderJobsOnSQLStorage(t *testing.T) {
 	container := dig.New()
-	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(
+		jobs *LeaderJobs,
+		watchdog *stale.Watchdog,
+		sweep *probe.Sweep,
+		silent *probe.SilentWatch,
+		elector *leader.Elector,
+		bus events.EventBus,
+		db *bun.DB,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		assert.NotNil(t, jobs)
+		assert.NotNil(t, watchdog)
+		assert.NotNil(t, sweep)
+		assert.NotNil(t, silent, "the sweep reports a local probe that has monitors and no instance")
+		assert.NotNil(t, elector)
+		var names []string
+		for _, job := range jobs.jobs {
+			names = append(names, job.Name)
+		}
+		assert.Equal(t, []string{"the stale-monitor watchdog", "the probe sweep", "the push monitors' checks"}, names,
+			"no process of the cluster's own runs the push monitors' checks any more: the leader does")
+	}))
+}
+
+// A cluster upgraded without deploying probes has a local probe that was never online, with monitors
+// nothing checks. What the sweep counts as monitors that need an instance are the active monitors of
+// the local probe that run checks.
+func TestRegisterClusterAPI_TheSilentWatchCountsTheActiveMonitorsThatNeedAnInstance(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(silent *probe.SilentWatch, monitors monitor.Service, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		require.NoError(t, migrateDB(db))
+		ctx := context.Background()
+		count := func() int {
+			n, err := silent.Monitors(ctx)
+			require.NoError(t, err)
+			return n
+		}
+		assert.Zero(t, count(), "no monitors")
+
+		_, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+		require.NoError(t, err)
+		_, err = monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "push", Name: "Backup", Active: true, Config: "{}", PushToken: "backup-token"})
+		require.NoError(t, err)
+		_, err = monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Retired", Active: false, Config: "{}"})
+		require.NoError(t, err)
+
+		assert.Equal(t, 1, count(), "the http monitor: a push monitor runs no checks, and a paused one is not running")
+	}))
+}
+
+// A MongoDB install's producer runs them: an api replica that contested the lock could win it from
+// the producer, and then nothing would schedule the checks
+func TestRegisterClusterAPI_ProvidesNoLeaderJobsOnMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb"} {
+		t.Run(dbType, func(t *testing.T) {
+			cfg := clusterConfig(t)
+			cfg.DBType = dbType
+			container := dig.New()
+			require.NoError(t, RegisterClusterAPI(container, cfg))
+
+			assert.Error(t, container.Invoke(func(*LeaderJobs) {}), "no jobs under the leader lock")
+			assert.Error(t, container.Invoke(func(*leader.Elector) {}), "and no election")
+			assert.Error(t, container.Invoke(func(*probe.Sweep) {}), "and no sweep")
+			assert.Error(t, container.Invoke(func(*probe.SilentWatch) {}), "and nothing to find a local probe with no instance: the producer, worker and ingester check")
+		})
+	}
+}
+
+// AC4: in cluster mode on SQLite and PostgreSQL no process of Peekaping's own runs checks, so the
+// local probe is its instances, like a remote probe: the api's watchdog leaves the monitors of a
+// probe alone while the probe is offline, the local one included, and watches them once it is online
+func TestRegisterClusterAPI_TheWatchdogSkipsTheMonitorsOfAnyOfflineProbeTheLocalOneIncluded(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
 
 	require.NoError(t, container.Invoke(func(
 		probeOffline stale.ProbeOfflineFunc,
@@ -197,13 +298,56 @@ func TestRegisterClusterProducer_TheWatchdogSkipsOnlyTheMonitorsOfAnOfflineRemot
 		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 		require.NoError(t, migrateDB(db))
 
-		assertWatchdogSkipsOnlyOfflineRemote(t, probeOffline, monitors, probes)
+		assertWatchdogFollowsEveryProbesStatus(t, probeOffline, monitors, probes)
 	}))
 }
 
-// assertWatchdogSkipsOnlyOfflineRemote checks the watchdog's question against the real services: a
-// monitor of the local probe is never skipped, and one of a remote probe is while it is offline
-// (a probe starts offline) and not once it is online.
+// assertWatchdogFollowsEveryProbesStatus checks the watchdog's question against the real services,
+// for an install where the local probe is its instances: a monitor of a probe is skipped while the
+// probe is offline (a probe starts offline) and not once it is online, whichever probe it is
+func assertWatchdogFollowsEveryProbesStatus(t *testing.T, probeOffline stale.ProbeOfflineFunc, monitors monitor.Service, probes probe.Service) {
+	t.Helper()
+	ctx := context.Background()
+	remote, err := probes.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
+	require.NoError(t, err)
+	onLocal, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+	require.NoError(t, err)
+	onRemote, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		name      string
+		monitor   *monitor.Model
+		probeID   string
+		offlineBy string
+	}{
+		{"the local probe", onLocal, probe.LocalID, "no instance has connected"},
+		{"a remote probe", onRemote, remote.ID, "a probe that never connected"},
+	} {
+		offline, err := probeOffline(ctx, tc.monitor)
+		require.NoError(t, err)
+		assert.True(t, offline, "%s is offline: %s", tc.name, tc.offlineBy)
+
+		changed, err := probes.MarkOnline(ctx, tc.probeID)
+		require.NoError(t, err)
+		require.True(t, changed)
+		offline, err = probeOffline(ctx, tc.monitor)
+		require.NoError(t, err)
+		assert.False(t, offline, "%s is not once it is online", tc.name)
+
+		changed, err = probes.MarkOffline(ctx, tc.probeID)
+		require.NoError(t, err)
+		require.True(t, changed)
+		offline, err = probeOffline(ctx, tc.monitor)
+		require.NoError(t, err)
+		assert.True(t, offline, "%s is again when its instances stop", tc.name)
+	}
+}
+
+// assertWatchdogSkipsOnlyOfflineRemote checks the watchdog's question against the real services, for
+// an install where the local probe is the process itself: a monitor of the local probe is never
+// skipped, and one of a remote probe is while it is offline (a probe starts offline) and not once it
+// is online.
 func assertWatchdogSkipsOnlyOfflineRemote(t *testing.T, probeOffline stale.ProbeOfflineFunc, monitors monitor.Service, probes probe.Service) {
 	t.Helper()
 	ctx := context.Background()

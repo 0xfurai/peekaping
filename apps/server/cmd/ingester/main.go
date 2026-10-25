@@ -47,6 +47,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load and validate Ingester config: %v", err)
 	}
+	if err := checkStorage(cfg); err != nil {
+		log.Fatalf("Refusing to start: %v", err)
+	}
 
 	os.Setenv("TZ", cfg.Timezone)
 
@@ -61,6 +64,14 @@ func main() {
 	if err := run(ctx, cfg, logger); err != nil {
 		logger.Fatalw("The ingester stopped with an error", "error", err)
 	}
+}
+
+// checkStorage refuses SQLite and PostgreSQL storage, where the api stores the results the probes
+// send and the push URL takes: an ingester left running there would have no queue to take them
+// from. MongoDB has no probes (ADR 0001), so its ingester runs as it always did.
+func checkStorage(cfg *Config) error {
+	return app.RefuseOnSQLStorage("ingester", cfg.DBType,
+		"the api stores the results of the probes and of the push URLs")
 }
 
 // parts are what run starts and stops

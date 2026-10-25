@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -21,7 +22,7 @@ import (
 // syncing put there.
 type leaderEngine struct {
 	*engine
-	election *LeaderElection
+	election *leader.Elector
 	logs     *observer.ObservedLogs
 }
 
@@ -32,8 +33,9 @@ func newLeaderEngine(t *testing.T, monitors ...*monitor.Model) *leaderEngine {
 	e.producer.logger = zap.New(core).Sugar()
 	e.producer.leadershipCheckInterval = 2 * time.Millisecond
 
-	le := NewLeaderElection(e.rdb, "node1", zap.NewNop().Sugar())
-	le.renewalInterval = 2 * time.Millisecond
+	// The election logs to the same observer as the producer: the leadership monitor's log lines
+	// are the election's now
+	le := leader.New(e.rdb, "node1", zap.New(core).Sugar(), leader.WithRenewalInterval(2*time.Millisecond))
 	e.producer.leaderElection = le
 	return &leaderEngine{engine: e, election: le, logs: logs}
 }
@@ -48,8 +50,18 @@ func (e *leaderEngine) start(t *testing.T) {
 	t.Cleanup(func() {
 		e.producer.Stop()
 		// Producer.Stop waits for an election that Start began, not for this one
-		<-e.election.doneChan
+		<-e.election.Done()
 	})
+}
+
+// startSyncing starts the producer's monitor syncing, as the leadership monitor does when the node
+// gets the leadership, and returns what the loss of the leadership does to it: it ends syncing.
+func startSyncing(t *testing.T, p *Producer) (stop context.CancelFunc) {
+	t.Helper()
+	ctx, cancel := context.WithCancel(p.ctx)
+	t.Cleanup(cancel)
+	require.NoError(t, p.startMonitorSyncing(ctx))
+	return cancel
 }
 
 // eventuallyStoppedSyncing waits for the schedule refresher to exit because
@@ -70,14 +82,14 @@ func TestRunLeadershipMonitor(t *testing.T) {
 		e.start(t)
 
 		e.eventuallyDueAt(t, "mon-1", t0)
-		holder, err := e.rdb.Get(ctx, LeaderKey).Result()
+		holder, err := e.rdb.Get(ctx, leader.Key).Result()
 		require.NoError(t, err)
 		assert.Equal(t, "node1", holder)
 	})
 
 	t.Run("a follower doesn't sync until the leader's lock expires", func(t *testing.T) {
 		e := newLeaderEngine(t, &monitor.Model{ID: "mon-1", Active: true, Interval: 60})
-		require.NoError(t, e.rdb.Set(ctx, LeaderKey, "node2", LeaderTTL).Err())
+		require.NoError(t, e.rdb.Set(ctx, leader.Key, "node2", leader.TTL).Err())
 
 		e.start(t)
 
@@ -87,7 +99,7 @@ func TestRunLeadershipMonitor(t *testing.T) {
 		}, 50*time.Millisecond, 2*time.Millisecond, "a follower synced the schedule")
 
 		// node2 stops renewing: its lock runs out and this node takes over
-		e.mr.FastForward(LeaderTTL)
+		e.mr.FastForward(leader.TTL)
 		e.eventuallyDueAt(t, "mon-1", t0)
 	})
 
@@ -97,12 +109,12 @@ func TestRunLeadershipMonitor(t *testing.T) {
 		e.eventuallyDueAt(t, "mon-1", t0)
 
 		// node2 holds the lock now
-		require.NoError(t, e.rdb.Set(ctx, LeaderKey, "node2", LeaderTTL).Err())
+		require.NoError(t, e.rdb.Set(ctx, leader.Key, "node2", leader.TTL).Err())
 		e.eventuallyStoppedSyncing(t, 1)
 
 		// A monitor created meanwhile is only picked up by a new sync
 		e.monitors.put(&monitor.Model{ID: "mon-2", Active: true, Interval: 60})
-		require.NoError(t, e.rdb.Del(ctx, LeaderKey).Err())
+		require.NoError(t, e.rdb.Del(ctx, leader.Key).Err())
 
 		e.eventuallyDueAt(t, "mon-2", t0)
 	})
@@ -114,7 +126,7 @@ func TestStartJobProcessing(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		le := leader.New(client, "node1", logger)
 
 		cfg := &config.Config{
 			ProducerConcurrency: 2,
@@ -152,7 +164,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 		e := newEngine(t, &monitor.Model{ID: "mon-1", Name: "Monitor 1", Active: true, Interval: 60})
 		t.Cleanup(e.producer.Stop)
 
-		err := e.producer.startMonitorSyncing()
+		err := e.producer.startMonitorSyncing(e.producer.ctx)
 		assert.NoError(t, err)
 
 		// The schedule is synced before it returns
@@ -164,7 +176,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		le := leader.New(client, "node1", logger)
 
 		cfg := &config.Config{
 			ProducerConcurrency: 1,
@@ -192,7 +204,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 		// Mock error
 		mockMonitorSvc.On("FindActiveByProbe", producer.ctx, shared.LocalProbeID, 0, 100).Return(nil, assert.AnError)
 
-		err := producer.startMonitorSyncing()
+		err := producer.startMonitorSyncing(producer.ctx)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to initialize schedule")
 
@@ -200,27 +212,15 @@ func TestStartMonitorSyncing(t *testing.T) {
 	})
 }
 
-func TestStopMonitorSyncing(t *testing.T) {
-	// PP-61: stopMonitorSyncing sets syncCtx to nil, and the refresher reads that
-	// field on every loop. Stopping before the refresher's first select makes it
-	// call Done on a nil context and crash the process.
-	t.Run("stops the schedule refresher", func(t *testing.T) {
-		t.Skip("PP-61: stopping right after starting crashes the refresher on a nil syncCtx")
-		e := newEngine(t)
-		t.Cleanup(e.producer.Stop)
-		require.NoError(t, e.producer.startMonitorSyncing())
+// Syncing ends when the node loses the leadership, which cancels the context it was started with
+func TestStartMonitorSyncing_EndsWithItsContext(t *testing.T) {
+	e := newEngine(t)
+	t.Cleanup(e.producer.Stop)
+	stopSyncing := startSyncing(t, e.producer)
 
-		e.producer.stopMonitorSyncing()
+	stopSyncing()
 
-		// The refresher was the producer's only goroutine
-		waitForGoroutines(t, &e.producer.wg)
-	})
-
-	t.Run("does nothing when not syncing", func(t *testing.T) {
-		e := newEngine(t)
-
-		e.producer.stopMonitorSyncing()
-
-		assert.Nil(t, e.producer.syncCancel)
-	})
+	// The refresher is the producer's only goroutine but the watchdog
+	waitForGoroutines(t, &e.producer.wg)
+	waitForGoroutines(t, &e.producer.watchdogWg)
 }

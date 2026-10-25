@@ -175,8 +175,8 @@ func (p *Producer) runReclaimer() {
 	}
 }
 
-// runScheduleRefresher periodically refreshes the schedule with new/updated monitors.
-// syncCtx is passed in because stopMonitorSyncing clears p.syncCtx while this runs.
+// runScheduleRefresher periodically refreshes the schedule with new/updated monitors, until
+// syncCtx is done: this node lost the leadership.
 func (p *Producer) runScheduleRefresher(syncCtx context.Context) {
 	defer p.wg.Done()
 	ticker := time.NewTicker(p.scheduleRefreshInterval)
