@@ -12,7 +12,7 @@ A probe is a place Peekaping runs checks from. The same program runs the **local
 
 | Layout | What checks the local probe's monitors |
 | --- | --- |
-| [Single mode](../self-hosting/deployment-modes.md#single-mode) | The `peekaping` process itself, in memory. There is no `peekaping-probe`. |
+| [Single mode](../self-hosting/deployment-modes.md#single-mode) | The `peekaping` process itself, in memory. A `peekaping-probe` can connect only as a [remote probe](../self-hosting/remote-probes.md): `peekaping` refuses one that uses the local probe's token. |
 | [Cluster mode](../self-hosting/deployment-modes.md#cluster-mode) | `peekaping-probe` instances that hold the local probe's token. This page describes them. |
 
 In cluster mode, the api stores the local probe's token at startup from `PROBE_BOOTSTRAP_TOKEN` (32 characters or more). Every probe instance gets the same value in `PROBE_TOKEN` and the api's address in `PEEKAPING_URL`. The compose files and the Helm chart set all three for you. See [Upgrading to probes](../self-hosting/upgrading-to-probes.md) if you run an older layout.

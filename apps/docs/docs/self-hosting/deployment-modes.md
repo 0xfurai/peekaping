@@ -22,6 +22,8 @@ You run it from a bundle image, which is one container with everything in it:
 
 Single mode supports SQLite and PostgreSQL only. It doesn't scale out: one process runs every check.
 
+Because the `peekaping` process checks the local probe's monitors, a `peekaping-probe` connects to single mode only as a [remote probe](./remote-probes.md), with that probe's own token. A probe instance that uses the local probe's token would check the same monitors a second time, so `peekaping` refuses it with a message that says why, and the probe logs that message. `peekaping` also ignores `PROBE_BOOTSTRAP_TOKEN`: it doesn't store it, and logs a warning at startup when it is set.
+
 ## Cluster mode
 
 In cluster mode, the API and the probe are separate processes:
