@@ -196,11 +196,11 @@ func monitorStatus(locations []shared.MonitorLocation, rule locationRule) shared
 // important and notified, so a result can move the monitor to Up only if its own location is not
 // Down, and to Down only if it is not Up: another location's stale status, back with its probe,
 // must wait for that location's own result, which carries the change. A Pending or Maintenance
-// location is neither, so it can move the monitor either way. A result does not move a Down
-// monitor to Pending unless its location was Down before the result (locationBefore): otherwise
-// another location put the monitor Down, and this one's retries must not hide the outage. The
-// monitor stays Down until an Up result takes it Up, and that Down to Up is the one notified.
-func carriesChange(location, locationBefore, from, to shared.MonitorStatus) bool {
+// location is neither, so it can move the monitor either way. No result moves a Down monitor to
+// Pending: a Down monitor leaves Down only for Up or Maintenance, so that another location's
+// retries, or a Docker container that is starting, don't hide the outage, and the Down to Up that
+// ends it is the one notified.
+func carriesChange(location, from, to shared.MonitorStatus) bool {
 	if from == to {
 		return true
 	}
@@ -210,7 +210,7 @@ func carriesChange(location, locationBefore, from, to shared.MonitorStatus) bool
 	case shared.MonitorStatusDown:
 		return location != shared.MonitorStatusUp
 	case shared.MonitorStatusPending:
-		return from != shared.MonitorStatusDown || locationBefore == shared.MonitorStatusDown
+		return from != shared.MonitorStatusDown
 	default:
 		return true
 	}
@@ -265,7 +265,9 @@ func resendsWhile(monitor shared.MonitorStatus) bool {
 // Ingest stores the result as a heartbeat and publishes the events that follow from it.
 //
 // The heartbeat is judged against the previous one of the same monitor and probe: its retries, and
-// whether it is Pending or Down. That is the status of the monitor's location on the probe. The
+// whether it is Pending or Down. That is the status of the monitor's location on the probe. A
+// location that was Down stays Down until a result is Up: a failed check, whether the check
+// result is Down or Pending, is stored as Down and counted, whatever max retries has become. The
 // monitor's own status follows from its locations (see monitorStatus), and whether the heartbeat
 // is important, whether to notify and whether the monitor changed status follow from the monitor's
 // status before the result and after it. A monitor on one probe is judged exactly as it was when a
@@ -348,7 +350,6 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		rowsBefore      []shared.MonitorLocation
 		recordedBefore  *shared.MonitorStatus
 		isFirstBeat     bool
-		locationBefore  shared.MonitorStatus
 		previousStatus  shared.MonitorStatus
 		currentStatus   shared.MonitorStatus
 		locationsAfter  []shared.MonitorLocation
@@ -364,9 +365,6 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 				l.Status = &previousStatus
 			}
 		})
-		if i := slices.IndexFunc(locationsBefore, func(l shared.MonitorLocation) bool { return l.ProbeID == probeID }); i >= 0 && locationsBefore[i].Status != nil {
-			locationBefore = *locationsBefore[i].Status
-		}
 		locationsAfter = withLocation(j.After, probeID, func(l *shared.MonitorLocation) {
 			l.Status, l.LastPing, l.LastHeartbeatAt = &locationStatus, &r.PingMs, &r.StartTime
 		})
@@ -380,7 +378,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 			previousStatus = monitorStatus(locationsBefore, rule)
 		}
 		currentStatus = monitorStatus(locationsAfter, rule)
-		if !isFirstBeat && !carriesChange(locationStatus, locationBefore, previousStatus, currentStatus) {
+		if !isFirstBeat && !carriesChange(locationStatus, previousStatus, currentStatus) {
 			currentStatus = previousStatus
 		}
 		return &currentStatus

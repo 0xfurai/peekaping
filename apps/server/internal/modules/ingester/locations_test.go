@@ -355,6 +355,39 @@ func TestIngester_StatusChangedCarriesTheMonitorsStatus(t *testing.T) {
 	assert.Equal(t, probeA, beat.published[2].ProbeID)
 }
 
+// A Down monitor leaves Down for Up or Maintenance only, whatever its locations add up to. Here the
+// location rule is edited so that it is no longer met, and the locations add up to Pending: the
+// monitor stays Down until an Up result takes it Up, and that Down to Up is the one notified.
+func TestIngester_ADownMonitorNeverGoesPendingWhenItsLocationsAddUpToPending(t *testing.T) {
+	ti := newTestIngester(runningOn(probeA, probeB))
+	m := monitorSettings{maxRetries: 1}
+	ti.from(t, probeA, m, up)
+	ti.from(t, probeB, m, up)
+	ti.from(t, probeA, m, down)
+	aDown := ti.from(t, probeA, m, down)
+	require.Equal(t, []string{changed, notified}, aDown.events, "the monitor is Down")
+	bRetrying := ti.from(t, probeB, m, down)
+	require.Equal(t, pending, bRetrying.status, "B has a retry left")
+	require.Empty(t, bRetrying.events, "and the monitor stays Down")
+
+	m.locationRule = shared.LocationRuleAll // A is Down, B is Pending: not all of them are Down
+	aStillDown := ti.from(t, probeA, m, down)
+
+	assert.Equal(t, down, aStillDown.status)
+	assert.False(t, aStillDown.important)
+	assert.False(t, aStillDown.notified)
+	assert.Empty(t, aStillDown.events, "the monitor does not go Pending")
+	require.Len(t, aStillDown.published, 2)
+
+	bUp := ti.from(t, probeB, m, up)
+
+	assert.True(t, bUp.important, "the monitor went Down to Up")
+	assert.True(t, bUp.notified)
+	assert.Equal(t, []string{changed, notified}, bUp.events)
+	require.Len(t, bUp.published, 3)
+	assert.Equal(t, up, bUp.published[2].Status)
+}
+
 func TestIngester_ALocationWithNoRowIsStillJudged(t *testing.T) {
 	// MongoDB has no probe rows, and a monitor can have lost one by being moved
 	ti := newTestIngester(runningOn())
