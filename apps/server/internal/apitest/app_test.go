@@ -165,6 +165,9 @@ func newReplica(t *testing.T, first *app, options ...func(*config.Config)) *app 
 		cfg.RedisPort = first.cfg.RedisPort
 	}
 	replica := newApp(t, append(options, share)...)
+	// newApp started a Redis of its own that the replica doesn't use: point at the shared one, so
+	// that fast-forwarding the replica's Redis moves the one it talks to
+	replica.redis = first.redis
 	replica.accessToken, replica.apiKey = first.accessToken, first.apiKey
 	return replica
 }
