@@ -226,6 +226,8 @@ func previousHeartbeat(status shared.MonitorStatus, retries int) *heartbeat.Mode
 
 // step is one check result and the heartbeat it should produce
 type step struct {
+	// settings, when set, are the monitor's settings from this step on, as when the monitor is edited
+	settings  *monitorSettings
 	check     shared.MonitorStatus
 	want      shared.MonitorStatus
 	retries   int
@@ -248,6 +250,9 @@ func runSteps(t *testing.T, previous *heartbeat.Model, m monitorSettings, steps 
 	}
 
 	for i, s := range steps {
+		if s.settings != nil {
+			m = *s.settings
+		}
 		require.NoError(t, ti.ingest(t, checkResult(m, s.check)), "step %d", i+1)
 
 		got := ti.heartbeats.latest()
@@ -361,18 +366,15 @@ func TestIngester_StatusTransitions(t *testing.T) {
 			step:     step{check: maintenance, want: maintenance},
 		},
 		{
-			// PP-133 changes this: the later Pending to Down sends a second Down notification
-			name:     "Down goes back to Pending when max retries is raised above the failed checks so far",
+			name:     "Down stays Down when max retries is raised above the failed checks so far",
 			previous: previousHeartbeat(down, 1),
 			monitor:  monitorSettings{maxRetries: 3},
-			step:     step{check: down, want: pending, retries: 2},
+			step:     step{check: down, want: down, retries: 2},
 		},
 		{
-			// PP-133 changes this: a later Up comes from Pending, so it doesn't notify; GLOSSARY.md says a monitor
-			// coming back Up notifies
-			name:     "Down to a Pending check result is not important and resets the failed checks",
+			name:     "Down to a Pending check result stays Down and counts as a failed check",
 			previous: previousHeartbeat(down, 1),
-			step:     step{check: pending, want: pending},
+			step:     step{check: pending, want: down, retries: 2},
 		},
 
 		{
@@ -491,6 +493,37 @@ func TestIngester_MaxRetries(t *testing.T) {
 				{check: down, want: down, retries: 2, important: true, notified: true},
 				{check: up, want: up, important: true, notified: true},
 				{check: down, want: pending, retries: 1},
+			},
+		},
+	})
+}
+
+// A Down monitor leaves Down only for an Up result, so the Down notification is followed by an Up one.
+func TestIngester_ADownMonitorStaysDownUntilItIsUp(t *testing.T) {
+	runSequences(t, []sequence{
+		{
+			// A Docker monitor reports a starting container as a Pending check result
+			name:    "a container that restarts: one Down notification, then one Up notification",
+			monitor: monitorSettings{maxRetries: 0},
+			steps: []step{
+				{check: up, want: up, important: true, notified: true},
+				{check: down, want: down, retries: 1, important: true, notified: true},
+				{check: pending, want: down, retries: 2},
+				{check: pending, want: down, retries: 3},
+				{check: up, want: up, important: true, notified: true},
+			},
+		},
+		{
+			name:    "raising max retries while Down sends no second Down notification",
+			monitor: monitorSettings{maxRetries: 0},
+			steps: []step{
+				{check: up, want: up, important: true, notified: true},
+				{check: down, want: down, retries: 1, important: true, notified: true},
+				{settings: &monitorSettings{maxRetries: 3}, check: down, want: down, retries: 2},
+				{check: down, want: down, retries: 3},
+				{check: down, want: down, retries: 4},
+				{check: down, want: down, retries: 5},
+				{check: up, want: up, important: true, notified: true},
 			},
 		},
 	})
