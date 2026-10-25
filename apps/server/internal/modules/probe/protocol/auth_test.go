@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -32,6 +33,8 @@ type stubProbes struct {
 	findErr  error
 	touchErr error
 	touched  []touch
+	// mu guards what the methods record: the results requests of a test may run side by side
+	mu sync.Mutex
 
 	// markOnline is what MarkOnline answers: whether this caller changed the probe's status
 	markOnline    bool
@@ -56,11 +59,15 @@ func (s *stubProbes) FindByToken(ctx context.Context, token string) (*probe.Mode
 }
 
 func (s *stubProbes) TouchInstance(ctx context.Context, probeID, id string, at time.Time) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.touched = append(s.touched, touch{probeID, id, at})
 	return s.known[probeID+"/"+id], s.touchErr
 }
 
 func (s *stubProbes) MarkOnline(ctx context.Context, id string) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.markedOnline = append(s.markedOnline, id)
 	return s.markOnline, s.markOnlineErr
 }

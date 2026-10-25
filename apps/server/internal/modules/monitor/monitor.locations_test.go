@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"peekaping/cmd/bun/migrations"
+	"peekaping/internal/config"
 	"peekaping/internal/modules/shared"
 
 	"github.com/google/uuid"
@@ -15,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
+	"go.uber.org/dig"
 )
 
 const (
@@ -111,6 +113,94 @@ func TestSQLRepository_TheLocalProbeIsAlwaysOnline(t *testing.T) {
 
 		assert.True(t, created.Locations[0].Online)
 	})
+}
+
+// AC4: in cluster mode on SQLite and PostgreSQL no process of Peekaping's own runs checks, so the
+// local probe is online while its instances are connected, like a remote probe
+func TestSQLRepository_InClusterModeTheLocalProbeFollowsItsInstances(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		repo := NewSQLRepository(db, WithLocalProbe(shared.LocalProbeIsItsInstances))
+		ctx := context.Background()
+		created, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
+		require.NoError(t, err)
+
+		setProbeStatus(t, db, "local", "offline")
+		found, err := repo.FindByID(ctx, created.ID)
+		require.NoError(t, err)
+		assert.False(t, found.Locations[0].Online, "its instances stopped")
+
+		setProbeStatus(t, db, "local", "online")
+		found, err = repo.FindByID(ctx, created.ID)
+		require.NoError(t, err)
+		assert.True(t, found.Locations[0].Online, "an instance is connected")
+
+		setProbeStatus(t, db, "local", "offline")
+		var judged []shared.MonitorLocation
+		require.NoError(t, repo.RecordLocation(ctx, created.ID, stateOf("local", up, 12, time.Now()), func(j shared.LocationJudgement) *shared.MonitorStatus {
+			judged = j.After
+			return nil
+		}))
+		assert.False(t, judged[0].Online, "and the ingester judges by it, as it does by a remote probe's")
+	})
+}
+
+// A push monitor runs no checks: its pushes arrive at the api, with or without an instance of the
+// local probe, so its location on the local probe is online whatever the probe's status says
+func TestSQLRepository_InClusterModeAPushMonitorsLocalLocationIsOnlineWithoutInstances(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		repo := NewSQLRepository(db, WithLocalProbe(shared.LocalProbeIsItsInstances))
+		ctx := context.Background()
+		setProbeStatus(t, db, "local", "offline")
+		push := monitorOn("Nightly backup", true, "local")
+		push.Type = pushType
+		created, err := repo.Create(ctx, push)
+		require.NoError(t, err)
+		checked, err := repo.Create(ctx, monitorOn("Checkout", true, "local"))
+		require.NoError(t, err)
+
+		foundPush, err := repo.FindByID(ctx, created.ID)
+		require.NoError(t, err)
+		foundChecked, err := repo.FindByID(ctx, checked.ID)
+		require.NoError(t, err)
+
+		assert.True(t, foundPush.Locations[0].Online, "the push monitor needs no instance")
+		assert.False(t, foundChecked.Locations[0].Online, "a monitor an instance checks does")
+	})
+}
+
+// The wiring gives the repository the liveness of the install: a container that provides none keeps
+// the local probe always online
+func TestRegisterDependencies_TheRepositoryTakesTheLocalProbesLiveness(t *testing.T) {
+	for name, tc := range map[string]struct {
+		provide func(*dig.Container) error
+		online  bool
+	}{
+		"none provided": {func(*dig.Container) error { return nil }, true},
+		"the process": {func(c *dig.Container) error {
+			return c.Provide(func() shared.LocalProbeLiveness { return shared.LocalProbeIsTheProcess })
+		}, true},
+		"its instances (cluster)": {func(c *dig.Container) error {
+			return c.Provide(func() shared.LocalProbeLiveness { return shared.LocalProbeIsItsInstances })
+		}, false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+				cfg := &config.Config{DBType: "sqlite"}
+				container := dig.New()
+				require.NoError(t, container.Provide(func() *config.Config { return cfg }))
+				require.NoError(t, container.Provide(func() *bun.DB { return db }))
+				require.NoError(t, tc.provide(container))
+				require.NoError(t, RegisterDependencies(container, cfg))
+				setProbeStatus(t, db, "local", "offline")
+
+				require.NoError(t, container.Invoke(func(repo MonitorRepository) {
+					created, err := repo.Create(context.Background(), monitorOn("Checkout", true, "local"))
+					require.NoError(t, err)
+					assert.Equal(t, tc.online, created.Locations[0].Online)
+				}))
+			})
+		})
+	}
 }
 
 func TestSQLRepository_RecordLocationKeepsEachProbesState(t *testing.T) {

@@ -8,8 +8,11 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"runtime/debug"
 	"slices"
 	"strconv"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"peekaping/internal/httpx"
@@ -20,8 +23,10 @@ import (
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
+	"peekaping/internal/reporting"
 	"peekaping/internal/utils"
 
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 )
 
@@ -34,6 +39,15 @@ const (
 	maxResultSkew = time.Minute
 	// maxResultPingMs keeps the response time inside the INTEGER column of the heartbeats
 	maxResultPingMs = math.MaxInt32
+	// PendingRetryAfter is the Retry-After of a batch answered 503 because another request holds
+	// the id of one of its results: the probe sends the batch again after that long. The holder is
+	// usually storing, which takes seconds; if it died, its claim runs out after ClaimTTL, and the
+	// probe asks again every PendingRetryAfter until then.
+	PendingRetryAfter = 5 * time.Second
+	// messagePending is the 503's message
+	messagePending = "a result in this batch is being stored by another request: send the batch again"
+	// messageStoreDeadline is the message of the 503 for a request that stored until its deadline
+	messageStoreDeadline = "storing the results took too long: send the batch again"
 )
 
 // statusOfWord maps the status words of the wire to the statuses of heartbeats
@@ -64,18 +78,28 @@ type candidate struct {
 //   - unknown_monitor: there is no such monitor
 //   - not_assigned: the monitor is not one of the probe's that it is dealt (it is paused, a push
 //     monitor, a type the probe can't run, or another probe's)
-//   - duplicate: the probe sent this id before, and the server stored it or is storing it
+//   - duplicate: the probe sent this id before, and the server stored it
 //
 // The rest are stored with the monitor's settings and maintenance state, as the push URL stores
 // a push, one monitor at a time and each monitor's results oldest first, because storing a result
-// reads the monitor's previous heartbeat. The answer is sent after the last is stored or, in
-// cluster mode, queued. A result that fails to store is the server's failure and not the
+// reads the monitor's previous heartbeat. The answer is sent after the last is stored. A result that fails to store is the server's failure and not the
 // result's: the whole batch is answered 500, so the probe sends it again, and the results that
 // were stored by then are answered duplicate.
 //
-// The ids of the rest are claimed in the accepted window before anything is stored, so that a
-// retry that arrives while this request is still storing is answered duplicate. An id whose result
-// was not stored when the request ends is given back.
+// The ids of the rest are claimed in the accepted window before anything is stored. An id whose
+// result was not stored when the request ends is given back. An id whose result was stored is kept
+// for the hour as soon as its monitor's results are stored: a claim alone runs out in ClaimTTL, for
+// the retry of a request that died to be accepted.
+//
+// A retry that arrives while another request is still storing finds those ids claimed and not kept
+// (pending). The holder may be at it, or may have died, and the probe drops a duplicate for good, so
+// the result is not answered duplicate. It is not stored either: the rest of the batch is stored as
+// usual, and the whole request is answered 503 with a Retry-After of PendingRetryAfter. The probe
+// keeps the batch and sends it again, and finds the results stored by then answered duplicate.
+//
+// A request stores for StoreDeadline at the most, which is shorter than ClaimTTL, so that it is over
+// before its claims can run out. When the deadline hits, what was stored is kept, what was not is
+// given back, and the answer is the same 503.
 func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.Output[probeproto.ResultsResponse], error) {
 	// MARK: Results
 
@@ -107,12 +131,22 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 	// is a monitor that does not exist
 	others := map[string]*monitor.Model{}
 	var waiting []*candidate
+	// claimedHere are the ids this request claimed, and heldElsewhere is whether the window found
+	// an id of the batch pending: claimed by another request that has not stored its result
+	claimedHere := map[string]bool{}
+	heldElsewhere := false
 	// What was claimed and not stored goes back to the window, whether the request fails or panics:
 	// the probe sends such a result again, and it has to be accepted
 	defer func() {
 		for _, w := range waiting {
-			if !w.stored {
-				c.accepted.Release(owner.ID, w.result.ID)
+			if w.stored {
+				continue
+			}
+			if err := c.accepted.Release(r.Context(), owner.ID, w.result.ID); err != nil {
+				// The id stays claimed until the window forgets it, so the probe's retry of this
+				// result is answered duplicate though it was not stored
+				c.logger.Errorw("Failed to give back the id of a result that was not stored",
+					"probeId", owner.ID, "resultId", w.result.ID, "error", err)
 			}
 		}
 	}()
@@ -141,8 +175,29 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 		}
 		// The claim is the last check, so that only a result that goes on to be stored takes an id.
 		// An id twice in one batch is claimed by the first.
-		if reason == "" && !c.accepted.Claim(owner.ID, result.ID, now) {
+		if reason == "" && claimedHere[result.ID] {
 			reason = probeproto.ReasonDuplicate
+		}
+		if reason == "" {
+			claim, err := c.accepted.Claim(r.Context(), owner.ID, result.ID, now)
+			if err != nil {
+				// The window could not say whether the id was taken: the batch is the probe's to
+				// send again, and the ids claimed so far are given back
+				return nil, c.unavailable("claiming a result id", err)
+			}
+			switch claim {
+			case ClaimWon:
+				claimedHere[result.ID] = true
+			case ClaimPending:
+				// Another request holds the id and has not stored the result: it may be at it, or
+				// it may have died. This one is neither stored nor a duplicate, which the probe
+				// would drop for good. The rest of the batch goes on, and the probe sends the
+				// whole batch again.
+				heldElsewhere = true
+				continue
+			default:
+				reason = probeproto.ReasonDuplicate
+			}
 		}
 		if reason != "" {
 			outcomes[i].Reason = reason
@@ -152,10 +207,35 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 		waiting = append(waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo, outcome: &outcomes[i]})
 	}
 
-	if err := c.store(r.Context(), owner, waiting); err != nil {
+	// A request stores for StoreDeadline at the most, so that it is over before its claims run out
+	storeCtx, cancelStore := context.WithTimeout(r.Context(), c.timing.StoreDeadline)
+	defer cancelStore()
+	if err := c.store(storeCtx, owner, waiting); err != nil {
+		if storeCtx.Err() != nil && r.Context().Err() == nil {
+			// The deadline, not the probe going away: what was stored is kept and the rest is given
+			// back on the way out, and the probe sends the batch again
+			c.logger.Errorw("Storing a batch of results took until the deadline",
+				"probeId", owner.ID, "deadline", c.timing.StoreDeadline.String(), "error", err)
+			return nil, c.retryLater(owner.ID, messageStoreDeadline)
+		}
 		return nil, c.fail(err)
 	}
+	if heldElsewhere {
+		return nil, c.retryLater(owner.ID, messagePending)
+	}
 	return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
+}
+
+// retryLater answers 503 with a Retry-After for a batch that has results left to store: one whose
+// id another request holds, or that was not stored before the deadline. The probe keeps the batch
+// and sends it again after PendingRetryAfter: the results stored by now are duplicates then, and
+// the rest are stored, or a duplicate if the holder stored them, or told to wait again if the
+// holder is still at it or its claim has not run out yet.
+func (c *Controller) retryLater(probeID, message string) error {
+	c.logger.Infow("Asked a probe to send a batch again", "probeId", probeID, "why", message,
+		"retryAfter", PendingRetryAfter.String())
+	retryAfter := http.Header{"Retry-After": {strconv.Itoa(int(PendingRetryAfter / time.Second))}}
+	return huma.ErrorWithHeaders(httpx.Fail(http.StatusServiceUnavailable, utils.NewFailResponse(message)), retryAfter)
 }
 
 // dealtMonitors are the monitors that the probe is dealt, by id: the active monitors it runs of
@@ -245,13 +325,23 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 	return &info, nil
 }
 
-// store hands the results to the ingester one monitor at a time, each monitor's oldest first, and
-// marks each one stored, which keeps its id claimed. It stops at the first that fails, leaving that
-// result and the ones after it not stored.
+// store hands the results to the ingester, those of different monitors at the same time, up to
+// StoreConcurrency monitors, and each monitor's one at a time, oldest first, and marks each one
+// stored and its id kept in the window. Ingest reads a monitor's previous heartbeat, so a monitor's
+// results can't overlap; those of different monitors don't depend on one another, and storing a
+// result is a few queries, which a batch of hundreds stored one after another would wait for in turn.
 //
-// In cluster mode the ingester enqueues the result, and the queue holds a task for the monitor, the probe and
-// the start time for an hour. A task the queue holds already is a result stored, by a replica that
-// the probe's first attempt reached: the result's outcome becomes duplicate, and it is not a failure.
+// A monitor whose result fails to store stops there, leaving that result and the ones after it not
+// stored, and no monitor starts after that. The monitors being stored by then finish, so the results
+// stored when the request ends are the ones its answer, a 500, leaves to be answered duplicate when
+// the probe sends the batch again. The error returned is the first failed monitor's, in the order
+// the monitors were sent.
+//
+// On MongoDB the ingester enqueues the result, and the queue holds a task for the monitor, the probe
+// and the start time for an hour. A task the queue holds already is a result stored, by a replica
+// that the probe's first attempt reached: the result's outcome becomes duplicate, and it is not a
+// failure. (On SQLite and PostgreSQL the Window answers a retry on another replica, by the result's
+// id, and the ingester has no queue.)
 func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*candidate) error {
 	var order []string
 	byMonitor := map[string][]*candidate{}
@@ -263,30 +353,96 @@ func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*c
 		byMonitor[id] = append(byMonitor[id], w)
 	}
 
-	for _, monitorID := range order {
-		group := byMonitor[monitorID]
-		slices.SortStableFunc(group, func(a, b *candidate) int { return a.result.StartTime.Compare(b.result.StartTime) })
-
-		// The window the monitor is in is the same for each result of the batch
-		underMaintenance, err := healthcheck.MonitorUnderMaintenance(ctx, c.maintenance, monitorID)
-		if err != nil {
-			// Keep the results the probe sent rather than lose them
-			c.logger.Errorw("Failed to check if a monitor a probe sent results for is under maintenance",
-				"probeId", owner.ID, "monitorId", monitorID, "error", err)
+	var (
+		wg       sync.WaitGroup
+		slots    = make(chan struct{}, StoreConcurrency)
+		failed   atomic.Bool
+		failures = make([]error, len(order))
+	)
+	for i, monitorID := range order {
+		// A slot of this request, then one of the server's, which the requests of all the probe
+		// instances share. A monitor that has its slots waits for nothing else but the database, and
+		// gives them back, so a request waiting for a slot of the server's gets one.
+		slots <- struct{}{}
+		c.storeSlots <- struct{}{}
+		if failed.Load() {
+			<-c.storeSlots
+			<-slots
+			break
 		}
-		for _, w := range group {
-			result := healthcheck.ResultFromMonitor(w.monitor, underMaintenance, w.status, w.result.Message, w.result.PingMs,
-				w.result.StartTime.UTC(), w.result.EndTime.UTC(), w.tlsInfo, c.logger)
-			result.ProbeID = owner.ID
-			err := c.ingester.Ingest(ctx, result)
-			switch {
-			case errors.Is(err, queue.ErrTaskIDConflict):
-				w.outcome.Accepted, w.outcome.Reason = false, probeproto.ReasonDuplicate
-			case err != nil:
-				return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			defer func() { <-slots }()
+			defer func() { <-c.storeSlots }()
+			defer func() {
+				// A panic here is not on the request's goroutine, where the router would recover it
+				if value := recover(); value != nil {
+					reporting.CapturePanic("http", value, debug.Stack())
+					failures[i] = fmt.Errorf("panic storing a result of monitor %s from probe %s: %v", monitorID, owner.ID, value)
+					failed.Store(true)
+				}
+			}()
+			if err := c.storeMonitor(ctx, owner, monitorID, byMonitor[monitorID]); err != nil {
+				failures[i] = err
+				failed.Store(true)
 			}
-			w.stored = true
+		}()
+	}
+	wg.Wait()
+	for _, err := range failures {
+		if err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+// storeMonitor hands one monitor's results to the ingester, oldest first, and stops at the first
+// that fails
+func (c *Controller) storeMonitor(ctx context.Context, owner *probe.Model, monitorID string, group []*candidate) error {
+	slices.SortStableFunc(group, func(a, b *candidate) int { return a.result.StartTime.Compare(b.result.StartTime) })
+
+	// The ids of the results stored so far are kept when this returns, the failed or panicked
+	// storing of a later result included: a claim runs out in minutes, and a result that was stored
+	// must stay taken for the probe's retry. One call for the group, one pipeline in Redis.
+	var stored []string
+	defer func() { c.keepStored(ctx, owner.ID, stored) }()
+
+	// The window the monitor is in is the same for each result of the batch
+	underMaintenance, err := healthcheck.MonitorUnderMaintenance(ctx, c.maintenance, monitorID)
+	if err != nil {
+		// Keep the results the probe sent rather than lose them
+		c.logger.Errorw("Failed to check if a monitor a probe sent results for is under maintenance",
+			"probeId", owner.ID, "monitorId", monitorID, "error", err)
+	}
+	for _, w := range group {
+		result := healthcheck.ResultFromMonitor(w.monitor, underMaintenance, w.status, w.result.Message, w.result.PingMs,
+			w.result.StartTime.UTC(), w.result.EndTime.UTC(), w.tlsInfo, c.logger)
+		result.ProbeID = owner.ID
+		err := c.ingester.Ingest(ctx, result)
+		switch {
+		case errors.Is(err, queue.ErrTaskIDConflict):
+			w.outcome.Accepted, w.outcome.Reason = false, probeproto.ReasonDuplicate
+		case err != nil:
+			return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
+		}
+		w.stored = true
+		stored = append(stored, w.result.ID)
+	}
+	return nil
+}
+
+// keepStored has the window hold the ids of results that were stored for the rest of the hour. A
+// window that fails to is the log's business, not the request's: the results are stored already,
+// and failing the request would have the probe send them again. The ids run out of the window with
+// their claims, in minutes, and a retry after that stores the results twice.
+func (c *Controller) keepStored(ctx context.Context, probeID string, ids []string) {
+	if len(ids) == 0 {
+		return
+	}
+	if err := c.accepted.Keep(ctx, probeID, ids...); err != nil {
+		c.logger.Errorw("Failed to keep the ids of results that were stored",
+			"probeId", probeID, "resultIds", len(ids), "error", err)
+	}
 }

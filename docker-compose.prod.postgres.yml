@@ -62,6 +62,9 @@ services:
       # client's address, and the api believes that header from these addresses only. Set
       # TRUSTED_PROXIES in .env to change them; an empty TRUSTED_PROXIES= trusts nobody.
       TRUSTED_PROXIES: "${TRUSTED_PROXIES-127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}"
+      # The local probe's token: the api stores it, and the probe sends it. Without it no
+      # monitor is checked.
+      PROBE_BOOTSTRAP_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
     depends_on:
       database:
         condition: service_healthy
@@ -82,50 +85,25 @@ services:
       retries: 5
       start_period: 5s
 
-  producer:
-    image: 0xfurai/peekaping-producer:latest
+  # The local probe: its instances run the checks of the monitors that run on the local probe.
+  # They connect to the api, so they need no database, no Redis and no volume. Run more of
+  # them with `docker compose up -d --scale probe=3`: the monitors are dealt among them.
+  probe:
+    image: 0xfurai/peekaping-probe:latest
     restart: unless-stopped
-    # the producer takes up to 30 seconds to shut down cleanly
-    stop_grace_period: 35s
-    env_file:
-      - .env
+    # the probe takes up to 25 seconds to shut down cleanly
+    stop_grace_period: 30s
+    environment:
+      PEEKAPING_URL: http://api:8034
+      # The probe refuses a plain http:// address to another host unless told otherwise.
+      # This one stays on the compose network.
+      PROBE_ALLOW_INSECURE: "true"
+      # The token the api stores on the local probe (PROBE_BOOTSTRAP_TOKEN)
+      PROBE_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
-      database:
+      api:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    networks:
-      - appnet
-
-  worker:
-    image: 0xfurai/peekaping-worker:latest
-    restart: unless-stopped
-    # the worker takes up to 30 seconds to shut down cleanly
-    stop_grace_period: 35s
-    env_file:
-      - .env
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - appnet
-
-  ingester:
-    image: 0xfurai/peekaping-ingester:latest
-    restart: unless-stopped
-    # the ingester takes up to 30 seconds to shut down cleanly
-    stop_grace_period: 35s
-    env_file:
-      - .env
-    depends_on:
-      database:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
     networks:
       - appnet
 

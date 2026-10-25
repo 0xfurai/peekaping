@@ -53,7 +53,10 @@ type SweepConfig struct {
 	// to reconnect. The moment NewSweep is called when it's zero.
 	StartedAt time.Time
 	// Now is the clock the sweep measures by. The local clock is used when it's nil.
-	Now    func() time.Time
+	Now func() time.Time
+	// Silent, when set, has the sweep report the local probe offline when it has monitors to run and
+	// no instance. Only the cluster on SQLite and PostgreSQL sets it.
+	Silent *SilentWatch
 	Logger *zap.SugaredLogger
 }
 
@@ -66,13 +69,17 @@ type SweepConfig struct {
 //     that couldn't do it, and publishes ProbeOnline;
 //   - publishes InstancesChanged when the instances a probe is dealt among are no longer the ones
 //     it saw last time, so that the probe's waiting assignment polls deal again;
-//   - removes the instances that went unseen for InstanceRetention.
+//   - removes the instances that went unseen for InstanceRetention;
+//   - on a cluster on SQLite or PostgreSQL (SweepConfig.Silent), publishes ProbeOffline for the local
+//     probe once when it has monitors to run and no instance has said hello within OfflineAfter of
+//     this replica taking the leader lock: the probe was never online, so it never goes quiet.
 //
 // It sets no probe offline until OfflineAfter has passed since the process started, so that after
 // an outage the probes have time to reconnect before they are announced offline. The rest of the
 // pass goes on meanwhile.
 //
-// Only one sweep should run at a time: cluster mode runs it on the leader producer.
+// Only one sweep should run at a time: cluster mode runs it on the api replica that holds the
+// leader lock (the leader producer, on MongoDB, which has no probes and so nothing to sweep).
 type Sweep struct {
 	repo         Repository
 	eventBus     events.EventBus
@@ -82,23 +89,39 @@ type Sweep struct {
 	onlineWindow time.Duration
 	started      time.Time
 	now          func() time.Time
+	silent       *SilentWatch
 	logger       *zap.SugaredLogger
 
 	// warned is set once the sweep has said that it has nothing to do on this storage backend
 	warned atomic.Bool
 
-	mu sync.Mutex // one pass at a time; guards online
+	mu sync.Mutex // one pass at a time; guards online and termStart
 	// online is the ids of each probe's online instances as of the last pass
 	online map[string][]string
+	// termStart is when this replica began its term as the leader: the instances of a probe that
+	// has none get OfflineAfter from then to say hello. Zero before the first term.
+	termStart time.Time
 }
 
 // ProvideSweep provides the sweep, offline after PROBE_OFFLINE_AFTER. The binary that runs it
-// provides the event bus: single mode's, or the cluster producer's.
+// provides the event bus: single mode's, or the cluster api's.
 func ProvideSweep(repo Repository, eventBus events.EventBus, cfg *config.Config, logger *zap.SugaredLogger) *Sweep {
 	return NewSweep(SweepConfig{
 		Repo:         repo,
 		EventBus:     eventBus,
 		OfflineAfter: cfg.ProbeOfflineAfter,
+		Logger:       logger,
+	})
+}
+
+// ProvideSilentSweep provides the sweep of the cluster api on SQLite and PostgreSQL, which also
+// reports the local probe offline when it has monitors to run and no instance (see SilentWatch)
+func ProvideSilentSweep(repo Repository, eventBus events.EventBus, cfg *config.Config, silent *SilentWatch, logger *zap.SugaredLogger) *Sweep {
+	return NewSweep(SweepConfig{
+		Repo:         repo,
+		EventBus:     eventBus,
+		OfflineAfter: cfg.ProbeOfflineAfter,
+		Silent:       silent,
 		Logger:       logger,
 	})
 }
@@ -114,6 +137,7 @@ func NewSweep(cfg SweepConfig) *Sweep {
 		onlineWindow: cfg.InstanceOnlineWindow,
 		started:      cfg.StartedAt,
 		now:          cfg.Now,
+		silent:       cfg.Silent,
 		logger:       cfg.Logger,
 		online:       make(map[string][]string),
 	}
@@ -146,9 +170,7 @@ func NewSweep(cfg SweepConfig) *Sweep {
 // warns once and returns.
 func (s *Sweep) Run(ctx context.Context) {
 	// The last pass of an earlier run says nothing about the instances now
-	s.mu.Lock()
-	s.online = make(map[string][]string)
-	s.mu.Unlock()
+	s.BeginTerm()
 
 	ticker := time.NewTicker(s.interval)
 	defer ticker.Stop()
@@ -173,6 +195,15 @@ func (s *Sweep) Run(ctx context.Context) {
 	}
 }
 
+// BeginTerm starts a term of the sweep as the leader: what the last term learned about the instances
+// is forgotten, and the instances of a probe that has none get OfflineAfter from now. Run does it.
+func (s *Sweep) BeginTerm() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.online = make(map[string][]string)
+	s.termStart = s.now().UTC()
+}
+
 // sweepOnce is one pass over every probe
 func (s *Sweep) sweepOnce(ctx context.Context) error {
 	s.mu.Lock()
@@ -192,6 +223,7 @@ func (s *Sweep) sweepOnce(ctx context.Context) error {
 			s.logger.Errorw("Failed to find the instances of a probe", "probeId", p.ID, "error", err)
 			continue
 		}
+		s.checkSilent(ctx, p, instances, now)
 		s.checkStatus(ctx, p, instances, now)
 		s.checkInstances(ctx, p, instances, now)
 	}
@@ -243,6 +275,7 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 			since = now
 		}
 		s.logger.Infow("Probe is offline", "probeId", p.ID, "name", p.Name, "since", since, "disabled", p.Disabled)
+		s.markAnnounced(ctx, p)
 		if p.Disabled {
 			// An admin disabled it: its token is refused, so going quiet is expected, and no one is told
 			return

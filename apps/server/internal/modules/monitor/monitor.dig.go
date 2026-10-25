@@ -16,7 +16,7 @@ import (
 )
 
 func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
-	if err := utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository); err != nil {
+	if err := utils.RegisterRepositoryByDBType(container, cfg, provideSQLRepository, NewMongoRepository); err != nil {
 		return err
 	}
 	// The dbtx.Transactor is provided here, beside the repositories, so that it resolves

@@ -1,4 +1,4 @@
-Peekaping is installed as release {{ .Release.Name }} in the {{ .Release.Namespace }} namespace, in cluster mode: separate api, producer, worker and ingester deployments that talk through Redis.
+Peekaping is installed as release {{ .Release.Name }} in the {{ .Release.Namespace }} namespace, in cluster mode: api and web deployments, and probe pods that run the checks and talk to the api. The api replicas share the database and talk through Redis.
 
 Check that the pods are running:
 

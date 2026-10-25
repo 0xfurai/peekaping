@@ -140,7 +140,6 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 	}))
 	// The waker ends the probes' waiting assignment polls when a monitor or an instance changes, as it does in cmd/api.
 	require.NoError(t, container.Invoke(func(waker *protocol.Waker) { waker.Subscribe() }))
-
 	// The metrics collector starts when the config asks for it, as cmd/api does. It stops before the event bus closes.
 	if cfg.MetricsEnabled {
 		require.NoError(t, container.Invoke(func(collector *metrics.Collector, bus events.EventBus) {

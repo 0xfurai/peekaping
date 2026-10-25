@@ -82,6 +82,14 @@ CLIENT_URL="http://localhost:5173"
 MODE=prod
 TZ="America/New_York"
 
+# The local probe, which checks the monitors that run on Peekaping itself.
+# make dev runs a probe next to the api. The api stores PROBE_BOOTSTRAP_TOKEN as
+# the local probe's token, and the probe sends PROBE_TOKEN to PEEKAPING_URL.
+# The two tokens must be equal, and at least 32 characters.
+PROBE_BOOTSTRAP_TOKEN=dev-local-probe-token-0123456789abcdef
+PROBE_TOKEN=dev-local-probe-token-0123456789abcdef
+PEEKAPING_URL=http://localhost:8034
+
 # JWT settings are now automatically managed in the database.
 # Default settings are initialized on first startup:
 # - Access token expiration: 15 minutes
@@ -89,11 +97,13 @@ TZ="America/New_York"
 # - Secret keys are automatically generated securely
 ```
 
+`.env.prod.example` leaves `PROBE_BOOTSTRAP_TOKEN` empty, so give it a value and add the other two lines. `.env.dev.example` has all three set. `make dev` starts the api, a probe and the docs watcher, so the probe checks your monitors. On MongoDB storage, which has no probes, run the producer, worker and ingester instead: `bun run dev dev:api dev:ingester dev:producer dev:worker docs:watch`. On SQLite and PostgreSQL the producer and the ingester refuse to start.
+
 ---
 
 ## 5. Run a Database for Development
 
-The cluster-mode binaries you run on your machine (`api`, `producer`, `worker` and `ingester`) need Redis, and with PostgreSQL or MongoDB a database server. The single-mode `peekaping` binary needs no Redis, only the database server. `docker-compose.deps.yml` runs them with Docker Compose. It always starts Redis and asynqmon, a queue dashboard, and a profile adds the database. Example for **PostgreSQL**:
+The cluster-mode binaries you run on your machine need Redis, and with PostgreSQL or MongoDB a database server. They are the `api` and the `probe` (the probe needs only the api's address, not Redis or a database), and, for MongoDB storage only, the `producer`, `worker` and `ingester`. The single-mode `peekaping` binary needs no Redis, only the database server. `docker-compose.deps.yml` runs them with Docker Compose. It always starts Redis and asynqmon, a queue dashboard, and a profile adds the database. Example for **PostgreSQL**:
 
 ```bash
 docker compose -f docker-compose.deps.yml --profile postgres up -d
@@ -117,7 +127,7 @@ The repository root has these Docker Compose files. Each one comes in a variant 
 | `docker-compose.deps.yml` | Redis, asynqmon and, with a profile, PostgreSQL or MongoDB, for running the Go binaries on your machine. |
 | `docker-compose.e2e.yml` | The test target overlay for the Playwright suite. It adds `e2e-target` on top of a dev, prod or bundle file. |
 
-The `mongo` files are for the deprecated MongoDB storage backend.
+The `mongo` files are for the deprecated MongoDB storage backend. They run the `producer`, `worker` and `ingester`. The `sqlite` and `postgres` dev and prod files run a `probe` service instead, and refuse to start without `PROBE_BOOTSTRAP_TOKEN` in `.env`.
 
 ### Docs snippets that copy a file
 

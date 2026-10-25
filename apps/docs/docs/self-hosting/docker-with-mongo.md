@@ -17,6 +17,8 @@ The MongoDB monitor type, which checks other MongoDB servers, is not affected.
 
 With MongoDB, Peekaping runs in cluster mode only: the API, producer, worker and ingester are separate processes that talk through Redis. Single mode, one `peekaping` process, supports SQLite and PostgreSQL only.
 
+This four-process layout stays for MongoDB until MongoDB storage is removed. MongoDB has no [probes](./remote-probes.md), so it can't run its checks through probe instances, as cluster mode on SQLite and PostgreSQL does. The producer, worker and ingester images and the Mongo bundle and compose file below don't change. On SQLite and PostgreSQL the producer and the ingester refuse to start, so don't point them at a database you moved to: see [Upgrading to probes](./upgrading-to-probes.md) for that layout.
+
 ## Move to SQLite or PostgreSQL
 
 `bun db import-mongo` copies a MongoDB install into a new SQLite or PostgreSQL database. The `bun` tool is in the SQLite and PostgreSQL bundle images and in the migrate image (`peekaping-migrate`) of the releases after 0.0.47. It copies:
@@ -245,7 +247,7 @@ docker network disconnect peekaping-move <its container>
 docker network rm peekaping-move
 ```
 
-Start Peekaping on that database. With the [Docker Compose setup for PostgreSQL](./docker-with-postgres.md#cluster-mode), start its `database` service alone with `docker compose up -d database` for the import, and everything else after it.
+Start Peekaping on that database. With the [Docker Compose setup for PostgreSQL](./docker-with-postgres.md#cluster-mode), put `PROBE_BOOTSTRAP_TOKEN` in its `.env` first: Compose reads the whole file, so it refuses even `docker compose up -d database` without it, and the stack runs a `probe` service instead of the producer, worker and ingester. Start its `database` service alone with `docker compose up -d database` for the import, and everything else after it.
 
 ## Bundle image
 

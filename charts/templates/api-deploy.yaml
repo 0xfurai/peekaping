@@ -78,6 +78,14 @@ spec:
                 name: {{ .Values.config.existingSecret }}
             {{- end }}
 
+          env:
+            # The local probe's token, which the api stores at startup. The probe pods send it.
+            - name: PROBE_BOOTSTRAP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "peekaping.probeTokenSecretName" . }}
+                  key: {{ include "peekaping.probeTokenSecretKey" . }}
+
           ports:
             - containerPort: {{ .Values.api.service.port }}
               name: http

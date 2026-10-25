@@ -83,6 +83,12 @@ func NewRateLimiter() *RateLimiter {
 	return newRateLimiter(DefaultRate, DefaultBurst, time.Now)
 }
 
+// NewRateLimiterOf returns a limiter of burst requests at once and limit a second, in place of the
+// defaults, for a measurement that has to post faster than a probe does
+func NewRateLimiterOf(limit rate.Limit, burst int) *RateLimiter {
+	return newRateLimiter(limit, burst, time.Now)
+}
+
 func newRateLimiter(limit rate.Limit, burst int, now func() time.Time) *RateLimiter {
 	return &RateLimiter{
 		limit:           limit,

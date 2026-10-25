@@ -1916,6 +1916,51 @@ func (f fakeProbes) FindProbe(_ context.Context, id string) (*ProbeInfo, error) 
 	return f.probes[id], f.err
 }
 
+// The types a probe lists are the ones it has an executor for. A push monitor needs none: its pushes
+// arrive at the api, so it runs on the local probe whatever that probe lists, and peekaping-probe
+// lists every type but push. The local probe of a cluster is its instances, which report exactly that.
+func TestMonitorService_APushMonitorIsNeverRefusedForTheTypesAProbeRuns(t *testing.T) {
+	ctx := context.Background()
+	probes := fakeProbes{probes: map[string]*ProbeInfo{
+		"local": {Name: "Local", SupportedTypes: []string{"http", "tcp", "dns"}},
+	}}
+	newService := func() (*MonitorServiceImpl, *MockMonitorRepository) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service.probes = probes
+		return service, mockRepo
+	}
+
+	t.Run("create", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("Create", inTx, mock.Anything).Return(&Model{ID: "monitor123"}, nil)
+
+		_, err := service.Create(ctx, &CreateUpdateDto{Type: "push", Name: "Nightly cron", Config: "{}", ProbeIDs: []string{"local"}})
+
+		require.NoError(t, err)
+	})
+
+	t.Run("an http monitor still needs a probe that runs http", func(t *testing.T) {
+		service, _ := newService()
+
+		_, err := service.Create(ctx, &CreateUpdateDto{Type: "docker", Name: "Containers", Config: "{}", ProbeIDs: []string{"local"}})
+
+		require.EqualError(t, err, `invalid probe_ids: probe "Local" doesn't run docker monitors`)
+	})
+
+	t.Run("a monitor becomes a push monitor", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123", Type: "http", ProbeIDs: []string{"local"}}, nil)
+		mockRepo.On("UpdatePartial", mock.Anything, "monitor123", mock.Anything).Return(nil).Maybe()
+		mockRepo.On("FindByID", mock.Anything, "monitor123").Return(&Model{ID: "monitor123", Type: "push", ProbeIDs: []string{"local"}}, nil).Maybe()
+		pushType := "push"
+
+		_, err := service.UpdatePartial(ctx, "monitor123", &PartialUpdateDto{Type: &pushType}, false)
+
+		var invalid *InvalidProbesError
+		assert.False(t, errors.As(err, &invalid), "the local probe lists no push, and push needs no executor: %v", err)
+	})
+}
+
 // A MongoDB install has no probes (ADR 0001): the probe side says so, and only the local probe,
 // which is all there is, is accepted.
 func TestMonitorService_MongoOnlyAcceptsLocal(t *testing.T) {
