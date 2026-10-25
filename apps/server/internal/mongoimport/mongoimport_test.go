@@ -76,8 +76,7 @@ func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report
 	ctx := context.Background()
 
 	t.Run("users", func(t *testing.T) {
-		want, err := auth.NewMongoRepository(in.Client, in.Config).FindByEmail(ctx, mongoimporttest.AdminEmail)
-		require.NoError(t, err)
+		want := mongoimporttest.Get[mongoimporttest.UserDocument](t, in, "users", bson.M{"email": mongoimporttest.AdminEmail})
 		sqlUsers := auth.NewSQLRepository(db)
 		got, err := sqlUsers.FindByEmail(ctx, mongoimporttest.AdminEmail)
 		require.NoError(t, err)
@@ -122,13 +121,10 @@ func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report
 	})
 
 	t.Run("settings", func(t *testing.T) {
-		mongoSettings := setting.NewMongoRepository(in.Client, in.Config)
 		sqlSettings := setting.NewSQLRepository(db)
 		// The JWT signing secrets come across, or every session and refresh token would stop working
 		for _, key := range []string{shared.AccessTokenSecretKey, shared.RefreshTokenSecretKey, "ACCESS_TOKEN_EXPIRED_IN", "REFRESH_TOKEN_EXPIRED_IN", "cert_expiry_notify_days"} {
-			want, err := mongoSettings.GetByKey(ctx, key)
-			require.NoError(t, err)
-			require.NotNil(t, want, key)
+			want := mongoimporttest.Get[mongoimporttest.SettingDocument](t, in, "setting", bson.M{"key": key})
 			got, err := sqlSettings.GetByKey(ctx, key)
 			require.NoError(t, err)
 			require.NotNil(t, got, key)
@@ -154,12 +150,11 @@ func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report
 	})
 
 	t.Run("api keys", func(t *testing.T) {
-		mongoKeys, err := api_key.NewMongoRepository(in.Client, in.Config).FindAll(ctx)
-		require.NoError(t, err)
+		mongoKeys := mongoimporttest.List[mongoimporttest.APIKeyDocument](t, in, "api_keys", bson.M{}, nil)
 		require.Len(t, mongoKeys, 2)
 		sqlKeys := api_key.NewSQLRepository(db)
 		for _, want := range mongoKeys {
-			got, err := sqlKeys.FindByID(ctx, uuidOf(t, want.ID))
+			got, err := sqlKeys.FindByID(ctx, uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, want.Name)
 			assert.Equal(t, want.Name, got.Name)
@@ -256,10 +251,8 @@ func TestImportRefusesATargetThatHoldsData(t *testing.T) {
 			require.NoError(t, err)
 
 			settings := setting.NewSQLRepository(db)
-			mongoSettings := setting.NewMongoRepository(in.Client, in.Config)
 			for _, key := range []string{shared.AccessTokenSecretKey, shared.RefreshTokenSecretKey, setting.DataRetentionPeriodKey} {
-				want, err := mongoSettings.GetByKey(ctx, key)
-				require.NoError(t, err)
+				want := mongoimporttest.Get[mongoimporttest.SettingDocument](t, in, "setting", bson.M{"key": key})
 				assert.Equal(t, want.Value, mustSetting(t, settings, key).Value, key)
 			}
 			assert.NotEqual(t, started.Value, mustSetting(t, settings, shared.AccessTokenSecretKey).Value, "the target's own signing secret is still there")

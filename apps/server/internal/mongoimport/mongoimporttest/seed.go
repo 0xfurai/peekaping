@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"peekaping/cmd/bun/migrations"
-	"peekaping/internal/config"
 	"peekaping/internal/mongoimport"
 
 	"github.com/stretchr/testify/require"
@@ -26,7 +25,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -47,9 +45,6 @@ type Install struct {
 	Database string
 
 	Client *mongo.Client
-	// Config names the database for the modules' Mongo repositories.
-	Config *config.Config
-	Logger *zap.SugaredLogger
 
 	// AdminID is the ObjectID of the admin, who has two-factor authentication on.
 	AdminID string
@@ -89,9 +84,7 @@ func Empty(t *testing.T) *Install {
 		URI:      uri,
 		Database: "pp227_" + primitive.NewObjectID().Hex(),
 		Client:   client,
-		Logger:   zap.NewNop().Sugar(),
 	}
-	in.Config = &config.Config{DBName: in.Database}
 	t.Cleanup(func() {
 		require.NoError(t, client.Database(in.Database).Drop(context.Background()))
 		require.NoError(t, client.Disconnect(context.Background()))

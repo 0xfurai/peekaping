@@ -51,11 +51,10 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 	ctx := context.Background()
 
 	t.Run("proxies", func(t *testing.T) {
-		mongoProxies, sqlProxies := proxy.NewMongoRepository(in.Client, in.Config), proxy.NewSQLRepository(db)
+		sqlProxies := proxy.NewSQLRepository(db)
 		for _, name := range []string{"auth", "open"} {
-			want, err := mongoProxies.FindByID(ctx, in.ID("proxy", name))
-			require.NoError(t, err)
-			got, err := sqlProxies.FindByID(ctx, uuidOf(t, want.ID))
+			want := mongoimporttest.GetByID[mongoimporttest.ProxyDocument](t, in, "proxies", in.ID("proxy", name))
+			got, err := sqlProxies.FindByID(ctx, uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 			assert.Equal(t, want.Protocol, got.Protocol)
@@ -73,18 +72,17 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 	})
 
 	t.Run("monitors", func(t *testing.T) {
-		mongoMonitors, sqlMonitors := monitor.NewMongoRepository(in.Client, in.Config), monitor.NewSQLRepository(db)
+		sqlMonitors := monitor.NewSQLRepository(db)
 		for _, name := range []string{"checkout", "nightly", "paused", "broken", "wide"} {
-			want, err := mongoMonitors.FindByID(ctx, in.ID("monitor", name))
-			require.NoError(t, err)
-			got, err := sqlMonitors.FindByID(ctx, uuidOf(t, want.ID))
+			want := mongoimporttest.GetByID[mongoimporttest.MonitorDocument](t, in, "monitor", in.ID("monitor", name))
+			got, err := sqlMonitors.FindByID(ctx, uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 
 			// What a monitor needs to run is copied as it is, apart from what the report lists
-			wantName, wantConfig, wantProxy := want.Name, want.Config, want.ProxyId
-			if wantProxy != "" {
-				wantProxy = uuidOf(t, wantProxy)
+			wantName, wantConfig, wantProxy := want.Name, want.Config, ""
+			if want.ProxyID != nil {
+				wantProxy = uuidOf(t, want.ProxyID.Hex())
 			}
 			switch name {
 			case "wide":
@@ -100,7 +98,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 			assert.Equal(t, want.RetryInterval, got.RetryInterval, name)
 			assert.Equal(t, want.ResendInterval, got.ResendInterval, name)
 			assert.Equal(t, want.Active, got.Active, name)
-			assert.Equal(t, want.Status, got.Status, name)
+			assert.Equal(t, want.Status, int(got.Status), name)
 			assert.Equal(t, want.PushToken, got.PushToken, name)
 			assert.Equal(t, wantProxy, got.ProxyId, name)
 			assert.JSONEq(t, wantConfig, got.Config, name)
@@ -133,12 +131,11 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 	})
 
 	t.Run("notification channels", func(t *testing.T) {
-		mongoChannels, sqlChannels := notification_channel.NewMongoRepository(in.Client, in.Config), notification_channel.NewSQLRepository(db)
+		sqlChannels := notification_channel.NewSQLRepository(db)
 		// The teams channel was saved in full and then changed in part, so the app showed the later change
 		for _, name := range []string{"webhook", "email", "teams"} {
-			want, err := mongoChannels.FindByID(ctx, in.ID("channel", name))
-			require.NoError(t, err)
-			got, err := sqlChannels.FindByID(ctx, uuidOf(t, want.ID))
+			want := mongoimporttest.GetByID[mongoimporttest.NotificationChannelDocument](t, in, "notification_channel", in.ID("channel", name))
+			got, err := sqlChannels.FindByID(ctx, uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 			assert.Equal(t, want.Name, got.Name)
@@ -182,11 +179,10 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 	})
 
 	t.Run("tags", func(t *testing.T) {
-		mongoTags, sqlTags := tag.NewMongoRepository(in.Client, in.Config), tag.NewSQLRepository(db)
+		sqlTags := tag.NewSQLRepository(db)
 		for _, name := range []string{"production", "staging"} {
-			want, err := mongoTags.FindByID(ctx, in.ID("tag", name))
-			require.NoError(t, err)
-			got, err := sqlTags.FindByID(ctx, uuidOf(t, want.ID))
+			want := mongoimporttest.GetByID[mongoimporttest.TagDocument](t, in, "tags", in.ID("tag", name))
+			got, err := sqlTags.FindByID(ctx, uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 			assert.Equal(t, want.Name, got.Name)
@@ -300,11 +296,11 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		for _, link := range shopLinks {
 			linked = append(linked, link.MonitorID)
 		}
-		mongoLinks, err := monitor_status_page.NewMongoRepository(in.Client, in.Config).GetMonitorsForStatusPage(ctx, in.ID("status_page", "shop"))
-		require.NoError(t, err)
+		mongoLinks := mongoimporttest.List[mongoimporttest.MonitorStatusPageDocument](t, in, "monitor_status_page",
+			bson.M{"status_page_id": mustObjectID(t, in.ID("status_page", "shop"))}, bson.D{{Key: "order", Value: 1}})
 		var shown []string
 		for _, link := range mongoLinks {
-			shown = append(shown, link.MonitorID)
+			shown = append(shown, link.MonitorID.Hex())
 		}
 		require.Equal(t, []string{in.ID("monitor", "nightly"), in.ID("monitor", "paused"), in.ID("monitor", "checkout")}, shown, "the order MongoDB showed")
 		assert.Equal(t, uuids(t, shown...), linked)
