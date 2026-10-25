@@ -5,7 +5,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/shared"
 )
 
@@ -89,7 +89,7 @@ func (p *PushSource) Find(ctx context.Context, monitorID string) (*shared.Monito
 }
 
 // Load loads the check of the monitor
-func (p *PushSource) Load(ctx context.Context, monitorID string) (*check.Job, error) {
+func (p *PushSource) Load(ctx context.Context, monitorID string) (*job.Job, error) {
 	return p.inner.Load(ctx, monitorID)
 }
 
