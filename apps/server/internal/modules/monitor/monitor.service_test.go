@@ -2002,7 +2002,7 @@ func TestMonitorService_WithoutProbesOnlyAcceptsLocal(t *testing.T) {
 		var invalid *InvalidProbesError
 		require.ErrorAs(t, err, &invalid)
 		assert.ErrorIs(t, err, ErrNoProbes)
-		assert.EqualError(t, err, `invalid probe_ids: probe "frankfurt" can't be used: probes need SQLite or PostgreSQL storage`)
+		assert.EqualError(t, err, `invalid probe_ids: probe "frankfurt" can't be used: probes aren't available here`)
 		mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 

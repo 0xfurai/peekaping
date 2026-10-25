@@ -15,7 +15,7 @@ const pushType = "push"
 
 // ErrNoProbes is what a graph without a ProbeLookup answers for every probe: its monitors all run
 // on the local probe
-var ErrNoProbes = errors.New("probes need SQLite or PostgreSQL storage")
+var ErrNoProbes = errors.New("probes aren't available here")
 
 // ProbeInfo is what the monitor service needs to know of a probe to assign a monitor to it
 type ProbeInfo struct {
