@@ -197,3 +197,64 @@ func TestMaskSensitiveValue_MasksTheErrorReportingDSN(t *testing.T) {
 func TestMaskSensitiveValue_MasksTheProbeBootstrapToken(t *testing.T) {
 	assert.Equal(t, "*****", maskSensitiveValue("PROBE_BOOTSTRAP_TOKEN", "0123456789abcdef0123456789abcdef"))
 }
+
+// AC1: MongoDB storage was removed, and every binary says so, not that DB_TYPE is invalid. The
+// db_type validator ignores case, so the refusal does too.
+func TestLoadConfig_RefusesMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MongoDB", "MONGO"} {
+		t.Run(dbType, func(t *testing.T) {
+			_, err := loadTestConfig(t, map[string]string{
+				"DB_TYPE": dbType, "DB_NAME": "peekaping", "DB_HOST": "mongo", "DB_PORT": "27017", "DB_USER": "peekaping", "DB_PASS": "secret",
+			})
+
+			require.ErrorIs(t, err, ErrMongoStorageRemoved)
+			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+": MongoDB storage was removed. "+
+				`Move this install's data to SQLite or PostgreSQL with "bun db import-mongo", then set DB_TYPE to sqlite or postgres. `+
+				"See https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql")
+			assert.NotContains(t, err.Error(), "must be one of", "not the validator's message")
+		})
+	}
+}
+
+// "bun db migrate" loads only the database settings
+func TestLoadConfig_RefusesMongoStorageInTheDatabaseSettings(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MongoDB"} {
+		t.Run(dbType, func(t *testing.T) {
+			t.Setenv("DB_TYPE", dbType)
+			t.Setenv("DB_NAME", "peekaping")
+
+			_, err := LoadConfig[DBConfig](t.TempDir())
+
+			require.ErrorIs(t, err, ErrMongoStorageRemoved)
+			assert.ErrorContains(t, err, "DB_TYPE="+dbType+": MongoDB storage was removed")
+		})
+	}
+}
+
+func TestLoadConfig_AcceptsTheSQLStorageBackends(t *testing.T) {
+	for _, dbType := range []string{"sqlite", "postgres", "postgresql", "mysql", "SQLite"} {
+		t.Run(dbType, func(t *testing.T) {
+			_, err := loadTestConfig(t, map[string]string{"DB_TYPE": dbType})
+
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestLoadConfig_AnUnknownDBTypeStillGetsTheValidatorsMessage(t *testing.T) {
+	_, err := loadTestConfig(t, map[string]string{"DB_TYPE": "oracle"})
+
+	require.Error(t, err)
+	assert.NotErrorIs(t, err, ErrMongoStorageRemoved)
+	assert.ErrorContains(t, err, "DBType must be one of: postgres, postgresql, mysql, sqlite")
+	assert.NotContains(t, err.Error(), "mongo", "MongoDB isn't a choice any more")
+}
+
+func TestRefuseMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "Mongo", "MONGODB", " mongo "} {
+		assert.ErrorIs(t, RefuseMongoStorage(dbType), ErrMongoStorageRemoved, dbType)
+	}
+	for _, dbType := range []string{"", "sqlite", "postgres", "postgresql", "mysql", "oracle"} {
+		assert.NoError(t, RefuseMongoStorage(dbType), dbType)
+	}
+}

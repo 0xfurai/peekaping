@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -222,6 +223,14 @@ func runWithDB(fn func(*bun.DB) error) error {
 // refuse a database type it doesn't work with.
 func runWithConfiguredDB(accept func(config.DBConfig) error, fn func(config.DBConfig, *bun.DB) error) error {
 	cfg, err := loadDBConfig()
+	// A command that picks its own target says what is wrong with a MongoDB one in its own words,
+	// where the other commands give the refusal every binary gives. The settings are loaded even
+	// when they fail validation.
+	if accept != nil && errors.Is(err, config.ErrMongoStorageRemoved) {
+		if refusal := accept(cfg); refusal != nil {
+			return refusal
+		}
+	}
 	if err != nil {
 		return err
 	}

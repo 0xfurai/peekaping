@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/config"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -150,8 +152,9 @@ func TestLoadAndValidate_ListsTheRedisSettingsItIgnores(t *testing.T) {
 	assert.Empty(t, cfg.ToInternalConfig().RedisHost)
 }
 
+// AC1: MongoDB storage was removed, so peekaping says so and points at the page that explains the move.
+// The DB_TYPE validator ignores case, so the refusal does too.
 func TestLoadAndValidate_RefusesMongoStorage(t *testing.T) {
-	// The DB_TYPE validator ignores case, so the refusal does too
 	for _, dbType := range []string{"mongo", "mongodb", "MONGO", "MongoDB"} {
 		t.Run(dbType, func(t *testing.T) {
 			t.Setenv("DB_TYPE", dbType)
@@ -163,9 +166,21 @@ func TestLoadAndValidate_RefusesMongoStorage(t *testing.T) {
 
 			_, err := LoadAndValidate(t.TempDir())
 
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+" isn't supported by peekaping (single mode)")
-			assert.Contains(t, err.Error(), "SQLite or PostgreSQL")
+			require.ErrorIs(t, err, config.ErrMongoStorageRemoved)
+			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+": MongoDB storage was removed.")
+			assert.Contains(t, err.Error(), "https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql")
+			assert.Contains(t, err.Error(), `"bun db import-mongo"`)
+		})
+	}
+}
+
+// Validate is called on its own too, with a Config that didn't come from LoadAndValidate
+func TestValidate_RefusesMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MONGO", "MongoDB"} {
+		t.Run(dbType, func(t *testing.T) {
+			err := Validate(&Config{DBType: dbType})
+
+			assert.ErrorIs(t, err, config.ErrMongoStorageRemoved)
 		})
 	}
 }

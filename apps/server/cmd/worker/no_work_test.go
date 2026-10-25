@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/config"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest/observer"
@@ -51,16 +53,16 @@ func TestRun_TheWorkerWithNoStorageSaysItHasWorkOnMongoDBOnly(t *testing.T) {
 	assert.NoError(t, in.stop(t))
 }
 
-// MongoDB has no probes (ADR 0001): its worker runs the checks as it always did, and says nothing
-// about its job
-func TestRun_TheWorkerOnMongoDBStorageSaysNothingAboutItsJob(t *testing.T) {
-	cfg, _ := loadConfig(t, map[string]string{"DB_TYPE": "mongo"})
-	logger, logs := observedLogger()
+// MongoDB storage was removed, so a worker that is told it refuses it, as every binary does
+func TestLoadAndValidate_TheWorkerRefusesMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MongoDB"} {
+		t.Run(dbType, func(t *testing.T) {
+			t.Setenv("DB_TYPE", dbType)
 
-	in := startWorker(t, cfg, logger)
-	serving(t, logs)
+			_, err := LoadAndValidate(t.TempDir())
 
-	assert.Zero(t, logs.FilterMessageSnippet("no work left").Len())
-	assert.Zero(t, logs.FilterMessageSnippet("work only on MongoDB").Len())
-	assert.NoError(t, in.stop(t))
+			require.ErrorIs(t, err, config.ErrMongoStorageRemoved)
+			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+": MongoDB storage was removed.")
+		})
+	}
 }

@@ -67,6 +67,11 @@ func LoadAndValidate(path string) (*Config, error) {
 
 // Validate validates the Producer service configuration
 func Validate(cfg *Config) error {
+	// MongoDB storage was removed, and the db_type validator below would only call the value invalid
+	if err := config.RefuseMongoStorage(cfg.DBType); err != nil {
+		return err
+	}
+
 	// Validate using struct tags
 	v := validator.New()
 	config.RegisterCustomValidators(v)
