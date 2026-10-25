@@ -219,6 +219,12 @@ func TestRegisterClusterAPI_ResolvesTheLeaderJobsOnSQLStorage(t *testing.T) {
 		assert.NotNil(t, sweep)
 		assert.NotNil(t, silent, "the sweep reports a local probe that has monitors and no instance")
 		assert.NotNil(t, elector)
+		var names []string
+		for _, job := range jobs.jobs {
+			names = append(names, job.Name)
+		}
+		assert.Equal(t, []string{"the stale-monitor watchdog", "the probe sweep", "the push monitors' checks"}, names,
+			"no process of the cluster's own runs the push monitors' checks any more: the leader does")
 	}))
 }
 
