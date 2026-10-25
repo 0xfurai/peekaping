@@ -2,7 +2,7 @@
 name: ticket-loop
 description: "Loop on a ticket's open PRs: wait for CI and CodeRabbit, handle every comment, push, repeat until the user merges; then restack and close the ticket."
 disable-model-invocation: true
-argument-hint: "#<n> | <pr>..."
+argument-hint: "PP-<n> | <pr>..."
 ---
 
 # Ticket: loop
@@ -107,7 +107,7 @@ Resolve a CodeRabbit thread once its fix is pushed or CodeRabbit accepts your re
 When the whole stack has merged:
 
 1. Comment on the ticket: what shipped, the acceptance-criteria table with evidence, follow-up tickets.
-2. Make sure the ticket is closed and its Status is Done (the top PR's `Fixes` line should have closed it; if not, close it yourself).
-3. `ExitWorktree` with `keep`, then `git worktree remove .claude/worktrees/<n>`.
+2. Make sure the ticket is Done (the GitHub integration usually moves it).
+3. `ExitWorktree` with `keep`, then `git worktree remove .claude/worktrees/pp-<n>`.
 
 Done when: the ticket is Done with the summary comment, and the worktree is gone.
