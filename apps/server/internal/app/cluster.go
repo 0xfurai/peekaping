@@ -152,17 +152,18 @@ func RegisterClusterIngester(container *dig.Container, cfg *config.Config) error
 }
 
 // warnAboutSQLite logs one warning when the storage backend is SQLite, for the binaries that open
-// the database: the api, the producer and the ingester. They run as separate processes on one
-// file, and SQLite lets one process write at a time, so each waits for the others' writes. That
-// works for a small install, but single mode runs all the roles in one process, and PostgreSQL
-// takes concurrent writers, so either fits better. The worker has no database and doesn't log it.
-// The warning comes before the database opens, so it is in the log when a startup check stops.
+// the database. On SQLite that is the api (the producer and the ingester refuse to start on it, see
+// RefuseOnSQLStorage), whose replicas run as separate processes on one file. SQLite lets one process
+// write at a time, so each waits for the others' writes. That works for a small install, but single
+// mode runs all the roles in one process, and PostgreSQL takes concurrent writers, so either fits
+// better. The worker has no database and doesn't log it. The warning comes before the database
+// opens, so it is in the log when a startup check stops.
 func warnAboutSQLite(container *dig.Container, cfg *config.Config) error {
 	if cfg.DBType != "sqlite" {
 		return nil
 	}
 	return container.Invoke(func(logger *zap.SugaredLogger) {
-		logger.Warnf("SQLite in cluster mode: the api, producer and ingester share one database file "+
+		logger.Warnf("SQLite in cluster mode: the api replicas share one database file "+
 			"and write to it one at a time. Single mode (the SQLite bundle image) or PostgreSQL fits better. "+
 			"See %s", sqliteClusterDocsURL)
 	})

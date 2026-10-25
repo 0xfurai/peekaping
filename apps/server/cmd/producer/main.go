@@ -46,6 +46,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load and validate Producer config: %v", err)
 	}
+	if err := checkStorage(cfg); err != nil {
+		log.Fatalf("Refusing to start: %v", err)
+	}
 
 	os.Setenv("TZ", cfg.Timezone)
 
@@ -60,6 +63,14 @@ func main() {
 	if err := run(ctx, cfg, logger); err != nil {
 		logger.Fatalw("The producer stopped with an error", "error", err)
 	}
+}
+
+// checkStorage refuses SQLite and PostgreSQL storage, where the api runs the watchdog and the probe
+// sweep and the probes run the checks: a producer left running there would contest the api's leader
+// lock. MongoDB has no probes (ADR 0001), so its producer runs as it always did.
+func checkStorage(cfg *Config) error {
+	return app.RefuseOnSQLStorage("producer", cfg.DBType,
+		"the api runs the stale-monitor watchdog and the probe sweep, and the probes run the checks")
 }
 
 // parts are what run starts and stops
