@@ -1,0 +1,23 @@
+# The services the integration tests (go test -tags integration) talk to.
+# CI starts them with "docker compose up -d --wait" and points the tests at them
+# through the PEE_TEST_* variables. Without those variables the tests start their
+# own containers, so you need this file only to reuse one set of servers:
+#
+#   docker compose -f docker-compose.integration.yml up -d --wait
+#   PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
+#     go test -tags integration -count=1 ./internal/modules/healthcheck/executor/...
+#   docker compose -f docker-compose.integration.yml down
+#
+# Each service matches a function in internal/testservice, which starts the same
+# image the same way. Add a service here when you add a function there.
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--requirepass", "integration-test-password", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:16379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "integration-test-password", "--no-auth-warning", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30

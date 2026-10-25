@@ -141,6 +141,37 @@ The Docker pages in `apps/docs/docs/self-hosting` show the cluster-mode `docker-
 
 Blocks with no marker aren't checked. That is for examples and excerpts that are deliberately not a full copy, such as the single-mode Compose snippets, which run the published image where `docker-compose.bundle.<backend>.yml` builds from source, and the `.env` excerpts.
 
+### Integration tests
+
+Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Today the only one is `TestRedisExecutor_Integration`, which checks the Redis executor: Up with the right password, Down with a wrong one.
+
+With Docker running, run them from `apps/server`. The tests start the servers they need, each on a free port, and remove them when the run ends. `-count=1` turns off Go's test cache, which would otherwise replay an earlier pass after a server went away:
+
+```bash
+go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
+```
+
+To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A test that finds nothing at that address fails; it doesn't start a container instead.
+
+```bash
+docker compose -f apps/server/docker-compose.integration.yml up -d --wait
+cd apps/server
+PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
+  go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
+docker compose -f docker-compose.integration.yml down
+```
+
+Without Docker and without the variable, a test skips and the message names both ways out. When `CI` is set, it fails instead, so a CI job can't go green by skipping.
+
+The Integration tests workflow runs on pull requests and pushes to `main` that change `apps/server`. It runs beside Test and Lint.
+
+To add a service, such as Kafka:
+
+1. Add a function to `apps/server/internal/testservice`, next to `Redis`. It returns the connection details, from the service's `PEE_TEST_<SERVICE>_URL` variable or from a container it starts. The shared code in `testservice.go` handles the variable, the Docker check and the skip.
+2. Add the service to `apps/server/docker-compose.integration.yml`, with a health check, a fixed port on `127.0.0.1` and the same image and settings as the function.
+3. Set the variable in `.github/workflows/integration.yml`.
+4. Write the test beside the code it checks, with `//go:build integration` on the first line.
+
 ---
 
 ## 6. Start the Development Servers
