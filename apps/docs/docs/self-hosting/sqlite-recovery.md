@@ -12,7 +12,7 @@ This page is for the SQLite storage backend, the database Peekaping keeps its da
 
 ## The startup check
 
-At start, Peekaping checks the database. `SQLITE_STARTUP_CHECK` chooses the check. In single mode, `peekaping` runs it. In cluster mode, the `api`, `producer` and `ingester` each run it. The `migrate` image doesn't.
+At start, Peekaping checks the database. `SQLITE_STARTUP_CHECK` chooses the check. In single mode, `peekaping` runs it. In cluster mode, each `api` container runs it. The `migrate` image doesn't.
 
 | `SQLITE_STARTUP_CHECK` | What runs |
 | --- | --- |
@@ -53,7 +53,7 @@ docker logs peekaping
 docker compose logs peekaping
 
 # Cluster mode with Docker Compose
-docker compose logs api producer ingester
+docker compose logs api
 ```
 
 On Kubernetes, use `kubectl logs` on the pods.
@@ -72,7 +72,7 @@ Stop every process that uses the database, and stop its restarts. Don't start Pe
 
 - **Single mode with `docker run`:** `docker stop -t 35 peekaping`.
 - **Single mode with Docker Compose:** `docker compose down`.
-- **Cluster mode with Docker Compose:** `docker compose stop api producer ingester`. Run `docker compose ps` and check that no `migrate` container is running.
+- **Cluster mode with Docker Compose:** `docker compose stop api`. Run `docker compose ps` and check that no `migrate` container is running. The `probe` uses no database, so it can keep running: it holds its results in memory until the api is back.
 - **Kubernetes, with your own manifests:** stop every workload that mounts the database volume, whatever its kind: a Deployment, a StatefulSet, a Job or a plain Pod. Scale it to 0 replicas, or delete it. Then run `kubectl get pods` in that namespace and check that no pod that mounts the volume is left. (The Helm chart supports PostgreSQL only.)
 
 ### 2. Preserve the original

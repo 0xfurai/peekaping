@@ -8,7 +8,7 @@ By default Peekaping checks every monitor from the machine it runs on. A remote 
 
 ## Probes and locations
 
-A **probe** is a place Peekaping runs checks from. Every install has the **local probe**: Peekaping itself, which checks the monitors on it. It can't be deleted. A **remote probe** is a small program, `peekaping-probe`, that you run on another machine. It connects out to Peekaping with its token, gets the monitors assigned to it, runs their checks and sends the results back. Peekaping records them as heartbeats, like any other result.
+A **probe** is a place Peekaping runs checks from. Every install has the **local probe**: Peekaping itself, which checks the monitors on it. It can't be deleted. In single mode the `peekaping` process checks them. In cluster mode on SQLite and PostgreSQL, `peekaping-probe` instances started with the local probe's token do, as [the cluster layout](../architecture/probe.md#who-runs-the-local-probes-checks) describes: the Compose files and the Helm chart deploy them for you. A **remote probe** is a small program, `peekaping-probe`, that you run on another machine. It connects out to Peekaping with its token, gets the monitors assigned to it, runs their checks and sends the results back. Peekaping records them as heartbeats, like any other result.
 
 A monitor runs on one or more probes. Each probe's results for the monitor are a **location** of that monitor. See [several probes per monitor](#several-probes-per-monitor).
 
@@ -41,7 +41,7 @@ A remote probe runs the monitor types it has a check for. A push monitor runs on
 4. Once the probe has connected, the Probes page shows it as **Online**, with the instance that connected.
 5. Assign monitors to it: choose the probe in the monitor's form.
 
-The image is `0xfurai/peekaping-probe` on Docker Hub and `ghcr.io/0xfurai/peekaping-probe` on GHCR, for amd64 and arm64. It runs as the non-root user `65532`, and keeps nothing on disk, so it needs no volume. Ping monitors on a probe need the same permission as on the worker: see [Ping Monitors and ICMP Permissions](../architecture/worker.md#ping-monitors-and-icmp-permissions).
+The image is `0xfurai/peekaping-probe` on Docker Hub and `ghcr.io/0xfurai/peekaping-probe` on GHCR, for amd64 and arm64. It runs as the non-root user `65532`, and keeps nothing on disk, so it needs no volume. Ping monitors need `net.ipv4.ping_group_range` to include the probe's group, which Docker allows by default: see [Ping Monitors and ICMP Permissions](../architecture/probe.md#ping-monitors-and-icmp-permissions).
 
 The image has a Docker health check on the probe's `/ready` endpoint. It answers 200 once the probe has its first assignment, and keeps answering 200 while the server is unreachable.
 
@@ -100,16 +100,18 @@ Peekaping limits how often an instance may call each route under `/probe/v1/`. T
 
 Each API process counts for itself. In single mode there is one process, so the limit is exact. In cluster mode with several API replicas behind a load balancer, an instance can send up to as many times the limit as there are replicas, because each replica keeps its own count. With 3 replicas, an instance can send up to 3 requests a second. Hellos have a second limit on top, for all the instances of a probe together: 1 a second, after a burst of 10. A hello counts against both, so one instance still gets at most 5 at once. This limit is also counted by each replica for itself.
 
+A batch that a probe sends again, for example after a timeout, can reach another replica. The replicas share a record in Redis of the results they took, kept for an hour, so the second replica answers the batch as a duplicate and each result is stored once. If a replica can't reach Redis, it answers 503 and the probe sends the batch again. In single mode the record is in memory.
+
 ## When a probe is offline
 
 A probe is online while one of its instances has been in contact with Peekaping. When the probe can't reach Peekaping, it keeps checking and holds the results in memory, up to 10,000. When that is full, the oldest are dropped first, and the probe logs it. It sends what it holds as soon as it can reach Peekaping again. Peekaping refuses results more than one hour old, so a longer gap leaves a gap in the heartbeats. Because the results are in memory, a probe that restarts while it is cut off loses them.
 
-When Peekaping has heard nothing from any instance of a probe for `PROBE_OFFLINE_AFTER`, a sweep that runs every 30 seconds marks the probe offline. The setting is on the server (`peekaping`, or the producer in cluster mode). It is `3m` by default, and it can be 2 minutes to 24 hours.
+When Peekaping has heard nothing from any instance of a probe for `PROBE_OFFLINE_AFTER`, a sweep that runs every 30 seconds marks the probe offline. The setting is on the server (`peekaping`, or the API in cluster mode, where the replica that holds the leader lock runs the sweep, so set it on every API replica). It is `3m` by default, and it can be 2 minutes to 24 hours.
 
 - **Notifications.** The notification channels of the probe's monitors get "Probe `<name>` has been offline since `<time>`", and "Probe `<name>` is online" when it is back.
 - **Monitors.** Peekaping doesn't mark the probe's monitors Down. A location whose probe is offline doesn't count towards the monitor's status. The stale-monitor watchdog also skips a monitor whose every probe is offline, so you get the probe's notification, not one for each monitor.
 
-The local probe is never offline.
+**The local probe.** In single mode the local probe is the `peekaping` process, so it is never offline. In cluster mode on SQLite and PostgreSQL it is its instances, so it is online while one of them is connected, and offline when they all stop: a stopped probe deployment raises the probe offline notification, and its monitors are skipped by the watchdog, as for a remote probe. If a cluster runs with no instance at all, such as one upgraded without deploying the probes, the leader reports the local probe offline once, after `PROBE_OFFLINE_AFTER`, and logs `the local probe has N active monitors and no instance: deploy peekaping-probe with PROBE_TOKEN set to PROBE_BOOTSTRAP_TOKEN`. See [Upgrading to probes](./upgrading-to-probes.md). A push monitor needs no instance, because its pushes arrive at the API.
 
 ## Several probes per monitor
 
