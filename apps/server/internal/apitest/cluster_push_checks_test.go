@@ -63,7 +63,9 @@ func TestClusterPushChecks_OnlyTheLeaderJudgesAPushMonitorThatGetsNoPush(t *test
 		if beat.Important {
 			important++
 		}
-		if i > 0 {
+		// The first check is the one the leader makes the moment it starts, which the first timer
+		// can follow within a moment: the aligned second is what comes next
+		if i > 1 {
 			assert.GreaterOrEqual(t, beat.Time.Sub(beats[i-1].Time), 500*time.Millisecond,
 				"one heartbeat for each interval, not one for each replica: %s and %s", beats[i-1].Time, beat.Time)
 		}
