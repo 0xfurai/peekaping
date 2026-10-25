@@ -53,5 +53,11 @@ export const probeTypeError = (
   if (saved && saved.type === values.type && sameProbes(probeIds, monitorProbeIds(saved))) {
     return undefined;
   }
-  return unsupportedProbeIds(values, probes).length > 0 ? UNSUPPORTED_PROBE_MESSAGE : undefined;
+  // The probes the form has chosen, as they are: a form with none chosen is refused elsewhere, not
+  // checked here as the local probe
+  const unsupported = probeIds.some((id) => {
+    const probe = probes.find((candidate) => candidate.id === id);
+    return probe !== undefined && !probeRunsType(probe, values.type);
+  });
+  return unsupported ? UNSUPPORTED_PROBE_MESSAGE : undefined;
 };

@@ -91,6 +91,10 @@ describe("probeTypeError", () => {
     expect(probeTypeError({ type: "docker", probe_ids: ["local", "web-only"] }, probes, saved)).toBeUndefined();
   });
 
+  it("leaves a form with no probe chosen to the server", () => {
+    expect(probeTypeError({ type: "docker", probe_ids: [] }, [probe("local", ["http"])])).toBeUndefined();
+  });
+
   it("flags a saved monitor that adds a probe that doesn't run its type", () => {
     const saved = { type: "docker", probe_ids: ["local"] };
     expect(probeTypeError({ type: "docker", probe_ids: ["local", "web-only"] }, probes, saved)).toBe(
