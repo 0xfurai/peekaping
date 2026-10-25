@@ -1,13 +1,13 @@
 //go:build integration
 
 // Package testservice gives integration tests a real server to talk to: Redis
-// now, and later the other services the monitor executors check. It is built
+// and Kafka now, and later the other services the monitor executors check. It is built
 // only under the integration build tag, so a plain "go test" never compiles
 // testcontainers or needs Docker.
 //
 // Each service has one function, such as Redis. It returns the address of the
-// server named by the service's environment variable, or, when that is unset,
-// of a container it starts. The compose file in apps/server runs the same
+// server named by the service's environment variable (Kafka has two), or, when
+// that is unset, of a container it starts. The compose file in apps/server runs the same
 // services for CI.
 package testservice
 
@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -43,24 +44,36 @@ func (l *lazy[T]) get(start func(context.Context) (T, error)) (T, error) {
 	return l.val, l.err
 }
 
-// resolve is what every service function builds on. With envVar set it parses
-// the value and starts nothing, and it doesn't check that anything listens:
-// the test fails on its own when nothing does. Without it, resolve starts the
-// service in Docker. When Docker is missing the test skips, except under CI,
-// where a skip would let a broken job go green.
+// resolve is what every service function builds on. With the service's
+// environment variables set it parses their values and starts nothing, and it
+// doesn't check that anything listens: the test fails on its own when nothing
+// does. A service with several variables needs all of them, or none. Without
+// them, resolve starts the service in Docker. When Docker is missing the test
+// skips, except under CI, where a skip would let a broken job go green.
 func resolve[T any](
 	t testing.TB,
-	service, envVar, example string,
-	parse func(string) (T, error),
+	service string, envVars []string, example string,
+	parse func(values []string) (T, error),
 	shared *lazy[T],
 	start func(context.Context) (T, error),
 ) T {
 	t.Helper()
 
-	if raw := os.Getenv(envVar); raw != "" {
-		v, err := parse(raw)
+	names := strings.Join(envVars, " and ")
+	values := make([]string, len(envVars))
+	set := 0
+	for i, name := range envVars {
+		if values[i] = os.Getenv(name); values[i] != "" {
+			set++
+		}
+	}
+	if set > 0 {
+		if set < len(envVars) {
+			t.Fatalf("%s is not usable: set all of them or none, but only some are set (expected %s)", names, example)
+		}
+		v, err := parse(values)
 		if err != nil {
-			t.Fatalf("%s is not usable: %v (expected %s)", envVar, err, example)
+			t.Fatalf("%s is not usable: %v (expected %s)", names, err, example)
 		}
 		return v
 	}
@@ -68,9 +81,9 @@ func resolve[T any](
 	if err := dockerReady(); err != nil {
 		msg := "%s integration test needs Docker (%v): start Docker, or set %s to a running %s (%s)"
 		if os.Getenv("CI") != "" {
-			t.Fatalf(msg, service, err, envVar, service, example)
+			t.Fatalf(msg, service, err, names, service, example)
 		}
-		t.Skipf(msg, service, err, envVar, service, example)
+		t.Skipf(msg, service, err, names, service, example)
 	}
 
 	v, err := shared.get(start)

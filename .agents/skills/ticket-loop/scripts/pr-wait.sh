@@ -42,7 +42,7 @@ coderabbit_grace=$((20 * 60))
 # so a failed one counts only once none of these is pending or failed (a failed
 # one never uploaded) and it was posted after the last of them finished. One that
 # didn't run on the PR (path filters) holds nothing. A held result keeps the PR busy.
-coverage_uploads='["test", "import-mongo"]'
+coverage_uploads='["test", "import-mongo", "executor"]'
 
 while [ $# -gt 0 ]; do
     case $1 in

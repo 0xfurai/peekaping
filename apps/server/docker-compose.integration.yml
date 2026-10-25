@@ -5,6 +5,7 @@
 #
 #   docker compose -f docker-compose.integration.yml up -d --wait
 #   PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
+#   PEE_TEST_KAFKA_BROKER='127.0.0.1:19092' PEE_TEST_KAFKA_SASL_BROKER='127.0.0.1:19093' \
 #     go test -tags integration -count=1 ./internal/modules/healthcheck/executor/...
 #   docker compose -f docker-compose.integration.yml down
 #
@@ -21,3 +22,54 @@ services:
       interval: 1s
       timeout: 3s
       retries: 30
+
+  # The same broker internal/testservice/kafka.go starts, with the host ports
+  # fixed and advertised as 127.0.0.1:19092 (plaintext) and 127.0.0.1:19093
+  # (SASL: user peekaping, password peekaping-secret, for PLAIN, SCRAM-SHA-256
+  # and SCRAM-SHA-512). Keep its start script and kafkaStartScript in step.
+  # "$$" is how compose spells a "$" it leaves to the shell.
+  kafka:
+    image: apache/kafka:3.9.1
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        set -e
+        ADV_HOST=127.0.0.1
+        ADV_PLAIN_PORT=19092
+        ADV_SASL_PORT=19093
+        cat > /tmp/server.properties <<EOF
+        process.roles=broker,controller
+        node.id=1
+        controller.quorum.voters=1@localhost:9095
+        listeners=PLAINTEXT://:9092,SASL_PLAINTEXT://:9093,BROKER://localhost:9094,CONTROLLER://localhost:9095
+        advertised.listeners=PLAINTEXT://$${ADV_HOST}:$${ADV_PLAIN_PORT},SASL_PLAINTEXT://$${ADV_HOST}:$${ADV_SASL_PORT},BROKER://localhost:9094
+        listener.security.protocol.map=PLAINTEXT:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,BROKER:PLAINTEXT,CONTROLLER:PLAINTEXT
+        inter.broker.listener.name=BROKER
+        controller.listener.names=CONTROLLER
+        sasl.enabled.mechanisms=PLAIN,SCRAM-SHA-256,SCRAM-SHA-512
+        listener.name.sasl_plaintext.plain.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required user_peekaping="peekaping-secret";
+        listener.name.sasl_plaintext.scram-sha-256.sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required;
+        listener.name.sasl_plaintext.scram-sha-512.sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required;
+        auto.create.topics.enable=true
+        num.partitions=1
+        offsets.topic.replication.factor=1
+        transaction.state.log.replication.factor=1
+        transaction.state.log.min.isr=1
+        group.initial.rebalance.delay.ms=0
+        log.dirs=/tmp/kraft-logs
+        EOF
+        /opt/kafka/bin/kafka-storage.sh format --ignore-formatted \
+          -t "$$(/opt/kafka/bin/kafka-storage.sh random-uuid)" -c /tmp/server.properties \
+          --add-scram 'SCRAM-SHA-256=[name=peekaping,password=peekaping-secret]' \
+          --add-scram 'SCRAM-SHA-512=[name=peekaping,password=peekaping-secret]'
+        exec /opt/kafka/bin/kafka-server-start.sh /tmp/server.properties
+    ports:
+      - "127.0.0.1:19092:9092"
+      - "127.0.0.1:19093:9093"
+    healthcheck:
+      # Asks the internal listener, which is up only once the broker is.
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9094"]
+      interval: 2s
+      timeout: 10s
+      retries: 60
+      start_period: 5s
