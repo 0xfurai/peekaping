@@ -70,8 +70,10 @@ var (
 		Important: true,
 		Time:      time.Date(2026, 10, 17, 9, 35, 0, 0, time.UTC),
 	}
-	// goldenProbe is the stand-in monitor the listener sends a probe's notification with
-	goldenProbe = &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt"}
+	// goldenProbeOffline and goldenProbeOnline are the stand-in monitors the listener sends a
+	// probe's notification with: Down when the probe went offline, Up when it came back online
+	goldenProbeOffline = &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusDown}
+	goldenProbeOnline  = &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusUp}
 )
 
 // The messages the listener builds for a probe going offline and coming back online
@@ -239,6 +241,9 @@ var goldenCases = []goldenCase{
 	// The dedup key is the probe's, and client_url is the Probes page
 	{name: "pagerduty_probe_offline", sender: pagerDuty, event: probeOfflineEvent,
 		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	// The probe coming back online resolves the incident its offline notification opened
+	{name: "pagerduty_probe_online_resolve", sender: pagerDuty, event: probeOnlineEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue", "pagerduty_auto_resolve": "resolve"}`},
 	// Known issue: the dedup key is the monitor's, so this merges into an open Down incident
 	// and the next Up resolves it
 	{name: "pagerduty_certificate_expiry", sender: pagerDuty, event: certExpiryEvent,
@@ -447,9 +452,9 @@ func goldenNotification(event goldenEvent) (string, *monitor.Model, *heartbeat.M
 	case certExpiryEvent:
 		return goldenCertMessage, goldenMonitor, nil
 	case probeOfflineEvent:
-		return goldenProbeOfflineMessage, goldenProbe, nil
+		return goldenProbeOfflineMessage, goldenProbeOffline, nil
 	case probeOnlineEvent:
-		return goldenProbeOnlineMessage, goldenProbe, nil
+		return goldenProbeOnlineMessage, goldenProbeOnline, nil
 	default:
 		return goldenDown.Msg, goldenMonitor, goldenDown
 	}
