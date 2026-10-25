@@ -71,7 +71,7 @@ The migration command now exists as `bun db import-mongo`. It copies a MongoDB i
 Date: 2026-10-25
 Ticket: PP-277
 
-MongoDB storage is removed, as the Removal bullet above says. It ships in the release that first ships `bun db import-mongo`, the same release. 0.0.47 is the last release that runs on MongoDB storage. The freeze above is over, since nothing is left to freeze.
+MongoDB storage is removed, as the Removal bullet above says. It ships in the same release as `bun db import-mongo`, the first after 0.0.47, which is the last release that runs on MongoDB storage. The freeze above is over, since nothing is left to freeze.
 
 The maintainer dropped the notice period on 2026-10-25, so the second-release notice period (the Removal bullet, and the #227 update above) no longer holds. The older text stays as history. A Mongo install moves with that release's own `bun db import-mongo` (in the migrate image and in the SQLite and PostgreSQL bundle images) before it starts on SQL, and stays on 0.0.47 until then.
 
