@@ -58,13 +58,23 @@ func (p *PagerDutySender) getMonitorURL(monitor *monitor.Model) string {
 	return monitor.Name
 }
 
-// getEventAction determines the PagerDuty event action based on heartbeat status and config
-func (p *PagerDutySender) getEventAction(heartbeat *heartbeat.Model, cfg *PagerDutyConfig) string {
-	if heartbeat == nil {
+// getEventAction determines the PagerDuty event action based on heartbeat status and config. A
+// probe's notification has no heartbeat, so the status of its stand-in monitor says whether the
+// probe went offline or came back online. Any other notification without a heartbeat triggers.
+func (p *PagerDutySender) getEventAction(monitor *monitor.Model, heartbeat *heartbeat.Model, cfg *PagerDutyConfig) string {
+	switch {
+	case heartbeat != nil:
+		return eventActionForStatus(heartbeat.Status, cfg)
+	case monitor.IsProbeEvent():
+		return eventActionForStatus(monitor.Status, cfg)
+	default:
 		return "trigger"
 	}
+}
 
-	switch heartbeat.Status {
+// eventActionForStatus is the event action for a monitor, or a probe, that has this status
+func eventActionForStatus(status shared.MonitorStatus, cfg *PagerDutyConfig) string {
+	switch status {
 	case shared.MonitorStatusUp:
 		if cfg.AutoResolve == "acknowledge" {
 			return "acknowledge"
@@ -123,7 +133,7 @@ func (p *PagerDutySender) Send(
 	p.logger.Infof("Sending PagerDuty notification to: %s", cfg.IntegrationURL)
 
 	// Determine event action
-	eventAction := p.getEventAction(heartbeat, cfg)
+	eventAction := p.getEventAction(monitor, heartbeat, cfg)
 	if eventAction == "" {
 		p.logger.Infof("No action required for PagerDuty notification")
 		return nil
