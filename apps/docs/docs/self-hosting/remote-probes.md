@@ -94,6 +94,8 @@ Every container started with the same token is an **instance** of that probe, wi
 
 If an instance loses its connection, it keeps checking its last assignment until it can reach Peekaping again.
 
+A probe has at most 64 instances. A container that starts gets a new id, and Peekaping keeps an instance that stopped for a day before it forgets it. When a new instance connects and the probe already has 64, Peekaping removes the oldest one that hasn't been in contact for a minute. If all 64 are running, the new instance is refused with `probe <name> already has 64 running instances, the most one probe may have`, and it tries again after a minute.
+
 ## When a probe is offline
 
 A probe is online while one of its instances has been in contact with Peekaping. When the probe can't reach Peekaping, it keeps checking and holds the results in memory, up to 10,000. When that is full, the oldest are dropped first, and the probe logs it. It sends what it holds as soon as it can reach Peekaping again. Peekaping refuses results more than one hour old, so a longer gap leaves a gap in the heartbeats. Because the results are in memory, a probe that restarts while it is cut off loses them.
