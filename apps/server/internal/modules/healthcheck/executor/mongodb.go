@@ -1,3 +1,5 @@
+//go:build !slim
+
 package executor
 
 import (
@@ -32,6 +34,8 @@ func NewMongoDBExecutor(logger *zap.SugaredLogger) *MongoDBExecutor {
 		logger: logger,
 	}
 }
+
+func init() { registerOptional("mongodb", NewMongoDBExecutor) }
 
 func (m *MongoDBExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[MongoDBConfig](configJSON)

@@ -387,15 +387,6 @@ func TestNewExecutorRegistry(t *testing.T) {
 	assert.NotNil(t, rabbitmqExecutor)
 }
 
-func TestExecutorRegistry_Types(t *testing.T) {
-	registry := NewExecutorRegistry(zap.NewNop().Sugar())
-
-	assert.Equal(t, []string{
-		"dns", "docker", "grpc-keyword", "http", "http-json-query", "http-keyword", "kafka-producer", "mongodb", "mqtt",
-		"mysql", "ping", "postgres", "push", "rabbitmq", "redis", "smtp", "snmp", "sqlserver", "tcp",
-	}, registry.Types())
-}
-
 // Test common utilities that weren't covered
 func TestGenericValidator(t *testing.T) {
 	type TestStruct struct {

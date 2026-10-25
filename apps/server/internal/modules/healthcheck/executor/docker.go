@@ -1,3 +1,5 @@
+//go:build !slim
+
 package executor
 
 import (
@@ -33,6 +35,8 @@ type DockerExecutor struct {
 func NewDockerExecutor(logger *zap.SugaredLogger) *DockerExecutor {
 	return &DockerExecutor{logger: logger}
 }
+
+func init() { registerOptional("docker", NewDockerExecutor) }
 
 func (e *DockerExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[DockerConfig](configJSON)

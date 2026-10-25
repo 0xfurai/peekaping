@@ -66,11 +66,11 @@ func goTool() (string, bool) {
 }
 
 // importGraph lists the packages the main package in the current directory depends on, as the
-// image build sees them (Linux, without cgo), each with the packages it imports. It returns the
-// main package's path.
-func importGraph(t *testing.T, goBin string) (root string, imports map[string][]string) {
+// image build sees them (Linux, without cgo), each with the packages it imports. tags are the
+// build tags of the image, such as "slim". It returns the main package's path.
+func importGraph(t *testing.T, goBin, tags string) (root string, imports map[string][]string) {
 	t.Helper()
-	cmd := exec.Command(goBin, "list", "-deps", "-f", `{{.ImportPath}}{{"\t"}}{{.DepOnly}}{{"\t"}}{{join .Imports " "}}`, ".")
+	cmd := exec.Command(goBin, "list", "-tags", tags, "-deps", "-f", `{{.ImportPath}}{{"\t"}}{{.DepOnly}}{{"\t"}}{{join .Imports " "}}`, ".")
 	cmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOOS=linux")
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "go list -deps failed:\n%s", out)
@@ -122,7 +122,7 @@ func TestProbeLinksNoServerStorageOrQueueCode(t *testing.T) {
 	if !ok {
 		t.Skip("the go command is not available, so the probe's imports can't be listed")
 	}
-	root, imports := importGraph(t, goBin)
+	root, imports := importGraph(t, goBin, "")
 
 	// Guards against a listing that has gone empty or wrong, which would pass for nothing
 	require.Contains(t, imports, "peekaping/internal/probeclient", "the probe no longer imports its client")

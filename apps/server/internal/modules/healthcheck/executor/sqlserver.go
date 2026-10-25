@@ -1,3 +1,5 @@
+//go:build !slim
+
 package executor
 
 import (
@@ -29,6 +31,8 @@ func NewSQLServerExecutor(logger *zap.SugaredLogger) *SQLServerExecutor {
 		logger: logger,
 	}
 }
+
+func init() { registerOptional("sqlserver", NewSQLServerExecutor) }
 
 func (s *SQLServerExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[SQLServerConfig](configJSON)

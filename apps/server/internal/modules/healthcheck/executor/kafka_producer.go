@@ -1,3 +1,5 @@
+//go:build !slim
+
 package executor
 
 import (
@@ -36,6 +38,8 @@ func NewKafkaProducerExecutor(logger *zap.SugaredLogger) *KafkaProducerExecutor 
 		logger: logger,
 	}
 }
+
+func init() { registerOptional("kafka-producer", NewKafkaProducerExecutor) }
 
 func (k *KafkaProducerExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[KafkaProducerConfig](configJSON)
