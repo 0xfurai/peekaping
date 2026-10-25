@@ -682,6 +682,7 @@
         "all": "كل المواقع",
         "no_result": "لا توجد نتيجة بعد",
         "probe_offline": "المسبار غير متصل",
+        "probe_unsupported": "لا يشغّل هذا النوع",
         "response_time": "زمن الاستجابة",
         "select_label": "الموقع",
         "title": "المواقع"
@@ -1157,6 +1158,7 @@
     "description": "تشغّل المسابر فحوصات المراقبين من الأماكن التي تُثبَّت فيها. المسبار المحلي هو Peekaping نفسه.",
     "local_name": "محلي",
     "monitor_probe": "المسبار: {{name}}",
+    "monitor_probe_unsupported": "{{name}} لا يشغّل مراقبة من نوع {{type}}",
     "empty_list": {
       "title": "لم يتم العثور على مسابر",
       "text": "أنشئ مسبارًا لتشغيل الفحوصات من مكان آخر.",

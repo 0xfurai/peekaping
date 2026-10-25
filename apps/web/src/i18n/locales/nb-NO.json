@@ -682,6 +682,7 @@
         "all": "Alle plasseringer",
         "no_result": "Ingen resultat ennå",
         "probe_offline": "Proben er offline",
+        "probe_unsupported": "Kjører ikke denne typen",
         "response_time": "Svartid",
         "select_label": "Plassering",
         "title": "Plasseringer"
@@ -1157,6 +1158,7 @@
     "description": "Prober kjører kontroller av overvåkninger fra stedene der de er installert. Den lokale proben er Peekaping selv.",
     "local_name": "Lokal",
     "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} kjører ikke {{type}}-monitorer",
     "empty_list": {
       "title": "Ingen prober funnet",
       "text": "Opprett en probe for å kjøre kontroller fra et annet sted.",

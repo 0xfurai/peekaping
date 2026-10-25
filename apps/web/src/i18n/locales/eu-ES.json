@@ -682,6 +682,7 @@
         "all": "Kokaleku guztiak",
         "no_result": "Oraindik ez dago emaitzarik",
         "probe_offline": "Zundak ez du konexiorik",
+        "probe_unsupported": "Ez du mota hau exekutatzen",
         "response_time": "Erantzun denbora",
         "select_label": "Kokalekua",
         "title": "Kokalekuak"
@@ -1157,6 +1158,7 @@
     "description": "Zundek monitoreen egiaztapenak exekutatzen dituzte instalatuta dauden lekuetatik. Zunda lokala Peekaping bera da.",
     "local_name": "Lokala",
     "monitor_probe": "Zunda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} zundak ez ditu {{type}} motako monitoreak exekutatzen",
     "empty_list": {
       "title": "Ez da zundarik aurkitu",
       "text": "Sortu zunda bat egiaztapenak beste leku batetik exekutatzeko.",

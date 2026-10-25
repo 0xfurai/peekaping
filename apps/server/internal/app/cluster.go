@@ -105,28 +105,41 @@ func provideSilentWatch(source protocol.MonitorSource, announced probe.Announcem
 	}
 }
 
+// clusterWatchdogParams are what the api's stale-monitor watchdog is built from
+type clusterWatchdogParams struct {
+	dig.In
+
+	Store        stale.Store
+	Monitors     monitor.Service
+	Heartbeats   heartbeat.Service
+	EventBus     events.EventBus
+	ProbeOffline stale.ProbeOfflineFunc
+	Probes       stale.ProbeLookup
+	Client       *redis.Client
+	Logger       *zap.SugaredLogger
+}
+
+// config is the watchdog's configuration. Probes is what lets a stale monitor's notification name
+// the probes that don't run its type, as single mode's and the MongoDB producer's do.
+func (p clusterWatchdogParams) config() stale.WatchdogConfig {
+	return stale.WatchdogConfig{
+		Store:        p.Store,
+		Monitors:     p.Monitors,
+		Heartbeats:   p.Heartbeats,
+		EventBus:     p.EventBus,
+		Now:          stale.RedisClock(p.Client, p.Logger),
+		CheckTimeout: worker.HealthCheckTaskTimeout,
+		ProbeOffline: p.ProbeOffline,
+		Probes:       p.Probes,
+		Logger:       p.Logger.With("component", "watchdog"),
+	}
+}
+
 // provideClusterWatchdog provides the stale-monitor watchdog of the api. No process of its own runs
 // checks in cluster mode, so it has no rechecker: a stale monitor is recorded and notified as one
 // on a remote probe is. Redis's clock is the one the replicas share, whichever holds the lock.
-func provideClusterWatchdog(
-	store stale.Store,
-	monitors monitor.Service,
-	heartbeats heartbeat.Service,
-	eventBus events.EventBus,
-	probeOffline stale.ProbeOfflineFunc,
-	client *redis.Client,
-	logger *zap.SugaredLogger,
-) *stale.Watchdog {
-	return stale.NewWatchdog(stale.WatchdogConfig{
-		Store:        store,
-		Monitors:     monitors,
-		Heartbeats:   heartbeats,
-		EventBus:     eventBus,
-		Now:          stale.RedisClock(client, logger),
-		CheckTimeout: worker.HealthCheckTaskTimeout,
-		ProbeOffline: probeOffline,
-		Logger:       logger.With("component", "watchdog"),
-	})
+func provideClusterWatchdog(p clusterWatchdogParams) *stale.Watchdog {
+	return stale.NewWatchdog(p.config())
 }
 
 // provideLeaderJobs provides the jobs that run on the api replica that holds the leader lock

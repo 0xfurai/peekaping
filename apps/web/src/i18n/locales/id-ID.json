@@ -682,6 +682,7 @@
         "all": "Semua lokasi",
         "no_result": "Belum ada hasil",
         "probe_offline": "Probe sedang offline",
+        "probe_unsupported": "Tidak menjalankan tipe ini",
         "response_time": "Waktu respons",
         "select_label": "Lokasi",
         "title": "Lokasi"
@@ -1157,6 +1158,7 @@
     "description": "Probe menjalankan pemeriksaan monitor dari tempat probe tersebut dipasang. Probe lokal adalah Peekaping itu sendiri.",
     "local_name": "Lokal",
     "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} tidak menjalankan monitor {{type}}",
     "empty_list": {
       "title": "Tidak ada probe ditemukan",
       "text": "Buat probe untuk menjalankan pemeriksaan dari tempat lain.",
