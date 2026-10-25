@@ -48,7 +48,7 @@ The payload has exactly these fields, and the server builds it from them, field 
 | `instance_id` | the random instance ID |
 | `version` | the Peekaping version |
 | `mode` | `single` or `cluster` |
-| `db` | the storage backend: `sqlite`, `postgres`, `mongo` or `mysql`. |
+| `db` | the storage backend: `sqlite`, `postgres` or `mysql`. |
 | `os` | OS and architecture, such as `linux/arm64` |
 | `monitors` | how many monitors, as a bucket: `0`, `1-10`, `11-50`, `51-200`, `201-1000` or `1000+` |
 | `monitor_types` | the monitor types in use, as type names only |
@@ -57,7 +57,7 @@ The payload has exactly these fields, and the server builds it from them, field 
 
 Counts are bucketed, and types are names of kinds, never of individual things: no monitor name, URL, host, tag, status page slug or channel setting is sent.
 
-- **Instance ID.** A random UUID, created the first time it is needed while the usage ping is on, and deleted when an admin opts out. An install that never chose gets one on its first state read or usage ping, soon after it starts; on SQLite and PostgreSQL, replicas of a cluster that start together end with one ID, because the ID is stored with a create-if-absent in one statement. MongoDB has no unique index on the settings key and its storage is frozen under ADR 0001, so there replicas that start at the very same moment may create different IDs. Opting in again creates a new one. None is made while `TELEMETRY=off` applies. It comes from nothing about the install.
+- **Instance ID.** A random UUID, created the first time it is needed while the usage ping is on, and deleted when an admin opts out. An install that never chose gets one on its first state read or usage ping, soon after it starts; replicas of a cluster that start together end with one ID, because the ID is stored with a create-if-absent in one statement. Opting in again creates a new one. None is made while `TELEMETRY=off` applies. It comes from nothing about the install.
 - **Frequency.** At most once a day, from one process: the one process in single mode, and in cluster mode the api replica that wins a Redis `SET NX` claim, which holds for 23 hours. The api has the config the payload reads, such as `METRICS_ENABLED`; the producer leader does not.
 - **Destination.** Our own Cloudflare Worker at `telemetry.peekaping.com/v1/ping` (`apps/telemetry`), which writes to Workers Analytics Engine. The data is kept for 3 months. The Worker never reads the client IP, the country or `request.cf`, and stores nothing of the request but the validated payload fields. Of the request it reads only the method, the path, the `Content-Length` header and the body, to route it and turn away a body that is too large.
 - **The Worker validates strictly.** It accepts only this payload and answers 400 to any extra field or bad value. A later change in the server can't widen what we collect without a change to the Worker in this repository.
@@ -73,7 +73,7 @@ Error reports use the Sentry SDK. Its `BeforeSend` hook (`apps/server/internal/r
 | `release` | the Peekaping version |
 | `level` | `error` for a panic that was recovered, `fatal` for one that ends the process |
 | `mode` tag | `single` or `cluster` |
-| `db` tag | the storage backend: `sqlite`, `postgres`, `mongo` or `mysql`, or `unknown` where the process has none. The cluster worker has no `DB_TYPE`, so its `db` tag is `unknown`. |
+| `db` tag | the storage backend: `sqlite`, `postgres` or `mysql`, or `unknown` where the process has none. The cluster worker has no `DB_TYPE`, so its `db` tag is `unknown`. |
 | `os` tag | OS and architecture, such as `linux/arm64` |
 | `component` tag | where the panic was recovered, such as `http`, `asynq`, `executor` or `scheduler` |
 | event ID, timestamp, `platform`, envelope `dsn` | a random event ID, the time of the panic in UTC, `go`, and the DSN in the envelope header, which is the address of the project the report goes to. The Sentry protocol needs them to take the event. |

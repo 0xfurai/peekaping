@@ -55,7 +55,7 @@ A place Peekaping runs checks from. A monitor runs on one or more probes, the lo
 _Avoid_: Agent, worker
 
 **Local probe**:
-The probe that is Peekaping itself. Every install has it, and it can't be deleted. In single mode the `peekaping` process checks its monitors. In cluster mode on SQLite and PostgreSQL its probe instances do: `peekaping-probe` copies started with its token (`PROBE_BOOTSTRAP_TOKEN` on the api, the same value as `PROBE_TOKEN` on the probe), so it is offline while none is connected, as a remote probe is. On MongoDB the worker checks them, and it is never offline.
+The probe that is Peekaping itself. Every install has it, and it can't be deleted. In single mode the `peekaping` process checks its monitors. In cluster mode on SQLite and PostgreSQL its probe instances do: `peekaping-probe` copies started with its token (`PROBE_BOOTSTRAP_TOKEN` on the api, the same value as `PROBE_TOKEN` on the probe), so it is offline while none is connected, as a remote probe is.
 _Avoid_: Built-in probe, default probe
 
 **Remote probe**:
@@ -179,7 +179,7 @@ _Avoid_: Keep-data period, history limit
 ### Deployment
 
 **Storage backend**:
-The database an install keeps its data in: SQLite, PostgreSQL or MongoDB. It's set with `DB_TYPE`. MongoDB is deprecated and frozen under [ADR 0001](docs/adr/0001-deprecate-mongodb-storage.md); new installs use SQLite or PostgreSQL.
+The database an install keeps its data in: SQLite or PostgreSQL. It's set with `DB_TYPE`. MongoDB storage was removed ([ADR 0001](docs/adr/0001-deprecate-mongodb-storage.md)): `DB_TYPE=mongo` and `mongodb` stop every binary, and `bun db import-mongo` moves a MongoDB install to SQLite or PostgreSQL.
 _Avoid_: Database type, DB driver
 
 **MongoDB monitor type**:
@@ -191,7 +191,7 @@ Peekaping running as one process (the `peekaping` binary) with every role inside
 _Avoid_: Monolithic mode, standalone, all-in-one
 
 **Cluster mode**:
-Peekaping running as separate processes: api replicas that share the database and talk to each other through Redis, and probe instances that connect to the api and run the checks. The api stores the results, and the api replica that holds the leader lock runs the watchdog. Helm and the SQLite and PostgreSQL compose stacks run it. On MongoDB storage it is still four processes that talk through Redis (api, producer, worker and ingester), which the Mongo bundle and the Mongo compose stacks run until MongoDB is removed. See [ADR 0002](docs/adr/0002-single-process-runtime.md).
+Peekaping running as separate processes: api replicas that share the database and talk to each other through Redis, and probe instances that connect to the api and run the checks. The api stores the results, and the api replica that holds the leader lock runs the watchdog. Helm and the SQLite and PostgreSQL compose stacks run it. See [ADR 0002](docs/adr/0002-single-process-runtime.md).
 _Avoid_: Microservice mode, distributed mode, HA mode
 
 ### Telemetry
