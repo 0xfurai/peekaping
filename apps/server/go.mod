@@ -43,6 +43,7 @@ require (
 	github.com/uptrace/bun/driver/sqliteshim v1.2.14
 	github.com/uptrace/bun/extra/bundebug v1.2.14
 	github.com/urfave/cli/v2 v2.27.7
+	github.com/xdg-go/scram v1.1.2
 	github.com/zishang520/socket.io/v2 v2.4.11
 	go.mongodb.org/mongo-driver v1.17.3
 	go.uber.org/dig v1.18.2
@@ -146,7 +147,6 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect

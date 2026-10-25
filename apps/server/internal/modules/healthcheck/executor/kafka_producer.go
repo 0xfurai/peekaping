@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/xdg-go/scram"
 	"go.uber.org/zap"
 )
 
@@ -142,8 +143,14 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 			config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
 		case "SCRAM-SHA-256":
 			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA256
+			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
+				return &scramClient{HashGeneratorFcn: scram.SHA256}
+			}
 		case "SCRAM-SHA-512":
 			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
+			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
+				return &scramClient{HashGeneratorFcn: scram.SHA512}
+			}
 		default:
 			return DownResult(fmt.Errorf("unsupported SASL mechanism: %s", cfg.SASLOptions.Mechanism), startTime, time.Now().UTC())
 		}
@@ -249,6 +256,32 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 			EndTime:   endTime,
 		}
 	}
+}
+
+// scramClient adapts xdg-go/scram to sarama's SCRAMClient. sarama needs one for
+// SCRAM-SHA-256 and SCRAM-SHA-512 and has none of its own.
+type scramClient struct {
+	*scram.Client
+	*scram.ClientConversation
+	scram.HashGeneratorFcn
+}
+
+func (x *scramClient) Begin(userName, password, authzID string) error {
+	client, err := x.HashGeneratorFcn.NewClient(userName, password, authzID)
+	if err != nil {
+		return err
+	}
+	x.Client = client
+	x.ClientConversation = client.NewConversation()
+	return nil
+}
+
+func (x *scramClient) Step(challenge string) (string, error) {
+	return x.ClientConversation.Step(challenge)
+}
+
+func (x *scramClient) Done() bool {
+	return x.ClientConversation.Done()
 }
 
 func (k *KafkaProducerExecutor) closeProducer(producer sarama.SyncProducer) {
