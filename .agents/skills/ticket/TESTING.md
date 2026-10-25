@@ -29,7 +29,10 @@ Server, from `apps/server`:
 go test -timeout 120s ./internal/...            # what CI runs (plus coverage)
 go test -timeout 120s -run TestName ./internal/modules/<module>/
 go vet ./...
+go test -tags integration -timeout 300s ./internal/modules/healthcheck/executor/...   # integration tests; need Docker
 ```
+
+The `integration` tag adds tests that run against a real Redis, which they start in Docker, or take from `PEE_TEST_REDIS_URL` (see `apps/docs/docs/development.md`, Integration tests). CI runs them in the Integration tests workflow. Run them when the change touches a monitor executor they cover.
 
 Pass `-timeout`: a nil dereference has been seen to hang instead of panic on macOS, which stalls a run for the 10-minute default. If `go` can't find modules offline, set `GOMODCACHE=$HOME/go/pkg/mod`.
 
