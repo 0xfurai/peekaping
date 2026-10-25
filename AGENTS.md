@@ -2,7 +2,7 @@
 
 ### Issue tracker
 
-Issues and specs live in Linear, team Peekaping (`PP`); GitHub issues are community reports that tickets link to. Ticket work carries the `PP-<n>` key in the branch name, PR title and session name. See `docs/agents/issue-tracker.md`.
+Issues and specs live in Linear, team Peekaping (`PP`); GitHub issues are community reports that tickets link to. Ticket work carries the `PP-<n>` key in the branch name and PR title. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
