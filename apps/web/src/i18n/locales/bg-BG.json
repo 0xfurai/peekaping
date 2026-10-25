@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Автоматично потвърждаване",
         "auto_resolve_acknowledge_description": "Автоматично потвърждаване на инцидента",
-        "auto_resolve_description": "Изберете какво действие да предприемете, когато мониторът се върне онлайн.",
+        "auto_resolve_description": "Изберете какво да се изпраща, когато мониторът отново работи или сондата се върне онлайн.",
         "auto_resolve_do_nothing": "Без действие",
-        "auto_resolve_do_nothing_description": "Няма предприето действие при статуса UP",
+        "auto_resolve_do_nothing_description": "Не се изпраща нищо, когато мониторът отново работи или сондата се върне онлайн, затова инцидентът остава отворен, докато не го разрешите в PagerDuty",
         "auto_resolve_label": "Автоматично разрешаване или потвърждаване",
         "auto_resolve_placeholder": "Изберете поведение за автоматично разрешаване",
         "auto_resolve_resolve": "Автоматично разрешаване",

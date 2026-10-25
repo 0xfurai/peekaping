@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatikus elfogadás",
         "auto_resolve_acknowledge_description": "Az esemény automatikus elismerése",
-        "auto_resolve_description": "Válassza ki, milyen műveletet hajtson végre, amikor egy monitor újra működésbe kerül",
+        "auto_resolve_description": "Válassza ki, mit küldjön a rendszer, amikor egy monitor újra működésbe kerül, vagy egy szonda újra elérhetővé válik",
         "auto_resolve_do_nothing": "Semmit sem csinál",
-        "auto_resolve_do_nothing_description": "Nincs intézkedés az UP státuszra",
+        "auto_resolve_do_nothing_description": "A rendszer nem küld semmit, amikor egy monitor újra működésbe kerül, vagy egy szonda újra elérhetővé válik, így az incidens nyitva marad, amíg Ön le nem zárja a PagerDuty-ban",
         "auto_resolve_label": "Automatikus feloldás vagy megerősítés",
         "auto_resolve_placeholder": "Válaszd ki az automatikus feloldás viselkedését",
         "auto_resolve_resolve": "Automatikus feloldás",

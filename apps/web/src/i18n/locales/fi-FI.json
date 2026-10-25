@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automaattinen tunnustaminen",
         "auto_resolve_acknowledge_description": "Tunnusta tapaus automaattisesti",
-        "auto_resolve_description": "Valitse, mitä toimia tehdään, kun valvonta palautuu.",
+        "auto_resolve_description": "Valitse, mitä lähetetään, kun valvonta palautuu tai luotain on taas verkossa.",
         "auto_resolve_do_nothing": "Älä tee mitään",
-        "auto_resolve_do_nothing_description": "Ei toimenpiteitä, kun tila on UP",
+        "auto_resolve_do_nothing_description": "Mitään ei lähetetä, kun valvonta palautuu tai luotain on taas verkossa, joten tapaus pysyy avoinna, kunnes ratkaiset sen PagerDuty-palvelussa",
         "auto_resolve_label": "Automaattinen ratkaisu tai vahvista",
         "auto_resolve_placeholder": "Valitse automaattinen ratkaisu",
         "auto_resolve_resolve": "Automaattinen ratkaisu",

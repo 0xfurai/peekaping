@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Reconnaissance automatique",
         "auto_resolve_acknowledge_description": "Accuser automatiquement l'incident",
-        "auto_resolve_description": "Choisissez l'action à prendre lorsque le moniteur revient en ligne",
+        "auto_resolve_description": "Choisissez ce qu'il faut envoyer lorsqu'un moniteur revient en ligne ou qu'une sonde est de nouveau en ligne",
         "auto_resolve_do_nothing": "Ne rien faire",
-        "auto_resolve_do_nothing_description": "Aucune action effectuée sur le statut UP",
+        "auto_resolve_do_nothing_description": "Rien n'est envoyé lorsqu'un moniteur revient en ligne ou qu'une sonde est de nouveau en ligne, l'incident reste donc ouvert jusqu'à ce que vous le résolviez dans PagerDuty",
         "auto_resolve_label": "Résolution automatique ou Accusé de réception",
         "auto_resolve_placeholder": "Sélectionner le comportement d’auto-résolution",
         "auto_resolve_resolve": "Auto-résolution",

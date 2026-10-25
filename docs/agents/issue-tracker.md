@@ -33,7 +33,7 @@ Statuses run Backlog → Todo → In Progress → In Review → Done, plus Cance
 
 ## Closing work
 
-Work closes through PRs. Name the branch `<type>/pp-<n>-<slug>` so Linear links the PR to the ticket. Start the PR title with the ticket key, then the conventional-commit summary: `PP-48 fix(server): stop exposing JWT signing secrets`. A PR in a stack of several adds its place after the key: `PP-16 [1/2] feat(server): add a stale-monitor watchdog` (see `.agents/skills/ticket/STACK.md`). When naming or renaming a Claude Code session for ticket work, lead with the key in brackets, then the branch name as is (the bottom branch of a stack): `[PP-48] fix/pp-48-stop-exposing-jwt-secrets`. Move the ticket to In Review when the PR opens. Linear's GitHub integration moves it to Done on merge; if it doesn't, set Done yourself.
+Work closes through PRs. Name the branch `<type>/pp-<n>-<slug>` so Linear links the PR to the ticket. Start the PR title with the ticket key, then the conventional-commit summary: `PP-48 fix(server): stop exposing JWT signing secrets`. A PR in a stack of several adds its place after the key: `PP-16 [1/2] feat(server): add a stale-monitor watchdog` (see `.agents/skills/ticket/STACK.md`). Move the ticket to In Review when the PR opens. Linear's GitHub integration moves it to Done on merge; if it doesn't, set Done yourself.
 
 ## When a skill says "publish to the issue tracker"
 

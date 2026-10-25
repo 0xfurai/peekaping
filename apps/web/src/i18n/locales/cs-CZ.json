@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatické potvrzení",
         "auto_resolve_acknowledge_description": "Automatické potvrzení incidentu",
-        "auto_resolve_description": "Zvolte, jakou akci provést, když se monitor vrátí do provozu",
+        "auto_resolve_description": "Zvolte, co se má odeslat, když se monitor vrátí do provozu nebo se sonda vrátí online",
         "auto_resolve_do_nothing": "Nic nedělat",
-        "auto_resolve_do_nothing_description": "Žádná akce nebyla provedena pro stav UP",
+        "auto_resolve_do_nothing_description": "Nic se neodešle, když se monitor vrátí do provozu nebo se sonda vrátí online, takže incident zůstane otevřený, dokud jej nevyřešíte v PagerDuty",
         "auto_resolve_label": "Automatické vyřešení nebo uznání",
         "auto_resolve_placeholder": "Vyberte způsob automatického uzavření",
         "auto_resolve_resolve": "Automatické vyřešení",
