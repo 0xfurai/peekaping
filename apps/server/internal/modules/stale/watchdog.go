@@ -3,6 +3,7 @@ package stale
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"go.uber.org/zap"
@@ -37,6 +38,20 @@ type HeartbeatFinder interface {
 // the watchdog holds, with its probes.
 type ProbeOfflineFunc func(ctx context.Context, mon *shared.Monitor) (bool, error)
 
+// ProbeInfo is what the watchdog needs to know of a probe
+type ProbeInfo struct {
+	Name string
+	// SupportedTypes are the monitor types the probe runs. Empty means every type.
+	SupportedTypes []string
+}
+
+// ProbeLookup tells the watchdog about the probes a monitor runs on. The probe module's service
+// stands behind it, wired in internal/app, so that this package doesn't import the probe module.
+type ProbeLookup interface {
+	// FindProbe returns nil when there is no such probe
+	FindProbe(ctx context.Context, id string) (*ProbeInfo, error)
+}
+
 // WatchdogConfig is what a Watchdog reads and calls
 type WatchdogConfig struct {
 	Store      Store
@@ -57,7 +72,10 @@ type WatchdogConfig struct {
 	// entirely: no recheck, no record, no notification. Nil means no monitor's probe is ever
 	// offline.
 	ProbeOffline ProbeOfflineFunc
-	Logger       *zap.SugaredLogger
+	// Probes says which of a monitor's probes run its type, so that the notification of a stale
+	// monitor can say that none checks it for that reason. Nil means every probe runs every type.
+	Probes ProbeLookup
+	Logger *zap.SugaredLogger
 }
 
 // Watchdog looks for active monitors that stopped being checked, gets them checked
@@ -73,6 +91,7 @@ type Watchdog struct {
 	now          func() time.Time
 	interval     time.Duration
 	probeOffline ProbeOfflineFunc
+	probes       ProbeLookup
 	logger       *zap.SugaredLogger
 }
 
@@ -96,6 +115,7 @@ func NewWatchdog(cfg WatchdogConfig) *Watchdog {
 		now:          now,
 		interval:     interval,
 		probeOffline: cfg.ProbeOffline,
+		probes:       cfg.Probes,
 		logger:       cfg.Logger,
 	}
 }
@@ -232,7 +252,7 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 			return err
 		}
 		if entry.Notified {
-			w.publishStale(ctx, MonitorStaleRecovered, mon, entry.Since)
+			w.publishStale(ctx, MonitorStaleRecovered, Event{MonitorID: mon.ID, MonitorName: mon.Name, Since: entry.Since})
 		}
 		return nil
 	}
@@ -270,7 +290,13 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 	if err := w.store.Put(ctx, entry); err != nil {
 		return err
 	}
-	w.publishStale(ctx, MonitorStale, mon, entry.Since)
+	// Only this notification says why: the one that the monitor is checked again has nothing to add
+	w.publishStale(ctx, MonitorStale, Event{
+		MonitorID:         mon.ID,
+		MonitorName:       mon.Name,
+		Since:             entry.Since,
+		UnsupportedProbes: w.unsupportedProbes(ctx, mon),
+	})
 	return nil
 }
 
@@ -286,8 +312,33 @@ func (w *Watchdog) latestHeartbeatAt(ctx context.Context, monitorID string) (tim
 	return latest[0].Time.UTC(), nil
 }
 
-func (w *Watchdog) publishStale(ctx context.Context, topic events.Topic[Event], mon *shared.Monitor, since time.Time) {
-	if err := events.Publish(ctx, w.eventBus, topic, Event{MonitorID: mon.ID, MonitorName: mon.Name, Since: since}); err != nil {
-		w.logger.Errorw("Failed to publish stale monitor event", "topic", topic.Name(), "monitor_id", mon.ID, "error", err)
+func (w *Watchdog) publishStale(ctx context.Context, topic events.Topic[Event], event Event) {
+	if err := events.Publish(ctx, w.eventBus, topic, event); err != nil {
+		w.logger.Errorw("Failed to publish stale monitor event", "topic", topic.Name(), "monitor_id", event.MonitorID, "error", err)
 	}
+}
+
+// unsupportedProbes names the probes of the monitor that don't run its type, in the monitor's
+// order. A probe with no supported types runs every type, as does the local probe, which isn't
+// read. A probe that doesn't exist, or can't be read, isn't named: the notification goes out
+// without that reason rather than not at all.
+func (w *Watchdog) unsupportedProbes(ctx context.Context, mon *shared.Monitor) []string {
+	if w.probes == nil {
+		return nil
+	}
+	var names []string
+	for _, probeID := range mon.ProbeIDs {
+		if probeID == shared.LocalProbeID {
+			continue
+		}
+		found, err := w.probes.FindProbe(ctx, probeID)
+		if err != nil {
+			w.logger.Warnw("Failed to find a probe of a stale monitor", "monitor_id", mon.ID, "probe_id", probeID, "error", err)
+			continue
+		}
+		if found != nil && len(found.SupportedTypes) > 0 && !slices.Contains(found.SupportedTypes, mon.Type) {
+			names = append(names, found.Name)
+		}
+	}
+	return names
 }
