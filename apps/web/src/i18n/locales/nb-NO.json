@@ -918,7 +918,7 @@
         "authentication_token_description": "Valgfri autentiseringstoken for forbedret sikkerhet. Dette vil bli sendt i pagertree-token-headeren.",
         "authentication_token_label": "Autentiseringstoken (valgfritt)",
         "authentication_token_placeholder": "Oppgi auth‑token hvis nødvendig",
-        "auto_resolve_alerts_description": "Løs opp PagerTree-varsler automatisk når en overvåker kommer opp igjen eller en probe kommer online igjen.",
+        "auto_resolve_alerts_description": "Løs PagerTree-varsler automatisk når en overvåker kommer opp igjen eller en probe kommer online igjen.",
         "auto_resolve_alerts_label": "Automatisk løsning av varsler",
         "how_to_get_integration_url_label": "Hvordan få integrasjons‑URL",
         "integration_url_description": "Oppgi din PagerTree webhook-integrasjons‑URL.",

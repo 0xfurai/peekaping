@@ -918,7 +918,7 @@
         "authentication_token_description": "არასავალდებულო ავთენტიკაციის ტოკენი დამატებული უსაფრთხოების მიზნით. ეს გადმოგზავნება pagertree-token ჰედერში.",
         "authentication_token_label": "ავთენტიფიკაციის ტოკენ (არასავალდებულო)",
         "authentication_token_placeholder": "შეიყვანეთ ავტორიზაციის ტოკენი, თუ ეს საჭიროა",
-        "auto_resolve_alerts_description": "PagerTree‑ის გაფრთხილებების ავტომატური გადაწყვეტა, როცა მონიტორი ხელახლა ამოქმედდება ან ზონდი ხელახლა ონლაინ გახდება",
+        "auto_resolve_alerts_description": "PagerTree‑ის გაფრთხილებების ავტომატური მოგვარება, როცა მონიტორი ხელახლა ამოქმედდება ან ზონდი ხელახლა ონლაინ გახდება",
         "auto_resolve_alerts_label": "შეტყობინებების ავტომატური გადამუშავება",
         "how_to_get_integration_url_label": "როგორ მიიღოთ ინტეგრაციის URL",
         "integration_url_description": "შეიყვანეთ თქვენი PagerTree ვებჰუკ ინტეგრაციის URL-ი.",
