@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
+	"peekaping/internal/shutdown/lifecycle"
 	"peekaping/internal/version"
 
 	"go.uber.org/zap"
@@ -89,7 +89,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, build newR
 		logger.Errorw("Failed to shut the probe down", "error", err)
 		failures = append(failures, fmt.Errorf("failed to shut the probe down: %w", err))
 	}
-	if err := graceful.Await(shutdownCtx, "the probe's run", runDone); err != nil {
+	if err := lifecycle.Await(shutdownCtx, "the probe's run", runDone); err != nil {
 		logger.Errorw("The probe's run didn't stop", "error", err)
 		failures = append(failures, err)
 	}

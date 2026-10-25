@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/queue"
 
@@ -25,7 +26,7 @@ func provideInOrderIngester(
 	eventBus events.EventBus,
 	logger *zap.SugaredLogger,
 ) ingester.Service {
-	return ingester.NewInOrderService(ingester.NewService(heartbeatService, certificateService, locations, eventBus, logger))
+	return ingest.NewInOrderService(ingester.NewService(heartbeatService, certificateService, locations, eventBus, logger))
 }
 
 // LocalBus is an event bus whose events stay in the process that published them. The cluster api on

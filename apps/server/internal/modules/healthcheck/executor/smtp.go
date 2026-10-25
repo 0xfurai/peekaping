@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/smtp"
 	"net/textproto"
-	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/shared"
 	"time"
 
@@ -97,7 +96,7 @@ func (s *SMTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	address := net.JoinHostPort(config.Host, fmt.Sprintf("%d", config.Port))
 	startTime := time.Now().UTC()
 
-	var tlsInfo *certificate.TLSInfo
+	var tlsInfo *shared.TLSInfo
 
 	down := func(format string, args ...any) *Result {
 		message := fmt.Sprintf(format, args...)
@@ -196,7 +195,7 @@ func (s *SMTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// Extract TLS certificate information if cert expiry checking is enabled
 	if config.CheckCertExpiry {
 		if state, ok := smtpClient.TLSConnectionState(); ok && len(state.PeerCertificates) > 0 {
-			tlsInfo = certificate.ParseCertificateChain(state.PeerCertificates[0], len(state.VerifiedChains) > 0)
+			tlsInfo = shared.ParseCertificateChain(state.PeerCertificates[0], len(state.VerifiedChains) > 0)
 		}
 	}
 

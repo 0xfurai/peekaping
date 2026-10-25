@@ -42,7 +42,8 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/reporting"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
-	"peekaping/internal/utils"
+	"peekaping/internal/shutdown/lifecycle"
+	"peekaping/internal/validation"
 	"peekaping/internal/version"
 	"peekaping/internal/web"
 
@@ -71,7 +72,7 @@ func main() {
 	// before that is not reported.
 	defer reporting.ReportCrash("main")
 
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 
 	cfg, err := LoadAndValidate("../..")
 	if err != nil {
@@ -90,7 +91,7 @@ func main() {
 		logger.Fatalw("Failed to listen", "port", cfg.Port, "error", err)
 	}
 
-	ctx, stop := graceful.NotifySignals(logger, os.Exit)
+	ctx, stop := lifecycle.NotifySignals(logger, os.Exit)
 	defer stop()
 
 	if err := run(ctx, cfg, logger, listener); err != nil {
@@ -345,28 +346,28 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 // cancels its running checks and waits for them.
 func (j *jobs) stop(ctx context.Context) error {
 	j.stopUsagePing()
-	errs := []error{graceful.Await(ctx, "the usage ping", j.usagePingDone)}
+	errs := []error{lifecycle.Await(ctx, "the usage ping", j.usagePingDone)}
 
 	j.stopWatchdog()
-	errs = append(errs, graceful.Await(ctx, "the watchdog", j.watchdogDone))
+	errs = append(errs, lifecycle.Await(ctx, "the watchdog", j.watchdogDone))
 
 	j.stopSweep()
-	errs = append(errs, graceful.Await(ctx, "the probe sweep", j.sweepDone))
+	errs = append(errs, lifecycle.Await(ctx, "the probe sweep", j.sweepDone))
 
 	schedulerDone := make(chan struct{})
 	go func() {
 		defer close(schedulerDone)
 		j.scheduler.Stop()
 	}()
-	errs = append(errs, graceful.Await(ctx, "the scheduler", schedulerDone))
+	errs = append(errs, lifecycle.Await(ctx, "the scheduler", schedulerDone))
 
-	errs = append(errs, graceful.Await(ctx, "the cleanup cron", j.cleanup.Stop().Done()))
+	errs = append(errs, lifecycle.Await(ctx, "the cleanup cron", j.cleanup.Stop().Done()))
 
 	j.stopRepair()
-	errs = append(errs, graceful.Await(ctx, "the status repair", j.repairDone))
+	errs = append(errs, lifecycle.Await(ctx, "the status repair", j.repairDone))
 
 	j.stopMetrics()
-	errs = append(errs, graceful.Await(ctx, "the metrics collector", j.metricsDone))
+	errs = append(errs, lifecycle.Await(ctx, "the metrics collector", j.metricsDone))
 	return errors.Join(errs...)
 }
 
@@ -406,7 +407,7 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 	}
 	// The HTTP handlers the HTTP server left running return in the jobs' share too, before the
 	// event bus closes, so that what they publish reaches it
-	if err := graceful.Await(jobsCtx, "the HTTP handlers", handlers.Done()); err != nil {
+	if err := lifecycle.Await(jobsCtx, "the HTTP handlers", handlers.Done()); err != nil {
 		errs = append(errs, err)
 		running = append(running, "HTTP handlers")
 	}

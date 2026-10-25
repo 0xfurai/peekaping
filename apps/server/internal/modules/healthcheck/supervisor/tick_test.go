@@ -1,4 +1,4 @@
-package healthcheck
+package supervisor
 
 import (
 	"context"
@@ -21,7 +21,7 @@ type stubExecutor struct {
 	result   *executor.Result
 }
 
-func (e *stubExecutor) Execute(ctx context.Context, _ *Monitor, _ *executor.Proxy) *executor.Result {
+func (e *stubExecutor) Execute(ctx context.Context, _ *shared.Monitor, _ *executor.Proxy) *executor.Result {
 	if e.panics {
 		panic("executor bug")
 	}
@@ -41,7 +41,7 @@ func (e *stubExecutor) Unmarshal(string) (any, error) { return nil, nil }
 
 func TestHandleMonitorTickDeadline(t *testing.T) {
 	supervisor := NewHealthCheck(nil, nil, zap.NewNop().Sugar())
-	m := &Monitor{ID: "mon-1", Name: "Test", Timeout: 1}
+	m := &shared.Monitor{ID: "mon-1", Name: "Test", Timeout: 1}
 	executorResult := &executor.Result{Status: shared.MonitorStatusDown, Message: "executor message"}
 
 	t.Run("returns the executor result when it finishes in time", func(t *testing.T) {

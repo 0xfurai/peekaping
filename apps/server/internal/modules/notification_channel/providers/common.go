@@ -6,13 +6,13 @@ import (
 	"net"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"strconv"
 	"strings"
 )
 
 func GenericValidator[T any](cfg *T) error {
-	return utils.Validate.Struct(cfg)
+	return validation.Validate.Struct(cfg)
 }
 
 func GenericUnmarshal[T any](configJSON string) (*T, error) {

@@ -16,12 +16,11 @@ import (
 
 	"go.uber.org/zap"
 
-	"peekaping/internal/modules/check"
-	"peekaping/internal/modules/healthcheck"
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/healthcheck/executor"
-	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/healthcheck/supervisor"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
-	"peekaping/internal/modules/stale"
 	"peekaping/internal/reporting"
 )
 
@@ -35,11 +34,11 @@ type Config struct {
 	// Source is where the monitors, their checks and the signals of their changes come from
 	Source     Source
 	Executors  Executors
-	Supervisor *healthcheck.HealthCheckSupervisor
+	Supervisor *supervisor.HealthCheckSupervisor
 	// Ingester takes the results of the checks. The scheduler ingests a monitor's results one
 	// at a time, in order. Pushes to a push monitor must go through the same
-	// ingester.NewInOrderService to be ordered with its checks.
-	Ingester ingester.Service
+	// ingest.NewInOrderService to be ordered with its checks.
+	Ingester ingest.Service
 	// Concurrency is how many checks run at the same time; DefaultConcurrency when it's zero
 	Concurrency int
 	// ReconcileInterval is how often the timers are compared with the active monitors of the
@@ -67,16 +66,16 @@ const (
 // finish and be ingested once it has a slot in the pool. The watchdog gives a stale
 // monitor's new check this long before it notifies.
 func CheckTimeout(timeoutSeconds int) time.Duration {
-	return time.Duration(timeoutSeconds)*time.Second + healthcheck.ExecutorGrace + ingestGrace
+	return time.Duration(timeoutSeconds)*time.Second + supervisor.ExecutorGrace + ingestGrace
 }
 
 // Scheduler checks the active monitors when their check intervals pass. It implements
-// stale.Rechecker.
+// stale.Rechecker, which package app checks where it hands the scheduler to the watchdog.
 type Scheduler struct {
 	source            Source
 	executors         Executors
-	supervisor        *healthcheck.HealthCheckSupervisor
-	ingester          ingester.Service
+	supervisor        *supervisor.HealthCheckSupervisor
+	ingester          ingest.Service
 	reconcileInterval time.Duration
 	logger            *zap.SugaredLogger
 
@@ -96,8 +95,6 @@ type Scheduler struct {
 	stopping  chan struct{} // closed once the scheduler is stopped
 	wg        sync.WaitGroup
 }
-
-var _ stale.Rechecker = (*Scheduler)(nil)
 
 // schedule is the timer of one monitor
 type schedule struct {
@@ -128,7 +125,7 @@ func New(cfg Config) *Scheduler {
 		source:            cfg.Source,
 		executors:         cfg.Executors,
 		supervisor:        cfg.Supervisor,
-		ingester:          ingester.NewInOrderService(cfg.Ingester),
+		ingester:          ingest.NewInOrderService(cfg.Ingester),
 		reconcileInterval: reconcileInterval,
 		logger:            cfg.Logger.With("component", "scheduler"),
 		slots:             make(chan struct{}, concurrency),
@@ -487,12 +484,12 @@ func (s *Scheduler) cancelCheck(monitorID string) {
 
 // runCheck loads the monitor's check, runs it and ingests its result
 func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
-	job, err := s.source.Load(ctx, monitorID)
+	loaded, err := s.source.Load(ctx, monitorID)
 	switch {
-	case errors.Is(err, check.ErrMonitorNotFound):
+	case errors.Is(err, job.ErrMonitorNotFound):
 		s.logger.Warnw("Monitor not found, skipping its check", "monitor_id", monitorID)
 		return
-	case errors.Is(err, check.ErrMonitorPaused):
+	case errors.Is(err, job.ErrMonitorPaused):
 		s.logger.Infow("Monitor is paused, skipping its check", "monitor_id", monitorID)
 		return
 	case err != nil && ctx.Err() != nil:
@@ -503,9 +500,9 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		s.logger.Errorw("Failed to load the monitor's check", "monitor_id", monitorID, "error", err)
 		return
 	}
-	mon := job.Monitor
+	mon := loaded.Monitor
 	// A push monitor's check judges its latest push, as the worker's does
-	mon.LastHeartbeat = job.LastHeartbeat
+	mon.LastHeartbeat = loaded.LastHeartbeat
 
 	exec, ok := s.executors.GetExecutor(mon.Type)
 	if !ok {
@@ -513,14 +510,14 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		return
 	}
 
-	tick := s.supervisor.HandleMonitorTick(ctx, mon, exec, job.Proxy, job.IsUnderMaintenance)
+	tick := s.supervisor.HandleMonitorTick(ctx, mon, exec, loaded.Proxy, loaded.IsUnderMaintenance)
 
 	// An executor that has nothing to report returns no result
 	if tick == nil {
 		s.logger.Debugw("Executor returned nil - no heartbeat needed", "monitor_id", monitorID, "monitor_type", mon.Type)
 		return
 	}
-	result := tick.IngestResult(job.CheckCertExpiry)
+	result := tick.IngestResult(loaded.CheckCertExpiry)
 
 	// An update, pause, delete or stop drops the result until here. The ingest isn't
 	// interrupted once it starts: it reads the previous heartbeat to write the next one. A

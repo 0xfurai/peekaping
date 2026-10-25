@@ -1,4 +1,4 @@
-package healthcheck
+package supervisor
 
 import (
 	"context"
@@ -15,8 +15,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func newTestSupervisor() (*HealthCheckSupervisor, *Monitor) {
-	return NewHealthCheck(nil, nil, zap.NewNop().Sugar()), &Monitor{ID: "mon-1", Name: "Test", Timeout: 1}
+func newTestSupervisor() (*HealthCheckSupervisor, *shared.Monitor) {
+	return NewHealthCheck(nil, nil, zap.NewNop().Sugar()), &shared.Monitor{ID: "mon-1", Name: "Test", Timeout: 1}
 }
 
 func TestHandleMonitorTick_ReportsAnExecutorPanicAndStillReportsDown(t *testing.T) {

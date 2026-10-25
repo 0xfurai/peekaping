@@ -1,4 +1,4 @@
-package ingester
+package ingest
 
 import (
 	"context"
@@ -11,6 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// monitorID is the monitor the tests that need only one ingest results for
+const monitorID = "mon-1"
 
 // serviceFunc is a Service made of a function
 type serviceFunc func(ctx context.Context, r *Result) error

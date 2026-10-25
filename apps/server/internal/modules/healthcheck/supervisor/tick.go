@@ -1,10 +1,9 @@
-package healthcheck
+package supervisor
 
 import (
 	"context"
 	"fmt"
 	"peekaping/internal/modules/healthcheck/executor"
-	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/reporting"
 	"runtime/debug"
@@ -30,9 +29,9 @@ import (
 // It does NOT save to the database - that's the ingester's job.
 func (s *HealthCheckSupervisor) HandleMonitorTick(
 	ctx context.Context,
-	m *Monitor,
+	m *shared.Monitor,
 	exec executor.Executor,
-	proxyModel *proxy.Model,
+	proxyModel *shared.Proxy,
 	isUnderMaintenance bool,
 ) *TickResult {
 	// Use the maintenance status provided via queue payload (no database call)
@@ -85,9 +84,9 @@ const ExecutorGrace = 2 * time.Second
 // so the caller always gets a result shortly after the check timeout.
 func (s *HealthCheckSupervisor) executeWithDeadline(
 	ctx context.Context,
-	m *Monitor,
+	m *shared.Monitor,
 	exec executor.Executor,
-	proxyModel *proxy.Model,
+	proxyModel *shared.Proxy,
 ) *executor.Result {
 	startTime := time.Now().UTC()
 	done := make(chan *executor.Result, 1)

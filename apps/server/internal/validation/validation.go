@@ -1,4 +1,7 @@
-package utils
+// Package validation holds the one validator that checks the structs of the server: the request
+// DTOs and the configs of the monitor types and notification channels. It is shared on purpose,
+// since the struct rules that modules register on it apply wherever a struct is validated.
+package validation
 
 import (
 	"encoding/json"

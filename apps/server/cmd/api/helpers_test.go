@@ -20,6 +20,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	"github.com/alicebob/miniredis/v2"
 	gorilla "github.com/gorilla/websocket"
@@ -42,7 +43,7 @@ const (
 // in-process Redis of its own, changed by env
 func loadConfig(t *testing.T, env map[string]string) *Config {
 	t.Helper()
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 	redis := miniredis.RunT(t)
 	redisHost, redisPort, err := net.SplitHostPort(redis.Addr())
 	require.NoError(t, err)

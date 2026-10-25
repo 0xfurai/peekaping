@@ -1,16 +1,16 @@
-package utils_test
+package validation_test
 
 import (
 	"testing"
 
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPasswordRule(t *testing.T) {
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 	type form struct {
 		Password string `validate:"password"`
 	}
@@ -31,7 +31,7 @@ func TestPasswordRule(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := utils.Validate.Struct(form{Password: tt.password})
+			err := validation.Validate.Struct(form{Password: tt.password})
 			if tt.valid {
 				assert.NoError(t, err)
 			} else {
@@ -47,7 +47,7 @@ func TestValidateConfig(t *testing.T) {
 		Retries int    `json:"retries" validate:"min=0,max=5"`
 	}
 
-	cfg, err := utils.ValidateConfig[webhook](`{"url":"https://example.com/hook","retries":3}`)
+	cfg, err := validation.ValidateConfig[webhook](`{"url":"https://example.com/hook","retries":3}`)
 	require.NoError(t, err)
 	assert.Equal(t, &webhook{URL: "https://example.com/hook", Retries: 3}, cfg)
 
@@ -57,7 +57,7 @@ func TestValidateConfig(t *testing.T) {
 		"field too large": `{"url":"https://example.com/hook","retries":9}`,
 	} {
 		t.Run(name, func(t *testing.T) {
-			cfg, err := utils.ValidateConfig[webhook](raw)
+			cfg, err := validation.ValidateConfig[webhook](raw)
 			assert.Error(t, err)
 			assert.Nil(t, cfg)
 		})

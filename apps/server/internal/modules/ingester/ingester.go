@@ -1,7 +1,7 @@
 package ingester
 
 import (
-	"peekaping/internal/reporting"
+	"peekaping/internal/reporting/asynqmw"
 	"peekaping/internal/shutdown"
 
 	"github.com/hibiken/asynq"
@@ -23,7 +23,7 @@ func NewIngester(
 	logger *zap.SugaredLogger,
 ) *Ingester {
 	mux := asynq.NewServeMux()
-	mux.Use(reporting.AsynqMiddleware)
+	mux.Use(asynqmw.ReportPanics)
 
 	i := &Ingester{
 		server: server,

@@ -9,8 +9,8 @@ import (
 
 	"go.uber.org/zap"
 
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/scheduler"
 )
 
@@ -102,7 +102,7 @@ func New(cfg Config) *Probe {
 		scheduler: scheduler.New(scheduler.Config{
 			Source:      source,
 			Executors:   executors,
-			Supervisor:  healthcheck.NewHealthCheck(nil, registry, cfg.Logger), // it needs neither the event bus nor the registry to run a tick
+			Supervisor:  supervisor.NewHealthCheck(nil, registry, cfg.Logger), // it needs neither the event bus nor the registry to run a tick
 			Ingester:    sink,
 			Concurrency: cfg.Concurrency,
 			Logger:      cfg.Logger,

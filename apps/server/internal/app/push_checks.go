@@ -6,9 +6,9 @@ import (
 
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
-	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/healthcheck/supervisor"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/scheduler"
 
@@ -36,8 +36,8 @@ const (
 type PushChecks struct {
 	source     *scheduler.PushSource
 	executors  scheduler.Executors
-	supervisor *healthcheck.HealthCheckSupervisor
-	ingester   ingester.Service
+	supervisor *supervisor.HealthCheckSupervisor
+	ingester   ingest.Service
 	logger     *zap.SugaredLogger
 }
 
@@ -47,15 +47,15 @@ func providePushChecks(
 	monitors monitor.Service,
 	eventBus events.EventBus,
 	executors *executor.ExecutorRegistry,
-	supervisor *healthcheck.HealthCheckSupervisor,
-	ingest ingester.Service,
+	checks *supervisor.HealthCheckSupervisor,
+	ingestService ingest.Service,
 	logger *zap.SugaredLogger,
 ) *PushChecks {
 	return &PushChecks{
 		source:     scheduler.NewPushSource(scheduler.NewDatabaseSource(monitors, loader, eventBus)),
 		executors:  executors,
-		supervisor: supervisor,
-		ingester:   ingest,
+		supervisor: checks,
+		ingester:   ingestService,
 		logger:     logger.With("component", "push_checks"),
 	}
 }

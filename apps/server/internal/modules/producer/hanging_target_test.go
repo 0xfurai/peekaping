@@ -12,8 +12,8 @@ import (
 
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/check"
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
@@ -62,7 +62,7 @@ func TestHealthCheckAgainstHangingTarget(t *testing.T) {
 	execRegistry := executor.NewExecutorRegistry(logger)
 	handler := worker.NewHealthCheckTaskHandler(
 		execRegistry,
-		healthcheck.NewHealthCheck(nil, execRegistry, logger),
+		supervisor.NewHealthCheck(nil, execRegistry, logger),
 		ingester.NewQueueService(queueSvc),
 		logger,
 	)

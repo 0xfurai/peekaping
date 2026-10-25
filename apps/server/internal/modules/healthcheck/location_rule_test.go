@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 
@@ -24,15 +23,6 @@ func TestResultFromMonitor_CarriesTheLocationRule(t *testing.T) {
 	now := time.Date(2026, 10, 22, 9, 0, 0, 0, time.UTC)
 
 	got := ResultFromMonitor(twoOfThreeMonitor(), false, shared.MonitorStatusDown, "refused", 5, now, now, nil, zap.NewNop().Sugar())
-
-	assert.Equal(t, shared.LocationRuleAtLeast, got.MonitorLocationRule)
-	assert.Equal(t, 2, got.MonitorLocationThreshold)
-}
-
-func TestTickResult_IngestResultCarriesTheLocationRule(t *testing.T) {
-	tick := &TickResult{Monitor: twoOfThreeMonitor(), ExecutionResult: &executor.Result{Status: shared.MonitorStatusUp}}
-
-	got := tick.IngestResult(false)
 
 	assert.Equal(t, shared.LocationRuleAtLeast, got.MonitorLocationRule)
 	assert.Equal(t, 2, got.MonitorLocationThreshold)

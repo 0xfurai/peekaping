@@ -1,8 +1,6 @@
 package app
 
 import (
-	"errors"
-
 	"peekaping/internal/config"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/error_reporting"
@@ -10,7 +8,6 @@ import (
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
-	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/telemetry"
@@ -25,15 +22,18 @@ import (
 // probes offline, in one process with no Redis and no asynq. Events stay in the process, the
 // stale monitors are kept in memory, the hourly cleanup's run lock grants every hour to the one
 // process, and the scheduler is the watchdog's stale.Rechecker. The scheduler and the push URL
-// ingest through one ingester.NewInOrderService, so the pushes and the checks of a monitor are
+// ingest through one ingest.NewInOrderService, so the pushes and the checks of a monitor are
 // stored one at a time, in order.
 func RegisterSingle(container *dig.Container, cfg *config.Config) error {
 	if err := Register(container, cfg); err != nil {
 		return err
 	}
-	return errors.Join(
-		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock, ingester.ProvideLocationStore, provideInOrderIngester, provideSingleMode, provideSingleClaimer, provideSingleSwitch, provideSingleWindow, provideSingleLocalProbe, probe.ProvideSweep),
-		scheduler.RegisterDependencies(container),
+	return utils.Provide(container,
+		provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock,
+		ingester.ProvideLocationStore, provideInOrderIngester,
+		provideSchedulerSource, provideScheduler, provideWatchdog,
+		provideSingleMode, provideSingleClaimer, provideSingleSwitch, provideSingleWindow, provideSingleLocalProbe,
+		probe.ProvideSweep,
 	)
 }
 
