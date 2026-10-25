@@ -226,8 +226,13 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	case <-checkCtx.Done():
 		endTime := time.Now().UTC()
 		k.logger.Infof("Kafka message send timeout: %s", monitor.Name)
-		// Closing waits for the send in flight, so it can't hold up the result.
-		go k.closeProducer(producer)
+		// Close once the send has returned, in the background so it can't hold
+		// up the result. Closing sooner could close the producer's input before
+		// the send reaches it, and sarama would panic on the closed channel.
+		go func() {
+			<-sendDone
+			k.closeProducer(producer)
+		}()
 		return &Result{
 			Status:    shared.MonitorStatusDown,
 			Message:   fmt.Sprintf("Message send timeout after %ds", monitor.Timeout),
