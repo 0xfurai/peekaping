@@ -1,9 +1,10 @@
 name: Test MongoDB import
 
 # bun db import-mongo copies a MongoDB install into SQLite or PostgreSQL. Its tests
-# seed a real MongoDB through the Mongo repositories, import into both kinds of SQL
-# database and read the result back, so they need a MongoDB and a PostgreSQL server.
-# The Test and Lint workflow has neither, and those tests skip there.
+# seed a real MongoDB with raw documents in the format the Mongo repositories wrote,
+# import into both kinds of SQL database and read the result back, so they need a
+# MongoDB and a PostgreSQL server. The Test and Lint workflow has neither, and those
+# tests skip there.
 
 on:
   pull_request:
