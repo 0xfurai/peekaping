@@ -55,8 +55,8 @@ type ControllerParams struct {
 	Monitors    monitor.Service
 	Proxies     proxy.Service
 	Maintenance maintenance.Service
-	// Ingester stores the results a probe sends: in cluster mode it enqueues them for the
-	// ingester, as it does the pushes
+	// Ingester stores the results a probe sends, as it does the pushes: in the process, in order,
+	// on SQLite and PostgreSQL; on MongoDB, which has no probes, it enqueues them for the ingester
 	Ingester ingester.Service
 	// Window remembers the result ids already taken: Redis in cluster mode, so that a retry on
 	// another API replica is found, and the process's memory in single mode. A container that

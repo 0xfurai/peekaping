@@ -68,8 +68,7 @@ type candidate struct {
 //
 // The rest are stored with the monitor's settings and maintenance state, as the push URL stores
 // a push, one monitor at a time and each monitor's results oldest first, because storing a result
-// reads the monitor's previous heartbeat. The answer is sent after the last is stored or, in
-// cluster mode, queued. A result that fails to store is the server's failure and not the
+// reads the monitor's previous heartbeat. The answer is sent after the last is stored. A result that fails to store is the server's failure and not the
 // result's: the whole batch is answered 500, so the probe sends it again, and the results that
 // were stored by then are answered duplicate.
 //
@@ -263,9 +262,11 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 // marks each one stored, which keeps its id claimed. It stops at the first that fails, leaving that
 // result and the ones after it not stored.
 //
-// In cluster mode the ingester enqueues the result, and the queue holds a task for the monitor, the probe and
-// the start time for an hour. A task the queue holds already is a result stored, by a replica that
-// the probe's first attempt reached: the result's outcome becomes duplicate, and it is not a failure.
+// On MongoDB the ingester enqueues the result, and the queue holds a task for the monitor, the probe
+// and the start time for an hour. A task the queue holds already is a result stored, by a replica
+// that the probe's first attempt reached: the result's outcome becomes duplicate, and it is not a
+// failure. (On SQLite and PostgreSQL the Window answers a retry on another replica, by the result's
+// id, and the ingester has no queue.)
 func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*candidate) error {
 	var order []string
 	byMonitor := map[string][]*candidate{}

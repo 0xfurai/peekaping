@@ -34,33 +34,47 @@ const sqliteClusterDocsURL = "https://docs.peekaping.com/self-hosting/docker-wit
 // notification events from the notification queue, which gives each to one replica, with its own
 // asynq server.
 //
-// On SQLite and PostgreSQL the probes run the checks, so the api has the jobs the producer ran: the
-// stale-monitor watchdog and the probe sweep, which run on the one replica that holds the leader
-// lock (LeaderJobs). A push to a push URL is enqueued for the ingester.
+// On SQLite and PostgreSQL the probes run the checks, so the api does the rest. It stores what it
+// takes, a push to a push URL or the results of a probe, through ingester.NewInOrderService on the
+// replica that took the request, as single mode does (see ingestOnTheAPI), and aggregates the stats
+// of the heartbeats it stored. And it has the jobs the producer ran: the stale-monitor watchdog and
+// the probe sweep, which run on the one replica that holds the leader lock (LeaderJobs).
 //
 // On MongoDB, which has no probes (ADR 0001), the producer, the worker and the ingester still run
-// the checks and store their results, and the api only enqueues a push for the ingester.
+// the checks and store their results, and the api only enqueues what it takes for the ingester.
 func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
+	mongo := config.IsMongoDBType(cfg.DBType)
+	eventBus := any(provideAPIEventBus)
+	if mongo {
+		eventBus = provideClusterEventBus
+	}
 	return errors.Join(
-		registerCluster(container, cfg),
+		registerCluster(container, cfg, eventBus),
 		utils.Provide(container,
-			ingester.NewPushQueueService,
 			infra.ProvideNotificationAsynqServer,
 			notification_channel.NewQueueConsumer,
 			provideClusterClaimer,
 		),
-		registerAPILeaderJobs(container, cfg),
+		registerAPIStorage(container, mongo),
 		warnAboutSQLite(container, cfg),
 	)
 }
 
-// registerAPILeaderJobs provides the jobs the api runs under the leader lock. A MongoDB install
-// has none: its producer elects the leader and runs them.
-func registerAPILeaderJobs(container *dig.Container, cfg *config.Config) error {
-	if config.IsMongoDBType(cfg.DBType) {
-		return nil
+// registerAPIStorage provides what the api does with the storage backend it runs on: on MongoDB,
+// which has no probes, it enqueues a push for the ingester, and the producer elects the leader that
+// runs the watchdog and the sweep; on SQLite and PostgreSQL it ingests, and runs the leader jobs.
+func registerAPIStorage(container *dig.Container, mongo bool) error {
+	if mongo {
+		return utils.Provide(container, ingester.NewPushQueueService)
 	}
-	return utils.Provide(container, leader.ProvideElector, provideClusterWatchdog, probe.ProvideSweep, provideLeaderJobs)
+	return utils.Provide(container,
+		ingester.ProvideLocationStore,
+		provideInOrderIngester,
+		leader.ProvideElector,
+		provideClusterWatchdog,
+		probe.ProvideSweep,
+		provideLeaderJobs,
+	)
 }
 
 // provideClusterWatchdog provides the stale-monitor watchdog of the api. No process of its own runs
@@ -108,7 +122,7 @@ func provideClusterClaimer(client *redis.Client) telemetry.Claimer {
 // run the checks.
 func RegisterClusterProducer(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
-		registerCluster(container, cfg),
+		registerCluster(container, cfg, provideClusterEventBus),
 		utils.Provide(container, producer.ProvideQueueRunner, probe.ProvideSweep),
 		producer.RegisterDependencies(container),
 		warnAboutSQLite(container, cfg),
@@ -119,7 +133,7 @@ func RegisterClusterProducer(container *dig.Container, cfg *config.Config) error
 // from the healthcheck queue and enqueues their results for the ingester. It has no database.
 func RegisterClusterWorker(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
-		registerCluster(container, cfg),
+		registerCluster(container, cfg, provideClusterEventBus),
 		utils.Provide(container, infra.ProvideAsynqServer, ingester.NewQueueService),
 		worker.RegisterDependencies(container),
 	)
@@ -129,7 +143,7 @@ func RegisterClusterWorker(container *dig.Container, cfg *config.Config) error {
 // it takes from the ingester queue as heartbeats
 func RegisterClusterIngester(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
-		registerCluster(container, cfg),
+		registerCluster(container, cfg, provideClusterEventBus),
 		utils.Provide(container, infra.ProvideIngesterAsynqServer),
 		ingester.RegisterDependencies(container),
 		warnAboutSQLite(container, cfg),
@@ -155,17 +169,18 @@ func warnAboutSQLite(container *dig.Container, cfg *config.Config) error {
 
 // registerCluster provides what every cluster binary shares, then cluster mode's transport: the
 // Redis client, the event bus over Redis pub/sub with the notification topics sent through the
-// notification queue, the stale monitors in a Redis hash, the run lock of the api's hourly cleanup
+// notification queue (eventBus is the constructor of the events.EventBus the binary uses, and of
+// the QueuedBus under it), the stale monitors in a Redis hash, the run lock of the api's hourly cleanup
 // in Redis, and asynq's client and inspector behind the queue service. The api, the worker and
 // the ingester each add their own asynq server, since they serve different queues.
-func registerCluster(container *dig.Container, cfg *config.Config) error {
+func registerCluster(container *dig.Container, cfg *config.Config, eventBus any) error {
 	if err := Register(container, cfg); err != nil {
 		return err
 	}
 	return utils.Provide(container,
 		infra.ProvideRedisClient,
 		infra.ProvideRedisEventBus,
-		provideClusterEventBus,
+		eventBus,
 		stale.ProvideRedisStore,
 		cleanup.ProvideRedisRunLock,
 		infra.ProvideAsynqClient,

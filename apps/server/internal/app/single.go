@@ -4,11 +4,9 @@ import (
 	"errors"
 
 	"peekaping/internal/config"
-	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
@@ -55,16 +53,4 @@ func provideSingleWindow() protocol.Window { return protocol.NewMemoryWindow() }
 func provideMemoryEventBus(logger *zap.SugaredLogger) events.EventBus {
 	logger.Info("Creating in-memory event bus")
 	return events.NewMemoryBus(events.WithLogger(logger.With("component", "memory_event_bus")))
-}
-
-// provideInOrderIngester provides the ingester.Service that stores the scheduler's checks and the
-// push URL's pushes, one monitor's results at a time, in order
-func provideInOrderIngester(
-	heartbeatService heartbeat.Service,
-	certificateService certificate.Service,
-	locations ingester.LocationStore,
-	eventBus events.EventBus,
-	logger *zap.SugaredLogger,
-) ingester.Service {
-	return ingester.NewInOrderService(ingester.NewService(heartbeatService, certificateService, locations, eventBus, logger))
 }

@@ -132,6 +132,9 @@ type parts struct {
 	// LeaderJobs runs the stale-monitor watchdog and the probe sweep on the replica that holds the
 	// leader lock. A MongoDB install has none: its producer runs them.
 	LeaderJobs *app.LeaderJobs `optional:"true"`
+	// LocalBus delivers the heartbeats this replica stored to the stats aggregation. A MongoDB
+	// install has none: its ingester aggregates the stats.
+	LocalBus *app.LocalBus `optional:"true"`
 }
 
 // run starts the API and serves it on the listener until ctx is done, or until serving fails.
@@ -275,6 +278,11 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 
 	p.NotificationListener.Subscribe(p.EventBus)
 	p.MonitorListener.Subscribe(p.EventBus)
+	// The stats count the heartbeats this replica stored, which its local bus carries: on the
+	// cluster's bus every replica would hear every heartbeat, and count it
+	if p.LocalBus != nil {
+		p.Stats.RegisterEventHandlers(p.LocalBus)
+	}
 
 	// Answer the probes' waiting assignment polls when a monitor or one of a probe's instances
 	// changes. Every api replica listens: a change made on one reaches the polls held by the others.
