@@ -55,6 +55,7 @@ type app struct {
 	router    *httpx.Router
 	container *dig.Container
 	redis     *miniredis.Miniredis
+	cfg       *config.Config
 
 	accessToken string
 	apiKey      string
@@ -148,9 +149,24 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 		}))
 	}
 
-	a := &app{container: container, redis: redis}
+	a := &app{container: container, redis: redis, cfg: cfg}
 	require.NoError(t, container.Invoke(func(server *internal.Server) { a.router = server.Router }))
 	return a
+}
+
+// newReplica is another API replica of the install that first is a replica of: the same database
+// and the same Redis, with its own process memory. options change the config as they do for newApp.
+// The admin's access token, which the replicas share through the database, is first's.
+func newReplica(t *testing.T, first *app, options ...func(*config.Config)) *app {
+	t.Helper()
+	share := func(cfg *config.Config) {
+		cfg.DBName = first.cfg.DBName
+		cfg.RedisHost = first.cfg.RedisHost
+		cfg.RedisPort = first.cfg.RedisPort
+	}
+	replica := newApp(t, append(options, share)...)
+	replica.accessToken, replica.apiKey = first.accessToken, first.apiKey
+	return replica
 }
 
 // newAppWithAdmin registers the admin and issues an API key, the way a new

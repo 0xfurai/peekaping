@@ -94,6 +94,12 @@ Every container started with the same token is an **instance** of that probe, wi
 
 If an instance loses its connection, it keeps checking its last assignment until it can reach Peekaping again.
 
+## Request limit
+
+Peekaping limits how often an instance may call each route under `/probe/v1/`. The limit is 1 request a second, after a burst of 5. A request over the limit gets a 429 with a `Retry-After` header, and the probe waits and sends it again. The limit is not a setting.
+
+Each API process counts for itself. In single mode there is one process, so the limit is exact. In cluster mode with several API replicas behind a load balancer, an instance can send up to as many times the limit as there are replicas, because each replica keeps its own count. With 3 replicas, an instance can send up to 3 requests a second. The same goes for the limit on hellos, which is 1 a second for all the instances of a probe together, after a burst of 10.
+
 ## When a probe is offline
 
 A probe is online while one of its instances has been in contact with Peekaping. When the probe can't reach Peekaping, it keeps checking and holds the results in memory, up to 10,000. When that is full, the oldest are dropped first, and the probe logs it. It sends what it holds as soon as it can reach Peekaping again. Peekaping refuses results more than one hour old, so a longer gap leaves a gap in the heartbeats. Because the results are in memory, a probe that restarts while it is cut off loses them.
