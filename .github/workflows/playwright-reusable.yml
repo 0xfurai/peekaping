@@ -61,6 +61,10 @@ jobs:
         # The shortest time before a remote probe that stopped is reported offline (default 3m).
         PROBE_OFFLINE_AFTER=2m
 
+        # The local probe's token: the api stores it and the stack's probe service sends it. The
+        # SQLite and PostgreSQL compose files refuse to start without it. MongoDB has no probes.
+        ${{ matrix.database != 'mongo' && 'PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789' || '' }}
+
         # Server Configuration
         CLIENT_URL=http://localhost:8383
         SERVER_PORT=8034
@@ -85,6 +89,8 @@ jobs:
         sed -i 's|0xfurai/peekaping-producer:latest|0xfurai/peekaping-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-worker:latest|0xfurai/peekaping-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-ingester:latest|0xfurai/peekaping-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        # The SQLite and PostgreSQL files run the probe image instead of the three above
+        sed -i 's|0xfurai/peekaping-probe:latest|0xfurai/peekaping-probe:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-web:latest|0xfurai/peekaping-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-migrate:latest|0xfurai/peekaping-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
 
@@ -101,6 +107,7 @@ jobs:
           echo "=== Individual Service Logs ==="
           docker compose logs migrate || echo "No migrate service logs"
           docker compose logs api || echo "No api service logs"
+          docker compose logs probe || echo "No probe service logs"
           docker compose logs producer || echo "No producer service logs"
           docker compose logs worker || echo "No worker service logs"
           docker compose logs ingester || echo "No ingester service logs"
