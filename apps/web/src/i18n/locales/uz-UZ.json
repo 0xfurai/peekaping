@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Avtomatik tasdiqlash",
         "auto_resolve_acknowledge_description": "Insidentni avtomatik ravishda qabul qilish",
-        "auto_resolve_description": "Monitoring qayta ishga tushganda qaysi harakatni bajarishni tanlang",
+        "auto_resolve_description": "Monitor qayta ishga tushganda yoki zond qayta onlayn bo‘lganda nima yuborilishini tanlang",
         "auto_resolve_do_nothing": "Hech narsa qilmang",
-        "auto_resolve_do_nothing_description": "UP holatida hech qanday harakat amalga oshirilmagan",
+        "auto_resolve_do_nothing_description": "Monitor qayta ishga tushganda yoki zond qayta onlayn bo‘lganda hech narsa yuborilmaydi, shuning uchun insident PagerDuty’da hal qilinmaguncha ochiq qoladi",
         "auto_resolve_label": "Avtomatik hal qilish yoki tasdiqlash",
         "auto_resolve_placeholder": "Avtomatik yechim xatti-harakatini tanlang",
         "auto_resolve_resolve": "Avtomatik yechish",

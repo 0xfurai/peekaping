@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "تایید خودکار",
         "auto_resolve_acknowledge_description": "به‌صورت خودکار حادثه را تأیید کنید",
-        "auto_resolve_description": "انتخاب کنید که در زمان بازگشت مانیتور چه عملی انجام شود",
+        "auto_resolve_description": "انتخاب کنید که در زمان بازگشت مانیتور یا آنلاین شدن دوباره پروب چه چیزی ارسال شود",
         "auto_resolve_do_nothing": "انجام نده",
-        "auto_resolve_do_nothing_description": "در وضعیت بالا هیچ اقدامی صورت نمی‌گیرد",
+        "auto_resolve_do_nothing_description": "در زمان بازگشت مانیتور یا آنلاین شدن دوباره پروب هیچ چیزی ارسال نمی‌شود، بنابراین حادثه تا زمانی که آن را در PagerDuty حل کنید باز می‌ماند",
         "auto_resolve_label": "حل خودکار یا تأیید",
         "auto_resolve_placeholder": "انتخاب رفتار خودکار رفع",
         "auto_resolve_resolve": "رفع خودکار",

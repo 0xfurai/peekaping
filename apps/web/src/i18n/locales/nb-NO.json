@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Auto-godta",
         "auto_resolve_acknowledge_description": "Automatisk anerkjenne hendelsen",
-        "auto_resolve_description": "Velg hva som skal skje når en overvåker kommer opp igjen",
+        "auto_resolve_description": "Velg hva som skal sendes når en overvåker kommer opp igjen eller en probe kommer online igjen",
         "auto_resolve_do_nothing": "Ikke gjør noe",
-        "auto_resolve_do_nothing_description": "Ingen handling utført ved status UP",
+        "auto_resolve_do_nothing_description": "Ingenting sendes når en overvåker kommer opp igjen eller en probe kommer online igjen, så hendelsen forblir åpen til du løser den i PagerDuty",
         "auto_resolve_label": "Auto Løs eller Bekreft",
         "auto_resolve_placeholder": "Velg automatisk oppklaring",
         "auto_resolve_resolve": "Auto-løsning",

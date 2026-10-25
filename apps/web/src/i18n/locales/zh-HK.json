@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "自動確認",
         "auto_resolve_acknowledge_description": "自動確認該事件",
-        "auto_resolve_description": "選擇在監控恢復正常時要採取的動作",
+        "auto_resolve_description": "選擇在監控恢復正常或探針重新上線時要發送的內容",
         "auto_resolve_do_nothing": "不採取任何動作",
-        "auto_resolve_do_nothing_description": "在 UP 狀態下不採取任何行動。",
+        "auto_resolve_do_nothing_description": "監控恢復正常或探針重新上線時不會發送任何內容，因此事件會保持開啟，直至你在 PagerDuty 中解決為止。",
         "auto_resolve_label": "自動解決或已確認",
         "auto_resolve_placeholder": "選擇自動解除告警的方式",
         "auto_resolve_resolve": "自動解決",

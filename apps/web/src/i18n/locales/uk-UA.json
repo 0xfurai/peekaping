@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Автоматичне підтвердження",
         "auto_resolve_acknowledge_description": "Автоматично підтверджувати інцидент",
-        "auto_resolve_description": "Виберіть дію при відновленні роботи монітора",
+        "auto_resolve_description": "Виберіть, що надсилати, коли монітор відновлює роботу або зонд знову стає онлайн",
         "auto_resolve_do_nothing": "Нічого не робити",
-        "auto_resolve_do_nothing_description": "Не виконувати дії при статусі UP",
+        "auto_resolve_do_nothing_description": "Нічого не надсилається, коли монітор відновлює роботу або зонд знову стає онлайн, тому інцидент залишається відкритим, доки ви не вирішите його в PagerDuty",
         "auto_resolve_label": "Автоматичне вирішення або підтвердження",
         "auto_resolve_placeholder": "Виберіть поведінку автоматичного вирішення",
         "auto_resolve_resolve": "Автоматичне вирішення",

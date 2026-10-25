@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "خودکار تصدیق",
         "auto_resolve_acknowledge_description": "حادثے کو خودکار طور پر تسلیم کریں",
-        "auto_resolve_description": "جب مانیٹر دوبارہ آن ہو جائے تو کون سی کارروائی لیں، منتخب کریں",
+        "auto_resolve_description": "منتخب کریں کہ جب مانیٹر دوبارہ آن ہو جائے یا پروب دوبارہ آن لائن آ جائے تو کیا بھیجا جائے",
         "auto_resolve_do_nothing": "کچھ نہ کریں",
-        "auto_resolve_do_nothing_description": "UP حیثیت پر کوئی کارروائی نہیں کی گئی",
+        "auto_resolve_do_nothing_description": "جب مانیٹر دوبارہ آن ہو جائے یا پروب دوبارہ آن لائن آ جائے تو کچھ نہیں بھیجا جاتا، اس لیے حادثہ اس وقت تک کھلا رہتا ہے جب تک آپ اسے PagerDuty میں حل نہ کر دیں",
         "auto_resolve_label": "خودکار حل یا تسلیم",
         "auto_resolve_placeholder": "آٹو حل برتاؤ کا انتخاب کریں",
         "auto_resolve_resolve": "خودکار حل",

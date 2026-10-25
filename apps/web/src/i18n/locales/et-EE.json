@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automaatselt tunnistamine",
         "auto_resolve_acknowledge_description": "Tunnista automaatselt juhtumit",
-        "auto_resolve_description": "Vali toiming, mida teha, kui monitoor taastub",
+        "auto_resolve_description": "Vali, mida saata, kui monitoor taastub või sond on taas võrgus",
         "auto_resolve_do_nothing": "Ära tee midagi",
-        "auto_resolve_do_nothing_description": "UP-olekus ei tehta midagi",
+        "auto_resolve_do_nothing_description": "Midagi ei saadeta, kui monitoor taastub või sond on taas võrgus, seega jääb juhtum avatuks, kuni lahendad selle teenuses PagerDuty",
         "auto_resolve_label": "Automaatne lahendamine või tunnistamine",
         "auto_resolve_placeholder": "Vali automaatse lahendamise käitumine",
         "auto_resolve_resolve": "Automaatne lahendamine",

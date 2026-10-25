@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "ავტომატური აღიარება",
         "auto_resolve_acknowledge_description": "ავტომატურად აღიარეთ შემთხვევა",
-        "auto_resolve_description": "აირჩიეთ, რა ქმედება უნდა მოხდეს, როცა მონიტორი ხელახლა ხელმისაწვდომია",
+        "auto_resolve_description": "აირჩიეთ, რა გაიგზავნოს, როცა მონიტორი ხელახლა ამოქმედდება ან ზონდი ხელახლა ონლაინ გახდება",
         "auto_resolve_do_nothing": "არაფერს არ გააკეთო",
-        "auto_resolve_do_nothing_description": "UP სტატუსის დროს არ იქცევა მოქმედება",
+        "auto_resolve_do_nothing_description": "არაფერი იგზავნება, როცა მონიტორი ხელახლა ამოქმედდება ან ზონდი ხელახლა ონლაინ გახდება, ამიტომ შემთხვევა ღია რჩება, სანამ მას PagerDuty-ში არ მოაგვარებთ",
         "auto_resolve_label": "ავტომატური გამოსწორება ან აღიარება",
         "auto_resolve_placeholder": "აირჩიეთ ავტომატური გადაჭრის ქცევა",
         "auto_resolve_resolve": "ავტომატური ამოხსნა",

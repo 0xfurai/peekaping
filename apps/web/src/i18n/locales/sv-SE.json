@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatisk bekräftelse",
         "auto_resolve_acknowledge_description": "Bekräfta incidenten automatiskt",
-        "auto_resolve_description": "Välj vad som ska göras när en övervakning går tillbaka online",
+        "auto_resolve_description": "Välj vad som ska skickas när en övervakning fungerar igen eller en sond går tillbaka online",
         "auto_resolve_do_nothing": "Gör ingenting",
-        "auto_resolve_do_nothing_description": "Ingen åtgärd vidtagits för UP-status",
+        "auto_resolve_do_nothing_description": "Inget skickas när en övervakning fungerar igen eller en sond går tillbaka online, så incidenten förblir öppen tills du löser den i PagerDuty",
         "auto_resolve_label": "Auto Upplösning eller Bekräfta",
         "auto_resolve_placeholder": "Välj automatisk upplösningsbeteende",
         "auto_resolve_resolve": "Automatisk upplösning",

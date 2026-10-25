@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "التأكيد التلقائي",
         "auto_resolve_acknowledge_description": "تأكيد الحادث تلقائياً",
-        "auto_resolve_description": "اختر الإجراء الذي سيتم اتخاذه عند عودة المراقب إلى الخدمة",
+        "auto_resolve_description": "اختر ما سيتم إرساله عند عودة المراقب إلى الخدمة أو عودة المسبار إلى الاتصال",
         "auto_resolve_do_nothing": "لا تفعل شيئاً",
-        "auto_resolve_do_nothing_description": "لم يتم اتخاذ أي إجراء في حالة UP",
+        "auto_resolve_do_nothing_description": "لا يتم إرسال أي شيء عند عودة المراقب إلى الخدمة أو عودة المسبار إلى الاتصال، لذلك تبقى الحادثة مفتوحة حتى تقوم بحلها في PagerDuty",
         "auto_resolve_label": "الإغلاق التلقائي أو الإقرار",
         "auto_resolve_placeholder": "اختر سلوك الإغلاق التلقائي",
         "auto_resolve_resolve": "إغلاق تلقائي",

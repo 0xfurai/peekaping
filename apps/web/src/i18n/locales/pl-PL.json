@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatyczne potwierdzenie",
         "auto_resolve_acknowledge_description": "Automatycznie potwierdź incydent",
-        "auto_resolve_description": "Wybierz, jakie działanie podjąć, gdy monitor wróci do działania",
+        "auto_resolve_description": "Wybierz, co wysłać, gdy monitor wróci do działania lub sonda znów będzie online",
         "auto_resolve_do_nothing": "Nie rób nic",
-        "auto_resolve_do_nothing_description": "Brak działań przy statusie UP",
+        "auto_resolve_do_nothing_description": "Nic nie jest wysyłane, gdy monitor wróci do działania lub sonda znów będzie online, więc incydent pozostaje otwarty, dopóki nie rozwiążesz go w PagerDuty",
         "auto_resolve_label": "Rozwiązywanie automatyczne lub potwierdzenie",
         "auto_resolve_placeholder": "Wybierz zachowanie automatycznego rozwiązywania",
         "auto_resolve_resolve": "Automatyczne rozwiązanie",
