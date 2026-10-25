@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Reconocer automáticamente",
         "auto_resolve_acknowledge_description": "Reconocer automáticamente el incidente",
-        "auto_resolve_description": "Elige la acción que se debe tomar cuando un monitor se recupere",
+        "auto_resolve_description": "Elige qué enviar cuando un monitor se recupere o una sonda vuelva a estar en línea",
         "auto_resolve_do_nothing": "No hacer nada",
-        "auto_resolve_do_nothing_description": "No se toma ninguna acción cuando el estado es UP",
+        "auto_resolve_do_nothing_description": "No se envía nada cuando un monitor se recupera o una sonda vuelve a estar en línea, así que el incidente sigue abierto hasta que lo resuelvas en PagerDuty",
         "auto_resolve_label": "Resolver automáticamente o reconocer",
         "auto_resolve_placeholder": "Seleccionar comportamiento de auto-resolución",
         "auto_resolve_resolve": "Resolución automática",

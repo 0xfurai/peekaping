@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Reconocere automată",
         "auto_resolve_acknowledge_description": "Confirmă automat incidentul",
-        "auto_resolve_description": "Alege ce acțiune să efectuezi când un monitor se restabilește",
+        "auto_resolve_description": "Alege ce să se trimită când un monitor se restabilește sau o sondă revine online",
         "auto_resolve_do_nothing": "Nu face nimic",
-        "auto_resolve_do_nothing_description": "Nicio acțiune efectuată în starea UP",
+        "auto_resolve_do_nothing_description": "Nu se trimite nimic când un monitor se restabilește sau o sondă revine online, deci incidentul rămâne deschis până când îl rezolvi în PagerDuty",
         "auto_resolve_label": "Rezolvă automat sau recunoaște",
         "auto_resolve_placeholder": "Selectează comportamentul de auto-îndreptare",
         "auto_resolve_resolve": "Rezolvare automată",

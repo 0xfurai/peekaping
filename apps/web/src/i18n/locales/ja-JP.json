@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "自動承認",
         "auto_resolve_acknowledge_description": "インシデントを自動的に確認する",
-        "auto_resolve_description": "モニターが復旧したときに取るアクションを選択してください",
+        "auto_resolve_description": "モニターが復旧したとき、またはプローブがオンラインに戻ったときに送信する内容を選択してください",
         "auto_resolve_do_nothing": "何もしない",
-        "auto_resolve_do_nothing_description": "UPステータスに対しては何も行いません",
+        "auto_resolve_do_nothing_description": "モニターが復旧したとき、またはプローブがオンラインに戻ったときは何も送信されないため、PagerDuty で解決するまでインシデントは開いたままになります",
         "auto_resolve_label": "自動で解決または確認",
         "auto_resolve_placeholder": "自動解決の動作を選択",
         "auto_resolve_resolve": "自動解決",

@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "ยอมรับอัตโนมัติ",
         "auto_resolve_acknowledge_description": "ยอมรับเหตุการณ์โดยอัตโนมัติ",
-        "auto_resolve_description": "เลือกว่าต้องทำอะไรเมื่อมอนิเตอร์กลับมาออนไลน์",
+        "auto_resolve_description": "เลือกว่าจะส่งอะไรเมื่อมอนิเตอร์กลับมาออนไลน์หรือโพรบกลับมาออนไลน์",
         "auto_resolve_do_nothing": "ไม่ทำอะไร",
-        "auto_resolve_do_nothing_description": "ไม่ดำเนินการเมื่อสถานะ UP",
+        "auto_resolve_do_nothing_description": "จะไม่มีการส่งอะไรเมื่อมอนิเตอร์กลับมาออนไลน์หรือโพรบกลับมาออนไลน์ เหตุการณ์จึงยังคงเปิดอยู่จนกว่าคุณจะแก้ไขใน PagerDuty",
         "auto_resolve_label": "แก้ไขอัตโนมัติหรือยอมรับ",
         "auto_resolve_placeholder": "เลือกพฤติกรรมการแก้ไขอัตโนมัติ",
         "auto_resolve_resolve": "แก้ไขอัตโนมัติ",
