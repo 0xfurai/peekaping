@@ -17,8 +17,8 @@ import (
 	"go.uber.org/zap"
 
 	"peekaping/internal/modules/check/job"
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
@@ -36,7 +36,7 @@ type Config struct {
 	// Source is where the monitors, their checks and the signals of their changes come from
 	Source     Source
 	Executors  Executors
-	Supervisor *healthcheck.HealthCheckSupervisor
+	Supervisor *supervisor.HealthCheckSupervisor
 	// Ingester takes the results of the checks. The scheduler ingests a monitor's results one
 	// at a time, in order. Pushes to a push monitor must go through the same
 	// ingest.NewInOrderService to be ordered with its checks.
@@ -68,7 +68,7 @@ const (
 // finish and be ingested once it has a slot in the pool. The watchdog gives a stale
 // monitor's new check this long before it notifies.
 func CheckTimeout(timeoutSeconds int) time.Duration {
-	return time.Duration(timeoutSeconds)*time.Second + healthcheck.ExecutorGrace + ingestGrace
+	return time.Duration(timeoutSeconds)*time.Second + supervisor.ExecutorGrace + ingestGrace
 }
 
 // Scheduler checks the active monitors when their check intervals pass. It implements
@@ -76,7 +76,7 @@ func CheckTimeout(timeoutSeconds int) time.Duration {
 type Scheduler struct {
 	source            Source
 	executors         Executors
-	supervisor        *healthcheck.HealthCheckSupervisor
+	supervisor        *supervisor.HealthCheckSupervisor
 	ingester          ingester.Service
 	reconcileInterval time.Duration
 	logger            *zap.SugaredLogger

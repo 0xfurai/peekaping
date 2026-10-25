@@ -1,12 +1,11 @@
-package healthcheck
+package supervisor
 
 import (
 	"testing"
 	"time"
 
-	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/healthcheck/executor"
-	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
@@ -14,9 +13,9 @@ import (
 
 func TestTickResult_IngestResultCarriesTheCheckAndTheMonitorSettings(t *testing.T) {
 	start := time.Date(2026, 10, 17, 12, 0, 0, 0, time.UTC)
-	tlsInfo := &certificate.TLSInfo{Valid: true}
+	tlsInfo := &shared.TLSInfo{Valid: true}
 	tick := &TickResult{
-		Monitor: &Monitor{
+		Monitor: &shared.Monitor{
 			ID:             "mon-1",
 			Name:           "Test",
 			Type:           "http",
@@ -38,7 +37,7 @@ func TestTickResult_IngestResultCarriesTheCheckAndTheMonitorSettings(t *testing.
 		IsUnderMaintenance: true,
 	}
 
-	assert.Equal(t, &ingester.Result{
+	assert.Equal(t, &ingest.Result{
 		ProbeID:            "local",
 		MonitorID:          "mon-1",
 		MonitorName:        "Test",
@@ -62,7 +61,7 @@ func TestTickResult_IngestResultCarriesTheCheckAndTheMonitorSettings(t *testing.
 
 func TestTickResult_IngestResultTakesTheCertificateExpiryFlagFromTheCaller(t *testing.T) {
 	tick := &TickResult{
-		Monitor:         &Monitor{ID: "mon-1", Config: `{"check_cert_expiry":true}`},
+		Monitor:         &shared.Monitor{ID: "mon-1", Config: `{"check_cert_expiry":true}`},
 		ExecutionResult: &executor.Result{Status: shared.MonitorStatusUp},
 	}
 

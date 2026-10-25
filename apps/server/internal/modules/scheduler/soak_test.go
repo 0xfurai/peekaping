@@ -15,8 +15,8 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/monitor"
@@ -76,7 +76,7 @@ func TestSoak(t *testing.T) {
 	require.NoError(t, container.Invoke(func(
 		loader *check.Loader,
 		monitorService monitor.Service,
-		supervisor *healthcheck.HealthCheckSupervisor,
+		supervisor *supervisor.HealthCheckSupervisor,
 		ingesterService ingester.Service,
 		heartbeatService heartbeat.Service,
 		staleStore stale.Store,

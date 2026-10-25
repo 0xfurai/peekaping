@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/proxy"
@@ -30,7 +30,7 @@ const ingesterEnqueueGrace = 8 * time.Second
 // timeout in seconds. It must outlast the check itself: when asynq's deadline fires
 // first, the task fails and gets archived instead of reporting DOWN.
 func HealthCheckTaskTimeout(checkTimeoutSeconds int) time.Duration {
-	return time.Duration(checkTimeoutSeconds)*time.Second + healthcheck.ExecutorGrace + ingesterEnqueueGrace
+	return time.Duration(checkTimeoutSeconds)*time.Second + supervisor.ExecutorGrace + ingesterEnqueueGrace
 }
 
 // ProxyData contains proxy configuration for health checks
@@ -69,7 +69,7 @@ type HealthCheckTaskPayload struct {
 // HealthCheckTaskHandler handles health check tasks from the queue
 type HealthCheckTaskHandler struct {
 	execRegistry       *executor.ExecutorRegistry
-	healthCheckService *healthcheck.HealthCheckSupervisor
+	healthCheckService *supervisor.HealthCheckSupervisor
 	ingesterService    ingester.Service
 	logger             *zap.SugaredLogger
 }
@@ -79,7 +79,7 @@ type HealthCheckTaskHandler struct {
 // (ingester.NewQueueService).
 func NewHealthCheckTaskHandler(
 	execRegistry *executor.ExecutorRegistry,
-	healthCheckService *healthcheck.HealthCheckSupervisor,
+	healthCheckService *supervisor.HealthCheckSupervisor,
 	ingesterService ingester.Service,
 	logger *zap.SugaredLogger,
 ) *HealthCheckTaskHandler {
