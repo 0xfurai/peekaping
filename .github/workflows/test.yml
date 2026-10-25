@@ -92,8 +92,10 @@ jobs:
         run: |
           pwd
           # -coverpkg credits code that tests in other packages reach, such as
-          # the controllers internal/apitest drives through the router
-          go test -timeout 120s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/...
+          # the controllers internal/apitest drives through the router. The timeout
+          # is per package: internal/apitest runs its tests one at a time, and with
+          # coverage it takes about two minutes on its own
+          go test -timeout 300s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/...
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
