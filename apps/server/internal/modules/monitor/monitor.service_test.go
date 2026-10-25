@@ -2263,3 +2263,22 @@ func TestMonitorService_ChecksTheProbeOfAMonitor(t *testing.T) {
 		assert.False(t, errors.As(err, &invalid))
 	})
 }
+
+func TestResolvePushToken(t *testing.T) {
+	tests := []struct {
+		name string
+		dto  CreateUpdateDto
+		want string
+	}{
+		{"explicit push_token wins", CreateUpdateDto{Type: "push", PushToken: "own", Config: `{"pushToken":"cfg"}`}, "own"},
+		{"taken from config", CreateUpdateDto{Type: "push", Config: `{"pushToken":"cfg"}`}, "cfg"},
+		{"other types untouched", CreateUpdateDto{Type: "http", Config: `{"pushToken":"cfg"}`}, ""},
+		{"malformed config falls back to the request value", CreateUpdateDto{Type: "push", Config: `{not json`}, ""},
+		{"empty config", CreateUpdateDto{Type: "push"}, ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, resolvePushToken(&tt.dto))
+		})
+	}
+}
