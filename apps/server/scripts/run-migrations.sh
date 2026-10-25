@@ -47,10 +47,10 @@ check_and_init_database() {
     fi
 }
 
-# Skip migrations for MongoDB
+# MongoDB storage was removed: bun db migrate stops with the error that says where to move the data
 if [ "$DB_TYPE" = "mongo" ] || [ "$DB_TYPE" = "mongodb" ]; then
-    echo "Skipping migrations for MongoDB - not needed"
-    exit 0
+    ./bun db migrate
+    exit 1
 fi
 
 # Wait for database and run migrations
