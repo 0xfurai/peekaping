@@ -98,7 +98,7 @@ If an instance loses its connection, it keeps checking its last assignment until
 
 Peekaping limits how often an instance may call each route under `/probe/v1/`. The limit is 1 request a second, after a burst of 5. A request over the limit gets a 429 with a `Retry-After` header, and the probe waits and sends it again. The limit is not a setting.
 
-Each API process counts for itself. In single mode there is one process, so the limit is exact. In cluster mode with several API replicas behind a load balancer, an instance can send up to as many times the limit as there are replicas, because each replica keeps its own count. With 3 replicas, an instance can send up to 3 requests a second. The same goes for the limit on hellos, which is 1 a second for all the instances of a probe together, after a burst of 10.
+Each API process counts for itself. In single mode there is one process, so the limit is exact. In cluster mode with several API replicas behind a load balancer, an instance can send up to as many times the limit as there are replicas, because each replica keeps its own count. With 3 replicas, an instance can send up to 3 requests a second. Hellos have a second limit on top, for all the instances of a probe together: 1 a second, after a burst of 10. A hello counts against both, so one instance still gets at most 5 at once. This limit is also counted by each replica for itself.
 
 ## When a probe is offline
 
