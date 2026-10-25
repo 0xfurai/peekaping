@@ -62,6 +62,9 @@ config:
   env:
     # The chart supports PostgreSQL only: it refuses DB_TYPE sqlite, since it has no
     # volume for the file and each pod would get a database of its own. For SQLite, use the single-mode bundle image.
+    # It refuses mongo and mongodb too: MongoDB storage needs the producer, worker and ingester,
+    # which the chart no longer runs. Use the Mongo compose stack, or move to PostgreSQL with
+    # bun db import-mongo.
     DB_TYPE: "postgres"
     # Bundled service hosts: <release>-postgresql and <release>-redis-master in
     # the release's namespace (here release and namespace are both "peekaping").
