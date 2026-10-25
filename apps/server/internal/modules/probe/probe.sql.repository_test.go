@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -351,6 +352,109 @@ func TestSQLRepository_UpsertInstanceRefusesAnotherProbesInstance(t *testing.T) 
 	})
 }
 
+// instanceIDs are the ids of the instances the probe holds, sorted
+func instanceIDs(t *testing.T, repo probe.Repository, probeID string) []string {
+	t.Helper()
+	instances, err := repo.FindInstances(context.Background(), probeID)
+	require.NoError(t, err)
+	ids := []string{}
+	for _, instance := range instances {
+		ids = append(ids, instance.ID)
+	}
+	slices.Sort(ids)
+	return ids
+}
+
+func TestSQLRepository_MakeRoomForInstanceDeletesTheOldestInstancesThatAreQuiet(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		quietBefore := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+		for probeID, seen := range map[string]map[string]time.Time{
+			owner.ID: {
+				"owner-oldest":   quietBefore.Add(-3 * time.Hour),
+				"owner-older":    quietBefore.Add(-2 * time.Hour),
+				"owner-at-edge":  quietBefore, // seen exactly at the edge counts as online
+				"owner-online-1": quietBefore.Add(time.Minute),
+			},
+			other.ID: {"other-oldest": quietBefore.Add(-48 * time.Hour)},
+		} {
+			for id, at := range seen {
+				require.NoError(t, repo.UpsertInstance(ctx, probeID, &probe.Instance{ID: id, LastSeenAt: at}))
+			}
+		}
+
+		t.Run("below the limit it deletes nothing", func(t *testing.T) {
+			require.NoError(t, repo.MakeRoomForInstance(ctx, owner.ID, "owner-new", 5, quietBefore))
+
+			assert.Len(t, instanceIDs(t, repo, owner.ID), 4)
+		})
+
+		t.Run("at the limit it deletes the oldest quiet one, and no other probe's", func(t *testing.T) {
+			require.NoError(t, repo.MakeRoomForInstance(ctx, owner.ID, "owner-new", 4, quietBefore))
+
+			assert.Equal(t, []string{"owner-at-edge", "owner-older", "owner-online-1"}, instanceIDs(t, repo, owner.ID))
+			assert.Equal(t, []string{"other-oldest"}, instanceIDs(t, repo, other.ID), "another probe's quiet instance is out of reach")
+		})
+
+		t.Run("over the limit it deletes as many as it takes to leave one place", func(t *testing.T) {
+			for id, at := range map[string]time.Time{"owner-extra-1": quietBefore.Add(-5 * time.Hour), "owner-extra-2": quietBefore.Add(-4 * time.Hour)} {
+				require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: id, LastSeenAt: at}))
+			}
+			require.Len(t, instanceIDs(t, repo, owner.ID), 5)
+
+			require.NoError(t, repo.MakeRoomForInstance(ctx, owner.ID, "owner-new", 3, quietBefore))
+
+			assert.Equal(t, []string{"owner-at-edge", "owner-online-1"}, instanceIDs(t, repo, owner.ID), "from 5 to 2: the limit less the place")
+		})
+	})
+}
+
+func TestSQLRepository_MakeRoomForInstanceRefusesWhenTooFewAreQuiet(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, _ := twoProbes(t, repo)
+		quietBefore := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+		for id, at := range map[string]time.Time{
+			"quiet":    quietBefore.Add(-time.Hour),
+			"online-1": quietBefore,
+			"online-2": quietBefore.Add(time.Minute),
+		} {
+			require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: id, LastSeenAt: at}))
+		}
+
+		assert.ErrorIs(t, repo.MakeRoomForInstance(ctx, owner.ID, "owner-new", 2, quietBefore), probe.ErrTooManyInstances,
+			"3 held and a limit of 2 need 2 places, and only 1 is quiet")
+		assert.Equal(t, []string{"online-1", "online-2", "quiet"}, instanceIDs(t, repo, owner.ID), "a refusal deletes nothing")
+
+		require.NoError(t, repo.MakeRoomForInstance(ctx, owner.ID, "owner-new", 3, quietBefore))
+		assert.Equal(t, []string{"online-1", "online-2"}, instanceIDs(t, repo, owner.ID))
+		assert.ErrorIs(t, repo.MakeRoomForInstance(ctx, owner.ID, "owner-new", 2, quietBefore), probe.ErrTooManyInstances,
+			"every instance is online now")
+	})
+}
+
+func TestSQLRepository_MakeRoomForInstanceLeavesAnInstanceTheProbeHoldsAlone(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := probe.NewSQLRepository(db)
+		owner, other := twoProbes(t, repo)
+		quietBefore := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+		for id, at := range map[string]time.Time{"quiet": quietBefore.Add(-time.Hour), "online": quietBefore.Add(time.Minute)} {
+			require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: id, LastSeenAt: at}))
+		}
+
+		require.NoError(t, repo.MakeRoomForInstance(ctx, owner.ID, "online", 2, quietBefore), "its hello only updates it")
+		require.NoError(t, repo.MakeRoomForInstance(ctx, owner.ID, "quiet", 2, quietBefore))
+		assert.Equal(t, []string{"online", "quiet"}, instanceIDs(t, repo, owner.ID), "so nobody's place is taken")
+
+		err := repo.MakeRoomForInstance(ctx, other.ID, "online", 1, quietBefore)
+		assert.NoError(t, err, "another probe holds no instance, so it has room")
+	})
+}
+
 func TestSQLRepository_TouchInstanceStampsOnlyTheProbesOwnInstance(t *testing.T) {
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		ctx := context.Background()
@@ -595,6 +699,7 @@ func TestSQLRepository_EveryMethodJoinsTheCallersTransaction(t *testing.T) {
 			seen := time.Now().UTC()
 			require.NoError(t, repo.UpsertInstance(ctx, keep.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: seen}))
 			require.NoError(t, repo.UpsertInstance(ctx, keep.ID, &probe.Instance{ID: "instance-2", Hostname: "host-2", LastSeenAt: seen}))
+			require.ErrorIs(t, repo.MakeRoomForInstance(ctx, keep.ID, "instance-3", 2, seen.Add(-24*time.Hour)), probe.ErrTooManyInstances)
 			touched, err := repo.TouchInstance(ctx, keep.ID, "instance-1", seen.Add(time.Minute))
 			require.NoError(t, err)
 			assert.True(t, touched)

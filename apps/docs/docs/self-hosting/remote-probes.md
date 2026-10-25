@@ -113,6 +113,8 @@ Every container started with the same token is an **instance** of that probe, wi
 
 If an instance loses its connection, it keeps checking its last assignment until it can reach Peekaping again.
 
+A probe has at most 64 instances. A container that starts gets a new id, and Peekaping keeps an instance that stopped for a day before it forgets it. When a new instance connects and the probe already has 64, Peekaping removes the oldest one that hasn't been in contact for a minute. If all 64 are running, the new instance is refused with `probe <name> already has 64 running instances, the most one probe may have`, and it tries again after a minute.
+
 ## Request limit
 
 Peekaping limits how often an instance may call each route under `/probe/v1/`. The limit is 1 request a second, after a burst of 5. A request over the limit gets a 429 with a `Retry-After` header, and the probe waits and sends it again. The limit is not a setting.

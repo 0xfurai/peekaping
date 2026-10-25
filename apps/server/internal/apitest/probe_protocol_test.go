@@ -84,6 +84,31 @@ func (a *app) sayHello(t *testing.T, token, instanceID string) probeproto.HelloR
 	return welcome
 }
 
+// instanceCap is the most instances one probe may hold
+const instanceCap = 64
+
+// holdInstance records an instance of the probe as last seen at the given time, as its hello would
+// have. It goes through the service and not the route, which limits a probe to a burst of 10
+// hellos: a probe at its cap of instances can't be built with requests alone.
+func (a *app) holdInstance(t *testing.T, probeID, instanceID string, seen time.Time) {
+	t.Helper()
+	require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
+		return probes.RegisterInstance(context.Background(), probeID, &probe.Instance{
+			ID: instanceID, Hostname: "edge-1.example.com", OS: "linux", Arch: "arm64", Version: "0.1.0", ProtocolVersion: 1, LastSeenAt: seen,
+		}, []string{"http", "tcp", "dns"})
+	}))
+}
+
+// instanceIDs are the ids of the instances the probe holds
+func (a *app) instanceIDs(t *testing.T, probeID string) []string {
+	t.Helper()
+	ids := []string{}
+	for _, instance := range a.getProbe(t, probeID).Instances {
+		ids = append(ids, instance.ID)
+	}
+	return ids
+}
+
 func (a *app) getProbe(t *testing.T, id string) probeResponse {
 	t.Helper()
 	return decode[probeResponse](t, a.request(t, http.MethodGet, probesPath+"/"+id, nil, a.asAdmin), http.StatusOK)
@@ -297,6 +322,97 @@ func TestProbeProtocol_HelloAgainUpdatesTheSameInstance(t *testing.T) {
 	assert.Equal(t, "edge-2.example.com", got.Instances[0].Hostname)
 	assert.Equal(t, "0.2.0", got.Instances[0].Version)
 	assert.Equal(t, []string{"http"}, got.SupportedTypes)
+}
+
+// A probe holds at most 64 instances. A new one past that takes the place of the oldest instance
+// that isn't online, so a probe that restarts all day doesn't fill the table.
+func TestProbeProtocol_HelloPastTheCapReplacesTheOldestQuietInstance(t *testing.T) {
+	a, made := probeApp(t)
+	now := time.Now()
+	a.holdInstance(t, made.ID, "quiet-for-10-minutes", now.Add(-10*time.Minute))
+	a.holdInstance(t, made.ID, "quiet-for-5-minutes", now.Add(-5*time.Minute))
+	a.holdInstance(t, made.ID, "quiet-for-2-minutes", now.Add(-2*time.Minute))
+	for n := 4; n <= instanceCap; n++ {
+		a.holdInstance(t, made.ID, fmt.Sprintf("online-%d", n), now)
+	}
+	require.Len(t, a.instanceIDs(t, made.ID), instanceCap, "the probe is at its cap")
+	newcomer := uuid.NewString()
+
+	w := a.request(t, http.MethodPost, helloPath, helloFrom(newcomer), asProbe(made.Token, newcomer))
+
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	ids := a.instanceIDs(t, made.ID)
+	assert.Len(t, ids, instanceCap, "the probe still holds no more than its cap")
+	assert.Contains(t, ids, newcomer)
+	assert.NotContains(t, ids, "quiet-for-10-minutes", "the oldest quiet instance made the room")
+	assert.Contains(t, ids, "quiet-for-5-minutes")
+	assert.Contains(t, ids, "quiet-for-2-minutes")
+}
+
+// When all 64 instances are running there is nothing to replace, so the newcomer is told to wait:
+// the probe client waits out Retry-After and says hello again.
+func TestProbeProtocol_HelloPastTheCapWithEveryInstanceOnlineAnswers429(t *testing.T) {
+	a, made := probeApp(t)
+	now := time.Now()
+	for n := 1; n <= instanceCap; n++ {
+		a.holdInstance(t, made.ID, fmt.Sprintf("online-%d", n), now.Add(-time.Duration(n)*100*time.Millisecond))
+	}
+	held := a.instanceIDs(t, made.ID)
+	require.Len(t, held, instanceCap)
+	newcomer := uuid.NewString()
+
+	w := a.request(t, http.MethodPost, helloPath, helloFrom(newcomer), asProbe(made.Token, newcomer))
+
+	require.Equal(t, http.StatusTooManyRequests, w.Code, w.Body.String())
+	assert.Equal(t, "60", w.Header().Get("Retry-After"))
+	assert.Equal(t, "probe Frankfurt already has 64 running instances, the most one probe may have", errorMessage(t, w.Body.Bytes()))
+	assert.ElementsMatch(t, held, a.instanceIDs(t, made.ID), "the refused hello changed nothing")
+}
+
+// The cap is on instances a probe doesn't hold yet. One it holds says hello again after a restart
+// of the server or a lost answer, and must not be turned away at 64, nor make room by taking
+// another's place.
+func TestProbeProtocol_HelloAgainFromAKnownInstanceAtTheCap(t *testing.T) {
+	// holdAtTheCap holds 64 instances, the first of them last seen at firstSeen and the rest just now
+	holdAtTheCap := func(t *testing.T, firstSeen time.Duration) (*app, probeWithToken) {
+		a, made := probeApp(t)
+		now := time.Now()
+		a.holdInstance(t, made.ID, "instance-1", now.Add(-firstSeen))
+		for n := 2; n <= instanceCap; n++ {
+			a.holdInstance(t, made.ID, fmt.Sprintf("instance-%d", n), now.Add(-time.Duration(n)*100*time.Millisecond))
+		}
+		require.Len(t, a.instanceIDs(t, made.ID), instanceCap)
+		return a, made
+	}
+	sayHelloAgain := func(a *app, token, instanceID string) *httptest.ResponseRecorder {
+		again := helloFrom(instanceID)
+		again.Hostname = "edge-2.example.com"
+		return a.request(t, http.MethodPost, helloPath, again, asProbe(token, instanceID))
+	}
+
+	t.Run("with every instance online it is welcomed, not turned away", func(t *testing.T) {
+		a, made := holdAtTheCap(t, 0)
+
+		w := sayHelloAgain(a, made.Token, "instance-2")
+
+		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+		assert.Len(t, a.instanceIDs(t, made.ID), instanceCap)
+		for _, instance := range a.getProbe(t, made.ID).Instances {
+			if instance.ID == "instance-2" {
+				assert.Equal(t, "edge-2.example.com", instance.Hostname, "the hello updated the instance")
+			}
+		}
+	})
+
+	t.Run("with a quiet instance among them it takes nobody's place", func(t *testing.T) {
+		a, made := holdAtTheCap(t, 5*time.Minute)
+		held := a.instanceIDs(t, made.ID)
+
+		w := sayHelloAgain(a, made.Token, "instance-2")
+
+		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+		assert.ElementsMatch(t, held, a.instanceIDs(t, made.ID), "the quiet instance stays: there was nothing to make room for")
+	})
 }
 
 func TestProbeProtocol_TheLocalProbeSaysHelloWithTheBootstrapToken(t *testing.T) {

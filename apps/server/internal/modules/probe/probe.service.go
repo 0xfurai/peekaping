@@ -315,6 +315,12 @@ func (s *ServiceImpl) RegisterInstance(ctx context.Context, probeID string, inst
 	// One transaction: a hello that fails halfway leaves neither the instance nor the types.
 	// The instance goes first: a refused one must not change the probe's types.
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		// The instance's last seen time is now, to the hello: what has been quiet for a window
+		// before it is not online
+		quietBefore := inst.LastSeenAt.Add(-InstanceOnlineWindow)
+		if err := s.repo.MakeRoomForInstance(ctx, probeID, inst.ID, MaxInstancesPerProbe, quietBefore); err != nil {
+			return err
+		}
 		if err := s.repo.UpsertInstance(ctx, probeID, inst); err != nil {
 			return err
 		}

@@ -3390,7 +3390,7 @@ export const probePostHelloQueryKey = (options: Options<ProbePostHelloData>) =>
 
 /**
  * Say hello
- * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. A probe holds at most 64 instances. A hello from a new instance past that replaces the probe's oldest instance that has not been seen for a minute, and is answered 429 with Retry-After: 60 when all 64 are running. A hello from an instance the probe already holds is never refused for this. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
  */
 export const probePostHelloOptions = (options: Options<ProbePostHelloData>) => {
   return queryOptions({
@@ -3409,7 +3409,7 @@ export const probePostHelloOptions = (options: Options<ProbePostHelloData>) => {
 
 /**
  * Say hello
- * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. A probe holds at most 64 instances. A hello from a new instance past that replaces the probe's oldest instance that has not been seen for a minute, and is answered 429 with Retry-After: 60 when all 64 are running. A hello from an instance the probe already holds is never refused for this. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
  */
 export const probePostHelloMutation = (
   options?: Partial<Options<ProbePostHelloData>>

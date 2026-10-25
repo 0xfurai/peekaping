@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 )
 
@@ -257,6 +258,67 @@ WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
 	}
 	if changed == 0 {
 		return ErrInstanceTaken
+	}
+	return nil
+}
+
+// MARK: MakeRoomForInstance
+func (r *SQLRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID string, instanceID string, limit int, quietBefore time.Time) error {
+	db := dbtx.DB(ctx, r.db)
+	if r.db.Dialect().Name() == dialect.PG {
+		// Two hellos at once must not both count 63 rows and each take the last place. The lock
+		// on the probe's row makes the second wait for the first to commit. SQLite needs none:
+		// its transactions begin immediate, on one connection.
+		var locked string
+		err := db.NewSelect().Model((*sqlModel)(nil)).Column("id").Where("id = ?", probeID).For("UPDATE").Scan(ctx, &locked)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+	}
+	held, err := db.NewSelect().Model((*sqlInstance)(nil)).Where("probe_id = ?", probeID).Count(ctx)
+	if err != nil {
+		return err
+	}
+	needed := held - limit + 1
+	if needed <= 0 {
+		return nil
+	}
+	// An instance the probe holds takes no new row: its hello updates it
+	known, err := db.NewSelect().Model((*sqlInstance)(nil)).Where("id = ?", instanceID).Where("probe_id = ?", probeID).Exists(ctx)
+	if err != nil || known {
+		return err
+	}
+	// An instance picked can be in contact again before it is deleted (its touch doesn't wait for
+	// the probe's lock), so only those still quiet are deleted, and the next oldest quiet ones are
+	// picked for the places still missing. When no quiet one is left, the hello is refused: the
+	// transaction then rolls back what was deleted and adds nothing.
+	for needed > 0 {
+		var oldest []string
+		err = db.NewSelect().Model((*sqlInstance)(nil)).Column("id").
+			Where("probe_id = ?", probeID).
+			Where("last_seen_at < ?", quietBefore.UTC()).
+			OrderExpr("last_seen_at ASC, id ASC").
+			Limit(needed).
+			Scan(ctx, &oldest)
+		if err != nil {
+			return err
+		}
+		if len(oldest) < needed {
+			return ErrTooManyInstances
+		}
+		result, err := db.NewDelete().Model((*sqlInstance)(nil)).
+			Where("id IN (?)", bun.In(oldest)).
+			Where("probe_id = ?", probeID).
+			Where("last_seen_at < ?", quietBefore.UTC()).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+		deleted, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		needed -= int(deleted)
 	}
 	return nil
 }

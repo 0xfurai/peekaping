@@ -10,6 +10,12 @@ import (
 // waiting polls when one leaves it.
 const InstanceOnlineWindow = 60 * time.Second
 
+// MaxInstancesPerProbe is the most instance rows one probe holds. A probe process makes a fresh id
+// every time it starts, so without a cap a restart loop, or a leaked token used on purpose, fills
+// the table faster than the sweep prunes it. A hello from a new instance past the cap takes the
+// place of the probe's oldest instance that isn't online.
+const MaxInstancesPerProbe = 64
+
 // OnlineInstances returns the ids of the instances that were seen within window of now, sorted.
 // An instance seen by a clock a little ahead of ours counts as seen just now.
 func OnlineInstances(instances []*Instance, now time.Time, window time.Duration) []string {
