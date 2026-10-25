@@ -1,8 +1,9 @@
-import { test, expect, request, type APIRequestContext, type Page } from '@playwright/test';
+import { test, expect, request, type Page } from '@playwright/test';
 import { apiBaseURL } from './support/admin';
-import { adminAPI, cleanupRetry, createHTTPMonitor, deleteCreated, randomID } from './support/api';
+import { adminAPI, createHTTPMonitor, randomID } from './support/api';
 import { targetHost, targetPort, targetURL } from './support/fake-target';
 import { listFor } from './support/monitor-list';
+import { cleanUp, createProbe } from './support/probe';
 
 // A MongoDB install has no probes, not even the local one (ADR 0001), so there is nothing to
 // choose. The workflow runs every spec on Mongo and no variable names the database, so the empty
@@ -23,12 +24,6 @@ const names = () => {
   return { probe: `e2e probe ${id}`, monitor: `e2e-probe-monitor-${id}` };
 };
 
-async function createProbe(api: APIRequestContext, name: string): Promise<{ id: string; token: string }> {
-  const response = await api.post('probes', { data: { name } });
-  expect(response.status(), await response.text()).toBe(201);
-  return (await response.json()).data;
-}
-
 // What a probe's first call tells the server: the monitor types it can run. A probe that has
 // never connected lists none, which means it runs every type.
 async function sayHello(page: Page, token: string, supportedTypes: string[]) {
@@ -42,33 +37,6 @@ async function sayHello(page: Page, token: string, supportedTypes: string[]) {
   });
   expect(response.ok(), `POST hello: ${await response.text()}`).toBeTruthy();
   await probeAPI.dispose();
-}
-
-// Deletes what a spec made, whatever state it was left in, so reruns start clean. The monitors go
-// first: a probe that has monitors can't be deleted (it answers 409). A form that was submitted
-// when the spec failed can still be saving its monitor, so a refused probe delete lists the
-// monitors again and tries once more, instead of failing the spec with a message that hides why
-// it failed in the first place.
-async function cleanUp(page: Page, { monitor, probe }: { monitor: string; probe: string | string[] }) {
-  const probeNames = [probe].flat();
-  const api = await adminAPI(page);
-  try {
-    await expect(async () => {
-      const monitors = await api.get('monitors', { params: { q: monitor, limit: 100 } });
-      expect(monitors.ok(), `GET monitors: ${await monitors.text()}`).toBeTruthy();
-      // A list with no match has null for data
-      for (const found of ((await monitors.json()).data ?? []).filter((m: { name: string }) => m.name === monitor)) {
-        await deleteCreated(api, `monitors/${found.id}`);
-      }
-      const probes = await (await api.get('probes')).json();
-      for (const found of probes.data.filter((p: { name: string }) => probeNames.includes(p.name))) {
-        const response = await api.delete(`probes/${found.id}`);
-        expect(response.ok(), `DELETE probes/${found.id}: ${response.status()} ${await response.text()}`).toBeTruthy();
-      }
-    }).toPass(cleanupRetry);
-  } finally {
-    await api.dispose();
-  }
 }
 
 const probeSelect = (page: Page) => page.getByTestId('monitor-probe-select');

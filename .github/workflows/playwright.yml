@@ -68,7 +68,8 @@ jobs:
           - { name: dev-api, tag: peekaping-api, context: apps/server, file: apps/server/infra/Dockerfile.api }
           - { name: dev-producer, tag: peekaping-producer, context: apps/server, file: apps/server/infra/Dockerfile.producer }
           - { name: dev-worker, tag: peekaping-worker, context: apps/server, file: apps/server/infra/Dockerfile.worker }
-          # Not used by the e2e jobs yet (#253): named without "dev-" so that the dev jobs, which download image-dev-*, don't load it.
+          # The e2e jobs run it as a remote probe (e2e/remote-probe.spec.ts). Named without "dev-" because
+          # the bundle jobs need it too, and they don't download image-dev-*; every e2e job asks for it by name.
           - { name: probe, tag: peekaping-probe, context: apps/server, file: apps/server/infra/Dockerfile.probe }
           - { name: dev-ingester, tag: peekaping-ingester, context: apps/server, file: apps/server/infra/Dockerfile.ingester }
           - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
@@ -154,6 +155,13 @@ jobs:
         pattern: ${{ matrix.config == 'dev' && 'image-dev-*' || format('image-bundle-{0}', matrix.database) }}
         path: ${{ runner.temp }}/images
         merge-multiple: true
+    # The remote probe specs start this image themselves. MongoDB has no probes, so they skip there.
+    - name: Download the probe image
+      if: ${{ matrix.database != 'mongo' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: image-probe
+        path: ${{ runner.temp }}/images
     - name: Load images
       run: |
         for image in "$RUNNER_TEMP"/images/*.tar; do
@@ -176,6 +184,9 @@ jobs:
         REDIS_PORT=6379
         REDIS_PASSWORD=""
         REDIS_DB=0
+
+        # The shortest time before a remote probe that stopped is reported offline (default 3m).
+        PROBE_OFFLINE_AFTER=2m
 
         # Server Configuration
         CLIENT_URL=http://localhost:8383

@@ -1,0 +1,128 @@
+---
+sidebar_position: 4
+---
+
+# Remote probes
+
+By default Peekaping checks every monitor from the machine it runs on. A remote probe lets a monitor be checked from another machine too, for example from another region, or from inside a network Peekaping can't reach.
+
+## Probes and locations
+
+A **probe** is a place Peekaping runs checks from. Every install has the **local probe**: Peekaping itself, which checks the monitors on it. It can't be deleted. A **remote probe** is a small program, `peekaping-probe`, that you run on another machine. It connects out to Peekaping with its token, gets the monitors assigned to it, runs their checks and sends the results back. Peekaping records them as heartbeats, like any other result.
+
+A monitor runs on one or more probes. Each probe's results for the monitor are a **location** of that monitor. See [several probes per monitor](#several-probes-per-monitor).
+
+A remote probe runs the monitor types it has a check for. A push monitor runs on the local probe only, because pushes arrive at Peekaping. Remote probes need SQLite or PostgreSQL storage: MongoDB storage doesn't support them, so the Mongo bundle and the Mongo Docker Compose stacks can't use them.
+
+## Run a probe
+
+1. In Peekaping, open **Probes** and choose **Create probe**. Give it a name. The location text is optional and is only a label, such as `Frankfurt, Germany`.
+2. Copy the token. It is shown once. [What the token can read](#what-the-token-can-read) says why to guard it.
+3. Start the probe where you want the checks to run, with the Docker line that Peekaping shows next to the token:
+
+   ```bash
+   docker run -d --name peekaping-probe -e PEEKAPING_URL=https://peekaping.example.com -e PROBE_TOKEN=<token> 0xfurai/peekaping-probe:latest
+   ```
+
+   `PEEKAPING_URL` is the address you open Peekaping at, without a path. The same line works from the other machine only if that address is reachable from it. See [What the probe needs to reach](#what-the-probe-needs-to-reach).
+
+   With Docker Compose, keep the token in a `.env` file next to the Compose file:
+
+   ```yaml
+   services:
+     peekaping-probe:
+       image: 0xfurai/peekaping-probe:latest
+       restart: unless-stopped
+       environment:
+         PEEKAPING_URL: https://peekaping.example.com
+         PROBE_TOKEN: ${PROBE_TOKEN}
+   ```
+
+4. Once the probe has connected, the Probes page shows it as **Online**, with the instance that connected.
+5. Assign monitors to it: choose the probe in the monitor's form.
+
+The image is `0xfurai/peekaping-probe` on Docker Hub and `ghcr.io/0xfurai/peekaping-probe` on GHCR, for amd64 and arm64. It runs as the non-root user `65532`, and keeps nothing on disk, so it needs no volume. Ping monitors on a probe need the same permission as on the worker: see [Ping Monitors and ICMP Permissions](../architecture/worker.md#ping-monitors-and-icmp-permissions).
+
+The image has a Docker health check on the probe's `/ready` endpoint. It answers 200 once the probe has its first assignment, and keeps answering 200 while the server is unreachable.
+
+## What the probe needs to reach
+
+The probe connects out to Peekaping over HTTP or HTTPS, to paths under `/probe/v1/` on the API. It never listens for connections from outside. Its only listener is `/ready`, on loopback by default. So the probe's machine needs no inbound port, and it works behind NAT and a firewall that allows outbound traffic.
+
+`PEEKAPING_URL` has to reach the API's `/probe/` path. Where that path goes depends on how you installed Peekaping:
+
+- **Docker Compose in cluster mode** (the `prod` files): the nginx gateway on port 8383 sends `/probe/` to the API.
+- **The single-mode bundles** (SQLite and PostgreSQL): port 8383 serves `/probe/`, like everything else.
+- **Helm**: the Ingress and the Istio VirtualService send `/probe` to the API Service. With ingress-nginx, which refuses request bodies over 1 MiB, also set the annotation `nginx.ingress.kubernetes.io/proxy-body-size: "2m"` in `ingress.annotations`, because a batch of results can be a little over 1 MiB.
+- **Your own reverse proxy** in front of port 8383 (see [Reverse proxy and HTTPS](./docker-with-sqlite.md#reverse-proxy-and-https)): it has to pass `/probe/` too. If it limits the size of request bodies, allow 2 MiB. In nginx that is `client_max_body_size 2m;`.
+- **The dev stack**: point `PEEKAPING_URL` at the API port. A probe run on the host uses `http://localhost:8034`. A probe in a container can't reach the host's `localhost`: join it to the stack's network and use `http://api:8034`. The network is `<project>_appnet`, where the project is the checkout's folder name unless `COMPOSE_PROJECT_NAME` sets it (`peekaping_appnet` for a checkout named `peekaping`; `docker network ls` lists it). Or use the host's address from the container (`http://host.docker.internal:8034` on Docker Desktop). Either way, set `PROBE_ALLOW_INSECURE=true` for the plain `http://` URL.
+
+Use `https://` for any probe that isn't on the same machine as Peekaping. The probe sends its token with every call, and it refuses a plain `http://` address to a host that isn't this machine, unless you set `PROBE_ALLOW_INSECURE=true`.
+
+## Settings
+
+The probe reads its settings from the environment:
+
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `PEEKAPING_URL` | | Required. The address of your Peekaping server, such as `https://peekaping.example.com`. |
+| `PROBE_TOKEN` | | Required. The probe's token. |
+| `PROBE_ALLOW_INSECURE` | `false` | Allows a plain `http://` address to a host other than this machine (`localhost`, `127.0.0.1` and `::1`). The token then crosses the network unencrypted, so use it only on a network you trust. |
+| `PROBE_CONCURRENCY` | `128` | How many checks run at the same time. |
+| `PROBE_READY_ADDR` | `127.0.0.1:8081` | Where `/ready` listens. The image's health check reads it. |
+| `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. |
+
+A probe that has a wrong setting logs which variable is wrong and stops.
+
+How long Peekaping waits before it calls a silent probe offline is a setting of the server, not of the probe. See [When a probe is offline](#when-a-probe-is-offline).
+
+## What the token can read
+
+:::warning The token reads your monitors' configs
+The token lets whoever holds it read the configs of the monitors assigned to its probe. That includes the credentials in them, such as passwords and tokens set in a monitor's config, and the user names and passwords of proxies. Keep it like a password: don't commit it, and run a probe only on machines you trust.
+:::
+
+The token is shown once, when you create the probe or rotate its token. Peekaping keeps only a hash, so it can't show the token again.
+
+- **Rotate** the token on the Probes page if it leaked or was lost. The old token stops working at once, and the probe's instances must restart with the new one.
+- **Disable** a probe to stop its token working until you enable it again.
+- **Delete** a probe to remove it. A probe that still has monitors can't be deleted: move them to another probe or delete them first. Once the probe is deleted, its token stops working.
+
+## Several instances
+
+Every container started with the same token is an **instance** of that probe, with an id of its own. You can run several, for example two on different hosts in one region, so a restart or a failed host doesn't stop the checks. Peekaping deals the probe's monitors among its online instances, so each monitor is checked by one instance at a time, and it deals them again when an instance joins or leaves. The Probes page lists the instances of each probe.
+
+If an instance loses its connection, it keeps checking its last assignment until it can reach Peekaping again.
+
+## When a probe is offline
+
+A probe is online while one of its instances has been in contact with Peekaping. When the probe can't reach Peekaping, it keeps checking and holds the results in memory, up to 10,000. When that is full, the oldest are dropped first, and the probe logs it. It sends what it holds as soon as it can reach Peekaping again. Peekaping refuses results more than one hour old, so a longer gap leaves a gap in the heartbeats. Because the results are in memory, a probe that restarts while it is cut off loses them.
+
+When Peekaping has heard nothing from any instance of a probe for `PROBE_OFFLINE_AFTER`, a sweep that runs every 30 seconds marks the probe offline. The setting is on the server (`peekaping`, or the producer in cluster mode). It is `3m` by default, and it can be 2 minutes to 24 hours.
+
+- **Notifications.** The notification channels of the probe's monitors get "Probe `<name>` has been offline since `<time>`", and "Probe `<name>` is online" when it is back.
+- **Monitors.** Peekaping doesn't mark the probe's monitors Down. A location whose probe is offline doesn't count towards the monitor's status. The stale-monitor watchdog also skips a monitor whose every probe is offline, so you get the probe's notification, not one for each monitor.
+
+The local probe is never offline.
+
+## Several probes per monitor
+
+A monitor can run on several probes. The monitor's page then shows each probe as a location: its own status, response time and heartbeat bar, and a selector to look at one location or all of them.
+
+The monitor's own status follows its locations and its **location rule**, which you choose in the monitor's form once it runs on more than one probe:
+
+- **Any location is Down** (the default): the monitor is Down while one location is Down.
+- **All locations are Down**: the monitor is Down only while every location that counts is Down.
+- **At least N locations are Down**: the monitor is Down while N or more locations are Down. N can be from 1 up to the number of the monitor's probes.
+
+A location whose probe is offline, or that hasn't reported yet, doesn't count, either as Down or in the number "all" is measured against. So with "at least 2" and only one probe online, the monitor can't go Down; the probe offline notification has told you about the others. A rule other than "any" keeps one probe's network trouble from raising an alarm.
+
+A Down or Up notification for a monitor on several probes names its locations, such as "Down at Frankfurt, Tokyo (2 of 3 locations)". A custom message template can use `{{locations_down}}` (the names) and `{{locations_total}}`.
+
+On a status page, switch on **Show each location** to list each location's status and history for the monitors that run on several probes.
+
+## Upgrading
+
+The probe and the server speak a protocol with a version, currently 1. A probe older than the server's minimum version gets the answer 426 and logs "upgrade the probe". It tries again after an hour. So when a release raises the minimum, upgrade the server first, then the probes. A new server accepts older probes until a release says otherwise.
+
+Upgrade a probe by pulling the new image and starting the container again with the same token. With several instances, restart them one at a time.

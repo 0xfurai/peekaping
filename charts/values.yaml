@@ -244,7 +244,11 @@ ingress:
   # ingressClassName: "alb"
   # namespace: "istio-system"
   # host: "mydomain.com"
+  # The probe protocol (/probe) sends bodies of up to about 1 MiB (a little more when
+  # compressed). ingress-nginx refuses bodies over 1m by default, so with that controller
+  # set the proxy-body-size annotation below.
   # annotations:
+  #   nginx.ingress.kubernetes.io/proxy-body-size: "2m"
   #   alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:000000000000:certificate/my-certificate-arn
   #   alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
   #   alb.ingress.kubernetes.io/healthcheck-port: status-port

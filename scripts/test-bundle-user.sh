@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Smoke-tests how a bundle image runs: which user Peekaping runs as, what it can
-# write, PUID/PGID, the Docker socket and the startup warnings. For the
+# write, PUID/PGID, the Docker socket, the startup warnings and that port 8383
+# sends the probe protocol (/probe/v1/) to the API. For the
 # single-mode bundles (SQLite and PostgreSQL) it also checks that one peekaping
 # process serves port 8383 whatever SERVER_PORT says, that ping and Docker
 # monitors work as non-root, that docker run --user works, and that docker stop
@@ -189,6 +190,18 @@ serves() { # serves <container> <path> <text>: port 8383 answers 200 with the te
   [[ "$body" == *"$3"* ]] || { echo "       GET $2 has no '$3'"; return 1; }
 }
 
+# answers_probe_with_json_error <container>: POST /probe/v1/hello without a token on port
+# 8383 reaches the API (401 and a JSON body), not the web app that serves every other path
+answers_probe_with_json_error() {
+  local out status body
+  out=$(curl -sS -X POST -H "Content-Type: application/json" --data '{}' -w '\n%{http_code}' "$(url "$1")/probe/v1/hello") ||
+    { echo "       POST /probe/v1/hello failed"; return 1; }
+  status=${out##*$'\n'}
+  body=${out%$'\n'*}
+  eq "$status" 401 || { echo "       body: $body" | head -c 300; echo; return 1; }
+  jq -e . >/dev/null 2>&1 <<<"$body" || { echo "       the body isn't JSON: $body" | head -c 300; echo; return 1; }
+}
+
 # The API, as the e2e admin. login <container> sets token.
 api() { # api <container> <method> <path> [json body]
   local args=(-sS -X "$2" -H "Content-Type: application/json")
@@ -273,6 +286,9 @@ if check "starts and reports healthy" wait_healthy "$prefix-default"; then
     check "peekaping owns the SQLite database" eq "$(owner "$prefix-default" /app/data/peekaping.db)" 1000:1000
   fi
   check "no ping warning on default Docker" logs_lack "$prefix-default" ping_group_range
+  # Remote probes reach the API through port 8383, whichever gateway the bundle runs
+  check "port 8383 sends POST /probe/v1/hello to the API: 401 without a token, in JSON" \
+    answers_probe_with_json_error "$prefix-default"
   if [ "$single" = true ]; then
     check "port 8383 serves the web app" serves "$prefix-default" / '<div id="root">'
     check "port 8383 serves a client-side route with the web app" serves "$prefix-default" /monitors '<div id="root">'

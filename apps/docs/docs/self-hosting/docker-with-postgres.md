@@ -398,6 +398,17 @@ http {
       proxy_set_header   X-Forwarded-For $remote_addr;
     }
 
+    # Remote probes (the probe protocol). A compressed results batch can be a little over
+    # 1 MiB, which is more than nginx's default client_max_body_size of 1m allows.
+    location /probe/ {
+      client_max_body_size 2m;
+      proxy_pass         http://api;
+      proxy_set_header   Host $host;
+      proxy_set_header   X-Real-IP $remote_addr;
+      # Replace the client's X-Forwarded-For: the api trusts this gateway's header
+      proxy_set_header   X-Forwarded-For $remote_addr;
+    }
+
     # socket.io
     location /socket.io/ {
       proxy_pass http://api;
@@ -460,6 +471,10 @@ Cluster mode:
 - **Ingester**: [`0xfurai/peekaping-ingester`](https://hub.docker.com/r/0xfurai/peekaping-ingester)
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
 - **Migrate**: [`0xfurai/peekaping-migrate`](https://hub.docker.com/r/0xfurai/peekaping-migrate), which applies the database migrations
+
+Remote probes:
+
+- **Probe**: [`0xfurai/peekaping-probe`](https://hub.docker.com/r/0xfurai/peekaping-probe) runs checks from another machine. See [Remote probes](./remote-probes.md)
 
 ### Image Tags
 

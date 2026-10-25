@@ -82,15 +82,19 @@ REDIS_HOST=redis
 REDIS_PORT=6379
 SERVER_PORT=8034
 CLIENT_URL=http://localhost:8383
+PROBE_OFFLINE_AFTER=2m
 TELEMETRY_URL=http://127.0.0.1:9/v1/ping
 ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
 ENV
 export COMPOSE_FILE=docker-compose.dev.sqlite.yml:docker-compose.e2e.yml
+docker build -f apps/server/infra/Dockerfile.probe -t peekaping-probe apps/server   # the remote probe specs start this image
 docker compose up -d --build --wait --wait-timeout 120   # fails if a healthcheck doesn't pass in time
 bunx playwright install chromium
 PW_TEST_HTML_REPORT_OPEN=never bun run e2e
 docker compose down
 ```
+
+`PROBE_OFFLINE_AFTER=2m`, the shortest the server takes, lets `e2e/remote-probe.spec.ts` wait for a stopped probe to be reported offline in about a minute and a half. That spec starts and stops `peekaping-probe` containers itself, on the stack's network (`E2E_PROBE_NETWORK` and `E2E_PROBE_URL` name them when it can't find them); it skips on MongoDB.
 
 CI runs the suite twice against the same database, so a test must leave nothing behind that breaks its next run.
 
