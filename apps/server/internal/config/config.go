@@ -133,10 +133,11 @@ type Config struct {
 	// another Sentry, to GlitchTip or to a server of your own
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
 
-	// ProbeBootstrapToken is the token of the local probe. With it set, the api and peekaping
-	// store its hash on the local probe at startup, so that a compose or Helm stack comes up with
-	// a probe token and no UI step. At least 32 characters, checked by each binary's Validate.
-	// Empty leaves the local probe as it is.
+	// ProbeBootstrapToken is the token of the local probe. With it set, the api stores its hash
+	// on the local probe at startup, so that a compose or Helm stack comes up with a probe token
+	// and no UI step. At least 32 characters, checked by the api's Validate. Empty leaves the
+	// local probe as it is. peekaping (single mode) doesn't read it into this config: its process
+	// checks the local probe's monitors, and it refuses a probe that uses the local probe's token.
 	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
 
 	// ProbeOfflineAfter is how long an online probe's instances may all go unseen before the

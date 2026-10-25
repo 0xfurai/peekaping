@@ -22,7 +22,9 @@ func BootstrapLocalProbe(ctx context.Context, container *dig.Container) error {
 }
 
 // BootstrapLocalProbeToken is BootstrapLocalProbe for a process that has the probe service and the
-// token at hand: peekaping, which starts its jobs from the services it resolved.
+// token at hand: cmd/api, which starts its jobs from the services it resolved. Single mode's
+// peekaping doesn't call it: its process checks the local probe's monitors, and its probe
+// protocol refuses the local probe's token.
 func BootstrapLocalProbeToken(ctx context.Context, service probe.Service, token string, logger *zap.SugaredLogger) error {
 	if token == "" {
 		return nil
