@@ -682,6 +682,7 @@
         "all": "כל המיקומים",
         "no_result": "אין תוצאה עדיין",
         "probe_offline": "הגשושית לא מחוברת",
+        "probe_unsupported": "אינה מריצה סוג זה",
         "response_time": "זמן תגובה",
         "select_label": "מיקום",
         "title": "מיקומים"
@@ -1157,6 +1158,7 @@
     "description": "גשושיות מריצות בדיקות של מעקבים מהמקומות שבהם הן מותקנות. הגשושית המקומית היא Peekaping עצמו.",
     "local_name": "מקומית",
     "monitor_probe": "גשושית: {{name}}",
+    "monitor_probe_unsupported": "{{name}} אינה מריצה מנטרים מסוג {{type}}",
     "empty_list": {
       "title": "לא נמצאו גשושיות",
       "text": "צרו גשושית כדי להריץ בדיקות ממקום אחר.",

@@ -682,6 +682,7 @@
         "all": "Barcha joylashuvlar",
         "no_result": "Hozircha natija yo'q",
         "probe_offline": "Zond oflayn",
+        "probe_unsupported": "Bu turni ishga tushirmaydi",
         "response_time": "Javob vaqti",
         "select_label": "Joylashuv",
         "title": "Joylashuvlar"
@@ -1156,6 +1157,7 @@
     "description": "Zondlar monitorlarning tekshiruvlarini ular o‘rnatilgan joylardan bajaradi. Mahalliy zond — bu Peekapingning o‘zi.",
     "local_name": "Mahalliy",
     "monitor_probe": "Zond: {{name}}",
+    "monitor_probe_unsupported": "{{name}} {{type}} turidagi monitorlarni ishga tushirmaydi",
     "empty_list": {
       "title": "Zondlar topilmadi",
       "text": "Tekshiruvlarni boshqa joydan bajarish uchun zond yarating.",
