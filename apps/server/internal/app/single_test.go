@@ -26,6 +26,7 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/setting"
@@ -92,6 +93,23 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
+	}))
+}
+
+// The one process keeps the duplicate window of the results route in its memory: no Redis is needed
+func TestRegisterSingle_ProvidesTheDuplicateWindowInMemory(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, singleConfig(t)))
+
+	require.NoError(t, container.Invoke(func(window protocol.Window, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		claimed, err := window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+		require.NoError(t, err)
+		assert.True(t, claimed)
+		claimed, err = window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+		require.NoError(t, err)
+		assert.False(t, claimed)
 	}))
 }
 

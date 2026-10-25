@@ -111,8 +111,14 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 	// the probe sends such a result again, and it has to be accepted
 	defer func() {
 		for _, w := range waiting {
-			if !w.stored {
-				c.accepted.Release(owner.ID, w.result.ID)
+			if w.stored {
+				continue
+			}
+			if err := c.accepted.Release(r.Context(), owner.ID, w.result.ID); err != nil {
+				// The id stays claimed until the window forgets it, so the probe's retry of this
+				// result is answered duplicate though it was not stored
+				c.logger.Errorw("Failed to give back the id of a result that was not stored",
+					"probeId", owner.ID, "resultId", w.result.ID, "error", err)
 			}
 		}
 	}()
@@ -141,8 +147,16 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 		}
 		// The claim is the last check, so that only a result that goes on to be stored takes an id.
 		// An id twice in one batch is claimed by the first.
-		if reason == "" && !c.accepted.Claim(owner.ID, result.ID, now) {
-			reason = probeproto.ReasonDuplicate
+		if reason == "" {
+			claimed, err := c.accepted.Claim(r.Context(), owner.ID, result.ID, now)
+			if err != nil {
+				// The window could not say whether the id was taken: the batch is the probe's to
+				// send again, and the ids claimed so far are given back
+				return nil, c.unavailable("claiming a result id", err)
+			}
+			if !claimed {
+				reason = probeproto.ReasonDuplicate
+			}
 		}
 		if reason != "" {
 			outcomes[i].Reason = reason

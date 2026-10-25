@@ -162,6 +162,12 @@ func resultsMonitors() (owned []*monitor.Model, others []*monitor.Model) {
 
 func newResultsServer(t *testing.T) *resultsServer {
 	t.Helper()
+	return newResultsServerWith(t, nil)
+}
+
+// newResultsServerWith is newResultsServer with a window of its own, instead of the memory window
+func newResultsServerWith(t *testing.T, window protocol.Window) *resultsServer {
+	t.Helper()
 	owned, others := resultsMonitors()
 	byID := map[string]*monitor.Model{}
 	for _, m := range append(append([]*monitor.Model{}, owned...), others...) {
@@ -182,6 +188,7 @@ func newResultsServer(t *testing.T) *resultsServer {
 		Monitors:    s.monitors,
 		Ingester:    s.ingest,
 		Maintenance: s.maintenance,
+		Window:      window,
 		Logger:      logger,
 	})
 	s.router = httpx.NewRouter()
@@ -606,6 +613,50 @@ func TestResults_AResultTheQueueHoldsAlreadyIsADuplicate(t *testing.T) {
 
 	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonDuplicate), rejected("next", probeproto.ReasonDuplicate)}, again)
 	assert.Len(t, s.ingest.attempts, 2, "and the server doesn't ask the queue again")
+}
+
+// brokenWindow is a window whose claims fail from the nth on, as a Redis that stopped answering
+// does, and that keeps what was released
+type brokenWindow struct {
+	protocol.Window
+	failFrom int
+	claims   int
+	released []string
+}
+
+func (w *brokenWindow) Claim(ctx context.Context, probeID, id string, now time.Time) (bool, error) {
+	w.claims++
+	if w.claims >= w.failFrom {
+		return false, errors.New("redis: connection refused")
+	}
+	return w.Window.Claim(ctx, probeID, id, now)
+}
+
+func (w *brokenWindow) Release(ctx context.Context, probeID, id string) error {
+	w.released = append(w.released, id)
+	return w.Window.Release(ctx, probeID, id)
+}
+
+// A window that can't say whether an id was taken fails the batch with 503, for the probe to send
+// it again. Storing a result that was not recorded could store it twice.
+func TestResults_AWindowThatFailsAnswers503AndStoresNothing(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 2}
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+	first := checkResult("first", monCheckout, start)
+	second := checkResult("second", monSearch, start)
+
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{first, second}})
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	assert.Empty(t, s.ingest.attempts, "nothing is stored, the ids of the batch are claimed before any is")
+	assert.Equal(t, []string{"first"}, window.released, "and the id that was claimed is given back")
+
+	window.failFrom = 1000
+	got := s.results(t, first, second)
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("first"), accepted("second")}, got, "the probe's retry is accepted")
+	assert.Len(t, s.ingest.stored, 2)
 }
 
 func TestResults_AnIdTwiceInOneBatchIsStoredOnce(t *testing.T) {

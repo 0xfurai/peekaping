@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/stale"
@@ -119,7 +120,15 @@ func registerCluster(container *dig.Container, cfg *config.Config) error {
 		infra.ProvideQueueService,
 		provideClusterMode,
 		provideClusterSwitch,
+		provideClusterWindow,
 	)
+}
+
+// provideClusterWindow provides the duplicate window of the probe protocol's results route in
+// Redis, so that the API replicas share it: a batch retried on another replica finds the ids of the
+// results the first took
+func provideClusterWindow(client *redis.Client) protocol.Window {
+	return protocol.NewRedisWindow(client)
 }
 
 // provideClusterSwitch provides the error reporting switch of the api: it also copies the admin's

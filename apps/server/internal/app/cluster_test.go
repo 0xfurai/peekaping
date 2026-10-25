@@ -24,6 +24,7 @@ import (
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
@@ -131,6 +132,27 @@ func TestRegisterClusterAPI_ProvidesTheRunLockInRedis(t *testing.T) {
 
 	assert.True(t, claim("first replica"), "first replica's claim of the hour")
 	assert.False(t, claim("second replica"), "second replica's claim of the same hour")
+}
+
+// The API replicas share the window of the probe protocol's results route in Redis: what one
+// replica took, another finds taken
+func TestRegisterClusterAPI_ProvidesTheDuplicateWindowInRedis(t *testing.T) {
+	cfg := clusterConfig(t)
+	claim := func(replica string) bool {
+		container := dig.New()
+		require.NoError(t, RegisterClusterAPI(container, cfg), replica)
+		var claimed bool
+		require.NoError(t, container.Invoke(func(window protocol.Window, rdb *redis.Client) {
+			t.Cleanup(func() { assert.NoError(t, rdb.Close()) })
+			var err error
+			claimed, err = window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+			require.NoError(t, err)
+		}), replica)
+		return claimed
+	}
+
+	assert.True(t, claim("first replica"), "first replica's claim of the id")
+	assert.False(t, claim("second replica"), "second replica's claim of the same id")
 }
 
 func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
