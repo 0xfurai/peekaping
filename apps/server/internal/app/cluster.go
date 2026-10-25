@@ -8,7 +8,6 @@ import (
 	"peekaping/internal/infra"
 	"peekaping/internal/leader"
 	"peekaping/internal/modules/cleanup"
-	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
@@ -176,7 +175,6 @@ func registerCluster(container *dig.Container, cfg *config.Config) error {
 		infra.ProvideAsynqClient,
 		infra.ProvideQueueService,
 		provideClusterMode,
-		provideClusterSwitch,
 		provideClusterWindow,
 		provideClusterLocalProbe,
 	)
@@ -193,12 +191,6 @@ func provideClusterLocalProbe() shared.LocalProbeLiveness { return shared.LocalP
 // results the first took
 func provideClusterWindow(client *redis.Client) protocol.Window {
 	return protocol.NewRedisWindow(client)
-}
-
-// provideClusterSwitch provides the error reporting switch of the api: it also copies the admin's
-// choice to Redis, where the other processes read it
-func provideClusterSwitch(client *redis.Client) error_reporting.Switch {
-	return error_reporting.NewRedisSwitch(client)
 }
 
 // provideClusterMode tells the usage ping that this install runs in cluster mode

@@ -41,7 +41,6 @@ import (
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/reporting"
-	"peekaping/internal/reporting/redissync"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
 	"peekaping/internal/shutdown/lifecycle"
 	"peekaping/internal/validation"
@@ -57,6 +56,10 @@ var serverTimeouts = httpx.DefaultTimeouts()
 
 // errorReportingFlush is how long the shutdown waits for the error reports still queued
 const errorReportingFlush = 2 * time.Second
+
+// errorReportingEvery is how often the api applies the stored error reporting choice again, so
+// that a change made on another api replica reaches this one
+const errorReportingEvery = time.Minute
 
 // shutdownTimeouts are the API's, 30 seconds in all, Kubernetes' default grace period. A test
 // may shorten them.
@@ -275,11 +278,9 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		}
 	}
 
-	// Apply the admin's choice from before the restart, which also copies it to Redis for the
-	// producer, the worker and the ingester. Then apply it again every minute, so that a copy
-	// that missed a Redis that was down is made up within a minute, and a change made on another
-	// api replica reaches this one. The stored setting is the source of truth; Redis only
-	// carries it. A failure leaves error reports off.
+	// Apply the admin's choice from before the restart. Then apply it again every minute, so that
+	// a change made on another api replica reaches this one. The stored setting is the source of
+	// truth. A failure leaves error reports off.
 	if err := p.ErrorReporting.Apply(ctx); err != nil {
 		logger.Warnw("Failed to apply the error reporting choice, leaving error reports off", "error", err)
 	}
@@ -288,7 +289,7 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	j.errorReportingDone = make(chan struct{})
 	reporting.Go("error-reporting", func() {
 		defer close(j.errorReportingDone)
-		p.ErrorReporting.Run(errorReportingCtx, redissync.DefaultEvery)
+		p.ErrorReporting.Run(errorReportingCtx, errorReportingEvery)
 	})
 
 	p.NotificationListener.Subscribe(p.EventBus)
@@ -404,7 +405,7 @@ func (j *jobs) stop(ctx context.Context, logger *zap.SugaredLogger) error {
 	}
 	if j.stopErrorReporting != nil {
 		j.stopErrorReporting()
-		await("the error reporting choice's copy to Redis", j.errorReportingDone)
+		await("the error reporting choice's refresh", j.errorReportingDone)
 	}
 	return errors.Join(errs...)
 }

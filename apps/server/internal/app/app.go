@@ -65,8 +65,7 @@ import (
 // Register provides what both binaries share. dig builds a value only when an Invoke needs it.
 // The transport provides the rest: the event bus, the stale.Store, the ingester.Service the push
 // URL ingests through, and the telemetry.Mode that says whether the usage ping reports single or
-// cluster mode (the MODE setting does not), and the error_reporting.Switch that tells the
-// processes that report whether to.
+// cluster mode (the MODE setting does not).
 func Register(container *dig.Container, cfg *config.Config) error {
 	err := utils.Provide(container,
 		func() *config.Config { return cfg },

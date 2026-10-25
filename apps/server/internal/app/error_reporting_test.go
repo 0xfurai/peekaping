@@ -5,12 +5,10 @@ import (
 	"errors"
 	"runtime"
 	"testing"
-	"time"
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/reporting"
-	"peekaping/internal/reporting/redissync"
 	"peekaping/internal/reporting/reportingtest"
 	"peekaping/internal/version"
 
@@ -109,48 +107,4 @@ func TestApplyErrorReporting_AsksTheServiceToApplyTheStoredChoice(t *testing.T) 
 
 	service.err = errors.New("no such table: settings")
 	assert.ErrorContains(t, ApplyErrorReporting(context.Background(), container), "no such table")
-}
-
-// runRecordingService is a service whose Run says how often it was asked to apply, and stops with
-// its context
-type runRecordingService struct {
-	error_reporting.Service
-	every chan time.Duration
-}
-
-func (r *runRecordingService) Run(ctx context.Context, every time.Duration) {
-	r.every <- every
-	<-ctx.Done()
-}
-
-// The cluster api republishes the stored choice to Redis every interval, so that a publish that
-// missed a Redis that was down is made up
-func TestStartErrorReportingPublisher_RunsTheServiceUntilItsContextIsDone(t *testing.T) {
-	container := dig.New()
-	require.NoError(t, RegisterSingle(container, singleConfig(t)))
-	service := &runRecordingService{every: make(chan time.Duration, 1)}
-	require.NoError(t, container.Decorate(func(error_reporting.Service) error_reporting.Service { return service }))
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	done, err := StartErrorReportingPublisher(ctx, container, redissync.DefaultEvery)
-
-	require.NoError(t, err)
-	select {
-	case every := <-service.every:
-		assert.Equal(t, time.Minute, every)
-	case <-time.After(2 * time.Second):
-		t.Fatal("the service was not asked to run")
-	}
-	select {
-	case <-done:
-		t.Fatal("the publisher stopped before its context was done")
-	default:
-	}
-	cancel()
-	select {
-	case <-done:
-	case <-time.After(2 * time.Second):
-		t.Fatal("the publisher did not stop with its context")
-	}
 }
