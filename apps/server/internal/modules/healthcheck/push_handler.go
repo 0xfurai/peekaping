@@ -24,8 +24,8 @@ type PushConfig struct {
 	PushToken string `json:"pushToken"`
 }
 
-// RegisterPushEndpoint registers the push URL. Each push goes to the ingester service, which in
-// cluster mode enqueues it for the ingester (ingester.NewPushQueueService).
+// RegisterPushEndpoint registers the push URL. Each push goes to the ingester service, which
+// stores it in order with the monitor's other results (ingest.NewInOrderService).
 func RegisterPushEndpoint(
 	router *httpx.Router,
 	monitorService monitor.Service,
@@ -82,8 +82,8 @@ func RegisterPushEndpoint(
 
 		now := time.Now().UTC()
 
-		// The ingester service enqueues the push for the ingester in cluster mode, and ingests it
-		// in order with the monitor's checks in single mode
+		// The ingester service stores the push before the request is answered, in order with the
+		// monitor's other results
 		result := ResultFromMonitor(monitor, underMaintenance, status, msg, ping, now, now, nil, logger)
 
 		err = ingesterService.Ingest(ctx, result)

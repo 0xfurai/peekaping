@@ -20,7 +20,6 @@ import (
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe/protocol"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 
@@ -650,33 +649,6 @@ func TestResults_AFailedBatchFreesTheIdsItDidNotStore(t *testing.T) {
 	assert.Len(t, s.ingest.stored, 3)
 }
 
-// In cluster mode another replica may have queued the result already, for a retry that landed on
-// it: the queue holds a task for the monitor and the start time. That is not a failure to store,
-// which would make the probe send the batch again for as long as the queue holds the task.
-func TestResults_AResultTheQueueHoldsAlreadyIsADuplicate(t *testing.T) {
-	s := newResultsServer(t)
-	start := time.Now().UTC().Add(-time.Minute)
-	held := checkResult("held", monCheckout, start)
-	next := checkResult("next", monCheckout, start.Add(time.Second))
-	s.ingest.failOn = func(r *ingester.Result) error {
-		if r.StartTime.Equal(held.StartTime) {
-			return fmt.Errorf("task already exists: %w", queue.ErrTaskIDConflict)
-		}
-		return nil
-	}
-
-	got := s.results(t, held, next)
-
-	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonDuplicate), accepted("next")}, got,
-		"the one the queue holds is a duplicate, and the rest of the batch is stored")
-	assert.Len(t, s.ingest.stored, 1)
-
-	again := s.results(t, held, next)
-
-	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonDuplicate), rejected("next", probeproto.ReasonDuplicate)}, again)
-	assert.Len(t, s.ingest.attempts, 2, "and the server doesn't ask the queue again")
-}
-
 // brokenWindow is a window whose claims fail from the nth on, as a Redis that stopped answering
 // does, and that keeps what was released and what was kept
 type brokenWindow struct {
@@ -734,21 +706,6 @@ func TestResults_KeepsTheIdsOfTheResultsItStored(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Code)
 	assert.Equal(t, []string{"stored"}, window.kept, "the stored one, though the batch failed")
 	assert.Equal(t, []string{"broken"}, window.released, "and the one that was not stored is given back")
-}
-
-// A result the queue holds already is stored, by a replica that the probe's first attempt reached:
-// its id is kept too
-func TestResults_KeepsTheIdOfAResultTheQueueHoldsAlready(t *testing.T) {
-	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 1000}
-	s := newResultsServerWith(t, window)
-	start := time.Now().UTC().Add(-time.Minute)
-	held := checkResult("held", monCheckout, start)
-	s.ingest.failOn = func(*ingester.Result) error { return fmt.Errorf("task already exists: %w", queue.ErrTaskIDConflict) }
-
-	got := s.results(t, held)
-
-	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonDuplicate)}, got)
-	assert.Equal(t, []string{"held"}, window.kept)
 }
 
 // keepCalls is a window that records the ids of each Keep call

@@ -2,20 +2,15 @@ package apitest
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"slices"
 	"testing"
 
 	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/ingester"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 
-	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/dig"
 )
 
 // storedHeartbeats are the heartbeats stored for the monitor, oldest first. A cluster api on
@@ -45,29 +40,6 @@ func (a *app) hasHeartbeats(t *testing.T) bool {
 	return any
 }
 
-// withQueuedIngest has the api ingest as it did when the producer, worker and ingester served
-// MongoDB: a push or a result is enqueued for the ingester, and stored by it. The api stores them
-// itself. Only the soak test of the ingester queue (ingest_rate_soak_test.go) uses it.
-func withQueuedIngest(container *dig.Container) error {
-	return container.Decorate(func(q queue.Service) ingester.Service { return ingester.NewPushQueueService(q) })
-}
-
-// queuedHeartbeats returns the heartbeats waiting for the ingester. Only an api that ingests through
-// the queue (withQueuedIngest) queues any.
-func (a *app) queuedHeartbeats(t *testing.T) []*asynq.TaskInfo {
-	t.Helper()
-	var tasks []*asynq.TaskInfo
-	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
-		var err error
-		tasks, err = inspector.ListPendingTasks("ingester")
-		if errors.Is(err, asynq.ErrQueueNotFound) {
-			return nil
-		}
-		return err
-	}))
-	return tasks
-}
-
 func TestPush_StoresAHeartbeatForAPushMonitor(t *testing.T) {
 	a := newAppWithAdmin(t)
 	monitorID := a.createMonitor(t, "Nightly backup", "backup-push-token")
@@ -82,7 +54,6 @@ func TestPush_StoresAHeartbeatForAPushMonitor(t *testing.T) {
 	assert.Equal(t, "disk full", beats[0].Msg)
 	assert.Equal(t, 12, beats[0].Ping)
 	assert.Equal(t, shared.LocalProbeID, beats[0].ProbeID)
-	assert.Empty(t, a.queuedHeartbeats(t), "nothing is queued for an ingester")
 }
 
 func TestPush_IgnoresMalformedResponseTime(t *testing.T) {
