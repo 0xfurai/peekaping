@@ -227,6 +227,12 @@ var goldenCases = []goldenCase{
 		config: `{"region": "us", "api_key": "genie-key", "priority": 2}`},
 	{name: "opsgenie_eu_up", sender: opsgenie, event: upEvent,
 		config: `{"region": "eu", "api_key": "genie-key", "priority": 2}`},
+	// The alias is the probe's, not the test alert's, and the channel's priority applies
+	{name: "opsgenie_probe_offline", sender: opsgenie, event: probeOfflineEvent,
+		config: `{"region": "us", "api_key": "genie-key", "priority": 2}`},
+	// The probe coming back online closes the alert its offline notification opened
+	{name: "opsgenie_probe_online", sender: opsgenie, event: probeOnlineEvent,
+		config: `{"region": "eu", "api_key": "genie-key", "priority": 2}`},
 	// Known issue: without a heartbeat Opsgenie sends a test alert, with the test alias and
 	// P5, so every monitor's certificate expiry notification merges into one alert
 	{name: "opsgenie_certificate_expiry", sender: opsgenie, event: certExpiryEvent,
