@@ -220,6 +220,8 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 
 Create a `docker-compose.yml` file. The `probe` service checks the local probe's monitors. To run more of them, use `docker compose up -d --scale probe=3`: the monitors are dealt among the containers.
 
+The `probe` reaches the `api` over plain HTTP inside `appnet`, so it sets `PROBE_ALLOW_INSECURE: "true"`. Its token crosses `appnet` unencrypted. Keep `appnet` trusted and isolated: put only the services of this stack on it, and don't publish the `api` port. If the probe has to reach the API through a network you don't trust, point `PEEKAPING_URL` at an `https://` address and remove `PROBE_ALLOW_INSECURE`.
+
 <!-- snippet: docker-compose.prod.sqlite.yml -->
 ```yml
 networks:

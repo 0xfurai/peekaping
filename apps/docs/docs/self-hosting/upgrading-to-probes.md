@@ -79,7 +79,15 @@ If you do the steps one at a time, note two things. A probe connects only to an 
 
 3. Take the new compose file from [Docker + SQLite](./docker-with-sqlite.md#docker-composeyml-file) or [Docker + PostgreSQL](./docker-with-postgres.md#docker-composeyml-file), and keep your own changes in it. If you edit your own file instead:
    - Delete the `producer`, `worker` and `ingester` services.
-   - Add a `probe` service. The `api` already reads the token from `.env` through its `env_file`:
+   - Add `PROBE_BOOTSTRAP_TOKEN` to the `api` service, under `environment`. Don't count on an `env_file`: your file may not have one, and the API starts without the token and stores none. The value must be the one the probe gets as `PROBE_TOKEN`:
+
+     ```yaml
+       api:
+         environment:
+           PROBE_BOOTSTRAP_TOKEN: ${PROBE_BOOTSTRAP_TOKEN}
+     ```
+
+   - Add a `probe` service:
 
      ```yaml
        probe:
@@ -96,6 +104,16 @@ If you do the steps one at a time, note two things. A probe connects only to an 
          networks:
            - appnet
      ```
+
+     The probe reaches the API over plain HTTP inside `appnet`, which is why it sets `PROBE_ALLOW_INSECURE`. Its token crosses `appnet` unencrypted, so `appnet` must stay trusted and isolated: put only the services of this stack on it, and don't publish the `api` port. If the probe connects through a network you don't trust, use an `https://` address in `PEEKAPING_URL` and remove `PROBE_ALLOW_INSECURE`.
+
+   - Check that the two values match. This prints both, so don't paste the output anywhere:
+
+     ```bash
+     docker compose config | grep -E 'PROBE_(BOOTSTRAP_)?TOKEN'
+     ```
+
+     `PROBE_BOOTSTRAP_TOKEN` under `api` and `PROBE_TOKEN` under `probe` must show the same value. A probe whose token differs from the one the API stored is refused, and the local probe is reported offline.
 
    - Move what the `worker` had to the `probe`: the Docker socket mount and `group_add` for Docker monitors, and `sysctls` for ping if you set one.
    - Keep `REDIS_*` and the Redis service for the `api`.
@@ -157,7 +175,7 @@ If the upgraded cluster runs with no probe instance, no monitor of the local pro
 To fix it, start probe instances with `PEEKAPING_URL` set to the API's address and `PROBE_TOKEN` set to the same value as the API's `PROBE_BOOTSTRAP_TOKEN`. If they are running and the probe is still offline, check these:
 
 - The API has `PROBE_BOOTSTRAP_TOKEN`. Without it, it stores no token and the probes are refused.
-- The probes' `PROBE_TOKEN` equals it, character for character. In Kubernetes, restart both after a change: the pods read the token when they start.
+- The probes' `PROBE_TOKEN` equals it, character for character. In Kubernetes, a changed Secret reaches the pods only when they restart: restart the API first, then the probes. See [The local probe's token](./kubernetes-helm.md#the-local-probes-token).
 - `PEEKAPING_URL` reaches the API from the probe's network. See [What the probe needs to reach](./remote-probes.md#what-the-probe-needs-to-reach).
 
 ## Rolling back

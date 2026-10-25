@@ -54,7 +54,7 @@ A monitor of a type the probe has no executor for is Down with `monitor type <ty
 Ping monitors send ICMP echo requests from the probe (or from the worker on MongoDB storage, or from the `peekaping` process in single mode). IPv4 and IPv6 targets are supported; a hostname with both kinds of address is pinged over IPv4. The probe opens one of two kinds of socket:
 
 1. **Unprivileged ICMP socket** (tried first). Linux allows it for processes whose group, or one of their other groups, is in the `net.ipv4.ping_group_range` sysctl, for IPv4 and IPv6 alike. It needs no capability, and allows ICMP echo only.
-2. **Raw ICMP socket**. Needs root with the `NET_RAW` capability.
+2. **Raw ICMP socket**. Needs the `NET_RAW` capability in the process's effective set. A root process in a container has it when the runtime grants it. A non-root process has it only when the runtime or the image sets it as effective for that process, for example through ambient or file capabilities, which the Peekaping images don't.
 
 If neither socket can be opened, the probe runs the system `ping` command. The `peekaping-probe` and `peekaping-worker` images and the SQLite bundle have BusyBox `ping`, which needs the same permissions. The PostgreSQL and MongoDB bundles have no `ping`. Either way the monitor reports DOWN with `cannot open an ICMP socket` and a hint on how to fix it.
 
@@ -64,7 +64,7 @@ None of the images runs Peekaping as root: the `peekaping-probe` and `peekaping-
 - **Podman**: allows only group 0 by default. Add `--sysctl net.ipv4.ping_group_range="65532 65532"` for the `peekaping-probe` image, or `"1000 1000"` (your `PGID`) for a bundle image. Rootless Podman rejects ranges that include groups outside its user namespace, such as `0 2147483647`.
 - **Kubernetes**: the Helm chart sets `net.ipv4.ping_group_range` on probe pods through `probe.sysctls`. It is a safe sysctl, allowed under the baseline and restricted Pod Security Standards. If you deploy without the chart, set it in the pod's `securityContext.sysctls`.
 
-Adding `NET_RAW` (for example `cap_add: [NET_RAW]` in Compose) only helps a probe that runs as root. A non-root process doesn't get the container's capabilities, so it doesn't help the `peekaping-probe` image or the bundle images. Use `net.ipv4.ping_group_range` instead.
+Adding `NET_RAW` (for example `cap_add: [NET_RAW]` in Compose) usually doesn't help the `peekaping-probe` image or the bundle images. It adds the capability to the container, but most runtimes don't make it effective for a non-root process, and these images run as non-root and set no ambient or file capabilities. It helps a probe that runs as root. If your runtime does make `NET_RAW` effective for a non-root process, the raw socket works as a fallback when `ping_group_range` is unavailable, but `net.ipv4.ping_group_range` is the supported way.
 
 ## Environment Variables
 

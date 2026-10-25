@@ -66,7 +66,7 @@ Anything that can use the Docker socket controls the host. To give the probe rea
 
 ## Ping monitors
 
-Ping monitors send ICMP echo requests from the probe. The probe runs as group 65532, which Linux allows to send ICMP echo only if the group is in the `net.ipv4.ping_group_range` sysctl. Docker sets it for every group in each container, so ping monitors work in the compose files without changes. See [Ping Monitors and ICMP Permissions](../architecture/probe.md#ping-monitors-and-icmp-permissions) for rootless Docker, Podman and Kubernetes.
+Ping monitors send ICMP echo requests from the probe. The probe runs as group 65532, which Linux allows to send ICMP echo only if the group is in the `net.ipv4.ping_group_range` sysctl. Rootful Docker sets it for every group in each container with its own network namespace, so ping monitors work in the compose files without changes there. See [Ping Monitors and ICMP Permissions](../architecture/probe.md#ping-monitors-and-icmp-permissions) for rootless Docker, Podman and Kubernetes.
 
 ## Port 80 of the web image
 

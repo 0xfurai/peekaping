@@ -72,7 +72,7 @@ The database migration tool based on Bun.
 1. A **probe instance** asks the API for its monitors and gets its share of them. The API deals the local probe's monitors among the instances that are online.
 2. The probe runs each monitor's check on the monitor's interval.
 3. The probe sends the results to the API in batches.
-4. The **API** replica that took the request stores each result as a heartbeat, one monitor's results at a time and in order, judges the monitor's status, and publishes events. That replica aggregates the stats of the heartbeats it stored.
+4. The **API** replica that took the request stores each result as a heartbeat, one monitor's results at a time and in the order it got them, judges the monitor's status, and publishes events. That replica aggregates the stats of the heartbeats it stored.
 5. Every API replica receives the events through Redis pub/sub and pushes updates to its connected clients via WebSocket.
 
 A push monitor takes the same path from its push URL: the replica that took the request stores the heartbeat.

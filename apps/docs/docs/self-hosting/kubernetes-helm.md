@@ -169,6 +169,8 @@ The probe pods read the ConfigMap only, for `LOG_LEVEL` and `TZ`. They get no da
 
 The probe pods check the local probe's monitors, and they prove they are the local probe with a token. The API stores the token at startup (`PROBE_BOOTSTRAP_TOKEN`), and the probe pods send the same value (`PROBE_TOKEN`). It gives access to the config of the monitors on the local probe, such as the credentials in them, so keep it secret.
 
+The probe pods call the API over plain HTTP inside the cluster, at `http://<release>-api.<namespace>.svc:8034`, and the chart sets `PROBE_ALLOW_INSECURE=true` for that. So the token crosses the cluster network unencrypted. Use the chart only on a cluster network you trust and keep isolated: limit who can reach the API pods, for example with a NetworkPolicy. If you can't trust the network between pods, encrypt it, for example with a service mesh that uses mutual TLS. The chart has no setting for an `https://` address between the probe pods and the API.
+
 By default the chart makes a Secret named `<release>-probe-token`, with a random token of 48 characters, and reads it back on every upgrade so the token stays the same. Reading it back needs a render that can look at the cluster, which `helm install` and `helm upgrade` do. `helm template`, `helm install --dry-run` and tools that render without the cluster, such as Argo CD, make a new token each time. For those, make the Secret yourself, with a token of at least 32 characters, and name it in your values file:
 
 ```bash
@@ -185,7 +187,17 @@ probe:
     existingSecretKey: PROBE_BOOTSTRAP_TOKEN
 ```
 
-The API and the probe pods read the token when they start, so restart both after you change it. Until then, a probe with the old token is refused and the local probe goes offline.
+The API and the probe pods read the token from the Secret when they start. Changing the Secret doesn't change the value a running pod holds, and the chart doesn't restart the pods for you. The API stores the token when it starts, and a probe is accepted only if it sends the stored one. So the old token stays active until the API restarts: the running probe pods keep working, and a probe pod that restarts first is refused.
+
+To change the token, update the Secret, then restart the API and the probe pods, the API first:
+
+```bash
+kubectl rollout restart deployment/peekaping-api --namespace peekaping
+kubectl rollout restart deployment/peekaping-probe --namespace peekaping
+kubectl rollout status deployment/peekaping-probe --namespace peekaping
+```
+
+Between the two restarts, the old probe pods send a token the API no longer holds, so they are refused and the local probe stops being checked. The new probe pods become ready as soon as they connect. If the gap lasts longer than `PROBE_OFFLINE_AFTER` (3 minutes by default), the leader reports the local probe offline, and it comes back online when a new pod connects. See [When a probe is offline](./remote-probes.md#when-a-probe-is-offline).
 
 ### Client addresses
 
