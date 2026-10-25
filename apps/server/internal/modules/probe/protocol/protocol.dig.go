@@ -11,5 +11,5 @@ import (
 // stale.ProbeOfflineFunc the stale-monitor watchdog asks. They need the probe service, which
 // probe.RegisterDependencies provides.
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, NewAuth, NewRateLimiter, NewWaker, NewMonitorSource, provideMonitorProbeOffline, DefaultTiming, NewController, NewRoute)
+	return utils.Provide(container, provideAuth, NewRateLimiter, NewWaker, NewMonitorSource, provideMonitorProbeOffline, DefaultTiming, NewController, NewRoute)
 }
