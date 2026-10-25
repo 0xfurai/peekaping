@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"peekaping/internal/shutdown/lifecycle"
+
 	"go.uber.org/zap"
 )
 
@@ -40,7 +42,7 @@ func Stop(timeouts Timeouts, jobs string, stopJobs func(), bus interface{ Close(
 		defer close(jobsDone)
 		stopJobs()
 	}()
-	if err := Await(jobsCtx, jobs, jobsDone); err != nil {
+	if err := lifecycle.Await(jobsCtx, jobs, jobsDone); err != nil {
 		errs = append(errs, err)
 		running = append(running, jobs)
 	} else {
