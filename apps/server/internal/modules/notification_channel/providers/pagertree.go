@@ -78,6 +78,11 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 		return nil
 	}
 
+	// A notification with no monitor is about an unknown one
+	if mon == nil {
+		mon = &monitor.Model{Name: unknownMonitorName}
+	}
+
 	// Build the payload
 	payload := PagerTreePayload{
 		EventType: eventType,

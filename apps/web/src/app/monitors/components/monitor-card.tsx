@@ -2,7 +2,7 @@ import type { MonitorMonitorResponseDto } from "@/api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Pause } from "lucide-react";
+import { AlertTriangle, Pause } from "lucide-react";
 import BarHistory from "@/components/bars";
 import { useQuery } from "@tanstack/react-query";
 import { getMonitorsByIdHeartbeatsOptions } from "@/api/@tanstack/react-query.gen";
@@ -15,9 +15,11 @@ interface MonitorCardProps {
   monitor: MonitorMonitorResponseDto;
   // The names of the probes the monitor runs on. Left out when the install has no remote probe.
   probes?: { id: string; name: string }[];
+  // The ids of those probes that don't run the monitor's type, so that none of them checks it
+  unsupportedProbeIds?: string[];
 }
 
-const MonitorCard = ({ monitor, probes }: MonitorCardProps) => {
+const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps) => {
   const navigate = useNavigate();
   const { t } = useLocalizedTranslation();
 
@@ -77,16 +79,25 @@ const MonitorCard = ({ monitor, probes }: MonitorCardProps) => {
               <h3 className="font-bold mb-1">{monitor.name}</h3>
               <div className="flex flex-wrap gap-1">
                 <Badge variant={"outline"}>{monitor.type}</Badge>
-                {probes?.map(({ id, name }) => (
-                  <Badge
-                    key={id}
-                    variant={"outline"}
-                    title={t("probes.monitor_probe", { name })}
-                    data-testid="monitor-probe-badge"
-                  >
-                    {name}
-                  </Badge>
-                ))}
+                {probes?.map(({ id, name }) => {
+                  const unsupported = !!unsupportedProbeIds?.includes(id);
+                  const unsupportedText = t("probes.monitor_probe_unsupported", { name, type: monitor.type });
+                  return (
+                    <Badge
+                      key={id}
+                      variant={"outline"}
+                      className={cn(unsupported && "border-amber-500 text-amber-500")}
+                      title={unsupported ? unsupportedText : t("probes.monitor_probe", { name })}
+                      data-testid="monitor-probe-badge"
+                      data-unsupported={unsupported || undefined}
+                    >
+                      {unsupported && <AlertTriangle className="w-3 h-3" aria-hidden />}
+                      {name}
+                      {/* The tooltip needs a pointer: screen readers, and keyboard users on the card's link, read this */}
+                      {unsupported && <span className="sr-only">{unsupportedText}</span>}
+                    </Badge>
+                  );
+                })}
               </div>
             </div>
           </div>

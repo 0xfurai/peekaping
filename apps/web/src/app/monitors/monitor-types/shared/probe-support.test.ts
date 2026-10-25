@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { ProbeProbeResponse } from "@/api/types.gen";
-import { probeIdsOf, probeRunsType, probeTypeError, UNSUPPORTED_PROBE_MESSAGE } from "./probe-support";
+import {
+  probeIdsOf,
+  probeRunsType,
+  probeTypeError,
+  UNSUPPORTED_PROBE_MESSAGE,
+  unsupportedProbeIds,
+} from "./probe-support";
 
 const probe = (id: string, supportedTypes: string[]): ProbeProbeResponse => ({
   id,
@@ -85,10 +91,47 @@ describe("probeTypeError", () => {
     expect(probeTypeError({ type: "docker", probe_ids: ["local", "web-only"] }, probes, saved)).toBeUndefined();
   });
 
+  it("leaves a form with no probe chosen to the server", () => {
+    expect(probeTypeError({ type: "docker", probe_ids: [] }, [probe("local", ["http"])])).toBeUndefined();
+  });
+
   it("flags a saved monitor that adds a probe that doesn't run its type", () => {
     const saved = { type: "docker", probe_ids: ["local"] };
     expect(probeTypeError({ type: "docker", probe_ids: ["local", "web-only"] }, probes, saved)).toBe(
       UNSUPPORTED_PROBE_MESSAGE
     );
+  });
+});
+
+describe("unsupportedProbeIds", () => {
+  const several = [probe("local", []), probe("web-only", ["http", "tcp"]), probe("dns-only", ["dns"])];
+
+  it("names the probes the monitor runs on that don't run its type, in the monitor's order", () => {
+    expect(unsupportedProbeIds({ type: "docker", probe_ids: ["dns-only", "local", "web-only"] }, several)).toEqual([
+      "dns-only",
+      "web-only",
+    ]);
+  });
+
+  it("names none when every probe runs the type", () => {
+    expect(unsupportedProbeIds({ type: "http", probe_ids: ["local", "web-only"] }, several)).toEqual([]);
+  });
+
+  it("names only the probes the monitor is on", () => {
+    expect(unsupportedProbeIds({ type: "docker", probe_ids: ["local"] }, several)).toEqual([]);
+  });
+
+  it("puts a monitor with no probes, or none listed, on the local probe, which runs every type", () => {
+    expect(unsupportedProbeIds({ type: "docker", probe_ids: [] }, several)).toEqual([]);
+    expect(unsupportedProbeIds({ type: "docker", probe_ids: null }, several)).toEqual([]);
+  });
+
+  it("leaves out a probe the list doesn't hold", () => {
+    expect(unsupportedProbeIds({ type: "docker", probe_ids: ["gone", "web-only"] }, several)).toEqual(["web-only"]);
+    expect(unsupportedProbeIds({ type: "docker", probe_ids: ["web-only"] }, [])).toEqual([]);
+  });
+
+  it("names none for a push monitor, which runs on the local probe", () => {
+    expect(unsupportedProbeIds({ type: "push", probe_ids: ["web-only"] }, several)).toEqual([]);
   });
 });

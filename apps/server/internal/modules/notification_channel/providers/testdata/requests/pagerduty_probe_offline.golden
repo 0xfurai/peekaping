@@ -1,0 +1,16 @@
+POST https://events.pagerduty.com/v2/enqueue
+Content-Type: application/json
+User-Agent: Peekaping-PagerDuty/<version>
+
+{
+  "client": "Peekaping",
+  "client_url": "https://peekaping.example.com/probes",
+  "dedup_key": "Peekaping/probe-1",
+  "event_action": "trigger",
+  "payload": {
+    "severity": "warning",
+    "source": "Probe Frankfurt",
+    "summary": "[Peekaping Alert] [Probe Frankfurt] Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"
+  },
+  "routing_key": "routing-key"
+}

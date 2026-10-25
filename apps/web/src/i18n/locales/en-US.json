@@ -682,6 +682,7 @@
         "all": "All locations",
         "no_result": "No result yet",
         "probe_offline": "Probe offline",
+        "probe_unsupported": "Doesn't run this type",
         "response_time": "Response time",
         "select_label": "Location",
         "title": "Locations"
@@ -1157,6 +1158,7 @@
     "description": "Probes run monitor checks from the places where they are installed. The local probe is Peekaping itself.",
     "local_name": "Local",
     "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} doesn't run {{type}} monitors",
     "empty_list": {
       "title": "No probes found",
       "text": "Create a probe to run checks from another place.",

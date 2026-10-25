@@ -731,3 +731,141 @@ func normalize(e Event) Event {
 	e.Since = e.Since.UTC()
 	return e
 }
+
+// fakeProbes is a probe lookup: a probe not in the map doesn't exist, and a lookup of one in err fails
+type fakeProbes struct {
+	byID  map[string]*ProbeInfo
+	err   map[string]error
+	asked []string
+}
+
+func (p *fakeProbes) FindProbe(_ context.Context, id string) (*ProbeInfo, error) {
+	p.asked = append(p.asked, id)
+	return p.byID[id], p.err[id]
+}
+
+// staleDockerMonitorOn is a docker monitor on the given probes, saved long before now
+func staleDockerMonitorOn(now time.Time, probeIDs ...string) *shared.Monitor {
+	m := testMonitor("docker-1", 60, 10, now.Add(-time.Hour))
+	m.Type = "docker"
+	m.ProbeIDs = probeIDs
+	return m
+}
+
+// notifyStale runs the watchdog until it has notified, which is a check timeout after it found the
+// monitor stale, and returns the notifications
+func (f *watchdogFixture) notifyStale(t *testing.T) []Event {
+	t.Helper()
+	f.run(t)
+	f.at(time.Minute)
+	f.run(t)
+	return f.published(MonitorStale)
+}
+
+func TestWatchdog_NamesTheProbeThatDoesNotRunTheMonitorsType(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t, staleDockerMonitorOn(now, "probe-1"))
+	f.heartbeats.setLatest("docker-1", now.Add(-4*time.Minute))
+	probes := &fakeProbes{byID: map[string]*ProbeInfo{
+		// The probe reported its types after the monitor was assigned, and docker is not among them
+		"probe-1": {Name: "Frankfurt", SupportedTypes: []string{"http", "tcp"}},
+	}}
+	cfg := f.config()
+	cfg.Probes = probes
+	f.w = NewWatchdog(cfg)
+
+	sent := f.notifyStale(t)
+
+	require.Len(t, sent, 1)
+	assert.Equal(t, Event{MonitorID: "docker-1", MonitorName: "Monitor docker-1", Since: now.Add(-4 * time.Minute), UnsupportedProbes: []string{"Frankfurt"}}, normalize(sent[0]))
+}
+
+func TestWatchdog_NamesEveryProbeThatDoesNotRunTheMonitorsType(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t, staleDockerMonitorOn(now, "probe-1", "probe-2", "probe-3", "probe-4", shared.LocalProbeID))
+	f.heartbeats.setLatest("docker-1", now.Add(-4*time.Minute))
+	probes := &fakeProbes{byID: map[string]*ProbeInfo{
+		"probe-1": {Name: "Frankfurt", SupportedTypes: []string{"http"}},
+		"probe-2": {Name: "Tokyo", SupportedTypes: []string{"docker", "http"}},
+		"probe-3": {Name: "Lagos", SupportedTypes: []string{"tcp"}},
+		"probe-4": {Name: "Quito"}, // a probe that has not reported its types runs every type
+	}}
+	cfg := f.config()
+	cfg.Probes = probes
+	f.w = NewWatchdog(cfg)
+
+	sent := f.notifyStale(t)
+
+	require.Len(t, sent, 1)
+	assert.Equal(t, []string{"Frankfurt", "Lagos"}, sent[0].UnsupportedProbes, "the probes that don't run it, in the monitor's order")
+	assert.Equal(t, []string{"probe-1", "probe-2", "probe-3", "probe-4"}, probes.asked, "the local probe runs every type and isn't read")
+}
+
+func TestWatchdog_NamesNoProbeWhenTheyAllRunTheMonitorsType(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	for name, mon := range map[string]*shared.Monitor{
+		"on a remote probe that runs it":        staleDockerMonitorOn(now, "probe-1"),
+		"on a remote probe that does not exist": staleDockerMonitorOn(now, "probe-9"),
+		"on the local probe":                    staleDockerMonitorOn(now, shared.LocalProbeID),
+		"read without its probes":               staleDockerMonitorOn(now),
+	} {
+		t.Run(name, func(t *testing.T) {
+			f := newWatchdogFixture(t, mon)
+			f.heartbeats.setLatest("docker-1", now.Add(-4*time.Minute))
+			cfg := f.config()
+			cfg.Probes = &fakeProbes{byID: map[string]*ProbeInfo{"probe-1": {Name: "Frankfurt", SupportedTypes: []string{"docker"}}}}
+			f.w = NewWatchdog(cfg)
+
+			sent := f.notifyStale(t)
+
+			require.Len(t, sent, 1, "the monitor is stale all the same")
+			assert.Empty(t, sent[0].UnsupportedProbes)
+		})
+	}
+}
+
+func TestWatchdog_NotifiesWithoutAReasonWhenTheProbesCannotBeRead(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t, staleDockerMonitorOn(now, "probe-1"))
+	f.heartbeats.setLatest("docker-1", now.Add(-4*time.Minute))
+	cfg := f.config()
+	cfg.Probes = &fakeProbes{
+		byID: map[string]*ProbeInfo{"probe-1": {Name: "Frankfurt", SupportedTypes: []string{"http"}}},
+		err:  map[string]error{"probe-1": errors.New("database is locked")},
+	}
+	f.w = NewWatchdog(cfg)
+
+	sent := f.notifyStale(t)
+
+	require.Len(t, sent, 1, "a lookup that fails must not swallow the notification")
+	assert.Empty(t, sent[0].UnsupportedProbes)
+}
+
+func TestWatchdog_WithoutAProbeLookupNamesNoProbe(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t, staleDockerMonitorOn(now, "probe-1"))
+	f.heartbeats.setLatest("docker-1", now.Add(-4*time.Minute))
+
+	sent := f.notifyStale(t)
+
+	require.Len(t, sent, 1)
+	assert.Empty(t, sent[0].UnsupportedProbes)
+}
+
+func TestWatchdog_TheCheckingAgainNotificationNamesNoProbe(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t, staleDockerMonitorOn(now, "probe-1"))
+	f.heartbeats.setLatest("docker-1", now.Add(-4*time.Minute))
+	cfg := f.config()
+	cfg.Probes = &fakeProbes{byID: map[string]*ProbeInfo{"probe-1": {Name: "Frankfurt", SupportedTypes: []string{"http"}}}}
+	f.w = NewWatchdog(cfg)
+	require.Len(t, f.notifyStale(t), 1)
+
+	f.heartbeats.setLatest("docker-1", now.Add(90*time.Second))
+	f.at(2 * time.Minute)
+	f.run(t)
+
+	recovered := f.published(MonitorStaleRecovered)
+	require.Len(t, recovered, 1)
+	assert.Empty(t, recovered[0].UnsupportedProbes, "the reason belongs to the not-checked message")
+}

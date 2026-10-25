@@ -106,9 +106,9 @@ func (l *NotificationEventListener) Subscribe(eventBus events.EventBus) {
 const staleTimeFormat = "2006-01-02 15:04:05 UTC"
 
 // handleProbeEvent notifies that a probe went offline, or that it is online. The providers take a
-// monitor, and several read its name and id without checking for nil, so a stand-in carries the
-// probe: its name says it is a probe, and its id is the probe's, which keeps the notifications of
-// two probes apart in a channel that deduplicates by it.
+// monitor, so a stand-in carries the probe: its name says it is a probe, and its id is the
+// probe's, which keeps the notifications of two probes apart in a channel that deduplicates by it.
+// Its type marks it as a probe's, so a provider that links to the monitor links to the Probes page.
 func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeEvent probe.Event, online bool) {
 	l.logger.Infof("Probe event received for probe: %s (online: %t)", probeEvent.ProbeID, online)
 
@@ -130,7 +130,7 @@ func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeE
 	if online {
 		message = fmt.Sprintf("Probe %s is online", probeEvent.ProbeName)
 	}
-	standIn := &monitor.Model{ID: probeEvent.ProbeID, Name: "Probe " + probeEvent.ProbeName}
+	standIn := &monitor.Model{ID: probeEvent.ProbeID, Type: shared.MonitorTypeProbe, Name: "Probe " + probeEvent.ProbeName}
 	// A probe notification carries no heartbeat
 	l.sendToChannels(ctx, l.channelsByID(ctx, ids), message, standIn, nil)
 }
@@ -148,9 +148,26 @@ func (l *NotificationEventListener) handleStaleMonitorEvent(ctx context.Context,
 	message := fmt.Sprintf("Peekaping has not checked %s since %s", monitorModel.Name, since)
 	if recovered {
 		message = fmt.Sprintf("Peekaping is checking %s again. It was not checked from %s", monitorModel.Name, since)
+	} else if reason := unsupportedProbesReason(staleEvent.UnsupportedProbes, monitorModel.Type); reason != "" {
+		message += ": " + reason
 	}
 	// A stale-monitor notification carries no heartbeat
 	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
+}
+
+// unsupportedProbesReason says why no probe checks a monitor when probes don't run its type:
+// "probe Frankfurt doesn't run docker monitors", "probes Frankfurt and Lagos don't run docker
+// monitors". It is empty when no probe is named.
+func unsupportedProbesReason(probeNames []string, monitorType string) string {
+	switch len(probeNames) {
+	case 0:
+		return ""
+	case 1:
+		return fmt.Sprintf("probe %s doesn't run %s monitors", probeNames[0], monitorType)
+	default:
+		last := len(probeNames) - 1
+		return fmt.Sprintf("probes %s and %s don't run %s monitors", strings.Join(probeNames[:last], ", "), probeNames[last], monitorType)
+	}
 }
 
 func (l *NotificationEventListener) handleNotifyEvent(ctx context.Context, hb heartbeat.Model) {
