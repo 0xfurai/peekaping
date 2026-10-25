@@ -131,6 +131,18 @@ func TestQueueService_EnqueueRefusesAPayloadThatIsNotJSON(t *testing.T) {
 	assert.ErrorContains(t, err, "failed to marshal payload")
 }
 
+func TestQueueService_EnqueueRefusesNoOptions(t *testing.T) {
+	cfg := newACLRedisConfig(t, "peekaping")
+	logger := zap.NewNop().Sugar()
+	client, err := ProvideAsynqClient(cfg, logger)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = client.Close() })
+
+	err = ProvideQueueService(client, logger).Enqueue(context.Background(), "test:event", map[string]string{}, nil)
+
+	assert.EqualError(t, err, "enqueue test:event: no queue options")
+}
+
 // A task's payload holds an event: a heartbeat with the monitor's name and the check's message. A
 // failed task logs its type, ID and error but never its payload.
 func TestAsynqServerLogsAFailedTaskWithoutItsPayload(t *testing.T) {

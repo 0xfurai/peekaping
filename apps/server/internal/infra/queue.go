@@ -128,6 +128,9 @@ func ProvideQueueService(
 
 // Enqueue adds a task to the queue
 func (s *queueServiceImpl) Enqueue(_ context.Context, taskType string, payload interface{}, opts *queue.EnqueueOptions) error {
+	if opts == nil {
+		return fmt.Errorf("enqueue %s: no queue options", taskType)
+	}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		s.logger.Errorw("Failed to marshal payload", "task_type", taskType, "error", err)
