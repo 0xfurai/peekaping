@@ -10,8 +10,9 @@ import (
 type Event struct {
 	ProbeID   string `json:"probe_id"`
 	ProbeName string `json:"probe_name"`
-	// Since is the last time any instance of the probe was seen, for ProbeOffline, and the time
-	// of the request that brought the probe back, for ProbeOnline
+	// Since is the last time any instance of the probe was seen, for ProbeOffline (the time the
+	// probe was found to have none, for a local probe that never had one), and the time of the
+	// request that brought the probe back, for ProbeOnline
 	Since time.Time `json:"since"`
 }
 

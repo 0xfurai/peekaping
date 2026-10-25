@@ -94,6 +94,12 @@ type Config struct {
 
 	// The local probe's token. Set, it is stored on the local probe at startup. Validated in Validate().
 	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
+
+	// How long an online probe's instances may all go unseen before the probe counts as offline.
+	// A Go duration, from config.MinProbeOfflineAfter to config.MaxProbeOfflineAfter. The sweep that
+	// sets the probe offline runs on the api replica that holds the leader lock (on SQLite and
+	// PostgreSQL; MongoDB has no probes). Validated in Validate().
+	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -172,6 +178,17 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("PROBE_BOOTSTRAP_TOKEN must be at least %d characters", probe.MinBootstrapTokenLength)
 	}
 
+	// A shorter limit would announce a probe offline while it restarts gracefully (see
+	// probe.RetiredAt)
+	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at least %s", config.MinProbeOfflineAfter)
+	}
+	// The sweep forgets an instance after that long, so a longer limit would set a probe online on
+	// an instance about to be pruned, and offline again (see config.MaxProbeOfflineAfter)
+	if cfg.ProbeOfflineAfter > config.MaxProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
+	}
+
 	return nil
 }
 
@@ -213,6 +230,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ErrorReporting:               c.ErrorReporting,
 		ErrorReportingDSN:            c.ErrorReportingDSN,
 		ProbeBootstrapToken:          c.ProbeBootstrapToken,
+		ProbeOfflineAfter:            c.ProbeOfflineAfter,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

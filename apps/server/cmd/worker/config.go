@@ -25,6 +25,10 @@ type Config struct {
 	// Queue configuration
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
+	// DBType is the install's storage backend. The worker has no database and doesn't need it: it is
+	// read only to say, at startup, that on SQLite and PostgreSQL it has no work left.
+	DBType string `env:"DB_TYPE" validate:"omitempty,db_type" default:""`
+
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:worker"`
 
 	// Error reports (ADR 0003): on until an admin opts out. ERROR_REPORTING=off

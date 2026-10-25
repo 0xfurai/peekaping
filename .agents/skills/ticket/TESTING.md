@@ -83,6 +83,7 @@ REDIS_PORT=6379
 SERVER_PORT=8034
 CLIENT_URL=http://localhost:8383
 PROBE_OFFLINE_AFTER=2m
+PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789
 TELEMETRY_URL=http://127.0.0.1:9/v1/ping
 ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
 ENV
@@ -95,6 +96,8 @@ docker compose down
 ```
 
 `PROBE_OFFLINE_AFTER=2m`, the shortest the server takes, lets `e2e/remote-probe.spec.ts` wait for a stopped probe to be reported offline in about a minute and a half. That spec starts and stops `peekaping-probe` containers itself, on the stack's network (`E2E_PROBE_NETWORK` and `E2E_PROBE_URL` name them when it can't find them); it skips on MongoDB.
+
+`PROBE_BOOTSTRAP_TOKEN` is the token of the local probe (at least 32 characters, any value in a test stack). The api stores it at startup, and the stack's `probe` service sends it: on SQLite and PostgreSQL the `probe` service is what checks the monitors, since the cluster has no producer, worker or ingester there. The compose files refuse to start without it. The Mongo stacks still run the producer, worker and ingester, and ignore it.
 
 CI runs the suite twice against the same database, so a test must leave nothing behind that breaks its next run.
 
