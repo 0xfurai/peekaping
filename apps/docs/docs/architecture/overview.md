@@ -9,11 +9,7 @@ Peekaping's server has two kinds of process you run: the API and the probe. A th
 - **Single mode**: one process, the `peekaping` binary, is the API and the local probe. It passes work and events between its parts in memory, with no Redis. It supports SQLite and PostgreSQL. The SQLite and PostgreSQL bundle images run it.
 - **Cluster mode**: the API and the probe are separate processes. The API replicas share the database and talk to each other through Redis, and the probe instances connect to the API and run the checks. You can run several of each for scale and high availability. Helm and the SQLite and PostgreSQL Docker Compose stacks run it.
 
-See [Deployment modes](../self-hosting/deployment-modes.md) to choose between them. The rest of this page describes cluster mode on SQLite and PostgreSQL, where the parts are easiest to see. See [ADR 0002](https://github.com/0xfurai/peekaping/blob/main/docs/adr/0002-single-process-runtime.md) for how single mode replaces Redis, and how cluster mode came to need only the API and the probe.
-
-:::note MongoDB storage keeps the old layout
-MongoDB has no probes, so a cluster on MongoDB storage (deprecated) still runs the API, the producer, the worker and the ingester, and the Mongo bundle image runs all four. They stay until MongoDB storage is removed. See [MongoDB installs](#mongodb-installs).
-:::
+See [Deployment modes](../self-hosting/deployment-modes.md) to choose between them. The rest of this page describes cluster mode. See [ADR 0002](https://github.com/0xfurai/peekaping/blob/main/docs/adr/0002-single-process-runtime.md) for how single mode replaces Redis, and how cluster mode came to need only the API and the probe.
 
 ## System Architecture
 
@@ -98,8 +94,6 @@ The lock is the Redis key `peekaping:producer:leader`, valid for 10 seconds and 
 
 ### Database (PostgreSQL / SQLite)
 
-MongoDB storage is [deprecated](../self-hosting/docker-with-mongo.md) but still works.
-
 - **User accounts** and authentication
 - **Monitor configurations**
 - **Heartbeat history**
@@ -131,36 +125,23 @@ Redis connects the API replicas to each other. The probes don't use it.
        - The others take over the monitors of an instance that stops
        - Add instances to add capacity for checks
 
-## MongoDB installs
-
-A cluster on MongoDB storage keeps the layout from before probes. MongoDB storage is deprecated, and this layout goes with it. Four processes talk through Redis:
-
-![Peekaping system design on MongoDB storage](/img/schema.png)
-
-- The **[API](./api-server.md)** serves the HTTP API and the websocket, and enqueues the pushes it receives.
-- The **[Producer](./producer.md)** schedules the checks and elects a leader that runs the watchdog.
-- The **[Worker](./worker.md)** runs the checks.
-- The **[Ingester](./ingester.md)** stores the results as heartbeats and detects status changes.
-
-On SQLite and PostgreSQL, the producer and the ingester refuse to start and the worker logs that it has no work. See [Upgrading to probes](../self-hosting/upgrading-to-probes.md).
-
 ## Supported Databases
 
-Peekaping supports two database backends for new installs:
+Peekaping supports two database backends:
 
 | Database   | Use Case                     | Features                           |
 |------------|------------------------------|------------------------------------|
 | PostgreSQL | Production deployments       | Full feature support, best performance |
 | SQLite     | Development & small setups   | Single file, no server required    |
 
-MongoDB storage is deprecated. Existing installs keep working, but it gets no new features and will be removed in a future release. See [Docker + MongoDB](../self-hosting/docker-with-mongo.md).
+MongoDB storage was removed. [Move to SQLite or PostgreSQL](../self-hosting/docker-with-mongo.md#move-to-sqlite-or-postgresql) with `bun db import-mongo`.
 
 ## Technology Stack
 
 - **Language**: Go 1.26+
 - **HTTP Server and Router**: Go `net/http` and `http.ServeMux`
-- **Database**: Bun ORM (SQL) / MongoDB Driver (MongoDB storage is deprecated)
-- **Queue**: Asynq (Redis-based), for notifications and, on MongoDB storage, for checks and results
+- **Database**: Bun ORM (SQL)
+- **Queue**: Asynq (Redis-based), for notifications
 - **Event Bus**: Redis Pub/Sub
 - **Logging**: Zap
 - **Dependency Injection**: Uber Dig
@@ -172,8 +153,3 @@ Learn more about each component:
 - [API Server](./api-server.md)
 - [Probe](./probe.md)
 - [Migrate](./migrate.md)
-
-On MongoDB storage only:
-- [Producer](./producer.md)
-- [Worker](./worker.md)
-- [Ingester](./ingester.md)

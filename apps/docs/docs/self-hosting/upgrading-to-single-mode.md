@@ -8,7 +8,7 @@ This page takes you from a SQLite or PostgreSQL bundle of release 0.0.44 to 0.0.
 
 The image names, port 8383, the data volume and your environment variables stay the same. Upgrading is pulling the new image and starting it with the same volume. Migrations run at start, as before.
 
-This page is for the SQLite and PostgreSQL bundles. The MongoDB bundle doesn't change. Helm and the Docker Compose stacks stay in cluster mode.
+This page is for the SQLite and PostgreSQL bundles. Helm and the Docker Compose stacks stay in cluster mode.
 
 ## Which release you run
 

@@ -97,13 +97,13 @@ PEEKAPING_URL=http://localhost:8034
 # - Secret keys are automatically generated securely
 ```
 
-`.env.prod.example` leaves `PROBE_BOOTSTRAP_TOKEN` empty, so give it a value and add the other two lines. `.env.dev.example` has all three set. `make dev` starts the api, a probe and the docs watcher, so the probe checks your monitors. On MongoDB storage, which has no probes, run the producer, worker and ingester instead: `bun run dev dev:api dev:ingester dev:producer dev:worker docs:watch`. On SQLite and PostgreSQL the producer and the ingester refuse to start.
+`.env.prod.example` leaves `PROBE_BOOTSTRAP_TOKEN` empty, so give it a value and add the other two lines. `.env.dev.example` has all three set. `make dev` starts the api, a probe and the docs watcher, so the probe checks your monitors. The producer and the ingester refuse to start.
 
 ---
 
 ## 5. Run a Database for Development
 
-The cluster-mode binaries you run on your machine need Redis, and with PostgreSQL or MongoDB a database server. They are the `api` and the `probe` (the probe needs only the api's address, not Redis or a database), and, for MongoDB storage only, the `producer`, `worker` and `ingester`. The single-mode `peekaping` binary needs no Redis, only the database server. `docker-compose.deps.yml` runs them with Docker Compose. It always starts Redis and asynqmon, a queue dashboard, and a profile adds the database. Example for **PostgreSQL**:
+The cluster-mode binaries you run on your machine need Redis, and with PostgreSQL a database server. They are the `api` and the `probe` (the probe needs only the api's address, not Redis or a database). The single-mode `peekaping` binary needs no Redis, only the database server. `docker-compose.deps.yml` runs them with Docker Compose. It always starts Redis and asynqmon, a queue dashboard, and a profile adds the database. Example for **PostgreSQL**:
 
 ```bash
 docker compose -f docker-compose.deps.yml --profile postgres up -d
@@ -111,23 +111,22 @@ docker compose -f docker-compose.deps.yml --profile postgres up -d
 
 Other options:
 - No profile for SQLite. It starts Redis and asynqmon and no database server, since SQLite needs none
-- `--profile mongo` for MongoDB. MongoDB storage is [deprecated](./self-hosting/docker-with-mongo.md), so use it only to work on existing Mongo installs
 
-`make docker-sqlite`, `make docker-postgres` and `make docker-mongo` run the same commands, and `make down-sqlite`, `make down-postgres` and `make down-mongo` stop them.
+`make docker-sqlite` and `make docker-postgres` run the same commands, and `make down-sqlite` and `make down-postgres` stop them.
 
 ### Compose files
 
-The repository root has these Docker Compose files. Each one comes in a variant per storage backend: `sqlite`, `postgres` and `mongo`, except `deps` and `e2e`.
+The repository root has these Docker Compose files. Each one comes in a variant per storage backend: `sqlite` and `postgres`, except `deps` and `e2e`.
 
 | File | What it is for |
 |------|----------------|
 | `docker-compose.dev.<backend>.yml` | The whole stack in cluster mode, built from source. `make docker-dev-<backend>` starts it. The web container on `localhost:8383` calls the API on `localhost:8034`, so the `api` service sets `CORS_ORIGINS` to `http://localhost:8383` unless your `.env` sets it. |
 | `docker-compose.prod.<backend>.yml` | The whole stack in cluster mode, from the published `0xfurai/peekaping-*` images, behind an nginx gateway. |
-| `docker-compose.bundle.<backend>.yml` | One bundle image, built from source. The SQLite and PostgreSQL bundles run single mode; the MongoDB bundle runs cluster mode inside the image. |
-| `docker-compose.deps.yml` | Redis, asynqmon and, with a profile, PostgreSQL or MongoDB, for running the Go binaries on your machine. |
+| `docker-compose.bundle.<backend>.yml` | One bundle image, built from source. Both bundles run single mode. |
+| `docker-compose.deps.yml` | Redis, asynqmon and, with a profile, PostgreSQL, for running the Go binaries on your machine. |
 | `docker-compose.e2e.yml` | The test target overlay for the Playwright suite. It adds `e2e-target` on top of a dev, prod or bundle file. |
 
-The `mongo` files are for the deprecated MongoDB storage backend. They run the `producer`, `worker` and `ingester`. The `sqlite` and `postgres` dev and prod files run a `probe` service instead, and refuse to start without `PROBE_BOOTSTRAP_TOKEN` in `.env`.
+The dev and prod files run a `probe` service, and refuse to start without `PROBE_BOOTSTRAP_TOKEN` in `.env`.
 
 ### Docs snippets that copy a file
 
@@ -183,7 +182,7 @@ Happy hacking! 🚀
 
 ## Server model boundaries
 
-HTTP request DTOs belong at the controller boundary. Services use domain models, and repository interfaces accept domain models or partial-update models. Each SQL or Mongo repository maps these models to its own private persistence structs; database tags belong on those structs.
+HTTP request DTOs belong at the controller boundary. Services use domain models, and repository interfaces accept domain models or partial-update models. Each repository maps these models to its own private persistence structs; database tags belong on those structs.
 
 Partial-update models preserve omitted fields separately from explicit zero values. A nil slice leaves an association unchanged, while an empty slice clears it. Maintenance monitor IDs are passed separately to the service so the maintenance repository only receives maintenance fields.
 

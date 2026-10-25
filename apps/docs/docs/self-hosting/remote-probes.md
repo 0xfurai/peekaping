@@ -12,7 +12,7 @@ A **probe** is a place Peekaping runs checks from. Every install has the **local
 
 A monitor runs on one or more probes. Each probe's results for the monitor are a **location** of that monitor. See [several probes per monitor](#several-probes-per-monitor).
 
-A remote probe runs the monitor types it has a check for. A push monitor runs on the local probe only, because pushes arrive at Peekaping. Remote probes need SQLite or PostgreSQL storage: MongoDB storage doesn't support them, so the Mongo bundle and the Mongo Docker Compose stacks can't use them.
+A remote probe runs the monitor types it has a check for. A push monitor runs on the local probe only, because pushes arrive at Peekaping.
 
 ## Run a probe
 

@@ -30,7 +30,7 @@ Peekaping is a modern uptime monitoring solution designed with the requirements 
 - **Server built with Golang** — using one of the most performant compiled languages ensures high speed with minimal consumption of RAM and CPU resources
 - **Unmatched stability** — thanks to a typed client and compiled Golang language, the system demonstrates high reliability and predictable operation
 Modern and intuitive interface — clean user interface design built on contemporary UI/UX principles
-- **Flexible storage options** — support for two popular databases (SQLite / PostgreSQL) allows adapting the solution to any infrastructure. MongoDB storage still works but is [deprecated](https://docs.peekaping.com/self-hosting/docker-with-mongo)
+- **Flexible storage options** — support for two popular databases (SQLite / PostgreSQL) allows adapting the solution to any infrastructure
 - **API key management and access control** — built-in security system with access rights management and API keys provides enterprise-level protection
 
 
@@ -65,7 +65,7 @@ Peekaping also supports [PostgreSQL Setup](https://docs.peekaping.com/self-hosti
 
 These images run single mode, the default for new installs. Cluster mode (Kubernetes with Helm, or Docker Compose) is for installs that need to scale out. See [Deployment modes](https://docs.peekaping.com/self-hosting/deployment-modes) to choose.
 
-MongoDB storage is deprecated. Existing installs keep working, but new installs should use SQLite or PostgreSQL. See the [deprecated MongoDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mongo) for the removal rule and how to [move your data to SQLite or PostgreSQL](https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql).
+MongoDB storage was removed. If you ran Peekaping on MongoDB, [move your data to SQLite or PostgreSQL](https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql) before you upgrade.
 
 ## ☁️ One-Click Deploy
 

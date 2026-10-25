@@ -41,8 +41,6 @@ The hourly cleanup keeps:
 
 Minute and hour row counts become bounded once cleanup catches up. Day stats continue to add about 365 rows per monitor each year. Uptime and badges read minute stats for windows up to 24 hours, hour stats up to 90 days, and day stats for longer windows. The first cleanup can take several minutes on an old installation.
 
-MongoDB already stores these periods in separate collections and does not run the SQL rebuild. The same stats retention periods apply.
-
 ## Reclaiming SQLite disk space
 
 Deleting old rows frees pages for SQLite to reuse, but the database file does not shrink automatically. Reclaiming disk space is optional; future writes can reuse those pages. This procedure also reclaims space freed by heartbeat cleanup or dropped indexes.

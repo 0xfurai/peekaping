@@ -32,7 +32,7 @@ The API server uses Uber's Dig for dependency injection, registering all modules
 The API server subscribes to Redis pub/sub events and broadcasts them to connected WebSocket clients for real-time updates.
 
 ### Notifications
-Redis pub/sub gives every API server a copy of an event, so notifications don't travel that way, or each replica would send them all. The API server that stores a heartbeat puts a monitor going Down or Up, or a certificate close to expiring, on the `notification` queue. The leader's watchdog does the same for a stale monitor and for the same monitor checked again. (On MongoDB storage, the [ingester](./ingester.md) and the [producer](./producer.md)'s watchdog put them there.) Each API server takes tasks from that queue, and a task goes to one of them, so a notification is sent once to each of the monitor's notification channels however many replicas run. A notification queued while no API server is running is sent when the first one starts.
+Redis pub/sub gives every API server a copy of an event, so notifications don't travel that way, or each replica would send them all. The API server that stores a heartbeat puts a monitor going Down or Up, or a certificate close to expiring, on the `notification` queue. The leader's watchdog does the same for a stale monitor and for the same monitor checked again. Each API server takes tasks from that queue, and a task goes to one of them, so a notification is sent once to each of the monitor's notification channels however many replicas run. A notification queued while no API server is running is sent when the first one starts.
 
 In single mode the `peekaping` binary is the only process and sends them itself, with no queue.
 
@@ -43,7 +43,6 @@ In cluster mode on SQLite and PostgreSQL, the API server stores what it receives
 - **Retried batches.** A probe that doesn't get an answer sends its batch again, possibly to another replica. Each replica records the ids of the results it took in a Redis key that lasts an hour, so a batch retried within the hour is answered as a duplicate and stored once. A result's id is claimed for 2 minutes before it is stored and kept for the hour once it is. A retry that finds an id that is claimed and not kept (the first replica may still be storing it, or may have died) is not answered as a duplicate, which the probe drops for good: the replica stores the rest of the batch and answers 503 with a `Retry-After` of 5 seconds, and the probe sends the batch again. A request stores for 90 seconds at the most, so that it is over before its claims run out: past that it keeps the ids of what it stored, gives back the rest and answers the same 503. If a replica can't reach Redis for that record, it answers 503, and the probe sends the batch again.
 - **Speed.** One API server stores about 2,000 probe results a second on PostgreSQL 17 and on SQLite. The ingester queue it replaces stored about 1,350 a second on PostgreSQL.
 
-On MongoDB storage the API server enqueues a push for the ingester instead.
 
 ### Leader Jobs
 Three jobs must run on one replica at a time. In cluster mode on SQLite and PostgreSQL they run on the API replica that holds the leader lock, the Redis key `peekaping:producer:leader`. The lock lasts 10 seconds and its holder renews it every 5.
@@ -57,8 +56,6 @@ Three jobs must run on one replica at a time. In cluster mode on SQLite and Post
 The sweep also looks for a local probe that has active monitors and no instance, which is what a cluster upgraded without deploying probes looks like. It reports that probe offline once, after `PROBE_OFFLINE_AFTER` from the moment the replica took the lock, and logs `the local probe has N active monitors and no instance: deploy peekaping-probe with PROBE_TOKEN set to PROBE_BOOTSTRAP_TOKEN`. The API also logs it at startup. See [Upgrading to probes](../self-hosting/upgrading-to-probes.md).
 
 When the leader stops, it releases the lock and another replica takes it at once, and starts the jobs. When the leader is killed, the lock runs out and another replica takes it within about 15 seconds. Each replica's log says when it starts or stops running the jobs.
-
-On MongoDB storage the producer holds the same lock and runs the watchdog, and it schedules the checks of push monitors with the others. MongoDB has no probes, so there is no sweep.
 
 In single mode the `peekaping` process is always the leader, and runs the jobs itself.
 
@@ -90,7 +87,7 @@ With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `DB_TYPE` | string | Yes | - | Storage backend: `postgres`, `mysql`, `sqlite`, `mongo`, `mongodb` (MongoDB storage is [deprecated](../self-hosting/docker-with-mongo.md)) |
+| `DB_TYPE` | string | Yes | - | Storage backend: `postgres`, `mysql` or `sqlite`. MongoDB storage was removed: `mongo` and `mongodb` [stop the API at startup](../self-hosting/docker-with-mongo.md) |
 | `DB_HOST` | string | Conditional | - | Database host (not required for SQLite) |
 | `DB_PORT` | string | Conditional | - | Database port (not required for SQLite) |
 | `DB_NAME` | string | Yes | - | Database name or SQLite file path |
@@ -100,7 +97,7 @@ With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is
 ### Redis Configuration
 
 :::note Single mode
-These are required in cluster mode, where the API replicas reach each other through Redis (and, on MongoDB storage, the producer, worker and ingester). The probes don't use Redis. In single mode, the `peekaping` binary runs the API and the checks in one process with no Redis, so it doesn't need `REDIS_HOST`. It ignores the `REDIS_*` variables and logs once when one is set.
+These are required in cluster mode, where the API replicas reach each other through Redis. The probes don't use Redis. In single mode, the `peekaping` binary runs the API and the checks in one process with no Redis, so it doesn't need `REDIS_HOST`. It ignores the `REDIS_*` variables and logs once when one is set.
 :::
 
 | Variable | Type | Required | Default | Description |
@@ -120,7 +117,7 @@ These are required in cluster mode, where the API replicas reach each other thro
 
 ### Local Probe Configuration
 
-These settings are for cluster mode on SQLite and PostgreSQL, and `peekaping` reads them in single mode too. MongoDB storage has no probes: the API logs a warning and ignores `PROBE_BOOTSTRAP_TOKEN`.
+These settings are for cluster mode, and `peekaping` reads them in single mode too.
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
@@ -168,7 +165,7 @@ The anonymous usage ping and the error reports are both on until an admin turns 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `TELEMETRY` | string | No | `""` | `off` (also `false`, `0` or `no`) turns the usage ping off |
-| `ERROR_REPORTING` | string | No | `""` | `off` (also `false`, `0` or `no`) turns error reports off. In cluster mode, set it on the API. On MongoDB storage, set it on the producer, worker and ingester too. The probe sends no error reports. |
+| `ERROR_REPORTING` | string | No | `""` | `off` (also `false`, `0` or `no`) turns error reports off. In cluster mode, set it on the API. The probe sends no error reports. |
 
 ## API Endpoints
 
@@ -259,7 +256,7 @@ GET /metrics
 :::warning
 `/metrics` needs no credentials, and it lists the name and type of every active monitor. Scrape it over a private network, and leave `METRICS_ENABLED` off if that information shouldn't be readable by whoever can reach the API port.
 
-In cluster mode, the gateway (nginx in front of the separate web image, or Caddy in the MongoDB bundle image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones and the MongoDB bundle image don't, so publish it or run Prometheus on the same network.
+In cluster mode, the gateway (nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones don't, so publish it or run Prometheus on the same network.
 
 In single mode, the `peekaping` binary has one port. With `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it. The SQLite and PostgreSQL bundle images run single mode, so with `METRICS_ENABLED=true` they serve `/metrics` on port 8383.
 :::
@@ -320,7 +317,3 @@ The second rule fires for a monitor whose latest heartbeat is more than 5 minute
 - [Probe](./probe.md) - Executes health checks and sends the results
 - [Migrate](./migrate.md) - Sets up the database
 
-On MongoDB storage only:
-- [Producer](./producer.md) - Schedules monitor health checks
-- [Worker](./worker.md) - Executes health checks
-- [Ingester](./ingester.md) - Processes health check results

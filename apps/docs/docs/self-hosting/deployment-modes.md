@@ -44,10 +44,6 @@ In cluster mode the local probe is online while one of its instances is connecte
 
 Coming from the layout with a producer, a worker and an ingester? See [Upgrading to probes](./upgrading-to-probes.md).
 
-### MongoDB
-
-MongoDB has no probes, so a cluster on MongoDB storage keeps the earlier layout: the API, the producer, the worker and the ingester, which talk through Redis. The MongoDB bundle image runs all four in one container, and the MongoDB Docker Compose stack runs each in its own. They stay that way until MongoDB storage is removed. MongoDB storage is deprecated, so new installs shouldn't use it. See [Docker + MongoDB](./docker-with-mongo.md).
-
 ## What each mode runs
 
 | | Single mode | Cluster mode |
@@ -75,4 +71,4 @@ Helm and the Docker Compose stacks stay in cluster mode.
 
 ## Remote probes
 
-Both modes can check monitors from other machines, with remote probes (not with MongoDB storage). A probe connects out to the API, so it works with either mode and needs no extra service on the server. See [Remote probes](./remote-probes.md).
+Both modes can check monitors from other machines, with remote probes. A probe connects out to the API, so it works with either mode and needs no extra service on the server. See [Remote probes](./remote-probes.md).
