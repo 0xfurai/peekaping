@@ -49,7 +49,7 @@ While the container still runs, ask it which MongoDB it runs. The first line say
 docker exec peekaping mongod --version
 ```
 
-If you already started the new release on your data and it stopped with the removal message, nothing was written: the data folder is as it was, and there is no container to ask. The MongoDB bundle and the Docker Compose file ran MongoDB 7, so use 7 for `MONGO_VERSION` in step 2.
+If you already started the new release on your data and it stopped with the removal message, nothing was written: the data folder is as it was, and there is no container to ask. The MongoDB bundle ran MongoDB 7, and so did the Docker Compose file as shipped, so use 7 for `MONGO_VERSION` in step 2. If you changed the `image:` of the Compose file's `database` service, or ran Peekaping against a MongoDB of your own, use the major version that MongoDB ran: its tag, or `mongod --version` on that server.
 
 Stop the container, so that the files are complete, and copy the data folder. The import reads the copy, and the original is your way back. Rename the stopped container, so that the new one can take the name `peekaping`.
 
