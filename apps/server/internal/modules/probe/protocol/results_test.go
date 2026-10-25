@@ -54,13 +54,25 @@ type recordingIngester struct {
 	// hold, when set, runs as a result is handed over and before it is recorded, to keep a request
 	// in the middle of storing
 	hold func(*ingester.Result)
+	// blockOn, when set, makes the ingester wait for the results it returns true for until the
+	// context it was given ends, and fail with the context's error: a database that does not answer
+	blockOn func(*ingester.Result) bool
 
 	mu sync.Mutex
 }
 
-func (r *recordingIngester) Ingest(_ context.Context, result *ingester.Result) error {
+func (r *recordingIngester) Ingest(ctx context.Context, result *ingester.Result) error {
 	if r.hold != nil {
 		r.hold(result)
+	}
+	if r.blockOn != nil && r.blockOn(result) {
+		// A server that never ends a store would hang the test: give up after a while
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(3 * time.Second):
+			return errors.New("the test's database never answered")
+		}
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -169,6 +181,13 @@ func newResultsServer(t *testing.T) *resultsServer {
 // newResultsServerWith is newResultsServer with a window of its own, instead of the memory window
 func newResultsServerWith(t *testing.T, window protocol.Window) *resultsServer {
 	t.Helper()
+	return newResultsServerTimed(t, window, protocol.Timing{})
+}
+
+// newResultsServerTimed is newResultsServerWith with the server's timing, of which a zero value
+// leaves the default
+func newResultsServerTimed(t *testing.T, window protocol.Window, timing protocol.Timing) *resultsServer {
+	t.Helper()
 	owned, others := resultsMonitors()
 	byID := map[string]*monitor.Model{}
 	for _, m := range append(append([]*monitor.Model{}, owned...), others...) {
@@ -190,6 +209,7 @@ func newResultsServerWith(t *testing.T, window protocol.Window) *resultsServer {
 		Ingester:    s.ingest,
 		Maintenance: s.maintenance,
 		Window:      window,
+		Timing:      timing,
 		Logger:      logger,
 	})
 	s.router = httpx.NewRouter()
@@ -780,6 +800,46 @@ func TestResults_AWindowThatFailsAnswers503AndStoresNothing(t *testing.T) {
 
 	assert.Equal(t, []probeproto.ResultOutcome{accepted("first"), accepted("second")}, got, "the probe's retry is accepted")
 	assert.Len(t, s.ingest.stored, 2)
+}
+
+// The longest a request stores for is shorter than a claim lasts, so that a request can't be at it
+// when its claims have run out, and longer than the probe waits for an answer, so that a probe that
+// is still listening gets one
+func TestStoreDeadline_IsLongerThanTheProbeWaitsAndShorterThanAClaimLasts(t *testing.T) {
+	assert.Greater(t, protocol.StoreDeadline, 30*time.Second, "the probe gives up on a call after 30 seconds")
+	assert.Less(t, protocol.StoreDeadline+10*time.Second, protocol.ClaimTTL, "with room for the claims, the keep and the release around it")
+}
+
+// A request stores for StoreDeadline at the most. When the ingester is still at it then (a database
+// that does not answer), what was stored is kept, what was not is given back, and the answer is a
+// 503 with a Retry-After, as for an id another request holds: the probe sends the batch again, and
+// the claims of this request are gone or stored by then, never left to run out under a request that
+// is still storing.
+func TestResults_AStoreThatOutlivesTheDeadlineGivesBackWhatItDidNotStoreAndToldToComeBack(t *testing.T) {
+	window := &brokenWindow{Window: protocol.NewMemoryWindow(), failFrom: 1000}
+	s := newResultsServerTimed(t, window, protocol.Timing{StoreDeadline: 100 * time.Millisecond})
+	start := time.Now().UTC().Add(-time.Minute)
+	fast := checkResult("fast", monCheckout, start)
+	stuck := checkResult("stuck", monSearch, start)
+	s.ingest.blockOn = func(r *ingester.Result) bool { return r.MonitorID == monSearch }
+
+	began := time.Now()
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{fast, stuck}})
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	assert.Equal(t, "5", w.Header().Get("Retry-After"))
+	assert.Equal(t, "storing the results took too long: send the batch again", errorMessageOf(t, w))
+	assert.Less(t, time.Since(began), 5*time.Second, "the request ended at the deadline")
+	require.Len(t, s.ingest.stored, 1)
+	assert.Equal(t, monCheckout, s.ingest.stored[0].MonitorID)
+	assert.Equal(t, []string{"fast"}, window.kept, "what was stored is kept")
+	assert.Equal(t, []string{"stuck"}, window.released, "and what was not is given back")
+
+	s.ingest.blockOn = nil
+	got := s.results(t, fast, stuck)
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("fast", probeproto.ReasonDuplicate), accepted("stuck")}, got,
+		"on the probe's retry the stored result is a duplicate and the other is stored")
 }
 
 // inFlight watches the results the ingester is storing at the same time, and holds each for a

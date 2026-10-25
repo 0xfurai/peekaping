@@ -81,7 +81,8 @@ type Window interface {
 	Keep(ctx context.Context, probeID string, ids ...string) error
 	// Release gives back an id that was claimed for a result that was not stored, so that the
 	// probe's next attempt at it is accepted. It is called when the request is ending, and
-	// finishes even if the request was cancelled.
+	// finishes even if the request was cancelled. An id that was kept stays kept: a request that
+	// ran past its claim must not forget the result another request stored under the same id.
 	Release(ctx context.Context, probeID, id string) error
 }
 
@@ -163,7 +164,9 @@ func (w *acceptedWindow) Release(_ context.Context, probeID, id string) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	ids := w.probes[probeID]
-	delete(ids, id)
+	if held, ok := ids[id]; ok && !held.kept {
+		delete(ids, id)
+	}
 	if len(ids) == 0 {
 		delete(w.probes, probeID)
 	}

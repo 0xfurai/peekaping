@@ -75,6 +75,10 @@ func NewController(p ControllerParams) *Controller {
 	if window == nil {
 		window = NewMemoryWindow()
 	}
+	timing := p.Timing
+	if timing.StoreDeadline <= 0 {
+		timing.StoreDeadline = StoreDeadline
+	}
 	return &Controller{
 		service:     p.Probes,
 		source:      p.Source,
@@ -84,7 +88,7 @@ func NewController(p ControllerParams) *Controller {
 		ingester:    p.Ingester,
 		waker:       p.Waker,
 		bus:         p.Bus,
-		timing:      p.Timing,
+		timing:      timing,
 		accepted:    window,
 		storeSlots:  make(chan struct{}, StoreConcurrencyTotal),
 		now:         time.Now,
