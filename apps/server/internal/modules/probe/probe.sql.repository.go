@@ -283,6 +283,11 @@ func (r *SQLRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID str
 	if needed <= 0 {
 		return nil
 	}
+	// An instance the probe holds takes no new row: its hello updates it
+	known, err := db.NewSelect().Model((*sqlInstance)(nil)).Where("id = ?", instanceID).Where("probe_id = ?", probeID).Exists(ctx)
+	if err != nil || known {
+		return err
+	}
 	var oldest []string
 	err = db.NewSelect().Model((*sqlInstance)(nil)).Column("id").
 		Where("probe_id = ?", probeID).

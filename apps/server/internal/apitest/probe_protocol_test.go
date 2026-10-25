@@ -367,6 +367,52 @@ func TestProbeProtocol_HelloPastTheCapWithEveryInstanceOnlineAnswers429(t *testi
 	assert.ElementsMatch(t, held, a.instanceIDs(t, made.ID), "the refused hello changed nothing")
 }
 
+// The cap is on instances a probe doesn't hold yet. One it holds says hello again after a restart
+// of the server or a lost answer, and must not be turned away at 64, nor make room by taking
+// another's place.
+func TestProbeProtocol_HelloAgainFromAKnownInstanceAtTheCap(t *testing.T) {
+	// holdAtTheCap holds 64 instances, the first of them last seen at firstSeen and the rest just now
+	holdAtTheCap := func(t *testing.T, firstSeen time.Duration) (*app, probeWithToken) {
+		a, made := probeApp(t)
+		now := time.Now()
+		a.holdInstance(t, made.ID, "instance-1", now.Add(-firstSeen))
+		for n := 2; n <= instanceCap; n++ {
+			a.holdInstance(t, made.ID, fmt.Sprintf("instance-%d", n), now.Add(-time.Duration(n)*100*time.Millisecond))
+		}
+		require.Len(t, a.instanceIDs(t, made.ID), instanceCap)
+		return a, made
+	}
+	sayHelloAgain := func(a *app, token, instanceID string) *httptest.ResponseRecorder {
+		again := helloFrom(instanceID)
+		again.Hostname = "edge-2.example.com"
+		return a.request(t, http.MethodPost, helloPath, again, asProbe(token, instanceID))
+	}
+
+	t.Run("with every instance online it is welcomed, not turned away", func(t *testing.T) {
+		a, made := holdAtTheCap(t, 0)
+
+		w := sayHelloAgain(a, made.Token, "instance-2")
+
+		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+		assert.Len(t, a.instanceIDs(t, made.ID), instanceCap)
+		for _, instance := range a.getProbe(t, made.ID).Instances {
+			if instance.ID == "instance-2" {
+				assert.Equal(t, "edge-2.example.com", instance.Hostname, "the hello updated the instance")
+			}
+		}
+	})
+
+	t.Run("with a quiet instance among them it takes nobody's place", func(t *testing.T) {
+		a, made := holdAtTheCap(t, 5*time.Minute)
+		held := a.instanceIDs(t, made.ID)
+
+		w := sayHelloAgain(a, made.Token, "instance-2")
+
+		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+		assert.ElementsMatch(t, held, a.instanceIDs(t, made.ID), "the quiet instance stays: there was nothing to make room for")
+	})
+}
+
 func TestProbeProtocol_TheLocalProbeSaysHelloWithTheBootstrapToken(t *testing.T) {
 	const token = "bootstrap-token-0123456789-abcdefghijklmnop"
 	a := newAppWithAdmin(t, func(cfg *config.Config) { cfg.ProbeBootstrapToken = token })
