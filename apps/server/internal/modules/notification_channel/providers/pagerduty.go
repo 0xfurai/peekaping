@@ -11,7 +11,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"strings"
 
 	"go.uber.org/zap"
 )
@@ -153,9 +152,9 @@ func (p *PagerDutySender) Send(
 	}
 
 	// Add client information if base URL is available
-	if p.config.ClientURL != "" && monitor != nil {
+	if link := peekapingLink(p.config.ClientURL, monitor); link != "" {
 		payload["client"] = "Peekaping"
-		payload["client_url"] = fmt.Sprintf("%s/monitors/%s", strings.TrimRight(p.config.ClientURL, "/"), monitor.ID)
+		payload["client_url"] = link
 	}
 
 	// Convert payload to JSON

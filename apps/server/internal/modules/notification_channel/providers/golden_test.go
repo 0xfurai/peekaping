@@ -236,6 +236,9 @@ var goldenCases = []goldenCase{
 		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue", "pagerduty_auto_resolve": "resolve"}`},
 	{name: "pagerduty_up_without_auto_resolve", sender: pagerDuty, event: upEvent,
 		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	// The dedup key is the probe's, and client_url is the Probes page
+	{name: "pagerduty_probe_offline", sender: pagerDuty, event: probeOfflineEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
 	// Known issue: the dedup key is the monitor's, so this merges into an open Down incident
 	// and the next Up resolves it
 	{name: "pagerduty_certificate_expiry", sender: pagerDuty, event: certExpiryEvent,
@@ -298,6 +301,8 @@ var goldenCases = []goldenCase{
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
 	{name: "teams_certificate_expiry", sender: teams, event: certExpiryEvent,
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s", "server_url": "https://status.example.com"}`},
+	{name: "teams_probe_offline", sender: teams, event: probeOfflineEvent,
+		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
 
 	{name: "telegram_down", sender: telegram, event: downEvent,
 		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234"}`},
