@@ -187,6 +187,11 @@ var goldenCases = []goldenCase{
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
 	{name: "grafana_oncall_up", sender: grafanaOncall, event: upEvent,
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	// The alert uid is the probe's, so the online notification resolves the offline one
+	{name: "grafana_oncall_probe_offline", sender: grafanaOncall, event: probeOfflineEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	{name: "grafana_oncall_probe_online", sender: grafanaOncall, event: probeOnlineEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
 	// Known issue: without a heartbeat the alert is titled "General notification"
 	{name: "grafana_oncall_certificate_expiry", sender: grafanaOncall, event: certExpiryEvent,
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
@@ -227,6 +232,12 @@ var goldenCases = []goldenCase{
 		config: `{"region": "us", "api_key": "genie-key", "priority": 2}`},
 	{name: "opsgenie_eu_up", sender: opsgenie, event: upEvent,
 		config: `{"region": "eu", "api_key": "genie-key", "priority": 2}`},
+	// The alias is the probe's, not the test alert's, and the channel's priority applies
+	{name: "opsgenie_probe_offline", sender: opsgenie, event: probeOfflineEvent,
+		config: `{"region": "us", "api_key": "genie-key", "priority": 2}`},
+	// The probe coming back online closes the alert its offline notification opened
+	{name: "opsgenie_probe_online", sender: opsgenie, event: probeOnlineEvent,
+		config: `{"region": "eu", "api_key": "genie-key", "priority": 2}`},
 	// Known issue: without a heartbeat Opsgenie sends a test alert, with the test alias and
 	// P5, so every monitor's certificate expiry notification merges into one alert
 	{name: "opsgenie_certificate_expiry", sender: opsgenie, event: certExpiryEvent,
@@ -258,6 +269,13 @@ var goldenCases = []goldenCase{
 	{name: "pagertree_up_resolve", sender: pagerTree, event: upEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
 	{name: "pagertree_up_without_auto_resolve", sender: pagerTree, event: upEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	// The alert ID is the probe's, with no send time, so the online notification can resolve it
+	{name: "pagertree_probe_offline", sender: pagerTree, event: probeOfflineEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_probe_online_resolve", sender: pagerTree, event: probeOnlineEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
+	{name: "pagertree_probe_online_without_auto_resolve", sender: pagerTree, event: probeOnlineEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
 	{name: "pagertree_certificate_expiry", sender: pagerTree, event: certExpiryEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},

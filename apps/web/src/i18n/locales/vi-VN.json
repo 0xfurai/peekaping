@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Tự động công nhận",
         "auto_resolve_acknowledge_description": "Xác nhận sự cố tự động",
-        "auto_resolve_description": "Chọn hành động khi giám sát khôi phục",
+        "auto_resolve_description": "Chọn nội dung được gửi khi giám sát khôi phục hoặc đầu dò trực tuyến trở lại",
         "auto_resolve_do_nothing": "Không làm gì",
-        "auto_resolve_do_nothing_description": "Không có hành động khi trạng thái UP",
+        "auto_resolve_do_nothing_description": "Không có gì được gửi khi giám sát khôi phục hoặc đầu dò trực tuyến trở lại, vì vậy sự cố vẫn mở cho đến khi bạn giải quyết nó trong PagerDuty",
         "auto_resolve_label": "Giải quyết tự động hoặc Xác nhận",
         "auto_resolve_placeholder": "Chọn hành vi tự động giải quyết",
         "auto_resolve_resolve": "Tự động giải quyết",

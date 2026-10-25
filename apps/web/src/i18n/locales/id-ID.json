@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Otomatis Mengakui",
         "auto_resolve_acknowledge_description": "Mengakui insiden secara otomatis",
-        "auto_resolve_description": "Pilih tindakan apa yang akan diambil ketika monitor kembali online",
+        "auto_resolve_description": "Pilih apa yang dikirim ketika monitor kembali berjalan atau probe kembali online",
         "auto_resolve_do_nothing": "Tidak melakukan apa-apa",
-        "auto_resolve_do_nothing_description": "Tidak ada tindakan yang diambil pada status UP",
+        "auto_resolve_do_nothing_description": "Tidak ada yang dikirim ketika monitor kembali berjalan atau probe kembali online, sehingga insiden tetap terbuka sampai Anda menyelesaikannya di PagerDuty",
         "auto_resolve_label": "Selesaikan Otomatis atau Konfirmasi",
         "auto_resolve_placeholder": "Pilih perilaku penyelesaian otomatis",
         "auto_resolve_resolve": "Resolusi Otomatis",

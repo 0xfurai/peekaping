@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatisches Bestätigen",
         "auto_resolve_acknowledge_description": "Störung automatisch bestätigen",
-        "auto_resolve_description": "Wählen Sie aus, welche Aktion ergriffen werden soll, wenn der Monitor wieder online ist.",
+        "auto_resolve_description": "Wählen Sie aus, was gesendet werden soll, wenn ein Monitor wieder in Betrieb ist oder eine Sonde wieder online ist.",
         "auto_resolve_do_nothing": "Nichts tun",
-        "auto_resolve_do_nothing_description": "Keine Aktion bei UP-Status",
+        "auto_resolve_do_nothing_description": "Es wird nichts gesendet, wenn ein Monitor wieder in Betrieb ist oder eine Sonde wieder online ist, sodass der Vorfall offen bleibt, bis Sie ihn in PagerDuty lösen",
         "auto_resolve_label": "Automatisch lösen oder bestätigen",
         "auto_resolve_placeholder": "Automatisches Auflösungsverhalten auswählen",
         "auto_resolve_resolve": "Automatisch auflösen",

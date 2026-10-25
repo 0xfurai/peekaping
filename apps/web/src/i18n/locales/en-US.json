@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Auto acknowledge",
         "auto_resolve_acknowledge_description": "Automatically acknowledge the incident",
-        "auto_resolve_description": "Choose what action to take when a monitor comes back up",
+        "auto_resolve_description": "Choose what to send when a monitor comes back up or a probe comes back online",
         "auto_resolve_do_nothing": "Do nothing",
-        "auto_resolve_do_nothing_description": "No action taken on UP status",
+        "auto_resolve_do_nothing_description": "Nothing is sent when a monitor comes back up or a probe comes back online, so the incident stays open until you resolve it in PagerDuty",
         "auto_resolve_label": "Auto Resolve or Acknowledge",
         "auto_resolve_placeholder": "Select auto-resolve behavior",
         "auto_resolve_resolve": "Auto resolve",

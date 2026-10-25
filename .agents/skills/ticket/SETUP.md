@@ -27,8 +27,6 @@ Other sessions share the main checkout, so ticket work happens in a worktree und
 - No branch yet: `git fetch origin && git worktree add .claude/worktrees/pp-<n> -b <type>/pp-<n>-<slug> origin/main`, then `EnterWorktree`. Branch names: [STACK.md](STACK.md).
 - The branch is checked out in the main checkout (the user worked there): work there on that branch, and say so.
 
-In a new session, tell the user the name to use: `/rename [PP-<n>] <branch>`, with the branch name as is (the bottom branch of a stack), e.g. `/rename [PP-48] fix/pp-48-stop-exposing-jwt-secrets`.
-
 Done when: the session is in the branch's checkout and you can state the ticket's ask in two sentences.
 
 ## Throughout

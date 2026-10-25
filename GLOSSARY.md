@@ -51,7 +51,7 @@ An active monitor Peekaping has stopped checking: its latest heartbeat is older 
 _Avoid_: Stuck monitor, dead monitor, overdue
 
 **Probe**:
-A place Peekaping runs checks from. A monitor runs on one or more probes, the local probe unless it's assigned to remote ones.
+A place Peekaping runs checks from. A monitor runs on one or more probes, the local probe unless it's assigned to remote ones. Probes belong to the install, not to a workspace: once workspaces are built, any workspace's monitors can run on them, and only instance admins manage them.
 _Avoid_: Agent, worker
 
 **Local probe**:
@@ -173,8 +173,36 @@ A named, colored label attached to monitors for filtering.
 _Avoid_: Label, group, category
 
 **Data retention period**:
-How many days heartbeats are kept before they're deleted.
+How many days heartbeats are kept before they're deleted. Once workspaces are built, each workspace sets its own, and its plan may cap it.
 _Avoid_: Keep-data period, history limit
+
+### Workspaces
+
+Decided in [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md) and built in Peekaping Cloud's milestone 2. Until that ships, an install has no workspaces: every signed-in user sees everything.
+
+**Workspace**:
+What owns monitors and everything around them: notification channels, status pages, maintenance windows, tags, proxies, API keys, its settings and its plan. People work in it as its members, and it sees nothing of another workspace. A user can be a member of several, and a request runs in one of them: the one it names, or else the user's default workspace, the one they joined first. Probes and install settings belong to the install, not to a workspace. See [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md).
+_Avoid_: Organization, team (kept for a level inside a workspace, which Peekaping doesn't have), account (that's a user's login), tenant, project
+
+**Member**:
+A user's place in a workspace, with one role. A user in two workspaces is a member twice, with a role in each.
+_Avoid_: Seat (that's billing), user (that's the account itself)
+
+**Role**:
+What a member may do in their workspace. There are three. The member role manages monitors, notification channels, status pages, maintenance windows, tags and proxies. The admin role adds the workspace's people, API keys and settings, and sees its plan. The owner role adds changing the plan, deleting the workspace and making other owners; every workspace has at least one owner. An API key acts with the admin role in its workspace.
+_Avoid_: Permission, access level
+
+**Instance admin**:
+A user who manages what belongs to the install rather than to a workspace: probes, the usage ping and error reports. It's a flag on the user, not a role, and gives no access to any workspace's data. The first user to sign up gets it, and an install upgraded to workspaces gives it to its existing users.
+_Avoid_: Superuser, site admin, root
+
+**Plan**:
+The limits a workspace is held to, such as how many monitors it may have and its shortest check interval. A workspace without a plan has no limits, which is every workspace on a self-hosted install.
+_Avoid_: Tier, subscription (that's the billing record), package
+
+**Signup mode**:
+Who may create an account on an install, set with `SIGNUP_MODE`. In `invite`, the default, the first user signs up and everyone after joins a workspace through an invite. In `open` anyone may sign up, and each new user gets a workspace of their own, unless they sign up through an invite: then they join the inviting workspace instead. The cloud runs `open`.
+_Avoid_: Registration mode, signup policy
 
 ### Deployment
 

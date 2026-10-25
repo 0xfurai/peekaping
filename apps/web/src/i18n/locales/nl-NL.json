@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatisch bevestigen",
         "auto_resolve_acknowledge_description": "Incident automatisch bevestigen",
-        "auto_resolve_description": "Kies welke actie er moet worden ondernomen wanneer een monitor weer online is.",
+        "auto_resolve_description": "Kies wat er moet worden verzonden wanneer een monitor weer online is of een probe weer online komt.",
         "auto_resolve_do_nothing": "Niets doen",
-        "auto_resolve_do_nothing_description": "Geen actie ondernomen bij de UP-status",
+        "auto_resolve_do_nothing_description": "Er wordt niets verzonden wanneer een monitor weer online is of een probe weer online komt, dus het incident blijft open totdat je het in PagerDuty oplost",
         "auto_resolve_label": "Automatisch oplossen of bevestigen",
         "auto_resolve_placeholder": "Gedrag voor automatische oplossing kiezen",
         "auto_resolve_resolve": "Automatisch oplossen",
