@@ -262,7 +262,7 @@ func ExtractCertificateFromTLSConn(conn *tls.Conn) *TLSInfo {
 	// Check if the certificate chain is verified
 	verified := len(state.VerifiedChains) > 0
 
-	return ParseCertificateChain(serverCert, verified)
+	return shared.ParseCertificateChain(serverCert, verified)
 }
 
 // extractCommonName extracts the common name from a certificate subject string

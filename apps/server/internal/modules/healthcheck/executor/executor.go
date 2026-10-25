@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"maps"
-	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/shared"
 	"slices"
 	"time"
@@ -17,7 +16,7 @@ type Result struct {
 	Message   string
 	StartTime time.Time
 	EndTime   time.Time
-	TLSInfo   *certificate.TLSInfo `json:"tls_info,omitempty"`
+	TLSInfo   *shared.TLSInfo `json:"tls_info,omitempty"`
 }
 
 type Monitor = shared.Monitor
