@@ -101,12 +101,26 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 
 	startTime := time.Now().UTC()
 
+	// The monitor's timeout bounds the whole check: connecting, fetching
+	// metadata and sending. sarama's own defaults are 30s per dial or read and
+	// three metadata retries, which kept a broker that never answers busy for
+	// two minutes.
+	timeout := time.Duration(monitor.Timeout) * time.Second
+	checkCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	// Create Kafka configuration
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true
 	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Timeout = time.Duration(monitor.Timeout) * time.Second
+	config.Producer.Timeout = timeout
+	config.Net.DialTimeout = timeout
+	config.Net.ReadTimeout = timeout
+	config.Net.WriteTimeout = timeout
+	// Bounds the metadata fetch with its retries. The retries stay: a topic the
+	// broker has just created has no leader yet, and the next attempt finds it.
+	config.Metadata.Timeout = timeout
 	config.Metadata.AllowAutoTopicCreation = cfg.AllowAutoTopicCreation
 
 	// Configure SSL if enabled
@@ -138,32 +152,57 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	// Set client ID
 	config.ClientID = fmt.Sprintf("peekaping-monitor-%s", monitor.ID)
 
-	// Create producer
-	producer, err := sarama.NewSyncProducer(cfg.Brokers, config)
-	if err != nil {
-		k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, err.Error())
+	// Create the producer in the background: sarama takes no context, so the
+	// select below is what ends the check when the context does. The network
+	// timeouts above end the goroutine soon after.
+	type created struct {
+		producer sarama.SyncProducer
+		err      error
+	}
+	createDone := make(chan created, 1)
+	go func() {
+		p, createErr := sarama.NewSyncProducer(cfg.Brokers, config)
+		createDone <- created{p, createErr}
+	}()
+
+	var producer sarama.SyncProducer
+	select {
+	case <-checkCtx.Done():
+		// A producer that arrives after the check has ended is closed.
+		go func() {
+			if c := <-createDone; c.producer != nil {
+				k.closeProducer(c.producer)
+			}
+		}()
+		reason := fmt.Sprintf("timed out after %ds", monitor.Timeout)
+		if ctx.Err() != nil {
+			reason = ctx.Err().Error()
+		}
+		k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, reason)
 		return &Result{
 			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("Failed to create Kafka producer: %v", err),
+			Message:   fmt.Sprintf("Failed to create Kafka producer: %s", reason),
 			StartTime: startTime,
 			EndTime:   time.Now().UTC(),
 		}
-	}
-	defer func() {
-		if closeErr := producer.Close(); closeErr != nil {
-			k.logger.Debugf("Error closing Kafka producer: %v", closeErr)
+	case c := <-createDone:
+		if c.err != nil {
+			k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, c.err.Error())
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   fmt.Sprintf("Failed to create Kafka producer: %v", c.err),
+				StartTime: startTime,
+				EndTime:   time.Now().UTC(),
+			}
 		}
-	}()
+		producer = c.producer
+	}
 
 	// Create message
 	message := &sarama.ProducerMessage{
 		Topic: cfg.Topic,
 		Value: sarama.StringEncoder(cfg.Message),
 	}
-
-	// Add timeout context for the send operation
-	sendCtx, cancel := context.WithTimeout(ctx, time.Duration(monitor.Timeout)*time.Second)
-	defer cancel()
 
 	// Send message with timeout handling
 	var partition int32
@@ -177,9 +216,11 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	}()
 
 	select {
-	case <-sendCtx.Done():
+	case <-checkCtx.Done():
 		endTime := time.Now().UTC()
 		k.logger.Infof("Kafka message send timeout: %s", monitor.Name)
+		// Closing waits for the send in flight, so it can't hold up the result.
+		go k.closeProducer(producer)
 		return &Result{
 			Status:    shared.MonitorStatusDown,
 			Message:   fmt.Sprintf("Message send timeout after %ds", monitor.Timeout),
@@ -188,6 +229,7 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 		}
 	case sendErr := <-sendDone:
 		endTime := time.Now().UTC()
+		k.closeProducer(producer)
 
 		if sendErr != nil {
 			k.logger.Infof("Kafka message send failed: %s, %s", monitor.Name, sendErr.Error())
@@ -206,5 +248,11 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 			StartTime: startTime,
 			EndTime:   endTime,
 		}
+	}
+}
+
+func (k *KafkaProducerExecutor) closeProducer(producer sarama.SyncProducer) {
+	if err := producer.Close(); err != nil {
+		k.logger.Debugf("Error closing Kafka producer: %v", err)
 	}
 }
