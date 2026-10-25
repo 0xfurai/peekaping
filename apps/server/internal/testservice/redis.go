@@ -46,6 +46,11 @@ func parseRedisURL(raw string) (RedisServer, error) {
 	if u.Scheme != "redis" || u.Host == "" || u.Port() == "" || password == "" {
 		return RedisServer{}, errors.New("need scheme redis, a host, a port and a password")
 	}
+	// The tests authenticate as the default user, so a named ACL user would be
+	// dropped and its password checked against the wrong account.
+	if u.User.Username() != "" {
+		return RedisServer{}, errors.New("no username: the tests authenticate as the default user")
+	}
 	return RedisServer{Addr: u.Host, Password: password}, nil
 }
 

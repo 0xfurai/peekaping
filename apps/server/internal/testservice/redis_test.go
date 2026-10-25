@@ -73,7 +73,7 @@ func TestRedis_EnvVarWins(t *testing.T) {
 
 func TestRedis_MalformedEnvVarFails(t *testing.T) {
 	dockerMustNotBeAsked(t)
-	for _, raw := range []string{"127.0.0.1:6379", "redis://127.0.0.1:6379", "redis://:pw@127.0.0.1", "http://:pw@127.0.0.1:6379"} {
+	for _, raw := range []string{"127.0.0.1:6379", "redis://127.0.0.1:6379", "redis://:pw@127.0.0.1", "http://:pw@127.0.0.1:6379", "redis://user:pw@127.0.0.1:6379"} {
 		t.Setenv(redisURLEnv, raw)
 
 		_, rec := askForRedis(t)
