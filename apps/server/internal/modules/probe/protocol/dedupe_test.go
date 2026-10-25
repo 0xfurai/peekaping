@@ -26,11 +26,18 @@ type windowFixture struct {
 	advance func(d time.Duration)
 }
 
+// claim claims the id and reports whether the claim won
 func (f *windowFixture) claim(t testing.TB, probeID, id string) bool {
 	t.Helper()
-	claimed, err := f.window.Claim(context.Background(), probeID, id, f.now)
+	return f.outcome(t, probeID, id) == ClaimWon
+}
+
+// outcome claims the id and reports what the claim found
+func (f *windowFixture) outcome(t testing.TB, probeID, id string) ClaimOutcome {
+	t.Helper()
+	outcome, err := f.window.Claim(context.Background(), probeID, id, f.now)
 	require.NoError(t, err)
-	return claimed
+	return outcome
 }
 
 // keep marks the ids as stored, as a request does once it has stored their results
@@ -146,6 +153,60 @@ func TestWindow_AKeptIdStaysTakenForTheHour(t *testing.T) {
 	})
 }
 
+// A claim says whether the result is stored or its request may still be storing it, or may have
+// died: a retry that finds the second is not told the result is a duplicate, which the probe drops
+// for good
+func TestWindow_AClaimedIdIsPendingUntilItIsKept(t *testing.T) {
+	forEachWindow(t, func(t *testing.T, f *windowFixture) {
+		require.Equal(t, ClaimWon, f.outcome(t, "probe-1", "result-1"))
+
+		assert.Equal(t, ClaimPending, f.outcome(t, "probe-1", "result-1"), "claimed, and its result is not stored yet")
+		assert.Equal(t, ClaimPending, f.outcome(t, "probe-1", "result-1"), "however often it is asked")
+		f.keep(t, "probe-1", "result-1")
+		assert.Equal(t, ClaimStored, f.outcome(t, "probe-1", "result-1"), "its result is stored")
+		assert.Equal(t, ClaimWon, f.outcome(t, "probe-2", "result-1"), "another probe's id is its own")
+	})
+}
+
+func TestWindow_AReleasedPendingIdIsFree(t *testing.T) {
+	forEachWindow(t, func(t *testing.T, f *windowFixture) {
+		require.Equal(t, ClaimWon, f.outcome(t, "probe-1", "result-1"))
+		require.Equal(t, ClaimPending, f.outcome(t, "probe-1", "result-1"))
+
+		f.release(t, "probe-1", "result-1")
+
+		assert.Equal(t, ClaimWon, f.outcome(t, "probe-1", "result-1"))
+	})
+}
+
+// Asking about a pending id does not hold it any longer: a retry every few seconds must not keep
+// the claim of a request that died alive
+func TestRedisWindow_AskingAboutAPendingClaimDoesNotExtendIt(t *testing.T) {
+	f := windowImplementations["redis"](t)
+	require.Equal(t, ClaimWon, f.outcome(t, "probe-1", "died"))
+
+	f.advance(ClaimTTL - time.Second)
+	assert.Equal(t, ClaimPending, f.outcome(t, "probe-1", "died"))
+	f.advance(time.Second)
+
+	assert.Equal(t, ClaimWon, f.outcome(t, "probe-1", "died"), "the claim ran out at ClaimTTL after it was made")
+}
+
+// A key that an older server wrote with the hour (value 1, before a claim said what it was) is a
+// stored id: the safe reading
+func TestRedisWindow_AnIdWrittenByAnOlderServerIsStored(t *testing.T) {
+	server := miniredis.RunT(t)
+	client := redis.NewClient(&redis.Options{Addr: server.Addr()})
+	t.Cleanup(func() { assert.NoError(t, client.Close()) })
+	require.NoError(t, server.Set("peekaping:probe:accepted:probe-1:old", "1"))
+	server.SetTTL("peekaping:probe:accepted:probe-1:old", time.Hour)
+
+	outcome, err := NewRedisWindow(client).Claim(context.Background(), "probe-1", "old", epoch)
+
+	require.NoError(t, err)
+	assert.Equal(t, ClaimStored, outcome)
+}
+
 func TestWindow_KeepingNoIdsDoesNothing(t *testing.T) {
 	forEachWindow(t, func(t *testing.T, f *windowFixture) {
 		require.True(t, f.claim(t, "probe-1", "result-1"))
@@ -183,9 +244,9 @@ func TestWindow_ReleaseLeavesOthersAlone(t *testing.T) {
 func TestAcceptedWindow_ForgetsExpiredIdsAndIdleProbes(t *testing.T) {
 	window := newAcceptedWindow(time.Hour)
 	claim := func(probeID, id string, now time.Time) bool {
-		claimed, err := window.Claim(context.Background(), probeID, id, now)
+		outcome, err := window.Claim(context.Background(), probeID, id, now)
 		require.NoError(t, err)
-		return claimed
+		return outcome == ClaimWon
 	}
 	for i := range 100 {
 		claim("idle-probe", "result-"+strconv.Itoa(i), epoch)
@@ -219,15 +280,21 @@ func TestRedisWindow_HoldsAClaimForClaimTTLAndAKeptIdForAnHour(t *testing.T) {
 	t.Cleanup(func() { assert.NoError(t, client.Close()) })
 	window := NewRedisWindow(client)
 
-	claimed, err := window.Claim(context.Background(), "probe-1", "result-1", epoch)
+	outcome, err := window.Claim(context.Background(), "probe-1", "result-1", epoch)
 	require.NoError(t, err)
-	require.True(t, claimed)
+	require.Equal(t, ClaimWon, outcome)
 
 	key := "peekaping:probe:accepted:probe-1:result-1"
 	assert.True(t, server.Exists(key))
 	assert.Equal(t, ClaimTTL, server.TTL(key), "a request may die before it stores the result, so the claim is short")
+	value, err := server.Get(key)
+	require.NoError(t, err)
+	assert.Equal(t, "pending", value, "and says that its result is not stored yet")
 	require.NoError(t, window.Keep(context.Background(), "probe-1", "result-1"))
 	assert.Equal(t, time.Hour, server.TTL(key), "a stored result is remembered for the hour")
+	value, err = server.Get(key)
+	require.NoError(t, err)
+	assert.Equal(t, "stored", value, "and says that it is stored")
 	require.NoError(t, window.Release(context.Background(), "probe-1", "result-1"))
 	assert.False(t, server.Exists(key), "a release deletes the key")
 }
@@ -296,13 +363,13 @@ func TestRedisWindow_IsSharedByReplicasOfOneRedis(t *testing.T) {
 	second := redis.NewClient(&redis.Options{Addr: server.Addr()})
 	t.Cleanup(func() { assert.NoError(t, first.Close()); assert.NoError(t, second.Close()) })
 
-	claimed, err := NewRedisWindow(first).Claim(context.Background(), "probe-1", "result-1", epoch)
+	outcome, err := NewRedisWindow(first).Claim(context.Background(), "probe-1", "result-1", epoch)
 	require.NoError(t, err)
-	require.True(t, claimed)
+	require.Equal(t, ClaimWon, outcome)
 
-	claimed, err = NewRedisWindow(second).Claim(context.Background(), "probe-1", "result-1", epoch)
+	outcome, err = NewRedisWindow(second).Claim(context.Background(), "probe-1", "result-1", epoch)
 	require.NoError(t, err)
-	assert.False(t, claimed, "the other replica finds the id taken")
+	assert.Equal(t, ClaimPending, outcome, "the other replica finds the id taken, by a request that has not stored its result yet")
 }
 
 // A claim that can't ask Redis is an error, not a free id: the batch is answered 503 and the probe
@@ -314,10 +381,10 @@ func TestRedisWindow_ClaimFailsWhenRedisCannotBeReached(t *testing.T) {
 	window := NewRedisWindow(client)
 	server.Close()
 
-	claimed, err := window.Claim(context.Background(), "probe-1", "result-1", epoch)
+	outcome, err := window.Claim(context.Background(), "probe-1", "result-1", epoch)
 
 	require.Error(t, err)
-	assert.False(t, claimed)
+	assert.Zero(t, outcome, "no outcome: the id is not claimed")
 	assert.False(t, errors.Is(err, context.Canceled))
 }
 
@@ -328,15 +395,15 @@ func TestRedisWindow_ReleaseSurvivesACancelledRequest(t *testing.T) {
 	client := redis.NewClient(&redis.Options{Addr: server.Addr()})
 	t.Cleanup(func() { assert.NoError(t, client.Close()) })
 	window := NewRedisWindow(client)
-	claimed, err := window.Claim(context.Background(), "probe-1", "result-1", epoch)
+	outcome, err := window.Claim(context.Background(), "probe-1", "result-1", epoch)
 	require.NoError(t, err)
-	require.True(t, claimed)
+	require.Equal(t, ClaimWon, outcome)
 
 	cancelled, cancel := context.WithCancel(context.Background())
 	cancel()
 	require.NoError(t, window.Release(cancelled, "probe-1", "result-1"))
 
-	claimed, err = window.Claim(context.Background(), "probe-1", "result-1", epoch)
+	outcome, err = window.Claim(context.Background(), "probe-1", "result-1", epoch)
 	require.NoError(t, err)
-	assert.True(t, claimed)
+	assert.Equal(t, ClaimWon, outcome)
 }

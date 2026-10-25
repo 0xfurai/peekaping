@@ -26,6 +26,7 @@ import (
 	"peekaping/internal/reporting"
 	"peekaping/internal/utils"
 
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 )
 
@@ -38,6 +39,13 @@ const (
 	maxResultSkew = time.Minute
 	// maxResultPingMs keeps the response time inside the INTEGER column of the heartbeats
 	maxResultPingMs = math.MaxInt32
+	// PendingRetryAfter is the Retry-After of a batch answered 503 because another request holds
+	// the id of one of its results: the probe sends the batch again after that long. The holder is
+	// usually storing, which takes seconds; if it died, its claim runs out after ClaimTTL, and the
+	// probe asks again every PendingRetryAfter until then.
+	PendingRetryAfter = 5 * time.Second
+	// messagePending is the 503's message
+	messagePending = "a result in this batch is being stored by another request: send the batch again"
 )
 
 // statusOfWord maps the status words of the wire to the statuses of heartbeats
@@ -68,7 +76,7 @@ type candidate struct {
 //   - unknown_monitor: there is no such monitor
 //   - not_assigned: the monitor is not one of the probe's that it is dealt (it is paused, a push
 //     monitor, a type the probe can't run, or another probe's)
-//   - duplicate: the probe sent this id before, and the server stored it or is storing it
+//   - duplicate: the probe sent this id before, and the server stored it
 //
 // The rest are stored with the monitor's settings and maintenance state, as the push URL stores
 // a push, one monitor at a time and each monitor's results oldest first, because storing a result
@@ -76,11 +84,16 @@ type candidate struct {
 // result's: the whole batch is answered 500, so the probe sends it again, and the results that
 // were stored by then are answered duplicate.
 //
-// The ids of the rest are claimed in the accepted window before anything is stored, so that a
-// retry that arrives while this request is still storing is answered duplicate. An id whose result
-// was not stored when the request ends is given back. An id whose result was stored is kept for the
-// hour as soon as its monitor's results are stored: a claim alone runs out in ClaimTTL, for the
-// retry of a request that died to be accepted.
+// The ids of the rest are claimed in the accepted window before anything is stored. An id whose
+// result was not stored when the request ends is given back. An id whose result was stored is kept
+// for the hour as soon as its monitor's results are stored: a claim alone runs out in ClaimTTL, for
+// the retry of a request that died to be accepted.
+//
+// A retry that arrives while another request is still storing finds those ids claimed and not kept
+// (pending). The holder may be at it, or may have died, and the probe drops a duplicate for good, so
+// the result is not answered duplicate. It is not stored either: the rest of the batch is stored as
+// usual, and the whole request is answered 503 with a Retry-After of PendingRetryAfter. The probe
+// keeps the batch and sends it again, and finds the results stored by then answered duplicate.
 func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.Output[probeproto.ResultsResponse], error) {
 	// MARK: Results
 
@@ -112,6 +125,10 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 	// is a monitor that does not exist
 	others := map[string]*monitor.Model{}
 	var waiting []*candidate
+	// claimedHere are the ids this request claimed, and heldElsewhere is whether the window found
+	// an id of the batch pending: claimed by another request that has not stored its result
+	claimedHere := map[string]bool{}
+	heldElsewhere := false
 	// What was claimed and not stored goes back to the window, whether the request fails or panics:
 	// the probe sends such a result again, and it has to be accepted
 	defer func() {
@@ -152,14 +169,27 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 		}
 		// The claim is the last check, so that only a result that goes on to be stored takes an id.
 		// An id twice in one batch is claimed by the first.
+		if reason == "" && claimedHere[result.ID] {
+			reason = probeproto.ReasonDuplicate
+		}
 		if reason == "" {
-			claimed, err := c.accepted.Claim(r.Context(), owner.ID, result.ID, now)
+			claim, err := c.accepted.Claim(r.Context(), owner.ID, result.ID, now)
 			if err != nil {
 				// The window could not say whether the id was taken: the batch is the probe's to
 				// send again, and the ids claimed so far are given back
 				return nil, c.unavailable("claiming a result id", err)
 			}
-			if !claimed {
+			switch claim {
+			case ClaimWon:
+				claimedHere[result.ID] = true
+			case ClaimPending:
+				// Another request holds the id and has not stored the result: it may be at it, or
+				// it may have died. This one is neither stored nor a duplicate, which the probe
+				// would drop for good. The rest of the batch goes on, and the probe sends the
+				// whole batch again.
+				heldElsewhere = true
+				continue
+			default:
 				reason = probeproto.ReasonDuplicate
 			}
 		}
@@ -174,7 +204,21 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 	if err := c.store(r.Context(), owner, waiting); err != nil {
 		return nil, c.fail(err)
 	}
+	if heldElsewhere {
+		return nil, c.pending(owner.ID)
+	}
 	return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
+}
+
+// pending answers 503 with a Retry-After for a batch with a result whose id another request holds.
+// The probe keeps the batch and sends it again after PendingRetryAfter: the results stored by now
+// are duplicates then, and the one that was waiting is stored, or a duplicate if the holder stored
+// it, or told to wait again if the holder is still at it or its claim has not run out yet.
+func (c *Controller) pending(probeID string) error {
+	c.logger.Infow("Asked a probe to send a batch again: a result in it is held by another request",
+		"probeId", probeID, "retryAfter", PendingRetryAfter.String())
+	retryAfter := http.Header{"Retry-After": {strconv.Itoa(int(PendingRetryAfter / time.Second))}}
+	return huma.ErrorWithHeaders(httpx.Fail(http.StatusServiceUnavailable, utils.NewFailResponse(messagePending)), retryAfter)
 }
 
 // dealtMonitors are the monitors that the probe is dealt, by id: the active monitors it runs of

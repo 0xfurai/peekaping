@@ -104,12 +104,12 @@ func TestRegisterSingle_ProvidesTheDuplicateWindowInMemory(t *testing.T) {
 	require.NoError(t, container.Invoke(func(window protocol.Window, bus events.EventBus, db *bun.DB) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
-		claimed, err := window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+		outcome, err := window.Claim(context.Background(), "probe-1", "result-1", time.Now())
 		require.NoError(t, err)
-		assert.True(t, claimed)
-		claimed, err = window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+		assert.Equal(t, protocol.ClaimWon, outcome)
+		outcome, err = window.Claim(context.Background(), "probe-1", "result-1", time.Now())
 		require.NoError(t, err)
-		assert.False(t, claimed)
+		assert.Equal(t, protocol.ClaimPending, outcome)
 	}))
 }
 

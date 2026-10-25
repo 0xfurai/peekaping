@@ -15,16 +15,38 @@ const (
 	acceptedKeyPrefix = "peekaping:probe:accepted:"
 	// redisWindowTimeout bounds a call to Redis, and a release that runs after its request ended
 	redisWindowTimeout = 5 * time.Second
+	// pendingValue is the value of a claim whose result is not stored yet, and storedValue the
+	// value of an id that was kept. A key of any other value (an older server wrote 1) is read as
+	// stored: the safe reading, which answers duplicate and stores nothing twice.
+	pendingValue = "pending"
+	storedValue  = "stored"
+	// wonReply is what claimScript answers when the claim won; anything else is the value held
+	wonReply = "won"
 )
 
+// claimScript claims a key if it is free, and otherwise reports the value it holds, in one round
+// trip and with nothing between the read and the write: KEYS[1] is the id's key, ARGV[1] the value
+// of a claim and ARGV[2] its time to live in milliseconds
+var claimScript = redis.NewScript(`
+local held = redis.call('GET', KEYS[1])
+if held == false then
+  redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])
+  return '`+wonReply+`'
+end
+return held
+`)
+
 // redisWindow is the window of cluster mode, shared by the API replicas through Redis: a claim is
-// SET NX of the id's key with ClaimTTL as its TTL, keeping it is SET of the key with the window's
+// a script that sets the id's key to "pending" with ClaimTTL as its TTL if it is free, and reports
+// what the key holds if it is not. Keeping an id is SET of the key to "stored" with the window's
 // hour, and a release is DEL. Redis decides which of any number of claims at once wins, and when
 // each runs out, so the replicas need agree on nothing but the Redis.
 //
 // A claim is short because the request that made it may die, and then nothing gives it back: the
-// key would stand for the hour, and the probe's retry on another replica would be answered
-// duplicate, which the probe drops for good. The request keeps its ids once the results are stored.
+// key would stand for the hour. A request that finds a pending key is not told the result is a
+// duplicate, which the probe drops for good: the holder may have died, and the result never be
+// stored. It is told to come back, and finds the key stored if the holder lived, and gone if not.
+// The request keeps its ids once the results are stored.
 type redisWindow struct {
 	client *redis.Client
 	// claimTTL is how long a claim stands that is neither kept nor released
@@ -45,14 +67,21 @@ func (w *redisWindow) key(probeID, id string) string { return acceptedKeyPrefix 
 // Claim implements Window. A Redis that fails to answer is an error and not a free id: taking the
 // result without a record of it could store it twice, so the batch is answered 503 for the probe
 // to send again.
-func (w *redisWindow) Claim(ctx context.Context, probeID, id string, _ time.Time) (bool, error) {
+func (w *redisWindow) Claim(ctx context.Context, probeID, id string, _ time.Time) (ClaimOutcome, error) {
 	ctx, cancel := context.WithTimeout(ctx, redisWindowTimeout)
 	defer cancel()
-	claimed, err := w.client.SetNX(ctx, w.key(probeID, id), 1, w.claimTTL).Result()
+	held, err := claimScript.Run(ctx, w.client, []string{w.key(probeID, id)}, pendingValue, w.claimTTL.Milliseconds()).Text()
 	if err != nil {
-		return false, fmt.Errorf("claim result %s of probe %s in redis: %w", id, probeID, err)
+		return 0, fmt.Errorf("claim result %s of probe %s in redis: %w", id, probeID, err)
 	}
-	return claimed, nil
+	switch held {
+	case wonReply:
+		return ClaimWon, nil
+	case pendingValue:
+		return ClaimPending, nil
+	default:
+		return ClaimStored, nil
+	}
 }
 
 // Keep implements Window. It sets the keys outright rather than extending them: a request that ran
@@ -66,7 +95,7 @@ func (w *redisWindow) Keep(ctx context.Context, probeID string, ids ...string) e
 	defer cancel()
 	pipe := w.client.Pipeline()
 	for _, id := range ids {
-		pipe.Set(ctx, w.key(probeID, id), 1, w.ttl)
+		pipe.Set(ctx, w.key(probeID, id), storedValue, w.ttl)
 	}
 	if _, err := pipe.Exec(ctx); err != nil {
 		return fmt.Errorf("keep %d result ids of probe %s in redis: %w", len(ids), probeID, err)

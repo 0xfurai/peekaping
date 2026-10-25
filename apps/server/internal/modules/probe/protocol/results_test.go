@@ -507,8 +507,9 @@ func TestResults_RetryAfterIngestErrorStoresNothingTwice(t *testing.T) {
 
 // A probe sends a batch again when it didn't hear the answer, and the retry can arrive while the
 // first request is still storing. The ids are claimed before anything is stored, so the retry finds
-// them taken.
-func TestResults_ConcurrentRetryStoresOnce(t *testing.T) {
+// them taken. It is not told they are duplicates, though: the first request may still fail, and the
+// probe drops a duplicate for good. It is told to come back, and finds them stored.
+func TestResults_ARetryWhileTheFirstRequestIsStoringIsToldToComeBack(t *testing.T) {
 	s := newResultsServer(t)
 	start := time.Now().UTC().Add(-time.Minute)
 	batch := probeproto.ResultsRequest{Results: []probeproto.Result{
@@ -522,42 +523,60 @@ func TestResults_ConcurrentRetryStoresOnce(t *testing.T) {
 		entered <- struct{}{}
 		<-gate
 	}
-	post := func() <-chan *httptest.ResponseRecorder {
-		done := make(chan *httptest.ResponseRecorder, 1)
-		go func() { done <- s.post(t, batch) }()
-		return done
-	}
-
-	firstDone := post()
+	firstDone := make(chan *httptest.ResponseRecorder, 1)
+	go func() { firstDone <- s.post(t, batch) }()
 	<-entered // the first request is storing "first", with both ids claimed
-	retryDone := post()
-	var retry *httptest.ResponseRecorder
-	select {
-	case retry = <-retryDone:
-		// the retry was answered while the first request is still storing
-	case <-entered:
-		// the retry is storing the same result
-	case <-time.After(5 * time.Second):
-		t.Fatal("the retry was neither answered nor storing")
-	}
+
+	retry := s.post(t, batch)
+
+	assert.Equal(t, http.StatusServiceUnavailable, retry.Code, retry.Body.String())
+	assert.Equal(t, strconv.Itoa(int(protocol.PendingRetryAfter/time.Second)), retry.Header().Get("Retry-After"),
+		"the probe waits that long before it sends the batch again")
+	assert.Empty(t, s.ingest.attempts, "and the retry handed nothing to the ingester: the first request is still at its first result")
 	close(gate)
 	first := <-firstDone
-	if retry == nil {
-		retry = <-retryDone
-	}
+	require.Equal(t, http.StatusOK, first.Code, first.Body.String())
+	var reply probeproto.ResultsResponse
+	require.NoError(t, json.Unmarshal(first.Body.Bytes(), &reply))
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("first"), accepted("second")}, reply.Results)
 
-	outcomes := func(w *httptest.ResponseRecorder) []probeproto.ResultOutcome {
-		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
-		var reply probeproto.ResultsResponse
-		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &reply))
-		return reply.Results
-	}
-	assert.Equal(t, []probeproto.ResultOutcome{accepted("first"), accepted("second")}, outcomes(first))
-	assert.Equal(t, []probeproto.ResultOutcome{rejected("first", probeproto.ReasonDuplicate), rejected("second", probeproto.ReasonDuplicate)}, outcomes(retry),
-		"the retry finds the ids taken")
+	again := s.results(t, batch.Results...)
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("first", probeproto.ReasonDuplicate), rejected("second", probeproto.ReasonDuplicate)}, again,
+		"once the first request has stored them, the ids are taken")
 	require.Len(t, s.ingest.stored, 2, "one result for each id")
 	assert.Equal(t, start, s.ingest.stored[0].StartTime)
 	assert.Equal(t, start.Add(time.Second), s.ingest.stored[1].StartTime)
+}
+
+// A result whose id another request claimed and has not kept (it may be storing it, or it may have
+// died) is neither stored nor answered duplicate. The rest of the batch is stored as usual, and the
+// answer is 503 with a Retry-After, so that the probe sends the batch again: the results stored
+// by now are duplicates then, and the one that was waiting is stored if its claim is gone.
+func TestResults_AResultAnotherRequestHoldsIsNotStoredAndTheBatchIsToldToComeBack(t *testing.T) {
+	window := protocol.NewMemoryWindow()
+	s := newResultsServerWith(t, window)
+	start := time.Now().UTC().Add(-time.Minute)
+	away := checkResult("away", monCheckout, start)
+	other := checkResult("other", monSearch, start)
+	claim, err := window.Claim(context.Background(), "probe-1", "away", time.Now())
+	require.NoError(t, err)
+	require.Equal(t, protocol.ClaimWon, claim, "another request's claim")
+
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{away, other}})
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	assert.Equal(t, "5", w.Header().Get("Retry-After"))
+	assert.Equal(t, "a result in this batch is being stored by another request: send the batch again", errorMessageOf(t, w))
+	require.Len(t, s.ingest.stored, 1, "the rest of the batch is stored as usual")
+	assert.Equal(t, monSearch, s.ingest.stored[0].MonitorID)
+
+	require.NoError(t, window.Release(context.Background(), "probe-1", "away"), "the other request gave it up")
+	got := s.results(t, away, other)
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("away"), rejected("other", probeproto.ReasonDuplicate)}, got,
+		"on the probe's retry the waiting result is stored, and the one stored before is a duplicate")
+	assert.Len(t, s.ingest.stored, 2)
 }
 
 // A request that fails answers 500 for the whole batch, and the probe sends all of it again. What
@@ -644,10 +663,10 @@ func (w *brokenWindow) Keep(ctx context.Context, probeID string, ids ...string) 
 	return w.Window.Keep(ctx, probeID, ids...)
 }
 
-func (w *brokenWindow) Claim(ctx context.Context, probeID, id string, now time.Time) (bool, error) {
+func (w *brokenWindow) Claim(ctx context.Context, probeID, id string, now time.Time) (protocol.ClaimOutcome, error) {
 	w.claims++
 	if w.claims >= w.failFrom {
-		return false, errors.New("redis: connection refused")
+		return 0, errors.New("redis: connection refused")
 	}
 	return w.Window.Claim(ctx, probeID, id, now)
 }

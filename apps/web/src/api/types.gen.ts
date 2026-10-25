@@ -5225,6 +5225,10 @@ export type ProbePostResultsErrors = {
    * Not Implemented
    */
   501: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: HttpxErrorBody;
 };
 
 export type ProbePostResultsError =
