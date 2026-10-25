@@ -17,6 +17,9 @@ The API Server handles:
 - **API Documentation**: Auto-generated OpenAPI documentation
 - **Security**: Brute force protection, rate limiting, CORS handling
 - **Push Endpoint**: Receives heartbeats from push-based monitors
+- **Probe Protocol**: Deals each probe's monitors among its instances and takes their results (`/probe/v1/`). See [Remote probes](../self-hosting/remote-probes.md)
+- **Ingest**: Stores the results that probes and push monitors send, as heartbeats (cluster mode on SQLite and PostgreSQL, and single mode)
+- **Leader Jobs**: The stale-monitor watchdog, the probe offline sweep and the push monitors' checks, on the replica that holds the leader lock (cluster mode on SQLite and PostgreSQL)
 - **Cleanup Tasks**: Scheduled cleanup of old data
 - **Prometheus Metrics**: Exposes per-monitor metrics for scraping
 
@@ -29,9 +32,35 @@ The API server uses Uber's Dig for dependency injection, registering all modules
 The API server subscribes to Redis pub/sub events and broadcasts them to connected WebSocket clients for real-time updates.
 
 ### Notifications
-Redis pub/sub gives every API server a copy of an event, so notifications don't travel that way, or each replica would send them all. The [ingester](./ingester.md) (a monitor going Down or Up, a certificate close to expiring) and the [producer](./producer.md)'s watchdog (a stale monitor, and the same monitor checked again) put them on the `notification` queue instead. Each API server takes tasks from that queue, and a task goes to one of them, so a notification is sent once to each of the monitor's notification channels however many replicas run. A notification queued while no API server is running is sent when the first one starts.
+Redis pub/sub gives every API server a copy of an event, so notifications don't travel that way, or each replica would send them all. The API server that stores a heartbeat puts a monitor going Down or Up, or a certificate close to expiring, on the `notification` queue. The leader's watchdog does the same for a stale monitor and for the same monitor checked again. (On MongoDB storage, the [ingester](./ingester.md) and the [producer](./producer.md)'s watchdog put them there.) Each API server takes tasks from that queue, and a task goes to one of them, so a notification is sent once to each of the monitor's notification channels however many replicas run. A notification queued while no API server is running is sent when the first one starts.
 
 In single mode the `peekaping` binary is the only process and sends them itself, with no queue.
+
+### Ingest
+In cluster mode on SQLite and PostgreSQL, the API server stores what it receives itself: a push to a push monitor's URL, and the results a probe sends. The replica that took the request stores them, one monitor's results at a time and in order, so a push and a check of the same monitor never overtake each other. It judges the monitor's status, publishes the heartbeat and counts it in the stats. Nothing goes through a queue, and no ingester runs.
+
+- **Stats** are aggregated by the replica that stored the heartbeat. The heartbeat reaches the other replicas' websockets and metrics through Redis pub/sub, but only the replica that stored it counts it in the stats.
+- **Retried batches.** A probe that doesn't get an answer sends its batch again, possibly to another replica. Each replica records the ids of the results it took in a Redis key that lasts an hour, so a batch retried within the hour is answered as a duplicate and stored once. If a replica can't reach Redis for that record, it answers 503, and the probe sends the batch again.
+- **Speed.** One API server stores about 2,000 probe results a second on PostgreSQL 17 and on SQLite. The ingester queue it replaces stored about 1,350 a second on PostgreSQL.
+
+On MongoDB storage the API server enqueues a push for the ingester instead.
+
+### Leader Jobs
+Three jobs must run on one replica at a time. In cluster mode on SQLite and PostgreSQL they run on the API replica that holds the leader lock, the Redis key `peekaping:producer:leader`. The lock lasts 10 seconds and its holder renews it every 5.
+
+| Job | What it does |
+| --- | --- |
+| Stale-monitor watchdog | Every minute, finds active monitors that stopped being checked, records them for the health endpoint and notifies their channels. It skips a monitor whose probe is offline. It can't make a probe check again, so it notifies once the wait has passed. |
+| Probe offline sweep | Every 30 seconds, marks a probe offline when none of its instances has been heard from for `PROBE_OFFLINE_AFTER`, and online again when one is. It tells the probe's notification channels. See [When a probe is offline](../self-hosting/remote-probes.md#when-a-probe-is-offline). |
+| Push monitors' checks | Finds a push monitor that got no push within its interval and stores a Down heartbeat. |
+
+The sweep also looks for a local probe that has active monitors and no instance, which is what a cluster upgraded without deploying probes looks like. It reports that probe offline once, after `PROBE_OFFLINE_AFTER` from the moment the replica took the lock, and logs `the local probe has N active monitors and no instance: deploy peekaping-probe with PROBE_TOKEN set to PROBE_BOOTSTRAP_TOKEN`. The API also logs it at startup. See [Upgrading to probes](../self-hosting/upgrading-to-probes.md).
+
+When the leader stops, it releases the lock and another replica takes it at once, and starts the jobs. When the leader is killed, the lock runs out and another replica takes it within about 15 seconds. Each replica's log says when it starts or stops running the jobs.
+
+On MongoDB storage the producer holds the same lock and runs the watchdog, and it schedules the checks of push monitors with the others. MongoDB has no probes, so there is no sweep.
+
+In single mode the `peekaping` process is always the leader, and runs the jobs itself.
 
 ## Environment Variables
 
@@ -71,7 +100,7 @@ With `WEB_DIR` set, only `/api/*`, `/socket.io/*` and, when `METRICS_ENABLED` is
 ### Redis Configuration
 
 :::note Single mode
-These are required in cluster mode, where the API reaches the producer, worker and ingester through Redis. In single mode, the `peekaping` binary runs the API and the other services in one process with no Redis, so it doesn't need `REDIS_HOST`. It ignores the `REDIS_*` variables and logs once when one is set.
+These are required in cluster mode, where the API replicas reach each other through Redis (and, on MongoDB storage, the producer, worker and ingester). The probes don't use Redis. In single mode, the `peekaping` binary runs the API and the checks in one process with no Redis, so it doesn't need `REDIS_HOST`. It ignores the `REDIS_*` variables and logs once when one is set.
 :::
 
 | Variable | Type | Required | Default | Description |
@@ -88,6 +117,15 @@ These are required in cluster mode, where the API reaches the producer, worker a
 |----------|------|----------|---------|-------------|
 | `QUEUE_CONCURRENCY` | int | No | `128` | Maximum concurrent queue operations |
 | `PRODUCER_CONCURRENCY` | int | No | `10` | Concurrent producers for push endpoint (1-128) |
+
+### Local Probe Configuration
+
+These settings are for cluster mode on SQLite and PostgreSQL, and `peekaping` reads them in single mode too. MongoDB storage has no probes: the API logs a warning and ignores `PROBE_BOOTSTRAP_TOKEN`.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `PROBE_BOOTSTRAP_TOKEN` | string | In cluster mode on SQLite and PostgreSQL | `""` | The token of the local probe, at least 32 characters, such as the output of `openssl rand -hex 32`. The API stores it at startup. The probe instances send the same value as `PROBE_TOKEN`. It gives access to the config of the monitors on the local probe, so keep it secret. The Compose files and the Helm chart set it for the API and the probe together. Without it no monitor is checked |
+| `PROBE_OFFLINE_AFTER` | duration | No | `3m` | How long an online probe's instances may all go unseen before the probe counts as offline, from `2m` to `24h`. The leader's sweep reads it. Any replica can become the leader, so set it on every replica |
 
 ### Security Configuration
 
@@ -130,7 +168,7 @@ The anonymous usage ping and the error reports are both on until an admin turns 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
 | `TELEMETRY` | string | No | `""` | `off` (also `false`, `0` or `no`) turns the usage ping off |
-| `ERROR_REPORTING` | string | No | `""` | `off` (also `false`, `0` or `no`) turns error reports off. In cluster mode, set it on the API, producer, worker and ingester. |
+| `ERROR_REPORTING` | string | No | `""` | `off` (also `false`, `0` or `no`) turns error reports off. In cluster mode, set it on the API. On MongoDB storage, set it on the producer, worker and ingester too. The probe sends no error reports. |
 
 ## API Endpoints
 
@@ -151,6 +189,7 @@ The API server exposes the following endpoint groups:
 - `/api/v1/maintenances` - Maintenance window management
 - `/api/v1/health` - Health check endpoint
 - `/api/v1/push/:id` - Push monitor heartbeat receiver
+- `/probe/v1/*` - The probe protocol, which probes call with their token. See [Remote probes](../self-hosting/remote-probes.md)
 
 ### Pagination
 
@@ -227,7 +266,7 @@ In single mode, the `peekaping` binary has one port. With `WEB_DIR` set and `MET
 
 ### How it works
 
-The API server keeps the latest heartbeat of each active monitor in memory, fed by the heartbeat and monitor events on the Redis event bus. It sees heartbeats whichever process ran the check, and a scrape reads that memory only: no database queries and no calls to the worker.
+The API server keeps the latest heartbeat of each active monitor in memory, fed by the heartbeat and monitor events on the Redis event bus. It sees heartbeats whichever probe ran the check and whichever replica stored it, and a scrape reads that memory only: no database queries and no calls to a probe.
 
 - After a restart, the metrics come back from each monitor's latest heartbeat without waiting for its next check.
 - Every 5 minutes the API server re-checks the active monitors. A pause, rename or delete whose event was missed is corrected, and a monitor with no metrics gets its latest heartbeat loaded.
@@ -278,6 +317,10 @@ The second rule fires for a monitor whose latest heartbeat is more than 5 minute
 
 ## Related Components
 
+- [Probe](./probe.md) - Executes health checks and sends the results
+- [Migrate](./migrate.md) - Sets up the database
+
+On MongoDB storage only:
 - [Producer](./producer.md) - Schedules monitor health checks
 - [Worker](./worker.md) - Executes health checks
 - [Ingester](./ingester.md) - Processes health check results

@@ -1,10 +1,14 @@
 ---
-sidebar_position: 5
+sidebar_position: 7
 ---
 
 # Ingester
 
-The Ingester is the data persistence and event processing component of Peekaping. It consumes health check results from workers, stores them in the database, detects status changes, triggers notifications, and maintains statistics.
+:::note MongoDB storage only
+The ingester runs only on MongoDB storage, which is deprecated and has no [probes](./probe.md). On SQLite and PostgreSQL it refuses to start: it exits with status 1 and points to [Upgrading to probes](../self-hosting/upgrading-to-probes.md). There the [API](./api-server.md#ingest) stores the results itself. This page stays until MongoDB storage is removed.
+:::
+
+The Ingester is the data persistence and event processing component of Peekaping on MongoDB storage. It consumes health check results from workers, stores them in the database, detects status changes, triggers notifications, and maintains statistics.
 
 ## Role & Responsibilities
 
@@ -117,7 +121,7 @@ INFO Ingester shut down
 
 If a step doesn't finish in time, the ingester logs an error, leaves the database open and exits 1. A second signal makes it exit 1 at once.
 
-Give the container 35 seconds to stop. The cluster Compose files and the Helm chart do. See the [producer's shutdown](./producer.md#graceful-shutdown) for the details.
+Give the container 35 seconds to stop. The MongoDB Compose file does. See the [producer's shutdown](./producer.md#graceful-shutdown) for the details.
 
 
 ## Related Components
