@@ -142,7 +142,7 @@ Blocks with no marker aren't checked. That is for examples and excerpts that are
 
 ### Integration tests
 
-Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Today the only one is `TestRedisExecutor_Integration`, which checks the Redis executor: Up with the right password, Down with a wrong one.
+Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Two services have them today. `TestRedisExecutor_Integration` checks the Redis executor: Up with the right password, Down with a wrong one. `TestKafkaProducerExecutor_Integration` checks the Kafka executor against a single-node broker with a plaintext listener and a SASL listener: Up on an existing topic (the test reads the message back), with and without automatic topic creation, with SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512, and Down for a wrong password and for `ssl` against the plaintext listener. The Kafka cases that need no broker (connection refused, a broker that never answers) are in `kafka_producer_test.go` and run in the default `go test`.
 
 With Docker running, run them from `apps/server`. The tests start the servers they need, each on a free port, and remove them when the run ends. `-count=1` turns off Go's test cache, which would otherwise replay an earlier pass after a server went away:
 
@@ -150,25 +150,26 @@ With Docker running, run them from `apps/server`. The tests start the servers th
 go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 ```
 
-To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A test that finds nothing at that address fails; it doesn't start a container instead.
+To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A service takes one variable (Redis) or several (Kafka needs both of its two, the plaintext and the SASL broker). A test that finds nothing at that address fails; it doesn't start a container instead. Set all of a service's variables or none: one without the others fails the test.
 
 ```bash
 docker compose -f apps/server/docker-compose.integration.yml up -d --wait
 cd apps/server
 PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
+PEE_TEST_KAFKA_BROKER='127.0.0.1:19092' PEE_TEST_KAFKA_SASL_BROKER='127.0.0.1:19093' \
   go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 docker compose -f docker-compose.integration.yml down
 ```
 
 Without Docker and without the variable, a test skips and the message names both ways out. When `CI` is set, it fails instead, so a CI job can't go green by skipping.
 
-The Integration tests workflow runs on pull requests and pushes to `main` that change `apps/server`. It runs beside Test and Lint.
+The Integration tests workflow runs on pull requests and pushes to `main` that change `apps/server`. It runs beside Test and Lint. It also uploads the executors' statement coverage to Codecov under the `integration` flag, so a pull request shows how much of an executor these tests reach.
 
-To add a service, such as Kafka:
+To add a service:
 
-1. Add a function to `apps/server/internal/testservice`, next to `Redis`. It returns the connection details, from the service's `PEE_TEST_<SERVICE>_URL` variable or from a container it starts. The shared code in `testservice.go` handles the variable, the Docker check and the skip.
+1. Add a function to `apps/server/internal/testservice`, next to `Redis`. It returns the connection details, from the service's `PEE_TEST_<SERVICE>_...` variables (a URL, or one address per listener) or from a container it starts. The shared code in `testservice.go` handles the variable, the Docker check and the skip.
 2. Add the service to `apps/server/docker-compose.integration.yml`, with a health check, a fixed port on `127.0.0.1` and the same image and settings as the function.
-3. Set the variable in `.github/workflows/integration.yml`.
+3. Set the variables in `.github/workflows/integration.yml`.
 4. Write the test beside the code it checks, with `//go:build integration` on the first line.
 
 ---
