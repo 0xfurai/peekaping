@@ -16,9 +16,7 @@ import (
 func resolveDatabase(t *testing.T, constructor any) shutdown.Database {
 	t.Helper()
 	container := dig.New()
-	if constructor != nil {
-		require.NoError(t, container.Provide(constructor))
-	}
+	require.NoError(t, container.Provide(constructor))
 	var database shutdown.Database
 	require.NoError(t, container.Invoke(func(resolved shutdown.Database) { database = resolved }))
 	return database
@@ -36,15 +34,4 @@ func TestDatabase_ClosesTheSQLDatabaseTheContainerProvides(t *testing.T) {
 	assert.Contains(t, queries.queries, "PRAGMA wal_checkpoint(TRUNCATE)")
 	assert.Error(t, db.Ping(), "the database is still open")
 	assert.Equal(t, 1, logs.FilterMessage("SQLite database closed gracefully").Len())
-}
-
-// The worker has no database, and a binary is not told which storage backend it runs on when
-// it provides none
-func TestDatabase_ClosesNothingWhenTheContainerProvidesNoDatabase(t *testing.T) {
-	logger, logs := observedLogger()
-	database := resolveDatabase(t, nil)
-
-	require.NoError(t, database.Close(context.Background(), "", logger))
-
-	assert.Zero(t, logs.Len())
 }

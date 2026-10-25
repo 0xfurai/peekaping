@@ -161,8 +161,8 @@ func warnAboutSQLite(container *dig.Container, cfg *config.Config) error {
 // registerCluster provides what the api shares with the rest of the graph, then cluster mode's
 // transport: the Redis client, the event bus over Redis pub/sub with the notification topics sent
 // through the notification queue (provideAPIEventBus), the stale monitors in a Redis hash, the run
-// lock of the api's hourly cleanup in Redis, and asynq's client and inspector behind the queue
-// service. The api adds the asynq server that takes the notification queue (RegisterClusterAPI).
+// lock of the api's hourly cleanup in Redis, and asynq's client behind the queue service. The api
+// adds the asynq server that takes the notification queue (RegisterClusterAPI).
 func registerCluster(container *dig.Container, cfg *config.Config) error {
 	if err := Register(container, cfg); err != nil {
 		return err
@@ -174,7 +174,6 @@ func registerCluster(container *dig.Container, cfg *config.Config) error {
 		stale.ProvideRedisStore,
 		cleanup.ProvideRedisRunLock,
 		infra.ProvideAsynqClient,
-		infra.ProvideAsynqInspector,
 		infra.ProvideQueueService,
 		provideClusterMode,
 		provideClusterSwitch,

@@ -53,19 +53,9 @@ type Config struct {
 	// Number of concurrent workers to process tasks
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
-	// How long the worker's and the ingester's queue servers wait for the tasks they are running
-	// when they stop, before they give up on them: asynq puts the tasks back in the queue. The
-	// two binaries set it from their shutdown timeouts, no environment variable does. Zero keeps
-	// asynq's default of 8 seconds.
-	QueueShutdownTimeout time.Duration
-
 	// Single mode's scheduler runs this many checks at the same time. A check that is due
 	// while the pool is full waits for a free slot.
 	CheckConcurrency int `env:"CHECK_CONCURRENCY" validate:"min=1" default:"128"`
-
-	// Producer configuration
-	// Number of concurrent producer goroutines for claiming and processing monitors
-	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
 
 	// Bruteforce protection settings
 	// Maximum number of failed login attempts allowed within the time window

@@ -58,7 +58,6 @@ func clusterConfig(t *testing.T) *config.Config {
 		RedisHost:             redisHost,
 		RedisPort:             redisPort,
 		QueueConcurrency:      1,
-		ProducerConcurrency:   1,
 		BruteforceMaxAttempts: 20,
 		BruteforceWindow:      time.Minute,
 		BruteforceLockout:     time.Minute,
@@ -102,12 +101,10 @@ func TestRegisterClusterAPI_ResolvesWhatCmdAPIRuns(t *testing.T) {
 		bus events.EventBus,
 		db *bun.DB,
 		client *asynq.Client,
-		inspector *asynq.Inspector,
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
 		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 	}))
 }
 
@@ -251,12 +248,10 @@ func TestRegisterClusterAPI_TheWatchdogSkipsTheMonitorsOfAnyOfflineProbeTheLocal
 		bus events.EventBus,
 		db *bun.DB,
 		client *asynq.Client,
-		inspector *asynq.Inspector,
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
 		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 		require.NoError(t, migrateDB(db))
 
 		assertWatchdogFollowsEveryProbesStatus(t, probeOffline, monitors, probes)
@@ -338,13 +333,15 @@ func assertWatchdogSkipsOnlyOfflineRemote(t *testing.T, probeOffline stale.Probe
 // sends from go through the notification queue, which gives each event to one replica. The api
 // publishes all of them, and every other topic stays on pub/sub for all the api replicas.
 func TestRegisterClusterAPI_ItsEventBusQueuesTheNotificationTopics(t *testing.T) {
+	cfg := clusterConfig(t)
 	container := dig.New()
-	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
+	require.NoError(t, RegisterClusterAPI(container, cfg))
+	inspector := asynq.NewInspector(asynq.RedisClientOpt{Addr: net.JoinHostPort(cfg.RedisHost, cfg.RedisPort)})
+	t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 
-	require.NoError(t, container.Invoke(func(bus events.EventBus, client *asynq.Client, inspector *asynq.Inspector) {
+	require.NoError(t, container.Invoke(func(bus events.EventBus, client *asynq.Client) {
 		closeEventBus(t, bus)
 		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 		ctx := context.Background()
 		queued := func() int {
 			info, err := inspector.GetQueueInfo("notification")
@@ -385,12 +382,10 @@ func TestRegisterClusterAPI_RunsTheUsagePingInClusterModeClaimedInRedis(t *testi
 		bus events.EventBus,
 		db *bun.DB,
 		client *asynq.Client,
-		inspector *asynq.Inspector,
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
 		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 		assert.Equal(t, telemetry.ModeCluster, mode)
 		assert.IsType(t, &telemetry.RedisClaimer{}, claimer)
 	}))

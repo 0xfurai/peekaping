@@ -964,11 +964,8 @@ func newClusterBus(t *testing.T, cfg *config.Config) *QueuedBus {
 	asynqClient, err := infra.ProvideAsynqClient(cfg, logger)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = asynqClient.Close() })
-	inspector, err := infra.ProvideAsynqInspector(cfg, logger)
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = inspector.Close() })
 
-	bus := NewQueuedBus(infra.NewRedisEventBus(client, logger), infra.ProvideQueueService(asynqClient, inspector, logger))
+	bus := NewQueuedBus(infra.NewRedisEventBus(client, logger), infra.ProvideQueueService(asynqClient, logger))
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()

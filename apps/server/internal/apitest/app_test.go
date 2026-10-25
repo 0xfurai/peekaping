@@ -115,11 +115,10 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 	if decorate != nil {
 		require.NoError(t, decorate(container))
 	}
-	require.NoError(t, container.Invoke(func(db *bun.DB, bus events.EventBus, queue *asynq.Client, inspector *asynq.Inspector) error {
+	require.NoError(t, container.Invoke(func(db *bun.DB, bus events.EventBus, queue *asynq.Client) error {
 		t.Cleanup(func() {
 			require.NoError(t, bus.Close(context.Background()))
 			require.NoError(t, queue.Close())
-			require.NoError(t, inspector.Close())
 			require.NoError(t, db.Close())
 		})
 		migrator := migrate.NewMigrator(db, migrations.Migrations)
@@ -179,6 +178,14 @@ func newAppWithAdmin(t *testing.T, options ...func(*config.Config)) *app {
 	a := newApp(t, options...)
 	a.registerAdmin(t)
 	return a
+}
+
+// inspector inspects the queues of the app's Redis, which the app itself has no reason to
+func (a *app) inspector(t *testing.T) *asynq.Inspector {
+	t.Helper()
+	inspector := asynq.NewInspector(asynq.RedisClientOpt{Addr: a.redis.Addr()})
+	t.Cleanup(func() { require.NoError(t, inspector.Close()) })
+	return inspector
 }
 
 // registerAdmin registers the admin and issues an API key.

@@ -484,37 +484,27 @@ func TestProbeProtocol_HelloRejectsABadBody(t *testing.T) {
 func (a *app) queuedNotificationTopics(t *testing.T) []string {
 	t.Helper()
 	topics := []string{}
-	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
-		tasks, err := inspector.ListPendingTasks(notification_channel.QueueName)
-		if errors.Is(err, asynq.ErrQueueNotFound) {
-			return nil
+	tasks, err := a.inspector(t).ListPendingTasks(notification_channel.QueueName)
+	if errors.Is(err, asynq.ErrQueueNotFound) {
+		return topics
+	}
+	require.NoError(t, err)
+	for _, task := range tasks {
+		var queued struct {
+			Topic string `json:"topic"`
 		}
-		if err != nil {
-			return err
-		}
-		for _, task := range tasks {
-			var queued struct {
-				Topic string `json:"topic"`
-			}
-			if err := json.Unmarshal(task.Payload, &queued); err != nil {
-				return err
-			}
-			topics = append(topics, queued.Topic)
-		}
-		return nil
-	}))
+		require.NoError(t, json.Unmarshal(task.Payload, &queued))
+		topics = append(topics, queued.Topic)
+	}
 	return topics
 }
 
 func (a *app) clearQueuedNotifications(t *testing.T) {
 	t.Helper()
-	require.NoError(t, a.container.Invoke(func(inspector *asynq.Inspector) error {
-		_, err := inspector.DeleteAllPendingTasks(notification_channel.QueueName)
-		if errors.Is(err, asynq.ErrQueueNotFound) {
-			return nil
-		}
-		return err
-	}))
+	_, err := a.inspector(t).DeleteAllPendingTasks(notification_channel.QueueName)
+	if !errors.Is(err, asynq.ErrQueueNotFound) {
+		require.NoError(t, err)
+	}
 }
 
 func TestProbeProtocol_RequestBringsAnOfflineProbeOnline(t *testing.T) {
