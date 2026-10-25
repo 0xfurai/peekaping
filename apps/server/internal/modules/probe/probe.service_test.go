@@ -3,6 +3,8 @@ package probe_test
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -579,6 +581,87 @@ func TestService_RegisterInstanceIsOneTransaction(t *testing.T) {
 	got, err := f.svc.FindByID(ctx, created.ID)
 	require.NoError(t, err)
 	assert.Empty(t, got.Instances, "a hello whose types failed to store leaves no instance row behind")
+}
+
+// heldBy is how many instance rows the probe has
+func heldBy(t *testing.T, db *bun.DB, probeID string) int {
+	t.Helper()
+	n, err := db.NewSelect().Table("probe_instances").Where("probe_id = ?", probeID).Count(context.Background())
+	require.NoError(t, err)
+	return n
+}
+
+// A probe restarts every minute for a day, each start with an instance id of its own: half of
+// the starts say bye first and half just stop. Its rows must not pass the cap, which the sweep
+// would not keep them under: it prunes only what has been silent for a day.
+func TestService_RegisterInstanceKeepsAProbeThatRestartsEveryMinuteForADayAtTheCap(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		svc := serviceOn(db, func(repo probe.Repository) probe.Repository { return repo })
+		created, err := svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
+		require.NoError(t, err)
+		start := time.Date(2026, 10, 22, 8, 0, 0, 0, time.UTC)
+
+		const restarts = 24 * 60
+		for minute := range restarts {
+			now := start.Add(time.Duration(minute) * time.Minute)
+			id := fmt.Sprintf("start-%04d", minute)
+			require.NoError(t, svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: id, LastSeenAt: now}, []string{"http"}), "restart %d", minute)
+			if minute%2 == 0 {
+				require.NoError(t, svc.RetireInstance(ctx, created.ID, id, probe.RetiredAt(now.Add(30*time.Second))))
+			}
+
+			require.LessOrEqual(t, heldBy(t, db, created.ID), 64, "after restart %d", minute)
+		}
+
+		got, err := svc.FindByID(ctx, created.ID)
+		require.NoError(t, err)
+		require.Len(t, got.Instances, 64, "the table is flat at the cap")
+		assert.Equal(t, "start-1439", got.Instances[0].ID, "the newest start is the most recently seen")
+		assert.Equal(t, "start-1376", got.Instances[63].ID, "and the 64 left are the 64 latest starts: the oldest made the room")
+	})
+}
+
+// Of several hellos at once from new instances, as many as there are places get one. On PostgreSQL
+// each of them would count 63 rows and take the last place, were it not for the lock.
+func TestService_RegisterInstanceAtOnceFromManyNewInstancesFillsOnlyTheFreePlaces(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		svc := serviceOn(db, func(repo probe.Repository) probe.Repository { return repo })
+		created, err := svc.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
+		require.NoError(t, err)
+		now := time.Now().UTC()
+		for n := range 61 {
+			require.NoError(t, svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: fmt.Sprintf("online-%d", n), LastSeenAt: now}, nil))
+		}
+
+		const hellos = 12
+		errs := make([]error, hellos)
+		var wg sync.WaitGroup
+		for n := range hellos {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				errs[n] = svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: fmt.Sprintf("new-%d", n), LastSeenAt: now}, nil)
+			}()
+		}
+		wg.Wait()
+
+		accepted, refused := 0, 0
+		for _, err := range errs {
+			switch {
+			case err == nil:
+				accepted++
+			case errors.Is(err, probe.ErrTooManyInstances):
+				refused++
+			default:
+				require.NoError(t, err)
+			}
+		}
+		assert.Equal(t, 3, accepted, "61 held and a cap of 64 leave 3 places")
+		assert.Equal(t, hellos-3, refused)
+		assert.Equal(t, 64, heldBy(t, db, created.ID))
+	})
 }
 
 func TestService_TouchInstanceStampsTheLastSeenTime(t *testing.T) {
