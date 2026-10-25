@@ -45,7 +45,8 @@ import (
 	"peekaping/internal/reporting"
 	"peekaping/internal/reporting/redissync"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
-	"peekaping/internal/utils"
+	"peekaping/internal/shutdown/lifecycle"
+	"peekaping/internal/validation"
 	"peekaping/internal/version"
 
 	"github.com/robfig/cron/v3"
@@ -69,7 +70,7 @@ func main() {
 	// before that is not reported.
 	defer reporting.ReportCrash("main")
 
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 
 	// Load and validate API-specific config
 	cfg, err := LoadAndValidate("../..")
@@ -90,7 +91,7 @@ func main() {
 		logger.Fatalw("Failed to listen", "address", address, "error", err)
 	}
 
-	ctx, stop := graceful.NotifySignals(logger, os.Exit)
+	ctx, stop := lifecycle.NotifySignals(logger, os.Exit)
 	defer stop()
 
 	if err := run(ctx, cfg, logger, listener); err != nil {
@@ -362,7 +363,7 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 func (j *jobs) stop(ctx context.Context, logger *zap.SugaredLogger) error {
 	var errs []error
 	await := func(what string, done <-chan struct{}) {
-		if err := graceful.Await(ctx, what, done); err != nil {
+		if err := lifecycle.Await(ctx, what, done); err != nil {
 			errs = append(errs, err)
 			return
 		}
@@ -445,7 +446,7 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 	}
 	// The HTTP handlers the HTTP server left running return in the jobs' share too, before the
 	// event bus closes, so that what they publish reaches it
-	if err := graceful.Await(jobsCtx, "the HTTP handlers", handlers.Done()); err != nil {
+	if err := lifecycle.Await(jobsCtx, "the HTTP handlers", handlers.Done()); err != nil {
 		errs = append(errs, err)
 		running = append(running, "HTTP handlers")
 	}

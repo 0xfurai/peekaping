@@ -37,7 +37,7 @@ const sqliteClusterDocsURL = "https://docs.peekaping.com/self-hosting/docker-wit
 // asynq server.
 //
 // On SQLite and PostgreSQL the probes run the checks, so the api does the rest. It stores what it
-// takes, a push to a push URL or the results of a probe, through ingester.NewInOrderService on the
+// takes, a push to a push URL or the results of a probe, through ingest.NewInOrderService on the
 // replica that took the request, as single mode does (see ingestOnTheAPI), and aggregates the stats
 // of the heartbeats it stored. And it has the jobs the producer ran: the stale-monitor watchdog and
 // the probe sweep, which run on the one replica that holds the leader lock (LeaderJobs).

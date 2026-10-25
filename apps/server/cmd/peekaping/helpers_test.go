@@ -22,6 +22,7 @@ import (
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	gorilla "github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -43,7 +44,7 @@ const (
 // changed by env. The REDIS_* variables, WEB_DIR and API_URL are unset unless env sets them.
 func loadConfig(t *testing.T, env map[string]string) *Config {
 	t.Helper()
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 	unsetRedis(t)
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "peekaping.db"))

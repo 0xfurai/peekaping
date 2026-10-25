@@ -10,7 +10,7 @@ import (
 	_ "time/tzdata" // embed the zone database so TZ works in images without tzdata
 
 	"peekaping/internal/probeclient"
-	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
+	"peekaping/internal/shutdown/lifecycle"
 	"peekaping/internal/version"
 
 	"go.uber.org/zap"
@@ -27,7 +27,7 @@ func main() {
 		log.Fatalf("Failed to create logger: %v", err)
 	}
 
-	ctx, stop := graceful.NotifySignals(logger, os.Exit)
+	ctx, stop := lifecycle.NotifySignals(logger, os.Exit)
 	defer stop()
 
 	if err := run(ctx, cfg, logger, newRuntime); err != nil {

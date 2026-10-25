@@ -11,8 +11,8 @@ import (
 
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/shared"
 
@@ -339,7 +339,7 @@ func newHarness(t *testing.T, options ...func(*Config)) *harness {
 	cfg := Config{
 		Source:            NewDatabaseSource(h.db, h.db, h.bus),
 		Executors:         h.exec,
-		Supervisor:        healthcheck.NewHealthCheck(nil, nil, logger),
+		Supervisor:        supervisor.NewHealthCheck(nil, nil, logger),
 		Ingester:          h.ingest,
 		Concurrency:       128,
 		ReconcileInterval: time.Hour,

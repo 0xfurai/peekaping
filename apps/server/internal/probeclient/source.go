@@ -9,7 +9,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 )
@@ -212,20 +212,20 @@ func (s *Source) Find(_ context.Context, monitorID string) (*shared.Monitor, err
 
 // Load returns what a check of the assigned monitor needs. Whether the monitor is under
 // maintenance is for the server to judge when it takes the result, so a job is never under it.
-func (s *Source) Load(_ context.Context, monitorID string) (*check.Job, error) {
+func (s *Source) Load(_ context.Context, monitorID string) (*job.Job, error) {
 	s.mu.RLock()
 	m, assigned := s.monitors[monitorID]
 	s.mu.RUnlock()
 	if !assigned {
-		return nil, check.ErrMonitorNotFound
+		return nil, job.ErrMonitorNotFound
 	}
 
-	certExpiry, err := check.CertExpiryRequested(m.Config)
+	certExpiry, err := job.CertExpiryRequested(m.Config)
 	if err != nil {
 		s.logger.Warnw("Failed to parse monitor config for certificate expiry check",
 			"monitor_id", m.ID, "monitor_name", m.Name, "error", err)
 	}
-	return &check.Job{Monitor: monitorOf(m), Proxy: proxyOf(m.Proxy), CheckCertExpiry: certExpiry}, nil
+	return &job.Job{Monitor: monitorOf(m), Proxy: proxyOf(m.Proxy), CheckCertExpiry: certExpiry}, nil
 }
 
 // monitorOf is the monitor as the scheduler checks it. It has no probe ids: the monitor is this

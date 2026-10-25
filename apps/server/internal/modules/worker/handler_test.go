@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
@@ -58,7 +58,7 @@ func (q *recordingQueue) EnqueueUnique(_ context.Context, taskType string, paylo
 func newTestHandler(ingesterService ingester.Service) *HealthCheckTaskHandler {
 	logger := zap.NewNop().Sugar()
 	registry := executor.NewExecutorRegistry(logger)
-	return NewHealthCheckTaskHandler(registry, healthcheck.NewHealthCheck(nil, registry, logger), ingesterService, logger)
+	return NewHealthCheckTaskHandler(registry, supervisor.NewHealthCheck(nil, registry, logger), ingesterService, logger)
 }
 
 func httpCheckTask(t *testing.T, url string, timeout int) *asynq.Task {

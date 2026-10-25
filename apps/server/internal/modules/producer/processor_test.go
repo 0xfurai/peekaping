@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/check"
-	"peekaping/internal/modules/healthcheck"
+	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
@@ -92,7 +92,7 @@ func TestProcessMonitor(t *testing.T) {
 				opts.Queue == "healthcheck" &&
 				opts.MaxRetry == 0 &&
 				opts.Retention == 0 &&
-				opts.Timeout > 30*time.Second+healthcheck.ExecutorGrace
+				opts.Timeout > 30*time.Second+supervisor.ExecutorGrace
 		})).Return(&queue.TaskInfo{ID: "task-123"}, nil)
 
 		interval, err := producer.processMonitor(ctx, "mon-1", 1234567890)

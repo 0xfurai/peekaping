@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"slices"
 	"strings"
 	"time"
@@ -36,7 +37,7 @@ func (c *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Out
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if err := utils.Validate.Struct(&dto); err != nil {
+	if err := validation.Validate.Struct(&dto); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 

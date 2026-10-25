@@ -12,7 +12,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 )
@@ -29,7 +29,7 @@ const (
 // errNoOutcomes is the failure of a batch the server answered with no outcome for any of its results
 var errNoOutcomes = errors.New("the server answered none of the results")
 
-// Sink is where the probe's checks put their results: it implements ingester.Service. Ingest
+// Sink is where the probe's checks put their results: it implements ingest.Service. Ingest
 // puts a result into a bounded buffer in memory, and never waits for the network. Run flushes the
 // buffer to the server: a batch of at most batch_max results when the first result has waited
 // flush_interval or batch_max have gathered, gzipped, oldest first. A result goes from the buffer
@@ -58,7 +58,7 @@ type Sink struct {
 	lastDropLog       time.Time
 }
 
-var _ ingester.Service = (*Sink)(nil)
+var _ ingest.Service = (*Sink)(nil)
 
 // entry is a buffered result and its size as JSON
 type entry struct {
@@ -92,7 +92,7 @@ func (s *Sink) Dropped() int64 {
 
 // Ingest puts the result in the buffer, with a ULID id made now. It returns an error only for a
 // result the server could not read, which is not buffered.
-func (s *Sink) Ingest(_ context.Context, r *ingester.Result) error {
+func (s *Sink) Ingest(_ context.Context, r *ingest.Result) error {
 	result, err := s.wireResult(r)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (s *Sink) Ingest(_ context.Context, r *ingester.Result) error {
 }
 
 // wireResult is the result as the server takes it
-func (s *Sink) wireResult(r *ingester.Result) (probeproto.Result, error) {
+func (s *Sink) wireResult(r *ingest.Result) (probeproto.Result, error) {
 	status, ok := statusWords[r.Status]
 	if !ok {
 		return probeproto.Result{}, fmt.Errorf("the result of monitor %s has status %d, which the probe protocol has no word for", r.MonitorID, r.Status)

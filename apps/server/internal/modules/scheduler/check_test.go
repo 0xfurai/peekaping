@@ -9,6 +9,7 @@ import (
 
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
@@ -100,7 +101,7 @@ func TestScheduler_IngestsAMonitorsChecksInOrderWithItsPushes(t *testing.T) {
 	pushing := make(chan struct{})
 	release := make(chan struct{})
 	// Pushes and the scheduler's checks share one in-order ingester, as single mode wires them
-	ordered := ingester.NewInOrderService(ingestFunc(func(_ context.Context, r *ingester.Result) error {
+	ordered := ingest.NewInOrderService(ingestFunc(func(_ context.Context, r *ingester.Result) error {
 		mu.Lock()
 		ingested = append(ingested, r.Message)
 		mu.Unlock()

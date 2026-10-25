@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"strings"
 	"time"
 
@@ -35,7 +36,7 @@ func NewMonitorController(
 	tlsInfoService monitor_tls_info.Service,
 	staleStore stale.Store,
 ) *MonitorController {
-	utils.Validate.RegisterStructValidation(CreateUpdateDtoStructLevelValidation, CreateUpdateDto{})
+	validation.Validate.RegisterStructValidation(CreateUpdateDtoStructLevelValidation, CreateUpdateDto{})
 
 	return &MonitorController{
 		monitorService,
@@ -183,7 +184,7 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	}
 	monitor.ApplyCreateDefaults()
 
-	if err := utils.Validate.Struct(monitor); err != nil {
+	if err := validation.Validate.Struct(monitor); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -256,7 +257,7 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 	}
 
 	// validate
-	if err := utils.Validate.Struct(monitor); err != nil {
+	if err := validation.Validate.Struct(monitor); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 

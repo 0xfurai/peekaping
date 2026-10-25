@@ -3,6 +3,7 @@ package probeclient_test
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
@@ -28,9 +29,17 @@ func httpTarget(t *testing.T) (url string, checks *atomic.Int32) {
 	return target.URL, checks
 }
 
-// monitorOf is an HTTP monitor of the target
+// checkedOnce is a check interval so long that a monitor is checked at once, when the probe gets it,
+// and not again while a test runs. The scheduler checks a monitor on each multiple of its interval
+// counted from the Unix epoch, so with an interval of a minute a test that began less than a flush
+// interval (2 s) before a full minute got a second result from the tick on that minute, and a test
+// that waits for exactly one result never saw it. The first multiple of this one is in 2038.
+const checkedOnce = math.MaxInt32
+
+// monitorOf is an HTTP monitor of the target, which is checked once
 func monitorOf(id, url string) probeproto.Monitor {
 	return httpMonitor(id, func(m *probeproto.Monitor) {
+		m.Interval = checkedOnce
 		m.Config = fmt.Sprintf(`{"url":%q,"method":"GET","encoding":"json","accepted_statuscodes":["2XX"],"authMethod":"none"}`, url)
 	})
 }

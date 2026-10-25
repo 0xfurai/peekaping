@@ -20,6 +20,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_tls_info"
@@ -190,7 +191,7 @@ func TestRegisterSingle_RunsTheUsagePingInSingleModeWithoutRedis(t *testing.T) {
 	}))
 }
 
-// The scheduler wraps its ingester.Service in ingester.NewInOrderService, which returns a service
+// The scheduler wraps its ingester.Service in ingest.NewInOrderService, which returns a service
 // that is already in order as it is. So the push URL's service, the one the container provides,
 // is the very one the scheduler ingests through, and a monitor's pushes wait for its checks.
 func TestRegisterSingle_ProvidesTheCORSOriginsFromTheConfig(t *testing.T) {
@@ -231,7 +232,7 @@ func TestRegisterSingle_IngestsThePushURLThroughTheSchedulersInOrderService(t *t
 	require.NoError(t, container.Invoke(func(svc ingester.Service, bus events.EventBus, db *bun.DB) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
-		assert.Same(t, svc, ingester.NewInOrderService(svc), "the provided ingester.Service is in order")
+		assert.Same(t, svc, ingest.NewInOrderService(svc), "the provided ingester.Service is in order")
 	}))
 }
 

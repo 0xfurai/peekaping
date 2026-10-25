@@ -1,6 +1,6 @@
 //go:build unix
 
-package shutdown_test
+package lifecycle_test
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"peekaping/internal/shutdown"
+	"peekaping/internal/shutdown/lifecycle"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +17,7 @@ import (
 func TestNotifySignals_ASecondSignalExitsWithoutWaitingForTheShutdown(t *testing.T) {
 	logger, logs := observedLogger()
 	exited := make(chan int, 1)
-	ctx, stop := shutdown.NotifySignals(logger, func(code int) { exited <- code })
+	ctx, stop := lifecycle.NotifySignals(logger, func(code int) { exited <- code })
 	t.Cleanup(stop)
 
 	require.NoError(t, syscall.Kill(os.Getpid(), syscall.SIGTERM))

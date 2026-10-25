@@ -1,4 +1,7 @@
-package healthcheck
+// Package supervisor runs one check of a monitor: it bounds the monitor's executor by its timeout,
+// and turns what the executor reports into the TickResult that the scheduler or the worker
+// ingests. It has no storage or queue behind it, so the remote probe runs its checks with it too.
+package supervisor
 
 import (
 	"peekaping/internal/modules/events"

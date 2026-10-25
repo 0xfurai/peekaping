@@ -97,6 +97,11 @@ jobs:
           # coverage it takes about two minutes on its own
           go test -timeout 300s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/...
 
+      # The slim probe leaves out the executors of five monitor types (Dockerfile.probe, GO_TAGS=slim)
+      - name: Run slim probe tests
+        working-directory: apps/server
+        run: go test -timeout 120s -tags slim ./internal/probeclient/ ./internal/modules/healthcheck/executor/ ./cmd/probe/
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:

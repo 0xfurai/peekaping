@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
@@ -38,8 +38,8 @@ func (s *everyMonitorSource) Find(_ context.Context, id string) (*shared.Monitor
 	return nil, nil
 }
 
-func (s *everyMonitorSource) Load(context.Context, string) (*check.Job, error) {
-	return &check.Job{}, nil
+func (s *everyMonitorSource) Load(context.Context, string) (*job.Job, error) {
+	return &job.Job{}, nil
 }
 
 func (s *everyMonitorSource) Watch(created, updated, deleted func(string)) {
