@@ -157,7 +157,7 @@ func (o *OpsgenieSender) sendDownAlert(ctx context.Context, cfg *OpsgenieConfig,
 	return o.postToOpsgenie(ctx, cfg, baseURL, data)
 }
 
-// sendUpAlert closes the alert with this alias when its monitor, or probe, is up
+// sendUpAlert closes the alert with this alias when its monitor is Up, or its probe is back online
 func (o *OpsgenieSender) sendUpAlert(ctx context.Context, cfg *OpsgenieConfig, baseURL, alias string) error {
 	// Create close URL
 	closeURL := fmt.Sprintf("%s/%s/close?identifierType=alias", baseURL, url.PathEscape(alias))

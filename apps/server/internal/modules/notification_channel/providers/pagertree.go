@@ -56,8 +56,9 @@ func (p *PagerTreeSender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*PagerTreeConfig))
 }
 
-// eventTypeForStatus is the PagerTree event type for a monitor, or a probe, that has this status:
-// Down creates an alert, Up resolves it if auto-resolve is on. It is "" when nothing is sent.
+// eventTypeForStatus is the PagerTree event type for a monitor, or a probe's stand-in, that has
+// this status: Down (a probe offline) creates an alert, Up (a probe back online) resolves it if
+// auto-resolve is on. It is "" when nothing is sent.
 func eventTypeForStatus(status shared.MonitorStatus, autoResolve bool) string {
 	switch {
 	case status == shared.MonitorStatusDown:
