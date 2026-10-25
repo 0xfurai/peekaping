@@ -22,7 +22,7 @@ In cluster mode on SQLite and PostgreSQL, the api stores the local probe's token
 
 The probe handles:
 
-- **Assignment**: asks the API for its monitors with a long poll. The API deals the local probe's active monitors (push monitors excepted) among its online instances, so each monitor is checked by one instance at a time, and deals them again when an instance joins or leaves.
+- **Assignment**: asks the API for its monitors with a long poll. The API deals the local probe's active monitors (push monitors excepted) among its online instances that run the monitor's type, so each monitor is checked by one instance at a time, and deals them again when an instance joins or leaves. Each instance lists the monitor types its build runs when it connects: the full and the [slim](../self-hosting/remote-probes.md#full-and-slim-instances-under-one-token) image can share a token.
 - **Scheduling**: runs each monitor's check on its interval, in the probe's own process.
 - **Health check execution**: runs the check for the monitor's type (HTTP, TCP, Ping, DNS and so on).
 - **Proxy support and TLS validation**: routes checks through the monitor's proxy, and reads the TLS certificate.

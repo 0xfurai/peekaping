@@ -63,7 +63,7 @@ A probe that runs on another machine. It connects out to Peekaping with its toke
 _Avoid_: Private location, remote agent
 
 **Probe instance**:
-One running copy of a probe's program. Every copy started with the probe's token is an instance of that probe, with a random id of its own, and the probe's monitors are dealt among its instances.
+One running copy of a probe's program. Every copy started with the probe's token is an instance of that probe, with a random id of its own, and the probe's monitors are dealt among its instances. Each instance lists the monitor types its build runs (the full image and the slim one differ), a monitor goes only to instances that run its type, and the probe runs the types of its online instances together.
 _Avoid_: Agent, worker, node; "instance ID" alone, which is the usage ping's
 
 **Location**:

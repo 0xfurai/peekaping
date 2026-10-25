@@ -62,7 +62,15 @@ docker run -d --name peekaping-probe -e PEEKAPING_URL=https://peekaping.example.
 
 The probe tells Peekaping which monitor types it runs when it connects, so Peekaping won't let you assign a Docker, gRPC keyword, Kafka producer, MongoDB or SQL Server monitor to a probe that runs the slim image. Every other type works as it does on the full image.
 
-Run the same image on all the instances of a probe. Peekaping keeps one list of monitor types for a probe, the one its latest instance sent, and it doesn't yet know which instance runs what. With full and slim instances under one token, Peekaping can deal a Docker monitor to a slim instance, which reports it Down with "monitor type docker not supported by this probe". To have both, create a second probe for the slim machines and give it its own token.
+### Full and slim instances under one token
+
+You can start the full and the slim image with the same token. Each instance tells Peekaping which types it runs when it connects, and Peekaping keeps the list of each instance:
+
+- **A monitor goes only to an instance that runs its type.** A Docker monitor is dealt to a full instance and never to a slim one. Every other monitor is dealt among all the online instances, as it is when they run one image. A monitor that no online instance runs is dealt to nobody, so it records no heartbeats.
+- **The probe runs a type while one of its online instances does.** The types the monitor form checks, and the types the API shows for the probe, are those of all its online instances together. With a full instance online you can assign Docker monitors to the probe. When the last full instance stops or goes quiet for a minute, Docker leaves the probe's types: its Docker monitors stay assigned and are not checked, and once they go stale their notification says `probe <name> doesn't run docker monitors`. They are checked again as soon as a full instance connects. A probe with no instance online keeps the types it last had.
+- **An instance can't send results for a type it doesn't run.** Peekaping answers such a result with `not_assigned`.
+
+The Probes API lists the types of each instance as `instances[].supported_types`, next to the probe's own `supported_types`. An empty list means every type, which is what an instance of an older probe reports. If you rely on Docker, Kafka, SQL Server, MongoDB or gRPC keyword monitors, keep a full instance online for them.
 
 ## What the probe needs to reach
 
