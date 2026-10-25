@@ -34,7 +34,8 @@ var sharedRedis lazy[RedisServer]
 // the binary and removed when it exits.
 func Redis(t testing.TB) RedisServer {
 	t.Helper()
-	return resolve(t, "Redis", redisURLEnv, "redis://:<password>@host:port", parseRedisURL, &sharedRedis, startRedis)
+	return resolve(t, "Redis", []string{redisURLEnv}, "redis://:<password>@host:port",
+		func(values []string) (RedisServer, error) { return parseRedisURL(values[0]) }, &sharedRedis, startRedis)
 }
 
 func parseRedisURL(raw string) (RedisServer, error) {
