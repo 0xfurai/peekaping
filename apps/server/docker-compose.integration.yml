@@ -5,7 +5,7 @@
 #
 #   docker compose -f docker-compose.integration.yml up -d --wait
 #   PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
-#     go test -tags integration ./internal/modules/healthcheck/executor/...
+#     go test -tags integration -count=1 ./internal/modules/healthcheck/executor/...
 #   docker compose -f docker-compose.integration.yml down
 #
 # Each service matches a function in internal/testservice, which starts the same

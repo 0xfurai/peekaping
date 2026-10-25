@@ -47,11 +47,13 @@ jobs:
 
       # GitHub sets CI=true, so a test that can't find its service fails
       # instead of skipping. The addresses are the ports the compose file binds.
+      # -count=1 because setup-go restores Go's test cache, which would replay a
+      # pass from an earlier run: its key covers files and env vars, not the servers.
       - name: Run integration tests
         working-directory: apps/server
         env:
           PEE_TEST_REDIS_URL: redis://:integration-test-password@127.0.0.1:16379
-        run: go test -tags integration -timeout 300s -v ./internal/testservice/ ./internal/modules/healthcheck/executor/...
+        run: go test -tags integration -count=1 -timeout 300s -v ./internal/testservice/ ./internal/modules/healthcheck/executor/...
 
       - name: Show the service logs
         if: failure()

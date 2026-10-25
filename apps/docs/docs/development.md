@@ -145,10 +145,10 @@ Blocks with no marker aren't checked. That is for examples and excerpts that are
 
 Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Today the only one is `TestRedisExecutor_Integration`, which checks the Redis executor: Up with the right password, Down with a wrong one.
 
-With Docker running, run them from `apps/server`. The tests start the servers they need, each on a free port, and remove them when the run ends:
+With Docker running, run them from `apps/server`. The tests start the servers they need, each on a free port, and remove them when the run ends. `-count=1` turns off Go's test cache, which would otherwise replay an earlier pass after a server went away:
 
 ```bash
-go test -tags integration -timeout 300s ./internal/modules/healthcheck/executor/...
+go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 ```
 
 To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A test that finds nothing at that address fails; it doesn't start a container instead.
@@ -157,7 +157,7 @@ To reuse servers you started yourself, run `apps/server/docker-compose.integrati
 docker compose -f apps/server/docker-compose.integration.yml up -d --wait
 cd apps/server
 PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
-  go test -tags integration -timeout 300s ./internal/modules/healthcheck/executor/...
+  go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 docker compose -f docker-compose.integration.yml down
 ```
 
