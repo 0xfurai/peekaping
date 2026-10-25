@@ -178,7 +178,7 @@ Some things belong to the install, not to a workspace: probes, token lifetimes, 
 - Any workspace's monitor can run on any probe that isn't disabled. A plan may limit how many probes a monitor uses (PP-160, PP-167).
 - A probe's offline notification goes to the channels an instance admin links to it. They pick from the channels of a workspace they're a member of; the flag itself shows them no workspace's channels. Deleting that workspace removes the links by cascade.
 
-Probes a workspace runs for itself are a later ticket. They would give `probes` a nullable `workspace_id`.
+Probes a workspace runs for itself are a later ticket, PP-286. They would give `probes` a nullable `workspace_id`.
 
 ### 11. Signup
 
@@ -227,4 +227,5 @@ Waiting tickets:
 - **PP-155** (signup modes): the two modes in section 11.
 - **PP-160, PP-161** (plan limits, per-workspace retention): section 4.
 - **PP-91** (shared repository code): optional. Its helpers take the workspace ID if it lands first.
-- A new ticket: keep `/metrics` off the public internet on the cloud.
+- **PP-286** (probes a workspace runs for itself): section 10.
+- **PP-287**: keep `/metrics` off the public internet on the cloud (section 3).
