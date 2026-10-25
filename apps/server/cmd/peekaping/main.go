@@ -43,7 +43,7 @@ import (
 	"peekaping/internal/reporting"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
 	"peekaping/internal/shutdown/lifecycle"
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"peekaping/internal/version"
 	"peekaping/internal/web"
 
@@ -72,7 +72,7 @@ func main() {
 	// before that is not reported.
 	defer reporting.ReportCrash("main")
 
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 
 	cfg, err := LoadAndValidate("../..")
 	if err != nil {

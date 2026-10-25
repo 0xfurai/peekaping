@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	"go.uber.org/zap"
 )
@@ -52,7 +53,7 @@ func (c *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Out
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
-	if err := utils.Validate.Struct(tag); err != nil {
+	if err := validation.Validate.Struct(tag); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -92,7 +93,7 @@ func (c *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*h
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if err := utils.Validate.Struct(tag); err != nil {
+	if err := validation.Validate.Struct(tag); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -120,7 +121,7 @@ func (c *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInpu
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if err := utils.Validate.Struct(tag); err != nil {
+	if err := validation.Validate.Struct(tag); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 

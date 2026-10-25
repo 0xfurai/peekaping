@@ -13,7 +13,7 @@ import (
 	"net/url"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/shared"
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"peekaping/internal/version"
 	"strconv"
 	"strings"
@@ -205,7 +205,7 @@ func (t *TLSInterceptor) Reset() {
 }
 
 func NewHTTPExecutor(logger *zap.SugaredLogger) *HTTPExecutor {
-	utils.Validate.RegisterStructValidation(HTTPConfigStructLevelValidation, HTTPConfig{})
+	validation.Validate.RegisterStructValidation(HTTPConfigStructLevelValidation, HTTPConfig{})
 
 	return &HTTPExecutor{
 		logger: logger,

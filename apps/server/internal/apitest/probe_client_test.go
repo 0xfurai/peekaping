@@ -21,7 +21,7 @@ import (
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeclient"
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,7 +37,7 @@ import (
 func newSingleApp(t *testing.T) *app {
 	t.Helper()
 	ctx := context.Background()
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 	cfg := &config.Config{
 		DBType:                "sqlite",
 		DBName:                filepath.Join(t.TempDir(), "single.db"),

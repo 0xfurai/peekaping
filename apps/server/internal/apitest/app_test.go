@@ -24,6 +24,7 @@ import (
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/hibiken/asynq"
@@ -80,7 +81,7 @@ func newApp(t *testing.T, options ...func(*config.Config)) *app {
 func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options ...func(*config.Config)) *app {
 	t.Helper()
 	ctx := context.Background()
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 
 	redis := miniredis.RunT(t)
 	redisHost, redisPort, err := net.SplitHostPort(redis.Addr())

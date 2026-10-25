@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"net/url"
 	"peekaping/internal/modules/shared"
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"time"
 )
 
 func GenericValidator[T any](cfg *T) error {
-	return utils.Validate.Struct(cfg)
+	return validation.Validate.Struct(cfg)
 }
 
 func GenericUnmarshal[T any](configJSON string) (*T, error) {

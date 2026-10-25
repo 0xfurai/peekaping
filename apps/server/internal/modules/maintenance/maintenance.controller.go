@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
@@ -63,7 +64,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 	}
 	entity.ApplyCreateDefaults()
 
-	if err := utils.Validate.Struct(entity); err != nil {
+	if err := validation.Validate.Struct(entity); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -128,7 +129,7 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if err := utils.Validate.Struct(entity); err != nil {
+	if err := validation.Validate.Struct(entity); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -153,7 +154,7 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if err := utils.Validate.Struct(entity); err != nil {
+	if err := validation.Validate.Struct(entity); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 

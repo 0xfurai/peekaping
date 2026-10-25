@@ -41,7 +41,7 @@ import (
 	"peekaping/internal/reporting/redissync"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
 	"peekaping/internal/shutdown/lifecycle"
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"peekaping/internal/version"
 
 	"github.com/robfig/cron/v3"
@@ -65,7 +65,7 @@ func main() {
 	// before that is not reported.
 	defer reporting.ReportCrash("main")
 
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 
 	// Load and validate API-specific config
 	cfg, err := LoadAndValidate("../..")
