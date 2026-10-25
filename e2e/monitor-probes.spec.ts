@@ -5,18 +5,6 @@ import { targetHost, targetPort, targetURL } from './support/fake-target';
 import { listFor } from './support/monitor-list';
 import { cleanUp, createProbe } from './support/probe';
 
-// A MongoDB install has no probes, not even the local one (ADR 0001), so there is nothing to
-// choose. The workflow runs every spec on Mongo and no variable names the database, so the empty
-// list is the signal to skip.
-test.beforeEach(async ({ page }) => {
-  const api = await adminAPI(page);
-  const response = await api.get('probes');
-  expect(response.ok(), `GET probes: ${await response.text()}`).toBeTruthy();
-  const { data: probes } = await response.json();
-  await api.dispose();
-  test.skip(probes.length === 0, 'probes need SQLite or PostgreSQL storage (ADR 0001)');
-});
-
 // The names are lowercase: on Postgres the monitor list search matches only a lowercase term
 // (PP-72), and cleanUp and listFor search for them.
 const names = () => {

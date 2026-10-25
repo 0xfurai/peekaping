@@ -12,18 +12,6 @@ async function deleteProbes(page: Page, names: string[]) {
   await api.dispose();
 }
 
-// A MongoDB install has no probes, not even the local one, and answers 501 to a create
-// (ADR 0001). The workflow runs every spec on Mongo and no variable names the database, so the
-// empty list is the signal to skip.
-test.beforeEach(async ({ page }) => {
-  const api = await adminAPI(page);
-  const response = await api.get('probes');
-  expect(response.ok(), `GET probes: ${await response.text()}`).toBeTruthy();
-  const { data: probes } = await response.json();
-  await api.dispose();
-  test.skip(probes.length === 0, 'probes need SQLite or PostgreSQL storage (ADR 0001)');
-});
-
 test('A probe is created, its token rotated and the probe deleted', async ({ page }) => {
   const probeName = `E2E probe ${randomID()}`;
 
