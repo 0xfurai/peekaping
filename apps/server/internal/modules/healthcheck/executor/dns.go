@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"peekaping/internal/modules/shared"
+	"strconv"
 	"strings"
 	"time"
 
@@ -60,7 +61,7 @@ func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 			dialer := &net.Dialer{
 				Timeout: time.Duration(m.Timeout) * time.Second,
 			}
-			return dialer.DialContext(ctx, network, fmt.Sprintf("%s:%d", cfg.ResolverServer, cfg.Port))
+			return dialer.DialContext(ctx, network, net.JoinHostPort(cfg.ResolverServer, strconv.Itoa(cfg.Port)))
 		},
 	}
 
@@ -159,7 +160,7 @@ func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 		client.Timeout = time.Duration(m.Timeout) * time.Second
 
 		var resp *dns.Msg
-		resp, _, err = client.Exchange(msg, fmt.Sprintf("%s:%d", cfg.ResolverServer, cfg.Port))
+		resp, _, err = client.Exchange(msg, net.JoinHostPort(cfg.ResolverServer, strconv.Itoa(cfg.Port)))
 
 		if err == nil && resp != nil && len(resp.Answer) > 0 {
 			var caaStrings []string
@@ -182,7 +183,7 @@ func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 		client.Timeout = time.Duration(m.Timeout) * time.Second
 
 		var resp *dns.Msg
-		resp, _, err = client.Exchange(msg, fmt.Sprintf("%s:%d", cfg.ResolverServer, cfg.Port))
+		resp, _, err = client.Exchange(msg, net.JoinHostPort(cfg.ResolverServer, strconv.Itoa(cfg.Port)))
 
 		if err == nil && resp != nil && len(resp.Answer) > 0 {
 			for _, ans := range resp.Answer {

@@ -400,7 +400,7 @@ func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTrip
 	case "http", "https":
 		proxyURL := &url.URL{
 			Scheme: protocol,
-			Host:   fmt.Sprintf("%s:%d", proxyModel.Host, proxyModel.Port),
+			Host:   net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port)),
 		}
 		if proxyModel.Auth && proxyModel.Username != "" && proxyModel.Password != "" {
 			proxyURL.User = url.UserPassword(proxyModel.Username, proxyModel.Password)
@@ -415,7 +415,7 @@ func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTrip
 				Password: proxyModel.Password,
 			}
 		}
-		address := fmt.Sprintf("%s:%d", proxyModel.Host, proxyModel.Port)
+		address := net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port))
 		dialer, err := proxy.SOCKS5("tcp", address, auth, proxy.Direct)
 		if err != nil {
 			// fallback to default transport if dialer fails

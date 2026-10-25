@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 	"net/url"
 	"peekaping/internal/modules/shared"
 	"strings"
@@ -115,7 +116,7 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 
 	connector := pgdriver.NewConnector(
 		pgdriver.WithNetwork("tcp"),
-		pgdriver.WithAddr(fmt.Sprintf("%s:%s", config["host"], config["port"])),
+		pgdriver.WithAddr(net.JoinHostPort(config["host"], config["port"])),
 		pgdriver.WithUser(config["user"]),
 		pgdriver.WithPassword(config["password"]),
 		pgdriver.WithDatabase(config["dbname"]),

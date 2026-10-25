@@ -5,7 +5,9 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"net"
 	"peekaping/internal/modules/shared"
+	"strconv"
 	"strings"
 	"time"
 
@@ -228,6 +230,21 @@ func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel
 	}
 }
 
+// mqttBrokerURL joins hostname and port into a broker URL, adding the mqtt:// scheme when
+// hostname has none. An IPv6 host is bracketed, whether or not hostname already was.
+func mqttBrokerURL(hostname string, port int) string {
+	scheme := "mqtt://"
+	for _, s := range []string{"mqtt://", "mqtts://"} {
+		if strings.HasPrefix(hostname, s) {
+			scheme = s
+			hostname = strings.TrimPrefix(hostname, s)
+			break
+		}
+	}
+	hostname = strings.TrimSuffix(strings.TrimPrefix(hostname, "["), "]")
+	return scheme + net.JoinHostPort(hostname, strconv.Itoa(port))
+}
+
 // mqttAsync connects to MQTT broker, subscribes to topic and receives message as string
 func (m *MQTTExecutor) mqttAsync(ctx context.Context, hostname, topic string, options map[string]interface{}) (string, error) {
 	port, _ := options["port"].(int)
@@ -239,17 +256,12 @@ func (m *MQTTExecutor) mqttAsync(ctx context.Context, hostname, topic string, op
 		timeout = 20 * time.Second
 	}
 
-	// Add MQTT protocol to hostname if not present
-	if !strings.HasPrefix(hostname, "mqtt://") && !strings.HasPrefix(hostname, "mqtts://") {
-		hostname = "mqtt://" + hostname
-	}
-
 	// Generate random client ID
 	randomBytes := make([]byte, 4)
 	rand.Read(randomBytes)
 	clientID := fmt.Sprintf("peekaping_%x", randomBytes)
 
-	mqttUrl := fmt.Sprintf("%s:%d", hostname, port)
+	mqttUrl := mqttBrokerURL(hostname, port)
 
 	m.logger.Debugf("MQTT connecting to %s with client ID %s", mqttUrl, clientID)
 
