@@ -671,10 +671,11 @@ func probeEvent(probeID string) probe.Event {
 func TestNotificationListener_ProbeOfflineAndOnline(t *testing.T) {
 	cases := []struct {
 		topic   events.Topic[probe.Event]
+		status  shared.MonitorStatus
 		message string
 	}{
-		{probe.ProbeOffline, "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"},
-		{probe.ProbeOnline, "Probe Frankfurt is online"},
+		{probe.ProbeOffline, shared.MonitorStatusDown, "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"},
+		{probe.ProbeOnline, shared.MonitorStatusUp, "Probe Frankfurt is online"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.topic.Name(), func(t *testing.T) {
@@ -699,6 +700,7 @@ func TestNotificationListener_ProbeOfflineAndOnline(t *testing.T) {
 			assert.Equal(t, "Probe Frankfurt", sent.monitor.Name)
 			assert.Equal(t, "probe-1", sent.monitor.ID, "which keeps one probe's notification apart from another's in a channel that deduplicates")
 			assert.True(t, sent.monitor.IsProbeEvent(), "so a channel type links the notification to the Probes page, not to a monitor page that doesn't exist")
+			assert.Equal(t, tc.status, sent.monitor.Status, "so a channel type that treats Up and Down differently can tell a probe going offline from one coming back")
 			assert.Nil(t, sent.heartbeat, "a probe notification carries no heartbeat")
 		})
 		t.Run(tc.topic.Name()+" for a probe with no channels", func(t *testing.T) {
@@ -712,6 +714,38 @@ func TestNotificationListener_ProbeOfflineAndOnline(t *testing.T) {
 			assert.Empty(t, slack.sentConfigs())
 		})
 	}
+}
+
+// The real PagerDuty sender decides from the stand-in's status, since a probe's notification has no
+// heartbeat, so this checks what PagerDuty receives: one incident, opened and then resolved.
+func TestNotificationListener_ProbeOfflineThenOnlineOpensAndResolvesOnePagerDutyIncident(t *testing.T) {
+	var mu sync.Mutex
+	var received []map[string]any
+	pagerDuty := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		assert.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		mu.Lock()
+		received = append(received, body)
+		mu.Unlock()
+		w.WriteHeader(http.StatusAccepted)
+	}))
+	defer pagerDuty.Close()
+
+	f := newListenerFixture(t)
+	f.addProvider("pagerduty", providers.NewPagerDutySender(zap.NewNop().Sugar(), &config.Config{ClientURL: "https://peekaping.example.com"}, providers.NewHTTPClient()))
+	pagerDutyConfig := fmt.Sprintf(`{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": %q, "pagerduty_auto_resolve": "resolve"}`, pagerDuty.URL)
+	f.attachProbe("probe-1", &Model{ID: "pd", Name: "PagerDuty", Type: "pagerduty", Active: true, Config: &pagerDutyConfig})
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
+
+	mu.Lock()
+	defer mu.Unlock()
+	require.Len(t, received, 2, "one trigger and one resolve")
+	assert.Equal(t, "trigger", received[0]["event_action"])
+	assert.Equal(t, "resolve", received[1]["event_action"])
+	assert.Equal(t, "Peekaping/probe-1", received[0]["dedup_key"])
+	assert.Equal(t, "Peekaping/probe-1", received[1]["dedup_key"], "the resolve closes the incident the trigger opened")
 }
 
 func TestNotificationListener_ProbeEventsSkipChannelsThatCannotSend(t *testing.T) {
