@@ -12,7 +12,7 @@ Tests go through public seams: what a caller of the service, the HTTP API, or a 
 | --- | --- | --- |
 | Service or domain logic | the service's exported methods | `<module>_test.go` beside the package in `apps/server/internal/modules/<module>/` |
 | HTTP behaviour: status codes, payloads, auth, validation | the API router, real services over SQLite and miniredis | `apps/server/internal/apitest/` |
-| Repository or query behaviour | the repository | SQLite always; Postgres through `PEE_TEST_POSTGRES_DSN`; Mongo (`PEE_TEST_MONGO_URI`) only when the change is a Mongo fix ADR 0001 allows (see `internal/modules/persistence_test.go`) |
+| Repository or query behaviour | the repository | SQLite always; Postgres through `PEE_TEST_POSTGRES_DSN` (see `internal/modules/persistence_test.go`) |
 | Queue or worker code | the handler, with asynq on miniredis | beside the package |
 | A monitor or channel type's schema or codec | the registry | `registry.test.ts` beside the registry covers every listed type; add a case there only for a rule the round trip can't see |
 | A user-visible web flow | the browser | Playwright spec in `e2e/` |
@@ -43,17 +43,18 @@ PEE_TEST_POSTGRES_DSN='postgres://postgres:pg@127.0.0.1:<pg port>/postgres?sslmo
 docker stop pp-<n>-pg
 ```
 
-Mongo storage is frozen under `docs/adr/0001-deprecate-mongodb-storage.md`. Start Mongo only to test a Mongo fix the ADR allows (data loss, a failed startup, a security leak). With only `PEE_TEST_MONGO_URI` set, the Postgres subtests are skipped:
+MongoDB storage was removed (`docs/adr/0001-deprecate-mongodb-storage.md`), so no repository runs on MongoDB. `PEE_TEST_MONGO_URI` is read only by the `bun db import-mongo` tests in `internal/mongoimport`, `cmd/bun` and `internal/apitest`. They seed a real MongoDB with raw documents of the frozen storage format (`internal/mongoimport/mongoimporttest`) and import them into SQLite and PostgreSQL. Run them when the change touches the importer. Start a PostgreSQL as above, and a MongoDB beside it, as the `import-mongo` CI job does:
 
 ```sh
 docker run -d --rm --name pp-<n>-mongo -p 127.0.0.1::27017 mongo:7
 until docker exec pp-<n>-mongo mongosh --quiet --eval 'db.runCommand({ping: 1})'; do sleep 1; done
 docker port pp-<n>-mongo 27017      # the host port
-PEE_TEST_MONGO_URI='mongodb://127.0.0.1:<mongo port>' go test -timeout 300s ./internal/...
+PEE_TEST_MONGO_URI='mongodb://127.0.0.1:<mongo port>' PEE_TEST_POSTGRES_DSN='postgres://postgres:pg@127.0.0.1:<pg port>/postgres?sslmode=disable' \
+  go test -timeout 300s -count=1 -v -run TestImport ./internal/mongoimport/... ./cmd/bun/ ./internal/apitest/
 docker stop pp-<n>-mongo
 ```
 
-CI sets neither variable, so only the SQLite subtests run there; a repository change is unverified until you've run these.
+A test that can't reach its database skips, so look for `SKIP` in the output. The Test workflow sets none of the variables, so only the SQLite subtests run there, and a repository change is unverified until you've run the PostgreSQL check above. The `import-mongo` job sets both variables for the import tests.
 
 Web, from the worktree root then `apps/web`:
 
@@ -95,9 +96,9 @@ PW_TEST_HTML_REPORT_OPEN=never bun run e2e
 docker compose down
 ```
 
-`PROBE_OFFLINE_AFTER=2m`, the shortest the server takes, lets `e2e/remote-probe.spec.ts` wait for a stopped probe to be reported offline in about a minute and a half. That spec starts and stops `peekaping-probe` containers itself, on the stack's network (`E2E_PROBE_NETWORK` and `E2E_PROBE_URL` name them when it can't find them); it skips on MongoDB.
+`PROBE_OFFLINE_AFTER=2m`, the shortest the server takes, lets `e2e/remote-probe.spec.ts` wait for a stopped probe to be reported offline in about a minute and a half. That spec starts and stops `peekaping-probe` containers itself, on the stack's network (`E2E_PROBE_NETWORK` and `E2E_PROBE_URL` name them when it can't find them).
 
-`PROBE_BOOTSTRAP_TOKEN` is the token of the local probe (at least 32 characters, any value in a test stack). The api stores it at startup, and the stack's `probe` service sends it: on SQLite and PostgreSQL the `probe` service is what checks the monitors, since the cluster has no producer, worker or ingester there. The compose files refuse to start without it. The Mongo stacks still run the producer, worker and ingester, and ignore it.
+`PROBE_BOOTSTRAP_TOKEN` is the token of the local probe (at least 32 characters, any value in a test stack). The api stores it at startup, and the stack's `probe` service sends it: on SQLite and PostgreSQL the `probe` service is what checks the monitors, since the cluster has no producer, worker or ingester there. The compose files refuse to start without it.
 
 CI runs the suite twice against the same database, so a test must leave nothing behind that breaks its next run.
 
