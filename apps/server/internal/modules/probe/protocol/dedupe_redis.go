@@ -24,6 +24,16 @@ const (
 	wonReply = "won"
 )
 
+// releaseScript deletes a key only while it still holds a claim that was not kept. A request that
+// ran past its claim finds it gone, and perhaps claimed, stored and kept by another request since:
+// that stored mark is not its to remove. KEYS[1] is the id's key and ARGV[1] the value of a claim.
+var releaseScript = redis.NewScript(`
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+  return redis.call('DEL', KEYS[1])
+end
+return 0
+`)
+
 // claimScript claims a key if it is free, and otherwise reports the value it holds, in one round
 // trip and with nothing between the read and the write: KEYS[1] is the id's key, ARGV[1] the value
 // of a claim and ARGV[2] its time to live in milliseconds
@@ -31,7 +41,7 @@ var claimScript = redis.NewScript(`
 local held = redis.call('GET', KEYS[1])
 if held == false then
   redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])
-  return '`+wonReply+`'
+  return '` + wonReply + `'
 end
 return held
 `)
@@ -104,12 +114,13 @@ func (w *redisWindow) Keep(ctx context.Context, probeID string, ids ...string) e
 }
 
 // Release implements Window. It ignores the cancellation of ctx: the request that gives its ids
-// back is often the one that was cancelled, and an id left claimed would answer the probe's retry
-// duplicate for the rest of the hour, though the result was never stored.
+// back is often the one that was cancelled, and an id left claimed would hold the probe's retry
+// off until the claim ran out, though the result was never stored. It deletes the key only while
+// it is still a claim: an id that was kept stays kept.
 func (w *redisWindow) Release(ctx context.Context, probeID, id string) error {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), redisWindowTimeout)
 	defer cancel()
-	if err := w.client.Del(ctx, w.key(probeID, id)).Err(); err != nil {
+	if err := releaseScript.Run(ctx, w.client, []string{w.key(probeID, id)}, pendingValue).Err(); err != nil {
 		return fmt.Errorf("release result %s of probe %s in redis: %w", id, probeID, err)
 	}
 	return nil

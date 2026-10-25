@@ -46,6 +46,8 @@ const (
 	PendingRetryAfter = 5 * time.Second
 	// messagePending is the 503's message
 	messagePending = "a result in this batch is being stored by another request: send the batch again"
+	// messageStoreDeadline is the message of the 503 for a request that stored until its deadline
+	messageStoreDeadline = "storing the results took too long: send the batch again"
 )
 
 // statusOfWord maps the status words of the wire to the statuses of heartbeats
@@ -94,6 +96,10 @@ type candidate struct {
 // the result is not answered duplicate. It is not stored either: the rest of the batch is stored as
 // usual, and the whole request is answered 503 with a Retry-After of PendingRetryAfter. The probe
 // keeps the batch and sends it again, and finds the results stored by then answered duplicate.
+//
+// A request stores for StoreDeadline at the most, which is shorter than ClaimTTL, so that it is over
+// before its claims can run out. When the deadline hits, what was stored is kept, what was not is
+// given back, and the answer is the same 503.
 func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.Output[probeproto.ResultsResponse], error) {
 	// MARK: Results
 
@@ -201,24 +207,35 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 		waiting = append(waiting, &candidate{result: result, monitor: m, status: status, tlsInfo: tlsInfo, outcome: &outcomes[i]})
 	}
 
-	if err := c.store(r.Context(), owner, waiting); err != nil {
+	// A request stores for StoreDeadline at the most, so that it is over before its claims run out
+	storeCtx, cancelStore := context.WithTimeout(r.Context(), c.timing.StoreDeadline)
+	defer cancelStore()
+	if err := c.store(storeCtx, owner, waiting); err != nil {
+		if storeCtx.Err() != nil && r.Context().Err() == nil {
+			// The deadline, not the probe going away: what was stored is kept and the rest is given
+			// back on the way out, and the probe sends the batch again
+			c.logger.Errorw("Storing a batch of results took until the deadline",
+				"probeId", owner.ID, "deadline", c.timing.StoreDeadline.String(), "error", err)
+			return nil, c.retryLater(owner.ID, messageStoreDeadline)
+		}
 		return nil, c.fail(err)
 	}
 	if heldElsewhere {
-		return nil, c.pending(owner.ID)
+		return nil, c.retryLater(owner.ID, messagePending)
 	}
 	return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
 }
 
-// pending answers 503 with a Retry-After for a batch with a result whose id another request holds.
-// The probe keeps the batch and sends it again after PendingRetryAfter: the results stored by now
-// are duplicates then, and the one that was waiting is stored, or a duplicate if the holder stored
-// it, or told to wait again if the holder is still at it or its claim has not run out yet.
-func (c *Controller) pending(probeID string) error {
-	c.logger.Infow("Asked a probe to send a batch again: a result in it is held by another request",
-		"probeId", probeID, "retryAfter", PendingRetryAfter.String())
+// retryLater answers 503 with a Retry-After for a batch that has results left to store: one whose
+// id another request holds, or that was not stored before the deadline. The probe keeps the batch
+// and sends it again after PendingRetryAfter: the results stored by now are duplicates then, and
+// the rest are stored, or a duplicate if the holder stored them, or told to wait again if the
+// holder is still at it or its claim has not run out yet.
+func (c *Controller) retryLater(probeID, message string) error {
+	c.logger.Infow("Asked a probe to send a batch again", "probeId", probeID, "why", message,
+		"retryAfter", PendingRetryAfter.String())
 	retryAfter := http.Header{"Retry-After": {strconv.Itoa(int(PendingRetryAfter / time.Second))}}
-	return huma.ErrorWithHeaders(httpx.Fail(http.StatusServiceUnavailable, utils.NewFailResponse(messagePending)), retryAfter)
+	return huma.ErrorWithHeaders(httpx.Fail(http.StatusServiceUnavailable, utils.NewFailResponse(message)), retryAfter)
 }
 
 // dealtMonitors are the monitors that the probe is dealt, by id: the active monitors it runs of

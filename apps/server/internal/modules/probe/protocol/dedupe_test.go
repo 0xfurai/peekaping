@@ -229,6 +229,34 @@ func TestWindow_ReleasedIdCanBeClaimedAgain(t *testing.T) {
 	})
 }
 
+// A release gives back a claim whose result was not stored. An id that was kept is a stored result,
+// and nothing a request does with the id afterwards may forget it.
+func TestWindow_ReleaseLeavesAKeptIdAlone(t *testing.T) {
+	forEachWindow(t, func(t *testing.T, f *windowFixture) {
+		require.True(t, f.claim(t, "probe-1", "result-1"))
+		f.keep(t, "probe-1", "result-1")
+
+		f.release(t, "probe-1", "result-1")
+
+		assert.Equal(t, ClaimStored, f.outcome(t, "probe-1", "result-1"))
+	})
+}
+
+// A request that ran past its claim (which ran out) releases its ids when it ends. Another request
+// may have claimed, stored and kept the same ids by then: that stored mark is not the first
+// request's to remove, or the probe's next retry would store the result a third time.
+func TestRedisWindow_ARequestThatOutlivedItsClaimCannotReleaseAnotherRequestsStoredId(t *testing.T) {
+	f := windowImplementations["redis"](t)
+	require.True(t, f.claim(t, "probe-1", "result-1"), "request A")
+	f.advance(ClaimTTL + time.Second)
+	require.True(t, f.claim(t, "probe-1", "result-1"), "request B, after A's claim ran out")
+	f.keep(t, "probe-1", "result-1")
+
+	f.release(t, "probe-1", "result-1") // A ends, and gives back what it claimed
+
+	assert.Equal(t, ClaimStored, f.outcome(t, "probe-1", "result-1"), "B's result is still stored")
+}
+
 func TestWindow_ReleaseLeavesOthersAlone(t *testing.T) {
 	forEachWindow(t, func(t *testing.T, f *windowFixture) {
 		require.True(t, f.claim(t, "probe-1", "result-1"))
@@ -296,7 +324,13 @@ func TestRedisWindow_HoldsAClaimForClaimTTLAndAKeptIdForAnHour(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "stored", value, "and says that it is stored")
 	require.NoError(t, window.Release(context.Background(), "probe-1", "result-1"))
-	assert.False(t, server.Exists(key), "a release deletes the key")
+	assert.True(t, server.Exists(key), "a release leaves a kept id")
+
+	outcome, err = window.Claim(context.Background(), "probe-1", "result-2", epoch)
+	require.NoError(t, err)
+	require.Equal(t, ClaimWon, outcome)
+	require.NoError(t, window.Release(context.Background(), "probe-1", "result-2"))
+	assert.False(t, server.Exists("peekaping:probe:accepted:probe-1:result-2"), "and deletes a claim")
 }
 
 // A request that dies (OOM, SIGKILL, eviction of the pod) between its claim and the end of the
