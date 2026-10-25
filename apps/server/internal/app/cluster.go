@@ -17,6 +17,7 @@ import (
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/worker"
@@ -189,7 +190,20 @@ func registerCluster(container *dig.Container, cfg *config.Config, eventBus any)
 		provideClusterMode,
 		provideClusterSwitch,
 		provideClusterWindow,
+		provideClusterLocalProbe(cfg),
 	)
+}
+
+// provideClusterLocalProbe provides how the local probe is known to be online in the cluster. On
+// SQLite and PostgreSQL no process of Peekaping's own runs checks: peekaping-probe instances
+// started with the local probe's token (PROBE_BOOTSTRAP_TOKEN) do, so the local probe is online
+// while one of them is connected, like a remote probe. On MongoDB, which has no probes, the
+// producer, worker and ingester still run the checks, and the local probe is never offline.
+func provideClusterLocalProbe(cfg *config.Config) func() shared.LocalProbeLiveness {
+	if config.IsMongoDBType(cfg.DBType) {
+		return func() shared.LocalProbeLiveness { return shared.LocalProbeIsTheProcess }
+	}
+	return func() shared.LocalProbeLiveness { return shared.LocalProbeIsItsInstances }
 }
 
 // provideClusterWindow provides the duplicate window of the probe protocol's results route in

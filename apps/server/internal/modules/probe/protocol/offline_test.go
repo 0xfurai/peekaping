@@ -8,6 +8,8 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
+	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/stale"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,6 +53,44 @@ func TestMonitorProbeOffline_TheLocalProbeIsNeverOffline(t *testing.T) {
 		assert.False(t, got, name)
 	}
 	assert.Empty(t, probes.finds, "no probe is read for a monitor the local probe runs")
+}
+
+// AC4: in cluster mode on SQLite and PostgreSQL no process of Peekaping's own runs checks, so the
+// local probe is its instances, like a remote probe: offline when they stopped, and its monitors
+// are left alone while it is
+func TestMonitorProbeOffline_InClusterModeTheLocalProbeFollowsItsInstances(t *testing.T) {
+	offlineOf := func(status probe.Status) (stale.ProbeOfflineFunc, *statusProbes) {
+		probes := &statusProbes{byID: map[string]*probe.Model{
+			probe.LocalID: {ID: probe.LocalID, Status: status},
+			"probe-1":     {ID: "probe-1", Status: probe.StatusOnline},
+		}}
+		return protocol.MonitorProbeOfflineWith(probes, shared.LocalProbeIsItsInstances), probes
+	}
+
+	t.Run("offline when its instances stopped", func(t *testing.T) {
+		offline, _ := offlineOf(probe.StatusOffline)
+		for name, m := range map[string]*monitor.Model{
+			"assigned to local":                      monitorOn("http-1", probe.LocalID),
+			"read without its probes":                monitorOn("http-2"),
+			"on local, as a push monitor is":         monitorOn("push-1", probe.LocalID),
+			"on local and a remote probe that is up": monitorOn("http-3", "probe-1", probe.LocalID),
+		} {
+			got, err := offline(context.Background(), m)
+
+			require.NoError(t, err, name)
+			// The last one has a probe that is up: the monitor is checked there
+			assert.Equal(t, name != "on local and a remote probe that is up", got, name)
+		}
+	})
+
+	t.Run("online while an instance is connected", func(t *testing.T) {
+		offline, _ := offlineOf(probe.StatusOnline)
+
+		got, err := offline(context.Background(), monitorOn("http-1", probe.LocalID))
+
+		require.NoError(t, err)
+		assert.False(t, got)
+	})
 }
 
 func TestMonitorProbeOffline_AMonitorOfARemoteProbeFollowsTheProbesStatus(t *testing.T) {

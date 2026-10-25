@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/scheduler"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/utils"
@@ -31,7 +32,7 @@ func RegisterSingle(container *dig.Container, cfg *config.Config) error {
 		return err
 	}
 	return errors.Join(
-		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock, ingester.ProvideLocationStore, provideInOrderIngester, provideSingleMode, provideSingleClaimer, provideSingleSwitch, provideSingleWindow, probe.ProvideSweep),
+		utils.Provide(container, provideMemoryEventBus, stale.ProvideMemoryStore, cleanup.ProvideMemoryRunLock, ingester.ProvideLocationStore, provideInOrderIngester, provideSingleMode, provideSingleClaimer, provideSingleSwitch, provideSingleWindow, provideSingleLocalProbe, probe.ProvideSweep),
 		scheduler.RegisterDependencies(container),
 	)
 }
@@ -44,6 +45,10 @@ func provideSingleClaimer() telemetry.Claimer { return telemetry.AlwaysClaimer{}
 
 // provideSingleSwitch provides the error reporting switch: the one process is the only one to tell
 func provideSingleSwitch() error_reporting.Switch { return error_reporting.LocalSwitch{} }
+
+// provideSingleLocalProbe provides how the local probe is known to be online: it is the process
+// itself, which runs its checks, and is never offline
+func provideSingleLocalProbe() shared.LocalProbeLiveness { return shared.LocalProbeIsTheProcess }
 
 // provideSingleWindow provides the duplicate window of the probe protocol's results route in the
 // process's memory: there is one process, so nothing else needs to see it

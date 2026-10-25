@@ -30,7 +30,7 @@ type LeaderJobs struct {
 	jobs    []LeaderJob
 	every   time.Duration
 
-	mu     sync.Mutex
+	mu      sync.Mutex
 	started bool
 	cancel  context.CancelFunc
 	wg      sync.WaitGroup

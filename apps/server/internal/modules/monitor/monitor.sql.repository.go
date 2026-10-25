@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
+	"go.uber.org/dig"
 )
 
 type sqlModel struct {
@@ -62,19 +63,30 @@ type sqlLocation struct {
 	LastHeartbeatAt *time.Time `bun:"last_heartbeat_at"`
 	ProbeName       string     `bun:"probe_name"`
 	ProbeStatus     string     `bun:"probe_status"`
+	MonitorType     string     `bun:"monitor_type"`
 }
 
 // probeOnline is the status the probes table keeps for a probe with an instance connected
 const probeOnline = "online"
 
-func (l *sqlLocation) toLocation() shared.MonitorLocation {
+// online reports whether the probe the row names counts as online for the monitor. The local
+// probe's checks run in the Peekaping process itself, whether or not any instance ever said hello,
+// unless the install has no process of its own that runs checks (the cluster on SQLite and
+// PostgreSQL): there its instances do, and it is online like a remote probe. A push monitor runs no
+// checks, though: its pushes arrive at the api, so it needs no instance.
+func (l *sqlLocation) online(local shared.LocalProbeLiveness) bool {
+	if l.ProbeStatus == probeOnline || !local.FollowsItsStatus(l.ProbeID) {
+		return true
+	}
+	return l.ProbeID == shared.LocalProbeID && l.MonitorType == pushType
+}
+
+func (l *sqlLocation) toLocation(local shared.LocalProbeLiveness) shared.MonitorLocation {
 	location := shared.MonitorLocation{
 		ProbeID:   l.ProbeID,
 		ProbeName: l.ProbeName,
-		// The local probe's checks run in the Peekaping process itself, whether or not any instance
-		// ever said hello
-		Online:   l.ProbeID == shared.LocalProbeID || l.ProbeStatus == probeOnline,
-		LastPing: l.LastPing,
+		Online:    l.online(local),
+		LastPing:  l.LastPing,
 	}
 	if l.Status != nil {
 		status := shared.MonitorStatus(*l.Status)
@@ -159,10 +171,40 @@ func toSQLModel(m *Model) *sqlModel {
 
 type SQLRepositoryImpl struct {
 	db *bun.DB
+	// localProbe is how the local probe is known to be online
+	localProbe shared.LocalProbeLiveness
 }
 
-func NewSQLRepository(db *bun.DB) MonitorRepository {
-	return &SQLRepositoryImpl{db: db}
+// SQLRepositoryOption changes how the SQL repository behaves, for an install that has a reason to
+type SQLRepositoryOption func(*SQLRepositoryImpl)
+
+// WithLocalProbe tells the repository how the local probe is known to be online. Without it the
+// local probe is Peekaping's own process, which is always online (shared.LocalProbeIsTheProcess).
+func WithLocalProbe(liveness shared.LocalProbeLiveness) SQLRepositoryOption {
+	return func(r *SQLRepositoryImpl) { r.localProbe = liveness }
+}
+
+func NewSQLRepository(db *bun.DB, opts ...SQLRepositoryOption) MonitorRepository {
+	r := &SQLRepositoryImpl{db: db}
+	for _, opt := range opts {
+		opt(r)
+	}
+	return r
+}
+
+// sqlRepositoryParams are what the SQL repository is built from in an install
+type sqlRepositoryParams struct {
+	dig.In
+
+	DB *bun.DB
+	// LocalProbe is provided by internal/app: the process itself in single mode and on MongoDB,
+	// the local probe's instances in the cluster on SQLite and PostgreSQL. A container without it
+	// has the process.
+	LocalProbe shared.LocalProbeLiveness `optional:"true"`
+}
+
+func provideSQLRepository(p sqlRepositoryParams) MonitorRepository {
+	return NewSQLRepository(p.DB, WithLocalProbe(p.LocalProbe))
 }
 
 func (r *SQLRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Model, error) {
@@ -219,7 +261,9 @@ func (r *SQLRepositoryImpl) locationsOf(ctx context.Context, db bun.IDB, ids []s
 	err := db.NewSelect().Model(&rows).
 		ColumnExpr("mp.monitor_id, mp.probe_id, mp.status, mp.last_ping, mp.last_heartbeat_at").
 		ColumnExpr("COALESCE(p.name, '') AS probe_name, COALESCE(p.status, '') AS probe_status").
+		ColumnExpr("m.type AS monitor_type").
 		Join("LEFT JOIN probes AS p ON p.id = mp.probe_id").
+		Join("JOIN monitors AS m ON m.id = mp.monitor_id").
 		Where("mp.monitor_id IN (?)", bun.In(ids)).
 		Order("mp.monitor_id", "mp.probe_id").
 		Scan(ctx)
@@ -258,7 +302,7 @@ func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string
 		if err != nil {
 			return err
 		}
-		judgement.Before = toLocations(rows)
+		judgement.Before = r.toLocations(rows)
 
 		update := db.NewUpdate().Model((*sqlProbeLink)(nil)).
 			Where("monitor_id = ?", monitorID).Where("probe_id = ?", state.ProbeID).
@@ -276,7 +320,7 @@ func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string
 		if err != nil {
 			return err
 		}
-		judgement.After = toLocations(rows)
+		judgement.After = r.toLocations(rows)
 
 		_, err = db.NewUpdate().Model((*sqlModel)(nil)).Set("locations_status = ?", statusColumn(judge(judgement))).Where("id = ?", monitorID).Exec(ctx)
 		return err
@@ -305,10 +349,10 @@ func statusColumn(status *shared.MonitorStatus) *int {
 	return &column
 }
 
-func toLocations(rows []*sqlLocation) []shared.MonitorLocation {
+func (r *SQLRepositoryImpl) toLocations(rows []*sqlLocation) []shared.MonitorLocation {
 	locations := make([]shared.MonitorLocation, len(rows))
 	for i, row := range rows {
-		locations[i] = row.toLocation()
+		locations[i] = row.toLocation(r.localProbe)
 	}
 	return locations
 }
@@ -336,7 +380,7 @@ func (r *SQLRepositoryImpl) toDomainModels(ctx context.Context, sms []*sqlModel)
 	for _, row := range rows {
 		if model := byID[row.MonitorID]; model != nil {
 			model.ProbeIDs = append(model.ProbeIDs, row.ProbeID)
-			model.Locations = append(model.Locations, row.toLocation())
+			model.Locations = append(model.Locations, row.toLocation(r.localProbe))
 		}
 	}
 	for _, model := range models {

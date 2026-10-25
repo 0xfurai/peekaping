@@ -6,6 +6,8 @@ import (
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
+
+	"go.uber.org/dig"
 )
 
 // MonitorProbeOffline returns what the stale-monitor watchdog asks before it decides a monitor is
@@ -19,11 +21,24 @@ import (
 // probe that is online. A monitor whose probe doesn't exist isn't skipped either: nothing is
 // checking it on that probe, and nothing says why.
 func MonitorProbeOffline(probes probe.Service) stale.ProbeOfflineFunc {
+	return MonitorProbeOfflineWith(probes, shared.LocalProbeIsTheProcess)
+}
+
+// MonitorProbeOfflineWith is MonitorProbeOffline for an install where the local probe may be its
+// instances (shared.LocalProbeIsItsInstances): the cluster on SQLite and PostgreSQL, where no
+// process of Peekaping's own runs checks. The local probe is then offline when its status says so,
+// as a remote probe is, and a monitor that runs on it alone is left alone by the watchdog.
+func MonitorProbeOfflineWith(probes probe.Service, local shared.LocalProbeLiveness) stale.ProbeOfflineFunc {
 	return func(ctx context.Context, m *shared.Monitor) (bool, error) {
-		if m.RunsOn(shared.LocalProbeID) {
+		if local == shared.LocalProbeIsTheProcess && m.RunsOn(shared.LocalProbeID) {
 			return false, nil
 		}
-		for _, probeID := range m.ProbeIDs {
+		probeIDs := m.ProbeIDs
+		if len(probeIDs) == 0 {
+			// A monitor read without its probes runs on the local one
+			probeIDs = []string{shared.LocalProbeID}
+		}
+		for _, probeID := range probeIDs {
 			found, err := probes.FindByID(ctx, probeID)
 			if err != nil || found == nil {
 				return false, err
@@ -34,4 +49,19 @@ func MonitorProbeOffline(probes probe.Service) stale.ProbeOfflineFunc {
 		}
 		return true, nil
 	}
+}
+
+// offlineParams are what the stale.ProbeOfflineFunc of an install is built from
+type offlineParams struct {
+	dig.In
+
+	Probes probe.Service
+	// LocalProbe is how the local probe is known to be up: the process itself when the install
+	// provides none
+	LocalProbe shared.LocalProbeLiveness `optional:"true"`
+}
+
+// provideMonitorProbeOffline provides the stale.ProbeOfflineFunc the watchdog asks
+func provideMonitorProbeOffline(p offlineParams) stale.ProbeOfflineFunc {
+	return MonitorProbeOfflineWith(p.Probes, p.LocalProbe)
 }

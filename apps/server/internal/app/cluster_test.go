@@ -237,9 +237,12 @@ func TestRegisterClusterAPI_ProvidesNoLeaderJobsOnMongoStorage(t *testing.T) {
 	}
 }
 
-func TestRegisterClusterProducer_TheWatchdogSkipsOnlyTheMonitorsOfAnOfflineRemoteProbe(t *testing.T) {
+// AC4: in cluster mode on SQLite and PostgreSQL no process of Peekaping's own runs checks, so the
+// local probe is its instances, like a remote probe: the api's watchdog leaves the monitors of a
+// probe alone while the probe is offline, the local one included, and watches them once it is online
+func TestRegisterClusterAPI_TheWatchdogSkipsTheMonitorsOfAnyOfflineProbeTheLocalOneIncluded(t *testing.T) {
 	container := dig.New()
-	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
 
 	require.NoError(t, container.Invoke(func(
 		probeOffline stale.ProbeOfflineFunc,
@@ -256,13 +259,56 @@ func TestRegisterClusterProducer_TheWatchdogSkipsOnlyTheMonitorsOfAnOfflineRemot
 		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 		require.NoError(t, migrateDB(db))
 
-		assertWatchdogSkipsOnlyOfflineRemote(t, probeOffline, monitors, probes)
+		assertWatchdogFollowsEveryProbesStatus(t, probeOffline, monitors, probes)
 	}))
 }
 
-// assertWatchdogSkipsOnlyOfflineRemote checks the watchdog's question against the real services: a
-// monitor of the local probe is never skipped, and one of a remote probe is while it is offline
-// (a probe starts offline) and not once it is online.
+// assertWatchdogFollowsEveryProbesStatus checks the watchdog's question against the real services,
+// for an install where the local probe is its instances: a monitor of a probe is skipped while the
+// probe is offline (a probe starts offline) and not once it is online, whichever probe it is
+func assertWatchdogFollowsEveryProbesStatus(t *testing.T, probeOffline stale.ProbeOfflineFunc, monitors monitor.Service, probes probe.Service) {
+	t.Helper()
+	ctx := context.Background()
+	remote, err := probes.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
+	require.NoError(t, err)
+	onLocal, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+	require.NoError(t, err)
+	onRemote, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		name      string
+		monitor   *monitor.Model
+		probeID   string
+		offlineBy string
+	}{
+		{"the local probe", onLocal, probe.LocalID, "no instance has connected"},
+		{"a remote probe", onRemote, remote.ID, "a probe that never connected"},
+	} {
+		offline, err := probeOffline(ctx, tc.monitor)
+		require.NoError(t, err)
+		assert.True(t, offline, "%s is offline: %s", tc.name, tc.offlineBy)
+
+		changed, err := probes.MarkOnline(ctx, tc.probeID)
+		require.NoError(t, err)
+		require.True(t, changed)
+		offline, err = probeOffline(ctx, tc.monitor)
+		require.NoError(t, err)
+		assert.False(t, offline, "%s is not once it is online", tc.name)
+
+		changed, err = probes.MarkOffline(ctx, tc.probeID)
+		require.NoError(t, err)
+		require.True(t, changed)
+		offline, err = probeOffline(ctx, tc.monitor)
+		require.NoError(t, err)
+		assert.True(t, offline, "%s is again when its instances stop", tc.name)
+	}
+}
+
+// assertWatchdogSkipsOnlyOfflineRemote checks the watchdog's question against the real services, for
+// an install where the local probe is the process itself: a monitor of the local probe is never
+// skipped, and one of a remote probe is while it is offline (a probe starts offline) and not once it
+// is online.
 func assertWatchdogSkipsOnlyOfflineRemote(t *testing.T, probeOffline stale.ProbeOfflineFunc, monitors monitor.Service, probes probe.Service) {
 	t.Helper()
 	ctx := context.Background()
