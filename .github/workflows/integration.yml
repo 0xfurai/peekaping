@@ -41,10 +41,6 @@ jobs:
       - name: Start the services
         run: docker compose -f apps/server/docker-compose.integration.yml up -d --wait
 
-      # TEMPORARY (PP-290 AC3): stop Redis to show the job goes red. Reverted next commit.
-      - name: Stop Redis
-        run: docker compose -f apps/server/docker-compose.integration.yml stop redis
-
       # GitHub sets CI=true, so a test that can't find its service fails
       # instead of skipping. The addresses are the ports the compose file binds.
       # -count=1 because setup-go restores Go's test cache, which would replay a
