@@ -261,6 +261,10 @@ install: ## Install all dependencies (bun install + go mod tidy)
 	cd apps/server && go mod tidy
 	@echo "✅ All dependencies installed successfully!"
 
+# On SQLite and PostgreSQL the api runs the producer's and the ingester's work, and a probe checks the
+# monitors: it needs PEEKAPING_URL and PROBE_TOKEN, which .env.dev.example sets. The producer and
+# ingester refuse to start on those backends. MongoDB storage (deprecated) still runs them with the
+# worker: bun run dev dev:api dev:ingester dev:producer dev:worker docs:watch
 .PHONY: dev
 dev: ## Start development environment
-	bun run dev dev:api dev:ingester dev:producer dev:worker docs:watch
+	bun run dev dev:api dev:probe docs:watch
