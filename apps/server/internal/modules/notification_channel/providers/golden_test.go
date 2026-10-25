@@ -170,6 +170,9 @@ var goldenCases = []goldenCase{
 		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
 	{name: "google_chat_certificate_expiry", sender: googleChat, event: certExpiryEvent,
 		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
+	// A probe's notification links to the Probes page, since the stand-in monitor has no page
+	{name: "google_chat_probe_offline", sender: googleChat, event: probeOfflineEvent,
+		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
 
 	{name: "gotify_down", sender: gotify, event: downEvent,
 		config: `{"server_url": "https://gotify.example.com/", "application_token": "app-token"}`},
