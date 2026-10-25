@@ -187,6 +187,11 @@ var goldenCases = []goldenCase{
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
 	{name: "grafana_oncall_up", sender: grafanaOncall, event: upEvent,
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	// The alert uid is the probe's, so the online notification resolves the offline one
+	{name: "grafana_oncall_probe_offline", sender: grafanaOncall, event: probeOfflineEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	{name: "grafana_oncall_probe_online", sender: grafanaOncall, event: probeOnlineEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
 	// Known issue: without a heartbeat the alert is titled "General notification"
 	{name: "grafana_oncall_certificate_expiry", sender: grafanaOncall, event: certExpiryEvent,
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
