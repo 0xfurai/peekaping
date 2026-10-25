@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/probe"
 )
 
 // pushType is the monitor type that runs no checks of its own, so no probe is dealt one
@@ -19,10 +20,7 @@ const pushType = "push"
 func Dealable(monitors []*monitor.Model, supportedTypes []string) []*monitor.Model {
 	dealable := make([]*monitor.Model, 0, len(monitors))
 	for _, m := range monitors {
-		if m == nil || !m.Active || m.Type == pushType {
-			continue
-		}
-		if len(supportedTypes) > 0 && !slices.Contains(supportedTypes, m.Type) {
+		if m == nil || !m.Active || m.Type == pushType || !probe.RunsType(supportedTypes, m.Type) {
 			continue
 		}
 		dealable = append(dealable, m)
@@ -31,19 +29,33 @@ func Dealable(monitors []*monitor.Model, supportedTypes []string) []*monitor.Mod
 }
 
 // Deal returns the monitors that instanceID runs among the instances. Every monitor goes to
-// exactly one of them: the one whose hash with the monitor is the highest (rendezvous hashing).
-// So an instance that joins takes a share from each of the others and moves no monitor between
-// them, and one that leaves gives its monitors to the others and moves none of theirs.
+// exactly one of the instances that run its type (their supported types include it, or are
+// empty): the one whose hash with the monitor is the highest (rendezvous hashing). So an instance
+// that joins takes a share from each of the others that run what it takes, and moves no monitor
+// between them, and one that leaves gives its monitors to the others that can run them and moves
+// none of theirs. A monitor that no instance runs is dealt to none.
 //
-// It depends on the ids alone, not on the order of the instances or the monitors, so every API
-// replica deals the same. It returns an empty list when instanceID is not among instanceIDs.
-func Deal(monitors []*monitor.Model, instanceIDs []string, instanceID string) []*monitor.Model {
-	share := make([]*monitor.Model, 0, len(monitors)/max(len(instanceIDs), 1))
-	if !slices.Contains(instanceIDs, instanceID) {
+// It depends on the instances' ids and types alone, not on the order of the instances or the
+// monitors, so every API replica deals the same. It returns an empty list when instanceID is not
+// among the instances.
+func Deal(monitors []*monitor.Model, instances []*probe.Instance, instanceID string) []*monitor.Model {
+	share := make([]*monitor.Model, 0, len(monitors)/max(len(instances), 1))
+	if !slices.ContainsFunc(instances, func(i *probe.Instance) bool { return i.ID == instanceID }) {
 		return share
 	}
+	// The ids of the instances that run a type, worked out once for each type
+	runners := map[string][]string{}
 	for _, m := range monitors {
-		if owner(m.ID, instanceIDs) == instanceID {
+		ids, known := runners[m.Type]
+		if !known {
+			for _, instance := range instances {
+				if probe.RunsType(instance.SupportedTypes, m.Type) {
+					ids = append(ids, instance.ID)
+				}
+			}
+			runners[m.Type] = ids
+		}
+		if len(ids) > 0 && owner(m.ID, ids) == instanceID {
 			share = append(share, m)
 		}
 	}

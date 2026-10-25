@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/proxy"
 
@@ -18,18 +19,25 @@ import (
 type assignment struct {
 	monitors  []*monitor.Model
 	proxies   map[string]*proxy.Model
-	supported []string
-	instances []string
+	instances []*probe.Instance
 }
 
 func (a assignment) version() string {
-	return protocol.Version(a.monitors, a.proxies, a.supported, a.instances)
+	return protocol.Version(a.monitors, a.proxies, a.instances)
+}
+
+// everyoneRuns has every instance list the types
+func (a *assignment) everyoneRuns(types ...string) {
+	for _, instance := range a.instances {
+		instance.SupportedTypes = slices.Clone(types)
+	}
 }
 
 var epoch = time.Date(2026, 10, 1, 8, 0, 0, 123456789, time.UTC)
 
 // baseAssignment is a probe with an http monitor behind a proxy, a tcp monitor, a push monitor
-// that is never dealt, a paused monitor, and two instances
+// that is never dealt, a paused monitor, and two instances that run the same types, as the instances
+// of a probe on one build do
 func baseAssignment() assignment {
 	http := monitorWith("monitor-http", "http")
 	http.Interval, http.Timeout, http.MaxRetries, http.RetryInterval, http.ResendInterval = 60, 16, 3, 30, 10
@@ -51,8 +59,10 @@ func baseAssignment() assignment {
 			ID: "proxy-1", Protocol: "socks5", Host: "proxy.example.com", Port: 3128, Auth: true, Username: "scout", Password: "s3cret",
 			UpdatedAt: epoch.Add(3 * time.Minute),
 		}},
-		supported: []string{"http", "tcp", "push"},
-		instances: []string{"instance-a", "instance-b"},
+		instances: []*probe.Instance{
+			{ID: "instance-a", SupportedTypes: []string{"http", "tcp", "push"}},
+			{ID: "instance-b", SupportedTypes: []string{"http", "tcp", "push"}},
+		},
 	}
 }
 
@@ -63,7 +73,7 @@ func TestVersion_ChangesOn(t *testing.T) {
 	}{
 		{"a monitor is added", func(a *assignment) {
 			a.monitors = append(a.monitors, monitorWith("monitor-dns", "dns"))
-			a.supported = append(a.supported, "dns")
+			a.everyoneRuns("http", "tcp", "push", "dns")
 		}},
 		{"a monitor is removed", func(a *assignment) { a.monitors = a.monitors[1:] }},
 		{"a monitor's config changed", func(a *assignment) { a.monitors[1].Config = `{"host":"db.example.com","port":5433}` }},
@@ -93,11 +103,16 @@ func TestVersion_ChangesOn(t *testing.T) {
 		{"a monitor gets a proxy", func(a *assignment) {
 			a.monitors[1].ProxyId = "proxy-1"
 		}},
-		{"the supported types change", func(a *assignment) { a.supported = []string{"http", "push"} }},
-		{"the supported types are no longer listed", func(a *assignment) { a.supported = nil }},
-		{"an instance joins", func(a *assignment) { a.instances = append(a.instances, "instance-c") }},
+		{"the supported types change", func(a *assignment) { a.everyoneRuns("http", "push") }},
+		{"the supported types are no longer listed", func(a *assignment) { a.everyoneRuns() }},
+		{"an instance joins", func(a *assignment) {
+			a.instances = append(a.instances, &probe.Instance{ID: "instance-c", SupportedTypes: []string{"http", "tcp", "push"}})
+		}},
 		{"an instance leaves", func(a *assignment) { a.instances = a.instances[:1] }},
-		{"an instance is replaced", func(a *assignment) { a.instances[1] = "instance-d" }},
+		{"an instance is replaced", func(a *assignment) { a.instances[1].ID = "instance-d" }},
+		// Same instances and the same types between them, but not the same monitors for each
+		{"an instance stops running a type another still runs", func(a *assignment) { a.instances[1].SupportedTypes = []string{"http", "push"} }},
+		{"an instance that listed no types lists them", func(a *assignment) { a.instances[1].SupportedTypes = nil }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			before := baseAssignment()
@@ -107,6 +122,17 @@ func TestVersion_ChangesOn(t *testing.T) {
 			assert.NotEqual(t, before.version(), after.version())
 		})
 	}
+}
+
+// The union of the types and the ids of the instances are the same, but each monitor is dealt to
+// the other instance now
+func TestVersion_ChangesWhenInstancesSwapTheTypesTheyRun(t *testing.T) {
+	before := baseAssignment()
+	before.instances[0].SupportedTypes, before.instances[1].SupportedTypes = []string{"http", "push"}, []string{"tcp", "push"}
+	after := baseAssignment()
+	after.instances[0].SupportedTypes, after.instances[1].SupportedTypes = []string{"tcp", "push"}, []string{"http", "push"}
+
+	assert.NotEqual(t, before.version(), after.version())
 }
 
 func TestVersion_SameInputsSameVersion(t *testing.T) {
@@ -133,9 +159,11 @@ func TestVersion_SameInputsSameVersion(t *testing.T) {
 		rng.Shuffle(len(shuffled.instances), func(i, j int) {
 			shuffled.instances[i], shuffled.instances[j] = shuffled.instances[j], shuffled.instances[i]
 		})
-		rng.Shuffle(len(shuffled.supported), func(i, j int) {
-			shuffled.supported[i], shuffled.supported[j] = shuffled.supported[j], shuffled.supported[i]
-		})
+		for _, instance := range shuffled.instances {
+			rng.Shuffle(len(instance.SupportedTypes), func(i, j int) {
+				instance.SupportedTypes[i], instance.SupportedTypes[j] = instance.SupportedTypes[j], instance.SupportedTypes[i]
+			})
+		}
 
 		assert.Equal(t, want, shuffled.version())
 	}
@@ -179,7 +207,10 @@ func TestVersion_IgnoresWhatTheProbeIsNotDealt(t *testing.T) {
 		{"a proxy no monitor uses changes", func(a *assignment) {
 			a.proxies["proxy-unused"] = &proxy.Model{ID: "proxy-unused", UpdatedAt: epoch}
 		}},
-		{"a supported type is listed twice", func(a *assignment) { a.supported = append(a.supported, "http") }},
+		{"a supported type is listed twice", func(a *assignment) {
+			a.instances[0].SupportedTypes = append(a.instances[0].SupportedTypes, "http")
+		}},
+		{"an instance lists the types in another order", func(a *assignment) { a.instances[1].SupportedTypes = []string{"tcp", "push", "http"} }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			before := baseAssignment()
@@ -199,11 +230,11 @@ func TestVersion_IgnoresPushMonitors(t *testing.T) {
 }
 
 func TestVersion_WithNothingIsStillAVersion(t *testing.T) {
-	empty := protocol.Version(nil, nil, nil, nil)
+	empty := protocol.Version(nil, nil, nil)
 
 	assert.NotEmpty(t, empty)
 	assert.NotEqual(t, empty, baseAssignment().version())
-	assert.Equal(t, empty, protocol.Version([]*monitor.Model{}, map[string]*proxy.Model{}, []string{}, []string{}))
+	assert.Equal(t, empty, protocol.Version([]*monitor.Model{}, map[string]*proxy.Model{}, []*probe.Instance{}))
 }
 
 // A version is a query parameter, which the probe sends back untouched
@@ -215,7 +246,10 @@ func TestVersion_IsSafeInAQueryString(t *testing.T) {
 
 // The replicas of an API compute the version each from the database, and a rolling upgrade
 // runs two releases at once. They agree only if the version of the same rows never changes, so a
-// change to this literal is a change to the protocol.
+// change to this literal is a change to the protocol. The instances here run the same types, as
+// those of a probe on one build do: instances that list types of their own (#264) are the one
+// thing that adds to the text of the version, and a probe on one build must not see a new version
+// when its server is upgraded.
 func TestVersion_IsTheSameAcrossReleases(t *testing.T) {
 	assert.Equal(t, "DHjgfz_7nvvgT_tLMYKJJw", baseAssignment().version())
 }

@@ -170,8 +170,8 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 	}
 
 	now := c.now().UTC()
-	// What the siblings were dealt among before this hello
-	before, err := c.service.FindByID(r.Context(), owner.ID)
+	// What the siblings were dealt among before this hello: the instance as it was, if it was
+	before, err := c.service.FindInstance(r.Context(), owner.ID, instanceID)
 	if err != nil {
 		return nil, c.fail(err)
 	}
@@ -183,15 +183,16 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		Arch:            req.Arch,
 		Version:         req.ProbeVersion,
 		ProtocolVersion: req.ProtocolVersion,
+		SupportedTypes:  req.SupportedTypes,
 		LastSeenAt:      now,
-	}, req.SupportedTypes)
+	})
 	if errors.Is(err, probe.ErrTooManyInstances) {
 		return nil, tooManyInstances(owner)
 	}
 	if err != nil {
 		return nil, c.fail(err)
 	}
-	if changesAssignments(before, instanceID, req.SupportedTypes, now) {
+	if changesAssignments(before, req.SupportedTypes, now) {
 		c.instancesChanged(r.Context(), owner.ID)
 	}
 	// The instance is on record, so the probe is connected. The middleware's stamp does this for
@@ -230,14 +231,12 @@ func (c *Controller) Bye(ctx context.Context, input *ByeInput) (*httpx.Output[ht
 	return httpx.Reply(http.StatusNoContent, httpx.NoBody{})
 }
 
-// changesAssignments reports whether a hello from instanceID changes what the probe's instances
-// are told: the instance was not online, so the others are dealt among one more, or the probe's
-// supported types change. before is the probe as it was, nil if it was not found.
-func changesAssignments(before *probe.Model, instanceID string, supportedTypes []string, now time.Time) bool {
-	if before == nil {
-		return true
-	}
-	if !slices.Contains(probe.OnlineInstances(before.Instances, now, probe.InstanceOnlineWindow), instanceID) {
+// changesAssignments reports whether a hello with supportedTypes changes what the probe's instances
+// are told: the instance was not online, so the others are dealt among one more, or the types it
+// runs change, which moves the monitors of those types between it and the others. before is the
+// instance as it was, nil if the probe had no such instance.
+func changesAssignments(before *probe.Instance, supportedTypes []string, now time.Time) bool {
+	if before == nil || len(probe.FilterOnline([]*probe.Instance{before}, now, probe.InstanceOnlineWindow)) == 0 {
 		return true
 	}
 	return !slices.Equal(sortedSet(before.SupportedTypes), sortedSet(supportedTypes))

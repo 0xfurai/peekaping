@@ -147,6 +147,7 @@ func (f *fakeMaintenance) IsUnderMaintenance(context.Context, *maintenance.Model
 
 // resultsServer is the probe protocol's results route over fakes, with the probe-1 of the auth tests
 type resultsServer struct {
+	probes      *stubProbes
 	router      *httpx.Router
 	ingest      *recordingIngester
 	source      *fakeSource
@@ -200,7 +201,11 @@ func newResultsServerTimed(t *testing.T, window protocol.Window, timing protocol
 		maintenance: &fakeMaintenance{under: map[string]bool{}},
 	}
 	probes := newStub()
-	probes.probes[goodToken].SupportedTypes = []string{"http", "tcp", "push"}
+	s.probes = probes
+	// The probe's own list takes in dns, the build of its instance does not: what an instance may
+	// send results for is decided by its own types
+	probes.probes[goodToken].SupportedTypes = []string{"http", "tcp", "dns", "push"}
+	probes.instanceTypes = []string{"http", "tcp", "push"}
 	logger := zap.NewNop().Sugar()
 	controller := protocol.NewController(protocol.ControllerParams{
 		Probes:      probes,
@@ -288,7 +293,7 @@ func TestResults_RejectsUnknownNotAssignedTooOldDuplicateInvalid(t *testing.T) {
 		{name: "a push monitor", result: func(r *probeproto.Result) { r.MonitorID = monNightly }, want: probeproto.ReasonNotAssigned},
 		{name: "another probe's monitor", result: func(r *probeproto.Result) { r.MonitorID = monElsewhere }, want: probeproto.ReasonNotAssigned},
 		{name: "a paused monitor of the probe", result: func(r *probeproto.Result) { r.MonitorID = monPaused }, want: probeproto.ReasonNotAssigned},
-		{name: "a type the probe can't run", result: func(r *probeproto.Result) { r.MonitorID = monDNS }, want: probeproto.ReasonNotAssigned},
+		{name: "a type the instance's build can't run, though its probe lists it", result: func(r *probeproto.Result) { r.MonitorID = monDNS }, want: probeproto.ReasonNotAssigned},
 		{name: "a start more than an hour ago", result: func(r *probeproto.Result) {
 			r.StartTime = now.Add(-time.Hour - time.Minute)
 			r.EndTime = r.StartTime.Add(time.Second)
@@ -350,6 +355,18 @@ func TestResults_AcceptsAResultOfAMonitorTheListingSkipped(t *testing.T) {
 	require.Len(t, s.ingest.storedFor(monSkipped), 1)
 	assert.Equal(t, "Skipped", s.ingest.storedFor(monSkipped)[0].MonitorName, "it is stored with the monitor's own settings")
 	assert.Equal(t, []string{monSkipped}, s.monitors.finds)
+}
+
+// An instance can be replaced to make room for a new one, or pruned, between the middleware's stamp
+// and the results handler. It has to say hello again, and stores nothing meanwhile.
+func TestResults_AnInstanceThatIsGoneMustSayHello(t *testing.T) {
+	s := newResultsServer(t)
+	s.probes.instanceGone = true
+
+	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{checkResult("a", monCheckout, time.Now().UTC().Add(-time.Minute))}})
+
+	assert.Equal(t, http.StatusConflict, w.Code, w.Body.String())
+	assert.Empty(t, s.ingest.storedFor(monCheckout))
 }
 
 func TestResults_NonUUIDMonitorIDIsUnknownMonitor(t *testing.T) {

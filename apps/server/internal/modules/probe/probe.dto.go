@@ -22,13 +22,16 @@ type UpdateProbeDto struct {
 
 // ProbeInstanceResponse is one process that connected with a probe's token
 type ProbeInstanceResponse struct {
-	ID              string    `json:"id" validate:"required"`
-	Hostname        string    `json:"hostname" validate:"required"`
-	OS              string    `json:"os" validate:"required"`
-	Arch            string    `json:"arch" validate:"required"`
-	Version         string    `json:"version" validate:"required"`
-	ProtocolVersion int       `json:"protocol_version" validate:"required"`
-	LastSeenAt      time.Time `json:"last_seen_at" validate:"required"`
+	ID              string `json:"id" validate:"required"`
+	Hostname        string `json:"hostname" validate:"required"`
+	OS              string `json:"os" validate:"required"`
+	Arch            string `json:"arch" validate:"required"`
+	Version         string `json:"version" validate:"required"`
+	ProtocolVersion int    `json:"protocol_version" validate:"required"`
+	// SupportedTypes are the monitor types this instance's build runs: never null, and empty for
+	// an instance that runs every type
+	SupportedTypes []string  `json:"supported_types" validate:"required" nullable:"false"`
+	LastSeenAt     time.Time `json:"last_seen_at" validate:"required"`
 }
 
 // ProbeResponse represents the response for probe operations. It never holds the token or its
@@ -68,6 +71,10 @@ func ToProbeResponse(m *Model) *ProbeResponse {
 	}
 	instances := make([]*ProbeInstanceResponse, len(m.Instances))
 	for i, instance := range m.Instances {
+		instanceTypes := instance.SupportedTypes
+		if instanceTypes == nil {
+			instanceTypes = []string{}
+		}
 		instances[i] = &ProbeInstanceResponse{
 			ID:              instance.ID,
 			Hostname:        instance.Hostname,
@@ -75,6 +82,7 @@ func ToProbeResponse(m *Model) *ProbeResponse {
 			Arch:            instance.Arch,
 			Version:         instance.Version,
 			ProtocolVersion: instance.ProtocolVersion,
+			SupportedTypes:  instanceTypes,
 			LastSeenAt:      instance.LastSeenAt,
 		}
 	}

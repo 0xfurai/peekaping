@@ -1950,6 +1950,12 @@
             "format": "int64",
             "type": "integer"
           },
+          "supported_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "version": {
             "type": "string"
           }
@@ -1961,6 +1967,7 @@
           "arch",
           "version",
           "protocol_version",
+          "supported_types",
           "last_seen_at"
         ],
         "type": "object"

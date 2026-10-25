@@ -36,22 +36,51 @@ type sqlModel struct {
 type sqlInstance struct {
 	bun.BaseModel `bun:"table:probe_instances,alias:pi"`
 
-	ID              string    `bun:"id,pk"`
-	ProbeID         string    `bun:"probe_id,notnull"`
-	Hostname        string    `bun:"hostname,notnull"`
-	OS              string    `bun:"os,notnull"`
-	Arch            string    `bun:"arch,notnull"`
-	Version         string    `bun:"version,notnull"`
-	ProtocolVersion int       `bun:"protocol_version,notnull"`
-	LastSeenAt      time.Time `bun:"last_seen_at,notnull"`
+	ID              string `bun:"id,pk"`
+	ProbeID         string `bun:"probe_id,notnull"`
+	Hostname        string `bun:"hostname,notnull"`
+	OS              string `bun:"os,notnull"`
+	Arch            string `bun:"arch,notnull"`
+	Version         string `bun:"version,notnull"`
+	ProtocolVersion int    `bun:"protocol_version,notnull"`
+	// SupportedTypes is a JSON array of monitor types, in a JSONB column
+	SupportedTypes string    `bun:"supported_types,notnull"`
+	LastSeenAt     time.Time `bun:"last_seen_at,notnull"`
+}
+
+// decodeTypes reads a column that holds a JSON array of monitor types. A value that isn't one
+// reads as no types.
+func decodeTypes(column string) []string {
+	types := []string{}
+	if err := json.Unmarshal([]byte(column), &types); err != nil || types == nil {
+		return []string{}
+	}
+	return types
+}
+
+// encodeTypes is the JSON array that a column holds. Nil is an empty array, not null.
+func encodeTypes(types []string) (string, error) {
+	if types == nil {
+		types = []string{}
+	}
+	encoded, err := json.Marshal(types)
+	return string(encoded), err
+}
+
+func toDomainInstanceFromSQL(si *sqlInstance) *Instance {
+	return &Instance{
+		ID:              si.ID,
+		Hostname:        si.Hostname,
+		OS:              si.OS,
+		Arch:            si.Arch,
+		Version:         si.Version,
+		ProtocolVersion: si.ProtocolVersion,
+		SupportedTypes:  decodeTypes(si.SupportedTypes),
+		LastSeenAt:      si.LastSeenAt,
+	}
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
-	supportedTypes := []string{}
-	// A value that isn't a JSON array of strings reads as no types
-	if err := json.Unmarshal([]byte(sm.SupportedTypes), &supportedTypes); err != nil || supportedTypes == nil {
-		supportedTypes = []string{}
-	}
 	return &Model{
 		ID:             sm.ID,
 		Name:           sm.Name,
@@ -60,7 +89,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		TokenPrefix:    sm.TokenPrefix,
 		Disabled:       sm.Disabled,
 		Status:         Status(sm.Status),
-		SupportedTypes: supportedTypes,
+		SupportedTypes: decodeTypes(sm.SupportedTypes),
 		CreatedAt:      sm.CreatedAt,
 		UpdatedAt:      sm.UpdatedAt,
 	}
@@ -219,17 +248,22 @@ func (r *SQLRepositoryImpl) FindInstances(ctx context.Context, probeID string) (
 	}
 	instances := make([]*Instance, len(sis))
 	for i, si := range sis {
-		instances[i] = &Instance{
-			ID:              si.ID,
-			Hostname:        si.Hostname,
-			OS:              si.OS,
-			Arch:            si.Arch,
-			Version:         si.Version,
-			ProtocolVersion: si.ProtocolVersion,
-			LastSeenAt:      si.LastSeenAt,
-		}
+		instances[i] = toDomainInstanceFromSQL(si)
 	}
 	return instances, nil
+}
+
+// MARK: FindInstance
+func (r *SQLRepositoryImpl) FindInstance(ctx context.Context, probeID string, instanceID string) (*Instance, error) {
+	si := new(sqlInstance)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(si).Where("id = ?", instanceID).Where("probe_id = ?", probeID).Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return toDomainInstanceFromSQL(si), nil
 }
 
 // MARK: UpsertInstance
@@ -238,17 +272,22 @@ func (r *SQLRepositoryImpl) UpsertInstance(ctx context.Context, probeID string, 
 	// again. The WHERE keeps another probe's instance out of reach: no row changes then. The
 	// statement names the table in full and not by an alias, which PostgreSQL allows in this
 	// WHERE only for a table with no alias.
-	result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, last_seen_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	supportedTypes, err := encodeTypes(inst.SupportedTypes)
+	if err != nil {
+		return err
+	}
+	result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, supported_types, last_seen_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (id) DO UPDATE SET
 	hostname = EXCLUDED.hostname,
 	os = EXCLUDED.os,
 	arch = EXCLUDED.arch,
 	version = EXCLUDED.version,
 	protocol_version = EXCLUDED.protocol_version,
+	supported_types = EXCLUDED.supported_types,
 	last_seen_at = EXCLUDED.last_seen_at
 WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
-		inst.ID, probeID, inst.Hostname, inst.OS, inst.Arch, inst.Version, inst.ProtocolVersion, inst.LastSeenAt.UTC())
+		inst.ID, probeID, inst.Hostname, inst.OS, inst.Arch, inst.Version, inst.ProtocolVersion, supportedTypes, inst.LastSeenAt.UTC())
 	if err != nil {
 		return err
 	}
@@ -389,15 +428,12 @@ func (r *SQLRepositoryImpl) DeleteInstancesUnseenSince(ctx context.Context, befo
 
 // MARK: SetSupportedTypes
 func (r *SQLRepositoryImpl) SetSupportedTypes(ctx context.Context, probeID string, types []string) error {
-	if types == nil {
-		types = []string{}
-	}
-	encoded, err := json.Marshal(types)
+	encoded, err := encodeTypes(types)
 	if err != nil {
 		return err
 	}
 	_, err = dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
-		Set("supported_types = ?", string(encoded)).
+		Set("supported_types = ?", encoded).
 		Where("id = ?", probeID).
 		Exec(ctx)
 	return err

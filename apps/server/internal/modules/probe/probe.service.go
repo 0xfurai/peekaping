@@ -36,16 +36,19 @@ type Service interface {
 	// FindByToken returns the probe a token belongs to, or nil for an unknown token and for a
 	// disabled probe, which never authenticates. It is the check the probe protocol's bearer
 	// middleware makes on every request. The probe it returns has no instances or notification
-	// channels: FindByID adds them.
+	// channels: FindByID adds them. Its SupportedTypes are the last the probe's instances ran
+	// between them, not what they run now: FindByID works the union out, and FindInstance has the
+	// types of one instance.
 	FindByToken(ctx context.Context, token string) (*Model, error)
 	// Bootstrap makes token the local probe's token, as PROBE_BOOTSTRAP_TOKEN asks at startup. An
 	// empty token leaves the local probe as it is.
 	Bootstrap(ctx context.Context, token string) error
 	// RegisterInstance records an instance that said hello with the probe's token, or updates
-	// the one with the same id, and makes supportedTypes the monitor types the probe can run. It
-	// returns ErrInstanceTaken when another probe has an instance with that id, and records
-	// nothing then.
-	RegisterInstance(ctx context.Context, probeID string, inst *Instance, supportedTypes []string) error
+	// the one with the same id, with the monitor types its build can run. It returns
+	// ErrInstanceTaken when another probe has an instance with that id, and records nothing then.
+	RegisterInstance(ctx context.Context, probeID string, inst *Instance) error
+	// FindInstance returns the probe's instance with the id, or nil when the probe has none
+	FindInstance(ctx context.Context, probeID string, instanceID string) (*Instance, error)
 	// TouchInstance stamps the time the probe's instance was last heard from. It returns false
 	// when the probe has no instance with that id, which has to say hello first.
 	TouchInstance(ctx context.Context, probeID string, instanceID string, at time.Time) (bool, error)
@@ -85,6 +88,7 @@ type ServiceImpl struct {
 	repo       Repository
 	transactor dbtx.Transactor
 	channels   probe_notification.Service
+	now        func() time.Time
 	logger     *zap.SugaredLogger
 }
 
@@ -94,6 +98,7 @@ func NewService(repo Repository, transactor dbtx.Transactor, channels probe_noti
 		repo:       repo,
 		transactor: transactor,
 		channels:   channels,
+		now:        time.Now,
 		logger:     logger.Named("[probe-service]"),
 	}
 }
@@ -311,7 +316,7 @@ func (s *ServiceImpl) Bootstrap(ctx context.Context, token string) error {
 }
 
 // MARK: RegisterInstance
-func (s *ServiceImpl) RegisterInstance(ctx context.Context, probeID string, inst *Instance, supportedTypes []string) error {
+func (s *ServiceImpl) RegisterInstance(ctx context.Context, probeID string, inst *Instance) error {
 	// One transaction: a hello that fails halfway leaves neither the instance nor the types.
 	// The instance goes first: a refused one must not change the probe's types.
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
@@ -324,13 +329,24 @@ func (s *ServiceImpl) RegisterInstance(ctx context.Context, probeID string, inst
 		if err := s.repo.UpsertInstance(ctx, probeID, inst); err != nil {
 			return err
 		}
-		return s.repo.SetSupportedTypes(ctx, probeID, supportedTypes)
+		// The probe's own list is what its online instances run between them as of this hello. It
+		// is only read when no instance is online (see withDetails), as what the probe last ran.
+		instances, err := s.repo.FindInstances(ctx, probeID)
+		if err != nil {
+			return err
+		}
+		return s.repo.SetSupportedTypes(ctx, probeID, UnionTypes(FilterOnline(instances, inst.LastSeenAt, InstanceOnlineWindow)))
 	})
 	if err != nil {
 		return err
 	}
 	s.logger.Infow("Probe instance registered", "probeId", probeID, "instanceId", inst.ID, "hostname", inst.Hostname, "version", inst.Version)
 	return nil
+}
+
+// MARK: FindInstance
+func (s *ServiceImpl) FindInstance(ctx context.Context, probeID string, instanceID string) (*Instance, error) {
+	return s.repo.FindInstance(ctx, probeID, instanceID)
 }
 
 // MARK: TouchInstance
@@ -357,7 +373,11 @@ func (s *ServiceImpl) MarkOffline(ctx context.Context, id string) (bool, error) 
 	return s.repo.UpdateStatus(ctx, id, StatusOnline, StatusOffline)
 }
 
-// withDetails adds a probe's instances and notification channels
+// withDetails adds a probe's instances and notification channels, and makes its supported types what
+// its instances run now: the union over those online. They can't be stored, since an instance
+// leaves the dealing by going quiet, which no write marks. With none online the probe keeps what
+// its own list says, the union as of its last hello, so that a probe that is down is not taken to
+// run every type.
 func (s *ServiceImpl) withDetails(ctx context.Context, p *Model) (*Model, error) {
 	instances, err := s.repo.FindInstances(ctx, p.ID)
 	if err != nil {
@@ -368,6 +388,9 @@ func (s *ServiceImpl) withDetails(ctx context.Context, p *Model) (*Model, error)
 		return nil, err
 	}
 	detailed := *p
+	if online := FilterOnline(instances, s.now().UTC(), InstanceOnlineWindow); len(online) > 0 {
+		detailed.SupportedTypes = UnionTypes(online)
+	}
 	detailed.Instances = instances
 	detailed.NotificationIDs = make([]string, len(links))
 	for i, link := range links {

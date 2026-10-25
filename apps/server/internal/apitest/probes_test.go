@@ -26,6 +26,7 @@ type probeInstanceResponse struct {
 	Arch            string    `json:"arch"`
 	Version         string    `json:"version"`
 	ProtocolVersion int       `json:"protocol_version"`
+	SupportedTypes  []string  `json:"supported_types"`
 	LastSeenAt      time.Time `json:"last_seen_at"`
 }
 
@@ -289,7 +290,7 @@ func TestProbesAPI_ShowsTheInstancesOfAProbe(t *testing.T) {
 
 	got := decode[probeResponse](t, a.request(t, http.MethodGet, probesPath+"/"+made.ID, nil, a.asAdmin), http.StatusOK)
 
-	assert.Equal(t, []probeInstanceResponse{{ID: "instance-1", Hostname: "host-1", OS: "linux", Arch: "arm64", Version: "1.2.3", ProtocolVersion: 1, LastSeenAt: lastSeen}}, got.Instances)
+	assert.Equal(t, []probeInstanceResponse{{ID: "instance-1", Hostname: "host-1", OS: "linux", Arch: "arm64", Version: "1.2.3", ProtocolVersion: 1, SupportedTypes: []string{}, LastSeenAt: lastSeen}}, got.Instances)
 	assert.Equal(t, "offline", got.Status, "nothing speaks the probe protocol yet")
 	list := decode[[]probeResponse](t, a.request(t, http.MethodGet, probesPath, nil, a.asAdmin), http.StatusOK)
 	assert.Len(t, list[1].Instances, 1)

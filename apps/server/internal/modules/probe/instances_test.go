@@ -66,3 +66,49 @@ func TestInstanceRetention_IsTheCapOfProbeOfflineAfter(t *testing.T) {
 func TestOnlineInstances_NoneIsAnEmptyList(t *testing.T) {
 	require.NotNil(t, probe.OnlineInstances(nil, time.Now(), time.Minute))
 }
+
+func TestFilterOnline_KeepsTheInstancesSeenWithinTheWindowSortedByID(t *testing.T) {
+	now := time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)
+	instances := []*probe.Instance{
+		{ID: "c", LastSeenAt: now},
+		{ID: "d-quiet", LastSeenAt: now.Add(-61 * time.Second)},
+		{ID: "a", LastSeenAt: now.Add(-60 * time.Second)},
+	}
+
+	got := probe.FilterOnline(instances, now, probe.InstanceOnlineWindow)
+
+	require.Len(t, got, 2)
+	assert.Same(t, instances[2], got[0], "the instances themselves, not copies, sorted by id")
+	assert.Same(t, instances[0], got[1])
+	assert.NotNil(t, probe.FilterOnline(nil, now, probe.InstanceOnlineWindow))
+}
+
+func TestRunsType(t *testing.T) {
+	assert.True(t, probe.RunsType([]string{"http", "tcp"}, "tcp"))
+	assert.False(t, probe.RunsType([]string{"http", "tcp"}, "docker"))
+	assert.True(t, probe.RunsType(nil, "docker"), "a build that lists no types runs every one: an old probe reports none")
+	assert.True(t, probe.RunsType([]string{}, "docker"))
+}
+
+func TestUnionTypes(t *testing.T) {
+	instance := func(id string, types ...string) *probe.Instance {
+		return &probe.Instance{ID: id, SupportedTypes: types}
+	}
+
+	for _, tc := range []struct {
+		name      string
+		instances []*probe.Instance
+		want      []string
+	}{
+		{"one instance lists its own types in its own order", []*probe.Instance{instance("a", "tcp", "http")}, []string{"tcp", "http"}},
+		{"builds that differ run what either runs", []*probe.Instance{instance("full", "docker", "http", "tcp"), instance("slim", "http", "tcp")}, []string{"docker", "http", "tcp"}},
+		{"in the order of the instances sorted by id, whatever the order given", []*probe.Instance{instance("b", "dns"), instance("a", "http")}, []string{"http", "dns"}},
+		{"a type two instances run is listed once", []*probe.Instance{instance("a", "http", "http"), instance("b", "http")}, []string{"http"}},
+		{"an instance that lists nothing runs every type, so the union is every type", []*probe.Instance{instance("a", "http"), instance("b")}, []string{}},
+		{"no instances list nothing", nil, []string{}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, probe.UnionTypes(tc.instances))
+		})
+	}
+}

@@ -497,8 +497,7 @@ func TestService_RegisterInstanceRecordsTheInstanceAndTheProbesTypes(t *testing.
 	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
 
 	err := f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{
-		ID: "instance-1", Hostname: "host-1", OS: "linux", Arch: "arm64", Version: "1.2.3", ProtocolVersion: 1, LastSeenAt: seen,
-	}, []string{"http", "tcp"})
+		ID: "instance-1", Hostname: "host-1", OS: "linux", Arch: "arm64", Version: "1.2.3", ProtocolVersion: 1, LastSeenAt: seen, SupportedTypes: []string{"http", "tcp"}})
 
 	require.NoError(t, err)
 	got, err := f.svc.FindByID(ctx, created.ID)
@@ -519,9 +518,9 @@ func TestService_RegisterInstanceAgainUpdatesTheSameInstance(t *testing.T) {
 	f := newFixture(t)
 	created := f.create(t, "Frankfurt")
 	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
-	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", Version: "1.0.0", LastSeenAt: seen}, []string{"http", "tcp"}))
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", Version: "1.0.0", LastSeenAt: seen, SupportedTypes: []string{"http", "tcp"}}))
 
-	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-2", Version: "1.1.0", LastSeenAt: seen.Add(time.Hour)}, []string{"http"}))
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-2", Version: "1.1.0", LastSeenAt: seen.Add(time.Hour), SupportedTypes: []string{"http"}}))
 
 	got, err := f.svc.FindByID(ctx, created.ID)
 	require.NoError(t, err)
@@ -538,8 +537,8 @@ func TestService_RegisterInstanceKeepsSeveralInstancesOfOneProbe(t *testing.T) {
 	created := f.create(t, "Frankfurt")
 	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
 
-	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen}, nil))
-	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-2", LastSeenAt: seen.Add(time.Minute)}, nil))
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen}))
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-2", LastSeenAt: seen.Add(time.Minute)}))
 
 	got, err := f.svc.FindByID(ctx, created.ID)
 	require.NoError(t, err)
@@ -553,9 +552,9 @@ func TestService_RegisterInstanceRefusesAnotherProbesInstanceAndChangesNothing(t
 	f := newFixture(t)
 	owner, intruder := f.create(t, "Owner"), f.create(t, "Intruder")
 	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
-	require.NoError(t, f.svc.RegisterInstance(ctx, owner.ID, &probe.Instance{ID: "instance-1", Hostname: "owner-host", LastSeenAt: seen}, []string{"http"}))
+	require.NoError(t, f.svc.RegisterInstance(ctx, owner.ID, &probe.Instance{ID: "instance-1", Hostname: "owner-host", LastSeenAt: seen, SupportedTypes: []string{"http"}}))
 
-	err := f.svc.RegisterInstance(ctx, intruder.ID, &probe.Instance{ID: "instance-1", Hostname: "intruder-host", LastSeenAt: seen}, []string{"dns"})
+	err := f.svc.RegisterInstance(ctx, intruder.ID, &probe.Instance{ID: "instance-1", Hostname: "intruder-host", LastSeenAt: seen, SupportedTypes: []string{"dns"}})
 
 	assert.ErrorIs(t, err, probe.ErrInstanceTaken)
 	got, err := f.svc.FindByID(ctx, intruder.ID)
@@ -575,7 +574,7 @@ func TestService_RegisterInstanceIsOneTransaction(t *testing.T) {
 	})
 	created := f.create(t, "Frankfurt")
 
-	err := f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)}, []string{"http"})
+	err := f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC), SupportedTypes: []string{"http"}})
 
 	require.Error(t, err)
 	got, err := f.svc.FindByID(ctx, created.ID)
@@ -606,7 +605,7 @@ func TestService_RegisterInstanceKeepsAProbeThatRestartsEveryMinuteForADayAtTheC
 		for minute := range restarts {
 			now := start.Add(time.Duration(minute) * time.Minute)
 			id := fmt.Sprintf("start-%04d", minute)
-			require.NoError(t, svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: id, LastSeenAt: now}, []string{"http"}), "restart %d", minute)
+			require.NoError(t, svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: id, LastSeenAt: now, SupportedTypes: []string{"http"}}), "restart %d", minute)
 			if minute%2 == 0 {
 				require.NoError(t, svc.RetireInstance(ctx, created.ID, id, probe.RetiredAt(now.Add(30*time.Second))))
 			}
@@ -632,7 +631,7 @@ func TestService_RegisterInstanceAtOnceFromManyNewInstancesFillsOnlyTheFreePlace
 		require.NoError(t, err)
 		now := time.Now().UTC()
 		for n := range 61 {
-			require.NoError(t, svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: fmt.Sprintf("online-%d", n), LastSeenAt: now}, nil))
+			require.NoError(t, svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: fmt.Sprintf("online-%d", n), LastSeenAt: now}))
 		}
 
 		const hellos = 12
@@ -642,7 +641,7 @@ func TestService_RegisterInstanceAtOnceFromManyNewInstancesFillsOnlyTheFreePlace
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				errs[n] = svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: fmt.Sprintf("new-%d", n), LastSeenAt: now}, nil)
+				errs[n] = svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: fmt.Sprintf("new-%d", n), LastSeenAt: now})
 			}()
 		}
 		wg.Wait()
@@ -669,7 +668,7 @@ func TestService_TouchInstanceStampsTheLastSeenTime(t *testing.T) {
 	f := newFixture(t)
 	created, other := f.create(t, "Frankfurt"), f.create(t, "Paris")
 	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
-	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen}, nil))
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen}))
 
 	found, err := f.svc.TouchInstance(ctx, created.ID, "instance-1", seen.Add(time.Minute))
 	require.NoError(t, err)
@@ -692,8 +691,8 @@ func TestService_RetireInstanceLeavesTheInstanceLastSeenAtTheGivenTime(t *testin
 	created := f.create(t, "Frankfurt")
 	seen := time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)
 	retired := seen.Add(-time.Minute)
-	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen}, []string{"http"}))
-	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-2", LastSeenAt: seen}, []string{"http"}))
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen, SupportedTypes: []string{"http"}}))
+	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-2", LastSeenAt: seen, SupportedTypes: []string{"http"}}))
 
 	require.NoError(t, f.svc.RetireInstance(ctx, created.ID, "instance-1", retired))
 
