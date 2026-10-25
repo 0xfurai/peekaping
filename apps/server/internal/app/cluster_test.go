@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/httpx"
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/cleanup"
@@ -176,9 +177,9 @@ func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
 	}))
 }
 
-// The sweep runs on the leader producer, beside the watchdog, and sends its events over the
-// cluster's bus. The api serves requests, and a replica of it must not run a sweep of its own.
-func TestRegisterClusterProducer_ResolvesTheProbeSweepAndTheAPIDoesNot(t *testing.T) {
+// On MongoDB the producer elects the leader, and runs the sweep beside the watchdog, and sends its
+// events over the cluster's bus
+func TestRegisterClusterProducer_ResolvesTheProbeSweep(t *testing.T) {
 	producerContainer := dig.New()
 	require.NoError(t, RegisterClusterProducer(producerContainer, clusterConfig(t)))
 	require.NoError(t, producerContainer.Invoke(func(
@@ -194,10 +195,46 @@ func TestRegisterClusterProducer_ResolvesTheProbeSweepAndTheAPIDoesNot(t *testin
 		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 		assert.NotNil(t, sweep)
 	}))
+}
 
-	apiContainer := dig.New()
-	require.NoError(t, RegisterClusterAPI(apiContainer, clusterConfig(t)))
-	assert.Error(t, apiContainer.Invoke(func(*probe.Sweep) {}), "only the producer runs the sweep")
+// On SQLite and PostgreSQL the probes run the checks, so the api runs the watchdog and the probe
+// sweep, on the replica that holds the leader lock
+func TestRegisterClusterAPI_ResolvesTheLeaderJobsOnSQLStorage(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(
+		jobs *LeaderJobs,
+		watchdog *stale.Watchdog,
+		sweep *probe.Sweep,
+		elector *leader.Elector,
+		bus events.EventBus,
+		db *bun.DB,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		assert.NotNil(t, jobs)
+		assert.NotNil(t, watchdog)
+		assert.NotNil(t, sweep)
+		assert.NotNil(t, elector)
+	}))
+}
+
+// A MongoDB install's producer runs them: an api replica that contested the lock could win it from
+// the producer, and then nothing would schedule the checks
+func TestRegisterClusterAPI_ProvidesNoLeaderJobsOnMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb"} {
+		t.Run(dbType, func(t *testing.T) {
+			cfg := clusterConfig(t)
+			cfg.DBType = dbType
+			container := dig.New()
+			require.NoError(t, RegisterClusterAPI(container, cfg))
+
+			assert.Error(t, container.Invoke(func(*LeaderJobs) {}), "no jobs under the leader lock")
+			assert.Error(t, container.Invoke(func(*leader.Elector) {}), "and no election")
+			assert.Error(t, container.Invoke(func(*probe.Sweep) {}), "and no sweep")
+		})
+	}
 }
 
 func TestRegisterClusterProducer_TheWatchdogSkipsOnlyTheMonitorsOfAnOfflineRemoteProbe(t *testing.T) {

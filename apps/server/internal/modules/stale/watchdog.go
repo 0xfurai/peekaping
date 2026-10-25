@@ -39,7 +39,10 @@ type ProbeOfflineFunc func(ctx context.Context, mon *shared.Monitor) (bool, erro
 
 // WatchdogConfig is what a Watchdog reads and calls
 type WatchdogConfig struct {
-	Store      Store
+	Store Store
+	// Rechecker gets the monitors of the local probe checked again. Nil in cluster mode, where
+	// no process of the watchdog's own runs checks: every stale monitor is then recorded and
+	// notified as one on a remote probe is.
 	Rechecker  Rechecker
 	Monitors   MonitorFinder
 	Heartbeats HeartbeatFinder
@@ -101,7 +104,8 @@ func NewWatchdog(cfg WatchdogConfig) *Watchdog {
 }
 
 // Run looks for stale monitors every interval until ctx is done. Only one watchdog should
-// run at a time: cluster mode runs it on the leader producer.
+// run at a time: cluster mode runs it on the api replica that holds the leader lock (the leader
+// producer, on MongoDB).
 func (w *Watchdog) Run(ctx context.Context) {
 	ticker := time.NewTicker(w.interval)
 	defer ticker.Stop()
@@ -238,11 +242,12 @@ func (w *Watchdog) checkStaleMonitor(ctx context.Context, mon *shared.Monitor, n
 	}
 
 	if !wasStale {
-		// The rechecker checks the monitors of the local probe only. A remote probe's monitor
-		// gets no recheck from here, but the time a recheck is given still runs, so that its
-		// channels are notified if it stays unchecked.
-		if !mon.RunsOn(shared.LocalProbeID) {
-			w.logger.Warnw("Monitor on a remote probe has not been checked in too long",
+		// The rechecker checks the monitors of the local probe only, and cluster mode has none: no
+		// process of its own runs checks there. A monitor with no recheck to make gets none from
+		// here, but the time a recheck is given still runs, so that its channels are notified if
+		// it stays unchecked.
+		if w.rechecker == nil || !mon.RunsOn(shared.LocalProbeID) {
+			w.logger.Warnw("Monitor on a probe has not been checked in too long",
 				"monitor_id", mon.ID,
 				"monitor_name", mon.Name,
 				"last_checked_at", since)

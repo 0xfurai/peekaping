@@ -369,6 +369,33 @@ func TestWatchdog_StaleRemoteMonitorNotifiesAfterTheCheckTimeout(t *testing.T) {
 	assert.Empty(t, f.rechecker.calls)
 }
 
+// In cluster mode no process of the watchdog's own runs checks: probes do, whichever probe a monitor
+// is on. So the watchdog has no rechecker, and a stale monitor of the local probe is recorded and
+// notified as one on a remote probe is.
+func TestWatchdog_WithoutARecheckerEveryStaleMonitorIsRecordedAndNotified(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	local := testMonitor("local", 60, 10, now.Add(-time.Hour))
+	local.ProbeIDs = []string{shared.LocalProbeID}
+	unplaced := testMonitor("unplaced", 60, 10, now.Add(-time.Hour)) // from before probes: runs on the local one
+	f := newWatchdogFixture(t, local, unplaced)
+	f.heartbeats.setLatest("local", now.Add(-4*time.Minute))
+	f.heartbeats.setLatest("unplaced", now.Add(-4*time.Minute))
+	cfg := f.config()
+	cfg.Rechecker = nil
+	f.w = NewWatchdog(cfg)
+
+	f.run(t)
+	entries, err := f.store.All(context.Background())
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"local", "unplaced"}, keys(entries), "recorded as stale, with no recheck to make")
+	assert.Empty(t, f.published(MonitorStale), "and not notified before the check timeout of 10s + 10s")
+
+	f.at(time.Minute)
+	f.run(t)
+
+	assert.Len(t, f.published(MonitorStale), 2, "each notified once the wait has passed")
+}
+
 func TestWatchdog_LeavesARemoteMonitorWhoseProbeIsOfflineAlone(t *testing.T) {
 	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
 	remote := testMonitor("remote", 60, 10, now.Add(-time.Hour))

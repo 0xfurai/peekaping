@@ -5,10 +5,13 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
@@ -27,10 +30,16 @@ import (
 // sqliteClusterDocsURL is the part of the SQLite page that explains cluster mode on SQLite
 const sqliteClusterDocsURL = "https://docs.peekaping.com/self-hosting/docker-with-sqlite#cluster-mode"
 
-// RegisterClusterAPI provides what cmd/api runs: the HTTP API and the websocket, with the
-// stale monitors the producer's watchdog records in Redis. A push to a push URL is enqueued
-// for the ingester. The api takes the notification events from the notification queue, which
-// gives each to one replica, with its own asynq server.
+// RegisterClusterAPI provides what cmd/api runs: the HTTP API and the websocket. The api takes the
+// notification events from the notification queue, which gives each to one replica, with its own
+// asynq server.
+//
+// On SQLite and PostgreSQL the probes run the checks, so the api has the jobs the producer ran: the
+// stale-monitor watchdog and the probe sweep, which run on the one replica that holds the leader
+// lock (LeaderJobs). A push to a push URL is enqueued for the ingester.
+//
+// On MongoDB, which has no probes (ADR 0001), the producer, the worker and the ingester still run
+// the checks and store their results, and the api only enqueues a push for the ingester.
 func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
 		registerCluster(container, cfg),
@@ -40,8 +49,50 @@ func RegisterClusterAPI(container *dig.Container, cfg *config.Config) error {
 			notification_channel.NewQueueConsumer,
 			provideClusterClaimer,
 		),
+		registerAPILeaderJobs(container, cfg),
 		warnAboutSQLite(container, cfg),
 	)
+}
+
+// registerAPILeaderJobs provides the jobs the api runs under the leader lock. A MongoDB install
+// has none: its producer elects the leader and runs them.
+func registerAPILeaderJobs(container *dig.Container, cfg *config.Config) error {
+	if config.IsMongoDBType(cfg.DBType) {
+		return nil
+	}
+	return utils.Provide(container, leader.ProvideElector, provideClusterWatchdog, probe.ProvideSweep, provideLeaderJobs)
+}
+
+// provideClusterWatchdog provides the stale-monitor watchdog of the api. No process of its own runs
+// checks in cluster mode, so it has no rechecker: a stale monitor is recorded and notified as one
+// on a remote probe is. Redis's clock is the one the replicas share, whichever holds the lock.
+func provideClusterWatchdog(
+	store stale.Store,
+	monitors monitor.Service,
+	heartbeats heartbeat.Service,
+	eventBus events.EventBus,
+	probeOffline stale.ProbeOfflineFunc,
+	client *redis.Client,
+	logger *zap.SugaredLogger,
+) *stale.Watchdog {
+	return stale.NewWatchdog(stale.WatchdogConfig{
+		Store:        store,
+		Monitors:     monitors,
+		Heartbeats:   heartbeats,
+		EventBus:     eventBus,
+		Now:          stale.RedisClock(client, logger),
+		CheckTimeout: worker.HealthCheckTaskTimeout,
+		ProbeOffline: probeOffline,
+		Logger:       logger.With("component", "watchdog"),
+	})
+}
+
+// provideLeaderJobs provides the jobs that run on the api replica that holds the leader lock
+func provideLeaderJobs(elector *leader.Elector, watchdog *stale.Watchdog, sweep *probe.Sweep) *LeaderJobs {
+	return NewLeaderJobs(elector, []LeaderJob{
+		{Name: "the stale-monitor watchdog", Run: watchdog.Run},
+		{Name: "the probe sweep", Run: sweep.Run},
+	})
 }
 
 // provideClusterClaimer provides the claimer of the usage ping: of the api replicas, the first
@@ -50,9 +101,11 @@ func provideClusterClaimer(client *redis.Client) telemetry.Claimer {
 	return telemetry.NewRedisClaimer(client)
 }
 
-// RegisterClusterProducer provides what cmd/producer runs: the producer, which schedules the
-// checks and enqueues them for the worker while it is the leader, and its stale-monitor watchdog
-// and the sweep that sets silent probes offline, which run beside it
+// RegisterClusterProducer provides what cmd/producer runs on MongoDB, the only storage it still
+// runs on: the producer, which schedules the checks and enqueues them for the worker while it is
+// the leader, and its stale-monitor watchdog and the sweep that sets silent probes offline, which
+// run beside it. On SQLite and PostgreSQL the api runs the watchdog and the sweep, and the probes
+// run the checks.
 func RegisterClusterProducer(container *dig.Container, cfg *config.Config) error {
 	return errors.Join(
 		registerCluster(container, cfg),

@@ -72,7 +72,8 @@ type SweepConfig struct {
 // an outage the probes have time to reconnect before they are announced offline. The rest of the
 // pass goes on meanwhile.
 //
-// Only one sweep should run at a time: cluster mode runs it on the leader producer.
+// Only one sweep should run at a time: cluster mode runs it on the api replica that holds the
+// leader lock (the leader producer, on MongoDB, which has no probes and so nothing to sweep).
 type Sweep struct {
 	repo         Repository
 	eventBus     events.EventBus
@@ -93,7 +94,7 @@ type Sweep struct {
 }
 
 // ProvideSweep provides the sweep, offline after PROBE_OFFLINE_AFTER. The binary that runs it
-// provides the event bus: single mode's, or the cluster producer's.
+// provides the event bus: single mode's, or the cluster api's.
 func ProvideSweep(repo Repository, eventBus events.EventBus, cfg *config.Config, logger *zap.SugaredLogger) *Sweep {
 	return NewSweep(SweepConfig{
 		Repo:         repo,

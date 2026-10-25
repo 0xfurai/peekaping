@@ -129,6 +129,9 @@ type parts struct {
 	Metrics              *metrics.Collector
 	UsagePing            *telemetry.Sender
 	ErrorReporting       error_reporting.Service
+	// LeaderJobs runs the stale-monitor watchdog and the probe sweep on the replica that holds the
+	// leader lock. A MongoDB install has none: its producer runs them.
+	LeaderJobs *app.LeaderJobs `optional:"true"`
 }
 
 // run starts the API and serves it on the listener until ctx is done, or until serving fails.
@@ -213,6 +216,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 // jobs are the background jobs run starts, and how to stop them. A field is nil until its job
 // has started.
 type jobs struct {
+	leaderJobs         *app.LeaderJobs
 	consumer           *notification_channel.QueueConsumer
 	cleanup            *cron.Cron
 	stopErrorReporting context.CancelFunc
@@ -316,6 +320,15 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	usagePingCtx, j.stopUsagePing = context.WithCancel(context.Background())
 	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetry.DefaultSchedule)
 
+	// The stale-monitor watchdog and the probe sweep run on the one replica that holds the leader
+	// lock, and publish their events like any job here: after the listeners subscribed and the
+	// notification queue started. Another replica takes over within the lock's TTL when this one
+	// stops.
+	if p.LeaderJobs != nil {
+		p.LeaderJobs.Start()
+		j.leaderJobs = p.LeaderJobs
+	}
+
 	return j, nil
 }
 
@@ -331,6 +344,17 @@ func (j *jobs) stop(ctx context.Context, logger *zap.SugaredLogger) error {
 		logger.Infof("Stopped %s", what)
 	}
 
+	// The leader jobs stop first, and the leader lock goes with them, so that another replica takes
+	// over while this one finishes stopping. They publish events, so they stop before the
+	// notification queue and the event bus do.
+	if j.leaderJobs != nil {
+		leaderDone := make(chan struct{})
+		go func() {
+			defer close(leaderDone)
+			j.leaderJobs.Stop()
+		}()
+		await("the leader jobs", leaderDone)
+	}
 	if j.consumer != nil {
 		consumerDone := make(chan struct{})
 		go func() {
