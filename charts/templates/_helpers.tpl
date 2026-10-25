@@ -64,13 +64,10 @@ migration tables don't exist yet the command fails, and that counts as not ready
 Each try prints a line, so `kubectl logs <pod> -c wait-for-migrations` shows why
 the pod waits.
 
-A MongoDB install has no SQL migrations. The migrate Job's script
-(apps/server/scripts/run-migrations.sh) skips them for DB_TYPE `mongo` and
-`mongodb`, and `./bun db status` has no MongoDB support, so it would fail
-forever. For those two values the script prints a line and ends at once. DB_TYPE
-comes from the ConfigMap or the Secret, so the script reads it at run time. Without
-this, the pods of an existing MongoDB install would never leave Init after an
-upgrade (ADR 0001 allows a fix for an app that doesn't start).
+A DB_TYPE of `mongo` or `mongodb` in the Secret passes the render check below.
+`./bun db status` refuses it with the error that says MongoDB storage was removed
+and where to move the data, so the pod waits in Init and prints that error on each
+try, and the migrate Job fails with the same one.
 
 The shell is PID 1 of the container, and the kernel gives PID 1 no default
 action for a signal, so without a trap it ignores SIGTERM and a pod stuck in Init
@@ -88,12 +85,6 @@ Put it under initContainers with: include "peekaping.waitForMigrations" . | nind
     - sh
     - -c
     - |
-      case "$DB_TYPE" in
-        mongo|mongodb)
-          echo "MongoDB has no SQL migrations to wait for."
-          exit 0
-          ;;
-      esac
       trap 'exit 143' INT TERM
       while true; do
         if out=$(./bun db status 2>&1); then
@@ -138,10 +129,9 @@ case. The chart runs Peekaping in cluster mode, and it has no volume for a SQLit
 file: each pod and the migrate Job would get an empty file of its own, so the
 migrations and each replica's writes would land in separate databases. The
 single-mode bundle image runs Peekaping on SQLite in one process, so the message
-sends the reader there. MongoDB storage still needs the producer, worker and
-ingester, and the chart renders only the api, web and probe: an install would
-look healthy and run no checks, so the message sends the reader to the Mongo
-compose stack, or to the move to SQLite or PostgreSQL.
+sends the reader there. MongoDB storage was removed (ADR 0001): every binary
+stops on it with config.ErrMongoStorageRemoved, so the message says the same and
+sends the reader to the guide for moving to PostgreSQL.
 
 It reads config.env only. Helm doesn't read Secrets at render time, so a DB_TYPE
 in config.existingSecret isn't seen here. The api warns about SQLite in cluster
@@ -155,6 +145,6 @@ Include it from a template that always renders: include "peekaping.requirePostgr
 {{- fail (printf "config.env.DB_TYPE is %q, but the chart supports PostgreSQL only: it runs Peekaping in cluster mode and has no volume for a SQLite file, so each pod and the migrate Job would get a separate database. For SQLite, run the single-mode bundle image (0xfurai/peekaping-bundle-sqlite) or the SQLite Docker Compose stack instead: https://docs.peekaping.com/self-hosting/docker-with-sqlite" $dbType) -}}
 {{- end -}}
 {{- if or (eq (lower $dbType) "mongo") (eq (lower $dbType) "mongodb") -}}
-{{- fail (printf "config.env.DB_TYPE is %q, but the chart supports PostgreSQL only. MongoDB storage needs the producer, worker and ingester, which this chart no longer runs: use the Mongo compose stack, or move to SQLite or PostgreSQL with bun db import-mongo (https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql)" $dbType) -}}
+{{- fail (printf "config.env.DB_TYPE is %q, but MongoDB storage was removed. Move this install's data to PostgreSQL with \"bun db import-mongo\", then set config.env.DB_TYPE to postgres. See https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql" $dbType) -}}
 {{- end -}}
 {{- end }}

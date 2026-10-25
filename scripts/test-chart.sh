@@ -7,9 +7,8 @@
 # in an init container that runs the migrate image (also when migrate.image.tag
 # is set) while the probe and web Deployments, which don't use the database, have
 # none, an enabled AppArmor profile covers that init container as well as the
-# main container, the init container's script ends at once for a MongoDB install,
-# which has no SQL migrations to wait for, and keeps waiting for a PostgreSQL
-# one until `./bun db status` reports none unapplied, the migrate Job is named
+# main container, the init container's script keeps waiting until
+# `./bun db status` reports none unapplied, the migrate Job is named
 # after the release revision (and its name fits Kubernetes' limit of 63
 # characters for the longest release name Helm allows) and retries 6 times, so
 # it outlasts a restart of the bundled PostgreSQL, the api and probe pods get 35
@@ -19,9 +18,9 @@
 # ConfigMap sets TRUSTED_PROXIES to loopback and the private ranges (and a
 # values file can change it), SQLite as the storage backend (config.env.DB_TYPE,
 # in any case) is refused with a message that sends the reader to the bundle
-# image, MongoDB (mongo and mongodb) is refused with a message that says the
-# chart runs no producer, worker or ingester, and the install notes say Peekaping runs in cluster mode and link to
-# the Helm docs page. The Ingress and the Istio VirtualService send the probe
+# image, MongoDB (mongo and mongodb) is refused with the message that says MongoDB
+# storage was removed and links to the guide for moving to PostgreSQL, and the
+# install notes say Peekaping runs in cluster mode and link to the Helm docs page. The Ingress and the Istio VirtualService send the probe
 # protocol (/probe) to the api. The producer, worker and ingester are gone: the
 # probe Deployment runs the probe image, finds the api through its Service and
 # sends the token the api stores on the local probe, from a Secret the chart makes
@@ -1008,13 +1007,6 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       secret_ref_is "$work/default.yaml" api-deploy "$release-api" PROBE_BOOTSTRAP_TOKEN "$release-probe-token" PROBE_BOOTSTRAP_TOKEN || true
     check "default values: the probe reads PROBE_TOKEN from the same Secret and key" \
       secret_ref_is "$work/default.yaml" probe-deploy "$release-probe" PROBE_TOKEN "$release-probe-token" PROBE_BOOTSTRAP_TOKEN || true
-    # The migrate Job skips the migrations for MongoDB (run-migrations.sh), and
-    # `./bun db status` has no MongoDB support, so a script that only polls it
-    # would keep the pods of an existing MongoDB install in Init for good.
-    for db_type in mongo mongodb; do
-      check "default values: the api's wait-for-migrations script ends at once with DB_TYPE=$db_type, although ./bun db status fails" \
-        wait_script_run "$work/default.yaml" "$db_type" fails ends || true
-    done
     check "default values: the api's wait-for-migrations script ends with DB_TYPE=postgres when no migration is unapplied" \
       wait_script_run "$work/default.yaml" postgres applied ends || true
     check "default values: the api's wait-for-migrations script keeps waiting with DB_TYPE=postgres while ./bun db status fails" \
@@ -1055,14 +1047,15 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     check "config.env.DB_TYPE=$db_type: the message links to the SQLite docs page" \
       grep -qF "https://docs.peekaping.com/self-hosting/docker-with-sqlite" "$work/refused-$db_type.log" || true
   done
-  # The chart renders the api, the web app and the probe, and runs no producer, worker or ingester,
-  # which MongoDB storage still needs: with nothing to run its checks or store its results, an
-  # install would look healthy and do nothing.
+  # MongoDB storage was removed. The message is the one every binary stops with
+  # (config.ErrMongoStorageRemoved), for a chart that supports PostgreSQL only.
   for db_type in mongo mongodb MongoDB MONGO; do
-    check "config.env.DB_TYPE=$db_type: rendering fails, saying MongoDB storage needs the producer, worker and ingester" \
-      render_refused "refused-$db_type" "MongoDB storage needs the producer, worker and ingester" --set "config.env.DB_TYPE=$db_type" || true
-    check "config.env.DB_TYPE=$db_type: the message points to the Mongo compose stack and to bun db import-mongo" \
-      grep -qF "use the Mongo compose stack, or move to SQLite or PostgreSQL with bun db import-mongo" "$work/refused-$db_type.log" || true
+    check "config.env.DB_TYPE=$db_type: rendering fails, saying MongoDB storage was removed" \
+      render_refused "refused-$db_type" "MongoDB storage was removed" --set "config.env.DB_TYPE=$db_type" || true
+    check "config.env.DB_TYPE=$db_type: the message points to bun db import-mongo" \
+      grep -qF 'with "bun db import-mongo"' "$work/refused-$db_type.log" || true
+    check "config.env.DB_TYPE=$db_type: the message links to the guide for moving to PostgreSQL" \
+      grep -qF "https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql" "$work/refused-$db_type.log" || true
   done
   if check "config.env.TRUSTED_PROXIES=203.0.113.0/24 renders" render trusted-proxies --set config.env.TRUSTED_PROXIES=203.0.113.0/24; then
     check "config.env.TRUSTED_PROXIES=203.0.113.0/24: the ConfigMap sets TRUSTED_PROXIES to it" \
