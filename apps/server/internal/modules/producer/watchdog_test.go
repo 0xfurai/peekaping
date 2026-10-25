@@ -40,13 +40,13 @@ func TestWatchdog_RunsOnlyWhileLeader(t *testing.T) {
 	})
 	defer p.cancel()
 
-	require.NoError(t, p.startMonitorSyncing())
+	stopSyncing := startSyncing(t, p)
 	require.Eventually(t, func() bool {
 		ranAt, _ := store.RanAt(context.Background())
 		return ranAt != nil
 	}, 2*time.Second, 10*time.Millisecond)
 
-	p.stopMonitorSyncing()
+	stopSyncing()
 	p.wg.Wait()
 	p.watchdogWg.Wait()
 	require.NoError(t, e.rdb.Del(context.Background(), stale.RanAtKey).Err())
@@ -100,11 +100,11 @@ func TestProbeSweep_RunsOnlyWhileLeader(t *testing.T) {
 	p.probeSweep = newCountingSweep(counter)
 	defer p.cancel()
 
-	require.NoError(t, p.startMonitorSyncing())
+	stopSyncing := startSyncing(t, p)
 	require.Eventually(t, func() bool { return counter.passes.Load() > 0 }, 2*time.Second, 5*time.Millisecond,
 		"the sweep never ran while the producer led")
 
-	p.stopMonitorSyncing()
+	stopSyncing()
 	p.wg.Wait()
 	stopped := counter.passes.Load()
 	time.Sleep(100 * time.Millisecond)
@@ -119,11 +119,11 @@ func TestProbeSweep_ARestartedLeaderSweepsAgain(t *testing.T) {
 	p.probeSweep = newCountingSweep(counter)
 	defer p.cancel()
 
-	require.NoError(t, p.startMonitorSyncing())
-	p.stopMonitorSyncing()
+	stopSyncing := startSyncing(t, p)
+	stopSyncing()
 	p.wg.Wait()
 	before := counter.passes.Load()
-	require.NoError(t, p.startMonitorSyncing())
+	startSyncing(t, p)
 
 	require.Eventually(t, func() bool { return counter.passes.Load() > before }, 2*time.Second, 5*time.Millisecond)
 }
