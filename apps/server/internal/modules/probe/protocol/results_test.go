@@ -24,6 +24,7 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -575,16 +576,21 @@ func TestResults_AFailedBatchFreesTheIdsItDidNotStore(t *testing.T) {
 		return nil
 	}
 
-	// A monitor's results are stored in turn, so the search monitor's result is never tried
+	// The monitors' results are stored side by side, so the search monitor's result may or may not
+	// have been tried when the checkout monitor's second one failed
 	w := s.post(t, probeproto.ResultsRequest{Results: []probeproto.Result{stored, broken, waiting}})
 	require.Equal(t, http.StatusInternalServerError, w.Code)
-	require.Len(t, s.ingest.stored, 1)
+	waitingWasStored := len(s.ingest.storedFor(monSearch)) == 1
+	require.Len(t, s.ingest.storedFor(monCheckout), 1, "a monitor's results are stored in turn: the one after the failure is not tried")
 
 	down = false
 	got := s.results(t, stored, broken, waiting)
 
-	assert.Equal(t, []probeproto.ResultOutcome{rejected("stored", probeproto.ReasonDuplicate), accepted("broken"), accepted("waiting")}, got,
-		"only the result that was stored is a duplicate")
+	want := []probeproto.ResultOutcome{rejected("stored", probeproto.ReasonDuplicate), accepted("broken"), accepted("waiting")}
+	if waitingWasStored {
+		want[2] = rejected("waiting", probeproto.ReasonDuplicate)
+	}
+	assert.Equal(t, want, got, "only the results that were stored are duplicates")
 	assert.Len(t, s.ingest.stored, 3)
 }
 
@@ -657,6 +663,170 @@ func TestResults_AWindowThatFailsAnswers503AndStoresNothing(t *testing.T) {
 
 	assert.Equal(t, []probeproto.ResultOutcome{accepted("first"), accepted("second")}, got, "the probe's retry is accepted")
 	assert.Len(t, s.ingest.stored, 2)
+}
+
+// inFlight watches the results the ingester is storing at the same time, and holds each for a
+// moment so that the ones that can overlap do
+type inFlight struct {
+	mu        sync.Mutex
+	now, most int
+	byMonitor map[string]int
+	mostOfOne int
+	holdFor   time.Duration
+	// waitForAll, when set, has each result wait until this many are being stored, or a second
+	waitForAll int
+}
+
+func newInFlight(holdFor time.Duration) *inFlight {
+	return &inFlight{byMonitor: map[string]int{}, holdFor: holdFor}
+}
+
+func (f *inFlight) hold(r *ingester.Result) {
+	f.mu.Lock()
+	f.now++
+	f.most = max(f.most, f.now)
+	f.byMonitor[r.MonitorID]++
+	f.mostOfOne = max(f.mostOfOne, f.byMonitor[r.MonitorID])
+	f.mu.Unlock()
+
+	deadline := time.Now().Add(time.Second)
+	for f.waitForAll > 0 && time.Now().Before(deadline) {
+		f.mu.Lock()
+		enough := f.now >= f.waitForAll
+		f.mu.Unlock()
+		if enough {
+			break
+		}
+		time.Sleep(time.Millisecond)
+	}
+	time.Sleep(f.holdFor)
+
+	f.mu.Lock()
+	f.now--
+	f.byMonitor[r.MonitorID]--
+	f.mu.Unlock()
+}
+
+// addMonitors gives the probe n more monitors to send results for
+func (s *resultsServer) addMonitors(n int) []string {
+	ids := make([]string, n)
+	for i := range ids {
+		m := &monitor.Model{
+			ID: uuid.NewString(), Name: "Extra", Type: "http", Active: true, Interval: 60, Timeout: 16,
+			Config: `{"url":"https://example.com/extra"}`, ProbeIDs: []string{"probe-1"},
+		}
+		s.source.active = append(s.source.active, m)
+		s.monitors.byID[m.ID] = m
+		ids[i] = m.ID
+	}
+	return ids
+}
+
+// A probe's batch holds results of many monitors, and each is a few queries to the database. Stored
+// one after another, a batch of 500 takes as long as the database is far away, times 500. The results
+// of different monitors don't depend on one another, so they are stored side by side.
+func TestResults_StoresTheResultsOfDifferentMonitorsAtTheSameTime(t *testing.T) {
+	s := newResultsServer(t)
+	extra := s.addMonitors(1)[0]
+	watch := newInFlight(0)
+	watch.waitForAll = 4
+	s.ingest.hold = watch.hold
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t,
+		checkResult("checkout", monCheckout, start),
+		checkResult("search", monSearch, start),
+		checkResult("extra", extra, start),
+		checkResult("skipped", monSkipped, start),
+	)
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("checkout"), accepted("search"), accepted("extra"), accepted("skipped")}, got,
+		"the outcomes are in the order the results were sent")
+	assert.Equal(t, 4, watch.most, "the four monitors' results were being stored at once")
+}
+
+// Ingest reads a monitor's previous heartbeat, so a monitor's results are stored one at a time,
+// oldest first, whatever else is stored beside them
+func TestResults_StoresOneMonitorsResultsInTurnWhileTheOthersGoOn(t *testing.T) {
+	s := newResultsServer(t)
+	watch := newInFlight(5 * time.Millisecond)
+	s.ingest.hold = watch.hold
+	base := time.Now().UTC().Add(-10 * time.Minute)
+	at := func(minutes int) time.Time { return base.Add(time.Duration(minutes) * time.Minute) }
+
+	got := s.results(t,
+		checkResult("c3", monCheckout, at(3)),
+		checkResult("s2", monSearch, at(2)),
+		checkResult("c1", monCheckout, at(1)),
+		checkResult("s1", monSearch, at(1)),
+		checkResult("c2", monCheckout, at(2)),
+	)
+
+	assert.Equal(t, []probeproto.ResultOutcome{accepted("c3"), accepted("s2"), accepted("c1"), accepted("s1"), accepted("c2")}, got)
+	assert.Equal(t, 1, watch.mostOfOne, "never two results of one monitor at once")
+	assert.Equal(t, 2, watch.most, "but the two monitors side by side")
+	var checkout []time.Time
+	for _, stored := range s.ingest.storedFor(monCheckout) {
+		checkout = append(checkout, stored.StartTime)
+	}
+	assert.Equal(t, []time.Time{at(1), at(2), at(3)}, checkout, "oldest first")
+}
+
+// A batch of 500 monitors is not 500 connections to the database
+func TestResults_StoresAtMostStoreConcurrencyMonitorsAtATime(t *testing.T) {
+	s := newResultsServer(t)
+	ids := s.addMonitors(3 * protocol.StoreConcurrency)
+	watch := newInFlight(20 * time.Millisecond)
+	s.ingest.hold = watch.hold
+	start := time.Now().UTC().Add(-time.Minute)
+	var batch []probeproto.Result
+	for i, id := range ids {
+		batch = append(batch, checkResult(fmt.Sprintf("r%d", i), id, start))
+	}
+
+	got := s.results(t, batch...)
+
+	require.Len(t, got, len(batch))
+	for _, outcome := range got {
+		assert.True(t, outcome.Accepted)
+	}
+	assert.Equal(t, protocol.StoreConcurrency, watch.most, "as many as the limit, and no more")
+	assert.Len(t, s.ingest.stored, len(batch))
+}
+
+// The database allows a number of connections, and every result being stored holds one: the requests
+// of all a server's probe instances together store no more than StoreConcurrencyTotal at a time
+func TestResults_StoresAtMostStoreConcurrencyTotalResultsAtATimeForAllRequests(t *testing.T) {
+	s := newResultsServer(t)
+	ids := s.addMonitors(2 * protocol.StoreConcurrency)
+	watch := newInFlight(50 * time.Millisecond)
+	s.ingest.hold = watch.hold
+	const requests = 5 // the limiter lets an instance post 5 at once
+	require.Greater(t, requests*protocol.StoreConcurrency, protocol.StoreConcurrencyTotal, "the requests ask for more than the total")
+	start := time.Now().UTC().Add(-time.Minute)
+
+	var wg sync.WaitGroup
+	codes := make(chan int, requests)
+	for request := range requests {
+		var batch []probeproto.Result
+		for i, id := range ids {
+			batch = append(batch, checkResult(fmt.Sprintf("q%d-r%d", request, i), id, start.Add(time.Duration(request)*time.Second)))
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			codes <- s.post(t, probeproto.ResultsRequest{Results: batch}).Code
+		}()
+	}
+	wg.Wait()
+	close(codes)
+
+	for code := range codes {
+		assert.Equal(t, http.StatusOK, code)
+	}
+	assert.Len(t, s.ingest.stored, requests*len(ids), "every result is stored")
+	assert.LessOrEqual(t, watch.most, protocol.StoreConcurrencyTotal, "never more than the total")
+	assert.GreaterOrEqual(t, watch.most, protocol.StoreConcurrencyTotal-protocol.StoreConcurrency, "but the requests do share it")
 }
 
 func TestResults_AnIdTwiceInOneBatchIsStoredOnce(t *testing.T) {

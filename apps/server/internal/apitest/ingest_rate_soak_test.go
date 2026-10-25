@@ -141,8 +141,8 @@ func measureIngest(t *testing.T, backend func(*config.Config), queued bool) inge
 		if db.Dialect().Name() != dialect.PG {
 			return // SQLite is opened with one connection, which serializes its access
 		}
-		db.SetMaxIdleConns(80)
-		db.SetMaxOpenConns(80)
+		db.SetMaxIdleConns(60)
+		db.SetMaxOpenConns(60)
 	}))
 
 	monitors := make([]string, rateMonitors)
@@ -208,6 +208,12 @@ func measureIngest(t *testing.T, backend func(*config.Config), queued bool) inge
 	require.Eventually(t, func() bool { return storedHeartbeats(t, a) >= total }, 5*time.Minute, 5*time.Millisecond, "every result is stored")
 	stored := time.Since(started)
 	assert.Equal(t, total, storedHeartbeats(t, a), "none twice")
+	// Let go of the connections now, for the run that follows
+	require.NoError(t, a.container.Invoke(func(db *bun.DB) {
+		if db.Dialect().Name() == dialect.PG {
+			db.SetMaxIdleConns(0)
+		}
+	}))
 	return ingestRun{results: total, posted: postedIn, stored: stored}
 }
 

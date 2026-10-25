@@ -8,8 +8,11 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"runtime/debug"
 	"slices"
 	"strconv"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"peekaping/internal/httpx"
@@ -20,6 +23,7 @@ import (
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
+	"peekaping/internal/reporting"
 	"peekaping/internal/utils"
 
 	"github.com/google/uuid"
@@ -258,9 +262,17 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 	return &info, nil
 }
 
-// store hands the results to the ingester one monitor at a time, each monitor's oldest first, and
-// marks each one stored, which keeps its id claimed. It stops at the first that fails, leaving that
-// result and the ones after it not stored.
+// store hands the results to the ingester, those of different monitors at the same time, up to
+// StoreConcurrency monitors, and each monitor's one at a time, oldest first, and marks each one
+// stored, which keeps its id claimed. Ingest reads a monitor's previous heartbeat, so a monitor's
+// results can't overlap; those of different monitors don't depend on one another, and storing a
+// result is a few queries, which a batch of hundreds stored one after another would wait for in turn.
+//
+// A monitor whose result fails to store stops there, leaving that result and the ones after it not
+// stored, and no monitor starts after that. The monitors being stored by then finish, so the results
+// stored when the request ends are the ones its answer, a 500, leaves to be answered duplicate when
+// the probe sends the batch again. The error returned is the first failed monitor's, in the order
+// the monitors were sent.
 //
 // On MongoDB the ingester enqueues the result, and the queue holds a task for the monitor, the probe
 // and the start time for an hour. A task the queue holds already is a result stored, by a replica
@@ -278,30 +290,75 @@ func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*c
 		byMonitor[id] = append(byMonitor[id], w)
 	}
 
-	for _, monitorID := range order {
-		group := byMonitor[monitorID]
-		slices.SortStableFunc(group, func(a, b *candidate) int { return a.result.StartTime.Compare(b.result.StartTime) })
-
-		// The window the monitor is in is the same for each result of the batch
-		underMaintenance, err := healthcheck.MonitorUnderMaintenance(ctx, c.maintenance, monitorID)
-		if err != nil {
-			// Keep the results the probe sent rather than lose them
-			c.logger.Errorw("Failed to check if a monitor a probe sent results for is under maintenance",
-				"probeId", owner.ID, "monitorId", monitorID, "error", err)
+	var (
+		wg       sync.WaitGroup
+		slots    = make(chan struct{}, StoreConcurrency)
+		failed   atomic.Bool
+		failures = make([]error, len(order))
+	)
+	for i, monitorID := range order {
+		// A slot of this request, then one of the server's, which the requests of all the probe
+		// instances share. A monitor that has its slots waits for nothing else but the database, and
+		// gives them back, so a request waiting for a slot of the server's gets one.
+		slots <- struct{}{}
+		c.storeSlots <- struct{}{}
+		if failed.Load() {
+			<-c.storeSlots
+			<-slots
+			break
 		}
-		for _, w := range group {
-			result := healthcheck.ResultFromMonitor(w.monitor, underMaintenance, w.status, w.result.Message, w.result.PingMs,
-				w.result.StartTime.UTC(), w.result.EndTime.UTC(), w.tlsInfo, c.logger)
-			result.ProbeID = owner.ID
-			err := c.ingester.Ingest(ctx, result)
-			switch {
-			case errors.Is(err, queue.ErrTaskIDConflict):
-				w.outcome.Accepted, w.outcome.Reason = false, probeproto.ReasonDuplicate
-			case err != nil:
-				return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			defer func() { <-slots }()
+			defer func() { <-c.storeSlots }()
+			defer func() {
+				// A panic here is not on the request's goroutine, where the router would recover it
+				if value := recover(); value != nil {
+					reporting.CapturePanic("http", value, debug.Stack())
+					failures[i] = fmt.Errorf("panic storing a result of monitor %s from probe %s: %v", monitorID, owner.ID, value)
+					failed.Store(true)
+				}
+			}()
+			if err := c.storeMonitor(ctx, owner, monitorID, byMonitor[monitorID]); err != nil {
+				failures[i] = err
+				failed.Store(true)
 			}
-			w.stored = true
+		}()
+	}
+	wg.Wait()
+	for _, err := range failures {
+		if err != nil {
+			return err
 		}
+	}
+	return nil
+}
+
+// storeMonitor hands one monitor's results to the ingester, oldest first, and stops at the first
+// that fails
+func (c *Controller) storeMonitor(ctx context.Context, owner *probe.Model, monitorID string, group []*candidate) error {
+	slices.SortStableFunc(group, func(a, b *candidate) int { return a.result.StartTime.Compare(b.result.StartTime) })
+
+	// The window the monitor is in is the same for each result of the batch
+	underMaintenance, err := healthcheck.MonitorUnderMaintenance(ctx, c.maintenance, monitorID)
+	if err != nil {
+		// Keep the results the probe sent rather than lose them
+		c.logger.Errorw("Failed to check if a monitor a probe sent results for is under maintenance",
+			"probeId", owner.ID, "monitorId", monitorID, "error", err)
+	}
+	for _, w := range group {
+		result := healthcheck.ResultFromMonitor(w.monitor, underMaintenance, w.status, w.result.Message, w.result.PingMs,
+			w.result.StartTime.UTC(), w.result.EndTime.UTC(), w.tlsInfo, c.logger)
+		result.ProbeID = owner.ID
+		err := c.ingester.Ingest(ctx, result)
+		switch {
+		case errors.Is(err, queue.ErrTaskIDConflict):
+			w.outcome.Accepted, w.outcome.Reason = false, probeproto.ReasonDuplicate
+		case err != nil:
+			return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
+		}
+		w.stored = true
 	}
 	return nil
 }

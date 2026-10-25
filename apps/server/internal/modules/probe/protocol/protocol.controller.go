@@ -44,8 +44,10 @@ type Controller struct {
 	bus         events.EventBus
 	timing      Timing
 	accepted    Window
-	now         func() time.Time
-	logger      *zap.SugaredLogger
+	// storeSlots limits the monitors all the results requests store at the same time
+	storeSlots chan struct{}
+	now        func() time.Time
+	logger     *zap.SugaredLogger
 }
 
 type ControllerParams struct {
@@ -84,6 +86,7 @@ func NewController(p ControllerParams) *Controller {
 		bus:         p.Bus,
 		timing:      p.Timing,
 		accepted:    window,
+		storeSlots:  make(chan struct{}, StoreConcurrencyTotal),
 		now:         time.Now,
 		logger:      p.Logger.Named("[probe-protocol-controller]"),
 	}

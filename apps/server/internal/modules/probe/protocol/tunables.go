@@ -17,6 +17,14 @@ const (
 	// BufferMax is the most results a probe holds while the server can't be reached; the oldest
 	// go first
 	BufferMax = 10000
+	// StoreConcurrency is how many monitors' results one results request stores at the same time.
+	// Storing a result is a few queries, so a batch stored one result after another takes as long as
+	// the database is far away, times the size of the batch.
+	StoreConcurrency = 16
+	// StoreConcurrencyTotal is how many monitors' results all the results requests of one server
+	// store at the same time. Each result being stored holds a connection to the database, which
+	// allows PostgreSQL's 100 by default, and the probe instances of an install can post together.
+	StoreConcurrencyTotal = 64
 )
 
 // Timing is how long the server holds a poll. It is provided as PollTimeout, and a test shortens
