@@ -201,7 +201,7 @@ The limits a workspace is held to, such as how many monitors it may have and its
 _Avoid_: Tier, subscription (that's the billing record), package
 
 **Signup mode**:
-Who may create an account on an install, set with `SIGNUP_MODE`. In `invite`, the default, the first user signs up and everyone after joins a workspace through an invite. In `open` anyone may sign up, and each new user gets a workspace of their own. The cloud runs `open`.
+Who may create an account on an install, set with `SIGNUP_MODE`. In `invite`, the default, the first user signs up and everyone after joins a workspace through an invite. In `open` anyone may sign up, and each new user gets a workspace of their own, unless they sign up through an invite: then they join the inviting workspace instead. The cloud runs `open`.
 _Avoid_: Registration mode, signup policy
 
 ### Deployment
