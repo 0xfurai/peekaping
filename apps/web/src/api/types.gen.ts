@@ -583,6 +583,7 @@ export type ProbeProbeInstanceResponse = {
   last_seen_at: string;
   os: string;
   protocol_version: number;
+  supported_types: Array<string>;
   version: string;
 };
 

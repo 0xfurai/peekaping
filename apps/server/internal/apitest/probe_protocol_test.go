@@ -300,7 +300,7 @@ func TestProbeProtocol_HelloRecordsTheInstance(t *testing.T) {
 	require.Len(t, got.Instances, 1)
 	assert.Equal(t, probeInstanceResponse{
 		ID: instanceID, Hostname: "edge-1.example.com", OS: "linux", Arch: "arm64", Version: "0.1.0",
-		ProtocolVersion: 1, LastSeenAt: got.Instances[0].LastSeenAt,
+		ProtocolVersion: 1, SupportedTypes: []string{"http", "tcp", "dns"}, LastSeenAt: got.Instances[0].LastSeenAt,
 	}, got.Instances[0])
 	assert.WithinDuration(t, before, got.Instances[0].LastSeenAt, time.Minute)
 	assert.Equal(t, []string{"http", "tcp", "dns"}, got.SupportedTypes)

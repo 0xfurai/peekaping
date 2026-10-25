@@ -91,7 +91,9 @@ func TestRunsType(t *testing.T) {
 }
 
 func TestUnionTypes(t *testing.T) {
-	instance := func(id string, types ...string) *probe.Instance { return &probe.Instance{ID: id, SupportedTypes: types} }
+	instance := func(id string, types ...string) *probe.Instance {
+		return &probe.Instance{ID: id, SupportedTypes: types}
+	}
 
 	for _, tc := range []struct {
 		name      string
