@@ -40,6 +40,29 @@ func TestTCPExecutor_Execute_OpenPort(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf("TCP port %d is open", port), result.Message)
 }
 
+// requireIPv6Loopback skips the test on a machine without an IPv6 loopback address.
+func requireIPv6Loopback(t *testing.T) {
+	t.Helper()
+	l, err := net.Listen("tcp", "[::1]:0")
+	if err != nil {
+		t.Skipf("no IPv6 loopback: %v", err)
+	}
+	_ = l.Close()
+}
+
+func TestTCPExecutor_Execute_IPv6Host(t *testing.T) {
+	requireIPv6Loopback(t)
+	l, err := net.Listen("tcp", "[::1]:0")
+	require.NoError(t, err)
+	defer l.Close()
+	port := l.Addr().(*net.TCPAddr).Port
+
+	result := NewTCPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), tcpMonitor(t, l.Addr().String()), nil)
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	assert.Equal(t, fmt.Sprintf("TCP port %d is open", port), result.Message)
+}
+
 func TestTCPExecutor_Execute_ClosedPort(t *testing.T) {
 	result := NewTCPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), tcpMonitor(t, closedAddr(t)), nil)
 

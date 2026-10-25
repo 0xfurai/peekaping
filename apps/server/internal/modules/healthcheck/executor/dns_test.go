@@ -210,8 +210,14 @@ var testZone = []string{
 	"10.2.0.192.in-addr.arpa. 300 IN PTR peekaping.test.",
 }
 
-// startDNSServer serves testZone over UDP on a loopback port and returns the port.
+// startDNSServer serves testZone over UDP on an IPv4 loopback port and returns the port.
 func startDNSServer(t *testing.T) int {
+	t.Helper()
+	return startDNSServerOn(t, "127.0.0.1:0")
+}
+
+// startDNSServerOn serves testZone over UDP on addr and returns the port.
+func startDNSServerOn(t *testing.T, addr string) int {
 	t.Helper()
 	var zone []dns.RR
 	for _, record := range testZone {
@@ -249,7 +255,7 @@ func startDNSServer(t *testing.T) int {
 		_ = w.WriteMsg(resp)
 	})
 
-	pc, err := net.ListenPacket("udp", "127.0.0.1:0")
+	pc, err := net.ListenPacket("udp", addr)
 	require.NoError(t, err)
 	started := make(chan struct{})
 	srv := &dns.Server{PacketConn: pc, Handler: handler, NotifyStartedFunc: func() { close(started) }}
@@ -298,6 +304,18 @@ func TestDNSExecutor_Execute_RecordTypes(t *testing.T) {
 			assert.Equal(t, tt.wantMessage, result.Message)
 		})
 	}
+}
+
+func TestDNSExecutor_Execute_IPv6Resolver(t *testing.T) {
+	requireIPv6Loopback(t)
+	port := startDNSServerOn(t, "[::1]:0")
+	monitor := dnsMonitor(port, "peekaping.test", "A", 2)
+	monitor.Config = strings.Replace(monitor.Config, "127.0.0.1", "::1", 1)
+
+	result := NewDNSExecutor(zap.NewNop().Sugar()).Execute(context.Background(), monitor, nil)
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	assert.Equal(t, "A records: 192.0.2.10", result.Message)
 }
 
 func TestDNSExecutor_Execute_NoRecords(t *testing.T) {

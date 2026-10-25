@@ -24,7 +24,12 @@ type fakeSMTPServer struct {
 
 func startFakeSMTPServer(t *testing.T) *fakeSMTPServer {
 	t.Helper()
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	return startFakeSMTPServerOn(t, "127.0.0.1:0")
+}
+
+func startFakeSMTPServerOn(t *testing.T, addr string) *fakeSMTPServer {
+	t.Helper()
+	listener, err := net.Listen("tcp", addr)
 	require.NoError(t, err)
 	s := &fakeSMTPServer{listener: listener, sessions: make(chan string, 1)}
 	t.Cleanup(func() { _ = listener.Close() })
@@ -121,6 +126,22 @@ func TestEmailSender_SendGoldenRequests(t *testing.T) {
 			assertGolden(t, tc.name, <-server.sessions)
 		})
 	}
+}
+
+// TestEmailSender_SendToIPv6Host checks that a bare IPv6 address works as the SMTP host
+func TestEmailSender_SendToIPv6Host(t *testing.T) {
+	if l, err := net.Listen("tcp", "[::1]:0"); err != nil {
+		t.Skipf("no IPv6 loopback: %v", err)
+	} else {
+		_ = l.Close()
+	}
+	server := startFakeSMTPServerOn(t, "[::1]:0")
+	config := strings.Replace(withSMTPServer(t, emailGoldenCases[1].config, server.port()), "127.0.0.1", "::1", 1)
+	message, mon, hb := goldenNotification(emailGoldenCases[1].event)
+
+	require.NoError(t, NewEmailSender(nopLogger()).Send(context.Background(), config, message, mon, hb))
+
+	assert.Contains(t, <-server.sessions, "EHLO")
 }
 
 // TestEmailSender_SendWithoutAMonitor checks that a template that names the monitor renders, and

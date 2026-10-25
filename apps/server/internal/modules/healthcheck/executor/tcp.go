@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"peekaping/internal/modules/shared"
+	"strconv"
 	"time"
 
 	"go.uber.org/zap"
@@ -44,7 +45,7 @@ func (t *TCPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy
 	}
 	cfg := cfgAny.(*TCPConfig)
 
-	address := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	address := net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))
 
 	startTime := time.Now().UTC()
 

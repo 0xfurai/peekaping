@@ -1735,6 +1735,18 @@ func TestBuildProxyTransport(t *testing.T) {
 		assert.NotNil(t, transport.Proxy)
 	})
 
+	t.Run("http proxy on an IPv6 host", func(t *testing.T) {
+		proxy := &Proxy{Host: "2001:db8::1", Port: 8080, Protocol: "http"}
+		transport := buildProxyTransport(base, proxy).(*http.Transport)
+		req, err := http.NewRequest(http.MethodGet, "http://example.com", nil)
+		require.NoError(t, err)
+
+		proxyURL, err := transport.Proxy(req)
+
+		require.NoError(t, err)
+		assert.Equal(t, "http://[2001:db8::1]:8080", proxyURL.String())
+	})
+
 	t.Run("socks5 proxy", func(t *testing.T) {
 		proxy := &Proxy{
 			Host:     "proxy.example.com",
