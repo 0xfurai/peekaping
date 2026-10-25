@@ -4,11 +4,11 @@ sidebar_position: 8
 
 # Move off MongoDB storage
 
-MongoDB storage was removed in this release. `DB_TYPE=mongo` and `DB_TYPE=mongodb` now stop every Peekaping binary with an error that points to this page, and no new `peekaping-bundle-mongo` image is published. An install that keeps its data in MongoDB moves to SQLite or PostgreSQL with `bun db import-mongo`, as this guide describes, before it upgrades. The last release that ran on MongoDB is the release before this one. The MongoDB monitor type, which checks other MongoDB servers, is not affected.
+MongoDB storage was removed in this release. `DB_TYPE=mongo` and `DB_TYPE=mongodb` now stop every Peekaping binary with an error that points to this page, and no new `peekaping-bundle-mongo` image is published. 0.0.47 is the last release that ran on MongoDB. An install that keeps its data in MongoDB stays on 0.0.47 until it moves to SQLite or PostgreSQL with the `bun db import-mongo` of this release, as this guide describes, and only then starts this release. The MongoDB monitor type, which checks other MongoDB servers, is not affected.
 
 ## Move to SQLite or PostgreSQL
 
-`bun db import-mongo` copies a MongoDB install into a new SQLite or PostgreSQL database. The `bun` tool is in the SQLite and PostgreSQL bundle images and in the migrate image (`peekaping-migrate`) of the releases after 0.0.47. It copies:
+`bun db import-mongo` copies a MongoDB install into a new SQLite or PostgreSQL database. The `bun` tool is in the SQLite and PostgreSQL bundle images and in the migrate image (`peekaping-migrate`) of this release. It copies:
 
 - users, with their password hashes and two-factor secrets
 - settings, including the keys that sign login tokens
