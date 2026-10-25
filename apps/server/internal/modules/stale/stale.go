@@ -16,7 +16,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Redis keys shared by the producer and the API
+// Redis keys shared by the api replicas
 const (
 	MonitorsKey = "peekaping:watchdog:stale"  // HASH: monitor_id -> Entry JSON
 	RanAtKey    = "peekaping:watchdog:ran_at" // STRING: unix ms of the watchdog's last run
@@ -76,7 +76,7 @@ type Store interface {
 	RanAt(ctx context.Context) (*time.Time, error)
 }
 
-// RedisStore keeps the stale monitors in Redis, so the producer and the API share them
+// RedisStore keeps the stale monitors in Redis, so the api replicas share them
 type RedisStore struct {
 	rdb *redis.Client
 }
@@ -87,7 +87,7 @@ func NewRedisStore(rdb *redis.Client) *RedisStore {
 	return &RedisStore{rdb: rdb}
 }
 
-// ProvideRedisStore provides the Redis store as the Store that the producer and the API take
+// ProvideRedisStore provides the Redis store as the Store that the api replicas take
 func ProvideRedisStore(rdb *redis.Client) Store {
 	return NewRedisStore(rdb)
 }

@@ -1,6 +1,6 @@
 // Package check loads what a check needs to run: the monitor with its proxy, its
-// maintenance state, and for a push monitor its latest heartbeat. Cluster mode's producer
-// and single mode's scheduler both load their checks here.
+// maintenance state, and for a push monitor its latest heartbeat. Single mode's scheduler
+// and the cluster api's push monitor checks load their checks here.
 package check
 
 import (

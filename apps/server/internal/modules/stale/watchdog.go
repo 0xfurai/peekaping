@@ -66,7 +66,7 @@ type WatchdogConfig struct {
 	// can take to finish and be ingested. A newly stale monitor is rechecked, and notified
 	// once that time has passed without a heartbeat.
 	CheckTimeout func(timeoutSeconds int) time.Duration
-	// Now is the clock the watchdog measures staleness by. Cluster mode's producers share
+	// Now is the clock the watchdog measures staleness by. Cluster mode's api replicas share
 	// Redis's clock. The local clock is used when it's nil.
 	Now func() time.Time
 	// Interval is how often the watchdog runs; WatchdogInterval when it's zero
