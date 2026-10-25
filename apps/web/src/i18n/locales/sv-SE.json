@@ -682,6 +682,7 @@
         "all": "Alla platser",
         "no_result": "Inget resultat än",
         "probe_offline": "Sonden är offline",
+        "probe_unsupported": "Kör inte den här typen",
         "response_time": "Svarstid",
         "select_label": "Plats",
         "title": "Platser"
@@ -1157,6 +1158,7 @@
     "description": "Sonder kör kontroller av övervakningar från de platser där de är installerade. Den lokala sonden är Peekaping självt.",
     "local_name": "Lokal",
     "monitor_probe": "Sond: {{name}}",
+    "monitor_probe_unsupported": "{{name}} kör inte {{type}}-övervakningar",
     "empty_list": {
       "title": "Inga sonder hittades",
       "text": "Skapa en sond för att köra kontroller från en annan plats.",

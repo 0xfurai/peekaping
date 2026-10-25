@@ -682,6 +682,7 @@
         "all": "Všechna umístění",
         "no_result": "Zatím žádný výsledek",
         "probe_offline": "Sonda je offline",
+        "probe_unsupported": "Tento typ nespouští",
         "response_time": "Doba odezvy",
         "select_label": "Umístění",
         "title": "Umístění"
@@ -1157,6 +1158,7 @@
     "description": "Sondy provádějí kontroly monitorů z míst, kde jsou nainstalovány. Lokální sonda je samotný Peekaping.",
     "local_name": "Lokální",
     "monitor_probe": "Sonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nespouští monitory typu {{type}}",
     "empty_list": {
       "title": "Nebyly nalezeny žádné sondy",
       "text": "Vytvořte sondu, která bude provádět kontroly z jiného místa.",
