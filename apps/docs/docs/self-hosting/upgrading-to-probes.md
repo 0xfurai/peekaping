@@ -6,7 +6,7 @@ sidebar_position: 5
 
 This page takes a cluster on SQLite or PostgreSQL from the layout with a producer, a worker and an ingester to the layout with the API and probes. In the new layout, `peekaping-probe` instances check the local probe's monitors, and the API replicas store the results. See [Deployment modes](./deployment-modes.md#cluster-mode) for the cluster, and [Probe](../architecture/probe.md) for what the probe does.
 
-The producer, worker and ingester are gone. The `peekaping-producer`, `peekaping-worker` and `peekaping-ingester` images are no longer published: 0.0.49 is the last release that has them, and the tags already published stay where they are.
+The producer, worker and ingester are gone. The `peekaping-producer`, `peekaping-worker` and `peekaping-ingester` images are no longer published: 0.0.47 is the last release that has them, and the tags already published stay where they are.
 
 ## Who this is for
 
@@ -21,7 +21,7 @@ You don't need it for these:
 - **MongoDB.** See [MongoDB storage was removed](#mongodb-storage-was-removed).
 - **A new install.** The setup pages already describe the new layout.
 
-A producer or an ingester image of the release that retires them refuses to start on SQLite or PostgreSQL. It exits with status 1 and logs a message that points here. A worker image of that release starts and logs `The worker has no work left on SQLite or PostgreSQL storage`. So a stack that you upgrade without following this page tells you. Since the images are no longer published, a stack that pulls `latest` keeps the last ones, which behave the same.
+No image of this release runs a producer, worker or ingester. A stack that pulls `latest` for them keeps the 0.0.47 images, which this release's API doesn't use, so follow this page to remove them.
 
 ## What changes
 

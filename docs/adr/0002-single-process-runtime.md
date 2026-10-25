@@ -173,7 +173,7 @@ The producer, worker and ingester are removed, as the #254 update said they woul
 - Section 1 says `cmd/api`, `cmd/producer`, `cmd/worker` and `cmd/ingester` stay unchanged and are the cluster-mode binaries.
 - Section 2's table says cluster mode is unchanged, and gives its check dispatch, ingest dispatch and leadership as the producer, worker and ingester. The #254 update already replaced those rows for SQLite and PostgreSQL. Now no backend uses them.
 - Section 5 says the Mongo bundle keeps its multi-process layout, and section 6 says `peekaping-bundle-mongo` is unchanged. The #254 update says MongoDB installs keep the producer, worker and ingester until MongoDB storage is removed, and that the Mongo bundle and compose stacks are unchanged. MongoDB storage is gone, and so are the Mongo bundle and the Mongo compose stacks. A Mongo `DB_TYPE` stops every binary.
-- The #254 update says the producer and the ingester refuse to start on SQLite and PostgreSQL, and the worker logs that it has no work. That is how the images of earlier releases behave. The programs are no longer in the repository.
+- The #254 update says the producer and the ingester refuse to start on SQLite and PostgreSQL, and the worker logs that it has no work. They were removed in the release that was to ship that behaviour, so no published image does it. The programs are no longer in the repository.
 - The Consequences say cluster behaviour doesn't change, and that anything that changes check dispatch or ingest has to be made on both sides of a seam.
 
 Cluster mode is now the api plus probe instances, on every storage backend. SQLite and PostgreSQL are the only ones left, so there is no backend where it is anything else.
