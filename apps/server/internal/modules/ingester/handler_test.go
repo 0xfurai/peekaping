@@ -368,11 +368,9 @@ func TestIngester_StatusTransitions(t *testing.T) {
 			step:     step{check: down, want: pending, retries: 2},
 		},
 		{
-			// PP-133 changes this: a later Up comes from Pending, so it doesn't notify; GLOSSARY.md says a monitor
-			// coming back Up notifies
-			name:     "Down to a Pending check result is not important and resets the failed checks",
+			name:     "Down to a Pending check result stays Down and counts as a failed check",
 			previous: previousHeartbeat(down, 1),
-			step:     step{check: pending, want: pending},
+			step:     step{check: pending, want: down, retries: 2},
 		},
 
 		{
@@ -491,6 +489,24 @@ func TestIngester_MaxRetries(t *testing.T) {
 				{check: down, want: down, retries: 2, important: true, notified: true},
 				{check: up, want: up, important: true, notified: true},
 				{check: down, want: pending, retries: 1},
+			},
+		},
+	})
+}
+
+// A Down monitor leaves Down only for an Up result, so the Down notification is followed by an Up one.
+func TestIngester_ADownMonitorStaysDownUntilItIsUp(t *testing.T) {
+	runSequences(t, []sequence{
+		{
+			// A Docker monitor reports a starting container as a Pending check result
+			name:    "a container that restarts: one Down notification, then one Up notification",
+			monitor: monitorSettings{maxRetries: 0},
+			steps: []step{
+				{check: up, want: up, important: true, notified: true},
+				{check: down, want: down, retries: 1, important: true, notified: true},
+				{check: pending, want: down, retries: 2},
+				{check: pending, want: down, retries: 3},
+				{check: up, want: up, important: true, notified: true},
 			},
 		},
 	})

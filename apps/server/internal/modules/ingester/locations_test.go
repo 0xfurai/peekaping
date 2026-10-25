@@ -307,19 +307,51 @@ func TestIngester_AMonitorIsInMaintenanceWhileAnyLocationIs(t *testing.T) {
 	}
 }
 
-func TestIngester_StatusChangedCarriesTheMonitorsStatus(t *testing.T) {
+// A location that is Down stays Down on a Pending result, and so does the monitor: the other
+// location being Up does not make a Pending result an Up one.
+func TestIngester_APendingResultFromADownLocationKeepsTheMonitorDown(t *testing.T) {
 	ti := newTestIngester(runningOn(probeA, probeB))
 	m := monitorSettings{}
 	ti.from(t, probeA, m, up)
 	ti.from(t, probeB, m, up)
 	ti.from(t, probeA, m, down) // the monitor is Down
 
-	// A's next result is Pending, and B is Up: the monitor is Up, whatever A's heartbeat says
+	beat := ti.from(t, probeA, m, pending)
+
+	assert.Equal(t, down, beat.status, "A is Down until it is Up")
+	assert.Equal(t, 2, beat.retries, "and the Pending result is a failed check")
+	assert.False(t, beat.important)
+	assert.False(t, beat.notified)
+	assert.Empty(t, beat.events, "the monitor stays Down")
+	assert.Len(t, beat.published, 2, "and no status change is published for it")
+	require.NotNil(t, ti.locations.states[probeA].Status)
+	assert.Equal(t, down, *ti.locations.states[probeA].Status)
+
+	recovered := ti.from(t, probeA, m, up)
+
+	assert.True(t, recovered.important, "the Up result takes the monitor Up")
+	assert.True(t, recovered.notified, "and that Down to Up is the one notified")
+	assert.Equal(t, []string{changed, notified}, recovered.events)
+}
+
+// The event, which sets the monitor's status, carries the monitor's status, whatever the heartbeat
+// of the result that moved it says.
+func TestIngester_StatusChangedCarriesTheMonitorsStatus(t *testing.T) {
+	const probeC = "probe-c"
+	ti := newTestIngester(runningOn(probeA, probeB, probeC))
+	m := monitorSettings{}
+	ti.from(t, probeA, m, up)
+	ti.from(t, probeB, m, up)
+	ti.from(t, probeC, m, up)
+	ti.from(t, probeB, m, down) // the monitor is Down
+	ti.locations.setOffline(probeB)
+
+	// A's next result is Pending, and C is Up: the monitor is Up, whatever A's heartbeat says
 	beat := ti.from(t, probeA, m, pending)
 
 	assert.Equal(t, pending, beat.status, "the heartbeat keeps the location's status")
 	require.Len(t, beat.published, 3)
-	assert.Equal(t, up, beat.published[2].Status, "while the event, which sets the monitor's status, carries the monitor's")
+	assert.Equal(t, up, beat.published[2].Status, "while the event carries the monitor's")
 	assert.Equal(t, probeA, beat.published[2].ProbeID)
 }
 

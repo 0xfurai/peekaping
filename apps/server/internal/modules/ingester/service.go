@@ -314,13 +314,22 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		hb.Retries = previousBeat.Retries
 	}
 
-	// Mark as pending if max retries is set and retries is less than max retries
-	if r.Status == shared.MonitorStatusDown {
+	// A location whose previous heartbeat is Down stays Down until a result is Up
+	downBefore := !isFirstOnProbe && previousBeat.Status == shared.MonitorStatusDown
+
+	switch {
+	case downBefore && r.Status == shared.MonitorStatusPending:
+		// A check that reports Pending, such as a Docker container that is still starting, is not
+		// the recovery of a Down location: it is a failed check
+		hb.Status = shared.MonitorStatusDown
+		hb.Retries++
+	case r.Status == shared.MonitorStatusDown:
+		// Mark as pending if max retries is set and retries is less than max retries
 		if !isFirstOnProbe && r.MonitorMaxRetries > 0 && previousBeat.Retries < r.MonitorMaxRetries {
 			hb.Status = shared.MonitorStatusPending
 		}
 		hb.Retries++
-	} else {
+	default:
 		hb.Retries = 0
 	}
 	if hb.Status == shared.MonitorStatusUp {
