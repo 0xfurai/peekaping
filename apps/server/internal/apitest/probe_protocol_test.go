@@ -19,6 +19,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/probe"
@@ -1516,10 +1517,11 @@ func TestProbeProtocol_TheSharedWindowForgetsAResultAfterAnHour(t *testing.T) {
 }
 
 // A replica that dies while it stores a batch (OOM, SIGKILL, eviction of its pod) never gives back
-// what it claimed. The probe sends the batch again, to another replica, and the dead replica's
-// claims have to run out within minutes: if they stood for the hour, the retry would be answered
-// duplicate, which the probe drops for good, and the batch would be lost without a trace.
-func TestProbeProtocol_ABatchWhoseReplicaDiedIsAcceptedOnRetryOnceItsClaimsRunOut(t *testing.T) {
+// what it claimed. The probe sends the batch again, to another replica, within a second or two, and
+// the dead replica's claims are still there. The retry must not be answered duplicate, which the
+// probe drops for good: it is told to come back (503 with a Retry-After, the batch stays with the
+// probe), and once the claims have run out it is stored, once.
+func TestProbeProtocol_ABatchWhoseReplicaDiedIsToldToComeBackAndStoredOnceTheClaimsRunOut(t *testing.T) {
 	a := localProbeApp(t, nil)
 	b := newReplica(t, a, func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
 	monitorID := a.createHTTPMonitor(t, "Checkout", "")
@@ -1535,22 +1537,87 @@ func TestProbeProtocol_ABatchWhoseReplicaDiedIsAcceptedOnRetryOnceItsClaimsRunOu
 	t.Cleanup(func() { assert.NoError(t, client.Close()) })
 	window := protocol.NewRedisWindow(client)
 	for _, result := range batch {
-		claimed, err := window.Claim(context.Background(), shared.LocalProbeID, result.ID, time.Now())
+		outcome, err := window.Claim(context.Background(), shared.LocalProbeID, result.ID, time.Now())
 		require.NoError(t, err)
-		require.True(t, claimed)
+		require.Equal(t, protocol.ClaimWon, outcome)
 	}
 
-	a.redis.FastForward(protocol.ClaimTTL - time.Second)
-	got := b.outcomesOf(t, localToken, instanceID, batch...)
-	assert.Equal(t, []probeproto.ResultOutcome{{ID: "first", Reason: "duplicate"}, {ID: "second", Reason: "duplicate"}}, got,
-		"while the first request could still be storing, the ids are taken")
+	a.redis.FastForward(time.Second)
+	w := b.sendResults(t, localToken, instanceID, batch...)
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	assert.Equal(t, "5", w.Header().Get("Retry-After"), "the probe keeps the batch and sends it again in 5 seconds")
+	assert.Empty(t, b.storedHeartbeats(t, monitorID), "nothing is stored, and nothing is answered duplicate")
+
+	a.redis.FastForward(protocol.ClaimTTL - 2*time.Second)
+	w = b.sendResults(t, localToken, instanceID, batch...)
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, "up to the last second of the claims: %s", w.Body.String())
 
 	a.redis.FastForward(time.Second)
-	got = b.outcomesOf(t, localToken, instanceID, batch...)
+	got := b.outcomesOf(t, localToken, instanceID, batch...)
 
 	assert.Equal(t, []probeproto.ResultOutcome{{ID: "first", Accepted: true}, {ID: "second", Accepted: true}}, got,
 		"the claims of the replica that died ran out, and the retry is accepted")
 	assert.Len(t, b.storedHeartbeats(t, monitorID), 2)
+
+	got = a.outcomesOf(t, localToken, instanceID, batch...)
+
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "first", Reason: "duplicate"}, {ID: "second", Reason: "duplicate"}}, got,
+		"and what it stored is a duplicate from then on")
+	assert.Len(t, a.storedHeartbeats(t, monitorID), 2, "each result is stored once")
+}
+
+// gatedIngester holds each result it is handed until the gate opens, to keep a request in the
+// middle of storing
+type gatedIngester struct {
+	ingester.Service
+	entered chan struct{}
+	gate    chan struct{}
+}
+
+func (g *gatedIngester) Ingest(ctx context.Context, result *ingester.Result) error {
+	g.entered <- struct{}{}
+	<-g.gate
+	return g.Service.Ingest(ctx, result)
+}
+
+// A retry that reaches another replica while the first request is still storing finds the ids
+// claimed. It is not answered duplicate (the first request might still fail, and the probe drops
+// duplicates for good), but told to come back. When it does, the ids are stored, and answered so.
+func TestProbeProtocol_ARetryOnAnotherReplicaWhileTheFirstIsStoringIsToldToComeBack(t *testing.T) {
+	gated := &gatedIngester{entered: make(chan struct{}, 8), gate: make(chan struct{})}
+	a := localProbeApp(t, func(container *dig.Container) error {
+		return container.Decorate(func(inner ingester.Service) ingester.Service {
+			gated.Service = inner
+			return gated
+		})
+	})
+	b := newReplica(t, a, func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
+	monitorID := a.createHTTPMonitor(t, "Checkout", "")
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	batch := []probeproto.Result{
+		checkResult("first", monitorID, checkedAt(0)),
+		checkResult("second", monitorID, checkedAt(10)),
+	}
+	firstDone := make(chan *httptest.ResponseRecorder, 1)
+	go func() { firstDone <- a.sendResults(t, localToken, instanceID, batch...) }()
+	<-gated.entered // the first request is storing "first", with both ids claimed
+
+	w := b.sendResults(t, localToken, instanceID, batch...)
+
+	assert.Equal(t, http.StatusServiceUnavailable, w.Code, w.Body.String())
+	assert.Equal(t, "5", w.Header().Get("Retry-After"))
+	assert.Empty(t, b.storedHeartbeats(t, monitorID), "the retry stored nothing")
+
+	close(gated.gate)
+	first := <-firstDone
+	require.Equal(t, http.StatusOK, first.Code, first.Body.String())
+
+	got := b.outcomesOf(t, localToken, instanceID, batch...)
+
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "first", Reason: "duplicate"}, {ID: "second", Reason: "duplicate"}}, got,
+		"on the retry after the first request ended, the ids are stored")
+	assert.Len(t, b.storedHeartbeats(t, monitorID), 2, "once each")
 }
 
 // A result that was stored is remembered for the hour, though a claim lasts minutes: the request

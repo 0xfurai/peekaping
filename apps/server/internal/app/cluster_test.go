@@ -139,21 +139,21 @@ func TestRegisterClusterAPI_ProvidesTheRunLockInRedis(t *testing.T) {
 // replica took, another finds taken
 func TestRegisterClusterAPI_ProvidesTheDuplicateWindowInRedis(t *testing.T) {
 	cfg := clusterConfig(t)
-	claim := func(replica string) bool {
+	claim := func(replica string) protocol.ClaimOutcome {
 		container := dig.New()
 		require.NoError(t, RegisterClusterAPI(container, cfg), replica)
-		var claimed bool
+		var outcome protocol.ClaimOutcome
 		require.NoError(t, container.Invoke(func(window protocol.Window, rdb *redis.Client) {
 			t.Cleanup(func() { assert.NoError(t, rdb.Close()) })
 			var err error
-			claimed, err = window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+			outcome, err = window.Claim(context.Background(), "probe-1", "result-1", time.Now())
 			require.NoError(t, err)
 		}), replica)
-		return claimed
+		return outcome
 	}
 
-	assert.True(t, claim("first replica"), "first replica's claim of the id")
-	assert.False(t, claim("second replica"), "second replica's claim of the same id")
+	assert.Equal(t, protocol.ClaimWon, claim("first replica"), "first replica's claim of the id")
+	assert.Equal(t, protocol.ClaimPending, claim("second replica"), "second replica's claim of the same id")
 }
 
 func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
