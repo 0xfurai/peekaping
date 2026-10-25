@@ -26,6 +26,8 @@ type Repository interface {
 	CountMonitors(ctx context.Context, id string) (int, error)
 	// FindInstances returns the probe's instances, the most recently seen first
 	FindInstances(ctx context.Context, probeID string) ([]*Instance, error)
+	// FindInstance returns the probe's instance with the id, or nil when the probe has none
+	FindInstance(ctx context.Context, probeID string, instanceID string) (*Instance, error)
 	// UpsertInstance records an instance of the probe, or updates every column of the one the
 	// id already names. It returns ErrInstanceTaken, and changes nothing, when that instance
 	// belongs to another probe.

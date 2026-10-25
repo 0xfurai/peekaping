@@ -52,6 +52,10 @@ func (r *UnsupportedRepositoryImpl) FindInstances(ctx context.Context, probeID s
 	return nil, ErrUnsupportedStorage
 }
 
+func (r *UnsupportedRepositoryImpl) FindInstance(ctx context.Context, probeID string, instanceID string) (*Instance, error) {
+	return nil, ErrUnsupportedStorage
+}
+
 func (r *UnsupportedRepositoryImpl) UpsertInstance(ctx context.Context, probeID string, inst *Instance) error {
 	return ErrUnsupportedStorage
 }

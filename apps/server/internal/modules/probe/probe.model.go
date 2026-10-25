@@ -82,7 +82,11 @@ type Instance struct {
 	Arch            string
 	Version         string
 	ProtocolVersion int
-	LastSeenAt      time.Time
+	// SupportedTypes are the monitor types this instance's build can run, as its hello said. An
+	// empty list means every type, as it does for a probe: an instance of an old probe reports
+	// none.
+	SupportedTypes []string
+	LastSeenAt     time.Time
 }
 
 // ModelWithToken is a probe with its plain text token. Only creating a probe and rotating its
