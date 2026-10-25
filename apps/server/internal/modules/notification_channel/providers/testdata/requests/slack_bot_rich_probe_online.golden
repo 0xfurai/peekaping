@@ -42,5 +42,5 @@ User-Agent: Peekaping-Slack/<version>
     }
   ],
   "channel": "#alerts",
-  "text": "Peekaping Alert"
+  "text": "Probe Frankfurt is online"
 }

@@ -268,7 +268,11 @@ func (s *SlackSender) Send(
 		}
 
 		payload["attachments"] = []map[string]any{attachment}
-		payload["text"] = title // Fallback text for notifications
+		// Fallback text for notifications. A probe's notification keeps its message there, so a
+		// phone's notification still says which probe went offline or came back.
+		if !monitor.IsProbeEvent() {
+			payload["text"] = title
+		}
 	}
 
 	// Convert payload to JSON
