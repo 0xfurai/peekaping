@@ -8,7 +8,7 @@ Ticket: PP-142
 
 Peekaping Cloud is one shared install that many customers use at once (project Peekaping Cloud, milestone 2). Today an install has one set of monitors, and every signed-in user sees all of it. Only the first user can sign up (`apps/server/internal/modules/auth/auth.service.go`), so in practice an install has one user, and no record says whom it belongs to.
 
-To sell one install to many customers, each customer's data has to be walled off. Self-hosters need the same thing for teams that share an install. And nothing may change for a self-hoster who doesn't care: no new limits, the same web app, the same API for scripts and the community Terraform provider.
+To sell one install to many customers, each customer's data has to be walled off. Self-hosters need the same thing when several groups of people share an install. And nothing may change for a self-hoster who doesn't care: no new limits, the same web app, the same API for scripts and the community Terraform provider.
 
 What the code has today, as far as it matters here:
 
@@ -40,9 +40,9 @@ A **workspace** owns monitors and everything around them. A user belongs to a wo
 | Change the plan and billing, delete the workspace, make or remove owners | | | yes |
 
 - Every workspace has at least one owner. The last owner can't leave, be removed or be made something else.
-- The lowest role is also called member. Every member has a role, and for most people it's member.
+- The plainest role shares its name with the people who hold roles: a member of a workspace has the role member, admin or owner.
 - A **viewer** role (sees everything, changes nothing) comes later, not in v1.
-- An **API key** belongs to one workspace and acts as an admin of it, never as an owner. So the Terraform provider and scripts keep the reach they have today, minus billing and deleting the workspace.
+- An **API key** belongs to one workspace and acts as an admin of it, never as an owner. Scripts and the Terraform provider keep what they reach in a workspace today. They lose two things: billing and deleting the workspace, which are new, and managing probes, which a key can do today but which move to the install (section 10).
 - The **plan** belongs to the workspace. A user who owns two workspaces pays for each. A workspace without a plan has no limits, which is every workspace on a self-hosted install.
 
 ### 2. Where the workspace ID lives
@@ -61,23 +61,24 @@ These tables get a `workspace_id` column: `NOT NULL`, indexed, and a foreign key
 
 Every other record gets its workspace through its parent:
 
-- through the monitor: `heartbeats`, `stats`, `stat_minutely`, `stat_hourly`, `stat_daily`, `monitor_tls_info`, `notification_sent_history`, `monitor_probes`;
-- through both ends, which must be in the same workspace: `monitor_notifications`, `monitor_tags`, `monitor_maintenances`, `monitor_status_pages`;
+- through the monitor: `heartbeats`, `stat_minutely`, `stat_hourly`, `stat_daily`, `monitor_tls_info`, `notification_sent_history`, `monitor_probes`;
+- through both ends, which must be in the same workspace: `monitor_notifications`, `monitor_tags`, `monitor_maintenances`, `monitor_status_pages`, and a monitor's `proxy_id`;
 - through the status page: `domain_status_page`.
 
 These belong to the install and get no workspace: `users`, `login_state`, `settings`, `probes`, `probe_instances`. `probe_notification_channels` links an install's probe to a workspace's channel (section 10).
 
-Deleting a workspace deletes its records by cascade, and theirs in turn, so no row is left behind (PP-170). Most child tables already cascade from their parent, but `monitor_tls_info` and `notification_sent_history` have no foreign key to the monitor; PP-146 gives them one.
+Deleting a workspace deletes its records by cascade, and theirs in turn, so no row is left behind (PP-170). Most child tables already cascade from their parent, but `monitor_tls_info` and `notification_sent_history` have no foreign key to the monitor. Their `monitor_id` is a `VARCHAR`, and deleting a monitor leaves their rows behind. PP-146 deletes those orphans, gives the column the monitor ID's type, and adds the key.
 
-We don't copy the workspace ID onto child records. A copy is a second truth that can drift from the parent. Cleanup deletes by monitor and time anyway. If PP-161's per-workspace cleanup is slow on a large `heartbeats` table, it adds an index, not a column. A join table's two ends being in the same workspace is checked by the service that writes the link (PP-148, PP-149), not by a composite foreign key, which would need the copy.
+We don't copy the workspace ID onto child records. A copy is a second truth that can drift from the parent. Today cleanup deletes heartbeats by time alone; per workspace it deletes by monitor and time. If PP-161 finds that slow on a large `heartbeats` table, it adds an index, not a column. A join table's two ends being in the same workspace is checked by the service that writes the link (PP-148, PP-149), not by a composite foreign key, which would need the copy.
 
 ### 3. How queries are scoped
 
 The workspace ID is an explicit argument of every repository method on a workspace's table, right after the context: `FindByID(ctx, workspaceID, id)`. Leaving it out doesn't compile.
 
 - It has its own Go type, so it can't be swapped with a record's ID by accident. Package and name are for PP-146.
-- Every read filters on it. Every update and delete filters on it too, so a write to another workspace's record matches no row and is reported as not found.
+- Every read filters on it. Every update and delete filters on it too and checks how many rows it changed, so a write to another workspace's record matches no row and is reported as not found. Today `Delete` and `UpdatePartial` don't check.
 - A create takes the workspace from the argument, never from the request body.
+- A route for a child record (a monitor's heartbeats, stats or TLS info, a status page's domains) first loads the parent in the request's workspace, and answers 404 when that fails. The child's own queries then run by the parent's ID.
 - Services get the workspace from the request context (section 7) and pass it down. Repositories never read it from the context.
 
 Some paths have to read across workspaces. They use separate methods whose names end in `AnyWorkspace`, so a reviewer can find them with one search. Only these paths call them:
@@ -89,6 +90,7 @@ Some paths have to read across workspaces. They use separate methods whose names
 - the cleanup job and the certificate expiry checks;
 - notification sending, from a monitor to its own channels;
 - the usage ping's counts;
+- `/metrics`, which lists every monitor of the install with no auth, for the people who run it. The cloud must keep it off the public internet;
 - startup jobs such as status repair.
 
 A new caller needs a reason in review. PP-153 proves that no handler serving a workspace's request reaches another workspace.
@@ -99,7 +101,7 @@ We rejected a query hook that adds the filter by itself. It hides the filter, so
 
 The api's ingest, the watchdog, the cleanup job, the certificate expiry checks and the notification listener run across all workspaces. They take the workspace from the monitor's `workspace_id` and read that workspace's settings and limits with it.
 
-- The cleanup job goes workspace by workspace and deletes each one's heartbeats and stats older than its own data retention period (PP-161).
+- The cleanup job goes workspace by workspace and deletes each one's heartbeats older than its own data retention period (PP-161). Stats keep their fixed retention for the whole install.
 - A notification goes only to the channels linked to the monitor, which are in its workspace by section 2.
 - Limits come from the plan, through the interface PP-143 defines, keyed by the workspace ID (PP-160). The public build has no plans, so it has no limits.
 - A short in-process cache of workspace settings is allowed. With several api replicas, a changed setting then takes effect within the cache's lifetime.
@@ -109,7 +111,7 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 | Setting | Belongs to | Where it's stored |
 | --- | --- | --- |
 | JWT signing secrets (`auth.access_token_secret`, `auth.refresh_token_secret`) | install | `settings` |
-| Token lifetimes (`ACCESS_TOKEN_EXPIRED_IN`, `REFRESH_TOKEN_EXPIRED_IN`) | install | `settings` |
+| Token lifetimes (`ACCESS_TOKEN_EXPIRED_IN`, `REFRESH_TOKEN_EXPIRED_IN`; no API reaches them today) | install | `settings` |
 | Usage ping (`TELEMETRY_ENABLED`, `TELEMETRY_INSTANCE_ID`, `TELEMETRY_LAST_SENT`) | install | `settings` |
 | Error reports (`ERROR_REPORTING_ENABLED`) and the one-time notice (`TELEMETRY_NOTICE_SEEN`) | install | `settings` |
 | Notification history and TLS info retention (`NOTIFICATION_HISTORY_RETENTION_DAYS`, `TLS_INFO_RETENTION_DAYS`) | install | environment |
@@ -119,18 +121,21 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 | Plan | workspace | its own record (PP-160, PP-162) |
 
 - `/settings/key/KEEP_DATA_PERIOD_DAYS` keeps its path and works on the request's workspace. Members read it, admins change it. A plan can cap it (PP-161).
-- Only an instance admin (section 10) can change install settings.
+- Only an instance admin (section 10) can change install settings: today that's the usage ping and error reports.
 - A new workspace starts with today's defaults for a new install: a data retention period of 180 days and certificate expiry notifications at 7, 14 and 21 days.
-- On upgrade, the install's current values move to the default workspace (section 12).
+- On upgrade, the install's current values move to the upgrade's workspace (section 12). An install that never stored a data retention period keeps 365 days, the value it uses today when the setting is unset.
 
 ### 6. Unique across the install
 
 These stay unique across the whole install, and the database enforces each one:
 
 - **Status page slugs.** Already a unique column.
-- **Custom domains.** A new unique index on the domain. The service already refuses a domain another page uses, so the migration should find no duplicates. If it does, it fails and names them. On the cloud, the first workspace to add a domain holds it, and PP-165's DNS check stops anyone holding a domain they don't own.
+- **Custom domains.** A new unique index on the domain, stored lower-case and trimmed. The service already refuses a domain another page uses, so the migration should find no duplicates once it has normalized them. If it does, it fails and names them. On the cloud, the first workspace to add a domain holds it, and PP-165's DNS check stops anyone holding a domain they don't own.
 - **Push tokens.** A new unique index. The migration first turns empty tokens into `NULL`, and the code then stores `NULL` for a monitor without a token. Duplicate tokens fail the migration, which names the monitors.
-- **Probe tokens, user emails** and **API keys.** Already unique (API keys by their random hash). A key finds its workspace the same way it finds its record today.
+- **Probe tokens** and **user emails.** Already unique columns.
+- **API keys.** A key carries its record's ID and is checked against the stored hash, so it finds its record, and through it its workspace, as it does today.
+
+A slug, custom domain or push token another workspace already holds is refused as taken. That tells the caller the value exists somewhere. We accept it: slugs and domains are public anyway, and a push token is a secret its owner chose, which is worth nothing to someone who only learns that it's taken.
 
 **Tag names** stop being unique across the install. They become unique within a workspace: the index moves to `(workspace_id, name)` and the service's check does the same. Two customers may each have a tag called "production".
 
@@ -142,10 +147,11 @@ A request names its workspace with an `X-Workspace-ID` header.
 - **A JWT request** may name any workspace the user is a member of. A workspace they aren't a member of answers 404, as if it didn't exist.
 - **An API key** always runs in its own workspace. Naming another one answers 404.
 - **A user in no workspace** (possible after being removed) can still sign in and manage their account. Every workspace route answers 404 until they join one.
-- **Middleware** runs after authentication. It resolves the workspace, checks the membership, and puts the workspace ID and role into the request context (PP-147). It builds on PP-88 (the request context instead of `*gin.Context`).
+- **Middleware** runs after authentication. It resolves the workspace, checks the membership, and puts the workspace ID and role into the request context (PP-147).
+- **CORS** allows the `X-Workspace-ID` header, next to `Authorization` (`apps/server/internal/httpx/middleware.go`).
 - **Routes that need no workspace** are unchanged: sign-in and account routes, public status pages, badges, the push endpoint and the probe protocol.
 - **The web app** puts the workspace in its addresses, `/w/<workspaceId>/…`, and sends the header from there. A link to a monitor then opens in the right workspace for a teammate, and two tabs can show two workspaces. An old address redirects to the default workspace. The ID is the workspace's UUID; a readable slug can come later.
-- **The websocket** gets one room per workspace in place of `monitor:all`, and `join_room` checks the membership (PP-151).
+- **The websocket** gets one room per workspace in place of `monitor:all`. `join_room` lets a user into a workspace's room, or a monitor's room, only while they're a member of that workspace, and a removed member loses those rooms (PP-151).
 
 We rejected a claim in the token: switching workspaces would mean a new token, and two tabs share one stored token. We rejected a workspace in the API path (`/api/v1/w/<id>/…`): every route would exist twice, and the unscoped one still needs the default.
 
@@ -164,14 +170,15 @@ Workspaces come to SQLite and PostgreSQL only. MongoDB storage is deprecated (AD
 
 Some things belong to the install, not to a workspace: probes, token lifetimes, the usage ping and error reports. An **instance admin** manages them. It's a flag on the user, not a role, and it gives no access to any workspace's data. On the cloud, the instance admins are the people who run it.
 
-- The first user to sign up gets the flag. On upgrade, every existing user gets it. Today that's the one user, who also owns the default workspace, so a self-hoster sees no change.
+- The first user to sign up gets the flag. On upgrade, every existing user gets it. Today that's the one user, who also owns the upgrade's workspace, so a self-hoster sees no change.
 - v1 has no screen to give the flag to anyone else.
-- **Probes** stay the install's. Only an instance admin creates, changes, deletes or rotates the token of one.
+- ADR 0003 says an admin opts out of the usage ping and error reports. That admin is the instance admin.
+- **Probes** stay the install's. Only an instance admin creates, changes, deletes or rotates the token of one. An API key can't, since it belongs to a workspace; today it can.
 - Every member can see a probe's name, location, status and the monitor types it runs, so they can choose probes for their monitors. A probe instance's hostname, OS and version are shown to instance admins only.
 - Any workspace's monitor can run on any probe that isn't disabled. A plan may limit how many probes a monitor uses (PP-160, PP-167).
-- A probe's offline notification goes to the channels an instance admin links to it. They pick from the channels of the workspace they're working in. Deleting that workspace removes the links by cascade.
+- A probe's offline notification goes to the channels an instance admin links to it. They pick from the channels of a workspace they're a member of; the flag itself shows them no workspace's channels. Deleting that workspace removes the links by cascade.
 
-Probes a workspace runs for itself (a "private location") are a later ticket. They would give `probes` a nullable `workspace_id`.
+Probes a workspace runs for itself are a later ticket. They would give `probes` a nullable `workspace_id`.
 
 ### 11. Signup
 
@@ -180,16 +187,18 @@ Signup modes are two, set with `SIGNUP_MODE` (PP-155):
 - **`invite`**, the default. The first user signs up as today and gets the first workspace, as its owner, with the instance admin flag. After that, people join only through an invite to a workspace.
 - **`open`**, for the cloud. Anyone may sign up, and each new user gets a workspace of their own, as its owner. Their monitors run only once their email is verified (PP-152).
 
-In both modes an invite adds the invited user to an existing workspace with the role the invite names (PP-154).
+In both modes an invite adds the invited user to an existing workspace with the role the invite names (PP-154). Someone who signs up through an invite joins that workspace and gets no workspace of their own, in `open` mode too. Invites are their own records, added by PP-154. Without an email sender, the inviter copies the invite link.
+
+Any signed-in user can create another workspace and becomes its owner (PP-154). Like open signup, that waits for the isolation suite (section 12).
 
 ### 12. Upgrade and shipping
 
 On the first start after the upgrade (PP-146), one migration:
 
-- creates one default workspace;
+- creates one workspace, the upgrade's workspace;
 - makes every existing user its owner and an instance admin;
 - puts every record in it;
-- moves the data retention period and the certificate expiry notification days into its settings.
+- moves the data retention period and the certificate expiry notification days into its settings, as section 5 says.
 
 Running it again changes nothing. A self-hosted install then works as before. The addresses gain `/w/<id>/`, and the web app shows no workspace switcher while a user is in only one workspace (PP-154).
 
@@ -199,12 +208,12 @@ Each milestone 2 ticket merges to main and ships in normal releases. With one wo
 
 - Every repository method on a workspace's table changes its signature, and every caller with it. That's most of PP-148 to PP-150. The compiler finds the callers.
 - The `AnyWorkspace` methods are where a leak can still happen. They're few, easy to search for, and covered by PP-153.
-- A self-hoster sees two changes: `/w/<id>/` in the address bar, and nothing else until they invite someone. The owner of the default workspace is also its instance admin, so every screen they use today stays theirs.
+- Once the upgrade has run, a self-hoster sees one change, `/w/<id>/` in the address bar, until they invite someone. The owner of the upgrade's workspace is also the instance admin, so every screen they use today stays theirs.
 - The upgrade can fail on duplicate push tokens or custom domains that slipped past the service. It fails before changing anything and names the records, and the release notes say how to fix them.
 - Tag names are now per workspace, so an import into a workspace (PP-170) checks names there, not across the install.
-- Probes are shared by every workspace, so every member sees the install's probe names and locations. That's the point on the cloud, where the probes are its regions. A self-hoster who wants per-team probes waits for workspace probes.
+- Probes are shared by every workspace, so every member sees the install's probe names and locations. That's the point on the cloud, where the probes are its regions. A self-hoster who wants probes that only one workspace sees waits for workspace probes.
 - Background work reads a workspace's settings per monitor. That's one more lookup per check where a setting matters, and the cache in section 4 is the remedy if it shows.
-- Instance admin is a second kind of permission next to roles. It stays small: probes and the install settings in section 5.
+- Instance admin is a second axis next to roles. It stays small: probes and the install settings in section 5.
 
 Waiting tickets:
 
@@ -218,3 +227,4 @@ Waiting tickets:
 - **PP-155** (signup modes): the two modes in section 11.
 - **PP-160, PP-161** (plan limits, per-workspace retention): section 4.
 - **PP-91** (shared repository code): optional. Its helpers take the workspace ID if it lands first.
+- A new ticket: keep `/metrics` off the public internet on the cloud.

@@ -181,7 +181,7 @@ _Avoid_: Keep-data period, history limit
 Decided in [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md) and built in Peekaping Cloud's milestone 2. Until that ships, an install has no workspaces: every signed-in user sees everything.
 
 **Workspace**:
-What owns monitors and everything around them: notification channels, status pages, maintenance windows, tags, proxies, API keys, its settings and its plan. People work in it as its members, and it sees nothing of another workspace. A user can be a member of several, and a request runs in one of them: the one it names, or else the user's **default workspace**, the one they joined first. Probes and install settings belong to the install, not to a workspace. See [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md).
+What owns monitors and everything around them: notification channels, status pages, maintenance windows, tags, proxies, API keys, its settings and its plan. People work in it as its members, and it sees nothing of another workspace. A user can be a member of several, and a request runs in one of them: the one it names, or else the user's default workspace, the one they joined first. Probes and install settings belong to the install, not to a workspace. See [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md).
 _Avoid_: Organization, team (kept for a level inside a workspace, which Peekaping doesn't have), account (that's a user's login), tenant, project
 
 **Member**:
@@ -189,11 +189,11 @@ A user's place in a workspace, with one role. A user in two workspaces is a memb
 _Avoid_: Seat (that's billing), user (that's the account itself)
 
 **Role**:
-What a member may do in their workspace: member, admin or owner. A member manages monitors, notification channels, status pages, maintenance windows, tags and proxies. An admin also manages members, API keys and the workspace's settings, and sees its plan. An owner also changes the plan, deletes the workspace and makes other owners; every workspace has at least one. An API key acts as an admin of its workspace.
+What a member may do in their workspace. There are three. The member role manages monitors, notification channels, status pages, maintenance windows, tags and proxies. The admin role adds the workspace's people, API keys and settings, and sees its plan. The owner role adds changing the plan, deleting the workspace and making other owners; every workspace has at least one owner. An API key acts with the admin role in its workspace.
 _Avoid_: Permission, access level
 
 **Instance admin**:
-A user who manages what belongs to the install rather than to a workspace: probes, token lifetimes, the usage ping and error reports. It's a flag on the user, not a role, and gives no access to any workspace's data. The first user to sign up gets it, and an install upgraded to workspaces gives it to its existing users.
+A user who manages what belongs to the install rather than to a workspace: probes, the usage ping and error reports. It's a flag on the user, not a role, and gives no access to any workspace's data. The first user to sign up gets it, and an install upgraded to workspaces gives it to its existing users.
 _Avoid_: Superuser, site admin, root
 
 **Plan**:
