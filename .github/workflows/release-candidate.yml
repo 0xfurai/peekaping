@@ -26,7 +26,7 @@ on:
 
 jobs:
   validate-version:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     outputs:
       is_valid_rc: ${{ steps.check.outputs.is_valid_rc }}
     steps:
@@ -43,7 +43,7 @@ jobs:
           fi
 
   prepare-and-test:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     needs: validate-version
     if: needs.validate-version.outputs.is_valid_rc == 'true'
     steps:
@@ -84,7 +84,7 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -148,7 +148,7 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -207,7 +207,7 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -266,7 +266,7 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -325,7 +325,7 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -384,7 +384,7 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -444,7 +444,7 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
             database: sqlite
           - platform: linux/arm64
@@ -452,7 +452,7 @@ jobs:
             arch: arm64
             database: sqlite
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
             database: mongo
           - platform: linux/arm64
@@ -460,7 +460,7 @@ jobs:
             arch: arm64
             database: mongo
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
             database: postgres
           - platform: linux/arm64
@@ -527,7 +527,7 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
   create-manifest:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     needs: [build-ui, build-api, build-worker, build-producer, build-ingester, build-migrate, build-bundle-containers]
     steps:
       - name: Log in to GHCR
@@ -666,7 +666,7 @@ jobs:
       container-tag: ${{ github.event.inputs.version }}
 
   release:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     needs: playwright-tests
     steps:
       - name: Checkout code
