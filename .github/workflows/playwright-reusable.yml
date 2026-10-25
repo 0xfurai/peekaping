@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        database: [postgres, mongo, sqlite]
+        database: [postgres, sqlite]
     env:
       # Every docker compose command below runs the stack plus the e2e target.
       COMPOSE_FILE: docker-compose.test.${{ matrix.database }}.yml:docker-compose.e2e.yml
@@ -48,9 +48,9 @@ jobs:
         # Database Configuration
         DB_TYPE=${{ matrix.database }}
         DB_HOST=database
-        DB_PORT=${{ matrix.database == 'postgres' && '5432' || matrix.database == 'mongo' && '27017' }}
+        DB_PORT=${{ matrix.database == 'postgres' && '5432' }}
         DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
-        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
+        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || 'root' }}
         DB_PASS=password
 
         REDIS_HOST="redis"
@@ -62,8 +62,8 @@ jobs:
         PROBE_OFFLINE_AFTER=2m
 
         # The local probe's token: the api stores it and the stack's probe service sends it. The
-        # SQLite and PostgreSQL compose files refuse to start without it. MongoDB has no probes.
-        ${{ matrix.database != 'mongo' && 'PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789' || '' }}
+        # SQLite and PostgreSQL compose files refuse to start without it.
+        PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789
 
         # Server Configuration
         CLIENT_URL=http://localhost:8383
@@ -86,10 +86,6 @@ jobs:
 
         # Replace container tags with the specified version
         sed -i 's|0xfurai/peekaping-api:latest|0xfurai/peekaping-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-producer:latest|0xfurai/peekaping-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-worker:latest|0xfurai/peekaping-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-ingester:latest|0xfurai/peekaping-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        # The SQLite and PostgreSQL files run the probe image instead of the three above
         sed -i 's|0xfurai/peekaping-probe:latest|0xfurai/peekaping-probe:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-web:latest|0xfurai/peekaping-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-migrate:latest|0xfurai/peekaping-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
@@ -108,18 +104,14 @@ jobs:
           docker compose logs migrate || echo "No migrate service logs"
           docker compose logs api || echo "No api service logs"
           docker compose logs probe || echo "No probe service logs"
-          docker compose logs producer || echo "No producer service logs"
-          docker compose logs worker || echo "No worker service logs"
-          docker compose logs ingester || echo "No ingester service logs"
           docker compose logs web || echo "No web service logs"
           docker compose logs gateway || echo "No gateway service logs"
           exit 1
         fi
 
-    # The remote probe specs start this image themselves, on the stack's network. MongoDB has no
-    # probes, so they skip there. Pulled here so that a pull failure fails this step.
+    # The remote probe specs start this image themselves, on the stack's network. Pulled here so
+    # that a pull failure fails this step.
     - name: Pull the probe image
-      if: ${{ matrix.database != 'mongo' }}
       run: docker pull "$E2E_PROBE_IMAGE"
 
     - name: Show container logs
@@ -163,7 +155,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        database: [sqlite, mongo, postgres]
+        database: [sqlite, postgres]
     steps:
     # prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -186,10 +178,6 @@ jobs:
           sqlite)
             # SQLite data directory
             mkdir -p ./test-data/sqlite/app
-            ;;
-          mongo)
-            # MongoDB data directory
-            mkdir -p ./test-data/mongo/db
             ;;
           postgres)
             # PostgreSQL data directory
@@ -220,9 +208,8 @@ jobs:
         fi
 
     # The remote probe specs start this image themselves, at the tag the bundle is tested at.
-    # MongoDB has no probes, so they skip there. Pulled here so that a pull failure fails this step.
+    # Pulled here so that a pull failure fails this step.
     - name: Pull the probe image
-      if: ${{ matrix.database != 'mongo' }}
       run: docker pull "ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ steps.bundle_tag.outputs.tag }}"
 
     - name: Start the e2e target
@@ -256,18 +243,6 @@ jobs:
               -v $(pwd)/test-data/sqlite/app:/app/data \
               "${COMMON_ENV[@]}" \
               -e DB_NAME=/app/data/peekaping.db \
-              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${BUNDLE_TAG}
-            ;;
-          mongo)
-            docker run -d \
-              --name peekaping-bundle-test-${{ matrix.database }} \
-              --network peekaping-e2e \
-              -p 8383:8383 \
-              -v $(pwd)/test-data/mongo/db:/data/db \
-              "${COMMON_ENV[@]}" \
-              -e DB_NAME=peekaping \
-              -e DB_USER=peekaping \
-              -e DB_PASS=password \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${BUNDLE_TAG}
             ;;
           postgres)
@@ -319,7 +294,6 @@ jobs:
 
     # The single-mode bundles' user, ports and shutdown, on the published image
     - name: Test the bundle's user, ports and shutdown
-      if: matrix.database != 'mongo'
       run: |
         scripts/test-bundle-user.sh ${{ matrix.database }} \
           ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ steps.bundle_tag.outputs.tag }}

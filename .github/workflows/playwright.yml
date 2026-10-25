@@ -16,7 +16,6 @@ on:
       - 'docker-compose.e2e.yml'
       - 'Dockerfile.bundle.*'
       - 'startup.bundle.*.sh'
-      - 'supervisord.bundle.*.conf'
       - 'scripts/test-bundle-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
@@ -36,7 +35,6 @@ on:
       - 'docker-compose.e2e.yml'
       - 'Dockerfile.bundle.*'
       - 'startup.bundle.*.sh'
-      - 'supervisord.bundle.*.conf'
       - 'scripts/test-bundle-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
@@ -58,8 +56,8 @@ env:
 jobs:
   # Build each image once, on its own runner, and share it with the test jobs.
   # The dev images don't depend on the database, so all three dev jobs reuse them.
-  # The dev producer, worker and ingester images are for the MongoDB stack alone: on SQLite and
-  # PostgreSQL the api runs the producer's and the ingester's work, and the probe image the worker's.
+  # No dev stack uses the dev producer, worker and ingester images any more: the api runs the
+  # producer's and the ingester's work, and the probe image the worker's.
   build-images:
     name: Build ${{ matrix.name }}
     runs-on: ubuntu-24.04
@@ -79,7 +77,6 @@ jobs:
           - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
           - { name: dev-web, tag: peekaping-web, context: ., file: apps/web/Dockerfile }
           - { name: bundle-postgres, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.postgres }
-          - { name: bundle-mongo, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.mongo }
           - { name: bundle-sqlite, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.sqlite }
     steps:
     - uses: actions/checkout@v4
@@ -135,7 +132,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        database: [postgres, mongo, sqlite]
+        database: [postgres, sqlite]
         config: [dev, bundle]
     env:
       # Every docker compose command below runs the stack plus the e2e target.
@@ -160,9 +157,8 @@ jobs:
         path: ${{ runner.temp }}/images
         merge-multiple: true
     # The dev stack runs this image as its `probe` service, and the remote probe specs start it
-    # themselves. MongoDB has no probes, so its stack has no `probe` service and the specs skip.
+    # themselves.
     - name: Download the probe image
-      if: ${{ matrix.database != 'mongo' }}
       uses: actions/download-artifact@v4
       with:
         name: image-probe
@@ -180,9 +176,9 @@ jobs:
         # Database Configuration
         DB_TYPE=${{ matrix.database }}
         DB_HOST=database
-        DB_PORT=${{ matrix.database == 'postgres' && '5432' || matrix.database == 'mongo' && '27017' }}
+        DB_PORT=${{ matrix.database == 'postgres' && '5432' }}
         DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
-        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
+        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || 'root' }}
         DB_PASS=password
 
         REDIS_HOST="redis"
@@ -194,9 +190,9 @@ jobs:
         PROBE_OFFLINE_AFTER=2m
 
         # The local probe's token: the api stores it and the dev stack's probe service sends it. The
-        # dev SQLite and PostgreSQL compose files refuse to start without it. The MongoDB stack and
-        # the bundles have no use for it, so they don't get it.
-        ${{ matrix.config == 'dev' && matrix.database != 'mongo' && 'PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789' || '' }}
+        # dev SQLite and PostgreSQL compose files refuse to start without it. The bundles have no use
+        # for it, so they don't get it.
+        ${{ matrix.config == 'dev' && 'PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789' || '' }}
 
         # Server Configuration
         CLIENT_URL=http://localhost:8383
@@ -213,12 +209,10 @@ jobs:
     # Create and prepare data directories with proper permissions
     - name: Prepare data directories
       run: |
-        mkdir -p .data/postgres .data/mongodb .data/logs .data/caddy-data .data/caddy-config
+        mkdir -p .data/postgres .data/logs .data/caddy-data .data/caddy-config
         sudo chown -R 999:999 .data/postgres .data/logs  # postgres user is typically uid 999
-        sudo chown -R 999:999 .data/mongodb              # mongodb user is typically uid 999
         sudo chmod -R 755 .data/logs
         sudo chmod -R 700 .data/postgres
-        sudo chmod -R 755 .data/mongodb
         ls -la .data/
         echo "Directory permissions set successfully"
 
