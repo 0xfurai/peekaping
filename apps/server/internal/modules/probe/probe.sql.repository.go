@@ -301,8 +301,25 @@ func (r *SQLRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID str
 	if len(oldest) < needed {
 		return ErrTooManyInstances
 	}
-	_, err = db.NewDelete().Model((*sqlInstance)(nil)).Where("id IN (?)", bun.In(oldest)).Exec(ctx)
-	return err
+	// An instance among them can be in contact again since they were read (its touch doesn't wait
+	// for the probe's lock), so delete only those still quiet, and refuse when that frees too few
+	// places: the transaction then rolls back what was deleted and adds nothing
+	result, err := db.NewDelete().Model((*sqlInstance)(nil)).
+		Where("id IN (?)", bun.In(oldest)).
+		Where("probe_id = ?", probeID).
+		Where("last_seen_at < ?", quietBefore.UTC()).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+	deleted, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if deleted < int64(needed) {
+		return ErrTooManyInstances
+	}
+	return nil
 }
 
 // MARK: TouchInstance
