@@ -13,8 +13,13 @@ RUN go mod download
 # Copy the source code into the container
 COPY . .
 
+# The build tags. GO_TAGS=slim leaves out the executors of the Docker, Kafka, SQL Server, MongoDB and
+# gRPC monitor types and the drivers they need (see remote-probes.md in the docs). Declared here, not
+# at the top, so that the layers above are shared between the two builds.
+ARG GO_TAGS=""
+
 # Build the Go app
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o peekaping-probe -ldflags="-s -w" ./cmd/probe
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -tags "$GO_TAGS" -o peekaping-probe -ldflags="-s -w" ./cmd/probe
 
 # Start a new stage from scratch
 FROM alpine

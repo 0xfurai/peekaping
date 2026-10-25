@@ -300,6 +300,24 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # The same probe without the Docker, Kafka, SQL Server, MongoDB and gRPC executors
+      - name: Build Probe slim image (without DockerHub login to avoid pull limits)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/server
+          file: ./apps/server/infra/Dockerfile.probe
+          build-args: GO_TAGS=slim
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -317,6 +335,11 @@ jobs:
         run: |
           docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+
+      - name: Push Probe slim image to registries
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
 
   build-producer:
     runs-on: ${{ matrix.runner }}
@@ -628,6 +651,12 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-arm64
           docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
 
+          # Probe slim manifest
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim
+
           # Producer manifest
           docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }} \
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-amd64 \
@@ -691,6 +720,15 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-arm64
           docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
           echo "✓ Probe manifest pushed"
+          sleep 5
+
+          # Probe slim manifest
+          echo "Creating Probe slim manifest..."
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim
+          echo "✓ Probe slim manifest pushed"
           sleep 5
 
           # Producer manifest
@@ -768,6 +806,7 @@ jobs:
             - API: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}`
             - Worker: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}`
             - Probe: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}`
+            - Probe (slim): `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim`
             - Producer: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}`
             - Ingester: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}`
             - Migrate: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}`
@@ -782,6 +821,7 @@ jobs:
             - API: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}`
             - Worker: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}`
             - Probe: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}`
+            - Probe (slim): `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim`
             - Producer: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}`
             - Ingester: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}`
             - Migrate: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}`
@@ -844,6 +884,7 @@ jobs:
                     - API: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}\`
                     - Worker: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}\`
                     - Probe: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}\`
+                    - Probe (slim): \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim\`
                     - Producer: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}\`
                     - Ingester: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}\`
                     - Migrate: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}\`
