@@ -55,9 +55,7 @@ env:
 
 jobs:
   # Build each image once, on its own runner, and share it with the test jobs.
-  # The dev images don't depend on the database, so all three dev jobs reuse them.
-  # No dev stack uses the dev producer, worker and ingester images any more: the api runs the
-  # producer's and the ingester's work, and the probe image the worker's.
+  # The dev images don't depend on the database, so both dev jobs reuse them.
   build-images:
     name: Build ${{ matrix.name }}
     runs-on: ubuntu-24.04
@@ -66,14 +64,11 @@ jobs:
       matrix:
         include:
           - { name: dev-api, tag: peekaping-api, context: apps/server, file: apps/server/infra/Dockerfile.api }
-          - { name: dev-producer, tag: peekaping-producer, context: apps/server, file: apps/server/infra/Dockerfile.producer }
-          - { name: dev-worker, tag: peekaping-worker, context: apps/server, file: apps/server/infra/Dockerfile.worker }
           # The dev SQLite and PostgreSQL stacks run it as their `probe` service (it is the local probe's
           # instances), and the e2e jobs run it as a remote probe (e2e/remote-probe.spec.ts). Named without
           # "dev-" because the bundle jobs need it too, and they don't download image-dev-*; every e2e job
           # asks for it by name.
           - { name: probe, tag: peekaping-probe, context: apps/server, file: apps/server/infra/Dockerfile.probe }
-          - { name: dev-ingester, tag: peekaping-ingester, context: apps/server, file: apps/server/infra/Dockerfile.ingester }
           - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
           - { name: dev-web, tag: peekaping-web, context: ., file: apps/web/Dockerfile }
           - { name: bundle-postgres, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.postgres }
