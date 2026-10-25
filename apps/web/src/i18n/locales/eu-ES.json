@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatikoki berretsi",
         "auto_resolve_acknowledge_description": "Automatikoki onartu insidentzia",
-        "auto_resolve_description": "Aukeratu monitor-a berriz igarotzean zein ekintza hartu behar duzu",
+        "auto_resolve_description": "Aukeratu zer bidali behar den monitorea berriro martxan dagoenean edo zunda berriro linean dagoenean",
         "auto_resolve_do_nothing": "Ez egin",
-        "auto_resolve_do_nothing_description": "Ez da ekintzarik hartu UP egoeran",
+        "auto_resolve_do_nothing_description": "Ez da ezer bidaltzen monitorea berriro martxan dagoenean edo zunda berriro linean dagoenean, beraz insidentziak irekita jarraitzen du PagerDuty-n konpontzen duzun arte",
         "auto_resolve_label": "Auto konponketa edo onarpena",
         "auto_resolve_placeholder": "Hautatu auto-berreskuratzearen portaera",
         "auto_resolve_resolve": "Automatikoki konpontzea",

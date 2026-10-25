@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Auto-godkend",
         "auto_resolve_acknowledge_description": "Bekræft hændelsen automatisk",
-        "auto_resolve_description": "Vælg, hvilken handling der skal udføres, når en monitor kommer online igen.",
+        "auto_resolve_description": "Vælg, hvad der skal sendes, når en monitor kommer op igen, eller en probe kommer online igen.",
         "auto_resolve_do_nothing": "Gør ingenting",
-        "auto_resolve_do_nothing_description": "Ingen handling udført ved status UP",
+        "auto_resolve_do_nothing_description": "Der sendes ikke noget, når en monitor kommer op igen, eller en probe kommer online igen, så hændelsen forbliver åben, indtil du løser den i PagerDuty",
         "auto_resolve_label": "Auto-løs eller anerkend",
         "auto_resolve_placeholder": "Vælg automatisk opløsningsadfærd",
         "auto_resolve_resolve": "Auto opløsning",

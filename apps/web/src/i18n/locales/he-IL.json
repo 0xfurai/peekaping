@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "אישור אוטומטי",
         "auto_resolve_acknowledge_description": "אשר את האירוע באופן אוטומטי",
-        "auto_resolve_description": "בחר איזו פעולה לבצע כאשר המוניטור חוזר לפעילות",
+        "auto_resolve_description": "בחר מה לשלוח כאשר המוניטור חוזר לפעילות או כאשר הגשושית חוזרת להיות מחוברת",
         "auto_resolve_do_nothing": "אין לעשות כלום",
-        "auto_resolve_do_nothing_description": "אין פעולה בסטטוס UP",
+        "auto_resolve_do_nothing_description": "שום דבר לא נשלח כאשר המוניטור חוזר לפעילות או כאשר הגשושית חוזרת להיות מחוברת, ולכן האירוע נשאר פתוח עד שתפתור אותו ב-PagerDuty",
         "auto_resolve_label": "פתרון אוטומטי או הכרה",
         "auto_resolve_placeholder": "בחר את ההתנהגות של פתרון אוטומטי",
         "auto_resolve_resolve": "פתרון אוטומטי",

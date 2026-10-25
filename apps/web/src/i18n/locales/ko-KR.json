@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "자동 승인",
         "auto_resolve_acknowledge_description": "사고를 자동으로 확인",
-        "auto_resolve_description": "모니터가 정상화되면 수행할 작업을 선택하세요",
+        "auto_resolve_description": "모니터가 정상화되거나 프로브가 다시 온라인이 되면 전송할 항목을 선택하세요",
         "auto_resolve_do_nothing": "아무 것도 하지 않음",
-        "auto_resolve_do_nothing_description": "UP 상태에서는 아무 조치가 취해지지 않습니다",
+        "auto_resolve_do_nothing_description": "모니터가 정상화되거나 프로브가 다시 온라인이 되어도 아무것도 전송되지 않으므로, PagerDuty에서 해결할 때까지 인시던트가 열린 상태로 유지됩니다",
         "auto_resolve_label": "자동 해결 또는 확인",
         "auto_resolve_placeholder": "자동 해결 동작 선택",
         "auto_resolve_resolve": "자동 해결",

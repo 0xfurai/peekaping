@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Аўтаматычнае прызнанне",
         "auto_resolve_acknowledge_description": "Аўтаматычна прызнаць інцыдэнт",
-        "auto_resolve_description": "Выберыце, якое дзеянне трэба выканаць, калі манітор зноў стане даступным.",
+        "auto_resolve_description": "Выберыце, што адправіць, калі манітор зноў стане даступным або зонд вернецца ў сетку.",
         "auto_resolve_do_nothing": "Нічога не рабіць",
-        "auto_resolve_do_nothing_description": "Ніякіх дзеянняў не зроблена для стану UP.",
+        "auto_resolve_do_nothing_description": "Нічога не адпраўляецца, калі манітор зноў стане даступным або зонд вернецца ў сетку, таму інцыдэнт застанецца адкрытым, пакуль вы не вырашыце яго ў PagerDuty.",
         "auto_resolve_label": "Аўтаматычнае вырашэнне або пацвярджэнне",
         "auto_resolve_placeholder": "Выберыце паводзіны аўтаматычнага вырашэння інцыдэнту",
         "auto_resolve_resolve": "Аўтаматычнае вырашэнне",

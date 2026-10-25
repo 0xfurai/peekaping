@@ -11,7 +11,7 @@ Start with [setup](../ticket/SETUP.md).
 
 ## 1. Research
 
-Read the glossary and the ADRs in `docs/adr/` that touch the area. Find where the change lands, every caller it affects, the repositories when persistence is involved, and the existing tests at those seams. MongoDB storage was removed (`docs/adr/0001-deprecate-mongodb-storage.md`): don't plan code that brings it back. The MongoDB monitor type and `bun db import-mongo` stay. For a bug, reproduce it: a failing test, or a command whose output shows it. Use Explore subagents for wide sweeps so your context keeps conclusions, not file dumps.
+Read the glossary and the ADRs in `docs/adr/` that touch the area. Find where the change lands, every caller it affects, the repositories when persistence is involved, and the existing tests at those seams. MongoDB storage was removed (`docs/adr/0001-deprecate-mongodb-storage.md`): don't plan code that brings it back. The MongoDB monitor type and `bun db import-mongo` stay. For a bug, reproduce it: a failing test, or a command whose output shows it. Use Explore subagents (`effort: "high"`) for wide sweeps so your context keeps conclusions, not file dumps.
 
 Done when: every requirement in the ticket points at the code it changes and the test seam that will prove it, and a bug is **red** (seen failing) or you can say why it can't fail locally.
 

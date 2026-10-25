@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Otomatik Onayla",
         "auto_resolve_acknowledge_description": "Olayı otomatik olarak onayla",
-        "auto_resolve_description": "Bir monitör tekrar çalıştığında ne yapılacağını seçin.",
+        "auto_resolve_description": "Bir monitör tekrar çalıştığında veya bir prob tekrar çevrimiçi olduğunda ne gönderileceğini seçin.",
         "auto_resolve_do_nothing": "Hiçbir şey yapma",
-        "auto_resolve_do_nothing_description": "UP durumunda herhangi bir işlem yapılmaz",
+        "auto_resolve_do_nothing_description": "Bir monitör tekrar çalıştığında veya bir prob tekrar çevrimiçi olduğunda hiçbir şey gönderilmez, bu nedenle olay, siz PagerDuty'de çözene kadar açık kalır",
         "auto_resolve_label": "Otomatik Çözümle veya Onayla",
         "auto_resolve_placeholder": "Otomatik çözümleme davranışını seçin",
         "auto_resolve_resolve": "Otomatik çözüm",

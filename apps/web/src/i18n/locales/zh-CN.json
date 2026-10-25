@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "自动确认",
         "auto_resolve_acknowledge_description": "自动确认事件",
-        "auto_resolve_description": "选择监控恢复后采取的操作",
+        "auto_resolve_description": "选择监控恢复或探针重新上线时要发送的内容",
         "auto_resolve_do_nothing": "不做任何操作",
-        "auto_resolve_do_nothing_description": "UP 状态时不执行任何操作",
+        "auto_resolve_do_nothing_description": "监控恢复或探针重新上线时不会发送任何内容，因此事件会一直保持打开，直到你在 PagerDuty 中解决它",
         "auto_resolve_label": "自动恢复或确认",
         "auto_resolve_placeholder": "选择自动恢复行为",
         "auto_resolve_resolve": "自动解决",

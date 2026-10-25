@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatinis pripažinimas",
         "auto_resolve_acknowledge_description": "Automatiškai pripažinkite incidentą",
-        "auto_resolve_description": "Pasirinkite, ką daryti, kai monitorius vėl įsigalioja",
+        "auto_resolve_description": "Pasirinkite, ką siųsti, kai monitorius vėl pradeda veikti arba zondas vėl prisijungia",
         "auto_resolve_do_nothing": "Nieko nedaryti",
-        "auto_resolve_do_nothing_description": "Nėra veiksmo, kai statusas yra „Veikia“",
+        "auto_resolve_do_nothing_description": "Nieko nesiunčiama, kai monitorius vėl pradeda veikti arba zondas vėl prisijungia, todėl incidentas lieka atviras, kol jo neišspręsite sistemoje PagerDuty",
         "auto_resolve_label": "Automatiškai išspręsti arba prisiimti",
         "auto_resolve_placeholder": "Pasirinkite automatinio išsprendimo elgesį",
         "auto_resolve_resolve": "Automatinis išsprendimas",

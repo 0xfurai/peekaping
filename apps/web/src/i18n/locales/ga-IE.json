@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Glacadh uath",
         "auto_resolve_acknowledge_description": "Aontaigh an bhréag go huathoibríoch",
-        "auto_resolve_description": "Roghnaigh an gníomh atá le glacadh nuair a théann an monataí ar ais.",
+        "auto_resolve_description": "Roghnaigh cad atá le seoladh nuair a fhilleann móntóir ar líne nó nuair a fhilleann tóireadóir ar líne.",
         "auto_resolve_do_nothing": "Ná déan ar bith",
-        "auto_resolve_do_nothing_description": "Ní tharla aon ghníomhaíocht ar stádas UP",
+        "auto_resolve_do_nothing_description": "Ní sheoltar aon rud nuair a fhilleann móntóir ar líne nó nuair a fhilleann tóireadóir ar líne, mar sin fanann an teagmhas oscailte go dtí go réitíonn tú é i PagerDuty",
         "auto_resolve_label": "Réiteach Uathoibríoch nó Aithint",
         "auto_resolve_placeholder": "Roghnaigh uathréiteach",
         "auto_resolve_resolve": "Réiteach Uathoibríoch",

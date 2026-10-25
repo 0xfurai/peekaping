@@ -893,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Samodejno potrdi",
         "auto_resolve_acknowledge_description": "Samodejno potrdi incident",
-        "auto_resolve_description": "Izberite, kateri ukrep želite izvesti, ko monitor ponovno postane na voljo",
+        "auto_resolve_description": "Izberite, kaj se pošlje, ko monitor ponovno postane na voljo ali se sonda ponovno poveže",
         "auto_resolve_do_nothing": "Ne naredi nič",
-        "auto_resolve_do_nothing_description": "Noben ukrep ni bil izveden pri statusu UP",
+        "auto_resolve_do_nothing_description": "Nič se ne pošlje, ko monitor ponovno postane na voljo ali se sonda ponovno poveže, zato incident ostane odprt, dokler ga ne razrešite v storitvi PagerDuty",
         "auto_resolve_label": "Samodejno razreši ali potrdi",
         "auto_resolve_placeholder": "Izberite obnašanje samodejnega razreševanja",
         "auto_resolve_resolve": "Samodejno razreševanje",
