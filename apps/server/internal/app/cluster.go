@@ -77,6 +77,7 @@ func registerAPIStorage(container *dig.Container, mongo bool) error {
 		provideAnnouncements,
 		provideSilentWatch,
 		probe.ProvideSilentSweep,
+		providePushChecks,
 		provideLeaderJobs,
 	)
 }
@@ -129,10 +130,11 @@ func provideClusterWatchdog(
 }
 
 // provideLeaderJobs provides the jobs that run on the api replica that holds the leader lock
-func provideLeaderJobs(elector *leader.Elector, watchdog *stale.Watchdog, sweep *probe.Sweep) *LeaderJobs {
+func provideLeaderJobs(elector *leader.Elector, watchdog *stale.Watchdog, sweep *probe.Sweep, pushChecks *PushChecks) *LeaderJobs {
 	return NewLeaderJobs(elector, []LeaderJob{
 		{Name: "the stale-monitor watchdog", Run: watchdog.Run},
 		{Name: "the probe sweep", Run: sweep.Run},
+		{Name: "the push monitors' checks", Run: pushChecks.Run},
 	})
 }
 
