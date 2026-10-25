@@ -33,6 +33,10 @@ type stubProbes struct {
 	findErr  error
 	touchErr error
 	touched  []touch
+	// instanceTypes are the monitor types the instances that said hello run
+	instanceTypes []string
+	// instanceGone has FindInstance find none, though the instance was stamped by TouchInstance
+	instanceGone bool
 	// mu guards what the methods record: the results requests of a test may run side by side
 	mu sync.Mutex
 
@@ -56,6 +60,14 @@ func newStub() *stubProbes {
 
 func (s *stubProbes) FindByToken(ctx context.Context, token string) (*probe.Model, error) {
 	return s.probes[token], s.findErr
+}
+
+// FindInstance is an instance that said hello, with the types its build runs
+func (s *stubProbes) FindInstance(ctx context.Context, probeID, id string) (*probe.Instance, error) {
+	if !s.known[probeID+"/"+id] || s.instanceGone {
+		return nil, nil
+	}
+	return &probe.Instance{ID: id, SupportedTypes: s.instanceTypes}, nil
 }
 
 func (s *stubProbes) TouchInstance(ctx context.Context, probeID, id string, at time.Time) (bool, error) {

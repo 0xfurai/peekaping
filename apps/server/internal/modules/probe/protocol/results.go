@@ -76,8 +76,8 @@ type candidate struct {
 //   - invalid: the result is malformed, or its start is more than a minute ahead of the clock
 //   - too_old: the check started more than an hour ago
 //   - unknown_monitor: there is no such monitor
-//   - not_assigned: the monitor is not one of the probe's that it is dealt (it is paused, a push
-//     monitor, a type the probe can't run, or another probe's)
+//   - not_assigned: the monitor is not one of the probe's that the instance may send results for (it
+//     is paused, a push monitor, a type the instance's build can't run, or another probe's)
 //   - duplicate: the probe sent this id before, and the server stored it
 //
 // The rest are stored with the monitor's settings and maintenance state, as the push URL stores
@@ -104,7 +104,7 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 	// MARK: Results
 
 	r := input.Request
-	owner, _, ok := ProbeFromContext(r.Context())
+	owner, instanceID, ok := ProbeFromContext(r.Context())
 	if !ok {
 		return nil, c.unauthenticated()
 	}
@@ -121,7 +121,17 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 		return httpx.Reply(http.StatusOK, probeproto.ResultsResponse{Results: outcomes})
 	}
 
-	owned, err := c.dealtMonitors(r.Context(), owner)
+	// The types this instance runs say which monitors it may send results for: a build that lacks
+	// an executor can't have run the check
+	instance, err := c.service.FindInstance(r.Context(), owner.ID, instanceID)
+	if err != nil {
+		return nil, c.fail(err)
+	}
+	if instance == nil {
+		// Gone since the middleware stamped it (replaced to make room, or pruned): it has to say hello
+		return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse(messageUnknownInstance))
+	}
+	owned, err := c.dealtMonitors(r.Context(), owner, instance)
 	if err != nil {
 		return nil, c.fail(err)
 	}
@@ -163,7 +173,7 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 				if err != nil {
 					return nil, c.fail(err)
 				}
-				if dealtTo(other, owner) {
+				if dealtTo(other, owner, instance) {
 					// The listing missed it: paging by offset skips a monitor when another is paused
 					// or deleted during the scan. The probe drops a not_assigned result for good, so
 					// the monitor's own read decides.
@@ -238,14 +248,16 @@ func (c *Controller) retryLater(probeID, message string) error {
 	return huma.ErrorWithHeaders(httpx.Fail(http.StatusServiceUnavailable, utils.NewFailResponse(message)), retryAfter)
 }
 
-// dealtMonitors are the monitors that the probe is dealt, by id: the active monitors it runs of
-// the types it supports. They are what it may send results for.
-func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model) (map[string]*monitor.Model, error) {
+// dealtMonitors are the monitors that the instance may send results for, by id: the active monitors
+// its probe runs of the types the instance supports. They are the monitors it can be dealt and not
+// only those it is dealt now: a monitor moves to another instance when one joins or leaves, and the
+// results of a check the first had under way are still its to send.
+func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model, instance *probe.Instance) (map[string]*monitor.Model, error) {
 	monitors, err := c.source.FindActiveByProbe(ctx, owner.ID)
 	if err != nil {
 		return nil, err
 	}
-	dealt := Dealable(monitors, owner.SupportedTypes)
+	dealt := Dealable(monitors, instance.SupportedTypes)
 	byID := make(map[string]*monitor.Model, len(dealt))
 	for _, m := range dealt {
 		byID[m.ID] = m
@@ -253,11 +265,11 @@ func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model) (map
 	return byID, nil
 }
 
-// dealtTo reports whether the probe is dealt the monitor, by the rule that dealtMonitors lists by:
-// the monitor is active, runs on the probe, and is of a type the probe supports. m is nil when
-// there is no such monitor.
-func dealtTo(m *monitor.Model, owner *probe.Model) bool {
-	return m != nil && m.RunsOn(owner.ID) && len(Dealable([]*monitor.Model{m}, owner.SupportedTypes)) == 1
+// dealtTo reports whether the instance may send results for the monitor, by the rule that
+// dealtMonitors lists by: the monitor is active, runs on the instance's probe, and is of a type the
+// instance supports. m is nil when there is no such monitor.
+func dealtTo(m *monitor.Model, owner *probe.Model, instance *probe.Instance) bool {
+	return m != nil && m.RunsOn(owner.ID) && len(Dealable([]*monitor.Model{m}, instance.SupportedTypes)) == 1
 }
 
 // otherMonitor reads a monitor that the listing did not deal the probe, to tell one that does not

@@ -75,7 +75,7 @@ func TestService_OnMongoListsNoProbesAndRefusesTheRest(t *testing.T) {
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	_, err = svc.FindByToken(ctx, "some-token")
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
-	assert.ErrorIs(t, svc.RegisterInstance(ctx, "local", &probe.Instance{ID: "instance-1"}, []string{"http"}), probe.ErrUnsupportedStorage)
+	assert.ErrorIs(t, svc.RegisterInstance(ctx, "local", &probe.Instance{ID: "instance-1", SupportedTypes: []string{"http"}}), probe.ErrUnsupportedStorage)
 	_, err = svc.TouchInstance(ctx, "local", "instance-1", time.Now())
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	assert.ErrorIs(t, svc.RetireInstance(ctx, "local", "instance-1", time.Now()), probe.ErrUnsupportedStorage)

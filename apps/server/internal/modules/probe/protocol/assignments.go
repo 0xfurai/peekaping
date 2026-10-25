@@ -35,8 +35,10 @@ type assignment struct {
 //     an instance of the probe joining or leaving) and the answer is the new assignment, or until
 //     the poll times out, and the answer is 304 with no body.
 //
-// The instance's monitors are the probe's active monitors that are not push monitors and are of a
-// type the probe supports, dealt among the instances of the probe seen in the last minute.
+// The instance's monitors are the probe's active monitors that are not push monitors, each dealt to
+// one of the instances of the probe seen in the last minute that run its type: a probe whose
+// instances are on different builds (the full image and the slim one) deals a monitor to the builds
+// that have its executor. A monitor that none of them runs is dealt to nobody.
 func (c *Controller) Assignments(ctx context.Context, input *AssignmentsInput) (*httpx.Output[probeproto.AssignmentsResponse], error) {
 	// MARK: Assignments
 
@@ -106,19 +108,22 @@ func (c *Controller) assign(ctx context.Context, probeID, instanceID string) (*a
 		return nil, errProbeGone
 	}
 
-	dealable := Dealable(monitors, current.SupportedTypes)
-	proxies, err := c.proxiesOf(ctx, dealable)
-	if err != nil {
-		return nil, err
-	}
-
 	// The instance that asks is online: the middleware has just stamped it. Its stamp and this
 	// moment may fall either side of the window's edge though, and an instance that dealt itself
 	// out would be dealt no monitors.
-	online := probe.OnlineInstances(current.Instances, c.now(), probe.InstanceOnlineWindow)
-	if !slices.Contains(online, instanceID) {
-		online = append(online, instanceID)
-		slices.Sort(online)
+	online := probe.FilterOnline(current.Instances, c.now(), probe.InstanceOnlineWindow)
+	if !slices.ContainsFunc(online, func(i *probe.Instance) bool { return i.ID == instanceID }) {
+		if caller := findInstance(current.Instances, instanceID); caller != nil {
+			online = append(online, caller)
+		}
+	}
+
+	// A monitor is dealt among the instances that run its type, so the monitors to deal are those
+	// that some online instance runs
+	dealable := Dealable(monitors, probe.UnionTypes(online))
+	proxies, err := c.proxiesOf(ctx, dealable)
+	if err != nil {
+		return nil, err
 	}
 
 	share := Deal(dealable, online, instanceID)
@@ -127,7 +132,17 @@ func (c *Controller) assign(ctx context.Context, probeID, instanceID string) (*a
 	for i, m := range share {
 		wire[i] = toWireMonitor(m, proxies)
 	}
-	return &assignment{version: Version(dealable, proxies, current.SupportedTypes, online), monitors: wire}, nil
+	return &assignment{version: Version(dealable, proxies, online), monitors: wire}, nil
+}
+
+// findInstance returns the instance with the id, or nil when there is none
+func findInstance(instances []*probe.Instance, id string) *probe.Instance {
+	for _, instance := range instances {
+		if instance.ID == id {
+			return instance
+		}
+	}
+	return nil
 }
 
 // proxiesOf reads the proxies of the monitors, each once. A proxy that no longer exists is nil in

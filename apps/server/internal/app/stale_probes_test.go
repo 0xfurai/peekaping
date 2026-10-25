@@ -78,14 +78,15 @@ func TestRegisterClusterAPI_TheLeadersWatchdogNamesTheProbesThatDoNotRunAStaleMo
 		// the monitor's is not among them
 		frankfurt, err := probes.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
 		require.NoError(t, err)
-		instance := &probe.Instance{ID: "instance-1", Hostname: "edge-1", LastSeenAt: time.Now().UTC()}
-		require.NoError(t, probes.RegisterInstance(ctx, frankfurt.ID, instance, []string{"http", "tcp"}))
+		instance := &probe.Instance{ID: "instance-1", Hostname: "edge-1", LastSeenAt: time.Now().UTC(), SupportedTypes: []string{"http", "tcp"}}
+		require.NoError(t, probes.RegisterInstance(ctx, frankfurt.ID, instance))
 		created, err := monitors.Create(ctx, &monitor.CreateUpdateDto{
 			Type: "http", Name: "Checkout", Interval: 60, Timeout: 16, RetryInterval: 60, Active: true, Config: "{}",
 			ProbeIDs: []string{frankfurt.ID},
 		})
 		require.NoError(t, err)
-		require.NoError(t, probes.RegisterInstance(ctx, frankfurt.ID, instance, []string{"tcp"}))
+		instance.SupportedTypes = []string{"tcp"}
+		require.NoError(t, probes.RegisterInstance(ctx, frankfurt.ID, instance))
 		// The probe is online: the watchdog leaves the monitors of an offline probe alone
 		changed, err := probes.MarkOnline(ctx, frankfurt.ID)
 		require.NoError(t, err)
@@ -149,7 +150,7 @@ func assertProbeLookupReadsRealProbes(t *testing.T, lookup stale.ProbeLookup, pr
 	assert.Equal(t, "Frankfurt", found.Name)
 	assert.Empty(t, found.SupportedTypes, "a probe that has not reported its types runs every type")
 
-	require.NoError(t, probes.RegisterInstance(ctx, remote.ID, &probe.Instance{ID: "instance-1", Hostname: "edge-1", LastSeenAt: time.Now().UTC()}, []string{"http", "tcp"}))
+	require.NoError(t, probes.RegisterInstance(ctx, remote.ID, &probe.Instance{ID: "instance-1", Hostname: "edge-1", LastSeenAt: time.Now().UTC(), SupportedTypes: []string{"http", "tcp"}}))
 	found, err = lookup.FindProbe(ctx, remote.ID)
 	require.NoError(t, err)
 	require.NotNil(t, found)

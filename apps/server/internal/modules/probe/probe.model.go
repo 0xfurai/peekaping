@@ -63,8 +63,11 @@ type Model struct {
 	TokenPrefix string
 	Disabled    bool
 	Status      Status
-	// SupportedTypes are the monitor types the probe can run. A probe reports them when it
-	// connects.
+	// SupportedTypes are the monitor types the probe can run: the union over its online
+	// instances, each of which reports its own when it says hello. An empty list means every
+	// type. The service works the union out when it adds the probe's details (FindByID and
+	// FindAll); the repository's probe, and the one FindByToken returns, hold the union as of the
+	// probe's last hello, which is what the probe runs while none of its instances is online.
 	SupportedTypes []string
 	// NotificationIDs are the notification channels that hear about the probe
 	NotificationIDs []string

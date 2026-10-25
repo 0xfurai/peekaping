@@ -297,15 +297,16 @@ func TestMonitorProbes_PutWithoutProbeIDsKeepsProbe(t *testing.T) {
 	assert.Equal(t, []string{"local"}, back.ProbeIDs, "and so does a partial update")
 }
 
-// A probe says which types it runs each time it says hello. A monitor of a type it no longer runs
-// is not dealt, but the admin can still rename, pause or resave it as it is, with the probe_ids
-// the web app read.
+// An instance says which types it runs each time it says hello, and a probe runs the types its
+// online instances run. A monitor of a type the probe no longer runs is not dealt, but the admin can
+// still rename, pause or resave it as it is, with the probe_ids the web app read.
 func TestMonitorProbes_AMonitorWhoseProbeStoppedRunningItsTypeCanStillBeEdited(t *testing.T) {
 	a := newAppWithAdmin(t)
 	paris := a.probeThatRuns(t, "Paris", "http")
 	id := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), paris.ID), a.asAdmin), http.StatusCreated).ID
 	path := monitorsPath + "/" + id
-	instanceID := uuid.NewString()
+	// The probe's only instance says hello again, now with another build's types
+	instanceID := a.getProbe(t, paris.ID).Instances[0].ID
 	hello := helloFrom(instanceID)
 	hello.SupportedTypes = []string{"dns"}
 	require.Equal(t, http.StatusOK, a.request(t, http.MethodPost, helloPath, hello, asProbe(paris.Token, instanceID)).Code)

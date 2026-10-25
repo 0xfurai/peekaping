@@ -94,8 +94,7 @@ func (a *app) holdInstance(t *testing.T, probeID, instanceID string, seen time.T
 	t.Helper()
 	require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
 		return probes.RegisterInstance(context.Background(), probeID, &probe.Instance{
-			ID: instanceID, Hostname: "edge-1.example.com", OS: "linux", Arch: "arm64", Version: "0.1.0", ProtocolVersion: 1, LastSeenAt: seen,
-		}, []string{"http", "tcp", "dns"})
+			ID: instanceID, Hostname: "edge-1.example.com", OS: "linux", Arch: "arm64", Version: "0.1.0", ProtocolVersion: 1, LastSeenAt: seen, SupportedTypes: []string{"http", "tcp", "dns"}})
 	}))
 }
 
@@ -1342,7 +1341,7 @@ func TestProbeProtocol_HelloWakesTheSiblingsPollsWhenSomethingChanged(t *testing
 
 		got := decodeAssignments(t, answeredWithin(t, answered, 2*time.Second))
 		assert.NotEqual(t, alone.Version, got.Version)
-		assert.Empty(t, got.Monitors, "none of the monitors are of a type the probe runs now")
+		assert.Len(t, got.Monitors, count, "the second instance runs no http monitor now, so the first is dealt every one (#264)")
 	})
 }
 

@@ -2,6 +2,7 @@ package probe
 
 import (
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -27,6 +28,48 @@ func OnlineInstances(instances []*Instance, now time.Time, window time.Duration)
 	}
 	slices.Sort(online)
 	return online
+}
+
+// FilterOnline returns the instances that were seen within window of now, sorted by id: the ones
+// OnlineInstances names, themselves and not their ids.
+func FilterOnline(instances []*Instance, now time.Time, window time.Duration) []*Instance {
+	online := make([]*Instance, 0, len(instances))
+	for _, instance := range instances {
+		if instance != nil && now.Sub(instance.LastSeenAt) <= window {
+			online = append(online, instance)
+		}
+	}
+	slices.SortFunc(online, func(a, b *Instance) int { return strings.Compare(a.ID, b.ID) })
+	return online
+}
+
+// RunsType reports whether a build that lists these supported types can run monitors of the type.
+// An empty list means every type: a probe that has not reported its types, such as the local one,
+// and an instance of an older probe, list none.
+func RunsType(supportedTypes []string, monitorType string) bool {
+	return len(supportedTypes) == 0 || slices.Contains(supportedTypes, monitorType)
+}
+
+// UnionTypes returns the monitor types that the instances run between them: the types each lists,
+// each once, in the order the instances sorted by id list them. An instance that lists none runs
+// every type, which makes the union every type, so it is the empty list: the same way a probe says
+// that it runs everything. Without instances it is empty too, so a caller that has to tell the two
+// apart asks whether there are any.
+func UnionTypes(instances []*Instance) []string {
+	sorted := slices.Clone(instances)
+	slices.SortFunc(sorted, func(a, b *Instance) int { return strings.Compare(a.ID, b.ID) })
+	union := []string{}
+	for _, instance := range sorted {
+		if len(instance.SupportedTypes) == 0 {
+			return []string{}
+		}
+		for _, monitorType := range instance.SupportedTypes {
+			if !slices.Contains(union, monitorType) {
+				union = append(union, monitorType)
+			}
+		}
+	}
+	return union
 }
 
 // RetiredAt is the last seen time an instance is left with when it says bye at now: a window and a
