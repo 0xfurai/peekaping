@@ -238,7 +238,7 @@ monitor_up() {
 
 root_procs="tini"
 # Nothing of the old bundle may run
-gone_procs="supervisord caddy redis-server api producer worker ingester"
+gone_procs="supervisord caddy redis-server api"
 case "$db" in
   postgres) db_proc=postgres db_user=postgres ;;
   *) db_proc= ;;
