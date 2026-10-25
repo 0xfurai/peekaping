@@ -1435,6 +1435,35 @@ func TestProbeProtocol_AResultTheQueueHoldsAlreadyIsADuplicate(t *testing.T) {
 	assert.Len(t, a.queuedHeartbeats(t), 1, "the heartbeat is queued once")
 }
 
+// Guards that a batch retried on another API replica within the hour is answered duplicate and
+// stores nothing twice. A batch whose reply was lost is sent again, and the load balancer may hand
+// the retry to another replica, however long after. That replica's duplicate window is empty, and
+// the queue's lock on the payload is gone after five minutes. Today the ingest queue does the
+// work: the task of each result has an id made of the monitor, the probe and the start time, and
+// the queue keeps it for its one hour retention. Whatever replaces the queue must keep this test
+// green, for example by sharing the duplicate window between the replicas.
+func TestProbeProtocol_ARetryOnAnotherReplicaIsAnsweredDuplicate(t *testing.T) {
+	a := localProbeApp(t, nil)
+	b := newReplica(t, a, func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
+	monitorID := a.createHTTPMonitor(t, "Checkout", "")
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	batch := []probeproto.Result{
+		checkResult("first", monitorID, checkedAt(0)),
+		checkResult("second", monitorID, checkedAt(10)),
+	}
+	require.Equal(t, []probeproto.ResultOutcome{{ID: "first", Accepted: true}, {ID: "second", Accepted: true}},
+		a.outcomesOf(t, localToken, instanceID, batch...))
+	require.Len(t, a.queuedHeartbeats(t), 2)
+
+	a.redis.FastForward(10 * time.Minute)
+	got := b.outcomesOf(t, localToken, instanceID, batch...)
+
+	assert.Equal(t, []probeproto.ResultOutcome{{ID: "first", Reason: "duplicate"}, {ID: "second", Reason: "duplicate"}}, got,
+		"the other replica answers the results the first took duplicate")
+	assert.Len(t, a.queuedHeartbeats(t), 2, "and queues no heartbeat again")
+}
+
 func TestProbeProtocol_ResultsOver1MBAnswer413(t *testing.T) {
 	a, made := probeApp(t)
 	instanceID := uuid.NewString()
