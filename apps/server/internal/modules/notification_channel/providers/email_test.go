@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/modules/heartbeat"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -118,6 +120,20 @@ func TestEmailSender_SendGoldenRequests(t *testing.T) {
 
 			assertGolden(t, tc.name, <-server.sessions)
 		})
+	}
+}
+
+// TestEmailSender_SendWithoutAMonitor checks that a template that names the monitor renders, and
+// doesn't panic, when the notification has none
+func TestEmailSender_SendWithoutAMonitor(t *testing.T) {
+	for _, withHeartbeat := range []*heartbeat.Model{nil, goldenDown, goldenUp} {
+		server := startFakeSMTPServer(t)
+		config := withSMTPServer(t, emailGoldenCases[1].config, server.port())
+
+		require.NotPanics(t, func() {
+			assert.NoError(t, NewEmailSender(nopLogger()).Send(context.Background(), config, "A message with no monitor", nil, withHeartbeat))
+		})
+		assert.Contains(t, <-server.sessions, "A message with no monitor")
 	}
 }
 

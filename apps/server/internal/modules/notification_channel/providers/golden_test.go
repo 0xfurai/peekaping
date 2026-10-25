@@ -391,6 +391,41 @@ func TestSendStopsWhenContextIsDone(t *testing.T) {
 	}
 }
 
+// TestSendWithoutAMonitor checks that no channel type dereferences a monitor it isn't given,
+// whether the notification carries a heartbeat or not: it sends the message, or returns an
+// error (Opsgenie can't close the alert of a monitor it can't name), but doesn't panic
+func TestSendWithoutAMonitor(t *testing.T) {
+	heartbeats := []struct {
+		name string
+		hb   *heartbeat.Model
+	}{
+		{"no heartbeat", nil},
+		{"down heartbeat", goldenDown},
+		{"up heartbeat", goldenUp},
+	}
+	for _, tc := range goldenCases {
+		for _, withHeartbeat := range heartbeats {
+			t.Run(tc.name+"/"+withHeartbeat.name, func(t *testing.T) {
+				endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					response := tc.response
+					if response == "" {
+						response = "{}"
+					}
+					_, _ = io.WriteString(w, response)
+				}))
+				defer endpoint.Close()
+				transport := &recordingTransport{endpoint: endpoint}
+				sender := tc.sender(&http.Client{Transport: transport})
+
+				require.NotPanics(t, func() {
+					_ = sender.Send(context.Background(), tc.config, "A message with no monitor", nil, withHeartbeat.hb)
+				})
+			})
+		}
+	}
+}
+
 func TestEveryGoldenFileHasACase(t *testing.T) {
 	var names []string
 	for _, tc := range slices.Concat(goldenCases, emailGoldenCases) {

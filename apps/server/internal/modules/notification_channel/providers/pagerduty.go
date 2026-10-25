@@ -134,21 +134,33 @@ func (p *PagerDutySender) Send(
 
 	// Get monitor URL for source field
 	monitorURL := p.getMonitorURL(monitor)
-	if monitorURL == "" && monitor != nil {
-		// Fallback to monitor name if URL is not available
-		monitorURL = monitor.Name
+	monitorName := unknownMonitorName
+	if monitor != nil {
+		monitorName = monitor.Name
+	}
+	if monitorURL == "" {
+		// Fallback to monitor name if URL is not available. A notification with no monitor has
+		// Peekaping as its source, since PagerDuty needs one.
+		monitorURL = "Peekaping"
+		if monitor != nil {
+			monitorURL = monitor.Name
+		}
 	}
 
 	// Prepare PagerDuty payload
 	payload := map[string]any{
 		"payload": map[string]any{
-			"summary":  fmt.Sprintf("[%s] [%s] %s", title, monitor.Name, message),
+			"summary":  fmt.Sprintf("[%s] [%s] %s", title, monitorName, message),
 			"severity": p.getSeverity(cfg),
 			"source":   monitorURL,
 		},
 		"routing_key":  cfg.IntegrationKey,
 		"event_action": eventAction,
-		"dedup_key":    fmt.Sprintf("Peekaping/%s", monitor.ID),
+	}
+	// Alerts of one monitor, or one probe, are one incident. With no monitor, PagerDuty makes up a
+	// key for a trigger, so each is an incident of its own.
+	if monitor != nil {
+		payload["dedup_key"] = fmt.Sprintf("Peekaping/%s", monitor.ID)
 	}
 
 	// Add client information if base URL is available
