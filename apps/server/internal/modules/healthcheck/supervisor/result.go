@@ -23,8 +23,7 @@ type TickResult struct {
 
 // IngestResult is the result as the ingest logic takes it, from the local probe, with the settings of the monitor
 // that was checked. checkCertExpiry is whether the monitor's config asks for its TLS
-// certificate's expiry to be checked. Cluster mode's worker and single mode's scheduler both
-// build what they ingest here.
+// certificate's expiry to be checked. Single mode's scheduler builds what it ingests here.
 func (r *TickResult) IngestResult(checkCertExpiry bool) *ingest.Result {
 	m := r.Monitor
 	return &ingest.Result{

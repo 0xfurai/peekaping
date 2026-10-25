@@ -417,8 +417,8 @@ func (s *Scheduler) startCheck(monitorID string) {
 	}()
 }
 
-// recoverCheck logs a panic in the monitor's check and ends that check alone, as asynq does
-// for a task in cluster mode: in single mode an unrecovered panic would stop every monitor.
+// recoverCheck logs a panic in the monitor's check and ends that check alone: an unrecovered
+// panic would stop every monitor.
 // The check frees its slot and ends as any other, so the monitor's next check runs.
 func (s *Scheduler) recoverCheck(monitorID string) {
 	if r := recover(); r != nil {
@@ -499,7 +499,7 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		return
 	}
 	mon := loaded.Monitor
-	// A push monitor's check judges its latest push, as the worker's does
+	// A push monitor's check judges its latest push
 	mon.LastHeartbeat = loaded.LastHeartbeat
 
 	exec, ok := s.executors.GetExecutor(mon.Type)

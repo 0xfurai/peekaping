@@ -603,7 +603,7 @@ func TestListener_StaleMonitorSendsNotificationToTheMonitorsChannels(t *testing.
 			f.addMonitor("mon-2", "Billing")
 			f.attach("mon-1", testChannel("a", "test-slack"))
 			f.attach("mon-2", testChannel("c", "test-slack"))
-			// The producer publishes it, so it arrives as JSON
+			// Another replica published it, so it arrives as JSON
 			payload, err := json.Marshal(stale.Event{MonitorID: "mon-1", MonitorName: "Public API", Since: time.Date(2026, 10, 18, 11, 56, 0, 0, time.UTC)})
 			require.NoError(t, err)
 
@@ -637,7 +637,7 @@ func TestListener_StaleMonitorSaysWhichProbesDoNotRunItsType(t *testing.T) {
 			f.addProvider("test-slack", slack)
 			f.addMonitor("mon-1", "Public API")
 			f.attach("mon-1", testChannel("a", "test-slack"))
-			// The producer publishes it, so it arrives as JSON
+			// Another replica published it, so it arrives as JSON
 			payload, err := json.Marshal(stale.Event{MonitorID: "mon-1", MonitorName: "Public API", Since: time.Date(2026, 10, 18, 11, 56, 0, 0, time.UTC), UnsupportedProbes: tc.probes})
 			require.NoError(t, err)
 
@@ -1085,9 +1085,9 @@ func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsNotCheckedSinceN
 	provider := &recordingProvider{}
 	redisServer := miniredis.RunT(t)
 	startAPIReplicas(t, redisServer.Addr(), provider, 3, "a")
-	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+	publisher := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
-	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStale, staleMonitor("mon-1")))
+	require.NoError(t, events.Publish(context.Background(), publisher, stale.MonitorStale, staleMonitor("mon-1")))
 
 	assert.Equal(t, 1, settledSends(t, provider, 1, settle), "notifications sent for one stale monitor, with 3 api replicas")
 	assert.Equal(t, []string{"Peekaping has not checked Public API since 2026-10-17 09:30:00 UTC"}, provider.sentMessages())
@@ -1097,9 +1097,9 @@ func TestNotificationListener_ThreeAPIReplicasSendAStaleMonitorsCheckingAgainNot
 	provider := &recordingProvider{}
 	redisServer := miniredis.RunT(t)
 	startAPIReplicas(t, redisServer.Addr(), provider, 3, "a")
-	producer := newClusterBus(t, redisConfig(t, redisServer.Addr()))
+	publisher := newClusterBus(t, redisConfig(t, redisServer.Addr()))
 
-	require.NoError(t, events.Publish(context.Background(), producer, stale.MonitorStaleRecovered, staleMonitor("mon-1")))
+	require.NoError(t, events.Publish(context.Background(), publisher, stale.MonitorStaleRecovered, staleMonitor("mon-1")))
 
 	assert.Equal(t, 1, settledSends(t, provider, 1, settle), "notifications sent for one recovered stale monitor, with 3 api replicas")
 	assert.Equal(t, []string{"Peekaping is checking Public API again. It was not checked from 2026-10-17 09:30:00 UTC"}, provider.sentMessages())

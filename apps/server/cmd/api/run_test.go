@@ -41,7 +41,7 @@ func TestRun_ServesTheAPIUntilItsContextIsDone(t *testing.T) {
 }
 
 // On SQLite and PostgreSQL the api runs the stale-monitor watchdog and the probe sweep, on the
-// replica that holds the producer's old leader lock. It holds the lock while it runs, and releases
+// replica that holds the leader lock. It holds the lock while it runs, and releases
 // it on shutdown, before it stops anything else, so that another replica takes over.
 func TestRun_HoldsTheLeaderLockWhileRunningAndReleasesItWhenItStops(t *testing.T) {
 	cfg := loadConfig(t, nil)

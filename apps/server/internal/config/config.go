@@ -140,7 +140,7 @@ type Config struct {
 	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
 
 	// ProbeOfflineAfter is how long an online probe's instances may all go unseen before the
-	// sweep sets the probe offline. A Go duration such as "3m" or "90s". The producer and peekaping,
+	// sweep sets the probe offline. A Go duration such as "3m" or "90s". The api and peekaping,
 	// which run the sweep, check that it is from MinProbeOfflineAfter to MaxProbeOfflineAfter.
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 }

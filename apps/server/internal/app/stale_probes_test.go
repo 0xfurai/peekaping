@@ -18,10 +18,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// AC4: the api's watchdog waits for a stale monitor's new check as long as the producer's did: the
-// check's timeout, plus the 2 seconds the executor may keep running after the check gave up, plus 8
-// seconds for its result to be stored. The expected values are worked out by hand from that
-// formula (timeout + 2s + 8s), so a change to either grace shows here.
+// AC4: the api's watchdog waits for a stale monitor's new check as long as it did when the producer
+// ran it (with the worker's task timeout): the check's timeout, plus the 2 seconds the executor may
+// keep running after the check gave up, plus 8 seconds for its result to be stored. The expected
+// values are worked out by hand from that formula (timeout + 2s + 8s), so a change to either grace
+// shows here.
 func TestClusterWatchdog_WaitsForANewCheckTheCheckTimeoutPlusTenSeconds(t *testing.T) {
 	cfg := clusterWatchdogParams{Logger: zap.NewNop().Sugar()}.config()
 

@@ -45,7 +45,7 @@ func TestLoadConfig_ProbeBootstrapTokenUnder32CharactersStopsStartup(t *testing.
 }
 
 // The sweep that sets silent probes offline runs on the api replica that holds the leader lock, so
-// the api reads PROBE_OFFLINE_AFTER, as the producer did
+// the api reads PROBE_OFFLINE_AFTER
 func TestLoadConfig_ProbeOfflineAfterDefault(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")
