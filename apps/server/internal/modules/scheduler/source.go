@@ -3,7 +3,7 @@ package scheduler
 import (
 	"context"
 
-	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/shared"
 )
 
@@ -18,9 +18,9 @@ type Source interface {
 	// Find returns the monitor as it is now, or nil when it is gone or is not this process's to
 	// check (it moved to another probe).
 	Find(ctx context.Context, monitorID string) (*shared.Monitor, error)
-	// Load returns what one check of the monitor needs. It returns check.ErrMonitorNotFound for
-	// a monitor that is gone and check.ErrMonitorPaused for one that is paused.
-	Load(ctx context.Context, monitorID string) (*check.Job, error)
+	// Load returns what one check of the monitor needs. It returns job.ErrMonitorNotFound for
+	// a monitor that is gone and job.ErrMonitorPaused for one that is paused.
+	Load(ctx context.Context, monitorID string) (*job.Job, error)
 	// Watch calls the functions when a monitor is created, changed (paused and resumed
 	// included) or gone. A call is only a notice: the scheduler reads the monitor with Find.
 	Watch(created, updated, deleted func(monitorID string))

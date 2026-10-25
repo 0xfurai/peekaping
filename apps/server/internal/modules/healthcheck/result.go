@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/certificate"
-	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/monitor"
@@ -40,7 +40,7 @@ func ResultFromMonitor(
 		message = maintenanceMessage
 		pingMs = 0
 	}
-	checkCertExpiry, err := check.CertExpiryRequested(m.Config)
+	checkCertExpiry, err := job.CertExpiryRequested(m.Config)
 	if err != nil {
 		logger.Warnw("Failed to parse monitor config for certificate expiry check",
 			"monitor_id", m.ID,

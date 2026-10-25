@@ -16,7 +16,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/ingester"
@@ -488,12 +488,12 @@ func (s *Scheduler) cancelCheck(monitorID string) {
 
 // runCheck loads the monitor's check, runs it and ingests its result
 func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
-	job, err := s.source.Load(ctx, monitorID)
+	loaded, err := s.source.Load(ctx, monitorID)
 	switch {
-	case errors.Is(err, check.ErrMonitorNotFound):
+	case errors.Is(err, job.ErrMonitorNotFound):
 		s.logger.Warnw("Monitor not found, skipping its check", "monitor_id", monitorID)
 		return
-	case errors.Is(err, check.ErrMonitorPaused):
+	case errors.Is(err, job.ErrMonitorPaused):
 		s.logger.Infow("Monitor is paused, skipping its check", "monitor_id", monitorID)
 		return
 	case err != nil && ctx.Err() != nil:
@@ -504,9 +504,9 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		s.logger.Errorw("Failed to load the monitor's check", "monitor_id", monitorID, "error", err)
 		return
 	}
-	mon := job.Monitor
+	mon := loaded.Monitor
 	// A push monitor's check judges its latest push, as the worker's does
-	mon.LastHeartbeat = job.LastHeartbeat
+	mon.LastHeartbeat = loaded.LastHeartbeat
 
 	exec, ok := s.executors.GetExecutor(mon.Type)
 	if !ok {
@@ -514,14 +514,14 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		return
 	}
 
-	tick := s.supervisor.HandleMonitorTick(ctx, mon, exec, job.Proxy, job.IsUnderMaintenance)
+	tick := s.supervisor.HandleMonitorTick(ctx, mon, exec, loaded.Proxy, loaded.IsUnderMaintenance)
 
 	// An executor that has nothing to report returns no result
 	if tick == nil {
 		s.logger.Debugw("Executor returned nil - no heartbeat needed", "monitor_id", monitorID, "monitor_type", mon.Type)
 		return
 	}
-	result := tick.IngestResult(job.CheckCertExpiry)
+	result := tick.IngestResult(loaded.CheckCertExpiry)
 
 	// An update, pause, delete or stop drops the result until here. The ingest isn't
 	// interrupted once it starts: it reads the previous heartbeat to write the next one. A

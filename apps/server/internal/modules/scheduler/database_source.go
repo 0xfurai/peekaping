@@ -3,14 +3,14 @@ package scheduler
 import (
 	"context"
 
-	"peekaping/internal/modules/check"
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/shared"
 )
 
 // Loader loads what a check of a monitor needs. check.Loader is one.
 type Loader interface {
-	Load(ctx context.Context, monitorID string) (*check.Job, error)
+	Load(ctx context.Context, monitorID string) (*job.Job, error)
 }
 
 // MonitorFinder is the part of the monitor service the database source reads
@@ -49,7 +49,7 @@ func (d *DatabaseSource) Find(ctx context.Context, monitorID string) (*shared.Mo
 }
 
 // Load loads the check of the monitor
-func (d *DatabaseSource) Load(ctx context.Context, monitorID string) (*check.Job, error) {
+func (d *DatabaseSource) Load(ctx context.Context, monitorID string) (*job.Job, error) {
 	return d.loader.Load(ctx, monitorID)
 }
 
