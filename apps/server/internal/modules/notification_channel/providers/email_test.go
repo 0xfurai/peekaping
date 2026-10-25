@@ -111,10 +111,10 @@ func TestEmailSender_SendGoldenRequests(t *testing.T) {
 			server := startFakeSMTPServer(t)
 			config := withSMTPServer(t, tc.config, server.port())
 			sender := NewEmailSender(nopLogger())
-			message, hb := goldenNotification(tc.event)
+			message, mon, hb := goldenNotification(tc.event)
 
 			require.NoError(t, sender.Validate(config), "the case's config must pass validation, as the listener checks it first")
-			require.NoError(t, sender.Send(context.Background(), config, message, goldenMonitor, hb))
+			require.NoError(t, sender.Send(context.Background(), config, message, mon, hb))
 
 			assertGolden(t, tc.name, <-server.sessions)
 		})

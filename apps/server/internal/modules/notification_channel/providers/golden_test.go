@@ -70,6 +70,14 @@ var (
 		Important: true,
 		Time:      time.Date(2026, 10, 17, 9, 35, 0, 0, time.UTC),
 	}
+	// goldenProbe is the stand-in monitor the listener sends a probe's notification with
+	goldenProbe = &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt"}
+)
+
+// The messages the listener builds for a probe going offline and coming back online
+const (
+	goldenProbeOfflineMessage = "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"
+	goldenProbeOnlineMessage  = "Probe Frankfurt is online"
 )
 
 // goldenCertMessage is the message the listener builds for a certificate expiry notification
@@ -92,6 +100,10 @@ const (
 	upEvent
 	// certExpiryEvent is a certificate expiry notification, which carries no heartbeat
 	certExpiryEvent
+	// probeOfflineEvent is a probe going offline, sent with a stand-in monitor and no heartbeat
+	probeOfflineEvent
+	// probeOnlineEvent is a probe coming back online, sent with a stand-in monitor and no heartbeat
+	probeOnlineEvent
 )
 
 // goldenSender is the part of a notification channel provider the golden tests use
@@ -273,6 +285,12 @@ var goldenCases = []goldenCase{
 	{name: "slack_webhook_rich_certificate_expiry", sender: slack, event: certExpiryEvent,
 		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "slack_rich_message": true}`},
 
+	// A probe's notification links to the Probes page, since the stand-in monitor has no page
+	{name: "slack_webhook_rich_probe_offline", sender: slack, event: probeOfflineEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "slack_rich_message": true}`},
+	{name: "slack_bot_rich_probe_online", sender: slack, event: probeOnlineEvent, response: `{"ok": true}`,
+		config: `{"slack_bot_token": "xoxb-token", "slack_channel": "#alerts", "slack_rich_message": true}`},
+
 	{name: "teams_down", sender: teams, event: downEvent,
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
 	{name: "teams_certificate_expiry", sender: teams, event: certExpiryEvent,
@@ -331,9 +349,9 @@ func TestSendGoldenRequests(t *testing.T) {
 			transport := &recordingTransport{endpoint: endpoint}
 
 			sender := tc.sender(&http.Client{Transport: transport})
-			message, hb := goldenNotification(tc.event)
+			message, mon, hb := goldenNotification(tc.event)
 			require.NoError(t, sender.Validate(tc.config), "the case's config must pass validation, as the listener checks it first")
-			require.NoError(t, sender.Send(context.Background(), tc.config, message, goldenMonitor, hb))
+			require.NoError(t, sender.Send(context.Background(), tc.config, message, mon, hb))
 
 			assertGolden(t, tc.name, transport.String())
 		})
@@ -354,8 +372,8 @@ func TestSendStopsWhenContextIsDone(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			cancel()
 
-			message, hb := goldenNotification(tc.event)
-			err := tc.sender(&http.Client{Transport: transport}).Send(ctx, tc.config, message, goldenMonitor, hb)
+			message, mon, hb := goldenNotification(tc.event)
+			err := tc.sender(&http.Client{Transport: transport}).Send(ctx, tc.config, message, mon, hb)
 
 			assert.False(t, reached.Load(), "the request must not reach the endpoint once the context is done")
 			if len(transport.requests) > 0 {
@@ -378,15 +396,19 @@ func TestEveryGoldenFileHasACase(t *testing.T) {
 	}
 }
 
-// goldenNotification returns the message and heartbeat the listener sends for an event
-func goldenNotification(event goldenEvent) (string, *heartbeat.Model) {
+// goldenNotification returns the message, monitor and heartbeat the listener sends for an event
+func goldenNotification(event goldenEvent) (string, *monitor.Model, *heartbeat.Model) {
 	switch event {
 	case upEvent:
-		return goldenUp.Msg, goldenUp
+		return goldenUp.Msg, goldenMonitor, goldenUp
 	case certExpiryEvent:
-		return goldenCertMessage, nil
+		return goldenCertMessage, goldenMonitor, nil
+	case probeOfflineEvent:
+		return goldenProbeOfflineMessage, goldenProbe, nil
+	case probeOnlineEvent:
+		return goldenProbeOnlineMessage, goldenProbe, nil
 	default:
-		return goldenDown.Msg, goldenDown
+		return goldenDown.Msg, goldenMonitor, goldenDown
 	}
 }
 
