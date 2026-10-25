@@ -618,6 +618,52 @@ func TestListener_StaleMonitorSendsNotificationToTheMonitorsChannels(t *testing.
 	}
 }
 
+func TestListener_StaleMonitorSaysWhichProbesDoNotRunItsType(t *testing.T) {
+	cases := []struct {
+		name    string
+		probes  []string
+		message string
+	}{
+		{"one probe", []string{"Frankfurt"}, "Peekaping has not checked Public API since 2026-10-18 11:56:00 UTC: probe Frankfurt doesn't run http monitors"},
+		{"two probes", []string{"Frankfurt", "Lagos"}, "Peekaping has not checked Public API since 2026-10-18 11:56:00 UTC: probes Frankfurt and Lagos don't run http monitors"},
+		{"three probes", []string{"Frankfurt", "Lagos", "Quito"}, "Peekaping has not checked Public API since 2026-10-18 11:56:00 UTC: probes Frankfurt, Lagos and Quito don't run http monitors"},
+		{"no probe", nil, "Peekaping has not checked Public API since 2026-10-18 11:56:00 UTC"},
+		{"an empty list", []string{}, "Peekaping has not checked Public API since 2026-10-18 11:56:00 UTC"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newListenerFixture(t)
+			slack := &recordingProvider{}
+			f.addProvider("test-slack", slack)
+			f.addMonitor("mon-1", "Public API")
+			f.attach("mon-1", testChannel("a", "test-slack"))
+			// The producer publishes it, so it arrives as JSON
+			payload, err := json.Marshal(stale.Event{MonitorID: "mon-1", MonitorName: "Public API", Since: time.Date(2026, 10, 18, 11, 56, 0, 0, time.UTC), UnsupportedProbes: tc.probes})
+			require.NoError(t, err)
+
+			require.NoError(t, f.bus.PublishJSON(stale.MonitorStale.Name(), string(payload)))
+
+			require.Len(t, slack.sent, 1)
+			assert.Equal(t, tc.message, slack.sent[0].message)
+		})
+	}
+}
+
+func TestListener_StaleMonitorCheckedAgainDoesNotSayWhichProbesDoNotRunItsType(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addMonitor("mon-1", "Public API")
+	f.attach("mon-1", testChannel("a", "test-slack"))
+	payload, err := json.Marshal(stale.Event{MonitorID: "mon-1", MonitorName: "Public API", Since: time.Date(2026, 10, 18, 11, 56, 0, 0, time.UTC), UnsupportedProbes: []string{"Frankfurt"}})
+	require.NoError(t, err)
+
+	require.NoError(t, f.bus.PublishJSON(stale.MonitorStaleRecovered.Name(), string(payload)))
+
+	require.Len(t, slack.sent, 1)
+	assert.Equal(t, "Peekaping is checking Public API again. It was not checked from 2026-10-18 11:56:00 UTC", slack.sent[0].message)
+}
+
 func probeEvent(probeID string) probe.Event {
 	return probe.Event{ProbeID: probeID, ProbeName: "Frankfurt", Since: time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)}
 }
