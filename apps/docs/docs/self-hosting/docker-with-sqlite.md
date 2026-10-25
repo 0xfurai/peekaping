@@ -463,6 +463,10 @@ Cluster mode:
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
 - **Migrate**: [`0xfurai/peekaping-migrate`](https://hub.docker.com/r/0xfurai/peekaping-migrate), which applies the database migrations. The API, producer and ingester wait for it to finish
 
+Remote probes:
+
+- **Probe**: [`0xfurai/peekaping-probe`](https://hub.docker.com/r/0xfurai/peekaping-probe) runs checks from another machine. See [Remote probes](./remote-probes.md)
+
 ### Image Tags
 
 - `latest` - Latest stable release

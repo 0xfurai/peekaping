@@ -58,3 +58,7 @@ Use cluster mode when you need to scale out, for example to run several workers,
 The bundle images from 0.0.44 to 0.0.47 ran Redis, Caddy and supervisord beside Peekaping's processes. To move one to the single-mode bundle, follow [Upgrading to single mode](./upgrading-to-single-mode.md).
 
 Helm and the Docker Compose stacks stay in cluster mode.
+
+## Remote probes
+
+Both modes can check monitors from other machines, with remote probes (not with MongoDB storage). A probe connects out to the API, so it works with either mode and needs no extra service on the server. See [Remote probes](./remote-probes.md).
