@@ -265,6 +265,13 @@ var goldenCases = []goldenCase{
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
 	{name: "pagertree_up_without_auto_resolve", sender: pagerTree, event: upEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	// The alert ID is the probe's, with no send time, so the online notification can resolve it
+	{name: "pagertree_probe_offline", sender: pagerTree, event: probeOfflineEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_probe_online_resolve", sender: pagerTree, event: probeOnlineEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
+	{name: "pagertree_probe_online_without_auto_resolve", sender: pagerTree, event: probeOnlineEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
 	{name: "pagertree_certificate_expiry", sender: pagerTree, event: certExpiryEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
 
