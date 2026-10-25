@@ -13,8 +13,8 @@ import (
 // reach the process that serves the push URL, so it runs on the local probe
 const pushType = "push"
 
-// ErrNoProbes is what a ProbeLookup returns on an install without probes, which is a MongoDB
-// install (ADR 0001): its monitors all run on the local probe
+// ErrNoProbes is what a graph without a ProbeLookup answers for every probe: its monitors all run
+// on the local probe
 var ErrNoProbes = errors.New("probes need SQLite or PostgreSQL storage")
 
 // ProbeInfo is what the monitor service needs to know of a probe to assign a monitor to it
@@ -27,8 +27,7 @@ type ProbeInfo struct {
 // ProbeLookup tells the monitor service which probes exist. The probe module's service stands
 // behind it, wired in internal/app, so that the monitor module doesn't import the probe module.
 type ProbeLookup interface {
-	// FindProbe returns nil when there is no such probe, and ErrNoProbes on an install without
-	// probes
+	// FindProbe returns nil when there is no such probe
 	FindProbe(ctx context.Context, id string) (*ProbeInfo, error)
 }
 

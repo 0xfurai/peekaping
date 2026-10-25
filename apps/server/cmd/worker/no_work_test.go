@@ -39,17 +39,18 @@ func TestRun_TheWorkerLogsThatItHasNoWorkLeftOnSQLStorage(t *testing.T) {
 }
 
 // The worker has no database, so it reads no DB_TYPE unless the install passes one. Without it, the
-// worker says what is true on any storage.
-func TestRun_TheWorkerWithNoStorageSaysItHasWorkOnMongoDBOnly(t *testing.T) {
+// worker says it has no work left without naming a storage.
+func TestRun_TheWorkerWithNoStorageSaysItHasNoWorkLeft(t *testing.T) {
 	cfg, _ := loadConfig(t, nil)
 	logger, logs := observedLogger()
 
 	in := startWorker(t, cfg, logger)
 	serving(t, logs)
 
-	notices := logs.FilterMessageSnippet("work only on MongoDB storage").All()
+	notices := logs.FilterMessageSnippet("has no work left").All()
 	require.Len(t, notices, 1)
-	assert.Contains(t, notices[0].Message, "no work left")
+	assert.NotContains(t, notices[0].Message, "DB_TYPE")
+	assert.Contains(t, notices[0].Message, "https://docs.peekaping.com/self-hosting/upgrading-to-probes")
 	assert.NoError(t, in.stop(t))
 }
 

@@ -213,13 +213,3 @@ func TestProbeNotifications_DeletingAChannelClearsItsLinks(t *testing.T) {
 		assert.Empty(t, channelsOf(t, f.svc, edge), "the database drops the links of a channel that is deleted")
 	})
 }
-
-func TestUnsupportedRepository_HasNoLinksAndNothingToClear(t *testing.T) {
-	svc := probe_notification.NewService(probe_notification.NewUnsupportedRepository(), zap.NewNop().Sugar())
-	ctx := context.Background()
-
-	_, err := svc.FindByProbeID(ctx, "local")
-	assert.ErrorIs(t, err, probe_notification.ErrUnsupportedStorage)
-	assert.ErrorIs(t, svc.Replace(ctx, "local", []string{uuid.NewString()}), probe_notification.ErrUnsupportedStorage)
-	assert.NoError(t, svc.DeleteByNotificationID(ctx, uuid.NewString()), "a MongoDB install has no probe links to clear when a channel is deleted")
-}

@@ -210,7 +210,7 @@ func (s *ServiceImpl) findForToken(ctx context.Context, id string) (*Model, erro
 		return apiKey, nil
 	}
 	// The first lookup may have failed instead of finding nothing: PostgreSQL
-	// rejects an ObjectID as a UUID, and a MongoDB install rejects the UUID below.
+	// rejects an ObjectID as a UUID.
 	mapped, ok := legacyid.FromObjectID(id)
 	if !ok {
 		return apiKey, err

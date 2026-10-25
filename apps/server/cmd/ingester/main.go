@@ -68,7 +68,7 @@ func main() {
 
 // checkStorage refuses SQLite and PostgreSQL storage, where the api stores the results the probes
 // send and the push URL takes: an ingester left running there would have no queue to take them
-// from. MongoDB has no probes (ADR 0001), so its ingester runs as it always did.
+// from. Its config refuses MongoDB storage (config.RefuseMongoStorage), so it runs on no storage.
 func checkStorage(cfg *Config) error {
 	return app.RefuseOnSQLStorage("ingester", cfg.DBType,
 		"the api stores the results of the probes and of the push URLs")

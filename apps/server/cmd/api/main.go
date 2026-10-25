@@ -1,11 +1,9 @@
 // Command api runs the HTTP API and the websocket of Peekaping in cluster mode (ADR 0002). It takes
 // the notification events that are queued for it, and runs the cleanup cron and the status repair.
 //
-// On SQLite and PostgreSQL, the probes run the checks and the api does the rest: it stores what they
-// send and what the push URLs take, on the replica that took the request, counts the stats of those
-// heartbeats, and runs the stale-monitor watchdog and the probe sweep on the one replica that holds
-// the leader lock. On MongoDB, which has no probes, cmd/producer, cmd/worker and cmd/ingester still
-// run the checks and store their results, and the api only enqueues a push.
+// The probes run the checks and the api does the rest: it stores what they send and what the push
+// URLs take, on the replica that took the request, counts the stats of those heartbeats, and runs
+// the stale-monitor watchdog and the probe sweep on the one replica that holds the leader lock.
 //
 // It doesn't migrate the database: the startup script runs the migrations with cmd/bun before
 // it starts the server.
@@ -136,14 +134,13 @@ type parts struct {
 	UsagePing            *telemetry.Sender
 	ErrorReporting       error_reporting.Service
 	// LeaderJobs runs the stale-monitor watchdog and the probe sweep on the replica that holds the
-	// leader lock. A MongoDB install has none: its producer runs them.
+	// leader lock.
 	LeaderJobs *app.LeaderJobs `optional:"true"`
 	// SilentWatch finds a local probe that has monitors to run and no instance: a cluster upgraded
-	// without deploying probes. A MongoDB install has none.
+	// without deploying probes.
 	SilentWatch     *probe.SilentWatch `optional:"true"`
 	ProbeRepository probe.Repository   `optional:"true"`
-	// LocalBus delivers the heartbeats this replica stored to the stats aggregation. A MongoDB
-	// install has none: its ingester aggregates the stats.
+	// LocalBus delivers the heartbeats this replica stored to the stats aggregation
 	LocalBus *app.LocalBus `optional:"true"`
 }
 
@@ -466,7 +463,6 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 		logger.Errorw("Left the database open, since some of what uses it is still running", "running", running)
 		return errors.Join(errs...)
 	}
-	// In what is left of the event bus's share, so that a slow MongoDB doesn't hold up the exit
 	if err := p.Database.Close(busCtx, dbType, logger); err != nil {
 		errs = append(errs, err)
 	} else {

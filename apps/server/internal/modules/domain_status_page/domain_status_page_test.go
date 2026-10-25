@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
@@ -21,9 +20,6 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -87,29 +83,6 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 	}
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		if err := client.Ping(ctx, nil); err != nil {
-			_ = client.Disconnect(context.Background())
-			require.NoError(t, err)
-		}
-		cfg := &config.Config{DBName: "domain_status_page_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		fn(t, fixture{
-			svc:  domain_status_page.NewService(domain_status_page.NewMongoRepository(client, cfg), zap.NewNop().Sugar()),
-			page: func() string { return primitive.NewObjectID().Hex() },
-		})
-	})
 }
 
 func add(t *testing.T, svc domain_status_page.Service, pageID, domain string) *domain_status_page.Model {

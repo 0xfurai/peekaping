@@ -76,11 +76,9 @@ type parts struct {
 // when the worker ran until ctx was done and everything stopped in time.
 func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger) error {
 	logger.Infow("Starting the worker in cluster mode", "version", version.Version)
-	// On SQLite and PostgreSQL the probes run the checks and nothing enqueues any for the worker. It
-	// refuses nothing: a task an older producer left in its queue is still run.
-	if notice, ok := app.WorkerHasNoWorkNotice(cfg.DBType); ok {
-		logger.Warn(notice)
-	}
+	// The probes run the checks and nothing enqueues any for the worker. It refuses nothing: a task
+	// an older producer left in its queue is still run.
+	logger.Warn(app.WorkerHasNoWorkNotice(cfg.DBType))
 	p, err := build(cfg, logger)
 	if err != nil {
 		return err

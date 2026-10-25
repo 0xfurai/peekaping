@@ -58,8 +58,8 @@ func (a *redisAnnouncements) Forget(ctx context.Context, probeID string) error {
 }
 
 // SilentWatch has the sweep report the local probe offline when the monitors it has to run have no
-// instance to run them. It is for the cluster on SQLite and PostgreSQL only: in single mode, and on
-// MongoDB, the process itself is the local probe.
+// instance to run them. It is for cluster mode only: in single mode the process itself is the local
+// probe.
 type SilentWatch struct {
 	// Monitors counts the active monitors of the local probe that need an instance to be checked:
 	// those that run checks, which a push monitor does not

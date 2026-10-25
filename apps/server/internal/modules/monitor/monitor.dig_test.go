@@ -54,7 +54,4 @@ func TestRegisterDependencies_ProvidesTheTransactorOfTheStorageBackend(t *testin
 			assert.True(t, insideTx(t, transactorOf(t, dbType, db), db), "a SQL storage backend gets a transaction")
 		})
 	}
-	t.Run("mongo", func(t *testing.T) {
-		assert.False(t, insideTx(t, transactorOf(t, "mongo", db), db), "MongoDB gets no transaction (ADR 0001)")
-	})
 }

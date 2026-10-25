@@ -97,8 +97,8 @@ type Config struct {
 
 	// How long an online probe's instances may all go unseen before the probe counts as offline.
 	// A Go duration, from config.MinProbeOfflineAfter to config.MaxProbeOfflineAfter. The sweep that
-	// sets the probe offline runs on the api replica that holds the leader lock (on SQLite and
-	// PostgreSQL; MongoDB has no probes). Validated in Validate().
+	// sets the probe offline runs on the api replica that holds the leader lock. Validated in
+	// Validate().
 	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 }
 

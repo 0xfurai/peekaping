@@ -121,7 +121,7 @@ func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
 		mr.logger.Warnw("Failed to delete the deleted notification channel's monitor links", "id", id, "error", err)
 	}
 
-	// The same for the probes' links. A MongoDB install has none to clear.
+	// The same for the probes' links.
 	if err := mr.probeNotificationService.DeleteByNotificationID(ctx, id); err != nil {
 		mr.logger.Warnw("Failed to delete the deleted notification channel's probe links", "id", id, "error", err)
 	}

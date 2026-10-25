@@ -197,9 +197,8 @@ type sqlRepositoryParams struct {
 	dig.In
 
 	DB *bun.DB
-	// LocalProbe is provided by internal/app: the process itself in single mode and on MongoDB,
-	// the local probe's instances in the cluster on SQLite and PostgreSQL. A container without it
-	// has the process.
+	// LocalProbe is provided by internal/app: the process itself in single mode, the local probe's
+	// instances in cluster mode. A container without it has the process.
 	LocalProbe shared.LocalProbeLiveness `optional:"true"`
 }
 

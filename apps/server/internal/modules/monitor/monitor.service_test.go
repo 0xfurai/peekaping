@@ -1961,9 +1961,9 @@ func TestMonitorService_APushMonitorIsNeverRefusedForTheTypesAProbeRuns(t *testi
 	})
 }
 
-// A MongoDB install has no probes (ADR 0001): the probe side says so, and only the local probe,
-// which is all there is, is accepted.
-func TestMonitorService_MongoOnlyAcceptsLocal(t *testing.T) {
+// A graph without probes: the probe side says so, and only the local probe, which is all there is,
+// is accepted.
+func TestMonitorService_WithoutProbesOnlyAcceptsLocal(t *testing.T) {
 	ctx := context.Background()
 	newService := func() (*MonitorServiceImpl, *MockMonitorRepository) {
 		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()

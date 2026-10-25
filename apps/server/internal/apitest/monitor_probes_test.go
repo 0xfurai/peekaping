@@ -6,13 +6,11 @@ import (
 	"testing"
 
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/probe"
 	"peekaping/internal/probeproto"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/dig"
 )
 
 type monitorWithProbes struct {
@@ -362,24 +360,4 @@ func TestMonitorProbes_EventsCarryProbeIDs(t *testing.T) {
 	assert.Equal(t, []string{frankfurt.ID}, created.seen[0].ProbeIDs)
 	require.Len(t, updated.seen, 1)
 	assert.Equal(t, []string{"local"}, updated.seen[0].ProbeIDs, "the update event has the probe the monitor was moved to")
-}
-
-// A MongoDB install has no probes (ADR 0001): its monitors run on the local probe, and no other
-// probe can be named.
-func TestMonitorProbes_MongoInstallOnlyAcceptsLocal(t *testing.T) {
-	a := newAppDecorated(t, func(c *dig.Container) error {
-		return c.Decorate(func() probe.Repository { return probe.NewUnsupportedRepository() })
-	})
-	a.registerAdmin(t)
-
-	made := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, httpMonitorBody("Checkout", ""), a.asAdmin), http.StatusCreated)
-	assert.Equal(t, []string{"local"}, made.ProbeIDs)
-	onLocal := decode[monitorWithProbes](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Search", ""), "local"), a.asAdmin), http.StatusCreated)
-	assert.Equal(t, []string{"local"}, onLocal.ProbeIDs)
-
-	w := a.request(t, http.MethodPatch, monitorsPath+"/"+made.ID, map[string]any{"probe_ids": []string{uuid.NewString()}}, a.asAdmin)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
-	assert.Contains(t, errorMessage(t, w.Body.Bytes()), "probes need SQLite or PostgreSQL storage")
-	assert.Equal(t, []string{"local"}, a.monitorProbes(t, made.ID))
 }

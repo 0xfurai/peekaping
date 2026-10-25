@@ -227,17 +227,6 @@ func TestAuthenticate_Answers400ForARepeatedInstanceHeader(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "X-Probe-Instance")
 }
 
-func TestAuthenticate_Answers501OnAMongoDBInstall(t *testing.T) {
-	stub := newStub()
-	stub.findErr = probe.ErrUnsupportedStorage
-
-	w, got := run(stub, authenticate, credentials(goodToken, instanceID))
-
-	assert.Equal(t, http.StatusNotImplemented, w.Code)
-	assert.JSONEq(t, `{"message":"probes need SQLite or PostgreSQL storage","data":null}`, w.Body.String())
-	assert.False(t, got.called)
-}
-
 func TestAuthenticate_Answers500WithoutTheCauseWhenTheLookupFails(t *testing.T) {
 	stub := newStub()
 	stub.findErr = errors.New("database is locked")
@@ -275,11 +264,6 @@ func TestKnownInstance_Answers409ToAnInstanceThatNeverSaidHello(t *testing.T) {
 
 func TestKnownInstance_ReportsFailuresOfTheStamp(t *testing.T) {
 	stub := newStub()
-	stub.touchErr = probe.ErrUnsupportedStorage
-	w, _ := run(stub, knownInstance, credentials(goodToken, instanceID))
-	assert.Equal(t, http.StatusNotImplemented, w.Code)
-
-	stub = newStub()
 	stub.touchErr = errors.New("disk full")
 	w, got := run(stub, knownInstance, credentials(goodToken, instanceID))
 	assert.Equal(t, http.StatusInternalServerError, w.Code)

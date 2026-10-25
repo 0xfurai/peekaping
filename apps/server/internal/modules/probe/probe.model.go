@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	"peekaping/internal/modules/probe_notification"
 )
 
 // LocalID is the id of the local probe: the checks that Peekaping runs itself. Every install has
@@ -34,9 +32,6 @@ var (
 	// ErrTooManyInstances is returned when a probe registers an instance it doesn't hold yet while
 	// it holds MaxInstancesPerProbe, all of them online: there is no instance to replace
 	ErrTooManyInstances = errors.New("the probe already has the most instances it may have")
-	// ErrUnsupportedStorage is returned on a MongoDB install, which has no probes (ADR 0001). It
-	// is the error of the probe_notification module too, so that it means the same in both.
-	ErrUnsupportedStorage = probe_notification.ErrUnsupportedStorage
 )
 
 // HasMonitorsError is the ErrProbeHasMonitors of a probe with Monitors monitors on it

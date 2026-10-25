@@ -8,8 +8,5 @@ import (
 )
 
 func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
-	if err := utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository); err != nil {
-		return err
-	}
-	return utils.Provide(container, NewService, NewAPIService, NewController, NewRoute)
+	return utils.Provide(container, NewSQLRepository, NewService, NewAPIService, NewController, NewRoute)
 }

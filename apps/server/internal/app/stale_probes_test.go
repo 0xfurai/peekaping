@@ -160,20 +160,3 @@ func assertProbeLookupReadsRealProbes(t *testing.T, lookup stale.ProbeLookup, pr
 	require.NoError(t, err)
 	assert.Nil(t, missing)
 }
-
-// A MongoDB install has no probes: a lookup finds none, rather than failing the watchdog
-func TestStaleProbeLookup_FindsNoProbeOnAnInstallWithoutProbes(t *testing.T) {
-	lookup := provideStaleProbeLookup(unsupportedProbes{})
-
-	found, err := lookup.FindProbe(context.Background(), "probe-1")
-
-	require.NoError(t, err)
-	assert.Nil(t, found)
-}
-
-// unsupportedProbes is the probe service of an install without probes
-type unsupportedProbes struct{ probe.Service }
-
-func (unsupportedProbes) FindByID(context.Context, string) (*probe.Model, error) {
-	return nil, probe.ErrUnsupportedStorage
-}

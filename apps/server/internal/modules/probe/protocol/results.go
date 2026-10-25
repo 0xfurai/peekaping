@@ -349,11 +349,11 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 // the probe sends the batch again. The error returned is the first failed monitor's, in the order
 // the monitors were sent.
 //
-// On MongoDB the ingester enqueues the result, and the queue holds a task for the monitor, the probe
-// and the start time for an hour. A task the queue holds already is a result stored, by a replica
-// that the probe's first attempt reached: the result's outcome becomes duplicate, and it is not a
-// failure. (On SQLite and PostgreSQL the Window answers a retry on another replica, by the result's
-// id, and the ingester has no queue.)
+// A Service that enqueues the result, which no storage backend uses now, finds a task for the
+// monitor, the probe and the start time held for an hour. A task the queue holds already is a result
+// stored, by a replica that the probe's first attempt reached: the result's outcome becomes
+// duplicate, and it is not a failure. (The Window answers a retry on another replica, by the
+// result's id.)
 func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*candidate) error {
 	var order []string
 	byMonitor := map[string][]*candidate{}

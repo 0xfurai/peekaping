@@ -208,24 +208,3 @@ func TestSQLTransactor_ANestedWithTxJoinsTheOuterTransaction(t *testing.T) {
 		})
 	})
 }
-
-func TestMongoTransactor_RunsFnWithTheSameContextAndNoTransaction(t *testing.T) {
-	type key struct{}
-	ctx := context.WithValue(context.Background(), key{}, "value")
-	boom := errors.New("boom")
-	transactor := dbtx.NewMongoTransactor()
-
-	var got context.Context
-	err := transactor.WithTx(ctx, func(ctx context.Context) error {
-		got = ctx
-		return nil
-	})
-	require.NoError(t, err)
-	assert.Equal(t, "value", got.Value(key{}), "fn gets the context it was called with")
-
-	err = transactor.WithTx(ctx, func(context.Context) error { return boom })
-	require.ErrorIs(t, err, boom, "WithTx returns the error fn returned")
-
-	db := sqliteDB(t)
-	assert.Same(t, db, dbtx.DB(got, db), "the context carries no transaction")
-}

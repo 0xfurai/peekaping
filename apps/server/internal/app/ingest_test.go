@@ -4,14 +4,12 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/shared"
 
-	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
@@ -94,31 +92,5 @@ func TestRegisterClusterAPI_HasALocalBusForTheStatsOnSQLStorage(t *testing.T) {
 		closeDB(t, db)
 		assert.NotNil(t, local)
 		assert.IsType(t, &mirroredBus{}, bus)
-	}))
-}
-
-// MongoDB has no probes: its api enqueues what it takes for the ingester, which stores it and
-// counts the stats of it, so the api has no local bus and does not store
-func TestRegisterClusterAPI_EnqueuesForTheIngesterOnMongoStorage(t *testing.T) {
-	cfg := clusterConfig(t)
-	cfg.DBType = "mongo"
-	container := dig.New()
-	require.NoError(t, RegisterClusterAPI(container, cfg))
-	assert.Error(t, container.Invoke(func(*LocalBus) {}), "no local bus: the ingester counts the stats")
-
-	require.NoError(t, container.Invoke(func(service ingester.Service, bus events.EventBus, client *asynq.Client, inspector *asynq.Inspector) {
-		closeEventBus(t, bus)
-		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
-		_, mirrored := bus.(*mirroredBus)
-		assert.False(t, mirrored)
-
-		// Ingesting needs no database: it queues the result
-		require.NoError(t, service.Ingest(context.Background(), &ingester.Result{
-			MonitorID: "monitor-1", StartTime: time.Now(), EndTime: time.Now(), Status: shared.MonitorStatusUp,
-		}))
-		queued, err := inspector.ListPendingTasks("ingester")
-		require.NoError(t, err)
-		assert.Len(t, queued, 1, "the result waits for the ingester")
 	}))
 }

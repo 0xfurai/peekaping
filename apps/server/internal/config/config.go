@@ -185,21 +185,11 @@ var ErrMongoStorageRemoved = errors.New("MongoDB storage was removed. " +
 // does, and the error wraps ErrMongoStorageRemoved. The db_type validator doesn't accept those
 // values, so a binary calls this first to give this error and not the validator's.
 func RefuseMongoStorage(dbType string) error {
-	if IsMongoDBType(dbType) {
+	switch strings.ToLower(strings.TrimSpace(dbType)) {
+	case "mongo", "mongodb":
 		return fmt.Errorf("DB_TYPE=%s: %w", dbType, ErrMongoStorageRemoved)
 	}
 	return nil
-}
-
-// IsMongoDBType reports whether a DB_TYPE names MongoDB storage (mongo or mongodb). It is the
-// storage the producer, worker and ingester still run for (ADR 0001): on SQLite and PostgreSQL the
-// api runs their work, and the probes run the checks. Case doesn't matter.
-func IsMongoDBType(dbType string) bool {
-	switch strings.ToLower(strings.TrimSpace(dbType)) {
-	case "mongo", "mongodb":
-		return true
-	}
-	return false
 }
 
 // IsSQLDBType reports whether a DB_TYPE names SQL storage: SQLite, PostgreSQL or MySQL, whose

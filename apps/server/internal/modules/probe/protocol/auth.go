@@ -2,7 +2,6 @@ package protocol
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -53,7 +52,6 @@ func NewAuth(probes probe.Service, bus events.EventBus, logger *zap.SugaredLogge
 }
 
 // Authenticate finds the probe the bearer token belongs to and reads the instance id. It answers
-//   - 501 on a MongoDB install, which has no probes
 //   - 401 for a missing or malformed Authorization header, an unknown token, and a disabled probe
 //   - 400 for a missing, repeated or malformed X-Probe-Instance header
 //
@@ -136,12 +134,8 @@ func (a *Auth) reject(w http.ResponseWriter, r *http.Request, status int, messag
 	httpx.JSON(w, status, utils.NewFailResponse(message))
 }
 
-// fail answers a failure of the probe service: 501 on a MongoDB install, 500 for anything else
+// fail answers a failure of the probe service with a 500
 func (a *Auth) fail(w http.ResponseWriter, r *http.Request, err error) {
-	if errors.Is(err, probe.ErrUnsupportedStorage) {
-		httpx.JSON(w, http.StatusNotImplemented, utils.NewFailResponse(err.Error()))
-		return
-	}
 	httpx.Log(r.Context(), a.logger).Errorw("Probe authentication failed", "route", r.Pattern, "error", err)
 	httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse(messageInternalError))
 }

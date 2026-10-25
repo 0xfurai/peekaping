@@ -16,7 +16,6 @@ import (
 )
 
 // onEverySQLBackend runs fn with a stats service over a migrated database and a monitor in it.
-// Mongo is left out: it keeps no probes, so it has no filter to check.
 func onEverySQLBackend(t *testing.T, fn func(t *testing.T, svc stats.Service, monitorID string)) {
 	for _, backend := range []struct {
 		name string

@@ -68,7 +68,7 @@ func main() {
 
 // checkStorage refuses SQLite and PostgreSQL storage, where the api runs the watchdog and the probe
 // sweep and the probes run the checks: a producer left running there would contest the api's leader
-// lock. MongoDB has no probes (ADR 0001), so its producer runs as it always did.
+// lock. Its config refuses MongoDB storage (config.RefuseMongoStorage), so it runs on no storage.
 func checkStorage(cfg *Config) error {
 	return app.RefuseOnSQLStorage("producer", cfg.DBType,
 		"the api runs the stale-monitor watchdog and the probe sweep, and the probes run the checks")

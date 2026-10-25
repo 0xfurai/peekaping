@@ -795,24 +795,6 @@ func TestProbeProtocol_BodyOver1MBAnswers413(t *testing.T) {
 	assert.Empty(t, a.getProbe(t, made.ID).Instances)
 }
 
-// A MongoDB install has no probes (ADR 0001): its probe routes answer 501
-func TestProbeProtocol_MongoInstallAnswers501(t *testing.T) {
-	a := newAppDecorated(t, func(c *dig.Container) error {
-		return c.Decorate(func() probe.Repository { return probe.NewUnsupportedRepository() })
-	})
-	a.registerAdmin(t)
-	instanceID := uuid.NewString()
-
-	for _, path := range []string{helloPath, byePath} {
-		t.Run(path, func(t *testing.T) {
-			w := a.request(t, http.MethodPost, path, helloFrom(instanceID), asProbe("pkp_any-token-at-all", instanceID))
-
-			assert.Equal(t, http.StatusNotImplemented, w.Code, w.Body.String())
-			assert.Equal(t, "probes need SQLite or PostgreSQL storage", errorMessage(t, w.Body.Bytes()))
-		})
-	}
-}
-
 const assignmentsPath = "/probe/v1/assignments"
 
 // localToken is the bootstrap token of the local probe in the tests that need it
@@ -1479,52 +1461,6 @@ func TestProbeProtocol_ResultsAreStoredAsHeartbeats(t *testing.T) {
 	assert.Empty(t, a.queuedHeartbeats(t), "nothing is queued for an ingester")
 }
 
-// MongoDB has no probes, so its producer, worker and ingester still run the checks. The api
-// enqueues what it takes there, and the ingester reads the task.
-func TestProbeProtocol_OnMongoStorageResultsAreQueuedForTheIngester(t *testing.T) {
-	a := localProbeApp(t, withQueuedIngest)
-	monitorID := a.createHTTPMonitor(t, "Checkout", "")
-	instanceID := uuid.NewString()
-	a.sayHello(t, localToken, instanceID)
-	up := checkResult("result-up", monitorID, checkedAt(0))
-	down := checkResult("result-down", monitorID, checkedAt(30))
-	down.Status, down.Message, down.PingMs = probeproto.StatusDown, "connection refused", 843
-	down.EndTime = down.StartTime.Add(843 * time.Millisecond)
-
-	got := a.outcomesOf(t, localToken, instanceID, down, up)
-
-	assert.Equal(t, []probeproto.ResultOutcome{{ID: "result-down", Accepted: true}, {ID: "result-up", Accepted: true}}, got,
-		"one outcome for each result, in the order sent")
-	tasks := a.queuedHeartbeats(t)
-	require.Len(t, tasks, 2, "the reply comes after the enqueue")
-	for _, task := range tasks {
-		assert.Equal(t, "monitor:ingest", task.Type)
-		assert.Equal(t, "ingester", task.Queue)
-	}
-	payloads := a.queuedPayloads(t)
-	require.Len(t, payloads, 2)
-	for i, want := range []probeproto.Result{up, down} {
-		payload := payloads[i]
-		assert.Equal(t, "local", payload["probe_id"], "the probe that ran the check")
-		assert.Equal(t, monitorID, payload["monitor_id"])
-		assert.Equal(t, "Checkout", payload["monitor_name"], "the monitor's settings are filled in as for a push")
-		assert.Equal(t, "http", payload["monitor_type"])
-		assert.EqualValues(t, 60, payload["monitor_interval"])
-		assert.EqualValues(t, 3, payload["monitor_max_retries"])
-		assert.Equal(t, false, payload["is_under_maintenance"])
-		assert.Equal(t, want.Message, payload["message"])
-		assert.EqualValues(t, want.PingMs, payload["ping_ms"])
-		startedAt, err := time.Parse(time.RFC3339Nano, payload["start_time"].(string))
-		require.NoError(t, err)
-		assert.True(t, want.StartTime.Equal(startedAt), "the result's own time, not the time it arrived: %s", payload["start_time"])
-		endedAt, err := time.Parse(time.RFC3339Nano, payload["end_time"].(string))
-		require.NoError(t, err)
-		assert.True(t, want.EndTime.Equal(endedAt))
-	}
-	assert.EqualValues(t, 1, payloads[0]["status"], "Up")
-	assert.EqualValues(t, 0, payloads[1]["status"], "Down")
-}
-
 func TestProbeProtocol_ResultsRejectReasonsEndToEnd(t *testing.T) {
 	a := localProbeApp(t, nil)
 	monitorID := a.createHTTPMonitor(t, "Checkout", "")
@@ -1566,31 +1502,11 @@ func TestProbeProtocol_ResultsRejectReasonsEndToEnd(t *testing.T) {
 	assert.Len(t, a.storedHeartbeats(t, monitorID), 2)
 }
 
-// On MongoDB the api enqueues the results for the ingester, and the queue holds a task for the
-// monitor, the probe and the start time. A result whose task the queue holds already was taken by a
-// replica the probe's first attempt reached, and a second id for a check that started at the same
-// time is caught there. (The api on SQLite and PostgreSQL has no queue: the window shared in Redis
-// answers a retry, by its id.)
-func TestProbeProtocol_OnMongoStorageAResultTheQueueHoldsAlreadyIsADuplicate(t *testing.T) {
-	a := localProbeApp(t, withQueuedIngest)
-	monitorID := a.createHTTPMonitor(t, "Checkout", "")
-	instanceID := uuid.NewString()
-	a.sayHello(t, localToken, instanceID)
-	started := checkedAt(0)
-	require.Equal(t, []probeproto.ResultOutcome{{ID: "first-try", Accepted: true}},
-		a.outcomesOf(t, localToken, instanceID, checkResult("first-try", monitorID, started)))
-
-	got := a.outcomesOf(t, localToken, instanceID, checkResult("another-id", monitorID, started))
-
-	assert.Equal(t, []probeproto.ResultOutcome{{ID: "another-id", Reason: "duplicate"}}, got, "and the probe is not told to try again")
-	assert.Len(t, a.queuedHeartbeats(t), 1, "the heartbeat is queued once")
-}
-
 // Guards that a batch retried on another API replica within the hour is answered duplicate and
 // stores nothing twice. A batch whose reply was lost is sent again, and the load balancer may hand
 // the retry to another replica, however long after. That replica's own memory knows nothing of the
-// first try. The api has no ingest queue to catch it on SQLite and PostgreSQL (the queue's task id
-// did, on MongoDB), so the duplicate window is shared between the replicas in Redis, for an hour.
+// first try. The api has no ingest queue to catch it, so the duplicate window is shared between the
+// replicas in Redis, for an hour.
 func TestProbeProtocol_ARetryOnAnotherReplicaIsAnsweredDuplicate(t *testing.T) {
 	a := localProbeApp(t, nil)
 	b := newReplica(t, a, func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })

@@ -49,15 +49,3 @@ func (t *sqlTransactor) WithTx(ctx context.Context, fn func(ctx context.Context)
 		return fn(context.WithValue(ctx, txKey{}, tx))
 	})
 }
-
-type mongoTransactor struct{}
-
-// NewMongoTransactor returns the Transactor for MongoDB, which runs fn without a transaction:
-// MongoDB storage is frozen (ADR 0001), so its writes stay as they are today.
-func NewMongoTransactor() Transactor {
-	return mongoTransactor{}
-}
-
-func (mongoTransactor) WithTx(ctx context.Context, fn func(ctx context.Context) error) error {
-	return fn(ctx)
-}
