@@ -256,15 +256,17 @@ const MonitorPageContent = () => {
 
   const lastHeartbeat =
     heartbeatData?.length > 0 ? heartbeatData[heartbeatData.length - 1] : null;
-  // A monitor on several probes is judged from its locations, not from whichever heartbeat came
-  // last
+  // A monitor on several probes is judged from its locations by its location rule, not from
+  // whichever heartbeat came last
   const lastStatusView = getMonitorStatusView(
     showLocations
       ? monitorStatusOf(
           locations.map((location) => ({
             online: location.online,
             status: currentStatus(location, heartbeatsOfProbe(liveHeartbeats, location.probe_id)),
-          }))
+          })),
+          monitor?.location_rule ?? "any",
+          monitor?.location_threshold
         )
       : lastHeartbeat?.status
   );

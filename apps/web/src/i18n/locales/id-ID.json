@@ -502,6 +502,16 @@
           "request_timeout": "Waktu Permintaan Habis (Timeout setelah {{seconds}} detik)",
           "resend_notification": "Kirim ulang pemberitahuan jika Down X kali berturut-turut (Kirim ulang dinonaktifkan)"
         },
+        "location_rule": {
+          "all": "semua lokasi tidak tersedia",
+          "any": "salah satu lokasi tidak tersedia",
+          "at_least": "setidaknya N lokasi tidak tersedia",
+          "description": "Lokasi yang probe-nya offline, atau belum melaporkan hasil, tidak dihitung.",
+          "label": "Tandai monitor sebagai tidak tersedia ketika",
+          "threshold_invalid": "Masukkan bilangan bulat, 1 atau lebih",
+          "threshold_label": "Jumlah lokasi",
+          "threshold_too_high": "Tidak boleh lebih dari jumlah probe yang Anda pilih"
+        },
         "notifications": {
           "add_notifier": "Tambah Pemberitahuan",
           "new_notifier": "+ Notifier Baru",

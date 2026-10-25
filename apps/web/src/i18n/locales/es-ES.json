@@ -502,6 +502,16 @@
           "request_timeout": "Tiempo de espera agotado (Se agotó el tiempo de espera después de {{seconds}} segundos)",
           "resend_notification": "Reenviar notificación si está caído X veces consecutivas (Reenviar deshabilitado)"
         },
+        "location_rule": {
+          "all": "todas las ubicaciones estén caídas",
+          "any": "cualquier ubicación esté caída",
+          "at_least": "al menos N ubicaciones estén caídas",
+          "description": "Una ubicación cuya sonda está sin conexión, o que aún no ha informado, no cuenta.",
+          "label": "Marcar el monitor como caído cuando",
+          "threshold_invalid": "Introduce un número entero, 1 o más",
+          "threshold_label": "Número de ubicaciones",
+          "threshold_too_high": "No puede ser mayor que el número de sondas elegidas"
+        },
         "notifications": {
           "add_notifier": "Añadir notificador",
           "new_notifier": "+ Nuevo notificador",

@@ -502,6 +502,16 @@
           "request_timeout": "İstek Süresi Doldu ({{seconds}} saniye sonra zaman aşımı)",
           "resend_notification": "X kez arka arkaya kesildiğinde Bildirimi Yeniden Gönder (Yeniden gönderme devre dışı)"
         },
+        "location_rule": {
+          "all": "tüm konumlar çalışmıyorsa",
+          "any": "herhangi bir konum çalışmıyorsa",
+          "at_least": "en az N konum çalışmıyorsa",
+          "description": "Probu çevrimdışı olan veya henüz rapor vermemiş bir konum sayılmaz.",
+          "label": "İzleyiciyi şu durumda çalışmıyor olarak işaretle",
+          "threshold_invalid": "1 veya daha büyük bir tam sayı girin",
+          "threshold_label": "Konum sayısı",
+          "threshold_too_high": "Seçtiğiniz prob sayısından büyük olamaz"
+        },
         "notifications": {
           "add_notifier": "Bildirim Ekle",
           "new_notifier": "+ Yeni Bildirimci",

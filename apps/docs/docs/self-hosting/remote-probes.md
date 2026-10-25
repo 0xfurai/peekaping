@@ -109,7 +109,15 @@ The local probe is never offline.
 
 A monitor can run on several probes. The monitor's page then shows each probe as a location: its own status, response time and heartbeat bar, and a selector to look at one location or all of them.
 
-The monitor's own status follows its locations. It is **Down while any location whose probe is online is Down**. A location whose probe is offline, or that hasn't reported yet, doesn't count. So to be told about an outage seen from any one place, run the monitor on all of them.
+The monitor's own status follows its locations and its **location rule**, which you choose in the monitor's form once it runs on more than one probe:
+
+- **Any location is Down** (the default): the monitor is Down while one location is Down.
+- **All locations are Down**: the monitor is Down only while every location that counts is Down.
+- **At least N locations are Down**: the monitor is Down while N or more locations are Down. N can be from 1 up to the number of the monitor's probes.
+
+A location whose probe is offline, or that hasn't reported yet, doesn't count, either as Down or in the number "all" is measured against. So with "at least 2" and only one probe online, the monitor can't go Down; the probe offline notification has told you about the others. A rule other than "any" keeps one probe's network trouble from raising an alarm.
+
+A Down or Up notification for a monitor on several probes names its locations, such as "Down at Frankfurt, Tokyo (2 of 3 locations)". A custom message template can use `{{locations_down}}` (the names) and `{{locations_total}}`.
 
 On a status page, switch on **Show each location** to list each location's status and history for the monitors that run on several probes.
 

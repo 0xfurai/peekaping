@@ -68,19 +68,39 @@ export const currentStatus = (
   heartbeats: HeartbeatModel[]
 ): number | undefined => heartbeats.at(-1)?.status ?? location.status ?? undefined;
 
-// The monitor's status from its locations, as the server judges it: Down while any online location
-// is Down, otherwise Maintenance while any is in maintenance, otherwise Up while any is Up,
-// otherwise Pending. A location with no status yet, and one whose probe is offline, counts for
-// nothing.
-export const monitorStatusOf = (locations: { online: boolean; status?: number | null }[]): number => {
+// How many of a monitor's locations must be Down for the monitor to be Down
+export type LocationRule = "any" | "all" | "at_least";
+
+// The monitor's status from its locations, as the server judges it (monitorStatus in the ingester):
+// Down while the location rule is met by the online locations that have a status, otherwise
+// Maintenance while any of them is in maintenance, otherwise Up while any is Up, otherwise Pending.
+// Any is met by one Down location, all by every one of them being Down (and at least one counting),
+// at_least by `threshold` of them. A location with no status yet, and one whose probe is offline,
+// counts for nothing, neither as Down nor in the number "all" is measured against.
+export const monitorStatusOf = (
+  locations: { online: boolean; status?: number | null }[],
+  rule: LocationRule,
+  threshold: number | null | undefined
+): number => {
+  let counted = 0;
+  let down = 0;
   let anyUp = false;
   let anyMaintenance = false;
   for (const { online, status } of locations) {
     if (!online || status === undefined || status === null) continue;
-    if (status === STATUS_DOWN) return STATUS_DOWN;
+    counted++;
+    if (status === STATUS_DOWN) down++;
     if (status === STATUS_UP) anyUp = true;
     if (status === STATUS_MAINTENANCE) anyMaintenance = true;
   }
+  // At least needs a threshold that is met outright, so that none never takes a monitor down
+  const met =
+    rule === "all"
+      ? counted > 0 && down === counted
+      : rule === "at_least"
+        ? !!threshold && threshold > 0 && down >= threshold
+        : down > 0;
+  if (met) return STATUS_DOWN;
   if (anyMaintenance) return STATUS_MAINTENANCE;
   return anyUp ? STATUS_UP : STATUS_PENDING;
 };

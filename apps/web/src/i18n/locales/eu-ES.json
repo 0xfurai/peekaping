@@ -502,6 +502,16 @@
           "request_timeout": "Eskariaren denbora-mugua ({{seconds}} segundoen ondoren)",
           "resend_notification": "Berriz bidali abisua, X aldiz jarraian jaitsi (Berriz bidalketa desgaituta)"
         },
+        "location_rule": {
+          "all": "kokaleku guztiak behera daudenean",
+          "any": "edozein kokaleku behera dagoenean",
+          "at_least": "N kokaleku gutxienez behera daudenean",
+          "description": "Zundak konexiorik ez duen edo oraindik emaitzarik eman ez duen kokalekua ez da kontuan hartzen.",
+          "label": "Markatu monitorea behera dagoela",
+          "threshold_invalid": "Sartu zenbaki oso bat, 1 edo gehiago",
+          "threshold_label": "Kokaleku kopurua",
+          "threshold_too_high": "Ezin da aukeratutako zunden kopurua baino handiagoa izan"
+        },
         "notifications": {
           "add_notifier": "Gehitu jakinarazlea",
           "new_notifier": "+ Jakinarazle berria",

@@ -502,6 +502,16 @@
           "request_timeout": "Užklausos timeout (Baigiasi po {{seconds}} sekundžių)",
           "resend_notification": "Persiųsti pranešimą, jei neveikia X kartus iš eilės (Persiuntimas išjungtas)"
         },
+        "location_rule": {
+          "all": "neveikia visos vietos",
+          "any": "neveikia bet kuri vieta",
+          "at_least": "neveikia bent N vietų",
+          "description": "Vieta, kurios zondas atsijungęs arba dar nepateikė rezultato, neskaičiuojama.",
+          "label": "Pažymėti monitorių kaip neveikiantį, kai",
+          "threshold_invalid": "Įveskite sveikąjį skaičių, 1 arba daugiau",
+          "threshold_label": "Vietų skaičius",
+          "threshold_too_high": "Negali būti didesnis už pasirinktų zondų skaičių"
+        },
         "notifications": {
           "add_notifier": "Pridėti pranešimo kanalą",
           "new_notifier": "+ Naujas pranešėjas",

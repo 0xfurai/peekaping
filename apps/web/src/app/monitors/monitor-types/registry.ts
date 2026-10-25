@@ -20,6 +20,7 @@ import { mqttMonitorType } from "./mqtt";
 import { rabbitmqMonitorType } from "./rabbitmq";
 import { kafkaProducerMonitorType } from "./kafka-producer";
 import { smtpMonitorType } from "./smtp";
+import { locationThresholdError } from "./shared/location-rule-support";
 
 /**
  * Every monitor type, in the order the Type select lists them. This is the one list: the form
@@ -66,6 +67,13 @@ export const monitorFormSchema = z.discriminatedUnion(
   "type",
   monitorTypes.map((definition) => definition.schema) as MonitorTypeSchemas
 );
+
+// The form schema with the checks that need more than one field: a threshold can't be higher than
+// the number of probes the monitor runs on
+export const checkedMonitorFormSchema = monitorFormSchema.superRefine((values, ctx) => {
+  const message = locationThresholdError(values);
+  if (message) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["location_threshold"], message });
+});
 
 const byType = new Map<string, MonitorTypeDefinitions>(
   monitorTypes.map((definition) => [definition.type, definition])

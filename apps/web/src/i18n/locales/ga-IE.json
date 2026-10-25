@@ -502,6 +502,16 @@
           "request_timeout": "Teip Iarratais (tar éis {{seconds}} nóiméad)",
           "resend_notification": "Athsheol Fógra má tá sé i dorchadas X uaire le chéile (Neamhcheadaithe)"
         },
+        "location_rule": {
+          "all": "bhíonn gach suíomh síos",
+          "any": "bhíonn aon suíomh síos",
+          "at_least": "bhíonn N suíomh ar a laghad síos",
+          "description": "Ní chuirtear suíomh san áireamh má tá a thóireadóir as líne nó mura bhfuil tuairisc tugtha aige go fóill.",
+          "label": "Marcáil an monatóir mar atá síos nuair a",
+          "threshold_invalid": "Cuir isteach slánuimhir, 1 nó níos mó",
+          "threshold_label": "Líon na suíomhanna",
+          "threshold_too_high": "Ní féidir é a bheith níos mó ná líon na dtóireadóirí a roghnaigh tú"
+        },
         "notifications": {
           "add_notifier": "Cuir Fógraíú",
           "new_notifier": "+ Fógraí Nua",

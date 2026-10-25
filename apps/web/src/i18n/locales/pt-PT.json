@@ -502,6 +502,16 @@
           "request_timeout": "Tempo limite da solicitação (Limite depois de {{seconds}} segundos)",
           "resend_notification": "Reenviar notificação se estiver inativo X vezes consecutivas (Reenvio desativado)"
         },
+        "location_rule": {
+          "all": "todas as localizações estiverem indisponíveis",
+          "any": "qualquer localização estiver indisponível",
+          "at_least": "pelo menos N localizações estiverem indisponíveis",
+          "description": "Uma localização cuja sonda está offline, ou que ainda não comunicou, não conta.",
+          "label": "Marcar o monitor como indisponível quando",
+          "threshold_invalid": "Introduza um número inteiro, 1 ou mais",
+          "threshold_label": "Número de localizações",
+          "threshold_too_high": "Não pode ser maior do que o número de sondas escolhidas"
+        },
         "notifications": {
           "add_notifier": "Adicionar notificador",
           "new_notifier": "+ Novo Notificador",

@@ -13,7 +13,8 @@ export async function createProbe(api: APIRequestContext, name: string): Promise
 // when the spec failed can still be saving its monitor, so a refused probe delete lists the
 // monitors again and tries once more, instead of failing the spec with a message that hides why
 // it failed in the first place.
-export async function cleanUp(page: Page, { monitor, probe }: { monitor: string; probe: string }) {
+export async function cleanUp(page: Page, { monitor, probe }: { monitor: string; probe: string | string[] }) {
+  const probeNames = [probe].flat();
   const api = await adminAPI(page);
   try {
     await expect(async () => {
@@ -24,7 +25,7 @@ export async function cleanUp(page: Page, { monitor, probe }: { monitor: string;
         await deleteCreated(api, `monitors/${found.id}`);
       }
       const probes = await (await api.get('probes')).json();
-      for (const found of probes.data.filter((p: { name: string }) => p.name === probe)) {
+      for (const found of probes.data.filter((p: { name: string }) => probeNames.includes(p.name))) {
         const response = await api.delete(`probes/${found.id}`);
         expect(response.ok(), `DELETE probes/${found.id}: ${response.status()} ${await response.text()}`).toBeTruthy();
       }

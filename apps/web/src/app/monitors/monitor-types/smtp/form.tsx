@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import Tags from "../shared/tags";
 import Probe from "../shared/probe";
+import LocationRule from "../shared/location-rule";
 import General from "../shared/general";
 import Intervals from "../shared/intervals";
 import Notifications from "../shared/notifications";
@@ -43,6 +44,7 @@ const SmtpForm = () => {
           <CardContent className="space-y-4">
             <Tags />
             <Probe />
+            <LocationRule />
           </CardContent>
         </Card>
 

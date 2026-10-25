@@ -502,6 +502,16 @@
           "request_timeout": "Yêu cầu hết thời gian (Hết thời gian sau {{seconds}} giây)",
           "resend_notification": "Gửi lại thông báo nếu bị ngừng X lần liên tiếp (Gửi lại đã vô hiệu)"
         },
+        "location_rule": {
+          "all": "tất cả vị trí đều ngừng hoạt động",
+          "any": "bất kỳ vị trí nào ngừng hoạt động",
+          "at_least": "ít nhất N vị trí ngừng hoạt động",
+          "description": "Vị trí có đầu dò ngoại tuyến hoặc chưa báo cáo sẽ không được tính.",
+          "label": "Đánh dấu monitor là ngừng hoạt động khi",
+          "threshold_invalid": "Nhập một số nguyên từ 1 trở lên",
+          "threshold_label": "Số lượng vị trí",
+          "threshold_too_high": "Không được lớn hơn số đầu dò bạn đã chọn"
+        },
         "notifications": {
           "add_notifier": "Thêm thông báo",
           "new_notifier": "+ Thêm kênh thông báo",

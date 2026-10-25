@@ -502,6 +502,16 @@
           "request_timeout": "Zastoj zahtjeva (Timeout nakon {{seconds}} sekundi)",
           "resend_notification": "Ponovi obavijest ako je X puta uzastopno ne radi (ponovno slanje onemogućeno)"
         },
+        "location_rule": {
+          "all": "sve lokacije ne rade",
+          "any": "bilo koja lokacija ne radi",
+          "at_least": "barem N lokacija ne radi",
+          "description": "Lokacija čija je sonda izvan mreže ili se još nije javila ne računa se.",
+          "label": "Označi nadzor kao nedostupan kada",
+          "threshold_invalid": "Unesite cijeli broj, 1 ili više",
+          "threshold_label": "Broj lokacija",
+          "threshold_too_high": "Ne može biti veći od broja odabranih sondi"
+        },
         "notifications": {
           "add_notifier": "Dodaj obavijestnik",
           "new_notifier": "+ Novi notifier",

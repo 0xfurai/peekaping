@@ -502,6 +502,16 @@
           "request_timeout": "Kérés időtúllépés ({{seconds}} másodperc után)",
           "resend_notification": "Értesítés újraküldése, ha X alkalommal egymás után le van (újraküldés letiltva)"
         },
+        "location_rule": {
+          "all": "minden helyszín nem elérhető",
+          "any": "bármelyik helyszín nem elérhető",
+          "at_least": "legalább N helyszín nem elérhető",
+          "description": "Az a helyszín, amelynek szondája nem elérhető, vagy még nem jelentett, nem számít bele.",
+          "label": "A monitor legyen nem elérhető, ha",
+          "threshold_invalid": "Adjon meg egy egész számot, 1 vagy több",
+          "threshold_label": "Helyszínek száma",
+          "threshold_too_high": "Nem lehet több, mint a kiválasztott szondák száma"
+        },
         "notifications": {
           "add_notifier": "Értesítő hozzáadása",
           "new_notifier": "+ Új Értesítő",

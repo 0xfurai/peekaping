@@ -502,6 +502,16 @@
           "request_timeout": "Timeout cerere (Timeout după {{seconds}} secunde)",
           "resend_notification": "Retrimitere notificare dacă serviciul e indisponibil X ori consecutiv (Retrimitere dezactivată)"
         },
+        "location_rule": {
+          "all": "toate locațiile sunt nefuncționale",
+          "any": "orice locație este nefuncțională",
+          "at_least": "cel puțin N locații sunt nefuncționale",
+          "description": "O locație a cărei sondă este offline sau nu a raportat încă nu se numără.",
+          "label": "Marchează monitorul ca nefuncțional când",
+          "threshold_invalid": "Introdu un număr întreg, 1 sau mai mare",
+          "threshold_label": "Numărul de locații",
+          "threshold_too_high": "Nu poate fi mai mare decât numărul de sonde alese"
+        },
         "notifications": {
           "add_notifier": "Adaugă notificator",
           "new_notifier": "+ Notificator nou",
