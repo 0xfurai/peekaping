@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 )
 
@@ -259,6 +260,44 @@ WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
 		return ErrInstanceTaken
 	}
 	return nil
+}
+
+// MARK: MakeRoomForInstance
+func (r *SQLRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID string, instanceID string, limit int, quietBefore time.Time) error {
+	db := dbtx.DB(ctx, r.db)
+	if r.db.Dialect().Name() == dialect.PG {
+		// Two hellos at once must not both count 63 rows and each take the last place. The lock
+		// on the probe's row makes the second wait for the first to commit. SQLite needs none:
+		// its transactions begin immediate, on one connection.
+		var locked string
+		err := db.NewSelect().Model((*sqlModel)(nil)).Column("id").Where("id = ?", probeID).For("UPDATE").Scan(ctx, &locked)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+	}
+	held, err := db.NewSelect().Model((*sqlInstance)(nil)).Where("probe_id = ?", probeID).Count(ctx)
+	if err != nil {
+		return err
+	}
+	needed := held - limit + 1
+	if needed <= 0 {
+		return nil
+	}
+	var oldest []string
+	err = db.NewSelect().Model((*sqlInstance)(nil)).Column("id").
+		Where("probe_id = ?", probeID).
+		Where("last_seen_at < ?", quietBefore.UTC()).
+		OrderExpr("last_seen_at ASC, id ASC").
+		Limit(needed).
+		Scan(ctx, &oldest)
+	if err != nil {
+		return err
+	}
+	if len(oldest) == 0 {
+		return nil
+	}
+	_, err = db.NewDelete().Model((*sqlInstance)(nil)).Where("id IN (?)", bun.In(oldest)).Exec(ctx)
+	return err
 }
 
 // MARK: TouchInstance

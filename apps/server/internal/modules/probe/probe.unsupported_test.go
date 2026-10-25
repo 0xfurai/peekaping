@@ -40,6 +40,7 @@ func TestUnsupportedRepository_EveryMethodReportsUnsupportedStorage(t *testing.T
 	_, err = repo.FindInstances(ctx, "local")
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	assert.ErrorIs(t, repo.UpsertInstance(ctx, "local", &probe.Instance{ID: "instance-1"}), probe.ErrUnsupportedStorage)
+	assert.ErrorIs(t, repo.MakeRoomForInstance(ctx, "local", "instance-1", probe.MaxInstancesPerProbe, time.Now()), probe.ErrUnsupportedStorage)
 	_, err = repo.TouchInstance(ctx, "local", "instance-1", time.Now())
 	assert.ErrorIs(t, err, probe.ErrUnsupportedStorage)
 	assert.ErrorIs(t, repo.RetireInstance(ctx, "local", "instance-1", time.Now()), probe.ErrUnsupportedStorage)

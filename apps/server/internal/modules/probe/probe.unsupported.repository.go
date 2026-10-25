@@ -56,6 +56,10 @@ func (r *UnsupportedRepositoryImpl) UpsertInstance(ctx context.Context, probeID 
 	return ErrUnsupportedStorage
 }
 
+func (r *UnsupportedRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID string, instanceID string, limit int, quietBefore time.Time) error {
+	return ErrUnsupportedStorage
+}
+
 func (r *UnsupportedRepositoryImpl) TouchInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) (bool, error) {
 	return false, ErrUnsupportedStorage
 }

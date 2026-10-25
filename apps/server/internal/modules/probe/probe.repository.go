@@ -30,6 +30,10 @@ type Repository interface {
 	// id already names. It returns ErrInstanceTaken, and changes nothing, when that instance
 	// belongs to another probe.
 	UpsertInstance(ctx context.Context, probeID string, inst *Instance) error
+	// MakeRoomForInstance leaves the probe room for one more instance, called inside the
+	// transaction that then upserts it: when the probe holds limit instances or more, it deletes
+	// the oldest ones last seen before quietBefore, as many as it takes.
+	MakeRoomForInstance(ctx context.Context, probeID string, instanceID string, limit int, quietBefore time.Time) error
 	// TouchInstance sets the last seen time of the probe's instance. It returns false when the
 	// probe has no such instance.
 	TouchInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) (bool, error)
