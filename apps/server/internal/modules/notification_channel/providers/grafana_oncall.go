@@ -73,7 +73,7 @@ func (g *GrafanaOncallSender) Send(
 		}
 	} else {
 		// Monitor-specific notification
-		monitorName := "Unknown Monitor"
+		monitorName := unknownMonitorName
 		if monitor != nil {
 			monitorName = monitor.Name
 		}

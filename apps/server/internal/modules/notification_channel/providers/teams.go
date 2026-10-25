@@ -228,11 +228,11 @@ func (s *TeamsSender) buildAdaptiveCard(
 	actions := []map[string]any{}
 
 	// Test notifications use a monitor that isn't saved, so there is no page to link to
-	if serverURL := s.getServerURL(cfg); serverURL != "" && monitor != nil && monitor.ID != "" {
+	if link := peekapingLink(s.getServerURL(cfg), monitor); link != "" && monitor.ID != "" {
 		actions = append(actions, map[string]any{
 			"type":  "Action.OpenUrl",
 			"title": "View in Peekaping",
-			"url":   fmt.Sprintf("%s/monitors/%s", serverURL, monitor.ID),
+			"url":   link,
 		})
 	}
 

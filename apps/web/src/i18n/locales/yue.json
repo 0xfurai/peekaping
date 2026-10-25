@@ -682,6 +682,7 @@
         "all": "所有位置",
         "no_result": "暫時未有結果",
         "probe_offline": "探針離線",
+        "probe_unsupported": "唔支援呢個類型",
         "response_time": "響應時間",
         "select_label": "位置",
         "title": "位置"
@@ -1157,6 +1158,7 @@
     "description": "探針會喺佢哋安裝嘅地方執行監測嘅檢查。本機探針就係 Peekaping 自己。",
     "local_name": "本機",
     "monitor_probe": "探針：{{name}}",
+    "monitor_probe_unsupported": "{{name}} 唔支援 {{type}} 監控",
     "empty_list": {
       "title": "搵唔到探針",
       "text": "建立一個探針，從另一個地方執行檢查。",

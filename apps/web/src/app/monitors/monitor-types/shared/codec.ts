@@ -3,7 +3,7 @@ import { LOCAL_PROBE_ID } from "@/app/probes/components/local-probe";
 import type { MonitorBaseValues } from "./schema";
 
 // The probes a saved monitor runs on. One with none, such as an older response, is on the local probe.
-export const monitorProbeIds = (data: Pick<MonitorMonitorResponseDto, "probe_ids">): string[] =>
+export const monitorProbeIds = (data: { probe_ids?: string[] | null }): string[] =>
   data.probe_ids?.length ? data.probe_ids : [LOCAL_PROBE_ID];
 
 // The form values of the fields every monitor type has, read from a saved monitor. A field the

@@ -682,6 +682,7 @@
         "all": "Kaikki sijainnit",
         "no_result": "Ei vielä tulosta",
         "probe_offline": "Luotain ei ole verkossa",
+        "probe_unsupported": "Ei suorita tätä tyyppiä",
         "response_time": "Vastausaika",
         "select_label": "Sijainti",
         "title": "Sijainnit"
@@ -1157,6 +1158,7 @@
     "description": "Luotaimet suorittavat valvontojen tarkistukset paikoista, joihin ne on asennettu. Paikallinen luotain on Peekaping itse.",
     "local_name": "Paikallinen",
     "monitor_probe": "Luotain: {{name}}",
+    "monitor_probe_unsupported": "{{name}} ei suorita {{type}}-tyyppisiä valvontoja",
     "empty_list": {
       "title": "Luotaimia ei löytynyt",
       "text": "Luo luotain suorittaaksesi tarkistuksia toisesta paikasta.",

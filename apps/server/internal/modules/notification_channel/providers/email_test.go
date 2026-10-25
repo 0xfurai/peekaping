@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/modules/heartbeat"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -111,13 +113,27 @@ func TestEmailSender_SendGoldenRequests(t *testing.T) {
 			server := startFakeSMTPServer(t)
 			config := withSMTPServer(t, tc.config, server.port())
 			sender := NewEmailSender(nopLogger())
-			message, hb := goldenNotification(tc.event)
+			message, mon, hb := goldenNotification(tc.event)
 
 			require.NoError(t, sender.Validate(config), "the case's config must pass validation, as the listener checks it first")
-			require.NoError(t, sender.Send(context.Background(), config, message, goldenMonitor, hb))
+			require.NoError(t, sender.Send(context.Background(), config, message, mon, hb))
 
 			assertGolden(t, tc.name, <-server.sessions)
 		})
+	}
+}
+
+// TestEmailSender_SendWithoutAMonitor checks that a template that names the monitor renders, and
+// doesn't panic, when the notification has none
+func TestEmailSender_SendWithoutAMonitor(t *testing.T) {
+	for _, withHeartbeat := range []*heartbeat.Model{nil, goldenDown, goldenUp} {
+		server := startFakeSMTPServer(t)
+		config := withSMTPServer(t, emailGoldenCases[1].config, server.port())
+
+		require.NotPanics(t, func() {
+			assert.NoError(t, NewEmailSender(nopLogger()).Send(context.Background(), config, "A message with no monitor", nil, withHeartbeat))
+		})
+		assert.Contains(t, <-server.sessions, "A message with no monitor")
 	}
 }
 

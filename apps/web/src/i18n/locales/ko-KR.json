@@ -682,6 +682,7 @@
         "all": "모든 위치",
         "no_result": "아직 결과 없음",
         "probe_offline": "프로브 오프라인",
+        "probe_unsupported": "이 유형을 실행하지 않음",
         "response_time": "응답 시간",
         "select_label": "위치",
         "title": "위치"
@@ -1157,6 +1158,7 @@
     "description": "프로브는 설치된 위치에서 모니터의 검사를 실행합니다. 로컬 프로브는 Peekaping 자체입니다.",
     "local_name": "로컬",
     "monitor_probe": "프로브: {{name}}",
+    "monitor_probe_unsupported": "{{name}}은(는) {{type}} 모니터를 실행하지 않습니다",
     "empty_list": {
       "title": "프로브를 찾을 수 없습니다",
       "text": "프로브를 만들어 다른 위치에서 검사를 실행하세요.",

@@ -682,6 +682,7 @@
         "all": "Vse lokacije",
         "no_result": "Še ni rezultata",
         "probe_offline": "Sonda je brez povezave",
+        "probe_unsupported": "Ne izvaja te vrste",
         "response_time": "Čas odziva",
         "select_label": "Lokacija",
         "title": "Lokacije"
@@ -1157,6 +1158,7 @@
     "description": "Sonde izvajajo preverjanja nadzorov s krajev, kjer so nameščene. Lokalna sonda je sam Peekaping.",
     "local_name": "Lokalna",
     "monitor_probe": "Sonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} ne izvaja monitorjev vrste {{type}}",
     "empty_list": {
       "title": "Sond ni bilo mogoče najti",
       "text": "Ustvarite sondo za izvajanje preverjanj z drugega kraja.",

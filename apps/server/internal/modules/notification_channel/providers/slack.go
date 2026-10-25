@@ -105,8 +105,7 @@ func (s *SlackSender) buildActions(baseURL string, monitor *monitor.Model) []map
 	actions := []map[string]any{}
 
 	// Add "Visit" button if base URL is available
-	if baseURL != "" && monitor != nil {
-		monitorURL := fmt.Sprintf("%s/monitors/%s", strings.TrimRight(baseURL, "/"), monitor.ID)
+	if link := peekapingLink(baseURL, monitor); link != "" {
 		actions = append(actions, map[string]any{
 			"type": "button",
 			"text": map[string]any{
@@ -114,7 +113,7 @@ func (s *SlackSender) buildActions(baseURL string, monitor *monitor.Model) []map
 				"text": "Visit Peekaping",
 			},
 			"value": "Peekaping",
-			"url":   monitorURL,
+			"url":   link,
 		})
 	}
 
@@ -250,20 +249,30 @@ func (s *SlackSender) Send(
 		payload["channel"] = cfg.Channel
 	}
 
-	// Handle rich message format
-	if cfg.RichMessage && heartbeat != nil {
+	// Handle rich message format. A probe's notification carries no heartbeat, but has a button
+	// to the Probes page.
+	if cfg.RichMessage && (heartbeat != nil || monitor.IsProbeEvent()) {
 		title := "Peekaping Alert"
 
 		// Use blocks for modern Slack message format
 		blocks := s.buildBlocks(s.config.ClientURL, monitor, heartbeat, title, messageText)
 
+		// Without a heartbeat there is no status to color the message by, so it is grey
+		color := "#808080"
+		if heartbeat != nil {
+			color = s.getStatusColor(heartbeat.Status)
+		}
 		attachment := map[string]any{
-			"color":  s.getStatusColor(heartbeat.Status),
+			"color":  color,
 			"blocks": blocks,
 		}
 
 		payload["attachments"] = []map[string]any{attachment}
-		payload["text"] = title // Fallback text for notifications
+		// Fallback text for notifications. A probe's notification keeps its message there, so a
+		// phone's notification still says which probe went offline or came back.
+		if !monitor.IsProbeEvent() {
+			payload["text"] = title
+		}
 	}
 
 	// Convert payload to JSON

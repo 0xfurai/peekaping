@@ -53,7 +53,9 @@ func provideScheduler(
 
 // provideWatchdog provides the stale-monitor watchdog. It records the stale monitors in the
 // store and gets those of the local probe checked again with the scheduler's RunNow. It leaves
-// alone a monitor whose probe is offline, as probeOffline says. Its Run looks for them until its context is done.
+// alone a monitor whose probe is offline, as probeOffline says, and names the probes that don't run
+// a stale monitor's type in its notification, as probes says. Its Run looks for them until its
+// context is done.
 func provideWatchdog(
 	s *scheduler.Scheduler,
 	store stale.Store,
@@ -61,6 +63,7 @@ func provideWatchdog(
 	heartbeatService heartbeat.Service,
 	eventBus events.EventBus,
 	probeOffline stale.ProbeOfflineFunc,
+	probes stale.ProbeLookup,
 	logger *zap.SugaredLogger,
 ) *stale.Watchdog {
 	return stale.NewWatchdog(stale.WatchdogConfig{
@@ -71,6 +74,7 @@ func provideWatchdog(
 		EventBus:     eventBus,
 		CheckTimeout: scheduler.CheckTimeout,
 		ProbeOffline: probeOffline,
+		Probes:       probes,
 		Logger:       logger.With("component", "watchdog"),
 	})
 }

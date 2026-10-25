@@ -16,14 +16,18 @@ export const LOCATION_HEARTBEATS = 150;
 
 type LocationRowProps = {
   monitorId: string;
+  // The monitor's type, for saying which type the location's probe doesn't run
+  monitorType: string;
   location: MonitorModelLocation;
+  // Whether the location's probe doesn't run the monitor's type, so that it checks nothing
+  unsupported: boolean;
   // The heartbeats the page received live since it loaded, of every location
   liveHeartbeats: HeartbeatModel[];
 };
 
 // One location of a monitor: the probe's name, its latest status and response time, its 24 hour
 // uptime and its own heartbeat bar
-const LocationRow = ({ monitorId, location, liveHeartbeats }: LocationRowProps) => {
+const LocationRow = ({ monitorId, monitorType, location, unsupported, liveHeartbeats }: LocationRowProps) => {
   const { t } = useLocalizedTranslation();
 
   const { data: heartbeatsResponse } = useQuery({
@@ -88,6 +92,18 @@ const LocationRow = ({ monitorId, location, liveHeartbeats }: LocationRowProps) 
             {t("monitors.view.locations.probe_offline")}
           </span>
         )}
+        {unsupported && (
+          <span
+            className="text-sm text-amber-500"
+            title={t("probes.monitor_probe_unsupported", {
+              name: location.probe_name || location.probe_id,
+              type: monitorType,
+            })}
+            data-testid="monitor-location-unsupported"
+          >
+            {t("monitors.view.locations.probe_unsupported")}
+          </span>
+        )}
       </div>
       <BarHistory data={heartbeats} />
     </div>
@@ -96,13 +112,22 @@ const LocationRow = ({ monitorId, location, liveHeartbeats }: LocationRowProps) 
 
 type LocationsSectionProps = {
   monitorId: string;
+  monitorType: string;
   locations: MonitorModelLocation[];
+  // The ids of the probes that don't run the monitor's type
+  unsupportedProbeIds: string[];
   liveHeartbeats: HeartbeatModel[];
 };
 
 // The locations of a monitor that runs on more than one probe, each with its own heartbeat bar.
 // One bar for the monitor would interleave the probes' heartbeats and mislead.
-const LocationsSection = ({ monitorId, locations, liveHeartbeats }: LocationsSectionProps) => {
+const LocationsSection = ({
+  monitorId,
+  monitorType,
+  locations,
+  unsupportedProbeIds,
+  liveHeartbeats,
+}: LocationsSectionProps) => {
   const { t } = useLocalizedTranslation();
 
   return (
@@ -112,7 +137,9 @@ const LocationsSection = ({ monitorId, locations, liveHeartbeats }: LocationsSec
         <LocationRow
           key={location.probe_id}
           monitorId={monitorId}
+          monitorType={monitorType}
           location={location}
+          unsupported={unsupportedProbeIds.includes(location.probe_id)}
           liveHeartbeats={liveHeartbeats}
         />
       ))}
