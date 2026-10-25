@@ -18,6 +18,7 @@ import (
 	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/producer"
 	"peekaping/internal/modules/queue"
+	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/telemetry"
@@ -115,7 +116,7 @@ func (p clusterWatchdogParams) config() stale.WatchdogConfig {
 		Heartbeats:   p.Heartbeats,
 		EventBus:     p.EventBus,
 		Now:          stale.RedisClock(p.Client, p.Logger),
-		CheckTimeout: worker.HealthCheckTaskTimeout,
+		CheckTimeout: scheduler.CheckTimeout,
 		ProbeOffline: p.ProbeOffline,
 		Probes:       p.Probes,
 		Logger:       p.Logger.With("component", "watchdog"),
