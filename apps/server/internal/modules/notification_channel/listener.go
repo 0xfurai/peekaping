@@ -148,9 +148,26 @@ func (l *NotificationEventListener) handleStaleMonitorEvent(ctx context.Context,
 	message := fmt.Sprintf("Peekaping has not checked %s since %s", monitorModel.Name, since)
 	if recovered {
 		message = fmt.Sprintf("Peekaping is checking %s again. It was not checked from %s", monitorModel.Name, since)
+	} else if reason := unsupportedProbesReason(staleEvent.UnsupportedProbes, monitorModel.Type); reason != "" {
+		message += ": " + reason
 	}
 	// A stale-monitor notification carries no heartbeat
 	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
+}
+
+// unsupportedProbesReason says why no probe checks a monitor when probes don't run its type:
+// "probe Frankfurt doesn't run docker monitors", "probes Frankfurt and Lagos don't run docker
+// monitors". It is empty when no probe is named.
+func unsupportedProbesReason(probeNames []string, monitorType string) string {
+	switch len(probeNames) {
+	case 0:
+		return ""
+	case 1:
+		return fmt.Sprintf("probe %s doesn't run %s monitors", probeNames[0], monitorType)
+	default:
+		last := len(probeNames) - 1
+		return fmt.Sprintf("probes %s and %s don't run %s monitors", strings.Join(probeNames[:last], ", "), probeNames[last], monitorType)
+	}
 }
 
 func (l *NotificationEventListener) handleNotifyEvent(ctx context.Context, hb heartbeat.Model) {
