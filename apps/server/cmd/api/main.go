@@ -1,6 +1,11 @@
-// Command api runs the HTTP API and the websocket of Peekaping in cluster mode (ADR 0002),
-// beside cmd/producer, cmd/worker and cmd/ingester. It also takes the notification events the
-// ingester and the producer's watchdog queue, and runs the cleanup cron and the status repair.
+// Command api runs the HTTP API and the websocket of Peekaping in cluster mode (ADR 0002). It takes
+// the notification events that are queued for it, and runs the cleanup cron and the status repair.
+//
+// On SQLite and PostgreSQL, the probes run the checks and the api does the rest: it stores what they
+// send and what the push URLs take, on the replica that took the request, counts the stats of those
+// heartbeats, and runs the stale-monitor watchdog and the probe sweep on the one replica that holds
+// the leader lock. On MongoDB, which has no probes, cmd/producer, cmd/worker and cmd/ingester still
+// run the checks and store their results, and the api only enqueues a push.
 //
 // It doesn't migrate the database: the startup script runs the migrations with cmd/bun before
 // it starts the server.

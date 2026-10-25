@@ -33,6 +33,22 @@ import (
 // that stopped are dealt to the others, which check each at once, so each of those monitors has a
 // check close to its last.
 func TestProbeSoak_ThreeInstancesOneStops(t *testing.T) {
+	runProbeSoak(t, newSingleApp(t))
+}
+
+// TestProbeSoak_ThreeInstancesOneStopsAgainstTheClusterAPI is the same run against the cluster API
+// on SQLite: an api replica that stores what the probes send itself, in order, where the ingester
+// used to, and counts the stats of it. From apps/server:
+//
+//	go test -tags soak -run TestProbeSoak_ThreeInstancesOneStopsAgainstTheClusterAPI -count=1 -timeout 15m -v ./internal/apitest/
+func TestProbeSoak_ThreeInstancesOneStopsAgainstTheClusterAPI(t *testing.T) {
+	a := newAppWithAdmin(t)
+	a.countStatsOnTheLocalBus(t)
+	runProbeSoak(t, a)
+}
+
+// runProbeSoak is the soak, against the app
+func runProbeSoak(t *testing.T, a *app) {
 	const (
 		monitors = 1000
 		interval = 20 * time.Second
@@ -53,7 +69,6 @@ func TestProbeSoak_ThreeInstancesOneStops(t *testing.T) {
 		// redealWindow is how long after the stop a monitor may be checked twice
 		redealWindow = interval + 2*time.Second
 	)
-	a := newSingleApp(t)
 	target := newCheckTarget(t)
 	frankfurt := a.createProbe(t, map[string]any{"name": "Frankfurt"})
 
@@ -67,13 +82,17 @@ func TestProbeSoak_ThreeInstancesOneStops(t *testing.T) {
 	}
 	t.Logf("created %d monitors in %s", monitors, time.Since(created0).Round(time.Millisecond))
 
+	batches := &batchTimes{}
 	probes := make([]interface {
 		Shutdown(context.Context) error
 		InstanceID() string
 	}, 3)
 	started := time.Now()
 	for i := range probes {
-		probes[i] = a.startProbe(t, frankfurt.Token, func(c *probeclient.Config) { c.Concurrency = concurrency })
+		probes[i] = a.startProbe(t, frankfurt.Token, func(c *probeclient.Config) {
+			c.Concurrency = concurrency
+			c.HTTPClient = &http.Client{Transport: timedTransport{inner: inProcessTransport{router: a.router}, batches: batches}}
+		})
 	}
 
 	checksOf := func(path string) []time.Time {
@@ -139,9 +158,11 @@ func TestProbeSoak_ThreeInstancesOneStops(t *testing.T) {
 	}
 
 	// Span A: the three instances, settled
+	heapSettled := heapAfterGC()
 	spanA := time.Now()
 	time.Sleep(judged)
 	endA := time.Now()
+	heapA := heapAfterGC()
 	judge("before the stop", spanA, endA, func(time.Time) bool { return false })
 	checksA, _ := checked()
 	t.Logf("before the stop: %d checks of %d monitors in all, none twice within %s", checksA, monitors, minGap)
@@ -164,6 +185,7 @@ func TestProbeSoak_ThreeInstancesOneStops(t *testing.T) {
 	spanB := time.Now()
 	time.Sleep(judged)
 	judge("after the redeal", spanB, time.Now(), func(time.Time) bool { return false })
+	heapB := heapAfterGC()
 	checksB, _ := checked()
 	t.Logf("after the redeal: %d checks in all, %d since the stop", checksB, checksB-checksA)
 
@@ -173,6 +195,13 @@ func TestProbeSoak_ThreeInstancesOneStops(t *testing.T) {
 		"a heartbeat is stored for each check")
 	t.Logf("%d heartbeats stored for %d checks", storedHeartbeats(t, a), checksB)
 
+	// The API's memory: the live heap after a collection, when the instances settled, after the first
+	// span and after the last. A run of a few minutes shows a leak that grows with the checks.
+	t.Logf("API heap after a GC: %s settled, %s after the first span, %s after the last", mib(heapSettled), mib(heapA), mib(heapB))
+	assert.Less(t, heapB, heapSettled*3/2+64<<20, "the API's live heap does not grow with the checks it stores")
+
+	// The rate at which the API stores a batch: results in the batch over the time the request took
+	batches.report(t)
 	t.Logf("total duration of the run: %s", time.Since(created0).Round(time.Second))
 }
 
