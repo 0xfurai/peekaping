@@ -116,7 +116,7 @@ func (o *OpsgenieSender) sendTestNotification(ctx context.Context, cfg *Opsgenie
 
 // sendDownAlert sends an alert when monitor is down
 func (o *OpsgenieSender) sendDownAlert(ctx context.Context, cfg *OpsgenieConfig, baseURL, message string, monitor *monitor.Model, heartbeat *heartbeat.Model, textMsg string) error {
-	monitorName := "Unknown Monitor"
+	monitorName := unknownMonitorName
 	if monitor != nil {
 		monitorName = monitor.Name
 	}

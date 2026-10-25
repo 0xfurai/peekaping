@@ -682,6 +682,7 @@
         "all": "所有位置",
         "no_result": "暂无结果",
         "probe_offline": "探针离线",
+        "probe_unsupported": "不支持此类型",
         "response_time": "响应时间",
         "select_label": "位置",
         "title": "位置"
@@ -1157,6 +1158,7 @@
     "description": "探针在其安装的位置运行监控的检查。本地探针就是 Peekaping 本身。",
     "local_name": "本地",
     "monitor_probe": "探针：{{name}}",
+    "monitor_probe_unsupported": "{{name}} 不支持 {{type}} 类型的监控",
     "empty_list": {
       "title": "未找到探针",
       "text": "创建探针，从其他位置运行检查。",

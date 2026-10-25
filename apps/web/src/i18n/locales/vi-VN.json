@@ -682,6 +682,7 @@
         "all": "Tất cả vị trí",
         "no_result": "Chưa có kết quả",
         "probe_offline": "Đầu dò ngoại tuyến",
+        "probe_unsupported": "Không chạy loại này",
         "response_time": "Thời gian phản hồi",
         "select_label": "Vị trí",
         "title": "Vị trí"
@@ -1157,6 +1158,7 @@
     "description": "Đầu dò chạy các lần kiểm tra của giám sát từ những nơi chúng được cài đặt. Đầu dò cục bộ chính là Peekaping.",
     "local_name": "Cục bộ",
     "monitor_probe": "Đầu dò: {{name}}",
+    "monitor_probe_unsupported": "{{name}} không chạy các giám sát loại {{type}}",
     "empty_list": {
       "title": "Không tìm thấy đầu dò nào",
       "text": "Tạo một đầu dò để chạy kiểm tra từ một nơi khác.",

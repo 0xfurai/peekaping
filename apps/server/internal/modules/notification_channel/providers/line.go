@@ -71,14 +71,18 @@ func (s *LineSender) Send(
 		}
 	} else if heartbeat != nil {
 		// Default message format when template is not used
+		name := unknownMonitorName
+		if monitor != nil {
+			name = monitor.Name
+		}
 		if heartbeat.Status == 0 { // DOWN
 			messageText = fmt.Sprintf("Peekaping Alert: [🔴 Down]\nName: %s\n%s\nTime: %s",
-				monitor.Name,
+				name,
 				message,
 				heartbeat.Time.Format(time.RFC3339))
 		} else if heartbeat.Status == 1 { // UP
 			messageText = fmt.Sprintf("Peekaping Alert: [✅ Up]\nName: %s\n%s\nTime: %s",
-				monitor.Name,
+				name,
 				message,
 				heartbeat.Time.Format(time.RFC3339))
 		}

@@ -197,11 +197,11 @@ func monitorStatus(locations []shared.MonitorLocation, rule locationRule) shared
 // important and notified, so a result can move the monitor to Up only if its own location is not
 // Down, and to Down only if it is not Up: another location's stale status, back with its probe,
 // must wait for that location's own result, which carries the change. A Pending or Maintenance
-// location is neither, so it can move the monitor either way. A result does not move a Down
-// monitor to Pending unless its location was Down before the result (locationBefore): otherwise
-// another location put the monitor Down, and this one's retries must not hide the outage. The
-// monitor stays Down until an Up result takes it Up, and that Down to Up is the one notified.
-func carriesChange(location, locationBefore, from, to shared.MonitorStatus) bool {
+// location is neither, so it can move the monitor either way. No result moves a Down monitor to
+// Pending: a Down monitor leaves Down only for Up or Maintenance, so that another location's
+// retries, or a Docker container that is starting, don't hide the outage, and the Down to Up that
+// ends it is the one notified.
+func carriesChange(location, from, to shared.MonitorStatus) bool {
 	if from == to {
 		return true
 	}
@@ -211,7 +211,7 @@ func carriesChange(location, locationBefore, from, to shared.MonitorStatus) bool
 	case shared.MonitorStatusDown:
 		return location != shared.MonitorStatusUp
 	case shared.MonitorStatusPending:
-		return from != shared.MonitorStatusDown || locationBefore == shared.MonitorStatusDown
+		return from != shared.MonitorStatusDown
 	default:
 		return true
 	}
@@ -255,18 +255,21 @@ func countsResends(locations []shared.MonitorLocation, probeID string) bool {
 	return true
 }
 
-// resendsWhile reports whether a Down notification is resent while the monitor has the status. A
-// location can be Down while the monitor is not: under "all" or "at least" the monitor can be Up or
-// in maintenance, and a Down notification then would say it is down when it isn't. A Pending
-// monitor keeps resending, as it did before location rules.
-func resendsWhile(monitor shared.MonitorStatus) bool {
-	return monitor == shared.MonitorStatusDown || monitor == shared.MonitorStatusPending
+// countsTowardResend reports whether a heartbeat stored with the status counts toward the resend
+// interval while the monitor has the monitorStatus: only a Down heartbeat of a Down monitor does.
+// A failed check stored as Pending is a retry, and a location can be Down while the monitor is not
+// (under "all" or "at least" it can be Pending, Up or in maintenance): a Down notification then
+// would say the monitor is down when it isn't.
+func countsTowardResend(stored, monitorStatus shared.MonitorStatus) bool {
+	return stored == shared.MonitorStatusDown && monitorStatus == shared.MonitorStatusDown
 }
 
 // Ingest stores the result as a heartbeat and publishes the events that follow from it.
 //
 // The heartbeat is judged against the previous one of the same monitor and probe: its retries, and
-// whether it is Pending or Down. That is the status of the monitor's location on the probe. The
+// whether it is Pending or Down. That is the status of the monitor's location on the probe. A
+// location that was Down stays Down until a result is Up: a failed check, whether the check
+// result is Down or Pending, is stored as Down and counted, whatever max retries has become. The
 // monitor's own status follows from its locations (see monitorStatus), and whether the heartbeat
 // is important, whether to notify and whether the monitor changed status follow from the monitor's
 // status before the result and after it. A monitor on one probe is judged exactly as it was when a
@@ -315,13 +318,23 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		hb.Retries = previousBeat.Retries
 	}
 
-	// Mark as pending if max retries is set and retries is less than max retries
-	if r.Status == shared.MonitorStatusDown {
+	// A location whose previous heartbeat is Down stays Down until a result is Up
+	downBefore := !isFirstOnProbe && previousBeat.Status == shared.MonitorStatusDown
+
+	switch {
+	case downBefore && (r.Status == shared.MonitorStatusDown || r.Status == shared.MonitorStatusPending):
+		// A failed check keeps it Down, whatever max retries is now: raised since it went Down, it
+		// does not send the location back to Pending. A check that reports Pending, such as a
+		// Docker container that is still starting, is no recovery either: it is a failed check.
+		hb.Status = shared.MonitorStatusDown
+		hb.Retries++
+	case r.Status == shared.MonitorStatusDown:
+		// Mark as pending if max retries is set and retries is less than max retries
 		if !isFirstOnProbe && r.MonitorMaxRetries > 0 && previousBeat.Retries < r.MonitorMaxRetries {
 			hb.Status = shared.MonitorStatusPending
 		}
 		hb.Retries++
-	} else {
+	default:
 		hb.Retries = 0
 	}
 	if hb.Status == shared.MonitorStatusUp {
@@ -339,7 +352,6 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		rowsBefore      []shared.MonitorLocation
 		recordedBefore  *shared.MonitorStatus
 		isFirstBeat     bool
-		locationBefore  shared.MonitorStatus
 		previousStatus  shared.MonitorStatus
 		currentStatus   shared.MonitorStatus
 		locationsAfter  []shared.MonitorLocation
@@ -355,9 +367,6 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 				l.Status = &previousStatus
 			}
 		})
-		if i := slices.IndexFunc(locationsBefore, func(l shared.MonitorLocation) bool { return l.ProbeID == probeID }); i >= 0 && locationsBefore[i].Status != nil {
-			locationBefore = *locationsBefore[i].Status
-		}
 		locationsAfter = withLocation(j.After, probeID, func(l *shared.MonitorLocation) {
 			l.Status, l.LastPing, l.LastHeartbeatAt = &locationStatus, &r.PingMs, &r.StartTime
 		})
@@ -371,7 +380,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 			previousStatus = monitorStatus(locationsBefore, rule)
 		}
 		currentStatus = monitorStatus(locationsAfter, rule)
-		if !isFirstBeat && !carriesChange(locationStatus, locationBefore, previousStatus, currentStatus) {
+		if !isFirstBeat && !carriesChange(locationStatus, previousStatus, currentStatus) {
 			currentStatus = previousStatus
 		}
 		return &currentStatus
@@ -398,7 +407,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	} else {
 		hb.Important = false
 
-		if r.Status == shared.MonitorStatusDown && resendsWhile(currentStatus) && r.MonitorResendInt > 0 && countsResends(locationsAfter, probeID) {
+		if countsTowardResend(hb.Status, currentStatus) && r.MonitorResendInt > 0 && countsResends(locationsAfter, probeID) {
 			hb.DownCount += 1
 
 			if hb.DownCount >= r.MonitorResendInt {

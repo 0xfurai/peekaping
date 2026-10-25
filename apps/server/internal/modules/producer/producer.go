@@ -24,6 +24,7 @@ type Option func(*options)
 
 type options struct {
 	probeOffline stale.ProbeOfflineFunc
+	probes       stale.ProbeLookup
 	probeSweep   *probe.Sweep
 }
 
@@ -37,6 +38,12 @@ func WithProbeSweep(sweep *probe.Sweep) Option {
 // offline, so that it leaves such a monitor alone. Without it, no probe is ever offline.
 func WithProbeOffline(probeOffline stale.ProbeOfflineFunc) Option {
 	return func(o *options) { o.probeOffline = probeOffline }
+}
+
+// WithProbeLookup tells the producer's watchdog how to read a monitor's probes, so that it can name
+// those that don't run the type of a stale monitor in its notification. Without it, it names none.
+func WithProbeLookup(probes stale.ProbeLookup) Option {
+	return func(o *options) { o.probes = probes }
 }
 
 // NewProducer creates a new producer instance. The runner runs the checks it schedules: in
@@ -91,6 +98,7 @@ func NewProducer(
 		Now:          func() time.Time { return time.UnixMilli(p.redisNowMs()).UTC() },
 		CheckTimeout: worker.HealthCheckTaskTimeout,
 		ProbeOffline: o.probeOffline,
+		Probes:       o.probes,
 		Logger:       logger.With("component", "watchdog"),
 	})
 

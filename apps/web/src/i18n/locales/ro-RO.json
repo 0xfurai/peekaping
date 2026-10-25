@@ -682,6 +682,7 @@
         "all": "Toate locațiile",
         "no_result": "Încă niciun rezultat",
         "probe_offline": "Sondă offline",
+        "probe_unsupported": "Nu rulează acest tip",
         "response_time": "Timp de răspuns",
         "select_label": "Locație",
         "title": "Locații"
@@ -1156,6 +1157,7 @@
     "description": "Sondele execută verificările monitoarelor din locurile în care sunt instalate. Sonda locală este chiar Peekaping.",
     "local_name": "Locală",
     "monitor_probe": "Sondă: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nu rulează monitoare {{type}}",
     "empty_list": {
       "title": "Nu a fost găsită nicio sondă",
       "text": "Creează o sondă pentru a rula verificări dintr-un alt loc.",

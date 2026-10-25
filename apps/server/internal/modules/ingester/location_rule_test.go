@@ -172,6 +172,26 @@ func TestIngester_AtLeastTwoOfThree_ADownLocationDoesNotResendWhileTheMonitorIsU
 	assert.Equal(t, up, *ti.locations.recorded)
 }
 
+func TestIngester_All_ADownLocationDoesNotResendWhileTheMonitorIsPending(t *testing.T) {
+	m := monitorSettings{maxRetries: 1, resendInterval: 1, locationRule: shared.LocationRuleAll}
+	ti := newTestIngester(runningOn(probeA, probeB))
+	ti.bringUp(t, m, probeA, probeB)
+	ti.from(t, probeB, m, down) // B retries
+	ti.from(t, probeA, m, down) // A retries
+	require.NotNil(t, ti.locations.recorded)
+	require.Equal(t, pending, *ti.locations.recorded, "A and B are both retrying: the monitor is Pending")
+
+	for i := 1; i <= 4; i++ {
+		beat := ti.from(t, probeA, m, down)
+
+		assert.Equal(t, down, beat.status, "Down heartbeat %d of A: A's retries are used up", i)
+		assert.Equal(t, 0, beat.downCount, "Down heartbeat %d of A: the monitor is not Down, so it counts nothing", i)
+		assert.False(t, beat.notified, "Down heartbeat %d of A", i)
+		assert.Empty(t, beat.events, "Down heartbeat %d of A: B is still retrying, so the monitor is Pending and there is nothing to resend", i)
+	}
+	assert.Equal(t, pending, *ti.locations.recorded, "the monitor is still Pending")
+}
+
 func TestIngester_AtLeastTwoOfThree_ResendsFollowTheFirstDownLocationWhileTheMonitorIsDown(t *testing.T) {
 	m := monitorSettings{locationRule: shared.LocationRuleAtLeast, locationThreshold: 2, resendInterval: 2}
 	ti := newTestIngester(runningOn(probeA, probeB, probeC))
