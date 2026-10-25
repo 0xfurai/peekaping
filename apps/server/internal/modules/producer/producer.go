@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/probe"
@@ -48,7 +49,7 @@ func NewProducer(
 	heartbeatService stale.HeartbeatFinder,
 	staleStore stale.Store,
 	eventBus events.EventBus,
-	leaderElection *LeaderElection,
+	leaderElection *leader.Elector,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
 	opts ...Option,

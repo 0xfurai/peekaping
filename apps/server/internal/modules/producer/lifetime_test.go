@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/monitor"
 
 	"github.com/alicebob/miniredis/v2/server"
@@ -20,7 +21,7 @@ import (
 // releasesLeadership is whether the Redis command is the election's release of the leadership,
 // not another script of the producer's
 func releasesLeadership(cmd string, args []string) bool {
-	return strings.EqualFold(cmd, "EVAL") && slices.Contains(args, LeaderKey)
+	return strings.EqualFold(cmd, "EVAL") && slices.Contains(args, leader.Key)
 }
 
 // holdLeadershipRelease makes Redis hold the command that releases the leadership until the
@@ -43,7 +44,7 @@ func holdLeadershipRelease(t *testing.T, e *leaderEngine) (release func()) {
 // leaderKeyExists is whether any node holds the leadership
 func leaderKeyExists(t *testing.T, e *leaderEngine) bool {
 	t.Helper()
-	exists, err := e.rdb.Exists(context.Background(), LeaderKey).Result()
+	exists, err := e.rdb.Exists(context.Background(), leader.Key).Result()
 	require.NoError(t, err)
 	return exists == 1
 }

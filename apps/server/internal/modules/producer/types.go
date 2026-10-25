@@ -8,6 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/shared"
@@ -41,7 +42,7 @@ type Producer struct {
 	scheduleRefreshInterval time.Duration
 	reclaimInterval         time.Duration // how often expired leases are swept back to the due set
 	leadershipCheckInterval time.Duration // how often syncing is started or stopped to follow leadership
-	leaderElection          *LeaderElection
+	leaderElection          *leader.Elector
 	electionCancel          context.CancelFunc // ends the election, which releases the leadership; Stop does that last. Nil until Start
 	electionDone            <-chan struct{}    // closes once the election has released the leadership; nil until Start
 	stopOnce                sync.Once          // runs the stop once, whether Stop or the end of Start's ctx asks first

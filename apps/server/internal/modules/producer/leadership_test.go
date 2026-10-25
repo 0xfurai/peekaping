@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -21,7 +22,7 @@ import (
 // syncing put there.
 type leaderEngine struct {
 	*engine
-	election *LeaderElection
+	election *leader.Elector
 	logs     *observer.ObservedLogs
 }
 
@@ -32,8 +33,9 @@ func newLeaderEngine(t *testing.T, monitors ...*monitor.Model) *leaderEngine {
 	e.producer.logger = zap.New(core).Sugar()
 	e.producer.leadershipCheckInterval = 2 * time.Millisecond
 
-	le := NewLeaderElection(e.rdb, "node1", zap.NewNop().Sugar())
-	le.renewalInterval = 2 * time.Millisecond
+	// The election logs to the same observer as the producer: the leadership monitor's log lines
+	// are the election's now
+	le := leader.New(e.rdb, "node1", zap.New(core).Sugar(), leader.WithRenewalInterval(2*time.Millisecond))
 	e.producer.leaderElection = le
 	return &leaderEngine{engine: e, election: le, logs: logs}
 }
@@ -48,7 +50,7 @@ func (e *leaderEngine) start(t *testing.T) {
 	t.Cleanup(func() {
 		e.producer.Stop()
 		// Producer.Stop waits for an election that Start began, not for this one
-		<-e.election.doneChan
+		<-e.election.Done()
 	})
 }
 
@@ -70,14 +72,14 @@ func TestRunLeadershipMonitor(t *testing.T) {
 		e.start(t)
 
 		e.eventuallyDueAt(t, "mon-1", t0)
-		holder, err := e.rdb.Get(ctx, LeaderKey).Result()
+		holder, err := e.rdb.Get(ctx, leader.Key).Result()
 		require.NoError(t, err)
 		assert.Equal(t, "node1", holder)
 	})
 
 	t.Run("a follower doesn't sync until the leader's lock expires", func(t *testing.T) {
 		e := newLeaderEngine(t, &monitor.Model{ID: "mon-1", Active: true, Interval: 60})
-		require.NoError(t, e.rdb.Set(ctx, LeaderKey, "node2", LeaderTTL).Err())
+		require.NoError(t, e.rdb.Set(ctx, leader.Key, "node2", leader.TTL).Err())
 
 		e.start(t)
 
@@ -87,7 +89,7 @@ func TestRunLeadershipMonitor(t *testing.T) {
 		}, 50*time.Millisecond, 2*time.Millisecond, "a follower synced the schedule")
 
 		// node2 stops renewing: its lock runs out and this node takes over
-		e.mr.FastForward(LeaderTTL)
+		e.mr.FastForward(leader.TTL)
 		e.eventuallyDueAt(t, "mon-1", t0)
 	})
 
@@ -97,12 +99,12 @@ func TestRunLeadershipMonitor(t *testing.T) {
 		e.eventuallyDueAt(t, "mon-1", t0)
 
 		// node2 holds the lock now
-		require.NoError(t, e.rdb.Set(ctx, LeaderKey, "node2", LeaderTTL).Err())
+		require.NoError(t, e.rdb.Set(ctx, leader.Key, "node2", leader.TTL).Err())
 		e.eventuallyStoppedSyncing(t, 1)
 
 		// A monitor created meanwhile is only picked up by a new sync
 		e.monitors.put(&monitor.Model{ID: "mon-2", Active: true, Interval: 60})
-		require.NoError(t, e.rdb.Del(ctx, LeaderKey).Err())
+		require.NoError(t, e.rdb.Del(ctx, leader.Key).Err())
 
 		e.eventuallyDueAt(t, "mon-2", t0)
 	})
@@ -114,7 +116,7 @@ func TestStartJobProcessing(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		le := leader.New(client, "node1", logger)
 
 		cfg := &config.Config{
 			ProducerConcurrency: 2,
@@ -164,7 +166,7 @@ func TestStartMonitorSyncing(t *testing.T) {
 		defer mr.Close()
 
 		logger := zap.NewNop().Sugar()
-		le := NewLeaderElection(client, "node1", logger)
+		le := leader.New(client, "node1", logger)
 
 		cfg := &config.Config{
 			ProducerConcurrency: 1,
