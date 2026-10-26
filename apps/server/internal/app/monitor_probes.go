@@ -30,16 +30,25 @@ func (l *probeLookup) FindProbe(ctx context.Context, id string) (*monitor.ProbeI
 // service. The probe module doesn't import the monitor module, so this is where the two meet.
 type probeMonitorAssigner struct {
 	monitors monitor.Service
+	probes   probe.Service
 }
 
-func provideProbeMonitorAssigner(monitors monitor.Service) probe.MonitorAssigner {
-	return &probeMonitorAssigner{monitors: monitors}
+func provideProbeMonitorAssigner(monitors monitor.Service, probes probe.Service) probe.MonitorAssigner {
+	return &probeMonitorAssigner{monitors: monitors, probes: probes}
 }
 
-// AssignProbeToAll assigns without a claim: the action is the admin's own request, and not a flag
-// that a hello spends once
+// AssignProbeToAll always assigns: the action is the admin's own request, and not a flag that a
+// hello spends once. It still makes the claim, so that a flag that is set (an admin made a probe
+// with instances wait again, or its first hello hasn't come) is cleared in the same transaction as
+// the assignment, and the probe page stops saying it waits for its first instance. The claim says
+// true whether or not it found the flag.
 func (a *probeMonitorAssigner) AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string) (int, error) {
-	return a.monitors.AssignProbeToAll(ctx, probeID, supportedTypes, nil)
+	return a.monitors.AssignProbeToAll(ctx, probeID, supportedTypes, func(ctx context.Context) (bool, error) {
+		if _, err := a.probes.ClaimPendingAssignment(ctx, probeID); err != nil {
+			return false, err
+		}
+		return true, nil
+	})
 }
 
 // staleProbeLookup answers the stale-monitor watchdog's questions about probes from the probe
