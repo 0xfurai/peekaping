@@ -32,7 +32,7 @@ go vet ./...
 go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...   # integration tests; need Docker
 ```
 
-The `integration` tag adds tests that run against a real Redis and a real Kafka broker, which they start in Docker, or take from `PEE_TEST_REDIS_URL` and `PEE_TEST_KAFKA_BROKER` with `PEE_TEST_KAFKA_SASL_BROKER` (see `apps/docs/docs/development.md`, Integration tests). CI runs them in the Integration tests workflow. Run them when the change touches a monitor executor they cover.
+The `integration` tag adds tests that run against a real Redis, Kafka broker, PostgreSQL and MySQL, which they start in Docker, or take from `PEE_TEST_REDIS_URL`, `PEE_TEST_KAFKA_BROKER` with `PEE_TEST_KAFKA_SASL_BROKER`, `PEE_TEST_POSTGRES_EXECUTOR_URL` and `PEE_TEST_MYSQL_URL` (see `apps/docs/docs/development.md`, Integration tests). CI runs them in the Integration tests workflow. Run them when the change touches a monitor executor they cover.
 
 Pass `-timeout`: a nil dereference has been seen to hang instead of panic on macOS, which stalls a run for the 10-minute default. If `go` can't find modules offline, set `GOMODCACHE=$HOME/go/pkg/mod`.
 
