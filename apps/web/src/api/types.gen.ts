@@ -964,7 +964,7 @@ export type StatusPagePublicLocationDto = {
    */
   status: number;
   /**
-   * The uptime of this location over the last 24 hours, in percent. Null when it could not be read.
+   * The uptime of this location over the last 24 hours, in percent. Null when it could not be read, or when the location has no Up or Down heartbeat in that period.
    */
   uptime_24h: number | null;
 };
