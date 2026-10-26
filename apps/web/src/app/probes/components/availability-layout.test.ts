@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatDuration,
   formatUptime,
+  instanceName,
   placeSpans,
   placeUntracked,
 } from "./availability-layout";
@@ -73,8 +74,16 @@ describe("placeSpans", () => {
 
   it("keeps what else the span carries, in order", () => {
     const placed = placeSpans(FROM, TO, [
-      { start: "2026-10-24T00:00:00Z", end: "2026-10-24T06:00:00Z", status: "online" },
-      { start: "2026-10-24T06:00:00Z", end: "2026-10-24T12:00:00Z", status: "offline" },
+      {
+        start: "2026-10-24T00:00:00Z",
+        end: "2026-10-24T06:00:00Z",
+        status: "online",
+      },
+      {
+        start: "2026-10-24T06:00:00Z",
+        end: "2026-10-24T12:00:00Z",
+        status: "offline",
+      },
     ]);
 
     expect(placed.map((p) => p.status)).toEqual(["online", "offline"]);
@@ -96,7 +105,10 @@ describe("placeUntracked", () => {
   });
 
   it("covers the whole range when nothing is tracked", () => {
-    expect(placeUntracked(FROM, TO, null)).toEqual({ leftPct: 0, widthPct: 100 });
+    expect(placeUntracked(FROM, TO, null)).toEqual({
+      leftPct: 0,
+      widthPct: 100,
+    });
   });
 
   it("covers the whole range when tracking began after it", () => {
@@ -140,5 +152,25 @@ describe("formatDuration", () => {
 
   it("shows under a second as 0s", () => {
     expect(formatDuration(400)).toBe("0s");
+  });
+});
+
+describe("instanceName", () => {
+  it("is the hostname", () => {
+    expect(
+      instanceName({
+        id: "7c09e2d4-0000-4000-8000-000000000000",
+        hostname: "fra-1",
+      })
+    ).toBe("fra-1");
+  });
+
+  it("is the start of the id when the instance sent no hostname", () => {
+    expect(
+      instanceName({
+        id: "7c09e2d4-0000-4000-8000-000000000000",
+        hostname: "",
+      })
+    ).toBe("7c09e2d4");
   });
 });

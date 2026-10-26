@@ -17,6 +17,7 @@ import {
   placeSpans,
   placeUntracked,
   type Placement,
+  instanceName,
 } from "./availability-layout";
 
 // A span too short to see still gets this much of the bar, so that a short gap shows
@@ -39,7 +40,13 @@ interface TimeBarProps {
 
 // A track with spans placed on it by time. The colours are tailwind's, with a dark variant, and
 // the muted tokens, so the bar reads in both themes.
-const TimeBar = ({ segments, size, label, testId, className }: TimeBarProps) => (
+const TimeBar = ({
+  segments,
+  size,
+  label,
+  testId,
+  className,
+}: TimeBarProps) => (
   <div
     role="img"
     aria-label={label}
@@ -172,7 +179,7 @@ export const InstanceBar = ({ instance, from, to }: InstanceBarProps) => {
       testId: "instance-connection",
       tooltip: (
         <div className="flex flex-col gap-0.5">
-          <span className="font-medium">{instance.hostname}</span>
+          <span className="font-medium">{instanceName(instance)}</span>
           <span>{instance.version}</span>
           <span>
             {connection.open
@@ -192,7 +199,7 @@ export const InstanceBar = ({ instance, from, to }: InstanceBarProps) => {
       size="full"
       testId="instance-bar"
       label={t("probes.availability.instance_bar_label", {
-        name: instance.hostname,
+        name: instanceName(instance),
       })}
     />
   );

@@ -56,7 +56,10 @@ export function placeUntracked(
 
   const tracked = Date.parse(trackedFrom);
   if (!(tracked > fromMs)) return null;
-  return { leftPct: 0, widthPct: Math.min(((tracked - fromMs) / total) * 100, 100) };
+  return {
+    leftPct: 0,
+    widthPct: Math.min(((tracked - fromMs) / total) * 100, 100),
+  };
 }
 
 // The uptime with one decimal. It is cut, not rounded, so that a probe that was ever offline never
@@ -66,6 +69,16 @@ export function formatUptime(percent: number | null): string {
   if (percent === null) return "—";
   if (percent >= 100) return "100.0%";
   return `${(Math.floor(percent * 10 + 1e-9) / 10).toFixed(1)}%`;
+}
+
+// An instance with no hostname is named by the start of its id
+const SHORT_ID_LENGTH = 8;
+
+export function instanceName(instance: {
+  id: string;
+  hostname: string;
+}): string {
+  return instance.hostname || instance.id.slice(0, SHORT_ID_LENGTH);
 }
 
 const SECOND = 1000;

@@ -19,7 +19,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { formatDateToTimezone } from "@/lib/formatDateToTimezone";
 import Layout from "@/layout";
 import { AvailabilityBar, InstanceBar } from "../components/availability-bar";
-import { formatUptime } from "../components/availability-layout";
+import { formatUptime, instanceName } from "../components/availability-layout";
 import ProbeStatusBadge from "../components/probe-status-badge";
 
 // How often the probe and its availability refresh, so that a probe that went offline shows up
@@ -30,9 +30,6 @@ const CONNECTIONS_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 const RANGES = ["24h", "7d", "30d"] as const;
 type Range = (typeof RANGES)[number];
-
-// An instance with no hostname is named by the start of its id
-const SHORT_ID_LENGTH = 8;
 
 const isNotFound = (error: unknown) =>
   (error as { response?: { status?: number } } | null)?.response?.status ===
@@ -87,7 +84,9 @@ const ProbePage = () => {
   }
 
   const instancesFrom = availability
-    ? new Date(Date.parse(availability.to) - CONNECTIONS_WINDOW_MS).toISOString()
+    ? new Date(
+        Date.parse(availability.to) - CONNECTIONS_WINDOW_MS
+      ).toISOString()
     : "";
 
   const rangeLabels: Record<Range, string> = {
@@ -187,7 +186,9 @@ const ProbePage = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>{t("probes.availability.instances_title")}</CardTitle>
+                <CardTitle>
+                  {t("probes.availability.instances_title")}
+                </CardTitle>
               </CardHeader>
               <CardContent className={`flex flex-col gap-4 ${stale}`}>
                 {(availability.instances ?? []).length === 0 && (
@@ -203,7 +204,7 @@ const ProbePage = () => {
                   >
                     <div className="min-w-0 sm:w-56 sm:shrink-0">
                       <div className="truncate font-mono text-sm">
-                        {instance.hostname || instance.id.slice(0, SHORT_ID_LENGTH)}
+                        {instanceName(instance)}
                       </div>
                       <div className="truncate text-xs text-muted-foreground">
                         {instance.version}
