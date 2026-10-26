@@ -6,6 +6,8 @@ import Intervals from "../shared/intervals";
 import General from "../shared/general";
 import Notifications from "../shared/notifications";
 import Tags from "../shared/tags";
+import Probe from "../shared/probe";
+import LocationRule from "../shared/location-rule";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -158,6 +160,8 @@ const RedisForm = () => {
       <Card>
         <CardContent className="space-y-4">
           <Tags />
+          <Probe />
+          <LocationRule />
         </CardContent>
       </Card>
     </>

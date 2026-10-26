@@ -1,4 +1,7 @@
-import { type HeartbeatModel, type UtilsApiResponseMonitorModel } from "@/api";
+import {
+  type HeartbeatModel,
+  type UtilsApiResponseMonitorMonitorResponseDto,
+} from "@/api";
 import {
   deleteMonitorsByIdMutation,
   getMonitorsByIdHeartbeatsInfiniteQueryKey,
@@ -48,11 +51,14 @@ import ImportantNotificationsList from "../components/important-notifications-li
 import { BackButton } from "@/components/back-button";
 import dayjs from "dayjs";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useProbes } from "@/hooks/useProbes";
 import clsx from "clsx";
 import { formatMonitorTarget } from "../monitor-types/registry";
 import { parseMonitorConfig } from "../monitor-types/monitor-target";
 import StaleMarker from "../components/stale-marker";
 import { getMonitorStatusView } from "../components/monitor-status";
+import { currentStatus, hasLocations, heartbeatsOfProbe, monitorStatusOf, sortLocations } from "../locations";
+import LocationsSection from "./locations-section";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -98,18 +104,22 @@ interface TLSInfo {
   certInfo?: CertificateInfo;
 }
 
-const MonitorPage = () => {
+const MonitorPageContent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const { socket, status: socketStatus } = useWebSocket();
+  const { probeNames, unsupportedProbeIds, isPending: probesPending } = useProbes();
 
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showConfirmPause, setShowConfirmPause] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
   const [heartbeatData, setHeartbeatData] = useState<HeartbeatModel[]>([]);
+  // The heartbeats of every location that arrived since the page loaded, for a monitor on more
+  // than one probe. Each location's bar adds its own to the ones it fetched.
+  const [liveHeartbeats, setLiveHeartbeats] = useState<HeartbeatModel[]>([]);
 
   const { data, error, isLoading } = useQuery({
     ...getMonitorsByIdOptions({
@@ -118,9 +128,14 @@ const MonitorPage = () => {
       },
     }),
     enabled: !!id,
+    // A location's probe goes offline and online without a heartbeat to say so
+    refetchInterval: (query) =>
+      hasLocations(query.state.data?.data?.locations) ? 30 * 1000 : false,
   });
 
   const monitor = data?.data;
+  const locations = useMemo(() => sortLocations(monitor?.locations ?? []), [monitor?.locations]);
+  const showLocations = hasLocations(locations);
   // Parsed once here, since the page re-renders on every heartbeat
   const config = useMemo(
     () => parseMonitorConfig(monitor?.config),
@@ -199,7 +214,7 @@ const MonitorPage = () => {
             id: id!,
           },
         }),
-        (oldData: UtilsApiResponseMonitorModel) => {
+        (oldData: UtilsApiResponseMonitorMonitorResponseDto) => {
           if (!oldData) return oldData;
           return {
             ...oldData,
@@ -241,7 +256,20 @@ const MonitorPage = () => {
 
   const lastHeartbeat =
     heartbeatData?.length > 0 ? heartbeatData[heartbeatData.length - 1] : null;
-  const lastStatusView = getMonitorStatusView(lastHeartbeat?.status);
+  // A monitor on several probes is judged from its locations by its location rule, not from
+  // whichever heartbeat came last
+  const lastStatusView = getMonitorStatusView(
+    showLocations
+      ? monitorStatusOf(
+          locations.map((location) => ({
+            online: location.online,
+            status: currentStatus(location, heartbeatsOfProbe(liveHeartbeats, location.probe_id)),
+          })),
+          monitor?.location_rule ?? "any",
+          monitor?.location_threshold
+        )
+      : lastHeartbeat?.status
+  );
 
   const { data: stats, refetch: refetchUptimeStats } = useQuery({
     ...getMonitorsByIdStatsUptimeOptions({
@@ -274,6 +302,7 @@ const MonitorPage = () => {
     const handleHeartbeat = (newHeartbeat: HeartbeatModel) => {
       // TODO: new heartbeats have different timestamp then from the api response
       setHeartbeatData((p) => [...p, newHeartbeat].slice(-150));
+      setLiveHeartbeats((p) => [...p, newHeartbeat].slice(-1500));
 
       // If it's important, update the react-query cache for important heartbeats
       if (newHeartbeat.important) {
@@ -400,6 +429,7 @@ const MonitorPage = () => {
 
       // Clear local heartbeat data
       setHeartbeatData([]);
+      setLiveHeartbeats([]);
     },
     onError: commonMutationErrorHandler("Failed to reset monitor data"),
   });
@@ -439,6 +469,18 @@ const MonitorPage = () => {
               {monitorTarget.label}
             </span>
           ) : null}
+          {/* A monitor on several probes lists them as locations below */}
+          {monitor && !probesPending && !showLocations && (
+            <div className="flex flex-wrap items-center gap-x-3 text-sm text-muted-foreground" data-testid="monitor-probe">
+              <span>{t("probes.monitor_probe", { name: probeNames(monitor.probe_ids)[0] })}</span>
+              {unsupportedProbeIds(monitor).length > 0 && (
+                <span className="flex items-center gap-1 text-amber-500" data-testid="monitor-probe-unsupported">
+                  <AlertTriangle className="w-3 h-3 shrink-0" aria-hidden />
+                  {t("probes.monitor_probe_unsupported", { name: probeNames(monitor.probe_ids)[0], type: monitor.type })}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="mt-4 mb-4">
@@ -634,8 +676,20 @@ const MonitorPage = () => {
                 hasCertCheckExpire ? "lg:col-span-2" : "lg:col-span-3"
               )}
             >
-              <div className="text-white font-semibold">{t("monitors.view.live_status")}</div>
-              <BarHistory data={heartbeatData} />
+              {showLocations && id ? (
+                <LocationsSection
+                  monitorId={id}
+                  monitorType={monitor?.type ?? ""}
+                  locations={locations}
+                  unsupportedProbeIds={monitor ? unsupportedProbeIds(monitor) : []}
+                  liveHeartbeats={liveHeartbeats}
+                />
+              ) : (
+                <>
+                  <div className="text-white font-semibold">{t("monitors.view.live_status")}</div>
+                  <BarHistory data={heartbeatData} />
+                </>
+              )}
               <div className="text-sm text-gray-400">
                 {t("monitors.view.check_every")} {monitor?.interval} {t("monitors.view.seconds")}
               </div>
@@ -668,7 +722,7 @@ const MonitorPage = () => {
           </CardContent>
         </Card>
 
-        <Chart id={id!} />
+        <Chart id={id!} locations={showLocations ? locations : undefined} />
 
         {id && <ImportantNotificationsList monitorId={id} />}
       </div>
@@ -767,6 +821,13 @@ const MonitorPage = () => {
       </AlertDialog>
     </Layout>
   );
+};
+
+// The route /monitors/:id keeps the page mounted when only the id changes, so its state would carry
+// the previous monitor's heartbeats and dialogs over. Keyed by id, each monitor starts clean.
+const MonitorPage = () => {
+  const { id } = useParams();
+  return <MonitorPageContent key={id} />;
 };
 
 export default MonitorPage;

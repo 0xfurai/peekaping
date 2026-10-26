@@ -8,7 +8,7 @@ This page takes you from a SQLite or PostgreSQL bundle of release 0.0.44 to 0.0.
 
 The image names, port 8383, the data volume and your environment variables stay the same. Upgrading is pulling the new image and starting it with the same volume. Migrations run at start, as before.
 
-This page is for the SQLite and PostgreSQL bundles. The MongoDB bundle doesn't change. Helm and the Docker Compose stacks stay in cluster mode.
+This page is for the SQLite and PostgreSQL bundles. Helm and the Docker Compose stacks stay in cluster mode.
 
 ## Which release you run
 
@@ -58,7 +58,7 @@ For a SQLite backup that you can check with `sqlite3`, see [Upgrading stats stor
 
 Skip this section if you run 0.0.47. From 0.0.44, 0.0.45 or 0.0.46, the upgrade also brings you the changes of 0.0.47:
 
-- **A non-root user.** The bundle runs Peekaping as the user `peekaping` (UID and GID 1000) instead of root. `PUID` and `PGID` change the IDs. In the SQLite bundle, the container makes that user the owner of `/app/data` at each start, which changes the owner of files an older image wrote as root. Where root can't change owners, such as NFS with `root_squash`, startup logs a warning and carries on. Then set `PUID` and `PGID` to the folder's owner on the host. A Docker socket at `/var/run/docker.sock` keeps working. Ping monitors need `net.ipv4.ping_group_range` to include the user's groups, which Docker allows by default. See [Bundle user and permissions](./bundle-user.md).
+- **A non-root user.** The bundle runs Peekaping as the user `peekaping` (UID and GID 1000) instead of root. `PUID` and `PGID` change the IDs. In the SQLite bundle, the container makes that user the owner of `/app/data` at each start, which changes the owner of files an older image wrote as root. Where root can't change owners, such as NFS with `root_squash`, startup logs a warning and carries on. Then set `PUID` and `PGID` to the folder's owner on the host. A Docker socket at `/var/run/docker.sock` keeps working. Ping monitors need `net.ipv4.ping_group_range` to include the user's groups, which rootful Docker with a private network namespace allows by default (rootless Docker, `userns-remap`, host networking and Podman don't). See [Bundle user and permissions](./bundle-user.md).
 - **The stats storage upgrade.** A migration separates the minute, hour and day stats into three tables, rebuilds them from the heartbeats you still keep, and drops the old `stats` table. Another replaces three heartbeat indexes with one, which takes about a second for each million heartbeats. They run once, before `peekaping` starts, and can take minutes on a large database. Until they finish, the web app doesn't answer. Chart history whose heartbeats are gone can't be rebuilt, and your backup is the only copy of the old `stats` table. Read [Upgrading stats storage](./upgrading-stats.md) before you start.
 - **A sign-out.** The upgrade generates new JWT signing secrets, so everyone is signed out once.
 

@@ -1,4 +1,12 @@
-# Peekaping - the best uptime kuma alternative
+<div align="center">
+
+<img src="apps/landing/public/logo-mascot.png" alt="Peekaping mascot" width="120" height="120" />
+
+# Peekaping
+
+**Open-source, self-hosted uptime monitoring. A modern, API-first Uptime Kuma alternative built with Go and React.**
+
+[Website](https://peekaping.com) · [Live demo](https://demo.peekaping.com) · [Docs](https://docs.peekaping.com) · [Discord](https://discord.gg/Xuv8b5AhPF)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Go](https://img.shields.io/badge/go-%23007d9c.svg?style=flat&logo=go&logoColor=white)
@@ -8,45 +16,16 @@
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
 ![Docker Pulls](https://img.shields.io/docker/pulls/0xfurai/peekaping-web)
 
-**A modern, self-hosted uptime monitoring solution**
+</div>
 
-Peekaping is a uptime monitoring system built with Golang and React. You can monitor your websites, API and many more leveraging beautiful status pages, alert notifications.
+Peekaping checks your websites, APIs, databases and message queues, alerts your team where it already talks when something goes down, and publishes status pages for your users. It runs on your own server, with your data in SQLite or PostgreSQL.
 
-🔗 Website **[peekaping.com](https://peekaping.com)**
+![Peekaping monitor page with its status, heartbeat bar, uptime and response time chart](./pictures/monitor.png)
 
-🔗 Live Demo **[demo.peekaping.com](https://demo.peekaping.com)**
+> [!WARNING]
+> **Peekaping is in beta.** It's under active development and some features may change. Try it outside production first, and please [report the issues](https://github.com/0xfurai/peekaping/issues) you find: your feedback is what gets Peekaping to production-ready.
 
-🔗 Documentation **[docs.peekaping.com](https://docs.peekaping.com)**
-
-🔗 Community terraform provider **[registry.terraform.io/providers/tafaust/peekaping](https://registry.terraform.io/providers/tafaust/peekaping/latest)**
-
-## Why Peekaping Is the Optimal Alternative to Uptime Kuma
-
-Peekaping is a modern uptime monitoring solution designed with the requirements of professional DevOps teams in mind, addressing the key limitations of traditional monitoring systems.
-
-**Key Advantages:**
-- **API-first architecture** — all system functions are accessible through a RESTful API, ensuring complete automation and seamless integration with CI/CD processes and Infrastructure as Code tools
-- **Easily extensible server architecture** — the modular structure allows adding new monitor types and notification channels without modifying the system core
-- **Server built with Golang** — using one of the most performant compiled languages ensures high speed with minimal consumption of RAM and CPU resources
-- **Unmatched stability** — thanks to a typed client and compiled Golang language, the system demonstrates high reliability and predictable operation
-Modern and intuitive interface — clean user interface design built on contemporary UI/UX principles
-- **Flexible storage options** — support for two popular databases (SQLite / PostgreSQL) allows adapting the solution to any infrastructure. MongoDB storage still works but is [deprecated](https://docs.peekaping.com/self-hosting/docker-with-mongo)
-- **API key management and access control** — built-in security system with access rights management and API keys provides enterprise-level protection
-
-
-## ⚠️ Beta Status
-
-**Peekaping is currently in beta and actively being developed.**
-Please note:
-
-- The software is still under active development
-- Some features could be changed
-- I recommend testing in non-production environments first
-- Please report any issues you encounter - your feedback helps us improve!
-
-Please try Peekaping and provide feedback, this is huge contribution for us! Let's make Peekaping production ready.
-
-## Quick start (docker + SQLite)
+## Quick start (Docker + SQLite)
 
 ```bash
 docker run -d --restart=always \
@@ -59,130 +38,89 @@ docker run -d --restart=always \
 
 Then open http://localhost:8383. The image runs Peekaping in single mode: one process, as a non-root user, with no Redis. It serves the web app and the API on port 8383. For HTTPS, put a reverse proxy in front of it.
 
-[Docker + SQLite Setup](https://docs.peekaping.com/self-hosting/docker-with-sqlite)
-
-Peekaping also supports [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres). Read docs for more guidance
+| Setup | Guide |
+| --- | --- |
+| Docker + SQLite | [docs.peekaping.com/self-hosting/docker-with-sqlite](https://docs.peekaping.com/self-hosting/docker-with-sqlite) |
+| Docker + PostgreSQL | [docs.peekaping.com/self-hosting/docker-with-postgres](https://docs.peekaping.com/self-hosting/docker-with-postgres) |
+| Kubernetes (Helm) | [docs.peekaping.com/self-hosting/kubernetes-helm](https://docs.peekaping.com/self-hosting/kubernetes-helm) |
 
 These images run single mode, the default for new installs. Cluster mode (Kubernetes with Helm, or Docker Compose) is for installs that need to scale out. See [Deployment modes](https://docs.peekaping.com/self-hosting/deployment-modes) to choose.
 
-MongoDB storage is deprecated. Existing installs keep working, but new installs should use SQLite or PostgreSQL. See the [deprecated MongoDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mongo) for the removal rule and how to [move your data to SQLite or PostgreSQL](https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql).
+MongoDB storage was removed. If you ran Peekaping on MongoDB, [move your data to SQLite or PostgreSQL](https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql) before you upgrade.
 
-## ☁️ One-Click Deploy
+Prefer a managed host? [![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/peekaping/)
 
-[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/peekaping/)
+## Features
 
-## ⚡ Features
+### Monitors
 
-### Available Monitors
+| Category | Monitors |
+| --- | --- |
+| Web & network | HTTP/HTTPS, TCP, Ping (ICMP), DNS, SMTP |
+| Application & infrastructure | Push (incoming heartbeat), Docker container, gRPC, SNMP |
+| Databases & caches | PostgreSQL, MySQL/MariaDB, Microsoft SQL Server, MongoDB, Redis |
+| Messaging & streaming | MQTT broker, RabbitMQ, Kafka producer |
 
-- HTTP/HTTPS
-- TCP
-- Ping (ICMP)
-- DNS
-- Push (incoming webhook)
-- Docker container
-- gRPC
-- SNMP
-- PostgreSQL
-- Microsoft SQL Server
-- MongoDB
-- Redis
-- MySQL/MariaDB -
-- MQTT Broker
-- RabbitMQ
-- Kafka Producer
+### Alert channels
 
-### 🔔 Alert Channels
+| Category | Channels |
+| --- | --- |
+| Chat & collaboration | Slack, Discord, Telegram, Microsoft Teams, Google Chat, Mattermost, Matrix, Signal, WhatsApp (WAHA), LINE Messenger, WeCom |
+| On-call & incidents | PagerDuty, Opsgenie, Grafana OnCall, PagerTree |
+| Email, SMS & webhooks | Email (SMTP), SendGrid, Twilio, Webhook |
+| Push notifications | ntfy, Gotify, Pushover, Pushbullet |
 
-- Email (SMTP)
-- Webhook
-- Telegram
-- Slack
-- Google Chat
-- Microsoft Teams
-- Signal
-- Mattermost
-- Matrix
-- Discord
-- WeCom
-- WhatsApp (WAHA)
-- PagerDuty
-- Opsgenie
-- Grafana OnCall
-- NTFY
-- Gotify
-- Pushover
-- SendGrid
-- Twilio
-- LINE Messenger
-- PagerTree
-- Pushbullet
+### Everything else
 
-### ✨ Other
+- **Status pages**, public or private, on your own domain
+- **SVG status badges** for your READMEs and dashboards
+- **Maintenance windows**, once or on a schedule, so planned work doesn't page anyone
+- **Two-factor authentication** and **brute-force login protection**
+- **TLS certificate expiry** notifications
+- **API keys** and a REST API with an OpenAPI spec for everything in the app
+- **Proxies** and **tags** to organize monitors
+- A community **[Terraform provider](https://registry.terraform.io/providers/tafaust/peekaping/latest)**
 
-- Beautiful Status Pages
-- SVG Status Badges
-- Multi-Factor Authentication (MFA)
-- Brute-Force Login Protection
-- SSL Certificate Expiration Checks
+## Why Peekaping
 
-## 💡 Motivation Behind Creating an Uptime Kuma Alternative
+Peekaping started from our experience with [Uptime Kuma](https://github.com/louislam/uptime-kuma). We respect the project and what it gave the community, and we wanted to fix the limits teams hit when they scale it and wire monitoring into their DevOps processes.
 
-The creation of Peekaping was inspired by our experience using Uptime Kuma — a popular open-source monitoring solution. We deeply respect this project and its contribution to the community, but we aimed to address the systemic limitations that teams face when scaling and integrating monitoring into modern DevOps processes.
+- **API-first.** Every function in the app is available through the REST API, so you can automate it from CI/CD and Infrastructure as Code tools.
+- **Fast and light.** The server is written in Go, which keeps CPU and RAM use low even with many monitors.
+- **Typed end to end.** A compiled Go server and a typed React + TypeScript client make it stable and predictable.
+- **Easy to extend.** The modular server adds new monitor types and notification channels without touching the core.
+- **Your choice of storage.** SQLite for an easy start, PostgreSQL for production.
 
-Our goal is to build a new system that combines the features requested by the community with modern technological approaches: strict typing and extensible architecture.
-
-**Our Approach:**
-**API as the foundation.** We designed Peekaping from the ground up as an API-first solution, where every function is accessible programmatically. This opens up possibilities for complete automation and integration with any tools.
-
-**Performance through the right technology choices.** The server side is implemented in Golang — a fast and efficient language that delivers high performance with minimal RAM consumption. This is especially critical when monitoring a large number of services.
-
-**Extensibility by design.** The system architecture allows easy addition of new notification channels, monitor types, and integrations without needing to modify the core codebase.
-
-**Reliable client side.** The frontend is built with React and TypeScript, ensuring not only high performance but also reliability thanks to static typing. The client side was also designed with ease of extension in mind.
-
-Peekaping is the ideal choice for teams that need a reliable and customizable uptime monitoring solution capable of growing alongside their infrastructure.
-
-
-![Peekaping Dashboard](./pictures/monitor.png)
-
-## 📡 Stay in the Loop
-
-I share quick tips, dev-logs, and behind-the-scenes updates on&nbsp;Twitter.
-If you enjoy this project, come say hi &amp; follow along!
-
-[![Follow me on X](https://img.shields.io/twitter/follow/your_handle?label=Follow&style=social)](https://x.com/0xfurai)
-
-## 🚧 Development roadmap
+## Roadmap
 
 ### General
 
 - [ ] Incidents
-- [ ] Migration tool (from uptime kuma)
-- [ ] Multi user, groups, access levels
+- [ ] Migration tool from Uptime Kuma
+- [ ] Multiple users, groups and access levels
 - [ ] Group monitors
-- [ ] Add support for Homepage widget (in progress)
-- [ ] Gatus like conditions
+- [ ] Homepage widget support (in progress)
+- [ ] Gatus-like conditions
 
 ### Monitors
 
-- [ ] HTTPs keyword and JSON query
+- [ ] HTTP(S) keyword and JSON query
 - [ ] Steam
 - [ ] GameDig
-- [ ] Playwrite
+- [ ] Playwright
 
 ### Notification channels
 
 - [ ] WhatsApp (Whapi)
-- [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messanger)
+- [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messenger)
 - [ ] AliyunSMS (阿里云短信服务)
 - [ ] DingDing (钉钉)
 - [ ] ClickSend SMS
 - [ ] Rocket.Chat
 
-![Alt](https://repobeats.axiom.co/api/embed/747c845fe0118082b51a1ab2fc6f8a4edd73c016.svg "Repobeats analytics image")
+![Repobeats analytics](https://repobeats.axiom.co/api/embed/747c845fe0118082b51a1ab2fc6f8a4edd73c016.svg "Repobeats analytics image")
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please:
 
@@ -193,30 +131,42 @@ We welcome contributions! Please:
 5. Add tests if applicable
 6. Submit a pull request
 
-## 📝 License
+## Community and support
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **Bugs and feature requests:** [GitHub Issues](https://github.com/0xfurai/peekaping/issues)
+- **Chat:** [Discord](https://discord.gg/Xuv8b5AhPF)
+- **Dev logs and tips:** [@0xfurai on X](https://x.com/0xfurai)
 
-## 🙏 Acknowledgments
+[![Follow @0xfurai on X](https://img.shields.io/twitter/follow/0xfurai?label=Follow&style=social)](https://x.com/0xfurai)
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
 
 - Inspired by [Uptime Kuma](https://github.com/louislam/uptime-kuma)
 - Built with amazing open-source technologies
 - Thanks to all contributors and users
 
-## 📞 Support
-
-- **Issues**: Report bugs and request features via GitHub Issues
-
 ---
 
-**Made with ❤️ by the Peekaping team**
+## Choosing an Uptime Kuma alternative
 
-## Criteria to Consider When Looking for Uptime Kuma Alternatives
-When choosing an Uptime Kuma alternative, it's important to consider the technology stack and architecture. Solutions built with compiled languages (Go, Rust) deliver better performance and consume fewer resources. An API-first approach is critical for automation and integration with CI/CD processes.
+### What to look for
 
-Ensure the system supports the necessary monitoring protocols (HTTP/HTTPS, TCP, databases, Docker, gRPC) and integrates with your communication channels. Also important are flexible storage options (SQLite/PostgreSQL), security features (MFA, RBAC, API keys), modular architecture for extensibility, and an active community with quality documentation.
+Look at the technology stack and architecture first. Tools built with compiled languages (Go, Rust) are faster and use fewer resources. An API-first design is critical for automation and for CI/CD integration.
 
-## How to Choose the Right Uptime Kuma Alternative
-Determine the deployment format based on your capabilities and requirements. Self-hosted solutions provide complete control over data and deep customization options, but require technical resources for deployment and maintenance. Cloud solutions offer quick setup and automatic updates, but come with customization limitations and monthly subscriptions.
+Make sure the tool supports the protocols you need to monitor (HTTP/HTTPS, TCP, databases, Docker, gRPC) and the channels your team uses. Flexible storage (SQLite or PostgreSQL), security features (two-factor login, API keys), a modular architecture you can extend, and an active community with good documentation matter too.
 
-Conduct practical testing: deploy the system, create real monitors of different types, simulate failures, and evaluate detection speed. Check resource consumption under load, ease of API integrations, and interface quality. Teams choose Peekaping when they need high performance, API-first architecture, and freedom from vendor lock-in.
+### How to choose
+
+Decide how you'll deploy it. Self-hosted tools give you full control over your data and deep customization, but you run and maintain them. Cloud services set up quickly and update themselves, but limit customization and cost a monthly subscription.
+
+Then test it in practice: deploy it, create real monitors of different types, simulate failures and see how fast they're detected. Check resource use under load, how easy the API is to integrate, and the quality of the interface. Teams choose Peekaping when they need high performance, an API-first architecture and no vendor lock-in.
+
+<div align="center">
+
+**Made with 💜 by the Peekaping team**
+
+</div>

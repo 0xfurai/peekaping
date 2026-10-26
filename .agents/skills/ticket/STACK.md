@@ -4,9 +4,9 @@ A **stack** is a chain of PRs where each PR's base is the branch of the PR below
 
 ## Branches
 
-- Name each branch `<type>/<n>-<slug>`, with its own slug per PR. The `<n>` ties the branch to the ticket; the PR body links it.
+- Name each branch `<type>/pp-<n>-<slug>`, with its own slug per PR. The `pp-<n>` lets Linear link the PR to the ticket.
 - Types: `fix`, `feat`, `refactor`, `chore`, `docs`, `ci`. For test-only work use `fix/` or `chore/`: the remote has a branch named `test`, so a `test/...` branch can't be pushed. The PR title can still start with `test(...)`.
-- The bottom branch is the one setup created in the worktree. Start each next branch from the one below it, in the same worktree: `git switch -c <next branch> <branch below>`.
+- The bottom branch is the one setup put the worktree on. Start each next branch from the one below it, in the same worktree: `git switch -c <next branch> <branch below>`.
 
 ## Opening the PRs
 
@@ -17,7 +17,7 @@ git push -u origin <branch>
 gh pr create --base <main or branch below> --head <branch> --title "<title>" --body-file <file>
 ```
 
-- Title: `#<n> [<i>/<total>] <type>(<scope>): <summary>`, e.g. `#16 [1/2] feat(server): add a stale-monitor watchdog`. The ticket key comes first. `[<i>/<total>]` is the PR's place in the stack, counted from the bottom; a stack of one leaves it out: `#48 fix(server): stop exposing JWT signing secrets`. Scope `server`, `web`, or omitted for both. Summary in plain words, lower case, imperative.
+- Title: `PP-<n> [<i>/<total>] <type>(<scope>): <summary>`, e.g. `PP-16 [1/2] feat(server): add a stale-monitor watchdog`. The ticket key comes first. `[<i>/<total>]` is the PR's place in the stack, counted from the bottom; a stack of one leaves it out: `PP-48 fix(server): stop exposing JWT signing secrets`. Scope `server`, `web`, or omitted for both. Summary in plain words, lower case, imperative.
 - If the stack gains or loses a PR before it merges, retitle every open PR in it: `gh pr edit <pr> --title "<title>"`. A merge changes nothing: the PRs above keep their numbers.
 - Open as ready for review, not draft: CodeRabbit skips drafts.
 - CodeRabbit reviews PRs into `main` on its own. A PR into another branch needs a trigger after it opens and after each push: `gh pr comment <pr> --body "@coderabbitai review"`.
@@ -30,7 +30,7 @@ Use the GLOSSARY.md terms, short sentences, no preamble.
 ```markdown
 ## Summary
 
-<What changed and why, in 2-4 sentences, linking the ticket: [#<n>](https://github.com/0xfurai/peekaping-tracker/issues/<n>).
+<What changed and why, in 2-4 sentences, linking the ticket: [PP-<n>](<linear url>).
 Then the smallest picture that shows the change: a diff-sketch of the control
 flow, a call tree, or a file tree with one comment per file. Skip it when a
 sentence says it.>
@@ -52,12 +52,10 @@ sentence says it.>
 **Door:** <one-way or two-way>. <why, e.g. "the migration drops a table">
 **Blast radius:** <what can break: upgrade, API consumers, UI, config>
 
-<Fixes|Part of> 0xfurai/peekaping-tracker#<n>
-
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-The top PR of a stack (the one that merges last) says `Fixes 0xfurai/peekaping-tracker#<n>`; every other PR says `Part of ...`, because a closing keyword closes the ticket when its PR merges. A single PR says `Fixes`. Omit `## Stack` for a single PR. After opening the whole stack, edit each body so its Stack section lists every PR (`gh pr edit <pr> --body-file <file>`).
+Omit `## Stack` for a single PR. After opening the whole stack, edit each body so its Stack section lists every PR (`gh pr edit <pr> --body-file <file>`).
 
 ## Changing a lower PR
 

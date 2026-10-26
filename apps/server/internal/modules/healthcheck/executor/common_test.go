@@ -2,7 +2,7 @@ package executor
 
 import (
 	"net"
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"strconv"
 	"testing"
 
@@ -13,7 +13,7 @@ import (
 // Test the global validator instance
 func TestGlobalValidator(t *testing.T) {
 	// Test that the global validator is properly initialized
-	assert.NotNil(t, utils.Validate)
+	assert.NotNil(t, validation.Validate)
 }
 
 func TestGenericValidator_Comprehensive(t *testing.T) {

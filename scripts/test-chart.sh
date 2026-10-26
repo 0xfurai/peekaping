@@ -3,24 +3,29 @@
 # chart lints, it renders with default values and with the bundled PostgreSQL
 # and Redis, the bundled PostgreSQL and Redis run images pinned by digest, the
 # web Deployment's seed init container runs the same image as the web container
-# (also when web.image.tag is set), the api, producer, worker and ingester
-# Deployments wait for the migrations in an init container that runs the migrate
-# image (also when migrate.image.tag is set) while the web Deployment has none,
-# an enabled AppArmor profile covers that init container as well as the main
-# container, the init container's script ends at once for a MongoDB install,
-# which has no SQL migrations to wait for, and keeps waiting for a PostgreSQL
-# one until `./bun db status` reports none unapplied, the migrate Job is named
+# (also when web.image.tag is set), the api Deployment waits for the migrations
+# in an init container that runs the migrate image (also when migrate.image.tag
+# is set) while the probe and web Deployments, which don't use the database, have
+# none, an enabled AppArmor profile covers that init container as well as the
+# main container, the init container's script keeps waiting until
+# `./bun db status` reports none unapplied, the migrate Job is named
 # after the release revision (and its name fits Kubernetes' limit of 63
 # characters for the longest release name Helm allows) and retries 6 times, so
-# it outlasts a restart of the bundled PostgreSQL, the api, producer, worker and
-# ingester pods get 35 seconds to stop, the web pod sets the sysctl that lets
+# it outlasts a restart of the bundled PostgreSQL, the api and probe pods get 35
+# seconds to stop, the web pod sets the sysctl that lets
 # its non-root nginx bind port 80 (web.sysctls) and mounts the
 # writable paths that nginx needs under a read-only root filesystem, the
 # ConfigMap sets TRUSTED_PROXIES to loopback and the private ranges (and a
 # values file can change it), SQLite as the storage backend (config.env.DB_TYPE,
 # in any case) is refused with a message that sends the reader to the bundle
-# image, and the install notes say Peekaping runs in cluster mode and link to
-# the Helm docs page.
+# image, MongoDB (mongo and mongodb) is refused with the message that says MongoDB
+# storage was removed and links to the guide for moving to PostgreSQL, and the
+# install notes say Peekaping runs in cluster mode and link to the Helm docs page. The Ingress and the Istio VirtualService send the probe
+# protocol (/probe) to the api. The producer, worker and ingester are gone: the
+# probe Deployment runs the probe image, finds the api through its Service and
+# sends the token the api stores on the local probe, from a Secret the chart makes
+# or one named in probe.token.existingSecret, and it holds the pod until /ready
+# answers; it doesn't get the config secret.
 #
 # It also runs scripts/update-chart-deps.sh against a fake Docker Hub: a new
 # major version of a subchart is reported as such and refused by --write, a
@@ -132,15 +137,15 @@ images_of() {
 }
 
 # images_at <rendered file> <tag>: every image of the Peekaping templates ends
-# in :<tag>. There are 11: the api, producer, worker and ingester containers
-# and their wait-for-migrations init containers, the web container and its
-# seed-web-root init container, and the migrate Job's container.
+# in :<tag>. There are 6: the api container and its wait-for-migrations init
+# container, the probe container, the web container and its seed-web-root init
+# container, and the migrate Job's container.
 images_at() {
   local images count off
   images=$(images_of "$1")
   count=$(grep -c . <<<"$images" || true)
-  if [ "$count" != 11 ]; then
-    echo "       found $count images in the Peekaping templates, expected 11:"
+  if [ "$count" != 6 ]; then
+    echo "       found $count images in the Peekaping templates, expected 6:"
     sed 's/^/       /' <<<"$images"
     return 1
   fi
@@ -392,19 +397,143 @@ waits_for_migrations() {
   fi
 }
 
-# backend_components_wait <rendered file> [expected image]: the api, producer,
-# worker and ingester each wait for the migrations, and web, which doesn't use
-# the database, doesn't
+# backend_components_wait <rendered file> [expected image]: the api waits for
+# the migrations, and the probe and web, which don't use the database, don't
 backend_components_wait() {
   local component status=0
-  for component in api producer worker ingester; do
-    waits_for_migrations "$1" "$component" "${2:-}" || status=1
+  waits_for_migrations "$1" api "${2:-}" || status=1
+  for component in probe web; do
+    if [ -n "$(container_of "$1" "$component-deploy" wait-for-migrations)" ]; then
+      echo "       the $component Deployment has a wait-for-migrations init container"
+      status=1
+    fi
   done
-  if [ -n "$(container_of "$1" web-deploy wait-for-migrations)" ]; then
-    echo "       the web Deployment has a wait-for-migrations init container"
+  return $status
+}
+
+# no_old_components <rendered file>: nothing of the producer, worker or ingester
+# is rendered, whose work the api replicas and the probes took over on SQL storage
+no_old_components() {
+  local found
+  found=$(grep -nE -- "$release-(producer|worker|ingester)|peekaping-(producer|worker|ingester)" "$1" || true)
+  if [ -n "$found" ]; then
+    echo "       the chart still renders the old components:"
+    sed 's/^/       /' <<<"$found"
+    return 1
+  fi
+}
+
+# probe_runs <rendered file> <image> <replicas>: the probe Deployment runs that
+# image, with that many replicas
+probe_runs() {
+  local image replicas
+  image=$(image_of "$1" probe-deploy "$release-probe")
+  replicas=$(awk '
+    /^# Source: / { in_template = ($0 ~ "/probe-deploy\\.yaml$"); next }
+    /^---$/ { in_template = 0 }
+    in_template && /^  replicas: / { print $2; exit }
+  ' "$1")
+  if [ "$image" != "$2" ] || [ "$replicas" != "$3" ]; then
+    echo "       the probe Deployment runs ${image:-<no image>} with ${replicas:-<no>} replicas, expected $2 with $3"
+    return 1
+  fi
+}
+
+# env_entry_of <rendered file> <template> <container> <variable>: the lines of
+# that variable's entry in the container's env, after its "- name:" line
+env_entry_of() {
+  container_of "$1" "$2" "$3" | awk -v var="$4" '
+    $0 ~ "^ *- name: " var "$" { match($0, /^ */); indent = RLENGTH; found = 1; next }
+    found {
+      match($0, /^ */)
+      if ($0 !~ /^ *$/ && RLENGTH <= indent) exit
+      print
+    }
+  '
+}
+
+# probe_env_is <rendered file> <variable> <value>: the probe container sets that
+# variable to that value
+probe_env_is() {
+  local got
+  got=$(env_entry_of "$1" probe-deploy "$release-probe" "$2" | awk '$1 == "value:" { gsub(/"/, "", $2); print $2; exit }')
+  if [ "$got" != "$3" ]; then
+    echo "       the probe sets $2 to '${got:-<nothing>}', expected '$3'"
+    return 1
+  fi
+}
+
+# secret_ref_is <rendered file> <template> <container> <variable> <secret> <key>:
+# that container reads that variable from that key of that Secret
+secret_ref_is() {
+  local got
+  got=$(env_entry_of "$1" "$2" "$3" "$4" | awk '$1 == "name:" { name = $2 } $1 == "key:" { key = $2 } END { if (name != "") print name " " key }')
+  if [ "$got" != "$5 $6" ]; then
+    echo "       $3 reads $4 from '${got:-<nothing>}', expected '$5 $6'"
+    return 1
+  fi
+}
+
+# probe_ready <rendered file> <port>: the probe listens for /ready on all
+# addresses at that port, and the readiness probe asks /ready there
+probe_ready() {
+  local status=0 container
+  probe_env_is "$1" PROBE_READY_ADDR "0.0.0.0:$2" || status=1
+  container=$(container_of "$1" probe-deploy "$release-probe")
+  if ! awk -v port="$2" '
+    /^ *readinessProbe:/ { in_probe = 1; next }
+    in_probe && $1 == "path:" && $2 == "/ready" { path = 1 }
+    in_probe && $1 == "port:" && $2 == port { found_port = 1 }
+    END { exit !(path && found_port) }
+  ' <<<"$container"; then
+    echo "       the probe container has no readinessProbe for /ready on port $2"
     status=1
   fi
   return $status
+}
+
+# probe_env_from_is_config_map_only <rendered file>: the probe container reads
+# the release's ConfigMap and no Secret
+probe_env_from_is_config_map_only() {
+  local env_from
+  env_from=$(env_from_of "$1" probe-deploy "$release-probe")
+  if ! grep -Fq "configMapRef" <<<"$env_from" || grep -Fq "secretRef" <<<"$env_from"; then
+    echo "       the probe container's envFrom is not the ConfigMap alone:"
+    sed 's/^/       /' <<<"$env_from"
+    return 1
+  fi
+}
+
+# probe_token_secret_data <rendered file>: the base64 token in the Secret that
+# the chart makes for the local probe, or nothing when it makes none
+probe_token_secret_data() {
+  awk '
+    /^# Source: / { in_secret = ($0 ~ "/templates/probe-token-secret\\.yaml$"); next }
+    /^---$/ { in_secret = 0 }
+    in_secret && $1 == "PROBE_BOOTSTRAP_TOKEN:" { print $2; exit }
+  ' "$1"
+}
+
+# probe_token_secret <rendered file> <name>: the chart makes a Secret of that
+# name for the local probe, with a token of at least 32 characters (the shortest
+# the api takes)
+probe_token_secret() {
+  local data token name
+  data=$(probe_token_secret_data "$1")
+  token=$(base64 --decode <<<"$data" 2>/dev/null || true)
+  name=$(awk '
+    /^# Source: / { in_secret = ($0 ~ "/templates/probe-token-secret\\.yaml$"); next }
+    /^---$/ { in_secret = 0 }
+    in_secret && /^  name: / { print $2; exit }
+  ' "$1")
+  if [ "$name" != "$2" ]; then
+    echo "       the Secret is named '${name:-<none>}', expected $2"
+    return 1
+  fi
+  if [ "${#token}" -lt 32 ]; then
+    echo "       the token has ${#token} characters, expected at least 32"
+    return 1
+  fi
 }
 
 # apparmor_annotations_of <rendered file> <template>: the AppArmor annotations,
@@ -434,12 +563,11 @@ apparmor_covers_init() {
   return $status
 }
 
-# apparmor_off <rendered file>: the api, producer, worker and ingester pod
-# templates have no AppArmor annotation, which is what apparmor.enabled=false
-# means
+# apparmor_off <rendered file>: the api and probe pod templates have no
+# AppArmor annotation, which is what apparmor.enabled=false means
 apparmor_off() {
   local component annotations status=0
-  for component in api producer worker ingester; do
+  for component in api probe; do
     annotations=$(apparmor_annotations_of "$1" "$component-deploy")
     if [ -n "$annotations" ]; then
       echo "       the $component Deployment has AppArmor annotations although apparmor.enabled is false:"
@@ -450,12 +578,12 @@ apparmor_off() {
   return $status
 }
 
-# grace_periods <rendered file>: the api, producer, worker and ingester pods get
-# 35 seconds to stop, the 30 their binaries take to shut down and a margin.
-# Kubernetes' default of 30 would kill a pod that uses its whole time.
+# grace_periods <rendered file>: the api and probe pods get 35 seconds to stop,
+# the 30 (api) or 25 (probe) their binaries take to shut down and a margin.
+# Kubernetes' default of 30 would kill an api pod that uses its whole time.
 grace_periods() {
   local component seconds status=0
-  for component in api producer worker ingester; do
+  for component in api probe; do
     seconds=$(awk -v template="$component-deploy" '
       /^# Source: / { in_template = ($0 ~ "/" template "\\.yaml$"); next }
       /^---$/ { in_template = 0 }
@@ -799,6 +927,38 @@ notes_say() {
   grep -qiF -- "$1" <<<"$notes" || { echo "       no '$1' in the notes:"; sed 's/^/       /' <<<"$notes"; return 1; }
 }
 
+# ingress_routes <rendered file> <path> <service>: the rendered Ingress sends
+# the path to the service
+ingress_routes() {
+  local routed
+  routed=$(awk '
+    /^---/ { kind = ""; current = "" }
+    /^kind: / { kind = $2 }
+    kind == "Ingress" && $1 == "-" && $2 == "path:" { current = $3 }
+    kind == "Ingress" && $1 == "name:" && current != "" { print current " " $2; current = "" }
+  ' "$1")
+  grep -qxF -- "$2 $3" <<<"$routed" && return 0
+  echo "       no '$2 $3' among the Ingress routes:"
+  sed 's/^/       /' <<<"$routed"
+  return 1
+}
+
+# virtualservice_routes <rendered file> <prefix> <host>: the rendered
+# VirtualService sends the URI prefix to the host
+virtualservice_routes() {
+  local routed
+  routed=$(awk '
+    /^---/ { kind = ""; prefix = "" }
+    /^kind: / { kind = $2 }
+    kind == "VirtualService" && $1 == "prefix:" { prefix = $2 }
+    kind == "VirtualService" && $1 == "host:" && prefix != "" { print prefix " " $2; prefix = "" }
+  ' "$1")
+  grep -qxF -- "$2 $3" <<<"$routed" && return 0
+  echo "       no '$2 $3' among the VirtualService routes:"
+  sed 's/^/       /' <<<"$routed"
+  return 1
+}
+
 echo "# Updating the dependencies"
 check "update-chart-deps.sh calls a new major version of a subchart a new major version, and --write refuses it" \
   deps_refuses_new_major_chart || true
@@ -819,19 +979,34 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     check "default values: the seed init container runs the web image" web_matches_seed "$work/default.yaml" || true
     check "default values: the web pod binds port 80 as non-root: the sysctl, and /tmp and the web root writable" \
       web_binds_port_80 "$work/default.yaml" || true
-    check "default values: api, producer, worker and ingester wait for the migrations, web doesn't" \
+    check "default values: the api waits for the migrations, the probe and web don't" \
       backend_components_wait "$work/default.yaml" 0xfurai/peekaping-migrate:latest || true
-    check "default values: the api, producer, worker and ingester pods have no AppArmor annotation" \
+    check "default values: the api and probe pods have no AppArmor annotation" \
       apparmor_off "$work/default.yaml" || true
-    check "default values: the api, producer, worker and ingester pods get 35 seconds to stop" \
+    check "default values: the api and probe pods get 35 seconds to stop" \
       grace_periods "$work/default.yaml" || true
-    # The migrate Job skips the migrations for MongoDB (run-migrations.sh), and
-    # `./bun db status` has no MongoDB support, so a script that only polls it
-    # would keep the pods of an existing MongoDB install in Init for good.
-    for db_type in mongo mongodb; do
-      check "default values: the api's wait-for-migrations script ends at once with DB_TYPE=$db_type, although ./bun db status fails" \
-        wait_script_run "$work/default.yaml" "$db_type" fails ends || true
-    done
+    # Cluster mode on SQL storage is the api replicas and the probes: no process
+    # of the old layout is left to run
+    check "default values: no producer, worker or ingester is rendered" \
+      no_old_components "$work/default.yaml" || true
+    check "default values: the probe runs the probe image, 3 replicas" \
+      probe_runs "$work/default.yaml" 0xfurai/peekaping-probe:latest 3 || true
+    # PEEKAPING_URL is plain http inside the cluster, which the probe only accepts
+    # with PROBE_ALLOW_INSECURE
+    check "default values: the probe finds the api through its Service, on the Service's port" \
+      probe_env_is "$work/default.yaml" PEEKAPING_URL "http://$release-api.default.svc:8034" || true
+    check "default values: the probe allows its plain http address to the api" \
+      probe_env_is "$work/default.yaml" PROBE_ALLOW_INSECURE true || true
+    check "default values: the probe answers /ready on 0.0.0.0:8081 and the readiness probe asks it there" \
+      probe_ready "$work/default.yaml" 8081 || true
+    check "default values: the probe reads the ConfigMap but not the config secret, which holds the database password" \
+      probe_env_from_is_config_map_only "$work/default.yaml" || true
+    check "default values: the chart makes the Secret $release-probe-token, with a token of at least 32 characters" \
+      probe_token_secret "$work/default.yaml" "$release-probe-token" || true
+    check "default values: the api reads PROBE_BOOTSTRAP_TOKEN from that Secret" \
+      secret_ref_is "$work/default.yaml" api-deploy "$release-api" PROBE_BOOTSTRAP_TOKEN "$release-probe-token" PROBE_BOOTSTRAP_TOKEN || true
+    check "default values: the probe reads PROBE_TOKEN from the same Secret and key" \
+      secret_ref_is "$work/default.yaml" probe-deploy "$release-probe" PROBE_TOKEN "$release-probe-token" PROBE_BOOTSTRAP_TOKEN || true
     check "default values: the api's wait-for-migrations script ends with DB_TYPE=postgres when no migration is unapplied" \
       wait_script_run "$work/default.yaml" postgres applied ends || true
     check "default values: the api's wait-for-migrations script keeps waiting with DB_TYPE=postgres while ./bun db status fails" \
@@ -872,16 +1047,60 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
     check "config.env.DB_TYPE=$db_type: the message links to the SQLite docs page" \
       grep -qF "https://docs.peekaping.com/self-hosting/docker-with-sqlite" "$work/refused-$db_type.log" || true
   done
+  # MongoDB storage was removed. The message is the one every binary stops with
+  # (config.ErrMongoStorageRemoved), for a chart that supports PostgreSQL only.
+  for db_type in mongo mongodb MongoDB MONGO; do
+    check "config.env.DB_TYPE=$db_type: rendering fails, saying MongoDB storage was removed" \
+      render_refused "refused-$db_type" "MongoDB storage was removed" --set "config.env.DB_TYPE=$db_type" || true
+    check "config.env.DB_TYPE=$db_type: the message points to bun db import-mongo" \
+      grep -qF 'with "bun db import-mongo"' "$work/refused-$db_type.log" || true
+    check "config.env.DB_TYPE=$db_type: the message links to the guide for moving to PostgreSQL" \
+      grep -qF "https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql" "$work/refused-$db_type.log" || true
+  done
   if check "config.env.TRUSTED_PROXIES=203.0.113.0/24 renders" render trusted-proxies --set config.env.TRUSTED_PROXIES=203.0.113.0/24; then
     check "config.env.TRUSTED_PROXIES=203.0.113.0/24: the ConfigMap sets TRUSTED_PROXIES to it" \
       config_sets "$work/trusted-proxies.yaml" TRUSTED_PROXIES 203.0.113.0/24 || true
+  fi
+  # A Secret of the admin's own: the chart makes none, and the api and the probe read that one
+  if check "probe.token.existingSecret renders" render probe-secret \
+    --set probe.token.existingSecret=my-probe-token --set probe.token.existingSecretKey=token; then
+    check "probe.token.existingSecret: the chart makes no Secret" \
+      test -z "$(probe_token_secret_data "$work/probe-secret.yaml")" || true
+    check "probe.token.existingSecret: the api reads PROBE_BOOTSTRAP_TOKEN from that Secret and key" \
+      secret_ref_is "$work/probe-secret.yaml" api-deploy "$release-api" PROBE_BOOTSTRAP_TOKEN my-probe-token token || true
+    check "probe.token.existingSecret: the probe reads PROBE_TOKEN from that Secret and key" \
+      secret_ref_is "$work/probe-secret.yaml" probe-deploy "$release-probe" PROBE_TOKEN my-probe-token token || true
+  fi
+  if check "probe.replicaCount=5 and api.service.port=9000 render" render probe-scaled \
+    --set probe.replicaCount=5 --set api.service.port=9000; then
+    check "probe.replicaCount=5: the probe runs 5 replicas" \
+      probe_runs "$work/probe-scaled.yaml" 0xfurai/peekaping-probe:latest 5 || true
+    check "api.service.port=9000: the probe finds the api on port 9000" \
+      probe_env_is "$work/probe-scaled.yaml" PEEKAPING_URL "http://$release-api.default.svc:9000" || true
+  fi
+  if check "probe.sysctls=[] renders" render probe-no-sysctls --set-json 'probe.sysctls=[]'; then
+    check "probe.sysctls=[]: the probe pod sets no sysctls" \
+      test -z "$(pod_sysctls_of "$work/probe-no-sysctls.yaml" probe-deploy)" || true
+  fi
+  check "default values: the probe pod sets the sysctl that lets it send ICMP echo requests as non-root" \
+    grep -Fqx "net.ipv4.ping_group_range=0 2147483647" <<<"$(pod_sysctls_of "$work/default.yaml" probe-deploy)" || true
+  # The probe protocol (/probe/v1/) is served by the api, like /api and /socket.io, so
+  # the Ingress or the Istio VirtualService has to send it there and not to the web app
+  if check "ingress.enabled=true renders" render ingress --set ingress.enabled=true --set ingress.host=peekaping.example.com; then
+    check "ingress.enabled=true: the Ingress routes /probe to the api" \
+      ingress_routes "$work/ingress.yaml" /probe "$release-api" || true
+  fi
+  if check "istio.virtualservice.enabled=true renders" render istio \
+    --set ingress.enabled=true --set ingress.host=peekaping.example.com --set istio.virtualservice.enabled=true; then
+    check "istio.virtualservice.enabled=true: the VirtualService routes /probe/ to the api" \
+      virtualservice_routes "$work/istio.yaml" /probe/ "$release-api.default.svc.cluster.local" || true
   fi
   if check "bundled PostgreSQL and Redis render" render bundled --set postgresql.enabled=true --set redis.enabled=true; then
     check "bundled PostgreSQL runs an image pinned by digest" pinned_by_digest "$work/bundled.yaml" postgresql || true
     check "bundled Redis runs an image pinned by digest" pinned_by_digest "$work/bundled.yaml" redis || true
     check "bundled PostgreSQL and Redis: the seed init container runs the web image" \
       web_matches_seed "$work/bundled.yaml" || true
-    check "bundled PostgreSQL and Redis: api, producer, worker and ingester wait for the migrations, web doesn't" \
+    check "bundled PostgreSQL and Redis: the api waits for the migrations, the probe and web don't" \
       backend_components_wait "$work/bundled.yaml" 0xfurai/peekaping-migrate:latest || true
   fi
   if check "web.image.tag=0.0.47 renders" render tagged --set web.image.tag=0.0.47; then
@@ -897,16 +1116,17 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
   if check "migrate.image.tag=0.0.47 renders" render migrate-tagged --set migrate.image.tag=0.0.47; then
     check "migrate.image.tag=0.0.47: the wait-for-migrations init containers run the migrate image at that tag" \
       backend_components_wait "$work/migrate-tagged.yaml" 0xfurai/peekaping-migrate:0.0.47 || true
-    check "migrate.image.tag=0.0.47: the migrate Job and the 4 wait-for-migrations init containers change tag, nothing else does" \
-      tag_overrides "$work/migrate-tagged.yaml" 0xfurai/peekaping-migrate 0.0.47 latest 5 || true
+    check "migrate.image.tag=0.0.47: the migrate Job and the api's wait-for-migrations init container change tag, nothing else does" \
+      tag_overrides "$work/migrate-tagged.yaml" 0xfurai/peekaping-migrate 0.0.47 latest 2 || true
   fi
-  if check "apparmor.enabled=true for the api, producer, worker and ingester renders" render apparmor \
-    --set api.apparmor.enabled=true --set producer.apparmor.enabled=true \
-    --set worker.apparmor.enabled=true --set ingester.apparmor.enabled=true; then
-    for component in api producer worker ingester; do
-      check "$component.apparmor.enabled=true: the pod template annotates $release-$component and wait-for-migrations" \
-        apparmor_covers_init "$work/apparmor.yaml" "$component" || true
-    done
+  if check "apparmor.enabled=true for the api and probe renders" render apparmor \
+    --set api.apparmor.enabled=true --set probe.apparmor.enabled=true; then
+    check "api.apparmor.enabled=true: the pod template annotates $release-api and wait-for-migrations" \
+      apparmor_covers_init "$work/apparmor.yaml" api || true
+    # The probe has no init container, so its annotation names the one container
+    check "probe.apparmor.enabled=true: the pod template annotates $release-probe" \
+      grep -Fqx "container.apparmor.security.beta.kubernetes.io/$release-probe: runtime/default" \
+      <<<"$(apparmor_annotations_of "$work/apparmor.yaml" probe-deploy)" || true
   fi
 
   echo "# Notes"
@@ -930,14 +1150,14 @@ if check "package-chart.sh packages the chart as 9.9.9" run package "$root/scrip
     check "the package: every image runs the tag 9.9.9, the appVersion" images_at "$work/package-default.yaml" 9.9.9 || true
     check "the package: the seed init container runs the web image at 9.9.9" \
       web_matches_seed "$work/package-default.yaml" 0xfurai/peekaping-web:9.9.9 || true
-    check "the package: api, producer, worker and ingester wait for the migrations with the migrate image at 9.9.9, web doesn't" \
+    check "the package: the api waits for the migrations with the migrate image at 9.9.9, the probe and web don't" \
       backend_components_wait "$work/package-default.yaml" 0xfurai/peekaping-migrate:9.9.9 || true
   fi
   # A component's image.tag overrides the appVersion for the images of that
-  # component only: one container each for the api, producer, worker and
-  # ingester, two for web (the container and seed-web-root), and five for
-  # migrate (the Job and the wait-for-migrations init containers)
-  for component in api:1 producer:1 worker:1 ingester:1 web:2 migrate:5; do
+  # component only: one container each for the api and probe, two for web
+  # (the container and seed-web-root), and two for migrate (the Job and the
+  # api's wait-for-migrations init container)
+  for component in api:1 probe:1 web:2 migrate:2; do
     name=${component%%:*}
     count=${component##*:}
     if check "the package: $name.image.tag=custom renders" render_from "$package" "package-$name" --set "$name.image.tag=custom"; then

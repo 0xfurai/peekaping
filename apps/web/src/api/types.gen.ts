@@ -128,11 +128,11 @@ export type BruteforceBlockResponse = {
 
 export type ErrorReportingStateResponse = {
   /**
-   * Whether an admin opted in to error reports
+   * Whether error reports are on: the admin's stored choice, which is on until they choose
    */
   enabled: boolean;
   /**
-   * Whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces error reports off, whatever enabled says
+   * Whether the ERROR_REPORTING environment variable forces error reports off, whatever enabled says
    */
   forced_off: boolean;
 };
@@ -156,6 +156,10 @@ export type HeartbeatModel = {
   msg: string;
   notified: boolean;
   ping: number;
+  /**
+   * The probe that ran the check: local for the local probe, otherwise a remote probe's id
+   */
+  probe_id: string;
   retries: number;
   status: number;
   time: string;
@@ -337,9 +341,21 @@ export type MonitorCreateUpdateDto = {
   active?: boolean;
   config?: string;
   interval: number;
+  /**
+   * How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough), all (every location that counts) or at_least (location_threshold of them). Omitted on create, the rule is any; omitted on update, the monitor keeps its rule. Locations whose probe is offline, or that haven't reported, don't count.
+   */
+  location_rule?: "any" | "all" | "at_least";
+  /**
+   * With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Required with at_least and not allowed with any other rule.
+   */
+  location_threshold?: number | null;
   max_retries?: number;
   name: string;
   notification_ids: Array<string>;
+  /**
+   * The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only.
+   */
+  probe_ids?: Array<string> | null;
   proxy_id?: string;
   push_token?: string;
   resend_interval?: number;
@@ -352,7 +368,10 @@ export type MonitorCreateUpdateDto = {
     | boolean
     | string
     | number
+    | ("any" | "all" | "at_least")
+    | (number | null)
     | Array<string>
+    | (Array<string> | null)
     | (Array<string> | null)
     | undefined;
 };
@@ -362,26 +381,37 @@ export type MonitorCustomUptimeStatsDto = {
   "30d": number;
   "365d": number;
   "7d": number;
+  /**
+   * The probe the percentages count. Omitted when they count every probe's checks.
+   */
+  probe_id?: string;
 };
 
-export type MonitorModel = {
-  active: boolean;
-  config: string;
-  created_at: string;
-  id: string;
-  interval: number;
-  last_heartbeat?: HeartbeatModel;
-  max_retries: number;
-  name: string;
-  proxy_id: string;
-  push_token: string;
-  resend_interval: number;
-  retry_interval: number;
-  stale_since?: string;
-  status: number;
-  timeout: number;
-  type: string;
-  updated_at: string;
+export type MonitorModelLocation = {
+  /**
+   * When this probe's latest heartbeat was made. Null until the probe reports.
+   */
+  last_heartbeat_at: string | null;
+  /**
+   * The response time of this probe's latest heartbeat, in milliseconds. Null until the probe reports.
+   */
+  last_ping: number | null;
+  /**
+   * Whether the probe has an instance connected. The local probe is always online.
+   */
+  online: boolean;
+  /**
+   * The probe the monitor runs on
+   */
+  probe_id: string;
+  /**
+   * The probe's name
+   */
+  probe_name: string;
+  /**
+   * The status of this probe's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Null until the probe reports.
+   */
+  status: number | null;
 };
 
 export type MonitorMonitorResponseDto = {
@@ -390,16 +420,33 @@ export type MonitorMonitorResponseDto = {
   created_at: string;
   id: string;
   interval: number;
+  last_heartbeat?: HeartbeatModel;
+  /**
+   * How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough, the default), all (every location that counts), or at_least (location_threshold of them). Locations whose probe is offline, or that haven't reported, don't count.
+   */
+  location_rule: "any" | "all" | "at_least";
+  /**
+   * With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Null with any other rule.
+   */
+  location_threshold: number | null;
+  /**
+   * Where the monitor runs and how it is doing there, one entry for each probe in probe_ids and in the same order
+   */
+  locations: Array<MonitorModelLocation>;
   max_retries: number;
   name: string;
-  notification_ids: Array<string> | null;
+  notification_ids: Array<string>;
+  /**
+   * The probes that run the monitor's checks, by id: one or more. local is Peekaping itself.
+   */
+  probe_ids: Array<string>;
   proxy_id: string;
   push_token: string;
   resend_interval: number;
   retry_interval: number;
   stale_since?: string;
   status: number;
-  tag_ids: Array<string> | null;
+  tag_ids: Array<string>;
   timeout: number;
   type: string;
   updated_at: string;
@@ -409,9 +456,21 @@ export type MonitorPartialUpdateDto = {
   active?: boolean | null;
   config?: string | null;
   interval?: number | null;
+  /**
+   * How many of the monitor's locations must be Down for the monitor to be Down: any, all or at_least. Omitted, the monitor keeps its rule.
+   */
+  location_rule?: "any" | "all" | "at_least";
+  /**
+   * With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Sent with a rule other than at_least it is rejected; a rule sent without it has none.
+   */
+  location_threshold?: number | null;
   max_retries?: number | null;
   name?: string | null;
   notification_ids?: Array<string> | null;
+  /**
+   * The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only.
+   */
+  probe_ids?: Array<string> | null;
   proxy_id?: string | null;
   push_token?: string | null;
   resend_interval?: number | null;
@@ -425,8 +484,11 @@ export type MonitorPartialUpdateDto = {
     | (boolean | null)
     | (string | null)
     | (number | null)
+    | ("any" | "all" | "at_least")
+    | (number | null)
     | (number | null)
     | (string | null)
+    | (Array<string> | null)
     | (Array<string> | null)
     | (string | null)
     | (string | null)
@@ -454,6 +516,10 @@ export type MonitorStatPointsSummaryDto = {
   maxPing: number | null;
   minPing: number | null;
   points: Array<MonitorStatPoint> | null;
+  /**
+   * The probe the figures count. Omitted when they count every probe's checks.
+   */
+  probe_id?: string;
   uptime: number | null;
 };
 
@@ -501,6 +567,182 @@ export type NotificationChannelTestDto = {
   name?: string;
   type?: string;
   [key: string]: unknown | boolean | string | undefined;
+};
+
+export type ProbeCreateProbeDto = {
+  location?: string;
+  name: string;
+  notification_ids?: Array<string> | null;
+  [key: string]: unknown | string | (Array<string> | null) | undefined;
+};
+
+export type ProbeProbeAvailabilityConnection = {
+  end: string;
+  open: boolean;
+  start: string;
+};
+
+export type ProbeProbeAvailabilityInstance = {
+  connections: Array<ProbeProbeAvailabilityConnection>;
+  hostname: string;
+  id: string;
+  version: string;
+};
+
+export type ProbeProbeAvailabilityPeriod = {
+  end: string;
+  start: string;
+  status: "online" | "offline";
+};
+
+export type ProbeProbeAvailabilityResponse = {
+  from: string;
+  in_process: boolean;
+  instances?: Array<ProbeProbeAvailabilityInstance>;
+  periods: Array<ProbeProbeAvailabilityPeriod>;
+  probe_id: string;
+  range: "24h" | "7d" | "30d";
+  to: string;
+  tracked_from: string | null;
+  uptime_percent: number | null;
+};
+
+export type ProbeProbeInstanceResponse = {
+  arch: string;
+  hostname: string;
+  id: string;
+  last_seen_at: string;
+  os: string;
+  protocol_version: number;
+  supported_types: Array<string>;
+  version: string;
+};
+
+export type ProbeProbeResponse = {
+  created_at: string;
+  disabled: boolean;
+  id: string;
+  instances: Array<ProbeProbeInstanceResponse>;
+  location: string;
+  name: string;
+  notification_ids: Array<string>;
+  status: "online" | "offline";
+  supported_types: Array<string>;
+  token_prefix: string;
+  updated_at: string;
+};
+
+export type ProbeProbeWithTokenResponse = {
+  created_at: string;
+  disabled: boolean;
+  id: string;
+  instances: Array<ProbeProbeInstanceResponse>;
+  location: string;
+  name: string;
+  notification_ids: Array<string>;
+  status: "online" | "offline";
+  supported_types: Array<string>;
+  token: string;
+  token_prefix: string;
+  updated_at: string;
+};
+
+export type ProbeUpdateProbeDto = {
+  disabled?: boolean | null;
+  location?: string | null;
+  name?: string | null;
+  notification_ids?: Array<string> | null;
+  [key: string]:
+    | unknown
+    | (boolean | null)
+    | (string | null)
+    | (string | null)
+    | (Array<string> | null)
+    | undefined;
+};
+
+export type ProbeprotoAssignmentsResponse = {
+  monitors: Array<ProbeprotoMonitor> | null;
+  version: string;
+};
+
+export type ProbeprotoHelloRequest = {
+  arch?: string;
+  hostname?: string;
+  instance_id?: string;
+  os?: string;
+  probe_version?: string;
+  protocol_version?: number;
+  supported_types?: Array<string> | null;
+  [key: string]: unknown | string | number | (Array<string> | null) | undefined;
+};
+
+export type ProbeprotoHelloResponse = {
+  batch_max: number;
+  buffer_max: number;
+  flush_interval_ms: number;
+  poll_timeout_ms: number;
+  probe: ProbeprotoProbeInfo;
+  protocol_version: number;
+  server_time: string;
+  server_version: string;
+};
+
+export type ProbeprotoMonitor = {
+  config: string;
+  id: string;
+  interval: number;
+  max_retries: number;
+  name: string;
+  proxy?: ProbeprotoProxy;
+  resend_interval: number;
+  retry_interval: number;
+  timeout: number;
+  type: string;
+  updated_at: string;
+};
+
+export type ProbeprotoProbeInfo = {
+  id: string;
+  location: string;
+  name: string;
+};
+
+export type ProbeprotoProxy = {
+  auth: boolean;
+  host: string;
+  id: string;
+  password?: string;
+  port: number;
+  protocol: string;
+  updated_at: string;
+  username?: string;
+};
+
+export type ProbeprotoResult = {
+  end_time: string;
+  id: string;
+  message: string;
+  monitor_id: string;
+  ping_ms: number;
+  start_time: string;
+  status: string;
+  tls_info?: unknown;
+};
+
+export type ProbeprotoResultOutcome = {
+  accepted: boolean;
+  id: string;
+  reason?: string;
+};
+
+export type ProbeprotoResultsRequest = {
+  results?: Array<ProbeprotoResult> | null;
+  [key: string]: unknown | (Array<ProbeprotoResult> | null) | undefined;
+};
+
+export type ProbeprotoResultsResponse = {
+  results: Array<ProbeprotoResultOutcome> | null;
 };
 
 export type ProxyCreateUpdateDto = {
@@ -611,6 +853,10 @@ export type StatusPageCreateStatusPageDto = {
   published?: boolean;
   search_engine_index?: boolean;
   show_certificate_expiry?: boolean;
+  /**
+   * List each location of a monitor that runs on several probes on the public page. Off by default.
+   */
+  show_locations?: boolean;
   show_powered_by?: boolean;
   show_tags?: boolean;
   slug: string;
@@ -643,6 +889,7 @@ export type StatusPageModel = {
   icon: string;
   id: string;
   published: boolean;
+  show_locations: boolean;
   slug: string;
   theme: string;
   title: string;
@@ -653,7 +900,15 @@ export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
   active: boolean;
   heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
   id: string;
+  /**
+   * One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe.
+   */
+  locations?: Array<StatusPagePublicLocationDto> | null;
   name: string;
+  /**
+   * The monitor's status: 0 Down, 1 Up, 2 Pending, 3 Maintenance
+   */
+  status: number;
   type: string;
   uptime_24h: number;
 };
@@ -664,6 +919,19 @@ export type StatusPagePublicHeartbeatDto = {
   ping: number;
   status: number;
   time: string;
+};
+
+export type StatusPagePublicLocationDto = {
+  heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
+  name: string;
+  /**
+   * The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports.
+   */
+  status: number;
+  /**
+   * The uptime of this location over the last 24 hours, in percent. Null when it could not be read.
+   */
+  uptime_24h: number | null;
 };
 
 export type StatusPageStatusPageWithMonitorsResponseDto = {
@@ -681,6 +949,7 @@ export type StatusPageStatusPageWithMonitorsResponseDto = {
   published: boolean;
   search_engine_index: boolean;
   show_certificate_expiry: boolean;
+  show_locations: boolean;
   show_powered_by: boolean;
   show_tags: boolean;
   slug: string;
@@ -702,6 +971,10 @@ export type StatusPageUpdateStatusPageDto = {
   published?: boolean | null;
   search_engine_index?: boolean | null;
   show_certificate_expiry?: boolean | null;
+  /**
+   * List each location of a monitor that runs on several probes on the public page.
+   */
+  show_locations?: boolean | null;
   show_powered_by?: boolean | null;
   show_tags?: boolean | null;
   slug?: string | null;
@@ -718,6 +991,7 @@ export type StatusPageUpdateStatusPageDto = {
     | (string | null)
     | (Array<string> | null)
     | (string | null)
+    | (boolean | null)
     | (boolean | null)
     | (boolean | null)
     | (boolean | null)
@@ -774,7 +1048,7 @@ export type TelemetryFeatures = {
 
 export type TelemetryPayload = {
   /**
-   * The storage backend: sqlite, postgres, mysql or mongo. Empty for a backend the ping doesn't report.
+   * The storage backend: sqlite, postgres or mysql. Empty for a backend the ping doesn't report.
    */
   db: string;
   /**
@@ -782,7 +1056,7 @@ export type TelemetryPayload = {
    */
   features: TelemetryFeatures;
   /**
-   * The random instance ID; empty until an admin opts in
+   * The random instance ID; empty after an admin opts out, and while TELEMETRY forces the ping off and no ID was made before
    */
   instance_id: string;
   /**
@@ -813,15 +1087,19 @@ export type TelemetryPayload = {
 
 export type TelemetryStateResponse = {
   /**
-   * Whether an admin opted in to the usage ping
+   * Whether the usage ping is on: the admin's stored choice, which is on until they choose
    */
   enabled: boolean;
   /**
-   * Whether the TELEMETRY or DO_NOT_TRACK environment variable forces the ping off, whatever enabled says
+   * Whether the TELEMETRY environment variable forces the ping off, whatever enabled says
    */
   forced_off: boolean;
   /**
-   * The exact JSON the next usage ping would send; its instance_id is empty until an admin opts in
+   * Whether the one-time notice that the usage ping and error reports are on by default is still to be shown: it is not yet dismissed, and the environment does not force both off
+   */
+  notice_pending: boolean;
+  /**
+   * The exact JSON the next usage ping would send; its instance_id is empty after an admin opts out
    */
   payload: TelemetryPayload;
 };
@@ -851,13 +1129,23 @@ export type UtilsApiResponseArrayMaintenanceModel = {
   message: string;
 };
 
-export type UtilsApiResponseArrayMonitorModel = {
-  data: Array<MonitorModel> | null;
+export type UtilsApiResponseArrayMonitorMonitorResponseDto = {
+  data: Array<MonitorMonitorResponseDto> | null;
   message: string;
 };
 
 export type UtilsApiResponseArrayNotificationChannelModel = {
   data: Array<NotificationChannelModel> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayProbeProbeAvailabilityResponse = {
+  data: Array<ProbeProbeAvailabilityResponse> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayProbeProbeResponse = {
+  data: Array<ProbeProbeResponse> | null;
   message: string;
 };
 
@@ -916,11 +1204,6 @@ export type UtilsApiResponseMonitorCustomUptimeStatsDto = {
   message: string;
 };
 
-export type UtilsApiResponseMonitorModel = {
-  data: MonitorModel;
-  message: string;
-};
-
 export type UtilsApiResponseMonitorMonitorResponseDto = {
   data: MonitorMonitorResponseDto;
   message: string;
@@ -933,6 +1216,21 @@ export type UtilsApiResponseMonitorStatPointsSummaryDto = {
 
 export type UtilsApiResponseNotificationChannelModel = {
   data: NotificationChannelModel;
+  message: string;
+};
+
+export type UtilsApiResponseProbeProbeAvailabilityResponse = {
+  data: ProbeProbeAvailabilityResponse;
+  message: string;
+};
+
+export type UtilsApiResponseProbeProbeResponse = {
+  data: ProbeProbeResponse;
+  message: string;
+};
+
+export type UtilsApiResponseProbeProbeWithTokenResponse = {
+  data: ProbeProbeWithTokenResponse;
   message: string;
 };
 
@@ -2555,7 +2853,7 @@ export type GetMonitorsResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseArrayMonitorModel;
+  200: UtilsApiResponseArrayMonitorMonitorResponseDto;
 };
 
 export type GetMonitorsResponse =
@@ -2589,7 +2887,7 @@ export type PostMonitorsResponses = {
   /**
    * Created
    */
-  201: UtilsApiResponseMonitorModel;
+  201: UtilsApiResponseMonitorMonitorResponseDto;
 };
 
 export type PostMonitorsResponse =
@@ -2629,7 +2927,7 @@ export type GetMonitorsBatchResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseArrayMonitorModel;
+  200: UtilsApiResponseArrayMonitorMonitorResponseDto;
 };
 
 export type GetMonitorsBatchResponse =
@@ -2753,7 +3051,7 @@ export type PatchMonitorsByIdResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseMonitorModel;
+  200: UtilsApiResponseMonitorMonitorResponseDto;
 };
 
 export type PatchMonitorsByIdResponse =
@@ -2797,7 +3095,7 @@ export type PutMonitorsByIdResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseMonitorModel;
+  200: UtilsApiResponseMonitorMonitorResponseDto;
 };
 
 export type PutMonitorsByIdResponse =
@@ -2828,6 +3126,10 @@ export type GetMonitorsByIdHeartbeatsData = {
      * Reverse the order of heartbeats
      */
     reverse?: boolean;
+    /**
+     * Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.
+     */
+    probe_id?: string;
   };
   url: "/api/v1/monitors/{id}/heartbeats";
 };
@@ -2925,6 +3227,10 @@ export type GetMonitorsByIdStatsPointsData = {
      * Granularity (minute, hour, day)
      */
     granularity?: string;
+    /**
+     * Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+     */
+    probe_id?: string;
   };
   url: "/api/v1/monitors/{id}/stats/points";
 };
@@ -2969,7 +3275,12 @@ export type GetMonitorsByIdStatsUptimeData = {
      */
     id: string;
   };
-  query?: never;
+  query?: {
+    /**
+     * Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+     */
+    probe_id?: string;
+  };
   url: "/api/v1/monitors/{id}/stats/uptime";
 };
 
@@ -3326,6 +3637,331 @@ export type PutNotificationChannelsByIdResponses = {
 
 export type PutNotificationChannelsByIdResponse =
   PutNotificationChannelsByIdResponses[keyof PutNotificationChannelsByIdResponses];
+
+export type GetProbesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/probes";
+};
+
+export type GetProbesErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetProbesError = GetProbesErrors[keyof GetProbesErrors];
+
+export type GetProbesResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayProbeProbeResponse;
+};
+
+export type GetProbesResponse = GetProbesResponses[keyof GetProbesResponses];
+
+export type PostProbesData = {
+  body: ProbeCreateProbeDto;
+  path?: never;
+  query?: never;
+  url: "/api/v1/probes";
+};
+
+export type PostProbesErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostProbesError = PostProbesErrors[keyof PostProbesErrors];
+
+export type PostProbesResponses = {
+  /**
+   * Created
+   */
+  201: UtilsApiResponseProbeProbeWithTokenResponse;
+};
+
+export type PostProbesResponse = PostProbesResponses[keyof PostProbesResponses];
+
+export type GetProbesAvailabilityData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * How far back to look: 24h, 7d or 30d. Defaults to 24h.
+     */
+    range?: "24h" | "7d" | "30d";
+  };
+  url: "/api/v1/probes/availability";
+};
+
+export type GetProbesAvailabilityErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetProbesAvailabilityError =
+  GetProbesAvailabilityErrors[keyof GetProbesAvailabilityErrors];
+
+export type GetProbesAvailabilityResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayProbeProbeAvailabilityResponse;
+};
+
+export type GetProbesAvailabilityResponse =
+  GetProbesAvailabilityResponses[keyof GetProbesAvailabilityResponses];
+
+export type DeleteProbesByIdData = {
+  body?: never;
+  path: {
+    /**
+     * Probe ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/probes/{id}";
+};
+
+export type DeleteProbesByIdErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type DeleteProbesByIdError =
+  DeleteProbesByIdErrors[keyof DeleteProbesByIdErrors];
+
+export type DeleteProbesByIdResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteProbesByIdResponse =
+  DeleteProbesByIdResponses[keyof DeleteProbesByIdResponses];
+
+export type GetProbesByIdData = {
+  body?: never;
+  path: {
+    /**
+     * Probe ID, or local for the local probe
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/probes/{id}";
+};
+
+export type GetProbesByIdErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetProbesByIdError = GetProbesByIdErrors[keyof GetProbesByIdErrors];
+
+export type GetProbesByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseProbeProbeResponse;
+};
+
+export type GetProbesByIdResponse =
+  GetProbesByIdResponses[keyof GetProbesByIdResponses];
+
+export type PutProbesByIdData = {
+  body: ProbeUpdateProbeDto;
+  path: {
+    /**
+     * Probe ID, or local for the local probe
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/probes/{id}";
+};
+
+export type PutProbesByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PutProbesByIdError = PutProbesByIdErrors[keyof PutProbesByIdErrors];
+
+export type PutProbesByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseProbeProbeResponse;
+};
+
+export type PutProbesByIdResponse =
+  PutProbesByIdResponses[keyof PutProbesByIdResponses];
+
+export type GetProbesByIdAvailabilityData = {
+  body?: never;
+  path: {
+    /**
+     * Probe ID, or local for the local probe
+     */
+    id: string;
+  };
+  query?: {
+    /**
+     * How far back to look: 24h, 7d or 30d. Defaults to 24h. The instances' connections always cover the last 24 hours.
+     */
+    range?: "24h" | "7d" | "30d";
+  };
+  url: "/api/v1/probes/{id}/availability";
+};
+
+export type GetProbesByIdAvailabilityErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetProbesByIdAvailabilityError =
+  GetProbesByIdAvailabilityErrors[keyof GetProbesByIdAvailabilityErrors];
+
+export type GetProbesByIdAvailabilityResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseProbeProbeAvailabilityResponse;
+};
+
+export type GetProbesByIdAvailabilityResponse =
+  GetProbesByIdAvailabilityResponses[keyof GetProbesByIdAvailabilityResponses];
+
+export type PostProbesByIdRotateTokenData = {
+  body?: never;
+  path: {
+    /**
+     * Probe ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/probes/{id}/rotate-token";
+};
+
+export type PostProbesByIdRotateTokenErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostProbesByIdRotateTokenError =
+  PostProbesByIdRotateTokenErrors[keyof PostProbesByIdRotateTokenErrors];
+
+export type PostProbesByIdRotateTokenResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseProbeProbeWithTokenResponse;
+};
+
+export type PostProbesByIdRotateTokenResponse =
+  PostProbesByIdRotateTokenResponses[keyof PostProbesByIdRotateTokenResponses];
 
 export type GetProxiesData = {
   body?: never;
@@ -4423,6 +5059,37 @@ export type PutTelemetryResponses = {
 export type PutTelemetryResponse =
   PutTelemetryResponses[keyof PutTelemetryResponses];
 
+export type PostTelemetryNoticeData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/telemetry/notice";
+};
+
+export type PostTelemetryNoticeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostTelemetryNoticeError =
+  PostTelemetryNoticeErrors[keyof PostTelemetryNoticeErrors];
+
+export type PostTelemetryNoticeResponses = {
+  /**
+   * OK
+   */
+  200: TelemetryStateResponse;
+};
+
+export type PostTelemetryNoticeResponse =
+  PostTelemetryNoticeResponses[keyof PostTelemetryNoticeResponses];
+
 export type GetVersionData = {
   body?: never;
   path?: never;
@@ -4455,6 +5122,222 @@ export type GetHealthRootResponses = {
 
 export type GetHealthRootResponse =
   GetHealthRootResponses[keyof GetHealthRootResponses];
+
+export type ProbeGetAssignmentsData = {
+  body?: never;
+  headers: {
+    /**
+     * The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces.
+     */
+    "X-Probe-Instance": string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * The version of the assignments the instance holds, as the server last sent it. Leave it out for the first call. When it is the current one, the server holds the request until something changes, for up to 25 seconds, and answers 304 with no body at the timeout; when it is not, the server answers at once.
+     */
+    version?: string;
+  };
+  url: "/probe/v1/assignments";
+};
+
+export type ProbeGetAssignmentsErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type ProbeGetAssignmentsError =
+  ProbeGetAssignmentsErrors[keyof ProbeGetAssignmentsErrors];
+
+export type ProbeGetAssignmentsResponses = {
+  /**
+   * OK
+   */
+  200: ProbeprotoAssignmentsResponse;
+};
+
+export type ProbeGetAssignmentsResponse =
+  ProbeGetAssignmentsResponses[keyof ProbeGetAssignmentsResponses];
+
+export type ProbePostByeData = {
+  body?: never;
+  headers: {
+    /**
+     * The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces.
+     */
+    "X-Probe-Instance": string;
+  };
+  path?: never;
+  query?: never;
+  url: "/probe/v1/bye";
+};
+
+export type ProbePostByeErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type ProbePostByeError = ProbePostByeErrors[keyof ProbePostByeErrors];
+
+export type ProbePostByeResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type ProbePostByeResponse =
+  ProbePostByeResponses[keyof ProbePostByeResponses];
+
+export type ProbePostHelloData = {
+  body: ProbeprotoHelloRequest;
+  headers: {
+    /**
+     * The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces.
+     */
+    "X-Probe-Instance": string;
+  };
+  path?: never;
+  query?: never;
+  url: "/probe/v1/hello";
+};
+
+export type ProbePostHelloErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Request Entity Too Large
+   */
+  413: HttpxErrorBody;
+  /**
+   * Upgrade Required
+   */
+  426: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type ProbePostHelloError =
+  ProbePostHelloErrors[keyof ProbePostHelloErrors];
+
+export type ProbePostHelloResponses = {
+  /**
+   * OK
+   */
+  200: ProbeprotoHelloResponse;
+};
+
+export type ProbePostHelloResponse =
+  ProbePostHelloResponses[keyof ProbePostHelloResponses];
+
+export type ProbePostResultsData = {
+  body: ProbeprotoResultsRequest;
+  headers: {
+    /**
+     * The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces.
+     */
+    "X-Probe-Instance": string;
+  };
+  path?: never;
+  query?: never;
+  url: "/probe/v1/results";
+};
+
+export type ProbePostResultsErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Request Entity Too Large
+   */
+  413: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: HttpxErrorBody;
+};
+
+export type ProbePostResultsError =
+  ProbePostResultsErrors[keyof ProbePostResultsErrors];
+
+export type ProbePostResultsResponses = {
+  /**
+   * OK
+   */
+  200: ProbeprotoResultsResponse;
+};
+
+export type ProbePostResultsResponse =
+  ProbePostResultsResponses[keyof ProbePostResultsResponses];
 
 export type ClientOptions = {
   baseURL: `${string}://${string}` | (string & {});

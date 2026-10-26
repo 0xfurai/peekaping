@@ -1,6 +1,9 @@
-// Command api runs the HTTP API and the websocket of Peekaping in cluster mode (ADR 0002),
-// beside cmd/producer, cmd/worker and cmd/ingester. It also takes the notification events the
-// ingester and the producer's watchdog queue, and runs the cleanup cron and the status repair.
+// Command api runs the HTTP API and the websocket of Peekaping in cluster mode (ADR 0002). It takes
+// the notification events that are queued for it, and runs the cleanup cron and the status repair.
+//
+// The probes run the checks and the api does the rest: it stores what they send and what the push
+// URLs take, on the replica that took the request, counts the stats of those heartbeats, and runs
+// the stale-monitor watchdog and the probe sweep on the one replica that holds the leader lock.
 //
 // It doesn't migrate the database: the startup script runs the migrations with cmd/bun before
 // it starts the server.
@@ -31,14 +34,16 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/reporting"
-	"peekaping/internal/reporting/redissync"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
-	"peekaping/internal/utils"
+	"peekaping/internal/shutdown/lifecycle"
+	"peekaping/internal/validation"
 	"peekaping/internal/version"
 
 	"github.com/robfig/cron/v3"
@@ -52,15 +57,21 @@ var serverTimeouts = httpx.DefaultTimeouts()
 // errorReportingFlush is how long the shutdown waits for the error reports still queued
 const errorReportingFlush = 2 * time.Second
 
+// errorReportingEvery is how often the api applies the stored error reporting choice again, so
+// that a change made on another api replica reaches this one
+const errorReportingEvery = time.Minute
+
 // shutdownTimeouts are the API's, 30 seconds in all, Kubernetes' default grace period. A test
 // may shorten them.
 var shutdownTimeouts = graceful.Timeouts{HTTP: 15 * time.Second, Jobs: 10 * time.Second, EventBus: 5 * time.Second}
 
 func main() {
-	// A panic that ends the process is reported before it does, if the admin opted in
+	// A panic that ends the process is reported before it does, unless the admin opted out. Reports
+	// start only once app.ApplyErrorReporting has applied the stored choice (below), so a panic
+	// before that is not reported.
 	defer reporting.ReportCrash("main")
 
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 
 	// Load and validate API-specific config
 	cfg, err := LoadAndValidate("../..")
@@ -81,7 +92,7 @@ func main() {
 		logger.Fatalw("Failed to listen", "address", address, "error", err)
 	}
 
-	ctx, stop := graceful.NotifySignals(logger, os.Exit)
+	ctx, stop := lifecycle.NotifySignals(logger, os.Exit)
 	defer stop()
 
 	if err := run(ctx, cfg, logger, listener); err != nil {
@@ -118,11 +129,22 @@ type parts struct {
 	TLSInfo              monitor_tls_info.Service
 	CleanupLock          cleanup.RunLock
 	Monitors             monitor.Service
+	Probes               probe.Service
+	ProbeWaker           *protocol.Waker
 	NotificationListener *notification_channel.NotificationEventListener
 	MonitorListener      *monitor.MonitorEventListener
 	Metrics              *metrics.Collector
 	UsagePing            *telemetry.Sender
 	ErrorReporting       error_reporting.Service
+	// LeaderJobs runs the stale-monitor watchdog, the probe sweep and the push monitors' checks on
+	// the replica that holds the leader lock.
+	LeaderJobs *app.LeaderJobs
+	// SilentWatch finds a local probe that has monitors to run and no instance: a cluster upgraded
+	// without deploying probes.
+	SilentWatch     *probe.SilentWatch
+	ProbeRepository probe.Repository
+	// LocalBus delivers the heartbeats this replica stored to the stats aggregation
+	LocalBus *app.LocalBus
 }
 
 // run starts the API and serves it on the listener until ctx is done, or until serving fails.
@@ -168,6 +190,10 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		defer close(websocketClosed)
 		p.WebSocket.Close()
 	})
+	// A probe's assignment poll is held for up to 25 seconds, and Shutdown waits for it like any
+	// request in flight: answered now, it doesn't hold the shutdown up, or make the container's
+	// stop grace period run out
+	httpServer.RegisterOnShutdown(p.ProbeWaker.Close)
 
 	// A job that fails to start leaves the ones before it running, and the shutdown stops them
 	j, startErr := startJobs(ctx, p, internalCfg, logger)
@@ -203,6 +229,7 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 // jobs are the background jobs run starts, and how to stop them. A field is nil until its job
 // has started.
 type jobs struct {
+	leaderJobs         *app.LeaderJobs
 	consumer           *notification_channel.QueueConsumer
 	cleanup            *cron.Cron
 	stopErrorReporting context.CancelFunc
@@ -215,9 +242,9 @@ type jobs struct {
 	usagePingDone      <-chan struct{}
 }
 
-// startJobs starts the cleanup cron, the settings, the error reporting choice, the listeners, the
-// notification queue, the status repair, the metrics collector and the usage ping. The
-// notification listener subscribes before the queue consumer starts. When one fails, it returns
+// startJobs starts the cleanup cron, the settings, the local probe's token, the error reporting
+// choice, the listeners, the notification queue, the status repair, the metrics collector and the
+// usage ping. The notification listener subscribes before the queue consumer starts. When one fails, it returns
 // the jobs that had started, to stop.
 func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.SugaredLogger) (*jobs, error) {
 	j := &jobs{}
@@ -227,7 +254,7 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		NotificationHistoryDays: cfg.NotificationHistoryRetentionDays,
 		TLSInfoDays:             cfg.TLSInfoRetentionDays,
 	}
-	hourly, err := cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.CleanupLock, retention, logger)
+	hourly, err := cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.CleanupLock, retention, logger)
 	if err != nil {
 		return j, fmt.Errorf("failed to start the hourly cleanup: %w", err)
 	}
@@ -237,11 +264,21 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		return j, fmt.Errorf("failed to initialize JWT settings: %w", err)
 	}
 
-	// Apply the admin's choice from before the restart, which also copies it to Redis for the
-	// producer, the worker and the ingester. Then apply it again every minute, so that a copy
-	// that missed a Redis that was down is made up within a minute, and a change made on another
-	// api replica reaches this one. The stored setting is the source of truth; Redis only
-	// carries it. A failure leaves error reports off.
+	// PROBE_BOOTSTRAP_TOKEN becomes the local probe's token, so that a stack comes up with a probe
+	// token and no UI step. A token that can't be stored stops startup.
+	if err := app.BootstrapLocalProbeToken(ctx, p.Probes, cfg.ProbeBootstrapToken, logger); err != nil {
+		return j, fmt.Errorf("failed to bootstrap the local probe: %w", err)
+	}
+
+	// A cluster that was upgraded without deploying probes has monitors and nothing that checks
+	// them: say so in the log of the replica the operator just started
+	if _, err := p.SilentWatch.WarnIfSilent(ctx, p.ProbeRepository, logger); err != nil {
+		logger.Warnw("Failed to find out whether the local probe has an instance", "error", err)
+	}
+
+	// Apply the admin's choice from before the restart. Then apply it again every minute, so that
+	// a change made on another api replica reaches this one. The stored setting is the source of
+	// truth. A failure leaves error reports off.
 	if err := p.ErrorReporting.Apply(ctx); err != nil {
 		logger.Warnw("Failed to apply the error reporting choice, leaving error reports off", "error", err)
 	}
@@ -250,15 +287,22 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	j.errorReportingDone = make(chan struct{})
 	reporting.Go("error-reporting", func() {
 		defer close(j.errorReportingDone)
-		p.ErrorReporting.Run(errorReportingCtx, redissync.DefaultEvery)
+		p.ErrorReporting.Run(errorReportingCtx, errorReportingEvery)
 	})
 
 	p.NotificationListener.Subscribe(p.EventBus)
 	p.MonitorListener.Subscribe(p.EventBus)
+	// The stats count the heartbeats this replica stored, which its local bus carries: on the
+	// cluster's bus every replica would hear every heartbeat, and count it
+	p.Stats.RegisterEventHandlers(p.LocalBus)
 
-	// Take the notification events the ingester and the producer's watchdog queue. Each goes to
-	// one api replica, which hands it to the listener above, so it starts after the listener
-	// subscribed: an event handed to a bus with no handler for its topic is dropped.
+	// Answer the probes' waiting assignment polls when a monitor or one of a probe's instances
+	// changes. Every api replica listens: a change made on one reaches the polls held by the others.
+	p.ProbeWaker.Subscribe()
+
+	// Take the notification events the api replicas queue. Each goes to one replica, which hands it
+	// to the listener above, so it starts after the listener subscribed: an event handed to a bus
+	// with no handler for its topic is dropped.
 	if err := p.Consumer.Start(); err != nil {
 		return j, fmt.Errorf("failed to start taking notifications from the queue: %w", err)
 	}
@@ -289,11 +333,19 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 		j.metricsDone = p.Metrics.Start(metricsCtx, p.EventBus)
 	}
 
-	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. Of the
-	// api replicas, the one that wins the claim in Redis sends the day's ping.
+	// The usage ping sends nothing once an admin opted out or while the environment forces the
+	// ping off, and a failed one is dropped. Of the api replicas, the one that wins the claim in
+	// Redis sends the day's ping.
 	var usagePingCtx context.Context
 	usagePingCtx, j.stopUsagePing = context.WithCancel(context.Background())
 	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetry.DefaultSchedule)
+
+	// The stale-monitor watchdog and the probe sweep run on the one replica that holds the leader
+	// lock, and publish their events like any job here: after the listeners subscribed and the
+	// notification queue started. Another replica takes over within the lock's TTL when this one
+	// stops.
+	p.LeaderJobs.Start()
+	j.leaderJobs = p.LeaderJobs
 
 	return j, nil
 }
@@ -303,13 +355,24 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 func (j *jobs) stop(ctx context.Context, logger *zap.SugaredLogger) error {
 	var errs []error
 	await := func(what string, done <-chan struct{}) {
-		if err := graceful.Await(ctx, what, done); err != nil {
+		if err := lifecycle.Await(ctx, what, done); err != nil {
 			errs = append(errs, err)
 			return
 		}
 		logger.Infof("Stopped %s", what)
 	}
 
+	// The leader jobs stop first, and the leader lock goes with them, so that another replica takes
+	// over while this one finishes stopping. They publish events, so they stop before the
+	// notification queue and the event bus do.
+	if j.leaderJobs != nil {
+		leaderDone := make(chan struct{})
+		go func() {
+			defer close(leaderDone)
+			j.leaderJobs.Stop()
+		}()
+		await("the leader jobs", leaderDone)
+	}
 	if j.consumer != nil {
 		consumerDone := make(chan struct{})
 		go func() {
@@ -336,7 +399,7 @@ func (j *jobs) stop(ctx context.Context, logger *zap.SugaredLogger) error {
 	}
 	if j.stopErrorReporting != nil {
 		j.stopErrorReporting()
-		await("the error reporting choice's copy to Redis", j.errorReportingDone)
+		await("the error reporting choice's refresh", j.errorReportingDone)
 	}
 	return errors.Join(errs...)
 }
@@ -375,7 +438,7 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 	}
 	// The HTTP handlers the HTTP server left running return in the jobs' share too, before the
 	// event bus closes, so that what they publish reaches it
-	if err := graceful.Await(jobsCtx, "the HTTP handlers", handlers.Done()); err != nil {
+	if err := lifecycle.Await(jobsCtx, "the HTTP handlers", handlers.Done()); err != nil {
 		errs = append(errs, err)
 		running = append(running, "HTTP handlers")
 	}
@@ -395,7 +458,6 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 		logger.Errorw("Left the database open, since some of what uses it is still running", "running", running)
 		return errors.Join(errs...)
 	}
-	// In what is left of the event bus's share, so that a slow MongoDB doesn't hold up the exit
 	if err := p.Database.Close(busCtx, dbType, logger); err != nil {
 		errs = append(errs, err)
 	} else {

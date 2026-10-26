@@ -12,9 +12,12 @@ type Repository interface {
 	FindActive(ctx context.Context) ([]*Model, error)
 	Delete(ctx context.Context, id string) error
 
+	// FindByMonitorIDPaginated lists a monitor's heartbeats, newest page first. A probeID narrows
+	// them to the heartbeats that probe made; empty covers every probe.
 	FindByMonitorIDPaginated(
 		ctx context.Context,
 		monitorID string,
+		probeID string,
 		limit int,
 		page int,
 		important *bool,

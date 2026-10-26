@@ -3,9 +3,7 @@
   "dependencies": {},
   "scripts": {
     "dev:api": "nodemon --watch './**/*' -e go,html --signal SIGTERM --delay 2 --exec \"go run ./cmd/api\"",
-    "dev:producer": "nodemon --watch './**/*' -e go,html --signal SIGTERM --delay 2 --exec \"go run ./cmd/producer\"",
-    "dev:worker": "nodemon --watch './**/*' -e go,html --signal SIGTERM --delay 2 --exec \"go run ./cmd/worker\"",
-    "dev:ingester": "nodemon --watch './**/*' -e go,html --signal SIGTERM --delay 2 --exec \"go run ./cmd/ingester\"",
+    "dev:probe": "nodemon --watch './**/*' -e go,html --signal SIGTERM --delay 2 --exec \"go run ./cmd/probe\"",
     "docs:watch": "nodemon --watch cmd --watch internal -e go --signal SIGTERM --exec \"bun run docs:generate\"",
     "build": "go build -o dist/server ./cmd/server",
     "build:docker": "docker build -t peekaping/server:latest .",

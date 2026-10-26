@@ -16,8 +16,9 @@
       "have_account": "Sudah punya akun?",
       "sign_in": "Masuk",
       "submit": "Buat",
-      "telemetry_hint": "Nonaktif kecuali Anda mencentang kotak ini. Anda dapat mengubahnya nanti di “Pengaturan”. Jika Anda mencentangnya, Peekaping mengirim data ini paling banyak sekali sehari:",
-      "title": "Halo"
+      "title": "Halo",
+      "telemetry_note": "Anonim: tanpa nama pengawasan, URL, atau host. Anda dapat mengubahnya nanti di “Pengaturan”.",
+      "telemetry_whats_sent": "Apa yang dikirim"
     },
     "twofa": {
       "code_label": "Kode 2FA",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Kirim laporan kesalahan",
-    "never_sent": "Tidak pernah dikirim: pesan kesalahan, URL, header, URL webhook, nama, atau nama host. Laporan tidak berisi alamat IP, dan proyek Sentry milik Peekaping diatur agar tidak menyimpan IP pengirim. Dengan ERROR_REPORTING_DSN Anda sendiri, pengaturan Sentry atau GlitchTip Anda yang menentukan.",
-    "not_saved": "Pilihan Anda untuk mengirim laporan kesalahan tidak tersimpan. Aktifkan di “Pengaturan”.",
+    "never_sent": "Tidak pernah dikirim: pesan kesalahan, URL, header, URL webhook, nama, atau nama host. Laporan tidak berisi alamat IP, dan proyek Sentry milik Peekaping diatur agar tidak menyimpan IP pengirim.",
+    "not_saved": "Pilihan Anda tentang laporan kesalahan tidak tersimpan. Periksa di “Pengaturan”.",
     "sent": "Hanya dikirim saat Peekaping sendiri mengalami crash. Laporan berisi jenis kesalahan dan lokasi di dalam kode tempat terjadinya, versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Waktu Permintaan Habis (Timeout setelah {{seconds}} detik)",
           "resend_notification": "Kirim ulang pemberitahuan jika Down X kali berturut-turut (Kirim ulang dinonaktifkan)"
         },
+        "location_rule": {
+          "all": "semua lokasi tidak tersedia",
+          "any": "salah satu lokasi tidak tersedia",
+          "at_least": "setidaknya N lokasi tidak tersedia",
+          "description": "Lokasi yang probe-nya offline, atau belum melaporkan hasil, tidak dihitung.",
+          "label": "Tandai monitor sebagai tidak tersedia ketika",
+          "threshold_invalid": "Masukkan bilangan bulat, 1 atau lebih",
+          "threshold_label": "Jumlah lokasi",
+          "threshold_too_high": "Tidak boleh lebih dari jumlah probe yang Anda pilih"
+        },
         "notifications": {
           "add_notifier": "Tambah Pemberitahuan",
           "new_notifier": "+ Notifier Baru",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Pilih Notifier",
           "selected_channels": "Saluran Notifikasi yang Dipilih",
           "title": "Saluran Pemberitahuan"
+        },
+        "probe": {
+          "description": "Monitor berjalan di setiap probe yang Anda pilih dan menampilkan hasil masing-masing sebagai lokasi.",
+          "label": "Probe",
+          "option_unsupported": "{{name}} (tidak menjalankan tipe ini)",
+          "placeholder": "Pilih probe",
+          "push_fixed": "Monitor Push selalu berjalan pada probe lokal.",
+          "required": "Pilih setidaknya satu probe",
+          "unsupported": "Probe ini tidak menjalankan tipe monitor ini. Pilih probe lain."
         },
         "proxy": {
           "add_proxy": "Tambahkan Proxy",
@@ -658,6 +678,15 @@
       "expiring_soon": "Segera kedaluwarsa",
       "for": "untuk",
       "live_status": "Status Langsung",
+      "locations": {
+        "all": "Semua lokasi",
+        "no_result": "Belum ada hasil",
+        "probe_offline": "Probe sedang offline",
+        "probe_unsupported": "Tidak menjalankan tipe ini",
+        "response_time": "Waktu respons",
+        "select_label": "Lokasi",
+        "title": "Lokasi"
+      },
       "monitor_for": "Pantau untuk",
       "no_certificate_data": "Tidak ada data sertifikat",
       "seconds": "detik",
@@ -683,6 +712,7 @@
     "maintenance": "Pemeliharaan",
     "monitors": "Pengawasan",
     "notification_channels": "Saluran Pemberitahuan",
+    "probes": "Probe",
     "proxies": "Proksi",
     "settings": "Pengaturan",
     "status_pages": "Halaman Status",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Otomatis Mengakui",
         "auto_resolve_acknowledge_description": "Mengakui insiden secara otomatis",
-        "auto_resolve_description": "Pilih tindakan apa yang akan diambil ketika monitor kembali online",
+        "auto_resolve_description": "Pilih apa yang dikirim ketika monitor kembali berjalan atau probe kembali online",
         "auto_resolve_do_nothing": "Tidak melakukan apa-apa",
-        "auto_resolve_do_nothing_description": "Tidak ada tindakan yang diambil pada status UP",
+        "auto_resolve_do_nothing_description": "Tidak ada yang dikirim ketika monitor kembali berjalan atau probe kembali online, sehingga insiden tetap terbuka sampai Anda menyelesaikannya di PagerDuty",
         "auto_resolve_label": "Selesaikan Otomatis atau Konfirmasi",
         "auto_resolve_placeholder": "Pilih perilaku penyelesaian otomatis",
         "auto_resolve_resolve": "Resolusi Otomatis",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Token autentikasi opsional untuk keamanan yang lebih baik. Token ini akan dikirim dalam header pagertree-token.",
         "authentication_token_label": "Token Autentikasi (Opsional)",
         "authentication_token_placeholder": "Masukkan token otentikasi jika diperlukan",
-        "auto_resolve_alerts_description": "Secara otomatis menyelesaikan peringatan PagerTree ketika monitor pulih.",
+        "auto_resolve_alerts_description": "Secara otomatis menyelesaikan peringatan PagerTree ketika monitor kembali berjalan atau probe kembali online.",
         "auto_resolve_alerts_label": "Selesaikan Peringatan Otomatis",
         "how_to_get_integration_url_label": "Cara mendapatkan URL integrasi",
         "integration_url_description": "Masukkan URL integrasi webhook PagerTree Anda.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Tersimpan — ketik untuk mengganti"
     }
   },
+  "probes": {
+    "page_name": "Probe",
+    "description": "Probe menjalankan pemeriksaan monitor dari tempat probe tersebut dipasang. Probe lokal adalah Peekaping itu sendiri.",
+    "local_name": "Lokal",
+    "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} tidak menjalankan monitor {{type}}",
+    "empty_list": {
+      "title": "Tidak ada probe ditemukan",
+      "text": "Buat probe untuk menjalankan pemeriksaan dari tempat lain.",
+      "action_text": "Buat probe pertama Anda"
+    },
+    "table": {
+      "headers": {
+        "name": "Nama",
+        "location": "Lokasi",
+        "status": "Status",
+        "disabled": "Nonaktif",
+        "token": "Token",
+        "instances": "Instans",
+        "actions": "Aksi"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Nonaktif",
+      "no_instances": "Belum ada instans",
+      "last_seen": "terakhir terlihat {{date}}",
+      "actions": {
+        "edit": "Edit probe {{name}}",
+        "rotate": "Ganti token probe {{name}}",
+        "delete": "Hapus probe {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Buat probe",
+      "description": "Probe menjalankan pemeriksaan dari tempat Anda memasangnya. Tokennya hanya ditampilkan sekali, setelah Anda membuatnya.",
+      "submit": "Buat probe",
+      "creating": "Membuat..."
+    },
+    "edit_dialog": {
+      "title": "Edit probe",
+      "description": "Ubah pengaturan {{name}}."
+    },
+    "form": {
+      "name_label": "Nama",
+      "name_placeholder": "mis., Frankfurt",
+      "location_label": "Lokasi (opsional)",
+      "location_placeholder": "mis., Frankfurt, Jerman",
+      "name_required": "Nama wajib diisi",
+      "name_too_long": "Nama terlalu panjang",
+      "location_too_long": "Lokasi terlalu panjang",
+      "disabled_label": "Nonaktif",
+      "disabled_description": "Token probe yang dinonaktifkan berhenti berfungsi sampai Anda mengaktifkannya lagi.",
+      "notifications_hint": "Biarkan kosong untuk memberi tahu saluran dari pengawasan probe ini."
+    },
+    "rotate_dialog": {
+      "title": "Ganti token",
+      "description": "Token lama probe {{name}} langsung berhenti berfungsi. Instansnya harus dimulai ulang dengan token baru.",
+      "confirm": "Ganti token",
+      "rotating": "Mengganti..."
+    },
+    "delete_dialog": {
+      "title": "Hapus probe",
+      "description": "Yakin ingin menghapus probe \"{{name}}\"? Tokennya akan berhenti berfungsi. Tindakan ini tidak dapat dibatalkan."
+    },
+    "token_alert": {
+      "title_created": "Probe {{name}} dibuat",
+      "title_rotated": "Token baru untuk probe {{name}}",
+      "note": "Token ini membaca konfigurasi monitor yang ditetapkan ke probe. Token hanya ditampilkan sekali.",
+      "token_label": "Token",
+      "docker_label": "Jalankan probe dengan Docker",
+      "copy_token": "Salin token",
+      "copy_command": "Salin perintah docker"
+    },
+    "messages": {
+      "created_successfully": "Probe berhasil dibuat",
+      "updated_successfully": "Probe berhasil diperbarui",
+      "rotated_successfully": "Token berhasil diganti",
+      "deleted_successfully": "Probe berhasil dihapus",
+      "failed_to_create": "Gagal membuat probe",
+      "failed_to_update": "Gagal memperbarui probe",
+      "failed_to_rotate": "Gagal mengganti token",
+      "failed_to_delete": "Gagal menghapus probe",
+      "failed_to_load": "Gagal memuat probe",
+      "copy_success": "Disalin ke clipboard",
+      "copy_failed": "Tidak dapat menyalin ke clipboard"
+    },
+    "detail": {
+      "not_found": "Probe tidak ditemukan"
+    },
+    "availability": {
+      "title": "Ketersediaan",
+      "range_label": "Rentang waktu",
+      "bar_label": "Riwayat ketersediaan",
+      "instance_bar_label": "Koneksi {{name}}",
+      "no_data": "Tidak ada data",
+      "now": "Sekarang",
+      "instances_title": "Instans, 24 jam terakhir",
+      "in_process_note": "Peekaping sendiri yang memeriksa monitor probe lokal, sehingga probe ini tidak memiliki riwayat ketersediaan.",
+      "connected_since": "Terhubung sejak {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus proxy {{host}}:{{port}} secara permanen.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "Dalam mode klaster, perubahan sampai ke setiap proses dalam waktu satu menit.",
-      "description": "Kirim laporan ke Sentry saat server mengalami crash. Nonaktif sampai Anda mengaktifkannya.",
-      "forced_off": "Variabel lingkungan ERROR_REPORTING=off atau DO_NOT_TRACK=1 menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
+      "description": "Kirim laporan ke Sentry saat server mengalami crash. Aktif secara default; Anda dapat menonaktifkannya di sini kapan saja.",
+      "forced_off": "Variabel lingkungan ERROR_REPORTING=off menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
       "title": "Laporan kesalahan"
     },
     "telemetry": {
-      "description": "Kirim statistik anonim tentang cara instalasi ini diatur, paling banyak sekali sehari. Nonaktif sampai Anda mengaktifkannya.",
-      "forced_off": "Variabel lingkungan TELEMETRY=off atau DO_NOT_TRACK=1 menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
-      "id_note": "ID instans dibuat saat Anda mengaktifkan ini dan dihapus saat Anda menonaktifkannya. Mengaktifkannya lagi akan membuat ID baru.",
+      "description": "Kirim statistik anonim tentang cara instalasi ini diatur, paling banyak sekali sehari. Aktif secara default; Anda dapat menonaktifkannya di sini kapan saja.",
+      "forced_off": "Variabel lingkungan TELEMETRY=off menonaktifkan ini. Tidak ada yang dikirim, apa pun isi pengaturan ini.",
+      "id_note": "ID instans dibuat selama opsi ini aktif dan dihapus saat Anda menonaktifkannya. Mengaktifkannya lagi akan membuat ID baru.",
       "payload_off": "Tidak ada yang dikirim selama ini nonaktif. Inilah isi ping penggunaan jika Anda mengaktifkannya.",
       "payload_title": "Apa yang akan dikirim ping penggunaan berikutnya",
       "title": "Statistik penggunaan"
@@ -1367,6 +1500,8 @@
     "published_status": "Terbit",
     "search_label": "Cari",
     "search_placeholder": "Cari halaman status berdasarkan judul...",
+    "show_locations": "Tampilkan setiap lokasi",
+    "show_locations_info": "Untuk monitor yang diperiksa dari beberapa lokasi, tampilkan status dan riwayat setiap lokasi",
     "update_status_page": "Perbarui Halaman Status",
     "view_page": "Lihat Halaman"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Apa yang dikirim dan cara mematikannya",
     "label": "Kirim statistik penggunaan anonim",
-    "never_sent": "Tidak pernah dikirim: nama pengawasan, URL, host, tag, alamat halaman status, atau pengaturan notifikasi. Ping penggunaan tidak berisi alamat IP, dan Worker milik Peekaping tidak mencatat IP pengirim.",
-    "not_saved": "Pilihan Anda untuk mengirim statistik penggunaan tidak tersimpan. Aktifkan di “Pengaturan”.",
-    "sent_features": "Apakah Anda menggunakan halaman status, jendela pemeliharaan, dan metrik",
-    "sent_id": "ID acak, dibuat saat Anda mengaktifkannya dan dihapus saat Anda menonaktifkannya",
-    "sent_monitors": "Berapa banyak pengawasan yang Anda miliki, sebagai rentang, misalnya 11-50",
-    "sent_setup": "Versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi dan jenis CPU",
-    "sent_types": "Jenis pengawasan dan saluran notifikasi yang Anda gunakan, misalnya http atau telegram"
+    "not_saved": "Pilihan Anda tentang statistik penggunaan tidak tersimpan. Periksa di “Pengaturan”."
+  },
+  "telemetry_notice": {
+    "error_reports": "Laporan kesalahan aktif. Jika Peekaping mengalami crash, ia mengirim jenis kesalahan dan lokasi di dalam kode tempat terjadinya, versinya, mode, backend penyimpanan, dan sistem operasi. Tidak pernah mengirim pesan kesalahan, URL, atau nama host.",
+    "settings_errors": "Nonaktifkan laporan kesalahan di “Pengaturan”",
+    "settings_usage": "Nonaktifkan statistik penggunaan di “Pengaturan”",
+    "title": "Pengiriman data anonim aktif secara default",
+    "usage_statistics": "Statistik penggunaan aktif. Paling banyak sekali sehari, Peekaping mengirim ID instans acak, versinya, mode, backend penyimpanan, dan sistem operasi, rentang jumlah pengawasan Anda, jenis pengawasan dan saluran notifikasi yang Anda gunakan, serta apakah Anda menggunakan halaman status, jendela pemeliharaan, dan metrik. Tidak pernah mengirim nama, URL, host, atau pengaturan."
   },
   "theme": {
     "dark": "Gelap",

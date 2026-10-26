@@ -26,7 +26,7 @@ on:
 
 jobs:
   validate-version:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
     outputs:
       is_valid_rc: ${{ steps.check.outputs.is_valid_rc }}
     steps:
@@ -200,7 +200,7 @@ jobs:
           docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
-  build-worker:
+  build-probe:
     runs-on: ${{ matrix.runner }}
     needs: prepare-and-test
     strategy:
@@ -225,19 +225,37 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Worker image (without DockerHub login to avoid pull limits)
+      - name: Build Probe image (without DockerHub login to avoid pull limits)
         uses: docker/build-push-action@v6
         with:
           context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.worker
+          file: ./apps/server/infra/Dockerfile.probe
           push: false
           load: true
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # The same probe without the Docker, Kafka, SQL Server, MongoDB and gRPC executors
+      - name: Build Probe slim image (without DockerHub login to avoid pull limits)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/server
+          file: ./apps/server/infra/Dockerfile.probe
+          build-args: GO_TAGS=slim
+          push: false
+          load: true
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -254,128 +272,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push Worker image to registries
+      - name: Push Probe image to registries
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
-  build-producer:
-    runs-on: ${{ matrix.runner }}
-    needs: prepare-and-test
-    strategy:
-      matrix:
-        include:
-          - platform: linux/amd64
-            runner: ubuntu-latest
-            arch: amd64
-          - platform: linux/arm64
-            runner: ubuntu-24.04-arm
-            arch: arm64
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Update version in main.go (server) - temp
+      - name: Push Probe slim image to registries
         run: |
-          sed -i.bak -E 's/(Version[[:space:]]*=[[:space:]]*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
-          rm version.go.bak
-        working-directory: ./apps/server/internal/version
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Producer image (without DockerHub login to avoid pull limits)
-        uses: docker/build-push-action@v6
-        with:
-          context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.producer
-          push: false
-          load: true
-          platforms: ${{ matrix.platform }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push Producer image to registries
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-
-  build-ingester:
-    runs-on: ${{ matrix.runner }}
-    needs: prepare-and-test
-    strategy:
-      matrix:
-        include:
-          - platform: linux/amd64
-            runner: ubuntu-latest
-            arch: amd64
-          - platform: linux/arm64
-            runner: ubuntu-24.04-arm
-            arch: arm64
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Update version in main.go (server) - temp
-        run: |
-          sed -i.bak -E 's/(Version[[:space:]]*=[[:space:]]*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
-          rm version.go.bak
-        working-directory: ./apps/server/internal/version
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Ingester image (without DockerHub login to avoid pull limits)
-        uses: docker/build-push-action@v6
-        with:
-          context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.ingester
-          push: false
-          load: true
-          platforms: ${{ matrix.platform }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push Ingester image to registries
-        run: |
-          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
 
   build-migrate:
     runs-on: ${{ matrix.runner }}
@@ -454,14 +359,6 @@ jobs:
           - platform: linux/amd64
             runner: ubuntu-latest
             arch: amd64
-            database: mongo
-          - platform: linux/arm64
-            runner: ubuntu-24.04-arm
-            arch: arm64
-            database: mongo
-          - platform: linux/amd64
-            runner: ubuntu-latest
-            arch: amd64
             database: postgres
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -528,7 +425,7 @@ jobs:
 
   create-manifest:
     runs-on: ubuntu-latest
-    needs: [build-ui, build-api, build-worker, build-producer, build-ingester, build-migrate, build-bundle-containers]
+    needs: [build-ui, build-api, build-probe, build-migrate, build-bundle-containers]
     steps:
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -557,23 +454,17 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}-arm64
           docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}
 
-          # Worker manifest
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }} \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
+          # Probe manifest
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }} \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
 
-          # Producer manifest
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }} \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}
-
-          # Ingester manifest
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }} \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}
+          # Probe slim manifest
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim
 
           # Migrate manifest
           docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }} \
@@ -582,7 +473,7 @@ jobs:
           docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}
 
           # Bundle manifests
-          for db in sqlite mongo postgres; do
+          for db in sqlite postgres; do
             # Bundle manifest for each database
             docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
@@ -610,31 +501,22 @@ jobs:
           echo "✓ API manifest pushed"
           sleep 5
 
-          # Worker manifest
-          echo "Creating Worker manifest..."
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
-          echo "✓ Worker manifest pushed"
+          # Probe manifest
+          echo "Creating Probe manifest..."
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }} \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
+          echo "✓ Probe manifest pushed"
           sleep 5
 
-          # Producer manifest
-          echo "Creating Producer manifest..."
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}
-          echo "✓ Producer manifest pushed"
-          sleep 5
-
-          # Ingester manifest
-          echo "Creating Ingester manifest..."
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}
-          echo "✓ Ingester manifest pushed"
+          # Probe slim manifest
+          echo "Creating Probe slim manifest..."
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim
+          echo "✓ Probe slim manifest pushed"
           sleep 5
 
           # Migrate manifest
@@ -647,7 +529,7 @@ jobs:
           sleep 5
 
           # Bundle manifests
-          for db in sqlite mongo postgres; do
+          for db in sqlite postgres; do
             echo "Creating Bundle manifest for ${db}..."
             docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
@@ -666,7 +548,7 @@ jobs:
       container-tag: ${{ github.event.inputs.version }}
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
     needs: playwright-tests
     steps:
       - name: Checkout code
@@ -692,27 +574,23 @@ jobs:
             ### GitHub Container Registry (GHCR)
             - UI: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}`
             - API: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}`
-            - Worker: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}`
-            - Producer: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}`
-            - Ingester: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}`
+            - Probe: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}`
+            - Probe (slim): `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim`
             - Migrate: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}`
 
             ### Bundle Containers (GHCR)
             - SQLite Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}`
-            - MongoDB Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}`
             - PostgreSQL Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}`
 
             ### Docker Hub
             - UI: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}`
             - API: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}`
-            - Worker: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}`
-            - Producer: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}`
-            - Ingester: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}`
+            - Probe: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}`
+            - Probe (slim): `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim`
             - Migrate: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}`
 
             ### Bundle Containers (Docker Hub)
             - SQLite Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}`
-            - MongoDB Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}`
             - PostgreSQL Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}`
 
             ## Installation
@@ -721,9 +599,7 @@ jobs:
             # Using regular docker-compose, update your images to:
             # - UI: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}
             # - API: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}
-            # - Worker: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
-            # - Producer: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}
-            # - Ingester: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}
+            # - Probe: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
             # - Migrate: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}
 
             # Using bundle containers (single container with everything):
@@ -765,14 +641,12 @@ jobs:
                     **Docker Images:**
                     - UI: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}\`
                     - API: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}\`
-                    - Worker: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}\`
-                    - Producer: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}\`
-                    - Ingester: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}\`
+                    - Probe: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}\`
+                    - Probe (slim): \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim\`
                     - Migrate: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}\`
 
                     **Bundle Containers:**
                     - SQLite: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}\`
-                    - MongoDB: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}\`
                     - PostgreSQL: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}\`
 
                     [View Release](https://github.com/${{ github.repository }}/releases/tag/${{ github.event.inputs.version }})`

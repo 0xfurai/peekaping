@@ -98,43 +98,43 @@ func TestLoadConfig_TelemetryEndpointIsSetByTheEnvironment(t *testing.T) {
 	assert.Equal(t, "http://localhost:8787/v1/ping", cfg.TelemetryURL)
 }
 
-func TestLoadConfig_TelemetryKillSwitchesComeFromTheEnvironment(t *testing.T) {
-	cfg, err := loadTestConfig(t, map[string]string{"TELEMETRY": "off", "DO_NOT_TRACK": "1"})
+func TestLoadConfig_TelemetryKillSwitchComesFromTheEnvironment(t *testing.T) {
+	cfg, err := loadTestConfig(t, map[string]string{"TELEMETRY": "off"})
 
 	require.NoError(t, err)
 	assert.Equal(t, "off", cfg.Telemetry)
-	assert.Equal(t, "1", cfg.DoNotTrack)
+}
+
+func TestLoadConfig_DoNotTrackAloneLeavesBothFeaturesOn(t *testing.T) {
+	cfg, err := loadTestConfig(t, map[string]string{"DO_NOT_TRACK": "1", "TELEMETRY": "", "ERROR_REPORTING": ""})
+
+	require.NoError(t, err)
+	assert.False(t, cfg.TelemetryForcedOff(), "DO_NOT_TRACK=1 no longer switches off the usage ping")
+	assert.False(t, cfg.ErrorReportingForcedOff(), "DO_NOT_TRACK=1 no longer switches off error reports")
 }
 
 func TestConfig_TelemetryForcedOff(t *testing.T) {
 	for _, tc := range []struct {
-		name                  string
-		telemetry, doNotTrack string
-		want                  bool
+		name      string
+		telemetry string
+		want      bool
 	}{
-		{"nothing set", "", "", false},
-		{"TELEMETRY=on", "on", "", false},
-		{"TELEMETRY=true", "true", "", false},
-		{"TELEMETRY=off", "off", "", true},
-		{"TELEMETRY=OFF", "OFF", "", true},
-		{"TELEMETRY=false", "false", "", true},
-		{"TELEMETRY=False", "False", "", true},
-		{"TELEMETRY=0", "0", "", true},
-		{"TELEMETRY=no", "no", "", true},
-		{"TELEMETRY=No", "No", "", true},
-		{"TELEMETRY=off with spaces", " off ", "", true},
-		{"TELEMETRY=1 is not an off value", "1", "", false},
-		{"TELEMETRY=anything else", "maybe", "", false},
-		{"DO_NOT_TRACK=1", "", "1", true},
-		{"DO_NOT_TRACK=true", "", "true", true},
-		{"DO_NOT_TRACK=TRUE", "", "TRUE", true},
-		{"DO_NOT_TRACK=0", "", "0", false},
-		{"DO_NOT_TRACK=false", "", "false", false},
-		{"DO_NOT_TRACK=yes is not a kill switch value", "", "yes", false},
-		{"TELEMETRY=on cannot undo DO_NOT_TRACK=1", "on", "1", true},
+		{"nothing set", "", false},
+		{"TELEMETRY=on", "on", false},
+		{"TELEMETRY=true", "true", false},
+		{"TELEMETRY=off", "off", true},
+		{"TELEMETRY=OFF", "OFF", true},
+		{"TELEMETRY=false", "false", true},
+		{"TELEMETRY=False", "False", true},
+		{"TELEMETRY=0", "0", true},
+		{"TELEMETRY=no", "no", true},
+		{"TELEMETRY=No", "No", true},
+		{"TELEMETRY=off with spaces", " off ", true},
+		{"TELEMETRY=1 is not an off value", "1", false},
+		{"TELEMETRY=anything else", "maybe", false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := Config{Telemetry: tc.telemetry, DoNotTrack: tc.doNotTrack}
+			cfg := Config{Telemetry: tc.telemetry}
 
 			assert.Equal(t, tc.want, cfg.TelemetryForcedOff())
 		})
@@ -160,32 +160,25 @@ func TestLoadConfig_ErrorReportingSettingsAreEmptyByDefault(t *testing.T) {
 
 func TestConfig_ErrorReportingForcedOff(t *testing.T) {
 	for _, tc := range []struct {
-		name                       string
-		errorReporting, doNotTrack string
-		want                       bool
+		name           string
+		errorReporting string
+		want           bool
 	}{
-		{"nothing set", "", "", false},
-		{"ERROR_REPORTING=on", "on", "", false},
-		{"ERROR_REPORTING=true", "true", "", false},
-		{"ERROR_REPORTING=off", "off", "", true},
-		{"ERROR_REPORTING=OFF", "OFF", "", true},
-		{"ERROR_REPORTING=false", "false", "", true},
-		{"ERROR_REPORTING=0", "0", "", true},
-		{"ERROR_REPORTING=no", "no", "", true},
-		{"ERROR_REPORTING=No", "No", "", true},
-		{"ERROR_REPORTING=off with spaces", " off ", "", true},
-		{"ERROR_REPORTING=1 is not an off value", "1", "", false},
-		{"ERROR_REPORTING=anything else", "maybe", "", false},
-		{"DO_NOT_TRACK=1", "", "1", true},
-		{"DO_NOT_TRACK=true", "", "true", true},
-		{"DO_NOT_TRACK=TRUE", "", "TRUE", true},
-		{"DO_NOT_TRACK=0", "", "0", false},
-		{"DO_NOT_TRACK=false", "", "false", false},
-		{"DO_NOT_TRACK=yes is not a kill switch value", "", "yes", false},
-		{"ERROR_REPORTING=on cannot undo DO_NOT_TRACK=1", "on", "1", true},
+		{"nothing set", "", false},
+		{"ERROR_REPORTING=on", "on", false},
+		{"ERROR_REPORTING=true", "true", false},
+		{"ERROR_REPORTING=off", "off", true},
+		{"ERROR_REPORTING=OFF", "OFF", true},
+		{"ERROR_REPORTING=false", "false", true},
+		{"ERROR_REPORTING=0", "0", true},
+		{"ERROR_REPORTING=no", "no", true},
+		{"ERROR_REPORTING=No", "No", true},
+		{"ERROR_REPORTING=off with spaces", " off ", true},
+		{"ERROR_REPORTING=1 is not an off value", "1", false},
+		{"ERROR_REPORTING=anything else", "maybe", false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := Config{ErrorReporting: tc.errorReporting, DoNotTrack: tc.doNotTrack}
+			cfg := Config{ErrorReporting: tc.errorReporting}
 
 			assert.Equal(t, tc.want, cfg.ErrorReportingForcedOff())
 		})
@@ -195,10 +188,73 @@ func TestConfig_ErrorReportingForcedOff(t *testing.T) {
 func TestConfig_TheTwoSwitchesAreIndependent(t *testing.T) {
 	assert.False(t, (&Config{Telemetry: "off"}).ErrorReportingForcedOff(), "TELEMETRY=off keeps error reports on")
 	assert.False(t, (&Config{ErrorReporting: "off"}).TelemetryForcedOff(), "ERROR_REPORTING=off keeps the usage ping on")
-	assert.True(t, (&Config{DoNotTrack: "1"}).TelemetryForcedOff())
-	assert.True(t, (&Config{DoNotTrack: "1"}).ErrorReportingForcedOff(), "DO_NOT_TRACK turns off both")
 }
 
 func TestMaskSensitiveValue_MasksTheErrorReportingDSN(t *testing.T) {
 	assert.Equal(t, "*****", maskSensitiveValue("ERROR_REPORTING_DSN", "https://key@errors.example.com/7"))
+}
+
+func TestMaskSensitiveValue_MasksTheProbeBootstrapToken(t *testing.T) {
+	assert.Equal(t, "*****", maskSensitiveValue("PROBE_BOOTSTRAP_TOKEN", "0123456789abcdef0123456789abcdef"))
+}
+
+// AC1: MongoDB storage was removed, and every binary says so, not that DB_TYPE is invalid. The
+// db_type validator ignores case, so the refusal does too.
+func TestLoadConfig_RefusesMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MongoDB", "MONGO"} {
+		t.Run(dbType, func(t *testing.T) {
+			_, err := loadTestConfig(t, map[string]string{
+				"DB_TYPE": dbType, "DB_NAME": "peekaping", "DB_HOST": "mongo", "DB_PORT": "27017", "DB_USER": "peekaping", "DB_PASS": "secret",
+			})
+
+			require.ErrorIs(t, err, ErrMongoStorageRemoved)
+			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+": MongoDB storage was removed. "+
+				`Move this install's data to SQLite or PostgreSQL with "bun db import-mongo", then set DB_TYPE to sqlite or postgres. `+
+				"See https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql")
+			assert.NotContains(t, err.Error(), "must be one of", "not the validator's message")
+		})
+	}
+}
+
+// "bun db migrate" loads only the database settings
+func TestLoadConfig_RefusesMongoStorageInTheDatabaseSettings(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MongoDB"} {
+		t.Run(dbType, func(t *testing.T) {
+			t.Setenv("DB_TYPE", dbType)
+			t.Setenv("DB_NAME", "peekaping")
+
+			_, err := LoadConfig[DBConfig](t.TempDir())
+
+			require.ErrorIs(t, err, ErrMongoStorageRemoved)
+			assert.ErrorContains(t, err, "DB_TYPE="+dbType+": MongoDB storage was removed")
+		})
+	}
+}
+
+func TestLoadConfig_AcceptsTheSQLStorageBackends(t *testing.T) {
+	for _, dbType := range []string{"sqlite", "postgres", "postgresql", "mysql", "SQLite"} {
+		t.Run(dbType, func(t *testing.T) {
+			_, err := loadTestConfig(t, map[string]string{"DB_TYPE": dbType})
+
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestLoadConfig_AnUnknownDBTypeStillGetsTheValidatorsMessage(t *testing.T) {
+	_, err := loadTestConfig(t, map[string]string{"DB_TYPE": "oracle"})
+
+	require.Error(t, err)
+	assert.NotErrorIs(t, err, ErrMongoStorageRemoved)
+	assert.ErrorContains(t, err, "DBType must be one of: postgres, postgresql, mysql, sqlite")
+	assert.NotContains(t, err.Error(), "mongo", "MongoDB isn't a choice any more")
+}
+
+func TestRefuseMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "Mongo", "MONGODB", " mongo "} {
+		assert.ErrorIs(t, RefuseMongoStorage(dbType), ErrMongoStorageRemoved, dbType)
+	}
+	for _, dbType := range []string{"", "sqlite", "postgres", "postgresql", "mysql", "oracle"} {
+		assert.NoError(t, RefuseMongoStorage(dbType), dbType)
+	}
 }

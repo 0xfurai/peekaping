@@ -42,14 +42,16 @@ const General = () => {
             <Select
               onValueChange={(val) => {
                 // A new monitor that changes type starts from the new type's defaults, keeping
-                // the name typed so far. Done here, before the type's form mounts, so that what
-                // its effects set (a push token) stays. An edited monitor keeps its values.
+                // the name typed so far and the probe chosen (the probe section flags it if the
+                // new type doesn't run there). Done here, before the type's form mounts, so that
+                // what its effects set (a push token) stays. An edited monitor keeps its values.
                 const definition = getMonitorType(val);
                 if (mode === "create" && definition) {
                   const name = form.getValues("name");
                   form.reset({
                     ...definition.defaultValues,
                     name: name || definition.defaultValues.name,
+                    probe_ids: form.getValues("probe_ids"),
                   });
                   return;
                 }

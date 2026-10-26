@@ -1,16 +1,12 @@
-// Package shutdown holds the tools every Peekaping binary stops with: the signal handling that
-// starts a shutdown, the time its steps are given, the waits that keep a step within its time,
-// and the close of the database that comes last. cmd/peekaping and the cluster binaries share
-// them so that all five stop the same way (ADR 0002).
+// Package shutdown holds the tools the server binaries stop with: the time their steps are given,
+// the count of the HTTP handlers still running, and the close of the database that comes last.
+// cmd/peekaping and cmd/api share them so that both stop the same way (ADR 0002). The signal
+// handling that starts a shutdown and the wait that keeps a step within its time are in package
+// lifecycle, which has no storage or queue behind it and which the remote probe uses too.
 package shutdown
 
 import (
-	"context"
 	"fmt"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
 	"time"
 
 	"peekaping/internal/infra"
@@ -34,56 +30,6 @@ type Timeouts struct {
 
 // Total is the longest the shutdown takes, from the signal
 func (t Timeouts) Total() time.Duration { return t.HTTP + t.Jobs + t.EventBus }
-
-// NotifySignals returns a context that the first SIGTERM or SIGINT cancels, which starts the
-// shutdown. A second one doesn't wait for the shutdown to finish: it is logged and exit is
-// called with 1. stop stops listening for the signals.
-func NotifySignals(logger *zap.SugaredLogger, exit func(code int)) (ctx context.Context, stop func()) {
-	signals := make(chan os.Signal, 2)
-	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
-	ctx, cancel := context.WithCancel(context.Background())
-	stopped := make(chan struct{})
-	go func() {
-		select {
-		case <-signals:
-			cancel()
-		case <-stopped:
-			return
-		}
-		select {
-		case sig := <-signals:
-			logger.Errorw("Second shutdown signal received, exiting without finishing the shutdown", "signal", sig.String())
-			_ = logger.Sync()
-			exit(1)
-		case <-stopped:
-		}
-	}()
-
-	var once sync.Once
-	return ctx, func() {
-		once.Do(func() {
-			signal.Stop(signals)
-			close(stopped)
-			cancel()
-		})
-	}
-}
-
-// Await waits for done to close, or fails when ctx is done first. what names the step in the
-// error. done closed counts even once ctx is done.
-func Await(ctx context.Context, what string, done <-chan struct{}) error {
-	select {
-	case <-done:
-		return nil
-	default:
-	}
-	select {
-	case <-done:
-		return nil
-	case <-ctx.Done():
-		return fmt.Errorf("%s didn't stop in time: %w", what, ctx.Err())
-	}
-}
 
 // CloseDatabase closes the database. SQLite checkpoints its write-ahead log first.
 func CloseDatabase(db *bun.DB, dbType string, logger *zap.SugaredLogger) error {

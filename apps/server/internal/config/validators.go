@@ -59,10 +59,11 @@ func validatePort(fl validator.FieldLevel) bool {
 	return port >= 1 && port <= 65535
 }
 
-// validateDBType validates that the database type is supported
+// validateDBType validates that the database type is supported. MongoDB isn't: its storage was
+// removed, and RefuseMongoStorage gives the error that says so.
 func validateDBType(fl validator.FieldLevel) bool {
 	dbType := strings.ToLower(fl.Field().String())
-	validTypes := []string{"postgres", "postgresql", "mysql", "sqlite", "mongo", "mongodb"}
+	validTypes := []string{"postgres", "postgresql", "mysql", "sqlite"}
 
 	for _, validType := range validTypes {
 		if dbType == validType {

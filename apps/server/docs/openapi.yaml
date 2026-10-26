@@ -315,10 +315,10 @@ components:
       additionalProperties: false
       properties:
         enabled:
-          description: Whether an admin opted in to error reports
+          description: "Whether error reports are on: the admin's stored choice, which is on until they choose"
           type: boolean
         forced_off:
-          description: Whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces error reports off, whatever enabled says
+          description: Whether the ERROR_REPORTING environment variable forces error reports off, whatever enabled says
           type: boolean
       required:
         - enabled
@@ -365,6 +365,11 @@ components:
         ping:
           format: int64
           type: integer
+        probe_id:
+          description: "The probe that ran the check: local for the local probe, otherwise a remote probe's id"
+          examples:
+            - local
+          type: string
         retries:
           format: int64
           type: integer
@@ -377,6 +382,7 @@ components:
       required:
         - id
         - monitor_id
+        - probe_id
         - status
         - msg
         - ping
@@ -777,6 +783,23 @@ components:
           format: int64
           minimum: 20
           type: integer
+        location_rule:
+          description: "How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough), all (every location that counts) or at_least (location_threshold of them). Omitted on create, the rule is any; omitted on update, the monitor keeps its rule. Locations whose probe is offline, or that haven't reported, don't count."
+          enum:
+            - any
+            - all
+            - at_least
+          examples:
+            - any
+          type: string
+        location_threshold:
+          description: "With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Required with at_least and not allowed with any other rule."
+          examples:
+            - 2
+          format: int64
+          type:
+            - integer
+            - "null"
         max_retries:
           examples:
             - 3
@@ -794,6 +817,15 @@ components:
           items:
             type: string
           type: array
+        probe_ids:
+          description: "The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only."
+          examples:
+            - - local
+          items:
+            type: string
+          type:
+            - array
+            - "null"
         proxy_id:
           examples:
             - 6830ad485361f19c598d6d90
@@ -855,13 +887,64 @@ components:
         7d:
           format: double
           type: number
+        probe_id:
+          description: The probe the percentages count. Omitted when they count every probe's checks.
+          examples:
+            - local
+          type: string
       required:
         - 24h
         - 7d
         - 30d
         - 365d
       type: object
-    monitor.Model:
+    monitor.ModelLocation:
+      additionalProperties: false
+      properties:
+        last_heartbeat_at:
+          description: When this probe's latest heartbeat was made. Null until the probe reports.
+          format: date-time
+          type:
+            - string
+            - "null"
+        last_ping:
+          description: The response time of this probe's latest heartbeat, in milliseconds. Null until the probe reports.
+          examples:
+            - 120
+          format: int64
+          type:
+            - integer
+            - "null"
+        online:
+          description: Whether the probe has an instance connected. The local probe is always online.
+          type: boolean
+        probe_id:
+          description: The probe the monitor runs on
+          examples:
+            - local
+          type: string
+        probe_name:
+          description: The probe's name
+          examples:
+            - Local
+          type: string
+        status:
+          description: "The status of this probe's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Null until the probe reports."
+          examples:
+            - 1
+          format: int64
+          type:
+            - integer
+            - "null"
+      required:
+        - probe_id
+        - probe_name
+        - online
+        - status
+        - last_ping
+        - last_heartbeat_at
+      type: object
+    monitor.MonitorResponseDto:
       additionalProperties: false
       properties:
         active:
@@ -880,6 +963,28 @@ components:
           type: integer
         last_heartbeat:
           $ref: "#/components/schemas/heartbeat.Model"
+        location_rule:
+          description: "How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough, the default), all (every location that counts), or at_least (location_threshold of them). Locations whose probe is offline, or that haven't reported, don't count."
+          enum:
+            - any
+            - all
+            - at_least
+          examples:
+            - any
+          type: string
+        location_threshold:
+          description: "With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Null with any other rule."
+          examples:
+            - 2
+          format: int64
+          type:
+            - integer
+            - "null"
+        locations:
+          description: Where the monitor runs and how it is doing there, one entry for each probe in probe_ids and in the same order
+          items:
+            $ref: "#/components/schemas/monitor.ModelLocation"
+          type: array
         max_retries:
           examples:
             - 3
@@ -889,6 +994,17 @@ components:
           examples:
             - Monitor
           type: string
+        notification_ids:
+          examples:
+            - - 6830ad485361f19c598d6d90
+          items:
+            type: string
+          type: array
+        probe_ids:
+          description: "The probes that run the monitor's checks, by id: one or more. local is Peekaping itself."
+          items:
+            type: string
+          type: array
         proxy_id:
           type: string
         push_token:
@@ -909,6 +1025,13 @@ components:
         status:
           format: int64
           type: integer
+        tag_ids:
+          examples:
+            - - 6830ad485361f19c598d6d90
+              - 6830ad485361f19c598d6d91
+          items:
+            type: string
+          type: array
         timeout:
           examples:
             - 16
@@ -922,126 +1045,27 @@ components:
           format: date-time
           type: string
       required:
-        - id
-        - type
-        - name
-        - interval
-        - timeout
-        - max_retries
-        - retry_interval
-        - resend_interval
-        - active
-        - status
-        - config
-        - proxy_id
-        - push_token
-        - created_at
-        - updated_at
-      type: object
-    monitor.MonitorResponseDto:
-      additionalProperties: false
-      properties:
-        active:
-          default: true
-          examples:
-            - true
-          type: boolean
-        config:
-          type: string
-        created_at:
-          examples:
-            - "2024-06-01T12:00:00Z"
-          type: string
-        id:
-          examples:
-            - 60c72b2f9b1e8b6f1f8e4b1a
-          type: string
-        interval:
-          examples:
-            - 60
-          format: int64
-          type: integer
-        max_retries:
-          examples:
-            - 3
-          format: int64
-          type: integer
-        name:
-          examples:
-            - My Monitor
-          type: string
-        notification_ids:
-          examples:
-            - - 6830ad485361f19c598d6d90
-          items:
-            type: string
-          type:
-            - array
-            - "null"
-        proxy_id:
-          examples:
-            - 6830ad485361f19c598d6d90
-          type: string
-        push_token:
-          type: string
-        resend_interval:
-          examples:
-            - 3
-          format: int64
-          type: integer
-        retry_interval:
-          examples:
-            - 10
-          format: int64
-          type: integer
-        stale_since:
-          format: date-time
-          type: string
-        status:
-          examples:
-            - 1
-          format: int64
-          type: integer
-        tag_ids:
-          examples:
-            - - 6830ad485361f19c598d6d90
-              - 6830ad485361f19c598d6d91
-          items:
-            type: string
-          type:
-            - array
-            - "null"
-        timeout:
-          examples:
-            - 10
-          format: int64
-          type: integer
-        type:
-          examples:
-            - http
-          type: string
-        updated_at:
-          examples:
-            - "2024-06-01T12:00:00Z"
-          type: string
-      required:
-        - id
-        - name
-        - interval
-        - timeout
-        - type
-        - active
-        - status
-        - max_retries
-        - retry_interval
-        - resend_interval
-        - created_at
-        - updated_at
         - notification_ids
         - tag_ids
-        - proxy_id
+        - id
+        - type
+        - name
+        - interval
+        - timeout
+        - max_retries
+        - retry_interval
+        - resend_interval
+        - location_rule
+        - location_threshold
+        - active
+        - status
         - config
+        - proxy_id
         - push_token
+        - probe_ids
+        - locations
+        - created_at
+        - updated_at
       type: object
     monitor.PartialUpdateDto:
       additionalProperties: true
@@ -1063,6 +1087,25 @@ components:
           type:
             - integer
             - "null"
+        location_rule:
+          description: "How many of the monitor's locations must be Down for the monitor to be Down: any, all or at_least. Omitted, the monitor keeps its rule."
+          enum:
+            - any
+            - all
+            - at_least
+          examples:
+            - any
+          type:
+            - string
+            - "null"
+        location_threshold:
+          description: "With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Sent with a rule other than at_least it is rejected; a rule sent without it has none."
+          examples:
+            - 2
+          format: int64
+          type:
+            - integer
+            - "null"
         max_retries:
           examples:
             - 3
@@ -1079,6 +1122,15 @@ components:
         notification_ids:
           examples:
             - - 6830ad485361f19c598d6d90
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+        probe_ids:
+          description: "The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only."
+          examples:
+            - - local
           items:
             type: string
           type:
@@ -1195,6 +1247,11 @@ components:
           type:
             - array
             - "null"
+        probe_id:
+          description: The probe the figures count. Omitted when they count every probe's checks.
+          examples:
+            - local
+          type: string
         uptime:
           format: double
           type:
@@ -1293,6 +1350,509 @@ components:
           type: string
         type:
           type: string
+      type: object
+    probe.CreateProbeDto:
+      additionalProperties: true
+      properties:
+        location:
+          maxLength: 255
+          type: string
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+        notification_ids:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+      required:
+        - name
+      type: object
+    probe.ProbeAvailabilityConnection:
+      additionalProperties: false
+      properties:
+        end:
+          format: date-time
+          type: string
+        open:
+          type: boolean
+        start:
+          format: date-time
+          type: string
+      required:
+        - start
+        - end
+        - open
+      type: object
+    probe.ProbeAvailabilityInstance:
+      additionalProperties: false
+      properties:
+        connections:
+          items:
+            $ref: "#/components/schemas/probe.ProbeAvailabilityConnection"
+          type: array
+        hostname:
+          type: string
+        id:
+          type: string
+        version:
+          type: string
+      required:
+        - id
+        - hostname
+        - version
+        - connections
+      type: object
+    probe.ProbeAvailabilityPeriod:
+      additionalProperties: false
+      properties:
+        end:
+          format: date-time
+          type: string
+        start:
+          format: date-time
+          type: string
+        status:
+          enum:
+            - online
+            - offline
+          type: string
+      required:
+        - status
+        - start
+        - end
+      type: object
+    probe.ProbeAvailabilityResponse:
+      additionalProperties: false
+      properties:
+        from:
+          format: date-time
+          type: string
+        in_process:
+          type: boolean
+        instances:
+          items:
+            $ref: "#/components/schemas/probe.ProbeAvailabilityInstance"
+          type: array
+        periods:
+          items:
+            $ref: "#/components/schemas/probe.ProbeAvailabilityPeriod"
+          type: array
+        probe_id:
+          type: string
+        range:
+          enum:
+            - 24h
+            - 7d
+            - 30d
+          type: string
+        to:
+          format: date-time
+          type: string
+        tracked_from:
+          format: date-time
+          type:
+            - string
+            - "null"
+        uptime_percent:
+          format: double
+          type:
+            - number
+            - "null"
+      required:
+        - probe_id
+        - range
+        - from
+        - to
+        - in_process
+        - tracked_from
+        - uptime_percent
+        - periods
+      type: object
+    probe.ProbeInstanceResponse:
+      additionalProperties: false
+      properties:
+        arch:
+          type: string
+        hostname:
+          type: string
+        id:
+          type: string
+        last_seen_at:
+          format: date-time
+          type: string
+        os:
+          type: string
+        protocol_version:
+          format: int64
+          type: integer
+        supported_types:
+          items:
+            type: string
+          type: array
+        version:
+          type: string
+      required:
+        - id
+        - hostname
+        - os
+        - arch
+        - version
+        - protocol_version
+        - supported_types
+        - last_seen_at
+      type: object
+    probe.ProbeResponse:
+      additionalProperties: false
+      properties:
+        created_at:
+          format: date-time
+          type: string
+        disabled:
+          type: boolean
+        id:
+          type: string
+        instances:
+          items:
+            $ref: "#/components/schemas/probe.ProbeInstanceResponse"
+          type: array
+        location:
+          type: string
+        name:
+          type: string
+        notification_ids:
+          items:
+            type: string
+          type: array
+        status:
+          enum:
+            - online
+            - offline
+          type: string
+        supported_types:
+          items:
+            type: string
+          type: array
+        token_prefix:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - location
+        - token_prefix
+        - disabled
+        - status
+        - supported_types
+        - notification_ids
+        - instances
+        - created_at
+        - updated_at
+      type: object
+    probe.ProbeWithTokenResponse:
+      additionalProperties: false
+      properties:
+        created_at:
+          format: date-time
+          type: string
+        disabled:
+          type: boolean
+        id:
+          type: string
+        instances:
+          items:
+            $ref: "#/components/schemas/probe.ProbeInstanceResponse"
+          type: array
+        location:
+          type: string
+        name:
+          type: string
+        notification_ids:
+          items:
+            type: string
+          type: array
+        status:
+          enum:
+            - online
+            - offline
+          type: string
+        supported_types:
+          items:
+            type: string
+          type: array
+        token:
+          type: string
+        token_prefix:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+        - token
+        - id
+        - name
+        - location
+        - token_prefix
+        - disabled
+        - status
+        - supported_types
+        - notification_ids
+        - instances
+        - created_at
+        - updated_at
+      type: object
+    probe.UpdateProbeDto:
+      additionalProperties: true
+      properties:
+        disabled:
+          type:
+            - boolean
+            - "null"
+        location:
+          maxLength: 255
+          type:
+            - string
+            - "null"
+        name:
+          maxLength: 255
+          minLength: 1
+          type:
+            - string
+            - "null"
+        notification_ids:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+      type: object
+    probeproto.AssignmentsResponse:
+      additionalProperties: false
+      properties:
+        monitors:
+          items:
+            $ref: "#/components/schemas/probeproto.Monitor"
+          type:
+            - array
+            - "null"
+        version:
+          type: string
+      required:
+        - version
+        - monitors
+      type: object
+    probeproto.HelloRequest:
+      additionalProperties: true
+      properties:
+        arch:
+          type: string
+        hostname:
+          type: string
+        instance_id:
+          type: string
+        os:
+          type: string
+        probe_version:
+          type: string
+        protocol_version:
+          format: int64
+          type: integer
+        supported_types:
+          items:
+            type: string
+          type:
+            - array
+            - "null"
+      type: object
+    probeproto.HelloResponse:
+      additionalProperties: false
+      properties:
+        batch_max:
+          format: int64
+          type: integer
+        buffer_max:
+          format: int64
+          type: integer
+        flush_interval_ms:
+          format: int64
+          type: integer
+        poll_timeout_ms:
+          format: int64
+          type: integer
+        probe:
+          $ref: "#/components/schemas/probeproto.ProbeInfo"
+        protocol_version:
+          format: int64
+          type: integer
+        server_time:
+          format: date-time
+          type: string
+        server_version:
+          type: string
+      required:
+        - protocol_version
+        - server_version
+        - server_time
+        - probe
+        - poll_timeout_ms
+        - flush_interval_ms
+        - batch_max
+        - buffer_max
+      type: object
+    probeproto.Monitor:
+      additionalProperties: false
+      properties:
+        config:
+          type: string
+        id:
+          type: string
+        interval:
+          format: int64
+          type: integer
+        max_retries:
+          format: int64
+          type: integer
+        name:
+          type: string
+        proxy:
+          $ref: "#/components/schemas/probeproto.Proxy"
+        resend_interval:
+          format: int64
+          type: integer
+        retry_interval:
+          format: int64
+          type: integer
+        timeout:
+          format: int64
+          type: integer
+        type:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - type
+        - interval
+        - timeout
+        - max_retries
+        - retry_interval
+        - resend_interval
+        - config
+        - updated_at
+      type: object
+    probeproto.ProbeInfo:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        location:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
+        - location
+      type: object
+    probeproto.Proxy:
+      additionalProperties: false
+      properties:
+        auth:
+          type: boolean
+        host:
+          type: string
+        id:
+          type: string
+        password:
+          type: string
+        port:
+          format: int64
+          type: integer
+        protocol:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        username:
+          type: string
+      required:
+        - id
+        - protocol
+        - host
+        - port
+        - auth
+        - updated_at
+      type: object
+    probeproto.Result:
+      additionalProperties: false
+      properties:
+        end_time:
+          format: date-time
+          type: string
+        id:
+          type: string
+        message:
+          type: string
+        monitor_id:
+          type: string
+        ping_ms:
+          format: int64
+          type: integer
+        start_time:
+          format: date-time
+          type: string
+        status:
+          type: string
+        tls_info: {}
+      required:
+        - id
+        - monitor_id
+        - status
+        - message
+        - ping_ms
+        - start_time
+        - end_time
+      type: object
+    probeproto.ResultOutcome:
+      additionalProperties: false
+      properties:
+        accepted:
+          type: boolean
+        id:
+          type: string
+        reason:
+          type: string
+      required:
+        - id
+        - accepted
+      type: object
+    probeproto.ResultsRequest:
+      additionalProperties: true
+      properties:
+        results:
+          items:
+            $ref: "#/components/schemas/probeproto.Result"
+          type:
+            - array
+            - "null"
+      type: object
+    probeproto.ResultsResponse:
+      additionalProperties: false
+      properties:
+        results:
+          items:
+            $ref: "#/components/schemas/probeproto.ResultOutcome"
+          type:
+            - array
+            - "null"
+      required:
+        - results
       type: object
     proxy.CreateUpdateDto:
       additionalProperties: true
@@ -1541,6 +2101,9 @@ components:
           type: boolean
         show_certificate_expiry:
           type: boolean
+        show_locations:
+          description: List each location of a monitor that runs on several probes on the public page. Off by default.
+          type: boolean
         show_powered_by:
           type: boolean
         show_tags:
@@ -1595,6 +2158,8 @@ components:
           type: string
         published:
           type: boolean
+        show_locations:
+          type: boolean
         slug:
           type: string
         theme:
@@ -1612,6 +2177,7 @@ components:
         - icon
         - theme
         - published
+        - show_locations
         - footer_text
         - auto_refresh_interval
         - created_at
@@ -1630,10 +2196,23 @@ components:
             - "null"
         id:
           type: string
+        locations:
+          description: One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe.
+          items:
+            $ref: "#/components/schemas/status_page.PublicLocationDTO"
+          type:
+            - array
+            - "null"
         name:
           examples:
             - Monitor
           type: string
+        status:
+          description: "The monitor's status: 0 Down, 1 Up, 2 Pending, 3 Maintenance"
+          examples:
+            - 1
+          format: int64
+          type: integer
         type:
           examples:
             - http
@@ -1648,6 +2227,7 @@ components:
         - type
         - name
         - active
+        - status
       type: object
     status_page.PublicHeartbeatDTO:
       additionalProperties: false
@@ -1672,6 +2252,37 @@ components:
         - time
         - end_time
         - ping
+      type: object
+    status_page.PublicLocationDTO:
+      additionalProperties: false
+      properties:
+        heartbeats:
+          items:
+            $ref: "#/components/schemas/status_page.PublicHeartbeatDTO"
+          type:
+            - array
+            - "null"
+        name:
+          examples:
+            - Frankfurt
+          type: string
+        status:
+          description: "The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports."
+          examples:
+            - 1
+          format: int64
+          type: integer
+        uptime_24h:
+          description: The uptime of this location over the last 24 hours, in percent. Null when it could not be read.
+          format: double
+          type:
+            - number
+            - "null"
+      required:
+        - name
+        - status
+        - uptime_24h
+        - heartbeats
       type: object
     status_page.StatusPageWithMonitorsResponseDTO:
       additionalProperties: false
@@ -1714,6 +2325,8 @@ components:
           type: boolean
         show_certificate_expiry:
           type: boolean
+        show_locations:
+          type: boolean
         show_powered_by:
           type: boolean
         show_tags:
@@ -1735,6 +2348,7 @@ components:
         - icon
         - theme
         - published
+        - show_locations
         - search_engine_index
         - show_tags
         - created_at
@@ -1801,6 +2415,11 @@ components:
             - boolean
             - "null"
         show_certificate_expiry:
+          type:
+            - boolean
+            - "null"
+        show_locations:
+          description: List each location of a monitor that runs on several probes on the public page.
           type:
             - boolean
             - "null"
@@ -1923,7 +2542,7 @@ components:
       additionalProperties: false
       properties:
         db:
-          description: "The storage backend: sqlite, postgres, mysql or mongo. Empty for a backend the ping doesn't report."
+          description: "The storage backend: sqlite, postgres or mysql. Empty for a backend the ping doesn't report."
           examples:
             - sqlite
           type: string
@@ -1931,7 +2550,7 @@ components:
           $ref: "#/components/schemas/telemetry.Features"
           description: Which features are on
         instance_id:
-          description: The random instance ID; empty until an admin opts in
+          description: The random instance ID; empty after an admin opts out, and while TELEMETRY forces the ping off and no ID was made before
           examples:
             - 6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f
           type: string
@@ -1990,17 +2609,21 @@ components:
       additionalProperties: false
       properties:
         enabled:
-          description: Whether an admin opted in to the usage ping
+          description: "Whether the usage ping is on: the admin's stored choice, which is on until they choose"
           type: boolean
         forced_off:
-          description: Whether the TELEMETRY or DO_NOT_TRACK environment variable forces the ping off, whatever enabled says
+          description: Whether the TELEMETRY environment variable forces the ping off, whatever enabled says
+          type: boolean
+        notice_pending:
+          description: "Whether the one-time notice that the usage ping and error reports are on by default is still to be shown: it is not yet dismissed, and the environment does not force both off"
           type: boolean
         payload:
           $ref: "#/components/schemas/telemetry.Payload"
-          description: The exact JSON the next usage ping would send; its instance_id is empty until an admin opts in
+          description: The exact JSON the next usage ping would send; its instance_id is empty after an admin opts out
       required:
         - enabled
         - forced_off
+        - notice_pending
         - payload
       type: object
     telemetry.UpdateDto:
@@ -2066,12 +2689,12 @@ components:
         - message
         - data
       type: object
-    utils.ApiResponse_Array_monitor.Model:
+    utils.ApiResponse_Array_monitor.MonitorResponseDto:
       additionalProperties: false
       properties:
         data:
           items:
-            $ref: "#/components/schemas/monitor.Model"
+            $ref: "#/components/schemas/monitor.MonitorResponseDto"
           type:
             - array
             - "null"
@@ -2087,6 +2710,36 @@ components:
         data:
           items:
             $ref: "#/components/schemas/notification_channel.Model"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_probe.ProbeAvailabilityResponse:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/probe.ProbeAvailabilityResponse"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_probe.ProbeResponse:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/probe.ProbeResponse"
           type:
             - array
             - "null"
@@ -2233,17 +2886,6 @@ components:
         - message
         - data
       type: object
-    utils.ApiResponse_monitor.Model:
-      additionalProperties: false
-      properties:
-        data:
-          $ref: "#/components/schemas/monitor.Model"
-        message:
-          type: string
-      required:
-        - message
-        - data
-      type: object
     utils.ApiResponse_monitor.MonitorResponseDto:
       additionalProperties: false
       properties:
@@ -2271,6 +2913,39 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/notification_channel.Model"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_probe.ProbeAvailabilityResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/probe.ProbeAvailabilityResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_probe.ProbeResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/probe.ProbeResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_probe.ProbeWithTokenResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/probe.ProbeWithTokenResponse"
         message:
           type: string
       required:
@@ -2352,6 +3027,10 @@ components:
       type: apiKey
     JwtAuth:
       bearerFormat: JWT
+      scheme: bearer
+      type: http
+    ProbeAuth:
+      bearerFormat: probe token
       scheme: bearer
       type: http
 info:
@@ -3737,7 +4416,7 @@ paths:
         - badge
   /api/v1/error-reporting:
     get:
-      description: Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+      description: Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING environment variable forces them off.
       operationId: getErrorReporting
       responses:
         "200":
@@ -3765,7 +4444,7 @@ paths:
       tags:
         - error-reporting
     put:
-      description: "Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins."
+      description: "Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode a change made on one api replica reaches the others within a minute. The choice is stored while the environment forces error reports off, and the environment still wins. Any choice also marks the one-time usage ping and error reports notice as seen."
       operationId: putErrorReporting
       requestBody:
         content:
@@ -4247,7 +4926,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/utils.ApiResponse_Array_monitor.Model"
+                $ref: "#/components/schemas/utils.ApiResponse_Array_monitor.MonitorResponseDto"
           description: OK
         "400":
           content:
@@ -4286,7 +4965,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/utils.ApiResponse_monitor.Model"
+                $ref: "#/components/schemas/utils.ApiResponse_monitor.MonitorResponseDto"
           description: Created
         "400":
           content:
@@ -4328,7 +5007,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/utils.ApiResponse_Array_monitor.Model"
+                $ref: "#/components/schemas/utils.ApiResponse_Array_monitor.MonitorResponseDto"
           description: OK
         "400":
           content:
@@ -4458,7 +5137,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/utils.ApiResponse_monitor.Model"
+                $ref: "#/components/schemas/utils.ApiResponse_monitor.MonitorResponseDto"
           description: OK
         "400":
           content:
@@ -4511,7 +5190,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/utils.ApiResponse_monitor.Model"
+                $ref: "#/components/schemas/utils.ApiResponse_monitor.MonitorResponseDto"
           description: OK
         "400":
           content:
@@ -4585,6 +5264,14 @@ paths:
           schema:
             description: Reverse the order of heartbeats
             type: boolean
+        - description: Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.
+          in: query
+          name: probe_id
+          schema:
+            description: Only the heartbeats this probe made, by probe id. Omitted, the heartbeats of every probe.
+            examples:
+              - local
+            type: string
       responses:
         "200":
           content:
@@ -4696,6 +5383,14 @@ paths:
           schema:
             description: Granularity (minute, hour, day)
             type: string
+        - description: Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+          in: query
+          name: probe_id
+          schema:
+            description: Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+            examples:
+              - local
+            type: string
       responses:
         "200":
           content:
@@ -4743,6 +5438,14 @@ paths:
           required: true
           schema:
             description: Monitor ID
+            type: string
+        - description: Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+          in: query
+          name: probe_id
+          schema:
+            description: Only the checks this probe ran, by probe id. Omitted, the checks of every probe count.
+            examples:
+              - local
             type: string
       responses:
         "200":
@@ -5145,6 +5848,372 @@ paths:
       summary: Update notification channel
       tags:
         - notification_channel
+  /api/v1/probes:
+    get:
+      operationId: getProbes
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_probe.ProbeResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get probes
+      tags:
+        - probe
+    post:
+      operationId: postProbes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/probe.CreateProbeDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_probe.ProbeWithTokenResponse"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Create probe
+      tags:
+        - probe
+  /api/v1/probes/availability:
+    get:
+      description: Every probe's online and offline periods over the range, and its uptime, without its instances.
+      operationId: getProbesAvailability
+      parameters:
+        - description: "How far back to look: 24h, 7d or 30d. Defaults to 24h."
+          in: query
+          name: range
+          schema:
+            default: 24h
+            description: "How far back to look: 24h, 7d or 30d. Defaults to 24h."
+            enum:
+              - 24h
+              - 7d
+              - 30d
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_probe.ProbeAvailabilityResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get the availability of every probe
+      tags:
+        - probe
+  /api/v1/probes/{id}:
+    delete:
+      operationId: deleteProbesById
+      parameters:
+        - description: Probe ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Probe ID
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Delete probe
+      tags:
+        - probe
+    get:
+      operationId: getProbesById
+      parameters:
+        - description: Probe ID, or local for the local probe
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Probe ID, or local for the local probe
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_probe.ProbeResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get probe
+      tags:
+        - probe
+    put:
+      operationId: putProbesById
+      parameters:
+        - description: Probe ID, or local for the local probe
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Probe ID, or local for the local probe
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/probe.UpdateProbeDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_probe.ProbeResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Update probe
+      tags:
+        - probe
+  /api/v1/probes/{id}/availability:
+    get:
+      description: A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.
+      operationId: getProbesByIdAvailability
+      parameters:
+        - description: Probe ID, or local for the local probe
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Probe ID, or local for the local probe
+            type: string
+        - description: "How far back to look: 24h, 7d or 30d. Defaults to 24h. The instances' connections always cover the last 24 hours."
+          in: query
+          name: range
+          schema:
+            default: 24h
+            description: "How far back to look: 24h, 7d or 30d. Defaults to 24h. The instances' connections always cover the last 24 hours."
+            enum:
+              - 24h
+              - 7d
+              - 30d
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_probe.ProbeAvailabilityResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get the availability of a probe
+      tags:
+        - probe
+  /api/v1/probes/{id}/rotate-token:
+    post:
+      operationId: postProbesByIdRotateToken
+      parameters:
+        - description: Probe ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Probe ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_probe.ProbeWithTokenResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Rotate probe token
+      tags:
+        - probe
   /api/v1/proxies:
     get:
       operationId: getProxies
@@ -6306,7 +7375,7 @@ paths:
         - tag
   /api/v1/telemetry:
     get:
-      description: Whether an admin opted in to the anonymous usage ping, whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, and the exact payload the next ping would send.
+      description: Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
       operationId: getTelemetry
       responses:
         "200":
@@ -6334,7 +7403,7 @@ paths:
       tags:
         - telemetry
     put:
-      description: Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins.
+      description: Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins. Any choice also marks the one-time notice as seen.
       operationId: putTelemetry
       requestBody:
         content:
@@ -6372,6 +7441,34 @@ paths:
       summary: Opt in or out of the usage ping
       tags:
         - telemetry
+  /api/v1/telemetry/notice:
+    post:
+      description: "An install that upgraded to a version with the usage ping and error reports on by default shows its admin a one-time notice. This marks it seen so it stops showing. It is not a choice: both features stay as they were. Making a choice with PUT /telemetry or PUT /error-reporting marks it seen too."
+      operationId: postTelemetryNotice
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/telemetry.StateResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Dismiss the usage ping and error reports notice
+      tags:
+        - telemetry
   /api/v1/version:
     get:
       operationId: getVersion
@@ -6398,6 +7495,266 @@ paths:
       summary: Get server health
       tags:
         - System
+  /probe/v1/assignments:
+    get:
+      description: "A long poll. The answer is the monitors this instance of the probe runs, and a version that names the probe's assignment: its active monitors that are not push monitors and are of a type the probe supports, with their proxies, dealt among the probe's instances seen in the last 60 seconds so that each monitor runs on exactly one of them. Send the version you hold. If it is not the current one, or you send none, the server answers 200 at once. If it is, the server holds the request until a monitor of the probe is created, updated or deleted, or an instance of the probe joins or leaves, and answers 200 then; after 25 seconds without a change it answers 304 with no body, and the instance polls again. The reply is gzipped when Accept-Encoding allows it."
+      operationId: probeGetAssignments
+      parameters:
+        - description: "The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces."
+          in: header
+          name: X-Probe-Instance
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+        - description: The version of the assignments the instance holds, as the server last sent it. Leave it out for the first call. When it is the current one, the server holds the request until something changes, for up to 25 seconds, and answers 304 with no body at the timeout; when it is not, the server answers at once.
+          in: query
+          name: version
+          schema:
+            description: The version of the assignments the instance holds, as the server last sent it. Leave it out for the first call. When it is the current one, the server holds the request until something changes, for up to 25 seconds, and answers 304 with no body at the timeout; when it is not, the server answers at once.
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/probeproto.AssignmentsResponse"
+          description: OK
+        "304":
+          description: "Not modified: nothing changed in the time the server held the request. There is no body."
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - ProbeAuth: []
+      summary: Get the monitors this instance runs
+      tags:
+        - probe-protocol
+  /probe/v1/bye:
+    post:
+      description: Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
+      operationId: probePostBye
+      parameters:
+        - description: "The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces."
+          in: header
+          name: X-Probe-Instance
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - ProbeAuth: []
+      summary: Say bye
+      tags:
+        - probe-protocol
+  /probe/v1/hello:
+    post:
+      description: "The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. A probe holds at most 64 instances. A hello from a new instance past that replaces the probe's oldest instance that has not been seen for a minute, and is answered 429 with Retry-After: 60 when all 64 are running. A hello from an instance the probe already holds is never refused for this. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it."
+      operationId: probePostHello
+      parameters:
+        - description: "The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces."
+          in: header
+          name: X-Probe-Instance
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/probeproto.HelloRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/probeproto.HelloResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Request Entity Too Large
+        "426":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Upgrade Required
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - ProbeAuth: []
+      summary: Say hello
+      tags:
+        - probe-protocol
+  /probe/v1/results:
+    post:
+      description: "Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. A request fails with 500, or with 503 when the server could not take it just now, and also when another request holds the id of one of the results and has not stored it yet (it may still be at it, or it died), or when storing took longer than 90 seconds; that 503 carries a Retry-After of 5 seconds, which the instance waits before it sends the batch again. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored, by the API replica that took the request. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it."
+      operationId: probePostResults
+      parameters:
+        - description: "The id of the probe instance making the call: a random id the probe process chooses when it starts. 1 to 255 visible characters, no spaces."
+          in: header
+          name: X-Probe-Instance
+          required: true
+          schema:
+            maxLength: 255
+            minLength: 1
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/probeproto.ResultsRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/probeproto.ResultsResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Request Entity Too Large
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+        "503":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Service Unavailable
+      security:
+        - ProbeAuth: []
+      summary: Send check results
+      tags:
+        - probe-protocol
 security: []
 servers:
   - url: /

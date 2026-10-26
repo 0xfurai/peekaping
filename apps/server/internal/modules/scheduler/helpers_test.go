@@ -11,8 +11,8 @@ import (
 
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/shared"
 
@@ -116,12 +116,23 @@ func (db *fakeDB) FindByID(_ context.Context, id string) (*shared.Monitor, error
 	return &copied, nil
 }
 
-func (db *fakeDB) FindActivePaginated(_ context.Context, page, limit int) ([]*shared.Monitor, error) {
+// FindActivePaginated pages every active monitor, whichever probe runs it, as the stale-monitor
+// watchdog reads them
+func (db *fakeDB) FindActivePaginated(ctx context.Context, page, limit int) ([]*shared.Monitor, error) {
+	return db.pageActive(page, limit, func(*shared.Monitor) bool { return true })
+}
+
+// FindActiveByProbe pages the active monitors the probe runs
+func (db *fakeDB) FindActiveByProbe(_ context.Context, probeID string, page, limit int) ([]*shared.Monitor, error) {
+	return db.pageActive(page, limit, func(m *shared.Monitor) bool { return m.RunsOn(probeID) })
+}
+
+func (db *fakeDB) pageActive(page, limit int, keep func(*shared.Monitor) bool) ([]*shared.Monitor, error) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
 	var active []*shared.Monitor
 	for _, m := range db.byID {
-		if m.Active && !db.unlisted[m.ID] {
+		if m.Active && keep(m) && !db.unlisted[m.ID] {
 			copied := *m
 			active = append(active, &copied)
 		}
@@ -313,8 +324,8 @@ type harness struct {
 	s      *Scheduler
 }
 
-// newHarness builds a scheduler that is subscribed to an in-memory event bus and not started.
-// Its reconcile is off unless a test sets an interval.
+// newHarness builds a scheduler on the database source, over the fake database and an in-memory
+// event bus, and does not start it. Its reconcile is off unless a test sets an interval.
 func newHarness(t *testing.T, options ...func(*Config)) *harness {
 	t.Helper()
 	logger := zap.NewNop().Sugar()
@@ -326,10 +337,9 @@ func newHarness(t *testing.T, options ...func(*Config)) *harness {
 		bus:    newBus(t),
 	}
 	cfg := Config{
-		Loader:            h.db,
-		Monitors:          h.db,
+		Source:            NewDatabaseSource(h.db, h.db, h.bus),
 		Executors:         h.exec,
-		Supervisor:        healthcheck.NewHealthCheck(nil, nil, logger),
+		Supervisor:        supervisor.NewHealthCheck(nil, nil, logger),
 		Ingester:          h.ingest,
 		Concurrency:       128,
 		ReconcileInterval: time.Hour,
@@ -339,8 +349,23 @@ func newHarness(t *testing.T, options ...func(*Config)) *harness {
 		option(&cfg)
 	}
 	h.s = New(cfg)
-	h.s.Subscribe(h.bus)
 	return h
+}
+
+// loadingWith is a Source whose checks are loaded by the loader, and which is the source
+// it wraps in all else
+type loadingWith struct {
+	Source
+	loader Loader
+}
+
+func (s loadingWith) Load(ctx context.Context, monitorID string) (*check.Job, error) {
+	return s.loader.Load(ctx, monitorID)
+}
+
+// withLoader makes the scheduler's source load its checks with the loader
+func withLoader(loader Loader) func(*Config) {
+	return func(cfg *Config) { cfg.Source = loadingWith{Source: cfg.Source, loader: loader} }
 }
 
 // start starts the scheduler and stops it when the test ends
@@ -388,6 +413,9 @@ func ofType(monitorType string) monitorOption {
 	return func(m *shared.Monitor) { m.Type = monitorType }
 }
 func paused(m *shared.Monitor) { m.Active = false }
+
+// onProbes sets the probes that run the monitor. A monitor without any runs on the local probe.
+func onProbes(ids ...string) monitorOption { return func(m *shared.Monitor) { m.ProbeIDs = ids } }
 
 // monitorWith is an active HTTP monitor that is checked every second
 func monitorWith(id string, options ...monitorOption) shared.Monitor {

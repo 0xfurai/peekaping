@@ -8,7 +8,7 @@ import Layout from "@/layout";
 import { useNavigate } from "react-router-dom";
 import {
   type HeartbeatModel,
-  type MonitorModel,
+  type MonitorMonitorResponseDto,
   type UtilsApiResponseArrayHeartbeatModel,
   type TagModel,
 } from "@/api";
@@ -42,11 +42,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { getContrastingTextColor } from "@/lib/utils";
 import { useDelayedLoading } from "@/hooks/useDelayedLoading";
+import { useProbes } from "@/hooks/useProbes";
 
 const MonitorsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
+  const { hasRemoteProbe, monitorProbes, unsupportedProbeIds } = useProbes();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
 
@@ -137,7 +139,7 @@ const MonitorsPage = () => {
     });
 
   const allMonitors = (data?.pages.flatMap((page) => page.data || []) ||
-    []) as MonitorModel[];
+    []) as MonitorMonitorResponseDto[];
 
   // No more client-side filtering needed since API now supports tag filtering
   const monitors = allMonitors;
@@ -408,7 +410,12 @@ const MonitorsPage = () => {
 
         {/* Monitors list */}
         {monitors.map((monitor) => (
-          <MonitorCard key={monitor.id} monitor={monitor} />
+          <MonitorCard
+            key={monitor.id}
+            monitor={monitor}
+            probes={hasRemoteProbe ? monitorProbes(monitor.probe_ids) : undefined}
+            unsupportedProbeIds={hasRemoteProbe ? unsupportedProbeIds(monitor) : undefined}
+          />
         ))}
 
         {/* Sentinel for infinite scroll */}

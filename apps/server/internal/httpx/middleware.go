@@ -11,8 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// Recovery answers a handler's panic with 500, logs it with its stack, and reports it when an admin
-// opted in to error reports. http.ErrAbortHandler is net/http's way for a handler to abort its
+// Recovery answers a handler's panic with 500, logs it with its stack, and reports it unless an
+// admin opted out of error reports. http.ErrAbortHandler is net/http's way for a handler to abort its
 // response, so it goes on to net/http, which closes the connection without a log.
 func Recovery(logger *zap.SugaredLogger) Middleware {
 	return func(next http.Handler) http.Handler {
@@ -33,9 +33,10 @@ func Recovery(logger *zap.SugaredLogger) Middleware {
 	}
 }
 
-// quietRoutes are the health and metrics endpoints that probes poll, which Logger logs at debug
-// level.
-var quietRoutes = []string{"/health", "/api/v1/health", "/metrics"}
+// quietRoutes are the endpoints that monitoring and probes poll, which Logger logs at debug level:
+// health and metrics, and the long poll a probe makes for its assignments, which comes about
+// every 25 seconds from each probe instance.
+var quietRoutes = []string{"/health", "/api/v1/health", "/metrics", "/probe/v1/assignments"}
 
 // Logger logs each request once it is done, after RequestID. It logs the pattern of the route
 // that served the request, empty when none did, and never the path or the query, which can hold

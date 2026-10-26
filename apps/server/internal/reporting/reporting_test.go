@@ -253,10 +253,6 @@ func TestCapturePanic_SendsNothingWhileOffForcedOffOrWithoutADSN(t *testing.T) {
 			reporting.SetupWithDefaultDSN(reporting.Options{Mode: "single", Transport: r}, "")
 			reporting.SetEnabled(true)
 		},
-		"never set up": func(*reportingtest.Recorder) {
-			reporting.Setup(reporting.Options{})
-			reporting.SetEnabled(true)
-		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			recorder := reportingtest.Install(t)
@@ -270,6 +266,20 @@ func TestCapturePanic_SendsNothingWhileOffForcedOffOrWithoutADSN(t *testing.T) {
 			assert.Empty(t, recorder.Events())
 		})
 	}
+}
+
+// A process that is given no DSN reports to the one built into the binary
+func TestSetup_FallsBackToTheBuiltInDSN(t *testing.T) {
+	value, stack := panicked(func() { explode("boom") })
+	recorder := &reportingtest.Recorder{}
+	reporting.SetupWithDefaultDSN(reporting.Options{Mode: "single", Transport: recorder}, "https://public@sentry.invalid/1")
+	t.Cleanup(func() { reporting.Setup(reporting.Options{ForcedOff: true}) })
+	reporting.SetEnabled(true)
+
+	reporting.CapturePanic("http", value, stack)
+
+	assert.True(t, reporting.Enabled(), "the built-in DSN stands in for an empty ERROR_REPORTING_DSN")
+	assert.Len(t, recorder.Events(), 1)
 }
 
 func TestEnabled_FollowsSetEnabledUntilTheEnvironmentForcesItOff(t *testing.T) {
@@ -507,7 +517,7 @@ func TestSetup_WhatReachesTheServerHoldsOnlyTheAllowlist(t *testing.T) {
 
 	reporting.Setup(reporting.Options{DSN: "http://public@" + host + "/1", Release: "1.2.3", Mode: "cluster", DB: "postgres"})
 	reporting.SetEnabled(true)
-	defer reporting.Setup(reporting.Options{})
+	defer reporting.Setup(reporting.Options{ForcedOff: true})
 	value, stack := panicked(func() { explode(errorHoldingSecrets()) })
 
 	reporting.CapturePanic("http", value, stack)

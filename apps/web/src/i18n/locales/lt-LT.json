@@ -16,8 +16,9 @@
       "have_account": "Ar jau turite paskyrą?",
       "sign_in": "Prisijungti",
       "submit": "Sukurti",
-      "telemetry_hint": "Išjungta, nebent pažymėsite šį langelį. Vėliau tai galite pakeisti skiltyje „Nustatymai“. Jei pažymėsite, Peekaping tai siunčia ne dažniau kaip kartą per dieną:",
-      "title": "Sveiki"
+      "title": "Sveiki",
+      "telemetry_note": "Anonimiškai: be monitorių pavadinimų, URL ar serverių. Vėliau tai galite pakeisti skiltyje „Nustatymai“.",
+      "telemetry_whats_sent": "Kas siunčiama"
     },
     "twofa": {
       "code_label": "2FA kodas",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Siųsti pranešimus apie klaidas",
-    "never_sent": "Niekada nesiunčiama: klaidų pranešimai, URL, antraštės, webhook URL, pavadinimai ar serverių pavadinimai. Pranešime nėra IP adreso, o Peekaping Sentry projektas nustatytas taip, kad nesaugotų siuntėjo IP. Jei naudojate savo ERROR_REPORTING_DSN, tai lemia jūsų Sentry ar GlitchTip nustatymai.",
-    "not_saved": "Jūsų pasirinkimas siųsti pranešimus apie klaidas neišsaugotas. Įjunkite jį skiltyje „Nustatymai“.",
+    "never_sent": "Niekada nesiunčiama: klaidų pranešimai, URL, antraštės, webhook URL, pavadinimai ar serverių pavadinimai. Pranešime nėra IP adreso, o Peekaping Sentry projektas nustatytas taip, kad nesaugotų siuntėjo IP.",
+    "not_saved": "Jūsų pasirinkimas dėl pranešimų apie klaidas neišsaugotas. Patikrinkite jį skiltyje „Nustatymai“.",
     "sent": "Siunčiama tik tada, kai sugenda pats Peekaping. Pranešime yra klaidos tipas ir vieta kode, kurioje ji įvyko, Peekaping versija, vieno proceso ar klasterio režimas, saugyklos pagrindas ir operacinė sistema."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Užklausos timeout (Baigiasi po {{seconds}} sekundžių)",
           "resend_notification": "Persiųsti pranešimą, jei neveikia X kartus iš eilės (Persiuntimas išjungtas)"
         },
+        "location_rule": {
+          "all": "neveikia visos vietos",
+          "any": "neveikia bet kuri vieta",
+          "at_least": "neveikia bent N vietų",
+          "description": "Vieta, kurios zondas atsijungęs arba dar nepateikė rezultato, neskaičiuojama.",
+          "label": "Pažymėti monitorių kaip neveikiantį, kai",
+          "threshold_invalid": "Įveskite sveikąjį skaičių, 1 arba daugiau",
+          "threshold_label": "Vietų skaičius",
+          "threshold_too_high": "Negali būti didesnis už pasirinktų zondų skaičių"
+        },
         "notifications": {
           "add_notifier": "Pridėti pranešimo kanalą",
           "new_notifier": "+ Naujas pranešėjas",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Pasirinkite notifikatorių",
           "selected_channels": "Pasirinkti pranešimų kanalai",
           "title": "Pranešimų kanalai"
+        },
+        "probe": {
+          "description": "Monitorius veikia kiekviename pasirinktame zonde ir kiekvieno rezultatus rodo kaip vietą.",
+          "label": "Zondas",
+          "option_unsupported": "{{name}} (nevykdo šio tipo)",
+          "placeholder": "Pasirinkite zondą",
+          "push_fixed": "Push monitorius visada veikia vietiniame zonde.",
+          "required": "Pasirinkite bent vieną zondą",
+          "unsupported": "Šis zondas nevykdo šio tipo monitoriaus. Pasirinkite kitą zondą."
         },
         "proxy": {
           "add_proxy": "Pridėti proxy",
@@ -658,6 +678,15 @@
       "expiring_soon": "Artėja baigti",
       "for": "skirta",
       "live_status": "Gyva būsena",
+      "locations": {
+        "all": "Visos vietos",
+        "no_result": "Rezultato dar nėra",
+        "probe_offline": "Zondas atsijungęs",
+        "probe_unsupported": "Nevykdo šio tipo",
+        "response_time": "Atsakymo laikas",
+        "select_label": "Vieta",
+        "title": "Vietos"
+      },
       "monitor_for": "Steigti",
       "no_certificate_data": "Nėra sertifikato duomenų",
       "seconds": "sekundės",
@@ -683,6 +712,7 @@
     "maintenance": "Priežiūra",
     "monitors": "Monitoriai",
     "notification_channels": "Pranešimo kanalai",
+    "probes": "Zondai",
     "proxies": "Tarpiniai serveriai",
     "settings": "Nustatymai",
     "status_pages": "Statuso puslapiai",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatinis pripažinimas",
         "auto_resolve_acknowledge_description": "Automatiškai pripažinkite incidentą",
-        "auto_resolve_description": "Pasirinkite, ką daryti, kai monitorius vėl įsigalioja",
+        "auto_resolve_description": "Pasirinkite, ką siųsti, kai monitorius vėl pradeda veikti arba zondas vėl prisijungia",
         "auto_resolve_do_nothing": "Nieko nedaryti",
-        "auto_resolve_do_nothing_description": "Nėra veiksmo, kai statusas yra „Veikia“",
+        "auto_resolve_do_nothing_description": "Nieko nesiunčiama, kai monitorius vėl pradeda veikti arba zondas vėl prisijungia, todėl incidentas lieka atviras, kol jo neišspręsite sistemoje PagerDuty",
         "auto_resolve_label": "Automatiškai išspręsti arba prisiimti",
         "auto_resolve_placeholder": "Pasirinkite automatinio išsprendimo elgesį",
         "auto_resolve_resolve": "Automatinis išsprendimas",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Neprivalomas autentifikacijos žetonas pagerintam saugumui. Tai bus siunčiama pagertree-token antraštėje.",
         "authentication_token_label": "Autentifikacijos žetonas (neprivalomas)",
         "authentication_token_placeholder": "Įveskite autorizacijos žetoną, jei reikalingas",
-        "auto_resolve_alerts_description": "Automatiškai išspręsti PagerTree įspėjimus, kai monitorius atsigaukia",
+        "auto_resolve_alerts_description": "Automatiškai išspręsti PagerTree įspėjimus, kai monitorius vėl pradeda veikti arba zondas vėl prisijungia",
         "auto_resolve_alerts_label": "Automatinis įspėjimų išsprendimas",
         "how_to_get_integration_url_label": "Kaip gauti integracijos URL",
         "integration_url_description": "Įveskite savo PagerTree webhook integracijos URL.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Išsaugota — įveskite, kad pakeistumėte"
     }
   },
+  "probes": {
+    "page_name": "Zondai",
+    "description": "Zondai atlieka monitorių patikras iš vietų, kuriose jie įdiegti. Vietinis zondas yra pats Peekaping.",
+    "local_name": "Vietinis",
+    "monitor_probe": "Zondas: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nevykdo {{type}} tipo monitorių",
+    "empty_list": {
+      "title": "Zondų nerasta",
+      "text": "Sukurkite zondą, kad atliktumėte patikras iš kitos vietos.",
+      "action_text": "Sukurkite savo pirmąjį zondą"
+    },
+    "table": {
+      "headers": {
+        "name": "Pavadinimas",
+        "location": "Vieta",
+        "status": "Būsena",
+        "disabled": "Išjungtas",
+        "token": "Žetonas",
+        "instances": "Egzemplioriai",
+        "actions": "Veiksmai"
+      },
+      "status": {
+        "online": "Prisijungęs",
+        "offline": "Atsijungęs"
+      },
+      "disabled": "Išjungtas",
+      "no_instances": "Egzempliorių dar nėra",
+      "last_seen": "paskutinį kartą matytas {{date}}",
+      "actions": {
+        "edit": "Redaguoti zondą {{name}}",
+        "rotate": "Pakeisti zondo {{name}} žetoną",
+        "delete": "Ištrinti zondą {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Sukurti zondą",
+      "description": "Zondas atlieka patikras iš vietos, kurioje jį įdiegiate. Jo žetonas rodomas tik vieną kartą, po sukūrimo.",
+      "submit": "Sukurti zondą",
+      "creating": "Kuriama..."
+    },
+    "edit_dialog": {
+      "title": "Redaguoti zondą",
+      "description": "Pakeiskite {{name}} nustatymus."
+    },
+    "form": {
+      "name_label": "Pavadinimas",
+      "name_placeholder": "pvz., Frankfurtas",
+      "location_label": "Vieta (neprivaloma)",
+      "location_placeholder": "pvz., Frankfurtas, Vokietija",
+      "name_required": "Pavadinimas privalomas",
+      "name_too_long": "Pavadinimas per ilgas",
+      "location_too_long": "Vieta per ilga",
+      "disabled_label": "Išjungtas",
+      "disabled_description": "Išjungto zondo žetonas nustoja veikti, kol vėl jį įjungsite.",
+      "notifications_hint": "Palikite tuščią, kad pranešimai būtų siunčiami šio zondo monitorių kanalams."
+    },
+    "rotate_dialog": {
+      "title": "Pakeisti žetoną",
+      "description": "Senas zondo {{name}} žetonas iškart nustoja veikti. Jo egzempliorius reikia paleisti iš naujo su nauju žetonu.",
+      "confirm": "Pakeisti žetoną",
+      "rotating": "Keičiama..."
+    },
+    "delete_dialog": {
+      "title": "Ištrinti zondą",
+      "description": "Ar tikrai norite ištrinti zondą „{{name}}“? Jo žetonas nustos veikti. Šio veiksmo atšaukti negalima."
+    },
+    "token_alert": {
+      "title_created": "Zondas {{name}} sukurtas",
+      "title_rotated": "Naujas zondo {{name}} žetonas",
+      "note": "Šis žetonas skaito zondui priskirtų monitorių konfigūracijas. Jis rodomas tik vieną kartą.",
+      "token_label": "Žetonas",
+      "docker_label": "Paleiskite zondą naudodami Docker",
+      "copy_token": "Kopijuoti žetoną",
+      "copy_command": "Kopijuoti docker komandą"
+    },
+    "messages": {
+      "created_successfully": "Zondas sėkmingai sukurtas",
+      "updated_successfully": "Zondas sėkmingai atnaujintas",
+      "rotated_successfully": "Žetonas sėkmingai pakeistas",
+      "deleted_successfully": "Zondas sėkmingai ištrintas",
+      "failed_to_create": "Nepavyko sukurti zondo",
+      "failed_to_update": "Nepavyko atnaujinti zondo",
+      "failed_to_rotate": "Nepavyko pakeisti žetono",
+      "failed_to_delete": "Nepavyko ištrinti zondo",
+      "failed_to_load": "Nepavyko įkelti zondų",
+      "copy_success": "Nukopijuota į iškarpinę",
+      "copy_failed": "Nepavyko nukopijuoti į iškarpinę"
+    },
+    "detail": {
+      "not_found": "Zondas nerastas"
+    },
+    "availability": {
+      "title": "Pasiekiamumas",
+      "range_label": "Laikotarpis",
+      "bar_label": "Pasiekiamumo istorija",
+      "instance_bar_label": "{{name}} ryšiai",
+      "no_data": "Nėra duomenų",
+      "now": "Dabar",
+      "instances_title": "Egzemplioriai, paskutiniai 24 valandos",
+      "in_process_note": "Vietinio zondo monitorius tikrina pats Peekaping, todėl jis neturi pasiekiamumo istorijos.",
+      "connected_since": "Prisijungęs nuo {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Šis veiksmas negali būti atšauktas. Tai negrįžtamai ištrins tarpinį serverį {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "Klasterio režimu pakeitimas pasiekia kiekvieną procesą per minutę.",
-      "description": "Siųsti pranešimą į Sentry, kai sugenda serveris. Išjungta, kol neįjungsite.",
-      "forced_off": "Aplinkos kintamasis ERROR_REPORTING=off arba DO_NOT_TRACK=1 tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "description": "Siųsti pranešimą į Sentry, kai sugenda serveris. Pagal numatytuosius nustatymus įjungta; čia tai galite išjungti bet kada.",
+      "forced_off": "Aplinkos kintamasis ERROR_REPORTING=off tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
       "title": "Pranešimai apie klaidas"
     },
     "telemetry": {
-      "description": "Siųsti anonimišką statistiką apie tai, kaip sukonfigūruotas šis diegimas, ne dažniau kaip kartą per dieną. Išjungta, kol neįjungsite.",
-      "forced_off": "Aplinkos kintamasis TELEMETRY=off arba DO_NOT_TRACK=1 tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
-      "id_note": "Egzemplioriaus ID sukuriamas, kai tai įjungiate, ir ištrinamas, kai išjungiate. Įjungus iš naujo, sukuriamas naujas.",
+      "description": "Siųsti anonimišką statistiką apie tai, kaip sukonfigūruotas šis diegimas, ne dažniau kaip kartą per dieną. Pagal numatytuosius nustatymus įjungta; čia tai galite išjungti bet kada.",
+      "forced_off": "Aplinkos kintamasis TELEMETRY=off tai išjungia. Niekas nesiunčiama, ką bebūtų nurodęs šis nustatymas.",
+      "id_note": "Egzemplioriaus ID sukuriamas, kol tai įjungta, ir ištrinamas, kai išjungiate. Įjungus iš naujo, sukuriamas naujas.",
       "payload_off": "Kol tai išjungta, niekas nesiunčiama. Štai ką naudojimo pingas turėtų, jei tai įjungtumėte.",
       "payload_title": "Ką išsiųs kitas naudojimo pingas",
       "title": "Naudojimo statistika"
@@ -1367,6 +1500,8 @@
     "published_status": "Paskelbta",
     "search_label": "Paieška",
     "search_placeholder": "Ieškoti būsenų puslapių pagal pavadinimą...",
+    "show_locations": "Rodyti kiekvieną vietą",
+    "show_locations_info": "Stebėjimams, tikrinamiems iš kelių vietų, rodoma kiekvienos vietos būsena ir istorija",
     "update_status_page": "Atnaujinti statuso puslapį",
     "view_page": "Peržiūrėti puslapį"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Kas siunčiama ir kaip tai išjungti",
     "label": "Siųsti anonimišką naudojimo statistiką",
-    "never_sent": "Niekada nesiunčiama: monitorių pavadinimai, URL, serveriai, žymos, būsenos puslapių adresai ar pranešimų nustatymai. Naudojimo pinge nėra IP adreso, o Peekaping Worker nesaugo siuntėjo IP.",
-    "not_saved": "Jūsų pasirinkimas siųsti naudojimo statistiką neišsaugotas. Įjunkite jį skiltyje „Nustatymai“.",
-    "sent_features": "Ar naudojate būsenos puslapius, priežiūros langus ir metrikas",
-    "sent_id": "Atsitiktinis ID, kuris sukuriamas, kai tai įjungiate, ir ištrinamas, kai išjungiate",
-    "sent_monitors": "Kiek turite monitorių, kaip intervalą, pavyzdžiui, 11-50",
-    "sent_setup": "Peekaping versija, vieno proceso ar klasterio režimas, saugyklos pagrindas, taip pat operacinė sistema ir procesoriaus tipas",
-    "sent_types": "Naudojamų monitorių ir pranešimų kanalų rūšys, pavyzdžiui, http arba telegram"
+    "not_saved": "Jūsų pasirinkimas dėl naudojimo statistikos neišsaugotas. Patikrinkite jį skiltyje „Nustatymai“."
+  },
+  "telemetry_notice": {
+    "error_reports": "Pranešimai apie klaidas įjungti. Jei Peekaping sugenda, jis siunčia klaidos tipą ir vietą kode, kurioje ji įvyko, savo versiją, režimą, saugyklos pagrindą ir operacinę sistemą. Niekada nesiunčia klaidų pranešimų, URL ar pagrindinių kompiuterių pavadinimų.",
+    "settings_errors": "Išjungti pranešimus apie klaidas skiltyje „Nustatymai“",
+    "settings_usage": "Išjungti naudojimo statistiką skiltyje „Nustatymai“",
+    "title": "Anoniminių duomenų siuntimas pagal numatytuosius nustatymus įjungtas",
+    "usage_statistics": "Naudojimo statistika įjungta. Ne dažniau kaip kartą per dieną Peekaping siunčia atsitiktinį egzemplioriaus ID, savo versiją, režimą, saugyklos pagrindą ir operacinę sistemą, monitorių skaičiaus intervalą, naudojamų monitorių ir pranešimų kanalų rūšis bei tai, ar naudojate būsenos puslapius, priežiūros langus ir metrikas. Niekada nesiunčia pavadinimų, URL, pagrindinių kompiuterių ar nustatymų."
   },
   "theme": {
     "dark": "Tamsus",

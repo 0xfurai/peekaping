@@ -1,27 +1,33 @@
 ---
-import ListItem from "../components/ListItem.astro";
+import { monitorCount, channelCount } from "../data/integrations";
+
+const stats = [
+  { value: String(monitorCount), label: "monitor types" },
+  { value: String(channelCount), label: "alert channels" },
+  { value: "100%", label: "open source, MIT" },
+  { value: "0", label: "vendor lock-in" },
+];
+
+const stack = ["Go", "React", "TypeScript", "SQLite", "PostgreSQL", "Docker", "Kubernetes"];
 ---
 
-<section class="mb-12 px-4">
-  <div class="card max-w-screen-lg mx-auto py-10 sm:py-12 px-8">
-    <h2 class="font-bold text-[32px] leading-[125%] mb-6">Tech Stack</h2>
+<section class="px-4 sm:px-8 pt-8 pb-4">
+  <div class="max-w-screen-lg mx-auto">
+    <dl class="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10">
+      {
+        stats.map((stat, i) => (
+          <div class="reveal bg-ink px-6 py-8 text-center" style={`--delay:${i * 70}ms`}>
+            <dt class="sr-only">{stat.label}</dt>
+            <dd class="text-4xl sm:text-5xl font-bold tracking-tight text-gradient">{stat.value}</dd>
+            <dd class="mt-2 text-sm text-zinc-400">{stat.label}</dd>
+          </div>
+        ))
+      }
+    </dl>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-      <!-- Runtime & Services -->
-      <div class="col-span-1 sm:col-span-2 lg:col-span-3 mt-2 text-xs font-semibold uppercase tracking-wider opacity-70">
-
-      </div>
-      <ListItem><strong>Go (Golang)</strong> — High-performance, lightweight concurrency</ListItem>
-      <ListItem><strong>React + TypeScript</strong> — Type-safe admin dashboard and status pages</ListItem>
-      <ListItem><strong>Docker</strong> — Easy to deploy and run</ListItem>
-
-      <!-- Data Storage (Selectable) -->
-      <div class="col-span-1 sm:col-span-2 lg:col-span-3 mt-6 text-xs font-semibold uppercase tracking-wider opacity-70">
-        Data Storage (Selectable)
-      </div>
-      <ListItem><strong>PostgreSQL</strong> — Relational database for structured data</ListItem>
-      <ListItem><strong>SQLite</strong> — Single-file DB for lightweight/self-hosted setups</ListItem>
-      <ListItem><strong>MongoDB (deprecated)</strong> — Still works for existing installs; new installs use SQLite or PostgreSQL. <a href="https://docs.peekaping.com/self-hosting/docker-with-mongo" target="_blank" rel="noopener" class="underline">Details</a></ListItem>
+    <div class="reveal mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
+      <span class="text-zinc-500">Built with</span>
+      {stack.map((name) => <span class="font-semibold text-zinc-300">{name}</span>)}
     </div>
   </div>
 </section>

@@ -16,8 +16,9 @@
       "have_account": "Već imate nalog?",
       "sign_in": "Prijavi se",
       "submit": "Kreiraj",
-      "telemetry_hint": "Isključeno ako ne označite ovo polje. To možete da promenite kasnije u „Podešavanja“. Ako ga označite, Peekaping ovo šalje najviše jednom dnevno:",
-      "title": "Zdravo"
+      "title": "Zdravo",
+      "telemetry_note": "Anonimno: bez naziva nadgledaja, URL adresa i hostova. To možete da promenite kasnije u „Podešavanja“.",
+      "telemetry_whats_sent": "Šta se šalje"
     },
     "twofa": {
       "code_label": "2FA kod",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Šalji izveštaje o greškama",
-    "never_sent": "Nikada se ne šalju: poruke o greškama, URL adrese, zaglavlja, URL adrese vebhukova, imena ni nazivi hostova. Izveštaj ne sadrži IP adresu, a Peekaping-ov Sentry projekat je podešen da ne čuva IP pošiljaoca. Sa vašim sopstvenim ERROR_REPORTING_DSN-om odlučuju podešavanja vašeg Sentry-ja ili GlitchTip-a.",
-    "not_saved": "Vaš izbor slanja izveštaja o greškama nije sačuvan. Uključite to u „Podešavanja“.",
+    "never_sent": "Nikada se ne šalju: poruke o greškama, URL adrese, zaglavlja, URL adrese vebhukova, imena ni nazivi hostova. Izveštaj ne sadrži IP adresu, a Peekaping-ov Sentry projekat je podešen da ne čuva IP pošiljaoca.",
+    "not_saved": "Vaš izbor o izveštajima o greškama nije sačuvan. Proverite ga u „Podešavanja“.",
     "sent": "Šalje se samo kada se sam Peekaping sruši. Izveštaj sadrži vrstu greške i mesto u kodu gde se dogodila, verziju Peekaping-a, pojedinačni ili klasterski režim, pozadinski sistem za skladištenje i operativni sistem."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Zastarevanje zahteva (Zastareva nakon {{seconds}} sekundi)",
           "resend_notification": "Ponovo pošalji obaveštenje ako je X puta uzastopno ne radi (Ponovljavanje onemogućeno)"
         },
+        "location_rule": {
+          "all": "sve lokacije ne rade",
+          "any": "bilo koja lokacija ne radi",
+          "at_least": "bar N lokacija ne radi",
+          "description": "Lokacija čija je sonda van mreže ili se još nije javila ne računa se.",
+          "label": "Označi monitor kao nedostupan kada",
+          "threshold_invalid": "Unesite ceo broj, 1 ili više",
+          "threshold_label": "Broj lokacija",
+          "threshold_too_high": "Ne može biti veći od broja izabranih sondi"
+        },
         "notifications": {
           "add_notifier": "Dodaj notifikator",
           "new_notifier": "+ Novi notifikator",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Izaberite obaveštivača",
           "selected_channels": "Izabrani kanali obaveštenja",
           "title": "Kanali obaveštenja"
+        },
+        "probe": {
+          "description": "Monitor radi na svakoj izabranoj sondi i rezultate svake prikazuje kao lokaciju.",
+          "label": "Sonda",
+          "option_unsupported": "{{name}} (ne pokreće ovaj tip)",
+          "placeholder": "Izaberi sondu",
+          "push_fixed": "Push monitor uvek radi na lokalnoj sondi.",
+          "required": "Izaberite bar jednu sondu",
+          "unsupported": "Ova sonda ne pokreće ovaj tip monitora. Izaberi drugu sondu."
         },
         "proxy": {
           "add_proxy": "Dodaj proksi",
@@ -658,6 +678,15 @@
       "expiring_soon": "Ističe uskoro",
       "for": "za",
       "live_status": "Status uživo",
+      "locations": {
+        "all": "Sve lokacije",
+        "no_result": "Još nema rezultata",
+        "probe_offline": "Sonda je van mreže",
+        "probe_unsupported": "Ne pokreće ovaj tip",
+        "response_time": "Vreme odgovora",
+        "select_label": "Lokacija",
+        "title": "Lokacije"
+      },
       "monitor_for": "monitoruj za",
       "no_certificate_data": "Nema podataka o sertifikatu",
       "seconds": "sekunde",
@@ -683,6 +712,7 @@
     "maintenance": "Održavanje",
     "monitors": "Monitori",
     "notification_channels": "Kanali obaveštenja",
+    "probes": "Sonde",
     "proxies": "Proksi",
     "settings": "Podešavanja",
     "status_pages": "Statusne stranice",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatsko priznavanje",
         "auto_resolve_acknowledge_description": "Automatski potvrdite incident",
-        "auto_resolve_description": "Izaberite koju radnju preduzeti kada monitor ponovo postane aktivan",
+        "auto_resolve_description": "Izaberite šta će se poslati kada monitor ponovo postane aktivan ili se sonda vrati na mrežu",
         "auto_resolve_do_nothing": "Ne radite ništa",
-        "auto_resolve_do_nothing_description": "Nema akcije na UP statusu",
+        "auto_resolve_do_nothing_description": "Ništa se ne šalje kada monitor ponovo postane aktivan ili se sonda vrati na mrežu, pa incident ostaje otvoren dok ga ne rešite u servisu PagerDuty",
         "auto_resolve_label": "Automatsko rešavanje ili potvrda",
         "auto_resolve_placeholder": "Izaberite ponašanje automatskog rešavanja",
         "auto_resolve_resolve": "Automatsko rešavanje",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Opcioni autentifikacioni token za unapređenu bezbednost. Ovaj će se poslati u zaglavlje pagertree-token.",
         "authentication_token_label": "Autentikacioni token (opciono)",
         "authentication_token_placeholder": "Unesite auth token ako je potreban",
-        "auto_resolve_alerts_description": "Automatski otkloni PagerTree upozorenja kada se monitor oporavi",
+        "auto_resolve_alerts_description": "Automatski reši PagerTree upozorenja kada monitor ponovo postane aktivan ili se sonda vrati na mrežu",
         "auto_resolve_alerts_label": "Automatsko razrešavanje upozorenja",
         "how_to_get_integration_url_label": "Kako dobiti URL integracije",
         "integration_url_description": "Unesite URL integracije PagerTree webhooka.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Sačuvano — unesite za zamenu"
     }
   },
+  "probes": {
+    "page_name": "Sonde",
+    "description": "Sonde izvršavaju provere monitora sa mesta na kojima su instalirane. Lokalna sonda je sam Peekaping.",
+    "local_name": "Lokalna",
+    "monitor_probe": "Sonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} ne pokreće monitore tipa {{type}}",
+    "empty_list": {
+      "title": "Nije pronađena nijedna sonda",
+      "text": "Napravite sondu da biste izvršavali provere sa drugog mesta.",
+      "action_text": "Napravite svoju prvu sondu"
+    },
+    "table": {
+      "headers": {
+        "name": "Naziv",
+        "location": "Lokacija",
+        "status": "Status",
+        "disabled": "Onemogućena",
+        "token": "Token",
+        "instances": "Instance",
+        "actions": "Radnje"
+      },
+      "status": {
+        "online": "Na mreži",
+        "offline": "Van mreže"
+      },
+      "disabled": "Onemogućena",
+      "no_instances": "Još nema instanci",
+      "last_seen": "poslednji put viđena {{date}}",
+      "actions": {
+        "edit": "Izmeni sondu {{name}}",
+        "rotate": "Zameni token sonde {{name}}",
+        "delete": "Obriši sondu {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Napravi sondu",
+      "description": "Sonda izvršava provere sa mesta na kojem je instalirate. Njen token se prikazuje samo jednom, nakon pravljenja.",
+      "submit": "Napravi sondu",
+      "creating": "Pravljenje..."
+    },
+    "edit_dialog": {
+      "title": "Izmeni sondu",
+      "description": "Promenite podešavanja sonde {{name}}."
+    },
+    "form": {
+      "name_label": "Naziv",
+      "name_placeholder": "npr. Frankfurt",
+      "location_label": "Lokacija (opciono)",
+      "location_placeholder": "npr. Frankfurt, Nemačka",
+      "name_required": "Naziv je obavezan",
+      "name_too_long": "Naziv je predugačak",
+      "location_too_long": "Lokacija je predugačka",
+      "disabled_label": "Onemogućena",
+      "disabled_description": "Token onemogućene sonde prestaje da radi dok je ponovo ne omogućite.",
+      "notifications_hint": "Ostavite prazno da se obaveste kanali monitora ove sonde."
+    },
+    "rotate_dialog": {
+      "title": "Zameni token",
+      "description": "Stari token sonde {{name}} odmah prestaje da radi. Njene instance treba ponovo pokrenuti sa novim tokenom.",
+      "confirm": "Zameni token",
+      "rotating": "Zamena..."
+    },
+    "delete_dialog": {
+      "title": "Obriši sondu",
+      "description": "Da li ste sigurni da želite da obrišete sondu „{{name}}”? Njen token prestaje da radi. Ova radnja se ne može poništiti."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} je napravljena",
+      "title_rotated": "Novi token za sondu {{name}}",
+      "note": "Ovaj token čita konfiguracije monitora dodeljenih sondi. Prikazuje se samo jednom.",
+      "token_label": "Token",
+      "docker_label": "Pokrenite sondu pomoću Docker-a",
+      "copy_token": "Kopiraj token",
+      "copy_command": "Kopiraj docker komandu"
+    },
+    "messages": {
+      "created_successfully": "Sonda je uspešno napravljena",
+      "updated_successfully": "Sonda je uspešno ažurirana",
+      "rotated_successfully": "Token je uspešno zamenjen",
+      "deleted_successfully": "Sonda je uspešno obrisana",
+      "failed_to_create": "Pravljenje sonde nije uspelo",
+      "failed_to_update": "Ažuriranje sonde nije uspelo",
+      "failed_to_rotate": "Zamena tokena nije uspela",
+      "failed_to_delete": "Brisanje sonde nije uspelo",
+      "failed_to_load": "Učitavanje sondi nije uspelo",
+      "copy_success": "Kopirano u privremenu memoriju",
+      "copy_failed": "Kopiranje u privremenu memoriju nije uspelo"
+    },
+    "detail": {
+      "not_found": "Sonda nije pronađena"
+    },
+    "availability": {
+      "title": "Dostupnost",
+      "range_label": "Vremenski period",
+      "bar_label": "Istorija dostupnosti",
+      "instance_bar_label": "Veze sonde {{name}}",
+      "no_data": "Nema podataka",
+      "now": "Sada",
+      "instances_title": "Instance, poslednja 24 sata",
+      "in_process_note": "Monitore lokalne sonde proverava sam Peekaping, pa ona nema istoriju dostupnosti.",
+      "connected_since": "Povezana od {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Ova radnja se ne može poništiti. Ovo će trajno obrisati proxy {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "U klasterskom režimu promena stiže do svakog procesa u roku od minuta.",
-      "description": "Šalji izveštaj u Sentry kada se server sruši. Isključeno dok ne uključite.",
-      "forced_off": "Promenljiva okruženja ERROR_REPORTING=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
+      "description": "Šalji izveštaj u Sentry kada se server sruši. Podrazumevano uključeno; ovde to možete da isključite u bilo kom trenutku.",
+      "forced_off": "Promenljiva okruženja ERROR_REPORTING=off isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
       "title": "Izveštaji o greškama"
     },
     "telemetry": {
-      "description": "Šalji anonimnu statistiku o tome kako je ova instalacija podešena, najviše jednom dnevno. Isključeno dok ne uključite.",
-      "forced_off": "Promenljiva okruženja TELEMETRY=off ili DO_NOT_TRACK=1 isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
-      "id_note": "ID instance se pravi kada ovo uključite i briše kada ovo isključite. Ponovnim uključivanjem pravi se novi.",
+      "description": "Šalji anonimnu statistiku o tome kako je ova instalacija podešena, najviše jednom dnevno. Podrazumevano uključeno; ovde to možete da isključite u bilo kom trenutku.",
+      "forced_off": "Promenljiva okruženja TELEMETRY=off isključuje ovo. Ništa se ne šalje, šta god ovo podešavanje govorilo.",
+      "id_note": "ID instance se pravi dok je ovo uključeno i briše kada ovo isključite. Ponovnim uključivanjem pravi se novi.",
       "payload_off": "Dok je ovo isključeno, ništa se ne šalje. Ovo bi sadržao ping korišćenja da ste ga uključili.",
       "payload_title": "Šta će poslati sledeći ping korišćenja",
       "title": "Statistika korišćenja"
@@ -1367,6 +1500,8 @@
     "published_status": "Objavljeno",
     "search_label": "Pretraga",
     "search_placeholder": "Pretraži stranice statusa po naslovu...",
+    "show_locations": "Prikaži svaku lokaciju",
+    "show_locations_info": "Za monitore koji se proveravaju sa više lokacija prikazuje status i istoriju svake lokacije",
     "update_status_page": "Ažuriraj stranicu statusa",
     "view_page": "Pogledaj stranicu"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Šta se šalje i kako to isključiti",
     "label": "Šalji anonimnu statistiku korišćenja",
-    "never_sent": "Nikada se ne šalju: nazivi nadgledaja, URL adrese, hostovi, tagovi, adrese status stranica ni podešavanja obaveštenja. Ping korišćenja ne sadrži IP adresu, a Peekaping-ov Worker ne beleži IP pošiljaoca.",
-    "not_saved": "Vaš izbor slanja statistike korišćenja nije sačuvan. Uključite to u „Podešavanja“.",
-    "sent_features": "Da li koristite status stranice, prozore održavanja i metrike",
-    "sent_id": "Nasumični ID, koji se pravi kada ovo uključite i briše kada ovo isključite",
-    "sent_monitors": "Koliko nadgledaja imate, kao opseg, na primer 11-50",
-    "sent_setup": "Verzija Peekaping-a, pojedinačni ili klasterski režim, pozadinski sistem za skladištenje, kao i operativni sistem i vrsta procesora",
-    "sent_types": "Vrste nadgledaja i kanala obaveštenja koje koristite, na primer http ili telegram"
+    "not_saved": "Vaš izbor o statistici korišćenja nije sačuvan. Proverite ga u „Podešavanja“."
+  },
+  "telemetry_notice": {
+    "error_reports": "Izveštaji o greškama su uključeni. Ako se Peekaping sruši, šalje vrstu greške i mesto u kodu gde se dogodila, svoju verziju, režim, pozadinski sistem za skladištenje i operativni sistem. Nikada ne šalje poruke o greškama, URL adrese ni nazive hostova.",
+    "settings_errors": "Isključi izveštaje o greškama u „Podešavanja“",
+    "settings_usage": "Isključi statistiku korišćenja u „Podešavanja“",
+    "title": "Slanje anonimnih podataka je podrazumevano uključeno",
+    "usage_statistics": "Statistika korišćenja je uključena. Najviše jednom dnevno Peekaping šalje nasumični ID instance, svoju verziju, režim, pozadinski sistem za skladištenje i operativni sistem, opseg za broj nadgledaja, vrste nadgledaja i kanala obaveštenja koje koristite, kao i podatak da li koristite status stranice, prozore održavanja i metrike. Nikada ne šalje nazive, URL adrese, hostove ni podešavanja."
   },
   "theme": {
     "dark": "Tamni",

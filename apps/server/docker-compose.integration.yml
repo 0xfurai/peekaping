@@ -1,0 +1,197 @@
+# The services the integration tests (go test -tags integration) talk to.
+# CI starts them with "docker compose up -d --wait" and points the tests at them
+# through the PEE_TEST_* variables. Without those variables the tests start their
+# own containers, so you need this file only to reuse one set of servers:
+#
+#   docker compose -f docker-compose.integration.yml up -d --wait
+#   PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
+#   PEE_TEST_KAFKA_BROKER='127.0.0.1:19092' PEE_TEST_KAFKA_SASL_BROKER='127.0.0.1:19093' \
+#   PEE_TEST_POSTGRES_EXECUTOR_URL='postgres://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:15432/peekaping' \
+#   PEE_TEST_MYSQL_URL='mysql://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:13306/peekaping' \
+
+#   PEE_TEST_MONGODB_URL='mongodb://root:integration-test-password@127.0.0.1:27018' \
+#   PEE_TEST_MONGODB_RS_URL='mongodb://127.0.0.1:27019' \
+#   PEE_TEST_SQLSERVER_URL='sqlserver://sa:Pe%3Be%3DK%7Bing%7D9z@127.0.0.1:11433' \
+#     go test -tags integration -count=1 ./internal/modules/healthcheck/executor/...
+#   docker compose -f docker-compose.integration.yml down
+#
+# Each service matches a function in internal/testservice, which starts the same
+# image the same way. Add a service here when you add a function there.
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--requirepass", "integration-test-password", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:16379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "integration-test-password", "--no-auth-warning", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  # The same broker internal/testservice/kafka.go starts, with the host ports
+  # fixed and advertised as 127.0.0.1:19092 (plaintext) and 127.0.0.1:19093
+  # (SASL: user peekaping, password peekaping-secret, for PLAIN, SCRAM-SHA-256
+  # and SCRAM-SHA-512). Keep its start script and kafkaStartScript in step.
+  # "$$" is how compose spells a "$" it leaves to the shell.
+  kafka:
+    image: apache/kafka:3.9.1
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        set -e
+        ADV_HOST=127.0.0.1
+        ADV_PLAIN_PORT=19092
+        ADV_SASL_PORT=19093
+        cat > /tmp/server.properties <<EOF
+        process.roles=broker,controller
+        node.id=1
+        controller.quorum.voters=1@localhost:9095
+        listeners=PLAINTEXT://:9092,SASL_PLAINTEXT://:9093,BROKER://localhost:9094,CONTROLLER://localhost:9095
+        advertised.listeners=PLAINTEXT://$${ADV_HOST}:$${ADV_PLAIN_PORT},SASL_PLAINTEXT://$${ADV_HOST}:$${ADV_SASL_PORT},BROKER://localhost:9094
+        listener.security.protocol.map=PLAINTEXT:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,BROKER:PLAINTEXT,CONTROLLER:PLAINTEXT
+        inter.broker.listener.name=BROKER
+        controller.listener.names=CONTROLLER
+        sasl.enabled.mechanisms=PLAIN,SCRAM-SHA-256,SCRAM-SHA-512
+        listener.name.sasl_plaintext.plain.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required user_peekaping="peekaping-secret";
+        listener.name.sasl_plaintext.scram-sha-256.sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required;
+        listener.name.sasl_plaintext.scram-sha-512.sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required;
+        auto.create.topics.enable=true
+        num.partitions=1
+        offsets.topic.replication.factor=1
+        transaction.state.log.replication.factor=1
+        transaction.state.log.min.isr=1
+        group.initial.rebalance.delay.ms=0
+        log.dirs=/tmp/kraft-logs
+        EOF
+        /opt/kafka/bin/kafka-storage.sh format --ignore-formatted \
+          -t "$$(/opt/kafka/bin/kafka-storage.sh random-uuid)" -c /tmp/server.properties \
+          --add-scram 'SCRAM-SHA-256=[name=peekaping,password=peekaping-secret]' \
+          --add-scram 'SCRAM-SHA-512=[name=peekaping,password=peekaping-secret]'
+        exec /opt/kafka/bin/kafka-server-start.sh /tmp/server.properties
+    ports:
+      - "127.0.0.1:19092:9092"
+      - "127.0.0.1:19093:9093"
+    healthcheck:
+      # Asks the internal listener, which is up only once the broker is.
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9094"]
+      interval: 2s
+      timeout: 10s
+      retries: 60
+      start_period: 5s
+
+  # The same server internal/testservice/postgres.go starts, on 127.0.0.1:15432:
+  # user peekaping, database peekaping, TLS on with the Debian image's
+  # self-signed certificate. The password holds the characters a connection
+  # string has to escape (@ : / % ?), written percent-encoded in
+  # PEE_TEST_POSTGRES_EXECUTOR_URL. The health check logs in over the
+  # container's own address, not 127.0.0.1, which the image trusts without a
+  # password, so it passes only once that password works.
+  postgres:
+    image: postgres:17
+    command:
+      - "-c"
+      - "ssl=on"
+      - "-c"
+      - "ssl_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem"
+      - "-c"
+      - "ssl_key_file=/etc/ssl/private/ssl-cert-snakeoil.key"
+    environment:
+      POSTGRES_USER: peekaping
+      POSTGRES_PASSWORD: "p@ss:w/rd%1?x"
+      POSTGRES_DB: peekaping
+    ports:
+      - "127.0.0.1:15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD='p@ss:w/rd%1?x' psql -h postgres -U peekaping -d peekaping -c 'SELECT 1'"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  # The same server internal/testservice/mysql.go starts, on 127.0.0.1:13306,
+  # with the same user, database and password as the PostgreSQL above. MySQL
+  # turns TLS on by itself with a self-signed certificate. The health check logs
+  # in over TCP: the image's init server doesn't listen on it.
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_USER: peekaping
+      MYSQL_PASSWORD: "p@ss:w/rd%1?x"
+      MYSQL_DATABASE: peekaping
+    ports:
+      - "127.0.0.1:13306:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD='p@ss:w/rd%1?x' mysql --protocol=tcp -h 127.0.0.1 -u peekaping peekaping -e 'SELECT 1'"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+      start_period: 5s
+
+  # The same server internal/testservice/mongodb.go starts: a standalone
+  # MongoDB with the root user root, whose password is integration-test-password
+  # (in the admin database). The tests check a wrong password and a wrong
+  # authSource against it.
+  mongodb:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: integration-test-password
+    ports:
+      - "127.0.0.1:27018:27017"
+    healthcheck:
+      # The image runs a temporary server on a socket to create the user, then
+      # restarts. Signing in over TCP answers only once the final server is up.
+      test: ["CMD", "mongosh", "--quiet", "--host", "127.0.0.1", "-u", "root", "-p", "integration-test-password", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
+      interval: 2s
+      timeout: 10s
+      retries: 30
+      start_period: 5s
+
+  # A single-node replica set named rs0, without authentication (a replica set
+  # with it needs a key file; the tests that sign in use the server above). The
+  # node listens on the port it is published on and registers itself as
+  # 127.0.0.1:27019, so a client that discovers the members from the host
+  # reaches the same address. The health check initiates the set the first
+  # time and passes once the node is primary.
+  mongodb-rs:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--port", "27019", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27019:27019"
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --port
+        - "27019"
+        - --quiet
+        - --eval
+        - |
+          try { rs.status() } catch (e) { rs.initiate({_id: "rs0", members: [{_id: 0, host: "127.0.0.1:27019"}]}) }
+          quit(db.hello().isWritablePrimary ? 0 : 1)
+      interval: 2s
+      timeout: 10s
+      retries: 30
+      start_period: 5s
+
+  # The same server internal/testservice/sqlserver.go starts, user sa. Its
+  # password holds ";", "=", "{" and "}" on purpose: the tests check that a
+  # connection string carries them to the server intact. The image is for
+  # x86-64 only, so "platform" makes an Arm machine emulate it, which can take
+  # minutes to start. The health check signs in with the password from the
+  # container's environment.
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Pe;e=K{ing}9z"
+    ports:
+      - "127.0.0.1:11433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b"]
+      interval: 3s
+      timeout: 10s
+      retries: 100
+      start_period: 20s

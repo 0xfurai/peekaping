@@ -1,14 +1,19 @@
+//go:build !slim
+
 package executor
 
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"net"
 	"peekaping/internal/modules/shared"
 	"strings"
 	"time"
 
 	"github.com/IBM/sarama"
+	"github.com/xdg-go/scram"
 	"go.uber.org/zap"
 )
 
@@ -36,6 +41,8 @@ func NewKafkaProducerExecutor(logger *zap.SugaredLogger) *KafkaProducerExecutor 
 		logger: logger,
 	}
 }
+
+func init() { registerOptional("kafka-producer", NewKafkaProducerExecutor) }
 
 func (k *KafkaProducerExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[KafkaProducerConfig](configJSON)
@@ -97,12 +104,26 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 
 	startTime := time.Now().UTC()
 
+	// The monitor's timeout bounds the whole check: connecting, fetching
+	// metadata and sending. sarama's own defaults are 30s per dial or read and
+	// three metadata retries, which kept a broker that never answers busy for
+	// two minutes.
+	timeout := time.Duration(monitor.Timeout) * time.Second
+	checkCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	// Create Kafka configuration
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true
 	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Timeout = time.Duration(monitor.Timeout) * time.Second
+	config.Producer.Timeout = timeout
+	config.Net.DialTimeout = timeout
+	config.Net.ReadTimeout = timeout
+	config.Net.WriteTimeout = timeout
+	// Bounds the metadata fetch with its retries. The retries stay: a topic the
+	// broker has just created has no leader yet, and the next attempt finds it.
+	config.Metadata.Timeout = timeout
 	config.Metadata.AllowAutoTopicCreation = cfg.AllowAutoTopicCreation
 
 	// Configure SSL if enabled
@@ -124,8 +145,14 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 			config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
 		case "SCRAM-SHA-256":
 			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA256
+			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
+				return &scramClient{HashGeneratorFcn: scram.SHA256}
+			}
 		case "SCRAM-SHA-512":
 			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
+			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient {
+				return &scramClient{HashGeneratorFcn: scram.SHA512}
+			}
 		default:
 			return DownResult(fmt.Errorf("unsupported SASL mechanism: %s", cfg.SASLOptions.Mechanism), startTime, time.Now().UTC())
 		}
@@ -134,32 +161,55 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	// Set client ID
 	config.ClientID = fmt.Sprintf("peekaping-monitor-%s", monitor.ID)
 
-	// Create producer
-	producer, err := sarama.NewSyncProducer(cfg.Brokers, config)
-	if err != nil {
-		k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, err.Error())
+	// Create the producer in the background: sarama takes no context, so the
+	// select below is what ends the check when the context does. The network
+	// timeouts above end the goroutine soon after.
+	type created struct {
+		producer sarama.SyncProducer
+		err      error
+	}
+	createDone := make(chan created, 1)
+	go func() {
+		p, createErr := sarama.NewSyncProducer(cfg.Brokers, config)
+		createDone <- created{p, createErr}
+	}()
+
+	var producer sarama.SyncProducer
+	select {
+	case <-checkCtx.Done():
+		// A producer that arrives after the check has ended is closed.
+		go func() {
+			if c := <-createDone; c.producer != nil {
+				k.closeProducer(c.producer)
+			}
+		}()
+		reason := producerCreationFailure(ctx, checkCtx, nil, monitor.Timeout)
+		k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, reason)
 		return &Result{
 			Status:    shared.MonitorStatusDown,
-			Message:   fmt.Sprintf("Failed to create Kafka producer: %v", err),
+			Message:   fmt.Sprintf("Failed to create Kafka producer: %s", reason),
 			StartTime: startTime,
 			EndTime:   time.Now().UTC(),
 		}
-	}
-	defer func() {
-		if closeErr := producer.Close(); closeErr != nil {
-			k.logger.Debugf("Error closing Kafka producer: %v", closeErr)
+	case c := <-createDone:
+		if c.err != nil {
+			k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, c.err.Error())
+			reason := producerCreationFailure(ctx, checkCtx, c.err, monitor.Timeout)
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   fmt.Sprintf("Failed to create Kafka producer: %s", reason),
+				StartTime: startTime,
+				EndTime:   time.Now().UTC(),
+			}
 		}
-	}()
+		producer = c.producer
+	}
 
 	// Create message
 	message := &sarama.ProducerMessage{
 		Topic: cfg.Topic,
 		Value: sarama.StringEncoder(cfg.Message),
 	}
-
-	// Add timeout context for the send operation
-	sendCtx, cancel := context.WithTimeout(ctx, time.Duration(monitor.Timeout)*time.Second)
-	defer cancel()
 
 	// Send message with timeout handling
 	var partition int32
@@ -173,9 +223,16 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	}()
 
 	select {
-	case <-sendCtx.Done():
+	case <-checkCtx.Done():
 		endTime := time.Now().UTC()
 		k.logger.Infof("Kafka message send timeout: %s", monitor.Name)
+		// Close once the send has returned, in the background so it can't hold
+		// up the result. Closing sooner could close the producer's input before
+		// the send reaches it, and sarama would panic on the closed channel.
+		go func() {
+			<-sendDone
+			k.closeProducer(producer)
+		}()
 		return &Result{
 			Status:    shared.MonitorStatusDown,
 			Message:   fmt.Sprintf("Message send timeout after %ds", monitor.Timeout),
@@ -184,6 +241,7 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 		}
 	case sendErr := <-sendDone:
 		endTime := time.Now().UTC()
+		k.closeProducer(producer)
 
 		if sendErr != nil {
 			k.logger.Infof("Kafka message send failed: %s, %s", monitor.Name, sendErr.Error())
@@ -202,5 +260,53 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 			StartTime: startTime,
 			EndTime:   endTime,
 		}
+	}
+}
+
+// scramClient adapts xdg-go/scram to sarama's SCRAMClient. sarama needs one for
+// SCRAM-SHA-256 and SCRAM-SHA-512 and has none of its own.
+type scramClient struct {
+	*scram.Client
+	*scram.ClientConversation
+	scram.HashGeneratorFcn
+}
+
+func (x *scramClient) Begin(userName, password, authzID string) error {
+	client, err := x.HashGeneratorFcn.NewClient(userName, password, authzID)
+	if err != nil {
+		return err
+	}
+	x.Client = client
+	x.ClientConversation = client.NewConversation()
+	return nil
+}
+
+func (x *scramClient) Step(challenge string) (string, error) {
+	return x.ClientConversation.Step(challenge)
+}
+
+func (x *scramClient) Done() bool {
+	return x.ClientConversation.Done()
+}
+
+// producerCreationFailure says why creating the producer failed. sarama's
+// network timeouts equal the check's, so against a broker that never answers
+// either may fire first; both are reported as the check timing out, so the
+// message doesn't depend on which deadline won. A check cancelled by its caller
+// says so instead. err is nil when the check ended before sarama returned.
+func producerCreationFailure(ctx, checkCtx context.Context, err error, timeout int) string {
+	if ctx.Err() != nil {
+		return ctx.Err().Error()
+	}
+	var netErr net.Error
+	if err == nil || checkCtx.Err() != nil || (errors.As(err, &netErr) && netErr.Timeout()) {
+		return fmt.Sprintf("timed out after %ds", timeout)
+	}
+	return err.Error()
+}
+
+func (k *KafkaProducerExecutor) closeProducer(producer sarama.SyncProducer) {
+	if err := producer.Close(); err != nil {
+		k.logger.Debugf("Error closing Kafka producer: %v", err)
 	}
 }

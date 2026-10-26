@@ -17,14 +17,16 @@ on:
 jobs:
   playwright-tests:
     timeout-minutes: ${{ inputs.timeout-minutes }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        database: [postgres, mongo, sqlite]
+        database: [postgres, sqlite]
     env:
       # Every docker compose command below runs the stack plus the e2e target.
       COMPOSE_FILE: docker-compose.test.${{ matrix.database }}.yml:docker-compose.e2e.yml
+      # The probe image the remote probe specs run, published with the other images of this tag.
+      E2E_PROBE_IMAGE: 0xfurai/peekaping-probe:${{ inputs.container-tag }}
     steps:
     # prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -46,9 +48,9 @@ jobs:
         # Database Configuration
         DB_TYPE=${{ matrix.database }}
         DB_HOST=database
-        DB_PORT=${{ matrix.database == 'postgres' && '5432' || matrix.database == 'mongo' && '27017' }}
+        DB_PORT=${{ matrix.database == 'postgres' && '5432' }}
         DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
-        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
+        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || 'root' }}
         DB_PASS=password
 
         REDIS_HOST="redis"
@@ -56,12 +58,25 @@ jobs:
         REDIS_PASSWORD=""
         REDIS_DB=0
 
+        # The shortest time before a remote probe that stopped is reported offline (default 3m).
+        PROBE_OFFLINE_AFTER=2m
+
+        # The local probe's token: the api stores it and the stack's probe service sends it. The
+        # SQLite and PostgreSQL compose files refuse to start without it.
+        PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789
+
         # Server Configuration
         CLIENT_URL=http://localhost:8383
         SERVER_PORT=8034
         BUNDEBUG=2
         MODE=prod # logging
         TZ="America/New_York"
+
+        # The usage ping and error reports are on by default. A test run must not send either to
+        # Peekaping, so both point at an address nothing listens on. The DSN must not be empty:
+        # an empty one means Peekaping's own Sentry project.
+        TELEMETRY_URL=http://127.0.0.1:9/v1/ping
+        ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
         EOF
 
     - name: Update docker-compose file with container tag
@@ -71,9 +86,7 @@ jobs:
 
         # Replace container tags with the specified version
         sed -i 's|0xfurai/peekaping-api:latest|0xfurai/peekaping-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-producer:latest|0xfurai/peekaping-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-worker:latest|0xfurai/peekaping-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-ingester:latest|0xfurai/peekaping-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|0xfurai/peekaping-probe:latest|0xfurai/peekaping-probe:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-web:latest|0xfurai/peekaping-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
         sed -i 's|0xfurai/peekaping-migrate:latest|0xfurai/peekaping-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
 
@@ -90,13 +103,16 @@ jobs:
           echo "=== Individual Service Logs ==="
           docker compose logs migrate || echo "No migrate service logs"
           docker compose logs api || echo "No api service logs"
-          docker compose logs producer || echo "No producer service logs"
-          docker compose logs worker || echo "No worker service logs"
-          docker compose logs ingester || echo "No ingester service logs"
+          docker compose logs probe || echo "No probe service logs"
           docker compose logs web || echo "No web service logs"
           docker compose logs gateway || echo "No gateway service logs"
           exit 1
         fi
+
+    # The remote probe specs start this image themselves, on the stack's network. Pulled here so
+    # that a pull failure fails this step.
+    - name: Pull the probe image
+      run: docker pull "$E2E_PROBE_IMAGE"
 
     - name: Show container logs
       run: |
@@ -135,11 +151,11 @@ jobs:
 
   playwright-tests-bundle:
     timeout-minutes: ${{ inputs.timeout-minutes }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        database: [sqlite, mongo, postgres]
+        database: [sqlite, postgres]
     steps:
     # prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -162,10 +178,6 @@ jobs:
           sqlite)
             # SQLite data directory
             mkdir -p ./test-data/sqlite/app
-            ;;
-          mongo)
-            # MongoDB data directory
-            mkdir -p ./test-data/mongo/db
             ;;
           postgres)
             # PostgreSQL data directory
@@ -195,6 +207,11 @@ jobs:
           exit 1
         fi
 
+    # The remote probe specs start this image themselves, at the tag the bundle is tested at.
+    # Pulled here so that a pull failure fails this step.
+    - name: Pull the probe image
+      run: docker pull "ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ steps.bundle_tag.outputs.tag }}"
+
     - name: Start the e2e target
       run: |
         docker network create peekaping-e2e
@@ -210,6 +227,11 @@ jobs:
         # Common environment variables for all database types
         COMMON_ENV=(
           -e CLIENT_URL=http://localhost:8383
+          # On by default, and a test run must not send to Peekaping: point both at nothing
+          -e TELEMETRY_URL=http://127.0.0.1:9/v1/ping
+          -e ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
+          # The shortest time before a remote probe that stopped is reported offline (default 3m).
+          -e PROBE_OFFLINE_AFTER=2m
         )
 
         case "${{ matrix.database }}" in
@@ -221,18 +243,6 @@ jobs:
               -v $(pwd)/test-data/sqlite/app:/app/data \
               "${COMMON_ENV[@]}" \
               -e DB_NAME=/app/data/peekaping.db \
-              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${BUNDLE_TAG}
-            ;;
-          mongo)
-            docker run -d \
-              --name peekaping-bundle-test-${{ matrix.database }} \
-              --network peekaping-e2e \
-              -p 8383:8383 \
-              -v $(pwd)/test-data/mongo/db:/data/db \
-              "${COMMON_ENV[@]}" \
-              -e DB_NAME=peekaping \
-              -e DB_USER=peekaping \
-              -e DB_PASS=password \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${BUNDLE_TAG}
             ;;
           postgres)
@@ -273,12 +283,17 @@ jobs:
         fi
         echo "The bundle is healthy"
 
+    # The bundle and the e2e target run with plain docker, not compose, so the specs can't find
+    # their network: the probe container joins peekaping-e2e and reaches the bundle by its name.
     - name: Run Playwright tests against bundle
       run: PLAYWRIGHT_BASE_URL=http://localhost:8383 bunx playwright test
+      env:
+        E2E_PROBE_NETWORK: peekaping-e2e
+        E2E_PROBE_URL: http://peekaping-bundle-test-${{ matrix.database }}:8383
+        E2E_PROBE_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ steps.bundle_tag.outputs.tag }}
 
     # The single-mode bundles' user, ports and shutdown, on the published image
     - name: Test the bundle's user, ports and shutdown
-      if: matrix.database != 'mongo'
       run: |
         scripts/test-bundle-user.sh ${{ matrix.database }} \
           ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ steps.bundle_tag.outputs.tag }}

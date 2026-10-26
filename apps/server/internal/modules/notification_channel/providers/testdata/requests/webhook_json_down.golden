@@ -6,6 +6,7 @@ User-Agent: Peekaping-Webhook/<version>
   "heartbeat": {
     "id": "hb-1",
     "monitor_id": "mon-1",
+    "probe_id": "local",
     "status": 0,
     "msg": "connection refused",
     "ping": 0,
@@ -26,11 +27,26 @@ User-Agent: Peekaping-Webhook/<version>
     "max_retries": 3,
     "retry_interval": 0,
     "resend_interval": 0,
+    "location_rule": "any",
+    "location_threshold": null,
     "active": true,
     "status": 0,
     "config": "{\"url\":\"https://api.example.com/health\",\"method\":\"GET\"}",
     "proxy_id": "",
     "push_token": "",
+    "probe_ids": [
+      "local"
+    ],
+    "locations": [
+      {
+        "probe_id": "local",
+        "probe_name": "Local",
+        "online": true,
+        "status": null,
+        "last_ping": null,
+        "last_heartbeat_at": null
+      }
+    ],
     "created_at": "2026-01-02T03:04:05Z",
     "updated_at": "2026-01-02T03:04:05Z"
   },

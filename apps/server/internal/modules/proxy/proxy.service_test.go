@@ -135,7 +135,7 @@ func (m *MockMonitorService) ValidateMonitorConfig(monitorType string, configJSO
 	return args.Error(0)
 }
 
-func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
 	args := m.Called(ctx, id, limit, page, important, reverse)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -156,7 +156,7 @@ func (m *MockMonitorService) FindByProxyId(ctx context.Context, proxyId string) 
 	return args.Get(0).([]*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*monitor.StatPointsSummaryDto, error) {
+func (m *MockMonitorService) GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*monitor.StatPointsSummaryDto, error) {
 	args := m.Called(ctx, id, since, until, granularity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -164,7 +164,7 @@ func (m *MockMonitorService) GetStatPoints(ctx context.Context, id string, since
 	return args.Get(0).(*monitor.StatPointsSummaryDto), args.Error(1)
 }
 
-func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id string) (*monitor.CustomUptimeStatsDto, error) {
+func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id, probeID string) (*monitor.CustomUptimeStatsDto, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -180,6 +180,11 @@ func (m *MockMonitorService) FindOneByPushToken(ctx context.Context, pushToken s
 	return args.Get(0).(*shared.Monitor), args.Error(1)
 }
 
+func (m *MockMonitorService) GetUptime24h(ctx context.Context, id, probeID string) (float64, error) {
+	args := m.Called(ctx, id, probeID)
+	return args.Get(0).(float64), args.Error(1)
+}
+
 func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
@@ -188,6 +193,14 @@ func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) er
 func (m *MockMonitorService) RepairStoredStatuses(ctx context.Context) (int, error) {
 	args := m.Called(ctx)
 	return args.Int(0), args.Error(1)
+}
+
+func (m *MockMonitorService) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error) {
+	args := m.Called(ctx, probeID, page, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*shared.Monitor), args.Error(1)
 }
 
 func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {

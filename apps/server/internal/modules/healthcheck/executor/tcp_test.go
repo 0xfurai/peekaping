@@ -29,22 +29,38 @@ func tcpMonitor(t *testing.T, addr string) *Monitor {
 }
 
 func TestTCPExecutor_Execute_OpenPort(t *testing.T) {
-	for _, host := range []string{"127.0.0.1", "localhost", "::1", "[::1]"} {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer l.Close()
+	port := l.Addr().(*net.TCPAddr).Port
+
+	result := NewTCPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), tcpMonitor(t, l.Addr().String()), nil)
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	assert.Equal(t, fmt.Sprintf("TCP port %d is open", port), result.Message)
+}
+
+// requireIPv6Loopback skips the test on a machine without an IPv6 loopback address.
+func requireIPv6Loopback(t *testing.T) {
+	t.Helper()
+	l, err := net.Listen("tcp", "[::1]:0")
+	if err != nil {
+		t.Skipf("no IPv6 loopback: %v", err)
+	}
+	_ = l.Close()
+}
+
+func TestTCPExecutor_Execute_IPv6Host(t *testing.T) {
+	requireIPv6Loopback(t)
+	l, err := net.Listen("tcp", "[::1]:0")
+	require.NoError(t, err)
+	defer l.Close()
+	port := l.Addr().(*net.TCPAddr).Port
+
+	for _, host := range []string{"::1", "[::1]"} {
 		t.Run(host, func(t *testing.T) {
-			listenAddr := "127.0.0.1:0"
-			if host == "::1" || host == "[::1]" {
-				if !hasLoopbackIPv6() {
-					t.Skip("no IPv6 loopback address")
-				}
-				listenAddr = "[::1]:0"
-			}
-			l, err := net.Listen("tcp", listenAddr)
-			require.NoError(t, err)
-			defer l.Close()
-			port := l.Addr().(*net.TCPAddr).Port
 			monitor := tcpMonitor(t, l.Addr().String())
 			monitor.Config = fmt.Sprintf(`{"host": %q, "port": %d}`, host, port)
-
 			result := NewTCPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), monitor, nil)
 
 			assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)

@@ -35,22 +35,26 @@ var update = flag.Bool("update", false, "rewrite the golden files in testdata/re
 // The notification the golden cases send. Times are UTC, so formatted times don't depend on the machine.
 var (
 	goldenMonitor = &monitor.Model{
-		ID:         "mon-1",
-		Type:       "http",
-		Name:       "Public API",
-		Interval:   60,
-		Timeout:    16,
-		MaxRetries: 3,
-		Active:     true,
-		Status:     shared.MonitorStatusDown,
-		Config:     `{"url":"https://api.example.com/health","method":"GET"}`,
-		Tags:       []string{"severity:critical", "team:core"},
-		CreatedAt:  time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
-		UpdatedAt:  time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
+		ID:           "mon-1",
+		Type:         "http",
+		Name:         "Public API",
+		Interval:     60,
+		Timeout:      16,
+		MaxRetries:   3,
+		Active:       true,
+		Status:       shared.MonitorStatusDown,
+		Config:       `{"url":"https://api.example.com/health","method":"GET"}`,
+		LocationRule: shared.LocationRuleAny,
+		ProbeIDs:     []string{"local"},
+		Locations:    []shared.MonitorLocation{{ProbeID: "local", ProbeName: "Local", Online: true}},
+		Tags:         []string{"severity:critical", "team:core"},
+		CreatedAt:    time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
+		UpdatedAt:    time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
 	}
 	goldenDown = &heartbeat.Model{
 		ID:        "hb-1",
 		MonitorID: "mon-1",
+		ProbeID:   "local",
 		Status:    shared.MonitorStatusDown,
 		Msg:       "connection refused",
 		Important: true,
@@ -59,12 +63,23 @@ var (
 	goldenUp = &heartbeat.Model{
 		ID:        "hb-2",
 		MonitorID: "mon-1",
+		ProbeID:   "local",
 		Status:    shared.MonitorStatusUp,
 		Msg:       "200 - OK",
 		Ping:      42,
 		Important: true,
 		Time:      time.Date(2026, 10, 17, 9, 35, 0, 0, time.UTC),
 	}
+	// goldenProbeOffline and goldenProbeOnline are the stand-in monitors the listener sends a
+	// probe's notification with: Down when the probe went offline, Up when it came back online
+	goldenProbeOffline = &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusDown}
+	goldenProbeOnline  = &monitor.Model{ID: "probe-1", Type: shared.MonitorTypeProbe, Name: "Probe Frankfurt", Status: shared.MonitorStatusUp}
+)
+
+// The messages the listener builds for a probe going offline and coming back online
+const (
+	goldenProbeOfflineMessage = "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"
+	goldenProbeOnlineMessage  = "Probe Frankfurt is online"
 )
 
 // goldenCertMessage is the message the listener builds for a certificate expiry notification
@@ -87,6 +102,10 @@ const (
 	upEvent
 	// certExpiryEvent is a certificate expiry notification, which carries no heartbeat
 	certExpiryEvent
+	// probeOfflineEvent is a probe going offline, sent with a stand-in monitor and no heartbeat
+	probeOfflineEvent
+	// probeOnlineEvent is a probe coming back online, sent with a stand-in monitor and no heartbeat
+	probeOnlineEvent
 )
 
 // goldenSender is the part of a notification channel provider the golden tests use
@@ -153,6 +172,9 @@ var goldenCases = []goldenCase{
 		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
 	{name: "google_chat_certificate_expiry", sender: googleChat, event: certExpiryEvent,
 		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
+	// A probe's notification links to the Probes page, since the stand-in monitor has no page
+	{name: "google_chat_probe_offline", sender: googleChat, event: probeOfflineEvent,
+		config: `{"webhook_url": "https://chat.googleapis.com/v1/spaces/AAA/messages?key=k&token=t"}`},
 
 	{name: "gotify_down", sender: gotify, event: downEvent,
 		config: `{"server_url": "https://gotify.example.com/", "application_token": "app-token"}`},
@@ -164,6 +186,11 @@ var goldenCases = []goldenCase{
 	{name: "grafana_oncall_down", sender: grafanaOncall, event: downEvent,
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
 	{name: "grafana_oncall_up", sender: grafanaOncall, event: upEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	// The alert uid is the probe's, so the online notification resolves the offline one
+	{name: "grafana_oncall_probe_offline", sender: grafanaOncall, event: probeOfflineEvent,
+		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
+	{name: "grafana_oncall_probe_online", sender: grafanaOncall, event: probeOnlineEvent,
 		config: `{"grafana_oncall_url": "https://oncall.example.com/integrations/v1/formatted_webhook/abc/"}`},
 	// Known issue: without a heartbeat the alert is titled "General notification"
 	{name: "grafana_oncall_certificate_expiry", sender: grafanaOncall, event: certExpiryEvent,
@@ -205,6 +232,12 @@ var goldenCases = []goldenCase{
 		config: `{"region": "us", "api_key": "genie-key", "priority": 2}`},
 	{name: "opsgenie_eu_up", sender: opsgenie, event: upEvent,
 		config: `{"region": "eu", "api_key": "genie-key", "priority": 2}`},
+	// The alias is the probe's, not the test alert's, and the channel's priority applies
+	{name: "opsgenie_probe_offline", sender: opsgenie, event: probeOfflineEvent,
+		config: `{"region": "us", "api_key": "genie-key", "priority": 2}`},
+	// The probe coming back online closes the alert its offline notification opened
+	{name: "opsgenie_probe_online", sender: opsgenie, event: probeOnlineEvent,
+		config: `{"region": "eu", "api_key": "genie-key", "priority": 2}`},
 	// Known issue: without a heartbeat Opsgenie sends a test alert, with the test alias and
 	// P5, so every monitor's certificate expiry notification merges into one alert
 	{name: "opsgenie_certificate_expiry", sender: opsgenie, event: certExpiryEvent,
@@ -216,6 +249,15 @@ var goldenCases = []goldenCase{
 		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue", "pagerduty_auto_resolve": "resolve"}`},
 	{name: "pagerduty_up_without_auto_resolve", sender: pagerDuty, event: upEvent,
 		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	// The dedup key is the probe's, and client_url is the Probes page
+	{name: "pagerduty_probe_offline", sender: pagerDuty, event: probeOfflineEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
+	// The probe coming back online resolves the incident its offline notification opened
+	{name: "pagerduty_probe_online_resolve", sender: pagerDuty, event: probeOnlineEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue", "pagerduty_auto_resolve": "resolve"}`},
+	// Set to do nothing, as a monitor's Up does: no second trigger, and the incident stays open
+	{name: "pagerduty_probe_online_without_auto_resolve", sender: pagerDuty, event: probeOnlineEvent,
+		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue", "pagerduty_auto_resolve": "0"}`},
 	// Known issue: the dedup key is the monitor's, so this merges into an open Down incident
 	// and the next Up resolves it
 	{name: "pagerduty_certificate_expiry", sender: pagerDuty, event: certExpiryEvent,
@@ -227,6 +269,13 @@ var goldenCases = []goldenCase{
 	{name: "pagertree_up_resolve", sender: pagerTree, event: upEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
 	{name: "pagertree_up_without_auto_resolve", sender: pagerTree, event: upEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	// The alert ID is the probe's, with no send time, so the online notification can resolve it
+	{name: "pagertree_probe_offline", sender: pagerTree, event: probeOfflineEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
+	{name: "pagertree_probe_online_resolve", sender: pagerTree, event: probeOnlineEvent,
+		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "autoResolve": true}`},
+	{name: "pagertree_probe_online_without_auto_resolve", sender: pagerTree, event: probeOnlineEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
 	{name: "pagertree_certificate_expiry", sender: pagerTree, event: certExpiryEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123"}`},
@@ -268,10 +317,18 @@ var goldenCases = []goldenCase{
 	{name: "slack_webhook_rich_certificate_expiry", sender: slack, event: certExpiryEvent,
 		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "slack_rich_message": true}`},
 
+	// A probe's notification links to the Probes page, since the stand-in monitor has no page
+	{name: "slack_webhook_rich_probe_offline", sender: slack, event: probeOfflineEvent,
+		config: `{"slack_webhook_url": "https://hooks.slack.com/services/T/B/X", "slack_rich_message": true}`},
+	{name: "slack_bot_rich_probe_online", sender: slack, event: probeOnlineEvent, response: `{"ok": true}`,
+		config: `{"slack_bot_token": "xoxb-token", "slack_channel": "#alerts", "slack_rich_message": true}`},
+
 	{name: "teams_down", sender: teams, event: downEvent,
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
 	{name: "teams_certificate_expiry", sender: teams, event: certExpiryEvent,
 		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s", "server_url": "https://status.example.com"}`},
+	{name: "teams_probe_offline", sender: teams, event: probeOfflineEvent,
+		config: `{"webhook_url": "https://example.powerplatform.com/workflows/1?sig=s"}`},
 
 	{name: "telegram_down", sender: telegram, event: downEvent,
 		config: `{"bot_token": "123456:bot-token", "chat_id": "-1001234"}`},
@@ -294,6 +351,9 @@ var goldenCases = []goldenCase{
 	{name: "webhook_custom_body_down", sender: webhook, event: downEvent,
 		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "custom", "webhook_custom_body": "{\"text\": \"{{ name }} is {{ status }}: {{ msg }}\", \"url\": \"{{ monitor.config.url }}\"}", "webhook_additional_headers": "{\"Authorization\": \"Bearer hook-token\", \"X-Priority\": 1}"}`},
 	{name: "webhook_json_certificate_expiry", sender: webhook, event: certExpiryEvent,
+		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "json"}`},
+	// The stand-in monitor's status says the probe is Up again
+	{name: "webhook_json_probe_online", sender: webhook, event: probeOnlineEvent,
 		config: `{"webhook_url": "https://hooks.example.com/peekaping", "webhook_content_type": "json"}`},
 
 	{name: "wecom_down", sender: weCom, event: downEvent,
@@ -326,9 +386,9 @@ func TestSendGoldenRequests(t *testing.T) {
 			transport := &recordingTransport{endpoint: endpoint}
 
 			sender := tc.sender(&http.Client{Transport: transport})
-			message, hb := goldenNotification(tc.event)
+			message, mon, hb := goldenNotification(tc.event)
 			require.NoError(t, sender.Validate(tc.config), "the case's config must pass validation, as the listener checks it first")
-			require.NoError(t, sender.Send(context.Background(), tc.config, message, goldenMonitor, hb))
+			require.NoError(t, sender.Send(context.Background(), tc.config, message, mon, hb))
 
 			assertGolden(t, tc.name, transport.String())
 		})
@@ -349,14 +409,49 @@ func TestSendStopsWhenContextIsDone(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			cancel()
 
-			message, hb := goldenNotification(tc.event)
-			err := tc.sender(&http.Client{Transport: transport}).Send(ctx, tc.config, message, goldenMonitor, hb)
+			message, mon, hb := goldenNotification(tc.event)
+			err := tc.sender(&http.Client{Transport: transport}).Send(ctx, tc.config, message, mon, hb)
 
 			assert.False(t, reached.Load(), "the request must not reach the endpoint once the context is done")
 			if len(transport.requests) > 0 {
 				assert.ErrorIs(t, err, context.Canceled)
 			}
 		})
+	}
+}
+
+// TestSendWithoutAMonitor checks that no channel type dereferences a monitor it isn't given,
+// whether the notification carries a heartbeat or not: it sends the message, or returns an
+// error (Opsgenie can't close the alert of a monitor it can't name), but doesn't panic
+func TestSendWithoutAMonitor(t *testing.T) {
+	heartbeats := []struct {
+		name string
+		hb   *heartbeat.Model
+	}{
+		{"no heartbeat", nil},
+		{"down heartbeat", goldenDown},
+		{"up heartbeat", goldenUp},
+	}
+	for _, tc := range goldenCases {
+		for _, withHeartbeat := range heartbeats {
+			t.Run(tc.name+"/"+withHeartbeat.name, func(t *testing.T) {
+				endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					response := tc.response
+					if response == "" {
+						response = "{}"
+					}
+					_, _ = io.WriteString(w, response)
+				}))
+				defer endpoint.Close()
+				transport := &recordingTransport{endpoint: endpoint}
+				sender := tc.sender(&http.Client{Transport: transport})
+
+				require.NotPanics(t, func() {
+					_ = sender.Send(context.Background(), tc.config, "A message with no monitor", nil, withHeartbeat.hb)
+				})
+			})
+		}
 	}
 }
 
@@ -373,15 +468,19 @@ func TestEveryGoldenFileHasACase(t *testing.T) {
 	}
 }
 
-// goldenNotification returns the message and heartbeat the listener sends for an event
-func goldenNotification(event goldenEvent) (string, *heartbeat.Model) {
+// goldenNotification returns the message, monitor and heartbeat the listener sends for an event
+func goldenNotification(event goldenEvent) (string, *monitor.Model, *heartbeat.Model) {
 	switch event {
 	case upEvent:
-		return goldenUp.Msg, goldenUp
+		return goldenUp.Msg, goldenMonitor, goldenUp
 	case certExpiryEvent:
-		return goldenCertMessage, nil
+		return goldenCertMessage, goldenMonitor, nil
+	case probeOfflineEvent:
+		return goldenProbeOfflineMessage, goldenProbeOffline, nil
+	case probeOnlineEvent:
+		return goldenProbeOnlineMessage, goldenProbeOnline, nil
 	default:
-		return goldenDown.Msg, goldenDown
+		return goldenDown.Msg, goldenMonitor, goldenDown
 	}
 }
 

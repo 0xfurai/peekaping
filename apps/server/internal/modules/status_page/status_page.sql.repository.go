@@ -18,6 +18,7 @@ type sqlModel struct {
 	Icon                string    `bun:"icon"`
 	Theme               string    `bun:"theme,notnull,default:'light'"`
 	Published           bool      `bun:"published,notnull,default:false"`
+	ShowLocations       bool      `bun:"show_locations,notnull,default:false"`
 	CreatedAt           time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt           time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 	FooterText          string    `bun:"footer_text"`
@@ -33,6 +34,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		Icon:                sm.Icon,
 		Theme:               sm.Theme,
 		Published:           sm.Published,
+		ShowLocations:       sm.ShowLocations,
 		CreatedAt:           sm.CreatedAt,
 		UpdatedAt:           sm.UpdatedAt,
 		FooterText:          sm.FooterText,
@@ -49,6 +51,7 @@ func toSQLModel(m *Model) *sqlModel {
 		Icon:                m.Icon,
 		Theme:               m.Theme,
 		Published:           m.Published,
+		ShowLocations:       m.ShowLocations,
 		CreatedAt:           m.CreatedAt,
 		UpdatedAt:           m.UpdatedAt,
 		FooterText:          m.FooterText,
@@ -158,6 +161,10 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, statusPage *U
 	}
 	if statusPage.Published != nil {
 		query = query.Set("published = ?", *statusPage.Published)
+		hasUpdates = true
+	}
+	if statusPage.ShowLocations != nil {
+		query = query.Set("show_locations = ?", *statusPage.ShowLocations)
 		hasUpdates = true
 	}
 	if statusPage.FooterText != nil {

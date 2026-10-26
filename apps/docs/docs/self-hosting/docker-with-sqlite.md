@@ -9,7 +9,7 @@ For the stats storage upgrade, backups and optional disk-space reclamation, see 
 Peekaping runs in one of two modes. See [Deployment modes](./deployment-modes.md) for what each one runs:
 
 - **[Single mode](#single-mode)**: one container runs one process, `peekaping`, with no Redis. Start here.
-- **[Cluster mode](#cluster-mode)**: the API, producer, worker and ingester run in separate containers and talk through Redis. Use it when one process isn't enough, for example to run several workers.
+- **[Cluster mode](#cluster-mode)**: the API and the probe run in separate containers. The API replicas talk to each other through Redis, and the probes run the checks. Use it when one process isn't enough, for example to run several probe instances.
 
 Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-to-sqlite-or-postgresql) copies your install, with its history, into a new SQLite database.
 
@@ -56,6 +56,7 @@ The image reads the same environment variables as cluster mode (see the [`.env` 
 - `peekaping` always listens on port 8383 in the container. The image ignores `SERVER_PORT`, so a `.env` with `SERVER_PORT=8034` works unchanged. To use another port on the host, change the published port, for example `-p 8080:8383`.
 - The database is always `/app/data/peekaping.db`, whatever `DB_TYPE` and `DB_NAME` say.
 - There is no Redis, so `REDIS_*` variables are ignored.
+- `PROBE_BOOTSTRAP_TOKEN` is ignored too, and `peekaping` logs a warning when it is set. The `peekaping` process checks the local probe's monitors, so a `peekaping-probe` connects only as a [remote probe](./remote-probes.md), with that probe's token. To check from another machine, add a remote probe. A `peekaping-probe` that uses the local probe's token is refused.
 - `MODE` defaults to `prod`.
 - Leave `API_URL` unset, so the web app calls the API on its own origin. Set it only if the web app must call an API on another origin.
 - Leave `CORS_ORIGINS` unset. The web app calls the API on its own origin, which needs no CORS entry. Set it to a comma-separated list of origins, such as `https://app.example.com`, only if a page on another origin must read the API's responses. Unset, it allows the origin of `CLIENT_URL`. `*` allows any origin.
@@ -126,21 +127,23 @@ If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the 
 
 ## Cluster mode
 
-In cluster mode, the API, producer, worker and ingester run in separate containers and talk through Redis. An nginx gateway serves the web app and the API on port 8383.
+In cluster mode, the API and the probe run in separate containers. The API replicas talk to each other through Redis. The `probe` service runs the checks of the local probe's monitors: it connects to the API, gets its monitors and sends the results back, and it needs no database, no Redis and no volume. Run more probe containers to check more monitors. An nginx gateway serves the web app and the API on port 8383.
 
 :::note Single mode fits SQLite better
-In cluster mode, the `api`, `producer` and `ingester` containers open the same SQLite file, and SQLite lets one process write to it at a time, so each waits for the others' writes. That works for a small install, but [single mode](#single-mode) runs every role in one process and fits SQLite better, and [PostgreSQL](./docker-with-postgres.md) takes concurrent writers. Prefer the SQLite bundle image, unless you need separate processes for the roles.
+In cluster mode, the `api` containers open the same SQLite file, and SQLite lets one process write to it at a time, so replicas wait for each other's writes. That works for a small install, but [single mode](#single-mode) runs everything in one process and fits SQLite better, and [PostgreSQL](./docker-with-postgres.md) takes concurrent writers. Prefer the SQLite bundle image, unless you need separate processes for the API and the probes.
 
-Each of the three containers logs this warning at start:
+Each `api` container logs this warning at start:
 
 ```text
-SQLite in cluster mode: the api, producer and ingester share one database file and write to it one at a time. Single mode (the SQLite bundle image) or PostgreSQL fits better. See https://docs.peekaping.com/self-hosting/docker-with-sqlite#cluster-mode
+SQLite in cluster mode: the api replicas share one database file and write to it one at a time. Single mode (the SQLite bundle image) or PostgreSQL fits better. See https://docs.peekaping.com/self-hosting/docker-with-sqlite#cluster-mode
 ```
 
 The [Helm chart](./kubernetes-helm.md) supports PostgreSQL only and refuses SQLite.
 :::
 
 The images run as a non-root user. See [Cluster user and permissions](./cluster-user.md) for the SQLite data folder, Docker monitors and ping monitors.
+
+Moving from a compose file with `producer`, `worker` and `ingester` services? See [Upgrading to probes](./upgrading-to-probes.md).
 
 ### Prerequisites
 
@@ -178,16 +181,21 @@ CLIENT_URL="http://localhost:8383"
 # Origins that may read the API's responses from another origin. Default: the origin of CLIENT_URL
 # CORS_ORIGINS=https://app.example.com
 
+# The token of the local probe, which checks the monitors that run on Peekaping
+# itself. The api stores it and the probe service sends it. Make it a random
+# string of at least 32 characters, such as the output of: openssl rand -hex 32
+# The compose file below refuses to start while it is empty.
+PROBE_BOOTSTRAP_TOKEN=
+
 # Application Settings
 MODE=prod
 TZ="America/New_York"
 
-# Usage statistics and error reports are off until an admin turns them on. To
-# switch them off whatever the settings say, uncomment the ones you want. See
-# "Usage statistics and error reporting".
+# Usage statistics and error reports are on until an admin turns them off in
+# Settings. To switch them off whatever the settings say, uncomment the ones you
+# want. See "Usage statistics and error reporting".
 # TELEMETRY=off
 # ERROR_REPORTING=off
-# DO_NOT_TRACK=1
 
 # JWT settings are automatically managed in the database
 # Default settings are initialized on first startup:
@@ -196,7 +204,9 @@ TZ="America/New_York"
 # - Secret keys are automatically generated securely
 ```
 
-`TELEMETRY=off`, `ERROR_REPORTING=off` and `DO_NOT_TRACK=1` are optional. The first switches off the anonymous [usage statistics](./telemetry.md), the second switches off the [error reports](./telemetry.md#error-reporting), and the third switches off both, whatever an admin chose. Without them, nothing is sent until an admin turns it on.
+`PROBE_BOOTSTRAP_TOKEN` is required: run `openssl rand -hex 32` and paste the result after the `=`. It is the token of the local probe, which gives access to the config of the monitors on it, so keep it secret. If you change it, run `docker compose up -d` again: it recreates the `api` and the `probe` with the new value. `docker compose up` stops with `PROBE_BOOTSTRAP_TOKEN is not set` while it is missing or empty.
+
+`TELEMETRY=off` and `ERROR_REPORTING=off` are optional. The first switches off the anonymous [usage statistics](./telemetry.md) and the second switches off the [error reports](./telemetry.md#error-reporting), whatever an admin chose. Without them, both are on until an admin turns them off in Settings.
 
 :::info JWT Settings
 JWT settings (access/refresh token expiration times and secret keys) are now automatically managed in the database. Default secure settings are initialized on first startup, and secret keys are generated automatically.
@@ -209,7 +219,9 @@ JWT settings (access/refresh token expiration times and secret keys) are now aut
 
 #### `docker-compose.yml` file
 
-Create a `docker-compose.yml` file:
+Create a `docker-compose.yml` file. The `probe` service checks the local probe's monitors. To run more of them, use `docker compose up -d --scale probe=3`: the monitors are dealt among the containers.
+
+The `probe` reaches the `api` over plain HTTP inside `appnet`, so it sets `PROBE_ALLOW_INSECURE: "true"`. Its token crosses `appnet` unencrypted. Keep `appnet` trusted and isolated: put only the services of this stack on it, and don't publish the `api` port. If the probe has to reach the API through a network you don't trust, point `PEEKAPING_URL` at an `https://` address and remove `PROBE_ALLOW_INSECURE`.
 
 <!-- snippet: docker-compose.prod.sqlite.yml -->
 ```yml
@@ -263,6 +275,9 @@ services:
       # client's address, and the api believes that header from these addresses only. Set
       # TRUSTED_PROXIES in .env to change them; an empty TRUSTED_PROXIES= trusts nobody.
       TRUSTED_PROXIES: "${TRUSTED_PROXIES-127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}"
+      # The local probe's token: the api stores it, and the probe sends it. Without it no
+      # monitor is checked.
+      PROBE_BOOTSTRAP_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
     volumes:
       - ./.data/sqlite:/app/data
     depends_on:
@@ -283,50 +298,25 @@ services:
       retries: 5
       start_period: 5s
 
-  producer:
-    image: 0xfurai/peekaping-producer:latest
+  # The local probe: its instances run the checks of the monitors that run on the local probe.
+  # They connect to the api, so they need no database, no Redis and no volume. Run more of
+  # them with `docker compose up -d --scale probe=3`: the monitors are dealt among them.
+  probe:
+    image: 0xfurai/peekaping-probe:latest
     restart: unless-stopped
-    # the producer takes up to 30 seconds to shut down cleanly
-    stop_grace_period: 35s
-    env_file:
-      - .env
-    volumes:
-      - ./.data/sqlite:/app/data
+    # the probe takes up to 25 seconds to shut down cleanly
+    stop_grace_period: 30s
+    environment:
+      PEEKAPING_URL: http://api:8034
+      # The probe refuses a plain http:// address to another host unless told otherwise.
+      # This one stays on the compose network.
+      PROBE_ALLOW_INSECURE: "true"
+      # The token the api stores on the local probe (PROBE_BOOTSTRAP_TOKEN)
+      PROBE_TOKEN: "${PROBE_BOOTSTRAP_TOKEN:?PROBE_BOOTSTRAP_TOKEN is not set: add it to .env as a random string of at least 32 characters, such as the output of openssl rand -hex 32}"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
-      redis:
+      api:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-    networks:
-      - appnet
-
-  worker:
-    image: 0xfurai/peekaping-worker:latest
-    restart: unless-stopped
-    # the worker takes up to 30 seconds to shut down cleanly
-    stop_grace_period: 35s
-    env_file:
-      - .env
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - appnet
-
-  ingester:
-    image: 0xfurai/peekaping-ingester:latest
-    restart: unless-stopped
-    # the ingester takes up to 30 seconds to shut down cleanly
-    stop_grace_period: 35s
-    env_file:
-      - .env
-    volumes:
-      - ./.data/sqlite:/app/data
-    depends_on:
-      redis:
-        condition: service_started
-      migrate:
-        condition: service_completed_successfully
     networks:
       - appnet
 
@@ -390,6 +380,17 @@ http {
       proxy_set_header   X-Forwarded-For $remote_addr;
     }
 
+    # Remote probes (the probe protocol). A compressed results batch can be a little over
+    # 1 MiB, which is more than nginx's default client_max_body_size of 1m allows.
+    location /probe/ {
+      client_max_body_size 2m;
+      proxy_pass         http://api;
+      proxy_set_header   Host $host;
+      proxy_set_header   X-Real-IP $remote_addr;
+      # Replace the client's X-Forwarded-For: the api trusts this gateway's header
+      proxy_set_header   X-Forwarded-For $remote_addr;
+    }
+
     # socket.io
     location /socket.io/ {
       proxy_pass http://api;
@@ -428,6 +429,8 @@ docker compose ps
 docker compose logs -f
 ```
 
+`docker compose ps` should list the `api` and the `probe` as running. The `probe` starts once the `api` is healthy, and the Probes page in Peekaping shows the local probe as online once it has connected.
+
 ### 4. Access Peekaping
 
 Once all containers are running:
@@ -447,11 +450,9 @@ Single mode:
 Cluster mode:
 
 - **API**: [`0xfurai/peekaping-api`](https://hub.docker.com/r/0xfurai/peekaping-api)
-- **Producer**: [`0xfurai/peekaping-producer`](https://hub.docker.com/r/0xfurai/peekaping-producer)
-- **Worker**: [`0xfurai/peekaping-worker`](https://hub.docker.com/r/0xfurai/peekaping-worker)
-- **Ingester**: [`0xfurai/peekaping-ingester`](https://hub.docker.com/r/0xfurai/peekaping-ingester)
+- **Probe**: [`0xfurai/peekaping-probe`](https://hub.docker.com/r/0xfurai/peekaping-probe) runs the checks of the local probe's monitors. It also runs checks from another machine, as a remote probe. See [Remote probes](./remote-probes.md)
 - **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
-- **Migrate**: [`0xfurai/peekaping-migrate`](https://hub.docker.com/r/0xfurai/peekaping-migrate), which applies the database migrations. The API, producer and ingester wait for it to finish
+- **Migrate**: [`0xfurai/peekaping-migrate`](https://hub.docker.com/r/0xfurai/peekaping-migrate), which applies the database migrations. The API waits for it to finish
 
 ### Image Tags
 
@@ -488,7 +489,7 @@ You have two options for persistent storage:
 
 ### Startup check
 
-At start, Peekaping checks the database file for corruption, and stops if the check finds any. In single mode, `peekaping` runs the check. In cluster mode, the `api`, `producer` and `ingester` each run it. `SQLITE_STARTUP_CHECK` chooses the check:
+At start, Peekaping checks the database file for corruption, and stops if the check finds any. In single mode, `peekaping` runs the check. In cluster mode, each `api` container runs it. `SQLITE_STARTUP_CHECK` chooses the check:
 
 | Value | What runs | Time for a 1.5 GB database |
 | --- | --- | --- |
@@ -498,7 +499,7 @@ At start, Peekaping checks the database file for corruption, and stops if the ch
 
 The values are lower case. Any other value fails the configuration check, and Peekaping doesn't start.
 
-In single mode, pass the setting to the container: `-e SQLITE_STARTUP_CHECK=full` with `docker run`, or `- SQLITE_STARTUP_CHECK=full` under `environment` in the Compose file above. In cluster mode, add `SQLITE_STARTUP_CHECK=full` to the `.env` file, which the `api`, `producer` and `ingester` all read.
+In single mode, pass the setting to the container: `-e SQLITE_STARTUP_CHECK=full` with `docker run`, or `- SQLITE_STARTUP_CHECK=full` under `environment` in the Compose file above. In cluster mode, add `SQLITE_STARTUP_CHECK=full` to the `.env` file, which the `api` reads.
 
 With `off`, a damaged database goes unnoticed, and Peekaping keeps writing to it, which can make the damage worse. [Recovering a corrupt SQLite database](./sqlite-recovery.md#the-startup-check) says what each check finds and what to do when one fails.
 

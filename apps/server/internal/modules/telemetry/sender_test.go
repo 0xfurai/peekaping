@@ -184,18 +184,15 @@ func TestSender_WaitsForTheFirstCheck(t *testing.T) {
 	assert.Equal(t, 0, wk.received(), "nothing is sent at startup")
 }
 
-func TestSender_SendsNothingUnlessOptedInAndNotForcedOff(t *testing.T) {
+func TestSender_SendsNothingAfterAnOptOutOrWhileForcedOff(t *testing.T) {
 	for name, setup := range map[string]func(*senderTest){
-		"never opted in": func(st *senderTest) { st.in.settings = newFakeSettings() },
 		"opted out": func(st *senderTest) {
 			st.in.settings.put(EnabledKey, "false", "bool")
 		},
-		"opted in without an instance ID": func(st *senderTest) {
-			_ = st.in.settings.DeleteByKey(context.Background(), InstanceIDKey)
-		},
 		"TELEMETRY=off": func(st *senderTest) { st.in.cfg.Telemetry = "off" },
-		"DO_NOT_TRACK=1": func(st *senderTest) {
-			st.in.cfg.DoNotTrack = "1"
+		"no choice stored, TELEMETRY=off": func(st *senderTest) {
+			st.in.settings = newFakeSettings()
+			st.in.cfg.Telemetry = "off"
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -207,6 +204,36 @@ func TestSender_SendsNothingUnlessOptedInAndNotForcedOff(t *testing.T) {
 			st.sender.SendIfDue(context.Background())
 
 			assert.Equal(t, 0, wk.received())
+		})
+	}
+}
+
+// The ping is on by default: an install that never chose sends, with an ID the sender made
+// itself, and an install whose ID went missing makes a new one.
+func TestSender_SendsByDefaultWithAnIDOfItsOwn(t *testing.T) {
+	for name, setup := range map[string]func(*senderTest){
+		"no choice and no ID stored": func(st *senderTest) { st.in.settings = newFakeSettings() },
+		"enabled but the ID is missing": func(st *senderTest) {
+			_ = st.in.settings.DeleteByKey(context.Background(), InstanceIDKey)
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			wk := newWorker(t, nil)
+			st := newSenderTest(t, wk.URL, claimsAlways())
+			setup(st)
+			st.sender = NewSender(st.in.service(), claimsAlways(), wk.URL, zap.NewNop().Sugar(), WithClock(st.clock.Now))
+
+			st.sender.SendIfDue(context.Background())
+
+			require.Equal(t, 1, wk.received())
+			var sent Payload
+			require.NoError(t, json.Unmarshal(wk.body(0), &sent))
+			assert.Regexp(t, lowerUUIDv4, sent.InstanceID)
+			stored, err := st.in.settings.GetByKey(context.Background(), InstanceIDKey)
+			require.NoError(t, err)
+			require.NotNil(t, stored)
+			assert.Equal(t, sent.InstanceID, stored.Value, "the next ping carries the same ID")
+			assert.Equal(t, "2026-10-21T08:00:00Z", st.lastSent(t))
 		})
 	}
 }

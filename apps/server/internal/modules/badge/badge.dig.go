@@ -1,7 +1,6 @@
 package badge
 
 import (
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_tls_info"
@@ -14,7 +13,7 @@ import (
 )
 
 // RegisterDependencies registers badge module dependencies
-func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
+func RegisterDependencies(container *dig.Container) error {
 	return utils.Provide(container, NewBadgeService, NewController, NewRoute)
 }
 

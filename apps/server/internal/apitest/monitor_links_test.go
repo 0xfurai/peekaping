@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"slices"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -208,6 +210,194 @@ func monitorWithLinksBody(name string, channelIDs, tagIDs []string) map[string]a
 	body["notification_ids"] = channelIDs
 	body["tag_ids"] = tagIDs
 	return body
+}
+
+// linkedMonitors is an app with a monitor that has a channel and a tag, a monitor that has
+// neither, and a second channel and tag to link to.
+type linkedMonitors struct {
+	channelA, channelB, tagA, tagB string
+	linked, bare                   string
+}
+
+func (a *app) createLinkedMonitors(t *testing.T) linkedMonitors {
+	t.Helper()
+	f := linkedMonitors{
+		channelA: a.createChannel(t, "Channel A"), channelB: a.createChannel(t, "Channel B"),
+		tagA: a.createTag(t, "Tag A"), tagB: a.createTag(t, "Tag B"),
+	}
+	f.linked = decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", monitorWithLinksBody("Linked", []string{f.channelA}, []string{f.tagA}), a.asAdmin), http.StatusCreated).ID
+	f.bare = a.createMonitor(t, "Bare", "bare-token")
+	return f
+}
+
+// withoutIDs clears the IDs, which a test can't know for a monitor it is about to create.
+func withoutIDs(monitors []monitorWithLinks) []monitorWithLinks {
+	cleared := make([]monitorWithLinks, len(monitors))
+	for i, m := range monitors {
+		m.ID = ""
+		cleared[i] = m
+	}
+	return cleared
+}
+
+func TestMonitorsAPI_EveryEndpointReturnsTheLinks(t *testing.T) {
+	linked := func(f linkedMonitors) monitorWithLinks {
+		return monitorWithLinks{Name: "Linked", Interval: 60, NotificationIDs: []string{f.channelA}, TagIDs: []string{f.tagA}}
+	}
+	bare := monitorWithLinks{Name: "Bare", Interval: 60, NotificationIDs: []string{}, TagIDs: []string{}}
+
+	for _, tc := range []struct {
+		name string
+		// send makes the request and returns the monitors the response holds
+		send func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks
+		want func(f linkedMonitors) []monitorWithLinks
+	}{
+		{"list", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			return decode[[]monitorWithLinks](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
+		}, func(f linkedMonitors) []monitorWithLinks { return []monitorWithLinks{linked(f), bare} }},
+
+		{"batch", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			return decode[[]monitorWithLinks](t, a.request(t, http.MethodGet, "/api/v1/monitors/batch?ids="+f.linked+","+f.bare, nil, a.asAdmin), http.StatusOK)
+		}, func(f linkedMonitors) []monitorWithLinks { return []monitorWithLinks{linked(f), bare} }},
+
+		{"create with links", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := monitorWithLinksBody("Created", []string{f.channelB}, []string{f.tagB})
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Created", Interval: 60, NotificationIDs: []string{f.channelB}, TagIDs: []string{f.tagB}}}
+		}},
+
+		{"create without links", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := pushMonitorBody("Created", "created-token")
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Created", Interval: 60, NotificationIDs: []string{}, TagIDs: []string{}}}
+		}},
+
+		{"full update with other links", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := monitorWithLinksBody("Linked", []string{f.channelB}, []string{f.tagB})
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+f.linked, body, a.asAdmin), http.StatusOK)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Linked", Interval: 60, NotificationIDs: []string{f.channelB}, TagIDs: []string{f.tagB}}}
+		}},
+
+		{"full update with no links", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := monitorWithLinksBody("Linked", []string{}, []string{})
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+f.linked, body, a.asAdmin), http.StatusOK)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Linked", Interval: 60, NotificationIDs: []string{}, TagIDs: []string{}}}
+		}},
+
+		{"partial update with IDs", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			body := map[string]any{"notification_ids": []string{f.channelB}, "tag_ids": []string{f.tagB}}
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+f.linked, body, a.asAdmin), http.StatusOK)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Linked", Interval: 60, NotificationIDs: []string{f.channelB}, TagIDs: []string{f.tagB}}}
+		}},
+
+		{"partial update without IDs", func(t *testing.T, a *app, f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{decode[monitorWithLinks](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+f.linked, map[string]any{"interval": 90}, a.asAdmin), http.StatusOK)}
+		}, func(f linkedMonitors) []monitorWithLinks {
+			return []monitorWithLinks{{Name: "Linked", Interval: 90, NotificationIDs: []string{f.channelA}, TagIDs: []string{f.tagA}}}
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+			f := a.createLinkedMonitors(t)
+
+			got := tc.send(t, a, f)
+
+			assert.ElementsMatch(t, tc.want(f), withoutIDs(got))
+		})
+	}
+}
+
+// linkQueries counts the SELECTs on the monitor_notifications and monitor_tags tables that run for
+// a request, as a bun query hook. Only queries run with the context of a request made by get
+// count, so a listener still reading links for an earlier write doesn't add to them.
+type linkQueries struct {
+	mu                  sync.Mutex
+	notifications, tags int
+}
+
+type countedRequest struct{}
+
+func (q *linkQueries) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context {
+	return ctx
+}
+
+func (q *linkQueries) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
+	if ctx.Value(countedRequest{}) != q || !strings.HasPrefix(event.Query, "SELECT") {
+		return
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if strings.Contains(event.Query, `"monitor_notifications"`) {
+		q.notifications++
+	}
+	if strings.Contains(event.Query, `"monitor_tags"`) {
+		q.tags++
+	}
+}
+
+// get sends a GET as the admin and counts the link queries it runs.
+func (q *linkQueries) get(t *testing.T, a *app, path string) *httptest.ResponseRecorder {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	req = req.WithContext(context.WithValue(req.Context(), countedRequest{}, q))
+	a.asAdmin(req)
+	w := httptest.NewRecorder()
+	a.router.ServeHTTP(w, req)
+	return w
+}
+
+func TestMonitorsAPI_ListsLoadTheLinksInOneQueryPerRelation(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		path func(ids []string) string
+	}{
+		{"list", func([]string) string { return "/api/v1/monitors?limit=5" }},
+		{"batch", func(ids []string) string { return "/api/v1/monitors/batch?ids=" + strings.Join(ids, ",") }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+			queries := &linkQueries{}
+			require.NoError(t, a.container.Invoke(func(db *bun.DB) { db.AddQueryHook(queries) }))
+			channelID, tagID := a.createChannel(t, "Ops webhook"), a.createTag(t, "Production")
+			var ids []string
+			for _, name := range manyNames(5) {
+				body := monitorWithLinksBody(name, []string{channelID}, []string{tagID})
+				ids = append(ids, decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated).ID)
+			}
+
+			monitors := decode[[]monitorWithLinks](t, queries.get(t, a, tc.path(ids)), http.StatusOK)
+
+			require.Len(t, monitors, 5)
+			for _, m := range monitors {
+				assert.Equal(t, []string{channelID}, m.NotificationIDs, m.Name)
+				assert.Equal(t, []string{tagID}, m.TagIDs, m.Name)
+			}
+			queries.mu.Lock()
+			defer queries.mu.Unlock()
+			assert.Equal(t, 1, queries.notifications, "queries on monitor_notifications for 5 monitors")
+			assert.Equal(t, 1, queries.tags, "queries on monitor_tags for 5 monitors")
+		})
+	}
+}
+
+func TestMonitorsAPI_GetByIDAnswersWithTheFieldsOfTheList(t *testing.T) {
+	a := newAppWithAdmin(t)
+	channelID, tagID := a.createChannel(t, "Channel A"), a.createTag(t, "Tag A")
+	id := decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", monitorWithLinksBody("Linked", []string{channelID}, []string{tagID}), a.asAdmin), http.StatusCreated).ID
+
+	byID := decode[map[string]any](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin), http.StatusOK)
+	list := decode[[]map[string]any](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
+
+	require.Len(t, list, 1)
+	assert.Equal(t, list[0], byID, "one monitor, the same fields from both endpoints")
+	assert.Equal(t, "Linked-token", byID["push_token"], "the push token sent on create")
+	assert.Equal(t, []any{channelID}, byID["notification_ids"])
+	assert.Equal(t, []any{tagID}, byID["tag_ids"])
 }
 
 func TestMonitorsAPI_FullUpdateReplacesTheLinks(t *testing.T) {

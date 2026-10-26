@@ -97,57 +97,41 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push Worker image
-        id: build_worker
+      - name: Build and push Probe image
+        id: build_probe
         uses: docker/build-push-action@v6
         with:
           context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.worker
+          file: ./apps/server/infra/Dockerfile.probe
           push: true
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:latest-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:latest-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push Producer image
-        id: build_producer
+      # The same probe without the Docker, Kafka, SQL Server, MongoDB and gRPC executors
+      - name: Build and push Probe slim image
+        id: build_probe_slim
         uses: docker/build-push-action@v6
         with:
           context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.producer
+          file: ./apps/server/infra/Dockerfile.probe
+          build-args: GO_TAGS=slim
           push: true
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest-${{ matrix.arch }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and push Ingester image
-        id: build_ingester
-        uses: docker/build-push-action@v6
-        with:
-          context: ./apps/server
-          file: ./apps/server/infra/Dockerfile.ingester
-          push: true
-          platforms: ${{ matrix.platform }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:slim-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:slim-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -182,14 +166,6 @@ jobs:
             runner: ubuntu-24.04-arm
             arch: arm64
             database: sqlite
-          - platform: linux/amd64
-            runner: ubuntu-latest
-            arch: amd64
-            database: mongo
-          - platform: linux/arm64
-            runner: ubuntu-24.04-arm
-            arch: arm64
-            database: mongo
           - platform: linux/amd64
             runner: ubuntu-latest
             arch: amd64
@@ -296,41 +272,29 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:latest-arm64
           docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:latest
 
-          # Worker manifest - versioned
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }} \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
+          # Probe manifest - versioned
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }} \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
 
-          # Worker manifest - latest
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:latest \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:latest-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:latest-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:latest
+          # Probe manifest - latest
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:latest \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:latest-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:latest-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:latest
 
-          # Producer manifest - versioned
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }} \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}
+          # Probe slim manifest - versioned
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim
 
-          # Producer manifest - latest
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:latest \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:latest-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:latest-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:latest
-
-          # Ingester manifest - versioned
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }} \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}
-
-          # Ingester manifest - latest
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:latest \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:latest-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:latest-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:latest
+          # Probe slim manifest - latest
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:slim \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:slim-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:slim-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:slim
 
           # Migrate manifest - versioned
           docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }} \
@@ -345,7 +309,7 @@ jobs:
           docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:latest
 
           # Bundle manifests
-          for db in sqlite mongo postgres; do
+          for db in sqlite postgres; do
             # Bundle manifest for each database - versioned
             docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
               ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
@@ -385,41 +349,29 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest-arm64
           docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest
 
-          # Worker manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}
+          # Probe manifest - versioned
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }} \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}
 
-          # Worker manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest
+          # Probe manifest - latest
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:latest \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:latest-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:latest-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:latest
 
-          # Producer manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}
+          # Probe slim manifest - versioned
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim
 
-          # Producer manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest
-
-          # Ingester manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}
-
-          # Ingester manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest
+          # Probe slim manifest - latest
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:slim \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:slim-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:slim-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:slim
 
           # Migrate manifest - versioned
           docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }} \
@@ -434,7 +386,7 @@ jobs:
           docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest
 
           # Bundle manifests
-          for db in sqlite mongo postgres; do
+          for db in sqlite postgres; do
             # Bundle manifest for each database - versioned
             docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
               ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
@@ -457,7 +409,7 @@ jobs:
   # Runs last, once the pushed images have passed the e2e tests, so main changes only when the release can finish.
   # It starts from the commit the run started on, so its push fails if main moved.
   bump-version:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
     needs: playwright-tests
     steps:
       - name: Checkout code
@@ -613,7 +565,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
     needs: bump-version
     steps:
       - name: Download changelog artifact
@@ -645,27 +597,23 @@ jobs:
             ### GitHub Container Registry (GHCR)
             - UI: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web:latest`
             - API: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-api:latest`
-            - Worker: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-worker:latest`
-            - Producer: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-producer:latest`
-            - Ingester: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-ingester:latest`
+            - Probe: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:latest`
+            - Probe (slim): `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:slim`
             - Migrate: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:latest`
 
             ### Bundle Containers (GHCR)
             - SQLite Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:latest`
-            - MongoDB Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-mongo:latest`
             - PostgreSQL Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:latest`
 
             ### Docker Hub
             - UI: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest`
             - API: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-api:latest`
-            - Worker: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-worker:latest`
-            - Producer: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-producer:latest`
-            - Ingester: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-ingester:latest`
+            - Probe: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:latest`
+            - Probe (slim): `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:slim`
             - Migrate: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest`
 
             ### Bundle Containers (Docker Hub)
             - SQLite Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest`
-            - MongoDB Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-mongo:latest`
             - PostgreSQL Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:latest`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -673,7 +621,7 @@ jobs:
   # Runs once the images have passed the e2e tests and the GitHub release exists.
   # The chart's version and appVersion are the release, so it installs that release's images.
   publish-chart:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
     needs: release
     permissions:
       contents: read

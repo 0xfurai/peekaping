@@ -106,19 +106,18 @@ func assertAppliedMigrations(t *testing.T, databasePath string) {
 	if err := db.QueryRow("SELECT COUNT(*) FROM bun_migrations").Scan(&total); err != nil {
 		t.Fatalf("count applied migrations: %v", err)
 	}
-	if total != 12 {
-		t.Fatalf("expected 11 embedded SQL migrations and one Go migration, got %d applied migrations", total)
+	if total != 24 {
+		t.Fatalf("expected 22 embedded SQL migrations and two Go migrations, got %d applied migrations", total)
 	}
 
-	var goMigrationCount int
-	if err := db.QueryRow(
-		"SELECT COUNT(*) FROM bun_migrations WHERE name = ?",
-		"20261017120100",
-	).Scan(&goMigrationCount); err != nil {
-		t.Fatalf("check applied Go migration: %v", err)
-	}
-	if goMigrationCount != 1 {
-		t.Fatalf("expected Go migration 20261017120100 to be applied once, got %d", goMigrationCount)
+	for _, name := range []string{"20261017120100", "20261028120200"} {
+		var goMigrationCount int
+		if err := db.QueryRow("SELECT COUNT(*) FROM bun_migrations WHERE name = ?", name).Scan(&goMigrationCount); err != nil {
+			t.Fatalf("check applied Go migration: %v", err)
+		}
+		if goMigrationCount != 1 {
+			t.Fatalf("expected Go migration %s to be applied once, got %d", name, goMigrationCount)
+		}
 	}
 }
 

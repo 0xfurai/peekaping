@@ -21,8 +21,10 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/hibiken/asynq"
@@ -54,6 +56,7 @@ type app struct {
 	router    *httpx.Router
 	container *dig.Container
 	redis     *miniredis.Miniredis
+	cfg       *config.Config
 
 	accessToken string
 	apiKey      string
@@ -79,7 +82,7 @@ func newApp(t *testing.T, options ...func(*config.Config)) *app {
 func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options ...func(*config.Config)) *app {
 	t.Helper()
 	ctx := context.Background()
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 
 	redis := miniredis.RunT(t)
 	redisHost, redisPort, err := net.SplitHostPort(redis.Addr())
@@ -112,11 +115,10 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 	if decorate != nil {
 		require.NoError(t, decorate(container))
 	}
-	require.NoError(t, container.Invoke(func(db *bun.DB, bus events.EventBus, queue *asynq.Client, inspector *asynq.Inspector) error {
+	require.NoError(t, container.Invoke(func(db *bun.DB, bus events.EventBus, queue *asynq.Client) error {
 		t.Cleanup(func() {
 			require.NoError(t, bus.Close(context.Background()))
 			require.NoError(t, queue.Close())
-			require.NoError(t, inspector.Close())
 			require.NoError(t, db.Close())
 		})
 		migrator := migrate.NewMigrator(db, migrations.Migrations)
@@ -129,11 +131,14 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 	require.NoError(t, container.Invoke(func(settings setting.Service) error {
 		return settings.InitializeSettings(ctx)
 	}))
+	// PROBE_BOOTSTRAP_TOKEN is applied after the settings initialise, as cmd/api does at startup.
+	require.NoError(t, wiring.BootstrapLocalProbe(ctx, container))
 	// Notification channel providers register when the listener is built, as cmd/api does at startup.
 	require.NoError(t, container.Invoke(func(listener *notification_channel.NotificationEventListener, bus events.EventBus) {
 		listener.Subscribe(bus)
 	}))
-
+	// The waker ends the probes' waiting assignment polls when a monitor or an instance changes, as it does in cmd/api.
+	require.NoError(t, container.Invoke(func(waker *protocol.Waker) { waker.Subscribe() }))
 	// The metrics collector starts when the config asks for it, as cmd/api does. It stops before the event bus closes.
 	if cfg.MetricsEnabled {
 		require.NoError(t, container.Invoke(func(collector *metrics.Collector, bus events.EventBus) {
@@ -143,9 +148,27 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 		}))
 	}
 
-	a := &app{container: container, redis: redis}
+	a := &app{container: container, redis: redis, cfg: cfg}
 	require.NoError(t, container.Invoke(func(server *internal.Server) { a.router = server.Router }))
 	return a
+}
+
+// newReplica is another API replica of the install that first is a replica of: the same database
+// and the same Redis, with its own process memory. options change the config as they do for newApp.
+// The admin's access token, which the replicas share through the database, is first's.
+func newReplica(t *testing.T, first *app, options ...func(*config.Config)) *app {
+	t.Helper()
+	share := func(cfg *config.Config) {
+		cfg.DBName = first.cfg.DBName
+		cfg.RedisHost = first.cfg.RedisHost
+		cfg.RedisPort = first.cfg.RedisPort
+	}
+	replica := newApp(t, append(options, share)...)
+	// newApp started a Redis of its own that the replica doesn't use: point at the shared one, so
+	// that fast-forwarding the replica's Redis moves the one it talks to
+	replica.redis = first.redis
+	replica.accessToken, replica.apiKey = first.accessToken, first.apiKey
+	return replica
 }
 
 // newAppWithAdmin registers the admin and issues an API key, the way a new
@@ -155,6 +178,14 @@ func newAppWithAdmin(t *testing.T, options ...func(*config.Config)) *app {
 	a := newApp(t, options...)
 	a.registerAdmin(t)
 	return a
+}
+
+// inspector inspects the queues of the app's Redis, which the app itself has no reason to
+func (a *app) inspector(t *testing.T) *asynq.Inspector {
+	t.Helper()
+	inspector := asynq.NewInspector(asynq.RedisClientOpt{Addr: a.redis.Addr()})
+	t.Cleanup(func() { require.NoError(t, inspector.Close()) })
+	return inspector
 }
 
 // registerAdmin registers the admin and issues an API key.

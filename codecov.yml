@@ -1,0 +1,19 @@
+# Codecov's defaults fail the project check on any drop at all, which upload
+# noise trips. A drop of up to 1% passes; new lines need 70% coverage.
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 70%
+
+# Each workflow uploads under its own flag. The MongoDB import and Integration
+# tests workflows run only when apps/server changes, so a web-only PR has one
+# upload where main has three;
+# carryforward reuses the base commit's report for a flag the PR didn't upload.
+flag_management:
+  default_rules:
+    carryforward: true

@@ -123,10 +123,10 @@ func TestSocketIOThroughAPIRouter(t *testing.T) {
 	require.True(t, strings.HasPrefix(string(data), "40"), string(data))
 }
 
-func TestPush_HEADDoesNotQueueHeartbeat(t *testing.T) {
+func TestPush_HEADDoesNotStoreAHeartbeat(t *testing.T) {
 	a := newAppWithAdmin(t)
-	a.createMonitor(t, "Backup", "head-push-token")
+	monitorID := a.createMonitor(t, "Backup", "head-push-token")
 	w := a.request(t, http.MethodHead, "/api/v1/push/head-push-token", nil)
 	assert.Equal(t, http.StatusNotFound, w.Code)
-	assert.Empty(t, a.queuedHeartbeats(t))
+	assert.Empty(t, a.storedHeartbeats(t, monitorID))
 }

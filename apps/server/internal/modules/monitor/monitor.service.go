@@ -24,18 +24,23 @@ type Service interface {
 	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error)
 	FindActive(ctx context.Context) ([]*Model, error)
 	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)
+	// FindActiveByProbe returns a page of the active monitors the probe runs
+	FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error)
 	UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error)
 	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
 	Delete(ctx context.Context, id string) error
 	ValidateMonitorConfig(monitorType string, configJSON string) error
 
-	GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
+	GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
 
 	RemoveProxyReference(ctx context.Context, proxyId string) error
 	FindByProxyId(ctx context.Context, proxyId string) ([]*Model, error)
 
-	GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
-	GetUptimeStats(ctx context.Context, id string) (*CustomUptimeStatsDto, error)
+	GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
+	GetUptimeStats(ctx context.Context, id, probeID string) (*CustomUptimeStatsDto, error)
+	// GetUptime24h returns the monitor's uptime over the last 24 hours as a percentage, from the
+	// checks one probe ran (all of them when probeID is empty), with one stats read
+	GetUptime24h(ctx context.Context, id, probeID string) (float64, error)
 
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
 	ResetMonitorData(ctx context.Context, id string) error
@@ -64,6 +69,7 @@ type MonitorServiceImpl struct {
 	monitorTagService          monitor_tag.Service
 	executorRegistry           *executor.ExecutorRegistry
 	statPointsService          stats.Service
+	probes                     ProbeLookup
 	logger                     *zap.SugaredLogger
 }
 
@@ -76,6 +82,7 @@ func NewMonitorService(
 	monitorTagService monitor_tag.Service,
 	executorRegistry *executor.ExecutorRegistry,
 	statPointsService stats.Service,
+	probes ProbeLookup,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &MonitorServiceImpl{
@@ -87,6 +94,7 @@ func NewMonitorService(
 		monitorTagService,
 		executorRegistry,
 		statPointsService,
+		probes,
 		logger.Named("[monitor-service]"),
 	}
 }
@@ -106,6 +114,22 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		Config:         monitorCreateDto.Config,
 		ProxyId:        monitorCreateDto.ProxyId,
 		PushToken:      monitorCreateDto.PushToken,
+		ProbeIDs:       monitorCreateDto.ProbeIDs,
+
+		LocationRule:      locationRuleOrAny(monitorCreateDto.LocationRule),
+		LocationThreshold: monitorCreateDto.LocationThreshold,
+	}
+
+	// A monitor created without probes runs on the local one
+	probes := 1
+	if monitorCreateDto.ProbeIDs != nil {
+		if err := mr.validateProbes(ctx, monitorCreateDto.Type, monitorCreateDto.ProbeIDs); err != nil {
+			return nil, err
+		}
+		probes = len(monitorCreateDto.ProbeIDs)
+	}
+	if err := validateLocationRule(createModel.LocationRule, createModel.LocationThreshold, probes); err != nil {
+		return nil, err
 	}
 
 	// The monitor and its links are stored together or not at all, and the event comes after
@@ -154,6 +178,10 @@ func (mr *MonitorServiceImpl) FindActivePaginated(ctx context.Context, page int,
 	return mr.monitorRepository.FindActivePaginated(ctx, page, limit)
 }
 
+func (mr *MonitorServiceImpl) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
+	return mr.monitorRepository.FindActiveByProbe(ctx, probeID, page, limit)
+}
+
 func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error) {
 	model := &Model{
 		ID:             id,
@@ -169,20 +197,36 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
 		PushToken:      monitor.PushToken,
+		ProbeIDs:       monitor.ProbeIDs,
 	}
 
-	// The monitor and its links change together or not at all. The monitor is read back inside
-	// the transaction: the response and the event carry what is stored, including its status and
-	// created_at.
+	// The monitor and its links change together or not at all. The monitor is read before the
+	// update, to check its probes against the type it will have, and back after it: the response
+	// and the event carry what is stored, including its status and created_at.
 	var updatedMonitor *Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		current, err := mr.FindByID(ctx, id)
+		if err != nil {
+			return err
+		}
+		if current == nil {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
+		if err := mr.validateFullProbes(ctx, current, monitor); err != nil {
+			return err
+		}
+		// The rule is checked against the probes the monitor will have, and a request without one
+		// keeps the monitor's
+		model.LocationRule, model.LocationThreshold, err = validateFullLocationRule(current, monitor)
+		if err != nil {
+			return err
+		}
 		if err := mr.monitorRepository.UpdateFull(ctx, id, model); err != nil {
 			return err
 		}
 		if err := mr.replaceLinks(ctx, id, monitor.NotificationIds, monitor.TagIds); err != nil {
 			return err
 		}
-		var err error
 		updatedMonitor, err = mr.FindByID(ctx, id)
 		if err != nil {
 			return err
@@ -217,6 +261,7 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
 		PushToken:      monitor.PushToken,
+		ProbeIDs:       monitor.ProbeIDs,
 	}
 
 	// The monitor and its links change together or not at all. The monitor is read inside the
@@ -233,6 +278,17 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		}
 		if err := mr.validatePartialConfig(current, monitor); err != nil {
 			return err
+		}
+		if err := mr.validatePartialProbes(ctx, current, monitor); err != nil {
+			return err
+		}
+		// The rule is checked against the probes the monitor will have, so an update that only
+		// removes probes is checked too
+		if err := validatePartialLocationRule(current, monitor); err != nil {
+			return err
+		}
+		if rule, threshold, set := partialLocationRule(current, monitor); set {
+			model.LocationRule, model.LocationThreshold = &rule, threshold
 		}
 		if err := mr.monitorRepository.UpdatePartial(ctx, id, model); err != nil {
 			return err
@@ -289,10 +345,7 @@ func (mr *MonitorServiceImpl) validatePartialConfig(current *Model, update *Part
 }
 
 func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
-	// The monitor goes with its links, heartbeats and stats, or stays with all of them. On
-	// MongoDB, which has no transaction here, the order decides what a delete that fails part way
-	// leaves: the monitor row goes after its heartbeats and stats, so the request can be sent
-	// again, and before its links, so a monitor that stays keeps its notification channels.
+	// The monitor goes with its links, heartbeats and stats, or stays with all of them
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
 		current, err := mr.FindByID(ctx, id)
 		if err != nil {
@@ -460,8 +513,8 @@ func (mr *MonitorServiceImpl) ValidateMonitorConfig(
 	return mr.executorRegistry.ValidateConfig(monitorType, configJSON)
 }
 
-func (mr *MonitorServiceImpl) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
-	return mr.heartbeatService.FindByMonitorIDPaginated(ctx, id, limit, page, important, reverse)
+func (mr *MonitorServiceImpl) GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+	return mr.heartbeatService.FindByMonitorIDAndProbeIDPaginated(ctx, id, probeID, limit, page, important, reverse)
 }
 
 func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, proxyId string) error {
@@ -472,7 +525,7 @@ func (mr *MonitorServiceImpl) FindByProxyId(ctx context.Context, proxyId string)
 	return mr.monitorRepository.FindByProxyId(ctx, proxyId)
 }
 
-func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error) {
+func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error) {
 	var period stats.StatPeriod
 	switch granularity {
 	case "minute":
@@ -495,7 +548,7 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 	}
 
 	// Use the new method that accepts monitor interval
-	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRangeWithInterval(ctx, id, since, until, period, monitor.Interval)
+	statsList, err := mr.statPointsService.FindStatsByMonitorIDAndTimeRangeWithInterval(ctx, id, probeID, since, until, period, monitor.Interval)
 	if err != nil {
 		return nil, err
 	}
@@ -516,6 +569,7 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 	stats := mr.statPointsService.StatPointsSummary(statsList)
 
 	return &StatPointsSummaryDto{
+		ProbeID: probeID,
 		Points:  points,
 		MaxPing: stats.MaxPing,
 		MinPing: stats.MinPing,
@@ -525,7 +579,7 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id string, sinc
 }
 
 // GetCustomUptimeStatsShort returns uptime percentages for 24h, 30d, 365d
-func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*CustomUptimeStatsDto, error) {
+func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id, probeID string) (*CustomUptimeStatsDto, error) {
 	now := time.Now().UTC()
 	periods := map[string]time.Duration{
 		"24h":  24 * time.Hour,
@@ -537,7 +591,7 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*C
 	uptimes := make(map[string]float64)
 	for key, duration := range periods {
 		since := now.Add(-duration)
-		summary, err := mr.statPointsService.Summarize(ctx, id, since, now)
+		summary, err := mr.statPointsService.Summarize(ctx, id, probeID, since, now)
 		if err != nil {
 			return nil, err
 		}
@@ -549,6 +603,7 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*C
 	}
 
 	stats := &CustomUptimeStatsDto{
+		ProbeID:    probeID,
 		Uptime24h:  uptimes["24h"],
 		Uptime7d:   uptimes["7d"],
 		Uptime30d:  uptimes["30d"],
@@ -556,6 +611,18 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id string) (*C
 	}
 
 	return stats, nil
+}
+
+func (mr *MonitorServiceImpl) GetUptime24h(ctx context.Context, id, probeID string) (float64, error) {
+	now := time.Now().UTC()
+	summary, err := mr.statPointsService.Summarize(ctx, id, probeID, now.Add(-24*time.Hour), now)
+	if err != nil {
+		return 0, err
+	}
+	if summary.Uptime == nil {
+		return 0, nil
+	}
+	return *summary.Uptime, nil
 }
 
 func (mr *MonitorServiceImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {
@@ -584,6 +651,12 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 	if err != nil {
 		mr.logger.Errorw("Failed to delete stats for monitor", "monitorID", id, "error", err)
 		return fmt.Errorf("failed to delete stats: %w", err)
+	}
+
+	// Forget where the monitor stood on each probe, so that its next result is its first
+	if err := mr.monitorRepository.ResetLocations(ctx, id); err != nil {
+		mr.logger.Errorw("Failed to reset the locations of monitor", "monitorID", id, "error", err)
+		return fmt.Errorf("failed to reset locations: %w", err)
 	}
 
 	// Reset monitor status to pending (like a fresh monitor)

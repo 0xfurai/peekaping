@@ -27,7 +27,7 @@ type harness struct {
 }
 
 // newHarness builds the tag service over a migrated SQLite database. Foreign
-// keys stay off, as on Mongo, so links go away only if the service removes them.
+// keys stay off, so links go away only if the service removes them.
 func newHarness(t *testing.T) *harness {
 	t.Helper()
 	ctx := context.Background()

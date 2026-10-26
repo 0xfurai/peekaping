@@ -4,6 +4,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"peekaping/internal/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,12 +46,80 @@ func TestLoadAndValidate_NeedsNoRedis(t *testing.T) {
 	assert.Equal(t, 128, internalCfg.CheckConcurrency)
 }
 
+func TestLoadConfig_ProbeOfflineAfterDefault(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("PROBE_OFFLINE_AFTER", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+
+	assert.Equal(t, 3*time.Minute, cfg.ToInternalConfig().ProbeOfflineAfter)
+}
+
+func TestLoadConfig_ProbeOfflineAfterIsLoadedFromEnv(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("PROBE_OFFLINE_AFTER", "2m")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 2*time.Minute, cfg.ToInternalConfig().ProbeOfflineAfter, "2 minutes is the shortest there is")
+
+	t.Setenv("PROBE_OFFLINE_AFTER", "10m")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 10*time.Minute, cfg.ToInternalConfig().ProbeOfflineAfter)
+}
+
+func TestLoadConfig_ProbeOfflineAfterTooShort(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("PROBE_OFFLINE_AFTER", "1m59s")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at least 2m", "a probe that restarts gracefully must not be announced offline")
+}
+
+// The sweep forgets an instance that went unseen for 24 hours, so a longer limit would let it set a
+// quiet probe online on an instance that is about to be pruned, and offline again on the next pass.
+func TestLoadConfig_ProbeOfflineAfterTooLong(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	t.Setenv("PROBE_OFFLINE_AFTER", "24h")
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err, "24 hours is the longest there is")
+	assert.Equal(t, 24*time.Hour, cfg.ToInternalConfig().ProbeOfflineAfter)
+
+	t.Setenv("PROBE_OFFLINE_AFTER", "24h1s")
+	_, err = LoadAndValidate(t.TempDir())
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at most 24h0m0s", "the sweep forgets an instance after that")
+}
+
+func TestLoadConfig_ProbeOfflineAfterNegative(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("PROBE_OFFLINE_AFTER", "-5m")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, "PROBE_OFFLINE_AFTER must be at least 2m")
+}
+
 func TestLoadAndValidate_ReadsTheTelemetrySettings(t *testing.T) {
 	unsetRedis(t)
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")
 	t.Setenv("TELEMETRY", "")
-	t.Setenv("DO_NOT_TRACK", "")
 	t.Setenv("TELEMETRY_URL", "")
 
 	cfg, err := LoadAndValidate(t.TempDir())
@@ -64,12 +135,6 @@ func TestLoadAndValidate_ReadsTheTelemetrySettings(t *testing.T) {
 	internalCfg = cfg.ToInternalConfig()
 	assert.True(t, internalCfg.TelemetryForcedOff())
 	assert.Equal(t, "http://localhost:8787/v1/ping", internalCfg.TelemetryURL)
-
-	t.Setenv("TELEMETRY", "")
-	t.Setenv("DO_NOT_TRACK", "1")
-	cfg, err = LoadAndValidate(t.TempDir())
-	require.NoError(t, err)
-	assert.True(t, cfg.ToInternalConfig().TelemetryForcedOff())
 }
 
 func TestLoadAndValidate_ListsTheRedisSettingsItIgnores(t *testing.T) {
@@ -87,8 +152,9 @@ func TestLoadAndValidate_ListsTheRedisSettingsItIgnores(t *testing.T) {
 	assert.Empty(t, cfg.ToInternalConfig().RedisHost)
 }
 
+// AC1: MongoDB storage was removed, so peekaping says so and points at the page that explains the move.
+// The DB_TYPE validator ignores case, so the refusal does too.
 func TestLoadAndValidate_RefusesMongoStorage(t *testing.T) {
-	// The DB_TYPE validator ignores case, so the refusal does too
 	for _, dbType := range []string{"mongo", "mongodb", "MONGO", "MongoDB"} {
 		t.Run(dbType, func(t *testing.T) {
 			t.Setenv("DB_TYPE", dbType)
@@ -100,9 +166,21 @@ func TestLoadAndValidate_RefusesMongoStorage(t *testing.T) {
 
 			_, err := LoadAndValidate(t.TempDir())
 
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+" isn't supported by peekaping (single mode)")
-			assert.Contains(t, err.Error(), "SQLite or PostgreSQL")
+			require.ErrorIs(t, err, config.ErrMongoStorageRemoved)
+			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+": MongoDB storage was removed.")
+			assert.Contains(t, err.Error(), "https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql")
+			assert.Contains(t, err.Error(), `"bun db import-mongo"`)
+		})
+	}
+}
+
+// Validate is called on its own too, with a Config that didn't come from LoadAndValidate
+func TestValidate_RefusesMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MONGO", "MongoDB"} {
+		t.Run(dbType, func(t *testing.T) {
+			err := Validate(&Config{DBType: dbType})
+
+			assert.ErrorIs(t, err, config.ErrMongoStorageRemoved)
 		})
 	}
 }

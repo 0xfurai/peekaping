@@ -16,8 +16,9 @@
       "have_account": "Onko sinulla jo tili?",
       "sign_in": "Kirjaudu sisään",
       "submit": "Luo",
-      "telemetry_hint": "Pois päältä, ellet valitse tätä ruutua. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”. Jos valitset sen, Peekaping lähettää tämän enintään kerran päivässä:",
-      "title": "Hei"
+      "title": "Hei",
+      "telemetry_note": "Anonyymi: ei valvontojen nimiä, URL-osoitteita eikä isäntiä. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”.",
+      "telemetry_whats_sent": "Mitä lähetetään"
     },
     "twofa": {
       "code_label": "2FA-koodi",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Lähetä virheraportteja",
-    "never_sent": "Ei koskaan lähetetä: virheilmoituksia, URL-osoitteita, otsakkeita, webhook-osoitteita, nimiä tai isäntänimiä. Raportti ei sisällä IP-osoitetta, ja Peekapingin Sentry-projekti on asetettu niin, ettei se tallenna lähettäjän IP-osoitetta. Jos käytät omaa ERROR_REPORTING_DSN-arvoa, oman Sentrysi tai GlitchTipisi asetukset ratkaisevat.",
-    "not_saved": "Valintaasi lähettää virheraportteja ei tallennettu. Ota se käyttöön kohdassa ”Asetukset”.",
+    "never_sent": "Ei koskaan lähetetä: virheilmoituksia, URL-osoitteita, otsakkeita, webhook-osoitteita, nimiä tai isäntänimiä. Raportti ei sisällä IP-osoitetta, ja Peekapingin Sentry-projekti on asetettu niin, ettei se tallenna lähettäjän IP-osoitetta.",
+    "not_saved": "Valintaasi virheraporteista ei tallennettu. Tarkista se kohdassa ”Asetukset”.",
     "sent": "Lähetetään vain, kun Peekaping itse kaatuu. Raportti sisältää virheen tyypin ja kohdan koodissa, jossa se tapahtui, Peekapingin version, yksi- tai klusteritilan, tallennustaustan ja käyttöjärjestelmän."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Pyyntö aikakatkaisu (Aika {{seconds}} sekunnin kuluttua)",
           "resend_notification": "Lähetä ilmoitus uudelleen, jos Down X kertaa peräkkäin (Uudelleenlähetys poistettu käytöstä)"
         },
+        "location_rule": {
+          "all": "kaikki sijainnit ovat alhaalla",
+          "any": "mikä tahansa sijainti on alhaalla",
+          "at_least": "vähintään N sijaintia on alhaalla",
+          "description": "Sijaintia, jonka luotain on offline-tilassa tai ei ole vielä raportoinut, ei lasketa.",
+          "label": "Merkitse valvonta alas, kun",
+          "threshold_invalid": "Anna kokonaisluku, vähintään 1",
+          "threshold_label": "Sijaintien määrä",
+          "threshold_too_high": "Ei voi olla suurempi kuin valittujen luotainten määrä"
+        },
         "notifications": {
           "add_notifier": "Lisää ilmoitin",
           "new_notifier": "+ Uusi ilmoitin",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Valitse ilmoitin",
           "selected_channels": "Valitut ilmoituskanavat",
           "title": "Ilmoituskanavat"
+        },
+        "probe": {
+          "description": "Valvonta toimii jokaisella valitsemallasi luotaimella ja näyttää kunkin tulokset sijaintina.",
+          "label": "Luotain",
+          "option_unsupported": "{{name}} (ei suorita tätä tyyppiä)",
+          "placeholder": "Valitse luotain",
+          "push_fixed": "Push-valvonta toimii aina paikallisella luotaimella.",
+          "required": "Valitse vähintään yksi luotain",
+          "unsupported": "Tämä luotain ei suorita tämän tyyppistä valvontaa. Valitse toinen luotain."
         },
         "proxy": {
           "add_proxy": "Lisää välityspalvelin",
@@ -658,6 +678,15 @@
       "expiring_soon": "Viemässä pian",
       "for": "jolle",
       "live_status": "Reaaliaikainen tila",
+      "locations": {
+        "all": "Kaikki sijainnit",
+        "no_result": "Ei vielä tulosta",
+        "probe_offline": "Luotain ei ole verkossa",
+        "probe_unsupported": "Ei suorita tätä tyyppiä",
+        "response_time": "Vastausaika",
+        "select_label": "Sijainti",
+        "title": "Sijainnit"
+      },
       "monitor_for": "seuraa",
       "no_certificate_data": "Ei sertifikaattitietoja",
       "seconds": "sekuntia",
@@ -683,6 +712,7 @@
     "maintenance": "Huolto",
     "monitors": "Valvonta",
     "notification_channels": "Ilmoituskanavat",
+    "probes": "Luotaimet",
     "proxies": "Välityspalvelimet",
     "settings": "Asetukset",
     "status_pages": "Tila-sivut",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automaattinen tunnustaminen",
         "auto_resolve_acknowledge_description": "Tunnusta tapaus automaattisesti",
-        "auto_resolve_description": "Valitse, mitä toimia tehdään, kun valvonta palautuu.",
+        "auto_resolve_description": "Valitse, mitä lähetetään, kun valvonta palautuu tai luotain on taas verkossa.",
         "auto_resolve_do_nothing": "Älä tee mitään",
-        "auto_resolve_do_nothing_description": "Ei toimenpiteitä, kun tila on UP",
+        "auto_resolve_do_nothing_description": "Mitään ei lähetetä, kun valvonta palautuu tai luotain on taas verkossa, joten tapaus pysyy avoinna, kunnes ratkaiset sen PagerDuty-palvelussa",
         "auto_resolve_label": "Automaattinen ratkaisu tai vahvista",
         "auto_resolve_placeholder": "Valitse automaattinen ratkaisu",
         "auto_resolve_resolve": "Automaattinen ratkaisu",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Valinnainen autentikointitunniste lisäturvallisuuden takaamiseksi. Tämä lähetetään pagertree-token-otsakkeen.",
         "authentication_token_label": "Todennusmerkki (Valinnainen)",
         "authentication_token_placeholder": "Syötä valtuutusmerkki, jos se on vaadittu",
-        "auto_resolve_alerts_description": "Poista PagerTree-hälytykset automaattisesti, kun valvonta palautuu",
+        "auto_resolve_alerts_description": "Ratkaise PagerTree-hälytykset automaattisesti, kun valvonta palautuu tai luotain on taas verkossa",
         "auto_resolve_alerts_label": "Ilmoitusten automaattinen ratkaisu",
         "how_to_get_integration_url_label": "Kuinka saada integraation URL",
         "integration_url_description": "Syötä PagerTree-webhook‑integraation URL-osoite.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Tallennettu — kirjoita korvataksesi"
     }
   },
+  "probes": {
+    "page_name": "Luotaimet",
+    "description": "Luotaimet suorittavat valvontojen tarkistukset paikoista, joihin ne on asennettu. Paikallinen luotain on Peekaping itse.",
+    "local_name": "Paikallinen",
+    "monitor_probe": "Luotain: {{name}}",
+    "monitor_probe_unsupported": "{{name}} ei suorita {{type}}-tyyppisiä valvontoja",
+    "empty_list": {
+      "title": "Luotaimia ei löytynyt",
+      "text": "Luo luotain suorittaaksesi tarkistuksia toisesta paikasta.",
+      "action_text": "Luo ensimmäinen luotaimesi"
+    },
+    "table": {
+      "headers": {
+        "name": "Nimi",
+        "location": "Sijainti",
+        "status": "Tila",
+        "disabled": "Poistettu käytöstä",
+        "token": "Token",
+        "instances": "Instanssit",
+        "actions": "Toiminnot"
+      },
+      "status": {
+        "online": "Verkossa",
+        "offline": "Ei verkossa"
+      },
+      "disabled": "Poistettu käytöstä",
+      "no_instances": "Ei vielä instansseja",
+      "last_seen": "viimeksi nähty {{date}}",
+      "actions": {
+        "edit": "Muokkaa luotainta {{name}}",
+        "rotate": "Vaihda luotaimen {{name}} token",
+        "delete": "Poista luotain {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Luo luotain",
+      "description": "Luotain suorittaa tarkistuksia paikasta, johon asennat sen. Sen token näytetään vain kerran luomisen jälkeen.",
+      "submit": "Luo luotain",
+      "creating": "Luodaan..."
+    },
+    "edit_dialog": {
+      "title": "Muokkaa luotainta",
+      "description": "Muuta luotaimen {{name}} asetuksia."
+    },
+    "form": {
+      "name_label": "Nimi",
+      "name_placeholder": "esim. Frankfurt",
+      "location_label": "Sijainti (valinnainen)",
+      "location_placeholder": "esim. Frankfurt, Saksa",
+      "name_required": "Nimi on pakollinen",
+      "name_too_long": "Nimi on liian pitkä",
+      "location_too_long": "Sijainti on liian pitkä",
+      "disabled_label": "Poistettu käytöstä",
+      "disabled_description": "Käytöstä poistetun luotaimen token lakkaa toimimasta, kunnes otat luotaimen uudelleen käyttöön.",
+      "notifications_hint": "Jätä tyhjäksi, jos haluat ilmoittaa tämän luotaimen valvontojen kanaville."
+    },
+    "rotate_dialog": {
+      "title": "Vaihda token",
+      "description": "Luotaimen {{name}} vanha token lakkaa toimimasta heti. Sen instanssit on käynnistettävä uudelleen uudella tokenilla.",
+      "confirm": "Vaihda token",
+      "rotating": "Vaihdetaan..."
+    },
+    "delete_dialog": {
+      "title": "Poista luotain",
+      "description": "Haluatko varmasti poistaa luotaimen \"{{name}}\"? Sen token lakkaa toimimasta. Tätä toimintoa ei voi kumota."
+    },
+    "token_alert": {
+      "title_created": "Luotain {{name}} luotu",
+      "title_rotated": "Uusi token luotaimelle {{name}}",
+      "note": "Tämä token lukee luotaimelle määritettyjen valvontojen asetukset. Se näytetään vain kerran.",
+      "token_label": "Token",
+      "docker_label": "Käynnistä luotain Dockerilla",
+      "copy_token": "Kopioi token",
+      "copy_command": "Kopioi docker-komento"
+    },
+    "messages": {
+      "created_successfully": "Luotain luotu onnistuneesti",
+      "updated_successfully": "Luotain päivitetty onnistuneesti",
+      "rotated_successfully": "Token vaihdettu onnistuneesti",
+      "deleted_successfully": "Luotain poistettu onnistuneesti",
+      "failed_to_create": "Luotaimen luominen epäonnistui",
+      "failed_to_update": "Luotaimen päivittäminen epäonnistui",
+      "failed_to_rotate": "Tokenin vaihtaminen epäonnistui",
+      "failed_to_delete": "Luotaimen poistaminen epäonnistui",
+      "failed_to_load": "Luotaimien lataaminen epäonnistui",
+      "copy_success": "Kopioitu leikepöydälle",
+      "copy_failed": "Leikepöydälle kopioiminen epäonnistui"
+    },
+    "detail": {
+      "not_found": "Luotainta ei löytynyt"
+    },
+    "availability": {
+      "title": "Saatavuus",
+      "range_label": "Aikaväli",
+      "bar_label": "Saatavuushistoria",
+      "instance_bar_label": "Luotaimen {{name}} yhteydet",
+      "no_data": "Ei tietoja",
+      "now": "Nyt",
+      "instances_title": "Instanssit, viimeiset 24 tuntia",
+      "in_process_note": "Peekaping itse tarkistaa paikallisen luotaimen monitorit, joten sillä ei ole saatavuushistoriaa.",
+      "connected_since": "Yhdistetty alkaen {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Tämä toiminto ei voida peruuttaa. Se poistaa pysyvästi välityspalvelimen {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "Klusteritilassa muutos tavoittaa jokaisen prosessin minuutissa.",
-      "description": "Lähetä raportti Sentryyn, kun palvelin kaatuu. Pois päältä, kunnes otat sen käyttöön.",
-      "forced_off": "Ympäristömuuttuja ERROR_REPORTING=off tai DO_NOT_TRACK=1 poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
+      "description": "Lähetä raportti Sentryyn, kun palvelin kaatuu. Oletuksena päällä; voit poistaa sen käytöstä täällä milloin tahansa.",
+      "forced_off": "Ympäristömuuttuja ERROR_REPORTING=off poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
       "title": "Virheraportit"
     },
     "telemetry": {
-      "description": "Lähetä nimettömiä tilastoja siitä, miten tämä asennus on määritetty, enintään kerran päivässä. Pois päältä, kunnes otat sen käyttöön.",
-      "forced_off": "Ympäristömuuttuja TELEMETRY=off tai DO_NOT_TRACK=1 poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
-      "id_note": "Instanssin tunnus luodaan, kun otat tämän käyttöön, ja poistetaan, kun poistat sen käytöstä. Kun otat sen uudelleen käyttöön, luodaan uusi.",
+      "description": "Lähetä nimettömiä tilastoja siitä, miten tämä asennus on määritetty, enintään kerran päivässä. Oletuksena päällä; voit poistaa sen käytöstä täällä milloin tahansa.",
+      "forced_off": "Ympäristömuuttuja TELEMETRY=off poistaa tämän käytöstä. Mitään ei lähetetä, mitä tämä asetus sanookaan.",
+      "id_note": "Instanssin tunnus luodaan, kun tämä on käytössä, ja poistetaan, kun poistat sen käytöstä. Kun otat sen uudelleen käyttöön, luodaan uusi.",
       "payload_off": "Mitään ei lähetetä, kun tämä on pois päältä. Tältä käyttöping näyttäisi, jos ottaisit sen käyttöön.",
       "payload_title": "Mitä seuraava käyttöping lähettää",
       "title": "Käyttötilastot"
@@ -1367,6 +1500,8 @@
     "published_status": "Julkaistu",
     "search_label": "Etsi",
     "search_placeholder": "Etsi tilanne-sivut otsikon perusteella...",
+    "show_locations": "Näytä jokainen sijainti",
+    "show_locations_info": "Useasta sijainnista tarkistettaville valvonnoille näytetään kunkin sijainnin tila ja historia",
     "update_status_page": "Päivitä tilasivu",
     "view_page": "Näytä sivu"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Mitä lähetetään ja miten sen voi poistaa käytöstä",
     "label": "Lähetä nimettömiä käyttötilastoja",
-    "never_sent": "Ei koskaan lähetetä: valvontojen nimiä, URL-osoitteita, isäntiä, tunnisteita, tila-sivujen osoitteita tai ilmoitusasetuksia. Käyttöping ei sisällä IP-osoitetta, eikä Peekapingin Worker tallenna lähettäjän IP-osoitetta.",
-    "not_saved": "Valintaasi lähettää käyttötilastoja ei tallennettu. Ota se käyttöön kohdassa ”Asetukset”.",
-    "sent_features": "Käytätkö tila-sivuja, huoltoikkunoita ja mittareita",
-    "sent_id": "Satunnainen tunnus, joka luodaan, kun otat tämän käyttöön, ja poistetaan, kun poistat sen käytöstä",
-    "sent_monitors": "Kuinka monta valvontaa sinulla on, vaihteluvälinä, esimerkiksi 11-50",
-    "sent_setup": "Peekapingin versio, yksi- tai klusteritila, tallennustausta sekä käyttöjärjestelmä ja suorittimen tyyppi",
-    "sent_types": "Käyttämiesi valvontojen ja ilmoituskanavien tyypit, esimerkiksi http tai telegram"
+    "not_saved": "Valintaasi käyttötilastoista ei tallennettu. Tarkista se kohdassa ”Asetukset”."
+  },
+  "telemetry_notice": {
+    "error_reports": "Virheraportit ovat päällä. Jos Peekaping kaatuu, se lähettää virheen tyypin ja kohdan koodissa, jossa se tapahtui, versionsa, tilansa, tallennustaustansa ja käyttöjärjestelmänsä. Se ei koskaan lähetä virheilmoituksia, URL-osoitteita tai isäntänimiä.",
+    "settings_errors": "Poista virheraportit käytöstä kohdassa ”Asetukset”",
+    "settings_usage": "Poista käyttötilastot käytöstä kohdassa ”Asetukset”",
+    "title": "Nimettömän tiedon lähetys on oletuksena päällä",
+    "usage_statistics": "Käyttötilastot ovat päällä. Enintään kerran päivässä Peekaping lähettää satunnaisen instanssin tunnuksen, versionsa, tilansa, tallennustaustansa ja käyttöjärjestelmänsä, vaihteluvälin valvontojesi määrästä, käyttämiesi valvontojen ja ilmoituskanavien tyypit sekä sen, käytätkö tila-sivuja, huoltoikkunoita ja mittareita. Se ei koskaan lähetä nimiä, URL-osoitteita, isäntiä tai asetuksia."
   },
   "theme": {
     "dark": "Tumma",

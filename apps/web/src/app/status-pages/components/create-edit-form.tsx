@@ -46,6 +46,7 @@ const statusPageSchema = z.object({
   footer_text: z.string().optional(),
   auto_refresh_interval: z.number().min(0).optional(),
   published: z.boolean(),
+  show_locations: z.boolean(),
   monitors: z
     .array(
       z.object({
@@ -72,6 +73,7 @@ const statusPageDefaultValues: StatusPageFormValues = {
   footer_text: "",
   auto_refresh_interval: 300,
   published: true,
+  show_locations: false,
   monitors: [],
   domains: [],
 };
@@ -315,6 +317,29 @@ const CreateEditForm = ({
                       <FormLabel>{t("status_pages.published")}</FormLabel>
                       <p className="text-sm text-muted-foreground">
                         {t("status_pages.published_info")}
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="show_locations"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel>{t("status_pages.show_locations")}</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        {t("status_pages.show_locations_info")}
                       </p>
                     </div>
                     <FormControl>

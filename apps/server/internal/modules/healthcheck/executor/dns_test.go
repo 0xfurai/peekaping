@@ -210,8 +210,14 @@ var testZone = []string{
 	"10.2.0.192.in-addr.arpa. 300 IN PTR peekaping.test.",
 }
 
-// startDNSServer serves testZone over UDP on a loopback port and returns the port.
-func startDNSServer(t *testing.T, host string) int {
+// startDNSServer serves testZone over UDP on an IPv4 loopback port and returns the port.
+func startDNSServer(t *testing.T) int {
+	t.Helper()
+	return startDNSServerOn(t, "127.0.0.1:0")
+}
+
+// startDNSServerOn serves testZone over UDP on addr and returns the port.
+func startDNSServerOn(t *testing.T, addr string) int {
 	t.Helper()
 	var zone []dns.RR
 	for _, record := range testZone {
@@ -249,7 +255,7 @@ func startDNSServer(t *testing.T, host string) int {
 		_ = w.WriteMsg(resp)
 	})
 
-	pc, err := net.ListenPacket("udp", net.JoinHostPort(host, "0"))
+	pc, err := net.ListenPacket("udp", addr)
 	require.NoError(t, err)
 	started := make(chan struct{})
 	srv := &dns.Server{PacketConn: pc, Handler: handler, NotifyStartedFunc: func() { close(started) }}
@@ -259,18 +265,19 @@ func startDNSServer(t *testing.T, host string) int {
 	return pc.LocalAddr().(*net.UDPAddr).Port
 }
 
-func dnsMonitor(resolver string, port int, host, resolveType string, timeout int) *Monitor {
+func dnsMonitor(port int, host, resolveType string, timeout int) *Monitor {
 	return &Monitor{
 		ID:      "dns",
 		Type:    "dns",
 		Name:    host,
 		Timeout: timeout,
-		Config:  fmt.Sprintf(`{"host": %q, "resolver_server": %q, "port": %d, "resolve_type": %q}`, host, resolver, port, resolveType),
+		Config:  fmt.Sprintf(`{"host": %q, "resolver_server": "127.0.0.1", "port": %d, "resolve_type": %q}`, host, port, resolveType),
 	}
 }
 
 func TestDNSExecutor_Execute_RecordTypes(t *testing.T) {
 	executor := NewDNSExecutor(zap.NewNop().Sugar())
+	port := startDNSServer(t)
 
 	tests := []struct {
 		resolveType string
@@ -289,27 +296,31 @@ func TestDNSExecutor_Execute_RecordTypes(t *testing.T) {
 		{"SOA", "peekaping.test", "SOA: Primary NS: ns1.peekaping.test., Admin: hostmaster.peekaping.test., Serial: 2026101701, Refresh: 7200, Retry: 3600, Expire: 1209600, Min TTL: 300"},
 	}
 
-	for _, resolver := range []string{"127.0.0.1", "::1"} {
-		t.Run(resolver, func(t *testing.T) {
-			if resolver == "::1" && !hasLoopbackIPv6() {
-				t.Skip("no IPv6 loopback address")
-			}
-			port := startDNSServer(t, resolver)
-			for _, tt := range tests {
-				t.Run(tt.resolveType, func(t *testing.T) {
-					result := executor.Execute(context.Background(), dnsMonitor(resolver, port, tt.host, tt.resolveType, 2), nil)
+	for _, tt := range tests {
+		t.Run(tt.resolveType, func(t *testing.T) {
+			result := executor.Execute(context.Background(), dnsMonitor(port, tt.host, tt.resolveType, 2), nil)
 
-					assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
-					assert.Equal(t, tt.wantMessage, result.Message)
-				})
-			}
+			assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+			assert.Equal(t, tt.wantMessage, result.Message)
 		})
 	}
 }
 
+func TestDNSExecutor_Execute_IPv6Resolver(t *testing.T) {
+	requireIPv6Loopback(t)
+	port := startDNSServerOn(t, "[::1]:0")
+	monitor := dnsMonitor(port, "peekaping.test", "A", 2)
+	monitor.Config = strings.Replace(monitor.Config, "127.0.0.1", "::1", 1)
+
+	result := NewDNSExecutor(zap.NewNop().Sugar()).Execute(context.Background(), monitor, nil)
+
+	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+	assert.Equal(t, "A records: 192.0.2.10", result.Message)
+}
+
 func TestDNSExecutor_Execute_NoRecords(t *testing.T) {
 	executor := NewDNSExecutor(zap.NewNop().Sugar())
-	port := startDNSServer(t, "127.0.0.1")
+	port := startDNSServer(t)
 
 	tests := []struct {
 		name        string
@@ -323,7 +334,7 @@ func TestDNSExecutor_Execute_NoRecords(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := executor.Execute(context.Background(), dnsMonitor("127.0.0.1", port, tt.host, tt.resolveType, 2), nil)
+			result := executor.Execute(context.Background(), dnsMonitor(port, tt.host, tt.resolveType, 2), nil)
 
 			assert.Equal(t, shared.MonitorStatusDown, result.Status)
 			assert.Contains(t, result.Message, tt.wantMessage)
@@ -343,7 +354,7 @@ func TestDNSExecutor_Execute_Timeout(t *testing.T) {
 	for _, resolveType := range []string{"A", "SOA"} {
 		t.Run(resolveType, func(t *testing.T) {
 			start := time.Now()
-			result := executor.Execute(context.Background(), dnsMonitor("127.0.0.1", port, "peekaping.test", resolveType, 1), nil)
+			result := executor.Execute(context.Background(), dnsMonitor(port, "peekaping.test", resolveType, 1), nil)
 
 			assert.Equal(t, shared.MonitorStatusDown, result.Status)
 			assert.Contains(t, result.Message, "DNS lookup failed")
@@ -362,10 +373,10 @@ func TestDNSExecutor_Execute_InvalidConfig(t *testing.T) {
 }
 
 func TestDNSExecutor_Execute_IgnoresProxy(t *testing.T) {
-	port := startDNSServer(t, "127.0.0.1")
+	port := startDNSServer(t)
 	proxy := &Proxy{ID: "proxy1", Host: "127.0.0.1", Port: closedPort(t), Protocol: "http"}
 
-	result := NewDNSExecutor(zap.NewNop().Sugar()).Execute(context.Background(), dnsMonitor("127.0.0.1", port, "peekaping.test", "A", 2), proxy)
+	result := NewDNSExecutor(zap.NewNop().Sugar()).Execute(context.Background(), dnsMonitor(port, "peekaping.test", "A", 2), proxy)
 
 	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
 }

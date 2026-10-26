@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"runtime"
 	"sync"
 	"testing"
+	"time"
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/maintenance"
@@ -23,10 +25,14 @@ import (
 
 const testInstanceID = "6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f"
 
+// lowerUUIDv4 is the instance ID the Worker accepts
+var lowerUUIDv4 = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+
 // fakeSettings is the settings table: the service's one door to the stored settings.
 type fakeSettings struct {
-	mu     sync.Mutex
-	values map[string]*shared.SettingModel
+	mu         sync.Mutex
+	values     map[string]*shared.SettingModel
+	failDelete error
 }
 
 func newFakeSettings() *fakeSettings {
@@ -51,9 +57,22 @@ func (f *fakeSettings) SetByKey(_ context.Context, key string, entity *shared.Se
 	return &copied, nil
 }
 
+func (f *fakeSettings) CreateIfAbsent(_ context.Context, key string, entity *shared.SettingModel) (*shared.SettingModel, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if _, ok := f.values[key]; !ok {
+		f.values[key] = &shared.SettingModel{Key: key, Value: entity.Value, Type: entity.Type}
+	}
+	copied := *f.values[key]
+	return &copied, nil
+}
+
 func (f *fakeSettings) DeleteByKey(_ context.Context, key string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+	if f.failDelete != nil {
+		return f.failDelete
+	}
 	delete(f.values, key)
 	return nil
 }
@@ -226,6 +245,8 @@ func TestBuildPayload_MonitorBuckets(t *testing.T) {
 
 func TestBuildPayload_NothingConfiguredSendsEmptyListsAndFalseFeatures(t *testing.T) {
 	in := newInstall()
+	// Opted out, so that the payload has no random instance ID to compare
+	in.settings.put(EnabledKey, "false", "bool")
 
 	payload, err := in.service().BuildPayload(context.Background())
 
@@ -245,18 +266,18 @@ func TestBuildPayload_NothingConfiguredSendsEmptyListsAndFalseFeatures(t *testin
 	}`, version.Version, runtime.GOOS+"/"+runtime.GOARCH), string(encoded))
 }
 
-func TestBuildPayload_InstanceIDIsSentOnlyWhileOptedIn(t *testing.T) {
+func TestBuildPayload_InstanceIDIsSentUnlessTheAdminOptedOut(t *testing.T) {
 	in := newInstall()
 	in.settings.put(InstanceIDKey, testInstanceID, "string")
 
 	payload, err := in.service().BuildPayload(context.Background())
 	require.NoError(t, err)
-	assert.Equal(t, "", payload.InstanceID, "an ID left behind is not sent without the opt-in")
+	assert.Equal(t, testInstanceID, payload.InstanceID, "the ping is on by default, so the ID is sent without a stored choice")
 
 	in.settings.put(EnabledKey, "false", "bool")
 	payload, err = in.service().BuildPayload(context.Background())
 	require.NoError(t, err)
-	assert.Equal(t, "", payload.InstanceID)
+	assert.Equal(t, "", payload.InstanceID, "an ID left behind is not sent after an opt-out")
 
 	in.settings.put(EnabledKey, "true", "bool")
 	payload, err = in.service().BuildPayload(context.Background())
@@ -270,9 +291,6 @@ func TestBuildPayload_StorageBackendIsNormalized(t *testing.T) {
 		"SQLite":     "sqlite",
 		"postgres":   "postgres",
 		"postgresql": "postgres",
-		"mongo":      "mongo",
-		"mongodb":    "mongo",
-		"MongoDB":    "mongo",
 		"mysql":      "mysql",
 		"MySQL":      "mysql",
 		"mariadb":    "",
@@ -387,4 +405,226 @@ func TestBuildPayload_FailsWhenAnInstallsDataCannotBeRead(t *testing.T) {
 	_, err := in.service().BuildPayload(context.Background())
 
 	assert.ErrorContains(t, err, "database is locked")
+}
+
+func TestState_IsOnByDefaultAndHasAnInstanceID(t *testing.T) {
+	in := newInstall()
+
+	state, err := in.service().State(context.Background())
+
+	require.NoError(t, err)
+	assert.True(t, state.Enabled, "no stored choice means on")
+	assert.False(t, state.ForcedOff)
+	assert.Regexp(t, lowerUUIDv4, state.Payload.InstanceID)
+	stored, err := in.settings.GetByKey(context.Background(), InstanceIDKey)
+	require.NoError(t, err)
+	require.NotNil(t, stored)
+	assert.Equal(t, state.Payload.InstanceID, stored.Value)
+	assert.Equal(t, "string", stored.Type)
+	choice, err := in.settings.GetByKey(context.Background(), EnabledKey)
+	require.NoError(t, err)
+	assert.Nil(t, choice, "the default is not stored as the admin's choice")
+}
+
+func TestInstanceID_IsCreatedOnceForAnInstallWithNoChoice(t *testing.T) {
+	in := newInstall()
+	ctx := context.Background()
+
+	state, err := in.service().State(ctx)
+	require.NoError(t, err)
+	first := state.Payload.InstanceID
+	require.Regexp(t, lowerUUIDv4, first)
+
+	// Each reader below is a fresh service over the same settings, as after a restart
+	built, err := in.service().BuildPayload(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, first, built.InstanceID)
+	due, err := in.service().NextPing(ctx, time.Date(2026, 10, 22, 8, 0, 0, 0, time.UTC))
+	require.NoError(t, err)
+	require.NotNil(t, due, "the first ping of an install that never chose is due at once")
+	assert.Equal(t, first, due.InstanceID)
+	state, err = in.service().State(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, first, state.Payload.InstanceID)
+}
+
+// Several api replicas of a cluster start together on an install with no stored choice and no ID.
+// They must not send different IDs.
+func TestInstanceID_ReplicasStartingTogetherEndWithTheSameID(t *testing.T) {
+	in := newInstall()
+	const replicas = 16
+	ids := make([]string, replicas)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for n := range replicas {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			state, err := in.service().State(context.Background())
+			if assert.NoError(t, err) {
+				ids[n] = state.Payload.InstanceID
+			}
+		}()
+	}
+	close(start)
+	wg.Wait()
+
+	stored, err := in.settings.GetByKey(context.Background(), InstanceIDKey)
+	require.NoError(t, err)
+	require.NotNil(t, stored)
+	assert.Regexp(t, lowerUUIDv4, stored.Value)
+	for n, id := range ids {
+		assert.Equal(t, stored.Value, id, "replica %d sends another ID than the stored one", n)
+	}
+}
+
+func TestSetEnabled_AnExplicitOptOutIsStoredAndSurvivesARestart(t *testing.T) {
+	in := newInstall()
+	ctx := context.Background()
+	state, err := in.service().State(ctx)
+	require.NoError(t, err)
+	firstID := state.Payload.InstanceID
+	require.NotEmpty(t, firstID)
+
+	state, err = in.service().SetEnabled(ctx, false)
+
+	require.NoError(t, err)
+	assert.False(t, state.Enabled)
+	assert.Equal(t, "", state.Payload.InstanceID)
+	choice, err := in.settings.GetByKey(ctx, EnabledKey)
+	require.NoError(t, err)
+	require.NotNil(t, choice)
+	assert.Equal(t, "false", choice.Value)
+	id, err := in.settings.GetByKey(ctx, InstanceIDKey)
+	require.NoError(t, err)
+	assert.Nil(t, id, "opting out deletes the ID")
+
+	// The restart: a new service over the same settings reads the choice, and creates nothing
+	restarted := in.service()
+	state, err = restarted.State(ctx)
+	require.NoError(t, err)
+	assert.False(t, state.Enabled)
+	assert.Equal(t, "", state.Payload.InstanceID)
+	due, err := restarted.NextPing(ctx, time.Date(2026, 10, 22, 8, 0, 0, 0, time.UTC))
+	require.NoError(t, err)
+	assert.Nil(t, due, "no ping after an opt-out")
+	id, err = in.settings.GetByKey(ctx, InstanceIDKey)
+	require.NoError(t, err)
+	assert.Nil(t, id, "and no ID is made again")
+
+	// Opting back in makes a new ID
+	state, err = restarted.SetEnabled(ctx, true)
+	require.NoError(t, err)
+	assert.True(t, state.Enabled)
+	assert.Regexp(t, lowerUUIDv4, state.Payload.InstanceID)
+	assert.NotEqual(t, firstID, state.Payload.InstanceID)
+}
+
+func TestKillSwitchesWinWhenNothingIsStored(t *testing.T) {
+	for name, cfg := range map[string]*config.Config{
+		"TELEMETRY=off": {DBType: "sqlite", Telemetry: "off"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			in := newInstall()
+			in.cfg = cfg
+			ctx := context.Background()
+
+			state, err := in.service().State(ctx)
+			require.NoError(t, err)
+			assert.True(t, state.Enabled, "the stored choice is the default")
+			assert.True(t, state.ForcedOff)
+			assert.Equal(t, "", state.Payload.InstanceID, "no identifier is made while the environment forbids the ping")
+			due, err := in.service().NextPing(ctx, time.Date(2026, 10, 22, 8, 0, 0, 0, time.UTC))
+			require.NoError(t, err)
+			assert.Nil(t, due)
+			assert.Empty(t, in.settings.values, "and nothing is stored")
+		})
+	}
+}
+
+// A choice that failed half way must not turn the ping back on: once the admin has opted out the
+// choice is stored first, so an ID that is made later for the default can't send the ping the
+// admin refused.
+func TestSetEnabled_AFailedOptOutNeverLeavesThePingOn(t *testing.T) {
+	in := newInstall()
+	ctx := context.Background()
+	_, err := in.service().State(ctx)
+	require.NoError(t, err)
+	in.settings.failDelete = errors.New("database is locked")
+
+	_, err = in.service().SetEnabled(ctx, false)
+
+	require.Error(t, err)
+	state, err := in.service().State(ctx)
+	require.NoError(t, err)
+	assert.False(t, state.Enabled, "the choice was stored before the ID was deleted")
+	assert.Equal(t, "", state.Payload.InstanceID)
+	due, err := in.service().NextPing(ctx, time.Date(2026, 10, 22, 8, 0, 0, 0, time.UTC))
+	require.NoError(t, err)
+	assert.Nil(t, due)
+}
+
+func TestState_TheNoticeIsPendingUntilItIsMarkedSeen(t *testing.T) {
+	in := newInstall()
+	ctx := context.Background()
+
+	state, err := in.service().State(ctx)
+	require.NoError(t, err)
+	assert.True(t, state.NoticePending, "an install that upgrades starts sending and has not been told")
+
+	state, err = in.service().MarkNoticeSeen(ctx)
+	require.NoError(t, err)
+	assert.False(t, state.NoticePending)
+	assert.True(t, state.Enabled, "dismissing the notice is not a choice")
+	seen, err := in.settings.GetByKey(ctx, shared.TelemetryNoticeSeenKey)
+	require.NoError(t, err)
+	require.NotNil(t, seen)
+	assert.Equal(t, "TELEMETRY_NOTICE_SEEN", shared.TelemetryNoticeSeenKey)
+	assert.Equal(t, "true", seen.Value)
+	choice, err := in.settings.GetByKey(ctx, EnabledKey)
+	require.NoError(t, err)
+	assert.Nil(t, choice)
+
+	state, err = in.service().State(ctx)
+	require.NoError(t, err)
+	assert.False(t, state.NoticePending, "and a restart does not bring it back")
+}
+
+func TestSetEnabled_MarksTheNoticeSeen(t *testing.T) {
+	for _, enabled := range []bool{true, false} {
+		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
+			in := newInstall()
+
+			state, err := in.service().SetEnabled(context.Background(), enabled)
+
+			require.NoError(t, err)
+			assert.False(t, state.NoticePending)
+			seen, err := in.settings.GetByKey(context.Background(), shared.TelemetryNoticeSeenKey)
+			require.NoError(t, err)
+			require.NotNil(t, seen)
+		})
+	}
+}
+
+func TestState_NoNoticeWhenTheEnvironmentForcesBothFeaturesOff(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cfg     *config.Config
+		pending bool
+	}{
+		"nothing forced off":     {&config.Config{}, true},
+		"only the ping":          {&config.Config{Telemetry: "off"}, true},
+		"only the error reports": {&config.Config{ErrorReporting: "off"}, true},
+		"both":                   {&config.Config{Telemetry: "off", ErrorReporting: "off"}, false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			in := newInstall()
+			in.cfg = tc.cfg
+
+			state, err := in.service().State(context.Background())
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.pending, state.NoticePending)
+		})
+	}
 }

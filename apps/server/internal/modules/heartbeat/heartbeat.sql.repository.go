@@ -16,6 +16,7 @@ type sqlModel struct {
 
 	ID        string    `bun:"id,pk"`
 	MonitorID string    `bun:"monitor_id,notnull"`
+	ProbeID   string    `bun:"probe_id,notnull"`
 	Status    int       `bun:"status,notnull"`
 	Msg       string    `bun:"msg"`
 	Ping      int       `bun:"ping"`
@@ -32,6 +33,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
 		ID:        sm.ID,
 		MonitorID: sm.MonitorID,
+		ProbeID:   sm.ProbeID,
 		Status:    MonitorStatus(sm.Status),
 		Msg:       sm.Msg,
 		Ping:      sm.Ping,
@@ -49,6 +51,7 @@ func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:        m.ID,
 		MonitorID: m.MonitorID,
+		ProbeID:   m.ProbeID,
 		Status:    int(m.Status),
 		Msg:       m.Msg,
 		Ping:      m.Ping,
@@ -73,7 +76,15 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) Create(ctx context.Context, heartbeat *Model) (*Model, error) {
 	sm := toSQLModel(heartbeat)
 	sm.ID = uuid.New().String()
-	sm.Time = time.Now()
+	// A heartbeat that names no probe was made by the local probe
+	if sm.ProbeID == "" {
+		sm.ProbeID = shared.LocalProbeID
+	}
+	// A heartbeat is stored at the time its check started; only one with no time is stamped with
+	// the insert time
+	if sm.Time.IsZero() {
+		sm.Time = time.Now()
+	}
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
@@ -140,6 +151,7 @@ func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 	ctx context.Context,
 	monitorID string,
+	probeID string,
 	limit int,
 	page int,
 	important *bool,
@@ -150,6 +162,10 @@ func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 		Where("monitor_id = ?", monitorID).
 		Limit(limit).
 		Offset(page * limit)
+
+	if probeID != "" {
+		query = query.Where("probe_id = ?", probeID)
+	}
 
 	if important != nil {
 		query = query.Where("important = ?", *important)

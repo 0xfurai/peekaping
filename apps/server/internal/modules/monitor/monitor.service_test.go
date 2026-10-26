@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
+	"slices"
 	"testing"
 	"time"
 
@@ -57,6 +58,21 @@ func (m *MockMonitorRepository) FindActive(ctx context.Context) ([]*Model, error
 func (m *MockMonitorRepository) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
 	args := m.Called(ctx, page, limit)
 	return args.Get(0).([]*Model), args.Error(1)
+}
+
+func (m *MockMonitorRepository) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
+	args := m.Called(ctx, probeID, page, limit)
+	return args.Get(0).([]*Model), args.Error(1)
+}
+
+func (m *MockMonitorRepository) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, _ func(shared.LocationJudgement) *shared.MonitorStatus) error {
+	args := m.Called(ctx, monitorID, state)
+	return args.Error(0)
+}
+
+func (m *MockMonitorRepository) ResetLocations(ctx context.Context, monitorID string) error {
+	args := m.Called(ctx, monitorID)
+	return args.Error(0)
 }
 
 func (m *MockMonitorRepository) UpdateFull(ctx context.Context, id string, monitor *Model) error {
@@ -136,6 +152,11 @@ func (m *MockHeartbeatService) FindByMonitorIDPaginated(ctx context.Context, mon
 	return args.Get(0).([]*heartbeat.Model), args.Error(1)
 }
 
+func (m *MockHeartbeatService) FindByMonitorIDAndProbeIDPaginated(ctx context.Context, monitorID, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+	args := m.Called(ctx, monitorID, probeID, limit, page, important, reverse)
+	return args.Get(0).([]*heartbeat.Model), args.Error(1)
+}
+
 func (m *MockHeartbeatService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
@@ -163,6 +184,11 @@ func (m *MockMonitorNotificationService) Delete(ctx context.Context, id string) 
 func (m *MockMonitorNotificationService) FindByMonitorID(ctx context.Context, monitorID string) ([]*monitor_notification.Model, error) {
 	args := m.Called(ctx, monitorID)
 	return args.Get(0).([]*monitor_notification.Model), args.Error(1)
+}
+
+func (m *MockMonitorNotificationService) FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*monitor_notification.Model, error) {
+	args := m.Called(ctx, monitorIDs)
+	return args.Get(0).(map[string][]*monitor_notification.Model), args.Error(1)
 }
 
 func (m *MockMonitorNotificationService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
@@ -197,6 +223,11 @@ func (m *MockMonitorTagService) Delete(ctx context.Context, id string) error {
 func (m *MockMonitorTagService) FindByMonitorID(ctx context.Context, monitorID string) ([]*monitor_tag.Model, error) {
 	args := m.Called(ctx, monitorID)
 	return args.Get(0).([]*monitor_tag.Model), args.Error(1)
+}
+
+func (m *MockMonitorTagService) FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*monitor_tag.Model, error) {
+	args := m.Called(ctx, monitorIDs)
+	return args.Get(0).(map[string][]*monitor_tag.Model), args.Error(1)
 }
 
 func (m *MockMonitorTagService) FindByTagID(ctx context.Context, tagID string) ([]*monitor_tag.Model, error) {
@@ -254,13 +285,13 @@ func (m *MockStatsService) DeleteExpired(ctx context.Context, now time.Time) (ma
 	return args.Get(0).(map[stats.StatPeriod]int64), args.Error(1)
 }
 
-func (m *MockStatsService) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period stats.StatPeriod, interval int) ([]*stats.Stat, error) {
-	args := m.Called(ctx, monitorID, since, until, period, interval)
+func (m *MockStatsService) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID, probeID string, since, until time.Time, period stats.StatPeriod, interval int) ([]*stats.Stat, error) {
+	args := m.Called(ctx, monitorID, probeID, since, until, period, interval)
 	return args.Get(0).([]*stats.Stat), args.Error(1)
 }
 
-func (m *MockStatsService) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period stats.StatPeriod) ([]*stats.Stat, error) {
-	args := m.Called(ctx, monitorID, since, until, period)
+func (m *MockStatsService) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID, probeID string, since, until time.Time, period stats.StatPeriod) ([]*stats.Stat, error) {
+	args := m.Called(ctx, monitorID, probeID, since, until, period)
 	return args.Get(0).([]*stats.Stat), args.Error(1)
 }
 
@@ -269,8 +300,8 @@ func (m *MockStatsService) StatPointsSummary(statsList []*stats.Stat) *stats.Sta
 	return args.Get(0).(*stats.Stats)
 }
 
-func (m *MockStatsService) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*stats.Stats, error) {
-	args := m.Called(ctx, monitorID, since, until)
+func (m *MockStatsService) Summarize(ctx context.Context, monitorID, probeID string, since, until time.Time) (*stats.Stats, error) {
+	args := m.Called(ctx, monitorID, probeID, since, until)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -343,6 +374,7 @@ func setupMonitorService() (*MonitorServiceImpl, *MockMonitorRepository, *MockHe
 		mockTagService,
 		realExecutorRegistry,
 		mockStatsService,
+		nil,
 		logger,
 	).(*MonitorServiceImpl)
 
@@ -400,6 +432,7 @@ func TestMonitorService_Create(t *testing.T) {
 			MaxRetries:     3,
 			RetryInterval:  45,
 			ResendInterval: 10,
+			LocationRule:   shared.LocationRuleAny,
 			Active:         true,
 			Status:         shared.MonitorStatusPending,
 			Config:         "{}",
@@ -602,10 +635,11 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 	t.Run("monitor removed before it is read back", func(t *testing.T) {
 		service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
 		monitorID := "removed123"
+		mockRepo.On("FindByID", inTx, monitorID).Return(&Model{ID: monitorID, Type: "tcp"}, nil).Once()
 		mockRepo.On("UpdateFull", inTx, monitorID, mock.Anything).Return(nil)
 		notifications.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
 		tags.On("DeleteByMonitorID", inTx, monitorID).Return(nil)
-		mockRepo.On("FindByID", inTx, monitorID).Return(nil, nil)
+		mockRepo.On("FindByID", inTx, monitorID).Return(nil, nil).Once()
 
 		result, err := service.UpdateFull(ctx, monitorID, &CreateUpdateDto{Type: "tcp", Name: "Updated Monitor"})
 
@@ -616,6 +650,19 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("monitor gone before the update", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
+		mockRepo.On("FindByID", inTx, "gone123").Return(nil, nil)
+		mockRepo.On("UpdateFull", mock.Anything, "gone123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+
+		result, err := service.UpdateFull(ctx, "gone123", &CreateUpdateDto{Type: "tcp", Name: "Updated Monitor"})
+
+		assert.ErrorIs(t, err, ErrMonitorNotFound)
+		assert.Nil(t, result)
+		assert.Empty(t, bus.Topics())
+		mockRepo.AssertNotCalled(t, "UpdateFull", mock.Anything, mock.Anything, mock.Anything)
+	})
+
 	t.Run("repository error", func(t *testing.T) {
 		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		monitorID := "monitor123"
@@ -624,6 +671,7 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 			Name: "Updated Monitor",
 		}
 
+		mockRepo.On("FindByID", inTx, monitorID).Return(&Model{ID: monitorID, Type: "tcp"}, nil)
 		mockRepo.On("UpdateFull", inTx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		result, err := service.UpdateFull(ctx, monitorID, updateDto)
@@ -660,6 +708,7 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 	} {
 		t.Run("rolls back and publishes nothing when "+tc.name+" fails", func(t *testing.T) {
 			service, mockRepo, _, bus, notifications, tags, _, _ := setupMonitorService()
+			mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123", Type: "tcp"}, nil)
 			mockRepo.On("UpdateFull", inTx, "monitor123", mock.Anything).Return(nil)
 			tc.fails(notifications, tags)
 
@@ -1132,9 +1181,9 @@ func TestMonitorService_GetHeartbeats(t *testing.T) {
 			{ID: "hb2", MonitorID: monitorID},
 		}
 
-		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, limit, page, &important, reverse).Return(expectedHeartbeats, nil)
+		mockHeartbeatService.On("FindByMonitorIDAndProbeIDPaginated", ctx, monitorID, "probe-frankfurt", limit, page, &important, reverse).Return(expectedHeartbeats, nil)
 
-		result, err := service.GetHeartbeats(ctx, monitorID, limit, page, &important, reverse)
+		result, err := service.GetHeartbeats(ctx, monitorID, "probe-frankfurt", limit, page, &important, reverse)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedHeartbeats, result)
@@ -1147,9 +1196,9 @@ func TestMonitorService_GetHeartbeats(t *testing.T) {
 		limit := 10
 		page := 1
 
-		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, limit, page, (*bool)(nil), false).Return(([]*heartbeat.Model)(nil), errors.New("service error"))
+		mockHeartbeatService.On("FindByMonitorIDAndProbeIDPaginated", ctx, monitorID, "", limit, page, (*bool)(nil), false).Return(([]*heartbeat.Model)(nil), errors.New("service error"))
 
-		result, err := service.GetHeartbeats(ctx, monitorID, limit, page, nil, false)
+		result, err := service.GetHeartbeats(ctx, monitorID, "", limit, page, nil, false)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1193,13 +1242,14 @@ func TestMonitorService_GetStatPoints(t *testing.T) {
 		}
 
 		mockRepo.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("FindStatsByMonitorIDAndTimeRangeWithInterval", ctx, monitorID, since, until, stats.StatHourly, monitor.Interval).Return(statsList, nil)
+		mockStatsService.On("FindStatsByMonitorIDAndTimeRangeWithInterval", ctx, monitorID, "probe-frankfurt", since, until, stats.StatHourly, monitor.Interval).Return(statsList, nil)
 		mockStatsService.On("StatPointsSummary", statsList).Return(summary)
 
-		result, err := service.GetStatPoints(ctx, monitorID, since, until, granularity)
+		result, err := service.GetStatPoints(ctx, monitorID, "probe-frankfurt", since, until, granularity)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
+		assert.Equal(t, "probe-frankfurt", result.ProbeID)
 		assert.Len(t, result.Points, 1)
 		assert.Equal(t, 10, result.Points[0].Up)
 		assert.Equal(t, 2, result.Points[0].Down)
@@ -1224,7 +1274,7 @@ func TestMonitorService_GetStatPoints(t *testing.T) {
 		until := time.Now()
 		granularity := "invalid"
 
-		result, err := service.GetStatPoints(ctx, monitorID, since, until, granularity)
+		result, err := service.GetStatPoints(ctx, monitorID, "", since, until, granularity)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1240,7 +1290,7 @@ func TestMonitorService_GetStatPoints(t *testing.T) {
 
 		mockRepo.On("FindByID", ctx, monitorID).Return((*Model)(nil), errors.New("not found"))
 
-		result, err := service.GetStatPoints(ctx, monitorID, since, until, granularity)
+		result, err := service.GetStatPoints(ctx, monitorID, "", since, until, granularity)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1257,7 +1307,7 @@ func TestMonitorService_GetStatPoints(t *testing.T) {
 
 		mockRepo.On("FindByID", ctx, monitorID).Return((*Model)(nil), nil)
 
-		result, err := service.GetStatPoints(ctx, monitorID, since, until, granularity)
+		result, err := service.GetStatPoints(ctx, monitorID, "", since, until, granularity)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1278,9 +1328,9 @@ func TestMonitorService_GetStatPoints(t *testing.T) {
 		}
 
 		mockRepo.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("FindStatsByMonitorIDAndTimeRangeWithInterval", ctx, monitorID, since, until, stats.StatMinutely, monitor.Interval).Return(([]*stats.Stat)(nil), errors.New("stats error"))
+		mockStatsService.On("FindStatsByMonitorIDAndTimeRangeWithInterval", ctx, monitorID, "", since, until, stats.StatMinutely, monitor.Interval).Return(([]*stats.Stat)(nil), errors.New("stats error"))
 
-		result, err := service.GetStatPoints(ctx, monitorID, since, until, granularity)
+		result, err := service.GetStatPoints(ctx, monitorID, "", since, until, granularity)
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
@@ -1304,13 +1354,14 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 			30 * 24 * time.Hour:  97,
 			365 * 24 * time.Hour: 96,
 		} {
-			mockStatsService.On("Summarize", ctx, monitorID, sinceAgo(window), mock.AnythingOfType("time.Time")).Return(&stats.Stats{Uptime: &uptime}, nil).Once()
+			mockStatsService.On("Summarize", ctx, monitorID, "probe-frankfurt", sinceAgo(window), mock.AnythingOfType("time.Time")).Return(&stats.Stats{Uptime: &uptime}, nil).Once()
 		}
 
-		result, err := service.GetUptimeStats(ctx, monitorID)
+		result, err := service.GetUptimeStats(ctx, monitorID, "probe-frankfurt")
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
+		assert.Equal(t, "probe-frankfurt", result.ProbeID)
 		assert.Equal(t, 99.0, result.Uptime24h)
 		assert.Equal(t, 98.0, result.Uptime7d)
 		assert.Equal(t, 97.0, result.Uptime30d)
@@ -1327,9 +1378,9 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 			Uptime: nil,
 		}
 
-		mockStatsService.On("Summarize", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(summary, nil).Times(4)
+		mockStatsService.On("Summarize", ctx, monitorID, "", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(summary, nil).Times(4)
 
-		result, err := service.GetUptimeStats(ctx, monitorID)
+		result, err := service.GetUptimeStats(ctx, monitorID, "")
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
@@ -1345,14 +1396,49 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
-		mockStatsService.On("Summarize", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(nil, errors.New("stats error"))
+		mockStatsService.On("Summarize", ctx, monitorID, "", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(nil, errors.New("stats error"))
 
-		result, err := service.GetUptimeStats(ctx, monitorID)
+		result, err := service.GetUptimeStats(ctx, monitorID, "")
 
 		assert.Error(t, err)
 		assert.Nil(t, result)
 		assert.Contains(t, err.Error(), "stats error")
 		mockStatsService.AssertExpectations(t)
+	})
+}
+
+func TestMonitorService_GetUptime24h(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("reads the last 24 hours of one probe with one stats read", func(t *testing.T) {
+		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
+		uptime := 87.5
+		mockStatsService.On("Summarize", ctx, "monitor123", "probe-frankfurt", sinceAgo(24*time.Hour), mock.AnythingOfType("time.Time")).Return(&stats.Stats{Uptime: &uptime}, nil).Once()
+
+		result, err := service.GetUptime24h(ctx, "monitor123", "probe-frankfurt")
+
+		assert.NoError(t, err)
+		assert.Equal(t, 87.5, result)
+		mockStatsService.AssertExpectations(t)
+	})
+
+	t.Run("no checks in the period is 0", func(t *testing.T) {
+		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
+		mockStatsService.On("Summarize", ctx, "monitor123", "", sinceAgo(24*time.Hour), mock.AnythingOfType("time.Time")).Return(&stats.Stats{}, nil).Once()
+
+		result, err := service.GetUptime24h(ctx, "monitor123", "")
+
+		assert.NoError(t, err)
+		assert.Equal(t, 0.0, result)
+	})
+
+	t.Run("a stats error is returned", func(t *testing.T) {
+		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
+		mockStatsService.On("Summarize", ctx, "monitor123", "p", sinceAgo(24*time.Hour), mock.AnythingOfType("time.Time")).Return(nil, errors.New("stats error")).Once()
+
+		_, err := service.GetUptime24h(ctx, "monitor123", "p")
+
+		assert.Error(t, err)
 	})
 }
 
@@ -1376,6 +1462,7 @@ func TestMonitorService_ResetMonitorData(t *testing.T) {
 		mockRepo.On("FindByID", ctx, monitorID).Return(monitor, nil).Once()
 		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
 		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
+		mockRepo.On("ResetLocations", ctx, monitorID).Return(nil)
 		mockRepo.On("UpdatePartial", ctx, monitorID, mock.MatchedBy(func(m *UpdateModel) bool {
 			return *m.ID == monitorID && *m.Status == shared.MonitorStatusPending
 		})).Return(nil)
@@ -1466,6 +1553,7 @@ func TestMonitorService_ResetMonitorData(t *testing.T) {
 		mockRepo.On("FindByID", ctx, monitorID).Return(monitor, nil)
 		mockHeartbeatService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
 		mockStatsService.On("DeleteByMonitorID", ctx, monitorID).Return(nil)
+		mockRepo.On("ResetLocations", ctx, monitorID).Return(nil)
 		mockRepo.On("UpdatePartial", ctx, monitorID, mock.Anything).Return(errors.New("update failed"))
 
 		err := service.ResetMonitorData(ctx, monitorID)
@@ -1706,6 +1794,7 @@ func TestNewMonitorService(t *testing.T) {
 		mockTagService,
 		realExecutorRegistry,
 		mockStatsService,
+		nil,
 		logger,
 	)
 
@@ -1814,5 +1903,173 @@ func TestMonitorService_RepairStoredStatuses(t *testing.T) {
 		assert.Equal(t, 1, repaired)
 		assert.ErrorIs(t, err, context.Canceled)
 		mockRepo.AssertNotCalled(t, "FindAll", cancelled, 1, StatusRepairPageSize, "", unset, noStatus, noTags)
+	})
+}
+
+// fakeProbes is a ProbeLookup over the probes it holds, by id
+type fakeProbes struct {
+	probes map[string]*ProbeInfo
+	err    error
+}
+
+func (f fakeProbes) FindProbe(_ context.Context, id string) (*ProbeInfo, error) {
+	return f.probes[id], f.err
+}
+
+// The types a probe lists are the ones it has an executor for. A push monitor needs none: its pushes
+// arrive at the api, so it runs on the local probe whatever that probe lists, and peekaping-probe
+// lists every type but push. The local probe of a cluster is its instances, which report exactly that.
+func TestMonitorService_APushMonitorIsNeverRefusedForTheTypesAProbeRuns(t *testing.T) {
+	ctx := context.Background()
+	probes := fakeProbes{probes: map[string]*ProbeInfo{
+		"local": {Name: "Local", SupportedTypes: []string{"http", "tcp", "dns"}},
+	}}
+	newService := func() (*MonitorServiceImpl, *MockMonitorRepository) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service.probes = probes
+		return service, mockRepo
+	}
+
+	t.Run("create", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("Create", inTx, mock.Anything).Return(&Model{ID: "monitor123"}, nil)
+
+		_, err := service.Create(ctx, &CreateUpdateDto{Type: "push", Name: "Nightly cron", Config: "{}", ProbeIDs: []string{"local"}})
+
+		require.NoError(t, err)
+	})
+
+	t.Run("an http monitor still needs a probe that runs http", func(t *testing.T) {
+		service, _ := newService()
+
+		_, err := service.Create(ctx, &CreateUpdateDto{Type: "docker", Name: "Containers", Config: "{}", ProbeIDs: []string{"local"}})
+
+		require.EqualError(t, err, `invalid probe_ids: probe "Local" doesn't run docker monitors`)
+	})
+
+	t.Run("a monitor becomes a push monitor", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123", Type: "http", ProbeIDs: []string{"local"}}, nil)
+		mockRepo.On("UpdatePartial", mock.Anything, "monitor123", mock.Anything).Return(nil).Maybe()
+		mockRepo.On("FindByID", mock.Anything, "monitor123").Return(&Model{ID: "monitor123", Type: "push", ProbeIDs: []string{"local"}}, nil).Maybe()
+		pushType := "push"
+
+		_, err := service.UpdatePartial(ctx, "monitor123", &PartialUpdateDto{Type: &pushType}, false)
+
+		var invalid *InvalidProbesError
+		assert.False(t, errors.As(err, &invalid), "the local probe lists no push, and push needs no executor: %v", err)
+	})
+}
+
+// A graph without probes: the probe side says so, and only the local probe, which is all there is,
+// is accepted.
+func TestMonitorService_WithoutProbesOnlyAcceptsLocal(t *testing.T) {
+	ctx := context.Background()
+	newService := func() (*MonitorServiceImpl, *MockMonitorRepository) {
+		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+		service.probes = fakeProbes{err: ErrNoProbes}
+		return service, mockRepo
+	}
+	dto := func(probeIDs ...string) *CreateUpdateDto {
+		return &CreateUpdateDto{Type: "http", Name: "Checkout", Config: "{}", ProbeIDs: probeIDs}
+	}
+
+	t.Run("local is accepted", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("Create", inTx, mock.MatchedBy(func(m *Model) bool { return slices.Equal(m.ProbeIDs, []string{"local"}) })).Return(&Model{ID: "monitor123"}, nil)
+
+		_, err := service.Create(ctx, dto("local"))
+
+		require.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("a monitor without probes is accepted", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("Create", inTx, mock.MatchedBy(func(m *Model) bool { return m.ProbeIDs == nil })).Return(&Model{ID: "monitor123"}, nil)
+
+		_, err := service.Create(ctx, &CreateUpdateDto{Type: "http", Name: "Checkout", Config: "{}"})
+
+		require.NoError(t, err)
+	})
+
+	t.Run("any other probe is refused", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("Create", mock.Anything, mock.Anything).Return(&Model{ID: "monitor123"}, nil).Maybe() // asserted below to be uncalled
+
+		_, err := service.Create(ctx, dto("frankfurt"))
+
+		var invalid *InvalidProbesError
+		require.ErrorAs(t, err, &invalid)
+		assert.ErrorIs(t, err, ErrNoProbes)
+		assert.EqualError(t, err, `invalid probe_ids: probe "frankfurt" can't be used: probes aren't available here`)
+		mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+	})
+
+	t.Run("a partial update to another probe is refused", func(t *testing.T) {
+		service, mockRepo := newService()
+		mockRepo.On("FindByID", inTx, "monitor123").Return(&Model{ID: "monitor123", Type: "http", ProbeIDs: []string{"local"}}, nil)
+		mockRepo.On("UpdatePartial", mock.Anything, "monitor123", mock.Anything).Return(nil).Maybe() // asserted below to be uncalled
+
+		_, err := service.UpdatePartial(ctx, "monitor123", &PartialUpdateDto{ProbeIDs: []string{"frankfurt"}}, false)
+
+		var invalid *InvalidProbesError
+		require.ErrorAs(t, err, &invalid)
+		mockRepo.AssertNotCalled(t, "UpdatePartial", mock.Anything, mock.Anything, mock.Anything)
+	})
+}
+
+func TestMonitorService_ChecksTheProbeOfAMonitor(t *testing.T) {
+	ctx := context.Background()
+	probes := fakeProbes{probes: map[string]*ProbeInfo{
+		"local":     {Name: "Local"},
+		"frankfurt": {Name: "Frankfurt", SupportedTypes: []string{"http", "tcp"}},
+		"paris":     {Name: "Paris", SupportedTypes: []string{"dns"}},
+	}}
+
+	for _, tc := range []struct {
+		name     string
+		typ      string
+		probeIDs []string
+		want     string // the reason, empty when the monitor is accepted
+	}{
+		{"one probe that runs the type", "http", []string{"frankfurt"}, ""},
+		{"a probe with no types runs every type", "docker", []string{"local"}, ""},
+		{"no probes", "http", []string{}, "a monitor runs on at least one probe"},
+		{"two probes that run the type", "http", []string{"local", "frankfurt"}, ""},
+		{"the same probe twice", "http", []string{"frankfurt", "frankfurt"}, `probe "frankfurt" is listed twice`},
+		{"one of two probes runs other types", "http", []string{"frankfurt", "paris"}, `probe "Paris" doesn't run http monitors`},
+		{"a push monitor on local and a remote probe", "push", []string{"local", "frankfurt"}, "a push monitor runs on the local probe only"},
+		{"an unknown probe", "http", []string{"berlin"}, `probe "berlin" doesn't exist`},
+		{"a probe that runs other types", "http", []string{"paris"}, `probe "Paris" doesn't run http monitors`},
+		{"a push monitor on a remote probe", "push", []string{"frankfurt"}, "a push monitor runs on the local probe only"},
+		{"a push monitor on the local probe", "push", []string{"local"}, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+			service.probes = probes
+			mockRepo.On("Create", inTx, mock.Anything).Return(&Model{ID: "monitor123"}, nil).Maybe()
+
+			_, err := service.Create(ctx, &CreateUpdateDto{Type: tc.typ, Name: "Checkout", Config: "{}", ProbeIDs: tc.probeIDs})
+
+			if tc.want == "" {
+				require.NoError(t, err)
+				mockRepo.AssertCalled(t, "Create", inTx, mock.Anything)
+				return
+			}
+			require.EqualError(t, err, "invalid probe_ids: "+tc.want)
+			mockRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		})
+	}
+
+	t.Run("a failure to look the probe up is not the client's", func(t *testing.T) {
+		service, _, _, _, _, _, _, _ := setupMonitorService()
+		service.probes = fakeProbes{err: errors.New("database is down")}
+
+		_, err := service.Create(ctx, &CreateUpdateDto{Type: "http", Name: "Checkout", ProbeIDs: []string{"local"}})
+
+		require.EqualError(t, err, "database is down")
+		var invalid *InvalidProbesError
+		assert.False(t, errors.As(err, &invalid))
 	})
 }

@@ -1,12 +1,12 @@
 # Makefile for Peekaping project
 #
 # This Makefile supports multiple Docker Compose configurations:
-# - Development: dev-postgres, dev-mongo (deprecated), dev-sqlite
-# - Production:  prod-postgres, prod-mongo (deprecated), prod-sqlite
-# - Dependencies: sqlite, postgres, mongo (deprecated)
+# - Development: docker-dev-postgres, docker-dev-sqlite
+# - Production:  docker-prod-postgres, docker-prod-sqlite
+# - Dependencies: docker-sqlite, docker-postgres
 #
 # To change the default database, modify DEFAULT_DEV_DB or DEFAULT_PROD_DB below
-# Example: make dev (uses default) vs make dev-sqlite (specific database)
+# Example: make docker-down (stops the default development services) vs make down-dev-sqlite (a specific database)
 
 # Variables
 GO_SERVER_DIR = apps/server
@@ -15,14 +15,12 @@ BINARY_NAME = peekaping-server
 
 # Docker Compose configurations
 COMPOSE_DEV_POSTGRES = docker-compose.dev.postgres.yml
-COMPOSE_DEV_MONGO = docker-compose.dev.mongo.yml
 COMPOSE_DEV_SQLITE = docker-compose.dev.sqlite.yml
 COMPOSE_PROD_POSTGRES = docker-compose.prod.postgres.yml
-COMPOSE_PROD_MONGO = docker-compose.prod.mongo.yml
 COMPOSE_PROD_SQLITE = docker-compose.prod.sqlite.yml
 COMPOSE_DEPS = docker-compose.deps.yml
 
-# Default configurations (MongoDB storage is deprecated: docs/adr/0001-deprecate-mongodb-storage.md)
+# Default configurations
 DEFAULT_DEV_DB = postgres
 DEFAULT_PROD_DB = postgres
 
@@ -32,13 +30,6 @@ DEFAULT_PROD_DB = postgres
 # Help target - shows available commands
 .PHONY: help
 help: ## Show this help message
-	@echo "🐳 DOCKER CONFIGURATIONS QUICK REFERENCE:"
-	@echo "  \033[32mDevelopment:\033[0m   dev-postgres, dev-mongo (deprecated), dev-sqlite"
-	@echo "  \033[33mProduction:\033[0m    prod-postgres, prod-mongo (deprecated), prod-sqlite"
-	@echo "  \033[36mDependencies:\033[0m  sqlite, postgres, mongo (deprecated)"
-	@echo "  \033[35mSwitchers:\033[0m     switch-to-postgres, switch-to-mongo (deprecated), switch-to-sqlite"
-	@echo "  \033[31mStop All:\033[0m      docker-down-all"
-	@echo ""
 	@echo "📋 Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
 
@@ -47,126 +38,96 @@ docker-configs: ## Show all available Docker Compose configurations
 	@echo "📋 Available Docker Compose Configurations:"
 	@echo ""
 	@echo "🔧 \033[32mDEVELOPMENT ENVIRONMENTS:\033[0m"
-	@echo "  make dev-postgres    # $(COMPOSE_DEV_POSTGRES)"
-	@echo "  make dev-mongo       # $(COMPOSE_DEV_MONGO) (deprecated)"
-	@echo "  make dev-sqlite      # $(COMPOSE_DEV_SQLITE)"
+	@echo "  make docker-dev-postgres   # $(COMPOSE_DEV_POSTGRES)"
+	@echo "  make docker-dev-sqlite     # $(COMPOSE_DEV_SQLITE)"
 	@echo ""
 	@echo "🚀 \033[33mPRODUCTION ENVIRONMENTS:\033[0m"
-	@echo "  make prod-postgres   # $(COMPOSE_PROD_POSTGRES)"
-	@echo "  make prod-mongo      # $(COMPOSE_PROD_MONGO) (deprecated)"
-	@echo "  make prod-sqlite     # $(COMPOSE_PROD_SQLITE)"
+	@echo "  make docker-prod-postgres  # $(COMPOSE_PROD_POSTGRES)"
+	@echo "  make docker-prod-sqlite    # $(COMPOSE_PROD_SQLITE)"
 	@echo ""
 	@echo "🎯 \033[36mDEPENDENCIES:\033[0m"
-	@echo "  make docker-sqlite   # $(COMPOSE_DEPS)"
-	@echo "  make docker-postgres # $(COMPOSE_DEPS) --profile postgres"
-	@echo "  make docker-mongo    # $(COMPOSE_DEPS) --profile mongo (deprecated)"
+	@echo "  make docker-sqlite         # $(COMPOSE_DEPS)"
+	@echo "  make docker-postgres       # $(COMPOSE_DEPS) --profile postgres"
 	@echo ""
 	@echo "⚡ \033[35mQUICK SWITCHERS:\033[0m"
-	@echo "  make switch-to-postgres   # Stop all → Start PostgreSQL dev"
-	@echo "  make switch-to-mongo      # Stop all → Start MongoDB dev (deprecated)"
-	@echo "  make switch-to-sqlite     # Stop all → Start SQLite dev"
+	@echo "  make switch-to-postgres    # Stop all → Start PostgreSQL dev"
+	@echo "  make switch-to-sqlite      # Stop all → Start SQLite dev"
 	@echo ""
-	@echo "🔍 \033[34mUTILITY COMMANDS:\033[0m"
-	@echo "  make docker-status        # Show status of all configurations"
-	@echo "  make docker-ps            # Show running containers"
-	@echo "  make docker-down-all      # Stop all configurations"
+	@echo "🛑 \033[31mSTOP:\033[0m"
+	@echo "  make down-dev-postgres     # $(COMPOSE_DEV_POSTGRES)"
+	@echo "  make down-dev-sqlite       # $(COMPOSE_DEV_SQLITE)"
+	@echo "  make down-prod-postgres    # $(COMPOSE_PROD_POSTGRES)"
+	@echo "  make down-prod-sqlite      # $(COMPOSE_PROD_SQLITE)"
+	@echo "  make down-postgres         # $(COMPOSE_DEPS) --profile postgres"
+	@echo "  make down-sqlite           # $(COMPOSE_DEPS)"
+	@echo "  make docker-down-all       # Stop all configurations"
 
 
 # Docker targets - Development Environment
 .PHONY: docker-dev-postgres
 docker-dev-postgres: ## Start development environment with PostgreSQL
 	@echo "Starting development environment with PostgreSQL..."
-	docker-compose -f $(COMPOSE_DEV_POSTGRES) up -d --build
-
-.PHONY: docker-dev-mongo
-docker-dev-mongo: ## Start development environment with MongoDB
-	@echo "Starting development environment with MongoDB..."
-	docker-compose -f $(COMPOSE_DEV_MONGO) up -d --build
+	docker compose -f $(COMPOSE_DEV_POSTGRES) up -d --build
 
 .PHONY: docker-dev-sqlite
 docker-dev-sqlite: ## Start development environment with SQLite
 	@echo "Starting development environment with SQLite..."
-	docker-compose -f $(COMPOSE_DEV_SQLITE) up -d --build
+	docker compose -f $(COMPOSE_DEV_SQLITE) up -d --build
 
 
 # Docker targets - Production Environment
 .PHONY: docker-prod-postgres
 docker-prod-postgres: ## Start production environment with PostgreSQL
 	@echo "Starting production environment with PostgreSQL..."
-	docker-compose -f $(COMPOSE_PROD_POSTGRES) up -d
-
-.PHONY: docker-prod-mongo
-docker-prod-mongo: ## Start production environment with MongoDB
-	@echo "Starting production environment with MongoDB..."
-	docker-compose -f $(COMPOSE_PROD_MONGO) up -d
+	docker compose -f $(COMPOSE_PROD_POSTGRES) up -d
 
 .PHONY: docker-prod-sqlite
 docker-prod-sqlite: ## Start production environment with SQLite
 	@echo "Starting production environment with SQLite..."
-	docker-compose -f $(COMPOSE_PROD_SQLITE) up -d
+	docker compose -f $(COMPOSE_PROD_SQLITE) up -d
 
 
 # Docker targets - Standard Configurations
 .PHONY: docker-postgres
 docker-postgres: ## Start PostgreSQL environment
 	@echo "Starting PostgreSQL environment..."
-	docker-compose -f $(COMPOSE_DEPS) --profile postgres up -d
-
-.PHONY: docker-mongo
-docker-mongo: ## Start MongoDB environment
-	@echo "Starting MongoDB environment..."
-	docker-compose -f $(COMPOSE_DEPS) --profile mongo up -d
+	docker compose -f $(COMPOSE_DEPS) --profile postgres up -d
 
 .PHONY: docker-sqlite
 docker-sqlite: ## Start SQLite environment
 	@echo "Starting SQLite environment..."
-	docker-compose -f $(COMPOSE_DEPS) up -d
+	docker compose -f $(COMPOSE_DEPS) up -d
 
 # Docker targets - Service Management
 .PHONY: down-dev-postgres
 down-dev-postgres: ## Stop development PostgreSQL services
 	@echo "Stopping development PostgreSQL services..."
-	docker-compose -f $(COMPOSE_DEV_POSTGRES) down
-
-.PHONY: down-dev-mongo
-down-dev-mongo: ## Stop development MongoDB services
-	@echo "Stopping development MongoDB services..."
-	docker-compose -f $(COMPOSE_DEV_MONGO) down
+	docker compose -f $(COMPOSE_DEV_POSTGRES) down
 
 .PHONY: down-dev-sqlite
 down-dev-sqlite: ## Stop development SQLite services
 	@echo "Stopping development SQLite services..."
-	docker-compose -f $(COMPOSE_DEV_SQLITE) down
+	docker compose -f $(COMPOSE_DEV_SQLITE) down
 
 .PHONY: down-prod-postgres
 down-prod-postgres: ## Stop production PostgreSQL services
 	@echo "Stopping production PostgreSQL services..."
-	docker-compose -f $(COMPOSE_PROD_POSTGRES) down
-
-.PHONY: down-prod-mongo
-down-prod-mongo: ## Stop production MongoDB services
-	@echo "Stopping production MongoDB services..."
-	docker-compose -f $(COMPOSE_PROD_MONGO) down
+	docker compose -f $(COMPOSE_PROD_POSTGRES) down
 
 .PHONY: down-prod-sqlite
 down-prod-sqlite: ## Stop production SQLite services
 	@echo "Stopping production SQLite services..."
-	docker-compose -f $(COMPOSE_PROD_SQLITE) down
+	docker compose -f $(COMPOSE_PROD_SQLITE) down
 
 .PHONY: down-postgres
 down-postgres: ## Stop PostgreSQL services
 	@echo "Stopping PostgreSQL services..."
-	docker-compose -f $(COMPOSE_DEPS) --profile postgres down
-
-.PHONY: down-mongo
-down-mongo: ## Stop MongoDB services
-	@echo "Stopping MongoDB services..."
-	docker-compose -f $(COMPOSE_DEPS) --profile mongo down
+	docker compose -f $(COMPOSE_DEPS) --profile postgres down
 
 .PHONY: down-sqlite
 down-sqlite: ## Stop SQLite services
 	@echo "Stopping SQLite services..."
-	docker-compose -f $(COMPOSE_DEPS) down
+	docker compose -f $(COMPOSE_DEPS) down
 
 .PHONY: docker-down
 docker-down: down-dev-$(DEFAULT_DEV_DB) ## Stop default development services
@@ -174,13 +135,11 @@ docker-down: down-dev-$(DEFAULT_DEV_DB) ## Stop default development services
 .PHONY: docker-down-all
 docker-down-all: ## Stop all Docker Compose services
 	@echo "Stopping all Docker services..."
-	@docker-compose -f $(COMPOSE_DEV_POSTGRES) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_DEV_MONGO) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_DEV_SQLITE) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_PROD_POSTGRES) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_PROD_MONGO) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_PROD_SQLITE) down 2>/dev/null || true
-	@docker-compose -f $(COMPOSE_DEPS) --profile postgres --profile mongo down 2>/dev/null || true
+	@docker compose -f $(COMPOSE_DEV_POSTGRES) down --remove-orphans 2>/dev/null || true
+	@docker compose -f $(COMPOSE_DEV_SQLITE) down --remove-orphans 2>/dev/null || true
+	@docker compose -f $(COMPOSE_PROD_POSTGRES) down --remove-orphans 2>/dev/null || true
+	@docker compose -f $(COMPOSE_PROD_SQLITE) down --remove-orphans 2>/dev/null || true
+	@docker compose -f $(COMPOSE_DEPS) --profile postgres down --remove-orphans 2>/dev/null || true
 
 # Database targets
 .PHONY: migrate-init
@@ -201,15 +160,11 @@ migrate-down: ## Run database migrations down
 
 # Quick database environment switchers
 .PHONY: switch-to-postgres
-switch-to-postgres: docker-down-all dev-postgres ## Switch to PostgreSQL development environment
+switch-to-postgres: docker-down-all docker-dev-postgres ## Switch to PostgreSQL development environment
 	@echo "Switched to PostgreSQL development environment"
 
-.PHONY: switch-to-mongo
-switch-to-mongo: docker-down-all dev-mongo ## Switch to MongoDB development environment
-	@echo "Switched to MongoDB development environment"
-
 .PHONY: switch-to-sqlite
-switch-to-sqlite: docker-down-all dev-sqlite ## Switch to SQLite development environment
+switch-to-sqlite: docker-down-all docker-dev-sqlite ## Switch to SQLite development environment
 	@echo "Switched to SQLite development environment"
 
 .PHONY: test-server
@@ -221,28 +176,6 @@ test-server: ## Test the server
 lint-web: ## Test the web
 	@echo "Testing the web..."
 	cd apps/web && bun run lint && bun run build
-
-# Producer targets
-.PHONY: build-producer
-build-producer: ## Build the producer binary
-	@echo "Building producer..."
-	cd $(GO_SERVER_DIR) && go build -o ../../bin/producer ./cmd/producer
-
-.PHONY: run-producer
-run-producer: ## Run the producer service
-	@echo "Running producer..."
-	cd $(GO_SERVER_DIR) && go run ./cmd/producer/main.go
-
-# Ingester targets
-.PHONY: build-ingester
-build-ingester: ## Build the ingester binary
-	@echo "Building ingester..."
-	cd $(GO_SERVER_DIR) && go build -o ../../bin/ingester ./cmd/ingester
-
-.PHONY: run-ingester
-run-ingester: ## Run the ingester service
-	@echo "Running ingester..."
-	cd $(GO_SERVER_DIR) && go run ./cmd/ingester/main.go
 
 .PHONY: sync-skills
 sync-skills: ## Link shared agent skills into Claude Code
@@ -261,6 +194,8 @@ install: ## Install all dependencies (bun install + go mod tidy)
 	cd apps/server && go mod tidy
 	@echo "✅ All dependencies installed successfully!"
 
+# The api stores the results and runs the watchdog, and a probe checks the monitors: it needs
+# PEEKAPING_URL and PROBE_TOKEN, which .env.dev.example sets.
 .PHONY: dev
 dev: ## Start development environment
-	bun run dev dev:api dev:ingester dev:producer dev:worker docs:watch
+	bun run dev dev:api dev:probe docs:watch

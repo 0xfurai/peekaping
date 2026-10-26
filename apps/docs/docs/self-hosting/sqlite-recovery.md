@@ -12,7 +12,7 @@ This page is for the SQLite storage backend, the database Peekaping keeps its da
 
 ## The startup check
 
-At start, Peekaping checks the database. `SQLITE_STARTUP_CHECK` chooses the check. In single mode, `peekaping` runs it. In cluster mode, the `api`, `producer` and `ingester` each run it. The `migrate` image doesn't.
+At start, Peekaping checks the database. `SQLITE_STARTUP_CHECK` chooses the check. In single mode, `peekaping` runs it. In cluster mode, each `api` container runs it. The `migrate` image doesn't.
 
 | `SQLITE_STARTUP_CHECK` | What runs |
 | --- | --- |
@@ -22,7 +22,7 @@ At start, Peekaping checks the database. `SQLITE_STARTUP_CHECK` chooses the chec
 
 The values are lower case. Any other value fails the configuration check, and Peekaping doesn't start. [Startup check](./docker-with-sqlite.md#startup-check) shows how to set it.
 
-The quick check walks the b-tree pages (the pages that hold tables and indexes) and takes about 2 seconds for a 1.5 GB database. It finds malformed pages, bad free page lists and wrong page counts. It doesn't find an index that disagrees with its table. The full check, `PRAGMA integrity_check`, finds that too, but it reads the whole file and takes about 30 seconds for 1.5 GB, so it isn't the default. Set `SQLITE_STARTUP_CHECK=full` to run it at every start, for example on a database you suspect. In cluster mode, three processes then read the file at once. To run it only when you choose, see [Running the full check by hand](#running-the-full-check-by-hand).
+The quick check walks the b-tree pages (the pages that hold tables and indexes) and takes about 2 seconds for a 1.5 GB database. It finds malformed pages, bad free page lists and wrong page counts. It doesn't find an index that disagrees with its table. The full check, `PRAGMA integrity_check`, finds that too, but it reads the whole file and takes about 30 seconds for 1.5 GB, so it isn't the default. Set `SQLITE_STARTUP_CHECK=full` to run it at every start, for example on a database you suspect. In cluster mode, all API replicas then read the file at once. To run it only when you choose, see [Running the full check by hand](#running-the-full-check-by-hand).
 
 With `off`, Peekaping runs no check. It logs `SQLite startup check skipped: SQLITE_STARTUP_CHECK is off` and starts, even on a damaged file, and then writes to the file, which can make the damage worse. Use it only when you have checked the file another way, for example on a copy of it.
 
@@ -53,7 +53,7 @@ docker logs peekaping
 docker compose logs peekaping
 
 # Cluster mode with Docker Compose
-docker compose logs api producer ingester
+docker compose logs api
 ```
 
 On Kubernetes, use `kubectl logs` on the pods.
@@ -72,7 +72,7 @@ Stop every process that uses the database, and stop its restarts. Don't start Pe
 
 - **Single mode with `docker run`:** `docker stop -t 35 peekaping`.
 - **Single mode with Docker Compose:** `docker compose down`.
-- **Cluster mode with Docker Compose:** `docker compose stop api producer ingester`. Run `docker compose ps` and check that no `migrate` container is running.
+- **Cluster mode with Docker Compose:** `docker compose stop api`. Run `docker compose ps` and check that no `migrate` container is running. The `probe` uses no database, so it can keep running, but only for a while. It keeps checking and holds at most 10,000 results in memory, and when that is full it drops the oldest. When the api is back, the probe sends what it holds, but the API refuses results from checks that started more than one hour ago. So an outage longer than an hour, or one that fills the buffer first, leaves a gap in the heartbeats. A probe that restarts during the outage loses the results it holds.
 - **Kubernetes, with your own manifests:** stop every workload that mounts the database volume, whatever its kind: a Deployment, a StatefulSet, a Job or a plain Pod. Scale it to 0 replicas, or delete it. Then run `kubectl get pods` in that namespace and check that no pod that mounts the volume is left. (The Helm chart supports PostgreSQL only.)
 
 ### 2. Preserve the original

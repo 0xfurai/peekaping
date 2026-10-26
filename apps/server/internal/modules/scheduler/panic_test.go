@@ -23,14 +23,12 @@ func TestScheduler_APanicEndsOnlyTheCheckItHappensIn(t *testing.T) {
 	// harness through a pointer, since it is built with them.
 	tests := map[string]func(h **harness, panicked *atomic.Bool) func(*Config){
 		"in the load": func(h **harness, panicked *atomic.Bool) func(*Config) {
-			return func(cfg *Config) {
-				cfg.Loader = loaderFunc(func(ctx context.Context, monitorID string) (*check.Job, error) {
-					if monitorID == "bad" && panicked.CompareAndSwap(false, true) {
-						panic("loader bug")
-					}
-					return (*h).db.Load(ctx, monitorID)
-				})
-			}
+			return withLoader(loaderFunc(func(ctx context.Context, monitorID string) (*check.Job, error) {
+				if monitorID == "bad" && panicked.CompareAndSwap(false, true) {
+					panic("loader bug")
+				}
+				return (*h).db.Load(ctx, monitorID)
+			}))
 		},
 		"in the ingest": func(h **harness, panicked *atomic.Bool) func(*Config) {
 			return func(cfg *Config) {
@@ -70,14 +68,15 @@ func TestScheduler_APanicEndsOnlyTheCheckItHappensIn(t *testing.T) {
 
 // panicsOnceInTheLoad makes the first check of monitor "bad" panic
 func panicsOnceInTheLoad(h **harness, panicked *atomic.Bool) func(*Config) {
+	loader := withLoader(loaderFunc(func(ctx context.Context, monitorID string) (*check.Job, error) {
+		if monitorID == "bad" && panicked.CompareAndSwap(false, true) {
+			panic("loader bug")
+		}
+		return (*h).db.Load(ctx, monitorID)
+	}))
 	return func(cfg *Config) {
 		cfg.Concurrency = 1
-		cfg.Loader = loaderFunc(func(ctx context.Context, monitorID string) (*check.Job, error) {
-			if monitorID == "bad" && panicked.CompareAndSwap(false, true) {
-				panic("loader bug")
-			}
-			return (*h).db.Load(ctx, monitorID)
-		})
+		loader(cfg)
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -30,7 +31,7 @@ func NewController(
 
 // validateWithDetails provides detailed error messages for validation failures
 func (c *Controller) validateWithDetails(dto interface{}) error {
-	if err := utils.Validate.Struct(dto); err != nil {
+	if err := validation.Validate.Struct(dto); err != nil {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			var errorMessages []string
 

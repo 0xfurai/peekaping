@@ -1,9 +1,8 @@
 // Package metrics exposes the Status of Peekaping's Monitors as Prometheus metrics.
 //
 // The collector keeps the latest Heartbeat of every active Monitor in memory, fed
-// by the event bus (Redis pub/sub in a multi-process deployment), so it sees
-// Heartbeats whichever process ran the check. A scrape reads that memory only:
-// no database round-trips, no polling of the worker.
+// by the event bus (Redis pub/sub in cluster mode), so it sees Heartbeats whichever api
+// replica stored them. A scrape reads that memory only: no database round-trips.
 package metrics
 
 import (

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 	"net/url"
 	"peekaping/internal/modules/shared"
 	"strings"
@@ -93,34 +94,23 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 
 	startTime := time.Now().UTC()
 
-	// Validate configuration before execution
+	// Validate configuration before execution, and before connecting: a
+	// query that isn't allowed is Down even when nothing listens.
 	if err := ValidateConnectionString(cfg.DatabaseConnectionString, []string{"postgres", "postgresql"}); err != nil {
 		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
 	}
 
-	config, err := p.parseConnectionString(cfg.DatabaseConnectionString)
+	query := cfg.DatabaseQuery
+	if strings.TrimSpace(query) == "" {
+		query = "SELECT 1"
+	} else if err := p.validateQuery(query); err != nil {
+		return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
+	}
+
+	connector, err := newPostgresConnector(cfg.DatabaseConnectionString)
 	if err != nil {
 		return DownResult(fmt.Errorf("failed to parse connection string: %w", err), startTime, time.Now().UTC())
 	}
-
-	if sslStr, ok := config["sslmode"]; ok && sslStr != "" {
-		config["sslmode"] = sslStr
-	} else {
-		config["sslmode"] = "disable"
-	}
-
-	if config["password"] == "" {
-		return DownResult(fmt.Errorf("password is undefined"), startTime, time.Now().UTC())
-	}
-
-	connector := pgdriver.NewConnector(
-		pgdriver.WithNetwork("tcp"),
-		pgdriver.WithAddr(fmt.Sprintf("%s:%s", config["host"], config["port"])),
-		pgdriver.WithUser(config["user"]),
-		pgdriver.WithPassword(config["password"]),
-		pgdriver.WithDatabase(config["dbname"]),
-		pgdriver.WithInsecure(config["sslmode"] == "disable"),
-	)
 
 	db := sql.OpenDB(connector)
 	defer db.Close()
@@ -130,16 +120,6 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 
 	if err := db.PingContext(ctx); err != nil {
 		return DownResult(fmt.Errorf("connection failed: %w", err), startTime, time.Now().UTC())
-	}
-
-	query := cfg.DatabaseQuery
-	if query == "" || strings.TrimSpace(query) == "" {
-		query = "SELECT 1"
-	} else {
-		// Validate query before execution
-		if err := p.validateQuery(query); err != nil {
-			return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
-		}
 	}
 
 	rows, err := db.QueryContext(ctx, query)
@@ -180,47 +160,61 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 	}
 }
 
-func (p *PostgresExecutor) parseConnectionString(connectionString string) (map[string]string, error) {
-	config := make(map[string]string)
-
-	parsedURL, err := url.Parse(connectionString)
+// newPostgresConnector builds the connector for a postgres:// connection
+// string. pgdriver reads the string itself, so it maps sslmode to a TLS
+// configuration, whatever its case: allow, prefer and require encrypt without
+// checking the certificate (allow and prefer don't fall back to plain text, as
+// libpq's do: a server without TLS is Down), and verify-ca and verify-full check
+// it against the system's roots.
+//
+// Only the user, password, host, port, database and sslmode reach pgdriver. Any
+// other query parameter is ignored, as it always has been here: pgdriver sends
+// the ones it doesn't know to the server as SET <name> TO <value>, which would
+// run statements the query validator never saw and turn a stray ?foo=bar into
+// Down. That also drops sslrootcert, which names a file on the Peekaping server
+// rather than on the user's machine, and host, which pgdriver reads as a Unix
+// socket when it is a path. A missing or empty sslmode means no TLS, as it
+// always has here; pgdriver's own default would be TLS without checking the
+// certificate.
+func newPostgresConnector(connectionString string) (connector *pgdriver.Connector, err error) {
+	u, err := url.Parse(connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("invalid connection string format: %w", err)
 	}
-
-	if parsedURL.Scheme != "postgres" && parsedURL.Scheme != "postgresql" {
-		return nil, fmt.Errorf("invalid scheme: %s", parsedURL.Scheme)
+	if u.Scheme != "postgres" && u.Scheme != "postgresql" {
+		return nil, fmt.Errorf("invalid scheme: %s", u.Scheme)
+	}
+	if u.User == nil {
+		return nil, fmt.Errorf("password is undefined")
+	}
+	if password, _ := u.User.Password(); password == "" {
+		return nil, fmt.Errorf("password is undefined")
 	}
 
-	if parsedURL.User != nil {
-		config["user"] = parsedURL.User.Username()
-		if password, ok := parsedURL.User.Password(); ok {
-			config["password"] = password
+	port := u.Port()
+	if port == "" {
+		port = "5432"
+	}
+	addr := net.JoinHostPort(u.Hostname(), port)
+	// pgdriver is case sensitive about sslmode, and this check wasn't: anything
+	// but exactly "disable" connected over TLS.
+	sslMode := strings.ToLower(u.Query().Get("sslmode"))
+	// The port is always in the host: pgdriver takes the name it verifies the
+	// certificate against from it, and keeps an IPv6 host's brackets without one.
+	dsn := url.URL{Scheme: u.Scheme, User: u.User, Host: addr, Path: u.Path}
+	if sslMode != "" {
+		dsn.RawQuery = url.Values{"sslmode": {sslMode}}.Encode()
+	}
+
+	// pgdriver panics on a string it can't use, such as an unknown sslmode.
+	defer func() {
+		if r := recover(); r != nil {
+			connector, err = nil, fmt.Errorf("%v", r)
 		}
+	}()
+	options := []pgdriver.Option{pgdriver.WithDSN(dsn.String())}
+	if sslMode == "" {
+		options = append(options, pgdriver.WithInsecure(true))
 	}
-
-	if parsedURL.Host != "" {
-		host := parsedURL.Host
-		if strings.Contains(host, ":") {
-			parts := strings.Split(host, ":")
-			config["host"] = parts[0]
-			config["port"] = parts[1]
-		} else {
-			config["host"] = host
-			config["port"] = "5432"
-		}
-	}
-
-	if parsedURL.Path != "" && parsedURL.Path != "/" {
-		config["dbname"] = strings.TrimPrefix(parsedURL.Path, "/")
-	}
-
-	queryParams := parsedURL.Query()
-	for key, values := range queryParams {
-		if len(values) > 0 {
-			config[key] = values[0]
-		}
-	}
-
-	return config, nil
+	return pgdriver.NewConnector(options...), nil
 }

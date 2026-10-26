@@ -4,8 +4,9 @@ import { setTargetStatus, targetURL } from './support/fake-target';
 import { cardStatusOf, listFor, openLive } from './support/monitor-list';
 
 // A new monitor is checked at once and then every 20 seconds, the minimum
-// check interval. If the producer misses the create event, its 30-second
-// refresh picks the monitor up. The heartbeat then still has to reach the page.
+// check interval. If whatever runs the checks misses the create event, its next
+// refresh (within about 30 seconds) picks the monitor up. The heartbeat then still has to reach
+// the page.
 const nextCheck = { timeout: 60_000 };
 
 // A page that has joined its websocket room shows a heartbeat within moments of

@@ -52,8 +52,11 @@ const BarHistory: React.FC<BarHistoryProps> = ({
     };
 
     updateCount();
-    window.addEventListener("resize", updateCount);
-    return () => window.removeEventListener("resize", updateCount);
+    // Watch the container, not the window: opening or closing the sidebar changes
+    // the container's width without a window resize.
+    const observer = new ResizeObserver(updateCount);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, [segmentWidth, gap]);
 
   const trimmedData = data.slice(-visibleCount);
@@ -80,6 +83,7 @@ const BarHistory: React.FC<BarHistoryProps> = ({
               <Tooltip key={idx}>
                 <TooltipTrigger asChild>
                   <div
+                    data-testid="heartbeat-bar-segment"
                     className={cn("flex-shrink-0 h-full bg-gray-300", {
                       "bg-green-500": value?.status === 1,
                       "bg-red-500": value?.status === 0 || value?.status === 2,

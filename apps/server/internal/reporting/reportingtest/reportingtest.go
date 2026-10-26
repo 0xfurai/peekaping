@@ -105,6 +105,7 @@ func Install(t testing.TB) *Recorder {
 		Transport: recorder,
 	})
 	reporting.SetEnabled(true)
-	t.Cleanup(func() { reporting.Setup(reporting.Options{}) })
+	// ForcedOff builds no client, so that no later test can reach the built-in DSN
+	t.Cleanup(func() { reporting.Setup(reporting.Options{ForcedOff: true}) })
 	return recorder
 }

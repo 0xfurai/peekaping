@@ -28,6 +28,13 @@ on:
     tags:
       - 'v*'
 
+# A new push to a PR replaces its run in progress, which would otherwise keep
+# its runners busy testing a commit nobody waits for. Other runs get a group of
+# their own: a shared one would cancel the queued runs of busy pushes to main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -85,8 +92,15 @@ jobs:
         run: |
           pwd
           # -coverpkg credits code that tests in other packages reach, such as
-          # the controllers internal/apitest drives through the router
-          go test -timeout 120s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/...
+          # the controllers internal/apitest drives through the router. The timeout
+          # is per package: internal/apitest runs its tests one at a time, and with
+          # coverage it takes about two minutes on its own
+          go test -timeout 300s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/...
+
+      # The slim probe leaves out the executors of five monitor types (Dockerfile.probe, GO_TAGS=slim)
+      - name: Run slim probe tests
+        working-directory: apps/server
+        run: go test -timeout 120s -tags slim ./internal/probeclient/ ./internal/modules/healthcheck/executor/ ./cmd/probe/
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
@@ -94,5 +108,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: 0xfurai/peekaping
           file: apps/server/coverage.txt
+          flags: server
 
 

@@ -1,0 +1,8 @@
+POST https://api.eu.opsgenie.com/v2/alerts/Peekaping%2Fprobe-1/close?identifierType=alias
+Authorization: GenieKey genie-key
+Content-Type: application/json
+User-Agent: Peekaping-Opsgenie/<version>
+
+{
+  "source": "Peekaping"
+}

@@ -4,10 +4,7 @@ sidebar_position: 4
 
 # Bundle user and permissions
 
-The bundle images run Peekaping as a non-root user, `peekaping`, with UID and GID 1000:
-
-- **SQLite and PostgreSQL** (`peekaping-bundle-sqlite`, `peekaping-bundle-postgres`) run Peekaping in single mode: one process, `peekaping`. A startup script runs as root, sets up the `peekaping` user, runs the migrations and starts `peekaping` as that user. In the PostgreSQL bundle, PostgreSQL runs as its own `postgres` user, with UID 102 and GID 105 as in earlier bundles.
-- **MongoDB** (`peekaping-bundle-mongo`) runs Peekaping in cluster mode: the api, producer, worker and ingester processes run as `peekaping` under supervisord. Caddy, Redis, MongoDB and supervisord run as before.
+The bundle images (`peekaping-bundle-sqlite` and `peekaping-bundle-postgres`) run Peekaping in single mode, as a non-root user, `peekaping`, with UID and GID 1000. The one process, `peekaping`, runs as that user. A startup script runs as root, sets up the user, runs the migrations and starts `peekaping`. In the PostgreSQL bundle, PostgreSQL runs as its own `postgres` user, with UID 102 and GID 105 as in earlier bundles.
 
 The binaries belong to root, so Peekaping can't change them.
 
@@ -30,7 +27,7 @@ At each start, the container makes that user the owner of `/app/data`, where the
 
 An ID that isn't a number, or that a user or group in the image already has (such as 0 for root), stops the container with an error.
 
-In the MongoDB and PostgreSQL bundles, the database files belong to the database's own user, so `PUID` and `PGID` don't change them.
+In the PostgreSQL bundle, the database files belong to PostgreSQL's own user, so `PUID` and `PGID` don't change them.
 
 ## Starting the container with `--user`
 
@@ -41,8 +38,6 @@ The SQLite and PostgreSQL bundles also start with `docker run --user <uid>:<gid>
 - The container doesn't change the owner of the data folder, and doesn't check `net.ipv4.ping_group_range`.
 
 The user must own the data folder: `/app/data` for SQLite, `/var/lib/postgresql/data` for PostgreSQL. If it can't write there, the container stops with an error. A data folder from an earlier start without `--user` belongs to `PUID`:`PGID` (1000:1000 by default) in the SQLite bundle, and to PostgreSQL's user, 102:105, in the PostgreSQL bundle. Start with those IDs, or give the folder to your user first.
-
-The MongoDB bundle needs to start as root, so it doesn't support `--user`.
 
 ## Docker monitors
 
@@ -61,8 +56,8 @@ Anything that can use the Docker socket controls the host. To give Peekaping rea
 Ping monitors send ICMP echo requests. Peekaping doesn't run as root, so it opens an unprivileged ICMP socket. Linux allows that socket only for a process whose group, or one of its other groups, is in the `net.ipv4.ping_group_range` sysctl.
 
 - **`net.ipv4.ping_group_range`** is what makes ping work. It lets those groups send and receive ICMP echo (ping) messages, and nothing else that needs root. Docker sets it to every group in each container with its own network, so nothing needs to change there.
-- **`NET_RAW`** doesn't help. That capability lets a root process open a raw ICMP socket, but Peekaping runs as `peekaping`, and a non-root process doesn't get the container's capabilities. `--cap-add NET_RAW` or `cap_add: [NET_RAW]` changes nothing for ping monitors.
-- **The `ping` command**: when Peekaping can't open an ICMP socket, it runs the system `ping`. The SQLite bundle has BusyBox `ping`, which needs the same permission, so it doesn't get around a missing `ping_group_range`. The PostgreSQL and MongoDB bundles have no `ping`.
+- **`NET_RAW`** usually doesn't help. That capability lets a process open a raw ICMP socket, but Peekaping runs as `peekaping`, and most runtimes don't make a container's added capabilities effective for a non-root process. So `--cap-add NET_RAW` or `cap_add: [NET_RAW]` changes nothing for ping monitors there. If your runtime does make it effective for a non-root process, the raw socket works as a fallback when `ping_group_range` is unavailable.
+- **The `ping` command**: when Peekaping can't open an ICMP socket, it runs the system `ping`. The SQLite bundle has BusyBox `ping`, which needs the same permission, so it doesn't get around a missing `ping_group_range`. The PostgreSQL bundle has no `ping`.
 
 On a runtime that doesn't allow the group, the container logs a warning at start, and ping monitors are Down with `cannot open an ICMP socket`. This happens with rootless Docker, `userns-remap` and Podman, for example. Allow the range with:
 

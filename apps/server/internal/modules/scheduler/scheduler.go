@@ -1,7 +1,7 @@
-// Package scheduler is single mode's replacement for the producer, the queue and the worker:
-// it keeps a timer for each active monitor and runs the checks that fall due in a bounded
-// pool, in the same process, then ingests their results directly. Cluster mode keeps its
-// producer and worker. See ADR 0002, section 4.
+// Package scheduler is single mode's check scheduler: it keeps a timer for each active
+// monitor and runs the checks that fall due in a bounded pool, in the same process, then
+// ingests their results directly. Cluster mode has no scheduler: its probes run the checks.
+// See ADR 0002, section 4.
 package scheduler
 
 import (
@@ -16,26 +16,13 @@ import (
 
 	"go.uber.org/zap"
 
-	"peekaping/internal/modules/check"
-	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/healthcheck"
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/healthcheck/executor"
-	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/healthcheck/supervisor"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
-	"peekaping/internal/modules/stale"
 	"peekaping/internal/reporting"
 )
-
-// Loader loads what a check of a monitor needs. check.Loader is one.
-type Loader interface {
-	Load(ctx context.Context, monitorID string) (*check.Job, error)
-}
-
-// MonitorFinder is the part of the monitor service the scheduler reads
-type MonitorFinder interface {
-	FindByID(ctx context.Context, id string) (*shared.Monitor, error)
-	FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error)
-}
 
 // Executors finds the executor for a monitor type. executor.ExecutorRegistry is one.
 type Executors interface {
@@ -44,18 +31,18 @@ type Executors interface {
 
 // Config is what a Scheduler reads and calls
 type Config struct {
-	Loader     Loader
-	Monitors   MonitorFinder
+	// Source is where the monitors, their checks and the signals of their changes come from
+	Source     Source
 	Executors  Executors
-	Supervisor *healthcheck.HealthCheckSupervisor
+	Supervisor *supervisor.HealthCheckSupervisor
 	// Ingester takes the results of the checks. The scheduler ingests a monitor's results one
 	// at a time, in order. Pushes to a push monitor must go through the same
-	// ingester.NewInOrderService to be ordered with its checks.
-	Ingester ingester.Service
+	// ingest.NewInOrderService to be ordered with its checks.
+	Ingester ingest.Service
 	// Concurrency is how many checks run at the same time; DefaultConcurrency when it's zero
 	Concurrency int
-	// ReconcileInterval is how often the timers are compared with the active monitors in
-	// the database; DefaultReconcileInterval when it's zero
+	// ReconcileInterval is how often the timers are compared with the active monitors of the
+	// source; DefaultReconcileInterval when it's zero
 	ReconcileInterval time.Duration
 	Logger            *zap.SugaredLogger
 }
@@ -63,15 +50,15 @@ type Config struct {
 const (
 	// DefaultConcurrency is the size of the check pool when none is configured
 	DefaultConcurrency = 128
-	// DefaultReconcileInterval is how often the scheduler reconciles its timers with the database
+	// DefaultReconcileInterval is how often the scheduler reconciles its timers with its source
 	DefaultReconcileInterval = 30 * time.Second
 
 	// pageSize is how many active monitors are read at a time
 	pageSize = 100
 	// ingestTimeout bounds one result's ingest, which a cancelled check doesn't interrupt
 	ingestTimeout = 2 * time.Minute
-	// ingestGrace is what CheckTimeout allows for a result's ingest: as long as the worker
-	// allows for its result to be enqueued, so the watchdog waits as long in both modes
+	// ingestGrace is what CheckTimeout allows for a result's ingest. The watchdog of the cluster
+	// api uses CheckTimeout too, so it waits as long in both modes.
 	ingestGrace = 8 * time.Second
 )
 
@@ -79,25 +66,24 @@ const (
 // finish and be ingested once it has a slot in the pool. The watchdog gives a stale
 // monitor's new check this long before it notifies.
 func CheckTimeout(timeoutSeconds int) time.Duration {
-	return time.Duration(timeoutSeconds)*time.Second + healthcheck.ExecutorGrace + ingestGrace
+	return time.Duration(timeoutSeconds)*time.Second + supervisor.ExecutorGrace + ingestGrace
 }
 
 // Scheduler checks the active monitors when their check intervals pass. It implements
-// stale.Rechecker.
+// stale.Rechecker, which package app checks where it hands the scheduler to the watchdog.
 type Scheduler struct {
-	loader            Loader
-	monitors          MonitorFinder
+	source            Source
 	executors         Executors
-	supervisor        *healthcheck.HealthCheckSupervisor
-	ingester          ingester.Service
+	supervisor        *supervisor.HealthCheckSupervisor
+	ingester          ingest.Service
 	reconcileInterval time.Duration
 	logger            *zap.SugaredLogger
 
 	// slots is the check pool: a check holds one of its slots while it runs
 	slots chan struct{}
 
-	// syncMu serializes reading a monitor from the database and changing its schedule, so
-	// that events handled at the same time leave the schedule as the last read found the monitor
+	// syncMu serializes reading a monitor from the source and changing its schedule, so
+	// that signals handled at the same time leave the schedule as the last read found the monitor
 	syncMu sync.Mutex
 
 	mu        sync.Mutex
@@ -106,10 +92,9 @@ type Scheduler struct {
 	ctx       context.Context      // the scheduler's lifetime; nil until it starts
 	cancel    context.CancelFunc
 	stopped   bool
+	stopping  chan struct{} // closed once the scheduler is stopped
 	wg        sync.WaitGroup
 }
-
-var _ stale.Rechecker = (*Scheduler)(nil)
 
 // schedule is the timer of one monitor
 type schedule struct {
@@ -137,31 +122,30 @@ func New(cfg Config) *Scheduler {
 		reconcileInterval = DefaultReconcileInterval
 	}
 	return &Scheduler{
-		loader:            cfg.Loader,
-		monitors:          cfg.Monitors,
+		source:            cfg.Source,
 		executors:         cfg.Executors,
 		supervisor:        cfg.Supervisor,
-		ingester:          ingester.NewInOrderService(cfg.Ingester),
+		ingester:          ingest.NewInOrderService(cfg.Ingester),
 		reconcileInterval: reconcileInterval,
 		logger:            cfg.Logger.With("component", "scheduler"),
 		slots:             make(chan struct{}, concurrency),
+		stopping:          make(chan struct{}),
 		schedules:         make(map[string]*schedule),
 		checks:            make(map[string]*checkRun),
 	}
 }
 
-// nextAligned is the next multiple of the period after the time, counted from the Unix
-// epoch: the same rule as the producer's
+// nextAligned is the next multiple of the period after the time, counted from the Unix epoch
 func nextAligned(after time.Time, period time.Duration) time.Time {
 	ms := after.UnixMilli()
 	p := period.Milliseconds()
 	return time.UnixMilli(((ms / p) + 1) * p).UTC()
 }
 
-// Start checks every active monitor right away, then on each next multiple of its check
-// interval. Events that arrive before it starts are ignored: it reads the monitors itself.
-// From then on it reconciles its timers with the database every reconcile interval. ctx
-// ends the scheduler like Stop does.
+// Start checks every active monitor of its source right away, then on each next multiple of
+// its check interval. It listens to the source for monitors that are created, changed or gone
+// from then on, and reads the monitors itself. It reconciles its timers with the source every
+// reconcile interval. ctx ends the scheduler like Stop does.
 func (s *Scheduler) Start(ctx context.Context) error {
 	s.mu.Lock()
 	if s.ctx != nil {
@@ -172,6 +156,7 @@ func (s *Scheduler) Start(ctx context.Context) error {
 	runCtx := s.ctx
 	s.mu.Unlock()
 
+	s.source.Watch(s.onCreated, s.onUpdated, s.onDeleted)
 	if err := s.reconcile(runCtx); err != nil {
 		s.Stop()
 		return err
@@ -191,25 +176,57 @@ func (s *Scheduler) Start(ctx context.Context) error {
 // Stop stops the timers, cancels the running checks and waits for them to end. Their
 // results are dropped.
 func (s *Scheduler) Stop() {
-	s.mu.Lock()
-	if s.ctx == nil || s.stopped {
-		s.mu.Unlock()
+	if !s.halt() {
 		return
 	}
-	s.stopped = true
-	for id, sc := range s.schedules {
-		sc.timer.Stop()
-		delete(s.schedules, id)
-	}
 	s.cancel()
-	s.mu.Unlock()
-
 	s.wg.Wait()
 	s.logger.Info("Scheduler stopped")
 }
 
-// reconcileEvery reconciles the timers with the database every reconcile interval until
-// ctx is done
+// Drain stops the timers and lets the running checks finish and their results be ingested,
+// for as long as ctx lasts. When ctx is done first, it cancels the checks that are left and
+// drops their results, as Stop does. A check waiting for a slot in the pool never starts.
+// Drain returns once every check has ended, and the scheduler is stopped: Stop does nothing
+// after it.
+func (s *Scheduler) Drain(ctx context.Context) {
+	if !s.halt() {
+		return
+	}
+	ended := make(chan struct{})
+	go func() {
+		s.wg.Wait()
+		close(ended)
+	}()
+	select {
+	case <-ended:
+	case <-ctx.Done():
+		s.logger.Warn("Drain ran out of time, cancelling the checks that are still running")
+	}
+	s.cancel()
+	<-ended
+	s.logger.Info("Scheduler stopped")
+}
+
+// halt stops the timers and keeps any new check from starting. It reports false when the
+// scheduler has not started, or is stopped already.
+func (s *Scheduler) halt() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.ctx == nil || s.stopped {
+		return false
+	}
+	s.stopped = true
+	close(s.stopping)
+	for id, sc := range s.schedules {
+		sc.timer.Stop()
+		delete(s.schedules, id)
+	}
+	return true
+}
+
+// reconcileEvery reconciles the timers with the source every reconcile interval until ctx is
+// done or the scheduler stops
 func (s *Scheduler) reconcileEvery(ctx context.Context) {
 	defer s.wg.Done()
 	ticker := time.NewTicker(s.reconcileInterval)
@@ -218,6 +235,8 @@ func (s *Scheduler) reconcileEvery(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			return
+		case <-s.stopping:
 			return
 		case <-ticker.C:
 			if err := s.reconcile(ctx); err != nil && ctx.Err() == nil {
@@ -232,11 +251,10 @@ type reconciled struct {
 	added, rescheduled, removed int
 }
 
-// reconcile compares the timers with the active monitors in the database, as the producer's
-// refreshSchedule does, so that a missed event can't leave a monitor unscheduled or a
-// deleted one checked. A monitor without a timer is checked right away. One whose check
+// reconcile compares the timers with the active monitors of the source, so that a missed
+// signal can't leave a monitor unscheduled or a deleted one checked. A monitor without a timer is checked right away. One whose check
 // interval changed is checked next on a multiple of the new interval. One that is no longer
-// active loses its timer, and its running check is cancelled.
+// active, or has moved to a remote probe, loses its timer, and its running check is cancelled.
 func (s *Scheduler) reconcile(ctx context.Context) error {
 	s.syncMu.Lock()
 	defer s.syncMu.Unlock()
@@ -244,7 +262,7 @@ func (s *Scheduler) reconcile(ctx context.Context) error {
 	var counts reconciled
 	listed := make(map[string]bool)
 	for page := 0; ; page++ {
-		monitors, err := s.monitors.FindActivePaginated(ctx, page, pageSize)
+		monitors, err := s.source.ListActive(ctx, page, pageSize)
 		if err != nil {
 			return fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
 		}
@@ -272,7 +290,7 @@ func (s *Scheduler) reconcile(ctx context.Context) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		mon, err := s.monitors.FindByID(ctx, id)
+		mon, err := s.source.Find(ctx, id)
 		if err != nil {
 			s.logger.Errorw("Failed to find monitor", "monitor_id", id, "error", err)
 			continue
@@ -286,7 +304,7 @@ func (s *Scheduler) reconcile(ctx context.Context) error {
 	}
 
 	if counts != (reconciled{}) {
-		s.logger.Infow("Reconciled the schedule with the database",
+		s.logger.Infow("Reconciled the schedule with the source",
 			"added", counts.added,
 			"rescheduled", counts.rescheduled,
 			"removed", counts.removed)
@@ -399,8 +417,8 @@ func (s *Scheduler) startCheck(monitorID string) {
 	}()
 }
 
-// recoverCheck logs a panic in the monitor's check and ends that check alone, as asynq does
-// for a task in cluster mode: in single mode an unrecovered panic would stop every monitor.
+// recoverCheck logs a panic in the monitor's check and ends that check alone: an unrecovered
+// panic would stop every monitor.
 // The check frees its slot and ends as any other, so the monitor's next check runs.
 func (s *Scheduler) recoverCheck(monitorID string) {
 	if r := recover(); r != nil {
@@ -419,6 +437,8 @@ func (s *Scheduler) takeSlot(ctx context.Context) bool {
 	select {
 	case s.slots <- struct{}{}:
 	case <-ctx.Done():
+		return false
+	case <-s.stopping:
 		return false
 	}
 	// The slot can win over a cancel that was ready too, or come free while a stop is
@@ -462,12 +482,12 @@ func (s *Scheduler) cancelCheck(monitorID string) {
 
 // runCheck loads the monitor's check, runs it and ingests its result
 func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
-	job, err := s.loader.Load(ctx, monitorID)
+	loaded, err := s.source.Load(ctx, monitorID)
 	switch {
-	case errors.Is(err, check.ErrMonitorNotFound):
+	case errors.Is(err, job.ErrMonitorNotFound):
 		s.logger.Warnw("Monitor not found, skipping its check", "monitor_id", monitorID)
 		return
-	case errors.Is(err, check.ErrMonitorPaused):
+	case errors.Is(err, job.ErrMonitorPaused):
 		s.logger.Infow("Monitor is paused, skipping its check", "monitor_id", monitorID)
 		return
 	case err != nil && ctx.Err() != nil:
@@ -478,9 +498,9 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		s.logger.Errorw("Failed to load the monitor's check", "monitor_id", monitorID, "error", err)
 		return
 	}
-	mon := job.Monitor
-	// A push monitor's check judges its latest push, as the worker's does
-	mon.LastHeartbeat = job.LastHeartbeat
+	mon := loaded.Monitor
+	// A push monitor's check judges its latest push
+	mon.LastHeartbeat = loaded.LastHeartbeat
 
 	exec, ok := s.executors.GetExecutor(mon.Type)
 	if !ok {
@@ -488,14 +508,14 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 		return
 	}
 
-	tick := s.supervisor.HandleMonitorTick(ctx, mon, exec, job.Proxy, job.IsUnderMaintenance)
+	tick := s.supervisor.HandleMonitorTick(ctx, mon, exec, loaded.Proxy, loaded.IsUnderMaintenance)
 
 	// An executor that has nothing to report returns no result
 	if tick == nil {
 		s.logger.Debugw("Executor returned nil - no heartbeat needed", "monitor_id", monitorID, "monitor_type", mon.Type)
 		return
 	}
-	result := tick.IngestResult(job.CheckCertExpiry)
+	result := tick.IngestResult(loaded.CheckCertExpiry)
 
 	// An update, pause, delete or stop drops the result until here. The ingest isn't
 	// interrupted once it starts: it reads the previous heartbeat to write the next one. A
@@ -511,15 +531,9 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 	}
 }
 
-// Subscribe reschedules monitors as they are created, updated and deleted. Pausing a
-// monitor is an update. An event is only a notice: the scheduler reads the monitor from the
-// database, so it acts on the monitor as it is now, whatever the payload says.
-func (s *Scheduler) Subscribe(eventBus events.EventBus) {
-	subscriber := events.NewSubscriber(eventBus, "scheduler")
-	events.Subscribe(subscriber, events.MonitorCreated, func(_ context.Context, mon shared.Monitor) { s.onCreated(mon.ID) })
-	events.Subscribe(subscriber, events.MonitorUpdated, func(_ context.Context, mon shared.Monitor) { s.onUpdated(mon.ID) })
-	events.Subscribe(subscriber, events.MonitorDeleted, func(_ context.Context, monitorID string) { s.onDeleted(monitorID) })
-}
+// The source's signals reschedule monitors as they are created, changed (pausing is a change)
+// and gone. A signal is only a notice: the scheduler reads the monitor from the source, so it
+// acts on the monitor as it is now, whatever the signal says.
 
 // onCreated checks a new monitor right away
 func (s *Scheduler) onCreated(monitorID string) {
@@ -536,7 +550,8 @@ func (s *Scheduler) onCreated(monitorID string) {
 	s.set(mon, !scheduled)
 }
 
-// onUpdated reschedules a monitor, or stops scheduling it if it was paused
+// onUpdated reschedules a monitor, or stops scheduling it if it was paused or the source no
+// longer has it for this process (it moved to another probe)
 func (s *Scheduler) onUpdated(monitorID string) {
 	// A running check carries the config from before the update
 	s.cancelBeforeSync(monitorID)
@@ -590,12 +605,12 @@ func (s *Scheduler) RunNow(ctx context.Context, monitorID string) error {
 		return errors.New("scheduler is not running")
 	}
 
-	mon, err := s.monitors.FindByID(ctx, monitorID)
+	mon, err := s.source.Find(ctx, monitorID)
 	if err != nil {
 		return fmt.Errorf("failed to find monitor: %w", err)
 	}
 	if mon == nil {
-		return fmt.Errorf("monitor %s not found", monitorID)
+		return fmt.Errorf("monitor %s not found or runs on another probe", monitorID)
 	}
 	if !schedulable(mon) {
 		return fmt.Errorf("monitor %s is paused or has no check interval", monitorID)
@@ -606,8 +621,8 @@ func (s *Scheduler) RunNow(ctx context.Context, monitorID string) error {
 	return nil
 }
 
-// find reads the monitor from the database. It reports false when the scheduler isn't running
-// or the read failed; the monitor is nil when it doesn't exist.
+// find reads the monitor from the source. It reports false when the scheduler isn't running
+// or the read failed; the monitor is nil when it is gone or runs on another probe.
 func (s *Scheduler) find(monitorID string) (*shared.Monitor, bool) {
 	s.mu.Lock()
 	ctx := s.ctx
@@ -617,7 +632,7 @@ func (s *Scheduler) find(monitorID string) (*shared.Monitor, bool) {
 		return nil, false
 	}
 
-	mon, err := s.monitors.FindByID(ctx, monitorID)
+	mon, err := s.source.Find(ctx, monitorID)
 	if err != nil {
 		s.logger.Errorw("Failed to find monitor", "monitor_id", monitorID, "error", err)
 		return nil, false

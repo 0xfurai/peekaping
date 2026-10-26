@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -67,6 +68,15 @@ type errorReportingState struct {
 	ForcedOff bool `json:"forced_off"`
 }
 
+func (in *instance) errorReporting(t *testing.T) errorReportingState {
+	t.Helper()
+	status, body := in.request(t, http.MethodGet, "/api/v1/error-reporting", nil)
+	require.Equal(t, http.StatusOK, status, string(body))
+	var state errorReportingState
+	require.NoError(t, json.Unmarshal(body, &state), string(body))
+	return state
+}
+
 func (in *instance) setErrorReporting(t *testing.T, enabled bool) errorReportingState {
 	t.Helper()
 	status, body := in.request(t, http.MethodPut, "/api/v1/error-reporting", map[string]any{"enabled": enabled})
@@ -84,22 +94,16 @@ func reportAPanic() {
 	panic("check failed for https://secret.example.com/health?token=abc")
 }
 
-func TestRun_ReportsPanicsOnlyAfterTheAdminOptsInAndFlushesAtShutdown(t *testing.T) {
+func TestRun_ReportsPanicsByDefaultAndFlushesAtShutdown(t *testing.T) {
 	sentry := newFakeSentry(t)
-	t.Cleanup(func() { reporting.Setup(reporting.Options{}) })
-	cfg := loadConfig(t, map[string]string{"ERROR_REPORTING_DSN": sentry.dsn(), "ERROR_REPORTING": "", "DO_NOT_TRACK": ""})
+	t.Cleanup(func() { reporting.Setup(reporting.Options{ForcedOff: true}) })
+	cfg := loadConfig(t, map[string]string{"ERROR_REPORTING_DSN": sentry.dsn(), "ERROR_REPORTING": ""})
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)
 
-	assert.False(t, reporting.Enabled(), "off until the admin opts in")
-	reportAPanic()
-	assert.False(t, in.setErrorReporting(t, false).Enabled)
-	assert.False(t, reporting.Enabled())
-
-	state := in.setErrorReporting(t, true)
-	assert.Equal(t, errorReportingState{Enabled: true}, state)
-	assert.True(t, reporting.Enabled(), "a change in Settings takes effect in the one process at once")
+	require.Eventually(t, reporting.Enabled, wait, 10*time.Millisecond, "on once the stored choice is applied, with nothing stored")
+	assert.Equal(t, errorReportingState{Enabled: true}, in.errorReporting(t))
 
 	reportAPanic()
 	require.NoError(t, in.stop(t), "the report is flushed as the process shuts down")
@@ -116,45 +120,67 @@ func TestRun_ReportsPanicsOnlyAfterTheAdminOptsInAndFlushesAtShutdown(t *testing
 	assert.NotContains(t, string(sent), "token=abc")
 }
 
-func TestRun_AppliesTheStoredChoiceAtStart(t *testing.T) {
+func TestRun_StopsReportingWhenTheAdminOptsOutAndStaysOffAfterARestart(t *testing.T) {
 	sentry := newFakeSentry(t)
-	t.Cleanup(func() { reporting.Setup(reporting.Options{}) })
-	cfg := loadConfig(t, map[string]string{"ERROR_REPORTING_DSN": sentry.dsn(), "ERROR_REPORTING": "", "DO_NOT_TRACK": ""})
+	t.Cleanup(func() { reporting.Setup(reporting.Options{ForcedOff: true}) })
+	cfg := loadConfig(t, map[string]string{"ERROR_REPORTING_DSN": sentry.dsn(), "ERROR_REPORTING": ""})
 	logger, logs := observedLogger()
 	first := startPeekaping(t, cfg, logger, logs)
 	first.registerAdmin(t)
-	first.setErrorReporting(t, true)
+	require.Eventually(t, reporting.Enabled, wait, 10*time.Millisecond)
+
+	state := first.setErrorReporting(t, false)
+
+	assert.Equal(t, errorReportingState{Enabled: false}, state)
+	assert.False(t, reporting.Enabled(), "a change in Settings takes effect in the one process at once")
+	reportAPanic()
 	require.NoError(t, first.stop(t))
 
 	logger, logs = observedLogger()
 	second := startPeekaping(t, cfg, logger, logs)
-
-	require.Eventually(t, reporting.Enabled, wait, 10*time.Millisecond, "the admin opted in before the restart")
+	second.accessToken = first.accessToken // the signing secrets are in the database
+	assert.Equal(t, errorReportingState{Enabled: false}, second.errorReporting(t), "the opt-out is stored")
+	time.Sleep(200 * time.Millisecond)
+	assert.False(t, reporting.Enabled(), "and applied at the start")
+	reportAPanic()
 	require.NoError(t, second.stop(t))
+	assert.Empty(t, sentry.events())
+
+	// Opting back in turns reporting on again
+	logger, logs = observedLogger()
+	third := startPeekaping(t, cfg, logger, logs)
+	third.accessToken = first.accessToken
+	third.setErrorReporting(t, true)
+	assert.True(t, reporting.Enabled())
+	require.NoError(t, third.stop(t))
 }
 
 func TestRun_SendsNoErrorReportWhenTheEnvironmentForcesThemOff(t *testing.T) {
 	for name, env := range map[string]map[string]string{
 		"ERROR_REPORTING=off": {"ERROR_REPORTING": "off"},
-		"DO_NOT_TRACK=1":      {"DO_NOT_TRACK": "1"},
 	} {
-		t.Run(name, func(t *testing.T) {
-			sentry := newFakeSentry(t)
-			t.Cleanup(func() { reporting.Setup(reporting.Options{}) })
-			env["ERROR_REPORTING_DSN"] = sentry.dsn()
-			cfg := loadConfig(t, env)
-			logger, logs := observedLogger()
-			in := startPeekaping(t, cfg, logger, logs)
-			in.registerAdmin(t)
+		for _, choose := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s, admin chose=%v", name, choose), func(t *testing.T) {
+				sentry := newFakeSentry(t)
+				t.Cleanup(func() { reporting.Setup(reporting.Options{ForcedOff: true}) })
+				env["ERROR_REPORTING_DSN"] = sentry.dsn()
+				cfg := loadConfig(t, env)
+				logger, logs := observedLogger()
+				in := startPeekaping(t, cfg, logger, logs)
+				in.registerAdmin(t)
 
-			state := in.setErrorReporting(t, true)
-			reportAPanic()
-			require.NoError(t, in.stop(t))
+				state := in.errorReporting(t)
+				if choose {
+					state = in.setErrorReporting(t, true)
+				}
+				reportAPanic()
+				require.NoError(t, in.stop(t))
 
-			assert.Equal(t, errorReportingState{Enabled: true, ForcedOff: true}, state, "the choice is stored, and the environment wins")
-			assert.False(t, reporting.Enabled())
-			time.Sleep(200 * time.Millisecond)
-			assert.Empty(t, sentry.events())
-		})
+				assert.Equal(t, errorReportingState{Enabled: true, ForcedOff: true}, state, "the default and the admin's choice are stored as they are, and the environment wins")
+				assert.False(t, reporting.Enabled())
+				time.Sleep(200 * time.Millisecond)
+				assert.Empty(t, sentry.events())
+			})
+		}
 	}
 }

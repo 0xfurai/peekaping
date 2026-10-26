@@ -11,7 +11,6 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/version"
-	"strings"
 
 	"go.uber.org/zap"
 )
@@ -59,13 +58,23 @@ func (p *PagerDutySender) getMonitorURL(monitor *monitor.Model) string {
 	return monitor.Name
 }
 
-// getEventAction determines the PagerDuty event action based on heartbeat status and config
-func (p *PagerDutySender) getEventAction(heartbeat *heartbeat.Model, cfg *PagerDutyConfig) string {
-	if heartbeat == nil {
+// getEventAction determines the PagerDuty event action based on heartbeat status and config. A
+// probe's notification has no heartbeat, so the status of its stand-in monitor says whether the
+// probe went offline or came back online. Any other notification without a heartbeat triggers.
+func (p *PagerDutySender) getEventAction(monitor *monitor.Model, heartbeat *heartbeat.Model, cfg *PagerDutyConfig) string {
+	switch {
+	case heartbeat != nil:
+		return eventActionForStatus(heartbeat.Status, cfg)
+	case monitor.IsProbeEvent():
+		return eventActionForStatus(monitor.Status, cfg)
+	default:
 		return "trigger"
 	}
+}
 
-	switch heartbeat.Status {
+// eventActionForStatus is the event action for a monitor, or a probe, that has this status
+func eventActionForStatus(status shared.MonitorStatus, cfg *PagerDutyConfig) string {
+	switch status {
 	case shared.MonitorStatusUp:
 		if cfg.AutoResolve == "acknowledge" {
 			return "acknowledge"
@@ -124,7 +133,7 @@ func (p *PagerDutySender) Send(
 	p.logger.Infof("Sending PagerDuty notification to: %s", cfg.IntegrationURL)
 
 	// Determine event action
-	eventAction := p.getEventAction(heartbeat, cfg)
+	eventAction := p.getEventAction(monitor, heartbeat, cfg)
 	if eventAction == "" {
 		p.logger.Infof("No action required for PagerDuty notification")
 		return nil
@@ -135,27 +144,39 @@ func (p *PagerDutySender) Send(
 
 	// Get monitor URL for source field
 	monitorURL := p.getMonitorURL(monitor)
-	if monitorURL == "" && monitor != nil {
-		// Fallback to monitor name if URL is not available
-		monitorURL = monitor.Name
+	monitorName := unknownMonitorName
+	if monitor != nil {
+		monitorName = monitor.Name
+	}
+	if monitorURL == "" {
+		// Fallback to monitor name if URL is not available. A notification with no monitor has
+		// Peekaping as its source, since PagerDuty needs one.
+		monitorURL = "Peekaping"
+		if monitor != nil {
+			monitorURL = monitor.Name
+		}
 	}
 
 	// Prepare PagerDuty payload
 	payload := map[string]any{
 		"payload": map[string]any{
-			"summary":  fmt.Sprintf("[%s] [%s] %s", title, monitor.Name, message),
+			"summary":  fmt.Sprintf("[%s] [%s] %s", title, monitorName, message),
 			"severity": p.getSeverity(cfg),
 			"source":   monitorURL,
 		},
 		"routing_key":  cfg.IntegrationKey,
 		"event_action": eventAction,
-		"dedup_key":    fmt.Sprintf("Peekaping/%s", monitor.ID),
+	}
+	// Alerts of one monitor, or one probe, are one incident. With no monitor, PagerDuty makes up a
+	// key for a trigger, so each is an incident of its own.
+	if monitor != nil {
+		payload["dedup_key"] = fmt.Sprintf("Peekaping/%s", monitor.ID)
 	}
 
 	// Add client information if base URL is available
-	if p.config.ClientURL != "" && monitor != nil {
+	if link := peekapingLink(p.config.ClientURL, monitor); link != "" {
 		payload["client"] = "Peekaping"
-		payload["client_url"] = fmt.Sprintf("%s/monitors/%s", strings.TrimRight(p.config.ClientURL, "/"), monitor.ID)
+		payload["client_url"] = link
 	}
 
 	// Convert payload to JSON

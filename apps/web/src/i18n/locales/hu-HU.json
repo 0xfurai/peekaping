@@ -16,8 +16,9 @@
       "have_account": "Már van fiókod?",
       "sign_in": "Bejelentkezés",
       "submit": "Létrehoz",
-      "telemetry_hint": "Kikapcsolva, amíg nem jelöli be ezt a négyzetet. Később megváltoztathatja a „Beállítások” részben. Ha bejelöli, a Peekaping naponta legfeljebb egyszer elküldi ezeket:",
-      "title": "Szia"
+      "title": "Szia",
+      "telemetry_note": "Névtelen: nincsenek benne figyelők nevei, URL-ek vagy gazdagépek. Később megváltoztathatja a „Beállítások” részben.",
+      "telemetry_whats_sent": "Mit küld"
     },
     "twofa": {
       "code_label": "2FA kód",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Hibajelentések küldése",
-    "never_sent": "Soha nem küld: hibaüzeneteket, URL-eket, fejléceket, webhook-URL-eket, neveket vagy gazdagépneveket. A jelentés nem tartalmaz IP-címet, és a Peekaping Sentry-projektje úgy van beállítva, hogy ne tárolja a küldő IP-címét. Saját ERROR_REPORTING_DSN esetén a saját Sentry vagy GlitchTip beállításai döntenek.",
-    "not_saved": "A hibajelentések küldésére vonatkozó választását nem mentettük. Kapcsolja be a „Beállítások” részben.",
+    "never_sent": "Soha nem küld: hibaüzeneteket, URL-eket, fejléceket, webhook-URL-eket, neveket vagy gazdagépneveket. A jelentés nem tartalmaz IP-címet, és a Peekaping Sentry-projektje úgy van beállítva, hogy ne tárolja a küldő IP-címét.",
+    "not_saved": "A hibajelentésekre vonatkozó választását nem mentettük. Ellenőrizze a „Beállítások” részben.",
     "sent": "Csak akkor küld, ha maga a Peekaping összeomlik. A jelentés tartalmazza a hiba típusát és a kód azon helyét, ahol történt, a Peekaping verzióját, az egyedi vagy fürt üzemmódot, a tárolási háttérrendszert és az operációs rendszert."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Kérés időtúllépés ({{seconds}} másodperc után)",
           "resend_notification": "Értesítés újraküldése, ha X alkalommal egymás után le van (újraküldés letiltva)"
         },
+        "location_rule": {
+          "all": "minden helyszín nem elérhető",
+          "any": "bármelyik helyszín nem elérhető",
+          "at_least": "legalább N helyszín nem elérhető",
+          "description": "Az a helyszín, amelynek szondája nem elérhető, vagy még nem jelentett, nem számít bele.",
+          "label": "A monitor legyen nem elérhető, ha",
+          "threshold_invalid": "Adjon meg egy egész számot, 1 vagy több",
+          "threshold_label": "Helyszínek száma",
+          "threshold_too_high": "Nem lehet több, mint a kiválasztott szondák száma"
+        },
         "notifications": {
           "add_notifier": "Értesítő hozzáadása",
           "new_notifier": "+ Új Értesítő",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Válasszon értesítőt",
           "selected_channels": "Kiválasztott értesítési csatornák",
           "title": "Értesítési csatornák"
+        },
+        "probe": {
+          "description": "A monitor minden kiválasztott szondán fut, és mindegyik eredményeit helyszínként mutatja.",
+          "label": "Szonda",
+          "option_unsupported": "{{name}} (nem futtatja ezt a típust)",
+          "placeholder": "Szonda kiválasztása",
+          "push_fixed": "A Push monitor mindig a helyi szondán fut.",
+          "required": "Válasszon legalább egy szondát",
+          "unsupported": "Ez a szonda nem futtatja ezt a monitortípust. Válasszon másik szondát."
         },
         "proxy": {
           "add_proxy": "Proxy hozzáadása",
@@ -658,6 +678,15 @@
       "expiring_soon": "Szorosan lejár",
       "for": "höz",
       "live_status": "Élő állapot",
+      "locations": {
+        "all": "Minden helyszín",
+        "no_result": "Még nincs eredmény",
+        "probe_offline": "A szonda nem elérhető",
+        "probe_unsupported": "Nem futtatja ezt a típust",
+        "response_time": "Válaszidő",
+        "select_label": "Helyszín",
+        "title": "Helyszínek"
+      },
       "monitor_for": "Figyelés",
       "no_certificate_data": "Nincs tanúsítvány adat",
       "seconds": "másodperc",
@@ -683,6 +712,7 @@
     "maintenance": "Karbantartás",
     "monitors": "Figyelők",
     "notification_channels": "Értesítési csatornák",
+    "probes": "Szondák",
     "proxies": "Proxik",
     "settings": "Beállítások",
     "status_pages": "Állapotlapok",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatikus elfogadás",
         "auto_resolve_acknowledge_description": "Az esemény automatikus elismerése",
-        "auto_resolve_description": "Válassza ki, milyen műveletet hajtson végre, amikor egy monitor újra működésbe kerül",
+        "auto_resolve_description": "Válassza ki, mit küldjön a rendszer, amikor egy monitor újra működésbe kerül, vagy egy szonda újra elérhetővé válik",
         "auto_resolve_do_nothing": "Semmit sem csinál",
-        "auto_resolve_do_nothing_description": "Nincs intézkedés az UP státuszra",
+        "auto_resolve_do_nothing_description": "A rendszer nem küld semmit, amikor egy monitor újra működésbe kerül, vagy egy szonda újra elérhetővé válik, így az incidens nyitva marad, amíg Ön le nem zárja a PagerDuty-ban",
         "auto_resolve_label": "Automatikus feloldás vagy megerősítés",
         "auto_resolve_placeholder": "Válaszd ki az automatikus feloldás viselkedését",
         "auto_resolve_resolve": "Automatikus feloldás",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Opcionális hitelesítési token a biztonság fokozásához. Ez a pagertree-token fejlécben kerül elküldésre.",
         "authentication_token_label": "Hitelesítési token (opcionális)",
         "authentication_token_placeholder": "Adja meg a hitelesítési tokent, ha szükséges",
-        "auto_resolve_alerts_description": "Automatikusan feloldja a PagerTree riasztásokat, amikor a monitor helyreáll",
+        "auto_resolve_alerts_description": "A PagerTree riasztások automatikus feloldása, amikor egy monitor újra működésbe kerül, vagy egy szonda újra elérhetővé válik",
         "auto_resolve_alerts_label": "Automatikus riasztások feloldása",
         "how_to_get_integration_url_label": "Hogyan kapjuk meg az integrációs URL-t",
         "integration_url_description": "Adja meg a PagerTree webhook integrációs URL-jét.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Mentve — írjon be újat a cseréhez"
     }
   },
+  "probes": {
+    "page_name": "Szondák",
+    "description": "A szondák a figyelők ellenőrzéseit azokról a helyekről futtatják, ahová telepítve vannak. A helyi szonda maga a Peekaping.",
+    "local_name": "Helyi",
+    "monitor_probe": "Szonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nem futtat {{type}} típusú monitorokat",
+    "empty_list": {
+      "title": "Nem található szonda",
+      "text": "Hozzon létre egy szondát, hogy ellenőrzéseket futtasson egy másik helyről.",
+      "action_text": "Hozza létre az első szondáját"
+    },
+    "table": {
+      "headers": {
+        "name": "Név",
+        "location": "Helyszín",
+        "status": "Állapot",
+        "disabled": "Letiltva",
+        "token": "Token",
+        "instances": "Példányok",
+        "actions": "Műveletek"
+      },
+      "status": {
+        "online": "Elérhető",
+        "offline": "Nem elérhető"
+      },
+      "disabled": "Letiltva",
+      "no_instances": "Még nincs példány",
+      "last_seen": "utoljára látva: {{date}}",
+      "actions": {
+        "edit": "{{name}} szonda szerkesztése",
+        "rotate": "{{name}} szonda tokenjének cseréje",
+        "delete": "{{name}} szonda törlése"
+      }
+    },
+    "create_dialog": {
+      "title": "Szonda létrehozása",
+      "description": "A szonda azon a helyen futtat ellenőrzéseket, ahová telepíti. A tokenje csak egyszer jelenik meg, a létrehozás után.",
+      "submit": "Szonda létrehozása",
+      "creating": "Létrehozás..."
+    },
+    "edit_dialog": {
+      "title": "Szonda szerkesztése",
+      "description": "Módosítsa a(z) {{name}} beállításait."
+    },
+    "form": {
+      "name_label": "Név",
+      "name_placeholder": "pl. Frankfurt",
+      "location_label": "Helyszín (nem kötelező)",
+      "location_placeholder": "pl. Frankfurt, Németország",
+      "name_required": "A név megadása kötelező",
+      "name_too_long": "A név túl hosszú",
+      "location_too_long": "A helyszín túl hosszú",
+      "disabled_label": "Letiltva",
+      "disabled_description": "A letiltott szonda tokenje nem működik, amíg újra nem engedélyezi.",
+      "notifications_hint": "Hagyja üresen, hogy a szonda figyelőinek csatornái kapjanak értesítést."
+    },
+    "rotate_dialog": {
+      "title": "Token cseréje",
+      "description": "A(z) {{name}} szonda régi tokenje azonnal megszűnik működni. A példányait újra kell indítani az új tokennel.",
+      "confirm": "Token cseréje",
+      "rotating": "Csere..."
+    },
+    "delete_dialog": {
+      "title": "Szonda törlése",
+      "description": "Biztosan törli a(z) „{{name}}” szondát? A tokenje megszűnik működni. Ez a művelet nem vonható vissza."
+    },
+    "token_alert": {
+      "title_created": "A(z) {{name}} szonda létrejött",
+      "title_rotated": "Új token a(z) {{name}} szondához",
+      "note": "Ez a token a szondához rendelt figyelők konfigurációját olvassa. Csak egyszer jelenik meg.",
+      "token_label": "Token",
+      "docker_label": "Indítsa el a szondát Dockerrel",
+      "copy_token": "Token másolása",
+      "copy_command": "Docker-parancs másolása"
+    },
+    "messages": {
+      "created_successfully": "A szonda sikeresen létrejött",
+      "updated_successfully": "A szonda sikeresen frissítve",
+      "rotated_successfully": "A token sikeresen kicserélve",
+      "deleted_successfully": "A szonda sikeresen törölve",
+      "failed_to_create": "A szonda létrehozása sikertelen",
+      "failed_to_update": "A szonda frissítése sikertelen",
+      "failed_to_rotate": "A token cseréje sikertelen",
+      "failed_to_delete": "A szonda törlése sikertelen",
+      "failed_to_load": "A szondák betöltése sikertelen",
+      "copy_success": "Vágólapra másolva",
+      "copy_failed": "A vágólapra másolás sikertelen"
+    },
+    "detail": {
+      "not_found": "A szonda nem található"
+    },
+    "availability": {
+      "title": "Rendelkezésre állás",
+      "range_label": "Időtartam",
+      "bar_label": "Rendelkezésre állási előzmények",
+      "instance_bar_label": "{{name}} kapcsolatai",
+      "no_data": "Nincs adat",
+      "now": "Most",
+      "instances_title": "Példányok, utolsó 24 óra",
+      "in_process_note": "A helyi szonda monitorait maga a Peekaping ellenőrzi, ezért nincs rendelkezésre állási előzménye.",
+      "connected_since": "Kapcsolódva ettől: {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Ezzel a művelettel nem lehet visszavonni. Ez véglegesen törli a proxyt {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "Fürt üzemmódban a módosítás egy percen belül eléri az összes folyamatot.",
-      "description": "Jelentés küldése a Sentrynek, ha a kiszolgáló összeomlik. Kikapcsolva, amíg be nem kapcsolja.",
-      "forced_off": "A ERROR_REPORTING=off vagy a DO_NOT_TRACK=1 környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
+      "description": "Jelentés küldése a Sentrynek, ha a kiszolgáló összeomlik. Alapértelmezés szerint be van kapcsolva; itt bármikor kikapcsolhatja.",
+      "forced_off": "A ERROR_REPORTING=off környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
       "title": "Hibajelentések"
     },
     "telemetry": {
-      "description": "Névtelen statisztikák küldése arról, hogyan van beállítva ez a telepítés, naponta legfeljebb egyszer. Kikapcsolva, amíg be nem kapcsolja.",
-      "forced_off": "A TELEMETRY=off vagy a DO_NOT_TRACK=1 környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
-      "id_note": "A példányazonosító bekapcsoláskor jön létre, kikapcsoláskor pedig törlődik. Újabb bekapcsoláskor új jön létre.",
+      "description": "Névtelen statisztikák küldése arról, hogyan van beállítva ez a telepítés, naponta legfeljebb egyszer. Alapértelmezés szerint be van kapcsolva; itt bármikor kikapcsolhatja.",
+      "forced_off": "A TELEMETRY=off környezeti változó kikapcsolja ezt. Semmi sem kerül elküldésre, bármit mond is ez a beállítás.",
+      "id_note": "A példányazonosító addig jön létre, amíg ez be van kapcsolva, kikapcsoláskor pedig törlődik. Újabb bekapcsoláskor új jön létre.",
       "payload_off": "Amíg ez ki van kapcsolva, semmi sem kerül elküldésre. Ezt tartalmazná a használati ping, ha bekapcsolná.",
       "payload_title": "Mit küld el a következő használati ping",
       "title": "Használati statisztikák"
@@ -1367,6 +1500,8 @@
     "published_status": "Közzétéve",
     "search_label": "Keresés",
     "search_placeholder": "Keresés a státuszlapok címén...",
+    "show_locations": "Minden helyszín megjelenítése",
+    "show_locations_info": "A több helyszínről ellenőrzött monitorok esetén minden helyszín állapotát és előzményeit megjeleníti",
     "update_status_page": "Állapotlap frissítése",
     "view_page": "Oldal megtekintése"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Mit küld, és hogyan kapcsolható ki",
     "label": "Névtelen használati statisztikák küldése",
-    "never_sent": "Soha nem küld: figyelők nevét, URL-eket, gazdagépeket, címkéket, állapotlapok címét vagy értesítési beállításokat. A használati ping nem tartalmaz IP-címet, és a Peekaping Workere nem rögzíti a küldő IP-címét.",
-    "not_saved": "A használati statisztikák küldésére vonatkozó választását nem mentettük. Kapcsolja be a „Beállítások” részben.",
-    "sent_features": "Használ-e állapotlapokat, karbantartási ablakokat és metrikákat",
-    "sent_id": "Egy véletlenszerű azonosító, amely bekapcsoláskor jön létre, kikapcsoláskor pedig törlődik",
-    "sent_monitors": "Hány figyelője van, tartományként megadva, például 11-50",
-    "sent_setup": "A Peekaping verziója, az egyedi vagy fürt üzemmód, a tárolási háttérrendszer, valamint az operációs rendszer és a processzor típusa",
-    "sent_types": "A használt figyelők és értesítési csatornák fajtái, például http vagy telegram"
+    "not_saved": "A használati statisztikákra vonatkozó választását nem mentettük. Ellenőrizze a „Beállítások” részben."
+  },
+  "telemetry_notice": {
+    "error_reports": "A hibajelentések be vannak kapcsolva. Ha a Peekaping összeomlik, elküldi a hiba típusát és a kód azon helyét, ahol történt, a verzióját, az üzemmódját, a tárolási háttérrendszert és az operációs rendszert. Soha nem küld hibaüzeneteket, URL-eket vagy gazdagépneveket.",
+    "settings_errors": "A hibajelentések kikapcsolása a „Beállítások” részben",
+    "settings_usage": "A használati statisztikák kikapcsolása a „Beállítások” részben",
+    "title": "Az anonim adatok küldése alapértelmezés szerint be van kapcsolva",
+    "usage_statistics": "A használati statisztikák be vannak kapcsolva. Naponta legfeljebb egyszer a Peekaping elküld egy véletlenszerű példányazonosítót, a verzióját, az üzemmódját, a tárolási háttérrendszert és az operációs rendszert, a figyelők számának tartományát, a használt figyelők és értesítési csatornák fajtáit, valamint azt, hogy használ-e állapotlapokat, karbantartási ablakokat és metrikákat. Soha nem küld neveket, URL-eket, gazdagépeket vagy beállításokat."
   },
   "theme": {
     "dark": "Sötét",

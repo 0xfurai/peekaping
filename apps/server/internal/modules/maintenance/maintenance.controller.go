@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
 
@@ -40,14 +40,6 @@ func (ic *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.
 	q := r.URL.Query().Get("q")
 	strategy := r.URL.Query().Get("strategy")
 
-	filter := bson.M{}
-	if q != "" {
-		filter["$or"] = bson.A{
-			bson.M{"title": bson.M{"$regex": q, "$options": "i"}},
-			bson.M{"description": bson.M{"$regex": q, "$options": "i"}},
-		}
-	}
-
 	entities, err := ic.service.FindAll(ctx, page, limit, q, strategy)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch maintenances", "error", err)
@@ -63,7 +55,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 	}
 	entity.ApplyCreateDefaults()
 
-	if err := utils.Validate.Struct(entity); err != nil {
+	if err := validation.Validate.Struct(entity); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -128,7 +120,7 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if err := utils.Validate.Struct(entity); err != nil {
+	if err := validation.Validate.Struct(entity); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -153,7 +145,7 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if err := utils.Validate.Struct(entity); err != nil {
+	if err := validation.Validate.Struct(entity); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 

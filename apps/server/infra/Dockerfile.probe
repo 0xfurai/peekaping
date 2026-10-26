@@ -1,0 +1,44 @@
+# Start from the official Golang image as a build stage
+FROM golang:1.26.4-alpine AS builder
+
+# Set the Current Working Directory inside the container
+WORKDIR /app
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+RUN go mod download
+
+# Copy the source code into the container
+COPY . .
+
+# The build tags. GO_TAGS=slim leaves out the executors of the Docker, Kafka, SQL Server, MongoDB and
+# gRPC monitor types and the drivers they need (see remote-probes.md in the docs). Declared here, not
+# at the top, so that the layers above are shared between the two builds.
+ARG GO_TAGS=""
+
+# Build the Go app
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -tags "$GO_TAGS" -o peekaping-probe -ldflags="-s -w" ./cmd/probe
+
+# Start a new stage from scratch
+FROM alpine
+
+# Not root. Ping then needs net.ipv4.ping_group_range to include group 65532: Docker sets it for
+# every group by default (see architecture/probe.md in the docs).
+USER 65532:65532
+
+WORKDIR /app
+
+# Copy the pre-built binary file from the previous stage
+COPY --from=builder /app/peekaping-probe .
+
+# /ready answers 200 once the probe has its first assignment, and stays 200 while the server is
+# unreachable. busybox wget exits non-zero on the 503 before that. PROBE_READY_ADDR may leave the
+# host out (":8081") or name every interface ("0.0.0.0:8081", "[::]:8081"); the check then asks
+# 127.0.0.1, which is this container.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+  CMD a="${PROBE_READY_ADDR:-127.0.0.1:8081}"; h="${a%:*}"; case "$h" in ""|0.0.0.0|"[::]") h=127.0.0.1;; esac; wget -q -O- "http://$h:${a##*:}/ready" || exit 1
+
+# Command to run the executable
+CMD ["./peekaping-probe"]

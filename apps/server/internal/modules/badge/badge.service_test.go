@@ -85,7 +85,7 @@ func (m *MockMonitorService) ValidateMonitorConfig(monitorType string, configJSO
 	return args.Error(0)
 }
 
-func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
 	args := m.Called(ctx, id, limit, page, important, reverse)
 	return args.Get(0).([]*heartbeat.Model), args.Error(1)
 }
@@ -100,7 +100,7 @@ func (m *MockMonitorService) FindByProxyId(ctx context.Context, proxyId string) 
 	return args.Get(0).([]*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) GetStatPoints(ctx context.Context, id string, since, until time.Time, granularity string) (*monitor.StatPointsSummaryDto, error) {
+func (m *MockMonitorService) GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*monitor.StatPointsSummaryDto, error) {
 	args := m.Called(ctx, id, since, until, granularity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -108,7 +108,7 @@ func (m *MockMonitorService) GetStatPoints(ctx context.Context, id string, since
 	return args.Get(0).(*monitor.StatPointsSummaryDto), args.Error(1)
 }
 
-func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id string) (*monitor.CustomUptimeStatsDto, error) {
+func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id, probeID string) (*monitor.CustomUptimeStatsDto, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -124,6 +124,11 @@ func (m *MockMonitorService) FindOneByPushToken(ctx context.Context, pushToken s
 	return args.Get(0).(*shared.Monitor), args.Error(1)
 }
 
+func (m *MockMonitorService) GetUptime24h(ctx context.Context, id, probeID string) (float64, error) {
+	args := m.Called(ctx, id, probeID)
+	return args.Get(0).(float64), args.Error(1)
+}
+
 func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
@@ -132,6 +137,11 @@ func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) er
 func (m *MockMonitorService) RepairStoredStatuses(ctx context.Context) (int, error) {
 	args := m.Called(ctx)
 	return args.Int(0), args.Error(1)
+}
+
+func (m *MockMonitorService) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error) {
+	args := m.Called(ctx, probeID, page, limit)
+	return args.Get(0).([]*shared.Monitor), args.Error(1)
 }
 
 func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {
@@ -189,6 +199,11 @@ func (m *MockHeartbeatService) FindByMonitorIDPaginated(ctx context.Context, mon
 	return args.Get(0).([]*heartbeat.Model), args.Error(1)
 }
 
+func (m *MockHeartbeatService) FindByMonitorIDAndProbeIDPaginated(ctx context.Context, monitorID, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+	args := m.Called(ctx, monitorID, probeID, limit, page, important, reverse)
+	return args.Get(0).([]*heartbeat.Model), args.Error(1)
+}
+
 func (m *MockHeartbeatService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
@@ -207,13 +222,13 @@ func (m *MockStatsService) RegisterEventHandlers(eventBus events.EventBus) {
 	m.Called(eventBus)
 }
 
-func (m *MockStatsService) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period stats.StatPeriod) ([]*stats.Stat, error) {
-	args := m.Called(ctx, monitorID, since, until, period)
+func (m *MockStatsService) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID, probeID string, since, until time.Time, period stats.StatPeriod) ([]*stats.Stat, error) {
+	args := m.Called(ctx, monitorID, probeID, since, until, period)
 	return args.Get(0).([]*stats.Stat), args.Error(1)
 }
 
-func (m *MockStatsService) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period stats.StatPeriod, monitorInterval int) ([]*stats.Stat, error) {
-	args := m.Called(ctx, monitorID, since, until, period, monitorInterval)
+func (m *MockStatsService) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID, probeID string, since, until time.Time, period stats.StatPeriod, monitorInterval int) ([]*stats.Stat, error) {
+	args := m.Called(ctx, monitorID, probeID, since, until, period, monitorInterval)
 	return args.Get(0).([]*stats.Stat), args.Error(1)
 }
 
@@ -222,8 +237,8 @@ func (m *MockStatsService) StatPointsSummary(statsList []*stats.Stat) *stats.Sta
 	return args.Get(0).(*stats.Stats)
 }
 
-func (m *MockStatsService) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*stats.Stats, error) {
-	args := m.Called(ctx, monitorID, since, until)
+func (m *MockStatsService) Summarize(ctx context.Context, monitorID, probeID string, since, until time.Time) (*stats.Stats, error) {
+	args := m.Called(ctx, monitorID, probeID, since, until)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -554,9 +569,9 @@ func TestServiceImpl_GetMonitorBadgeData(t *testing.T) {
 		}
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, ago(24*time.Hour), ago(0)).Return(summary24h, nil).Once()
-		mockStatsService.On("Summarize", ctx, monitorID, ago(30*24*time.Hour), ago(0)).Return(summary30d, nil).Once()
-		mockStatsService.On("Summarize", ctx, monitorID, ago(90*24*time.Hour), ago(0)).Return(summary90d, nil).Once()
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(summary24h, nil).Once()
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(30*24*time.Hour), ago(0)).Return(summary30d, nil).Once()
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(90*24*time.Hour), ago(0)).Return(summary90d, nil).Once()
 		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, 1, 0, (*bool)(nil), true).Return(heartbeats, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(tlsInfo, nil)
 
@@ -627,7 +642,7 @@ func TestServiceImpl_GetMonitorBadgeData(t *testing.T) {
 		tlsInfo := &monitor_tls_info.TLSInfo{}
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(&stats.Stats{}, nil).Times(3)
+		mockStatsService.On("Summarize", ctx, monitorID, "", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(&stats.Stats{}, nil).Times(3)
 		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, 1, 0, (*bool)(nil), true).Return(heartbeats, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(tlsInfo, nil)
 
@@ -662,7 +677,7 @@ func TestServiceImpl_GetMonitorBadgeData(t *testing.T) {
 		heartbeats := []*heartbeat.Model{}
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(summary, nil).Times(3)
+		mockStatsService.On("Summarize", ctx, monitorID, "", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return(summary, nil).Times(3)
 		mockHeartbeatService.On("FindByMonitorIDPaginated", ctx, monitorID, 1, 0, (*bool)(nil), true).Return(heartbeats, nil)
 		mockTLSInfoService.On("GetTLSInfo", ctx, monitorID).Return(nil, errors.New("TLS error"))
 
@@ -821,7 +836,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 		options := DefaultBadgeOptions()
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, ago(24*time.Hour), ago(0)).Return(summary, nil)
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
 
@@ -851,7 +866,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 		options := DefaultBadgeOptions()
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, ago(30*24*time.Hour), ago(0)).Return(summary, nil)
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(30*24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
 
@@ -881,7 +896,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 		options := DefaultBadgeOptions()
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, ago(90*24*time.Hour), ago(0)).Return(summary, nil)
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(90*24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
 
@@ -906,7 +921,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 		options := DefaultBadgeOptions()
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, ago(24*time.Hour), ago(0)).Return(&stats.Stats{}, nil)
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(&stats.Stats{}, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
 
@@ -945,7 +960,7 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 		}
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, ago(24*time.Hour), ago(0)).Return(summary, nil)
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
 
@@ -979,7 +994,7 @@ func TestServiceImpl_GeneratePingBadge(t *testing.T) {
 		options := DefaultBadgeOptions()
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, ago(24*time.Hour), ago(0)).Return(summary, nil)
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(summary, nil)
 
 		result, err := service.GeneratePingBadge(ctx, monitorID, duration, options)
 
@@ -1004,7 +1019,7 @@ func TestServiceImpl_GeneratePingBadge(t *testing.T) {
 		options := DefaultBadgeOptions()
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, ago(24*time.Hour), ago(0)).Return(&stats.Stats{}, nil)
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(&stats.Stats{}, nil)
 
 		result, err := service.GeneratePingBadge(ctx, monitorID, duration, options)
 
@@ -1727,7 +1742,7 @@ func TestServiceImpl_GenerateUptimeBadge_ErrorCases(t *testing.T) {
 		options := DefaultBadgeOptions()
 
 		mockMonitorService.On("FindByID", ctx, monitorID).Return(monitor, nil)
-		mockStatsService.On("Summarize", ctx, monitorID, ago(24*time.Hour), ago(0)).Return(nil, errors.New("stats error"))
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(nil, errors.New("stats error"))
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
 

@@ -27,7 +27,7 @@ const (
 )
 
 // RedisClaimer is cluster mode's claimer: the first api replica to set the key sends the ping,
-// and the others find it taken (Redis SET NX, as the producer's leader election does).
+// and the others find it taken (Redis SET NX, as the leader election does).
 type RedisClaimer struct {
 	client *redis.Client
 }

@@ -2,18 +2,14 @@ package healthcheck
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
@@ -100,30 +96,6 @@ func (c *capturingIngester) Ingest(_ context.Context, r *ingester.Result) error 
 	return nil
 }
 
-// enqueued is one unique enqueue, with the payload as the queue writes it
-type enqueued struct {
-	taskType  string
-	payload   []byte
-	uniqueKey string
-	ttl       time.Duration
-	opts      *queue.EnqueueOptions
-}
-
-// recordingQueue records every unique enqueue
-type recordingQueue struct {
-	queue.Service
-	enqueued []enqueued
-}
-
-func (q *recordingQueue) EnqueueUnique(_ context.Context, taskType string, payload interface{}, uniqueKey string, ttl time.Duration, opts *queue.EnqueueOptions) (*queue.TaskInfo, error) {
-	encoded, err := json.Marshal(payload)
-	if err != nil {
-		return nil, err
-	}
-	q.enqueued = append(q.enqueued, enqueued{taskType, encoded, uniqueKey, ttl, opts})
-	return &queue.TaskInfo{}, nil
-}
-
 // noMaintenance is a maintenance service with no windows, so a pushed
 // heartbeat keeps the status it reports.
 type noMaintenance struct{ maintenance.Service }
@@ -173,63 +145,4 @@ func TestPushEndpoint(t *testing.T) {
 		assert.Equal(t, shared.MonitorStatusUp, payload.Status)
 		assert.Equal(t, 0, payload.PingMs)
 	})
-}
-
-// Cluster mode's ingester reads a push as a monitor:ingest task. The task, its options and its
-// payload are pinned so that the ingester keeps reading them the same way.
-func TestPushEndpoint_EnqueuesTheIngesterTaskClusterModeReads(t *testing.T) {
-	monitors := &pushMonitorService{monitor: &monitor.Model{
-		ID:             "mon-1",
-		Name:           "Nightly backup",
-		Type:           "push",
-		Interval:       60,
-		Timeout:        16,
-		MaxRetries:     2,
-		RetryInterval:  30,
-		ResendInterval: 5,
-		Config:         `{"pushToken":"token"}`,
-		Active:         true,
-		PushToken:      "token",
-	}}
-	q := &recordingQueue{}
-	router := httpx.NewRouter()
-	RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, ingester.NewPushQueueService(q), noMaintenance{}, zap.NewNop().Sugar())
-
-	rec := httptest.NewRecorder()
-	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/push/token?status=down&msg=disk+full&ping=12", nil))
-
-	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
-	require.Len(t, q.enqueued, 1)
-	got := q.enqueued[0]
-	assert.Equal(t, "monitor:ingest", got.taskType)
-	assert.Equal(t, &queue.EnqueueOptions{Queue: "ingester", MaxRetry: 3, Timeout: 2 * time.Minute, Retention: time.Hour}, got.opts)
-	assert.Equal(t, 5*time.Minute, got.ttl)
-
-	var payload map[string]any
-	require.NoError(t, json.Unmarshal(got.payload, &payload))
-	pushedAt, err := time.Parse(time.RFC3339Nano, payload["start_time"].(string))
-	require.NoError(t, err)
-	assert.Equal(t, fmt.Sprintf("ingest:push:mon-1:%d", pushedAt.UnixNano()), got.uniqueKey)
-	assert.Equal(t, payload["start_time"], payload["end_time"])
-	payload["start_time"], payload["end_time"] = "pushed at", "pushed at"
-	pinned, err := json.Marshal(payload)
-	require.NoError(t, err)
-	assert.JSONEq(t, `{
-		"monitor_id": "mon-1",
-		"monitor_name": "Nightly backup",
-		"monitor_type": "push",
-		"monitor_interval": 60,
-		"monitor_timeout": 16,
-		"monitor_max_retries": 2,
-		"monitor_retry_interval": 30,
-		"monitor_resend_interval": 5,
-		"monitor_config": "{\"pushToken\":\"token\"}",
-		"status": 0,
-		"message": "disk full",
-		"ping_ms": 12,
-		"start_time": "pushed at",
-		"end_time": "pushed at",
-		"is_under_maintenance": false,
-		"check_cert_expiry": false
-	}`, string(pinned))
 }

@@ -3,8 +3,6 @@ package utils
 import (
 	"testing"
 
-	"peekaping/internal/config"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/dig"
@@ -47,14 +45,4 @@ func TestProvide_FailsNamingAValueThatIsNoConstructor(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to provide utils.greeting:")
-}
-
-func TestRegisterRepositoryByDBType_FailsNamingTheConstructorOfATypeAlreadyProvided(t *testing.T) {
-	container := dig.New()
-	require.NoError(t, Provide(container, newGreeting))
-
-	err := RegisterRepositoryByDBType(container, &config.Config{DBType: "sqlite"}, newOtherGreeting, newGreeting)
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to provide peekaping/internal/utils.newOtherGreeting:")
 }

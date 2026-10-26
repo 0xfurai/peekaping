@@ -14,7 +14,7 @@ Generation uses pinned Huma, Hey API, and Prettier versions. CI regenerates the 
 
 ## Route inventory
 
-All 79 REST operations are represented, including non-JSON responses:
+All 92 REST operations are represented, including non-JSON responses:
 
 | Area | Operations |
 | --- | ---: |
@@ -25,14 +25,18 @@ All 79 REST operations are represented, including non-JSON responses:
 | Notification channels | 7 |
 | SVG badges | 7 |
 | API keys | 6 |
+| Probes | 8 |
 | Proxies | 6 |
 | Tags | 6 |
 | Settings | 3 |
-| Telemetry | 2 |
+| Telemetry | 3 |
 | Error reporting | 2 |
+| Probe protocol (`/probe/v1`) | 4 |
 | Push URL | 1 |
 | API health/version | 2 |
 | Root `/health` alias | 1 |
+
+The probe protocol is served under `/probe/v1`, beside `/api/v1`, and listed under the `ProbeAuth` bearer scheme: a probe sends its token as `Authorization: Bearer <token>` and its instance id as `X-Probe-Instance`, and the admin's JWT and API keys open none of these routes. Its request and reply bodies are the messages of `internal/probeproto`, not the `{message,data}` envelope; its errors keep the envelope. A body may be gzipped, up to 1 MB once decompressed, and replies are gzipped when `Accept-Encoding` allows it. Operation IDs start with `probe` (`probePostHello`).
 
 Socket.IO GET/POST polling and WebSocket upgrades are transport endpoints, excluded from the REST specification. Documentation/spec/schema endpoints are also excluded. Unknown-method responses and CORS preflight behavior remain router/middleware concerns. Tests compare the actual REST route manifest with the specification and verify security against the authentication allowlists.
 

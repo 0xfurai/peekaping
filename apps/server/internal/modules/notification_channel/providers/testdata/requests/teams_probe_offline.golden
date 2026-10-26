@@ -1,0 +1,85 @@
+POST https://example.powerplatform.com/workflows/1?sig=s
+Content-Type: application/json
+User-Agent: Peekaping-Teams/<version>
+
+{
+  "attachments": [
+    {
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "actions": [
+          {
+            "title": "View in Peekaping",
+            "type": "Action.OpenUrl",
+            "url": "https://peekaping.example.com/probes"
+          }
+        ],
+        "body": [
+          {
+            "bleed": true,
+            "items": [
+              {
+                "columns": [
+                  {
+                    "items": [
+                      {
+                        "altText": "Peekaping",
+                        "size": "Small",
+                        "style": "Person",
+                        "type": "Image",
+                        "url": "https://peekaping.com/logo-mascot.png"
+                      }
+                    ],
+                    "type": "Column",
+                    "width": "auto"
+                  },
+                  {
+                    "items": [
+                      {
+                        "size": "Medium",
+                        "text": "Probe Frankfurt",
+                        "type": "TextBlock",
+                        "weight": "Bolder",
+                        "wrap": true
+                      },
+                      {
+                        "isSubtle": true,
+                        "spacing": "None",
+                        "text": "Peekaping Alert",
+                        "type": "TextBlock"
+                      }
+                    ],
+                    "type": "Column",
+                    "width": "stretch"
+                  }
+                ],
+                "type": "ColumnSet"
+              }
+            ],
+            "style": "warning",
+            "type": "Container"
+          },
+          {
+            "text": "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC",
+            "type": "TextBlock",
+            "wrap": true
+          },
+          {
+            "facts": [
+              {
+                "title": "Monitor",
+                "value": "Probe Frankfurt"
+              }
+            ],
+            "type": "FactSet"
+          }
+        ],
+        "fallbackText": "Probe Frankfurt",
+        "type": "AdaptiveCard",
+        "version": "1.4"
+      },
+      "contentType": "application/vnd.microsoft.card.adaptive"
+    }
+  ],
+  "type": "message"
+}

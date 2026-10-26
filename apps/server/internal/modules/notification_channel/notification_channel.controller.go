@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"strconv"
 	"strings"
 
@@ -63,7 +64,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 	}
 	notification_channel.ApplyCreateDefaults()
 
-	if err := utils.Validate.Struct(notification_channel); err != nil {
+	if err := validation.Validate.Struct(notification_channel); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
@@ -111,7 +112,7 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	if err := utils.Validate.Struct(notification); err != nil {
+	if err := validation.Validate.Struct(notification); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -149,7 +150,7 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 	}
 
 	// validate
-	if err := utils.Validate.Struct(notification); err != nil {
+	if err := validation.Validate.Struct(notification); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -224,7 +225,7 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
-	if err := utils.Validate.Struct(notificationChannel); err != nil {
+	if err := validation.Validate.Struct(notificationChannel); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 

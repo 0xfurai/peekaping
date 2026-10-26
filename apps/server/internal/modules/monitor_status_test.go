@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"peekaping/cmd/bun/migrations"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -25,14 +24,10 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// onEveryMonitorBackend runs exercise against a monitor repository on SQLite, and on PostgreSQL and
-// MongoDB when their test variables are set.
+// onEveryMonitorBackend runs exercise against a monitor repository on SQLite, and on PostgreSQL when
+// its test variable is set.
 func onEveryMonitorBackend(t *testing.T, exercise func(t *testing.T, repo monitor.MonitorRepository)) {
 	t.Helper()
 	onEveryMonitorAndHeartbeatBackend(t, func(t *testing.T, repo monitor.MonitorRepository, _ heartbeat.Repository) {
@@ -104,44 +99,6 @@ func onEveryMonitorStore(t *testing.T, exercise func(t *testing.T, repo monitor.
 		connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn), pgdriver.WithConnParams(map[string]any{"search_path": schema}))
 		monitors, heartbeats, insertTied := sqlStore(t, bun.NewDB(sql.OpenDB(connector), pgdialect.New()))
 		exercise(t, monitors, heartbeats, insertTied)
-	})
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run MongoDB integration checks")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
-		cfg := &config.Config{DBName: "pp189_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		insertTied := func(t *testing.T, n int, createdAt time.Time) ([]string, string) {
-			t.Helper()
-			ctx := context.Background()
-			db := client.Database(cfg.DBName)
-			tagID := primitive.NewObjectID()
-			ids := make([]string, 0, n)
-			for i := 1; i <= n; i++ {
-				id, err := primitive.ObjectIDFromHex(fmt.Sprintf("%024x", i))
-				require.NoError(t, err)
-				_, err = db.Collection("monitor").InsertOne(ctx, bson.M{
-					"_id": id, "type": "http", "name": "Monitor", "interval": 60, "timeout": 10, "max_retries": 1,
-					"retry_interval": 10, "resend_interval": 0, "active": true, "status": 0, "config": "{}",
-					"created_at": createdAt, "updated_at": createdAt,
-				})
-				require.NoError(t, err)
-				_, err = db.Collection("monitor_tags").InsertOne(ctx, bson.M{"_id": primitive.NewObjectID(), "monitor_id": id, "tag_id": tagID})
-				require.NoError(t, err)
-				ids = append(ids, id.Hex())
-			}
-			return ids, tagID.Hex()
-		}
-		exercise(t, monitor.NewMongoRepository(client, cfg), heartbeat.NewMongoRepository(client, cfg), insertTied)
 	})
 }
 

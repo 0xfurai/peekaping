@@ -16,8 +16,9 @@
       "have_account": "Sul on juba konto?",
       "sign_in": "Logi sisse",
       "submit": "Loo",
-      "telemetry_hint": "Välja lülitatud, kuni te seda ruutu ei märgi. Saate seda hiljem muuta jaotises „Seaded“. Kui märgite, saadab Peekaping seda kõige rohkem kord päevas:",
-      "title": "Tere"
+      "title": "Tere",
+      "telemetry_note": "Anonüümne: ei sisalda monitoride nimesid, URL-e ega hoste. Saate seda hiljem muuta jaotises „Seaded“.",
+      "telemetry_whats_sent": "Mida saadetakse"
     },
     "twofa": {
       "code_label": "2FA kood",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Saada veaaruandeid",
-    "never_sent": "Ei saadeta kunagi: veateateid, URL-e, päiseid, veebikonksu URL-e, nimesid ega hostinimesid. Aruanne ei sisalda IP-aadressi ning Peekapingi Sentry projekt on seadistatud saatja IP-d mitte salvestama. Oma ERROR_REPORTING_DSN-i korral otsustavad selle teie Sentry või GlitchTipi seaded.",
-    "not_saved": "Teie valikut saata veaaruandeid ei salvestatud. Lülitage see sisse jaotises „Seaded“.",
+    "never_sent": "Ei saadeta kunagi: veateateid, URL-e, päiseid, veebikonksu URL-e, nimesid ega hostinimesid. Aruanne ei sisalda IP-aadressi ning Peekapingi Sentry projekt on seadistatud saatja IP-d mitte salvestama.",
+    "not_saved": "Teie valikut veaaruannete kohta ei salvestatud. Kontrollige seda jaotises „Seaded“.",
     "sent": "Saadetakse ainult siis, kui Peekaping ise kokku jookseb. Aruanne sisaldab vea tüüpi ja kohta koodis, kus see juhtus, Peekapingi versiooni, ühe- või klastrirežiimi, andmesalve ning operatsioonisüsteemi."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Päringu aegumine (aegumine pärast {{seconds}} sekundit)",
           "resend_notification": "Saada teavitus uuesti, kui alla X korda järjest (Uuesti saatmine keelatud)"
         },
+        "location_rule": {
+          "all": "kõik asukohad on all",
+          "any": "mis tahes asukoht on all",
+          "at_least": "vähemalt N asukohta on all",
+          "description": "Asukohta, mille sond on võrguühenduseta või pole veel tulemust andnud, ei arvestata.",
+          "label": "Märgi monitor alla, kui",
+          "threshold_invalid": "Sisesta täisarv, 1 või rohkem",
+          "threshold_label": "Asukohtade arv",
+          "threshold_too_high": "Ei tohi olla suurem kui valitud sondide arv"
+        },
         "notifications": {
           "add_notifier": "Lisa teavitaja",
           "new_notifier": "+ Lisa uus teavituskanal",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Vali teavitaja",
           "selected_channels": "Valitud teavituskanalid",
           "title": "Teavituskanalid"
+        },
+        "probe": {
+          "description": "Monitor töötab igal valitud sondil ja näitab iga sondi tulemusi asukohana.",
+          "label": "Sond",
+          "option_unsupported": "{{name}} (ei toeta seda tüüpi)",
+          "placeholder": "Vali sond",
+          "push_fixed": "Push-monitor töötab alati kohalikul sondil.",
+          "required": "Vali vähemalt üks sond",
+          "unsupported": "See sond ei toeta seda tüüpi monitori. Vali teine sond."
         },
         "proxy": {
           "add_proxy": "Lisa proksi",
@@ -658,6 +678,15 @@
       "expiring_soon": "Aegumine varsti",
       "for": "selleks",
       "live_status": "Reaalajas olek",
+      "locations": {
+        "all": "Kõik asukohad",
+        "no_result": "Tulemust pole veel",
+        "probe_offline": "Sond on võrguühenduseta",
+        "probe_unsupported": "Ei toeta seda tüüpi",
+        "response_time": "Vastusaeg",
+        "select_label": "Asukoht",
+        "title": "Asukohad"
+      },
       "monitor_for": "Monitoorimiseks",
       "no_certificate_data": "Sertifikaatiandmeid pole",
       "seconds": "sekundit",
@@ -683,6 +712,7 @@
     "maintenance": "Hooldus",
     "monitors": "Monitoorid",
     "notification_channels": "Teavituskanalid",
+    "probes": "Sondid",
     "proxies": "Proksid",
     "settings": "Seaded",
     "status_pages": "Olekusivud",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automaatselt tunnistamine",
         "auto_resolve_acknowledge_description": "Tunnista automaatselt juhtumit",
-        "auto_resolve_description": "Vali toiming, mida teha, kui monitoor taastub",
+        "auto_resolve_description": "Vali, mida saata, kui monitoor taastub või sond on taas võrgus",
         "auto_resolve_do_nothing": "Ära tee midagi",
-        "auto_resolve_do_nothing_description": "UP-olekus ei tehta midagi",
+        "auto_resolve_do_nothing_description": "Midagi ei saadeta, kui monitoor taastub või sond on taas võrgus, seega jääb juhtum avatuks, kuni lahendad selle teenuses PagerDuty",
         "auto_resolve_label": "Automaatne lahendamine või tunnistamine",
         "auto_resolve_placeholder": "Vali automaatse lahendamise käitumine",
         "auto_resolve_resolve": "Automaatne lahendamine",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Valikuline autentimiskood kõrgema turvalisuse tagamiseks. See saadetakse pagertree-token päises.",
         "authentication_token_label": "Autentimisetoken (Valikuline)",
         "authentication_token_placeholder": "Sisesta autentimiste token, kui see on vajalik",
-        "auto_resolve_alerts_description": "Automaatselt lahendatakse PagerTree hoiatused, kui monitor taastub",
+        "auto_resolve_alerts_description": "Automaatselt lahendatakse PagerTree hoiatused, kui monitoor taastub või sond on taas võrgus",
         "auto_resolve_alerts_label": "Automaatne häirete lahendamine",
         "how_to_get_integration_url_label": "Kuidas saada integratsiooni URL",
         "integration_url_description": "Sisesta oma PagerTree webhooki integreerimise URL.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Salvestatud — asendamiseks sisesta uus"
     }
   },
+  "probes": {
+    "page_name": "Sondid",
+    "description": "Sondid teostavad monitooride kontrolle kohtadest, kuhu need on paigaldatud. Kohalik sond on Peekaping ise.",
+    "local_name": "Kohalik",
+    "monitor_probe": "Sond: {{name}}",
+    "monitor_probe_unsupported": "{{name}} ei toeta {{type}}-tüüpi monitore",
+    "empty_list": {
+      "title": "Sonde ei leitud",
+      "text": "Looge sond, et teha kontrolle mujalt.",
+      "action_text": "Looge oma esimene sond"
+    },
+    "table": {
+      "headers": {
+        "name": "Nimi",
+        "location": "Asukoht",
+        "status": "Olek",
+        "disabled": "Keelatud",
+        "token": "Token",
+        "instances": "Instantsid",
+        "actions": "Toimingud"
+      },
+      "status": {
+        "online": "Võrgus",
+        "offline": "Võrguühenduseta"
+      },
+      "disabled": "Keelatud",
+      "no_instances": "Instantse veel pole",
+      "last_seen": "viimati nähtud {{date}}",
+      "actions": {
+        "edit": "Muuda sondi {{name}}",
+        "rotate": "Vaheta sondi {{name}} token",
+        "delete": "Kustuta sond {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Loo sond",
+      "description": "Sond teeb kontrolle kohast, kuhu selle paigaldate. Selle token kuvatakse ainult üks kord, pärast loomist.",
+      "submit": "Loo sond",
+      "creating": "Loomine..."
+    },
+    "edit_dialog": {
+      "title": "Muuda sondi",
+      "description": "Muutke sondi {{name}} seadeid."
+    },
+    "form": {
+      "name_label": "Nimi",
+      "name_placeholder": "nt Frankfurt",
+      "location_label": "Asukoht (valikuline)",
+      "location_placeholder": "nt Frankfurt, Saksamaa",
+      "name_required": "Nimi on kohustuslik",
+      "name_too_long": "Nimi on liiga pikk",
+      "location_too_long": "Asukoht on liiga pikk",
+      "disabled_label": "Keelatud",
+      "disabled_description": "Keelatud sondi token lakkab töötamast, kuni selle uuesti lubate.",
+      "notifications_hint": "Jätke tühjaks, et teavitada selle sondi monitooride kanaleid."
+    },
+    "rotate_dialog": {
+      "title": "Vaheta token",
+      "description": "Sondi {{name}} vana token lakkab kohe töötamast. Selle instantsid tuleb uue tokeniga taaskäivitada.",
+      "confirm": "Vaheta token",
+      "rotating": "Vahetamine..."
+    },
+    "delete_dialog": {
+      "title": "Kustuta sond",
+      "description": "Kas olete kindel, et soovite sondi „{{name}}“ kustutada? Selle token lakkab töötamast. Seda toimingut ei saa tagasi võtta."
+    },
+    "token_alert": {
+      "title_created": "Sond {{name}} loodud",
+      "title_rotated": "Uus token sondile {{name}}",
+      "note": "See token loeb sondile määratud monitooride konfiguratsioone. Seda kuvatakse ainult üks kord.",
+      "token_label": "Token",
+      "docker_label": "Käivitage sond Dockeriga",
+      "copy_token": "Kopeeri token",
+      "copy_command": "Kopeeri docker-käsk"
+    },
+    "messages": {
+      "created_successfully": "Sond loodi edukalt",
+      "updated_successfully": "Sond uuendati edukalt",
+      "rotated_successfully": "Token vahetati edukalt",
+      "deleted_successfully": "Sond kustutati edukalt",
+      "failed_to_create": "Sondi loomine ebaõnnestus",
+      "failed_to_update": "Sondi uuendamine ebaõnnestus",
+      "failed_to_rotate": "Tokeni vahetamine ebaõnnestus",
+      "failed_to_delete": "Sondi kustutamine ebaõnnestus",
+      "failed_to_load": "Sondide laadimine ebaõnnestus",
+      "copy_success": "Kopeeritud lõikelauale",
+      "copy_failed": "Lõikelauale kopeerimine ebaõnnestus"
+    },
+    "detail": {
+      "not_found": "Sondi ei leitud"
+    },
+    "availability": {
+      "title": "Kättesaadavus",
+      "range_label": "Ajavahemik",
+      "bar_label": "Kättesaadavuse ajalugu",
+      "instance_bar_label": "Sondi {{name}} ühendused",
+      "no_data": "Andmed puuduvad",
+      "now": "Praegu",
+      "instances_title": "Instantsid, viimased 24 tundi",
+      "in_process_note": "Kohaliku sondi monitore kontrollib Peekaping ise, seega ei ole sellel kättesaadavuse ajalugu.",
+      "connected_since": "Ühendatud alates {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "See toiming ei saa tühistada. See kustutab jäädavalt proksi {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "Klastrirežiimis jõuab muudatus kõigi protsessideni ühe minuti jooksul.",
-      "description": "Saada aruanne Sentryle, kui server kokku jookseb. Välja lülitatud, kuni lülitate sisse.",
-      "forced_off": "Keskkonnamuutuja ERROR_REPORTING=off või DO_NOT_TRACK=1 lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
+      "description": "Saada aruanne Sentryle, kui server kokku jookseb. Vaikimisi sisse lülitatud; saate selle siin igal ajal välja lülitada.",
+      "forced_off": "Keskkonnamuutuja ERROR_REPORTING=off lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
       "title": "Veaaruanded"
     },
     "telemetry": {
-      "description": "Saada anonüümset statistikat selle kohta, kuidas see paigaldus on seadistatud, kõige rohkem kord päevas. Välja lülitatud, kuni lülitate sisse.",
-      "forced_off": "Keskkonnamuutuja TELEMETRY=off või DO_NOT_TRACK=1 lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
-      "id_note": "Eksemplari ID luuakse sisselülitamisel ja kustutatakse väljalülitamisel. Uuesti sisselülitamisel luuakse uus.",
+      "description": "Saada anonüümset statistikat selle kohta, kuidas see paigaldus on seadistatud, kõige rohkem kord päevas. Vaikimisi sisse lülitatud; saate selle siin igal ajal välja lülitada.",
+      "forced_off": "Keskkonnamuutuja TELEMETRY=off lülitab selle välja. Midagi ei saadeta, olenemata sellest, mida see säte ütleb.",
+      "id_note": "Eksemplari ID luuakse sisselülitatud oleku ajal ja kustutatakse väljalülitamisel. Uuesti sisselülitamisel luuakse uus.",
       "payload_off": "Kuni see on välja lülitatud, ei saadeta midagi. Selline oleks kasutusping, kui selle sisse lülitaksite.",
       "payload_title": "Mida järgmine kasutusping saadab",
       "title": "Kasutusstatistika"
@@ -1367,6 +1500,8 @@
     "published_status": "Avaldatud",
     "search_label": "Otsi",
     "search_placeholder": "Otsi olekupäevikke pealkirja järgi...",
+    "show_locations": "Näita iga asukohta",
+    "show_locations_info": "Mitmest asukohast kontrollitavate monitooride puhul näidatakse iga asukoha olekut ja ajalugu",
     "update_status_page": "Uuenda olekulehte",
     "view_page": "Vaata lehte"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Mida saadetakse ja kuidas selle välja lülitada",
     "label": "Saada anonüümset kasutusstatistikat",
-    "never_sent": "Ei saadeta kunagi: monitoride nimesid, URL-e, hoste, silte, olekusivude aadresse ega teavituste seadeid. Kasutusping ei sisalda IP-aadressi ning Peekapingi Worker ei salvesta saatja IP-d.",
-    "not_saved": "Teie valikut saata kasutusstatistikat ei salvestatud. Lülitage see sisse jaotises „Seaded“.",
-    "sent_features": "Kas kasutate olekusivusid, hooldusaknaid ja mõõdikuid",
-    "sent_id": "Juhuslik ID, mis luuakse sisselülitamisel ja kustutatakse väljalülitamisel",
-    "sent_monitors": "Mitu monitoori teil on, vahemikuna, näiteks 11-50",
-    "sent_setup": "Peekapingi versioon, ühe- või klastrirežiim, andmesalv ning operatsioonisüsteem ja protsessori tüüp",
-    "sent_types": "Kasutatavate monitoride ja teavituskanalite liigid, näiteks http või telegram"
+    "not_saved": "Teie valikut kasutusstatistika kohta ei salvestatud. Kontrollige seda jaotises „Seaded“."
+  },
+  "telemetry_notice": {
+    "error_reports": "Veaaruanded on sisse lülitatud. Kui Peekaping kokku jookseb, saadab ta vea tüübi ja koha koodis, kus see juhtus, oma versiooni, režiimi, andmesalve ja operatsioonisüsteemi. Kunagi ei saadeta veateateid, URL-e ega hostinimesid.",
+    "settings_errors": "Lülita veaaruanded välja jaotises „Seaded“",
+    "settings_usage": "Lülita kasutusstatistika välja jaotises „Seaded“",
+    "title": "Anonüümsete andmete saatmine on vaikimisi sisse lülitatud",
+    "usage_statistics": "Kasutusstatistika on sisse lülitatud. Kõige rohkem kord päevas saadab Peekaping juhusliku eksemplari ID, oma versiooni, režiimi, andmesalve ja operatsioonisüsteemi, vahemiku monitoride arvu kohta, kasutatavate monitoride ja teavituskanalite liigid ning selle, kas kasutate olekusivusid, hooldusaknaid ja mõõdikuid. Kunagi ei saadeta nimesid, URL-e, hoste ega seadeid."
   },
   "theme": {
     "dark": "Tumine",

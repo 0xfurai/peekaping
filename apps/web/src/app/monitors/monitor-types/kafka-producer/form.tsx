@@ -14,6 +14,8 @@ import General from "../shared/general";
 import Intervals from "../shared/intervals";
 import Notifications from "../shared/notifications";
 import Tags from "../shared/tags";
+import Probe from "../shared/probe";
+import LocationRule from "../shared/location-rule";
 import { PasswordInput } from "@/components/ui/password-input";
 
 const KafkaProducerForm = () => {
@@ -282,6 +284,8 @@ const KafkaProducerForm = () => {
       <Card>
         <CardContent className="space-y-4">
           <Tags />
+          <Probe />
+          <LocationRule />
         </CardContent>
       </Card>
     </>

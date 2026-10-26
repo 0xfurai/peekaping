@@ -10,12 +10,11 @@ import (
 	"testing"
 	"time"
 
+	wiring "peekaping/internal/app"
 	"peekaping/internal/config"
-	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/reporting"
-	"peekaping/internal/reporting/redissync"
 	"peekaping/internal/reporting/reportingtest"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -50,19 +49,64 @@ func withErrorReportingEnv(value string) func(*config.Config) {
 	return func(cfg *config.Config) { cfg.ErrorReporting = value }
 }
 
-func TestErrorReportingAPI_OffByDefault(t *testing.T) {
+func TestErrorReportingAPI_OnByDefault(t *testing.T) {
 	reportingtest.Install(t)
 	reporting.SetEnabled(false)
 	a := newAppWithAdmin(t)
 
 	w := a.request(t, http.MethodGet, errorReportingPath, nil, a.asAdmin)
 
-	assert.JSONEq(t, `{"enabled": false, "forced_off": false}`, w.Body.String(), "a bare state, with nothing else in it")
+	assert.JSONEq(t, `{"enabled": true, "forced_off": false}`, w.Body.String(), "a bare state, with nothing else in it")
 	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Nil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"), "reading the state stores nothing: the default is not the admin's choice")
+}
+
+// The api applies the stored choice at its start (cmd/api). With nothing stored that turns
+// reporting on in the api, and a panic is reported.
+func TestErrorReportingAPI_ReportsByDefaultOnceTheApiHasStarted(t *testing.T) {
+	recorder := reportingtest.Install(t)
+	reporting.SetEnabled(false)
+	a := newAppDecorated(t, func(container *dig.Container) error {
+		return container.Decorate(func(stale.Store) stale.Store { return panickingStore{} })
+	})
+	a.registerAdmin(t)
+
+	require.NoError(t, wiring.ApplyErrorReporting(context.Background(), a.container))
+
+	assert.True(t, reporting.Enabled())
+	assert.Nil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"))
+	assert.Equal(t, http.StatusInternalServerError, a.request(t, http.MethodGet, "/api/v1/health", nil).Code)
+	require.Len(t, recorder.Events(), 1, "the panic is reported without the admin having chosen")
+}
+
+// An opt-out is stored, and survives a restart of the api
+func TestErrorReportingAPI_AnOptOutSurvivesARestart(t *testing.T) {
+	reportingtest.Install(t)
+	a := newAppWithAdmin(t)
+	a.setErrorReporting(t, false)
+
+	restarted := a.restart(t)
+	require.NoError(t, wiring.ApplyErrorReporting(context.Background(), restarted.container))
+
 	assert.False(t, reporting.Enabled())
-	assert.Nil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"), "reading the state stores nothing")
-	_, err := a.redis.Get(redissync.Key)
-	assert.Error(t, err, "and copies nothing to Redis")
+	assert.Equal(t, map[string]any{"enabled": false, "forced_off": false}, restarted.errorReporting(t))
+}
+
+func TestErrorReportingAPI_KillSwitchesWinWhenNothingIsStored(t *testing.T) {
+	for name, option := range map[string]func(*config.Config){
+		"ERROR_REPORTING=off": withErrorReportingEnv("off"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			reportingtest.Install(t)
+			reporting.SetEnabled(false)
+			a := newAppWithAdmin(t, option)
+
+			require.NoError(t, wiring.ApplyErrorReporting(context.Background(), a.container))
+
+			assert.False(t, reporting.Enabled())
+			assert.Equal(t, map[string]any{"enabled": true, "forced_off": true}, a.errorReporting(t))
+		})
+	}
 }
 
 func TestErrorReportingAPI_PutStoresTheChoiceAndTurnsReportingOnAndOff(t *testing.T) {
@@ -81,67 +125,12 @@ func TestErrorReportingAPI_PutStoresTheChoiceAndTurnsReportingOnAndOff(t *testin
 	assert.Equal(t, "false", a.storedSetting(t, "ERROR_REPORTING_ENABLED").Value)
 }
 
-// AC6, the api's half: the choice is copied to Redis for the producer, the worker and the
-// ingester, which read it once a minute
-func TestErrorReportingAPI_PutCopiesTheChoiceToRedis(t *testing.T) {
-	reportingtest.Install(t)
-	a := newAppWithAdmin(t)
-
-	a.setErrorReporting(t, true)
-	value, err := a.redis.Get(redissync.Key)
-	require.NoError(t, err)
-	assert.Equal(t, "true", value)
-
-	a.setErrorReporting(t, false)
-	value, err = a.redis.Get(redissync.Key)
-	require.NoError(t, err)
-	assert.Equal(t, "false", value)
-}
-
-// AC6: the stored setting is the source of truth and Redis only carries it to the other processes.
-// An opt-out while Redis is down still succeeds and stops reporting here; once Redis is back, the
-// api's own republishing (error_reporting.Service.Run) brings the key up to date.
-func TestErrorReportingAPI_PutSucceedsWhileRedisIsDownAndTheKeyCatchesUpAfterwards(t *testing.T) {
-	reportingtest.Install(t)
-	a := newAppWithAdmin(t)
-	a.setErrorReporting(t, true)
-	value, err := a.redis.Get(redissync.Key)
-	require.NoError(t, err)
-	require.Equal(t, "true", value)
-	require.True(t, reporting.Enabled())
-
-	a.redis.Close()
-	w := a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.asAdmin)
-
-	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
-	assert.JSONEq(t, `{"enabled": false, "forced_off": false}`, w.Body.String())
-	assert.Equal(t, "false", a.storedSetting(t, "ERROR_REPORTING_ENABLED").Value, "the setting is stored")
-	assert.False(t, reporting.Enabled(), "and this process stopped reporting")
-	assert.Equal(t, map[string]any{"enabled": false, "forced_off": false}, a.errorReporting(t))
-
-	require.NoError(t, a.redis.Restart())
-	value, err = a.redis.Get(redissync.Key)
-	require.NoError(t, err)
-	assert.Equal(t, "true", value, "the other processes would still be told to report")
-	require.NoError(t, a.container.Invoke(func(service error_reporting.Service) {
-		ctx, cancel := context.WithCancel(context.Background())
-		t.Cleanup(cancel)
-		go service.Run(ctx, 10*time.Millisecond)
-	}))
-	require.Eventually(t, func() bool {
-		value, err := a.redis.Get(redissync.Key)
-		return err == nil && value == "false"
-	}, 5*time.Second, 5*time.Millisecond, "the api tells them within a refresh")
-}
-
 func TestErrorReportingAPI_ForcedOffByEnv(t *testing.T) {
 	for name, option := range map[string]func(*config.Config){
 		"ERROR_REPORTING=off":   withErrorReportingEnv("off"),
 		"ERROR_REPORTING=false": withErrorReportingEnv("false"),
 		"ERROR_REPORTING=0":     withErrorReportingEnv("0"),
 		"ERROR_REPORTING=No":    withErrorReportingEnv("No"),
-		"DO_NOT_TRACK=1":        withDoNotTrack("1"),
-		"DO_NOT_TRACK=true":     withDoNotTrack("true"),
 	} {
 		t.Run(name, func(t *testing.T) {
 			reportingtest.Install(t)
@@ -154,10 +143,7 @@ func TestErrorReportingAPI_ForcedOffByEnv(t *testing.T) {
 			assert.Equal(t, map[string]any{"enabled": true, "forced_off": true}, state)
 			assert.Equal(t, state, a.errorReporting(t))
 			assert.Equal(t, "true", a.storedSetting(t, "ERROR_REPORTING_ENABLED").Value)
-			value, err := a.redis.Get(redissync.Key)
-			require.NoError(t, err)
-			assert.Equal(t, "false", value, "no process of the cluster is told to send")
-			assert.False(t, reporting.Enabled())
+			assert.False(t, reporting.Enabled(), "the api sends nothing")
 
 			state = a.setErrorReporting(t, false)
 			assert.Equal(t, map[string]any{"enabled": false, "forced_off": true}, state)
@@ -169,7 +155,6 @@ func TestErrorReportingAPI_OtherEnvValuesDoNotForceItOff(t *testing.T) {
 	for name, option := range map[string]func(*config.Config){
 		"ERROR_REPORTING=on": withErrorReportingEnv("on"),
 		"ERROR_REPORTING=1":  withErrorReportingEnv("1"),
-		"DO_NOT_TRACK=0":     withDoNotTrack("0"),
 		"TELEMETRY=off":      withTelemetryEnv("off"),
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -238,7 +223,7 @@ func TestErrorReportingAPI_RejectsInvalidInput(t *testing.T) {
 			assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 		})
 	}
-	assert.Equal(t, false, a.errorReporting(t)["enabled"])
+	assert.Nil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"), "a rejected request stores no choice")
 	assert.False(t, reporting.Enabled())
 }
 
@@ -262,16 +247,13 @@ func TestErrorReportingAPI_APIKeyCanReadButNotChangeTheChoice(t *testing.T) {
 
 	// An API key reads the state, like the settings routes it shares auth with
 	state := errorReportingBody(t, a.request(t, http.MethodGet, errorReportingPath, nil, a.withAPIKey), http.StatusOK)
-	assert.Equal(t, false, state["enabled"])
+	assert.Equal(t, true, state["enabled"])
 
-	// The opt-in is the admin's choice, so an API key can't make it
-	w := a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": true}, a.withAPIKey)
+	// The choice is the admin's, so an API key can't opt the install out
+	w := a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.withAPIKey)
 	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
-	assert.False(t, reporting.Enabled())
-	assert.Equal(t, false, a.errorReporting(t)["enabled"])
+	assert.Equal(t, true, a.errorReporting(t)["enabled"])
 	assert.Nil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"))
-	_, err := a.redis.Get(redissync.Key)
-	assert.Error(t, err, "and copies nothing to Redis")
 
 	// Nor can it opt the admin out
 	a.setErrorReporting(t, true)

@@ -12,24 +12,24 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/httpx"
+	"peekaping/internal/leader"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
-	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
-	"peekaping/internal/modules/producer"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/telemetry"
-	"peekaping/internal/modules/worker"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/hibiken/asynq"
@@ -58,7 +58,6 @@ func clusterConfig(t *testing.T) *config.Config {
 		RedisHost:             redisHost,
 		RedisPort:             redisPort,
 		QueueConcurrency:      1,
-		ProducerConcurrency:   1,
 		BruteforceMaxAttempts: 20,
 		BruteforceWindow:      time.Minute,
 		BruteforceLockout:     time.Minute,
@@ -102,12 +101,10 @@ func TestRegisterClusterAPI_ResolvesWhatCmdAPIRuns(t *testing.T) {
 		bus events.EventBus,
 		db *bun.DB,
 		client *asynq.Client,
-		inspector *asynq.Inspector,
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
 		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 	}))
 }
 
@@ -132,110 +129,242 @@ func TestRegisterClusterAPI_ProvidesTheRunLockInRedis(t *testing.T) {
 	assert.False(t, claim("second replica"), "second replica's claim of the same hour")
 }
 
-func TestRegisterClusterProducer_ResolvesWhatCmdProducerRuns(t *testing.T) {
-	container := dig.New()
-	require.NoError(t, RegisterClusterProducer(container, clusterConfig(t)))
-
-	require.NoError(t, container.Invoke(func(
-		_ *producer.Producer,
-		_ *producer.EventListener,
-		_ dbtx.Transactor,
-		_ *zap.SugaredLogger,
-		bus events.EventBus,
-		db *bun.DB,
-		client *asynq.Client,
-		inspector *asynq.Inspector,
-	) {
-		closeEventBus(t, bus)
-		closeDB(t, db)
-		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
-	}))
-}
-
-func TestRegisterClusterWorker_ResolvesWhatCmdWorkerRunsWithoutADatabase(t *testing.T) {
-	// cmd/worker reads no database settings
+// The API replicas share the window of the probe protocol's results route in Redis: what one
+// replica took, another finds taken
+func TestRegisterClusterAPI_ProvidesTheDuplicateWindowInRedis(t *testing.T) {
 	cfg := clusterConfig(t)
-	cfg.DBType, cfg.DBName = "", ""
-	container := dig.New()
-	require.NoError(t, RegisterClusterWorker(container, cfg))
+	claim := func(replica string) protocol.ClaimOutcome {
+		container := dig.New()
+		require.NoError(t, RegisterClusterAPI(container, cfg), replica)
+		var outcome protocol.ClaimOutcome
+		require.NoError(t, container.Invoke(func(window protocol.Window, rdb *redis.Client) {
+			t.Cleanup(func() { assert.NoError(t, rdb.Close()) })
+			var err error
+			outcome, err = window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+			require.NoError(t, err)
+		}), replica)
+		return outcome
+	}
 
-	require.NoError(t, container.Invoke(func(
-		_ *worker.Worker,
-		_ *zap.SugaredLogger,
-		bus events.EventBus,
-		client *asynq.Client,
-		inspector *asynq.Inspector,
-	) {
-		closeEventBus(t, bus)
-		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
-	}))
-	assert.Error(t, container.Invoke(func(*bun.DB) {}), "the worker has no database")
+	assert.Equal(t, protocol.ClaimWon, claim("first replica"), "first replica's claim of the id")
+	assert.Equal(t, protocol.ClaimPending, claim("second replica"), "second replica's claim of the same id")
 }
 
-func TestRegisterClusterIngester_ResolvesWhatCmdIngesterRuns(t *testing.T) {
+// On SQLite and PostgreSQL the probes run the checks, so the api runs the watchdog and the probe
+// sweep, on the replica that holds the leader lock
+func TestRegisterClusterAPI_ResolvesTheLeaderJobsOnSQLStorage(t *testing.T) {
 	container := dig.New()
-	require.NoError(t, RegisterClusterIngester(container, clusterConfig(t)))
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
 
 	require.NoError(t, container.Invoke(func(
-		_ stats.Service,
-		_ *ingester.Ingester,
-		_ *zap.SugaredLogger,
+		jobs *LeaderJobs,
+		watchdog *stale.Watchdog,
+		sweep *probe.Sweep,
+		silent *probe.SilentWatch,
+		elector *leader.Elector,
 		bus events.EventBus,
 		db *bun.DB,
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
+		assert.NotNil(t, jobs)
+		assert.NotNil(t, watchdog)
+		assert.NotNil(t, sweep)
+		assert.NotNil(t, silent, "the sweep reports a local probe that has monitors and no instance")
+		assert.NotNil(t, elector)
+		var names []string
+		for _, job := range jobs.jobs {
+			names = append(names, job.Name)
+		}
+		assert.Equal(t, []string{"the stale-monitor watchdog", "the probe sweep", "the push monitors' checks"}, names,
+			"no process of the cluster's own runs the push monitors' checks any more: the leader does")
 	}))
+}
+
+// A cluster upgraded without deploying probes has a local probe that was never online, with monitors
+// nothing checks. What the sweep counts as monitors that need an instance are the active monitors of
+// the local probe that run checks.
+func TestRegisterClusterAPI_TheSilentWatchCountsTheActiveMonitorsThatNeedAnInstance(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(silent *probe.SilentWatch, monitors monitor.Service, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		require.NoError(t, migrateDB(db))
+		ctx := context.Background()
+		count := func() int {
+			n, err := silent.Monitors(ctx)
+			require.NoError(t, err)
+			return n
+		}
+		assert.Zero(t, count(), "no monitors")
+
+		_, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+		require.NoError(t, err)
+		_, err = monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "push", Name: "Backup", Active: true, Config: "{}", PushToken: "backup-token"})
+		require.NoError(t, err)
+		_, err = monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Retired", Active: false, Config: "{}"})
+		require.NoError(t, err)
+
+		assert.Equal(t, 1, count(), "the http monitor: a push monitor runs no checks, and a paused one is not running")
+	}))
+}
+
+// AC1: MongoDB storage was removed, so no binary's graph is built on it, whatever binary it is and
+// whether or not its config was validated
+func TestRegister_RefusesMongoStorage(t *testing.T) {
+	registers := map[string]func(*dig.Container, *config.Config) error{
+		"Register":           Register,
+		"RegisterSingle":     RegisterSingle,
+		"RegisterClusterAPI": RegisterClusterAPI,
+	}
+	for name, register := range registers {
+		for _, dbType := range []string{"mongo", "mongodb", "MongoDB"} {
+			t.Run(name+" "+dbType, func(t *testing.T) {
+				cfg := clusterConfig(t)
+				cfg.DBType = dbType
+
+				err := register(dig.New(), cfg)
+
+				require.ErrorIs(t, err, config.ErrMongoStorageRemoved)
+				assert.ErrorContains(t, err, "DB_TYPE="+dbType+": MongoDB storage was removed.")
+			})
+		}
+	}
+}
+
+// AC4: in cluster mode on SQLite and PostgreSQL no process of Peekaping's own runs checks, so the
+// local probe is its instances, like a remote probe: the api's watchdog leaves the monitors of a
+// probe alone while the probe is offline, the local one included, and watches them once it is online
+func TestRegisterClusterAPI_TheWatchdogSkipsTheMonitorsOfAnyOfflineProbeTheLocalOneIncluded(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
+
+	require.NoError(t, container.Invoke(func(
+		probeOffline stale.ProbeOfflineFunc,
+		monitors monitor.Service,
+		probes probe.Service,
+		bus events.EventBus,
+		db *bun.DB,
+		client *asynq.Client,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		t.Cleanup(func() { assert.NoError(t, client.Close()) })
+		require.NoError(t, migrateDB(db))
+
+		assertWatchdogFollowsEveryProbesStatus(t, probeOffline, monitors, probes)
+	}))
+}
+
+// assertWatchdogFollowsEveryProbesStatus checks the watchdog's question against the real services,
+// for an install where the local probe is its instances: a monitor of a probe is skipped while the
+// probe is offline (a probe starts offline) and not once it is online, whichever probe it is
+func assertWatchdogFollowsEveryProbesStatus(t *testing.T, probeOffline stale.ProbeOfflineFunc, monitors monitor.Service, probes probe.Service) {
+	t.Helper()
+	ctx := context.Background()
+	remote, err := probes.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
+	require.NoError(t, err)
+	onLocal, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+	require.NoError(t, err)
+	onRemote, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
+	require.NoError(t, err)
+
+	for _, tc := range []struct {
+		name      string
+		monitor   *monitor.Model
+		probeID   string
+		offlineBy string
+	}{
+		{"the local probe", onLocal, probe.LocalID, "no instance has connected"},
+		{"a remote probe", onRemote, remote.ID, "a probe that never connected"},
+	} {
+		offline, err := probeOffline(ctx, tc.monitor)
+		require.NoError(t, err)
+		assert.True(t, offline, "%s is offline: %s", tc.name, tc.offlineBy)
+
+		changed, err := probes.MarkOnline(ctx, tc.probeID, time.Now())
+		require.NoError(t, err)
+		require.True(t, changed)
+		offline, err = probeOffline(ctx, tc.monitor)
+		require.NoError(t, err)
+		assert.False(t, offline, "%s is not once it is online", tc.name)
+
+		changed, err = probes.MarkOffline(ctx, tc.probeID, time.Now())
+		require.NoError(t, err)
+		require.True(t, changed)
+		offline, err = probeOffline(ctx, tc.monitor)
+		require.NoError(t, err)
+		assert.True(t, offline, "%s is again when its instances stop", tc.name)
+	}
+}
+
+// assertWatchdogSkipsOnlyOfflineRemote checks the watchdog's question against the real services, for
+// an install where the local probe is the process itself: a monitor of the local probe is never
+// skipped, and one of a remote probe is while it is offline (a probe starts offline) and not once it
+// is online.
+func assertWatchdogSkipsOnlyOfflineRemote(t *testing.T, probeOffline stale.ProbeOfflineFunc, monitors monitor.Service, probes probe.Service) {
+	t.Helper()
+	ctx := context.Background()
+	remote, err := probes.Create(ctx, &probe.CreateRequest{Name: "Frankfurt"})
+	require.NoError(t, err)
+	onLocal, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+	require.NoError(t, err)
+	onRemote, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Checkout", Active: true, Config: "{}", ProbeIDs: []string{remote.ID}})
+	require.NoError(t, err)
+
+	offline, err := probeOffline(ctx, onLocal)
+	require.NoError(t, err)
+	assert.False(t, offline, "the local probe is never offline")
+	offline, err = probeOffline(ctx, onRemote)
+	require.NoError(t, err)
+	assert.True(t, offline, "a probe that never connected is offline")
+
+	changed, err := probes.MarkOnline(ctx, remote.ID, time.Now())
+	require.NoError(t, err)
+	require.True(t, changed)
+	offline, err = probeOffline(ctx, onRemote)
+	require.NoError(t, err)
+	assert.False(t, offline, "and not once it is online")
 }
 
 // Redis pub/sub hands an event to every api replica, so the topics the notification listener
-// sends from go through the notification queue, which gives each event to one replica. The
-// ingester publishes two of them and the producer's watchdog the other two, and every other
-// topic stays on pub/sub for all the api replicas, so each cluster binary's bus must route
-// them alike.
-func TestRegisterCluster_EveryBinarysEventBusQueuesTheNotificationTopics(t *testing.T) {
-	registers := map[string]func(*dig.Container, *config.Config) error{
-		"api":      RegisterClusterAPI,
-		"producer": RegisterClusterProducer,
-		"worker":   RegisterClusterWorker,
-		"ingester": RegisterClusterIngester,
-	}
-	for name, register := range registers {
-		t.Run(name, func(t *testing.T) {
-			container := dig.New()
-			require.NoError(t, register(container, clusterConfig(t)))
+// sends from go through the notification queue, which gives each event to one replica. The api
+// publishes all of them, and every other topic stays on pub/sub for all the api replicas.
+func TestRegisterClusterAPI_ItsEventBusQueuesTheNotificationTopics(t *testing.T) {
+	cfg := clusterConfig(t)
+	container := dig.New()
+	require.NoError(t, RegisterClusterAPI(container, cfg))
+	inspector := asynq.NewInspector(asynq.RedisClientOpt{Addr: net.JoinHostPort(cfg.RedisHost, cfg.RedisPort)})
+	t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 
-			require.NoError(t, container.Invoke(func(bus events.EventBus, client *asynq.Client, inspector *asynq.Inspector) {
-				closeEventBus(t, bus)
-				t.Cleanup(func() { assert.NoError(t, client.Close()) })
-				t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
-				ctx := context.Background()
-				queued := func() int {
-					info, err := inspector.GetQueueInfo("notification")
-					if err != nil {
-						return 0 // the queue exists once a task is queued
-					}
-					return info.Pending
-				}
+	require.NoError(t, container.Invoke(func(bus events.EventBus, client *asynq.Client) {
+		closeEventBus(t, bus)
+		t.Cleanup(func() { assert.NoError(t, client.Close()) })
+		ctx := context.Background()
+		queued := func() int {
+			info, err := inspector.GetQueueInfo("notification")
+			if err != nil {
+				return 0 // the queue exists once a task is queued
+			}
+			return info.Pending
+		}
 
-				// Other topics go over pub/sub, not to the queue
-				require.NoError(t, events.Publish(ctx, bus, events.HeartbeatEvent, shared.HeartBeatModel{MonitorID: "mon-1"}))
-				require.NoError(t, events.Publish(ctx, bus, events.MonitorStatusChanged, shared.HeartBeatModel{MonitorID: "mon-1"}))
-				assert.Equal(t, 0, queued(), "tasks queued by other topics")
+		// Other topics go over pub/sub, not to the queue
+		require.NoError(t, events.Publish(ctx, bus, events.HeartbeatEvent, shared.HeartBeatModel{MonitorID: "mon-1"}))
+		require.NoError(t, events.Publish(ctx, bus, events.MonitorStatusChanged, shared.HeartBeatModel{MonitorID: "mon-1"}))
+		assert.Equal(t, 0, queued(), "tasks queued by other topics")
 
-				require.NoError(t, events.Publish(ctx, bus, events.ImportantHeartbeat, shared.HeartBeatModel{MonitorID: "mon-1"}))
-				assert.Equal(t, 1, queued(), "tasks queued after an important heartbeat")
-				require.NoError(t, events.Publish(ctx, bus, certificate.CertificateExpiry, certificate.CertificateExpiryEvent{MonitorID: "mon-1"}))
-				assert.Equal(t, 2, queued(), "tasks queued after a certificate expiry")
-				require.NoError(t, events.Publish(ctx, bus, stale.MonitorStale, stale.Event{MonitorID: "mon-1"}))
-				assert.Equal(t, 3, queued(), "tasks queued after a stale monitor")
-				require.NoError(t, events.Publish(ctx, bus, stale.MonitorStaleRecovered, stale.Event{MonitorID: "mon-1"}))
-				assert.Equal(t, 4, queued(), "tasks queued after a recovered stale monitor")
-			}))
-		})
-	}
+		require.NoError(t, events.Publish(ctx, bus, events.ImportantHeartbeat, shared.HeartBeatModel{MonitorID: "mon-1"}))
+		assert.Equal(t, 1, queued(), "tasks queued after an important heartbeat")
+		require.NoError(t, events.Publish(ctx, bus, certificate.CertificateExpiry, certificate.CertificateExpiryEvent{MonitorID: "mon-1"}))
+		assert.Equal(t, 2, queued(), "tasks queued after a certificate expiry")
+		require.NoError(t, events.Publish(ctx, bus, stale.MonitorStale, stale.Event{MonitorID: "mon-1"}))
+		assert.Equal(t, 3, queued(), "tasks queued after a stale monitor")
+		require.NoError(t, events.Publish(ctx, bus, stale.MonitorStaleRecovered, stale.Event{MonitorID: "mon-1"}))
+		assert.Equal(t, 4, queued(), "tasks queued after a recovered stale monitor")
+	}))
 }
 
 // The usage ping reports cluster mode whatever MODE says, and the api replicas race for the day's
@@ -253,12 +382,10 @@ func TestRegisterClusterAPI_RunsTheUsagePingInClusterModeClaimedInRedis(t *testi
 		bus events.EventBus,
 		db *bun.DB,
 		client *asynq.Client,
-		inspector *asynq.Inspector,
 	) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
 		t.Cleanup(func() { assert.NoError(t, client.Close()) })
-		t.Cleanup(func() { assert.NoError(t, inspector.Close()) })
 		assert.Equal(t, telemetry.ModeCluster, mode)
 		assert.IsType(t, &telemetry.RedisClaimer{}, claimer)
 	}))
@@ -359,37 +486,25 @@ func warningsAtStartup(t *testing.T, register func(*dig.Container, *config.Confi
 	return logs.FilterLevelExact(zapcore.WarnLevel).All()
 }
 
-// In cluster mode the api, producer and ingester open the same SQLite file, which SQLite lets one
-// process write to at a time. It works, but single mode or PostgreSQL fits better, and nothing
-// else tells the operator so. The worker has no database, PostgreSQL takes concurrent writers
-// and single mode is one process, so none of them warns.
-func TestRegisterCluster_WarnsAboutSQLite(t *testing.T) {
-	registers := map[string]func(*dig.Container, *config.Config) error{
-		"api":      RegisterClusterAPI,
-		"producer": RegisterClusterProducer,
-		"ingester": RegisterClusterIngester,
-	}
-	for name, register := range registers {
-		t.Run(name+" on SQLite warns once", func(t *testing.T) {
-			warnings := warningsAtStartup(t, register, clusterConfig(t))
+// In cluster mode the api replicas open the same SQLite file, which SQLite lets one process write
+// to at a time. It works, but single mode or PostgreSQL fits better, and nothing else tells the
+// operator so. PostgreSQL takes concurrent writers and single mode is one process, so neither warns.
+func TestRegisterClusterAPI_WarnsAboutSQLite(t *testing.T) {
+	t.Run("on SQLite it warns once", func(t *testing.T) {
+		warnings := warningsAtStartup(t, RegisterClusterAPI, clusterConfig(t))
 
-			require.Len(t, warnings, 1)
-			message := warnings[0].Message
-			assert.NotContains(t, message, "\n", "one log line")
-			assert.Contains(t, message, "share one database file and write to it one at a time")
-			assert.Contains(t, message, "Single mode (the SQLite bundle image) or PostgreSQL fits better")
-			assert.Contains(t, message, "https://docs.peekaping.com/self-hosting/docker-with-sqlite#cluster-mode")
-		})
-		t.Run(name+" on PostgreSQL doesn't", func(t *testing.T) {
-			cfg := clusterConfig(t)
-			cfg.DBType, cfg.DBName = "postgres", "peekaping"
+		require.Len(t, warnings, 1)
+		message := warnings[0].Message
+		assert.NotContains(t, message, "\n", "one log line")
+		assert.Contains(t, message, "share one database file and write to it one at a time")
+		assert.Contains(t, message, "Single mode (the SQLite bundle image) or PostgreSQL fits better")
+		assert.Contains(t, message, "https://docs.peekaping.com/self-hosting/docker-with-sqlite#cluster-mode")
+	})
+	t.Run("on PostgreSQL it doesn't", func(t *testing.T) {
+		cfg := clusterConfig(t)
+		cfg.DBType, cfg.DBName = "postgres", "peekaping"
 
-			assert.Empty(t, warningsAtStartup(t, register, cfg))
-		})
-	}
-
-	t.Run("worker doesn't, whatever DB_TYPE says", func(t *testing.T) {
-		assert.Empty(t, warningsAtStartup(t, RegisterClusterWorker, clusterConfig(t)))
+		assert.Empty(t, warningsAtStartup(t, RegisterClusterAPI, cfg))
 	})
 	t.Run("single mode on SQLite doesn't", func(t *testing.T) {
 		assert.Empty(t, warningsAtStartup(t, RegisterSingle, singleConfig(t)))

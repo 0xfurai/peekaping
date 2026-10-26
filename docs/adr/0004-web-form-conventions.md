@@ -29,7 +29,7 @@ Shared monitor sections live in `monitor-types/shared/`: one `schema.ts` with ev
 
 ### 2. The registry is the one list
 
-`monitor-types/registry.ts` and `channel-types/registry.ts` each hold one `as const` array of definitions, in the order the Type select shows them. The form schema (a discriminated union on `type`), the form values type, the select options, the lookup by type, cloning and the monitor page's target all derive from it. Adding a type is creating its folder and adding one line.
+`monitor-types/registry.ts` and `channel-types/registry.ts` each hold one `as const` array of definitions. The monitor Type select shows them in that order; the channel Type select sorts them by label (`channelTypeOptions`), and the first channel type is the one a new channel starts on. The form schema (a discriminated union on `type`), the form values type, the select options, the lookup by type, cloning and the monitor page's target all derive from it. Adding a type is creating its folder and adding one line.
 
 The wrapper (`components/create-edit-form.tsx`) owns what every type's form used to copy: the form element, the submit handler (through `serializeMonitor`) and the submit button. The general section's Type select switches type: a new monitor that changes type starts from the new type's defaults, keeping the name typed so far. The reset happens in the select's change handler, before the new type's form mounts, so what that form's own effects set (a push token) stays. The values the form opened with, including a clone's, are left alone, and an edited monitor keeps its values when its type changes.
 

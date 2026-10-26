@@ -21,8 +21,7 @@ import (
 )
 
 // The modules the payload is read from, through their existing FindAll methods. Each is the
-// part of the module's service the telemetry needs, so no repository interface changes and the
-// MongoDB storage stays untouched (ADR 0001).
+// part of the module's service the telemetry needs, so no repository interface changes.
 type (
 	MonitorLister interface {
 		FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*monitor.Model, error)
@@ -43,15 +42,19 @@ type Service interface {
 	// BuildPayload builds the ping the install would send now, from the settings and the
 	// install's monitors, notification channels, status pages and maintenance windows. It is
 	// the one function behind both the ping and the preview in Settings. The instance ID is empty
-	// unless the admin has opted in.
+	// after an opt-out, and while the environment forces the ping off and none was made before.
 	BuildPayload(ctx context.Context) (Payload, error)
-	// State reports the admin's choice, whether the environment forces the ping off, and the
-	// payload the next ping would send.
+	// State reports the admin's choice (on, until they choose), whether the environment forces
+	// the ping off, and the payload the next ping would send.
 	State(ctx context.Context) (State, error)
 	// SetEnabled stores the admin's choice and returns the new state. Opting in creates the
 	// instance ID unless there is one; opting out deletes it and the time of the last ping. The
-	// choice is stored while the environment forces the ping off: the environment still wins.
+	// choice is stored while the environment forces the ping off: the environment still wins. Any
+	// choice also marks the upgrade notice seen.
 	SetEnabled(ctx context.Context, enabled bool) (State, error)
+	// MarkNoticeSeen records that the admin dismissed the upgrade notice, which stops it showing.
+	// It is no choice: the usage ping and error reports stay as they were.
+	MarkNoticeSeen(ctx context.Context) (State, error)
 
 	// The sender's Source
 	Source
@@ -101,7 +104,7 @@ func NewService(
 }
 
 func (s *ServiceImpl) BuildPayload(ctx context.Context) (Payload, error) {
-	enabled, err := s.storedEnabled(ctx)
+	enabled, err := s.chosenEnabled(ctx)
 	if err != nil {
 		return Payload{}, err
 	}
@@ -109,7 +112,7 @@ func (s *ServiceImpl) BuildPayload(ctx context.Context) (Payload, error) {
 }
 
 func (s *ServiceImpl) State(ctx context.Context) (State, error) {
-	enabled, err := s.storedEnabled(ctx)
+	enabled, err := s.chosenEnabled(ctx)
 	if err != nil {
 		return State{}, err
 	}
@@ -117,7 +120,11 @@ func (s *ServiceImpl) State(ctx context.Context) (State, error) {
 	if err != nil {
 		return State{}, err
 	}
-	return State{Enabled: enabled, ForcedOff: s.cfg.TelemetryForcedOff(), Payload: payload}, nil
+	pending, err := s.noticePending(ctx)
+	if err != nil {
+		return State{}, err
+	}
+	return State{Enabled: enabled, ForcedOff: s.cfg.TelemetryForcedOff(), NoticePending: pending, Payload: payload}, nil
 }
 
 func (s *ServiceImpl) SetEnabled(ctx context.Context, enabled bool) (State, error) {
@@ -128,18 +135,49 @@ func (s *ServiceImpl) SetEnabled(ctx context.Context, enabled bool) (State, erro
 	} else if err := s.optOut(ctx); err != nil {
 		return State{}, err
 	}
+	// The choice is stored. A failure here fails the request, and asking again is harmless.
+	if err := s.markNoticeSeen(ctx); err != nil {
+		return State{}, err
+	}
 	return s.State(ctx)
+}
+
+func (s *ServiceImpl) MarkNoticeSeen(ctx context.Context) (State, error) {
+	if err := s.markNoticeSeen(ctx); err != nil {
+		return State{}, err
+	}
+	return s.State(ctx)
+}
+
+// markNoticeSeen stores the flag in one statement that leaves a stored flag alone: the setup form
+// sends both choices at once, each marks the notice seen with the same "true", and a plain set
+// (an update, then an insert) lets the second insert hit the key and fail a choice that is stored
+func (s *ServiceImpl) markNoticeSeen(ctx context.Context) error {
+	if _, err := s.settings.CreateIfAbsent(ctx, shared.TelemetryNoticeSeenKey, &shared.SettingModel{Value: "true", Type: "bool"}); err != nil {
+		return fmt.Errorf("store %s: %w", shared.TelemetryNoticeSeenKey, err)
+	}
+	return nil
+}
+
+// noticePending reports whether the admin still has to be told that the usage ping and error
+// reports are on: the notice is not marked seen, and the environment does not force both off
+func (s *ServiceImpl) noticePending(ctx context.Context) (bool, error) {
+	if s.cfg.TelemetryForcedOff() && s.cfg.ErrorReportingForcedOff() {
+		return false, nil
+	}
+	seen, err := s.storedValue(ctx, shared.TelemetryNoticeSeenKey)
+	return seen != "true", err
 }
 
 func (s *ServiceImpl) NextPing(ctx context.Context, now time.Time) (*Payload, error) {
 	if s.cfg.TelemetryForcedOff() {
 		return nil, nil
 	}
-	enabled, err := s.storedEnabled(ctx)
+	enabled, err := s.chosenEnabled(ctx)
 	if err != nil || !enabled {
 		return nil, err
 	}
-	id, err := s.storedValue(ctx, InstanceIDKey)
+	id, err := s.ensureInstanceID(ctx)
 	if err != nil || id == "" {
 		return nil, err
 	}
@@ -179,15 +217,8 @@ func (s *ServiceImpl) RecordSent(ctx context.Context, instanceID string, at time
 // optIn creates the instance ID, unless there is one, and then records the opt-in. The ID comes
 // first: the ping needs both, so a failure between the two sends nothing.
 func (s *ServiceImpl) optIn(ctx context.Context) error {
-	id, err := s.storedValue(ctx, InstanceIDKey)
-	if err != nil {
+	if _, err := s.createInstanceID(ctx); err != nil {
 		return err
-	}
-	if id == "" {
-		// A random UUID v4 in lower case, from nothing about the install
-		if _, err := s.settings.SetByKey(ctx, InstanceIDKey, &shared.SettingModel{Value: uuid.NewString(), Type: "string"}); err != nil {
-			return fmt.Errorf("store %s: %w", InstanceIDKey, err)
-		}
 	}
 	if _, err := s.settings.SetByKey(ctx, EnabledKey, &shared.SettingModel{Value: "true", Type: "bool"}); err != nil {
 		return fmt.Errorf("store %s: %w", EnabledKey, err)
@@ -195,26 +226,66 @@ func (s *ServiceImpl) optIn(ctx context.Context) error {
 	return nil
 }
 
-// optOut deletes the instance ID and the time of the last ping, and then records the opt-out.
-// The ID goes first: the ping needs it, so a failure between the two sends nothing.
+// optOut records the opt-out, and then deletes the instance ID and the time of the last ping. The
+// choice goes first: with no stored choice the ping is on and makes an ID of its own, so an ID that
+// is deleted while the choice still says "on" would be made again, and a failure between the two
+// steps would leave the ping the admin refused running.
 func (s *ServiceImpl) optOut(ctx context.Context) error {
+	if _, err := s.settings.SetByKey(ctx, EnabledKey, &shared.SettingModel{Value: "false", Type: "bool"}); err != nil {
+		return fmt.Errorf("store %s: %w", EnabledKey, err)
+	}
 	for _, key := range []string{InstanceIDKey, LastSentKey} {
 		if err := s.settings.DeleteByKey(ctx, key); err != nil {
 			return fmt.Errorf("delete %s: %w", key, err)
 		}
 	}
-	if _, err := s.settings.SetByKey(ctx, EnabledKey, &shared.SettingModel{Value: "false", Type: "bool"}); err != nil {
-		return fmt.Errorf("store %s: %w", EnabledKey, err)
-	}
 	return nil
 }
 
-// build builds the payload. It carries the instance ID only while the admin is opted in.
-func (s *ServiceImpl) build(ctx context.Context, optedIn bool) (Payload, error) {
+// ensureInstanceID returns the instance ID, making one when there is none: an install that never
+// chose has no ID until the first state read or ping. Nothing is made while the environment forces
+// the ping off, so a TELEMETRY=off install is never given an identifier.
+func (s *ServiceImpl) ensureInstanceID(ctx context.Context) (string, error) {
+	id, err := s.storedValue(ctx, InstanceIDKey)
+	if err != nil || id != "" || s.cfg.TelemetryForcedOff() {
+		return id, err
+	}
+	id, err = s.createInstanceID(ctx)
+	if err != nil {
+		return "", err
+	}
+	// An admin who opted out while the ID was made deleted the ID they knew of, not this one
+	enabled, err := s.chosenEnabled(ctx)
+	if err != nil {
+		return "", err
+	}
+	if !enabled {
+		if err := s.settings.DeleteByKey(ctx, InstanceIDKey); err != nil {
+			return "", fmt.Errorf("delete %s: %w", InstanceIDKey, err)
+		}
+		return "", nil
+	}
+	return id, nil
+}
+
+// createInstanceID stores a new instance ID unless there is one, and returns the stored one. Of
+// several api replicas that make an ID at the same moment, all end up with the one that was
+// stored first.
+func (s *ServiceImpl) createInstanceID(ctx context.Context) (string, error) {
+	// A random UUID v4 in lower case, from nothing about the install
+	created, err := s.settings.CreateIfAbsent(ctx, InstanceIDKey, &shared.SettingModel{Value: uuid.NewString(), Type: "string"})
+	if err != nil {
+		return "", fmt.Errorf("store %s: %w", InstanceIDKey, err)
+	}
+	return created.Value, nil
+}
+
+// build builds the payload. It carries the instance ID only while the ping is on.
+func (s *ServiceImpl) build(ctx context.Context, on bool) (Payload, error) {
 	instanceID := ""
-	if optedIn {
+	if on {
 		var err error
-		if instanceID, err = s.storedValue(ctx, InstanceIDKey); err != nil {
+		if instanceID, err = s.ensureInstanceID(ctx); err != nil {
 			return Payload{}, err
 		}
 	}
@@ -267,10 +338,11 @@ func (s *ServiceImpl) build(ctx context.Context, optedIn bool) (Payload, error) 
 	}, nil
 }
 
-// storedEnabled reports whether the admin has opted in
-func (s *ServiceImpl) storedEnabled(ctx context.Context) (bool, error) {
+// chosenEnabled reports the admin's choice: on until they choose. A value that is neither "true"
+// nor "false" counts as off, since nothing but this service writes the key.
+func (s *ServiceImpl) chosenEnabled(ctx context.Context) (bool, error) {
 	value, err := s.storedValue(ctx, EnabledKey)
-	return value == "true", err
+	return value == "" || value == "true", err
 }
 
 // storedValue returns the value of a setting, or "" when it isn't stored
@@ -337,8 +409,6 @@ func storageBackend(dbType string) string {
 		return "sqlite"
 	case "postgres", "postgresql":
 		return "postgres"
-	case "mongo", "mongodb":
-		return "mongo"
 	case "mysql":
 		return "mysql"
 	}

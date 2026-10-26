@@ -16,8 +16,9 @@
       "have_account": "Ali že imate račun?",
       "sign_in": "Prijavi se",
       "submit": "Ustvari",
-      "telemetry_hint": "Izklopljeno, razen če označite to polje. To lahko pozneje spremenite v razdelku »Nastavitve«. Če ga označite, Peekaping to pošlje največ enkrat na dan:",
-      "title": "Pozdravljeni"
+      "title": "Pozdravljeni",
+      "telemetry_note": "Anonimno: brez imen nadzorov, URL-jev in gostiteljev. To lahko pozneje spremenite v razdelku Nastavitve.",
+      "telemetry_whats_sent": "Kaj se pošilja"
     },
     "twofa": {
       "code_label": "2FA Koda",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Pošiljaj poročila o napakah",
-    "never_sent": "Nikoli se ne pošiljajo: sporočila o napakah, URL-ji, glave, URL-ji spletnih kljuk, imena ali imena gostiteljev. Poročilo ne vsebuje naslova IP, projekt Sentry za Peekaping pa je nastavljen tako, da ne shranjuje IP pošiljatelja. Pri lastnem ERROR_REPORTING_DSN odločajo nastavitve vašega Sentryja ali GlitchTipa.",
-    "not_saved": "Vaša izbira pošiljanja poročil o napakah ni bila shranjena. Vklopite jo v razdelku »Nastavitve«.",
+    "never_sent": "Nikoli se ne pošiljajo: sporočila o napakah, URL-ji, glave, URL-ji spletnih kljuk, imena ali imena gostiteljev. Poročilo ne vsebuje naslova IP, projekt Sentry za Peekaping pa je nastavljen tako, da ne shranjuje IP pošiljatelja.",
+    "not_saved": "Vaša izbira glede poročil o napakah ni bila shranjena. Preverite jo v razdelku Nastavitve.",
     "sent": "Pošlje se samo, ko se sam Peekaping zruši. Poročilo vsebuje vrsto napake in mesto v kodi, kjer se je zgodila, različico Peekapinga, enojni ali gručni način, zaledje za shranjevanje in operacijski sistem."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Časovna omejitev (Pretek po {{seconds}} sekundah)",
           "resend_notification": "Ponovno pošlji obvestilo, če je izpala X-krat zaporedno (Ponovno pošiljanje onemogočeno)"
         },
+        "location_rule": {
+          "all": "vse lokacije ne delujejo",
+          "any": "katera koli lokacija ne deluje",
+          "at_least": "vsaj N lokacij ne deluje",
+          "description": "Lokacija, katere sonda je brez povezave ali se še ni javila, se ne šteje.",
+          "label": "Označi monitor kot nedelujoč, ko",
+          "threshold_invalid": "Vnesite celo število, 1 ali več",
+          "threshold_label": "Število lokacij",
+          "threshold_too_high": "Ne sme biti večje od števila izbranih sond"
+        },
         "notifications": {
           "add_notifier": "Dodaj obveščevalnik",
           "new_notifier": "+ Nov opozorilnik",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Izberi pošiljatelja obvestil",
           "selected_channels": "Izbrani kanali obvestil",
           "title": "Sporočilni kanali"
+        },
+        "probe": {
+          "description": "Monitor teče na vsaki izbrani sondi in rezultate vsake prikaže kot lokacijo.",
+          "label": "Sonda",
+          "option_unsupported": "{{name}} (ne izvaja te vrste)",
+          "placeholder": "Izberi sondo",
+          "push_fixed": "Push Monitor vedno teče na lokalni sondi.",
+          "required": "Izberite vsaj eno sondo",
+          "unsupported": "Ta sonda ne izvaja te vrste monitorja. Izberi drugo sondo."
         },
         "proxy": {
           "add_proxy": "Dodaj posrednik",
@@ -658,6 +678,15 @@
       "expiring_soon": "Skoraj izteče",
       "for": "za",
       "live_status": "Stanje v živo",
+      "locations": {
+        "all": "Vse lokacije",
+        "no_result": "Še ni rezultata",
+        "probe_offline": "Sonda je brez povezave",
+        "probe_unsupported": "Ne izvaja te vrste",
+        "response_time": "Čas odziva",
+        "select_label": "Lokacija",
+        "title": "Lokacije"
+      },
       "monitor_for": "monitoriraj za",
       "no_certificate_data": "Ni podatkov o certifikatu",
       "seconds": "sekunde",
@@ -683,6 +712,7 @@
     "maintenance": "Vzdrževanje",
     "monitors": "Nadzori",
     "notification_channels": "Kanali obvestil",
+    "probes": "Sonde",
     "proxies": "Posredniki",
     "settings": "Nastavitve",
     "status_pages": "Statusne strani",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Samodejno potrdi",
         "auto_resolve_acknowledge_description": "Samodejno potrdi incident",
-        "auto_resolve_description": "Izberite, kateri ukrep želite izvesti, ko monitor ponovno postane na voljo",
+        "auto_resolve_description": "Izberite, kaj se pošlje, ko monitor ponovno postane na voljo ali se sonda ponovno poveže",
         "auto_resolve_do_nothing": "Ne naredi nič",
-        "auto_resolve_do_nothing_description": "Noben ukrep ni bil izveden pri statusu UP",
+        "auto_resolve_do_nothing_description": "Nič se ne pošlje, ko monitor ponovno postane na voljo ali se sonda ponovno poveže, zato incident ostane odprt, dokler ga ne razrešite v storitvi PagerDuty",
         "auto_resolve_label": "Samodejno razreši ali potrdi",
         "auto_resolve_placeholder": "Izberite obnašanje samodejnega razreševanja",
         "auto_resolve_resolve": "Samodejno razreševanje",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Neobvezen avtentikacijski žeton za dodatno varnost. Ta bo poslan v glavi pagertree-token.",
         "authentication_token_label": "Overitveni žeton (neobvezno)",
         "authentication_token_placeholder": "Vnesite avtentikacijski žeton, če je potreben",
-        "auto_resolve_alerts_description": "Samodejno razreši PagerTree opozorila, ko monitor opomore",
+        "auto_resolve_alerts_description": "Samodejno razreši PagerTree opozorila, ko monitor ponovno postane na voljo ali se sonda ponovno poveže",
         "auto_resolve_alerts_label": "Samodejno razreši opozorila",
         "how_to_get_integration_url_label": "Kako dobiti URL integracije",
         "integration_url_description": "Vnesite svoj PagerTree webhook integracijski URL.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Shranjeno — vnesite za zamenjavo"
     }
   },
+  "probes": {
+    "page_name": "Sonde",
+    "description": "Sonde izvajajo preverjanja nadzorov s krajev, kjer so nameščene. Lokalna sonda je sam Peekaping.",
+    "local_name": "Lokalna",
+    "monitor_probe": "Sonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} ne izvaja monitorjev vrste {{type}}",
+    "empty_list": {
+      "title": "Sond ni bilo mogoče najti",
+      "text": "Ustvarite sondo za izvajanje preverjanj z drugega kraja.",
+      "action_text": "Ustvarite svojo prvo sondo"
+    },
+    "table": {
+      "headers": {
+        "name": "Ime",
+        "location": "Lokacija",
+        "status": "Stanje",
+        "disabled": "Onemogočena",
+        "token": "Žeton",
+        "instances": "Primerki",
+        "actions": "Dejanja"
+      },
+      "status": {
+        "online": "Na spletu",
+        "offline": "Brez povezave"
+      },
+      "disabled": "Onemogočena",
+      "no_instances": "Primerkov še ni",
+      "last_seen": "nazadnje videna {{date}}",
+      "actions": {
+        "edit": "Uredi sondo {{name}}",
+        "rotate": "Zamenjaj žeton sonde {{name}}",
+        "delete": "Izbriši sondo {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Ustvari sondo",
+      "description": "Sonda izvaja preverjanja s kraja, kjer jo namestite. Njen žeton je prikazan samo enkrat, po ustvarjanju.",
+      "submit": "Ustvari sondo",
+      "creating": "Ustvarjanje..."
+    },
+    "edit_dialog": {
+      "title": "Uredi sondo",
+      "description": "Spremenite nastavitve sonde {{name}}."
+    },
+    "form": {
+      "name_label": "Ime",
+      "name_placeholder": "npr. Frankfurt",
+      "location_label": "Lokacija (neobvezno)",
+      "location_placeholder": "npr. Frankfurt, Nemčija",
+      "name_required": "Ime je obvezno",
+      "name_too_long": "Ime je predolgo",
+      "location_too_long": "Lokacija je predolga",
+      "disabled_label": "Onemogočena",
+      "disabled_description": "Žeton onemogočene sonde preneha delovati, dokler je znova ne omogočite.",
+      "notifications_hint": "Pustite prazno, da se obvestijo kanali nadzorov te sonde."
+    },
+    "rotate_dialog": {
+      "title": "Zamenjaj žeton",
+      "description": "Stari žeton sonde {{name}} takoj preneha delovati. Njene primerke je treba znova zagnati z novim žetonom.",
+      "confirm": "Zamenjaj žeton",
+      "rotating": "Zamenjava..."
+    },
+    "delete_dialog": {
+      "title": "Izbriši sondo",
+      "description": "Ali ste prepričani, da želite izbrisati sondo »{{name}}«? Njen žeton bo prenehal delovati. Tega dejanja ni mogoče razveljaviti."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} je ustvarjena",
+      "title_rotated": "Nov žeton za sondo {{name}}",
+      "note": "Ta žeton bere konfiguracije nadzorov, dodeljenih sondi. Prikazan je samo enkrat.",
+      "token_label": "Žeton",
+      "docker_label": "Zaženite sondo z Dockerjem",
+      "copy_token": "Kopiraj žeton",
+      "copy_command": "Kopiraj ukaz docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda je bila uspešno ustvarjena",
+      "updated_successfully": "Sonda je bila uspešno posodobljena",
+      "rotated_successfully": "Žeton je bil uspešno zamenjan",
+      "deleted_successfully": "Sonda je bila uspešno izbrisana",
+      "failed_to_create": "Ustvarjanje sonde ni uspelo",
+      "failed_to_update": "Posodobitev sonde ni uspela",
+      "failed_to_rotate": "Zamenjava žetona ni uspela",
+      "failed_to_delete": "Brisanje sonde ni uspelo",
+      "failed_to_load": "Nalaganje sond ni uspelo",
+      "copy_success": "Kopirano v odložišče",
+      "copy_failed": "Kopiranje v odložišče ni uspelo"
+    },
+    "detail": {
+      "not_found": "Sonde ni bilo mogoče najti"
+    },
+    "availability": {
+      "title": "Razpoložljivost",
+      "range_label": "Časovno obdobje",
+      "bar_label": "Zgodovina razpoložljivosti",
+      "instance_bar_label": "Povezave sonde {{name}}",
+      "no_data": "Ni podatkov",
+      "now": "Zdaj",
+      "instances_title": "Primerki, zadnjih 24 ur",
+      "in_process_note": "Monitorje lokalne sonde preverja sam Peekaping, zato nima zgodovine razpoložljivosti.",
+      "connected_since": "Povezana od {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "To dejanje ne more biti razveljavljeno. Proxy {{host}}:{{port}} bo trajno izbrisan.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "V gručnem načinu pride sprememba do vsakega procesa v eni minuti.",
-      "description": "Pošlji poročilo v Sentry, ko se strežnik zruši. Izklopljeno, dokler ne vklopite.",
-      "forced_off": "Spremenljivka okolja ERROR_REPORTING=off ali DO_NOT_TRACK=1 to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
+      "description": "Pošlji poročilo v Sentry, ko se strežnik zruši. Privzeto vklopljeno; tukaj lahko to kadar koli izklopite.",
+      "forced_off": "Spremenljivka okolja ERROR_REPORTING=off to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
       "title": "Poročila o napakah"
     },
     "telemetry": {
-      "description": "Pošiljaj anonimno statistiko o tem, kako je ta namestitev nastavljena, največ enkrat na dan. Izklopljeno, dokler ne vklopite.",
-      "forced_off": "Spremenljivka okolja TELEMETRY=off ali DO_NOT_TRACK=1 to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
-      "id_note": "ID primerka se ustvari, ko to vklopite, in izbriše, ko to izklopite. Ob ponovnem vklopu se ustvari nov.",
+      "description": "Pošiljaj anonimno statistiko o tem, kako je ta namestitev nastavljena, največ enkrat na dan. Privzeto vklopljeno; tukaj lahko to kadar koli izklopite.",
+      "forced_off": "Spremenljivka okolja TELEMETRY=off to izklopi. Nič se ne pošlje, ne glede na to, kaj pravi ta nastavitev.",
+      "id_note": "ID primerka se ustvari, dokler je to vklopljeno, in izbriše, ko to izklopite. Ob ponovnem vklopu se ustvari nov.",
       "payload_off": "Dokler je to izklopljeno, se nič ne pošilja. To bi vseboval ping uporabe, če bi to vklopili.",
       "payload_title": "Kaj bo poslal naslednji ping uporabe",
       "title": "Statistika uporabe"
@@ -1367,6 +1500,8 @@
     "published_status": "Objavljeno",
     "search_label": "Išči",
     "search_placeholder": "Iskanje statusnih strani po naslovu...",
+    "show_locations": "Prikaži vsako lokacijo",
+    "show_locations_info": "Pri monitorjih, ki se preverjajo z več lokacij, prikaže stanje in zgodovino vsake lokacije",
     "update_status_page": "Posodobi statusno stran",
     "view_page": "Ogled strani"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Kaj se pošilja in kako to izklopiti",
     "label": "Pošiljaj anonimno statistiko uporabe",
-    "never_sent": "Nikoli se ne pošiljajo: imena nadzorov, URL-ji, gostitelji, oznake, naslovi statusnih strani ali nastavitve obvestil. Ping uporabe ne vsebuje naslova IP, Worker za Peekaping pa IP-ja pošiljatelja ne beleži.",
-    "not_saved": "Vaša izbira pošiljanja statistike uporabe ni bila shranjena. Vklopite jo v razdelku »Nastavitve«.",
-    "sent_features": "Ali uporabljate statusne strani, okna vzdrževanja in metrike",
-    "sent_id": "Naključni ID, ki se ustvari, ko to vklopite, in izbriše, ko to izklopite",
-    "sent_monitors": "Koliko nadzorov imate, kot razpon, na primer 11-50",
-    "sent_setup": "Različica Peekapinga, enojni ali gručni način, zaledje za shranjevanje ter operacijski sistem in vrsta procesorja",
-    "sent_types": "Vrste nadzorov in kanalov za obvestila, ki jih uporabljate, na primer http ali telegram"
+    "not_saved": "Vaša izbira glede statistike uporabe ni bila shranjena. Preverite jo v razdelku Nastavitve."
+  },
+  "telemetry_notice": {
+    "error_reports": "Poročila o napakah so vklopljena. Če se Peekaping zruši, pošlje vrsto napake in mesto v kodi, kjer se je zgodila, svojo različico, način, zaledje za shranjevanje in operacijski sistem. Nikoli ne pošlje sporočil o napakah, naslovov URL ali imen gostiteljev.",
+    "settings_errors": "Izklopi poročila o napakah v razdelku Nastavitve",
+    "settings_usage": "Izklopi statistiko uporabe v razdelku Nastavitve",
+    "title": "Pošiljanje anonimnih podatkov je privzeto vklopljeno",
+    "usage_statistics": "Statistika uporabe je vklopljena. Največ enkrat na dan Peekaping pošlje naključni ID primerka, svojo različico, način, zaledje za shranjevanje in operacijski sistem, razpon za število nadzorov, vrste nadzorov in kanalov za obvestila, ki jih uporabljate, ter podatek, ali uporabljate statusne strani, okna vzdrževanja in metrike. Nikoli ne pošlje imen, naslovov URL, gostiteljev ali nastavitev."
   },
   "theme": {
     "dark": "Temen",

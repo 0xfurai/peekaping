@@ -1,6 +1,6 @@
 # 0001: Deprecate MongoDB storage
 
-Status: Accepted
+Status: Accepted, amended 2026-10-25
 Date: 2026-10-19
 Ticket: PP-23
 
@@ -65,3 +65,28 @@ The migration command now exists as `bun db import-mongo`. It copies a MongoDB i
 - The "not built yet" in the Removal bullet no longer holds.
 - The removal clock starts with the release that ships the command: removal happens no earlier than the second release after that one.
 - The command reads the MongoDB collections itself and writes the SQL tables. The Mongo repositories are unchanged.
+
+## Update
+
+Date: 2026-10-25
+Ticket: PP-277
+
+MongoDB storage is removed, as the Removal bullet above says. It ships in the same release as `bun db import-mongo`, the first after 0.0.47, which is the last release that runs on MongoDB storage. The freeze above is over, since nothing is left to freeze.
+
+The maintainer dropped the notice period on 2026-10-25, so the second-release notice period (the Removal bullet, and the #227 update above) no longer holds. The older text stays as history. A Mongo install moves with that release's own `bun db import-mongo` (in the migrate image and in the SQLite and PostgreSQL bundle images) before it starts on SQL, and stays on 0.0.47 until then.
+
+What went:
+
+- The Mongo repositories of every module, `infra/mongo.go`, and the helpers that only they used.
+- The `mongo` and `mongodb` values of `DB_TYPE`. A Mongo `DB_TYPE` stops every binary, and `bun db` and the migrate image with them, with an error that says MongoDB storage was removed and links to the move guide. The Helm chart refuses the two values at render time, with a message that points PostgreSQL installs to the same guide.
+- The `peekaping-bundle-mongo` image, which gets no new tags, the Mongo compose files, the `mongo` profile of `docker-compose.deps.yml`, the Makefile targets, the CI jobs that built and published the image, and the Mongo leg of the e2e matrix. The e2e specs no longer skip on MongoDB.
+- The self-hosting page for MongoDB, down to the move guide. It keeps its URL and its `#move-to-sqlite-or-postgresql` anchor, so the links to it, and the one in the error, still work.
+
+What stays:
+
+- The MongoDB monitor type and the Mongo driver it uses.
+- `bun db import-mongo`, in the SQLite and PostgreSQL bundle images and in the migrate image, with its tests and its `import-mongo` CI job. The tests seed a real MongoDB with raw documents, from copies of the models that the repositories wrote, which `mongoimporttest` keeps. The format of an old Mongo install can't change any more, so the copies are frozen.
+- `PEE_TEST_MONGO_URI`, which only the import tests read now.
+- The Telemetry Worker still accepts `mongo`, because older installs still send it.
+
+The Consequences about upkeep and about SQL-only features no longer apply, and neither do the waiting tickets that were only about the Mongo repositories.

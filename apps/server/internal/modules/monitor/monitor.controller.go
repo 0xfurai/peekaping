@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"strings"
 	"time"
 
@@ -35,7 +36,7 @@ func NewMonitorController(
 	tlsInfoService monitor_tls_info.Service,
 	staleStore stale.Store,
 ) *MonitorController {
-	utils.Validate.RegisterStructValidation(CreateUpdateDtoStructLevelValidation, CreateUpdateDto{})
+	validation.Validate.RegisterStructValidation(CreateUpdateDtoStructLevelValidation, CreateUpdateDto{})
 
 	return &MonitorController{
 		monitorService,
@@ -60,7 +61,56 @@ func (ic *MonitorController) staleMonitors(ctx context.Context) map[string]stale
 	}
 	return entries
 }
-func (ic *MonitorController) FindAll(ctx context.Context, input *FindAllInput) (*httpx.Output[utils.ApiResponse[[]*Model]], error) {
+
+// withLinks turns monitors into API responses, each with the IDs of the notification channels and
+// tags linked to it. Every endpoint that returns a monitor answers with these.
+func (ic *MonitorController) withLinks(ctx context.Context, monitors []*Model) ([]*MonitorResponseDto, error) {
+	if monitors == nil {
+		return nil, nil
+	}
+	responses := make([]*MonitorResponseDto, len(monitors))
+	if len(monitors) == 0 {
+		return responses, nil
+	}
+
+	// One query for each kind of link, whatever the number of monitors
+	ids := make([]string, len(monitors))
+	for i, m := range monitors {
+		ids[i] = m.ID
+	}
+	notificationRels, err := ic.monitorNotificationService.FindByMonitorIDs(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("fetch monitor-notification relations: %w", err)
+	}
+	tagRels, err := ic.monitorTagService.FindByMonitorIDs(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("fetch monitor-tag relations: %w", err)
+	}
+
+	for i, m := range monitors {
+		notificationIds := make([]string, 0, len(notificationRels[m.ID]))
+		for _, rel := range notificationRels[m.ID] {
+			notificationIds = append(notificationIds, rel.NotificationID)
+		}
+		tagIds := make([]string, 0, len(tagRels[m.ID]))
+		for _, rel := range tagRels[m.ID] {
+			tagIds = append(tagIds, rel.TagID)
+		}
+		responses[i] = &MonitorResponseDto{Monitor: *m, NotificationIds: notificationIds, TagIds: tagIds}
+	}
+	return responses, nil
+}
+
+// withLinksOf is withLinks for one monitor.
+func (ic *MonitorController) withLinksOf(ctx context.Context, monitor *Model) (*MonitorResponseDto, error) {
+	responses, err := ic.withLinks(ctx, []*Model{monitor})
+	if err != nil {
+		return nil, err
+	}
+	return responses[0], nil
+}
+
+func (ic *MonitorController) FindAll(ctx context.Context, input *FindAllInput) (*httpx.Output[utils.ApiResponse[[]*MonitorResponseDto]], error) {
 	r := input.Request
 	page, err := utils.GetQueryInt(r, "page", 0)
 	if err != nil || page < 0 {
@@ -119,16 +169,22 @@ func (ic *MonitorController) FindAll(ctx context.Context, input *FindAllInput) (
 		}
 	}
 
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", response))
+	monitors, err := ic.withLinks(ctx, response)
+	if err != nil {
+		ic.logger.Errorw("Failed to fetch monitor links", "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", monitors))
 }
-func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*httpx.Output[utils.ApiResponse[*MonitorResponseDto]], error) {
 	monitor, decodeErr := input.Decode()
 	if err := decodeErr; err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 	monitor.ApplyCreateDefaults()
 
-	if err := utils.Validate.Struct(monitor); err != nil {
+	if err := validation.Validate.Struct(monitor); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -139,15 +195,33 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 
 	createdMonitor, err := ic.monitorService.Create(ctx, monitor)
 	if err != nil {
+		var invalidProbes *InvalidProbesError
+		var invalidRule *InvalidLocationRuleError
+		switch {
+		case errors.As(err, &invalidProbes):
+			return nil, invalidProbesResponse(invalidProbes)
+		case errors.As(err, &invalidRule):
+			return nil, invalidLocationRuleResponse(invalidRule)
+		}
 		ic.logger.Errorw("Failed to create monitor", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	// Only the ID and type: the monitor's config holds credentials, and so does its push token
 	ic.logger.Infof("Created monitor: %s (type: %s)", createdMonitor.ID, createdMonitor.Type)
 
-	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Monitor created successfully", createdMonitor))
+	// The monitor and its links are committed, and a transaction that failed on a link would have
+	// returned an error above, so the links are exactly the IDs of the request. The response is
+	// built from them without a read: one that failed would answer 500 for a monitor that exists,
+	// and a client sending the POST again would create a second one.
+	response := &MonitorResponseDto{
+		Monitor:         *createdMonitor,
+		NotificationIds: distinct(monitor.NotificationIds),
+		TagIds:          distinct(monitor.TagIds),
+	}
+
+	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Monitor created successfully", response))
 }
-func (ic *MonitorController) FindByID(ctx context.Context, input *FindByIDInput) (*httpx.Output[utils.ApiResponse[MonitorResponseDto]], error) {
+func (ic *MonitorController) FindByID(ctx context.Context, input *FindByIDInput) (*httpx.Output[utils.ApiResponse[*MonitorResponseDto]], error) {
 	r := input.Request
 	id := r.PathValue("id")
 
@@ -161,54 +235,19 @@ func (ic *MonitorController) FindByID(ctx context.Context, input *FindByIDInput)
 		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
 	}
 
-	// Fetch notification_ids
-	notificationRels, err := ic.monitorNotificationService.FindByMonitorID(ctx, id)
-	if err != nil {
-		ic.logger.Errorw("Failed to fetch monitor-notification relations", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	notificationIds := make([]string, 0, len(notificationRels))
-	for _, rel := range notificationRels {
-		notificationIds = append(notificationIds, rel.NotificationID)
-	}
-
-	// Fetch tag_ids
-	tagRels, err := ic.monitorTagService.FindByMonitorID(ctx, id)
-	if err != nil {
-		ic.logger.Errorw("Failed to fetch monitor-tag relations", "error", err)
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-	}
-	tagIds := make([]string, 0, len(tagRels))
-	for _, rel := range tagRels {
-		tagIds = append(tagIds, rel.TagID)
-	}
-
-	// Compose response with notification_ids and tag_ids
-	response := MonitorResponseDto{
-		ID:              monitor.ID,
-		Name:            monitor.Name,
-		Interval:        monitor.Interval,
-		Timeout:         monitor.Timeout,
-		Type:            monitor.Type,
-		Active:          monitor.Active,
-		MaxRetries:      monitor.MaxRetries,
-		RetryInterval:   monitor.RetryInterval,
-		ResendInterval:  monitor.ResendInterval,
-		Status:          int(monitor.Status),
-		CreatedAt:       monitor.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:       monitor.UpdatedAt.Format(time.RFC3339),
-		NotificationIds: notificationIds,
-		TagIds:          tagIds,
-		ProxyId:         monitor.ProxyId,
-		Config:          monitor.Config,
-	}
 	if entry, ok := ic.staleMonitors(ctx)[monitor.ID]; ok {
-		response.StaleSince = &entry.Since
+		monitor.StaleSince = &entry.Since
+	}
+
+	response, err := ic.withLinksOf(ctx, monitor)
+	if err != nil {
+		ic.logger.Errorw("Failed to fetch monitor links", "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", response))
 }
-func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullInput) (*httpx.Output[utils.ApiResponse[*MonitorResponseDto]], error) {
 	r := input.Request
 	id := r.PathValue("id")
 
@@ -218,7 +257,7 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 	}
 
 	// validate
-	if err := utils.Validate.Struct(monitor); err != nil {
+	if err := validation.Validate.Struct(monitor); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
@@ -229,6 +268,14 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 
 	updatedMonitor, err := ic.monitorService.UpdateFull(ctx, id, &monitor)
 	if err != nil {
+		var invalidProbes *InvalidProbesError
+		var invalidRule *InvalidLocationRuleError
+		switch {
+		case errors.As(err, &invalidProbes):
+			return nil, invalidProbesResponse(invalidProbes)
+		case errors.As(err, &invalidRule):
+			return nil, invalidLocationRuleResponse(invalidRule)
+		}
 		ic.logger.Errorw("Failed to update monitor", "error", err)
 		if errors.Is(err, ErrMonitorNotFound) {
 			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse(err.Error()))
@@ -236,9 +283,15 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
+	response, err := ic.withLinksOf(ctx, updatedMonitor)
+	if err != nil {
+		ic.logger.Errorw("Failed to fetch monitor links", "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", response))
 }
-func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePartialInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePartialInput) (*httpx.Output[utils.ApiResponse[*MonitorResponseDto]], error) {
 	r := input.Request
 	id := r.PathValue("id")
 
@@ -252,20 +305,37 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 		return nil, ic.failWrite("update", err)
 	}
 
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", updatedMonitor))
+	response, err := ic.withLinksOf(ctx, updatedMonitor)
+	if err != nil {
+		ic.logger.Errorw("Failed to fetch monitor links", "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", response))
 }
 
 // failWrite maps the error of a write that looks up the monitor itself to its response.
 func (ic *MonitorController) failWrite(action string, err error) error {
 	var invalidConfig *InvalidConfigError
+	var invalidProbes *InvalidProbesError
+	var invalidRule *InvalidLocationRuleError
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
 	case errors.As(err, &invalidConfig):
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", invalidConfig.Err)))
+	case errors.As(err, &invalidProbes):
+		return invalidProbesResponse(invalidProbes)
+	case errors.As(err, &invalidRule):
+		return invalidLocationRuleResponse(invalidRule)
 	}
 	ic.logger.Errorw("Failed to "+action+" monitor", "error", err)
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+}
+
+// invalidProbesResponse tells the client why the probes it sent don't fit the monitor
+func invalidProbesResponse(err *InvalidProbesError) error {
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid probe_ids: %v", err.Err)))
 }
 
 func (ic *MonitorController) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
@@ -315,7 +385,7 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx context.Context, input
 		return nil, err
 	}
 
-	results, err := ic.monitorService.GetHeartbeats(ctx, id, limit, page, importantPtr, reverse)
+	results, err := ic.monitorService.GetHeartbeats(ctx, id, r.URL.Query().Get("probe_id"), limit, page, importantPtr, reverse)
 	if err != nil {
 		ic.logger.Errorw("Failed to get heartbeats", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -374,7 +444,7 @@ func (ic *MonitorController) GetStatPoints(ctx context.Context, input *GetStatPo
 		return nil, err
 	}
 
-	summary, err := ic.monitorService.GetStatPoints(ctx, id, since, until, granularity)
+	summary, err := ic.monitorService.GetStatPoints(ctx, id, r.URL.Query().Get("probe_id"), since, until, granularity)
 	if err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
@@ -388,14 +458,14 @@ func (ic *MonitorController) GetUptimeStats(ctx context.Context, input *GetUptim
 		return nil, err
 	}
 
-	stats, err := ic.monitorService.GetUptimeStats(ctx, id)
+	stats, err := ic.monitorService.GetUptimeStats(ctx, id, r.URL.Query().Get("probe_id"))
 	if err != nil {
 		ic.logger.Errorw("Failed to get uptime stats (short)", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", stats))
 }
-func (ic *MonitorController) FindByIDs(ctx context.Context, input *FindByIDsInput) (*httpx.Output[utils.ApiResponse[[]*Model]], error) {
+func (ic *MonitorController) FindByIDs(ctx context.Context, input *FindByIDsInput) (*httpx.Output[utils.ApiResponse[[]*MonitorResponseDto]], error) {
 	r := input.Request
 	idsStr := r.URL.Query().Get("ids")
 	if idsStr == "" {
@@ -419,7 +489,13 @@ func (ic *MonitorController) FindByIDs(ctx context.Context, input *FindByIDsInpu
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", monitors))
+	response, err := ic.withLinks(ctx, monitors)
+	if err != nil {
+		ic.logger.Errorw("Failed to fetch monitor links", "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", response))
 }
 func (ic *MonitorController) ResetMonitorData(ctx context.Context, input *ResetMonitorDataInput) (*httpx.Output[utils.ApiResponse[any]], error) {
 	r := input.Request
@@ -457,4 +533,9 @@ func (ic *MonitorController) GetTLSInfo(ctx context.Context, input *GetTLSInfoIn
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewNullableSuccessResponse("success", tlsInfo))
+}
+
+// invalidLocationRuleResponse tells the client why the location rule it sent doesn't fit the monitor
+func invalidLocationRuleResponse(err *InvalidLocationRuleError) error {
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid location_rule: %v", err.Err)))
 }

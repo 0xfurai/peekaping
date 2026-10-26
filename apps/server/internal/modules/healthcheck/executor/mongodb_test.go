@@ -1,15 +1,59 @@
+//go:build !slim
+
 package executor
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
+	"time"
 
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
+
+func mongoMonitor(t *testing.T, timeout int, cfg MongoDBConfig) *Monitor {
+	t.Helper()
+	raw, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	return &Monitor{ID: "mongodb-test", Name: "MongoDB test", Type: "mongodb", Timeout: timeout, Config: string(raw)}
+}
+
+func TestMongoDBExecutor_ServerRefusesConnection(t *testing.T) {
+	addr := refusedAddr(t)
+
+	exec := NewMongoDBExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), mongoMonitor(t, 2, MongoDBConfig{
+		ConnectionString: "mongodb://root:secret@" + addr + "/admin",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "MongoDB command failed: failed to execute MongoDB command: server selection error: ")
+	assert.Contains(t, result.Message, "Last error: dial tcp "+addr+": connect: connection refused")
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
+
+func TestMongoDBExecutor_ServerNeverAnswers(t *testing.T) {
+	addr, _ := silentServer(t)
+
+	exec := NewMongoDBExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), mongoMonitor(t, 2, MongoDBConfig{
+		ConnectionString: "mongodb://root:secret@" + addr + "/admin",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "MongoDB command failed: failed to execute MongoDB command: server selection error: ")
+	assert.Contains(t, result.Message, "{ Addr: "+addr+", Type: Unknown }") // the server is known by its address, but never said what it is
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
 
 func TestMongoDBExecutor_Unmarshal(t *testing.T) {
 	logger := zap.NewNop().Sugar()

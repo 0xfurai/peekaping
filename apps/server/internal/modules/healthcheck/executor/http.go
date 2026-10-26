@@ -11,9 +11,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/shared"
-	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 	"peekaping/internal/version"
 	"strconv"
 	"strings"
@@ -154,7 +153,7 @@ type HTTPExecutor struct {
 // TLSInterceptor is a custom RoundTripper that captures TLS certificate information
 type TLSInterceptor struct {
 	transport http.RoundTripper
-	tlsInfo   *certificate.TLSInfo
+	tlsInfo   *shared.TLSInfo
 	mutex     sync.RWMutex
 }
 
@@ -178,9 +177,9 @@ func (t *TLSInterceptor) RoundTrip(req *http.Request) (*http.Response, error) {
 	return resp, err
 }
 
-func (t *TLSInterceptor) extractTLSInfo(tlsState *tls.ConnectionState) *certificate.TLSInfo {
+func (t *TLSInterceptor) extractTLSInfo(tlsState *tls.ConnectionState) *shared.TLSInfo {
 	if len(tlsState.PeerCertificates) == 0 {
-		return &certificate.TLSInfo{Valid: false}
+		return &shared.TLSInfo{Valid: false}
 	}
 
 	// Get the server certificate (first in the chain)
@@ -189,10 +188,10 @@ func (t *TLSInterceptor) extractTLSInfo(tlsState *tls.ConnectionState) *certific
 	// Check if the certificate chain is verified
 	verified := len(tlsState.VerifiedChains) > 0
 
-	return certificate.ParseCertificateChain(serverCert, verified)
+	return shared.ParseCertificateChain(serverCert, verified)
 }
 
-func (t *TLSInterceptor) GetTLSInfo() *certificate.TLSInfo {
+func (t *TLSInterceptor) GetTLSInfo() *shared.TLSInfo {
 	t.mutex.RLock()
 	defer t.mutex.RUnlock()
 	return t.tlsInfo
@@ -205,7 +204,7 @@ func (t *TLSInterceptor) Reset() {
 }
 
 func NewHTTPExecutor(logger *zap.SugaredLogger) *HTTPExecutor {
-	utils.Validate.RegisterStructValidation(HTTPConfigStructLevelValidation, HTTPConfig{})
+	validation.Validate.RegisterStructValidation(HTTPConfigStructLevelValidation, HTTPConfig{})
 
 	return &HTTPExecutor{
 		logger: logger,
@@ -401,7 +400,7 @@ func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTrip
 	case "http", "https":
 		proxyURL := &url.URL{
 			Scheme: protocol,
-			Host:   fmt.Sprintf("%s:%d", proxyModel.Host, proxyModel.Port),
+			Host:   net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port)),
 		}
 		if proxyModel.Auth && proxyModel.Username != "" && proxyModel.Password != "" {
 			proxyURL.User = url.UserPassword(proxyModel.Username, proxyModel.Password)
@@ -416,7 +415,7 @@ func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTrip
 				Password: proxyModel.Password,
 			}
 		}
-		address := fmt.Sprintf("%s:%d", proxyModel.Host, proxyModel.Port)
+		address := net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port))
 		dialer, err := proxy.SOCKS5("tcp", address, auth, proxy.Direct)
 		if err != nil {
 			// fallback to default transport if dialer fails
@@ -668,7 +667,7 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	h.logger.Infof("HTTP response status: %s, %d", m.Name, resp.StatusCode)
 
 	// Extract TLS information if available
-	var tlsInfo *certificate.TLSInfo
+	var tlsInfo *shared.TLSInfo
 	if strings.HasPrefix(cfg.Url, "https://") && activeTLSInterceptor != nil {
 		tlsInfo = activeTLSInterceptor.GetTLSInfo()
 	}

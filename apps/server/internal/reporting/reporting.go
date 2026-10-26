@@ -1,5 +1,5 @@
 // Package reporting is the error report (ticket #233, ADR 0003): a crash report sent to Sentry
-// after an admin opts in. It holds the state of the process (whether reporting is on) as package
+// until an admin opts out. It holds the state of the process (whether reporting is on) as package
 // state, because the places that recover a panic live in many packages and none of them should
 // need a dependency to report it.
 //
@@ -17,8 +17,11 @@ import (
 	"github.com/getsentry/sentry-go"
 )
 
-// DefaultDSN is the Sentry project error reports go to. An empty DSN sends nothing.
-const DefaultDSN = "" // TODO: set to the project's DSN before release
+// DefaultDSN is Peekaping's Sentry project, where error reports go unless ERROR_REPORTING_DSN names
+// another. A DSN is not a secret: it only lets a client send events to the project. An empty DSN
+// sends nothing. A test must give Setup a DSN of its own, a Transport or ForcedOff, so that none
+// can reach this project (see builtin_dsn_guard_test.go).
+const DefaultDSN = "https://21a7d557a242d6e6ec3f8551841ea2db@o90647.ingest.us.sentry.io/4512301050691584"
 
 // flushTimeout is how long a crash waits for its report to go out before the process dies
 const flushTimeout = 2 * time.Second
@@ -31,9 +34,9 @@ type Options struct {
 	Release string
 	// Mode is how the install runs: "single" or "cluster"
 	Mode string
-	// DB is the storage backend: "sqlite", "postgres", "mongo", or "unknown"
+	// DB is the storage backend: "sqlite", "postgres", "mysql", or "unknown"
 	DB string
-	// ForcedOff is true when ERROR_REPORTING or DO_NOT_TRACK switches reporting off. Nothing is
+	// ForcedOff is true when ERROR_REPORTING switches reporting off. Nothing is
 	// sent then, whatever SetEnabled is given.
 	ForcedOff bool
 	// Transport replaces the HTTP transport. Tests use it to catch the events.

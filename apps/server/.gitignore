@@ -3,6 +3,5 @@
 main
 node_modules
 
-./worker
-./ingester
 ./server
+/api

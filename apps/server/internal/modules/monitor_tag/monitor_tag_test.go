@@ -21,9 +21,6 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -94,27 +91,6 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 	}
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		if err := client.Ping(ctx, nil); err != nil {
-			_ = client.Disconnect(context.Background())
-			require.NoError(t, err)
-		}
-		cfg := &config.Config{DBName: "monitor_tag_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		newID := func() string { return primitive.NewObjectID().Hex() }
-		fn(t, fixture{monitor_tag.NewService(monitor_tag.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), newID, newID})
-	})
 }
 
 func link(t *testing.T, svc monitor_tag.Service, monitorID, tagID string) *monitor_tag.Model {
@@ -164,6 +140,71 @@ func TestMonitorTags_LinksAreListedFromBothSides(t *testing.T) {
 		assert.ElementsMatch(t, []string{prod}, tagsOf(t, f.svc, db))
 		assert.ElementsMatch(t, []string{web, db}, monitorsOf(t, f.svc, prod))
 		assert.ElementsMatch(t, []string{web}, monitorsOf(t, f.svc, eu))
+	})
+}
+
+// tagsByMonitor lists the tag IDs of each monitor's links, in the order they came.
+func tagsByMonitor(links map[string][]*monitor_tag.Model) map[string][]string {
+	byMonitor := map[string][]string{}
+	for monitorID, monitorLinks := range links {
+		for _, l := range monitorLinks {
+			byMonitor[monitorID] = append(byMonitor[monitorID], l.TagID)
+		}
+	}
+	return byMonitor
+}
+
+func TestMonitorTags_LinksOfManyMonitorsAreListedAtOnce(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		web, db, idle, other := f.monitor(), f.monitor(), f.monitor(), f.monitor()
+		prod, eu := f.tag(), f.tag()
+		link(t, f.svc, web, prod)
+		link(t, f.svc, web, eu)
+		link(t, f.svc, db, eu)
+		link(t, f.svc, other, prod)
+
+		found, err := f.svc.FindByMonitorIDs(ctx, []string{web, db, idle})
+		require.NoError(t, err)
+
+		byMonitor := tagsByMonitor(found)
+		assert.Len(t, byMonitor, 2, "the monitor with no links and the monitor not asked for have no entry")
+		assert.ElementsMatch(t, []string{prod, eu}, byMonitor[web])
+		assert.Equal(t, []string{eu}, byMonitor[db])
+		assert.Equal(t, tagsOf(t, f.svc, web), byMonitor[web], "each monitor's links come in the order FindByMonitorID lists them")
+
+		for _, l := range found[web] {
+			assert.Equal(t, web, l.MonitorID)
+		}
+
+		none, err := f.svc.FindByMonitorIDs(ctx, nil)
+		require.NoError(t, err)
+		assert.Empty(t, none, "no monitors asked for, no links")
+	})
+}
+
+func TestMonitorTags_SQLListsLinksNewestFirst(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		web, db := f.monitor(), f.monitor()
+		prod, eu, edge := f.tag(), f.tag(), f.tag()
+		// The repository stamps a link with the time it is created, so each link needs its own
+		link(t, f.svc, web, prod)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, db, prod)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, web, eu)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, db, eu)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, web, edge)
+
+		found, err := f.svc.FindByMonitorIDs(context.Background(), []string{web, db})
+		require.NoError(t, err)
+
+		byMonitor := tagsByMonitor(found)
+		assert.Equal(t, []string{edge, eu, prod}, byMonitor[web], "FindByMonitorIDs: the newest link first")
+		assert.Equal(t, []string{eu, prod}, byMonitor[db])
+		assert.Equal(t, []string{edge, eu, prod}, tagsOf(t, f.svc, web), "FindByMonitorID: the newest link first")
 	})
 }
 

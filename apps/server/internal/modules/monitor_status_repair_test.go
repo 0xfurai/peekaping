@@ -22,7 +22,7 @@ func TestRepairStoredStatusesFollowsTheLatestHeartbeat(t *testing.T) {
 		ctx := context.Background()
 		bus := eventstest.NewBus()
 		logger := zap.NewNop().Sugar()
-		service := monitor.NewMonitorService(monitors, nil, heartbeat.NewService(heartbeats, bus, logger), bus, nil, nil, nil, nil, logger)
+		service := monitor.NewMonitorService(monitors, nil, heartbeat.NewService(heartbeats, bus, logger), bus, nil, nil, nil, nil, nil, logger)
 
 		create := func(name string, stored shared.MonitorStatus) string {
 			created, err := monitors.Create(ctx, &monitor.Model{Type: "http", Name: name, Interval: 60, Timeout: 10, Active: true, Config: "{}", Status: stored})

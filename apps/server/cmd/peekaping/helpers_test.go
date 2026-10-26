@@ -22,6 +22,7 @@ import (
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	gorilla "github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -43,7 +44,7 @@ const (
 // changed by env. The REDIS_* variables, WEB_DIR and API_URL are unset unless env sets them.
 func loadConfig(t *testing.T, env map[string]string) *Config {
 	t.Helper()
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 	unsetRedis(t)
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", filepath.Join(t.TempDir(), "peekaping.db"))
@@ -51,6 +52,9 @@ func loadConfig(t *testing.T, env map[string]string) *Config {
 	t.Setenv("METRICS_ENABLED", "")
 	t.Setenv("WEB_DIR", "")
 	t.Setenv("API_URL", "")
+	// The usage ping and error reports are on by default, so no test may reach the real endpoints
+	t.Setenv("TELEMETRY_URL", "http://127.0.0.1:9/v1/ping")
+	t.Setenv("ERROR_REPORTING_DSN", "http://public@127.0.0.1:9/1")
 	for name, value := range env {
 		t.Setenv(name, value)
 	}
@@ -90,6 +94,11 @@ type instance struct {
 // returns once the API answers. The test's cleanup stops it if the test didn't.
 func startPeekaping(t testing.TB, cfg *Config, logger *zap.SugaredLogger, logs *observer.ObservedLogs) *instance {
 	t.Helper()
+	// The usage ping and error reports are on by default, so a test that starts peekaping must
+	// point them at a server of its own (loadConfig points them nowhere)
+	require.NotContains(t, cfg.TelemetryURL, "peekaping.com", "a test must not reach the real telemetry endpoint")
+	require.NotEmpty(t, cfg.ErrorReportingDSN, "an empty DSN means Peekaping's own Sentry project")
+	require.NotContains(t, cfg.ErrorReportingDSN, "sentry.io", "a test must not reach the real Sentry project")
 	migrateDatabase(t, cfg)
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)

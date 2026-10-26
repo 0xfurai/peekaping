@@ -19,6 +19,8 @@ import (
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
@@ -26,6 +28,7 @@ import (
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
+	"peekaping/internal/probeproto"
 	"peekaping/internal/version"
 
 	"go.uber.org/zap"
@@ -124,6 +127,10 @@ func ProvideServer(
 	badgeController *badge.Controller,
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
+	probeRoute *probe.Route,
+	probeController *probe.Controller,
+	probeProtocolRoute *protocol.Route,
+	probeProtocolController *protocol.Controller,
 	staleStore stale.Store,
 	metricsCollector *metrics.Collector,
 ) *Server {
@@ -154,6 +161,11 @@ func ProvideServer(
 	errorReportingRoute.ConnectRoute(router, errorReportingController)
 	badgeRoute.ConnectRoute(router, badgeController)
 	apiKeyRoute.ConnectRoute(router, apiKeyController)
+	probeRoute.ConnectRoute(router, probeController)
+
+	// The probe protocol is a sibling of the API, not under /api/v1: the probes speak it with their
+	// own token, and the admin's credentials don't open it
+	probeProtocolRoute.ConnectRoute(server.Group(probeproto.PathPrefix), probeProtocolController)
 
 	// Register push endpoint
 	healthcheck.RegisterPushEndpoint(router, monitorService, heartbeatService, ingesterService, maintenanceService, logger)

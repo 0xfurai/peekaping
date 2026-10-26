@@ -6,6 +6,7 @@ import (
 
 type CreateUpdateDto struct {
 	MonitorID string        `json:"monitor_id"`
+	ProbeID   string        `json:"probe_id"`
 	Status    MonitorStatus `json:"status"`
 	Msg       string        `json:"msg"`
 	Ping      int           `json:"ping"`

@@ -16,8 +16,9 @@
       "have_account": "Ai deja un cont?",
       "sign_in": "Autentificare",
       "submit": "Creează",
-      "telemetry_hint": "Dezactivat, dacă nu bifați această casetă. O puteți schimba mai târziu în „Setări”. Dacă o bifați, Peekaping trimite acestea cel mult o dată pe zi:",
-      "title": "Salut"
+      "title": "Salut",
+      "telemetry_note": "Anonim: fără numele monitoarelor, URL-uri sau gazde. Îl puteți schimba mai târziu în „Setări”.",
+      "telemetry_whats_sent": "Ce se trimite"
     },
     "twofa": {
       "code_label": "Cod 2FA",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Trimite rapoarte de eroare",
-    "never_sent": "Nu se trimit niciodată: mesajele de eroare, URL-uri, anteturi, URL-uri de webhook, nume sau nume de gazdă. Un raport nu conține nicio adresă IP, iar proiectul Sentry al Peekaping este configurat să nu stocheze IP-ul expeditorului. Cu propriul dvs. ERROR_REPORTING_DSN, decid setările Sentry sau GlitchTip ale dvs.",
-    "not_saved": "Alegerea dvs. de a trimite rapoarte de eroare nu a fost salvată. Activați-o în „Setări”.",
+    "never_sent": "Nu se trimit niciodată: mesajele de eroare, URL-uri, anteturi, URL-uri de webhook, nume sau nume de gazdă. Un raport nu conține nicio adresă IP, iar proiectul Sentry al Peekaping este configurat să nu stocheze IP-ul expeditorului.",
+    "not_saved": "Alegerea dvs. privind rapoartele de eroare nu a fost salvată. Verificați-o în „Setări”.",
     "sent": "Se trimite doar când Peekaping însuși se oprește brusc. Un raport conține tipul erorii și locul din cod unde a apărut, versiunea Peekaping, modul unic sau de cluster, backendul de stocare și sistemul de operare."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Timeout cerere (Timeout după {{seconds}} secunde)",
           "resend_notification": "Retrimitere notificare dacă serviciul e indisponibil X ori consecutiv (Retrimitere dezactivată)"
         },
+        "location_rule": {
+          "all": "toate locațiile sunt nefuncționale",
+          "any": "orice locație este nefuncțională",
+          "at_least": "cel puțin N locații sunt nefuncționale",
+          "description": "O locație a cărei sondă este offline sau nu a raportat încă nu se numără.",
+          "label": "Marchează monitorul ca nefuncțional când",
+          "threshold_invalid": "Introdu un număr întreg, 1 sau mai mare",
+          "threshold_label": "Numărul de locații",
+          "threshold_too_high": "Nu poate fi mai mare decât numărul de sonde alese"
+        },
         "notifications": {
           "add_notifier": "Adaugă notificator",
           "new_notifier": "+ Notificator nou",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Selectează notificator",
           "selected_channels": "Canale de notificare selectate",
           "title": "Canale de notificare"
+        },
+        "probe": {
+          "description": "Monitorul rulează pe fiecare sondă aleasă și afișează rezultatele fiecăreia ca locație.",
+          "label": "Sondă",
+          "option_unsupported": "{{name}} (nu rulează acest tip)",
+          "placeholder": "Selectează sonda",
+          "push_fixed": "Un monitor Push rulează întotdeauna pe sonda locală.",
+          "required": "Alege cel puțin o sondă",
+          "unsupported": "Această sondă nu rulează acest tip de monitor. Selectează altă sondă."
         },
         "proxy": {
           "add_proxy": "Adaugă proxy",
@@ -658,6 +678,15 @@
       "expiring_soon": "În curând expiră",
       "for": "pentru",
       "live_status": "Stare live",
+      "locations": {
+        "all": "Toate locațiile",
+        "no_result": "Încă niciun rezultat",
+        "probe_offline": "Sondă offline",
+        "probe_unsupported": "Nu rulează acest tip",
+        "response_time": "Timp de răspuns",
+        "select_label": "Locație",
+        "title": "Locații"
+      },
       "monitor_for": "Monitorizare pentru",
       "no_certificate_data": "Fără date despre certificat",
       "seconds": "secunde",
@@ -683,6 +712,7 @@
     "maintenance": "Întreținere",
     "monitors": "Monitoare",
     "notification_channels": "Canale de notificare",
+    "probes": "Sonde",
     "proxies": "Proxy-uri",
     "settings": "Setări",
     "status_pages": "Pagini de stare",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Reconocere automată",
         "auto_resolve_acknowledge_description": "Confirmă automat incidentul",
-        "auto_resolve_description": "Alege ce acțiune să efectuezi când un monitor se restabilește",
+        "auto_resolve_description": "Alege ce să se trimită când un monitor se restabilește sau o sondă revine online",
         "auto_resolve_do_nothing": "Nu face nimic",
-        "auto_resolve_do_nothing_description": "Nicio acțiune efectuată în starea UP",
+        "auto_resolve_do_nothing_description": "Nu se trimite nimic când un monitor se restabilește sau o sondă revine online, deci incidentul rămâne deschis până când îl rezolvi în PagerDuty",
         "auto_resolve_label": "Rezolvă automat sau recunoaște",
         "auto_resolve_placeholder": "Selectează comportamentul de auto-îndreptare",
         "auto_resolve_resolve": "Rezolvare automată",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Token de autentificare opțional pentru securitate sporită. Acesta va fi trimis în antetul pagertree-token.",
         "authentication_token_label": "Token de autentificare (Opțional)",
         "authentication_token_placeholder": "Introduceți token de autentificare dacă este necesar",
-        "auto_resolve_alerts_description": "Rezolva automat alertele PagerTree când monitorul se restabilește",
+        "auto_resolve_alerts_description": "Rezolvă automat alertele PagerTree când un monitor se restabilește sau o sondă revine online",
         "auto_resolve_alerts_label": "Rezolvare automată a alertelor",
         "how_to_get_integration_url_label": "Cum obții URL‑ul de integrare",
         "integration_url_description": "Introduceți URL‑ul webhook PagerTree.",
@@ -1122,6 +1152,109 @@
       "saved_hint": "Salvat — tastați pentru a înlocui"
     }
   },
+  "probes": {
+    "page_name": "Sonde",
+    "description": "Sondele execută verificările monitoarelor din locurile în care sunt instalate. Sonda locală este chiar Peekaping.",
+    "local_name": "Locală",
+    "monitor_probe": "Sondă: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nu rulează monitoare {{type}}",
+    "empty_list": {
+      "title": "Nu a fost găsită nicio sondă",
+      "text": "Creează o sondă pentru a rula verificări dintr-un alt loc.",
+      "action_text": "Creează prima ta sondă"
+    },
+    "table": {
+      "headers": {
+        "name": "Nume",
+        "location": "Locație",
+        "status": "Stare",
+        "disabled": "Dezactivată",
+        "token": "Token",
+        "instances": "Instanțe",
+        "actions": "Acțiuni"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Dezactivată",
+      "no_instances": "Încă nu există instanțe",
+      "last_seen": "văzută ultima dată la {{date}}",
+      "actions": {
+        "edit": "Editează sonda {{name}}",
+        "rotate": "Schimbă tokenul sondei {{name}}",
+        "delete": "Șterge sonda {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Creează sondă",
+      "description": "O sondă rulează verificări din locul în care o instalezi. Tokenul ei este afișat o singură dată, după ce o creezi.",
+      "submit": "Creează sondă",
+      "creating": "Se creează..."
+    },
+    "edit_dialog": {
+      "title": "Editează sonda",
+      "description": "Modifică setările pentru {{name}}."
+    },
+    "form": {
+      "name_label": "Nume",
+      "name_placeholder": "ex.: Frankfurt",
+      "location_label": "Locație (opțional)",
+      "location_placeholder": "ex.: Frankfurt, Germania",
+      "name_required": "Numele este obligatoriu",
+      "name_too_long": "Numele este prea lung",
+      "location_too_long": "Locația este prea lungă",
+      "disabled_label": "Dezactivată",
+      "disabled_description": "Tokenul unei sonde dezactivate nu mai funcționează până când o reactivezi.",
+      "notifications_hint": "Lasă gol pentru a notifica canalele monitoarelor acestei sonde."
+    },
+    "rotate_dialog": {
+      "title": "Schimbă tokenul",
+      "description": "Vechiul token al sondei {{name}} nu mai funcționează imediat. Instanțele ei trebuie repornite cu noul token.",
+      "confirm": "Schimbă tokenul",
+      "rotating": "Se schimbă..."
+    },
+    "delete_dialog": {
+      "title": "Șterge sonda",
+      "description": "Sigur vrei să ștergi sonda „{{name}}”? Tokenul ei nu va mai funcționa. Această acțiune nu poate fi anulată."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} a fost creată",
+      "title_rotated": "Token nou pentru sonda {{name}}",
+      "note": "Acest token citește configurațiile monitoarelor atribuite sondei. Este afișat o singură dată.",
+      "token_label": "Token",
+      "docker_label": "Pornește sonda cu Docker",
+      "copy_token": "Copiază tokenul",
+      "copy_command": "Copiază comanda docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda a fost creată cu succes",
+      "updated_successfully": "Sonda a fost actualizată cu succes",
+      "rotated_successfully": "Tokenul a fost schimbat cu succes",
+      "deleted_successfully": "Sonda a fost ștearsă cu succes",
+      "failed_to_create": "Crearea sondei a eșuat",
+      "failed_to_update": "Actualizarea sondei a eșuat",
+      "failed_to_rotate": "Schimbarea tokenului a eșuat",
+      "failed_to_delete": "Ștergerea sondei a eșuat",
+      "failed_to_load": "Încărcarea sondelor a eșuat",
+      "copy_success": "Copiat în clipboard",
+      "copy_failed": "Nu s-a putut copia în clipboard"
+    },
+    "detail": {
+      "not_found": "Sonda nu a fost găsită"
+    },
+    "availability": {
+      "title": "Disponibilitate",
+      "range_label": "Interval de timp",
+      "bar_label": "Istoricul disponibilității",
+      "instance_bar_label": "Conexiunile sondei {{name}}",
+      "no_data": "Fără date",
+      "now": "Acum",
+      "instances_title": "Instanțe, ultimele 24 de ore",
+      "in_process_note": "Peekaping însuși verifică monitoarele sondei locale, deci aceasta nu are un istoric al disponibilității.",
+      "connected_since": "Conectată din {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Această acțiune nu poate fi anulată. Aceasta va șterge permanent proxy-ul {{host}}:{{port}}.",
@@ -1288,14 +1421,14 @@
     },
     "error_reporting": {
       "cluster_note": "În modul cluster, o modificare ajunge la toate procesele în cel mult un minut.",
-      "description": "Trimite un raport către Sentry când serverul se oprește brusc. Dezactivat până când îl activați.",
-      "forced_off": "Variabila de mediu ERROR_REPORTING=off sau DO_NOT_TRACK=1 dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
+      "description": "Trimite un raport către Sentry când serverul se oprește brusc. Activat implicit; îl puteți dezactiva oricând de aici.",
+      "forced_off": "Variabila de mediu ERROR_REPORTING=off dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
       "title": "Rapoarte de eroare"
     },
     "telemetry": {
-      "description": "Trimite statistici anonime despre cum este configurată această instalare, cel mult o dată pe zi. Dezactivat până când îl activați.",
-      "forced_off": "Variabila de mediu TELEMETRY=off sau DO_NOT_TRACK=1 dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
-      "id_note": "ID-ul instanței este creat când activați opțiunea și șters când o dezactivați. Dacă o activați din nou, se creează unul nou.",
+      "description": "Trimite statistici anonime despre cum este configurată această instalare, cel mult o dată pe zi. Activat implicit; îl puteți dezactiva oricând de aici.",
+      "forced_off": "Variabila de mediu TELEMETRY=off dezactivează această opțiune. Nu se trimite nimic, indiferent ce spune această setare.",
+      "id_note": "ID-ul instanței este creat cât timp opțiunea este activată și șters când o dezactivați. Dacă o activați din nou, se creează unul nou.",
       "payload_off": "Nu se trimite nimic cât timp opțiunea este dezactivată. Iată ce ar conține un ping de utilizare dacă ați activa-o.",
       "payload_title": "Ce va trimite următorul ping de utilizare",
       "title": "Statistici de utilizare"
@@ -1366,6 +1499,8 @@
     "published_status": "Publicat",
     "search_label": "Căutare",
     "search_placeholder": "Caută pagini de stare după titlu...",
+    "show_locations": "Afișează fiecare locație",
+    "show_locations_info": "Pentru monitoarele verificate din mai multe locații, afișează starea și istoricul fiecărei locații",
     "update_status_page": "Actualizează pagina de stare",
     "view_page": "Vezi pagina"
   },
@@ -1399,13 +1534,14 @@
   "telemetry": {
     "docs_link": "Ce se trimite și cum se dezactivează",
     "label": "Trimite statistici anonime de utilizare",
-    "never_sent": "Nu se trimit niciodată: numele monitoarelor, URL-uri, gazde, etichete, adresele paginilor de stare sau setările de notificare. Un ping de utilizare nu conține nicio adresă IP, iar Worker-ul Peekaping nu înregistrează IP-ul expeditorului.",
-    "not_saved": "Alegerea dvs. de a trimite statistici de utilizare nu a fost salvată. Activați-o în „Setări”.",
-    "sent_features": "Dacă folosiți pagini de stare, ferestre de întreținere și metrici",
-    "sent_id": "Un ID aleatoriu, creat când activați opțiunea și șters când o dezactivați",
-    "sent_monitors": "Câte monitoare aveți, ca interval, de exemplu 11-50",
-    "sent_setup": "Versiunea Peekaping, modul unic sau de cluster, backendul de stocare, sistemul de operare și tipul de procesor",
-    "sent_types": "Tipurile de monitoare și de canale de notificare pe care le folosiți, precum http sau telegram"
+    "not_saved": "Alegerea dvs. privind statisticile de utilizare nu a fost salvată. Verificați-o în „Setări”."
+  },
+  "telemetry_notice": {
+    "error_reports": "Rapoartele de eroare sunt activate. Dacă Peekaping se oprește brusc, trimite tipul erorii și locul din cod unde a apărut, versiunea sa, modul, backendul de stocare și sistemul de operare. Nu trimite niciodată mesaje de eroare, URL-uri sau nume de gazdă.",
+    "settings_errors": "Dezactivați rapoartele de eroare în „Setări”",
+    "settings_usage": "Dezactivați statisticile de utilizare în „Setări”",
+    "title": "Trimiterea de date anonime este activată implicit",
+    "usage_statistics": "Statisticile de utilizare sunt activate. Cel mult o dată pe zi, Peekaping trimite un ID de instanță aleatoriu, versiunea sa, modul, backendul de stocare și sistemul de operare, un interval pentru numărul de monitoare, tipurile de monitoare și de canale de notificare pe care le folosiți și dacă folosiți pagini de stare, ferestre de întreținere și metrici. Nu trimite niciodată nume, URL-uri, gazde sau setări."
   },
   "theme": {
     "dark": "Întunecat",

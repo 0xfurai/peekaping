@@ -12,6 +12,7 @@ import (
 
 type HeartbeatPayload struct {
 	MonitorID string
+	ProbeID   string // the probe that ran the check; empty means the local probe
 	Status    int
 	Ping      int
 	Time      int64 // Unix seconds
@@ -20,10 +21,12 @@ type HeartbeatPayload struct {
 type Service interface {
 	AggregateHeartbeat(ctx context.Context, hb *HeartbeatPayload) error
 	RegisterEventHandlers(eventBus events.EventBus)
-	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
-	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
+	// The Find and Summarize methods take a probeID that narrows them to the checks one probe ran.
+	// An empty probeID covers every probe.
+	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
+	FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
-	Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error)
+	Summarize(ctx context.Context, monitorID, probeID string, since, until time.Time) (*Stats, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	DeleteExpired(ctx context.Context, now time.Time) (map[StatPeriod]int64, error)
 }
@@ -59,7 +62,10 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 	}
 
 	// The heartbeat's counts and response time, which the repository adds to each period's stat
-	add := Stat{MonitorID: hb.MonitorID}
+	add := Stat{MonitorID: hb.MonitorID, ProbeID: hb.ProbeID}
+	if add.ProbeID == "" {
+		add.ProbeID = shared.LocalProbeID
+	}
 
 	// Up/Down logic (flattened)
 	if s.flatStatus(hb.Status) == 1 { // MonitorStatusUp
@@ -92,6 +98,7 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus events.EventBus) {
 	events.Subscribe(events.NewSubscriber(eventBus, "stats"), events.HeartbeatEvent, func(ctx context.Context, payload shared.HeartBeatModel) {
 		hb := &HeartbeatPayload{
 			MonitorID: payload.MonitorID,
+			ProbeID:   payload.ProbeID,
 			Status:    int(payload.Status),
 			Ping:      payload.Ping,
 			Time:      payload.Time.Unix(),
@@ -102,12 +109,12 @@ func (s *ServiceImpl) RegisterEventHandlers(eventBus events.EventBus) {
 	})
 }
 
-func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
-	return s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, period)
+func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod) ([]*Stat, error) {
+	return s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, probeID, since, until, period)
 }
 
-func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error) {
-	stats, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, period)
+func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error) {
+	stats, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, probeID, since, until, period)
 	if err != nil {
 		return nil, err
 	}
@@ -381,8 +388,8 @@ func summaryPeriod(window time.Duration) StatPeriod {
 
 // Summarize returns uptime and response times for the monitor's heartbeats from
 // since to until, read from the buckets that suit the window length.
-func (s *ServiceImpl) Summarize(ctx context.Context, monitorID string, since, until time.Time) (*Stats, error) {
-	statsList, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, since, until, summaryPeriod(until.Sub(since)))
+func (s *ServiceImpl) Summarize(ctx context.Context, monitorID, probeID string, since, until time.Time) (*Stats, error) {
+	statsList, err := s.repo.FindStatsByMonitorIDAndTimeRange(ctx, monitorID, probeID, since, until, summaryPeriod(until.Sub(since)))
 	if err != nil {
 		return nil, err
 	}
