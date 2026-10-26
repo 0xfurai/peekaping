@@ -143,8 +143,21 @@ jobs:
         bun-version-file: package.json
     - name: Install dependencies
       run: bun install --frozen-lockfile
+    # The browser download has taken over 7 minutes on a slow runner. The browser
+    # build follows the Playwright version, which bun.lock pins.
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
     - name: Install Playwright Browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: bunx playwright install --with-deps chromium
+    # A cached browser still needs the system libraries, which live outside the cache.
+    - name: Install Playwright system dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: bunx playwright install-deps chromium
     - name: Download images
       uses: actions/download-artifact@v4
       with:
