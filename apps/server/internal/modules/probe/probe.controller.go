@@ -15,14 +15,16 @@ import (
 )
 
 type Controller struct {
-	service Service
-	logger  *zap.SugaredLogger
+	service      Service
+	availability AvailabilityService
+	logger       *zap.SugaredLogger
 }
 
-func NewController(service Service, logger *zap.SugaredLogger) *Controller {
+func NewController(service Service, availability AvailabilityService, logger *zap.SugaredLogger) *Controller {
 	return &Controller{
-		service: service,
-		logger:  logger.Named("[probe-controller]"),
+		service:      service,
+		availability: availability,
+		logger:       logger.Named("[probe-controller]"),
 	}
 }
 
@@ -169,4 +171,53 @@ func (c *Controller) RotateProbeToken(ctx context.Context, input *RotateProbeTok
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe token rotated successfully. Copy the new token now: it is shown only once, and the old one no longer works", ToProbeWithTokenResponse(rotated)))
+}
+
+// availabilityRange reads the range query, 24h when it is left out
+func availabilityRange(r *http.Request) (AvailabilityRange, error) {
+	rng, ok := ParseAvailabilityRange(r.URL.Query().Get("range"))
+	if !ok {
+		return "", httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid range parameter (must be 24h, 7d or 30d)"))
+	}
+	return rng, nil
+}
+
+// GetProbesAvailability gets every probe's online and offline periods and uptime, without their
+// instances, the local probe first
+func (c *Controller) GetProbesAvailability(ctx context.Context, input *GetProbesAvailabilityInput) (*httpx.Output[utils.ApiResponse[[]*ProbeAvailabilityResponse]], error) {
+	// MARK: GetProbesAvailability
+
+	rng, err := availabilityRange(input.Request)
+	if err != nil {
+		return nil, err
+	}
+	all, err := c.availability.AvailabilityOfAll(ctx, rng)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
+
+	responses := make([]*ProbeAvailabilityResponse, len(all))
+	for i, a := range all {
+		responses[i] = ToProbeAvailabilityResponse(a, false)
+	}
+
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe availability retrieved successfully", responses))
+}
+
+// GetProbeAvailability gets a probe's online and offline periods and uptime, with its instances
+// and when each was connected over the last 24 hours
+func (c *Controller) GetProbeAvailability(ctx context.Context, input *GetProbeAvailabilityInput) (*httpx.Output[utils.ApiResponse[*ProbeAvailabilityResponse]], error) {
+	r := input.Request
+	// MARK: GetProbeAvailability
+
+	rng, err := availabilityRange(r)
+	if err != nil {
+		return nil, err
+	}
+	found, err := c.availability.Availability(ctx, r.PathValue("id"), rng)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
+
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe availability retrieved successfully", ToProbeAvailabilityResponse(found, true)))
 }
