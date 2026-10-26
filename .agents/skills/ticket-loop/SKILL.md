@@ -108,6 +108,6 @@ When the whole stack has merged:
 
 1. Comment on the ticket: what shipped, the acceptance-criteria table with evidence, follow-up tickets.
 2. Make sure the ticket is Done (the GitHub integration usually moves it).
-3. `ExitWorktree` with `keep`, then `git worktree remove .claude/worktrees/pp-<n>`.
+3. Tell the user the worktree can go; they remove it.
 
-Done when: the ticket is Done with the summary comment, and the worktree is gone.
+Done when: the ticket is Done with the summary comment.
