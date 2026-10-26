@@ -1240,6 +1240,20 @@
       "failed_to_load": "بارگذاری پروب‌ها ناموفق بود",
       "copy_success": "در کلیپ‌بورد کپی شد",
       "copy_failed": "کپی در کلیپ‌بورد ممکن نشد"
+    },
+    "detail": {
+      "not_found": "پروب پیدا نشد"
+    },
+    "availability": {
+      "title": "در دسترس بودن",
+      "range_label": "بازه زمانی",
+      "bar_label": "تاریخچه در دسترس بودن",
+      "instance_bar_label": "اتصال‌های {{name}}",
+      "no_data": "داده‌ای وجود ندارد",
+      "now": "اکنون",
+      "instances_title": "نمونه‌ها، ۲۴ ساعت گذشته",
+      "in_process_note": "خود Peekaping مانیتورهای پروب محلی را بررسی می‌کند، بنابراین تاریخچه در دسترس بودن ندارد.",
+      "connected_since": "متصل از {{start}}"
     }
   },
   "proxies": {

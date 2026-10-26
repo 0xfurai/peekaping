@@ -1240,6 +1240,20 @@
       "failed_to_load": "Impossibile caricare le sonde",
       "copy_success": "Copiato negli appunti",
       "copy_failed": "Impossibile copiare negli appunti"
+    },
+    "detail": {
+      "not_found": "Sonda non trovata"
+    },
+    "availability": {
+      "title": "Disponibilità",
+      "range_label": "Intervallo di tempo",
+      "bar_label": "Cronologia della disponibilità",
+      "instance_bar_label": "Connessioni di {{name}}",
+      "no_data": "Nessun dato",
+      "now": "Adesso",
+      "instances_title": "Istanze, ultime 24 ore",
+      "in_process_note": "Peekaping stesso controlla i monitor della sonda locale, quindi questa non ha una cronologia della disponibilità.",
+      "connected_since": "Connessa dal {{start}}"
     }
   },
   "proxies": {

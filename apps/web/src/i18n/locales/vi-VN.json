@@ -1240,6 +1240,20 @@
       "failed_to_load": "Không thể tải danh sách đầu dò",
       "copy_success": "Đã sao chép vào clipboard",
       "copy_failed": "Không thể sao chép vào clipboard"
+    },
+    "detail": {
+      "not_found": "Không tìm thấy đầu dò"
+    },
+    "availability": {
+      "title": "Tính khả dụng",
+      "range_label": "Khoảng thời gian",
+      "bar_label": "Lịch sử khả dụng",
+      "instance_bar_label": "Các kết nối của {{name}}",
+      "no_data": "Không có dữ liệu",
+      "now": "Bây giờ",
+      "instances_title": "Instance, 24 giờ qua",
+      "in_process_note": "Chính Peekaping kiểm tra các monitor của đầu dò cục bộ, nên nó không có lịch sử khả dụng.",
+      "connected_since": "Đã kết nối từ {{start}}"
     }
   },
   "proxies": {

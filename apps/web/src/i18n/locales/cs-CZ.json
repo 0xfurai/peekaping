@@ -1240,6 +1240,20 @@
       "failed_to_load": "Sondy se nepodařilo načíst",
       "copy_success": "Zkopírováno do schránky",
       "copy_failed": "Kopírování do schránky se nezdařilo"
+    },
+    "detail": {
+      "not_found": "Sonda nebyla nalezena"
+    },
+    "availability": {
+      "title": "Dostupnost",
+      "range_label": "Časové období",
+      "bar_label": "Historie dostupnosti",
+      "instance_bar_label": "Připojení {{name}}",
+      "no_data": "Žádná data",
+      "now": "Nyní",
+      "instances_title": "Instance, posledních 24 hodin",
+      "in_process_note": "Monitory místní sondy kontroluje sám Peekaping, proto nemá historii dostupnosti.",
+      "connected_since": "Připojeno od {{start}}"
     }
   },
   "proxies": {

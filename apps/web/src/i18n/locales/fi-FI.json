@@ -1240,6 +1240,20 @@
       "failed_to_load": "Luotaimien lataaminen epäonnistui",
       "copy_success": "Kopioitu leikepöydälle",
       "copy_failed": "Leikepöydälle kopioiminen epäonnistui"
+    },
+    "detail": {
+      "not_found": "Luotainta ei löytynyt"
+    },
+    "availability": {
+      "title": "Saatavuus",
+      "range_label": "Aikaväli",
+      "bar_label": "Saatavuushistoria",
+      "instance_bar_label": "Luotaimen {{name}} yhteydet",
+      "no_data": "Ei tietoja",
+      "now": "Nyt",
+      "instances_title": "Instanssit, viimeiset 24 tuntia",
+      "in_process_note": "Peekaping itse tarkistaa paikallisen luotaimen monitorit, joten sillä ei ole saatavuushistoriaa.",
+      "connected_since": "Yhdistetty alkaen {{start}}"
     }
   },
   "proxies": {

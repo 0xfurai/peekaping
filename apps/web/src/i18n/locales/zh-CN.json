@@ -1240,6 +1240,20 @@
       "failed_to_load": "加载探针失败",
       "copy_success": "已复制到剪贴板",
       "copy_failed": "无法复制到剪贴板"
+    },
+    "detail": {
+      "not_found": "未找到探针"
+    },
+    "availability": {
+      "title": "可用性",
+      "range_label": "时间范围",
+      "bar_label": "可用性历史",
+      "instance_bar_label": "{{name}} 的连接",
+      "no_data": "无数据",
+      "now": "现在",
+      "instances_title": "实例，最近24小时",
+      "in_process_note": "本地探针的监控由 Peekaping 自身检查，因此没有可用性历史。",
+      "connected_since": "自 {{start}} 起已连接"
     }
   },
   "proxies": {

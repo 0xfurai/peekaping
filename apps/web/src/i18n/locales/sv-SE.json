@@ -1240,6 +1240,20 @@
       "failed_to_load": "Det gick inte att läsa in sonder",
       "copy_success": "Kopierat till urklipp",
       "copy_failed": "Det gick inte att kopiera till urklipp"
+    },
+    "detail": {
+      "not_found": "Sonden hittades inte"
+    },
+    "availability": {
+      "title": "Tillgänglighet",
+      "range_label": "Tidsintervall",
+      "bar_label": "Tillgänglighetshistorik",
+      "instance_bar_label": "Anslutningar för {{name}}",
+      "no_data": "Inga data",
+      "now": "Nu",
+      "instances_title": "Instanser, senaste 24 timmar",
+      "in_process_note": "Peekaping kontrollerar själv den lokala sondens monitorer, så den har ingen tillgänglighetshistorik.",
+      "connected_since": "Ansluten sedan {{start}}"
     }
   },
   "proxies": {

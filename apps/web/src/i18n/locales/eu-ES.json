@@ -1240,6 +1240,20 @@
       "failed_to_load": "Ezin izan dira zundak kargatu",
       "copy_success": "Arbelera kopiatu da",
       "copy_failed": "Ezin izan da arbelera kopiatu"
+    },
+    "detail": {
+      "not_found": "Ez da zunda aurkitu"
+    },
+    "availability": {
+      "title": "Erabilgarritasuna",
+      "range_label": "Denbora-tartea",
+      "bar_label": "Erabilgarritasunaren historia",
+      "instance_bar_label": "{{name}} elementuaren konexioak",
+      "no_data": "Daturik ez",
+      "now": "Orain",
+      "instances_title": "Instantziak, azken 24 orduak",
+      "in_process_note": "Peekaping-ek berak egiaztatzen ditu zunda lokalaren monitoreak, beraz ez du erabilgarritasun-historiarik.",
+      "connected_since": "{{start}}-tik konektatuta"
     }
   },
   "proxies": {

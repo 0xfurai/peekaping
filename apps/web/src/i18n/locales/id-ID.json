@@ -1240,6 +1240,20 @@
       "failed_to_load": "Gagal memuat probe",
       "copy_success": "Disalin ke clipboard",
       "copy_failed": "Tidak dapat menyalin ke clipboard"
+    },
+    "detail": {
+      "not_found": "Probe tidak ditemukan"
+    },
+    "availability": {
+      "title": "Ketersediaan",
+      "range_label": "Rentang waktu",
+      "bar_label": "Riwayat ketersediaan",
+      "instance_bar_label": "Koneksi {{name}}",
+      "no_data": "Tidak ada data",
+      "now": "Sekarang",
+      "instances_title": "Instans, 24 jam terakhir",
+      "in_process_note": "Peekaping sendiri yang memeriksa monitor probe lokal, sehingga probe ini tidak memiliki riwayat ketersediaan.",
+      "connected_since": "Terhubung sejak {{start}}"
     }
   },
   "proxies": {

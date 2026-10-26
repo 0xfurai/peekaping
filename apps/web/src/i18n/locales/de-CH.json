@@ -1240,6 +1240,20 @@
       "failed_to_load": "Sonden konnten nicht geladen werden",
       "copy_success": "In die Zwischenablage kopiert",
       "copy_failed": "Kopieren in die Zwischenablage fehlgeschlagen"
+    },
+    "detail": {
+      "not_found": "Sonde nicht gefunden"
+    },
+    "availability": {
+      "title": "Verfügbarkeit",
+      "range_label": "Zeitraum",
+      "bar_label": "Verfügbarkeitsverlauf",
+      "instance_bar_label": "Verbindungen von {{name}}",
+      "no_data": "Keine Daten",
+      "now": "Jetzt",
+      "instances_title": "Instanzen, letzte 24 Stunden",
+      "in_process_note": "Peekaping prüft die Monitore der lokalen Sonde selbst, daher hat sie keinen Verfügbarkeitsverlauf.",
+      "connected_since": "Verbunden seit {{start}}"
     }
   },
   "proxies": {

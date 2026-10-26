@@ -1239,6 +1239,20 @@
       "failed_to_load": "Zondlarni yuklab bo‘lmadi",
       "copy_success": "Vaqtinchalik xotiraga nusxalandi",
       "copy_failed": "Vaqtinchalik xotiraga nusxalab bo‘lmadi"
+    },
+    "detail": {
+      "not_found": "Zond topilmadi"
+    },
+    "availability": {
+      "title": "Mavjudlik",
+      "range_label": "Vaqt oralig'i",
+      "bar_label": "Mavjudlik tarixi",
+      "instance_bar_label": "{{name}} ulanishlari",
+      "no_data": "Ma'lumot yo'q",
+      "now": "Hozir",
+      "instances_title": "Nusxalar, oxirgi 24 soat",
+      "in_process_note": "Lokal zondning monitorlarini Peekaping o'zi tekshiradi, shuning uchun uning mavjudlik tarixi yo'q.",
+      "connected_since": "{{start}} dan beri ulangan"
     }
   },
   "proxies": {

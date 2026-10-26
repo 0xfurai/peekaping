@@ -1240,6 +1240,20 @@
       "failed_to_load": "A szondák betöltése sikertelen",
       "copy_success": "Vágólapra másolva",
       "copy_failed": "A vágólapra másolás sikertelen"
+    },
+    "detail": {
+      "not_found": "A szonda nem található"
+    },
+    "availability": {
+      "title": "Rendelkezésre állás",
+      "range_label": "Időtartam",
+      "bar_label": "Rendelkezésre állási előzmények",
+      "instance_bar_label": "{{name}} kapcsolatai",
+      "no_data": "Nincs adat",
+      "now": "Most",
+      "instances_title": "Példányok, utolsó 24 óra",
+      "in_process_note": "A helyi szonda monitorait maga a Peekaping ellenőrzi, ezért nincs rendelkezésre állási előzménye.",
+      "connected_since": "Kapcsolódva ettől: {{start}}"
     }
   },
   "proxies": {

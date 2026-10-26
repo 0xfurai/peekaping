@@ -1240,6 +1240,20 @@
       "failed_to_load": "Failed to load probes",
       "copy_success": "Copied to clipboard",
       "copy_failed": "Could not copy to clipboard"
+    },
+    "detail": {
+      "not_found": "Probe not found"
+    },
+    "availability": {
+      "title": "Availability",
+      "range_label": "Time range",
+      "bar_label": "Availability history",
+      "instance_bar_label": "Connections of {{name}}",
+      "no_data": "No data",
+      "now": "Now",
+      "instances_title": "Instances, last 24 hours",
+      "in_process_note": "Peekaping itself checks the monitors of the local probe, so it has no availability history.",
+      "connected_since": "Connected since {{start}}"
     }
   },
   "proxies": {

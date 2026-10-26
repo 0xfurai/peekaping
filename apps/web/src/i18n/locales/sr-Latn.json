@@ -1240,6 +1240,20 @@
       "failed_to_load": "Učitavanje sondi nije uspelo",
       "copy_success": "Kopirano u privremenu memoriju",
       "copy_failed": "Kopiranje u privremenu memoriju nije uspelo"
+    },
+    "detail": {
+      "not_found": "Sonda nije pronađena"
+    },
+    "availability": {
+      "title": "Dostupnost",
+      "range_label": "Vremenski period",
+      "bar_label": "Istorija dostupnosti",
+      "instance_bar_label": "Veze sonde {{name}}",
+      "no_data": "Nema podataka",
+      "now": "Sada",
+      "instances_title": "Instance, poslednja 24 sata",
+      "in_process_note": "Monitore lokalne sonde proverava sam Peekaping, pa ona nema istoriju dostupnosti.",
+      "connected_since": "Povezana od {{start}}"
     }
   },
   "proxies": {

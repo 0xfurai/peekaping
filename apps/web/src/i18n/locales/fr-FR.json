@@ -1240,6 +1240,20 @@
       "failed_to_load": "Échec du chargement des sondes",
       "copy_success": "Copié dans le presse-papiers",
       "copy_failed": "Impossible de copier dans le presse-papiers"
+    },
+    "detail": {
+      "not_found": "Sonde introuvable"
+    },
+    "availability": {
+      "title": "Disponibilité",
+      "range_label": "Période",
+      "bar_label": "Historique de disponibilité",
+      "instance_bar_label": "Connexions de {{name}}",
+      "no_data": "Aucune donnée",
+      "now": "Maintenant",
+      "instances_title": "Instances, 24 dernières heures",
+      "in_process_note": "Peekaping vérifie lui-même les moniteurs de la sonde locale, elle n'a donc pas d'historique de disponibilité.",
+      "connected_since": "Connectée depuis {{start}}"
     }
   },
   "proxies": {
