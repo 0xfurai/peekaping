@@ -189,8 +189,16 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 	if err != nil {
 		return nil, c.fail(err)
 	}
+	// The siblings hear of the instance before the assignment is tried: it is on record now, so a
+	// hello sent again after a failed assignment finds nothing changed and wouldn't tell them.
 	if changesAssignments(before, req.SupportedTypes, now) {
 		c.instancesChanged(r.Context(), owner.ID)
+	}
+	// The flag is read fresh, by the claim, now that the instance is on record, and not from the
+	// token lookup that made owner: an assign-all action that set it after that lookup is still
+	// seen. A probe that isn't waiting costs one conditional update here.
+	if err := c.assignAllMonitors(r.Context(), owner.ID, req.SupportedTypes); err != nil {
+		return nil, err
 	}
 	// The instance is on record, so the probe is connected. The middleware's stamp does this for
 	// every other route.
@@ -206,6 +214,25 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		BatchMax:        BatchMax,
 		BufferMax:       BufferMax,
 	})
+}
+
+// assignAllMonitors gives a probe that was made to take over every monitor the ones its first
+// instance runs, and does nothing for a probe that isn't waiting: the claim finds no flag and the
+// transaction ends before anything else is read or written. The claim that clears the probe's flag is made in the same transaction as the
+// assignment, so a reconnect, a second instance or the other api replica that gets a hello of its
+// own at the same time assigns nothing more. A failure answers 503 and leaves the flag set: the
+// probe says hello again, and that hello assigns.
+func (c *Controller) assignAllMonitors(ctx context.Context, probeID string, supportedTypes []string) error {
+	assigned, err := c.monitors.AssignProbeToAll(ctx, probeID, supportedTypes, func(ctx context.Context) (bool, error) {
+		return c.service.ClaimPendingAssignment(ctx, probeID)
+	})
+	if err != nil {
+		return c.unavailable("assign the probe its monitors", err)
+	}
+	if assigned > 0 {
+		c.logger.Infow("Probe assigned its monitors", "probeId", probeID, "monitors", assigned)
+	}
+	return nil
 }
 
 // Bye retires the instance that says it is stopping. It does not delete it: the instance is left

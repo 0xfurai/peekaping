@@ -70,6 +70,12 @@ func (m *MockMonitorRepository) RecordLocation(ctx context.Context, monitorID st
 	return args.Error(0)
 }
 
+func (m *MockMonitorRepository) AddProbeToAll(ctx context.Context, probeID string, supportedTypes []string) ([]string, error) {
+	args := m.Called(ctx, probeID, supportedTypes)
+	ids, _ := args.Get(0).([]string)
+	return ids, args.Error(1)
+}
+
 func (m *MockMonitorRepository) ResetLocations(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)

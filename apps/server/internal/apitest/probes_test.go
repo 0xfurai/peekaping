@@ -39,8 +39,10 @@ type probeResponse struct {
 	SupportedTypes  []string                `json:"supported_types"`
 	NotificationIDs []string                `json:"notification_ids"`
 	Instances       []probeInstanceResponse `json:"instances"`
-	CreatedAt       time.Time               `json:"created_at"`
-	UpdatedAt       time.Time               `json:"updated_at"`
+	// AssignAllPending is true for a probe made with assign_all_monitors until its first hello
+	AssignAllPending bool      `json:"assign_all_pending"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }
 
 type probeWithToken struct {
@@ -330,6 +332,7 @@ func TestProbesAPI_AnUnknownProbeIsNotFound(t *testing.T) {
 		{"update", http.MethodPut, missing, map[string]any{"name": "Paris"}},
 		{"delete", http.MethodDelete, missing, nil},
 		{"rotate", http.MethodPost, missing + "/rotate-token", nil},
+		{"assign all monitors", http.MethodPost, missing + "/assign-all-monitors", nil},
 	})
 }
 
@@ -343,6 +346,7 @@ func TestProbesAPI_NeedsCredentials(t *testing.T) {
 		{"update", http.MethodPut, probesPath + "/local", map[string]any{"name": "Paris"}},
 		{"delete", http.MethodDelete, probesPath + "/local", nil},
 		{"rotate", http.MethodPost, probesPath + "/local/rotate-token", nil},
+		{"assign all monitors", http.MethodPost, probesPath + "/local/assign-all-monitors", nil},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			assert.Equal(t, http.StatusUnauthorized, a.request(t, c.method, c.path, c.body).Code)

@@ -9,6 +9,9 @@ type CreateProbeDto struct {
 	// NotificationIDs are the notification channels that hear about the probe. A probe with none
 	// notifies the channels of its active monitors instead.
 	NotificationIDs []string `json:"notification_ids,omitempty" validate:"omitempty"`
+	// AssignAllMonitors makes the probe take over every monitor it can run when its first
+	// instance says hello. Left out, the probe has no monitors until some are assigned to it.
+	AssignAllMonitors bool `json:"assign_all_monitors,omitempty" doc:"Assign the probe every monitor it can run (push monitors excepted) when its first instance says hello. Defaults to false." default:"false"`
 }
 
 // UpdateProbeDto represents the request to update a probe. A field left out stays as it is.
@@ -50,8 +53,11 @@ type ProbeResponse struct {
 	SupportedTypes  []string                 `json:"supported_types" validate:"required" nullable:"false"`
 	NotificationIDs []string                 `json:"notification_ids" validate:"required" nullable:"false"`
 	Instances       []*ProbeInstanceResponse `json:"instances" validate:"required" nullable:"false"`
-	CreatedAt       time.Time                `json:"created_at" validate:"required"`
-	UpdatedAt       time.Time                `json:"updated_at" validate:"required"`
+	// AssignAllPending is true while the probe waits for its first hello to assign it every
+	// monitor it can run
+	AssignAllPending bool      `json:"assign_all_pending" validate:"required"`
+	CreatedAt        time.Time `json:"created_at" validate:"required"`
+	UpdatedAt        time.Time `json:"updated_at" validate:"required"`
 }
 
 // ProbeWithTokenResponse represents the response when creating a probe or rotating its token. It
@@ -59,6 +65,15 @@ type ProbeResponse struct {
 type ProbeWithTokenResponse struct {
 	ProbeResponse
 	Token string `json:"token" validate:"required"`
+}
+
+// AssignAllMonitorsResponse is what assigning a probe every monitor did
+type AssignAllMonitorsResponse struct {
+	// Added is how many monitors the probe was added to
+	Added int `json:"added" validate:"required"`
+	// Pending is true when the probe has no instance to say which monitors it runs, so that it is
+	// assigned every monitor by its first hello instead
+	Pending bool `json:"pending" validate:"required"`
 }
 
 // ToProbeResponse converts a Model to ProbeResponse
@@ -89,17 +104,18 @@ func ToProbeResponse(m *Model) *ProbeResponse {
 		}
 	}
 	return &ProbeResponse{
-		ID:              m.ID,
-		Name:            m.Name,
-		Location:        m.Location,
-		TokenPrefix:     m.TokenPrefix,
-		Disabled:        m.Disabled,
-		Status:          string(m.Status),
-		SupportedTypes:  supportedTypes,
-		NotificationIDs: notificationIDs,
-		Instances:       instances,
-		CreatedAt:       m.CreatedAt,
-		UpdatedAt:       m.UpdatedAt,
+		ID:               m.ID,
+		Name:             m.Name,
+		Location:         m.Location,
+		TokenPrefix:      m.TokenPrefix,
+		Disabled:         m.Disabled,
+		Status:           string(m.Status),
+		SupportedTypes:   supportedTypes,
+		NotificationIDs:  notificationIDs,
+		Instances:        instances,
+		AssignAllPending: m.AssignAllPending,
+		CreatedAt:        m.CreatedAt,
+		UpdatedAt:        m.UpdatedAt,
 	}
 }
 

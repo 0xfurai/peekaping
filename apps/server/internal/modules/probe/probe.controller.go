@@ -16,19 +16,31 @@ import (
 	"go.uber.org/zap"
 )
 
+// MonitorAssigner assigns a probe to monitors. The monitor service stands behind it, wired in
+// internal/app, so that the probe module doesn't import the monitor module: the monitor service
+// already depends on the probe service.
+type MonitorAssigner interface {
+	// AssignProbeToAll adds the probe to every monitor, paused ones included but push monitors
+	// not, of one of the monitor types (every type when there are none) that doesn't run on it,
+	// and returns how many it added
+	AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string) (int, error)
+}
+
 type Controller struct {
 	service      Service
 	availability AvailabilityService
+	monitors     MonitorAssigner
 	liveness     shared.LocalProbeLiveness
 	logger       *zap.SugaredLogger
 }
 
-// NewController makes the controller. liveness says whether the local probe follows its stored
-// status or is up as long as Peekaping runs.
-func NewController(service Service, availability AvailabilityService, liveness shared.LocalProbeLiveness, logger *zap.SugaredLogger) *Controller {
+// NewController makes the controller. monitors assigns the probe to monitors. liveness says whether
+// the local probe follows its stored status or is up as long as Peekaping runs.
+func NewController(service Service, availability AvailabilityService, monitors MonitorAssigner, liveness shared.LocalProbeLiveness, logger *zap.SugaredLogger) *Controller {
 	return &Controller{
 		service:      service,
 		availability: availability,
+		monitors:     monitors,
 		liveness:     liveness,
 		logger:       logger.Named("[probe-controller]"),
 	}
@@ -40,6 +52,8 @@ type controllerParams struct {
 
 	Service      Service
 	Availability AvailabilityService
+	// Monitors assigns the probe to monitors: the monitor service, wired in internal/app
+	Monitors MonitorAssigner
 	// LocalProbe is how the local probe is known to be up: the process itself when the install
 	// provides none
 	LocalProbe shared.LocalProbeLiveness `optional:"true"`
@@ -47,7 +61,7 @@ type controllerParams struct {
 }
 
 func provideController(p controllerParams) *Controller {
-	return NewController(p.Service, p.Availability, p.LocalProbe, p.Logger)
+	return NewController(p.Service, p.Availability, p.Monitors, p.LocalProbe, p.Logger)
 }
 
 // response maps a probe to its response. The local probe in single mode is online whatever status
@@ -64,6 +78,7 @@ func (c *Controller) response(m *Model) *ProbeResponse {
 const (
 	localProbeCantBeDeleted  = "The local probe can't be deleted: it runs the checks Peekaping makes itself"
 	localProbeCantBeDisabled = "The local probe can't be disabled: it runs the checks Peekaping makes itself"
+	localProbeCantBeAssigned = "The local probe can't be assigned every monitor: it runs the checks Peekaping makes itself, and a monitor is moved to it by editing the monitor"
 	localProbeCantBeRotated  = "The local probe's token can't be rotated. In cluster mode it is set with PROBE_BOOTSTRAP_TOKEN: set or change it and restart Peekaping. In single mode the local probe takes no token: the peekaping process checks its monitors"
 )
 
@@ -110,9 +125,10 @@ func (c *Controller) CreateProbe(ctx context.Context, input *CreateProbeInput) (
 	}
 
 	created, err := c.service.Create(ctx, &CreateRequest{
-		Name:            req.Name,
-		Location:        req.Location,
-		NotificationIDs: req.NotificationIDs,
+		Name:              req.Name,
+		Location:          req.Location,
+		NotificationIDs:   req.NotificationIDs,
+		AssignAllMonitors: req.AssignAllMonitors,
 	})
 	if err != nil {
 		return nil, c.fail(err, "")
@@ -203,6 +219,58 @@ func (c *Controller) RotateProbeToken(ctx context.Context, input *RotateProbeTok
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe token rotated successfully. Copy the new token now: it is shown only once, and the old one no longer works", ToProbeWithTokenResponse(rotated)))
+}
+
+// AssignAllMonitors assigns a probe every monitor it can run now, and answers with how many it added.
+// A probe with no instance on record doesn't know what it runs yet, so it is made to wait for its
+// first hello instead.
+func (c *Controller) AssignAllMonitors(ctx context.Context, input *AssignAllMonitorsInput) (*httpx.Output[utils.ApiResponse[*AssignAllMonitorsResponse]], error) {
+	r := input.Request
+	// MARK: AssignAllMonitors
+
+	id := r.PathValue("id")
+	found, err := c.service.FindByID(ctx, id)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
+	if found == nil {
+		return nil, c.fail(ErrNotFound, "")
+	}
+	if id == LocalID {
+		return nil, c.fail(ErrLocalProbe, localProbeCantBeAssigned)
+	}
+
+	if len(found.Instances) == 0 {
+		if err := c.service.SetPendingAssignment(ctx, id); err != nil {
+			return nil, c.fail(err, "")
+		}
+
+		// Of a first hello and this action racing, whichever runs second sees the other's write: the
+		// hello claims the flag after its instance is committed, and this read comes after the flag
+		// is committed. So an instance that registered after the read above, whose hello didn't see
+		// the flag, shows up here, and is assigned now. If both assign, the second adds nothing: a
+		// probe isn't added to a monitor twice.
+		again, err := c.service.FindByID(ctx, id)
+		if err != nil {
+			return nil, c.fail(err, "")
+		}
+		if again == nil {
+			return nil, c.fail(ErrNotFound, "")
+		}
+		if len(again.Instances) == 0 {
+			return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("The probe is assigned every monitor when its first instance says hello", &AssignAllMonitorsResponse{Pending: true}))
+		}
+		found = again
+	}
+
+	// FindByID made the probe's types those of its online instances, or the last it had while
+	// none is online
+	added, err := c.monitors.AssignProbeToAll(ctx, id, found.SupportedTypes)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
+
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitors assigned successfully", &AssignAllMonitorsResponse{Added: added}))
 }
 
 // availabilityRange reads the range query, 24h when it is left out

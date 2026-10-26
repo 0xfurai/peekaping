@@ -23,6 +23,12 @@ type MonitorRepository interface {
 	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)
 	// FindActiveByProbe returns a page of the active monitors the probe runs
 	FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error)
+	// AddProbeToAll adds the probe to every monitor that isn't a push monitor, of one of the types
+	// (every type when there are none), and doesn't run on it yet, and returns the ids of the
+	// monitors it changed. A changed monitor has a new updated_at, and one that had no probe rows,
+	// and so ran on the local probe, gets that row as well. Call it in a transaction: the rows
+	// are many.
+	AddProbeToAll(ctx context.Context, probeID string, supportedTypes []string) ([]string, error)
 	UpdateFull(ctx context.Context, id string, monitor *Model) error
 	UpdatePartial(ctx context.Context, id string, monitor *UpdateModel) error
 	Delete(ctx context.Context, id string) error

@@ -16,6 +16,7 @@ const probe = (id: string, supportedTypes: string[]): ProbeProbeResponse => ({
   supported_types: supportedTypes,
   disabled: false,
   instances: [],
+  assign_all_pending: false,
   notification_ids: [],
   token_prefix: "",
   created_at: "2026-10-23T00:00:00Z",

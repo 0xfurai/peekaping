@@ -52,6 +52,13 @@ type Repository interface {
 	RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time, endedAt time.Time) error
 	// SetSupportedTypes replaces the monitor types the probe reports it can run. Nil means none.
 	SetSupportedTypes(ctx context.Context, probeID string, types []string) error
+	// ClaimPendingAssignment clears the probe's assign_all_pending flag in a single conditional
+	// update, and returns true when the flag was set: of two callers racing to assign the probe
+	// its monitors, one hears true. It runs in the transaction ctx carries, so that the flag is
+	// cleared only if the assignment it claims is stored.
+	ClaimPendingAssignment(ctx context.Context, id string) (bool, error)
+	// SetPendingAssignment makes the probe wait to be assigned every monitor on its next hello
+	SetPendingAssignment(ctx context.Context, id string) error
 	// UpdateStatus moves the probe from one status to another in a single conditional update. It
 	// returns true when the probe was in the status from and is now in to, and false when it was
 	// not (or does not exist): of two callers racing to make the same change, one hears true. A

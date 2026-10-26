@@ -28,9 +28,11 @@ type sqlModel struct {
 	Disabled    bool   `bun:"disabled,notnull"` // no Bun default: it would replace false with the column default
 	Status      string `bun:"status,notnull"`
 	// SupportedTypes is a JSON array of monitor types, in a JSONB column
-	SupportedTypes string    `bun:"supported_types,notnull"`
-	CreatedAt      time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt      time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	SupportedTypes string `bun:"supported_types,notnull"`
+	// AssignAllPending is true until the probe's first hello has assigned it every monitor
+	AssignAllPending bool      `bun:"assign_all_pending,notnull"` // no Bun default: it would replace false with the column default
+	CreatedAt        time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt        time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }
 
 type sqlInstance struct {
@@ -93,16 +95,17 @@ func toDomainInstanceFromSQL(si *sqlInstance) *Instance {
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
-		ID:             sm.ID,
-		Name:           sm.Name,
-		Location:       sm.Location,
-		TokenHash:      sm.TokenHash,
-		TokenPrefix:    sm.TokenPrefix,
-		Disabled:       sm.Disabled,
-		Status:         Status(sm.Status),
-		SupportedTypes: decodeTypes(sm.SupportedTypes),
-		CreatedAt:      sm.CreatedAt,
-		UpdatedAt:      sm.UpdatedAt,
+		ID:               sm.ID,
+		Name:             sm.Name,
+		Location:         sm.Location,
+		TokenHash:        sm.TokenHash,
+		TokenPrefix:      sm.TokenPrefix,
+		Disabled:         sm.Disabled,
+		Status:           Status(sm.Status),
+		SupportedTypes:   decodeTypes(sm.SupportedTypes),
+		AssignAllPending: sm.AssignAllPending,
+		CreatedAt:        sm.CreatedAt,
+		UpdatedAt:        sm.UpdatedAt,
 	}
 }
 
@@ -142,15 +145,16 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, probe *CreateModel) (*Mo
 	}
 	now := time.Now().UTC()
 	sm := &sqlModel{
-		ID:             id,
-		Name:           probe.Name,
-		Location:       probe.Location,
-		TokenHash:      probe.TokenHash,
-		TokenPrefix:    probe.TokenPrefix,
-		Status:         string(StatusOffline),
-		SupportedTypes: "[]",
-		CreatedAt:      now,
-		UpdatedAt:      now,
+		ID:               id,
+		Name:             probe.Name,
+		Location:         probe.Location,
+		TokenHash:        probe.TokenHash,
+		TokenPrefix:      probe.TokenPrefix,
+		Status:           string(StatusOffline),
+		SupportedTypes:   "[]",
+		AssignAllPending: probe.AssignAllPending,
+		CreatedAt:        now,
+		UpdatedAt:        now,
 	}
 	// The probe and the first row of its history are stored together
 	err := r.transactor.WithTx(ctx, func(ctx context.Context) error {
@@ -634,6 +638,32 @@ func (r *SQLRepositoryImpl) SetSupportedTypes(ctx context.Context, probeID strin
 	_, err = dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("supported_types = ?", encoded).
 		Where("id = ?", probeID).
+		Exec(ctx)
+	return err
+}
+
+// MARK: ClaimPendingAssignment
+func (r *SQLRepositoryImpl) ClaimPendingAssignment(ctx context.Context, id string) (bool, error) {
+	// The update is conditional on the flag, so that of two callers the later one finds it cleared
+	// already (PostgreSQL makes it wait for the first to commit) and changes no row. A caller
+	// whose transaction rolls back leaves the flag set.
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
+		Set("assign_all_pending = ?", false).
+		Where("id = ?", id).
+		Where("assign_all_pending = ?", true).
+		Exec(ctx)
+	if err != nil {
+		return false, err
+	}
+	rows, err := result.RowsAffected()
+	return rows > 0, err
+}
+
+// MARK: SetPendingAssignment
+func (r *SQLRepositoryImpl) SetPendingAssignment(ctx context.Context, id string) error {
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
+		Set("assign_all_pending = ?", true).
+		Where("id = ?", id).
 		Exec(ctx)
 	return err
 }

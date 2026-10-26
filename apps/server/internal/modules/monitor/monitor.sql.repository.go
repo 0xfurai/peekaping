@@ -254,6 +254,89 @@ func (r *SQLRepositoryImpl) replaceProbes(ctx context.Context, monitorID string,
 	return err
 }
 
+// assignChunk is how many monitors AddProbeToAll writes with one statement
+const assignChunk = 500
+
+// AddProbeToAll adds the probe to the monitors it can run, with a read and then writes in chunks.
+// Adding a probe can't break a monitor's location rule: any and all have no number, and an at_least
+// number stays within the larger count of probes. So the rule needs no check here, as it does when
+// an update sets the probes.
+func (r *SQLRepositoryImpl) AddProbeToAll(ctx context.Context, probeID string, supportedTypes []string) ([]string, error) {
+	db := dbtx.DB(ctx, r.db)
+
+	// This is the one place that decides which monitors a probe is assigned: a workspace filter
+	// goes here once monitors belong to workspaces (ADR 0005).
+	var rows []struct {
+		ID string `bun:"id"`
+		// Unlinked is true for a monitor with no probe rows, which runs on the local probe
+		Unlinked bool `bun:"unlinked"`
+	}
+	query := db.NewSelect().Model((*sqlModel)(nil)).
+		ColumnExpr("m.id AS id").
+		ColumnExpr("NOT EXISTS (SELECT 1 FROM monitor_probes WHERE monitor_id = m.id) AS unlinked").
+		Where("m.type <> ?", pushType).
+		Where("NOT EXISTS (SELECT 1 FROM monitor_probes WHERE monitor_id = m.id AND probe_id = ?)", probeID).
+		Order("m.id")
+	if len(supportedTypes) > 0 {
+		query = query.Where("m.type IN (?)", bun.In(supportedTypes))
+	}
+	if err := query.Scan(ctx, &rows); err != nil {
+		return nil, err
+	}
+
+	ids := make([]string, len(rows))
+	var unlinked []string
+	for i, row := range rows {
+		ids[i] = row.ID
+		if row.Unlinked {
+			unlinked = append(unlinked, row.ID)
+		}
+	}
+
+	// A monitor with no rows keeps running on the local probe: its row is written before the new
+	// probe's, since a monitor with any row runs on those alone (see FindActiveByProbe)
+	if err := r.insertProbeLinks(ctx, db, unlinked, shared.LocalProbeID); err != nil {
+		return nil, err
+	}
+	if err := r.insertProbeLinks(ctx, db, ids, probeID); err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	for _, chunk := range chunked(ids, assignChunk) {
+		if _, err := db.NewUpdate().Model((*sqlModel)(nil)).
+			Set("updated_at = ?", now).
+			Where("id IN (?)", bun.In(chunk)).
+			Exec(ctx); err != nil {
+			return nil, err
+		}
+	}
+	return ids, nil
+}
+
+// insertProbeLinks makes the probe one of the probes of each monitor, in chunks. A monitor that
+// runs on it already keeps its row, and with it the state the row holds.
+func (r *SQLRepositoryImpl) insertProbeLinks(ctx context.Context, db bun.IDB, monitorIDs []string, probeID string) error {
+	for _, chunk := range chunked(monitorIDs, assignChunk) {
+		links := make([]*sqlProbeLink, len(chunk))
+		for i, monitorID := range chunk {
+			links[i] = &sqlProbeLink{MonitorID: monitorID, ProbeID: probeID}
+		}
+		if _, err := db.NewInsert().Model(&links).On("CONFLICT (monitor_id, probe_id) DO NOTHING").Exec(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// chunked splits ids into slices of at most size
+func chunked(ids []string, size int) [][]string {
+	var chunks [][]string
+	for start := 0; start < len(ids); start += size {
+		chunks = append(chunks, ids[start:min(start+size, len(ids))])
+	}
+	return chunks
+}
+
 // locationsOf reads the probe rows of the monitors, with one query for the lot, in id order
 func (r *SQLRepositoryImpl) locationsOf(ctx context.Context, db bun.IDB, ids []string) ([]*sqlLocation, error) {
 	var rows []*sqlLocation

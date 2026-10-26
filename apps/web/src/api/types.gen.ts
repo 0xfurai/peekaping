@@ -569,11 +569,25 @@ export type NotificationChannelTestDto = {
   [key: string]: unknown | boolean | string | undefined;
 };
 
+export type ProbeAssignAllMonitorsResponse = {
+  added: number;
+  pending: boolean;
+};
+
 export type ProbeCreateProbeDto = {
+  /**
+   * Assign the probe every monitor it can run (push monitors excepted) when its first instance says hello. Defaults to false.
+   */
+  assign_all_monitors?: boolean;
   location?: string;
   name: string;
   notification_ids?: Array<string> | null;
-  [key: string]: unknown | string | (Array<string> | null) | undefined;
+  [key: string]:
+    | unknown
+    | boolean
+    | string
+    | (Array<string> | null)
+    | undefined;
 };
 
 export type ProbeProbeAvailabilityConnection = {
@@ -619,6 +633,7 @@ export type ProbeProbeInstanceResponse = {
 };
 
 export type ProbeProbeResponse = {
+  assign_all_pending: boolean;
   created_at: string;
   disabled: boolean;
   id: string;
@@ -633,6 +648,7 @@ export type ProbeProbeResponse = {
 };
 
 export type ProbeProbeWithTokenResponse = {
+  assign_all_pending: boolean;
   created_at: string;
   disabled: boolean;
   id: string;
@@ -1216,6 +1232,11 @@ export type UtilsApiResponseMonitorStatPointsSummaryDto = {
 
 export type UtilsApiResponseNotificationChannelModel = {
   data: NotificationChannelModel;
+  message: string;
+};
+
+export type UtilsApiResponseProbeAssignAllMonitorsResponse = {
+  data: ProbeAssignAllMonitorsResponse;
   message: string;
 };
 
@@ -3869,6 +3890,50 @@ export type PutProbesByIdResponses = {
 
 export type PutProbesByIdResponse =
   PutProbesByIdResponses[keyof PutProbesByIdResponses];
+
+export type PostProbesByIdAssignAllMonitorsData = {
+  body?: never;
+  path: {
+    /**
+     * Probe ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/probes/{id}/assign-all-monitors";
+};
+
+export type PostProbesByIdAssignAllMonitorsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostProbesByIdAssignAllMonitorsError =
+  PostProbesByIdAssignAllMonitorsErrors[keyof PostProbesByIdAssignAllMonitorsErrors];
+
+export type PostProbesByIdAssignAllMonitorsResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseProbeAssignAllMonitorsResponse;
+};
+
+export type PostProbesByIdAssignAllMonitorsResponse =
+  PostProbesByIdAssignAllMonitorsResponses[keyof PostProbesByIdAssignAllMonitorsResponses];
 
 export type GetProbesByIdAvailabilityData = {
   body?: never;

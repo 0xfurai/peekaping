@@ -32,6 +32,11 @@ type RotateProbeTokenParams struct {
 }
 type RotateProbeTokenInput = httpx.Input[httpx.NoBody, RotateProbeTokenParams]
 
+type AssignAllMonitorsParams struct {
+	Id string `path:"id" doc:"Probe ID" required:"true"`
+}
+type AssignAllMonitorsInput = httpx.Input[httpx.NoBody, AssignAllMonitorsParams]
+
 type GetProbesAvailabilityParams struct {
 	Range string `query:"range" enum:"24h,7d,30d" default:"24h" doc:"How far back to look: 24h, 7d or 30d. Defaults to 24h."`
 }

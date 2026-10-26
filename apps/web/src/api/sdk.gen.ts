@@ -168,6 +168,9 @@ import type {
   PutProbesByIdData,
   PutProbesByIdResponses,
   PutProbesByIdErrors,
+  PostProbesByIdAssignAllMonitorsData,
+  PostProbesByIdAssignAllMonitorsResponses,
+  PostProbesByIdAssignAllMonitorsErrors,
   GetProbesByIdAvailabilityData,
   GetProbesByIdAvailabilityResponses,
   GetProbesByIdAvailabilityErrors,
@@ -1758,6 +1761,36 @@ export const putProbesById = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Assign all monitors to a probe
+ * Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
+ */
+export const postProbesByIdAssignAllMonitors = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostProbesByIdAssignAllMonitorsData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostProbesByIdAssignAllMonitorsResponses,
+    PostProbesByIdAssignAllMonitorsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}/assign-all-monitors",
+    ...options,
   });
 };
 

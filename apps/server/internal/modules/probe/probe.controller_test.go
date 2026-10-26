@@ -34,7 +34,7 @@ func newControllerFixture(t *testing.T, liveness shared.LocalProbeLiveness) cont
 	require.NoError(t, err)
 	availability := probe.NewAvailabilityService(f.svc, liveness, func() time.Time { return at(12, 0, 0) })
 	return controllerFixture{
-		controller:    probe.NewController(f.svc, availability, liveness, zap.NewNop().Sugar()),
+		controller:    probe.NewController(f.svc, availability, nil, liveness, zap.NewNop().Sugar()),
 		remoteOffline: offline.ID,
 		remoteOnline:  online.ID,
 		markLocalOnline: func() {
@@ -102,4 +102,53 @@ func TestController_InClusterModeTheLocalProbeReportsItsStoredStatus(t *testing.
 	for way, statuses := range f.statuses(t) {
 		assert.Equal(t, "online", statuses[probe.LocalID], way+": an instance is connected")
 	}
+}
+
+// racingProbes is a probe service that reads the probe once with no instance and then with one: a
+// first hello registered its instance between the two reads
+type racingProbes struct {
+	probe.Service
+	reads   int
+	pending int
+}
+
+func (s *racingProbes) FindByID(_ context.Context, id string) (*probe.Model, error) {
+	s.reads++
+	found := &probe.Model{ID: id, Name: "Frankfurt"}
+	if s.reads > 1 {
+		found.Instances = []*probe.Instance{{ID: "instance-1"}}
+		found.SupportedTypes = []string{"http", "tcp"}
+	}
+	return found, nil
+}
+
+func (s *racingProbes) SetPendingAssignment(context.Context, string) error {
+	s.pending++
+	return nil
+}
+
+type recordingAssigner struct {
+	calls [][]string
+}
+
+func (a *recordingAssigner) AssignProbeToAll(_ context.Context, _ string, supportedTypes []string) (int, error) {
+	a.calls = append(a.calls, supportedTypes)
+	return 2, nil
+}
+
+// AC5: a first hello that registers its instance after the action read the probe, and so didn't
+// see the flag, would leave the probe waiting. The action reads the probe again once the flag is
+// set, and assigns the instance it finds.
+func TestController_TheActionAssignsAnInstanceThatRegisteredWhileItSetTheFlag(t *testing.T) {
+	probes := &racingProbes{}
+	assigner := &recordingAssigner{}
+	controller := probe.NewController(probes, nil, assigner, shared.LocalProbeIsTheProcess, zap.NewNop().Sugar())
+
+	out, err := controller.AssignAllMonitors(context.Background(), &probe.AssignAllMonitorsInput{Request: probeRequest(http.MethodPost, "remote-1", "")})
+
+	require.NoError(t, err)
+	assert.Equal(t, 1, probes.pending, "the flag is set")
+	assert.Equal(t, [][]string{{"http", "tcp"}}, assigner.calls, "assigned with the types of the second read")
+	assert.Equal(t, 2, out.Body.Data.Added)
+	assert.False(t, out.Body.Data.Pending)
 }
