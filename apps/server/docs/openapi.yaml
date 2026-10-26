@@ -884,17 +884,29 @@ components:
       additionalProperties: false
       properties:
         24h:
+          description: The uptime over the last 24 hours, in percent. Null when the period has no Up or Down heartbeat.
           format: double
-          type: number
+          type:
+            - number
+            - "null"
         30d:
+          description: The uptime over the last 30 days, in percent. Null when the period has no Up or Down heartbeat.
           format: double
-          type: number
+          type:
+            - number
+            - "null"
         365d:
+          description: The uptime over the last 365 days, in percent. Null when the period has no Up or Down heartbeat.
           format: double
-          type: number
+          type:
+            - number
+            - "null"
         7d:
+          description: The uptime over the last 7 days, in percent. Null when the period has no Up or Down heartbeat.
           format: double
-          type: number
+          type:
+            - number
+            - "null"
         probe_id:
           description: The probe the percentages count. Omitted when they count every probe's checks.
           examples:
@@ -2248,8 +2260,11 @@ components:
             - http
           type: string
         uptime_24h:
+          description: The uptime of this monitor over the last 24 hours, in percent. Null when it has no heartbeat in that period.
           format: double
-          type: number
+          type:
+            - number
+            - "null"
       required:
         - heartbeats
         - uptime_24h
