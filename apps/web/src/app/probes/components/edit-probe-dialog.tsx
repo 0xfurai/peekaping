@@ -94,7 +94,7 @@ const EditProbeDialog = ({ probe, open, onOpenChange }: EditProbeDialogProps) =>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <ProbeFormFields showDisabled={!isLocal} />
+            <ProbeFormFields showDisabled={!isLocal} showNotifications />
             <DialogFooter>
               <Button
                 type="button"

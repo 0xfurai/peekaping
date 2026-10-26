@@ -15,20 +15,20 @@ import Notifications from "@/app/monitors/monitor-types/shared/notifications";
 import { notificationsSchema } from "@/app/monitors/monitor-types/shared/schema";
 
 // The messages are translation keys: FormMessage translates them.
-export const createProbeSchema = z
-  .object({
-    name: z
-      .string()
-      .trim()
-      .min(1, "probes.form.name_required")
-      .max(255, "probes.form.name_too_long"),
-    location: z.string().trim().max(255, "probes.form.location_too_long"),
-  })
-  .extend(notificationsSchema.shape);
-
-export const editProbeSchema = createProbeSchema.extend({
-  disabled: z.boolean(),
+export const createProbeSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "probes.form.name_required")
+    .max(255, "probes.form.name_too_long"),
+  location: z.string().trim().max(255, "probes.form.location_too_long"),
 });
+
+// Only an existing probe has channels of its own to set: a new probe starts
+// with none, and sends to the channels of its monitors.
+export const editProbeSchema = createProbeSchema
+  .extend({ disabled: z.boolean() })
+  .extend(notificationsSchema.shape);
 
 export type CreateProbeFormValues = z.infer<typeof createProbeSchema>;
 export type EditProbeFormValues = z.infer<typeof editProbeSchema>;
@@ -36,10 +36,15 @@ export type EditProbeFormValues = z.infer<typeof editProbeSchema>;
 interface ProbeFormFieldsProps {
   // The local probe can't be disabled, so its edit form leaves the switch out.
   showDisabled?: boolean;
+  // The channels are for the edit form; the create form leaves them out.
+  showNotifications?: boolean;
 }
 
 // The fields of the create and edit forms. They go inside a <Form>.
-const ProbeFormFields = ({ showDisabled = false }: ProbeFormFieldsProps) => {
+const ProbeFormFields = ({
+  showDisabled = false,
+  showNotifications = false,
+}: ProbeFormFieldsProps) => {
   const { t } = useLocalizedTranslation();
   const form = useFormContext<EditProbeFormValues>();
 
@@ -99,7 +104,14 @@ const ProbeFormFields = ({ showDisabled = false }: ProbeFormFieldsProps) => {
           )}
         />
       )}
-      <Notifications />
+      {showNotifications && (
+        <div className="flex flex-col gap-2">
+          <Notifications />
+          <p className="text-muted-foreground text-sm">
+            {t("probes.form.notifications_hint")}
+          </p>
+        </div>
+      )}
     </>
   );
 };

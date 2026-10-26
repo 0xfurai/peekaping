@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
+	"slices"
+	"sort"
 	"sync"
 	"testing"
 	"time"
@@ -62,6 +64,27 @@ func (s *fakeMonitorService) FindByID(_ context.Context, id string) (*monitor.Mo
 	return s.monitors[id], nil
 }
 
+// FindActiveByProbe pages through the active monitors of the probe, newest id first, the way the
+// repository does. The local probe also runs the monitors that have no probe rows.
+func (s *fakeMonitorService) FindActiveByProbe(_ context.Context, probeID string, page, limit int) ([]*monitor.Model, error) {
+	ids := make([]string, 0, len(s.monitors))
+	for id := range s.monitors {
+		ids = append(ids, id)
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(ids)))
+	var found []*monitor.Model
+	for _, id := range ids {
+		m := s.monitors[id]
+		runsOnProbe := slices.Contains(m.ProbeIDs, probeID) || (probeID == shared.LocalProbeID && len(m.ProbeIDs) == 0)
+		if m.Active && runsOnProbe {
+			found = append(found, m)
+		}
+	}
+	start := min(page*limit, len(found))
+	end := min(start+limit, len(found))
+	return found[start:end], nil
+}
+
 type fakeMonitorNotificationService struct {
 	monitor_notification.Service
 	links map[string][]*monitor_notification.Model
@@ -70,6 +93,19 @@ type fakeMonitorNotificationService struct {
 
 func (s *fakeMonitorNotificationService) FindByMonitorID(_ context.Context, monitorID string) ([]*monitor_notification.Model, error) {
 	return s.links[monitorID], s.err
+}
+
+func (s *fakeMonitorNotificationService) FindByMonitorIDs(_ context.Context, monitorIDs []string) (map[string][]*monitor_notification.Model, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+	found := map[string][]*monitor_notification.Model{}
+	for _, id := range monitorIDs {
+		if links := s.links[id]; len(links) > 0 {
+			found[id] = links
+		}
+	}
+	return found, nil
 }
 
 type fakeProbeNotificationService struct {
@@ -190,6 +226,11 @@ func newListenerFixture(t *testing.T) *listenerFixture {
 // addProvider gives the fixture's listener a provider for a channel type
 func (f *listenerFixture) addProvider(channelType string, provider NotificationChannelProvider) {
 	f.providers[channelType] = provider
+}
+
+// addProbeMonitor adds an active monitor that runs on the probes
+func (f *listenerFixture) addProbeMonitor(id string, probeIDs ...string) {
+	f.monitors.monitors[id] = &monitor.Model{ID: id, Name: id, Type: "http", Active: true, ProbeIDs: probeIDs}
 }
 
 func (f *listenerFixture) addMonitor(id, name string) {
@@ -714,6 +755,167 @@ func TestNotificationListener_ProbeOfflineAndOnline(t *testing.T) {
 			assert.Empty(t, slack.sentConfigs())
 		})
 	}
+}
+
+// A probe with no channels of its own tells the channels of its monitors, so a probe going offline
+// doesn't leave its monitors unchecked with no alert.
+func TestNotificationListener_ProbeWithoutChannelsNotifiesItsMonitorsChannels(t *testing.T) {
+	f := newListenerFixture(t)
+	slack, email := &recordingProvider{}, &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProvider("test-email", email)
+	f.addProbeMonitor("mon-1", "probe-1")
+	f.addProbeMonitor("mon-2", "probe-1")
+	f.attach("mon-1", testChannel("a", "test-slack"))
+	f.attach("mon-2", testChannel("b", "test-email"))
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+
+	assert.Equal(t, map[string][]string{channelConfig("a"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"}}, slack.sentMessagesByChannel())
+	assert.Equal(t, map[string][]string{channelConfig("b"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"}}, email.sentMessagesByChannel())
+
+	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
+
+	assert.Equal(t, map[string][]string{channelConfig("a"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC", "Probe Frankfurt is online"}}, slack.sentMessagesByChannel())
+	assert.Equal(t, map[string][]string{channelConfig("b"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC", "Probe Frankfurt is online"}}, email.sentMessagesByChannel())
+
+	// Still the stand-in, not a monitor, so a channel that opens an incident per monitor id opens one per probe
+	for _, sent := range append(slack.sent, email.sent...) {
+		require.NotNil(t, sent.monitor)
+		assert.Equal(t, "probe-1", sent.monitor.ID)
+		assert.Equal(t, "Probe Frankfurt", sent.monitor.Name)
+		assert.True(t, sent.monitor.IsProbeEvent())
+		assert.Nil(t, sent.heartbeat)
+	}
+}
+
+func TestNotificationListener_ProbeFallbackSendsToASharedChannelOnce(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProbeMonitor("mon-1", "probe-1")
+	f.addProbeMonitor("mon-2", "probe-1")
+	sharedChannel := testChannel("a", "test-slack")
+	f.attach("mon-1", sharedChannel)
+	f.attach("mon-2", sharedChannel)
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
+
+	assert.Equal(t, []string{
+		"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC",
+		"Probe Frankfurt is online",
+	}, slack.sentMessages(), "one offline and one online, not one for each monitor")
+}
+
+func TestNotificationListener_ProbeFallbackSkipsPausedMonitorsAndOtherProbes(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProbeMonitor("mon-active", "probe-1")
+	f.addProbeMonitor("mon-paused", "probe-1")
+	f.monitors.monitors["mon-paused"].Active = false
+	f.addProbeMonitor("mon-elsewhere", "probe-2")
+	f.attach("mon-active", testChannel("active", "test-slack"))
+	f.attach("mon-paused", testChannel("paused", "test-slack"))
+	f.attach("mon-elsewhere", testChannel("elsewhere", "test-slack"))
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
+
+	assert.Equal(t, []string{channelConfig("active"), channelConfig("active")}, slack.sentConfigs(),
+		"only the active monitor of the probe, for the offline and the online notification")
+}
+
+func TestNotificationListener_ProbeWithChannelsDoesNotNotifyItsMonitorsChannels(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.attachProbe("probe-1", testChannel("c", "test-slack"))
+	f.addProbeMonitor("mon-1", "probe-1")
+	f.attach("mon-1", testChannel("a", "test-slack"))
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
+
+	assert.Equal(t, []string{channelConfig("c"), channelConfig("c")}, slack.sentConfigs())
+}
+
+func TestNotificationListener_ProbeWithNoChannelsAndNoMonitorChannelsSendsNothingAndLogsIt(t *testing.T) {
+	cases := map[string]func(f *listenerFixture){
+		"no monitors":               func(f *listenerFixture) {},
+		"monitors without channels": func(f *listenerFixture) { f.addProbeMonitor("mon-1", "probe-1") },
+		"only a paused monitor has a channel": func(f *listenerFixture) {
+			f.addProbeMonitor("mon-1", "probe-1")
+			f.monitors.monitors["mon-1"].Active = false
+			f.attach("mon-1", testChannel("a", "test-slack"))
+		},
+	}
+	for name, setup := range cases {
+		t.Run(name, func(t *testing.T) {
+			f := newListenerFixture(t)
+			core, logs := observer.New(zap.DebugLevel)
+			f.listener.logger = zap.New(core).Sugar()
+			slack := &recordingProvider{}
+			f.addProvider("test-slack", slack)
+			setup(f)
+
+			f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+
+			assert.Empty(t, slack.sentConfigs())
+			assert.Len(t, logs.FilterMessage("No notification channels configured for probe probe-1 or its monitors").All(), 1)
+		})
+	}
+}
+
+func TestNotificationListener_ProbeFallbackSendsNothingWhenTheMonitorsChannelsCannotBeRead(t *testing.T) {
+	f := newListenerFixture(t)
+	core, logs := observer.New(zap.DebugLevel)
+	f.listener.logger = zap.New(core).Sugar()
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProbeMonitor("mon-1", "probe-1")
+	f.attach("mon-1", testChannel("a", "test-slack"))
+	f.links.err = errors.New("database is locked")
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+
+	assert.Empty(t, slack.sentConfigs())
+	assert.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)
+}
+
+func TestNotificationListener_LocalProbeFallbackIncludesMonitorsWithoutProbeRows(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProbeMonitor("mon-no-rows")
+	f.addProbeMonitor("mon-local", shared.LocalProbeID)
+	f.addProbeMonitor("mon-remote", "probe-1")
+	f.attach("mon-no-rows", testChannel("no-rows", "test-slack"))
+	f.attach("mon-local", testChannel("local", "test-slack"))
+	f.attach("mon-remote", testChannel("remote", "test-slack"))
+
+	f.publishProbeEvent(probe.ProbeOffline, probe.Event{ProbeID: shared.LocalProbeID, ProbeName: "Local", Since: time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)})
+
+	assert.ElementsMatch(t, []string{channelConfig("no-rows"), channelConfig("local")}, slack.sentConfigs())
+	assert.ElementsMatch(t, []string{"Probe Local has been offline since 2026-10-22 08:30:00 UTC", "Probe Local has been offline since 2026-10-22 08:30:00 UTC"}, slack.sentMessages())
+}
+
+func TestNotificationListener_ProbeFallbackReadsEveryPageOfMonitors(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	// One more than a page of monitors, each with a channel of its own
+	const monitorCount = 101
+	for i := range monitorCount {
+		id := fmt.Sprintf("mon-%03d", i)
+		f.addProbeMonitor(id, "probe-1")
+		f.attach(id, testChannel(fmt.Sprintf("c-%03d", i), "test-slack"))
+	}
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+
+	assert.Len(t, slack.sentConfigs(), monitorCount)
 }
 
 // The real PagerDuty sender decides from the stand-in's status, since a probe's notification has no

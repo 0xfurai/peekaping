@@ -1206,7 +1206,8 @@
       "name_too_long": "名稱太長",
       "location_too_long": "位置太長",
       "disabled_label": "已停用",
-      "disabled_description": "已停用探針嘅令牌會失效，直到你再次啟用。"
+      "disabled_description": "已停用探針嘅令牌會失效，直到你再次啟用。",
+      "notifications_hint": "留空嘅話，就會通知呢個探針嘅監測所用嘅渠道。"
     },
     "rotate_dialog": {
       "title": "更換令牌",

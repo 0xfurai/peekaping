@@ -1205,7 +1205,8 @@
       "name_too_long": "Numele este prea lung",
       "location_too_long": "Locația este prea lungă",
       "disabled_label": "Dezactivată",
-      "disabled_description": "Tokenul unei sonde dezactivate nu mai funcționează până când o reactivezi."
+      "disabled_description": "Tokenul unei sonde dezactivate nu mai funcționează până când o reactivezi.",
+      "notifications_hint": "Lasă gol pentru a notifica canalele monitoarelor acestei sonde."
     },
     "rotate_dialog": {
       "title": "Schimbă tokenul",

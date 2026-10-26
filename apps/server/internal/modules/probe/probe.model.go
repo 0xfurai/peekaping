@@ -64,7 +64,8 @@ type Model struct {
 	// FindAll); the repository's probe, and the one FindByToken returns, hold the union as of the
 	// probe's last hello, which is what the probe runs while none of its instances is online.
 	SupportedTypes []string
-	// NotificationIDs are the notification channels that hear about the probe
+	// NotificationIDs are the notification channels that hear about the probe. A probe with none
+	// notifies the channels of its active monitors instead.
 	NotificationIDs []string
 	// Instances are the processes that have connected with the probe's token
 	Instances []*Instance

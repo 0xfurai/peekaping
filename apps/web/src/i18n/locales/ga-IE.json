@@ -1205,7 +1205,8 @@
       "name_too_long": "Tá an t-ainm rófhada",
       "location_too_long": "Tá an suíomh rófhada",
       "disabled_label": "Díchumasaithe",
-      "disabled_description": "Stopann comhartha tóireadóra dhíchumasaithe ag obair go dtí go gcumasaíonn tú arís é."
+      "disabled_description": "Stopann comhartha tóireadóra dhíchumasaithe ag obair go dtí go gcumasaíonn tú arís é.",
+      "notifications_hint": "Fág folamh é chun fógra a thabhairt do chanálacha mhóntóirí an tóireadóra seo."
     },
     "rotate_dialog": {
       "title": "Athraigh an comhartha",

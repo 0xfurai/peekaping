@@ -1206,7 +1206,8 @@
       "name_too_long": "Naziv je predugačak",
       "location_too_long": "Lokacija je preduga",
       "disabled_label": "Onemogućena",
-      "disabled_description": "Token onemogućene sonde prestaje raditi dok je ponovno ne omogućite."
+      "disabled_description": "Token onemogućene sonde prestaje raditi dok je ponovno ne omogućite.",
+      "notifications_hint": "Ostavite prazno da se obavijeste kanali nadzora ove sonde."
     },
     "rotate_dialog": {
       "title": "Zamijeni token",

@@ -1206,7 +1206,8 @@
       "name_too_long": "Namnet är för långt",
       "location_too_long": "Platsen är för lång",
       "disabled_label": "Inaktiverad",
-      "disabled_description": "Token för en inaktiverad sond slutar fungera tills du aktiverar den igen."
+      "disabled_description": "Token för en inaktiverad sond slutar fungera tills du aktiverar den igen.",
+      "notifications_hint": "Lämna tomt för att meddela kanalerna för den här sondens övervakningar."
     },
     "rotate_dialog": {
       "title": "Byt token",

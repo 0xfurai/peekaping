@@ -42,7 +42,7 @@ You run cluster mode in one of two ways:
 
 The cluster images run as a non-root user. See [Cluster user and permissions](./cluster-user.md).
 
-In cluster mode the local probe is online while one of its instances is connected, like a remote probe. If you stop the probe deployment, Peekaping tells the notification channels of the local probe's monitors that the local probe is offline. In single mode the local probe is never offline.
+In cluster mode the local probe is online while one of its instances is connected, like a remote probe. If you stop the probe deployment, Peekaping tells the local probe's own notification channels, or, when it has none (the default), the channels of its monitors, that the local probe is offline. In single mode the local probe is never offline.
 
 Coming from the layout with a producer, a worker and an ingester? Their images are no longer published. See [Upgrading to probes](./upgrading-to-probes.md).
 

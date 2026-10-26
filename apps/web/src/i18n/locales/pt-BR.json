@@ -1206,7 +1206,8 @@
       "name_too_long": "O nome é muito longo",
       "location_too_long": "A localização é muito longa",
       "disabled_label": "Desativada",
-      "disabled_description": "O token de uma sonda desativada deixa de funcionar até que você a ative novamente."
+      "disabled_description": "O token de uma sonda desativada deixa de funcionar até que você a ative novamente.",
+      "notifications_hint": "Deixe vazio para notificar os canais dos monitores desta sonda."
     },
     "rotate_dialog": {
       "title": "Renovar token",

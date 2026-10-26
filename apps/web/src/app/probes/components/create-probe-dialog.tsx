@@ -44,7 +44,6 @@ const CreateProbeDialog = ({
     defaultValues: {
       name: "",
       location: "",
-      notification_ids: [],
     },
   });
 
@@ -61,7 +60,6 @@ const CreateProbeDialog = ({
         body: {
           name: values.name,
           location: values.location || undefined,
-          notification_ids: values.notification_ids,
         },
       },
       {

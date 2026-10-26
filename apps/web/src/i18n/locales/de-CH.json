@@ -1206,7 +1206,8 @@
       "name_too_long": "Der Name ist zu lang",
       "location_too_long": "Der Standort ist zu lang",
       "disabled_label": "Deaktiviert",
-      "disabled_description": "Das Token einer deaktivierten Sonde funktioniert nicht mehr, bis Sie sie wieder aktivieren."
+      "disabled_description": "Das Token einer deaktivierten Sonde funktioniert nicht mehr, bis Sie sie wieder aktivieren.",
+      "notifications_hint": "Leer lassen, um die Kanäle der Monitore dieser Sonde zu benachrichtigen."
     },
     "rotate_dialog": {
       "title": "Token erneuern",

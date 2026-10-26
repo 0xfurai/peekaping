@@ -1206,7 +1206,8 @@
       "name_too_long": "名稱過長",
       "location_too_long": "位置過長",
       "disabled_label": "已停用",
-      "disabled_description": "已停用探針的權杖會失效，直到您重新啟用。"
+      "disabled_description": "已停用探針的權杖會失效，直到您重新啟用。",
+      "notifications_hint": "留空則通知此探針的監控所使用的頻道。"
     },
     "rotate_dialog": {
       "title": "更換權杖",

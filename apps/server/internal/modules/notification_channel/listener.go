@@ -35,6 +35,9 @@ const (
 	// network, up to sendTimeout each, so the limit is well above the bus's default: a few
 	// monitors with a dead channel mustn't hold up everyone else's notifications.
 	notificationWorkers = 128
+	// probeMonitorPageSize is how many of a probe's monitors are read at a time, when the probe
+	// has no channels and its monitors' channels are told instead
+	probeMonitorPageSize = 100
 )
 
 // NotificationEventListener handles notification events
@@ -111,6 +114,11 @@ const staleTimeFormat = "2006-01-02 15:04:05 UTC"
 // Its type marks it as a probe's, so a provider that links to the monitor links to the Probes page.
 // Its status tells offline (Down) from online (Up), for a provider that treats them differently,
 // since the notification has no heartbeat to say so.
+//
+// A probe with channels of its own tells those. One without tells the channels of its active
+// monitors, since a probe going offline doesn't mark them Down, and nothing else would say they
+// stopped being checked. Each event reads them again instead of the online event remembering the
+// offline one's: the two sets differ only when the probe's monitors changed while it was offline.
 func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeEvent probe.Event, online bool) {
 	l.logger.Infof("Probe event received for probe: %s (online: %t)", probeEvent.ProbeID, online)
 
@@ -119,13 +127,22 @@ func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeE
 		l.logger.Errorf("Failed to get probe-notification records: %v", err)
 		return
 	}
-	if len(links) == 0 {
-		l.logger.Debugf("No notification channels configured for probe %s", probeEvent.ProbeID)
-		return
+	var ids []string
+	if len(links) > 0 {
+		ids = make([]string, len(links))
+		for i, link := range links {
+			ids[i] = link.NotificationID
+		}
+	} else {
+		ids, err = l.probeMonitorChannelIDs(ctx, probeEvent.ProbeID)
+		if err != nil {
+			l.logger.Errorf("Failed to get the notification channels of the monitors of probe %s: %v", probeEvent.ProbeID, err)
+			return
+		}
 	}
-	ids := make([]string, len(links))
-	for i, link := range links {
-		ids[i] = link.NotificationID
+	if len(ids) == 0 {
+		l.logger.Debugf("No notification channels configured for probe %s or its monitors", probeEvent.ProbeID)
+		return
 	}
 
 	message := fmt.Sprintf("Probe %s has been offline since %s", probeEvent.ProbeName, probeEvent.Since.UTC().Format(staleTimeFormat))
@@ -137,6 +154,39 @@ func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeE
 	standIn := &monitor.Model{ID: probeEvent.ProbeID, Type: shared.MonitorTypeProbe, Name: "Probe " + probeEvent.ProbeName, Status: status}
 	// A probe notification carries no heartbeat
 	l.sendToChannels(ctx, l.channelsByID(ctx, ids), message, standIn, nil)
+}
+
+// probeMonitorChannelIDs returns the ids of the channels of the probe's active monitors, each once.
+// They come in the order of the monitors, then of each monitor's links. A page of monitors is read
+// with its links before the next page, to keep each read of the links small.
+func (l *NotificationEventListener) probeMonitorChannelIDs(ctx context.Context, probeID string) ([]string, error) {
+	var ids []string
+	seen := map[string]bool{}
+	for page := 0; ; page++ {
+		monitors, err := l.monitorSvc.FindActiveByProbe(ctx, probeID, page, probeMonitorPageSize)
+		if err != nil {
+			return nil, err
+		}
+		monitorIDs := make([]string, len(monitors))
+		for i, m := range monitors {
+			monitorIDs[i] = m.ID
+		}
+		linksByMonitor, err := l.monitorNotificationService.FindByMonitorIDs(ctx, monitorIDs)
+		if err != nil {
+			return nil, err
+		}
+		for _, monitorID := range monitorIDs {
+			for _, link := range linksByMonitor[monitorID] {
+				if !seen[link.NotificationID] {
+					seen[link.NotificationID] = true
+					ids = append(ids, link.NotificationID)
+				}
+			}
+		}
+		if len(monitors) < probeMonitorPageSize {
+			return ids, nil
+		}
+	}
 }
 
 // handleStaleMonitorEvent notifies that a monitor stopped being checked, or that it is being checked again

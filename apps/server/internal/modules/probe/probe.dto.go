@@ -6,7 +6,8 @@ import "time"
 type CreateProbeDto struct {
 	Name     string `json:"name" validate:"required,min=1,max=255"`
 	Location string `json:"location,omitempty" validate:"omitempty,max=255"`
-	// NotificationIDs are the notification channels that hear about the probe
+	// NotificationIDs are the notification channels that hear about the probe. A probe with none
+	// notifies the channels of its active monitors instead.
 	NotificationIDs []string `json:"notification_ids,omitempty" validate:"omitempty"`
 }
 

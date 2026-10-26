@@ -1206,7 +1206,8 @@
       "name_too_long": "名前が長すぎます",
       "location_too_long": "場所が長すぎます",
       "disabled_label": "無効",
-      "disabled_description": "無効にしたプローブのトークンは、再び有効にするまで使えなくなります。"
+      "disabled_description": "無効にしたプローブのトークンは、再び有効にするまで使えなくなります。",
+      "notifications_hint": "空のままにすると、このプローブのモニターの通知チャネルに通知します。"
     },
     "rotate_dialog": {
       "title": "トークンを更新",
