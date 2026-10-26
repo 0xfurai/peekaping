@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Admin hisobingizni yarating",
-      "error_reporting_hint": "Standart bo'yicha yoqilgan. O'chirish uchun bu katakchadagi belgini olib tashlang. Buni keyinroq «Sozlamalar» bo'limida o'zgartirishingiz mumkin.",
       "have_account": "Allaqachon hisobingiz bormi?",
       "sign_in": "Kirish",
       "submit": "Yaratish",
-      "telemetry_hint": "Standart bo'yicha yoqilgan. O'chirish uchun bu katakchadagi belgini olib tashlang. Buni keyinroq «Sozlamalar» bo'limida o'zgartirishingiz mumkin. U yoqilgan ekan, Peekaping buni kuniga ko'pi bilan bir marta yuboradi:",
-      "title": "Salom"
+      "title": "Salom",
+      "telemetry_note": "Anonim: monitor nomlari, URL manzillari va xostlarsiz. Buni keyinroq «Sozlamalar» bo'limida o'zgartirishingiz mumkin.",
+      "telemetry_whats_sent": "Nima yuboriladi"
     },
     "twofa": {
       "code_label": "2FA kodi",
@@ -1519,13 +1519,7 @@
   "telemetry": {
     "docs_link": "Nima yuboriladi va uni qanday o'chirish mumkin",
     "label": "Anonim foydalanish statistikasini yuborish",
-    "never_sent": "Hech qachon yuborilmaydi: monitor nomlari, URL manzillari, xostlar, etiketlar, status sahifalari manzillari yoki bildirishnoma sozlamalari. Foydalanish pingida IP manzil bo'lmaydi va Peekaping'ning Worker'i yuboruvchining IP manzilini yozib olmaydi.",
-    "not_saved": "Foydalanish statistikasi bo'yicha tanlovingiz saqlanmadi. Uni «Sozlamalar» bo'limida tekshiring.",
-    "sent_features": "Status sahifalari, texnik xizmat oynalari va metrikalardan foydalanayotganingiz",
-    "sent_id": "Tasodifiy ID, u yoqilgan ekan yaratiladi va o'chirganingizda o'chiriladi",
-    "sent_monitors": "Nechta monitoringiz borligi, oraliq ko'rinishida, masalan 11-50",
-    "sent_setup": "Peekaping versiyasi, yakka yoki klaster rejimi, saqlash backendi hamda operatsion tizim va protsessor turi",
-    "sent_types": "Foydalanayotgan monitorlar va bildirishnoma kanallari turlari, masalan http yoki telegram"
+    "not_saved": "Foydalanish statistikasi bo'yicha tanlovingiz saqlanmadi. Uni «Sozlamalar» bo'limida tekshiring."
   },
   "telemetry_notice": {
     "error_reports": "Xato hisobotlari yoqilgan. Peekaping ishdan chiqsa, u xato turini va u kodning qaysi joyida yuz bergani, o'z versiyasini, rejimini, saqlash backendini va operatsion tizimini yuboradi. U hech qachon xato xabarlari, URL manzillar yoki xost nomlarini yubormaydi.",

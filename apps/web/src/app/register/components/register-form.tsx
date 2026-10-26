@@ -219,27 +219,13 @@ export function RegisterForm({
                       setSendUsageStatistics(checked === true)
                     }
                   />
-                  <Label htmlFor="send-usage-statistics">
+                  <Label
+                    htmlFor="send-usage-statistics"
+                    className="text-xs text-muted-foreground font-normal"
+                  >
                     {t("telemetry.label")}
                   </Label>
                 </div>
-                <div className="grid gap-2 text-xs text-muted-foreground">
-                  <p>{t("auth.register.telemetry_hint")}</p>
-                  <ul className="list-disc space-y-1 pl-5">
-                    <li>{t("telemetry.sent_id")}</li>
-                    <li>{t("telemetry.sent_setup")}</li>
-                    <li>{t("telemetry.sent_monitors")}</li>
-                    <li>{t("telemetry.sent_types")}</li>
-                    <li>{t("telemetry.sent_features")}</li>
-                  </ul>
-                  <p>{t("telemetry.never_sent")}</p>
-                  <div>
-                    <TelemetryDocsLink />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-2">
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="send-error-reports"
@@ -248,18 +234,19 @@ export function RegisterForm({
                       setSendErrorReports(checked === true)
                     }
                   />
-                  <Label htmlFor="send-error-reports">
+                  <Label
+                    htmlFor="send-error-reports"
+                    className="text-xs text-muted-foreground font-normal"
+                  >
                     {t("error_reporting.label")}
                   </Label>
                 </div>
-                <div className="grid gap-2 text-xs text-muted-foreground">
-                  <p>{t("auth.register.error_reporting_hint")}</p>
-                  <p>{t("error_reporting.sent")}</p>
-                  <p>{t("error_reporting.never_sent")}</p>
-                  <div>
-                    <TelemetryDocsLink section="error-reporting" />
-                  </div>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("auth.register.telemetry_note")}{" "}
+                  <TelemetryDocsLink>
+                    {t("auth.register.telemetry_whats_sent")}
+                  </TelemetryDocsLink>
+                </p>
               </div>
 
               {serverError && (

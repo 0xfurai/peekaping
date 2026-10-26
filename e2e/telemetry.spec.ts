@@ -292,13 +292,28 @@ test.describe('Setup screen', () => {
     return puts;
   };
 
-  test('Both boxes start ticked, and the hints say they can be changed later in Settings', async ({ page }) => {
+  test('Both boxes start ticked and sit under one note, and their labels toggle them', async ({ page }) => {
     await fillAndSubmit(page);
 
-    await expect(page.getByRole('checkbox', { name: errorReportsSwitchName })).toBeChecked();
-    await expect(page.getByRole('checkbox', { name: switchName })).toBeChecked();
-    await expect(page.getByText('On by default. Untick this box to turn it off.')).toHaveCount(2);
-    await expect(page.getByText('You can change it later under “Settings”.')).toHaveCount(2);
+    const usage = page.getByRole('checkbox', { name: switchName });
+    const errors = page.getByRole('checkbox', { name: errorReportsSwitchName });
+    await expect(errors).toBeChecked();
+    await expect(usage).toBeChecked();
+
+    // Clicking a label toggles its own box
+    await page.getByText('Send anonymous usage statistics', { exact: true }).click();
+    await expect(usage).not.toBeChecked();
+    await expect(errors).toBeChecked();
+    await page.getByText('Send error reports', { exact: true }).click();
+    await expect(errors).not.toBeChecked();
+
+    await expect(page.getByText('You can change this later in Settings.')).toHaveCount(1);
+    const link = page.getByRole('link', { name: "What's sent" });
+    await expect(link).toHaveAttribute('href', 'https://docs.peekaping.com/self-hosting/telemetry');
+    await expect(link).toHaveAttribute('target', '_blank');
+    // The per-feature hints are gone from the setup screen
+    await expect(page.getByText('On by default')).toHaveCount(0);
+    await expect(page.getByText('Never sent')).toHaveCount(0);
   });
 
   const choices = [

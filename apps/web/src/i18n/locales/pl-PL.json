@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Utwórz swoje konto administratora",
-      "error_reporting_hint": "Domyślnie włączone. Odznacz to pole, aby to wyłączyć. Możesz to później zmienić w sekcji „Ustawienia”.",
       "have_account": "Masz już konto?",
       "sign_in": "Zaloguj się",
       "submit": "Utwórz",
-      "telemetry_hint": "Domyślnie włączone. Odznacz to pole, aby to wyłączyć. Możesz to później zmienić w sekcji „Ustawienia”. Dopóki jest włączone, Peekaping wysyła te dane najwyżej raz dziennie:",
-      "title": "Cześć"
+      "title": "Cześć",
+      "telemetry_note": "Anonimowo: bez nazw monitorów, adresów URL i hostów. Możesz to później zmienić w sekcji „Ustawienia”.",
+      "telemetry_whats_sent": "Co jest wysyłane"
     },
     "twofa": {
       "code_label": "Kod 2FA",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Co jest wysyłane i jak to wyłączyć",
     "label": "Wysyłaj anonimowe statystyki użycia",
-    "never_sent": "Nigdy nie są wysyłane: nazwy monitorów, adresy URL, hosty, tagi, adresy stron statusu ani ustawienia powiadomień. Ping użycia nie zawiera adresu IP, a Worker Peekaping nie zapisuje adresu IP nadawcy.",
-    "not_saved": "Twój wybór dotyczący statystyk użycia nie został zapisany. Sprawdź go w sekcji „Ustawienia”.",
-    "sent_features": "Czy używasz stron statusu, okien utrzymania i metryk",
-    "sent_id": "Losowy identyfikator, tworzony, gdy ta opcja jest włączona, i usuwany po jej wyłączeniu",
-    "sent_monitors": "Ile masz monitorów, jako zakres, na przykład 11-50",
-    "sent_setup": "Wersja Peekaping, tryb pojedynczy lub klastrowy, zaplecze przechowywania danych oraz system operacyjny i typ procesora",
-    "sent_types": "Rodzaje używanych monitorów i kanałów powiadomień, na przykład http lub telegram"
+    "not_saved": "Twój wybór dotyczący statystyk użycia nie został zapisany. Sprawdź go w sekcji „Ustawienia”."
   },
   "telemetry_notice": {
     "error_reports": "Raporty o błędach są włączone. Jeśli Peekaping ulegnie awarii, wysyła typ błędu i miejsce w kodzie, w którym wystąpił, swoją wersję, tryb, zaplecze przechowywania danych i system operacyjny. Nigdy nie wysyła komunikatów o błędach, adresów URL ani nazw hostów.",
