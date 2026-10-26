@@ -17,7 +17,7 @@ You need this page if you run [cluster mode](./deployment-modes.md#cluster-mode)
 
 You don't need it for these:
 
-- **Single mode.** The single-mode image doesn't change. Its one process is the local probe.
+- **Single mode.** Single mode needs no probe upgrade: its one process is the local probe. The exception is the `peekaping-bundle-postgres` image, which gets no new tags. Its users move to the single-mode image with PostgreSQL in a container of its own: see [Moving from the PostgreSQL bundle](./upgrading-to-single-mode.md#moving-from-the-postgresql-bundle).
 - **MongoDB.** See [MongoDB storage was removed](#mongodb-storage-was-removed).
 - **A new install.** The setup pages already describe the new layout.
 

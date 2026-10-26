@@ -98,13 +98,13 @@ The image reads the same environment variables as cluster mode (see the [`.env` 
 
 ### Stopping
 
-When it stops, `peekaping` finishes open requests, stops its checks and closes the database. That can take about 30 seconds, but `docker stop` waits only 10 seconds before it kills the container. Give it more time:
+When it stops, `peekaping` finishes open requests, stops its checks and closes the database. That can take about 30 seconds, but Docker waits only 10 seconds by default before it kills a container. The `stop_grace_period: 35s` in the Compose file above gives `peekaping` the time, so `docker compose stop` and `docker compose down` wait as long as it needs. The `postgres` container stops on its own: it needs no longer than the default.
+
+To pass the wait on the command line, name the service, not the container, because Compose adds the project's name to the container's name:
 
 ```bash
-docker stop -t 35 peekaping
+docker compose stop -t 35 peekaping
 ```
-
-In Docker Compose, set `stop_grace_period: 35s`, as above. The `postgres` container stops on its own: it needs no longer than `docker stop` gives it.
 
 ### Reverse proxy and HTTPS
 
@@ -128,10 +128,10 @@ The login lockout counts failed logins per client address. A client can send any
 
 2. Set `TRUSTED_PROXIES` to the address the proxy connects from, as the container sees it. In the Compose example above, the `environment` line reads it from your `.env` file: Compose uses `.env` to fill in the file, but doesn't pass its variables to the container by itself. With `docker run`, `-e TRUSTED_PROXIES` passes on the variable from your shell, or give it a value: `-e TRUSTED_PROXIES=<address>`. List only proxies you run, because a listed address can claim to be anyone. Peekaping takes the last address in `X-Forwarded-For` that isn't in `TRUSTED_PROXIES`, so addresses a client adds to the left don't count.
 
-3. Don't let clients reach port 8383 past the proxy. When the proxy runs on the same host, publish the port on loopback only: `-p 127.0.0.1:8383:8383`, or `"127.0.0.1:8383:8383"` in Docker Compose. Then only the host can connect, and the proxy's address is usually the gateway of the container's Docker network. A Compose project has its own network, so read the gateway from the container itself (replace `peekaping` with your container's name):
+3. Don't let clients reach port 8383 past the proxy. When the proxy runs on the same host, publish the port on loopback only: `-p 127.0.0.1:8383:8383`, or `"127.0.0.1:8383:8383"` in Docker Compose. Then only the host can connect, and the proxy's address is usually the gateway of the container's Docker network. A Compose project has its own network, so read the gateway from the container itself:
 
    ```bash
-   docker inspect -f '{{range $name, $net := .NetworkSettings.Networks}}{{$name}} {{$net.Gateway}}{{println}}{{end}}' peekaping
+   docker inspect -f '{{range $name, $net := .NetworkSettings.Networks}}{{$name}} {{$net.Gateway}}{{println}}{{end}}' $(docker compose ps -q peekaping)
    ```
 
    It prints each network the container is on with its gateway. Use the gateway of the network your reverse proxy shares with the container. On Docker's default network that is usually `172.17.0.1`:

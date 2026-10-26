@@ -99,17 +99,28 @@ The bundle's PostgreSQL listens on `localhost` only, and its `pg_hba.conf` accep
 
 The bundle used your `DB_USER` as the database role (it is required) and your `DB_NAME` as the database (`peekaping` by default), and the new stack uses the same two. The commands below use `peekaping` for both: replace them with your values, which `docker inspect` on the old container shows (see [Pull the new image and start it](#pull-the-new-image-and-start-it)). The new stack's password, `DB_PASS`, can be a new one: the bundle never asked for it, because it trusts connections from inside the container.
 
-Back up first, as in [Back up](#back-up). The commands use the container name `peekaping`. If you started the bundle with Docker Compose, use its container name (`peekaping-bundle-postgres` in the repository's file) and replace its Compose file with the new one in step 2. Then:
+The commands below call the old container `peekaping`, as in the `docker run` command of its setup page. If you started the bundle with Docker Compose, its container has the Compose project's name in front, such as `myfolder-peekaping-1`: `docker ps -a` lists it. Use that name in place of `peekaping` in the `docker` commands that name the old container (step 1, and going back below), but not in the `docker compose` ones: those belong to the new stack. Set the new stack up in a folder of its own (step 2), so that Compose doesn't take the old container for part of the new stack and replace it.
 
-1. **Dump the database** while the bundle runs, and stop the bundle right after, so that you lose as few heartbeats as possible. The `docker update` keeps Docker from starting the old container again after a restart of Docker or the host, which would run it beside the new stack on port 8383:
+Back up first, as in [Back up](#back-up), but in the order below: the dump in step 1 needs the bundle running, so the bundle stops in step 1, and you copy its data folder after that. You can skip the dump of the Back up section, because step 1 takes one.
+
+1. **Dump the database** while the bundle runs, stop the bundle right after, so that you lose as few heartbeats as possible, and copy its data folder, which is complete once the bundle has stopped. The `docker update` keeps Docker from starting the old container again after a restart of Docker or the host, which would run it beside the new stack on port 8383. Run `cp` with `sudo` where the files belong to another user, as the PostgreSQL files do:
 
    ```bash
    docker exec peekaping pg_dump -U peekaping -Fc peekaping > peekaping.dump
    docker update --restart=no peekaping
    docker stop -t 35 peekaping
+   cp -a .data/postgres .data/postgres-before-upgrade
    ```
 
-2. **Set up the new stack.** Take the Compose file from [Docker + PostgreSQL](./docker-with-postgres.md#single-mode) and a `.env` with the role and database of the bundle. The new PostgreSQL keeps its data in `.data/postgres17`, a new folder, so the bundle's `.data/postgres` stays as it is:
+2. **Set up the new stack** in a new folder, and move the dump into it. Take the Compose file from [Docker + PostgreSQL](./docker-with-postgres.md#single-mode) and a `.env` with the role and database of the bundle. The new PostgreSQL keeps its data in `.data/postgres17` of the new folder, so the bundle's `.data/postgres` stays as it is. Run the commands of the next steps in the new folder:
+
+   ```bash
+   mkdir peekaping-single
+   mv peekaping.dump peekaping-single/
+   cd peekaping-single
+   ```
+
+   The `.env`:
 
    ```
    DB_USER=peekaping
@@ -139,9 +150,9 @@ Back up first, as in [Back up](#back-up). The commands use the container name `p
 
    `peekaping` waits for PostgreSQL, then applies the migrations that your release doesn't have yet: from 0.0.47, the log shows `migrated to group #2`. Check the result as under [Check that it worked](#check-that-it-worked), reading the log with `docker compose logs peekaping`. Your account, monitors and history are there.
 
-Keep the stopped `peekaping` container, `.data/postgres` and `peekaping.dump` until you are sure you don't need them. To go back, run `docker compose down`, then `docker update --restart=always peekaping` and `docker start peekaping`. What Peekaping recorded after the move stays in the new database only.
+Keep the stopped `peekaping` container, the old folder's `.data/postgres` and `.data/postgres-before-upgrade`, and `peekaping.dump` until you are sure you don't need them. To go back, run `docker compose down` in the new folder, then `docker update --restart=always peekaping` and `docker start peekaping`. These two name the old container, not a Compose service. What Peekaping recorded after the move stays in the new database only.
 
-When you don't need them, remove them: `docker rm peekaping`, `sudo rm -rf .data/postgres` and `rm peekaping.dump`.
+When you don't need them, remove them: `docker rm peekaping`, `sudo rm -rf .data/postgres .data/postgres-before-upgrade` in the old folder, and `rm peekaping.dump` in the new one.
 
 ## What changes
 
@@ -153,8 +164,8 @@ Redis, Caddy and supervisord are gone. That changes these things:
 - **`SERVER_PORT`.** The image ignores it and always listens on 8383. A `.env` that sets it, such as `SERVER_PORT=8034`, keeps working. To use another port on the host, change the published port, for example `-p 8080:8383`.
 - **`MODE`.** Your value now applies, and the default is `prod`. Before, the bundles always ran with `prod`. With `MODE=dev`, `peekaping` logs in the development format and logs every request.
 - **`API_URL`.** Your value now reaches the web app. Before, the bundles always gave the web app an empty `API_URL`, which means the API on the web app's own origin. If your environment sets `API_URL`, unset it, unless the web app must call an API on another origin.
-- **The 35-second stop.** `peekaping` takes up to 30 seconds to shut down cleanly. `docker stop` waits 10 seconds by default, so use `docker stop -t 35`, or `stop_grace_period: 35s` in Docker Compose.
-- **Logs.** Everything logs to the container's output, so use `docker logs peekaping`. Nothing writes to `/var/log/supervisor`, so you can drop a volume mounted there.
+- **The 35-second stop.** `peekaping` takes up to 30 seconds to shut down cleanly. `docker stop` waits 10 seconds by default, so use `docker stop -t 35`, or `stop_grace_period: 35s` in Docker Compose (then `docker compose stop` waits as long as needed, and `docker compose stop -t 35 peekaping` names the service).
+- **Logs.** Everything logs to the container's output, so use `docker logs peekaping`, or `docker compose logs peekaping` in Docker Compose. Nothing writes to `/var/log/supervisor`, so you can drop a volume mounted there.
 - **`/metrics`.** With `METRICS_ENABLED=true`, port 8383 serves `/metrics`. Anyone who can open the web app can read it, and it lists your monitors' names. Before, Caddy didn't forward it. If the web app is public, leave `METRICS_ENABLED` off or block `/metrics` in your proxy. See [Prometheus Metrics](../architecture/api-server.md#prometheus-metrics).
 
 ## Check that it worked
@@ -202,14 +213,7 @@ mv .data/sqlite .data/sqlite-after-upgrade
 cp -a .data/sqlite-before-upgrade .data/sqlite
 ```
 
-For the PostgreSQL bundle, swap the PostgreSQL directories instead:
-
-```bash
-docker stop -t 35 peekaping
-docker rm peekaping
-sudo mv .data/postgres .data/postgres-after-upgrade
-sudo cp -a .data/postgres-before-upgrade .data/postgres
-```
+For the PostgreSQL bundle, there is nothing to restore into: the move to a stack of two containers leaves the old container and its `.data/postgres` as they were. Go back as [Moving from the PostgreSQL bundle](#moving-from-the-postgresql-bundle) ends. The copy of `.data/postgres` from step 1 is there in case you did start the old container after the move and changed its data.
 
 With a named volume, empty it and unpack the archive from [Back up](#back-up) into it with a throwaway container. Replace `peekaping_data` with the volume's name:
 
@@ -217,17 +221,4 @@ With a named volume, empty it and unpack the archive from [Back up](#back-up) in
 docker run --rm -v peekaping_data:/data -v "$PWD":/backup alpine sh -c 'find /data -mindepth 1 -delete && tar xzf /backup/peekaping-before-upgrade.tar.gz -C /data'
 ```
 
-Then start the release you came from with the same volume and your own variables. For the SQLite bundle, use the `docker run` command above with, for example, `0xfurai/peekaping-bundle-sqlite:0.0.46`. For the PostgreSQL bundle:
-
-```bash
-docker run -d --restart=always \
-  -p 8383:8383 \
-  -e DB_NAME=peekaping \
-  -e DB_USER=peekaping \
-  -e DB_PASS=secure_test_password_123 \
-  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \
-  --name peekaping \
-  0xfurai/peekaping-bundle-postgres:0.0.46
-```
-
-Restore the directory copy, not the `pg_dump`. The old bundle starts Peekaping's processes as soon as PostgreSQL is up, so a `pg_restore` into it would run while they use the database. Keep the dump as an extra copy.
+Then start the release you came from with the same volume and your own variables: use the `docker run` command above with, for example, `0xfurai/peekaping-bundle-sqlite:0.0.46`.
