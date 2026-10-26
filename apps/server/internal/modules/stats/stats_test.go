@@ -378,7 +378,7 @@ func TestUptimeWithDownChecksIsUpOverUpAndDown(t *testing.T) {
 	cases := []struct {
 		name            string
 		window          time.Duration
-		spacing         time.Duration // between the three checks' buckets; 0 puts them in one bucket
+		spacing         time.Duration // between the checks' buckets; 0 puts them in one bucket
 		statuses        []shared.MonitorStatus
 		wantUptime      float64
 		wantMaintenance float64
