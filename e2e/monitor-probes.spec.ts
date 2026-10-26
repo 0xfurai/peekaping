@@ -414,3 +414,30 @@ test("A monitor's location rule is chosen once it has two probes, and saved with
     await cleanUp(page, { probe: [probe, second], monitor });
   }
 });
+
+test("A cloned monitor keeps the monitor's probes, not the probes a new monitor starts on", async ({ page }) => {
+  const { probe, monitor } = names();
+  const copy = `${monitor} Copy`;
+
+  await page.goto('/monitors');
+  try {
+    const api = await adminAPI(page);
+    await createProbe(api, probe);
+    const { id } = await createHTTPMonitor(api, monitor, targetURL('monitor-probes'), { probeIds: ['local'] });
+    await api.dispose();
+
+    await page.goto(`/monitors/${id}`);
+    await page.getByRole('button', { name: 'Clone', exact: true }).click();
+    await expect(page).toHaveURL(/\/monitors\/new$/);
+    await expect(page.locator('input[name="name"]')).toHaveValue(copy);
+    // The probe runs the monitor's type, but the clone is not a new monitor: it is on Local only.
+    await expect(probeSelect(page)).toHaveText('Local');
+
+    await submit(page);
+    await expect(page).toHaveURL(monitorPageURL, { timeout: 10000 });
+    await expect(page.getByTestId('monitor-probe')).toHaveText('Probe: Local');
+  } finally {
+    await cleanUp(page, { probe: [], monitor: copy });
+    await cleanUp(page, { probe, monitor });
+  }
+});
