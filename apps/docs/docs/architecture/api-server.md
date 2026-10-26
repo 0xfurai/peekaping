@@ -50,7 +50,7 @@ Three jobs must run on one replica at a time. In cluster mode on SQLite and Post
 | Job | What it does |
 | --- | --- |
 | Stale-monitor watchdog | Every minute, finds active monitors that stopped being checked, records them for the health endpoint and notifies their channels. It skips a monitor whose probe is offline. It can't make a probe check again, so it notifies once the wait has passed. |
-| Probe offline sweep | Every 30 seconds, marks a probe offline when none of its instances has been heard from for `PROBE_OFFLINE_AFTER`, and online again when one is. It tells the probe's notification channels. See [When a probe is offline](../self-hosting/remote-probes.md#when-a-probe-is-offline). |
+| Probe offline sweep | Every 30 seconds, marks a probe offline when none of its instances has been heard from for `PROBE_OFFLINE_AFTER`, and online again when one is. It tells the probe's notification channels, or its active monitors' channels when it has none. See [When a probe is offline](../self-hosting/remote-probes.md#when-a-probe-is-offline). |
 | Push monitors' checks | Finds a push monitor that got no push within its interval and stores a Down heartbeat. |
 
 The sweep also looks for a local probe that has active monitors and no instance, which is what a cluster upgraded without deploying probes looks like. It reports that probe offline once, after `PROBE_OFFLINE_AFTER` from the moment the replica took the lock, and logs `the local probe has N active monitors and no instance: deploy peekaping-probe with PROBE_TOKEN set to PROBE_BOOTSTRAP_TOKEN`. The API also logs it at startup. See [Upgrading to probes](../self-hosting/upgrading-to-probes.md).

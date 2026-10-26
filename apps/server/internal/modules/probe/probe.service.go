@@ -70,7 +70,8 @@ type Service interface {
 type CreateRequest struct {
 	Name     string
 	Location string
-	// NotificationIDs are the notification channels that hear about the probe
+	// NotificationIDs are the notification channels that hear about the probe. A probe with none
+	// notifies the channels of its active monitors instead.
 	NotificationIDs []string
 }
 

@@ -115,7 +115,7 @@ _Avoid_: Heartbeat retry interval
 ### Notifications
 
 **Notification channel**:
-A configured destination for notifications, such as an email address, a Slack webhook or a Telegram chat. A monitor sends to the channels attached to it.
+A configured destination for notifications, such as an email address, a Slack webhook or a Telegram chat. A monitor sends to the channels attached to it. A probe sends its offline and online notifications to its own channels, or, with none, to the channels of its active monitors.
 _Avoid_: Notifier, notification provider, integration
 
 **Channel type**:
@@ -131,7 +131,7 @@ A config field that decides where a notification channel sends, such as a server
 _Avoid_: Target field, destination, address
 
 **Notification**:
-A message sent to a monitor's notification channels when the monitor goes Down or comes back Up. Its certificate expiry notifications, and a stale monitor's "not checked since" and "checking again" messages, go to the same channels.
+A message sent to a monitor's notification channels when the monitor goes Down or comes back Up. Its certificate expiry notifications, and a stale monitor's "not checked since" and "checking again" messages, go to the same channels. A probe's offline and online notifications go to the probe's own channels, or to its active monitors' channels when it has none.
 _Avoid_: Alert
 
 **Resend interval**:
