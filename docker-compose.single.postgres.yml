@@ -2,7 +2,7 @@ services:
   peekaping:
     build:
       context: .
-      dockerfile: Dockerfile.bundle.postgres
+      dockerfile: Dockerfile.single.postgres
     restart: unless-stopped
     # peekaping takes up to 30 seconds to shut down cleanly, and PostgreSQL stops after it
     stop_grace_period: 35s

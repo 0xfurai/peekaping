@@ -82,7 +82,7 @@ jobs:
     - name: Update docker-compose file with container tag
       run: |
         # Create a temporary docker-compose file with the specified container tag
-        cp docker-compose.prod.${{ matrix.database }}.yml docker-compose.test.${{ matrix.database }}.yml
+        cp docker-compose.cluster.${{ matrix.database }}.yml docker-compose.test.${{ matrix.database }}.yml
 
         # Replace container tags with the specified version
         sed -i 's|0xfurai/peekaping-api:latest|0xfurai/peekaping-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
@@ -295,7 +295,7 @@ jobs:
     # The single-mode bundles' user, ports and shutdown, on the published image
     - name: Test the bundle's user, ports and shutdown
       run: |
-        scripts/test-bundle-user.sh ${{ matrix.database }} \
+        scripts/test-single-user.sh ${{ matrix.database }} \
           ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ steps.bundle_tag.outputs.tag }}
 
     - name: Show final container logs on failure

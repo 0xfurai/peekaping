@@ -216,7 +216,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.bundle.${{ matrix.database }}
+          file: ./Dockerfile.single.${{ matrix.database }}
           push: true
           platforms: ${{ matrix.platform }}
           provenance: false

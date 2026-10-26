@@ -57,8 +57,8 @@ RUN addgroup -g 1000 peekaping \
 COPY --from=go-builder --chmod=755 /app/server/peekaping /app/server/bun /app/server/
 COPY --from=go-builder --chmod=755 /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
 COPY --from=web-builder /app/apps/web/dist /app/web
-COPY --chmod=755 startup.bundle.sqlite.sh /app/startup.sh
-COPY startup.bundle.user.sh /app/startup.user.sh
+COPY --chmod=755 startup.single.sqlite.sh /app/startup.sh
+COPY startup.single.user.sh /app/startup.user.sh
 
 # peekaping serves the web build itself and generates /env.js. The startup script sets the
 # database and forces SERVER_PORT to 8383, whatever the .env says.

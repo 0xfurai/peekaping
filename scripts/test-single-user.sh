@@ -9,8 +9,8 @@
 # PostgreSQL's own role and database as DB_USER and DB_NAME, and a first start
 # that fails once PostgreSQL runs.
 #
-# Usage: scripts/test-bundle-user.sh <sqlite|postgres> [image]
-# Without an image, it builds Dockerfile.bundle.<db> from the repo root. Set
+# Usage: scripts/test-single-user.sh <sqlite|postgres> [image]
+# Without an image, it builds Dockerfile.single.<db> from the repo root. Set
 # BUNDLE_TEST_PREFIX to name the test containers something else.
 # Needs docker, curl and jq.
 set -u
@@ -33,7 +33,7 @@ esac
 if [ -z "$image" ]; then
   image="$prefix:local"
   echo "Building $image..."
-  docker build -q -f "$root/Dockerfile.bundle.$db" -t "$image" "$root" >/dev/null || exit 1
+  docker build -q -f "$root/Dockerfile.single.$db" -t "$image" "$root" >/dev/null || exit 1
 fi
 
 containers="default ids bad-uid bad-gid taken-gid shadow-gid free-ids socket socket-maker ro-data ping user ctrl-c

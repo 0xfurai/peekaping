@@ -1,5 +1,5 @@
 #!/bin/sh
-# The SQLite bundle's startup script (Dockerfile.bundle.sqlite), run by tini.
+# The SQLite bundle's startup script (Dockerfile.single.sqlite), run by tini.
 #
 # As root, it sets up the peekaping user (PUID/PGID, the Docker socket's group and /app/data),
 # then runs the migrations and peekaping as that user. Started with docker run --user, it
@@ -21,7 +21,7 @@ export TZ="${TZ:-UTC}"
 cd /app/server
 
 if [ "$(id -u)" = 0 ]; then
-    # shellcheck source=startup.bundle.user.sh
+    # shellcheck source=startup.single.user.sh
     . /app/startup.user.sh
     set -- su-exec peekaping
 else

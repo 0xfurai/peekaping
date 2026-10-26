@@ -1,5 +1,5 @@
 #!/bin/bash
-# The PostgreSQL bundle's startup script (Dockerfile.bundle.postgres), run by tini.
+# The PostgreSQL bundle's startup script (Dockerfile.single.postgres), run by tini.
 #
 # It runs PostgreSQL and peekaping side by side. As root, it sets up the peekaping user
 # (PUID/PGID and the Docker socket's group), initializes the cluster on the first start and
@@ -163,7 +163,7 @@ spawn() {
 if [ "$(id -u)" = 0 ]; then
     # The peekaping user: PUID/PGID, the Docker socket and /app/data. First, so that a bad
     # PUID or PGID stops the container before PostgreSQL starts.
-    # shellcheck source=startup.bundle.user.sh
+    # shellcheck source=startup.single.user.sh
     . /app/startup.user.sh
 fi
 

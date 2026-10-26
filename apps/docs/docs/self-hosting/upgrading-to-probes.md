@@ -12,7 +12,7 @@ The producer, worker and ingester are gone. The `peekaping-producer`, `peekaping
 
 You need this page if you run [cluster mode](./deployment-modes.md#cluster-mode) on SQLite or PostgreSQL and upgrade to the release that retires the producer, worker and ingester:
 
-- With Docker Compose: the `docker-compose.prod.sqlite.yml` or `docker-compose.prod.postgres.yml` stack, or your own compose file with `producer`, `worker` and `ingester` services.
+- With Docker Compose: the `docker-compose.cluster.sqlite.yml` or `docker-compose.cluster.postgres.yml` stack (renamed from `docker-compose.prod.sqlite.yml` and `docker-compose.prod.postgres.yml`; `make docker-cluster-<db>` and `make down-cluster-<db>` replace `make docker-prod-<db>` and `make down-prod-<db>`), or your own compose file with `producer`, `worker` and `ingester` services.
 - With Helm: a values file that sets `producer`, `worker` or `ingester`.
 
 You don't need it for these:

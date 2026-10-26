@@ -121,24 +121,24 @@ The repository root has these Docker Compose files. Each one comes in a variant 
 | File | What it is for |
 |------|----------------|
 | `docker-compose.dev.<backend>.yml` | The whole stack in cluster mode, built from source. `make docker-dev-<backend>` starts it. The web container on `localhost:8383` calls the API on `localhost:8034`, so the `api` service sets `CORS_ORIGINS` to `http://localhost:8383` unless your `.env` sets it. |
-| `docker-compose.prod.<backend>.yml` | The whole stack in cluster mode, from the published `0xfurai/peekaping-*` images, behind an nginx gateway. |
-| `docker-compose.bundle.<backend>.yml` | One bundle image, built from source. Both bundles run single mode. |
+| `docker-compose.cluster.<backend>.yml` | The whole stack in cluster mode, from the published `0xfurai/peekaping-*` images, behind an nginx gateway. |
+| `docker-compose.single.<backend>.yml` | One bundle image in single mode, built from source. |
 | `docker-compose.deps.yml` | Redis, asynqmon and, with a profile, PostgreSQL, for running the Go binaries on your machine. |
-| `docker-compose.e2e.yml` | The test target overlay for the Playwright suite. It adds `e2e-target` on top of a dev, prod or bundle file. |
+| `docker-compose.e2e.yml` | The test target overlay for the Playwright suite. It adds `e2e-target` on top of a dev, cluster or single file. |
 
-The dev and prod files run a `probe` service, and refuse to start without `PROBE_BOOTSTRAP_TOKEN` in `.env`.
+The dev and cluster files run a `probe` service, and refuse to start without `PROBE_BOOTSTRAP_TOKEN` in `.env`.
 
 ### Docs snippets that copy a file
 
-The Docker pages in `apps/docs/docs/self-hosting` show the cluster-mode `docker-compose.prod.<backend>.yml` files and `nginx.conf` word for word. A comment on the line before such a code block names the file it copies, relative to the repository root:
+The Docker pages in `apps/docs/docs/self-hosting` show the cluster-mode `docker-compose.cluster.<backend>.yml` files and `nginx.conf` word for word. A comment on the line before such a code block names the file it copies, relative to the repository root:
 
 ```html
-<!-- snippet: docker-compose.prod.sqlite.yml -->
+<!-- snippet: docker-compose.cluster.sqlite.yml -->
 ```
 
 `scripts/test-docs-snippets.sh` diffs every marked block with its file, and fails with the difference when they differ, when a marker names a file that doesn't exist, or when no code block follows a marker. The Docs Snippets workflow runs it on pull requests and pushes to `main` that change `apps/docs`, a `docker-compose*.yml` file, `nginx.conf`, the script or the workflow. So a pull request that changes one of those files updates the page in the same pull request.
 
-Blocks with no marker aren't checked. That is for examples and excerpts that are deliberately not a full copy, such as the single-mode Compose snippets, which run the published image where `docker-compose.bundle.<backend>.yml` builds from source, and the `.env` excerpts.
+Blocks with no marker aren't checked. That is for examples and excerpts that are deliberately not a full copy, such as the single-mode Compose snippets, which run the published image where `docker-compose.single.<backend>.yml` builds from source, and the `.env` excerpts.
 
 ### Integration tests
 

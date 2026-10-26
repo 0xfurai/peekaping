@@ -393,7 +393,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.bundle.${{ matrix.database }}
+          file: ./Dockerfile.single.${{ matrix.database }}
           push: false
           load: true
           platforms: ${{ matrix.platform }}

@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 # Checks that the code blocks in the docs that copy a file of this repo are
 # still word-for-word copies of it. The Docker pages show the cluster-mode
-# Compose files (docker-compose.prod.<db>.yml) and nginx.conf for readers to
+# Compose files (docker-compose.cluster.<db>.yml) and nginx.conf for readers to
 # copy, so a change to one of those files has to reach the page, or the page
 # gives a setup that doesn't work.
 #
 # A copied block is marked with an HTML comment on the line before its code
 # fence, naming the file relative to the repo root:
 #
-#   <!-- snippet: docker-compose.prod.sqlite.yml -->
+#   <!-- snippet: docker-compose.cluster.sqlite.yml -->
 #
 # The script finds the markers under apps/docs/docs, takes the code block after
 # each one, and diffs it with the file. It fails for a block that differs, for
 # a marker naming a file that doesn't exist, and for a marker that no code
 # block follows. A block with no marker isn't checked: that's for examples and
 # excerpts that are deliberately not a full copy, such as the single-mode
-# Compose snippets (they run the published image where docker-compose.bundle.*
+# Compose snippets (they run the published image where docker-compose.single.*
 # builds from source) and the .env excerpts.
 #
 # Usage: scripts/test-docs-snippets.sh
