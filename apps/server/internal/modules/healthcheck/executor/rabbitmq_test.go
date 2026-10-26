@@ -30,15 +30,10 @@ func rabbitMQMonitor(t *testing.T, timeout int, cfg RabbitMQConfig) *Monitor {
 	}
 }
 
-// refusedAddr returns the base URL of a port nothing listens on.
-func refusedAddr(t *testing.T) string {
+// refusedNodeURL returns the base URL of a port nothing listens on.
+func refusedNodeURL(t *testing.T) string {
 	t.Helper()
-	// Listen to get a free port, then close the listener so the port refuses.
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-	addr := l.Addr().String()
-	require.NoError(t, l.Close())
-	return "http://" + addr
+	return "http://" + refusedAddr(t)
 }
 
 func TestRabbitMQExecutor_NodeNeverAnswers(t *testing.T) {

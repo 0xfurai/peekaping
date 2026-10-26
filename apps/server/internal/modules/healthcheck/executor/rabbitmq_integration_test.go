@@ -54,14 +54,14 @@ func TestRabbitMQExecutor_Integration(t *testing.T) {
 	})
 
 	t.Run("fails over to the second node when the first refuses", func(t *testing.T) {
-		result := run(t, srv.Password, refusedAddr(t), srv.URL)
+		result := run(t, srv.Password, refusedNodeURL(t), srv.URL)
 
 		assert.Equal(t, shared.MonitorStatusUp, result.Status)
 		assert.Equal(t, "OK", result.Message)
 	})
 
 	t.Run("is down with the dial error when every node refuses", func(t *testing.T) {
-		first, second := refusedAddr(t), refusedAddr(t)
+		first, second := refusedNodeURL(t), refusedNodeURL(t)
 
 		result := run(t, srv.Password, first, second)
 
