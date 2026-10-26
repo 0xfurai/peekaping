@@ -6,7 +6,7 @@ sidebar_position: 0
 
 Peekaping runs in one of two modes. Both run the same code and have the same features. They differ in how the server's two parts, the API and the probe that runs the checks, are split into processes, and so in how far an install can scale.
 
-- **[Single mode](#single-mode)** is the default for new installs. One process runs both. It runs from the SQLite or PostgreSQL bundle image.
+- **[Single mode](#single-mode)** is the default for new installs. One process runs both. It runs from one image, with SQLite or with PostgreSQL.
 - **[Cluster mode](#cluster-mode)** is for installs that need to scale out: Kubernetes with the Helm chart, or the cluster Docker Compose stack.
 
 There is no setting that switches between them. The mode is the image you run. The `MODE` setting (`dev`, `prod` or `test`) has nothing to do with it.
@@ -15,12 +15,14 @@ There is no setting that switches between them. The mode is the image you run. T
 
 In single mode, Peekaping is one process, `peekaping`, that is both the API and the [local probe](../architecture/probe.md#who-runs-the-local-probes-checks). It passes work and events between its parts in memory, so there is no Redis. The same process serves the web app, the API and the websocket on port 8383.
 
-You run it from a bundle image, which is one container with everything in it:
+You run it from one image, `0xfurai/peekaping-bundle-sqlite`. It holds `peekaping` and nothing else, and `DB_TYPE` picks the database:
 
-- `0xfurai/peekaping-bundle-sqlite` keeps its data in a SQLite file.
-- `0xfurai/peekaping-bundle-postgres` runs PostgreSQL 17 in the same container, beside `peekaping`.
+- With `DB_TYPE` unset or `sqlite`, it keeps its data in a SQLite file in `/app/data`.
+- With `DB_TYPE=postgres`, it connects to the PostgreSQL server that `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS` and `DB_NAME` name. That server runs in a container of its own, the official `postgres` image, beside `peekaping` in Docker Compose. It can also be any other PostgreSQL, such as a managed one. See [Docker + PostgreSQL](./docker-with-postgres.md#single-mode).
 
 Single mode supports SQLite and PostgreSQL only. It doesn't scale out: one process runs every check.
+
+The image has been called the SQLite bundle since it only ran SQLite. The name stays for now. There is no `peekaping-bundle-postgres` image any more: see [Upgrading to single mode](./upgrading-to-single-mode.md#moving-from-the-postgresql-bundle).
 
 Because the `peekaping` process checks the local probe's monitors, a `peekaping-probe` connects to single mode only as a [remote probe](./remote-probes.md), with that probe's own token. A probe instance that uses the local probe's token would check the same monitors a second time, so `peekaping` refuses it with a message that says why, and the probe logs that message. `peekaping` also ignores `PROBE_BOOTSTRAP_TOKEN`: it doesn't store it, and logs a warning at startup when it is set.
 
@@ -50,8 +52,8 @@ Coming from the layout with a producer, a worker and an ingester? Their images a
 
 | | Single mode | Cluster mode |
 | --- | --- | --- |
-| Images | `0xfurai/peekaping-bundle-sqlite` or `0xfurai/peekaping-bundle-postgres` | `0xfurai/peekaping-api`, `-probe`, `-web` and `-migrate` |
-| Processes | `peekaping`, and PostgreSQL in the PostgreSQL bundle | The API, the probe and a web server. `migrate` runs once to set up the database. |
+| Images | `0xfurai/peekaping-bundle-sqlite`, and `postgres` for PostgreSQL | `0xfurai/peekaping-api`, `-probe`, `-web` and `-migrate` |
+| Processes | `peekaping`. With PostgreSQL, the database runs in a container of its own. | The API, the probe and a web server. `migrate` runs once to set up the database. |
 | Who checks the local probe's monitors | The `peekaping` process | The probe instances |
 | Web app | Served by `peekaping` on port 8383 | The `web` image. Docker Compose puts an nginx gateway on port 8383 in front of it, and Helm uses an ingress or Istio. |
 | Redis | None | Required, between the API replicas |
@@ -61,13 +63,13 @@ Coming from the layout with a producer, a worker and an ingester? Their images a
 
 ## Which mode to use
 
-Start with single mode. In single mode you choose the storage backend by choosing the image. [Supported databases](../architecture/overview.md#supported-databases) compares SQLite and PostgreSQL.
+Start with single mode. In single mode you choose the storage backend with `DB_TYPE`. [Supported databases](../architecture/overview.md#supported-databases) compares SQLite and PostgreSQL.
 
 Use cluster mode when you need to scale out, for example to run several API replicas and probe instances, or when you already run on Kubernetes. It needs a Redis, and more containers or pods to run and update.
 
 ## Upgrading to single mode
 
-The bundle images from 0.0.44 to 0.0.47 ran Redis, Caddy and supervisord beside Peekaping's processes. To move one to the single-mode bundle, follow [Upgrading to single mode](./upgrading-to-single-mode.md).
+The bundle images from 0.0.44 to 0.0.47 ran Redis, Caddy and supervisord beside Peekaping's processes, and the PostgreSQL bundle ran PostgreSQL in the same container. To move one to single mode, follow [Upgrading to single mode](./upgrading-to-single-mode.md).
 
 Helm and the Docker Compose stacks stay in cluster mode.
 

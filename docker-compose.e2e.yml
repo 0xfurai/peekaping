@@ -1,10 +1,10 @@
 # Test-only overlay for the Playwright suite. It adds `e2e-target`, the local
 # service e2e monitors check and notify (e2e/fake-target/server.mjs).
-# Use it on top of any dev, bundle or prod compose file:
+# Use it on top of any dev, single or cluster compose file:
 #
 #   docker compose -f docker-compose.dev.sqlite.yml -f docker-compose.e2e.yml up -d
 #
-# It joins both `appnet` (dev and prod stacks) and the default network (bundle
+# It joins both `appnet` (dev and cluster stacks) and the default network (single
 # stacks), so monitors reach it at http://e2e-target:3033 either way.
 networks:
   appnet:

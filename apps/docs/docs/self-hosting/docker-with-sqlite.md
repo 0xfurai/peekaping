@@ -15,7 +15,7 @@ Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-
 
 ## Single mode
 
-The `peekaping-bundle-sqlite` image runs Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. It keeps its database in `/app/data/peekaping.db`, so keep `/app/data` on a volume.
+The `peekaping-bundle-sqlite` image runs Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. It keeps its database in `/app/data/peekaping.db`, so keep `/app/data` on a volume. The image uses SQLite while `DB_TYPE` is unset or `sqlite`, and ignores any `DB_NAME` then. With `DB_TYPE=postgres` it connects to a PostgreSQL server instead: see [Docker + PostgreSQL](./docker-with-postgres.md#single-mode).
 
 ```bash
 docker run -d --restart=always \
@@ -223,7 +223,7 @@ Create a `docker-compose.yml` file. The `probe` service checks the local probe's
 
 The `probe` reaches the `api` over plain HTTP inside `appnet`, so it sets `PROBE_ALLOW_INSECURE: "true"`. Its token crosses `appnet` unencrypted. Keep `appnet` trusted and isolated: put only the services of this stack on it, and don't publish the `api` port. If the probe has to reach the API through a network you don't trust, point `PEEKAPING_URL` at an `https://` address and remove `PROBE_ALLOW_INSECURE`.
 
-<!-- snippet: docker-compose.prod.sqlite.yml -->
+<!-- snippet: docker-compose.cluster.sqlite.yml -->
 ```yml
 networks:
   appnet:

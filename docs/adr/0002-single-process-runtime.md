@@ -190,3 +190,28 @@ What stays:
 - The leader lock key `peekaping:producer:leader`. It keeps its name so that api replicas of an earlier release and of this one share one leader while a rolling upgrade runs.
 
 The api used to copy the admin's error reporting choice to Redis so that the producer, worker and ingester could follow it (ADR 0003). The copy is gone with the three processes. The cluster api turns reporting on or off in its own process, as `peekaping` does. Each replica applies the stored choice again every minute, so a change made on another replica reaches it.
+
+## Update
+
+Date: 2026-10-26
+Ticket: PP-317
+
+The PostgreSQL bundle no longer runs PostgreSQL. Some statements above no longer hold:
+
+- Section 6 says the single-mode bundle images keep the image names `peekaping-bundle-sqlite` and `peekaping-bundle-postgres`, and that upgrading is pulling the new tag and restarting. It also says the PostgreSQL bundle still runs its bundled PostgreSQL beside `peekaping`.
+- The PP-28 item under "Waiting tickets" says the image keeps the PostgreSQL bundle's PostgreSQL running.
+
+Single mode now has one image, built from `Dockerfile.single`, that runs `peekaping` alone. With `DB_TYPE` unset or `sqlite` it keeps its data in `/app/data/peekaping.db`, as before. With `DB_TYPE=postgres` it connects to the PostgreSQL that `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS` and `DB_NAME` name, and any other `DB_TYPE` stops startup with a message. PostgreSQL runs in a container of its own, from the official `postgres` image, which Docker Compose starts first (`docker-compose.single.postgres.yml`: a healthcheck and `depends_on` with `condition: service_healthy`).
+
+The reasons:
+
+- **PostgreSQL major upgrades go through the official image.** The bundle owned a PostgreSQL 17 cluster inside our image, so a new major version would have needed an upgrade path of ours, in a startup script. Now the official image's own documentation covers it.
+- **Single mode works with any PostgreSQL.** The same image connects to a managed PostgreSQL, or to one the user already runs, by setting `DB_HOST`.
+- **One image to build, test and publish.** The PostgreSQL image was a second Dockerfile, a second startup script and a second row in every release, e2e and user-test matrix. The CI and the release now build, test and publish one image.
+- **No second process to supervise in the container.** The startup script started, watched and stopped PostgreSQL beside `peekaping`, with the shutdown order, a half-finished first start and `docker run --user` to get right. Each of those needed its own tests. With `peekaping` alone, the script runs the migrations and starts it.
+
+The cost is that a PostgreSQL install is no longer one `docker run`: it needs two containers on a network, which Compose gives.
+
+`peekaping-bundle-postgres` gets no new tags. A running install keeps working on its last tag, 0.0.47, and the published tags stay on the registries, so a pull doesn't break. Its users move to the Compose layout with `pg_dump` and `pg_restore`, as [Upgrading to single mode](../../apps/docs/docs/self-hosting/upgrading-to-single-mode.md#moving-from-the-postgresql-bundle) describes. The move copies the database rather than the data folder, because the official image can't use the bundle's files: they belong to the bundle's `postgres` user (UID 102) and were written on an older Debian release. The bundle's PostgreSQL listens on localhost only and accepts connections from inside the container only, so the dump runs there with `docker exec`.
+
+The image is still published as `peekaping-bundle-sqlite`. PP-321 renames it.

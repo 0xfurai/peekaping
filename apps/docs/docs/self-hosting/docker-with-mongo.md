@@ -8,7 +8,7 @@ MongoDB storage was removed in this release. `DB_TYPE=mongo` and `DB_TYPE=mongod
 
 ## Move to SQLite or PostgreSQL
 
-`bun db import-mongo` copies a MongoDB install into a new SQLite or PostgreSQL database. The `bun` tool is in the SQLite and PostgreSQL bundle images and in the migrate image (`peekaping-migrate`) of this release. It copies:
+`bun db import-mongo` copies a MongoDB install into a new SQLite or PostgreSQL database. The `bun` tool is in the single-mode image (`peekaping-bundle-sqlite`) and in the migrate image (`peekaping-migrate`) of this release. It copies:
 
 - users, with their password hashes and two-factor secrets
 - settings, including the keys that sign login tokens
@@ -159,49 +159,30 @@ docker network rm peekaping-move
 
 Keep `.data/mongodb`, `.data/mongodb-backup` and the stopped `peekaping-mongo-bundle` container until you are sure you don't need them. To go back, remove the new container with `docker rm -f peekaping`, then run `docker rename peekaping-mongo-bundle peekaping` and `docker start peekaping`. What Peekaping recorded after the move stays in the new database only.
 
-### Moving to the PostgreSQL bundle
+### Moving to PostgreSQL in single mode
 
-The PostgreSQL bundle runs Peekaping and its PostgreSQL in one container, and Peekaping writes its default settings when it first starts. So start the bundle first, let it create its database, and run the import inside it. Do steps 1 and 2 above, then start the bundle with a new data folder, as in [Docker + PostgreSQL](./docker-with-postgres.md). It stays off the `peekaping-move` network, so that removing the network later doesn't touch it:
+Single mode runs `peekaping` in one container and PostgreSQL in another, as in [Docker + PostgreSQL](./docker-with-postgres.md#single-mode). Peekaping writes its default settings when it first starts, so start only PostgreSQL first, import into it, and start `peekaping` after. Do steps 1 and 2 above. Then set up the Compose file and `.env` of [Docker + PostgreSQL](./docker-with-postgres.md#single-mode) with a new data folder, and start PostgreSQL alone:
 
 ```bash
-docker run -d --restart=always \
-  -p 8383:8383 \
-  -e DB_NAME=peekaping \
-  -e DB_USER=peekaping \
-  -e DB_PASS=secure_test_password_123 \
-  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \
-  --name peekaping \
-  0xfurai/peekaping-bundle-postgres:latest
+docker compose up -d --wait postgres
 ```
 
-When `docker ps` says the container is `healthy`, join it to the network of the MongoDB for the import. Don't open the web app or create an account before the import: the database must not hold an admin yet.
+Put the PostgreSQL container on the network of the MongoDB, under the name `postgres`, and follow [Moving to your own PostgreSQL server](#moving-to-your-own-postgresql-server) below with these values: `DB_HOST=postgres`, `DB_USER` and `DB_NAME` from your `.env`, and its `DB_PASS` in `postgres.env`:
 
 ```bash
-docker network connect peekaping-move peekaping
+docker network connect --alias postgres peekaping-move "$(docker compose ps -q postgres)"
 ```
 
-Then run the import inside it. The container's environment has `DB_NAME`, `DB_USER` and `DB_PASS`, so only the rest is added:
+When the import is done, take PostgreSQL off the network, remove the MongoDB and the network, and start `peekaping`:
 
 ```bash
-docker exec \
-  -e DB_TYPE=postgres -e DB_HOST=localhost -e DB_PORT=5432 \
-  -e MONGO_URI=mongodb://peekaping-mongo:27017 -e MONGO_DB=peekaping \
-  peekaping /app/server/bun db import-mongo
-```
-
-The report says how many default settings of the new database were replaced. Then restart the container, so that Peekaping loads the settings it was given:
-
-```bash
-docker restart -t 35 peekaping
-```
-
-Log in as in step 4. Then remove the MongoDB, and take the bundle off the network before you remove the network:
-
-```bash
+docker network disconnect peekaping-move "$(docker compose ps -q postgres)"
 docker rm -f peekaping-mongo
-docker network disconnect peekaping-move peekaping
 docker network rm peekaping-move
+docker compose up -d
 ```
+
+Log in as in step 4.
 
 ### Moving to your own PostgreSQL server
 

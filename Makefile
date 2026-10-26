@@ -2,10 +2,10 @@
 #
 # This Makefile supports multiple Docker Compose configurations:
 # - Development: docker-dev-postgres, docker-dev-sqlite
-# - Production:  docker-prod-postgres, docker-prod-sqlite
+# - Cluster mode: docker-cluster-postgres, docker-cluster-sqlite
 # - Dependencies: docker-sqlite, docker-postgres
 #
-# To change the default database, modify DEFAULT_DEV_DB or DEFAULT_PROD_DB below
+# To change the default database, modify DEFAULT_DEV_DB or DEFAULT_CLUSTER_DB below
 # Example: make docker-down (stops the default development services) vs make down-dev-sqlite (a specific database)
 
 # Variables
@@ -16,13 +16,13 @@ BINARY_NAME = peekaping-server
 # Docker Compose configurations
 COMPOSE_DEV_POSTGRES = docker-compose.dev.postgres.yml
 COMPOSE_DEV_SQLITE = docker-compose.dev.sqlite.yml
-COMPOSE_PROD_POSTGRES = docker-compose.prod.postgres.yml
-COMPOSE_PROD_SQLITE = docker-compose.prod.sqlite.yml
+COMPOSE_CLUSTER_POSTGRES = docker-compose.cluster.postgres.yml
+COMPOSE_CLUSTER_SQLITE = docker-compose.cluster.sqlite.yml
 COMPOSE_DEPS = docker-compose.deps.yml
 
 # Default configurations
 DEFAULT_DEV_DB = postgres
-DEFAULT_PROD_DB = postgres
+DEFAULT_CLUSTER_DB = postgres
 
 # Default target
 .DEFAULT_GOAL := help
@@ -41,9 +41,9 @@ docker-configs: ## Show all available Docker Compose configurations
 	@echo "  make docker-dev-postgres   # $(COMPOSE_DEV_POSTGRES)"
 	@echo "  make docker-dev-sqlite     # $(COMPOSE_DEV_SQLITE)"
 	@echo ""
-	@echo "🚀 \033[33mPRODUCTION ENVIRONMENTS:\033[0m"
-	@echo "  make docker-prod-postgres  # $(COMPOSE_PROD_POSTGRES)"
-	@echo "  make docker-prod-sqlite    # $(COMPOSE_PROD_SQLITE)"
+	@echo "🚀 \033[33mCLUSTER MODE:\033[0m"
+	@echo "  make docker-cluster-postgres # $(COMPOSE_CLUSTER_POSTGRES)"
+	@echo "  make docker-cluster-sqlite   # $(COMPOSE_CLUSTER_SQLITE)"
 	@echo ""
 	@echo "🎯 \033[36mDEPENDENCIES:\033[0m"
 	@echo "  make docker-sqlite         # $(COMPOSE_DEPS)"
@@ -56,8 +56,8 @@ docker-configs: ## Show all available Docker Compose configurations
 	@echo "🛑 \033[31mSTOP:\033[0m"
 	@echo "  make down-dev-postgres     # $(COMPOSE_DEV_POSTGRES)"
 	@echo "  make down-dev-sqlite       # $(COMPOSE_DEV_SQLITE)"
-	@echo "  make down-prod-postgres    # $(COMPOSE_PROD_POSTGRES)"
-	@echo "  make down-prod-sqlite      # $(COMPOSE_PROD_SQLITE)"
+	@echo "  make down-cluster-postgres # $(COMPOSE_CLUSTER_POSTGRES)"
+	@echo "  make down-cluster-sqlite   # $(COMPOSE_CLUSTER_SQLITE)"
 	@echo "  make down-postgres         # $(COMPOSE_DEPS) --profile postgres"
 	@echo "  make down-sqlite           # $(COMPOSE_DEPS)"
 	@echo "  make docker-down-all       # Stop all configurations"
@@ -75,16 +75,16 @@ docker-dev-sqlite: ## Start development environment with SQLite
 	docker compose -f $(COMPOSE_DEV_SQLITE) up -d --build
 
 
-# Docker targets - Production Environment
-.PHONY: docker-prod-postgres
-docker-prod-postgres: ## Start production environment with PostgreSQL
-	@echo "Starting production environment with PostgreSQL..."
-	docker compose -f $(COMPOSE_PROD_POSTGRES) up -d
+# Docker targets - Cluster mode
+.PHONY: docker-cluster-postgres
+docker-cluster-postgres: ## Start cluster mode with PostgreSQL
+	@echo "Starting cluster mode with PostgreSQL..."
+	docker compose -f $(COMPOSE_CLUSTER_POSTGRES) up -d
 
-.PHONY: docker-prod-sqlite
-docker-prod-sqlite: ## Start production environment with SQLite
-	@echo "Starting production environment with SQLite..."
-	docker compose -f $(COMPOSE_PROD_SQLITE) up -d
+.PHONY: docker-cluster-sqlite
+docker-cluster-sqlite: ## Start cluster mode with SQLite
+	@echo "Starting cluster mode with SQLite..."
+	docker compose -f $(COMPOSE_CLUSTER_SQLITE) up -d
 
 
 # Docker targets - Standard Configurations
@@ -109,15 +109,15 @@ down-dev-sqlite: ## Stop development SQLite services
 	@echo "Stopping development SQLite services..."
 	docker compose -f $(COMPOSE_DEV_SQLITE) down
 
-.PHONY: down-prod-postgres
-down-prod-postgres: ## Stop production PostgreSQL services
-	@echo "Stopping production PostgreSQL services..."
-	docker compose -f $(COMPOSE_PROD_POSTGRES) down
+.PHONY: down-cluster-postgres
+down-cluster-postgres: ## Stop cluster mode PostgreSQL services
+	@echo "Stopping cluster mode PostgreSQL services..."
+	docker compose -f $(COMPOSE_CLUSTER_POSTGRES) down
 
-.PHONY: down-prod-sqlite
-down-prod-sqlite: ## Stop production SQLite services
-	@echo "Stopping production SQLite services..."
-	docker compose -f $(COMPOSE_PROD_SQLITE) down
+.PHONY: down-cluster-sqlite
+down-cluster-sqlite: ## Stop cluster mode SQLite services
+	@echo "Stopping cluster mode SQLite services..."
+	docker compose -f $(COMPOSE_CLUSTER_SQLITE) down
 
 .PHONY: down-postgres
 down-postgres: ## Stop PostgreSQL services
@@ -137,8 +137,8 @@ docker-down-all: ## Stop all Docker Compose services
 	@echo "Stopping all Docker services..."
 	@docker compose -f $(COMPOSE_DEV_POSTGRES) down --remove-orphans 2>/dev/null || true
 	@docker compose -f $(COMPOSE_DEV_SQLITE) down --remove-orphans 2>/dev/null || true
-	@docker compose -f $(COMPOSE_PROD_POSTGRES) down --remove-orphans 2>/dev/null || true
-	@docker compose -f $(COMPOSE_PROD_SQLITE) down --remove-orphans 2>/dev/null || true
+	@docker compose -f $(COMPOSE_CLUSTER_POSTGRES) down --remove-orphans 2>/dev/null || true
+	@docker compose -f $(COMPOSE_CLUSTER_SQLITE) down --remove-orphans 2>/dev/null || true
 	@docker compose -f $(COMPOSE_DEPS) --profile postgres down --remove-orphans 2>/dev/null || true
 
 # Database targets

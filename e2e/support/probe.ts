@@ -69,8 +69,8 @@ export async function cleanUp(page: Page, { monitor, probe }: { monitor: string;
 }
 
 // Running a probe needs the Docker network the stack's services share, and the server's address on
-// it. A dev (or prod) stack has an `api` service on its `appnet` network; a bundle has one
-// `peekaping` service on the default network. The e2e overlay adds an `appnet` to a bundle too,
+// it. A dev (or cluster) stack has an `api` service on its `appnet` network; a single stack has one
+// `peekaping` service on the default network. The e2e overlay adds an `appnet` to a single stack too,
 // with only the e2e target on it, so a network can't be told from its name. The stack is found
 // from the e2e target, which every e2e stack runs. E2E_PROBE_NETWORK and E2E_PROBE_URL set both
 // when that lookup can't.

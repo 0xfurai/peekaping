@@ -55,7 +55,7 @@ Ping monitors send ICMP echo requests from the probe (or from the `peekaping` pr
 1. **Unprivileged ICMP socket** (tried first). Linux allows it for processes whose group, or one of their other groups, is in the `net.ipv4.ping_group_range` sysctl, for IPv4 and IPv6 alike. It needs no capability, and allows ICMP echo only.
 2. **Raw ICMP socket**. Needs the `NET_RAW` capability in the process's effective set. A root process in a container has it when the runtime grants it. A non-root process has it only when the runtime or the image sets it as effective for that process, for example through ambient or file capabilities, which the Peekaping images don't.
 
-If neither socket can be opened, the probe runs the system `ping` command. The `peekaping-probe` image and the SQLite bundle have BusyBox `ping`, which needs the same permissions. The PostgreSQL bundle has no `ping`. Either way the monitor reports DOWN with `cannot open an ICMP socket` and a hint on how to fix it.
+If neither socket can be opened, the probe runs the system `ping` command. The `peekaping-probe` image and the single-mode image have BusyBox `ping`, which needs the same permissions. Either way the monitor reports DOWN with `cannot open an ICMP socket` and a hint on how to fix it.
 
 None of the images runs Peekaping as root: the `peekaping-probe` image runs as group 65532, and the bundle images as group 1000 (`PGID`). So ping needs `net.ipv4.ping_group_range` to include that group. What this means for each deployment:
 

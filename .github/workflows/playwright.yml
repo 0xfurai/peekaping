@@ -12,11 +12,12 @@ on:
       - 'bun.lock'
       - '.dockerignore'
       - 'docker-compose.dev.*.yml'
-      - 'docker-compose.bundle.*.yml'
+      - 'docker-compose.single.*.yml'
       - 'docker-compose.e2e.yml'
-      - 'Dockerfile.bundle.*'
-      - 'startup.bundle.*.sh'
-      - 'scripts/test-bundle-user.sh'
+      - 'Dockerfile.single'
+      - 'startup.single.sh'
+      - 'startup.single.user.sh'
+      - 'scripts/test-single-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
       - '!**/*.md'
@@ -31,11 +32,12 @@ on:
       - 'bun.lock'
       - '.dockerignore'
       - 'docker-compose.dev.*.yml'
-      - 'docker-compose.bundle.*.yml'
+      - 'docker-compose.single.*.yml'
       - 'docker-compose.e2e.yml'
-      - 'Dockerfile.bundle.*'
-      - 'startup.bundle.*.sh'
-      - 'scripts/test-bundle-user.sh'
+      - 'Dockerfile.single'
+      - 'startup.single.sh'
+      - 'startup.single.user.sh'
+      - 'scripts/test-single-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
       - '!**/*.md'
@@ -54,29 +56,29 @@ env:
   COMPOSE_PROJECT_NAME: peekaping
 
 jobs:
-  # The bundle jobs check how the single-image bundles are packaged, which only
+  # The single jobs check how the single-image bundles are packaged, which only
   # their own files change. A PR runs them when it touches those files; pushes to
   # main always run them, so an app change that breaks a bundle fails there.
   changes:
-    name: Detect bundle changes
+    name: Detect single-mode changes
     runs-on: ubuntu-24.04
     outputs:
-      bundle: ${{ github.event_name != 'pull_request' || steps.diff.outputs.bundle }}
-      # The e2e configs to run. A job's `if` can't read `matrix`, so the bundle config is left out
+      single: ${{ github.event_name != 'pull_request' || steps.diff.outputs.single }}
+      # The e2e configs to run. A job's `if` can't read `matrix`, so the single config is left out
       # of the matrix itself.
-      configs: ${{ (github.event_name != 'pull_request' || steps.diff.outputs.bundle == 'true') && '["dev","bundle"]' || '["dev"]' }}
+      configs: ${{ (github.event_name != 'pull_request' || steps.diff.outputs.single == 'true') && '["dev","single"]' || '["dev"]' }}
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Check for bundle files
+    - name: Check for single-mode files
       id: diff
       if: ${{ github.event_name == 'pull_request' }}
       run: |
-        if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qE '^(Dockerfile\.bundle\.|startup\.bundle\.|supervisord\.bundle\.|docker-compose\.bundle\.|scripts/test-bundle-user\.sh$|Caddyfile$|\.github/workflows/playwright\.yml$)'; then
-          echo "bundle=true" >> "$GITHUB_OUTPUT"
+        if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qE '^(Dockerfile\.single$|startup\.single\.|docker-compose\.single\.|scripts/test-single-user\.sh$|Caddyfile$|\.github/workflows/playwright\.yml$)'; then
+          echo "single=true" >> "$GITHUB_OUTPUT"
         else
-          echo "bundle=false" >> "$GITHUB_OUTPUT"
+          echo "single=false" >> "$GITHUB_OUTPUT"
         fi
 
   # Build each image once, on its own runner, and share it with the test jobs.
@@ -91,7 +93,7 @@ jobs:
           - { name: dev-api, tag: peekaping-api, context: apps/server, file: apps/server/infra/Dockerfile.api }
           # The dev SQLite and PostgreSQL stacks run it as their `probe` service (it is the local probe's
           # instances), and the e2e jobs run it as a remote probe (e2e/remote-probe.spec.ts). Named without
-          # "dev-" because the bundle jobs need it too, and they don't download image-dev-*; every e2e job
+          # "dev-" because the single jobs need it too, and they don't download image-dev-*; every e2e job
           # asks for it by name.
           - { name: probe, tag: peekaping-probe, context: apps/server, file: apps/server/infra/Dockerfile.probe }
           - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
@@ -116,67 +118,59 @@ jobs:
         # Image layers are already compressed.
         compression-level: 0
 
-  # The bundle images, built like the others, only when the bundle jobs run. They are a job of their
-  # own because a job's `if` can't read `matrix`.
-  build-bundle-images:
-    name: Build ${{ matrix.name }}
+  # The single image, built like the others, only when the single jobs run. One image serves both
+  # databases: the postgres job starts the compose file's postgres service beside it. It is a job
+  # of its own because a job's `if` can't read `matrix`.
+  build-single-images:
+    name: Build single
     needs: changes
-    if: ${{ needs.changes.outputs.bundle == 'true' }}
+    if: ${{ needs.changes.outputs.single == 'true' }}
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { name: bundle-postgres, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.postgres }
-          - { name: bundle-sqlite, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.sqlite }
     steps:
     - uses: actions/checkout@v4
     - uses: docker/setup-buildx-action@v3
-    - name: Build ${{ matrix.name }} image
+    - name: Build single image
       uses: docker/build-push-action@v6
       with:
-        context: ${{ matrix.context }}
-        file: ${{ matrix.file }}
-        tags: ${{ matrix.tag }}
-        outputs: type=docker,dest=${{ runner.temp }}/${{ matrix.name }}.tar
-        cache-from: type=gha,scope=e2e-${{ matrix.name }}
-        cache-to: type=gha,scope=e2e-${{ matrix.name }},mode=max
+        context: .
+        file: Dockerfile.single
+        tags: peekaping-peekaping
+        outputs: type=docker,dest=${{ runner.temp }}/single.tar
+        cache-from: type=gha,scope=e2e-single
+        cache-to: type=gha,scope=e2e-single,mode=max
     - uses: actions/upload-artifact@v4
       with:
-        name: image-${{ matrix.name }}
-        path: ${{ runner.temp }}/${{ matrix.name }}.tar
+        name: image-single
+        path: ${{ runner.temp }}/single.tar
         retention-days: 1
         # Image layers are already compressed.
         compression-level: 0
 
-  # How the single-mode bundles run: the user, PUID/PGID, the Docker socket,
-  # port 8383, ping and Docker monitors, docker run --user and docker stop.
-  bundle-user:
-    name: Bundle user ${{ matrix.database }}
-    needs: [changes, build-bundle-images]
-    if: ${{ !cancelled() && needs.changes.outputs.bundle == 'true' }}
+  # How the single image runs: the user, PUID/PGID, the Docker socket, port 8383, ping and Docker
+  # monitors, docker run --user and docker stop. It runs with SQLite, once for both databases:
+  # the e2e jobs below run it with PostgreSQL.
+  single-user:
+    name: Single user
+    needs: [changes, build-single-images]
+    if: ${{ !cancelled() && needs.changes.outputs.single == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        database: [sqlite, postgres]
     steps:
     - uses: actions/checkout@v4
     - name: Download image
       uses: actions/download-artifact@v4
       with:
-        name: image-bundle-${{ matrix.database }}
+        name: image-single
         path: ${{ runner.temp }}/images
     - name: Load image
-      run: docker load --input "$RUNNER_TEMP/images/bundle-${{ matrix.database }}.tar"
-    - name: Test the bundle's user, ports and shutdown
-      run: scripts/test-bundle-user.sh ${{ matrix.database }} peekaping-peekaping
+      run: docker load --input "$RUNNER_TEMP/images/single.tar"
+    - name: Test the single image's user, ports and shutdown
+      run: scripts/test-single-user.sh peekaping-peekaping
 
   playwright-tests:
     name: E2E ${{ matrix.config }} ${{ matrix.database }}
-    needs: [changes, build-images, build-bundle-images]
-    # Run every combination whose images built, even if another image failed or the bundle images
+    needs: [changes, build-images, build-single-images]
+    # Run every combination whose images built, even if another image failed or the single images
     # were skipped.
     if: ${{ !cancelled() }}
     timeout-minutes: 60
@@ -218,7 +212,7 @@ jobs:
     - name: Download images
       uses: actions/download-artifact@v4
       with:
-        pattern: ${{ matrix.config == 'dev' && 'image-dev-*' || format('image-bundle-{0}', matrix.database) }}
+        pattern: ${{ matrix.config == 'dev' && 'image-dev-*' || 'image-single' }}
         path: ${{ runner.temp }}/images
         merge-multiple: true
     # The dev stack runs this image as its `probe` service, and the remote probe specs start it
@@ -255,7 +249,7 @@ jobs:
         PROBE_OFFLINE_AFTER=2m
 
         # The local probe's token: the api stores it and the dev stack's probe service sends it. The
-        # dev SQLite and PostgreSQL compose files refuse to start without it. The bundles have no use
+        # dev SQLite and PostgreSQL compose files refuse to start without it. The single images have no use
         # for it, so they don't get it.
         ${{ matrix.config == 'dev' && 'PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789' || '' }}
 
@@ -274,10 +268,10 @@ jobs:
     # Create and prepare data directories with proper permissions
     - name: Prepare data directories
       run: |
-        mkdir -p .data/postgres .data/logs .data/caddy-data .data/caddy-config
-        sudo chown -R 999:999 .data/postgres .data/logs  # postgres user is typically uid 999
+        mkdir -p .data/postgres .data/postgres17 .data/logs .data/caddy-data .data/caddy-config
+        sudo chown -R 999:999 .data/postgres .data/postgres17 .data/logs  # postgres user is typically uid 999
         sudo chmod -R 755 .data/logs
-        sudo chmod -R 700 .data/postgres
+        sudo chmod -R 700 .data/postgres .data/postgres17
         ls -la .data/
         echo "Directory permissions set successfully"
 
@@ -294,7 +288,7 @@ jobs:
 
     - name: Wait for services to be ready
       run: |
-        HEALTH_URL="http://localhost:${{ matrix.config == 'bundle' && '8383' || '8034' }}/api/v1/health"
+        HEALTH_URL="http://localhost:${{ matrix.config == 'single' && '8383' || '8034' }}/api/v1/health"
         if ! timeout 120 bash -c "until curl -sf $HEALTH_URL && curl -sf http://localhost:8383/ && curl -sf http://localhost:3033/health; do sleep 2; done" >/dev/null; then
           echo "::error::The stack wasn't healthy after 120 seconds"
           docker compose ps
