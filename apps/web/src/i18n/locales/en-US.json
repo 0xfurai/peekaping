@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Create your admin account",
-      "error_reporting_hint": "On by default. Untick this box to turn it off. You can change it later under “Settings”.",
       "have_account": "Already have an account?",
       "sign_in": "Sign in",
       "submit": "Create",
-      "telemetry_hint": "On by default. Untick this box to turn it off. You can change it later under “Settings”. While it is on, Peekaping sends this at most once a day:",
-      "title": "Hello"
+      "title": "Hello",
+      "telemetry_note": "Anonymous: no monitor names, URLs or hosts. You can change this later in Settings.",
+      "telemetry_whats_sent": "What's sent"
     },
     "twofa": {
       "code_label": "2FA Code",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "What is sent, and how to turn it off",
     "label": "Send anonymous usage statistics",
-    "never_sent": "Never sent: monitor names, URLs, hosts, tags, status page addresses or notification settings. A usage ping holds no IP address, and Peekaping's Worker doesn't record the sender's IP.",
-    "not_saved": "Your choice about usage statistics wasn't saved. Check it in Settings.",
-    "sent_features": "Whether you use status pages, maintenance windows and metrics",
-    "sent_id": "A random ID, created while this is on and deleted when you turn it off",
-    "sent_monitors": "How many monitors you have, as a range such as 11-50",
-    "sent_setup": "The Peekaping version, single or cluster mode, the storage backend, and the operating system and CPU type",
-    "sent_types": "The kinds of monitors and notification channels you use, such as http or telegram"
+    "not_saved": "Your choice about usage statistics wasn't saved. Check it in Settings."
   },
   "telemetry_notice": {
     "error_reports": "Error reports are on. If Peekaping crashes, it sends the error type and where in the code it happened, its version, mode, storage backend and operating system. It never sends error messages, URLs or hostnames.",

@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Kreiraj svoj administratorski račun",
-      "error_reporting_hint": "Prema zadanim postavkama uključeno. Uklonite oznaku s ovog okvira da to isključite. To možete promijeniti kasnije u „Postavke“.",
       "have_account": "Imate već račun?",
       "sign_in": "Prijavi se",
       "submit": "Kreiraj",
-      "telemetry_hint": "Prema zadanim postavkama uključeno. Uklonite oznaku s ovog okvira da to isključite. To možete promijeniti kasnije u „Postavke“. Dok je uključeno, Peekaping šalje ovo najviše jednom dnevno:",
-      "title": "Pozdrav"
+      "title": "Pozdrav",
+      "telemetry_note": "Anonimno: bez naziva nadzora, URL-ova i hostova. To možete promijeniti kasnije u „Postavke“.",
+      "telemetry_whats_sent": "Što se šalje"
     },
     "twofa": {
       "code_label": "Kod 2FA",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Što se šalje i kako to isključiti",
     "label": "Šalji anonimnu statistiku korištenja",
-    "never_sent": "Nikada se ne šalje: nazivi nadzora, URL-ovi, hostovi, oznake, adrese statusnih stranica ni postavke obavijesti. Ping upotrebe ne sadrži IP adresu, a Peekapingov Worker ne bilježi IP pošiljatelja.",
-    "not_saved": "Vaš odabir o statistici korištenja nije spremljen. Provjerite ga u „Postavke“.",
-    "sent_features": "Koristite li statusne stranice, prozore održavanja i metrike",
-    "sent_id": "Nasumični ID, koji se stvara dok je ovo uključeno i briše kad ovo isključite",
-    "sent_monitors": "Koliko nadzora imate, kao raspon, na primjer 11-50",
-    "sent_setup": "Verzija Peekapinga, pojedinačni ili klasterski način rada, pozadinski sustav za pohranu te operacijski sustav i vrsta procesora",
-    "sent_types": "Vrste nadzora i kanala obavijesti koje koristite, na primjer http ili telegram"
+    "not_saved": "Vaš odabir o statistici korištenja nije spremljen. Provjerite ga u „Postavke“."
   },
   "telemetry_notice": {
     "error_reports": "Izvješća o pogreškama su uključena. Ako Peekaping padne, šalje vrstu pogreške i mjesto u kodu na kojem se dogodila, svoju verziju, način rada, pozadinski sustav za pohranu i operacijski sustav. Nikada ne šalje poruke o pogreškama, URL-ove ni nazive hostova.",

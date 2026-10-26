@@ -1,10 +1,18 @@
+import type { ReactNode } from "react";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const TELEMETRY_DOCS_URL = "https://docs.peekaping.com/self-hosting/telemetry";
 
 // A link to the docs page that says what the usage ping and the error reports send and how to
 // turn them off. A section is the id of a heading on that page, such as "error-reporting".
-export function TelemetryDocsLink({ section }: { section?: string }) {
+// The link text is the standard one unless children are given.
+export function TelemetryDocsLink({
+  section,
+  children,
+}: {
+  section?: string;
+  children?: ReactNode;
+}) {
   const { t } = useLocalizedTranslation();
 
   return (
@@ -14,7 +22,7 @@ export function TelemetryDocsLink({ section }: { section?: string }) {
       rel="noopener noreferrer"
       className="underline text-blue-600"
     >
-      {t("telemetry.docs_link")}
+      {children ?? t("telemetry.docs_link")}
     </a>
   );
 }

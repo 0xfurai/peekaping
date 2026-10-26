@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Crie sua conta de administrador",
-      "error_reporting_hint": "Ativado por padrão. Desmarque esta caixa para desativar. Você pode mudar isso depois em “Configurações”.",
       "have_account": "Já tem uma conta?",
       "sign_in": "Entrar",
       "submit": "Criar",
-      "telemetry_hint": "Ativado por padrão. Desmarque esta caixa para desativar. Você pode mudar isso depois em “Configurações”. Enquanto estiver ativado, o Peekaping envia isto no máximo uma vez por dia:",
-      "title": "Olá"
+      "title": "Olá",
+      "telemetry_note": "Anônimo: sem nomes de monitores, URLs ou hosts. Você pode mudar isso depois em “Configurações”.",
+      "telemetry_whats_sent": "O que é enviado"
     },
     "twofa": {
       "code_label": "Código 2FA",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "O que é enviado e como desativar",
     "label": "Enviar estatísticas de uso anônimas",
-    "never_sent": "Nunca são enviados: nomes de monitores, URLs, hosts, etiquetas, endereços de páginas de status nem configurações de notificação. Um ping de uso não contém nenhum endereço IP, e o Worker do Peekaping não registra o IP do remetente.",
-    "not_saved": "Sua escolha sobre as estatísticas de uso não foi salva. Confira em “Configurações”.",
-    "sent_features": "Se você usa páginas de status, janelas de manutenção e métricas",
-    "sent_id": "Um ID aleatório, criado enquanto está ativado e excluído quando você desativa",
-    "sent_monitors": "Quantos monitores você tem, como um intervalo, por exemplo 11-50",
-    "sent_setup": "A versão do Peekaping, o modo único ou de cluster, o backend de armazenamento, e o sistema operacional e o tipo de CPU",
-    "sent_types": "Os tipos de monitores e de canais de notificação que você usa, como http ou telegram"
+    "not_saved": "Sua escolha sobre as estatísticas de uso não foi salva. Confira em “Configurações”."
   },
   "telemetry_notice": {
     "error_reports": "Os relatórios de erro estão ativados. Se o Peekaping falhar, ele envia o tipo do erro e o ponto do código onde ocorreu, a própria versão, o modo, o backend de armazenamento e o sistema operacional. Nunca envia mensagens de erro, URLs ou nomes de host.",

@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Maak uw beheerdersaccount aan.",
-      "error_reporting_hint": "Standaard aan. Haal het vinkje weg om het uit te zetten. Je kunt het later wijzigen onder ‘Instellingen’.",
       "have_account": "Heeft u al een account?",
       "sign_in": "Inloggen",
       "submit": "Registreren",
-      "telemetry_hint": "Standaard aan. Haal het vinkje weg om het uit te zetten. Je kunt het later wijzigen onder ‘Instellingen’. Zolang het aan staat, verstuurt Peekaping dit hooguit één keer per dag:",
-      "title": "Hallo"
+      "title": "Hallo",
+      "telemetry_note": "Anoniem: geen namen van monitoren, URL's of hosts. Je kunt het later wijzigen onder ‘Instellingen’.",
+      "telemetry_whats_sent": "Wat er wordt verstuurd"
     },
     "twofa": {
       "code_label": "2FA-code",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Wat er wordt verstuurd en hoe je het uitzet",
     "label": "Anonieme gebruiksstatistieken versturen",
-    "never_sent": "Nooit verstuurd: namen van monitoren, URL's, hosts, etiketten, adressen van statuspagina's of meldingsinstellingen. Een gebruiksping bevat geen IP-adres, en de Worker van Peekaping legt het IP van de afzender niet vast.",
-    "not_saved": "Je keuze over gebruiksstatistieken is niet opgeslagen. Controleer het onder ‘Instellingen’.",
-    "sent_features": "Of je statuspagina's, onderhoudsvensters en statistieken gebruikt",
-    "sent_id": "Een willekeurige ID, die wordt aangemaakt zolang dit aan staat en verwijderd als je het uitzet",
-    "sent_monitors": "Hoeveel monitoren je hebt, als bereik, bijvoorbeeld 11-50",
-    "sent_setup": "De Peekaping-versie, enkele modus of clustermodus, de opslagbackend, en het besturingssysteem en het CPU-type",
-    "sent_types": "De soorten monitoren en meldingskanalen die je gebruikt, zoals http of telegram"
+    "not_saved": "Je keuze over gebruiksstatistieken is niet opgeslagen. Controleer het onder ‘Instellingen’."
   },
   "telemetry_notice": {
     "error_reports": "Foutrapporten staan aan. Als Peekaping crasht, verstuurt het het type fout en de plek in de code waar die optrad, zijn versie, modus, opslagbackend en besturingssysteem. Het verstuurt nooit foutmeldingen, URL's of hostnamen.",

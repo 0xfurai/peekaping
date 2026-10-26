@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Luo ylläpitokäyttäjätilisi",
-      "error_reporting_hint": "Oletuksena päällä. Poista valinta ruudusta, jos haluat sen pois päältä. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”.",
       "have_account": "Onko sinulla jo tili?",
       "sign_in": "Kirjaudu sisään",
       "submit": "Luo",
-      "telemetry_hint": "Oletuksena päällä. Poista valinta ruudusta, jos haluat sen pois päältä. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”. Kun se on päällä, Peekaping lähettää tämän enintään kerran päivässä:",
-      "title": "Hei"
+      "title": "Hei",
+      "telemetry_note": "Anonyymi: ei valvontojen nimiä, URL-osoitteita eikä isäntiä. Voit muuttaa tätä myöhemmin kohdassa ”Asetukset”.",
+      "telemetry_whats_sent": "Mitä lähetetään"
     },
     "twofa": {
       "code_label": "2FA-koodi",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Mitä lähetetään ja miten sen voi poistaa käytöstä",
     "label": "Lähetä nimettömiä käyttötilastoja",
-    "never_sent": "Ei koskaan lähetetä: valvontojen nimiä, URL-osoitteita, isäntiä, tunnisteita, tila-sivujen osoitteita tai ilmoitusasetuksia. Käyttöping ei sisällä IP-osoitetta, eikä Peekapingin Worker tallenna lähettäjän IP-osoitetta.",
-    "not_saved": "Valintaasi käyttötilastoista ei tallennettu. Tarkista se kohdassa ”Asetukset”.",
-    "sent_features": "Käytätkö tila-sivuja, huoltoikkunoita ja mittareita",
-    "sent_id": "Satunnainen tunnus, joka luodaan, kun tämä on käytössä, ja poistetaan, kun poistat sen käytöstä",
-    "sent_monitors": "Kuinka monta valvontaa sinulla on, vaihteluvälinä, esimerkiksi 11-50",
-    "sent_setup": "Peekapingin versio, yksi- tai klusteritila, tallennustausta sekä käyttöjärjestelmä ja suorittimen tyyppi",
-    "sent_types": "Käyttämiesi valvontojen ja ilmoituskanavien tyypit, esimerkiksi http tai telegram"
+    "not_saved": "Valintaasi käyttötilastoista ei tallennettu. Tarkista se kohdassa ”Asetukset”."
   },
   "telemetry_notice": {
     "error_reports": "Virheraportit ovat päällä. Jos Peekaping kaatuu, se lähettää virheen tyypin ja kohdan koodissa, jossa se tapahtui, versionsa, tilansa, tallennustaustansa ja käyttöjärjestelmänsä. Se ei koskaan lähetä virheilmoituksia, URL-osoitteita tai isäntänimiä.",
