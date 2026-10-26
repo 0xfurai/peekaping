@@ -130,7 +130,7 @@ If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the 
 In cluster mode, the API and the probe run in separate containers. The API replicas talk to each other through Redis. The `probe` service runs the checks of the local probe's monitors: it connects to the API, gets its monitors and sends the results back, and it needs no database, no Redis and no volume. Run more probe containers to check more monitors. An nginx gateway serves the web app and the API on port 8383.
 
 :::note Single mode fits SQLite better
-In cluster mode, the `api` containers open the same SQLite file, and SQLite lets one process write to it at a time, so replicas wait for each other's writes. That works for a small install, but [single mode](#single-mode) runs everything in one process and fits SQLite better, and [PostgreSQL](./docker-with-postgres.md) takes concurrent writers. Prefer the SQLite bundle image, unless you need separate processes for the API and the probes.
+In cluster mode, the `api` containers open the same SQLite file, and SQLite lets one process write to it at a time, so replicas wait for each other's writes. That works for a small install, but [single mode](#single-mode) runs everything in one process and fits SQLite better, and [PostgreSQL](./docker-with-postgres.md) takes concurrent writers. Prefer single mode, with the `0xfurai/peekaping` image, unless you need separate processes for the API and the probes.
 
 Each `api` container logs this warning at start:
 
