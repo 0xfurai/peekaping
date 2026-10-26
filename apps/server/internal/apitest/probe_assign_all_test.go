@@ -10,6 +10,7 @@ import (
 
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/probe"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -300,6 +301,25 @@ func TestProbeAssignAll_TheActionAssignsAProbeWithInstances(t *testing.T) {
 
 	again := decode[assignAllResult](t, a.assignAllMonitors(t, made.ID), http.StatusOK)
 	assert.Equal(t, assignAllResult{}, again, "nothing is left to add")
+}
+
+// AC5: a probe whose flag is set while it has instances (an admin made it wait before the first
+// instance, or the flag was set again) is assigned by the action, and the assignment clears the flag,
+// so that the probe page stops saying it waits for its first instance
+func TestProbeAssignAll_TheActionClearsTheFlagOfAProbeWithInstances(t *testing.T) {
+	a := newAppWithAdmin(t)
+	made := a.probeThatRuns(t, "Frankfurt", "http", "tcp")
+	site := a.createHTTPMonitor(t, "Site", "")
+	require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
+		return probes.SetPendingAssignment(context.Background(), made.ID)
+	}))
+	require.True(t, a.getProbe(t, made.ID).AssignAllPending)
+
+	result := decode[assignAllResult](t, a.assignAllMonitors(t, made.ID), http.StatusOK)
+
+	assert.Equal(t, assignAllResult{Added: 1}, result)
+	assert.Equal(t, []string{site}, a.monitorsOnProbe(t, made.ID))
+	assert.False(t, a.getProbe(t, made.ID).AssignAllPending, "the flag is cleared with the assignment")
 }
 
 // AC5: a probe with no instance on record doesn't know what it runs yet, so the action makes it wait
