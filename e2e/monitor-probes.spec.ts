@@ -74,8 +74,9 @@ test('A monitor is put on a remote probe, then moved back to Local', async ({ pa
     await page.goto('/monitors/new');
     await page.locator('input[name="name"]').fill(monitor);
     await page.locator('input[name="url"]').fill(targetURL('monitor-probes'));
-    // A new monitor starts on Local, the probe every install has.
-    await expect(probeSelect(page)).toHaveText('Local');
+    // A new monitor starts on every probe that runs its type, Local and the new probe both.
+    await expect(probeSelect(page).getByText('Local', { exact: true })).toBeVisible();
+    await expect(probeSelect(page).getByText(probe, { exact: true })).toBeVisible();
     await chooseProbe(page, probe);
     await submit(page);
 
@@ -255,6 +256,45 @@ test('Two probes picked in the form are both saved', async ({ page }) => {
   }
 });
 
+test('A new monitor starts on every probe that runs its type, and follows the type until probes are chosen', async ({ page }) => {
+  const { probe, monitor } = names();
+
+  await page.goto('/monitors');
+  try {
+    const api = await adminAPI(page);
+    const { token } = await createProbe(api, probe);
+    await api.dispose();
+    await sayHello(page, token, ['http']);
+
+    await page.goto('/monitors/new');
+    await page.locator('input[name="name"]').fill(monitor);
+    await page.locator('input[name="url"]').fill(targetURL('monitor-probes'));
+    // The probe is offline from the start (it has no instance), and offline probes are preselected.
+    await expect(probeSelect(page).getByText('Local', { exact: true })).toBeVisible();
+    await expect(probeSelect(page).getByText(probe, { exact: true })).toBeVisible();
+
+    // The probe doesn't run TCP, so it drops out of the selection with the type change.
+    await chooseType(page, 'TCP Port Monitor');
+    await expect(probeSelect(page)).toHaveText('Local');
+    await expect(page.getByText("This probe doesn't run this type of monitor")).toHaveCount(0);
+
+    // And it comes back when the type changes to one it runs.
+    await chooseType(page, 'HTTP(S) Monitor');
+    await expect(probeSelect(page).getByText(probe, { exact: true })).toBeVisible();
+
+    await chooseType(page, 'TCP Port Monitor');
+    await page.locator('[name="host"]').fill(targetHost);
+    await page.locator('[name="port"]').fill(String(targetPort));
+    await expect(probeSelect(page)).toHaveText('Local');
+    await submit(page);
+
+    await expect(page).toHaveURL(monitorPageURL, { timeout: 10000 });
+    await expect(page.getByTestId('monitor-probe')).toHaveText('Probe: Local');
+  } finally {
+    await cleanUp(page, { probe, monitor });
+  }
+});
+
 test('A probe is picked with the keyboard alone', async ({ page }) => {
   const { probe, monitor } = names();
 
@@ -269,7 +309,8 @@ test('A probe is picked with the keyboard alone', async ({ page }) => {
     await page.locator('input[name="url"]').fill(targetURL('monitor-probes'));
 
     // Enter on the focused select opens the list, with the search field focused. The search keeps
-    // the selected Local probe in the list, so the probe is the second option.
+    // the selected Local probe in the list, so the probe is the second option. The new probe is
+    // selected from the start, so the keys below unselect it and select it again.
     await probeSelect(page).focus();
     await page.keyboard.press('Enter');
     const search = page.getByPlaceholder('Search...');
@@ -279,15 +320,14 @@ test('A probe is picked with the keyboard alone', async ({ page }) => {
     await page.keyboard.press('ArrowDown');
     const option = page.getByRole('option', { name: probe, exact: true });
     await expect(search).toHaveAttribute('aria-activedescendant', (await option.getAttribute('id')) ?? 'no id');
-    await page.keyboard.press('Enter');
     await expect(option).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Enter');
+    await expect(option).toHaveAttribute('aria-selected', 'false');
 
     // A space picks too, but only while the search is empty: before that it is a character of
     // the search. The probe stays the active option when the search clears.
     await search.fill('');
     await page.keyboard.press('Space');
-    await expect(option).toHaveAttribute('aria-selected', 'false');
-    await page.keyboard.press('Enter');
     await expect(option).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('Escape');
     await expect(probeSelect(page).getByText(probe, { exact: true })).toBeVisible();
