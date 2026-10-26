@@ -276,6 +276,15 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
 	}
 
+	// Validate the query before connecting: a query that is refused anyway
+	// doesn't need a server to say so.
+	query := cfg.DatabaseQuery
+	if strings.TrimSpace(query) == "" {
+		query = "SELECT 1"
+	} else if err := s.validateQuery(query); err != nil {
+		return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
+	}
+
 	// Parse and validate connection string
 	dsn, err := s.parseConnectionString(cfg.DatabaseConnectionString)
 	if err != nil {
@@ -296,16 +305,6 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 	// Test connection
 	if err := db.PingContext(ctx); err != nil {
 		return DownResult(fmt.Errorf("connection failed: %w", err), startTime, time.Now().UTC())
-	}
-
-	query := cfg.DatabaseQuery
-	if query == "" || strings.TrimSpace(query) == "" {
-		query = "SELECT 1"
-	} else {
-		// Validate query before execution
-		if err := s.validateQuery(query); err != nil {
-			return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
-		}
 	}
 
 	rows, err := db.QueryContext(ctx, query)

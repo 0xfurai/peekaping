@@ -4,13 +4,56 @@ package executor
 
 import (
 	"context"
+	"encoding/json"
 	"peekaping/internal/modules/shared"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
+
+func sqlServerMonitor(t *testing.T, timeout int, cfg SQLServerConfig) *Monitor {
+	t.Helper()
+	raw, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	return &Monitor{ID: "sqlserver-test", Name: "SQL Server test", Type: "sqlserver", Timeout: timeout, Config: string(raw)}
+}
+
+func TestSQLServerExecutor_ServerRefusesConnection(t *testing.T) {
+	addr := refusedAddr(t)
+
+	exec := NewSQLServerExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), sqlServerMonitor(t, 2, SQLServerConfig{
+		DatabaseConnectionString: "Server=" + strings.Replace(addr, ":", ",", 1) + ";Database=master;User Id=sa;Password=secret;Encrypt=false",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "connection failed: unable to open tcp connection with host '"+addr+"': dial tcp "+addr+": connect: connection refused")
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
+
+func TestSQLServerExecutor_RefusesAQueryBeforeConnecting(t *testing.T) {
+	// Nothing listens at the address, so a connection attempt would be the
+	// message of the result.
+	addr := refusedAddr(t)
+
+	exec := NewSQLServerExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), sqlServerMonitor(t, 2, SQLServerConfig{
+		DatabaseConnectionString: "Server=" + strings.Replace(addr, ":", ",", 1) + ";Database=master;User Id=sa;Password=secret;Encrypt=false",
+		DatabaseQuery:            "DELETE FROM accounts",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Equal(t, "query validation failed: query must start with one of: SELECT, SHOW, DESCRIBE, DESC, EXPLAIN, WITH, VALUES", result.Message)
+	assert.Less(t, elapsed, time.Second)
+}
 
 func TestSQLServerExecutor_Validate(t *testing.T) {
 	logger := zap.NewNop().Sugar()
