@@ -223,6 +223,11 @@ func TestProbesAPI_BootstrapTokenAuthenticatesLocal(t *testing.T) {
 	local := decode[probeResponse](t, a.request(t, http.MethodGet, probesPath+"/local", nil, a.asAdmin), http.StatusOK)
 	assert.Equal(t, "bootstra", local.TokenPrefix)
 	assert.NotContains(t, a.request(t, http.MethodGet, probesPath, nil, a.asAdmin).Body.String(), token)
+
+	// In cluster mode the local probe is its instances: offline until one connects
+	assert.Equal(t, "offline", local.Status)
+	a.sayHello(t, token, uuid.NewString())
+	assert.Equal(t, "online", a.getProbe(t, "local").Status)
 }
 
 func TestProbesAPI_WithoutABootstrapTokenLocalHasNone(t *testing.T) {
