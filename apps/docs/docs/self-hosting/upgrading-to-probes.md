@@ -17,7 +17,7 @@ You need this page if you run [cluster mode](./deployment-modes.md#cluster-mode)
 
 You don't need it for these:
 
-- **Single mode.** The SQLite and PostgreSQL bundle images don't change. Their one process is the local probe.
+- **Single mode.** The single-mode image doesn't change. Its one process is the local probe.
 - **MongoDB.** See [MongoDB storage was removed](#mongodb-storage-was-removed).
 - **A new install.** The setup pages already describe the new layout.
 

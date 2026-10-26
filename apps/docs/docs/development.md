@@ -122,7 +122,7 @@ The repository root has these Docker Compose files. Each one comes in a variant 
 |------|----------------|
 | `docker-compose.dev.<backend>.yml` | The whole stack in cluster mode, built from source. `make docker-dev-<backend>` starts it. The web container on `localhost:8383` calls the API on `localhost:8034`, so the `api` service sets `CORS_ORIGINS` to `http://localhost:8383` unless your `.env` sets it. |
 | `docker-compose.cluster.<backend>.yml` | The whole stack in cluster mode, from the published `0xfurai/peekaping-*` images, behind an nginx gateway. |
-| `docker-compose.single.<backend>.yml` | One bundle image in single mode, built from source. |
+| `docker-compose.single.<backend>.yml` | The single-mode image (`Dockerfile.single`), built from source. The `postgres` file also runs the official `postgres` image beside it. |
 | `docker-compose.deps.yml` | Redis, asynqmon and, with a profile, PostgreSQL, for running the Go binaries on your machine. |
 | `docker-compose.e2e.yml` | The test target overlay for the Playwright suite. It adds `e2e-target` on top of a dev, cluster or single file. |
 

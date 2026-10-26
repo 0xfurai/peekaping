@@ -6,7 +6,7 @@ sidebar_position: 1
 
 Peekaping's server has two kinds of process you run: the API and the probe. A third component, migrate, sets up the database. They run in one of two modes:
 
-- **Single mode**: one process, the `peekaping` binary, is the API and the local probe. It passes work and events between its parts in memory, with no Redis. It supports SQLite and PostgreSQL. The SQLite and PostgreSQL bundle images run it.
+- **Single mode**: one process, the `peekaping` binary, is the API and the local probe. It passes work and events between its parts in memory, with no Redis. It supports SQLite and PostgreSQL. One image runs it, with SQLite in a file or with PostgreSQL in a container of its own.
 - **Cluster mode**: the API and the probe are separate processes. The API replicas share the database and talk to each other through Redis, and the probe instances connect to the API and run the checks. You can run several of each for scale and high availability. Helm and the SQLite and PostgreSQL Docker Compose stacks run it.
 
 See [Deployment modes](../self-hosting/deployment-modes.md) to choose between them. The rest of this page describes cluster mode. See [ADR 0002](https://github.com/0xfurai/peekaping/blob/main/docs/adr/0002-single-process-runtime.md) for how single mode replaces Redis, and how cluster mode came to need only the API and the probe.

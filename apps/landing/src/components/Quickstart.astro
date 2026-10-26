@@ -17,19 +17,28 @@ const setups = [
     id: "postgres",
     label: "PostgreSQL",
     docs: "https://docs.peekaping.com/self-hosting/docker-with-postgres",
-    command: `docker run -d --restart=always \\
+    command: `docker network create peekaping
+docker run -d --restart=always --network peekaping \\
+  -e POSTGRES_USER=peekaping \\
+  -e POSTGRES_PASSWORD=change-me \\
+  -e POSTGRES_DB=peekaping \\
+  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \\
+  --name peekaping-db \\
+  postgres:17
+docker run -d --restart=always --network peekaping \\
   -p 8383:8383 \\
+  -e DB_TYPE=postgres \\
+  -e DB_HOST=peekaping-db \\
   -e DB_NAME=peekaping \\
   -e DB_USER=peekaping \\
   -e DB_PASS=change-me \\
-  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \\
   --name peekaping \\
-  0xfurai/peekaping-bundle-postgres:latest`,
+  0xfurai/peekaping-bundle-sqlite:latest`,
   },
 ];
 
 const steps = [
-  { title: "Run one container", body: "Pick SQLite for a quick start or PostgreSQL for production." },
+  { title: "Start the container", body: "SQLite needs one. For production, PostgreSQL runs in a second container." },
   { title: "Open localhost:8383", body: "Create your account and sign in." },
   { title: "Add monitors and alerts", body: "Point it at your services and choose who hears about it." },
 ];

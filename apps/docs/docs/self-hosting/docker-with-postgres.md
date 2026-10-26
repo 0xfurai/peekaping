@@ -6,60 +6,89 @@ sidebar_position: 1
 
 Peekaping runs in one of two modes. See [Deployment modes](./deployment-modes.md) for what each one runs:
 
-- **[Single mode](#single-mode)**: one container runs one Peekaping process, `peekaping`, beside its own PostgreSQL, with no Redis. Start here.
+- **[Single mode](#single-mode)**: one container runs one Peekaping process, `peekaping`, and connects to PostgreSQL in a container of its own, with no Redis. Start here.
 - **[Cluster mode](#cluster-mode)**: the API and the probe run in separate containers. The API replicas share the database and talk to each other through Redis, and the probes run the checks. Use it when one process isn't enough, for example to run several probe instances.
 
 Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-to-sqlite-or-postgresql) copies your install, with its history, into a new PostgreSQL database.
 
 ## Single mode
 
-The `peekaping-bundle-postgres` image runs Peekaping in single mode, beside PostgreSQL 17 in the same container. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. PostgreSQL keeps its data in `/var/lib/postgresql/data`, so keep that on a volume.
+Single mode runs two containers: `peekaping`, from the `peekaping-bundle-sqlite` image, and PostgreSQL, from the official `postgres` image. One process, `peekaping`, serves the web app, the API and the websocket on port 8383, and connects to PostgreSQL. `DB_TYPE=postgres` makes the image use PostgreSQL in place of its SQLite file. Docker Compose connects the two, and starts `peekaping` once PostgreSQL is healthy.
 
-```bash
-docker run -d --restart=always \
-  -p 8383:8383 \
-  -e DB_NAME=peekaping \
-  -e DB_USER=peekaping \
-  -e DB_PASS=secure_test_password_123 \
-  -e TRUSTED_PROXIES \
-  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \
-  --name peekaping \
-  0xfurai/peekaping-bundle-postgres:latest
+Put the database settings in a `.env` file next to the Compose file:
+
+```
+DB_USER=peekaping
+DB_PASS=secure_test_password_123
+DB_NAME=peekaping
 ```
 
-Or with Docker Compose:
+Then create `docker-compose.yml`:
 
 ```yaml
 services:
-  peekaping:
-    image: 0xfurai/peekaping-bundle-postgres:latest
+  postgres:
+    image: postgres:17
     restart: unless-stopped
-    # peekaping takes up to 30 seconds to shut down cleanly, and PostgreSQL stops after it
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-password}
+      POSTGRES_DB: ${DB_NAME:-peekaping}
+    volumes:
+      # Database data persistence
+      - ./.data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  peekaping:
+    image: 0xfurai/peekaping-bundle-sqlite:latest
+    restart: unless-stopped
+    # peekaping takes up to 30 seconds to shut down cleanly
     stop_grace_period: 35s
     ports:
       - "8383:8383"
     environment:
-      - DB_NAME=peekaping
-      - DB_USER=peekaping
-      - DB_PASS=secure_test_password_123
+      # The user, password and database that the postgres service creates. DB_HOST and DB_PORT
+      # are the service's name and port on the Compose network.
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS:-password}
+      DB_NAME: ${DB_NAME:-peekaping}
       # Behind a reverse proxy, set TRUSTED_PROXIES in .env (see Reverse proxy and HTTPS)
-      - TRUSTED_PROXIES=${TRUSTED_PROXIES-}
-    volumes:
-      - ./.data/postgres:/var/lib/postgresql/data
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES-}
+    depends_on:
+      postgres:
+        condition: service_healthy
 ```
 
-Then open `http://localhost:8383` and create your admin account.
+Start it with `docker compose up -d`, then open `http://localhost:8383` and create your admin account.
 
-`DB_USER` and `DB_PASS` are required. On the first start, the container creates the database cluster, the `DB_USER` user with the password `DB_PASS`, and the `DB_NAME` database (`peekaping` by default). A user or database that already exists, such as PostgreSQL's own `postgres`, is kept as it is.
+On the first start, the `postgres` container creates the `DB_USER` user with the password `DB_PASS`, and the `DB_NAME` database. It does that only in an empty data folder: changing `DB_PASS` in `.env` later doesn't change the password of a database that exists. `peekaping` waits until PostgreSQL is healthy, applies the migrations and starts. Keep `./.data/postgres`, which holds the database.
 
-`peekaping` runs as a non-root user, and PostgreSQL as its own `postgres` user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need.
+`peekaping` runs as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need. The `postgres` container runs as the official image does.
+
+PostgreSQL's major versions are upgraded through the official image, not through Peekaping: to move to a newer major version, follow the [`postgres` image's documentation](https://hub.docker.com/_/postgres) for a dump and restore or `pg_upgrade`, and change the image tag.
+
+### Another PostgreSQL server
+
+Single mode works with any PostgreSQL, such as a managed one. Remove the `postgres` service and the `depends_on`, and set `DB_HOST` and `DB_PORT` to the server's address, with `DB_USER`, `DB_PASS` and `DB_NAME` of a database that exists. The user needs to create tables in its public schema. `peekaping` creates its tables with the migrations at start.
 
 ### Settings
 
 The image reads the same environment variables as cluster mode (see the [`.env` file](#env-file) below), with these exceptions:
 
-- `peekaping` always listens on port 8383 in the container. The image ignores `SERVER_PORT`, so a `.env` with `SERVER_PORT=8034` works unchanged. To use another port on the host, change the published port, for example `-p 8080:8383`.
-- Leave `DB_HOST` unset, or set it to `localhost`: that's the bundled PostgreSQL. The cluster-mode `.env` sets `DB_HOST=database`, which doesn't work here.
+- `peekaping` always listens on port 8383 in the container. The image ignores `SERVER_PORT`, so a `.env` with `SERVER_PORT=8034` works unchanged. To use another port on the host, change the published port, for example `"8080:8383"`.
+- `DB_TYPE=postgres` and `DB_HOST` are required for PostgreSQL. The Compose file above sets `DB_HOST` to `postgres`, the name of the PostgreSQL service, whatever the `.env` says: the cluster-mode `.env` sets `DB_HOST=database`, which doesn't exist here. Without `DB_TYPE`, or with `DB_TYPE=sqlite`, the image uses SQLite in `/app/data`, and ignores `DB_NAME`. Any other `DB_TYPE` stops the container with a message.
 - There is no Redis, so `REDIS_*` variables are ignored.
 - `PROBE_BOOTSTRAP_TOKEN` is ignored too, and `peekaping` logs a warning when it is set. The `peekaping` process checks the local probe's monitors, so a `peekaping-probe` connects only as a [remote probe](./remote-probes.md), with that probe's token. To check from another machine, add a remote probe. A `peekaping-probe` that uses the local probe's token is refused.
 - `MODE` defaults to `prod`.
@@ -68,13 +97,13 @@ The image reads the same environment variables as cluster mode (see the [`.env` 
 
 ### Stopping
 
-When it stops, `peekaping` finishes open requests, stops its checks and closes the database. Then PostgreSQL shuts down. Together that can take about 30 seconds, but `docker stop` waits only 10 seconds before it kills the container. Give it more time:
+When it stops, `peekaping` finishes open requests, stops its checks and closes the database. That can take about 30 seconds, but `docker stop` waits only 10 seconds before it kills the container. Give it more time:
 
 ```bash
 docker stop -t 35 peekaping
 ```
 
-In Docker Compose, set `stop_grace_period: 35s`, as above.
+In Docker Compose, set `stop_grace_period: 35s`, as above. The `postgres` container stops on its own: it needs no longer than `docker stop` gives it.
 
 ### Reverse proxy and HTTPS
 
@@ -126,9 +155,9 @@ With `TRUSTED_PROXIES` empty behind a proxy, every login counts as coming from t
 
 Whatever you set, Peekaping also locks an account after `BRUTEFORCE_ACCOUNT_MAX_ATTEMPTS` failed logins (100 by default) from any addresses within `BRUTEFORCE_ACCOUNT_WINDOW` (10 minutes). A lock lasts `BRUTEFORCE_ACCOUNT_LOCKOUT` (1 minute). The count of failures is kept until the window, measured from the first failure, has passed, so until then each further failure after a lock ends locks the account again. So guessing is bounded to the limit per window plus one attempt each time a lock ends, and after an attack stops the owner is back in within the window at most. An attacker who keeps going can keep the account locked. [API Server](../architecture/api-server.md#security-configuration) lists the lockout settings.
 
-### Upgrading from a bundle with Redis and Caddy
+### Upgrading from the PostgreSQL bundle
 
-If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the container, see [Upgrading to single mode](./upgrading-to-single-mode.md).
+If you run the `peekaping-bundle-postgres` image, from 0.0.44 to 0.0.47, which ran Redis, Caddy and PostgreSQL inside one container, see [Moving from the PostgreSQL bundle](./upgrading-to-single-mode.md#moving-from-the-postgresql-bundle). The image gets no new tags, and the page copies your database into the layout above.
 
 ## Cluster mode
 
@@ -454,7 +483,7 @@ Peekaping provides official Docker images.
 
 Single mode:
 
-- **Bundle**: [`0xfurai/peekaping-bundle-postgres`](https://hub.docker.com/r/0xfurai/peekaping-bundle-postgres)
+- **Single mode**: [`0xfurai/peekaping-bundle-sqlite`](https://hub.docker.com/r/0xfurai/peekaping-bundle-sqlite), which uses PostgreSQL with `DB_TYPE=postgres`, and the official [`postgres`](https://hub.docker.com/_/postgres) image
 
 Cluster mode:
 

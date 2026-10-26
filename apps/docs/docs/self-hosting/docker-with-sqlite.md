@@ -15,7 +15,7 @@ Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-
 
 ## Single mode
 
-The `peekaping-bundle-sqlite` image runs Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. It keeps its database in `/app/data/peekaping.db`, so keep `/app/data` on a volume.
+The `peekaping-bundle-sqlite` image runs Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. It keeps its database in `/app/data/peekaping.db`, so keep `/app/data` on a volume. The image uses SQLite while `DB_TYPE` is unset or `sqlite`, and ignores any `DB_NAME` then. With `DB_TYPE=postgres` it connects to a PostgreSQL server instead: see [Docker + PostgreSQL](./docker-with-postgres.md#single-mode).
 
 ```bash
 docker run -d --restart=always \
