@@ -21,7 +21,7 @@ const (
 	postgresImage = "postgres:17"
 )
 
-var sharedPostgres lazy[SQLServer]
+var sharedPostgres lazy[SQLDatabase]
 
 // Postgres returns the PostgreSQL for this test: the server in
 // PEE_TEST_POSTGRES_EXECUTOR_URL, or a container shared by the tests of the
@@ -30,13 +30,13 @@ var sharedPostgres lazy[SQLServer]
 //
 // The URL is the connection string the executor takes, with the password
 // percent-encoded: postgres://user:password@host:port/database.
-func Postgres(t testing.TB) SQLServer {
+func Postgres(t testing.TB) SQLDatabase {
 	t.Helper()
 	return resolve(t, "PostgreSQL", []string{postgresURLEnv}, "postgres://user:password@host:port/database, the password percent-encoded",
-		func(values []string) (SQLServer, error) { return parseSQLURL(values[0], "postgres") }, &sharedPostgres, startPostgres)
+		func(values []string) (SQLDatabase, error) { return parseSQLURL(values[0], "postgres") }, &sharedPostgres, startPostgres)
 }
 
-func startPostgres(ctx context.Context) (SQLServer, error) {
+func startPostgres(ctx context.Context) (SQLDatabase, error) {
 	// The Debian image ships a self-signed certificate (the "snakeoil" one),
 	// which the server uses once told where it is. The compose file starts the
 	// same server with the same flags.
@@ -59,23 +59,23 @@ func startPostgres(ctx context.Context) (SQLServer, error) {
 		Started: true,
 	})
 	if err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
 
 	host, err := c.Host(ctx)
 	if err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
 	port, err := c.MappedPort(ctx, "5432/tcp")
 	if err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
-	srv := SQLServer{Scheme: "postgres", Addr: net.JoinHostPort(host, port.Port()), User: sqlUser, Password: sqlPassword, Database: sqlDatabase}
+	srv := SQLDatabase{Scheme: "postgres", Addr: net.JoinHostPort(host, port.Port()), User: sqlUser, Password: sqlPassword, Database: sqlDatabase}
 
 	db := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(srv.URL(srv.Password, "sslmode=require"))))
 	defer db.Close()
 	if err := waitForLogin(ctx, "PostgreSQL", db); err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
 	return srv, nil
 }

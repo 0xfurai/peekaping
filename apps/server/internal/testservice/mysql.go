@@ -19,7 +19,7 @@ const (
 	mysqlImage = "mysql:8.4"
 )
 
-var sharedMySQL lazy[SQLServer]
+var sharedMySQL lazy[SQLDatabase]
 
 // MySQL returns the MySQL for this test: the server in PEE_TEST_MYSQL_URL, or
 // a container shared by the tests of the binary and removed when it exits. The
@@ -28,13 +28,13 @@ var sharedMySQL lazy[SQLServer]
 //
 // The URL is the connection string the executor takes, with the password
 // percent-encoded: mysql://user:password@host:port/database.
-func MySQL(t testing.TB) SQLServer {
+func MySQL(t testing.TB) SQLDatabase {
 	t.Helper()
 	return resolve(t, "MySQL", []string{mysqlURLEnv}, "mysql://user:password@host:port/database, the password percent-encoded",
-		func(values []string) (SQLServer, error) { return parseSQLURL(values[0], "mysql") }, &sharedMySQL, startMySQL)
+		func(values []string) (SQLDatabase, error) { return parseSQLURL(values[0], "mysql") }, &sharedMySQL, startMySQL)
 }
 
-func startMySQL(ctx context.Context) (SQLServer, error) {
+func startMySQL(ctx context.Context) (SQLDatabase, error) {
 	// MySQL 8.4 turns TLS on by itself, with a self-signed certificate it
 	// generates at the first start.
 	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -52,28 +52,28 @@ func startMySQL(ctx context.Context) (SQLServer, error) {
 		Started: true,
 	})
 	if err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
 
 	host, err := c.Host(ctx)
 	if err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
 	port, err := c.MappedPort(ctx, "3306/tcp")
 	if err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
-	srv := SQLServer{Scheme: "mysql", Addr: net.JoinHostPort(host, port.Port()), User: sqlUser, Password: sqlPassword, Database: sqlDatabase}
+	srv := SQLDatabase{Scheme: "mysql", Addr: net.JoinHostPort(host, port.Port()), User: sqlUser, Password: sqlPassword, Database: sqlDatabase}
 
 	cfg := mysql.NewConfig()
 	cfg.User, cfg.Passwd, cfg.Net, cfg.Addr, cfg.DBName = srv.User, srv.Password, "tcp", srv.Addr, srv.Database
 	db, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
 	defer db.Close()
 	if err := waitForLogin(ctx, "MySQL", db); err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
 	return srv, nil
 }

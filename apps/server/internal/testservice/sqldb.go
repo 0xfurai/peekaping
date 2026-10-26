@@ -22,9 +22,9 @@ const (
 	sqlDatabase = "peekaping"
 )
 
-// SQLServer is a running PostgreSQL or MySQL server with TLS on and a
-// self-signed certificate.
-type SQLServer struct {
+// SQLDatabase is a database on a running PostgreSQL or MySQL server, with the
+// account to log in to it. The server has TLS on and a self-signed certificate.
+type SQLDatabase struct {
 	Scheme   string // "postgres" or "mysql", the scheme of the executor's connection string
 	Addr     string // host:port
 	User     string
@@ -36,7 +36,7 @@ type SQLServer struct {
 // given password instead of the server's (to test a wrong one) and rawQuery,
 // such as "sslmode=require", after the "?". User, password and database are
 // percent-encoded.
-func (s SQLServer) URL(password, rawQuery string) string {
+func (s SQLDatabase) URL(password, rawQuery string) string {
 	u := url.URL{
 		Scheme:   s.Scheme,
 		User:     url.UserPassword(s.User, password),
@@ -50,10 +50,10 @@ func (s SQLServer) URL(password, rawQuery string) string {
 // parseSQLURL reads the value of PEE_TEST_POSTGRES_EXECUTOR_URL or
 // PEE_TEST_MYSQL_URL: the connection string the executor takes, with the
 // password percent-encoded.
-func parseSQLURL(raw, scheme string) (SQLServer, error) {
+func parseSQLURL(raw, scheme string) (SQLDatabase, error) {
 	u, err := url.Parse(raw)
 	if err != nil {
-		return SQLServer{}, err
+		return SQLDatabase{}, err
 	}
 	var username, password string
 	if u.User != nil {
@@ -65,9 +65,9 @@ func parseSQLURL(raw, scheme string) (SQLServer, error) {
 		database = u.Path[1:]
 	}
 	if u.Scheme != scheme || u.Hostname() == "" || u.Port() == "" || username == "" || password == "" || database == "" {
-		return SQLServer{}, fmt.Errorf("need scheme %s, a user, a password, a host, a port and a database", scheme)
+		return SQLDatabase{}, fmt.Errorf("need scheme %s, a user, a password, a host, a port and a database", scheme)
 	}
-	return SQLServer{Scheme: scheme, Addr: u.Host, User: username, Password: password, Database: database}, nil
+	return SQLDatabase{Scheme: scheme, Addr: u.Host, User: username, Password: password, Database: database}, nil
 }
 
 // waitForLogin returns once db logs in and answers a query. A container's
