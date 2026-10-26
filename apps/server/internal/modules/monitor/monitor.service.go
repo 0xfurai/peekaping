@@ -45,6 +45,14 @@ type Service interface {
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
 	ResetMonitorData(ctx context.Context, id string) error
 	RepairStoredStatuses(ctx context.Context) (int, error)
+	// AssignProbeToAll adds the probe to every monitor that isn't a push monitor, paused ones
+	// included, of one of the types (every type when there are none) and doesn't run on it yet,
+	// and returns how many it added. The monitors keep their other probes and their location
+	// rule. claim, when it isn't nil, runs first in the same transaction, and nothing is assigned
+	// when it says false: a caller that must assign once passes the step that clears its flag, so
+	// that the flag is cleared only if the assignment is stored. It returns the error of an
+	// unknown probe, and of a claim or write that fails, with nothing assigned.
+	AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error)
 }
 
 // StatusRepairPageSize is how many monitors RepairStoredStatuses reads at a time.
@@ -627,6 +635,50 @@ func (mr *MonitorServiceImpl) GetUptime24h(ctx context.Context, id, probeID stri
 
 func (mr *MonitorServiceImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {
 	return mr.monitorRepository.FindOneByPushToken(ctx, pushToken)
+}
+
+// assignPublishChunk is how many monitors AssignProbeToAll reads back at a time to announce
+const assignPublishChunk = 500
+
+// MARK: AssignProbeToAll
+func (mr *MonitorServiceImpl) AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error) {
+	var changed []string
+	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		if claim != nil {
+			claimed, err := claim(ctx)
+			if err != nil || !claimed {
+				return err
+			}
+		}
+		// One look at the probe stands in for the check of each monitor that an update makes: the
+		// repository only picks monitors of the types the probe runs
+		info, err := mr.findProbe(ctx, probeID)
+		if err != nil {
+			return err
+		}
+		if info == nil {
+			return &InvalidProbesError{Err: fmt.Errorf("probe %q doesn't exist", probeID)}
+		}
+		changed, err = mr.monitorRepository.AddProbeToAll(ctx, probeID, supportedTypes)
+		return err
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// Emit monitor updated events, once the assignment is committed. A monitor that can't be read
+	// back is logged: the assignment is stored, and the claim that made it is spent.
+	for _, ids := range chunked(changed, assignPublishChunk) {
+		monitors, err := mr.FindByIDs(ctx, ids)
+		if err != nil {
+			mr.logger.Errorw("Failed to read the monitors a probe was assigned", "probe_id", probeID, "error", err)
+			continue
+		}
+		for _, m := range monitors {
+			mr.publishMonitor(ctx, events.MonitorUpdated, m)
+		}
+	}
+	return len(changed), nil
 }
 
 func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) error {

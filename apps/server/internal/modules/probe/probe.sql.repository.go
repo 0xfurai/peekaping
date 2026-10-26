@@ -641,3 +641,29 @@ func (r *SQLRepositoryImpl) SetSupportedTypes(ctx context.Context, probeID strin
 		Exec(ctx)
 	return err
 }
+
+// MARK: ClaimPendingAssignment
+func (r *SQLRepositoryImpl) ClaimPendingAssignment(ctx context.Context, id string) (bool, error) {
+	// The update is conditional on the flag, so that of two callers the later one finds it cleared
+	// already (PostgreSQL makes it wait for the first to commit) and changes no row. A caller
+	// whose transaction rolls back leaves the flag set.
+	result, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
+		Set("assign_all_pending = ?", false).
+		Where("id = ?", id).
+		Where("assign_all_pending = ?", true).
+		Exec(ctx)
+	if err != nil {
+		return false, err
+	}
+	rows, err := result.RowsAffected()
+	return rows > 0, err
+}
+
+// MARK: SetPendingAssignment
+func (r *SQLRepositoryImpl) SetPendingAssignment(ctx context.Context, id string) error {
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
+		Set("assign_all_pending = ?", true).
+		Where("id = ?", id).
+		Exec(ctx)
+	return err
+}

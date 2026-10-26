@@ -64,6 +64,13 @@ type Service interface {
 	// and so does a request after more than a minute of quiet; a connection with no EndedAt ended
 	// at its last seen time.
 	FindInstanceConnections(ctx context.Context, probeID string, since time.Time) ([]*InstanceConnection, error)
+	// ClaimPendingAssignment clears the probe's assign_all_pending flag and returns true when the
+	// flag was set, so that of the callers that race to assign the probe its monitors, exactly one
+	// does. The caller passes the ctx of the transaction that stores the assignment: the flag is
+	// cleared only if that commits.
+	ClaimPendingAssignment(ctx context.Context, id string) (bool, error)
+	// SetPendingAssignment makes the probe wait to be assigned every monitor on its next hello
+	SetPendingAssignment(ctx context.Context, id string) error
 	// MarkOnline sets an offline probe online. It returns true only when it changed the status, so
 	// that of the callers that race to bring a probe back (one request on each API replica, and
 	// the sweep), exactly one announces it. A disabled probe stays offline. at is when the probe
@@ -383,6 +390,16 @@ func (s *ServiceImpl) RetireInstance(ctx context.Context, probeID string, instan
 // MARK: FindInstanceConnections
 func (s *ServiceImpl) FindInstanceConnections(ctx context.Context, probeID string, since time.Time) ([]*InstanceConnection, error) {
 	return s.repo.FindInstanceConnections(ctx, probeID, since)
+}
+
+// MARK: ClaimPendingAssignment
+func (s *ServiceImpl) ClaimPendingAssignment(ctx context.Context, id string) (bool, error) {
+	return s.repo.ClaimPendingAssignment(ctx, id)
+}
+
+// MARK: SetPendingAssignment
+func (s *ServiceImpl) SetPendingAssignment(ctx context.Context, id string) error {
+	return s.repo.SetPendingAssignment(ctx, id)
 }
 
 // MARK: MarkOnline

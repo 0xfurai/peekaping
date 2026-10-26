@@ -139,6 +139,11 @@ func (m *MockMonitorService) RepairStoredStatuses(ctx context.Context) (int, err
 	return args.Int(0), args.Error(1)
 }
 
+func (m *MockMonitorService) AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error) {
+	args := m.Called(ctx, probeID, supportedTypes, claim)
+	return args.Int(0), args.Error(1)
+}
+
 func (m *MockMonitorService) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error) {
 	args := m.Called(ctx, probeID, page, limit)
 	return args.Get(0).([]*shared.Monitor), args.Error(1)
