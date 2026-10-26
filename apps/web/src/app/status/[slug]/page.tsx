@@ -313,7 +313,7 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            {monitor.uptime_24h !== undefined && (
+                            {monitor.uptime_24h != null && (
                               <Badge
                                 variant="outline"
                                 className="flex items-center gap-1"
