@@ -48,6 +48,8 @@ https://your-peekaping-instance.com/api/v1/badge/{monitorId}/uptime/{duration}
 
 **Example:** `Uptime (24h): 99.9%`
 
+When the monitor has no heartbeats in the period, the badge reads `N/A` in grey, not `0%`.
+
 ### Ping Badge
 
 Shows average response time for your monitor.
@@ -60,6 +62,8 @@ https://your-peekaping-instance.com/api/v1/badge/{monitorId}/ping/{duration}
 **Duration options:** Same as uptime badge
 
 **Example:** `Ping (30d): 45ms`
+
+When the monitor has no heartbeats in the period, the badge reads `N/A`.
 
 
 
