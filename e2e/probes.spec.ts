@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
-import { adminAPI, deleteCreated, randomID } from './support/api';
+import { adminAPI, createWebhookChannel, deleteCreated, randomID } from './support/api';
+import { webhookURL } from './support/fake-target';
 
 // Deletes the probes a spec made, whatever name they ended up with, so reruns
 // start clean and a spec that failed halfway leaves nothing behind.
@@ -26,6 +27,12 @@ test('A probe is created, its token rotated and the probe deleted', async ({ pag
   try {
     await page.getByTestId('create-entity').click();
     const createDialog = page.getByRole('dialog', { name: 'Create probe' });
+    // A new probe asks only for a name and a location: with no channels of its own it notifies
+    // the channels of its monitors.
+    await expect(createDialog.locator('input[name="name"]')).toBeVisible();
+    await expect(createDialog.locator('input[name="location"]')).toBeVisible();
+    await expect(createDialog.getByText('Notification channels')).toHaveCount(0);
+    await expect(createDialog.getByRole('combobox')).toHaveCount(0);
     await createDialog.locator('input[name="name"]').fill(probeName);
     await createDialog.getByRole('button', { name: 'Create probe' }).click();
 
@@ -85,5 +92,61 @@ test('A probe is edited and disabled', async ({ page }) => {
     await expect(row.getByText('Disabled')).toBeVisible();
   } finally {
     await deleteProbes(page, [probeName, renamed]);
+  }
+});
+
+test("A probe's channels are set and cleared in the edit form", async ({ page }) => {
+  const id = randomID();
+  const probeName = `E2E probe ${id}`;
+  const channelName = `E2E probe channel ${id}`;
+  const hint = "Leave empty to notify the channels of this probe's monitors.";
+  const api = await adminAPI(page);
+  const created: string[] = [];
+
+  try {
+    const channel = await createWebhookChannel(api, channelName, webhookURL(id));
+    created.push(`notification-channels/${channel.id}`);
+    const response = await api.post('probes', { data: { name: probeName } });
+    expect(response.status(), await response.text()).toBe(201);
+    const probe: { id: string } = (await response.json()).data;
+    created.push(`probes/${probe.id}`);
+
+    const channelIDs = async () => {
+      const read = await api.get(`probes/${probe.id}`);
+      expect(read.status(), await read.text()).toBe(200);
+      return (await read.json()).data.notification_ids;
+    };
+    expect(await channelIDs()).toEqual([]);
+
+    await page.goto('/probes');
+    const openEditDialog = async () => {
+      await page.getByRole('row', { name: new RegExp(probeName) }).getByRole('button', { name: 'Edit probe' }).click();
+      const dialog = page.getByRole('dialog', { name: 'Edit probe' });
+      await expect(dialog.getByText('Notification channels')).toBeVisible();
+      await expect(dialog.getByText(hint)).toBeVisible();
+      return dialog;
+    };
+
+    // Add the channel
+    let dialog = await openEditDialog();
+    await dialog.getByRole('combobox', { name: 'Add Notifier' }).click();
+    await page.getByRole('option', { name: channelName }).click();
+    await expect(dialog.getByText(channelName)).toBeVisible();
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByText('Probe updated successfully')).toBeVisible();
+    await expect(dialog).toHaveCount(0);
+    await expect.poll(channelIDs).toEqual([channel.id]);
+
+    // Remove it again
+    dialog = await openEditDialog();
+    await expect(dialog.getByText(channelName)).toBeVisible();
+    await dialog.getByRole('button', { name: `Remove ${channelName}` }).click();
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect.poll(channelIDs).toEqual([]);
+  } finally {
+    // The probe goes first, then the channel it pointed at.
+    for (const path of created.reverse()) await deleteCreated(api, path);
+    await api.dispose();
   }
 });
