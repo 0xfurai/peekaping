@@ -94,34 +94,23 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 
 	startTime := time.Now().UTC()
 
-	// Validate configuration before execution
+	// Validate configuration before execution, and before connecting: a
+	// query that isn't allowed is Down even when nothing listens.
 	if err := ValidateConnectionString(cfg.DatabaseConnectionString, []string{"postgres", "postgresql"}); err != nil {
 		return DownResult(fmt.Errorf("connection string validation failed: %w", err), startTime, time.Now().UTC())
 	}
 
-	config, err := p.parseConnectionString(cfg.DatabaseConnectionString)
+	query := cfg.DatabaseQuery
+	if strings.TrimSpace(query) == "" {
+		query = "SELECT 1"
+	} else if err := p.validateQuery(query); err != nil {
+		return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
+	}
+
+	connector, err := newPostgresConnector(cfg.DatabaseConnectionString)
 	if err != nil {
 		return DownResult(fmt.Errorf("failed to parse connection string: %w", err), startTime, time.Now().UTC())
 	}
-
-	if sslStr, ok := config["sslmode"]; ok && sslStr != "" {
-		config["sslmode"] = sslStr
-	} else {
-		config["sslmode"] = "disable"
-	}
-
-	if config["password"] == "" {
-		return DownResult(fmt.Errorf("password is undefined"), startTime, time.Now().UTC())
-	}
-
-	connector := pgdriver.NewConnector(
-		pgdriver.WithNetwork("tcp"),
-		pgdriver.WithAddr(net.JoinHostPort(config["host"], config["port"])),
-		pgdriver.WithUser(config["user"]),
-		pgdriver.WithPassword(config["password"]),
-		pgdriver.WithDatabase(config["dbname"]),
-		pgdriver.WithInsecure(config["sslmode"] == "disable"),
-	)
 
 	db := sql.OpenDB(connector)
 	defer db.Close()
@@ -131,16 +120,6 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 
 	if err := db.PingContext(ctx); err != nil {
 		return DownResult(fmt.Errorf("connection failed: %w", err), startTime, time.Now().UTC())
-	}
-
-	query := cfg.DatabaseQuery
-	if query == "" || strings.TrimSpace(query) == "" {
-		query = "SELECT 1"
-	} else {
-		// Validate query before execution
-		if err := p.validateQuery(query); err != nil {
-			return DownResult(fmt.Errorf("query validation failed: %w", err), startTime, time.Now().UTC())
-		}
 	}
 
 	rows, err := db.QueryContext(ctx, query)
@@ -181,47 +160,59 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 	}
 }
 
-func (p *PostgresExecutor) parseConnectionString(connectionString string) (map[string]string, error) {
-	config := make(map[string]string)
-
-	parsedURL, err := url.Parse(connectionString)
+// newPostgresConnector builds the connector for a postgres:// connection
+// string. pgdriver reads the string itself, so it maps sslmode to a TLS
+// configuration: require encrypts without checking the certificate, and
+// verify-ca and verify-full check it against the system's roots.
+//
+// Three things differ from reading the string as it stands:
+//   - A missing or empty sslmode means no TLS, as it always has here. pgdriver's
+//     own default would be TLS without checking the certificate.
+//   - sslrootcert is dropped: it names a file on the Peekaping server, not on the
+//     machine the user's client runs on.
+//   - host is dropped: pgdriver reads a path in it as a Unix socket, and the
+//     check must only reach the host and port of the URL.
+func newPostgresConnector(connectionString string) (connector *pgdriver.Connector, err error) {
+	u, err := url.Parse(connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("invalid connection string format: %w", err)
 	}
-
-	if parsedURL.Scheme != "postgres" && parsedURL.Scheme != "postgresql" {
-		return nil, fmt.Errorf("invalid scheme: %s", parsedURL.Scheme)
+	if u.Scheme != "postgres" && u.Scheme != "postgresql" {
+		return nil, fmt.Errorf("invalid scheme: %s", u.Scheme)
+	}
+	if u.User == nil {
+		return nil, fmt.Errorf("password is undefined")
+	}
+	if password, _ := u.User.Password(); password == "" {
+		return nil, fmt.Errorf("password is undefined")
 	}
 
-	if parsedURL.User != nil {
-		config["user"] = parsedURL.User.Username()
-		if password, ok := parsedURL.User.Password(); ok {
-			config["password"] = password
+	port := u.Port()
+	if port == "" {
+		port = "5432"
+	}
+	query := u.Query()
+	query.Del("sslrootcert")
+	query.Del("host")
+	noSSLMode := query.Get("sslmode") == ""
+	if noSSLMode {
+		query.Del("sslmode")
+	}
+	u.RawQuery = query.Encode()
+
+	// pgdriver panics on a string it can't use, such as an unknown sslmode.
+	defer func() {
+		if r := recover(); r != nil {
+			connector, err = nil, fmt.Errorf("%v", r)
 		}
+	}()
+	options := []pgdriver.Option{
+		pgdriver.WithDSN(u.String()),
+		// After the DSN, which would leave an IPv6 host without a port as it is.
+		pgdriver.WithAddr(net.JoinHostPort(u.Hostname(), port)),
 	}
-
-	if parsedURL.Host != "" {
-		host := parsedURL.Host
-		if strings.Contains(host, ":") {
-			parts := strings.Split(host, ":")
-			config["host"] = parts[0]
-			config["port"] = parts[1]
-		} else {
-			config["host"] = host
-			config["port"] = "5432"
-		}
+	if noSSLMode {
+		options = append(options, pgdriver.WithInsecure(true))
 	}
-
-	if parsedURL.Path != "" && parsedURL.Path != "/" {
-		config["dbname"] = strings.TrimPrefix(parsedURL.Path, "/")
-	}
-
-	queryParams := parsedURL.Query()
-	for key, values := range queryParams {
-		if len(values) > 0 {
-			config[key] = values[0]
-		}
-	}
-
-	return config, nil
+	return pgdriver.NewConnector(options...), nil
 }
