@@ -8,10 +8,10 @@
 #   PEE_TEST_KAFKA_BROKER='127.0.0.1:19092' PEE_TEST_KAFKA_SASL_BROKER='127.0.0.1:19093' \
 #   PEE_TEST_POSTGRES_EXECUTOR_URL='postgres://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:15432/peekaping' \
 #   PEE_TEST_MYSQL_URL='mysql://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:13306/peekaping' \
-
 #   PEE_TEST_MONGODB_URL='mongodb://root:integration-test-password@127.0.0.1:27018' \
 #   PEE_TEST_MONGODB_RS_URL='mongodb://127.0.0.1:27019' \
 #   PEE_TEST_SQLSERVER_URL='sqlserver://sa:Pe%3Be%3DK%7Bing%7D9z@127.0.0.1:11433' \
+#   PEE_TEST_RABBITMQ_URL='http://peekaping:p%40ss%3Aw%2Frd%251@127.0.0.1:15673' \
 #     go test -tags integration -count=1 ./internal/modules/healthcheck/executor/...
 #   docker compose -f docker-compose.integration.yml down
 #
@@ -195,3 +195,23 @@ services:
       timeout: 10s
       retries: 100
       start_period: 20s
+
+  # The same broker internal/testservice/rabbitmq.go starts, with the management
+  # port fixed at 127.0.0.1:15673. Its only user is peekaping, with the password
+  # p@ss:w/rd%1: the characters a URL reserves, which the tests check reach the
+  # broker intact. PEE_TEST_RABBITMQ_URL carries the password percent-encoded.
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: peekaping
+      RABBITMQ_DEFAULT_PASS: "p@ss:w/rd%1"
+    ports:
+      - "127.0.0.1:15673:15672"
+    healthcheck:
+      # The request the executor makes, signed in as the tests' user, so it
+      # passes only once the management API answers 200 for that user.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://peekaping:p%40ss%3Aw%2Frd%251@127.0.0.1:15672/api/health/checks/alarms/"]
+      interval: 2s
+      timeout: 10s
+      retries: 60
+      start_period: 5s
