@@ -231,6 +231,8 @@ func TestFindByMonitorIDPaginatedFiltersImportantHeartbeats(t *testing.T) {
 	})
 }
 
+func percent(v float64) *float64 { return &v }
+
 // Only Up and Down heartbeats here: how Pending and Maintenance count is
 // PP-183.
 func TestUptimeIsTheShareOfUpHeartbeatsInEachPeriod(t *testing.T) {
@@ -239,10 +241,14 @@ func TestUptimeIsTheShareOfUpHeartbeatsInEachPeriod(t *testing.T) {
 
 		empty, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorA, map[string]time.Duration{"1h": time.Hour}, time.Now())
 		require.NoError(t, err)
-		assert.Equal(t, map[string]float64{"1h": 0}, empty)
+		assert.Equal(t, map[string]*float64{"1h": nil}, empty, "no heartbeats in the period is nil, not 0")
 
 		b.heartbeat(t, b.monitorA, shared.MonitorStatusDown, "", false)
 		b.heartbeat(t, b.monitorA, shared.MonitorStatusDown, "", false)
+		onlyDown, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorA, map[string]time.Duration{"1h": time.Hour}, time.Now())
+		require.NoError(t, err)
+		assert.Equal(t, map[string]*float64{"1h": percent(0)}, onlyDown, "only Down heartbeats is 0%, which is not no data")
+
 		b.heartbeat(t, b.monitorB, shared.MonitorStatusUp, "", false)
 		b.heartbeat(t, b.monitorB, shared.MonitorStatusDown, "", false)
 		time.Sleep(10 * time.Millisecond)
@@ -257,16 +263,16 @@ func TestUptimeIsTheShareOfUpHeartbeatsInEachPeriod(t *testing.T) {
 		periods := map[string]time.Duration{"1h": time.Hour, "half": now.Sub(cutoff)}
 		statsA, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorA, periods, now)
 		require.NoError(t, err)
-		assert.Equal(t, map[string]float64{"1h": 50, "half": 75}, statsA)
+		assert.Equal(t, map[string]*float64{"1h": percent(50), "half": percent(75)}, statsA)
 
 		statsB, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorB, periods, now)
 		require.NoError(t, err)
-		assert.Equal(t, map[string]float64{"1h": 50, "half": 0}, statsB)
+		assert.Equal(t, map[string]*float64{"1h": percent(50), "half": nil}, statsB, "no heartbeats since the cutoff is nil")
 
 		// A minute on, the last 30 seconds hold no heartbeats.
 		later, err := b.svc.FindUptimeStatsByMonitorID(ctx, b.monitorA, map[string]time.Duration{"30s": 30 * time.Second}, now.Add(time.Minute))
 		require.NoError(t, err)
-		assert.Equal(t, map[string]float64{"30s": 0}, later)
+		assert.Equal(t, map[string]*float64{"30s": nil}, later)
 	})
 }
 

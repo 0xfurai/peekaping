@@ -206,11 +206,10 @@ func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatL
 			return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
 		}
 
-		uptime24h := 0.0
+		// nil when the monitor has no heartbeat in the day: not 0%, which would read as an outage
+		var uptime24h *float64
 		if uptimeStats != nil {
-			if uptime, exists := uptimeStats["24h"]; exists {
-				uptime24h = uptime
-			}
+			uptime24h = uptimeStats["24h"]
 		}
 
 		monitorWithData := &MonitorWithHeartbeatsAndUptimeDTO{
