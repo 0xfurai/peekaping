@@ -52,7 +52,20 @@ type Repository interface {
 	// not (or does not exist): of two callers racing to make the same change, one hears true. A
 	// disabled probe can be set offline but not online, since nothing can have heard from it: its
 	// token is refused, and a request that began before an admin disabled it must not bring it back.
-	UpdateStatus(ctx context.Context, id string, from Status, to Status) (bool, error)
+	//
+	// at is when the status really changed, which is recorded in the probe's history: in the same
+	// transaction as the update, the one ctx carries or one of its own, and only when the update
+	// changed the probe. A time before the probe's latest recorded change is recorded as that
+	// change's time, so that the probe's periods never run backwards.
+	UpdateStatus(ctx context.Context, id string, from Status, to Status, at time.Time) (bool, error)
+	// FindStatusChanges returns the probe's history from since on: its latest change at or before
+	// since, which is the status it carries into the range (none when the probe has no change that
+	// old), then every change after since. They are in the order they happened.
+	FindStatusChanges(ctx context.Context, probeID string, since time.Time) ([]*StatusChange, error)
+	// DeleteStatusChangesOlderThan removes the changes before the given time, except each probe's
+	// latest one before it, so that a probe's status at the start of any range after it is still
+	// known. It returns how many it removed.
+	DeleteStatusChangesOlderThan(ctx context.Context, before time.Time) (int, error)
 	// DeleteInstancesUnseenSince removes the instances of every probe that were last seen before
 	// the given time, and returns how many it removed
 	DeleteInstancesUnseenSince(ctx context.Context, before time.Time) (int, error)

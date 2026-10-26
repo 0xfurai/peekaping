@@ -245,7 +245,16 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 
 	switch {
 	case p.Status == StatusOnline && quiet && !grace:
-		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOnline, StatusOffline)
+		since := lastSeen
+		if len(instances) == 0 {
+			// There is no instance to have seen it last: they were pruned, as after a server outage
+			// longer than InstanceRetention. (An instance that says bye is retired, not removed, so
+			// it counts from the time it was left with.)
+			since = now
+		}
+		// The probe went offline when it was last seen, which the history records, and not when
+		// the sweep found out
+		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOnline, StatusOffline, since.UTC())
 		if err != nil {
 			s.logger.Errorw("Failed to set a probe offline", "probeId", p.ID, "error", err)
 			return
@@ -253,13 +262,6 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 		if !changed {
 			// Another sweep, or a request, got there first
 			return
-		}
-		since := lastSeen
-		if len(instances) == 0 {
-			// There is no instance to have seen it last: they were pruned, as after a server outage
-			// longer than InstanceRetention. (An instance that says bye is retired, not removed, so
-			// it counts from the time it was left with.)
-			since = now
 		}
 		s.logger.Infow("Probe is offline", "probeId", p.ID, "name", p.Name, "since", since, "disabled", p.Disabled)
 		s.markAnnounced(ctx, p)
@@ -270,7 +272,7 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 		publish(ctx, s, ProbeOffline, Event{ProbeID: p.ID, ProbeName: p.Name, Since: since.UTC()})
 	// A disabled probe's token is refused, so no request can have brought it back
 	case p.Status == StatusOffline && !quiet && !p.Disabled:
-		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOffline, StatusOnline)
+		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOffline, StatusOnline, lastSeen.UTC())
 		if err != nil {
 			s.logger.Errorw("Failed to set a probe online", "probeId", p.ID, "error", err)
 			return

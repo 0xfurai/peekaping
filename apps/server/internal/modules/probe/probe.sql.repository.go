@@ -95,14 +95,32 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	}
 }
 
+type sqlStatusChange struct {
+	bun.BaseModel `bun:"table:probe_status_changes,alias:psc"`
+
+	ID      string    `bun:"id,pk"`
+	ProbeID string    `bun:"probe_id,notnull"`
+	Status  string    `bun:"status,notnull"`
+	At      time.Time `bun:"at,notnull"`
+	// RecordedAt is when the row was stored. It orders the changes that share an At.
+	RecordedAt time.Time `bun:"recorded_at,notnull"`
+}
+
+func toDomainStatusChange(sc *sqlStatusChange) *StatusChange {
+	return &StatusChange{ProbeID: sc.ProbeID, Status: Status(sc.Status), At: sc.At}
+}
+
 // SQLRepositoryImpl runs its queries on the transaction ctx carries (see dbtx), or on db
 type SQLRepositoryImpl struct {
 	db *bun.DB
+	// transactor makes the methods that write several rows one transaction: it joins the one ctx
+	// carries, or opens its own
+	transactor dbtx.Transactor
 }
 
 // MARK: Constructor
 func NewSQLRepository(db *bun.DB) Repository {
-	return &SQLRepositoryImpl{db: db}
+	return &SQLRepositoryImpl{db: db, transactor: dbtx.NewSQLTransactor(db)}
 }
 
 // MARK: Create
@@ -123,7 +141,14 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, probe *CreateModel) (*Mo
 		CreatedAt:      now,
 		UpdatedAt:      now,
 	}
-	if _, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Exec(ctx); err != nil {
+	// The probe and the first row of its history are stored together
+	err := r.transactor.WithTx(ctx, func(ctx context.Context) error {
+		if _, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Exec(ctx); err != nil {
+			return err
+		}
+		return r.insertStatusChange(ctx, id, StatusOffline, now)
+	})
+	if err != nil {
 		return nil, err
 	}
 	// Read the row back, so the caller sees the timestamps as the database stores them: a
@@ -390,25 +415,108 @@ func (r *SQLRepositoryImpl) RetireInstance(ctx context.Context, probeID string, 
 }
 
 // MARK: UpdateStatus
-func (r *SQLRepositoryImpl) UpdateStatus(ctx context.Context, id string, from Status, to Status) (bool, error) {
-	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
-		Set("status = ?", string(to)).
-		Set("updated_at = ?", time.Now().UTC()).
-		Where("id = ?", id).
-		Where("status = ?", string(from))
-	if to == StatusOnline {
-		// A request that authenticated an enabled probe may be answered after an admin disabled it
-		query = query.Where("disabled = ?", false)
-	}
-	result, err := query.Exec(ctx)
+func (r *SQLRepositoryImpl) UpdateStatus(ctx context.Context, id string, from Status, to Status, at time.Time) (bool, error) {
+	changed := false
+	// The update and the row of the history are one transaction, joined to the caller's when
+	// there is one. Of two callers making the same change, the later update finds the status
+	// moved already (PostgreSQL makes it wait for the first to commit), changes no row, and
+	// records nothing.
+	err := r.transactor.WithTx(ctx, func(ctx context.Context) error {
+		db := dbtx.DB(ctx, r.db)
+		query := db.NewUpdate().Model((*sqlModel)(nil)).
+			Set("status = ?", string(to)).
+			Set("updated_at = ?", time.Now().UTC()).
+			Where("id = ?", id).
+			Where("status = ?", string(from))
+		if to == StatusOnline {
+			// A request that authenticated an enabled probe may be answered after an admin disabled it
+			query = query.Where("disabled = ?", false)
+		}
+		result, err := query.Exec(ctx)
+		if err != nil {
+			return err
+		}
+		rows, err := result.RowsAffected()
+		if err != nil || rows == 0 {
+			return err
+		}
+		changed = true
+
+		// The change is not recorded before the one it follows
+		latest := new(sqlStatusChange)
+		err = db.NewSelect().Model(latest).Where("probe_id = ?", id).
+			OrderExpr("at DESC, recorded_at DESC").Limit(1).Scan(ctx)
+		switch {
+		case err == nil:
+			if at.Before(latest.At) {
+				at = latest.At
+			}
+		case !errors.Is(err, sql.ErrNoRows):
+			return err
+		}
+		return r.insertStatusChange(ctx, id, to, at)
+	})
 	if err != nil {
 		return false, err
 	}
-	changed, err := result.RowsAffected()
-	if err != nil {
-		return false, err
+	return changed, nil
+}
+
+// insertStatusChange adds a row to the probe's history, on the transaction ctx carries
+func (r *SQLRepositoryImpl) insertStatusChange(ctx context.Context, probeID string, status Status, at time.Time) error {
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(&sqlStatusChange{
+		ID:         uuid.New().String(),
+		ProbeID:    probeID,
+		Status:     string(status),
+		At:         at.UTC(),
+		RecordedAt: time.Now().UTC(),
+	}).Exec(ctx)
+	return err
+}
+
+// MARK: FindStatusChanges
+func (r *SQLRepositoryImpl) FindStatusChanges(ctx context.Context, probeID string, since time.Time) ([]*StatusChange, error) {
+	db := dbtx.DB(ctx, r.db)
+	changes := []*StatusChange{}
+
+	carried := new(sqlStatusChange)
+	err := db.NewSelect().Model(carried).Where("probe_id = ?", probeID).Where("at <= ?", since.UTC()).
+		OrderExpr("at DESC, recorded_at DESC").Limit(1).Scan(ctx)
+	switch {
+	case err == nil:
+		changes = append(changes, toDomainStatusChange(carried))
+	case !errors.Is(err, sql.ErrNoRows):
+		return nil, err
 	}
-	return changed > 0, nil
+
+	var after []*sqlStatusChange
+	err = db.NewSelect().Model(&after).Where("probe_id = ?", probeID).Where("at > ?", since.UTC()).
+		OrderExpr("at ASC, recorded_at ASC").Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, sc := range after {
+		changes = append(changes, toDomainStatusChange(sc))
+	}
+	return changes, nil
+}
+
+// MARK: DeleteStatusChangesOlderThan
+func (r *SQLRepositoryImpl) DeleteStatusChangesOlderThan(ctx context.Context, before time.Time) (int, error) {
+	// A change goes when the probe has a later one before the cutoff: the latest stays
+	result, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlStatusChange)(nil)).
+		Where("at < ?", before.UTC()).
+		Where(`EXISTS (SELECT 1 FROM probe_status_changes newer WHERE newer.probe_id = psc.probe_id AND newer.at < ? AND
+			(newer.at > psc.at OR (newer.at = psc.at AND (newer.recorded_at > psc.recorded_at OR (newer.recorded_at = psc.recorded_at AND newer.id > psc.id)))))`, before.UTC()).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	removed, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(removed), nil
 }
 
 // MARK: DeleteInstancesUnseenSince

@@ -516,7 +516,7 @@ func TestProbeProtocol_RequestBringsAnOfflineProbeOnline(t *testing.T) {
 		a.sayHello(t, made.Token, instanceID)
 		require.Equal(t, "online", a.getProbe(t, made.ID).Status, "the first hello brings the probe online")
 		require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
-			changed, err := probes.MarkOffline(context.Background(), made.ID)
+			changed, err := probes.MarkOffline(context.Background(), made.ID, time.Now())
 			require.True(t, changed)
 			return err
 		}))
@@ -589,7 +589,7 @@ func TestProbeProtocol_ADisabledProbeIsNotBroughtOnline(t *testing.T) {
 	instanceID := uuid.NewString()
 	a.sayHello(t, made.Token, instanceID)
 	require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
-		changed, err := probes.MarkOffline(context.Background(), made.ID)
+		changed, err := probes.MarkOffline(context.Background(), made.ID, time.Now())
 		require.True(t, changed)
 		return err
 	}))

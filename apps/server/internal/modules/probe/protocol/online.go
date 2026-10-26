@@ -26,7 +26,7 @@ func cameBack(ctx context.Context, probes probe.Service, bus events.EventBus, lo
 	if p.Status != probe.StatusOffline {
 		return
 	}
-	changed, err := probes.MarkOnline(ctx, p.ID)
+	changed, err := probes.MarkOnline(ctx, p.ID, at)
 	if err != nil {
 		logger.Warnw("Failed to set a probe online, the sweep will", "probeId", p.ID, "error", err)
 		return

@@ -87,6 +87,33 @@ type Instance struct {
 	LastSeenAt     time.Time
 }
 
+// StatusChange is one time a probe went online or offline: its status from At on, until the next
+// change. The history of a probe starts with the change that made it, as offline, and the status a
+// probe has at any time is that of its latest change at or before it.
+type StatusChange struct {
+	ProbeID string
+	Status  Status
+	// At is when the status really changed: the time the probe's instances were last seen, for a
+	// probe that went offline, and not the time the server noticed
+	At time.Time
+}
+
+// InstanceConnection is one stretch of time that a probe instance was connected. It starts when
+// the instance says hello, or at its first request after more than InstanceOnlineWindow of quiet,
+// and it ends when the instance says bye or at the instance's last request.
+type InstanceConnection struct {
+	InstanceID string
+	ProbeID    string
+	StartedAt  time.Time
+	// LastSeenAt is the latest time the connection is known to have lasted to: the instance's last
+	// request, or the bye. A connection with no EndedAt ended here, unless the instance is still
+	// talking.
+	LastSeenAt time.Time
+	// EndedAt is when the instance said bye. It is nil for a connection that ended by going quiet,
+	// and for one that is still open.
+	EndedAt *time.Time
+}
+
 // ModelWithToken is a probe with its plain text token. Only creating a probe and rotating its
 // token return it: the token is stored only as a hash.
 type ModelWithToken struct {

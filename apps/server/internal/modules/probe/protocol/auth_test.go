@@ -43,9 +43,10 @@ type stubProbes struct {
 	mu sync.Mutex
 
 	// markOnline is what MarkOnline answers: whether this caller changed the probe's status
-	markOnline    bool
-	markOnlineErr error
-	markedOnline  []string // the ids of the probes MarkOnline was asked about
+	markOnline     bool
+	markOnlineErr  error
+	markedOnline   []string    // the ids of the probes MarkOnline was asked about
+	markedOnlineAt []time.Time // the times it was given, in the same order
 }
 
 type touch struct {
@@ -79,10 +80,11 @@ func (s *stubProbes) TouchInstance(ctx context.Context, probeID, id string, at t
 	return s.known[probeID+"/"+id], s.touchErr
 }
 
-func (s *stubProbes) MarkOnline(ctx context.Context, id string) (bool, error) {
+func (s *stubProbes) MarkOnline(ctx context.Context, id string, at time.Time) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.markedOnline = append(s.markedOnline, id)
+	s.markedOnlineAt = append(s.markedOnlineAt, at)
 	return s.markOnline, s.markOnlineErr
 }
 
@@ -298,6 +300,10 @@ func TestKnownInstance_BringsAnOfflineProbeOnlineAndSaysSo(t *testing.T) {
 	assert.Equal(t, "probe-1", online[0].ProbeID)
 	assert.Equal(t, "Frankfurt", online[0].ProbeName)
 	assert.WithinDuration(t, time.Now(), online[0].Since, time.Minute, "since is the time of the request that brought the probe back")
+	require.Len(t, stub.markedOnlineAt, 1)
+	assert.True(t, stub.markedOnlineAt[0].Equal(online[0].Since), "the probe's history records the time of that request, which is the stamp's")
+	require.Len(t, stub.touched, 1)
+	assert.True(t, stub.markedOnlineAt[0].Equal(stub.touched[0].at))
 	assert.Empty(t, eventstest.Published(got.bus, probe.ProbeOffline))
 }
 
