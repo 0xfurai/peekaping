@@ -8,6 +8,9 @@
 #   PEE_TEST_KAFKA_BROKER='127.0.0.1:19092' PEE_TEST_KAFKA_SASL_BROKER='127.0.0.1:19093' \
 #   PEE_TEST_POSTGRES_EXECUTOR_URL='postgres://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:15432/peekaping' \
 #   PEE_TEST_MYSQL_URL='mysql://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:13306/peekaping' \
+#   PEE_TEST_MONGODB_URL='mongodb://root:integration-test-password@127.0.0.1:27018' \
+#   PEE_TEST_MONGODB_RS_URL='mongodb://127.0.0.1:27019' \
+#   PEE_TEST_SQLSERVER_URL='sqlserver://sa:Pe%3Be%3DK%7Bing%7D9z@127.0.0.1:11433' \
 #   PEE_TEST_RABBITMQ_URL='http://peekaping:p%40ss%3Aw%2Frd%251@127.0.0.1:15673' \
 #     go test -tags integration -count=1 ./internal/modules/healthcheck/executor/...
 #   docker compose -f docker-compose.integration.yml down
@@ -124,6 +127,74 @@ services:
       timeout: 5s
       retries: 60
       start_period: 5s
+
+  # The same server internal/testservice/mongodb.go starts: a standalone
+  # MongoDB with the root user root, whose password is integration-test-password
+  # (in the admin database). The tests check a wrong password and a wrong
+  # authSource against it.
+  mongodb:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: integration-test-password
+    ports:
+      - "127.0.0.1:27018:27017"
+    healthcheck:
+      # The image runs a temporary server on a socket to create the user, then
+      # restarts. Signing in over TCP answers only once the final server is up.
+      test: ["CMD", "mongosh", "--quiet", "--host", "127.0.0.1", "-u", "root", "-p", "integration-test-password", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
+      interval: 2s
+      timeout: 10s
+      retries: 30
+      start_period: 5s
+
+  # A single-node replica set named rs0, without authentication (a replica set
+  # with it needs a key file; the tests that sign in use the server above). The
+  # node listens on the port it is published on and registers itself as
+  # 127.0.0.1:27019, so a client that discovers the members from the host
+  # reaches the same address. The health check initiates the set the first
+  # time and passes once the node is primary.
+  mongodb-rs:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--port", "27019", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27019:27019"
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --port
+        - "27019"
+        - --quiet
+        - --eval
+        - |
+          try { rs.status() } catch (e) { rs.initiate({_id: "rs0", members: [{_id: 0, host: "127.0.0.1:27019"}]}) }
+          quit(db.hello().isWritablePrimary ? 0 : 1)
+      interval: 2s
+      timeout: 10s
+      retries: 30
+      start_period: 5s
+
+  # The same server internal/testservice/sqlserver.go starts, user sa. Its
+  # password holds ";", "=", "{" and "}" on purpose: the tests check that a
+  # connection string carries them to the server intact. The image is for
+  # x86-64 only, so "platform" makes an Arm machine emulate it, which can take
+  # minutes to start. The health check signs in with the password from the
+  # container's environment.
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Pe;e=K{ing}9z"
+    ports:
+      - "127.0.0.1:11433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b"]
+      interval: 3s
+      timeout: 10s
+      retries: 100
+      start_period: 20s
 
   # The same broker internal/testservice/rabbitmq.go starts, with the management
   # port fixed at 127.0.0.1:15673. Its only user is peekaping, with the password

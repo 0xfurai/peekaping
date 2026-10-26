@@ -1,0 +1,103 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.875rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.cols2 {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem 1.25rem 1.35rem;
+  border-radius: 16px;
+  border: 1px solid var(--pk-hairline);
+  background: linear-gradient(180deg, var(--pk-surface), transparent);
+  color: var(--ifm-font-color-base);
+  overflow: hidden;
+  isolation: isolate;
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Glow that follows the pointer */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 0%), var(--pk-glow), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover {
+  border-color: var(--pk-hairline-strong);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.linked {
+  text-decoration: none !important;
+}
+
+.linked:hover {
+  color: var(--ifm-font-color-base);
+  transform: translateY(-2px);
+  box-shadow: 0 24px 48px -28px rgba(124, 58, 237, 0.6);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 12px;
+  color: var(--ifm-color-primary);
+  background: var(--ifm-menu-color-background-active);
+  border: 1px solid var(--pk-hairline-strong);
+}
+
+.icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 1.025rem;
+  letter-spacing: -0.01em;
+  color: var(--ifm-heading-color);
+}
+
+.arrow {
+  color: var(--ifm-color-primary);
+  transition: transform 0.25s ease;
+}
+
+.linked:hover .arrow {
+  transform: translateX(3px);
+}
+
+.text {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ifm-color-content-secondary);
+}
+
+/* MDX wraps card text in paragraphs */
+.text > p:last-child {
+  margin-bottom: 0;
+}

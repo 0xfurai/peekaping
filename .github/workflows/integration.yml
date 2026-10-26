@@ -37,9 +37,14 @@ jobs:
           go-version: '1.26.4'
           cache-dependency-path: apps/server/go.sum
 
-      # --wait returns once every service's health check passes
+      # --wait returns once every service's health check passes. SQL Server is
+      # the slow one, so the step reports how long the start took; the job's own
+      # wall-clock time is on the run's page.
       - name: Start the services
-        run: docker compose -f apps/server/docker-compose.integration.yml up -d --wait
+        run: |
+          start=$(date +%s)
+          docker compose -f apps/server/docker-compose.integration.yml up -d --wait
+          echo "All services healthy after $(( $(date +%s) - start ))s" | tee -a "$GITHUB_STEP_SUMMARY"
 
       # GitHub sets CI=true, so a test that can't find its service fails
       # instead of skipping. The addresses are the ports the compose file binds.
@@ -54,6 +59,9 @@ jobs:
           # The password is percent-encoded: p@ss:w/rd%1?x
           PEE_TEST_POSTGRES_EXECUTOR_URL: postgres://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:15432/peekaping
           PEE_TEST_MYSQL_URL: mysql://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:13306/peekaping
+          PEE_TEST_MONGODB_URL: mongodb://root:integration-test-password@127.0.0.1:27018
+          PEE_TEST_MONGODB_RS_URL: mongodb://127.0.0.1:27019
+          PEE_TEST_SQLSERVER_URL: sqlserver://sa:Pe%3Be%3DK%7Bing%7D9z@127.0.0.1:11433
           # The password, p@ss:w/rd%1, is percent-encoded in the URL.
           PEE_TEST_RABBITMQ_URL: http://peekaping:p%40ss%3Aw%2Frd%251@127.0.0.1:15673
         # The profile counts the executors' statements, so the pull request shows
