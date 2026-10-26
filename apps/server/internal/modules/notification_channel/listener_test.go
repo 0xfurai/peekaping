@@ -780,6 +780,25 @@ func TestNotificationListener_ProbeWithoutChannelsNotifiesItsMonitorsChannels(t 
 	assert.Equal(t, map[string][]string{channelConfig("b"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC", "Probe Frankfurt is online"}}, email.sentMessagesByChannel())
 }
 
+func TestNotificationListener_ProbeFallbackSendsToASharedChannelOnce(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProbeMonitor("mon-1", "probe-1")
+	f.addProbeMonitor("mon-2", "probe-1")
+	sharedChannel := testChannel("a", "test-slack")
+	f.attach("mon-1", sharedChannel)
+	f.attach("mon-2", sharedChannel)
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
+
+	assert.Equal(t, []string{
+		"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC",
+		"Probe Frankfurt is online",
+	}, slack.sentMessages(), "one offline and one online, not one for each monitor")
+}
+
 // The real PagerDuty sender decides from the stand-in's status, since a probe's notification has no
 // heartbeat, so this checks what PagerDuty receives: one incident, opened and then resolved.
 func TestNotificationListener_ProbeOfflineThenOnlineOpensAndResolvesOnePagerDutyIncident(t *testing.T) {
