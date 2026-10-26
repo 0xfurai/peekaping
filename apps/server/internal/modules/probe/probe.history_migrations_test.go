@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"github.com/uptrace/bun/migrate"
 )
 
@@ -87,10 +88,13 @@ func TestMigrations_ProbeHistoryTablesGoDownAndComeBack(t *testing.T) {
 		_, err := upgrade.Migrate(ctx)
 		require.NoError(t, err)
 		tables := func() int {
-			n, err := db.NewSelect().Table("information_schema.tables").Where("table_name IN ('probe_status_changes', 'probe_instance_connections')").Count(ctx)
-			if err != nil { // SQLite has no information_schema
-				n, err = db.NewSelect().Table("sqlite_master").Where("name IN ('probe_status_changes', 'probe_instance_connections')").Count(ctx)
+			query := db.NewSelect().Table("sqlite_master").Where("name IN ('probe_status_changes', 'probe_instance_connections')")
+			if db.Dialect().Name() == dialect.PG {
+				query = db.NewSelect().Table("information_schema.tables").
+					Where("table_schema = current_schema()").
+					Where("table_name IN ('probe_status_changes', 'probe_instance_connections')")
 			}
+			n, err := query.Count(ctx)
 			require.NoError(t, err)
 			return n
 		}
