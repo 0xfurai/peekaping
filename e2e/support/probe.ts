@@ -10,16 +10,24 @@ export async function createProbe(api: APIRequestContext, name: string): Promise
 
 // Takes the probe off every monitor that still runs on it. "Assign to all monitors" puts a probe on
 // every monitor of the install, including the ones other specs made, which a probe delete refuses
-// (409) and which a spec has no business deleting.
+// (409) and which a spec has no business deleting. A monitor whose "at least" threshold is more than
+// the probes it keeps is refused (400), so it goes back to the "any" rule, which takes no threshold.
 async function detachProbe(api: APIRequestContext, probeID: string) {
   const pageSize = 1000;
   for (let pageNumber = 0; ; pageNumber++) {
     const response = await api.get('monitors', { params: { page: pageNumber, limit: pageSize } });
     expect(response.ok(), `GET monitors: ${await response.text()}`).toBeTruthy();
-    const monitors: { id: string; probe_ids: string[] }[] = (await response.json()).data ?? [];
+    const monitors: {
+      id: string;
+      probe_ids: string[];
+      location_rule?: string;
+      location_threshold?: number | null;
+    }[] = (await response.json()).data ?? [];
     for (const monitor of monitors.filter((m) => m.probe_ids.includes(probeID))) {
+      const kept = monitor.probe_ids.filter((id) => id !== probeID);
+      const tooFew = monitor.location_rule === 'at_least' && (monitor.location_threshold ?? 0) > kept.length;
       const patched = await api.patch(`monitors/${monitor.id}`, {
-        data: { probe_ids: monitor.probe_ids.filter((id) => id !== probeID) },
+        data: tooFew ? { probe_ids: kept, location_rule: 'any' } : { probe_ids: kept },
       });
       expect(patched.ok(), `PATCH monitors/${monitor.id}: ${patched.status()} ${await patched.text()}`).toBeTruthy();
     }
