@@ -189,14 +189,16 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 	if err != nil {
 		return nil, c.fail(err)
 	}
+	// The siblings hear of the instance before the assignment is tried: it is on record now, so a
+	// hello sent again after a failed assignment finds nothing changed and wouldn't tell them.
+	if changesAssignments(before, req.SupportedTypes, now) {
+		c.instancesChanged(r.Context(), owner.ID)
+	}
 	// The flag is read fresh, by the claim, now that the instance is on record, and not from the
 	// token lookup that made owner: an assign-all action that set it after that lookup is still
 	// seen. A probe that isn't waiting costs one conditional update here.
 	if err := c.assignAllMonitors(r.Context(), owner.ID, req.SupportedTypes); err != nil {
 		return nil, err
-	}
-	if changesAssignments(before, req.SupportedTypes, now) {
-		c.instancesChanged(r.Context(), owner.ID)
 	}
 	// The instance is on record, so the probe is connected. The middleware's stamp does this for
 	// every other route.

@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor"
@@ -273,10 +274,22 @@ func TestProbeAssignAll_AFailedAssignmentAnswers503AndTheRetryAssigns(t *testing
 	hello := helloFrom("instance-1")
 	hello.SupportedTypes = nil
 	lookup.broken.Store(true)
+	var changed atomic.Int32
+	require.NoError(t, a.container.Invoke(func(bus events.EventBus) {
+		events.Subscribe(events.NewSubscriber(bus, "assign-all-test"), probe.InstancesChanged, func(_ context.Context, e probe.InstancesChangedEvent) {
+			if e.ProbeID == w.probe.ID {
+				changed.Add(1)
+			}
+		})
+	}))
 
 	failed := a.request(t, http.MethodPost, helloPath, hello, asProbe(w.probe.Token, "instance-1"))
 
 	assert.Equal(t, http.StatusServiceUnavailable, failed.Code, failed.Body.String())
+	// The instance is on record despite the 503, and the retry finds nothing changed: the siblings
+	// heard of it from this hello
+	require.Eventually(t, func() bool { return changed.Load() > 0 }, 5*time.Second, 5*time.Millisecond,
+		"the failed hello told the probe's instances that one joined")
 	assert.True(t, a.getProbe(t, w.probe.ID).AssignAllPending, "the flag stays")
 	assert.Equal(t, []string{w.already}, a.monitorsOnProbe(t, w.probe.ID), "and nothing is assigned")
 
