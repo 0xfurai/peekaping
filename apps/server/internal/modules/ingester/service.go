@@ -64,11 +64,14 @@ func (s *ServiceImpl) isImportantBeat(prevBeatStatus, currBeatStatus shared.Moni
 	up := shared.MonitorStatusUp
 	down := shared.MonitorStatusDown
 	pending := shared.MonitorStatusPending
+	maintenance := shared.MonitorStatusMaintenance
 
 	return (prevBeatStatus == up && currBeatStatus == down) ||
 		(prevBeatStatus == down && currBeatStatus == up) ||
 		(prevBeatStatus == pending && currBeatStatus == up) ||
-		(prevBeatStatus == pending && currBeatStatus == down)
+		(prevBeatStatus == pending && currBeatStatus == down) ||
+		(prevBeatStatus == maintenance && currBeatStatus == up) ||
+		(prevBeatStatus == maintenance && currBeatStatus == down)
 }
 
 // isImportantForNotification checks if the beat should trigger notification
@@ -76,10 +79,12 @@ func (s *ServiceImpl) isImportantForNotification(prevBeatStatus, currBeatStatus 
 	up := shared.MonitorStatusUp
 	down := shared.MonitorStatusDown
 	pending := shared.MonitorStatusPending
+	maintenance := shared.MonitorStatusMaintenance
 
 	return (prevBeatStatus == up && currBeatStatus == down) ||
 		(prevBeatStatus == down && currBeatStatus == up) ||
-		(prevBeatStatus == pending && currBeatStatus == down)
+		(prevBeatStatus == pending && currBeatStatus == down) ||
+		(prevBeatStatus == maintenance && currBeatStatus == down)
 }
 
 // locationRule is a monitor's location rule as the ingester judges by it: how many of the

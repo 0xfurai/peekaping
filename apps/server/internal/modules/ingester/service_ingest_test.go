@@ -414,16 +414,14 @@ func TestIngester_StatusTransitions(t *testing.T) {
 			step:     step{check: maintenance, want: maintenance},
 		},
 		{
-			// PP-131 changes this: GLOSSARY.md calls a heartbeat that moves the monitor to Up from another status important
-			name:     "Maintenance to Up is not important",
+			name:     "Maintenance to Up is important but doesn't notify",
 			previous: previousHeartbeat(maintenance, 0),
-			step:     step{check: up, want: up},
+			step:     step{check: up, want: up, important: true},
 		},
 		{
-			// PP-131 changes this: GLOSSARY.md says a monitor going Down notifies
-			name:     "Maintenance to Down is not important and doesn't notify",
+			name:     "Maintenance to Down without max retries notifies",
 			previous: previousHeartbeat(maintenance, 0),
-			step:     step{check: down, want: down, retries: 1},
+			step:     step{check: down, want: down, retries: 1, important: true, notified: true},
 		},
 		{
 			name:     "Maintenance to Down with retries left goes Pending",
