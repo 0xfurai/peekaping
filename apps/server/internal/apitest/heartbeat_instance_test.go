@@ -47,3 +47,43 @@ func TestProbeProtocol_TheLocalProbesHeartbeatNamesItsInstance(t *testing.T) {
 	require.NotNil(t, beats[0].InstanceID)
 	assert.Equal(t, instanceID, *beats[0].InstanceID)
 }
+
+// PP-331 AC2: a push is not made by a probe instance, so its heartbeat stores none.
+func TestPush_StoresNoProbeInstance(t *testing.T) {
+	a := newAppWithAdmin(t)
+	monitorID := a.createMonitor(t, "Nightly backup", "backup-push-token")
+
+	w := a.request(t, http.MethodGet, "/api/v1/push/backup-push-token?status=up&msg=done", nil)
+
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	beats := a.storedHeartbeats(t, monitorID)
+	require.Len(t, beats, 1)
+	assert.Nil(t, beats[0].InstanceID)
+}
+
+// PP-331 AC3: the heartbeats endpoint carries instance_id, a string for a probe instance's check
+// and null for what none ran.
+func TestMonitorsAPI_HeartbeatsCarryTheProbeInstance(t *testing.T) {
+	a := localProbeApp(t, nil)
+	checked := a.createHTTPMonitor(t, "Checkout", "")
+	pushed := a.createMonitor(t, "Nightly backup", "backup-push-token")
+	instanceID := uuid.NewString()
+	a.sayHello(t, localToken, instanceID)
+	a.outcomesOf(t, localToken, instanceID, checkResult("check", checked, checkedAt(0)))
+	w := a.request(t, http.MethodGet, "/api/v1/push/backup-push-token?status=up", nil)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	instanceOf := func(monitorID string) (value any, present bool) {
+		list := decode[[]map[string]any](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+monitorID+"/heartbeats", nil, a.asAdmin), http.StatusOK)
+		require.Len(t, list, 1)
+		value, present = list[0]["instance_id"]
+		return value, present
+	}
+
+	value, present := instanceOf(checked)
+	assert.True(t, present)
+	assert.Equal(t, instanceID, value, "the probe instance that sent the check")
+	value, present = instanceOf(pushed)
+	assert.True(t, present, "the key is there")
+	assert.Nil(t, value, "and null for a push")
+}

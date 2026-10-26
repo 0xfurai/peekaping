@@ -356,6 +356,13 @@ components:
           type: string
         important:
           type: boolean
+        instance_id:
+          description: The probe instance that ran the check, as the probe protocol names it. Null for a push, for a check the peekaping process ran itself in single mode, and for a heartbeat stored before instances were recorded.
+          examples:
+            - 5b0c7d0e-3f4c-4c47-9a5b-2f1d8d8f6a11
+          type:
+            - string
+            - "null"
         monitor_id:
           type: string
         msg:
@@ -383,6 +390,7 @@ components:
         - id
         - monitor_id
         - probe_id
+        - instance_id
         - status
         - msg
         - ping

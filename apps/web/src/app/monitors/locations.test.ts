@@ -22,6 +22,7 @@ const beat = (id: string, probeId: string, status = MONITORING.up, ping = 10): H
   id,
   monitor_id: "monitor-1",
   probe_id: probeId,
+  instance_id: null,
   status,
   ping,
   msg: "",
