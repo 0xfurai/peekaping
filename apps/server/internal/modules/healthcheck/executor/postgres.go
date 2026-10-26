@@ -162,8 +162,10 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 
 // newPostgresConnector builds the connector for a postgres:// connection
 // string. pgdriver reads the string itself, so it maps sslmode to a TLS
-// configuration: require encrypts without checking the certificate, and
-// verify-ca and verify-full check it against the system's roots.
+// configuration, whatever its case: allow, prefer and require encrypt without
+// checking the certificate (allow and prefer don't fall back to plain text, as
+// libpq's do: a server without TLS is Down), and verify-ca and verify-full check
+// it against the system's roots.
 //
 // Only the user, password, host, port, database and sslmode reach pgdriver. Any
 // other query parameter is ignored, as it always has been here: pgdriver sends
@@ -193,8 +195,13 @@ func newPostgresConnector(connectionString string) (connector *pgdriver.Connecto
 	if port == "" {
 		port = "5432"
 	}
-	sslMode := u.Query().Get("sslmode")
-	dsn := url.URL{Scheme: u.Scheme, User: u.User, Host: u.Host, Path: u.Path}
+	addr := net.JoinHostPort(u.Hostname(), port)
+	// pgdriver is case sensitive about sslmode, and this check wasn't: anything
+	// but exactly "disable" connected over TLS.
+	sslMode := strings.ToLower(u.Query().Get("sslmode"))
+	// The port is always in the host: pgdriver takes the name it verifies the
+	// certificate against from it, and keeps an IPv6 host's brackets without one.
+	dsn := url.URL{Scheme: u.Scheme, User: u.User, Host: addr, Path: u.Path}
 	if sslMode != "" {
 		dsn.RawQuery = url.Values{"sslmode": {sslMode}}.Encode()
 	}
@@ -205,11 +212,7 @@ func newPostgresConnector(connectionString string) (connector *pgdriver.Connecto
 			connector, err = nil, fmt.Errorf("%v", r)
 		}
 	}()
-	options := []pgdriver.Option{
-		pgdriver.WithDSN(dsn.String()),
-		// After the DSN, which would leave an IPv6 host without a port as it is.
-		pgdriver.WithAddr(net.JoinHostPort(u.Hostname(), port)),
-	}
+	options := []pgdriver.Option{pgdriver.WithDSN(dsn.String())}
 	if sslMode == "" {
 		options = append(options, pgdriver.WithInsecure(true))
 	}

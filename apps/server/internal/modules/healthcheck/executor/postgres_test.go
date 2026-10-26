@@ -261,6 +261,8 @@ func TestNewPostgresConnector(t *testing.T) {
 		wantAddr         string
 		wantTLS          bool // a TLS config is set
 		wantVerify       bool // and it checks the certificate chain
+		wantChainCheck   bool // and it checks the chain itself, not the host name (verify-ca)
+		wantServerName   string
 		wantErr          string
 	}{
 		{
@@ -315,6 +317,74 @@ func TestNewPostgresConnector(t *testing.T) {
 			wantAddr:         "localhost:5432",
 			wantTLS:          true,
 			wantVerify:       true,
+		},
+		{
+			name:             "sslmode=allow uses TLS without checking the certificate",
+			connectionString: "postgres://user:password@localhost:5432/testdb?sslmode=allow",
+			wantAddr:         "localhost:5432",
+			wantTLS:          true,
+		},
+		{
+			name:             "sslmode=prefer uses TLS without checking the certificate",
+			connectionString: "postgres://user:password@localhost:5432/testdb?sslmode=prefer",
+			wantAddr:         "localhost:5432",
+			wantTLS:          true,
+		},
+		{
+			name:             "sslmode=verify-ca checks the certificate chain",
+			connectionString: "postgres://user:password@localhost:5432/testdb?sslmode=verify-ca",
+			wantAddr:         "localhost:5432",
+			wantTLS:          true,
+			wantChainCheck:   true,
+		},
+		{
+			name:             "sslmode is not case sensitive: REQUIRE",
+			connectionString: "postgres://user:password@localhost:5432/testdb?sslmode=REQUIRE",
+			wantAddr:         "localhost:5432",
+			wantTLS:          true,
+		},
+		{
+			name:             "sslmode is not case sensitive: Require",
+			connectionString: "postgres://user:password@localhost:5432/testdb?sslmode=Require",
+			wantAddr:         "localhost:5432",
+			wantTLS:          true,
+		},
+		{
+			name:             "sslmode is not case sensitive: Verify-Full",
+			connectionString: "postgres://user:password@localhost:5432/testdb?sslmode=Verify-Full",
+			wantAddr:         "localhost:5432",
+			wantTLS:          true,
+			wantVerify:       true,
+			wantServerName:   "localhost",
+		},
+		{
+			name:             "sslmode is not case sensitive: DISABLE",
+			connectionString: "postgres://user:password@localhost:5432/testdb?sslmode=DISABLE",
+			wantAddr:         "localhost:5432",
+		},
+		{
+			name:             "verify-full checks the certificate against the host name",
+			connectionString: "postgres://user:password@db.example.com:5433/testdb?sslmode=verify-full",
+			wantAddr:         "db.example.com:5433",
+			wantTLS:          true,
+			wantVerify:       true,
+			wantServerName:   "db.example.com",
+		},
+		{
+			name:             "verify-full with an IPv6 host checks against the address without brackets",
+			connectionString: "postgres://user:password@[::1]:5432/testdb?sslmode=verify-full",
+			wantAddr:         "[::1]:5432",
+			wantTLS:          true,
+			wantVerify:       true,
+			wantServerName:   "::1",
+		},
+		{
+			name:             "verify-full with an IPv6 host and no port checks against the address without brackets",
+			connectionString: "postgres://user:password@[::1]/testdb?sslmode=verify-full",
+			wantAddr:         "[::1]:5432",
+			wantTLS:          true,
+			wantVerify:       true,
+			wantServerName:   "::1",
 		},
 		{
 			name:             "sslrootcert is ignored: it names a file on the Peekaping server",
@@ -377,7 +447,11 @@ func TestNewPostgresConnector(t *testing.T) {
 			}
 			require.NotNil(t, cfg.TLSConfig)
 			assert.Equal(t, !tt.wantVerify, cfg.TLSConfig.InsecureSkipVerify)
+			assert.Equal(t, tt.wantChainCheck, cfg.TLSConfig.VerifyPeerCertificate != nil)
 			assert.Nil(t, cfg.TLSConfig.RootCAs, "no root certificate is read from the server's disk")
+			if tt.wantServerName != "" {
+				assert.Equal(t, tt.wantServerName, cfg.TLSConfig.ServerName)
+			}
 		})
 	}
 }
