@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Sortu zure administratzaile kontua",
-      "error_reporting_hint": "Lehenespenez aktibatuta dago. Desaktibatzeko, kendu markatzea laukitik. Geroago aldatu dezakezu «Ezarpenak» atalean.",
       "have_account": "Kontu bat baduzu?",
       "sign_in": "Sartu",
       "submit": "Sortu",
-      "telemetry_hint": "Lehenespenez aktibatuta dago. Desaktibatzeko, kendu markatzea laukitik. Geroago aldatu dezakezu «Ezarpenak» atalean. Aktibatuta dagoen bitartean, Peekapingek hau bidaliko du, egunean behin gehienez:",
-      "title": "Kaixo"
+      "title": "Kaixo",
+      "telemetry_note": "Anonimoa: monitoreen izenik, URLrik edo ostalaririk gabe. Geroago aldatu dezakezu «Ezarpenak» atalean.",
+      "telemetry_whats_sent": "Zer bidaltzen den"
     },
     "twofa": {
       "code_label": "2FA kodea",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Zer bidaltzen den eta nola desaktibatu",
     "label": "Bidali erabilera-estatistika anonimoak",
-    "never_sent": "Ez da inoiz bidaltzen: monitoreen izenak, URLak, ostalariak, etiketak, egoera orrien helbideak edo jakinarazpenen ezarpenak. Erabilera-pingak ez du IP helbiderik, eta Peekaping-en Worker-ak ez du bidaltzailearen IPa erregistratzen.",
-    "not_saved": "Erabilera-estatistikei buruzko aukeraketa ez da gorde. Egiaztatu «Ezarpenak» atalean.",
-    "sent_features": "Egoera orriak, mantentze-leihoak eta metrikak erabiltzen dituzun ala ez",
-    "sent_id": "ID ausazko bat, aktibatuta dagoen bitartean sortzen dena eta desaktibatzean ezabatzen dena",
-    "sent_monitors": "Zenbat monitore dituzun, sorta gisa, adibidez 11-50",
-    "sent_setup": "Peekaping-en bertsioa, modu bakarra edo kluster modua, biltegiratze-backenda, eta sistema eragilea eta CPU mota",
-    "sent_types": "Erabiltzen dituzun monitore eta jakinarazpen-kanal motak, adibidez http edo telegram"
+    "not_saved": "Erabilera-estatistikei buruzko aukeraketa ez da gorde. Egiaztatu «Ezarpenak» atalean."
   },
   "telemetry_notice": {
     "error_reports": "Errore-txostenak aktibatuta daude. Peekapingek huts egiten badu, errorearen mota eta kodean non gertatu den, bere bertsioa, modua, biltegiratze-backenda eta sistema eragilea bidaltzen ditu. Ez ditu inoiz errore-mezuak, URLak edo ostalari-izenak bidaltzen.",

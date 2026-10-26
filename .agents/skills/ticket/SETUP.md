@@ -18,16 +18,16 @@ With no ticket key anywhere, skip every Linear step; the work is checked against
 
 Mark the ticket In Progress as you start work: `save_issue` with `state: "In Progress"`, and `assignee: "me"` when it's unassigned. A ticket in Backlog or Todo moves; one already In Progress or further along (In Review, Done, Canceled, Duplicate) keeps its state, so a later step never moves it back. Linear operations follow `docs/agents/issue-tracker.md`.
 
-## Get into the worktree
+## Get onto the branch
 
-Other sessions share the main checkout, so ticket work happens in a worktree under `.claude/worktrees/`, and branches never change in the main checkout.
+The user creates the worktree and starts the session in it. Work in the session's checkout; don't add worktrees or enter other ones.
 
-- The branch is checked out in a worktree (`git worktree list`): `EnterWorktree` with its path.
-- The branch exists but isn't checked out: `git worktree add .claude/worktrees/pp-<n> <branch>`, then `EnterWorktree`.
-- No branch yet: `git fetch origin && git worktree add .claude/worktrees/pp-<n> -b <type>/pp-<n>-<slug> origin/main`, then `EnterWorktree`. Branch names: [STACK.md](STACK.md).
-- The branch is checked out in the main checkout (the user worked there): work there on that branch, and say so.
+- The checkout is on the ticket's branch: work here.
+- The branch exists but isn't checked out anywhere: `git switch <branch>`.
+- No branch yet: `git fetch origin && git switch -c <type>/pp-<n>-<slug> origin/main`. Branch names: [STACK.md](STACK.md).
+- The branch is checked out in another worktree (`git worktree list`), or the session is in the main checkout (`git rev-parse --git-dir` equals `--git-common-dir`) and that isn't on the ticket's branch: stop and ask the user to start the session in the right worktree.
 
-Done when: the session is in the branch's checkout and you can state the ticket's ask in two sentences.
+Done when: the session's checkout is on the ticket's branch and you can state the ticket's ask in two sentences.
 
 ## Throughout
 

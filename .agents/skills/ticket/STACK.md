@@ -6,7 +6,7 @@ A **stack** is a chain of PRs where each PR's base is the branch of the PR below
 
 - Name each branch `<type>/pp-<n>-<slug>`, with its own slug per PR. The `pp-<n>` lets Linear link the PR to the ticket.
 - Types: `fix`, `feat`, `refactor`, `chore`, `docs`, `ci`. For test-only work use `fix/` or `chore/`: the remote has a branch named `test`, so a `test/...` branch can't be pushed. The PR title can still start with `test(...)`.
-- The bottom branch is the one setup created in the worktree. Start each next branch from the one below it, in the same worktree: `git switch -c <next branch> <branch below>`.
+- The bottom branch is the one setup put the worktree on. Start each next branch from the one below it, in the same worktree: `git switch -c <next branch> <branch below>`.
 
 ## Opening the PRs
 

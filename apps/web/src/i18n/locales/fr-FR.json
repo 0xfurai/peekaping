@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Créez votre compte d'administrateur",
-      "error_reporting_hint": "Activé par défaut. Décochez cette case pour le désactiver. Vous pourrez le modifier plus tard dans « Paramètres ».",
       "have_account": "Vous avez déjà un compte ?",
       "sign_in": "Se connecter",
       "submit": "Créer",
-      "telemetry_hint": "Activé par défaut. Décochez cette case pour le désactiver. Vous pourrez le modifier plus tard dans « Paramètres ». Tant qu'il est activé, Peekaping envoie ceci au plus une fois par jour :",
-      "title": "Bonjour"
+      "title": "Bonjour",
+      "telemetry_note": "Anonyme : aucun nom de moniteur, aucune URL ni aucun hôte. Vous pourrez le modifier plus tard dans « Paramètres ».",
+      "telemetry_whats_sent": "Ce qui est envoyé"
     },
     "twofa": {
       "code_label": "Code d'authentification à deux facteurs",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Ce qui est envoyé et comment le désactiver",
     "label": "Envoyer des statistiques d'utilisation anonymes",
-    "never_sent": "Jamais envoyés : les noms des moniteurs, les URL, les hôtes, les étiquettes, les adresses des pages d'état ni les paramètres de notification. Un ping d'utilisation ne contient aucune adresse IP, et le Worker de Peekaping n'enregistre pas l'IP de l'expéditeur.",
-    "not_saved": "Votre choix concernant les statistiques d'utilisation n'a pas été enregistré. Vérifiez-le dans « Paramètres ».",
-    "sent_features": "Si vous utilisez des pages d'état, des fenêtres de maintenance et des métriques",
-    "sent_id": "Un identifiant aléatoire, créé tant que l'option est activée et supprimé quand vous la désactivez",
-    "sent_monitors": "Le nombre de moniteurs que vous avez, sous forme de plage, par exemple 11-50",
-    "sent_setup": "La version de Peekaping, le mode unique ou cluster, le backend de stockage, ainsi que le système d'exploitation et le type de processeur",
-    "sent_types": "Les types de moniteurs et de canaux de notification que vous utilisez, comme http ou telegram"
+    "not_saved": "Votre choix concernant les statistiques d'utilisation n'a pas été enregistré. Vérifiez-le dans « Paramètres »."
   },
   "telemetry_notice": {
     "error_reports": "Les rapports d'erreur sont activés. Si Peekaping plante, il envoie le type d'erreur et l'endroit du code où elle s'est produite, sa version, son mode, son backend de stockage et son système d'exploitation. Il n'envoie jamais de messages d'erreur, d'URL ni de noms d'hôte.",

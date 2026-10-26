@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Creați contul de admin",
-      "error_reporting_hint": "Activat implicit. Debifați această casetă pentru a-l dezactiva. Îl puteți schimba mai târziu în „Setări”.",
       "have_account": "Ai deja un cont?",
       "sign_in": "Autentificare",
       "submit": "Creează",
-      "telemetry_hint": "Activat implicit. Debifați această casetă pentru a-l dezactiva. Îl puteți schimba mai târziu în „Setări”. Cât timp este activat, Peekaping trimite acestea cel mult o dată pe zi:",
-      "title": "Salut"
+      "title": "Salut",
+      "telemetry_note": "Anonim: fără numele monitoarelor, URL-uri sau gazde. Îl puteți schimba mai târziu în „Setări”.",
+      "telemetry_whats_sent": "Ce se trimite"
     },
     "twofa": {
       "code_label": "Cod 2FA",
@@ -1519,13 +1519,7 @@
   "telemetry": {
     "docs_link": "Ce se trimite și cum se dezactivează",
     "label": "Trimite statistici anonime de utilizare",
-    "never_sent": "Nu se trimit niciodată: numele monitoarelor, URL-uri, gazde, etichete, adresele paginilor de stare sau setările de notificare. Un ping de utilizare nu conține nicio adresă IP, iar Worker-ul Peekaping nu înregistrează IP-ul expeditorului.",
-    "not_saved": "Alegerea dvs. privind statisticile de utilizare nu a fost salvată. Verificați-o în „Setări”.",
-    "sent_features": "Dacă folosiți pagini de stare, ferestre de întreținere și metrici",
-    "sent_id": "Un ID aleatoriu, creat cât timp opțiunea este activată și șters când o dezactivați",
-    "sent_monitors": "Câte monitoare aveți, ca interval, de exemplu 11-50",
-    "sent_setup": "Versiunea Peekaping, modul unic sau de cluster, backendul de stocare, sistemul de operare și tipul de procesor",
-    "sent_types": "Tipurile de monitoare și de canale de notificare pe care le folosiți, precum http sau telegram"
+    "not_saved": "Alegerea dvs. privind statisticile de utilizare nu a fost salvată. Verificați-o în „Setări”."
   },
   "telemetry_notice": {
     "error_reports": "Rapoartele de eroare sunt activate. Dacă Peekaping se oprește brusc, trimite tipul erorii și locul din cod unde a apărut, versiunea sa, modul, backendul de stocare și sistemul de operare. Nu trimite niciodată mesaje de eroare, URL-uri sau nume de gazdă.",

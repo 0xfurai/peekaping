@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Opret din admin-konto",
-      "error_reporting_hint": "Slået til som standard. Fjern fluebenet for at slå det fra. Du kan ændre det senere under “Indstillinger”.",
       "have_account": "Har du allerede en konto?",
       "sign_in": "Log ind",
       "submit": "Opret",
-      "telemetry_hint": "Slået til som standard. Fjern fluebenet for at slå det fra. Du kan ændre det senere under “Indstillinger”. Så længe det er slået til, sender Peekaping dette højst én gang om dagen:",
-      "title": "Hej"
+      "title": "Hej",
+      "telemetry_note": "Anonymt: ingen navne på monitorer, URL'er eller værter. Du kan ændre det senere under “Indstillinger”.",
+      "telemetry_whats_sent": "Hvad der sendes"
     },
     "twofa": {
       "code_label": "2FA-kode",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Hvad der sendes, og hvordan du slår det fra",
     "label": "Send anonym brugsstatistik",
-    "never_sent": "Sendes aldrig: navne på monitorer, URL'er, værter, tags, adresser på statussider eller indstillinger for notifikationer. En brugsping indeholder ingen IP-adresse, og Peekapings Worker registrerer ikke afsenderens IP.",
-    "not_saved": "Dit valg om brugsstatistik blev ikke gemt. Tjek det under “Indstillinger”.",
-    "sent_features": "Om du bruger statussider, vedligeholdelsesvinduer og målinger",
-    "sent_id": "Et tilfældigt ID, der oprettes, mens det er slået til, og slettes, når du slår det fra",
-    "sent_monitors": "Hvor mange monitorer du har, som et interval, f.eks. 11-50",
-    "sent_setup": "Peekaping-versionen, enkelt- eller klyngetilstand, lagringsbackenden samt operativsystem og CPU-type",
-    "sent_types": "De slags monitorer og notifikationskanaler, du bruger, f.eks. http eller telegram"
+    "not_saved": "Dit valg om brugsstatistik blev ikke gemt. Tjek det under “Indstillinger”."
   },
   "telemetry_notice": {
     "error_reports": "Fejlrapporter er slået til. Hvis Peekaping går ned, sender den fejltypen og stedet i koden, hvor den opstod, sin version, tilstand, lagringsbackend og operativsystem. Den sender aldrig fejlmeddelelser, URL'er eller værtsnavne.",

@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Cruthaigh do chuntas riarthóra",
-      "error_reporting_hint": "Air de réir réamhshocraithe. Bain an tic den bhosca seo chun é a mhúchadh. Is féidir leat é a athrú ar ball faoi “Socruithe”.",
       "have_account": "An bhfuil cuntas agat cheana féin?",
       "sign_in": "Logáil isteach",
       "submit": "Cruthaigh",
-      "telemetry_hint": "Air de réir réamhshocraithe. Bain an tic den bhosca seo chun é a mhúchadh. Is féidir leat é a athrú ar ball faoi “Socruithe”. Fad is atá sé air, seolann Peekaping é seo uair amháin sa lá ar a mhéad:",
-      "title": "Dia dhuit"
+      "title": "Dia dhuit",
+      "telemetry_note": "Gan ainm: gan ainmneacha móntóirí, URLanna ná óstaigh. Is féidir leat é a athrú ar ball faoi “Socruithe”.",
+      "telemetry_whats_sent": "Cad a sheoltar"
     },
     "twofa": {
       "code_label": "Cód 2FA",
@@ -1519,13 +1519,7 @@
   "telemetry": {
     "docs_link": "Cad a sheoltar agus conas é a mhúchadh",
     "label": "Seol staitisticí úsáide gan ainm",
-    "never_sent": "Ní sheoltar choíche: ainmneacha móntóirí, URLanna, óstaigh, tagaí, seoltaí leathanach stádais ná socruithe fógraí. Níl aon seoladh IP i bpingeáil úsáide, agus ní thaifeadann Worker Peekaping IP an tseoltóra.",
-    "not_saved": "Níor sábháladh do rogha maidir le staitisticí úsáide. Seiceáil faoi “Socruithe” é.",
-    "sent_features": "An úsáideann tú leathanaigh stádais, fuinneoga cothabhála agus méadrachtaí",
-    "sent_id": "ID randamach, a chruthaítear fad is atá sé air agus a scriostar nuair a mhúchann tú é",
-    "sent_monitors": "Cé mhéad móntóir atá agat, mar raon, mar shampla 11-50",
-    "sent_setup": "Leagan Peekaping, mód aonair nó braisle, an backend stórála, agus an córas oibriúcháin agus cineál an LAP",
-    "sent_types": "Na cineálacha móntóirí agus cainéal fógra a úsáideann tú, mar http nó telegram"
+    "not_saved": "Níor sábháladh do rogha maidir le staitisticí úsáide. Seiceáil faoi “Socruithe” é."
   },
   "telemetry_notice": {
     "error_reports": "Tá tuarascálacha earráide air. Má thuairteann Peekaping, seolann sé cineál an earráid agus an áit sa chód inar tharla sé, a leagan, a mhód, an backend stórála agus an córas oibriúcháin. Ní sheolann sé riamh teachtaireachtaí earráide, URLanna ná hainmneacha óstach.",

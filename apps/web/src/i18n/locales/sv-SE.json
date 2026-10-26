@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Skapa ditt administratörskonto",
-      "error_reporting_hint": "På som standard. Ta bort kryssen i rutan för att stänga av det. Du kan ändra det senare under ”Inställningar”.",
       "have_account": "Har du redan ett konto?",
       "sign_in": "Logga in",
       "submit": "Skapa",
-      "telemetry_hint": "På som standard. Ta bort kryssen i rutan för att stänga av det. Du kan ändra det senare under ”Inställningar”. Så länge det är på skickar Peekaping detta högst en gång per dag:",
-      "title": "Hej"
+      "title": "Hej",
+      "telemetry_note": "Anonymt: inga namn på övervakningar, webbadresser eller värdar. Du kan ändra det senare under ”Inställningar”.",
+      "telemetry_whats_sent": "Vad som skickas"
     },
     "twofa": {
       "code_label": "2FA-kod",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Vad som skickas och hur du stänger av det",
     "label": "Skicka anonym användningsstatistik",
-    "never_sent": "Skickas aldrig: namn på övervakningar, webbadresser, värdar, taggar, adresser till statussidor eller aviseringsinställningar. En användningsping innehåller ingen IP-adress, och Peekapings Worker registrerar inte avsändarens IP.",
-    "not_saved": "Ditt val om användningsstatistik sparades inte. Kontrollera det under ”Inställningar”.",
-    "sent_features": "Om du använder statussidor, underhållsfönster och mätvärden",
-    "sent_id": "Ett slumpmässigt ID, som skapas så länge det är på och raderas när du stänger av det",
-    "sent_monitors": "Hur många övervakningar du har, som ett intervall, till exempel 11-50",
-    "sent_setup": "Peekaping-versionen, enkelt läge eller klusterläge, lagringsbackenden samt operativsystem och processortyp",
-    "sent_types": "Vilka typer av övervakningar och aviseringskanaler du använder, till exempel http eller telegram"
+    "not_saved": "Ditt val om användningsstatistik sparades inte. Kontrollera det under ”Inställningar”."
   },
   "telemetry_notice": {
     "error_reports": "Felrapporter är på. Om Peekaping kraschar skickar den feltypen och platsen i koden där det hände, sin version, sitt läge, lagringsbackend och operativsystem. Den skickar aldrig felmeddelanden, URL:er eller värdnamn.",
