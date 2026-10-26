@@ -82,7 +82,8 @@ async function probeIDOf(api: APIRequestContext, name: string): Promise<string> 
   return probe!.id;
 }
 
-// The probes a monitor runs on, as the API has them.
+// The probes a monitor runs on, as the API has them: in id order, so a probe's UUID comes before
+// 'local'.
 async function probeIDsOf(api: APIRequestContext, monitorID: string): Promise<string[]> {
   const response = await api.get(`monitors/${monitorID}`);
   expect(response.ok(), await response.text()).toBeTruthy();
@@ -131,7 +132,7 @@ test('A probe created with Assign to all monitors is added to an existing monito
 
       await expect
         .poll(() => probeIDsOf(api, id), { timeout: 90_000, intervals: [2000] })
-        .toEqual(['local', probeID]);
+        .toEqual([probeID, 'local']);
 
       await page.goto(`/monitors/${id}`);
       await expect(page.getByTestId('monitor-location')).toHaveCount(2);
@@ -194,7 +195,7 @@ test('Assign to all monitors on the Probes page adds a probe to the monitors it 
       await assignAll();
       // Other monitors of the install may be added too, so the count isn't asserted.
       await expect(page.getByText(/Monitors added: [1-9]\d*/)).toBeVisible();
-      expect(await probeIDsOf(api, id)).toEqual(['local', probeID]);
+      expect(await probeIDsOf(api, id)).toEqual([probeID, 'local']);
 
       await page.goto(`/monitors/${id}`);
       await expect(remoteLocation(page).getByTestId('monitor-location-name')).toHaveText(n.probe);
