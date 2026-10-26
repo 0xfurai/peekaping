@@ -163,10 +163,11 @@ export const InstanceBar = ({ instance, from, to }: InstanceBarProps) => {
   const formatTime = useFormatTime();
 
   const segments: Segment[] = placeSpans(from, to, instance.connections).map(
-    (connection) => ({
+    (connection, index) => ({
       leftPct: connection.leftPct,
       widthPct: connection.widthPct,
-      key: connection.start,
+      // Two requests after a quiet minute can each start a connection at the same time
+      key: `${connection.start}-${index}`,
       className: ONLINE,
       testId: "instance-connection",
       tooltip: (
