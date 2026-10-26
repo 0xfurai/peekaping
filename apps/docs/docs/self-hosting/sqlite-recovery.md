@@ -150,13 +150,13 @@ Move the damaged files out of the data folder, and put the good database there a
 mkdir -p /path/to/damaged
 mv .data/sqlite/peekaping.db* /path/to/damaged/
 cp /path/to/database-to-restore.db .data/sqlite/peekaping.db
-sudo chown 1000:1000 .data/sqlite/peekaping.db    # single mode: PUID:PGID of the bundle image, 1000:1000 by default
+sudo chown 1000:1000 .data/sqlite/peekaping.db    # single mode: PUID:PGID of the single-mode image, 1000:1000 by default
 sudo chown 65532:65532 .data/sqlite/peekaping.db  # cluster mode: the user of the cluster images
 ```
 
 For `/path/to/database-to-restore.db`, use the tested backup from step 3, or `/path/to/work/recovered.db` from step 4.
 
-Run only the `chown` line for your mode. It gives the file to the user Peekaping runs as. If you set `PUID` and `PGID`, use your values. See [Bundle user and permissions](./bundle-user.md) and [Cluster user and permissions](./cluster-user.md#the-sqlite-data-folder).
+Run only the `chown` line for your mode. It gives the file to the user Peekaping runs as. If you set `PUID` and `PGID`, use your values. See [Single-mode user and permissions](./single-user.md) and [Cluster user and permissions](./cluster-user.md#the-sqlite-data-folder).
 
 Start Peekaping again: `docker start peekaping` or `docker compose up -d`. The quick check runs again, and the log says `SQLite quick check passed`. Open the web app and check your monitors and their recent heartbeats. Keep the damaged files until you're sure you don't need them.
 

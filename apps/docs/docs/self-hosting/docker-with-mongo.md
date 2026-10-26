@@ -8,7 +8,7 @@ MongoDB storage was removed in this release. `DB_TYPE=mongo` and `DB_TYPE=mongod
 
 ## Move to SQLite or PostgreSQL
 
-`bun db import-mongo` copies a MongoDB install into a new SQLite or PostgreSQL database. The `bun` tool is in the single-mode image (`peekaping-bundle-sqlite`) and in the migrate image (`peekaping-migrate`) of this release. It copies:
+`bun db import-mongo` copies a MongoDB install into a new SQLite or PostgreSQL database. The `bun` tool is in the single-mode image (`0xfurai/peekaping`) and in the migrate image (`peekaping-migrate`) of this release. It copies:
 
 - users, with their password hashes and two-factor secrets
 - settings, including the keys that sign login tokens
@@ -92,7 +92,7 @@ docker run -d --name peekaping-mongo --network peekaping-move \
 
 ### 3. Import into a SQLite database
 
-Run the import from the SQLite bundle image, with the folder for the new database mounted at `/app/data`. Use a new folder: if a database with users, monitors or history is in it already, the import refuses it.
+Run the import from the single-mode image, with the folder for the new database mounted at `/app/data`. Use a new folder: if a database with users, monitors or history is in it already, the import refuses it.
 
 ```bash
 docker run --rm --network peekaping-move \
@@ -102,7 +102,7 @@ docker run --rm --network peekaping-move \
   -e MONGO_DB=peekaping \
   -v $(pwd)/.data/sqlite:/app/data \
   --entrypoint /app/server/bun \
-  0xfurai/peekaping-bundle-sqlite:latest \
+  0xfurai/peekaping:latest \
   db import-mongo
 ```
 
@@ -123,7 +123,7 @@ Copied 60 rows into the sqlite database. The login lockout counters (login_state
 
 If it stops with an error, it wrote no data. Fix what the error says, and run it again.
 
-The import runs as root, so the database file in `.data/sqlite` belongs to root. The bundle gives `/app/data` to the `peekaping` user when it starts. If you start it with `docker run --user`, it doesn't, so give the folder to that user first: `sudo chown -R <uid>:<gid> .data/sqlite`.
+The import runs as root, so the database file in `.data/sqlite` belongs to root. The image gives `/app/data` to the `peekaping` user when it starts. If you start it with `docker run --user`, it doesn't, so give the folder to that user first: `sudo chown -R <uid>:<gid> .data/sqlite`.
 
 If your MongoDB asks for a login, put it in the URI: `mongodb://<user>:<password>@<host>:27017/<database>?authSource=admin`. Percent-encode the user name and password. A reserved character in them, such as `@ : / ? # [ ]`, would end the user name or the password early and break the URI. For example, the password `p@ss:word/1` is written `p%40ss%3Aword%2F1`.
 
@@ -135,9 +135,9 @@ With Docker Compose, the MongoDB is the `database` service, so skip step 2. Star
 
 In the command above, use `--network <folder name>_appnet` and `--env-file mongo.env` in place of the `-e MONGO_URI` line. The file is read as it is, so don't quote the value in it. Docker doesn't hide an environment variable from anyone who can use Docker: `docker inspect` shows it for as long as the container exists. The file keeps the password out of your command and your shell history. The import container is removed when it ends (`--rm`), so delete the file then too.
 
-### 4. Start the new bundle
+### 4. Start the new image
 
-Start the SQLite bundle on the folder the import wrote, as in [Docker + SQLite](./docker-with-sqlite.md):
+Start the single-mode image on the folder the import wrote, as in [Docker + SQLite](./docker-with-sqlite.md):
 
 ```bash
 docker run -d --restart=always \
@@ -145,7 +145,7 @@ docker run -d --restart=always \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
-  0xfurai/peekaping-bundle-sqlite:latest
+  0xfurai/peekaping:latest
 ```
 
 Open `http://localhost:8383`, log in with the same email, password and two-factor code, and look at your monitors, their history and your status pages. The monitors are checked again as soon as the container is up.

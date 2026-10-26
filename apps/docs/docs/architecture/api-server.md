@@ -257,7 +257,7 @@ GET /metrics
 
 In cluster mode, the gateway (nginx in front of the separate web image) doesn't forward `/metrics`, so it isn't served on the web address. Scrape the API port (`8034` by default) directly, for example `api:8034` on the Docker Compose network or `<release>-api:8034` in Kubernetes. The development Compose files publish that port; the production ones don't, so publish it or run Prometheus on the same network.
 
-In single mode, the `peekaping` binary has one port. With `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it. The single-mode image (`peekaping-bundle-sqlite`) runs single mode, so with `METRICS_ENABLED=true` it serves `/metrics` on port 8383.
+In single mode, the `peekaping` binary has one port. With `WEB_DIR` set and `METRICS_ENABLED=true`, it serves `/metrics` there beside the web app, so whoever can open the web app can read it. The single-mode image (`0xfurai/peekaping`) runs single mode, so with `METRICS_ENABLED=true` it serves `/metrics` on port 8383.
 :::
 
 ### How it works

@@ -6,11 +6,22 @@ sidebar_position: 5
 
 This page takes you from a SQLite or PostgreSQL bundle of release 0.0.44 to 0.0.47 to single mode. Those releases ran Peekaping's api, producer, worker and ingester processes, Redis and Caddy in one container, under supervisord. Single mode runs one process, `peekaping`, instead. See [Deployment modes](./deployment-modes.md) for the two modes.
 
-**The SQLite bundle.** The image name, port 8383, the data volume and your environment variables stay the same. Upgrading is pulling the new image and starting it with the same volume. Migrations run at start, as before.
+**The SQLite bundle.** Port 8383, the data volume and your environment variables stay the same, and the image has a new name: see [The image has a new name](#the-image-has-a-new-name). Upgrading is pulling the new image and starting it with the same volume. Migrations run at start, as before.
 
-**The PostgreSQL bundle.** The `peekaping-bundle-postgres` image is gone: it gets no new tags, and 0.0.47 is its last. In single mode, PostgreSQL runs in a container of its own, from the official `postgres` image, and `peekaping` runs from the `peekaping-bundle-sqlite` image with `DB_TYPE=postgres`. You move your data with `pg_dump` and `pg_restore`: see [Moving from the PostgreSQL bundle](#moving-from-the-postgresql-bundle).
+**The PostgreSQL bundle.** The `peekaping-bundle-postgres` image is gone: it gets no new tags, and 0.0.47 is its last. In single mode, PostgreSQL runs in a container of its own, from the official `postgres` image, and `peekaping` runs from the `0xfurai/peekaping` image with `DB_TYPE=postgres`. You move your data with `pg_dump` and `pg_restore`: see [Moving from the PostgreSQL bundle](#moving-from-the-postgresql-bundle).
 
 Helm and the Docker Compose stacks stay in cluster mode.
+
+## The image has a new name
+
+From release 0.0.48, the single-mode image is published as `0xfurai/peekaping` on Docker Hub and `ghcr.io/0xfurai/peekaping` on GitHub Container Registry. Before, it was `0xfurai/peekaping-bundle-sqlite`. The tags are `latest` and the version, such as `0.0.48`.
+
+- **`docker run`.** Replace `0xfurai/peekaping-bundle-sqlite:<tag>` with `0xfurai/peekaping:<tag>`.
+- **Docker Compose.** Change the `image:` line in the same way.
+
+Nothing else changes: not the port, the volume, the environment variables or the user.
+
+The old name gets the same tags in 0.0.48 and 0.0.49, and none from 0.0.50. If you keep it, you stop getting releases at 0.0.49. Releases up to 0.0.47 exist only under the old name.
 
 ## Which release you run
 
@@ -60,7 +71,7 @@ For a SQLite backup that you can check with `sqlite3`, see [Upgrading stats stor
 
 Skip this section if you run 0.0.47. From 0.0.44, 0.0.45 or 0.0.46, the upgrade also brings you the changes of 0.0.47:
 
-- **A non-root user.** The bundle runs Peekaping as the user `peekaping` (UID and GID 1000) instead of root. `PUID` and `PGID` change the IDs. In the SQLite bundle, the container makes that user the owner of `/app/data` at each start, which changes the owner of files an older image wrote as root. Where root can't change owners, such as NFS with `root_squash`, startup logs a warning and carries on. Then set `PUID` and `PGID` to the folder's owner on the host. A Docker socket at `/var/run/docker.sock` keeps working. Ping monitors need `net.ipv4.ping_group_range` to include the user's groups, which rootful Docker with a private network namespace allows by default (rootless Docker, `userns-remap`, host networking and Podman don't). See [Bundle user and permissions](./bundle-user.md).
+- **A non-root user.** The bundle runs Peekaping as the user `peekaping` (UID and GID 1000) instead of root. `PUID` and `PGID` change the IDs. In the SQLite bundle, the container makes that user the owner of `/app/data` at each start, which changes the owner of files an older image wrote as root. Where root can't change owners, such as NFS with `root_squash`, startup logs a warning and carries on. Then set `PUID` and `PGID` to the folder's owner on the host. A Docker socket at `/var/run/docker.sock` keeps working. Ping monitors need `net.ipv4.ping_group_range` to include the user's groups, which rootful Docker with a private network namespace allows by default (rootless Docker, `userns-remap`, host networking and Podman don't). See [Single-mode user and permissions](./single-user.md).
 - **The stats storage upgrade.** A migration separates the minute, hour and day stats into three tables, rebuilds them from the heartbeats you still keep, and drops the old `stats` table. Another replaces three heartbeat indexes with one, which takes about a second for each million heartbeats. They run once, before `peekaping` starts, and can take minutes on a large database. Until they finish, the web app doesn't answer. Chart history whose heartbeats are gone can't be rebuilt, and your backup is the only copy of the old `stats` table. Read [Upgrading stats storage](./upgrading-stats.md) before you start.
 - **A sign-out.** The upgrade generates new JWT signing secrets, so everyone is signed out once.
 
@@ -78,18 +89,18 @@ If you pinned a tag such as `0.0.47`, use the tag of the single-mode release in 
 
 ```bash
 docker rm peekaping
-docker pull 0xfurai/peekaping-bundle-sqlite:latest
+docker pull 0xfurai/peekaping:latest
 docker run -d --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
-  0xfurai/peekaping-bundle-sqlite:latest
+  0xfurai/peekaping:latest
 ```
 
 Keep any other flags you started the old container with, such as `-e CLIENT_URL`, `-e PUID` or the Docker socket mount. Drop the Caddyfile mount if you had one: see below.
 
-With Docker Compose, change the image tag, add `stop_grace_period: 35s`, and run `docker compose pull` and `docker compose up -d`. [Docker + SQLite](./docker-with-sqlite.md#single-mode) shows the whole service.
+With Docker Compose, change the image name and tag, add `stop_grace_period: 35s`, and run `docker compose pull` and `docker compose up -d`. [Docker + SQLite](./docker-with-sqlite.md#single-mode) shows the whole service.
 
 ## Moving from the PostgreSQL bundle
 

@@ -3,7 +3,7 @@ import Link from "@docusaurus/Link";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import styles from "./styles.module.css";
 
-const QUICKSTART = "docker run -d -p 8383:8383 -v peekaping:/app/data 0xfurai/peekaping-bundle-sqlite";
+const QUICKSTART = "docker run -d -p 8383:8383 -v peekaping:/app/data 0xfurai/peekaping";
 
 function CopyCommand({ command }: { command: string }): ReactNode {
   const [copied, setCopied] = useState(false);

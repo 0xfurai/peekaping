@@ -13,7 +13,7 @@ Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-
 
 ## Single mode
 
-Single mode runs two containers: `peekaping`, from the `peekaping-bundle-sqlite` image, and PostgreSQL, from the official `postgres` image. One process, `peekaping`, serves the web app, the API and the websocket on port 8383, and connects to PostgreSQL. `DB_TYPE=postgres` makes the image use PostgreSQL in place of its SQLite file. Docker Compose connects the two, and starts `peekaping` once PostgreSQL is healthy.
+Single mode runs two containers: `peekaping`, from the `0xfurai/peekaping` image, and PostgreSQL, from the official `postgres` image. One process, `peekaping`, serves the web app, the API and the websocket on port 8383, and connects to PostgreSQL. `DB_TYPE=postgres` makes the image use PostgreSQL in place of its SQLite file. Docker Compose connects the two, and starts `peekaping` once PostgreSQL is healthy.
 
 Put the database settings in a `.env` file next to the Compose file:
 
@@ -50,7 +50,7 @@ services:
       start_period: 5s
 
   peekaping:
-    image: 0xfurai/peekaping-bundle-sqlite:latest
+    image: 0xfurai/peekaping:latest
     restart: unless-stopped
     # peekaping takes up to 30 seconds to shut down cleanly
     stop_grace_period: 35s
@@ -76,7 +76,7 @@ Start it with `docker compose up -d`, then open `http://localhost:8383` and crea
 
 On the first start, the `postgres` container creates the `DB_USER` user with the password `DB_PASS`, and the `DB_NAME` database. It does that only in an empty data folder: changing `DB_PASS` in `.env` later doesn't change the password of a database that exists. `peekaping` waits until PostgreSQL is healthy, applies the migrations and starts. Keep `./.data/postgres17`, which holds the database. It is a new folder on purpose: the old `peekaping-bundle-postgres` kept its cluster in `.data/postgres`, which the official image can't use.
 
-`peekaping` runs as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need. The `postgres` container runs as the official image does.
+`peekaping` runs as a non-root user. See [Single-mode user and permissions](./single-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need. The `postgres` container runs as the official image does.
 
 PostgreSQL's major versions are upgraded through the official image, not through Peekaping: to move to a newer major version, follow the [`postgres` image's documentation](https://hub.docker.com/_/postgres) for a dump and restore or `pg_upgrade`, and change the image tag.
 
@@ -484,7 +484,7 @@ Peekaping provides official Docker images.
 
 Single mode:
 
-- **Single mode**: [`0xfurai/peekaping-bundle-sqlite`](https://hub.docker.com/r/0xfurai/peekaping-bundle-sqlite), which uses PostgreSQL with `DB_TYPE=postgres`, and the official [`postgres`](https://hub.docker.com/_/postgres) image
+- **Single mode**: [`0xfurai/peekaping`](https://hub.docker.com/r/0xfurai/peekaping), which uses PostgreSQL with `DB_TYPE=postgres`, and the official [`postgres`](https://hub.docker.com/_/postgres) image
 
 Cluster mode:
 

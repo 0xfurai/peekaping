@@ -94,7 +94,7 @@ Time: {{ heartbeat.created_at }}
 
 Check the Peekaping logs for detailed debugging information. The API sends the message, so in cluster mode read its logs.
 
-With a bundle image started as in the self-hosting pages, which names the container `peekaping`:
+With the single-mode image started as in the self-hosting pages, which names the container `peekaping`:
 
 ```bash
 docker logs peekaping
