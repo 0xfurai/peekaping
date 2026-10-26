@@ -1,43 +1,34 @@
 #!/usr/bin/env bash
-# Smoke-tests how a bundle image runs: which user Peekaping runs as, what it can
-# write, PUID/PGID, the Docker socket, the startup warnings and that port 8383
-# sends the probe protocol (/probe/v1/) to the API. For the
-# single-mode bundles (SQLite and PostgreSQL) it also checks that one peekaping
-# process serves port 8383 whatever SERVER_PORT says, that ping and Docker
-# monitors work as non-root, that docker run --user works, and that docker stop
-# and Ctrl+C shut down in order and exit 0. For the PostgreSQL bundle it checks
-# PostgreSQL's own role and database as DB_USER and DB_NAME, and a first start
-# that fails once PostgreSQL runs.
+# Smoke-tests how the single image runs with SQLite: which user Peekaping runs
+# as, what it can write, PUID/PGID, the Docker socket, the startup warnings and
+# that port 8383 sends the probe protocol (/probe/v1/) to the API. It also
+# checks that one peekaping process serves port 8383 whatever SERVER_PORT says,
+# that ping and Docker monitors work as non-root, that docker run --user works,
+# that docker stop and Ctrl+C shut down in order and exit 0, and that DB_TYPE
+# picks the database: a PostgreSQL DB_NAME doesn't move SQLite, and a DB_TYPE
+# that single mode doesn't support, or postgres without DB_HOST, stops startup.
+# The PostgreSQL case, which needs a server, runs in the e2e jobs.
 #
-# Usage: scripts/test-single-user.sh <sqlite|postgres> [image]
-# Without an image, it builds Dockerfile.single.<db> from the repo root. Set
+# Usage: scripts/test-single-user.sh [image]
+# Without an image, it builds Dockerfile.single from the repo root. Set
 # BUNDLE_TEST_PREFIX to name the test containers something else.
 # Needs docker, curl and jq.
 set -u
 
-db=${1:?usage: $0 <sqlite|postgres> [image]}
-image=${2:-}
+image=${1:-}
 root=$(cd "$(dirname "$0")/.." && pwd)
-prefix=${BUNDLE_TEST_PREFIX:-peekaping-bundle-test-$db}
+prefix=${BUNDLE_TEST_PREFIX:-peekaping-single-test}
 socket=/var/run/docker.sock
 failures=0
-
-case "$db" in
-  sqlite | postgres) ;;
-  *)
-    echo "usage: $0 <sqlite|postgres> [image]"
-    exit 2
-    ;;
-esac
 
 if [ -z "$image" ]; then
   image="$prefix:local"
   echo "Building $image..."
-  docker build -q -f "$root/Dockerfile.single.$db" -t "$image" "$root" >/dev/null || exit 1
+  docker build -q -f "$root/Dockerfile.single" -t "$image" "$root" >/dev/null || exit 1
 fi
 
-containers="default ids bad-uid bad-gid taken-gid shadow-gid free-ids socket socket-maker ro-data ping user ctrl-c
-  pg-superuser pg-database pg-reserved"
+containers="default ids bad-uid bad-gid taken-gid shadow-gid free-ids socket socket-maker ping user ctrl-c
+  pg-name bad-type pg-no-host"
 cleanup() {
   for name in $containers; do
     docker rm -f "$prefix-$name" >/dev/null 2>&1
@@ -120,9 +111,6 @@ exit_code() { docker inspect -f '{{.State.ExitCode}}' "$1"; }
 ctrl_c() {
   docker exec "$1" sh -c 'kill -INT "-$(awk "{print \$8}" /proc/1/stat)"'
 }
-
-# logs_count <container> <pattern>: how many log lines match
-logs_count() { docker logs "$1" 2>&1 | grep -c "$2"; }
 
 # pids <container> <process name>: the container's processes with that name
 pids() {
@@ -238,11 +226,7 @@ monitor_up() {
 
 root_procs="tini"
 # Nothing of the old bundle may run
-gone_procs="supervisord caddy redis-server api"
-case "$db" in
-  postgres) db_proc=postgres db_user=postgres ;;
-  *) db_proc= ;;
-esac
+gone_procs="supervisord caddy redis-server api postgres"
 
 echo "# Default run"
 socket_args=()
@@ -257,17 +241,11 @@ if check "starts and reports healthy" wait_healthy "$prefix-default"; then
     check "$proc keeps running as root" eq "$(ids "$prefix-default" "$proc" | cut -d: -f1)" 0
   done
   # shellcheck disable=SC2086 # a list of names
-  check "runs no supervisord, Caddy, Redis or cluster-mode services" runs_none "$prefix-default" $gone_procs
-  if [ -n "$db_proc" ]; then
-    check "$db_proc keeps running as $db_user" eq \
-      "$(ids "$prefix-default" "$db_proc" | cut -d: -f1)" "$(docker exec "$prefix-default" id -u "$db_user")"
-  fi
+  check "runs no supervisord, Caddy, Redis, PostgreSQL or cluster-mode services" runs_none "$prefix-default" $gone_procs
   check "peekaping can't write its binary" cant_write "$prefix-default" /app/server/peekaping
   check "peekaping can't write the web assets" cant_write "$prefix-default" /app/web/index.html
   check "peekaping owns /app/data" eq "$(owner "$prefix-default" /app/data)" 1000:1000
-  if [ "$db" = sqlite ]; then
-    check "peekaping owns the SQLite database" eq "$(owner "$prefix-default" /app/data/peekaping.db)" 1000:1000
-  fi
+  check "peekaping owns the SQLite database" eq "$(owner "$prefix-default" /app/data/peekaping.db)" 1000:1000
   check "no ping warning on default Docker" logs_lack "$prefix-default" ping_group_range
   # Remote probes reach the API through port 8383, whichever gateway the bundle runs
   check "port 8383 sends POST /probe/v1/hello to the API: 401 without a token, in JSON" \
@@ -292,15 +270,9 @@ if check "starts and reports healthy" wait_healthy "$prefix-default"; then
   fi
   docker stop -t 40 "$prefix-default" >/dev/null
   check "docker stop exits 0" eq "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-default")" 0
-  if [ "$db" = postgres ]; then
-    check "docker stop stops peekaping, then PostgreSQL" logs_in_order "$prefix-default" \
-      "Shutdown signal received" "Closed the database" "Peekaping stopped" "Stopping PostgreSQL" \
-      "database system is shut down"
-  else
-    check "docker stop shuts peekaping down in order" logs_in_order "$prefix-default" \
-      "Shutdown signal received" "Stopped the HTTP server" "Closed the event bus" "Closed the database" \
-      "Peekaping stopped"
-  fi
+  check "docker stop shuts peekaping down in order" logs_in_order "$prefix-default" \
+    "Shutdown signal received" "Stopped the HTTP server" "Closed the event bus" "Closed the database" \
+    "Peekaping stopped"
 fi
 docker rm -f "$prefix-default" >/dev/null
 
@@ -309,9 +281,7 @@ start "$prefix-ids" -e PUID=1500 -e PGID=1600
 if check "starts and reports healthy" wait_healthy "$prefix-ids"; then
   check "peekaping runs as 1500:1600" eq "$(ids "$prefix-ids" peekaping)" 1500:1600
   check "1500:1600 owns /app/data" eq "$(owner "$prefix-ids" /app/data)" 1500:1600
-  if [ "$db" = sqlite ]; then
-    check "1500:1600 owns the SQLite database" eq "$(owner "$prefix-ids" /app/data/peekaping.db)" 1500:1600
-  fi
+  check "1500:1600 owns the SQLite database" eq "$(owner "$prefix-ids" /app/data/peekaping.db)" 1500:1600
 fi
 docker rm -f "$prefix-ids" >/dev/null
 
@@ -320,10 +290,6 @@ start "$prefix-bad-uid" -e PUID=0
 check "PUID=0 (root's UID) stops the container" wait_exited "$prefix-bad-uid"
 check "PUID=0 exits non-zero" ne "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-bad-uid")" 0
 check "PUID=0 is named in the error" logs_mention "$prefix-bad-uid" "PUID 0"
-if [ "$db" = postgres ]; then
-  # Else PostgreSQL would be killed with the container rather than stopped
-  check "PUID=0 stops it before PostgreSQL starts" logs_lack "$prefix-bad-uid" "Starting PostgreSQL"
-fi
 start "$prefix-bad-gid" -e PGID=staff
 check "PGID=staff (not a number) stops the container" wait_exited "$prefix-bad-gid"
 check "PGID=staff exits non-zero" ne "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-bad-gid")" 0
@@ -338,7 +304,7 @@ check "PGID=42 is named in the error" logs_mention "$prefix-shadow-gid" "PGID 42
 
 echo "# PUID=405 PGID=999, IDs Alpine gives users and groups nothing in the image uses"
 # Alpine's guest user and ping group, which nothing in the image uses. Debian,
-# which earlier bundles and the PostgreSQL bundle run on, has neither ID.
+# which earlier bundles ran on, has neither ID.
 start "$prefix-free-ids" -e PUID=405 -e PGID=999
 if check "starts and reports healthy" wait_healthy "$prefix-free-ids"; then
   check "peekaping runs as 405:999" eq "$(ids "$prefix-free-ids" peekaping)" 405:999
@@ -347,33 +313,18 @@ docker rm -f "$prefix-free-ids" >/dev/null
 
 echo "# A Docker socket its group can't use"
 # A stand-in socket, mode 600, so the user's new group gives no access.
-if [ "$db" = sqlite ]; then
-  # Alpine has no tool that listens on a Unix socket, so a Node container makes
-  # it in a volume that becomes the bundle's /run (and so /var/run).
-  docker volume create "$prefix-socket" >/dev/null
-  docker run -d --name "$prefix-socket-maker" -v "$prefix-socket:/run" node:22-alpine node -e \
-    "require('net').createServer().listen('$socket', () => require('fs').chmodSync('$socket', 0o600))" >/dev/null
-  for _ in $(seq 1 30); do
-    docker exec "$prefix-socket-maker" test -S "$socket" && break
-    sleep 1
-  done
-  start "$prefix-socket" -v "$prefix-socket:/run"
-else
-  docker run -d --name "$prefix-socket" -p 127.0.0.1::8383 -e DB_USER=peekaping -e DB_PASS=bundle-test \
-    --entrypoint /bin/sh "$image" -c "nc -lU $socket & sleep 1; chmod 600 $socket; exec /app/startup.sh" >/dev/null
-fi
+# Alpine has no tool that listens on a Unix socket, so a Node container makes
+# it in a volume that becomes the bundle's /run (and so /var/run).
+docker volume create "$prefix-socket" >/dev/null
+docker run -d --name "$prefix-socket-maker" -v "$prefix-socket:/run" node:22-alpine node -e \
+  "require('net').createServer().listen('$socket', () => require('fs').chmodSync('$socket', 0o600))" >/dev/null
+for _ in $(seq 1 30); do
+  docker exec "$prefix-socket-maker" test -S "$socket" && break
+  sleep 1
+done
+start "$prefix-socket" -v "$prefix-socket:/run"
 if check "starts and reports healthy" wait_healthy "$prefix-socket"; then
   check "startup warns that Docker monitors can't use the socket" logs_mention "$prefix-socket" "Docker monitors can't use"
-fi
-
-echo "# /app/data where root can't change owners"
-if [ "$db" = sqlite ]; then
-  echo "skip - the SQLite bundle keeps its database there, so it can't start"
-else
-  start "$prefix-ro-data" --tmpfs /app/data:ro
-  if check "starts and reports healthy" wait_healthy "$prefix-ro-data"; then
-    check "startup warns that it couldn't give /app/data away" logs_mention "$prefix-ro-data" "couldn't give /app/data"
-  fi
 fi
 
 echo "# ping_group_range without the service group"
@@ -384,17 +335,9 @@ fi
 
 echo "# docker run --user 1500:1600"
 # The user owns the data volume, as the docs ask
-if [ "$db" = sqlite ]; then
-  data_dir=/app/data
-else
-  data_dir=/var/lib/postgresql/data
-fi
-start "$prefix-user" --user 1500:1600 --tmpfs "$data_dir:uid=1500,gid=1600,mode=0700"
+start "$prefix-user" --user 1500:1600 --tmpfs "/app/data:uid=1500,gid=1600,mode=0700"
 if check "starts and reports healthy" wait_healthy "$prefix-user"; then
   check "peekaping runs as 1500:1600" eq "$(ids "$prefix-user" peekaping)" 1500:1600
-  if [ -n "$db_proc" ]; then
-    check "$db_proc runs as 1500:1600" eq "$(ids "$prefix-user" "$db_proc")" 1500:1600
-  fi
   check "startup says PUID and PGID don't apply" logs_mention "$prefix-user" "docker run --user"
   docker stop -t 40 "$prefix-user" >/dev/null
   check "docker stop exits 0" eq "$(docker inspect -f '{{.State.ExitCode}}' "$prefix-user")" 0
@@ -407,44 +350,28 @@ if check "starts and reports healthy" wait_healthy "$prefix-ctrl-c"; then
   check "Ctrl+C stops the container" wait_exited "$prefix-ctrl-c"
   check "Ctrl+C exits 0" eq "$(exit_code "$prefix-ctrl-c")" 0
   check "peekaping takes one shutdown signal" logs_lack "$prefix-ctrl-c" "Second shutdown signal"
-  if [ "$db" = postgres ]; then
-    # PostgreSQL takes its shutdown request from the startup script, once peekaping has stopped
-    check "Ctrl+C stops peekaping, then PostgreSQL" logs_in_order "$prefix-ctrl-c" \
-      "Shutdown signal received" "Closed the database" "Peekaping stopped" "Stopping PostgreSQL" \
-      "received fast shutdown request" "database system is shut down"
-  else
-    check "Ctrl+C shuts peekaping down in order" logs_in_order "$prefix-ctrl-c" \
-      "Shutdown signal received" "Closed the database" "Peekaping stopped"
-  fi
+  check "Ctrl+C shuts peekaping down in order" logs_in_order "$prefix-ctrl-c" \
+    "Shutdown signal received" "Closed the database" "Peekaping stopped"
 fi
 
-if [ "$db" = postgres ]; then
-  echo "# DB_USER=postgres and DB_NAME=postgres, PostgreSQL's own role and database"
-  start "$prefix-pg-superuser" -e DB_USER=postgres
-  start "$prefix-pg-database" -e DB_NAME=postgres
-  for name in pg-superuser pg-database; do
-    if check "$name starts and reports healthy" wait_healthy "$prefix-$name"; then
-      check "$name: the API is reachable as the e2e admin" login "$prefix-$name"
-      check "$name: the PostgreSQL setup completed" logs_mention "$prefix-$name" "PostgreSQL initialization completed"
-    fi
-  done
-
-  echo "# A first start that fails once PostgreSQL runs"
-  # Role names starting with pg_ are reserved, so creating DB_USER fails
-  start "$prefix-pg-reserved" -e DB_USER=pg_peekaping
-  check "the failed setup stops the container" wait_exited "$prefix-pg-reserved"
-  check "the failed setup exits non-zero" ne "$(exit_code "$prefix-pg-reserved")" 0
-  check "the failed setup stops PostgreSQL rather than leaving it to be killed" logs_in_order "$prefix-pg-reserved" \
-    'role name "pg_peekaping" is reserved' "Stopping PostgreSQL" "database system is shut down"
-  docker start "$prefix-pg-reserved" >/dev/null
-  check "a second start stops the container" wait_exited "$prefix-pg-reserved"
-  check "a second start keeps the cluster: initdb ran once" eq "$(logs_count "$prefix-pg-reserved" "Initializing PostgreSQL")" 1
-  check "a second start finishes the setup" logs_mention "$prefix-pg-reserved" "Finishing the PostgreSQL setup"
+echo "# DB_TYPE picks the database"
+# An .env shared with cluster mode names a PostgreSQL database: SQLite keeps its file
+start "$prefix-pg-name" -e DB_NAME=peekaping -e DB_HOST=database -e DB_PORT=5432
+if check "DB_NAME=peekaping with the default DB_TYPE starts and reports healthy" wait_healthy "$prefix-pg-name"; then
+  check "the database is still /app/data/peekaping.db" eq "$(owner "$prefix-pg-name" /app/data/peekaping.db)" 1000:1000
 fi
+start "$prefix-bad-type" -e DB_TYPE=mysql
+check "DB_TYPE=mysql stops the container" wait_exited "$prefix-bad-type"
+check "DB_TYPE=mysql exits non-zero" ne "$(exit_code "$prefix-bad-type")" 0
+check "DB_TYPE=mysql is named in the error" logs_mention "$prefix-bad-type" "DB_TYPE=mysql isn't supported in single mode"
+start "$prefix-pg-no-host" -e DB_TYPE=postgres
+check "DB_TYPE=postgres without DB_HOST stops the container" wait_exited "$prefix-pg-no-host"
+check "DB_TYPE=postgres without DB_HOST exits non-zero" ne "$(exit_code "$prefix-pg-no-host")" 0
+check "DB_TYPE=postgres without DB_HOST says DB_HOST is required" logs_mention "$prefix-pg-no-host" "DB_HOST is required"
 
 echo
 if [ "$failures" -gt 0 ]; then
-  echo "$failures check(s) failed for the $db bundle"
+  echo "$failures check(s) failed for the single image"
   exit 1
 fi
-echo "All checks passed for the $db bundle"
+echo "All checks passed for the single image"

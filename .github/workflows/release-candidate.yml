@@ -341,6 +341,9 @@ jobs:
           docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
+  # The single image, which runs with SQLite or with PostgreSQL in a container of its own. It is
+  # published as peekaping-bundle-sqlite until PP-321 renames it. peekaping-bundle-postgres,
+  # which ran its own PostgreSQL, gets no new tags.
   build-bundle-containers:
     runs-on: ${{ matrix.runner }}
     needs: validate-version
@@ -351,19 +354,9 @@ jobs:
           - platform: linux/amd64
             runner: ubuntu-latest
             arch: amd64
-            database: sqlite
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
             arch: arm64
-            database: sqlite
-          - platform: linux/amd64
-            runner: ubuntu-latest
-            arch: amd64
-            database: postgres
-          - platform: linux/arm64
-            runner: ubuntu-24.04-arm
-            arch: arm64
-            database: postgres
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -388,20 +381,20 @@ jobs:
           echo "export const VERSION = \"${{ github.event.inputs.version }}\";" >> src/version.ts
         working-directory: ./apps/web
 
-      - name: Build Bundle image - ${{ matrix.database }} (without DockerHub login to avoid pull limits)
+      - name: Build the single image (without DockerHub login to avoid pull limits)
         id: build_bundle
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.single.${{ matrix.database }}
+          file: ./Dockerfile.single
           push: false
           load: true
           platforms: ${{ matrix.platform }}
           provenance: false
           sbom: false
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -418,10 +411,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Push Bundle image to registries
+      - name: Push the single image to registries
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${{ matrix.database }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-${{ matrix.arch }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-${{ matrix.arch }}
 
   create-manifest:
     runs-on: ubuntu-latest
@@ -472,14 +465,11 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-arm64
           docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}
 
-          # Bundle manifests
-          for db in sqlite postgres; do
-            # Bundle manifest for each database
-            docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
-              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
-              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-arm64
-            docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}
-          done
+          # Single image manifest (published as the bundle-sqlite image)
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }} \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}
 
       - name: Create and push multi-arch manifests for Docker Hub
         run: |
@@ -528,16 +518,14 @@ jobs:
           echo "✓ Migrate manifest pushed"
           sleep 5
 
-          # Bundle manifests
-          for db in sqlite postgres; do
-            echo "Creating Bundle manifest for ${db}..."
-            docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }} \
-              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-amd64 \
-              ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}-arm64
-            docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-${db}:${{ github.event.inputs.version }}
-            echo "✓ Bundle ${db} manifest pushed"
-            sleep 5
-          done
+          # Single image manifest (published as the bundle-sqlite image)
+          echo "Creating the single image manifest..."
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }} \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}
+          echo "✓ Single image manifest pushed"
+          sleep 5
 
           echo "All Docker Hub manifests created successfully!"
 
@@ -579,8 +567,7 @@ jobs:
             - Migrate: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}`
 
             ### Bundle Containers (GHCR)
-            - SQLite Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}`
-            - PostgreSQL Bundle: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}`
+            - Single mode (SQLite, or PostgreSQL in its own container): `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}`
 
             ### Docker Hub
             - UI: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}`
@@ -590,8 +577,7 @@ jobs:
             - Migrate: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}`
 
             ### Bundle Containers (Docker Hub)
-            - SQLite Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}`
-            - PostgreSQL Bundle: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}`
+            - Single mode (SQLite, or PostgreSQL in its own container): `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}`
 
             ## Installation
 
@@ -646,8 +632,7 @@ jobs:
                     - Migrate: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}\`
 
                     **Bundle Containers:**
-                    - SQLite: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}\`
-                    - PostgreSQL: \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-postgres:${{ github.event.inputs.version }}\`
+                    - Single mode (SQLite, or PostgreSQL in its own container): \`ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}\`
 
                     [View Release](https://github.com/${{ github.repository }}/releases/tag/${{ github.event.inputs.version }})`
                   });

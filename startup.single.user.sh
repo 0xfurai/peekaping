@@ -1,9 +1,8 @@
-# Sourced as root by the bundle startup scripts, before they start Peekaping.
+# Sourced as root by startup.single.sh, before it starts Peekaping.
 #
-# Peekaping runs as the peekaping user: peekaping in the SQLite and PostgreSQL
-# bundles (su-exec or gosu). Each switch gives it only the groups
-# /etc/group gives the user: --group-add and cap_add don't reach it. So the
-# user's IDs and groups are settled here.
+# Peekaping runs as the peekaping user (su-exec). The switch gives it only the
+# groups /etc/group gives the user: --group-add and cap_add don't reach it. So
+# the user's IDs and groups are settled here.
 
 require_number() {
     case "$2" in

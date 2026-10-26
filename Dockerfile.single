@@ -1,5 +1,6 @@
-# The SQLite bundle: Peekaping in single mode (ADR 0002). One process, peekaping, serves the
-# web app, the API and the websocket on port 8383 and stores its data in /app/data.
+# The single image: Peekaping in single mode (ADR 0002). One process, peekaping, serves the
+# web app, the API and the websocket on port 8383. Its database is SQLite in /app/data, or a
+# PostgreSQL server in a container of its own (DB_TYPE=postgres).
 
 # Stage 1: Build peekaping and the migration tool
 FROM golang:1.26.4-alpine AS go-builder
@@ -57,11 +58,11 @@ RUN addgroup -g 1000 peekaping \
 COPY --from=go-builder --chmod=755 /app/server/peekaping /app/server/bun /app/server/
 COPY --from=go-builder --chmod=755 /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
 COPY --from=web-builder /app/apps/web/dist /app/web
-COPY --chmod=755 startup.single.sqlite.sh /app/startup.sh
+COPY --chmod=755 startup.single.sh /app/startup.sh
 COPY startup.single.user.sh /app/startup.user.sh
 
-# peekaping serves the web build itself and generates /env.js. The startup script sets the
-# database and forces SERVER_PORT to 8383, whatever the .env says.
+# peekaping serves the web build itself and generates /env.js. The startup script checks DB_TYPE
+# and forces SERVER_PORT to 8383, whatever the .env says.
 ENV WEB_DIR=/app/web \
     TZ=UTC
 

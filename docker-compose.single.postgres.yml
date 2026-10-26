@@ -1,21 +1,48 @@
 services:
+  # PostgreSQL runs in a container of its own: peekaping connects to it by the name `postgres`.
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-password}
+      POSTGRES_DB: ${DB_NAME:-peekaping}
+    volumes:
+      # Database data persistence
+      - ./.data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-peekaping}",
+        ]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
   peekaping:
     build:
       context: .
-      dockerfile: Dockerfile.single.postgres
+      dockerfile: Dockerfile.single
     restart: unless-stopped
-    # peekaping takes up to 30 seconds to shut down cleanly, and PostgreSQL stops after it
+    # peekaping takes up to 30 seconds to shut down cleanly
     stop_grace_period: 35s
     ports:
       - "8383:8383"
     env_file:
       - .env
     environment:
-      - DB_TYPE=postgres
-      - DB_HOST=localhost
-      - DB_PASS=password
-      - DB_PORT=5432
-    volumes:
-      # Database data persistence. Logs go to the container's output (docker compose logs).
-      - ./.data/postgres:/var/lib/postgresql/data
+      # The user, password and database that the postgres service creates. DB_HOST and DB_PORT
+      # are the service's name and port on the Compose network, whatever a .env shared with
+      # cluster mode says (it sets DB_HOST=database).
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS:-password}
+      DB_NAME: ${DB_NAME:-peekaping}
+    depends_on:
+      postgres:
+        condition: service_healthy
     container_name: peekaping-bundle-postgres

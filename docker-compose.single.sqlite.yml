@@ -2,7 +2,7 @@ services:
   peekaping:
     build:
       context: .
-      dockerfile: Dockerfile.single.sqlite
+      dockerfile: Dockerfile.single
     restart: unless-stopped
     # peekaping takes up to 30 seconds to shut down cleanly
     stop_grace_period: 35s
