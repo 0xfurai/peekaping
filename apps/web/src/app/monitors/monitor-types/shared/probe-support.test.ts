@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ProbeProbeResponse } from "@/api/types.gen";
 import {
+  defaultProbeIds,
   probeIdsOf,
   probeRunsType,
   probeTypeError,
@@ -141,5 +142,35 @@ describe("unsupportedProbeIds", () => {
 
   it("names none for a push monitor, which runs on the local probe", () => {
     expect(unsupportedProbeIds({ type: "push", probe_ids: ["web-only"] }, several)).toEqual([]);
+  });
+});
+
+describe("defaultProbeIds", () => {
+  const withState = (id: string, supportedTypes: string[], state: Partial<Pick<ProbeProbeResponse, "disabled" | "status">>) => ({
+    ...probe(id, supportedTypes),
+    ...state,
+  });
+
+  it("is every probe that runs the type, the local one included, in the list's order", () => {
+    const all = [probe("local", []), probe("web-only", ["http"]), probe("other", [])];
+    expect(defaultProbeIds("http", all)).toEqual(["local", "web-only", "other"]);
+  });
+
+  it("leaves out a disabled probe", () => {
+    const all = [probe("local", []), withState("off", [], { disabled: true })];
+    expect(defaultProbeIds("http", all)).toEqual(["local"]);
+  });
+
+  it("keeps an offline probe", () => {
+    const all = [probe("local", []), withState("down", [], { status: "offline" })];
+    expect(defaultProbeIds("http", all)).toEqual(["local", "down"]);
+  });
+
+  it("leaves out a probe that doesn't run the type", () => {
+    expect(defaultProbeIds("docker", probes)).toEqual(["local"]);
+  });
+
+  it("is the local probe when no probes are loaded", () => {
+    expect(defaultProbeIds("http", [])).toEqual(["local"]);
   });
 });

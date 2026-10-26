@@ -2,6 +2,7 @@ import React, {
   createContext,
   useContext,
   useMemo,
+  useRef,
   useState,
   useEffect,
 } from "react";
@@ -68,6 +69,11 @@ interface MonitorFormContextType {
     unknown
   >;
   monitorId?: string;
+  // A new monitor that isn't a clone starts on the default probes (every enabled probe that runs
+  // its type). The user's own choice ends that, so it is kept here: the type forms, and the probe
+  // field with them, mount again when the type changes.
+  presetsProbes: boolean;
+  probesChosenByHand: React.MutableRefObject<boolean>;
 }
 
 const MonitorFormContext = createContext<MonitorFormContextType | undefined>(
@@ -100,6 +106,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   });
 
   const { probes } = useProbes();
+  const probesChosenByHand = useRef(false);
 
   const form = useForm<MonitorFormValues>({
     // A new monitor starts as the first type the registry lists. Read here, not at module
@@ -180,6 +187,8 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       createMonitorMutation,
       editMonitorMutation,
       monitorId,
+      presetsProbes: mode === "create" && !initialValues,
+      probesChosenByHand,
     }),
     [
       form,
@@ -190,6 +199,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       monitor,
       mode,
       monitorId,
+      initialValues,
     ]
   );
 

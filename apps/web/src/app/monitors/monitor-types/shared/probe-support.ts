@@ -17,6 +17,15 @@ export const probeRunsType = (probe: Pick<ProbeProbeResponse, "supported_types">
 export const probeIdsOf = (type: string, probeIds: string[]): string[] =>
   type === "push" ? [LOCAL_PROBE_ID] : probeIds;
 
+// The probes a new monitor of the type starts on: every enabled probe that runs the type, the local
+// one included, in the list's order. An offline probe stays in, since it may be back by the time
+// the monitor is. Before the probes load, the monitor starts on the local probe alone. A push
+// monitor gets the same list, and is submitted on the local probe by withEffectiveProbes.
+export const defaultProbeIds = (type: string, probes: ProbeProbeResponse[]): string[] =>
+  probes.length === 0
+    ? [LOCAL_PROBE_ID]
+    : probes.filter((probe) => !probe.disabled && probeRunsType(probe, type)).map((probe) => probe.id);
+
 // The form's values as they are checked and submitted: a push monitor is on the local probe even
 // when the form holds none (the field shows Local). The form itself keeps what the user chose, so
 // a switch away from push brings the earlier selection back.
