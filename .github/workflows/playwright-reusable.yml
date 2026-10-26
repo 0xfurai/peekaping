@@ -149,7 +149,7 @@ jobs:
         path: playwright-report/
         retention-days: 30
 
-  # The single image, published as peekaping until PP-321 renames it, on each database.
+  # The single image, published as peekaping, on each database.
   # With postgres it runs beside a postgres:17 container, as docker-compose.single.postgres.yml
   # does.
   playwright-tests-bundle:
