@@ -142,7 +142,7 @@ Blocks with no marker aren't checked. That is for examples and excerpts that are
 
 ### Integration tests
 
-Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Two services have them today. `TestRedisExecutor_Integration` checks the Redis executor: Up with the right password, Down with a wrong one. `TestKafkaProducerExecutor_Integration` checks the Kafka executor against a single-node broker with a plaintext listener and a SASL listener: Up on an existing topic (the test reads the message back), with and without automatic topic creation, with SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512, and Down for a wrong password and for `ssl` against the plaintext listener. The Kafka cases that need no broker (connection refused, a broker that never answers) are in `kafka_producer_test.go` and run in the default `go test`.
+Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Three services have them today. `TestRedisExecutor_Integration` checks the Redis executor: Up with the right password, Down with a wrong one. `TestKafkaProducerExecutor_Integration` checks the Kafka executor against a single-node broker with a plaintext listener and a SASL listener: Up on an existing topic (the test reads the message back), with and without automatic topic creation, with SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512, and Down for a wrong password and for `ssl` against the plaintext listener. The Kafka cases that need no broker (connection refused, a broker that never answers) are in `kafka_producer_test.go` and run in the default `go test`. `TestRabbitMQExecutor_Integration` checks the RabbitMQ executor against a broker's management API, which is all the executor talks to: Up with the right credentials, Down with a wrong password, Up with a password that holds `@`, `:`, `/` and `%`, failover from a refused node to a healthy one, Down when every node refuses, and Down for an `https://` node on the plain port. The cases that need no broker (a node that never answers, the 503 alarm body and other error statuses) are in `rabbitmq_test.go` and run in the default `go test`.
 
 With Docker running, run them from `apps/server`. The tests start the servers they need, each on a free port, and remove them when the run ends. `-count=1` turns off Go's test cache, which would otherwise replay an earlier pass after a server went away:
 
@@ -150,13 +150,14 @@ With Docker running, run them from `apps/server`. The tests start the servers th
 go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 ```
 
-To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A service takes one variable (Redis) or several (Kafka needs both of its two, the plaintext and the SASL broker). A test that finds nothing at that address fails; it doesn't start a container instead. Set all of a service's variables or none: one without the others fails the test.
+To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A service takes one variable (Redis, RabbitMQ) or several (Kafka needs both of its two, the plaintext and the SASL broker). `PEE_TEST_RABBITMQ_URL` is `http://<user>:<password>@<host>:<port>` for the management API, with the password percent-encoded. A test that finds nothing at that address fails; it doesn't start a container instead. Set all of a service's variables or none: one without the others fails the test.
 
 ```bash
 docker compose -f apps/server/docker-compose.integration.yml up -d --wait
 cd apps/server
 PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
 PEE_TEST_KAFKA_BROKER='127.0.0.1:19092' PEE_TEST_KAFKA_SASL_BROKER='127.0.0.1:19093' \
+PEE_TEST_RABBITMQ_URL='http://peekaping:p%40ss%3Aw%2Frd%251@127.0.0.1:15673' \
   go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 docker compose -f docker-compose.integration.yml down
 ```
