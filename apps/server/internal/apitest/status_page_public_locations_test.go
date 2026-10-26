@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 	"time"
@@ -149,7 +150,13 @@ func TestPublicStatusPage_AMonitorWithNoHeartbeatsInTheDayHasNullUptime(t *testi
 			monitors := decode[[]publicMonitorWithLocations](t, w, http.StatusOK)
 			require.Len(t, monitors, 1)
 			assert.Nil(t, monitors[0].Uptime24h, "null, not a 0 that reads as an outage")
-			assert.Contains(t, w.Body.String(), `"uptime_24h":null`)
+
+			// A *float64 can't tell null from an omitted key, so look at the raw JSON
+			raw := decode[[]map[string]json.RawMessage](t, w, http.StatusOK)
+			require.Len(t, raw, 1)
+			value, present := raw[0]["uptime_24h"]
+			assert.True(t, present, "uptime_24h is present")
+			assert.JSONEq(t, "null", string(value), "uptime_24h is null")
 		})
 	}
 }

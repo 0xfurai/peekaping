@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"testing"
@@ -130,6 +131,14 @@ func TestMonitorsAPI_UptimeStatsOfAMonitorWithoutHeartbeatsAreNull(t *testing.T)
 
 	got := decode[uptimeResponse](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
 	assert.Equal(t, uptimeResponse{}, got)
+
+	// A *float64 can't tell null from an omitted key, so look at the raw JSON
+	raw := decode[map[string]json.RawMessage](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+	for _, period := range []string{"24h", "7d", "30d", "365d"} {
+		value, present := raw[period]
+		assert.True(t, present, "%s is present", period)
+		assert.JSONEq(t, "null", string(value), "%s is null", period)
+	}
 }
 
 func TestMonitorsAPI_UptimeStatsOfOnlyDownHeartbeatsAreZero(t *testing.T) {
