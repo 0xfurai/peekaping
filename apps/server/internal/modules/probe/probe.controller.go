@@ -8,9 +8,11 @@ import (
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/probe_notification"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
 
 	"github.com/go-playground/validator/v10"
+	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
@@ -28,16 +30,48 @@ type Controller struct {
 	service      Service
 	availability AvailabilityService
 	monitors     MonitorAssigner
+	liveness     shared.LocalProbeLiveness
 	logger       *zap.SugaredLogger
 }
 
-func NewController(service Service, availability AvailabilityService, monitors MonitorAssigner, logger *zap.SugaredLogger) *Controller {
+// NewController makes the controller. monitors assigns the probe to monitors. liveness says whether
+// the local probe follows its stored status or is up as long as Peekaping runs.
+func NewController(service Service, availability AvailabilityService, monitors MonitorAssigner, liveness shared.LocalProbeLiveness, logger *zap.SugaredLogger) *Controller {
 	return &Controller{
 		service:      service,
 		availability: availability,
 		monitors:     monitors,
+		liveness:     liveness,
 		logger:       logger.Named("[probe-controller]"),
 	}
+}
+
+// controllerParams are what the install's controller is built from
+type controllerParams struct {
+	dig.In
+
+	Service      Service
+	Availability AvailabilityService
+	// Monitors assigns the probe to monitors: the monitor service, wired in internal/app
+	Monitors MonitorAssigner
+	// LocalProbe is how the local probe is known to be up: the process itself when the install
+	// provides none
+	LocalProbe shared.LocalProbeLiveness `optional:"true"`
+	Logger     *zap.SugaredLogger
+}
+
+func provideController(p controllerParams) *Controller {
+	return NewController(p.Service, p.Availability, p.Monitors, p.LocalProbe, p.Logger)
+}
+
+// response maps a probe to its response. The local probe in single mode is online whatever status
+// is stored: the stored one is left as it is, for a move to cluster mode.
+func (c *Controller) response(m *Model) *ProbeResponse {
+	response := ToProbeResponse(m)
+	if !c.liveness.FollowsItsStatus(m.ID) {
+		response.Status = string(StatusOnline)
+	}
+	return response
 }
 
 // The reasons the local probe can't be changed, which the 409 answers give
@@ -114,7 +148,7 @@ func (c *Controller) GetProbes(ctx context.Context, input *GetProbesInput) (*htt
 
 	responses := make([]*ProbeResponse, len(probes))
 	for i, p := range probes {
-		responses[i] = ToProbeResponse(p)
+		responses[i] = c.response(p)
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probes retrieved successfully", responses))
@@ -133,7 +167,7 @@ func (c *Controller) GetProbe(ctx context.Context, input *GetProbeInput) (*httpx
 		return nil, c.fail(ErrNotFound, "")
 	}
 
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe retrieved successfully", ToProbeResponse(found)))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe retrieved successfully", c.response(found)))
 }
 
 // UpdateProbe updates a probe's name, location, disabled flag and notification channels
@@ -159,7 +193,7 @@ func (c *Controller) UpdateProbe(ctx context.Context, input *UpdateProbeInput) (
 		return nil, c.fail(err, localProbeCantBeDisabled)
 	}
 
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe updated successfully", ToProbeResponse(updated)))
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe updated successfully", c.response(updated)))
 }
 
 // DeleteProbe deletes a probe

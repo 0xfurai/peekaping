@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"peekaping/internal/modules/events"
@@ -108,4 +110,34 @@ func TestRegisterCluster_TheLocalProbesAvailabilityComesFromItsHistory(t *testin
 	assert.Equal(t, probe.StatusOffline, got.Periods[0].Status)
 	require.NotNil(t, got.UptimePercent)
 	assert.Equal(t, 0.0, *got.UptimePercent)
+}
+
+// AC1, AC2: in single mode the probes API lists the local probe online, and the stored status is
+// left as it was, so that a move to cluster mode starts the local probe offline
+func TestRegisterSingle_ListsTheLocalProbeOnline(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, singleConfig(t)))
+
+	require.NoError(t, container.Invoke(func(controller *probe.Controller, probes probe.Service, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		require.NoError(t, migrateDB(db))
+		ctx := context.Background()
+
+		listed, err := controller.GetProbes(ctx, &probe.GetProbesInput{})
+		require.NoError(t, err)
+		require.NotEmpty(t, listed.Body.Data)
+		assert.Equal(t, probe.LocalID, listed.Body.Data[0].ID)
+		assert.Equal(t, string(probe.StatusOnline), listed.Body.Data[0].Status, "the list says the local probe is online")
+
+		request := httptest.NewRequest(http.MethodGet, "/api/v1/probes/local", nil)
+		request.SetPathValue("id", probe.LocalID)
+		got, err := controller.GetProbe(ctx, &probe.GetProbeInput{Request: request})
+		require.NoError(t, err)
+		assert.Equal(t, string(probe.StatusOnline), got.Body.Data.Status, "the probe says it is online")
+
+		stored, err := probes.FindByID(ctx, probe.LocalID)
+		require.NoError(t, err)
+		assert.Equal(t, probe.StatusOffline, stored.Status, "nothing writes online to the database")
+	}))
 }
