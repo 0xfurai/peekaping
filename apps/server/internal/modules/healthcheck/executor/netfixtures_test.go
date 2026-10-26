@@ -8,7 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// refusedAddr is an address nothing listens on: a free port, freed again.
+// refusedAddr returns host:port of a port nothing listens on: it listens to
+// get a free port, then closes the listener.
 func refusedAddr(t *testing.T) string {
 	t.Helper()
 	l, err := net.Listen("tcp", "127.0.0.1:0")
@@ -20,6 +21,14 @@ func refusedAddr(t *testing.T) string {
 
 // silentAddr is a server that accepts connections and never says a word.
 func silentAddr(t *testing.T) string {
+	t.Helper()
+	addr, _ := silentServer(t)
+	return addr
+}
+
+// silentServer starts a server that accepts connections and never sends a
+// byte. It returns host:port, and how many connections it accepted.
+func silentServer(t *testing.T) (addr string, accepted func() int) {
 	t.Helper()
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
@@ -45,5 +54,9 @@ func silentAddr(t *testing.T) string {
 			_ = c.Close()
 		}
 	})
-	return l.Addr().String()
+	return l.Addr().String(), func() int {
+		mu.Lock()
+		defer mu.Unlock()
+		return len(conns)
+	}
 }
