@@ -36,6 +36,7 @@ import type { MonitorModelLocation, MonitorStatPoint } from "@/api";
 import { useTimezone } from "../context/timezone-context";
 import { formatDateToTimezone } from "../lib/formatDateToTimezone";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { NoData } from "@/components/no-data";
 // import { useMemo } from "react";
 
 function getStatusRanges(data: MonitorStatPoint[]) {
@@ -211,22 +212,22 @@ export function Chart({
     {
       key: "min",
       label: t("timezone.minimum"),
-      value: statpointsDataRaw?.data?.minPing || 0,
+      value: statpointsDataRaw?.data?.minPing ?? null,
     },
     {
       key: "max",
       label: t("timezone.maximum"),
-      value: statpointsDataRaw?.data?.maxPing || 0,
+      value: statpointsDataRaw?.data?.maxPing ?? null,
     },
     {
       key: "avg",
       label: t("timezone.average"),
-      value: statpointsDataRaw?.data?.avgPing || 0,
+      value: statpointsDataRaw?.data?.avgPing ?? null,
     },
     {
       key: "uptime",
       label: t("timezone.uptime"),
-      value: statpointsDataRaw?.data?.uptime || 0,
+      value: statpointsDataRaw?.data?.uptime ?? null,
     },
   ];
 
@@ -407,7 +408,7 @@ export function Chart({
       <CardFooter className="flex flex-col items-stretch space-y-0 border-t p-0">
         <div className="grid grid-cols-1 md:grid-cols-4">
           {statsArray.map(
-            (item: { key: string; label: string; value: number }) => (
+            (item: { key: string; label: string; value: number | null }) => (
               <div
                 key={item.key}
                 className="flex flex-1 flex-col justify-center gap-1  px-6 py-4 text-left even:border-l sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
@@ -416,10 +417,16 @@ export function Chart({
                   {item.label}
                 </span>
                 <span className="text-lg font-bold leading-none sm:text-3xl">
-                  {item.value.toLocaleString()}{" "}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {item.key === "uptime" ? "%" : "ms"}
-                  </span>
+                  {item.value === null ? (
+                    <NoData />
+                  ) : (
+                    <>
+                      {item.value.toLocaleString()}{" "}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        {item.key === "uptime" ? "%" : "ms"}
+                      </span>
+                    </>
+                  )}
                 </span>
               </div>
             )

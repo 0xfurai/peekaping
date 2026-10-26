@@ -6,6 +6,7 @@ import {
   getMonitorsByIdStatsUptimeOptions,
 } from "@/api/@tanstack/react-query.gen";
 import BarHistory from "@/components/bars";
+import { NoData } from "@/components/no-data";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
 import { getMonitorStatusView } from "../components/monitor-status";
@@ -90,11 +91,11 @@ const LocationRow = ({
         </span>
         <span className="text-sm text-gray-400" data-testid="monitor-location-ping">
           {t("monitors.view.locations.response_time")}:{" "}
-          {ping === null || ping === undefined ? "-" : `${ping} ${t("timezone.ms")}`}
+          {ping == null ? <NoData /> : `${ping} ${t("timezone.ms")}`}
         </span>
         <span className="text-sm text-gray-400" data-testid="monitor-location-uptime">
           {t("monitors.view.stats.last_24_hours")}:{" "}
-          {uptime24h == null ? "-" : `${uptime24h.toLocaleString()} %`}
+          {uptime24h == null ? <NoData /> : `${uptime24h.toLocaleString()} %`}
         </span>
         {!location.online && (
           <span className="text-sm text-orange-400" data-testid="monitor-location-offline">

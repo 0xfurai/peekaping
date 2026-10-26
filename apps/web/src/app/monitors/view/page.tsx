@@ -60,6 +60,7 @@ import StaleMarker from "../components/stale-marker";
 import { getMonitorStatusView } from "../components/monitor-status";
 import { currentStatus, hasLocations, heartbeatsOfProbe, instanceToLookUp, monitorStatusOf, sortLocations } from "../locations";
 import LocationsSection from "./locations-section";
+import { NoData } from "@/components/no-data";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -730,10 +731,16 @@ const MonitorPageContent = () => {
                       {item.label}
                     </span>
                     <span className="text-xl font-bold leading-none sm:text-3xl">
-                      {item.value?.toLocaleString()}{" "}
-                      <span className="text-sm font-normal text-muted-foreground">
-                        %
-                      </span>
+                      {item.value == null ? (
+                        <NoData />
+                      ) : (
+                        <>
+                          {item.value.toLocaleString()}{" "}
+                          <span className="text-sm font-normal text-muted-foreground">
+                            %
+                          </span>
+                        </>
+                      )}
                     </span>
                   </div>
                 );
