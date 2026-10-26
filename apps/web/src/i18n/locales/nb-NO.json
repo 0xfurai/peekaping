@@ -1239,6 +1239,20 @@
       "failed_to_load": "Kunne ikke laste prober",
       "copy_success": "Kopiert til utklippstavlen",
       "copy_failed": "Kunne ikke kopiere til utklippstavlen"
+    },
+    "detail": {
+      "not_found": "Proben ble ikke funnet"
+    },
+    "availability": {
+      "title": "Tilgjengelighet",
+      "range_label": "Tidsrom",
+      "bar_label": "Tilgjengelighetshistorikk",
+      "instance_bar_label": "Tilkoblinger for {{name}}",
+      "no_data": "Ingen data",
+      "now": "Nå",
+      "instances_title": "Instanser, siste 24 timer",
+      "in_process_note": "Peekaping sjekker selv monitorene til den lokale proben, så den har ingen tilgjengelighetshistorikk.",
+      "connected_since": "Tilkoblet siden {{start}}"
     }
   },
   "proxies": {

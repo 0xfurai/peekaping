@@ -1239,6 +1239,20 @@
       "failed_to_load": "טעינת הגשושיות נכשלה",
       "copy_success": "הועתק ללוח",
       "copy_failed": "לא ניתן להעתיק ללוח"
+    },
+    "detail": {
+      "not_found": "הגשושית לא נמצאה"
+    },
+    "availability": {
+      "title": "זמינות",
+      "range_label": "טווח זמן",
+      "bar_label": "היסטוריית זמינות",
+      "instance_bar_label": "חיבורים של {{name}}",
+      "no_data": "אין נתונים",
+      "now": "עכשיו",
+      "instances_title": "מופעים, 24 השעות האחרונות",
+      "in_process_note": "Peekaping עצמו בודק את המוניטורים של הגשושית המקומית, ולכן אין לה היסטוריית זמינות.",
+      "connected_since": "מחובר מאז {{start}}"
     }
   },
   "proxies": {

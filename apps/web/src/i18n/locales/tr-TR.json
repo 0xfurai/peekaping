@@ -1239,6 +1239,20 @@
       "failed_to_load": "Problar yüklenemedi",
       "copy_success": "Panoya kopyalandı",
       "copy_failed": "Panoya kopyalanamadı"
+    },
+    "detail": {
+      "not_found": "Prob bulunamadı"
+    },
+    "availability": {
+      "title": "Erişilebilirlik",
+      "range_label": "Zaman aralığı",
+      "bar_label": "Erişilebilirlik geçmişi",
+      "instance_bar_label": "{{name}} bağlantıları",
+      "no_data": "Veri yok",
+      "now": "Şimdi",
+      "instances_title": "Örnekler, son 24 saat",
+      "in_process_note": "Yerel probun monitörlerini Peekaping'in kendisi kontrol eder, bu yüzden erişilebilirlik geçmişi yoktur.",
+      "connected_since": "{{start}} tarihinden beri bağlı"
     }
   },
   "proxies": {

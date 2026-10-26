@@ -1239,6 +1239,20 @@
       "failed_to_load": "프로브를 불러오지 못했습니다",
       "copy_success": "클립보드에 복사되었습니다",
       "copy_failed": "클립보드에 복사할 수 없습니다"
+    },
+    "detail": {
+      "not_found": "프로브를 찾을 수 없습니다"
+    },
+    "availability": {
+      "title": "가용성",
+      "range_label": "기간",
+      "bar_label": "가용성 기록",
+      "instance_bar_label": "{{name}}의 연결",
+      "no_data": "데이터 없음",
+      "now": "지금",
+      "instances_title": "인스턴스, 지난 24시간",
+      "in_process_note": "로컬 프로브의 모니터는 Peekaping이 직접 확인하므로 가용성 기록이 없습니다.",
+      "connected_since": "{{start}}부터 연결됨"
     }
   },
   "proxies": {

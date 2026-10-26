@@ -1238,6 +1238,20 @@
       "failed_to_load": "پروبز لوڈ کرنے میں ناکامی",
       "copy_success": "کلپ بورڈ پر کاپی ہو گیا",
       "copy_failed": "کلپ بورڈ پر کاپی نہیں ہو سکا"
+    },
+    "detail": {
+      "not_found": "پروب نہیں ملا"
+    },
+    "availability": {
+      "title": "دستیابی",
+      "range_label": "وقت کی حد",
+      "bar_label": "دستیابی کی تاریخ",
+      "instance_bar_label": "{{name}} کے کنکشن",
+      "no_data": "کوئی ڈیٹا نہیں",
+      "now": "ابھی",
+      "instances_title": "انسٹینسز، پچھلے 24 گھنٹے",
+      "in_process_note": "مقامی پروب کے مانیٹرز کو Peekaping خود چیک کرتا ہے، اس لیے اس کی دستیابی کی کوئی تاریخ نہیں ہے۔",
+      "connected_since": "{{start}} سے منسلک"
     }
   },
   "proxies": {

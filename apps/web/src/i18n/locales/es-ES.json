@@ -1239,6 +1239,20 @@
       "failed_to_load": "No se pudieron cargar las sondas",
       "copy_success": "Copiado al portapapeles",
       "copy_failed": "No se pudo copiar al portapapeles"
+    },
+    "detail": {
+      "not_found": "Sonda no encontrada"
+    },
+    "availability": {
+      "title": "Disponibilidad",
+      "range_label": "Intervalo de tiempo",
+      "bar_label": "Historial de disponibilidad",
+      "instance_bar_label": "Conexiones de {{name}}",
+      "no_data": "Sin datos",
+      "now": "Ahora",
+      "instances_title": "Instancias, últimas 24 horas",
+      "in_process_note": "El propio Peekaping comprueba los monitores de la sonda local, por lo que no tiene historial de disponibilidad.",
+      "connected_since": "Conectada desde {{start}}"
     }
   },
   "proxies": {

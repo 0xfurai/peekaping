@@ -1239,6 +1239,20 @@
       "failed_to_load": "載入探針失敗",
       "copy_success": "已複製到剪貼簿",
       "copy_failed": "無法複製到剪貼簿"
+    },
+    "detail": {
+      "not_found": "搵唔到探針"
+    },
+    "availability": {
+      "title": "可用性",
+      "range_label": "時間範圍",
+      "bar_label": "可用性記錄",
+      "instance_bar_label": "{{name}} 嘅連線",
+      "no_data": "冇資料",
+      "now": "而家",
+      "instances_title": "實例，最近24小時",
+      "in_process_note": "本機探針嘅監測由 Peekaping 自己檢查，所以冇可用性記錄。",
+      "connected_since": "由 {{start}} 開始連線"
     }
   },
   "proxies": {

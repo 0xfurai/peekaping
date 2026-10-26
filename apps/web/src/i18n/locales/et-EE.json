@@ -1239,6 +1239,20 @@
       "failed_to_load": "Sondide laadimine ebaõnnestus",
       "copy_success": "Kopeeritud lõikelauale",
       "copy_failed": "Lõikelauale kopeerimine ebaõnnestus"
+    },
+    "detail": {
+      "not_found": "Sondi ei leitud"
+    },
+    "availability": {
+      "title": "Kättesaadavus",
+      "range_label": "Ajavahemik",
+      "bar_label": "Kättesaadavuse ajalugu",
+      "instance_bar_label": "Sondi {{name}} ühendused",
+      "no_data": "Andmed puuduvad",
+      "now": "Praegu",
+      "instances_title": "Instantsid, viimased 24 tundi",
+      "in_process_note": "Kohaliku sondi monitore kontrollib Peekaping ise, seega ei ole sellel kättesaadavuse ajalugu.",
+      "connected_since": "Ühendatud alates {{start}}"
     }
   },
   "proxies": {

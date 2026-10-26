@@ -1238,6 +1238,20 @@
       "failed_to_load": "Theip ar lódáil na dtóireadóirí",
       "copy_success": "Cóipeáilte chuig an ghearrthaisce",
       "copy_failed": "Níorbh fhéidir cóipeáil chuig an ghearrthaisce"
+    },
+    "detail": {
+      "not_found": "Níor aimsíodh an tóireadóir"
+    },
+    "availability": {
+      "title": "Infhaighteacht",
+      "range_label": "Raon ama",
+      "bar_label": "Stair na hinfhaighteachta",
+      "instance_bar_label": "Naisc {{name}}",
+      "no_data": "Gan sonraí",
+      "now": "Anois",
+      "instances_title": "Cásanna, 24 uair an chloig seo caite",
+      "in_process_note": "Seiceálann Peekaping féin monatóirí an tóireadóra áitiúil, mar sin níl aon stair infhaighteachta aige.",
+      "connected_since": "Ceangailte ó {{start}}"
     }
   },
   "proxies": {

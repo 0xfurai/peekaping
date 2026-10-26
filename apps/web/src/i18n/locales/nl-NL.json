@@ -1239,6 +1239,20 @@
       "failed_to_load": "Probes laden mislukt",
       "copy_success": "Gekopieerd naar klembord",
       "copy_failed": "Kopiëren naar klembord mislukt"
+    },
+    "detail": {
+      "not_found": "Probe niet gevonden"
+    },
+    "availability": {
+      "title": "Beschikbaarheid",
+      "range_label": "Tijdsbereik",
+      "bar_label": "Beschikbaarheidsgeschiedenis",
+      "instance_bar_label": "Verbindingen van {{name}}",
+      "no_data": "Geen gegevens",
+      "now": "Nu",
+      "instances_title": "Instanties, laatste 24 uur",
+      "in_process_note": "Peekaping controleert zelf de monitors van de lokale probe, dus die heeft geen beschikbaarheidsgeschiedenis.",
+      "connected_since": "Verbonden sinds {{start}}"
     }
   },
   "proxies": {

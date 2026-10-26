@@ -1239,6 +1239,20 @@
       "failed_to_load": "プローブの読み込みに失敗しました",
       "copy_success": "クリップボードにコピーしました",
       "copy_failed": "クリップボードにコピーできませんでした"
+    },
+    "detail": {
+      "not_found": "プローブが見つかりません"
+    },
+    "availability": {
+      "title": "可用性",
+      "range_label": "期間",
+      "bar_label": "可用性の履歴",
+      "instance_bar_label": "{{name}} の接続",
+      "no_data": "データなし",
+      "now": "現在",
+      "instances_title": "インスタンス、過去24時間",
+      "in_process_note": "ローカルプローブのモニターは Peekaping 自身がチェックするため、可用性の履歴はありません。",
+      "connected_since": "{{start}} から接続中"
     }
   },
   "proxies": {
