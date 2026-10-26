@@ -24,7 +24,7 @@ It runs no unit tests, and none of it can be taken back cleanly: the images and 
 - Never pass the workflow's `changelog` input. It is pasted into a shell script, and the entries are full of backticks, which the shell would run. Left empty, the workflow reads `[Unreleased]` itself.
 - From the dispatch until the GitHub Release exists, nothing merges into `main`. The bump job pushes to `main` after the e2e suite, from the commit the run started on, and fails if `main` moved since; a merge after that lands in the tag, because the release job cuts the tag at the head of `main`.
 - Tags have no `v` prefix: `0.0.47`.
-- Other sessions share the main checkout. Files change in a worktree under `.claude/worktrees/`, as in [setup](../ticket/SETUP.md); `git fetch`, never switch branches in the main checkout.
+- Other sessions share the main checkout. Files change in a worktree under `.claude/worktrees/`; `git fetch`, never switch branches in the main checkout.
 
 ## 1. Choose the version
 
