@@ -345,7 +345,8 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 
 	var uptime *float64
 	var maintenance *float64
-	total := totalUp + totalDown + totalMaintenance
+	// Up already holds the maintenance checks, so adding totalMaintenance would count each twice.
+	total := totalUp + totalDown
 	if total > 0 {
 		uptimeV := float64(totalUp) / float64(total) * 100
 		uptime = &uptimeV
