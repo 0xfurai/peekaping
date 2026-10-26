@@ -65,7 +65,7 @@ config:
   existingSecret: "peekaping-config"
   env:
     # The chart supports PostgreSQL only: it refuses DB_TYPE sqlite, since it has no
-    # volume for the file and each pod would get a database of its own. For SQLite, use the single-mode bundle image.
+    # volume for the file and each pod would get a database of its own. For SQLite, use the single-mode image.
     # It refuses mongo and mongodb too: MongoDB storage was removed. Move to PostgreSQL with
     # bun db import-mongo first.
     DB_TYPE: "postgres"
