@@ -268,10 +268,10 @@ jobs:
     # Create and prepare data directories with proper permissions
     - name: Prepare data directories
       run: |
-        mkdir -p .data/postgres .data/logs .data/caddy-data .data/caddy-config
-        sudo chown -R 999:999 .data/postgres .data/logs  # postgres user is typically uid 999
+        mkdir -p .data/postgres .data/postgres17 .data/logs .data/caddy-data .data/caddy-config
+        sudo chown -R 999:999 .data/postgres .data/postgres17 .data/logs  # postgres user is typically uid 999
         sudo chmod -R 755 .data/logs
-        sudo chmod -R 700 .data/postgres
+        sudo chmod -R 700 .data/postgres .data/postgres17
         ls -la .data/
         echo "Directory permissions set successfully"
 

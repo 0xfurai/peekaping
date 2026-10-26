@@ -22,7 +22,7 @@ docker run -d --restart=always --network peekaping \\
   -e POSTGRES_USER=peekaping \\
   -e POSTGRES_PASSWORD=change-me \\
   -e POSTGRES_DB=peekaping \\
-  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \\
+  -v $(pwd)/.data/postgres17:/var/lib/postgresql/data \\
   --name peekaping-db \\
   postgres:17
 docker run -d --restart=always --network peekaping \\

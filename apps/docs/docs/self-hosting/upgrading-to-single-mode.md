@@ -99,9 +99,9 @@ The bundle's PostgreSQL listens on `localhost` only, and its `pg_hba.conf` accep
 
 The bundle used your `DB_USER` as the database role (it is required) and your `DB_NAME` as the database (`peekaping` by default), and the new stack uses the same two. The commands below use `peekaping` for both: replace them with your values, which `docker inspect` on the old container shows (see [Pull the new image and start it](#pull-the-new-image-and-start-it)). The new stack's password, `DB_PASS`, can be a new one: the bundle never asked for it, because it trusts connections from inside the container.
 
-Back up first, as in [Back up](#back-up). The commands use the container name `peekaping`. If you started the bundle with Docker Compose, use its container name (`peekaping-bundle-postgres` in the repository's file) and replace its Compose file with the new one in step 3. Then:
+Back up first, as in [Back up](#back-up). The commands use the container name `peekaping`. If you started the bundle with Docker Compose, use its container name (`peekaping-bundle-postgres` in the repository's file) and replace its Compose file with the new one in step 2. Then:
 
-1. **Dump the database** while the bundle runs, and stop the bundle right after, so that you lose as few heartbeats as possible. The `docker update` keeps Docker from starting the old container again after a restart of Docker or the host, which would run it against a data folder you are about to move:
+1. **Dump the database** while the bundle runs, and stop the bundle right after, so that you lose as few heartbeats as possible. The `docker update` keeps Docker from starting the old container again after a restart of Docker or the host, which would run it beside the new stack on port 8383:
 
    ```bash
    docker exec peekaping pg_dump -U peekaping -Fc peekaping > peekaping.dump
@@ -109,13 +109,7 @@ Back up first, as in [Back up](#back-up). The commands use the container name `p
    docker stop -t 35 peekaping
    ```
 
-2. **Move the bundle's data folder aside.** The new PostgreSQL needs an empty folder. Use `sudo` where the files belong to another user:
-
-   ```bash
-   sudo mv .data/postgres .data/postgres-bundle
-   ```
-
-3. **Set up the new stack.** Take the Compose file from [Docker + PostgreSQL](./docker-with-postgres.md#single-mode) and a `.env` with the role and database of the bundle:
+2. **Set up the new stack.** Take the Compose file from [Docker + PostgreSQL](./docker-with-postgres.md#single-mode) and a `.env` with the role and database of the bundle. The new PostgreSQL keeps its data in `.data/postgres17`, a new folder, so the bundle's `.data/postgres` stays as it is:
 
    ```
    DB_USER=peekaping
@@ -123,13 +117,13 @@ Back up first, as in [Back up](#back-up). The commands use the container name `p
    DB_NAME=peekaping
    ```
 
-4. **Start PostgreSQL alone.** If `peekaping` starts first, it creates its tables in the empty database, and the restore stops with `already exists` errors. `--wait` returns once PostgreSQL is healthy:
+3. **Start PostgreSQL alone.** If `peekaping` starts first, it creates its tables in the empty database, and the restore stops with `already exists` errors. `--wait` returns once PostgreSQL is healthy:
 
    ```bash
    docker compose up -d --wait postgres
    ```
 
-5. **Restore the dump** into it:
+4. **Restore the dump** into it:
 
    ```bash
    docker compose exec -T postgres pg_restore -U peekaping -d peekaping --no-owner --no-privileges < peekaping.dump
@@ -137,7 +131,7 @@ Back up first, as in [Back up](#back-up). The commands use the container name `p
 
    The role `peekaping` owns the restored tables, because it is the user the container's PostgreSQL was created with. It prints nothing when it works.
 
-6. **Start Peekaping.**
+5. **Start Peekaping.**
 
    ```bash
    docker compose up -d
@@ -145,9 +139,9 @@ Back up first, as in [Back up](#back-up). The commands use the container name `p
 
    `peekaping` waits for PostgreSQL, then applies the migrations that your release doesn't have yet: from 0.0.47, the log shows `migrated to group #2`. Check the result as under [Check that it worked](#check-that-it-worked), reading the log with `docker compose logs peekaping`. Your account, monitors and history are there.
 
-Keep the stopped `peekaping` container, `.data/postgres-bundle` and `peekaping.dump` until you are sure you don't need them. To go back, run `docker compose down`, then `sudo rm -rf .data/postgres` and `sudo mv .data/postgres-bundle .data/postgres`, and `docker update --restart=always peekaping` and `docker start peekaping`. What Peekaping recorded after the move stays in the new database only.
+Keep the stopped `peekaping` container, `.data/postgres` and `peekaping.dump` until you are sure you don't need them. To go back, run `docker compose down`, then `docker update --restart=always peekaping` and `docker start peekaping`. What Peekaping recorded after the move stays in the new database only.
 
-When you don't need them, remove them: `docker rm peekaping`, `sudo rm -rf .data/postgres-bundle` and `rm peekaping.dump`.
+When you don't need them, remove them: `docker rm peekaping`, `sudo rm -rf .data/postgres` and `rm peekaping.dump`.
 
 ## What changes
 

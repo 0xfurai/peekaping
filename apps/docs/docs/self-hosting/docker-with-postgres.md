@@ -35,8 +35,9 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS:-password}
       POSTGRES_DB: ${DB_NAME:-peekaping}
     volumes:
-      # Database data persistence
-      - ./.data/postgres:/var/lib/postgresql/data
+      # Database data persistence. Not ./.data/postgres, where the old PostgreSQL bundle
+      # kept its cluster: the official image can't use that one.
+      - ./.data/postgres17:/var/lib/postgresql/data
     healthcheck:
       test:
         [
@@ -73,7 +74,7 @@ services:
 
 Start it with `docker compose up -d`, then open `http://localhost:8383` and create your admin account.
 
-On the first start, the `postgres` container creates the `DB_USER` user with the password `DB_PASS`, and the `DB_NAME` database. It does that only in an empty data folder: changing `DB_PASS` in `.env` later doesn't change the password of a database that exists. `peekaping` waits until PostgreSQL is healthy, applies the migrations and starts. Keep `./.data/postgres`, which holds the database.
+On the first start, the `postgres` container creates the `DB_USER` user with the password `DB_PASS`, and the `DB_NAME` database. It does that only in an empty data folder: changing `DB_PASS` in `.env` later doesn't change the password of a database that exists. `peekaping` waits until PostgreSQL is healthy, applies the migrations and starts. Keep `./.data/postgres17`, which holds the database. It is a new folder on purpose: the old `peekaping-bundle-postgres` kept its cluster in `.data/postgres`, which the official image can't use.
 
 `peekaping` runs as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need. The `postgres` container runs as the official image does.
 
@@ -499,7 +500,7 @@ Cluster mode:
 
 ## Persistent Data
 
-Peekaping stores data in Postgres. The docker-compose setup uses a local folder mount `./.data/postgres:/var/lib/postgresql/data` to persist your monitoring data.
+Peekaping stores data in Postgres. The cluster-mode Compose setup uses a local folder mount `./.data/postgres:/var/lib/postgresql/data` to persist your monitoring data, and the single-mode setup uses `./.data/postgres17:/var/lib/postgresql/data`.
 
 ### Storage Options
 
