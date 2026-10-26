@@ -799,6 +799,39 @@ func TestNotificationListener_ProbeFallbackSendsToASharedChannelOnce(t *testing.
 	}, slack.sentMessages(), "one offline and one online, not one for each monitor")
 }
 
+func TestNotificationListener_ProbeFallbackSkipsPausedMonitorsAndOtherProbes(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProbeMonitor("mon-active", "probe-1")
+	f.addProbeMonitor("mon-paused", "probe-1")
+	f.monitors.monitors["mon-paused"].Active = false
+	f.addProbeMonitor("mon-elsewhere", "probe-2")
+	f.attach("mon-active", testChannel("active", "test-slack"))
+	f.attach("mon-paused", testChannel("paused", "test-slack"))
+	f.attach("mon-elsewhere", testChannel("elsewhere", "test-slack"))
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
+
+	assert.Equal(t, []string{channelConfig("active"), channelConfig("active")}, slack.sentConfigs(),
+		"only the active monitor of the probe, for the offline and the online notification")
+}
+
+func TestNotificationListener_ProbeWithChannelsDoesNotNotifyItsMonitorsChannels(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.attachProbe("probe-1", testChannel("c", "test-slack"))
+	f.addProbeMonitor("mon-1", "probe-1")
+	f.attach("mon-1", testChannel("a", "test-slack"))
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
+
+	assert.Equal(t, []string{channelConfig("c"), channelConfig("c")}, slack.sentConfigs())
+}
+
 // The real PagerDuty sender decides from the stand-in's status, since a probe's notification has no
 // heartbeat, so this checks what PagerDuty receives: one incident, opened and then resolved.
 func TestNotificationListener_ProbeOfflineThenOnlineOpensAndResolvesOnePagerDutyIncident(t *testing.T) {
