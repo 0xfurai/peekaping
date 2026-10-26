@@ -31,3 +31,14 @@ type RotateProbeTokenParams struct {
 	Id string `path:"id" doc:"Probe ID" required:"true"`
 }
 type RotateProbeTokenInput = httpx.Input[httpx.NoBody, RotateProbeTokenParams]
+
+type GetProbesAvailabilityParams struct {
+	Range string `query:"range" enum:"24h,7d,30d" default:"24h" doc:"How far back to look: 24h, 7d or 30d. Defaults to 24h."`
+}
+type GetProbesAvailabilityInput = httpx.Input[httpx.NoBody, GetProbesAvailabilityParams]
+
+type GetProbeAvailabilityParams struct {
+	Id    string `path:"id" doc:"Probe ID, or local for the local probe" required:"true"`
+	Range string `query:"range" enum:"24h,7d,30d" default:"24h" doc:"How far back to look: 24h, 7d or 30d. Defaults to 24h. The instances' connections always cover the last 24 hours."`
+}
+type GetProbeAvailabilityInput = httpx.Input[httpx.NoBody, GetProbeAvailabilityParams]

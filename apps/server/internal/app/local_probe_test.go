@@ -66,3 +66,46 @@ func TestRegisterCluster_TheLocalProbeIsItsInstances(t *testing.T) {
 		assert.Equal(t, shared.LocalProbeIsItsInstances, liveness)
 	}))
 }
+
+// localProbeAvailability is the local probe's availability over 24 hours in the container's install
+func localProbeAvailability(t *testing.T, container *dig.Container) *probe.Availability {
+	t.Helper()
+	var got *probe.Availability
+	require.NoError(t, container.Invoke(func(availability probe.AvailabilityService, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		require.NoError(t, migrateDB(db))
+		var err error
+		got, err = availability.Availability(context.Background(), probe.LocalID, probe.Range24h)
+		require.NoError(t, err)
+	}))
+	return got
+}
+
+// In single mode the process itself checks the local probe's monitors: it has no chart to draw,
+// and the response says so
+func TestRegisterSingle_TheLocalProbesAvailabilityIsInProcess(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, singleConfig(t)))
+
+	got := localProbeAvailability(t, container)
+
+	assert.True(t, got.InProcess)
+	assert.Empty(t, got.Periods)
+	assert.Nil(t, got.UptimePercent)
+	assert.Nil(t, got.TrackedFrom)
+}
+
+// In cluster mode the local probe's instances do, and it has periods like a remote probe
+func TestRegisterCluster_TheLocalProbesAvailabilityComesFromItsHistory(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterClusterAPI(container, clusterConfig(t)))
+
+	got := localProbeAvailability(t, container)
+
+	assert.False(t, got.InProcess)
+	require.Len(t, got.Periods, 1, "the migration seeded it offline")
+	assert.Equal(t, probe.StatusOffline, got.Periods[0].Status)
+	require.NotNil(t, got.UptimePercent)
+	assert.Equal(t, 0.0, *got.UptimePercent)
+}

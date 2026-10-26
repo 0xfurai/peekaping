@@ -156,6 +156,9 @@ import type {
   PostProbesData,
   PostProbesResponses,
   PostProbesErrors,
+  GetProbesAvailabilityData,
+  GetProbesAvailabilityResponses,
+  GetProbesAvailabilityErrors,
   DeleteProbesByIdData,
   DeleteProbesByIdResponses,
   DeleteProbesByIdErrors,
@@ -165,6 +168,9 @@ import type {
   PutProbesByIdData,
   PutProbesByIdResponses,
   PutProbesByIdErrors,
+  GetProbesByIdAvailabilityData,
+  GetProbesByIdAvailabilityResponses,
+  GetProbesByIdAvailabilityErrors,
   PostProbesByIdRotateTokenData,
   PostProbesByIdRotateTokenResponses,
   PostProbesByIdRotateTokenErrors,
@@ -1644,6 +1650,34 @@ export const postProbes = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Get the availability of every probe
+ * Every probe's online and offline periods over the range, and its uptime, without its instances.
+ */
+export const getProbesAvailability = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProbesAvailabilityData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProbesAvailabilityResponses,
+    GetProbesAvailabilityErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/availability",
+    ...options,
+  });
+};
+
+/**
  * Delete probe
  */
 export const deleteProbesById = <ThrowOnError extends boolean = false>(
@@ -1724,6 +1758,34 @@ export const putProbesById = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Get the availability of a probe
+ * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.
+ */
+export const getProbesByIdAvailability = <ThrowOnError extends boolean = false>(
+  options: Options<GetProbesByIdAvailabilityData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetProbesByIdAvailabilityResponses,
+    GetProbesByIdAvailabilityErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}/availability",
+    ...options,
   });
 };
 

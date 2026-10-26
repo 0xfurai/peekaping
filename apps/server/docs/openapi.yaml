@@ -1370,6 +1370,107 @@ components:
       required:
         - name
       type: object
+    probe.ProbeAvailabilityConnection:
+      additionalProperties: false
+      properties:
+        end:
+          format: date-time
+          type: string
+        open:
+          type: boolean
+        start:
+          format: date-time
+          type: string
+      required:
+        - start
+        - end
+        - open
+      type: object
+    probe.ProbeAvailabilityInstance:
+      additionalProperties: false
+      properties:
+        connections:
+          items:
+            $ref: "#/components/schemas/probe.ProbeAvailabilityConnection"
+          type: array
+        hostname:
+          type: string
+        id:
+          type: string
+        version:
+          type: string
+      required:
+        - id
+        - hostname
+        - version
+        - connections
+      type: object
+    probe.ProbeAvailabilityPeriod:
+      additionalProperties: false
+      properties:
+        end:
+          format: date-time
+          type: string
+        start:
+          format: date-time
+          type: string
+        status:
+          enum:
+            - online
+            - offline
+          type: string
+      required:
+        - status
+        - start
+        - end
+      type: object
+    probe.ProbeAvailabilityResponse:
+      additionalProperties: false
+      properties:
+        from:
+          format: date-time
+          type: string
+        in_process:
+          type: boolean
+        instances:
+          items:
+            $ref: "#/components/schemas/probe.ProbeAvailabilityInstance"
+          type: array
+        periods:
+          items:
+            $ref: "#/components/schemas/probe.ProbeAvailabilityPeriod"
+          type: array
+        probe_id:
+          type: string
+        range:
+          enum:
+            - 24h
+            - 7d
+            - 30d
+          type: string
+        to:
+          format: date-time
+          type: string
+        tracked_from:
+          format: date-time
+          type:
+            - string
+            - "null"
+        uptime_percent:
+          format: double
+          type:
+            - number
+            - "null"
+      required:
+        - probe_id
+        - range
+        - from
+        - to
+        - in_process
+        - tracked_from
+        - uptime_percent
+        - periods
+      type: object
     probe.ProbeInstanceResponse:
       additionalProperties: false
       properties:
@@ -2618,6 +2719,21 @@ components:
         - message
         - data
       type: object
+    utils.ApiResponse_Array_probe.ProbeAvailabilityResponse:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/probe.ProbeAvailabilityResponse"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
     utils.ApiResponse_Array_probe.ProbeResponse:
       additionalProperties: false
       properties:
@@ -2797,6 +2913,17 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/notification_channel.Model"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_probe.ProbeAvailabilityResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/probe.ProbeAvailabilityResponse"
         message:
           type: string
       required:
@@ -5788,6 +5915,53 @@ paths:
       summary: Create probe
       tags:
         - probe
+  /api/v1/probes/availability:
+    get:
+      description: Every probe's online and offline periods over the range, and its uptime, without its instances.
+      operationId: getProbesAvailability
+      parameters:
+        - description: "How far back to look: 24h, 7d or 30d. Defaults to 24h."
+          in: query
+          name: range
+          schema:
+            default: 24h
+            description: "How far back to look: 24h, 7d or 30d. Defaults to 24h."
+            enum:
+              - 24h
+              - 7d
+              - 30d
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_probe.ProbeAvailabilityResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get the availability of every probe
+      tags:
+        - probe
   /api/v1/probes/{id}:
     delete:
       operationId: deleteProbesById
@@ -5930,6 +6104,66 @@ paths:
         - JwtAuth: []
         - ApiKeyAuth: []
       summary: Update probe
+      tags:
+        - probe
+  /api/v1/probes/{id}/availability:
+    get:
+      description: A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.
+      operationId: getProbesByIdAvailability
+      parameters:
+        - description: Probe ID, or local for the local probe
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Probe ID, or local for the local probe
+            type: string
+        - description: "How far back to look: 24h, 7d or 30d. Defaults to 24h. The instances' connections always cover the last 24 hours."
+          in: query
+          name: range
+          schema:
+            default: 24h
+            description: "How far back to look: 24h, 7d or 30d. Defaults to 24h. The instances' connections always cover the last 24 hours."
+            enum:
+              - 24h
+              - 7d
+              - 30d
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_probe.ProbeAvailabilityResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Get the availability of a probe
       tags:
         - probe
   /api/v1/probes/{id}/rotate-token:

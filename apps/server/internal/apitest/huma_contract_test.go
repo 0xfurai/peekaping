@@ -144,7 +144,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 90, count)
+	assert.Equal(t, 92, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)
@@ -225,6 +225,11 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"local probe delete conflict", "DELETE", "/api/v1/probes/{id}", "/api/v1/probes/local", nil, 409, a.asAdmin},
 		{"local probe rotate conflict", "POST", "/api/v1/probes/{id}/rotate-token", "/api/v1/probes/local/rotate-token", nil, 409, a.asAdmin},
 		{"probe not found", "GET", "/api/v1/probes/{id}", "/api/v1/probes/missing", nil, 404, a.asAdmin},
+		{"probe availability list", "GET", "/api/v1/probes/availability", "/api/v1/probes/availability?range=7d", nil, 200, a.asAdmin},
+		{"probe availability list, bad range", "GET", "/api/v1/probes/availability", "/api/v1/probes/availability?range=1y", nil, 400, a.asAdmin},
+		{"probe availability", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/local/availability", nil, 200, a.asAdmin},
+		{"probe availability, bad range", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/local/availability?range=1y", nil, 400, a.asAdmin},
+		{"probe availability not found", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/missing/availability", nil, 404, a.asAdmin},
 		{"probe protocol hello", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-instance"), 200, asProbe(protocolProbe.Token, "contract-instance")},
 		{"probe protocol assignments", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 200, asProbe(protocolProbe.Token, "contract-instance")},
 		{"probe protocol hello of the local probe", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-local"), 200, asProbe(localToken, "contract-local")},
