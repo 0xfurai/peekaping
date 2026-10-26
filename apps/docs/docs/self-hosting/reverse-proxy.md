@@ -52,6 +52,7 @@ The last argument of `docker network connect` is the Traefik container name from
 ```env
 PEEKAPING_HOSTNAME=peekaping.example.com
 TRAEFIK_NETWORK=traefik
+TRAEFIK_CERT_RESOLVER=letsencrypt
 ```
 
 ### Compose file
@@ -59,6 +60,7 @@ TRAEFIK_NETWORK=traefik
 ```yml
 # PEEKAPING_HOSTNAME — public DNS name served by this router
 # TRAEFIK_NETWORK — Docker network the existing Traefik container already uses
+# TRAEFIK_CERT_RESOLVER — certificate resolver name from Traefik's static configuration
 
 services:
   peekaping:
@@ -78,9 +80,10 @@ services:
       - "traefik.http.routers.peekaping.rule=Host(`${PEEKAPING_HOSTNAME}`)"
       - "traefik.http.routers.peekaping.entrypoints=websecure"
       - "traefik.http.routers.peekaping.tls=true"
-      # Uncomment when the websecure entrypoint has no default certificate
-      # resolver, and set the name from Traefik's static configuration.
-      # - "traefik.http.routers.peekaping.tls.certresolver=RESOLVER_NAME"
+      # A router-level TLS section does not inherit the entrypoint's
+      # certResolver, so name it here. Use the resolver name from Traefik's
+      # static configuration.
+      - "traefik.http.routers.peekaping.tls.certresolver=${TRAEFIK_CERT_RESOLVER}"
       - "traefik.http.routers.peekaping.service=peekaping"
       - "traefik.http.services.peekaping.loadbalancer.server.port=8383"
 
@@ -90,7 +93,7 @@ networks:
     name: ${TRAEFIK_NETWORK}
 ```
 
-There is one router. Its name, `peekaping`, is the same on the rule, the entrypoint, TLS, and the service label. The service `peekaping` uses port 8383. `traefik.docker.network` and the external network's `name` are both `TRAEFIK_NETWORK`, so Traefik selects that shared network.
+There is one router. Its name, `peekaping`, is the same on the rule, the entrypoint, TLS, and the service label. `tls.certresolver` must name a resolver defined in Traefik's static configuration; without it the router can serve Traefik's default self-signed certificate. The service `peekaping` uses port 8383. `traefik.docker.network` and the external network's `name` are both `TRAEFIK_NETWORK`, so Traefik selects that shared network.
 
 `CLIENT_URL` is the public site URL. Notification messages link to it. `./.data/sqlite` on the host is the persistent copy of `/app/data` (`/app/data/peekaping.db` inside the container).
 
