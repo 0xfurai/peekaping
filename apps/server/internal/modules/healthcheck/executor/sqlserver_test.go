@@ -61,6 +61,18 @@ func TestSQLServerExecutor_ServerNeverAnswers(t *testing.T) {
 	}
 }
 
+func TestSQLServerExecutor_BracedUserAndDatabaseWithSemicolonsReachTheConnection(t *testing.T) {
+	addr := refusedAddr(t)
+
+	exec := NewSQLServerExecutor(zap.NewNop().Sugar())
+	result := exec.Execute(context.Background(), sqlServerMonitor(t, 2, SQLServerConfig{
+		DatabaseConnectionString: "Server=" + strings.Replace(addr, ":", ",", 1) + ";Database={d;e};User Id={u;v};Password={p;q};Encrypt=false",
+	}), nil)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "connection failed: unable to open tcp connection with host '"+addr+"'", "the string was refused before connecting")
+}
+
 func TestSQLServerExecutor_RefusesAQueryBeforeConnecting(t *testing.T) {
 	// Nothing listens at the address, so a connection attempt would be the
 	// message of the result.
@@ -550,9 +562,9 @@ func TestSQLServerExecutor_parseConnectionString_driverSeesTheValues(t *testing.
 			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "x;Encrypt=disable;Database=other", Database: "master", AppName: "peekaping"},
 		},
 		{
-			name:          "Server=: a braced user and database, a tcp: prefix and an instance",
-			connectionStr: "server=tcp:myhost\\inst,1433;DATABASE={d e};user id={u=v}}w};password={p}",
-			want:          driverView{Host: "myhost", Instance: "inst", Port: 1433, User: "u=v}w", Password: "p", Database: "d e"},
+			name:          "Server=: a braced user and database with ; and }, a tcp: prefix and an instance",
+			connectionStr: "server=tcp:myhost\\inst,1433;DATABASE={d;e};user id={u;v=w}}x};password={p}",
+			want:          driverView{Host: "myhost", Instance: "inst", Port: 1433, User: "u;v=w}x", Password: "p", Database: "d;e"},
 		},
 		{
 			name:          "Server=: a braced password with spaces around the braces",
@@ -573,6 +585,11 @@ func TestSQLServerExecutor_parseConnectionString_driverSeesTheValues(t *testing.
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// What Validate accepts is what Execute connects with.
+			raw, err := json.Marshal(SQLServerConfig{DatabaseConnectionString: tt.connectionStr})
+			require.NoError(t, err)
+			require.NoError(t, executor.Validate(string(raw)))
+
 			dsn, err := executor.parseConnectionString(tt.connectionStr)
 			require.NoError(t, err)
 

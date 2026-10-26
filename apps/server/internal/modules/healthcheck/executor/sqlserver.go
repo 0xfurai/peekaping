@@ -40,8 +40,25 @@ func (s *SQLServerExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[SQLServerConfig](configJSON)
 }
 
-// Regex to validate SQL Server connection string format
-var sqlServerConnectionStringRegex = regexp.MustCompile(`(?i)^Server=([^;,]+)(,\d+)?;Database=[^;]+;User Id=[^;]+;Password=[^;]*;?.*$`)
+// sqlServerServerValue is what the Server parameter may hold: a host, and a port.
+var sqlServerServerValue = regexp.MustCompile(`^[^;,]+(,\d+)?$`)
+
+// isSemicolonFormat reports whether the string is the Server=...;Database=...
+// form: it starts with the Server, Database, User Id and Password parameters,
+// in that order, and the first three have a value. A value in braces may hold
+// a ";".
+func isSemicolonFormat(connectionString string) bool {
+	pairs := splitADOConnectionString(connectionString)
+	if len(pairs) < 4 {
+		return false
+	}
+	for i, key := range []string{"Server", "Database", "User Id", "Password"} {
+		if !strings.EqualFold(pairs[i].key, key) {
+			return false
+		}
+	}
+	return sqlServerServerValue.MatchString(pairs[0].value) && pairs[1].value != "" && pairs[2].value != ""
+}
 
 func (s *SQLServerExecutor) validateConnectionString(connectionString string) error {
 	if connectionString == "" {
@@ -49,7 +66,7 @@ func (s *SQLServerExecutor) validateConnectionString(connectionString string) er
 	}
 
 	// Check if it's the new semicolon-separated format
-	if sqlServerConnectionStringRegex.MatchString(connectionString) {
+	if isSemicolonFormat(connectionString) {
 		return s.validateSemicolonFormat(connectionString)
 	}
 
@@ -396,7 +413,7 @@ func (c deadlineConn) SetWriteDeadline(t time.Time) error { return c.Conn.SetWri
 
 func (s *SQLServerExecutor) parseConnectionString(connectionString string) (string, error) {
 	// Check if it's the new semicolon-separated format
-	if sqlServerConnectionStringRegex.MatchString(connectionString) {
+	if isSemicolonFormat(connectionString) {
 		pairs := splitADOConnectionString(connectionString)
 		for _, pair := range pairs {
 			if pair.braced {
