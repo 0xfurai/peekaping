@@ -1193,6 +1193,10 @@
       "submit": "Criar sonda",
       "creating": "Criando..."
     },
+    "assign_all": {
+      "warning": "O token lê a configuração de cada monitor atribuído à sonda, incluindo as credenciais.",
+      "docs_link": "O que o token pode ler"
+    },
     "edit_dialog": {
       "title": "Editar sonda",
       "description": "Altere as configurações de {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "ex.: Frankfurt",
       "location_label": "Localização (opcional)",
       "location_placeholder": "ex.: Frankfurt, Alemanha",
+      "assign_all_label": "Atribuir a todos os monitores",
+      "assign_all_description": "Quando a primeira instância se conectar, a sonda será adicionada a todos os monitores que ela pode executar, exceto os monitores push.",
       "name_required": "O nome é obrigatório",
       "name_too_long": "O nome é muito longo",
       "location_too_long": "A localização é muito longa",

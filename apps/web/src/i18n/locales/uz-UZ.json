@@ -1192,6 +1192,10 @@
       "submit": "Zond yaratish",
       "creating": "Yaratilmoqda..."
     },
+    "assign_all": {
+      "warning": "Token zondga biriktirilgan har bir monitorning konfiguratsiyasini, jumladan hisob ma’lumotlarini ham o‘qiydi.",
+      "docs_link": "Token nimani o‘qiy oladi"
+    },
     "edit_dialog": {
       "title": "Zondni tahrirlash",
       "description": "{{name}} sozlamalarini o‘zgartiring."
@@ -1201,6 +1205,8 @@
       "name_placeholder": "masalan, Frankfurt",
       "location_label": "Joylashuv (ixtiyoriy)",
       "location_placeholder": "masalan, Frankfurt, Germaniya",
+      "assign_all_label": "Barcha monitorlarga biriktirish",
+      "assign_all_description": "Birinchi nusxasi ulanganda zond u ishga tushira oladigan har bir monitorga qo‘shiladi, push monitorlar bundan mustasno.",
       "name_required": "Nomi kiritilishi shart",
       "name_too_long": "Nomi juda uzun",
       "location_too_long": "Joylashuv juda uzun",

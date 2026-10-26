@@ -1193,6 +1193,10 @@
       "submit": "Utwórz sondę",
       "creating": "Tworzenie..."
     },
+    "assign_all": {
+      "warning": "Token odczytuje konfigurację każdego monitora przypisanego do sondy, łącznie z danymi uwierzytelniającymi.",
+      "docs_link": "Co może odczytać token"
+    },
     "edit_dialog": {
       "title": "Edytuj sondę",
       "description": "Zmień ustawienia sondy {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "np. Frankfurt",
       "location_label": "Lokalizacja (opcjonalnie)",
       "location_placeholder": "np. Frankfurt, Niemcy",
+      "assign_all_label": "Przypisz do wszystkich monitorów",
+      "assign_all_description": "Gdy połączy się jej pierwsza instancja, sonda zostanie dodana do każdego monitora, który może uruchamiać, z wyjątkiem monitorów push.",
       "name_required": "Nazwa jest wymagana",
       "name_too_long": "Nazwa jest zbyt długa",
       "location_too_long": "Lokalizacja jest zbyt długa",

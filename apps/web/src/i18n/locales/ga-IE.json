@@ -1192,6 +1192,10 @@
       "submit": "Cruthaigh tóireadóir",
       "creating": "Á chruthú..."
     },
+    "assign_all": {
+      "warning": "Léann an comhartha cumraíocht gach móntóra a shanntar don tóireadóir, dintiúir san áireamh.",
+      "docs_link": "Cad is féidir leis an gcomhartha a léamh"
+    },
     "edit_dialog": {
       "title": "Cuir tóireadóir in eagar",
       "description": "Athraigh socruithe {{name}}."
@@ -1201,6 +1205,8 @@
       "name_placeholder": "m.sh., Frankfurt",
       "location_label": "Suíomh (roghnach)",
       "location_placeholder": "m.sh., Frankfurt, an Ghearmáin",
+      "assign_all_label": "Sann do gach móntóir",
+      "assign_all_description": "Nuair a nascann a chéad chás, cuirtear an tóireadóir le gach móntóir is féidir leis a rith, seachas móntóirí push.",
       "name_required": "Tá ainm de dhíth",
       "name_too_long": "Tá an t-ainm rófhada",
       "location_too_long": "Tá an suíomh rófhada",

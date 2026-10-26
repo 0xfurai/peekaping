@@ -1193,6 +1193,10 @@
       "submit": "Sonde erstellen",
       "creating": "Wird erstellt..."
     },
+    "assign_all": {
+      "warning": "Das Token liest die Konfiguration jedes Monitors, der der Sonde zugewiesen ist, einschließlich der Zugangsdaten.",
+      "docs_link": "Was das Token lesen kann"
+    },
     "edit_dialog": {
       "title": "Sonde bearbeiten",
       "description": "Ändern Sie die Einstellungen von {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "z. B. Frankfurt",
       "location_label": "Standort (optional)",
       "location_placeholder": "z. B. Frankfurt, Deutschland",
+      "assign_all_label": "Allen Monitoren zuweisen",
+      "assign_all_description": "Sobald die erste Instanz verbunden ist, wird die Sonde jedem Monitor hinzugefügt, den sie ausführen kann, außer Push-Monitoren.",
       "name_required": "Name ist erforderlich",
       "name_too_long": "Der Name ist zu lang",
       "location_too_long": "Der Standort ist zu lang",

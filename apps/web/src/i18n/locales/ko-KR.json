@@ -1193,6 +1193,10 @@
       "submit": "프로브 만들기",
       "creating": "만드는 중..."
     },
+    "assign_all": {
+      "warning": "토큰은 프로브에 할당된 모든 모니터의 설정을 자격 증명까지 포함해 읽습니다.",
+      "docs_link": "토큰이 읽을 수 있는 것"
+    },
     "edit_dialog": {
       "title": "프로브 편집",
       "description": "{{name}}의 설정을 변경합니다."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "예: 프랑크푸르트",
       "location_label": "위치(선택 사항)",
       "location_placeholder": "예: 프랑크푸르트, 독일",
+      "assign_all_label": "모든 모니터에 할당",
+      "assign_all_description": "첫 번째 인스턴스가 연결되면 프로브가 실행할 수 있는 모든 모니터(푸시 모니터 제외)에 추가됩니다.",
       "name_required": "이름은 필수입니다",
       "name_too_long": "이름이 너무 깁니다",
       "location_too_long": "위치가 너무 깁니다",

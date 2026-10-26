@@ -1193,6 +1193,10 @@
       "submit": "Buat probe",
       "creating": "Membuat..."
     },
+    "assign_all": {
+      "warning": "Token membaca konfigurasi setiap monitor yang ditetapkan ke probe, termasuk kredensial.",
+      "docs_link": "Apa yang dapat dibaca token"
+    },
     "edit_dialog": {
       "title": "Edit probe",
       "description": "Ubah pengaturan {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "mis., Frankfurt",
       "location_label": "Lokasi (opsional)",
       "location_placeholder": "mis., Frankfurt, Jerman",
+      "assign_all_label": "Tetapkan ke semua monitor",
+      "assign_all_description": "Saat instans pertamanya terhubung, probe ditambahkan ke setiap monitor yang dapat dijalankannya, kecuali monitor push.",
       "name_required": "Nama wajib diisi",
       "name_too_long": "Nama terlalu panjang",
       "location_too_long": "Lokasi terlalu panjang",

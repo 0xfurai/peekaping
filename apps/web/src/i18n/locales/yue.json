@@ -1193,6 +1193,10 @@
       "submit": "建立探針",
       "creating": "建立緊..."
     },
+    "assign_all": {
+      "warning": "令牌會讀取指派俾探針嘅每個監測嘅配置，包括憑證。",
+      "docs_link": "令牌可以讀取啲咩"
+    },
     "edit_dialog": {
       "title": "編輯探針",
       "description": "更改 {{name}} 嘅設定。"
@@ -1202,6 +1206,8 @@
       "name_placeholder": "例如：法蘭克福",
       "location_label": "位置（選填）",
       "location_placeholder": "例如：法蘭克福，德國",
+      "assign_all_label": "指派俾所有監測",
+      "assign_all_description": "第一個實例連線之後，探針會加入所有佢跑得到嘅監測，推送監測除外。",
       "name_required": "必須填寫名稱",
       "name_too_long": "名稱太長",
       "location_too_long": "位置太長",

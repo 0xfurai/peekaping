@@ -1193,6 +1193,10 @@
       "submit": "Loo sond",
       "creating": "Loomine..."
     },
+    "assign_all": {
+      "warning": "Token loeb iga sondile määratud monitoori konfiguratsiooni, sealhulgas volitusandmeid.",
+      "docs_link": "Mida token lugeda saab"
+    },
     "edit_dialog": {
       "title": "Muuda sondi",
       "description": "Muutke sondi {{name}} seadeid."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "nt Frankfurt",
       "location_label": "Asukoht (valikuline)",
       "location_placeholder": "nt Frankfurt, Saksamaa",
+      "assign_all_label": "Määra kõigile monitooridele",
+      "assign_all_description": "Kui sondi esimene instants ühendub, lisatakse sond igale monitoorile, mida see saab käitada, välja arvatud push-monitoorid.",
       "name_required": "Nimi on kohustuslik",
       "name_too_long": "Nimi on liiga pikk",
       "location_too_long": "Asukoht on liiga pikk",

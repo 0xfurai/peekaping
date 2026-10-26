@@ -1193,6 +1193,10 @@
       "submit": "Szonda létrehozása",
       "creating": "Létrehozás..."
     },
+    "assign_all": {
+      "warning": "A token beolvassa a szondához rendelt összes figyelő konfigurációját, a hitelesítő adatokkal együtt.",
+      "docs_link": "Mit olvashat a token"
+    },
     "edit_dialog": {
       "title": "Szonda szerkesztése",
       "description": "Módosítsa a(z) {{name}} beállításait."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "pl. Frankfurt",
       "location_label": "Helyszín (nem kötelező)",
       "location_placeholder": "pl. Frankfurt, Németország",
+      "assign_all_label": "Hozzárendelés az összes figyelőhöz",
+      "assign_all_description": "Amikor az első példánya csatlakozik, a szonda hozzáadódik minden figyelőhöz, amelyet futtatni tud, kivéve a push figyelőket.",
       "name_required": "A név megadása kötelező",
       "name_too_long": "A név túl hosszú",
       "location_too_long": "A helyszín túl hosszú",

@@ -1193,6 +1193,10 @@
       "submit": "Create probe",
       "creating": "Creating..."
     },
+    "assign_all": {
+      "warning": "The token reads the config of every monitor assigned to the probe, credentials included.",
+      "docs_link": "What the token can read"
+    },
     "edit_dialog": {
       "title": "Edit probe",
       "description": "Change the settings of {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "e.g., Frankfurt",
       "location_label": "Location (optional)",
       "location_placeholder": "e.g., Frankfurt, Germany",
+      "assign_all_label": "Assign to all monitors",
+      "assign_all_description": "When its first instance connects, the probe is added to every monitor it can run, except push monitors.",
       "name_required": "Name is required",
       "name_too_long": "Name is too long",
       "location_too_long": "Location is too long",

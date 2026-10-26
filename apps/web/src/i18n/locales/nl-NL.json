@@ -1193,6 +1193,10 @@
       "submit": "Probe aanmaken",
       "creating": "Aanmaken..."
     },
+    "assign_all": {
+      "warning": "Het token leest de configuratie van elke monitor die aan de probe is toegewezen, inclusief inloggegevens.",
+      "docs_link": "Wat het token kan lezen"
+    },
     "edit_dialog": {
       "title": "Probe bewerken",
       "description": "Wijzig de instellingen van {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "bijv. Frankfurt",
       "location_label": "Locatie (optioneel)",
       "location_placeholder": "bijv. Frankfurt, Duitsland",
+      "assign_all_label": "Toewijzen aan alle monitoren",
+      "assign_all_description": "Zodra de eerste instantie verbinding maakt, wordt de probe toegevoegd aan elke monitor die hij kan uitvoeren, behalve push-monitoren.",
       "name_required": "Naam is verplicht",
       "name_too_long": "De naam is te lang",
       "location_too_long": "De locatie is te lang",

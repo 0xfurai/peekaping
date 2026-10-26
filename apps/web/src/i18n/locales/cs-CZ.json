@@ -1193,6 +1193,10 @@
       "submit": "Vytvořit sondu",
       "creating": "Vytváření..."
     },
+    "assign_all": {
+      "warning": "Token čte konfiguraci každého monitoru přiřazeného sondě, včetně přihlašovacích údajů.",
+      "docs_link": "Co může token číst"
+    },
     "edit_dialog": {
       "title": "Upravit sondu",
       "description": "Změňte nastavení sondy {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "např. Frankfurt",
       "location_label": "Umístění (volitelné)",
       "location_placeholder": "např. Frankfurt, Německo",
+      "assign_all_label": "Přiřadit všem monitorům",
+      "assign_all_description": "Po připojení její první instance se sonda přidá ke každému monitoru, který umí spouštět, kromě push monitorů.",
       "name_required": "Název je povinný",
       "name_too_long": "Název je příliš dlouhý",
       "location_too_long": "Umístění je příliš dlouhé",

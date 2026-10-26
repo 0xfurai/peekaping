@@ -8,14 +8,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import Notifications from "@/app/monitors/monitor-types/shared/notifications";
 import { notificationsSchema } from "@/app/monitors/monitor-types/shared/schema";
+import AssignAllWarning from "./assign-all-warning";
 
 // The messages are translation keys: FormMessage translates them.
-export const createProbeSchema = z.object({
+const probeSchema = z.object({
   name: z
     .string()
     .trim()
@@ -24,9 +26,14 @@ export const createProbeSchema = z.object({
   location: z.string().trim().max(255, "probes.form.location_too_long"),
 });
 
+// Only a new probe is offered to be assigned every monitor.
+export const createProbeSchema = probeSchema.extend({
+  assign_all_monitors: z.boolean(),
+});
+
 // Only an existing probe has channels of its own to set: a new probe starts
 // with none, and sends to the channels of its monitors.
-export const editProbeSchema = createProbeSchema
+export const editProbeSchema = probeSchema
   .extend({ disabled: z.boolean() })
   .extend(notificationsSchema.shape);
 
@@ -38,15 +45,18 @@ interface ProbeFormFieldsProps {
   showDisabled?: boolean;
   // The channels are for the edit form; the create form leaves them out.
   showNotifications?: boolean;
+  // The box is for the create form; an existing probe is assigned from the Probes page.
+  showAssignAll?: boolean;
 }
 
 // The fields of the create and edit forms. They go inside a <Form>.
 const ProbeFormFields = ({
   showDisabled = false,
   showNotifications = false,
+  showAssignAll = false,
 }: ProbeFormFieldsProps) => {
   const { t } = useLocalizedTranslation();
-  const form = useFormContext<EditProbeFormValues>();
+  const form = useFormContext<EditProbeFormValues & CreateProbeFormValues>();
 
   return (
     <>
@@ -82,6 +92,29 @@ const ProbeFormFields = ({
           </FormItem>
         )}
       />
+      {showAssignAll && (
+        <FormField
+          control={form.control}
+          name="assign_all_monitors"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>{t("probes.form.assign_all_label")}</FormLabel>
+                <FormDescription>
+                  {t("probes.form.assign_all_description")}{" "}
+                  <AssignAllWarning />
+                </FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
+      )}
       {showDisabled && (
         <FormField
           control={form.control}

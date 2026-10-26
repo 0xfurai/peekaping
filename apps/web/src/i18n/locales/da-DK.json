@@ -1193,6 +1193,10 @@
       "submit": "Opret probe",
       "creating": "Opretter..."
     },
+    "assign_all": {
+      "warning": "Tokenet læser konfigurationen for hver monitor, der er tildelt proben, inklusive legitimationsoplysninger.",
+      "docs_link": "Hvad tokenet kan læse"
+    },
     "edit_dialog": {
       "title": "Rediger probe",
       "description": "Ændr indstillingerne for {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "f.eks. Frankfurt",
       "location_label": "Placering (valgfri)",
       "location_placeholder": "f.eks. Frankfurt, Tyskland",
+      "assign_all_label": "Tildel til alle monitorer",
+      "assign_all_description": "Når proben får sin første instans forbundet, tilføjes den til alle monitorer, den kan køre, undtagen push-monitorer.",
       "name_required": "Navn er påkrævet",
       "name_too_long": "Navnet er for langt",
       "location_too_long": "Placeringen er for lang",

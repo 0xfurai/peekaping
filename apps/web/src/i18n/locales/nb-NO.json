@@ -1193,6 +1193,10 @@
       "submit": "Opprett probe",
       "creating": "Oppretter..."
     },
+    "assign_all": {
+      "warning": "Tokenet leser konfigurasjonen til hver overvåkning som er tildelt proben, inkludert legitimasjon.",
+      "docs_link": "Hva tokenet kan lese"
+    },
     "edit_dialog": {
       "title": "Rediger probe",
       "description": "Endre innstillingene for {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "f.eks. Frankfurt",
       "location_label": "Plassering (valgfritt)",
       "location_placeholder": "f.eks. Frankfurt, Tyskland",
+      "assign_all_label": "Tildel alle overvåkninger",
+      "assign_all_description": "Når den første instansen kobler til, legges proben til alle overvåkninger den kan kjøre, unntatt push-overvåkninger.",
       "name_required": "Navn er påkrevd",
       "name_too_long": "Navnet er for langt",
       "location_too_long": "Plasseringen er for lang",

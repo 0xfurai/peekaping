@@ -1193,6 +1193,10 @@
       "submit": "יצירת גשושית",
       "creating": "יוצר..."
     },
+    "assign_all": {
+      "warning": "האסימון קורא את ההגדרות של כל מעקב ששויך לגשושית, כולל פרטי הזדהות.",
+      "docs_link": "מה האסימון יכול לקרוא"
+    },
     "edit_dialog": {
       "title": "עריכת גשושית",
       "description": "שנו את ההגדרות של {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "לדוגמה: פרנקפורט",
       "location_label": "מיקום (אופציונלי)",
       "location_placeholder": "לדוגמה: פרנקפורט, גרמניה",
+      "assign_all_label": "שיוך לכל המעקבים",
+      "assign_all_description": "כשהמופע הראשון שלה יתחבר, הגשושית תתווסף לכל מעקב שהיא יכולה להריץ, מלבד מעקבי push.",
       "name_required": "יש להזין שם",
       "name_too_long": "השם ארוך מדי",
       "location_too_long": "המיקום ארוך מדי",

@@ -1193,6 +1193,10 @@
       "submit": "Sortu zunda",
       "creating": "Sortzen..."
     },
+    "assign_all": {
+      "warning": "Tokenak zundari esleitutako monitore guztien konfigurazioa irakurtzen du, kredentzialak barne.",
+      "docs_link": "Zer irakur dezakeen tokenak"
+    },
     "edit_dialog": {
       "title": "Editatu zunda",
       "description": "Aldatu {{name}} zundaren ezarpenak."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "adib., Frankfurt",
       "location_label": "Kokalekua (aukerakoa)",
       "location_placeholder": "adib., Frankfurt, Alemania",
+      "assign_all_label": "Esleitu monitore guztiei",
+      "assign_all_description": "Bere lehen instantzia konektatzen denean, zunda gai den monitore guztietara gehituko da, push monitoreak izan ezik.",
       "name_required": "Izena beharrezkoa da",
       "name_too_long": "Izena luzeegia da",
       "location_too_long": "Kokalekua luzeegia da",

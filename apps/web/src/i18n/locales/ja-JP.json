@@ -1193,6 +1193,10 @@
       "submit": "プローブを作成",
       "creating": "作成中..."
     },
+    "assign_all": {
+      "warning": "トークンは、プローブに割り当てられたすべてのモニターの設定を認証情報を含めて読み取ります。",
+      "docs_link": "トークンが読み取れるもの"
+    },
     "edit_dialog": {
       "title": "プローブを編集",
       "description": "{{name}} の設定を変更します。"
@@ -1202,6 +1206,8 @@
       "name_placeholder": "例: フランクフルト",
       "location_label": "場所（任意）",
       "location_placeholder": "例: フランクフルト、ドイツ",
+      "assign_all_label": "すべてのモニターに割り当てる",
+      "assign_all_description": "最初のインスタンスが接続すると、プローブは実行できるすべてのモニター（プッシュモニターを除く）に追加されます。",
       "name_required": "名前は必須です",
       "name_too_long": "名前が長すぎます",
       "location_too_long": "場所が長すぎます",

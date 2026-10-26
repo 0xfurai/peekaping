@@ -1193,6 +1193,10 @@
       "submit": "Skapa sond",
       "creating": "Skapar..."
     },
+    "assign_all": {
+      "warning": "Token läser konfigurationen för varje övervakning som är tilldelad sonden, inklusive inloggningsuppgifter.",
+      "docs_link": "Vad token kan läsa"
+    },
     "edit_dialog": {
       "title": "Redigera sond",
       "description": "Ändra inställningarna för {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "t.ex. Frankfurt",
       "location_label": "Plats (valfritt)",
       "location_placeholder": "t.ex. Frankfurt, Tyskland",
+      "assign_all_label": "Tilldela alla övervakningar",
+      "assign_all_description": "När dess första instans ansluter läggs sonden till i alla övervakningar den kan köra, utom push-övervakningar.",
       "name_required": "Namn krävs",
       "name_too_long": "Namnet är för långt",
       "location_too_long": "Platsen är för lång",

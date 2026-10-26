@@ -1193,6 +1193,10 @@
       "submit": "Stvori sondu",
       "creating": "Stvaranje..."
     },
+    "assign_all": {
+      "warning": "Token čita konfiguraciju svakog nadzora dodijeljenog sondi, uključujući vjerodajnice.",
+      "docs_link": "Što token može čitati"
+    },
     "edit_dialog": {
       "title": "Uredi sondu",
       "description": "Promijenite postavke sonde {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "npr. Frankfurt",
       "location_label": "Lokacija (neobavezno)",
       "location_placeholder": "npr. Frankfurt, Njemačka",
+      "assign_all_label": "Dodijeli svim nadzorima",
+      "assign_all_description": "Kad se poveže njezina prva instanca, sonda se dodaje svakom nadzoru koji može izvoditi, osim push nadzora.",
       "name_required": "Naziv je obavezan",
       "name_too_long": "Naziv je predugačak",
       "location_too_long": "Lokacija je preduga",

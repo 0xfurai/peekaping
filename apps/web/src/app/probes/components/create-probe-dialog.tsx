@@ -44,6 +44,7 @@ const CreateProbeDialog = ({
     defaultValues: {
       name: "",
       location: "",
+      assign_all_monitors: true,
     },
   });
 
@@ -60,6 +61,7 @@ const CreateProbeDialog = ({
         body: {
           name: values.name,
           location: values.location || undefined,
+          assign_all_monitors: values.assign_all_monitors,
         },
       },
       {
@@ -87,7 +89,7 @@ const CreateProbeDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <ProbeFormFields />
+            <ProbeFormFields showAssignAll />
             <DialogFooter>
               <Button
                 type="button"

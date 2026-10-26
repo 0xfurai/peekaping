@@ -1193,6 +1193,10 @@
       "submit": "Luo luotain",
       "creating": "Luodaan..."
     },
+    "assign_all": {
+      "warning": "Token lukee jokaisen luotaimelle määritetyn valvonnan asetukset, myös tunnistetiedot.",
+      "docs_link": "Mitä token voi lukea"
+    },
     "edit_dialog": {
       "title": "Muokkaa luotainta",
       "description": "Muuta luotaimen {{name}} asetuksia."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "esim. Frankfurt",
       "location_label": "Sijainti (valinnainen)",
       "location_placeholder": "esim. Frankfurt, Saksa",
+      "assign_all_label": "Määritä kaikille valvonnoille",
+      "assign_all_description": "Kun luotaimen ensimmäinen instanssi yhdistää, luotain lisätään jokaiseen valvontaan, jota se voi ajaa, paitsi push-valvontoihin.",
       "name_required": "Nimi on pakollinen",
       "name_too_long": "Nimi on liian pitkä",
       "location_too_long": "Sijainti on liian pitkä",

@@ -1193,6 +1193,10 @@
       "submit": "Tạo đầu dò",
       "creating": "Đang tạo..."
     },
+    "assign_all": {
+      "warning": "Mã thông báo đọc cấu hình của mọi giám sát được gán cho đầu dò, bao gồm cả thông tin xác thực.",
+      "docs_link": "Mã thông báo có thể đọc gì"
+    },
     "edit_dialog": {
       "title": "Chỉnh sửa đầu dò",
       "description": "Thay đổi cài đặt của {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "ví dụ: Frankfurt",
       "location_label": "Vị trí (không bắt buộc)",
       "location_placeholder": "ví dụ: Frankfurt, Đức",
+      "assign_all_label": "Gán cho tất cả giám sát",
+      "assign_all_description": "Khi instance đầu tiên kết nối, đầu dò được thêm vào mọi giám sát mà nó có thể chạy, trừ giám sát push.",
       "name_required": "Tên là bắt buộc",
       "name_too_long": "Tên quá dài",
       "location_too_long": "Vị trí quá dài",

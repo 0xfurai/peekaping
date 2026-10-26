@@ -1193,6 +1193,10 @@
       "submit": "Sukurti zondą",
       "creating": "Kuriama..."
     },
+    "assign_all": {
+      "warning": "Žetonas skaito kiekvieno zondui priskirto monitoriaus konfigūraciją, įskaitant prisijungimo duomenis.",
+      "docs_link": "Ką gali skaityti žetonas"
+    },
     "edit_dialog": {
       "title": "Redaguoti zondą",
       "description": "Pakeiskite {{name}} nustatymus."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "pvz., Frankfurtas",
       "location_label": "Vieta (neprivaloma)",
       "location_placeholder": "pvz., Frankfurtas, Vokietija",
+      "assign_all_label": "Priskirti visiems monitoriams",
+      "assign_all_description": "Prisijungus pirmajam zondo egzemplioriui, zondas pridedamas prie kiekvieno monitoriaus, kurį gali vykdyti, išskyrus push monitorius.",
       "name_required": "Pavadinimas privalomas",
       "name_too_long": "Pavadinimas per ilgas",
       "location_too_long": "Vieta per ilga",

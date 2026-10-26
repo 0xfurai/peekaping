@@ -1192,6 +1192,10 @@
       "submit": "Creează sondă",
       "creating": "Se creează..."
     },
+    "assign_all": {
+      "warning": "Tokenul citește configurația fiecărui monitor atribuit sondei, inclusiv datele de autentificare.",
+      "docs_link": "Ce poate citi tokenul"
+    },
     "edit_dialog": {
       "title": "Editează sonda",
       "description": "Modifică setările pentru {{name}}."
@@ -1201,6 +1205,8 @@
       "name_placeholder": "ex.: Frankfurt",
       "location_label": "Locație (opțional)",
       "location_placeholder": "ex.: Frankfurt, Germania",
+      "assign_all_label": "Atribuie tuturor monitoarelor",
+      "assign_all_description": "Când se conectează prima ei instanță, sonda este adăugată la fiecare monitor pe care îl poate rula, cu excepția monitoarelor push.",
       "name_required": "Numele este obligatoriu",
       "name_too_long": "Numele este prea lung",
       "location_too_long": "Locația este prea lungă",

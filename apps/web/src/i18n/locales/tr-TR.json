@@ -1193,6 +1193,10 @@
       "submit": "Prob oluştur",
       "creating": "Oluşturuluyor..."
     },
+    "assign_all": {
+      "warning": "Belirteç, probe'a atanan her monitörün yapılandırmasını, kimlik bilgileri dahil, okur.",
+      "docs_link": "Belirteç neleri okuyabilir"
+    },
     "edit_dialog": {
       "title": "Probu düzenle",
       "description": "{{name}} ayarlarını değiştirin."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "örn. Frankfurt",
       "location_label": "Konum (isteğe bağlı)",
       "location_placeholder": "örn. Frankfurt, Almanya",
+      "assign_all_label": "Tüm monitörlere ata",
+      "assign_all_description": "İlk örneği bağlandığında probe, çalıştırabildiği tüm monitörlere eklenir; push monitörler hariç.",
       "name_required": "Ad gereklidir",
       "name_too_long": "Ad çok uzun",
       "location_too_long": "Konum çok uzun",

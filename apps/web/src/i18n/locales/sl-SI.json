@@ -1193,6 +1193,10 @@
       "submit": "Ustvari sondo",
       "creating": "Ustvarjanje..."
     },
+    "assign_all": {
+      "warning": "Žeton bere konfiguracijo vsakega nadzora, dodeljenega sondi, vključno s poverilnicami.",
+      "docs_link": "Kaj lahko bere žeton"
+    },
     "edit_dialog": {
       "title": "Uredi sondo",
       "description": "Spremenite nastavitve sonde {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "npr. Frankfurt",
       "location_label": "Lokacija (neobvezno)",
       "location_placeholder": "npr. Frankfurt, Nemčija",
+      "assign_all_label": "Dodeli vsem nadzorom",
+      "assign_all_description": "Ko se poveže njen prvi primerek, se sonda doda vsakemu nadzoru, ki ga lahko izvaja, razen push nadzorom.",
       "name_required": "Ime je obvezno",
       "name_too_long": "Ime je predolgo",
       "location_too_long": "Lokacija je predolga",

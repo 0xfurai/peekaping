@@ -1193,6 +1193,10 @@
       "submit": "Créer la sonde",
       "creating": "Création en cours..."
     },
+    "assign_all": {
+      "warning": "Le jeton lit la configuration de chaque moniteur affecté à la sonde, identifiants compris.",
+      "docs_link": "Ce que le jeton peut lire"
+    },
     "edit_dialog": {
       "title": "Modifier la sonde",
       "description": "Modifiez les paramètres de {{name}}."
@@ -1202,6 +1206,8 @@
       "name_placeholder": "p. ex., Francfort",
       "location_label": "Emplacement (facultatif)",
       "location_placeholder": "p. ex., Francfort, Allemagne",
+      "assign_all_label": "Affecter à tous les moniteurs",
+      "assign_all_description": "Quand sa première instance se connecte, la sonde est ajoutée à tous les moniteurs qu'elle peut exécuter, sauf les moniteurs push.",
       "name_required": "Le nom est obligatoire",
       "name_too_long": "Le nom est trop long",
       "location_too_long": "L'emplacement est trop long",
