@@ -62,6 +62,9 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       bundle: ${{ github.event_name != 'pull_request' || steps.diff.outputs.bundle }}
+      # The e2e configs to run. A job's `if` can't read `matrix`, so the bundle config is left out
+      # of the matrix itself.
+      configs: ${{ (github.event_name != 'pull_request' || steps.diff.outputs.bundle == 'true') && '["dev","bundle"]' || '["dev"]' }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -80,8 +83,6 @@ jobs:
   # The dev images don't depend on the database, so both dev jobs reuse them.
   build-images:
     name: Build ${{ matrix.name }}
-    needs: changes
-    if: ${{ !startsWith(matrix.name, 'bundle-') || needs.changes.outputs.bundle == 'true' }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -95,6 +96,37 @@ jobs:
           - { name: probe, tag: peekaping-probe, context: apps/server, file: apps/server/infra/Dockerfile.probe }
           - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
           - { name: dev-web, tag: peekaping-web, context: ., file: apps/web/Dockerfile }
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker/setup-buildx-action@v3
+    - name: Build ${{ matrix.name }} image
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ matrix.context }}
+        file: ${{ matrix.file }}
+        tags: ${{ matrix.tag }}
+        outputs: type=docker,dest=${{ runner.temp }}/${{ matrix.name }}.tar
+        cache-from: type=gha,scope=e2e-${{ matrix.name }}
+        cache-to: type=gha,scope=e2e-${{ matrix.name }},mode=max
+    - uses: actions/upload-artifact@v4
+      with:
+        name: image-${{ matrix.name }}
+        path: ${{ runner.temp }}/${{ matrix.name }}.tar
+        retention-days: 1
+        # Image layers are already compressed.
+        compression-level: 0
+
+  # The bundle images, built like the others, only when the bundle jobs run. They are a job of their
+  # own because a job's `if` can't read `matrix`.
+  build-bundle-images:
+    name: Build ${{ matrix.name }}
+    needs: changes
+    if: ${{ needs.changes.outputs.bundle == 'true' }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
           - { name: bundle-postgres, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.postgres }
           - { name: bundle-sqlite, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.sqlite }
     steps:
@@ -121,7 +153,7 @@ jobs:
   # port 8383, ping and Docker monitors, docker run --user and docker stop.
   bundle-user:
     name: Bundle user ${{ matrix.database }}
-    needs: [changes, build-images]
+    needs: [changes, build-bundle-images]
     if: ${{ !cancelled() && needs.changes.outputs.bundle == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-24.04
@@ -143,16 +175,17 @@ jobs:
 
   playwright-tests:
     name: E2E ${{ matrix.config }} ${{ matrix.database }}
-    needs: [changes, build-images]
-    # Run every combination whose images built, even if another image failed.
-    if: ${{ !cancelled() && (matrix.config != 'bundle' || needs.changes.outputs.bundle == 'true') }}
+    needs: [changes, build-images, build-bundle-images]
+    # Run every combination whose images built, even if another image failed or the bundle images
+    # were skipped.
+    if: ${{ !cancelled() }}
     timeout-minutes: 60
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         database: [postgres, sqlite]
-        config: [dev, bundle]
+        config: ${{ fromJSON(needs.changes.outputs.configs) }}
     env:
       # Every docker compose command below runs the stack plus the e2e target.
       COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml
