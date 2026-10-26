@@ -5,7 +5,9 @@ package executor
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"net"
 	"peekaping/internal/modules/shared"
 	"strings"
 	"time"
@@ -195,9 +197,17 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	case c := <-createDone:
 		if c.err != nil {
 			k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, c.err.Error())
+			// sarama's network timeouts equal the check's, so either may fire
+			// first. Report both as the check timing out, so the message doesn't
+			// depend on which deadline won.
+			reason := c.err.Error()
+			var netErr net.Error
+			if checkCtx.Err() != nil || (errors.As(c.err, &netErr) && netErr.Timeout()) {
+				reason = fmt.Sprintf("timed out after %ds", monitor.Timeout)
+			}
 			return &Result{
 				Status:    shared.MonitorStatusDown,
-				Message:   fmt.Sprintf("Failed to create Kafka producer: %v", c.err),
+				Message:   fmt.Sprintf("Failed to create Kafka producer: %s", reason),
 				StartTime: startTime,
 				EndTime:   time.Now().UTC(),
 			}
