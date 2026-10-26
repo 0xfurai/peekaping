@@ -110,7 +110,12 @@ export const AvailabilityBar = ({
     });
   }
 
-  for (const period of placeSpans(from, to, periods)) {
+  // Offline goes last, so that a gap too short to see is widened over the online span next to it
+  // and not under it. The server's periods are in time order, so the order of the rest is kept.
+  const placed = placeSpans(from, to, periods);
+  const online = placed.filter((period) => period.status === "online");
+  const offline = placed.filter((period) => period.status === "offline");
+  for (const period of [...online, ...offline]) {
     segments.push({
       leftPct: period.leftPct,
       widthPct: period.widthPct,

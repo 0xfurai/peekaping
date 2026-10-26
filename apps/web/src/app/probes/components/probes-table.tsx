@@ -35,17 +35,19 @@ const ProbeStatusCell = ({
   availability: ProbeProbeAvailabilityResponse | undefined;
 }) => (
   <div className="flex flex-col items-start gap-1.5">
-    <ProbeStatusBadge status={probe.status} />
-    {availability && !availability.in_process && (
-      <div className="flex items-center gap-2">
-        <AvailabilityBar availability={availability} size="compact" />
+    <div className="flex items-center gap-2">
+      <ProbeStatusBadge status={probe.status} />
+      {availability && !availability.in_process && (
         <span
           className="text-xs tabular-nums text-muted-foreground"
           data-testid="probe-uptime"
         >
           {formatUptime(availability.uptime_percent)}
         </span>
-      </div>
+      )}
+    </div>
+    {availability && !availability.in_process && (
+      <AvailabilityBar availability={availability} size="compact" />
     )}
   </div>
 );
