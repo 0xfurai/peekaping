@@ -208,8 +208,9 @@ services:
     ports:
       - "127.0.0.1:15673:15672"
     healthcheck:
-      # Passes once the management API listens, which is all the tests use.
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_listener", "15672"]
+      # The request the executor makes, signed in as the tests' user, so it
+      # passes only once the management API answers 200 for that user.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://peekaping:p%40ss%3Aw%2Frd%251@127.0.0.1:15672/api/health/checks/alarms/"]
       interval: 2s
       timeout: 10s
       retries: 60
