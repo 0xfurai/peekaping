@@ -1,15 +1,15 @@
 //go:build integration
 
 // Package testservice gives integration tests a real server to talk to: Redis,
-// Kafka, MongoDB (standalone and a replica set) and SQL Server now, and later
-// the other services the monitor executors check. It is built
-// only under the integration build tag, so a plain "go test" never compiles
-// testcontainers or needs Docker.
+// Kafka, PostgreSQL, MySQL, MongoDB (standalone and a replica set) and SQL
+// Server now, and later the other services the monitor executors check. It is
+// built only under the integration build tag, so a plain "go test" never
+// compiles testcontainers or needs Docker.
 //
 // Each service has one function, such as Redis. It returns the address of the
 // server named by the service's environment variable (Kafka has two), or, when
-// that is unset, of a container it starts. The compose file in apps/server runs the same
-// services for CI.
+// that is unset, of a container it starts. The compose file in apps/server runs
+// the same services for CI.
 package testservice
 
 import (

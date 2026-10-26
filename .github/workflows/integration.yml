@@ -56,6 +56,9 @@ jobs:
           PEE_TEST_REDIS_URL: redis://:integration-test-password@127.0.0.1:16379
           PEE_TEST_KAFKA_BROKER: 127.0.0.1:19092
           PEE_TEST_KAFKA_SASL_BROKER: 127.0.0.1:19093
+          # The password is percent-encoded: p@ss:w/rd%1?x
+          PEE_TEST_POSTGRES_EXECUTOR_URL: postgres://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:15432/peekaping
+          PEE_TEST_MYSQL_URL: mysql://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:13306/peekaping
           PEE_TEST_MONGODB_URL: mongodb://root:integration-test-password@127.0.0.1:27018
           PEE_TEST_MONGODB_RS_URL: mongodb://127.0.0.1:27019
           PEE_TEST_SQLSERVER_URL: sqlserver://sa:Pe%3Be%3DK%7Bing%7D9z@127.0.0.1:11433

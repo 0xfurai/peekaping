@@ -54,10 +54,34 @@ env:
   COMPOSE_PROJECT_NAME: peekaping
 
 jobs:
+  # The bundle jobs check how the single-image bundles are packaged, which only
+  # their own files change. A PR runs them when it touches those files; pushes to
+  # main always run them, so an app change that breaks a bundle fails there.
+  changes:
+    name: Detect bundle changes
+    runs-on: ubuntu-24.04
+    outputs:
+      bundle: ${{ github.event_name != 'pull_request' || steps.diff.outputs.bundle }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Check for bundle files
+      id: diff
+      if: ${{ github.event_name == 'pull_request' }}
+      run: |
+        if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qE '^(Dockerfile\.bundle\.|startup\.bundle\.|supervisord\.bundle\.|docker-compose\.bundle\.|scripts/test-bundle-user\.sh$|Caddyfile$|\.github/workflows/playwright\.yml$)'; then
+          echo "bundle=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "bundle=false" >> "$GITHUB_OUTPUT"
+        fi
+
   # Build each image once, on its own runner, and share it with the test jobs.
   # The dev images don't depend on the database, so both dev jobs reuse them.
   build-images:
     name: Build ${{ matrix.name }}
+    needs: changes
+    if: ${{ !startsWith(matrix.name, 'bundle-') || needs.changes.outputs.bundle == 'true' }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -97,8 +121,8 @@ jobs:
   # port 8383, ping and Docker monitors, docker run --user and docker stop.
   bundle-user:
     name: Bundle user ${{ matrix.database }}
-    needs: build-images
-    if: ${{ !cancelled() }}
+    needs: [changes, build-images]
+    if: ${{ !cancelled() && needs.changes.outputs.bundle == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-24.04
     strategy:
@@ -119,9 +143,9 @@ jobs:
 
   playwright-tests:
     name: E2E ${{ matrix.config }} ${{ matrix.database }}
-    needs: build-images
+    needs: [changes, build-images]
     # Run every combination whose images built, even if another image failed.
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && (matrix.config != 'bundle' || needs.changes.outputs.bundle == 'true') }}
     timeout-minutes: 60
     runs-on: ubuntu-24.04
     strategy:
@@ -143,8 +167,21 @@ jobs:
         bun-version-file: package.json
     - name: Install dependencies
       run: bun install --frozen-lockfile
+    # The browser download has taken over 7 minutes on a slow runner. The browser
+    # build follows the Playwright version, which bun.lock pins.
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
     - name: Install Playwright Browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: bunx playwright install --with-deps chromium
+    # A cached browser still needs the system libraries, which live outside the cache.
+    - name: Install Playwright system dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: bunx playwright install-deps chromium
     - name: Download images
       uses: actions/download-artifact@v4
       with:

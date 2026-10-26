@@ -2,11 +2,13 @@ package executor
 
 import (
 	"context"
+	"encoding/json"
 	"peekaping/internal/modules/shared"
-	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -461,247 +463,237 @@ func TestMySQLExecutor_parseMySQLURL(t *testing.T) {
 	executor := NewMySQLExecutor(logger)
 
 	tests := []struct {
-		name          string
-		connectionStr string
-		expectedDSN   string
-		expectedError bool
+		name           string
+		connectionStr  string
+		wantUser       string
+		wantPassword   string
+		wantAddr       string
+		wantDatabase   string
+		wantTLS        string
+		wantParseTime  bool
+		wantServerName string // the host name the certificate is verified against
+		wantParams     map[string]string
+		wantErr        string
 	}{
 		{
 			name:          "full connection string",
 			connectionStr: "mysql://user:password@localhost:3306/testdb",
-			expectedDSN:   "user:password@tcp(localhost:3306)/testdb",
-			expectedError: false,
+			wantUser:      "user", wantPassword: "password", wantAddr: "localhost:3306", wantDatabase: "testdb",
 		},
 		{
 			name:          "connection string without port",
 			connectionStr: "mysql://user:password@localhost/testdb",
-			expectedDSN:   "user:password@tcp(localhost:3306)/testdb",
-			expectedError: false,
+			wantUser:      "user", wantPassword: "password", wantAddr: "localhost:3306", wantDatabase: "testdb",
 		},
 		{
 			name:          "connection string without password",
 			connectionStr: "mysql://user@localhost:3306/testdb",
-			expectedDSN:   "user:@tcp(localhost:3306)/testdb",
-			expectedError: false,
+			wantUser:      "user", wantPassword: "", wantAddr: "localhost:3306", wantDatabase: "testdb",
 		},
 		{
-			name:          "connection string with query parameters",
-			connectionStr: "mysql://user:password@localhost:3306/testdb?charset=utf8",
-			expectedDSN:   "user:password@tcp(localhost:3306)/testdb?charset=utf8",
-			expectedError: false,
+			name:          "IPv6 host with a port",
+			connectionStr: "mysql://user:password@[::1]:3306/testdb",
+			wantUser:      "user", wantPassword: "password", wantAddr: "[::1]:3306", wantDatabase: "testdb",
+		},
+		{
+			name:          "IPv6 host with another port",
+			connectionStr: "mysql://user:password@[2001:db8::7]:3307/testdb",
+			wantUser:      "user", wantPassword: "password", wantAddr: "[2001:db8::7]:3307", wantDatabase: "testdb",
+		},
+		{
+			name:          "IPv6 host without a port",
+			connectionStr: "mysql://user:password@[::1]/testdb",
+			wantUser:      "user", wantPassword: "password", wantAddr: "[::1]:3306", wantDatabase: "testdb",
+		},
+		{
+			name:          "percent-encoded reserved characters in the credentials",
+			connectionStr: "mysql://us%3Aer%40x:p%40ss%3Aw%2Frd%251%3Fx%29@localhost:3306/testdb",
+			wantUser:      "us:er@x", wantPassword: "p@ss:w/rd%1?x)", wantAddr: "localhost:3306", wantDatabase: "testdb",
+		},
+		{
+			name:          "percent-encoded database name",
+			connectionStr: "mysql://user:password@localhost:3306/test%3Fdb",
+			wantUser:      "user", wantPassword: "password", wantAddr: "localhost:3306", wantDatabase: "test?db",
+		},
+		{
+			name:          "query parameters are read by the driver",
+			connectionStr: "mysql://user:password@localhost:3306/testdb?parseTime=true&tls=skip-verify",
+			wantUser:      "user", wantPassword: "password", wantAddr: "localhost:3306", wantDatabase: "testdb",
+			wantTLS: "skip-verify", wantParseTime: true,
+		},
+		{
+			name:          "tls=true verifies the certificate against the host name",
+			connectionStr: "mysql://u:p@db.example.com:3306/d?tls=true",
+			wantUser:      "u", wantPassword: "p", wantAddr: "db.example.com:3306", wantDatabase: "d",
+			wantTLS: "true", wantServerName: "db.example.com",
+		},
+		{
+			name:          "tls=true verifies the certificate against the host name, without a port",
+			connectionStr: "mysql://u:p@db.example.com/d?tls=true",
+			wantUser:      "u", wantPassword: "p", wantAddr: "db.example.com:3306", wantDatabase: "d",
+			wantTLS: "true", wantServerName: "db.example.com",
+		},
+		{
+			name:          "tls=true with an IPv6 host verifies against the address without brackets",
+			connectionStr: "mysql://u:p@[::1]:3306/d?tls=true",
+			wantUser:      "u", wantPassword: "p", wantAddr: "[::1]:3306", wantDatabase: "d",
+			wantTLS: "true", wantServerName: "::1",
+		},
+		{
+			name:          "tls=preferred verifies nothing, so it names no server",
+			connectionStr: "mysql://u:p@db.example.com:3306/d?tls=preferred",
+			wantUser:      "u", wantPassword: "p", wantAddr: "db.example.com:3306", wantDatabase: "d",
+			wantTLS: "preferred",
+		},
+		{
+			name:          "a query parameter with a slash in it",
+			connectionStr: "mysql://u:p@localhost:3306/d?connectionAttributes=a/b:c",
+			wantUser:      "u", wantPassword: "p", wantAddr: "localhost:3306", wantDatabase: "d",
+		},
+		{
+			name:          "a query parameter can't change the address",
+			connectionStr: "mysql://user:password@localhost:3306/testdb?addr=elsewhere:1&net=unix",
+			wantUser:      "user", wantPassword: "password", wantAddr: "localhost:3306", wantDatabase: "testdb",
+			wantParams: map[string]string{"addr": "elsewhere:1", "net": "unix"},
+		},
+		{
+			name:          "unknown tls setting",
+			connectionStr: "mysql://user:password@localhost:3306/testdb?tls=sometimes",
+			wantErr:       "invalid value / unknown config name: sometimes",
 		},
 		{
 			name:          "missing username",
 			connectionStr: "mysql://localhost:3306/testdb",
-			expectedDSN:   "",
-			expectedError: true,
+			wantErr:       "username is required in connection string",
 		},
 		{
 			name:          "missing database",
 			connectionStr: "mysql://user:password@localhost:3306/",
-			expectedDSN:   "",
-			expectedError: true,
+			wantErr:       "database name is required in connection string",
 		},
 		{
 			name:          "wrong scheme",
 			connectionStr: "postgres://user:password@localhost:5432/testdb",
-			expectedDSN:   "",
-			expectedError: true,
+			wantErr:       "connection string must use mysql:// scheme, got: postgres",
 		},
 		{
 			name:          "malformed URL",
 			connectionStr: "not-a-valid-url",
-			expectedDSN:   "",
-			expectedError: true,
+			wantErr:       "connection string must use mysql:// scheme, got: ",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := executor.parseMySQLURL(tt.connectionStr)
-			if tt.expectedError {
-				assert.Error(t, err)
-				assert.Empty(t, result)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedDSN, result)
+			cfg, err := executor.parseMySQLURL(tt.connectionStr)
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				assert.Nil(t, cfg)
+				return
+			}
+			require.NoError(t, err)
+
+			assert.Equal(t, "tcp", cfg.Net)
+			assert.Equal(t, tt.wantUser, cfg.User)
+			assert.Equal(t, tt.wantPassword, cfg.Passwd)
+			assert.Equal(t, tt.wantAddr, cfg.Addr)
+			assert.Equal(t, tt.wantDatabase, cfg.DBName)
+			assert.Equal(t, tt.wantTLS, cfg.TLSConfig)
+			assert.Equal(t, tt.wantParseTime, cfg.ParseTime)
+			if tt.wantServerName != "" {
+				require.NotNil(t, cfg.TLS)
+				assert.Equal(t, tt.wantServerName, cfg.TLS.ServerName)
+				assert.False(t, cfg.TLS.InsecureSkipVerify)
+			}
+			for key, want := range tt.wantParams {
+				assert.Equal(t, want, cfg.Params[key], key)
 			}
 		})
 	}
 }
 
-func TestMySQLExecutor_Execute(t *testing.T) {
-	logger := zap.NewNop().Sugar()
-	executor := NewMySQLExecutor(logger)
+func mysqlMonitor(t *testing.T, timeout int, cfg MySQLConfig) *Monitor {
+	t.Helper()
+	raw, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	return &Monitor{ID: "mysql-test", Name: "MySQL test", Type: "mysql", Timeout: timeout, Config: string(raw)}
+}
+
+func TestMySQLExecutor_Execute_DownWithoutAServer(t *testing.T) {
+	exec := NewMySQLExecutor(zap.NewNop().Sugar())
+	refused := refusedAddr(t)
 
 	tests := []struct {
-		name           string
-		monitor        *Monitor
-		config         string
-		expectedStatus shared.MonitorStatus
-		expectedError  bool
+		name        string
+		config      MySQLConfig
+		wantMessage string
 	}{
 		{
-			name: "invalid config - empty connection string",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "mysql",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Timeout:  5,
-			},
-			config: `{
-				"connection_string": "",
-				"query": "SELECT 1"
-			}`,
-			expectedStatus: shared.MonitorStatusDown,
-			expectedError:  false, // No error in execution, but should return Down status
+			name:        "an empty connection string",
+			config:      MySQLConfig{Query: "SELECT 1"},
+			wantMessage: "connection string validation failed: connection string cannot be empty",
 		},
 		{
-			name: "invalid config - wrong scheme",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "mysql",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Timeout:  5,
-			},
-			config: `{
-				"connection_string": "postgres://user:password@localhost:5432/testdb",
-				"query": "SELECT 1"
-			}`,
-			expectedStatus: shared.MonitorStatusDown,
-			expectedError:  false,
+			name:        "the connection string of another database",
+			config:      MySQLConfig{ConnectionString: "postgres://user:password@localhost:5432/testdb", Query: "SELECT 1"},
+			wantMessage: "connection string validation failed: connection string must use mysql:// scheme, got: postgres",
 		},
 		{
-			name: "invalid config - dangerous query",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "mysql",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Timeout:  5,
-			},
-			config: `{
-				"connection_string": "mysql://user:password@localhost:3306/testdb",
-				"query": "DROP TABLE users"
-			}`,
-			expectedStatus: shared.MonitorStatusDown,
-			expectedError:  false,
+			// The query is rejected before the executor connects: nothing listens here.
+			name:        "a query that changes data",
+			config:      MySQLConfig{ConnectionString: "mysql://user:password@" + refused + "/testdb", Query: "DROP TABLE users"},
+			wantMessage: "query validation failed: only SELECT, SHOW, DESCRIBE, and EXPLAIN statements are allowed for monitoring queries",
 		},
 		{
-			name: "malformed JSON config",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "mysql",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Timeout:  5,
-			},
-			config: `{
-				"connection_string": "mysql://user:password@localhost:3306/testdb"
-				"query": "SELECT 1"
-			}`,
-			expectedStatus: shared.MonitorStatusDown,
-			expectedError:  false,
+			name:        "an unknown tls setting",
+			config:      MySQLConfig{ConnectionString: "mysql://user:password@" + refused + "/testdb?tls=sometimes"},
+			wantMessage: "MySQL query failed: failed to parse MySQL connection string: invalid value / unknown config name: sometimes",
 		},
 		{
-			name: "connection to non-existent database",
-			monitor: &Monitor{
-				ID:       "monitor1",
-				Type:     "mysql",
-				Name:     "Test Monitor",
-				Interval: 30,
-				Timeout:  5,
-			},
-			config: `{
-				"connection_string": "mysql://user:password@nonexistent:3306/testdb",
-				"query": "SELECT 1"
-			}`,
-			expectedStatus: shared.MonitorStatusDown,
-			expectedError:  false,
+			name:        "a connection nothing accepts",
+			config:      MySQLConfig{ConnectionString: "mysql://user:password@" + refused + "/testdb"},
+			wantMessage: "MySQL query failed: failed to ping MySQL database: dial tcp " + refused + ": connect: connection refused",
+		},
+		{
+			name:        "a connection nothing accepts, with a custom query",
+			config:      MySQLConfig{ConnectionString: "mysql://user:password@" + refused + "/testdb", Query: "SELECT 2"},
+			wantMessage: "MySQL query failed: failed to ping MySQL database: dial tcp " + refused + ": connect: connection refused",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Set monitor config
-			tt.monitor.Config = tt.config
+			result := exec.Execute(context.Background(), mysqlMonitor(t, 5, tt.config), nil)
 
-			// Execute the monitor
-			result := executor.Execute(context.Background(), tt.monitor, nil)
-
-			// Verify result
-			assert.NotNil(t, result)
-			assert.Equal(t, tt.expectedStatus, result.Status)
-			assert.NotEmpty(t, result.Message)
+			assert.Equal(t, shared.MonitorStatusDown, result.Status)
+			assert.Equal(t, tt.wantMessage, result.Message)
 			assert.False(t, result.StartTime.IsZero())
-			assert.False(t, result.EndTime.IsZero())
-			assert.True(t, result.EndTime.After(result.StartTime) || result.EndTime.Equal(result.StartTime))
+			assert.False(t, result.EndTime.Before(result.StartTime))
 		})
 	}
 }
 
-func TestMySQLExecutor_DefaultQueryBehavior(t *testing.T) {
-	logger := zap.NewNop().Sugar()
-	executor := NewMySQLExecutor(logger)
+func TestMySQLExecutor_Execute_MalformedConfig(t *testing.T) {
+	exec := NewMySQLExecutor(zap.NewNop().Sugar())
 
-	tests := []struct {
-		name          string
-		config        string
-		expectedQuery string
-	}{
-		{
-			name: "empty query defaults to SELECT 1",
-			config: `{
-				"connection_string": "mysql://user:password@localhost:3306/testdb",
-				"query": ""
-			}`,
-			expectedQuery: "SELECT 1",
-		},
-		{
-			name: "whitespace-only query defaults to SELECT 1",
-			config: `{
-				"connection_string": "mysql://user:password@localhost:3306/testdb",
-				"query": "   \t\n   "
-			}`,
-			expectedQuery: "SELECT 1",
-		},
-		{
-			name: "missing query defaults to SELECT 1",
-			config: `{
-				"connection_string": "mysql://user:password@localhost:3306/testdb"
-			}`,
-			expectedQuery: "SELECT 1",
-		},
-		{
-			name: "provided query is used",
-			config: `{
-				"connection_string": "mysql://user:password@localhost:3306/testdb",
-				"query": "SELECT COUNT(*) FROM users"
-			}`,
-			expectedQuery: "SELECT COUNT(*) FROM users",
-		},
-	}
+	result := exec.Execute(context.Background(), &Monitor{ID: "mysql-test", Timeout: 5, Config: `{"connection_string": "mysql://user:password@localhost:3306/testdb" "query": "SELECT 1"}`}, nil)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// First validate the config should pass
-			err := executor.Validate(tt.config)
-			assert.NoError(t, err, "Config validation should pass")
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "invalid character")
+}
 
-			// Parse the config to verify the logic would work
-			cfgAny, err := executor.Unmarshal(tt.config)
-			assert.NoError(t, err)
-			cfg := cfgAny.(*MySQLConfig)
+func TestMySQLExecutor_Execute_ServerNeverAnswers(t *testing.T) {
+	exec := NewMySQLExecutor(zap.NewNop().Sugar())
+	addr := silentAddr(t)
 
-			// Simulate the query resolution logic from Execute method
-			query := cfg.Query
-			if query == "" || strings.TrimSpace(query) == "" {
-				query = "SELECT 1"
-			}
+	start := time.Now()
+	result := exec.Execute(context.Background(), mysqlMonitor(t, 2, MySQLConfig{
+		ConnectionString: "mysql://user:password@" + addr + "/testdb",
+	}), nil)
+	elapsed := time.Since(start)
 
-			assert.Equal(t, tt.expectedQuery, query, "Query should match expected value")
-		})
-	}
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "MySQL query failed: failed to ping MySQL database: ")
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
 }

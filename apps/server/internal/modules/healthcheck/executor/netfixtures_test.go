@@ -1,5 +1,3 @@
-//go:build !slim
-
 package executor
 
 import (
@@ -18,6 +16,13 @@ func refusedAddr(t *testing.T) string {
 	require.NoError(t, err)
 	addr := l.Addr().String()
 	require.NoError(t, l.Close())
+	return addr
+}
+
+// silentAddr is a server that accepts connections and never says a word.
+func silentAddr(t *testing.T) string {
+	t.Helper()
+	addr, _ := silentServer(t)
 	return addr
 }
 
