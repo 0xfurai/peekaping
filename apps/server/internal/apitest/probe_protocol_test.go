@@ -516,7 +516,7 @@ func TestProbeProtocol_RequestBringsAnOfflineProbeOnline(t *testing.T) {
 		a.sayHello(t, made.Token, instanceID)
 		require.Equal(t, "online", a.getProbe(t, made.ID).Status, "the first hello brings the probe online")
 		require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
-			changed, err := probes.MarkOffline(context.Background(), made.ID)
+			changed, err := probes.MarkOffline(context.Background(), made.ID, time.Now())
 			require.True(t, changed)
 			return err
 		}))
@@ -589,7 +589,7 @@ func TestProbeProtocol_ADisabledProbeIsNotBroughtOnline(t *testing.T) {
 	instanceID := uuid.NewString()
 	a.sayHello(t, made.Token, instanceID)
 	require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
-		changed, err := probes.MarkOffline(context.Background(), made.ID)
+		changed, err := probes.MarkOffline(context.Background(), made.ID, time.Now())
 		require.True(t, changed)
 		return err
 	}))
@@ -630,6 +630,35 @@ func TestProbeProtocol_ByeRetiresTheInstance(t *testing.T) {
 	assert.WithinDuration(t, time.Now(), lastSeen[staying], 5*time.Second, "and the sibling's is untouched")
 	assert.Equal(t, http.StatusNoContent, a.request(t, http.MethodPost, byePath, nil, asProbe(made.Token, leaving)).Code,
 		"a bye that is sent again, as after a lost answer, retires the instance again")
+}
+
+// The history of a probe: the hello starts the instance's connection and brings the probe online,
+// and the bye ends the connection at the time of the bye, not at the time the instance is left with
+func TestProbeProtocol_HelloAndByeWriteTheProbesHistory(t *testing.T) {
+	a, made := probeApp(t)
+	instanceID := uuid.NewString()
+	before := time.Now().UTC().Add(-time.Second)
+	a.sayHello(t, made.Token, instanceID)
+	require.Equal(t, http.StatusNoContent, a.request(t, http.MethodPost, byePath, nil, asProbe(made.Token, instanceID)).Code)
+	after := time.Now().UTC().Add(time.Second)
+
+	require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
+		connections, err := probes.FindInstanceConnections(context.Background(), made.ID, before)
+		require.NoError(t, err)
+		require.Len(t, connections, 1)
+		assert.Equal(t, instanceID, connections[0].InstanceID)
+		assert.WithinRange(t, connections[0].StartedAt, before, after)
+		require.NotNil(t, connections[0].EndedAt)
+		assert.WithinRange(t, *connections[0].EndedAt, before, after, "the bye's own time, and not a minute before it")
+
+		changes, err := probes.FindStatusChanges(context.Background(), made.ID, before)
+		require.NoError(t, err)
+		require.Len(t, changes, 2, "offline when it was made, online at the hello")
+		assert.Equal(t, probe.StatusOffline, changes[0].Status)
+		assert.Equal(t, probe.StatusOnline, changes[1].Status)
+		assert.WithinRange(t, changes[1].At, before, after)
+		return nil
+	}))
 }
 
 func TestProbeProtocol_GzipBodiesAndReplies(t *testing.T) {

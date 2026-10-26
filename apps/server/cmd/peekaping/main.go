@@ -261,7 +261,7 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 		TLSInfoDays:             cfg.TLSInfoRetentionDays,
 	}
 	var err error
-	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.CleanupLock, retention, logger)
+	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.CleanupLock, retention, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start the hourly cleanup: %w", err)
 	}

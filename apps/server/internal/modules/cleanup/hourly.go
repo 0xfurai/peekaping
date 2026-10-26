@@ -7,6 +7,7 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 
@@ -22,8 +23,9 @@ type Retention struct {
 	TLSInfoDays int
 }
 
-// hourlyCleanup is the job that runs every hour: it deletes the heartbeats past the data
-// retention period, the expired stats, the old notification history and the old TLS info.
+// hourlyCleanup is the job that runs every hour: it deletes the heartbeats and the probes' status
+// changes past the data retention period, the expired stats, the old notification history and the
+// old TLS info.
 // In cluster mode every api replica has one, and the run lock lets one of them run each hour.
 type hourlyCleanup struct {
 	heartbeats          heartbeat.Service
@@ -31,6 +33,7 @@ type hourlyCleanup struct {
 	stats               stats.Service
 	notificationHistory notification_sent_history.Service
 	tlsInfo             monitor_tls_info.Service
+	probes              probe.Service
 	lock                RunLock
 	retention           Retention
 	logger              *zap.SugaredLogger
@@ -68,4 +71,5 @@ func (h *hourlyCleanup) runHourly(ctx context.Context, now time.Time) {
 	cleanupStats(h.stats, h.logger)
 	cleanupNotificationHistory(h.notificationHistory, h.retention.NotificationHistoryDays, h.logger)
 	cleanupMonitorTLSInfo(h.tlsInfo, h.retention.TLSInfoDays, h.logger)
+	cleanupProbeStatusChanges(h.probes, h.settings, h.logger)
 }

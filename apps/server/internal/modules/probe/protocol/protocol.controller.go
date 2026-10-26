@@ -220,7 +220,8 @@ func (c *Controller) Bye(ctx context.Context, input *ByeInput) (*httpx.Output[ht
 	if !ok {
 		return nil, c.unauthenticated()
 	}
-	if err := c.service.RetireInstance(r.Context(), owner.ID, instanceID, probe.RetiredAt(c.now().UTC())); err != nil {
+	now := c.now().UTC()
+	if err := c.service.RetireInstance(r.Context(), owner.ID, instanceID, probe.RetiredAt(now), now); err != nil {
 		return nil, c.fail(err)
 	}
 	c.instancesChanged(r.Context(), owner.ID)

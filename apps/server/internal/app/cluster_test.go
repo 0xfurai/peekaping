@@ -284,14 +284,14 @@ func assertWatchdogFollowsEveryProbesStatus(t *testing.T, probeOffline stale.Pro
 		require.NoError(t, err)
 		assert.True(t, offline, "%s is offline: %s", tc.name, tc.offlineBy)
 
-		changed, err := probes.MarkOnline(ctx, tc.probeID)
+		changed, err := probes.MarkOnline(ctx, tc.probeID, time.Now())
 		require.NoError(t, err)
 		require.True(t, changed)
 		offline, err = probeOffline(ctx, tc.monitor)
 		require.NoError(t, err)
 		assert.False(t, offline, "%s is not once it is online", tc.name)
 
-		changed, err = probes.MarkOffline(ctx, tc.probeID)
+		changed, err = probes.MarkOffline(ctx, tc.probeID, time.Now())
 		require.NoError(t, err)
 		require.True(t, changed)
 		offline, err = probeOffline(ctx, tc.monitor)
@@ -321,7 +321,7 @@ func assertWatchdogSkipsOnlyOfflineRemote(t *testing.T, probeOffline stale.Probe
 	require.NoError(t, err)
 	assert.True(t, offline, "a probe that never connected is offline")
 
-	changed, err := probes.MarkOnline(ctx, remote.ID)
+	changed, err := probes.MarkOnline(ctx, remote.ID, time.Now())
 	require.NoError(t, err)
 	require.True(t, changed)
 	offline, err = probeOffline(ctx, onRemote)

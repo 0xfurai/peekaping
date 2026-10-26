@@ -245,7 +245,18 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 
 	switch {
 	case p.Status == StatusOnline && quiet && !grace:
-		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOnline, StatusOffline)
+		since := lastSeen
+		if len(instances) == 0 {
+			// There is no instance to have seen it last: they were pruned, as after a server outage
+			// longer than InstanceRetention. (An instance that says bye is retired, not removed, so
+			// it counts from its connection's end.)
+			since = now
+		} else {
+			since = s.lastContact(ctx, p, lastSeen)
+		}
+		// The probe went offline when it was last seen, which the history records, and not when
+		// the sweep found out
+		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOnline, StatusOffline, since.UTC())
 		if err != nil {
 			s.logger.Errorw("Failed to set a probe offline", "probeId", p.ID, "error", err)
 			return
@@ -253,13 +264,6 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 		if !changed {
 			// Another sweep, or a request, got there first
 			return
-		}
-		since := lastSeen
-		if len(instances) == 0 {
-			// There is no instance to have seen it last: they were pruned, as after a server outage
-			// longer than InstanceRetention. (An instance that says bye is retired, not removed, so
-			// it counts from the time it was left with.)
-			since = now
 		}
 		s.logger.Infow("Probe is offline", "probeId", p.ID, "name", p.Name, "since", since, "disabled", p.Disabled)
 		s.markAnnounced(ctx, p)
@@ -270,7 +274,7 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 		publish(ctx, s, ProbeOffline, Event{ProbeID: p.ID, ProbeName: p.Name, Since: since.UTC()})
 	// A disabled probe's token is refused, so no request can have brought it back
 	case p.Status == StatusOffline && !quiet && !p.Disabled:
-		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOffline, StatusOnline)
+		changed, err := s.repo.UpdateStatus(ctx, p.ID, StatusOffline, StatusOnline, lastSeen.UTC())
 		if err != nil {
 			s.logger.Errorw("Failed to set a probe online", "probeId", p.ID, "error", err)
 			return
@@ -281,6 +285,25 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 		s.logger.Infow("Probe is back online", "probeId", p.ID, "name", p.Name)
 		publish(ctx, s, ProbeOnline, Event{ProbeID: p.ID, ProbeName: p.Name, Since: lastSeen.UTC()})
 	}
+}
+
+// lastContact is when the probe's instances were last heard from. An instance's last seen time
+// is a minute early when it said bye (see RetiredAt), and its connection keeps the time of the bye
+// itself, so the later of the two is when the probe went offline. A probe whose connections can't
+// be read counts from its instances' last seen time.
+func (s *Sweep) lastContact(ctx context.Context, p *Model, lastSeen time.Time) time.Time {
+	connections, err := s.repo.FindInstanceConnections(ctx, p.ID, lastSeen)
+	if err != nil {
+		s.logger.Warnw("Failed to read the connections of a probe, it went offline when its instances were last seen", "probeId", p.ID, "error", err)
+		return lastSeen
+	}
+	contact := lastSeen
+	for _, c := range connections {
+		if c.LastSeenAt.After(contact) {
+			contact = c.LastSeenAt
+		}
+	}
+	return contact
 }
 
 // checkInstances tells the waiting polls of the probe when the instances it is dealt among are

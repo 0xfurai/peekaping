@@ -10,6 +10,7 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 
@@ -24,14 +25,14 @@ import (
 // cleanups counts the cleanups that the replicas sharing it run, and the number of days the
 // latest notification history and TLS info cleanups were given
 type cleanups struct {
-	heartbeats, stats, notificationHistory, tlsInfo atomic.Int32
+	heartbeats, stats, notificationHistory, tlsInfo, probeStatusChanges atomic.Int32
 
 	notificationHistoryDays, tlsInfoDays atomic.Int32
 }
 
 // all returns how many times each cleanup ran, in the order of runHourly
-func (c *cleanups) all() [4]int32 {
-	return [4]int32{c.heartbeats.Load(), c.stats.Load(), c.notificationHistory.Load(), c.tlsInfo.Load()}
+func (c *cleanups) all() [5]int32 {
+	return [5]int32{c.heartbeats.Load(), c.stats.Load(), c.notificationHistory.Load(), c.tlsInfo.Load(), c.probeStatusChanges.Load()}
 }
 
 type countingHeartbeats struct {
@@ -76,6 +77,16 @@ func (s countingTLSInfo) CleanupOldRecords(_ context.Context, olderThanDays int)
 	return nil
 }
 
+type countingProbes struct {
+	probe.Service
+	c *cleanups
+}
+
+func (s countingProbes) DeleteStatusChangesOlderThan(context.Context, time.Time) (int, error) {
+	s.c.probeStatusChanges.Add(1)
+	return 0, nil
+}
+
 // noStoredSettings is a setting service with no stored data retention period
 type noStoredSettings struct{ setting.Service }
 
@@ -94,6 +105,7 @@ func newReplica(c *cleanups, lock RunLock, logger *zap.SugaredLogger) *hourlyCle
 		stats:               countingStats{c: c},
 		notificationHistory: countingNotificationHistory{c: c},
 		tlsInfo:             countingTLSInfo{c: c},
+		probes:              countingProbes{c: c},
 		lock:                lock,
 		retention:           testRetention,
 		logger:              logger,
@@ -136,7 +148,7 @@ func TestHourlyCleanupRunsOnceAcrossTheReplicas(t *testing.T) {
 
 	runAll(noon)
 
-	assert.Equal(t, [4]int32{1, 1, 1, 1}, c.all(), "cleanups run by three replicas in one hour")
+	assert.Equal(t, [5]int32{1, 1, 1, 1, 1}, c.all(), "cleanups run by three replicas in one hour")
 	running := logs.FilterMessage("Running the hourly cleanup").All()
 	require.Len(t, running, 1, "replicas that run the cleanup")
 	assert.Equal(t, zap.InfoLevel, running[0].Level)
@@ -151,7 +163,7 @@ func TestHourlyCleanupRunsOnceAcrossTheReplicas(t *testing.T) {
 
 	runAll(noon.Add(time.Hour))
 
-	assert.Equal(t, [4]int32{2, 2, 2, 2}, c.all(), "the next hour runs once again")
+	assert.Equal(t, [5]int32{2, 2, 2, 2, 2}, c.all(), "the next hour runs once again")
 	running = logs.FilterMessage("Running the hourly cleanup").All()
 	require.Len(t, running, 2)
 	assert.Equal(t, "2026-10-22T13:00:00Z", running[1].ContextMap()["hour"])
@@ -175,11 +187,11 @@ func TestHourlyCleanupClaimsItsHourWhenTheCronFiresEarlyOrLate(t *testing.T) {
 	} {
 		newReplica(c, redisLock(t, redis.Addr()), logger).runHourly(ctx, now)
 	}
-	assert.Equal(t, [4]int32{1, 1, 1, 1}, c.all(), "cleanups run for the hour around noon")
+	assert.Equal(t, [5]int32{1, 1, 1, 1, 1}, c.all(), "cleanups run for the hour around noon")
 
 	// Half an hour past noon is the next hour's
 	newReplica(c, redisLock(t, redis.Addr()), logger).runHourly(ctx, noon.Add(30*time.Minute))
-	assert.Equal(t, [4]int32{2, 2, 2, 2}, c.all(), "cleanups run once the next hour's replicas fire")
+	assert.Equal(t, [5]int32{2, 2, 2, 2, 2}, c.all(), "cleanups run once the next hour's replicas fire")
 }
 
 func TestHourlyCleanupSkipsTheHourWhenRedisCantBeReached(t *testing.T) {
@@ -192,7 +204,7 @@ func TestHourlyCleanupSkipsTheHourWhenRedisCantBeReached(t *testing.T) {
 
 	replica.runHourly(ctx, noon)
 
-	assert.Equal(t, [4]int32{}, c.all(), "cleanups run without the lock")
+	assert.Equal(t, [5]int32{}, c.all(), "cleanups run without the lock")
 	errs := logs.FilterLevelExact(zap.ErrorLevel).All()
 	require.Len(t, errs, 1)
 	assert.Equal(t, "Failed to claim the hourly cleanup, skipping it this hour", errs[0].Message)
@@ -204,7 +216,7 @@ func TestHourlyCleanupSkipsTheHourWhenRedisCantBeReached(t *testing.T) {
 	require.NoError(t, redis.Restart())
 	replica.runHourly(ctx, noon.Add(time.Hour))
 
-	assert.Equal(t, [4]int32{1, 1, 1, 1}, c.all(), "cleanups run once Redis is back")
+	assert.Equal(t, [5]int32{1, 1, 1, 1, 1}, c.all(), "cleanups run once Redis is back")
 }
 
 func TestHourlyCleanupClaimsTheHourForTwoHoursInRedis(t *testing.T) {
@@ -237,7 +249,7 @@ func TestHourlyCleanupInSingleModeRunsEveryHour(t *testing.T) {
 		replica.runHourly(context.Background(), noon.Add(time.Duration(hours)*time.Hour))
 	}
 
-	assert.Equal(t, [4]int32{3, 3, 3, 3}, c.all())
+	assert.Equal(t, [5]int32{3, 3, 3, 3, 3}, c.all())
 	assert.Len(t, logs.FilterMessage("Running the hourly cleanup").All(), 3)
 	assert.Empty(t, logs.FilterMessage("Another replica runs the hourly cleanup").All())
 }
