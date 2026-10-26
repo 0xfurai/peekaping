@@ -62,6 +62,10 @@ const ProbePage = () => {
 
   const probe = probeQuery.data?.data;
   const availability = availabilityQuery.data?.data;
+  // The previous range's data, shown while the new range loads, is dimmed so it isn't read as the new one
+  const stale = availabilityQuery.isPlaceholderData
+    ? "opacity-50 transition-opacity"
+    : "transition-opacity";
 
   if (probeQuery.isLoading) {
     return (
@@ -156,7 +160,7 @@ const ProbePage = () => {
                   </SelectContent>
                 </Select>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3">
+              <CardContent className={`flex flex-col gap-3 ${stale}`}>
                 <div className="flex items-baseline gap-2">
                   <span
                     className="text-2xl font-semibold tabular-nums"
@@ -185,7 +189,7 @@ const ProbePage = () => {
               <CardHeader>
                 <CardTitle>{t("probes.availability.instances_title")}</CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-4">
+              <CardContent className={`flex flex-col gap-4 ${stale}`}>
                 {(availability.instances ?? []).length === 0 && (
                   <p className="text-sm text-muted-foreground">
                     {t("probes.table.no_instances")}
