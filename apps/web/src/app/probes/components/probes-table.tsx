@@ -1,5 +1,9 @@
 import { Pencil, RefreshCw, Trash2 } from "lucide-react";
-import type { ProbeProbeResponse } from "@/api/types.gen";
+import { Link } from "react-router-dom";
+import type {
+  ProbeProbeAvailabilityResponse,
+  ProbeProbeResponse,
+} from "@/api/types.gen";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,13 +17,43 @@ import {
 import { useTimezone } from "@/context/timezone-context";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { formatDateToTimezone } from "@/lib/formatDateToTimezone";
+import { AvailabilityBar } from "./availability-bar";
+import { formatUptime } from "./availability-layout";
 import { LOCAL_PROBE_ID } from "./local-probe";
+import ProbeStatusBadge from "./probe-status-badge";
 
 // What a cell shows when it has no value, such as the token prefix of the local probe.
 const NO_VALUE = "—";
 
+// The probe's status, and under it the last 24 hours as a bar with the uptime. In single mode
+// Peekaping checks the local probe's monitors itself, so that probe has no history to draw.
+const ProbeStatusCell = ({
+  probe,
+  availability,
+}: {
+  probe: ProbeProbeResponse;
+  availability: ProbeProbeAvailabilityResponse | undefined;
+}) => (
+  <div className="flex flex-col items-start gap-1.5">
+    <ProbeStatusBadge status={probe.status} />
+    {availability && !availability.in_process && (
+      <div className="flex items-center gap-2">
+        <AvailabilityBar availability={availability} size="compact" />
+        <span
+          className="text-xs tabular-nums text-muted-foreground"
+          data-testid="probe-uptime"
+        >
+          {formatUptime(availability.uptime_percent)}
+        </span>
+      </div>
+    )}
+  </div>
+);
+
 interface ProbesTableProps {
   probes: ProbeProbeResponse[];
+  // The last 24 hours of every probe, by probe id. A probe it doesn't have shows no bar.
+  availability: Map<string, ProbeProbeAvailabilityResponse>;
   onEdit: (probe: ProbeProbeResponse) => void;
   onRotate: (probe: ProbeProbeResponse) => void;
   onDelete: (probe: ProbeProbeResponse) => void;
@@ -27,6 +61,7 @@ interface ProbesTableProps {
 
 const ProbesTable = ({
   probes,
+  availability,
   onEdit,
   onRotate,
   onDelete,
@@ -60,20 +95,23 @@ const ProbesTable = ({
       <TableBody>
         {probes.map((probe) => (
           <TableRow key={probe.id} data-testid={`probe-row-${probe.id}`}>
-            <TableCell className="font-medium">{probe.name}</TableCell>
+            <TableCell className="font-medium">
+              <Link
+                to={`/probes/${probe.id}`}
+                className="hover:underline"
+                data-testid="probe-link"
+              >
+                {probe.name}
+              </Link>
+            </TableCell>
             <TableCell className="text-muted-foreground">
               {probe.location || NO_VALUE}
             </TableCell>
             <TableCell>
-              {probe.status === "online" ? (
-                <Badge className="border-transparent bg-green-600 text-white">
-                  {t("probes.table.status.online")}
-                </Badge>
-              ) : (
-                <Badge variant="secondary">
-                  {t("probes.table.status.offline")}
-                </Badge>
-              )}
+              <ProbeStatusCell
+                probe={probe}
+                availability={availability.get(probe.id)}
+              />
             </TableCell>
             <TableCell>
               {probe.disabled ? (
