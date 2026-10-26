@@ -17,6 +17,8 @@ This directory holds a Mosquitto broker and a small publisher for testing the MQ
 
 The later messages on `test/topic` add the date to the text, and the ones on `sensor/status` have a random temperature from 20.0 to 30.9.
 
+The messages are not retained (the publisher doesn't use `-r` and `mosquitto.conf` doesn't retain them). A monitor that subscribes sees `test/topic` and `sensor/status` only when the next 30-second message arrives, and `sensor/error` only once, at startup.
+
 ## Start and stop
 
 From the repository root:
