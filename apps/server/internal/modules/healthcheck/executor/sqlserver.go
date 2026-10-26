@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 	"net/url"
 	"peekaping/internal/modules/shared"
 	"regexp"
@@ -13,7 +14,8 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/denisenkom/go-mssqldb" // Microsoft SQL Server driver
+	mssql "github.com/denisenkom/go-mssqldb" // Microsoft SQL Server driver
+	"github.com/denisenkom/go-mssqldb/msdsn"
 	"go.uber.org/zap"
 )
 
@@ -292,10 +294,11 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 	}
 
 	// Open connection
-	db, err := sql.Open("sqlserver", dsn)
+	connector, err := newSQLServerConnector(dsn)
 	if err != nil {
 		return DownResult(fmt.Errorf("failed to open SQL Server connection: %w", err), startTime, time.Now().UTC())
 	}
+	db := sql.OpenDB(connector)
 	defer db.Close()
 
 	// Set connection timeout using the monitor's configured timeout
@@ -341,6 +344,65 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 		EndTime:   endTime,
 	}
 }
+
+// newSQLServerConnector returns the driver's connector for the DSN, with a
+// dialer that holds the connection to the deadline of the context it is dialed
+// with. The driver stops dialing at the context's deadline, and stops a query
+// there, but it reads the login handshake without one: a server that accepts
+// the connection and never answers would keep the check waiting forever.
+func newSQLServerConnector(dsn string) (*mssql.Connector, error) {
+	cfg, _, err := msdsn.Parse(dsn)
+	if err != nil {
+		return nil, err
+	}
+	connector, err := mssql.NewConnector(dsn)
+	if err != nil {
+		return nil, err
+	}
+	connector.Dialer = deadlineDialer{dialer: net.Dialer{KeepAlive: cfg.KeepAlive}}
+	return connector, nil
+}
+
+// deadlineDialer dials like the driver's own dialer, and returns connections
+// that can't outlive the context's deadline.
+type deadlineDialer struct {
+	dialer net.Dialer
+}
+
+func (d deadlineDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
+	conn, err := d.dialer.DialContext(ctx, network, addr)
+	if err != nil {
+		return nil, err
+	}
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return conn, nil
+	}
+	if err := conn.SetDeadline(deadline); err != nil {
+		_ = conn.Close()
+		return nil, err
+	}
+	return deadlineConn{Conn: conn, deadline: deadline}, nil
+}
+
+// deadlineConn keeps the deadlines that the driver sets (it moves them with
+// every read and write when the connection string has a Connection Timeout)
+// from reaching past the deadline.
+type deadlineConn struct {
+	net.Conn
+	deadline time.Time
+}
+
+func (c deadlineConn) limit(t time.Time) time.Time {
+	if t.IsZero() || t.After(c.deadline) {
+		return c.deadline
+	}
+	return t
+}
+
+func (c deadlineConn) SetDeadline(t time.Time) error      { return c.Conn.SetDeadline(c.limit(t)) }
+func (c deadlineConn) SetReadDeadline(t time.Time) error  { return c.Conn.SetReadDeadline(c.limit(t)) }
+func (c deadlineConn) SetWriteDeadline(t time.Time) error { return c.Conn.SetWriteDeadline(c.limit(t)) }
 
 func (s *SQLServerExecutor) parseConnectionString(connectionString string) (string, error) {
 	// Check if it's the new semicolon-separated format

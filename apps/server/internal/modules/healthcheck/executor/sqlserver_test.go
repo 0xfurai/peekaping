@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"peekaping/internal/modules/shared"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -35,6 +36,28 @@ func TestSQLServerExecutor_ServerRefusesConnection(t *testing.T) {
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
 	assert.Contains(t, result.Message, "connection failed: unable to open tcp connection with host '"+addr+"': dial tcp "+addr+": connect: connection refused")
 	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
+
+func TestSQLServerExecutor_ServerNeverAnswers(t *testing.T) {
+	// A Connection Timeout in the connection string makes the driver move its
+	// own deadline with every read, which must not outlast the monitor's.
+	for name, extra := range map[string]string{"default": "", "with a longer Connection Timeout": ";Connection Timeout=30"} {
+		t.Run(name, func(t *testing.T) {
+			addr, accepted := silentServer(t)
+
+			exec := NewSQLServerExecutor(zap.NewNop().Sugar())
+			start := time.Now()
+			result := exec.Execute(context.Background(), sqlServerMonitor(t, 2, SQLServerConfig{
+				DatabaseConnectionString: "Server=" + strings.Replace(addr, ":", ",", 1) + ";Database=master;User Id=sa;Password=secret;Encrypt=false" + extra,
+			}), nil)
+			elapsed := time.Since(start)
+
+			assert.Equal(t, shared.MonitorStatusDown, result.Status)
+			assert.Regexp(t, `^connection failed: read tcp 127\.0\.0\.1:\d+->`+regexp.QuoteMeta(addr)+`: i/o timeout$`, result.Message)
+			assert.Equal(t, 1, accepted(), "the executor should have connected once")
+			assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+		})
+	}
 }
 
 func TestSQLServerExecutor_RefusesAQueryBeforeConnecting(t *testing.T) {
