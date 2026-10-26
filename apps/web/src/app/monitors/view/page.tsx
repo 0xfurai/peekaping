@@ -12,6 +12,7 @@ import {
   getMonitorsByIdStatsUptimeQueryKey,
   getMonitorsByIdTlsOptions,
   getMonitorsInfiniteQueryKey,
+  getProbesQueryKey,
   patchMonitorsByIdMutation,
   postMonitorsByIdResetMutation,
 } from "@/api/@tanstack/react-query.gen";
@@ -43,7 +44,7 @@ import {
   Shield,
   AlertTriangle,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn, commonMutationErrorHandler } from "@/lib/utils";
@@ -57,7 +58,7 @@ import { formatMonitorTarget } from "../monitor-types/registry";
 import { parseMonitorConfig } from "../monitor-types/monitor-target";
 import StaleMarker from "../components/stale-marker";
 import { getMonitorStatusView } from "../components/monitor-status";
-import { currentStatus, hasLocations, heartbeatsOfProbe, monitorStatusOf, sortLocations } from "../locations";
+import { currentStatus, hasLocations, heartbeatsOfProbe, instanceToLookUp, monitorStatusOf, sortLocations } from "../locations";
 import LocationsSection from "./locations-section";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
@@ -111,6 +112,12 @@ const MonitorPageContent = () => {
   const queryClient = useQueryClient();
   const { socket, status: socketStatus } = useWebSocket();
   const { probeNames, unsupportedProbeIds, instanceHostnames, isPending: probesPending } = useProbes();
+
+  // Read by the heartbeat handler, which must not resubscribe when the probes load
+  const probesRef = useRef({ instanceHostnames, probesPending });
+  probesRef.current = { instanceHostnames, probesPending };
+  // The instance ids a live heartbeat already refreshed the probes list for
+  const askedInstanceIds = useRef(new Set<string>());
 
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showConfirmPause, setShowConfirmPause] = useState(false);
@@ -303,6 +310,18 @@ const MonitorPageContent = () => {
       // TODO: new heartbeats have different timestamp then from the api response
       setHeartbeatData((p) => [...p, newHeartbeat].slice(-150));
       setLiveHeartbeats((p) => [...p, newHeartbeat].slice(-1500));
+
+      // A probe instance that started after the page loaded isn't in the probes list yet, so
+      // refresh it to name the instance by its hostname. While the probes query is loading it
+      // fetches the instance anyway.
+      const { instanceHostnames: hostnames, probesPending: pending } = probesRef.current;
+      const lookUp = pending
+        ? null
+        : instanceToLookUp(newHeartbeat.instance_id, hostnames, askedInstanceIds.current);
+      if (lookUp) {
+        askedInstanceIds.current.add(lookUp);
+        queryClient.invalidateQueries({ queryKey: getProbesQueryKey() });
+      }
 
       // If it's important, update the react-query cache for important heartbeats
       if (newHeartbeat.important) {

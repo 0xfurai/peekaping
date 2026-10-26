@@ -6,6 +6,7 @@ import {
   heartbeatsOfProbe,
   instanceHostnames,
   instanceLabel,
+  instanceToLookUp,
   mergeHeartbeats,
   monitorStatusOf,
   monitorProbes,
@@ -289,5 +290,30 @@ describe("instanceLabel", () => {
     expect(instanceLabel(null, hostnames)).toBeNull();
     expect(instanceLabel(undefined, hostnames)).toBeNull();
     expect(instanceLabel("", hostnames)).toBeNull();
+  });
+});
+
+describe("instanceToLookUp", () => {
+  const hostnames = new Map([["0a1b2c3d-4e5f-6789-abcd-ef0123456789", "fra-1"]]);
+
+  it("is nothing for an instance on record", () => {
+    expect(instanceToLookUp("0a1b2c3d-4e5f-6789-abcd-ef0123456789", hostnames, new Set())).toBeNull();
+  });
+
+  it("is the id of an instance on no record that was not asked about yet", () => {
+    expect(instanceToLookUp("deadbeef-1111-2222-3333-444444444444", hostnames, new Set())).toBe(
+      "deadbeef-1111-2222-3333-444444444444"
+    );
+  });
+
+  it("is nothing for an instance that was asked about already", () => {
+    const asked = new Set(["deadbeef-1111-2222-3333-444444444444"]);
+    expect(instanceToLookUp("deadbeef-1111-2222-3333-444444444444", hostnames, asked)).toBeNull();
+  });
+
+  it("is nothing for a heartbeat without an instance", () => {
+    expect(instanceToLookUp(null, hostnames, new Set())).toBeNull();
+    expect(instanceToLookUp(undefined, hostnames, new Set())).toBeNull();
+    expect(instanceToLookUp("", hostnames, new Set())).toBeNull();
   });
 });

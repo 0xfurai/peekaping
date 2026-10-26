@@ -57,6 +57,19 @@ export const instanceLabel = (
   return hostnames?.get(instanceId) || instanceId.slice(0, SHORT_INSTANCE_ID_LENGTH);
 };
 
+// The instance id of a live heartbeat to look up in the probes list: one the list doesn't hold,
+// that wasn't asked about yet. An instance that started after the page loaded isn't in the list
+// until it refetches. Asking once per id keeps a forgotten instance from refetching on every
+// heartbeat.
+export const instanceToLookUp = (
+  instanceId: string | null | undefined,
+  hostnames: ReadonlyMap<string, string>,
+  asked: ReadonlySet<string>
+): string | null => {
+  if (!instanceId || hostnames.has(instanceId) || asked.has(instanceId)) return null;
+  return instanceId;
+};
+
 // A monitor's locations in the order the page shows them: the local probe first, then the others
 // by name
 export const sortLocations = (locations: MonitorModelLocation[]): MonitorModelLocation[] =>
