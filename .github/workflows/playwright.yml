@@ -236,8 +236,10 @@ jobs:
     - name: Run Playwright tests
       run: bunx playwright test
 
-    # The suite must also pass on the database the first run left behind.
+    # The suite must also pass on the database the first run left behind. It
+    # doubles the run time, so PRs skip it and main checks it after the merge.
     - name: Run Playwright tests again on the same database
+      if: ${{ github.event_name == 'push' }}
       run: bunx playwright test
       env:
         PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun
