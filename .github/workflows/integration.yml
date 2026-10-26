@@ -62,6 +62,8 @@ jobs:
           PEE_TEST_MONGODB_URL: mongodb://root:integration-test-password@127.0.0.1:27018
           PEE_TEST_MONGODB_RS_URL: mongodb://127.0.0.1:27019
           PEE_TEST_SQLSERVER_URL: sqlserver://sa:Pe%3Be%3DK%7Bing%7D9z@127.0.0.1:11433
+          # The password, p@ss:w/rd%1, is percent-encoded in the URL.
+          PEE_TEST_RABBITMQ_URL: http://peekaping:p%40ss%3Aw%2Frd%251@127.0.0.1:15673
         # The profile counts the executors' statements, so the pull request shows
         # how much of each executor the tests in this job reach.
         run: go test -tags integration -count=1 -timeout 300s -v -coverprofile=coverage.txt -coverpkg=./internal/modules/healthcheck/executor/... ./internal/testservice/ ./internal/modules/healthcheck/executor/...
