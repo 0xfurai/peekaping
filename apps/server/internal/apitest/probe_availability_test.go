@@ -50,7 +50,9 @@ const availabilityPath = probesPath + "/availability"
 // seedProbeHistory replaces the probe's history with offline three hours ago and online two hours ago
 func (a *app) seedProbeHistory(t *testing.T, probeID string) (offlineAt, onlineAt time.Time) {
 	t.Helper()
-	offlineAt, onlineAt = time.Now().UTC().Add(-3*time.Hour), time.Now().UTC().Add(-2*time.Hour)
+	// Whole seconds: the database keeps microseconds, and Linux clocks give nanoseconds
+	now := time.Now().UTC().Truncate(time.Second)
+	offlineAt, onlineAt = now.Add(-3*time.Hour), now.Add(-2*time.Hour)
 	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
 		ctx := context.Background()
 		if _, err := db.ExecContext(ctx, "DELETE FROM probe_status_changes WHERE probe_id = ?", probeID); err != nil {
