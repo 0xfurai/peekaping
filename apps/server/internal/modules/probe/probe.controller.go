@@ -244,7 +244,23 @@ func (c *Controller) AssignAllMonitors(ctx context.Context, input *AssignAllMoni
 		if err := c.service.SetPendingAssignment(ctx, id); err != nil {
 			return nil, c.fail(err, "")
 		}
-		return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("The probe is assigned every monitor when its first instance says hello", &AssignAllMonitorsResponse{Pending: true}))
+
+		// Of a first hello and this action racing, whichever runs second sees the other's write: the
+		// hello claims the flag after its instance is committed, and this read comes after the flag
+		// is committed. So an instance that registered after the read above, whose hello didn't see
+		// the flag, shows up here, and is assigned now. If both assign, the second adds nothing: a
+		// probe isn't added to a monitor twice.
+		again, err := c.service.FindByID(ctx, id)
+		if err != nil {
+			return nil, c.fail(err, "")
+		}
+		if again == nil {
+			return nil, c.fail(ErrNotFound, "")
+		}
+		if len(again.Instances) == 0 {
+			return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("The probe is assigned every monitor when its first instance says hello", &AssignAllMonitorsResponse{Pending: true}))
+		}
+		found = again
 	}
 
 	// FindByID made the probe's types those of its online instances, or the last it had while
