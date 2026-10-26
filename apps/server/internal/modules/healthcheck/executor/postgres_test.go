@@ -323,6 +323,11 @@ func TestNewPostgresConnector(t *testing.T) {
 			wantTLS:          true,
 		},
 		{
+			name:             "other query parameters are ignored",
+			connectionString: "postgres://user:password@localhost:5432/testdb?foo=bar&options=-c%20statement_timeout%3D1&application_name=x&connect_timeout=1",
+			wantAddr:         "localhost:5432",
+		},
+		{
 			name:             "a host parameter can't redirect the connection to a socket",
 			connectionString: "postgres://user:password@localhost:5432/testdb?host=/var/run/postgresql",
 			wantAddr:         "localhost:5432",
@@ -365,6 +370,7 @@ func TestNewPostgresConnector(t *testing.T) {
 			assert.Equal(t, "user", cfg.User)
 			assert.Equal(t, "password", cfg.Password)
 			assert.Equal(t, "testdb", cfg.Database)
+			assert.Empty(t, cfg.ConnParams, "no parameter is sent to the server as SET")
 			if !tt.wantTLS {
 				assert.Nil(t, cfg.TLSConfig)
 				return

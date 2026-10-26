@@ -165,13 +165,15 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 // configuration: require encrypts without checking the certificate, and
 // verify-ca and verify-full check it against the system's roots.
 //
-// Three things differ from reading the string as it stands:
-//   - A missing or empty sslmode means no TLS, as it always has here. pgdriver's
-//     own default would be TLS without checking the certificate.
-//   - sslrootcert is dropped: it names a file on the Peekaping server, not on the
-//     machine the user's client runs on.
-//   - host is dropped: pgdriver reads a path in it as a Unix socket, and the
-//     check must only reach the host and port of the URL.
+// Only the user, password, host, port, database and sslmode reach pgdriver. Any
+// other query parameter is ignored, as it always has been here: pgdriver sends
+// the ones it doesn't know to the server as SET <name> TO <value>, which would
+// run statements the query validator never saw and turn a stray ?foo=bar into
+// Down. That also drops sslrootcert, which names a file on the Peekaping server
+// rather than on the user's machine, and host, which pgdriver reads as a Unix
+// socket when it is a path. A missing or empty sslmode means no TLS, as it
+// always has here; pgdriver's own default would be TLS without checking the
+// certificate.
 func newPostgresConnector(connectionString string) (connector *pgdriver.Connector, err error) {
 	u, err := url.Parse(connectionString)
 	if err != nil {
@@ -191,14 +193,11 @@ func newPostgresConnector(connectionString string) (connector *pgdriver.Connecto
 	if port == "" {
 		port = "5432"
 	}
-	query := u.Query()
-	query.Del("sslrootcert")
-	query.Del("host")
-	noSSLMode := query.Get("sslmode") == ""
-	if noSSLMode {
-		query.Del("sslmode")
+	sslMode := u.Query().Get("sslmode")
+	dsn := url.URL{Scheme: u.Scheme, User: u.User, Host: u.Host, Path: u.Path}
+	if sslMode != "" {
+		dsn.RawQuery = url.Values{"sslmode": {sslMode}}.Encode()
 	}
-	u.RawQuery = query.Encode()
 
 	// pgdriver panics on a string it can't use, such as an unknown sslmode.
 	defer func() {
@@ -207,11 +206,11 @@ func newPostgresConnector(connectionString string) (connector *pgdriver.Connecto
 		}
 	}()
 	options := []pgdriver.Option{
-		pgdriver.WithDSN(u.String()),
+		pgdriver.WithDSN(dsn.String()),
 		// After the DSN, which would leave an IPv6 host without a port as it is.
 		pgdriver.WithAddr(net.JoinHostPort(u.Hostname(), port)),
 	}
-	if noSSLMode {
+	if sslMode == "" {
 		options = append(options, pgdriver.WithInsecure(true))
 	}
 	return pgdriver.NewConnector(options...), nil

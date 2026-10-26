@@ -72,6 +72,16 @@ func TestPostgresExecutor_Integration(t *testing.T) {
 		assert.Contains(t, result.Message, "Query failed: ERROR: division by zero (SQLSTATE=22012)")
 	})
 
+	t.Run("ignores query parameters other than sslmode", func(t *testing.T) {
+		// pgdriver would send each of these to the server as SET name TO value,
+		// which runs statements the query validator never saw.
+		for _, query := range []string{"foo=bar", "options=-c%20statement_timeout%3D1", "statement_timeout=1", "application_name=x"} {
+			result := run(t, srv.URL(srv.Password, query), "SELECT pg_sleep(0.3)")
+
+			assert.Equal(t, shared.MonitorStatusUp, result.Status, query+": "+result.Message)
+		}
+	})
+
 	// A query that fails unless the connection's TLS state is the wanted one,
 	// since a plain SELECT 1 is Up either way. The divisor comes from a
 	// volatile function: PostgreSQL folds a constant 1/0 while planning, and
