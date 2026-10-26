@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Neveikimo skaičius",
     "important": "Svarbu",
+    "instance": "Egzempliorius",
     "interval": "Intervalas",
     "message": "Žinutė",
     "ms": "ms",

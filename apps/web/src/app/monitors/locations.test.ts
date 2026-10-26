@@ -4,6 +4,9 @@ import {
   currentStatus,
   hasLocations,
   heartbeatsOfProbe,
+  instanceHostnames,
+  instanceLabel,
+  instanceToLookUp,
   mergeHeartbeats,
   monitorStatusOf,
   monitorProbes,
@@ -260,5 +263,57 @@ describe("monitorStatusOf", () => {
       expect(monitorStatusOf([status("a", down), status("b", down)], "at_least", 3)).toBe(MONITORING.pending);
       expect(monitorStatusOf([status("a", down)], "at_least", null)).toBe(MONITORING.pending);
     });
+  });
+});
+
+describe("instanceLabel", () => {
+  const hostnames = instanceHostnames([
+    { instances: [{ id: "0a1b2c3d-4e5f-6789-abcd-ef0123456789", hostname: "fra-1" }] },
+    { instances: [{ id: "ffffffff-0000-1111-2222-333333333333", hostname: "" }] },
+    { instances: [] },
+  ]);
+
+  it("is the hostname while the instance is on record", () => {
+    expect(instanceLabel("0a1b2c3d-4e5f-6789-abcd-ef0123456789", hostnames)).toBe("fra-1");
+  });
+
+  it("is the first 8 characters of the id once the instance is forgotten", () => {
+    expect(instanceLabel("deadbeef-1111-2222-3333-444444444444", hostnames)).toBe("deadbeef");
+    expect(instanceLabel("deadbeef-1111-2222-3333-444444444444", undefined)).toBe("deadbeef");
+  });
+
+  it("is the short id for an instance with an empty hostname", () => {
+    expect(instanceLabel("ffffffff-0000-1111-2222-333333333333", hostnames)).toBe("ffffffff");
+  });
+
+  it("is nothing for a heartbeat without an instance", () => {
+    expect(instanceLabel(null, hostnames)).toBeNull();
+    expect(instanceLabel(undefined, hostnames)).toBeNull();
+    expect(instanceLabel("", hostnames)).toBeNull();
+  });
+});
+
+describe("instanceToLookUp", () => {
+  const hostnames = new Map([["0a1b2c3d-4e5f-6789-abcd-ef0123456789", "fra-1"]]);
+
+  it("is nothing for an instance on record", () => {
+    expect(instanceToLookUp("0a1b2c3d-4e5f-6789-abcd-ef0123456789", hostnames, new Set())).toBeNull();
+  });
+
+  it("is the id of an instance on no record that was not asked about yet", () => {
+    expect(instanceToLookUp("deadbeef-1111-2222-3333-444444444444", hostnames, new Set())).toBe(
+      "deadbeef-1111-2222-3333-444444444444"
+    );
+  });
+
+  it("is nothing for an instance that was asked about already", () => {
+    const asked = new Set(["deadbeef-1111-2222-3333-444444444444"]);
+    expect(instanceToLookUp("deadbeef-1111-2222-3333-444444444444", hostnames, asked)).toBeNull();
+  });
+
+  it("is nothing for a heartbeat without an instance", () => {
+    expect(instanceToLookUp(null, hostnames, new Set())).toBeNull();
+    expect(instanceToLookUp(undefined, hostnames, new Set())).toBeNull();
+    expect(instanceToLookUp("", hostnames, new Set())).toBeNull();
   });
 });

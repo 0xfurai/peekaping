@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Down Count",
     "important": "Important",
+    "instance": "Instance",
     "interval": "Interval",
     "message": "Message",
     "ms": "ms",

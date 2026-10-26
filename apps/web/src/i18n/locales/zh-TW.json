@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "停機次數",
     "important": "重要",
+    "instance": "執行個體",
     "interval": "間隔",
     "message": "訊息",
     "ms": "毫秒",
