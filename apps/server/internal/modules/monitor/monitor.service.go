@@ -39,8 +39,9 @@ type Service interface {
 	GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
 	GetUptimeStats(ctx context.Context, id, probeID string) (*CustomUptimeStatsDto, error)
 	// GetUptime24h returns the monitor's uptime over the last 24 hours as a percentage, from the
-	// checks one probe ran (all of them when probeID is empty), with one stats read
-	GetUptime24h(ctx context.Context, id, probeID string) (float64, error)
+	// checks one probe ran (all of them when probeID is empty), with one stats read. It is nil
+	// when the period has no Up or Down heartbeat, which is not the same as 0%.
+	GetUptime24h(ctx context.Context, id, probeID string) (*float64, error)
 
 	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
 	ResetMonitorData(ctx context.Context, id string) error
@@ -586,7 +587,8 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id, probeID str
 	}, nil
 }
 
-// GetCustomUptimeStatsShort returns uptime percentages for 24h, 30d, 365d
+// GetUptimeStats returns uptime percentages for 24h, 7d, 30d and 365d. A period with no Up or
+// Down heartbeat is nil, not 0.
 func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id, probeID string) (*CustomUptimeStatsDto, error) {
 	now := time.Now().UTC()
 	periods := map[string]time.Duration{
@@ -596,18 +598,14 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id, probeID st
 		"365d": 365 * 24 * time.Hour,
 	}
 
-	uptimes := make(map[string]float64)
+	uptimes := make(map[string]*float64)
 	for key, duration := range periods {
 		since := now.Add(-duration)
 		summary, err := mr.statPointsService.Summarize(ctx, id, probeID, since, now)
 		if err != nil {
 			return nil, err
 		}
-		uptime := 0.0
-		if summary.Uptime != nil {
-			uptime = *summary.Uptime
-		}
-		uptimes[key] = uptime
+		uptimes[key] = summary.Uptime
 	}
 
 	stats := &CustomUptimeStatsDto{
@@ -621,16 +619,13 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id, probeID st
 	return stats, nil
 }
 
-func (mr *MonitorServiceImpl) GetUptime24h(ctx context.Context, id, probeID string) (float64, error) {
+func (mr *MonitorServiceImpl) GetUptime24h(ctx context.Context, id, probeID string) (*float64, error) {
 	now := time.Now().UTC()
 	summary, err := mr.statPointsService.Summarize(ctx, id, probeID, now.Add(-24*time.Hour), now)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	if summary.Uptime == nil {
-		return 0, nil
-	}
-	return *summary.Uptime, nil
+	return summary.Uptime, nil
 }
 
 func (mr *MonitorServiceImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {
