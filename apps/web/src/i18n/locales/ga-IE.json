@@ -1183,6 +1183,7 @@
       "actions": {
         "edit": "Cuir tóireadóir {{name}} in eagar",
         "rotate": "Athraigh comhartha an tóireadóra {{name}}",
+        "assign_all": "Sann tóireadóir {{name}} do gach móntóir",
         "delete": "Scrios tóireadóir {{name}}"
       }
     },
@@ -1195,6 +1196,12 @@
     "assign_all": {
       "warning": "Léann an comhartha cumraíocht gach móntóra a shanntar don tóireadóir, dintiúir san áireamh.",
       "docs_link": "Cad is féidir leis an gcomhartha a léamh"
+    },
+    "assign_all_dialog": {
+      "title": "Sann do gach móntóir",
+      "description": "Cuir tóireadóir {{name}} le gach móntóir is féidir leis a rith, seachas móntóirí push. Cuirtear tóireadóir gan chás fós leis nuair a nascann a chéad chás.",
+      "confirm": "Sann do gach móntóir",
+      "assigning": "Á shannadh..."
     },
     "edit_dialog": {
       "title": "Cuir tóireadóir in eagar",
@@ -1237,16 +1244,20 @@
       "created_successfully": "Cruthaíodh an tóireadóir go rathúil",
       "updated_successfully": "Nuashonraíodh an tóireadóir go rathúil",
       "rotated_successfully": "Athraíodh an comhartha go rathúil",
+      "assigned_successfully": "Móntóirí curtha leis: {{added}}",
+      "assign_pending": "Cuirfear é le gach móntóir a ritheann sé nuair a nascfaidh sé",
       "deleted_successfully": "Scriosadh an tóireadóir go rathúil",
       "failed_to_create": "Theip ar chruthú an tóireadóra",
       "failed_to_update": "Theip ar nuashonrú an tóireadóra",
       "failed_to_rotate": "Theip ar athrú an chomhartha",
+      "failed_to_assign": "Theip ar an tóireadóir a shannadh do gach móntóir",
       "failed_to_delete": "Theip ar scriosadh an tóireadóra",
       "failed_to_load": "Theip ar lódáil na dtóireadóirí",
       "copy_success": "Cóipeáilte chuig an ghearrthaisce",
       "copy_failed": "Níorbh fhéidir cóipeáil chuig an ghearrthaisce"
     },
     "detail": {
+      "assign_all_pending": "Ag fanacht lena chéad chás: cuirfear é le gach móntóir a ritheann sé nuair a nascfaidh sé.",
       "not_found": "Níor aimsíodh an tóireadóir"
     },
     "availability": {

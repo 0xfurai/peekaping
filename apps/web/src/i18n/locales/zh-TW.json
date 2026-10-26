@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "編輯探針 {{name}}",
         "rotate": "更換探針 {{name}} 的權杖",
+        "assign_all": "將探針 {{name}} 指派給所有監控",
         "delete": "刪除探針 {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "權杖會讀取指派給該探針的每個監控的設定，包括憑證。",
       "docs_link": "權杖能讀取什麼"
+    },
+    "assign_all_dialog": {
+      "title": "指派給所有監控",
+      "description": "將探針 {{name}} 加入它能執行的所有監控，推送監控除外。尚無執行個體的探針會在第一個執行個體連線時加入。",
+      "confirm": "指派給所有監控",
+      "assigning": "正在指派..."
     },
     "edit_dialog": {
       "title": "編輯探針",
@@ -1238,16 +1245,20 @@
       "created_successfully": "成功建立探針",
       "updated_successfully": "成功更新探針",
       "rotated_successfully": "成功更換權杖",
+      "assigned_successfully": "已加入的監控數量：{{added}}",
+      "assign_pending": "連線後，它會加入它執行的所有監控",
       "deleted_successfully": "成功刪除探針",
       "failed_to_create": "建立探針失敗",
       "failed_to_update": "更新探針失敗",
       "failed_to_rotate": "更換權杖失敗",
+      "failed_to_assign": "無法將探針指派給所有監控",
       "failed_to_delete": "刪除探針失敗",
       "failed_to_load": "載入探針失敗",
       "copy_success": "已複製到剪貼簿",
       "copy_failed": "無法複製到剪貼簿"
     },
     "detail": {
+      "assign_all_pending": "正在等待第一個執行個體：連線後，它會加入它執行的所有監控。",
       "not_found": "找不到探針"
     },
     "availability": {

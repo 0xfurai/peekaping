@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Uredi sondu {{name}}",
         "rotate": "Zamijeni token sonde {{name}}",
+        "assign_all": "Dodijeli sondu {{name}} svim nadzorima",
         "delete": "Izbriši sondu {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Token čita konfiguraciju svakog nadzora dodijeljenog sondi, uključujući vjerodajnice.",
       "docs_link": "Što token može čitati"
+    },
+    "assign_all_dialog": {
+      "title": "Dodijeli svim nadzorima",
+      "description": "Dodaj sondu {{name}} svakom nadzoru koji može izvoditi, osim push nadzora. Sonda koja još nema instancu dodaje se kad se poveže njezina prva instanca.",
+      "confirm": "Dodijeli svim nadzorima",
+      "assigning": "Dodjeljivanje..."
     },
     "edit_dialog": {
       "title": "Uredi sondu",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Sonda je uspješno stvorena",
       "updated_successfully": "Sonda je uspješno ažurirana",
       "rotated_successfully": "Token je uspješno zamijenjen",
+      "assigned_successfully": "Dodano nadzora: {{added}}",
+      "assign_pending": "Bit će dodana svakom nadzoru koji izvodi kad se poveže",
       "deleted_successfully": "Sonda je uspješno izbrisana",
       "failed_to_create": "Stvaranje sonde nije uspjelo",
       "failed_to_update": "Ažuriranje sonde nije uspjelo",
       "failed_to_rotate": "Zamjena tokena nije uspjela",
+      "failed_to_assign": "Dodjela sonde svim nadzorima nije uspjela",
       "failed_to_delete": "Brisanje sonde nije uspjelo",
       "failed_to_load": "Učitavanje sondi nije uspjelo",
       "copy_success": "Kopirano u međuspremnik",
       "copy_failed": "Kopiranje u međuspremnik nije uspjelo"
     },
     "detail": {
+      "assign_all_pending": "Čeka svoju prvu instancu: bit će dodana svakom nadzoru koji izvodi kad se poveže.",
       "not_found": "Sonda nije pronađena"
     },
     "availability": {

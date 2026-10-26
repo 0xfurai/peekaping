@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "编辑探针 {{name}}",
         "rotate": "更换探针 {{name}} 的令牌",
+        "assign_all": "将探针 {{name}} 分配给所有监控",
         "delete": "删除探针 {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "令牌会读取分配给该探针的每个监控的配置，包括凭据。",
       "docs_link": "令牌能读取什么"
+    },
+    "assign_all_dialog": {
+      "title": "分配给所有监控",
+      "description": "将探针 {{name}} 加入它能运行的所有监控，推送监控除外。还没有实例的探针会在第一个实例连接时加入。",
+      "confirm": "分配给所有监控",
+      "assigning": "正在分配..."
     },
     "edit_dialog": {
       "title": "编辑探针",
@@ -1238,16 +1245,20 @@
       "created_successfully": "探针创建成功",
       "updated_successfully": "探针更新成功",
       "rotated_successfully": "令牌更换成功",
+      "assigned_successfully": "已添加的监控数：{{added}}",
+      "assign_pending": "连接后，它会加入它运行的所有监控",
       "deleted_successfully": "探针删除成功",
       "failed_to_create": "创建探针失败",
       "failed_to_update": "更新探针失败",
       "failed_to_rotate": "更换令牌失败",
+      "failed_to_assign": "无法将探针分配给所有监控",
       "failed_to_delete": "删除探针失败",
       "failed_to_load": "加载探针失败",
       "copy_success": "已复制到剪贴板",
       "copy_failed": "无法复制到剪贴板"
     },
     "detail": {
+      "assign_all_pending": "正在等待第一个实例：连接后，它会加入它运行的所有监控。",
       "not_found": "未找到探针"
     },
     "availability": {

@@ -1,4 +1,4 @@
-import { Pencil, RefreshCw, Trash2 } from "lucide-react";
+import { ListPlus, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type {
   ProbeProbeAvailabilityResponse,
@@ -58,6 +58,7 @@ interface ProbesTableProps {
   availability: Map<string, ProbeProbeAvailabilityResponse>;
   onEdit: (probe: ProbeProbeResponse) => void;
   onRotate: (probe: ProbeProbeResponse) => void;
+  onAssignAll: (probe: ProbeProbeResponse) => void;
   onDelete: (probe: ProbeProbeResponse) => void;
 }
 
@@ -66,6 +67,7 @@ const ProbesTable = ({
   availability,
   onEdit,
   onRotate,
+  onAssignAll,
   onDelete,
 }: ProbesTableProps) => {
   const { t } = useLocalizedTranslation();
@@ -189,6 +191,19 @@ const ProbesTable = ({
                       })}
                     >
                       <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onAssignAll(probe)}
+                      aria-label={t("probes.table.actions.assign_all", {
+                        name: probe.name,
+                      })}
+                      title={t("probes.table.actions.assign_all", {
+                        name: probe.name,
+                      })}
+                    >
+                      <ListPlus className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"

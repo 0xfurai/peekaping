@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Probe {{name}} bewerken",
         "rotate": "Token van probe {{name}} vernieuwen",
+        "assign_all": "Probe {{name}} toewijzen aan alle monitoren",
         "delete": "Probe {{name}} verwijderen"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Het token leest de configuratie van elke monitor die aan de probe is toegewezen, inclusief inloggegevens.",
       "docs_link": "Wat het token kan lezen"
+    },
+    "assign_all_dialog": {
+      "title": "Toewijzen aan alle monitoren",
+      "description": "Voeg probe {{name}} toe aan elke monitor die hij kan uitvoeren, behalve push-monitoren. Een probe zonder instanties wordt toegevoegd zodra de eerste instantie verbinding maakt.",
+      "confirm": "Toewijzen aan alle monitoren",
+      "assigning": "Toewijzen..."
     },
     "edit_dialog": {
       "title": "Probe bewerken",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Probe succesvol aangemaakt",
       "updated_successfully": "Probe succesvol bijgewerkt",
       "rotated_successfully": "Token succesvol vernieuwd",
+      "assigned_successfully": "Monitoren toegevoegd: {{added}}",
+      "assign_pending": "Hij wordt toegevoegd aan elke monitor die hij uitvoert zodra hij verbinding maakt",
       "deleted_successfully": "Probe succesvol verwijderd",
       "failed_to_create": "Probe aanmaken mislukt",
       "failed_to_update": "Probe bijwerken mislukt",
       "failed_to_rotate": "Token vernieuwen mislukt",
+      "failed_to_assign": "Probe toewijzen aan alle monitoren mislukt",
       "failed_to_delete": "Probe verwijderen mislukt",
       "failed_to_load": "Probes laden mislukt",
       "copy_success": "Gekopieerd naar klembord",
       "copy_failed": "Kopiëren naar klembord mislukt"
     },
     "detail": {
+      "assign_all_pending": "Wacht op de eerste instantie: de probe wordt toegevoegd aan elke monitor die hij uitvoert zodra hij verbinding maakt.",
       "not_found": "Probe niet gevonden"
     },
     "availability": {

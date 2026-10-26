@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Redaguoti zondą {{name}}",
         "rotate": "Pakeisti zondo {{name}} žetoną",
+        "assign_all": "Priskirti zondą {{name}} visiems monitoriams",
         "delete": "Ištrinti zondą {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Žetonas skaito kiekvieno zondui priskirto monitoriaus konfigūraciją, įskaitant prisijungimo duomenis.",
       "docs_link": "Ką gali skaityti žetonas"
+    },
+    "assign_all_dialog": {
+      "title": "Priskirti visiems monitoriams",
+      "description": "Pridėti zondą {{name}} prie kiekvieno monitoriaus, kurį jis gali vykdyti, išskyrus push monitorius. Zondas, kuris dar neturi egzempliorių, pridedamas, kai prisijungia pirmasis jo egzempliorius.",
+      "confirm": "Priskirti visiems monitoriams",
+      "assigning": "Priskiriama..."
     },
     "edit_dialog": {
       "title": "Redaguoti zondą",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Zondas sėkmingai sukurtas",
       "updated_successfully": "Zondas sėkmingai atnaujintas",
       "rotated_successfully": "Žetonas sėkmingai pakeistas",
+      "assigned_successfully": "Pridėta monitorių: {{added}}",
+      "assign_pending": "Jam prisijungus, jis bus pridėtas prie kiekvieno monitoriaus, kurį vykdo",
       "deleted_successfully": "Zondas sėkmingai ištrintas",
       "failed_to_create": "Nepavyko sukurti zondo",
       "failed_to_update": "Nepavyko atnaujinti zondo",
       "failed_to_rotate": "Nepavyko pakeisti žetono",
+      "failed_to_assign": "Nepavyko priskirti zondo visiems monitoriams",
       "failed_to_delete": "Nepavyko ištrinti zondo",
       "failed_to_load": "Nepavyko įkelti zondų",
       "copy_success": "Nukopijuota į iškarpinę",
       "copy_failed": "Nepavyko nukopijuoti į iškarpinę"
     },
     "detail": {
+      "assign_all_pending": "Laukiama pirmojo egzemplioriaus: jam prisijungus, zondas bus pridėtas prie kiekvieno monitoriaus, kurį vykdo.",
       "not_found": "Zondas nerastas"
     },
     "availability": {

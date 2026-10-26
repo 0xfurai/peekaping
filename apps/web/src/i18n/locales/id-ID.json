@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Edit probe {{name}}",
         "rotate": "Ganti token probe {{name}}",
+        "assign_all": "Tetapkan probe {{name}} ke semua monitor",
         "delete": "Hapus probe {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Token membaca konfigurasi setiap monitor yang ditetapkan ke probe, termasuk kredensial.",
       "docs_link": "Apa yang dapat dibaca token"
+    },
+    "assign_all_dialog": {
+      "title": "Tetapkan ke semua monitor",
+      "description": "Tambahkan probe {{name}} ke setiap monitor yang dapat dijalankannya, kecuali monitor push. Probe yang belum punya instans ditambahkan saat instans pertamanya terhubung.",
+      "confirm": "Tetapkan ke semua monitor",
+      "assigning": "Menetapkan..."
     },
     "edit_dialog": {
       "title": "Edit probe",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Probe berhasil dibuat",
       "updated_successfully": "Probe berhasil diperbarui",
       "rotated_successfully": "Token berhasil diganti",
+      "assigned_successfully": "Monitor ditambahkan: {{added}}",
+      "assign_pending": "Probe akan ditambahkan ke setiap monitor yang dijalankannya saat terhubung",
       "deleted_successfully": "Probe berhasil dihapus",
       "failed_to_create": "Gagal membuat probe",
       "failed_to_update": "Gagal memperbarui probe",
       "failed_to_rotate": "Gagal mengganti token",
+      "failed_to_assign": "Gagal menetapkan probe ke semua monitor",
       "failed_to_delete": "Gagal menghapus probe",
       "failed_to_load": "Gagal memuat probe",
       "copy_success": "Disalin ke clipboard",
       "copy_failed": "Tidak dapat menyalin ke clipboard"
     },
     "detail": {
+      "assign_all_pending": "Menunggu instans pertamanya: probe akan ditambahkan ke setiap monitor yang dijalankannya saat terhubung.",
       "not_found": "Probe tidak ditemukan"
     },
     "availability": {

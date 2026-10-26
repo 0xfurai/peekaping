@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Edytuj sondę {{name}}",
         "rotate": "Wymień token sondy {{name}}",
+        "assign_all": "Przypisz sondę {{name}} do wszystkich monitorów",
         "delete": "Usuń sondę {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Token odczytuje konfigurację każdego monitora przypisanego do sondy, łącznie z danymi uwierzytelniającymi.",
       "docs_link": "Co może odczytać token"
+    },
+    "assign_all_dialog": {
+      "title": "Przypisz do wszystkich monitorów",
+      "description": "Dodaj sondę {{name}} do każdego monitora, który może uruchamiać, z wyjątkiem monitorów push. Sonda bez instancji zostanie dodana, gdy połączy się jej pierwsza instancja.",
+      "confirm": "Przypisz do wszystkich monitorów",
+      "assigning": "Przypisywanie..."
     },
     "edit_dialog": {
       "title": "Edytuj sondę",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Sonda została utworzona",
       "updated_successfully": "Sonda została zaktualizowana",
       "rotated_successfully": "Token został wymieniony",
+      "assigned_successfully": "Dodane monitory: {{added}}",
+      "assign_pending": "Zostanie dodana do każdego monitora, który uruchamia, gdy się połączy",
       "deleted_successfully": "Sonda została usunięta",
       "failed_to_create": "Nie udało się utworzyć sondy",
       "failed_to_update": "Nie udało się zaktualizować sondy",
       "failed_to_rotate": "Nie udało się wymienić tokenu",
+      "failed_to_assign": "Nie udało się przypisać sondy do wszystkich monitorów",
       "failed_to_delete": "Nie udało się usunąć sondy",
       "failed_to_load": "Nie udało się wczytać sond",
       "copy_success": "Skopiowano do schowka",
       "copy_failed": "Nie udało się skopiować do schowka"
     },
     "detail": {
+      "assign_all_pending": "Czeka na pierwszą instancję: zostanie dodana do każdego monitora, który uruchamia, gdy się połączy.",
       "not_found": "Nie znaleziono sondy"
     },
     "availability": {

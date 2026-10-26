@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Muuda sondi {{name}}",
         "rotate": "Vaheta sondi {{name}} token",
+        "assign_all": "Määra sond {{name}} kõigile monitooridele",
         "delete": "Kustuta sond {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Token loeb iga sondile määratud monitoori konfiguratsiooni, sealhulgas volitusandmeid.",
       "docs_link": "Mida token lugeda saab"
+    },
+    "assign_all_dialog": {
+      "title": "Määra kõigile monitooridele",
+      "description": "Lisa sond {{name}} igale monitoorile, mida see saab käitada, välja arvatud push-monitoorid. Sond, millel pole veel instantse, lisatakse, kui selle esimene instants ühendub.",
+      "confirm": "Määra kõigile monitooridele",
+      "assigning": "Määramine..."
     },
     "edit_dialog": {
       "title": "Muuda sondi",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Sond loodi edukalt",
       "updated_successfully": "Sond uuendati edukalt",
       "rotated_successfully": "Token vahetati edukalt",
+      "assigned_successfully": "Lisatud monitoore: {{added}}",
+      "assign_pending": "See lisatakse igale monitoorile, mida see käitab, kui see ühendub",
       "deleted_successfully": "Sond kustutati edukalt",
       "failed_to_create": "Sondi loomine ebaõnnestus",
       "failed_to_update": "Sondi uuendamine ebaõnnestus",
       "failed_to_rotate": "Tokeni vahetamine ebaõnnestus",
+      "failed_to_assign": "Sondi määramine kõigile monitooridele ebaõnnestus",
       "failed_to_delete": "Sondi kustutamine ebaõnnestus",
       "failed_to_load": "Sondide laadimine ebaõnnestus",
       "copy_success": "Kopeeritud lõikelauale",
       "copy_failed": "Lõikelauale kopeerimine ebaõnnestus"
     },
     "detail": {
+      "assign_all_pending": "Ootab oma esimest instantsi: see lisatakse igale monitoorile, mida see käitab, kui see ühendub.",
       "not_found": "Sondi ei leitud"
     },
     "availability": {

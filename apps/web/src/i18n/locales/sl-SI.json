@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Uredi sondo {{name}}",
         "rotate": "Zamenjaj žeton sonde {{name}}",
+        "assign_all": "Dodeli sondo {{name}} vsem nadzorom",
         "delete": "Izbriši sondo {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Žeton bere konfiguracijo vsakega nadzora, dodeljenega sondi, vključno s poverilnicami.",
       "docs_link": "Kaj lahko bere žeton"
+    },
+    "assign_all_dialog": {
+      "title": "Dodeli vsem nadzorom",
+      "description": "Dodaj sondo {{name}} vsakemu nadzoru, ki ga lahko izvaja, razen push nadzorom. Sonda, ki še nima primerkov, se doda, ko se poveže njen prvi primerek.",
+      "confirm": "Dodeli vsem nadzorom",
+      "assigning": "Dodeljevanje..."
     },
     "edit_dialog": {
       "title": "Uredi sondo",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Sonda je bila uspešno ustvarjena",
       "updated_successfully": "Sonda je bila uspešno posodobljena",
       "rotated_successfully": "Žeton je bil uspešno zamenjan",
+      "assigned_successfully": "Dodanih nadzorov: {{added}}",
+      "assign_pending": "Dodana bo vsakemu nadzoru, ki ga izvaja, ko se poveže",
       "deleted_successfully": "Sonda je bila uspešno izbrisana",
       "failed_to_create": "Ustvarjanje sonde ni uspelo",
       "failed_to_update": "Posodobitev sonde ni uspela",
       "failed_to_rotate": "Zamenjava žetona ni uspela",
+      "failed_to_assign": "Sonde ni bilo mogoče dodeliti vsem nadzorom",
       "failed_to_delete": "Brisanje sonde ni uspelo",
       "failed_to_load": "Nalaganje sond ni uspelo",
       "copy_success": "Kopirano v odložišče",
       "copy_failed": "Kopiranje v odložišče ni uspelo"
     },
     "detail": {
+      "assign_all_pending": "Čaka na prvi primerek: dodana bo vsakemu nadzoru, ki ga izvaja, ko se poveže.",
       "not_found": "Sonde ni bilo mogoče najti"
     },
     "availability": {

@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Editatu {{name}} zunda",
         "rotate": "Aldatu {{name}} zundaren tokena",
+        "assign_all": "Esleitu {{name}} zunda monitore guztiei",
         "delete": "Ezabatu {{name}} zunda"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Tokenak zundari esleitutako monitore guztien konfigurazioa irakurtzen du, kredentzialak barne.",
       "docs_link": "Zer irakur dezakeen tokenak"
+    },
+    "assign_all_dialog": {
+      "title": "Esleitu monitore guztiei",
+      "description": "Gehitu {{name}} zunda exekuta dezakeen monitore guztietara, push monitoreak izan ezik. Oraindik instantziarik ez duen zunda lehen instantzia konektatzen denean gehituko da.",
+      "confirm": "Esleitu monitore guztiei",
+      "assigning": "Esleitzen..."
     },
     "edit_dialog": {
       "title": "Editatu zunda",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Zunda behar bezala sortu da",
       "updated_successfully": "Zunda behar bezala eguneratu da",
       "rotated_successfully": "Tokena behar bezala aldatu da",
+      "assigned_successfully": "Gehitutako monitoreak: {{added}}",
+      "assign_pending": "Konektatzen denean exekutatzen dituen monitore guztietara gehituko da",
       "deleted_successfully": "Zunda behar bezala ezabatu da",
       "failed_to_create": "Ezin izan da zunda sortu",
       "failed_to_update": "Ezin izan da zunda eguneratu",
       "failed_to_rotate": "Ezin izan da tokena aldatu",
+      "failed_to_assign": "Ezin izan da zunda monitore guztiei esleitu",
       "failed_to_delete": "Ezin izan da zunda ezabatu",
       "failed_to_load": "Ezin izan dira zundak kargatu",
       "copy_success": "Arbelera kopiatu da",
       "copy_failed": "Ezin izan da arbelera kopiatu"
     },
     "detail": {
+      "assign_all_pending": "Bere lehen instantziaren zain: konektatzen denean exekutatzen dituen monitore guztietara gehituko da.",
       "not_found": "Ez da zunda aurkitu"
     },
     "availability": {

@@ -1183,6 +1183,7 @@
       "actions": {
         "edit": "{{name}} zondini tahrirlash",
         "rotate": "{{name}} zondining tokenini almashtirish",
+        "assign_all": "{{name}} zondini barcha monitorlarga biriktirish",
         "delete": "{{name}} zondini o‘chirish"
       }
     },
@@ -1195,6 +1196,12 @@
     "assign_all": {
       "warning": "Token zondga biriktirilgan har bir monitorning konfiguratsiyasini, jumladan hisob ma’lumotlarini ham o‘qiydi.",
       "docs_link": "Token nimani o‘qiy oladi"
+    },
+    "assign_all_dialog": {
+      "title": "Barcha monitorlarga biriktirish",
+      "description": "{{name}} zondini u ishga tushira oladigan har bir monitorga qo‘shing, push monitorlar bundan mustasno. Hali nusxasi yo‘q zond birinchi nusxasi ulanganda qo‘shiladi.",
+      "confirm": "Barcha monitorlarga biriktirish",
+      "assigning": "Biriktirilmoqda..."
     },
     "edit_dialog": {
       "title": "Zondni tahrirlash",
@@ -1237,16 +1244,20 @@
       "created_successfully": "Zond muvaffaqiyatli yaratildi",
       "updated_successfully": "Zond muvaffaqiyatli yangilandi",
       "rotated_successfully": "Token muvaffaqiyatli almashtirildi",
+      "assigned_successfully": "Qo‘shilgan monitorlar: {{added}}",
+      "assign_pending": "Ulanganda u ishga tushiradigan har bir monitorga qo‘shiladi",
       "deleted_successfully": "Zond muvaffaqiyatli o‘chirildi",
       "failed_to_create": "Zondni yaratib bo‘lmadi",
       "failed_to_update": "Zondni yangilab bo‘lmadi",
       "failed_to_rotate": "Tokenni almashtirib bo‘lmadi",
+      "failed_to_assign": "Zondni barcha monitorlarga biriktirib bo‘lmadi",
       "failed_to_delete": "Zondni o‘chirib bo‘lmadi",
       "failed_to_load": "Zondlarni yuklab bo‘lmadi",
       "copy_success": "Vaqtinchalik xotiraga nusxalandi",
       "copy_failed": "Vaqtinchalik xotiraga nusxalab bo‘lmadi"
     },
     "detail": {
+      "assign_all_pending": "Birinchi nusxasi kutilmoqda: ulanganda u ishga tushiradigan har bir monitorga qo‘shiladi.",
       "not_found": "Zond topilmadi"
     },
     "availability": {

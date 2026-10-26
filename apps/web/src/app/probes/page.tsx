@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import Layout from "@/layout";
+import AssignAllProbeDialog from "./components/assign-all-probe-dialog";
 import CreateProbeDialog from "./components/create-probe-dialog";
 import DeleteProbeDialog from "./components/delete-probe-dialog";
 import EditProbeDialog from "./components/edit-probe-dialog";
@@ -51,6 +52,7 @@ const ProbesPage = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const editDialog = useProbeDialog();
   const rotateDialog = useProbeDialog();
+  const assignAllDialog = useProbeDialog();
   const deleteDialog = useProbeDialog();
   const [issued, setIssued] = useState<IssuedProbeToken | null>(null);
 
@@ -120,6 +122,7 @@ const ProbesPage = () => {
                 availability={availability}
                 onEdit={editDialog.show}
                 onRotate={rotateDialog.show}
+                onAssignAll={assignAllDialog.show}
                 onDelete={deleteDialog.show}
               />
             </CardContent>
@@ -156,6 +159,14 @@ const ProbesPage = () => {
           open={rotateDialog.open}
           onOpenChange={rotateDialog.onOpenChange}
           onRotated={handleRotated}
+        />
+      )}
+
+      {assignAllDialog.probe && (
+        <AssignAllProbeDialog
+          probe={assignAllDialog.probe}
+          open={assignAllDialog.open}
+          onOpenChange={assignAllDialog.onOpenChange}
         />
       )}
 

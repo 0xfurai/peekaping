@@ -1183,6 +1183,7 @@
       "actions": {
         "edit": "Editează sonda {{name}}",
         "rotate": "Schimbă tokenul sondei {{name}}",
+        "assign_all": "Atribuie sonda {{name}} tuturor monitoarelor",
         "delete": "Șterge sonda {{name}}"
       }
     },
@@ -1195,6 +1196,12 @@
     "assign_all": {
       "warning": "Tokenul citește configurația fiecărui monitor atribuit sondei, inclusiv datele de autentificare.",
       "docs_link": "Ce poate citi tokenul"
+    },
+    "assign_all_dialog": {
+      "title": "Atribuie tuturor monitoarelor",
+      "description": "Adaugă sonda {{name}} la fiecare monitor pe care îl poate rula, cu excepția monitoarelor push. O sondă fără nicio instanță este adăugată când se conectează prima ei instanță.",
+      "confirm": "Atribuie tuturor monitoarelor",
+      "assigning": "Se atribuie..."
     },
     "edit_dialog": {
       "title": "Editează sonda",
@@ -1237,16 +1244,20 @@
       "created_successfully": "Sonda a fost creată cu succes",
       "updated_successfully": "Sonda a fost actualizată cu succes",
       "rotated_successfully": "Tokenul a fost schimbat cu succes",
+      "assigned_successfully": "Monitoare adăugate: {{added}}",
+      "assign_pending": "Va fi adăugată la fiecare monitor pe care îl rulează când se conectează",
       "deleted_successfully": "Sonda a fost ștearsă cu succes",
       "failed_to_create": "Crearea sondei a eșuat",
       "failed_to_update": "Actualizarea sondei a eșuat",
       "failed_to_rotate": "Schimbarea tokenului a eșuat",
+      "failed_to_assign": "Nu s-a putut atribui sonda tuturor monitoarelor",
       "failed_to_delete": "Ștergerea sondei a eșuat",
       "failed_to_load": "Încărcarea sondelor a eșuat",
       "copy_success": "Copiat în clipboard",
       "copy_failed": "Nu s-a putut copia în clipboard"
     },
     "detail": {
+      "assign_all_pending": "Așteaptă prima instanță: va fi adăugată la fiecare monitor pe care îl rulează când se conectează.",
       "not_found": "Sonda nu a fost găsită"
     },
     "availability": {

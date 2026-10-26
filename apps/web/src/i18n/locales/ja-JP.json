@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "プローブ {{name}} を編集",
         "rotate": "プローブ {{name}} のトークンを更新",
+        "assign_all": "プローブ {{name}} をすべてのモニターに割り当てる",
         "delete": "プローブ {{name}} を削除"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "トークンは、プローブに割り当てられたすべてのモニターの設定を認証情報を含めて読み取ります。",
       "docs_link": "トークンが読み取れるもの"
+    },
+    "assign_all_dialog": {
+      "title": "すべてのモニターに割り当てる",
+      "description": "プローブ {{name}} を、実行できるすべてのモニター（プッシュモニターを除く）に追加します。まだインスタンスがないプローブは、最初のインスタンスが接続したときに追加されます。",
+      "confirm": "すべてのモニターに割り当てる",
+      "assigning": "割り当て中..."
     },
     "edit_dialog": {
       "title": "プローブを編集",
@@ -1238,16 +1245,20 @@
       "created_successfully": "プローブを作成しました",
       "updated_successfully": "プローブを更新しました",
       "rotated_successfully": "トークンを更新しました",
+      "assigned_successfully": "追加したモニター数: {{added}}",
+      "assign_pending": "接続すると、実行できるすべてのモニターに追加されます",
       "deleted_successfully": "プローブを削除しました",
       "failed_to_create": "プローブの作成に失敗しました",
       "failed_to_update": "プローブの更新に失敗しました",
       "failed_to_rotate": "トークンの更新に失敗しました",
+      "failed_to_assign": "プローブをすべてのモニターに割り当てられませんでした",
       "failed_to_delete": "プローブの削除に失敗しました",
       "failed_to_load": "プローブの読み込みに失敗しました",
       "copy_success": "クリップボードにコピーしました",
       "copy_failed": "クリップボードにコピーできませんでした"
     },
     "detail": {
+      "assign_all_pending": "最初のインスタンスを待っています。接続すると、実行できるすべてのモニターに追加されます。",
       "not_found": "プローブが見つかりません"
     },
     "availability": {

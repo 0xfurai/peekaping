@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "עריכת הגשושית {{name}}",
         "rotate": "החלפת האסימון של הגשושית {{name}}",
+        "assign_all": "שיוך הגשושית {{name}} לכל המעקבים",
         "delete": "מחיקת הגשושית {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "האסימון קורא את ההגדרות של כל מעקב ששויך לגשושית, כולל פרטי הזדהות.",
       "docs_link": "מה האסימון יכול לקרוא"
+    },
+    "assign_all_dialog": {
+      "title": "שיוך לכל המעקבים",
+      "description": "הוספת הגשושית {{name}} לכל מעקב שהיא יכולה להריץ, מלבד מעקבי push. גשושית שעדיין אין לה מופע תתווסף כשהמופע הראשון שלה יתחבר.",
+      "confirm": "שיוך לכל המעקבים",
+      "assigning": "משייך..."
     },
     "edit_dialog": {
       "title": "עריכת גשושית",
@@ -1238,16 +1245,20 @@
       "created_successfully": "הגשושית נוצרה בהצלחה",
       "updated_successfully": "הגשושית עודכנה בהצלחה",
       "rotated_successfully": "האסימון הוחלף בהצלחה",
+      "assigned_successfully": "מעקבים שנוספו: {{added}}",
+      "assign_pending": "היא תתווסף לכל מעקב שהיא מריצה כשתתחבר",
       "deleted_successfully": "הגשושית נמחקה בהצלחה",
       "failed_to_create": "יצירת הגשושית נכשלה",
       "failed_to_update": "עדכון הגשושית נכשל",
       "failed_to_rotate": "החלפת האסימון נכשלה",
+      "failed_to_assign": "שיוך הגשושית לכל המעקבים נכשל",
       "failed_to_delete": "מחיקת הגשושית נכשלה",
       "failed_to_load": "טעינת הגשושיות נכשלה",
       "copy_success": "הועתק ללוח",
       "copy_failed": "לא ניתן להעתיק ללוח"
     },
     "detail": {
+      "assign_all_pending": "ממתינה למופע הראשון שלה: היא תתווסף לכל מעקב שהיא מריצה כשתתחבר.",
       "not_found": "הגשושית לא נמצאה"
     },
     "availability": {

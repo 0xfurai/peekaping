@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Modifier la sonde {{name}}",
         "rotate": "Renouveler le jeton de la sonde {{name}}",
+        "assign_all": "Affecter la sonde {{name}} à tous les moniteurs",
         "delete": "Supprimer la sonde {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Le jeton lit la configuration de chaque moniteur affecté à la sonde, identifiants compris.",
       "docs_link": "Ce que le jeton peut lire"
+    },
+    "assign_all_dialog": {
+      "title": "Affecter à tous les moniteurs",
+      "description": "Ajoute la sonde {{name}} à tous les moniteurs qu'elle peut exécuter, sauf les moniteurs push. Une sonde sans instance est ajoutée quand sa première instance se connecte.",
+      "confirm": "Affecter à tous les moniteurs",
+      "assigning": "Affectation..."
     },
     "edit_dialog": {
       "title": "Modifier la sonde",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Sonde créée avec succès",
       "updated_successfully": "Sonde mise à jour avec succès",
       "rotated_successfully": "Jeton renouvelé avec succès",
+      "assigned_successfully": "Moniteurs ajoutés : {{added}}",
+      "assign_pending": "Elle sera ajoutée à tous les moniteurs qu'elle exécute dès qu'elle se connectera",
       "deleted_successfully": "Sonde supprimée avec succès",
       "failed_to_create": "Échec de la création de la sonde",
       "failed_to_update": "Échec de la mise à jour de la sonde",
       "failed_to_rotate": "Échec du renouvellement du jeton",
+      "failed_to_assign": "Impossible d'affecter la sonde à tous les moniteurs",
       "failed_to_delete": "Échec de la suppression de la sonde",
       "failed_to_load": "Échec du chargement des sondes",
       "copy_success": "Copié dans le presse-papiers",
       "copy_failed": "Impossible de copier dans le presse-papiers"
     },
     "detail": {
+      "assign_all_pending": "En attente de sa première instance : elle sera ajoutée à tous les moniteurs qu'elle exécute dès qu'elle se connectera.",
       "not_found": "Sonde introuvable"
     },
     "availability": {

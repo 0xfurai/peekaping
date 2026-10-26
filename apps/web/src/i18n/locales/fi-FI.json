@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Muokkaa luotainta {{name}}",
         "rotate": "Vaihda luotaimen {{name}} token",
+        "assign_all": "Määritä luotain {{name}} kaikille valvonnoille",
         "delete": "Poista luotain {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Token lukee jokaisen luotaimelle määritetyn valvonnan asetukset, myös tunnistetiedot.",
       "docs_link": "Mitä token voi lukea"
+    },
+    "assign_all_dialog": {
+      "title": "Määritä kaikille valvonnoille",
+      "description": "Lisää luotain {{name}} jokaiseen valvontaan, jota se voi ajaa, paitsi push-valvontoihin. Luotain, jolla ei ole vielä instanssia, lisätään, kun sen ensimmäinen instanssi yhdistää.",
+      "confirm": "Määritä kaikille valvonnoille",
+      "assigning": "Määritetään..."
     },
     "edit_dialog": {
       "title": "Muokkaa luotainta",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Luotain luotu onnistuneesti",
       "updated_successfully": "Luotain päivitetty onnistuneesti",
       "rotated_successfully": "Token vaihdettu onnistuneesti",
+      "assigned_successfully": "Lisättyjä valvontoja: {{added}}",
+      "assign_pending": "Se lisätään jokaiseen valvontaan, jota se ajaa, kun se yhdistää",
       "deleted_successfully": "Luotain poistettu onnistuneesti",
       "failed_to_create": "Luotaimen luominen epäonnistui",
       "failed_to_update": "Luotaimen päivittäminen epäonnistui",
       "failed_to_rotate": "Tokenin vaihtaminen epäonnistui",
+      "failed_to_assign": "Luotaimen määrittäminen kaikille valvonnoille epäonnistui",
       "failed_to_delete": "Luotaimen poistaminen epäonnistui",
       "failed_to_load": "Luotaimien lataaminen epäonnistui",
       "copy_success": "Kopioitu leikepöydälle",
       "copy_failed": "Leikepöydälle kopioiminen epäonnistui"
     },
     "detail": {
+      "assign_all_pending": "Odottaa ensimmäistä instanssiaan: se lisätään jokaiseen valvontaan, jota se ajaa, kun se yhdistää.",
       "not_found": "Luotainta ei löytynyt"
     },
     "availability": {

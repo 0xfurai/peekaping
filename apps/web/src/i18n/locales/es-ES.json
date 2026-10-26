@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Editar la sonda {{name}}",
         "rotate": "Renovar el token de la sonda {{name}}",
+        "assign_all": "Asignar la sonda {{name}} a todos los monitores",
         "delete": "Eliminar la sonda {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "El token lee la configuración de cada monitor asignado a la sonda, credenciales incluidas.",
       "docs_link": "Qué puede leer el token"
+    },
+    "assign_all_dialog": {
+      "title": "Asignar a todos los monitores",
+      "description": "Añade la sonda {{name}} a todos los monitores que puede ejecutar, excepto los monitores push. Una sonda sin instancias se añade cuando se conecta su primera instancia.",
+      "confirm": "Asignar a todos los monitores",
+      "assigning": "Asignando..."
     },
     "edit_dialog": {
       "title": "Editar sonda",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Sonda creada correctamente",
       "updated_successfully": "Sonda actualizada correctamente",
       "rotated_successfully": "Token renovado correctamente",
+      "assigned_successfully": "Monitores añadidos: {{added}}",
+      "assign_pending": "Se añadirá a todos los monitores que ejecuta cuando se conecte",
       "deleted_successfully": "Sonda eliminada correctamente",
       "failed_to_create": "No se pudo crear la sonda",
       "failed_to_update": "No se pudo actualizar la sonda",
       "failed_to_rotate": "No se pudo renovar el token",
+      "failed_to_assign": "No se pudo asignar la sonda a todos los monitores",
       "failed_to_delete": "No se pudo eliminar la sonda",
       "failed_to_load": "No se pudieron cargar las sondas",
       "copy_success": "Copiado al portapapeles",
       "copy_failed": "No se pudo copiar al portapapeles"
     },
     "detail": {
+      "assign_all_pending": "Esperando su primera instancia: se añadirá a todos los monitores que ejecuta cuando se conecte.",
       "not_found": "Sonda no encontrada"
     },
     "availability": {

@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Chỉnh sửa đầu dò {{name}}",
         "rotate": "Đổi mã thông báo của đầu dò {{name}}",
+        "assign_all": "Gán đầu dò {{name}} cho tất cả giám sát",
         "delete": "Xóa đầu dò {{name}}"
       }
     },
@@ -1196,6 +1197,12 @@
     "assign_all": {
       "warning": "Mã thông báo đọc cấu hình của mọi giám sát được gán cho đầu dò, bao gồm cả thông tin xác thực.",
       "docs_link": "Mã thông báo có thể đọc gì"
+    },
+    "assign_all_dialog": {
+      "title": "Gán cho tất cả giám sát",
+      "description": "Thêm đầu dò {{name}} vào mọi giám sát mà nó có thể chạy, trừ giám sát push. Đầu dò chưa có instance nào sẽ được thêm khi instance đầu tiên kết nối.",
+      "confirm": "Gán cho tất cả giám sát",
+      "assigning": "Đang gán..."
     },
     "edit_dialog": {
       "title": "Chỉnh sửa đầu dò",
@@ -1238,16 +1245,20 @@
       "created_successfully": "Đã tạo đầu dò thành công",
       "updated_successfully": "Đã cập nhật đầu dò thành công",
       "rotated_successfully": "Đã đổi mã thông báo thành công",
+      "assigned_successfully": "Số giám sát đã thêm: {{added}}",
+      "assign_pending": "Nó sẽ được thêm vào mọi giám sát mà nó chạy khi kết nối",
       "deleted_successfully": "Đã xóa đầu dò thành công",
       "failed_to_create": "Không thể tạo đầu dò",
       "failed_to_update": "Không thể cập nhật đầu dò",
       "failed_to_rotate": "Không thể đổi mã thông báo",
+      "failed_to_assign": "Không thể gán đầu dò cho tất cả giám sát",
       "failed_to_delete": "Không thể xóa đầu dò",
       "failed_to_load": "Không thể tải danh sách đầu dò",
       "copy_success": "Đã sao chép vào clipboard",
       "copy_failed": "Không thể sao chép vào clipboard"
     },
     "detail": {
+      "assign_all_pending": "Đang chờ instance đầu tiên: nó sẽ được thêm vào mọi giám sát mà nó chạy khi kết nối.",
       "not_found": "Không tìm thấy đầu dò"
     },
     "availability": {
