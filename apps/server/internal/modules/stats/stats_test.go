@@ -199,7 +199,7 @@ func TestSummaryAveragesResponseTimesOverUpChecks(t *testing.T) {
 		require.NotNil(t, summary.AvgPing)
 		assert.Equal(t, 200.0, *summary.AvgPing)
 
-		grouped, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(context.Background(), monitorID, "", minute, minute.Add(2*time.Minute), stats.StatMinutely, 120)
+		grouped, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(context.Background(), monitorID, "", minute, minute.Add(time.Minute), stats.StatMinutely, 120)
 		require.NoError(t, err)
 		require.Len(t, grouped, 1)
 		assert.Equal(t, 200.0, grouped[0].Ping)
@@ -218,7 +218,7 @@ func TestSummaryKeepsA0msMinimumResponseTime(t *testing.T) {
 		require.NotNil(t, summary.MinPing)
 		assert.Equal(t, 0.0, *summary.MinPing)
 
-		grouped, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(context.Background(), monitorID, "", minute, minute.Add(2*time.Minute), stats.StatMinutely, 120)
+		grouped, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(context.Background(), monitorID, "", minute, minute.Add(time.Minute), stats.StatMinutely, 120)
 		require.NoError(t, err)
 		require.Len(t, grouped, 1)
 		assert.Equal(t, 0.0, grouped[0].PingMin)
@@ -522,4 +522,109 @@ func TestUptimeForOneMonitorReadsAtMost2700StatsRows(t *testing.T) {
 			assert.InDeltaSlice(t, []float64{1440, 168, 720, 365}, []float64{float64(read[0]), float64(read[1]), float64(read[2]), float64(read[3])}, 1)
 		})
 	}
+}
+
+// chartPoint is the part of a chart point these tests compare: where it starts and how many checks it holds.
+type chartPoint struct {
+	At                    time.Time
+	Up, Down, Maintenance int
+}
+
+// chartPoints reads a monitor's chart the way the chart asks for it.
+func chartPoints(t *testing.T, svc stats.Service, monitorID string, since, until time.Time, period stats.StatPeriod, interval int) []chartPoint {
+	t.Helper()
+	stored, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(context.Background(), monitorID, "", since, until, period, interval)
+	require.NoError(t, err)
+	points := make([]chartPoint, 0, len(stored))
+	for _, s := range stored {
+		assert.Equal(t, monitorID, s.MonitorID)
+		points = append(points, chartPoint{s.Timestamp.UTC(), s.Up, s.Down, s.Maintenance})
+	}
+	return points
+}
+
+func TestChartBucketsOfA5MinuteMonitorStayPutAMinuteLater(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		at := func(h, m int) time.Time { return time.Date(2026, 10, 16, h, m, 0, 0, time.UTC) }
+		// A check every 5 minutes, the last two down
+		for m := 0; m <= 30; m += 5 {
+			status := shared.MonitorStatusUp
+			if m >= 25 {
+				status = shared.MonitorStatusDown
+			}
+			aggregate(t, svc, monitorID, status, 100, at(14, m).Add(7*time.Second))
+		}
+
+		want := []chartPoint{
+			{At: at(14, 0), Up: 1},
+			{At: at(14, 5), Up: 1},
+			{At: at(14, 10), Up: 1},
+			{At: at(14, 15), Up: 1},
+			{At: at(14, 20), Up: 1},
+			{At: at(14, 25), Down: 1},
+			{At: at(14, 30), Down: 1},
+		}
+		assert.Equal(t, want, chartPoints(t, svc, monitorID, at(14, 2), at(14, 32), stats.StatMinutely, 300))
+		assert.Equal(t, want, chartPoints(t, svc, monitorID, at(14, 3), at(14, 33), stats.StatMinutely, 300))
+	})
+}
+
+func TestChartBucketsOfA90SecondMonitorAre2MinutesWide(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		at := func(h, m, s int) time.Time { return time.Date(2026, 10, 16, h, m, s, 0, time.UTC) }
+		for _, check := range []time.Time{at(14, 0, 0), at(14, 1, 30), at(14, 3, 0), at(14, 4, 30), at(14, 6, 0)} {
+			aggregate(t, svc, monitorID, shared.MonitorStatusUp, 100, check)
+		}
+
+		assert.Equal(t, []chartPoint{
+			{At: at(14, 0, 0), Up: 2},
+			{At: at(14, 2, 0), Up: 1},
+			{At: at(14, 4, 0), Up: 1},
+			{At: at(14, 6, 0), Up: 1},
+		}, chartPoints(t, svc, monitorID, at(14, 1, 0), at(14, 7, 0), stats.StatMinutely, 90))
+	})
+}
+
+func TestChartBucketsRoundTheIntervalUpToWholeMinutes(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		at := func(h, m int) time.Time { return time.Date(2026, 10, 16, h, m, 0, 0, time.UTC) }
+		starts := func(interval int) []time.Time {
+			var got []time.Time
+			for _, p := range chartPoints(t, svc, monitorID, at(14, 0), at(14, 6), stats.StatMinutely, interval) {
+				got = append(got, p.At)
+			}
+			return got
+		}
+
+		assert.Equal(t, []time.Time{at(14, 0), at(14, 2), at(14, 4), at(14, 6)}, starts(61), "61 seconds is 2 minutes")
+		assert.Equal(t, []time.Time{at(14, 0), at(14, 2), at(14, 4), at(14, 6)}, starts(120), "120 seconds stays 2 minutes")
+		assert.Equal(t, []time.Time{at(14, 0), at(14, 3), at(14, 6)}, starts(121), "121 seconds is 3 minutes")
+	})
+}
+
+func TestChartOfAnEmptyRangeHasAnEmptyPointPerBucket(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		at := func(h, m int) time.Time { return time.Date(2026, 10, 16, h, m, 0, 0, time.UTC) }
+
+		assert.Equal(t, []chartPoint{
+			{At: at(14, 0)}, {At: at(14, 1)}, {At: at(14, 2)}, {At: at(14, 3)},
+		}, chartPoints(t, svc, monitorID, at(14, 0), at(14, 3), stats.StatMinutely, 60), "a 1 minute monitor")
+		assert.Equal(t, []chartPoint{
+			{At: at(14, 0)}, {At: at(14, 5)}, {At: at(14, 10)},
+		}, chartPoints(t, svc, monitorID, at(14, 2), at(14, 12), stats.StatMinutely, 300), "a 5 minute monitor")
+	})
+}
+
+func TestFirstHourOfAChartHoldsItsWholeStat(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		at := func(h, m int) time.Time { return time.Date(2026, 10, 16, h, m, 0, 0, time.UTC) }
+		aggregate(t, svc, monitorID, shared.MonitorStatusUp, 100, at(13, 10))
+		aggregate(t, svc, monitorID, shared.MonitorStatusDown, 0, at(13, 40))
+
+		assert.Equal(t, []chartPoint{
+			{At: at(13, 0), Up: 1, Down: 1},
+			{At: at(14, 0)},
+			{At: at(15, 0)},
+		}, chartPoints(t, svc, monitorID, at(13, 23), at(15, 0), stats.StatHourly, 60))
+	})
 }

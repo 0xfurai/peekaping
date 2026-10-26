@@ -118,7 +118,7 @@ func TestFindStatsWithIntervalFiltersByProbe(t *testing.T) {
 		// A monitor checked every 2 minutes groups its minute stats in twos
 		grouped := func(probeID string) []bucket {
 			t.Helper()
-			stored, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(ctx, monitorID, probeID, minute, minute.Add(2*time.Minute), stats.StatMinutely, 120)
+			stored, err := svc.FindStatsByMonitorIDAndTimeRangeWithInterval(ctx, monitorID, probeID, minute, minute.Add(time.Minute), stats.StatMinutely, 120)
 			require.NoError(t, err)
 			var buckets []bucket
 			for _, s := range stored {
