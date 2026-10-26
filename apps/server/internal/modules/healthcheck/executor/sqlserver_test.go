@@ -455,6 +455,7 @@ type driverView struct {
 	Port                                     uint64
 	Encryption                               msdsn.Encryption
 	AppName                                  string
+	ConnTimeout                              time.Duration
 }
 
 func driverViewOf(t *testing.T, dsn string) driverView {
@@ -466,7 +467,7 @@ func driverViewOf(t *testing.T, dsn string) driverView {
 	}
 	return driverView{
 		Host: cfg.Host, Instance: cfg.Instance, User: cfg.User, Password: cfg.Password, Database: cfg.Database,
-		Port: cfg.Port, Encryption: cfg.Encryption, AppName: cfg.AppName,
+		Port: cfg.Port, Encryption: cfg.Encryption, AppName: cfg.AppName, ConnTimeout: cfg.ConnTimeout,
 	}
 }
 
@@ -507,6 +508,21 @@ func TestSQLServerExecutor_parseConnectionString_driverSeesTheValues(t *testing.
 			name:          "URL: other parameters reach the driver",
 			connectionStr: "sqlserver://user:pass@server:1433?database=testdb&encrypt=disable&trustServerCertificate=true&app%20name=peekaping",
 			want:          driverView{Host: "server", Port: 1433, User: "user", Password: "pass", Database: "testdb", Encryption: msdsn.EncryptionDisabled, AppName: "peekaping"},
+		},
+		{
+			name:          "URL: timeout is the Connection Timeout",
+			connectionStr: "sqlserver://sa:password@localhost:1433?database=master&timeout=7",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "password", Database: "master", ConnTimeout: 7 * time.Second},
+		},
+		{
+			name:          "URL: an IPv6 host with a port",
+			connectionStr: "sqlserver://u:p@[::1]:1433?database=m",
+			want:          driverView{Host: "::1", Port: 1433, User: "u", Password: "p", Database: "m"},
+		},
+		{
+			name:          "URL: an IPv6 host without a port",
+			connectionStr: "sqlserver://u:p@[::1]?database=m",
+			want:          driverView{Host: "::1", Port: 1433, User: "u", Password: "p", Database: "m"},
 		},
 		{
 			name:          "URL: a percent-encoded password with ; = { and }",

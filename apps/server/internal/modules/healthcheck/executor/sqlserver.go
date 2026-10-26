@@ -516,11 +516,15 @@ func (t sqlServerTarget) dsn() string {
 		query.Set("database", t.database)
 	}
 
-	host := t.host
-	if t.port != "" {
-		host = net.JoinHostPort(t.host, t.port)
-	} else if strings.Contains(host, ":") { // an IPv6 address
-		host = "[" + host + "]"
+	host, port := t.host, t.port
+	if port == "" && strings.Contains(host, ":") {
+		// An IPv6 address needs its brackets in a URL, and the driver reads a
+		// bracketed host without a port as the host name "[::1]". With the
+		// port it splits them properly; this is the port it uses anyway.
+		port = "1433"
+	}
+	if port != "" {
+		host = net.JoinHostPort(host, port)
 	}
 	u := url.URL{Scheme: "sqlserver", Host: host, RawQuery: query.Encode()}
 	if t.instance != "" {
@@ -602,6 +606,9 @@ func (s *SQLServerExecutor) parseURLConnectionString(connectionString string) (s
 		key = strings.ToLower(key)
 		if synonym, ok := adoSynonyms[key]; ok {
 			key = synonym
+		}
+		if key == "timeout" { // the name this form has always accepted
+			key = "connection timeout"
 		}
 		switch {
 		case key == "database",
