@@ -215,3 +215,18 @@ The cost is that a PostgreSQL install is no longer one `docker run`: it needs tw
 `peekaping-bundle-postgres` gets no new tags. A running install keeps working on its last tag, 0.0.47, and the published tags stay on the registries, so a pull doesn't break. Its users move to the Compose layout with `pg_dump` and `pg_restore`, as [Upgrading to single mode](../../apps/docs/docs/self-hosting/upgrading-to-single-mode.md#moving-from-the-postgresql-bundle) describes. The move copies the database rather than the data folder, because the official image can't use the bundle's files: they belong to the bundle's `postgres` user (UID 102) and were written on an older Debian release. The bundle's PostgreSQL listens on localhost only and accepts connections from inside the container only, so the dump runs there with `docker exec`.
 
 The image is still published as `peekaping-bundle-sqlite`. PP-321 renames it.
+
+## Update
+
+Date: 2026-10-26
+Ticket: PP-321
+
+The single-mode image is published as `0xfurai/peekaping` on Docker Hub and `ghcr.io/0xfurai/peekaping` on GHCR, with the tags `<version>` and `latest`. The PP-317 update said it was still published as `peekaping-bundle-sqlite` and that PP-321 would rename it. Section 6 says the image keeps the name `peekaping-bundle-sqlite`; that no longer holds either.
+
+The reasons:
+
+- **It is one process.** The name `bundle-sqlite` described an image that bundled several processes around SQLite. The image now runs `peekaping` alone, with SQLite or with a PostgreSQL in another container (the PP-317 update), so both words in the name are wrong.
+- **The name a new user types is the product name.** `docker pull 0xfurai/peekaping` gets the thing most people want. A suffix would make them look up which variant to choose.
+- **It matches the probe.** `peekaping-probe` is the name for the probe, and its variant goes in the tag (`slim`). The single-mode image has no suffix, and its variant, the database, is a setting.
+
+The transition: through release 0.0.49, `peekaping-bundle-sqlite` gets the same tags as `peekaping`, and they point at the same image (the same digest). From 0.0.50 it gets none. Its published tags stay on the registries, so an install that keeps the old name keeps working on its last tag. Release candidates publish the new name only. A follow-up ticket removes the old name from the release workflow.
