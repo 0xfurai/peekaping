@@ -88,6 +88,10 @@ type CreateRequest struct {
 	// NotificationIDs are the notification channels that hear about the probe. A probe with none
 	// notifies the channels of its active monitors instead.
 	NotificationIDs []string
+	// AssignAllMonitors makes the probe wait to be assigned every monitor it can run when its
+	// first instance says hello. It has no monitors until then, since the types it runs come with
+	// its instances.
+	AssignAllMonitors bool
 }
 
 // UpdateRequest is what changes about a probe: nil fields stay as they are
@@ -131,10 +135,11 @@ func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*ModelWit
 	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		var err error
 		created, err = s.repo.Create(ctx, &CreateModel{
-			Name:        req.Name,
-			Location:    req.Location,
-			TokenHash:   hashToken(token),
-			TokenPrefix: tokenDisplayPrefix(token),
+			Name:             req.Name,
+			Location:         req.Location,
+			TokenHash:        hashToken(token),
+			TokenPrefix:      tokenDisplayPrefix(token),
+			AssignAllPending: req.AssignAllMonitors,
 		})
 		if err != nil {
 			return err

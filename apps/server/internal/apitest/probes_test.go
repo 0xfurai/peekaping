@@ -39,8 +39,10 @@ type probeResponse struct {
 	SupportedTypes  []string                `json:"supported_types"`
 	NotificationIDs []string                `json:"notification_ids"`
 	Instances       []probeInstanceResponse `json:"instances"`
-	CreatedAt       time.Time               `json:"created_at"`
-	UpdatedAt       time.Time               `json:"updated_at"`
+	// AssignAllPending is true for a probe made with assign_all_monitors until its first hello
+	AssignAllPending bool      `json:"assign_all_pending"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }
 
 type probeWithToken struct {

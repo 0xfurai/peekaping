@@ -67,6 +67,9 @@ type Model struct {
 	// NotificationIDs are the notification channels that hear about the probe. A probe with none
 	// notifies the channels of its active monitors instead.
 	NotificationIDs []string
+	// AssignAllPending is true for a probe made to take over every monitor on its first hello,
+	// until that hello has assigned them
+	AssignAllPending bool
 	// Instances are the processes that have connected with the probe's token
 	Instances []*Instance
 	CreatedAt time.Time
@@ -130,6 +133,8 @@ type CreateModel struct {
 	Location    string
 	TokenHash   string
 	TokenPrefix string
+	// AssignAllPending makes the probe wait to be assigned every monitor on its first hello
+	AssignAllPending bool
 }
 
 // UpdateModel is what can change about a probe: nil fields stay as they are

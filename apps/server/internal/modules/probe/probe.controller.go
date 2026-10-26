@@ -78,9 +78,10 @@ func (c *Controller) CreateProbe(ctx context.Context, input *CreateProbeInput) (
 	}
 
 	created, err := c.service.Create(ctx, &CreateRequest{
-		Name:            req.Name,
-		Location:        req.Location,
-		NotificationIDs: req.NotificationIDs,
+		Name:              req.Name,
+		Location:          req.Location,
+		NotificationIDs:   req.NotificationIDs,
+		AssignAllMonitors: req.AssignAllMonitors,
 	})
 	if err != nil {
 		return nil, c.fail(err, "")
