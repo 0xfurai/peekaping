@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Vytvořte si svůj administrátorský účet",
-      "error_reporting_hint": "Ve výchozím nastavení zapnuto. Zrušením zaškrtnutí políčka to vypnete. Později to můžete změnit v části „Nastavení“.",
       "have_account": "Už máte účet?",
       "sign_in": "Přihlásit se",
       "submit": "Vytvořit",
-      "telemetry_hint": "Ve výchozím nastavení zapnuto. Zrušením zaškrtnutí políčka to vypnete. Později to můžete změnit v části „Nastavení“. Dokud je to zapnuté, Peekaping to odešle nejvýše jednou denně:",
-      "title": "Vítejte"
+      "title": "Vítejte",
+      "telemetry_note": "Anonymně: žádné názvy monitorů, adresy URL ani hostitelé. Později to můžete změnit v části „Nastavení“.",
+      "telemetry_whats_sent": "Co se odesílá"
     },
     "twofa": {
       "code_label": "Kód dvoufaktorové autentizace",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Co se odesílá a jak to vypnout",
     "label": "Odesílat anonymní statistiky využití",
-    "never_sent": "Nikdy se neodesílá: názvy monitorů, adresy URL, hostitelé, tagy, adresy stránek stavu ani nastavení oznámení. Ping využití neobsahuje žádnou IP adresu a Worker Peekapingu IP adresu odesílatele nezaznamenává.",
-    "not_saved": "Vaše volba ohledně statistik využití se neuložila. Zkontrolujte ji v části „Nastavení“.",
-    "sent_features": "Zda používáte stránky stavu, okna údržby a metriky",
-    "sent_id": "Náhodné ID, které se vytvoří, dokud je to zapnuté, a smaže při vypnutí",
-    "sent_monitors": "Kolik máte monitorů, jako rozsah, například 11-50",
-    "sent_setup": "Verze Peekaping, jednoduchý nebo clusterový režim, úložiště dat a typ operačního systému a procesoru",
-    "sent_types": "Druhy monitorů a kanálů oznámení, které používáte, například http nebo telegram"
+    "not_saved": "Vaše volba ohledně statistik využití se neuložila. Zkontrolujte ji v části „Nastavení“."
   },
   "telemetry_notice": {
     "error_reports": "Hlášení o chybách jsou zapnutá. Když Peekaping spadne, odešle typ chyby a místo v kódu, kde nastala, svou verzi, režim, úložiště dat a operační systém. Nikdy neodesílá chybové zprávy, adresy URL ani názvy hostitelů.",

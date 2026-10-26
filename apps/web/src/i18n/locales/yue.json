@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "創建你的管理員帳戶",
-      "error_reporting_hint": "預設係開啟嘅。剔走呢個方格就可以關閉。你之後可以喺「設定」度更改。",
       "have_account": "已有帳戶？",
       "sign_in": "登入",
       "submit": "創建",
-      "telemetry_hint": "預設係開啟嘅。剔走呢個方格就可以關閉。你之後可以喺「設定」度更改。開啟期間，Peekaping 每日最多會傳送一次以下內容：",
-      "title": "你好"
+      "title": "你好",
+      "telemetry_note": "匿名：唔包含監測名稱、URL 或者主機。你之後可以喺「設定」度更改。",
+      "telemetry_whats_sent": "會傳送啲咩"
     },
     "twofa": {
       "code_label": "兩步驗證碼",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "會傳送啲咩，同點樣關閉",
     "label": "傳送匿名使用統計",
-    "never_sent": "永遠唔會傳送：監測名稱、URL、主機、標籤、狀態頁地址或者通知設定。使用情況 ping 唔包含 IP 地址，而 Peekaping 嘅 Worker 唔會記錄發送者嘅 IP。",
-    "not_saved": "你關於使用統計嘅選擇未有儲存。請喺「設定」度檢查。",
-    "sent_features": "你有冇用狀態頁、維護時段同指標",
-    "sent_id": "一個隨機 ID，開啟期間建立，關閉時刪除",
-    "sent_monitors": "你有幾多個監測，用範圍表示，例如 11-50",
-    "sent_setup": "Peekaping 版本、單一模式定叢集模式、儲存後端，仲有作業系統同 CPU 類型",
-    "sent_types": "你用緊嘅監測同通知頻道類型，例如 http 或者 telegram"
+    "not_saved": "你關於使用統計嘅選擇未有儲存。請喺「設定」度檢查。"
   },
   "telemetry_notice": {
     "error_reports": "錯誤報告已開啟。如果 Peekaping 當機，佢會傳送錯誤類型同發生喺代碼邊個位置、自己嘅版本、模式、儲存後端同作業系統。佢永遠唔會傳送錯誤訊息、URL 或者主機名稱。",

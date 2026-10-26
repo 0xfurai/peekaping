@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Erstellen Sie Ihr Admin-Konto",
-      "error_reporting_hint": "Standardmäßig an. Entfernen Sie das Häkchen, um es auszuschalten. Sie können das später unter „Einstellungen“ ändern.",
       "have_account": "Haben Sie bereits ein Konto?",
       "sign_in": "Anmelden",
       "submit": "Registrieren",
-      "telemetry_hint": "Standardmäßig an. Entfernen Sie das Häkchen, um es auszuschalten. Sie können das später unter „Einstellungen“ ändern. Solange es an ist, sendet Peekaping dies höchstens einmal am Tag:",
-      "title": "Hallo"
+      "title": "Hallo",
+      "telemetry_note": "Anonym: keine Monitornamen, URLs oder Hosts. Sie können das später unter „Einstellungen“ ändern.",
+      "telemetry_whats_sent": "Was gesendet wird"
     },
     "twofa": {
       "code_label": "2-Faktor-Code",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Was gesendet wird und wie man es ausschaltet",
     "label": "Anonyme Nutzungsstatistiken senden",
-    "never_sent": "Nie gesendet werden: Monitornamen, URLs, Hosts, Schlagwörter, Adressen von Statusseiten oder Benachrichtigungseinstellungen. Ein Nutzungs-Ping enthält keine IP-Adresse, und der Worker von Peekaping erfasst die IP des Absenders nicht.",
-    "not_saved": "Ihre Auswahl zu den Nutzungsstatistiken wurde nicht gespeichert. Prüfen Sie sie unter „Einstellungen“.",
-    "sent_features": "Ob Sie Statusseiten, Wartungsfenster und Metriken verwenden",
-    "sent_id": "Eine zufällige ID, die erstellt wird, solange dies eingeschaltet ist, und beim Ausschalten gelöscht wird",
-    "sent_monitors": "Wie viele Monitore Sie haben, als Bereich, zum Beispiel 11-50",
-    "sent_setup": "Die Peekaping-Version, Einzel- oder Cluster-Modus, das Speicher-Backend sowie Betriebssystem und CPU-Typ",
-    "sent_types": "Die Arten von Monitoren und Benachrichtigungskanälen, die Sie verwenden, zum Beispiel http oder telegram"
+    "not_saved": "Ihre Auswahl zu den Nutzungsstatistiken wurde nicht gespeichert. Prüfen Sie sie unter „Einstellungen“."
   },
   "telemetry_notice": {
     "error_reports": "Fehlerberichte sind eingeschaltet. Wenn Peekaping abstürzt, sendet es den Fehlertyp und die Stelle im Code, an der er auftrat, seine Version, den Modus, das Speicher-Backend und das Betriebssystem. Es sendet nie Fehlermeldungen, URLs oder Hostnamen.",

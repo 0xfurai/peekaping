@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Loo oma admini konto",
-      "error_reporting_hint": "Vaikimisi sisse lülitatud. Väljalülitamiseks eemaldage ruudult märge. Saate seda hiljem muuta jaotises „Seaded“.",
       "have_account": "Sul on juba konto?",
       "sign_in": "Logi sisse",
       "submit": "Loo",
-      "telemetry_hint": "Vaikimisi sisse lülitatud. Väljalülitamiseks eemaldage ruudult märge. Saate seda hiljem muuta jaotises „Seaded“. Kuni see on sees, saadab Peekaping seda kõige rohkem kord päevas:",
-      "title": "Tere"
+      "title": "Tere",
+      "telemetry_note": "Anonüümne: ei sisalda monitoride nimesid, URL-e ega hoste. Saate seda hiljem muuta jaotises „Seaded“.",
+      "telemetry_whats_sent": "Mida saadetakse"
     },
     "twofa": {
       "code_label": "2FA kood",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Mida saadetakse ja kuidas selle välja lülitada",
     "label": "Saada anonüümset kasutusstatistikat",
-    "never_sent": "Ei saadeta kunagi: monitoride nimesid, URL-e, hoste, silte, olekusivude aadresse ega teavituste seadeid. Kasutusping ei sisalda IP-aadressi ning Peekapingi Worker ei salvesta saatja IP-d.",
-    "not_saved": "Teie valikut kasutusstatistika kohta ei salvestatud. Kontrollige seda jaotises „Seaded“.",
-    "sent_features": "Kas kasutate olekusivusid, hooldusaknaid ja mõõdikuid",
-    "sent_id": "Juhuslik ID, mis luuakse sisselülitatud oleku ajal ja kustutatakse väljalülitamisel",
-    "sent_monitors": "Mitu monitoori teil on, vahemikuna, näiteks 11-50",
-    "sent_setup": "Peekapingi versioon, ühe- või klastrirežiim, andmesalv ning operatsioonisüsteem ja protsessori tüüp",
-    "sent_types": "Kasutatavate monitoride ja teavituskanalite liigid, näiteks http või telegram"
+    "not_saved": "Teie valikut kasutusstatistika kohta ei salvestatud. Kontrollige seda jaotises „Seaded“."
   },
   "telemetry_notice": {
     "error_reports": "Veaaruanded on sisse lülitatud. Kui Peekaping kokku jookseb, saadab ta vea tüübi ja koha koodis, kus see juhtus, oma versiooni, režiimi, andmesalve ja operatsioonisüsteemi. Kunagi ei saadeta veateateid, URL-e ega hostinimesid.",

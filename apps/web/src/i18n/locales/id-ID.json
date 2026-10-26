@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Buat akun admin Anda",
-      "error_reporting_hint": "Aktif secara default. Hapus centang kotak ini untuk menonaktifkannya. Anda dapat mengubahnya nanti di “Pengaturan”.",
       "have_account": "Sudah punya akun?",
       "sign_in": "Masuk",
       "submit": "Buat",
-      "telemetry_hint": "Aktif secara default. Hapus centang kotak ini untuk menonaktifkannya. Anda dapat mengubahnya nanti di “Pengaturan”. Selama aktif, Peekaping mengirim data ini paling banyak sekali sehari:",
-      "title": "Halo"
+      "title": "Halo",
+      "telemetry_note": "Anonim: tanpa nama pengawasan, URL, atau host. Anda dapat mengubahnya nanti di “Pengaturan”.",
+      "telemetry_whats_sent": "Apa yang dikirim"
     },
     "twofa": {
       "code_label": "Kode 2FA",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Apa yang dikirim dan cara mematikannya",
     "label": "Kirim statistik penggunaan anonim",
-    "never_sent": "Tidak pernah dikirim: nama pengawasan, URL, host, tag, alamat halaman status, atau pengaturan notifikasi. Ping penggunaan tidak berisi alamat IP, dan Worker milik Peekaping tidak mencatat IP pengirim.",
-    "not_saved": "Pilihan Anda tentang statistik penggunaan tidak tersimpan. Periksa di “Pengaturan”.",
-    "sent_features": "Apakah Anda menggunakan halaman status, jendela pemeliharaan, dan metrik",
-    "sent_id": "ID acak, dibuat selama opsi ini aktif dan dihapus saat Anda menonaktifkannya",
-    "sent_monitors": "Berapa banyak pengawasan yang Anda miliki, sebagai rentang, misalnya 11-50",
-    "sent_setup": "Versi Peekaping, mode tunggal atau klaster, backend penyimpanan, serta sistem operasi dan jenis CPU",
-    "sent_types": "Jenis pengawasan dan saluran notifikasi yang Anda gunakan, misalnya http atau telegram"
+    "not_saved": "Pilihan Anda tentang statistik penggunaan tidak tersimpan. Periksa di “Pengaturan”."
   },
   "telemetry_notice": {
     "error_reports": "Laporan kesalahan aktif. Jika Peekaping mengalami crash, ia mengirim jenis kesalahan dan lokasi di dalam kode tempat terjadinya, versinya, mode, backend penyimpanan, dan sistem operasi. Tidak pernah mengirim pesan kesalahan, URL, atau nama host.",

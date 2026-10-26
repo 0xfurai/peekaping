@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Sukurkite savo administratoriaus paskyrą",
-      "error_reporting_hint": "Pagal numatytuosius nustatymus įjungta. Norėdami išjungti, nuimkite žymėjimą nuo šio langelio. Vėliau tai galite pakeisti skiltyje „Nustatymai“.",
       "have_account": "Ar jau turite paskyrą?",
       "sign_in": "Prisijungti",
       "submit": "Sukurti",
-      "telemetry_hint": "Pagal numatytuosius nustatymus įjungta. Norėdami išjungti, nuimkite žymėjimą nuo šio langelio. Vėliau tai galite pakeisti skiltyje „Nustatymai“. Kol tai įjungta, Peekaping tai siunčia ne dažniau kaip kartą per dieną:",
-      "title": "Sveiki"
+      "title": "Sveiki",
+      "telemetry_note": "Anonimiškai: be monitorių pavadinimų, URL ar serverių. Vėliau tai galite pakeisti skiltyje „Nustatymai“.",
+      "telemetry_whats_sent": "Kas siunčiama"
     },
     "twofa": {
       "code_label": "2FA kodas",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Kas siunčiama ir kaip tai išjungti",
     "label": "Siųsti anonimišką naudojimo statistiką",
-    "never_sent": "Niekada nesiunčiama: monitorių pavadinimai, URL, serveriai, žymos, būsenos puslapių adresai ar pranešimų nustatymai. Naudojimo pinge nėra IP adreso, o Peekaping Worker nesaugo siuntėjo IP.",
-    "not_saved": "Jūsų pasirinkimas dėl naudojimo statistikos neišsaugotas. Patikrinkite jį skiltyje „Nustatymai“.",
-    "sent_features": "Ar naudojate būsenos puslapius, priežiūros langus ir metrikas",
-    "sent_id": "Atsitiktinis ID, kuris sukuriamas, kol tai įjungta, ir ištrinamas, kai išjungiate",
-    "sent_monitors": "Kiek turite monitorių, kaip intervalą, pavyzdžiui, 11-50",
-    "sent_setup": "Peekaping versija, vieno proceso ar klasterio režimas, saugyklos pagrindas, taip pat operacinė sistema ir procesoriaus tipas",
-    "sent_types": "Naudojamų monitorių ir pranešimų kanalų rūšys, pavyzdžiui, http arba telegram"
+    "not_saved": "Jūsų pasirinkimas dėl naudojimo statistikos neišsaugotas. Patikrinkite jį skiltyje „Nustatymai“."
   },
   "telemetry_notice": {
     "error_reports": "Pranešimai apie klaidas įjungti. Jei Peekaping sugenda, jis siunčia klaidos tipą ir vietą kode, kurioje ji įvyko, savo versiją, režimą, saugyklos pagrindą ir operacinę sistemą. Niekada nesiunčia klaidų pranešimų, URL ar pagrindinių kompiuterių pavadinimų.",

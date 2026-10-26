@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Hozd létre az adminisztrátori fiókodat",
-      "error_reporting_hint": "Alapértelmezés szerint be van kapcsolva. A kikapcsoláshoz törölje a négyzet jelölését. Később megváltoztathatja a „Beállítások” részben.",
       "have_account": "Már van fiókod?",
       "sign_in": "Bejelentkezés",
       "submit": "Létrehoz",
-      "telemetry_hint": "Alapértelmezés szerint be van kapcsolva. A kikapcsoláshoz törölje a négyzet jelölését. Később megváltoztathatja a „Beállítások” részben. Amíg be van kapcsolva, a Peekaping naponta legfeljebb egyszer elküldi ezeket:",
-      "title": "Szia"
+      "title": "Szia",
+      "telemetry_note": "Névtelen: nincsenek benne figyelők nevei, URL-ek vagy gazdagépek. Később megváltoztathatja a „Beállítások” részben.",
+      "telemetry_whats_sent": "Mit küld"
     },
     "twofa": {
       "code_label": "2FA kód",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Mit küld, és hogyan kapcsolható ki",
     "label": "Névtelen használati statisztikák küldése",
-    "never_sent": "Soha nem küld: figyelők nevét, URL-eket, gazdagépeket, címkéket, állapotlapok címét vagy értesítési beállításokat. A használati ping nem tartalmaz IP-címet, és a Peekaping Workere nem rögzíti a küldő IP-címét.",
-    "not_saved": "A használati statisztikákra vonatkozó választását nem mentettük. Ellenőrizze a „Beállítások” részben.",
-    "sent_features": "Használ-e állapotlapokat, karbantartási ablakokat és metrikákat",
-    "sent_id": "Egy véletlenszerű azonosító, amely addig jön létre, amíg be van kapcsolva, kikapcsoláskor pedig törlődik",
-    "sent_monitors": "Hány figyelője van, tartományként megadva, például 11-50",
-    "sent_setup": "A Peekaping verziója, az egyedi vagy fürt üzemmód, a tárolási háttérrendszer, valamint az operációs rendszer és a processzor típusa",
-    "sent_types": "A használt figyelők és értesítési csatornák fajtái, például http vagy telegram"
+    "not_saved": "A használati statisztikákra vonatkozó választását nem mentettük. Ellenőrizze a „Beállítások” részben."
   },
   "telemetry_notice": {
     "error_reports": "A hibajelentések be vannak kapcsolva. Ha a Peekaping összeomlik, elküldi a hiba típusát és a kód azon helyét, ahol történt, a verzióját, az üzemmódját, a tárolási háttérrendszert és az operációs rendszert. Soha nem küld hibaüzeneteket, URL-eket vagy gazdagépneveket.",
