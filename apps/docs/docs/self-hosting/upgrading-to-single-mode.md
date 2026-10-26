@@ -112,6 +112,8 @@ Back up first, as in [Back up](#back-up), but in the order below: the dump in st
    cp -a .data/postgres .data/postgres-before-upgrade
    ```
 
+   Change no users, monitors or settings from the start of the dump until `docker stop` returns. Changes made then aren't in `peekaping.dump`, so the new stack doesn't have them. They stay in the old `.data/postgres`, which only going back uses.
+
 2. **Set up the new stack** in a new folder, and move the dump into it. Take the Compose file from [Docker + PostgreSQL](./docker-with-postgres.md#single-mode) and a `.env` with the role and database of the bundle. The new PostgreSQL keeps its data in `.data/postgres17` of the new folder, so the bundle's `.data/postgres` stays as it is. Run the commands of the next steps in the new folder:
 
    ```bash
@@ -174,6 +176,8 @@ Read the log:
 
 ```bash
 docker logs peekaping
+# Or, for the PostgreSQL stack, in its folder:
+docker compose logs peekaping
 ```
 
 You should see `Migrations completed successfully!`, and then the lines `Starting Peekaping in single mode` and `Serving the API`. When there is nothing to migrate, the migrations print `there are no new migrations to run (database is up to date)`. If you see `ERROR: Migrations failed`, the container exits, and with `--restart=always` it keeps restarting. Stop it, keep the log, and roll back as described below.
@@ -213,7 +217,13 @@ mv .data/sqlite .data/sqlite-after-upgrade
 cp -a .data/sqlite-before-upgrade .data/sqlite
 ```
 
-For the PostgreSQL bundle, there is nothing to restore into: the move to a stack of two containers leaves the old container and its `.data/postgres` as they were. Go back as [Moving from the PostgreSQL bundle](#moving-from-the-postgresql-bundle) ends. The copy of `.data/postgres` from step 1 is there in case you did start the old container after the move and changed its data.
+For the PostgreSQL bundle, there is nothing to restore into: the move to a stack of two containers leaves the old container and its `.data/postgres` as they were. Go back as [Moving from the PostgreSQL bundle](#moving-from-the-postgresql-bundle) ends. If you started the old container after the move and want its data as it was in step 1, put the copy back before you start it again:
+
+```bash
+docker stop -t 35 peekaping
+sudo mv .data/postgres .data/postgres-after-upgrade
+sudo cp -a .data/postgres-before-upgrade .data/postgres
+```
 
 With a named volume, empty it and unpack the archive from [Back up](#back-up) into it with a throwaway container. Replace `peekaping_data` with the volume's name:
 
