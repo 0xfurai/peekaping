@@ -39,8 +39,8 @@ How long a check took to get its answer, in milliseconds.
 _Avoid_: Ping (that's a monitor type), latency
 
 **Uptime**:
-The share of a monitor's heartbeats in a period that were Up.
-_Avoid_: Availability, SLA
+The share of a monitor's heartbeats in a period that were Up. A probe's uptime is the share of a range it was online (see Probe availability).
+_Avoid_: Availability (that's a probe's online and offline history), SLA
 
 **Paused**:
 A monitor that's switched off. It runs no checks until it's resumed.
@@ -65,6 +65,14 @@ _Avoid_: Private location, remote agent
 **Probe instance**:
 One running copy of a probe's program. Every copy started with the probe's token is an instance of that probe, with a random id of its own, and the probe's monitors are dealt among its instances. Each instance lists the monitor types its build runs (the full image and the slim one differ), a monitor goes only to instances that run its type, and the probe runs the types of its online instances together.
 _Avoid_: Agent, worker, node; "instance ID" alone, which is the usage ping's
+
+**Probe availability**:
+When a probe was online and offline over the last 24 hours, 7 days or 30 days, and its uptime over that range. It comes from the probe's status changes, each dated when the status really changed: a probe that went offline did so when its instances were last seen, not when Peekaping noticed. It counts from when the probe's history begins, its creation or the upgrade that started recording it, and changes older than the data retention period are deleted, except the one that says what the probe was at the cutoff. The local probe in single mode has none: the `peekaping` process checks its monitors.
+_Avoid_: Probe uptime chart, probe SLA
+
+**Instance connection**:
+A stretch of time a probe instance was connected: from its hello, or its first request after more than a minute of quiet, to its bye or its last request. An instance's connections are kept as long as the instance is, a day after it was last seen.
+_Avoid_: Session
 
 **Location**:
 A monitor's results from one of its probes: that probe's latest status, response time and heartbeats for the monitor. A monitor on three probes has three locations. A monitor's status follows its locations: it is Down while its location rule is met, otherwise Maintenance while any location is in Maintenance, otherwise Up while any is Up, otherwise Pending. A location whose probe is offline, or that hasn't reported yet, doesn't count. Only a result can change the monitor's status, and only toward its own: an Up result never takes the monitor Down, a Down result never takes it Up, and a Down monitor stays Down while another location retries, until an Up result arrives.
