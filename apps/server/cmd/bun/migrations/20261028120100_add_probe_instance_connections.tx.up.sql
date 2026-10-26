@@ -1,4 +1,4 @@
--- When each probe instance was connected (#330). A connection starts when the instance says hello,
+-- When each probe instance was connected (PP-330). A connection starts when the instance says hello,
 -- or at its first request after more than a minute of quiet (the online window), and it ends when
 -- the instance says bye. An instance that stops without a bye has an open connection (ended_at is
 -- NULL) that ends at its last_seen_at, the time of its last request. Restarting a probe's

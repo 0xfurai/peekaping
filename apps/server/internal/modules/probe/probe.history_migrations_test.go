@@ -16,7 +16,7 @@ import (
 	"github.com/uptrace/bun/migrate"
 )
 
-// firstHistoryMigration is the first migration of the probe history (#330)
+// firstHistoryMigration is the first migration of the probe history (PP-330)
 const firstHistoryMigration = "20261028120000"
 
 // migratedBeforeHistory migrates the database as it was before the probe history, and returns the

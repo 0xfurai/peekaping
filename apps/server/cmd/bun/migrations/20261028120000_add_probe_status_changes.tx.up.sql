@@ -1,4 +1,4 @@
--- The history of each probe's status (#330): one row for every time it went online or offline, so
+-- The history of each probe's status (PP-330): one row for every time it went online or offline, so
 -- that the web app can draw when a probe was reachable. probes.status stays the current status;
 -- this table is how it got there. The same file runs on SQLite and PostgreSQL.
 --

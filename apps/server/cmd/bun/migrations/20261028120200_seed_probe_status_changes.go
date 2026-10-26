@@ -8,7 +8,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// Starts the history of every probe that exists at the upgrade (#330): one row in
+// Starts the history of every probe that exists at the upgrade (PP-330): one row in
 // probe_status_changes with the status the probe has now, at the time of the upgrade. What the
 // probe did before is not known.
 //
