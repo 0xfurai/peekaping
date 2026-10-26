@@ -249,8 +249,10 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 		if len(instances) == 0 {
 			// There is no instance to have seen it last: they were pruned, as after a server outage
 			// longer than InstanceRetention. (An instance that says bye is retired, not removed, so
-			// it counts from the time it was left with.)
+			// it counts from its connection's end.)
 			since = now
+		} else {
+			since = s.lastContact(ctx, p, lastSeen)
 		}
 		// The probe went offline when it was last seen, which the history records, and not when
 		// the sweep found out
@@ -283,6 +285,25 @@ func (s *Sweep) checkStatus(ctx context.Context, p *Model, instances []*Instance
 		s.logger.Infow("Probe is back online", "probeId", p.ID, "name", p.Name)
 		publish(ctx, s, ProbeOnline, Event{ProbeID: p.ID, ProbeName: p.Name, Since: lastSeen.UTC()})
 	}
+}
+
+// lastContact is when the probe's instances were last heard from. An instance's last seen time
+// is a minute early when it said bye (see RetiredAt), and its connection keeps the time of the bye
+// itself, so the later of the two is when the probe went offline. A probe whose connections can't
+// be read counts from its instances' last seen time.
+func (s *Sweep) lastContact(ctx context.Context, p *Model, lastSeen time.Time) time.Time {
+	connections, err := s.repo.FindInstanceConnections(ctx, p.ID, lastSeen)
+	if err != nil {
+		s.logger.Warnw("Failed to read the connections of a probe, it went offline when its instances were last seen", "probeId", p.ID, "error", err)
+		return lastSeen
+	}
+	contact := lastSeen
+	for _, c := range connections {
+		if c.LastSeenAt.After(contact) {
+			contact = c.LastSeenAt
+		}
+	}
+	return contact
 }
 
 // checkInstances tells the waiting polls of the probe when the instances it is dealt among are
