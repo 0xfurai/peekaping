@@ -125,16 +125,18 @@ func (m *MySQLExecutor) parseMySQLURL(connectionString string) (*mysql.Config, e
 		return nil, fmt.Errorf("database name is required in connection string")
 	}
 
-	// Let the driver read the query parameters, then set the rest on its
-	// configuration, which the driver escapes when it uses it.
-	cfg, err := mysql.ParseDSN("/?" + u.RawQuery)
+	// Let the driver read the query parameters, with the address in the string
+	// it reads: for tls=true it verifies the certificate against the host name
+	// it finds there, and sets that name when it normalizes, so the address
+	// can't be filled in afterwards. The parameters go back in escaped, since
+	// the driver takes the last "/" as the end of the address.
+	addr := net.JoinHostPort(u.Hostname(), port)
+	cfg, err := mysql.ParseDSN("tcp(" + addr + ")/?" + u.Query().Encode())
 	if err != nil {
 		return nil, err
 	}
 	cfg.User = user
 	cfg.Passwd = pass
-	cfg.Net = "tcp"
-	cfg.Addr = net.JoinHostPort(u.Hostname(), port)
 	cfg.DBName = database
 
 	return cfg, nil

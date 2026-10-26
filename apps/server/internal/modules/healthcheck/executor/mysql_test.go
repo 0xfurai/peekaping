@@ -463,16 +463,17 @@ func TestMySQLExecutor_parseMySQLURL(t *testing.T) {
 	executor := NewMySQLExecutor(logger)
 
 	tests := []struct {
-		name          string
-		connectionStr string
-		wantUser      string
-		wantPassword  string
-		wantAddr      string
-		wantDatabase  string
-		wantTLS       string
-		wantParseTime bool
-		wantParams    map[string]string
-		wantErr       string
+		name           string
+		connectionStr  string
+		wantUser       string
+		wantPassword   string
+		wantAddr       string
+		wantDatabase   string
+		wantTLS        string
+		wantParseTime  bool
+		wantServerName string // the host name the certificate is verified against
+		wantParams     map[string]string
+		wantErr        string
 	}{
 		{
 			name:          "full connection string",
@@ -519,6 +520,35 @@ func TestMySQLExecutor_parseMySQLURL(t *testing.T) {
 			connectionStr: "mysql://user:password@localhost:3306/testdb?parseTime=true&tls=skip-verify",
 			wantUser:      "user", wantPassword: "password", wantAddr: "localhost:3306", wantDatabase: "testdb",
 			wantTLS: "skip-verify", wantParseTime: true,
+		},
+		{
+			name:          "tls=true verifies the certificate against the host name",
+			connectionStr: "mysql://u:p@db.example.com:3306/d?tls=true",
+			wantUser:      "u", wantPassword: "p", wantAddr: "db.example.com:3306", wantDatabase: "d",
+			wantTLS: "true", wantServerName: "db.example.com",
+		},
+		{
+			name:          "tls=true verifies the certificate against the host name, without a port",
+			connectionStr: "mysql://u:p@db.example.com/d?tls=true",
+			wantUser:      "u", wantPassword: "p", wantAddr: "db.example.com:3306", wantDatabase: "d",
+			wantTLS: "true", wantServerName: "db.example.com",
+		},
+		{
+			name:          "tls=true with an IPv6 host verifies against the address without brackets",
+			connectionStr: "mysql://u:p@[::1]:3306/d?tls=true",
+			wantUser:      "u", wantPassword: "p", wantAddr: "[::1]:3306", wantDatabase: "d",
+			wantTLS: "true", wantServerName: "::1",
+		},
+		{
+			name:          "tls=preferred verifies nothing, so it names no server",
+			connectionStr: "mysql://u:p@db.example.com:3306/d?tls=preferred",
+			wantUser:      "u", wantPassword: "p", wantAddr: "db.example.com:3306", wantDatabase: "d",
+			wantTLS: "preferred",
+		},
+		{
+			name:          "a query parameter with a slash in it",
+			connectionStr: "mysql://u:p@localhost:3306/d?connectionAttributes=a/b:c",
+			wantUser:      "u", wantPassword: "p", wantAddr: "localhost:3306", wantDatabase: "d",
 		},
 		{
 			name:          "a query parameter can't change the address",
@@ -571,6 +601,11 @@ func TestMySQLExecutor_parseMySQLURL(t *testing.T) {
 			assert.Equal(t, tt.wantDatabase, cfg.DBName)
 			assert.Equal(t, tt.wantTLS, cfg.TLSConfig)
 			assert.Equal(t, tt.wantParseTime, cfg.ParseTime)
+			if tt.wantServerName != "" {
+				require.NotNil(t, cfg.TLS)
+				assert.Equal(t, tt.wantServerName, cfg.TLS.ServerName)
+				assert.False(t, cfg.TLS.InsecureSkipVerify)
+			}
 			for key, want := range tt.wantParams {
 				assert.Equal(t, want, cfg.Params[key], key)
 			}
