@@ -1,0 +1,145 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+
+const setups = [
+  {
+    id: "sqlite",
+    label: "SQLite",
+    docs: "https://docs.peekaping.com/self-hosting/docker-with-sqlite",
+    command: `docker run -d --restart=always \\
+  -p 8383:8383 \\
+  -e DB_NAME=/app/data/peekaping.db \\
+  -v $(pwd)/.data/sqlite:/app/data \\
+  --name peekaping \\
+  0xfurai/peekaping-bundle-sqlite:latest`,
+  },
+  {
+    id: "postgres",
+    label: "PostgreSQL",
+    docs: "https://docs.peekaping.com/self-hosting/docker-with-postgres",
+    command: `docker run -d --restart=always \\
+  -p 8383:8383 \\
+  -e DB_NAME=peekaping \\
+  -e DB_USER=peekaping \\
+  -e DB_PASS=change-me \\
+  -v $(pwd)/.data/postgres:/var/lib/postgresql/data \\
+  --name peekaping \\
+  0xfurai/peekaping-bundle-postgres:latest`,
+  },
+];
+
+const steps = [
+  { title: "Run one container", body: "Pick SQLite for a quick start or PostgreSQL for production." },
+  { title: "Open localhost:8383", body: "Create your account and sign in." },
+  { title: "Add monitors and alerts", body: "Point it at your services and choose who hears about it." },
+];
+---
+
+<section id="quickstart" class="relative px-4 sm:px-8 py-24 sm:py-32">
+  <div class="max-w-screen-lg mx-auto">
+    <SectionHeading eyebrow="Quickstart" title="Up and running <span class='text-gradient'>in a minute</span>">
+      No account, no credit card, no agent to install on every host.
+    </SectionHeading>
+
+    <div class="grid lg:grid-cols-[1fr_1.4fr] gap-10 lg:gap-14 items-center">
+      <ol class="space-y-8">
+        {
+          steps.map((step, i) => (
+            <li class="reveal flex gap-5" style={`--delay:${i * 100}ms`}>
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-violet-400/30 bg-violet-500/10 font-mono text-sm font-semibold text-violet-200">
+                {i + 1}
+              </span>
+              <div>
+                <h3 class="text-lg font-semibold text-white">{step.title}</h3>
+                <p class="mt-1 text-zinc-400">{step.body}</p>
+              </div>
+            </li>
+          ))
+        }
+        <li class="reveal pl-15" style="--delay:300ms">
+          <a href="https://docs.peekaping.com" target="_blank" class="text-violet-300 hover:text-violet-200 font-semibold">
+            Kubernetes, Compose and more in the docs →
+          </a>
+        </li>
+      </ol>
+
+      <div
+        class="reveal relative rounded-2xl border border-white/10 bg-[#0b0814] shadow-[0_40px_120px_-30px_rgba(139,92,246,0.55)] overflow-hidden"
+        id="terminal"
+        style="--delay:120ms"
+      >
+        <div class="flex items-center gap-4 border-b border-white/10 px-4 py-3">
+          <div class="flex gap-1.5" aria-hidden="true">
+            <span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span>
+            <span class="h-3 w-3 rounded-full bg-[#febc2e]"></span>
+            <span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
+          </div>
+          <div class="flex gap-1 text-xs font-semibold" role="tablist" aria-label="Database">
+            {
+              setups.map((setup, i) => (
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={i === 0 ? "true" : "false"}
+                  aria-controls={`setup-${setup.id}`}
+                  data-tab={setup.id}
+                  class="rounded-md px-2.5 py-1 text-zinc-400 hover:text-white aria-selected:bg-white/10 aria-selected:text-white transition-colors"
+                >
+                  {setup.label}
+                </button>
+              ))
+            }
+          </div>
+          <button
+            type="button"
+            id="terminal-copy"
+            class="ml-auto rounded-md px-2.5 py-1 text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            Copy
+          </button>
+        </div>
+        {
+          setups.map((setup, i) => (
+            <div id={`setup-${setup.id}`} role="tabpanel" data-panel={setup.id} hidden={i !== 0}>
+              <pre class="overflow-x-auto p-5 sm:p-6 font-mono text-[13px] leading-relaxed text-zinc-300"><code><span class="text-violet-400 select-none">$ </span>{setup.command}</code></pre>
+              <div class="border-t border-white/5 px-5 sm:px-6 py-3 font-mono text-[12px] text-zinc-500">
+                <span class="text-up">✓</span> Peekaping is up at <span class="text-zinc-300">http://localhost:8383</span>
+                <a href={setup.docs} target="_blank" class="float-right font-sans font-semibold text-violet-300 hover:text-violet-200">
+                  Guide →
+                </a>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const terminal = document.getElementById("terminal");
+  if (terminal) {
+    const tabs = terminal.querySelectorAll<HTMLButtonElement>("[data-tab]");
+    const panels = terminal.querySelectorAll<HTMLElement>("[data-panel]");
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+        panels.forEach((panel) => (panel.hidden = panel.dataset.panel !== tab.dataset.tab));
+      });
+    });
+
+    const copy = document.getElementById("terminal-copy");
+    copy?.addEventListener("click", async () => {
+      const code = terminal.querySelector<HTMLElement>("[data-panel]:not([hidden]) code");
+      // Leave out the prompt sign
+      const text = code?.textContent?.replace(/^\$ /, "") ?? "";
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        return;
+      }
+      copy.textContent = "Copied";
+      setTimeout(() => (copy.textContent = "Copy"), 1600);
+    });
+  }
+</script>

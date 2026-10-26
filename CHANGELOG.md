@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- feat: the landing page at peekaping.com has a new dark design: a hero with a live heartbeat card and a copyable `docker run`, a features grid, a quickstart terminal for SQLite and PostgreSQL, and monitor and alert channel lists that match what the server runs (MySQL/MariaDB, SendGrid, Twilio, LINE, PagerTree and Pushbullet were missing). The testimonials no longer repeat
 - feat: the SQLite and PostgreSQL bundle images run Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383, with no Redis, Caddy or supervisord. The SQLite bundle now runs on Alpine. The PostgreSQL bundle stays on Debian and runs its bundled PostgreSQL 17 beside `peekaping`, so existing databases keep working as they are. The image names, port 8383, the data volumes and your environment variables stay the same. `peekaping` runs as the non-root `peekaping` user, and `PUID`, `PGID`, the Docker socket's group and the `ping_group_range` warning work as before. The images can also start with `docker run --user`, and they have a Docker health check. There is no MongoDB bundle any more (see Removed). The SQLite bundle, measured against 0.0.47:
 
   | | 0.0.47 | Now |
