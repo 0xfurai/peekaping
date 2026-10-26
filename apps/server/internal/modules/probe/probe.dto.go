@@ -66,6 +66,15 @@ type ProbeWithTokenResponse struct {
 	Token string `json:"token" validate:"required"`
 }
 
+// AssignAllMonitorsResponse is what assigning a probe every monitor did
+type AssignAllMonitorsResponse struct {
+	// Added is how many monitors the probe was added to
+	Added int `json:"added" validate:"required"`
+	// Pending is true when the probe has no instance to say which monitors it runs, so that it is
+	// assigned every monitor by its first hello instead
+	Pending bool `json:"pending" validate:"required"`
+}
+
 // ToProbeResponse converts a Model to ProbeResponse
 func ToProbeResponse(m *Model) *ProbeResponse {
 	supportedTypes := m.SupportedTypes

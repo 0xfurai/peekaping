@@ -1351,9 +1351,25 @@ components:
         type:
           type: string
       type: object
+    probe.AssignAllMonitorsResponse:
+      additionalProperties: false
+      properties:
+        added:
+          format: int64
+          type: integer
+        pending:
+          type: boolean
+      required:
+        - added
+        - pending
+      type: object
     probe.CreateProbeDto:
       additionalProperties: true
       properties:
+        assign_all_monitors:
+          default: false
+          description: Assign the probe every monitor it can run (push monitors excepted) when its first instance says hello. Defaults to false.
+          type: boolean
         location:
           maxLength: 255
           type: string
@@ -1507,6 +1523,8 @@ components:
     probe.ProbeResponse:
       additionalProperties: false
       properties:
+        assign_all_pending:
+          type: boolean
         created_at:
           format: date-time
           type: string
@@ -1550,12 +1568,15 @@ components:
         - supported_types
         - notification_ids
         - instances
+        - assign_all_pending
         - created_at
         - updated_at
       type: object
     probe.ProbeWithTokenResponse:
       additionalProperties: false
       properties:
+        assign_all_pending:
+          type: boolean
         created_at:
           format: date-time
           type: string
@@ -1602,6 +1623,7 @@ components:
         - supported_types
         - notification_ids
         - instances
+        - assign_all_pending
         - created_at
         - updated_at
       type: object
@@ -2913,6 +2935,17 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/notification_channel.Model"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_probe.AssignAllMonitorsResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/probe.AssignAllMonitorsResponse"
         message:
           type: string
       required:
@@ -6104,6 +6137,55 @@ paths:
         - JwtAuth: []
         - ApiKeyAuth: []
       summary: Update probe
+      tags:
+        - probe
+  /api/v1/probes/{id}/assign-all-monitors:
+    post:
+      description: "Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending."
+      operationId: postProbesByIdAssignAllMonitors
+      parameters:
+        - description: Probe ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: Probe ID
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_probe.AssignAllMonitorsResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Assign all monitors to a probe
       tags:
         - probe
   /api/v1/probes/{id}/availability:

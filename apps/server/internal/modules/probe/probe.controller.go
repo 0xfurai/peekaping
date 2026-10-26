@@ -14,16 +14,28 @@ import (
 	"go.uber.org/zap"
 )
 
+// MonitorAssigner assigns a probe to monitors. The monitor service stands behind it, wired in
+// internal/app, so that the probe module doesn't import the monitor module: the monitor service
+// already depends on the probe service.
+type MonitorAssigner interface {
+	// AssignProbeToAll adds the probe to every monitor, paused ones included but push monitors
+	// not, of one of the monitor types (every type when there are none) that doesn't run on it,
+	// and returns how many it added
+	AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string) (int, error)
+}
+
 type Controller struct {
 	service      Service
 	availability AvailabilityService
+	monitors     MonitorAssigner
 	logger       *zap.SugaredLogger
 }
 
-func NewController(service Service, availability AvailabilityService, logger *zap.SugaredLogger) *Controller {
+func NewController(service Service, availability AvailabilityService, monitors MonitorAssigner, logger *zap.SugaredLogger) *Controller {
 	return &Controller{
 		service:      service,
 		availability: availability,
+		monitors:     monitors,
 		logger:       logger.Named("[probe-controller]"),
 	}
 }
@@ -32,6 +44,7 @@ func NewController(service Service, availability AvailabilityService, logger *za
 const (
 	localProbeCantBeDeleted  = "The local probe can't be deleted: it runs the checks Peekaping makes itself"
 	localProbeCantBeDisabled = "The local probe can't be disabled: it runs the checks Peekaping makes itself"
+	localProbeCantBeAssigned = "The local probe can't be assigned every monitor: it runs the checks Peekaping makes itself, and a monitor is moved to it by editing the monitor"
 	localProbeCantBeRotated  = "The local probe's token can't be rotated. In cluster mode it is set with PROBE_BOOTSTRAP_TOKEN: set or change it and restart Peekaping. In single mode the local probe takes no token: the peekaping process checks its monitors"
 )
 
@@ -172,6 +185,42 @@ func (c *Controller) RotateProbeToken(ctx context.Context, input *RotateProbeTok
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe token rotated successfully. Copy the new token now: it is shown only once, and the old one no longer works", ToProbeWithTokenResponse(rotated)))
+}
+
+// AssignAllMonitors assigns a probe every monitor it can run now, and answers with how many it added.
+// A probe with no instance on record doesn't know what it runs yet, so it is made to wait for its
+// first hello instead.
+func (c *Controller) AssignAllMonitors(ctx context.Context, input *AssignAllMonitorsInput) (*httpx.Output[utils.ApiResponse[*AssignAllMonitorsResponse]], error) {
+	r := input.Request
+	// MARK: AssignAllMonitors
+
+	id := r.PathValue("id")
+	found, err := c.service.FindByID(ctx, id)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
+	if found == nil {
+		return nil, c.fail(ErrNotFound, "")
+	}
+	if id == LocalID {
+		return nil, c.fail(ErrLocalProbe, localProbeCantBeAssigned)
+	}
+
+	if len(found.Instances) == 0 {
+		if err := c.service.SetPendingAssignment(ctx, id); err != nil {
+			return nil, c.fail(err, "")
+		}
+		return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("The probe is assigned every monitor when its first instance says hello", &AssignAllMonitorsResponse{Pending: true}))
+	}
+
+	// FindByID made the probe's types those of its online instances, or the last it had while
+	// none is online
+	added, err := c.monitors.AssignProbeToAll(ctx, id, found.SupportedTypes)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
+
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitors assigned successfully", &AssignAllMonitorsResponse{Added: added}))
 }
 
 // availabilityRange reads the range query, 24h when it is left out

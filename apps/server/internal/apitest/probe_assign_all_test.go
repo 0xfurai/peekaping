@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"sync/atomic"
 	"testing"
 
@@ -264,4 +265,74 @@ func TestProbeAssignAll_AFailedAssignmentAnswers503AndTheRetryAssigns(t *testing
 	require.Equal(t, http.StatusOK, retried.Code, retried.Body.String())
 	assert.ElementsMatch(t, w.nonPush(), a.monitorsOnProbe(t, w.probe.ID))
 	assert.False(t, a.getProbe(t, w.probe.ID).AssignAllPending)
+}
+
+type assignAllResult struct {
+	Added   int  `json:"added"`
+	Pending bool `json:"pending"`
+}
+
+func (a *app) assignAllMonitors(t *testing.T, probeID string) *httptest.ResponseRecorder {
+	t.Helper()
+	return a.request(t, http.MethodPost, probesPath+"/"+probeID+"/assign-all-monitors", nil, a.asAdmin)
+}
+
+// AC5: the action assigns a probe that has instances every monitor it can run now, and says how many
+// it added
+func TestProbeAssignAll_TheActionAssignsAProbeWithInstances(t *testing.T) {
+	a := newAppWithAdmin(t)
+	made := a.probeThatRuns(t, "Frankfurt", "http", "tcp")
+	site := a.createHTTPMonitor(t, "Site", "")
+	paused := a.createHTTPMonitor(t, "Paused", "")
+	a.pauseMonitor(t, paused)
+	database := decode[created](t, a.request(t, http.MethodPost, monitorsPath, tcpMonitorBody("Database"), a.asAdmin), http.StatusCreated).ID
+	docker := decode[created](t, a.request(t, http.MethodPost, monitorsPath, dockerMonitorBody("Containers"), a.asAdmin), http.StatusCreated).ID
+	push := a.createMonitor(t, "Nightly job", "nightly-token")
+	already := decode[created](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Both", ""), "local", made.ID), a.asAdmin), http.StatusCreated).ID
+
+	result := decode[assignAllResult](t, a.assignAllMonitors(t, made.ID), http.StatusOK)
+
+	assert.Equal(t, assignAllResult{Added: 3}, result, "the site, the paused site and the database")
+	assert.ElementsMatch(t, []string{site, paused, database, already}, a.monitorsOnProbe(t, made.ID))
+	assert.Equal(t, []string{"local"}, a.monitorProbes(t, docker), "the probe doesn't run docker monitors")
+	assert.Equal(t, []string{"local"}, a.monitorProbes(t, push))
+	assert.False(t, a.getProbe(t, made.ID).AssignAllPending)
+
+	again := decode[assignAllResult](t, a.assignAllMonitors(t, made.ID), http.StatusOK)
+	assert.Equal(t, assignAllResult{}, again, "nothing is left to add")
+}
+
+// AC5: a probe with no instance on record doesn't know what it runs yet, so the action makes it wait
+// for its first hello
+func TestProbeAssignAll_TheActionOnAProbeWithoutInstancesMakesItWait(t *testing.T) {
+	a := newAppWithAdmin(t)
+	made := a.createProbe(t, map[string]any{"name": "Frankfurt"})
+	site := a.createHTTPMonitor(t, "Site", "")
+
+	result := decode[assignAllResult](t, a.assignAllMonitors(t, made.ID), http.StatusOK)
+
+	assert.Equal(t, assignAllResult{Pending: true}, result)
+	assert.True(t, a.getProbe(t, made.ID).AssignAllPending)
+	assert.Empty(t, a.monitorsOnProbe(t, made.ID))
+
+	a.sayHelloWith(t, made.Token, "instance-1", nil)
+
+	assert.Equal(t, []string{site}, a.monitorsOnProbe(t, made.ID), "its first hello assigns")
+	assert.False(t, a.getProbe(t, made.ID).AssignAllPending)
+}
+
+// AC5: the local probe is refused the way its other changes are, and an unknown probe is not found
+func TestProbeAssignAll_TheActionRefusesTheLocalProbeAndAnUnknownOne(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	local := a.assignAllMonitors(t, "local")
+	assert.Equal(t, http.StatusConflict, local.Code, local.Body.String())
+	assert.Contains(t, errorMessage(t, local.Body.Bytes()), "local probe can't be assigned every monitor")
+	assert.False(t, a.getProbe(t, "local").AssignAllPending, "and the flag is not set")
+
+	unknown := a.assignAllMonitors(t, uuid.NewString())
+	assert.Equal(t, http.StatusNotFound, unknown.Code, unknown.Body.String())
+
+	denied := a.request(t, http.MethodPost, probesPath+"/local/assign-all-monitors", nil)
+	assert.Equal(t, http.StatusUnauthorized, denied.Code)
 }

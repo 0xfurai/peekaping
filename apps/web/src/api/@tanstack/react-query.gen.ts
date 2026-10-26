@@ -58,6 +58,7 @@ import {
   deleteProbesById,
   getProbesById,
   putProbesById,
+  postProbesByIdAssignAllMonitors,
   getProbesByIdAvailability,
   postProbesByIdRotateToken,
   getProxies,
@@ -226,6 +227,9 @@ import type {
   PutProbesByIdData,
   PutProbesByIdError,
   PutProbesByIdResponse,
+  PostProbesByIdAssignAllMonitorsData,
+  PostProbesByIdAssignAllMonitorsError,
+  PostProbesByIdAssignAllMonitorsResponse,
   GetProbesByIdAvailabilityData,
   PostProbesByIdRotateTokenData,
   PostProbesByIdRotateTokenError,
@@ -2293,6 +2297,59 @@ export const putProbesByIdMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await putProbesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postProbesByIdAssignAllMonitorsQueryKey = (
+  options: Options<PostProbesByIdAssignAllMonitorsData>
+) => createQueryKey("postProbesByIdAssignAllMonitors", options);
+
+/**
+ * Assign all monitors to a probe
+ * Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
+ */
+export const postProbesByIdAssignAllMonitorsOptions = (
+  options: Options<PostProbesByIdAssignAllMonitorsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postProbesByIdAssignAllMonitors({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postProbesByIdAssignAllMonitorsQueryKey(options),
+  });
+};
+
+/**
+ * Assign all monitors to a probe
+ * Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
+ */
+export const postProbesByIdAssignAllMonitorsMutation = (
+  options?: Partial<Options<PostProbesByIdAssignAllMonitorsData>>
+): UseMutationOptions<
+  PostProbesByIdAssignAllMonitorsResponse,
+  AxiosError<PostProbesByIdAssignAllMonitorsError>,
+  Options<PostProbesByIdAssignAllMonitorsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostProbesByIdAssignAllMonitorsResponse,
+    AxiosError<PostProbesByIdAssignAllMonitorsError>,
+    Options<PostProbesByIdAssignAllMonitorsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postProbesByIdAssignAllMonitors({
         ...options,
         ...localOptions,
         throwOnError: true,

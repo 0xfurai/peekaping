@@ -144,7 +144,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 92, count)
+	assert.Equal(t, 93, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)
@@ -225,6 +225,8 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"local probe delete conflict", "DELETE", "/api/v1/probes/{id}", "/api/v1/probes/local", nil, 409, a.asAdmin},
 		{"local probe rotate conflict", "POST", "/api/v1/probes/{id}/rotate-token", "/api/v1/probes/local/rotate-token", nil, 409, a.asAdmin},
 		{"probe not found", "GET", "/api/v1/probes/{id}", "/api/v1/probes/missing", nil, 404, a.asAdmin},
+		{"local probe assign conflict", "POST", "/api/v1/probes/{id}/assign-all-monitors", "/api/v1/probes/local/assign-all-monitors", nil, 409, a.asAdmin},
+		{"probe assign, not found", "POST", "/api/v1/probes/{id}/assign-all-monitors", "/api/v1/probes/missing/assign-all-monitors", nil, 404, a.asAdmin},
 		{"probe availability list", "GET", "/api/v1/probes/availability", "/api/v1/probes/availability?range=7d", nil, 200, a.asAdmin},
 		{"probe availability list, bad range", "GET", "/api/v1/probes/availability", "/api/v1/probes/availability?range=1y", nil, 400, a.asAdmin},
 		{"probe availability", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/local/availability", nil, 200, a.asAdmin},
@@ -238,6 +240,7 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"probe protocol results, bad body", "POST", "/probe/v1/results", "/probe/v1/results", "{", 400, asProbe(localToken, "contract-local")},
 		{"probe protocol results, too many", "POST", "/probe/v1/results", "/probe/v1/results", map[string]any{"results": make([]map[string]any, 501)}, 400, asProbe(localToken, "contract-local")},
 		{"probe protocol results, unknown instance", "POST", "/probe/v1/results", "/probe/v1/results", contractResults, 409, asProbe(protocolProbe.Token, "contract-unknown")},
+		{"probe assign all monitors", "POST", "/api/v1/probes/{id}/assign-all-monitors", "/api/v1/probes/" + protocolProbe.ID + "/assign-all-monitors", nil, 200, a.asAdmin},
 		{"probe protocol assignments, unknown instance", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 409, asProbe(protocolProbe.Token, "contract-unknown")},
 		{"probe protocol hello, old version", "POST", "/probe/v1/hello", "/probe/v1/hello", oldHello, 426, asProbe(protocolProbe.Token, "contract-old")},
 		{"probe protocol hello, bad body", "POST", "/probe/v1/hello", "/probe/v1/hello", "{", 400, asProbe(protocolProbe.Token, "contract-bad")},
