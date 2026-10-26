@@ -615,6 +615,26 @@ func TestChartOfAnEmptyRangeHasAnEmptyPointPerBucket(t *testing.T) {
 	})
 }
 
+func TestChartBucketsOfA7MinuteMonitorStartOnMultiplesOf7MinutesFromTheUnixEpoch(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		// 1792159320 = 4267046 * 420 s is 2026-10-16 14:02:00 UTC, so the buckets start at 14:02, 14:09
+		// and 14:16. Counting 7 minutes from year 1 instead would start them a minute earlier.
+		bucketAt := func(k int64) time.Time { return time.Unix(k*420, 0).UTC() }
+		require.Equal(t, time.Date(2026, 10, 16, 14, 2, 0, 0, time.UTC), bucketAt(4267046))
+		for k := int64(4267046); k <= 4267048; k++ {
+			aggregate(t, svc, monitorID, shared.MonitorStatusUp, 100, bucketAt(k).Add(10*time.Second))
+		}
+
+		since := time.Date(2026, 10, 16, 14, 5, 0, 0, time.UTC)
+		until := time.Date(2026, 10, 16, 14, 20, 0, 0, time.UTC)
+		assert.Equal(t, []chartPoint{
+			{At: bucketAt(4267046), Up: 1},
+			{At: bucketAt(4267047), Up: 1},
+			{At: bucketAt(4267048), Up: 1},
+		}, chartPoints(t, svc, monitorID, since, until, stats.StatMinutely, 420))
+	})
+}
+
 func TestFirstHourOfAChartHoldsItsWholeStat(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
 		at := func(h, m int) time.Time { return time.Date(2026, 10, 16, h, m, 0, 0, time.UTC) }

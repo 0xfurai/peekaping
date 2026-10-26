@@ -115,7 +115,7 @@ func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context, moni
 
 // FindStatsByMonitorIDAndTimeRangeWithInterval returns one point per bucket from the bucket holding
 // since to the one holding until. A bucket is a minute, an hour or a day wide; the minute stats of a
-// monitor checked less often than every minute are grouped into buckets of its interval, rounded up
+// monitor checked less often than every minute are grouped into buckets of its check interval, rounded up
 // to whole minutes. Buckets start on a multiple of their width from the Unix epoch, so a chart read
 // a minute later shows the same buckets. Buckets without stats are empty points.
 func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.Context, monitorID, probeID string, since, until time.Time, period StatPeriod, monitorInterval int) ([]*Stat, error) {
@@ -147,7 +147,7 @@ func (s *ServiceImpl) FindStatsByMonitorIDAndTimeRangeWithInterval(ctx context.C
 }
 
 // bucketWidth is how wide a chart point is: a minute, an hour or a day, or for the minute stats of a
-// monitor checked less often than every minute its interval rounded up to whole minutes.
+// monitor checked less often than every minute its check interval rounded up to whole minutes.
 func bucketWidth(period StatPeriod, monitorInterval int) time.Duration {
 	switch period {
 	case StatHourly:
