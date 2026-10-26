@@ -16,7 +16,11 @@ import (
 type Result struct {
 	// ProbeID is the probe that ran the check, stored on the heartbeat. A result that names none
 	// is the local probe's.
-	ProbeID           string
+	ProbeID string
+	// InstanceID is the probe instance that ran the check, from the probe protocol's
+	// X-Probe-Instance header. Empty for what no probe instance ran: the peekaping process's own
+	// checks in single mode, and pushes. The heartbeat then stores no instance.
+	InstanceID        string
 	MonitorID         string
 	MonitorName       string
 	MonitorType       string

@@ -258,19 +258,26 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	// The probe's first heartbeat of the monitor
 	isFirstOnProbe := previousBeat == nil
 
+	// A heartbeat that no probe instance made records none
+	var instanceID *string
+	if r.InstanceID != "" {
+		instanceID = &r.InstanceID
+	}
+
 	hb := &heartbeat.CreateUpdateDto{
-		MonitorID: r.MonitorID,
-		ProbeID:   probeID,
-		Status:    r.Status,
-		Msg:       r.Message,
-		Ping:      r.PingMs,
-		Duration:  0,
-		DownCount: 0,
-		Retries:   0,
-		Important: false,
-		Time:      r.StartTime,
-		EndTime:   r.EndTime,
-		Notified:  false,
+		MonitorID:  r.MonitorID,
+		ProbeID:    probeID,
+		InstanceID: instanceID,
+		Status:     r.Status,
+		Msg:        r.Message,
+		Ping:       r.PingMs,
+		Duration:   0,
+		DownCount:  0,
+		Retries:    0,
+		Important:  false,
+		Time:       r.StartTime,
+		EndTime:    r.EndTime,
+		Notified:   false,
 	}
 
 	if !isFirstOnProbe {
