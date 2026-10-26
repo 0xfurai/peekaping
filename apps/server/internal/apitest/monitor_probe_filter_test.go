@@ -86,7 +86,7 @@ func TestMonitorsAPI_HeartbeatsCarryTheirProbeAndTakeAProbeFilter(t *testing.T) 
 }
 
 type uptimeResponse struct {
-	ProbeID    string  `json:"probe_id"`
+	ProbeID    string   `json:"probe_id"`
 	Uptime24h  *float64 `json:"24h"`
 	Uptime7d   *float64 `json:"7d"`
 	Uptime30d  *float64 `json:"30d"`

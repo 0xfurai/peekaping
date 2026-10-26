@@ -37,10 +37,10 @@ func badgePaths(monitorID string) map[string]string {
 	base := "/api/v1/badge/" + monitorID
 	return map[string]string{
 		base + "/status":     "status: Pending",
-		base + "/uptime":     "uptime (24h): 0.0%",
-		base + "/uptime/720": "uptime (30d): 0.0%",
-		base + "/ping":       "ping (24h): 0ms",
-		base + "/ping/2160":  "ping (90d): 0ms",
+		base + "/uptime":     "uptime (24h): N/A",
+		base + "/uptime/720": "uptime (30d): N/A",
+		base + "/ping":       "ping (24h): N/A",
+		base + "/ping/2160":  "ping (90d): N/A",
 		base + "/cert-exp":   "cert exp: N/A",
 		base + "/response":   "response: N/A",
 	}
@@ -155,8 +155,8 @@ func TestBadges_FallBackOnInvalidOptions(t *testing.T) {
 	base := "/api/v1/badge/" + monitorID
 
 	for path, title := range map[string]string{
-		base + "/uptime/not-a-number":                "uptime (24h): 0.0%",
-		base + "/ping/-720":                          "ping (24h): 0ms",
+		base + "/uptime/not-a-number":                "uptime (24h): N/A",
+		base + "/ping/-720":                          "ping (24h): N/A",
 		base + "/status?style=unknown":               "status: Pending",
 		base + "/cert-exp?warnDays=soon&downDays=-1": "cert exp: N/A",
 	} {
@@ -246,7 +246,7 @@ func TestBadges_DrawValidColors(t *testing.T) {
 		{"informational", pending, "status", "color=informational", "#555", "#007ec6"},
 		{"blue hex", pending, "status", "color=007ec6", "#555", "#007ec6"},
 		{"blue hex with hash", pending, "status", "color=%23007ec6", "#555", "#007ec6"},
-		{"uptime, no color", pending, "uptime", "", "#555", "#e05d44"},
+		{"uptime without heartbeats, no color", pending, "uptime", "", "#555", "#9f9f9f"},
 		{"uptime in blue", pending, "uptime", "color=blue", "#555", "#007ec6"},
 		{"uptime in informational", pending, "uptime", "color=informational", "#555", "#007ec6"},
 		{"uptime in blue hex", pending, "uptime", "color=007ec6", "#555", "#007ec6"},
