@@ -68,6 +68,7 @@
     "loading": "Chargement...",
     "logout": "Déconnexion",
     "maintenance": "Maintenance",
+    "no_data": "Aucune donnée",
     "no_options_found": "Aucune option disponible",
     "no_tags_available": "Aucun tag disponible",
     "please_refresh_page": "Veuillez actualiser la page.",

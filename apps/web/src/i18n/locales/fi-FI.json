@@ -68,6 +68,7 @@
     "loading": "Ladataan...",
     "logout": "Kirjaudu ulos",
     "maintenance": "Huolto",
+    "no_data": "Ei tietoja",
     "no_options_found": "Ei löytynyt vaihtoehtoja",
     "no_tags_available": "Ei tageja saatavilla",
     "please_refresh_page": "Päivitä sivu.",

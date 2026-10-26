@@ -68,6 +68,7 @@
     "loading": "로딩 중...",
     "logout": "로그아웃",
     "maintenance": "유지보수",
+    "no_data": "데이터 없음",
     "no_options_found": "옵션이 없습니다",
     "no_tags_available": "태그가 없습니다",
     "please_refresh_page": "페이지를 새로 고쳐 주세요.",

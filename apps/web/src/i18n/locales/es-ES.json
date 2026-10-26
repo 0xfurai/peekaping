@@ -68,6 +68,7 @@
     "loading": "Cargando...",
     "logout": "Cerrar sesión",
     "maintenance": "Mantenimiento",
+    "no_data": "Sin datos",
     "no_options_found": "No se encontraron opciones",
     "no_tags_available": "No hay etiquetas disponibles",
     "please_refresh_page": "Por favor, actualice la página.",

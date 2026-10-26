@@ -68,6 +68,7 @@
     "loading": "Betöltés...",
     "logout": "Kijelentkezés",
     "maintenance": "Karbantartás",
+    "no_data": "Nincs adat",
     "no_options_found": "Nem található opció",
     "no_tags_available": "Nincs elérhető címke",
     "please_refresh_page": "Kérjük, frissítse az oldalt.",

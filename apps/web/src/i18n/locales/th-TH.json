@@ -68,6 +68,7 @@
     "loading": "กำลังโหลด...",
     "logout": "ออกจากระบบ",
     "maintenance": "การบำรุงรักษา",
+    "no_data": "ไม่มีข้อมูล",
     "no_options_found": "ไม่พบตัวเลือก",
     "no_tags_available": "ไม่มีแท็กพร้อมใช้งาน",
     "please_refresh_page": "กรุณารีเฟรชหน้านี้",
