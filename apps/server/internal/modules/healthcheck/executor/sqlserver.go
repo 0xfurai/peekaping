@@ -117,20 +117,10 @@ func isValidBooleanString(value string) bool {
 
 func (s *SQLServerExecutor) parseConnectionStringParams(connectionString string) map[string]string {
 	params := make(map[string]string)
-	parts := strings.Split(connectionString, ";")
-
-	for _, part := range parts {
-		if part = strings.TrimSpace(part); part != "" {
-			if idx := strings.Index(part, "="); idx > 0 {
-				key := strings.TrimSpace(part[:idx])
-				value := strings.TrimSpace(part[idx+1:])
-				// Normalize key to expected case
-				normalizedKey := s.normalizeParameterKey(key)
-				params[normalizedKey] = value
-			}
-		}
+	for _, pair := range splitADOConnectionString(connectionString) {
+		// Normalize key to expected case
+		params[s.normalizeParameterKey(pair.key)] = pair.value
 	}
-
 	return params
 }
 
@@ -407,7 +397,16 @@ func (c deadlineConn) SetWriteDeadline(t time.Time) error { return c.Conn.SetWri
 func (s *SQLServerExecutor) parseConnectionString(connectionString string) (string, error) {
 	// Check if it's the new semicolon-separated format
 	if sqlServerConnectionStringRegex.MatchString(connectionString) {
-		// It's already in the correct format for go-mssqldb driver
+		pairs := splitADOConnectionString(connectionString)
+		for _, pair := range pairs {
+			if pair.braced {
+				// The driver reads this form by splitting at every ";", so it
+				// can't carry a value that holds one. Hand it the same values
+				// as a URL, which it parses without that problem.
+				return sqlServerTargetFromADO(pairs).dsn(), nil
+			}
+		}
+		// Nothing to escape: the driver reads the string as it is.
 		return connectionString, nil
 	}
 
@@ -417,6 +416,150 @@ func (s *SQLServerExecutor) parseConnectionString(connectionString string) (stri
 	}
 
 	return "", fmt.Errorf("unsupported connection string format")
+}
+
+// adoPair is one key=value of a Server=...;Database=... connection string.
+type adoPair struct {
+	key, value string
+	braced     bool // the value was written in braces
+}
+
+// splitADOConnectionString splits a connection string at its semicolons, like
+// ADO.NET does: a value in braces ends at the closing brace, may hold ";" and
+// "=", and writes "}" as "}}". A value that starts with "{" but isn't a
+// complete braced value (no closing brace, or text after it) is an ordinary
+// value, as it was before braces were read.
+func splitADOConnectionString(connectionString string) []adoPair {
+	var pairs []adoPair
+	rest := connectionString
+	for rest != "" {
+		eq, semi := strings.IndexByte(rest, '='), strings.IndexByte(rest, ';')
+		if semi >= 0 && (eq < 0 || semi < eq) { // a key without a value
+			rest = rest[semi+1:]
+			continue
+		}
+		if eq < 0 {
+			break
+		}
+		key := strings.TrimSpace(rest[:eq])
+		var pair adoPair
+		pair.value, pair.braced, rest = readADOValue(rest[eq+1:])
+		if key != "" {
+			pair.key = key
+			pairs = append(pairs, pair)
+		}
+	}
+	return pairs
+}
+
+// readADOValue reads the value at the start of s, and returns what follows its
+// semicolon.
+func readADOValue(s string) (value string, braced bool, rest string) {
+	if trimmed := strings.TrimLeft(s, " \t"); strings.HasPrefix(trimmed, "{") {
+		var b strings.Builder
+		for i := 1; i < len(trimmed); i++ {
+			if trimmed[i] != '}' {
+				b.WriteByte(trimmed[i])
+				continue
+			}
+			if i+1 < len(trimmed) && trimmed[i+1] == '}' { // an escaped "}"
+				b.WriteByte('}')
+				i++
+				continue
+			}
+			after := strings.TrimLeft(trimmed[i+1:], " \t")
+			if after == "" {
+				return b.String(), true, ""
+			}
+			if after[0] == ';' {
+				return b.String(), true, after[1:]
+			}
+			break // text after the closing brace: not a braced value
+		}
+	}
+	if semi := strings.IndexByte(s, ';'); semi >= 0 {
+		return strings.TrimSpace(s[:semi]), false, s[semi+1:]
+	}
+	return strings.TrimSpace(s), false, ""
+}
+
+// adoSynonyms are the keys the driver reads as another key when it reads the
+// Server=... form.
+var adoSynonyms = map[string]string{
+	"application name": "app name",
+	"data source":      "server",
+	"address":          "server",
+	"network address":  "server",
+	"addr":             "server",
+	"user":             "user id",
+	"uid":              "user id",
+	"initial catalog":  "database",
+}
+
+// sqlServerTarget is what a connection string says, whichever form it was
+// written in.
+type sqlServerTarget struct {
+	host, port, instance string
+	user, password       string
+	database             string
+	options              map[string]string // the other parameters, with the driver's lowercase names
+}
+
+// dsn writes the target as the sqlserver:// URL the driver reads, which
+// escapes every value on its own.
+func (t sqlServerTarget) dsn() string {
+	query := url.Values{}
+	for key, value := range t.options {
+		query.Set(key, value)
+	}
+	if t.database != "" {
+		query.Set("database", t.database)
+	}
+
+	host := t.host
+	if t.port != "" {
+		host = net.JoinHostPort(t.host, t.port)
+	} else if strings.Contains(host, ":") { // an IPv6 address
+		host = "[" + host + "]"
+	}
+	u := url.URL{Scheme: "sqlserver", Host: host, RawQuery: query.Encode()}
+	if t.instance != "" {
+		u.Path = "/" + t.instance
+	}
+	switch {
+	case t.password != "":
+		u.User = url.UserPassword(t.user, t.password)
+	case t.user != "":
+		u.User = url.User(t.user)
+	}
+	return u.String()
+}
+
+func sqlServerTargetFromADO(pairs []adoPair) sqlServerTarget {
+	t := sqlServerTarget{options: map[string]string{}}
+	for _, pair := range pairs {
+		key := strings.ToLower(pair.key)
+		if synonym, ok := adoSynonyms[key]; ok {
+			key = synonym
+		}
+		switch key {
+		case "server":
+			server := strings.TrimPrefix(pair.value, "tcp:")
+			if name, port, ok := strings.Cut(server, ","); ok && port != "" && !strings.Contains(port, ",") {
+				server, t.port = name, port
+			}
+			t.host, t.instance, _ = strings.Cut(server, `\`)
+		case "user id":
+			t.user = pair.value
+		case "password":
+			t.password = pair.value
+		case "database":
+			t.database = pair.value
+		default:
+			t.options[key] = pair.value
+		}
+	}
+	return t
 }
 
 func (s *SQLServerExecutor) parseURLConnectionString(connectionString string) (string, error) {
@@ -431,79 +574,44 @@ func (s *SQLServerExecutor) parseURLConnectionString(connectionString string) (s
 		return "", fmt.Errorf("invalid scheme: %s, expected sqlserver:// or mssql://", parsedURL.Scheme)
 	}
 
-	// Extract user and password
-	var user, password string
-	if parsedURL.User != nil {
-		user = parsedURL.User.Username()
-		if p, ok := parsedURL.User.Password(); ok {
-			password = p
-		}
+	t := sqlServerTarget{
+		host:    parsedURL.Hostname(),
+		port:    parsedURL.Port(),
+		options: map[string]string{},
 	}
-
-	// Extract host and port
-	host := parsedURL.Hostname()
-	port := parsedURL.Port()
-	// Note: Only set default port for driver connection, not for Server parameter
-	defaultPort := "1433"
-	if port == "" {
-		// Port not specified in URL, driver will use default
-		port = defaultPort
+	if parsedURL.User != nil {
+		t.user = parsedURL.User.Username()
+		t.password, _ = parsedURL.User.Password()
 	}
 
 	// Extract database from query parameters first, then from path if not found
 	queryParams := parsedURL.Query()
-	database := queryParams.Get("database")
-	if database == "" {
+	t.database = queryParams.Get("database")
+	if t.database == "" {
 		// Try to get database from path
 		if parsedURL.Path != "" && parsedURL.Path != "/" {
-			database = strings.TrimPrefix(parsedURL.Path, "/")
+			t.database = strings.TrimPrefix(parsedURL.Path, "/")
 		}
 	}
 
-	// Build connection string in the format expected by go-mssqldb
-	// Track which parameters have been set to avoid duplicates
-	params := make(map[string]string)
-
-	// Set core parameters from URL structure
-	if host != "" {
-		// Combine server and port in the proper format: Server=hostname,port
-		serverValue := host
-		// Only include port if it was explicitly specified in the original URL
-		if parsedURL.Port() != "" {
-			serverValue = fmt.Sprintf("%s,%s", host, port)
-		}
-		params[s.normalizeParameterKey("server")] = serverValue
-	}
-
-	if user != "" {
-		params[s.normalizeParameterKey("user id")] = user
-	}
-
-	if password != "" {
-		params[s.normalizeParameterKey("password")] = password
-	}
-
-	if database != "" {
-		params[s.normalizeParameterKey("database")] = database
-	}
-
-	// Add other query parameters, avoiding duplicates
+	// Add other query parameters, except those the URL's own parts already set
 	for key, values := range queryParams {
-		if len(values) > 0 {
-			normalizedKey := s.normalizeParameterKey(key)
-
-			// Skip if we already have this parameter set from URL structure
-			if _, exists := params[normalizedKey]; !exists {
-				params[normalizedKey] = values[0]
-			}
+		if len(values) == 0 {
+			continue
+		}
+		key = strings.ToLower(key)
+		if synonym, ok := adoSynonyms[key]; ok {
+			key = synonym
+		}
+		switch {
+		case key == "database",
+			key == "server" && t.host != "",
+			key == "user id" && t.user != "",
+			key == "password" && t.password != "":
+		default:
+			t.options[key] = values[0]
 		}
 	}
 
-	// Convert map to DSN string
-	var dsnParts []string
-	for key, value := range params {
-		dsnParts = append(dsnParts, fmt.Sprintf("%s=%s", key, value))
-	}
-
-	return strings.Join(dsnParts, ";"), nil
+	return t.dsn(), nil
 }
