@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
+	"slices"
+	"sort"
 	"sync"
 	"testing"
 	"time"
@@ -62,6 +64,27 @@ func (s *fakeMonitorService) FindByID(_ context.Context, id string) (*monitor.Mo
 	return s.monitors[id], nil
 }
 
+// FindActiveByProbe pages through the active monitors of the probe, newest id first, the way the
+// repository does. The local probe also runs the monitors that have no probe rows.
+func (s *fakeMonitorService) FindActiveByProbe(_ context.Context, probeID string, page, limit int) ([]*monitor.Model, error) {
+	ids := make([]string, 0, len(s.monitors))
+	for id := range s.monitors {
+		ids = append(ids, id)
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(ids)))
+	var found []*monitor.Model
+	for _, id := range ids {
+		m := s.monitors[id]
+		runsOnProbe := slices.Contains(m.ProbeIDs, probeID) || (probeID == shared.LocalProbeID && len(m.ProbeIDs) == 0)
+		if m.Active && runsOnProbe {
+			found = append(found, m)
+		}
+	}
+	start := min(page*limit, len(found))
+	end := min(start+limit, len(found))
+	return found[start:end], nil
+}
+
 type fakeMonitorNotificationService struct {
 	monitor_notification.Service
 	links map[string][]*monitor_notification.Model
@@ -70,6 +93,19 @@ type fakeMonitorNotificationService struct {
 
 func (s *fakeMonitorNotificationService) FindByMonitorID(_ context.Context, monitorID string) ([]*monitor_notification.Model, error) {
 	return s.links[monitorID], s.err
+}
+
+func (s *fakeMonitorNotificationService) FindByMonitorIDs(_ context.Context, monitorIDs []string) (map[string][]*monitor_notification.Model, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+	found := map[string][]*monitor_notification.Model{}
+	for _, id := range monitorIDs {
+		if links := s.links[id]; len(links) > 0 {
+			found[id] = links
+		}
+	}
+	return found, nil
 }
 
 type fakeProbeNotificationService struct {
@@ -190,6 +226,11 @@ func newListenerFixture(t *testing.T) *listenerFixture {
 // addProvider gives the fixture's listener a provider for a channel type
 func (f *listenerFixture) addProvider(channelType string, provider NotificationChannelProvider) {
 	f.providers[channelType] = provider
+}
+
+// addProbeMonitor adds an active monitor that runs on the probes
+func (f *listenerFixture) addProbeMonitor(id string, probeIDs ...string) {
+	f.monitors.monitors[id] = &monitor.Model{ID: id, Name: id, Type: "http", Active: true, ProbeIDs: probeIDs}
 }
 
 func (f *listenerFixture) addMonitor(id, name string) {
@@ -714,6 +755,29 @@ func TestNotificationListener_ProbeOfflineAndOnline(t *testing.T) {
 			assert.Empty(t, slack.sentConfigs())
 		})
 	}
+}
+
+// A probe with no channels of its own tells the channels of its monitors, so a probe going offline
+// doesn't leave its monitors unchecked with no alert.
+func TestNotificationListener_ProbeWithoutChannelsNotifiesItsMonitorsChannels(t *testing.T) {
+	f := newListenerFixture(t)
+	slack, email := &recordingProvider{}, &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProvider("test-email", email)
+	f.addProbeMonitor("mon-1", "probe-1")
+	f.addProbeMonitor("mon-2", "probe-1")
+	f.attach("mon-1", testChannel("a", "test-slack"))
+	f.attach("mon-2", testChannel("b", "test-email"))
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+
+	assert.Equal(t, map[string][]string{channelConfig("a"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"}}, slack.sentMessagesByChannel())
+	assert.Equal(t, map[string][]string{channelConfig("b"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC"}}, email.sentMessagesByChannel())
+
+	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
+
+	assert.Equal(t, map[string][]string{channelConfig("a"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC", "Probe Frankfurt is online"}}, slack.sentMessagesByChannel())
+	assert.Equal(t, map[string][]string{channelConfig("b"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC", "Probe Frankfurt is online"}}, email.sentMessagesByChannel())
 }
 
 // The real PagerDuty sender decides from the stand-in's status, since a probe's notification has no
