@@ -1206,7 +1206,8 @@
       "name_too_long": "Název je příliš dlouhý",
       "location_too_long": "Umístění je příliš dlouhé",
       "disabled_label": "Zakázána",
-      "disabled_description": "Token zakázané sondy přestane fungovat, dokud ji znovu nepovolíte."
+      "disabled_description": "Token zakázané sondy přestane fungovat, dokud ji znovu nepovolíte.",
+      "notifications_hint": "Nechte prázdné, aby se oznámení posílala do kanálů monitorů této sondy."
     },
     "rotate_dialog": {
       "title": "Vyměnit token",

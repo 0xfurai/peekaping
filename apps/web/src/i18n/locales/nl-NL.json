@@ -1206,7 +1206,8 @@
       "name_too_long": "De naam is te lang",
       "location_too_long": "De locatie is te lang",
       "disabled_label": "Uitgeschakeld",
-      "disabled_description": "Het token van een uitgeschakelde probe werkt niet meer totdat je de probe weer inschakelt."
+      "disabled_description": "Het token van een uitgeschakelde probe werkt niet meer totdat je de probe weer inschakelt.",
+      "notifications_hint": "Laat leeg om de kanalen van de monitoren van deze probe op de hoogte te stellen."
     },
     "rotate_dialog": {
       "title": "Token vernieuwen",

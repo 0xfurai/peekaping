@@ -1206,7 +1206,8 @@
       "name_too_long": "Nama terlalu panjang",
       "location_too_long": "Lokasi terlalu panjang",
       "disabled_label": "Nonaktif",
-      "disabled_description": "Token probe yang dinonaktifkan berhenti berfungsi sampai Anda mengaktifkannya lagi."
+      "disabled_description": "Token probe yang dinonaktifkan berhenti berfungsi sampai Anda mengaktifkannya lagi.",
+      "notifications_hint": "Biarkan kosong untuk memberi tahu saluran dari pengawasan probe ini."
     },
     "rotate_dialog": {
       "title": "Ganti token",

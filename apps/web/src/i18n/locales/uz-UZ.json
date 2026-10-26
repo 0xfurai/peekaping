@@ -1205,7 +1205,8 @@
       "name_too_long": "Nomi juda uzun",
       "location_too_long": "Joylashuv juda uzun",
       "disabled_label": "O‘chirilgan",
-      "disabled_description": "O‘chirilgan zondning tokeni uni qayta yoqmaguningizcha ishlamaydi."
+      "disabled_description": "O‘chirilgan zondning tokeni uni qayta yoqmaguningizcha ishlamaydi.",
+      "notifications_hint": "Ushbu zondning monitoring kanallariga xabar yuborish uchun bo‘sh qoldiring."
     },
     "rotate_dialog": {
       "title": "Tokenni almashtirish",

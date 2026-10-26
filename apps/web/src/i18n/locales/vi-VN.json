@@ -1206,7 +1206,8 @@
       "name_too_long": "Tên quá dài",
       "location_too_long": "Vị trí quá dài",
       "disabled_label": "Đã vô hiệu hóa",
-      "disabled_description": "Mã thông báo của đầu dò bị vô hiệu hóa sẽ ngừng hoạt động cho đến khi bạn bật lại."
+      "disabled_description": "Mã thông báo của đầu dò bị vô hiệu hóa sẽ ngừng hoạt động cho đến khi bạn bật lại.",
+      "notifications_hint": "Để trống để thông báo tới các kênh của những mục giám sát của đầu dò này."
     },
     "rotate_dialog": {
       "title": "Đổi mã thông báo",

@@ -1206,7 +1206,8 @@
       "name_too_long": "Navnet er for langt",
       "location_too_long": "Placeringen er for lang",
       "disabled_label": "Deaktiveret",
-      "disabled_description": "En deaktiveret probes token holder op med at virke, indtil du aktiverer den igen."
+      "disabled_description": "En deaktiveret probes token holder op med at virke, indtil du aktiverer den igen.",
+      "notifications_hint": "Lad feltet stå tomt for at notificere kanalerne for denne probes monitorer."
     },
     "rotate_dialog": {
       "title": "Skift token",

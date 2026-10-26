@@ -1206,7 +1206,8 @@
       "name_too_long": "A név túl hosszú",
       "location_too_long": "A helyszín túl hosszú",
       "disabled_label": "Letiltva",
-      "disabled_description": "A letiltott szonda tokenje nem működik, amíg újra nem engedélyezi."
+      "disabled_description": "A letiltott szonda tokenje nem működik, amíg újra nem engedélyezi.",
+      "notifications_hint": "Hagyja üresen, hogy a szonda figyelőinek csatornái kapjanak értesítést."
     },
     "rotate_dialog": {
       "title": "Token cseréje",

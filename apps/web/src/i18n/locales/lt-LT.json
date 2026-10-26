@@ -1206,7 +1206,8 @@
       "name_too_long": "Pavadinimas per ilgas",
       "location_too_long": "Vieta per ilga",
       "disabled_label": "Išjungtas",
-      "disabled_description": "Išjungto zondo žetonas nustoja veikti, kol vėl jį įjungsite."
+      "disabled_description": "Išjungto zondo žetonas nustoja veikti, kol vėl jį įjungsite.",
+      "notifications_hint": "Palikite tuščią, kad pranešimai būtų siunčiami šio zondo monitorių kanalams."
     },
     "rotate_dialog": {
       "title": "Pakeisti žetoną",

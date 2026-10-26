@@ -1206,7 +1206,8 @@
       "name_too_long": "Nimi on liian pitkä",
       "location_too_long": "Sijainti on liian pitkä",
       "disabled_label": "Poistettu käytöstä",
-      "disabled_description": "Käytöstä poistetun luotaimen token lakkaa toimimasta, kunnes otat luotaimen uudelleen käyttöön."
+      "disabled_description": "Käytöstä poistetun luotaimen token lakkaa toimimasta, kunnes otat luotaimen uudelleen käyttöön.",
+      "notifications_hint": "Jätä tyhjäksi, jos haluat ilmoittaa tämän luotaimen valvontojen kanaville."
     },
     "rotate_dialog": {
       "title": "Vaihda token",

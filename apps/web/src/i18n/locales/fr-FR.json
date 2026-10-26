@@ -1206,7 +1206,8 @@
       "name_too_long": "Le nom est trop long",
       "location_too_long": "L'emplacement est trop long",
       "disabled_label": "Désactivée",
-      "disabled_description": "Le jeton d'une sonde désactivée cesse de fonctionner jusqu'à ce que vous la réactiviez."
+      "disabled_description": "Le jeton d'une sonde désactivée cesse de fonctionner jusqu'à ce que vous la réactiviez.",
+      "notifications_hint": "Laissez vide pour notifier les canaux des moniteurs de cette sonde."
     },
     "rotate_dialog": {
       "title": "Renouveler le jeton",

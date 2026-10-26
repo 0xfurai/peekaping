@@ -1206,7 +1206,8 @@
       "name_too_long": "Name is too long",
       "location_too_long": "Location is too long",
       "disabled_label": "Disabled",
-      "disabled_description": "A disabled probe's token stops working until you enable it again."
+      "disabled_description": "A disabled probe's token stops working until you enable it again.",
+      "notifications_hint": "Leave empty to notify the channels of this probe's monitors."
     },
     "rotate_dialog": {
       "title": "Rotate token",

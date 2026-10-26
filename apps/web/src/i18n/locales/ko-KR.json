@@ -1206,7 +1206,8 @@
       "name_too_long": "이름이 너무 깁니다",
       "location_too_long": "위치가 너무 깁니다",
       "disabled_label": "비활성화됨",
-      "disabled_description": "비활성화된 프로브의 토큰은 다시 활성화할 때까지 작동하지 않습니다."
+      "disabled_description": "비활성화된 프로브의 토큰은 다시 활성화할 때까지 작동하지 않습니다.",
+      "notifications_hint": "비워 두면 이 프로브의 모니터 채널로 알립니다."
     },
     "rotate_dialog": {
       "title": "토큰 교체",

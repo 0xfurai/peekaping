@@ -1206,7 +1206,8 @@
       "name_too_long": "Navnet er for langt",
       "location_too_long": "Plasseringen er for lang",
       "disabled_label": "Deaktivert",
-      "disabled_description": "Tokenet til en deaktivert probe slutter å virke til du aktiverer den igjen."
+      "disabled_description": "Tokenet til en deaktivert probe slutter å virke til du aktiverer den igjen.",
+      "notifications_hint": "La feltet stå tomt for å varsle kanalene til denne probens overvåkninger."
     },
     "rotate_dialog": {
       "title": "Bytt token",

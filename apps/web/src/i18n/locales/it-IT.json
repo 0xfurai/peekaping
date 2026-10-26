@@ -1206,7 +1206,8 @@
       "name_too_long": "Il nome è troppo lungo",
       "location_too_long": "La posizione è troppo lunga",
       "disabled_label": "Disabilitata",
-      "disabled_description": "Il token di una sonda disabilitata smette di funzionare finché non la riabiliti."
+      "disabled_description": "Il token di una sonda disabilitata smette di funzionare finché non la riabiliti.",
+      "notifications_hint": "Lascia vuoto per notificare i canali dei monitor di questa sonda."
     },
     "rotate_dialog": {
       "title": "Rinnova token",

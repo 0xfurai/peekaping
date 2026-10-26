@@ -1206,7 +1206,8 @@
       "name_too_long": "名称过长",
       "location_too_long": "位置过长",
       "disabled_label": "已禁用",
-      "disabled_description": "已禁用探针的令牌会失效，直到您重新启用它。"
+      "disabled_description": "已禁用探针的令牌会失效，直到您重新启用它。",
+      "notifications_hint": "留空则通知此探针的监控所使用的渠道。"
     },
     "rotate_dialog": {
       "title": "更换令牌",

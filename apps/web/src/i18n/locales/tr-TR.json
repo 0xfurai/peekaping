@@ -1206,7 +1206,8 @@
       "name_too_long": "Ad çok uzun",
       "location_too_long": "Konum çok uzun",
       "disabled_label": "Devre dışı",
-      "disabled_description": "Devre dışı bırakılan bir probun belirteci, probu yeniden etkinleştirene kadar çalışmaz."
+      "disabled_description": "Devre dışı bırakılan bir probun belirteci, probu yeniden etkinleştirene kadar çalışmaz.",
+      "notifications_hint": "Bu probun monitörlerinin kanallarına bildirim göndermek için boş bırakın."
     },
     "rotate_dialog": {
       "title": "Belirteci yenile",

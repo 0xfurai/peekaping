@@ -1206,7 +1206,8 @@
       "name_too_long": "Nimi on liiga pikk",
       "location_too_long": "Asukoht on liiga pikk",
       "disabled_label": "Keelatud",
-      "disabled_description": "Keelatud sondi token lakkab töötamast, kuni selle uuesti lubate."
+      "disabled_description": "Keelatud sondi token lakkab töötamast, kuni selle uuesti lubate.",
+      "notifications_hint": "Jätke tühjaks, et teavitada selle sondi monitooride kanaleid."
     },
     "rotate_dialog": {
       "title": "Vaheta token",
