@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Tạo tài khoản quản trị của bạn",
-      "error_reporting_hint": "Bật theo mặc định. Bỏ đánh dấu ô này để tắt. Bạn có thể đổi lại sau trong “Cài đặt”.",
       "have_account": "Bạn đã có tài khoản?",
       "sign_in": "Đăng nhập",
       "submit": "Tạo",
-      "telemetry_hint": "Bật theo mặc định. Bỏ đánh dấu ô này để tắt. Bạn có thể đổi lại sau trong “Cài đặt”. Khi còn bật, Peekaping gửi những thông tin này nhiều nhất một lần mỗi ngày:",
-      "title": "Xin chào"
+      "title": "Xin chào",
+      "telemetry_note": "Ẩn danh: không có tên giám sát, URL hay máy chủ. Bạn có thể đổi lại sau trong “Cài đặt”.",
+      "telemetry_whats_sent": "Những gì được gửi"
     },
     "twofa": {
       "code_label": "Mã 2FA",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Những gì được gửi và cách tắt",
     "label": "Gửi thống kê sử dụng ẩn danh",
-    "never_sent": "Không bao giờ gửi: tên giám sát, URL, máy chủ, thẻ, địa chỉ trang trạng thái hay cài đặt thông báo. Ping sử dụng không chứa địa chỉ IP, và Worker của Peekaping không ghi lại IP của người gửi.",
-    "not_saved": "Lựa chọn của bạn về thống kê sử dụng chưa được lưu. Hãy kiểm tra trong “Cài đặt”.",
-    "sent_features": "Bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không",
-    "sent_id": "Một ID ngẫu nhiên, được tạo khi tính năng đang bật và bị xóa khi bạn tắt",
-    "sent_monitors": "Bạn có bao nhiêu giám sát, dưới dạng một khoảng, chẳng hạn 11-50",
-    "sent_setup": "Phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ, cùng hệ điều hành và loại CPU",
-    "sent_types": "Các loại giám sát và kênh thông báo bạn dùng, chẳng hạn http hoặc telegram"
+    "not_saved": "Lựa chọn của bạn về thống kê sử dụng chưa được lưu. Hãy kiểm tra trong “Cài đặt”."
   },
   "telemetry_notice": {
     "error_reports": "Báo cáo lỗi đang bật. Nếu Peekaping gặp sự cố, nó gửi loại lỗi và vị trí trong mã nơi lỗi xảy ra, phiên bản của nó, chế độ, backend lưu trữ và hệ điều hành. Nó không bao giờ gửi thông báo lỗi, URL hay tên máy chủ.",

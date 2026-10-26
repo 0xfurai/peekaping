@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Opprett din admin-konto",
-      "error_reporting_hint": "På som standard. Fjern haken i denne boksen for å slå det av. Du kan endre det senere under «Innstillinger».",
       "have_account": "Har du allerede en konto?",
       "sign_in": "Logg inn",
       "submit": "Opprett",
-      "telemetry_hint": "På som standard. Fjern haken i denne boksen for å slå det av. Du kan endre det senere under «Innstillinger». Så lenge det er på, sender Peekaping dette høyst én gang per dag:",
-      "title": "Hei"
+      "title": "Hei",
+      "telemetry_note": "Anonymt: ingen navn på overvåkninger, nettadresser eller verter. Du kan endre det senere under «Innstillinger».",
+      "telemetry_whats_sent": "Hva som sendes"
     },
     "twofa": {
       "code_label": "2FA-kode",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Hva som sendes, og hvordan du slår det av",
     "label": "Send anonym bruksstatistikk",
-    "never_sent": "Sendes aldri: navn på overvåkninger, nettadresser, verter, merker, adresser til statussider eller varslingsinnstillinger. En bruksping inneholder ingen IP-adresse, og Peekapings Worker registrerer ikke avsenderens IP.",
-    "not_saved": "Valget ditt om bruksstatistikk ble ikke lagret. Sjekk det under «Innstillinger».",
-    "sent_features": "Om du bruker statussider, vedlikeholdsvinduer og målinger",
-    "sent_id": "En tilfeldig ID, som opprettes så lenge det er på og slettes når du slår det av",
-    "sent_monitors": "Hvor mange overvåkninger du har, som et område, for eksempel 11-50",
-    "sent_setup": "Peekaping-versjonen, enkeltmodus eller klyngemodus, lagringsbackenden og operativsystem og CPU-type",
-    "sent_types": "Typene overvåkninger og varslingskanaler du bruker, for eksempel http eller telegram"
+    "not_saved": "Valget ditt om bruksstatistikk ble ikke lagret. Sjekk det under «Innstillinger»."
   },
   "telemetry_notice": {
     "error_reports": "Feilrapporter er på. Hvis Peekaping krasjer, sender den feiltypen og stedet i koden der det skjedde, versjonen sin, modus, lagringsbackend og operativsystem. Den sender aldri feilmeldinger, URL-er eller vertsnavn.",

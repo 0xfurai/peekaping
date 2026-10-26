@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Ustvari svoj račun skrbnika",
-      "error_reporting_hint": "Privzeto vklopljeno. Če želite izklopiti, odstranite oznako s tega polja. To lahko pozneje spremenite v razdelku Nastavitve.",
       "have_account": "Ali že imate račun?",
       "sign_in": "Prijavi se",
       "submit": "Ustvari",
-      "telemetry_hint": "Privzeto vklopljeno. Če želite izklopiti, odstranite oznako s tega polja. To lahko pozneje spremenite v razdelku Nastavitve. Dokler je vklopljeno, Peekaping to pošlje največ enkrat na dan:",
-      "title": "Pozdravljeni"
+      "title": "Pozdravljeni",
+      "telemetry_note": "Anonimno: brez imen nadzorov, URL-jev in gostiteljev. To lahko pozneje spremenite v razdelku Nastavitve.",
+      "telemetry_whats_sent": "Kaj se pošilja"
     },
     "twofa": {
       "code_label": "2FA Koda",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Kaj se pošilja in kako to izklopiti",
     "label": "Pošiljaj anonimno statistiko uporabe",
-    "never_sent": "Nikoli se ne pošiljajo: imena nadzorov, URL-ji, gostitelji, oznake, naslovi statusnih strani ali nastavitve obvestil. Ping uporabe ne vsebuje naslova IP, Worker za Peekaping pa IP-ja pošiljatelja ne beleži.",
-    "not_saved": "Vaša izbira glede statistike uporabe ni bila shranjena. Preverite jo v razdelku Nastavitve.",
-    "sent_features": "Ali uporabljate statusne strani, okna vzdrževanja in metrike",
-    "sent_id": "Naključni ID, ki se ustvari, dokler je to vklopljeno, in izbriše, ko to izklopite",
-    "sent_monitors": "Koliko nadzorov imate, kot razpon, na primer 11-50",
-    "sent_setup": "Različica Peekapinga, enojni ali gručni način, zaledje za shranjevanje ter operacijski sistem in vrsta procesorja",
-    "sent_types": "Vrste nadzorov in kanalov za obvestila, ki jih uporabljate, na primer http ali telegram"
+    "not_saved": "Vaša izbira glede statistike uporabe ni bila shranjena. Preverite jo v razdelku Nastavitve."
   },
   "telemetry_notice": {
     "error_reports": "Poročila o napakah so vklopljena. Če se Peekaping zruši, pošlje vrsto napake in mesto v kodi, kjer se je zgodila, svojo različico, način, zaledje za shranjevanje in operacijski sistem. Nikoli ne pošlje sporočil o napakah, naslovov URL ali imen gostiteljev.",

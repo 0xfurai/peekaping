@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "Crea tu cuenta de administrador",
-      "error_reporting_hint": "Activado de forma predeterminada. Desmarque esta casilla para desactivarlo. Puede cambiarlo más tarde en «Configuración».",
       "have_account": "¿Ya tienes una cuenta?",
       "sign_in": "Iniciar sesión",
       "submit": "Crear",
-      "telemetry_hint": "Activado de forma predeterminada. Desmarque esta casilla para desactivarlo. Puede cambiarlo más tarde en «Configuración». Mientras esté activado, Peekaping envía esto como máximo una vez al día:",
-      "title": "Hola"
+      "title": "Hola",
+      "telemetry_note": "Anónimo: sin nombres de monitores, URL ni hosts. Puede cambiarlo más tarde en «Configuración».",
+      "telemetry_whats_sent": "Qué se envía"
     },
     "twofa": {
       "code_label": "Código 2FA",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "Qué se envía y cómo desactivarlo",
     "label": "Enviar estadísticas de uso anónimas",
-    "never_sent": "Nunca se envía: nombres de monitores, URL, hosts, etiquetas, direcciones de páginas de estado ni ajustes de notificaciones. Un ping de uso no contiene ninguna dirección IP, y el Worker de Peekaping no registra la IP del remitente.",
-    "not_saved": "No se guardó su elección sobre las estadísticas de uso. Compruébela en «Configuración».",
-    "sent_features": "Si usa páginas de estado, ventanas de mantenimiento y métricas",
-    "sent_id": "Un ID aleatorio, que se crea mientras está activado y se elimina al desactivarlo",
-    "sent_monitors": "Cuántos monitores tiene, como un rango, por ejemplo 11-50",
-    "sent_setup": "La versión de Peekaping, el modo único o de clúster, el backend de almacenamiento, y el sistema operativo y el tipo de CPU",
-    "sent_types": "Los tipos de monitores y de canales de notificación que usa, como http o telegram"
+    "not_saved": "No se guardó su elección sobre las estadísticas de uso. Compruébela en «Configuración»."
   },
   "telemetry_notice": {
     "error_reports": "Los informes de errores están activados. Si Peekaping falla, envía el tipo de error y el lugar del código donde ocurrió, su versión, el modo, el backend de almacenamiento y el sistema operativo. Nunca envía mensajes de error, URL ni nombres de host.",

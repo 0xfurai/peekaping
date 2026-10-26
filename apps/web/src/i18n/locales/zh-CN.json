@@ -13,12 +13,12 @@
     },
     "register": {
       "description": "创建您的管理员账户",
-      "error_reporting_hint": "默认开启。取消勾选此框即可关闭。你以后可以在“设置”中更改。",
       "have_account": "已有账号？",
       "sign_in": "登录",
       "submit": "创建",
-      "telemetry_hint": "默认开启。取消勾选此框即可关闭。你以后可以在“设置”中更改。开启期间，Peekaping 每天最多发送一次以下内容：",
-      "title": "你好"
+      "title": "你好",
+      "telemetry_note": "匿名：不含监控名称、URL 或主机。你以后可以在“设置”中更改。",
+      "telemetry_whats_sent": "会发送什么"
     },
     "twofa": {
       "code_label": "两步验证码",
@@ -1520,13 +1520,7 @@
   "telemetry": {
     "docs_link": "会发送什么，以及如何关闭",
     "label": "发送匿名使用统计",
-    "never_sent": "绝不发送：监控名称、URL、主机、标签、状态页面地址或通知设置。使用情况 ping 不包含 IP 地址，Peekaping 的 Worker 也不会记录发送方的 IP。",
-    "not_saved": "你关于使用统计的选择未能保存。请在“设置”中检查。",
-    "sent_features": "你是否使用状态页面、维护窗口和指标",
-    "sent_id": "一个随机 ID，开启期间创建，关闭时删除",
-    "sent_monitors": "你有多少个监控，以范围表示，例如 11-50",
-    "sent_setup": "Peekaping 版本、单机模式或集群模式、存储后端，以及操作系统和 CPU 类型",
-    "sent_types": "你使用的监控和通知渠道的类型，例如 http 或 telegram"
+    "not_saved": "你关于使用统计的选择未能保存。请在“设置”中检查。"
   },
   "telemetry_notice": {
     "error_reports": "错误报告已开启。如果 Peekaping 崩溃，会发送错误类型及其在代码中发生的位置、自身的版本、模式、存储后端和操作系统。绝不会发送错误消息、URL 或主机名。",
