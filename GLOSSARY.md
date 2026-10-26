@@ -55,7 +55,7 @@ A place Peekaping runs checks from. A monitor runs on one or more probes, the lo
 _Avoid_: Agent, worker
 
 **Local probe**:
-The probe that is Peekaping itself. Every install has it, and it can't be deleted. In single mode the `peekaping` process checks its monitors. In cluster mode on SQLite and PostgreSQL its probe instances do: `peekaping-probe` copies started with its token (`PROBE_BOOTSTRAP_TOKEN` on the api, the same value as `PROBE_TOKEN` on the probe), so it is offline while none is connected, as a remote probe is.
+The probe that is Peekaping itself. Every install has it, and it can't be deleted. In single mode the `peekaping` process checks its monitors and the local probe takes no probe instances: `peekaping` refuses a `peekaping-probe` that uses its token, and ignores `PROBE_BOOTSTRAP_TOKEN`. In cluster mode on SQLite and PostgreSQL its probe instances do: `peekaping-probe` copies started with its token (`PROBE_BOOTSTRAP_TOKEN` on the api, the same value as `PROBE_TOKEN` on the probe), so it is offline while none is connected, as a remote probe is.
 _Avoid_: Built-in probe, default probe
 
 **Remote probe**:

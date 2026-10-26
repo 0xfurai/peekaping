@@ -116,7 +116,7 @@ These are required in cluster mode, where the API replicas reach each other thro
 
 ### Local Probe Configuration
 
-These settings are for cluster mode, and `peekaping` reads them in single mode too.
+`PROBE_OFFLINE_AFTER` applies in both modes. `PROBE_BOOTSTRAP_TOKEN` is for cluster mode: in single mode `peekaping` doesn't store it, and logs a warning when it is set, because its own process checks the local probe's monitors and it refuses a `peekaping-probe` that uses the local probe's token.
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|

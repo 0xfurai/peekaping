@@ -194,8 +194,8 @@ func TestProbesAPI_LocalCannotBeDeletedRotatedOrDisabled(t *testing.T) {
 
 	w = a.request(t, http.MethodPost, local+"/rotate-token", nil, a.asAdmin)
 	assert.Equal(t, http.StatusConflict, w.Code, w.Body.String())
-	assert.Equal(t, "The local probe's token is set with PROBE_BOOTSTRAP_TOKEN: set or change it and restart Peekaping", errorMessage(t, w.Body.Bytes()),
-		"the message says where the local token comes from, and holds when the variable is unset")
+	assert.Equal(t, "The local probe's token can't be rotated. In cluster mode it is set with PROBE_BOOTSTRAP_TOKEN: set or change it and restart Peekaping. In single mode the local probe takes no token: the peekaping process checks its monitors", errorMessage(t, w.Body.Bytes()),
+		"the message says where the local token comes from in either mode, and holds when the variable is unset")
 
 	w = a.request(t, http.MethodPut, local, map[string]any{"disabled": true}, a.asAdmin)
 	assert.Equal(t, http.StatusConflict, w.Code, w.Body.String())

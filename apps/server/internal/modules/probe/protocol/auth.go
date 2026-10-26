@@ -9,9 +9,11 @@ import (
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/utils"
 
+	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
@@ -25,6 +27,7 @@ const (
 const (
 	messageTokenRequired   = "a probe token is required: send Authorization: Bearer <probe token>"
 	messageInvalidToken    = "invalid probe token"
+	messageLocalProbe      = "this install runs in single mode, where the peekaping process checks the local probe's monitors; use a remote probe's token"
 	messageInstanceHeader  = "the " + probeproto.HeaderInstanceID + " header must carry the instance id once, 1 to 255 visible characters with no spaces"
 	messageUnknownInstance = "unknown instance: send hello first"
 	messageInternalError   = "Internal server error"
@@ -43,16 +46,41 @@ type Auth struct {
 	bus    events.EventBus
 	logger *zap.SugaredLogger
 	now    func() time.Time
+	// local is how the local probe is known to be up. In single mode the process runs its checks,
+	// so no probe instance may use its token.
+	local shared.LocalProbeLiveness
 }
 
 // NewAuth returns the bearer middleware. The bus carries probe.online, which the middleware
-// publishes when a request brings an offline probe back.
-func NewAuth(probes probe.Service, bus events.EventBus, logger *zap.SugaredLogger) *Auth {
-	return &Auth{probes: probes, bus: bus, logger: logger.Named("[probe-protocol]"), now: time.Now}
+// publishes when a request brings an offline probe back. local is the install's
+// shared.LocalProbeLiveness: with shared.LocalProbeIsTheProcess the middleware refuses the local
+// probe's token.
+func NewAuth(probes probe.Service, bus events.EventBus, logger *zap.SugaredLogger, local shared.LocalProbeLiveness) *Auth {
+	return &Auth{probes: probes, bus: bus, logger: logger.Named("[probe-protocol]"), now: time.Now, local: local}
+}
+
+// authParams are what the Auth of an install is built from
+type authParams struct {
+	dig.In
+
+	Probes probe.Service
+	Bus    events.EventBus
+	Logger *zap.SugaredLogger
+	// LocalProbe is how the local probe is known to be up: the process itself when the install
+	// provides none
+	LocalProbe shared.LocalProbeLiveness `optional:"true"`
+}
+
+// provideAuth provides the Auth with the liveness of the install's local probe
+func provideAuth(p authParams) *Auth {
+	return NewAuth(p.Probes, p.Bus, p.Logger, p.LocalProbe)
 }
 
 // Authenticate finds the probe the bearer token belongs to and reads the instance id. It answers
 //   - 401 for a missing or malformed Authorization header, an unknown token, and a disabled probe
+//   - 401 for the local probe's token in single mode, where the process checks the local probe's
+//     monitors and a probe instance would check them a second time. It answers before it reads the
+//     instance header, so nothing is recorded for the instance.
 //   - 400 for a missing, repeated or malformed X-Probe-Instance header
 //
 // It puts the probe and the instance id on the request's context; ProbeFromContext reads them.
@@ -73,6 +101,12 @@ func (a *Auth) Authenticate() httpx.Middleware {
 			}
 			if found == nil {
 				a.reject(w, r, http.StatusUnauthorized, messageInvalidToken)
+				return
+			}
+			if found.ID == shared.LocalProbeID && a.local == shared.LocalProbeIsTheProcess {
+				// Before the instance header, so that nothing is recorded or dealt. Never the token.
+				httpx.Log(r.Context(), a.logger).Warnw("Refused a probe instance that uses the local probe's token: this install runs in single mode, where the peekaping process checks the local probe's monitors", "route", r.Pattern)
+				a.reject(w, r, http.StatusUnauthorized, messageLocalProbe)
 				return
 			}
 			instanceID, ok := instanceHeader(r)
