@@ -3,6 +3,7 @@ package apitest
 import (
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -57,7 +58,17 @@ var jwtOnlyRoutes = map[string]bool{
 	"PUT /api/v1/api-keys/{id}":     true,
 	"DELETE /api/v1/api-keys/{id}":  true,
 	"PUT /api/v1/telemetry":         true,
+	"POST /api/v1/telemetry/notice": true,
 	"PUT /api/v1/error-reporting":   true,
+}
+
+// probeRoutes are the probe protocol's. A probe authenticates with its token and an instance id,
+// and the admin's JWT and API keys open none of them.
+var probeRoutes = map[string]bool{
+	"POST /probe/v1/hello":      true,
+	"GET /probe/v1/assignments": true,
+	"POST /probe/v1/results":    true,
+	"POST /probe/v1/bye":        true,
 }
 
 var pathParam = regexp.MustCompile(`\{[^}]+\}`)
@@ -88,6 +99,17 @@ func TestRouteTable_AllowlistsOnlyRegisteredRoutes(t *testing.T) {
 	for key := range jwtOnlyRoutes {
 		assert.True(t, registered[key], "JWT-only route %q is not registered", key)
 		assert.NotContains(t, publicRoutes, key)
+	}
+	for key := range probeRoutes {
+		assert.True(t, registered[key], "probe route %q is not registered", key)
+		assert.NotContains(t, publicRoutes, key)
+		assert.NotContains(t, jwtOnlyRoutes, key)
+	}
+	// Every route under /probe/ is listed, so that a new one can't skip the checks below
+	for key := range registered {
+		if strings.Contains(key, " /probe/") {
+			assert.True(t, probeRoutes[key], "%q is a probe route that probeRoutes doesn't list", key)
+		}
 	}
 }
 
@@ -123,12 +145,36 @@ func TestRouteTable_APIKeysReachOnlySharedRoutes(t *testing.T) {
 		}
 		t.Run(r.key(), func(t *testing.T) {
 			w := a.request(t, r.method, r.url(), nil, a.withAPIKey)
-			if jwtOnlyRoutes[r.key()] {
+			if jwtOnlyRoutes[r.key()] || probeRoutes[r.key()] {
 				assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
 			} else {
 				assert.NotEqual(t, http.StatusUnauthorized, w.Code, w.Body.String())
 			}
 		})
+	}
+}
+
+// The admin's credentials are not a probe's: neither the JWT nor an API key, sent the way a probe
+// sends its token, opens a probe route.
+func TestRouteTable_AdminCredentialsOpenNoProbeRoute(t *testing.T) {
+	a := newAppWithAdmin(t, withMetrics)
+	instance := "3f6b1c1e-6f0a-4d0a-8d3b-2d9c1f6a7b10"
+	for _, r := range a.routes() {
+		if !probeRoutes[r.key()] {
+			continue
+		}
+		for name, creds := range map[string][]credentials{
+			"the JWT as a probe token":    {asProbe(a.accessToken, instance)},
+			"an API key as a probe token": {asProbe(a.apiKey, instance)},
+			"the JWT":                     {a.asAdmin, withHeader("X-Probe-Instance", instance)},
+			"an API key":                  {a.withAPIKey, withHeader("X-Probe-Instance", instance)},
+		} {
+			t.Run(r.key()+"/"+name, func(t *testing.T) {
+				w := a.request(t, r.method, r.url(), nil, creds...)
+
+				assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+			})
+		}
 	}
 }
 

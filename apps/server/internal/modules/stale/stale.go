@@ -16,7 +16,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Redis keys shared by the producer and the API
+// Redis keys shared by the api replicas
 const (
 	MonitorsKey = "peekaping:watchdog:stale"  // HASH: monitor_id -> Entry JSON
 	RanAtKey    = "peekaping:watchdog:ran_at" // STRING: unix ms of the watchdog's last run
@@ -38,6 +38,9 @@ type Event struct {
 	MonitorID   string    `json:"monitor_id"`
 	MonitorName string    `json:"monitor_name"`
 	Since       time.Time `json:"since"`
+	// UnsupportedProbes are the names of the monitor's probes that don't run its type, which is why
+	// no probe checks it. Only MonitorStale carries them, and only when there are any.
+	UnsupportedProbes []string `json:"unsupported_probes,omitempty"`
 }
 
 // The topics of Event. The watchdog publishes them and the notification channels listen.
@@ -73,7 +76,7 @@ type Store interface {
 	RanAt(ctx context.Context) (*time.Time, error)
 }
 
-// RedisStore keeps the stale monitors in Redis, so the producer and the API share them
+// RedisStore keeps the stale monitors in Redis, so the api replicas share them
 type RedisStore struct {
 	rdb *redis.Client
 }
@@ -84,7 +87,7 @@ func NewRedisStore(rdb *redis.Client) *RedisStore {
 	return &RedisStore{rdb: rdb}
 }
 
-// ProvideRedisStore provides the Redis store as the Store that the producer and the API take
+// ProvideRedisStore provides the Redis store as the Store that the api replicas take
 func ProvideRedisStore(rdb *redis.Client) Store {
 	return NewRedisStore(rdb)
 }

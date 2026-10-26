@@ -1,41 +1,27 @@
 // Package check loads what a check needs to run: the monitor with its proxy, its
-// maintenance state, and for a push monitor its latest heartbeat. Cluster mode's producer
-// and single mode's scheduler both load their checks here.
+// maintenance state, and for a push monitor its latest heartbeat. Single mode's scheduler
+// and the cluster api's push monitor checks load their checks here.
 package check
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 
 	"go.uber.org/zap"
 
+	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/shared"
 )
 
-var (
-	// ErrMonitorNotFound means the monitor no longer exists, for example because it was
-	// deleted after its check was scheduled
-	ErrMonitorNotFound = errors.New("monitor not found")
-	// ErrMonitorPaused means the monitor is paused, so it gets no checks until it's resumed
-	ErrMonitorPaused = errors.New("monitor is paused")
-)
+// Job and the errors Load returns are package job's, where the probe's scheduler reaches them
+// without the loader's services. They are aliased here for the rest of the server.
+type Job = job.Job
 
-// Job is everything one check of a monitor needs, as the monitor stands when it is loaded
-type Job struct {
-	Monitor *shared.Monitor
-	// Proxy is the monitor's proxy; nil when it has none or the proxy couldn't be loaded
-	Proxy *shared.Proxy
-	// IsUnderMaintenance is set while any of the monitor's maintenance windows is active
-	IsUnderMaintenance bool
-	// CheckCertExpiry is set when the monitor's config asks for its TLS certificate's expiry to be checked
-	CheckCertExpiry bool
-	// LastHeartbeat is the latest heartbeat of a push monitor; nil for other monitor types and
-	// for a push monitor that has none yet
-	LastHeartbeat *shared.HeartBeatModel
-}
+var (
+	ErrMonitorNotFound = job.ErrMonitorNotFound
+	ErrMonitorPaused   = job.ErrMonitorPaused
+)
 
 // MonitorFinder is the part of the monitor service the loader reads
 type MonitorFinder interface {
@@ -113,7 +99,7 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 		return nil, err
 	}
 
-	job := &Job{
+	loaded := &Job{
 		Monitor:            mon,
 		IsUnderMaintenance: isUnderMaintenance,
 		CheckCertExpiry:    l.checkCertExpiry(mon),
@@ -128,7 +114,7 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 				"proxy_id", mon.ProxyId,
 				"error", err)
 		} else {
-			job.Proxy = proxyModel
+			loaded.Proxy = proxyModel
 		}
 	}
 
@@ -140,11 +126,11 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 				"monitor_id", mon.ID,
 				"error", err)
 		} else if len(latestHeartbeats) > 0 {
-			job.LastHeartbeat = latestHeartbeats[0]
+			loaded.LastHeartbeat = latestHeartbeats[0]
 		}
 	}
 
-	return job, nil
+	return loaded, nil
 }
 
 func (l *Loader) isUnderMaintenance(ctx context.Context, monitorID string) (bool, error) {
@@ -175,20 +161,12 @@ func (l *Loader) isUnderMaintenance(ctx context.Context, monitorID string) (bool
 // It reads the flag for every type, so a monitor that supports TLS (http, smtp) only has
 // to put check_cert_expiry in its config.
 func (l *Loader) checkCertExpiry(mon *shared.Monitor) bool {
-	checkCertExpiry := false
-	if mon.Config != "" {
-		// Parse monitor configuration to check if certificate expiry checking is enabled
-		var config struct {
-			CheckCertExpiry bool `json:"check_cert_expiry"`
-		}
-		if err := json.Unmarshal([]byte(mon.Config), &config); err != nil {
-			l.logger.Warnw("Failed to parse monitor config for certificate expiry check",
-				"monitor_id", mon.ID,
-				"monitor_name", mon.Name,
-				"error", err)
-		} else {
-			checkCertExpiry = config.CheckCertExpiry
-		}
+	checkCertExpiry, err := job.CertExpiryRequested(mon.Config)
+	if err != nil {
+		l.logger.Warnw("Failed to parse monitor config for certificate expiry check",
+			"monitor_id", mon.ID,
+			"monitor_name", mon.Name,
+			"error", err)
 	}
 	l.logger.Debugw("Certificate expiry checking configured",
 		"monitor_id", mon.ID,

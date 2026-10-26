@@ -146,6 +146,28 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 			assert.Nil(t, service.patch.Config)
 		}
 	})
+
+	t.Run("active only reaches the service alone", func(t *testing.T) {
+		service := &updateRecordingService{saved: &Model{Type: "test-valid", Config: stringPtr("{}")}}
+		router := httpx.NewRouter()
+		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
+
+		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"active": false}`))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusOK, rec.Code)
+		if assert.NotNil(t, service.patch) && assert.NotNil(t, service.patch.Active, "active: false is a value, not an omitted field") {
+			assert.False(t, *service.patch.Active)
+		}
+		if assert.NotNil(t, service.patch) {
+			assert.Nil(t, service.patch.Name)
+			assert.Nil(t, service.patch.Type)
+			assert.Nil(t, service.patch.IsDefault)
+			assert.Nil(t, service.patch.Config)
+		}
+	})
 }
 
 func TestControllerTestSendsWithADeadline(t *testing.T) {

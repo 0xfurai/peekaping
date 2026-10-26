@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Notifications from "../shared/notifications";
 import Tags from "../shared/tags";
+import Probe from "../shared/probe";
+import LocationRule from "../shared/location-rule";
 import Intervals from "../shared/intervals";
 import General from "../shared/general";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
@@ -63,6 +65,8 @@ const PostgresForm = () => {
       <Card>
         <CardContent className="space-y-4">
           <Tags />
+          <Probe />
+          <LocationRule />
         </CardContent>
       </Card>
 

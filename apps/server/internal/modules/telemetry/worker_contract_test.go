@@ -89,7 +89,7 @@ func TestBuildPayload_PassesTheWorkersRules(t *testing.T) {
 	typeRule := workerPattern(t, source, "TYPE_NAME")
 
 	for _, mode := range []Mode{ModeSingle, ModeCluster} {
-		for _, dbType := range []string{"sqlite", "postgres", "postgresql", "mongo", "mongodb", "mysql"} {
+		for _, dbType := range []string{"sqlite", "postgres", "postgresql", "mysql"} {
 			t.Run(string(mode)+"/"+dbType, func(t *testing.T) {
 				in := newInstall()
 				in.mode = mode

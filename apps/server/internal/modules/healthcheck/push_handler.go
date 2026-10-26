@@ -24,8 +24,8 @@ type PushConfig struct {
 	PushToken string `json:"pushToken"`
 }
 
-// RegisterPushEndpoint registers the push URL. Each push goes to the ingester service, which in
-// cluster mode enqueues it for the ingester (ingester.NewPushQueueService).
+// RegisterPushEndpoint registers the push URL. Each push goes to the ingester service, which
+// stores it in order with the monitor's other results (ingest.NewInOrderService).
 func RegisterPushEndpoint(
 	router *httpx.Router,
 	monitorService monitor.Service,
@@ -63,7 +63,7 @@ func RegisterPushEndpoint(
 		// A push monitor inside an active maintenance window reports
 		// Maintenance, like a scheduled check, so planned downtime neither
 		// shows as Down nor sends notifications.
-		underMaintenance, err := monitorUnderMaintenance(ctx, maintenanceService, monitor.ID)
+		underMaintenance, err := MonitorUnderMaintenance(ctx, maintenanceService, monitor.ID)
 		if err != nil {
 			// Keep the heartbeat the service pushed rather than lose it.
 			logger.Errorw("Failed to check if push monitor is under maintenance",
@@ -71,10 +71,7 @@ func RegisterPushEndpoint(
 				"error", err,
 			)
 		}
-		if underMaintenance {
-			status = shared.MonitorStatusMaintenance
-			msg = maintenanceMessage
-		} else {
+		if !underMaintenance {
 			pingStr := r.URL.Query().Get("ping")
 			var ok bool
 			ping, ok = parsePushPing(pingStr)
@@ -85,27 +82,9 @@ func RegisterPushEndpoint(
 
 		now := time.Now().UTC()
 
-		// The ingester service enqueues the push for the ingester in cluster mode, and ingests it
-		// in order with the monitor's checks in single mode
-		result := &ingester.Result{
-			MonitorID:          monitor.ID,
-			MonitorName:        monitor.Name,
-			MonitorType:        monitor.Type,
-			MonitorInterval:    monitor.Interval,
-			MonitorTimeout:     monitor.Timeout,
-			MonitorMaxRetries:  monitor.MaxRetries,
-			MonitorRetryInt:    monitor.RetryInterval,
-			MonitorResendInt:   monitor.ResendInterval,
-			MonitorConfig:      monitor.Config,
-			Status:             status,
-			Message:            msg,
-			PingMs:             ping,
-			StartTime:          now,
-			EndTime:            now,
-			IsUnderMaintenance: underMaintenance,
-			TLSInfo:            nil,
-			CheckCertExpiry:    false,
-		}
+		// The ingester service stores the push before the request is answered, in order with the
+		// monitor's other results
+		result := ResultFromMonitor(monitor, underMaintenance, status, msg, ping, now, now, nil, logger)
 
 		err = ingesterService.Ingest(ctx, result)
 		if err != nil {
@@ -124,10 +103,10 @@ func RegisterPushEndpoint(
 // monitor is inside a maintenance window.
 const maintenanceMessage = "Monitor under maintenance"
 
-// monitorUnderMaintenance reports whether any maintenance window attached to
+// MonitorUnderMaintenance reports whether any maintenance window attached to
 // the monitor is active. A window that can't be read doesn't hide another
-// active window; the caller keeps the pushed heartbeat rather than drop it.
-func monitorUnderMaintenance(ctx context.Context, service maintenance.Service, monitorID string) (bool, error) {
+// active window; the caller keeps the reported heartbeat rather than drop it.
+func MonitorUnderMaintenance(ctx context.Context, service maintenance.Service, monitorID string) (bool, error) {
 	maintenances, err := service.GetMaintenancesByMonitorID(ctx, monitorID)
 	if err != nil {
 		return false, err

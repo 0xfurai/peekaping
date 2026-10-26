@@ -6,6 +6,7 @@ import (
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	"go.uber.org/zap"
 )
@@ -39,7 +40,7 @@ func (c *Controller) Set(ctx context.Context, input *SetInput) (*httpx.Output[St
 	if err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
-	if err := utils.Validate.Struct(dto); err != nil {
+	if err := validation.Validate.Struct(dto); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 	state, err := c.service.SetEnabled(ctx, *dto.Enabled)

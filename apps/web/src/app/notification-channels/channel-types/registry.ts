@@ -24,10 +24,11 @@ import { lineChannelType } from "./line";
 import { teamsChannelType } from "./teams";
 
 /**
- * Every notification channel type, in the order the Type select lists them. This is the one
- * list: the form schema, the form values type and the select options come from it. To add a
- * type, create its folder next to the others (schema.ts, form.tsx and an index.ts with its
- * definition; see docs/adr/0004-web-form-conventions.md) and add it here.
+ * Every notification channel type. This is the one list: the form schema, the form values type
+ * and the select options come from it. The first entry is the type a new channel starts on. The
+ * Type select lists the types by label instead (see `channelTypeOptions`), so the order here
+ * doesn't show. To add a type, create its folder next to the others (schema.ts, form.tsx and an
+ * index.ts with its definition; see docs/adr/0004-web-form-conventions.md) and add it here.
  */
 export const channelTypes = [
   smtpChannelType,
@@ -58,6 +59,14 @@ export const channelTypes = [
 type ChannelTypeDefinitions = (typeof channelTypes)[number];
 
 export type ChannelType = ChannelTypeDefinitions["type"];
+
+// The Type select's options, sorted by label with case ignored
+export const channelTypeOptions = channelTypes
+  .map((definition) => ({
+    label: definition.displayName,
+    value: definition.type,
+  }))
+  .sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
 
 type SchemasOf<Definitions extends readonly { schema: unknown }[]> = {
   -readonly [K in keyof Definitions]: Definitions[K] extends { schema: infer S } ? S : never;

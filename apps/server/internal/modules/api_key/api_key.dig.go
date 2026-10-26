@@ -1,15 +1,11 @@
 package api_key
 
 import (
-	"peekaping/internal/config"
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
 )
 
-func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
-	if err := utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository); err != nil {
-		return err
-	}
-	return utils.Provide(container, NewRoute, NewService, NewController, NewMiddlewareProvider)
+func RegisterDependencies(container *dig.Container) error {
+	return utils.Provide(container, NewSQLRepository, NewRoute, NewService, NewController, NewMiddlewareProvider)
 }

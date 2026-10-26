@@ -48,6 +48,11 @@ func TestConnectToDatabasePostgresSSLModeTLS(t *testing.T) {
 			err = db.NewRaw("SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid()").Scan(t.Context(), &encrypted)
 			require.NoError(t, err)
 			require.Equal(t, mode != "" && mode != "disable", encrypted, "DB_SSLMODE did not reach the migration connection")
+
+			var searchPath string
+			err = db.NewRaw("SHOW search_path").Scan(t.Context(), &searchPath)
+			require.NoError(t, err)
+			require.Equal(t, "public", searchPath)
 		})
 	}
 }

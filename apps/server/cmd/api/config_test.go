@@ -3,6 +3,8 @@ package main
 import (
 	"testing"
 
+	"peekaping/internal/config"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -108,7 +110,6 @@ func TestTelemetrySettingsAreLoadedFromEnv(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")
 	t.Setenv("TELEMETRY", "")
-	t.Setenv("DO_NOT_TRACK", "")
 	t.Setenv("TELEMETRY_URL", "")
 
 	cfg, err := LoadAndValidate(t.TempDir())
@@ -124,12 +125,6 @@ func TestTelemetrySettingsAreLoadedFromEnv(t *testing.T) {
 	internalCfg = cfg.ToInternalConfig()
 	assert.True(t, internalCfg.TelemetryForcedOff())
 	assert.Equal(t, "http://localhost:8787/v1/ping", internalCfg.TelemetryURL)
-
-	t.Setenv("TELEMETRY", "")
-	t.Setenv("DO_NOT_TRACK", "1")
-	cfg, err = LoadAndValidate(t.TempDir())
-	require.NoError(t, err)
-	assert.True(t, cfg.ToInternalConfig().TelemetryForcedOff())
 }
 
 // SQLITE_STARTUP_CHECK picks the check a process runs when it opens SQLite. Unset, it is the quick
@@ -171,4 +166,35 @@ func TestSQLiteStartupCheckRefusesAnUnknownValue(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "SQLiteStartupCheck must be one of: quick full off")
+}
+
+// AC1: the api refuses to start on MongoDB storage, which was removed, and points at the page that
+// explains the move. The DB_TYPE validator ignores case, so the refusal does too.
+func TestLoadAndValidate_RefusesMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MongoDB"} {
+		t.Run(dbType, func(t *testing.T) {
+			t.Setenv("DB_TYPE", dbType)
+			t.Setenv("DB_NAME", "peekaping")
+			t.Setenv("DB_HOST", "mongo")
+			t.Setenv("DB_PORT", "27017")
+			t.Setenv("DB_USER", "peekaping")
+			t.Setenv("DB_PASS", "secret")
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			require.ErrorIs(t, err, config.ErrMongoStorageRemoved)
+			assert.Contains(t, err.Error(), "DB_TYPE="+dbType+": MongoDB storage was removed.")
+			assert.Contains(t, err.Error(), "https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql")
+			assert.Contains(t, err.Error(), `"bun db import-mongo"`)
+		})
+	}
+}
+
+// Validate is called on its own too, with a Config that didn't come from LoadAndValidate
+func TestValidate_RefusesMongoStorage(t *testing.T) {
+	for _, dbType := range []string{"mongo", "mongodb", "MongoDB"} {
+		t.Run(dbType, func(t *testing.T) {
+			assert.ErrorIs(t, Validate(&Config{DBType: dbType}), config.ErrMongoStorageRemoved)
+		})
+	}
 }

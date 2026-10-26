@@ -3,6 +3,7 @@ package notification_channel
 import (
 	"context"
 	"peekaping/internal/modules/monitor_notification"
+	"peekaping/internal/modules/probe_notification"
 
 	"go.uber.org/zap"
 )
@@ -19,17 +20,20 @@ type Service interface {
 type ServiceImpl struct {
 	repository                 Repository
 	monitorNotificationService monitor_notification.Service
+	probeNotificationService   probe_notification.Service
 	logger                     *zap.SugaredLogger
 }
 
 func NewService(
 	repository Repository,
 	monitorNotificationService monitor_notification.Service,
+	probeNotificationService probe_notification.Service,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
 		repository,
 		monitorNotificationService,
+		probeNotificationService,
 		logger.Named("[notification-service]"),
 	}
 }
@@ -115,6 +119,11 @@ func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
 	// failure here doesn't fail the delete: links left behind are skipped when sending.
 	if err := mr.monitorNotificationService.DeleteByNotificationID(ctx, id); err != nil {
 		mr.logger.Warnw("Failed to delete the deleted notification channel's monitor links", "id", id, "error", err)
+	}
+
+	// The same for the probes' links.
+	if err := mr.probeNotificationService.DeleteByNotificationID(ctx, id); err != nil {
+		mr.logger.Warnw("Failed to delete the deleted notification channel's probe links", "id", id, "error", err)
 	}
 
 	return nil

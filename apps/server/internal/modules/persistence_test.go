@@ -9,17 +9,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
-	"time"
 
 	"peekaping/cmd/bun/migrations"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor_status_page"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
+	"peekaping/internal/modules/status_page"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -30,9 +30,6 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func TestRepositoryInterfacesUseDomainTypes(t *testing.T) {
@@ -68,6 +65,7 @@ type repositories struct {
 	maintenance   maintenance.Repository
 	monitors      monitor_status_page.Repository
 	domains       domain_status_page.Repository
+	pages         status_page.Repository
 	settings      setting.Repository
 	tls           monitor_tls_info.Repository
 	history       notification_sent_history.Repository
@@ -92,7 +90,7 @@ func sqlRepositories(t *testing.T, db *bun.DB) repositories {
 		require.NoError(t, err)
 	}
 	return repositories{
-		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db),
+		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db), status_page.NewSQLRepository(db),
 		setting.NewSQLRepository(db), monitor_tls_info.NewSQLRepository(db), notification_sent_history.NewSQLRepository(db),
 		statusID, monitorID, replacementID,
 	}
@@ -102,6 +100,7 @@ func TestRepositoriesUseDomainModels(t *testing.T) {
 	t.Run("SQLite", func(t *testing.T) {
 		sqlDB, err := sql.Open(sqliteshim.ShimName, filepath.Join(t.TempDir(), "domain-models.db"))
 		require.NoError(t, err)
+		sqlDB.SetMaxOpenConns(1) // as infra.NewSQL does: one connection, so writes queue instead of failing as locked
 		exerciseRepositories(t, sqlRepositories(t, bun.NewDB(sqlDB, sqlitedialect.New())))
 	})
 	t.Run("Postgres", func(t *testing.T) {
@@ -120,27 +119,6 @@ func TestRepositoriesUseDomainModels(t *testing.T) {
 		})
 		connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn), pgdriver.WithConnParams(map[string]interface{}{"search_path": schema}))
 		exerciseRepositories(t, sqlRepositories(t, bun.NewDB(sql.OpenDB(connector), pgdialect.New())))
-	})
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run MongoDB integration checks")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		require.NoError(t, client.Ping(ctx, nil))
-		cfg := &config.Config{DBName: "pee90_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		exerciseRepositories(t, repositories{
-			maintenance.NewMongoRepository(client, cfg), monitor_status_page.NewMongoRepository(client, cfg), domain_status_page.NewMongoRepository(client, cfg),
-			setting.NewMongoRepository(client, cfg), monitor_tls_info.NewMongoRepository(client, cfg), notification_sent_history.NewMongoRepository(client, cfg),
-			primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(),
-		})
 	})
 }
 
@@ -172,6 +150,29 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		actual, err = repos.maintenance.FindByID(ctx, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, input.Title, actual.Title)
+	})
+	t.Run("StatusPageShowLocations", func(t *testing.T) {
+		plain, err := repos.pages.Create(ctx, &status_page.Model{Slug: "plain-page", Title: "Plain"})
+		require.NoError(t, err)
+		assert.False(t, plain.ShowLocations, "a page made without the setting")
+		eachPlace, err := repos.pages.Create(ctx, &status_page.Model{Slug: "each-place", Title: "Each place", ShowLocations: true})
+		require.NoError(t, err)
+		found, err := repos.pages.FindByID(ctx, eachPlace.ID)
+		require.NoError(t, err)
+		assert.True(t, found.ShowLocations, "stored on create")
+		title, off, on := "Renamed", false, true
+		require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{Title: &title}))
+		found, err = repos.pages.FindBySlug(ctx, "each-place")
+		require.NoError(t, err)
+		assert.True(t, found.ShowLocations, "an update that leaves it out keeps it")
+		require.NoError(t, repos.pages.Update(ctx, eachPlace.ID, &status_page.UpdateModel{ShowLocations: &off}))
+		found, err = repos.pages.FindByID(ctx, eachPlace.ID)
+		require.NoError(t, err)
+		assert.False(t, found.ShowLocations, "turned off")
+		require.NoError(t, repos.pages.Update(ctx, plain.ID, &status_page.UpdateModel{ShowLocations: &on}))
+		found, err = repos.pages.FindByID(ctx, plain.ID)
+		require.NoError(t, err)
+		assert.True(t, found.ShowLocations, "turned on")
 	})
 	t.Run("StatusPageMonitors", func(t *testing.T) {
 		created, err := repos.monitors.Create(ctx, &monitor_status_page.Model{StatusPageID: repos.statusPageID, MonitorID: repos.monitorID, Active: true, Order: 3})
@@ -209,6 +210,49 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		require.NoError(t, err)
 		assert.Empty(t, actual.Value)
 		assert.Equal(t, "string", actual.Type)
+	})
+	// The usage ping's instance ID is created by whichever api replica gets there first. All of
+	// them must end up with the one value that was stored, whoever raced.
+	t.Run("SettingsCreateIfAbsent", func(t *testing.T) {
+		const racers = 12
+		returned := make([]string, racers)
+		var wg sync.WaitGroup
+		for n := range racers {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				created, err := repos.settings.CreateIfAbsent(ctx, "create-if-absent", &setting.Model{Value: uuid.NewString(), Type: "string"})
+				if assert.NoError(t, err) {
+					returned[n] = created.Value
+				}
+			}()
+		}
+		wg.Wait()
+
+		stored, err := repos.settings.GetByKey(ctx, "create-if-absent")
+		require.NoError(t, err)
+		require.NotNil(t, stored)
+		assert.NotEmpty(t, stored.Value)
+		assert.Equal(t, "string", stored.Type)
+		for n, value := range returned {
+			assert.Equal(t, stored.Value, value, "racer %d got another value than the stored one", n)
+		}
+
+		again, err := repos.settings.CreateIfAbsent(ctx, "create-if-absent", &setting.Model{Value: "later", Type: "int"})
+		require.NoError(t, err)
+		assert.Equal(t, stored.Value, again.Value, "a stored value is not replaced")
+		assert.Equal(t, "string", again.Type)
+
+		_, err = repos.settings.SetByKey(ctx, "set-then-create", &setting.Model{Value: "chosen", Type: "string"})
+		require.NoError(t, err)
+		kept, err := repos.settings.CreateIfAbsent(ctx, "set-then-create", &setting.Model{Value: "default", Type: "string"})
+		require.NoError(t, err)
+		assert.Equal(t, "chosen", kept.Value)
+
+		require.NoError(t, repos.settings.DeleteByKey(ctx, "create-if-absent"))
+		fresh, err := repos.settings.CreateIfAbsent(ctx, "create-if-absent", &setting.Model{Value: "after delete", Type: "string"})
+		require.NoError(t, err)
+		assert.Equal(t, "after delete", fresh.Value, "a deleted key is created again")
 	})
 	t.Run("TLS", func(t *testing.T) {
 		_, err := repos.tls.Create(ctx, &monitor_tls_info.Model{MonitorID: repos.monitorID, InfoJSON: `{"valid":true}`})

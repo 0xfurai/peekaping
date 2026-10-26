@@ -1,0 +1,227 @@
+---
+import GitHubIcon from "./GitHubIcon.astro";
+import CopyCommand from "./CopyCommand.astro";
+
+// Sample monitors for the live card. `down` marks the beats that start red.
+const liveMonitors = [
+  { name: "api.acme.dev", type: "HTTP", ms: 84, down: [] as number[] },
+  { name: "postgres-primary", type: "PostgreSQL", ms: 3, down: [] },
+  { name: "checkout-worker", type: "Push", ms: 12, down: [9, 10, 11] },
+  { name: "mqtt.iot.local", type: "MQTT", ms: 21, down: [] },
+];
+const BEATS = 24;
+---
+
+<section class="relative overflow-hidden pt-16 sm:pt-24 pb-10 -mt-[76px] sm:-mt-[88px]">
+  <!-- Background: grid, glows -->
+  <div class="absolute inset-0 -z-10 pointer-events-none" aria-hidden="true">
+    <div class="absolute inset-0 grid-bg"></div>
+    <div
+      class="absolute left-1/2 -translate-x-1/2 -top-40 w-[900px] h-[600px] rounded-full bg-violet-600/30 blur-[120px]"
+    >
+    </div>
+    <div
+      class="absolute right-[-10%] top-40 w-[420px] h-[420px] rounded-full bg-[#f5e3c3]/10 blur-[100px]"
+    >
+    </div>
+  </div>
+
+  <div class="relative px-4 sm:px-8 pt-24 sm:pt-28 text-center">
+    <a
+      href="https://github.com/0xfurai/peekaping/releases"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="reveal inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.04] pl-3 pr-4 py-1.5 text-sm text-zinc-300 hover:border-violet-400/40 hover:text-white transition-colors"
+    >
+      <span class="relative flex h-2 w-2">
+        <span class="absolute inline-flex h-full w-full rounded-full bg-up animate-pulse-ring"></span>
+        <span class="relative inline-flex h-2 w-2 rounded-full bg-up"></span>
+      </span>
+      Open source · MIT licensed · Self-hosted
+      <span aria-hidden="true" class="text-zinc-500">→</span>
+    </a>
+
+    <h1
+      class="reveal mt-7 text-[2.6rem] leading-[1.05] sm:text-6xl lg:text-7xl font-bold tracking-tight text-white max-w-[980px] mx-auto"
+      style="--delay: 80ms"
+    >
+      Catch outages before <br class="hidden sm:block" /><span class="text-gradient">your users do.</span>
+    </h1>
+
+    <p
+      class="reveal mt-6 text-lg sm:text-xl text-zinc-400 max-w-[680px] mx-auto leading-relaxed"
+      style="--delay: 160ms"
+    >
+      Open-source uptime monitoring for small teams. Check websites, APIs, databases and queues,
+      get alerts where your team already talks, and publish status pages. On your own server,
+      with no vendor lock-in.
+    </p>
+
+    <div
+      class="reveal mt-9 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3"
+      style="--delay: 240ms"
+    >
+      <a href="https://demo.peekaping.com" target="_blank" class="btn-primary">
+        Try the live demo
+        <span aria-hidden="true">→</span>
+      </a>
+      <a
+        href="https://github.com/0xfurai/peekaping"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-ghost"
+      >
+        <GitHubIcon size={18} />
+        Star on GitHub
+        <span
+          id="github-stars"
+          class="empty:hidden ml-1 rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold text-violet-200"
+        ></span>
+      </a>
+    </div>
+
+    <div class="reveal mt-8 flex justify-center" style="--delay: 320ms">
+      <CopyCommand
+        command="docker run -d -p 8383:8383 -v peekaping:/app/data 0xfurai/peekaping-bundle-sqlite"
+      />
+    </div>
+  </div>
+
+  <!-- Product shot -->
+  <div class="relative mt-16 sm:mt-20 px-4 sm:px-8 [perspective:2000px]">
+    <div
+      class="absolute left-1/2 -translate-x-1/2 top-10 w-[90%] max-w-[1100px] h-[70%] bg-[url(/hero-section-bg.webp)] bg-cover bg-center opacity-50 blur-3xl rounded-full -z-10"
+      aria-hidden="true"
+    >
+    </div>
+
+    <div id="hero-shot" class="relative max-w-[1100px] mx-auto origin-top transition-transform duration-100 ease-out">
+      <img
+        src="/demo.webp"
+        alt="Peekaping monitor page: current status, a heartbeat bar, uptime for 24 hours to 365 days and a response time chart"
+        width="2236"
+        height="1438"
+        class="w-full h-auto"
+        fetchpriority="high"
+      />
+
+      <!-- Live monitors card -->
+      <div
+        class="hidden lg:block absolute -left-16 bottom-16 w-[400px] rounded-2xl border border-white/10 bg-[#0d0a17]/85 backdrop-blur-xl p-4 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9),0_0_0_1px_rgba(139,92,246,0.15)] text-left animate-float"
+        aria-hidden="true"
+      >
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Monitors</div>
+          <div class="flex items-center gap-1.5 text-xs text-zinc-400">
+            <span class="h-1.5 w-1.5 rounded-full bg-up"></span> live
+          </div>
+        </div>
+        <ul class="space-y-2.5" id="live-monitors">
+          {
+            liveMonitors.map((m) => (
+              <li class="flex items-center gap-3" data-flaky={m.down.length > 0 ? "" : undefined}>
+                <span
+                  class:list={[
+                    "live-dot h-2 w-2 rounded-full shrink-0",
+                    m.down.includes(BEATS - 1) ? "bg-down" : "bg-up",
+                  ]}
+                />
+                <div class="w-[120px] shrink-0">
+                  <div class="text-[13px] font-semibold text-zinc-100 truncate">{m.name}</div>
+                  <div class="text-[11px] text-zinc-500">{m.type}</div>
+                </div>
+                <div class="live-beats flex gap-[3px] flex-1">
+                  {Array.from({ length: BEATS }, (_, i) => (
+                    <span
+                      class:list={[
+                        "h-5 flex-1 rounded-[2px]",
+                        m.down.includes(i) ? "bg-down" : "bg-up/80",
+                      ]}
+                    />
+                  ))}
+                </div>
+                <div class="live-ms w-12 text-right text-xs tabular-nums text-zinc-400" data-base={m.ms}>{m.ms} ms</div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- Alert toast -->
+      <div
+        class="hidden lg:flex absolute -right-10 top-24 w-[300px] items-start gap-3 rounded-2xl border border-white/10 bg-[#0d0a17]/85 backdrop-blur-xl p-4 text-left shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] animate-float [animation-delay:-3s]"
+        aria-hidden="true"
+      >
+        <div class="h-9 w-9 shrink-0 rounded-xl bg-down/15 border border-down/30 grid place-items-center text-down">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        </div>
+        <div>
+          <div class="text-[13px] font-semibold text-white">checkout-worker is Down</div>
+          <div class="text-xs text-zinc-400 mt-0.5">No heartbeat for 60 seconds</div>
+          <div class="mt-2 flex gap-1.5 text-[11px] text-zinc-400">
+            <span class="rounded-md bg-white/5 border border-white/10 px-1.5 py-0.5">Slack</span>
+            <span class="rounded-md bg-white/5 border border-white/10 px-1.5 py-0.5">PagerDuty</span>
+            <span class="rounded-md bg-white/5 border border-white/10 px-1.5 py-0.5">Telegram</span>
+          </div>
+        </div>
+      </div>
+
+      <img
+        src="/meerkat.webp"
+        alt=""
+        width="1028"
+        height="1028"
+        class="hidden md:block absolute -bottom-[60px] -right-[90px] lg:-right-[150px] w-[230px] lg:w-[330px] z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+        loading="lazy"
+      />
+    </div>
+
+    <!-- Fade into the page -->
+    <div
+      class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-ink pointer-events-none"
+      aria-hidden="true"
+    >
+    </div>
+  </div>
+</section>
+
+<script>
+  // Tilt the product shot back to flat as it scrolls into view
+  const shot = document.getElementById("hero-shot");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (shot && !reduceMotion) {
+    const update = () => {
+      const progress = Math.min(window.scrollY / 400, 1);
+      const angle = 14 * (1 - progress);
+      const scale = 0.94 + 0.06 * progress;
+      shot.style.transform = `rotateX(${angle}deg) scale(${scale})`;
+    };
+    update();
+    window.addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
+  }
+
+  // Feed the live card new heartbeats
+  const rows = document.querySelectorAll<HTMLLIElement>("#live-monitors li");
+  if (rows.length && !reduceMotion) {
+    let tick = 0;
+    setInterval(() => {
+      tick++;
+      rows.forEach((row) => {
+        const beats = row.querySelector(".live-beats");
+        const dot = row.querySelector(".live-dot");
+        const ms = row.querySelector(".live-ms");
+        if (!beats || !dot || !ms) return;
+        // The flaky monitor goes down for a few beats every 14 ticks
+        const down = row.hasAttribute("data-flaky") && tick % 14 >= 10;
+        const beat = document.createElement("span");
+        beat.className = `h-5 flex-1 rounded-[2px] ${down ? "bg-down" : "bg-up/80"}`;
+        beats.firstElementChild?.remove();
+        beats.appendChild(beat);
+        dot.className = `live-dot h-2 w-2 rounded-full shrink-0 ${down ? "bg-down" : "bg-up"}`;
+        const base = Number((ms as HTMLElement).dataset.base) || 10;
+        const next = Math.max(1, Math.round(base + (Math.random() - 0.5) * Math.max(4, base * 0.25)));
+        ms.textContent = down ? "—" : `${next} ms`;
+      });
+    }, 1400);
+  }
+</script>

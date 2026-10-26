@@ -16,8 +16,9 @@
       "have_account": "Allaqachon hisobingiz bormi?",
       "sign_in": "Kirish",
       "submit": "Yaratish",
-      "telemetry_hint": "Bu katakchani belgilamasangiz, o'chiq turadi. Buni keyinroq «Sozlamalar» bo'limida o'zgartirishingiz mumkin. Belgilasangiz, Peekaping buni kuniga ko'pi bilan bir marta yuboradi:",
-      "title": "Salom"
+      "title": "Salom",
+      "telemetry_note": "Anonim: monitor nomlari, URL manzillari va xostlarsiz. Buni keyinroq «Sozlamalar» bo'limida o'zgartirishingiz mumkin.",
+      "telemetry_whats_sent": "Nima yuboriladi"
     },
     "twofa": {
       "code_label": "2FA kodi",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Xato hisobotlarini yuborish",
-    "never_sent": "Hech qachon yuborilmaydi: xato xabarlari, URL manzillari, sarlavhalar, webhook URL manzillari, nomlar yoki xost nomlari. Hisobotda IP manzil bo'lmaydi va Peekaping'ning Sentry loyihasi yuboruvchining IP manzilini saqlamaslikka sozlangan. O'zingizning ERROR_REPORTING_DSN'ingiz bilan buni Sentry yoki GlitchTip sozlamalaringiz belgilaydi.",
-    "not_saved": "Xato hisobotlarini yuborish tanlovingiz saqlanmadi. Uni «Sozlamalar» bo'limida yoqing.",
+    "never_sent": "Hech qachon yuborilmaydi: xato xabarlari, URL manzillari, sarlavhalar, webhook URL manzillari, nomlar yoki xost nomlari. Hisobotda IP manzil bo'lmaydi va Peekaping'ning Sentry loyihasi yuboruvchining IP manzilini saqlamaslikka sozlangan.",
+    "not_saved": "Xato hisobotlari bo'yicha tanlovingiz saqlanmadi. Uni «Sozlamalar» bo'limida tekshiring.",
     "sent": "Faqat Peekapingning o'zi ishdan chiqqanda yuboriladi. Hisobotda xato turi va u kodning qaysi joyida yuz bergani, Peekaping versiyasi, yakka yoki klaster rejimi, saqlash backendi va operatsion tizim bo'ladi."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "So'rovning muddat tugashi ({{seconds}} soniya o'tgach)",
           "resend_notification": "X ta uzluksiz down bo'lsa, xabarni qayta yuborish (Qayta yuborish o'chirilgan)"
         },
+        "location_rule": {
+          "all": "barcha joylashuvlar ishlamasa",
+          "any": "istalgan joylashuv ishlamasa",
+          "at_least": "kamida N ta joylashuv ishlamasa",
+          "description": "Zondi oflayn bo'lgan yoki hali natija bermagan joylashuv hisobga olinmaydi.",
+          "label": "Monitorni quyidagi holatda ishlamayapti deb belgilash",
+          "threshold_invalid": "Butun son kiriting, 1 yoki undan ko'p",
+          "threshold_label": "Joylashuvlar soni",
+          "threshold_too_high": "Tanlangan zondlar sonidan ko'p bo'lishi mumkin emas"
+        },
         "notifications": {
           "add_notifier": "Bildirishnoma qo'shish",
           "new_notifier": "+ Yangi bildirishchi",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Notifierni tanlang",
           "selected_channels": "Tanlangan Xabarnoma kanallari",
           "title": "Bildirish kanallari"
+        },
+        "probe": {
+          "description": "Monitor tanlangan har bir zondda ishlaydi va har birining natijalarini joylashuv sifatida ko'rsatadi.",
+          "label": "Zond",
+          "option_unsupported": "{{name}} (bu turni ishga tushirmaydi)",
+          "placeholder": "Zondni tanlang",
+          "push_fixed": "Push Monitor doim mahalliy zondda ishlaydi.",
+          "required": "Kamida bitta zondni tanlang",
+          "unsupported": "Bu zond ushbu turdagi monitorni ishga tushirmaydi. Boshqa zondni tanlang."
         },
         "proxy": {
           "add_proxy": "Proxy qo'shish",
@@ -658,6 +678,15 @@
       "expiring_soon": "Yaqin muddatda tugaydi",
       "for": "uchun",
       "live_status": "Canli Holati",
+      "locations": {
+        "all": "Barcha joylashuvlar",
+        "no_result": "Hozircha natija yo'q",
+        "probe_offline": "Zond oflayn",
+        "probe_unsupported": "Bu turni ishga tushirmaydi",
+        "response_time": "Javob vaqti",
+        "select_label": "Joylashuv",
+        "title": "Joylashuvlar"
+      },
       "monitor_for": "monitor qilish uchun",
       "no_certificate_data": "Sertifikat ma'lumotlari yo'q",
       "seconds": "soniyalar",
@@ -683,6 +712,7 @@
     "maintenance": "Texnik xizmat",
     "monitors": "Monitoring",
     "notification_channels": "Xabarnoma kanallari",
+    "probes": "Zondlar",
     "proxies": "Proksilar",
     "settings": "Sozlamalar",
     "status_pages": "Status sahifalari",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Avtomatik tasdiqlash",
         "auto_resolve_acknowledge_description": "Insidentni avtomatik ravishda qabul qilish",
-        "auto_resolve_description": "Monitoring qayta ishga tushganda qaysi harakatni bajarishni tanlang",
+        "auto_resolve_description": "Monitor qayta ishga tushganda yoki zond qayta onlayn bo‘lganda nima yuborilishini tanlang",
         "auto_resolve_do_nothing": "Hech narsa qilmang",
-        "auto_resolve_do_nothing_description": "UP holatida hech qanday harakat amalga oshirilmagan",
+        "auto_resolve_do_nothing_description": "Monitor qayta ishga tushganda yoki zond qayta onlayn bo‘lganda hech narsa yuborilmaydi, shuning uchun insident PagerDuty’da hal qilinmaguncha ochiq qoladi",
         "auto_resolve_label": "Avtomatik hal qilish yoki tasdiqlash",
         "auto_resolve_placeholder": "Avtomatik yechim xatti-harakatini tanlang",
         "auto_resolve_resolve": "Avtomatik yechish",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Qoʻshimcha xavfsizlik uchun ixtiyoriy autentifikatsiya tokeni. Bu token pagertree-token sarlavhasiga yuboriladi.",
         "authentication_token_label": "Autentifikatsiya Tokeni (Ixtiyoriy)",
         "authentication_token_placeholder": "Kerak bo'lsa, avtorizatsiya tokenini kiriting.",
-        "auto_resolve_alerts_description": "Monitor tiklanganda PagerTree ogohlantirishlari avtomatik ravishda yechiladi.",
+        "auto_resolve_alerts_description": "Monitor qayta ishga tushganda yoki zond qayta onlayn bo‘lganda PagerTree ogohlantirishlari avtomatik ravishda yechiladi.",
         "auto_resolve_alerts_label": "Ogohlantirishlarni avtomatik ravishda hal qilish",
         "how_to_get_integration_url_label": "Integratsiya URLini olish usuli",
         "integration_url_description": "PagerTree webhook integratsiyasi URLini kiriting.",
@@ -1122,6 +1152,109 @@
       "saved_hint": "Saqlangan — almashtirish uchun yozing"
     }
   },
+  "probes": {
+    "page_name": "Zondlar",
+    "description": "Zondlar monitorlarning tekshiruvlarini ular o‘rnatilgan joylardan bajaradi. Mahalliy zond — bu Peekapingning o‘zi.",
+    "local_name": "Mahalliy",
+    "monitor_probe": "Zond: {{name}}",
+    "monitor_probe_unsupported": "{{name}} {{type}} turidagi monitorlarni ishga tushirmaydi",
+    "empty_list": {
+      "title": "Zondlar topilmadi",
+      "text": "Tekshiruvlarni boshqa joydan bajarish uchun zond yarating.",
+      "action_text": "Birinchi zondingizni yarating"
+    },
+    "table": {
+      "headers": {
+        "name": "Nomi",
+        "location": "Joylashuv",
+        "status": "Holat",
+        "disabled": "O‘chirilgan",
+        "token": "Token",
+        "instances": "Nusxalar",
+        "actions": "Amallar"
+      },
+      "status": {
+        "online": "Onlayn",
+        "offline": "Oflayn"
+      },
+      "disabled": "O‘chirilgan",
+      "no_instances": "Hozircha nusxalar yo‘q",
+      "last_seen": "oxirgi marta ko‘rilgan: {{date}}",
+      "actions": {
+        "edit": "{{name}} zondini tahrirlash",
+        "rotate": "{{name}} zondining tokenini almashtirish",
+        "delete": "{{name}} zondini o‘chirish"
+      }
+    },
+    "create_dialog": {
+      "title": "Zond yaratish",
+      "description": "Zond tekshiruvlarni siz o‘rnatgan joydan bajaradi. Uning tokeni faqat bir marta, yaratilgandan so‘ng ko‘rsatiladi.",
+      "submit": "Zond yaratish",
+      "creating": "Yaratilmoqda..."
+    },
+    "edit_dialog": {
+      "title": "Zondni tahrirlash",
+      "description": "{{name}} sozlamalarini o‘zgartiring."
+    },
+    "form": {
+      "name_label": "Nomi",
+      "name_placeholder": "masalan, Frankfurt",
+      "location_label": "Joylashuv (ixtiyoriy)",
+      "location_placeholder": "masalan, Frankfurt, Germaniya",
+      "name_required": "Nomi kiritilishi shart",
+      "name_too_long": "Nomi juda uzun",
+      "location_too_long": "Joylashuv juda uzun",
+      "disabled_label": "O‘chirilgan",
+      "disabled_description": "O‘chirilgan zondning tokeni uni qayta yoqmaguningizcha ishlamaydi.",
+      "notifications_hint": "Ushbu zondning monitoring kanallariga xabar yuborish uchun bo‘sh qoldiring."
+    },
+    "rotate_dialog": {
+      "title": "Tokenni almashtirish",
+      "description": "{{name}} zondining eski tokeni darhol ishlashdan to‘xtaydi. Uning nusxalarini yangi token bilan qayta ishga tushirish kerak.",
+      "confirm": "Tokenni almashtirish",
+      "rotating": "Almashtirilmoqda..."
+    },
+    "delete_dialog": {
+      "title": "Zondni o‘chirish",
+      "description": "\"{{name}}\" zondini o‘chirishni xohlaysizmi? Uning tokeni ishlashdan to‘xtaydi. Bu amalni bekor qilib bo‘lmaydi."
+    },
+    "token_alert": {
+      "title_created": "{{name}} zondi yaratildi",
+      "title_rotated": "{{name}} zondi uchun yangi token",
+      "note": "Bu token zondga biriktirilgan monitorlarning konfiguratsiyasini o‘qiydi. U faqat bir marta ko‘rsatiladi.",
+      "token_label": "Token",
+      "docker_label": "Zondni Docker bilan ishga tushiring",
+      "copy_token": "Tokenni nusxalash",
+      "copy_command": "docker buyrug‘ini nusxalash"
+    },
+    "messages": {
+      "created_successfully": "Zond muvaffaqiyatli yaratildi",
+      "updated_successfully": "Zond muvaffaqiyatli yangilandi",
+      "rotated_successfully": "Token muvaffaqiyatli almashtirildi",
+      "deleted_successfully": "Zond muvaffaqiyatli o‘chirildi",
+      "failed_to_create": "Zondni yaratib bo‘lmadi",
+      "failed_to_update": "Zondni yangilab bo‘lmadi",
+      "failed_to_rotate": "Tokenni almashtirib bo‘lmadi",
+      "failed_to_delete": "Zondni o‘chirib bo‘lmadi",
+      "failed_to_load": "Zondlarni yuklab bo‘lmadi",
+      "copy_success": "Vaqtinchalik xotiraga nusxalandi",
+      "copy_failed": "Vaqtinchalik xotiraga nusxalab bo‘lmadi"
+    },
+    "detail": {
+      "not_found": "Zond topilmadi"
+    },
+    "availability": {
+      "title": "Mavjudlik",
+      "range_label": "Vaqt oralig'i",
+      "bar_label": "Mavjudlik tarixi",
+      "instance_bar_label": "{{name}} ulanishlari",
+      "no_data": "Ma'lumot yo'q",
+      "now": "Hozir",
+      "instances_title": "Nusxalar, oxirgi 24 soat",
+      "in_process_note": "Lokal zondning monitorlarini Peekaping o'zi tekshiradi, shuning uchun uning mavjudlik tarixi yo'q.",
+      "connected_since": "{{start}} dan beri ulangan"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Bu amaliyot bekor qilinmaydi. Bu proxy {{host}}:{{port}}ni doimiy ravishda o'chiradi.",
@@ -1288,14 +1421,14 @@
     },
     "error_reporting": {
       "cluster_note": "Klaster rejimida o'zgarish bir daqiqa ichida barcha jarayonlarga yetib boradi.",
-      "description": "Server ishdan chiqqanda Sentry'ga hisobot yuboring. Yoqmaguningizcha o'chiq turadi.",
-      "forced_off": "ERROR_REPORTING=off yoki DO_NOT_TRACK=1 muhit o'zgaruvchisi buni o'chiradi. Bu sozlamada nima yozilgan bo'lishidan qat'i nazar, hech narsa yuborilmaydi.",
+      "description": "Server ishdan chiqqanda Sentry'ga hisobot yuboring. Standart bo'yicha yoqilgan; uni shu yerda istalgan vaqtda o'chirib qo'yishingiz mumkin.",
+      "forced_off": "ERROR_REPORTING=off muhit o'zgaruvchisi buni o'chiradi. Bu sozlamada nima yozilgan bo'lishidan qat'i nazar, hech narsa yuborilmaydi.",
       "title": "Xato hisobotlari"
     },
     "telemetry": {
-      "description": "Ushbu o'rnatish qanday sozlanganligi haqida anonim statistikani kuniga ko'pi bilan bir marta yuboring. Yoqmaguningizcha o'chiq turadi.",
-      "forced_off": "TELEMETRY=off yoki DO_NOT_TRACK=1 muhit o'zgaruvchisi buni o'chiradi. Bu sozlamada nima yozilgan bo'lishidan qat'i nazar, hech narsa yuborilmaydi.",
-      "id_note": "Nusxa ID si buni yoqqaningizda yaratiladi va o'chirganingizda o'chiriladi. Qayta yoqsangiz, yangisi yaratiladi.",
+      "description": "Ushbu o'rnatish qanday sozlanganligi haqida anonim statistikani kuniga ko'pi bilan bir marta yuboring. Standart bo'yicha yoqilgan; uni shu yerda istalgan vaqtda o'chirib qo'yishingiz mumkin.",
+      "forced_off": "TELEMETRY=off muhit o'zgaruvchisi buni o'chiradi. Bu sozlamada nima yozilgan bo'lishidan qat'i nazar, hech narsa yuborilmaydi.",
+      "id_note": "Nusxa ID si bu yoqilgan ekan yaratiladi va o'chirganingizda o'chiriladi. Qayta yoqsangiz, yangisi yaratiladi.",
       "payload_off": "Bu o'chiq ekan, hech narsa yuborilmaydi. Yoqsangiz, foydalanish pingida shular bo'lardi.",
       "payload_title": "Keyingi foydalanish pingi nimalarni yuboradi",
       "title": "Foydalanish statistikasi"
@@ -1366,6 +1499,8 @@
     "published_status": "Nashr qilingan",
     "search_label": "Qidirish",
     "search_placeholder": "Status sahifalarini sarlavha bo'yicha qidirish...",
+    "show_locations": "Har bir joylashuvni ko'rsatish",
+    "show_locations_info": "Bir nechta joylashuvdan tekshiriladigan monitorlar uchun har bir joylashuvning holati va tarixi ko'rsatiladi",
     "update_status_page": "Holat sahifasini yangilash",
     "view_page": "Sahifani ko‘rish"
   },
@@ -1399,13 +1534,14 @@
   "telemetry": {
     "docs_link": "Nima yuboriladi va uni qanday o'chirish mumkin",
     "label": "Anonim foydalanish statistikasini yuborish",
-    "never_sent": "Hech qachon yuborilmaydi: monitor nomlari, URL manzillari, xostlar, etiketlar, status sahifalari manzillari yoki bildirishnoma sozlamalari. Foydalanish pingida IP manzil bo'lmaydi va Peekaping'ning Worker'i yuboruvchining IP manzilini yozib olmaydi.",
-    "not_saved": "Foydalanish statistikasini yuborish tanlovingiz saqlanmadi. Uni «Sozlamalar» bo'limida yoqing.",
-    "sent_features": "Status sahifalari, texnik xizmat oynalari va metrikalardan foydalanayotganingiz",
-    "sent_id": "Tasodifiy ID, uni yoqqaningizda yaratiladi va o'chirganingizda o'chiriladi",
-    "sent_monitors": "Nechta monitoringiz borligi, oraliq ko'rinishida, masalan 11-50",
-    "sent_setup": "Peekaping versiyasi, yakka yoki klaster rejimi, saqlash backendi hamda operatsion tizim va protsessor turi",
-    "sent_types": "Foydalanayotgan monitorlar va bildirishnoma kanallari turlari, masalan http yoki telegram"
+    "not_saved": "Foydalanish statistikasi bo'yicha tanlovingiz saqlanmadi. Uni «Sozlamalar» bo'limida tekshiring."
+  },
+  "telemetry_notice": {
+    "error_reports": "Xato hisobotlari yoqilgan. Peekaping ishdan chiqsa, u xato turini va u kodning qaysi joyida yuz bergani, o'z versiyasini, rejimini, saqlash backendini va operatsion tizimini yuboradi. U hech qachon xato xabarlari, URL manzillar yoki xost nomlarini yubormaydi.",
+    "settings_errors": "Xato hisobotlarini «Sozlamalar» bo'limida o'chirish",
+    "settings_usage": "Foydalanish statistikasini «Sozlamalar» bo'limida o'chirish",
+    "title": "Anonim ma'lumotlarni yuborish standart bo'yicha yoqilgan",
+    "usage_statistics": "Foydalanish statistikasi yoqilgan. Kuniga ko'pi bilan bir marta Peekaping nusxaning tasodifiy ID'sini, o'z versiyasini, rejimini, saqlash backendini va operatsion tizimini, monitorlar soni oralig'ini, foydalanayotgan monitorlar va bildirishnoma kanallari turlarini hamda status sahifalari, texnik xizmat oynalari va metrikalardan foydalanayotganingizni yuboradi. U hech qachon nomlar, URL manzillar, xostlar yoki sozlamalarni yubormaydi."
   },
   "theme": {
     "dark": "Qorong'i",

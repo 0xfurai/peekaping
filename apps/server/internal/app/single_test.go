@@ -20,11 +20,14 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/ingester"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/metrics"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/queue"
 	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/setting"
@@ -94,6 +97,53 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 	}))
 }
 
+// The one process keeps the duplicate window of the results route in its memory: no Redis is needed
+func TestRegisterSingle_ProvidesTheDuplicateWindowInMemory(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, singleConfig(t)))
+
+	require.NoError(t, container.Invoke(func(window protocol.Window, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		outcome, err := window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+		require.NoError(t, err)
+		assert.Equal(t, protocol.ClaimWon, outcome)
+		outcome, err = window.Claim(context.Background(), "probe-1", "result-1", time.Now())
+		require.NoError(t, err)
+		assert.Equal(t, protocol.ClaimPending, outcome)
+	}))
+}
+
+// The sweep that sets silent probes offline runs in the one process, on the in-memory event bus
+func TestRegisterSingle_ResolvesTheProbeSweep(t *testing.T) {
+	container := dig.New()
+	cfg := singleConfig(t)
+	cfg.ProbeOfflineAfter = 5 * time.Minute
+	require.NoError(t, RegisterSingle(container, cfg))
+
+	require.NoError(t, container.Invoke(func(sweep *probe.Sweep, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		assert.NotNil(t, sweep)
+	}))
+}
+
+// The local probe never counts as offline for the watchdog, so nothing changes for an install that
+// has no remote probe. A monitor of a remote probe that is offline is left to the probe's own
+// notification.
+func TestRegisterSingle_TheWatchdogSkipsOnlyTheMonitorsOfAnOfflineRemoteProbe(t *testing.T) {
+	container := dig.New()
+	require.NoError(t, RegisterSingle(container, singleConfig(t)))
+
+	require.NoError(t, container.Invoke(func(probeOffline stale.ProbeOfflineFunc, monitors monitor.Service, probes probe.Service, bus events.EventBus, db *bun.DB) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		require.NoError(t, migrateDB(db))
+
+		assertWatchdogSkipsOnlyOfflineRemote(t, probeOffline, monitors, probes)
+	}))
+}
+
 // The one process runs every hour's cleanup, so its run lock needs no Redis and always grants it
 func TestRegisterSingle_ProvidesARunLockThatGrantsEveryHour(t *testing.T) {
 	container := dig.New()
@@ -141,7 +191,7 @@ func TestRegisterSingle_RunsTheUsagePingInSingleModeWithoutRedis(t *testing.T) {
 	}))
 }
 
-// The scheduler wraps its ingester.Service in ingester.NewInOrderService, which returns a service
+// The scheduler wraps its ingester.Service in ingest.NewInOrderService, which returns a service
 // that is already in order as it is. So the push URL's service, the one the container provides,
 // is the very one the scheduler ingests through, and a monitor's pushes wait for its checks.
 func TestRegisterSingle_ProvidesTheCORSOriginsFromTheConfig(t *testing.T) {
@@ -182,7 +232,7 @@ func TestRegisterSingle_IngestsThePushURLThroughTheSchedulersInOrderService(t *t
 	require.NoError(t, container.Invoke(func(svc ingester.Service, bus events.EventBus, db *bun.DB) {
 		closeEventBus(t, bus)
 		closeDB(t, db)
-		assert.Same(t, svc, ingester.NewInOrderService(svc), "the provided ingester.Service is in order")
+		assert.Same(t, svc, ingest.NewInOrderService(svc), "the provided ingester.Service is in order")
 	}))
 }
 

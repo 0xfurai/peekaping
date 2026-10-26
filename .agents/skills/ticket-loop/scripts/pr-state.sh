@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Print one PR's review state as JSON: checks on the head commit, whether it
 # merges cleanly into its base, unresolved review threads waiting on us, and
-# reviews and comments newer than the mark.
+# reviews and comments newer than the mark. `keys` names each of those items,
+# so pr-wait.sh can tell a new one from one it already reported.
 #
 # Usage:
 #   pr-state.sh [--brief] <pr>   state as JSON (--brief: last comment per thread only);
@@ -44,7 +45,7 @@ query='query($owner: String!, $name: String!, $pr: Int!) {
       mergeable mergeStateStatus
       commits(last: 1) { nodes { commit { statusCheckRollup { contexts(first: 100) { nodes {
         __typename
-        ... on CheckRun { name status conclusion detailsUrl }
+        ... on CheckRun { name status conclusion detailsUrl completedAt }
         ... on StatusContext { context state targetUrl description }
       } } } } } }
       reviewThreads(first: 100) { nodes {
@@ -77,11 +78,15 @@ gh api graphql -f query="$query" -F owner="${repo%/*}" -F name="${repo#*/}" -F p
               (.__typename == "CheckRun" and .status != "COMPLETED")
               or (.__typename == "StatusContext" and (.state == "PENDING" or .state == "EXPECTED")))
             | (.name // .context)],
+          # A stacked PR'"'"'s project coverage is compared with a stale commit of its
+          # base branch, so its codecov/project result says nothing.
           failed: [$ctx[] | select(
               (.__typename == "CheckRun" and (.conclusion // "" | test("FAILURE|TIMED_OUT|CANCELLED|ACTION_REQUIRED|STARTUP_FAILURE")))
               or (.__typename == "StatusContext" and (.state == "FAILURE" or .state == "ERROR")))
+            | select((.name // .context) != "codecov/project" or $p.baseRefName == "main")
             | {name: (.name // .context), url: (.detailsUrl // .targetUrl)}],
           passed: ([$ctx[] | select(.conclusion == "SUCCESS" or .state == "SUCCESS")] | length),
+          completedAt: ([$ctx[] | select(.__typename == "CheckRun" and .completedAt != null) | {(.name): .completedAt}] | add // {}),
           ci: ([$ctx[] | select(.context != "CodeRabbit")] | length),
           coderabbit: ([$ctx[] | select(.context == "CodeRabbit") | .state][0] // "MISSING")
         },
@@ -104,4 +109,10 @@ gh api graphql -f query="$query" -F owner="${repo%/*}" -F name="${repo#*/}" -F p
           | {author: .author.login, createdAt, url, body: (.body | clean)}]
       }
     | .todo = (.threads + .reviews + .comments | length)
+    # One key per item waiting on us. A rerun check gets a new url and a new
+    # reply in a thread a new last comment, so either is a new item.
+    | .keys = ([.checks.failed[] | "check:\(.name):\(.url):\($p.headRefOid)"]
+        + [.threads[] | "thread:\(.id):\(.comments[-1].id)"]
+        + [.reviews[] | "review:\(.author):\(.submittedAt)"]
+        + [.comments[] | "comment:\(.url)"])
     '

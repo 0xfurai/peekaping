@@ -7,20 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_toDomainModelFromMongo_and_toMongoModel(t *testing.T) {
-	now := time.Now()
-	locked := now.Add(time.Hour)
-	mm := &mongoModel{Key: "k", FailCount: 1, FirstFailAt: now, LockedUntil: &locked}
-	m := toDomainModelFromMongo(mm)
-	assert.Equal(t, "k", m.Key)
-	assert.Equal(t, 1, m.FailCount)
-	assert.Equal(t, now, m.FirstFailAt)
-	assert.Equal(t, &locked, m.LockedUntil)
-
-	mm2 := toMongoModel(m)
-	assert.Equal(t, mm, mm2)
-}
-
 func Test_toDomainModel_and_toSQLModel(t *testing.T) {
 	now := time.Now()
 	locked := now.Add(time.Hour)

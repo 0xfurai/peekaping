@@ -52,3 +52,7 @@ package-lock.json
 
 storageState.json
 apps/web/src/i18n/progress
+
+# MQTT test broker data and logs (test_utils/mqtt)
+/test_utils/mqtt/mqtt-data/
+/test_utils/mqtt/mqtt-logs/

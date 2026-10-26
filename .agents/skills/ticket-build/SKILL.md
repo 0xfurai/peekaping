@@ -2,7 +2,7 @@
 name: ticket-build
 description: "Implement a ticket's agreed plan: split each PR into pieces, have Sonnet agents build them test first, and connect the pieces on the PR branch."
 disable-model-invocation: true
-argument-hint: "#<n>"
+argument-hint: "PP-<n>"
 ---
 
 # Ticket: build
@@ -38,11 +38,11 @@ Done when: every agent has reported.
 
 In the ticket's worktree, on the PR branch:
 
-1. **Check** each piece against its brief ([DELEGATE.md](../ticket/DELEGATE.md)): its report and `git log -p <PR branch>..piece/<n>-<piece>`.
-2. **Merge** the pieces one at a time: `git merge --no-edit piece/<n>-<piece>`. Resolve each conflict keeping what both pieces meant, then remove the piece's worktree and branch.
+1. **Check** each piece against its brief ([DELEGATE.md](../ticket/DELEGATE.md)): its report and `git log -p <PR branch>..piece/pp-<n>-<piece>`.
+2. **Merge** the pieces one at a time: `git merge --no-edit piece/pp-<n>-<piece>`. Resolve each conflict keeping what both pieces meant, then remove the piece's worktree and branch.
 3. **Glue**: the wiring between pieces, the files you kept, what the reports asked for, and the generated layers when the API contract changed ([TESTING.md](../ticket/TESTING.md)). Commit it.
 4. **Verify**: one agent runs the full local run in [TESTING.md](../ticket/TESTING.md) on the PR branch merged with `origin/main` and fixes what fails, in commits on the PR branch. Check its report as you checked the pieces.
 
 Done when: every piece is merged, its worktree and branch are gone, and the full local run passes on the PR branch merged with `origin/main`.
 
-Run alone, end by telling the user the next step: `/ticket #<n> from review`.
+Run alone, end by telling the user the next step: `/ticket <PP-n> from review`.

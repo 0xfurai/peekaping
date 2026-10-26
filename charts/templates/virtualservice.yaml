@@ -20,6 +20,14 @@ spec:
           number: {{ .Values.api.service.port }}
   - match:
     - uri:
+        prefix: /probe/
+    route:
+    - destination:
+        host: {{ .Release.Name }}-api.{{ .Release.Namespace }}.svc.cluster.local
+        port:
+          number: {{ .Values.api.service.port }}
+  - match:
+    - uri:
         prefix: /socket.io/
     route:
     - destination:

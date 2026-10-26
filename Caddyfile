@@ -4,6 +4,11 @@
         reverse_proxy localhost:8034
     }
 
+    # Handle remote probes (the probe protocol) the same way
+    handle /probe/* {
+        reverse_proxy localhost:8034
+    }
+
     # Handle WebSocket connections
     handle /socket.io/* {
         reverse_proxy localhost:8034

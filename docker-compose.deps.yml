@@ -5,9 +5,8 @@
 #
 #   docker compose -f docker-compose.deps.yml up -d                       # SQLite
 #   docker compose -f docker-compose.deps.yml --profile postgres up -d    # PostgreSQL
-#   docker compose -f docker-compose.deps.yml --profile mongo up -d       # MongoDB (deprecated)
 #
-# The postgres and mongo services read DB_USER, DB_PASS and DB_NAME from .env.
+# The postgres service reads DB_USER, DB_PASS and DB_NAME from .env.
 services:
   postgres:
     profiles: [postgres]
@@ -24,23 +23,6 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
-
-  # MongoDB storage is deprecated and frozen: docs/adr/0001-deprecate-mongodb-storage.md
-  mongo:
-    profiles: [mongo]
-    image: mongo:7
-    restart: unless-stopped
-    ports:
-      - "${DB_PORT:-27017}:27017"
-    env_file:
-      - path: .env
-        required: false
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASS}
-      MONGO_INITDB_DATABASE: ${DB_NAME}
-    volumes:
-      - ./.data/mongodb:/data/db
 
   redis:
     image: redis:7-alpine

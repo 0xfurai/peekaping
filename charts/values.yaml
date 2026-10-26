@@ -57,11 +57,17 @@ redis:
 #     --from-literal=DB_USER=peekaping --from-literal=DB_PASS=peekaping \
 #     --from-literal=DB_NAME=peekaping --from-literal=REDIS_PASSWORD=peekaping
 # An external PostgreSQL and Redis use the same keys with your own values.
+# Keep DB_TYPE out of this Secret. The api loads the ConfigMap first and the Secret second, so a
+# DB_TYPE key in the Secret replaces the ConfigMap's. Helm can't read a Secret at render time, and
+# the chart checks config.env.DB_TYPE only: a DB_TYPE of sqlite, mongo or mongodb in the Secret
+# would pass the check the chart makes for those values.
 config:
   existingSecret: "peekaping-config"
   env:
     # The chart supports PostgreSQL only: it refuses DB_TYPE sqlite, since it has no
     # volume for the file and each pod would get a database of its own. For SQLite, use the single-mode bundle image.
+    # It refuses mongo and mongodb too: MongoDB storage was removed. Move to PostgreSQL with
+    # bun db import-mongo first.
     DB_TYPE: "postgres"
     # Bundled service hosts: <release>-postgresql and <release>-redis-master in
     # the release's namespace (here release and namespace are both "peekaping").
@@ -130,12 +136,15 @@ api:
       failureThreshold: 30
       periodSeconds: 2
 
-ingester:
+# The probe runs the checks of the monitors on the local probe: peekaping-probe instances that
+# connect to the api, get their monitors and send the results back. The monitors are dealt
+# among the replicas, and the others take over those of a replica that stops.
+probe:
   replicaCount: 3
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-ingester
+    repository: 0xfurai/peekaping-probe
     tag: ""
     pullPolicy: IfNotPresent
   resources:
@@ -145,44 +154,34 @@ ingester:
     limits:
       cpu: "500m"
       memory: "512Mi"
-
-producer:
-  replicaCount: 3
-  apparmor:
-    enabled: false
-  image:
-    repository: 0xfurai/peekaping-producer
-    tag: ""
-    pullPolicy: IfNotPresent
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-
-worker:
-  replicaCount: 3
-  apparmor:
-    enabled: false
-  image:
-    repository: 0xfurai/peekaping-worker
-    tag: ""
-    pullPolicy: IfNotPresent
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-  # Pod sysctls. ping_group_range lets the non-root worker send ICMP echo
+  # Pod sysctls. ping_group_range lets the non-root probe send ICMP echo
   # requests for ping monitors without the NET_RAW capability. Kubernetes
   # allows it as a safe sysctl. Set to [] to leave the node default.
   sysctls:
     - name: net.ipv4.ping_group_range
       value: "0 2147483647"
+  # The port of the probe's /ready endpoint, which the readiness probe asks. It answers 503
+  # until the probe has its first assignment from the api.
+  readyPort: 8081
+  probes:
+    readiness:
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 2
+      failureThreshold: 6
+  # The token of the local probe. The api stores it at startup (PROBE_BOOTSTRAP_TOKEN) and the
+  # probe pods send it (PROBE_TOKEN). It gives access to the config of the monitors on the local
+  # probe, so keep it secret. By default the chart makes a Secret named <release>-probe-token
+  # with a random token, and keeps that token across upgrades. That takes a render that can look
+  # at the cluster: `helm template`, or a tool that renders without the cluster, such as Argo CD,
+  # gets a new token every time. For those, make the Secret yourself, with a token of at least
+  # 32 characters, and name it here:
+  #   kubectl -n peekaping create secret generic peekaping-probe-token \
+  #     --from-literal=PROBE_BOOTSTRAP_TOKEN="$(openssl rand -hex 32)"
+  # The api and the probe pods read the token when they start: restart them after you change it.
+  token:
+    existingSecret: ""
+    existingSecretKey: PROBE_BOOTSTRAP_TOKEN
 
 web:
   replicaCount: 3
@@ -244,7 +243,11 @@ ingress:
   # ingressClassName: "alb"
   # namespace: "istio-system"
   # host: "mydomain.com"
+  # The probe protocol (/probe) sends bodies of up to about 1 MiB (a little more when
+  # compressed). ingress-nginx refuses bodies over 1m by default, so with that controller
+  # set the proxy-body-size annotation below.
   # annotations:
+  #   nginx.ingress.kubernetes.io/proxy-body-size: "2m"
   #   alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:000000000000:certificate/my-certificate-arn
   #   alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
   #   alb.ingress.kubernetes.io/healthcheck-port: status-port

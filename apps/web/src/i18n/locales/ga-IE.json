@@ -16,8 +16,9 @@
       "have_account": "An bhfuil cuntas agat cheana féin?",
       "sign_in": "Logáil isteach",
       "submit": "Cruthaigh",
-      "telemetry_hint": "As, mura gcuireann tú tic sa bhosca seo. Is féidir leat é a athrú ar ball faoi “Socruithe”. Má chuireann tú tic ann, seolann Peekaping é seo uair amháin sa lá ar a mhéad:",
-      "title": "Dia dhuit"
+      "title": "Dia dhuit",
+      "telemetry_note": "Gan ainm: gan ainmneacha móntóirí, URLanna ná óstaigh. Is féidir leat é a athrú ar ball faoi “Socruithe”.",
+      "telemetry_whats_sent": "Cad a sheoltar"
     },
     "twofa": {
       "code_label": "Cód 2FA",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Seol tuarascálacha earráide",
-    "never_sent": "Ní sheoltar choíche: teachtaireachtaí earráide, URLanna, ceanntásca, URLanna webhook, ainmneacha ná óstainmneacha. Níl aon seoladh IP i dtuarascáil, agus tá tionscadal Sentry Peekaping socraithe gan IP an tseoltóra a stóráil. Le do ERROR_REPORTING_DSN féin, socraíonn socruithe do Sentry nó do GlitchTip é.",
-    "not_saved": "Níor sábháladh do rogha tuarascálacha earráide a sheoladh. Cuir air é faoi “Socruithe”.",
+    "never_sent": "Ní sheoltar choíche: teachtaireachtaí earráide, URLanna, ceanntásca, URLanna webhook, ainmneacha ná óstainmneacha. Níl aon seoladh IP i dtuarascáil, agus tá tionscadal Sentry Peekaping socraithe gan IP an tseoltóra a stóráil.",
+    "not_saved": "Níor sábháladh do rogha maidir le tuarascálacha earráide. Seiceáil faoi “Socruithe” é.",
     "sent": "Ní sheoltar é ach nuair a thuairteann Peekaping féin. Tá in aon tuarascáil cineál an earráid agus an áit sa chód inar tharla sé, leagan Peekaping, mód aonair nó braisle, an backend stórála agus an córas oibriúcháin."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Teip Iarratais (tar éis {{seconds}} nóiméad)",
           "resend_notification": "Athsheol Fógra má tá sé i dorchadas X uaire le chéile (Neamhcheadaithe)"
         },
+        "location_rule": {
+          "all": "bhíonn gach suíomh síos",
+          "any": "bhíonn aon suíomh síos",
+          "at_least": "bhíonn N suíomh ar a laghad síos",
+          "description": "Ní chuirtear suíomh san áireamh má tá a thóireadóir as líne nó mura bhfuil tuairisc tugtha aige go fóill.",
+          "label": "Marcáil an monatóir mar atá síos nuair a",
+          "threshold_invalid": "Cuir isteach slánuimhir, 1 nó níos mó",
+          "threshold_label": "Líon na suíomhanna",
+          "threshold_too_high": "Ní féidir é a bheith níos mó ná líon na dtóireadóirí a roghnaigh tú"
+        },
         "notifications": {
           "add_notifier": "Cuir Fógraíú",
           "new_notifier": "+ Fógraí Nua",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Roghnaigh Eagarthóir",
           "selected_channels": "Cánálacha fógraí roghnaithe",
           "title": "Cainéil Fógraí"
+        },
+        "probe": {
+          "description": "Ritheann an monatóir ar gach tóireadóir a roghnaíonn tú agus taispeánann sé torthaí gach ceann acu mar shuíomh.",
+          "label": "Tóireadóir",
+          "option_unsupported": "{{name}} (ní reáchtálann sé an cineál seo)",
+          "placeholder": "Roghnaigh tóireadóir",
+          "push_fixed": "Ritheann monatóir Push i gcónaí ar an tóireadóir áitiúil.",
+          "required": "Roghnaigh tóireadóir amháin ar a laghad",
+          "unsupported": "Ní reáchtálann an tóireadóir seo an cineál monatóra seo. Roghnaigh tóireadóir eile."
         },
         "proxy": {
           "add_proxy": "Cuir Próiseas",
@@ -658,6 +678,15 @@
       "expiring_soon": "Ag léiriú go luath",
       "for": "do",
       "live_status": "Stáit Beo",
+      "locations": {
+        "all": "Gach suíomh",
+        "no_result": "Níl aon toradh ann go fóill",
+        "probe_offline": "Tóireadóir as líne",
+        "probe_unsupported": "Ní reáchtálann sé an cineál seo",
+        "response_time": "Am freagartha",
+        "select_label": "Suíomh",
+        "title": "Suíomhanna"
+      },
       "monitor_for": "monatóireacht ar",
       "no_certificate_data": "Níl sonraí ar an gceartúireacht",
       "seconds": "soicindí",
@@ -683,6 +712,7 @@
     "maintenance": "Cothromaíocht",
     "monitors": "Móntóirí",
     "notification_channels": "Canálacha Fógairtí",
+    "probes": "Tóireadóirí",
     "proxies": "Próiseasanna",
     "settings": "Socruithe",
     "status_pages": "Leathanacha stádas",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Glacadh uath",
         "auto_resolve_acknowledge_description": "Aontaigh an bhréag go huathoibríoch",
-        "auto_resolve_description": "Roghnaigh an gníomh atá le glacadh nuair a théann an monataí ar ais.",
+        "auto_resolve_description": "Roghnaigh cad atá le seoladh nuair a fhilleann móntóir ar líne nó nuair a fhilleann tóireadóir ar líne.",
         "auto_resolve_do_nothing": "Ná déan ar bith",
-        "auto_resolve_do_nothing_description": "Ní tharla aon ghníomhaíocht ar stádas UP",
+        "auto_resolve_do_nothing_description": "Ní sheoltar aon rud nuair a fhilleann móntóir ar líne nó nuair a fhilleann tóireadóir ar líne, mar sin fanann an teagmhas oscailte go dtí go réitíonn tú é i PagerDuty",
         "auto_resolve_label": "Réiteach Uathoibríoch nó Aithint",
         "auto_resolve_placeholder": "Roghnaigh uathréiteach",
         "auto_resolve_resolve": "Réiteach Uathoibríoch",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Tóin aitheantais roghnach chun slándáil níos fearr a chur i bhfeidhm. Beidh sé seo seolta i gteideal pagertree-token.",
         "authentication_token_label": "Token Fíordheimhnithe (Roghnach)",
         "authentication_token_placeholder": "Cuir isteach an t-iontráil cód údaraithe, má teastaíonn sé.",
-        "auto_resolve_alerts_description": "Réitigh na n-éireachtaí PagerTree go huathoibríoch nuair a bhuaíonn an monatóire.",
+        "auto_resolve_alerts_description": "Réitigh foláirimh PagerTree go huathoibríoch nuair a fhilleann monatóir ar líne nó nuair a fhilleann tóireadóir ar líne.",
         "auto_resolve_alerts_label": "Réiteach Uathúil na Fógraí",
         "how_to_get_integration_url_label": "Conas URL an tintegraíochta a fháil",
         "integration_url_description": "Iontráil URL do chomhsholú webhook PagerTree.",
@@ -1122,6 +1152,109 @@
       "saved_hint": "Sábháilte — clóscríobh chun a chur ina ionad"
     }
   },
+  "probes": {
+    "page_name": "Tóireadóirí",
+    "description": "Ritheann tóireadóirí seiceálacha móntóirí ó na háiteanna ina bhfuil siad suiteáilte. Is é Peekaping féin an tóireadóir áitiúil.",
+    "local_name": "Áitiúil",
+    "monitor_probe": "Tóireadóir: {{name}}",
+    "monitor_probe_unsupported": "Ní reáchtálann {{name}} monatóirí {{type}}",
+    "empty_list": {
+      "title": "Níor aimsíodh aon tóireadóir",
+      "text": "Cruthaigh tóireadóir chun seiceálacha a rith ó áit eile.",
+      "action_text": "Cruthaigh do chéad tóireadóir"
+    },
+    "table": {
+      "headers": {
+        "name": "Ainm",
+        "location": "Suíomh",
+        "status": "Stádas",
+        "disabled": "Díchumasaithe",
+        "token": "Comhartha",
+        "instances": "Cásanna",
+        "actions": "Gníomhartha"
+      },
+      "status": {
+        "online": "Ar líne",
+        "offline": "As líne"
+      },
+      "disabled": "Díchumasaithe",
+      "no_instances": "Gan aon chás fós",
+      "last_seen": "feicthe go deireanach {{date}}",
+      "actions": {
+        "edit": "Cuir tóireadóir {{name}} in eagar",
+        "rotate": "Athraigh comhartha an tóireadóra {{name}}",
+        "delete": "Scrios tóireadóir {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Cruthaigh tóireadóir",
+      "description": "Ritheann tóireadóir seiceálacha ón áit ina suiteálann tú é. Ní thaispeántar a chomhartha ach uair amháin, tar éis duit é a chruthú.",
+      "submit": "Cruthaigh tóireadóir",
+      "creating": "Á chruthú..."
+    },
+    "edit_dialog": {
+      "title": "Cuir tóireadóir in eagar",
+      "description": "Athraigh socruithe {{name}}."
+    },
+    "form": {
+      "name_label": "Ainm",
+      "name_placeholder": "m.sh., Frankfurt",
+      "location_label": "Suíomh (roghnach)",
+      "location_placeholder": "m.sh., Frankfurt, an Ghearmáin",
+      "name_required": "Tá ainm de dhíth",
+      "name_too_long": "Tá an t-ainm rófhada",
+      "location_too_long": "Tá an suíomh rófhada",
+      "disabled_label": "Díchumasaithe",
+      "disabled_description": "Stopann comhartha tóireadóra dhíchumasaithe ag obair go dtí go gcumasaíonn tú arís é.",
+      "notifications_hint": "Fág folamh é chun fógra a thabhairt do chanálacha mhóntóirí an tóireadóra seo."
+    },
+    "rotate_dialog": {
+      "title": "Athraigh an comhartha",
+      "description": "Stopann seanchomhartha an tóireadóra {{name}} ag obair láithreach. Caithfear a chásanna a atosú leis an gcomhartha nua.",
+      "confirm": "Athraigh an comhartha",
+      "rotating": "Á athrú..."
+    },
+    "delete_dialog": {
+      "title": "Scrios tóireadóir",
+      "description": "An bhfuil tú cinnte gur mhaith leat an tóireadóir \"{{name}}\" a scriosadh? Stopfaidh a chomhartha ag obair. Ní féidir an gníomh seo a chealú."
+    },
+    "token_alert": {
+      "title_created": "Cruthaíodh an tóireadóir {{name}}",
+      "title_rotated": "Comhartha nua don tóireadóir {{name}}",
+      "note": "Léann an comhartha seo cumraíochtaí na móntóirí a shanntar don tóireadóir. Ní thaispeántar é ach uair amháin.",
+      "token_label": "Comhartha",
+      "docker_label": "Tosaigh an tóireadóir le Docker",
+      "copy_token": "Cóipeáil an comhartha",
+      "copy_command": "Cóipeáil an t-ordú docker"
+    },
+    "messages": {
+      "created_successfully": "Cruthaíodh an tóireadóir go rathúil",
+      "updated_successfully": "Nuashonraíodh an tóireadóir go rathúil",
+      "rotated_successfully": "Athraíodh an comhartha go rathúil",
+      "deleted_successfully": "Scriosadh an tóireadóir go rathúil",
+      "failed_to_create": "Theip ar chruthú an tóireadóra",
+      "failed_to_update": "Theip ar nuashonrú an tóireadóra",
+      "failed_to_rotate": "Theip ar athrú an chomhartha",
+      "failed_to_delete": "Theip ar scriosadh an tóireadóra",
+      "failed_to_load": "Theip ar lódáil na dtóireadóirí",
+      "copy_success": "Cóipeáilte chuig an ghearrthaisce",
+      "copy_failed": "Níorbh fhéidir cóipeáil chuig an ghearrthaisce"
+    },
+    "detail": {
+      "not_found": "Níor aimsíodh an tóireadóir"
+    },
+    "availability": {
+      "title": "Infhaighteacht",
+      "range_label": "Raon ama",
+      "bar_label": "Stair na hinfhaighteachta",
+      "instance_bar_label": "Naisc {{name}}",
+      "no_data": "Gan sonraí",
+      "now": "Anois",
+      "instances_title": "Cásanna, 24 uair an chloig seo caite",
+      "in_process_note": "Seiceálann Peekaping féin monatóirí an tóireadóra áitiúil, mar sin níl aon stair infhaighteachta aige.",
+      "connected_since": "Ceangailte ó {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Ní féidir an gníomh seo a chur ar ais. Scriosfar an próiseas {{host}}:{{port}} go deo.",
@@ -1288,14 +1421,14 @@
     },
     "error_reporting": {
       "cluster_note": "I mód braisle, sroicheann athrú gach próiseas laistigh de nóiméad.",
-      "description": "Seol tuarascáil chuig Sentry nuair a thuairteann an freastalaí. As go dtí go gcuirfidh tú air é.",
-      "forced_off": "Múchann an t-athróg timpeallachta ERROR_REPORTING=off nó DO_NOT_TRACK=1 é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
+      "description": "Seol tuarascáil chuig Sentry nuair a thuairteann an freastalaí. Air de réir réamhshocraithe; is féidir leat é a mhúchadh anseo am ar bith.",
+      "forced_off": "Múchann an t-athróg timpeallachta ERROR_REPORTING=off é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
       "title": "Tuarascálacha earráide"
     },
     "telemetry": {
-      "description": "Seol staitisticí gan ainm faoin gcaoi a bhfuil an suiteáil seo socraithe, uair amháin sa lá ar a mhéad. As go dtí go gcuirfidh tú air é.",
-      "forced_off": "Múchann an t-athróg timpeallachta TELEMETRY=off nó DO_NOT_TRACK=1 é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
-      "id_note": "Cruthaítear ID an cháis nuair a chuireann tú air é agus scriostar é nuair a mhúchann tú é. Má chuireann tú air arís é, cruthaítear ID nua.",
+      "description": "Seol staitisticí gan ainm faoin gcaoi a bhfuil an suiteáil seo socraithe, uair amháin sa lá ar a mhéad. Air de réir réamhshocraithe; is féidir leat é a mhúchadh anseo am ar bith.",
+      "forced_off": "Múchann an t-athróg timpeallachta TELEMETRY=off é seo. Ní sheoltar aon rud, is cuma cad a deir an socrú seo.",
+      "id_note": "Cruthaítear ID an cháis fad is atá sé seo air agus scriostar é nuair a mhúchann tú é. Má chuireann tú air arís é, cruthaítear ID nua.",
       "payload_off": "Ní sheoltar aon rud agus é seo as. Seo a bheadh i bpingeáil úsáide dá gcuirfeá air é.",
       "payload_title": "Cad a sheolfaidh an chéad phingeáil úsáide eile",
       "title": "Staitisticí úsáide"
@@ -1366,6 +1499,8 @@
     "published_status": "Foilsithe",
     "search_label": "Cuardaigh",
     "search_placeholder": "Cuardaigh leathanacha stádas de réir teideal…",
+    "show_locations": "Taispeáin gach suíomh",
+    "show_locations_info": "Maidir le monatóirí a sheiceáiltear ó roinnt suíomhanna, taispeántar stádas agus stair gach suímh",
     "update_status_page": "Nuashonraigh Leathanach Stádas",
     "view_page": "Féach an leathanach"
   },
@@ -1399,13 +1534,14 @@
   "telemetry": {
     "docs_link": "Cad a sheoltar agus conas é a mhúchadh",
     "label": "Seol staitisticí úsáide gan ainm",
-    "never_sent": "Ní sheoltar choíche: ainmneacha móntóirí, URLanna, óstaigh, tagaí, seoltaí leathanach stádais ná socruithe fógraí. Níl aon seoladh IP i bpingeáil úsáide, agus ní thaifeadann Worker Peekaping IP an tseoltóra.",
-    "not_saved": "Níor sábháladh do rogha staitisticí úsáide a sheoladh. Cuir air é faoi “Socruithe”.",
-    "sent_features": "An úsáideann tú leathanaigh stádais, fuinneoga cothabhála agus méadrachtaí",
-    "sent_id": "ID randamach, a chruthaítear nuair a chuireann tú air é agus a scriostar nuair a mhúchann tú é",
-    "sent_monitors": "Cé mhéad móntóir atá agat, mar raon, mar shampla 11-50",
-    "sent_setup": "Leagan Peekaping, mód aonair nó braisle, an backend stórála, agus an córas oibriúcháin agus cineál an LAP",
-    "sent_types": "Na cineálacha móntóirí agus cainéal fógra a úsáideann tú, mar http nó telegram"
+    "not_saved": "Níor sábháladh do rogha maidir le staitisticí úsáide. Seiceáil faoi “Socruithe” é."
+  },
+  "telemetry_notice": {
+    "error_reports": "Tá tuarascálacha earráide air. Má thuairteann Peekaping, seolann sé cineál an earráid agus an áit sa chód inar tharla sé, a leagan, a mhód, an backend stórála agus an córas oibriúcháin. Ní sheolann sé riamh teachtaireachtaí earráide, URLanna ná hainmneacha óstach.",
+    "settings_errors": "Múch tuarascálacha earráide faoi “Socruithe”",
+    "settings_usage": "Múch staitisticí úsáide faoi “Socruithe”",
+    "title": "Tá seoladh sonraí gan ainm air de réir réamhshocraithe",
+    "usage_statistics": "Tá staitisticí úsáide air. Uair amháin sa lá ar a mhéad, seolann Peekaping ID randamach an cháis, a leagan, a mhód, an backend stórála agus an córas oibriúcháin, raon do líon na móntóirí atá agat, cineálacha na móntóirí agus na gcainéal fógra a úsáideann tú, agus cibé an úsáideann tú leathanaigh stádais, fuinneoga cothabhála agus méadrachtaí. Ní sheolann sé riamh ainmneacha, URLanna, óstaigh ná socruithe."
   },
   "theme": {
     "dark": "Dorcha",

@@ -1,0 +1,80 @@
+name: Integration tests
+
+# Runs beside Test and Lint, not after it, so a pull request waits for the
+# slower of the two. Its own path filter keeps web-only pull requests from
+# starting it.
+on:
+  pull_request:
+    paths:
+      - 'apps/server/**'
+      - '.github/workflows/integration.yml'
+      - '!**/*.md'
+    branches: [ main, master ]
+  push:
+    paths:
+      - 'apps/server/**'
+      - '.github/workflows/integration.yml'
+      - '!**/*.md'
+    branches: [ main, master ]
+
+# A new push to a PR replaces its run in progress, which would otherwise keep
+# its runners busy testing a commit nobody waits for. Other runs get a group of
+# their own: a shared one would cancel the queued runs of busy pushes to main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  executor:
+    runs-on: nexus-runner
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: apps/server/go.sum
+
+      # --wait returns once every service's health check passes. SQL Server is
+      # the slow one, so the step reports how long the start took; the job's own
+      # wall-clock time is on the run's page.
+      - name: Start the services
+        run: |
+          start=$(date +%s)
+          docker compose -f apps/server/docker-compose.integration.yml up -d --wait
+          echo "All services healthy after $(( $(date +%s) - start ))s" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # GitHub sets CI=true, so a test that can't find its service fails
+      # instead of skipping. The addresses are the ports the compose file binds.
+      # -count=1 because setup-go restores Go's test cache, which would replay a
+      # pass from an earlier run: its key covers files and env vars, not the servers.
+      - name: Run integration tests
+        working-directory: apps/server
+        env:
+          PEE_TEST_REDIS_URL: redis://:integration-test-password@127.0.0.1:16379
+          PEE_TEST_KAFKA_BROKER: 127.0.0.1:19092
+          PEE_TEST_KAFKA_SASL_BROKER: 127.0.0.1:19093
+          # The password is percent-encoded: p@ss:w/rd%1?x
+          PEE_TEST_POSTGRES_EXECUTOR_URL: postgres://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:15432/peekaping
+          PEE_TEST_MYSQL_URL: mysql://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:13306/peekaping
+          PEE_TEST_MONGODB_URL: mongodb://root:integration-test-password@127.0.0.1:27018
+          PEE_TEST_MONGODB_RS_URL: mongodb://127.0.0.1:27019
+          PEE_TEST_SQLSERVER_URL: sqlserver://sa:Pe%3Be%3DK%7Bing%7D9z@127.0.0.1:11433
+        # The profile counts the executors' statements, so the pull request shows
+        # how much of each executor the tests in this job reach.
+        run: go test -tags integration -count=1 -timeout 300s -v -coverprofile=coverage.txt -coverpkg=./internal/modules/healthcheck/executor/... ./internal/testservice/ ./internal/modules/healthcheck/executor/...
+
+      # Its own flag, so these numbers don't mix with the Test workflow's.
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: 0xfurai/peekaping
+          file: apps/server/coverage.txt
+          flags: integration
+
+      - name: Show the service logs
+        if: failure()
+        run: docker compose -f apps/server/docker-compose.integration.yml logs

@@ -24,7 +24,7 @@ It runs no unit tests, and none of it can be taken back cleanly: the images and 
 - Never pass the workflow's `changelog` input. It is pasted into a shell script, and the entries are full of backticks, which the shell would run. Left empty, the workflow reads `[Unreleased]` itself.
 - From the dispatch until the GitHub Release exists, nothing merges into `main`. The bump job pushes to `main` after the e2e suite, from the commit the run started on, and fails if `main` moved since; a merge after that lands in the tag, because the release job cuts the tag at the head of `main`.
 - Tags have no `v` prefix: `0.0.47`.
-- Other sessions share the main checkout. Files change in a worktree under `.claude/worktrees/`, as in [setup](../ticket/SETUP.md); `git fetch`, never switch branches in the main checkout.
+- Other sessions share the main checkout. Files change in a worktree under `.claude/worktrees/`; `git fetch`, never switch branches in the main checkout.
 
 ## 1. Choose the version
 
@@ -89,7 +89,7 @@ Don't report the release out until each of these is checked:
 - **Run.** `gh run view <id>` shows success. `deploy-demo` doesn't count: its deploy step is `continue-on-error`, so a failure shows only as a "Demo not updated" warning on the run. Read that job's log: it prints the demo's `image:` lines, which should end in `<X.Y.Z>`.
 - **Main.** `git log origin/main --author=github-actions -1` is the bump commit. `git show origin/main:CHANGELOG.md | head -30` shows an empty `[Unreleased]` and `## [<X.Y.Z>] - <today>` under it.
 - **Tag and release.** `gh release view <X.Y.Z> --json tagName,isPrerelease,url,body`: not a pre-release, the body starts with the notes you reviewed. `git rev-parse <X.Y.Z>^{commit}` is the bump commit; if not, say which commits landed after it.
-- **Images.** For each of `web api worker producer ingester migrate bundle-sqlite bundle-mongo bundle-postgres`, `docker buildx imagetools inspect 0xfurai/peekaping-<name>:<X.Y.Z>` lists `linux/amd64` and `linux/arm64`. For one of them, `--format '{{.Manifest.Digest}}'` is the same for `:<X.Y.Z>` and `:latest`. This checks Docker Hub; GHCR pushes come from the same green `create-manifest` job, and an anonymous inspect of GHCR can answer 403.
+- **Images.** For each of `web api migrate probe bundle-sqlite bundle-postgres`, `docker buildx imagetools inspect 0xfurai/peekaping-<name>:<X.Y.Z>` lists `linux/amd64` and `linux/arm64`. For one of them, `--format '{{.Manifest.Digest}}'` is the same for `:<X.Y.Z>` and `:latest`. This checks Docker Hub; GHCR pushes come from the same green `create-manifest` job, and an anonymous inspect of GHCR can answer 403.
 - **Helm chart.** `helm show chart oci://ghcr.io/0xfurai/charts/peekaping --version <X.Y.Z>` shows `version` and `appVersion` of `<X.Y.Z>`. After the first release that publishes it, the GHCR package `charts/peekaping` is private: in its package settings on GitHub, link it to the repository and make it public, or the command answers 401 for everyone else.
 
 ## 8. Open the OpenAPI PR

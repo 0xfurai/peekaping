@@ -138,5 +138,18 @@ func TestImportMongoCommandWritesToSQLOnly(t *testing.T) {
 	t.Setenv("DB_USER", "peekaping")
 	t.Setenv("DB_PASS", "password")
 	err := runImportMongo("--mongo-uri", "mongodb://localhost:27017")
-	assert.ErrorContains(t, err, "set DB_TYPE to sqlite or postgres")
+	assert.ErrorContains(t, err, "import-mongo copies into SQLite or PostgreSQL, so set DB_TYPE to sqlite or postgres")
+	assert.NotErrorIs(t, err, config.ErrMongoStorageRemoved, "the command says what is wrong with this target, in its own words")
+}
+
+// MySQL's migrations are Postgres-only, so it isn't a target either
+func TestImportMongoCommandRefusesAMySQLTarget(t *testing.T) {
+	t.Setenv("DB_TYPE", "mysql")
+	t.Setenv("DB_NAME", "peekaping")
+	t.Setenv("DB_HOST", "localhost")
+	t.Setenv("DB_PORT", "3306")
+	t.Setenv("DB_USER", "peekaping")
+	t.Setenv("DB_PASS", "password")
+	err := runImportMongo("--mongo-uri", "mongodb://localhost:27017")
+	assert.ErrorContains(t, err, "import-mongo copies into SQLite or PostgreSQL")
 }

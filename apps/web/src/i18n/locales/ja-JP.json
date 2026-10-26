@@ -16,8 +16,9 @@
       "have_account": "既にアカウントをお持ちですか？",
       "sign_in": "ログイン",
       "submit": "登録",
-      "telemetry_hint": "このボックスにチェックを入れない限りオフです。あとで「設定」から変更できます。チェックを入れると、Peekaping は次の内容を 1 日に 1 回まで送信します：",
-      "title": "こんにちは"
+      "title": "こんにちは",
+      "telemetry_note": "匿名：モニター名、URL、ホストは含まれません。あとで「設定」から変更できます。",
+      "telemetry_whats_sent": "送信される内容"
     },
     "twofa": {
       "code_label": "2FAコード",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "エラーレポートを送信する",
-    "never_sent": "次の情報は送信されません：エラーメッセージ、URL、ヘッダー、Webhook の URL、名前、ホスト名。レポートに IP アドレスは含まれず、Peekaping の Sentry プロジェクトは送信元の IP を保存しない設定になっています。独自の ERROR_REPORTING_DSN を使う場合は、お使いの Sentry または GlitchTip の設定に従います。",
-    "not_saved": "エラーレポートを送信する設定は保存されませんでした。「設定」からオンにしてください。",
+    "never_sent": "次の情報は送信されません：エラーメッセージ、URL、ヘッダー、Webhook の URL、名前、ホスト名。レポートに IP アドレスは含まれず、Peekaping の Sentry プロジェクトは送信元の IP を保存しない設定になっています。",
+    "not_saved": "エラーレポートについての設定は保存されませんでした。「設定」で確認してください。",
     "sent": "Peekaping 自体がクラッシュしたときだけ送信されます。レポートには、エラーの種類とコード上の発生箇所、Peekaping のバージョン、シングルモードかクラスターモードか、ストレージバックエンド、OS が含まれます。"
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "リクエストタイムアウト（{{seconds}} 秒後にタイムアウト）",
           "resend_notification": "ダウンがX回連続した場合に再送通知（再送無効）"
         },
+        "location_rule": {
+          "all": "すべての場所が停止中",
+          "any": "いずれかの場所が停止中",
+          "at_least": "N か所以上の場所が停止中",
+          "description": "プローブがオフラインの場所、またはまだ結果を報告していない場所は数に含まれません。",
+          "label": "モニターを停止とみなす条件",
+          "threshold_invalid": "1以上の整数を入力してください",
+          "threshold_label": "場所の数",
+          "threshold_too_high": "選択したプローブの数を超えることはできません"
+        },
         "notifications": {
           "add_notifier": "通知を追加",
           "new_notifier": "+ 新しい通知先",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "通知者を選択",
           "selected_channels": "選択済み通知チャネル",
           "title": "通知チャンネル"
+        },
+        "probe": {
+          "description": "モニターは選択したすべてのプローブで実行され、各プローブの結果を場所として表示します。",
+          "label": "プローブ",
+          "option_unsupported": "{{name}}（このタイプは実行できません）",
+          "placeholder": "プローブを選択",
+          "push_fixed": "プッシュモニターは常にローカルプローブで実行されます。",
+          "required": "プローブを1つ以上選択してください",
+          "unsupported": "このプローブはこのタイプのモニターを実行できません。別のプローブを選択してください。"
         },
         "proxy": {
           "add_proxy": "プロキシを追加",
@@ -658,6 +678,15 @@
       "expiring_soon": "まもなく期限切れ",
       "for": "対象",
       "live_status": "ライブステータス",
+      "locations": {
+        "all": "すべての場所",
+        "no_result": "まだ結果がありません",
+        "probe_offline": "プローブはオフラインです",
+        "probe_unsupported": "このタイプは実行できません",
+        "response_time": "応答時間",
+        "select_label": "場所",
+        "title": "場所"
+      },
       "monitor_for": "監視対象",
       "no_certificate_data": "証明書データなし",
       "seconds": "秒",
@@ -683,6 +712,7 @@
     "maintenance": "メンテナンス",
     "monitors": "モニター",
     "notification_channels": "通知チャネル",
+    "probes": "プローブ",
     "proxies": "プロキシ",
     "settings": "設定",
     "status_pages": "ステータスページ",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "自動承認",
         "auto_resolve_acknowledge_description": "インシデントを自動的に確認する",
-        "auto_resolve_description": "モニターが復旧したときに取るアクションを選択してください",
+        "auto_resolve_description": "モニターが復旧したとき、またはプローブがオンラインに戻ったときに送信する内容を選択してください",
         "auto_resolve_do_nothing": "何もしない",
-        "auto_resolve_do_nothing_description": "UPステータスに対しては何も行いません",
+        "auto_resolve_do_nothing_description": "モニターが復旧したとき、またはプローブがオンラインに戻ったときは何も送信されないため、PagerDuty で解決するまでインシデントは開いたままになります",
         "auto_resolve_label": "自動で解決または確認",
         "auto_resolve_placeholder": "自動解決の動作を選択",
         "auto_resolve_resolve": "自動解決",
@@ -888,7 +918,7 @@
         "authentication_token_description": "高度なセキュリティのための任意の認証トークン。これは pagertree-token ヘッダーに送信されます。",
         "authentication_token_label": "認証トークン（任意）",
         "authentication_token_placeholder": "必要な場合は認証トークンを入力してください",
-        "auto_resolve_alerts_description": "モニターが回復したときにPagerTreeアラートを自動的に解消する",
+        "auto_resolve_alerts_description": "モニターが復旧したとき、またはプローブがオンラインに戻ったときにPagerTreeアラートを自動的に解消する",
         "auto_resolve_alerts_label": "自動でアラートを解決",
         "how_to_get_integration_url_label": "統合URLの取得方法",
         "integration_url_description": "PagerTree ウェブフック統合 URL を入力してください。",
@@ -1123,6 +1153,109 @@
       "saved_hint": "保存済み — 入力すると置き換えます"
     }
   },
+  "probes": {
+    "page_name": "プローブ",
+    "description": "プローブは、インストールされた場所からモニターのチェックを実行します。ローカルプローブは Peekaping 自身です。",
+    "local_name": "ローカル",
+    "monitor_probe": "プローブ: {{name}}",
+    "monitor_probe_unsupported": "{{name}} は {{type}} タイプのモニターを実行できません",
+    "empty_list": {
+      "title": "プローブが見つかりません",
+      "text": "プローブを作成して、別の場所からチェックを実行しましょう。",
+      "action_text": "最初のプローブを作成"
+    },
+    "table": {
+      "headers": {
+        "name": "名前",
+        "location": "場所",
+        "status": "ステータス",
+        "disabled": "無効",
+        "token": "トークン",
+        "instances": "インスタンス",
+        "actions": "アクション"
+      },
+      "status": {
+        "online": "オンライン",
+        "offline": "オフライン"
+      },
+      "disabled": "無効",
+      "no_instances": "インスタンスはまだありません",
+      "last_seen": "最終確認 {{date}}",
+      "actions": {
+        "edit": "プローブ {{name}} を編集",
+        "rotate": "プローブ {{name}} のトークンを更新",
+        "delete": "プローブ {{name}} を削除"
+      }
+    },
+    "create_dialog": {
+      "title": "プローブを作成",
+      "description": "プローブは、インストールした場所からチェックを実行します。トークンは作成後に一度だけ表示されます。",
+      "submit": "プローブを作成",
+      "creating": "作成中..."
+    },
+    "edit_dialog": {
+      "title": "プローブを編集",
+      "description": "{{name}} の設定を変更します。"
+    },
+    "form": {
+      "name_label": "名前",
+      "name_placeholder": "例: フランクフルト",
+      "location_label": "場所（任意）",
+      "location_placeholder": "例: フランクフルト、ドイツ",
+      "name_required": "名前は必須です",
+      "name_too_long": "名前が長すぎます",
+      "location_too_long": "場所が長すぎます",
+      "disabled_label": "無効",
+      "disabled_description": "無効にしたプローブのトークンは、再び有効にするまで使えなくなります。",
+      "notifications_hint": "空のままにすると、このプローブのモニターの通知チャネルに通知します。"
+    },
+    "rotate_dialog": {
+      "title": "トークンを更新",
+      "description": "プローブ {{name}} の古いトークンはすぐに使えなくなります。インスタンスは新しいトークンで再起動する必要があります。",
+      "confirm": "トークンを更新",
+      "rotating": "更新中..."
+    },
+    "delete_dialog": {
+      "title": "プローブを削除",
+      "description": "プローブ「{{name}}」を削除してもよろしいですか？ そのトークンは使えなくなります。この操作は元に戻せません。"
+    },
+    "token_alert": {
+      "title_created": "プローブ {{name}} を作成しました",
+      "title_rotated": "プローブ {{name}} の新しいトークン",
+      "note": "このトークンは、プローブに割り当てられたモニターの設定を読み取ります。一度だけ表示されます。",
+      "token_label": "トークン",
+      "docker_label": "Docker でプローブを起動",
+      "copy_token": "トークンをコピー",
+      "copy_command": "docker コマンドをコピー"
+    },
+    "messages": {
+      "created_successfully": "プローブを作成しました",
+      "updated_successfully": "プローブを更新しました",
+      "rotated_successfully": "トークンを更新しました",
+      "deleted_successfully": "プローブを削除しました",
+      "failed_to_create": "プローブの作成に失敗しました",
+      "failed_to_update": "プローブの更新に失敗しました",
+      "failed_to_rotate": "トークンの更新に失敗しました",
+      "failed_to_delete": "プローブの削除に失敗しました",
+      "failed_to_load": "プローブの読み込みに失敗しました",
+      "copy_success": "クリップボードにコピーしました",
+      "copy_failed": "クリップボードにコピーできませんでした"
+    },
+    "detail": {
+      "not_found": "プローブが見つかりません"
+    },
+    "availability": {
+      "title": "可用性",
+      "range_label": "期間",
+      "bar_label": "可用性の履歴",
+      "instance_bar_label": "{{name}} の接続",
+      "no_data": "データなし",
+      "now": "現在",
+      "instances_title": "インスタンス、過去24時間",
+      "in_process_note": "ローカルプローブのモニターは Peekaping 自身がチェックするため、可用性の履歴はありません。",
+      "connected_since": "{{start}} から接続中"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "この操作は元に戻せません。プロキシ {{host}}:{{port}} を完全に削除します。",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "クラスターモードでは、変更は 1 分以内にすべてのプロセスに届きます。",
-      "description": "サーバーがクラッシュしたときに Sentry へレポートを送信します。オンにするまでオフです。",
-      "forced_off": "環境変数 ERROR_REPORTING=off または DO_NOT_TRACK=1 によりオフになっています。この設定に関係なく、何も送信されません。",
+      "description": "サーバーがクラッシュしたときに Sentry へレポートを送信します。デフォルトでオンです。ここからいつでもオフにできます。",
+      "forced_off": "環境変数 ERROR_REPORTING=off によりオフになっています。この設定に関係なく、何も送信されません。",
       "title": "エラーレポート"
     },
     "telemetry": {
-      "description": "このインストールの構成についての匿名の統計を、1 日に 1 回まで送信します。オンにするまでオフです。",
-      "forced_off": "環境変数 TELEMETRY=off または DO_NOT_TRACK=1 によりオフになっています。この設定に関係なく、何も送信されません。",
-      "id_note": "インスタンス ID は、オンにすると作成され、オフにすると削除されます。もう一度オンにすると、新しい ID が作成されます。",
+      "description": "このインストールの構成についての匿名の統計を、1 日に 1 回まで送信します。デフォルトでオンです。ここからいつでもオフにできます。",
+      "forced_off": "環境変数 TELEMETRY=off によりオフになっています。この設定に関係なく、何も送信されません。",
+      "id_note": "インスタンス ID は、この機能がオンの間に作成され、オフにすると削除されます。もう一度オンにすると、新しい ID が作成されます。",
       "payload_off": "オフの間は何も送信されません。オンにした場合、使用状況pingには次の内容が含まれます。",
       "payload_title": "次の使用状況pingで送信される内容",
       "title": "利用統計"
@@ -1367,6 +1500,8 @@
     "published_status": "公開済み",
     "search_label": "検索",
     "search_placeholder": "タイトルでステータスページを検索…",
+    "show_locations": "各場所を表示",
+    "show_locations_info": "複数の場所からチェックされるモニターについて、場所ごとのステータスと履歴を表示します",
     "update_status_page": "ステータスページを更新",
     "view_page": "ページを表示"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "送信される内容とオフにする方法",
     "label": "匿名の利用統計を送信する",
-    "never_sent": "次の情報は送信されません：モニター名、URL、ホスト、タグ、ステータスページのアドレス、通知の設定。使用状況pingには IP アドレスが含まれず、Peekaping の Worker は送信元の IP を記録しません。",
-    "not_saved": "利用統計を送信する設定は保存されませんでした。「設定」からオンにしてください。",
-    "sent_features": "ステータスページ、メンテナンス期間、メトリクスを使っているかどうか",
-    "sent_id": "ランダムな ID（オンにすると作成され、オフにすると削除されます）",
-    "sent_monitors": "モニターの数（11-50 のような範囲）",
-    "sent_setup": "Peekaping のバージョン、シングルモードかクラスターモードか、ストレージバックエンド、OS と CPU の種類",
-    "sent_types": "使っているモニターと通知チャンネルの種類（http や telegram など）"
+    "not_saved": "利用統計についての設定は保存されませんでした。「設定」で確認してください。"
+  },
+  "telemetry_notice": {
+    "error_reports": "エラーレポートはオンです。Peekaping がクラッシュすると、エラーの種類とコード上の発生箇所、自身のバージョン、モード、ストレージバックエンド、OS を送信します。エラーメッセージ、URL、ホスト名は送信しません。",
+    "settings_errors": "「設定」でエラーレポートをオフにする",
+    "settings_usage": "「設定」で利用統計をオフにする",
+    "title": "匿名データの送信はデフォルトでオンです",
+    "usage_statistics": "利用統計はオンです。Peekaping は 1 日に 1 回まで、ランダムなインスタンス ID、自身のバージョン、モード、ストレージバックエンド、OS、モニター数の範囲、使っているモニターと通知チャンネルの種類、そしてステータスページ、メンテナンス期間、メトリクスを使っているかどうかを送信します。名前、URL、ホスト、設定は送信しません。"
   },
   "theme": {
     "dark": "ダーク",

@@ -16,8 +16,9 @@
       "have_account": "Už máte účet?",
       "sign_in": "Přihlásit se",
       "submit": "Vytvořit",
-      "telemetry_hint": "Vypnuto, dokud políčko nezaškrtnete. Později to můžete změnit v části „Nastavení“. Pokud ho zaškrtnete, Peekaping to odešle nejvýše jednou denně:",
-      "title": "Vítejte"
+      "title": "Vítejte",
+      "telemetry_note": "Anonymně: žádné názvy monitorů, adresy URL ani hostitelé. Později to můžete změnit v části „Nastavení“.",
+      "telemetry_whats_sent": "Co se odesílá"
     },
     "twofa": {
       "code_label": "Kód dvoufaktorové autentizace",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Odesílat hlášení o chybách",
-    "never_sent": "Nikdy se neodesílá: text chybových hlášení, adresy URL, hlavičky, adresy URL webhooků, názvy ani názvy hostitelů. Hlášení neobsahuje žádnou IP adresu a projekt Peekaping v Sentry je nastaven tak, aby IP adresu odesílatele neukládal. Při vlastním ERROR_REPORTING_DSN o tom rozhodují nastavení vašeho Sentry nebo GlitchTip.",
-    "not_saved": "Vaše volba odesílat hlášení o chybách se neuložila. Zapněte to v části „Nastavení“.",
+    "never_sent": "Nikdy se neodesílá: text chybových hlášení, adresy URL, hlavičky, adresy URL webhooků, názvy ani názvy hostitelů. Hlášení neobsahuje žádnou IP adresu a projekt Peekaping v Sentry je nastaven tak, aby IP adresu odesílatele neukládal.",
+    "not_saved": "Vaše volba ohledně hlášení o chybách se neuložila. Zkontrolujte ji v části „Nastavení“.",
     "sent": "Odesílá se jen tehdy, když spadne samotný Peekaping. Hlášení obsahuje typ chyby a místo v kódu, kde nastala, verzi Peekaping, jednoduchý nebo clusterový režim, úložiště dat a operační systém."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Čas vypršení požadavku (po {{seconds}} sekundách vyprší)",
           "resend_notification": "Znovu odeslat upozornění, pokud dojde k výpadku X krát po sobě (Znovu odesílání je vypnuto)"
         },
+        "location_rule": {
+          "all": "jsou nedostupná všechna umístění",
+          "any": "je nedostupné libovolné umístění",
+          "at_least": "je nedostupných alespoň N umístění",
+          "description": "Umístění, jehož sonda je offline nebo se ještě nenahlásila, se nepočítá.",
+          "label": "Označit monitor jako nedostupný, když",
+          "threshold_invalid": "Zadejte celé číslo, 1 nebo více",
+          "threshold_label": "Počet umístění",
+          "threshold_too_high": "Nesmí být vyšší než počet vybraných sond"
+        },
         "notifications": {
           "add_notifier": "Přidat notifikátor",
           "new_notifier": "+ Nový notifikátor",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Vyberte notifikátor",
           "selected_channels": "Vybrané kanály notifikací",
           "title": "Notifikační kanály"
+        },
+        "probe": {
+          "description": "Monitor běží na každé vybrané sondě a výsledky každé z nich ukazuje jako umístění.",
+          "label": "Sonda",
+          "option_unsupported": "{{name}} (tento typ nespouští)",
+          "placeholder": "Vyberte sondu",
+          "push_fixed": "Push monitor vždy běží na lokální sondě.",
+          "required": "Vyberte alespoň jednu sondu",
+          "unsupported": "Tato sonda tento typ monitoru nespouští. Vyberte jinou sondu."
         },
         "proxy": {
           "add_proxy": "Přidat proxy",
@@ -658,6 +678,15 @@
       "expiring_soon": "Brzy vyprší",
       "for": "pro",
       "live_status": "Aktuální stav",
+      "locations": {
+        "all": "Všechna umístění",
+        "no_result": "Zatím žádný výsledek",
+        "probe_offline": "Sonda je offline",
+        "probe_unsupported": "Tento typ nespouští",
+        "response_time": "Doba odezvy",
+        "select_label": "Umístění",
+        "title": "Umístění"
+      },
       "monitor_for": "monitor pro",
       "no_certificate_data": "Žádná data o certifikátu",
       "seconds": "sekundy",
@@ -683,6 +712,7 @@
     "maintenance": "Údržba",
     "monitors": "Monitory",
     "notification_channels": "Notifikační kanály",
+    "probes": "Sondy",
     "proxies": "Proxy servery",
     "settings": "Nastavení",
     "status_pages": "Stránky stavu",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatické potvrzení",
         "auto_resolve_acknowledge_description": "Automatické potvrzení incidentu",
-        "auto_resolve_description": "Zvolte, jakou akci provést, když se monitor vrátí do provozu",
+        "auto_resolve_description": "Zvolte, co se má odeslat, když se monitor vrátí do provozu nebo se sonda vrátí online",
         "auto_resolve_do_nothing": "Nic nedělat",
-        "auto_resolve_do_nothing_description": "Žádná akce nebyla provedena pro stav UP",
+        "auto_resolve_do_nothing_description": "Nic se neodešle, když se monitor vrátí do provozu nebo se sonda vrátí online, takže incident zůstane otevřený, dokud jej nevyřešíte v PagerDuty",
         "auto_resolve_label": "Automatické vyřešení nebo uznání",
         "auto_resolve_placeholder": "Vyberte způsob automatického uzavření",
         "auto_resolve_resolve": "Automatické vyřešení",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Volitelný autentizační token pro zvýšení zabezpečení. Bude odeslán v hlavičce pagertree-token.",
         "authentication_token_label": "Autentizační token (volitelný)",
         "authentication_token_placeholder": "Zadejte autentizační token, pokud je vyžadován",
-        "auto_resolve_alerts_description": "Automaticky vyřešit PagerTree upozornění, když se monitor vrátí do provozu.",
+        "auto_resolve_alerts_description": "Automaticky vyřešit PagerTree upozornění, když se monitor vrátí do provozu nebo se sonda vrátí online.",
         "auto_resolve_alerts_label": "Automatické vyřešení upozornění",
         "how_to_get_integration_url_label": "Jak získat URL integrace",
         "integration_url_description": "Zadejte URL webhooku PagerTree.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Uloženo — pro nahrazení začněte psát"
     }
   },
+  "probes": {
+    "page_name": "Sondy",
+    "description": "Sondy provádějí kontroly monitorů z míst, kde jsou nainstalovány. Lokální sonda je samotný Peekaping.",
+    "local_name": "Lokální",
+    "monitor_probe": "Sonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} nespouští monitory typu {{type}}",
+    "empty_list": {
+      "title": "Nebyly nalezeny žádné sondy",
+      "text": "Vytvořte sondu, která bude provádět kontroly z jiného místa.",
+      "action_text": "Vytvořte svou první sondu"
+    },
+    "table": {
+      "headers": {
+        "name": "Název",
+        "location": "Umístění",
+        "status": "Stav",
+        "disabled": "Zakázána",
+        "token": "Token",
+        "instances": "Instance",
+        "actions": "Akce"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Zakázána",
+      "no_instances": "Zatím žádné instance",
+      "last_seen": "naposledy viděna {{date}}",
+      "actions": {
+        "edit": "Upravit sondu {{name}}",
+        "rotate": "Vyměnit token sondy {{name}}",
+        "delete": "Smazat sondu {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Vytvořit sondu",
+      "description": "Sonda provádí kontroly z místa, kde ji nainstalujete. Její token se zobrazí pouze jednou, po vytvoření.",
+      "submit": "Vytvořit sondu",
+      "creating": "Vytváření..."
+    },
+    "edit_dialog": {
+      "title": "Upravit sondu",
+      "description": "Změňte nastavení sondy {{name}}."
+    },
+    "form": {
+      "name_label": "Název",
+      "name_placeholder": "např. Frankfurt",
+      "location_label": "Umístění (volitelné)",
+      "location_placeholder": "např. Frankfurt, Německo",
+      "name_required": "Název je povinný",
+      "name_too_long": "Název je příliš dlouhý",
+      "location_too_long": "Umístění je příliš dlouhé",
+      "disabled_label": "Zakázána",
+      "disabled_description": "Token zakázané sondy přestane fungovat, dokud ji znovu nepovolíte.",
+      "notifications_hint": "Nechte prázdné, aby se oznámení posílala do kanálů monitorů této sondy."
+    },
+    "rotate_dialog": {
+      "title": "Vyměnit token",
+      "description": "Starý token sondy {{name}} okamžitě přestane fungovat. Její instance je nutné restartovat s novým tokenem.",
+      "confirm": "Vyměnit token",
+      "rotating": "Výměna..."
+    },
+    "delete_dialog": {
+      "title": "Smazat sondu",
+      "description": "Opravdu chcete smazat sondu „{{name}}“? Její token přestane fungovat. Tuto akci nelze vrátit zpět."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} byla vytvořena",
+      "title_rotated": "Nový token pro sondu {{name}}",
+      "note": "Tento token čte konfigurace monitorů přiřazených sondě. Zobrazí se pouze jednou.",
+      "token_label": "Token",
+      "docker_label": "Spusťte sondu pomocí Dockeru",
+      "copy_token": "Kopírovat token",
+      "copy_command": "Kopírovat příkaz docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda byla úspěšně vytvořena",
+      "updated_successfully": "Sonda byla úspěšně aktualizována",
+      "rotated_successfully": "Token byl úspěšně vyměněn",
+      "deleted_successfully": "Sonda byla úspěšně smazána",
+      "failed_to_create": "Sondu se nepodařilo vytvořit",
+      "failed_to_update": "Sondu se nepodařilo aktualizovat",
+      "failed_to_rotate": "Token se nepodařilo vyměnit",
+      "failed_to_delete": "Sondu se nepodařilo smazat",
+      "failed_to_load": "Sondy se nepodařilo načíst",
+      "copy_success": "Zkopírováno do schránky",
+      "copy_failed": "Kopírování do schránky se nezdařilo"
+    },
+    "detail": {
+      "not_found": "Sonda nebyla nalezena"
+    },
+    "availability": {
+      "title": "Dostupnost",
+      "range_label": "Časové období",
+      "bar_label": "Historie dostupnosti",
+      "instance_bar_label": "Připojení {{name}}",
+      "no_data": "Žádná data",
+      "now": "Nyní",
+      "instances_title": "Instance, posledních 24 hodin",
+      "in_process_note": "Monitory místní sondy kontroluje sám Peekaping, proto nemá historii dostupnosti.",
+      "connected_since": "Připojeno od {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Tuto akci nelze vrátit zpět. Tímto dojde k trvalému smazání proxy {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "V clusterovém režimu se změna projeví ve všech procesech do jedné minuty.",
-      "description": "Odesílat hlášení do Sentry, když server spadne. Vypnuto, dokud to nezapnete.",
-      "forced_off": "Proměnná prostředí ERROR_REPORTING=off nebo DO_NOT_TRACK=1 toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
+      "description": "Odesílat hlášení do Sentry, když server spadne. Ve výchozím nastavení zapnuto; zde to můžete kdykoli vypnout.",
+      "forced_off": "Proměnná prostředí ERROR_REPORTING=off toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
       "title": "Hlášení o chybách"
     },
     "telemetry": {
-      "description": "Odesílat anonymní statistiky o tom, jak je tato instalace nastavena, nejvýše jednou denně. Vypnuto, dokud to nezapnete.",
-      "forced_off": "Proměnná prostředí TELEMETRY=off nebo DO_NOT_TRACK=1 toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
-      "id_note": "ID instance se vytvoří při zapnutí a smaže při vypnutí. Při dalším zapnutí se vytvoří nové.",
+      "description": "Odesílat anonymní statistiky o tom, jak je tato instalace nastavena, nejvýše jednou denně. Ve výchozím nastavení zapnuto; zde to můžete kdykoli vypnout.",
+      "forced_off": "Proměnná prostředí TELEMETRY=off toto vypíná. Nic se neodesílá, ať je toto nastavení jakékoli.",
+      "id_note": "ID instance se vytvoří, dokud je to zapnuté, a smaže při vypnutí. Při dalším zapnutí se vytvoří nové.",
       "payload_off": "Dokud je to vypnuto, nic se neodesílá. Takto by vypadal ping využití, kdybyste to zapnuli.",
       "payload_title": "Co odešle příští ping využití",
       "title": "Statistiky využití"
@@ -1367,6 +1500,8 @@
     "published_status": "Publikováno",
     "search_label": "Hledat",
     "search_placeholder": "Hledat stránky stavu podle názvu...",
+    "show_locations": "Zobrazit každé umístění",
+    "show_locations_info": "U monitorů kontrolovaných z více umístění zobrazí stav a historii každého z nich",
     "update_status_page": "Aktualizovat stránku stavu",
     "view_page": "Zobrazit stránku"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Co se odesílá a jak to vypnout",
     "label": "Odesílat anonymní statistiky využití",
-    "never_sent": "Nikdy se neodesílá: názvy monitorů, adresy URL, hostitelé, tagy, adresy stránek stavu ani nastavení oznámení. Ping využití neobsahuje žádnou IP adresu a Worker Peekapingu IP adresu odesílatele nezaznamenává.",
-    "not_saved": "Vaše volba odesílat statistiky využití se neuložila. Zapněte to v části „Nastavení“.",
-    "sent_features": "Zda používáte stránky stavu, okna údržby a metriky",
-    "sent_id": "Náhodné ID, které se vytvoří při zapnutí a smaže při vypnutí",
-    "sent_monitors": "Kolik máte monitorů, jako rozsah, například 11-50",
-    "sent_setup": "Verze Peekaping, jednoduchý nebo clusterový režim, úložiště dat a typ operačního systému a procesoru",
-    "sent_types": "Druhy monitorů a kanálů oznámení, které používáte, například http nebo telegram"
+    "not_saved": "Vaše volba ohledně statistik využití se neuložila. Zkontrolujte ji v části „Nastavení“."
+  },
+  "telemetry_notice": {
+    "error_reports": "Hlášení o chybách jsou zapnutá. Když Peekaping spadne, odešle typ chyby a místo v kódu, kde nastala, svou verzi, režim, úložiště dat a operační systém. Nikdy neodesílá chybové zprávy, adresy URL ani názvy hostitelů.",
+    "settings_errors": "Vypnout hlášení o chybách v části „Nastavení“",
+    "settings_usage": "Vypnout statistiky využití v části „Nastavení“",
+    "title": "Odesílání anonymních dat je ve výchozím nastavení zapnuto",
+    "usage_statistics": "Statistiky využití jsou zapnuté. Nejvýše jednou denně Peekaping odešle náhodné ID instance, svou verzi, režim, úložiště dat a operační systém, rozsah počtu monitorů, druhy monitorů a kanálů oznámení, které používáte, a také to, zda používáte stránky stavu, okna údržby a metriky. Nikdy neodesílá názvy, adresy URL, hostitele ani nastavení."
   },
   "theme": {
     "dark": "Tmavý",

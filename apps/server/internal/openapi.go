@@ -10,6 +10,8 @@ import (
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/status_page"
@@ -39,7 +41,10 @@ func OpenAPI() *huma.OpenAPI {
 		telemetry.NewRoute(nil, nil, nil), nil,
 		error_reporting.NewRoute(nil, nil, nil), nil,
 		badge.NewRoute(nil), nil,
-		api_key.NewRoute(nil, nil), nil, nil, nil,
+		api_key.NewRoute(nil, nil), nil,
+		probe.NewRoute(nil, nil), nil,
+		protocol.NewRoute(nil, nil), nil,
+		nil, nil,
 	)
 	return server.Router.API().OpenAPI()
 }

@@ -16,8 +16,9 @@
       "have_account": "Já tem conta?",
       "sign_in": "Iniciar sessão",
       "submit": "Criar",
-      "telemetry_hint": "Desativado, a menos que assinale esta caixa. Pode alterá-lo mais tarde em «Definições». Se a assinalar, o Peekaping envia isto no máximo uma vez por dia:",
-      "title": "Olá"
+      "title": "Olá",
+      "telemetry_note": "Anónimo: sem nomes de monitores, URLs ou anfitriões. Pode alterá-lo mais tarde em «Definições».",
+      "telemetry_whats_sent": "O que é enviado"
     },
     "twofa": {
       "code_label": "Código 2FA",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Enviar relatórios de erros",
-    "never_sent": "Nunca são enviados: mensagens de erro, URLs, cabeçalhos, URLs de webhook, nomes nem nomes de anfitrião. Um relatório não contém nenhum endereço IP, e o projeto Sentry do Peekaping está configurado para não guardar o IP do remetente. Com o seu próprio ERROR_REPORTING_DSN, quem decide são as definições do seu Sentry ou GlitchTip.",
-    "not_saved": "A sua escolha de enviar relatórios de erros não foi guardada. Ative-a em «Definições».",
+    "never_sent": "Nunca são enviados: mensagens de erro, URLs, cabeçalhos, URLs de webhook, nomes nem nomes de anfitrião. Um relatório não contém nenhum endereço IP, e o projeto Sentry do Peekaping está configurado para não guardar o IP do remetente.",
+    "not_saved": "A sua escolha sobre os relatórios de erros não foi guardada. Verifique-a em «Definições».",
     "sent": "Enviado apenas quando o próprio Peekaping falha. Um relatório contém o tipo de erro e o ponto do código onde ocorreu, a versão do Peekaping, o modo único ou de cluster, o backend de armazenamento e o sistema operativo."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Tempo limite da solicitação (Limite depois de {{seconds}} segundos)",
           "resend_notification": "Reenviar notificação se estiver inativo X vezes consecutivas (Reenvio desativado)"
         },
+        "location_rule": {
+          "all": "todas as localizações estiverem indisponíveis",
+          "any": "qualquer localização estiver indisponível",
+          "at_least": "pelo menos N localizações estiverem indisponíveis",
+          "description": "Uma localização cuja sonda está offline, ou que ainda não comunicou, não conta.",
+          "label": "Marcar o monitor como indisponível quando",
+          "threshold_invalid": "Introduza um número inteiro, 1 ou mais",
+          "threshold_label": "Número de localizações",
+          "threshold_too_high": "Não pode ser maior do que o número de sondas escolhidas"
+        },
         "notifications": {
           "add_notifier": "Adicionar notificador",
           "new_notifier": "+ Novo Notificador",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Selecionar notificador",
           "selected_channels": "Canais de notificação selecionados",
           "title": "Canais de notificação"
+        },
+        "probe": {
+          "description": "O monitor é executado em cada sonda escolhida e mostra os resultados de cada uma como uma localização.",
+          "label": "Sonda",
+          "option_unsupported": "{{name}} (não executa este tipo)",
+          "placeholder": "Selecionar sonda",
+          "push_fixed": "Um Monitor de Push é sempre executado na sonda local.",
+          "required": "Escolha pelo menos uma sonda",
+          "unsupported": "Esta sonda não executa este tipo de monitor. Selecione outra sonda."
         },
         "proxy": {
           "add_proxy": "Adicionar Proxy",
@@ -658,6 +678,15 @@
       "expiring_soon": "Expira em breve",
       "for": "para",
       "live_status": "Estado ao vivo",
+      "locations": {
+        "all": "Todas as localizações",
+        "no_result": "Ainda sem resultado",
+        "probe_offline": "Sonda offline",
+        "probe_unsupported": "Não executa este tipo",
+        "response_time": "Tempo de resposta",
+        "select_label": "Localização",
+        "title": "Localizações"
+      },
       "monitor_for": "monitorizar por",
       "no_certificate_data": "Sem dados de certificado",
       "seconds": "segundos",
@@ -683,6 +712,7 @@
     "maintenance": "Manutenção",
     "monitors": "Monitores",
     "notification_channels": "Canais de notificação",
+    "probes": "Sondas",
     "proxies": "Proxies",
     "settings": "Definições",
     "status_pages": "Páginas de Estado",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Reconhecer automaticamente",
         "auto_resolve_acknowledge_description": "Reconhecer automaticamente o incidente",
-        "auto_resolve_description": "Escolha a ação a tomar quando o monitor voltar a funcionar",
+        "auto_resolve_description": "Escolha o que enviar quando um monitor voltar a funcionar ou uma sonda voltar a ficar online",
         "auto_resolve_do_nothing": "Não fazer nada",
-        "auto_resolve_do_nothing_description": "Nenhuma ação realizada em estado UP",
+        "auto_resolve_do_nothing_description": "Nada é enviado quando um monitor volta a funcionar ou uma sonda volta a ficar online, pelo que o incidente permanece aberto até o resolver no PagerDuty",
         "auto_resolve_label": "Resolver automaticamente ou reconhecer",
         "auto_resolve_placeholder": "Seleccionar comportamento de auto-resolução",
         "auto_resolve_resolve": "Resolver automaticamente",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Token de autenticação opcional para maior segurança. Será enviado no cabeçalho pagertree-token.",
         "authentication_token_label": "Token de Autenticação (Opcional)",
         "authentication_token_placeholder": "Introduza o token de autenticação, se necessário",
-        "auto_resolve_alerts_description": "Resolver automaticamente alertas do PagerTree quando o monitor recuperar",
+        "auto_resolve_alerts_description": "Resolver automaticamente alertas do PagerTree quando um monitor voltar a funcionar ou uma sonda voltar a ficar online",
         "auto_resolve_alerts_label": "Resolver alertas automaticamente",
         "how_to_get_integration_url_label": "Como obter a URL de integração",
         "integration_url_description": "Introduza a URL de integração do webhook do PagerTree.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Guardado — escreva para substituir"
     }
   },
+  "probes": {
+    "page_name": "Sondas",
+    "description": "As sondas executam as verificações dos monitores a partir dos locais onde estão instaladas. A sonda local é o próprio Peekaping.",
+    "local_name": "Local",
+    "monitor_probe": "Sonda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} não executa monitores {{type}}",
+    "empty_list": {
+      "title": "Nenhuma sonda encontrada",
+      "text": "Crie uma sonda para executar verificações a partir de outro local.",
+      "action_text": "Crie a sua primeira sonda"
+    },
+    "table": {
+      "headers": {
+        "name": "Nome",
+        "location": "Localização",
+        "status": "Estado",
+        "disabled": "Desativada",
+        "token": "Token",
+        "instances": "Instâncias",
+        "actions": "Ações"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Desativada",
+      "no_instances": "Ainda sem instâncias",
+      "last_seen": "vista pela última vez em {{date}}",
+      "actions": {
+        "edit": "Editar a sonda {{name}}",
+        "rotate": "Renovar o token da sonda {{name}}",
+        "delete": "Eliminar a sonda {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Criar sonda",
+      "description": "Uma sonda executa verificações a partir do local onde a instala. O respetivo token é apresentado apenas uma vez, depois de a criar.",
+      "submit": "Criar sonda",
+      "creating": "A criar..."
+    },
+    "edit_dialog": {
+      "title": "Editar sonda",
+      "description": "Altere as definições de {{name}}."
+    },
+    "form": {
+      "name_label": "Nome",
+      "name_placeholder": "p. ex., Frankfurt",
+      "location_label": "Localização (opcional)",
+      "location_placeholder": "p. ex., Frankfurt, Alemanha",
+      "name_required": "O nome é obrigatório",
+      "name_too_long": "O nome é demasiado longo",
+      "location_too_long": "A localização é demasiado longa",
+      "disabled_label": "Desativada",
+      "disabled_description": "O token de uma sonda desativada deixa de funcionar até a voltar a ativar.",
+      "notifications_hint": "Deixe vazio para notificar os canais dos monitores desta sonda."
+    },
+    "rotate_dialog": {
+      "title": "Renovar token",
+      "description": "O token antigo da sonda {{name}} deixa de funcionar de imediato. As respetivas instâncias têm de ser reiniciadas com o novo token.",
+      "confirm": "Renovar token",
+      "rotating": "A renovar..."
+    },
+    "delete_dialog": {
+      "title": "Eliminar sonda",
+      "description": "Tem a certeza de que pretende eliminar a sonda \"{{name}}\"? O respetivo token deixará de funcionar. Esta ação não pode ser anulada."
+    },
+    "token_alert": {
+      "title_created": "Sonda {{name}} criada",
+      "title_rotated": "Novo token para a sonda {{name}}",
+      "note": "Este token lê as configurações dos monitores atribuídos à sonda. É apresentado apenas uma vez.",
+      "token_label": "Token",
+      "docker_label": "Inicie a sonda com o Docker",
+      "copy_token": "Copiar token",
+      "copy_command": "Copiar comando docker"
+    },
+    "messages": {
+      "created_successfully": "Sonda criada com sucesso",
+      "updated_successfully": "Sonda atualizada com sucesso",
+      "rotated_successfully": "Token renovado com sucesso",
+      "deleted_successfully": "Sonda eliminada com sucesso",
+      "failed_to_create": "Falha ao criar a sonda",
+      "failed_to_update": "Falha ao atualizar a sonda",
+      "failed_to_rotate": "Falha ao renovar o token",
+      "failed_to_delete": "Falha ao eliminar a sonda",
+      "failed_to_load": "Falha ao carregar as sondas",
+      "copy_success": "Copiado para a área de transferência",
+      "copy_failed": "Não foi possível copiar para a área de transferência"
+    },
+    "detail": {
+      "not_found": "Sonda não encontrada"
+    },
+    "availability": {
+      "title": "Disponibilidade",
+      "range_label": "Intervalo de tempo",
+      "bar_label": "Histórico de disponibilidade",
+      "instance_bar_label": "Ligações de {{name}}",
+      "no_data": "Sem dados",
+      "now": "Agora",
+      "instances_title": "Instâncias, últimas 24 horas",
+      "in_process_note": "O próprio Peekaping verifica os monitores da sonda local, por isso esta não tem histórico de disponibilidade.",
+      "connected_since": "Ligada desde {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Esta acção não pode ser revertida. Isto vai eliminar permanentemente o proxy {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "No modo cluster, uma alteração chega a todos os processos no prazo de um minuto.",
-      "description": "Envie um relatório ao Sentry quando o servidor falhar. Desativado até o ativar.",
-      "forced_off": "A variável de ambiente ERROR_REPORTING=off ou DO_NOT_TRACK=1 desativa isto. Nada é enviado, seja qual for esta definição.",
+      "description": "Envie um relatório ao Sentry quando o servidor falhar. Ativado por predefinição; pode desativá-lo aqui a qualquer momento.",
+      "forced_off": "A variável de ambiente ERROR_REPORTING=off desativa isto. Nada é enviado, seja qual for esta definição.",
       "title": "Relatórios de erros"
     },
     "telemetry": {
-      "description": "Envie estatísticas anónimas sobre como esta instalação está configurada, no máximo uma vez por dia. Desativado até o ativar.",
-      "forced_off": "A variável de ambiente TELEMETRY=off ou DO_NOT_TRACK=1 desativa isto. Nada é enviado, seja qual for esta definição.",
-      "id_note": "O ID da instância é criado quando ativa isto e eliminado quando desativa. Ao ativar de novo, é criado um novo ID.",
+      "description": "Envie estatísticas anónimas sobre como esta instalação está configurada, no máximo uma vez por dia. Ativado por predefinição; pode desativá-lo aqui a qualquer momento.",
+      "forced_off": "A variável de ambiente TELEMETRY=off desativa isto. Nada é enviado, seja qual for esta definição.",
+      "id_note": "O ID da instância é criado enquanto isto está ativado e eliminado quando desativa. Ao ativar de novo, é criado um novo ID.",
       "payload_off": "Nada é enviado enquanto isto estiver desativado. Isto é o que um ping de utilização conteria se o ativasse.",
       "payload_title": "O que o próximo ping de utilização envia",
       "title": "Estatísticas de utilização"
@@ -1367,6 +1500,8 @@
     "published_status": "Publicado",
     "search_label": "Pesquisar",
     "search_placeholder": "Pesquisar páginas de status por título...",
+    "show_locations": "Mostrar cada localização",
+    "show_locations_info": "Para monitores verificados a partir de várias localizações, mostra o estado e o histórico de cada uma",
     "update_status_page": "Actualizar Página de Estado",
     "view_page": "Ver página"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "O que é enviado e como desativar",
     "label": "Enviar estatísticas de utilização anónimas",
-    "never_sent": "Nunca são enviados: nomes de monitores, URLs, anfitriões, etiquetas, endereços de páginas de estado nem definições de notificação. Um ping de utilização não contém nenhum endereço IP, e o Worker do Peekaping não regista o IP do remetente.",
-    "not_saved": "A sua escolha de enviar estatísticas de utilização não foi guardada. Ative-a em «Definições».",
-    "sent_features": "Se utiliza páginas de estado, janelas de manutenção e métricas",
-    "sent_id": "Um ID aleatório, criado quando ativa e eliminado quando desativa",
-    "sent_monitors": "Quantos monitores tem, como um intervalo, por exemplo 11-50",
-    "sent_setup": "A versão do Peekaping, o modo único ou de cluster, o backend de armazenamento, e o sistema operativo e o tipo de CPU",
-    "sent_types": "Os tipos de monitores e de canais de notificação que utiliza, como http ou telegram"
+    "not_saved": "A sua escolha sobre as estatísticas de utilização não foi guardada. Verifique-a em «Definições»."
+  },
+  "telemetry_notice": {
+    "error_reports": "Os relatórios de erros estão ativados. Se o Peekaping falhar, envia o tipo de erro e o ponto do código onde ocorreu, a sua própria versão, o modo, o backend de armazenamento e o sistema operativo. Nunca envia mensagens de erro, URLs ou nomes de host.",
+    "settings_errors": "Desativar os relatórios de erros em «Definições»",
+    "settings_usage": "Desativar as estatísticas de utilização em «Definições»",
+    "title": "O envio de dados anónimos está ativado por predefinição",
+    "usage_statistics": "As estatísticas de utilização estão ativadas. No máximo uma vez por dia, o Peekaping envia um ID de instância aleatório, a sua própria versão, o modo, o backend de armazenamento e o sistema operativo, um intervalo para o número de monitores, os tipos de monitores e de canais de notificação que utiliza e se utiliza páginas de estado, janelas de manutenção e métricas. Nunca envia nomes, URLs, hosts ou definições."
   },
   "theme": {
     "dark": "Escuro",

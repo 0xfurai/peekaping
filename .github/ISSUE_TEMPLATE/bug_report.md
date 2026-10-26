@@ -13,7 +13,6 @@ A clear and concise description of what the bug is.
 **Database**
 - sqlite
 - postgresql
-- mongodb
 
 **To Reproduce**
 Steps to reproduce the behavior:

@@ -16,8 +16,9 @@
       "have_account": "Already have an account?",
       "sign_in": "Sign in",
       "submit": "Create",
-      "telemetry_hint": "Off unless you tick this box. You can change it later under “Settings”. If you tick it, Peekaping sends this at most once a day:",
-      "title": "Hello"
+      "title": "Hello",
+      "telemetry_note": "Anonymous: no monitor names, URLs or hosts. You can change this later in Settings.",
+      "telemetry_whats_sent": "What's sent"
     },
     "twofa": {
       "code_label": "2FA Code",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Send error reports",
-    "never_sent": "Never sent: error messages, URLs, headers, webhook URLs, names or hostnames. A report holds no IP address, and Peekaping's Sentry project is set not to store the sender's IP. With your own ERROR_REPORTING_DSN, your Sentry or GlitchTip settings decide.",
-    "not_saved": "Your choice to send error reports wasn't saved. Turn it on in Settings.",
+    "never_sent": "Never sent: error messages, URLs, headers, webhook URLs, names or hostnames. A report holds no IP address, and Peekaping's Sentry project is set not to store the sender's IP.",
+    "not_saved": "Your choice about error reports wasn't saved. Check it in Settings.",
     "sent": "Sent only when Peekaping itself crashes. A report holds the error type and where in the code it happened, the Peekaping version, single or cluster mode, the storage backend, and the operating system."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Request Timeout (Timeout after {{seconds}} seconds)",
           "resend_notification": "Resend Notification if Down X times consecutively (Resend disabled)"
         },
+        "location_rule": {
+          "all": "All locations are Down",
+          "any": "Any location is Down",
+          "at_least": "At least N locations are Down",
+          "description": "A location whose probe is offline, or that hasn't reported yet, doesn't count.",
+          "label": "Mark the monitor Down when",
+          "threshold_invalid": "Enter a whole number, 1 or more",
+          "threshold_label": "Number of locations",
+          "threshold_too_high": "Can't be more than the number of probes you chose"
+        },
         "notifications": {
           "add_notifier": "Add Notifier",
           "new_notifier": "+ New Notifier",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Select Notifier",
           "selected_channels": "Selected Notification channels",
           "title": "Notification channels"
+        },
+        "probe": {
+          "description": "The monitor runs on every probe you choose and shows each one's results as a location.",
+          "label": "Probe",
+          "option_unsupported": "{{name}} (doesn't run this type)",
+          "placeholder": "Select probe",
+          "push_fixed": "A push monitor always runs on the local probe.",
+          "required": "Choose at least one probe",
+          "unsupported": "This probe doesn't run this type of monitor. Choose another probe."
         },
         "proxy": {
           "add_proxy": "Add Proxy",
@@ -658,6 +678,15 @@
       "expiring_soon": "Expiring soon",
       "for": "for",
       "live_status": "Live Status",
+      "locations": {
+        "all": "All locations",
+        "no_result": "No result yet",
+        "probe_offline": "Probe offline",
+        "probe_unsupported": "Doesn't run this type",
+        "response_time": "Response time",
+        "select_label": "Location",
+        "title": "Locations"
+      },
       "monitor_for": "monitor for",
       "no_certificate_data": "No certificate data",
       "seconds": "seconds",
@@ -683,6 +712,7 @@
     "maintenance": "Maintenance",
     "monitors": "Monitors",
     "notification_channels": "Notification Channels",
+    "probes": "Probes",
     "proxies": "Proxies",
     "settings": "Settings",
     "status_pages": "Status Pages",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Auto acknowledge",
         "auto_resolve_acknowledge_description": "Automatically acknowledge the incident",
-        "auto_resolve_description": "Choose what action to take when a monitor comes back up",
+        "auto_resolve_description": "Choose what to send when a monitor comes back up or a probe comes back online",
         "auto_resolve_do_nothing": "Do nothing",
-        "auto_resolve_do_nothing_description": "No action taken on UP status",
+        "auto_resolve_do_nothing_description": "Nothing is sent when a monitor comes back up or a probe comes back online, so the incident stays open until you resolve it in PagerDuty",
         "auto_resolve_label": "Auto Resolve or Acknowledge",
         "auto_resolve_placeholder": "Select auto-resolve behavior",
         "auto_resolve_resolve": "Auto resolve",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Optional authentication token for enhanced security. This will be sent in the pagertree-token header.",
         "authentication_token_label": "Authentication Token (Optional)",
         "authentication_token_placeholder": "Enter auth token if required",
-        "auto_resolve_alerts_description": "Automatically resolve PagerTree alerts when the monitor recovers",
+        "auto_resolve_alerts_description": "Automatically resolve PagerTree alerts when a monitor comes back up or a probe comes back online",
         "auto_resolve_alerts_label": "Auto-Resolve Alerts",
         "how_to_get_integration_url_label": "How to get integration URL",
         "integration_url_description": "Enter your PagerTree webhook integration URL.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Saved — type to replace"
     }
   },
+  "probes": {
+    "page_name": "Probes",
+    "description": "Probes run monitor checks from the places where they are installed. The local probe is Peekaping itself.",
+    "local_name": "Local",
+    "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} doesn't run {{type}} monitors",
+    "empty_list": {
+      "title": "No probes found",
+      "text": "Create a probe to run checks from another place.",
+      "action_text": "Create your first probe"
+    },
+    "table": {
+      "headers": {
+        "name": "Name",
+        "location": "Location",
+        "status": "Status",
+        "disabled": "Disabled",
+        "token": "Token",
+        "instances": "Instances",
+        "actions": "Actions"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Disabled",
+      "no_instances": "No instances yet",
+      "last_seen": "last seen {{date}}",
+      "actions": {
+        "edit": "Edit probe {{name}}",
+        "rotate": "Rotate token of probe {{name}}",
+        "delete": "Delete probe {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Create probe",
+      "description": "A probe runs checks from the place where you install it. Its token is shown only once, after you create it.",
+      "submit": "Create probe",
+      "creating": "Creating..."
+    },
+    "edit_dialog": {
+      "title": "Edit probe",
+      "description": "Change the settings of {{name}}."
+    },
+    "form": {
+      "name_label": "Name",
+      "name_placeholder": "e.g., Frankfurt",
+      "location_label": "Location (optional)",
+      "location_placeholder": "e.g., Frankfurt, Germany",
+      "name_required": "Name is required",
+      "name_too_long": "Name is too long",
+      "location_too_long": "Location is too long",
+      "disabled_label": "Disabled",
+      "disabled_description": "A disabled probe's token stops working until you enable it again.",
+      "notifications_hint": "Leave empty to notify the channels of this probe's monitors."
+    },
+    "rotate_dialog": {
+      "title": "Rotate token",
+      "description": "The old token of probe {{name}} stops working at once. Its instances must restart with the new token.",
+      "confirm": "Rotate token",
+      "rotating": "Rotating..."
+    },
+    "delete_dialog": {
+      "title": "Delete probe",
+      "description": "Are you sure you want to delete the probe \"{{name}}\"? Its token stops working. This action cannot be undone."
+    },
+    "token_alert": {
+      "title_created": "Probe {{name}} created",
+      "title_rotated": "New token for probe {{name}}",
+      "note": "This token reads the configs of the monitors assigned to the probe. It is shown only once.",
+      "token_label": "Token",
+      "docker_label": "Start the probe with Docker",
+      "copy_token": "Copy token",
+      "copy_command": "Copy docker command"
+    },
+    "messages": {
+      "created_successfully": "Probe created successfully",
+      "updated_successfully": "Probe updated successfully",
+      "rotated_successfully": "Token rotated successfully",
+      "deleted_successfully": "Probe deleted successfully",
+      "failed_to_create": "Failed to create probe",
+      "failed_to_update": "Failed to update probe",
+      "failed_to_rotate": "Failed to rotate the token",
+      "failed_to_delete": "Failed to delete probe",
+      "failed_to_load": "Failed to load probes",
+      "copy_success": "Copied to clipboard",
+      "copy_failed": "Could not copy to clipboard"
+    },
+    "detail": {
+      "not_found": "Probe not found"
+    },
+    "availability": {
+      "title": "Availability",
+      "range_label": "Time range",
+      "bar_label": "Availability history",
+      "instance_bar_label": "Connections of {{name}}",
+      "no_data": "No data",
+      "now": "Now",
+      "instances_title": "Instances, last 24 hours",
+      "in_process_note": "Peekaping itself checks the monitors of the local probe, so it has no availability history.",
+      "connected_since": "Connected since {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "This action cannot be undone. This will permanently delete the proxy {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "In cluster mode, a change reaches every process within a minute.",
-      "description": "Send a report to Sentry when the server crashes. Off until you turn it on.",
-      "forced_off": "The ERROR_REPORTING=off or DO_NOT_TRACK=1 environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "description": "Send a report to Sentry when the server crashes. On by default; you can turn it off here at any time.",
+      "forced_off": "The ERROR_REPORTING=off environment variable switches this off. Nothing is sent, whatever this setting says.",
       "title": "Error reports"
     },
     "telemetry": {
-      "description": "Send anonymous statistics about how this install is set up, at most once a day. Off until you turn it on.",
-      "forced_off": "The TELEMETRY=off or DO_NOT_TRACK=1 environment variable switches this off. Nothing is sent, whatever this setting says.",
-      "id_note": "The instance ID is created when you turn this on and deleted when you turn it off. Turning it on again creates a new one.",
+      "description": "Send anonymous statistics about how this install is set up, at most once a day. On by default; you can turn it off here at any time.",
+      "forced_off": "The TELEMETRY=off environment variable switches this off. Nothing is sent, whatever this setting says.",
+      "id_note": "The instance ID is created while this is on and deleted when you turn it off. Turning it on again creates a new one.",
       "payload_off": "Nothing is sent while this is off. This is what a usage ping would contain if you turned it on.",
       "payload_title": "What the next usage ping sends",
       "title": "Usage statistics"
@@ -1367,6 +1500,8 @@
     "published_status": "Published",
     "search_label": "Search",
     "search_placeholder": "Search status pages by title...",
+    "show_locations": "Show each location",
+    "show_locations_info": "For monitors checked from several locations, list each location's status and history",
     "update_status_page": "Update Status Page",
     "view_page": "View Page"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "What is sent, and how to turn it off",
     "label": "Send anonymous usage statistics",
-    "never_sent": "Never sent: monitor names, URLs, hosts, tags, status page addresses or notification settings. A usage ping holds no IP address, and Peekaping's Worker doesn't record the sender's IP.",
-    "not_saved": "Your choice to send usage statistics wasn't saved. Turn it on in Settings.",
-    "sent_features": "Whether you use status pages, maintenance windows and metrics",
-    "sent_id": "A random ID, created when you turn this on and deleted when you turn it off",
-    "sent_monitors": "How many monitors you have, as a range such as 11-50",
-    "sent_setup": "The Peekaping version, single or cluster mode, the storage backend, and the operating system and CPU type",
-    "sent_types": "The kinds of monitors and notification channels you use, such as http or telegram"
+    "not_saved": "Your choice about usage statistics wasn't saved. Check it in Settings."
+  },
+  "telemetry_notice": {
+    "error_reports": "Error reports are on. If Peekaping crashes, it sends the error type and where in the code it happened, its version, mode, storage backend and operating system. It never sends error messages, URLs or hostnames.",
+    "settings_errors": "Turn off error reports in Settings",
+    "settings_usage": "Turn off usage statistics in Settings",
+    "title": "Sharing anonymous data is on by default",
+    "usage_statistics": "Usage statistics are on. At most once a day, Peekaping sends a random instance ID, its version, mode, storage backend and operating system, a range for how many monitors you have, the kinds of monitors and notification channels you use, and whether you use status pages, maintenance windows and metrics. It never sends names, URLs, hosts or settings."
   },
   "theme": {
     "dark": "Dark",

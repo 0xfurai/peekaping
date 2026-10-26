@@ -16,7 +16,11 @@ type Service interface {
 
 	FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]float64, error)
 	DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error)
+	// FindByMonitorIDPaginated lists a monitor's heartbeats from every probe
 	FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error)
+	// FindByMonitorIDAndProbeIDPaginated is FindByMonitorIDPaginated narrowed to the heartbeats one
+	// probe made; an empty probeID covers every probe.
+	FindByMonitorIDAndProbeIDPaginated(ctx context.Context, monitorID, probeID string, limit, page int, important *bool, reverse bool) ([]*Model, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	HasAny(ctx context.Context) (bool, error)
 }
@@ -42,6 +46,7 @@ func NewService(
 func (mr *ServiceImpl) Create(ctx context.Context, entity *CreateUpdateDto) (*Model, error) {
 	createModel := &Model{
 		MonitorID: entity.MonitorID,
+		ProbeID:   entity.ProbeID,
 		Status:    entity.Status,
 		Msg:       entity.Msg,
 		Ping:      entity.Ping,
@@ -96,7 +101,11 @@ func (mr *ServiceImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (i
 }
 
 func (mr *ServiceImpl) FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error) {
-	return mr.repository.FindByMonitorIDPaginated(ctx, monitorID, limit, page, important, reverse)
+	return mr.repository.FindByMonitorIDPaginated(ctx, monitorID, "", limit, page, important, reverse)
+}
+
+func (mr *ServiceImpl) FindByMonitorIDAndProbeIDPaginated(ctx context.Context, monitorID, probeID string, limit, page int, important *bool, reverse bool) ([]*Model, error) {
+	return mr.repository.FindByMonitorIDPaginated(ctx, monitorID, probeID, limit, page, important, reverse)
 }
 
 func (mr *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {

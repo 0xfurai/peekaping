@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
 
@@ -118,7 +119,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 	count := 0
 	ids := map[string]bool{}
 	for _, route := range a.routes() {
-		if route.path != "/health" && !strings.HasPrefix(route.path, "/api/v1/") {
+		if route.path != "/health" && !strings.HasPrefix(route.path, "/api/v1/") && !strings.HasPrefix(route.path, "/probe/v1/") {
 			continue
 		}
 		count++
@@ -132,6 +133,9 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Empty(t, op.Security, route.key())
 		} else if jwtOnlyRoutes[route.key()] {
 			assert.Equal(t, []map[string][]string{{"JwtAuth": {}}}, op.Security, route.key())
+		} else if probeRoutes[route.key()] {
+			assert.Equal(t, []map[string][]string{{"ProbeAuth": {}}}, op.Security, route.key())
+			assert.True(t, strings.HasPrefix(op.OperationID, "probe"), "%s: probe operations are prefixed so they can't collide", route.key())
 		} else {
 			assert.Equal(t, []map[string][]string{{"JwtAuth": {}}, {"ApiKeyAuth": {}}}, op.Security, route.key())
 		}
@@ -140,7 +144,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 79, count)
+	assert.Equal(t, 92, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)
@@ -160,10 +164,24 @@ func TestOpenAPI_ExportMatchesRuntime(t *testing.T) {
 }
 
 func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
-	a := newAppWithAdmin(t)
+	a := localProbeApp(t, nil)
 	id := a.createMonitor(t, "Contract monitor", "contract-push")
+	contractProxy := decode[created](t, a.request(t, "POST", "/api/v1/proxies", map[string]any{
+		"protocol": "http", "host": "contract.proxy.example", "port": 3128, "auth": true, "username": "u", "password": "p",
+	}, a.asAdmin), 201).ID
+	contractHTTPID := a.createHTTPMonitor(t, "Contract http monitor", contractProxy)
+	checkedAt := time.Now().UTC().Add(-time.Minute)
+	contractResults := map[string]any{"results": []map[string]any{
+		{"id": "contract-result-1", "monitor_id": contractHTTPID, "status": "up", "message": "200 - OK", "ping_ms": 12,
+			"start_time": checkedAt.Format(time.RFC3339Nano), "end_time": checkedAt.Add(12 * time.Millisecond).Format(time.RFC3339Nano)},
+		{"id": "contract-result-2", "monitor_id": "no-such-monitor", "status": "down", "message": "", "ping_ms": 0,
+			"start_time": checkedAt.Format(time.RFC3339Nano), "end_time": checkedAt.Format(time.RFC3339Nano)},
+	}}
 	a.createStatusPage(t, statusPage{slug: "contract", published: true, monitors: []string{id}, domains: []string{"contract.example"}})
 	decode[created](t, a.request(t, "POST", "/api/v1/tags", tagBody("Contract"), a.asAdmin), 201)
+	protocolProbe := a.createProbe(t, map[string]any{"name": "Contract protocol probe"})
+	oldHello := helloFrom("contract-old")
+	oldHello.ProtocolVersion = 0
 	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
 	require.NoError(t, err)
 	compiler := jsonschema.NewCompiler()
@@ -201,6 +219,31 @@ func TestOpenAPI_ResponsesMatchSchemas(t *testing.T) {
 		{"domain error", "POST", "/api/v1/status-pages", "/api/v1/status-pages", map[string]any{"slug": "another", "title": "Another", "domains": []string{"contract.example"}}, 400, a.asAdmin},
 		{"bare 2FA error", "POST", "/api/v1/auth/2fa/verify", "/api/v1/auth/2fa/verify", map[string]any{"email": adminEmail, "code": "123456"}, 400, a.asAdmin},
 		{"push", "GET", "/api/v1/push/{token}", "/api/v1/push/contract-push", nil, 200, nil},
+		{"probe with its token", "POST", "/api/v1/probes", "/api/v1/probes", map[string]any{"name": "Contract probe", "location": "eu"}, 201, a.asAdmin},
+		{"probe list", "GET", "/api/v1/probes", "/api/v1/probes", nil, 200, a.asAdmin},
+		{"probe detail", "GET", "/api/v1/probes/{id}", "/api/v1/probes/local", nil, 200, a.asAdmin},
+		{"local probe delete conflict", "DELETE", "/api/v1/probes/{id}", "/api/v1/probes/local", nil, 409, a.asAdmin},
+		{"local probe rotate conflict", "POST", "/api/v1/probes/{id}/rotate-token", "/api/v1/probes/local/rotate-token", nil, 409, a.asAdmin},
+		{"probe not found", "GET", "/api/v1/probes/{id}", "/api/v1/probes/missing", nil, 404, a.asAdmin},
+		{"probe availability list", "GET", "/api/v1/probes/availability", "/api/v1/probes/availability?range=7d", nil, 200, a.asAdmin},
+		{"probe availability list, bad range", "GET", "/api/v1/probes/availability", "/api/v1/probes/availability?range=1y", nil, 400, a.asAdmin},
+		{"probe availability", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/local/availability", nil, 200, a.asAdmin},
+		{"probe availability, bad range", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/local/availability?range=1y", nil, 400, a.asAdmin},
+		{"probe availability not found", "GET", "/api/v1/probes/{id}/availability", "/api/v1/probes/missing/availability", nil, 404, a.asAdmin},
+		{"probe protocol hello", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-instance"), 200, asProbe(protocolProbe.Token, "contract-instance")},
+		{"probe protocol assignments", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 200, asProbe(protocolProbe.Token, "contract-instance")},
+		{"probe protocol hello of the local probe", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-local"), 200, asProbe(localToken, "contract-local")},
+		{"probe protocol assignments with a monitor and its proxy", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 200, asProbe(localToken, "contract-local")},
+		{"probe protocol results with an accepted and a rejected result", "POST", "/probe/v1/results", "/probe/v1/results", contractResults, 200, asProbe(localToken, "contract-local")},
+		{"probe protocol results, bad body", "POST", "/probe/v1/results", "/probe/v1/results", "{", 400, asProbe(localToken, "contract-local")},
+		{"probe protocol results, too many", "POST", "/probe/v1/results", "/probe/v1/results", map[string]any{"results": make([]map[string]any, 501)}, 400, asProbe(localToken, "contract-local")},
+		{"probe protocol results, unknown instance", "POST", "/probe/v1/results", "/probe/v1/results", contractResults, 409, asProbe(protocolProbe.Token, "contract-unknown")},
+		{"probe protocol assignments, unknown instance", "GET", "/probe/v1/assignments", "/probe/v1/assignments?version=", nil, 409, asProbe(protocolProbe.Token, "contract-unknown")},
+		{"probe protocol hello, old version", "POST", "/probe/v1/hello", "/probe/v1/hello", oldHello, 426, asProbe(protocolProbe.Token, "contract-old")},
+		{"probe protocol hello, bad body", "POST", "/probe/v1/hello", "/probe/v1/hello", "{", 400, asProbe(protocolProbe.Token, "contract-bad")},
+		{"probe protocol, unknown token", "POST", "/probe/v1/hello", "/probe/v1/hello", helloFrom("contract-instance"), 401, asProbe("pkp_no-probe-has-it", "contract-instance")},
+		{"probe protocol, no instance id", "POST", "/probe/v1/bye", "/probe/v1/bye", nil, 400, withHeader("Authorization", "Bearer "+protocolProbe.Token)},
+		{"probe protocol bye, unknown instance", "POST", "/probe/v1/bye", "/probe/v1/bye", nil, 409, asProbe(protocolProbe.Token, "contract-unknown")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var creds []credentials

@@ -2,11 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
+	"peekaping/internal/sqlitedb"
 	"strings"
 
 	"github.com/uptrace/bun"
@@ -14,7 +16,6 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"github.com/uptrace/bun/driver/pgdriver"
-	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/extra/bundebug"
 	"github.com/uptrace/bun/migrate"
 
@@ -222,6 +223,14 @@ func runWithDB(fn func(*bun.DB) error) error {
 // refuse a database type it doesn't work with.
 func runWithConfiguredDB(accept func(config.DBConfig) error, fn func(config.DBConfig, *bun.DB) error) error {
 	cfg, err := loadDBConfig()
+	// A command that picks its own target says what is wrong with a MongoDB one in its own words,
+	// where the other commands give the refusal every binary gives. The settings are loaded even
+	// when they fail validation.
+	if accept != nil && errors.Is(err, config.ErrMongoStorageRemoved) {
+		if refusal := accept(cfg); refusal != nil {
+			return refusal
+		}
+	}
 	if err != nil {
 		return err
 	}
@@ -277,30 +286,16 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 		if dbPath == "" {
 			dbPath = "./data.db"
 		}
-		// Configure SQLite for concurrent access
-		// Use same settings as main application for consistency
-		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbPath))
+		// Same opener as the server's, so both run with the same settings (see sqlitedb.DSN)
+		sqldb, err = sqlitedb.Open(dbPath)
 		if err != nil {
-			return nil, fmt.Errorf("failed to open SQLite connection: %w", err)
+			return nil, err
 		}
-
-		// Set connection pool limits for SQLite
-		// Using same conservative limits as main app to prevent lock contention
-		sqldb.SetMaxOpenConns(1)
-		sqldb.SetMaxIdleConns(1)
-		sqldb.SetConnMaxLifetime(0)
 
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 
-		// Configure SQLite PRAGMA settings for corruption prevention
-		// Must match main application settings for consistency
-		db.Exec("PRAGMA busy_timeout=5000")
+		// These two belong to the database file, not to a connection
 		db.Exec("PRAGMA journal_mode=WAL")
-		db.Exec("PRAGMA synchronous=NORMAL")
-		db.Exec("PRAGMA foreign_keys=ON")
-		db.Exec("PRAGMA temp_store=MEMORY")
-		db.Exec("PRAGMA wal_autocheckpoint=1000")
-		db.Exec("PRAGMA cache_size=-64000")
 		db.Exec("PRAGMA auto_vacuum=INCREMENTAL")
 
 		fmt.Printf("Connected to SQLite database: %s (WAL mode enabled)\n", dbPath)

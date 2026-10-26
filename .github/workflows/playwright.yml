@@ -16,7 +16,6 @@ on:
       - 'docker-compose.e2e.yml'
       - 'Dockerfile.bundle.*'
       - 'startup.bundle.*.sh'
-      - 'supervisord.bundle.*.conf'
       - 'scripts/test-bundle-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
@@ -36,12 +35,18 @@ on:
       - 'docker-compose.e2e.yml'
       - 'Dockerfile.bundle.*'
       - 'startup.bundle.*.sh'
-      - 'supervisord.bundle.*.conf'
       - 'scripts/test-bundle-user.sh'
       - 'Caddyfile'
       - '.github/workflows/playwright.yml'
       - '!**/*.md'
     branches: [ main, master ]
+
+# A new push to a PR replaces its run in progress, which would otherwise keep
+# its runners busy testing a commit nobody waits for. Other runs get a group of
+# their own: a shared one would cancel the queued runs of busy pushes to main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 env:
   # Compose names the images it builds <project>-<service>. Pinning the project
@@ -49,23 +54,80 @@ env:
   COMPOSE_PROJECT_NAME: peekaping
 
 jobs:
+  # The bundle jobs check how the single-image bundles are packaged, which only
+  # their own files change. A PR runs them when it touches those files; pushes to
+  # main always run them, so an app change that breaks a bundle fails there.
+  changes:
+    name: Detect bundle changes
+    runs-on: ubuntu-24.04
+    outputs:
+      bundle: ${{ github.event_name != 'pull_request' || steps.diff.outputs.bundle }}
+      # The e2e configs to run. A job's `if` can't read `matrix`, so the bundle config is left out
+      # of the matrix itself.
+      configs: ${{ (github.event_name != 'pull_request' || steps.diff.outputs.bundle == 'true') && '["dev","bundle"]' || '["dev"]' }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Check for bundle files
+      id: diff
+      if: ${{ github.event_name == 'pull_request' }}
+      run: |
+        if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qE '^(Dockerfile\.bundle\.|startup\.bundle\.|supervisord\.bundle\.|docker-compose\.bundle\.|scripts/test-bundle-user\.sh$|Caddyfile$|\.github/workflows/playwright\.yml$)'; then
+          echo "bundle=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "bundle=false" >> "$GITHUB_OUTPUT"
+        fi
+
   # Build each image once, on its own runner, and share it with the test jobs.
-  # The dev images don't depend on the database, so all three dev jobs reuse them.
+  # The dev images don't depend on the database, so both dev jobs reuse them.
   build-images:
     name: Build ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
           - { name: dev-api, tag: peekaping-api, context: apps/server, file: apps/server/infra/Dockerfile.api }
-          - { name: dev-producer, tag: peekaping-producer, context: apps/server, file: apps/server/infra/Dockerfile.producer }
-          - { name: dev-worker, tag: peekaping-worker, context: apps/server, file: apps/server/infra/Dockerfile.worker }
-          - { name: dev-ingester, tag: peekaping-ingester, context: apps/server, file: apps/server/infra/Dockerfile.ingester }
+          # The dev SQLite and PostgreSQL stacks run it as their `probe` service (it is the local probe's
+          # instances), and the e2e jobs run it as a remote probe (e2e/remote-probe.spec.ts). Named without
+          # "dev-" because the bundle jobs need it too, and they don't download image-dev-*; every e2e job
+          # asks for it by name.
+          - { name: probe, tag: peekaping-probe, context: apps/server, file: apps/server/infra/Dockerfile.probe }
           - { name: dev-migrate, tag: peekaping-migrate, context: apps/server, file: apps/server/infra/Dockerfile.migrate }
           - { name: dev-web, tag: peekaping-web, context: ., file: apps/web/Dockerfile }
+    steps:
+    - uses: actions/checkout@v4
+    - uses: docker/setup-buildx-action@v3
+    - name: Build ${{ matrix.name }} image
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ matrix.context }}
+        file: ${{ matrix.file }}
+        tags: ${{ matrix.tag }}
+        outputs: type=docker,dest=${{ runner.temp }}/${{ matrix.name }}.tar
+        cache-from: type=gha,scope=e2e-${{ matrix.name }}
+        cache-to: type=gha,scope=e2e-${{ matrix.name }},mode=max
+    - uses: actions/upload-artifact@v4
+      with:
+        name: image-${{ matrix.name }}
+        path: ${{ runner.temp }}/${{ matrix.name }}.tar
+        retention-days: 1
+        # Image layers are already compressed.
+        compression-level: 0
+
+  # The bundle images, built like the others, only when the bundle jobs run. They are a job of their
+  # own because a job's `if` can't read `matrix`.
+  build-bundle-images:
+    name: Build ${{ matrix.name }}
+    needs: changes
+    if: ${{ needs.changes.outputs.bundle == 'true' }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
           - { name: bundle-postgres, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.postgres }
-          - { name: bundle-mongo, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.mongo }
           - { name: bundle-sqlite, tag: peekaping-peekaping, context: ., file: Dockerfile.bundle.sqlite }
     steps:
     - uses: actions/checkout@v4
@@ -91,10 +153,10 @@ jobs:
   # port 8383, ping and Docker monitors, docker run --user and docker stop.
   bundle-user:
     name: Bundle user ${{ matrix.database }}
-    needs: build-images
-    if: ${{ !cancelled() }}
+    needs: [changes, build-bundle-images]
+    if: ${{ !cancelled() && needs.changes.outputs.bundle == 'true' }}
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -113,16 +175,17 @@ jobs:
 
   playwright-tests:
     name: E2E ${{ matrix.config }} ${{ matrix.database }}
-    needs: build-images
-    # Run every combination whose images built, even if another image failed.
+    needs: [changes, build-images, build-bundle-images]
+    # Run every combination whose images built, even if another image failed or the bundle images
+    # were skipped.
     if: ${{ !cancelled() }}
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        database: [postgres, mongo, sqlite]
-        config: [dev, bundle]
+        database: [postgres, sqlite]
+        config: ${{ fromJSON(needs.changes.outputs.configs) }}
     env:
       # Every docker compose command below runs the stack plus the e2e target.
       COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml
@@ -137,14 +200,34 @@ jobs:
         bun-version-file: package.json
     - name: Install dependencies
       run: bun install --frozen-lockfile
+    # The browser download has taken over 7 minutes on a slow runner. The browser
+    # build follows the Playwright version, which bun.lock pins.
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
     - name: Install Playwright Browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: bunx playwright install --with-deps chromium
+    # A cached browser still needs the system libraries, which live outside the cache.
+    - name: Install Playwright system dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: bunx playwright install-deps chromium
     - name: Download images
       uses: actions/download-artifact@v4
       with:
         pattern: ${{ matrix.config == 'dev' && 'image-dev-*' || format('image-bundle-{0}', matrix.database) }}
         path: ${{ runner.temp }}/images
         merge-multiple: true
+    # The dev stack runs this image as its `probe` service, and the remote probe specs start it
+    # themselves.
+    - name: Download the probe image
+      uses: actions/download-artifact@v4
+      with:
+        name: image-probe
+        path: ${{ runner.temp }}/images
     - name: Load images
       run: |
         for image in "$RUNNER_TEMP"/images/*.tar; do
@@ -158,9 +241,9 @@ jobs:
         # Database Configuration
         DB_TYPE=${{ matrix.database }}
         DB_HOST=database
-        DB_PORT=${{ matrix.database == 'postgres' && '5432' || matrix.database == 'mongo' && '27017' }}
+        DB_PORT=${{ matrix.database == 'postgres' && '5432' }}
         DB_NAME=${{ matrix.database == 'sqlite' && '/app/data/peekaping.db' || 'peekaping' }}
-        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || matrix.database == 'mongo' && 'root' || 'root' }}
+        DB_USER=${{ matrix.database == 'postgres' && 'peekaping' || 'root' }}
         DB_PASS=password
 
         REDIS_HOST="redis"
@@ -168,21 +251,33 @@ jobs:
         REDIS_PASSWORD=""
         REDIS_DB=0
 
+        # The shortest time before a remote probe that stopped is reported offline (default 3m).
+        PROBE_OFFLINE_AFTER=2m
+
+        # The local probe's token: the api stores it and the dev stack's probe service sends it. The
+        # dev SQLite and PostgreSQL compose files refuse to start without it. The bundles have no use
+        # for it, so they don't get it.
+        ${{ matrix.config == 'dev' && 'PROBE_BOOTSTRAP_TOKEN=e2e-local-probe-token-0123456789abcdef0123456789' || '' }}
+
         # Server Configuration
         CLIENT_URL=http://localhost:8383
         SERVER_PORT=8034
         BUNDEBUG=2
+
+        # The usage ping and error reports are on by default. A test run must not send either to
+        # Peekaping, so both point at an address nothing listens on. The DSN must not be empty:
+        # an empty one means Peekaping's own Sentry project.
+        TELEMETRY_URL=http://127.0.0.1:9/v1/ping
+        ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
         EOF
 
     # Create and prepare data directories with proper permissions
     - name: Prepare data directories
       run: |
-        mkdir -p .data/postgres .data/mongodb .data/logs .data/caddy-data .data/caddy-config
+        mkdir -p .data/postgres .data/logs .data/caddy-data .data/caddy-config
         sudo chown -R 999:999 .data/postgres .data/logs  # postgres user is typically uid 999
-        sudo chown -R 999:999 .data/mongodb              # mongodb user is typically uid 999
         sudo chmod -R 755 .data/logs
         sudo chmod -R 700 .data/postgres
-        sudo chmod -R 755 .data/mongodb
         ls -la .data/
         echo "Directory permissions set successfully"
 
@@ -211,8 +306,10 @@ jobs:
     - name: Run Playwright tests
       run: bunx playwright test
 
-    # The suite must also pass on the database the first run left behind.
+    # The suite must also pass on the database the first run left behind. It
+    # doubles the run time, so PRs skip it and main checks it after the merge.
     - name: Run Playwright tests again on the same database
+      if: ${{ github.event_name == 'push' }}
       run: bunx playwright test
       env:
         PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun

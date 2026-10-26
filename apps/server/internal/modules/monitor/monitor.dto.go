@@ -2,9 +2,9 @@ package monitor
 
 import (
 	"encoding/json"
-	"time"
 
 	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
 )
 
@@ -22,7 +22,14 @@ type CreateUpdateDto struct {
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token"`
-	activeSet       bool
+	// ProbeIDs are the probes that run the monitor, one or more. A create without it runs on the
+	// local probe, and an update without it keeps the monitor's probes.
+	ProbeIDs []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only." example:"local"`
+	// LocationRule and LocationThreshold are how many of the monitor's locations must be Down for
+	// it to be Down. Without a rule a create is any and an update keeps the monitor's rule.
+	LocationRule      shared.LocationRule `json:"location_rule,omitempty" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough), all (every location that counts) or at_least (location_threshold of them). Omitted on create, the rule is any; omitted on update, the monitor keeps its rule. Locations whose probe is offline, or that haven't reported, don't count." example:"any"`
+	LocationThreshold *int                `json:"location_threshold,omitempty" doc:"With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Required with at_least and not allowed with any other rule." example:"2"`
+	activeSet         bool
 }
 
 // UnmarshalJSON records whether active was present so create requests can apply
@@ -64,6 +71,14 @@ type PartialUpdateDto struct {
 	Status          *heartbeat.MonitorStatus `json:"status,omitempty" example:"1"`
 	Config          *string                  `json:"config,omitempty"`
 	PushToken       *string                  `json:"push_token,omitempty"`
+	// ProbeIDs are the probes that run the monitor, one or more. Without it the monitor keeps its
+	// probes.
+	ProbeIDs []string `json:"probe_ids,omitempty" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted, the monitor keeps its probes. A push monitor runs on local only." example:"local"`
+	// LocationRule and LocationThreshold replace the monitor's location rule. Sent alone, a
+	// threshold changes the one the monitor's at_least rule has. Without either, the monitor keeps
+	// its rule, which is checked against the probes it has after the update.
+	LocationRule      *shared.LocationRule `json:"location_rule,omitempty" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any, all or at_least. Omitted, the monitor keeps its rule." example:"any"`
+	LocationThreshold *int                 `json:"location_threshold,omitempty" doc:"With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Sent with a rule other than at_least it is rejected; a rule sent without it has none." example:"2"`
 }
 
 // UptimeStatsDto represents uptime percentages for various periods
@@ -75,31 +90,17 @@ type UptimeStatsDto struct {
 	Uptime365d float64 `json:"365d"`
 }
 
+// MonitorResponseDto is a monitor as the API returns it: the monitor itself and the IDs of the
+// notification channels and tags linked to it. A monitor with none gets empty lists.
 type MonitorResponseDto struct {
-	ID              string   `json:"id" example:"60c72b2f9b1e8b6f1f8e4b1a"`
-	Name            string   `json:"name" example:"My Monitor"`
-	Interval        int      `json:"interval" example:"60"`
-	Timeout         int      `json:"timeout" example:"10"`
-	Type            string   `json:"type" example:"http"`
-	Active          bool     `json:"active" example:"true" default:"true"`
-	Status          int      `json:"status" example:"1"`
-	MaxRetries      int      `json:"max_retries" example:"3"`
-	RetryInterval   int      `json:"retry_interval" example:"10"`
-	ResendInterval  int      `json:"resend_interval" example:"3"`
-	CreatedAt       string   `json:"created_at" example:"2024-06-01T12:00:00Z"`
-	UpdatedAt       string   `json:"updated_at" example:"2024-06-01T12:00:00Z"`
-	NotificationIds []string `json:"notification_ids" example:"6830ad485361f19c598d6d90"`
-	TagIds          []string `json:"tag_ids" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
-	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
-	Config          string   `json:"config"`
-	PushToken       string   `json:"push_token"`
-	// The later of the latest heartbeat and the monitor's last save or resume,
-	// set only while the stale-monitor watchdog counts it as stale
-	StaleSince *time.Time `json:"stale_since,omitempty"`
+	shared.Monitor
+	NotificationIds []string `json:"notification_ids" nullable:"false" example:"6830ad485361f19c598d6d90"`
+	TagIds          []string `json:"tag_ids" nullable:"false" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 }
 
 // StatPointsSummaryDto represents stat points and summary for a period
 type StatPointsSummaryDto struct {
+	ProbeID string       `json:"probe_id,omitempty" doc:"The probe the figures count. Omitted when they count every probe's checks." example:"local"`
 	Points  []*StatPoint `json:"points"`
 	MaxPing *float64     `json:"maxPing"`
 	MinPing *float64     `json:"minPing"`
@@ -110,6 +111,7 @@ type StatPointsSummaryDto struct {
 // CustomUptimeStatsDto represents uptime percentages for 24h, 30d, 365d
 // All values are percentages (0-100)
 type CustomUptimeStatsDto struct {
+	ProbeID    string  `json:"probe_id,omitempty" doc:"The probe the percentages count. Omitted when they count every probe's checks." example:"local"`
 	Uptime24h  float64 `json:"24h"`
 	Uptime7d   float64 `json:"7d"`
 	Uptime30d  float64 `json:"30d"`

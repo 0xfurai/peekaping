@@ -1,7 +1,7 @@
 // Command peekaping runs Peekaping in single mode (ADR 0002): the API and the websocket, the
 // scheduler and its check pool, the ingest and the stale-monitor watchdog, in one process with
-// no Redis. Cluster mode runs cmd/api, cmd/producer, cmd/worker and cmd/ingester instead. With
-// WEB_DIR set, it serves the web app on the API's port too.
+// no Redis. Cluster mode runs cmd/api and cmd/probe instead. With WEB_DIR set, it serves the web
+// app on the API's port too.
 //
 // It doesn't migrate the database: the startup script runs the migrations with cmd/bun before
 // it starts the server, as it does in cluster mode.
@@ -20,6 +20,7 @@ import (
 
 	"peekaping/internal"
 	"peekaping/internal/app"
+	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
@@ -31,6 +32,8 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
+	"peekaping/internal/modules/probe/protocol"
 	"peekaping/internal/modules/scheduler"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stale"
@@ -39,7 +42,8 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/reporting"
 	graceful "peekaping/internal/shutdown" // aliased: this package has a shutdown function
-	"peekaping/internal/utils"
+	"peekaping/internal/shutdown/lifecycle"
+	"peekaping/internal/validation"
 	"peekaping/internal/version"
 	"peekaping/internal/web"
 
@@ -63,10 +67,12 @@ var telemetrySchedule = telemetry.DefaultSchedule
 var serverTimeouts = httpx.DefaultTimeouts()
 
 func main() {
-	// A panic that ends the process is reported before it does, if the admin opted in
+	// A panic that ends the process is reported before it does, unless the admin opted out. Reports
+	// start only once startJobs has applied the stored choice (ErrorReporting.Apply), so a panic
+	// before that is not reported.
 	defer reporting.ReportCrash("main")
 
-	utils.RegisterCustomValidators()
+	validation.RegisterCustomValidators()
 
 	cfg, err := LoadAndValidate("../..")
 	if err != nil {
@@ -85,7 +91,7 @@ func main() {
 		logger.Fatalw("Failed to listen", "port", cfg.Port, "error", err)
 	}
 
-	ctx, stop := graceful.NotifySignals(logger, os.Exit)
+	ctx, stop := lifecycle.NotifySignals(logger, os.Exit)
 	defer stop()
 
 	if err := run(ctx, cfg, logger, listener); err != nil {
@@ -101,10 +107,15 @@ type parts struct {
 	WebSocket *websocket.Server
 	Scheduler *scheduler.Scheduler
 	Watchdog  *stale.Watchdog
-	EventBus  events.EventBus
-	DB        *bun.DB
+	// ProbeSweep sets the probes whose instances went quiet offline
+	ProbeSweep *probe.Sweep
+	EventBus   events.EventBus
+	DB         *bun.DB
 
+	Config               *config.Config
 	Settings             setting.Service
+	Probes               probe.Service
+	ProbeWaker           *protocol.Waker
 	Heartbeats           heartbeat.Service
 	Users                auth.Repository
 	Stats                stats.Service
@@ -127,6 +138,12 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 	logger.Infow("Starting Peekaping in single mode", "version", version.Version)
 	if ignored := cfg.RedisSettings(); len(ignored) > 0 {
 		logger.Warnw("Single mode uses no Redis, ignoring the Redis settings", "settings", ignored)
+	}
+
+	if cfg.ProbeBootstrapToken != "" {
+		// Not stored: this process checks the local probe's monitors, and the probe protocol
+		// refuses the local probe's token. Never the token itself.
+		logger.Warn("PROBE_BOOTSTRAP_TOKEN is set, but single mode doesn't use it: the peekaping process checks the local probe's monitors and refuses a probe instance that uses the local probe's token. Give peekaping-probe a remote probe's token.")
 	}
 
 	container := dig.New()
@@ -182,6 +199,10 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		defer close(websocketClosed)
 		p.WebSocket.Close()
 	})
+	// A probe's assignment poll is held for up to 25 seconds, and Shutdown waits for it like any
+	// request in flight: answered now, it doesn't hold the shutdown up, or make the container's
+	// stop grace period run out
+	httpServer.RegisterOnShutdown(p.ProbeWaker.Close)
 	served := make(chan error, 1)
 	go func() {
 		logger.Infow("Serving the API", "address", listener.Addr().String(), "web_dir", cfg.WebDir)
@@ -209,6 +230,8 @@ type jobs struct {
 	scheduler     *scheduler.Scheduler
 	stopWatchdog  context.CancelFunc
 	watchdogDone  chan struct{}
+	stopSweep     context.CancelFunc
+	sweepDone     chan struct{}
 	cleanup       *cron.Cron
 	stopRepair    context.CancelFunc
 	repairDone    chan struct{}
@@ -219,9 +242,9 @@ type jobs struct {
 }
 
 // startJobs starts what cmd/api starts beside the server (the cleanup cron, the settings, the
-// listeners, the status repair, the metrics collector and the usage ping), the stats aggregation
-// that cmd/ingester starts, and the scheduler and its watchdog in place of cmd/producer. Each runs
-// once: this process is the only one, and so always the leader.
+// listeners, the status repair, the metrics collector and the usage ping), the stats aggregation,
+// and the scheduler, its watchdog and the probe sweep that the api's leader runs in cluster mode.
+// Each runs once: this process is the only one, and so always the leader.
 func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
@@ -238,13 +261,15 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 		TLSInfoDays:             cfg.TLSInfoRetentionDays,
 	}
 	var err error
-	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.CleanupLock, retention, logger)
+	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Users, p.Settings, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.CleanupLock, retention, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start the hourly cleanup: %w", err)
 	}
 
 	p.NotificationListener.Subscribe(p.EventBus)
 	p.MonitorListener.Subscribe(p.EventBus)
+	// The probes' waiting assignment polls answer when a monitor or one of a probe's instances changes
+	p.ProbeWaker.Subscribe()
 	if impl, ok := p.Stats.(*stats.ServiceImpl); ok {
 		impl.RegisterEventHandlers(p.EventBus)
 	}
@@ -280,7 +305,6 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 
 	// The scheduler and the watchdog run until the shutdown stops them, not until ctx is done,
 	// so that they stop after the HTTP server
-	p.Scheduler.Subscribe(p.EventBus)
 	if err := p.Scheduler.Start(context.Background()); err != nil {
 		j.stopRepair()
 		j.stopMetrics()
@@ -296,8 +320,19 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 		p.Watchdog.Run(watchdogCtx)
 	})
 
-	// The usage ping sends nothing until an admin opts in, and a failed one is dropped. It runs
-	// once: this process is the only one, so there is no claim to win.
+	// The sweep that sets silent probes offline. This process is the only one, so it runs the
+	// sweep once, as the leader api replica does in cluster mode.
+	var sweepCtx context.Context
+	sweepCtx, j.stopSweep = context.WithCancel(context.Background())
+	j.sweepDone = make(chan struct{})
+	reporting.Go("probe-sweep", func() {
+		defer close(j.sweepDone)
+		p.ProbeSweep.Run(sweepCtx)
+	})
+
+	// The usage ping is sent a few minutes after the start, unless an admin opted out or the
+	// environment forces it off, and a failed one is dropped. It runs once: this process is the
+	// only one, so there is no claim to win.
 	var usagePingCtx context.Context
 	usagePingCtx, j.stopUsagePing = context.WithCancel(context.Background())
 	j.usagePingDone = p.UsagePing.Start(usagePingCtx, telemetrySchedule)
@@ -307,29 +342,32 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 
 // stop stops the background jobs and waits for them until ctx is done. The usage ping stops
 // first, since it is the least needed. The watchdog stops before the scheduler, since it gets the
-// stale monitors checked through the scheduler. The scheduler cancels its running checks and
-// waits for them.
+// stale monitors checked through the scheduler. The probe sweep stops with it. The scheduler
+// cancels its running checks and waits for them.
 func (j *jobs) stop(ctx context.Context) error {
 	j.stopUsagePing()
-	errs := []error{graceful.Await(ctx, "the usage ping", j.usagePingDone)}
+	errs := []error{lifecycle.Await(ctx, "the usage ping", j.usagePingDone)}
 
 	j.stopWatchdog()
-	errs = append(errs, graceful.Await(ctx, "the watchdog", j.watchdogDone))
+	errs = append(errs, lifecycle.Await(ctx, "the watchdog", j.watchdogDone))
+
+	j.stopSweep()
+	errs = append(errs, lifecycle.Await(ctx, "the probe sweep", j.sweepDone))
 
 	schedulerDone := make(chan struct{})
 	go func() {
 		defer close(schedulerDone)
 		j.scheduler.Stop()
 	}()
-	errs = append(errs, graceful.Await(ctx, "the scheduler", schedulerDone))
+	errs = append(errs, lifecycle.Await(ctx, "the scheduler", schedulerDone))
 
-	errs = append(errs, graceful.Await(ctx, "the cleanup cron", j.cleanup.Stop().Done()))
+	errs = append(errs, lifecycle.Await(ctx, "the cleanup cron", j.cleanup.Stop().Done()))
 
 	j.stopRepair()
-	errs = append(errs, graceful.Await(ctx, "the status repair", j.repairDone))
+	errs = append(errs, lifecycle.Await(ctx, "the status repair", j.repairDone))
 
 	j.stopMetrics()
-	errs = append(errs, graceful.Await(ctx, "the metrics collector", j.metricsDone))
+	errs = append(errs, lifecycle.Await(ctx, "the metrics collector", j.metricsDone))
 	return errors.Join(errs...)
 }
 
@@ -369,7 +407,7 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 	}
 	// The HTTP handlers the HTTP server left running return in the jobs' share too, before the
 	// event bus closes, so that what they publish reaches it
-	if err := graceful.Await(jobsCtx, "the HTTP handlers", handlers.Done()); err != nil {
+	if err := lifecycle.Await(jobsCtx, "the HTTP handlers", handlers.Done()); err != nil {
 		errs = append(errs, err)
 		running = append(running, "HTTP handlers")
 	}

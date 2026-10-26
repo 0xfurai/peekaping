@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/monitor_notification"
+	"peekaping/internal/modules/probe_notification"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -93,6 +94,14 @@ func (m *MockMonitorNotificationService) FindByMonitorID(ctx context.Context, mo
 	return args.Get(0).([]*monitor_notification.Model), args.Error(1)
 }
 
+func (m *MockMonitorNotificationService) FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*monitor_notification.Model, error) {
+	args := m.Called(ctx, monitorIDs)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[string][]*monitor_notification.Model), args.Error(1)
+}
+
 func (m *MockMonitorNotificationService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
@@ -103,10 +112,23 @@ func (m *MockMonitorNotificationService) DeleteByNotificationID(ctx context.Cont
 	return args.Error(0)
 }
 
+// fakeProbeLinks stands in for the probe_notification.Service: it records the channels whose probe
+// links were cleared. The methods it doesn't define would panic, since nothing here calls them.
+type fakeProbeLinks struct {
+	probe_notification.Service
+	cleared []string
+	err     error
+}
+
+func (f *fakeProbeLinks) DeleteByNotificationID(ctx context.Context, notificationID string) error {
+	f.cleared = append(f.cleared, notificationID)
+	return f.err
+}
+
 // Helper function to create a test service
 func createTestService(mockRepo *MockRepository, mockMonitorNotificationService *MockMonitorNotificationService) Service {
 	logger, _ := zap.NewDevelopment()
-	return NewService(mockRepo, mockMonitorNotificationService, logger.Sugar())
+	return NewService(mockRepo, mockMonitorNotificationService, &fakeProbeLinks{}, logger.Sugar())
 }
 
 func TestServiceImpl_Create(t *testing.T) {
@@ -522,6 +544,26 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			expectedError: nil,
 		},
 		{
+			name: "active only leaves every other field nil",
+			id:   "test-id",
+			input: &PartialUpdateDto{
+				Active: boolPtr(false),
+			},
+			mockSetup: func(mr *MockRepository) {
+				mr.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
+					return model.Active != nil && *model.Active == false &&
+						model.Name == nil &&
+						model.Type == nil &&
+						model.IsDefault == nil &&
+						model.Config == nil
+				})).Return(nil)
+
+				mr.On("FindByID", mock.Anything, "test-id").Return(&Model{ID: "test-id", Name: "Alerts", Type: "email", Active: false}, nil)
+			},
+			expectedModel: &Model{ID: "test-id", Name: "Alerts", Type: "email", Active: false},
+			expectedError: nil,
+		},
+		{
 			name: "update error",
 			id:   "test-id",
 			input: &PartialUpdateDto{
@@ -646,7 +688,7 @@ func TestServiceImpl_DeleteLogsCascadeFailure(t *testing.T) {
 	mockRepo.On("Delete", mock.Anything, "test-id").Return(nil)
 	mockMonitorNotificationService.On("DeleteByNotificationID", mock.Anything, "test-id").Return(errors.New("cascade delete failed"))
 	core, logs := observer.New(zap.WarnLevel)
-	service := NewService(mockRepo, mockMonitorNotificationService, zap.New(core).Sugar())
+	service := NewService(mockRepo, mockMonitorNotificationService, &fakeProbeLinks{}, zap.New(core).Sugar())
 
 	err := service.Delete(context.Background(), "test-id")
 
@@ -658,12 +700,56 @@ func TestServiceImpl_DeleteLogsCascadeFailure(t *testing.T) {
 	assert.Equal(t, map[string]any{"id": "test-id", "error": "cascade delete failed"}, entry.ContextMap())
 }
 
+func TestServiceImpl_DeleteClearsTheChannelsProbeLinks(t *testing.T) {
+	mockRepo := &MockRepository{}
+	mockMonitorNotificationService := &MockMonitorNotificationService{}
+	mockRepo.On("Delete", mock.Anything, "test-id").Return(nil)
+	mockMonitorNotificationService.On("DeleteByNotificationID", mock.Anything, "test-id").Return(nil)
+	probeLinks := &fakeProbeLinks{}
+	service := NewService(mockRepo, mockMonitorNotificationService, probeLinks, zap.NewNop().Sugar())
+
+	require.NoError(t, service.Delete(context.Background(), "test-id"))
+
+	assert.Equal(t, []string{"test-id"}, probeLinks.cleared)
+}
+
+func TestServiceImpl_DeleteLeavesProbeLinksWhenTheChannelIsNotDeleted(t *testing.T) {
+	mockRepo := &MockRepository{}
+	mockRepo.On("Delete", mock.Anything, "test-id").Return(errors.New("delete failed"))
+	probeLinks := &fakeProbeLinks{}
+	service := NewService(mockRepo, &MockMonitorNotificationService{}, probeLinks, zap.NewNop().Sugar())
+
+	require.EqualError(t, service.Delete(context.Background(), "test-id"), "delete failed")
+
+	assert.Empty(t, probeLinks.cleared)
+}
+
+func TestServiceImpl_DeleteLogsProbeLinkFailure(t *testing.T) {
+	mockRepo := &MockRepository{}
+	mockMonitorNotificationService := &MockMonitorNotificationService{}
+	mockRepo.On("Delete", mock.Anything, "test-id").Return(nil)
+	mockMonitorNotificationService.On("DeleteByNotificationID", mock.Anything, "test-id").Return(nil)
+	core, logs := observer.New(zap.WarnLevel)
+	probeLinks := &fakeProbeLinks{err: errors.New("cascade delete failed")}
+	service := NewService(mockRepo, mockMonitorNotificationService, probeLinks, zap.New(core).Sugar())
+
+	err := service.Delete(context.Background(), "test-id")
+
+	// The channel is gone, and its links are skipped when notifying
+	assert.NoError(t, err)
+	require.Equal(t, 1, logs.Len())
+	entry := logs.All()[0]
+	assert.Equal(t, "Failed to delete the deleted notification channel's probe links", entry.Message)
+	assert.Equal(t, map[string]any{"id": "test-id", "error": "cascade delete failed"}, entry.ContextMap())
+}
+
 func TestNewService(t *testing.T) {
 	mockRepo := &MockRepository{}
 	mockMonitorNotificationService := &MockMonitorNotificationService{}
+	probeLinks := &fakeProbeLinks{}
 	logger, _ := zap.NewDevelopment()
 
-	service := NewService(mockRepo, mockMonitorNotificationService, logger.Sugar())
+	service := NewService(mockRepo, mockMonitorNotificationService, probeLinks, logger.Sugar())
 
 	assert.NotNil(t, service)
 	assert.IsType(t, &ServiceImpl{}, service)
@@ -671,6 +757,7 @@ func TestNewService(t *testing.T) {
 	serviceImpl := service.(*ServiceImpl)
 	assert.Equal(t, mockRepo, serviceImpl.repository)
 	assert.Equal(t, mockMonitorNotificationService, serviceImpl.monitorNotificationService)
+	assert.Equal(t, probeLinks, serviceImpl.probeNotificationService)
 	assert.NotNil(t, serviceImpl.logger)
 }
 

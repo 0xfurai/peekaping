@@ -2,6 +2,7 @@ package config
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -54,19 +55,9 @@ type Config struct {
 	// Number of concurrent workers to process tasks
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
-	// How long the worker's and the ingester's queue servers wait for the tasks they are running
-	// when they stop, before they give up on them: asynq puts the tasks back in the queue. The
-	// two binaries set it from their shutdown timeouts, no environment variable does. Zero keeps
-	// asynq's default of 8 seconds.
-	QueueShutdownTimeout time.Duration
-
 	// Single mode's scheduler runs this many checks at the same time. A check that is due
 	// while the pool is full waits for a free slot.
 	CheckConcurrency int `env:"CHECK_CONCURRENCY" validate:"min=1" default:"128"`
-
-	// Producer configuration
-	// Number of concurrent producer goroutines for claiming and processing monitors
-	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
 
 	// Bruteforce protection settings
 	// Maximum number of failed login attempts allowed within the time window
@@ -129,49 +120,88 @@ type Config struct {
 	// unset and gives the default.
 	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 
-	// Usage ping (ADR 0003). The ping is off until an admin opts in. TELEMETRY=off (or false, 0,
-	// no) and DO_NOT_TRACK=1 (or true) force it off whatever the admin chose; TelemetryForcedOff
-	// reads them. They stay strings so the config doesn't guess at other spellings.
-	Telemetry  string `env:"TELEMETRY"`
-	DoNotTrack string `env:"DO_NOT_TRACK"`
+	// Usage ping (ADR 0003). The ping is on until an admin opts out. TELEMETRY=off (or false, 0,
+	// no) forces it off whatever the admin chose; TelemetryForcedOff reads it. It stays a string
+	// so the config doesn't guess at other spellings. DO_NOT_TRACK is not read: it was dropped
+	// on purpose, so setting it changes nothing.
+	Telemetry string `env:"TELEMETRY"`
 	// TelemetryURL is where the usage ping is sent. Tests and local stacks point it elsewhere.
 	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
 
-	// Error reports (ADR 0003). They are off until an admin opts in. ERROR_REPORTING=off (or
-	// false, 0, no) and DO_NOT_TRACK=1 (or true) force them off whatever the admin chose;
-	// ErrorReportingForcedOff reads them.
+	// Error reports (ADR 0003). They are on until an admin opts out. ERROR_REPORTING=off (or
+	// false, 0, no) forces them off whatever the admin chose; ErrorReportingForcedOff reads it.
 	ErrorReporting string `env:"ERROR_REPORTING"`
 	// ErrorReportingDSN replaces the Sentry DSN built into the binary, to send the reports to
 	// another Sentry, to GlitchTip or to a server of your own
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
+
+	// ProbeBootstrapToken is the token of the local probe. With it set, the api stores its hash
+	// on the local probe at startup, so that a compose or Helm stack comes up with a probe token
+	// and no UI step. At least 32 characters, checked by the api's Validate. Empty leaves the
+	// local probe as it is. peekaping (single mode) doesn't read it into this config: its process
+	// checks the local probe's monitors, and it refuses a probe that uses the local probe's token.
+	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
+
+	// ProbeOfflineAfter is how long an online probe's instances may all go unseen before the
+	// sweep sets the probe offline. A Go duration such as "3m" or "90s". The api and peekaping,
+	// which run the sweep, check that it is from MinProbeOfflineAfter to MaxProbeOfflineAfter.
+	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
+}
+
+// MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left
+// last seen a minute and a second ago (probe.RetiredAt), and the sweep looks at the probes every 30
+// seconds. A shorter limit would raise an offline notification for a probe that restarts
+// gracefully, before the new instance has said hello. The room the floor leaves is pinned in
+// TestRetiredAt_LeavesRoomUnderTheSmallestOfflineAfter.
+const MinProbeOfflineAfter = 2 * time.Minute
+
+// MaxProbeOfflineAfter is the longest PROBE_OFFLINE_AFTER. It equals how long the sweep keeps an
+// instance that went unseen (probe.DefaultInstanceRetention, which is this constant), because an
+// instance older than that is about to be pruned. A longer limit would let the sweep's backstop set
+// an offline probe online on such an instance, publish probe.online, and set the probe offline
+// again on the next pass, once the instance was gone: a false pair of notifications.
+const MaxProbeOfflineAfter = 24 * time.Hour
+
+// MongoStorageRemovedDocsURL is the page that explains how to move a MongoDB install to SQLite or
+// PostgreSQL with "bun db import-mongo"
+const MongoStorageRemovedDocsURL = "https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql"
+
+// ErrMongoStorageRemoved is why every binary stops when DB_TYPE names MongoDB (mongo or mongodb):
+// MongoDB storage was removed (ADR 0001). The MongoDB monitor type, which checks someone else's
+// MongoDB server, is not affected. RefuseMongoStorage wraps it with the DB_TYPE the install set.
+var ErrMongoStorageRemoved = errors.New("MongoDB storage was removed. " +
+	"Move this install's data to SQLite or PostgreSQL with \"bun db import-mongo\", then set DB_TYPE to sqlite or postgres. " +
+	"See " + MongoStorageRemovedDocsURL)
+
+// RefuseMongoStorage returns the error a binary stops with when dbType names MongoDB storage, and
+// nil for any other value. It matches mongo and mongodb whatever the case, as the db_type validator
+// does, and the error wraps ErrMongoStorageRemoved. The db_type validator doesn't accept those
+// values, so a binary calls this first to give this error and not the validator's.
+func RefuseMongoStorage(dbType string) error {
+	switch strings.ToLower(strings.TrimSpace(dbType)) {
+	case "mongo", "mongodb":
+		return fmt.Errorf("DB_TYPE=%s: %w", dbType, ErrMongoStorageRemoved)
+	}
+	return nil
 }
 
 // TelemetryForcedOff reports whether the environment forces the usage ping off: TELEMETRY is
-// off, false, 0 or no, or DO_NOT_TRACK is 1 or true. Case and surrounding spaces don't matter.
+// off, false, 0 or no. Case and surrounding spaces don't matter.
 func (c *Config) TelemetryForcedOff() bool {
-	return switchedOff(c.Telemetry) || doNotTrack(c.DoNotTrack)
+	return switchedOff(c.Telemetry)
 }
 
 // ErrorReportingForcedOff reports whether the environment forces error reports off:
-// ERROR_REPORTING is off, false, 0 or no, or DO_NOT_TRACK is 1 or true. It reads the same
-// spellings as TelemetryForcedOff, and the two switches don't affect each other.
+// ERROR_REPORTING is off, false, 0 or no. It reads the same spellings as TelemetryForcedOff, and
+// the two switches don't affect each other.
 func (c *Config) ErrorReportingForcedOff() bool {
-	return switchedOff(c.ErrorReporting) || doNotTrack(c.DoNotTrack)
+	return switchedOff(c.ErrorReporting)
 }
 
 // switchedOff reports whether value is a spelling of "off": off, false, 0 or no
 func switchedOff(value string) bool {
 	switch strings.ToLower(strings.TrimSpace(value)) {
 	case "off", "false", "0", "no":
-		return true
-	}
-	return false
-}
-
-// doNotTrack reports whether value turns on DO_NOT_TRACK: 1 or true
-func doNotTrack(value string) bool {
-	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "1", "true":
 		return true
 	}
 	return false
@@ -228,6 +258,12 @@ func validateConfig[T any](config *T) error {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			var errorMessages []string
 			for _, fieldError := range validationErrors {
+				// MongoDB storage was removed: say so, not that the value is invalid
+				if fieldError.Tag() == "db_type" {
+					if err := RefuseMongoStorage(fmt.Sprint(fieldError.Value())); err != nil {
+						return err
+					}
+				}
 				errorMessages = append(errorMessages, formatValidationError(fieldError))
 			}
 			return fmt.Errorf("validation errors: %s", strings.Join(errorMessages, "; "))
@@ -252,7 +288,7 @@ func formatValidationError(err validator.FieldError) string {
 	case "port":
 		return fmt.Sprintf("%s must be a valid port number (1-65535)", field)
 	case "db_type":
-		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, sqlite, mongo, mongodb", field)
+		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, sqlite", field)
 	case "log_level":
 		return fmt.Sprintf("%s must be one of: debug, info, warn, warning, error, dpanic, panic, fatal", field)
 	case "duration_min":
@@ -276,23 +312,6 @@ func ValidateDatabaseCustomRules(config *DBConfig) error {
 	// Validate database-specific requirements
 	switch config.DBType {
 	case "postgres", "postgresql", "mysql":
-		if config.DBHost == "" {
-			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
-		}
-		if config.DBPort == "" {
-			return fmt.Errorf("DB_PORT is required for %s database", config.DBType)
-		}
-		if config.DBUser == "" {
-			return fmt.Errorf("DB_USER is required for %s database", config.DBType)
-		}
-		if config.DBPass == "" {
-			return fmt.Errorf("DB_PASS is required for %s database", config.DBType)
-		}
-		// Validate port format for database connection
-		if _, err := strconv.Atoi(config.DBPort); err != nil {
-			return fmt.Errorf("DB_PORT must be a valid number for %s database", config.DBType)
-		}
-	case "mongo", "mongodb":
 		if config.DBHost == "" {
 			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
 		}

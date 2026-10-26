@@ -16,8 +16,9 @@
       "have_account": "Har du redan ett konto?",
       "sign_in": "Logga in",
       "submit": "Skapa",
-      "telemetry_hint": "Av, om du inte kryssar i den här rutan. Du kan ändra det senare under ”Inställningar”. Om du kryssar i den skickar Peekaping detta högst en gång per dag:",
-      "title": "Hej"
+      "title": "Hej",
+      "telemetry_note": "Anonymt: inga namn på övervakningar, webbadresser eller värdar. Du kan ändra det senare under ”Inställningar”.",
+      "telemetry_whats_sent": "Vad som skickas"
     },
     "twofa": {
       "code_label": "2FA-kod",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Skicka felrapporter",
-    "never_sent": "Skickas aldrig: felmeddelanden, webbadresser, rubriker, webhook-adresser, namn eller värdnamn. En rapport innehåller ingen IP-adress, och Peekapings Sentry-projekt är inställt på att inte spara avsändarens IP. Med din egen ERROR_REPORTING_DSN avgör inställningarna i din Sentry eller GlitchTip.",
-    "not_saved": "Ditt val att skicka felrapporter sparades inte. Slå på det under ”Inställningar”.",
+    "never_sent": "Skickas aldrig: felmeddelanden, webbadresser, rubriker, webhook-adresser, namn eller värdnamn. En rapport innehåller ingen IP-adress, och Peekapings Sentry-projekt är inställt på att inte spara avsändarens IP.",
+    "not_saved": "Ditt val om felrapporter sparades inte. Kontrollera det under ”Inställningar”.",
     "sent": "Skickas bara när Peekaping självt kraschar. En rapport innehåller feltypen och platsen i koden där det hände, Peekaping-versionen, enkelt läge eller klusterläge, lagringsbackenden och operativsystemet."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Begäran timeout (Timeout efter {{seconds}} sekunder)",
           "resend_notification": "Skicka om varning vid nedgång X gånger i rad (Skicka om inaktiverat)"
         },
+        "location_rule": {
+          "all": "alla platser är nere",
+          "any": "någon plats är nere",
+          "at_least": "minst N platser är nere",
+          "description": "En plats vars sond är offline, eller som inte har rapporterat ännu, räknas inte.",
+          "label": "Markera monitorn som nere när",
+          "threshold_invalid": "Ange ett heltal, 1 eller mer",
+          "threshold_label": "Antal platser",
+          "threshold_too_high": "Kan inte vara högre än antalet valda sonder"
+        },
         "notifications": {
           "add_notifier": "Lägg till notifierare",
           "new_notifier": "+ Ny notifierare",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Välj notifierare",
           "selected_channels": "Valda notifikationskanaler",
           "title": "Aviseringskanaler"
+        },
+        "probe": {
+          "description": "Övervakningen körs på varje sond du väljer och visar resultaten från var och en som en plats.",
+          "label": "Sond",
+          "option_unsupported": "{{name}} (kör inte den här typen)",
+          "placeholder": "Välj sond",
+          "push_fixed": "En push-övervakning körs alltid på den lokala sonden.",
+          "required": "Välj minst en sond",
+          "unsupported": "Den här sonden kör inte den här typen av övervakning. Välj en annan sond."
         },
         "proxy": {
           "add_proxy": "Lägg till proxy",
@@ -658,6 +678,15 @@
       "expiring_soon": "Utgår snart",
       "for": "för",
       "live_status": "Direktstatus",
+      "locations": {
+        "all": "Alla platser",
+        "no_result": "Inget resultat än",
+        "probe_offline": "Sonden är offline",
+        "probe_unsupported": "Kör inte den här typen",
+        "response_time": "Svarstid",
+        "select_label": "Plats",
+        "title": "Platser"
+      },
       "monitor_for": "Övervaka för",
       "no_certificate_data": "Ingen certifikatdata",
       "seconds": "sekunder",
@@ -683,6 +712,7 @@
     "maintenance": "Underhåll",
     "monitors": "Övervakningar",
     "notification_channels": "Aviseringskanaler",
+    "probes": "Sonder",
     "proxies": "Proxys",
     "settings": "Inställningar",
     "status_pages": "Status-sidor",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatisk bekräftelse",
         "auto_resolve_acknowledge_description": "Bekräfta incidenten automatiskt",
-        "auto_resolve_description": "Välj vad som ska göras när en övervakning går tillbaka online",
+        "auto_resolve_description": "Välj vad som ska skickas när en övervakning fungerar igen eller en sond går tillbaka online",
         "auto_resolve_do_nothing": "Gör ingenting",
-        "auto_resolve_do_nothing_description": "Ingen åtgärd vidtagits för UP-status",
+        "auto_resolve_do_nothing_description": "Inget skickas när en övervakning fungerar igen eller en sond går tillbaka online, så incidenten förblir öppen tills du löser den i PagerDuty",
         "auto_resolve_label": "Auto Upplösning eller Bekräfta",
         "auto_resolve_placeholder": "Välj automatisk upplösningsbeteende",
         "auto_resolve_resolve": "Automatisk upplösning",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Valfri autentiseringstoken för ökad säkerhet. Detta kommer att skickas i pagertree-token-huvudet.",
         "authentication_token_label": "Autentiseringstoken (valfritt)",
         "authentication_token_placeholder": "Ange autentiseringstoken om det behövs",
-        "auto_resolve_alerts_description": "Lös automatiskt PagerTree-varningar när övervakningen återhämtar sig",
+        "auto_resolve_alerts_description": "Lös automatiskt PagerTree-varningar när en övervakning fungerar igen eller en sond går tillbaka online",
         "auto_resolve_alerts_label": "Automatiskt lösa larm",
         "how_to_get_integration_url_label": "Hur får du integrations-URL",
         "integration_url_description": "Ange din PagerTree webhook-integration-URL.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Sparad — skriv för att ersätta"
     }
   },
+  "probes": {
+    "page_name": "Sonder",
+    "description": "Sonder kör kontroller av övervakningar från de platser där de är installerade. Den lokala sonden är Peekaping självt.",
+    "local_name": "Lokal",
+    "monitor_probe": "Sond: {{name}}",
+    "monitor_probe_unsupported": "{{name}} kör inte {{type}}-övervakningar",
+    "empty_list": {
+      "title": "Inga sonder hittades",
+      "text": "Skapa en sond för att köra kontroller från en annan plats.",
+      "action_text": "Skapa din första sond"
+    },
+    "table": {
+      "headers": {
+        "name": "Namn",
+        "location": "Plats",
+        "status": "Status",
+        "disabled": "Inaktiverad",
+        "token": "Token",
+        "instances": "Instanser",
+        "actions": "Åtgärder"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Inaktiverad",
+      "no_instances": "Inga instanser ännu",
+      "last_seen": "senast sedd {{date}}",
+      "actions": {
+        "edit": "Redigera sonden {{name}}",
+        "rotate": "Byt token för sonden {{name}}",
+        "delete": "Ta bort sonden {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Skapa sond",
+      "description": "En sond kör kontroller från den plats där du installerar den. Dess token visas bara en gång, efter att du har skapat den.",
+      "submit": "Skapa sond",
+      "creating": "Skapar..."
+    },
+    "edit_dialog": {
+      "title": "Redigera sond",
+      "description": "Ändra inställningarna för {{name}}."
+    },
+    "form": {
+      "name_label": "Namn",
+      "name_placeholder": "t.ex. Frankfurt",
+      "location_label": "Plats (valfritt)",
+      "location_placeholder": "t.ex. Frankfurt, Tyskland",
+      "name_required": "Namn krävs",
+      "name_too_long": "Namnet är för långt",
+      "location_too_long": "Platsen är för lång",
+      "disabled_label": "Inaktiverad",
+      "disabled_description": "Token för en inaktiverad sond slutar fungera tills du aktiverar den igen.",
+      "notifications_hint": "Lämna tomt för att meddela kanalerna för den här sondens övervakningar."
+    },
+    "rotate_dialog": {
+      "title": "Byt token",
+      "description": "Den gamla token för sonden {{name}} slutar fungera direkt. Dess instanser måste startas om med den nya token.",
+      "confirm": "Byt token",
+      "rotating": "Byter..."
+    },
+    "delete_dialog": {
+      "title": "Ta bort sond",
+      "description": "Är du säker på att du vill ta bort sonden \"{{name}}\"? Dess token slutar fungera. Den här åtgärden kan inte ångras."
+    },
+    "token_alert": {
+      "title_created": "Sonden {{name}} har skapats",
+      "title_rotated": "Ny token för sonden {{name}}",
+      "note": "Den här token läser konfigurationerna för de övervakningar som är tilldelade sonden. Den visas bara en gång.",
+      "token_label": "Token",
+      "docker_label": "Starta sonden med Docker",
+      "copy_token": "Kopiera token",
+      "copy_command": "Kopiera docker-kommando"
+    },
+    "messages": {
+      "created_successfully": "Sonden skapades",
+      "updated_successfully": "Sonden uppdaterades",
+      "rotated_successfully": "Token byttes",
+      "deleted_successfully": "Sonden togs bort",
+      "failed_to_create": "Det gick inte att skapa sonden",
+      "failed_to_update": "Det gick inte att uppdatera sonden",
+      "failed_to_rotate": "Det gick inte att byta token",
+      "failed_to_delete": "Det gick inte att ta bort sonden",
+      "failed_to_load": "Det gick inte att läsa in sonder",
+      "copy_success": "Kopierat till urklipp",
+      "copy_failed": "Det gick inte att kopiera till urklipp"
+    },
+    "detail": {
+      "not_found": "Sonden hittades inte"
+    },
+    "availability": {
+      "title": "Tillgänglighet",
+      "range_label": "Tidsintervall",
+      "bar_label": "Tillgänglighetshistorik",
+      "instance_bar_label": "Anslutningar för {{name}}",
+      "no_data": "Inga data",
+      "now": "Nu",
+      "instances_title": "Instanser, senaste 24 timmar",
+      "in_process_note": "Peekaping kontrollerar själv den lokala sondens monitorer, så den har ingen tillgänglighetshistorik.",
+      "connected_since": "Ansluten sedan {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Denna åtgärd kan inte ångras. Detta kommer permanent att ta bort proxyn {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "I klusterläge når en ändring alla processer inom en minut.",
-      "description": "Skicka en rapport till Sentry när servern kraschar. Av tills du slår på det.",
-      "forced_off": "Miljövariabeln ERROR_REPORTING=off eller DO_NOT_TRACK=1 stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
+      "description": "Skicka en rapport till Sentry när servern kraschar. På som standard. Du kan stänga av det här när som helst.",
+      "forced_off": "Miljövariabeln ERROR_REPORTING=off stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
       "title": "Felrapporter"
     },
     "telemetry": {
-      "description": "Skicka anonym statistik om hur den här installationen är konfigurerad, högst en gång per dag. Av tills du slår på det.",
-      "forced_off": "Miljövariabeln TELEMETRY=off eller DO_NOT_TRACK=1 stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
-      "id_note": "Instans-ID:t skapas när du slår på detta och raderas när du stänger av det. Slår du på det igen skapas ett nytt.",
+      "description": "Skicka anonym statistik om hur den här installationen är konfigurerad, högst en gång per dag. På som standard. Du kan stänga av det här när som helst.",
+      "forced_off": "Miljövariabeln TELEMETRY=off stänger av detta. Inget skickas, oavsett vad den här inställningen säger.",
+      "id_note": "Instans-ID:t skapas så länge detta är på och raderas när du stänger av det. Slår du på det igen skapas ett nytt.",
       "payload_off": "Inget skickas medan detta är avstängt. Det här är vad en användningsping skulle innehålla om du slog på det.",
       "payload_title": "Vad nästa användningsping skickar",
       "title": "Användningsstatistik"
@@ -1367,6 +1500,8 @@
     "published_status": "Publicerad",
     "search_label": "Sök",
     "search_placeholder": "Sök status-sidor efter titel...",
+    "show_locations": "Visa varje plats",
+    "show_locations_info": "För övervakningar som kontrolleras från flera platser visas status och historik för varje plats",
     "update_status_page": "Uppdatera status­sida",
     "view_page": "Visa sida"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Vad som skickas och hur du stänger av det",
     "label": "Skicka anonym användningsstatistik",
-    "never_sent": "Skickas aldrig: namn på övervakningar, webbadresser, värdar, taggar, adresser till statussidor eller aviseringsinställningar. En användningsping innehåller ingen IP-adress, och Peekapings Worker registrerar inte avsändarens IP.",
-    "not_saved": "Ditt val att skicka användningsstatistik sparades inte. Slå på det under ”Inställningar”.",
-    "sent_features": "Om du använder statussidor, underhållsfönster och mätvärden",
-    "sent_id": "Ett slumpmässigt ID, som skapas när du slår på det och raderas när du stänger av det",
-    "sent_monitors": "Hur många övervakningar du har, som ett intervall, till exempel 11-50",
-    "sent_setup": "Peekaping-versionen, enkelt läge eller klusterläge, lagringsbackenden samt operativsystem och processortyp",
-    "sent_types": "Vilka typer av övervakningar och aviseringskanaler du använder, till exempel http eller telegram"
+    "not_saved": "Ditt val om användningsstatistik sparades inte. Kontrollera det under ”Inställningar”."
+  },
+  "telemetry_notice": {
+    "error_reports": "Felrapporter är på. Om Peekaping kraschar skickar den feltypen och platsen i koden där det hände, sin version, sitt läge, lagringsbackend och operativsystem. Den skickar aldrig felmeddelanden, URL:er eller värdnamn.",
+    "settings_errors": "Stäng av felrapporter under ”Inställningar”",
+    "settings_usage": "Stäng av användningsstatistik under ”Inställningar”",
+    "title": "Att skicka anonyma data är påslaget som standard",
+    "usage_statistics": "Användningsstatistik är på. Högst en gång per dag skickar Peekaping ett slumpmässigt instans-ID, sin version, sitt läge, lagringsbackend och operativsystem, ett intervall för hur många övervakningar du har, typerna av övervakningar och aviseringskanaler du använder samt om du använder statussidor, underhållsfönster och mätvärden. Den skickar aldrig namn, URL:er, värdar eller inställningar."
   },
   "theme": {
     "dark": "Mörk",

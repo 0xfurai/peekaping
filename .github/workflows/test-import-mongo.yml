@@ -1,9 +1,10 @@
 name: Test MongoDB import
 
 # bun db import-mongo copies a MongoDB install into SQLite or PostgreSQL. Its tests
-# seed a real MongoDB through the Mongo repositories, import into both kinds of SQL
-# database and read the result back, so they need a MongoDB and a PostgreSQL server.
-# The Test and Lint workflow has neither, and those tests skip there.
+# seed a real MongoDB with raw documents in the format the Mongo repositories wrote,
+# import into both kinds of SQL database and read the result back, so they need a
+# MongoDB and a PostgreSQL server. The Test and Lint workflow has neither, and those
+# tests skip there.
 
 on:
   pull_request:
@@ -17,9 +18,16 @@ on:
       - '.github/workflows/test-import-mongo.yml'
     branches: [ main, master ]
 
+# A new push to a PR replaces its run in progress, which would otherwise keep
+# its runners busy testing a commit nobody waits for. Other runs get a group of
+# their own: a shared one would cancel the queued runs of busy pushes to main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   import-mongo:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
 
     services:
       mongo:
@@ -83,3 +91,4 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: 0xfurai/peekaping
           file: apps/server/coverage.txt
+          flags: import-mongo

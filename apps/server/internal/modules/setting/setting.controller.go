@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
+	"peekaping/internal/validation"
 
 	"go.uber.org/zap"
 )
@@ -49,7 +50,7 @@ func (ic *Controller) SetByKey(ctx context.Context, input *SetByKeyInput) (*http
 	if err := decodeErr; err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
-	if err := utils.Validate.Struct(entity); err != nil {
+	if err := validation.Validate.Struct(entity); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 	updated, err := ic.service.SetByKey(ctx, key, &Model{Value: entity.Value, Type: entity.Type})

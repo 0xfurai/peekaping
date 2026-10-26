@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 	"net/url"
 	"peekaping/internal/modules/shared"
 	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 )
 
@@ -83,17 +84,20 @@ func (m *MySQLExecutor) validateQuery(query string) error {
 	return nil
 }
 
-// parseMySQLURL parses a mysql:// URL and converts it to a DSN format for the Go MySQL driver
-func (m *MySQLExecutor) parseMySQLURL(connectionString string) (string, error) {
+// parseMySQLURL turns a mysql:// URL into the driver's configuration. The
+// driver reads the URL's query parameters itself (tls=skip-verify, charset=...)
+// and escapes the credentials and the address, so a password with reserved
+// characters or an IPv6 host reach the server as they are.
+func (m *MySQLExecutor) parseMySQLURL(connectionString string) (*mysql.Config, error) {
 	// Parse the URL
 	u, err := url.Parse(connectionString)
 	if err != nil {
-		return "", fmt.Errorf("invalid connection string format: %w", err)
+		return nil, fmt.Errorf("invalid connection string format: %w", err)
 	}
 
 	// Check if it's a mysql:// URL
 	if u.Scheme != "mysql" {
-		return "", fmt.Errorf("connection string must use mysql:// scheme, got: %s", u.Scheme)
+		return nil, fmt.Errorf("connection string must use mysql:// scheme, got: %s", u.Scheme)
 	}
 
 	// Extract user and password
@@ -106,11 +110,10 @@ func (m *MySQLExecutor) parseMySQLURL(connectionString string) (string, error) {
 	}
 
 	if user == "" {
-		return "", fmt.Errorf("username is required in connection string")
+		return nil, fmt.Errorf("username is required in connection string")
 	}
 
 	// Extract host and port
-	host := u.Hostname()
 	port := u.Port()
 	if port == "" {
 		port = "3306" // Default MySQL port
@@ -119,18 +122,24 @@ func (m *MySQLExecutor) parseMySQLURL(connectionString string) (string, error) {
 	// Extract database name
 	database := strings.TrimPrefix(u.Path, "/")
 	if database == "" {
-		return "", fmt.Errorf("database name is required in connection string")
+		return nil, fmt.Errorf("database name is required in connection string")
 	}
 
-	// Build DSN in the format: user:password@tcp(host:port)/database
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, pass, host, port, database)
-
-	// Add query parameters if present
-	if u.RawQuery != "" {
-		dsn += "?" + u.RawQuery
+	// Let the driver read the query parameters, with the address in the string
+	// it reads: for tls=true it verifies the certificate against the host name
+	// it finds there, and sets that name when it normalizes, so the address
+	// can't be filled in afterwards. The parameters go back in escaped, since
+	// the driver takes the last "/" as the end of the address.
+	addr := net.JoinHostPort(u.Hostname(), port)
+	cfg, err := mysql.ParseDSN("tcp(" + addr + ")/?" + u.Query().Encode())
+	if err != nil {
+		return nil, err
 	}
+	cfg.User = user
+	cfg.Passwd = pass
+	cfg.DBName = database
 
-	return dsn, nil
+	return cfg, nil
 }
 
 func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
@@ -181,17 +190,18 @@ func (m *MySQLExecutor) Execute(ctx context.Context, monitor *Monitor, proxyMode
 }
 
 func (m *MySQLExecutor) mysqlQuery(ctx context.Context, connectionString, query string, timeout time.Duration) (string, error) {
-	// Parse the mysql:// URL format and convert to DSN
-	dsn, err := m.parseMySQLURL(connectionString)
+	// Parse the mysql:// URL format into the driver's configuration
+	cfg, err := m.parseMySQLURL(connectionString)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse MySQL connection string: %w", err)
 	}
 
 	// Open connection
-	db, err := sql.Open("mysql", dsn)
+	connector, err := mysql.NewConnector(cfg)
 	if err != nil {
 		return "", fmt.Errorf("failed to open MySQL connection: %w", err)
 	}
+	db := sql.OpenDB(connector)
 	defer db.Close()
 
 	// Set connection timeout using the monitor's configured timeout

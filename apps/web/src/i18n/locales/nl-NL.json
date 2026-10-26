@@ -16,8 +16,9 @@
       "have_account": "Heeft u al een account?",
       "sign_in": "Inloggen",
       "submit": "Registreren",
-      "telemetry_hint": "Uit, tenzij je dit vakje aanvinkt. Je kunt het later wijzigen onder ‘Instellingen’. Als je het aanvinkt, verstuurt Peekaping dit hooguit één keer per dag:",
-      "title": "Hallo"
+      "title": "Hallo",
+      "telemetry_note": "Anoniem: geen namen van monitoren, URL's of hosts. Je kunt het later wijzigen onder ‘Instellingen’.",
+      "telemetry_whats_sent": "Wat er wordt verstuurd"
     },
     "twofa": {
       "code_label": "2FA-code",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Foutrapporten versturen",
-    "never_sent": "Nooit verstuurd: foutmeldingen, URL's, headers, webhook-URL's, namen of hostnamen. Een rapport bevat geen IP-adres, en het Sentry-project van Peekaping is ingesteld om het IP van de afzender niet op te slaan. Met je eigen ERROR_REPORTING_DSN bepalen de instellingen van je Sentry of GlitchTip dat.",
-    "not_saved": "Je keuze om foutrapporten te versturen is niet opgeslagen. Zet het aan onder ‘Instellingen’.",
+    "never_sent": "Nooit verstuurd: foutmeldingen, URL's, headers, webhook-URL's, namen of hostnamen. Een rapport bevat geen IP-adres, en het Sentry-project van Peekaping is ingesteld om het IP van de afzender niet op te slaan.",
+    "not_saved": "Je keuze over foutrapporten is niet opgeslagen. Controleer het onder ‘Instellingen’.",
     "sent": "Wordt alleen verstuurd wanneer Peekaping zelf crasht. Een rapport bevat het type fout en de plek in de code waar die optrad, de Peekaping-versie, enkele modus of clustermodus, de opslagbackend en het besturingssysteem."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Verzoek time-out (Time-out na {{seconds}} seconden)",
           "resend_notification": "Notificatie opnieuw verzenden bij X opeenvolgende keren uitgevallen (Verzenden uitgeschakeld)"
         },
+        "location_rule": {
+          "all": "alle locaties zijn uitgevallen",
+          "any": "een willekeurige locatie is uitgevallen",
+          "at_least": "minstens N locaties zijn uitgevallen",
+          "description": "Een locatie waarvan de probe offline is, of die nog niets heeft gerapporteerd, telt niet mee.",
+          "label": "Markeer de monitor als uitgevallen wanneer",
+          "threshold_invalid": "Voer een geheel getal in, 1 of meer",
+          "threshold_label": "Aantal locaties",
+          "threshold_too_high": "Mag niet hoger zijn dan het aantal gekozen probes"
+        },
         "notifications": {
           "add_notifier": "Notifier toevoegen",
           "new_notifier": "+ Nieuwe notificatiebron",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Kies notifier",
           "selected_channels": "Geselecteerde notificatiekanalen",
           "title": "Notificatiekanalen"
+        },
+        "probe": {
+          "description": "De monitor draait op elke probe die je kiest en toont de resultaten van elke probe als een locatie.",
+          "label": "Probe",
+          "option_unsupported": "{{name}} (voert dit type niet uit)",
+          "placeholder": "Kies een probe",
+          "push_fixed": "Een push-monitor draait altijd op de lokale probe.",
+          "required": "Kies minstens één probe",
+          "unsupported": "Deze probe voert dit type monitor niet uit. Kies een andere probe."
         },
         "proxy": {
           "add_proxy": "Proxy toevoegen",
@@ -658,6 +678,15 @@
       "expiring_soon": "Verloopt binnenkort",
       "for": "voor",
       "live_status": "Live-status",
+      "locations": {
+        "all": "Alle locaties",
+        "no_result": "Nog geen resultaat",
+        "probe_offline": "Probe is offline",
+        "probe_unsupported": "Voert dit type niet uit",
+        "response_time": "Reactietijd",
+        "select_label": "Locatie",
+        "title": "Locaties"
+      },
       "monitor_for": "monitor voor",
       "no_certificate_data": "Geen certificaatgegevens",
       "seconds": "seconden",
@@ -683,6 +712,7 @@
     "maintenance": "Onderhoud",
     "monitors": "Monitoren",
     "notification_channels": "Notificatiekanalen",
+    "probes": "Probes",
     "proxies": "Proxy's",
     "settings": "Instellingen",
     "status_pages": "Statuspagina's",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatisch bevestigen",
         "auto_resolve_acknowledge_description": "Incident automatisch bevestigen",
-        "auto_resolve_description": "Kies welke actie er moet worden ondernomen wanneer een monitor weer online is.",
+        "auto_resolve_description": "Kies wat er moet worden verzonden wanneer een monitor weer online is of een probe weer online komt.",
         "auto_resolve_do_nothing": "Niets doen",
-        "auto_resolve_do_nothing_description": "Geen actie ondernomen bij de UP-status",
+        "auto_resolve_do_nothing_description": "Er wordt niets verzonden wanneer een monitor weer online is of een probe weer online komt, dus het incident blijft open totdat je het in PagerDuty oplost",
         "auto_resolve_label": "Automatisch oplossen of bevestigen",
         "auto_resolve_placeholder": "Gedrag voor automatische oplossing kiezen",
         "auto_resolve_resolve": "Automatisch oplossen",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Optioneel authenticatietoken voor extra beveiliging. Dit wordt verzonden in de pagertree-token header.",
         "authentication_token_label": "Authenticatietoken (optioneel)",
         "authentication_token_placeholder": "Voer autorisatietoken in, indien nodig",
-        "auto_resolve_alerts_description": "Automatisch PagerTree-waarschuwingen oplossen wanneer de monitor herstelt",
+        "auto_resolve_alerts_description": "Automatisch PagerTree-waarschuwingen oplossen wanneer een monitor weer online is of een probe weer online komt",
         "auto_resolve_alerts_label": "Meldingen automatisch oplossen",
         "how_to_get_integration_url_label": "Hoe verkrijg je de integratie-URL",
         "integration_url_description": "Voer uw PagerTree-webhook-integratie-URL in.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Opgeslagen — typ om te vervangen"
     }
   },
+  "probes": {
+    "page_name": "Probes",
+    "description": "Probes voeren de controles van monitoren uit vanaf de plekken waar ze zijn geïnstalleerd. De lokale probe is Peekaping zelf.",
+    "local_name": "Lokaal",
+    "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} voert geen {{type}}-monitors uit",
+    "empty_list": {
+      "title": "Geen probes gevonden",
+      "text": "Maak een probe aan om controles vanaf een andere plek uit te voeren.",
+      "action_text": "Maak je eerste probe aan"
+    },
+    "table": {
+      "headers": {
+        "name": "Naam",
+        "location": "Locatie",
+        "status": "Status",
+        "disabled": "Uitgeschakeld",
+        "token": "Token",
+        "instances": "Instanties",
+        "actions": "Acties"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Uitgeschakeld",
+      "no_instances": "Nog geen instanties",
+      "last_seen": "laatst gezien {{date}}",
+      "actions": {
+        "edit": "Probe {{name}} bewerken",
+        "rotate": "Token van probe {{name}} vernieuwen",
+        "delete": "Probe {{name}} verwijderen"
+      }
+    },
+    "create_dialog": {
+      "title": "Probe aanmaken",
+      "description": "Een probe voert controles uit vanaf de plek waar je hem installeert. Het token wordt maar één keer getoond, nadat je de probe hebt aangemaakt.",
+      "submit": "Probe aanmaken",
+      "creating": "Aanmaken..."
+    },
+    "edit_dialog": {
+      "title": "Probe bewerken",
+      "description": "Wijzig de instellingen van {{name}}."
+    },
+    "form": {
+      "name_label": "Naam",
+      "name_placeholder": "bijv. Frankfurt",
+      "location_label": "Locatie (optioneel)",
+      "location_placeholder": "bijv. Frankfurt, Duitsland",
+      "name_required": "Naam is verplicht",
+      "name_too_long": "De naam is te lang",
+      "location_too_long": "De locatie is te lang",
+      "disabled_label": "Uitgeschakeld",
+      "disabled_description": "Het token van een uitgeschakelde probe werkt niet meer totdat je de probe weer inschakelt.",
+      "notifications_hint": "Laat leeg om de kanalen van de monitoren van deze probe op de hoogte te stellen."
+    },
+    "rotate_dialog": {
+      "title": "Token vernieuwen",
+      "description": "Het oude token van probe {{name}} werkt meteen niet meer. De instanties moeten opnieuw worden gestart met het nieuwe token.",
+      "confirm": "Token vernieuwen",
+      "rotating": "Vernieuwen..."
+    },
+    "delete_dialog": {
+      "title": "Probe verwijderen",
+      "description": "Weet je zeker dat je de probe \"{{name}}\" wilt verwijderen? Het token werkt dan niet meer. Deze actie kan niet ongedaan worden gemaakt."
+    },
+    "token_alert": {
+      "title_created": "Probe {{name}} aangemaakt",
+      "title_rotated": "Nieuw token voor probe {{name}}",
+      "note": "Dit token leest de configuraties van de monitoren die aan de probe zijn toegewezen. Het wordt maar één keer getoond.",
+      "token_label": "Token",
+      "docker_label": "Start de probe met Docker",
+      "copy_token": "Token kopiëren",
+      "copy_command": "Docker-commando kopiëren"
+    },
+    "messages": {
+      "created_successfully": "Probe succesvol aangemaakt",
+      "updated_successfully": "Probe succesvol bijgewerkt",
+      "rotated_successfully": "Token succesvol vernieuwd",
+      "deleted_successfully": "Probe succesvol verwijderd",
+      "failed_to_create": "Probe aanmaken mislukt",
+      "failed_to_update": "Probe bijwerken mislukt",
+      "failed_to_rotate": "Token vernieuwen mislukt",
+      "failed_to_delete": "Probe verwijderen mislukt",
+      "failed_to_load": "Probes laden mislukt",
+      "copy_success": "Gekopieerd naar klembord",
+      "copy_failed": "Kopiëren naar klembord mislukt"
+    },
+    "detail": {
+      "not_found": "Probe niet gevonden"
+    },
+    "availability": {
+      "title": "Beschikbaarheid",
+      "range_label": "Tijdsbereik",
+      "bar_label": "Beschikbaarheidsgeschiedenis",
+      "instance_bar_label": "Verbindingen van {{name}}",
+      "no_data": "Geen gegevens",
+      "now": "Nu",
+      "instances_title": "Instanties, laatste 24 uur",
+      "in_process_note": "Peekaping controleert zelf de monitors van de lokale probe, dus die heeft geen beschikbaarheidsgeschiedenis.",
+      "connected_since": "Verbonden sinds {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Deze actie kan niet ongedaan worden gemaakt. Hiermee wordt de proxy {{host}}:{{port}} permanent verwijderd.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "In clustermodus bereikt een wijziging elk proces binnen een minuut.",
-      "description": "Verstuur een rapport naar Sentry wanneer de server crasht. Uit tot je het aanzet.",
-      "forced_off": "De omgevingsvariabele ERROR_REPORTING=off of DO_NOT_TRACK=1 zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
+      "description": "Verstuur een rapport naar Sentry wanneer de server crasht. Standaard aan; je kunt het hier altijd uitzetten.",
+      "forced_off": "De omgevingsvariabele ERROR_REPORTING=off zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
       "title": "Foutrapporten"
     },
     "telemetry": {
-      "description": "Verstuur anonieme statistieken over hoe deze installatie is ingesteld, hooguit één keer per dag. Uit tot je het aanzet.",
-      "forced_off": "De omgevingsvariabele TELEMETRY=off of DO_NOT_TRACK=1 zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
-      "id_note": "De instantie-ID wordt aangemaakt als je dit aanzet en verwijderd als je het uitzet. Als je het weer aanzet, wordt er een nieuwe aangemaakt.",
+      "description": "Verstuur anonieme statistieken over hoe deze installatie is ingesteld, hooguit één keer per dag. Standaard aan; je kunt het hier altijd uitzetten.",
+      "forced_off": "De omgevingsvariabele TELEMETRY=off zet dit uit. Er wordt niets verstuurd, wat deze instelling ook zegt.",
+      "id_note": "De instantie-ID wordt aangemaakt zolang dit aan staat en verwijderd als je het uitzet. Als je het weer aanzet, wordt er een nieuwe aangemaakt.",
       "payload_off": "Er wordt niets verstuurd zolang dit uit staat. Dit is wat een gebruiksping zou bevatten als je het aanzette.",
       "payload_title": "Wat de volgende gebruiksping verstuurt",
       "title": "Gebruiksstatistieken"
@@ -1367,6 +1500,8 @@
     "published_status": "Gepubliceerd",
     "search_label": "Zoek",
     "search_placeholder": "Zoek statuspagina's op titel...",
+    "show_locations": "Elke locatie tonen",
+    "show_locations_info": "Toont bij monitors die vanaf meerdere locaties worden gecontroleerd de status en geschiedenis van elke locatie",
     "update_status_page": "Statuspagina bijwerken",
     "view_page": "Pagina bekijken"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Wat er wordt verstuurd en hoe je het uitzet",
     "label": "Anonieme gebruiksstatistieken versturen",
-    "never_sent": "Nooit verstuurd: namen van monitoren, URL's, hosts, etiketten, adressen van statuspagina's of meldingsinstellingen. Een gebruiksping bevat geen IP-adres, en de Worker van Peekaping legt het IP van de afzender niet vast.",
-    "not_saved": "Je keuze om gebruiksstatistieken te versturen is niet opgeslagen. Zet het aan onder ‘Instellingen’.",
-    "sent_features": "Of je statuspagina's, onderhoudsvensters en statistieken gebruikt",
-    "sent_id": "Een willekeurige ID, die wordt aangemaakt als je dit aanzet en verwijderd als je het uitzet",
-    "sent_monitors": "Hoeveel monitoren je hebt, als bereik, bijvoorbeeld 11-50",
-    "sent_setup": "De Peekaping-versie, enkele modus of clustermodus, de opslagbackend, en het besturingssysteem en het CPU-type",
-    "sent_types": "De soorten monitoren en meldingskanalen die je gebruikt, zoals http of telegram"
+    "not_saved": "Je keuze over gebruiksstatistieken is niet opgeslagen. Controleer het onder ‘Instellingen’."
+  },
+  "telemetry_notice": {
+    "error_reports": "Foutrapporten staan aan. Als Peekaping crasht, verstuurt het het type fout en de plek in de code waar die optrad, zijn versie, modus, opslagbackend en besturingssysteem. Het verstuurt nooit foutmeldingen, URL's of hostnamen.",
+    "settings_errors": "Foutrapporten uitzetten onder ‘Instellingen’",
+    "settings_usage": "Gebruiksstatistieken uitzetten onder ‘Instellingen’",
+    "title": "Het versturen van anonieme gegevens staat standaard aan",
+    "usage_statistics": "Gebruiksstatistieken staan aan. Hooguit één keer per dag verstuurt Peekaping een willekeurige instantie-ID, zijn versie, modus, opslagbackend en besturingssysteem, een bereik voor het aantal monitoren, de soorten monitoren en meldingskanalen die je gebruikt, en of je statuspagina's, onderhoudsvensters en statistieken gebruikt. Het verstuurt nooit namen, URL's, hosts of instellingen."
   },
   "theme": {
     "dark": "Donker",

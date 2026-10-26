@@ -85,17 +85,31 @@ func (o *OpsgenieSender) Send(
 	baseURL := o.getOpsgenieURL(cfg.Region)
 	textMsg := "Peekaping Alert"
 
+	// A probe's notification has no heartbeat, so the status of its stand-in monitor says whether
+	// the probe went offline or came back online
+	if heartbeat == nil && monitor.IsProbeEvent() {
+		return o.sendProbeAlert(ctx, cfg, baseURL, message, monitor, textMsg)
+	}
+
 	// Handle test notification (when heartbeat is nil)
 	if heartbeat == nil {
 		return o.sendTestNotification(ctx, cfg, baseURL, message)
 	}
 
+	monitorName := unknownMonitorName
+	if monitor != nil {
+		monitorName = monitor.Name
+	}
+
 	// Handle status changes
 	switch heartbeat.Status {
 	case shared.MonitorStatusDown:
-		return o.sendDownAlert(ctx, cfg, baseURL, message, monitor, heartbeat, textMsg)
+		return o.sendDownAlert(ctx, cfg, baseURL, message, monitorName, monitorName, textMsg)
 	case shared.MonitorStatusUp:
-		return o.sendUpAlert(ctx, cfg, baseURL, message, monitor, heartbeat)
+		if monitor == nil {
+			return fmt.Errorf("monitor is nil, cannot close alert")
+		}
+		return o.sendUpAlert(ctx, cfg, baseURL, monitorName)
 	default:
 		o.logger.Warnf("Unknown heartbeat status: %d", heartbeat.Status)
 		return nil
@@ -114,16 +128,27 @@ func (o *OpsgenieSender) sendTestNotification(ctx context.Context, cfg *Opsgenie
 	return o.postToOpsgenie(ctx, cfg, baseURL, data)
 }
 
-// sendDownAlert sends an alert when monitor is down
-func (o *OpsgenieSender) sendDownAlert(ctx context.Context, cfg *OpsgenieConfig, baseURL, message string, monitor *monitor.Model, heartbeat *heartbeat.Model, textMsg string) error {
-	monitorName := "Unknown Monitor"
-	if monitor != nil {
-		monitorName = monitor.Name
-	}
+// sendProbeAlert opens the alert of a probe that went offline, and closes it when the probe is back
+// online. Its alias is the probe's id, the same form as PagerDuty's dedup key.
+func (o *OpsgenieSender) sendProbeAlert(ctx context.Context, cfg *OpsgenieConfig, baseURL, message string, probe *monitor.Model, textMsg string) error {
+	alias := fmt.Sprintf("Peekaping/%s", probe.ID)
 
+	switch probe.Status {
+	case shared.MonitorStatusDown:
+		return o.sendDownAlert(ctx, cfg, baseURL, message, probe.Name, alias, textMsg)
+	case shared.MonitorStatusUp:
+		return o.sendUpAlert(ctx, cfg, baseURL, alias)
+	default:
+		o.logger.Warnf("Unknown probe status: %d", probe.Status)
+		return nil
+	}
+}
+
+// sendDownAlert sends an alert when monitor is down
+func (o *OpsgenieSender) sendDownAlert(ctx context.Context, cfg *OpsgenieConfig, baseURL, message, name, alias, textMsg string) error {
 	data := map[string]any{
-		"message":     fmt.Sprintf("%s: %s", textMsg, monitorName),
-		"alias":       monitorName,
+		"message":     fmt.Sprintf("%s: %s", textMsg, name),
+		"alias":       alias,
 		"description": message,
 		"source":      "Peekaping",
 		"priority":    o.getPriority(fmt.Sprintf("%d", cfg.Priority)),
@@ -132,14 +157,10 @@ func (o *OpsgenieSender) sendDownAlert(ctx context.Context, cfg *OpsgenieConfig,
 	return o.postToOpsgenie(ctx, cfg, baseURL, data)
 }
 
-// sendUpAlert closes an alert when monitor is up
-func (o *OpsgenieSender) sendUpAlert(ctx context.Context, cfg *OpsgenieConfig, baseURL, message string, monitor *monitor.Model, heartbeat *heartbeat.Model) error {
-	if monitor == nil {
-		return fmt.Errorf("monitor is nil, cannot close alert")
-	}
-
+// sendUpAlert closes the alert with this alias when its monitor is Up, or its probe is back online
+func (o *OpsgenieSender) sendUpAlert(ctx context.Context, cfg *OpsgenieConfig, baseURL, alias string) error {
 	// Create close URL
-	closeURL := fmt.Sprintf("%s/%s/close?identifierType=alias", baseURL, url.PathEscape(monitor.Name))
+	closeURL := fmt.Sprintf("%s/%s/close?identifierType=alias", baseURL, url.PathEscape(alias))
 
 	data := map[string]any{
 		"source": "Peekaping",

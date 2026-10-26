@@ -64,16 +64,25 @@ func (g *GrafanaOncallSender) Send(
 
 	var payload map[string]interface{}
 
-	if heartbeat == nil {
+	switch {
+	case heartbeat == nil && monitor.IsProbeEvent():
+		// A probe's notification has no heartbeat, so the status of its stand-in monitor says
+		// whether the probe went offline or came back online
+		payload = grafanaOncallProbePayload(message, monitor)
+		if payload == nil {
+			g.logger.Warnf("Unknown probe status: %d", monitor.Status)
+			return nil
+		}
+	case heartbeat == nil:
 		// General notification
 		payload = map[string]interface{}{
 			"title":   "General notification",
 			"message": message,
 			"state":   "alerting",
 		}
-	} else {
+	default:
 		// Monitor-specific notification
-		monitorName := "Unknown Monitor"
+		monitorName := unknownMonitorName
 		if monitor != nil {
 			monitorName = monitor.Name
 		}
@@ -140,6 +149,29 @@ func (g *GrafanaOncallSender) Send(
 
 	g.logger.Infof("Grafana OnCall notification sent successfully")
 	return nil
+}
+
+// grafanaOncallProbePayload is the alert for a probe that went offline, or the one that resolves it
+// when the probe is back online, or nil for any other status. OnCall groups alerts by alert_uid,
+// the probe's id in the form of PagerDuty's dedup key.
+func grafanaOncallProbePayload(message string, probe *monitor.Model) map[string]interface{} {
+	var title, state string
+	switch probe.Status {
+	case shared.MonitorStatusDown:
+		title, state = fmt.Sprintf("%s is offline", probe.Name), "alerting"
+	case shared.MonitorStatusUp:
+		title, state = fmt.Sprintf("%s is online", probe.Name), "ok"
+	default:
+		return nil
+	}
+
+	return map[string]interface{}{
+		"title":     title,
+		"message":   message,
+		"state":     state,
+		"alert_uid": fmt.Sprintf("Peekaping/%s", probe.ID),
+		"status":    humanReadableStatus(int(probe.Status)),
+	}
 }
 
 // addGrafanaOncallMonitorFields adds the monitor's ID, type, tags and target to the payload,

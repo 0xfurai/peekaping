@@ -56,6 +56,20 @@ func (p *PagerTreeSender) Validate(configJSON string) error {
 	return GenericValidator(cfg.(*PagerTreeConfig))
 }
 
+// eventTypeForStatus is the PagerTree event type for a monitor, or a probe's stand-in, that has
+// this status: Down (a probe offline) creates an alert, Up (a probe back online) resolves it if
+// auto-resolve is on. It is "" when nothing is sent.
+func eventTypeForStatus(status shared.MonitorStatus, autoResolve bool) string {
+	switch {
+	case status == shared.MonitorStatusDown:
+		return "create"
+	case status == shared.MonitorStatusUp && autoResolve:
+		return "resolve"
+	default:
+		return ""
+	}
+}
+
 func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, mon *monitor.Model, hb *heartbeat.Model) error {
 	config, err := p.Unmarshal(configJSON)
 	if err != nil {
@@ -68,14 +82,27 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 		cfg.Urgency = "medium"
 	}
 
+	// A probe's notification has no heartbeat, so the status of its stand-in monitor says whether
+	// the probe went offline or came back online
+	isProbeEvent := hb == nil && mon.IsProbeEvent()
+
 	// Determine event type based on monitor status
 	eventType := "create"
-	if hb != nil && hb.Status == shared.MonitorStatusUp && cfg.AutoResolve {
-		eventType = "resolve"
-	} else if hb != nil && hb.Status != shared.MonitorStatusDown {
+	switch {
+	case hb != nil:
+		eventType = eventTypeForStatus(hb.Status, cfg.AutoResolve)
+	case isProbeEvent:
+		eventType = eventTypeForStatus(mon.Status, cfg.AutoResolve)
+	}
+	if eventType == "" {
 		// Only send notifications for DOWN status or UP (if auto-resolve is enabled)
-		p.logger.Debugf("Skipping PagerTree notification for non-critical status: %d", int(hb.Status))
+		p.logger.Debugf("Skipping PagerTree notification for non-critical status")
 		return nil
+	}
+
+	// A notification with no monitor is about an unknown one
+	if mon == nil {
+		mon = &monitor.Model{Name: unknownMonitorName}
 	}
 
 	// Build the payload
@@ -84,12 +111,22 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 		ID:        fmt.Sprintf("monitor-%s-%d", mon.ID, time.Now().Unix()),
 		Urgency:   cfg.Urgency,
 	}
+	if isProbeEvent {
+		// Alerts of one probe are one alert: the same ID, in the form of PagerDuty's dedup key
+		payload.ID = fmt.Sprintf("Peekaping/%s", mon.ID)
+	}
 
 	// Prepare template bindings (kept for potential future use)
 	_ = PrepareTemplateBindings(mon, hb, message)
 
 	// Set title based on status
-	if hb != nil {
+	if isProbeEvent {
+		statusText := "offline"
+		if mon.Status == shared.MonitorStatusUp {
+			statusText = "online"
+		}
+		payload.Title = fmt.Sprintf("%s is %s", mon.Name, statusText)
+	} else if hb != nil {
 		statusText := "DOWN"
 		if hb.Status == shared.MonitorStatusUp {
 			statusText = "UP"
@@ -144,6 +181,8 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 		if hb.Duration > 0 {
 			payload.Meta["duration"] = fmt.Sprintf("%dms", hb.Duration)
 		}
+	} else if isProbeEvent {
+		payload.Meta["status"] = int(mon.Status)
 	}
 
 	// Marshal payload to JSON

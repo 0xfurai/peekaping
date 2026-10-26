@@ -16,8 +16,9 @@
       "have_account": "Bạn đã có tài khoản?",
       "sign_in": "Đăng nhập",
       "submit": "Tạo",
-      "telemetry_hint": "Tắt trừ khi bạn đánh dấu ô này. Bạn có thể đổi lại sau trong “Cài đặt”. Nếu đánh dấu, Peekaping gửi những thông tin này nhiều nhất một lần mỗi ngày:",
-      "title": "Xin chào"
+      "title": "Xin chào",
+      "telemetry_note": "Ẩn danh: không có tên giám sát, URL hay máy chủ. Bạn có thể đổi lại sau trong “Cài đặt”.",
+      "telemetry_whats_sent": "Những gì được gửi"
     },
     "twofa": {
       "code_label": "Mã 2FA",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Gửi báo cáo lỗi",
-    "never_sent": "Không bao giờ gửi: thông báo lỗi, URL, header, URL webhook, tên hay tên máy chủ. Báo cáo không chứa địa chỉ IP, và dự án Sentry của Peekaping được đặt để không lưu IP của người gửi. Với ERROR_REPORTING_DSN của riêng bạn, cài đặt Sentry hoặc GlitchTip của bạn sẽ quyết định.",
-    "not_saved": "Lựa chọn gửi báo cáo lỗi của bạn chưa được lưu. Hãy bật lại trong “Cài đặt”.",
+    "never_sent": "Không bao giờ gửi: thông báo lỗi, URL, header, URL webhook, tên hay tên máy chủ. Báo cáo không chứa địa chỉ IP, và dự án Sentry của Peekaping được đặt để không lưu IP của người gửi.",
+    "not_saved": "Lựa chọn của bạn về báo cáo lỗi chưa được lưu. Hãy kiểm tra trong “Cài đặt”.",
     "sent": "Chỉ được gửi khi chính Peekaping gặp sự cố. Một báo cáo chứa loại lỗi và vị trí trong mã nơi lỗi xảy ra, phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ và hệ điều hành."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Yêu cầu hết thời gian (Hết thời gian sau {{seconds}} giây)",
           "resend_notification": "Gửi lại thông báo nếu bị ngừng X lần liên tiếp (Gửi lại đã vô hiệu)"
         },
+        "location_rule": {
+          "all": "tất cả vị trí đều ngừng hoạt động",
+          "any": "bất kỳ vị trí nào ngừng hoạt động",
+          "at_least": "ít nhất N vị trí ngừng hoạt động",
+          "description": "Vị trí có đầu dò ngoại tuyến hoặc chưa báo cáo sẽ không được tính.",
+          "label": "Đánh dấu monitor là ngừng hoạt động khi",
+          "threshold_invalid": "Nhập một số nguyên từ 1 trở lên",
+          "threshold_label": "Số lượng vị trí",
+          "threshold_too_high": "Không được lớn hơn số đầu dò bạn đã chọn"
+        },
         "notifications": {
           "add_notifier": "Thêm thông báo",
           "new_notifier": "+ Thêm kênh thông báo",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Chọn kênh thông báo",
           "selected_channels": "Kênh thông báo đã chọn",
           "title": "Kênh thông báo"
+        },
+        "probe": {
+          "description": "Giám sát chạy trên mọi đầu dò bạn chọn và hiển thị kết quả của từng đầu dò như một vị trí.",
+          "label": "Đầu dò",
+          "option_unsupported": "{{name}} (không chạy loại này)",
+          "placeholder": "Chọn đầu dò",
+          "push_fixed": "Giám sát Push luôn chạy trên đầu dò cục bộ.",
+          "required": "Chọn ít nhất một đầu dò",
+          "unsupported": "Đầu dò này không chạy loại giám sát này. Hãy chọn đầu dò khác."
         },
         "proxy": {
           "add_proxy": "Thêm Proxy",
@@ -658,6 +678,15 @@
       "expiring_soon": "Sắp hết hạn",
       "for": "cho",
       "live_status": "Tình trạng trực tiếp",
+      "locations": {
+        "all": "Tất cả vị trí",
+        "no_result": "Chưa có kết quả",
+        "probe_offline": "Đầu dò ngoại tuyến",
+        "probe_unsupported": "Không chạy loại này",
+        "response_time": "Thời gian phản hồi",
+        "select_label": "Vị trí",
+        "title": "Vị trí"
+      },
       "monitor_for": "Giám sát",
       "no_certificate_data": "Không có dữ liệu chứng chỉ",
       "seconds": "giây",
@@ -683,6 +712,7 @@
     "maintenance": "Bảo trì",
     "monitors": "Giám sát",
     "notification_channels": "Kênh thông báo",
+    "probes": "Đầu dò",
     "proxies": "Proxy",
     "settings": "Cài đặt",
     "status_pages": "Trang trạng thái",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Tự động công nhận",
         "auto_resolve_acknowledge_description": "Xác nhận sự cố tự động",
-        "auto_resolve_description": "Chọn hành động khi giám sát khôi phục",
+        "auto_resolve_description": "Chọn nội dung được gửi khi giám sát khôi phục hoặc đầu dò trực tuyến trở lại",
         "auto_resolve_do_nothing": "Không làm gì",
-        "auto_resolve_do_nothing_description": "Không có hành động khi trạng thái UP",
+        "auto_resolve_do_nothing_description": "Không có gì được gửi khi giám sát khôi phục hoặc đầu dò trực tuyến trở lại, vì vậy sự cố vẫn mở cho đến khi bạn giải quyết nó trong PagerDuty",
         "auto_resolve_label": "Giải quyết tự động hoặc Xác nhận",
         "auto_resolve_placeholder": "Chọn hành vi tự động giải quyết",
         "auto_resolve_resolve": "Tự động giải quyết",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Token xác thực tùy chọn để tăng cường bảo mật. Token này sẽ được gửi trong header pagertree-token.",
         "authentication_token_label": "Token xác thực (Tuỳ chọn)",
         "authentication_token_placeholder": "Nhập mã xác thực nếu cần",
-        "auto_resolve_alerts_description": "Tự động giải quyết cảnh báo PagerTree khi máy giám sát phục hồi",
+        "auto_resolve_alerts_description": "Tự động giải quyết cảnh báo PagerTree khi giám sát khôi phục hoặc đầu dò trực tuyến trở lại",
         "auto_resolve_alerts_label": "Tự động giải quyết cảnh báo",
         "how_to_get_integration_url_label": "Cách lấy URL tích hợp",
         "integration_url_description": "Nhập URL tích hợp webhook PagerTree của bạn.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Đã lưu — nhập để thay thế"
     }
   },
+  "probes": {
+    "page_name": "Đầu dò",
+    "description": "Đầu dò chạy các lần kiểm tra của giám sát từ những nơi chúng được cài đặt. Đầu dò cục bộ chính là Peekaping.",
+    "local_name": "Cục bộ",
+    "monitor_probe": "Đầu dò: {{name}}",
+    "monitor_probe_unsupported": "{{name}} không chạy các giám sát loại {{type}}",
+    "empty_list": {
+      "title": "Không tìm thấy đầu dò nào",
+      "text": "Tạo một đầu dò để chạy kiểm tra từ một nơi khác.",
+      "action_text": "Tạo đầu dò đầu tiên của bạn"
+    },
+    "table": {
+      "headers": {
+        "name": "Tên",
+        "location": "Vị trí",
+        "status": "Trạng thái",
+        "disabled": "Đã vô hiệu hóa",
+        "token": "Mã thông báo",
+        "instances": "Instance",
+        "actions": "Hành động"
+      },
+      "status": {
+        "online": "Trực tuyến",
+        "offline": "Ngoại tuyến"
+      },
+      "disabled": "Đã vô hiệu hóa",
+      "no_instances": "Chưa có instance nào",
+      "last_seen": "thấy lần cuối {{date}}",
+      "actions": {
+        "edit": "Chỉnh sửa đầu dò {{name}}",
+        "rotate": "Đổi mã thông báo của đầu dò {{name}}",
+        "delete": "Xóa đầu dò {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Tạo đầu dò",
+      "description": "Đầu dò chạy các lần kiểm tra từ nơi bạn cài đặt nó. Mã thông báo của đầu dò chỉ hiển thị một lần, sau khi bạn tạo.",
+      "submit": "Tạo đầu dò",
+      "creating": "Đang tạo..."
+    },
+    "edit_dialog": {
+      "title": "Chỉnh sửa đầu dò",
+      "description": "Thay đổi cài đặt của {{name}}."
+    },
+    "form": {
+      "name_label": "Tên",
+      "name_placeholder": "ví dụ: Frankfurt",
+      "location_label": "Vị trí (không bắt buộc)",
+      "location_placeholder": "ví dụ: Frankfurt, Đức",
+      "name_required": "Tên là bắt buộc",
+      "name_too_long": "Tên quá dài",
+      "location_too_long": "Vị trí quá dài",
+      "disabled_label": "Đã vô hiệu hóa",
+      "disabled_description": "Mã thông báo của đầu dò bị vô hiệu hóa sẽ ngừng hoạt động cho đến khi bạn bật lại.",
+      "notifications_hint": "Để trống để thông báo tới các kênh của những mục giám sát của đầu dò này."
+    },
+    "rotate_dialog": {
+      "title": "Đổi mã thông báo",
+      "description": "Mã thông báo cũ của đầu dò {{name}} ngừng hoạt động ngay lập tức. Các instance của nó phải được khởi động lại với mã thông báo mới.",
+      "confirm": "Đổi mã thông báo",
+      "rotating": "Đang đổi..."
+    },
+    "delete_dialog": {
+      "title": "Xóa đầu dò",
+      "description": "Bạn có chắc muốn xóa đầu dò \"{{name}}\" không? Mã thông báo của nó sẽ ngừng hoạt động. Hành động này không thể hoàn tác."
+    },
+    "token_alert": {
+      "title_created": "Đã tạo đầu dò {{name}}",
+      "title_rotated": "Mã thông báo mới cho đầu dò {{name}}",
+      "note": "Mã thông báo này đọc cấu hình của các giám sát được gán cho đầu dò. Nó chỉ hiển thị một lần.",
+      "token_label": "Mã thông báo",
+      "docker_label": "Khởi động đầu dò bằng Docker",
+      "copy_token": "Sao chép mã thông báo",
+      "copy_command": "Sao chép lệnh docker"
+    },
+    "messages": {
+      "created_successfully": "Đã tạo đầu dò thành công",
+      "updated_successfully": "Đã cập nhật đầu dò thành công",
+      "rotated_successfully": "Đã đổi mã thông báo thành công",
+      "deleted_successfully": "Đã xóa đầu dò thành công",
+      "failed_to_create": "Không thể tạo đầu dò",
+      "failed_to_update": "Không thể cập nhật đầu dò",
+      "failed_to_rotate": "Không thể đổi mã thông báo",
+      "failed_to_delete": "Không thể xóa đầu dò",
+      "failed_to_load": "Không thể tải danh sách đầu dò",
+      "copy_success": "Đã sao chép vào clipboard",
+      "copy_failed": "Không thể sao chép vào clipboard"
+    },
+    "detail": {
+      "not_found": "Không tìm thấy đầu dò"
+    },
+    "availability": {
+      "title": "Tính khả dụng",
+      "range_label": "Khoảng thời gian",
+      "bar_label": "Lịch sử khả dụng",
+      "instance_bar_label": "Các kết nối của {{name}}",
+      "no_data": "Không có dữ liệu",
+      "now": "Bây giờ",
+      "instances_title": "Instance, 24 giờ qua",
+      "in_process_note": "Chính Peekaping kiểm tra các monitor của đầu dò cục bộ, nên nó không có lịch sử khả dụng.",
+      "connected_since": "Đã kết nối từ {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn proxy {{host}}:{{port}}.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "Ở chế độ cụm, thay đổi đến mọi tiến trình trong vòng một phút.",
-      "description": "Gửi báo cáo đến Sentry khi máy chủ gặp sự cố. Tắt cho đến khi bạn bật.",
-      "forced_off": "Biến môi trường ERROR_REPORTING=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
+      "description": "Gửi báo cáo đến Sentry khi máy chủ gặp sự cố. Bật theo mặc định; bạn có thể tắt tại đây bất cứ lúc nào.",
+      "forced_off": "Biến môi trường ERROR_REPORTING=off đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
       "title": "Báo cáo lỗi"
     },
     "telemetry": {
-      "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Tắt cho đến khi bạn bật.",
-      "forced_off": "Biến môi trường TELEMETRY=off hoặc DO_NOT_TRACK=1 đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
-      "id_note": "ID bản cài đặt được tạo khi bạn bật mục này và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
+      "description": "Gửi thống kê ẩn danh về cách bản cài đặt này được thiết lập, nhiều nhất một lần mỗi ngày. Bật theo mặc định; bạn có thể tắt tại đây bất cứ lúc nào.",
+      "forced_off": "Biến môi trường TELEMETRY=off đang tắt mục này. Không có gì được gửi, bất kể cài đặt này ghi gì.",
+      "id_note": "ID bản cài đặt được tạo khi mục này đang bật và bị xóa khi bạn tắt. Bật lại sẽ tạo ID mới.",
       "payload_off": "Không có gì được gửi khi mục này đang tắt. Đây là nội dung ping sử dụng sẽ có nếu bạn bật.",
       "payload_title": "Ping sử dụng tiếp theo sẽ gửi gì",
       "title": "Thống kê sử dụng"
@@ -1367,6 +1500,8 @@
     "published_status": "Đã xuất bản",
     "search_label": "Tìm kiếm",
     "search_placeholder": "Tìm trang trạng thái theo tiêu đề...",
+    "show_locations": "Hiển thị từng vị trí",
+    "show_locations_info": "Với các monitor được kiểm tra từ nhiều vị trí, hiển thị trạng thái và lịch sử của từng vị trí",
     "update_status_page": "Cập nhật trang trạng thái",
     "view_page": "Xem trang"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Những gì được gửi và cách tắt",
     "label": "Gửi thống kê sử dụng ẩn danh",
-    "never_sent": "Không bao giờ gửi: tên giám sát, URL, máy chủ, thẻ, địa chỉ trang trạng thái hay cài đặt thông báo. Ping sử dụng không chứa địa chỉ IP, và Worker của Peekaping không ghi lại IP của người gửi.",
-    "not_saved": "Lựa chọn gửi thống kê sử dụng của bạn chưa được lưu. Hãy bật lại trong “Cài đặt”.",
-    "sent_features": "Bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không",
-    "sent_id": "Một ID ngẫu nhiên, được tạo khi bạn bật và bị xóa khi bạn tắt",
-    "sent_monitors": "Bạn có bao nhiêu giám sát, dưới dạng một khoảng, chẳng hạn 11-50",
-    "sent_setup": "Phiên bản Peekaping, chế độ đơn hoặc chế độ cụm, backend lưu trữ, cùng hệ điều hành và loại CPU",
-    "sent_types": "Các loại giám sát và kênh thông báo bạn dùng, chẳng hạn http hoặc telegram"
+    "not_saved": "Lựa chọn của bạn về thống kê sử dụng chưa được lưu. Hãy kiểm tra trong “Cài đặt”."
+  },
+  "telemetry_notice": {
+    "error_reports": "Báo cáo lỗi đang bật. Nếu Peekaping gặp sự cố, nó gửi loại lỗi và vị trí trong mã nơi lỗi xảy ra, phiên bản của nó, chế độ, backend lưu trữ và hệ điều hành. Nó không bao giờ gửi thông báo lỗi, URL hay tên máy chủ.",
+    "settings_errors": "Tắt báo cáo lỗi trong “Cài đặt”",
+    "settings_usage": "Tắt thống kê sử dụng trong “Cài đặt”",
+    "title": "Việc gửi dữ liệu ẩn danh được bật theo mặc định",
+    "usage_statistics": "Thống kê sử dụng đang bật. Nhiều nhất một lần mỗi ngày, Peekaping gửi ID ngẫu nhiên của bản cài đặt, phiên bản của nó, chế độ, backend lưu trữ và hệ điều hành, một khoảng cho số lượng giám sát của bạn, các loại giám sát và kênh thông báo bạn dùng, cũng như việc bạn có dùng trang trạng thái, cửa sổ bảo trì và số liệu hay không. Nó không bao giờ gửi tên, URL, máy chủ hay cài đặt."
   },
   "theme": {
     "dark": "Tối",

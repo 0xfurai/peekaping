@@ -96,7 +96,7 @@ func (s *monitorPaginationService) FindByID(_ context.Context, id string) (*moni
 	return &monitor.Model{ID: id}, nil
 }
 
-func (s *monitorPaginationService) GetHeartbeats(_ context.Context, _ string, limit, page int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
+func (s *monitorPaginationService) GetHeartbeats(_ context.Context, _, _ string, limit, page int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }

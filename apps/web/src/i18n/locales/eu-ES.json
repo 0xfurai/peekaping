@@ -16,8 +16,9 @@
       "have_account": "Kontu bat baduzu?",
       "sign_in": "Sartu",
       "submit": "Sortu",
-      "telemetry_hint": "Desaktibatuta dago, laukia markatzen ez baduzu. Geroago aldatu dezakezu «Ezarpenak» atalean. Markatzen baduzu, Peekapingek hau bidaliko du, egunean behin gehienez:",
-      "title": "Kaixo"
+      "title": "Kaixo",
+      "telemetry_note": "Anonimoa: monitoreen izenik, URLrik edo ostalaririk gabe. Geroago aldatu dezakezu «Ezarpenak» atalean.",
+      "telemetry_whats_sent": "Zer bidaltzen den"
     },
     "twofa": {
       "code_label": "2FA kodea",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Bidali errore-txostenak",
-    "never_sent": "Ez da inoiz bidaltzen: errore-mezuak, URLak, goiburuak, webhook-en URLak, izenak edo ostalari-izenak. Txostenak ez du IP helbiderik, eta Peekaping-en Sentry proiektua bidaltzailearen IPa ez gordetzeko konfiguratuta dago. Zure ERROR_REPORTING_DSN propioa erabiltzen baduzu, zure Sentry edo GlitchTip-en ezarpenek erabakitzen dute.",
-    "not_saved": "Errore-txostenak bidaltzeko aukeraketa ez da gorde. Aktibatu «Ezarpenak» atalean.",
+    "never_sent": "Ez da inoiz bidaltzen: errore-mezuak, URLak, goiburuak, webhook-en URLak, izenak edo ostalari-izenak. Txostenak ez du IP helbiderik, eta Peekaping-en Sentry proiektua bidaltzailearen IPa ez gordetzeko konfiguratuta dago.",
+    "not_saved": "Errore-txostenei buruzko aukeraketa ez da gorde. Egiaztatu «Ezarpenak» atalean.",
     "sent": "Peekaping bera huts egiten duenean bakarrik bidaltzen da. Txosten batek errorearen mota eta kodean non gertatu den, Peekaping-en bertsioa, modu bakarra edo kluster modua, biltegiratze-backenda eta sistema eragilea ditu."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Eskariaren denbora-mugua ({{seconds}} segundoen ondoren)",
           "resend_notification": "Berriz bidali abisua, X aldiz jarraian jaitsi (Berriz bidalketa desgaituta)"
         },
+        "location_rule": {
+          "all": "kokaleku guztiak behera daudenean",
+          "any": "edozein kokaleku behera dagoenean",
+          "at_least": "N kokaleku gutxienez behera daudenean",
+          "description": "Zundak konexiorik ez duen edo oraindik emaitzarik eman ez duen kokalekua ez da kontuan hartzen.",
+          "label": "Markatu monitorea behera dagoela",
+          "threshold_invalid": "Sartu zenbaki oso bat, 1 edo gehiago",
+          "threshold_label": "Kokaleku kopurua",
+          "threshold_too_high": "Ezin da aukeratutako zunden kopurua baino handiagoa izan"
+        },
         "notifications": {
           "add_notifier": "Gehitu jakinarazlea",
           "new_notifier": "+ Jakinarazle berria",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Jakinarazlea aukeratu",
           "selected_channels": "Hautatutako jakinarazpen kanalak",
           "title": "Jakinarazpen kanalenak"
+        },
+        "probe": {
+          "description": "Monitoreak aukeratzen duzun zunda bakoitzean exekutatzen da, eta zunda bakoitzaren emaitzak kokaleku gisa erakusten ditu.",
+          "label": "Zunda",
+          "option_unsupported": "{{name}} (ez du mota hau exekutatzen)",
+          "placeholder": "Hautatu zunda",
+          "push_fixed": "Push monitoreak beti zunda lokalean exekutatzen da.",
+          "required": "Aukeratu zunda bat gutxienez",
+          "unsupported": "Zunda honek ez du monitore mota hau exekutatzen. Hautatu beste zunda bat."
         },
         "proxy": {
           "add_proxy": "Proxya Gehitu",
@@ -658,6 +678,15 @@
       "expiring_soon": "Iraungitzen ari da",
       "for": "etarako",
       "live_status": "Zuzeneko egoera",
+      "locations": {
+        "all": "Kokaleku guztiak",
+        "no_result": "Oraindik ez dago emaitzarik",
+        "probe_offline": "Zundak ez du konexiorik",
+        "probe_unsupported": "Ez du mota hau exekutatzen",
+        "response_time": "Erantzun denbora",
+        "select_label": "Kokalekua",
+        "title": "Kokalekuak"
+      },
       "monitor_for": "monitoratu",
       "no_certificate_data": "Ez dago ziurtagiri daturik",
       "seconds": "segundoak",
@@ -683,6 +712,7 @@
     "maintenance": "Mantentzea",
     "monitors": "Monitoreak",
     "notification_channels": "Joparpen kanalak",
+    "probes": "Zundak",
     "proxies": "Proxyak",
     "settings": "Ezarpenak",
     "status_pages": "Egoera orriak",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Automatikoki berretsi",
         "auto_resolve_acknowledge_description": "Automatikoki onartu insidentzia",
-        "auto_resolve_description": "Aukeratu monitor-a berriz igarotzean zein ekintza hartu behar duzu",
+        "auto_resolve_description": "Aukeratu zer bidali behar den monitorea berriro martxan dagoenean edo zunda berriro linean dagoenean",
         "auto_resolve_do_nothing": "Ez egin",
-        "auto_resolve_do_nothing_description": "Ez da ekintzarik hartu UP egoeran",
+        "auto_resolve_do_nothing_description": "Ez da ezer bidaltzen monitorea berriro martxan dagoenean edo zunda berriro linean dagoenean, beraz insidentziak irekita jarraitzen du PagerDuty-n konpontzen duzun arte",
         "auto_resolve_label": "Auto konponketa edo onarpena",
         "auto_resolve_placeholder": "Hautatu auto-berreskuratzearen portaera",
         "auto_resolve_resolve": "Automatikoki konpontzea",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Token autentifikazio aukerakoa segurtasun handiagoa lortzeko. Pagertree-token goiburuan bidaliko da.",
         "authentication_token_label": "Autentifikazio token (aukerazkoa)",
         "authentication_token_placeholder": "Sartu autentifikazio tokena, beharrezkoa bada",
-        "auto_resolve_alerts_description": "PagerTree abisuak automatikoki konpontu monitorea berreskuratzen denean",
+        "auto_resolve_alerts_description": "PagerTree abisuak automatikoki konpontu monitorea berriro martxan dagoenean edo zunda berriro linean dagoenean",
         "auto_resolve_alerts_label": "Alerta automatikoki desaktibatzea",
         "how_to_get_integration_url_label": "Integrazioaren URLa nola lortu",
         "integration_url_description": "Sartu PagerTree webhook integrazioaren URLa.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Gordeta — idatzi ordezkatzeko"
     }
   },
+  "probes": {
+    "page_name": "Zundak",
+    "description": "Zundek monitoreen egiaztapenak exekutatzen dituzte instalatuta dauden lekuetatik. Zunda lokala Peekaping bera da.",
+    "local_name": "Lokala",
+    "monitor_probe": "Zunda: {{name}}",
+    "monitor_probe_unsupported": "{{name}} zundak ez ditu {{type}} motako monitoreak exekutatzen",
+    "empty_list": {
+      "title": "Ez da zundarik aurkitu",
+      "text": "Sortu zunda bat egiaztapenak beste leku batetik exekutatzeko.",
+      "action_text": "Sortu zure lehen zunda"
+    },
+    "table": {
+      "headers": {
+        "name": "Izena",
+        "location": "Kokalekua",
+        "status": "Egoera",
+        "disabled": "Desgaituta",
+        "token": "Tokena",
+        "instances": "Instantziak",
+        "actions": "Ekintzak"
+      },
+      "status": {
+        "online": "Linean",
+        "offline": "Lineaz kanpo"
+      },
+      "disabled": "Desgaituta",
+      "no_instances": "Oraindik ez dago instantziarik",
+      "last_seen": "azkenekoz ikusia {{date}}",
+      "actions": {
+        "edit": "Editatu {{name}} zunda",
+        "rotate": "Aldatu {{name}} zundaren tokena",
+        "delete": "Ezabatu {{name}} zunda"
+      }
+    },
+    "create_dialog": {
+      "title": "Sortu zunda",
+      "description": "Zunda batek instalatzen duzun lekutik exekutatzen ditu egiaztapenak. Bere tokena behin bakarrik erakusten da, sortu ondoren.",
+      "submit": "Sortu zunda",
+      "creating": "Sortzen..."
+    },
+    "edit_dialog": {
+      "title": "Editatu zunda",
+      "description": "Aldatu {{name}} zundaren ezarpenak."
+    },
+    "form": {
+      "name_label": "Izena",
+      "name_placeholder": "adib., Frankfurt",
+      "location_label": "Kokalekua (aukerakoa)",
+      "location_placeholder": "adib., Frankfurt, Alemania",
+      "name_required": "Izena beharrezkoa da",
+      "name_too_long": "Izena luzeegia da",
+      "location_too_long": "Kokalekua luzeegia da",
+      "disabled_label": "Desgaituta",
+      "disabled_description": "Desgaitutako zunda baten tokenak funtzionatzeari uzten dio berriro gaitu arte.",
+      "notifications_hint": "Utzi hutsik zunda honen monitoreen kanaletara jakinarazteko."
+    },
+    "rotate_dialog": {
+      "title": "Aldatu tokena",
+      "description": "{{name}} zundaren token zaharrak berehala uzten dio funtzionatzeari. Bere instantziak token berriarekin berrabiarazi behar dira.",
+      "confirm": "Aldatu tokena",
+      "rotating": "Aldatzen..."
+    },
+    "delete_dialog": {
+      "title": "Ezabatu zunda",
+      "description": "Ziur zaude \"{{name}}\" zunda ezabatu nahi duzula? Bere tokenak funtzionatzeari utziko dio. Ekintza hau ezin da desegin."
+    },
+    "token_alert": {
+      "title_created": "{{name}} zunda sortu da",
+      "title_rotated": "Token berria {{name}} zundarentzat",
+      "note": "Token honek zundari esleitutako monitoreen konfigurazioak irakurtzen ditu. Behin bakarrik erakusten da.",
+      "token_label": "Tokena",
+      "docker_label": "Abiarazi zunda Dockerrekin",
+      "copy_token": "Kopiatu tokena",
+      "copy_command": "Kopiatu docker komandoa"
+    },
+    "messages": {
+      "created_successfully": "Zunda behar bezala sortu da",
+      "updated_successfully": "Zunda behar bezala eguneratu da",
+      "rotated_successfully": "Tokena behar bezala aldatu da",
+      "deleted_successfully": "Zunda behar bezala ezabatu da",
+      "failed_to_create": "Ezin izan da zunda sortu",
+      "failed_to_update": "Ezin izan da zunda eguneratu",
+      "failed_to_rotate": "Ezin izan da tokena aldatu",
+      "failed_to_delete": "Ezin izan da zunda ezabatu",
+      "failed_to_load": "Ezin izan dira zundak kargatu",
+      "copy_success": "Arbelera kopiatu da",
+      "copy_failed": "Ezin izan da arbelera kopiatu"
+    },
+    "detail": {
+      "not_found": "Ez da zunda aurkitu"
+    },
+    "availability": {
+      "title": "Erabilgarritasuna",
+      "range_label": "Denbora-tartea",
+      "bar_label": "Erabilgarritasunaren historia",
+      "instance_bar_label": "{{name}} elementuaren konexioak",
+      "no_data": "Daturik ez",
+      "now": "Orain",
+      "instances_title": "Instantziak, azken 24 orduak",
+      "in_process_note": "Peekaping-ek berak egiaztatzen ditu zunda lokalaren monitoreak, beraz ez du erabilgarritasun-historiarik.",
+      "connected_since": "{{start}}-tik konektatuta"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Ekintza hau ezin da desegin. Proxya {{host}}:{{port}} betiko ezabatuko da.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "Kluster moduan, aldaketa prozesu guztietara iristen da minutu baten barruan.",
-      "description": "Bidali txosten bat Sentry-ra zerbitzariak huts egiten duenean. Desaktibatuta dago aktibatu arte.",
-      "forced_off": "ERROR_REPORTING=off edo DO_NOT_TRACK=1 ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
+      "description": "Bidali txosten bat Sentry-ra zerbitzariak huts egiten duenean. Lehenespenez aktibatuta dago; hemen desaktibatu dezakezu edonoiz.",
+      "forced_off": "ERROR_REPORTING=off ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
       "title": "Errore-txostenak"
     },
     "telemetry": {
-      "description": "Bidali instalazio hau nola konfiguratuta dagoenari buruzko estatistika anonimoak, egunean behin gehienez. Desaktibatuta dago aktibatu arte.",
-      "forced_off": "TELEMETRY=off edo DO_NOT_TRACK=1 ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
-      "id_note": "Instantziaren IDa aktibatzean sortzen da eta desaktibatzean ezabatzen da. Berriro aktibatzen baduzu, berri bat sortzen da.",
+      "description": "Bidali instalazio hau nola konfiguratuta dagoenari buruzko estatistika anonimoak, egunean behin gehienez. Lehenespenez aktibatuta dago; hemen desaktibatu dezakezu edonoiz.",
+      "forced_off": "TELEMETRY=off ingurune-aldagaiak desaktibatzen du hau. Ez da ezer bidaltzen, ezarpen honek dioena dena delakoa.",
+      "id_note": "Instantziaren IDa aktibatuta dagoen bitartean sortzen da eta desaktibatzean ezabatzen da. Berriro aktibatzen baduzu, berri bat sortzen da.",
       "payload_off": "Ez da ezer bidaltzen hau desaktibatuta dagoen bitartean. Hau izango litzateke erabilera-pingaren edukia aktibatuko bazenu.",
       "payload_title": "Hurrengo erabilera-pingak zer bidaliko duen",
       "title": "Erabilera-estatistikak"
@@ -1367,6 +1500,8 @@
     "published_status": "Argitaratuta",
     "search_label": "Bilatu",
     "search_placeholder": "Bilatu egoera orriak izenbururako...",
+    "show_locations": "Erakutsi kokaleku bakoitza",
+    "show_locations_info": "Hainbat kokalekutatik egiaztatzen diren monitoreetan, kokaleku bakoitzaren egoera eta historia erakusten dira",
     "update_status_page": "Egoera orria eguneratu",
     "view_page": "Orria ikusi"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Zer bidaltzen den eta nola desaktibatu",
     "label": "Bidali erabilera-estatistika anonimoak",
-    "never_sent": "Ez da inoiz bidaltzen: monitoreen izenak, URLak, ostalariak, etiketak, egoera orrien helbideak edo jakinarazpenen ezarpenak. Erabilera-pingak ez du IP helbiderik, eta Peekaping-en Worker-ak ez du bidaltzailearen IPa erregistratzen.",
-    "not_saved": "Erabilera-estatistikak bidaltzeko aukeraketa ez da gorde. Aktibatu «Ezarpenak» atalean.",
-    "sent_features": "Egoera orriak, mantentze-leihoak eta metrikak erabiltzen dituzun ala ez",
-    "sent_id": "ID ausazko bat, aktibatzean sortzen dena eta desaktibatzean ezabatzen dena",
-    "sent_monitors": "Zenbat monitore dituzun, sorta gisa, adibidez 11-50",
-    "sent_setup": "Peekaping-en bertsioa, modu bakarra edo kluster modua, biltegiratze-backenda, eta sistema eragilea eta CPU mota",
-    "sent_types": "Erabiltzen dituzun monitore eta jakinarazpen-kanal motak, adibidez http edo telegram"
+    "not_saved": "Erabilera-estatistikei buruzko aukeraketa ez da gorde. Egiaztatu «Ezarpenak» atalean."
+  },
+  "telemetry_notice": {
+    "error_reports": "Errore-txostenak aktibatuta daude. Peekapingek huts egiten badu, errorearen mota eta kodean non gertatu den, bere bertsioa, modua, biltegiratze-backenda eta sistema eragilea bidaltzen ditu. Ez ditu inoiz errore-mezuak, URLak edo ostalari-izenak bidaltzen.",
+    "settings_errors": "Desaktibatu errore-txostenak «Ezarpenak» atalean",
+    "settings_usage": "Desaktibatu erabilera-estatistikak «Ezarpenak» atalean",
+    "title": "Datu anonimoak bidaltzea lehenespenez aktibatuta dago",
+    "usage_statistics": "Erabilera-estatistikak aktibatuta daude. Egunean behin gehienez, Peekapingek honako hauek bidaltzen ditu: instantziaren ausazko ID bat, bere bertsioa, modua, biltegiratze-backenda eta sistema eragilea, zenbat monitore dituzun adierazten duen tarte bat, erabiltzen dituzun monitore eta jakinarazpen-kanal motak, eta egoera orriak, mantentze-leihoak eta metrikak erabiltzen dituzun ala ez. Ez ditu inoiz izenak, URLak, ostalariak edo ezarpenak bidaltzen."
   },
   "theme": {
     "dark": "Iluna",

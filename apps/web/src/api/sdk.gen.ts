@@ -150,6 +150,30 @@ import type {
   PutNotificationChannelsByIdData,
   PutNotificationChannelsByIdResponses,
   PutNotificationChannelsByIdErrors,
+  GetProbesData,
+  GetProbesResponses,
+  GetProbesErrors,
+  PostProbesData,
+  PostProbesResponses,
+  PostProbesErrors,
+  GetProbesAvailabilityData,
+  GetProbesAvailabilityResponses,
+  GetProbesAvailabilityErrors,
+  DeleteProbesByIdData,
+  DeleteProbesByIdResponses,
+  DeleteProbesByIdErrors,
+  GetProbesByIdData,
+  GetProbesByIdResponses,
+  GetProbesByIdErrors,
+  PutProbesByIdData,
+  PutProbesByIdResponses,
+  PutProbesByIdErrors,
+  GetProbesByIdAvailabilityData,
+  GetProbesByIdAvailabilityResponses,
+  GetProbesByIdAvailabilityErrors,
+  PostProbesByIdRotateTokenData,
+  PostProbesByIdRotateTokenResponses,
+  PostProbesByIdRotateTokenErrors,
   GetProxiesData,
   GetProxiesResponses,
   GetProxiesErrors,
@@ -231,10 +255,25 @@ import type {
   PutTelemetryData,
   PutTelemetryResponses,
   PutTelemetryErrors,
+  PostTelemetryNoticeData,
+  PostTelemetryNoticeResponses,
+  PostTelemetryNoticeErrors,
   GetVersionData,
   GetVersionResponses,
   GetHealthRootData,
   GetHealthRootResponses,
+  ProbeGetAssignmentsData,
+  ProbeGetAssignmentsResponses,
+  ProbeGetAssignmentsErrors,
+  ProbePostByeData,
+  ProbePostByeResponses,
+  ProbePostByeErrors,
+  ProbePostHelloData,
+  ProbePostHelloResponses,
+  ProbePostHelloErrors,
+  ProbePostResultsData,
+  ProbePostResultsResponses,
+  ProbePostResultsErrors,
 } from "./types.gen";
 import { client as _heyApiClient } from "./client.gen";
 
@@ -694,7 +733,7 @@ export const getBadgeByMonitorIdUptimeByDuration = <
 
 /**
  * Get the error reporting state
- * Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+ * Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING environment variable forces them off.
  */
 export const getErrorReporting = <ThrowOnError extends boolean = false>(
   options?: Options<GetErrorReportingData, ThrowOnError>
@@ -722,7 +761,7 @@ export const getErrorReporting = <ThrowOnError extends boolean = false>(
 
 /**
  * Opt in or out of error reports
- * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins.
+ * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode a change made on one api replica reaches the others within a minute. The choice is stored while the environment forces error reports off, and the environment still wins. Any choice also marks the one-time usage ping and error reports notice as seen.
  */
 export const putErrorReporting = <ThrowOnError extends boolean = false>(
   options: Options<PutErrorReportingData, ThrowOnError>
@@ -1553,6 +1592,231 @@ export const putNotificationChannelsById = <
 };
 
 /**
+ * Get probes
+ */
+export const getProbes = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProbesData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProbesResponses,
+    GetProbesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes",
+    ...options,
+  });
+};
+
+/**
+ * Create probe
+ */
+export const postProbes = <ThrowOnError extends boolean = false>(
+  options: Options<PostProbesData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostProbesResponses,
+    PostProbesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Get the availability of every probe
+ * Every probe's online and offline periods over the range, and its uptime, without its instances.
+ */
+export const getProbesAvailability = <ThrowOnError extends boolean = false>(
+  options?: Options<GetProbesAvailabilityData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetProbesAvailabilityResponses,
+    GetProbesAvailabilityErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/availability",
+    ...options,
+  });
+};
+
+/**
+ * Delete probe
+ */
+export const deleteProbesById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteProbesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteProbesByIdResponses,
+    DeleteProbesByIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Get probe
+ */
+export const getProbesById = <ThrowOnError extends boolean = false>(
+  options: Options<GetProbesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetProbesByIdResponses,
+    GetProbesByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Update probe
+ */
+export const putProbesById = <ThrowOnError extends boolean = false>(
+  options: Options<PutProbesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).put<
+    PutProbesByIdResponses,
+    PutProbesByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Get the availability of a probe
+ * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.
+ */
+export const getProbesByIdAvailability = <ThrowOnError extends boolean = false>(
+  options: Options<GetProbesByIdAvailabilityData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetProbesByIdAvailabilityResponses,
+    GetProbesByIdAvailabilityErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}/availability",
+    ...options,
+  });
+};
+
+/**
+ * Rotate probe token
+ */
+export const postProbesByIdRotateToken = <ThrowOnError extends boolean = false>(
+  options: Options<PostProbesByIdRotateTokenData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostProbesByIdRotateTokenResponses,
+    PostProbesByIdRotateTokenErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/probes/{id}/rotate-token",
+    ...options,
+  });
+};
+
+/**
  * Get proxies
  */
 export const getProxies = <ThrowOnError extends boolean = false>(
@@ -2222,7 +2486,7 @@ export const putTagsById = <ThrowOnError extends boolean = false>(
 
 /**
  * Get the usage ping state
- * Whether an admin opted in to the anonymous usage ping, whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, and the exact payload the next ping would send.
+ * Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
  */
 export const getTelemetry = <ThrowOnError extends boolean = false>(
   options?: Options<GetTelemetryData, ThrowOnError>
@@ -2250,7 +2514,7 @@ export const getTelemetry = <ThrowOnError extends boolean = false>(
 
 /**
  * Opt in or out of the usage ping
- * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins.
+ * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins. Any choice also marks the one-time notice as seen.
  */
 export const putTelemetry = <ThrowOnError extends boolean = false>(
   options: Options<PutTelemetryData, ThrowOnError>
@@ -2273,6 +2537,30 @@ export const putTelemetry = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Dismiss the usage ping and error reports notice
+ * An install that upgraded to a version with the usage ping and error reports on by default shows its admin a one-time notice. This marks it seen so it stops showing. It is not a choice: both features stay as they were. Making a choice with PUT /telemetry or PUT /error-reporting marks it seen too.
+ */
+export const postTelemetryNotice = <ThrowOnError extends boolean = false>(
+  options?: Options<PostTelemetryNoticeData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    PostTelemetryNoticeResponses,
+    PostTelemetryNoticeErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/telemetry/notice",
+    ...options,
   });
 };
 
@@ -2307,5 +2595,108 @@ export const getHealthRoot = <ThrowOnError extends boolean = false>(
     responseType: "json",
     url: "/health",
     ...options,
+  });
+};
+
+/**
+ * Get the monitors this instance runs
+ * A long poll. The answer is the monitors this instance of the probe runs, and a version that names the probe's assignment: its active monitors that are not push monitors and are of a type the probe supports, with their proxies, dealt among the probe's instances seen in the last 60 seconds so that each monitor runs on exactly one of them. Send the version you hold. If it is not the current one, or you send none, the server answers 200 at once. If it is, the server holds the request until a monitor of the probe is created, updated or deleted, or an instance of the probe joins or leaves, and answers 200 then; after 25 seconds without a change it answers 304 with no body, and the instance polls again. The reply is gzipped when Accept-Encoding allows it.
+ */
+export const probeGetAssignments = <ThrowOnError extends boolean = false>(
+  options: Options<ProbeGetAssignmentsData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    ProbeGetAssignmentsResponses,
+    ProbeGetAssignmentsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/probe/v1/assignments",
+    ...options,
+  });
+};
+
+/**
+ * Say bye
+ * Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
+ */
+export const probePostBye = <ThrowOnError extends boolean = false>(
+  options: Options<ProbePostByeData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ProbePostByeResponses,
+    ProbePostByeErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/probe/v1/bye",
+    ...options,
+  });
+};
+
+/**
+ * Say hello
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. A probe holds at most 64 instances. A hello from a new instance past that replaces the probe's oldest instance that has not been seen for a minute, and is answered 429 with Retry-After: 60 when all 64 are running. A hello from an instance the probe already holds is never refused for this. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostHello = <ThrowOnError extends boolean = false>(
+  options: Options<ProbePostHelloData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ProbePostHelloResponses,
+    ProbePostHelloErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/probe/v1/hello",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Send check results
+ * Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. A request fails with 500, or with 503 when the server could not take it just now, and also when another request holds the id of one of the results and has not stored it yet (it may still be at it, or it died), or when storing took longer than 90 seconds; that 503 carries a Retry-After of 5 seconds, which the instance waits before it sends the batch again. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored, by the API replica that took the request. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostResults = <ThrowOnError extends boolean = false>(
+  options: Options<ProbePostResultsData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    ProbePostResultsResponses,
+    ProbePostResultsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/probe/v1/results",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };

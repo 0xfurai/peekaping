@@ -16,8 +16,9 @@
       "have_account": "已有帳號？",
       "sign_in": "登入",
       "submit": "建立",
-      "telemetry_hint": "除非勾選此方塊，否則保持關閉。你之後可以在「設定」中變更。勾選後，Peekaping 每天最多傳送一次以下內容：",
-      "title": "您好"
+      "title": "您好",
+      "telemetry_note": "匿名：不含監控名稱、URL 或主機。你之後可以在「設定」中變更。",
+      "telemetry_whats_sent": "會傳送什麼"
     },
     "twofa": {
       "code_label": "兩步驗證碼",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "傳送錯誤報告",
-    "never_sent": "絕不傳送：錯誤訊息、URL、標頭、Webhook URL、名稱或主機名稱。報告不包含 IP 位址，Peekaping 的 Sentry 專案也已設定為不儲存傳送方的 IP。如果你使用自己的 ERROR_REPORTING_DSN，則由你的 Sentry 或 GlitchTip 設定決定。",
-    "not_saved": "你傳送錯誤報告的選擇未能儲存。請在「設定」中開啟。",
+    "never_sent": "絕不傳送：錯誤訊息、URL、標頭、Webhook URL、名稱或主機名稱。報告不包含 IP 位址，Peekaping 的 Sentry 專案也已設定為不儲存傳送方的 IP。",
+    "not_saved": "你關於錯誤報告的選擇未能儲存。請在「設定」中檢查。",
     "sent": "只在 Peekaping 本身當機時傳送。報告包含錯誤類型及其在程式碼中發生的位置、Peekaping 版本、單機模式或叢集模式、儲存後端以及作業系統。"
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "請求逾時 ({{seconds}} 秒後逾時)",
           "resend_notification": "若連續失效 X 次，重新發送通知（已停用）"
         },
+        "location_rule": {
+          "all": "所有位置都宕機",
+          "any": "任一位置宕機",
+          "at_least": "至少 N 個位置宕機",
+          "description": "探針離線或尚未回報的位置不會計入。",
+          "label": "在以下情況將監控標記為宕機",
+          "threshold_invalid": "請輸入 1 或以上的整數",
+          "threshold_label": "位置數量",
+          "threshold_too_high": "不能超過你選擇的探針數量"
+        },
         "notifications": {
           "add_notifier": "新增通知器",
           "new_notifier": "+ 新增通知者",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "選擇通知器",
           "selected_channels": "已選通知頻道",
           "title": "通知頻道"
+        },
+        "probe": {
+          "description": "監控會在你選擇的每個探針上執行，並把每個探針的結果顯示為一個位置。",
+          "label": "探針",
+          "option_unsupported": "{{name}}（不支援此類型）",
+          "placeholder": "選擇探針",
+          "push_fixed": "推送監控一律在本機探針上執行。",
+          "required": "請至少選擇一個探針",
+          "unsupported": "此探針不支援這種類型的監控，請選擇其他探針。"
         },
         "proxy": {
           "add_proxy": "新增代理",
@@ -658,6 +678,15 @@
       "expiring_soon": "即將到期",
       "for": "針對",
       "live_status": "即時狀態",
+      "locations": {
+        "all": "所有位置",
+        "no_result": "暫無結果",
+        "probe_offline": "探針離線",
+        "probe_unsupported": "不支援此類型",
+        "response_time": "回應時間",
+        "select_label": "位置",
+        "title": "位置"
+      },
       "monitor_for": "監控對象",
       "no_certificate_data": "無憑證資料",
       "seconds": "秒",
@@ -683,6 +712,7 @@
     "maintenance": "維護",
     "monitors": "監控",
     "notification_channels": "通知頻道",
+    "probes": "探針",
     "proxies": "代理",
     "settings": "設定",
     "status_pages": "狀態頁面",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "自動確認",
         "auto_resolve_acknowledge_description": "自動確認事件",
-        "auto_resolve_description": "當監控恢復時，選擇要執行的動作",
+        "auto_resolve_description": "當監控恢復或探針重新上線時，選擇要傳送的內容",
         "auto_resolve_do_nothing": "不執行",
-        "auto_resolve_do_nothing_description": "UP 狀態不採取任何動作",
+        "auto_resolve_do_nothing_description": "監控恢復或探針重新上線時不會傳送任何內容，因此事件會維持開啟，直到你在 PagerDuty 中解決為止",
         "auto_resolve_label": "自動解除或確認",
         "auto_resolve_placeholder": "選擇自動解決行為",
         "auto_resolve_resolve": "自動解除",
@@ -888,7 +918,7 @@
         "authentication_token_description": "可選的驗證令牌，以提升安全性。這將在 pagertree-token 標頭中發送。",
         "authentication_token_label": "認證令牌（可選）",
         "authentication_token_placeholder": "若需要，請輸入授權碼",
-        "auto_resolve_alerts_description": "當監控恢復時，自動解決 PagerTree 警報",
+        "auto_resolve_alerts_description": "當監控恢復或探針重新上線時，自動解決 PagerTree 警報",
         "auto_resolve_alerts_label": "自動解除警報",
         "how_to_get_integration_url_label": "如何取得整合網址",
         "integration_url_description": "輸入您的 PagerTree webhook 整合 URL。",
@@ -1123,6 +1153,109 @@
       "saved_hint": "已儲存 — 輸入即可取代"
     }
   },
+  "probes": {
+    "page_name": "探針",
+    "description": "探針會在其安裝的位置執行監控的檢查。本機探針就是 Peekaping 本身。",
+    "local_name": "本機",
+    "monitor_probe": "探針：{{name}}",
+    "monitor_probe_unsupported": "{{name}} 不支援 {{type}} 類型的監控",
+    "empty_list": {
+      "title": "找不到探針",
+      "text": "建立探針，從其他位置執行檢查。",
+      "action_text": "建立您的第一個探針"
+    },
+    "table": {
+      "headers": {
+        "name": "名稱",
+        "location": "位置",
+        "status": "狀態",
+        "disabled": "已停用",
+        "token": "權杖",
+        "instances": "執行個體",
+        "actions": "操作"
+      },
+      "status": {
+        "online": "線上",
+        "offline": "離線"
+      },
+      "disabled": "已停用",
+      "no_instances": "尚無執行個體",
+      "last_seen": "最後上線時間：{{date}}",
+      "actions": {
+        "edit": "編輯探針 {{name}}",
+        "rotate": "更換探針 {{name}} 的權杖",
+        "delete": "刪除探針 {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "建立探針",
+      "description": "探針會從您安裝它的位置執行檢查。它的權杖只會在建立後顯示一次。",
+      "submit": "建立探針",
+      "creating": "建立中…"
+    },
+    "edit_dialog": {
+      "title": "編輯探針",
+      "description": "變更 {{name}} 的設定。"
+    },
+    "form": {
+      "name_label": "名稱",
+      "name_placeholder": "例如：法蘭克福",
+      "location_label": "位置（選填）",
+      "location_placeholder": "例如：法蘭克福，德國",
+      "name_required": "名稱為必填",
+      "name_too_long": "名稱過長",
+      "location_too_long": "位置過長",
+      "disabled_label": "已停用",
+      "disabled_description": "已停用探針的權杖會失效，直到您重新啟用。",
+      "notifications_hint": "留空則通知此探針的監控所使用的頻道。"
+    },
+    "rotate_dialog": {
+      "title": "更換權杖",
+      "description": "探針 {{name}} 的舊權杖會立即失效。其執行個體必須使用新權杖重新啟動。",
+      "confirm": "更換權杖",
+      "rotating": "更換中…"
+    },
+    "delete_dialog": {
+      "title": "刪除探針",
+      "description": "確定要刪除探針「{{name}}」嗎？其權杖將會失效。此操作無法復原。"
+    },
+    "token_alert": {
+      "title_created": "已建立探針 {{name}}",
+      "title_rotated": "探針 {{name}} 的新權杖",
+      "note": "此權杖用於讀取指派給該探針的監控設定。它只會顯示一次。",
+      "token_label": "權杖",
+      "docker_label": "使用 Docker 啟動探針",
+      "copy_token": "複製權杖",
+      "copy_command": "複製 docker 指令"
+    },
+    "messages": {
+      "created_successfully": "成功建立探針",
+      "updated_successfully": "成功更新探針",
+      "rotated_successfully": "成功更換權杖",
+      "deleted_successfully": "成功刪除探針",
+      "failed_to_create": "建立探針失敗",
+      "failed_to_update": "更新探針失敗",
+      "failed_to_rotate": "更換權杖失敗",
+      "failed_to_delete": "刪除探針失敗",
+      "failed_to_load": "載入探針失敗",
+      "copy_success": "已複製到剪貼簿",
+      "copy_failed": "無法複製到剪貼簿"
+    },
+    "detail": {
+      "not_found": "找不到探針"
+    },
+    "availability": {
+      "title": "可用性",
+      "range_label": "時間範圍",
+      "bar_label": "可用性歷史記錄",
+      "instance_bar_label": "{{name}} 的連線",
+      "no_data": "無資料",
+      "now": "現在",
+      "instances_title": "執行個體，最近 24 小時",
+      "in_process_note": "本機探針的監控由 Peekaping 自行檢查，因此沒有可用性歷史記錄。",
+      "connected_since": "自 {{start}} 起已連線"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "此操作不可復原。這將永久刪除代理 {{host}}:{{port}}。",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "在叢集模式下，變更會在一分鐘內傳達到每個程序。",
-      "description": "伺服器當機時向 Sentry 傳送報告。開啟之前保持關閉。",
-      "forced_off": "環境變數 ERROR_REPORTING=off 或 DO_NOT_TRACK=1 已將此選項關閉。無論此設定為何，都不會傳送任何內容。",
+      "description": "伺服器當機時向 Sentry 傳送報告。預設開啟，你可以隨時在這裡關閉。",
+      "forced_off": "環境變數 ERROR_REPORTING=off 已將此選項關閉。無論此設定為何，都不會傳送任何內容。",
       "title": "錯誤報告"
     },
     "telemetry": {
-      "description": "每天最多一次傳送關於此安裝如何設定的匿名統計。開啟之前保持關閉。",
-      "forced_off": "環境變數 TELEMETRY=off 或 DO_NOT_TRACK=1 已將此選項關閉。無論此設定為何，都不會傳送任何內容。",
-      "id_note": "執行個體 ID 在你開啟此選項時建立，關閉時刪除。再次開啟會建立新的 ID。",
+      "description": "每天最多一次傳送關於此安裝如何設定的匿名統計。預設開啟，你可以隨時在這裡關閉。",
+      "forced_off": "環境變數 TELEMETRY=off 已將此選項關閉。無論此設定為何，都不會傳送任何內容。",
+      "id_note": "執行個體 ID 在此選項開啟期間建立，關閉時刪除。再次開啟會建立新的 ID。",
       "payload_off": "關閉期間不會傳送任何內容。如果你開啟，使用情況 ping 將包含以下內容。",
       "payload_title": "下一次使用情況 ping 會傳送什麼",
       "title": "使用統計"
@@ -1367,6 +1500,8 @@
     "published_status": "已發佈",
     "search_label": "搜尋",
     "search_placeholder": "按標題搜尋狀態頁面…",
+    "show_locations": "顯示每個位置",
+    "show_locations_info": "對於從多個位置檢查的監控項目，顯示每個位置的狀態與歷史記錄",
     "update_status_page": "更新狀態頁面",
     "view_page": "查看頁面"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "會傳送什麼，以及如何關閉",
     "label": "傳送匿名使用統計",
-    "never_sent": "絕不傳送：監控名稱、URL、主機、標籤、狀態頁面位址或通知設定。使用情況 ping 不包含 IP 位址，Peekaping 的 Worker 也不會記錄傳送方的 IP。",
-    "not_saved": "你傳送使用統計的選擇未能儲存。請在「設定」中開啟。",
-    "sent_features": "你是否使用狀態頁面、維護時段和指標",
-    "sent_id": "一個隨機 ID，開啟時建立，關閉時刪除",
-    "sent_monitors": "你有多少個監控，以範圍表示，例如 11-50",
-    "sent_setup": "Peekaping 版本、單機模式或叢集模式、儲存後端，以及作業系統和 CPU 類型",
-    "sent_types": "你使用的監控和通知管道的類型，例如 http 或 telegram"
+    "not_saved": "你關於使用統計的選擇未能儲存。請在「設定」中檢查。"
+  },
+  "telemetry_notice": {
+    "error_reports": "錯誤報告已開啟。如果 Peekaping 當機，會傳送錯誤類型及其在程式碼中發生的位置、自身的版本、模式、儲存後端和作業系統。絕不會傳送錯誤訊息、URL 或主機名稱。",
+    "settings_errors": "在「設定」中關閉錯誤報告",
+    "settings_usage": "在「設定」中關閉使用統計",
+    "title": "預設開啟匿名資料傳送",
+    "usage_statistics": "使用統計已開啟。Peekaping 每天最多傳送一次隨機的實例 ID、自身的版本、模式、儲存後端和作業系統、監控數量的範圍、你使用的監控和通知管道的類型，以及你是否使用狀態頁面、維護時段和指標。絕不會傳送名稱、URL、主機或設定。"
   },
   "theme": {
     "dark": "深色",

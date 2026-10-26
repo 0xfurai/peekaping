@@ -16,8 +16,9 @@
       "have_account": "Har du allerede en konto?",
       "sign_in": "Logg inn",
       "submit": "Opprett",
-      "telemetry_hint": "Av, med mindre du krysser av for denne boksen. Du kan endre det senere under «Innstillinger». Hvis du krysser av, sender Peekaping dette høyst én gang per dag:",
-      "title": "Hei"
+      "title": "Hei",
+      "telemetry_note": "Anonymt: ingen navn på overvåkninger, nettadresser eller verter. Du kan endre det senere under «Innstillinger».",
+      "telemetry_whats_sent": "Hva som sendes"
     },
     "twofa": {
       "code_label": "2FA-kode",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Send feilrapporter",
-    "never_sent": "Sendes aldri: feilmeldinger, nettadresser, hoder, webhook-adresser, navn eller vertsnavn. En rapport inneholder ingen IP-adresse, og Peekapings Sentry-prosjekt er satt opp til ikke å lagre avsenderens IP. Med din egen ERROR_REPORTING_DSN bestemmer innstillingene i din Sentry eller GlitchTip.",
-    "not_saved": "Valget ditt om å sende feilrapporter ble ikke lagret. Slå det på under «Innstillinger».",
+    "never_sent": "Sendes aldri: feilmeldinger, nettadresser, hoder, webhook-adresser, navn eller vertsnavn. En rapport inneholder ingen IP-adresse, og Peekapings Sentry-prosjekt er satt opp til ikke å lagre avsenderens IP.",
+    "not_saved": "Valget ditt om feilrapporter ble ikke lagret. Sjekk det under «Innstillinger».",
     "sent": "Sendes bare når Peekaping selv krasjer. En rapport inneholder feiltypen og stedet i koden der den skjedde, Peekaping-versjonen, enkeltmodus eller klyngemodus, lagringsbackenden og operativsystemet."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "Forespørsel timeout (Timeout etter {{seconds}} sekunder)",
           "resend_notification": "Send varsel på nytt hvis ned i X påfølgende ganger (Send på nytt deaktivert)"
         },
+        "location_rule": {
+          "all": "alle plasseringer er nede",
+          "any": "en hvilken som helst plassering er nede",
+          "at_least": "minst N plasseringer er nede",
+          "description": "En plassering der proben er offline, eller som ikke har rapportert ennå, regnes ikke med.",
+          "label": "Merk monitoren som nede når",
+          "threshold_invalid": "Skriv inn et helt tall, 1 eller mer",
+          "threshold_label": "Antall plasseringer",
+          "threshold_too_high": "Kan ikke være høyere enn antallet valgte prober"
+        },
         "notifications": {
           "add_notifier": "Legg til varsel",
           "new_notifier": "+ Ny varsler",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Velg varsler",
           "selected_channels": "Valgte varslingskanaler",
           "title": "Varslingskanaler"
+        },
+        "probe": {
+          "description": "Monitoren kjører på hver probe du velger og viser resultatene fra hver av dem som en plassering.",
+          "label": "Probe",
+          "option_unsupported": "{{name}} (kjører ikke denne typen)",
+          "placeholder": "Velg probe",
+          "push_fixed": "En Push Monitor kjører alltid på den lokale proben.",
+          "required": "Velg minst én probe",
+          "unsupported": "Denne proben kjører ikke denne typen monitor. Velg en annen probe."
         },
         "proxy": {
           "add_proxy": "Legg til proxy",
@@ -658,6 +678,15 @@
       "expiring_soon": "Utløper snart",
       "for": "for",
       "live_status": "Direkte status",
+      "locations": {
+        "all": "Alle plasseringer",
+        "no_result": "Ingen resultat ennå",
+        "probe_offline": "Proben er offline",
+        "probe_unsupported": "Kjører ikke denne typen",
+        "response_time": "Svartid",
+        "select_label": "Plassering",
+        "title": "Plasseringer"
+      },
       "monitor_for": "overvåk for",
       "no_certificate_data": "Ingen sertifikatdata",
       "seconds": "sekunder",
@@ -683,6 +712,7 @@
     "maintenance": "Vedlikehold",
     "monitors": "Overvåkninger",
     "notification_channels": "Varslingskanaler",
+    "probes": "Prober",
     "proxies": "Proxyer",
     "settings": "Innstillinger",
     "status_pages": "Status‑sider",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Auto-godta",
         "auto_resolve_acknowledge_description": "Automatisk anerkjenne hendelsen",
-        "auto_resolve_description": "Velg hva som skal skje når en overvåker kommer opp igjen",
+        "auto_resolve_description": "Velg hva som skal sendes når en overvåker kommer opp igjen eller en probe kommer online igjen",
         "auto_resolve_do_nothing": "Ikke gjør noe",
-        "auto_resolve_do_nothing_description": "Ingen handling utført ved status UP",
+        "auto_resolve_do_nothing_description": "Ingenting sendes når en overvåker kommer opp igjen eller en probe kommer online igjen, så hendelsen forblir åpen til du løser den i PagerDuty",
         "auto_resolve_label": "Auto Løs eller Bekreft",
         "auto_resolve_placeholder": "Velg automatisk oppklaring",
         "auto_resolve_resolve": "Auto-løsning",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Valgfri autentiseringstoken for forbedret sikkerhet. Dette vil bli sendt i pagertree-token-headeren.",
         "authentication_token_label": "Autentiseringstoken (valgfritt)",
         "authentication_token_placeholder": "Oppgi auth‑token hvis nødvendig",
-        "auto_resolve_alerts_description": "Løs opp PagerTree-varsler automatisk når overvåkningen er oppe igjen.",
+        "auto_resolve_alerts_description": "Løs PagerTree-varsler automatisk når en overvåker kommer opp igjen eller en probe kommer online igjen.",
         "auto_resolve_alerts_label": "Automatisk løsning av varsler",
         "how_to_get_integration_url_label": "Hvordan få integrasjons‑URL",
         "integration_url_description": "Oppgi din PagerTree webhook-integrasjons‑URL.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Lagret — skriv for å erstatte"
     }
   },
+  "probes": {
+    "page_name": "Prober",
+    "description": "Prober kjører kontroller av overvåkninger fra stedene der de er installert. Den lokale proben er Peekaping selv.",
+    "local_name": "Lokal",
+    "monitor_probe": "Probe: {{name}}",
+    "monitor_probe_unsupported": "{{name}} kjører ikke {{type}}-monitorer",
+    "empty_list": {
+      "title": "Ingen prober funnet",
+      "text": "Opprett en probe for å kjøre kontroller fra et annet sted.",
+      "action_text": "Opprett din første probe"
+    },
+    "table": {
+      "headers": {
+        "name": "Navn",
+        "location": "Plassering",
+        "status": "Status",
+        "disabled": "Deaktivert",
+        "token": "Token",
+        "instances": "Instanser",
+        "actions": "Handlinger"
+      },
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "disabled": "Deaktivert",
+      "no_instances": "Ingen instanser ennå",
+      "last_seen": "sist sett {{date}}",
+      "actions": {
+        "edit": "Rediger probe {{name}}",
+        "rotate": "Bytt token for probe {{name}}",
+        "delete": "Slett probe {{name}}"
+      }
+    },
+    "create_dialog": {
+      "title": "Opprett probe",
+      "description": "En probe kjører kontroller fra stedet der du installerer den. Tokenet vises bare én gang, etter at du har opprettet den.",
+      "submit": "Opprett probe",
+      "creating": "Oppretter..."
+    },
+    "edit_dialog": {
+      "title": "Rediger probe",
+      "description": "Endre innstillingene for {{name}}."
+    },
+    "form": {
+      "name_label": "Navn",
+      "name_placeholder": "f.eks. Frankfurt",
+      "location_label": "Plassering (valgfritt)",
+      "location_placeholder": "f.eks. Frankfurt, Tyskland",
+      "name_required": "Navn er påkrevd",
+      "name_too_long": "Navnet er for langt",
+      "location_too_long": "Plasseringen er for lang",
+      "disabled_label": "Deaktivert",
+      "disabled_description": "Tokenet til en deaktivert probe slutter å virke til du aktiverer den igjen.",
+      "notifications_hint": "La feltet stå tomt for å varsle kanalene til denne probens overvåkninger."
+    },
+    "rotate_dialog": {
+      "title": "Bytt token",
+      "description": "Det gamle tokenet til proben {{name}} slutter å virke med en gang. Instansene må startes på nytt med det nye tokenet.",
+      "confirm": "Bytt token",
+      "rotating": "Bytter..."
+    },
+    "delete_dialog": {
+      "title": "Slett probe",
+      "description": "Er du sikker på at du vil slette proben «{{name}}»? Tokenet slutter å virke. Denne handlingen kan ikke angres."
+    },
+    "token_alert": {
+      "title_created": "Proben {{name}} er opprettet",
+      "title_rotated": "Nytt token for proben {{name}}",
+      "note": "Dette tokenet leser konfigurasjonene til overvåkningene som er tildelt proben. Det vises bare én gang.",
+      "token_label": "Token",
+      "docker_label": "Start proben med Docker",
+      "copy_token": "Kopier token",
+      "copy_command": "Kopier docker-kommando"
+    },
+    "messages": {
+      "created_successfully": "Proben ble opprettet",
+      "updated_successfully": "Proben ble oppdatert",
+      "rotated_successfully": "Tokenet ble byttet",
+      "deleted_successfully": "Proben ble slettet",
+      "failed_to_create": "Kunne ikke opprette proben",
+      "failed_to_update": "Kunne ikke oppdatere proben",
+      "failed_to_rotate": "Kunne ikke bytte tokenet",
+      "failed_to_delete": "Kunne ikke slette proben",
+      "failed_to_load": "Kunne ikke laste prober",
+      "copy_success": "Kopiert til utklippstavlen",
+      "copy_failed": "Kunne ikke kopiere til utklippstavlen"
+    },
+    "detail": {
+      "not_found": "Proben ble ikke funnet"
+    },
+    "availability": {
+      "title": "Tilgjengelighet",
+      "range_label": "Tidsrom",
+      "bar_label": "Tilgjengelighetshistorikk",
+      "instance_bar_label": "Tilkoblinger for {{name}}",
+      "no_data": "Ingen data",
+      "now": "Nå",
+      "instances_title": "Instanser, siste 24 timer",
+      "in_process_note": "Peekaping sjekker selv monitorene til den lokale proben, så den har ingen tilgjengelighetshistorikk.",
+      "connected_since": "Tilkoblet siden {{start}}"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Denne handlingen kan ikke angres. Proxyen {{host}}:{{port}} vil bli permanent slettet.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "I klyngemodus når en endring alle prosesser innen ett minutt.",
-      "description": "Send en rapport til Sentry når serveren krasjer. Av til du slår det på.",
-      "forced_off": "Miljøvariabelen ERROR_REPORTING=off eller DO_NOT_TRACK=1 slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
+      "description": "Send en rapport til Sentry når serveren krasjer. På som standard; du kan slå det av her når som helst.",
+      "forced_off": "Miljøvariabelen ERROR_REPORTING=off slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
       "title": "Feilrapporter"
     },
     "telemetry": {
-      "description": "Send anonym statistikk om hvordan denne installasjonen er satt opp, høyst én gang per dag. Av til du slår det på.",
-      "forced_off": "Miljøvariabelen TELEMETRY=off eller DO_NOT_TRACK=1 slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
-      "id_note": "Instans-ID-en opprettes når du slår dette på og slettes når du slår det av. Slår du det på igjen, opprettes en ny.",
+      "description": "Send anonym statistikk om hvordan denne installasjonen er satt opp, høyst én gang per dag. På som standard; du kan slå det av her når som helst.",
+      "forced_off": "Miljøvariabelen TELEMETRY=off slår dette av. Ingenting sendes, uansett hva denne innstillingen sier.",
+      "id_note": "Instans-ID-en opprettes så lenge dette er på og slettes når du slår det av. Slår du det på igjen, opprettes en ny.",
       "payload_off": "Ingenting sendes mens dette er av. Dette er hva en bruksping ville inneholde hvis du slo det på.",
       "payload_title": "Hva den neste brukspingen sender",
       "title": "Bruksstatistikk"
@@ -1367,6 +1500,8 @@
     "published_status": "Publisert",
     "search_label": "Søk",
     "search_placeholder": "Søk status­sider etter tittel…",
+    "show_locations": "Vis hver plassering",
+    "show_locations_info": "For overvåkinger som sjekkes fra flere plasseringer, vises status og historikk for hver plassering",
     "update_status_page": "Oppdater statusside",
     "view_page": "Se side"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Hva som sendes, og hvordan du slår det av",
     "label": "Send anonym bruksstatistikk",
-    "never_sent": "Sendes aldri: navn på overvåkninger, nettadresser, verter, merker, adresser til statussider eller varslingsinnstillinger. En bruksping inneholder ingen IP-adresse, og Peekapings Worker registrerer ikke avsenderens IP.",
-    "not_saved": "Valget ditt om å sende bruksstatistikk ble ikke lagret. Slå det på under «Innstillinger».",
-    "sent_features": "Om du bruker statussider, vedlikeholdsvinduer og målinger",
-    "sent_id": "En tilfeldig ID, som opprettes når du slår det på og slettes når du slår det av",
-    "sent_monitors": "Hvor mange overvåkninger du har, som et område, for eksempel 11-50",
-    "sent_setup": "Peekaping-versjonen, enkeltmodus eller klyngemodus, lagringsbackenden og operativsystem og CPU-type",
-    "sent_types": "Typene overvåkninger og varslingskanaler du bruker, for eksempel http eller telegram"
+    "not_saved": "Valget ditt om bruksstatistikk ble ikke lagret. Sjekk det under «Innstillinger»."
+  },
+  "telemetry_notice": {
+    "error_reports": "Feilrapporter er på. Hvis Peekaping krasjer, sender den feiltypen og stedet i koden der det skjedde, versjonen sin, modus, lagringsbackend og operativsystem. Den sender aldri feilmeldinger, URL-er eller vertsnavn.",
+    "settings_errors": "Slå av feilrapporter under «Innstillinger»",
+    "settings_usage": "Slå av bruksstatistikk under «Innstillinger»",
+    "title": "Sending av anonyme data er på som standard",
+    "usage_statistics": "Bruksstatistikk er på. Høyst én gang per dag sender Peekaping en tilfeldig instans-ID, versjonen sin, modus, lagringsbackend og operativsystem, et intervall for hvor mange overvåkninger du har, typene overvåkninger og varslingskanaler du bruker, og om du bruker statussider, vedlikeholdsvinduer og målinger. Den sender aldri navn, URL-er, verter eller innstillinger."
   },
   "theme": {
     "dark": "Mørk",

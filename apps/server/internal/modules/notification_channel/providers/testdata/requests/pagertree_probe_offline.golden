@@ -1,0 +1,20 @@
+POST https://api.pagertree.com/integration/int_123
+Content-Type: application/json
+
+{
+  "event_type": "create",
+  "Id": "Peekaping/probe-1",
+  "Title": "Probe Frankfurt is offline",
+  "Description": "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC",
+  "urgency": "medium",
+  "Tags": [
+    "peekaping",
+    "monitor-type:probe"
+  ],
+  "Meta": {
+    "monitor_id": "probe-1",
+    "monitor_name": "Probe Frankfurt",
+    "monitor_type": "probe",
+    "status": 0
+  }
+}

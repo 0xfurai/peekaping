@@ -6,6 +6,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/probe"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -44,9 +45,6 @@ type Config struct {
 	// Queue configuration
 	QueueConcurrency int `env:"QUEUE_CONCURRENCY" validate:"min=1" default:"128"`
 
-	// Producer configuration (for push endpoint)
-	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
-
 	// Bruteforce protection settings
 	BruteforceMaxAttempts int           `env:"BRUTEFORCE_MAX_ATTEMPTS" default:"20"`
 	BruteforceWindow      time.Duration `env:"BRUTEFORCE_WINDOW" default:"1m"`
@@ -82,16 +80,24 @@ type Config struct {
 	// unset and gives the default.
 	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 
-	// Usage ping (ADR 0003): off until an admin opts in. TELEMETRY=off and DO_NOT_TRACK=1 force
+	// Usage ping (ADR 0003): on until an admin opts out. TELEMETRY=off forces
 	// it off, and TELEMETRY_URL moves where it is sent.
 	Telemetry    string `env:"TELEMETRY"`
-	DoNotTrack   string `env:"DO_NOT_TRACK"`
 	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
 
-	// Error reports (ADR 0003): off until an admin opts in. ERROR_REPORTING=off and DO_NOT_TRACK=1
-	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
+	// Error reports (ADR 0003): on until an admin opts out. ERROR_REPORTING=off
+	// forces them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
 	ErrorReporting    string `env:"ERROR_REPORTING"`
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
+
+	// The local probe's token. Set, it is stored on the local probe at startup. Validated in Validate().
+	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
+
+	// How long an online probe's instances may all go unseen before the probe counts as offline.
+	// A Go duration, from config.MinProbeOfflineAfter to config.MaxProbeOfflineAfter. The sweep that
+	// sets the probe offline runs on the api replica that holds the leader lock. Validated in
+	// Validate().
+	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -110,6 +116,11 @@ func LoadAndValidate(path string) (*Config, error) {
 
 // Validate validates the API service configuration
 func Validate(cfg *Config) error {
+	// MongoDB storage was removed, and the db_type validator below would only call the value invalid
+	if err := config.RefuseMongoStorage(cfg.DBType); err != nil {
+		return err
+	}
+
 	// Validate using struct tags
 	v := validator.New()
 	config.RegisterCustomValidators(v)
@@ -165,6 +176,23 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	// A short token is easy to guess, and it would give a probe's access to the monitors' configs.
+	// The message doesn't repeat it.
+	if cfg.ProbeBootstrapToken != "" && len(cfg.ProbeBootstrapToken) < probe.MinBootstrapTokenLength {
+		return fmt.Errorf("PROBE_BOOTSTRAP_TOKEN must be at least %d characters", probe.MinBootstrapTokenLength)
+	}
+
+	// A shorter limit would announce a probe offline while it restarts gracefully (see
+	// probe.RetiredAt)
+	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at least %s", config.MinProbeOfflineAfter)
+	}
+	// The sweep forgets an instance after that long, so a longer limit would set a probe online on
+	// an instance about to be pruned, and offline again (see config.MaxProbeOfflineAfter)
+	if cfg.ProbeOfflineAfter > config.MaxProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
+	}
+
 	return nil
 }
 
@@ -191,7 +219,6 @@ func (c *Config) ToInternalConfig() *config.Config {
 		RedisPassword:                c.RedisPassword,
 		RedisDB:                      c.RedisDB,
 		QueueConcurrency:             c.QueueConcurrency,
-		ProducerConcurrency:          c.ProducerConcurrency,
 		BruteforceMaxAttempts:        c.BruteforceMaxAttempts,
 		BruteforceWindow:             c.BruteforceWindow,
 		BruteforceLockout:            c.BruteforceLockout,
@@ -203,10 +230,11 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ServiceName:                  c.ServiceName,
 		MetricsEnabled:               c.MetricsEnabled,
 		Telemetry:                    c.Telemetry,
-		DoNotTrack:                   c.DoNotTrack,
 		TelemetryURL:                 c.TelemetryURL,
 		ErrorReporting:               c.ErrorReporting,
 		ErrorReportingDSN:            c.ErrorReportingDSN,
+		ProbeBootstrapToken:          c.ProbeBootstrapToken,
+		ProbeOfflineAfter:            c.ProbeOfflineAfter,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

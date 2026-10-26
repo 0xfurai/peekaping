@@ -9,6 +9,7 @@ import (
 	"net/smtp"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
+	"strconv"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"
@@ -86,7 +87,7 @@ func (e *EmailSender) Send(
 	to := cfg.SMTPTo
 	auth := smtp.PlainAuth("", cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost)
 	msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\nFrom: %s\r\n\r\n%s", to, finalSubject, cfg.SMTPFrom, finalBody))
-	addr := fmt.Sprintf("%s:%d", cfg.SMTPHost, cfg.SMTPPort)
+	addr := net.JoinHostPort(cfg.SMTPHost, strconv.Itoa(cfg.SMTPPort))
 	fmt.Println("Sending email to:", to, "from:", cfg.SMTPFrom, "subject:", finalSubject, "body:", finalBody)
 	return sendMail(ctx, addr, auth, cfg.SMTPFrom, []string{to}, msg)
 }

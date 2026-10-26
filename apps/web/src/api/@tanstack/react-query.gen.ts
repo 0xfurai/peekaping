@@ -52,6 +52,14 @@ import {
   getNotificationChannelsById,
   patchNotificationChannelsById,
   putNotificationChannelsById,
+  getProbes,
+  postProbes,
+  getProbesAvailability,
+  deleteProbesById,
+  getProbesById,
+  putProbesById,
+  getProbesByIdAvailability,
+  postProbesByIdRotateToken,
   getProxies,
   postProxies,
   deleteProxiesById,
@@ -79,8 +87,13 @@ import {
   putTagsById,
   getTelemetry,
   putTelemetry,
+  postTelemetryNotice,
   getVersion,
   getHealthRoot,
+  probeGetAssignments,
+  probePostBye,
+  probePostHello,
+  probePostResults,
 } from "../sdk.gen";
 import {
   queryOptions,
@@ -201,6 +214,22 @@ import type {
   PutNotificationChannelsByIdData,
   PutNotificationChannelsByIdError,
   PutNotificationChannelsByIdResponse,
+  GetProbesData,
+  PostProbesData,
+  PostProbesError,
+  PostProbesResponse,
+  GetProbesAvailabilityData,
+  DeleteProbesByIdData,
+  DeleteProbesByIdError,
+  DeleteProbesByIdResponse,
+  GetProbesByIdData,
+  PutProbesByIdData,
+  PutProbesByIdError,
+  PutProbesByIdResponse,
+  GetProbesByIdAvailabilityData,
+  PostProbesByIdRotateTokenData,
+  PostProbesByIdRotateTokenError,
+  PostProbesByIdRotateTokenResponse,
   GetProxiesData,
   GetProxiesError,
   GetProxiesResponse,
@@ -262,8 +291,21 @@ import type {
   PutTelemetryData,
   PutTelemetryError,
   PutTelemetryResponse,
+  PostTelemetryNoticeData,
+  PostTelemetryNoticeError,
+  PostTelemetryNoticeResponse,
   GetVersionData,
   GetHealthRootData,
+  ProbeGetAssignmentsData,
+  ProbePostByeData,
+  ProbePostByeError,
+  ProbePostByeResponse,
+  ProbePostHelloData,
+  ProbePostHelloError,
+  ProbePostHelloResponse,
+  ProbePostResultsData,
+  ProbePostResultsError,
+  ProbePostResultsResponse,
 } from "../types.gen";
 import type { AxiosError } from "axios";
 import { client as _heyApiClient } from "../client.gen";
@@ -974,7 +1016,7 @@ export const getErrorReportingQueryKey = (
 
 /**
  * Get the error reporting state
- * Whether an admin opted in to error reports, and whether the ERROR_REPORTING or DO_NOT_TRACK environment variable forces them off.
+ * Whether error reports are on (they are, until an admin opts out), and whether the ERROR_REPORTING environment variable forces them off.
  */
 export const getErrorReportingOptions = (
   options?: Options<GetErrorReportingData>
@@ -995,7 +1037,7 @@ export const getErrorReportingOptions = (
 
 /**
  * Opt in or out of error reports
- * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode the change reaches the producer, the worker and the ingester within a minute. The choice is stored while the environment forces error reports off, and the environment still wins.
+ * Error reports are crash reports: the error type, the stack frames, the release and the install's mode, storage backend, OS and architecture. In cluster mode a change made on one api replica reaches the others within a minute. The choice is stored while the environment forces error reports off, and the environment still wins. Any choice also marks the one-time usage ping and error reports notice as seen.
  */
 export const putErrorReportingMutation = (
   options?: Partial<Options<PutErrorReportingData>>
@@ -2092,6 +2134,251 @@ export const putNotificationChannelsByIdMutation = (
   return mutationOptions;
 };
 
+export const getProbesQueryKey = (options?: Options<GetProbesData>) =>
+  createQueryKey("getProbes", options);
+
+/**
+ * Get probes
+ */
+export const getProbesOptions = (options?: Options<GetProbesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesQueryKey(options),
+  });
+};
+
+export const postProbesQueryKey = (options: Options<PostProbesData>) =>
+  createQueryKey("postProbes", options);
+
+/**
+ * Create probe
+ */
+export const postProbesOptions = (options: Options<PostProbesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postProbes({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postProbesQueryKey(options),
+  });
+};
+
+/**
+ * Create probe
+ */
+export const postProbesMutation = (
+  options?: Partial<Options<PostProbesData>>
+): UseMutationOptions<
+  PostProbesResponse,
+  AxiosError<PostProbesError>,
+  Options<PostProbesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostProbesResponse,
+    AxiosError<PostProbesError>,
+    Options<PostProbesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postProbes({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProbesAvailabilityQueryKey = (
+  options?: Options<GetProbesAvailabilityData>
+) => createQueryKey("getProbesAvailability", options);
+
+/**
+ * Get the availability of every probe
+ * Every probe's online and offline periods over the range, and its uptime, without its instances.
+ */
+export const getProbesAvailabilityOptions = (
+  options?: Options<GetProbesAvailabilityData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbesAvailability({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesAvailabilityQueryKey(options),
+  });
+};
+
+/**
+ * Delete probe
+ */
+export const deleteProbesByIdMutation = (
+  options?: Partial<Options<DeleteProbesByIdData>>
+): UseMutationOptions<
+  DeleteProbesByIdResponse,
+  AxiosError<DeleteProbesByIdError>,
+  Options<DeleteProbesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteProbesByIdResponse,
+    AxiosError<DeleteProbesByIdError>,
+    Options<DeleteProbesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteProbesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProbesByIdQueryKey = (options: Options<GetProbesByIdData>) =>
+  createQueryKey("getProbesById", options);
+
+/**
+ * Get probe
+ */
+export const getProbesByIdOptions = (options: Options<GetProbesByIdData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbesById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesByIdQueryKey(options),
+  });
+};
+
+/**
+ * Update probe
+ */
+export const putProbesByIdMutation = (
+  options?: Partial<Options<PutProbesByIdData>>
+): UseMutationOptions<
+  PutProbesByIdResponse,
+  AxiosError<PutProbesByIdError>,
+  Options<PutProbesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutProbesByIdResponse,
+    AxiosError<PutProbesByIdError>,
+    Options<PutProbesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putProbesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getProbesByIdAvailabilityQueryKey = (
+  options: Options<GetProbesByIdAvailabilityData>
+) => createQueryKey("getProbesByIdAvailability", options);
+
+/**
+ * Get the availability of a probe
+ * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.
+ */
+export const getProbesByIdAvailabilityOptions = (
+  options: Options<GetProbesByIdAvailabilityData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbesByIdAvailability({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesByIdAvailabilityQueryKey(options),
+  });
+};
+
+export const postProbesByIdRotateTokenQueryKey = (
+  options: Options<PostProbesByIdRotateTokenData>
+) => createQueryKey("postProbesByIdRotateToken", options);
+
+/**
+ * Rotate probe token
+ */
+export const postProbesByIdRotateTokenOptions = (
+  options: Options<PostProbesByIdRotateTokenData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postProbesByIdRotateToken({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postProbesByIdRotateTokenQueryKey(options),
+  });
+};
+
+/**
+ * Rotate probe token
+ */
+export const postProbesByIdRotateTokenMutation = (
+  options?: Partial<Options<PostProbesByIdRotateTokenData>>
+): UseMutationOptions<
+  PostProbesByIdRotateTokenResponse,
+  AxiosError<PostProbesByIdRotateTokenError>,
+  Options<PostProbesByIdRotateTokenData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostProbesByIdRotateTokenResponse,
+    AxiosError<PostProbesByIdRotateTokenError>,
+    Options<PostProbesByIdRotateTokenData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postProbesByIdRotateToken({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
 export const getProxiesQueryKey = (options?: Options<GetProxiesData>) =>
   createQueryKey("getProxies", options);
 
@@ -2937,7 +3224,7 @@ export const getTelemetryQueryKey = (options?: Options<GetTelemetryData>) =>
 
 /**
  * Get the usage ping state
- * Whether an admin opted in to the anonymous usage ping, whether the TELEMETRY or DO_NOT_TRACK environment variable forces it off, and the exact payload the next ping would send.
+ * Whether the anonymous usage ping is on (it is, until an admin opts out), whether the TELEMETRY environment variable forces it off, whether the one-time notice about the ping and error reports is still to be shown, and the exact payload the next ping would send.
  */
 export const getTelemetryOptions = (options?: Options<GetTelemetryData>) => {
   return queryOptions({
@@ -2956,7 +3243,7 @@ export const getTelemetryOptions = (options?: Options<GetTelemetryData>) => {
 
 /**
  * Opt in or out of the usage ping
- * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins.
+ * Opting in creates a new random instance ID unless there is one. Opting out deletes it, so opting in again gives a new one. The choice is stored while the environment forces the ping off, and the environment still wins. Any choice also marks the one-time notice as seen.
  */
 export const putTelemetryMutation = (
   options?: Partial<Options<PutTelemetryData>>
@@ -2972,6 +3259,59 @@ export const putTelemetryMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await putTelemetry({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postTelemetryNoticeQueryKey = (
+  options?: Options<PostTelemetryNoticeData>
+) => createQueryKey("postTelemetryNotice", options);
+
+/**
+ * Dismiss the usage ping and error reports notice
+ * An install that upgraded to a version with the usage ping and error reports on by default shows its admin a one-time notice. This marks it seen so it stops showing. It is not a choice: both features stay as they were. Making a choice with PUT /telemetry or PUT /error-reporting marks it seen too.
+ */
+export const postTelemetryNoticeOptions = (
+  options?: Options<PostTelemetryNoticeData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postTelemetryNotice({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postTelemetryNoticeQueryKey(options),
+  });
+};
+
+/**
+ * Dismiss the usage ping and error reports notice
+ * An install that upgraded to a version with the usage ping and error reports on by default shows its admin a one-time notice. This marks it seen so it stops showing. It is not a choice: both features stay as they were. Making a choice with PUT /telemetry or PUT /error-reporting marks it seen too.
+ */
+export const postTelemetryNoticeMutation = (
+  options?: Partial<Options<PostTelemetryNoticeData>>
+): UseMutationOptions<
+  PostTelemetryNoticeResponse,
+  AxiosError<PostTelemetryNoticeError>,
+  Options<PostTelemetryNoticeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostTelemetryNoticeResponse,
+    AxiosError<PostTelemetryNoticeError>,
+    Options<PostTelemetryNoticeData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postTelemetryNotice({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -3022,4 +3362,182 @@ export const getHealthRootOptions = (options?: Options<GetHealthRootData>) => {
     },
     queryKey: getHealthRootQueryKey(options),
   });
+};
+
+export const probeGetAssignmentsQueryKey = (
+  options: Options<ProbeGetAssignmentsData>
+) => createQueryKey("probeGetAssignments", options);
+
+/**
+ * Get the monitors this instance runs
+ * A long poll. The answer is the monitors this instance of the probe runs, and a version that names the probe's assignment: its active monitors that are not push monitors and are of a type the probe supports, with their proxies, dealt among the probe's instances seen in the last 60 seconds so that each monitor runs on exactly one of them. Send the version you hold. If it is not the current one, or you send none, the server answers 200 at once. If it is, the server holds the request until a monitor of the probe is created, updated or deleted, or an instance of the probe joins or leaves, and answers 200 then; after 25 seconds without a change it answers 304 with no body, and the instance polls again. The reply is gzipped when Accept-Encoding allows it.
+ */
+export const probeGetAssignmentsOptions = (
+  options: Options<ProbeGetAssignmentsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probeGetAssignments({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probeGetAssignmentsQueryKey(options),
+  });
+};
+
+export const probePostByeQueryKey = (options: Options<ProbePostByeData>) =>
+  createQueryKey("probePostBye", options);
+
+/**
+ * Say bye
+ * Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
+ */
+export const probePostByeOptions = (options: Options<ProbePostByeData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probePostBye({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probePostByeQueryKey(options),
+  });
+};
+
+/**
+ * Say bye
+ * Tells the server that this instance is stopping, so that it takes the instance out of the dealing at once. The instance stays listed, and the probe counts as offline only after PROBE_OFFLINE_AFTER without any instance, so a restart is not an outage. An instance that never said hello is answered 409.
+ */
+export const probePostByeMutation = (
+  options?: Partial<Options<ProbePostByeData>>
+): UseMutationOptions<
+  ProbePostByeResponse,
+  AxiosError<ProbePostByeError>,
+  Options<ProbePostByeData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProbePostByeResponse,
+    AxiosError<ProbePostByeError>,
+    Options<ProbePostByeData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await probePostBye({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const probePostHelloQueryKey = (options: Options<ProbePostHelloData>) =>
+  createQueryKey("probePostHello", options);
+
+/**
+ * Say hello
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. A probe holds at most 64 instances. A hello from a new instance past that replaces the probe's oldest instance that has not been seen for a minute, and is answered 429 with Retry-After: 60 when all 64 are running. A hello from an instance the probe already holds is never refused for this. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostHelloOptions = (options: Options<ProbePostHelloData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probePostHello({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probePostHelloQueryKey(options),
+  });
+};
+
+/**
+ * Say hello
+ * The first call of every probe instance. It records the instance and the monitor types its probe can run, and answers with the server's version and time, the probe's name and location, and the limits the probe works within. A protocol version below the server's minimum is answered 426. A probe holds at most 64 instances. A hello from a new instance past that replaces the probe's oldest instance that has not been seen for a minute, and is answered 429 with Retry-After: 60 when all 64 are running. A hello from an instance the probe already holds is never refused for this. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostHelloMutation = (
+  options?: Partial<Options<ProbePostHelloData>>
+): UseMutationOptions<
+  ProbePostHelloResponse,
+  AxiosError<ProbePostHelloError>,
+  Options<ProbePostHelloData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProbePostHelloResponse,
+    AxiosError<ProbePostHelloError>,
+    Options<ProbePostHelloData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await probePostHello({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const probePostResultsQueryKey = (
+  options: Options<ProbePostResultsData>
+) => createQueryKey("probePostResults", options);
+
+/**
+ * Send check results
+ * Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. A request fails with 500, or with 503 when the server could not take it just now, and also when another request holds the id of one of the results and has not stored it yet (it may still be at it, or it died), or when storing took longer than 90 seconds; that 503 carries a Retry-After of 5 seconds, which the instance waits before it sends the batch again. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored, by the API replica that took the request. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostResultsOptions = (
+  options: Options<ProbePostResultsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await probePostResults({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: probePostResultsQueryKey(options),
+  });
+};
+
+/**
+ * Send check results
+ * Sends the results of the checks this instance ran, at most 500 in one request. The answer holds one outcome for each result, in the order sent: accepted, or rejected with a reason. A rejected result is not stored and is not worth sending again, with one exception: the answer to a request that failed tells nothing, so the instance sends the whole batch again, and the results of it that were stored the first time are answered duplicate. A request fails with 500, or with 503 when the server could not take it just now, and also when another request holds the id of one of the results and has not stored it yet (it may still be at it, or it died), or when storing took longer than 90 seconds; that 503 carries a Retry-After of 5 seconds, which the instance waits before it sends the batch again. The reasons: unknown_monitor (there is no such monitor), not_assigned (the monitor is not one of this probe's active monitors that it can run), too_old (the check started more than an hour ago), duplicate (the server stored a result with this id from this probe in the last hour) and invalid (the result is malformed, or its start is more than a minute ahead of the server's clock). An accepted result is stored with the monitor's settings and maintenance state as they are now, in the order of the checks' start times for each monitor. The answer comes after the results are stored, by the API replica that took the request. The body may be gzipped (Content-Encoding: gzip), up to 1 MB once decompressed, and the reply is gzipped when Accept-Encoding allows it.
+ */
+export const probePostResultsMutation = (
+  options?: Partial<Options<ProbePostResultsData>>
+): UseMutationOptions<
+  ProbePostResultsResponse,
+  AxiosError<ProbePostResultsError>,
+  Options<ProbePostResultsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    ProbePostResultsResponse,
+    AxiosError<ProbePostResultsError>,
+    Options<ProbePostResultsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await probePostResults({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };

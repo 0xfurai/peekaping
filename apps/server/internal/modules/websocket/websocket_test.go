@@ -337,6 +337,30 @@ func TestMonitorRoomGetsOnlyThatMonitorsHeartbeats(t *testing.T) {
 	assert.Equal(t, monitorA, last.hb.MonitorID)
 }
 
+// The event carries the probe that ran the check, under the name the heartbeat API uses.
+func TestHeartbeatEventCarriesTheProbe(t *testing.T) {
+	h := newHarness(t)
+	c := h.connect(t)
+	c.join(t, h.bus, "monitor:"+monitorA, monitorA)
+
+	assert.NoError(t, events.Publish(context.Background(), h.bus, events.HeartbeatEvent, heartbeat.Model{MonitorID: monitorA, ProbeID: "probe-frankfurt", Msg: "from frankfurt"}))
+
+	deadline := time.After(wait)
+	for {
+		select {
+		case packet, ok := <-c.packets:
+			require.True(t, ok, "session closed")
+			if strings.Contains(packet, "from frankfurt") {
+				assert.True(t, strings.HasPrefix(packet, `42["monitor:`+monitorA+`:heartbeat",`), packet)
+				assert.Contains(t, packet, `"probe_id":"probe-frankfurt"`)
+				return
+			}
+		case <-deadline:
+			require.FailNow(t, "no heartbeat within "+wait.String())
+		}
+	}
+}
+
 func TestAllRoomGetsEveryHeartbeat(t *testing.T) {
 	h := newHarness(t)
 	c := h.connect(t)

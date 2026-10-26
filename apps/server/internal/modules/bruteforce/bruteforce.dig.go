@@ -9,11 +9,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func RegisterDependencies(container *dig.Container, cfg *config.Config) error {
-	if err := utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository); err != nil {
-		return err
-	}
-	return utils.Provide(container, NewService, NewGuard, NewAccountGuard)
+func RegisterDependencies(container *dig.Container) error {
+	return utils.Provide(container, NewSQLRepository, NewService, NewGuard, NewAccountGuard)
 }
 
 // NewGuard creates a new bruteforce Guard with sensible defaults for login protection

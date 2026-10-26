@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 4
 ---
 
 # Migrate
@@ -27,7 +27,7 @@ The migrate component is a CLI tool that runs as a one-off process:
 - Exits after migrations are complete
 - No persistent service or daemon
 
-**Note**: MongoDB migrations are not used as MongoDB is schema-less.
+**Note**: MongoDB storage was removed. With `DB_TYPE=mongo` or `DB_TYPE=mongodb`, the migrate image and every `bun db` command stop with an error that points to [the guide for moving to SQLite or PostgreSQL](../self-hosting/docker-with-mongo.md#move-to-sqlite-or-postgresql).
 
 ### Migration Locking
 
@@ -160,11 +160,9 @@ The container:
 - WAL mode enabled for better concurrency
 
 ### MongoDB
-- Not applicable (schema-less database)
-- Schema evolution handled through application code
+- Removed as a storage backend. `bun db import-mongo` copies a MongoDB install into a new SQLite or PostgreSQL database: see [Move off MongoDB storage](../self-hosting/docker-with-mongo.md#move-to-sqlite-or-postgresql)
 
 ## Related Components
 
 - [API Server](./api-server.md) - Requires migrated database schema
-- [Producer](./producer.md) - Requires migrated database schema
-- [Ingester](./ingester.md) - Requires migrated database schema
+- [Probe](./probe.md) - Needs no database, so it doesn't wait for migrations

@@ -1,14 +1,95 @@
+//go:build !slim
+
 package executor
 
 import (
 	"context"
+	"encoding/json"
 	"peekaping/internal/modules/shared"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/denisenkom/go-mssqldb/msdsn"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
+
+func sqlServerMonitor(t *testing.T, timeout int, cfg SQLServerConfig) *Monitor {
+	t.Helper()
+	raw, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	return &Monitor{ID: "sqlserver-test", Name: "SQL Server test", Type: "sqlserver", Timeout: timeout, Config: string(raw)}
+}
+
+func TestSQLServerExecutor_ServerRefusesConnection(t *testing.T) {
+	addr := refusedAddr(t)
+
+	exec := NewSQLServerExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), sqlServerMonitor(t, 2, SQLServerConfig{
+		DatabaseConnectionString: "Server=" + strings.Replace(addr, ":", ",", 1) + ";Database=master;User Id=sa;Password=secret;Encrypt=false",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "connection failed: unable to open tcp connection with host '"+addr+"': dial tcp "+addr+": connect: connection refused")
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
+
+func TestSQLServerExecutor_ServerNeverAnswers(t *testing.T) {
+	// A Connection Timeout in the connection string makes the driver move its
+	// own deadline with every read, which must not outlast the monitor's.
+	for name, extra := range map[string]string{"default": "", "with a longer Connection Timeout": ";Connection Timeout=30"} {
+		t.Run(name, func(t *testing.T) {
+			addr, accepted := silentServer(t)
+
+			exec := NewSQLServerExecutor(zap.NewNop().Sugar())
+			start := time.Now()
+			result := exec.Execute(context.Background(), sqlServerMonitor(t, 2, SQLServerConfig{
+				DatabaseConnectionString: "Server=" + strings.Replace(addr, ":", ",", 1) + ";Database=master;User Id=sa;Password=secret;Encrypt=false" + extra,
+			}), nil)
+			elapsed := time.Since(start)
+
+			assert.Equal(t, shared.MonitorStatusDown, result.Status)
+			assert.Regexp(t, `^connection failed: read tcp 127\.0\.0\.1:\d+->`+regexp.QuoteMeta(addr)+`: i/o timeout$`, result.Message)
+			assert.Equal(t, 1, accepted(), "the executor should have connected once")
+			assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+		})
+	}
+}
+
+func TestSQLServerExecutor_BracedUserAndDatabaseWithSemicolonsReachTheConnection(t *testing.T) {
+	addr := refusedAddr(t)
+
+	exec := NewSQLServerExecutor(zap.NewNop().Sugar())
+	result := exec.Execute(context.Background(), sqlServerMonitor(t, 2, SQLServerConfig{
+		DatabaseConnectionString: "Server=" + strings.Replace(addr, ":", ",", 1) + ";Database={d;e};User Id={u;v};Password={p;q};Encrypt=false",
+	}), nil)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "connection failed: unable to open tcp connection with host '"+addr+"'", "the string was refused before connecting")
+}
+
+func TestSQLServerExecutor_RefusesAQueryBeforeConnecting(t *testing.T) {
+	// Nothing listens at the address, so a connection attempt would be the
+	// message of the result.
+	addr := refusedAddr(t)
+
+	exec := NewSQLServerExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), sqlServerMonitor(t, 2, SQLServerConfig{
+		DatabaseConnectionString: "Server=" + strings.Replace(addr, ":", ",", 1) + ";Database=master;User Id=sa;Password=secret;Encrypt=false",
+		DatabaseQuery:            "DELETE FROM accounts",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Equal(t, "query validation failed: query must start with one of: SELECT, SHOW, DESCRIBE, DESC, EXPLAIN, WITH, VALUES", result.Message)
+	assert.Less(t, elapsed, time.Second)
+}
 
 func TestSQLServerExecutor_Validate(t *testing.T) {
 	logger := zap.NewNop().Sugar()
@@ -352,30 +433,6 @@ func TestSQLServerExecutor_parseConnectionString(t *testing.T) {
 			expectError:   false,
 		},
 		{
-			name:          "legacy URL format - basic sqlserver",
-			connectionStr: "sqlserver://sa:password@localhost:1433?database=master",
-			expectedDSN:   "Server=localhost,1433;User Id=sa;Password=password;Database=master",
-			expectError:   false,
-		},
-		{
-			name:          "legacy URL format - mssql scheme",
-			connectionStr: "mssql://user:pass@server:1433?database=testdb",
-			expectedDSN:   "Server=server,1433;User Id=user;Password=pass;Database=testdb",
-			expectError:   false,
-		},
-		{
-			name:          "legacy URL format - default port",
-			connectionStr: "sqlserver://sa:password@localhost?database=master",
-			expectedDSN:   "Server=localhost;User Id=sa;Password=password;Database=master",
-			expectError:   false,
-		},
-		{
-			name:          "legacy URL format - with additional parameters",
-			connectionStr: "sqlserver://user:pass@server:1433?database=testdb&encrypt=disable&trustServerCertificate=true",
-			expectedDSN:   "Server=server,1433;User Id=user;Password=pass;Database=testdb;Encrypt=disable;TrustServerCertificate=true",
-			expectError:   false,
-		},
-		{
 			name:          "invalid format",
 			connectionStr: "postgres://user:pass@server:5432/database",
 			expectedDSN:   "",
@@ -396,41 +453,159 @@ func TestSQLServerExecutor_parseConnectionString(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				// For semicolon format, expect exact match since it's a passthrough
-				if strings.HasPrefix(tt.connectionStr, "Server=") {
-					assert.Equal(t, tt.expectedDSN, dsn)
-				} else {
-					// For legacy URL format, check that all expected parameters are present
-					// since Go map iteration order is not guaranteed
-					expectedPairs := strings.Split(tt.expectedDSN, ";")
-					actualPairs := strings.Split(dsn, ";")
-
-					assert.Equal(t, len(expectedPairs), len(actualPairs), "Number of parameters should match")
-
-					// Convert to maps for comparison
-					expectedMap := make(map[string]string)
-					for _, pair := range expectedPairs {
-						if idx := strings.Index(pair, "="); idx > 0 {
-							key := pair[:idx]
-							value := pair[idx+1:]
-							expectedMap[key] = value
-						}
-					}
-
-					actualMap := make(map[string]string)
-					for _, pair := range actualPairs {
-						if idx := strings.Index(pair, "="); idx > 0 {
-							key := pair[:idx]
-							value := pair[idx+1:]
-							actualMap[key] = value
-						}
-					}
-
-					assert.Equal(t, expectedMap, actualMap, "Parameter key-value pairs should match")
-				}
+				// A string with nothing to escape goes to the driver as it is.
+				assert.Equal(t, tt.expectedDSN, dsn)
 			}
 		})
 	}
+}
+
+// What the driver makes of a DSN: the test checks the values that reach the
+// server, not the spelling of the string that carries them.
+type driverView struct {
+	Host, Instance, User, Password, Database string
+	Port                                     uint64
+	Encryption                               msdsn.Encryption
+	AppName                                  string
+	ConnTimeout                              time.Duration
+}
+
+func driverViewOf(t *testing.T, dsn string) driverView {
+	t.Helper()
+	cfg, _, err := msdsn.Parse(dsn)
+	require.NoError(t, err, dsn)
+	if cfg.AppName == "go-mssqldb" { // the driver's default
+		cfg.AppName = ""
+	}
+	return driverView{
+		Host: cfg.Host, Instance: cfg.Instance, User: cfg.User, Password: cfg.Password, Database: cfg.Database,
+		Port: cfg.Port, Encryption: cfg.Encryption, AppName: cfg.AppName, ConnTimeout: cfg.ConnTimeout,
+	}
+}
+
+func TestSQLServerExecutor_parseConnectionString_driverSeesTheValues(t *testing.T) {
+	executor := NewSQLServerExecutor(zap.NewNop().Sugar())
+
+	tests := []struct {
+		name          string
+		connectionStr string
+		want          driverView
+	}{
+		{
+			name:          "URL: sqlserver scheme",
+			connectionStr: "sqlserver://sa:password@localhost:1433?database=master",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "password", Database: "master"},
+		},
+		{
+			name:          "URL: mssql scheme",
+			connectionStr: "mssql://user:pass@server:1433?database=testdb",
+			want:          driverView{Host: "server", Port: 1433, User: "user", Password: "pass", Database: "testdb"},
+		},
+		{
+			name:          "URL: default port",
+			connectionStr: "sqlserver://sa:password@localhost?database=master",
+			want:          driverView{Host: "localhost", User: "sa", Password: "password", Database: "master"},
+		},
+		{
+			name:          "URL: database in the path",
+			connectionStr: "sqlserver://sa:password@localhost:1433/mydb",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "password", Database: "mydb"},
+		},
+		{
+			name:          "URL: the query's database wins over the path's",
+			connectionStr: "sqlserver://sa:password@localhost:1433/pathdb?database=querydb",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "password", Database: "querydb"},
+		},
+		{
+			name:          "URL: other parameters reach the driver",
+			connectionStr: "sqlserver://user:pass@server:1433?database=testdb&encrypt=disable&trustServerCertificate=true&app%20name=peekaping",
+			want:          driverView{Host: "server", Port: 1433, User: "user", Password: "pass", Database: "testdb", Encryption: msdsn.EncryptionDisabled, AppName: "peekaping"},
+		},
+		{
+			name:          "URL: timeout is the Connection Timeout",
+			connectionStr: "sqlserver://sa:password@localhost:1433?database=master&timeout=7",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "password", Database: "master", ConnTimeout: 7 * time.Second},
+		},
+		{
+			name:          "URL: an IPv6 host with a port",
+			connectionStr: "sqlserver://u:p@[::1]:1433?database=m",
+			want:          driverView{Host: "::1", Port: 1433, User: "u", Password: "p", Database: "m"},
+		},
+		{
+			name:          "URL: an IPv6 host without a port",
+			connectionStr: "sqlserver://u:p@[::1]?database=m",
+			want:          driverView{Host: "::1", Port: 1433, User: "u", Password: "p", Database: "m"},
+		},
+		{
+			name:          "URL: a percent-encoded password with ; = { and }",
+			connectionStr: "sqlserver://sa:P%3Bss%3D%7Bw%7D@localhost:1433?database=master",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "P;ss={w}", Database: "master"},
+		},
+		{
+			name:          "URL: a password can't add parameters",
+			connectionStr: "sqlserver://sa:x%3BEncrypt%3Ddisable%3Bdatabase%3Dother@localhost:1433?database=master",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "x;Encrypt=disable;database=other", Database: "master"},
+		},
+		{
+			name:          "URL: a user and a database with ; and =",
+			connectionStr: "sqlserver://a%3Bb%3Dc:pw@localhost:1433?database=d%3Be%3Df",
+			want:          driverView{Host: "localhost", Port: 1433, User: "a;b=c", Password: "pw", Database: "d;e=f"},
+		},
+		{
+			name:          "Server=: a braced password with ; = { and }",
+			connectionStr: "Server=localhost,1433;Database=master;User Id=sa;Password={P;ss={w}}};Encrypt=false;TrustServerCertificate=true",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "P;ss={w}", Database: "master"},
+		},
+		{
+			name:          "Server=: a braced password can't add parameters",
+			connectionStr: "Server=localhost,1433;Database=master;User Id=sa;Password={x;Encrypt=disable;Database=other};AppName=ignored;Application Name=peekaping",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "x;Encrypt=disable;Database=other", Database: "master", AppName: "peekaping"},
+		},
+		{
+			name:          "Server=: a braced user and database with ; and }, a tcp: prefix and an instance",
+			connectionStr: "server=tcp:myhost\\inst,1433;DATABASE={d;e};user id={u;v=w}}x};password={p}",
+			want:          driverView{Host: "myhost", Instance: "inst", Port: 1433, User: "u;v=w}x", Password: "p", Database: "d;e"},
+		},
+		{
+			name:          "Server=: a braced password with spaces around the braces",
+			connectionStr: "Server=localhost;Database=master;User Id=sa;Password= {a b} ;Encrypt=false",
+			want:          driverView{Host: "localhost", User: "sa", Password: "a b", Database: "master"},
+		},
+		{
+			name:          "Server=: nothing braced is passed through as it is",
+			connectionStr: "Server=localhost,1433;Database=master;User Id=sa;Password=plain;Encrypt=false;TrustServerCertificate=true",
+			want:          driverView{Host: "localhost", Port: 1433, User: "sa", Password: "plain", Database: "master"},
+		},
+		{
+			name:          "Server=: a password that starts with a brace but is not braced stays as it is",
+			connectionStr: "Server=localhost;Database=master;User Id=sa;Password={secret",
+			want:          driverView{Host: "localhost", User: "sa", Password: "{secret", Database: "master"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// What Validate accepts is what Execute connects with.
+			raw, err := json.Marshal(SQLServerConfig{DatabaseConnectionString: tt.connectionStr})
+			require.NoError(t, err)
+			require.NoError(t, executor.Validate(string(raw)))
+
+			dsn, err := executor.parseConnectionString(tt.connectionStr)
+			require.NoError(t, err)
+
+			assert.Equal(t, tt.want, driverViewOf(t, dsn))
+		})
+	}
+}
+
+func TestSQLServerExecutor_Validate_bracedValues(t *testing.T) {
+	executor := NewSQLServerExecutor(zap.NewNop().Sugar())
+
+	// The braced password holds what would look like other parameters: a bad
+	// Encrypt value and a second Database.
+	err := executor.Validate(`{"database_connection_string": "Server=localhost,1433;Database=master;User Id=sa;Password={x;Encrypt=maybe;Database=;Server=};Encrypt=false"}`)
+
+	assert.NoError(t, err)
 }
 
 func TestSQLServerExecutor_validateQuery(t *testing.T) {

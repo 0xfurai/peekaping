@@ -21,9 +21,6 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -94,27 +91,6 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 	}
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
-	t.Run("Mongo", func(t *testing.T) {
-		uri := os.Getenv("PEE_TEST_MONGO_URI")
-		if uri == "" {
-			t.Skip("set PEE_TEST_MONGO_URI to run the MongoDB tests")
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-		require.NoError(t, err)
-		if err := client.Ping(ctx, nil); err != nil {
-			_ = client.Disconnect(context.Background())
-			require.NoError(t, err)
-		}
-		cfg := &config.Config{DBName: "monitor_notification_" + primitive.NewObjectID().Hex()}
-		t.Cleanup(func() {
-			require.NoError(t, client.Database(cfg.DBName).Drop(context.Background()))
-			require.NoError(t, client.Disconnect(context.Background()))
-		})
-		newID := func() string { return primitive.NewObjectID().Hex() }
-		fn(t, fixture{monitor_notification.NewService(monitor_notification.NewMongoRepository(client, cfg), zap.NewNop().Sugar()), newID, newID})
-	})
 }
 
 func link(t *testing.T, svc monitor_notification.Service, monitorID, channelID string) *monitor_notification.Model {
@@ -151,6 +127,71 @@ func TestMonitorNotifications_LinksAreListedPerMonitor(t *testing.T) {
 
 		assert.ElementsMatch(t, []string{slack, email}, channelsOf(t, f.svc, web))
 		assert.ElementsMatch(t, []string{email}, channelsOf(t, f.svc, db))
+	})
+}
+
+// channelsByMonitor lists the channel IDs of each monitor's links, in the order they came.
+func channelsByMonitor(links map[string][]*monitor_notification.Model) map[string][]string {
+	byMonitor := map[string][]string{}
+	for monitorID, monitorLinks := range links {
+		for _, l := range monitorLinks {
+			byMonitor[monitorID] = append(byMonitor[monitorID], l.NotificationID)
+		}
+	}
+	return byMonitor
+}
+
+func TestMonitorNotifications_LinksOfManyMonitorsAreListedAtOnce(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		web, db, idle, other := f.monitor(), f.monitor(), f.monitor(), f.monitor()
+		slack, email := f.channel(), f.channel()
+		link(t, f.svc, web, slack)
+		link(t, f.svc, web, email)
+		link(t, f.svc, db, email)
+		link(t, f.svc, other, slack)
+
+		found, err := f.svc.FindByMonitorIDs(ctx, []string{web, db, idle})
+		require.NoError(t, err)
+
+		byMonitor := channelsByMonitor(found)
+		assert.Len(t, byMonitor, 2, "the monitor with no links and the monitor not asked for have no entry")
+		assert.ElementsMatch(t, []string{slack, email}, byMonitor[web])
+		assert.Equal(t, []string{email}, byMonitor[db])
+		assert.Equal(t, channelsOf(t, f.svc, web), byMonitor[web], "each monitor's links come in the order FindByMonitorID lists them")
+
+		for _, l := range found[web] {
+			assert.Equal(t, web, l.MonitorID)
+		}
+
+		none, err := f.svc.FindByMonitorIDs(ctx, nil)
+		require.NoError(t, err)
+		assert.Empty(t, none, "no monitors asked for, no links")
+	})
+}
+
+func TestMonitorNotifications_SQLListsLinksNewestFirst(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		web, db := f.monitor(), f.monitor()
+		slack, email, pager := f.channel(), f.channel(), f.channel()
+		// The repository stamps a link with the time it is created, so each link needs its own
+		link(t, f.svc, web, slack)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, db, slack)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, web, email)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, db, email)
+		time.Sleep(10 * time.Millisecond)
+		link(t, f.svc, web, pager)
+
+		found, err := f.svc.FindByMonitorIDs(context.Background(), []string{web, db})
+		require.NoError(t, err)
+
+		byMonitor := channelsByMonitor(found)
+		assert.Equal(t, []string{pager, email, slack}, byMonitor[web], "FindByMonitorIDs: the newest link first")
+		assert.Equal(t, []string{email, slack}, byMonitor[db])
+		assert.Equal(t, []string{pager, email, slack}, channelsOf(t, f.svc, web), "FindByMonitorID: the newest link first")
 	})
 }
 

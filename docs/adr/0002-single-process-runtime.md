@@ -132,3 +132,61 @@ Redis pub/sub gives each event to every api replica, so with several replicas ea
 So `cmd/api` now runs an asynq server for the `notification` queue. Every other event stays on pub/sub, because every api replica needs it. The websocket in each replica pushes every heartbeat to its own clients.
 
 Single mode is unchanged. It has one api and no queue, and its in-memory event bus already sends each notification once.
+
+## Update
+
+Date: 2026-10-25
+Ticket: #254
+
+Some statements above no longer hold for cluster mode on SQLite and PostgreSQL:
+
+- The Context says Peekaping runs as four processes, and that the producer schedules checks, the worker runs them and the ingester stores their results.
+- Section 2's table says check dispatch is the producer enqueueing `monitor:healthcheck` for the worker's asynq server, and ingest dispatch is the worker and the push endpoint enqueueing `monitor:ingest` for the ingester's asynq server. Its Leadership row says the Redis lock elects the producer that runs the watchdog.
+- The Consequences say anything that changes check dispatch, ingest or the schedule has to be made on both sides of a seam, and that cluster behaviour doesn't change.
+- The #29 update, which says the ingester and the producer's watchdog enqueue the notification events.
+
+Remote probes (#31 to #36) gave every check a second route: a probe instance gets its monitors from the api, runs the checks and sends the results back over the probe protocol. On SQLite and PostgreSQL, cluster mode now uses that route for the local probe too, so the checks and the ingest no longer cross Redis:
+
+- **Check dispatch is the probe protocol.** The local probe's monitors are checked by `peekaping-probe` instances that hold its token (`PROBE_BOOTSTRAP_TOKEN` on the api, the same value as `PROBE_TOKEN` on the probe). The api deals the monitors among the instances, as it does for any probe. Nothing schedules a check, and nothing enqueues `monitor:healthcheck`.
+- **Ingest dispatch is a call in the api.** The api stores a push and a probe's results itself, one monitor's results at a time and in order, on the replica that took the request. It doesn't enqueue `monitor:ingest`. The heartbeats feed the stats on the replica that stored them, through a bus that stays in that process, so Redis pub/sub doesn't hand one heartbeat to every replica to count. The probe protocol's duplicate window moves to Redis (a key for each result, one hour), so a batch a probe retries on another replica is answered duplicate.
+- **Leadership stays in the api.** The leader lock keeps its key, `peekaping:producer:leader`, so that a rolling upgrade has one leader while old producers and new api replicas run together. The api replica that holds it runs the stale-monitor watchdog, the probe offline sweep and the timeout checks of push monitors. Another replica takes over about 15 seconds after the leader is killed, and at once after it stops gracefully. The watchdog has no rechecker there: a stale monitor is recorded and its channels are notified once the wait has passed, as for a monitor on a remote probe.
+- **The local probe is its instances.** In cluster mode on these backends it is online while an instance is connected, so a stopped probe deployment raises the probe offline notification. A cluster upgraded without any instance has a local probe that was never online, so the leader reports it offline once, after `PROBE_OFFLINE_AFTER`, and logs how to fix it. `PROBE_OFFLINE_AFTER` is now read by the api.
+
+So cluster mode on SQLite and PostgreSQL is two processes plus Redis between the api replicas: the api and the probe. The producer and the ingester refuse to start there and point to the [upgrade page](../../apps/docs/docs/self-hosting/upgrading-to-probes.md), and the worker logs that it has no work. Helm and the Docker Compose stacks for those two backends no longer run them.
+
+Two Redis seams stay in the api: the event bus and the `notification` queue from #29. The api now stores the heartbeats and runs the watchdog, so it enqueues the notifications that the ingester and the producer's watchdog enqueued before. Every other event stays on pub/sub, so each replica's websocket and metrics still see every heartbeat.
+
+MongoDB has no probes (ADR 0001), so MongoDB installs keep the layout this ADR describes, with the producer, worker and ingester, until MongoDB storage is removed. The Mongo bundle and the Mongo compose stacks are unchanged, and the old images and binaries stay for them. Once MongoDB storage is removed, nothing uses the queue-based check and ingest dispatch any more, and it can go with the three processes.
+
+Single mode is unchanged. Its one process is the local probe, as before.
+
+Measured on the api alone: it stores about 2,000 probe results a second on PostgreSQL 17 and on SQLite. The ingester queue stored about 1,350 a second on PostgreSQL. A soak of 3 probe instances and 1,000 monitors at 20 seconds, with one instance stopped, missed no check and kept the api's heap at 14 to 17 MiB.
+
+## Update
+
+Date: 2026-10-25
+Ticket: PP-277
+
+The producer, worker and ingester are removed, as the #254 update said they would be once MongoDB storage was removed. That has happened (ADR 0001). Some statements above no longer hold:
+
+- The Context says Peekaping runs as four processes, that the producer schedules checks, the worker runs them and the ingester stores their results, and that asynq carries exactly two hops, `monitor:healthcheck` and `monitor:ingest`.
+- Section 1 says `cmd/api`, `cmd/producer`, `cmd/worker` and `cmd/ingester` stay unchanged and are the cluster-mode binaries.
+- Section 2's table says cluster mode is unchanged, and gives its check dispatch, ingest dispatch and leadership as the producer, worker and ingester. The #254 update already replaced those rows for SQLite and PostgreSQL. Now no backend uses them.
+- Section 5 says the Mongo bundle keeps its multi-process layout, and section 6 says `peekaping-bundle-mongo` is unchanged. The #254 update says MongoDB installs keep the producer, worker and ingester until MongoDB storage is removed, and that the Mongo bundle and compose stacks are unchanged. MongoDB storage is gone, and so are the Mongo bundle and the Mongo compose stacks. A Mongo `DB_TYPE` stops every binary.
+- The #254 update says the producer and the ingester refuse to start on SQLite and PostgreSQL, and the worker logs that it has no work. They were removed in the release that was to ship that behaviour, so no published image does it. The programs are no longer in the repository.
+- The Consequences say cluster behaviour doesn't change, and that anything that changes check dispatch or ingest has to be made on both sides of a seam.
+
+Cluster mode is now the api plus probe instances, on every storage backend. SQLite and PostgreSQL are the only ones left, so there is no backend where it is anything else.
+
+What went:
+
+- `cmd/producer`, `cmd/worker` and `cmd/ingester`, and the producer and worker modules.
+- The queue-based check and ingest dispatch: the `monitor:healthcheck` and `monitor:ingest` queues, `PRODUCER_CONCURRENCY` and the queue shutdown timeout. In cluster mode the probe protocol carries the checks and the api stores the results itself. In single mode the scheduler's pool runs the checks. The ingest logic stays as a package that the api and `peekaping` call in process.
+- The Dockerfiles, the image builds and manifests in the release, release candidate and e2e workflows, the dev scripts, the `make` targets and the three architecture pages. The `peekaping-producer`, `peekaping-worker` and `peekaping-ingester` images get no new tags. The ones already published stay where they are.
+
+What stays:
+
+- The `notification` asynq queue from the #29 update. It is the only queue left, and the api serves it.
+- The leader lock key `peekaping:producer:leader`. It keeps its name so that api replicas of an earlier release and of this one share one leader while a rolling upgrade runs.
+
+The api used to copy the admin's error reporting choice to Redis so that the producer, worker and ingester could follow it (ADR 0003). The copy is gone with the three processes. The cluster api turns reporting on or off in its own process, as `peekaping` does. Each replica applies the stored choice again every minute, so a change made on another replica reaches it.

@@ -16,8 +16,9 @@
       "have_account": "Zaten bir hesabınız var mı?",
       "sign_in": "Giriş Yap",
       "submit": "Oluştur",
-      "telemetry_hint": "Bu kutuyu işaretlemezseniz kapalıdır. Bunu daha sonra “Ayarlar” bölümünden değiştirebilirsiniz. İşaretlerseniz Peekaping bunu günde en fazla bir kez gönderir:",
-      "title": "Merhaba"
+      "title": "Merhaba",
+      "telemetry_note": "Anonim: monitör adları, URL'ler veya ana makineler yok. Bunu daha sonra “Ayarlar” bölümünden değiştirebilirsiniz.",
+      "telemetry_whats_sent": "Neler gönderilir"
     },
     "twofa": {
       "code_label": "2FA Kodu",
@@ -87,8 +88,8 @@
   },
   "error_reporting": {
     "label": "Hata raporları gönder",
-    "never_sent": "Asla gönderilmez: hata iletileri, URL'ler, başlıklar, webhook URL'leri, adlar veya ana makine adları. Bir rapor IP adresi içermez ve Peekaping'in Sentry projesi gönderenin IP'sini saklamayacak şekilde ayarlanmıştır. Kendi ERROR_REPORTING_DSN'inizi kullanırsanız bunu kendi Sentry veya GlitchTip ayarlarınız belirler.",
-    "not_saved": "Hata raporlarını gönderme tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden açın.",
+    "never_sent": "Asla gönderilmez: hata iletileri, URL'ler, başlıklar, webhook URL'leri, adlar veya ana makine adları. Bir rapor IP adresi içermez ve Peekaping'in Sentry projesi gönderenin IP'sini saklamayacak şekilde ayarlanmıştır.",
+    "not_saved": "Hata raporlarına ilişkin tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden kontrol edin.",
     "sent": "Yalnızca Peekaping'in kendisi çöktüğünde gönderilir. Bir rapor, hatanın türünü ve kodda nerede oluştuğunu, Peekaping sürümünü, tekli veya küme modunu, depolama arka ucunu ve işletim sistemini içerir."
   },
   "forms": {
@@ -501,6 +502,16 @@
           "request_timeout": "İstek Süresi Doldu ({{seconds}} saniye sonra zaman aşımı)",
           "resend_notification": "X kez arka arkaya kesildiğinde Bildirimi Yeniden Gönder (Yeniden gönderme devre dışı)"
         },
+        "location_rule": {
+          "all": "tüm konumlar çalışmıyorsa",
+          "any": "herhangi bir konum çalışmıyorsa",
+          "at_least": "en az N konum çalışmıyorsa",
+          "description": "Probu çevrimdışı olan veya henüz rapor vermemiş bir konum sayılmaz.",
+          "label": "İzleyiciyi şu durumda çalışmıyor olarak işaretle",
+          "threshold_invalid": "1 veya daha büyük bir tam sayı girin",
+          "threshold_label": "Konum sayısı",
+          "threshold_too_high": "Seçtiğiniz prob sayısından büyük olamaz"
+        },
         "notifications": {
           "add_notifier": "Bildirim Ekle",
           "new_notifier": "+ Yeni Bildirimci",
@@ -510,6 +521,15 @@
           "select_notifier_placeholder": "Bildirimci Seç",
           "selected_channels": "Seçilen Bildirim Kanalları",
           "title": "Bildirim kanalları"
+        },
+        "probe": {
+          "description": "İzleyici seçtiğiniz her probda çalışır ve her birinin sonuçlarını bir konum olarak gösterir.",
+          "label": "Prob",
+          "option_unsupported": "{{name}} (bu türü çalıştırmaz)",
+          "placeholder": "Prob seçin",
+          "push_fixed": "Push izleyici her zaman yerel probda çalışır.",
+          "required": "En az bir prob seçin",
+          "unsupported": "Bu prob bu tür izleyiciyi çalıştırmaz. Başka bir prob seçin."
         },
         "proxy": {
           "add_proxy": "Proxy Ekle",
@@ -658,6 +678,15 @@
       "expiring_soon": "Süresi yakında dolacak",
       "for": "için",
       "live_status": "Canlı Durum",
+      "locations": {
+        "all": "Tüm konumlar",
+        "no_result": "Henüz sonuç yok",
+        "probe_offline": "Prob çevrimdışı",
+        "probe_unsupported": "Bu türü çalıştırmaz",
+        "response_time": "Yanıt süresi",
+        "select_label": "Konum",
+        "title": "Konumlar"
+      },
       "monitor_for": "İzlenecek",
       "no_certificate_data": "Sertifika verisi yok",
       "seconds": "saniye",
@@ -683,6 +712,7 @@
     "maintenance": "Bakım",
     "monitors": "Monitörler",
     "notification_channels": "Bildirim Kanalları",
+    "probes": "Problar",
     "proxies": "Proxy'ler",
     "settings": "Ayarlar",
     "status_pages": "Durum Sayfaları",
@@ -863,9 +893,9 @@
       "pagerduty": {
         "auto_resolve_acknowledge": "Otomatik Onayla",
         "auto_resolve_acknowledge_description": "Olayı otomatik olarak onayla",
-        "auto_resolve_description": "Bir monitör tekrar çalıştığında ne yapılacağını seçin.",
+        "auto_resolve_description": "Bir monitör tekrar çalıştığında veya bir prob tekrar çevrimiçi olduğunda ne gönderileceğini seçin.",
         "auto_resolve_do_nothing": "Hiçbir şey yapma",
-        "auto_resolve_do_nothing_description": "UP durumunda herhangi bir işlem yapılmaz",
+        "auto_resolve_do_nothing_description": "Bir monitör tekrar çalıştığında veya bir prob tekrar çevrimiçi olduğunda hiçbir şey gönderilmez, bu nedenle olay, siz PagerDuty'de çözene kadar açık kalır",
         "auto_resolve_label": "Otomatik Çözümle veya Onayla",
         "auto_resolve_placeholder": "Otomatik çözümleme davranışını seçin",
         "auto_resolve_resolve": "Otomatik çözüm",
@@ -888,7 +918,7 @@
         "authentication_token_description": "Gelişmiş güvenlik için isteğe bağlı kimlik doğrulama belirteci. Bu belirteç, pagertree-token başlığına gönderilecektir.",
         "authentication_token_label": "Kimlik Doğrulama Jetonu (İsteğe Bağlı)",
         "authentication_token_placeholder": "Gerekirse kimlik doğrulama jetonu girin",
-        "auto_resolve_alerts_description": "İzleme düzeldiğinde PagerTree uyarılarını otomatik olarak çöz.",
+        "auto_resolve_alerts_description": "Bir monitör tekrar çalıştığında veya bir prob tekrar çevrimiçi olduğunda PagerTree uyarılarını otomatik olarak çöz.",
         "auto_resolve_alerts_label": "Otomatik Çözüm Uyarıları",
         "how_to_get_integration_url_label": "Entegrasyon URL'sini nasıl alırsınız",
         "integration_url_description": "PagerTree webhook entegrasyon URL'sini girin.",
@@ -1123,6 +1153,109 @@
       "saved_hint": "Kaydedildi — değiştirmek için yazın"
     }
   },
+  "probes": {
+    "page_name": "Problar",
+    "description": "Problar, monitörlerin kontrollerini kurulu oldukları yerlerden çalıştırır. Yerel prob, Peekaping'in kendisidir.",
+    "local_name": "Yerel",
+    "monitor_probe": "Prob: {{name}}",
+    "monitor_probe_unsupported": "{{name}} {{type}} izleyicilerini çalıştırmaz",
+    "empty_list": {
+      "title": "Prob bulunamadı",
+      "text": "Başka bir yerden kontrol çalıştırmak için bir prob oluşturun.",
+      "action_text": "İlk probunuzu oluşturun"
+    },
+    "table": {
+      "headers": {
+        "name": "Ad",
+        "location": "Konum",
+        "status": "Durum",
+        "disabled": "Devre dışı",
+        "token": "Belirteç",
+        "instances": "Örnekler",
+        "actions": "İşlemler"
+      },
+      "status": {
+        "online": "Çevrimiçi",
+        "offline": "Çevrimdışı"
+      },
+      "disabled": "Devre dışı",
+      "no_instances": "Henüz örnek yok",
+      "last_seen": "son görülme: {{date}}",
+      "actions": {
+        "edit": "{{name}} probunu düzenle",
+        "rotate": "{{name}} probunun belirtecini yenile",
+        "delete": "{{name}} probunu sil"
+      }
+    },
+    "create_dialog": {
+      "title": "Prob oluştur",
+      "description": "Bir prob, kurduğunuz yerden kontrol çalıştırır. Belirteci yalnızca bir kez, oluşturduktan sonra gösterilir.",
+      "submit": "Prob oluştur",
+      "creating": "Oluşturuluyor..."
+    },
+    "edit_dialog": {
+      "title": "Probu düzenle",
+      "description": "{{name}} ayarlarını değiştirin."
+    },
+    "form": {
+      "name_label": "Ad",
+      "name_placeholder": "örn. Frankfurt",
+      "location_label": "Konum (isteğe bağlı)",
+      "location_placeholder": "örn. Frankfurt, Almanya",
+      "name_required": "Ad gereklidir",
+      "name_too_long": "Ad çok uzun",
+      "location_too_long": "Konum çok uzun",
+      "disabled_label": "Devre dışı",
+      "disabled_description": "Devre dışı bırakılan bir probun belirteci, probu yeniden etkinleştirene kadar çalışmaz.",
+      "notifications_hint": "Bu probun monitörlerinin kanallarına bildirim göndermek için boş bırakın."
+    },
+    "rotate_dialog": {
+      "title": "Belirteci yenile",
+      "description": "{{name}} probunun eski belirteci hemen çalışmayı durdurur. Örneklerinin yeni belirteçle yeniden başlatılması gerekir.",
+      "confirm": "Belirteci yenile",
+      "rotating": "Yenileniyor..."
+    },
+    "delete_dialog": {
+      "title": "Probu sil",
+      "description": "\"{{name}}\" probunu silmek istediğinizden emin misiniz? Belirteci çalışmayı durduracak. Bu işlem geri alınamaz."
+    },
+    "token_alert": {
+      "title_created": "{{name}} probu oluşturuldu",
+      "title_rotated": "{{name}} probu için yeni belirteç",
+      "note": "Bu belirteç, probe atanan monitörlerin yapılandırmalarını okur. Yalnızca bir kez gösterilir.",
+      "token_label": "Belirteç",
+      "docker_label": "Probu Docker ile başlatın",
+      "copy_token": "Belirteci kopyala",
+      "copy_command": "Docker komutunu kopyala"
+    },
+    "messages": {
+      "created_successfully": "Prob başarıyla oluşturuldu",
+      "updated_successfully": "Prob başarıyla güncellendi",
+      "rotated_successfully": "Belirteç başarıyla yenilendi",
+      "deleted_successfully": "Prob başarıyla silindi",
+      "failed_to_create": "Prob oluşturulamadı",
+      "failed_to_update": "Prob güncellenemedi",
+      "failed_to_rotate": "Belirteç yenilenemedi",
+      "failed_to_delete": "Prob silinemedi",
+      "failed_to_load": "Problar yüklenemedi",
+      "copy_success": "Panoya kopyalandı",
+      "copy_failed": "Panoya kopyalanamadı"
+    },
+    "detail": {
+      "not_found": "Prob bulunamadı"
+    },
+    "availability": {
+      "title": "Erişilebilirlik",
+      "range_label": "Zaman aralığı",
+      "bar_label": "Erişilebilirlik geçmişi",
+      "instance_bar_label": "{{name}} bağlantıları",
+      "no_data": "Veri yok",
+      "now": "Şimdi",
+      "instances_title": "Örnekler, son 24 saat",
+      "in_process_note": "Yerel probun monitörlerini Peekaping'in kendisi kontrol eder, bu yüzden erişilebilirlik geçmişi yoktur.",
+      "connected_since": "{{start}} tarihinden beri bağlı"
+    }
+  },
   "proxies": {
     "delete_dialog": {
       "description": "Bu işlem geri alınamaz. Bu, {{host}}:{{port}} proxy'sini kalıcı olarak silecektir.",
@@ -1289,14 +1422,14 @@
     },
     "error_reporting": {
       "cluster_note": "Küme modunda bir değişiklik her sürece bir dakika içinde ulaşır.",
-      "description": "Sunucu çöktüğünde Sentry'ye bir rapor gönderin. Siz açana kadar kapalıdır.",
-      "forced_off": "ERROR_REPORTING=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
+      "description": "Sunucu çöktüğünde Sentry'ye bir rapor gönderin. Varsayılan olarak açıktır; buradan istediğiniz zaman kapatabilirsiniz.",
+      "forced_off": "ERROR_REPORTING=off ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
       "title": "Hata raporları"
     },
     "telemetry": {
-      "description": "Bu kurulumun nasıl yapılandırıldığına dair anonim istatistikleri günde en fazla bir kez gönderin. Siz açana kadar kapalıdır.",
-      "forced_off": "TELEMETRY=off veya DO_NOT_TRACK=1 ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
-      "id_note": "Örnek kimliği, bunu açtığınızda oluşturulur ve kapattığınızda silinir. Yeniden açarsanız yeni bir kimlik oluşturulur.",
+      "description": "Bu kurulumun nasıl yapılandırıldığına dair anonim istatistikleri günde en fazla bir kez gönderin. Varsayılan olarak açıktır; buradan istediğiniz zaman kapatabilirsiniz.",
+      "forced_off": "TELEMETRY=off ortam değişkeni bunu kapatır. Bu ayar ne derse desin hiçbir şey gönderilmez.",
+      "id_note": "Örnek kimliği, bu seçenek açık olduğu sürece oluşturulur ve kapattığınızda silinir. Yeniden açarsanız yeni bir kimlik oluşturulur.",
       "payload_off": "Bu kapalıyken hiçbir şey gönderilmez. Açsaydınız bir kullanım ping'i şunları içerirdi.",
       "payload_title": "Bir sonraki kullanım ping'inin göndereceği veriler",
       "title": "Kullanım istatistikleri"
@@ -1367,6 +1500,8 @@
     "published_status": "Yayınlandı",
     "search_label": "Ara",
     "search_placeholder": "Başlığa göre durum sayfalarını ara…",
+    "show_locations": "Her konumu göster",
+    "show_locations_info": "Birden çok konumdan denetlenen izleyiciler için her konumun durumunu ve geçmişini gösterir",
     "update_status_page": "Durum Sayfasını Güncelle",
     "view_page": "Sayfayı Görüntüle"
   },
@@ -1400,13 +1535,14 @@
   "telemetry": {
     "docs_link": "Neler gönderilir ve nasıl kapatılır",
     "label": "Anonim kullanım istatistikleri gönder",
-    "never_sent": "Asla gönderilmez: monitör adları, URL'ler, ana makineler, etiketler, durum sayfası adresleri veya bildirim ayarları. Bir kullanım ping'i IP adresi içermez ve Peekaping'in Worker'ı gönderenin IP'sini kaydetmez.",
-    "not_saved": "Kullanım istatistiklerini gönderme tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden açın.",
-    "sent_features": "Durum sayfaları, bakım pencereleri ve metrikleri kullanıp kullanmadığınız",
-    "sent_id": "Açtığınızda oluşturulan ve kapattığınızda silinen rastgele bir kimlik",
-    "sent_monitors": "Kaç monitörünüz olduğu, 11-50 gibi bir aralık olarak",
-    "sent_setup": "Peekaping sürümü, tekli veya küme modu, depolama arka ucu ile işletim sistemi ve işlemci türü",
-    "sent_types": "Kullandığınız monitör ve bildirim kanalı türleri, örneğin http veya telegram"
+    "not_saved": "Kullanım istatistiklerine ilişkin tercihiniz kaydedilmedi. Bunu “Ayarlar” bölümünden kontrol edin."
+  },
+  "telemetry_notice": {
+    "error_reports": "Hata raporları açık. Peekaping çökerse hatanın türünü ve kodda nerede oluştuğunu, kendi sürümünü, modunu, depolama arka ucunu ve işletim sistemini gönderir. Hata iletisi, URL veya ana makine adı göndermez.",
+    "settings_errors": "“Ayarlar” bölümünden hata raporlarını kapatın",
+    "settings_usage": "“Ayarlar” bölümünden kullanım istatistiklerini kapatın",
+    "title": "Anonim veri gönderimi varsayılan olarak açık",
+    "usage_statistics": "Kullanım istatistikleri açık. Peekaping günde en fazla bir kez rastgele bir örnek kimliğini, kendi sürümünü, modunu, depolama arka ucunu ve işletim sistemini, monitör sayınız için bir aralığı, kullandığınız monitör ve bildirim kanalı türlerini ve durum sayfaları, bakım pencereleri ve metrikleri kullanıp kullanmadığınızı gönderir. Ad, URL, ana makine veya ayar göndermez."
   },
   "theme": {
     "dark": "Koyu",

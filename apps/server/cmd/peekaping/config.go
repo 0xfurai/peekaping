@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"peekaping/internal/config"
@@ -85,16 +84,25 @@ type Config struct {
 	// unset and gives the default.
 	TLSInfoRetentionDays int `env:"TLS_INFO_RETENTION_DAYS" validate:"min=1" default:"30"`
 
-	// Usage ping (ADR 0003): off until an admin opts in. TELEMETRY=off and DO_NOT_TRACK=1 force
+	// Usage ping (ADR 0003): on until an admin opts out. TELEMETRY=off forces
 	// it off, and TELEMETRY_URL moves where it is sent.
 	Telemetry    string `env:"TELEMETRY"`
-	DoNotTrack   string `env:"DO_NOT_TRACK"`
 	TelemetryURL string `env:"TELEMETRY_URL" default:"https://telemetry.peekaping.com/v1/ping"`
 
-	// Error reports (ADR 0003): off until an admin opts in. ERROR_REPORTING=off and DO_NOT_TRACK=1
-	// force them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
+	// Error reports (ADR 0003): on until an admin opts out. ERROR_REPORTING=off
+	// forces them off, and ERROR_REPORTING_DSN replaces the Sentry DSN built into the binary.
 	ErrorReporting    string `env:"ERROR_REPORTING"`
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
+
+	// The local probe's token in cluster mode. Single mode doesn't use it: its process checks the
+	// local probe's monitors, and refuses a probe instance that uses the local probe's token. It
+	// is read only so that peekaping can say it ignores it, whatever its length.
+	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
+
+	// How long an online probe's instances may all go unseen before the probe counts as offline.
+	// A Go duration, from config.MinProbeOfflineAfter to config.MaxProbeOfflineAfter. Validated in
+	// Validate().
+	ProbeOfflineAfter time.Duration `env:"PROBE_OFFLINE_AFTER" default:"3m"`
 
 	// The web app (ADR 0002, section 7). With WEB_DIR set to the web build, peekaping serves it
 	// on SERVER_PORT beside the API. Unset, it serves the API alone.
@@ -120,11 +128,9 @@ func LoadAndValidate(path string) (*Config, error) {
 
 // Validate validates peekaping's configuration
 func Validate(cfg *Config) error {
-	// MongoDB storage is deprecated and frozen (ADR 0001), and single mode doesn't support it. The
-	// db_type validator ignores case, so this does too.
-	if strings.EqualFold(cfg.DBType, "mongo") || strings.EqualFold(cfg.DBType, "mongodb") {
-		return fmt.Errorf("DB_TYPE=%s isn't supported by peekaping (single mode), which stores its data in SQLite or PostgreSQL. "+
-			"MongoDB storage is deprecated and runs only in cluster mode, with the api, producer, worker and ingester services", cfg.DBType)
+	// MongoDB storage was removed, and the db_type validator below would only call the value invalid
+	if err := config.RefuseMongoStorage(cfg.DBType); err != nil {
+		return err
 	}
 
 	// Validate using struct tags
@@ -182,6 +188,17 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	// A shorter limit would announce a probe offline while it restarts gracefully (see
+	// probe.RetiredAt)
+	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at least %s", config.MinProbeOfflineAfter)
+	}
+	// The sweep forgets an instance after that long, so a longer limit would set a probe online on
+	// an instance about to be pruned, and offline again (see config.MaxProbeOfflineAfter)
+	if cfg.ProbeOfflineAfter > config.MaxProbeOfflineAfter {
+		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
+	}
+
 	// A WEB_DIR without a web build fails at startup, not on every page load
 	if cfg.WebDir != "" {
 		if err := web.CheckDir(cfg.WebDir); err != nil {
@@ -211,7 +228,7 @@ func (c *Config) RedisSettings() []string {
 }
 
 // ToInternalConfig converts peekaping's config to the internal config the modules read. It has
-// no Redis settings.
+// no Redis settings and no probe bootstrap token, which single mode doesn't use.
 func (c *Config) ToInternalConfig() *config.Config {
 	return &config.Config{
 		Port:                         c.Port,
@@ -239,10 +256,10 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ServiceName:                  c.ServiceName,
 		MetricsEnabled:               c.MetricsEnabled,
 		Telemetry:                    c.Telemetry,
-		DoNotTrack:                   c.DoNotTrack,
 		TelemetryURL:                 c.TelemetryURL,
 		ErrorReporting:               c.ErrorReporting,
 		ErrorReportingDSN:            c.ErrorReportingDSN,
+		ProbeOfflineAfter:            c.ProbeOfflineAfter,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

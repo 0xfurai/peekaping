@@ -1,3 +1,5 @@
+//go:build !slim
+
 package executor
 
 import (
@@ -32,6 +34,8 @@ func NewMongoDBExecutor(logger *zap.SugaredLogger) *MongoDBExecutor {
 		logger: logger,
 	}
 }
+
+func init() { registerOptional("mongodb", NewMongoDBExecutor) }
 
 func (m *MongoDBExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[MongoDBConfig](configJSON)
@@ -176,13 +180,27 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 	clientOptions := options.Client().ApplyURI(enhancedConnectionString)
 	clientOptions.SetConnectTimeout(timeout)
 	clientOptions.SetSocketTimeout(timeout)
+	if timeout > 0 {
+		// The driver waits 30s for a server it can't select, whatever the
+		// connect timeout says. The deadline bounds connecting and the
+		// command together, so a check never outlasts the monitor's timeout.
+		clientOptions.SetServerSelectionTimeout(timeout)
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
 
 	// Connect to MongoDB
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
-	defer client.Disconnect(ctx)
+	defer func() {
+		// The deadline may have passed, which would stop a clean disconnect.
+		disconnectCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), time.Second)
+		defer cancel()
+		_ = client.Disconnect(disconnectCtx)
+	}()
 
 	// Extract database name from connection string
 	dbName, err := m.extractDatabaseName(connectionString)

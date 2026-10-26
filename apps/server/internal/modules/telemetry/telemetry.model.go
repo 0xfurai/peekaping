@@ -1,14 +1,16 @@
 // Package telemetry is the usage ping (ticket #232, ADR 0003): an anonymous summary of how an
-// install is set up, sent at most once a day after an admin opts in. The payload is the
+// install is set up, sent at most once a day until an admin opts out. The payload is the
 // contract the Worker in apps/telemetry enforces field by field (apps/telemetry/src/validate.ts).
 package telemetry
 
 // Settings keys. They are not user-editable, so the settings API can't reach them: the telemetry
 // API is the only way to read or change them.
 const (
-	// EnabledKey holds "true" while an admin has opted in, "false" after they opted out.
+	// EnabledKey holds the admin's choice: "true" after they opted in, "false" after they opted
+	// out. Until they choose it is absent, which counts as on.
 	EnabledKey = "TELEMETRY_ENABLED"
-	// InstanceIDKey holds the instance ID. It exists while the admin is opted in.
+	// InstanceIDKey holds the instance ID. It exists while the ping is on: an install that never
+	// chose makes it on first use, and an opt-out deletes it.
 	InstanceIDKey = "TELEMETRY_INSTANCE_ID"
 	// LastSentKey holds when the last usage ping was attempted, as an RFC 3339 time in UTC.
 	LastSentKey = "TELEMETRY_LAST_SENT"
@@ -21,7 +23,7 @@ type Mode string
 const (
 	// ModeSingle is the one-process runtime (cmd/peekaping)
 	ModeSingle Mode = "single"
-	// ModeCluster is the api, producer, worker and ingester processes over Redis
+	// ModeCluster is the api replicas and the probes, with Redis between the replicas
 	ModeCluster Mode = "cluster"
 )
 
@@ -29,10 +31,10 @@ const (
 // and the service builds it field by field. Adding a field is a decision that changes the ADR and
 // the Worker's validator too.
 type Payload struct {
-	InstanceID   string   `json:"instance_id" doc:"The random instance ID; empty until an admin opts in" example:"6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f"`
+	InstanceID   string   `json:"instance_id" doc:"The random instance ID; empty after an admin opts out, and while TELEMETRY forces the ping off and no ID was made before" example:"6c1b4f0e-5d3a-4c8e-9f21-0a7b8c9d1e2f"`
 	Version      string   `json:"version" doc:"The Peekaping version" example:"0.0.47"`
 	Mode         string   `json:"mode" doc:"How the install runs" enum:"single,cluster" example:"single"`
-	DB           string   `json:"db" doc:"The storage backend: sqlite, postgres, mysql or mongo. Empty for a backend the ping doesn't report." example:"sqlite"`
+	DB           string   `json:"db" doc:"The storage backend: sqlite, postgres or mysql. Empty for a backend the ping doesn't report." example:"sqlite"`
 	OS           string   `json:"os" doc:"Operating system and architecture" example:"linux/arm64"`
 	Monitors     string   `json:"monitors" doc:"How many monitors there are, paused ones included, as a bucket" enum:"0,1-10,11-50,51-200,201-1000,1000+" example:"1-10"`
 	MonitorTypes []string `json:"monitor_types" doc:"The distinct monitor types in use, lower case and sorted" nullable:"false"`
@@ -51,10 +53,14 @@ type Features struct {
 // State is what the telemetry API reports: the admin's choice, whether the environment overrides
 // it, and the payload the next ping would send.
 type State struct {
-	// Enabled is the admin's stored choice. It stays what they chose while ForcedOff is true.
+	// Enabled is the admin's stored choice, or on when they haven't chosen. It stays what they
+	// chose while ForcedOff is true.
 	Enabled bool
-	// ForcedOff is true when TELEMETRY or DO_NOT_TRACK switches the ping off whatever Enabled says
+	// ForcedOff is true when TELEMETRY switches the ping off whatever Enabled says
 	ForcedOff bool
+	// NoticePending is true while the admin has not yet been told that the usage ping and error
+	// reports are on, and at least one of them is not forced off by the environment
+	NoticePending bool
 	// Payload is what the next ping would send
 	Payload Payload
 }

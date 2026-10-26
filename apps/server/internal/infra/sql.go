@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"peekaping/internal/config"
+	"peekaping/internal/sqlitedb"
 	"strings"
 
 	"github.com/uptrace/bun"
@@ -12,7 +13,6 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"github.com/uptrace/bun/driver/pgdriver"
-	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/extra/bundebug"
 	"go.uber.org/zap"
 
@@ -65,29 +65,15 @@ func ProvideSQLDB(
 			dbPath = "./data.db" // Default SQLite file path
 		}
 
-		// Configure SQLite for concurrent access
-		// cache=shared: Share cache between connections
-		// mode=rwc: Read-write-create mode
-		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbPath))
+		sqldb, err = sqlitedb.Open(dbPath)
 		if err != nil {
-			return nil, fmt.Errorf("failed to open SQLite connection: %w", err)
+			return nil, err
 		}
-
-		// Set connection pool limits for SQLite to prevent lock contention
-		// SQLite works best with a limited number of connections
-		// For multiple processes, use very conservative limits
-		sqldb.SetMaxOpenConns(1)    // Force serialized access
-		sqldb.SetMaxIdleConns(1)    // Keep one connection alive
-		sqldb.SetConnMaxLifetime(0) // Connections never expire (important for WAL mode)
 
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 
-		// Configure SQLite using PRAGMA statements for corruption prevention
-		// Set busy_timeout FIRST so subsequent PRAGMA statements can wait for locks
-		if _, err := db.Exec("PRAGMA busy_timeout=5000"); err != nil {
-			logger.Warnf("Failed to set busy_timeout (non-fatal): %v", err)
-		}
-
+		// The settings of a connection are in its DSN (see sqlitedb.DSN). journal_mode and
+		// auto_vacuum belong to the database file and are set once, in the order they always had.
 		// Check current journal mode before trying to change it
 		var currentJournalMode string
 		if err := db.QueryRow("PRAGMA journal_mode").Scan(&currentJournalMode); err != nil {
@@ -104,35 +90,6 @@ func ProvideSQLDB(
 			}
 		} else {
 			logger.Infof("SQLite already in WAL mode")
-		}
-
-		// Enable synchronous mode for better reliability in multi-process scenarios
-		// NORMAL is a good balance between performance and safety
-		// For critical data, consider FULL, but it's slower
-		if _, err := db.Exec("PRAGMA synchronous=NORMAL"); err != nil {
-			logger.Warnf("Failed to set synchronous mode (non-fatal): %v", err)
-		}
-
-		// Enable foreign key constraints (important for data integrity)
-		if _, err := db.Exec("PRAGMA foreign_keys=ON"); err != nil {
-			logger.Warnf("Failed to enable foreign keys (non-fatal): %v", err)
-		}
-
-		// Use memory for temporary tables to reduce disk I/O and corruption risk
-		if _, err := db.Exec("PRAGMA temp_store=MEMORY"); err != nil {
-			logger.Warnf("Failed to set temp_store (non-fatal): %v", err)
-		}
-
-		// Control WAL automatic checkpointing (default is 1000 pages)
-		// This prevents the WAL file from growing too large
-		if _, err := db.Exec("PRAGMA wal_autocheckpoint=1000"); err != nil {
-			logger.Warnf("Failed to set wal_autocheckpoint (non-fatal): %v", err)
-		}
-
-		// Set cache size (negative value means KB, positive means pages)
-		// -64000 = 64MB cache (good for most applications)
-		if _, err := db.Exec("PRAGMA cache_size=-64000"); err != nil {
-			logger.Warnf("Failed to set cache_size (non-fatal): %v", err)
 		}
 
 		// Enable auto_vacuum to prevent database file fragmentation
