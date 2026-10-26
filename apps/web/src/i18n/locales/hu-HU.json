@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "{{name}} szonda szerkesztése",
         "rotate": "{{name}} szonda tokenjének cseréje",
+        "assign_all": "A(z) {{name}} szonda hozzárendelése az összes figyelőhöz",
         "delete": "{{name}} szonda törlése"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "A szonda azon a helyen futtat ellenőrzéseket, ahová telepíti. A tokenje csak egyszer jelenik meg, a létrehozás után.",
       "submit": "Szonda létrehozása",
       "creating": "Létrehozás..."
+    },
+    "assign_all": {
+      "warning": "A token beolvassa a szondához rendelt összes figyelő konfigurációját, a hitelesítő adatokkal együtt.",
+      "docs_link": "Mit olvashat a token"
+    },
+    "assign_all_dialog": {
+      "title": "Hozzárendelés az összes figyelőhöz",
+      "description": "A(z) {{name}} szonda hozzáadása minden figyelőhöz, amelyet futtatni tud, kivéve a push figyelőket. A még példány nélküli szonda akkor kerül hozzáadásra, amikor az első példánya csatlakozik.",
+      "confirm": "Hozzárendelés az összes figyelőhöz",
+      "assigning": "Hozzárendelés..."
     },
     "edit_dialog": {
       "title": "Szonda szerkesztése",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "pl. Frankfurt",
       "location_label": "Helyszín (nem kötelező)",
       "location_placeholder": "pl. Frankfurt, Németország",
+      "assign_all_label": "Hozzárendelés az összes figyelőhöz",
+      "assign_all_description": "Amikor az első példánya csatlakozik, a szonda hozzáadódik minden figyelőhöz, amelyet futtatni tud, kivéve a push figyelőket.",
       "name_required": "A név megadása kötelező",
       "name_too_long": "A név túl hosszú",
       "location_too_long": "A helyszín túl hosszú",
@@ -1232,16 +1245,20 @@
       "created_successfully": "A szonda sikeresen létrejött",
       "updated_successfully": "A szonda sikeresen frissítve",
       "rotated_successfully": "A token sikeresen kicserélve",
+      "assigned_successfully": "Hozzáadott figyelők: {{added}}",
+      "assign_pending": "Csatlakozáskor hozzáadódik minden figyelőhöz, amelyet futtat",
       "deleted_successfully": "A szonda sikeresen törölve",
       "failed_to_create": "A szonda létrehozása sikertelen",
       "failed_to_update": "A szonda frissítése sikertelen",
       "failed_to_rotate": "A token cseréje sikertelen",
+      "failed_to_assign": "Nem sikerült a szondát az összes figyelőhöz rendelni",
       "failed_to_delete": "A szonda törlése sikertelen",
       "failed_to_load": "A szondák betöltése sikertelen",
       "copy_success": "Vágólapra másolva",
       "copy_failed": "A vágólapra másolás sikertelen"
     },
     "detail": {
+      "assign_all_pending": "Az első példányára vár: csatlakozáskor hozzáadódik minden figyelőhöz, amelyet futtat.",
       "not_found": "A szonda nem található"
     },
     "availability": {

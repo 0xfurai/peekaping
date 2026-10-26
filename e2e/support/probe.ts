@@ -8,8 +8,40 @@ export async function createProbe(api: APIRequestContext, name: string): Promise
   return (await response.json()).data;
 }
 
+// Takes the probe off every monitor that still runs on it. "Assign to all monitors" puts a probe on
+// every monitor of the install, including the ones other specs made, which a probe delete refuses
+// (409) and which a spec has no business deleting. A monitor runs on one probe or more, so one left
+// with none goes back to the local probe. An "at least" threshold above the probes it keeps is
+// refused (400), so it comes down to their number: the monitor still needs every location it can.
+async function detachProbe(api: APIRequestContext, probeID: string) {
+  const pageSize = 1000;
+  for (let pageNumber = 0; ; pageNumber++) {
+    const response = await api.get('monitors', { params: { page: pageNumber, limit: pageSize } });
+    expect(response.ok(), `GET monitors: ${await response.text()}`).toBeTruthy();
+    const monitors: {
+      id: string;
+      probe_ids: string[];
+      location_rule?: string;
+      location_threshold?: number | null;
+    }[] = (await response.json()).data ?? [];
+    for (const monitor of monitors.filter((m) => m.probe_ids.includes(probeID))) {
+      const others = monitor.probe_ids.filter((id) => id !== probeID);
+      const kept = others.length > 0 ? others : ['local'];
+      const tooFew = monitor.location_rule === 'at_least' && (monitor.location_threshold ?? 0) > kept.length;
+      const patched = await api.patch(`monitors/${monitor.id}`, {
+        data: tooFew
+          ? { probe_ids: kept, location_rule: 'at_least', location_threshold: kept.length }
+          : { probe_ids: kept },
+      });
+      expect(patched.ok(), `PATCH monitors/${monitor.id}: ${patched.status()} ${await patched.text()}`).toBeTruthy();
+    }
+    if (monitors.length < pageSize) return;
+  }
+}
+
 // Deletes what a spec made, whatever state it was left in, so reruns start clean. The monitors go
-// first: a probe that has monitors can't be deleted (it answers 409). A form that was submitted
+// first: a probe that has monitors can't be deleted (it answers 409), so the monitors of other
+// specs that the probe was assigned are taken off it. A form that was submitted
 // when the spec failed can still be saving its monitor, so a refused probe delete lists the
 // monitors again and tries once more, instead of failing the spec with a message that hides why
 // it failed in the first place.
@@ -26,6 +58,7 @@ export async function cleanUp(page: Page, { monitor, probe }: { monitor: string;
       }
       const probes = await (await api.get('probes')).json();
       for (const found of probes.data.filter((p: { name: string }) => probeNames.includes(p.name))) {
+        await detachProbe(api, found.id);
         const response = await api.delete(`probes/${found.id}`);
         expect(response.ok(), `DELETE probes/${found.id}: ${response.status()} ${await response.text()}`).toBeTruthy();
       }

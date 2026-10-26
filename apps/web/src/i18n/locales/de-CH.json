@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Sonde {{name}} bearbeiten",
         "rotate": "Token der Sonde {{name}} erneuern",
+        "assign_all": "Sonde {{name}} allen Monitoren zuweisen",
         "delete": "Sonde {{name}} löschen"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "Eine Sonde führt Prüfungen von dem Ort aus, an dem Sie sie installieren. Ihr Token wird nur einmal angezeigt, nachdem Sie sie erstellt haben.",
       "submit": "Sonde erstellen",
       "creating": "Wird erstellt..."
+    },
+    "assign_all": {
+      "warning": "Das Token liest die Konfiguration jedes Monitors, der der Sonde zugewiesen ist, einschliesslich der Zugangsdaten.",
+      "docs_link": "Was das Token lesen kann"
+    },
+    "assign_all_dialog": {
+      "title": "Allen Monitoren zuweisen",
+      "description": "Die Sonde {{name}} jedem Monitor hinzufügen, den sie ausführen kann, ausser Push-Monitoren. Eine Sonde ohne Instanz wird hinzugefügt, sobald ihre erste Instanz verbunden ist.",
+      "confirm": "Allen Monitoren zuweisen",
+      "assigning": "Wird zugewiesen..."
     },
     "edit_dialog": {
       "title": "Sonde bearbeiten",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "z. B. Zürich",
       "location_label": "Standort (optional)",
       "location_placeholder": "z. B. Zürich, Schweiz",
+      "assign_all_label": "Allen Monitoren zuweisen",
+      "assign_all_description": "Sobald die erste Instanz verbunden ist, wird die Sonde jedem Monitor hinzugefügt, den sie ausführen kann, ausser Push-Monitoren.",
       "name_required": "Name ist erforderlich",
       "name_too_long": "Der Name ist zu lang",
       "location_too_long": "Der Standort ist zu lang",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Sonde erfolgreich erstellt",
       "updated_successfully": "Sonde erfolgreich aktualisiert",
       "rotated_successfully": "Token erfolgreich erneuert",
+      "assigned_successfully": "Hinzugefügte Monitore: {{added}}",
+      "assign_pending": "Sie wird jedem Monitor hinzugefügt, den sie ausführt, sobald sie verbunden ist",
       "deleted_successfully": "Sonde erfolgreich gelöscht",
       "failed_to_create": "Sonde konnte nicht erstellt werden",
       "failed_to_update": "Sonde konnte nicht aktualisiert werden",
       "failed_to_rotate": "Token konnte nicht erneuert werden",
+      "failed_to_assign": "Die Sonde konnte nicht allen Monitoren zugewiesen werden",
       "failed_to_delete": "Sonde konnte nicht gelöscht werden",
       "failed_to_load": "Sonden konnten nicht geladen werden",
       "copy_success": "In die Zwischenablage kopiert",
       "copy_failed": "Kopieren in die Zwischenablage fehlgeschlagen"
     },
     "detail": {
+      "assign_all_pending": "Wartet auf ihre erste Instanz: Sie wird jedem Monitor hinzugefügt, den sie ausführt, sobald sie verbunden ist.",
       "not_found": "Sonde nicht gefunden"
     },
     "availability": {

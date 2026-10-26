@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Editar a sonda {{name}}",
         "rotate": "Renovar o token da sonda {{name}}",
+        "assign_all": "Atribuir a sonda {{name}} a todos os monitores",
         "delete": "Eliminar a sonda {{name}}"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "Uma sonda executa verificações a partir do local onde a instala. O respetivo token é apresentado apenas uma vez, depois de a criar.",
       "submit": "Criar sonda",
       "creating": "A criar..."
+    },
+    "assign_all": {
+      "warning": "O token lê a configuração de cada monitor atribuído à sonda, incluindo as credenciais.",
+      "docs_link": "O que o token pode ler"
+    },
+    "assign_all_dialog": {
+      "title": "Atribuir a todos os monitores",
+      "description": "Adiciona a sonda {{name}} a todos os monitores que consegue executar, exceto os monitores push. Uma sonda sem instâncias é adicionada quando a primeira instância se liga.",
+      "confirm": "Atribuir a todos os monitores",
+      "assigning": "A atribuir..."
     },
     "edit_dialog": {
       "title": "Editar sonda",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "p. ex., Frankfurt",
       "location_label": "Localização (opcional)",
       "location_placeholder": "p. ex., Frankfurt, Alemanha",
+      "assign_all_label": "Atribuir a todos os monitores",
+      "assign_all_description": "Quando a primeira instância se ligar, a sonda é adicionada a todos os monitores que consegue executar, exceto os monitores push.",
       "name_required": "O nome é obrigatório",
       "name_too_long": "O nome é demasiado longo",
       "location_too_long": "A localização é demasiado longa",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Sonda criada com sucesso",
       "updated_successfully": "Sonda atualizada com sucesso",
       "rotated_successfully": "Token renovado com sucesso",
+      "assigned_successfully": "Monitores adicionados: {{added}}",
+      "assign_pending": "Será adicionada a todos os monitores que executa quando se ligar",
       "deleted_successfully": "Sonda eliminada com sucesso",
       "failed_to_create": "Falha ao criar a sonda",
       "failed_to_update": "Falha ao atualizar a sonda",
       "failed_to_rotate": "Falha ao renovar o token",
+      "failed_to_assign": "Não foi possível atribuir a sonda a todos os monitores",
       "failed_to_delete": "Falha ao eliminar a sonda",
       "failed_to_load": "Falha ao carregar as sondas",
       "copy_success": "Copiado para a área de transferência",
       "copy_failed": "Não foi possível copiar para a área de transferência"
     },
     "detail": {
+      "assign_all_pending": "À espera da primeira instância: será adicionada a todos os monitores que executa quando se ligar.",
       "not_found": "Sonda não encontrada"
     },
     "availability": {

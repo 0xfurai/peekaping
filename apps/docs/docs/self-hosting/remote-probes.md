@@ -16,7 +16,7 @@ A remote probe runs the monitor types it has a check for. A push monitor runs on
 
 ## Run a probe
 
-1. In Peekaping, open **Probes** and choose **Create probe**. Give it a name. The location text is optional and is only a label, such as `Frankfurt, Germany`.
+1. In Peekaping, open **Probes** and choose **Create probe**. Give it a name. The location text is optional and is only a label, such as `Frankfurt, Germany`. **Assign to all monitors** is checked by default: see [Assign a probe to all monitors](#assign-a-probe-to-all-monitors), and uncheck it if you want to choose the probe's monitors yourself.
 2. Copy the token. It is shown once. [What the token can read](#what-the-token-can-read) says why to guard it.
 3. Start the probe where you want the checks to run, with the Docker line that Peekaping shows next to the token:
 
@@ -39,11 +39,22 @@ A remote probe runs the monitor types it has a check for. A push monitor runs on
    ```
 
 4. Once the probe has connected, the Probes page shows it as **Online**, with the instance that connected.
-5. Assign monitors to it: choose the probe in the monitor's form.
+5. Assign monitors to it: choose the probe in the monitor's form, or let Peekaping add it to every monitor, as the next section describes.
 
 The image is `0xfurai/peekaping-probe` on Docker Hub and `ghcr.io/0xfurai/peekaping-probe` on GHCR, for amd64 and arm64. It runs as the non-root user `65532`, and keeps nothing on disk, so it needs no volume. Ping monitors need `net.ipv4.ping_group_range` to include the probe's group. Rootful Docker with a private network namespace allows that by default. Rootless Docker, `userns-remap`, `network_mode: host` and Podman don't, so set the sysctl there: see [Ping Monitors and ICMP Permissions](../architecture/probe.md#ping-monitors-and-icmp-permissions).
 
 The image has a Docker health check on the probe's `/ready` endpoint. It answers 200 once the probe has its first assignment, and keeps answering 200 while the server is unreachable.
+
+## Assign a probe to all monitors
+
+Instead of choosing the probe in each monitor's form, you can add it to every monitor at once. Peekaping adds it to every monitor of a type the probe runs, except push monitors, which run on the local probe only. Monitors that are already on the probe stay as they are, and the monitors they already run on keep running there: the probe becomes one more location of each.
+
+- **When you create the probe**, leave **Assign to all monitors** checked. The probe is added to the monitors when its first instance connects, because only then does Peekaping know which monitor types it runs. Until then the probe's page says that it waits for its first instance.
+- **For a probe that exists**, choose **Assign to all monitors** in the probe's row on the Probes page and confirm. If the probe has instances on record, Peekaping adds it to the monitors at once and says how many it added. If it has none yet, Peekaping notes the request and does it when the first instance connects. The local probe doesn't have the action.
+
+Either way the token can then read the config of every monitor, credentials included. The create form and the confirm dialog say so and link to [What the token can read](#what-the-token-can-read). Leave the box unchecked for a probe on a machine you trust less than your Peekaping server, and assign it the monitors it needs.
+
+The monitors are chosen once, by the instance that connects first, and by the types that instance runs. If that instance is a [slim](#the-slim-image) one, the Docker, gRPC keyword, Kafka producer, MongoDB and SQL Server monitors are left out. A full instance that connects later under the same token does not add them: the request is already done. Choose **Assign to all monitors** on the Probes page once the full instance is online to add them. The action adds the monitors the probe can run and leaves the rest as they are, so you can use it again whenever you want to catch up with new monitors, which are not added to the probe on their own.
 
 ## The slim image
 
@@ -108,6 +119,8 @@ How long Peekaping waits before it calls a silent probe offline is a setting of 
 :::warning The token reads your monitors' configs
 The token lets whoever holds it read the configs of the monitors assigned to its probe. That includes the credentials in them, such as passwords and tokens set in a monitor's config, and the user names and passwords of proxies. Keep it like a password: don't commit it, and run a probe only on machines you trust.
 :::
+
+[Assigning a probe to all monitors](#assign-a-probe-to-all-monitors) gives its token the configs of every monitor, so do it only for a probe on a machine you trust with all of them.
 
 The token is shown once, when you create the probe or rotate its token. Peekaping keeps only a hash, so it can't show the token again.
 

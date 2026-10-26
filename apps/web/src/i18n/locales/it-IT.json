@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Modifica la sonda {{name}}",
         "rotate": "Rinnova il token della sonda {{name}}",
+        "assign_all": "Assegna la sonda {{name}} a tutti i monitor",
         "delete": "Elimina la sonda {{name}}"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "Una sonda esegue i controlli dal luogo in cui la installi. Il suo token viene mostrato una sola volta, dopo la creazione.",
       "submit": "Crea sonda",
       "creating": "Creazione in corso..."
+    },
+    "assign_all": {
+      "warning": "Il token legge la configurazione di ogni monitor assegnato alla sonda, credenziali comprese.",
+      "docs_link": "Cosa può leggere il token"
+    },
+    "assign_all_dialog": {
+      "title": "Assegna a tutti i monitor",
+      "description": "Aggiunge la sonda {{name}} a ogni monitor che può eseguire, tranne i monitor push. Una sonda senza istanze viene aggiunta quando si connette la sua prima istanza.",
+      "confirm": "Assegna a tutti i monitor",
+      "assigning": "Assegnazione..."
     },
     "edit_dialog": {
       "title": "Modifica sonda",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "es. Francoforte",
       "location_label": "Posizione (facoltativa)",
       "location_placeholder": "es. Francoforte, Germania",
+      "assign_all_label": "Assegna a tutti i monitor",
+      "assign_all_description": "Quando si connette la sua prima istanza, la sonda viene aggiunta a ogni monitor che può eseguire, tranne i monitor push.",
       "name_required": "Il nome è obbligatorio",
       "name_too_long": "Il nome è troppo lungo",
       "location_too_long": "La posizione è troppo lunga",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Sonda creata con successo",
       "updated_successfully": "Sonda aggiornata con successo",
       "rotated_successfully": "Token rinnovato con successo",
+      "assigned_successfully": "Monitor aggiunti: {{added}}",
+      "assign_pending": "Verrà aggiunta a ogni monitor che esegue quando si connetterà",
       "deleted_successfully": "Sonda eliminata con successo",
       "failed_to_create": "Impossibile creare la sonda",
       "failed_to_update": "Impossibile aggiornare la sonda",
       "failed_to_rotate": "Impossibile rinnovare il token",
+      "failed_to_assign": "Impossibile assegnare la sonda a tutti i monitor",
       "failed_to_delete": "Impossibile eliminare la sonda",
       "failed_to_load": "Impossibile caricare le sonde",
       "copy_success": "Copiato negli appunti",
       "copy_failed": "Impossibile copiare negli appunti"
     },
     "detail": {
+      "assign_all_pending": "In attesa della sua prima istanza: verrà aggiunta a ogni monitor che esegue quando si connetterà.",
       "not_found": "Sonda non trovata"
     },
     "availability": {

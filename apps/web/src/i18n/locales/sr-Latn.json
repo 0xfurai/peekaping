@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Izmeni sondu {{name}}",
         "rotate": "Zameni token sonde {{name}}",
+        "assign_all": "Dodeli sondu {{name}} svim monitorima",
         "delete": "Obriši sondu {{name}}"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "Sonda izvršava provere sa mesta na kojem je instalirate. Njen token se prikazuje samo jednom, nakon pravljenja.",
       "submit": "Napravi sondu",
       "creating": "Pravljenje..."
+    },
+    "assign_all": {
+      "warning": "Token čita konfiguraciju svakog monitora dodeljenog sondi, uključujući akreditive.",
+      "docs_link": "Šta token može da čita"
+    },
+    "assign_all_dialog": {
+      "title": "Dodeli svim monitorima",
+      "description": "Dodaj sondu {{name}} svakom monitoru koji može da izvršava, osim push monitora. Sonda koja još nema instancu dodaje se kad se poveže njena prva instanca.",
+      "confirm": "Dodeli svim monitorima",
+      "assigning": "Dodeljivanje..."
     },
     "edit_dialog": {
       "title": "Izmeni sondu",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "npr. Frankfurt",
       "location_label": "Lokacija (opciono)",
       "location_placeholder": "npr. Frankfurt, Nemačka",
+      "assign_all_label": "Dodeli svim monitorima",
+      "assign_all_description": "Kad se poveže njena prva instanca, sonda se dodaje svakom monitoru koji može da izvršava, osim push monitora.",
       "name_required": "Naziv je obavezan",
       "name_too_long": "Naziv je predugačak",
       "location_too_long": "Lokacija je predugačka",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Sonda je uspešno napravljena",
       "updated_successfully": "Sonda je uspešno ažurirana",
       "rotated_successfully": "Token je uspešno zamenjen",
+      "assigned_successfully": "Dodato monitora: {{added}}",
+      "assign_pending": "Biće dodata svakom monitoru koji izvršava kad se poveže",
       "deleted_successfully": "Sonda je uspešno obrisana",
       "failed_to_create": "Pravljenje sonde nije uspelo",
       "failed_to_update": "Ažuriranje sonde nije uspelo",
       "failed_to_rotate": "Zamena tokena nije uspela",
+      "failed_to_assign": "Dodela sonde svim monitorima nije uspela",
       "failed_to_delete": "Brisanje sonde nije uspelo",
       "failed_to_load": "Učitavanje sondi nije uspelo",
       "copy_success": "Kopirano u privremenu memoriju",
       "copy_failed": "Kopiranje u privremenu memoriju nije uspelo"
     },
     "detail": {
+      "assign_all_pending": "Čeka prvu instancu: biće dodata svakom monitoru koji izvršava kad se poveže.",
       "not_found": "Sonda nije pronađena"
     },
     "availability": {

@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "{{name}} probunu düzenle",
         "rotate": "{{name}} probunun belirtecini yenile",
+        "assign_all": "{{name}} probe'unu tüm monitörlere ata",
         "delete": "{{name}} probunu sil"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "Bir prob, kurduğunuz yerden kontrol çalıştırır. Belirteci yalnızca bir kez, oluşturduktan sonra gösterilir.",
       "submit": "Prob oluştur",
       "creating": "Oluşturuluyor..."
+    },
+    "assign_all": {
+      "warning": "Belirteç, probe'a atanan her monitörün yapılandırmasını, kimlik bilgileri dahil, okur.",
+      "docs_link": "Belirteç neleri okuyabilir"
+    },
+    "assign_all_dialog": {
+      "title": "Tüm monitörlere ata",
+      "description": "{{name}} probe'unu çalıştırabildiği tüm monitörlere ekle; push monitörler hariç. Henüz örneği olmayan probe, ilk örneği bağlandığında eklenir.",
+      "confirm": "Tüm monitörlere ata",
+      "assigning": "Atanıyor..."
     },
     "edit_dialog": {
       "title": "Probu düzenle",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "örn. Frankfurt",
       "location_label": "Konum (isteğe bağlı)",
       "location_placeholder": "örn. Frankfurt, Almanya",
+      "assign_all_label": "Tüm monitörlere ata",
+      "assign_all_description": "İlk örneği bağlandığında probe, çalıştırabildiği tüm monitörlere eklenir; push monitörler hariç.",
       "name_required": "Ad gereklidir",
       "name_too_long": "Ad çok uzun",
       "location_too_long": "Konum çok uzun",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Prob başarıyla oluşturuldu",
       "updated_successfully": "Prob başarıyla güncellendi",
       "rotated_successfully": "Belirteç başarıyla yenilendi",
+      "assigned_successfully": "Eklenen monitörler: {{added}}",
+      "assign_pending": "Bağlandığında çalıştırdığı tüm monitörlere eklenecek",
       "deleted_successfully": "Prob başarıyla silindi",
       "failed_to_create": "Prob oluşturulamadı",
       "failed_to_update": "Prob güncellenemedi",
       "failed_to_rotate": "Belirteç yenilenemedi",
+      "failed_to_assign": "Probe tüm monitörlere atanamadı",
       "failed_to_delete": "Prob silinemedi",
       "failed_to_load": "Problar yüklenemedi",
       "copy_success": "Panoya kopyalandı",
       "copy_failed": "Panoya kopyalanamadı"
     },
     "detail": {
+      "assign_all_pending": "İlk örneği bekleniyor: bağlandığında çalıştırdığı tüm monitörlere eklenecek.",
       "not_found": "Prob bulunamadı"
     },
     "availability": {

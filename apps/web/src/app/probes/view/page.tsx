@@ -111,6 +111,15 @@ const ProbePage = () => {
           </div>
         </div>
 
+        {probe.assign_all_pending && (
+          <p
+            className="px-4 text-sm text-muted-foreground"
+            data-testid="probe-assign-all-pending"
+          >
+            {t("probes.detail.assign_all_pending")}
+          </p>
+        )}
+
         {availabilityQuery.isError && !availability && (
           <p className="text-sm text-destructive">
             {t("probes.messages.failed_to_load")}

@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Edit probe {{name}}",
         "rotate": "Rotate token of probe {{name}}",
+        "assign_all": "Assign probe {{name}} to all monitors",
         "delete": "Delete probe {{name}}"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "A probe runs checks from the place where you install it. Its token is shown only once, after you create it.",
       "submit": "Create probe",
       "creating": "Creating..."
+    },
+    "assign_all": {
+      "warning": "The token reads the config of every monitor assigned to the probe, credentials included.",
+      "docs_link": "What the token can read"
+    },
+    "assign_all_dialog": {
+      "title": "Assign to all monitors",
+      "description": "Add probe {{name}} to every monitor it can run, except push monitors. A probe with no instance yet is added when its first instance connects.",
+      "confirm": "Assign to all monitors",
+      "assigning": "Assigning..."
     },
     "edit_dialog": {
       "title": "Edit probe",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "e.g., Frankfurt",
       "location_label": "Location (optional)",
       "location_placeholder": "e.g., Frankfurt, Germany",
+      "assign_all_label": "Assign to all monitors",
+      "assign_all_description": "When its first instance connects, the probe is added to every monitor it can run, except push monitors.",
       "name_required": "Name is required",
       "name_too_long": "Name is too long",
       "location_too_long": "Location is too long",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Probe created successfully",
       "updated_successfully": "Probe updated successfully",
       "rotated_successfully": "Token rotated successfully",
+      "assigned_successfully": "Monitors added: {{added}}",
+      "assign_pending": "It will be added to every monitor it runs when it connects",
       "deleted_successfully": "Probe deleted successfully",
       "failed_to_create": "Failed to create probe",
       "failed_to_update": "Failed to update probe",
       "failed_to_rotate": "Failed to rotate the token",
+      "failed_to_assign": "Failed to assign the probe to all monitors",
       "failed_to_delete": "Failed to delete probe",
       "failed_to_load": "Failed to load probes",
       "copy_success": "Copied to clipboard",
       "copy_failed": "Could not copy to clipboard"
     },
     "detail": {
+      "assign_all_pending": "Waiting for its first instance: it will be added to every monitor it runs when it connects.",
       "not_found": "Probe not found"
     },
     "availability": {

@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "프로브 {{name}} 편집",
         "rotate": "프로브 {{name}}의 토큰 교체",
+        "assign_all": "프로브 {{name}}을(를) 모든 모니터에 할당",
         "delete": "프로브 {{name}} 삭제"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "프로브는 설치한 위치에서 검사를 실행합니다. 토큰은 만든 직후 한 번만 표시됩니다.",
       "submit": "프로브 만들기",
       "creating": "만드는 중..."
+    },
+    "assign_all": {
+      "warning": "토큰은 프로브에 할당된 모든 모니터의 설정을 자격 증명까지 포함해 읽습니다.",
+      "docs_link": "토큰이 읽을 수 있는 것"
+    },
+    "assign_all_dialog": {
+      "title": "모든 모니터에 할당",
+      "description": "프로브 {{name}}을(를) 실행할 수 있는 모든 모니터(푸시 모니터 제외)에 추가합니다. 아직 인스턴스가 없는 프로브는 첫 번째 인스턴스가 연결될 때 추가됩니다.",
+      "confirm": "모든 모니터에 할당",
+      "assigning": "할당하는 중..."
     },
     "edit_dialog": {
       "title": "프로브 편집",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "예: 프랑크푸르트",
       "location_label": "위치(선택 사항)",
       "location_placeholder": "예: 프랑크푸르트, 독일",
+      "assign_all_label": "모든 모니터에 할당",
+      "assign_all_description": "첫 번째 인스턴스가 연결되면 프로브가 실행할 수 있는 모든 모니터(푸시 모니터 제외)에 추가됩니다.",
       "name_required": "이름은 필수입니다",
       "name_too_long": "이름이 너무 깁니다",
       "location_too_long": "위치가 너무 깁니다",
@@ -1232,16 +1245,20 @@
       "created_successfully": "프로브를 만들었습니다",
       "updated_successfully": "프로브를 업데이트했습니다",
       "rotated_successfully": "토큰을 교체했습니다",
+      "assigned_successfully": "추가된 모니터 수: {{added}}",
+      "assign_pending": "연결되면 실행할 수 있는 모든 모니터에 추가됩니다",
       "deleted_successfully": "프로브를 삭제했습니다",
       "failed_to_create": "프로브를 만들지 못했습니다",
       "failed_to_update": "프로브를 업데이트하지 못했습니다",
       "failed_to_rotate": "토큰을 교체하지 못했습니다",
+      "failed_to_assign": "프로브를 모든 모니터에 할당하지 못했습니다",
       "failed_to_delete": "프로브를 삭제하지 못했습니다",
       "failed_to_load": "프로브를 불러오지 못했습니다",
       "copy_success": "클립보드에 복사되었습니다",
       "copy_failed": "클립보드에 복사할 수 없습니다"
     },
     "detail": {
+      "assign_all_pending": "첫 번째 인스턴스를 기다리는 중: 연결되면 실행할 수 있는 모든 모니터에 추가됩니다.",
       "not_found": "프로브를 찾을 수 없습니다"
     },
     "availability": {

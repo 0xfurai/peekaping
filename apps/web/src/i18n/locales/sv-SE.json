@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Redigera sonden {{name}}",
         "rotate": "Byt token för sonden {{name}}",
+        "assign_all": "Tilldela sonden {{name}} alla övervakningar",
         "delete": "Ta bort sonden {{name}}"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "En sond kör kontroller från den plats där du installerar den. Dess token visas bara en gång, efter att du har skapat den.",
       "submit": "Skapa sond",
       "creating": "Skapar..."
+    },
+    "assign_all": {
+      "warning": "Token läser konfigurationen för varje övervakning som är tilldelad sonden, inklusive inloggningsuppgifter.",
+      "docs_link": "Vad token kan läsa"
+    },
+    "assign_all_dialog": {
+      "title": "Tilldela alla övervakningar",
+      "description": "Lägg till sonden {{name}} i alla övervakningar den kan köra, utom push-övervakningar. En sond utan instans läggs till när dess första instans ansluter.",
+      "confirm": "Tilldela alla övervakningar",
+      "assigning": "Tilldelar..."
     },
     "edit_dialog": {
       "title": "Redigera sond",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "t.ex. Frankfurt",
       "location_label": "Plats (valfritt)",
       "location_placeholder": "t.ex. Frankfurt, Tyskland",
+      "assign_all_label": "Tilldela alla övervakningar",
+      "assign_all_description": "När dess första instans ansluter läggs sonden till i alla övervakningar den kan köra, utom push-övervakningar.",
       "name_required": "Namn krävs",
       "name_too_long": "Namnet är för långt",
       "location_too_long": "Platsen är för lång",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Sonden skapades",
       "updated_successfully": "Sonden uppdaterades",
       "rotated_successfully": "Token byttes",
+      "assigned_successfully": "Tillagda övervakningar: {{added}}",
+      "assign_pending": "Den läggs till i alla övervakningar den kör när den ansluter",
       "deleted_successfully": "Sonden togs bort",
       "failed_to_create": "Det gick inte att skapa sonden",
       "failed_to_update": "Det gick inte att uppdatera sonden",
       "failed_to_rotate": "Det gick inte att byta token",
+      "failed_to_assign": "Det gick inte att tilldela sonden alla övervakningar",
       "failed_to_delete": "Det gick inte att ta bort sonden",
       "failed_to_load": "Det gick inte att läsa in sonder",
       "copy_success": "Kopierat till urklipp",
       "copy_failed": "Det gick inte att kopiera till urklipp"
     },
     "detail": {
+      "assign_all_pending": "Väntar på sin första instans: den läggs till i alla övervakningar den kör när den ansluter.",
       "not_found": "Sonden hittades inte"
     },
     "availability": {

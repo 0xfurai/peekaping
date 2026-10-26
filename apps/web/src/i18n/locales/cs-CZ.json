@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Upravit sondu {{name}}",
         "rotate": "Vyměnit token sondy {{name}}",
+        "assign_all": "Přiřadit sondu {{name}} všem monitorům",
         "delete": "Smazat sondu {{name}}"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "Sonda provádí kontroly z místa, kde ji nainstalujete. Její token se zobrazí pouze jednou, po vytvoření.",
       "submit": "Vytvořit sondu",
       "creating": "Vytváření..."
+    },
+    "assign_all": {
+      "warning": "Token čte konfiguraci každého monitoru přiřazeného sondě, včetně přihlašovacích údajů.",
+      "docs_link": "Co může token číst"
+    },
+    "assign_all_dialog": {
+      "title": "Přiřadit všem monitorům",
+      "description": "Přidá sondu {{name}} ke každému monitoru, který umí spouštět, kromě push monitorů. Sonda, která ještě nemá žádnou instanci, se přidá po připojení první instance.",
+      "confirm": "Přiřadit všem monitorům",
+      "assigning": "Přiřazuje se..."
     },
     "edit_dialog": {
       "title": "Upravit sondu",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "např. Frankfurt",
       "location_label": "Umístění (volitelné)",
       "location_placeholder": "např. Frankfurt, Německo",
+      "assign_all_label": "Přiřadit všem monitorům",
+      "assign_all_description": "Po připojení její první instance se sonda přidá ke každému monitoru, který umí spouštět, kromě push monitorů.",
       "name_required": "Název je povinný",
       "name_too_long": "Název je příliš dlouhý",
       "location_too_long": "Umístění je příliš dlouhé",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Sonda byla úspěšně vytvořena",
       "updated_successfully": "Sonda byla úspěšně aktualizována",
       "rotated_successfully": "Token byl úspěšně vyměněn",
+      "assigned_successfully": "Přidáno monitorů: {{added}}",
+      "assign_pending": "Po připojení bude přidána ke každému monitoru, který spouští",
       "deleted_successfully": "Sonda byla úspěšně smazána",
       "failed_to_create": "Sondu se nepodařilo vytvořit",
       "failed_to_update": "Sondu se nepodařilo aktualizovat",
       "failed_to_rotate": "Token se nepodařilo vyměnit",
+      "failed_to_assign": "Sondu se nepodařilo přiřadit všem monitorům",
       "failed_to_delete": "Sondu se nepodařilo smazat",
       "failed_to_load": "Sondy se nepodařilo načíst",
       "copy_success": "Zkopírováno do schránky",
       "copy_failed": "Kopírování do schránky se nezdařilo"
     },
     "detail": {
+      "assign_all_pending": "Čeká na první instanci: po připojení bude přidána ke každému monitoru, který spouští.",
       "not_found": "Sonda nebyla nalezena"
     },
     "availability": {

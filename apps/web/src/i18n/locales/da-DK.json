@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Rediger probe {{name}}",
         "rotate": "Skift token for probe {{name}}",
+        "assign_all": "Tildel proben {{name}} til alle monitorer",
         "delete": "Slet probe {{name}}"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "En probe kører kontroller fra det sted, hvor du installerer den. Dens token vises kun én gang, efter du har oprettet den.",
       "submit": "Opret probe",
       "creating": "Opretter..."
+    },
+    "assign_all": {
+      "warning": "Tokenet læser konfigurationen for hver monitor, der er tildelt proben, inklusive legitimationsoplysninger.",
+      "docs_link": "Hvad tokenet kan læse"
+    },
+    "assign_all_dialog": {
+      "title": "Tildel til alle monitorer",
+      "description": "Tilføj proben {{name}} til alle monitorer, den kan køre, undtagen push-monitorer. En probe uden instanser endnu tilføjes, når dens første instans forbinder.",
+      "confirm": "Tildel til alle monitorer",
+      "assigning": "Tildeler..."
     },
     "edit_dialog": {
       "title": "Rediger probe",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "f.eks. Frankfurt",
       "location_label": "Placering (valgfri)",
       "location_placeholder": "f.eks. Frankfurt, Tyskland",
+      "assign_all_label": "Tildel til alle monitorer",
+      "assign_all_description": "Når proben får sin første instans forbundet, tilføjes den til alle monitorer, den kan køre, undtagen push-monitorer.",
       "name_required": "Navn er påkrævet",
       "name_too_long": "Navnet er for langt",
       "location_too_long": "Placeringen er for lang",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Proben blev oprettet",
       "updated_successfully": "Proben blev opdateret",
       "rotated_successfully": "Token blev skiftet",
+      "assigned_successfully": "Monitorer tilføjet: {{added}}",
+      "assign_pending": "Den tilføjes til alle monitorer, den kører, når den forbinder",
       "deleted_successfully": "Proben blev slettet",
       "failed_to_create": "Kunne ikke oprette proben",
       "failed_to_update": "Kunne ikke opdatere proben",
       "failed_to_rotate": "Kunne ikke skifte token",
+      "failed_to_assign": "Kunne ikke tildele proben til alle monitorer",
       "failed_to_delete": "Kunne ikke slette proben",
       "failed_to_load": "Kunne ikke indlæse probes",
       "copy_success": "Kopieret til udklipsholderen",
       "copy_failed": "Kunne ikke kopiere til udklipsholderen"
     },
     "detail": {
+      "assign_all_pending": "Venter på sin første instans: den tilføjes til alle monitorer, den kører, når den forbinder.",
       "not_found": "Proben blev ikke fundet"
     },
     "availability": {

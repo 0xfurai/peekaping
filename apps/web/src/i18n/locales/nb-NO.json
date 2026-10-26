@@ -1184,6 +1184,7 @@
       "actions": {
         "edit": "Rediger probe {{name}}",
         "rotate": "Bytt token for probe {{name}}",
+        "assign_all": "Tildel proben {{name}} alle overvåkninger",
         "delete": "Slett probe {{name}}"
       }
     },
@@ -1192,6 +1193,16 @@
       "description": "En probe kjører kontroller fra stedet der du installerer den. Tokenet vises bare én gang, etter at du har opprettet den.",
       "submit": "Opprett probe",
       "creating": "Oppretter..."
+    },
+    "assign_all": {
+      "warning": "Tokenet leser konfigurasjonen til hver overvåkning som er tildelt proben, inkludert legitimasjon.",
+      "docs_link": "Hva tokenet kan lese"
+    },
+    "assign_all_dialog": {
+      "title": "Tildel alle overvåkninger",
+      "description": "Legg proben {{name}} til alle overvåkninger den kan kjøre, unntatt push-overvåkninger. En probe uten instanser legges til når den første instansen kobler til.",
+      "confirm": "Tildel alle overvåkninger",
+      "assigning": "Tildeler..."
     },
     "edit_dialog": {
       "title": "Rediger probe",
@@ -1202,6 +1213,8 @@
       "name_placeholder": "f.eks. Frankfurt",
       "location_label": "Plassering (valgfritt)",
       "location_placeholder": "f.eks. Frankfurt, Tyskland",
+      "assign_all_label": "Tildel alle overvåkninger",
+      "assign_all_description": "Når den første instansen kobler til, legges proben til alle overvåkninger den kan kjøre, unntatt push-overvåkninger.",
       "name_required": "Navn er påkrevd",
       "name_too_long": "Navnet er for langt",
       "location_too_long": "Plasseringen er for lang",
@@ -1232,16 +1245,20 @@
       "created_successfully": "Proben ble opprettet",
       "updated_successfully": "Proben ble oppdatert",
       "rotated_successfully": "Tokenet ble byttet",
+      "assigned_successfully": "Overvåkninger lagt til: {{added}}",
+      "assign_pending": "Den legges til alle overvåkninger den kjører, når den kobler til",
       "deleted_successfully": "Proben ble slettet",
       "failed_to_create": "Kunne ikke opprette proben",
       "failed_to_update": "Kunne ikke oppdatere proben",
       "failed_to_rotate": "Kunne ikke bytte tokenet",
+      "failed_to_assign": "Kunne ikke tildele proben alle overvåkninger",
       "failed_to_delete": "Kunne ikke slette proben",
       "failed_to_load": "Kunne ikke laste prober",
       "copy_success": "Kopiert til utklippstavlen",
       "copy_failed": "Kunne ikke kopiere til utklippstavlen"
     },
     "detail": {
+      "assign_all_pending": "Venter på den første instansen: den legges til alle overvåkninger den kjører, når den kobler til.",
       "not_found": "Proben ble ikke funnet"
     },
     "availability": {
