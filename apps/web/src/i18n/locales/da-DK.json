@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Nedtælling",
     "important": "Vigtigt",
+    "instance": "Instans",
     "interval": "Interval",
     "message": "Besked",
     "ms": "ms",

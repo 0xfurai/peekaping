@@ -4,6 +4,8 @@ import {
   currentStatus,
   hasLocations,
   heartbeatsOfProbe,
+  instanceHostnames,
+  instanceLabel,
   mergeHeartbeats,
   monitorStatusOf,
   monitorProbes,
@@ -260,5 +262,32 @@ describe("monitorStatusOf", () => {
       expect(monitorStatusOf([status("a", down), status("b", down)], "at_least", 3)).toBe(MONITORING.pending);
       expect(monitorStatusOf([status("a", down)], "at_least", null)).toBe(MONITORING.pending);
     });
+  });
+});
+
+describe("instanceLabel", () => {
+  const hostnames = instanceHostnames([
+    { instances: [{ id: "0a1b2c3d-4e5f-6789-abcd-ef0123456789", hostname: "fra-1" }] },
+    { instances: [{ id: "ffffffff-0000-1111-2222-333333333333", hostname: "" }] },
+    { instances: [] },
+  ]);
+
+  it("is the hostname while the instance is on record", () => {
+    expect(instanceLabel("0a1b2c3d-4e5f-6789-abcd-ef0123456789", hostnames)).toBe("fra-1");
+  });
+
+  it("is the first 8 characters of the id once the instance is forgotten", () => {
+    expect(instanceLabel("deadbeef-1111-2222-3333-444444444444", hostnames)).toBe("deadbeef");
+    expect(instanceLabel("deadbeef-1111-2222-3333-444444444444", undefined)).toBe("deadbeef");
+  });
+
+  it("is the short id for an instance with an empty hostname", () => {
+    expect(instanceLabel("ffffffff-0000-1111-2222-333333333333", hostnames)).toBe("ffffffff");
+  });
+
+  it("is nothing for a heartbeat without an instance", () => {
+    expect(instanceLabel(null, hostnames)).toBeNull();
+    expect(instanceLabel(undefined, hostnames)).toBeNull();
+    expect(instanceLabel("", hostnames)).toBeNull();
   });
 });

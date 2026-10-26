@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Broj padova",
     "important": "Važno",
+    "instance": "Instanca",
     "interval": "Interval",
     "message": "Poruka",
     "ms": "ms",

@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "宕机次数",
     "important": "重要",
+    "instance": "实例",
     "interval": "间隔",
     "message": "消息",
     "ms": "毫秒",

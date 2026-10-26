@@ -110,7 +110,7 @@ const MonitorPageContent = () => {
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const { socket, status: socketStatus } = useWebSocket();
-  const { probeNames, unsupportedProbeIds, isPending: probesPending } = useProbes();
+  const { probeNames, unsupportedProbeIds, instanceHostnames, isPending: probesPending } = useProbes();
 
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showConfirmPause, setShowConfirmPause] = useState(false);
@@ -683,11 +683,12 @@ const MonitorPageContent = () => {
                   locations={locations}
                   unsupportedProbeIds={monitor ? unsupportedProbeIds(monitor) : []}
                   liveHeartbeats={liveHeartbeats}
+                  instanceHostnames={instanceHostnames}
                 />
               ) : (
                 <>
                   <div className="text-white font-semibold">{t("monitors.view.live_status")}</div>
-                  <BarHistory data={heartbeatData} />
+                  <BarHistory data={heartbeatData} instanceHostnames={instanceHostnames} />
                 </>
               )}
               <div className="text-sm text-gray-400">
@@ -724,7 +725,7 @@ const MonitorPageContent = () => {
 
         <Chart id={id!} locations={showLocations ? locations : undefined} />
 
-        {id && <ImportantNotificationsList monitorId={id} />}
+        {id && <ImportantNotificationsList monitorId={id} instanceHostnames={instanceHostnames} />}
       </div>
 
       <AlertDialog open={showConfirmDelete}>

@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Počet výpadků",
     "important": "Důležité",
+    "instance": "Instance",
     "interval": "Interval",
     "message": "Zpráva",
     "ms": "ms",

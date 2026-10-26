@@ -37,6 +37,26 @@ export const probeNames = (
   localName: string
 ): string[] => monitorProbes(probeIds, probes, localName).map((probe) => probe.name);
 
+// The hostname of every probe instance on record, by instance id
+export const instanceHostnames = (
+  probes: { instances?: { id: string; hostname: string }[] | null }[]
+): Map<string, string> =>
+  new Map(probes.flatMap((probe) => (probe.instances ?? []).map((instance) => [instance.id, instance.hostname])));
+
+// How many characters of an instance's id name it once the instance is forgotten
+const SHORT_INSTANCE_ID_LENGTH = 8;
+
+// What a heartbeat's tooltip and the important list call the probe instance that ran it: its
+// hostname while the instance is on record, else the first 8 characters of its id. Nothing for a
+// heartbeat without an instance (a push, a check the peekaping process ran itself, an old one).
+export const instanceLabel = (
+  instanceId: string | null | undefined,
+  hostnames: ReadonlyMap<string, string> | undefined
+): string | null => {
+  if (!instanceId) return null;
+  return hostnames?.get(instanceId) || instanceId.slice(0, SHORT_INSTANCE_ID_LENGTH);
+};
+
 // A monitor's locations in the order the page shows them: the local probe first, then the others
 // by name
 export const sortLocations = (locations: MonitorModelLocation[]): MonitorModelLocation[] =>
