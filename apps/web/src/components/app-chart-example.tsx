@@ -208,26 +208,32 @@ export function Chart({
 
   const statusRanges = getStatusRanges(chartData as MonitorStatPoint[]);
 
+  // undefined while the first response is pending, so the footer stays blank instead of reading
+  // "No data"; null once the API says there is nothing to measure
+  const loaded = statpointsDataRaw?.data !== undefined;
+  const stat = (value: number | null | undefined) =>
+    loaded ? (value ?? null) : undefined;
+
   const statsArray = [
     {
       key: "min",
       label: t("timezone.minimum"),
-      value: statpointsDataRaw?.data?.minPing ?? null,
+      value: stat(statpointsDataRaw?.data?.minPing),
     },
     {
       key: "max",
       label: t("timezone.maximum"),
-      value: statpointsDataRaw?.data?.maxPing ?? null,
+      value: stat(statpointsDataRaw?.data?.maxPing),
     },
     {
       key: "avg",
       label: t("timezone.average"),
-      value: statpointsDataRaw?.data?.avgPing ?? null,
+      value: stat(statpointsDataRaw?.data?.avgPing),
     },
     {
       key: "uptime",
       label: t("timezone.uptime"),
-      value: statpointsDataRaw?.data?.uptime ?? null,
+      value: stat(statpointsDataRaw?.data?.uptime),
     },
   ];
 
@@ -408,7 +414,11 @@ export function Chart({
       <CardFooter className="flex flex-col items-stretch space-y-0 border-t p-0">
         <div className="grid grid-cols-1 md:grid-cols-4">
           {statsArray.map(
-            (item: { key: string; label: string; value: number | null }) => (
+            (item: {
+              key: string;
+              label: string;
+              value: number | null | undefined;
+            }) => (
               <div
                 key={item.key}
                 className="flex flex-1 flex-col justify-center gap-1  px-6 py-4 text-left even:border-l sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
@@ -417,7 +427,9 @@ export function Chart({
                   {item.label}
                 </span>
                 <span className="text-lg font-bold leading-none sm:text-3xl">
-                  {item.value === null ? (
+                  {item.value === undefined ? (
+                    <>&nbsp;</>
+                  ) : item.value === null ? (
                     <NoData />
                   ) : (
                     <>
