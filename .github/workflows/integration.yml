@@ -38,21 +38,13 @@ jobs:
           cache-dependency-path: apps/server/go.sum
 
       # --wait returns once every service's health check passes. SQL Server is
-      # the slow one, so the step reports how long the whole start took and
-      # how long SQL Server's container took to pass a health check (the first
-      # of the last five Docker keeps, which is the first pass, as --wait
-      # returns right after it). The job's own wall-clock time is on the run's page.
+      # the slow one, so the step reports how long the start took; the job's own
+      # wall-clock time is on the run's page.
       - name: Start the services
         run: |
           start=$(date +%s)
           docker compose -f apps/server/docker-compose.integration.yml up -d --wait
           echo "All services healthy after $(( $(date +%s) - start ))s" | tee -a "$GITHUB_STEP_SUMMARY"
-          id=$(docker compose -f apps/server/docker-compose.integration.yml ps -q sqlserver)
-          started=$(docker inspect -f '{{.State.StartedAt}}' "$id")
-          healthy=$(docker inspect -f '{{range .State.Health.Log}}{{if eq .ExitCode 0}}{{.End.Format "2006-01-02T15:04:05.000000000Z"}}{{"\n"}}{{end}}{{end}}' "$id" | head -n 1)
-          if [ -n "$healthy" ]; then
-            echo "SQL Server: started $started, first healthy $healthy ($(( $(date -d "$healthy" +%s) - $(date -d "$started" +%s) ))s)" | tee -a "$GITHUB_STEP_SUMMARY"
-          fi
 
       # GitHub sets CI=true, so a test that can't find its service fails
       # instead of skipping. The addresses are the ports the compose file binds.
