@@ -172,7 +172,7 @@ If the upgraded cluster runs with no probe instance, no monitor of the local pro
   ```
 
 - After `PROBE_OFFLINE_AFTER` (3 minutes by default), the leader reports the local probe offline once. The local probe's own notification channels get "Probe `Local` has been offline since `<time>`". Unless you set channels on the local probe, these are the notification channels of its monitors. The watchdog skips those monitors, so you get that one notification and not one for each monitor. Push monitors still work, because pushes arrive at the API.
-- When an instance connects, the probe comes online and the same channels get "Probe `Local` is online".
+- When an instance connects, the probe comes online and "Probe `Local` is online" goes out by the same rule, to the channels the probe and its monitors have at that moment.
 
 To fix it, start probe instances with `PEEKAPING_URL` set to the API's address and `PROBE_TOKEN` set to the same value as the API's `PROBE_BOOTSTRAP_TOKEN`. If they are running and the probe is still offline, check these:
 
