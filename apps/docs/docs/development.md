@@ -142,7 +142,11 @@ Blocks with no marker aren't checked. That is for examples and excerpts that are
 
 ### Integration tests
 
-Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Two services have them today. `TestRedisExecutor_Integration` checks the Redis executor: Up with the right password, Down with a wrong one. `TestKafkaProducerExecutor_Integration` checks the Kafka executor against a single-node broker with a plaintext listener and a SASL listener: Up on an existing topic (the test reads the message back), with and without automatic topic creation, with SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512, and Down for a wrong password and for `ssl` against the plaintext listener. The Kafka cases that need no broker (connection refused, a broker that never answers) are in `kafka_producer_test.go` and run in the default `go test`.
+Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Four services have them today. `TestRedisExecutor_Integration` checks the Redis executor: Up with the right password, Down with a wrong one. `TestKafkaProducerExecutor_Integration` checks the Kafka executor against a single-node broker with a plaintext listener and a SASL listener: Up on an existing topic (the test reads the message back), with and without automatic topic creation, with SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512, and Down for a wrong password and for `ssl` against the plaintext listener. The Kafka cases that need no broker (connection refused, a broker that never answers) are in `kafka_producer_test.go` and run in the default `go test`.
+
+`TestMongoDBExecutor_Integration` checks the MongoDB executor against a standalone server that requires a login: Up for the default `ping` and for a JSON path into a nested document of a real `serverStatus` reply (with and without an expected value), Down for a wrong password, a wrong `authSource`, an unknown command, a mismatch and a missing field. `TestMongoDBExecutor_ReplicaSet_Integration` uses a single-node replica set named `rs0` without authentication (a replica set with it needs a key file): Up for `?replicaSet=rs0`, Down for another name. `TestSQLServerExecutor_Integration` checks the SQL Server executor against SQL Server 2022 in both connection string forms (`Server=...;Database=...` and `sqlserver://`): Up for the default and a custom `SELECT`, Down for a wrong password, a missing database and a failing query, the certificate cases (`Encrypt=true;TrustServerCertificate=false` against the self-signed certificate is Down, `TrustServerCertificate=true` is Up) and a password with `;`, `=`, `{` and `}` (braced in the `Server=` form, percent-encoded in the URL). The cases that need no server (refused connection, a server that never answers, a query that isn't a `SELECT`) are in `mongodb_test.go` and `sqlserver_test.go` and run in the default `go test`.
+
+The SQL Server image exists only for x86-64. On an Arm machine (Apple silicon) the tests and the compose file ask Docker for `linux/amd64`, which runs it under emulation. It started in about ten seconds on an M-series Mac with Docker Desktop, and the first run also pulls the image; a Docker without x86 emulation can't run these tests.
 
 With Docker running, run them from `apps/server`. The tests start the servers they need, each on a free port, and remove them when the run ends. `-count=1` turns off Go's test cache, which would otherwise replay an earlier pass after a server went away:
 
@@ -150,20 +154,23 @@ With Docker running, run them from `apps/server`. The tests start the servers th
 go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 ```
 
-To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A service takes one variable (Redis) or several (Kafka needs both of its two, the plaintext and the SASL broker). A test that finds nothing at that address fails; it doesn't start a container instead. Set all of a service's variables or none: one without the others fails the test.
+To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A service takes one variable (Redis, MongoDB, SQL Server) or several (Kafka needs both of its two, the plaintext and the SASL broker). A test that finds nothing at that address fails; it doesn't start a container instead. Set all of a service's variables or none: one without the others fails the test.
 
 ```bash
 docker compose -f apps/server/docker-compose.integration.yml up -d --wait
 cd apps/server
 PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
 PEE_TEST_KAFKA_BROKER='127.0.0.1:19092' PEE_TEST_KAFKA_SASL_BROKER='127.0.0.1:19093' \
+PEE_TEST_MONGODB_URL='mongodb://root:integration-test-password@127.0.0.1:27018' \
+PEE_TEST_MONGODB_RS_URL='mongodb://127.0.0.1:27019' \
+PEE_TEST_SQLSERVER_URL='sqlserver://sa:Pe%3Be%3DK%7Bing%7D9z@127.0.0.1:11433' \
   go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 docker compose -f docker-compose.integration.yml down
 ```
 
 Without Docker and without the variable, a test skips and the message names both ways out. When `CI` is set, it fails instead, so a CI job can't go green by skipping.
 
-The Integration tests workflow runs on pull requests and pushes to `main` that change `apps/server`. It runs beside Test and Lint. It also uploads the executors' statement coverage to Codecov under the `integration` flag, so a pull request shows how much of an executor these tests reach.
+The Integration tests workflow runs on pull requests and pushes to `main` that change `apps/server`. It runs beside Test and Lint. It also uploads the executors' statement coverage to Codecov under the `integration` flag, so a pull request shows how much of an executor these tests reach. The step that starts the services reports, in the run's summary, how long they took to become healthy and when SQL Server's container first passed its health check; the job's own wall-clock time is on the run's page.
 
 To add a service:
 

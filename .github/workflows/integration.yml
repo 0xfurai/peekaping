@@ -39,8 +39,9 @@ jobs:
 
       # --wait returns once every service's health check passes. SQL Server is
       # the slow one, so the step reports how long the whole start took and
-      # when SQL Server's container started and first passed its health check.
-      # The job's own wall-clock time is on the run's page.
+      # how long SQL Server's container took to pass a health check (the first
+      # of the last five Docker keeps, which is the first pass, as --wait
+      # returns right after it). The job's own wall-clock time is on the run's page.
       - name: Start the services
         run: |
           start=$(date +%s)

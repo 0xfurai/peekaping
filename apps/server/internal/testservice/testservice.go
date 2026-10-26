@@ -1,7 +1,8 @@
 //go:build integration
 
-// Package testservice gives integration tests a real server to talk to: Redis
-// and Kafka now, and later the other services the monitor executors check. It is built
+// Package testservice gives integration tests a real server to talk to: Redis,
+// Kafka, MongoDB (standalone and a replica set) and SQL Server now, and later
+// the other services the monitor executors check. It is built
 // only under the integration build tag, so a plain "go test" never compiles
 // testcontainers or needs Docker.
 //
