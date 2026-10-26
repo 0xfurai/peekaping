@@ -10,6 +10,7 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/reporting"
@@ -67,29 +68,55 @@ func initDataRetentionPeriod(heartbeatService heartbeat.Service, userRepository 
 	logger.Infow("Stored the data retention period for a new install", "days", newInstallDataRetentionDays)
 }
 
-func cleanupHeartbeats(heartbeatService heartbeat.Service, settingService setting.Service, logger *zap.SugaredLogger) {
+// dataRetentionCutoff is the start of the data retention period: what is older is past it. It
+// returns false, and logs why, when the period can't be read; what names the data that is then
+// left alone.
+func dataRetentionCutoff(settingService setting.Service, what string, logger *zap.SugaredLogger) (time.Time, bool) {
 	keepDays := unsetDataRetentionDays
 	settingModel, err := settingService.GetByKey(context.Background(), setting.DataRetentionPeriodKey)
 	if err != nil {
-		logger.Errorw("Failed to fetch KEEP_DATA_PERIOD_DAYS setting, not deleting heartbeats", "error", err)
-		return
+		logger.Errorw("Failed to fetch KEEP_DATA_PERIOD_DAYS setting, not deleting "+what, "error", err)
+		return time.Time{}, false
 	}
 	if settingModel != nil {
 		keepDays, err = setting.ParseDataRetentionPeriod(settingModel.Value)
 		if err != nil {
 			// A value stored before the settings API checked it. Falling back to
-			// a default could delete heartbeats the user meant to keep.
-			logger.Errorw("Invalid KEEP_DATA_PERIOD_DAYS value, not deleting heartbeats", "value", settingModel.Value, "error", err)
-			return
+			// a default could delete data the user meant to keep.
+			logger.Errorw("Invalid KEEP_DATA_PERIOD_DAYS value, not deleting "+what, "value", settingModel.Value, "error", err)
+			return time.Time{}, false
 		}
 	}
-	cutoff := time.Now().UTC().AddDate(0, 0, -keepDays)
+	return time.Now().UTC().AddDate(0, 0, -keepDays), true
+}
+
+func cleanupHeartbeats(heartbeatService heartbeat.Service, settingService setting.Service, logger *zap.SugaredLogger) {
+	cutoff, ok := dataRetentionCutoff(settingService, "heartbeats", logger)
+	if !ok {
+		return
+	}
 	deleted, err := heartbeatService.DeleteOlderThan(context.Background(), cutoff)
 	if err != nil {
 		logger.Errorw("Failed to delete old heartbeats", "error", err)
 		return
 	}
 	logger.Infow("Deleted old heartbeats", "count", deleted, "cutoff", cutoff)
+}
+
+// cleanupProbeStatusChanges deletes the probes' status changes past the data retention period,
+// except each probe's latest one before it, so that the status of a probe at the start of any
+// range is still known.
+func cleanupProbeStatusChanges(probeService probe.Service, settingService setting.Service, logger *zap.SugaredLogger) {
+	cutoff, ok := dataRetentionCutoff(settingService, "probe status changes", logger)
+	if !ok {
+		return
+	}
+	deleted, err := probeService.DeleteStatusChangesOlderThan(context.Background(), cutoff)
+	if err != nil {
+		logger.Errorw("Failed to delete old probe status changes", "error", err)
+		return
+	}
+	logger.Infow("Deleted old probe status changes", "count", deleted, "cutoff", cutoff)
 }
 
 func cleanupStats(statsService stats.Service, logger *zap.SugaredLogger) {
@@ -130,8 +157,8 @@ func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, olderThanDay
 var hourlySpec = "0 * * * *"
 
 // StartCleanupCron stores the data retention period of a new install, then schedules the
-// hourly cleanup: the heartbeats past the data retention period, the expired stats, the old
-// notification history and the old TLS info. It returns an error if the cleanup can't be
+// hourly cleanup: the heartbeats and the probes' status changes past the data retention period,
+// the expired stats, the old notification history and the old TLS info. It returns an error if the cleanup can't be
 // scheduled, and then nothing runs.
 //
 // Every process that calls it fires at the top of the hour, so in cluster mode, where several
@@ -147,6 +174,7 @@ func StartCleanupCron(
 	statsService stats.Service,
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
+	probeService probe.Service,
 	lock RunLock,
 	retention Retention,
 	logger *zap.SugaredLogger,
@@ -159,6 +187,7 @@ func StartCleanupCron(
 		stats:               statsService,
 		notificationHistory: notificationHistoryService,
 		tlsInfo:             tlsInfoService,
+		probes:              probeService,
 		lock:                lock,
 		retention:           retention,
 		logger:              logger,
