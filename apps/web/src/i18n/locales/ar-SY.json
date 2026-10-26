@@ -1206,7 +1206,8 @@
       "name_too_long": "الاسم طويل جدًا",
       "location_too_long": "الموقع طويل جدًا",
       "disabled_label": "معطّل",
-      "disabled_description": "يتوقف رمز المسبار المعطّل عن العمل حتى تعيد تفعيله."
+      "disabled_description": "يتوقف رمز المسبار المعطّل عن العمل حتى تعيد تفعيله.",
+      "notifications_hint": "اتركه فارغًا لإرسال الإشعارات إلى قنوات مراقبي هذا المسبار."
     },
     "rotate_dialog": {
       "title": "تغيير الرمز",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "فشل تحميل المسابر",
       "copy_success": "تم النسخ إلى الحافظة",
       "copy_failed": "تعذّر النسخ إلى الحافظة"
+    },
+    "detail": {
+      "not_found": "لم يتم العثور على المسبار"
+    },
+    "availability": {
+      "title": "التوفر",
+      "range_label": "النطاق الزمني",
+      "bar_label": "سجل التوفر",
+      "instance_bar_label": "اتصالات {{name}}",
+      "no_data": "لا توجد بيانات",
+      "now": "الآن",
+      "instances_title": "المثيلات، آخر 24 ساعة",
+      "in_process_note": "Peekaping نفسه يفحص مراقبات المسبار المحلي، لذلك ليس له سجل توفر.",
+      "connected_since": "متصل منذ {{start}}"
     }
   },
   "proxies": {

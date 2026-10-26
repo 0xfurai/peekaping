@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
-import { adminAPI, createHTTPMonitor, randomID } from './support/api';
-import { targetURL } from './support/fake-target';
+import { adminAPI, createHTTPMonitor, createWebhookChannel, deleteCreated, randomID } from './support/api';
+import { receivedWebhooks, targetURL, webhookURL } from './support/fake-target';
 import { cardStatusOf, listFor } from './support/monitor-list';
 import {
   createProbe,
@@ -24,12 +24,19 @@ const names = () => {
 // A monitor on Local and on a remote probe, whose probe runs as a container. Local is there for
 // the monitor to have two locations: a monitor on one probe shows no locations (its page has a
 // single heartbeat bar).
-async function startMonitorOnProbe(page: Page, { probe, monitor, container }: ReturnType<typeof names>) {
+async function startMonitorOnProbe(
+  page: Page,
+  { probe, monitor, container }: ReturnType<typeof names>,
+  { notificationIds }: { notificationIds?: string[] } = {},
+) {
   const api = await adminAPI(page);
   try {
     const { id: probeID, token } = await createProbe(api, probe);
     startProbeContainer(container, token);
-    const { id } = await createHTTPMonitor(api, monitor, targetURL('remote-probe'), { probeIds: ['local', probeID] });
+    const { id } = await createHTTPMonitor(api, monitor, targetURL('remote-probe'), {
+      probeIds: ['local', probeID],
+      notificationIds,
+    });
     return id;
   } finally {
     await api.dispose();
@@ -67,32 +74,56 @@ test('A monitor on a running remote probe shows the probe up', async ({ page }) 
   });
 });
 
-test('A stopped remote probe is reported offline and its monitor stays up', async ({ page }) => {
+test('A stopped remote probe is reported offline and its monitor stays up', async ({ page, request }) => {
   // The probe says goodbye when it stops, which leaves it last seen a minute ago. It is offline
   // once PROBE_OFFLINE_AFTER (2m) has passed, at the next sweep, which runs every 30 seconds.
   test.setTimeout(360_000);
   const n = names();
 
   await page.goto('/monitors');
-  await withTearDown(page, n, async () => {
-    const id = await startMonitorOnProbe(page, n);
+  // The probe has no channels of its own, so its offline notification goes to the channels of its
+  // monitors: this monitor's channel.
+  const api = await adminAPI(page);
+  try {
+    const channel = await createWebhookChannel(api, `e2e channel ${n.monitor}`, webhookURL(n.monitor));
+    try {
+      await withTearDown(page, n, async () => {
+        const id = await startMonitorOnProbe(page, n, { notificationIds: [channel.id] });
 
-    await page.goto(`/monitors/${id}`);
-    await expectRemoteUp(page, n.probe, n.container);
-    await expect(remoteLocation(page).getByTestId('monitor-location-offline')).toHaveCount(0);
+        await page.goto(`/monitors/${id}`);
+        await expectRemoteUp(page, n.probe, n.container);
+        await expect(remoteLocation(page).getByTestId('monitor-location-offline')).toHaveCount(0);
 
-    stopProbeContainer(n.container);
+        stopProbeContainer(n.container);
 
-    // The page learns that a probe went offline when it loads the monitor, so it is reloaded.
-    await expect(async () => {
-      await page.reload();
-      await expect(remoteLocation(page).getByTestId('monitor-location-offline')).toHaveText('Probe offline', {
-        timeout: 5000,
+        // The page learns that a probe went offline when it loads the monitor, so it is reloaded.
+        await expect(async () => {
+          await page.reload();
+          await expect(remoteLocation(page).getByTestId('monitor-location-offline')).toHaveText('Probe offline', {
+            timeout: 5000,
+          });
+        }).toPass({ timeout: 240_000, intervals: [10_000] });
+
+        // The offline probe doesn't count toward the monitor's status, and Local still checks it.
+        await page.goto(listFor(n.monitor));
+        await expect(cardStatusOf(page, n.monitor)).toHaveText('Up');
+
+        // The monitor's channel got one "offline" notification for the probe. The monitor's own
+        // Up notification may be there too, so the requests are filtered, not counted.
+        await expect
+          .poll(
+            async () =>
+              (await receivedWebhooks(request, n.monitor)).filter((webhook) =>
+                webhook.rawBody.includes(`Probe ${n.probe} has been offline since`),
+              ).length,
+            { timeout: 60_000, intervals: [2000] },
+          )
+          .toBe(1);
       });
-    }).toPass({ timeout: 240_000, intervals: [10_000] });
-
-    // The offline probe doesn't count toward the monitor's status, and Local still checks it.
-    await page.goto(listFor(n.monitor));
-    await expect(cardStatusOf(page, n.monitor)).toHaveText('Up');
-  });
+    } finally {
+      await deleteCreated(api, `notification-channels/${channel.id}`);
+    }
+  } finally {
+    await api.dispose();
+  }
 });

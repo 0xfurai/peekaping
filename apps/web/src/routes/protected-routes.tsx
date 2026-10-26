@@ -14,6 +14,7 @@ import NewStatusPage from "@/app/status-pages/new/page";
 import SecurityPage from "@/app/security/page";
 import EditProxy from "@/app/proxies/edit/page";
 import ProbesPage from "@/app/probes/page";
+import ProbePage from "@/app/probes/view/page";
 import MaintenancePage from "@/app/maintenance/page";
 import NewMaintenance from "@/app/maintenance/new/page";
 import EditMaintenance from "@/app/maintenance/edit/page";
@@ -41,6 +42,7 @@ export const protectedRoutes = [
 
   // Probe routes
   <Route path="/probes" element={<ProbesPage />} />,
+  <Route path="/probes/:id" element={<ProbePage />} />,
 
   // Notification channel routes
   <Route path="/notification-channels" element={<NotificationChannelsPage />} />,

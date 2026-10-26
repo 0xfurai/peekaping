@@ -1206,7 +1206,8 @@
       "name_too_long": "O nome é demasiado longo",
       "location_too_long": "A localização é demasiado longa",
       "disabled_label": "Desativada",
-      "disabled_description": "O token de uma sonda desativada deixa de funcionar até a voltar a ativar."
+      "disabled_description": "O token de uma sonda desativada deixa de funcionar até a voltar a ativar.",
+      "notifications_hint": "Deixe vazio para notificar os canais dos monitores desta sonda."
     },
     "rotate_dialog": {
       "title": "Renovar token",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "Falha ao carregar as sondas",
       "copy_success": "Copiado para a área de transferência",
       "copy_failed": "Não foi possível copiar para a área de transferência"
+    },
+    "detail": {
+      "not_found": "Sonda não encontrada"
+    },
+    "availability": {
+      "title": "Disponibilidade",
+      "range_label": "Intervalo de tempo",
+      "bar_label": "Histórico de disponibilidade",
+      "instance_bar_label": "Ligações de {{name}}",
+      "no_data": "Sem dados",
+      "now": "Agora",
+      "instances_title": "Instâncias, últimas 24 horas",
+      "in_process_note": "O próprio Peekaping verifica os monitores da sonda local, por isso esta não tem histórico de disponibilidade.",
+      "connected_since": "Ligada desde {{start}}"
     }
   },
   "proxies": {

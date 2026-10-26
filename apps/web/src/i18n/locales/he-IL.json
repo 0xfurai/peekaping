@@ -1206,7 +1206,8 @@
       "name_too_long": "השם ארוך מדי",
       "location_too_long": "המיקום ארוך מדי",
       "disabled_label": "מושבתת",
-      "disabled_description": "האסימון של גשושית מושבתת מפסיק לעבוד עד שתפעילו אותה מחדש."
+      "disabled_description": "האסימון של גשושית מושבתת מפסיק לעבוד עד שתפעילו אותה מחדש.",
+      "notifications_hint": "השאירו ריק כדי להתריע בערוצים של המעקבים של גשושית זו."
     },
     "rotate_dialog": {
       "title": "החלפת אסימון",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "טעינת הגשושיות נכשלה",
       "copy_success": "הועתק ללוח",
       "copy_failed": "לא ניתן להעתיק ללוח"
+    },
+    "detail": {
+      "not_found": "הגשושית לא נמצאה"
+    },
+    "availability": {
+      "title": "זמינות",
+      "range_label": "טווח זמן",
+      "bar_label": "היסטוריית זמינות",
+      "instance_bar_label": "חיבורים של {{name}}",
+      "no_data": "אין נתונים",
+      "now": "עכשיו",
+      "instances_title": "מופעים, 24 השעות האחרונות",
+      "in_process_note": "Peekaping עצמו בודק את המוניטורים של הגשושית המקומית, ולכן אין לה היסטוריית זמינות.",
+      "connected_since": "מחובר מאז {{start}}"
     }
   },
   "proxies": {

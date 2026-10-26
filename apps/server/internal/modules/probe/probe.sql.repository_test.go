@@ -495,7 +495,7 @@ func TestSQLRepository_RetireInstanceSetsOnlyTheProbesOwnInstancesLastSeen(t *te
 		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: now}))
 		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-2", LastSeenAt: now}))
 
-		require.NoError(t, repo.RetireInstance(ctx, other.ID, "instance-1", retired), "another probe's token retires nothing")
+		require.NoError(t, repo.RetireInstance(ctx, other.ID, "instance-1", retired, retired), "another probe's token retires nothing")
 		instances, err := repo.FindInstances(ctx, owner.ID)
 		require.NoError(t, err)
 		require.Len(t, instances, 2)
@@ -503,7 +503,7 @@ func TestSQLRepository_RetireInstanceSetsOnlyTheProbesOwnInstancesLastSeen(t *te
 			assert.WithinDuration(t, now, instance.LastSeenAt, time.Second)
 		}
 
-		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "instance-1", retired))
+		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "instance-1", retired, retired))
 		instances, err = repo.FindInstances(ctx, owner.ID)
 		require.NoError(t, err)
 		require.Len(t, instances, 2, "the row stays")
@@ -513,7 +513,7 @@ func TestSQLRepository_RetireInstanceSetsOnlyTheProbesOwnInstancesLastSeen(t *te
 		assert.WithinDuration(t, retired, instances[1].LastSeenAt, time.Second)
 		assert.Equal(t, "host-1", instances[1].Hostname, "and keeps what else it says")
 
-		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "never-there", retired), "retiring an instance that is gone is not an error")
+		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "never-there", retired, retired), "retiring an instance that is gone is not an error")
 		instances, err = repo.FindInstances(ctx, owner.ID)
 		require.NoError(t, err)
 		assert.Len(t, instances, 2)
@@ -556,11 +556,11 @@ func TestSQLRepository_UpdateStatusChangesOnlyAProbeInTheStatusItIsGiven(t *test
 		require.NoError(t, err)
 		time.Sleep(10 * time.Millisecond)
 
-		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOnline, probe.StatusOffline)
+		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOnline, probe.StatusOffline, time.Now())
 		require.NoError(t, err)
 		assert.False(t, changed, "the probe is offline, not online: nothing to change")
 
-		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline, time.Now())
 		require.NoError(t, err)
 		assert.True(t, changed)
 		got, err := repo.FindByID(ctx, owner.ID)
@@ -568,7 +568,7 @@ func TestSQLRepository_UpdateStatusChangesOnlyAProbeInTheStatusItIsGiven(t *test
 		assert.Equal(t, probe.StatusOnline, got.Status)
 		assert.True(t, got.UpdatedAt.After(before.UpdatedAt), "a status change touches updated_at")
 
-		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline, time.Now())
 		require.NoError(t, err)
 		assert.False(t, changed, "the second of two racing callers changes nothing")
 
@@ -576,7 +576,7 @@ func TestSQLRepository_UpdateStatusChangesOnlyAProbeInTheStatusItIsGiven(t *test
 		require.NoError(t, err)
 		assert.Equal(t, probe.StatusOffline, untouched.Status)
 
-		changed, err = repo.UpdateStatus(ctx, "no-such-probe", probe.StatusOffline, probe.StatusOnline)
+		changed, err = repo.UpdateStatus(ctx, "no-such-probe", probe.StatusOffline, probe.StatusOnline, time.Now())
 		require.NoError(t, err)
 		assert.False(t, changed)
 	})
@@ -593,7 +593,7 @@ func TestSQLRepository_UpdateStatusLeavesADisabledProbeOffline(t *testing.T) {
 		_, err := repo.Update(ctx, owner.ID, &probe.UpdateModel{Disabled: &disabled})
 		require.NoError(t, err)
 
-		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline, time.Now())
 
 		require.NoError(t, err)
 		assert.False(t, changed, "a disabled probe is not brought online")
@@ -601,7 +601,7 @@ func TestSQLRepository_UpdateStatusLeavesADisabledProbeOffline(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, probe.StatusOffline, got.Status)
 
-		changed, err = repo.UpdateStatus(ctx, other.ID, probe.StatusOffline, probe.StatusOnline)
+		changed, err = repo.UpdateStatus(ctx, other.ID, probe.StatusOffline, probe.StatusOnline, time.Now())
 		require.NoError(t, err)
 		assert.True(t, changed, "an enabled probe still comes online")
 	})
@@ -613,14 +613,14 @@ func TestSQLRepository_UpdateStatusStillSetsADisabledProbeOffline(t *testing.T) 
 		ctx := context.Background()
 		repo := probe.NewSQLRepository(db)
 		owner, _ := twoProbes(t, repo)
-		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline)
+		changed, err := repo.UpdateStatus(ctx, owner.ID, probe.StatusOffline, probe.StatusOnline, time.Now())
 		require.NoError(t, err)
 		require.True(t, changed)
 		disabled := true
 		_, err = repo.Update(ctx, owner.ID, &probe.UpdateModel{Disabled: &disabled})
 		require.NoError(t, err)
 
-		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOnline, probe.StatusOffline)
+		changed, err = repo.UpdateStatus(ctx, owner.ID, probe.StatusOnline, probe.StatusOffline, time.Now())
 
 		require.NoError(t, err)
 		assert.True(t, changed)
@@ -703,9 +703,9 @@ func TestSQLRepository_EveryMethodJoinsTheCallersTransaction(t *testing.T) {
 			touched, err := repo.TouchInstance(ctx, keep.ID, "instance-1", seen.Add(time.Minute))
 			require.NoError(t, err)
 			assert.True(t, touched)
-			require.NoError(t, repo.RetireInstance(ctx, keep.ID, "instance-2", seen.Add(-time.Hour)))
+			require.NoError(t, repo.RetireInstance(ctx, keep.ID, "instance-2", seen.Add(-time.Hour), seen.Add(-time.Hour)))
 			require.NoError(t, repo.SetSupportedTypes(ctx, keep.ID, []string{"http"}))
-			flipped, err := repo.UpdateStatus(ctx, keep.ID, probe.StatusOffline, probe.StatusOnline)
+			flipped, err := repo.UpdateStatus(ctx, keep.ID, probe.StatusOffline, probe.StatusOnline, time.Now())
 			require.NoError(t, err)
 			assert.True(t, flipped)
 			_, err = repo.DeleteInstancesUnseenSince(ctx, seen.Add(-24*time.Hour))

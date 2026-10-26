@@ -1206,7 +1206,8 @@
       "name_too_long": "Naziv je predugačak",
       "location_too_long": "Lokacija je preduga",
       "disabled_label": "Onemogućena",
-      "disabled_description": "Token onemogućene sonde prestaje raditi dok je ponovno ne omogućite."
+      "disabled_description": "Token onemogućene sonde prestaje raditi dok je ponovno ne omogućite.",
+      "notifications_hint": "Ostavite prazno da se obavijeste kanali nadzora ove sonde."
     },
     "rotate_dialog": {
       "title": "Zamijeni token",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "Učitavanje sondi nije uspjelo",
       "copy_success": "Kopirano u međuspremnik",
       "copy_failed": "Kopiranje u međuspremnik nije uspjelo"
+    },
+    "detail": {
+      "not_found": "Sonda nije pronađena"
+    },
+    "availability": {
+      "title": "Dostupnost",
+      "range_label": "Vremensko razdoblje",
+      "bar_label": "Povijest dostupnosti",
+      "instance_bar_label": "Veze sonde {{name}}",
+      "no_data": "Nema podataka",
+      "now": "Sada",
+      "instances_title": "Instance, posljednjih 24 sata",
+      "in_process_note": "Sam Peekaping provjerava monitore lokalne sonde, pa ona nema povijest dostupnosti.",
+      "connected_since": "Povezano od {{start}}"
     }
   },
   "proxies": {

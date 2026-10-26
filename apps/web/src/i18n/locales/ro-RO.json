@@ -1205,7 +1205,8 @@
       "name_too_long": "Numele este prea lung",
       "location_too_long": "Locația este prea lungă",
       "disabled_label": "Dezactivată",
-      "disabled_description": "Tokenul unei sonde dezactivate nu mai funcționează până când o reactivezi."
+      "disabled_description": "Tokenul unei sonde dezactivate nu mai funcționează până când o reactivezi.",
+      "notifications_hint": "Lasă gol pentru a notifica canalele monitoarelor acestei sonde."
     },
     "rotate_dialog": {
       "title": "Schimbă tokenul",
@@ -1238,6 +1239,20 @@
       "failed_to_load": "Încărcarea sondelor a eșuat",
       "copy_success": "Copiat în clipboard",
       "copy_failed": "Nu s-a putut copia în clipboard"
+    },
+    "detail": {
+      "not_found": "Sonda nu a fost găsită"
+    },
+    "availability": {
+      "title": "Disponibilitate",
+      "range_label": "Interval de timp",
+      "bar_label": "Istoricul disponibilității",
+      "instance_bar_label": "Conexiunile sondei {{name}}",
+      "no_data": "Fără date",
+      "now": "Acum",
+      "instances_title": "Instanțe, ultimele 24 de ore",
+      "in_process_note": "Peekaping însuși verifică monitoarele sondei locale, deci aceasta nu are un istoric al disponibilității.",
+      "connected_since": "Conectată din {{start}}"
     }
   },
   "proxies": {

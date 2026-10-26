@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getProbesOptions } from "@/api/@tanstack/react-query.gen";
+import {
+  getProbesAvailabilityOptions,
+  getProbesOptions,
+} from "@/api/@tanstack/react-query.gen";
 import type {
   ProbeProbeResponse,
   ProbeProbeWithTokenResponse,
@@ -22,6 +25,9 @@ import RotateProbeDialog from "./components/rotate-probe-dialog";
 
 // How often the list refreshes, so a probe that has just started shows up as online.
 const REFRESH_INTERVAL_MS = 10_000;
+
+// How often the availability refreshes. A probe's bar changes only when it goes online or offline.
+const AVAILABILITY_REFRESH_INTERVAL_MS = 30_000;
 
 // The probe a dialog is about. It stays set after the dialog closes, so the
 // dialog keeps its text while it fades out.
@@ -52,6 +58,18 @@ const ProbesPage = () => {
     ...getProbesOptions(),
     refetchInterval: REFRESH_INTERVAL_MS,
   });
+  // The bars and percentages of every row come from this one request, not one per probe
+  const { data: availabilityData } = useQuery({
+    ...getProbesAvailabilityOptions({ query: { range: "24h" } }),
+    refetchInterval: AVAILABILITY_REFRESH_INTERVAL_MS,
+  });
+  const availability = useMemo(
+    () =>
+      new Map(
+        (availabilityData?.data ?? []).map((entry) => [entry.probe_id, entry])
+      ),
+    [availabilityData]
+  );
   const shouldShowSkeleton = useDelayedLoading(isLoading, 200);
 
   const probes: ProbeProbeResponse[] = data?.data ?? [];
@@ -99,6 +117,7 @@ const ProbesPage = () => {
             <CardContent>
               <ProbesTable
                 probes={probes}
+                availability={availability}
                 onEdit={editDialog.show}
                 onRotate={rotateDialog.show}
                 onDelete={deleteDialog.show}

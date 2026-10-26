@@ -1206,7 +1206,8 @@
       "name_too_long": "Nazwa jest zbyt długa",
       "location_too_long": "Lokalizacja jest zbyt długa",
       "disabled_label": "Wyłączona",
-      "disabled_description": "Token wyłączonej sondy przestaje działać, dopóki jej ponownie nie włączysz."
+      "disabled_description": "Token wyłączonej sondy przestaje działać, dopóki jej ponownie nie włączysz.",
+      "notifications_hint": "Pozostaw puste, aby powiadamiać kanały monitorów tej sondy."
     },
     "rotate_dialog": {
       "title": "Wymień token",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "Nie udało się wczytać sond",
       "copy_success": "Skopiowano do schowka",
       "copy_failed": "Nie udało się skopiować do schowka"
+    },
+    "detail": {
+      "not_found": "Nie znaleziono sondy"
+    },
+    "availability": {
+      "title": "Dostępność",
+      "range_label": "Zakres czasu",
+      "bar_label": "Historia dostępności",
+      "instance_bar_label": "Połączenia sondy {{name}}",
+      "no_data": "Brak danych",
+      "now": "Teraz",
+      "instances_title": "Instancje, ostatnie 24 godziny",
+      "in_process_note": "Monitory sondy lokalnej sprawdza sam Peekaping, więc nie ma ona historii dostępności.",
+      "connected_since": "Połączona od {{start}}"
     }
   },
   "proxies": {

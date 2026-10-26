@@ -1206,7 +1206,8 @@
       "name_too_long": "Namnet är för långt",
       "location_too_long": "Platsen är för lång",
       "disabled_label": "Inaktiverad",
-      "disabled_description": "Token för en inaktiverad sond slutar fungera tills du aktiverar den igen."
+      "disabled_description": "Token för en inaktiverad sond slutar fungera tills du aktiverar den igen.",
+      "notifications_hint": "Lämna tomt för att meddela kanalerna för den här sondens övervakningar."
     },
     "rotate_dialog": {
       "title": "Byt token",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "Det gick inte att läsa in sonder",
       "copy_success": "Kopierat till urklipp",
       "copy_failed": "Det gick inte att kopiera till urklipp"
+    },
+    "detail": {
+      "not_found": "Sonden hittades inte"
+    },
+    "availability": {
+      "title": "Tillgänglighet",
+      "range_label": "Tidsintervall",
+      "bar_label": "Tillgänglighetshistorik",
+      "instance_bar_label": "Anslutningar för {{name}}",
+      "no_data": "Inga data",
+      "now": "Nu",
+      "instances_title": "Instanser, senaste 24 timmar",
+      "in_process_note": "Peekaping kontrollerar själv den lokala sondens monitorer, så den har ingen tillgänglighetshistorik.",
+      "connected_since": "Ansluten sedan {{start}}"
     }
   },
   "proxies": {

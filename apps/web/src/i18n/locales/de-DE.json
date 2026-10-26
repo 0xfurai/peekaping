@@ -1206,7 +1206,8 @@
       "name_too_long": "Der Name ist zu lang",
       "location_too_long": "Der Standort ist zu lang",
       "disabled_label": "Deaktiviert",
-      "disabled_description": "Das Token einer deaktivierten Sonde funktioniert nicht mehr, bis Sie sie wieder aktivieren."
+      "disabled_description": "Das Token einer deaktivierten Sonde funktioniert nicht mehr, bis Sie sie wieder aktivieren.",
+      "notifications_hint": "Leer lassen, um die Kanäle der Monitore dieser Sonde zu benachrichtigen."
     },
     "rotate_dialog": {
       "title": "Token erneuern",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "Sonden konnten nicht geladen werden",
       "copy_success": "In die Zwischenablage kopiert",
       "copy_failed": "Kopieren in die Zwischenablage fehlgeschlagen"
+    },
+    "detail": {
+      "not_found": "Sonde nicht gefunden"
+    },
+    "availability": {
+      "title": "Verfügbarkeit",
+      "range_label": "Zeitraum",
+      "bar_label": "Verfügbarkeitsverlauf",
+      "instance_bar_label": "Verbindungen von {{name}}",
+      "no_data": "Keine Daten",
+      "now": "Jetzt",
+      "instances_title": "Instanzen, letzte 24 Stunden",
+      "in_process_note": "Peekaping prüft die Monitore der lokalen Sonde selbst, daher hat sie keinen Verfügbarkeitsverlauf.",
+      "connected_since": "Verbunden seit {{start}}"
     }
   },
   "proxies": {

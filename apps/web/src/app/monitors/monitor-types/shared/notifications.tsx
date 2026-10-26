@@ -81,39 +81,41 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier?: () => void }) => {
                     ? t("monitors.form.shared.notifications.add_notifier")
                     : t("monitors.form.shared.notifications.no_channels")}
                 </FormLabel>
-                <FormControl>
-                  <Select
-                    value={"none"}
-                    onValueChange={(val) => {
-                      if (!val || val === "none") return;
-                      const current = notification_ids || [];
-                      if (!current.includes(val)) {
-                        field.onChange([...current, val], {
-                          shouldDirty: true,
-                        });
-                      }
-                    }}
-                  >
+                {/* FormControl goes on the trigger: the Select root renders no
+                    element, so the label's id and aria attributes would be lost. */}
+                <Select
+                  value={"none"}
+                  onValueChange={(val) => {
+                    if (!val || val === "none") return;
+                    const current = notification_ids || [];
+                    if (!current.includes(val)) {
+                      field.onChange([...current, val], {
+                        shouldDirty: true,
+                      });
+                    }
+                  }}
+                >
+                  <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder={t("monitors.form.shared.notifications.select_notifier_placeholder")} />
                     </SelectTrigger>
+                  </FormControl>
 
-                    <SelectContent>
-                      <SelectItem value="none" disabled>
-                        {(notifications?.data?.length || 0) > 0
-                          ? t("monitors.form.shared.notifications.select_channel")
-                          : t("monitors.form.shared.notifications.no_channels_available")}
+                  <SelectContent>
+                    <SelectItem value="none" disabled>
+                      {(notifications?.data?.length || 0) > 0
+                        ? t("monitors.form.shared.notifications.select_channel")
+                        : t("monitors.form.shared.notifications.no_channels_available")}
+                    </SelectItem>
+                    {availableNotifiers.map((n) => (
+                      <SelectItem key={n.id} value={n.id || "none"}>
+                        <span className="truncate max-w-[300px] sm:max-w-full">
+                          {n.name}
+                        </span>
                       </SelectItem>
-                      {availableNotifiers.map((n) => (
-                        <SelectItem key={n.id} value={n.id || "none"}>
-                          <span className="truncate max-w-[300px] sm:max-w-full">
-                            {n.name}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             );

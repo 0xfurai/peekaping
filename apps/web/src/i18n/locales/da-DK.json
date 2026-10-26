@@ -1206,7 +1206,8 @@
       "name_too_long": "Navnet er for langt",
       "location_too_long": "Placeringen er for lang",
       "disabled_label": "Deaktiveret",
-      "disabled_description": "En deaktiveret probes token holder op med at virke, indtil du aktiverer den igen."
+      "disabled_description": "En deaktiveret probes token holder op med at virke, indtil du aktiverer den igen.",
+      "notifications_hint": "Lad feltet stå tomt for at notificere kanalerne for denne probes monitorer."
     },
     "rotate_dialog": {
       "title": "Skift token",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "Kunne ikke indlæse probes",
       "copy_success": "Kopieret til udklipsholderen",
       "copy_failed": "Kunne ikke kopiere til udklipsholderen"
+    },
+    "detail": {
+      "not_found": "Proben blev ikke fundet"
+    },
+    "availability": {
+      "title": "Tilgængelighed",
+      "range_label": "Tidsrum",
+      "bar_label": "Tilgængelighedshistorik",
+      "instance_bar_label": "Forbindelser for {{name}}",
+      "no_data": "Ingen data",
+      "now": "Nu",
+      "instances_title": "Instanser, seneste 24 timer",
+      "in_process_note": "Peekaping selv tjekker den lokale probes monitorer, så den har ingen tilgængelighedshistorik.",
+      "connected_since": "Forbundet siden {{start}}"
     }
   },
   "proxies": {

@@ -607,7 +607,7 @@ func TestService_RegisterInstanceKeepsAProbeThatRestartsEveryMinuteForADayAtTheC
 			id := fmt.Sprintf("start-%04d", minute)
 			require.NoError(t, svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: id, LastSeenAt: now, SupportedTypes: []string{"http"}}), "restart %d", minute)
 			if minute%2 == 0 {
-				require.NoError(t, svc.RetireInstance(ctx, created.ID, id, probe.RetiredAt(now.Add(30*time.Second))))
+				require.NoError(t, svc.RetireInstance(ctx, created.ID, id, probe.RetiredAt(now.Add(30*time.Second)), now.Add(30*time.Second)))
 			}
 
 			require.LessOrEqual(t, heldBy(t, db, created.ID), 64, "after restart %d", minute)
@@ -694,7 +694,7 @@ func TestService_RetireInstanceLeavesTheInstanceLastSeenAtTheGivenTime(t *testin
 	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen, SupportedTypes: []string{"http"}}))
 	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-2", LastSeenAt: seen, SupportedTypes: []string{"http"}}))
 
-	require.NoError(t, f.svc.RetireInstance(ctx, created.ID, "instance-1", retired))
+	require.NoError(t, f.svc.RetireInstance(ctx, created.ID, "instance-1", retired, retired))
 
 	got, err := f.svc.FindByID(ctx, created.ID)
 	require.NoError(t, err)
@@ -710,29 +710,29 @@ func TestService_MarkOnlineAndOfflineChangeTheStatusOnce(t *testing.T) {
 	f := newFixture(t)
 	created := f.create(t, "Frankfurt")
 
-	changed, err := f.svc.MarkOffline(ctx, created.ID)
+	changed, err := f.svc.MarkOffline(ctx, created.ID, time.Now())
 	require.NoError(t, err)
 	assert.False(t, changed, "a new probe is offline already")
 
-	changed, err = f.svc.MarkOnline(ctx, created.ID)
+	changed, err = f.svc.MarkOnline(ctx, created.ID, time.Now())
 	require.NoError(t, err)
 	assert.True(t, changed)
 	got, err := f.svc.FindByID(ctx, created.ID)
 	require.NoError(t, err)
 	assert.Equal(t, probe.StatusOnline, got.Status)
 
-	changed, err = f.svc.MarkOnline(ctx, created.ID)
+	changed, err = f.svc.MarkOnline(ctx, created.ID, time.Now())
 	require.NoError(t, err)
 	assert.False(t, changed, "only the caller that changes the status hears true, so that two replicas don't both announce it")
 
-	changed, err = f.svc.MarkOffline(ctx, created.ID)
+	changed, err = f.svc.MarkOffline(ctx, created.ID, time.Now())
 	require.NoError(t, err)
 	assert.True(t, changed)
 	got, err = f.svc.FindByID(ctx, created.ID)
 	require.NoError(t, err)
 	assert.Equal(t, probe.StatusOffline, got.Status)
 
-	changed, err = f.svc.MarkOnline(ctx, "no-such-probe")
+	changed, err = f.svc.MarkOnline(ctx, "no-such-probe", time.Now())
 	require.NoError(t, err)
 	assert.False(t, changed)
 }
@@ -745,7 +745,7 @@ func TestService_MarkOnlineLeavesADisabledProbeOffline(t *testing.T) {
 	_, err := f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Disabled: &disabled})
 	require.NoError(t, err)
 
-	changed, err := f.svc.MarkOnline(ctx, created.ID)
+	changed, err := f.svc.MarkOnline(ctx, created.ID, time.Now())
 
 	require.NoError(t, err)
 	assert.False(t, changed, "a disabled probe's token is refused, so nothing has heard from it")
@@ -756,7 +756,7 @@ func TestService_MarkOnlineLeavesADisabledProbeOffline(t *testing.T) {
 	enabled := false
 	_, err = f.svc.Update(ctx, created.ID, &probe.UpdateRequest{Disabled: &enabled})
 	require.NoError(t, err)
-	changed, err = f.svc.MarkOnline(ctx, created.ID)
+	changed, err = f.svc.MarkOnline(ctx, created.ID, time.Now())
 	require.NoError(t, err)
 	assert.True(t, changed, "enabled again, the probe comes online")
 }

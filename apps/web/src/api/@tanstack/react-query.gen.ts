@@ -54,9 +54,11 @@ import {
   putNotificationChannelsById,
   getProbes,
   postProbes,
+  getProbesAvailability,
   deleteProbesById,
   getProbesById,
   putProbesById,
+  getProbesByIdAvailability,
   postProbesByIdRotateToken,
   getProxies,
   postProxies,
@@ -216,6 +218,7 @@ import type {
   PostProbesData,
   PostProbesError,
   PostProbesResponse,
+  GetProbesAvailabilityData,
   DeleteProbesByIdData,
   DeleteProbesByIdError,
   DeleteProbesByIdResponse,
@@ -223,6 +226,7 @@ import type {
   PutProbesByIdData,
   PutProbesByIdError,
   PutProbesByIdResponse,
+  GetProbesByIdAvailabilityData,
   PostProbesByIdRotateTokenData,
   PostProbesByIdRotateTokenError,
   PostProbesByIdRotateTokenResponse,
@@ -2199,6 +2203,31 @@ export const postProbesMutation = (
   return mutationOptions;
 };
 
+export const getProbesAvailabilityQueryKey = (
+  options?: Options<GetProbesAvailabilityData>
+) => createQueryKey("getProbesAvailability", options);
+
+/**
+ * Get the availability of every probe
+ * Every probe's online and offline periods over the range, and its uptime, without its instances.
+ */
+export const getProbesAvailabilityOptions = (
+  options?: Options<GetProbesAvailabilityData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbesAvailability({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesAvailabilityQueryKey(options),
+  });
+};
+
 /**
  * Delete probe
  */
@@ -2272,6 +2301,31 @@ export const putProbesByIdMutation = (
     },
   };
   return mutationOptions;
+};
+
+export const getProbesByIdAvailabilityQueryKey = (
+  options: Options<GetProbesByIdAvailabilityData>
+) => createQueryKey("getProbesByIdAvailability", options);
+
+/**
+ * Get the availability of a probe
+ * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.
+ */
+export const getProbesByIdAvailabilityOptions = (
+  options: Options<GetProbesByIdAvailabilityData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getProbesByIdAvailability({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getProbesByIdAvailabilityQueryKey(options),
+  });
 };
 
 export const postProbesByIdRotateTokenQueryKey = (

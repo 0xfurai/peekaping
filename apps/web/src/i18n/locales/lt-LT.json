@@ -1206,7 +1206,8 @@
       "name_too_long": "Pavadinimas per ilgas",
       "location_too_long": "Vieta per ilga",
       "disabled_label": "Išjungtas",
-      "disabled_description": "Išjungto zondo žetonas nustoja veikti, kol vėl jį įjungsite."
+      "disabled_description": "Išjungto zondo žetonas nustoja veikti, kol vėl jį įjungsite.",
+      "notifications_hint": "Palikite tuščią, kad pranešimai būtų siunčiami šio zondo monitorių kanalams."
     },
     "rotate_dialog": {
       "title": "Pakeisti žetoną",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "Nepavyko įkelti zondų",
       "copy_success": "Nukopijuota į iškarpinę",
       "copy_failed": "Nepavyko nukopijuoti į iškarpinę"
+    },
+    "detail": {
+      "not_found": "Zondas nerastas"
+    },
+    "availability": {
+      "title": "Pasiekiamumas",
+      "range_label": "Laikotarpis",
+      "bar_label": "Pasiekiamumo istorija",
+      "instance_bar_label": "{{name}} ryšiai",
+      "no_data": "Nėra duomenų",
+      "now": "Dabar",
+      "instances_title": "Egzemplioriai, paskutiniai 24 valandos",
+      "in_process_note": "Vietinio zondo monitorius tikrina pats Peekaping, todėl jis neturi pasiekiamumo istorijos.",
+      "connected_since": "Prisijungęs nuo {{start}}"
     }
   },
   "proxies": {

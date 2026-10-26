@@ -1206,7 +1206,8 @@
       "name_too_long": "Ime je predolgo",
       "location_too_long": "Lokacija je predolga",
       "disabled_label": "Onemogočena",
-      "disabled_description": "Žeton onemogočene sonde preneha delovati, dokler je znova ne omogočite."
+      "disabled_description": "Žeton onemogočene sonde preneha delovati, dokler je znova ne omogočite.",
+      "notifications_hint": "Pustite prazno, da se obvestijo kanali nadzorov te sonde."
     },
     "rotate_dialog": {
       "title": "Zamenjaj žeton",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "Nalaganje sond ni uspelo",
       "copy_success": "Kopirano v odložišče",
       "copy_failed": "Kopiranje v odložišče ni uspelo"
+    },
+    "detail": {
+      "not_found": "Sonde ni bilo mogoče najti"
+    },
+    "availability": {
+      "title": "Razpoložljivost",
+      "range_label": "Časovno obdobje",
+      "bar_label": "Zgodovina razpoložljivosti",
+      "instance_bar_label": "Povezave sonde {{name}}",
+      "no_data": "Ni podatkov",
+      "now": "Zdaj",
+      "instances_title": "Primerki, zadnjih 24 ur",
+      "in_process_note": "Monitorje lokalne sonde preverja sam Peekaping, zato nima zgodovine razpoložljivosti.",
+      "connected_since": "Povezana od {{start}}"
     }
   },
   "proxies": {

@@ -28,9 +28,32 @@ export async function createHTTPMonitor(
   api: APIRequestContext,
   name: string,
   url: string,
-  { maxRetries = 0, probeIds }: { maxRetries?: number; probeIds?: string[] } = {},
+  {
+    maxRetries = 0,
+    probeIds,
+    notificationIds = [],
+  }: { maxRetries?: number; probeIds?: string[]; notificationIds?: string[] } = {},
 ): Promise<{ id: string }> {
-  const response = await api.post('monitors', { data: { ...httpMonitorBody(name, url, maxRetries), probe_ids: probeIds } });
+  const response = await api.post('monitors', {
+    data: { ...httpMonitorBody(name, url, maxRetries), notification_ids: notificationIds, probe_ids: probeIds },
+  });
+  expect(response.status(), await response.text()).toBe(201);
+  return (await response.json()).data;
+}
+
+// Creates an active webhook notification channel that posts JSON to url (see webhookURL in
+// fake-target.ts, which reads back what it received). Delete it with
+// deleteCreated(api, `notification-channels/${id}`).
+export async function createWebhookChannel(api: APIRequestContext, name: string, url: string): Promise<{ id: string }> {
+  const response = await api.post('notification-channels', {
+    data: {
+      name,
+      type: 'webhook',
+      active: true,
+      is_default: false,
+      config: JSON.stringify({ webhook_url: url, webhook_content_type: 'json' }),
+    },
+  });
   expect(response.status(), await response.text()).toBe(201);
   return (await response.json()).data;
 }

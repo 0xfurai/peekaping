@@ -1205,7 +1205,8 @@
       "name_too_long": "Nomi juda uzun",
       "location_too_long": "Joylashuv juda uzun",
       "disabled_label": "O‘chirilgan",
-      "disabled_description": "O‘chirilgan zondning tokeni uni qayta yoqmaguningizcha ishlamaydi."
+      "disabled_description": "O‘chirilgan zondning tokeni uni qayta yoqmaguningizcha ishlamaydi.",
+      "notifications_hint": "Ushbu zondning monitoring kanallariga xabar yuborish uchun bo‘sh qoldiring."
     },
     "rotate_dialog": {
       "title": "Tokenni almashtirish",
@@ -1238,6 +1239,20 @@
       "failed_to_load": "Zondlarni yuklab bo‘lmadi",
       "copy_success": "Vaqtinchalik xotiraga nusxalandi",
       "copy_failed": "Vaqtinchalik xotiraga nusxalab bo‘lmadi"
+    },
+    "detail": {
+      "not_found": "Zond topilmadi"
+    },
+    "availability": {
+      "title": "Mavjudlik",
+      "range_label": "Vaqt oralig'i",
+      "bar_label": "Mavjudlik tarixi",
+      "instance_bar_label": "{{name}} ulanishlari",
+      "no_data": "Ma'lumot yo'q",
+      "now": "Hozir",
+      "instances_title": "Nusxalar, oxirgi 24 soat",
+      "in_process_note": "Lokal zondning monitorlarini Peekaping o'zi tekshiradi, shuning uchun uning mavjudlik tarixi yo'q.",
+      "connected_since": "{{start}} dan beri ulangan"
     }
   },
   "proxies": {

@@ -83,7 +83,7 @@ func TestRegisterClusterAPI_TheLeadersWatchdogNamesTheProbesThatDoNotRunAStaleMo
 		instance.SupportedTypes = []string{"tcp"}
 		require.NoError(t, probes.RegisterInstance(ctx, frankfurt.ID, instance))
 		// The probe is online: the watchdog leaves the monitors of an offline probe alone
-		changed, err := probes.MarkOnline(ctx, frankfurt.ID)
+		changed, err := probes.MarkOnline(ctx, frankfurt.ID, time.Now())
 		require.NoError(t, err)
 		require.True(t, changed)
 

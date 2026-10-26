@@ -1205,7 +1205,8 @@
       "name_too_long": "نام بہت لمبا ہے",
       "location_too_long": "مقام بہت لمبا ہے",
       "disabled_label": "غیر فعال",
-      "disabled_description": "غیر فعال پروب کا ٹوکن اس وقت تک کام نہیں کرتا جب تک آپ اسے دوبارہ فعال نہ کریں۔"
+      "disabled_description": "غیر فعال پروب کا ٹوکن اس وقت تک کام نہیں کرتا جب تک آپ اسے دوبارہ فعال نہ کریں۔",
+      "notifications_hint": "اس پروب کے مانیٹرز کے چینلز کو مطلع کرنے کے لیے خالی چھوڑ دیں۔"
     },
     "rotate_dialog": {
       "title": "ٹوکن تبدیل کریں",
@@ -1238,6 +1239,20 @@
       "failed_to_load": "پروبز لوڈ کرنے میں ناکامی",
       "copy_success": "کلپ بورڈ پر کاپی ہو گیا",
       "copy_failed": "کلپ بورڈ پر کاپی نہیں ہو سکا"
+    },
+    "detail": {
+      "not_found": "پروب نہیں ملا"
+    },
+    "availability": {
+      "title": "دستیابی",
+      "range_label": "وقت کی حد",
+      "bar_label": "دستیابی کی تاریخ",
+      "instance_bar_label": "{{name}} کے کنکشن",
+      "no_data": "کوئی ڈیٹا نہیں",
+      "now": "ابھی",
+      "instances_title": "انسٹینسز، پچھلے 24 گھنٹے",
+      "in_process_note": "مقامی پروب کے مانیٹرز کو Peekaping خود چیک کرتا ہے، اس لیے اس کی دستیابی کی کوئی تاریخ نہیں ہے۔",
+      "connected_since": "{{start}} سے منسلک"
     }
   },
   "proxies": {

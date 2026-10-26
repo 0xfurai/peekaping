@@ -57,20 +57,36 @@ type Service interface {
 	// at once. The instance stays listed and the probe counts as online until its offline
 	// threshold has passed since seenAt, so that a restart is not an outage. The sweep prunes the
 	// instance once it has been silent for a day. An instance that isn't there is not an error.
-	RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error
+	// byeAt is the time of the bye, when the instance's connection ends.
+	RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time, byeAt time.Time) error
+	// FindInstanceConnections returns the stretches of time the probe's instances were connected,
+	// those last seen or ended at or after since, by instance and then by start. A hello starts one,
+	// and so does a request after more than a minute of quiet; a connection with no EndedAt ended
+	// at its last seen time.
+	FindInstanceConnections(ctx context.Context, probeID string, since time.Time) ([]*InstanceConnection, error)
 	// MarkOnline sets an offline probe online. It returns true only when it changed the status, so
 	// that of the callers that race to bring a probe back (one request on each API replica, and
-	// the sweep), exactly one announces it. A disabled probe stays offline.
-	MarkOnline(ctx context.Context, id string) (changed bool, err error)
-	// MarkOffline sets an online probe offline, and returns true only when it changed the status
-	MarkOffline(ctx context.Context, id string) (changed bool, err error)
+	// the sweep), exactly one announces it. A disabled probe stays offline. at is when the probe
+	// came back: the time of the request that did, which the probe's history records.
+	MarkOnline(ctx context.Context, id string, at time.Time) (changed bool, err error)
+	// MarkOffline sets an online probe offline, and returns true only when it changed the status.
+	// at is when the probe went offline: the time its instances were last seen.
+	MarkOffline(ctx context.Context, id string, at time.Time) (changed bool, err error)
+	// FindStatusChanges returns the probe's history from since on: its latest change at or before
+	// since, which is the status it carries into the range, then every change after it
+	FindStatusChanges(ctx context.Context, probeID string, since time.Time) ([]*StatusChange, error)
+	// DeleteStatusChangesOlderThan removes the changes before the given time except each probe's
+	// latest one before it, and returns how many it removed. The hourly cleanup calls it with the
+	// end of the data retention period.
+	DeleteStatusChangesOlderThan(ctx context.Context, before time.Time) (int, error)
 }
 
 // CreateRequest is a new probe
 type CreateRequest struct {
 	Name     string
 	Location string
-	// NotificationIDs are the notification channels that hear about the probe
+	// NotificationIDs are the notification channels that hear about the probe. A probe with none
+	// notifies the channels of its active monitors instead.
 	NotificationIDs []string
 }
 
@@ -351,22 +367,37 @@ func (s *ServiceImpl) TouchInstance(ctx context.Context, probeID string, instanc
 }
 
 // MARK: RetireInstance
-func (s *ServiceImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error {
-	if err := s.repo.RetireInstance(ctx, probeID, instanceID, seenAt); err != nil {
+func (s *ServiceImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time, byeAt time.Time) error {
+	if err := s.repo.RetireInstance(ctx, probeID, instanceID, seenAt, byeAt); err != nil {
 		return err
 	}
 	s.logger.Infow("Probe instance retired", "probeId", probeID, "instanceId", instanceID)
 	return nil
 }
 
+// MARK: FindInstanceConnections
+func (s *ServiceImpl) FindInstanceConnections(ctx context.Context, probeID string, since time.Time) ([]*InstanceConnection, error) {
+	return s.repo.FindInstanceConnections(ctx, probeID, since)
+}
+
 // MARK: MarkOnline
-func (s *ServiceImpl) MarkOnline(ctx context.Context, id string) (bool, error) {
-	return s.repo.UpdateStatus(ctx, id, StatusOffline, StatusOnline)
+func (s *ServiceImpl) MarkOnline(ctx context.Context, id string, at time.Time) (bool, error) {
+	return s.repo.UpdateStatus(ctx, id, StatusOffline, StatusOnline, at)
 }
 
 // MARK: MarkOffline
-func (s *ServiceImpl) MarkOffline(ctx context.Context, id string) (bool, error) {
-	return s.repo.UpdateStatus(ctx, id, StatusOnline, StatusOffline)
+func (s *ServiceImpl) MarkOffline(ctx context.Context, id string, at time.Time) (bool, error) {
+	return s.repo.UpdateStatus(ctx, id, StatusOnline, StatusOffline, at)
+}
+
+// MARK: FindStatusChanges
+func (s *ServiceImpl) FindStatusChanges(ctx context.Context, probeID string, since time.Time) ([]*StatusChange, error) {
+	return s.repo.FindStatusChanges(ctx, probeID, since)
+}
+
+// MARK: DeleteStatusChangesOlderThan
+func (s *ServiceImpl) DeleteStatusChangesOlderThan(ctx context.Context, before time.Time) (int, error) {
+	return s.repo.DeleteStatusChangesOlderThan(ctx, before)
 }
 
 // withDetails adds a probe's instances and notification channels, and makes its supported types what

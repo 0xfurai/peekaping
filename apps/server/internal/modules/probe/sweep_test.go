@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
 	"go.uber.org/zap"
 )
 
@@ -35,6 +36,7 @@ func (c *clock) Advance(d time.Duration) {
 // sweepFixture is a sweep over a migrated SQLite database, a bus that records what it publishes,
 // and a clock that stands still until the test moves it
 type sweepFixture struct {
+	db    *bun.DB
 	repo  probe.Repository
 	bus   *eventstest.Bus
 	clock *clock
@@ -46,6 +48,7 @@ func newSweepFixture(t *testing.T) *sweepFixture {
 	db := sqliteDB(t)
 	migrateDB(t, db)
 	f := &sweepFixture{
+		db:    db,
 		repo:  probe.NewSQLRepository(db),
 		bus:   eventstest.NewBus(),
 		clock: &clock{now: time.Date(2026, 10, 22, 12, 0, 0, 0, time.UTC)},
@@ -68,7 +71,7 @@ func (f *sweepFixture) probe(t *testing.T, name string, status probe.Status) *pr
 	created, err := f.repo.Create(context.Background(), &probe.CreateModel{Name: name, TokenHash: "sha256$" + name, TokenPrefix: "pkp_" + name})
 	require.NoError(t, err)
 	if status == probe.StatusOnline {
-		changed, err := f.repo.UpdateStatus(context.Background(), created.ID, probe.StatusOffline, probe.StatusOnline)
+		changed, err := f.repo.UpdateStatus(context.Background(), created.ID, probe.StatusOffline, probe.StatusOnline, time.Now())
 		require.NoError(t, err)
 		require.True(t, changed)
 	}
@@ -142,8 +145,8 @@ func TestSweep_GracefulRestartRaisesNoNotification(t *testing.T) {
 	edge := f.probe(t, "Edge", probe.StatusOnline)
 	f.instance(t, edge.ID, "edge-1", 0)
 	f.run(t)
-	retired := probe.RetiredAt(f.clock.Now())
-	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", retired))
+	bye := f.clock.Now()
+	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", probe.RetiredAt(bye), bye))
 
 	f.clock.Advance(20 * time.Second)
 	f.run(t)
@@ -155,14 +158,15 @@ func TestSweep_GracefulRestartRaisesNoNotification(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, left, 1, "the retired instance stays until it has been silent for a day")
 
-	// The probe never says hello again: the threshold counted from the retired time all along
+	// The probe never says hello again: the threshold counted from the retired time all along,
+	// and the probe went offline at the bye
 	f.clock.Advance(probe.DefaultOfflineAfter)
 	f.run(t)
 
 	assert.Equal(t, probe.StatusOffline, f.status(t, edge.ID))
 	offline := eventstest.Published(f.bus, probe.ProbeOffline)
 	require.Len(t, offline, 1)
-	assert.True(t, retired.Equal(offline[0].Since), "offline since the instance was retired: %s", offline[0].Since)
+	assert.True(t, bye.Equal(offline[0].Since), "offline since the bye: %s", offline[0].Since)
 }
 
 func TestSweep_ARestartThatSaysHelloAgainIsNotAnOutage(t *testing.T) {
@@ -171,7 +175,7 @@ func TestSweep_ARestartThatSaysHelloAgainIsNotAnOutage(t *testing.T) {
 	edge := f.probe(t, "Edge", probe.StatusOnline)
 	f.instance(t, edge.ID, "edge-1", 0)
 	f.run(t)
-	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", probe.RetiredAt(f.clock.Now())))
+	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", probe.RetiredAt(f.clock.Now()), f.clock.Now()))
 
 	f.clock.Advance(5 * time.Second)
 	f.instance(t, edge.ID, "edge-2", 0)
@@ -426,4 +430,88 @@ func TestSweep_RunSweepsEveryIntervalUntilItsContextIsDone(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("Run did not return once its context was done")
 	}
+}
+
+// history is the probe's status changes since the start of 2026, written as "status time"
+func (f *sweepFixture) history(t *testing.T, probeID string) []string {
+	t.Helper()
+	changes, err := f.repo.FindStatusChanges(context.Background(), probeID, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+	require.NoError(t, err)
+	return described(changes)
+}
+
+// startHistory makes the probe's history what these tests need: the probe is in the status it was
+// made in, since the given time. Its real creation row is replaced, since the sweep's clock is not
+// the machine's.
+func (f *sweepFixture) startHistory(t *testing.T, p *probe.Model, status probe.Status, since time.Time) {
+	t.Helper()
+	_, err := f.db.Exec("DELETE FROM probe_status_changes WHERE probe_id = ?", p.ID)
+	require.NoError(t, err)
+	if status == probe.StatusOnline {
+		changed, err := f.repo.UpdateStatus(context.Background(), p.ID, probe.StatusOffline, probe.StatusOnline, since)
+		require.NoError(t, err)
+		require.True(t, changed)
+	}
+}
+
+func TestSweep_RecordsTheOfflineChangeAtTheTimeTheInstancesWereLastSeen(t *testing.T) {
+	f := newSweepFixture(t) // the clock reads 12:00:00 on 2026-10-22
+	quiet := f.probe(t, "Frankfurt", probe.StatusOffline)
+	f.startHistory(t, quiet, probe.StatusOnline, time.Date(2026, 10, 22, 8, 0, 0, 0, time.UTC))
+	f.instance(t, quiet.ID, "frankfurt-1", 4*time.Minute)
+	f.instance(t, quiet.ID, "frankfurt-2", 5*time.Minute)
+
+	f.run(t)
+
+	assert.Equal(t, []string{"online 08:00:00", "offline 11:56:00"}, f.history(t, quiet.ID), "the newest instance was seen at 11:56:00; the sweep ran at 12:00:00")
+}
+
+func TestSweep_RecordsTheOfflineChangeAtTheTimeOfTheSweepWhenTheProbeHasNoInstance(t *testing.T) {
+	f := newSweepFixture(t)
+	bare := f.probe(t, "Paris", probe.StatusOffline)
+	f.startHistory(t, bare, probe.StatusOnline, time.Date(2026, 10, 22, 8, 0, 0, 0, time.UTC))
+
+	f.run(t)
+
+	assert.Equal(t, []string{"online 08:00:00", "offline 12:00:00"}, f.history(t, bare.ID))
+}
+
+func TestSweep_RecordsTheOnlineChangeAtTheTimeTheInstanceWasLastSeen(t *testing.T) {
+	f := newSweepFixture(t)
+	back := f.probe(t, "Frankfurt", probe.StatusOffline)
+	f.startHistory(t, back, probe.StatusOffline, time.Time{})
+	f.instance(t, back.ID, "frankfurt-1", 30*time.Second)
+
+	f.run(t)
+
+	assert.Equal(t, []string{"online 11:59:30"}, f.history(t, back.ID))
+}
+
+func TestSweep_RecordsNothingForAProbeWhoseStatusDoesNotChange(t *testing.T) {
+	f := newSweepFixture(t)
+	steady := f.probe(t, "Paris", probe.StatusOffline)
+	f.startHistory(t, steady, probe.StatusOnline, time.Date(2026, 10, 22, 8, 0, 0, 0, time.UTC))
+	f.instance(t, steady.ID, "paris-1", 2*time.Minute)
+
+	f.run(t)
+	f.run(t)
+
+	assert.Equal(t, []string{"online 08:00:00"}, f.history(t, steady.ID))
+}
+
+func TestSweep_RecordsTheOfflineChangeAtTheByeOfAnInstanceThatRanLessThanAMinute(t *testing.T) {
+	f := newSweepFixture(t) // the clock reads 12:00:00 on 2026-10-22
+	brief := f.probe(t, "Frankfurt", probe.StatusOffline)
+	f.startHistory(t, brief, probe.StatusOnline, time.Date(2026, 10, 22, 11, 50, 0, 0, time.UTC))
+	f.instance(t, brief.ID, "frankfurt-1", 10*time.Minute)
+	bye := time.Date(2026, 10, 22, 11, 50, 20, 0, time.UTC)
+	// A bye stores a last seen time a minute before it, which is before the probe came online
+	require.NoError(t, f.repo.RetireInstance(context.Background(), brief.ID, "frankfurt-1", probe.RetiredAt(bye), bye))
+
+	f.run(t)
+
+	assert.Equal(t, []string{"online 11:50:00", "offline 11:50:20"}, f.history(t, brief.ID), "it went offline at its bye, after the 20 seconds it was online")
+	offline := eventstest.Published(f.bus, probe.ProbeOffline)
+	require.Len(t, offline, 1)
+	assert.Equal(t, bye, offline[0].Since, "the notification says the same")
 }

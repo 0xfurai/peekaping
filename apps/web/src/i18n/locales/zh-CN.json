@@ -1206,7 +1206,8 @@
       "name_too_long": "名称过长",
       "location_too_long": "位置过长",
       "disabled_label": "已禁用",
-      "disabled_description": "已禁用探针的令牌会失效，直到您重新启用它。"
+      "disabled_description": "已禁用探针的令牌会失效，直到您重新启用它。",
+      "notifications_hint": "留空则通知此探针的监控所使用的渠道。"
     },
     "rotate_dialog": {
       "title": "更换令牌",
@@ -1239,6 +1240,20 @@
       "failed_to_load": "加载探针失败",
       "copy_success": "已复制到剪贴板",
       "copy_failed": "无法复制到剪贴板"
+    },
+    "detail": {
+      "not_found": "未找到探针"
+    },
+    "availability": {
+      "title": "可用性",
+      "range_label": "时间范围",
+      "bar_label": "可用性历史",
+      "instance_bar_label": "{{name}} 的连接",
+      "no_data": "无数据",
+      "now": "现在",
+      "instances_title": "实例，最近24小时",
+      "in_process_note": "本地探针的监控由 Peekaping 自身检查，因此没有可用性历史。",
+      "connected_since": "自 {{start}} 起已连接"
     }
   },
   "proxies": {

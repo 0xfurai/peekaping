@@ -55,35 +55,35 @@ cd test_utils/mssql
 #### 1. Start all containers
 ```bash
 cd test_utils/mssql
-docker-compose -f docker-compose.mssql-test.yml up -d
+docker compose -f docker-compose.mssql-test.yml up -d
 ```
 
 #### 2. Start specific container
 ```bash
 # Start only the standard SQL Server
-docker-compose -f docker-compose.mssql-test.yml up -d mssql
+docker compose -f docker-compose.mssql-test.yml up -d mssql
 
 # Start only the custom database container
-docker-compose -f docker-compose.mssql-test.yml up -d mssql-custom-db
+docker compose -f docker-compose.mssql-test.yml up -d mssql-custom-db
 ```
 
 #### 3. Check container status
 ```bash
-docker-compose -f docker-compose.mssql-test.yml ps
+docker compose -f docker-compose.mssql-test.yml ps
 ```
 
 #### 4. View logs
 ```bash
 # View all logs
-docker-compose -f docker-compose.mssql-test.yml logs
+docker compose -f docker-compose.mssql-test.yml logs
 
 # View specific container logs
-docker-compose -f docker-compose.mssql-test.yml logs mssql
+docker compose -f docker-compose.mssql-test.yml logs mssql
 ```
 
 #### 5. Stop containers
 ```bash
-docker-compose -f docker-compose.mssql-test.yml down
+docker compose -f docker-compose.mssql-test.yml down
 ```
 
 ## Test Queries
@@ -207,7 +207,7 @@ This is normal. The health check uses a simple port check. As long as the contai
 ### Permission issues
 1. **For custom user scenarios**: Ensure the user has proper permissions
 2. **Check if the database exists**: Custom databases are created during container initialization
-3. **Volume issues**: If persistent problems, remove volumes: `docker-compose down -v`
+3. **Volume issues**: If persistent problems, remove volumes: `docker compose down -v`
 
 ### ARM64 (Apple Silicon) Specific
 - Containers run in emulation mode (linux/amd64 on arm64)
@@ -225,12 +225,12 @@ This is normal. The health check uses a simple port check. As long as the contai
 
 To remove all containers and volumes:
 ```bash
-docker-compose -f docker-compose.mssql-test.yml down -v
+docker compose -f docker-compose.mssql-test.yml down -v
 ```
 
 To remove only containers (keep volumes):
 ```bash
-docker-compose -f docker-compose.mssql-test.yml down
+docker compose -f docker-compose.mssql-test.yml down
 ```
 
 ## Scripts
