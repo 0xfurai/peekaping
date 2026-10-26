@@ -778,6 +778,15 @@ func TestNotificationListener_ProbeWithoutChannelsNotifiesItsMonitorsChannels(t 
 
 	assert.Equal(t, map[string][]string{channelConfig("a"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC", "Probe Frankfurt is online"}}, slack.sentMessagesByChannel())
 	assert.Equal(t, map[string][]string{channelConfig("b"): {"Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC", "Probe Frankfurt is online"}}, email.sentMessagesByChannel())
+
+	// Still the stand-in, not a monitor, so a channel that opens an incident per monitor id opens one per probe
+	for _, sent := range append(slack.sent, email.sent...) {
+		require.NotNil(t, sent.monitor)
+		assert.Equal(t, "probe-1", sent.monitor.ID)
+		assert.Equal(t, "Probe Frankfurt", sent.monitor.Name)
+		assert.True(t, sent.monitor.IsProbeEvent())
+		assert.Nil(t, sent.heartbeat)
+	}
 }
 
 func TestNotificationListener_ProbeFallbackSendsToASharedChannelOnce(t *testing.T) {
@@ -830,6 +839,83 @@ func TestNotificationListener_ProbeWithChannelsDoesNotNotifyItsMonitorsChannels(
 	f.publishProbeEvent(probe.ProbeOnline, probeEvent("probe-1"))
 
 	assert.Equal(t, []string{channelConfig("c"), channelConfig("c")}, slack.sentConfigs())
+}
+
+func TestNotificationListener_ProbeWithNoChannelsAndNoMonitorChannelsSendsNothingAndLogsIt(t *testing.T) {
+	cases := map[string]func(f *listenerFixture){
+		"no monitors":               func(f *listenerFixture) {},
+		"monitors without channels": func(f *listenerFixture) { f.addProbeMonitor("mon-1", "probe-1") },
+		"only a paused monitor has a channel": func(f *listenerFixture) {
+			f.addProbeMonitor("mon-1", "probe-1")
+			f.monitors.monitors["mon-1"].Active = false
+			f.attach("mon-1", testChannel("a", "test-slack"))
+		},
+	}
+	for name, setup := range cases {
+		t.Run(name, func(t *testing.T) {
+			f := newListenerFixture(t)
+			core, logs := observer.New(zap.DebugLevel)
+			f.listener.logger = zap.New(core).Sugar()
+			slack := &recordingProvider{}
+			f.addProvider("test-slack", slack)
+			setup(f)
+
+			f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+
+			assert.Empty(t, slack.sentConfigs())
+			assert.Len(t, logs.FilterMessage("No notification channels configured for probe probe-1 or its monitors").All(), 1)
+		})
+	}
+}
+
+func TestNotificationListener_ProbeFallbackSendsNothingWhenTheMonitorsChannelsCannotBeRead(t *testing.T) {
+	f := newListenerFixture(t)
+	core, logs := observer.New(zap.DebugLevel)
+	f.listener.logger = zap.New(core).Sugar()
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProbeMonitor("mon-1", "probe-1")
+	f.attach("mon-1", testChannel("a", "test-slack"))
+	f.links.err = errors.New("database is locked")
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+
+	assert.Empty(t, slack.sentConfigs())
+	assert.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)
+}
+
+func TestNotificationListener_LocalProbeFallbackIncludesMonitorsWithoutProbeRows(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addProbeMonitor("mon-no-rows")
+	f.addProbeMonitor("mon-local", shared.LocalProbeID)
+	f.addProbeMonitor("mon-remote", "probe-1")
+	f.attach("mon-no-rows", testChannel("no-rows", "test-slack"))
+	f.attach("mon-local", testChannel("local", "test-slack"))
+	f.attach("mon-remote", testChannel("remote", "test-slack"))
+
+	f.publishProbeEvent(probe.ProbeOffline, probe.Event{ProbeID: shared.LocalProbeID, ProbeName: "Local", Since: time.Date(2026, 10, 22, 8, 30, 0, 0, time.UTC)})
+
+	assert.ElementsMatch(t, []string{channelConfig("no-rows"), channelConfig("local")}, slack.sentConfigs())
+	assert.ElementsMatch(t, []string{"Probe Local has been offline since 2026-10-22 08:30:00 UTC", "Probe Local has been offline since 2026-10-22 08:30:00 UTC"}, slack.sentMessages())
+}
+
+func TestNotificationListener_ProbeFallbackReadsEveryPageOfMonitors(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	// One more than a page of monitors, each with a channel of its own
+	const monitorCount = 101
+	for i := range monitorCount {
+		id := fmt.Sprintf("mon-%03d", i)
+		f.addProbeMonitor(id, "probe-1")
+		f.attach(id, testChannel(fmt.Sprintf("c-%03d", i), "test-slack"))
+	}
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+
+	assert.Len(t, slack.sentConfigs(), monitorCount)
 }
 
 // The real PagerDuty sender decides from the stand-in's status, since a probe's notification has no
