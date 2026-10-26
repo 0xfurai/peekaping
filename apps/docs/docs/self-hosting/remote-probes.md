@@ -56,6 +56,14 @@ Either way the token can then read the config of every monitor, credentials incl
 
 The monitors are chosen once, by the instance that connects first, and by the types that instance runs. If that instance is a [slim](#the-slim-image) one, the Docker, gRPC keyword, Kafka producer, MongoDB and SQL Server monitors are left out. A full instance that connects later under the same token does not add them: the request is already done. Choose **Assign to all monitors** on the Probes page once the full instance is online to add them. The action adds the monitors the probe can run and leaves the rest as they are, so you can use it again whenever you want to catch up with new monitors, which are not added to the probe on their own.
 
+## New monitors start on every probe
+
+When you add a monitor in the web app, its form starts with every probe that is enabled and runs the monitor's type chosen, the local probe included. A probe that is offline is chosen too, since it may be back by the time the monitor is. A disabled probe is not, and neither is a probe that doesn't run the type. A push monitor stays on the local probe. The form shows this only once the install has a probe besides the local one.
+
+If you change the monitor's type before you save, the form drops the probes that don't run the new type and adds the ones that do. Once you choose probes yourself, the form keeps your choice. Editing a monitor and cloning one keep the monitor's own probes. Uncheck the probes you don't want before you save.
+
+Most new monitors then run on several probes, so read [Several probes per monitor](#several-probes-per-monitor) for what that does to their status.
+
 ## The slim image
 
 The image above runs every monitor type but push. The **slim** image is the same probe without the checks for five types whose drivers make up much of its size: **Docker**, **gRPC keyword**, **Kafka producer**, **MongoDB** and **SQL Server**. The image is about 40% smaller, so use it on a machine that doesn't need those checks.
@@ -166,6 +174,8 @@ The monitor's own status follows its locations and its **location rule**, which 
 - **At least N locations are Down**: the monitor is Down while N or more locations are Down. N can be from 1 up to the number of the monitor's probes.
 
 A location whose probe is offline, or that hasn't reported yet, doesn't count, either as Down or in the number "all" is measured against. So with "at least 2" and only one probe online, the monitor can't go Down; the probe offline notification has told you about the others. "All", or "at least" with N of 2 or more, keeps one probe's network trouble from raising an alarm while the other probes report. "At least 1" behaves like "any", and "all" counts only the probes that report: with every other probe offline, one Down location is enough.
+
+With every probe preselected in the form (see [New monitors start on every probe](#new-monitors-start-on-every-probe)), most new monitors run on several locations under the default rule "any". One probe's network trouble then makes them Down, though the other probes reach the target. With three or more probes, choose "at least 2" for the monitors you create, so that one probe alone can't take a monitor Down.
 
 A Down or Up notification for a monitor on several probes names its locations, such as "Down at Frankfurt, Tokyo (2 of 3 locations)". A custom message template can use `{{locations_down}}` (the names) and `{{locations_total}}`.
 
