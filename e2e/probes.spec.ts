@@ -122,7 +122,8 @@ test("A probe's channels are set and cleared in the edit form", async ({ page })
     const openEditDialog = async () => {
       await page.getByRole('row', { name: new RegExp(probeName) }).getByRole('button', { name: 'Edit probe' }).click();
       const dialog = page.getByRole('dialog', { name: 'Edit probe' });
-      await expect(dialog.getByText('Notification channels')).toBeVisible();
+      // exact: with a channel chosen, "Selected Notification channels" matches too
+      await expect(dialog.getByText('Notification channels', { exact: true })).toBeVisible();
       await expect(dialog.getByText(hint)).toBeVisible();
       return dialog;
     };
