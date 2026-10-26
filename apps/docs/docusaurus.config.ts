@@ -59,14 +59,18 @@ const config: Config = {
   ],
 
   themeConfig: {
-    // Replace with your project's social card
-    // image: "img/docusaurus-social-card.jpg",
+    image: "img/demo.webp",
+    colorMode: {
+      defaultMode: "dark",
+      respectPrefersColorScheme: true,
+    },
     navbar: {
       title: "Peekaping",
-      // logo: {
-      //   alt: 'Peekaping Docs Logo',
-      //   src: 'img/logo.svg',
-      // },
+      logo: {
+        alt: "",
+        src: "img/logo-mascot.webp",
+      },
+      hideOnScroll: false,
       items: [
         {
           type: "docSidebar",
@@ -75,39 +79,65 @@ const config: Config = {
           label: "Docs",
         },
         {
+          href: "https://peekaping.com",
+          label: "Website",
+          position: "left",
+        },
+        {
           href: "https://github.com/0xfurai/peekaping",
-          label: "GitHub",
           position: "right",
+          className: "header-github-link",
+          "aria-label": "GitHub repository",
+        },
+        {
+          href: "https://demo.peekaping.com",
+          label: "Live demo",
+          position: "right",
+          className: "navbar-cta",
         },
       ],
     },
     footer: {
       style: "dark",
+      logo: {
+        alt: "Peekaping",
+        src: "img/logo-mascot.webp",
+        href: "https://peekaping.com",
+        width: 48,
+        height: 48,
+      },
       links: [
+        {
+          title: "Docs",
+          items: [
+            { label: "Quick start", to: "/self-hosting/docker-with-sqlite" },
+            { label: "Deployment modes", to: "/self-hosting/deployment-modes" },
+            { label: "Architecture", to: "/architecture/overview" },
+          ],
+        },
+        {
+          title: "Product",
+          items: [
+            { label: "Website", href: "https://peekaping.com" },
+            { label: "Live demo", href: "https://demo.peekaping.com" },
+            { label: "Releases", href: "https://github.com/0xfurai/peekaping/releases" },
+          ],
+        },
         {
           title: "Community",
           items: [
-            {
-              label: "X",
-              href: "https://x.com/0xfurai",
-            },
-          ],
-        },
-        {
-          title: "More",
-          items: [
-            {
-              label: "GitHub",
-              href: "https://github.com/0xfurai/peekaping",
-            },
+            { label: "GitHub", href: "https://github.com/0xfurai/peekaping" },
+            { label: "Issues", href: "https://github.com/0xfurai/peekaping/issues" },
+            { label: "X", href: "https://x.com/0xfurai" },
           ],
         },
       ],
-      // copyright: `Copyright © ${new Date().getFullYear()}.`,
+      copyright: "Open source under the MIT license.",
     },
     prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
+      theme: prismThemes.oneLight,
+      darkTheme: prismThemes.oneDark,
+      additionalLanguages: ["bash", "nginx", "http", "php", "docker"],
     },
   } satisfies Preset.ThemeConfig,
 };
