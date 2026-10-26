@@ -217,6 +217,10 @@ func waitForMongo(ctx context.Context, uri string) error {
 		case <-time.After(500 * time.Millisecond):
 		}
 	}
+	if lastErr == nil {
+		// The start used up the time before the first ping.
+		lastErr = ctx.Err()
+	}
 	return fmt.Errorf("no answer from MongoDB: %w", lastErr)
 }
 
