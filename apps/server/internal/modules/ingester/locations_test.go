@@ -34,14 +34,15 @@ func (ti *testIngester) from(t *testing.T, probeID string, m monitorSettings, ch
 	require.NoError(t, ti.ingest(t, result))
 	got := ti.heartbeats.latest()
 	ti.statusEvents = append(ti.statusEvents, eventstest.Published(ti.bus, events.MonitorStatusChanged)...)
+	ti.notifiedEvents = append(ti.notifiedEvents, eventstest.Published(ti.bus, events.ImportantHeartbeat)...)
 	return &storedBeat{
 		status: got.Status, retries: got.Retries, downCount: got.DownCount, important: got.Important, notified: got.Notified,
-		events: ti.bus.TakeTopics(), published: ti.statusEvents,
+		events: ti.bus.TakeTopics(), published: ti.statusEvents, notifications: ti.notifiedEvents,
 	}
 }
 
 // storedBeat is the heartbeat a result produced, the events it published, and every status change
-// published so far
+// and notification published so far
 type storedBeat struct {
 	status    shared.MonitorStatus
 	retries   int
@@ -50,6 +51,8 @@ type storedBeat struct {
 	notified  bool
 	events    []string
 	published []shared.HeartBeatModel
+	// notifications are the heartbeats published to be notified
+	notifications []shared.HeartBeatModel
 }
 
 func TestIngester_TheMonitorIsDownWhileAnyLocationIsDown(t *testing.T) {
@@ -353,6 +356,28 @@ func TestIngester_StatusChangedCarriesTheMonitorsStatus(t *testing.T) {
 	require.Len(t, beat.published, 3)
 	assert.Equal(t, up, beat.published[2].Status, "while the event carries the monitor's")
 	assert.Equal(t, probeA, beat.published[2].ProbeID)
+}
+
+// The notification is read by the providers, which resolve an incident on an Up heartbeat: it
+// carries the monitor's status too, where the stored heartbeat keeps the location's.
+func TestIngester_NotificationCarriesTheMonitorsStatus(t *testing.T) {
+	const probeC = "probe-c"
+	ti := newTestIngester(runningOn(probeA, probeB, probeC))
+	m := monitorSettings{}
+	ti.from(t, probeA, m, up)
+	ti.from(t, probeB, m, up)
+	ti.from(t, probeC, m, up)
+	ti.from(t, probeB, m, down) // the monitor is Down
+	ti.locations.setOffline(probeB)
+
+	// A's next result is Pending, and C is Up: the monitor is Up, whatever A's heartbeat says
+	beat := ti.from(t, probeA, m, pending)
+
+	assert.Equal(t, pending, beat.status, "the heartbeat keeps the location's status")
+	require.Equal(t, []string{changed, notified}, beat.events)
+	require.Len(t, beat.notifications, 3)
+	assert.Equal(t, up, beat.notifications[2].Status, "while the notification carries the monitor's")
+	assert.Equal(t, probeA, beat.notifications[2].ProbeID)
 }
 
 // A Down monitor leaves Down for Up or Maintenance only, whatever its locations add up to. Here the

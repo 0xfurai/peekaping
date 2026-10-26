@@ -64,11 +64,14 @@ func (s *ServiceImpl) isImportantBeat(prevBeatStatus, currBeatStatus shared.Moni
 	up := shared.MonitorStatusUp
 	down := shared.MonitorStatusDown
 	pending := shared.MonitorStatusPending
+	maintenance := shared.MonitorStatusMaintenance
 
 	return (prevBeatStatus == up && currBeatStatus == down) ||
 		(prevBeatStatus == down && currBeatStatus == up) ||
 		(prevBeatStatus == pending && currBeatStatus == up) ||
-		(prevBeatStatus == pending && currBeatStatus == down)
+		(prevBeatStatus == pending && currBeatStatus == down) ||
+		(prevBeatStatus == maintenance && currBeatStatus == up) ||
+		(prevBeatStatus == maintenance && currBeatStatus == down)
 }
 
 // isImportantForNotification checks if the beat should trigger notification
@@ -76,10 +79,12 @@ func (s *ServiceImpl) isImportantForNotification(prevBeatStatus, currBeatStatus 
 	up := shared.MonitorStatusUp
 	down := shared.MonitorStatusDown
 	pending := shared.MonitorStatusPending
+	maintenance := shared.MonitorStatusMaintenance
 
 	return (prevBeatStatus == up && currBeatStatus == down) ||
 		(prevBeatStatus == down && currBeatStatus == up) ||
-		(prevBeatStatus == pending && currBeatStatus == down)
+		(prevBeatStatus == pending && currBeatStatus == down) ||
+		(prevBeatStatus == maintenance && currBeatStatus == down)
 }
 
 // locationRule is a monitor's location rule as the ingester judges by it: how many of the
@@ -452,8 +457,9 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		return fmt.Errorf("failed to create heartbeat: %w", err)
 	}
 
-	// Publish events. The status the monitor changed to is the monitor's, which is not always the
-	// heartbeat's: the event sets the monitor's status.
+	// Publish events. Both carry the monitor's status, which is not always the heartbeat's: the
+	// status change sets the monitor's status, and the notification tells a provider what the
+	// monitor is now (Up resolves an incident), where the stored heartbeat keeps its location's.
 	if isFirstBeat || previousStatus != currentStatus {
 		statusChange := *dbHb
 		statusChange.Status = currentStatus
@@ -463,7 +469,9 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	}
 
 	if shouldNotify {
-		if err := events.Publish(ctx, s.eventBus, events.ImportantHeartbeat, *dbHb); err != nil {
+		notification := *dbHb
+		notification.Status = currentStatus
+		if err := events.Publish(ctx, s.eventBus, events.ImportantHeartbeat, notification); err != nil {
 			s.logger.Errorw("Failed to publish important heartbeat event", "monitor_id", dbHb.MonitorID, "error", err)
 		}
 	}
