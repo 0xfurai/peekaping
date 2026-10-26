@@ -95,7 +95,7 @@ type PublicHeartbeatDTO struct {
 type PublicLocationDTO struct {
 	Name       string                `json:"name" example:"Frankfurt"`
 	Status     shared.MonitorStatus  `json:"status" doc:"The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports." example:"1"`
-	Uptime24h  *float64              `json:"uptime_24h" nullable:"true" doc:"The uptime of this location over the last 24 hours, in percent. Null when it could not be read."`
+	Uptime24h  *float64              `json:"uptime_24h" nullable:"true" doc:"The uptime of this location over the last 24 hours, in percent. Null when it could not be read, or when the location has no Up or Down heartbeat in that period."`
 	Heartbeats []*PublicHeartbeatDTO `json:"heartbeats"`
 }
 
