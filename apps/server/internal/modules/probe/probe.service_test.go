@@ -607,7 +607,7 @@ func TestService_RegisterInstanceKeepsAProbeThatRestartsEveryMinuteForADayAtTheC
 			id := fmt.Sprintf("start-%04d", minute)
 			require.NoError(t, svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: id, LastSeenAt: now, SupportedTypes: []string{"http"}}), "restart %d", minute)
 			if minute%2 == 0 {
-				require.NoError(t, svc.RetireInstance(ctx, created.ID, id, probe.RetiredAt(now.Add(30*time.Second))))
+				require.NoError(t, svc.RetireInstance(ctx, created.ID, id, probe.RetiredAt(now.Add(30*time.Second)), now.Add(30*time.Second)))
 			}
 
 			require.LessOrEqual(t, heldBy(t, db, created.ID), 64, "after restart %d", minute)
@@ -694,7 +694,7 @@ func TestService_RetireInstanceLeavesTheInstanceLastSeenAtTheGivenTime(t *testin
 	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-1", LastSeenAt: seen, SupportedTypes: []string{"http"}}))
 	require.NoError(t, f.svc.RegisterInstance(ctx, created.ID, &probe.Instance{ID: "instance-2", LastSeenAt: seen, SupportedTypes: []string{"http"}}))
 
-	require.NoError(t, f.svc.RetireInstance(ctx, created.ID, "instance-1", retired))
+	require.NoError(t, f.svc.RetireInstance(ctx, created.ID, "instance-1", retired, retired))
 
 	got, err := f.svc.FindByID(ctx, created.ID)
 	require.NoError(t, err)

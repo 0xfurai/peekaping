@@ -146,7 +146,7 @@ func TestSweep_GracefulRestartRaisesNoNotification(t *testing.T) {
 	f.instance(t, edge.ID, "edge-1", 0)
 	f.run(t)
 	retired := probe.RetiredAt(f.clock.Now())
-	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", retired))
+	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", retired, retired))
 
 	f.clock.Advance(20 * time.Second)
 	f.run(t)
@@ -174,7 +174,7 @@ func TestSweep_ARestartThatSaysHelloAgainIsNotAnOutage(t *testing.T) {
 	edge := f.probe(t, "Edge", probe.StatusOnline)
 	f.instance(t, edge.ID, "edge-1", 0)
 	f.run(t)
-	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", probe.RetiredAt(f.clock.Now())))
+	require.NoError(t, f.repo.RetireInstance(ctx, edge.ID, "edge-1", probe.RetiredAt(f.clock.Now()), f.clock.Now()))
 
 	f.clock.Advance(5 * time.Second)
 	f.instance(t, edge.ID, "edge-2", 0)

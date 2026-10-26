@@ -74,7 +74,7 @@ func TestService_AnInstanceThatSaysByeLeavesTheUnion(t *testing.T) {
 		f.register(t, created.ID, "full", now, fullTypes)
 		require.Equal(t, fullTypes, f.typesOf(t, created.ID))
 
-		require.NoError(t, f.svc.RetireInstance(context.Background(), created.ID, "full", probe.RetiredAt(now)))
+		require.NoError(t, f.svc.RetireInstance(context.Background(), created.ID, "full", probe.RetiredAt(now), now))
 
 		assert.Equal(t, slimTypes, f.typesOf(t, created.ID), "docker leaves with the full build")
 

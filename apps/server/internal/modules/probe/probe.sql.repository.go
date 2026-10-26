@@ -48,6 +48,17 @@ type sqlInstance struct {
 	LastSeenAt     time.Time `bun:"last_seen_at,notnull"`
 }
 
+type sqlInstanceConnection struct {
+	bun.BaseModel `bun:"table:probe_instance_connections,alias:pic"`
+
+	ID         string     `bun:"id,pk"`
+	InstanceID string     `bun:"instance_id,notnull"`
+	ProbeID    string     `bun:"probe_id,notnull"`
+	StartedAt  time.Time  `bun:"started_at,notnull"`
+	LastSeenAt time.Time  `bun:"last_seen_at,notnull"`
+	EndedAt    *time.Time `bun:"ended_at"`
+}
+
 // decodeTypes reads a column that holds a JSON array of monitor types. A value that isn't one
 // reads as no types.
 func decodeTypes(column string) []string {
@@ -293,15 +304,17 @@ func (r *SQLRepositoryImpl) FindInstance(ctx context.Context, probeID string, in
 
 // MARK: UpsertInstance
 func (r *SQLRepositoryImpl) UpsertInstance(ctx context.Context, probeID string, inst *Instance) error {
-	// The id is the table's primary key, so a conflict on it is the same instance saying hello
-	// again. The WHERE keeps another probe's instance out of reach: no row changes then. The
-	// statement names the table in full and not by an alias, which PostgreSQL allows in this
-	// WHERE only for a table with no alias.
 	supportedTypes, err := encodeTypes(inst.SupportedTypes)
 	if err != nil {
 		return err
 	}
-	result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, supported_types, last_seen_at)
+	// The hello is one of the instance's requests: its connection is written with it
+	return r.transactor.WithTx(ctx, func(ctx context.Context) error {
+		// The id is the table's primary key, so a conflict on it is the same instance saying hello
+		// again. The WHERE keeps another probe's instance out of reach: no row changes then. The
+		// statement names the table in full and not by an alias, which PostgreSQL allows in this
+		// WHERE only for a table with no alias.
+		result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, supported_types, last_seen_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (id) DO UPDATE SET
 	hostname = EXCLUDED.hostname,
@@ -312,18 +325,19 @@ ON CONFLICT (id) DO UPDATE SET
 	supported_types = EXCLUDED.supported_types,
 	last_seen_at = EXCLUDED.last_seen_at
 WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
-		inst.ID, probeID, inst.Hostname, inst.OS, inst.Arch, inst.Version, inst.ProtocolVersion, supportedTypes, inst.LastSeenAt.UTC())
-	if err != nil {
-		return err
-	}
-	changed, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if changed == 0 {
-		return ErrInstanceTaken
-	}
-	return nil
+			inst.ID, probeID, inst.Hostname, inst.OS, inst.Arch, inst.Version, inst.ProtocolVersion, supportedTypes, inst.LastSeenAt.UTC())
+		if err != nil {
+			return err
+		}
+		changed, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if changed == 0 {
+			return ErrInstanceTaken
+		}
+		return r.recordConnection(ctx, probeID, inst.ID, inst.LastSeenAt.UTC())
+	})
 }
 
 // MARK: MakeRoomForInstance
@@ -389,29 +403,106 @@ func (r *SQLRepositoryImpl) MakeRoomForInstance(ctx context.Context, probeID str
 
 // MARK: TouchInstance
 func (r *SQLRepositoryImpl) TouchInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) (bool, error) {
-	result, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlInstance)(nil)).
-		Set("last_seen_at = ?", seenAt.UTC()).
-		Where("id = ?", instanceID).
-		Where("probe_id = ?", probeID).
+	found := false
+	err := r.transactor.WithTx(ctx, func(ctx context.Context) error {
+		result, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlInstance)(nil)).
+			Set("last_seen_at = ?", seenAt.UTC()).
+			Where("id = ?", instanceID).
+			Where("probe_id = ?", probeID).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+		changed, err := result.RowsAffected()
+		if err != nil || changed == 0 {
+			return err
+		}
+		found = true
+		return r.recordConnection(ctx, probeID, instanceID, seenAt.UTC())
+	})
+	return found && err == nil, err
+}
+
+// recordConnection notes a request of the instance at the given time. The instance's open
+// connection grows to it when its last request was within InstanceOnlineWindow before it, and
+// otherwise a new connection starts. A connection that went quiet is not ended by anything: it
+// ended at its last request, which is its last seen time. It runs on the transaction ctx carries.
+func (r *SQLRepositoryImpl) recordConnection(ctx context.Context, probeID string, instanceID string, at time.Time) error {
+	db := dbtx.DB(ctx, r.db)
+	// A request that was slower than a later one takes nothing back from the connection
+	result, err := db.NewUpdate().Model((*sqlInstanceConnection)(nil)).
+		Set("last_seen_at = CASE WHEN last_seen_at > ? THEN last_seen_at ELSE ? END", at, at).
+		Where("instance_id = ?", instanceID).
+		Where("ended_at IS NULL").
+		Where("last_seen_at >= ?", at.Add(-InstanceOnlineWindow)).
 		Exec(ctx)
 	if err != nil {
-		return false, err
+		return err
 	}
-	changed, err := result.RowsAffected()
-	if err != nil {
-		return false, err
+	extended, err := result.RowsAffected()
+	if err != nil || extended > 0 {
+		return err
 	}
-	return changed > 0, nil
+	_, err = db.NewInsert().Model(&sqlInstanceConnection{
+		ID:         uuid.New().String(),
+		InstanceID: instanceID,
+		ProbeID:    probeID,
+		StartedAt:  at,
+		LastSeenAt: at,
+	}).Exec(ctx)
+	return err
 }
 
 // MARK: RetireInstance
-func (r *SQLRepositoryImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error {
-	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlInstance)(nil)).
-		Set("last_seen_at = ?", seenAt.UTC()).
-		Where("id = ?", instanceID).
+func (r *SQLRepositoryImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time, endedAt time.Time) error {
+	return r.transactor.WithTx(ctx, func(ctx context.Context) error {
+		db := dbtx.DB(ctx, r.db)
+		_, err := db.NewUpdate().Model((*sqlInstance)(nil)).
+			Set("last_seen_at = ?", seenAt.UTC()).
+			Where("id = ?", instanceID).
+			Where("probe_id = ?", probeID).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+		// The bye ends the connection the instance's requests have kept open. An instance that
+		// was quiet for longer has none to end.
+		end := endedAt.UTC()
+		_, err = db.NewUpdate().Model((*sqlInstanceConnection)(nil)).
+			Set("ended_at = CASE WHEN last_seen_at > ? THEN last_seen_at ELSE ? END", end, end).
+			Set("last_seen_at = CASE WHEN last_seen_at > ? THEN last_seen_at ELSE ? END", end, end).
+			Where("instance_id = ?", instanceID).
+			Where("probe_id = ?", probeID).
+			Where("ended_at IS NULL").
+			Where("last_seen_at >= ?", end.Add(-InstanceOnlineWindow)).
+			Exec(ctx)
+		return err
+	})
+}
+
+// MARK: FindInstanceConnections
+func (r *SQLRepositoryImpl) FindInstanceConnections(ctx context.Context, probeID string, since time.Time) ([]*InstanceConnection, error) {
+	var scs []*sqlInstanceConnection
+	// A bye moves the last seen time to the end, so the last seen time is the later of the two
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(&scs).
 		Where("probe_id = ?", probeID).
-		Exec(ctx)
-	return err
+		Where("last_seen_at >= ?", since.UTC()).
+		Order("instance_id ASC", "started_at ASC", "id ASC").
+		Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+	connections := make([]*InstanceConnection, len(scs))
+	for i, sc := range scs {
+		connections[i] = &InstanceConnection{
+			InstanceID: sc.InstanceID,
+			ProbeID:    sc.ProbeID,
+			StartedAt:  sc.StartedAt,
+			LastSeenAt: sc.LastSeenAt,
+			EndedAt:    sc.EndedAt,
+		}
+	}
+	return connections, nil
 }
 
 // MARK: UpdateStatus

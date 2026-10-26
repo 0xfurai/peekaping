@@ -57,7 +57,13 @@ type Service interface {
 	// at once. The instance stays listed and the probe counts as online until its offline
 	// threshold has passed since seenAt, so that a restart is not an outage. The sweep prunes the
 	// instance once it has been silent for a day. An instance that isn't there is not an error.
-	RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error
+	// byeAt is the time of the bye, when the instance's connection ends.
+	RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time, byeAt time.Time) error
+	// FindInstanceConnections returns the stretches of time the probe's instances were connected,
+	// those last seen or ended at or after since, by instance and then by start. A hello starts one,
+	// and so does a request after more than a minute of quiet; a connection with no EndedAt ended
+	// at its last seen time.
+	FindInstanceConnections(ctx context.Context, probeID string, since time.Time) ([]*InstanceConnection, error)
 	// MarkOnline sets an offline probe online. It returns true only when it changed the status, so
 	// that of the callers that race to bring a probe back (one request on each API replica, and
 	// the sweep), exactly one announces it. A disabled probe stays offline. at is when the probe
@@ -360,12 +366,17 @@ func (s *ServiceImpl) TouchInstance(ctx context.Context, probeID string, instanc
 }
 
 // MARK: RetireInstance
-func (s *ServiceImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time) error {
-	if err := s.repo.RetireInstance(ctx, probeID, instanceID, seenAt); err != nil {
+func (s *ServiceImpl) RetireInstance(ctx context.Context, probeID string, instanceID string, seenAt time.Time, byeAt time.Time) error {
+	if err := s.repo.RetireInstance(ctx, probeID, instanceID, seenAt, byeAt); err != nil {
 		return err
 	}
 	s.logger.Infow("Probe instance retired", "probeId", probeID, "instanceId", instanceID)
 	return nil
+}
+
+// MARK: FindInstanceConnections
+func (s *ServiceImpl) FindInstanceConnections(ctx context.Context, probeID string, since time.Time) ([]*InstanceConnection, error) {
+	return s.repo.FindInstanceConnections(ctx, probeID, since)
 }
 
 // MARK: MarkOnline

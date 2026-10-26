@@ -495,7 +495,7 @@ func TestSQLRepository_RetireInstanceSetsOnlyTheProbesOwnInstancesLastSeen(t *te
 		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-1", Hostname: "host-1", LastSeenAt: now}))
 		require.NoError(t, repo.UpsertInstance(ctx, owner.ID, &probe.Instance{ID: "instance-2", LastSeenAt: now}))
 
-		require.NoError(t, repo.RetireInstance(ctx, other.ID, "instance-1", retired), "another probe's token retires nothing")
+		require.NoError(t, repo.RetireInstance(ctx, other.ID, "instance-1", retired, retired), "another probe's token retires nothing")
 		instances, err := repo.FindInstances(ctx, owner.ID)
 		require.NoError(t, err)
 		require.Len(t, instances, 2)
@@ -503,7 +503,7 @@ func TestSQLRepository_RetireInstanceSetsOnlyTheProbesOwnInstancesLastSeen(t *te
 			assert.WithinDuration(t, now, instance.LastSeenAt, time.Second)
 		}
 
-		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "instance-1", retired))
+		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "instance-1", retired, retired))
 		instances, err = repo.FindInstances(ctx, owner.ID)
 		require.NoError(t, err)
 		require.Len(t, instances, 2, "the row stays")
@@ -513,7 +513,7 @@ func TestSQLRepository_RetireInstanceSetsOnlyTheProbesOwnInstancesLastSeen(t *te
 		assert.WithinDuration(t, retired, instances[1].LastSeenAt, time.Second)
 		assert.Equal(t, "host-1", instances[1].Hostname, "and keeps what else it says")
 
-		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "never-there", retired), "retiring an instance that is gone is not an error")
+		require.NoError(t, repo.RetireInstance(ctx, owner.ID, "never-there", retired, retired), "retiring an instance that is gone is not an error")
 		instances, err = repo.FindInstances(ctx, owner.ID)
 		require.NoError(t, err)
 		assert.Len(t, instances, 2)
@@ -703,7 +703,7 @@ func TestSQLRepository_EveryMethodJoinsTheCallersTransaction(t *testing.T) {
 			touched, err := repo.TouchInstance(ctx, keep.ID, "instance-1", seen.Add(time.Minute))
 			require.NoError(t, err)
 			assert.True(t, touched)
-			require.NoError(t, repo.RetireInstance(ctx, keep.ID, "instance-2", seen.Add(-time.Hour)))
+			require.NoError(t, repo.RetireInstance(ctx, keep.ID, "instance-2", seen.Add(-time.Hour), seen.Add(-time.Hour)))
 			require.NoError(t, repo.SetSupportedTypes(ctx, keep.ID, []string{"http"}))
 			flipped, err := repo.UpdateStatus(ctx, keep.ID, probe.StatusOffline, probe.StatusOnline, time.Now())
 			require.NoError(t, err)
