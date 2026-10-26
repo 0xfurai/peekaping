@@ -105,7 +105,7 @@ The monitor's latest check failed, but it still has retries left before it count
 _Avoid_: Degraded, warning, retrying
 
 **Maintenance**:
-The status of a monitor inside an active maintenance window. Its checks count as neither Up nor Down.
+The status of a monitor inside an active maintenance window. Uptime counts its checks as Up; they are never Down.
 _Avoid_: Paused (that's a monitor switched off)
 
 **Important heartbeat**:

@@ -357,6 +357,93 @@ func TestSummarizeCountsDownHeartbeatsAtTheStartOf7And30DayUptime(t *testing.T) 
 	}
 }
 
+func TestUptimeCountsMaintenanceChecksAsUp(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+		now := time.Date(2026, 10, 17, 10, 30, 0, 0, time.UTC)
+		at := now.Add(-10*time.Minute + 5*time.Second)
+		aggregate(t, svc, monitorID, shared.MonitorStatusUp, 100, at)
+		aggregate(t, svc, monitorID, shared.MonitorStatusMaintenance, 0, at.Add(10*time.Second))
+
+		summary, err := svc.Summarize(context.Background(), monitorID, "", now.Add(-time.Hour), now)
+		require.NoError(t, err)
+		require.NotNil(t, summary.Uptime)
+		require.NotNil(t, summary.Maintenance)
+		assert.InDelta(t, 100.0, *summary.Uptime, 1e-9)
+		assert.InDelta(t, 50.0, *summary.Maintenance, 1e-9)
+	})
+}
+
+func TestUptimeWithDownChecksIsUpOverUpAndDown(t *testing.T) {
+	now := time.Date(2026, 10, 17, 10, 30, 0, 0, time.UTC)
+	cases := []struct {
+		name            string
+		window          time.Duration
+		spacing         time.Duration // between the checks' buckets; 0 puts them in one bucket
+		statuses        []shared.MonitorStatus
+		wantUptime      float64
+		wantMaintenance float64
+	}{
+		{
+			name:            "one minute bucket",
+			window:          time.Hour,
+			spacing:         0,
+			statuses:        []shared.MonitorStatus{shared.MonitorStatusUp, shared.MonitorStatusMaintenance, shared.MonitorStatusDown},
+			wantUptime:      200.0 / 3,
+			wantMaintenance: 100.0 / 3,
+		},
+		{
+			name:            "several minute buckets",
+			window:          time.Hour,
+			spacing:         time.Minute,
+			statuses:        []shared.MonitorStatus{shared.MonitorStatusUp, shared.MonitorStatusMaintenance, shared.MonitorStatusDown},
+			wantUptime:      200.0 / 3,
+			wantMaintenance: 100.0 / 3,
+		},
+		{
+			name:            "several hour buckets",
+			window:          7 * 24 * time.Hour,
+			spacing:         time.Hour,
+			statuses:        []shared.MonitorStatus{shared.MonitorStatusUp, shared.MonitorStatusMaintenance, shared.MonitorStatusDown},
+			wantUptime:      200.0 / 3,
+			wantMaintenance: 100.0 / 3,
+		},
+		{
+			name:            "two maintenance checks, one up, one down, across hour buckets",
+			window:          7 * 24 * time.Hour,
+			spacing:         time.Hour,
+			statuses:        []shared.MonitorStatus{shared.MonitorStatusMaintenance, shared.MonitorStatusUp, shared.MonitorStatusMaintenance, shared.MonitorStatusDown},
+			wantUptime:      75.0,
+			wantMaintenance: 50.0,
+		},
+		{
+			name:            "pending counts as down",
+			window:          time.Hour,
+			spacing:         time.Minute,
+			statuses:        []shared.MonitorStatus{shared.MonitorStatusUp, shared.MonitorStatusMaintenance, shared.MonitorStatusPending},
+			wantUptime:      200.0 / 3,
+			wantMaintenance: 100.0 / 3,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			forEachBackend(t, func(t *testing.T, svc stats.Service, monitorID string) {
+				// Halfway into the window, so every bucket, at the spacing, starts inside it.
+				first := now.Add(-tc.window/2 + 5*time.Second)
+				for k, status := range tc.statuses {
+					aggregate(t, svc, monitorID, status, 100, first.Add(time.Duration(k)*tc.spacing+time.Duration(k)*time.Second))
+				}
+
+				summary, err := svc.Summarize(context.Background(), monitorID, "", now.Add(-tc.window), now)
+				require.NoError(t, err)
+				require.NotNil(t, summary.Uptime)
+				require.NotNil(t, summary.Maintenance)
+				assert.InDelta(t, tc.wantUptime, *summary.Uptime, 1e-9)
+				assert.InDelta(t, tc.wantMaintenance, *summary.Maintenance, 1e-9)
+			})
+		})
+	}
+}
+
 // rowCounter records how many rows each SELECT the database runs returns.
 type rowCounter struct {
 	db   *bun.DB

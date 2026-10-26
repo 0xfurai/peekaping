@@ -46,7 +46,8 @@ type ProbeResponse struct {
 	Location    string `json:"location" validate:"required"`
 	TokenPrefix string `json:"token_prefix" validate:"required"`
 	Disabled    bool   `json:"disabled" validate:"required"`
-	// Status is online while one of the probe's instances is connected
+	// Status is online while one of the probe's instances is connected. The local probe in single
+	// mode is always online: the peekaping process checks its monitors.
 	Status string `json:"status" validate:"required" enum:"online,offline"`
 	// The lists are never null: a probe with none has an empty list
 	SupportedTypes  []string                 `json:"supported_types" validate:"required" nullable:"false"`
