@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Compteur de pannes",
     "important": "Important",
+    "instance": "Instance",
     "interval": "Intervalle",
     "message": "Message",
     "ms": "ms",

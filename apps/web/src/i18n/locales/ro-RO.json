@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Număr de întreruperi",
     "important": "Important",
+    "instance": "Instanță",
     "interval": "Interval",
     "message": "Mesaj",
     "ms": "ms",

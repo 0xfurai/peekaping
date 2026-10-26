@@ -216,7 +216,7 @@ func (c *Controller) Results(ctx context.Context, input *ResultsInput) (*httpx.O
 	// A request stores for StoreDeadline at the most, so that it is over before its claims run out
 	storeCtx, cancelStore := context.WithTimeout(r.Context(), c.timing.StoreDeadline)
 	defer cancelStore()
-	if err := c.store(storeCtx, owner, waiting); err != nil {
+	if err := c.store(storeCtx, owner, instanceID, waiting); err != nil {
 		if storeCtx.Err() != nil && r.Context().Err() == nil {
 			// The deadline, not the probe going away: what was stored is kept and the rest is given
 			// back on the way out, and the probe sends the batch again
@@ -344,7 +344,7 @@ func decodeTLSInfo(raw json.RawMessage) (*certificate.TLSInfo, error) {
 // stored when the request ends are the ones its answer, a 500, leaves to be answered duplicate when
 // the probe sends the batch again. The error returned is the first failed monitor's, in the order
 // the monitors were sent.
-func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*candidate) error {
+func (c *Controller) store(ctx context.Context, owner *probe.Model, instanceID string, waiting []*candidate) error {
 	var order []string
 	byMonitor := map[string][]*candidate{}
 	for _, w := range waiting {
@@ -385,7 +385,7 @@ func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*c
 					failed.Store(true)
 				}
 			}()
-			if err := c.storeMonitor(ctx, owner, monitorID, byMonitor[monitorID]); err != nil {
+			if err := c.storeMonitor(ctx, owner, instanceID, monitorID, byMonitor[monitorID]); err != nil {
 				failures[i] = err
 				failed.Store(true)
 			}
@@ -402,7 +402,7 @@ func (c *Controller) store(ctx context.Context, owner *probe.Model, waiting []*c
 
 // storeMonitor hands one monitor's results to the ingester, oldest first, and stops at the first
 // that fails
-func (c *Controller) storeMonitor(ctx context.Context, owner *probe.Model, monitorID string, group []*candidate) error {
+func (c *Controller) storeMonitor(ctx context.Context, owner *probe.Model, instanceID, monitorID string, group []*candidate) error {
 	slices.SortStableFunc(group, func(a, b *candidate) int { return a.result.StartTime.Compare(b.result.StartTime) })
 
 	// The ids of the results stored so far are kept when this returns, the failed or panicked
@@ -422,6 +422,7 @@ func (c *Controller) storeMonitor(ctx context.Context, owner *probe.Model, monit
 		result := healthcheck.ResultFromMonitor(w.monitor, underMaintenance, w.status, w.result.Message, w.result.PingMs,
 			w.result.StartTime.UTC(), w.result.EndTime.UTC(), w.tlsInfo, c.logger)
 		result.ProbeID = owner.ID
+		result.InstanceID = instanceID
 		if err := c.ingester.Ingest(ctx, result); err != nil {
 			return fmt.Errorf("failed to store a result of monitor %s from probe %s: %w", monitorID, owner.ID, err)
 		}

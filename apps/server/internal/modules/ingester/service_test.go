@@ -40,6 +40,20 @@ func TestService_IngestRecordsTheProbeThatRanTheCheck(t *testing.T) {
 	assert.Equal(t, "probe-frankfurt", ti.heartbeats.latest().ProbeID)
 }
 
+func TestService_IngestRecordsTheProbeInstanceThatRanTheCheck(t *testing.T) {
+	ti := newTestIngester()
+
+	fromInstance := checkResult(monitorSettings{}, up)
+	fromInstance.ProbeID, fromInstance.InstanceID = "probe-frankfurt", "instance-1"
+	require.NoError(t, ti.service.Ingest(context.Background(), &fromInstance))
+	require.NotNil(t, ti.heartbeats.latest().InstanceID)
+	assert.Equal(t, "instance-1", *ti.heartbeats.latest().InstanceID)
+
+	noInstance := checkResult(monitorSettings{}, up)
+	require.NoError(t, ti.service.Ingest(context.Background(), &noInstance))
+	assert.Nil(t, ti.heartbeats.latest().InstanceID, "a check no probe instance ran (single mode, a push) stores none")
+}
+
 func TestService_IngestSeesThePreviousResult(t *testing.T) {
 	ti := newTestIngester()
 	monitor := monitorSettings{maxRetries: 1}

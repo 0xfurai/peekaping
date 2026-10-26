@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Število izpadov",
     "important": "Pomembno",
+    "instance": "Primerek",
     "interval": "Interval",
     "message": "Sporočilo",
     "ms": "ms",

@@ -23,11 +23,20 @@ type LocationRowProps = {
   unsupported: boolean;
   // The heartbeats the page received live since it loaded, of every location
   liveHeartbeats: HeartbeatModel[];
+  // The hostname of every probe instance on record, by id, for the bar's tooltips
+  instanceHostnames?: ReadonlyMap<string, string>;
 };
 
 // One location of a monitor: the probe's name, its latest status and response time, its 24 hour
 // uptime and its own heartbeat bar
-const LocationRow = ({ monitorId, monitorType, location, unsupported, liveHeartbeats }: LocationRowProps) => {
+const LocationRow = ({
+  monitorId,
+  monitorType,
+  location,
+  unsupported,
+  liveHeartbeats,
+  instanceHostnames,
+}: LocationRowProps) => {
   const { t } = useLocalizedTranslation();
 
   const { data: heartbeatsResponse } = useQuery({
@@ -105,7 +114,7 @@ const LocationRow = ({ monitorId, monitorType, location, unsupported, liveHeartb
           </span>
         )}
       </div>
-      <BarHistory data={heartbeats} />
+      <BarHistory data={heartbeats} instanceHostnames={instanceHostnames} />
     </div>
   );
 };
@@ -117,6 +126,7 @@ type LocationsSectionProps = {
   // The ids of the probes that don't run the monitor's type
   unsupportedProbeIds: string[];
   liveHeartbeats: HeartbeatModel[];
+  instanceHostnames?: ReadonlyMap<string, string>;
 };
 
 // The locations of a monitor that runs on more than one probe, each with its own heartbeat bar.
@@ -127,6 +137,7 @@ const LocationsSection = ({
   locations,
   unsupportedProbeIds,
   liveHeartbeats,
+  instanceHostnames,
 }: LocationsSectionProps) => {
   const { t } = useLocalizedTranslation();
 
@@ -141,6 +152,7 @@ const LocationsSection = ({
           location={location}
           unsupported={unsupportedProbeIds.includes(location.probe_id)}
           liveHeartbeats={liveHeartbeats}
+          instanceHostnames={instanceHostnames}
         />
       ))}
     </div>

@@ -445,6 +445,7 @@ func TestResults_FillsTheMonitorLikePush(t *testing.T) {
 	stored := s.ingest.stored[0]
 	assert.Equal(t, &ingester.Result{
 		ProbeID:            "probe-1",
+		InstanceID:         instanceID,
 		MonitorID:          monCheckout,
 		MonitorName:        "Checkout",
 		MonitorType:        "http",

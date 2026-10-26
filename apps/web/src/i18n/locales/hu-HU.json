@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Leállások száma",
     "important": "Fontos",
+    "instance": "Példány",
     "interval": "Intervallum",
     "message": "Üzenet",
     "ms": "maláj",

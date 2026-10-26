@@ -361,6 +361,37 @@ func TestHeartbeatEventCarriesTheProbe(t *testing.T) {
 	}
 }
 
+// PP-331: the event carries the probe instance that ran the check as instance_id, null when none did.
+func TestHeartbeatEventCarriesTheProbeInstance(t *testing.T) {
+	h := newHarness(t)
+	c := h.connect(t)
+	c.join(t, h.bus, "monitor:"+monitorA, monitorA)
+	instanceID := "5b0c7d0e-3f4c-4c47-9a5b-2f1d8d8f6a11"
+
+	assert.NoError(t, events.Publish(context.Background(), h.bus, events.HeartbeatEvent, heartbeat.Model{MonitorID: monitorA, ProbeID: "probe-frankfurt", InstanceID: &instanceID, Msg: "from an instance"}))
+	assert.NoError(t, events.Publish(context.Background(), h.bus, events.HeartbeatEvent, heartbeat.Model{MonitorID: monitorA, Msg: "from a push"}))
+
+	want := map[string]string{
+		"from an instance": `"instance_id":"` + instanceID + `"`,
+		"from a push":      `"instance_id":null`,
+	}
+	deadline := time.After(wait)
+	for len(want) > 0 {
+		select {
+		case packet, ok := <-c.packets:
+			require.True(t, ok, "session closed")
+			for msg, field := range want {
+				if strings.Contains(packet, msg) {
+					assert.Contains(t, packet, field)
+					delete(want, msg)
+				}
+			}
+		case <-deadline:
+			require.FailNow(t, "no heartbeat within "+wait.String())
+		}
+	}
+}
+
 func TestAllRoomGetsEveryHeartbeat(t *testing.T) {
 	h := newHarness(t)
 	c := h.connect(t)

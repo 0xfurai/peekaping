@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getProbesOptions } from "@/api/@tanstack/react-query.gen";
 import { LOCAL_PROBE_ID } from "@/app/probes/components/local-probe";
-import { monitorProbes, probeNames } from "@/app/monitors/locations";
+import { instanceHostnames, monitorProbes, probeNames } from "@/app/monitors/locations";
 import { unsupportedProbeIds } from "@/app/monitors/monitor-types/shared/probe-support";
 import { useLocalizedTranslation } from "./useTranslation";
 
@@ -13,9 +13,13 @@ export const useProbes = () => {
   const { data, isPending } = useQuery({ ...getProbesOptions() });
   const probes = useMemo(() => data?.data ?? [], [data]);
 
+  // The hostname of every probe instance on record, by id, for naming the instance that ran a check
+  const hostnames = useMemo(() => instanceHostnames(probes), [probes]);
+
   return {
     probes,
     isPending,
+    instanceHostnames: hostnames,
     // Until the install has a probe besides the local one there is nothing to choose, so the
     // monitor form and list leave probes out
     hasRemoteProbe: probes.some((probe) => probe.id !== LOCAL_PROBE_ID),

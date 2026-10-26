@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "다운 수",
     "important": "중요",
+    "instance": "인스턴스",
     "interval": "간격",
     "message": "메시지",
     "ms": "밀리초",

@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Conteggio delle interruzioni",
     "important": "Importante",
+    "instance": "Istanza",
     "interval": "Intervallo",
     "message": "Messaggio",
     "ms": "ms",

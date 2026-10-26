@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Allolekute arv",
     "important": "Oluline",
+    "instance": "Instants",
     "interval": "Intervall",
     "message": "Sõnum",
     "ms": "ms",

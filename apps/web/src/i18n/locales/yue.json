@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "下線計數",
     "important": "重要",
+    "instance": "實例",
     "interval": "時間間隔",
     "message": "訊息",
     "ms": "毫秒",

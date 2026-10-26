@@ -74,6 +74,19 @@ func TestScheduler_IngestsACheckWithTheMonitorsSettings(t *testing.T) {
 	assert.True(t, got.CheckCertExpiry, "the certificate's expiry is checked when the monitor asks for it")
 }
 
+// PP-331: in single mode the peekaping process runs the check, so no probe instance made it
+func TestScheduler_IngestsACheckWithNoProbeInstance(t *testing.T) {
+	t.Parallel()
+	h := newHarness(t)
+	h.db.put(monitorWith("mon", withInterval(day)))
+
+	h.start()
+
+	eventually(t, 2*time.Second, func() bool { return len(h.ingest.ingested()) == 1 }, "the check is ingested")
+	got := h.ingest.ingested()[0]
+	assert.Empty(t, got.InstanceID)
+}
+
 func TestScheduler_IngestsAMonitorUnderMaintenanceAsMaintenanceWithoutCheckingIt(t *testing.T) {
 	t.Parallel()
 	h := newHarness(t)

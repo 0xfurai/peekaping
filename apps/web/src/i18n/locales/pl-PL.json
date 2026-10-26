@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Liczba awarii",
     "important": "Ważne",
+    "instance": "Instancja",
     "interval": "Interwał",
     "message": "Wiadomość",
     "ms": "ms",

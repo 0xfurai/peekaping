@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Кількість збоїв",
     "important": "Важливо",
+    "instance": "Екземпляр",
     "interval": "Інтервал",
     "message": "Повідомлення",
     "ms": "мс",

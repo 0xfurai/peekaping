@@ -32,6 +32,7 @@
   "bars": {
     "down_count": "Contagem de indisponibilidades",
     "important": "Importante",
+    "instance": "Instância",
     "interval": "Intervalo",
     "message": "Mensagem",
     "ms": "ms",

@@ -14,54 +14,57 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:heartbeats,alias:h"`
 
-	ID        string    `bun:"id,pk"`
-	MonitorID string    `bun:"monitor_id,notnull"`
-	ProbeID   string    `bun:"probe_id,notnull"`
-	Status    int       `bun:"status,notnull"`
-	Msg       string    `bun:"msg"`
-	Ping      int       `bun:"ping"`
-	Duration  int       `bun:"duration"`
-	DownCount int       `bun:"down_count"`
-	Retries   int       `bun:"retries"`
-	Important bool      `bun:"important,notnull,default:false"`
-	Time      time.Time `bun:"time,nullzero,notnull,default:current_timestamp"`
-	EndTime   time.Time `bun:"end_time,nullzero"`
-	Notified  bool      `bun:"notified,notnull,default:false"`
+	ID         string    `bun:"id,pk"`
+	MonitorID  string    `bun:"monitor_id,notnull"`
+	ProbeID    string    `bun:"probe_id,notnull"`
+	InstanceID *string   `bun:"instance_id"`
+	Status     int       `bun:"status,notnull"`
+	Msg        string    `bun:"msg"`
+	Ping       int       `bun:"ping"`
+	Duration   int       `bun:"duration"`
+	DownCount  int       `bun:"down_count"`
+	Retries    int       `bun:"retries"`
+	Important  bool      `bun:"important,notnull,default:false"`
+	Time       time.Time `bun:"time,nullzero,notnull,default:current_timestamp"`
+	EndTime    time.Time `bun:"end_time,nullzero"`
+	Notified   bool      `bun:"notified,notnull,default:false"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
-		ID:        sm.ID,
-		MonitorID: sm.MonitorID,
-		ProbeID:   sm.ProbeID,
-		Status:    MonitorStatus(sm.Status),
-		Msg:       sm.Msg,
-		Ping:      sm.Ping,
-		Duration:  sm.Duration,
-		DownCount: sm.DownCount,
-		Retries:   sm.Retries,
-		Important: sm.Important,
-		Time:      sm.Time,
-		EndTime:   sm.EndTime,
-		Notified:  sm.Notified,
+		ID:         sm.ID,
+		MonitorID:  sm.MonitorID,
+		ProbeID:    sm.ProbeID,
+		InstanceID: sm.InstanceID,
+		Status:     MonitorStatus(sm.Status),
+		Msg:        sm.Msg,
+		Ping:       sm.Ping,
+		Duration:   sm.Duration,
+		DownCount:  sm.DownCount,
+		Retries:    sm.Retries,
+		Important:  sm.Important,
+		Time:       sm.Time,
+		EndTime:    sm.EndTime,
+		Notified:   sm.Notified,
 	}
 }
 
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
-		ID:        m.ID,
-		MonitorID: m.MonitorID,
-		ProbeID:   m.ProbeID,
-		Status:    int(m.Status),
-		Msg:       m.Msg,
-		Ping:      m.Ping,
-		Duration:  m.Duration,
-		DownCount: m.DownCount,
-		Retries:   m.Retries,
-		Important: m.Important,
-		Time:      m.Time,
-		EndTime:   m.EndTime,
-		Notified:  m.Notified,
+		ID:         m.ID,
+		MonitorID:  m.MonitorID,
+		ProbeID:    m.ProbeID,
+		InstanceID: m.InstanceID,
+		Status:     int(m.Status),
+		Msg:        m.Msg,
+		Ping:       m.Ping,
+		Duration:   m.Duration,
+		DownCount:  m.DownCount,
+		Retries:    m.Retries,
+		Important:  m.Important,
+		Time:       m.Time,
+		EndTime:    m.EndTime,
+		Notified:   m.Notified,
 	}
 }
 
