@@ -37,9 +37,21 @@ jobs:
           go-version: '1.26.4'
           cache-dependency-path: apps/server/go.sum
 
-      # --wait returns once every service's health check passes
+      # --wait returns once every service's health check passes. SQL Server is
+      # the slow one, so the step reports how long the whole start took and
+      # when SQL Server's container started and first passed its health check.
+      # The job's own wall-clock time is on the run's page.
       - name: Start the services
-        run: docker compose -f apps/server/docker-compose.integration.yml up -d --wait
+        run: |
+          start=$(date +%s)
+          docker compose -f apps/server/docker-compose.integration.yml up -d --wait
+          echo "All services healthy after $(( $(date +%s) - start ))s" | tee -a "$GITHUB_STEP_SUMMARY"
+          id=$(docker compose -f apps/server/docker-compose.integration.yml ps -q sqlserver)
+          started=$(docker inspect -f '{{.State.StartedAt}}' "$id")
+          healthy=$(docker inspect -f '{{range .State.Health.Log}}{{if eq .ExitCode 0}}{{.End.Format "2006-01-02T15:04:05.000000000Z"}}{{"\n"}}{{end}}{{end}}' "$id" | head -n 1)
+          if [ -n "$healthy" ]; then
+            echo "SQL Server: started $started, first healthy $healthy ($(( $(date -d "$healthy" +%s) - $(date -d "$started" +%s) ))s)" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
 
       # GitHub sets CI=true, so a test that can't find its service fails
       # instead of skipping. The addresses are the ports the compose file binds.
@@ -51,6 +63,9 @@ jobs:
           PEE_TEST_REDIS_URL: redis://:integration-test-password@127.0.0.1:16379
           PEE_TEST_KAFKA_BROKER: 127.0.0.1:19092
           PEE_TEST_KAFKA_SASL_BROKER: 127.0.0.1:19093
+          PEE_TEST_MONGODB_URL: mongodb://root:integration-test-password@127.0.0.1:27018
+          PEE_TEST_MONGODB_RS_URL: mongodb://127.0.0.1:27019
+          PEE_TEST_SQLSERVER_URL: sqlserver://sa:Pe%3Be%3DK%7Bing%7D9z@127.0.0.1:11433
         # The profile counts the executors' statements, so the pull request shows
         # how much of each executor the tests in this job reach.
         run: go test -tags integration -count=1 -timeout 300s -v -coverprofile=coverage.txt -coverpkg=./internal/modules/healthcheck/executor/... ./internal/testservice/ ./internal/modules/healthcheck/executor/...
