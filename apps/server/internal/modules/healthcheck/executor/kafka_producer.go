@@ -183,10 +183,7 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 				k.closeProducer(c.producer)
 			}
 		}()
-		reason := fmt.Sprintf("timed out after %ds", monitor.Timeout)
-		if ctx.Err() != nil {
-			reason = ctx.Err().Error()
-		}
+		reason := producerCreationFailure(ctx, checkCtx, nil, monitor.Timeout)
 		k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, reason)
 		return &Result{
 			Status:    shared.MonitorStatusDown,
@@ -197,14 +194,7 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	case c := <-createDone:
 		if c.err != nil {
 			k.logger.Infof("Kafka producer creation failed: %s, %s", monitor.Name, c.err.Error())
-			// sarama's network timeouts equal the check's, so either may fire
-			// first. Report both as the check timing out, so the message doesn't
-			// depend on which deadline won.
-			reason := c.err.Error()
-			var netErr net.Error
-			if checkCtx.Err() != nil || (errors.As(c.err, &netErr) && netErr.Timeout()) {
-				reason = fmt.Sprintf("timed out after %ds", monitor.Timeout)
-			}
+			reason := producerCreationFailure(ctx, checkCtx, c.err, monitor.Timeout)
 			return &Result{
 				Status:    shared.MonitorStatusDown,
 				Message:   fmt.Sprintf("Failed to create Kafka producer: %s", reason),
@@ -297,6 +287,22 @@ func (x *scramClient) Step(challenge string) (string, error) {
 
 func (x *scramClient) Done() bool {
 	return x.ClientConversation.Done()
+}
+
+// producerCreationFailure says why creating the producer failed. sarama's
+// network timeouts equal the check's, so against a broker that never answers
+// either may fire first; both are reported as the check timing out, so the
+// message doesn't depend on which deadline won. A check cancelled by its caller
+// says so instead. err is nil when the check ended before sarama returned.
+func producerCreationFailure(ctx, checkCtx context.Context, err error, timeout int) string {
+	if ctx.Err() != nil {
+		return ctx.Err().Error()
+	}
+	var netErr net.Error
+	if err == nil || checkCtx.Err() != nil || (errors.As(err, &netErr) && netErr.Timeout()) {
+		return fmt.Sprintf("timed out after %ds", timeout)
+	}
+	return err.Error()
 }
 
 func (k *KafkaProducerExecutor) closeProducer(producer sarama.SyncProducer) {

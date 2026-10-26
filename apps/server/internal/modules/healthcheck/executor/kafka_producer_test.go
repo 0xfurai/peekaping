@@ -5,6 +5,7 @@ package executor
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net"
 	"sync"
 	"testing"
@@ -88,6 +89,42 @@ func TestKafkaProducerExecutor_BrokerNeverAnswers(t *testing.T) {
 	assert.Contains(t, result.Message, "timed out")
 	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
 }
+
+// The race between sarama's deadline and the check's, which the test above can
+// hit either way, played out case by case.
+func TestProducerCreationFailure(t *testing.T) {
+	ioTimeout := &net.OpError{Op: "read", Net: "tcp", Err: timeoutError{}}
+	refused := errors.New("kafka: client has run out of available brokers to talk to: dial tcp 127.0.0.1:1: connect: connection refused")
+
+	running := context.Background()
+	ended, cancelEnded := context.WithCancel(context.Background())
+	cancelEnded()
+
+	tests := []struct {
+		name          string
+		ctx, checkCtx context.Context
+		err           error
+		want          string
+	}{
+		{"the check's deadline fired first", running, ended, nil, "timed out after 2s"},
+		{"sarama's read deadline fired first", running, running, ioTimeout, "timed out after 2s"},
+		{"sarama failed while the check was ending", running, ended, refused, "timed out after 2s"},
+		{"the caller cancelled the check", ended, ended, nil, "context canceled"},
+		{"the caller cancelled as sarama failed", ended, ended, ioTimeout, "context canceled"},
+		{"the broker refused the connection", running, running, refused, refused.Error()},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, producerCreationFailure(tt.ctx, tt.checkCtx, tt.err, 2))
+		})
+	}
+}
+
+type timeoutError struct{}
+
+func (timeoutError) Error() string   { return "i/o timeout" }
+func (timeoutError) Timeout() bool   { return true }
+func (timeoutError) Temporary() bool { return true }
 
 func TestKafkaProducerExecutor_Validate(t *testing.T) {
 	exec := NewKafkaProducerExecutor(zap.NewNop().Sugar())
