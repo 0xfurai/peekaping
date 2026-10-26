@@ -14,10 +14,12 @@ import (
 	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/probe/protocol"
+	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 const (
@@ -95,8 +97,13 @@ type outcome struct {
 }
 
 func run(stub *stubProbes, middleware func(*protocol.Auth) httpx.Middleware, headers map[string]string) (*httptest.ResponseRecorder, *outcome) {
+	return runOn(stub, shared.LocalProbeIsTheProcess, zap.NewNop().Sugar(), middleware, headers)
+}
+
+// runOn is run for an install whose local probe is up the way local says, logging to logger
+func runOn(stub *stubProbes, local shared.LocalProbeLiveness, logger *zap.SugaredLogger, middleware func(*protocol.Auth) httpx.Middleware, headers map[string]string) (*httptest.ResponseRecorder, *outcome) {
 	got := &outcome{bus: eventstest.NewBus()}
-	auth := protocol.NewAuth(stub, got.bus, zap.NewNop().Sugar())
+	auth := protocol.NewAuth(stub, got.bus, logger, local)
 	handler := middleware(auth)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		got.called = true
 		got.probe, got.instanceID, got.hasProbe = protocol.ProbeFromContext(r.Context())
@@ -213,7 +220,7 @@ func TestAuthenticate_Answers400ForAMissingOrMalformedInstanceId(t *testing.T) {
 
 func TestAuthenticate_Answers400ForARepeatedInstanceHeader(t *testing.T) {
 	stub := newStub()
-	auth := protocol.NewAuth(stub, eventstest.NewBus(), zap.NewNop().Sugar())
+	auth := protocol.NewAuth(stub, eventstest.NewBus(), zap.NewNop().Sugar(), shared.LocalProbeIsTheProcess)
 	handler := auth.Authenticate()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { t.Fatal("must not be called") }))
 	req := httptest.NewRequest(http.MethodPost, "/probe/v1/hello", nil)
 	req.Header.Set("Authorization", "Bearer "+goodToken)
@@ -350,7 +357,7 @@ func TestAuthenticate_LeavesAnOfflineProbeOfflineUntilItsInstanceIsKnown(t *test
 
 func TestKnownInstance_RefusesARouteThatDoesNotAuthenticateTheProbe(t *testing.T) {
 	stub := newStub()
-	auth := protocol.NewAuth(stub, eventstest.NewBus(), zap.NewNop().Sugar())
+	auth := protocol.NewAuth(stub, eventstest.NewBus(), zap.NewNop().Sugar(), shared.LocalProbeIsTheProcess)
 	handler := auth.KnownInstance()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { t.Fatal("must not be called") }))
 	w := httptest.NewRecorder()
 
@@ -366,4 +373,71 @@ func TestProbeFromContext_FindsNothingOnARequestThatWasNotAuthenticated(t *testi
 	assert.Nil(t, p)
 	assert.Empty(t, id)
 	assert.False(t, ok)
+}
+
+// localToken is the token of the local probe in the stub
+const localToken = "pkp_local-token"
+
+// localStub has the local probe's token beside the good one
+func localStub() *stubProbes {
+	stub := newStub()
+	stub.probes[localToken] = &probe.Model{ID: shared.LocalProbeID, Name: "Local"}
+	return stub
+}
+
+func TestAuthenticate_RefusesTheLocalProbesTokenInSingleModeBeforeItReadsTheInstance(t *testing.T) {
+	for name, headers := range map[string]map[string]string{
+		"with an instance id":    credentials(localToken, instanceID),
+		"without an instance id": {"Authorization": "Bearer " + localToken},
+	} {
+		t.Run(name, func(t *testing.T) {
+			stub := localStub()
+			stub.known[shared.LocalProbeID+"/"+instanceID] = true
+
+			w, got := runOn(stub, shared.LocalProbeIsTheProcess, zap.NewNop().Sugar(), knownInstance, headers)
+
+			assert.Equal(t, http.StatusUnauthorized, w.Code)
+			assert.Contains(t, w.Body.String(), "this install runs in single mode, where the peekaping process checks the local probe's monitors; use a remote probe's token")
+			assert.False(t, got.called)
+			assert.Empty(t, stub.touched, "no instance of the local probe is stamped")
+			assert.Empty(t, stub.markedOnline)
+		})
+	}
+}
+
+func TestAuthenticate_LogsTheRefusalOfTheLocalProbesTokenAtWarnWithoutTheToken(t *testing.T) {
+	core, logs := observer.New(zap.WarnLevel)
+	stub := localStub()
+
+	runOn(stub, shared.LocalProbeIsTheProcess, zap.New(core).Sugar(), authenticate, credentials(localToken, instanceID))
+
+	entries := logs.All()
+	require.Len(t, entries, 1)
+	assert.Contains(t, entries[0].Message, "single mode")
+	for _, entry := range entries {
+		assert.NotContains(t, entry.Message, localToken)
+		for _, field := range entry.Context {
+			assert.NotContains(t, field.String, localToken)
+		}
+	}
+}
+
+func TestAuthenticate_LetsARemoteProbeThroughInSingleMode(t *testing.T) {
+	stub := localStub()
+
+	w, got := runOn(stub, shared.LocalProbeIsTheProcess, zap.NewNop().Sugar(), authenticate, credentials(goodToken, instanceID))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	require.True(t, got.called)
+	assert.Equal(t, "probe-1", got.probe.ID)
+}
+
+func TestAuthenticate_LetsTheLocalProbesInstancesThroughInClusterMode(t *testing.T) {
+	stub := localStub()
+
+	w, got := runOn(stub, shared.LocalProbeIsItsInstances, zap.NewNop().Sugar(), authenticate, credentials(localToken, instanceID))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	require.True(t, got.called)
+	assert.Equal(t, shared.LocalProbeID, got.probe.ID)
 }

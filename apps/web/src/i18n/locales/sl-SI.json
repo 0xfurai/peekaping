@@ -918,7 +918,7 @@
         "authentication_token_description": "Neobvezen avtentikacijski žeton za dodatno varnost. Ta bo poslan v glavi pagertree-token.",
         "authentication_token_label": "Overitveni žeton (neobvezno)",
         "authentication_token_placeholder": "Vnesite avtentikacijski žeton, če je potreben",
-        "auto_resolve_alerts_description": "Samodejno razreši PagerTree opozorila, ko monitor opomore",
+        "auto_resolve_alerts_description": "Samodejno razreši PagerTree opozorila, ko monitor ponovno postane na voljo ali se sonda ponovno poveže",
         "auto_resolve_alerts_label": "Samodejno razreši opozorila",
         "how_to_get_integration_url_label": "Kako dobiti URL integracije",
         "integration_url_description": "Vnesite svoj PagerTree webhook integracijski URL.",

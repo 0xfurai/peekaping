@@ -918,7 +918,7 @@
         "authentication_token_description": "Neprivalomas autentifikacijos žetonas pagerintam saugumui. Tai bus siunčiama pagertree-token antraštėje.",
         "authentication_token_label": "Autentifikacijos žetonas (neprivalomas)",
         "authentication_token_placeholder": "Įveskite autorizacijos žetoną, jei reikalingas",
-        "auto_resolve_alerts_description": "Automatiškai išspręsti PagerTree įspėjimus, kai monitorius atsigaukia",
+        "auto_resolve_alerts_description": "Automatiškai išspręsti PagerTree įspėjimus, kai monitorius vėl pradeda veikti arba zondas vėl prisijungia",
         "auto_resolve_alerts_label": "Automatinis įspėjimų išsprendimas",
         "how_to_get_integration_url_label": "Kaip gauti integracijos URL",
         "integration_url_description": "Įveskite savo PagerTree webhook integracijos URL.",

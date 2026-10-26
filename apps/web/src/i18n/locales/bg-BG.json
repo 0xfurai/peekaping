@@ -918,7 +918,7 @@
         "authentication_token_description": "Опционален токен за удостоверяване за повишена сигурност. Този токен ще бъде изпратен в заглавката pagertree-token.",
         "authentication_token_label": "Аутентификационен токен (по избор)",
         "authentication_token_placeholder": "Въведете автентикационен токен, ако е необходим.",
-        "auto_resolve_alerts_description": "Автоматично затваряне на PagerTree алармите, когато мониторът се възстанови",
+        "auto_resolve_alerts_description": "Автоматично затваряне на PagerTree алармите, когато мониторът отново работи или сондата се върне онлайн",
         "auto_resolve_alerts_label": "Автоматично решаване на аларми",
         "how_to_get_integration_url_label": "Как да получите URL за интеграция",
         "integration_url_description": "Въведете URL за PagerTree webhook интеграцията.",

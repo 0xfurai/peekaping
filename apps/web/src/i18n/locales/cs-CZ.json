@@ -918,7 +918,7 @@
         "authentication_token_description": "Volitelný autentizační token pro zvýšení zabezpečení. Bude odeslán v hlavičce pagertree-token.",
         "authentication_token_label": "Autentizační token (volitelný)",
         "authentication_token_placeholder": "Zadejte autentizační token, pokud je vyžadován",
-        "auto_resolve_alerts_description": "Automaticky vyřešit PagerTree upozornění, když se monitor vrátí do provozu.",
+        "auto_resolve_alerts_description": "Automaticky vyřešit PagerTree upozornění, když se monitor vrátí do provozu nebo se sonda vrátí online.",
         "auto_resolve_alerts_label": "Automatické vyřešení upozornění",
         "how_to_get_integration_url_label": "Jak získat URL integrace",
         "integration_url_description": "Zadejte URL webhooku PagerTree.",

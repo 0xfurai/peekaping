@@ -17,10 +17,10 @@ func TestLoadConfig_ProbeBootstrapTokenIsEmptyByDefault(t *testing.T) {
 	cfg, err := LoadAndValidate(t.TempDir())
 	require.NoError(t, err)
 
-	assert.Empty(t, cfg.ToInternalConfig().ProbeBootstrapToken)
+	assert.Empty(t, cfg.ProbeBootstrapToken)
 }
 
-func TestLoadConfig_ProbeBootstrapTokenIsLoadedFromEnv(t *testing.T) {
+func TestLoadConfig_ProbeBootstrapTokenIsReadSoThatPeekapingCanSayItIgnoresIt(t *testing.T) {
 	token := strings.Repeat("k", 32)
 	unsetRedis(t)
 	t.Setenv("DB_TYPE", "sqlite")
@@ -30,18 +30,18 @@ func TestLoadConfig_ProbeBootstrapTokenIsLoadedFromEnv(t *testing.T) {
 	cfg, err := LoadAndValidate(t.TempDir())
 	require.NoError(t, err)
 
-	assert.Equal(t, token, cfg.ToInternalConfig().ProbeBootstrapToken)
+	assert.Equal(t, token, cfg.ProbeBootstrapToken)
 }
 
-func TestLoadConfig_ProbeBootstrapTokenUnder32CharactersStopsStartup(t *testing.T) {
+// Single mode doesn't use the token, so a short one is no reason to stop
+func TestLoadConfig_ProbeBootstrapTokenUnder32CharactersDoesNotStopStartup(t *testing.T) {
 	unsetRedis(t)
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")
-	t.Setenv("PROBE_BOOTSTRAP_TOKEN", strings.Repeat("k", 31))
+	t.Setenv("PROBE_BOOTSTRAP_TOKEN", "short")
 
-	_, err := LoadAndValidate(t.TempDir())
+	cfg, err := LoadAndValidate(t.TempDir())
 
-	require.Error(t, err)
-	assert.ErrorContains(t, err, "PROBE_BOOTSTRAP_TOKEN must be at least 32 characters")
-	assert.NotContains(t, err.Error(), strings.Repeat("k", 31), "the message doesn't repeat the token")
+	require.NoError(t, err)
+	assert.Equal(t, "short", cfg.ProbeBootstrapToken)
 }

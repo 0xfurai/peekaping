@@ -6,7 +6,6 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
-	"peekaping/internal/modules/probe"
 	"peekaping/internal/web"
 
 	"github.com/go-playground/validator/v10"
@@ -94,7 +93,9 @@ type Config struct {
 	ErrorReporting    string `env:"ERROR_REPORTING"`
 	ErrorReportingDSN string `env:"ERROR_REPORTING_DSN"`
 
-	// The local probe's token. Set, it is stored on the local probe at startup. Validated in Validate().
+	// The local probe's token in cluster mode. Single mode doesn't use it: its process checks the
+	// local probe's monitors, and refuses a probe instance that uses the local probe's token. It
+	// is read only so that peekaping can say it ignores it, whatever its length.
 	ProbeBootstrapToken string `env:"PROBE_BOOTSTRAP_TOKEN"`
 
 	// How long an online probe's instances may all go unseen before the probe counts as offline.
@@ -185,12 +186,6 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
-	// A short token is easy to guess, and it would give a probe's access to the monitors' configs.
-	// The message doesn't repeat it.
-	if cfg.ProbeBootstrapToken != "" && len(cfg.ProbeBootstrapToken) < probe.MinBootstrapTokenLength {
-		return fmt.Errorf("PROBE_BOOTSTRAP_TOKEN must be at least %d characters", probe.MinBootstrapTokenLength)
-	}
-
 	// A shorter limit would announce a probe offline while it restarts gracefully (see
 	// probe.RetiredAt)
 	if cfg.ProbeOfflineAfter < config.MinProbeOfflineAfter {
@@ -231,7 +226,7 @@ func (c *Config) RedisSettings() []string {
 }
 
 // ToInternalConfig converts peekaping's config to the internal config the modules read. It has
-// no Redis settings.
+// no Redis settings and no probe bootstrap token, which single mode doesn't use.
 func (c *Config) ToInternalConfig() *config.Config {
 	return &config.Config{
 		Port:                         c.Port,
@@ -261,7 +256,6 @@ func (c *Config) ToInternalConfig() *config.Config {
 		TelemetryURL:                 c.TelemetryURL,
 		ErrorReporting:               c.ErrorReporting,
 		ErrorReportingDSN:            c.ErrorReportingDSN,
-		ProbeBootstrapToken:          c.ProbeBootstrapToken,
 		ProbeOfflineAfter:            c.ProbeOfflineAfter,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,

@@ -140,6 +140,12 @@ func run(ctx context.Context, cfg *Config, logger *zap.SugaredLogger, listener n
 		logger.Warnw("Single mode uses no Redis, ignoring the Redis settings", "settings", ignored)
 	}
 
+	if cfg.ProbeBootstrapToken != "" {
+		// Not stored: this process checks the local probe's monitors, and the probe protocol
+		// refuses the local probe's token. Never the token itself.
+		logger.Warn("PROBE_BOOTSTRAP_TOKEN is set, but single mode doesn't use it: the peekaping process checks the local probe's monitors and refuses a probe instance that uses the local probe's token. Give peekaping-probe a remote probe's token.")
+	}
+
 	container := dig.New()
 	internalCfg := cfg.ToInternalConfig()
 	if err := app.RegisterSingle(container, internalCfg); err != nil {
@@ -242,12 +248,6 @@ type jobs struct {
 func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLogger) (*jobs, error) {
 	if err := p.Settings.InitializeSettings(ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize JWT settings: %w", err)
-	}
-
-	// PROBE_BOOTSTRAP_TOKEN becomes the local probe's token, so that a stack comes up with a probe
-	// token and no UI step. A token that can't be stored stops startup.
-	if err := app.BootstrapLocalProbeToken(ctx, p.Probes, p.Config.ProbeBootstrapToken, logger); err != nil {
-		return nil, fmt.Errorf("failed to bootstrap the local probe: %w", err)
 	}
 
 	// The admin's choice from before the restart. A failure leaves error reports off.

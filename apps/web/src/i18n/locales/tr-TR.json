@@ -918,7 +918,7 @@
         "authentication_token_description": "Gelişmiş güvenlik için isteğe bağlı kimlik doğrulama belirteci. Bu belirteç, pagertree-token başlığına gönderilecektir.",
         "authentication_token_label": "Kimlik Doğrulama Jetonu (İsteğe Bağlı)",
         "authentication_token_placeholder": "Gerekirse kimlik doğrulama jetonu girin",
-        "auto_resolve_alerts_description": "İzleme düzeldiğinde PagerTree uyarılarını otomatik olarak çöz.",
+        "auto_resolve_alerts_description": "Bir monitör tekrar çalıştığında veya bir prob tekrar çevrimiçi olduğunda PagerTree uyarılarını otomatik olarak çöz.",
         "auto_resolve_alerts_label": "Otomatik Çözüm Uyarıları",
         "how_to_get_integration_url_label": "Entegrasyon URL'sini nasıl alırsınız",
         "integration_url_description": "PagerTree webhook entegrasyon URL'sini girin.",

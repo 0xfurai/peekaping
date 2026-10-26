@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // bootstrapToken is 43 characters
@@ -28,23 +28,31 @@ func (in *instance) localProbe(t *testing.T) (tokenPrefix string) {
 	}](t, status, body, http.StatusOK).TokenPrefix
 }
 
-func TestRun_StoresTheProbeBootstrapTokenOnTheLocalProbe(t *testing.T) {
+// singleModeRefusal is what a probe that uses the local probe's token is told
+const singleModeRefusal = "this install runs in single mode, where the peekaping process checks the local probe's monitors; use a remote probe's token"
+
+// AC5: single mode doesn't store the token, and says it ignores it, once
+func TestRun_DoesNotStoreTheProbeBootstrapTokenAndWarnsOnce(t *testing.T) {
 	cfg := loadConfig(t, map[string]string{"PROBE_BOOTSTRAP_TOKEN": bootstrapToken})
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)
 
-	assert.Equal(t, "bootstra", in.localProbe(t), "the local probe has the token's prefix")
+	assert.Equal(t, "", in.localProbe(t), "the local probe has no token")
 
-	applied := logs.FilterMessageSnippet("PROBE_BOOTSTRAP_TOKEN").All()
-	require.Len(t, applied, 1)
-	assert.Contains(t, applied[0].Message, "local probe")
+	warned := logs.FilterMessageSnippet("PROBE_BOOTSTRAP_TOKEN").All()
+	require.Len(t, warned, 1)
+	assert.Equal(t, zapcore.WarnLevel, warned[0].Level)
+	assert.Equal(t, "PROBE_BOOTSTRAP_TOKEN is set, but single mode doesn't use it: the peekaping process checks the local probe's monitors and refuses a probe instance that uses the local probe's token. Give peekaping-probe a remote probe's token.", warned[0].Message)
 	for _, entry := range logs.All() {
 		assert.NotContains(t, entry.Message, bootstrapToken)
+		for _, field := range entry.Context {
+			assert.NotContains(t, field.String, bootstrapToken)
+		}
 	}
 }
 
-func TestRun_WithoutAProbeBootstrapTokenTheLocalProbeHasNoToken(t *testing.T) {
+func TestRun_WithoutAProbeBootstrapTokenTheLocalProbeHasNoTokenAndNothingIsSaid(t *testing.T) {
 	cfg := loadConfig(t, map[string]string{"PROBE_BOOTSTRAP_TOKEN": ""})
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
@@ -54,26 +62,45 @@ func TestRun_WithoutAProbeBootstrapTokenTheLocalProbeHasNoToken(t *testing.T) {
 	assert.Empty(t, logs.FilterMessageSnippet("PROBE_BOOTSTRAP_TOKEN").All())
 }
 
-func TestRun_ProbeBootstrapTokenIsKeptAcrossARestart(t *testing.T) {
+// AC5: the token is not the local probe's, so a peekaping-probe that sends it is told it is unknown
+func TestRun_DoesNotAcceptAProbeThatSendsTheIgnoredProbeBootstrapToken(t *testing.T) {
 	cfg := loadConfig(t, map[string]string{"PROBE_BOOTSTRAP_TOKEN": bootstrapToken})
 	logger, logs := observedLogger()
-	first := startPeekaping(t, cfg, logger, logs)
-	first.registerAdmin(t)
-	require.NoError(t, first.stop(t))
+	in := startPeekaping(t, cfg, logger, logs)
+	client := probeproto.NewClient(in.url, bootstrapToken, "probe-instance-1", http.DefaultClient)
 
-	// The same database, started again without the token: local keeps the one it has
-	cfg.ProbeBootstrapToken = ""
-	second := startPeekaping(t, cfg, zap.NewNop().Sugar(), logs)
-	second.login(t)
+	_, err := client.Hello(context.Background(), &probeproto.HelloRequest{
+		InstanceID: "probe-instance-1", ProtocolVersion: probeproto.ProtocolVersion, SupportedTypes: []string{"http"},
+	})
 
-	assert.Equal(t, "bootstra", second.localProbe(t))
+	var refused *probeproto.Error
+	require.ErrorAs(t, err, &refused)
+	assert.Equal(t, http.StatusUnauthorized, refused.Status)
+	assert.Equal(t, "invalid probe token", refused.Message)
 }
 
-// probeInstance says hello as an instance of the local probe, over the wire, and returns the
-// client and the version of the monitors it holds
-func (in *instance) probeInstance(t *testing.T, instanceID string) (*probeproto.Client, string) {
+// remoteProbe creates a remote probe through the API and returns its id and token
+func (in *instance) remoteProbe(t *testing.T) (id, token string) {
 	t.Helper()
-	client := probeproto.NewClient(in.url, bootstrapToken, instanceID, http.DefaultClient)
+	status, body := in.request(t, http.MethodPost, "/api/v1/probes", map[string]any{"name": "Frankfurt"})
+	created := decode[struct {
+		ID    string `json:"id"`
+		Token string `json:"token"`
+	}](t, status, body, http.StatusCreated)
+	return created.ID, created.Token
+}
+
+// onProbe has the monitor run on the probe
+func onProbe(monitor map[string]any, probeID string) map[string]any {
+	monitor["probe_ids"] = []string{probeID}
+	return monitor
+}
+
+// probeInstance says hello as an instance of the remote probe with the token, over the wire, and
+// returns the client and the version of the monitors it holds
+func (in *instance) probeInstance(t *testing.T, token, instanceID string) (*probeproto.Client, string) {
+	t.Helper()
+	client := probeproto.NewClient(in.url, token, instanceID, http.DefaultClient)
 	_, err := client.Hello(context.Background(), &probeproto.HelloRequest{
 		InstanceID: instanceID, ProtocolVersion: probeproto.ProtocolVersion, SupportedTypes: []string{"http"},
 	})
@@ -102,17 +129,18 @@ func poll(client *probeproto.Client, version string) <-chan pollAnswer {
 
 // A probe's poll is answered by an event, and in single mode events stay in the process
 func TestRun_AnswersAProbesAssignmentPollWhenAMonitorIsCreatedWithoutRedis(t *testing.T) {
-	cfg := loadConfig(t, map[string]string{"PROBE_BOOTSTRAP_TOKEN": bootstrapToken})
+	cfg := loadConfig(t, nil)
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)
+	probeID, token := in.remoteProbe(t)
 	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer target.Close()
-	client, version := in.probeInstance(t, "probe-instance-1")
+	client, version := in.probeInstance(t, token, "probe-instance-1")
 	answered := poll(client, version)
 	time.Sleep(300 * time.Millisecond) // the poll is held
 
-	created := in.createMonitor(t, httpMonitor("Checkout", target.URL, 3600))
+	created := in.createMonitor(t, onProbe(httpMonitor("Checkout", target.URL, 3600), probeID))
 
 	select {
 	case got := <-answered:
@@ -128,11 +156,12 @@ func TestRun_AnswersAProbesAssignmentPollWhenAMonitorIsCreatedWithoutRedis(t *te
 
 // Shutdown waits for the requests in flight, and a poll is one that waits for 25 seconds
 func TestRun_ShutsDownWithinSecondsWhileAProbeHoldsAnAssignmentPoll(t *testing.T) {
-	cfg := loadConfig(t, map[string]string{"PROBE_BOOTSTRAP_TOKEN": bootstrapToken})
+	cfg := loadConfig(t, nil)
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)
-	client, version := in.probeInstance(t, "probe-instance-1")
+	_, token := in.remoteProbe(t)
+	client, version := in.probeInstance(t, token, "probe-instance-1")
 	answered := poll(client, version)
 	time.Sleep(300 * time.Millisecond) // the poll is held
 
@@ -155,14 +184,15 @@ func TestRun_ShutsDownWithinSecondsWhileAProbeHoldsAnAssignmentPoll(t *testing.T
 // Single mode has no queue: the reply to a probe's results comes after they are stored as
 // heartbeats, with the times of the checks and not of their arrival.
 func TestRun_StoresTheResultsAProbeSendsAsHeartbeatsBeforeTheReplyWithoutRedis(t *testing.T) {
-	cfg := loadConfig(t, map[string]string{"PROBE_BOOTSTRAP_TOKEN": bootstrapToken})
+	cfg := loadConfig(t, nil)
 	logger, logs := observedLogger()
 	in := startPeekaping(t, cfg, logger, logs)
 	in.registerAdmin(t)
+	probeID, token := in.remoteProbe(t)
 	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer target.Close()
-	monitorID := in.createMonitor(t, httpMonitor("Checkout", target.URL, 3600))
-	client, _ := in.probeInstance(t, "probe-instance-1")
+	monitorID := in.createMonitor(t, onProbe(httpMonitor("Checkout", target.URL, 3600), probeID))
+	client, _ := in.probeInstance(t, token, "probe-instance-1")
 	failedAt := time.Now().UTC().Add(-2 * time.Minute).Truncate(time.Millisecond)
 	recoveredAt := failedAt.Add(time.Minute)
 
