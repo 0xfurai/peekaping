@@ -174,8 +174,8 @@ func TestRedisBusSubscribesToManyTopicsQuicklyWhileRedisIsDown(t *testing.T) {
 // heartbeatEnvelope is an event as a version before heartbeats carried a probe published it
 const heartbeatEnvelope = `{"type":"heartbeat","payload":{"id":"hb-1","monitor_id":"mon-1","status":0,"msg":"connection refused","ping":42,"duration":7,"down_count":2,"retries":1,"important":true,"time":"2026-10-17T09:30:00Z","end_time":"2026-10-17T09:30:01Z","notified":true}}`
 
-// probeHeartbeatEnvelope is the same event as a version that records the probe publishes it
-const probeHeartbeatEnvelope = `{"type":"heartbeat","payload":{"id":"hb-1","monitor_id":"mon-1","probe_id":"local","status":0,"msg":"connection refused","ping":42,"duration":7,"down_count":2,"retries":1,"important":true,"time":"2026-10-17T09:30:00Z","end_time":"2026-10-17T09:30:01Z","notified":true}}`
+// probeHeartbeatEnvelope is the same event as a version that records the probe and the probe instance publishes it
+const probeHeartbeatEnvelope = `{"type":"heartbeat","payload":{"id":"hb-1","monitor_id":"mon-1","probe_id":"local","instance_id":null,"status":0,"msg":"connection refused","ping":42,"duration":7,"down_count":2,"retries":1,"important":true,"time":"2026-10-17T09:30:00Z","end_time":"2026-10-17T09:30:01Z","notified":true}}`
 
 func heartbeat() shared.HeartBeatModel {
 	return shared.HeartBeatModel{

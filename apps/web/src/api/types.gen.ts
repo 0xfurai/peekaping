@@ -152,6 +152,10 @@ export type HeartbeatModel = {
   end_time: string;
   id: string;
   important: boolean;
+  /**
+   * The probe instance that ran the check, as the probe protocol names it. Null for a push, for a check the peekaping process ran itself in single mode, and for a heartbeat stored before instances were recorded.
+   */
+  instance_id: string | null;
   monitor_id: string;
   msg: string;
   notified: boolean;

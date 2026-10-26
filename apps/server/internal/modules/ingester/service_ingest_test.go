@@ -55,19 +55,20 @@ func (s *fakeHeartbeatService) Create(_ context.Context, dto *heartbeat.CreateUp
 		return nil, s.createErr
 	}
 	hb := &heartbeat.Model{
-		ID:        fmt.Sprintf("hb-%d", len(s.stored)+1),
-		MonitorID: dto.MonitorID,
-		ProbeID:   dto.ProbeID,
-		Status:    dto.Status,
-		Msg:       dto.Msg,
-		Ping:      dto.Ping,
-		Duration:  dto.Duration,
-		DownCount: dto.DownCount,
-		Retries:   dto.Retries,
-		Important: dto.Important,
-		Time:      dto.Time,
-		EndTime:   dto.EndTime,
-		Notified:  dto.Notified,
+		ID:         fmt.Sprintf("hb-%d", len(s.stored)+1),
+		MonitorID:  dto.MonitorID,
+		ProbeID:    dto.ProbeID,
+		InstanceID: dto.InstanceID,
+		Status:     dto.Status,
+		Msg:        dto.Msg,
+		Ping:       dto.Ping,
+		Duration:   dto.Duration,
+		DownCount:  dto.DownCount,
+		Retries:    dto.Retries,
+		Important:  dto.Important,
+		Time:       dto.Time,
+		EndTime:    dto.EndTime,
+		Notified:   dto.Notified,
 	}
 	s.stored = append(s.stored, hb)
 	return hb, nil
