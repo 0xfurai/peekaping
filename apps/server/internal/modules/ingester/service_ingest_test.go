@@ -150,9 +150,10 @@ type testIngester struct {
 	locations  *fakeLocations
 	bus        *eventstest.Bus
 	service    Service
-	// statusEvents are the status changes published so far, which a step of locations_test.go
-	// collects before it takes the topics
-	statusEvents []shared.HeartBeatModel
+	// statusEvents and notifiedEvents are the status changes and the notifications published so
+	// far, which a step of locations_test.go collects before it takes the topics
+	statusEvents   []shared.HeartBeatModel
+	notifiedEvents []shared.HeartBeatModel
 }
 
 // runningOn sets the probes the test monitor runs on. The default is the local probe alone.
