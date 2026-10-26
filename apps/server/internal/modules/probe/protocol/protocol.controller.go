@@ -189,10 +189,11 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 	if err != nil {
 		return nil, c.fail(err)
 	}
-	if owner.AssignAllPending {
-		if err := c.assignAllMonitors(r.Context(), owner.ID, req.SupportedTypes); err != nil {
-			return nil, err
-		}
+	// The flag is read fresh, by the claim, now that the instance is on record, and not from the
+	// token lookup that made owner: an assign-all action that set it after that lookup is still
+	// seen. A probe that isn't waiting costs one conditional update here.
+	if err := c.assignAllMonitors(r.Context(), owner.ID, req.SupportedTypes); err != nil {
+		return nil, err
 	}
 	if changesAssignments(before, req.SupportedTypes, now) {
 		c.instancesChanged(r.Context(), owner.ID)
@@ -214,7 +215,8 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 }
 
 // assignAllMonitors gives a probe that was made to take over every monitor the ones its first
-// instance runs. The claim that clears the probe's flag is made in the same transaction as the
+// instance runs, and does nothing for a probe that isn't waiting: the claim finds no flag and the
+// transaction ends before anything else is read or written. The claim that clears the probe's flag is made in the same transaction as the
 // assignment, so a reconnect, a second instance or the other api replica that gets a hello of its
 // own at the same time assigns nothing more. A failure answers 503 and leaves the flag set: the
 // probe says hello again, and that hello assigns.

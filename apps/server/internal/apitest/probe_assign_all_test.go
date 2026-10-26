@@ -161,6 +161,26 @@ func TestProbeAssignAll_OnlyTheFirstHelloAssigns(t *testing.T) {
 	assert.Equal(t, []string{"local"}, a.monitorProbes(t, later))
 }
 
+// AC3: the hello reads the flag after its instance is on record, not from the token lookup that
+// authenticated it. A flag set by the action after that lookup (here: before the next hello, the
+// closest an API test gets to it) is still seen, and the hello assigns and clears it. Auth reads
+// the probe fresh on each request, so this passes without the fix too: it is a regression test.
+func TestProbeAssignAll_AHelloAssignsAFlagSetAfterTheInstanceWasOnRecord(t *testing.T) {
+	a := newAppWithAdmin(t)
+	made := a.createProbe(t, map[string]any{"name": "Frankfurt"})
+	a.sayHelloWith(t, made.Token, "instance-1", nil)
+	site := a.createHTTPMonitor(t, "Site", "")
+	require.Empty(t, a.monitorsOnProbe(t, made.ID))
+	require.NoError(t, a.container.Invoke(func(probes probe.Service) error {
+		return probes.SetPendingAssignment(context.Background(), made.ID)
+	}))
+
+	a.sayHelloWith(t, made.Token, "instance-1", nil)
+
+	assert.Equal(t, []string{site}, a.monitorsOnProbe(t, made.ID), "the reconnect assigns")
+	assert.False(t, a.getProbe(t, made.ID).AssignAllPending, "and clears the flag")
+}
+
 // A probe made without the field is not assigned anything by its hello
 func TestProbeAssignAll_AProbeMadeWithoutTheFieldGetsNothing(t *testing.T) {
 	a := newAppWithAdmin(t)
