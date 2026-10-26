@@ -283,17 +283,18 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 		return DownResult(fmt.Errorf("failed to parse connection string: %w", err), startTime, time.Now().UTC())
 	}
 
+	// Set connection timeout using the monitor's configured timeout
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(m.Timeout)*time.Second)
+	defer cancel()
+	deadline, _ := ctx.Deadline()
+
 	// Open connection
-	connector, err := newSQLServerConnector(dsn)
+	connector, err := newSQLServerConnector(dsn, deadline)
 	if err != nil {
 		return DownResult(fmt.Errorf("failed to open SQL Server connection: %w", err), startTime, time.Now().UTC())
 	}
 	db := sql.OpenDB(connector)
 	defer db.Close()
-
-	// Set connection timeout using the monitor's configured timeout
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(m.Timeout)*time.Second)
-	defer cancel()
 
 	// Test connection
 	if err := db.PingContext(ctx); err != nil {
@@ -336,11 +337,13 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 }
 
 // newSQLServerConnector returns the driver's connector for the DSN, with a
-// dialer that holds the connection to the deadline of the context it is dialed
-// with. The driver stops dialing at the context's deadline, and stops a query
-// there, but it reads the login handshake without one: a server that accepts
-// the connection and never answers would keep the check waiting forever.
-func newSQLServerConnector(dsn string) (*mssql.Connector, error) {
+// dialer whose connections can't outlive the check's deadline. The driver
+// stops dialing at the dial context's deadline (which its Dial Timeout limits)
+// and stops a query at the query context's, but it reads the login handshake
+// without one: a server that accepts the connection and never answers would
+// keep the check waiting forever. The deadline is the check's own, not the dial
+// context's, which is shorter and would cut a slow query short.
+func newSQLServerConnector(dsn string, deadline time.Time) (*mssql.Connector, error) {
 	cfg, _, err := msdsn.Parse(dsn)
 	if err != nil {
 		return nil, err
@@ -349,14 +352,15 @@ func newSQLServerConnector(dsn string) (*mssql.Connector, error) {
 	if err != nil {
 		return nil, err
 	}
-	connector.Dialer = deadlineDialer{dialer: net.Dialer{KeepAlive: cfg.KeepAlive}}
+	connector.Dialer = deadlineDialer{dialer: net.Dialer{KeepAlive: cfg.KeepAlive}, deadline: deadline}
 	return connector, nil
 }
 
 // deadlineDialer dials like the driver's own dialer, and returns connections
-// that can't outlive the context's deadline.
+// that can't outlive the deadline.
 type deadlineDialer struct {
-	dialer net.Dialer
+	dialer   net.Dialer
+	deadline time.Time
 }
 
 func (d deadlineDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
@@ -364,15 +368,11 @@ func (d deadlineDialer) DialContext(ctx context.Context, network, addr string) (
 	if err != nil {
 		return nil, err
 	}
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return conn, nil
-	}
-	if err := conn.SetDeadline(deadline); err != nil {
+	if err := conn.SetDeadline(d.deadline); err != nil {
 		_ = conn.Close()
 		return nil, err
 	}
-	return deadlineConn{Conn: conn, deadline: deadline}, nil
+	return deadlineConn{Conn: conn, deadline: d.deadline}, nil
 }
 
 // deadlineConn keeps the deadlines that the driver sets (it moves them with
