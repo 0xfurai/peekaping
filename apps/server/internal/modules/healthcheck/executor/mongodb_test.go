@@ -4,14 +4,85 @@ package executor
 
 import (
 	"context"
+	"encoding/json"
+	"net"
+	"sync"
 	"testing"
+	"time"
 
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
+
+func mongoMonitor(t *testing.T, timeout int, cfg MongoDBConfig) *Monitor {
+	t.Helper()
+	raw, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	return &Monitor{ID: "mongodb-test", Name: "MongoDB test", Type: "mongodb", Timeout: timeout, Config: string(raw)}
+}
+
+func TestMongoDBExecutor_ServerRefusesConnection(t *testing.T) {
+	// Listen to get a free port, then close the listener so the port refuses.
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	addr := l.Addr().String()
+	require.NoError(t, l.Close())
+
+	exec := NewMongoDBExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), mongoMonitor(t, 2, MongoDBConfig{
+		ConnectionString: "mongodb://root:secret@" + addr + "/admin",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "MongoDB command failed: failed to execute MongoDB command: server selection error: ")
+	assert.Contains(t, result.Message, "Last error: dial tcp "+addr+": connect: connection refused")
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
+
+func TestMongoDBExecutor_ServerNeverAnswers(t *testing.T) {
+	// A server that accepts the connection and then says nothing.
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	var mu sync.Mutex
+	var conns []net.Conn
+	go func() {
+		for {
+			conn, err := l.Accept()
+			if err != nil {
+				return
+			}
+			mu.Lock()
+			conns = append(conns, conn)
+			mu.Unlock()
+		}
+	}()
+	t.Cleanup(func() {
+		_ = l.Close()
+		mu.Lock()
+		defer mu.Unlock()
+		for _, c := range conns {
+			_ = c.Close()
+		}
+	})
+
+	exec := NewMongoDBExecutor(zap.NewNop().Sugar())
+	start := time.Now()
+	result := exec.Execute(context.Background(), mongoMonitor(t, 2, MongoDBConfig{
+		ConnectionString: "mongodb://root:secret@" + l.Addr().String() + "/admin",
+	}), nil)
+	elapsed := time.Since(start)
+
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "MongoDB command failed: failed to execute MongoDB command: server selection error: ")
+	assert.Contains(t, result.Message, "{ Addr: "+l.Addr().String()+", Type: Unknown }") // the server is known by its address, but never said what it is
+	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
+}
 
 func TestMongoDBExecutor_Unmarshal(t *testing.T) {
 	logger := zap.NewNop().Sugar()
