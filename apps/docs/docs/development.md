@@ -142,7 +142,7 @@ Blocks with no marker aren't checked. That is for examples and excerpts that are
 
 ### Integration tests
 
-Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Two services have them today. `TestRedisExecutor_Integration` checks the Redis executor: Up with the right password, Down with a wrong one. `TestKafkaProducerExecutor_Integration` checks the Kafka executor against a single-node broker with a plaintext listener and a SASL listener: Up on an existing topic (the test reads the message back), with and without automatic topic creation, with SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512, and Down for a wrong password and for `ssl` against the plaintext listener. The Kafka cases that need no broker (connection refused, a broker that never answers) are in `kafka_producer_test.go` and run in the default `go test`.
+Integration tests check a monitor type against a real server instead of a stub. They carry the `integration` build tag, so `go test ./internal/...` neither compiles nor runs them, and needs no Docker. Four services have them today. `TestRedisExecutor_Integration` checks the Redis executor: Up with the right password, Down with a wrong one. `TestKafkaProducerExecutor_Integration` checks the Kafka executor against a single-node broker with a plaintext listener and a SASL listener: Up on an existing topic (the test reads the message back), with and without automatic topic creation, with SASL PLAIN, SCRAM-SHA-256 and SCRAM-SHA-512, and Down for a wrong password and for `ssl` against the plaintext listener. `TestPostgresExecutor_Integration` and `TestMySQLExecutor_Integration` check the PostgreSQL and MySQL executors against servers with TLS on and a self-signed certificate, whose user has a password with reserved characters (`@ : / % ?`): Up with the default and a custom query, Down for a wrong password, a missing database and a failing query, and each `sslmode` (PostgreSQL) or `tls` setting (MySQL) Up or Down as it should be, with a query that fails unless the connection's TLS state is the one the mode asks for. The cases that need no server (connection refused, a server that never answers, a query that isn't allowed, parsing a connection string) are in the executors' own `_test.go` files, such as `kafka_producer_test.go` and `postgres_test.go`, and run in the default `go test`.
 
 With Docker running, run them from `apps/server`. The tests start the servers they need, each on a free port, and remove them when the run ends. `-count=1` turns off Go's test cache, which would otherwise replay an earlier pass after a server went away:
 
@@ -150,13 +150,15 @@ With Docker running, run them from `apps/server`. The tests start the servers th
 go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 ```
 
-To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A service takes one variable (Redis) or several (Kafka needs both of its two, the plaintext and the SASL broker). A test that finds nothing at that address fails; it doesn't start a container instead. Set all of a service's variables or none: one without the others fails the test.
+To reuse servers you started yourself, run `apps/server/docker-compose.integration.yml` and point the tests at them with the service's variable. This is what CI does. A service takes one variable (Redis, PostgreSQL, MySQL) or several (Kafka needs both of its two, the plaintext and the SASL broker). The PostgreSQL and MySQL variables hold the connection string the monitor takes, with the password percent-encoded. `PEE_TEST_POSTGRES_DSN` is another variable: the repository tests use it for a PostgreSQL of their own. A test that finds nothing at that address fails; it doesn't start a container instead. Set all of a service's variables or none: one without the others fails the test.
 
 ```bash
 docker compose -f apps/server/docker-compose.integration.yml up -d --wait
 cd apps/server
 PEE_TEST_REDIS_URL='redis://:integration-test-password@127.0.0.1:16379' \
 PEE_TEST_KAFKA_BROKER='127.0.0.1:19092' PEE_TEST_KAFKA_SASL_BROKER='127.0.0.1:19093' \
+PEE_TEST_POSTGRES_EXECUTOR_URL='postgres://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:15432/peekaping' \
+PEE_TEST_MYSQL_URL='mysql://peekaping:p%40ss%3Aw%2Frd%251%3Fx@127.0.0.1:13306/peekaping' \
   go test -tags integration -count=1 -timeout 300s ./internal/modules/healthcheck/executor/...
 docker compose -f docker-compose.integration.yml down
 ```
