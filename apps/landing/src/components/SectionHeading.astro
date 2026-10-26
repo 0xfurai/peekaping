@@ -1,0 +1,25 @@
+---
+interface Props {
+  eyebrow: string;
+  // May hold markup, such as a gradient span
+  title: string;
+}
+
+const { eyebrow, title } = Astro.props;
+---
+
+<div class="reveal text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+  <div class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">
+    <span class="h-px w-6 bg-gradient-to-r from-transparent to-violet-400"></span>
+    {eyebrow}
+    <span class="h-px w-6 bg-gradient-to-l from-transparent to-violet-400"></span>
+  </div>
+  <h2 class="mt-4 text-3xl sm:text-5xl font-bold tracking-tight text-white leading-[1.1]" set:html={title} />
+  {
+    Astro.slots.has("default") && (
+      <p class="mt-5 text-lg text-zinc-400 leading-relaxed">
+        <slot />
+      </p>
+    )
+  }
+</div>
