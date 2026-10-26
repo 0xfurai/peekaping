@@ -576,6 +576,37 @@ export type ProbeCreateProbeDto = {
   [key: string]: unknown | string | (Array<string> | null) | undefined;
 };
 
+export type ProbeProbeAvailabilityConnection = {
+  end: string;
+  open: boolean;
+  start: string;
+};
+
+export type ProbeProbeAvailabilityInstance = {
+  connections: Array<ProbeProbeAvailabilityConnection>;
+  hostname: string;
+  id: string;
+  version: string;
+};
+
+export type ProbeProbeAvailabilityPeriod = {
+  end: string;
+  start: string;
+  status: "online" | "offline";
+};
+
+export type ProbeProbeAvailabilityResponse = {
+  from: string;
+  in_process: boolean;
+  instances?: Array<ProbeProbeAvailabilityInstance>;
+  periods: Array<ProbeProbeAvailabilityPeriod>;
+  probe_id: string;
+  range: "24h" | "7d" | "30d";
+  to: string;
+  tracked_from: string | null;
+  uptime_percent: number | null;
+};
+
 export type ProbeProbeInstanceResponse = {
   arch: string;
   hostname: string;
@@ -1108,6 +1139,11 @@ export type UtilsApiResponseArrayNotificationChannelModel = {
   message: string;
 };
 
+export type UtilsApiResponseArrayProbeProbeAvailabilityResponse = {
+  data: Array<ProbeProbeAvailabilityResponse> | null;
+  message: string;
+};
+
 export type UtilsApiResponseArrayProbeProbeResponse = {
   data: Array<ProbeProbeResponse> | null;
   message: string;
@@ -1180,6 +1216,11 @@ export type UtilsApiResponseMonitorStatPointsSummaryDto = {
 
 export type UtilsApiResponseNotificationChannelModel = {
   data: NotificationChannelModel;
+  message: string;
+};
+
+export type UtilsApiResponseProbeProbeAvailabilityResponse = {
+  data: ProbeProbeAvailabilityResponse;
   message: string;
 };
 
@@ -3659,6 +3700,46 @@ export type PostProbesResponses = {
 
 export type PostProbesResponse = PostProbesResponses[keyof PostProbesResponses];
 
+export type GetProbesAvailabilityData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * How far back to look: 24h, 7d or 30d. Defaults to 24h.
+     */
+    range?: "24h" | "7d" | "30d";
+  };
+  url: "/api/v1/probes/availability";
+};
+
+export type GetProbesAvailabilityErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetProbesAvailabilityError =
+  GetProbesAvailabilityErrors[keyof GetProbesAvailabilityErrors];
+
+export type GetProbesAvailabilityResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayProbeProbeAvailabilityResponse;
+};
+
+export type GetProbesAvailabilityResponse =
+  GetProbesAvailabilityResponses[keyof GetProbesAvailabilityResponses];
+
 export type DeleteProbesByIdData = {
   body?: never;
   path: {
@@ -3788,6 +3869,55 @@ export type PutProbesByIdResponses = {
 
 export type PutProbesByIdResponse =
   PutProbesByIdResponses[keyof PutProbesByIdResponses];
+
+export type GetProbesByIdAvailabilityData = {
+  body?: never;
+  path: {
+    /**
+     * Probe ID, or local for the local probe
+     */
+    id: string;
+  };
+  query?: {
+    /**
+     * How far back to look: 24h, 7d or 30d. Defaults to 24h. The instances' connections always cover the last 24 hours.
+     */
+    range?: "24h" | "7d" | "30d";
+  };
+  url: "/api/v1/probes/{id}/availability";
+};
+
+export type GetProbesByIdAvailabilityErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetProbesByIdAvailabilityError =
+  GetProbesByIdAvailabilityErrors[keyof GetProbesByIdAvailabilityErrors];
+
+export type GetProbesByIdAvailabilityResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseProbeProbeAvailabilityResponse;
+};
+
+export type GetProbesByIdAvailabilityResponse =
+  GetProbesByIdAvailabilityResponses[keyof GetProbesByIdAvailabilityResponses];
 
 export type PostProbesByIdRotateTokenData = {
   body?: never;
