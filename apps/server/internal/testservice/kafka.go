@@ -207,4 +207,3 @@ func probeKafka(addr string, cfg *sarama.Config) error {
 	}
 	return client.Close()
 }
-

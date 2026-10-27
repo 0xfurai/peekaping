@@ -2,7 +2,6 @@ package modules_test
 
 import (
 	"context"
-	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
@@ -14,6 +13,8 @@ import (
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
 	"testing"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -3,13 +3,14 @@ package notification_channel
 import (
 	"context"
 	"errors"
-	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/notification_channel/providers"
 	"strings"
 	"testing"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"

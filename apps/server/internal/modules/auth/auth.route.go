@@ -1,10 +1,11 @@
 package auth
 
 import (
-	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/bruteforce"
+
+	"github.com/danielgtaylor/huma/v2"
 )
 
 // maxLoginBody is the most a login request may send, 64 KiB: a login is an email and a password.
