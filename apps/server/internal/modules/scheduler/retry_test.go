@@ -2,10 +2,13 @@ package scheduler
 
 import (
 	"context"
+	"errors"
+	"sync"
 	"testing"
 	"time"
 
 	"peekaping/internal/modules/healthcheck/executor"
+	"peekaping/internal/modules/ingester/ingest"
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
@@ -69,6 +72,60 @@ func onGrid(t *testing.T, call checkCall, interval int64) {
 	nearest := call.at.Round(time.Second)
 	assert.Zero(t, nearest.Unix()%interval, "check %d is at a multiple of %ds", call.n, interval)
 	assert.Less(t, call.at.Sub(nearest).Abs(), 250*time.Millisecond, "check %d is at the start of its second", call.n)
+}
+
+// offGrid asserts that the check ran at the half second of the retry timers: nearer to the middle
+// of a second than to a whole one
+func offGrid(t *testing.T, call checkCall) {
+	t.Helper()
+	assert.GreaterOrEqual(t, call.at.Sub(call.at.Round(time.Second)).Abs(), 250*time.Millisecond,
+		"check %d is at the retry timers' half second", call.n)
+}
+
+// failingIngestNumber makes the scheduler's Nth ingest fail, counting all monitors
+func failingIngestNumber(n int) func(*Config) {
+	return func(cfg *Config) {
+		cfg.Ingester = &failingIngester{Service: cfg.Ingester, failing: n}
+	}
+}
+
+type failingIngester struct {
+	ingest.Service
+	failing int
+
+	mu    sync.Mutex
+	count int
+}
+
+func (f *failingIngester) Ingest(ctx context.Context, r *ingest.Result) error {
+	f.mu.Lock()
+	f.count++
+	fail := f.count == f.failing
+	f.mu.Unlock()
+	if fail {
+		return errors.New("storage is down")
+	}
+	return f.Service.Ingest(ctx, r)
+}
+
+func TestScheduler_AResultThatWasNotStoredDoesNotUseUpARetry(t *testing.T) {
+	t.Parallel()
+	// With 2 retries, the ingester keeps the monitor Pending on its first 2 stored failures. The
+	// second check's ingest fails, so the ingester has seen 1 failure by then, and the count
+	// stays at 1. Check 3 is its second failure, Pending, so check 4 is a retry too.
+	h := newHarness(t, failingIngestNumber(2))
+	h.db.put(monitorWith("mon", withInterval(3), withRetries(2, 1)))
+	h.failing()
+
+	h.startMidSecond()
+
+	eventually(t, 20*time.Second, func() bool { return h.exec.countFor("mon") >= 5 }, "five checks")
+	calls := h.exec.callsFor("mon")
+	retryGap(t, calls, 1, "check 2 is a retry interval after check 1")
+	retryGap(t, calls, 2, "check 3 is a retry interval after check 2, whose result was not stored")
+	retryGap(t, calls, 3, "and check 4 after check 3")
+	offGrid(t, calls[3])
+	onGrid(t, calls[4], 3) // check 4 used up the retries
 }
 
 func TestScheduler_ChecksAFailingMonitorAtItsRetryIntervalWhileItHasRetriesLeft(t *testing.T) {

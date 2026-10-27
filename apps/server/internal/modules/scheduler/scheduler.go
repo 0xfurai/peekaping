@@ -404,7 +404,10 @@ func retryInterval(mon *shared.Monitor, failures int) time.Duration {
 // away while its retries last. A result that is not Down ends the run of failures: it is a
 // success, or Maintenance, or a status that is no failure for the ingester either. The result
 // of a check that was cancelled, or of a monitor whose schedule is gone, counts for nothing.
-func (s *Scheduler) afterCheck(ctx context.Context, mon *shared.Monitor, status shared.MonitorStatus) {
+// So does a result that was not stored (stored is false): the ingester has not seen it, so it
+// leaves the count where it was. The monitor is still checked a retry interval later if that count
+// calls for it, and otherwise its timer stays as it is.
+func (s *Scheduler) afterCheck(ctx context.Context, mon *shared.Monitor, status shared.MonitorStatus, stored bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	sc := s.schedules[mon.ID]
@@ -412,14 +415,17 @@ func (s *Scheduler) afterCheck(ctx context.Context, mon *shared.Monitor, status 
 		return
 	}
 
-	if status != shared.MonitorStatusDown {
+	switch {
+	case !stored:
+	case status != shared.MonitorStatusDown:
 		sc.failures = 0
-	} else {
+	default:
 		sc.failures++
 	}
 	switch retry := retryInterval(mon, sc.failures); {
 	case retry > 0:
 		s.armRetry(mon.ID, sc, retry)
+	case !stored:
 	case sc.retrying:
 		// A retry timer is still set: something else checked the monitor meanwhile. Back on the grid.
 		sc.timer.Stop()
@@ -582,10 +588,11 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 	}
 	ingestCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), ingestTimeout)
 	defer cancel()
-	if err := s.ingester.Ingest(ingestCtx, result); err != nil {
+	err = s.ingester.Ingest(ingestCtx, result)
+	if err != nil {
 		s.logger.Errorw("Failed to ingest the result of a check", "monitor_id", monitorID, "error", err)
 	}
-	s.afterCheck(ctx, mon, result.Status)
+	s.afterCheck(ctx, mon, result.Status, err == nil)
 }
 
 // The source's signals reschedule monitors as they are created, changed (pausing is a change)
