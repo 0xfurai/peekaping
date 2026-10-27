@@ -502,7 +502,8 @@
           "heartbeat_retry": "Interval ponovnog pokušaja pulsa (ponovi svakih {{seconds}} sekundi)",
           "max_retries_description": "Maksimalan broj ponovnih pokušaja pre nego što se usluga označi kao neaktivna i pošalje se obaveštenje",
           "request_timeout": "Zastarevanje zahteva (Zastareva nakon {{seconds}} sekundi)",
-          "resend_notification": "Ponovo pošalji obaveštenje ako je X puta uzastopno ne radi (Ponovljavanje onemogućeno)"
+          "resend_notification": "Ponovo pošalji obaveštenje ako je X puta uzastopno ne radi (Ponovljavanje onemogućeno)",
+          "timeout_too_long": "Ne može biti veće od 80% intervala provere"
         },
         "location_rule": {
           "all": "sve lokacije ne rade",

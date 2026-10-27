@@ -502,7 +502,8 @@
           "heartbeat_retry": "Titim Athsheachadán Lorglanna (Athsheachadú gach {{seconds}} soicind)",
           "max_retries_description": "Iarrtais uasta roimh a bheith marcáilte mar thíos agus fógra a sheoladh",
           "request_timeout": "Teip Iarratais (tar éis {{seconds}} nóiméad)",
-          "resend_notification": "Athsheol Fógra má tá sé i dorchadas X uaire le chéile (Neamhcheadaithe)"
+          "resend_notification": "Athsheol Fógra má tá sé i dorchadas X uaire le chéile (Neamhcheadaithe)",
+          "timeout_too_long": "Ní féidir leis a bheith níos mó ná 80% den eatramh seiceála"
         },
         "location_rule": {
           "all": "bhíonn gach suíomh síos",

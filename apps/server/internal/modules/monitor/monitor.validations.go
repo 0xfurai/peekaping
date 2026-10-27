@@ -7,7 +7,10 @@ import (
 func CreateUpdateDtoStructLevelValidation(sl validator.StructLevel) {
 	cfg := sl.Current().Interface().(CreateUpdateDto)
 
-	if float64(cfg.Timeout)*0.8 >= float64(cfg.Interval) {
+	// A check has to end before the next one is due: a timeout is at most 0.8 x the interval
+	// (in whole seconds, so no rounding).
+	// With a strict limit no timeout would fit the shortest interval, 20 s with a 16 s minimum.
+	if cfg.Timeout*5 > cfg.Interval*4 {
 		sl.ReportError(cfg.Timeout, "Timeout", "timeout", "timeout", "")
 	}
 }

@@ -9,6 +9,11 @@ export const generalSchema = z.object({
   name: z.string(),
 });
 
+// A check has to end before the next one is due, so the timeout is at most 80% of the interval.
+// The message is an i18n key, which FormMessage translates. The limit is checked in
+// timeoutError, since it needs the interval beside the timeout.
+export const TIMEOUT_TOO_LONG = "monitors.form.shared.intervals.timeout_too_long";
+
 export const intervalsSchema = z.object({
   interval: z.coerce.number().min(20),
   max_retries: z.coerce.number().min(0),
