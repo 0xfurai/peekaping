@@ -79,7 +79,12 @@ const Enable2FA = () => {
 
   const verify2FAMutation = useMutation({
     ...postAuth2FaVerifyMutation(),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // The server answers a wrong code with 400, so this is only a guard.
+      if (!data.success) {
+        toast.error(t("security.enable_2fa.messages.failed_to_verify_2fa_code"));
+        return;
+      }
       toast.success(t("security.enable_2fa.messages.2fa_enabled_successfully"));
       setStep("password");
       setSecret(null);
