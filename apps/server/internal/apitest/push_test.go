@@ -95,6 +95,21 @@ func TestPush_TokenSurvivesAnUpdateThatOnlySendsConfig(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
 }
 
+// A partial update that sends an empty top-level token and the real one inside config
+// has to fill the column: the repository only skips the column when the field is absent,
+// so an empty string that arrives as "" would otherwise be stored as-is.
+func TestPush_PartialUpdateFillsTheColumnFromConfig(t *testing.T) {
+	a := newAppWithAdmin(t)
+	monitorID := a.createMonitor(t, "Nightly backup", "original-token")
+
+	patch := pushMonitorBody("Nightly backup", "partial-token")
+	patch["push_token"] = ""
+	decode[any](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+monitorID, patch, a.asAdmin), http.StatusOK)
+
+	w := a.request(t, http.MethodGet, "/api/v1/push/partial-token?status=up", nil)
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+}
+
 func TestPush_IgnoresMalformedResponseTime(t *testing.T) {
 	a := newAppWithAdmin(t)
 	monitorID := a.createMonitor(t, "Nightly backup", "backup-push-token")
