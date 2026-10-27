@@ -4,7 +4,7 @@ Pagertree-Token: tree-token
 
 {
   "event_type": "create",
-  "Id": "monitor-mon-1-<unix-time>",
+  "Id": "monitor-mon-1",
   "Title": "Monitor Public API is DOWN",
   "Description": "connection refused - Last checked: 2026-10-17T09:30:00Z",
   "urgency": "high",

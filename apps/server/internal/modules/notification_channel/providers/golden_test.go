@@ -263,7 +263,6 @@ var goldenCases = []goldenCase{
 	{name: "pagerduty_certificate_expiry", sender: pagerDuty, event: certExpiryEvent,
 		config: `{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": "https://events.pagerduty.com/v2/enqueue"}`},
 
-	// Known issue: alert IDs end with the send time, so a resolve can't match its create
 	{name: "pagertree_down", sender: pagerTree, event: downEvent,
 		config: `{"integrationUrl": "https://api.pagertree.com/integration/int_123", "urgency": "high", "authToken": "tree-token"}`},
 	{name: "pagertree_up_resolve", sender: pagerTree, event: upEvent,
@@ -526,8 +525,6 @@ var goldenScrubs = []struct {
 	{regexp.MustCompile(regexp.QuoteMeta("/" + version.Version)), "/<version>"},
 	// Matrix picks a random transaction ID for each message
 	{regexp.MustCompile(`/send/m\.room\.message/[A-Za-z0-9_-]{20}\n`), "/send/m.room.message/<txn-id>\n"},
-	// PagerTree alert IDs end with the send time
-	{regexp.MustCompile(`"Id": "monitor-mon-1-\d+"`), `"Id": "monitor-mon-1-<unix-time>"`},
 }
 
 // formatRequest writes a request as its method and URL, its headers sorted by name, and its

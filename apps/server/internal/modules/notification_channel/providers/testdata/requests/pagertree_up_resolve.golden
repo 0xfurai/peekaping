@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
   "event_type": "resolve",
-  "Id": "monitor-mon-1-<unix-time>",
+  "Id": "monitor-mon-1",
   "Title": "Monitor Public API is UP",
   "Description": "200 - OK - Last checked: 2026-10-17T09:35:00Z",
   "urgency": "medium",

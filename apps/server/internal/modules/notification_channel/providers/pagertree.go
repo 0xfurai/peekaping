@@ -108,8 +108,10 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 	// Build the payload
 	payload := PagerTreePayload{
 		EventType: eventType,
-		ID:        fmt.Sprintf("monitor-%s-%d", mon.ID, time.Now().Unix()),
-		Urgency:   cfg.Urgency,
+		// One ID per monitor, so its Up resolves the alert its Down created and a resent Down
+		// updates the open alert
+		ID:      fmt.Sprintf("monitor-%s", mon.ID),
+		Urgency: cfg.Urgency,
 	}
 	if isProbeEvent {
 		// Alerts of one probe are one alert: the same ID, in the form of PagerDuty's dedup key
