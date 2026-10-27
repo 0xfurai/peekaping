@@ -15,14 +15,14 @@ There is no setting that switches between them. The mode is the image you run. T
 
 In single mode, Peekaping is one process, `peekaping`, that is both the API and the [local probe](../architecture/probe.md#who-runs-the-local-probes-checks). It passes work and events between its parts in memory, so there is no Redis. The same process serves the web app, the API and the websocket on port 8383.
 
-You run it from one image, `0xfurai/peekaping-bundle-sqlite`. It holds `peekaping` and nothing else, and `DB_TYPE` picks the database:
+You run it from one image, `0xfurai/peekaping`. It holds `peekaping` and nothing else, and `DB_TYPE` picks the database:
 
 - With `DB_TYPE` unset or `sqlite`, it keeps its data in a SQLite file in `/app/data`.
 - With `DB_TYPE=postgres`, it connects to the PostgreSQL server that `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS` and `DB_NAME` name. That server runs in a container of its own, the official `postgres` image, beside `peekaping` in Docker Compose. It can also be any other PostgreSQL, such as a managed one. See [Docker + PostgreSQL](./docker-with-postgres.md#single-mode).
 
 Single mode supports SQLite and PostgreSQL only. It doesn't scale out: one process runs every check.
 
-The image has been called the SQLite bundle since it only ran SQLite. The name stays for now. There is no `peekaping-bundle-postgres` image any more: see [Upgrading to single mode](./upgrading-to-single-mode.md#moving-from-the-postgresql-bundle).
+The image has a new name from release 0.0.48: see [The image has a new name](./upgrading-to-single-mode.md#the-image-has-a-new-name).
 
 Because the `peekaping` process checks the local probe's monitors, a `peekaping-probe` connects to single mode only as a [remote probe](./remote-probes.md), with that probe's own token. A probe instance that uses the local probe's token would check the same monitors a second time, so `peekaping` refuses it with a message that says why, and the probe logs that message. `peekaping` also ignores `PROBE_BOOTSTRAP_TOKEN`: it doesn't store it, and logs a warning at startup when it is set.
 
@@ -52,7 +52,7 @@ Coming from the layout with a producer, a worker and an ingester? Their images a
 
 | | Single mode | Cluster mode |
 | --- | --- | --- |
-| Images | `0xfurai/peekaping-bundle-sqlite`, and `postgres` for PostgreSQL | `0xfurai/peekaping-api`, `-probe`, `-web` and `-migrate` |
+| Images | `0xfurai/peekaping`, and `postgres` for PostgreSQL | `0xfurai/peekaping-api`, `-probe`, `-web` and `-migrate` |
 | Processes | `peekaping`. With PostgreSQL, the database runs in a container of its own. | The API, the probe and a web server. `migrate` runs once to set up the database. |
 | Who checks the local probe's monitors | The `peekaping` process | The probe instances |
 | Web app | Served by `peekaping` on port 8383 | The `web` image. Docker Compose puts an nginx gateway on port 8383 in front of it, and Helm uses an ingress or Istio. |

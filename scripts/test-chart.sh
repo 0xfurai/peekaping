@@ -17,7 +17,7 @@
 # writable paths that nginx needs under a read-only root filesystem, the
 # ConfigMap sets TRUSTED_PROXIES to loopback and the private ranges (and a
 # values file can change it), SQLite as the storage backend (config.env.DB_TYPE,
-# in any case) is refused with a message that sends the reader to the bundle
+# in any case) is refused with a message that sends the reader to the single-mode
 # image, MongoDB (mongo and mongodb) is refused with the message that says MongoDB
 # storage was removed and links to the guide for moving to PostgreSQL, and the
 # install notes say Peekaping runs in cluster mode and link to the Helm docs page. The Ingress and the Istio VirtualService send the probe
@@ -1038,12 +1038,12 @@ if check "helm dependency build fetches PostgreSQL and Redis" run dependency hel
       "127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7" || true
   fi
   # The chart has no volume for a SQLite file, so each pod would get its own database.
-  # The bundle image runs single mode on SQLite, so the message points to it.
+  # The single-mode image runs on SQLite, so the message points to it.
   for db_type in sqlite SQLite SQLITE; do
     check "config.env.DB_TYPE=$db_type: rendering fails, saying the chart supports PostgreSQL only" \
       render_refused "refused-$db_type" "supports PostgreSQL only" --set "config.env.DB_TYPE=$db_type" || true
-    check "config.env.DB_TYPE=$db_type: the message points to the bundle image" \
-      grep -qF "0xfurai/peekaping-bundle-sqlite" "$work/refused-$db_type.log" || true
+    check "config.env.DB_TYPE=$db_type: the message points to the single-mode image" \
+      grep -qF "single-mode image (0xfurai/peekaping)" "$work/refused-$db_type.log" || true
     check "config.env.DB_TYPE=$db_type: the message links to the SQLite docs page" \
       grep -qF "https://docs.peekaping.com/self-hosting/docker-with-sqlite" "$work/refused-$db_type.log" || true
   done

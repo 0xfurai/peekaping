@@ -15,7 +15,7 @@ Coming from MongoDB? [Move to SQLite or PostgreSQL](./docker-with-mongo.md#move-
 
 ## Single mode
 
-The `peekaping-bundle-sqlite` image runs Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. It keeps its database in `/app/data/peekaping.db`, so keep `/app/data` on a volume. The image uses SQLite while `DB_TYPE` is unset or `sqlite`, and ignores any `DB_NAME` then. With `DB_TYPE=postgres` it connects to a PostgreSQL server instead: see [Docker + PostgreSQL](./docker-with-postgres.md#single-mode).
+The `0xfurai/peekaping` image runs Peekaping in single mode. One process, `peekaping`, serves the web app, the API and the websocket on port 8383. It keeps its database in `/app/data/peekaping.db`, so keep `/app/data` on a volume. The image uses SQLite while `DB_TYPE` is unset or `sqlite`, and ignores any `DB_NAME` then. With `DB_TYPE=postgres` it connects to a PostgreSQL server instead: see [Docker + PostgreSQL](./docker-with-postgres.md#single-mode).
 
 ```bash
 docker run -d --restart=always \
@@ -24,7 +24,7 @@ docker run -d --restart=always \
   -e TRUSTED_PROXIES \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
-  0xfurai/peekaping-bundle-sqlite:latest
+  0xfurai/peekaping:latest
 ```
 
 Or with Docker Compose:
@@ -32,7 +32,7 @@ Or with Docker Compose:
 ```yaml
 services:
   peekaping:
-    image: 0xfurai/peekaping-bundle-sqlite:latest
+    image: 0xfurai/peekaping:latest
     restart: unless-stopped
     # peekaping takes up to 30 seconds to shut down cleanly
     stop_grace_period: 35s
@@ -47,7 +47,7 @@ services:
 
 Then open `http://localhost:8383` and create your admin account.
 
-`peekaping` runs as a non-root user. See [Bundle user and permissions](./bundle-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need.
+`peekaping` runs as a non-root user. See [Single-mode user and permissions](./single-user.md) to set `PUID`/`PGID`, to start the container with `--user`, and for what Docker and ping monitors need.
 
 ### Settings
 
@@ -130,12 +130,12 @@ If you run a bundle from 0.0.44 to 0.0.47, which ran Redis and Caddy inside the 
 In cluster mode, the API and the probe run in separate containers. The API replicas talk to each other through Redis. The `probe` service runs the checks of the local probe's monitors: it connects to the API, gets its monitors and sends the results back, and it needs no database, no Redis and no volume. Run more probe containers to check more monitors. An nginx gateway serves the web app and the API on port 8383.
 
 :::note Single mode fits SQLite better
-In cluster mode, the `api` containers open the same SQLite file, and SQLite lets one process write to it at a time, so replicas wait for each other's writes. That works for a small install, but [single mode](#single-mode) runs everything in one process and fits SQLite better, and [PostgreSQL](./docker-with-postgres.md) takes concurrent writers. Prefer the SQLite bundle image, unless you need separate processes for the API and the probes.
+In cluster mode, the `api` containers open the same SQLite file, and SQLite lets one process write to it at a time, so replicas wait for each other's writes. That works for a small install, but [single mode](#single-mode) runs everything in one process and fits SQLite better, and [PostgreSQL](./docker-with-postgres.md) takes concurrent writers. Prefer single mode, with the `0xfurai/peekaping` image, unless you need separate processes for the API and the probes.
 
 Each `api` container logs this warning at start:
 
 ```text
-SQLite in cluster mode: the api replicas share one database file and write to it one at a time. Single mode (the SQLite bundle image) or PostgreSQL fits better. See https://docs.peekaping.com/self-hosting/docker-with-sqlite#cluster-mode
+SQLite in cluster mode: the api replicas share one database file and write to it one at a time. Single mode (the `0xfurai/peekaping` image) or PostgreSQL fits better. See https://docs.peekaping.com/self-hosting/docker-with-sqlite#cluster-mode
 ```
 
 The [Helm chart](./kubernetes-helm.md) supports PostgreSQL only and refuses SQLite.
@@ -445,7 +445,7 @@ Peekaping provides official Docker images.
 
 Single mode:
 
-- **Bundle**: [`0xfurai/peekaping-bundle-sqlite`](https://hub.docker.com/r/0xfurai/peekaping-bundle-sqlite)
+- **Single mode**: [`0xfurai/peekaping`](https://hub.docker.com/r/0xfurai/peekaping)
 
 Cluster mode:
 

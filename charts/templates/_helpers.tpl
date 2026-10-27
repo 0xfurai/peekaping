@@ -128,7 +128,7 @@ Fails the render when config.env.DB_TYPE is sqlite, mongo or mongodb, in any
 case. The chart runs Peekaping in cluster mode, and it has no volume for a SQLite
 file: each pod and the migrate Job would get an empty file of its own, so the
 migrations and each replica's writes would land in separate databases. The
-single-mode bundle image runs Peekaping on SQLite in one process, so the message
+single-mode image runs Peekaping on SQLite in one process, so the message
 sends the reader there. MongoDB storage was removed (ADR 0001): every binary
 stops on it with config.ErrMongoStorageRemoved, so the message says the same and
 sends the reader to the guide for moving to PostgreSQL.
@@ -142,7 +142,7 @@ Include it from a template that always renders: include "peekaping.requirePostgr
 {{- define "peekaping.requirePostgres" -}}
 {{- $dbType := toString (get (.Values.config.env | default (dict)) "DB_TYPE") -}}
 {{- if eq (lower $dbType) "sqlite" -}}
-{{- fail (printf "config.env.DB_TYPE is %q, but the chart supports PostgreSQL only: it runs Peekaping in cluster mode and has no volume for a SQLite file, so each pod and the migrate Job would get a separate database. For SQLite, run the single-mode bundle image (0xfurai/peekaping-bundle-sqlite) or the SQLite Docker Compose stack instead: https://docs.peekaping.com/self-hosting/docker-with-sqlite" $dbType) -}}
+{{- fail (printf "config.env.DB_TYPE is %q, but the chart supports PostgreSQL only: it runs Peekaping in cluster mode and has no volume for a SQLite file, so each pod and the migrate Job would get a separate database. For SQLite, run the single-mode image (0xfurai/peekaping) or the SQLite Docker Compose stack instead: https://docs.peekaping.com/self-hosting/docker-with-sqlite" $dbType) -}}
 {{- end -}}
 {{- if or (eq (lower $dbType) "mongo") (eq (lower $dbType) "mongodb") -}}
 {{- fail (printf "config.env.DB_TYPE is %q, but MongoDB storage was removed. Move this install's data to PostgreSQL with \"bun db import-mongo\", then set config.env.DB_TYPE to postgres. See https://docs.peekaping.com/self-hosting/docker-with-mongo#move-to-sqlite-or-postgresql" $dbType) -}}

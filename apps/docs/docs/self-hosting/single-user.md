@@ -2,9 +2,9 @@
 sidebar_position: 4
 ---
 
-# Bundle user and permissions
+# Single-mode user and permissions
 
-The single-mode image (`peekaping-bundle-sqlite`) runs Peekaping as a non-root user, `peekaping`, with UID and GID 1000, whichever database it uses. The one process, `peekaping`, runs as that user. A startup script runs as root, sets up the user, runs the migrations and starts `peekaping`. With PostgreSQL, the database runs in a container of its own, the official `postgres` image, which this page doesn't change.
+The single-mode image (`0xfurai/peekaping`) runs Peekaping as a non-root user, `peekaping`, with UID and GID 1000, whichever database it uses. The one process, `peekaping`, runs as that user. A startup script runs as root, sets up the user, runs the migrations and starts `peekaping`. With PostgreSQL, the database runs in a container of its own, the official `postgres` image, which this page doesn't change.
 
 The binaries belong to root, so Peekaping can't change them.
 
@@ -20,7 +20,7 @@ docker run -d --restart=always \
   -e PGID=1001 \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
-  0xfurai/peekaping-bundle-sqlite:latest
+  0xfurai/peekaping:latest
 ```
 
 At each start, the container makes that user the owner of `/app/data`, where the image keeps its SQLite database. Some volumes, such as NFS with `root_squash`, don't let root change owners. The container then logs a warning and starts anyway, so set `PUID` and `PGID` to the folder's owner on the host.

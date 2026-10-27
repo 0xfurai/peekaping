@@ -8,7 +8,7 @@ The SQL stats upgrade separates minute, hour and day stats into three tables and
 
 ## Before upgrading
 
-Schedule a maintenance window and stop every Peekaping process that uses the database, including every replica. For a bundle image, stop the container. In cluster mode, stop every API replica and, if your install still runs them, the producer, worker and ingester, and make sure no migration is running. The probes use no database, so they can keep running, but only for a while. A probe holds at most 10,000 results in memory and drops the oldest when that is full, and the API refuses results from checks that started more than one hour ago. A longer maintenance window leaves a gap in the heartbeats, and a probe that restarts meanwhile loses what it holds.
+Schedule a maintenance window and stop every Peekaping process that uses the database, including every replica. For the single-mode image, stop the container. In cluster mode, stop every API replica and, if your install still runs them, the producer, worker and ingester, and make sure no migration is running. The probes use no database, so they can keep running, but only for a while. A probe holds at most 10,000 results in memory and drops the oldest when that is full, and the API refuses results from checks that started more than one hour ago. A longer maintenance window leaves a gap in the heartbeats, and a probe that restarts meanwhile loses what it holds.
 
 Back up the complete database before starting the new version or its migration container. For PostgreSQL, use your usual tested database backup and restore procedure. For SQLite, use the host's `sqlite3` CLI and the actual host path of the mounted database file. For example, `/app/data/peekaping.db` inside the container maps to `.data/sqlite/peekaping.db` with the volume in the [SQLite deployment guide](./docker-with-sqlite.md).
 
@@ -46,7 +46,7 @@ Minute and hour row counts become bounded once cleanup catches up. Day stats con
 Deleting old rows frees pages for SQLite to reuse, but the database file does not shrink automatically. Reclaiming disk space is optional; future writes can reuse those pages. This procedure also reclaims space freed by heartbeat cleanup or dropped indexes.
 
 1. After upgrading, let the hourly cleanup finish. Check the API logs for a successful `Deleted expired stats` entry. Running `VACUUM` before cleanup finishes will leave the expired rows in the file.
-2. Stop every Peekaping process and replica that accesses this database again, including any migration process. For the bundle example, use `docker stop peekaping`. For Compose, stop the entire Peekaping deployment with its own Compose file. Keep it stopped until verification finishes. Checks and the API are unavailable during this maintenance.
+2. Stop every Peekaping process and replica that accesses this database again, including any migration process. For the single-mode example, use `docker stop peekaping`. For Compose, stop the entire Peekaping deployment with its own Compose file. Keep it stopped until verification finishes. Checks and the API are unavailable during this maintenance.
 3. Install the `sqlite3` CLI on the host if needed. Run it as the database file's owner, with write access to the containing directory. Check free disk space: SQLite may need up to twice the current database file's size in additional free space for `VACUUM`, plus space for the backup if it is on the same disk. See [SQLite's VACUUM documentation](https://www.sqlite.org/lang_vacuum.html).
 4. Replace the paths below with the existing database and a new backup filename. Inspect the database and make a separate maintenance backup:
 
@@ -64,6 +64,6 @@ Deleting old rows frees pages for SQLite to reuse, but the database file does no
    ```
 
    This can take minutes for a multi-GB file. Let the command finish. The integrity check must print `ok`, the checkpoint's first value must be `0` (no busy connection), and the free page count should be near zero. Check the database file size after the command. If a command fails, keep Peekaping stopped and resolve the error before retrying; retain the backup.
-6. Start the same deployment again (`docker start peekaping` for the bundle example), then check the API, recent heartbeats and a monitor's chart. Keep the backup until those checks pass.
+6. Start the same deployment again (`docker start peekaping` for the single-mode example), then check the API, recent heartbeats and a monitor's chart. Keep the backup until those checks pass.
 
 `VACUUM` does not restore deleted history. It rewrites the live database into fewer pages. Do not add it to the hourly cleanup: it requires a deliberate maintenance window.
