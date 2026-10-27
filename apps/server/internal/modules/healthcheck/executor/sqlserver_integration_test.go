@@ -131,12 +131,16 @@ func TestSQLServerExecutor_Integration(t *testing.T) {
 	}
 
 	// The Dial Timeout limits dialing; a query on the connection gets the
-	// monitor's whole timeout.
+	// monitor's whole timeout. The delay comes before the only result set (the
+	// INTO statement returns none), so the check can't return before it has
+	// passed: the executor reads just the first result set, and a delay after
+	// it would end as soon as closing the rows cancels the batch.
 	t.Run("is up for a query that takes longer than the Dial Timeout", func(t *testing.T) {
 		start := time.Now()
-		result := run(t, plainADO(unverifiedTLS+";Dial Timeout=2"), "SELECT 1 AS a; WAITFOR DELAY '00:00:04'; SELECT 2 AS b")
+		result := run(t, plainADO(unverifiedTLS+";Dial Timeout=2"), "SELECT 1 AS a INTO #held; WAITFOR DELAY '00:00:04'; SELECT a FROM #held")
 
 		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+		assert.Regexp(t, `columns: 1, rows: 1$`, result.Message)
 		assert.GreaterOrEqual(t, time.Since(start), 4*time.Second, "the query should have waited")
 	})
 
