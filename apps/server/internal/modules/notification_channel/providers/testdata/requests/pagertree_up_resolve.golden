@@ -3,15 +3,15 @@ Content-Type: application/json
 
 {
   "event_type": "resolve",
-  "Id": "monitor-mon-1",
-  "Title": "Monitor Public API is UP",
-  "Description": "200 - OK - Last checked: 2026-10-17T09:35:00Z",
+  "id": "monitor-mon-1",
+  "title": "Monitor Public API is UP",
+  "description": "200 - OK - Last checked: 2026-10-17T09:35:00Z",
   "urgency": "medium",
-  "Tags": [
+  "tags": [
     "peekaping",
     "monitor-type:http"
   ],
-  "Meta": {
+  "meta": {
     "monitor_id": "mon-1",
     "monitor_name": "Public API",
     "monitor_type": "http",

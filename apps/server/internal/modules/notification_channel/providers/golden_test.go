@@ -526,7 +526,7 @@ var goldenScrubs = []struct {
 	// Matrix picks a random transaction ID for each message
 	{regexp.MustCompile(`/send/m\.room\.message/[A-Za-z0-9_-]{20}\n`), "/send/m.room.message/<txn-id>\n"},
 	// A certificate-expiry alert's ID ends with the send time
-	{regexp.MustCompile(`"Id": "monitor-mon-1-\d+"`), `"Id": "monitor-mon-1-<unix-time>"`},
+	{regexp.MustCompile(`"id": "monitor-mon-1-\d+"`), `"id": "monitor-mon-1-<unix-time>"`},
 }
 
 // formatRequest writes a request as its method and URL, its headers sorted by name, and its

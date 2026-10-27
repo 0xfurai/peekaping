@@ -24,12 +24,12 @@ type PagerTreeConfig struct {
 
 type PagerTreePayload struct {
 	EventType   string                 `json:"event_type"`
-	ID          string                 `json:"Id"`
-	Title       string                 `json:"Title"`
-	Description string                 `json:"Description"`
+	ID          string                 `json:"id"`
+	Title       string                 `json:"title"`
+	Description string                 `json:"description"`
 	Urgency     string                 `json:"urgency,omitempty"`
-	Tags        []string               `json:"Tags,omitempty"`
-	Meta        map[string]interface{} `json:"Meta,omitempty"`
+	Tags        []string               `json:"tags,omitempty"`
+	Meta        map[string]interface{} `json:"meta,omitempty"`
 }
 
 type PagerTreeSender struct {

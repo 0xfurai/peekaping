@@ -20,7 +20,7 @@ func pagerTreeIDs(t *testing.T, notifications ...pagerTreeNotification) []string
 	var ids []string
 	endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
-			ID string `json:"Id"`
+			ID string `json:"id"`
 		}
 		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
 		ids = append(ids, body.ID)
@@ -89,4 +89,25 @@ func TestPagerTreeCertificateExpiryIDDiffersFromTheOutageID(t *testing.T) {
 	assert.Equal(t, "monitor-mon-1", ids[0])
 	assert.NotEqual(t, ids[0], ids[1])
 	assert.Regexp(t, `^monitor-mon-1-\d+$`, ids[1])
+}
+
+// PagerTree's webhook v3 integration reads its params by these lowercase keys and ignores any
+// other spelling, so a capitalised "Id" would leave every alert with a random ID of its own
+func TestPagerTreeSendsTheKeysItsWebhookReads(t *testing.T) {
+	var body map[string]any
+	endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		_, _ = w.Write([]byte("{}"))
+	}))
+	defer endpoint.Close()
+
+	sender := NewPagerTreeSender(nopLogger(), endpoint.Client())
+	config := `{"integrationUrl": "` + endpoint.URL + `", "urgency": "high"}`
+	require.NoError(t, sender.Send(context.Background(), config, "msg", goldenMonitor, goldenDown))
+
+	keys := make([]string, 0, len(body))
+	for key := range body {
+		keys = append(keys, key)
+	}
+	assert.ElementsMatch(t, []string{"event_type", "id", "title", "description", "urgency", "tags", "meta"}, keys)
 }
