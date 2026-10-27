@@ -20,6 +20,10 @@ type DBConfig struct {
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+
+	// How the PostgreSQL connection negotiates TLS. The same setting the server reads,
+	// so the migration CLI reaches a cluster that requires TLS.
+	DBSSLMode string `env:"DB_SSL_MODE" validate:"omitempty,pg_ssl_mode" default:"disable"`
 }
 
 type Config struct {
