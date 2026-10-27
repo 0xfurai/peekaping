@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"slices"
 	"testing"
@@ -54,6 +55,103 @@ func TestPush_StoresAHeartbeatForAPushMonitor(t *testing.T) {
 	assert.Equal(t, "disk full", beats[0].Msg)
 	assert.Equal(t, 12, beats[0].Ping)
 	assert.Equal(t, shared.LocalProbeID, beats[0].ProbeID)
+}
+
+// createdPushMonitor is the part of a created monitor that carries its push token
+type createdPushMonitor struct {
+	ID        string `json:"id"`
+	PushToken string `json:"push_token"`
+	Config    string `json:"config"`
+}
+
+// createPushMonitorWithout creates a push monitor from the body with the given token fields
+// replaced, so a test can leave the token out the way an API client does
+func (a *app) createPushMonitorWithout(t *testing.T, fields map[string]any) createdPushMonitor {
+	t.Helper()
+	body := pushMonitorBody("Nightly backup", "")
+	delete(body, "push_token")
+	delete(body, "config")
+	for k, v := range fields {
+		body[k] = v
+	}
+	return decode[createdPushMonitor](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)
+}
+
+func configToken(t *testing.T, config string) string {
+	t.Helper()
+	var cfg struct {
+		PushToken string `json:"pushToken"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(config), &cfg), config)
+	return cfg.PushToken
+}
+
+func TestPush_APIClientCreatesAPushMonitorWithoutAToken(t *testing.T) {
+	for name, fields := range map[string]map[string]any{
+		"no config":        {},
+		"empty config":     {"config": ""},
+		"empty object":     {"config": "{}"},
+		"empty token":      {"config": `{"pushToken":""}`},
+		"empty push_token": {"push_token": "", "config": `{"pushToken":""}`},
+	} {
+		t.Run(name, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+
+			monitor := a.createPushMonitorWithout(t, fields)
+
+			assert.NotEmpty(t, monitor.PushToken)
+			assert.Equal(t, monitor.PushToken, configToken(t, monitor.Config), "config.pushToken holds the same token")
+
+			w := a.request(t, http.MethodGet, "/api/v1/push/"+monitor.PushToken+"?status=up&msg=done", nil)
+			assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+			beats := a.storedHeartbeats(t, monitor.ID)
+			require.Len(t, beats, 1)
+			assert.Equal(t, shared.MonitorStatusUp, beats[0].Status)
+			assert.Equal(t, "done", beats[0].Msg)
+		})
+	}
+}
+
+func TestPush_TwoMonitorsCreatedWithoutATokenGetDifferentTokens(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	first := a.createPushMonitorWithout(t, nil)
+	second := a.createPushMonitorWithout(t, nil)
+
+	assert.NotEmpty(t, first.PushToken)
+	assert.NotEmpty(t, second.PushToken)
+	assert.NotEqual(t, first.PushToken, second.PushToken)
+}
+
+func TestPush_APIClientCreatesAPushMonitorWithTheTokenOnlyAtTheTopLevel(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	monitor := a.createPushMonitorWithout(t, map[string]any{"push_token": "top-level-token"})
+
+	assert.Equal(t, "top-level-token", monitor.PushToken)
+	assert.Equal(t, "top-level-token", configToken(t, monitor.Config))
+	assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/top-level-token", nil).Code)
+	assert.Len(t, a.storedHeartbeats(t, monitor.ID), 1)
+}
+
+func TestPush_CreateKeepsATokenTheClientSends(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	monitor := a.createPushMonitorWithout(t, map[string]any{"push_token": "client-token", "config": `{"pushToken":"client-token"}`})
+
+	assert.Equal(t, "client-token", monitor.PushToken)
+	assert.Equal(t, `{"pushToken":"client-token"}`, monitor.Config)
+}
+
+func TestPush_CreateStillRejectsAConfigThatIsNotJSON(t *testing.T) {
+	a := newAppWithAdmin(t)
+	body := pushMonitorBody("Nightly backup", "")
+	delete(body, "push_token")
+	body["config"] = "not json"
+
+	w := a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 }
 
 func TestPush_IgnoresMalformedResponseTime(t *testing.T) {
