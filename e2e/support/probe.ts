@@ -91,7 +91,7 @@ function stackNetwork(): { network: string; url: string } {
       'no e2e-target container with a docker compose label is running, so the stack cannot be found: ' +
         'start it with docker compose, or set E2E_PROBE_NETWORK (the Docker network the server is on, ' +
         'e.g. peekaping-e2e) and E2E_PROBE_URL (the server\'s address on that network, ' +
-        'e.g. http://peekaping-bundle-test-sqlite:8383)',
+        'e.g. http://peekaping-single-test-sqlite:8383)',
     );
   }
   const project = docker('inspect', '--format', '{{index .Config.Labels "com.docker.compose.project"}}', target);

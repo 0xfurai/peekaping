@@ -149,7 +149,7 @@ jobs:
         path: playwright-report/
         retention-days: 30
 
-  # The single image, published as peekaping-bundle-sqlite until PP-321 renames it, on each database.
+  # The single image, published as peekaping, on each database.
   # With postgres it runs beside a postgres:17 container, as docker-compose.single.postgres.yml
   # does.
   playwright-tests-bundle:
@@ -188,12 +188,22 @@ jobs:
             ;;
         esac
 
+    # A GHCR package starts private, so the pull needs a login. The token comes with the workflow
+    # and can read the package, which is linked to this repository, so this works before the
+    # package is made public.
+    - name: Log in to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Check bundle image availability and determine tag
       id: bundle_tag
       run: |
         # Try to pull the specific tag first
         BUNDLE_TAG="${{ inputs.container-tag }}"
-        IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite"
+        IMAGE_NAME="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}"
 
         echo "Checking if ${IMAGE_NAME}:${BUNDLE_TAG} exists..."
 
@@ -206,7 +216,7 @@ jobs:
         else
           echo "❌ No single image found"
           echo "Available tags:"
-          docker search --limit 5 "${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite" || echo "No public images found"
+          docker search --limit 5 "${{ github.repository_owner }}/${{ github.event.repository.name }}" || echo "No public images found"
           exit 1
         fi
 
@@ -223,21 +233,21 @@ jobs:
           node:22-alpine node /srv/server.mjs
 
     # The official image, beside the single image on the peekaping-e2e network, which reaches it by
-    # the name peekaping-bundle-test-postgres-db
+    # the name peekaping-single-test-postgres-db
     - name: Start the PostgreSQL container
       if: ${{ matrix.database == 'postgres' }}
       run: |
         docker run -d \
-          --name peekaping-bundle-test-postgres-db \
+          --name peekaping-single-test-postgres-db \
           --network peekaping-e2e \
           -e POSTGRES_USER=peekaping \
           -e POSTGRES_PASSWORD=password \
           -e POSTGRES_DB=peekaping \
           -v "$(pwd)/test-data/postgres/data:/var/lib/postgresql/data" \
           postgres:17
-        if ! timeout 60 bash -c "until docker exec peekaping-bundle-test-postgres-db pg_isready -U peekaping -d peekaping; do sleep 1; done"; then
+        if ! timeout 60 bash -c "until docker exec peekaping-single-test-postgres-db pg_isready -U peekaping -d peekaping; do sleep 1; done"; then
           echo "::error::PostgreSQL wasn't ready after 60 seconds"
-          docker logs peekaping-bundle-test-postgres-db
+          docker logs peekaping-single-test-postgres-db
           exit 1
         fi
 
@@ -259,40 +269,40 @@ jobs:
         case "${{ matrix.database }}" in
           sqlite)
             docker run -d \
-              --name peekaping-bundle-test-${{ matrix.database }} \
+              --name peekaping-single-test-${{ matrix.database }} \
               --network peekaping-e2e \
               -p 8383:8383 \
               -v $(pwd)/test-data/sqlite/app:/app/data \
               "${COMMON_ENV[@]}" \
               -e DB_TYPE=sqlite \
-              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${BUNDLE_TAG}
+              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${BUNDLE_TAG}
             ;;
           postgres)
             docker run -d \
-              --name peekaping-bundle-test-${{ matrix.database }} \
+              --name peekaping-single-test-${{ matrix.database }} \
               --network peekaping-e2e \
               -p 8383:8383 \
               "${COMMON_ENV[@]}" \
               -e DB_TYPE=postgres \
-              -e DB_HOST=peekaping-bundle-test-postgres-db \
+              -e DB_HOST=peekaping-single-test-postgres-db \
               -e DB_PORT=5432 \
               -e DB_NAME=peekaping \
               -e DB_USER=peekaping \
               -e DB_PASS=password \
-              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${BUNDLE_TAG}
+              ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${BUNDLE_TAG}
             ;;
         esac
 
     - name: Show container logs
       run: |
         echo "=== Container Status ==="
-        docker ps --filter "name=peekaping-bundle-test-${{ matrix.database }}"
+        docker ps --filter "name=peekaping-single-test-${{ matrix.database }}"
         echo "=== Container Logs ==="
-        docker logs peekaping-bundle-test-${{ matrix.database }}
+        docker logs peekaping-single-test-${{ matrix.database }}
         echo "=== Container Environment ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
+        docker exec peekaping-single-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
         echo "=== Container Processes ==="
-        docker top peekaping-bundle-test-${{ matrix.database }} || echo "Could not list processes"
+        docker top peekaping-single-test-${{ matrix.database }} || echo "Could not list processes"
         echo "=== Testing port 8383 ==="
         curl -sS http://localhost:8383/api/v1/health || echo "The API isn't answering on port 8383 yet"
 
@@ -300,8 +310,8 @@ jobs:
       run: |
         if ! timeout 120 bash -c "until curl -sf http://localhost:8383/api/v1/health && curl -sf http://localhost:3033/health; do sleep 2; done" >/dev/null; then
           echo "::error::The bundle wasn't healthy after 120 seconds"
-          docker ps --filter "name=peekaping-bundle-test-${{ matrix.database }}"
-          docker logs peekaping-bundle-test-${{ matrix.database }}
+          docker ps --filter "name=peekaping-single-test-${{ matrix.database }}"
+          docker logs peekaping-single-test-${{ matrix.database }}
           docker logs e2e-target
           exit 1
         fi
@@ -313,7 +323,7 @@ jobs:
       run: PLAYWRIGHT_BASE_URL=http://localhost:8383 bunx playwright test
       env:
         E2E_PROBE_NETWORK: peekaping-e2e
-        E2E_PROBE_URL: http://peekaping-bundle-test-${{ matrix.database }}:8383
+        E2E_PROBE_URL: http://peekaping-single-test-${{ matrix.database }}:8383
         E2E_PROBE_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ steps.bundle_tag.outputs.tag }}
 
     # The single image's user, ports and shutdown, on the published image. It runs with SQLite, so
@@ -322,22 +332,22 @@ jobs:
       if: ${{ matrix.database == 'sqlite' }}
       run: |
         scripts/test-single-user.sh \
-          ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ steps.bundle_tag.outputs.tag }}
+          ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.bundle_tag.outputs.tag }}
 
     - name: Show final container logs on failure
       if: failure()
       run: |
         echo "=== Final Container Status ==="
-        docker ps --filter "name=peekaping-bundle-test-${{ matrix.database }}"
+        docker ps --filter "name=peekaping-single-test-${{ matrix.database }}"
         echo "=== Final Container Logs ==="
-        docker logs peekaping-bundle-test-${{ matrix.database }}
+        docker logs peekaping-single-test-${{ matrix.database }}
         echo "=== Final Container Environment ==="
-        docker exec peekaping-bundle-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
+        docker exec peekaping-single-test-${{ matrix.database }} env | grep -E "(DB_|API_|JWT_|ACCESS_|REFRESH_|BUNDEBUG)" || echo "No relevant env vars found"
         echo "=== Final Container Processes ==="
-        docker top peekaping-bundle-test-${{ matrix.database }} || echo "Could not list processes"
-        if docker inspect peekaping-bundle-test-postgres-db >/dev/null 2>&1; then
+        docker top peekaping-single-test-${{ matrix.database }} || echo "Could not list processes"
+        if docker inspect peekaping-single-test-postgres-db >/dev/null 2>&1; then
           echo "=== Final PostgreSQL Container Logs ==="
-          docker logs peekaping-bundle-test-postgres-db
+          docker logs peekaping-single-test-postgres-db
         fi
         echo "=== Final port 8383 test ==="
         curl -sS http://localhost:8383/api/v1/health || echo "The API isn't answering on port 8383"
@@ -345,9 +355,9 @@ jobs:
     - name: Stop bundle container
       if: always()
       run: |
-        docker stop peekaping-bundle-test-${{ matrix.database }} || true
-        docker rm peekaping-bundle-test-${{ matrix.database }} || true
-        docker rm -f peekaping-bundle-test-postgres-db || true
+        docker stop peekaping-single-test-${{ matrix.database }} || true
+        docker rm peekaping-single-test-${{ matrix.database }} || true
+        docker rm -f peekaping-single-test-postgres-db || true
         docker rm -f e2e-target || true
         docker network rm peekaping-e2e || true
 

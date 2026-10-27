@@ -154,9 +154,10 @@ jobs:
           cache-to: type=gha,mode=max
 
   # The single image, which runs with SQLite or with PostgreSQL in a container of its own. It is
-  # published as peekaping-bundle-sqlite until PP-321 renames it. peekaping-bundle-postgres,
-  # which ran its own PostgreSQL, gets no new tags.
-  build-bundle-containers:
+  # published as peekaping. peekaping-bundle-sqlite gets the same tags through 0.0.49 (PP-321),
+  # copied from the manifests below. peekaping-bundle-postgres, which ran its own PostgreSQL,
+  # gets no new tags.
+  build-single-image:
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
@@ -215,16 +216,16 @@ jobs:
           provenance: false
           sbom: false
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:latest-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest-${{ matrix.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   create-manifest:
     runs-on: ubuntu-latest
-    needs: [build-images, build-bundle-containers]
+    needs: [build-images, build-single-image]
     steps:
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -301,18 +302,22 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:latest-arm64
           docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:latest
 
-          # Single image manifests (published as the bundle-sqlite image)
           # Single image manifest - versioned
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }} \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }} \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}
 
           # Single image manifest - latest
-          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:latest \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:latest-amd64 \
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:latest-arm64
-          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:latest
+          docker manifest create --amend ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest-amd64 \
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest-arm64
+          docker manifest push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
+
+          # The old name, peekaping-bundle-sqlite, gets the same tags through 0.0.49 (PP-321).
+          # imagetools copies the manifest list within the registry, so it has the same digest.
+          docker buildx imagetools create --tag ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }} ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}  # old name, through 0.0.49 (PP-321)
+          docker buildx imagetools create --tag ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:latest ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest  # old name, through 0.0.49 (PP-321)
 
       - name: Create and push multi-arch manifests for Docker Hub
         run: |
@@ -376,18 +381,22 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest-arm64
           docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest
 
-          # Single image manifests (published as the bundle-sqlite image)
           # Single image manifest - versioned
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }} \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}
 
           # Single image manifest - latest
-          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest-amd64 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest-arm64
-          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest
+          docker manifest create --amend ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest-amd64 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest-arm64
+          docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
+
+          # The old name, peekaping-bundle-sqlite, gets the same tags through 0.0.49 (PP-321).
+          # imagetools copies the manifest list within the registry, so it has the same digest.
+          docker buildx imagetools create --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}  # old name, through 0.0.49 (PP-321)
+          docker buildx imagetools create --tag ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest  # old name, through 0.0.49 (PP-321)
 
   playwright-tests:
     needs: create-manifest
@@ -590,8 +599,9 @@ jobs:
             - Probe (slim): `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-probe:slim`
             - Migrate: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:latest`
 
-            ### Bundle Containers (GHCR)
-            - Single mode (SQLite, or PostgreSQL in its own container): `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite:latest`
+            ### Single mode (GHCR)
+            - SQLite, or PostgreSQL in its own container: `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}` / `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:latest`
+            - The old name, `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-bundle-sqlite`, gets the same tags through 0.0.49 and none from 0.0.50. Switch to `ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}`.
 
             ### Docker Hub
             - UI: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-web:latest`
@@ -600,8 +610,9 @@ jobs:
             - Probe (slim): `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:${{ github.event.inputs.version }}-slim` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-probe:slim`
             - Migrate: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest`
 
-            ### Bundle Containers (Docker Hub)
-            - Single mode (SQLite, or PostgreSQL in its own container): `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite:latest`
+            ### Single mode (Docker Hub)
+            - SQLite, or PostgreSQL in its own container: `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ github.event.inputs.version }}` / `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest`
+            - The old name, `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-bundle-sqlite`, gets the same tags through 0.0.49 and none from 0.0.50. Switch to `${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}`.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
