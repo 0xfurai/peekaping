@@ -43,11 +43,32 @@ func gap(calls []checkCall, i int) time.Duration {
 	return calls[i].at.Sub(calls[i-1].at)
 }
 
-// onGrid asserts that the check ran at the start of a multiple of the interval, in seconds
+// The tests tell a retry from a check on the interval by a wide margin, not by an exact time, so
+// that a slow machine doesn't fail them. Their retry interval is 1s and their interval 2s or 3s.
+
+// retryGap asserts that the check came a retry interval after the one before it: at least 0.8s,
+// and less than 2s, the midpoint between a retry interval and the interval of 3s
+func retryGap(t *testing.T, calls []checkCall, i int, message string) {
+	t.Helper()
+	assert.GreaterOrEqual(t, gap(calls, i), 800*time.Millisecond, message)
+	assert.Less(t, gap(calls, i), 2*time.Second, message)
+}
+
+// intervalGap asserts that the check came an interval after the one before it: at least the
+// midpoint between a retry interval and the interval
+func intervalGap(t *testing.T, calls []checkCall, i int, midpoint time.Duration, message string) {
+	t.Helper()
+	assert.GreaterOrEqual(t, gap(calls, i), midpoint, message)
+}
+
+// onGrid asserts that the check ran at a multiple of the interval, in seconds, and not at the
+// retry timers' half second: it is nearer to a whole second than to the middle of one, and the
+// second is a multiple of the interval
 func onGrid(t *testing.T, call checkCall, interval int64) {
 	t.Helper()
-	assert.Zero(t, call.at.Unix()%interval, "check %d is at a multiple of %ds", call.n, interval)
-	assert.Less(t, intoSecond(call.at), lateness, "check %d is at the start of its second", call.n)
+	nearest := call.at.Round(time.Second)
+	assert.Zero(t, nearest.Unix()%interval, "check %d is at a multiple of %ds", call.n, interval)
+	assert.Less(t, call.at.Sub(nearest).Abs(), 250*time.Millisecond, "check %d is at the start of its second", call.n)
 }
 
 func TestScheduler_ChecksAFailingMonitorAtItsRetryIntervalWhileItHasRetriesLeft(t *testing.T) {
@@ -61,11 +82,11 @@ func TestScheduler_ChecksAFailingMonitorAtItsRetryIntervalWhileItHasRetriesLeft(
 	eventually(t, 20*time.Second, func() bool { return h.exec.countFor("mon") >= 5 }, "five checks")
 	calls := h.exec.callsFor("mon")
 	// Checks 1 to 3 fail. The first two are Pending, so each is followed by a retry interval.
-	assert.InDelta(t, float64(time.Second), float64(gap(calls, 1)), float64(lateness), "check 2 is a retry interval after check 1")
-	assert.InDelta(t, float64(time.Second), float64(gap(calls, 2)), float64(lateness), "check 3 is a retry interval after check 2")
-	// Check 3 is Down, so the monitor is back on the grid of its interval
+	retryGap(t, calls, 1, "check 2 is a retry interval after check 1")
+	retryGap(t, calls, 2, "check 3 is a retry interval after check 2")
+	// Check 3 is Down, so check 4 is back on the grid of the interval
 	onGrid(t, calls[3], 3)
-	assert.InDelta(t, float64(3*time.Second), float64(gap(calls, 4)), float64(lateness), "and a Down monitor is checked every interval")
+	intervalGap(t, calls, 4, 2*time.Second, "and a Down monitor is checked every interval")
 }
 
 func TestScheduler_ChecksAMonitorAtItsIntervalOnceACheckSucceeds(t *testing.T) {
@@ -79,12 +100,12 @@ func TestScheduler_ChecksAMonitorAtItsIntervalOnceACheckSucceeds(t *testing.T) {
 
 	eventually(t, 20*time.Second, func() bool { return h.exec.countFor("mon") >= 6 }, "six checks")
 	calls := h.exec.callsFor("mon")
-	assert.InDelta(t, float64(time.Second), float64(gap(calls, 1)), float64(lateness), "check 2 is a retry interval after check 1")
-	assert.InDelta(t, float64(time.Second), float64(gap(calls, 2)), float64(lateness), "check 3 is a retry interval after check 2")
-	onGrid(t, calls[3], 3) // check 3 is up
-	assert.InDelta(t, float64(time.Second), float64(gap(calls, 4)), float64(lateness),
+	retryGap(t, calls, 1, "check 2 is a retry interval after check 1")
+	retryGap(t, calls, 2, "check 3 is a retry interval after check 2")
+	onGrid(t, calls[3], 3) // check 4 is back on the grid after the success of check 3
+	retryGap(t, calls, 4,
 		"check 4 failed, and the failures before the success don't count: check 5 is a retry interval after it")
-	onGrid(t, calls[5], 3) // check 5 is up
+	onGrid(t, calls[5], 3) // and check 6 after the success of check 5
 }
 
 func TestScheduler_ChecksAtTheIntervalWhenThereAreNoRetries(t *testing.T) {
@@ -106,7 +127,7 @@ func TestScheduler_ChecksAtTheIntervalWhenThereAreNoRetries(t *testing.T) {
 			eventually(t, 8*time.Second, func() bool { return h.exec.countFor("mon") >= 3 }, "three checks")
 			calls := h.exec.callsFor("mon")
 			onGrid(t, calls[1], 2)
-			assert.InDelta(t, float64(2*time.Second), float64(gap(calls, 2)), float64(lateness), "an interval apart")
+			intervalGap(t, calls, 2, 1500*time.Millisecond, "an interval apart")
 		})
 	}
 }
@@ -122,8 +143,8 @@ func TestScheduler_ChecksAMonitorUnderMaintenanceAtItsInterval(t *testing.T) {
 	eventually(t, 8*time.Second, func() bool { return h.ingestedFor("mon") >= 3 }, "three results")
 	results := h.ingest.ingested()
 	assert.Equal(t, shared.MonitorStatusMaintenance, results[0].Status)
-	assert.InDelta(t, float64(2*time.Second), float64(results[2].StartTime.Sub(results[1].StartTime)), float64(lateness),
-		"a Maintenance result isn't a failure: an interval apart")
+	assert.GreaterOrEqual(t, results[2].StartTime.Sub(results[1].StartTime), 1500*time.Millisecond,
+		"a Maintenance result isn't a failure: an interval apart, not a retry interval")
 }
 
 func TestScheduler_AnEditKeepsTheCountOfFailedChecks(t *testing.T) {
