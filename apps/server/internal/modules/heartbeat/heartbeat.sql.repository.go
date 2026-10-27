@@ -201,8 +201,8 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 	monitorID string,
 	periods map[string]time.Duration,
 	now time.Time,
-) (map[string]float64, error) {
-	stats := make(map[string]float64)
+) (map[string]*float64, error) {
+	stats := make(map[string]*float64)
 
 	for name, duration := range periods {
 		since := now.Add(-duration)
@@ -223,10 +223,12 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 			return nil, err
 		}
 
+		// A window with no heartbeats is nil, not 0%: there is nothing to be down
 		if result.Total > 0 {
-			stats[name] = float64(result.Up) / float64(result.Total) * 100
+			uptime := float64(result.Up) / float64(result.Total) * 100
+			stats[name] = &uptime
 		} else {
-			stats[name] = 0
+			stats[name] = nil
 		}
 	}
 

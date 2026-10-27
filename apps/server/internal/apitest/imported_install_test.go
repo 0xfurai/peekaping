@@ -74,7 +74,7 @@ func TestImportedMongoInstall(t *testing.T) {
 		// The checkout monitor is on the published "shop" page
 		for path, title := range map[string]string{
 			"/api/v1/badge/" + in.ID("monitor", "checkout") + "/status": "status: Up",
-			"/api/v1/badge/" + in.ID("monitor", "checkout") + "/ping":   "ping (24h): 0ms",
+			"/api/v1/badge/" + in.ID("monitor", "checkout") + "/ping":   "ping (24h): N/A",
 		} {
 			assertBadge(t, a.request(t, http.MethodGet, path, nil), title)
 		}

@@ -138,9 +138,9 @@ func (m *MockHeartbeatService) Delete(ctx context.Context, id string) error {
 	return args.Error(0)
 }
 
-func (m *MockHeartbeatService) FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]float64, error) {
+func (m *MockHeartbeatService) FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]*float64, error) {
 	args := m.Called(ctx, monitorID, periods, now)
-	return args.Get(0).(map[string]float64), args.Error(1)
+	return args.Get(0).(map[string]*float64), args.Error(1)
 }
 
 func (m *MockHeartbeatService) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
@@ -1368,15 +1368,19 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, "probe-frankfurt", result.ProbeID)
-		assert.Equal(t, 99.0, result.Uptime24h)
-		assert.Equal(t, 98.0, result.Uptime7d)
-		assert.Equal(t, 97.0, result.Uptime30d)
-		assert.Equal(t, 96.0, result.Uptime365d)
+		require.NotNil(t, result.Uptime24h)
+		assert.Equal(t, 99.0, *result.Uptime24h)
+		require.NotNil(t, result.Uptime7d)
+		assert.Equal(t, 98.0, *result.Uptime7d)
+		require.NotNil(t, result.Uptime30d)
+		assert.Equal(t, 97.0, *result.Uptime30d)
+		require.NotNil(t, result.Uptime365d)
+		assert.Equal(t, 96.0, *result.Uptime365d)
 
 		mockStatsService.AssertExpectations(t)
 	})
 
-	t.Run("nil uptime in summary", func(t *testing.T) {
+	t.Run("a period with no heartbeats is null, not 0", func(t *testing.T) {
 		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
 		monitorID := "monitor123"
 
@@ -1390,10 +1394,10 @@ func TestMonitorService_GetUptimeStats(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
-		assert.Equal(t, 0.0, result.Uptime24h)
-		assert.Equal(t, 0.0, result.Uptime7d)
-		assert.Equal(t, 0.0, result.Uptime30d)
-		assert.Equal(t, 0.0, result.Uptime365d)
+		assert.Nil(t, result.Uptime24h)
+		assert.Nil(t, result.Uptime7d)
+		assert.Nil(t, result.Uptime30d)
+		assert.Nil(t, result.Uptime365d)
 
 		mockStatsService.AssertExpectations(t)
 	})
@@ -1424,18 +1428,31 @@ func TestMonitorService_GetUptime24h(t *testing.T) {
 		result, err := service.GetUptime24h(ctx, "monitor123", "probe-frankfurt")
 
 		assert.NoError(t, err)
-		assert.Equal(t, 87.5, result)
+		require.NotNil(t, result)
+		assert.Equal(t, 87.5, *result)
 		mockStatsService.AssertExpectations(t)
 	})
 
-	t.Run("no checks in the period is 0", func(t *testing.T) {
+	t.Run("no checks in the period is nil, not 0", func(t *testing.T) {
 		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
 		mockStatsService.On("Summarize", ctx, "monitor123", "", sinceAgo(24*time.Hour), mock.AnythingOfType("time.Time")).Return(&stats.Stats{}, nil).Once()
 
 		result, err := service.GetUptime24h(ctx, "monitor123", "")
 
 		assert.NoError(t, err)
-		assert.Equal(t, 0.0, result)
+		assert.Nil(t, result)
+	})
+
+	t.Run("a period of only Down heartbeats is 0", func(t *testing.T) {
+		service, _, _, _, _, _, _, mockStatsService := setupMonitorService()
+		down := 0.0
+		mockStatsService.On("Summarize", ctx, "monitor123", "", sinceAgo(24*time.Hour), mock.AnythingOfType("time.Time")).Return(&stats.Stats{Uptime: &down}, nil).Once()
+
+		result, err := service.GetUptime24h(ctx, "monitor123", "")
+
+		assert.NoError(t, err)
+		require.NotNil(t, result)
+		assert.Equal(t, 0.0, *result)
 	})
 
 	t.Run("a stats error is returned", func(t *testing.T) {

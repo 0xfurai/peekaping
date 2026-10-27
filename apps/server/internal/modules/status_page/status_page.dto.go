@@ -95,14 +95,14 @@ type PublicHeartbeatDTO struct {
 type PublicLocationDTO struct {
 	Name       string                `json:"name" example:"Frankfurt"`
 	Status     shared.MonitorStatus  `json:"status" doc:"The status of this location's latest heartbeat: 0 Down, 1 Up, 2 Pending, 3 Maintenance. Pending until the probe reports." example:"1"`
-	Uptime24h  *float64              `json:"uptime_24h" nullable:"true" doc:"The uptime of this location over the last 24 hours, in percent. Null when it could not be read."`
+	Uptime24h  *float64              `json:"uptime_24h" nullable:"true" doc:"The uptime of this location over the last 24 hours, in percent. Null when it could not be read, or when the location has no Up or Down heartbeat in that period."`
 	Heartbeats []*PublicHeartbeatDTO `json:"heartbeats"`
 }
 
 type MonitorWithHeartbeatsAndUptimeDTO struct {
 	*PublicMonitorDTO
 	Heartbeats []*PublicHeartbeatDTO `json:"heartbeats"`
-	Uptime24h  float64               `json:"uptime_24h"`
+	Uptime24h  *float64              `json:"uptime_24h" nullable:"true" doc:"The uptime of this monitor over the last 24 hours, in percent. Null when it has no heartbeat in that period."`
 	// Locations are listed only when the status page shows them and the monitor runs on more than
 	// one probe.
 	Locations []*PublicLocationDTO `json:"locations,omitempty" doc:"One entry for each probe the monitor runs on, local first and then by name. Present only when the status page shows locations and the monitor runs on more than one probe."`

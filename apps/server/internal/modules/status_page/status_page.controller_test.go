@@ -35,12 +35,17 @@ func (s *locationsService) GetHeartbeats(_ context.Context, _, probeID string, _
 	return s.heartbeats[probeID], nil
 }
 
-func (s *locationsService) GetUptime24h(_ context.Context, _, probeID string) (float64, error) {
+// GetUptime24h answers nil for a probe that has no entry in uptimes: no heartbeats in the period
+func (s *locationsService) GetUptime24h(_ context.Context, _, probeID string) (*float64, error) {
 	s.uptimeCalls = append(s.uptimeCalls, probeID)
 	if err := s.uptimeErr[probeID]; err != nil {
-		return 0, err
+		return nil, err
 	}
-	return s.uptimes[probeID], nil
+	uptime, ok := s.uptimes[probeID]
+	if !ok {
+		return nil, nil
+	}
+	return &uptime, nil
 }
 
 func (s *locationsService) GetUptimeStats(context.Context, string, string) (*monitor.CustomUptimeStatsDto, error) {
@@ -69,6 +74,26 @@ func TestPublicLocations_ReadOnlyTheDayOfEachLocationWithOneStatsRead(t *testing
 	assert.Equal(t, 50.0, *got[1].Uptime24h)
 	assert.Equal(t, []string{shared.LocalProbeID, "fra"}, svc.uptimeCalls, "one read for each location, filtered by its probe")
 	assert.Zero(t, svc.statsCalls)
+}
+
+func TestPublicLocations_ALocationWithNoHeartbeatsInTheDayHasNullUptime(t *testing.T) {
+	up := shared.MonitorStatusUp
+	svc := &locationsService{uptimes: map[string]float64{shared.LocalProbeID: 0}}
+	core, _ := observer.New(zap.ErrorLevel)
+	c := &Controller{monitorService: svc, logger: zap.New(core).Sugar()}
+	m := &shared.Monitor{ID: "m1", Locations: []shared.MonitorLocation{
+		{ProbeID: shared.LocalProbeID, ProbeName: "Local", Status: &up},
+		{ProbeID: "fra", ProbeName: "Frankfurt", Status: &up},
+	}}
+
+	got, err := c.publicLocations(context.Background(), m, 10)
+
+	require.NoError(t, err)
+	require.Len(t, got, 2)
+	require.NotNil(t, got[0].Uptime24h, "all Down is 0%, not no data")
+	assert.Equal(t, 0.0, *got[0].Uptime24h)
+	assert.Equal(t, "Frankfurt", got[1].Name)
+	assert.Nil(t, got[1].Uptime24h)
 }
 
 func TestPublicLocations_ALocationWhoseUptimeCantBeReadIsListedWithNoUptime(t *testing.T) {

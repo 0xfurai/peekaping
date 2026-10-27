@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"testing"
@@ -86,11 +87,16 @@ func TestMonitorsAPI_HeartbeatsCarryTheirProbeAndTakeAProbeFilter(t *testing.T) 
 }
 
 type uptimeResponse struct {
-	ProbeID    string  `json:"probe_id"`
-	Uptime24h  float64 `json:"24h"`
-	Uptime7d   float64 `json:"7d"`
-	Uptime30d  float64 `json:"30d"`
-	Uptime365d float64 `json:"365d"`
+	ProbeID    string   `json:"probe_id"`
+	Uptime24h  *float64 `json:"24h"`
+	Uptime7d   *float64 `json:"7d"`
+	Uptime30d  *float64 `json:"30d"`
+	Uptime365d *float64 `json:"365d"`
+}
+
+// uptimeOf is the same percentage for every period
+func uptimeOf(probeID string, percent float64) uptimeResponse {
+	return uptimeResponse{ProbeID: probeID, Uptime24h: &percent, Uptime7d: &percent, Uptime30d: &percent, Uptime365d: &percent}
 }
 
 func TestMonitorsAPI_UptimeStatsTakeAProbeFilter(t *testing.T) {
@@ -106,16 +112,47 @@ func TestMonitorsAPI_UptimeStatsTakeAProbeFilter(t *testing.T) {
 	path := "/api/v1/monitors/" + id + "/stats/uptime"
 
 	all := decode[uptimeResponse](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
-	assert.Equal(t, uptimeResponse{Uptime24h: 75, Uptime7d: 75, Uptime30d: 75, Uptime365d: 75}, all, "without probe_id: every location's checks")
+	assert.Equal(t, uptimeOf("", 75), all, "without probe_id: every location's checks")
 
 	local := decode[uptimeResponse](t, a.request(t, http.MethodGet, path+"?probe_id=local", nil, a.asAdmin), http.StatusOK)
-	assert.Equal(t, uptimeResponse{ProbeID: "local", Uptime24h: 100, Uptime7d: 100, Uptime30d: 100, Uptime365d: 100}, local)
+	assert.Equal(t, uptimeOf("local", 100), local)
 
 	frankfurt := decode[uptimeResponse](t, a.request(t, http.MethodGet, path+"?probe_id=probe-frankfurt", nil, a.asAdmin), http.StatusOK)
-	assert.Equal(t, uptimeResponse{ProbeID: "probe-frankfurt", Uptime24h: 50, Uptime7d: 50, Uptime30d: 50, Uptime365d: 50}, frankfurt)
+	assert.Equal(t, uptimeOf("probe-frankfurt", 50), frankfurt)
 
 	oslo := decode[uptimeResponse](t, a.request(t, http.MethodGet, path+"?probe_id=probe-oslo", nil, a.asAdmin), http.StatusOK)
-	assert.Equal(t, uptimeResponse{ProbeID: "probe-oslo"}, oslo, "a probe that ran no checks of the monitor")
+	assert.Equal(t, uptimeResponse{ProbeID: "probe-oslo"}, oslo, "a probe that ran no checks of the monitor is null for every period, not 0")
+}
+
+func TestMonitorsAPI_UptimeStatsOfAMonitorWithoutHeartbeatsAreNull(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createMonitor(t, "Checkout", "checkout-push-token")
+	path := "/api/v1/monitors/" + id + "/stats/uptime"
+
+	got := decode[uptimeResponse](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+	assert.Equal(t, uptimeResponse{}, got)
+
+	// A *float64 can't tell null from an omitted key, so look at the raw JSON
+	raw := decode[map[string]json.RawMessage](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+	for _, period := range []string{"24h", "7d", "30d", "365d"} {
+		value, present := raw[period]
+		assert.True(t, present, "%s is present", period)
+		assert.JSONEq(t, "null", string(value), "%s is null", period)
+	}
+}
+
+func TestMonitorsAPI_UptimeStatsOfOnlyDownHeartbeatsAreZero(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createMonitor(t, "Checkout", "checkout-push-token")
+	at := time.Now().UTC().Add(-30 * time.Minute)
+	a.recordChecks(t, id, []probeCheck{
+		{probeID: "local", status: shared.MonitorStatusDown, at: at},
+		{probeID: "local", status: shared.MonitorStatusDown, at: at.Add(time.Second)},
+	})
+	path := "/api/v1/monitors/" + id + "/stats/uptime"
+
+	got := decode[uptimeResponse](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+	assert.Equal(t, uptimeOf("", 0), got, "all Down is 0%, which is not the same as no data")
 }
 
 type statPointResponse struct {

@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 	"time"
@@ -40,14 +41,14 @@ type publicHeartbeat struct {
 type publicLocation struct {
 	Name       string            `json:"name"`
 	Status     int               `json:"status"`
-	Uptime24h  float64           `json:"uptime_24h"`
+	Uptime24h  *float64          `json:"uptime_24h"`
 	Heartbeats []publicHeartbeat `json:"heartbeats"`
 }
 
 type publicMonitorWithLocations struct {
 	Name       string            `json:"name"`
 	Status     *int              `json:"status"`
-	Uptime24h  float64           `json:"uptime_24h"`
+	Uptime24h  *float64          `json:"uptime_24h"`
 	Heartbeats []publicHeartbeat `json:"heartbeats"`
 	Locations  []publicLocation  `json:"locations"`
 }
@@ -115,13 +116,13 @@ func TestPublicStatusPage_ListsEachLocationWhenTheSettingIsOn(t *testing.T) {
 			// Local first, then the others by name. The homepage payload carries each bar's latest heartbeat only.
 			if path == publicMonitorPaths[0] {
 				assert.Equal(t, []publicLocation{
-					{Name: "Local", Status: 1, Uptime24h: 100, Heartbeats: []publicHeartbeat{{Status: 1, Ping: 100}, {Status: 1, Ping: 110}}},
-					{Name: "Frankfurt", Status: 0, Uptime24h: 50, Heartbeats: []publicHeartbeat{{Status: 1, Ping: 300}, {Status: 0, Ping: 0}}},
+					{Name: "Local", Status: 1, Uptime24h: percent(100), Heartbeats: []publicHeartbeat{{Status: 1, Ping: 100}, {Status: 1, Ping: 110}}},
+					{Name: "Frankfurt", Status: 0, Uptime24h: percent(50), Heartbeats: []publicHeartbeat{{Status: 1, Ping: 300}, {Status: 0, Ping: 0}}},
 				}, checkout.Locations)
 			} else {
 				assert.Equal(t, []publicLocation{
-					{Name: "Local", Status: 1, Uptime24h: 100, Heartbeats: []publicHeartbeat{{Status: 1, Ping: 110}}},
-					{Name: "Frankfurt", Status: 0, Uptime24h: 50, Heartbeats: []publicHeartbeat{{Status: 0, Ping: 0}}},
+					{Name: "Local", Status: 1, Uptime24h: percent(100), Heartbeats: []publicHeartbeat{{Status: 1, Ping: 110}}},
+					{Name: "Frankfurt", Status: 0, Uptime24h: percent(50), Heartbeats: []publicHeartbeat{{Status: 0, Ping: 0}}},
 				}, checkout.Locations)
 			}
 
@@ -134,4 +135,63 @@ func TestPublicStatusPage_ListsEachLocationWhenTheSettingIsOn(t *testing.T) {
 			assert.NotContains(t, w.Body.String(), `"online"`)
 		})
 	}
+}
+
+func percent(v float64) *float64 { return &v }
+
+func TestPublicStatusPage_AMonitorWithNoHeartbeatsInTheDayHasNullUptime(t *testing.T) {
+	a := newAppWithAdmin(t)
+	idle := a.createHTTPMonitor(t, "Idle", "")
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{idle}})
+
+	for _, path := range publicMonitorPaths {
+		t.Run(path, func(t *testing.T) {
+			w := a.request(t, http.MethodGet, path, nil)
+			monitors := decode[[]publicMonitorWithLocations](t, w, http.StatusOK)
+			require.Len(t, monitors, 1)
+			assert.Nil(t, monitors[0].Uptime24h, "null, not a 0 that reads as an outage")
+
+			// A *float64 can't tell null from an omitted key, so look at the raw JSON
+			raw := decode[[]map[string]json.RawMessage](t, w, http.StatusOK)
+			require.Len(t, raw, 1)
+			value, present := raw[0]["uptime_24h"]
+			assert.True(t, present, "uptime_24h is present")
+			assert.JSONEq(t, "null", string(value), "uptime_24h is null")
+		})
+	}
+}
+
+func TestPublicStatusPage_AMonitorWhoseHeartbeatsAreAllDownHasZeroUptime(t *testing.T) {
+	a := newAppWithAdmin(t)
+	down := a.createHTTPMonitor(t, "Down", "")
+	at := time.Now().UTC().Add(-time.Hour)
+	a.recordLocationCheck(t, down, "local", shared.MonitorStatusDown, 0, at)
+	a.recordLocationCheck(t, down, "local", shared.MonitorStatusDown, 0, at.Add(time.Minute))
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{down}})
+
+	for _, path := range publicMonitorPaths {
+		t.Run(path, func(t *testing.T) {
+			monitors := decode[[]publicMonitorWithLocations](t, a.request(t, http.MethodGet, path, nil), http.StatusOK)
+			require.Len(t, monitors, 1)
+			assert.Equal(t, percent(0), monitors[0].Uptime24h, "all Down is 0%, which is not no data")
+		})
+	}
+}
+
+func TestPublicStatusPage_ALocationWithNoHeartbeatsInTheDayHasNullUptime(t *testing.T) {
+	a := newAppWithAdmin(t)
+	frankfurt := a.probeThatRuns(t, "Frankfurt", "http")
+	id := decode[created](t, a.request(t, http.MethodPost, monitorsPath, onProbes(httpMonitorBody("Checkout", ""), "local", frankfurt.ID), a.asAdmin), http.StatusCreated).ID
+	a.recordLocationCheck(t, id, "local", shared.MonitorStatusUp, 100, time.Now().UTC().Add(-time.Hour))
+	pageID := a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{id}})
+	decode[any](t, a.request(t, http.MethodPatch, "/api/v1/status-pages/"+pageID, map[string]any{"show_locations": true}, a.asAdmin), http.StatusOK)
+
+	monitors := decode[[]publicMonitorWithLocations](t, a.request(t, http.MethodGet, publicMonitorPaths[0], nil), http.StatusOK)
+	require.Len(t, monitors, 1)
+	assert.Equal(t, percent(100), monitors[0].Uptime24h)
+	require.Len(t, monitors[0].Locations, 2)
+	assert.Equal(t, "Local", monitors[0].Locations[0].Name)
+	assert.Equal(t, percent(100), monitors[0].Locations[0].Uptime24h)
+	assert.Equal(t, "Frankfurt", monitors[0].Locations[1].Name)
+	assert.Nil(t, monitors[0].Locations[1].Uptime24h, "Frankfurt ran no check in the day")
 }

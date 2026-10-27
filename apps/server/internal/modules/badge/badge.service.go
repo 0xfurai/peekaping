@@ -319,27 +319,19 @@ func (s *ServiceImpl) GenerateUptimeBadge(ctx context.Context, monitorID string,
 	}
 
 	// Determine which uptime to use based on duration
-	var uptime float64
+	var uptime *float64
 	var defaultSuffix string
 
 	if duration <= 24 {
 		defaultSuffix = "24h"
-		if data.Uptime24h != nil {
-			uptime = *data.Uptime24h
-		}
+		uptime = data.Uptime24h
 	} else if duration <= 720 { // 30 days
 		defaultSuffix = "30d"
-		if data.Uptime30d != nil {
-			uptime = *data.Uptime30d
-		}
+		uptime = data.Uptime30d
 	} else {
 		defaultSuffix = "90d"
-		if data.Uptime90d != nil {
-			uptime = *data.Uptime90d
-		}
+		uptime = data.Uptime90d
 	}
-
-	// Format uptime percentage (removed unused variable)
 
 	// Use custom suffix if provided, otherwise use default
 	suffix := options.Suffix
@@ -355,12 +347,20 @@ func (s *ServiceImpl) GenerateUptimeBadge(ctx context.Context, monitorID string,
 		labelText = labelText + " (" + defaultSuffix + ")"
 	}
 
+	var value, color string
+	if uptime != nil {
+		value, color = fmt.Sprintf("%.1f", *uptime), GetUptimeColor(*uptime)
+	} else {
+		// A period with no heartbeats is not 0% uptime: show it as missing, in grey, with no unit
+		value, suffix, color = "N/A", "", "#9f9f9f"
+	}
+
 	badge := &Badge{
 		Type:       BadgeTypeUptime,
 		Style:      options.Style,
 		Label:      labelText,
-		Value:      FormatValue(fmt.Sprintf("%.1f", uptime), options.Prefix, suffix),
-		Color:      GetUptimeColor(uptime),
+		Value:      FormatValue(value, options.Prefix, suffix),
+		Color:      color,
 		LabelColor: options.LabelColor,
 	}
 
@@ -378,24 +378,18 @@ func (s *ServiceImpl) GeneratePingBadge(ctx context.Context, monitorID string, d
 	}
 
 	// Determine which ping to use based on duration
-	var ping float64
+	var ping *float64
 	var defaultSuffix string
 
 	if duration <= 24 {
 		defaultSuffix = "24h"
-		if data.AvgPing24h != nil {
-			ping = *data.AvgPing24h
-		}
+		ping = data.AvgPing24h
 	} else if duration <= 720 { // 30 days
 		defaultSuffix = "30d"
-		if data.AvgPing30d != nil {
-			ping = *data.AvgPing30d
-		}
+		ping = data.AvgPing30d
 	} else {
 		defaultSuffix = "90d"
-		if data.AvgPing90d != nil {
-			ping = *data.AvgPing90d
-		}
+		ping = data.AvgPing90d
 	}
 
 	// Use custom suffix if provided, otherwise use default
@@ -412,11 +406,19 @@ func (s *ServiceImpl) GeneratePingBadge(ctx context.Context, monitorID string, d
 		labelText = labelText + " (" + defaultSuffix + ")"
 	}
 
+	value := "N/A"
+	if ping != nil {
+		value = fmt.Sprintf("%.0f", *ping)
+	} else {
+		// A missing figure takes no unit
+		suffix = ""
+	}
+
 	badge := &Badge{
 		Type:       BadgeTypePing,
 		Style:      options.Style,
 		Label:      labelText,
-		Value:      FormatValue(fmt.Sprintf("%.0f", ping), options.Prefix, suffix),
+		Value:      FormatValue(value, options.Prefix, suffix),
 		Color:      options.Color,
 		LabelColor: options.LabelColor,
 	}

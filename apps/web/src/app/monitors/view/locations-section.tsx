@@ -94,7 +94,7 @@ const LocationRow = ({
         </span>
         <span className="text-sm text-gray-400" data-testid="monitor-location-uptime">
           {t("monitors.view.stats.last_24_hours")}:{" "}
-          {uptime24h === undefined ? "-" : `${uptime24h.toLocaleString()} %`}
+          {uptime24h == null ? "-" : `${uptime24h.toLocaleString()} %`}
         </span>
         {!location.online && (
           <span className="text-sm text-orange-400" data-testid="monitor-location-offline">

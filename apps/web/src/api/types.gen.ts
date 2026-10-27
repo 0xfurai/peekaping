@@ -381,10 +381,22 @@ export type MonitorCreateUpdateDto = {
 };
 
 export type MonitorCustomUptimeStatsDto = {
-  "24h": number;
-  "30d": number;
-  "365d": number;
-  "7d": number;
+  /**
+   * The uptime over the last 24 hours, in percent. Null when the period has no Up or Down heartbeat.
+   */
+  "24h": number | null;
+  /**
+   * The uptime over the last 30 days, in percent. Null when the period has no Up or Down heartbeat.
+   */
+  "30d": number | null;
+  /**
+   * The uptime over the last 365 days, in percent. Null when the period has no Up or Down heartbeat.
+   */
+  "365d": number | null;
+  /**
+   * The uptime over the last 7 days, in percent. Null when the period has no Up or Down heartbeat.
+   */
+  "7d": number | null;
   /**
    * The probe the percentages count. Omitted when they count every probe's checks.
    */
@@ -930,7 +942,10 @@ export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
    */
   status: number;
   type: string;
-  uptime_24h: number;
+  /**
+   * The uptime of this monitor over the last 24 hours, in percent. Null when it has no heartbeat in that period.
+   */
+  uptime_24h: number | null;
 };
 
 export type StatusPagePublicHeartbeatDto = {
@@ -949,7 +964,7 @@ export type StatusPagePublicLocationDto = {
    */
   status: number;
   /**
-   * The uptime of this location over the last 24 hours, in percent. Null when it could not be read.
+   * The uptime of this location over the last 24 hours, in percent. Null when it could not be read, or when the location has no Up or Down heartbeat in that period.
    */
   uptime_24h: number | null;
 };

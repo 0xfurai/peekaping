@@ -109,11 +109,11 @@ type StatPointsSummaryDto struct {
 }
 
 // CustomUptimeStatsDto represents uptime percentages for 24h, 30d, 365d
-// All values are percentages (0-100)
+// All values are percentages (0-100), or null for a period with no Up or Down heartbeat
 type CustomUptimeStatsDto struct {
-	ProbeID    string  `json:"probe_id,omitempty" doc:"The probe the percentages count. Omitted when they count every probe's checks." example:"local"`
-	Uptime24h  float64 `json:"24h"`
-	Uptime7d   float64 `json:"7d"`
-	Uptime30d  float64 `json:"30d"`
-	Uptime365d float64 `json:"365d"`
+	ProbeID    string   `json:"probe_id,omitempty" doc:"The probe the percentages count. Omitted when they count every probe's checks." example:"local"`
+	Uptime24h  *float64 `json:"24h" doc:"The uptime over the last 24 hours, in percent. Null when the period has no Up or Down heartbeat."`
+	Uptime7d   *float64 `json:"7d" doc:"The uptime over the last 7 days, in percent. Null when the period has no Up or Down heartbeat."`
+	Uptime30d  *float64 `json:"30d" doc:"The uptime over the last 30 days, in percent. Null when the period has no Up or Down heartbeat."`
+	Uptime365d *float64 `json:"365d" doc:"The uptime over the last 365 days, in percent. Null when the period has no Up or Down heartbeat."`
 }

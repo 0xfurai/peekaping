@@ -124,9 +124,10 @@ func (m *MockMonitorService) FindOneByPushToken(ctx context.Context, pushToken s
 	return args.Get(0).(*shared.Monitor), args.Error(1)
 }
 
-func (m *MockMonitorService) GetUptime24h(ctx context.Context, id, probeID string) (float64, error) {
+func (m *MockMonitorService) GetUptime24h(ctx context.Context, id, probeID string) (*float64, error) {
 	args := m.Called(ctx, id, probeID)
-	return args.Get(0).(float64), args.Error(1)
+	uptime, _ := args.Get(0).(*float64)
+	return uptime, args.Error(1)
 }
 
 func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) error {
@@ -184,9 +185,9 @@ func (m *MockHeartbeatService) Delete(ctx context.Context, id string) error {
 	return args.Error(0)
 }
 
-func (m *MockHeartbeatService) FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]float64, error) {
+func (m *MockHeartbeatService) FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]*float64, error) {
 	args := m.Called(ctx, monitorID, periods, now)
-	return args.Get(0).(map[string]float64), args.Error(1)
+	return args.Get(0).(map[string]*float64), args.Error(1)
 }
 
 func (m *MockHeartbeatService) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
@@ -931,9 +932,39 @@ func TestServiceImpl_GenerateUptimeBadge(t *testing.T) {
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
 
 		assert.NoError(t, err)
-		assertBadge(t, result, "uptime (24h): 0.0%", "#e05d44")
+		assertBadge(t, result, "uptime (24h): N/A", "#9f9f9f")
 		mockMonitorService.AssertExpectations(t)
 		mockStatsService.AssertExpectations(t)
+	})
+
+	t.Run("an option colour wins over the grey of missing uptime data", func(t *testing.T) {
+		service, mockMonitorService, _, mockStatsService, _, _ := setupBadgeService()
+		monitorID := "monitor123"
+
+		options := DefaultBadgeOptions()
+		options.Color = "#123456"
+
+		mockMonitorService.On("FindByID", ctx, monitorID).Return(&shared.Monitor{ID: monitorID, Name: "Test Monitor", Active: true}, nil)
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(&stats.Stats{}, nil)
+
+		result, err := service.GenerateUptimeBadge(ctx, monitorID, 24, options)
+
+		assert.NoError(t, err)
+		assertBadge(t, result, "uptime (24h): N/A", "#123456")
+	})
+
+	t.Run("a period of only Down heartbeats reads 0.0% in red", func(t *testing.T) {
+		service, mockMonitorService, _, mockStatsService, _, _ := setupBadgeService()
+		monitorID := "monitor123"
+		down := 0.0
+
+		mockMonitorService.On("FindByID", ctx, monitorID).Return(&shared.Monitor{ID: monitorID, Name: "Test Monitor", Active: true}, nil)
+		mockStatsService.On("Summarize", ctx, monitorID, "", ago(24*time.Hour), ago(0)).Return(&stats.Stats{Uptime: &down}, nil)
+
+		result, err := service.GenerateUptimeBadge(ctx, monitorID, 24, DefaultBadgeOptions())
+
+		assert.NoError(t, err)
+		assertBadge(t, result, "uptime (24h): 0.0%", "#e05d44")
 	})
 
 	t.Run("custom badge options", func(t *testing.T) {
@@ -1029,7 +1060,7 @@ func TestServiceImpl_GeneratePingBadge(t *testing.T) {
 		result, err := service.GeneratePingBadge(ctx, monitorID, duration, options)
 
 		assert.NoError(t, err)
-		assertBadge(t, result, "ping (24h): 0ms", "#007ec6")
+		assertBadge(t, result, "ping (24h): N/A", "#007ec6")
 		mockMonitorService.AssertExpectations(t)
 		mockStatsService.AssertExpectations(t)
 	})
@@ -1751,8 +1782,8 @@ func TestServiceImpl_GenerateUptimeBadge_ErrorCases(t *testing.T) {
 
 		result, err := service.GenerateUptimeBadge(ctx, monitorID, duration, options)
 
-		assert.NoError(t, err) // Should not error on stats failure, but use default values
-		assertBadge(t, result, "uptime (24h): 0.0%", "#e05d44")
+		assert.NoError(t, err) // Should not error on stats failure, but show the figure as missing
+		assertBadge(t, result, "uptime (24h): N/A", "#9f9f9f")
 		mockMonitorService.AssertExpectations(t)
 		mockStatsService.AssertExpectations(t)
 	})
