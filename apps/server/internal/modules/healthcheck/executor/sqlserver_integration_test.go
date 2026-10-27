@@ -139,6 +139,12 @@ func TestSQLServerExecutor_Integration(t *testing.T) {
 		start := time.Now()
 		result := run(t, plainADO(unverifiedTLS+";Dial Timeout=2"), "SELECT 1 AS a INTO #held; WAITFOR DELAY '00:00:04'; SELECT a FROM #held")
 
+		t.Logf("DIAG dial=2 elapsed=%s status=%v msg=%q start=%s end=%s", time.Since(start), result.Status, result.Message, result.StartTime, result.EndTime)
+		for _, extra := range []string{unverifiedTLS, unverifiedTLS + ";Dial Timeout=30"} {
+			s2 := time.Now()
+			r2 := run(t, plainADO(extra), "SELECT 1 AS a INTO #held; WAITFOR DELAY '00:00:04'; SELECT a FROM #held")
+			t.Logf("DIAG %q elapsed=%s status=%v msg=%q", extra, time.Since(s2), r2.Status, r2.Message)
+		}
 		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
 		assert.Regexp(t, `columns: 1, rows: 1$`, result.Message)
 		assert.GreaterOrEqual(t, time.Since(start), 4*time.Second, "the query should have waited")
