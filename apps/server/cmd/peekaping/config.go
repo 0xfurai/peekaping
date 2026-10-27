@@ -27,6 +27,12 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in Validate()
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
+	// How the PostgreSQL connection negotiates TLS: "disable" sends none, "require" sends
+	// it without checking the certificate, "verify-ca" also checks the chain, and
+	// "verify-full" also checks the host name. Managed clusters usually need "require".
+	// MySQL and SQLite don't read it.
+	DBSSLMode string `env:"DB_SSL_MODE" validate:"omitempty,pg_ssl_mode" default:"disable"`
+
 	// Which check the process runs when it opens SQLite: quick (PRAGMA quick_check), full
 	// (PRAGMA integrity_check, which reads the whole file) or off. A finding stops startup.
 	SQLiteStartupCheck string `env:"SQLITE_STARTUP_CHECK" validate:"oneof=quick full off" default:"quick"`
@@ -237,6 +243,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		DBUser:                       c.DBUser,
 		DBPass:                       c.DBPass,
 		DBType:                       c.DBType,
+		DBSSLMode:                    c.DBSSLMode,
 		SQLiteStartupCheck:           c.SQLiteStartupCheck,
 		Mode:                         c.Mode,
 		LogLevel:                     c.LogLevel,

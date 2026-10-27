@@ -251,7 +251,9 @@ func TestLoadConfig_AnUnknownDBTypeStillGetsTheValidatorsMessage(t *testing.T) {
 }
 
 func TestLoadConfig_PostgresSSLModeDefaultsToDisable(t *testing.T) {
-	cfg, err := loadTestConfig(t, nil)
+	// An explicit empty value, so a developer with DB_SSL_MODE set in their shell still
+	// reads the default the config applies.
+	cfg, err := loadTestConfig(t, map[string]string{"DB_SSL_MODE": ""})
 
 	require.NoError(t, err)
 	assert.Equal(t, "disable", cfg.DBSSLMode)
