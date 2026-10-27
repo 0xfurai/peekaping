@@ -3,6 +3,7 @@ Content-Type: application/json
 User-Agent: Peekaping/<version>
 
 {
+  "alert_uid": "Peekaping/mon-1",
   "message": "200 - OK",
   "monitor_id": "mon-1",
   "monitor_type": "http",
