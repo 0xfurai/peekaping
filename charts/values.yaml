@@ -74,6 +74,9 @@ config:
     # For an external PostgreSQL and Redis, set your own hosts and ports.
     # DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
     # DB_PORT: "5432"
+    # How the PostgreSQL connection negotiates TLS: disable, allow, prefer, require,
+    # verify-ca or verify-full. A managed cluster that requires TLS usually needs require.
+    # DB_SSL_MODE: "disable"
     # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
     # REDIS_PORT: "6379"
     # Redis ACL username. Optional: set it for a Redis ACL user, omit it for password-only/default user auth.

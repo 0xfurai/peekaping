@@ -65,6 +65,9 @@ services:
       DB_USER: ${DB_USER:-postgres}
       DB_PASS: ${DB_PASS:-password}
       DB_NAME: ${DB_NAME:-peekaping}
+      # Managed clusters usually need TLS. "require" encrypts without checking the
+      # certificate; "verify-ca" and "verify-full" also check it. Defaults to "disable".
+      DB_SSL_MODE: ${DB_SSL_MODE:-disable}
       # Behind a reverse proxy, set TRUSTED_PROXIES in .env (see Reverse proxy and HTTPS)
       TRUSTED_PROXIES: ${TRUSTED_PROXIES-}
     depends_on:
@@ -83,6 +86,8 @@ PostgreSQL's major versions are upgraded through the official image, not through
 ### Another PostgreSQL server
 
 Single mode works with any PostgreSQL, such as a managed one. Remove the `postgres` service and the `depends_on`, and set `DB_HOST` and `DB_PORT` to the server's address, with `DB_USER`, `DB_PASS` and `DB_NAME` of a database that exists. The user needs to create tables in its public schema. `peekaping` creates its tables with the migrations at start.
+
+A managed cluster that requires TLS needs `DB_SSL_MODE` too: `require` encrypts the connection without checking the server's certificate, `verify-ca` checks the chain, and `verify-full` also checks that the certificate's host name matches `DB_HOST`. The default is `disable`, which sends no TLS at all.
 
 ### Settings
 

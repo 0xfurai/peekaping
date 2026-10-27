@@ -21,6 +21,19 @@ import (
 
 const sqliteRecoveryDocsURL = "https://docs.peekaping.com/self-hosting/sqlite-recovery"
 
+// postgresDSN builds the connection string for the PostgreSQL driver. sslmode comes
+// from DB_SSL_MODE; an empty value means "disable", because a Config built in code
+// rather than by LoadConfig has no default applied.
+func postgresDSN(cfg *config.Config) string {
+	sslMode := cfg.DBSSLMode
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName, sslMode)
+}
+
 func ProvideSQLDB(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -32,8 +45,7 @@ func ProvideSQLDB(
 	switch cfg.DBType {
 	case "postgres", "postgresql":
 		// PostgreSQL connection
-		dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
+		dsn := postgresDSN(cfg)
 
 		sqldb = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 		db = bun.NewDB(sqldb, pgdialect.New())

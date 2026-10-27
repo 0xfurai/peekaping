@@ -14,6 +14,7 @@ func RegisterCustomValidators(v *validator.Validate) {
 	v.RegisterValidation("numeric", validateNumeric)
 	v.RegisterValidation("port", validatePort)
 	v.RegisterValidation("db_type", validateDBType)
+	v.RegisterValidation("pg_ssl_mode", validatePGSSLMode)
 	v.RegisterValidation("log_level", validateLogLevel)
 }
 
@@ -74,7 +75,24 @@ func validateDBType(fl validator.FieldLevel) bool {
 	return false
 }
 
-// validateLogLevel validates that the log level is supported by zap
+// validatePGSSLMode validates that a string is one of the sslmode values the PostgreSQL
+// driver accepts. pgdriver is case sensitive and panics on a value it can't use, so the
+// check is exact: a mode that reaches the DSN unknown stops the process at startup
+// instead of at the first query.
+func validatePGSSLMode(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	validModes := []string{"disable", "allow", "prefer", "require", "verify-ca", "verify-full"}
+
+	for _, validMode := range validModes {
+		if value == validMode {
+			return true
+		}
+	}
+
+	return false
+}
+
+// validateLogLevel validates that a log level is supported by zap
 func validateLogLevel(fl validator.FieldLevel) bool {
 	logLevel := strings.ToLower(fl.Field().String())
 	validLevels := []string{"debug", "info", "warn", "warning", "error", "dpanic", "panic", "fatal"}
