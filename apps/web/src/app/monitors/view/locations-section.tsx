@@ -6,6 +6,7 @@ import {
   getMonitorsByIdStatsUptimeOptions,
 } from "@/api/@tanstack/react-query.gen";
 import BarHistory from "@/components/bars";
+import { NoData } from "@/components/no-data";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
 import { getMonitorStatusView } from "../components/monitor-status";
@@ -74,6 +75,7 @@ const LocationRow = ({
   const statusView = getMonitorStatusView(currentStatus(location, heartbeats));
   // The heartbeat has the response time of the latest check; the monitor's has it until one arrives
   const ping = latest?.ping ?? location.last_ping;
+  // undefined until the first response arrives: blank then, not "No data"
   const uptime24h = uptime?.data?.["24h"];
 
   return (
@@ -90,11 +92,15 @@ const LocationRow = ({
         </span>
         <span className="text-sm text-gray-400" data-testid="monitor-location-ping">
           {t("monitors.view.locations.response_time")}:{" "}
-          {ping === null || ping === undefined ? "-" : `${ping} ${t("timezone.ms")}`}
+          {ping == null ? <NoData /> : `${ping} ${t("timezone.ms")}`}
         </span>
         <span className="text-sm text-gray-400" data-testid="monitor-location-uptime">
           {t("monitors.view.stats.last_24_hours")}:{" "}
-          {uptime24h == null ? "-" : `${uptime24h.toLocaleString()} %`}
+          {uptime === undefined ? null : uptime24h == null ? (
+            <NoData />
+          ) : (
+            `${uptime24h.toLocaleString()} %`
+          )}
         </span>
         {!location.online && (
           <span className="text-sm text-orange-400" data-testid="monitor-location-offline">

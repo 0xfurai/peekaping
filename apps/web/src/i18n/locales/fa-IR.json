@@ -68,6 +68,7 @@
     "loading": "در حال بارگذاری...",
     "logout": "خروج",
     "maintenance": "نگهداری",
+    "no_data": "داده‌ای وجود ندارد",
     "no_options_found": "هیچ گزینه‌ای پیدا نشد",
     "no_tags_available": "هیچ برچسبی موجود نیست",
     "please_refresh_page": "لطفاً صفحه را تازه کنید.",

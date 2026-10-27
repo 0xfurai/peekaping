@@ -68,6 +68,7 @@
     "loading": "読み込み中…",
     "logout": "ログアウト",
     "maintenance": "メンテナンス",
+    "no_data": "データなし",
     "no_options_found": "オプションが見つかりません",
     "no_tags_available": "タグがありません",
     "please_refresh_page": "ページを更新してください。",

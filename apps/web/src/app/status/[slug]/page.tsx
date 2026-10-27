@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import type { StatusPageMonitorWithHeartbeatsAndUptimeDto } from "@/api/types.gen";
 import BarHistory from "@/components/bars";
+import { NoData } from "@/components/no-data";
 import { hasPublicLocations, publicMonitorStatus } from "../public-status";
 import { ThemeToggle } from "../../../components/theme-toggle";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -233,9 +234,24 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
     return { status: 1, text: t("status.messages.all_systems_operational") };
   };
 
-  const formatUptime = (uptime: number) => {
-    return `24h ${uptime.toFixed(2)}%`;
-  };
+  // The 24 hour uptime badge: a dash with a "No data" tooltip when the monitor or location had no
+  // heartbeats in the period
+  const uptimeBadge = (uptime: number | null | undefined) => (
+    <Badge
+      variant="outline"
+      className="flex items-center gap-1"
+      data-testid="status-page-uptime"
+    >
+      <TrendingUp className="h-3 w-3" />
+      {uptime == null ? (
+        <>
+          24h <NoData />
+        </>
+      ) : (
+        `24h ${uptime.toFixed(2)}%`
+      )}
+    </Badge>
+  );
 
   const overallStatus = getOverallStatus();
 
@@ -313,15 +329,7 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            {monitor.uptime_24h != null && (
-                              <Badge
-                                variant="outline"
-                                className="flex items-center gap-1"
-                              >
-                                <TrendingUp className="h-3 w-3" />
-                                {formatUptime(monitor.uptime_24h)}
-                              </Badge>
-                            )}
+                            {uptimeBadge(monitor.uptime_24h)}
 
                             <Badge
                               variant={
@@ -351,15 +359,7 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
                                     {location.name}
                                   </span>
                                   <div className="flex items-center gap-2">
-                                    {location.uptime_24h !== null && (
-                                      <Badge
-                                        variant="outline"
-                                        className="flex items-center gap-1"
-                                      >
-                                        <TrendingUp className="h-3 w-3" />
-                                        {formatUptime(location.uptime_24h)}
-                                      </Badge>
-                                    )}
+                                    {uptimeBadge(location.uptime_24h)}
                                     <Badge
                                       variant={getStatusVariant(location.status)}
                                       data-testid="status-page-location-status"

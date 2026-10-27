@@ -68,6 +68,7 @@
     "loading": "Laadimine...",
     "logout": "Logi välja",
     "maintenance": "Hooldus",
+    "no_data": "Andmed puuduvad",
     "no_options_found": "Valikuid ei leitud",
     "no_tags_available": "Siltid pole saadaval",
     "please_refresh_page": "Palun värskenda lehte.",
