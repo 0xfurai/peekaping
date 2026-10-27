@@ -23,7 +23,7 @@ type CreateUpdateDto struct {
 	TagIds          []string `json:"tag_ids" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
-	PushToken       string   `json:"push_token" doc:"For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept. A full update needs the token." example:"3KQ7WBH2ZV5XJYPN4D6TFAE2GM"`
+	PushToken       string   `json:"push_token" doc:"For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept. A full update needs the same token here and in config.pushToken." example:"3KQ7WBH2ZV5XJYPN4D6TFAE2GM"`
 	// ProbeIDs are the probes that run the monitor, one or more. A create without it runs on the
 	// local probe, and an update without it keeps the monitor's probes.
 	ProbeIDs []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only." example:"local"`
