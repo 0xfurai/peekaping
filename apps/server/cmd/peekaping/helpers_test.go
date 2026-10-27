@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -327,8 +328,8 @@ type socketClient struct {
 	packets chan string
 	// polls counts the long polls that got an answer
 	polls atomic.Int64
-	// pollStart is when the long poll that is open now was sent, in Unix nanoseconds, and 0 while
-	// none is open
+	// pollStart is when the long poll that is open now was written to the connection, in Unix
+	// nanoseconds, and 0 while none is open or it hasn't been written
 	pollStart atomic.Int64
 	// ended is set once the session is over: the reader stopped
 	ended atomic.Bool
@@ -396,8 +397,17 @@ func (c *socketClient) read() {
 	defer close(c.packets)
 	defer c.ended.Store(true)
 	for {
-		c.pollStart.Store(time.Now().UnixNano())
-		resp, err := http.Get(c.url)
+		// The clock of a long poll starts when its request has been written. That is the closest a
+		// client can get to "the server has the poll": a reader that was delayed before it sent
+		// the request doesn't count, and the answer can't come before the server has the request.
+		trace := &httptrace.ClientTrace{WroteRequest: func(httptrace.WroteRequestInfo) {
+			c.pollStart.Store(time.Now().UnixNano())
+		}}
+		req, err := http.NewRequestWithContext(httptrace.WithClientTrace(context.Background(), trace), http.MethodGet, c.url, nil)
+		if err != nil {
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return
 		}

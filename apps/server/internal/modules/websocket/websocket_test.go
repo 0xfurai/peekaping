@@ -36,8 +36,10 @@ import (
 const (
 	monitorA = "monitor-a"
 	monitorB = "monitor-b"
-	// probeMonitor is the monitor whose room a client joins to find out the server handles its joins
-	probeMonitor = "monitor-probe"
+	// probeMonitor and sentinelMonitor are the monitors whose rooms a client uses to find out that
+	// the server handles its join_room and leave_room
+	probeMonitor    = "monitor-probe"
+	sentinelMonitor = "monitor-sentinel"
 )
 
 // wait is how long a test waits for a packet, a join or a delivery. It only bounds a failure: a
@@ -102,8 +104,8 @@ func (h *harness) accessToken(t *testing.T) string {
 type client struct {
 	url     string
 	packets chan string
-	// handlingJoins is set once the server is known to handle the client's join_room
-	handlingJoins bool
+	// handlingRooms is set once the server is known to handle the client's join_room and leave_room
+	handlingRooms bool
 }
 
 type event struct {
@@ -256,29 +258,47 @@ func (c *client) until(t *testing.T, msg string) []event {
 }
 
 // join enters a room and waits until it delivers. It waits first until the server is handling the
-// client's join_room at all, so that it sends the room's join once: a join sent again could still
-// be pending when the test leaves the room, and put the client back in it.
+// client's join_room and leave_room at all, so that a room under test gets one join and one leave:
+// a join sent again could still be pending when the test leaves the room, and put the client back
+// in it.
 func (c *client) join(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
 	t.Helper()
-	c.waitUntilHandlingJoins(t, bus)
+	c.waitUntilHandlingRooms(t, bus)
 	c.emit(t, "join_room", room)
 	c.waitUntilJoined(t, bus, room, monitorID, false)
 }
 
-// waitUntilHandlingJoins joins a room of its own, with join_room sent again every few rounds, until
-// the client is in it. The server tells a client it is connected before its connection handler has
-// registered join_room, so a join sent right away can be dropped for good: only a later join works.
-// Once one has taken effect, the handler is registered and no join is dropped. A join sent again
-// can still be pending when this returns, which only puts the client in this room again.
-func (c *client) waitUntilHandlingJoins(t *testing.T, bus *eventstest.Bus) {
+// waitUntilHandlingRooms uses rooms of its own to wait until the server handles the client's
+// join_room and leave_room. The server tells a client it is connected before its connection handler
+// has registered them (join_room first, then leave_room), so a message sent right away can be
+// dropped for good: only a later one works. The client joins the probe room, with join_room sent
+// again every few rounds, and the sentinel room. It leaves the probe room, with leave_room sent
+// again each round, until a heartbeat for the sentinel room arrives with none for the probe room
+// before it. A message sent again can still be pending when this returns, which only affects
+// these rooms.
+func (c *client) waitUntilHandlingRooms(t *testing.T, bus *eventstest.Bus) {
 	t.Helper()
-	if c.handlingJoins {
+	if c.handlingRooms {
 		return
 	}
-	const room = "monitor:" + probeMonitor
-	c.emit(t, "join_room", room)
-	c.waitUntilJoined(t, bus, room, probeMonitor, true)
-	c.handlingJoins = true
+	probe, sentinel := "monitor:"+probeMonitor, "monitor:"+sentinelMonitor
+	c.emit(t, "join_room", probe)
+	c.waitUntilJoined(t, bus, probe, probeMonitor, true)
+	c.emit(t, "join_room", sentinel)
+	c.waitUntilJoined(t, bus, sentinel, sentinelMonitor, false)
+
+	deadline := time.Now().Add(wait)
+	for round := 0; ; round++ {
+		c.emit(t, "leave_room", probe)
+		probeMsg, sentinelMsg := fmt.Sprintf("probe-%d", round), fmt.Sprintf("sentinel-%d", round)
+		publishHeartbeat(t, bus, probeMonitor, probeMsg)
+		publishHeartbeat(t, bus, sentinelMonitor, sentinelMsg)
+		if !slices.Contains(messages(c.until(t, sentinelMsg)), probeMsg) {
+			break
+		}
+		require.True(t, time.Now().Before(deadline), "%s still delivers after leave_room", probe)
+	}
+	c.handlingRooms = true
 }
 
 // waitUntilJoined publishes test heartbeats for monitorID until one arrives, and with rejoin sends
