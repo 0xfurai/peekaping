@@ -36,8 +36,15 @@ import (
 const (
 	monitorA = "monitor-a"
 	monitorB = "monitor-b"
-	wait     = 3 * time.Second
 )
+
+// wait is how long a test waits for a packet, a join or a delivery. It only bounds a failure: a
+// test goes on as soon as the state is there, so the bound can fit a CI runner that the other
+// packages' tests starve.
+const wait = 30 * time.Second
+
+// rejoinEvery is how many rounds of waitUntilJoined pass before it sends join_room again
+const rejoinEvery = 10
 
 // publishHeartbeat publishes a heartbeat the way the ingester does.
 func publishHeartbeat(t *testing.T, bus *eventstest.Bus, monitorID, msg string) {
@@ -251,14 +258,16 @@ func (c *client) join(t *testing.T, bus *eventstest.Bus, room, monitorID string)
 	c.waitUntilJoined(t, bus, room, monitorID)
 }
 
-// waitUntilJoined publishes test heartbeats for monitorID until one arrives.
-// Socket.io runs each event handler in its own goroutine, so the room isn't
-// joined when the POST returns.
+// waitUntilJoined publishes test heartbeats for monitorID until one arrives, and sends join_room
+// again every few rounds. Socket.io runs each event handler in its own goroutine, so the room
+// isn't joined when the POST returns. And the server tells the client it is connected before its
+// connection handler has registered join_room, so a join sent right away can be dropped for good:
+// only a later join works.
 func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
 	t.Helper()
 	msg := "joined " + room
 	deadline := time.Now().Add(wait)
-	for {
+	for round := 1; ; round++ {
 		publishHeartbeat(t, bus, monitorID, msg)
 		select {
 		case packet, ok := <-c.packets:
@@ -269,6 +278,9 @@ func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monito
 		case <-time.After(20 * time.Millisecond):
 		}
 		require.True(t, time.Now().Before(deadline), "%s delivered nothing", room)
+		if round%rejoinEvery == 0 {
+			c.emit(t, "join_room", room)
+		}
 	}
 }
 
