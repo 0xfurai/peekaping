@@ -94,8 +94,10 @@ func TestScheduler_ACheckWaitingForASlotIsCancelledLikeARunningOne(t *testing.T)
 	t.Parallel()
 	h := newHarness(t, func(cfg *Config) { cfg.Concurrency = 1 })
 	tokens := h.holdChecks()
-	h.db.put(monitorWith("a", withInterval(day)))
-	h.db.put(monitorWith("b", withInterval(day)))
+	// The checks are held for longer than the waits below together: a check that timed out would
+	// free the slot before the edit cancels the waiting one
+	h.db.put(monitorWith("a", withInterval(day), withTimeout(120)))
+	h.db.put(monitorWith("b", withInterval(day), withTimeout(120)))
 	h.start()
 	eventually(t, 10*time.Second, func() bool { return h.exec.count() == 1 }, "one check holds the slot")
 	waiting := "a"

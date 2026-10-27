@@ -409,6 +409,7 @@ func (h *harness) publishDeleted(id string) {
 type monitorOption func(*shared.Monitor)
 
 func withInterval(seconds int) monitorOption { return func(m *shared.Monitor) { m.Interval = seconds } }
+func withTimeout(seconds int) monitorOption { return func(m *shared.Monitor) { m.Timeout = seconds } }
 func ofType(monitorType string) monitorOption {
 	return func(m *shared.Monitor) { m.Type = monitorType }
 }

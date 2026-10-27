@@ -36,6 +36,8 @@ import (
 const (
 	monitorA = "monitor-a"
 	monitorB = "monitor-b"
+	// probeMonitor is the monitor whose room a client joins to find out the server handles its joins
+	probeMonitor = "monitor-probe"
 )
 
 // wait is how long a test waits for a packet, a join or a delivery. It only bounds a failure: a
@@ -100,6 +102,8 @@ func (h *harness) accessToken(t *testing.T) string {
 type client struct {
 	url     string
 	packets chan string
+	// handlingJoins is set once the server is known to handle the client's join_room
+	handlingJoins bool
 }
 
 type event struct {
@@ -251,19 +255,36 @@ func (c *client) until(t *testing.T, msg string) []event {
 	}
 }
 
-// join enters a room and waits until it delivers.
+// join enters a room and waits until it delivers. It waits first until the server is handling the
+// client's join_room at all, so that it sends the room's join once: a join sent again could still
+// be pending when the test leaves the room, and put the client back in it.
 func (c *client) join(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
 	t.Helper()
+	c.waitUntilHandlingJoins(t, bus)
 	c.emit(t, "join_room", room)
-	c.waitUntilJoined(t, bus, room, monitorID)
+	c.waitUntilJoined(t, bus, room, monitorID, false)
 }
 
-// waitUntilJoined publishes test heartbeats for monitorID until one arrives, and sends join_room
-// again every few rounds. Socket.io runs each event handler in its own goroutine, so the room
-// isn't joined when the POST returns. And the server tells the client it is connected before its
-// connection handler has registered join_room, so a join sent right away can be dropped for good:
-// only a later join works.
-func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
+// waitUntilHandlingJoins joins a room of its own, with join_room sent again every few rounds, until
+// the client is in it. The server tells a client it is connected before its connection handler has
+// registered join_room, so a join sent right away can be dropped for good: only a later join works.
+// Once one has taken effect, the handler is registered and no join is dropped. A join sent again
+// can still be pending when this returns, which only puts the client in this room again.
+func (c *client) waitUntilHandlingJoins(t *testing.T, bus *eventstest.Bus) {
+	t.Helper()
+	if c.handlingJoins {
+		return
+	}
+	const room = "monitor:" + probeMonitor
+	c.emit(t, "join_room", room)
+	c.waitUntilJoined(t, bus, room, probeMonitor, true)
+	c.handlingJoins = true
+}
+
+// waitUntilJoined publishes test heartbeats for monitorID until one arrives, and with rejoin sends
+// join_room again every few rounds. Socket.io runs each event handler in its own goroutine, so the
+// room isn't joined when the POST returns.
+func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monitorID string, rejoin bool) {
 	t.Helper()
 	msg := "joined " + room
 	deadline := time.Now().Add(wait)
@@ -278,7 +299,7 @@ func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monito
 		case <-time.After(20 * time.Millisecond):
 		}
 		require.True(t, time.Now().Before(deadline), "%s delivered nothing", room)
-		if round%rejoinEvery == 0 {
+		if rejoin && round%rejoinEvery == 0 {
 			c.emit(t, "join_room", room)
 		}
 	}
