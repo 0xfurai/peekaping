@@ -175,8 +175,9 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
       case 1: // Up
         return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 0: // Down
-      case 2: // Down
         return <XCircle className="h-5 w-5 text-red-500" />;
+      case 2: // Pending, in the colour the monitor list gives it
+        return <Clock className="h-5 w-5 text-orange-500" />;
       case 3: // Maintenance
         return <Clock className="h-5 w-5 text-blue-500" />;
       default:
@@ -189,8 +190,9 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
       case 1:
         return t("status.messages.operational");
       case 0:
-      case 2:
         return t("status.messages.down");
+      case 2:
+        return t("monitors.view.status.pending");
       case 3:
         return t("status.messages.maintenance");
       default:
@@ -205,7 +207,6 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
       case 1:
         return "default";
       case 0:
-      case 2:
         return "destructive";
       case 3:
         return "secondary";
@@ -218,11 +219,10 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
     if (monitors.length === 0)
       return { status: 1, text: t("status.messages.all_systems_operational") };
 
+    // Pending isn't Down yet: a monitor that is retrying or hasn't been checked is no outage
     const hasDown = monitors.some(
-      (m: StatusPageMonitorWithHeartbeatsAndUptimeDto) => {
-        const status = publicMonitorStatus(m);
-        return status === 0 || status === 2;
-      }
+      (m: StatusPageMonitorWithHeartbeatsAndUptimeDto) =>
+        publicMonitorStatus(m) === 0
     );
     const hasMaintenance = monitors.some(
       (m: StatusPageMonitorWithHeartbeatsAndUptimeDto) =>
@@ -288,7 +288,12 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
           {/* Overall Status */}
           <div className="flex items-center justify-center gap-2 mb-6">
             {getStatusIcon(overallStatus.status)}
-            <span className="text-lg font-semibold">{overallStatus.text}</span>
+            <span
+              className="text-lg font-semibold"
+              data-testid="status-page-overall-status"
+            >
+              {overallStatus.text}
+            </span>
           </div>
 
           {/* Monitors */}
@@ -335,6 +340,7 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
                               variant={
                                 getStatusVariant(monitorStatus)
                               }
+                              data-testid="status-page-monitor-status"
                             >
                               {getStatusText(monitorStatus || 0)}
                             </Badge>
