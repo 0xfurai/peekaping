@@ -3091,7 +3091,7 @@ components:
       type: http
 info:
   title: Peekaping API
-  version: 0.0.47
+  version: 0.0.48
 openapi: 3.1.0
 paths:
   /api/v1/api-keys:
