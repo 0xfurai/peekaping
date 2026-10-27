@@ -190,9 +190,17 @@ func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatL
 
 		// Get the latest heartbeats for this monitor
 		heartbeats, err := c.heartbeatService.FindByMonitorIDPaginated(ctx, msp.MonitorID, heartbeatLimit, 0, nil, true)
+		neverChecked := err == nil && len(heartbeats) == 0
 		if err != nil {
 			c.logger.Errorw("Failed to get heartbeats for monitor", "error", err, "monitorID", msp.MonitorID)
 			heartbeats = []*heartbeat.Model{} // Empty slice if error
+		}
+
+		// A monitor that has never been checked is Pending, whatever its row stores: an older row or an
+		// import may store Down, the column's default
+		status := monitorModel.Status
+		if neverChecked {
+			status = shared.MonitorStatusPending
 		}
 
 		// Get 24h uptime for this monitor
@@ -218,7 +226,7 @@ func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatL
 				Type:   monitorModel.Type,
 				Name:   monitorModel.Name,
 				Active: monitorModel.Active,
-				Status: monitorModel.Status,
+				Status: status,
 			},
 			Heartbeats: publicHeartbeats(heartbeats),
 			Uptime24h:  uptime24h,
