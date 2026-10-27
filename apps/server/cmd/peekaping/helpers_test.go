@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -327,6 +328,11 @@ type socketClient struct {
 	packets chan string
 	// polls counts the long polls that got an answer
 	polls atomic.Int64
+	// pollStart is when the long poll that is open now was written to the connection, in Unix
+	// nanoseconds, and 0 while none is open or it hasn't been written
+	pollStart atomic.Int64
+	// ended is set once the session is over: the reader stopped
+	ended atomic.Bool
 }
 
 // socketEvent is a heartbeat the websocket pushed
@@ -389,13 +395,25 @@ func (c *socketClient) post(packet string) error {
 
 func (c *socketClient) read() {
 	defer close(c.packets)
+	defer c.ended.Store(true)
 	for {
-		resp, err := http.Get(c.url)
+		// The clock of a long poll starts when its request has been written. That is the closest a
+		// client can get to "the server has the poll": a reader that was delayed before it sent
+		// the request doesn't count, and the answer can't come before the server has the request.
+		trace := &httptrace.ClientTrace{WroteRequest: func(httptrace.WroteRequestInfo) {
+			c.pollStart.Store(time.Now().UnixNano())
+		}}
+		req, err := http.NewRequestWithContext(httptrace.WithClientTrace(context.Background(), trace), http.MethodGet, c.url, nil)
+		if err != nil {
+			return
+		}
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return
 		}
 		body, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
+		c.pollStart.Store(0)
 		c.polls.Add(1)
 		if err != nil || resp.StatusCode != http.StatusOK {
 			return
@@ -448,6 +466,30 @@ func (c *socketClient) join(t *testing.T, room string) {
 	packet, err := json.Marshal([]string{"join_room", room})
 	require.NoError(t, err)
 	require.NoError(t, c.post("42"+string(packet)))
+}
+
+// holdsAPollOpenFor waits until one long poll has been waiting for the duration, and fails if the
+// session ends first, or if no long poll stays open that long within wait. A long poll that ends
+// with a heartbeat to deliver isn't a failure: a monitor of the app can be due while the test
+// waits. The next long poll is then the one waited for.
+func (c *socketClient) holdsAPollOpenFor(t *testing.T, d time.Duration) {
+	t.Helper()
+	deadline := time.Now().Add(wait)
+	for time.Now().Before(deadline) {
+		// The poll counter is read first: a poll that ends after it changes the counter before
+		// the next one is sent, so a start read under the same count is that poll's
+		polls := c.polls.Load()
+		start := c.pollStart.Load()
+		if c.ended.Load() {
+			require.FailNow(t, "the session ended before the push: a long poll was cut short")
+		}
+		open := time.Since(time.Unix(0, start))
+		if start != 0 && open >= d && c.polls.Load() == polls {
+			return // this poll had been open for the whole duration when no answer had come yet
+		}
+		time.Sleep(10 * time.Millisecond) // no long poll is open yet, or one ended or hasn't waited long enough
+	}
+	require.FailNow(t, fmt.Sprintf("no long poll stayed open for %s within %s", d, wait))
 }
 
 // until reads heartbeats until one matches and returns it

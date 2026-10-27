@@ -36,8 +36,19 @@ import (
 const (
 	monitorA = "monitor-a"
 	monitorB = "monitor-b"
-	wait     = 3 * time.Second
+	// probeMonitor and sentinelMonitor are the monitors whose rooms a client uses to find out that
+	// the server handles its join_room and leave_room
+	probeMonitor    = "monitor-probe"
+	sentinelMonitor = "monitor-sentinel"
 )
+
+// wait is how long a test waits for a packet, a join or a delivery. It only bounds a failure: a
+// test goes on as soon as the state is there, so the bound can fit a CI runner that the other
+// packages' tests starve.
+const wait = 30 * time.Second
+
+// rejoinEvery is how many rounds of waitUntilJoined pass before it sends join_room again
+const rejoinEvery = 10
 
 // publishHeartbeat publishes a heartbeat the way the ingester does.
 func publishHeartbeat(t *testing.T, bus *eventstest.Bus, monitorID, msg string) {
@@ -93,6 +104,8 @@ func (h *harness) accessToken(t *testing.T) string {
 type client struct {
 	url     string
 	packets chan string
+	// handlingRooms is set once the server is known to handle the client's join_room and leave_room
+	handlingRooms bool
 }
 
 type event struct {
@@ -244,21 +257,58 @@ func (c *client) until(t *testing.T, msg string) []event {
 	}
 }
 
-// join enters a room and waits until it delivers.
+// join enters a room and waits until it delivers. It waits first until the server is handling the
+// client's join_room and leave_room at all, so that a room under test gets one join and one leave:
+// a join sent again could still be pending when the test leaves the room, and put the client back
+// in it.
 func (c *client) join(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
 	t.Helper()
+	c.waitUntilHandlingRooms(t, bus)
 	c.emit(t, "join_room", room)
-	c.waitUntilJoined(t, bus, room, monitorID)
+	c.waitUntilJoined(t, bus, room, monitorID, false)
 }
 
-// waitUntilJoined publishes test heartbeats for monitorID until one arrives.
-// Socket.io runs each event handler in its own goroutine, so the room isn't
-// joined when the POST returns.
-func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
+// waitUntilHandlingRooms uses rooms of its own to wait until the server handles the client's
+// join_room and leave_room. The server tells a client it is connected before its connection handler
+// has registered them (join_room first, then leave_room), so a message sent right away can be
+// dropped for good: only a later one works. The client joins the probe room, with join_room sent
+// again every few rounds, and the sentinel room. It leaves the probe room, with leave_room sent
+// again each round, until a heartbeat for the sentinel room arrives with none for the probe room
+// before it. A message sent again can still be pending when this returns, which only affects
+// these rooms.
+func (c *client) waitUntilHandlingRooms(t *testing.T, bus *eventstest.Bus) {
+	t.Helper()
+	if c.handlingRooms {
+		return
+	}
+	probe, sentinel := "monitor:"+probeMonitor, "monitor:"+sentinelMonitor
+	c.emit(t, "join_room", probe)
+	c.waitUntilJoined(t, bus, probe, probeMonitor, true)
+	c.emit(t, "join_room", sentinel)
+	c.waitUntilJoined(t, bus, sentinel, sentinelMonitor, false)
+
+	deadline := time.Now().Add(wait)
+	for round := 0; ; round++ {
+		c.emit(t, "leave_room", probe)
+		probeMsg, sentinelMsg := fmt.Sprintf("probe-%d", round), fmt.Sprintf("sentinel-%d", round)
+		publishHeartbeat(t, bus, probeMonitor, probeMsg)
+		publishHeartbeat(t, bus, sentinelMonitor, sentinelMsg)
+		if !slices.Contains(messages(c.until(t, sentinelMsg)), probeMsg) {
+			break
+		}
+		require.True(t, time.Now().Before(deadline), "%s still delivers after leave_room", probe)
+	}
+	c.handlingRooms = true
+}
+
+// waitUntilJoined publishes test heartbeats for monitorID until one arrives, and with rejoin sends
+// join_room again every few rounds. Socket.io runs each event handler in its own goroutine, so the
+// room isn't joined when the POST returns.
+func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monitorID string, rejoin bool) {
 	t.Helper()
 	msg := "joined " + room
 	deadline := time.Now().Add(wait)
-	for {
+	for round := 1; ; round++ {
 		publishHeartbeat(t, bus, monitorID, msg)
 		select {
 		case packet, ok := <-c.packets:
@@ -269,6 +319,9 @@ func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monito
 		case <-time.After(20 * time.Millisecond):
 		}
 		require.True(t, time.Now().Before(deadline), "%s delivered nothing", room)
+		if rejoin && round%rejoinEvery == 0 {
+			c.emit(t, "join_room", room)
+		}
 	}
 }
 
