@@ -32,7 +32,7 @@
 postgresql:
   enabled: false
   image:
-    digest: sha256:889db6427034525f50071945ddf808fbb77f8a52c2c8d3a7a75d39a167373566 # PostgreSQL 18.6.0
+    digest: sha256:9834b9d958f73a6c79457af08ebdbb8651fcb51e5efbad22b96636637316c26e # PostgreSQL 18.6.0
   # auth:
   #   username: peekaping
   #   password: peekaping
@@ -41,7 +41,7 @@ postgresql:
 redis:
   enabled: false
   image:
-    digest: sha256:33dbb7a4be39e73f0d5178e9040061ecb708946f55169657aa6897ba0a2c71d9 # Redis 8.10.2
+    digest: sha256:37c559e3894161f1b1122353a54938e30299383ae801417debda7d3e7d69490a # Redis 8.10.3
   # Standalone avoids the subchart's default replicas.
   # architecture: standalone
   # auth:
