@@ -3,15 +3,15 @@ Content-Type: application/json
 
 {
   "event_type": "create",
-  "Id": "Peekaping/probe-1",
-  "Title": "Probe Frankfurt is offline",
-  "Description": "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC",
+  "id": "Peekaping/probe-1",
+  "title": "Probe Frankfurt is offline",
+  "description": "Probe Frankfurt has been offline since 2026-10-22 08:30:00 UTC",
   "urgency": "medium",
-  "Tags": [
+  "tags": [
     "peekaping",
     "monitor-type:probe"
   ],
-  "Meta": {
+  "meta": {
     "monitor_id": "probe-1",
     "monitor_name": "Probe Frankfurt",
     "monitor_type": "probe",
