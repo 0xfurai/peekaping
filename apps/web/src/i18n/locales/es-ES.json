@@ -502,7 +502,8 @@
           "heartbeat_retry": "Intervalo de reintentos de latido (Reintentar cada {{seconds}} segundos)",
           "max_retries_description": "Reintentos máximos antes de que el servicio se marque como caído y se envíe una notificación",
           "request_timeout": "Tiempo de espera agotado (Se agotó el tiempo de espera después de {{seconds}} segundos)",
-          "resend_notification": "Reenviar notificación si está caído X veces consecutivas (Reenviar deshabilitado)"
+          "resend_notification": "Reenviar notificación si está caído X veces consecutivas (Reenviar deshabilitado)",
+          "timeout_too_long": "No puede ser más del 80 % del intervalo de comprobación"
         },
         "location_rule": {
           "all": "todas las ubicaciones estén caídas",

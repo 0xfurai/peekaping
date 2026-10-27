@@ -502,7 +502,8 @@
           "heartbeat_retry": "Heartbeat Genforsøgsinterval (Genforsøg hver {{seconds}} sekunder)",
           "max_retries_description": "Maksimale forsøg, før tjenesten betragtes som ned, og en notifikation sendes.",
           "request_timeout": "Anmodning timeout (Timeout efter {{seconds}} sekunder)",
-          "resend_notification": "Gen-send, hvis ned X gange i træk (Gen-send deaktiveret)"
+          "resend_notification": "Gen-send, hvis ned X gange i træk (Gen-send deaktiveret)",
+          "timeout_too_long": "Må ikke være mere end 80 % af kontrolintervallet"
         },
         "location_rule": {
           "all": "alle placeringer er nede",

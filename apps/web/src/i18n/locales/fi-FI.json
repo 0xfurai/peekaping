@@ -502,7 +502,8 @@
           "heartbeat_retry": "Sydämen tarkistuksen uudelleenyritysaika (Uudelleenyrittää joka {{seconds}} sekuntia)",
           "max_retries_description": "Enimmäismäärä yrityksiä ennen kuin palvelu merkitään alas ja ilmoitus lähetetään",
           "request_timeout": "Pyyntö aikakatkaisu (Aika {{seconds}} sekunnin kuluttua)",
-          "resend_notification": "Lähetä ilmoitus uudelleen, jos Down X kertaa peräkkäin (Uudelleenlähetys poistettu käytöstä)"
+          "resend_notification": "Lähetä ilmoitus uudelleen, jos Down X kertaa peräkkäin (Uudelleenlähetys poistettu käytöstä)",
+          "timeout_too_long": "Ei voi olla yli 80 % tarkistusvälistä"
         },
         "location_rule": {
           "all": "kaikki sijainnit ovat alhaalla",

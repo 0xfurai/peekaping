@@ -502,7 +502,8 @@
           "heartbeat_retry": "Interval de reîncercare a semnalului de viață (reîncearcă la fiecare {{seconds}} secunde)",
           "max_retries_description": "Numărul maxim de încercări înainte ca serviciul să fie marcat ca inactiv și să se trimită o notificare.",
           "request_timeout": "Timeout cerere (Timeout după {{seconds}} secunde)",
-          "resend_notification": "Retrimitere notificare dacă serviciul e indisponibil X ori consecutiv (Retrimitere dezactivată)"
+          "resend_notification": "Retrimitere notificare dacă serviciul e indisponibil X ori consecutiv (Retrimitere dezactivată)",
+          "timeout_too_long": "Nu poate fi mai mare de 80% din intervalul de verificare"
         },
         "location_rule": {
           "all": "toate locațiile sunt nefuncționale",

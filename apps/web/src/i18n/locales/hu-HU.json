@@ -502,7 +502,8 @@
           "heartbeat_retry": "Szívverés újrapróbálkozási intervallum (újrapróbálkozás minden {{seconds}} másodpercben)",
           "max_retries_description": "A szolgáltatás leállásáig és értesítés küldéséig maximális újrapróbálkozások száma",
           "request_timeout": "Kérés időtúllépés ({{seconds}} másodperc után)",
-          "resend_notification": "Értesítés újraküldése, ha X alkalommal egymás után le van (újraküldés letiltva)"
+          "resend_notification": "Értesítés újraküldése, ha X alkalommal egymás után le van (újraküldés letiltva)",
+          "timeout_too_long": "Nem lehet több az ellenőrzési időköz 80%-ánál"
         },
         "location_rule": {
           "all": "minden helyszín nem elérhető",

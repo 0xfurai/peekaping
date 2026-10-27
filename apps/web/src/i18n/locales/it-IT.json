@@ -502,7 +502,8 @@
           "heartbeat_retry": "Intervallo di ritentativo del Heartbeat (Ripeti ogni {{seconds}} secondi)",
           "max_retries_description": "Numero massimo di tentativi prima che il servizio sia contrassegnato come inattivo e venga inviata una notifica",
           "request_timeout": "Timeout della Richiesta (Timeout dopo {{seconds}} secondi)",
-          "resend_notification": "Rinvia notifica se il servizio è down X volte consecutivamente (Rinviamento disabilitato)"
+          "resend_notification": "Rinvia notifica se il servizio è down X volte consecutivamente (Rinviamento disabilitato)",
+          "timeout_too_long": "Non può superare l'80% dell'intervallo di controllo"
         },
         "location_rule": {
           "all": "tutte le posizioni non sono disponibili",
