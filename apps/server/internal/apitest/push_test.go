@@ -134,6 +134,20 @@ func TestPush_APIClientCreatesAPushMonitorWithTheTokenOnlyAtTheTopLevel(t *testi
 	assert.Len(t, a.storedHeartbeats(t, monitor.ID), 1)
 }
 
+func TestPush_APIClientCreatesAPushMonitorWithTheTokenOnlyInConfig(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	monitor := a.createPushMonitorWithout(t, map[string]any{"config": `{"pushToken":"config-only-token"}`})
+
+	assert.Equal(t, "config-only-token", monitor.PushToken)
+	assert.Equal(t, "config-only-token", configToken(t, monitor.Config))
+	assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/config-only-token?status=up&msg=done", nil).Code)
+	beats := a.storedHeartbeats(t, monitor.ID)
+	require.Len(t, beats, 1)
+	assert.Equal(t, shared.MonitorStatusUp, beats[0].Status)
+	assert.Equal(t, "done", beats[0].Msg)
+}
+
 func TestPush_CreateKeepsATokenTheClientSends(t *testing.T) {
 	a := newAppWithAdmin(t)
 
