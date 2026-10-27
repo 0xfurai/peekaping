@@ -92,6 +92,63 @@ func TestIngester_AMonitorsFirstHeartbeatOnAProbeNotifiesOnlyWhenUpOrDown(t *tes
 	})
 }
 
+func TestIngester_ALocationsFirstFailedCheckUsesTheMaxRetries(t *testing.T) {
+	t.Run("the monitor's first check, on a probe, is Pending and sends nothing", func(t *testing.T) {
+		ti := newTestIngester(runningOn(probeA, probeB))
+		m := monitorSettings{maxRetries: 2}
+
+		first := ti.from(t, probeB, m, down)
+		assert.Equal(t, pending, first.status)
+		assert.Equal(t, 1, first.retries)
+		assert.True(t, first.important)
+		assert.False(t, first.notified)
+		assert.Equal(t, []string{changed}, first.events)
+
+		assert.Equal(t, pending, ti.from(t, probeB, m, down).status)
+		third := ti.from(t, probeB, m, down)
+		assert.Equal(t, down, third.status, "the retries are used up")
+		assert.Equal(t, []string{changed, notified}, third.events)
+	})
+
+	t.Run("a second location's first failed check is Pending, and the monitor stays Up until its retries are used up", func(t *testing.T) {
+		ti := newTestIngester(runningOn(probeA, probeB))
+		// The location rule is any: the monitor is Down while any location is Down, and A stays Up
+		m := monitorSettings{maxRetries: 2, locationRule: shared.LocationRuleAny}
+		ti.from(t, probeA, m, up)
+
+		first := ti.from(t, probeB, m, down)
+		assert.Equal(t, pending, first.status)
+		assert.Equal(t, 1, first.retries)
+		assert.False(t, first.important)
+		assert.Empty(t, first.events)
+
+		second := ti.from(t, probeB, m, down)
+		assert.Equal(t, pending, second.status, "still has a retry left")
+		assert.Equal(t, 2, second.retries)
+		assert.False(t, second.important)
+		assert.False(t, second.notified)
+		assert.Empty(t, second.events, "the monitor stays Up and nothing is sent")
+
+		third := ti.from(t, probeB, m, down)
+		assert.Equal(t, down, third.status, "the location's retries are used up")
+		assert.Equal(t, 3, third.retries)
+		assert.True(t, third.important, "any location Down takes the monitor Down, with A still Up")
+		assert.True(t, third.notified)
+		assert.Equal(t, []string{changed, notified}, third.events)
+	})
+
+	t.Run("with max retries 0 it is Down and notifies", func(t *testing.T) {
+		ti := newTestIngester(runningOn(probeA, probeB))
+		m := monitorSettings{}
+		ti.from(t, probeA, m, up)
+
+		first := ti.from(t, probeB, m, down)
+
+		assert.Equal(t, down, first.status)
+		assert.Equal(t, []string{changed, notified}, first.events)
+	})
+}
+
 func TestIngester_TheMonitorIsDownWhileAnyLocationIsDown(t *testing.T) {
 	ti := newTestIngester(runningOn(probeA, probeB))
 	m := monitorSettings{maxRetries: 0}
@@ -298,7 +355,7 @@ func TestIngester_RecordsTheLocationsState(t *testing.T) {
 	got := ti.locations.records[0]
 	assert.Equal(t, probeA, got.ProbeID)
 	require.NotNil(t, got.Status)
-	assert.Equal(t, down, *got.Status, "the first heartbeat of a location skips Pending, as before")
+	assert.Equal(t, pending, *got.Status, "the first failed check of a location is Pending while it has retries left")
 	require.NotNil(t, got.LastPing)
 	assert.Equal(t, 321, *got.LastPing)
 	require.NotNil(t, got.LastHeartbeatAt)
