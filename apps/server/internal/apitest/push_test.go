@@ -56,6 +56,45 @@ func TestPush_StoresAHeartbeatForAPushMonitor(t *testing.T) {
 	assert.Equal(t, shared.LocalProbeID, beats[0].ProbeID)
 }
 
+// A push monitor created with the token only inside config.pushToken, the way an API
+// client that doesn't know about the top-level field sends it, is still reachable at its
+// push URL: the push endpoint looks the monitor up by the push_token column, which the
+// create fills from the config when the top-level field is absent.
+func TestPush_TokenOnlyInConfigIsReachable(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	body := pushMonitorBody("Nightly backup", "config-only-token")
+	delete(body, "push_token")
+	monitorID := decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated).ID
+
+	w := a.request(t, http.MethodGet, "/api/v1/push/config-only-token?status=up", nil)
+
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	beats := a.storedHeartbeats(t, monitorID)
+	require.Len(t, beats, 1)
+	assert.Equal(t, shared.MonitorStatusUp, beats[0].Status)
+}
+
+// A full update that moves the token into config alone keeps the monitor reachable, and
+// a partial update that sends neither token field leaves the stored one alone.
+func TestPush_TokenSurvivesAnUpdateThatOnlySendsConfig(t *testing.T) {
+	a := newAppWithAdmin(t)
+	monitorID := a.createMonitor(t, "Nightly backup", "original-token")
+
+	full := pushMonitorBody("Nightly backup", "rotated-token")
+	delete(full, "push_token")
+	decode[any](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+monitorID, full, a.asAdmin), http.StatusOK)
+
+	w := a.request(t, http.MethodGet, "/api/v1/push/rotated-token?status=up", nil)
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	// A partial update that touches neither token field must not clear the column.
+	decode[any](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+monitorID, map[string]any{"name": "Renamed backup"}, a.asAdmin), http.StatusOK)
+
+	w = a.request(t, http.MethodGet, "/api/v1/push/rotated-token?status=up", nil)
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+}
+
 func TestPush_IgnoresMalformedResponseTime(t *testing.T) {
 	a := newAppWithAdmin(t)
 	monitorID := a.createMonitor(t, "Nightly backup", "backup-push-token")
