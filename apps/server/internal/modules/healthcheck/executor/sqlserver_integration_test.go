@@ -131,13 +131,15 @@ func TestSQLServerExecutor_Integration(t *testing.T) {
 	}
 
 	// The Dial Timeout limits dialing; a query on the connection gets the
-	// monitor's whole timeout.
+	// monitor's whole timeout. SQL Server's WAITFOR can end early: on the hosted
+	// runner a 4 second delay took about 3 seconds. So the delay is well past
+	// the 2 second Dial Timeout, and the check only has to outlast that.
 	t.Run("is up for a query that takes longer than the Dial Timeout", func(t *testing.T) {
 		start := time.Now()
-		result := run(t, plainADO(unverifiedTLS+";Dial Timeout=2"), "SELECT 1 AS a; WAITFOR DELAY '00:00:04'; SELECT 2 AS b")
+		result := run(t, plainADO(unverifiedTLS+";Dial Timeout=2"), "SELECT 1 AS a; WAITFOR DELAY '00:00:06'; SELECT 2 AS b")
 
 		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
-		assert.GreaterOrEqual(t, time.Since(start), 4*time.Second, "the query should have waited")
+		assert.Greater(t, time.Since(start), 3*time.Second, "the query should have outlasted the Dial Timeout")
 	})
 
 	t.Run("is down for a wrong password", func(t *testing.T) {
