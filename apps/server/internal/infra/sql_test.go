@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/driver/sqliteshim"
@@ -52,6 +53,65 @@ func TestPostgresDSN(t *testing.T) {
 			})
 		}
 	})
+}
+
+// ProvideSQLDB has to route PostgreSQL through postgresDSN, so that DB_SSL_MODE reaches
+// the connection. Testing postgresDSN alone doesn't catch a caller that hardcodes the
+// DSN again, which is how the setting was lost the first time: buildDSN is the seam
+// every database type goes through, so a hardcoded branch shows up here.
+func TestBuildDSN_RoutesPostgresThroughPostgresDSN(t *testing.T) {
+	for _, mode := range []string{"", "disable", "require", "verify-ca", "verify-full"} {
+		t.Run("sslmode="+mode, func(t *testing.T) {
+			want := mode
+			if want == "" {
+				want = "disable"
+			}
+
+			cfg := config.Config{
+				DBType:    "postgres",
+				DBUser:    "peekaping",
+				DBPass:    "s3cret",
+				DBHost:    "database",
+				DBPort:    "5432",
+				DBName:    "peekaping",
+				DBSSLMode: mode,
+			}
+
+			dsn, err := buildDSN(&cfg)
+			require.NoError(t, err)
+			assert.Equal(t, "postgres://peekaping:s3cret@database:5432/peekaping?sslmode="+want, dsn)
+		})
+	}
+}
+
+// The other two types keep their own DSN shape, and an unknown type is an error rather
+// than a silent fallback.
+func TestBuildDSN_OtherTypes(t *testing.T) {
+	base := config.Config{
+		DBUser: "peekaping", DBPass: "s3cret", DBHost: "database", DBPort: "5432", DBName: "peekaping",
+	}
+
+	mysql := base
+	mysql.DBType = "mysql"
+	dsn, err := buildDSN(&mysql)
+	require.NoError(t, err)
+	assert.Equal(t, "peekaping:s3cret@tcp(database:5432)/peekaping?parseTime=true", dsn)
+
+	sqlite := base
+	sqlite.DBType = "sqlite"
+	dsn, err = buildDSN(&sqlite)
+	require.NoError(t, err)
+	assert.Equal(t, "peekaping", dsn)
+
+	sqliteDefault := config.Config{DBType: "sqlite"}
+	dsn, err = buildDSN(&sqliteDefault)
+	require.NoError(t, err)
+	assert.Equal(t, "./data.db", dsn)
+
+	unknown := base
+	unknown.DBType = "oracle"
+	_, err = buildDSN(&unknown)
+	require.Error(t, err)
 }
 
 // A web client that hangs up mid-request cancels the API's read of heartbeats.
