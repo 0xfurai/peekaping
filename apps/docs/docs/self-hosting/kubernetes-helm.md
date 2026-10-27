@@ -31,7 +31,7 @@ You need:
 - Helm 3.13 or later.
 - A PostgreSQL database, with a user that can create tables in it. The migrate Job creates the tables, not the database.
 - A Redis.
-- Servers that accept connections without TLS. Peekaping connects to PostgreSQL with `sslmode=disable` and to Redis in plain text, so a server that requires TLS doesn't work.
+- Servers that accept connections without TLS, or a PostgreSQL you set `DB_SSL_MODE` on. Peekaping connects to Redis in plain text. It connects to PostgreSQL with `sslmode=disable` by default; set `DB_SSL_MODE` to `require`, `verify-ca` or `verify-full` for a server that requires TLS.
 
 ## Install
 

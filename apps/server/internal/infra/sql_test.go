@@ -22,6 +22,38 @@ import (
 	"peekaping/internal/config"
 )
 
+// A Config built in code, rather than by LoadConfig, has no default applied, so the
+// PostgreSQL DSN still has to name a mode the driver accepts: pgdriver is case
+// sensitive and panics on a value it can't use.
+func TestPostgresDSN(t *testing.T) {
+	base := config.Config{
+		DBUser: "peekaping",
+		DBPass: "s3cret",
+		DBHost: "database",
+		DBPort: "5432",
+		DBName: "peekaping",
+	}
+
+	t.Run("an empty sslmode means disable", func(t *testing.T) {
+		require.Equal(t,
+			"postgres://peekaping:s3cret@database:5432/peekaping?sslmode=disable",
+			postgresDSN(&base))
+	})
+
+	t.Run("DB_SSL_MODE reaches the DSN", func(t *testing.T) {
+		for _, mode := range []string{"disable", "allow", "prefer", "require", "verify-ca", "verify-full"} {
+			t.Run(mode, func(t *testing.T) {
+				cfg := base
+				cfg.DBSSLMode = mode
+
+				require.Equal(t,
+					"postgres://peekaping:s3cret@database:5432/peekaping?sslmode="+mode,
+					postgresDSN(&cfg))
+			})
+		}
+	})
+}
+
 // A web client that hangs up mid-request cancels the API's read of heartbeats.
 // The SQLite driver must close that read's statement when it is cancelled. If
 // it doesn't, the API's only connection keeps a stale read snapshot open, and

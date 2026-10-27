@@ -250,6 +250,31 @@ func TestLoadConfig_AnUnknownDBTypeStillGetsTheValidatorsMessage(t *testing.T) {
 	assert.NotContains(t, err.Error(), "mongo", "MongoDB isn't a choice any more")
 }
 
+func TestLoadConfig_PostgresSSLModeDefaultsToDisable(t *testing.T) {
+	cfg, err := loadTestConfig(t, nil)
+
+	require.NoError(t, err)
+	assert.Equal(t, "disable", cfg.DBSSLMode)
+}
+
+func TestLoadConfig_PostgresSSLModeIsSetByTheEnvironment(t *testing.T) {
+	for _, mode := range []string{"disable", "allow", "prefer", "require", "verify-ca", "verify-full"} {
+		t.Run(mode, func(t *testing.T) {
+			cfg, err := loadTestConfig(t, map[string]string{"DB_SSL_MODE": mode})
+
+			require.NoError(t, err)
+			assert.Equal(t, mode, cfg.DBSSLMode)
+		})
+	}
+}
+
+func TestLoadConfig_AnUnknownPostgresSSLModeIsRejected(t *testing.T) {
+	_, err := loadTestConfig(t, map[string]string{"DB_SSL_MODE": "sometimes"})
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "DBSSLMode failed validation: pg_ssl_mode")
+}
+
 func TestRefuseMongoStorage(t *testing.T) {
 	for _, dbType := range []string{"mongo", "mongodb", "Mongo", "MONGODB", " mongo "} {
 		assert.ErrorIs(t, RefuseMongoStorage(dbType), ErrMongoStorageRemoved, dbType)

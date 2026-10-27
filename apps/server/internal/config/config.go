@@ -33,6 +33,12 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
+	// How the PostgreSQL connection negotiates TLS: "disable" sends none, "require" sends
+	// it without checking the certificate, "verify-ca" also checks the chain, and
+	// "verify-full" also checks the host name. Managed clusters usually need "require".
+	// MySQL and SQLite don't read it.
+	DBSSLMode string `env:"DB_SSL_MODE" validate:"omitempty,pg_ssl_mode" default:"disable"`
+
 	// Which check a process that opens SQLite runs at startup: "quick" runs PRAGMA quick_check,
 	// "full" runs PRAGMA integrity_check, and "off" runs none. A finding stops startup.
 	SQLiteStartupCheck string `env:"SQLITE_STARTUP_CHECK" validate:"oneof=quick full off" default:"quick"`
