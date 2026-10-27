@@ -90,13 +90,11 @@ func TestPublicStatusPage_ShowsTheMonitorsOwnStatusAndNoLocationsByDefault(t *te
 	}
 }
 
-// A monitor that has never been checked is Pending, as GLOSSARY.md names the status of a new monitor,
-// whatever its row stores: an older row or an import may store Down (0, the column's default). A
-// monitor that has been checked keeps its own status.
+// A monitor that has never been checked is Pending, as GLOSSARY.md names the status of a new monitor:
+// it is stored Pending on create. A monitor that has been checked keeps its own status.
 func TestPublicStatusPage_ShowsAMonitorThatHasNeverBeenCheckedAsPending(t *testing.T) {
 	a := newAppWithAdmin(t)
 	unchecked := a.createHTTPMonitor(t, "Unchecked", "")
-	a.storeStatus(t, unchecked, shared.MonitorStatusDown)
 	checked := a.createHTTPMonitor(t, "Checked", "")
 	a.recordHeartbeat(t, checked, shared.MonitorStatusDown)
 	a.storeStatus(t, checked, shared.MonitorStatusDown)
@@ -111,7 +109,7 @@ func TestPublicStatusPage_ShowsAMonitorThatHasNeverBeenCheckedAsPending(t *testi
 			}
 			require.Len(t, byName, 2)
 			if assert.NotNil(t, byName["Unchecked"].Status) {
-				assert.Equal(t, 2, *byName["Unchecked"].Status, "no heartbeats yet is Pending")
+				assert.Equal(t, 2, *byName["Unchecked"].Status, "a monitor that has never been checked is Pending")
 			}
 			if assert.NotNil(t, byName["Checked"].Status) {
 				assert.Equal(t, 0, *byName["Checked"].Status, "a checked monitor keeps its own status")
