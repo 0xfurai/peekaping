@@ -327,6 +327,10 @@ type socketClient struct {
 	packets chan string
 	// polls counts the long polls that got an answer
 	polls atomic.Int64
+	// pollStart is when the long poll that is open now was sent, in Unix nanoseconds
+	pollStart atomic.Int64
+	// ended is set once the session is over: the reader stopped
+	ended atomic.Bool
 }
 
 // socketEvent is a heartbeat the websocket pushed
@@ -389,7 +393,9 @@ func (c *socketClient) post(packet string) error {
 
 func (c *socketClient) read() {
 	defer close(c.packets)
+	defer c.ended.Store(true)
 	for {
+		c.pollStart.Store(time.Now().UnixNano())
 		resp, err := http.Get(c.url)
 		if err != nil {
 			return
@@ -448,6 +454,28 @@ func (c *socketClient) join(t *testing.T, room string) {
 	packet, err := json.Marshal([]string{"join_room", room})
 	require.NoError(t, err)
 	require.NoError(t, c.post("42"+string(packet)))
+}
+
+// holdsAPollOpenFor waits until a long poll has been waiting for the duration, and fails if the
+// session ends first. A long poll that ends with a heartbeat to deliver isn't a failure: a monitor
+// of the app can be due while the test waits. The next long poll is then the one waited for.
+func (c *socketClient) holdsAPollOpenFor(t *testing.T, d time.Duration) {
+	t.Helper()
+	for {
+		polls := c.polls.Load()
+		for time.Since(time.Unix(0, c.pollStart.Load())) < d {
+			if c.ended.Load() {
+				require.FailNow(t, "the session ended before the push: a long poll was cut short")
+			}
+			if c.polls.Load() != polls {
+				break // answered with something to deliver; wait for the next long poll
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+		if c.polls.Load() == polls {
+			return
+		}
+	}
 }
 
 // until reads heartbeats until one matches and returns it
