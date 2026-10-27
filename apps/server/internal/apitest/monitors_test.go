@@ -101,7 +101,7 @@ func TestMonitorsAPI_RejectsInvalidInput(t *testing.T) {
 	a.expectStatus(t, http.StatusBadRequest, []call{
 		{"malformed JSON", http.MethodPost, "/api/v1/monitors", "{"},
 		{"name too short", http.MethodPost, "/api/v1/monitors", shortName},
-		{"config fails its monitor type", http.MethodPost, "/api/v1/monitors", with(monitor, "config", "{}")},
+		{"config fails its monitor type", http.MethodPost, "/api/v1/monitors", with(monitor, "config", `{"pushToken":5}`)},
 		{"unknown monitor type", http.MethodPost, "/api/v1/monitors", with(monitor, "type", "carrier-pigeon")},
 		{"full update with a name too short", http.MethodPut, path, shortName},
 		{"partial update with a bad config", http.MethodPatch, path, map[string]any{"config": "{}"}},

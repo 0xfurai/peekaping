@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: creating a push monitor through the API without a push token works. The server generates a token and returns it in `push_token` and in `config.pushToken`, where before it answered 400 (`PushConfig.PushToken ... required`). A token sent only as `push_token` is copied into `config.pushToken`, and a token you send is kept (#273) (thanks @ausebiblibre)
+
 ## [0.0.48] - 2026-10-27
 
 ### Added
