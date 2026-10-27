@@ -2,6 +2,7 @@ package ingester
 
 import (
 	"context"
+	"slices"
 	"testing"
 	"time"
 
@@ -53,6 +54,42 @@ type storedBeat struct {
 	published []shared.HeartBeatModel
 	// notifications are the heartbeats published to be notified
 	notifications []shared.HeartBeatModel
+}
+
+func TestIngester_AMonitorsFirstHeartbeatOnAProbeNotifiesOnlyWhenUpOrDown(t *testing.T) {
+	tests := []struct {
+		name       string
+		check      shared.MonitorStatus
+		wantNotify bool
+	}{
+		{"Up", up, true},
+		{"Down", down, true},
+		{"Pending", pending, false},
+		{"Maintenance", maintenance, false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ti := newTestIngester(runningOn(probeA, probeB))
+
+			first := ti.from(t, probeB, monitorSettings{}, tc.check)
+
+			assert.True(t, first.important, "the monitor's first heartbeat is important")
+			assert.Equal(t, tc.wantNotify, first.notified)
+			assert.Contains(t, first.events, changed)
+			assert.Equal(t, tc.wantNotify, slices.Contains(first.events, notified))
+		})
+	}
+
+	t.Run("a second location's first heartbeat follows the monitor's status", func(t *testing.T) {
+		ti := newTestIngester(runningOn(probeA, probeB))
+		m := monitorSettings{}
+		ti.from(t, probeA, m, up)
+
+		second := ti.from(t, probeB, m, down)
+
+		assert.True(t, second.important)
+		assert.True(t, second.notified, "the monitor went Up to Down")
+	})
 }
 
 func TestIngester_TheMonitorIsDownWhileAnyLocationIsDown(t *testing.T) {
