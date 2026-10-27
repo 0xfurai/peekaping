@@ -96,13 +96,16 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 			channel: "grafana oncall",
 		},
 		{
-			// On a public ntfy server the topic works as the password
+			// On a public ntfy server the topic works as the password, and the server URL can carry
+			// credentials as userinfo
 			name: "ntfy",
 			send: func(logger *zap.SugaredLogger, serverURL string) error {
-				cfg := `{"server_url": "` + serverURL + `", "topic": "secret-ntfy-topic", "authentication_type": "none"}`
+				cfg := `{"server_url": "` + ntfyServerURLWithUserinfo(serverURL) + `", "topic": "secret-ntfy-topic", "authentication_type": "none"}`
 				return NewNTFYSender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
 			},
-			secrets: func(string) []string { return []string{"secret-ntfy-topic"} },
+			secrets: func(serverURL string) []string {
+				return []string{"secret-ntfy-topic", "secret-pass", ntfyServerURLWithUserinfo(serverURL), serverURL}
+			},
 			channel: "ntfy",
 		},
 		{
@@ -172,6 +175,11 @@ func captureStdout(t *testing.T, fn func()) string {
 	out, err := io.ReadAll(reader)
 	require.NoError(t, err)
 	return string(out)
+}
+
+// ntfyServerURLWithUserinfo is serverURL with credentials in front of its host
+func ntfyServerURLWithUserinfo(serverURL string) string {
+	return strings.Replace(serverURL, "://", "://user:secret-pass@", 1)
 }
 
 // stubTransport answers every request with 200, so a sender with a fixed endpoint (LINE,
