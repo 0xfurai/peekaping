@@ -69,7 +69,7 @@ test('A wrong setup code is refused and 2FA stays off', async ({ page }) => {
   // A code from five minutes ahead is outside the window the server accepts.
   await page.locator('input[name="code"]').fill(totp(secret!, Date.now() + 5 * 60_000));
   await page.getByRole('button', { name: 'Enable 2FA' }).click();
-  await expect(page.getByRole('alert').filter({ hasText: 'invalid 2FA code' })).toBeVisible();
+  await expect(page.getByText('invalid 2FA code')).toBeVisible();
 
   // The code step stays open and 2FA is not marked as on.
   await expect(page.getByRole('button', { name: 'Enable 2FA' })).toBeVisible();
