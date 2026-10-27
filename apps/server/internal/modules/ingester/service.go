@@ -369,7 +369,10 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	if isImportant {
 		hb.Important = true
 
-		if isFirstBeat || s.isImportantForNotification(previousStatus, currentStatus) {
+		// The monitor's first heartbeat is a notification only when it says Up or Down: a Pending
+		// or Maintenance one has nothing to report yet
+		firstBeatNotifies := isFirstBeat && (currentStatus == shared.MonitorStatusUp || currentStatus == shared.MonitorStatusDown)
+		if firstBeatNotifies || s.isImportantForNotification(previousStatus, currentStatus) {
 			s.logger.Debugw("Marking for notification", "monitor_name", r.MonitorName)
 			shouldNotify = true
 			hb.Notified = true
