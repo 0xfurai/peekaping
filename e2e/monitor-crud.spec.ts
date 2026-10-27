@@ -251,6 +251,29 @@ test.describe('Monitor CRUD Operations', () => {
     }
   });
 
+  test('A timeout error clears when the interval is raised enough', async ({ page }) => {
+    const monitorName = randomMonitorName();
+    const tooLong = page.getByText("Can't be more than 80% of the check interval");
+    await page.goto('/monitors/new');
+    await page.locator('input[name="name"]').fill(monitorName);
+    await page.locator('input[name="url"]').fill(targetURL('monitor-crud-timeout'));
+    await page.locator('input[name="interval"]').fill('60');
+    await page.locator('input[name="timeout"]').fill('49');
+
+    // 49 s is above 80% of 60 s: the form doesn't submit and says why under the timeout
+    await page.getByRole('button', { name: 'Create', exact: true }).click();
+    await expect(tooLong).toBeVisible();
+    await expect(page).toHaveURL(/\/monitors\/new$/);
+
+    // A longer interval makes the timeout fit, and the message goes without touching the timeout
+    await page.locator('input[name="interval"]').fill('100');
+    await expect(tooLong).toBeHidden();
+
+    await page.getByRole('button', { name: 'Create', exact: true }).click();
+    await expect(page).toHaveURL(/\/monitors\/(?!new$)[A-Za-z0-9-]+$/, { timeout: 10000 });
+    await deleteMonitor(page, monitorName);
+  });
+
   for (const [type, form] of Object.entries(monitorForms)) {
     test(`${type} Monitor CRUD`, async ({ page }) => {
       const monitorName = randomMonitorName();

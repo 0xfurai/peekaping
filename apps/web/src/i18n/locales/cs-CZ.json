@@ -502,7 +502,8 @@
           "heartbeat_retry": "Interval opětovného heartbeat (Opakovat každých {{seconds}} sekund)",
           "max_retries_description": "Maximální počet pokusů, po nichž bude služba označena jako nedostupná a bude odesláno upozornění.",
           "request_timeout": "Čas vypršení požadavku (po {{seconds}} sekundách vyprší)",
-          "resend_notification": "Znovu odeslat upozornění, pokud dojde k výpadku X krát po sobě (Znovu odesílání je vypnuto)"
+          "resend_notification": "Znovu odeslat upozornění, pokud dojde k výpadku X krát po sobě (Znovu odesílání je vypnuto)",
+          "timeout_too_long": "Nesmí být vyšší než 80 % intervalu kontroly"
         },
         "location_rule": {
           "all": "jsou nedostupná všechna umístění",

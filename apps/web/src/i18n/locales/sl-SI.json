@@ -502,7 +502,8 @@
           "heartbeat_retry": "Interval ponovnega poskusa srčnega signala (ponovite vsaki {{seconds}} sekund)",
           "max_retries_description": "Največje število ponovitev, preden se storitev označi kot ne delujoča in pošlje obvestilo",
           "request_timeout": "Časovna omejitev (Pretek po {{seconds}} sekundah)",
-          "resend_notification": "Ponovno pošlji obvestilo, če je izpala X-krat zaporedno (Ponovno pošiljanje onemogočeno)"
+          "resend_notification": "Ponovno pošlji obvestilo, če je izpala X-krat zaporedno (Ponovno pošiljanje onemogočeno)",
+          "timeout_too_long": "Ne sme biti večja od 80 % intervala preverjanja"
         },
         "location_rule": {
           "all": "vse lokacije ne delujejo",

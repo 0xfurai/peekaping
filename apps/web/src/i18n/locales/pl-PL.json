@@ -502,7 +502,8 @@
           "heartbeat_retry": "Interwał ponownego próby (ponawiaj co {{seconds}} sekund)",
           "max_retries_description": "Maksymalna liczba ponownych prób przed oznaczeniem usługi jako niedostępnej i wysłaniem powiadomienia.",
           "request_timeout": "Timeout żądania (po {{seconds}} sekundach)",
-          "resend_notification": "Ponowne wysłanie powiadomienia, jeśli usługa będzie niedostępna X razy z rzędu (Ponowne wysłanie wyłączone)"
+          "resend_notification": "Ponowne wysłanie powiadomienia, jeśli usługa będzie niedostępna X razy z rzędu (Ponowne wysłanie wyłączone)",
+          "timeout_too_long": "Nie może być większy niż 80% interwału sprawdzania"
         },
         "location_rule": {
           "all": "wszystkie lokalizacje są niedostępne",

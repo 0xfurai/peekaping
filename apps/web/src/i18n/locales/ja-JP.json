@@ -502,7 +502,8 @@
           "heartbeat_retry": "ハートビートリトライ間隔（{{seconds}} 秒ごとにリトライ）",
           "max_retries_description": "サービスが停止とみなされ、通知が送信されるまでの最大再試行回数",
           "request_timeout": "リクエストタイムアウト（{{seconds}} 秒後にタイムアウト）",
-          "resend_notification": "ダウンがX回連続した場合に再送通知（再送無効）"
+          "resend_notification": "ダウンがX回連続した場合に再送通知（再送無効）",
+          "timeout_too_long": "チェック間隔の80%を超えることはできません"
         },
         "location_rule": {
           "all": "すべての場所が停止中",

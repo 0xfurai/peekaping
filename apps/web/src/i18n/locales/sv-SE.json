@@ -502,7 +502,8 @@
           "heartbeat_retry": "Livssignalåterkopplingsintervall (Upprepa var {{seconds}} sekund)",
           "max_retries_description": "Maximalt antal försök innan tjänsten anses nere och en notifikation skickas",
           "request_timeout": "Begäran timeout (Timeout efter {{seconds}} sekunder)",
-          "resend_notification": "Skicka om varning vid nedgång X gånger i rad (Skicka om inaktiverat)"
+          "resend_notification": "Skicka om varning vid nedgång X gånger i rad (Skicka om inaktiverat)",
+          "timeout_too_long": "Får inte vara mer än 80 % av kontrollintervallet"
         },
         "location_rule": {
           "all": "alla platser är nere",

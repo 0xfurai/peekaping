@@ -502,7 +502,8 @@
           "heartbeat_retry": "Heartbeat-retryintervall (forsøk hver {{seconds}} sekund)",
           "max_retries_description": "Maksimale forsøk før tjenesten markeres som ned og en varsling sendes.",
           "request_timeout": "Forespørsel timeout (Timeout etter {{seconds}} sekunder)",
-          "resend_notification": "Send varsel på nytt hvis ned i X påfølgende ganger (Send på nytt deaktivert)"
+          "resend_notification": "Send varsel på nytt hvis ned i X påfølgende ganger (Send på nytt deaktivert)",
+          "timeout_too_long": "Kan ikke være mer enn 80 % av kontrollintervallet"
         },
         "location_rule": {
           "all": "alle plasseringer er nede",

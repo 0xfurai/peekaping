@@ -502,7 +502,8 @@
           "heartbeat_retry": "하트비트 재시도 간격 ({{seconds}}초마다 재시도)",
           "max_retries_description": "서비스가 다운으로 표시되고 알림이 전송되기 전까지의 최대 재시도 수",
           "request_timeout": "요청 타임아웃 ({{seconds}}초 후)",
-          "resend_notification": "연속 X회 다운 시 알림 재전송 (재전송 비활성화)"
+          "resend_notification": "연속 X회 다운 시 알림 재전송 (재전송 비활성화)",
+          "timeout_too_long": "확인 간격의 80%를 초과할 수 없습니다"
         },
         "location_rule": {
           "all": "모든 위치가 다운일 때",

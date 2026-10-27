@@ -7,6 +7,13 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 const Intervals = () => {
   const { t } = useLocalizedTranslation();
   const form = useFormContext();
+  const { errors, isSubmitted } = form.formState;
+  // The timeout's limit moves with the interval, but the form only rechecks the field that
+  // changed: check the timeout too once it shows an error, or after a first submit, so that its
+  // message clears as soon as the interval fits (a fresh form shows none early)
+  const recheckTimeout = () => {
+    if (errors.timeout || isSubmitted) void form.trigger("timeout");
+  };
 
   return (
     <>
@@ -19,7 +26,15 @@ const Intervals = () => {
           <FormItem>
             <FormLabel>{t("forms.labels.heartbeat_interval")}</FormLabel>
             <FormControl>
-              <Input placeholder="60" {...field} type="number" />
+              <Input
+                placeholder="60"
+                {...field}
+                onChange={(event) => {
+                  field.onChange(event);
+                  recheckTimeout();
+                }}
+                type="number"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

@@ -185,6 +185,43 @@ func TestAuthAPI_RequiresSecondFactorOnceEnabled(t *testing.T) {
 	assert.Equal(t, http.StatusOK, a.login(t, account).Code)
 }
 
+func TestAuthAPI_RefusesAWrongSetupCodeAndLeavesSecondFactorOff(t *testing.T) {
+	a := newAppWithAdmin(t)
+	account := map[string]any{"email": adminEmail, "password": adminPassword}
+
+	w := a.request(t, http.MethodPost, "/api/v1/auth/2fa/setup", account, a.asAdmin)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	var setup struct {
+		Secret string `json:"secret"`
+	}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &setup))
+
+	// A code from five minutes ahead is outside the window the server accepts.
+	wrong, err := totp.GenerateCode(setup.Secret, time.Now().Add(5*time.Minute))
+	require.NoError(t, err)
+	w = a.request(t, http.MethodPost, "/api/v1/auth/2fa/verify", map[string]any{"email": adminEmail, "code": wrong}, a.asAdmin)
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	var refusal struct {
+		Success bool   `json:"success"`
+		Message string `json:"message"`
+	}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &refusal))
+	assert.False(t, refusal.Success)
+	assert.Equal(t, "invalid 2FA code", refusal.Message)
+	assert.Equal(t, http.StatusOK, a.login(t, account).Code, "2FA is still off, so a password is enough")
+
+	right, err := totp.GenerateCode(setup.Secret, time.Now())
+	require.NoError(t, err)
+	w = a.request(t, http.MethodPost, "/api/v1/auth/2fa/verify", map[string]any{"email": adminEmail, "code": right}, a.asAdmin)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	var accepted struct {
+		Success bool `json:"success"`
+	}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &accepted))
+	assert.True(t, accepted.Success)
+	assert.Equal(t, http.StatusUnauthorized, a.login(t, account).Code, "2FA is on, so a password is no longer enough")
+}
+
 func TestAuthAPI_LocksOutRepeatedFailedLogins(t *testing.T) {
 	a := newAppWithAdmin(t)
 	right := map[string]any{"email": adminEmail, "password": adminPassword}

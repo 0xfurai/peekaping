@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { adminAPI, createHTTPMonitor, deleteCreated, randomID } from './support/api';
-import { targetURL } from './support/fake-target';
+import { setTargetStatus, targetURL } from './support/fake-target';
 
 test('A published status page shows visitors its own monitors, and a draft shows nothing', async ({ page, browser }) => {
   const id = randomID();
@@ -104,6 +104,63 @@ test('A status page lists each location of a monitor only once it is asked to', 
     await visitorPage.reload();
     await expect(visitorPage.getByRole('heading', { level: 3 })).toHaveText([monitorName]);
     await expect(locations).toHaveCount(0);
+
+    await visitor.close();
+  } finally {
+    for (const path of created.reverse()) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
+// A monitor that has never been checked is Pending, not Down, and doesn't make the page an outage.
+// A Down monitor still does (PP-361).
+test('A status page shows a never-checked monitor as Pending and a Down one as Down', async ({ page, browser, request }) => {
+  // The Down monitor's first check can take up to 60 seconds to reach the page.
+  test.setTimeout(180_000);
+  const id = randomID();
+  const api = await adminAPI(page);
+  const unchecked = `Unchecked monitor ${id}`;
+  const failing = `Failing monitor ${id}`;
+  const created: string[] = [];
+
+  try {
+    // A paused monitor is never checked.
+    const paused = await createHTTPMonitor(api, unchecked, targetURL(id), { active: false });
+    created.push(`monitors/${paused.id}`);
+    const publish = async (slug: string, monitorID: string) => {
+      const response = await api.post('status-pages', {
+        data: { slug, title: slug, published: true, monitor_ids: [monitorID] },
+      });
+      expect(response.status(), await response.text()).toBe(201);
+      created.push(`status-pages/${(await response.json()).data.id}`);
+    };
+    await publish(`pending-${id}`, paused.id);
+
+    // With no retries, the first failed check is Down.
+    await setTargetStatus(request, `down-${id}`, 500);
+    const down = await createHTTPMonitor(api, failing, targetURL(`down-${id}`));
+    created.push(`monitors/${down.id}`);
+    await publish(`down-${id}`, down.id);
+
+    const visitor = await browser.newContext({
+      baseURL: test.info().project.use.baseURL,
+      storageState: { cookies: [], origins: [] },
+    });
+    const visitorPage = await visitor.newPage();
+    const monitorStatus = visitorPage.getByTestId('status-page-monitor').getByTestId('status-page-monitor-status');
+    const overallStatus = visitorPage.getByTestId('status-page-overall-status');
+
+    await visitorPage.goto(`/status/pending-${id}`);
+    await expect(monitorStatus).toHaveText('Pending');
+    await expect(overallStatus).toHaveText('All Systems Operational');
+
+    // The monitor is Pending until its first check, which fails.
+    await visitorPage.goto(`/status/down-${id}`);
+    await expect(async () => {
+      await visitorPage.reload();
+      await expect(monitorStatus).toHaveText('Down', { timeout: 2_000 });
+    }).toPass({ timeout: 60_000 });
+    await expect(overallStatus).toHaveText('Partial System Outage');
 
     await visitor.close();
   } finally {

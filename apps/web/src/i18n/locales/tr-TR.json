@@ -502,7 +502,8 @@
           "heartbeat_retry": "Kalp Atışı Tekrar Aralığı (her {{seconds}} saniyede bir yeniden dene)",
           "max_retries_description": "Servisin 'down' olarak işaretlenip bildirim gönderilmeden önceki maksimum yeniden deneme sayısı",
           "request_timeout": "İstek Süresi Doldu ({{seconds}} saniye sonra zaman aşımı)",
-          "resend_notification": "X kez arka arkaya kesildiğinde Bildirimi Yeniden Gönder (Yeniden gönderme devre dışı)"
+          "resend_notification": "X kez arka arkaya kesildiğinde Bildirimi Yeniden Gönder (Yeniden gönderme devre dışı)",
+          "timeout_too_long": "Kontrol aralığının %80'inden fazla olamaz"
         },
         "location_rule": {
           "all": "tüm konumlar çalışmıyorsa",

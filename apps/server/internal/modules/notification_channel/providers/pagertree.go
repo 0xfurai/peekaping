@@ -24,12 +24,12 @@ type PagerTreeConfig struct {
 
 type PagerTreePayload struct {
 	EventType   string                 `json:"event_type"`
-	ID          string                 `json:"Id"`
-	Title       string                 `json:"Title"`
-	Description string                 `json:"Description"`
+	ID          string                 `json:"id"`
+	Title       string                 `json:"title"`
+	Description string                 `json:"description"`
 	Urgency     string                 `json:"urgency,omitempty"`
-	Tags        []string               `json:"Tags,omitempty"`
-	Meta        map[string]interface{} `json:"Meta,omitempty"`
+	Tags        []string               `json:"tags,omitempty"`
+	Meta        map[string]interface{} `json:"meta,omitempty"`
 }
 
 type PagerTreeSender struct {
@@ -108,8 +108,14 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 	// Build the payload
 	payload := PagerTreePayload{
 		EventType: eventType,
-		ID:        fmt.Sprintf("monitor-%s-%d", mon.ID, time.Now().Unix()),
-		Urgency:   cfg.Urgency,
+		// One ID per monitor, so its Up resolves the alert its Down created and a resent Down
+		// updates the open alert
+		ID:      fmt.Sprintf("monitor-%s", mon.ID),
+		Urgency: cfg.Urgency,
+	}
+	if hb == nil && !isProbeEvent {
+		// A certificate-expiry warning gets a new alert each time: PP-136 gives it its own identity
+		payload.ID = fmt.Sprintf("monitor-%s-%d", mon.ID, time.Now().Unix())
 	}
 	if isProbeEvent {
 		// Alerts of one probe are one alert: the same ID, in the form of PagerDuty's dedup key

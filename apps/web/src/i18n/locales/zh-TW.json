@@ -502,7 +502,8 @@
           "heartbeat_retry": "心跳重試間隔 (每 {{seconds}} 秒重試一次)",
           "max_retries_description": "在將服務標記為停機並發送通知之前的最大重試次數",
           "request_timeout": "請求逾時 ({{seconds}} 秒後逾時)",
-          "resend_notification": "若連續失效 X 次，重新發送通知（已停用）"
+          "resend_notification": "若連續失效 X 次，重新發送通知（已停用）",
+          "timeout_too_long": "不能超過檢查間隔的 80%"
         },
         "location_rule": {
           "all": "所有位置都宕機",

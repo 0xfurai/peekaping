@@ -301,8 +301,9 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		hb.Status = shared.MonitorStatusDown
 		hb.Retries++
 	case r.Status == shared.MonitorStatusDown:
-		// Mark as pending if max retries is set and retries is less than max retries
-		if !isFirstOnProbe && r.MonitorMaxRetries > 0 && previousBeat.Retries < r.MonitorMaxRetries {
+		// Mark as pending if max retries is set and retries is less than max retries. The first
+		// heartbeat on the probe has no retries behind it, so its first failed check is Pending too.
+		if r.MonitorMaxRetries > 0 && hb.Retries < r.MonitorMaxRetries {
 			hb.Status = shared.MonitorStatusPending
 		}
 		hb.Retries++
@@ -369,7 +370,10 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 	if isImportant {
 		hb.Important = true
 
-		if isFirstBeat || s.isImportantForNotification(previousStatus, currentStatus) {
+		// The monitor's first heartbeat is a notification only when it says Up or Down: a Pending
+		// or Maintenance one has nothing to report yet
+		firstBeatNotifies := isFirstBeat && (currentStatus == shared.MonitorStatusUp || currentStatus == shared.MonitorStatusDown)
+		if firstBeatNotifies || s.isImportantForNotification(previousStatus, currentStatus) {
 			s.logger.Debugw("Marking for notification", "monitor_name", r.MonitorName)
 			shouldNotify = true
 			hb.Notified = true
