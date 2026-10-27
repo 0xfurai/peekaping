@@ -126,6 +126,7 @@ jobs:
   # main job without coverage instead of making that job slower
   race:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
 
     steps:
       - uses: actions/checkout@v4
@@ -142,6 +143,8 @@ jobs:
 
       - name: Run server tests with the race detector
         working-directory: apps/server
-        run: go test -race -timeout 900s ./internal/... ./cmd/...
+        # internal/apitest takes 800 to 880 seconds on its own under -race, so the per-package
+        # timeout leaves room for a slower runner
+        run: go test -race -timeout 1800s ./internal/... ./cmd/...
 
 
