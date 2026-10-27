@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.0.48] - 2026-10-27
+
+### Added
+
 - feat: `NOTIFICATION_HISTORY_RETENTION_DAYS` and `TLS_INFO_RETENTION_DAYS` set how many days the hourly cleanup keeps notification history (90 by default, at least 30, so the default certificate expiry notifications at 21 days aren't sent twice) and monitors' TLS information (30 by default, at least 1). They apply to the api and to `peekaping`, and a value below its minimum stops startup. Unset or `0`, nothing changes. See [Cleanup Configuration](apps/docs/docs/architecture/api-server.md#cleanup-configuration) (#75)
 - feat: `bun db import-mongo --mongo-uri <uri> [--mongo-db <name>]` (or `MONGO_URI` and `MONGO_DB` in the environment, which keeps a password out of the shell history) moves a MongoDB install to SQLite or PostgreSQL. It applies the SQL migrations to the new database that `DB_TYPE` and the other `DB_*` variables name, then copies users (with their passwords and two-factor secrets), settings (including the keys that sign login tokens), API keys, proxies, monitors, notification channels, tags, maintenance windows, status pages with their domains, the links between them, heartbeats, stats, TLS information and notification history, in one transaction. It refuses a database that holds users, monitors or history of its own, and prints what it did with every collection, including what it skipped (such as links to deleted monitors) and what SQL has no place for (which monitors a status page hides). The monitors of a status page keep their order. It's in the single-mode image and in the migrate image. See [Move to SQLite or PostgreSQL](apps/docs/docs/self-hosting/docker-with-mongo.md#move-to-sqlite-or-postgresql) for the steps (#227)
   - Upgrade note: every row gets a UUID in place of its ObjectID. API key tokens and badge URLs that carry an old ID keep working, and so do logins and two-factor codes. Browsers that were signed in sign in once more, and scripts that put a monitor's ID in an API URL need the new ID.
