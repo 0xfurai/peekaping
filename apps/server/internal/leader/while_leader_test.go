@@ -17,6 +17,11 @@ import (
 
 const lookEvery = 2 * time.Millisecond
 
+// settle is how long a test waits for the job or the election to reach a state it checks. It
+// only bounds a failure: a test goes on as soon as the state is there, so it can be long enough
+// for a CI runner that is starved by the other packages' tests.
+const settle = 10 * time.Second
+
 // follower is a node whose election runs every few milliseconds, with the logs it writes
 type follower struct {
 	*Elector
@@ -45,14 +50,14 @@ func startElection(t *testing.T, node2Holds bool) *follower {
 func (f *follower) node2Takes(t *testing.T) {
 	t.Helper()
 	require.NoError(t, f.client.Set(context.Background(), Key, "node2", TTL).Err())
-	require.Eventually(t, func() bool { return !f.IsLeader() }, time.Second, time.Millisecond)
+	require.Eventually(t, func() bool { return !f.IsLeader() }, settle, time.Millisecond)
 }
 
 // node2Leaves is node2 releasing the lock, which node1 takes at its next renewal
 func (f *follower) node2Leaves(t *testing.T) {
 	t.Helper()
 	require.NoError(t, f.client.Del(context.Background(), Key).Err())
-	require.Eventually(t, f.IsLeader, time.Second, time.Millisecond)
+	require.Eventually(t, f.IsLeader, settle, time.Millisecond)
 }
 
 // job is a function that RunWhileLeader runs, and what it saw
@@ -107,7 +112,7 @@ func TestRunWhileLeader_RunsTheJobWhileTheNodeLeads(t *testing.T) {
 	stop, returned := runWhileLeader(f, j.run)
 	defer stop()
 
-	require.Eventually(t, func() bool { return j.running.Load() == 1 }, time.Second, time.Millisecond, "the leader never started the job")
+	require.Eventually(t, func() bool { return j.running.Load() == 1 }, settle, time.Millisecond, "the leader never started the job")
 	assert.Equal(t, int32(1), j.started.Load())
 	assert.NotZero(t, f.logs.FilterMessage("Starting the job as leader").Len())
 
@@ -126,7 +131,7 @@ func TestRunWhileLeader_DoesNotRunTheJobOnAFollower(t *testing.T) {
 
 	// node2 stops renewing: its lock runs out and this node takes over
 	f.mr.FastForward(TTL)
-	require.Eventually(t, func() bool { return j.running.Load() == 1 }, time.Second, time.Millisecond)
+	require.Eventually(t, func() bool { return j.running.Load() == 1 }, settle, time.Millisecond)
 
 	stop()
 	waitReturned(t, returned)
@@ -137,17 +142,17 @@ func TestRunWhileLeader_CancelsTheJobWhenTheNodeLosesTheLeadershipAndRunsItAgain
 	j := &job{}
 	stop, returned := runWhileLeader(f, j.run)
 	defer stop()
-	require.Eventually(t, func() bool { return j.running.Load() == 1 }, time.Second, time.Millisecond)
+	require.Eventually(t, func() bool { return j.running.Load() == 1 }, settle, time.Millisecond)
 
 	f.node2Takes(t)
 
-	require.Eventually(t, func() bool { return j.stopped.Load() == 1 }, time.Second, time.Millisecond, "the job kept running without the leadership")
+	require.Eventually(t, func() bool { return j.stopped.Load() == 1 }, settle, time.Millisecond, "the job kept running without the leadership")
 	assert.Zero(t, j.running.Load())
 	assert.NotZero(t, f.logs.FilterMessage("Lost leadership, stopping the job").Len())
 
 	f.node2Leaves(t)
 
-	require.Eventually(t, func() bool { return j.running.Load() == 1 }, time.Second, time.Millisecond, "the job didn't run again")
+	require.Eventually(t, func() bool { return j.running.Load() == 1 }, settle, time.Millisecond, "the job didn't run again")
 	assert.Equal(t, int32(2), j.started.Load())
 	assert.False(t, j.overlap.Load())
 
@@ -161,14 +166,14 @@ func TestRunWhileLeader_NeverRunsTheJobTwiceAtOnce(t *testing.T) {
 	j := &job{windDown: 30 * time.Millisecond}
 	stop, returned := runWhileLeader(f, j.run)
 	defer stop()
-	require.Eventually(t, func() bool { return j.running.Load() == 1 }, time.Second, time.Millisecond)
+	require.Eventually(t, func() bool { return j.running.Load() == 1 }, settle, time.Millisecond)
 
 	// The node gets the leadership back while the job is still winding down
 	f.node2Takes(t)
-	require.Eventually(t, func() bool { return j.ended.Load() == 1 }, time.Second, time.Millisecond)
+	require.Eventually(t, func() bool { return j.ended.Load() == 1 }, settle, time.Millisecond)
 	f.node2Leaves(t)
 
-	require.Eventually(t, func() bool { return j.started.Load() == 2 }, time.Second, time.Millisecond, "the job didn't run again")
+	require.Eventually(t, func() bool { return j.started.Load() == 2 }, settle, time.Millisecond, "the job didn't run again")
 	assert.Equal(t, int32(1), j.stopped.Load(), "the job was started again before it returned")
 	assert.False(t, j.overlap.Load(), "two runs of the job overlapped")
 
@@ -181,7 +186,7 @@ func TestRunWhileLeader_ReturnsOnceTheContextIsDoneAndTheJobHasReturned(t *testi
 	j := &job{windDown: 30 * time.Millisecond}
 	stop, returned := runWhileLeader(f, j.run)
 	defer stop()
-	require.Eventually(t, func() bool { return j.running.Load() == 1 }, time.Second, time.Millisecond)
+	require.Eventually(t, func() bool { return j.running.Load() == 1 }, settle, time.Millisecond)
 
 	stop()
 	waitReturned(t, returned)
@@ -211,7 +216,7 @@ func TestRunWhileLeader_LogsAJobThatFailsAndRunsItAgainWhileTheNodeLeads(t *test
 	})
 	defer stop()
 
-	require.Eventually(t, func() bool { return started.Load() == 3 }, time.Second, time.Millisecond, "the job wasn't run again")
+	require.Eventually(t, func() bool { return started.Load() == 3 }, settle, time.Millisecond, "the job wasn't run again")
 	failures := f.logs.FilterMessage("Failed to run the job").All()
 	require.Len(t, failures, 2)
 	assert.Equal(t, "not ready", failures[0].ContextMap()["error"])
@@ -229,13 +234,13 @@ func TestRunWhileLeader_DoesNotRunAJobThatIsDoneAgainUntilTheNodeHasLostTheLeade
 		return nil
 	})
 	defer stop()
-	require.Eventually(t, func() bool { return started.Load() == 1 }, time.Second, time.Millisecond)
+	require.Eventually(t, func() bool { return started.Load() == 1 }, settle, time.Millisecond)
 
 	assert.Never(t, func() bool { return started.Load() > 1 }, 50*time.Millisecond, time.Millisecond, "a job that is done ran again")
 
 	f.node2Takes(t)
 	f.node2Leaves(t)
-	require.Eventually(t, func() bool { return started.Load() == 2 }, time.Second, time.Millisecond, "the job didn't run again for the new term")
+	require.Eventually(t, func() bool { return started.Load() == 2 }, settle, time.Millisecond, "the job didn't run again for the new term")
 
 	stop()
 	waitReturned(t, returned)
