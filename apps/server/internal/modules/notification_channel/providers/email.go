@@ -88,8 +88,11 @@ func (e *EmailSender) Send(
 	auth := smtp.PlainAuth("", cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost)
 	msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\nFrom: %s\r\n\r\n%s", to, finalSubject, cfg.SMTPFrom, finalBody))
 	addr := net.JoinHostPort(cfg.SMTPHost, strconv.Itoa(cfg.SMTPPort))
-	fmt.Println("Sending email to:", to, "from:", cfg.SMTPFrom, "subject:", finalSubject, "body:", finalBody)
-	return sendMail(ctx, addr, auth, cfg.SMTPFrom, []string{to}, msg)
+	if err := sendMail(ctx, addr, auth, cfg.SMTPFrom, []string{to}, msg); err != nil {
+		return err
+	}
+	e.logger.Infof("Email notification sent successfully")
+	return nil
 }
 
 // sendMail does what smtp.SendMail does, but stops when ctx is done. smtp.SendMail has no

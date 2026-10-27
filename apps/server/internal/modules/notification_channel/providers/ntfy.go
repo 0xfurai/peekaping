@@ -157,7 +157,7 @@ func (e *NTFYSender) Send(
 	}
 
 	// Send request
-	e.logger.Infof("Sending NTFY notification to %s with topic %s", cfg.ServerUrl, cfg.Topic)
+	e.logger.Infof("Sending NTFY notification to %s", cfg.ServerUrl)
 	resp, err := e.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send NTFY request: %w", err)
