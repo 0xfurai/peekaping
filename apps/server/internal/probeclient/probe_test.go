@@ -44,6 +44,18 @@ func monitorOf(id, url string) probeproto.Monitor {
 	})
 }
 
+// failingTarget is a web server that answers 500 to every check, and counts them
+func failingTarget(t *testing.T) (url string, checks *atomic.Int32) {
+	t.Helper()
+	checks = new(atomic.Int32)
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		checks.Add(1)
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	t.Cleanup(target.Close)
+	return target.URL, checks
+}
+
 func newProbe(server *assignmentServer) *probeclient.Probe {
 	return probeclient.New(probeclient.Config{URL: server.URL, Token: probeToken, Version: "0.0.48", Logger: nopLogger(), FlushTimeout: 2 * time.Second})
 }
@@ -329,4 +341,18 @@ func TestProbe_KeepsCheckingWhileTheServerIsUnreachable(t *testing.T) {
 	require.Eventually(t, func() bool { return checks.Load() >= before+2 }, 10*time.Second, 10*time.Millisecond,
 		"the probe goes on checking its last assignment")
 	assert.True(t, probe.Ready(), "and stays ready")
+}
+
+func TestProbe_ChecksAFailingMonitorAtItsRetryIntervalWhileItHasRetriesLeft(t *testing.T) {
+	url, checks := failingTarget(t)
+	monitor := monitorOf("a", url)
+	monitor.MaxRetries, monitor.RetryInterval = 2, 1
+	server := newAssignmentServer(t, snapshot("v1", monitor))
+	runProbe(t, newProbe(server))
+
+	// The check interval is far off, so only the retry interval brings the checks after the first
+	require.Eventually(t, func() bool { return checks.Load() == 3 }, 10*time.Second, 10*time.Millisecond,
+		"the first check, then a retry for each of the 2 max retries")
+	time.Sleep(1500 * time.Millisecond)
+	assert.EqualValues(t, 3, checks.Load(), "the third failure is Down, and then the monitor waits for its interval")
 }
