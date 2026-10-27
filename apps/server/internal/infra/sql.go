@@ -21,6 +21,39 @@ import (
 
 const sqliteRecoveryDocsURL = "https://docs.peekaping.com/self-hosting/sqlite-recovery"
 
+// postgresDSN builds the connection string for the PostgreSQL driver. sslmode comes
+// from DB_SSL_MODE; an empty value means "disable", because a Config built in code
+// rather than by LoadConfig has no default applied.
+func postgresDSN(cfg *config.Config) string {
+	sslMode := cfg.DBSSLMode
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName, sslMode)
+}
+
+// buildDSN returns the driver DSN for the configured database. PostgreSQL goes through
+// postgresDSN so DB_SSL_MODE reaches the connection.
+func buildDSN(cfg *config.Config) (string, error) {
+	switch cfg.DBType {
+	case "postgres", "postgresql":
+		return postgresDSN(cfg), nil
+	case "mysql":
+		return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName), nil
+	case "sqlite":
+		dbPath := cfg.DBName
+		if dbPath == "" {
+			dbPath = "./data.db" // Default SQLite file path
+		}
+		return dbPath, nil
+	default:
+		return "", fmt.Errorf("unsupported database type: %s", cfg.DBType)
+	}
+}
+
 func ProvideSQLDB(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -32,8 +65,10 @@ func ProvideSQLDB(
 	switch cfg.DBType {
 	case "postgres", "postgresql":
 		// PostgreSQL connection
-		dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
+		dsn, dsnErr := buildDSN(cfg)
+		if dsnErr != nil {
+			return nil, dsnErr
+		}
 
 		sqldb = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 		db = bun.NewDB(sqldb, pgdialect.New())
@@ -42,8 +77,10 @@ func ProvideSQLDB(
 
 	case "mysql":
 		// MySQL connection
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
+		dsn, dsnErr := buildDSN(cfg)
+		if dsnErr != nil {
+			return nil, dsnErr
+		}
 
 		sqldb, err = sql.Open("mysql", dsn)
 		if err != nil {
@@ -56,12 +93,12 @@ func ProvideSQLDB(
 
 	case "sqlite":
 		// SQLite connection
-		dbPath := cfg.DBName
-		if dbPath == "" {
-			dbPath = "./data.db" // Default SQLite file path
+		dsn, dsnErr := buildDSN(cfg)
+		if dsnErr != nil {
+			return nil, dsnErr
 		}
 
-		sqldb, err = sqlitedb.Open(dbPath)
+		sqldb, err = sqlitedb.Open(dsn)
 		if err != nil {
 			return nil, err
 		}
@@ -100,14 +137,14 @@ func ProvideSQLDB(
 		// quick_check walks the b-tree pages in about 2s. It misses an index that disagrees with
 		// its table, so the full check is one to ask for with "full" or to run by hand (see the
 		// recovery page at sqliteRecoveryDocsURL). "off" runs none.
-		if err := checkSQLiteOnStartup(db, dbPath, cfg.SQLiteStartupCheck, logger); err != nil {
+		if err := checkSQLiteOnStartup(db, dsn, cfg.SQLiteStartupCheck, logger); err != nil {
 			// Don't close db: closing SQLite's last connection checkpoints the write-ahead log
 			// into the main file and deletes the -wal and -shm files, which the operator is told
 			// to keep. The process exits right after this error.
 			return nil, err
 		}
 
-		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled, corruption prevention active)", dbPath)
+		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled, corruption prevention active)", dsn)
 
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s. Supported types: postgres, mysql, sqlite", cfg.DBType)

@@ -9,8 +9,35 @@ import (
 
 	"peekaping/internal/config"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/uptrace/bun"
 )
+
+// The migration CLI used to hardcode sslmode=disable, so a cluster that requires TLS
+// could be migrated by neither the server nor this CLI. DB_SSL_MODE now reaches the DSN,
+// and an empty value still means disable for a DBConfig built in code.
+func TestPostgresDSN_CarriesTheSSLMode(t *testing.T) {
+	base := config.DBConfig{
+		DBType: "postgres", DBUser: "peekaping", DBPass: "s3cret",
+		DBHost: "database", DBPort: "5432", DBName: "peekaping",
+	}
+
+	for _, mode := range []string{"", "disable", "require", "verify-ca", "verify-full"} {
+		t.Run("sslmode="+mode, func(t *testing.T) {
+			want := mode
+			if want == "" {
+				want = "disable"
+			}
+
+			cfg := base
+			cfg.DBSSLMode = mode
+
+			assert.Equal(t,
+				"postgres://peekaping:s3cret@database:5432/peekaping?sslmode="+want+"&search_path=public",
+				postgresDSN(&cfg))
+		})
+	}
+}
 
 // migrate opens SQLite with the settings the server uses, on every connection: database/sql
 // drops a connection when its query's context is cancelled, and the next one must have them too.

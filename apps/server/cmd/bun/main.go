@@ -256,6 +256,20 @@ func runWithConfiguredDB(accept func(config.DBConfig) error, fn func(config.DBCo
 	return fn(cfg, db)
 }
 
+// postgresDSN builds the migration CLI's PostgreSQL connection string. sslmode comes
+// from DB_SSL_MODE, the same setting the server reads, so a cluster that requires TLS
+// is reachable by the migrations too. An empty value means disable, because a DBConfig
+// built in code rather than by LoadConfig has no default applied.
+func postgresDSN(cfg *config.DBConfig) string {
+	sslMode := cfg.DBSSLMode
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s&search_path=public",
+		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName, sslMode)
+}
+
 func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 	var sqldb *sql.DB
 	var db *bun.DB
@@ -263,9 +277,7 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 
 	switch cfg.DBType {
 	case "postgres", "postgresql":
-		dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=public",
-			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-		sqldb = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+		sqldb = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(postgresDSN(cfg))))
 		db = bun.NewDB(sqldb, pgdialect.New())
 
 	case "mysql":

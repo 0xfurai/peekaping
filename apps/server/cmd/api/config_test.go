@@ -34,6 +34,34 @@ func TestLogLevelDefaultsToInfo(t *testing.T) {
 	assert.Equal(t, "info", cfg.ToInternalConfig().LogLevel)
 }
 
+// The api loads its own configuration, so a field it forgets never reaches the internal
+// config the DSN is built from. DB_SSL_MODE set on the api must reach it.
+func TestPostgresSSLModeReachesTheInternalConfig(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("DB_SSL_MODE", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, "disable", cfg.ToInternalConfig().DBSSLMode)
+
+	t.Setenv("DB_SSL_MODE", "verify-full")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, "verify-full", cfg.ToInternalConfig().DBSSLMode)
+}
+
+// A mode pgdriver can't use has to stop the api at startup rather than reach the DSN.
+func TestAnUnknownPostgresSSLModeIsRejectedByTheAPI(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("DB_SSL_MODE", "REQUIRE")
+
+	_, err := LoadAndValidate(t.TempDir())
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "pg_ssl_mode")
+}
+
 func TestRedisUsernameIsLoadedFromEnv(t *testing.T) {
 	t.Setenv("DB_TYPE", "sqlite")
 	t.Setenv("DB_NAME", "peekaping.db")

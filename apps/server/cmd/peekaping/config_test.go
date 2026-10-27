@@ -31,6 +31,24 @@ func TestLoadAndValidate_LogLevelDefaultsToInfo(t *testing.T) {
 	assert.Equal(t, "info", cfg.ToInternalConfig().LogLevel)
 }
 
+// Single mode loads its own configuration, so a field it forgets never reaches the internal
+// config the DSN is built from. DB_SSL_MODE set on peekaping must reach it.
+func TestLoadAndValidate_PostgresSSLModeReachesTheInternalConfig(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("DB_SSL_MODE", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, "disable", cfg.ToInternalConfig().DBSSLMode)
+
+	t.Setenv("DB_SSL_MODE", "require")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, "require", cfg.ToInternalConfig().DBSSLMode)
+}
+
 func TestLoadAndValidate_NeedsNoRedis(t *testing.T) {
 	unsetRedis(t)
 	t.Setenv("DB_TYPE", "sqlite")
