@@ -44,6 +44,7 @@ func TestGrafanaOncallSender_Send_MonitorFields(t *testing.T) {
 	}
 	base := map[string]any{
 		"title":        "API is down",
+		"alert_uid":    "Peekaping/mon-1",
 		"message":      downBeat.Msg,
 		"state":        "alerting",
 		"status":       "DOWN",
@@ -161,6 +162,7 @@ func TestGrafanaOncallSender_Send_Up(t *testing.T) {
 
 	assert.Equal(t, map[string]any{
 		"title":        "API is up",
+		"alert_uid":    "Peekaping/mon-1",
 		"message":      "200 - 200 OK",
 		"state":        "ok",
 		"status":       "UP",
@@ -172,6 +174,27 @@ func TestGrafanaOncallSender_Send_Up(t *testing.T) {
 		"monitor_url":  "https://example.com",
 		"tags":         []any{"team:core"},
 	}, sendTestGrafanaOncallPayload(t, hb.Msg, m, hb))
+}
+
+// OnCall groups alerts by alert_uid and resolves a group when an alert in it has state ok, so each
+// monitor needs a uid of its own, or one monitor's Up would resolve the alerts of every other
+func TestGrafanaOncallSender_Send_AlertUIDIsPerMonitor(t *testing.T) {
+	down := &heartbeat.Model{Status: shared.MonitorStatusDown, Msg: "connection refused", Time: time.Now()}
+	up := &heartbeat.Model{Status: shared.MonitorStatusUp, Msg: "200 - OK", Time: time.Now()}
+	pending := &heartbeat.Model{Status: shared.MonitorStatusPending, Msg: "retrying", Time: time.Now()}
+	api := &monitor.Model{ID: "mon-1", Name: "API", Type: "http"}
+	db := &monitor.Model{ID: "mon-2", Name: "DB", Type: "tcp"}
+
+	apiDown := sendTestGrafanaOncallPayload(t, down.Msg, api, down)
+	apiUp := sendTestGrafanaOncallPayload(t, up.Msg, api, up)
+	apiPending := sendTestGrafanaOncallPayload(t, pending.Msg, api, pending)
+	dbDown := sendTestGrafanaOncallPayload(t, down.Msg, db, down)
+
+	assert.Equal(t, "Peekaping/mon-1", apiDown["alert_uid"])
+	assert.Equal(t, apiDown["alert_uid"], apiUp["alert_uid"], "the Up has to resolve the alert group the Down opened")
+	assert.Equal(t, apiDown["alert_uid"], apiPending["alert_uid"])
+	assert.Equal(t, "Peekaping/mon-2", dbDown["alert_uid"])
+	assert.NotEqual(t, apiDown["alert_uid"], dbDown["alert_uid"])
 }
 
 func TestGrafanaOncallSender_Send_UntaggedMonitorSendsEmptyTags(t *testing.T) {
