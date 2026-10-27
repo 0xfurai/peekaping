@@ -2,11 +2,12 @@ package modules_test
 
 import (
 	"context"
-	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/tag"

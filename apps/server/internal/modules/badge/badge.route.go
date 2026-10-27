@@ -1,9 +1,10 @@
 package badge
 
 import (
-	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"peekaping/internal/httpx"
+
+	"github.com/danielgtaylor/huma/v2"
 )
 
 type Route struct {

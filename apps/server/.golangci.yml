@@ -1,0 +1,23 @@
+version: "2"
+
+# PP-98: start with the linters that pass today and turn on each of the others
+# when its ticket lands. Every linter that is still off is listed below next to
+# the ticket that turns it on.
+linters:
+  default: none
+  enable:
+    - govet
+  # Off until the ticket lands (add the linter to `enable` in that ticket's PR):
+  #   staticcheck, unused    PP-95 (dead code and debug leftovers; 39 staticcheck
+  #                          findings today, mostly ST1005 and ST1016)
+  #   errorlint              PP-87 (one error model)
+  #   contextcheck, noctx    PP-88 (pass the request context, not the gin context)
+  #   forcetypeassert        PP-51 (socket.io) and PP-94 (generics for executor configs)
+  #   bodyclose, gosec       PP-52 (secrets) and PP-73 (provider HTTP clients)
+  #   revive                 PP-93 (renames; package-naming, var-naming,
+  #                          receiver-naming, exported)
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

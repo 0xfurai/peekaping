@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/danielgtaylor/huma/v2"
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/api_key"
@@ -30,6 +29,8 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/version"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"go.uber.org/zap"
 )
