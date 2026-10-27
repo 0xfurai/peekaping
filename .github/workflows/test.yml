@@ -72,6 +72,18 @@ jobs:
         working-directory: apps/server
         run: go mod download
 
+      - name: Run go vet
+        working-directory: apps/server
+        run: go vet ./...
+
+      # The version is pinned: a new release adds checks that fail PRs nobody touched.
+      # Config and the linters still off, with their tickets: apps/server/.golangci.yml
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.15.0
+          working-directory: apps/server
+
       - name: Check OpenAPI and generated client
         run: bun run api:check
 
@@ -109,5 +121,27 @@ jobs:
           slug: 0xfurai/peekaping
           file: apps/server/coverage.txt
           flags: server
+
+  # The race detector slows the tests down several times over, so it runs beside the
+  # main job without coverage instead of making that job slower
+  race:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: apps/server/go.sum
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
+
+      - name: Run server tests with the race detector
+        working-directory: apps/server
+        run: go test -race -timeout 900s ./internal/... ./cmd/...
 
 
