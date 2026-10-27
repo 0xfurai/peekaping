@@ -113,6 +113,10 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 		ID:      fmt.Sprintf("monitor-%s", mon.ID),
 		Urgency: cfg.Urgency,
 	}
+	if hb == nil && !isProbeEvent {
+		// A certificate-expiry warning gets a new alert each time: PP-136 gives it its own identity
+		payload.ID = fmt.Sprintf("monitor-%s-%d", mon.ID, time.Now().Unix())
+	}
 	if isProbeEvent {
 		// Alerts of one probe are one alert: the same ID, in the form of PagerDuty's dedup key
 		payload.ID = fmt.Sprintf("Peekaping/%s", mon.ID)

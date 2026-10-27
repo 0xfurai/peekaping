@@ -76,3 +76,17 @@ func TestPagerTreeMonitorsHaveDifferentIDs(t *testing.T) {
 	assert.Equal(t, "monitor-mon-1", ids[0])
 	assert.Equal(t, "monitor-mon-2", ids[1])
 }
+
+// A certificate-expiry warning carries no heartbeat. It must not merge into the outage's alert,
+// where the outage's Up would resolve it.
+func TestPagerTreeCertificateExpiryIDDiffersFromTheOutageID(t *testing.T) {
+	ids := pagerTreeIDs(t,
+		pagerTreeNotification{goldenMonitor, goldenDown},
+		pagerTreeNotification{goldenMonitor, nil},
+	)
+
+	require.Len(t, ids, 2)
+	assert.Equal(t, "monitor-mon-1", ids[0])
+	assert.NotEqual(t, ids[0], ids[1])
+	assert.Regexp(t, `^monitor-mon-1-\d+$`, ids[1])
+}
