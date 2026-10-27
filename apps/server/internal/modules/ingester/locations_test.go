@@ -92,6 +92,49 @@ func TestIngester_AMonitorsFirstHeartbeatOnAProbeNotifiesOnlyWhenUpOrDown(t *tes
 	})
 }
 
+func TestIngester_ALocationsFirstFailedCheckUsesTheMaxRetries(t *testing.T) {
+	t.Run("the monitor's first check, on a probe, is Pending and sends nothing", func(t *testing.T) {
+		ti := newTestIngester(runningOn(probeA, probeB))
+		m := monitorSettings{maxRetries: 2}
+
+		first := ti.from(t, probeB, m, down)
+		assert.Equal(t, pending, first.status)
+		assert.Equal(t, 1, first.retries)
+		assert.True(t, first.important)
+		assert.False(t, first.notified)
+		assert.Equal(t, []string{changed}, first.events)
+
+		assert.Equal(t, pending, ti.from(t, probeB, m, down).status)
+		third := ti.from(t, probeB, m, down)
+		assert.Equal(t, down, third.status, "the retries are used up")
+		assert.Equal(t, []string{changed, notified}, third.events)
+	})
+
+	t.Run("a second location's first failed check is Pending, and the monitor stays Up", func(t *testing.T) {
+		ti := newTestIngester(runningOn(probeA, probeB))
+		m := monitorSettings{maxRetries: 2}
+		ti.from(t, probeA, m, up)
+
+		first := ti.from(t, probeB, m, down)
+
+		assert.Equal(t, pending, first.status)
+		assert.Equal(t, 1, first.retries)
+		assert.False(t, first.important)
+		assert.Empty(t, first.events)
+	})
+
+	t.Run("with max retries 0 it is Down and notifies", func(t *testing.T) {
+		ti := newTestIngester(runningOn(probeA, probeB))
+		m := monitorSettings{}
+		ti.from(t, probeA, m, up)
+
+		first := ti.from(t, probeB, m, down)
+
+		assert.Equal(t, down, first.status)
+		assert.Equal(t, []string{changed, notified}, first.events)
+	})
+}
+
 func TestIngester_TheMonitorIsDownWhileAnyLocationIsDown(t *testing.T) {
 	ti := newTestIngester(runningOn(probeA, probeB))
 	m := monitorSettings{maxRetries: 0}
@@ -298,7 +341,7 @@ func TestIngester_RecordsTheLocationsState(t *testing.T) {
 	got := ti.locations.records[0]
 	assert.Equal(t, probeA, got.ProbeID)
 	require.NotNil(t, got.Status)
-	assert.Equal(t, down, *got.Status, "the first heartbeat of a location skips Pending, as before")
+	assert.Equal(t, pending, *got.Status, "the first failed check of a location is Pending while it has retries left")
 	require.NotNil(t, got.LastPing)
 	assert.Equal(t, 321, *got.LastPing)
 	require.NotNil(t, got.LastHeartbeatAt)
