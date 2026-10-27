@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- chore: the Helm chart's bundled PostgreSQL and Redis (off by default) move to the Bitnami subcharts `postgresql` 18.12.16 and `redis` 28.3.10, with the latest PostgreSQL 18.6.0 and Redis 8.10.3 images
+
 ### Fixed
 
 ## [0.0.48] - 2026-10-27

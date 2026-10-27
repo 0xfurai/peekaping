@@ -10,11 +10,11 @@ version: 0.0.0
 appVersion: latest
 dependencies:
 - name: redis
-  version: 28.3.1
+  version: 28.3.10
   repository: oci://registry-1.docker.io/bitnamicharts
   condition: redis.enabled
 
 - name: postgresql
-  version: 18.12.14
+  version: 18.12.16
   repository: oci://registry-1.docker.io/bitnamicharts
   condition: postgresql.enabled
