@@ -20,7 +20,7 @@ import (
 
 // newRealRegistry returns the registry the app runs with
 func newRealRegistry() *ProviderRegistry {
-	return NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil)
+	return NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, nil)
 }
 
 // fieldKeys returns the sorted keys of each channel type's fields that match

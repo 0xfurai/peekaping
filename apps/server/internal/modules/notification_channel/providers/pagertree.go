@@ -16,7 +16,7 @@ import (
 )
 
 type PagerTreeConfig struct {
-	IntegrationURL string `json:"integrationUrl" validate:"required,url" secret:"true" endpoint:"true"`
+	IntegrationURL string `json:"integrationUrl" validate:"required,url" secret:"true" endpoint:"true" target:"url"`
 	Urgency        string `json:"urgency" validate:"omitempty,oneof=silent low medium high critical"`
 	AutoResolve    bool   `json:"autoResolve"`
 	AuthToken      string `json:"authToken" validate:"omitempty" secret:"true"`

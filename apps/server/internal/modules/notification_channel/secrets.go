@@ -27,6 +27,9 @@ type configField struct {
 	secret         bool
 	endpoint       bool
 	urlCredentials bool
+	// target is "url" or "host" for a field that names an address the provider connects to (see
+	// CheckTargets), and empty for any other field
+	target string
 	// endpointDefault is, for an endpoint, the value the provider uses when the field is empty
 	endpointDefault string
 }
@@ -56,7 +59,8 @@ func configFields(provider NotificationChannelProvider) []configField {
 		secret := field.Tag.Get("secret") == "true"
 		endpoint := field.Tag.Get("endpoint") == "true"
 		urlCredentials := field.Tag.Get("urlCredentials") == "true"
-		if !field.IsExported() || (!secret && !endpoint && !urlCredentials) {
+		target := field.Tag.Get("target")
+		if !field.IsExported() || (!secret && !endpoint && !urlCredentials && target == "") {
 			continue
 		}
 		name, _, _ := strings.Cut(field.Tag.Get("json"), ",")
@@ -67,7 +71,7 @@ func configFields(provider NotificationChannelProvider) []configField {
 			name = field.Name
 		}
 		fields = append(fields, configField{
-			key: name, index: i, secret: secret, endpoint: endpoint, urlCredentials: urlCredentials,
+			key: name, index: i, secret: secret, endpoint: endpoint, urlCredentials: urlCredentials, target: target,
 			endpointDefault: field.Tag.Get("endpointDefault"),
 		})
 	}

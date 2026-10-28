@@ -6,6 +6,7 @@ import (
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/netguard"
 	"slices"
 
 	"go.uber.org/zap"
@@ -15,15 +16,21 @@ import (
 // so the controller and the listener use the same providers.
 type ProviderRegistry struct {
 	byType map[string]NotificationChannelProvider
+	guard  *netguard.Guard
 }
 
 // NewProviderRegistry builds the provider for every notification channel type. The providers
 // share one HTTP client, so they reuse connections. The install email provider sends through the
 // install's account-email sender, to a member of the channel's workspace.
-func NewProviderRegistry(logger *zap.SugaredLogger, cfg *config.Config, accountMailer *mailer.Mailer, members workspace.MemberRepository) *ProviderRegistry {
-	client := providers.NewHTTPClient()
-	return &ProviderRegistry{byType: map[string]NotificationChannelProvider{
-		"smtp":           providers.NewEmailSender(logger),
+//
+// The guard (BLOCK_PRIVATE_TARGETS, PP-158) is the one the checks dial through. The HTTP client and
+// the SMTP channel's sender connect through it, and CheckTargets uses it on a save. The install email
+// channel is not guarded: it sends through the install's own account-email sender. A nil guard
+// blocks nothing.
+func NewProviderRegistry(logger *zap.SugaredLogger, cfg *config.Config, accountMailer *mailer.Mailer, members workspace.MemberRepository, guard *netguard.Guard) *ProviderRegistry {
+	client := providers.NewGuardedHTTPClient(guard)
+	return &ProviderRegistry{guard: guard, byType: map[string]NotificationChannelProvider{
+		"smtp":           providers.NewGuardedEmailSender(logger, guard),
 		"install_email":  providers.NewInstallEmailSender(logger, accountMailer, members),
 		"telegram":       providers.NewTelegramSender(logger, client),
 		"webhook":        providers.NewWebhookSender(logger, client),

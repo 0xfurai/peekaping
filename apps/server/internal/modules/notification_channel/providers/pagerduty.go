@@ -18,7 +18,7 @@ import (
 // PagerDutyConfig holds the configuration for PagerDuty notifications
 type PagerDutyConfig struct {
 	IntegrationKey string `json:"pagerduty_integration_key" validate:"required" secret:"true"`
-	IntegrationURL string `json:"pagerduty_integration_url" validate:"required,url" endpoint:"true" urlCredentials:"true"`
+	IntegrationURL string `json:"pagerduty_integration_url" validate:"required,url" endpoint:"true" urlCredentials:"true" target:"url"`
 	Priority       string `json:"pagerduty_priority"`
 	AutoResolve    string `json:"pagerduty_auto_resolve"`
 }

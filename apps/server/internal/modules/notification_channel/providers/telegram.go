@@ -17,7 +17,7 @@ type TelegramConfig struct {
 	BotToken          string `json:"bot_token" validate:"required" secret:"true"`
 	ChatID            string `json:"chat_id" validate:"required"`
 	MessageThreadID   string `json:"message_thread_id"`
-	ServerUrl         string `json:"server_url" validate:"omitempty,url" endpoint:"true" endpointDefault:"https://api.telegram.org" urlCredentials:"true"`
+	ServerUrl         string `json:"server_url" validate:"omitempty,url" endpoint:"true" endpointDefault:"https://api.telegram.org" urlCredentials:"true" target:"url"`
 	UseTemplate       bool   `json:"use_template"`
 	TemplateParseMode string `json:"template_parse_mode" validate:"omitempty,oneof=plain MarkdownV2 HTML Markdown"`
 	Template          string `json:"template"`
