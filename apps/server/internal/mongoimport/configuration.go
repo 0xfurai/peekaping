@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -132,11 +133,22 @@ func (c *copier) pushToken(report *CollectionReport, typ, token, config string) 
 	if token == "" {
 		return nil
 	}
+	// PostgreSQL cuts the token to the width of its column, so two tokens that differ only after it
+	// are one token there: the duplicate check is on the cut token, which is also the one stored
+	const width = 255 // the max tag of monitorRow.PushToken
+	cut := false
+	if c.cutsText && utf8.RuneCountInString(token) > width {
+		token = string([]rune(token)[:width])
+		cut = true
+	}
 	if c.pushTokens[token] {
 		report.fix("push_token is held by an earlier monitor: cleared")
 		return nil
 	}
 	c.pushTokens[token] = true
+	if cut {
+		report.fix("push_token cut to 255 characters")
+	}
 	return &token
 }
 
