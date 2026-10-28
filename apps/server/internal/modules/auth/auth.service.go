@@ -142,12 +142,12 @@ func (s *ServiceImpl) registerThroughInvite(ctx context.Context, dto RegisterDto
 	if err := s.invites.CheckInvite(ctx, dto.InviteToken, dto.Email); err != nil {
 		return nil, err
 	}
-	for _, email := range []string{dto.Email, strings.ToLower(strings.TrimSpace(dto.Email))} {
-		if existing, err := s.repo.FindByEmail(ctx, email); err != nil {
-			return nil, err
-		} else if existing != nil {
-			return nil, ErrEmailTaken
-		}
+	// Accounts keep the case their owner typed, and the invite is lower-cased: the same person may
+	// have an account in another case, and a second one would be a stranger to their workspaces
+	if existing, err := s.repo.FindByEmailIgnoringCase(ctx, dto.Email); err != nil {
+		return nil, err
+	} else if existing != nil {
+		return nil, ErrEmailTaken
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 	if err != nil {

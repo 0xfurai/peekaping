@@ -206,3 +206,24 @@ func TestService_Register_ConcurrentSignupsMakeOneUserAndOneWorkspace(t *testing
 		})
 	}
 }
+
+func TestRepository_FindByEmailIgnoringCase_FindsTheAccountInAnyCaseAroundSpaces(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, repo auth.Repository) {
+		ctx := context.Background()
+		created, err := repo.Create(ctx, newUser("Alice@Example.com"))
+		require.NoError(t, err)
+
+		for _, typed := range []string{"Alice@Example.com", "alice@example.com", "ALICE@EXAMPLE.COM", "  alice@example.com "} {
+			found, err := repo.FindByEmailIgnoringCase(ctx, typed)
+			require.NoError(t, err, typed)
+			require.NotNil(t, found, typed)
+			assert.Equal(t, created.ID, found.ID, typed)
+		}
+		found, err := repo.FindByEmailIgnoringCase(ctx, "bob@example.com")
+		require.NoError(t, err)
+		assert.Nil(t, found)
+		exact, err := repo.FindByEmail(ctx, "alice@example.com")
+		require.NoError(t, err)
+		assert.Nil(t, exact, "FindByEmail, which login uses, stays exact")
+	})
+}

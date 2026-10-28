@@ -76,7 +76,7 @@ func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx
 			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		}
 		if errors.Is(err, ErrEmailTaken) {
-			return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse(err.Error()))
+			return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email exists: sign in and accept the invite"))
 		}
 		// An invite that doesn't exist, can't be used or names another email
 		if answer := workspacehttp.Fail(err); answer != nil {

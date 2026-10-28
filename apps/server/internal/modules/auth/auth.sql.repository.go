@@ -2,6 +2,9 @@ package auth
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"strings"
 	"time"
 
 	"peekaping/internal/dbtx"
@@ -164,6 +167,23 @@ func (r *SQLRepositoryImpl) FindByEmail(ctx context.Context, email string) (*Mod
 	err := r.db.NewSelect().Model(sm).Where("email = ?", email).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return toDomainModelFromSQL(sm), nil
+}
+
+func (r *SQLRepositoryImpl) FindByEmailIgnoringCase(ctx context.Context, email string) (*Model, error) {
+	trimmed := strings.TrimSpace(email)
+	sm := new(sqlModel)
+	// The exact match covers what SQL's lower() leaves alone (it differs from Go's for non-ASCII
+	// letters on SQLite)
+	err := r.db.NewSelect().Model(sm).
+		Where("email = ? OR lower(trim(email)) = ?", trimmed, strings.ToLower(trimmed)).
+		Order("created_at", "id").Limit(1).Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
