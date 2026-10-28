@@ -20,6 +20,16 @@ type NoBody struct{}
 var JWTOnly = []map[string][]string{{"JwtAuth": {}}}
 var SharedAuth = []map[string][]string{{"JwtAuth": {}}, {"ApiKeyAuth": {}}}
 
+// WorkspaceIDHeader is the header that names the workspace a request runs in. A route group whose
+// records belong to a workspace documents it with Router.Document, next to the middleware that
+// reads it.
+var WorkspaceIDHeader = &huma.Param{
+	Name:        "X-Workspace-ID",
+	In:          "header",
+	Description: "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+	Schema:      &huma.Schema{Type: "string", Format: "uuid"},
+}
+
 // ProbeAuth is the probe token, which opens the probe protocol's routes and nothing else
 var ProbeAuth = []map[string][]string{{"ProbeAuth": {}}}
 
@@ -124,6 +134,8 @@ type operationAPI struct {
 	huma.API
 	router *Router
 	input  inputContract
+	// parameters are the ones the router documents on every operation (Router.Document)
+	parameters []*huma.Param
 }
 
 func (a operationAPI) Adapter() huma.Adapter { return humago.NewAdapter(muxBridge{a.router}, "") }
@@ -165,6 +177,10 @@ func (a operationAPI) DocumentOperation(op *huma.Operation) {
 		op.Parameters = append(op.Parameters, &huma.Param{Name: name, In: location,
 			Required: location == "path" || f.Tag.Get("required") == "true", Description: f.Tag.Get("doc"),
 			Schema: huma.SchemaFromField(registry, f, op.OperationID+f.Name)})
+	}
+	for _, parameter := range a.parameters {
+		documented := *parameter
+		op.Parameters = append(op.Parameters, &documented)
 	}
 	delete(op.Responses, "default")
 	for code, response := range op.Responses {
@@ -211,7 +227,7 @@ func Register[I, T any](router *Router, method, path string, op huma.Operation, 
 	if !ok {
 		panic("REST handlers must use httpx.Input")
 	}
-	huma.Register(operationAPI{API: api, router: &scoped, input: input}, op, handler)
+	huma.Register(operationAPI{API: api, router: &scoped, input: input, parameters: router.parameters}, op, handler)
 }
 
 // ErrorResponse and ErrorVariants describe the few established responses that

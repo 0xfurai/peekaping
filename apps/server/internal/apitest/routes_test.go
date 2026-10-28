@@ -48,6 +48,7 @@ var publicRoutes = map[string]string{
 // jwtOnlyRoutes manage the account, its API keys, and install-wide choices that are the
 // admin's alone, so an API key must not reach them.
 var jwtOnlyRoutes = map[string]bool{
+	"GET /api/v1/me":                true,
 	"POST /api/v1/auth/2fa/setup":   true,
 	"POST /api/v1/auth/2fa/verify":  true,
 	"POST /api/v1/auth/2fa/disable": true,

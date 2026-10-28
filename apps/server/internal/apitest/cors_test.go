@@ -41,7 +41,7 @@ func TestCORS_TheOriginOfClientURLCanReadTheAPI(t *testing.T) {
 	require.Equal(t, http.StatusNoContent, w.Code, w.Body.String())
 	assert.Equal(t, webApp, w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "GET,POST,PUT,DELETE,OPTIONS,PATCH", w.Header().Get("Access-Control-Allow-Methods"))
-	assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID", w.Header().Get("Access-Control-Allow-Headers"))
+	assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Workspace-ID", w.Header().Get("Access-Control-Allow-Headers"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 }
 

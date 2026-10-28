@@ -20,6 +20,10 @@ type UpdatePasswordParams struct {
 }
 type UpdatePasswordInput = httpx.Input[UpdatePasswordDto, UpdatePasswordParams]
 
+type MeParams struct {
+}
+type MeInput = httpx.Input[httpx.NoBody, MeParams]
+
 type SetupTwoFAParams struct {
 }
 type SetupTwoFAInput = httpx.Input[TwoFASetupRequestDto, SetupTwoFAParams]
