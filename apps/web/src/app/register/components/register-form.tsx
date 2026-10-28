@@ -321,7 +321,7 @@ export function RegisterForm({
               <Button
                 type="submit"
                 className="w-full"
-                disabled={!canSubmitRegister(turnstileSiteKey, turnstileToken)}
+                disabled={!canSubmitRegister(turnstileSiteKey, turnstileToken, registerMutation.isPending)}
               >
                 {t("auth.register.submit")}
               </Button>
