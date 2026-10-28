@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AxiosError, AxiosHeaders } from "axios";
 import type { AdminUserResponse } from "@/api/types.gen";
 import {
   adminErrorMessage,
+  dismissWhileIdle,
   isLastInstanceAdmin,
   userActions,
 } from "./admin-users";
@@ -148,5 +149,42 @@ describe("adminErrorMessage", () => {
       "Internal server error"
     );
     expect(adminErrorMessage(new Error("network"), t, "fallback")).toBe("fallback");
+  });
+});
+
+describe("dismissWhileIdle", () => {
+  const dismiss = (pending: boolean) => {
+    const close = vi.fn();
+    return { close, handlers: dismissWhileIdle(pending, close) };
+  };
+
+  it("closes the dialog when no action is pending", () => {
+    const { close, handlers } = dismiss(false);
+    handlers.onOpenChange(false);
+    expect(close).toHaveBeenCalledTimes(1);
+    const escape = new Event("keydown", { cancelable: true });
+    handlers.onEscapeKeyDown(escape);
+    expect(escape.defaultPrevented).toBe(false);
+    const outside = new Event("pointerdown", { cancelable: true });
+    handlers.onPointerDownOutside(outside);
+    expect(outside.defaultPrevented).toBe(false);
+  });
+
+  it("keeps it open while an action is pending: Escape, a click outside and the close control do nothing", () => {
+    const { close, handlers } = dismiss(true);
+    handlers.onOpenChange(false);
+    expect(close).not.toHaveBeenCalled();
+    const escape = new Event("keydown", { cancelable: true });
+    handlers.onEscapeKeyDown(escape);
+    expect(escape.defaultPrevented).toBe(true);
+    const outside = new Event("pointerdown", { cancelable: true });
+    handlers.onPointerDownOutside(outside);
+    expect(outside.defaultPrevented).toBe(true);
+  });
+
+  it("never closes on an open", () => {
+    const { close, handlers } = dismiss(false);
+    handlers.onOpenChange(true);
+    expect(close).not.toHaveBeenCalled();
   });
 });

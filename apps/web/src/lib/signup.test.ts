@@ -121,23 +121,29 @@ describe("registerFailureKey", () => {
 });
 
 describe("registerDescriptionKey", () => {
-  it("calls the account an ordinary one in open mode", () => {
-    expect(registerDescriptionKey("open")).toBe("auth.register.description_open");
+  it("calls a later open signup an ordinary account", () => {
+    expect(registerDescriptionKey("open", false)).toBe("auth.register.description_open");
+    expect(registerDescriptionKey("open", undefined)).toBe("auth.register.description_open");
+  });
+
+  it("calls the install's first signup the admin account in either mode", () => {
+    expect(registerDescriptionKey("open", true)).toBe("auth.register.description");
+    expect(registerDescriptionKey("invite", true)).toBe("auth.register.description");
   });
 
   it("calls it the admin account in invite mode, and while the mode is unknown", () => {
-    expect(registerDescriptionKey("invite")).toBe("auth.register.description");
-    expect(registerDescriptionKey(undefined)).toBe("auth.register.description");
+    expect(registerDescriptionKey("invite", false)).toBe("auth.register.description");
+    expect(registerDescriptionKey(undefined, undefined)).toBe("auth.register.description");
   });
 });
 
 describe("showInstallPreferences", () => {
-  it("shows them on an invite install, whose form is only offered to its first user", () => {
-    expect(showInstallPreferences("invite")).toBe(true);
+  it("shows them to the install's first signup, who becomes its instance admin, in either mode", () => {
+    expect(showInstallPreferences(true)).toBe(true);
   });
 
-  it("hides them in open mode and while the mode is unknown", () => {
-    expect(showInstallPreferences("open")).toBe(false);
+  it("hides them from a later signup and while the config is unknown", () => {
+    expect(showInstallPreferences(false)).toBe(false);
     expect(showInstallPreferences(undefined)).toBe(false);
   });
 });

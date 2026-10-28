@@ -26,21 +26,21 @@ export const loginSignupOffer = (config: SignupConfig | undefined): "register" |
 };
 
 /**
- * The translation key of the register card's description. The first signup of an invite install
- * makes the instance admin; a signup in open mode is an ordinary account. /auth/config does not say
- * when an open install has no user yet, so open mode always reads as an ordinary account.
+ * The translation key of the register card's description. The install's first signup makes its
+ * instance admin, in either mode (/auth/config says `firstSignup` while the install has no user);
+ * a later signup in open mode is an ordinary account. With no mode known it reads as the admin one,
+ * as an invite install's only signup is.
  */
-export const registerDescriptionKey = (signupMode: "invite" | "open" | undefined): string =>
-  signupMode === "open" ? "auth.register.description_open" : "auth.register.description";
+export const registerDescriptionKey = (signupMode: "invite" | "open" | undefined, firstSignup: boolean | undefined): string =>
+  signupMode === "open" && !firstSignup ? "auth.register.description_open" : "auth.register.description";
 
 /**
  * Whether the register form shows the install-wide choices (the usage ping and the error reports).
- * Only an instance admin may set them, and the first signup is the only one /auth/config is sure
- * makes one: in invite mode the form shows only while the install has no user. In open mode the
- * config can't tell whether the visitor is the first, so the choices are left to Settings; with no
- * mode known they are left out too.
+ * Only an instance admin may set them, and only the install's first signup becomes one: the form
+ * shows them exactly when /auth/config says `firstSignup`, in either mode. Later open-mode signups
+ * and a config that is not loaded leave them to Settings.
  */
-export const showInstallPreferences = (signupMode: "invite" | "open" | undefined): boolean => signupMode === "invite";
+export const showInstallPreferences = (firstSignup: boolean | undefined): boolean => firstSignup === true;
 
 /**
  * The register button waits for the widget's answer when the install uses Turnstile, and while a

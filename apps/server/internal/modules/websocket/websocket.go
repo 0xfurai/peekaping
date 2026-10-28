@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/zishang520/engine.io/v2/types"
@@ -35,6 +36,8 @@ const (
 	monitorPrefix   = "monitor:"
 	// maxRoomName bounds what a client may make the server look up
 	maxRoomName = 128
+	// sweepEvery is how often the server checks the session of every open socket once more
+	sweepEvery = time.Minute
 )
 
 type Server struct {
@@ -57,6 +60,15 @@ type Server struct {
 	// sockets are the open sockets, by user, for taking a user out of a workspace's rooms
 	socketsMu sync.Mutex
 	sockets   map[string]map[socket.SocketId]*userSocket
+
+	// sweepEvery is how often the sweep checks the session of every open socket: SessionsEnded
+	// travels over Redis pub/sub, which does not replay an event a replica missed while it was
+	// disconnected, so a socket of a disabled user could keep its rooms. Tests shorten it. The
+	// sweep starts with the first socket, and stopSweep ends it.
+	sweepEvery time.Duration
+	sweepOnce  sync.Once
+	stopSweep  chan struct{}
+	closeOnce  sync.Once
 }
 
 // userSocket is an open socket and the lock that keeps its membership check and its join together
@@ -64,6 +76,8 @@ type Server struct {
 type userSocket struct {
 	client *socket.Socket
 	userID string
+	// sessionStart is when the session of the socket's token began, nil when the token says not
+	sessionStart *time.Time
 	// mu is held while a join checks the membership and enters the room, and while the socket
 	// leaves a workspace's rooms. A removal commits before MemberLeft is published, so a join that
 	// passed its check before the removal is finished, and then left, before the leave returns.
@@ -72,6 +86,9 @@ type userSocket struct {
 
 type SocketData struct {
 	UserId string
+	// SessionStart is when the session of the token the socket connected with began (its
+	// auth_time, else its iat), which the later checks of the socket's session judge it by
+	SessionStart *time.Time
 }
 
 func NewServer(
@@ -93,6 +110,8 @@ func NewServer(
 		monitors:   monitors,
 		logger:     logger,
 		sockets:    map[string]map[socket.SocketId]*userSocket{},
+		sweepEvery: sweepEvery,
+		stopSweep:  make(chan struct{}),
 	}
 
 	io.Use(func(s *socket.Socket, next func(*socket.ExtendedError)) {
@@ -113,7 +132,7 @@ func NewServer(
 			return
 		}
 
-		data := SocketData{UserId: fmt.Sprint(claims.UserID)}
+		data := SocketData{UserId: fmt.Sprint(claims.UserID), SessionStart: claims.SessionStart()}
 
 		s.SetData(data)
 
@@ -130,7 +149,7 @@ func NewServer(
 			next(socket.NewExtendedError("Unauthorized", nil))
 			return
 		}
-		us := server.register(client, data.UserId)
+		us := server.register(client, data)
 		client.On("disconnect", safe(logger, "disconnect", func(...interface{}) { server.unregister(us) }))
 
 		client.On("join_room", safe(logger, "join_room", func(args ...interface{}) {
@@ -195,6 +214,19 @@ func NewServer(
 			return
 		}
 
+		// The socket was registered in a middleware, before the library marked it connected, and
+		// socket.io v2.4.11's Socket.Disconnect does nothing to a socket that is not connected yet:
+		// a SessionsEnded published in between closed nothing. Now that it is connected, its
+		// session is checked once more.
+		if err := tokenMaker.CheckSession(context.Background(), data.UserId, data.SessionStart); errors.Is(err, auth.ErrInvalidToken) {
+			logger.Debugf("[WS]connection: closing a socket of user %s, whose session ended", data.UserId)
+			client.Disconnect(true)
+			return
+		} else if err != nil {
+			// The join checks the session again, and so does the sweep
+			logger.Warnw("[WS]connection: could not check the session of a socket", "user_id", data.UserId, "error", err)
+		}
+
 		logger.Debugf("[WS]connection: %s", data.UserId)
 	}))
 
@@ -248,14 +280,15 @@ func (s *Server) emitToRoom(room, event string, payload any) {
 	}
 }
 
-func (s *Server) register(client *socket.Socket, userID string) *userSocket {
-	us := &userSocket{client: client, userID: userID}
+func (s *Server) register(client *socket.Socket, data SocketData) *userSocket {
+	s.sweepOnce.Do(func() { go s.sweepLoop(s.sweepEvery) })
+	us := &userSocket{client: client, userID: data.UserId, sessionStart: data.SessionStart}
 	s.socketsMu.Lock()
 	defer s.socketsMu.Unlock()
-	if s.sockets[userID] == nil {
-		s.sockets[userID] = map[socket.SocketId]*userSocket{}
+	if s.sockets[us.userID] == nil {
+		s.sockets[us.userID] = map[socket.SocketId]*userSocket{}
 	}
-	s.sockets[userID][client.Id()] = us
+	s.sockets[us.userID][client.Id()] = us
 	return us
 }
 
@@ -340,14 +373,15 @@ func (s *Server) join(us *userSocket, roomName string) (refusal string) {
 		target = workspaceID
 	}
 
-	// A socket outlives the check of its token. An account an instance admin disabled or deleted
-	// since joins nothing, though its memberships stand.
-	if err := s.tokenMaker.CheckUserCanSignIn(ctx, us.userID); err != nil {
+	// A socket outlives the check of its token. A socket whose session ended since joins nothing,
+	// though its memberships stand: the account was disabled or deleted, or its sessions were
+	// ended (a password reset), and the socket may have missed SessionsEnded.
+	if err := s.tokenMaker.CheckSession(ctx, us.userID, us.sessionStart); err != nil {
 		if !errors.Is(err, auth.ErrInvalidToken) {
-			s.logger.Warnw("join_room refused: could not read the user's account", "user_id", us.userID, "error", err)
-			return "could not read the account"
+			s.logger.Warnw("join_room refused: could not read the user's session", "user_id", us.userID, "error", err)
+			return "could not read the session"
 		}
-		return "the account is disabled or gone"
+		return "the session ended"
 	}
 
 	memberships, err := s.workspaces.ListMemberships(ctx, us.userID)
@@ -376,6 +410,48 @@ func (s *Server) memberLeft(ctx context.Context, e workspace.MemberLeftEvent) {
 func (s *Server) sessionsEnded(_ context.Context, e auth.SessionsEndedEvent) {
 	for _, us := range s.socketsOf(e.UserID) {
 		us.client.Disconnect(true)
+	}
+}
+
+// sweepLoop runs the sweep every interval until the server closes
+func (s *Server) sweepLoop(every time.Duration) {
+	ticker := time.NewTicker(every)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-s.stopSweep:
+			return
+		case <-ticker.C:
+			s.sweep(context.Background())
+		}
+	}
+}
+
+// sweep closes every open socket whose session ended, which SessionsEnded closes too, unless the
+// replica missed it. It reads each user once. A user that can't be read is left for the next sweep.
+func (s *Server) sweep(ctx context.Context) {
+	s.socketsMu.Lock()
+	byUser := make(map[string][]*userSocket, len(s.sockets))
+	for userID, sockets := range s.sockets {
+		for _, us := range sockets {
+			byUser[userID] = append(byUser[userID], us)
+		}
+	}
+	s.socketsMu.Unlock()
+
+	for userID, sockets := range byUser {
+		state, err := s.tokenMaker.SessionStateOf(ctx, userID)
+		gone := errors.Is(err, auth.ErrInvalidToken)
+		if err != nil && !gone {
+			s.logger.Warnw("Sweep skipped the sockets of a user whose session could not be read", "user_id", userID, "error", err)
+			continue
+		}
+		for _, us := range sockets {
+			if gone || state.Ended(us.sessionStart) {
+				s.logger.Debugf("Sweep closes a socket of user %s, whose session ended", userID)
+				us.client.Disconnect(true)
+			}
+		}
 	}
 }
 
@@ -452,5 +528,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) Close() {
+	s.closeOnce.Do(func() { close(s.stopSweep) })
 	s.io.Close(nil)
 }

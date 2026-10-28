@@ -853,6 +853,20 @@ func TestAdminUsers_ADeletedUsersTokensStopWorkingAtOnce(t *testing.T) {
 	})
 }
 
+// Disabling a user keeps their memberships, so it announces that their sessions ended and not
+// that they left a workspace
+func TestAdminUsers_DisablingAUserAnnouncesNoLeave(t *testing.T) {
+	a, leaves := newAppRecordingLeaves(t)
+	userID := a.createUser(t, "user@example.com")
+	a.addMember(t, a.firstWorkspace(t), userID, workspace.RoleMember)
+
+	require.Equal(t, http.StatusOK, a.patchUser(t, userID, map[string]any{"active": false}).Code)
+
+	published, _ := leaves.snapshot()
+	assert.Empty(t, published)
+	assert.Len(t, a.adminView(t, "user@example.com").Workspaces, 1, "the membership stands")
+}
+
 func TestAdminUsers_AnAdminCanNotDeleteThemselves(t *testing.T) {
 	a, leaves := newAppRecordingLeaves(t)
 	adminID := a.userID(t, adminEmail)
