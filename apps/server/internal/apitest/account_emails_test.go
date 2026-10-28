@@ -291,6 +291,19 @@ func TestResetPassword_RefusesAnExpiredUnknownOrForeignToken(t *testing.T) {
 	})
 }
 
+// A token that is not live is answered before the password is hashed: bcrypt refuses a password
+// longer than 72 bytes, so a request that reached it would answer 500 instead of 400
+func TestResetPassword_ARefusedTokenIsAnsweredBeforeThePasswordIsHashed(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
+		tooLongForBcrypt := "Aa1!" + strings.Repeat("x", 80)
+
+		unknown := a.reset(t, "pkr_"+strings.Repeat("A", 43), tooLongForBcrypt)
+
+		assert.Equal(t, http.StatusBadRequest, unknown.Code, unknown.Body.String())
+		assert.Contains(t, unknown.Body.String(), "invalid or has expired")
+	})
+}
+
 func TestResetPassword_AWeakPasswordIsRefusedAndTheLinkStillWorks(t *testing.T) {
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		a.forgot(t, adminEmail)
@@ -370,6 +383,44 @@ func TestForgotPassword_AtMostFiveEmailsAnHourPerAddressAndTwentyPerClient(t *te
 		limited := a.forgot(t, "one-more@example.com")
 		assert.Equal(t, http.StatusTooManyRequests, limited.Code, limited.Body.String())
 		a.settled(t)
+	})
+}
+
+func TestResetPasswordAndVerifyEmail_AreLimitedToTwentyAttemptsAnHourPerClient(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
+		unknown := "pkr_" + strings.Repeat("A", 43)
+		for i := range 20 {
+			require.Equal(t, http.StatusBadRequest, a.reset(t, unknown, newPassword).Code, "attempt %d", i+1)
+		}
+
+		limited := a.reset(t, unknown, newPassword)
+		assert.Equal(t, http.StatusTooManyRequests, limited.Code, limited.Body.String())
+
+		// verify-email has a count of its own
+		unknownVerify := map[string]any{"token": "pkv_" + strings.Repeat("A", 43)}
+		for i := range 20 {
+			require.Equal(t, http.StatusBadRequest, a.request(t, http.MethodPost, verifyPath, unknownVerify).Code, "attempt %d", i+1)
+		}
+		assert.Equal(t, http.StatusTooManyRequests, a.request(t, http.MethodPost, verifyPath, unknownVerify).Code)
+
+		// another client is not affected
+		other := func(req *http.Request) { req.RemoteAddr = "198.51.100.9:4000" }
+		assert.Equal(t, http.StatusBadRequest, a.request(t, http.MethodPost, resetPath, map[string]any{"token": unknown, "password": newPassword}, other).Code)
+	})
+}
+
+// A request whose address cannot be read is counted under that raw address, not under one bucket
+// shared with every other such request
+func TestResetPassword_RequestsWithoutAClientAddressAreCountedByTheirRawAddress(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
+		unknown := map[string]any{"token": "pkr_" + strings.Repeat("A", 43), "password": newPassword}
+		from := func(remote string) credentials { return func(req *http.Request) { req.RemoteAddr = remote } }
+		for i := range 20 {
+			require.Equal(t, http.StatusBadRequest, a.request(t, http.MethodPost, resetPath, unknown, from("@peek-a")).Code, "attempt %d", i+1)
+		}
+
+		assert.Equal(t, http.StatusTooManyRequests, a.request(t, http.MethodPost, resetPath, unknown, from("@peek-a")).Code, "the same raw address is limited")
+		assert.Equal(t, http.StatusBadRequest, a.request(t, http.MethodPost, resetPath, unknown, from("@peek-b")).Code, "another raw address is not")
 	})
 }
 

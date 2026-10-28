@@ -27,12 +27,18 @@ type Controller struct {
 	// The limits on the routes that send an email, per email address and per client address. They
 	// count in this process's memory (see package ratelimit).
 	forgotByEmail, forgotByIP, resendByEmail, resendByIP *ratelimit.Limiter
+
+	// The limits on the routes that spend a link, per client address. A request counts whether
+	// its token is good or not: the limit is on guessing.
+	resetByIP, verifyByIP *ratelimit.Limiter
 }
 
 // The most emails the account routes send per hour to one address, and per hour from one client
 const (
 	maxAccountEmailsPerAddress = 5
 	maxAccountEmailsPerClient  = 20
+	// maxLinkAttemptsPerClient is the most requests per hour from one client to spend a reset or verification link
+	maxLinkAttemptsPerClient = 20
 )
 
 func NewController(
@@ -51,6 +57,8 @@ func NewController(
 		forgotByIP:    ratelimit.New(maxAccountEmailsPerClient, time.Hour),
 		resendByEmail: ratelimit.New(maxAccountEmailsPerAddress, time.Hour),
 		resendByIP:    ratelimit.New(maxAccountEmailsPerClient, time.Hour),
+		resetByIP:     ratelimit.New(maxLinkAttemptsPerClient, time.Hour),
+		verifyByIP:    ratelimit.New(maxLinkAttemptsPerClient, time.Hour),
 	}
 }
 

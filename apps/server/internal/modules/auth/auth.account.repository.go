@@ -34,6 +34,10 @@ type AccountToken struct {
 // (see internal/dbtx).
 type AccountRepository interface {
 	CreateToken(ctx context.Context, token *AccountToken) error
+	// FindLiveToken returns the ID of the user of the token with the hash and purpose, if it is
+	// neither used nor expired at now, and "" when there is no such token. It changes nothing: a
+	// caller that wants the token spent uses ConsumeToken, which stays the guard.
+	FindLiveToken(ctx context.Context, purpose, tokenHash string, now time.Time) (userID string, err error)
 	// ConsumeToken marks the token with the hash and purpose as used, if it is neither used nor
 	// expired at now, and returns the ID of its user. It returns "" when there is no such token.
 	// The check and the mark are one statement, so a link works once however many requests use it
@@ -77,6 +81,23 @@ func (r *SQLAccountRepository) CreateToken(ctx context.Context, token *AccountTo
 		CreatedAt: token.CreatedAt.UTC(), ExpiresAt: token.ExpiresAt.UTC(),
 	}).Exec(ctx)
 	return err
+}
+
+func (r *SQLAccountRepository) FindLiveToken(ctx context.Context, purpose, tokenHash string, now time.Time) (string, error) {
+	var userID string
+	err := dbtx.DB(ctx, r.db).NewSelect().Model((*accountTokenModel)(nil)).Column("user_id").
+		Where("token_hash = ?", tokenHash).
+		Where("purpose = ?", purpose).
+		Where("used_at IS NULL").
+		Where("expires_at > ?", now.UTC()).
+		Scan(ctx, &userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return userID, nil
 }
 
 func (r *SQLAccountRepository) ConsumeToken(ctx context.Context, purpose, tokenHash string, now time.Time) (string, error) {

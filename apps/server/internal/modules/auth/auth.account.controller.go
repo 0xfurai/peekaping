@@ -19,6 +19,21 @@ func (c *Controller) AuthConfig(ctx context.Context, _ *AuthConfigInput) (*httpx
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Auth config retrieved successfully", &AuthConfigResponse{AccountEmails: c.accounts.Enabled()}))
 }
 
+// clientKey is what a per-client limit counts a request under: its client address. When the address
+// cannot be read (the connection has no host:port, as on a unix socket), the raw RemoteAddr is
+// the key, so that such requests don't all share one bucket.
+func (c *Controller) clientKey(r *http.Request) string {
+	if ip := c.proxies.ClientIP(r); ip != "" {
+		return ip
+	}
+	c.logger.Debugw("The client address could not be read, counting the request by its raw remote address", "remoteAddr", r.RemoteAddr)
+	return "raw:" + r.RemoteAddr
+}
+
+func tooManyRequests() error {
+	return httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse("Too many requests, try again later"))
+}
+
 // ForgotPassword sends a reset link to the account with the email, if there is one. It answers 202
 // with the same body for every address, so that it does not tell a visitor which addresses have
 // accounts. Only a client over its limit is told to wait (429), which depends on the client and not
@@ -35,8 +50,8 @@ func (c *Controller) ForgotPassword(ctx context.Context, input *ForgotPasswordIn
 	if !c.accounts.Enabled() {
 		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse(ErrAccountEmailsOff.Error()))
 	}
-	if allowed, _ := c.forgotByIP.Allow(c.proxies.ClientIP(input.Request)); !allowed {
-		return nil, httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse("Too many requests, try again later"))
+	if allowed, _ := c.forgotByIP.Allow(c.clientKey(input.Request)); !allowed {
+		return nil, tooManyRequests()
 	}
 	email := strings.ToLower(strings.TrimSpace(dto.Email))
 	if allowed, _ := c.forgotByEmail.Allow(email); allowed {
@@ -49,6 +64,9 @@ func (c *Controller) ForgotPassword(ctx context.Context, input *ForgotPasswordIn
 
 // ResetPassword sets a new password with the token of a reset link
 func (c *Controller) ResetPassword(ctx context.Context, input *ResetPasswordInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	if allowed, _ := c.resetByIP.Allow(c.clientKey(input.Request)); !allowed {
+		return nil, tooManyRequests()
+	}
 	dto, decodeErr := input.Decode()
 	if decodeErr != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(decodeErr.Error()))
@@ -68,6 +86,9 @@ func (c *Controller) ResetPassword(ctx context.Context, input *ResetPasswordInpu
 
 // VerifyEmail verifies an address with the token of a verification link
 func (c *Controller) VerifyEmail(ctx context.Context, input *VerifyEmailInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	if allowed, _ := c.verifyByIP.Allow(c.clientKey(input.Request)); !allowed {
+		return nil, tooManyRequests()
+	}
 	dto, decodeErr := input.Decode()
 	if decodeErr != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(decodeErr.Error()))
@@ -101,8 +122,8 @@ func (c *Controller) ResendVerification(ctx context.Context, input *ResendVerifi
 	if email == "" {
 		return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
 	}
-	tooMany := httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse("Too many requests, try again later"))
-	if allowed, _ := c.resendByIP.Allow(c.proxies.ClientIP(input.Request)); !allowed {
+	tooMany := tooManyRequests()
+	if allowed, _ := c.resendByIP.Allow(c.clientKey(input.Request)); !allowed {
 		return nil, tooMany
 	}
 	if allowed, _ := c.resendByEmail.Allow(strings.ToLower(email)); !allowed {

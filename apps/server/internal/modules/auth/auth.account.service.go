@@ -115,6 +115,16 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 	if !validTokenShape(token, ResetTokenPrefix) {
 		return ErrInvalidLink
 	}
+	// Look the token up before the costly hash, so that a request with a token that is no good
+	// costs a lookup and not a bcrypt. The consume below stays the guard: of two requests that
+	// both pass this, one wins.
+	live, err := s.accounts.FindLiveToken(ctx, PurposeReset, hashAccountToken(token), s.now().UTC())
+	if err != nil {
+		return err
+	}
+	if live == "" {
+		return ErrInvalidLink
+	}
 	hashed, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("failed to hash the new password: %w", err)
