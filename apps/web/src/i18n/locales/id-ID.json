@@ -3,6 +3,105 @@
     "cancel": "Batal",
     "saving": "Menyimpan..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Kembali ke {{name}}",
+      "probes": "Probe",
+      "title": "Admin",
+      "users": "Pengguna"
+    },
+    "users": {
+      "actions": {
+        "delete": "Hapus pengguna",
+        "disable": "Nonaktifkan pengguna",
+        "disableTwoFactor": "Matikan 2FA",
+        "enable": "Aktifkan pengguna",
+        "grantAdmin": "Jadikan admin instans",
+        "resetLink": "Buat tautan reset",
+        "revokeAdmin": "Cabut admin instans"
+      },
+      "actions_aria": "Tindakan untuk {{email}}",
+      "columns": {
+        "created": "Dibuat",
+        "email": "Email",
+        "email_verified": "Email terverifikasi",
+        "instance_admin": "Admin instans",
+        "last_sign_in": "Login terakhir",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Ruang kerja"
+      },
+      "confirm": {
+        "cancel": "Batal",
+        "delete": {
+          "confirm": "Hapus pengguna",
+          "description": "Hapus {{email}}? Akunnya dihapus, begitu juga posisinya di ruang kerja. Tindakan ini tidak bisa dibatalkan.",
+          "title": "Hapus pengguna"
+        },
+        "disable": {
+          "confirm": "Nonaktifkan",
+          "description": "{{email}} tidak bisa login dan kini dikeluarkan dari semua sesi. Ruang kerjanya tetap berjalan. Anda bisa mengaktifkannya lagi nanti.",
+          "title": "Nonaktifkan pengguna"
+        },
+        "disableTwoFactor": {
+          "confirm": "Matikan 2FA",
+          "description": "{{email}} akan login hanya dengan kata sandi dan bisa menyiapkan 2FA lagi. Lakukan ini hanya setelah Anda yakin memang dia yang meminta.",
+          "title": "Matikan 2FA"
+        }
+      },
+      "description": "Semua orang yang punya akun di instalasi ini. Admin instans mengelola instalasi itu sendiri, seperti probe dan pengguna. Peran pengguna di sebuah ruang kerja ditentukan oleh pemilik ruang kerja tersebut.",
+      "empty": "Pengguna tidak ditemukan",
+      "errors": {
+        "last_instance_admin": "Instalasi memerlukan setidaknya satu admin instans.",
+        "last_owner": "Pengguna ini adalah pemilik terakhir {{workspaces}}. Jadikan orang lain pemilik, atau hapus ruang kerjanya, terlebih dahulu.",
+        "self": "Anda tidak bisa melakukan ini pada akun Anda sendiri."
+      },
+      "load_failed": "Gagal memuat pengguna.",
+      "messages": {
+        "admin_granted": "{{email}} kini menjadi admin instans",
+        "admin_revoked": "{{email}} tidak lagi menjadi admin instans",
+        "deleted": "{{email}} dihapus",
+        "disabled": "{{email}} dinonaktifkan dan dikeluarkan dari sesi",
+        "enabled": "{{email}} diaktifkan",
+        "two_factor_off": "2FA dimatikan untuk {{email}}",
+        "update_failed": "Gagal memperbarui pengguna."
+      },
+      "never": "Belum pernah",
+      "none": "Tidak ada",
+      "page_name": "Pengguna",
+      "paging": {
+        "next": "Berikutnya",
+        "page": "Halaman {{page}} dari {{pages}}",
+        "previous": "Sebelumnya"
+      },
+      "reset_link": {
+        "close": "Tutup",
+        "copied": "Tautan disalin",
+        "copy": "Salin tautan",
+        "copy_failed": "Gagal menyalin tautan. Pilih lalu salin secara manual.",
+        "description": "Tautan bagi {{email}} untuk memilih kata sandi baru. Salin dan berikan sekarang: tautan ini hanya ditampilkan sekali.",
+        "emailed": "Instalasi ini mengirim email akun, jadi pengguna diberi tahu lewat email bahwa tautan dibuat untuk mereka.",
+        "expires": "Tautan hanya berlaku sekali dan kedaluwarsa {{when}}.",
+        "failed": "Gagal membuat tautan.",
+        "label": "Tautan",
+        "making": "Membuat tautan...",
+        "signs_out": "Memakai tautan ini akan mengeluarkan pengguna dari semua sesi.",
+        "title": "Tautan reset kata sandi"
+      },
+      "search_label": "Cari pengguna berdasarkan email",
+      "search_placeholder": "Cari berdasarkan email",
+      "total": "{{total}} ditemukan",
+      "values": {
+        "active": "Aktif",
+        "disabled": "Nonaktif",
+        "no": "Tidak",
+        "two_factor_off": "Nonaktif",
+        "two_factor_on": "Aktif",
+        "yes": "Ya"
+      },
+      "you": "Anda"
+    }
+  },
   "auth": {
     "login": {
       "description": "Masuk dengan email Anda",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Pemeliharaan",
     "monitors": "Pengawasan",
     "notification_channels": "Saluran Pemberitahuan",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitor yang dibuat tanpa memilih probe berjalan di probe default yang tidak nonaktif dan mendukung tipenya, dan di probe lokal jika tidak ada. Monitor yang sudah ada tetap memakai probenya.",
+      "failed": "Gagal mengubah status default probe.",
+      "label": "Probe default",
+      "off": "{{name}} tidak lagi menjadi probe default",
+      "on": "{{name}} kini menjadi probe default",
+      "title": "Default untuk monitor baru"
+    },
+    "default_badge": "Default",
     "page_name": "Probe",
     "description": "Probe menjalankan pemeriksaan monitor dari tempat probe tersebut dipasang. Probe lokal adalah Peekaping itu sendiri.",
     "local_name": "Lokal",

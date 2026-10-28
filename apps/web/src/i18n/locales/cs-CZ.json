@@ -3,6 +3,105 @@
     "cancel": "Zrušit",
     "saving": "Ukládám..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Zpět na {{name}}",
+      "probes": "Sondy",
+      "title": "Správa",
+      "users": "Uživatelé"
+    },
+    "users": {
+      "actions": {
+        "delete": "Smazat uživatele",
+        "disable": "Zakázat uživatele",
+        "disableTwoFactor": "Vypnout 2FA",
+        "enable": "Povolit uživatele",
+        "grantAdmin": "Udělit práva správce instalace",
+        "resetLink": "Vytvořit odkaz pro obnovení",
+        "revokeAdmin": "Odebrat práva správce instalace"
+      },
+      "actions_aria": "Akce pro {{email}}",
+      "columns": {
+        "created": "Vytvořen",
+        "email": "E-mail",
+        "email_verified": "E-mail ověřen",
+        "instance_admin": "Správce instalace",
+        "last_sign_in": "Poslední přihlášení",
+        "status": "Stav",
+        "two_factor": "2FA",
+        "workspaces": "Pracovní prostory"
+      },
+      "confirm": {
+        "cancel": "Zrušit",
+        "delete": {
+          "confirm": "Smazat uživatele",
+          "description": "Smazat {{email}}? Jeho účet bude odstraněn, stejně jako jeho místa v pracovních prostorech. Tuto akci nelze vrátit zpět.",
+          "title": "Smazat uživatele"
+        },
+        "disable": {
+          "confirm": "Zakázat",
+          "description": "{{email}} se nemůže přihlásit a je nyní všude odhlášen. Jeho pracovní prostory dál běží. Později ho můžete znovu povolit.",
+          "title": "Zakázat uživatele"
+        },
+        "disableTwoFactor": {
+          "confirm": "Vypnout 2FA",
+          "description": "{{email}} se bude přihlašovat jen heslem a může si 2FA nastavit znovu. Udělejte to, jen když jste si jisti, že o to žádá opravdu on.",
+          "title": "Vypnout 2FA"
+        }
+      },
+      "description": "Všichni, kdo mají účet v této instalaci. Správci instalace spravují samotnou instalaci, například sondy a uživatele. Roli uživatele v pracovním prostoru nastavují vlastníci tohoto prostoru.",
+      "empty": "Nebyli nalezeni žádní uživatelé",
+      "errors": {
+        "last_instance_admin": "Instalace potřebuje alespoň jednoho správce instalace.",
+        "last_owner": "Uživatel je posledním vlastníkem těchto pracovních prostorů: {{workspaces}}. Nejdřív udělejte vlastníkem někoho jiného nebo pracovní prostor smažte.",
+        "self": "Tohle nemůžete provést se svým vlastním účtem."
+      },
+      "load_failed": "Uživatele se nepodařilo načíst.",
+      "messages": {
+        "admin_granted": "{{email}} je nyní správce instalace",
+        "admin_revoked": "{{email}} už není správce instalace",
+        "deleted": "{{email}} je smazán",
+        "disabled": "{{email}} je zakázán a odhlášen",
+        "enabled": "{{email}} je povolen",
+        "two_factor_off": "2FA je pro {{email}} vypnuta",
+        "update_failed": "Uživatele se nepodařilo aktualizovat."
+      },
+      "never": "Nikdy",
+      "none": "Žádné",
+      "page_name": "Uživatelé",
+      "paging": {
+        "next": "Další",
+        "page": "Strana {{page}} z {{pages}}",
+        "previous": "Předchozí"
+      },
+      "reset_link": {
+        "close": "Zavřít",
+        "copied": "Odkaz zkopírován",
+        "copy": "Kopírovat odkaz",
+        "copy_failed": "Odkaz se nepodařilo zkopírovat. Označte ho a zkopírujte ručně.",
+        "description": "Odkaz, kterým {{email}} zvolí nové heslo. Zkopírujte ho a předejte hned: zobrazí se pouze jednou.",
+        "emailed": "Tato instalace odesílá e-maily k účtu, proto uživatel dostane e-mail, že pro něj byl odkaz vytvořen.",
+        "expires": "Odkaz funguje jen jednou a platí do {{when}}.",
+        "failed": "Odkaz se nepodařilo vytvořit.",
+        "label": "Odkaz",
+        "making": "Vytvářím odkaz...",
+        "signs_out": "Použitím odkazu se uživatel všude odhlásí.",
+        "title": "Odkaz pro obnovení hesla"
+      },
+      "search_label": "Hledat uživatele podle e-mailu",
+      "search_placeholder": "Hledat podle e-mailu",
+      "total": "Nalezeno: {{total}}",
+      "values": {
+        "active": "Aktivní",
+        "disabled": "Zakázán",
+        "no": "Ne",
+        "two_factor_off": "Vypnuto",
+        "two_factor_on": "Zapnuto",
+        "yes": "Ano"
+      },
+      "you": "vy"
+    }
+  },
   "auth": {
     "login": {
       "description": "Přihlaste se pomocí e-mailu",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Správa",
     "maintenance": "Údržba",
     "monitors": "Monitory",
     "notification_channels": "Notifikační kanály",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitor vytvořený bez výběru sond běží na výchozích sondách, které nejsou zakázané a podporují jeho typ, a pokud žádná taková není, na místní sondě. Stávající monitory si své sondy ponechají.",
+      "failed": "Nepodařilo se změnit, zda je sonda výchozí.",
+      "label": "Výchozí sonda",
+      "off": "{{name}} už není výchozí sonda",
+      "on": "{{name}} je nyní výchozí sonda",
+      "title": "Výchozí pro nové monitory"
+    },
+    "default_badge": "Výchozí",
     "page_name": "Sondy",
     "description": "Sondy provádějí kontroly monitorů z míst, kde jsou nainstalovány. Lokální sonda je samotný Peekaping.",
     "local_name": "Lokální",

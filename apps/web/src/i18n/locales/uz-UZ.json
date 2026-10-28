@@ -3,6 +3,105 @@
     "cancel": "Bekor qilish",
     "saving": "Saqlanmoqda..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "{{name}} ga qaytish",
+      "probes": "Zondlar",
+      "title": "Admin",
+      "users": "Foydalanuvchilar"
+    },
+    "users": {
+      "actions": {
+        "delete": "Foydalanuvchini o'chirish",
+        "disable": "Foydalanuvchini o'chirib qo'yish",
+        "disableTwoFactor": "2FA ni o'chirish",
+        "enable": "Foydalanuvchini yoqish",
+        "grantAdmin": "Instans admini qilish",
+        "resetLink": "Tiklash havolasini yaratish",
+        "revokeAdmin": "Instans adminligini olib tashlash"
+      },
+      "actions_aria": "{{email}} uchun amallar",
+      "columns": {
+        "created": "Yaratilgan",
+        "email": "E-pochta",
+        "email_verified": "E-pochta tasdiqlangan",
+        "instance_admin": "Instans admini",
+        "last_sign_in": "Oxirgi kirish",
+        "status": "Holati",
+        "two_factor": "2FA",
+        "workspaces": "Ish maydonlari"
+      },
+      "confirm": {
+        "cancel": "Bekor qilish",
+        "delete": {
+          "confirm": "Foydalanuvchini o'chirish",
+          "description": "{{email}} o'chirilsinmi? Uning hisobi va ish maydonlaridagi o'rni ham olib tashlanadi. Buni bekor qilib bo'lmaydi.",
+          "title": "Foydalanuvchini o'chirish"
+        },
+        "disable": {
+          "confirm": "O'chirib qo'yish",
+          "description": "{{email}} kira olmaydi va hamma joyda tizimdan chiqariladi. Uning ish maydonlari ishlashda davom etadi. Keyinroq uni yana yoqishingiz mumkin.",
+          "title": "Foydalanuvchini o'chirib qo'yish"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA ni o'chirish",
+          "description": "{{email}} faqat paroli bilan kiradi va 2FA ni qayta sozlashi mumkin. Buni faqat so'rov aynan undan ekaniga ishonch hosil qilgandan keyin bajaring.",
+          "title": "2FA ni o'chirish"
+        }
+      },
+      "description": "Ushbu o'rnatishda hisobi bor hamma. Instans adminlari o'rnatishning o'zini boshqaradi, masalan zondlar va foydalanuvchilarni. Foydalanuvchining ish maydonidagi rolini o'sha ish maydoni egalari belgilaydi.",
+      "empty": "Foydalanuvchilar topilmadi",
+      "errors": {
+        "last_instance_admin": "O'rnatishda kamida bitta instans admini bo'lishi kerak.",
+        "last_owner": "Foydalanuvchi {{workspaces}} ning oxirgi egasi. Avval boshqa birovni ega qiling yoki ish maydonini o'chiring.",
+        "self": "Buni o'z hisobingiz bilan qila olmaysiz."
+      },
+      "load_failed": "Foydalanuvchilarni yuklab bo'lmadi.",
+      "messages": {
+        "admin_granted": "{{email}} endi instans admini",
+        "admin_revoked": "{{email}} endi instans admini emas",
+        "deleted": "{{email}} o'chirildi",
+        "disabled": "{{email}} o'chirib qo'yildi va tizimdan chiqarildi",
+        "enabled": "{{email}} yoqildi",
+        "two_factor_off": "{{email}} uchun 2FA o'chirildi",
+        "update_failed": "Foydalanuvchini yangilab bo'lmadi."
+      },
+      "never": "Hech qachon",
+      "none": "Yo'q",
+      "page_name": "Foydalanuvchilar",
+      "paging": {
+        "next": "Keyingi",
+        "page": "{{page}}-sahifa / {{pages}}",
+        "previous": "Oldingi"
+      },
+      "reset_link": {
+        "close": "Yopish",
+        "copied": "Havola nusxalandi",
+        "copy": "Havolani nusxalash",
+        "copy_failed": "Havolani nusxalab bo'lmadi. Uni belgilab, qo'lda nusxalang.",
+        "description": "{{email}} yangi parol tanlashi uchun havola. Uni hoziroq nusxalab, yetkazing: u faqat bir marta ko'rsatiladi.",
+        "emailed": "Bu o'rnatish hisob xatlarini yuboradi, shuning uchun foydalanuvchiga u uchun havola yaratilgani haqida e-pochta orqali xabar beriladi.",
+        "expires": "Havola bir marta ishlaydi va {{when}} muddati tugaydi.",
+        "failed": "Havolani yaratib bo'lmadi.",
+        "label": "Havola",
+        "making": "Havola yaratilmoqda...",
+        "signs_out": "Havoladan foydalanish foydalanuvchini hamma joyda tizimdan chiqaradi.",
+        "title": "Parolni tiklash havolasi"
+      },
+      "search_label": "Foydalanuvchilarni e-pochta bo'yicha qidirish",
+      "search_placeholder": "E-pochta bo'yicha qidirish",
+      "total": "{{total}} ta topildi",
+      "values": {
+        "active": "Faol",
+        "disabled": "O'chirilgan",
+        "no": "Yo'q",
+        "two_factor_off": "O'chiq",
+        "two_factor_on": "Yoqilgan",
+        "yes": "Ha"
+      },
+      "you": "siz"
+    }
+  },
   "auth": {
     "login": {
       "description": "E-pochta bilan kirish",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Texnik xizmat",
     "monitors": "Monitoring",
     "notification_channels": "Xabarnoma kanallari",
@@ -1308,6 +1408,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Zondlar tanlanmasdan yaratilgan monitor o'chirilmagan va uning turini bajaradigan standart zondlarda, hech biri bajarmasa, mahalliy zondda ishlaydi. Mavjud monitorlar o'z zondlarini saqlab qoladi.",
+      "failed": "Zond standart yoki yo'qligini o'zgartirib bo'lmadi.",
+      "label": "Standart zond",
+      "off": "{{name}} endi standart zond emas",
+      "on": "{{name}} endi standart zond",
+      "title": "Yangi monitorlar uchun standart"
+    },
+    "default_badge": "Standart",
     "page_name": "Zondlar",
     "description": "Zondlar monitorlarning tekshiruvlarini ular o‘rnatilgan joylardan bajaradi. Mahalliy zond — bu Peekapingning o‘zi.",
     "local_name": "Mahalliy",

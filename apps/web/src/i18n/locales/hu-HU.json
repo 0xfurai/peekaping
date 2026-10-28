@@ -3,6 +3,105 @@
     "cancel": "Mégse",
     "saving": "Mentés..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Vissza ide: {{name}}",
+      "probes": "Szondák",
+      "title": "Adminisztráció",
+      "users": "Felhasználók"
+    },
+    "users": {
+      "actions": {
+        "delete": "Felhasználó törlése",
+        "disable": "Felhasználó letiltása",
+        "disableTwoFactor": "2FA kikapcsolása",
+        "enable": "Felhasználó engedélyezése",
+        "grantAdmin": "Legyen a példány adminisztrátora",
+        "resetLink": "Visszaállító hivatkozás készítése",
+        "revokeAdmin": "A példány adminisztrátori jogának elvétele"
+      },
+      "actions_aria": "Műveletek: {{email}}",
+      "columns": {
+        "created": "Létrehozva",
+        "email": "E-mail",
+        "email_verified": "E-mail ellenőrizve",
+        "instance_admin": "Példány adminisztrátora",
+        "last_sign_in": "Utolsó bejelentkezés",
+        "status": "Állapot",
+        "two_factor": "2FA",
+        "workspaces": "Munkaterületek"
+      },
+      "confirm": {
+        "cancel": "Mégse",
+        "delete": {
+          "confirm": "Felhasználó törlése",
+          "description": "Törlöd {{email}} fiókját? A fiókja és a munkaterületeken lévő helye is törlődik. Ez nem vonható vissza.",
+          "title": "Felhasználó törlése"
+        },
+        "disable": {
+          "confirm": "Letiltás",
+          "description": "{{email}} nem tud bejelentkezni, és most mindenhonnan ki lesz jelentkeztetve. A munkaterületei tovább működnek. Később újra engedélyezheted.",
+          "title": "Felhasználó letiltása"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA kikapcsolása",
+          "description": "{{email}} csak a jelszavával fog bejelentkezni, és újra beállíthatja a 2FA-t. Csak akkor tedd, ha biztos vagy benne, hogy ő kéri.",
+          "title": "2FA kikapcsolása"
+        }
+      },
+      "description": "Mindenki, akinek fiókja van ezen a telepítésen. A példány adminisztrátorai magát a telepítést kezelik, például a szondákat és a felhasználókat. A felhasználó szerepét egy munkaterületen a munkaterület tulajdonosai állítják be.",
+      "empty": "Nincs találat",
+      "errors": {
+        "last_instance_admin": "A telepítésnek legalább egy példányadminisztrátorra szüksége van.",
+        "last_owner": "A felhasználó a(z) {{workspaces}} utolsó tulajdonosa. Előbb jelölj ki másik tulajdonost, vagy töröld a munkaterületet.",
+        "self": "Ezt nem teheted meg a saját fiókoddal."
+      },
+      "load_failed": "A felhasználók betöltése nem sikerült.",
+      "messages": {
+        "admin_granted": "{{email}} mostantól a példány adminisztrátora",
+        "admin_revoked": "{{email}} már nem a példány adminisztrátora",
+        "deleted": "{{email}} törölve lett",
+        "disabled": "{{email}} le van tiltva és ki van jelentkeztetve",
+        "enabled": "{{email}} engedélyezve van",
+        "two_factor_off": "A 2FA ki van kapcsolva ennél: {{email}}",
+        "update_failed": "A felhasználó frissítése nem sikerült."
+      },
+      "never": "Soha",
+      "none": "Nincs",
+      "page_name": "Felhasználók",
+      "paging": {
+        "next": "Következő",
+        "page": "{{page}}. oldal / {{pages}}",
+        "previous": "Előző"
+      },
+      "reset_link": {
+        "close": "Bezárás",
+        "copied": "Hivatkozás kimásolva",
+        "copy": "Hivatkozás másolása",
+        "copy_failed": "A hivatkozás másolása nem sikerült. Jelöld ki, és másold ki kézzel.",
+        "description": "Hivatkozás, amellyel {{email}} új jelszót választhat. Másold ki és add át most: csak egyszer jelenik meg.",
+        "emailed": "Ez a telepítés fiókokkal kapcsolatos e-maileket küld, ezért a felhasználó e-mailben értesül arról, hogy hivatkozást készítettek neki.",
+        "expires": "A hivatkozás egyszer használható, és lejár: {{when}}.",
+        "failed": "A hivatkozás elkészítése nem sikerült.",
+        "label": "Hivatkozás",
+        "making": "Hivatkozás készítése...",
+        "signs_out": "A hivatkozás használata mindenhonnan kijelentkezteti a felhasználót.",
+        "title": "Jelszó-visszaállító hivatkozás"
+      },
+      "search_label": "Felhasználók keresése e-mail alapján",
+      "search_placeholder": "Keresés e-mail alapján",
+      "total": "{{total}} találat",
+      "values": {
+        "active": "Aktív",
+        "disabled": "Letiltva",
+        "no": "Nem",
+        "two_factor_off": "Ki",
+        "two_factor_on": "Be",
+        "yes": "Igen"
+      },
+      "you": "te"
+    }
+  },
   "auth": {
     "login": {
       "description": "Bejelentkezz e-mail címeddel",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Adminisztráció",
     "maintenance": "Karbantartás",
     "monitors": "Figyelők",
     "notification_channels": "Értesítési csatornák",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "A szondák kiválasztása nélkül létrehozott monitor az alapértelmezett szondákon fut, amelyek nincsenek letiltva és támogatják a típusát, ha pedig egyik sem, akkor a helyi szondán. A meglévő monitorok megtartják a szondáikat.",
+      "failed": "Nem sikerült módosítani, hogy a szonda alapértelmezett-e.",
+      "label": "Alapértelmezett szonda",
+      "off": "{{name}} már nem alapértelmezett szonda",
+      "on": "{{name}} mostantól alapértelmezett szonda",
+      "title": "Alapértelmezett az új monitorokhoz"
+    },
+    "default_badge": "Alapértelmezett",
     "page_name": "Szondák",
     "description": "A szondák a figyelők ellenőrzéseit azokról a helyekről futtatják, ahová telepítve vannak. A helyi szonda maga a Peekaping.",
     "local_name": "Helyi",

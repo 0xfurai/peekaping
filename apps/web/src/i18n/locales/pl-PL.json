@@ -3,6 +3,105 @@
     "cancel": "Anuluj",
     "saving": "Zapisywanie..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Wróć do: {{name}}",
+      "probes": "Sondy",
+      "title": "Administracja",
+      "users": "Użytkownicy"
+    },
+    "users": {
+      "actions": {
+        "delete": "Usuń użytkownika",
+        "disable": "Wyłącz użytkownika",
+        "disableTwoFactor": "Wyłącz 2FA",
+        "enable": "Włącz użytkownika",
+        "grantAdmin": "Nadaj uprawnienia administratora instancji",
+        "resetLink": "Utwórz link resetujący",
+        "revokeAdmin": "Odbierz uprawnienia administratora instancji"
+      },
+      "actions_aria": "Akcje dla {{email}}",
+      "columns": {
+        "created": "Utworzono",
+        "email": "E-mail",
+        "email_verified": "E-mail zweryfikowany",
+        "instance_admin": "Administrator instancji",
+        "last_sign_in": "Ostatnie logowanie",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Obszary robocze"
+      },
+      "confirm": {
+        "cancel": "Anuluj",
+        "delete": {
+          "confirm": "Usuń użytkownika",
+          "description": "Usunąć {{email}}? Konto zostanie usunięte, a także miejsca użytkownika w obszarach roboczych. Tej operacji nie można cofnąć.",
+          "title": "Usuń użytkownika"
+        },
+        "disable": {
+          "confirm": "Wyłącz",
+          "description": "{{email}} nie może się logować i zostaje teraz wylogowany wszędzie. Jego obszary robocze nadal działają. Możesz go później włączyć ponownie.",
+          "title": "Wyłącz użytkownika"
+        },
+        "disableTwoFactor": {
+          "confirm": "Wyłącz 2FA",
+          "description": "{{email}} będzie logować się samym hasłem i może ponownie skonfigurować 2FA. Zrób to tylko wtedy, gdy masz pewność, że prosi o to ta osoba.",
+          "title": "Wyłącz 2FA"
+        }
+      },
+      "description": "Wszyscy, którzy mają konto w tej instalacji. Administratorzy instancji zarządzają samą instalacją, na przykład sondami i użytkownikami. Rolę użytkownika w obszarze roboczym ustalają właściciele tego obszaru.",
+      "empty": "Nie znaleziono użytkowników",
+      "errors": {
+        "last_instance_admin": "Instalacja wymaga co najmniej jednego administratora instancji.",
+        "last_owner": "Użytkownik jest ostatnim właścicielem: {{workspaces}}. Najpierw ustanów właścicielem kogoś innego lub usuń obszar roboczy.",
+        "self": "Nie możesz tego zrobić na własnym koncie."
+      },
+      "load_failed": "Nie udało się wczytać użytkowników.",
+      "messages": {
+        "admin_granted": "{{email}} jest teraz administratorem instancji",
+        "admin_revoked": "{{email}} nie jest już administratorem instancji",
+        "deleted": "{{email}} został usunięty",
+        "disabled": "{{email}} został wyłączony i wylogowany",
+        "enabled": "{{email}} został włączony",
+        "two_factor_off": "2FA jest wyłączone dla {{email}}",
+        "update_failed": "Nie udało się zaktualizować użytkownika."
+      },
+      "never": "Nigdy",
+      "none": "Brak",
+      "page_name": "Użytkownicy",
+      "paging": {
+        "next": "Następna",
+        "page": "Strona {{page}} z {{pages}}",
+        "previous": "Poprzednia"
+      },
+      "reset_link": {
+        "close": "Zamknij",
+        "copied": "Skopiowano link",
+        "copy": "Kopiuj link",
+        "copy_failed": "Nie udało się skopiować linku. Zaznacz go i skopiuj ręcznie.",
+        "description": "Link, dzięki któremu {{email}} ustawi nowe hasło. Skopiuj go i przekaż teraz: jest wyświetlany tylko raz.",
+        "emailed": "Ta instalacja wysyła e-maile dotyczące kont, więc użytkownik dostaje e-mailem informację, że utworzono dla niego link.",
+        "expires": "Link działa jednorazowo i wygasa {{when}}.",
+        "failed": "Nie udało się utworzyć linku.",
+        "label": "Link",
+        "making": "Tworzenie linku...",
+        "signs_out": "Użycie linku wylogowuje użytkownika wszędzie.",
+        "title": "Link do resetowania hasła"
+      },
+      "search_label": "Szukaj użytkowników po adresie e-mail",
+      "search_placeholder": "Szukaj po adresie e-mail",
+      "total": "Znaleziono: {{total}}",
+      "values": {
+        "active": "Aktywny",
+        "disabled": "Wyłączony",
+        "no": "Nie",
+        "two_factor_off": "Wyłączone",
+        "two_factor_on": "Włączone",
+        "yes": "Tak"
+      },
+      "you": "ty"
+    }
+  },
   "auth": {
     "login": {
       "description": "Zaloguj się swoim e‑mailem",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administracja",
     "maintenance": "Utrzymanie",
     "monitors": "Monitory",
     "notification_channels": "Kanały powiadomień",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitor utworzony bez wyboru sond działa na domyślnych sondach, które nie są wyłączone i obsługują jego typ, a gdy żadna tego nie robi, na sondzie lokalnej. Istniejące monitory zachowują swoje sondy.",
+      "failed": "Nie udało się zmienić, czy sonda jest domyślna.",
+      "label": "Sonda domyślna",
+      "off": "{{name}} nie jest już sondą domyślną",
+      "on": "{{name}} jest teraz sondą domyślną",
+      "title": "Domyślne dla nowych monitorów"
+    },
+    "default_badge": "Domyślna",
     "page_name": "Sondy",
     "description": "Sondy wykonują sprawdzenia monitorów z miejsc, w których są zainstalowane. Sondą lokalną jest sam Peekaping.",
     "local_name": "Lokalna",

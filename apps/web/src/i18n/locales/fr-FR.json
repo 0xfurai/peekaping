@@ -3,6 +3,105 @@
     "cancel": "Annuler",
     "saving": "Sauvegarde…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Retour à {{name}}",
+      "probes": "Sondes",
+      "title": "Administration",
+      "users": "Utilisateurs"
+    },
+    "users": {
+      "actions": {
+        "delete": "Supprimer l'utilisateur",
+        "disable": "Désactiver l'utilisateur",
+        "disableTwoFactor": "Désactiver la 2FA",
+        "enable": "Activer l'utilisateur",
+        "grantAdmin": "Nommer administrateur de l'instance",
+        "resetLink": "Créer un lien de réinitialisation",
+        "revokeAdmin": "Retirer l'administrateur de l'instance"
+      },
+      "actions_aria": "Actions pour {{email}}",
+      "columns": {
+        "created": "Créé le",
+        "email": "E-mail",
+        "email_verified": "E-mail vérifié",
+        "instance_admin": "Administrateur de l'instance",
+        "last_sign_in": "Dernière connexion",
+        "status": "Statut",
+        "two_factor": "2FA",
+        "workspaces": "Espaces de travail"
+      },
+      "confirm": {
+        "cancel": "Annuler",
+        "delete": {
+          "confirm": "Supprimer l'utilisateur",
+          "description": "Supprimer {{email}} ? Son compte est supprimé, ainsi que ses places dans les espaces de travail. Cette action est irréversible.",
+          "title": "Supprimer l'utilisateur"
+        },
+        "disable": {
+          "confirm": "Désactiver",
+          "description": "{{email}} ne peut plus se connecter et est déconnecté partout dès maintenant. Ses espaces de travail continuent de fonctionner. Vous pourrez le réactiver plus tard.",
+          "title": "Désactiver l'utilisateur"
+        },
+        "disableTwoFactor": {
+          "confirm": "Désactiver la 2FA",
+          "description": "{{email}} se connectera avec son mot de passe seul et pourra reconfigurer la 2FA. Ne le faites que si vous êtes sûr que c'est bien cette personne qui le demande.",
+          "title": "Désactiver la 2FA"
+        }
+      },
+      "description": "Toutes les personnes ayant un compte sur cette installation. Les administrateurs de l'instance gèrent l'installation elle-même, comme les sondes et les utilisateurs. Le rôle d'un utilisateur dans un espace de travail est défini par les propriétaires de cet espace.",
+      "empty": "Aucun utilisateur trouvé",
+      "errors": {
+        "last_instance_admin": "L'installation a besoin d'au moins un administrateur de l'instance.",
+        "last_owner": "L'utilisateur est le dernier propriétaire de {{workspaces}}. Nommez d'abord un autre propriétaire, ou supprimez l'espace de travail.",
+        "self": "Vous ne pouvez pas faire cela sur votre propre compte."
+      },
+      "load_failed": "Impossible de charger les utilisateurs.",
+      "messages": {
+        "admin_granted": "{{email}} est maintenant administrateur de l'instance",
+        "admin_revoked": "{{email}} n'est plus administrateur de l'instance",
+        "deleted": "{{email}} est supprimé",
+        "disabled": "{{email}} est désactivé et déconnecté",
+        "enabled": "{{email}} est activé",
+        "two_factor_off": "La 2FA est désactivée pour {{email}}",
+        "update_failed": "Impossible de mettre à jour l'utilisateur."
+      },
+      "never": "Jamais",
+      "none": "Aucun",
+      "page_name": "Utilisateurs",
+      "paging": {
+        "next": "Suivant",
+        "page": "Page {{page}} sur {{pages}}",
+        "previous": "Précédent"
+      },
+      "reset_link": {
+        "close": "Fermer",
+        "copied": "Lien copié",
+        "copy": "Copier le lien",
+        "copy_failed": "Impossible de copier le lien. Sélectionnez-le et copiez-le à la main.",
+        "description": "Un lien permettant à {{email}} de choisir un nouveau mot de passe. Copiez-le et transmettez-le maintenant : il n'est affiché qu'une seule fois.",
+        "emailed": "Cette installation envoie des e-mails de compte : l'utilisateur est donc prévenu par e-mail qu'un lien a été créé pour lui.",
+        "expires": "Le lien ne fonctionne qu'une fois et expire {{when}}.",
+        "failed": "Impossible de créer le lien.",
+        "label": "Lien",
+        "making": "Création du lien...",
+        "signs_out": "Utiliser le lien déconnecte l'utilisateur partout.",
+        "title": "Lien de réinitialisation du mot de passe"
+      },
+      "search_label": "Rechercher des utilisateurs par e-mail",
+      "search_placeholder": "Rechercher par e-mail",
+      "total": "{{total}} trouvé(s)",
+      "values": {
+        "active": "Actif",
+        "disabled": "Désactivé",
+        "no": "Non",
+        "two_factor_off": "Désactivée",
+        "two_factor_on": "Activée",
+        "yes": "Oui"
+      },
+      "you": "vous"
+    }
+  },
   "auth": {
     "login": {
       "description": "Connexion avec votre e‑mail",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administration",
     "maintenance": "Maintenance",
     "monitors": "Moniteurs",
     "notification_channels": "Canaux de notification",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Un moniteur créé sans choix de sondes s'exécute sur les sondes par défaut qui ne sont pas désactivées et qui prennent en charge son type, et sur la sonde locale si aucune ne convient. Les moniteurs existants conservent leurs sondes.",
+      "failed": "Impossible de modifier le statut par défaut de la sonde.",
+      "label": "Sonde par défaut",
+      "off": "{{name}} n'est plus une sonde par défaut",
+      "on": "{{name}} est maintenant une sonde par défaut",
+      "title": "Par défaut pour les nouveaux moniteurs"
+    },
+    "default_badge": "Par défaut",
     "page_name": "Sondes",
     "description": "Les sondes exécutent les vérifications des moniteurs depuis les endroits où elles sont installées. La sonde locale est Peekaping lui-même.",
     "local_name": "Locale",

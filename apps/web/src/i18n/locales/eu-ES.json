@@ -3,6 +3,105 @@
     "cancel": "Ezeztatu",
     "saving": "Gordetzen..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Itzuli hona: {{name}}",
+      "probes": "Zundak",
+      "title": "Administrazioa",
+      "users": "Erabiltzaileak"
+    },
+    "users": {
+      "actions": {
+        "delete": "Ezabatu erabiltzailea",
+        "disable": "Desgaitu erabiltzailea",
+        "disableTwoFactor": "Desaktibatu 2FA",
+        "enable": "Gaitu erabiltzailea",
+        "grantAdmin": "Egin instalazioaren administratzaile",
+        "resetLink": "Sortu berrezartzeko esteka",
+        "revokeAdmin": "Kendu instalazioaren administratzaile izaera"
+      },
+      "actions_aria": "{{email}} erabiltzailearen ekintzak",
+      "columns": {
+        "created": "Sortua",
+        "email": "Helbide elektronikoa",
+        "email_verified": "Helbide elektronikoa egiaztatuta",
+        "instance_admin": "Instalazioaren administratzailea",
+        "last_sign_in": "Azken saio-hasiera",
+        "status": "Egoera",
+        "two_factor": "2FA",
+        "workspaces": "Lan-eremuak"
+      },
+      "confirm": {
+        "cancel": "Ezeztatu",
+        "delete": {
+          "confirm": "Ezabatu erabiltzailea",
+          "description": "{{email}} ezabatu? Bere kontua kenduko da, baita lan-eremuetako bere lekuak ere. Ezin da desegin.",
+          "title": "Ezabatu erabiltzailea"
+        },
+        "disable": {
+          "confirm": "Desgaitu",
+          "description": "{{email}} ezin da saioa hasi eta orain nonahi itxi zaio saioa. Bere lan-eremuek martxan jarraitzen dute. Geroago berriro gaitu dezakezu.",
+          "title": "Desgaitu erabiltzailea"
+        },
+        "disableTwoFactor": {
+          "confirm": "Desaktibatu 2FA",
+          "description": "{{email}} pasahitzarekin soilik hasiko du saioa, eta 2FA berriro konfigura dezake. Egin hau eskatzen ari dena benetan hura dela ziur zaudenean soilik.",
+          "title": "Desaktibatu 2FA"
+        }
+      },
+      "description": "Instalazio honetan kontua duten guztiak. Instalazioaren administratzaileek instalazioa bera kudeatzen dute, adibidez zundak eta erabiltzaileak. Erabiltzaile baten rola lan-eremu batean lan-eremu horretako jabeek ezartzen dute.",
+      "empty": "Ez da erabiltzailerik aurkitu",
+      "errors": {
+        "last_instance_admin": "Instalazioak instalazioaren administratzaile bat behar du gutxienez.",
+        "last_owner": "Erabiltzailea lan-eremu hauen azken jabea da: {{workspaces}}. Egin lehenengo beste norbait jabe, edo ezabatu lan-eremua.",
+        "self": "Ezin duzu hau zure kontuarekin egin."
+      },
+      "load_failed": "Ezin izan dira erabiltzaileak kargatu.",
+      "messages": {
+        "admin_granted": "{{email}} instalazioaren administratzailea da orain",
+        "admin_revoked": "{{email}} ez da jada instalazioaren administratzailea",
+        "deleted": "{{email}} ezabatu da",
+        "disabled": "{{email}} desgaituta dago eta saioa itxi du",
+        "enabled": "{{email}} gaituta dago",
+        "two_factor_off": "2FA desaktibatuta dago {{email}} erabiltzailearentzat",
+        "update_failed": "Ezin izan da erabiltzailea eguneratu."
+      },
+      "never": "Inoiz ez",
+      "none": "Bat ere ez",
+      "page_name": "Erabiltzaileak",
+      "paging": {
+        "next": "Hurrengoa",
+        "page": "{{page}}. orria, {{pages}} orritatik",
+        "previous": "Aurrekoa"
+      },
+      "reset_link": {
+        "close": "Itxi",
+        "copied": "Esteka kopiatu da",
+        "copy": "Kopiatu esteka",
+        "copy_failed": "Ezin izan da esteka kopiatu. Hautatu eta kopiatu eskuz.",
+        "description": "{{email}} erabiltzaileak pasahitz berri bat aukeratzeko esteka. Kopiatu eta eman orain: behin bakarrik erakusten da.",
+        "emailed": "Instalazio honek kontuko mezu elektronikoak bidaltzen ditu, beraz erabiltzaileari posta elektronikoz jakinarazten zaio berarentzat esteka bat sortu dela.",
+        "expires": "Estekak behin bakarrik funtzionatzen du. Iraungitze-data: {{when}}.",
+        "failed": "Ezin izan da esteka sortu.",
+        "label": "Esteka",
+        "making": "Esteka sortzen...",
+        "signs_out": "Estekaren erabilerak erabiltzailearen saioa nonahi ixten du.",
+        "title": "Pasahitza berrezartzeko esteka"
+      },
+      "search_label": "Bilatu erabiltzaileak helbide elektronikoaren bidez",
+      "search_placeholder": "Bilatu helbide elektronikoaren bidez",
+      "total": "{{total}} aurkitu dira",
+      "values": {
+        "active": "Aktibo",
+        "disabled": "Desgaituta",
+        "no": "Ez",
+        "two_factor_off": "Desaktibatuta",
+        "two_factor_on": "Aktibatuta",
+        "yes": "Bai"
+      },
+      "you": "zu"
+    }
+  },
   "auth": {
     "login": {
       "description": "Hasi saioa zure epostarekin",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administrazioa",
     "maintenance": "Mantentzea",
     "monitors": "Monitoreak",
     "notification_channels": "Joparpen kanalak",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Zundak aukeratu gabe sortutako monitore bat lehenetsitako zundetan exekutatzen da, desgaituta ez daudenetan eta bere mota exekutatzen dutenetan, eta zunda lokalean bat ere ez badago. Lehendik dauden monitoreek beren zundak mantentzen dituzte.",
+      "failed": "Ezin izan da aldatu zunda lehenetsia den ala ez.",
+      "label": "Zunda lehenetsia",
+      "off": "{{name}} ez da jada zunda lehenetsia",
+      "on": "{{name}} zunda lehenetsia da orain",
+      "title": "Monitore berrietarako lehenetsia"
+    },
+    "default_badge": "Lehenetsia",
     "page_name": "Zundak",
     "description": "Zundek monitoreen egiaztapenak exekutatzen dituzte instalatuta dauden lekuetatik. Zunda lokala Peekaping bera da.",
     "local_name": "Lokala",

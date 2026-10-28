@@ -3,6 +3,105 @@
     "cancel": "Tühista",
     "saving": "Salvestamine…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Tagasi: {{name}}",
+      "probes": "Sondid",
+      "title": "Haldus",
+      "users": "Kasutajad"
+    },
+    "users": {
+      "actions": {
+        "delete": "Kustuta kasutaja",
+        "disable": "Keela kasutaja",
+        "disableTwoFactor": "Lülita 2FA välja",
+        "enable": "Luba kasutaja",
+        "grantAdmin": "Tee paigalduse haldur",
+        "resetLink": "Loo lähtestuslink",
+        "revokeAdmin": "Eemalda paigalduse haldur"
+      },
+      "actions_aria": "Toimingud kasutajale {{email}}",
+      "columns": {
+        "created": "Loodud",
+        "email": "E-post",
+        "email_verified": "E-post kinnitatud",
+        "instance_admin": "Paigalduse haldur",
+        "last_sign_in": "Viimane sisselogimine",
+        "status": "Olek",
+        "two_factor": "2FA",
+        "workspaces": "Tööruumid"
+      },
+      "confirm": {
+        "cancel": "Tühista",
+        "delete": {
+          "confirm": "Kustuta kasutaja",
+          "description": "Kas kustutada {{email}}? Tema konto eemaldatakse, samuti tema kohad tööruumides. Seda ei saa tagasi võtta.",
+          "title": "Kustuta kasutaja"
+        },
+        "disable": {
+          "confirm": "Keela",
+          "description": "{{email}} ei saa sisse logida ja on nüüd kõikjalt välja logitud. Tema tööruumid jäävad tööle. Saad ta hiljem uuesti lubada.",
+          "title": "Keela kasutaja"
+        },
+        "disableTwoFactor": {
+          "confirm": "Lülita 2FA välja",
+          "description": "{{email}} logib sisse ainult parooliga ja saab 2FA uuesti seadistada. Tee seda alles siis, kui oled kindel, et just tema seda palub.",
+          "title": "Lülita 2FA välja"
+        }
+      },
+      "description": "Kõik, kellel on selles paigalduses konto. Paigalduse haldurid haldavad paigaldust ennast, näiteks sonde ja kasutajaid. Kasutaja rolli tööruumis määravad selle tööruumi omanikud.",
+      "empty": "Kasutajaid ei leitud",
+      "errors": {
+        "last_instance_admin": "Paigaldusel peab olema vähemalt üks paigalduse haldur.",
+        "last_owner": "Kasutaja on nende tööruumide viimane omanik: {{workspaces}}. Tee kõigepealt keegi teine omanikuks või kustuta tööruum.",
+        "self": "Seda ei saa oma kontoga teha."
+      },
+      "load_failed": "Kasutajate laadimine ebaõnnestus.",
+      "messages": {
+        "admin_granted": "{{email}} on nüüd paigalduse haldur",
+        "admin_revoked": "{{email}} ei ole enam paigalduse haldur",
+        "deleted": "{{email}} on kustutatud",
+        "disabled": "{{email}} on keelatud ja välja logitud",
+        "enabled": "{{email}} on lubatud",
+        "two_factor_off": "2FA on kasutajal {{email}} välja lülitatud",
+        "update_failed": "Kasutaja värskendamine ebaõnnestus."
+      },
+      "never": "Mitte kunagi",
+      "none": "Puudub",
+      "page_name": "Kasutajad",
+      "paging": {
+        "next": "Järgmine",
+        "page": "Leht {{page}} / {{pages}}",
+        "previous": "Eelmine"
+      },
+      "reset_link": {
+        "close": "Sulge",
+        "copied": "Link kopeeritud",
+        "copy": "Kopeeri link",
+        "copy_failed": "Lingi kopeerimine ebaõnnestus. Vali see ja kopeeri käsitsi.",
+        "description": "Link, mille abil {{email}} valib uue parooli. Kopeeri see ja anna kohe edasi: seda näidatakse ainult üks kord.",
+        "emailed": "See paigaldus saadab konto e-kirju, seega saab kasutaja e-posti teel teada, et temale loodi link.",
+        "expires": "Link töötab ainult ühe korra ja aegub {{when}}.",
+        "failed": "Lingi loomine ebaõnnestus.",
+        "label": "Link",
+        "making": "Lingi loomine...",
+        "signs_out": "Lingi kasutamine logib kasutaja kõikjalt välja.",
+        "title": "Parooli lähtestuslink"
+      },
+      "search_label": "Otsi kasutajaid e-posti järgi",
+      "search_placeholder": "Otsi e-posti järgi",
+      "total": "Leitud: {{total}}",
+      "values": {
+        "active": "Aktiivne",
+        "disabled": "Keelatud",
+        "no": "Ei",
+        "two_factor_off": "Väljas",
+        "two_factor_on": "Sees",
+        "yes": "Jah"
+      },
+      "you": "sina"
+    }
+  },
   "auth": {
     "login": {
       "description": "Logi sisse oma e-posti aadressiga",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Haldus",
     "maintenance": "Hooldus",
     "monitors": "Monitoorid",
     "notification_channels": "Teavituskanalid",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitoor, mis luuakse sonde valimata, töötab vaikesondidel, mis ei ole keelatud ja käitavad selle tüüpi, ning kohalikul sondil, kui ükski ei käita. Olemasolevad monitoorid säilitavad oma sondid.",
+      "failed": "Sondi vaikesondiks olemise muutmine ebaõnnestus.",
+      "label": "Vaikesond",
+      "off": "{{name}} ei ole enam vaikesond",
+      "on": "{{name}} on nüüd vaikesond",
+      "title": "Vaikimisi uutele monitooridele"
+    },
+    "default_badge": "Vaikimisi",
     "page_name": "Sondid",
     "description": "Sondid teostavad monitooride kontrolle kohtadest, kuhu need on paigaldatud. Kohalik sond on Peekaping ise.",
     "local_name": "Kohalik",

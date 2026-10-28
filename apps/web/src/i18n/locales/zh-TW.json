@@ -3,6 +3,105 @@
     "cancel": "取消",
     "saving": "儲存中…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "返回 {{name}}",
+      "probes": "探針",
+      "title": "管理",
+      "users": "使用者"
+    },
+    "users": {
+      "actions": {
+        "delete": "刪除使用者",
+        "disable": "停用使用者",
+        "disableTwoFactor": "關閉 2FA",
+        "enable": "啟用使用者",
+        "grantAdmin": "設為執行個體管理員",
+        "resetLink": "產生重設連結",
+        "revokeAdmin": "移除執行個體管理員"
+      },
+      "actions_aria": "{{email}} 的操作",
+      "columns": {
+        "created": "建立時間",
+        "email": "電子郵件",
+        "email_verified": "電子郵件已驗證",
+        "instance_admin": "執行個體管理員",
+        "last_sign_in": "上次登入",
+        "status": "狀態",
+        "two_factor": "2FA",
+        "workspaces": "工作區"
+      },
+      "confirm": {
+        "cancel": "取消",
+        "delete": {
+          "confirm": "刪除使用者",
+          "description": "刪除 {{email}}？其帳號會被移除，其在工作區中的位置也會一併移除。此操作無法復原。",
+          "title": "刪除使用者"
+        },
+        "disable": {
+          "confirm": "停用",
+          "description": "{{email}} 將無法登入，並會在所有裝置上登出。其工作區會繼續運作。你之後可以重新啟用。",
+          "title": "停用使用者"
+        },
+        "disableTwoFactor": {
+          "confirm": "關閉 2FA",
+          "description": "{{email}} 將只使用密碼登入，並可重新設定 2FA。請確認確實是本人提出要求後再執行。",
+          "title": "關閉 2FA"
+        }
+      },
+      "description": "此部署上所有擁有帳號的人。執行個體管理員負責管理部署本身，例如探針和使用者。使用者在工作區中的角色由該工作區的擁有者設定。",
+      "empty": "找不到使用者",
+      "errors": {
+        "last_instance_admin": "部署至少需要一位執行個體管理員。",
+        "last_owner": "該使用者是 {{workspaces}} 的最後一位擁有者。請先指定其他擁有者，或刪除該工作區。",
+        "self": "你不能對自己的帳號執行此操作。"
+      },
+      "load_failed": "無法載入使用者。",
+      "messages": {
+        "admin_granted": "{{email}} 現在是執行個體管理員",
+        "admin_revoked": "{{email}} 不再是執行個體管理員",
+        "deleted": "{{email}} 已刪除",
+        "disabled": "{{email}} 已停用並登出",
+        "enabled": "{{email}} 已啟用",
+        "two_factor_off": "已關閉 {{email}} 的 2FA",
+        "update_failed": "無法更新使用者。"
+      },
+      "never": "從未",
+      "none": "無",
+      "page_name": "使用者",
+      "paging": {
+        "next": "下一頁",
+        "page": "第 {{page}} 頁，共 {{pages}} 頁",
+        "previous": "上一頁"
+      },
+      "reset_link": {
+        "close": "關閉",
+        "copied": "連結已複製",
+        "copy": "複製連結",
+        "copy_failed": "無法複製連結。請選取後手動複製。",
+        "description": "供 {{email}} 設定新密碼的連結。請立即複製並轉交：它只會顯示一次。",
+        "emailed": "此部署會寄送帳號電子郵件，因此使用者會收到郵件，告知已為其產生連結。",
+        "expires": "此連結只能使用一次，將於{{when}}過期。",
+        "failed": "無法產生連結。",
+        "label": "連結",
+        "making": "正在產生連結...",
+        "signs_out": "使用此連結會讓使用者在所有裝置上登出。",
+        "title": "密碼重設連結"
+      },
+      "search_label": "依電子郵件搜尋使用者",
+      "search_placeholder": "依電子郵件搜尋",
+      "total": "找到 {{total}} 位",
+      "values": {
+        "active": "啟用中",
+        "disabled": "已停用",
+        "no": "否",
+        "two_factor_off": "關",
+        "two_factor_on": "開",
+        "yes": "是"
+      },
+      "you": "你"
+    }
+  },
   "auth": {
     "login": {
       "description": "使用您的電子郵件登入",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "管理",
     "maintenance": "維護",
     "monitors": "監控",
     "notification_channels": "通知頻道",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "建立時未選擇探針的監控項目，會在未停用且支援其類型的預設探針上執行；若沒有，則在本機探針上執行。既有的監控項目會保留其探針。",
+      "failed": "無法變更該探針是否為預設。",
+      "label": "預設探針",
+      "off": "{{name}} 不再是預設探針",
+      "on": "{{name}} 現在是預設探針",
+      "title": "新監控項目的預設值"
+    },
+    "default_badge": "預設",
     "page_name": "探針",
     "description": "探針會在其安裝的位置執行監控的檢查。本機探針就是 Peekaping 本身。",
     "local_name": "本機",

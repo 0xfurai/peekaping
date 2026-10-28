@@ -3,6 +3,105 @@
     "cancel": "Annuller",
     "saving": "Gemmer..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Tilbage til {{name}}",
+      "probes": "Probes",
+      "title": "Administration",
+      "users": "Brugere"
+    },
+    "users": {
+      "actions": {
+        "delete": "Slet bruger",
+        "disable": "Deaktivér bruger",
+        "disableTwoFactor": "Slå 2FA fra",
+        "enable": "Aktivér bruger",
+        "grantAdmin": "Gør til installationsadministrator",
+        "resetLink": "Opret nulstillingslink",
+        "revokeAdmin": "Fjern som installationsadministrator"
+      },
+      "actions_aria": "Handlinger for {{email}}",
+      "columns": {
+        "created": "Oprettet",
+        "email": "E-mail",
+        "email_verified": "E-mail bekræftet",
+        "instance_admin": "Installationsadministrator",
+        "last_sign_in": "Seneste login",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Arbejdsområder"
+      },
+      "confirm": {
+        "cancel": "Annullér",
+        "delete": {
+          "confirm": "Slet bruger",
+          "description": "Slet {{email}}? Kontoen fjernes, og det samme gælder brugerens pladser i arbejdsområder. Det kan ikke fortrydes.",
+          "title": "Slet bruger"
+        },
+        "disable": {
+          "confirm": "Deaktivér",
+          "description": "{{email}} kan ikke logge ind og er nu logget ud overalt. Brugerens arbejdsområder kører videre. Du kan aktivere brugeren igen senere.",
+          "title": "Deaktivér bruger"
+        },
+        "disableTwoFactor": {
+          "confirm": "Slå 2FA fra",
+          "description": "{{email}} logger ind med kun adgangskoden og kan sætte 2FA op igen. Gør det først, når du er sikker på, at det er vedkommende selv, der beder om det.",
+          "title": "Slå 2FA fra"
+        }
+      },
+      "description": "Alle med en konto på denne installation. Installationsadministratorer styrer selve installationen, for eksempel probes og brugere. En brugers rolle i et arbejdsområde angives af det arbejdsområdes ejere.",
+      "empty": "Ingen brugere fundet",
+      "errors": {
+        "last_instance_admin": "Installationen skal have mindst én installationsadministrator.",
+        "last_owner": "Brugeren er sidste ejer af disse arbejdsområder: {{workspaces}}. Gør først en anden til ejer, eller slet arbejdsområdet.",
+        "self": "Du kan ikke gøre det med din egen konto."
+      },
+      "load_failed": "Brugerne kunne ikke indlæses.",
+      "messages": {
+        "admin_granted": "{{email}} er nu installationsadministrator",
+        "admin_revoked": "{{email}} er ikke længere installationsadministrator",
+        "deleted": "{{email}} er slettet",
+        "disabled": "{{email}} er deaktiveret og logget ud",
+        "enabled": "{{email}} er aktiveret",
+        "two_factor_off": "2FA er slået fra for {{email}}",
+        "update_failed": "Brugeren kunne ikke opdateres."
+      },
+      "never": "Aldrig",
+      "none": "Ingen",
+      "page_name": "Brugere",
+      "paging": {
+        "next": "Næste",
+        "page": "Side {{page}} af {{pages}}",
+        "previous": "Forrige"
+      },
+      "reset_link": {
+        "close": "Luk",
+        "copied": "Link kopieret",
+        "copy": "Kopiér link",
+        "copy_failed": "Linket kunne ikke kopieres. Markér det, og kopiér det i hånden.",
+        "description": "Et link, så {{email}} kan vælge en ny adgangskode. Kopiér det, og giv det videre nu: det vises kun én gang.",
+        "emailed": "Denne installation sender kontomails, så brugeren får besked på e-mail om, at der er oprettet et link til vedkommende.",
+        "expires": "Linket virker kun én gang og udløber {{when}}.",
+        "failed": "Linket kunne ikke oprettes.",
+        "label": "Link",
+        "making": "Opretter linket...",
+        "signs_out": "Når linket bruges, bliver brugeren logget ud overalt.",
+        "title": "Link til nulstilling af adgangskode"
+      },
+      "search_label": "Søg efter brugere med e-mail",
+      "search_placeholder": "Søg efter e-mail",
+      "total": "{{total}} fundet",
+      "values": {
+        "active": "Aktiv",
+        "disabled": "Deaktiveret",
+        "no": "Nej",
+        "two_factor_off": "Fra",
+        "two_factor_on": "Til",
+        "yes": "Ja"
+      },
+      "you": "dig"
+    }
+  },
   "auth": {
     "login": {
       "description": "Log ind med din e‑mail",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administration",
     "maintenance": "Vedligeholdelse",
     "monitors": "Monitorer",
     "notification_channels": "Notifikationskanaler",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "En monitor, der oprettes uden at vælge probes, kører på de standard-probes, der ikke er deaktiveret og kan køre dens type, og på den lokale probe, hvis ingen kan. Eksisterende monitorer beholder deres probes.",
+      "failed": "Kunne ikke ændre, om proben er en standard.",
+      "label": "Standardprobe",
+      "off": "{{name}} er ikke længere en standardprobe",
+      "on": "{{name}} er nu en standardprobe",
+      "title": "Standard for nye monitorer"
+    },
+    "default_badge": "Standard",
     "page_name": "Probes",
     "description": "Probes kører kontroller af monitorer fra de steder, hvor de er installeret. Den lokale probe er Peekaping selv.",
     "local_name": "Lokal",

@@ -3,6 +3,105 @@
     "cancel": "Atšaukti",
     "saving": "Išsaugoma..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Atgal į {{name}}",
+      "probes": "Zondai",
+      "title": "Administravimas",
+      "users": "Naudotojai"
+    },
+    "users": {
+      "actions": {
+        "delete": "Ištrinti naudotoją",
+        "disable": "Išjungti naudotoją",
+        "disableTwoFactor": "Išjungti 2FA",
+        "enable": "Įjungti naudotoją",
+        "grantAdmin": "Padaryti diegimo administratoriumi",
+        "resetLink": "Sukurti atstatymo nuorodą",
+        "revokeAdmin": "Panaikinti diegimo administratoriaus teises"
+      },
+      "actions_aria": "{{email}} veiksmai",
+      "columns": {
+        "created": "Sukurta",
+        "email": "El. paštas",
+        "email_verified": "El. paštas patvirtintas",
+        "instance_admin": "Diegimo administratorius",
+        "last_sign_in": "Paskutinis prisijungimas",
+        "status": "Būsena",
+        "two_factor": "2FA",
+        "workspaces": "Darbo erdvės"
+      },
+      "confirm": {
+        "cancel": "Atšaukti",
+        "delete": {
+          "confirm": "Ištrinti naudotoją",
+          "description": "Ištrinti {{email}}? Paskyra bus pašalinta, kaip ir jo vietos darbo erdvėse. Šio veiksmo anuliuoti negalima.",
+          "title": "Ištrinti naudotoją"
+        },
+        "disable": {
+          "confirm": "Išjungti",
+          "description": "{{email}} nebegali prisijungti ir dabar atjungiamas visur. Jo darbo erdvės toliau veikia. Vėliau galėsite jį vėl įjungti.",
+          "title": "Išjungti naudotoją"
+        },
+        "disableTwoFactor": {
+          "confirm": "Išjungti 2FA",
+          "description": "{{email}} prisijungs tik su slaptažodžiu ir galės vėl nustatyti 2FA. Tai darykite tik įsitikinę, kad prašo būtent šis asmuo.",
+          "title": "Išjungti 2FA"
+        }
+      },
+      "description": "Visi, turintys paskyrą šiame diegime. Diegimo administratoriai valdo patį diegimą, pavyzdžiui, zondus ir naudotojus. Naudotojo vaidmenį darbo erdvėje nustato tos darbo erdvės savininkai.",
+      "empty": "Naudotojų nerasta",
+      "errors": {
+        "last_instance_admin": "Diegime turi būti bent vienas diegimo administratorius.",
+        "last_owner": "Naudotojas yra paskutinis šių darbo erdvių savininkas: {{workspaces}}. Pirmiausia paskirkite kitą savininką arba ištrinkite darbo erdvę.",
+        "self": "Šio veiksmo negalite atlikti su savo paskyra."
+      },
+      "load_failed": "Nepavyko įkelti naudotojų.",
+      "messages": {
+        "admin_granted": "{{email}} dabar yra diegimo administratorius",
+        "admin_revoked": "{{email}} nebėra diegimo administratorius",
+        "deleted": "{{email}} ištrintas",
+        "disabled": "{{email}} išjungtas ir atjungtas",
+        "enabled": "{{email}} įjungtas",
+        "two_factor_off": "{{email}} 2FA išjungta",
+        "update_failed": "Nepavyko atnaujinti naudotojo."
+      },
+      "never": "Niekada",
+      "none": "Nėra",
+      "page_name": "Naudotojai",
+      "paging": {
+        "next": "Kitas",
+        "page": "{{page}} puslapis iš {{pages}}",
+        "previous": "Ankstesnis"
+      },
+      "reset_link": {
+        "close": "Uždaryti",
+        "copied": "Nuoroda nukopijuota",
+        "copy": "Kopijuoti nuorodą",
+        "copy_failed": "Nepavyko nukopijuoti nuorodos. Pažymėkite ją ir nukopijuokite rankiniu būdu.",
+        "description": "Nuoroda, kuria {{email}} pasirinks naują slaptažodį. Nukopijuokite ir perduokite ją dabar: ji rodoma tik vieną kartą.",
+        "emailed": "Šis diegimas siunčia paskyros laiškus, todėl naudotojui el. paštu pranešama, kad jam sukurta nuoroda.",
+        "expires": "Nuoroda veikia vieną kartą ir baigia galioti {{when}}.",
+        "failed": "Nepavyko sukurti nuorodos.",
+        "label": "Nuoroda",
+        "making": "Kuriama nuoroda...",
+        "signs_out": "Panaudojus nuorodą naudotojas atjungiamas visur.",
+        "title": "Slaptažodžio atstatymo nuoroda"
+      },
+      "search_label": "Ieškoti naudotojų pagal el. paštą",
+      "search_placeholder": "Ieškoti pagal el. paštą",
+      "total": "Rasta: {{total}}",
+      "values": {
+        "active": "Aktyvus",
+        "disabled": "Išjungtas",
+        "no": "Ne",
+        "two_factor_off": "Išjungta",
+        "two_factor_on": "Įjungta",
+        "yes": "Taip"
+      },
+      "you": "jūs"
+    }
+  },
   "auth": {
     "login": {
       "description": "Prisijunkite su el. paštu",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administravimas",
     "maintenance": "Priežiūra",
     "monitors": "Monitoriai",
     "notification_channels": "Pranešimo kanalai",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitorius, sukurtas nepasirinkus zondų, veikia numatytuosiuose zonduose, kurie nėra išjungti ir vykdo jo tipą, o jei tokių nėra – vietiniame zonde. Esami monitoriai pasilieka savo zondus.",
+      "failed": "Nepavyko pakeisti, ar zondas yra numatytasis.",
+      "label": "Numatytasis zondas",
+      "off": "{{name}} nebėra numatytasis zondas",
+      "on": "{{name}} dabar yra numatytasis zondas",
+      "title": "Numatytasis naujiems monitoriams"
+    },
+    "default_badge": "Numatytasis",
     "page_name": "Zondai",
     "description": "Zondai atlieka monitorių patikras iš vietų, kuriose jie įdiegti. Vietinis zondas yra pats Peekaping.",
     "local_name": "Vietinis",

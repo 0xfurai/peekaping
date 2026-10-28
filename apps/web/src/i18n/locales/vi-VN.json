@@ -3,6 +3,105 @@
     "cancel": "Hủy",
     "saving": "Đang lưu..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Quay lại {{name}}",
+      "probes": "Đầu dò",
+      "title": "Quản trị",
+      "users": "Người dùng"
+    },
+    "users": {
+      "actions": {
+        "delete": "Xóa người dùng",
+        "disable": "Vô hiệu hóa người dùng",
+        "disableTwoFactor": "Tắt 2FA",
+        "enable": "Bật người dùng",
+        "grantAdmin": "Đặt làm quản trị viên phiên bản",
+        "resetLink": "Tạo liên kết đặt lại",
+        "revokeAdmin": "Gỡ quyền quản trị viên phiên bản"
+      },
+      "actions_aria": "Thao tác cho {{email}}",
+      "columns": {
+        "created": "Ngày tạo",
+        "email": "Email",
+        "email_verified": "Email đã xác minh",
+        "instance_admin": "Quản trị viên phiên bản",
+        "last_sign_in": "Đăng nhập gần nhất",
+        "status": "Trạng thái",
+        "two_factor": "2FA",
+        "workspaces": "Không gian làm việc"
+      },
+      "confirm": {
+        "cancel": "Hủy",
+        "delete": {
+          "confirm": "Xóa người dùng",
+          "description": "Xóa {{email}}? Tài khoản của họ sẽ bị xóa, cùng với chỗ của họ trong các không gian làm việc. Không thể hoàn tác.",
+          "title": "Xóa người dùng"
+        },
+        "disable": {
+          "confirm": "Vô hiệu hóa",
+          "description": "{{email}} sẽ không đăng nhập được và bị đăng xuất khỏi mọi nơi ngay bây giờ. Các không gian làm việc của họ vẫn hoạt động. Bạn có thể bật lại sau.",
+          "title": "Vô hiệu hóa người dùng"
+        },
+        "disableTwoFactor": {
+          "confirm": "Tắt 2FA",
+          "description": "{{email}} sẽ đăng nhập chỉ bằng mật khẩu và có thể thiết lập lại 2FA. Chỉ làm vậy khi bạn chắc chắn chính họ là người yêu cầu.",
+          "title": "Tắt 2FA"
+        }
+      },
+      "description": "Tất cả những ai có tài khoản trên bản cài đặt này. Quản trị viên phiên bản quản lý chính bản cài đặt, chẳng hạn đầu dò và người dùng. Vai trò của người dùng trong một không gian làm việc do chủ sở hữu của không gian đó đặt.",
+      "empty": "Không tìm thấy người dùng",
+      "errors": {
+        "last_instance_admin": "Bản cài đặt cần ít nhất một quản trị viên phiên bản.",
+        "last_owner": "Người dùng là chủ sở hữu cuối cùng của {{workspaces}}. Hãy đặt người khác làm chủ sở hữu, hoặc xóa không gian làm việc, trước.",
+        "self": "Bạn không thể làm điều này với chính tài khoản của mình."
+      },
+      "load_failed": "Không thể tải danh sách người dùng.",
+      "messages": {
+        "admin_granted": "{{email}} giờ là quản trị viên phiên bản",
+        "admin_revoked": "{{email}} không còn là quản trị viên phiên bản",
+        "deleted": "{{email}} đã bị xóa",
+        "disabled": "{{email}} đã bị vô hiệu hóa và bị đăng xuất",
+        "enabled": "{{email}} đã được bật",
+        "two_factor_off": "2FA của {{email}} đã tắt",
+        "update_failed": "Không thể cập nhật người dùng."
+      },
+      "never": "Chưa bao giờ",
+      "none": "Không có",
+      "page_name": "Người dùng",
+      "paging": {
+        "next": "Sau",
+        "page": "Trang {{page}} / {{pages}}",
+        "previous": "Trước"
+      },
+      "reset_link": {
+        "close": "Đóng",
+        "copied": "Đã sao chép liên kết",
+        "copy": "Sao chép liên kết",
+        "copy_failed": "Không thể sao chép liên kết. Hãy chọn và sao chép thủ công.",
+        "description": "Liên kết để {{email}} chọn mật khẩu mới. Hãy sao chép và chuyển cho họ ngay: liên kết chỉ hiển thị một lần.",
+        "emailed": "Bản cài đặt này có gửi email tài khoản, nên người dùng được báo qua email rằng một liên kết đã được tạo cho họ.",
+        "expires": "Liên kết chỉ dùng được một lần và hết hạn {{when}}.",
+        "failed": "Không thể tạo liên kết.",
+        "label": "Liên kết",
+        "making": "Đang tạo liên kết...",
+        "signs_out": "Dùng liên kết sẽ đăng xuất người dùng khỏi mọi nơi.",
+        "title": "Liên kết đặt lại mật khẩu"
+      },
+      "search_label": "Tìm người dùng theo email",
+      "search_placeholder": "Tìm theo email",
+      "total": "Tìm thấy {{total}}",
+      "values": {
+        "active": "Hoạt động",
+        "disabled": "Đã vô hiệu hóa",
+        "no": "Không",
+        "two_factor_off": "Tắt",
+        "two_factor_on": "Bật",
+        "yes": "Có"
+      },
+      "you": "bạn"
+    }
+  },
   "auth": {
     "login": {
       "description": "Đăng nhập bằng email của bạn",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Quản trị",
     "maintenance": "Bảo trì",
     "monitors": "Giám sát",
     "notification_channels": "Kênh thông báo",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitor được tạo mà không chọn đầu dò sẽ chạy trên các đầu dò mặc định không bị vô hiệu hóa và chạy loại của nó, và trên đầu dò cục bộ nếu không có đầu dò nào chạy. Các monitor hiện có giữ nguyên đầu dò của chúng.",
+      "failed": "Không thể đổi việc đầu dò có là mặc định hay không.",
+      "label": "Đầu dò mặc định",
+      "off": "{{name}} không còn là đầu dò mặc định",
+      "on": "{{name}} giờ là đầu dò mặc định",
+      "title": "Mặc định cho monitor mới"
+    },
+    "default_badge": "Mặc định",
     "page_name": "Đầu dò",
     "description": "Đầu dò chạy các lần kiểm tra của giám sát từ những nơi chúng được cài đặt. Đầu dò cục bộ chính là Peekaping.",
     "local_name": "Cục bộ",
