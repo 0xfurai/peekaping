@@ -62,7 +62,7 @@ func TestRun_KeepsLongPollsAndWebsocketsOpenPastTheReadTimeout(t *testing.T) {
 
 	t.Run("a long poll answers after the read timeout", func(t *testing.T) {
 		socket := in.dialSocket(t)
-		socket.join(t, "monitor:all")
+		socket.join(t, in.workspaceRoom(t))
 		socket.holdsAPollOpenFor(t, 3*read) // the long poll waits through the read timeout, with nothing to answer
 		pushUntil(t, in, "long-poll-", func(msg string) bool {
 			_, ok := socket.until(t, 200*time.Millisecond, func(e socketEvent) bool { return e.hb.MonitorID == pushID && e.hb.Msg == msg })
@@ -72,7 +72,7 @@ func TestRun_KeepsLongPollsAndWebsocketsOpenPastTheReadTimeout(t *testing.T) {
 
 	t.Run("a websocket delivers after the read timeout", func(t *testing.T) {
 		conn := in.dialWebsocket(t)
-		require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte(`42["join_room","monitor:all"]`)))
+		require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte(`42["join_room","`+in.workspaceRoom(t)+`"]`)))
 		require.NoError(t, conn.SetReadDeadline(time.Time{}))
 		packets := make(chan string, 64)
 		go func() {
