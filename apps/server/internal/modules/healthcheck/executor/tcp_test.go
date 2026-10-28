@@ -57,10 +57,16 @@ func TestTCPExecutor_Execute_IPv6Host(t *testing.T) {
 	defer l.Close()
 	port := l.Addr().(*net.TCPAddr).Port
 
-	result := NewTCPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), tcpMonitor(t, l.Addr().String()), nil)
+	for _, host := range []string{"::1", "[::1]"} {
+		t.Run(host, func(t *testing.T) {
+			monitor := tcpMonitor(t, l.Addr().String())
+			monitor.Config = fmt.Sprintf(`{"host": %q, "port": %d}`, host, port)
+			result := NewTCPExecutor(zap.NewNop().Sugar()).Execute(context.Background(), monitor, nil)
 
-	assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
-	assert.Equal(t, fmt.Sprintf("TCP port %d is open", port), result.Message)
+			assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+			assert.Equal(t, fmt.Sprintf("TCP port %d is open", port), result.Message)
+		})
+	}
 }
 
 func TestTCPExecutor_Execute_ClosedPort(t *testing.T) {
