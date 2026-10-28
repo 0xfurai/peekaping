@@ -567,7 +567,7 @@ export const postAuth2FaVerify = <ThrowOnError extends boolean = false>(
 
 /**
  * Get the install's account email setting
- * Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them. signupMode is SIGNUP_MODE (invite or open), signupOpen is whether to offer a sign-up form (always in open mode, and in invite mode while the install has no user), and turnstileSiteKey is the public key of the Turnstile widget that open signup shows, or null.
+ * Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them. signupMode is SIGNUP_MODE (invite or open), signupOpen is whether to offer a sign-up form (always in open mode, and in invite mode while the install has no user), firstSignup is whether the install has no user yet in either mode (the next signup becomes its instance admin), and turnstileSiteKey is the public key of the Turnstile widget that open signup shows, or null.
  */
 export const getAuthConfig = <ThrowOnError extends boolean = false>(
   options?: Options<GetAuthConfigData, ThrowOnError>

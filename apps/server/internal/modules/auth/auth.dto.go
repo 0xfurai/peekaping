@@ -122,6 +122,10 @@ type AuthConfigResponse struct {
 	// SignupOpen is whether the sign-up form should be offered: always in open mode, and in invite
 	// mode while the install has no user to sign up first
 	SignupOpen bool `json:"signupOpen"`
+	// FirstSignup is whether the install has no user yet, in either mode. The next signup is then
+	// its first user, who becomes the instance admin and chooses the install's usage statistics and
+	// error reports; in open mode the signups after it are not instance admins.
+	FirstSignup bool `json:"firstSignup"`
 	// TurnstileSiteKey is the public key of the Cloudflare Turnstile widget that open signup shows,
 	// or null when the install does not use it
 	TurnstileSiteKey *string `json:"turnstileSiteKey"`
