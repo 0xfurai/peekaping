@@ -26,7 +26,8 @@
         "rate_limited": "Previše registracija sa vaše mreže. Pokušajte ponovo za sat vremena.",
         "email_taken": "Nalog sa ovom adresom e-pošte već postoji.",
         "sign_in_instead": "Umesto toga se prijavite.",
-        "check_failed": "Provera nije prošla. Pokušajte ponovo."
+        "check_failed": "Provera nije prošla. Pokušajte ponovo.",
+        "check_load_failed": "Provera nije mogla da se učita. Proverite vezu i pokušajte ponovo."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Potvrdite svoj imejl: poslali smo vezu na {{email}}."
     },
     "suspension_notice": {
-      "message": "Vaši monitori će početi da rade kada potvrdite adresu e-pošte."
+      "message": "Vaši monitori će početi da rade kada potvrdite adresu e-pošte.",
+      "member_message": "Monitori ovog radnog prostora će početi da rade kada njegov vlasnik potvrdi adresu e-pošte."
     }
   },
   "bars": {

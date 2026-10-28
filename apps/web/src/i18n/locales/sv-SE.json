@@ -26,7 +26,8 @@
         "rate_limited": "För många registreringar från ditt nätverk. Försök igen om en timme.",
         "email_taken": "Det finns redan ett konto med den här e-postadressen.",
         "sign_in_instead": "Logga in i stället.",
-        "check_failed": "Kontrollen godkändes inte. Försök igen."
+        "check_failed": "Kontrollen godkändes inte. Försök igen.",
+        "check_load_failed": "Kontrollen kunde inte laddas. Kontrollera din anslutning och försök igen."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Verifiera din e-postadress: vi har skickat en länk till {{email}}."
     },
     "suspension_notice": {
-      "message": "Dina övervakare startar när du har verifierat din e-postadress."
+      "message": "Dina övervakare startar när du har verifierat din e-postadress.",
+      "member_message": "Den här arbetsytans övervakare startar när ägaren har verifierat sin e-postadress."
     }
   },
   "bars": {

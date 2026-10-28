@@ -26,7 +26,8 @@
         "rate_limited": "Too many signups from your network. Try again in an hour.",
         "email_taken": "An account with this email exists.",
         "sign_in_instead": "Sign in instead.",
-        "check_failed": "The check didn't pass. Try again."
+        "check_failed": "The check didn't pass. Try again.",
+        "check_load_failed": "The check couldn't load. Check your connection and try again."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Verify your email: we sent a link to {{email}}."
     },
     "suspension_notice": {
-      "message": "Your monitors start once you verify your email."
+      "message": "Your monitors start once you verify your email.",
+      "member_message": "This workspace's monitors start once its owner verifies their email."
     }
   },
   "bars": {

@@ -26,7 +26,8 @@
         "rate_limited": "Příliš mnoho registrací z vaší sítě. Zkuste to znovu za hodinu.",
         "email_taken": "Účet s tímto e-mailem už existuje.",
         "sign_in_instead": "Raději se přihlaste.",
-        "check_failed": "Kontrola neprošla. Zkuste to znovu."
+        "check_failed": "Kontrola neprošla. Zkuste to znovu.",
+        "check_load_failed": "Kontrolu se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Ověřte svůj e-mail: poslali jsme odkaz na {{email}}."
     },
     "suspension_notice": {
-      "message": "Vaše monitory se spustí, jakmile ověříte svůj e-mail."
+      "message": "Vaše monitory se spustí, jakmile ověříte svůj e-mail.",
+      "member_message": "Monitory tohoto pracovního prostoru se spustí, jakmile jeho vlastník ověří svůj e-mail."
     }
   },
   "bars": {

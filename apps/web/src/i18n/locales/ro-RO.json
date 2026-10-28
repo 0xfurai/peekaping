@@ -26,7 +26,8 @@
         "rate_limited": "Prea multe înregistrări din rețeaua dvs. Încercați din nou peste o oră.",
         "email_taken": "Există deja un cont cu acest e-mail.",
         "sign_in_instead": "Autentificați-vă în schimb.",
-        "check_failed": "Verificarea nu a trecut. Încercați din nou."
+        "check_failed": "Verificarea nu a trecut. Încercați din nou.",
+        "check_load_failed": "Verificarea nu a putut fi încărcată. Verificați conexiunea și încercați din nou."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Verifică-ți e-mailul: am trimis un link la {{email}}."
     },
     "suspension_notice": {
-      "message": "Monitoarele dvs. pornesc după ce vă verificați e-mailul."
+      "message": "Monitoarele dvs. pornesc după ce vă verificați e-mailul.",
+      "member_message": "Monitoarele acestui spațiu de lucru pornesc după ce proprietarul său își verifică e-mailul."
     }
   },
   "bars": {

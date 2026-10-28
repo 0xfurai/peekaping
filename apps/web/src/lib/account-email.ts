@@ -36,3 +36,9 @@ export const isSuspendedUnverified = (
   const workspace = workspaces?.find((w) => w.id.toLowerCase() === workspaceId?.toLowerCase());
   return workspace?.suspended === true && workspace.suspendedReason === "unverified";
 };
+
+/** Whether the user owns the workspace; an admin or member of it is not its owner. */
+export const isWorkspaceOwner = (
+  workspaces: { id: string; role: string }[] | null | undefined,
+  workspaceId: string | null
+): boolean => workspaces?.find((w) => w.id.toLowerCase() === workspaceId?.toLowerCase())?.role === "owner";

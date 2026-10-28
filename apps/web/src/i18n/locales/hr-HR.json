@@ -26,7 +26,8 @@
         "rate_limited": "Previše registracija s vaše mreže. Pokušajte ponovno za sat vremena.",
         "email_taken": "Račun s ovom e-adresom već postoji.",
         "sign_in_instead": "Umjesto toga prijavite se.",
-        "check_failed": "Provjera nije uspjela. Pokušajte ponovno."
+        "check_failed": "Provjera nije uspjela. Pokušajte ponovno.",
+        "check_load_failed": "Provjera se nije mogla učitati. Provjerite vezu i pokušajte ponovno."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Potvrdite svoju e-adresu: poslali smo poveznicu na {{email}}."
     },
     "suspension_notice": {
-      "message": "Vaši će monitori početi raditi kada potvrdite svoju e-adresu."
+      "message": "Vaši će monitori početi raditi kada potvrdite svoju e-adresu.",
+      "member_message": "Monitori ovog radnog prostora počet će raditi kada njegov vlasnik potvrdi svoju e-adresu."
     }
   },
   "bars": {

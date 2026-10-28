@@ -26,7 +26,8 @@
         "rate_limited": "Tarmog'ingizdan juda ko'p ro'yxatdan o'tish bo'ldi. Bir soatdan keyin qayta urinib ko'ring.",
         "email_taken": "Bu elektron pochta bilan hisob allaqachon mavjud.",
         "sign_in_instead": "Buning o'rniga tizimga kiring.",
-        "check_failed": "Tekshiruvdan o'tilmadi. Qayta urinib ko'ring."
+        "check_failed": "Tekshiruvdan o'tilmadi. Qayta urinib ko'ring.",
+        "check_load_failed": "Tekshiruvni yuklab bo'lmadi. Ulanishingizni tekshiring va qayta urinib ko'ring."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Elektron pochtangizni tasdiqlang: {{email}} manziliga havola yubordik."
     },
     "suspension_notice": {
-      "message": "Monitorlaringiz elektron pochtangizni tasdiqlaganingizdan so'ng ishga tushadi."
+      "message": "Monitorlaringiz elektron pochtangizni tasdiqlaganingizdan so'ng ishga tushadi.",
+      "member_message": "Bu ish maydonining monitorlari egasi elektron pochtasini tasdiqlaganidan so'ng ishga tushadi."
     }
   },
   "bars": {

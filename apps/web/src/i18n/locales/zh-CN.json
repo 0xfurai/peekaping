@@ -26,7 +26,8 @@
         "rate_limited": "你所在网络的注册次数过多。请一小时后再试。",
         "email_taken": "使用此邮箱的账户已存在。",
         "sign_in_instead": "请改为登录。",
-        "check_failed": "验证未通过。请重试。"
+        "check_failed": "验证未通过。请重试。",
+        "check_load_failed": "无法加载验证。请检查网络连接后重试。"
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "请验证你的邮箱:我们已向 {{email}} 发送了链接。"
     },
     "suspension_notice": {
-      "message": "验证邮箱后，你的监控项才会开始运行。"
+      "message": "验证邮箱后，你的监控项才会开始运行。",
+      "member_message": "此工作区的监控项会在其所有者验证邮箱后开始运行。"
     }
   },
   "bars": {

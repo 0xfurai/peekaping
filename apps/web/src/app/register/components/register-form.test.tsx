@@ -38,6 +38,28 @@ describe("RegisterForm description", () => {
   });
 });
 
+describe("RegisterForm install-wide choices", () => {
+  // Only an instance admin may set the usage ping and the error reports, so only the install's
+  // first signup (invite mode, while it has no user) is offered them
+  it("offers the usage ping and error report choices to the first signup of an invite install", () => {
+    const html = register(null, "invite");
+    expect(html).toContain('id="send-usage-statistics"');
+    expect(html).toContain('id="send-error-reports"');
+    expect(html).toContain(text("auth.register.telemetry_note"));
+  });
+
+  it("leaves them out of an open signup, which can't tell it is the first", () => {
+    const html = register(null, "open");
+    expect(html).not.toContain("send-usage-statistics");
+    expect(html).not.toContain("send-error-reports");
+    expect(html).not.toContain(text("auth.register.telemetry_note"));
+  });
+
+  it("leaves them out while the mode is unknown", () => {
+    expect(register(null)).not.toContain("send-usage-statistics");
+  });
+});
+
 describe("RegisterErrorAlert", () => {
   const alert = (message: string, signInLink: boolean) =>
     renderAs({ instanceAdmin: false, role: "owner" }, <RegisterErrorAlert message={message} signInLink={signInLink} />, "/register");

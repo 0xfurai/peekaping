@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
@@ -317,7 +318,7 @@ func (s *ServiceImpl) emailInvite(ctx context.Context, created *CreatedInvite) {
 	if stored, err := s.workspaces.FindByID(ctx, created.WorkspaceID); err != nil {
 		s.logger.Errorw("Failed to read the workspace of an invite to email it", "inviteId", created.ID, "error", err)
 	} else if stored != nil {
-		workspaceName = stored.Name
+		workspaceName = singleLine(stored.Name)
 	}
 	inviter := ""
 	if created.InvitedBy != nil {
@@ -332,6 +333,18 @@ func (s *ServiceImpl) emailInvite(ctx context.Context, created *CreatedInvite) {
 	}
 	message := mailer.Invite(workspaceName, inviter, string(created.Role), created.Link, InviteLifetime)
 	s.mailer.Deliver(created.Email, message.Subject, message.Text, message.HTML)
+}
+
+// singleLine turns each control character (a line break, a tab) into a space. The name of a workspace
+// goes into the subject of the invite email, and the mailer refuses a subject with a line break
+// (it would add headers), which would leave the invite unsent.
+func singleLine(name string) string {
+	return strings.TrimSpace(strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return ' '
+		}
+		return r
+	}, name))
 }
 
 func (s *ServiceImpl) RevokeInvite(ctx context.Context, inviteID string) error {

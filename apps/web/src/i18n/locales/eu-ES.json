@@ -26,7 +26,8 @@
         "rate_limited": "Zure sareatik izen-emate gehiegi. Saiatu berriro ordubete barru.",
         "email_taken": "Badago kontu bat posta elektroniko honekin.",
         "sign_in_instead": "Hobe saioa hasi.",
-        "check_failed": "Egiaztapenak ez du gainditu. Saiatu berriro."
+        "check_failed": "Egiaztapenak ez du gainditu. Saiatu berriro.",
+        "check_load_failed": "Ezin izan da egiaztapena kargatu. Egiaztatu zure konexioa eta saiatu berriro."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Egiaztatu zure helbide elektronikoa: esteka bat bidali dugu {{email}} helbidera."
     },
     "suspension_notice": {
-      "message": "Zure monitoreak martxan jarriko dira posta elektronikoa egiaztatzen duzunean."
+      "message": "Zure monitoreak martxan jarriko dira posta elektronikoa egiaztatzen duzunean.",
+      "member_message": "Lan-eremu honen monitoreak martxan jarriko dira bere jabeak posta elektronikoa egiaztatzen duenean."
     }
   },
   "bars": {

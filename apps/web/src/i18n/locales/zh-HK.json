@@ -26,7 +26,8 @@
         "rate_limited": "你所在網絡的註冊次數過多。請一小時後再試。",
         "email_taken": "使用此電郵的帳戶已存在。",
         "sign_in_instead": "請改為登入。",
-        "check_failed": "驗證未通過。請重試。"
+        "check_failed": "驗證未通過。請重試。",
+        "check_load_failed": "無法載入驗證。請檢查網絡連線後重試。"
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "請驗證你的電郵:我們已向 {{email}} 寄出連結。"
     },
     "suspension_notice": {
-      "message": "驗證電郵後，你的監察項目才會開始運行。"
+      "message": "驗證電郵後，你的監察項目才會開始運行。",
+      "member_message": "此工作區的監察項目會在其擁有人驗證電郵後開始運行。"
     }
   },
   "bars": {

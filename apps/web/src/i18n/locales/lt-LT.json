@@ -26,7 +26,8 @@
         "rate_limited": "Per daug registracijų iš jūsų tinklo. Bandykite dar kartą po valandos.",
         "email_taken": "Paskyra su šiuo el. pašto adresu jau yra.",
         "sign_in_instead": "Geriau prisijunkite.",
-        "check_failed": "Patikra neįveikta. Bandykite dar kartą."
+        "check_failed": "Patikra neįveikta. Bandykite dar kartą.",
+        "check_load_failed": "Nepavyko įkelti patikros. Patikrinkite ryšį ir bandykite dar kartą."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Patvirtinkite el. paštą: nuorodą išsiuntėme adresu {{email}}."
     },
     "suspension_notice": {
-      "message": "Jūsų stebėjimai pradės veikti, kai patvirtinsite el. pašto adresą."
+      "message": "Jūsų stebėjimai pradės veikti, kai patvirtinsite el. pašto adresą.",
+      "member_message": "Šios darbo erdvės stebėjimai pradės veikti, kai jos savininkas patvirtins el. pašto adresą."
     }
   },
   "bars": {

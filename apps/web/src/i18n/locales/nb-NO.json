@@ -26,7 +26,8 @@
         "rate_limited": "For mange registreringer fra nettverket ditt. Prøv igjen om en time.",
         "email_taken": "Det finnes allerede en konto med denne e-postadressen.",
         "sign_in_instead": "Logg inn i stedet.",
-        "check_failed": "Kontrollen ble ikke bestått. Prøv igjen."
+        "check_failed": "Kontrollen ble ikke bestått. Prøv igjen.",
+        "check_load_failed": "Kontrollen kunne ikke lastes. Sjekk tilkoblingen din og prøv igjen."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Bekreft e-posten din: vi har sendt en lenke til {{email}}."
     },
     "suspension_notice": {
-      "message": "Overvåkingene dine starter når du har bekreftet e-postadressen din."
+      "message": "Overvåkingene dine starter når du har bekreftet e-postadressen din.",
+      "member_message": "Overvåkingene i dette arbeidsområdet starter når eieren har bekreftet e-postadressen sin."
     }
   },
   "bars": {

@@ -26,7 +26,8 @@
         "rate_limited": "Zu viele Registrierungen aus deinem Netzwerk. Versuche es in einer Stunde erneut.",
         "email_taken": "Ein Konto mit dieser E-Mail-Adresse existiert bereits.",
         "sign_in_instead": "Melde dich stattdessen an.",
-        "check_failed": "Die Prüfung ist fehlgeschlagen. Versuche es erneut."
+        "check_failed": "Die Prüfung ist fehlgeschlagen. Versuche es erneut.",
+        "check_load_failed": "Die Prüfung konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Bestätigen Sie Ihre E-Mail-Adresse: Wir haben einen Link an {{email}} gesendet."
     },
     "suspension_notice": {
-      "message": "Deine Monitore starten, sobald du deine E-Mail-Adresse bestätigt hast."
+      "message": "Deine Monitore starten, sobald du deine E-Mail-Adresse bestätigt hast.",
+      "member_message": "Die Monitore dieses Arbeitsbereichs starten, sobald dessen Eigentümer seine E-Mail-Adresse bestätigt hat."
     }
   },
   "bars": {

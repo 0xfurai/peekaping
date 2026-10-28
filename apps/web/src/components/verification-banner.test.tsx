@@ -34,6 +34,7 @@ describe("VerificationBanner", () => {
 
 // The banner in a workspace, with /me carrying that workspace's suspension
 const inWorkspace = (opts: {
+  role?: "owner" | "admin" | "member";
   suspendedReason: string | null;
   emailVerified?: boolean;
   accountEmails?: boolean;
@@ -47,7 +48,7 @@ const inWorkspace = (opts: {
           {
             id: WORKSPACE_ID,
             name: "Main",
-            role: "owner",
+            role: opts.role ?? "owner",
             suspended: opts.suspendedReason !== null,
             suspendedReason: opts.suspendedReason,
           },
@@ -87,6 +88,14 @@ describe("VerificationBanner in a suspended workspace", () => {
     const html = inWorkspace({ suspendedReason: "unverified", emailVerified: true });
     expect(html).toContain(notice);
     expect(html).not.toContain(text("auth.resend.button"));
+  });
+
+  it("tells a member the monitors start once the owner verifies, not that they should", () => {
+    for (const role of ["member", "admin"] as const) {
+      const html = inWorkspace({ role, suspendedReason: "unverified", emailVerified: true });
+      expect(html).toContain("This workspace&#x27;s monitors start once its owner verifies their email.");
+      expect(html).not.toContain(notice);
+    }
   });
 
   it("shows the notice in the workspace of the address, not another one", () => {

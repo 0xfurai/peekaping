@@ -26,7 +26,8 @@
         "rate_limited": "Verkostasi tuli liian monta rekisteröitymistä. Yritä uudelleen tunnin kuluttua.",
         "email_taken": "Tällä sähköpostiosoitteella on jo tili.",
         "sign_in_instead": "Kirjaudu sen sijaan sisään.",
-        "check_failed": "Tarkistus ei mennyt läpi. Yritä uudelleen."
+        "check_failed": "Tarkistus ei mennyt läpi. Yritä uudelleen.",
+        "check_load_failed": "Tarkistusta ei voitu ladata. Tarkista yhteytesi ja yritä uudelleen."
       }
     },
     "twofa": {
@@ -73,7 +74,8 @@
       "message": "Vahvista sähköpostiosoitteesi: lähetimme linkin osoitteeseen {{email}}."
     },
     "suspension_notice": {
-      "message": "Valvontasi alkavat, kun olet vahvistanut sähköpostiosoitteesi."
+      "message": "Valvontasi alkavat, kun olet vahvistanut sähköpostiosoitteesi.",
+      "member_message": "Tämän työtilan valvonnat alkavat, kun sen omistaja on vahvistanut sähköpostiosoitteensa."
     }
   },
   "bars": {
