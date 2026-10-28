@@ -121,9 +121,13 @@ describe("UserActionDialogContent", () => {
       headers: {},
       config,
       data: {
-        data: null,
-        message:
-          'The user is the last owner of: "Main", "Side project". Make someone else an owner, or delete the workspace, first',
+        error: {
+          code: "LAST_OWNER",
+          workspaces: [
+            { id: "w1", name: "Main" },
+            { id: "w2", name: "Side project" },
+          ],
+        },
       },
     });
     const error = adminErrorMessage(refusal, i18n.t.bind(i18n), "failed");

@@ -43,9 +43,13 @@ export const userActions = (
 
 type Translate = (key: string, vars?: Record<string, unknown>) => string;
 
-// The workspaces the server names in "The user is the last owner of: "A", "B". Make someone ...",
-// as it writes them, quotes and commas included
-const LAST_OWNER = /last owner of: (.+)\. Make someone else an owner/;
+// The 409 of a delete that the user's workspaces block: the server's code and the workspaces the
+// user is the last owner of (AdminLastOwnerErrorResponse)
+const lastOwnerWorkspaces = (data: unknown): string[] | null => {
+  const body = (data as { error?: { code?: unknown; workspaces?: unknown } } | undefined)?.error;
+  if (body?.code !== "LAST_OWNER" || !Array.isArray(body.workspaces)) return null;
+  return body.workspaces.map((workspace: { name?: unknown }) => String(workspace?.name ?? ""));
+};
 
 // The text to show for a refused or failed admin request: the translated reason for the refusals
 // the server words in English (apps/server/internal/modules/admin/admin.controller.go), with the
@@ -59,8 +63,11 @@ export const adminErrorMessage = (
   const message = (error.response.data as { message?: unknown } | undefined)?.message;
   const text = typeof message === "string" ? message : "";
   if (error.response.status === 409) {
-    const workspaces = LAST_OWNER.exec(text)?.[1];
-    if (workspaces) return t("admin.users.errors.last_owner", { workspaces });
+    const names = lastOwnerWorkspaces(error.response.data);
+    if (names) {
+      const workspaces = names.map((name) => `"${name}"`).join(", ");
+      return t("admin.users.errors.last_owner", { workspaces });
+    }
     if (/your own account/i.test(text)) return t("admin.users.errors.self");
     if (/at least one instance admin/i.test(text)) {
       return t("admin.users.errors.last_instance_admin");

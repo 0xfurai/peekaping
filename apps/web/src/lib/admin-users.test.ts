@@ -92,28 +92,45 @@ describe("isLastInstanceAdmin", () => {
   });
 });
 
-const refusal = (status: number, message: string) => {
+const refusalWith = (status: number, data: unknown) => {
   const config = { headers: new AxiosHeaders() };
   return new AxiosError("Request failed", "ERR_BAD_REQUEST", config, null, {
     status,
     statusText: "",
     headers: {},
     config,
-    data: { data: null, message },
+    data,
   });
 };
+
+const refusal = (status: number, message: string) => refusalWith(status, { data: null, message });
 
 const t = (key: string, vars?: Record<string, unknown>) =>
   vars ? `${key} ${JSON.stringify(vars)}` : key;
 
 describe("adminErrorMessage", () => {
-  it("names the workspaces that block a delete", () => {
+  it("names the workspaces that block a delete, from the list in the body", () => {
+    const error = refusalWith(409, {
+      error: {
+        code: "LAST_OWNER",
+        workspaces: [
+          { id: "w1", name: "Main" },
+          { id: "w2", name: 'Side, "project". Make someone else an owner' },
+        ],
+      },
+    });
+    expect(adminErrorMessage(error, t, "fallback")).toBe(
+      'admin.users.errors.last_owner {"workspaces":"\\"Main\\", \\"Side, \\"project\\". Make someone else an owner\\""}'
+    );
+  });
+
+  it("does not read workspaces out of a message", () => {
     const error = refusal(
       409,
-      'The user is the last owner of: "Main", "Side project". Make someone else an owner, or delete the workspace, first'
+      'The user is the last owner of: "Main". Make someone else an owner, or delete the workspace, first'
     );
     expect(adminErrorMessage(error, t, "fallback")).toBe(
-      'admin.users.errors.last_owner {"workspaces":"\\"Main\\", \\"Side project\\""}'
+      'The user is the last owner of: "Main". Make someone else an owner, or delete the workspace, first'
     );
   });
 
