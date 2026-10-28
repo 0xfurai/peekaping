@@ -40,7 +40,11 @@ type Claims struct {
 // truncates, so a moment that is copied from one token to the next could lose a millisecond each time.
 type SessionTime struct{ time.Time }
 
-func newSessionTime(t time.Time) *SessionTime { return &SessionTime{t.UTC().Round(time.Millisecond)} }
+// newSessionTime truncates, as iat does: a session that begins in the millisecond a cutoff is set in
+// is the new one, and rounding up could put a session that began before the cutoff in that millisecond
+func newSessionTime(t time.Time) *SessionTime {
+	return &SessionTime{t.UTC().Truncate(time.Millisecond)}
+}
 
 func (t SessionTime) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatFloat(float64(t.Time.UnixMilli())/1000, 'f', 3, 64)), nil
