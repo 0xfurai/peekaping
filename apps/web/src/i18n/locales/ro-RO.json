@@ -109,6 +109,7 @@
     "no_tags_available": "Nu există etichete disponibile",
     "please_refresh_page": "Vă rugăm să reîmprospătați pagina.",
     "required": "Obligatoriu",
+    "retry": "Încearcă din nou",
     "save": "Salvează",
     "saving": "Se salvează...",
     "search": "Căutare",
@@ -167,6 +168,7 @@
     "accepting": "Se alătură...",
     "creating": "Se creează...",
     "description": "Ai fost invitat să te alături la {{workspace}} ca {{role}}.",
+    "enter_failed": "Te-ai alăturat spațiului de lucru, dar deschiderea lui a eșuat. Încearcă din nou.",
     "errors": {
       "other_email": "Această invitație este pentru o altă adresă de e-mail."
     },
@@ -322,6 +324,7 @@
       "description": "Pierzi imediat accesul la acest spațiu de lucru și la datele lui.",
       "done": "Ai părăsit spațiul de lucru",
       "last_owner": "Ești ultimul proprietar, deci nu poți pleca. Fă mai întâi proprietar un alt membru.",
+      "refresh_failed": "Ai părăsit spațiul de lucru, dar încărcarea spațiilor tale de lucru a eșuat. Încearcă din nou.",
       "title": "Părăsește acest spațiu de lucru"
     },
     "list": {
@@ -1728,6 +1731,7 @@
   "workspaces": {
     "create": "Creează spațiu de lucru",
     "create_error": "Nu s-a putut crea spațiul de lucru",
+    "create_first": "Creează un spațiu de lucru",
     "creating": "Se creează...",
     "enter": "Deschide spațiul de lucru",
     "entering": "Se deschide...",
@@ -1740,6 +1744,7 @@
     "new_title": "Spațiu de lucru nou",
     "none_description": "Contul tău nu este membru al niciunui spațiu de lucru, așa că nu este nimic de afișat aici. Roagă pe cineva care administrează un spațiu de lucru să te adauge.",
     "none_title": "Nu faci încă parte dintr-un spațiu de lucru",
+    "refresh_failed": "Spațiile tale de lucru nu au putut fi încărcate. Verifică conexiunea și încearcă din nou.",
     "switcher_label": "Schimbă spațiul de lucru"
   }
 }

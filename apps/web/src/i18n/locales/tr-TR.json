@@ -109,6 +109,7 @@
     "no_tags_available": "Etiket yok",
     "please_refresh_page": "Lütfen sayfayı yenileyin.",
     "required": "Gerekli",
+    "retry": "Yeniden dene",
     "save": "Kaydet",
     "saving": "Kaydediliyor...",
     "search": "Ara",
@@ -167,6 +168,7 @@
     "accepting": "Katılınıyor...",
     "creating": "Oluşturuluyor...",
     "description": "{{workspace}} alanına {{role}} olarak katılmaya davet edildiniz.",
+    "enter_failed": "Çalışma alanına katıldınız ancak açılamadı. Yeniden deneyin.",
     "errors": {
       "other_email": "Bu davet başka bir e-posta adresi için."
     },
@@ -322,6 +324,7 @@
       "description": "Bu çalışma alanına ve verilerine erişiminizi hemen kaybedersiniz.",
       "done": "Çalışma alanından ayrıldınız",
       "last_owner": "Son sahip sizsiniz, bu yüzden ayrılamazsınız. Önce başka bir üyeyi sahip yapın.",
+      "refresh_failed": "Çalışma alanından ayrıldınız ancak çalışma alanlarınız yüklenemedi. Yeniden deneyin.",
       "title": "Bu çalışma alanından ayrıl"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "Çalışma alanı oluştur",
     "create_error": "Çalışma alanı oluşturulamadı",
+    "create_first": "Çalışma alanı oluştur",
     "creating": "Oluşturuluyor...",
     "enter": "Çalışma alanını aç",
     "entering": "Açılıyor...",
@@ -1741,6 +1745,7 @@
     "new_title": "Yeni çalışma alanı",
     "none_description": "Hesabınız hiçbir çalışma alanının üyesi değil, bu yüzden burada gösterilecek bir şey yok. Bir çalışma alanını yöneten birinden sizi eklemesini isteyin.",
     "none_title": "Henüz hiçbir çalışma alanında değilsiniz",
+    "refresh_failed": "Çalışma alanlarınız yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.",
     "switcher_label": "Çalışma alanı değiştir"
   }
 }

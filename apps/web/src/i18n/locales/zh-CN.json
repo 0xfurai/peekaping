@@ -109,6 +109,7 @@
     "no_tags_available": "没有可用标签",
     "please_refresh_page": "请刷新页面。",
     "required": "必填",
+    "retry": "重试",
     "save": "保存",
     "saving": "保存中…",
     "search": "搜索",
@@ -167,6 +168,7 @@
     "accepting": "加入中...",
     "creating": "创建中...",
     "description": "你被邀请以 {{role}} 身份加入 {{workspace}}。",
+    "enter_failed": "您已加入该工作区，但打开失败。请重试。",
     "errors": {
       "other_email": "此邀请是发给另一个邮箱地址的。"
     },
@@ -322,6 +324,7 @@
       "description": "你将立即失去对此工作区及其数据的访问权限。",
       "done": "你已退出工作区",
       "last_owner": "你是最后一位所有者，因此无法退出。请先将另一位成员设为所有者。",
+      "refresh_failed": "您已退出该工作区，但加载您的工作区失败。请重试。",
       "title": "退出此工作区"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "创建工作区",
     "create_error": "创建工作区失败",
+    "create_first": "创建工作区",
     "creating": "创建中...",
     "enter": "打开工作区",
     "entering": "打开中...",
@@ -1741,6 +1745,7 @@
     "new_title": "新建工作区",
     "none_description": "你的账号还不是任何工作区的成员，所以这里没有可显示的内容。请让管理工作区的人把你添加进去。",
     "none_title": "你还不在任何工作区中",
+    "refresh_failed": "无法加载您的工作区。请检查网络连接后重试。",
     "switcher_label": "切换工作区"
   }
 }

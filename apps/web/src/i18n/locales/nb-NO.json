@@ -109,6 +109,7 @@
     "no_tags_available": "Ingen tagger tilgjengelige",
     "please_refresh_page": "Vennligst oppdater siden.",
     "required": "Obligatorisk",
+    "retry": "Prøv igjen",
     "save": "Lagre",
     "saving": "Lagrer...",
     "search": "Søk",
@@ -167,6 +168,7 @@
     "accepting": "Blir med...",
     "creating": "Oppretter...",
     "description": "Du er invitert til å bli med i {{workspace}} som {{role}}.",
+    "enter_failed": "Du har blitt med i arbeidsområdet, men det kunne ikke åpnes. Prøv igjen.",
     "errors": {
       "other_email": "Denne invitasjonen er til en annen e-postadresse."
     },
@@ -322,6 +324,7 @@
       "description": "Du mister tilgangen til dette arbeidsområdet og dataene i det umiddelbart.",
       "done": "Du forlot arbeidsområdet",
       "last_owner": "Du er den siste eieren, så du kan ikke forlate det. Gjør først et annet medlem til eier.",
+      "refresh_failed": "Du har forlatt arbeidsområdet, men arbeidsområdene dine kunne ikke lastes inn. Prøv igjen.",
       "title": "Forlat dette arbeidsområdet"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "Opprett arbeidsområde",
     "create_error": "Kunne ikke opprette arbeidsområdet",
+    "create_first": "Opprett et arbeidsområde",
     "creating": "Oppretter...",
     "enter": "Åpne arbeidsområde",
     "entering": "Åpner...",
@@ -1741,6 +1745,7 @@
     "new_title": "Nytt arbeidsområde",
     "none_description": "Kontoen din er ikke medlem av noe arbeidsområde, så det er ingenting å vise her. Be noen som styrer et arbeidsområde om å legge deg til.",
     "none_title": "Du er ikke i et arbeidsområde ennå",
+    "refresh_failed": "Arbeidsområdene dine kunne ikke lastes inn. Sjekk tilkoblingen og prøv igjen.",
     "switcher_label": "Bytt arbeidsområde"
   }
 }

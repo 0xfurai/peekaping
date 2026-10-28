@@ -109,6 +109,7 @@
     "no_tags_available": "Không có thẻ nào",
     "please_refresh_page": "Vui lòng làm mới trang.",
     "required": "Bắt buộc",
+    "retry": "Thử lại",
     "save": "Lưu",
     "saving": "Đang lưu...",
     "search": "Tìm kiếm",
@@ -167,6 +168,7 @@
     "accepting": "Đang tham gia...",
     "creating": "Đang tạo...",
     "description": "Bạn được mời tham gia {{workspace}} với vai trò {{role}}.",
+    "enter_failed": "Bạn đã tham gia không gian làm việc, nhưng mở không gian đó không thành công. Hãy thử lại.",
     "errors": {
       "other_email": "Lời mời này dành cho một địa chỉ email khác."
     },
@@ -322,6 +324,7 @@
       "description": "Bạn sẽ mất quyền truy cập vào không gian làm việc này và dữ liệu của nó ngay lập tức.",
       "done": "Bạn đã rời khỏi không gian làm việc",
       "last_owner": "Bạn là chủ sở hữu cuối cùng nên không thể rời đi. Hãy chọn một thành viên khác làm chủ sở hữu trước.",
+      "refresh_failed": "Bạn đã rời không gian làm việc, nhưng tải các không gian làm việc của bạn không thành công. Hãy thử lại.",
       "title": "Rời khỏi không gian làm việc này"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "Tạo không gian làm việc",
     "create_error": "Không thể tạo không gian làm việc",
+    "create_first": "Tạo không gian làm việc",
     "creating": "Đang tạo...",
     "enter": "Mở không gian làm việc",
     "entering": "Đang mở...",
@@ -1741,6 +1745,7 @@
     "new_title": "Không gian làm việc mới",
     "none_description": "Tài khoản của bạn chưa là thành viên của không gian làm việc nào nên ở đây không có gì để hiển thị. Hãy nhờ người quản lý một không gian làm việc thêm bạn vào.",
     "none_title": "Bạn chưa thuộc không gian làm việc nào",
+    "refresh_failed": "Không thể tải các không gian làm việc của bạn. Hãy kiểm tra kết nối và thử lại.",
     "switcher_label": "Chuyển không gian làm việc"
   }
 }

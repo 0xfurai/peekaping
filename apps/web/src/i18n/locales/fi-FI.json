@@ -109,6 +109,7 @@
     "no_tags_available": "Ei tageja saatavilla",
     "please_refresh_page": "Päivitä sivu.",
     "required": "Pakollinen",
+    "retry": "Yritä uudelleen",
     "save": "Tallenna",
     "saving": "Tallennetaan...",
     "search": "Etsi",
@@ -167,6 +168,7 @@
     "accepting": "Liitytään...",
     "creating": "Luodaan...",
     "description": "Sinut on kutsuttu liittymään työtilaan {{workspace}} roolilla {{role}}.",
+    "enter_failed": "Liityit työtilaan, mutta sen avaaminen epäonnistui. Yritä uudelleen.",
     "errors": {
       "other_email": "Tämä kutsu on toiselle sähköpostiosoitteelle."
     },
@@ -322,6 +324,7 @@
       "description": "Menetät pääsyn tähän työtilaan ja sen tietoihin heti.",
       "done": "Poistuit työtilasta",
       "last_owner": "Olet viimeinen omistaja, joten et voi poistua. Tee ensin toisesta jäsenestä omistaja.",
+      "refresh_failed": "Poistuit työtilasta, mutta työtilojesi lataaminen epäonnistui. Yritä uudelleen.",
       "title": "Poistu tästä työtilasta"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "Luo työtila",
     "create_error": "Työtilan luominen epäonnistui",
+    "create_first": "Luo työtila",
     "creating": "Luodaan...",
     "enter": "Avaa työtila",
     "entering": "Avataan...",
@@ -1741,6 +1745,7 @@
     "new_title": "Uusi työtila",
     "none_description": "Tilisi ei ole minkään työtilan jäsen, joten tässä ei ole mitään näytettävää. Pyydä työtilaa ylläpitävää lisäämään sinut.",
     "none_title": "Et ole vielä missään työtilassa",
+    "refresh_failed": "Työtilojasi ei voitu ladata. Tarkista yhteytesi ja yritä uudelleen.",
     "switcher_label": "Vaihda työtilaa"
   }
 }

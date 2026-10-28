@@ -109,6 +109,7 @@
     "no_tags_available": "Žádné tagy nejsou k dispozici",
     "please_refresh_page": "Prosím, obnovte stránku.",
     "required": "Povinné",
+    "retry": "Zkusit znovu",
     "save": "Uložit",
     "saving": "Ukládám...",
     "search": "Hledat",
@@ -167,6 +168,7 @@
     "accepting": "Připojuji se...",
     "creating": "Vytvářím...",
     "description": "Byli jste pozváni do {{workspace}}, role: {{role}}.",
+    "enter_failed": "Připojili jste se k pracovnímu prostoru, ale jeho otevření selhalo. Zkuste to znovu.",
     "errors": {
       "other_email": "Tato pozvánka je pro jinou e-mailovou adresu."
     },
@@ -322,6 +324,7 @@
       "description": "Okamžitě ztratíte přístup k tomuto pracovnímu prostoru a jeho datům.",
       "done": "Opustili jste pracovní prostor",
       "last_owner": "Jste poslední vlastník, proto nemůžete odejít. Nejdřív udělejte vlastníkem jiného člena.",
+      "refresh_failed": "Opustili jste pracovní prostor, ale načtení vašich pracovních prostorů selhalo. Zkuste to znovu.",
       "title": "Opustit tento pracovní prostor"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "Vytvořit pracovní prostor",
     "create_error": "Pracovní prostor se nepodařilo vytvořit",
+    "create_first": "Vytvořit pracovní prostor",
     "creating": "Vytvářím...",
     "enter": "Otevřít pracovní prostor",
     "entering": "Otevírám...",
@@ -1741,6 +1745,7 @@
     "new_title": "Nový pracovní prostor",
     "none_description": "Váš účet není členem žádného pracovního prostoru, takže tu není co zobrazit. Požádejte někoho, kdo pracovní prostor spravuje, aby vás přidal.",
     "none_title": "Zatím nejste v žádném pracovním prostoru",
+    "refresh_failed": "Vaše pracovní prostory se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.",
     "switcher_label": "Přepnout pracovní prostor"
   }
 }

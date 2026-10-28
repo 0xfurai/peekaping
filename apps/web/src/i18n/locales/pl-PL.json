@@ -109,6 +109,7 @@
     "no_tags_available": "Brak dostępnych tagów",
     "please_refresh_page": "Proszę odświeżyć stronę.",
     "required": "Wymagane",
+    "retry": "Spróbuj ponownie",
     "save": "Zapisz",
     "saving": "Zapisywanie...",
     "search": "Szukaj",
@@ -167,6 +168,7 @@
     "accepting": "Dołączanie...",
     "creating": "Tworzenie...",
     "description": "Zaproszono Cię do dołączenia do {{workspace}} jako {{role}}.",
+    "enter_failed": "Dołączono do przestrzeni roboczej, ale nie udało się jej otworzyć. Spróbuj ponownie.",
     "errors": {
       "other_email": "To zaproszenie jest dla innego adresu e-mail."
     },
@@ -322,6 +324,7 @@
       "description": "Natychmiast tracisz dostęp do tego obszaru roboczego i jego danych.",
       "done": "Opuszczono obszar roboczy",
       "last_owner": "Jesteś ostatnim właścicielem, więc nie możesz wyjść. Najpierw ustaw innego członka jako właściciela.",
+      "refresh_failed": "Opuszczono przestrzeń roboczą, ale nie udało się wczytać Twoich przestrzeni roboczych. Spróbuj ponownie.",
       "title": "Opuść ten obszar roboczy"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "Utwórz obszar roboczy",
     "create_error": "Nie udało się utworzyć obszaru roboczego",
+    "create_first": "Utwórz przestrzeń roboczą",
     "creating": "Tworzenie...",
     "enter": "Otwórz obszar roboczy",
     "entering": "Otwieranie...",
@@ -1741,6 +1745,7 @@
     "new_title": "Nowy obszar roboczy",
     "none_description": "Twoje konto nie jest członkiem żadnego obszaru roboczego, więc nie ma tu nic do pokazania. Poproś osobę zarządzającą obszarem roboczym, aby Cię dodała.",
     "none_title": "Nie należysz jeszcze do żadnego obszaru roboczego",
+    "refresh_failed": "Nie udało się wczytać Twoich przestrzeni roboczych. Sprawdź połączenie i spróbuj ponownie.",
     "switcher_label": "Przełącz obszar roboczy"
   }
 }

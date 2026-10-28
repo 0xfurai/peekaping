@@ -109,6 +109,7 @@
     "no_tags_available": "Siltid pole saadaval",
     "please_refresh_page": "Palun värskenda lehte.",
     "required": "Vajalik",
+    "retry": "Proovi uuesti",
     "save": "Salvesta",
     "saving": "Salvestamine...",
     "search": "Otsi",
@@ -167,6 +168,7 @@
     "accepting": "Liitumine...",
     "creating": "Loomine...",
     "description": "Sind on kutsutud liituma tööruumiga {{workspace}} rolliga: {{role}}.",
+    "enter_failed": "Liitusite tööruumiga, kuid selle avamine ebaõnnestus. Proovige uuesti.",
     "errors": {
       "other_email": "See kutse on mõeldud teisele e-posti aadressile."
     },
@@ -322,6 +324,7 @@
       "description": "Kaotad kohe juurdepääsu sellele tööruumile ja selle andmetele.",
       "done": "Sa lahkusid tööruumist",
       "last_owner": "Sa oled viimane omanik, seega ei saa lahkuda. Tee esmalt mõni teine liige omanikuks.",
+      "refresh_failed": "Lahkusite tööruumist, kuid teie tööruumide laadimine ebaõnnestus. Proovige uuesti.",
       "title": "Lahku sellest tööruumist"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "Loo tööruum",
     "create_error": "Tööruumi loomine ebaõnnestus",
+    "create_first": "Loo tööruum",
     "creating": "Loomine...",
     "enter": "Ava tööruum",
     "entering": "Avamine...",
@@ -1741,6 +1745,7 @@
     "new_title": "Uus tööruum",
     "none_description": "Sinu konto ei kuulu ühtegi tööruumi, seega pole siin midagi näidata. Palu tööruumi haldajal sind lisada.",
     "none_title": "Sa ei ole veel üheski tööruumis",
+    "refresh_failed": "Teie tööruume ei õnnestunud laadida. Kontrollige ühendust ja proovige uuesti.",
     "switcher_label": "Vaheta tööruumi"
   }
 }

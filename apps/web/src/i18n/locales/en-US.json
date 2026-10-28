@@ -109,6 +109,7 @@
     "no_tags_available": "No tags available",
     "please_refresh_page": "Please refresh the page.",
     "required": "Required",
+    "retry": "Retry",
     "save": "Save",
     "saving": "Saving...",
     "search": "Search",
@@ -167,6 +168,7 @@
     "accepting": "Joining...",
     "creating": "Creating...",
     "description": "You are invited to join {{workspace}} as {{role}}.",
+    "enter_failed": "You joined the workspace, but opening it failed. Try again.",
     "errors": {
       "other_email": "This invite is for another email address."
     },
@@ -322,6 +324,7 @@
       "description": "You lose access to this workspace and its data at once.",
       "done": "You left the workspace",
       "last_owner": "You are the last owner, so you can't leave. Make another member an owner first.",
+      "refresh_failed": "You left the workspace, but loading your workspaces failed. Try again.",
       "title": "Leave this workspace"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "Create workspace",
     "create_error": "Failed to create the workspace",
+    "create_first": "Create a workspace",
     "creating": "Creating...",
     "enter": "Open workspace",
     "entering": "Opening...",
@@ -1741,6 +1745,7 @@
     "new_title": "New workspace",
     "none_description": "Your account isn't a member of any workspace, so there is nothing to show here. Ask someone who runs a workspace to add you.",
     "none_title": "You're not in a workspace yet",
+    "refresh_failed": "Couldn't load your workspaces. Check your connection and try again.",
     "switcher_label": "Switch workspace"
   }
 }

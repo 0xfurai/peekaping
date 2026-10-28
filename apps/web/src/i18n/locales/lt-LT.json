@@ -109,6 +109,7 @@
     "no_tags_available": "Žymų nėra",
     "please_refresh_page": "Prašome atnaujinti puslapį.",
     "required": "Privaloma",
+    "retry": "Bandyti dar kartą",
     "save": "Išsaugoti",
     "saving": "Išsaugoma...",
     "search": "Paieška",
@@ -167,6 +168,7 @@
     "accepting": "Jungiamasi...",
     "creating": "Kuriama...",
     "description": "Esate pakviesti prisijungti prie {{workspace}} kaip {{role}}.",
+    "enter_failed": "Prisijungėte prie darbo srities, bet jos atidaryti nepavyko. Bandykite dar kartą.",
     "errors": {
       "other_email": "Šis kvietimas skirtas kitam el. pašto adresui."
     },
@@ -322,6 +324,7 @@
       "description": "Iškart prarasite prieigą prie šios darbo erdvės ir jos duomenų.",
       "done": "Palikote darbo erdvę",
       "last_owner": "Esate paskutinis savininkas, todėl negalite išeiti. Pirmiausia paskirkite kitą narį savininku.",
+      "refresh_failed": "Išėjote iš darbo srities, bet nepavyko įkelti jūsų darbo sričių. Bandykite dar kartą.",
       "title": "Palikti šią darbo erdvę"
     },
     "list": {
@@ -1729,6 +1732,7 @@
   "workspaces": {
     "create": "Sukurti darbo erdvę",
     "create_error": "Nepavyko sukurti darbo erdvės",
+    "create_first": "Sukurti darbo sritį",
     "creating": "Kuriama...",
     "enter": "Atidaryti darbo erdvę",
     "entering": "Atidaroma...",
@@ -1741,6 +1745,7 @@
     "new_title": "Nauja darbo erdvė",
     "none_description": "Jūsų paskyra nėra jokios darbo erdvės narė, todėl čia nėra ką rodyti. Paprašykite darbo erdvę valdančio asmens jus pridėti.",
     "none_title": "Dar nesate jokioje darbo erdvėje",
+    "refresh_failed": "Nepavyko įkelti jūsų darbo sričių. Patikrinkite ryšį ir bandykite dar kartą.",
     "switcher_label": "Perjungti darbo erdvę"
   }
 }
