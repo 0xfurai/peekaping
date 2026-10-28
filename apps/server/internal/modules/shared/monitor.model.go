@@ -41,6 +41,11 @@ type Monitor struct {
 	// and not part of the API's answer.
 	WorkspaceSuspended bool `json:"-"`
 
+	// WorkspaceSuspendedByAdmin is whether an instance admin holds the monitor's workspace (PP-372),
+	// which a push says in its refusal. It is filled in with WorkspaceSuspended, and can be true
+	// beside the verification hold.
+	WorkspaceSuspendedByAdmin bool `json:"-"`
+
 	// TypeDisabled is whether the monitor's type is one of DISABLED_MONITOR_TYPES (PP-157): the
 	// monitor is kept and shown, but it does not run, as in a suspended workspace, and its stored
 	// state is left alone so that it runs again once the type is turned back on. The repository

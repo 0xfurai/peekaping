@@ -23,8 +23,13 @@ const (
 )
 
 // SuspendedUnverified is the reason of a workspace that an open signup made (PP-155): it runs once
-// its owner's email address is verified. The reason of an admin's suspension will be added by PP-372.
+// its owner's email address is verified.
 const SuspendedUnverified = "unverified"
+
+// SuspendedByAdmin is the reason shown for a workspace that an instance admin suspended (PP-372).
+// It is a hold of its own, stored as AdminSuspendedAt: it can be on beside the verification hold,
+// and each ends on its own.
+const SuspendedByAdmin = "admin"
 
 // Workspace owns monitors and everything around them.
 type Workspace struct {
@@ -36,12 +41,28 @@ type Workspace struct {
 	// its monitors and shows them, but none of them runs: no checks, no missed-push detection, no
 	// notifications.
 	SuspendedAt *time.Time `json:"suspendedAt,omitempty"`
-	// SuspendedReason says why: SuspendedUnverified, for now. Empty when the workspace runs.
+	// SuspendedReason says why: SuspendedUnverified. Empty when the verification hold is off. The
+	// admin's hold is AdminSuspendedAt, and ShownReason says which of the two to tell.
 	SuspendedReason string `json:"suspendedReason,omitempty"`
+	// AdminSuspendedAt is when an instance admin suspended the workspace, nil when no admin holds
+	// it. It is independent of SuspendedAt: the workspace is suspended while either is set.
+	AdminSuspendedAt *time.Time `json:"adminSuspendedAt,omitempty"`
 }
 
-// Suspended is whether the workspace's monitors are held back
-func (w Workspace) Suspended() bool { return w.SuspendedAt != nil }
+// Suspended is whether the workspace's monitors are held back, by either hold
+func (w Workspace) Suspended() bool { return w.SuspendedAt != nil || w.AdminSuspendedAt != nil }
+
+// ShownReason is the reason to tell the workspace's members: SuspendedByAdmin when an instance
+// admin holds it, else SuspendedUnverified, else empty when it runs.
+func (w Workspace) ShownReason() string {
+	switch {
+	case w.AdminSuspendedAt != nil:
+		return SuspendedByAdmin
+	case w.SuspendedAt != nil:
+		return w.SuspendedReason
+	}
+	return ""
+}
 
 // Membership is a user's place in a workspace.
 type Membership struct {
