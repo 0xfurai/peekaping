@@ -1,6 +1,9 @@
 package monitor
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	ErrNotFound = errors.New("not found")
@@ -18,6 +21,15 @@ type InvalidConfigError struct {
 func (e *InvalidConfigError) Error() string { return "invalid monitor configuration: " + e.Err.Error() }
 
 func (e *InvalidConfigError) Unwrap() error { return e.Err }
+
+// InvalidTimeoutError is a timeout above 0.8 x the check interval, both in seconds.
+type InvalidTimeoutError struct {
+	Timeout, Interval int
+}
+
+func (e *InvalidTimeoutError) Error() string {
+	return fmt.Sprintf("timeout %d s is above 0.8 x the %d s check interval", e.Timeout, e.Interval)
+}
 
 // InvalidProbesError is a probe_ids that a monitor can't have. Err says why.
 type InvalidProbesError struct {

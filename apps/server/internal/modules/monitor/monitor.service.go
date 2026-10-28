@@ -288,6 +288,9 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		if err := mr.validatePartialConfig(current, monitor); err != nil {
 			return err
 		}
+		if err := validatePartialTimeout(current, monitor); err != nil {
+			return err
+		}
 		if err := mr.validatePartialProbes(ctx, current, monitor); err != nil {
 			return err
 		}
@@ -349,6 +352,26 @@ func (mr *MonitorServiceImpl) validatePartialConfig(current *Model, update *Part
 	}
 	if err := mr.ValidateMonitorConfig(monitorType, config); err != nil {
 		return &InvalidConfigError{Err: err}
+	}
+	return nil
+}
+
+// validatePartialTimeout checks that the timeout is at most 0.8 x the check interval the monitor
+// has after the update. An update that sends neither leaves them unchecked, so a monitor stored
+// with a longer timeout can still be paused or renamed.
+func validatePartialTimeout(current *Model, update *PartialUpdateDto) error {
+	if update.Interval == nil && update.Timeout == nil {
+		return nil
+	}
+	interval, timeout := current.Interval, current.Timeout
+	if update.Interval != nil {
+		interval = *update.Interval
+	}
+	if update.Timeout != nil {
+		timeout = *update.Timeout
+	}
+	if timeoutTooLong(timeout, interval) {
+		return &InvalidTimeoutError{Timeout: timeout, Interval: interval}
 	}
 	return nil
 }
