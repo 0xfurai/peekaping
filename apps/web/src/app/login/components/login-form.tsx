@@ -34,6 +34,7 @@ import { Link } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 import { PasswordInput } from "@/components/ui/password-input";
+import { useAccountEmails } from "@/hooks/useAccountEmails";
 
 const loginSchema = z.object({
   email: z.string().email("forms.validation.email_invalid"),
@@ -47,6 +48,7 @@ export function LoginForm({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const { t } = useLocalizedTranslation();
+  const accountEmails = useAccountEmails();
   const [serverError, setServerError] = React.useState<string | null>(null);
 
   const setTokens = useAuthStore(
@@ -165,6 +167,16 @@ export function LoginForm({
                       <FormControl>
                         <PasswordInput {...field} placeholder="********" />
                       </FormControl>
+                      {accountEmails && (
+                        <div className="text-right text-sm">
+                          <Link
+                            to="/forgot-password"
+                            className="text-muted-foreground hover:text-primary hover:underline"
+                          >
+                            {t("auth.login.forgot_password")}
+                          </Link>
+                        </div>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
