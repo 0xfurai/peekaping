@@ -7,6 +7,7 @@ import (
 
 	"peekaping/internal/modules/workspace"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
@@ -70,6 +71,13 @@ func TestRepository_LiftUnverifiedOwnedBy(t *testing.T) {
 		require.NoError(t, repo.AddMember(ctx, othersOwn.ID, other, workspace.RoleOwner))
 		require.NoError(t, repo.AddMember(ctx, heldByAdmin.ID, user, workspace.RoleOwner))
 		require.NoError(t, repo.AddMember(ctx, running.ID, user, workspace.RoleOwner))
+		insertMonitor := func(workspaceID workspace.ID) string {
+			id := uuid.NewString()
+			_, err := db.ExecContext(ctx, `INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, updated_at) VALUES (?, ?, 'http', 'Monitor', 60, 10, 1, 10, 0, '2020-01-01 00:00:00')`, id, string(workspaceID))
+			require.NoError(t, err)
+			return id
+		}
+		inLifted, inHeld := insertMonitor(owned.ID), insertMonitor(othersOwn.ID)
 		// A suspension for another reason (PP-372's) is not an unverified one: verifying does not lift it
 		_, err = db.ExecContext(ctx, "UPDATE workspaces SET suspended_reason = 'admin' WHERE id = ?", string(heldByAdmin.ID))
 		require.NoError(t, err)
@@ -87,6 +95,14 @@ func TestRepository_LiftUnverifiedOwnedBy(t *testing.T) {
 		assert.True(t, suspended(onlyAdmin.ID), "a workspace the user does not own stays suspended")
 		assert.True(t, suspended(othersOwn.ID), "so does another user's")
 		assert.True(t, suspended(heldByAdmin.ID), "so does one suspended for another reason")
+
+		updatedAt := func(id string) time.Time {
+			var at time.Time
+			require.NoError(t, db.NewSelect().Table("monitors").Column("updated_at").Where("id = ?", id).Scan(ctx, &at))
+			return at
+		}
+		assert.WithinDuration(t, time.Now(), updatedAt(inLifted), time.Minute, "a monitor that starts to run is not stale for the days it was held back")
+		assert.Equal(t, 2020, updatedAt(inHeld).Year(), "a monitor of a workspace that stays suspended is untouched")
 
 		again, err := repo.LiftUnverifiedOwnedBy(ctx, user)
 		require.NoError(t, err)

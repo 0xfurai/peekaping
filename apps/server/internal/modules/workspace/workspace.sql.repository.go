@@ -198,6 +198,16 @@ func (r *SQLRepositoryImpl) LiftUnverifiedOwnedBy(ctx context.Context, userID st
 		if err != nil {
 			return err
 		}
+		// The workspace's monitors start to run now, as a monitor that was just saved or resumed does:
+		// the stale-monitor watchdog counts from the later of the heartbeat and updated_at, so a monitor
+		// made days ago and never checked is not stale on the first look
+		_, err = q.NewUpdate().Table("monitors").
+			Set("updated_at = ?", time.Now().UTC()).
+			Where("workspace_id IN (?)", bun.In(ids)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
 		lifted = make([]ID, len(ids))
 		for i, id := range ids {
 			lifted[i] = ID(id)
