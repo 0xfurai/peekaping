@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/ratelimit"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type clock struct{ now time.Time }
@@ -59,4 +60,40 @@ func TestLimiter_ForgetsKeysWhoseHitsExpired(t *testing.T) {
 	allowed, _ := limiter.Allow("fresh")
 
 	assert.True(t, allowed)
+}
+
+// At the cap of keys, a flood of new keys must not make the limiter forget the keys it holds: an
+// attacker could use that to reset the count of an address they are after.
+func TestLimiter_AtTheCapKeepsTheCountsAndRefusesNewKeys(t *testing.T) {
+	c := &clock{now: time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)}
+	limiter := ratelimit.New(1, time.Hour).WithClock(c.Now).WithMaxKeys(3)
+	for _, key := range []string{"a", "b", "victim"} {
+		allowed, _ := limiter.Allow(key)
+		require.True(t, allowed, key)
+	}
+
+	allowed, retryAfter := limiter.Allow("new")
+	assert.False(t, allowed, "a new key over the cap is counted as limited")
+	assert.Positive(t, retryAfter)
+	allowed, _ = limiter.Allow("another-new")
+	assert.False(t, allowed)
+
+	allowed, _ = limiter.Allow("victim")
+	assert.False(t, allowed, "the count of a key that was there is still there")
+}
+
+func TestLimiter_AtTheCapEvictsExpiredKeysBeforeRefusingNewOnes(t *testing.T) {
+	c := &clock{now: time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)}
+	limiter := ratelimit.New(1, time.Hour).WithClock(c.Now).WithMaxKeys(3)
+	for _, key := range []string{"a", "b"} {
+		limiter.Allow(key)
+	}
+	c.now = c.now.Add(2 * time.Hour)
+	limiter.Allow("c")
+	limiter.Allow("d") // the expired a and b make room, even though the minute sweep has not run
+
+	allowed, _ := limiter.Allow("e")
+	assert.True(t, allowed, "c and d fit under the cap of 3 with e")
+	allowed, _ = limiter.Allow("f")
+	assert.False(t, allowed, "now c, d and e fill it")
 }
