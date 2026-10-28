@@ -218,7 +218,7 @@ Who may create an account on an install, set with `SIGNUP_MODE`. In `invite`, th
 _Avoid_: Registration mode, signup policy
 
 **Suspension**:
-A workspace held back with a reason. Its monitors are kept, listed and editable, but none runs: no checks, no missed-push detection, no notifications, and a push to one of them answers 403. The reason `unverified` is for a workspace made by an open signup, and it ends when its owner verifies their email address. Nothing is suspended on an install that runs `invite` or was upgraded to workspaces.
+A workspace held back with a reason. Its monitors are kept, listed and editable, but none runs: no checks, no missed-push detection, no notifications, and a push to one of them answers 403. The reason `unverified` is for a workspace made by an open signup, and it ends when an owner of the workspace has a verified email address: when its owner verifies theirs, or when a user with a verified address becomes an owner. Nothing is suspended on an install that runs `invite` or was upgraded to workspaces.
 _Avoid_: Disabled, frozen, paused (that's a monitor switched off by a person)
 
 **Account emails**:
