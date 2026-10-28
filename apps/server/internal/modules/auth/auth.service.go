@@ -7,6 +7,9 @@ import (
 	"errors"
 	"time"
 
+	"peekaping/internal/dbtx"
+	"peekaping/internal/modules/workspace"
+
 	"github.com/pquerna/otp/totp"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -26,21 +29,30 @@ type Service interface {
 
 type ServiceImpl struct {
 	repo       Repository
+	transactor dbtx.Transactor
+	workspaces workspace.Repository
 	tokenMaker *TokenMaker
 	logger     *zap.SugaredLogger
 }
 
 func NewService(
 	repo Repository,
+	transactor dbtx.Transactor,
+	workspaces workspace.Repository,
 	tokenMaker *TokenMaker,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
 		repo:       repo,
+		transactor: transactor,
+		workspaces: workspaces,
 		tokenMaker: tokenMaker,
 		logger:     logger.Named("[auth-service]"),
 	}
 }
+
+// defaultWorkspaceName is the name of the workspace that the first signup creates
+const defaultWorkspaceName = "Default"
 
 func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
 	count, err := s.repo.FindAllCount(ctx)
@@ -73,8 +85,18 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		UpdatedAt: time.Now().UTC(),
 	}
 
-	// Save to database, unless another registration got there first
-	user, err = s.repo.CreateFirst(ctx, user)
+	// Save to database, unless another registration got there first. The user is the install's
+	// first, so it is an instance admin and the owner of the first workspace, which is made with
+	// the user and not left for later. An install that has records and no user has a workspace
+	// already, the one its upgrade made, and the user joins that instead of starting another.
+	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		created, err := s.repo.CreateFirst(ctx, user)
+		if err != nil {
+			return err
+		}
+		user = created
+		return s.joinFirstWorkspace(ctx, user.ID)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +118,22 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		RefreshToken: refreshToken,
 		User:         user,
 	}, nil
+}
+
+// joinFirstWorkspace makes the user the owner of the install's oldest workspace, or of a new one
+// when it has none
+func (s *ServiceImpl) joinFirstWorkspace(ctx context.Context, userID string) error {
+	target, err := s.workspaces.FindOldest(ctx)
+	if err != nil {
+		return err
+	}
+	if target == nil {
+		target, err = s.workspaces.Create(ctx, defaultWorkspaceName)
+		if err != nil {
+			return err
+		}
+	}
+	return s.workspaces.AddMember(ctx, target.ID, userID, workspace.RoleOwner)
 }
 
 func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, error) {

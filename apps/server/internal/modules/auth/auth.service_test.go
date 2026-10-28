@@ -3,14 +3,17 @@ package auth_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"peekaping/cmd/bun/migrations"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/pquerna/otp"
@@ -56,7 +59,12 @@ func newHarness(t *testing.T) *harness {
 	settings := setting.NewService(setting.NewSQLRepository(db), logger)
 	require.NoError(t, settings.InitializeSettings(ctx))
 	tokens := auth.NewTokenMaker(settings, logger)
-	return &harness{db, auth.NewService(auth.NewSQLRepository(db), tokens, logger), tokens, settings}
+	return &harness{db, newService(db, auth.NewSQLRepository(db), tokens, logger), tokens, settings}
+}
+
+// newService is the auth service over repo and the workspaces of db
+func newService(db *bun.DB, repo auth.Repository, tokens *auth.TokenMaker, logger *zap.SugaredLogger) auth.Service {
+	return auth.NewService(repo, dbtx.NewSQLTransactor(db), workspace.NewSQLRepository(db), tokens, logger)
 }
 
 // restart is the same install after the server starts again, with its signing
@@ -64,7 +72,7 @@ func newHarness(t *testing.T) *harness {
 func (h *harness) restart() *harness {
 	logger := zap.NewNop().Sugar()
 	tokens := auth.NewTokenMaker(h.settings, logger)
-	return &harness{h.db, auth.NewService(auth.NewSQLRepository(h.db), tokens, logger), tokens, h.settings}
+	return &harness{h.db, newService(h.db, auth.NewSQLRepository(h.db), tokens, logger), tokens, h.settings}
 }
 
 // register creates the admin and returns its first session.
@@ -139,6 +147,80 @@ func TestService_Register_CreatesTheOnlyAdmin(t *testing.T) {
 	assert.EqualError(t, err, "admin already exists")
 }
 
+func TestService_Register_MakesTheAdminTheOwnerOfANewWorkspaceAndAnInstanceAdmin(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+
+	session := h.register(t)
+
+	memberships, err := workspace.NewSQLRepository(h.db).ListMemberships(ctx, session.User.ID)
+	require.NoError(t, err)
+	require.Len(t, memberships, 1)
+	assert.Equal(t, "Default", memberships[0].Workspace.Name)
+	assert.Equal(t, workspace.RoleOwner, memberships[0].Role)
+	assert.Equal(t, 1, h.count(t, "workspaces"))
+	stored, err := auth.NewSQLRepository(h.db).FindByID(ctx, session.User.ID)
+	require.NoError(t, err)
+	assert.True(t, stored.InstanceAdmin)
+	assert.True(t, session.User.InstanceAdmin)
+
+	_, err = h.svc.Register(ctx, auth.RegisterDto{Email: "second@example.com", Password: adminPassword})
+	assert.ErrorIs(t, err, auth.ErrAdminExists, "a second signup is still refused")
+	assert.Equal(t, 1, h.count(t, "workspaces"), "and makes no workspace")
+	assert.Equal(t, 1, h.count(t, "workspace_members"))
+}
+
+// The upgrade leaves a workspace behind for records that have no user, and the first signup takes it
+func TestService_Register_JoinsTheOldestWorkspaceOfAnInstanceWithRecordsAndNoUser(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspaces := workspace.NewSQLRepository(h.db)
+	upgrade, err := workspaces.Create(ctx, "Default")
+	require.NoError(t, err)
+	time.Sleep(5 * time.Millisecond)
+	_, err = workspaces.Create(ctx, "Newer")
+	require.NoError(t, err)
+	_, err = h.db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES ('7d2bd0f5-1b4b-4b43-a3f3-1f6a7c1d0b11', 'http', 'Kept', 60, 10, 1, 10, 0)`)
+	require.NoError(t, err)
+
+	session := h.register(t)
+
+	memberships, err := workspaces.ListMemberships(ctx, session.User.ID)
+	require.NoError(t, err)
+	require.Len(t, memberships, 1)
+	assert.Equal(t, upgrade.ID, memberships[0].Workspace.ID)
+	assert.Equal(t, workspace.RoleOwner, memberships[0].Role)
+	assert.Equal(t, 2, h.count(t, "workspaces"), "no workspace is added")
+	assert.True(t, session.User.InstanceAdmin)
+}
+
+// failingAddMember is a workspace repository that can't add the member
+type failingAddMember struct{ workspace.Repository }
+
+func (failingAddMember) AddMember(context.Context, workspace.ID, string, workspace.Role) error {
+	return errors.New("cannot add the member")
+}
+
+func TestService_Register_KeepsNoUserOrWorkspaceWhenTheMembershipFails(t *testing.T) {
+	h := newHarness(t)
+	failing := auth.NewService(auth.NewSQLRepository(h.db), dbtx.NewSQLTransactor(h.db), failingAddMember{workspace.NewSQLRepository(h.db)}, h.tokens, zap.NewNop().Sugar())
+
+	_, err := failing.Register(context.Background(), auth.RegisterDto{Email: adminEmail, Password: adminPassword})
+
+	assert.EqualError(t, err, "cannot add the member")
+	assert.Equal(t, 0, h.count(t, "users"), "the account and its workspace are one transaction")
+	assert.Equal(t, 0, h.count(t, "workspaces"))
+	h.register(t) // and the install can still sign up its first user
+}
+
+// count is how many rows the table has
+func (h *harness) count(t *testing.T, table string) int {
+	t.Helper()
+	n, err := h.db.NewSelect().Table(table).Count(context.Background())
+	require.NoError(t, err)
+	return n
+}
+
 // countBeforeCommit is a repository that still counts no users, as Register
 // sees it when it counts before a concurrent registration commits.
 type countBeforeCommit struct{ auth.Repository }
@@ -149,7 +231,7 @@ func TestService_Register_LosingTheRaceWithTheSameEmailIsAdminExists(t *testing.
 	h := newHarness(t)
 	h.register(t)
 
-	racing := auth.NewService(countBeforeCommit{auth.NewSQLRepository(h.db)}, h.tokens, zap.NewNop().Sugar())
+	racing := newService(h.db, countBeforeCommit{auth.NewSQLRepository(h.db)}, h.tokens, zap.NewNop().Sugar())
 	_, err := racing.Register(context.Background(), auth.RegisterDto{Email: adminEmail, Password: adminPassword})
 	assert.ErrorIs(t, err, auth.ErrAdminExists)
 }

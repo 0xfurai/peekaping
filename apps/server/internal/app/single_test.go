@@ -73,6 +73,7 @@ func TestRegisterSingle_ResolvesWhatCmdPeekapingRuns(t *testing.T) {
 	require.NoError(t, container.Invoke(func(
 		_ heartbeat.Service,
 		_ auth.Repository,
+		_ auth.Service,
 		_ setting.Service,
 		_ stats.Service,
 		_ notification_sent_history.Service,
