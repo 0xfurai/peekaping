@@ -27,6 +27,9 @@ type CreateWorkspaceDto struct {
 	Name string `json:"name" validate:"required,min=1,max=255"`
 }
 
+// normalize trims the name, so that one of only spaces is refused as empty and the trimmed name is stored
+func (d *CreateWorkspaceDto) normalize() { d.Name = strings.TrimSpace(d.Name) }
+
 // RenameWorkspaceDto is the request to rename the workspace
 type RenameWorkspaceDto struct {
 	Name string `json:"name" validate:"required,min=1,max=255"`
