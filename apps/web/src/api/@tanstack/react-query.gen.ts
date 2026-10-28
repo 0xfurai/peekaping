@@ -33,6 +33,7 @@ import {
   putMaintenancesById,
   patchMaintenancesByIdPause,
   patchMaintenancesByIdResume,
+  getMe,
   getMonitors,
   postMonitors,
   getMonitorsBatch,
@@ -170,6 +171,7 @@ import type {
   PatchMaintenancesByIdResumeData,
   PatchMaintenancesByIdResumeError,
   PatchMaintenancesByIdResumeResponse,
+  GetMeData,
   GetMonitorsData,
   GetMonitorsError,
   GetMonitorsResponse,
@@ -1407,6 +1409,28 @@ export const patchMaintenancesByIdResumeMutation = (
     },
   };
   return mutationOptions;
+};
+
+export const getMeQueryKey = (options?: Options<GetMeData>) =>
+  createQueryKey("getMe", options);
+
+/**
+ * Get the signed-in user and their workspaces
+ * The user, the workspaces they are a member of with their role in each, and the default workspace: the one they joined first, which a request without X-Workspace-ID runs in. A user in no workspace gets an empty list and a null default.
+ */
+export const getMeOptions = (options?: Options<GetMeData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getMe({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getMeQueryKey(options),
+  });
 };
 
 export const getMonitorsQueryKey = (options?: Options<GetMonitorsData>) =>

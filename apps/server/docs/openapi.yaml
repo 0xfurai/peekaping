@@ -171,6 +171,54 @@ components:
         - accessToken
         - refreshToken
       type: object
+    auth.MeResponse:
+      additionalProperties: false
+      properties:
+        defaultWorkspaceId:
+          type:
+            - string
+            - "null"
+        user:
+          $ref: "#/components/schemas/auth.MeUser"
+        workspaces:
+          items:
+            $ref: "#/components/schemas/auth.MeWorkspace"
+          type:
+            - array
+            - "null"
+      required:
+        - user
+        - workspaces
+        - defaultWorkspaceId
+      type: object
+    auth.MeUser:
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+        id:
+          type: string
+        instanceAdmin:
+          type: boolean
+      required:
+        - id
+        - email
+        - instanceAdmin
+      type: object
+    auth.MeWorkspace:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+      required:
+        - id
+        - name
+        - role
+      type: object
     auth.Model:
       additionalProperties: false
       properties:
@@ -2922,6 +2970,17 @@ components:
         - message
         - data
       type: object
+    utils.ApiResponse_auth.MeResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/auth.MeResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
     utils.ApiResponse_maintenance.MaintenanceResponseDto:
       additionalProperties: false
       properties:
@@ -3121,6 +3180,13 @@ paths:
   /api/v1/api-keys:
     get:
       operationId: getApiKeys
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -3147,6 +3213,13 @@ paths:
         - api_key
     post:
       operationId: postApiKeys
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       requestBody:
         content:
           application/json:
@@ -3207,6 +3280,12 @@ paths:
           schema:
             description: API key ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "204":
           description: No Content
@@ -3242,6 +3321,12 @@ paths:
           required: true
           schema:
             description: API key ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       responses:
         "200":
@@ -3282,6 +3367,12 @@ paths:
           required: true
           schema:
             description: API key ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -4610,6 +4701,12 @@ paths:
             maximum: 1000
             minimum: 1
             type: integer
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -4643,6 +4740,13 @@ paths:
         - maintenance
     post:
       operationId: postMaintenances
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       requestBody:
         content:
           application/json:
@@ -4691,6 +4795,12 @@ paths:
           schema:
             description: Maintenance ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -4732,6 +4842,12 @@ paths:
           schema:
             description: Maintenance ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -4772,6 +4888,12 @@ paths:
           required: true
           schema:
             description: Maintenance ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -4825,6 +4947,12 @@ paths:
           required: true
           schema:
             description: Maintenance ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -4880,6 +5008,12 @@ paths:
           schema:
             description: Maintenance ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -4922,6 +5056,12 @@ paths:
           schema:
             description: Maintenance ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -4953,6 +5093,34 @@ paths:
       summary: Resume maintenance
       tags:
         - maintenance
+  /api/v1/me:
+    get:
+      description: "The user, the workspaces they are a member of with their role in each, and the default workspace: the one they joined first, which a request without X-Workspace-ID runs in. A user in no workspace gets an empty list and a null default."
+      operationId: getMe
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_auth.MeResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Get the signed-in user and their workspaces
+      tags:
+        - auth
   /api/v1/monitors:
     get:
       operationId: getMonitors
@@ -5001,6 +5169,12 @@ paths:
           schema:
             description: Comma-separated list of tag IDs to filter by
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5034,6 +5208,13 @@ paths:
         - monitor
     post:
       operationId: postMonitors
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       requestBody:
         content:
           application/json:
@@ -5084,6 +5265,12 @@ paths:
           schema:
             description: Comma-separated list of monitor IDs
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5126,6 +5313,12 @@ paths:
           schema:
             description: Monitor ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5167,6 +5360,12 @@ paths:
           schema:
             description: Monitor ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5207,6 +5406,12 @@ paths:
           required: true
           schema:
             description: Monitor ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -5262,6 +5467,12 @@ paths:
           required: true
           schema:
             description: Monitor ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -5358,6 +5569,12 @@ paths:
             examples:
               - local
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5405,6 +5622,12 @@ paths:
           required: true
           schema:
             description: Monitor ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       responses:
         "200":
@@ -5477,6 +5700,12 @@ paths:
             examples:
               - local
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5533,6 +5762,12 @@ paths:
             examples:
               - local
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5574,6 +5809,12 @@ paths:
           required: true
           schema:
             description: Monitor ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       responses:
         "200":
@@ -5635,6 +5876,12 @@ paths:
             maximum: 1000
             minimum: 1
             type: integer
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5668,6 +5915,13 @@ paths:
         - notification_channel
     post:
       operationId: postNotificationChannels
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       requestBody:
         content:
           application/json:
@@ -5708,6 +5962,13 @@ paths:
   /api/v1/notification-channels/test:
     post:
       operationId: postNotificationChannelsTest
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       requestBody:
         content:
           application/json:
@@ -5756,6 +6017,12 @@ paths:
           schema:
             description: Notification ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5797,6 +6064,12 @@ paths:
           schema:
             description: Notification ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -5837,6 +6110,12 @@ paths:
           required: true
           schema:
             description: Notification ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -5890,6 +6169,12 @@ paths:
           required: true
           schema:
             description: Notification ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -6378,6 +6663,12 @@ paths:
             maximum: 1000
             minimum: 1
             type: integer
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -6411,6 +6702,13 @@ paths:
         - proxy
     post:
       operationId: postProxies
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       requestBody:
         content:
           application/json:
@@ -6459,6 +6757,12 @@ paths:
           schema:
             description: Proxy ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -6500,6 +6804,12 @@ paths:
           schema:
             description: Proxy ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -6540,6 +6850,12 @@ paths:
           required: true
           schema:
             description: Proxy ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -6593,6 +6909,12 @@ paths:
           required: true
           schema:
             description: Proxy ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -6705,6 +7027,12 @@ paths:
           schema:
             description: Setting Key
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -6745,6 +7073,12 @@ paths:
           required: true
           schema:
             description: Setting Key
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       responses:
         "200":
@@ -6787,6 +7121,12 @@ paths:
           required: true
           schema:
             description: Setting Key
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -6860,6 +7200,12 @@ paths:
             maximum: 1000
             minimum: 1
             type: integer
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -6893,6 +7239,13 @@ paths:
         - status_page
     post:
       operationId: postStatusPages
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       requestBody:
         content:
           application/json:
@@ -7075,6 +7428,12 @@ paths:
           schema:
             description: Status Page ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -7116,6 +7475,12 @@ paths:
           schema:
             description: Status Page ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -7156,6 +7521,12 @@ paths:
           required: true
           schema:
             description: Status Page ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -7231,6 +7602,12 @@ paths:
             maximum: 1000
             minimum: 1
             type: integer
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -7264,6 +7641,13 @@ paths:
         - tag
     post:
       operationId: postTags
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       requestBody:
         content:
           application/json:
@@ -7318,6 +7702,12 @@ paths:
           schema:
             description: Tag ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -7359,6 +7749,12 @@ paths:
           schema:
             description: Tag ID
             type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
       responses:
         "200":
           content:
@@ -7399,6 +7795,12 @@ paths:
           required: true
           schema:
             description: Tag ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -7458,6 +7860,12 @@ paths:
           required: true
           schema:
             description: Tag ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
             type: string
       requestBody:
         content:
