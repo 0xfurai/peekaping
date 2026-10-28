@@ -209,6 +209,10 @@ _Avoid_: Superuser, site admin, root
 The limits a workspace is held to, such as how many monitors it may have and its shortest check interval. A workspace without a plan has no limits, which is every workspace on a self-hosted install.
 _Avoid_: Tier, subscription (that's the billing record), package
 
+**Invite**:
+A link an admin or owner makes for an email address and a role. It works once, for 7 days, until it is revoked. Opening it adds the account with that email to the workspace with the invite's role, or lets someone without an account sign up as a member of that workspace, with no workspace of their own. Until the cloud can send email, the inviter copies the link. The link's token is shown once and stored only as a hash.
+_Avoid_: Invitation, join link
+
 **Signup mode**:
 Who may create an account on an install, set with `SIGNUP_MODE`. In `invite`, the default, the first user signs up and everyone after joins a workspace through an invite. In `open` anyone may sign up, and each new user gets a workspace of their own, unless they sign up through an invite: then they join the inviting workspace instead. The cloud runs `open`.
 _Avoid_: Registration mode, signup policy

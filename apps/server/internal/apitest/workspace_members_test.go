@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
+	"time"
 
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/workspace"
@@ -336,4 +337,52 @@ func TestMembers_ANonMemberNamingThisWorkspaceCanNotLeaveChangeOrRemoveAnyone(t 
 		assert.Equal(t, before, decode[[]memberResponse](t, a.request(t, http.MethodGet, membersPath, nil, a.asAdmin), http.StatusOK))
 		assert.Equal(t, 1, len(decode[[]memberResponse](t, a.request(t, http.MethodGet, membersPath, nil, bob), http.StatusOK)), "and Bob is still in his own")
 	})
+}
+
+// Two owners who demote or remove each other at once never leave the workspace without one: each
+// change reads the owners under a lock, so the second sees the first (or is refused as it is no
+// longer an owner). Nothing answers 5xx, and PostgreSQL does not deadlock.
+func TestMembers_TwoOwnersChangingEachOtherAtOnceNeverLeaveTheWorkspaceWithoutOne(t *testing.T) {
+	isolationBackends(t, func(t *testing.T, a *app) {
+		tm := newTeam(t, a)
+		adminID := a.userID(t, adminEmail)
+		changes := map[string]func(target string, as credentials) int{
+			"demote": func(target string, as credentials) int { return tm.setRole(target, "member", as, t).Code },
+			"remove": func(target string, as credentials) int {
+				return a.request(t, http.MethodDelete, membersPath+"/"+target, nil, as).Code
+			},
+		}
+		for name, change := range changes {
+			var wg sync.WaitGroup
+			codes := make([]int, 2)
+			wg.Add(2)
+			go func() { defer wg.Done(); codes[0] = change(tm.owner2ID, a.asAdmin) }()
+			go func() { defer wg.Done(); codes[1] = change(adminID, tm.owner2) }()
+			wg.Wait()
+
+			assert.GreaterOrEqual(t, a.ownerCount(t, tm.id), 1, "%s: %v", name, codes)
+			for _, code := range codes {
+				assert.Less(t, code, 500, "%s: %v", name, codes)
+			}
+			// back to two owners for the next change
+			for _, id := range []string{tm.owner2ID, adminID} {
+				a.restoreOwner(t, tm.id, id)
+			}
+		}
+	})
+}
+
+// restoreOwner makes the user an owner of the workspace, whether they are still a member or not
+func (a *app) restoreOwner(t *testing.T, id workspace.ID, userID string) {
+	t.Helper()
+	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+		res, err := db.Exec("UPDATE workspace_members SET role = 'owner' WHERE workspace_id = ? AND user_id = ?", string(id), userID)
+		if err != nil {
+			return err
+		}
+		if n, _ := res.RowsAffected(); n == 0 {
+			_, err = db.Exec("INSERT INTO workspace_members (workspace_id, user_id, role, joined_at) VALUES (?, ?, 'owner', ?)", string(id), userID, time.Now().UTC())
+		}
+		return err
+	}))
 }
