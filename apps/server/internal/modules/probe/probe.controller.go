@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/middleware"
 	"peekaping/internal/modules/probe_notification"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/workspace"
@@ -27,8 +28,14 @@ type MonitorAssigner interface {
 	AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string) (int, error)
 }
 
+// InstanceAdmins says whether a request comes from an instance admin. middleware.AuthChain is one.
+type InstanceAdmins interface {
+	IsInstanceAdmin(ctx context.Context) (bool, error)
+}
+
 type Controller struct {
 	service      Service
+	admins       InstanceAdmins
 	availability AvailabilityService
 	monitors     MonitorAssigner
 	liveness     shared.LocalProbeLiveness
@@ -39,10 +46,12 @@ type Controller struct {
 // NewController makes the controller. monitors assigns the probe to monitors. liveness says whether
 // the local probe follows its stored status or is up as long as Peekaping runs. workspaces tells
 // which workspaces a caller is a member of, since a probe is linked only to channels of those
-// (docs/adr/0005 section 10).
-func NewController(service Service, availability AvailabilityService, monitors MonitorAssigner, liveness shared.LocalProbeLiveness, workspaces workspace.Repository, logger *zap.SugaredLogger) *Controller {
+// (docs/adr/0005 section 10). admins says who is an instance admin: the others see a probe without
+// its instances' hosts and its channels.
+func NewController(service Service, admins InstanceAdmins, availability AvailabilityService, monitors MonitorAssigner, liveness shared.LocalProbeLiveness, workspaces workspace.Repository, logger *zap.SugaredLogger) *Controller {
 	return &Controller{
 		service:      service,
+		admins:       admins,
 		availability: availability,
 		monitors:     monitors,
 		liveness:     liveness,
@@ -56,6 +65,7 @@ type controllerParams struct {
 	dig.In
 
 	Service      Service
+	Admins       *middleware.AuthChain
 	Availability AvailabilityService
 	// Monitors assigns the probe to monitors: the monitor service, wired in internal/app
 	Monitors MonitorAssigner
@@ -67,7 +77,7 @@ type controllerParams struct {
 }
 
 func provideController(p controllerParams) *Controller {
-	return NewController(p.Service, p.Availability, p.Monitors, p.LocalProbe, p.Workspaces, p.Logger)
+	return NewController(p.Service, p.Admins, p.Availability, p.Monitors, p.LocalProbe, p.Workspaces, p.Logger)
 }
 
 // response maps a probe to its response. The local probe in single mode is online whatever status
@@ -78,6 +88,21 @@ func (c *Controller) response(m *Model) *ProbeResponse {
 		response.Status = string(StatusOnline)
 	}
 	return response
+}
+
+// view maps a probe to the response its reader may see. An instance admin sees all of it. A member
+// or an API key sees the probe's name, location, status and monitor types, and not its instances'
+// hosts or its channels (docs/adr/0005 section 10).
+func (c *Controller) view(ctx context.Context, m *Model) (*ProbeResponse, error) {
+	admin, err := c.admins.IsInstanceAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	response := c.response(m)
+	if !admin {
+		response.WithoutAdminDetails()
+	}
+	return response, nil
 }
 
 // The reasons the local probe can't be changed, which the 409 answers give
@@ -119,32 +144,24 @@ func (c *Controller) fail(err error, localMessage string) error {
 }
 
 // channelWorkspaces returns the workspaces whose channels the caller may link to a probe: the ones
-// a signed-in user is a member of, and the one an API key belongs to. A probe belongs to the
-// install, and the channels it notifies are those of a workspace its manager is in (docs/adr/0005
-// section 10), so a channel of any other workspace is refused as one that doesn't exist. It reads
-// nothing when the request names no channel.
+// the signed-in instance admin is a member of. A probe belongs to the install, and the channels it
+// notifies are those of a workspace its manager is in (docs/adr/0005 section 10), so a channel of
+// any other workspace is refused as one that doesn't exist. It reads nothing when the request names
+// no channel. Only an instance admin gets this far, and an API key is never one.
 func (c *Controller) channelWorkspaces(ctx context.Context, notificationIDs []string) ([]workspace.ID, error) {
 	if len(notificationIDs) == 0 {
 		return nil, nil
 	}
-	switch httpx.Value(ctx, "authType") {
-	case "api_key":
-		if own, _ := httpx.Value(ctx, "apiKeyWorkspaceId").(workspace.ID); own != "" {
-			return []workspace.ID{own}, nil
-		}
-	case "jwt":
-		userID, _ := httpx.Value(ctx, "userId").(string)
-		places, err := c.workspaces.ListMemberships(ctx, userID)
-		if err != nil {
-			return nil, err
-		}
-		member := make([]workspace.ID, len(places))
-		for i, place := range places {
-			member[i] = place.Workspace.ID
-		}
-		return member, nil
+	userID, _ := httpx.Value(ctx, "userId").(string)
+	places, err := c.workspaces.ListMemberships(ctx, userID)
+	if err != nil {
+		return nil, err
 	}
-	return nil, nil
+	member := make([]workspace.ID, len(places))
+	for i, place := range places {
+		member[i] = place.Workspace.ID
+	}
+	return member, nil
 }
 
 // CreateProbe creates a probe and answers with its token, once
@@ -188,7 +205,9 @@ func (c *Controller) GetProbes(ctx context.Context, input *GetProbesInput) (*htt
 
 	responses := make([]*ProbeResponse, len(probes))
 	for i, p := range probes {
-		responses[i] = c.response(p)
+		if responses[i], err = c.view(ctx, p); err != nil {
+			return nil, c.fail(err, "")
+		}
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probes retrieved successfully", responses))
@@ -207,7 +226,11 @@ func (c *Controller) GetProbe(ctx context.Context, input *GetProbeInput) (*httpx
 		return nil, c.fail(ErrNotFound, "")
 	}
 
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe retrieved successfully", c.response(found)))
+	response, err := c.view(ctx, found)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe retrieved successfully", response))
 }
 
 // UpdateProbe updates a probe's name, location, disabled flag and notification channels
@@ -364,5 +387,13 @@ func (c *Controller) GetProbeAvailability(ctx context.Context, input *GetProbeAv
 		return nil, c.fail(err, "")
 	}
 
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe availability retrieved successfully", ToProbeAvailabilityResponse(found, true)))
+	response := ToProbeAvailabilityResponse(found, true)
+	admin, err := c.admins.IsInstanceAdmin(ctx)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
+	if !admin {
+		response.WithoutAdminDetails()
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Probe availability retrieved successfully", response))
 }
