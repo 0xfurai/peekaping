@@ -31,6 +31,8 @@ type Server struct {
 	messages []Message
 	// rejectData, when set, is the reply to DATA instead of accepting the message
 	rejectData string
+	// rejectRcpt, when set, is the reply to RCPT instead of accepting the recipient
+	rejectRcpt string
 }
 
 // Start runs a server until the test ends
@@ -56,6 +58,15 @@ func (s *Server) RejectMessages(reply string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.rejectData = reply
+}
+
+// RejectRecipients makes the server answer every RCPT with the SMTP reply (such as
+// "550 5.1.1 <alice@example.com>: user unknown"), the way a server that echoes the address does.
+// An empty reply accepts recipients again.
+func (s *Server) RejectRecipients(reply string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.rejectRcpt = reply
 }
 
 // Messages returns the messages taken so far, oldest first
@@ -121,6 +132,13 @@ func (s *Server) serve(conn net.Conn) {
 			current.From = address(rest)
 			reply("250 2.1.0 OK")
 		case "RCPT":
+			s.mu.Lock()
+			rejected := s.rejectRcpt
+			s.mu.Unlock()
+			if rejected != "" {
+				reply(rejected)
+				continue
+			}
 			current.To = append(current.To, address(rest))
 			reply("250 2.1.5 OK")
 		case "RSET":

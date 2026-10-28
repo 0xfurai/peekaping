@@ -102,7 +102,7 @@ func (s *AccountService) RequestPasswordReset(email string) {
 		}
 		message := mailer.ResetPassword(s.link("reset-password", token), ResetTokenLifetime)
 		if err := s.mailer.Send(ctx, user.Email, message.Subject, message.Text, message.HTML); err != nil {
-			s.logger.Errorw("Failed to send a password reset email", "userId", user.ID, "error", err)
+			s.logger.Errorw("Failed to send a password reset email", "userId", user.ID, "reason", mailer.Describe(err))
 		}
 	})
 }
