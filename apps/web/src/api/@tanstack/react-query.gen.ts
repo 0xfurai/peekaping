@@ -2,6 +2,11 @@
 
 import {
   type Options,
+  getAdminUsers,
+  deleteAdminUsersById,
+  patchAdminUsersById,
+  postAdminUsersByIdDisable2Fa,
+  postAdminUsersByIdResetLink,
   getApiKeys,
   postApiKeys,
   getApiKeysConfig,
@@ -114,11 +119,26 @@ import {
 } from "../sdk.gen";
 import {
   queryOptions,
-  type UseMutationOptions,
   infiniteQueryOptions,
   type InfiniteData,
+  type UseMutationOptions,
 } from "@tanstack/react-query";
 import type {
+  GetAdminUsersData,
+  GetAdminUsersError,
+  GetAdminUsersResponse,
+  DeleteAdminUsersByIdData,
+  DeleteAdminUsersByIdError,
+  DeleteAdminUsersByIdResponse,
+  PatchAdminUsersByIdData,
+  PatchAdminUsersByIdError,
+  PatchAdminUsersByIdResponse,
+  PostAdminUsersByIdDisable2FaData,
+  PostAdminUsersByIdDisable2FaError,
+  PostAdminUsersByIdDisable2FaResponse,
+  PostAdminUsersByIdResetLinkData,
+  PostAdminUsersByIdResetLinkError,
+  PostAdminUsersByIdResetLinkResponse,
   GetApiKeysData,
   PostApiKeysData,
   PostApiKeysError,
@@ -400,6 +420,278 @@ const createQueryKey = <TOptions extends Options>(
     params.query = options.query;
   }
   return [params];
+};
+
+export const getAdminUsersQueryKey = (options?: Options<GetAdminUsersData>) =>
+  createQueryKey("getAdminUsers", options);
+
+/**
+ * List the users of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every user with their email, when they signed up and last signed in, whether their email is verified, whether they are an instance admin, whether they are disabled, whether they have 2FA on, and their workspaces with their role in each. q finds the users whose email contains it, ignoring case. The oldest user is first.
+ */
+export const getAdminUsersOptions = (options?: Options<GetAdminUsersData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAdminUsers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAdminUsersQueryKey(options),
+  });
+};
+
+const createInfiniteParams = <
+  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">,
+>(
+  queryKey: QueryKey<Options>,
+  page: K
+) => {
+  const params = {
+    ...queryKey[0],
+  };
+  if (page.body) {
+    params.body = {
+      ...(queryKey[0].body as any),
+      ...(page.body as any),
+    };
+  }
+  if (page.headers) {
+    params.headers = {
+      ...queryKey[0].headers,
+      ...page.headers,
+    };
+  }
+  if (page.path) {
+    params.path = {
+      ...(queryKey[0].path as any),
+      ...(page.path as any),
+    };
+  }
+  if (page.query) {
+    params.query = {
+      ...(queryKey[0].query as any),
+      ...(page.query as any),
+    };
+  }
+  return params as unknown as typeof page;
+};
+
+export const getAdminUsersInfiniteQueryKey = (
+  options?: Options<GetAdminUsersData>
+): QueryKey<Options<GetAdminUsersData>> =>
+  createQueryKey("getAdminUsers", options, true);
+
+/**
+ * List the users of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every user with their email, when they signed up and last signed in, whether their email is verified, whether they are an instance admin, whether they are disabled, whether they have 2FA on, and their workspaces with their role in each. q finds the users whose email contains it, ignoring case. The oldest user is first.
+ */
+export const getAdminUsersInfiniteOptions = (
+  options?: Options<GetAdminUsersData>
+) => {
+  return infiniteQueryOptions<
+    GetAdminUsersResponse,
+    AxiosError<GetAdminUsersError>,
+    InfiniteData<GetAdminUsersResponse>,
+    QueryKey<Options<GetAdminUsersData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetAdminUsersData>>[0],
+        "body" | "headers" | "path" | "query"
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetAdminUsersData>>[0],
+          "body" | "headers" | "path" | "query"
+        > =
+          typeof pageParam === "object"
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getAdminUsers({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getAdminUsersInfiniteQueryKey(options),
+    }
+  );
+};
+
+/**
+ * Delete a user
+ * Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: the answer names the workspaces.
+ */
+export const deleteAdminUsersByIdMutation = (
+  options?: Partial<Options<DeleteAdminUsersByIdData>>
+): UseMutationOptions<
+  DeleteAdminUsersByIdResponse,
+  AxiosError<DeleteAdminUsersByIdError>,
+  Options<DeleteAdminUsersByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAdminUsersByIdResponse,
+    AxiosError<DeleteAdminUsersByIdError>,
+    Options<DeleteAdminUsersByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteAdminUsersById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Change a user
+ * Only an instance admin may do this. instanceAdmin gives or takes the instance admin flag: the last instance admin can't lose it (409). active false disables the user: they can't sign in, their sessions end at once and their workspaces keep running; an admin can't disable themselves (409). active true enables them again. A field left out stays as it is.
+ */
+export const patchAdminUsersByIdMutation = (
+  options?: Partial<Options<PatchAdminUsersByIdData>>
+): UseMutationOptions<
+  PatchAdminUsersByIdResponse,
+  AxiosError<PatchAdminUsersByIdError>,
+  Options<PatchAdminUsersByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchAdminUsersByIdResponse,
+    AxiosError<PatchAdminUsersByIdError>,
+    Options<PatchAdminUsersByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchAdminUsersById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAdminUsersByIdDisable2FaQueryKey = (
+  options: Options<PostAdminUsersByIdDisable2FaData>
+) => createQueryKey("postAdminUsersByIdDisable2Fa", options);
+
+/**
+ * Turn off a user's 2FA
+ * Only an instance admin may do this. The user signs in with their password alone, and can set 2FA up again.
+ */
+export const postAdminUsersByIdDisable2FaOptions = (
+  options: Options<PostAdminUsersByIdDisable2FaData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAdminUsersByIdDisable2Fa({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAdminUsersByIdDisable2FaQueryKey(options),
+  });
+};
+
+/**
+ * Turn off a user's 2FA
+ * Only an instance admin may do this. The user signs in with their password alone, and can set 2FA up again.
+ */
+export const postAdminUsersByIdDisable2FaMutation = (
+  options?: Partial<Options<PostAdminUsersByIdDisable2FaData>>
+): UseMutationOptions<
+  PostAdminUsersByIdDisable2FaResponse,
+  AxiosError<PostAdminUsersByIdDisable2FaError>,
+  Options<PostAdminUsersByIdDisable2FaData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAdminUsersByIdDisable2FaResponse,
+    AxiosError<PostAdminUsersByIdDisable2FaError>,
+    Options<PostAdminUsersByIdDisable2FaData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAdminUsersByIdDisable2Fa({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAdminUsersByIdResetLinkQueryKey = (
+  options: Options<PostAdminUsersByIdResetLinkData>
+) => createQueryKey("postAdminUsersByIdResetLink", options);
+
+/**
+ * Make a password reset link for a user
+ * Only an instance admin may do this. The answer holds a single-use link to the web app's reset page, once: copy it to the user. It works without a sender for account emails, expires in an hour, and ends all the user's sessions when it is used.
+ */
+export const postAdminUsersByIdResetLinkOptions = (
+  options: Options<PostAdminUsersByIdResetLinkData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAdminUsersByIdResetLink({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAdminUsersByIdResetLinkQueryKey(options),
+  });
+};
+
+/**
+ * Make a password reset link for a user
+ * Only an instance admin may do this. The answer holds a single-use link to the web app's reset page, once: copy it to the user. It works without a sender for account emails, expires in an hour, and ends all the user's sessions when it is used.
+ */
+export const postAdminUsersByIdResetLinkMutation = (
+  options?: Partial<Options<PostAdminUsersByIdResetLinkData>>
+): UseMutationOptions<
+  PostAdminUsersByIdResetLinkResponse,
+  AxiosError<PostAdminUsersByIdResetLinkError>,
+  Options<PostAdminUsersByIdResetLinkData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAdminUsersByIdResetLinkResponse,
+    AxiosError<PostAdminUsersByIdResetLinkError>,
+    Options<PostAdminUsersByIdResetLinkData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAdminUsersByIdResetLink({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getApiKeysQueryKey = (options?: Options<GetApiKeysData>) =>
@@ -1480,42 +1772,6 @@ export const getMaintenancesOptions = (
     },
     queryKey: getMaintenancesQueryKey(options),
   });
-};
-
-const createInfiniteParams = <
-  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">,
->(
-  queryKey: QueryKey<Options>,
-  page: K
-) => {
-  const params = {
-    ...queryKey[0],
-  };
-  if (page.body) {
-    params.body = {
-      ...(queryKey[0].body as any),
-      ...(page.body as any),
-    };
-  }
-  if (page.headers) {
-    params.headers = {
-      ...queryKey[0].headers,
-      ...page.headers,
-    };
-  }
-  if (page.path) {
-    params.path = {
-      ...(queryKey[0].path as any),
-      ...(page.path as any),
-    };
-  }
-  if (page.query) {
-    params.query = {
-      ...(queryKey[0].query as any),
-      ...(page.query as any),
-    };
-  }
-  return params as unknown as typeof page;
 };
 
 export const getMaintenancesInfiniteQueryKey = (
@@ -2679,7 +2935,7 @@ export const getProbesByIdOptions = (options: Options<GetProbesByIdData>) => {
 
 /**
  * Update probe
- * Only an instance admin may do this: any other user and any API key get 403.
+ * Only an instance admin may do this: any other user and any API key get 403. A field left out stays as it is. is_default marks the probe as one that a monitor created without probe_ids runs on.
  */
 export const putProbesByIdMutation = (
   options?: Partial<Options<PutProbesByIdData>>

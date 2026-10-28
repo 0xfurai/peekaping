@@ -2,6 +2,21 @@
 
 import type { Options as ClientOptions, TDataShape, Client } from "./client";
 import type {
+  GetAdminUsersData,
+  GetAdminUsersResponses,
+  GetAdminUsersErrors,
+  DeleteAdminUsersByIdData,
+  DeleteAdminUsersByIdResponses,
+  DeleteAdminUsersByIdErrors,
+  PatchAdminUsersByIdData,
+  PatchAdminUsersByIdResponses,
+  PatchAdminUsersByIdErrors,
+  PostAdminUsersByIdDisable2FaData,
+  PostAdminUsersByIdDisable2FaResponses,
+  PostAdminUsersByIdDisable2FaErrors,
+  PostAdminUsersByIdResetLinkData,
+  PostAdminUsersByIdResetLinkResponses,
+  PostAdminUsersByIdResetLinkErrors,
   GetApiKeysData,
   GetApiKeysResponses,
   GetApiKeysErrors,
@@ -343,6 +358,133 @@ export type Options<
    * used to access values that aren't defined as part of the SDK function.
    */
   meta?: Record<string, unknown>;
+};
+
+/**
+ * List the users of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every user with their email, when they signed up and last signed in, whether their email is verified, whether they are an instance admin, whether they are disabled, whether they have 2FA on, and their workspaces with their role in each. q finds the users whose email contains it, ignoring case. The oldest user is first.
+ */
+export const getAdminUsers = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAdminUsersData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAdminUsersResponses,
+    GetAdminUsersErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users",
+    ...options,
+  });
+};
+
+/**
+ * Delete a user
+ * Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: the answer names the workspaces.
+ */
+export const deleteAdminUsersById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAdminUsersByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteAdminUsersByIdResponses,
+    DeleteAdminUsersByIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Change a user
+ * Only an instance admin may do this. instanceAdmin gives or takes the instance admin flag: the last instance admin can't lose it (409). active false disables the user: they can't sign in, their sessions end at once and their workspaces keep running; an admin can't disable themselves (409). active true enables them again. A field left out stays as it is.
+ */
+export const patchAdminUsersById = <ThrowOnError extends boolean = false>(
+  options: Options<PatchAdminUsersByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchAdminUsersByIdResponses,
+    PatchAdminUsersByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Turn off a user's 2FA
+ * Only an instance admin may do this. The user signs in with their password alone, and can set 2FA up again.
+ */
+export const postAdminUsersByIdDisable2Fa = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAdminUsersByIdDisable2FaData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAdminUsersByIdDisable2FaResponses,
+    PostAdminUsersByIdDisable2FaErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users/{id}/disable-2fa",
+    ...options,
+  });
+};
+
+/**
+ * Make a password reset link for a user
+ * Only an instance admin may do this. The answer holds a single-use link to the web app's reset page, once: copy it to the user. It works without a sender for account emails, expires in an hour, and ends all the user's sessions when it is used.
+ */
+export const postAdminUsersByIdResetLink = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAdminUsersByIdResetLinkData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAdminUsersByIdResetLinkResponses,
+    PostAdminUsersByIdResetLinkErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/users/{id}/reset-link",
+    ...options,
+  });
 };
 
 /**
@@ -1955,7 +2097,7 @@ export const getProbesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Update probe
- * Only an instance admin may do this: any other user and any API key get 403.
+ * Only an instance admin may do this: any other user and any API key get 403. A field left out stays as it is. is_default marks the probe as one that a monitor created without probe_ids runs on.
  */
 export const putProbesById = <ThrowOnError extends boolean = false>(
   options: Options<PutProbesByIdData, ThrowOnError>
