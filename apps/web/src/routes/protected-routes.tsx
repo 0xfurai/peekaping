@@ -1,6 +1,7 @@
 import { Route } from "react-router-dom";
 import { WorkspaceLayout } from "@/components/workspace-layout";
 import { RedirectToWorkspace } from "@/components/redirect-to-workspace";
+import { RedirectAfterLogin } from "@/components/redirect-after-login";
 import { WorkspaceHome } from "@/components/workspace-home";
 import { RequireInstanceAdmin } from "@/components/require-instance-admin";
 import MonitorsPage from "@/app/monitors/page";
@@ -79,7 +80,7 @@ export const protectedRoutes = [
   </Route>,
 
   // Signing in leaves the app on /login: go to the app's start
-  <Route path="/login" element={<RedirectToWorkspace path="/" />} />,
+  <Route path="/login" element={<RedirectAfterLogin />} />,
   <Route path="/register" element={<RedirectToWorkspace path="/" />} />,
 
   // Old addresses: /monitors/<id>, /settings, / ...

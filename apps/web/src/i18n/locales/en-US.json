@@ -136,6 +136,7 @@
     },
     "for_email": "This invite is for {{email}}.",
     "have_account": "Already have an account?",
+    "open_app": "Open Peekaping",
     "other_account": "You are signed in as {{current}}, but this invite is for {{invited}}. Sign out, then sign in or sign up with {{invited}} to accept it.",
     "sign_in_instead": "Sign in instead",
     "sign_out": "Sign out",
