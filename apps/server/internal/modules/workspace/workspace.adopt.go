@@ -40,29 +40,52 @@ func AdoptExistingInstall(ctx context.Context, q bun.IDB) (*Adoption, error) {
 		return nil, err
 	}
 
+	created, err := CreateFirst(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	owners, err := AdoptUsers(ctx, q, created.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &Adoption{Workspace: *created, Owners: owners}, nil
+}
+
+// CreateFirst adds the first workspace of an install, named FirstWorkspaceName, with no member. It
+// is for the code that fills a database with an install's data and needs the workspace before the
+// records that belong to it, such as the importer of a MongoDB install: that one adds the members
+// with AdoptUsers once it has copied the users.
+func CreateFirst(ctx context.Context, q bun.IDB) (*Workspace, error) {
 	now := time.Now().UTC()
 	sm := &sqlModel{ID: uuid.NewString(), Name: FirstWorkspaceName, CreatedAt: now, UpdatedAt: now}
 	if _, err := q.NewInsert().Model(sm).Exec(ctx); err != nil {
 		return nil, err
 	}
+	return sm.toDomain(), nil
+}
 
+// AdoptUsers makes every user of the install an owner of the workspace and an instance admin, and
+// returns how many users there are. A user who is a member already keeps their place.
+func AdoptUsers(ctx context.Context, q bun.IDB, id ID) (int, error) {
 	var userIDs []string
 	if err := q.NewSelect().Table("users").Column("id").Order("created_at", "id").Scan(ctx, &userIDs); err != nil {
-		return nil, err
+		return 0, err
 	}
-	if len(userIDs) > 0 {
-		members := make([]memberModel, len(userIDs))
-		for i, id := range userIDs {
-			members[i] = memberModel{WorkspaceID: sm.ID, UserID: id, Role: string(RoleOwner), JoinedAt: now}
-		}
-		if _, err := q.NewInsert().Model(&members).On("CONFLICT (workspace_id, user_id) DO NOTHING").Exec(ctx); err != nil {
-			return nil, err
-		}
-		if _, err := q.NewUpdate().Table("users").Set("instance_admin = ?", true).Where("TRUE").Exec(ctx); err != nil {
-			return nil, err
-		}
+	if len(userIDs) == 0 {
+		return 0, nil
 	}
-	return &Adoption{Workspace: *sm.toDomain(), Owners: len(userIDs)}, nil
+	now := time.Now().UTC()
+	members := make([]memberModel, len(userIDs))
+	for i, userID := range userIDs {
+		members[i] = memberModel{WorkspaceID: string(id), UserID: userID, Role: string(RoleOwner), JoinedAt: now}
+	}
+	if _, err := q.NewInsert().Model(&members).On("CONFLICT (workspace_id, user_id) DO NOTHING").Exec(ctx); err != nil {
+		return 0, err
+	}
+	if _, err := q.NewUpdate().Table("users").Set("instance_admin = ?", true).Where("TRUE").Exec(ctx); err != nil {
+		return 0, err
+	}
+	return len(userIDs), nil
 }
 
 func hasData(ctx context.Context, q bun.IDB) (bool, error) {

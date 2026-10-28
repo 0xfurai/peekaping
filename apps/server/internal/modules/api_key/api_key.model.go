@@ -2,29 +2,34 @@ package api_key
 
 import (
 	"time"
+
+	"peekaping/internal/modules/workspace"
 )
 
 // Model represents an API key in the domain
 type Model struct {
-	ID            string     `json:"id"`
-	Name          string     `json:"name"`
-	KeyHash       string     `json:"-"`           // Never expose the hash
-	DisplayKey    string     `json:"display_key"` // Masked key for display (e.g. "pk_1234...5678")
-	LastUsed      *time.Time `json:"last_used"`
-	ExpiresAt     *time.Time `json:"expires_at"`
-	UsageCount    int64      `json:"usage_count"`
-	MaxUsageCount *int64     `json:"max_usage_count"`
-	CreatedAt     time.Time  `json:"created_at"`
-	UpdatedAt     time.Time  `json:"updated_at"`
+	ID string `json:"id"`
+	// WorkspaceID is the workspace the key belongs to and runs in
+	WorkspaceID   workspace.ID `json:"-"`
+	Name          string       `json:"name"`
+	KeyHash       string       `json:"-"`           // Never expose the hash
+	DisplayKey    string       `json:"display_key"` // Masked key for display (e.g. "pk_1234...5678")
+	LastUsed      *time.Time   `json:"last_used"`
+	ExpiresAt     *time.Time   `json:"expires_at"`
+	UsageCount    int64        `json:"usage_count"`
+	MaxUsageCount *int64       `json:"max_usage_count"`
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at"`
 }
 
 // CreateModel represents data needed to create an API key
 type CreateModel struct {
-	Name          string     `json:"name"`
-	KeyHash       string     `json:"-"` // Can be empty on initial create
-	DisplayKey    string     `json:"-"` // Can be empty on initial create
-	ExpiresAt     *time.Time `json:"expires_at,omitempty"`
-	MaxUsageCount *int64     `json:"max_usage_count,omitempty"`
+	WorkspaceID   workspace.ID `json:"-"`
+	Name          string       `json:"name"`
+	KeyHash       string       `json:"-"` // Can be empty on initial create
+	DisplayKey    string       `json:"-"` // Can be empty on initial create
+	ExpiresAt     *time.Time   `json:"expires_at,omitempty"`
+	MaxUsageCount *int64       `json:"max_usage_count,omitempty"`
 }
 
 // UpdateModel represents data that can be updated for an API key

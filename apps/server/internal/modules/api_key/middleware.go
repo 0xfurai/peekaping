@@ -49,6 +49,9 @@ func (p *MiddlewareProvider) Auth() httpx.Middleware {
 
 			// Set API key information in the context
 			r = httpx.WithValue(r, "apiKeyId", apiKey.ID)
+			// The key belongs to one workspace and runs in it. The workspace middleware that follows
+			// resolves the request's workspace from this.
+			r = httpx.WithValue(r, "apiKeyWorkspaceId", apiKey.WorkspaceID)
 			r = httpx.WithValue(r, "authType", "api_key")
 
 			next.ServeHTTP(w, r)

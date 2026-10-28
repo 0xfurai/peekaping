@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/api_key"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -70,6 +71,16 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, db *bun.DB)) {
 	}
 }
 
+// newWorkspace adds a workspace to the database, which an API key must belong to, and returns a
+// context for an admin of it
+func newWorkspace(t *testing.T, db *bun.DB) (workspace.ID, context.Context) {
+	t.Helper()
+	id := workspace.ID(uuid.NewString())
+	_, err := db.Exec("INSERT INTO workspaces (id, name) VALUES (?, 'Test')", string(id))
+	require.NoError(t, err)
+	return id, workspace.WithContext(context.Background(), id, workspace.RoleAdmin)
+}
+
 // concurrently runs fn n times at once and returns how many of the calls returned true.
 func concurrently(n int, fn func() bool) int {
 	var accepted atomic.Int32
@@ -94,7 +105,7 @@ func concurrently(n int, fn func() bool) int {
 // many requests arrive at once.
 func TestService_ValidateKey_NeverAcceptsAKeyMoreOftenThanItsLimit(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, db *bun.DB) {
-		ctx := context.Background()
+		workspaceID, ctx := newWorkspace(t, db)
 		const limit, requests = 5, 20
 		svc := api_key.NewService(api_key.NewSQLRepository(db), zap.NewNop().Sugar())
 		maxUsage := int64(limit)
@@ -107,7 +118,7 @@ func TestService_ValidateKey_NeverAcceptsAKeyMoreOftenThanItsLimit(t *testing.T)
 		})
 
 		assert.Equal(t, limit, accepted)
-		stored, err := svc.FindByID(ctx, created.ID)
+		stored, err := svc.FindByID(ctx, workspaceID, created.ID)
 		require.NoError(t, err)
 		assert.EqualValues(t, limit, stored.UsageCount)
 	})
@@ -115,10 +126,10 @@ func TestService_ValidateKey_NeverAcceptsAKeyMoreOftenThanItsLimit(t *testing.T)
 
 func TestRepository_ConsumeUsage(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, db *bun.DB) {
-		ctx := context.Background()
+		workspaceID, ctx := newWorkspace(t, db)
 		repo := api_key.NewSQLRepository(db)
 		newKey := func(maxUsage *int64) string {
-			created, err := repo.Create(ctx, &api_key.CreateModel{Name: "Key", KeyHash: "sha256$", DisplayKey: "pk_key...", MaxUsageCount: maxUsage})
+			created, err := repo.Create(ctx, &api_key.CreateModel{WorkspaceID: workspaceID, Name: "Key", KeyHash: "sha256$", DisplayKey: "pk_key...", MaxUsageCount: maxUsage})
 			require.NoError(t, err)
 			return created.ID
 		}
@@ -136,7 +147,7 @@ func TestRepository_ConsumeUsage(t *testing.T) {
 			assert.True(t, consume(id))
 			assert.False(t, consume(id), "the limit is reached")
 
-			stored, err := repo.FindByID(ctx, id)
+			stored, err := repo.FindByID(ctx, workspaceID, id)
 			require.NoError(t, err)
 			assert.EqualValues(t, 2, stored.UsageCount)
 			assert.NotNil(t, stored.LastUsed)
@@ -149,7 +160,7 @@ func TestRepository_ConsumeUsage(t *testing.T) {
 				assert.True(t, consume(id))
 			}
 
-			stored, err := repo.FindByID(ctx, id)
+			stored, err := repo.FindByID(ctx, workspaceID, id)
 			require.NoError(t, err)
 			assert.EqualValues(t, 3, stored.UsageCount)
 		})
@@ -168,7 +179,7 @@ func TestRepository_ConsumeUsage(t *testing.T) {
 			})
 
 			assert.Equal(t, 5, consumed)
-			stored, err := repo.FindByID(ctx, id)
+			stored, err := repo.FindByID(ctx, workspaceID, id)
 			require.NoError(t, err)
 			assert.EqualValues(t, 5, stored.UsageCount)
 		})
