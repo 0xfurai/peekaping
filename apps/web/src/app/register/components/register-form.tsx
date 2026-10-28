@@ -41,6 +41,8 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
+import { TurnstileWidget } from "@/components/turnstile-widget";
+import { canSubmitRegister, registerBody, registerFailureKey } from "@/lib/signup";
 
 const createRegisterSchema = (t: (key: string) => string) => z
   .object({
@@ -57,12 +59,42 @@ const createRegisterSchema = (t: (key: string) => string) => z
 
 type RegisterFormValues = z.infer<ReturnType<typeof createRegisterSchema>>;
 
+// The answer to a failed signup. When the address has an account, a link to sign in follows it.
+export function RegisterErrorAlert({ message, signInLink }: { message: string; signInLink: boolean }) {
+  const { t } = useLocalizedTranslation();
+  return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>{t("common.error")}</AlertTitle>
+      <AlertDescription>
+        {message}
+        {signInLink && (
+          <>
+            {" "}
+            <Link to="/login" className="font-medium underline">
+              {t("auth.register.errors.sign_in_instead")}
+            </Link>
+          </>
+        )}
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export function RegisterForm({
   className,
+  turnstileSiteKey,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & {
+  // The key of the Turnstile widget the install asks for, or null without one
+  turnstileSiteKey?: string | null;
+}) {
   const { t } = useLocalizedTranslation();
   const [serverError, setServerError] = React.useState<string | null>(null);
+  // A signup the visitor can fix by signing in gets a link beside its message
+  const [emailTaken, setEmailTaken] = React.useState(false);
+  const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null);
+  const [turnstileReset, setTurnstileReset] = React.useState(0);
   const setTokens = useAuthStore(
     (state: {
       setTokens: (accessToken: string, refreshToken: string) => void;
@@ -119,7 +151,18 @@ export function RegisterForm({
       }
     },
     onError: (error) => {
-      if (isAxiosError(error)) {
+      // A token is good for one check, so a refused signup needs a new one
+      if (turnstileSiteKey) {
+        setTurnstileToken(null);
+        setTurnstileReset((n) => n + 1);
+      }
+      const failureKey = registerFailureKey(error);
+      if (failureKey) {
+        const errorMessage = t(failureKey);
+        setServerError(errorMessage);
+        setEmailTaken(failureKey === "auth.register.errors.email_taken");
+        toast.error(errorMessage);
+      } else if (isAxiosError(error)) {
         const errorMessage =
           error.response?.data.message ||
           t("messages.register_error");
@@ -146,8 +189,9 @@ export function RegisterForm({
 
   function onSubmit(data: RegisterFormValues) {
     setServerError(null);
+    setEmailTaken(false);
     registerMutation.mutate({
-      body: data,
+      body: registerBody(data, turnstileSiteKey ? turnstileToken : null),
     });
   }
 
@@ -249,15 +293,21 @@ export function RegisterForm({
                 </p>
               </div>
 
-              {serverError && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>{t("common.error")}</AlertTitle>
-                  <AlertDescription>{serverError}</AlertDescription>
-                </Alert>
+              {turnstileSiteKey && (
+                <TurnstileWidget
+                  siteKey={turnstileSiteKey}
+                  onToken={setTurnstileToken}
+                  resetKey={turnstileReset}
+                />
               )}
 
-              <Button type="submit" className="w-full">
+              {serverError && <RegisterErrorAlert message={serverError} signInLink={emailTaken} />}
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={!canSubmitRegister(turnstileSiteKey, turnstileToken)}
+              >
                 {t("auth.register.submit")}
               </Button>
 

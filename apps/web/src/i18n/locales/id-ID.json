@@ -10,7 +10,8 @@
       "sign_up": "Daftar",
       "submit": "Masuk",
       "title": "Selamat datang kembali",
-      "forgot_password": "Lupa kata sandi?"
+      "forgot_password": "Lupa kata sandi?",
+      "ask_admin": "Minta undangan dari admin instalasi ini"
     },
     "register": {
       "description": "Buat akun admin Anda",
@@ -19,7 +20,13 @@
       "submit": "Buat",
       "title": "Halo",
       "telemetry_note": "Anonim: tanpa nama pengawasan, URL, atau host. Anda dapat mengubahnya nanti di “Pengaturan”.",
-      "telemetry_whats_sent": "Apa yang dikirim"
+      "telemetry_whats_sent": "Apa yang dikirim",
+      "errors": {
+        "rate_limited": "Terlalu banyak pendaftaran dari jaringan Anda. Coba lagi dalam satu jam.",
+        "email_taken": "Sudah ada akun dengan email ini.",
+        "sign_in_instead": "Masuk saja.",
+        "check_failed": "Pemeriksaan tidak lolos. Coba lagi."
+      }
     },
     "twofa": {
       "code_label": "Kode 2FA",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Verifikasi email Anda: kami telah mengirim tautan ke {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Monitor Anda mulai berjalan setelah Anda memverifikasi email."
     }
   },
   "bars": {

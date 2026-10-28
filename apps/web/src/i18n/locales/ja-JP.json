@@ -10,7 +10,8 @@
       "sign_up": "サインアップ",
       "submit": "ログイン",
       "title": "お帰りなさい",
-      "forgot_password": "パスワードをお忘れですか?"
+      "forgot_password": "パスワードをお忘れですか?",
+      "ask_admin": "このインストールの管理者に招待を依頼してください"
     },
     "register": {
       "description": "管理者アカウントを作成",
@@ -19,7 +20,13 @@
       "submit": "登録",
       "title": "こんにちは",
       "telemetry_note": "匿名：モニター名、URL、ホストは含まれません。あとで「設定」から変更できます。",
-      "telemetry_whats_sent": "送信される内容"
+      "telemetry_whats_sent": "送信される内容",
+      "errors": {
+        "rate_limited": "お使いのネットワークからのサインアップが多すぎます。1時間後にもう一度お試しください。",
+        "email_taken": "このメールアドレスのアカウントはすでにあります。",
+        "sign_in_instead": "代わりにサインインしてください。",
+        "check_failed": "チェックに通りませんでした。もう一度お試しください。"
+      }
     },
     "twofa": {
       "code_label": "2FAコード",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "メールアドレスを確認してください。{{email}} にリンクを送信しました。"
+    },
+    "suspension_notice": {
+      "message": "メールアドレスを確認すると、モニターが開始されます。"
     }
   },
   "bars": {

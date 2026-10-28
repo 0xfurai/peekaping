@@ -10,7 +10,8 @@
       "sign_up": "Đăng ký",
       "submit": "Đăng nhập",
       "title": "Chào mừng trở lại",
-      "forgot_password": "Quên mật khẩu?"
+      "forgot_password": "Quên mật khẩu?",
+      "ask_admin": "Hãy nhờ quản trị viên của bản cài đặt này gửi lời mời"
     },
     "register": {
       "description": "Tạo tài khoản quản trị của bạn",
@@ -19,7 +20,13 @@
       "submit": "Tạo",
       "title": "Xin chào",
       "telemetry_note": "Ẩn danh: không có tên giám sát, URL hay máy chủ. Bạn có thể đổi lại sau trong “Cài đặt”.",
-      "telemetry_whats_sent": "Những gì được gửi"
+      "telemetry_whats_sent": "Những gì được gửi",
+      "errors": {
+        "rate_limited": "Có quá nhiều lượt đăng ký từ mạng của bạn. Hãy thử lại sau một giờ.",
+        "email_taken": "Đã có tài khoản dùng email này.",
+        "sign_in_instead": "Hãy đăng nhập.",
+        "check_failed": "Kiểm tra không thành công. Hãy thử lại."
+      }
     },
     "twofa": {
       "code_label": "Mã 2FA",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Xác minh email của bạn: chúng tôi đã gửi một liên kết đến {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Các monitor của bạn sẽ bắt đầu chạy khi bạn xác minh email."
     }
   },
   "bars": {

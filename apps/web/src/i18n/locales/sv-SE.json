@@ -10,7 +10,8 @@
       "sign_up": "Registrera dig",
       "submit": "Logga in",
       "title": "Välkommen tillbaka",
-      "forgot_password": "Glömt lösenordet?"
+      "forgot_password": "Glömt lösenordet?",
+      "ask_admin": "Be en administratör för den här installationen om en inbjudan"
     },
     "register": {
       "description": "Skapa ditt administratörskonto",
@@ -19,7 +20,13 @@
       "submit": "Skapa",
       "title": "Hej",
       "telemetry_note": "Anonymt: inga namn på övervakningar, webbadresser eller värdar. Du kan ändra det senare under ”Inställningar”.",
-      "telemetry_whats_sent": "Vad som skickas"
+      "telemetry_whats_sent": "Vad som skickas",
+      "errors": {
+        "rate_limited": "För många registreringar från ditt nätverk. Försök igen om en timme.",
+        "email_taken": "Det finns redan ett konto med den här e-postadressen.",
+        "sign_in_instead": "Logga in i stället.",
+        "check_failed": "Kontrollen godkändes inte. Försök igen."
+      }
     },
     "twofa": {
       "code_label": "2FA-kod",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Verifiera din e-postadress: vi har skickat en länk till {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Dina övervakare startar när du har verifierat din e-postadress."
     }
   },
   "bars": {

@@ -10,7 +10,8 @@
       "sign_up": "Tilmeld dig",
       "submit": "Log ind",
       "title": "Velkommen tilbage",
-      "forgot_password": "Glemt adgangskode?"
+      "forgot_password": "Glemt adgangskode?",
+      "ask_admin": "Bed en administrator af denne installation om en invitation"
     },
     "register": {
       "description": "Opret din admin-konto",
@@ -19,7 +20,13 @@
       "submit": "Opret",
       "title": "Hej",
       "telemetry_note": "Anonymt: ingen navne på monitorer, URL'er eller værter. Du kan ændre det senere under “Indstillinger”.",
-      "telemetry_whats_sent": "Hvad der sendes"
+      "telemetry_whats_sent": "Hvad der sendes",
+      "errors": {
+        "rate_limited": "For mange tilmeldinger fra dit netværk. Prøv igen om en time.",
+        "email_taken": "Der findes allerede en konto med denne e-mail.",
+        "sign_in_instead": "Log ind i stedet.",
+        "check_failed": "Kontrollen blev ikke bestået. Prøv igen."
+      }
     },
     "twofa": {
       "code_label": "2FA-kode",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Bekræft din e-mail: vi har sendt et link til {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Dine monitorer starter, når du har bekræftet din e-mail."
     }
   },
   "bars": {

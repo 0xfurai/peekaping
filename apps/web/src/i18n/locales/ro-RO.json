@@ -10,7 +10,8 @@
       "sign_up": "Înregistrează-te",
       "submit": "Conectare",
       "title": "Bine ai revenit",
-      "forgot_password": "Ai uitat parola?"
+      "forgot_password": "Ai uitat parola?",
+      "ask_admin": "Cereți o invitație unui administrator al acestei instalări"
     },
     "register": {
       "description": "Creați contul de admin",
@@ -19,7 +20,13 @@
       "submit": "Creează",
       "title": "Salut",
       "telemetry_note": "Anonim: fără numele monitoarelor, URL-uri sau gazde. Îl puteți schimba mai târziu în „Setări”.",
-      "telemetry_whats_sent": "Ce se trimite"
+      "telemetry_whats_sent": "Ce se trimite",
+      "errors": {
+        "rate_limited": "Prea multe înregistrări din rețeaua dvs. Încercați din nou peste o oră.",
+        "email_taken": "Există deja un cont cu acest e-mail.",
+        "sign_in_instead": "Autentificați-vă în schimb.",
+        "check_failed": "Verificarea nu a trecut. Încercați din nou."
+      }
     },
     "twofa": {
       "code_label": "Cod 2FA",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Verifică-ți e-mailul: am trimis un link la {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Monitoarele dvs. pornesc după ce vă verificați e-mailul."
     }
   },
   "bars": {

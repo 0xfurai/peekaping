@@ -10,7 +10,8 @@
       "sign_up": "注册",
       "submit": "登录",
       "title": "欢迎回来",
-      "forgot_password": "忘记密码?"
+      "forgot_password": "忘记密码?",
+      "ask_admin": "请向此安装的管理员索取邀请"
     },
     "register": {
       "description": "创建您的管理员账户",
@@ -19,7 +20,13 @@
       "submit": "创建",
       "title": "你好",
       "telemetry_note": "匿名：不含监控名称、URL 或主机。你以后可以在“设置”中更改。",
-      "telemetry_whats_sent": "会发送什么"
+      "telemetry_whats_sent": "会发送什么",
+      "errors": {
+        "rate_limited": "你所在网络的注册次数过多。请一小时后再试。",
+        "email_taken": "使用此邮箱的账户已存在。",
+        "sign_in_instead": "请改为登录。",
+        "check_failed": "验证未通过。请重试。"
+      }
     },
     "twofa": {
       "code_label": "两步验证码",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "请验证你的邮箱:我们已向 {{email}} 发送了链接。"
+    },
+    "suspension_notice": {
+      "message": "验证邮箱后，你的监控项才会开始运行。"
     }
   },
   "bars": {

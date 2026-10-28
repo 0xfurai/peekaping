@@ -10,7 +10,8 @@
       "sign_up": "Zarejestruj się",
       "submit": "Zaloguj",
       "title": "Witaj ponownie",
-      "forgot_password": "Nie pamiętasz hasła?"
+      "forgot_password": "Nie pamiętasz hasła?",
+      "ask_admin": "Poproś o zaproszenie administratora tej instalacji"
     },
     "register": {
       "description": "Utwórz swoje konto administratora",
@@ -19,7 +20,13 @@
       "submit": "Utwórz",
       "title": "Cześć",
       "telemetry_note": "Anonimowo: bez nazw monitorów, adresów URL i hostów. Możesz to później zmienić w sekcji „Ustawienia”.",
-      "telemetry_whats_sent": "Co jest wysyłane"
+      "telemetry_whats_sent": "Co jest wysyłane",
+      "errors": {
+        "rate_limited": "Zbyt wiele rejestracji z Twojej sieci. Spróbuj ponownie za godzinę.",
+        "email_taken": "Konto z tym adresem e-mail już istnieje.",
+        "sign_in_instead": "Zaloguj się zamiast tego.",
+        "check_failed": "Weryfikacja nie powiodła się. Spróbuj ponownie."
+      }
     },
     "twofa": {
       "code_label": "Kod 2FA",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Zweryfikuj swój e-mail: wysłaliśmy link na adres {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Twoje monitory ruszą po zweryfikowaniu adresu e-mail."
     }
   },
   "bars": {

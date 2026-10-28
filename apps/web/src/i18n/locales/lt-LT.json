@@ -10,7 +10,8 @@
       "sign_up": "Registruotis",
       "submit": "Prisijungti",
       "title": "Sveiki atvykę",
-      "forgot_password": "Pamiršote slaptažodį?"
+      "forgot_password": "Pamiršote slaptažodį?",
+      "ask_admin": "Paprašykite šio diegimo administratoriaus kvietimo"
     },
     "register": {
       "description": "Sukurkite savo administratoriaus paskyrą",
@@ -19,7 +20,13 @@
       "submit": "Sukurti",
       "title": "Sveiki",
       "telemetry_note": "Anonimiškai: be monitorių pavadinimų, URL ar serverių. Vėliau tai galite pakeisti skiltyje „Nustatymai“.",
-      "telemetry_whats_sent": "Kas siunčiama"
+      "telemetry_whats_sent": "Kas siunčiama",
+      "errors": {
+        "rate_limited": "Per daug registracijų iš jūsų tinklo. Bandykite dar kartą po valandos.",
+        "email_taken": "Paskyra su šiuo el. pašto adresu jau yra.",
+        "sign_in_instead": "Geriau prisijunkite.",
+        "check_failed": "Patikra neįveikta. Bandykite dar kartą."
+      }
     },
     "twofa": {
       "code_label": "2FA kodas",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Patvirtinkite el. paštą: nuorodą išsiuntėme adresu {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Jūsų stebėjimai pradės veikti, kai patvirtinsite el. pašto adresą."
     }
   },
   "bars": {
