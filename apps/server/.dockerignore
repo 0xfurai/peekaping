@@ -3,7 +3,6 @@ Dockerfile
 .env
 .git
 .gitignore
-.turbo
 .vscode
 templates
 .asdfc
