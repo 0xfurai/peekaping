@@ -28,7 +28,7 @@ import { AxiosError } from "axios";
 import type {
   Options,
   PostMonitorsData,
-  HttpxErrorBody,
+  PostMonitorsError,
   PutMonitorsByIdResponse,
   PutMonitorsByIdError,
   PutMonitorsByIdData,
@@ -58,7 +58,7 @@ interface MonitorFormContextType {
   isPending: boolean;
   createMonitorMutation: UseMutationResult<
     UtilsApiResponseMonitorMonitorResponseDto,
-    AxiosError<HttpxErrorBody, unknown>,
+    AxiosError<PostMonitorsError, unknown>,
     Options<PostMonitorsData>,
     unknown
   >;
