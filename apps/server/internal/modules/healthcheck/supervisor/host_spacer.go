@@ -49,6 +49,14 @@ func NewHostSpacer(perMinute int) *HostSpacer {
 	return newHostSpacer(perMinute, time.Now)
 }
 
+// NewHostSpacerWithClock is NewHostSpacer over the given clock and wait, for tests of the code that
+// calls the supervisor
+func NewHostSpacerWithClock(perMinute int, now func() time.Time, sleep func(ctx context.Context, d time.Duration) error) *HostSpacer {
+	s := newHostSpacer(perMinute, now)
+	s.sleep = sleep
+	return s
+}
+
 func newHostSpacer(perMinute int, now func() time.Time) *HostSpacer {
 	s := &HostSpacer{
 		now:      now,

@@ -54,6 +54,12 @@ func (s *HealthCheckSupervisor) HandleMonitorTick(
 		}
 	}
 
+	// With CHECKS_PER_HOST_PER_MINUTE set, the check waits for its turn on its target hosts, or
+	// skips this tick. The wait comes before the check's own timeout starts.
+	if !s.waitForHostTurn(ctx, m) {
+		return nil
+	}
+
 	callCtx, cCancel := context.WithTimeout(
 		ctx,
 		time.Duration(m.Timeout)*time.Second,
@@ -74,6 +80,50 @@ func (s *HealthCheckSupervisor) HandleMonitorTick(
 		PingMs:             ping,
 		IsUnderMaintenance: false,
 	}
+}
+
+// maxHostWait is the longest a check waits for its turn on a host
+const maxHostWait = 5 * time.Second
+
+// waitForHostTurn takes the monitor's turn on each host its check dials, and waits for it. It reports
+// false when the check must not run: its turn is further away than it may wait (a quarter of its
+// interval, at most maxHostWait), or it was cancelled while it waited. A skipped tick holds no check
+// slot, makes no heartbeat and takes no turn, so the monitor is checked again on its next tick. A
+// monitor that dials no host, a push monitor among them, is never limited.
+func (s *HealthCheckSupervisor) waitForHostTurn(ctx context.Context, m *shared.Monitor) bool {
+	if !s.spacer.Enabled() {
+		return true
+	}
+	hosts := s.execRegistry.Targets(m.Type, m.Config)
+	if len(hosts) == 0 {
+		return true
+	}
+
+	maxWait := maxHostWait
+	if m.Interval > 0 {
+		maxWait = min(maxWait, time.Duration(m.Interval)*time.Second/4)
+	}
+	turn := s.spacer.Reserve(hosts, maxWait)
+	if turn.Denied {
+		s.logger.Debugw("Check skipped: its target host is at the checks-per-host limit",
+			"monitor_id", m.ID,
+			"monitor_type", m.Type,
+			"host", turn.Host,
+			"checks_per_host_per_minute", s.spacer.PerMinute())
+		if turn.ReportSkipped > 0 {
+			s.logger.Infow("Checks skipped: their target host is at the CHECKS_PER_HOST_PER_MINUTE limit",
+				"host", turn.Host,
+				"skipped", turn.ReportSkipped,
+				"checks_per_host_per_minute", s.spacer.PerMinute())
+		}
+		return false
+	}
+	if err := s.spacer.Wait(ctx, turn); err != nil {
+		s.logger.Debugw("Check cancelled while it waited for its turn on its target host",
+			"monitor_id", m.ID, "error", err)
+		return false
+	}
+	return true
 }
 
 // ExecutorGrace is how long an executor may keep running after the check
