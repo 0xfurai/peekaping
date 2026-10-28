@@ -28,6 +28,12 @@ import type {
   PostAuth2FaVerifyData,
   PostAuth2FaVerifyResponses,
   PostAuth2FaVerifyErrors,
+  GetAuthConfigData,
+  GetAuthConfigResponses,
+  GetAuthConfigErrors,
+  PostAuthForgotPasswordData,
+  PostAuthForgotPasswordResponses,
+  PostAuthForgotPasswordErrors,
   PostAuthLoginData,
   PostAuthLoginResponses,
   PostAuthLoginErrors,
@@ -40,6 +46,15 @@ import type {
   PostAuthRegisterData,
   PostAuthRegisterResponses,
   PostAuthRegisterErrors,
+  PostAuthResetPasswordData,
+  PostAuthResetPasswordResponses,
+  PostAuthResetPasswordErrors,
+  PostAuthVerifyEmailData,
+  PostAuthVerifyEmailResponses,
+  PostAuthVerifyEmailErrors,
+  PostAuthVerifyEmailResendData,
+  PostAuthVerifyEmailResendResponses,
+  PostAuthVerifyEmailResendErrors,
   GetBadgeByMonitorIdCertExpData,
   GetBadgeByMonitorIdCertExpResponses,
   GetBadgeByMonitorIdCertExpErrors,
@@ -551,6 +566,46 @@ export const postAuth2FaVerify = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Get the install's account email setting
+ * Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them.
+ */
+export const getAuthConfig = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAuthConfigData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAuthConfigResponses,
+    GetAuthConfigErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/auth/config",
+    ...options,
+  });
+};
+
+/**
+ * Ask for a password reset link
+ * Emails a single-use link that resets the password and expires in one hour, if an account has the email. The answer is 202 with the same body whether it does or not, so it does not tell which addresses have accounts. At most 5 emails per hour go to one address (the request is answered the same and sends nothing past that), and a client address that asks more than 20 times an hour gets 429. 404 when the install sends no account emails.
+ */
+export const postAuthForgotPassword = <ThrowOnError extends boolean = false>(
+  options: Options<PostAuthForgotPasswordData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAuthForgotPasswordResponses,
+    PostAuthForgotPasswordErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/auth/forgot-password",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
  * Login admin
  */
 export const postAuthLogin = <ThrowOnError extends boolean = false>(
@@ -600,6 +655,7 @@ export const putAuthPassword = <ThrowOnError extends boolean = false>(
 
 /**
  * Refresh access token
+ * Refuses a refresh token issued before the user's last password change or password reset.
  */
 export const postAuthRefresh = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthRefreshData, ThrowOnError>
@@ -638,6 +694,74 @@ export const postAuthRegister = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options.headers,
     },
+  });
+};
+
+/**
+ * Reset the password with a reset link's token
+ * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400.
+ */
+export const postAuthResetPassword = <ThrowOnError extends boolean = false>(
+  options: Options<PostAuthResetPasswordData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAuthResetPasswordResponses,
+    PostAuthResetPasswordErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/auth/reset-password",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Verify an email address with a verification link's token
+ * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400.
+ */
+export const postAuthVerifyEmail = <ThrowOnError extends boolean = false>(
+  options: Options<PostAuthVerifyEmailData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAuthVerifyEmailResponses,
+    PostAuthVerifyEmailErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/auth/verify-email",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Send the verification link again
+ * Emails the signed-in user a new verification link; the earlier ones stop working. 409 when the address is verified already, 404 when the install sends no account emails, and 429 past 5 requests per hour for the address or 20 per client address.
+ */
+export const postAuthVerifyEmailResend = <ThrowOnError extends boolean = false>(
+  options?: Options<PostAuthVerifyEmailResendData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    PostAuthVerifyEmailResendResponses,
+    PostAuthVerifyEmailResendErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/auth/verify-email/resend",
+    ...options,
   });
 };
 
@@ -2732,7 +2856,7 @@ export const getWorkspaceInvites = <ThrowOnError extends boolean = false>(
 
 /**
  * Invite someone to the workspace
- * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. Nothing is emailed: copy the link to the person you invite. An earlier invite for the same email is revoked.
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked.
  */
 export const postWorkspaceInvites = <ThrowOnError extends boolean = false>(
   options: Options<PostWorkspaceInvitesData, ThrowOnError>
