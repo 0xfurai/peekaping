@@ -2,6 +2,7 @@ package workspace_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -221,4 +222,95 @@ func TestMigrations_ATagNameTwoWorkspacesShareStopsTheRollbackWithoutChangingAny
 		require.NoError(t, db.NewSelect().Table("tags").ColumnExpr("COUNT(*)").Scan(ctx, &count))
 		assert.Equal(t, 2, count)
 	})
+}
+
+// replaceTagsTable swaps the tags table, which is empty, for one with the name column as column
+// says and the unique rule on it written as unique says. The upgrade has to find the rule in the schema and not in the way the DDL spells it.
+func replaceTagsTable(t *testing.T, db *bun.DB, name, unique string) {
+	t.Helper()
+	_, err := db.Exec("DROP TABLE tags")
+	require.NoError(t, err)
+	_, err = db.Exec(`CREATE TABLE tags (
+		id UUID PRIMARY KEY,
+		` + name + `,
+		color VARCHAR(7) NOT NULL DEFAULT '#3B82F6',
+		description TEXT,
+		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE` + unique + `)`)
+	require.NoError(t, err)
+}
+
+func TestMigrations_TagNamesPerWorkspaceWhateverWayTheOldUniqueRuleIsWritten(t *testing.T) {
+	for name, table := range map[string]struct{ column, unique string }{
+		"a table constraint":                 {"name VARCHAR(100) NOT NULL", ", UNIQUE (name)"},
+		"a quoted table constraint":          {`"name" VARCHAR(100) NOT NULL`, `, CONSTRAINT tags_name_unique UNIQUE ("name")`},
+		"the column rule after NOT NULL":     {"name VARCHAR(100) NOT NULL UNIQUE", ""},
+		"the column rule on another type":    {"name TEXT UNIQUE NOT NULL", ""},
+		"the column rule on a lower case id": {"name varchar(100) unique not null", ""},
+	} {
+		t.Run(name, func(t *testing.T) {
+			db := sqliteDB(t)
+			ctx := context.Background()
+			upgrade := migratedBefore(t, db, tagNamesPerWorkspaceMigrat)
+			replaceTagsTable(t, db, table.column, table.unique)
+			first, second := uuid.NewString(), uuid.NewString()
+			for _, id := range []string{first, second} {
+				_, err := db.Exec("INSERT INTO workspaces (id, name) VALUES (?, ?)", id, id)
+				require.NoError(t, err)
+			}
+			require.NoError(t, insertTag(db, first, "production"))
+
+			_, err := upgrade.Migrate(ctx)
+			require.NoError(t, err)
+
+			require.NoError(t, insertTag(db, second, "production"), "another workspace may have the same name")
+			assert.Error(t, insertTag(db, first, "production"), "the same workspace may not")
+		})
+	}
+}
+
+func TestMigrations_ARuleOnTheTagNameAloneThatTheUpgradeCannotRemoveStopsIt(t *testing.T) {
+	db := sqliteDB(t)
+	ctx := context.Background()
+	upgrade := migratedBefore(t, db, tagNamesPerWorkspaceMigrat)
+	_, err := db.Exec("CREATE UNIQUE INDEX idx_tags_name_only ON tags (name)")
+	require.NoError(t, err)
+
+	_, err = upgrade.Migrate(ctx)
+
+	require.Error(t, err, "the install keeps a rule the migration was to remove, and says so")
+	assert.Contains(t, err.Error(), "tags")
+	assert.False(t, indexExists(t, db, "idx_tags_workspace_name"), "and nothing is changed")
+	assert.True(t, indexExists(t, db, "idx_tags_name_only"))
+}
+
+func TestMigrations_TagNamesPerWorkspaceWhateverTheOldPostgresConstraintIsCalled(t *testing.T) {
+	for name, setup := range map[string]string{
+		"a renamed constraint": "ALTER TABLE tags RENAME CONSTRAINT tags_name_key TO tags_name_renamed",
+		"a unique index and no constraint": "ALTER TABLE tags DROP CONSTRAINT tags_name_key; " +
+			"CREATE UNIQUE INDEX tags_name_only ON tags (name)",
+	} {
+		t.Run(name, func(t *testing.T) {
+			db := postgresDB(t)
+			ctx := context.Background()
+			upgrade := migratedBefore(t, db, tagNamesPerWorkspaceMigrat)
+			for _, statement := range strings.Split(setup, "; ") {
+				_, err := db.Exec(statement)
+				require.NoError(t, err)
+			}
+			first, second := uuid.NewString(), uuid.NewString()
+			for _, id := range []string{first, second} {
+				_, err := db.Exec("INSERT INTO workspaces (id, name) VALUES (?, ?)", id, id)
+				require.NoError(t, err)
+			}
+			require.NoError(t, insertTag(db, first, "production"))
+
+			_, err := upgrade.Migrate(ctx)
+			require.NoError(t, err)
+
+			require.NoError(t, insertTag(db, second, "production"), "another workspace may have the same name")
+			assert.Error(t, insertTag(db, first, "production"), "the same workspace may not")
+		})
+	}
 }
