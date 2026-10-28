@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/ratelimit"
 	"peekaping/internal/utils"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -56,9 +58,67 @@ func (ac *AuthChain) inWorkspace(authenticate httpx.Middleware) httpx.Middleware
 			if !ok {
 				return
 			}
+			if !ac.withinAPIRateLimits(w, r, id) {
+				return
+			}
 			next.ServeHTTP(w, r.WithContext(workspace.WithContext(r.Context(), id, role)))
 		}))
 	}
+}
+
+// MARK: API rate limits
+
+// tooManyRequestsMessage is the message of the 429 for a workspace or API key over its limit
+const tooManyRequestsMessage = "Too many requests, try again later"
+
+// WithAPIRateLimits turns on the limits on the requests that run in a workspace (PP-159):
+// perWorkspace requests in the window for a workspace, whoever makes them, and perAPIKey for one
+// API key. A limit of 0 is off, and the window is a minute when it is 0. It returns the chain for
+// chaining.
+//
+// A request is counted after it is authenticated and its workspace is resolved, so only the routes
+// of WorkspaceAuth and WorkspaceJWTAuth are: /me, /auth/*, /admin/*, creating a workspace and
+// accepting an invite run in no workspace and are never counted. A request that fails
+// authentication is not counted either. The counts live in this process (see package ratelimit).
+func (ac *AuthChain) WithAPIRateLimits(perWorkspace, perAPIKey int, window time.Duration) *AuthChain {
+	if window <= 0 {
+		window = time.Minute
+	}
+	ac.workspaceLimit, ac.apiKeyLimit = nil, nil
+	if perWorkspace > 0 {
+		ac.workspaceLimit = ratelimit.New(perWorkspace, window)
+	}
+	if perAPIKey > 0 {
+		ac.apiKeyLimit = ratelimit.New(perAPIKey, window)
+	}
+	return ac
+}
+
+// withinAPIRateLimits counts the request and answers 429 with Retry-After, returning false, when it
+// is over a limit. An API key request is counted under its key first and then under its workspace,
+// so that a key over its own limit, which keeps trying, uses up none of the workspace's requests
+// that the other keys and the users need. Requests the workspace limit refuses were counted under
+// their key.
+func (ac *AuthChain) withinAPIRateLimits(w http.ResponseWriter, r *http.Request, id workspace.ID) bool {
+	if httpx.Value(r.Context(), "authType") == "api_key" && ac.apiKeyLimit != nil {
+		keyID, _ := httpx.Value(r.Context(), "apiKeyId").(string)
+		if allowed, retryAfter := ac.apiKeyLimit.Allow(keyID); !allowed {
+			ac.tooManyRequests(w, r, "API key", keyID, retryAfter)
+			return false
+		}
+	}
+	if ac.workspaceLimit != nil {
+		if allowed, retryAfter := ac.workspaceLimit.Allow(string(id)); !allowed {
+			ac.tooManyRequests(w, r, "workspace", string(id), retryAfter)
+			return false
+		}
+	}
+	return true
+}
+
+func (ac *AuthChain) tooManyRequests(w http.ResponseWriter, r *http.Request, what, id string, retryAfter time.Duration) {
+	ac.logger.Debugw("A request was refused: over the API rate limit", "limit", what, "id", id, "path", r.URL.Path)
+	httpx.WriteTooManyRequests(w, tooManyRequestsMessage, retryAfter)
 }
 
 // resolveWorkspace answers the request itself and returns false when it runs in no workspace

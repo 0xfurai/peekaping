@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
@@ -27,8 +28,10 @@ func RegisterDependencies(container *dig.Container) error {
 		workspaces workspace.Repository,
 		users auth.Repository,
 		trustedProxies *httpx.TrustedProxies,
+		cfg *config.Config,
 		logger *zap.SugaredLogger,
 	) *AuthChain {
-		return NewAuthChain(jwtMiddleware, apiKeyMiddleware, workspaces, users, trustedProxies, logger)
+		return NewAuthChain(jwtMiddleware, apiKeyMiddleware, workspaces, users, trustedProxies, logger).
+			WithAPIRateLimits(cfg.APIRateLimitPerWorkspace, cfg.APIRateLimitPerAPIKey, cfg.APIRateLimitWindow)
 	})
 }
