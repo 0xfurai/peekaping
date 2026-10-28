@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "päevad",
       "description": "Määrake, mitu päeva andmeid hoitakse (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Seda saab muuta ainult tööruumi administraator või omanik.",
       "title": "Andmete säilitamise periood"
     },
     "error_reporting": {

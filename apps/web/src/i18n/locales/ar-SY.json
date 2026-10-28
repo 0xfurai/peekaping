@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "أيام",
       "description": "حدد عدد الأيام التي سيُحتفظ فيها بالبيانات (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "يمكن لمشرف مساحة العمل أو مالكها فقط تغيير هذا.",
       "title": "فترة الاحتفاظ بالبيانات"
     },
     "error_reporting": {

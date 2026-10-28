@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Gün",
       "description": "Veriyi saklayacağınız gün sayısını ayarlayın (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Bunu yalnızca çalışma alanının yöneticisi veya sahibi değiştirebilir.",
       "title": "Veri Saklama Süresi"
     },
     "error_reporting": {

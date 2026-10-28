@@ -1,0 +1,48 @@
+import type { ReactElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { getMeQueryKey } from "@/api/@tanstack/react-query.gen";
+import "@/i18n";
+import enUS from "@/i18n/locales/en-US.json";
+
+export const WORKSPACE_ID = "11111111-1111-4111-8111-111111111111";
+
+export type Access = { instanceAdmin: boolean; role: "member" | "admin" | "owner" };
+
+// The English text of a key, as the page shows it
+export const text = (key: string): string => {
+  const value = key
+    .split(".")
+    .reduce<unknown>(
+      (node, part) => (node as Record<string, unknown>)?.[part],
+      enUS
+    );
+  return value as string;
+};
+
+// A page as the signed-in user sees it: /me already loaded for the workspace in the address,
+// as the workspace layout leaves it. Static markup runs no effects, so nothing is fetched.
+export const renderAs = (
+  access: Access,
+  ui: ReactElement,
+  path = `/w/${WORKSPACE_ID}/monitors`,
+  seed?: (queryClient: QueryClient) => void
+): string => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  queryClient.setQueryData(getMeQueryKey(), {
+    data: {
+      user: { id: "u1", email: "user@example.com", instanceAdmin: access.instanceAdmin },
+      workspaces: [{ id: WORKSPACE_ID, name: "Main", role: access.role }],
+      defaultWorkspaceId: WORKSPACE_ID,
+    },
+  });
+  seed?.(queryClient);
+  return renderToStaticMarkup(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[path]}>{ui}</MemoryRouter>
+    </QueryClientProvider>
+  );
+};

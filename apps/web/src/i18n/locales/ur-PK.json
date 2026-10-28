@@ -1439,6 +1439,7 @@
     "data_retention": {
       "days_label": "دن",
       "description": "ڈیٹا کو کتنے دن تک رکھنے کا تعین کریں (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "اسے صرف ورک اسپیس کا ایڈمن یا مالک تبدیل کر سکتا ہے۔",
       "title": "ڈیٹا برقرار رکھنے کا دورانیہ"
     },
     "error_reporting": {

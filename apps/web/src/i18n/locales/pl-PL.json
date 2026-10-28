@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Dni",
       "description": "Ustaw, ile dni mają być przechowywane dane (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Tylko administrator lub właściciel przestrzeni roboczej może to zmienić.",
       "title": "Okres przechowywania danych"
     },
     "error_reporting": {

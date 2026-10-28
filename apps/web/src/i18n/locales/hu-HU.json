@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Napok",
       "description": "Állítsa be, hogy hány napig tartsuk a adatokat (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Ezt csak a munkaterület adminisztrátora vagy tulajdonosa módosíthatja.",
       "title": "Adattartási időszak"
     },
     "error_reporting": {

@@ -1439,6 +1439,7 @@
     "data_retention": {
       "days_label": "Zile",
       "description": "Setează câte zile să păstrezi datele (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Doar un administrator sau proprietarul spațiului de lucru poate modifica acest lucru.",
       "title": "Perioada de păstrare a datelor"
     },
     "error_reporting": {

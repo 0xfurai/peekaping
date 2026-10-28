@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Giorni",
       "description": "Imposta per quanti giorni conservare i dati (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Solo un amministratore o il proprietario dello spazio di lavoro può modificarlo.",
       "title": "Periodo di conservazione dei dati"
     },
     "error_reporting": {

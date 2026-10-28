@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Dager",
       "description": "Angi hvor mange dager data skal beholdes (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Bare en administrator eller eier av arbeidsområdet kan endre dette.",
       "title": "Databeholdelsesperiode"
     },
     "error_reporting": {

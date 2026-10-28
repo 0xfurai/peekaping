@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Päiviä",
       "description": "Aseta kuinka monta päivää tietoa säilytetään (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Vain työtilan ylläpitäjä tai omistaja voi muuttaa tätä.",
       "title": "Tietojen säilytysaika"
     },
     "error_reporting": {

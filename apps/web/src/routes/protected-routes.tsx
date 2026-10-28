@@ -2,6 +2,7 @@ import { Route } from "react-router-dom";
 import { WorkspaceLayout } from "@/components/workspace-layout";
 import { RedirectToWorkspace } from "@/components/redirect-to-workspace";
 import { WorkspaceHome } from "@/components/workspace-home";
+import { RequireInstanceAdmin } from "@/components/require-instance-admin";
 import MonitorsPage from "@/app/monitors/page";
 import NewMonitor from "@/app/monitors/new/page";
 import SettingsPage from "@/app/settings/page";
@@ -47,9 +48,9 @@ export const protectedRoutes = [
     <Route path="proxies/new" element={<NewProxy />} />
     <Route path="proxies/:id/edit" element={<EditProxy />} />
 
-    {/* Probe routes */}
-    <Route path="probes" element={<ProbesPage />} />
-    <Route path="probes/:id" element={<ProbePage />} />
+    {/* Probe routes: probes belong to the install, so only an instance admin opens them */}
+    <Route path="probes" element={<RequireInstanceAdmin><ProbesPage /></RequireInstanceAdmin>} />
+    <Route path="probes/:id" element={<RequireInstanceAdmin><ProbePage /></RequireInstanceAdmin>} />
 
     {/* Notification channel routes */}
     <Route path="notification-channels" element={<NotificationChannelsPage />} />

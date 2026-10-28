@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Days",
       "description": "Set how many days to keep data (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Only a workspace admin or owner can change this.",
       "title": "Data Retention Period"
     },
     "error_reporting": {
