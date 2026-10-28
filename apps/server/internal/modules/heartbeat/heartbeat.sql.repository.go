@@ -6,6 +6,7 @@ import (
 
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -239,16 +240,17 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 // large backlog never holds SQLite's single connection for long.
 const deleteBatchSize = 5000
 
-// DeleteOlderThan deletes the oldest heartbeats in batches through
+// DeleteOlderThan deletes the oldest heartbeats of the workspace's monitors in batches through
 // idx_heartbeats_time, so each batch reads only the rows it deletes, whatever
 // order they were written in.
-func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
+func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error) {
 	var deleted int64
 	for {
 		batch := r.db.NewSelect().
 			Model((*sqlModel)(nil)).
 			Column("id").
 			Where("time < ?", cutoff).
+			Where("monitor_id IN (SELECT id FROM monitors WHERE workspace_id = ?)", string(workspaceID)).
 			OrderExpr("time").
 			Limit(deleteBatchSize)
 		result, err := r.db.NewDelete().

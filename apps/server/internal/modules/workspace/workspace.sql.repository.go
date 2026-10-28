@@ -110,3 +110,15 @@ func (r *SQLRepositoryImpl) FindOldest(ctx context.Context) (*Workspace, error) 
 	}
 	return sm.toDomain(), nil
 }
+
+func (r *SQLRepositoryImpl) ListIDsAnyWorkspace(ctx context.Context) ([]ID, error) {
+	var ids []string
+	if err := dbtx.DB(ctx, r.db).NewSelect().Table("workspaces").Column("id").Order("created_at", "id").Scan(ctx, &ids); err != nil {
+		return nil, err
+	}
+	out := make([]ID, len(ids))
+	for i, id := range ids {
+		out[i] = ID(id)
+	}
+	return out, nil
+}

@@ -10,12 +10,14 @@ import (
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/workspace"
 
 	"go.uber.org/zap"
 )
 
 // Retention is how many days the hourly cleanup keeps what has a period of its own. Heartbeats
-// aren't here: their data retention period is a setting that users change in the web app.
+// aren't here: their data retention period is a setting of each workspace, which its admins change
+// in the web app.
 type Retention struct {
 	// NotificationHistoryDays is how long notification history is kept
 	NotificationHistoryDays int
@@ -23,13 +25,14 @@ type Retention struct {
 	TLSInfoDays int
 }
 
-// hourlyCleanup is the job that runs every hour: it deletes the heartbeats and the probes' status
-// changes past the data retention period, the expired stats, the old notification history and the
+// hourlyCleanup is the job that runs every hour: it deletes the heartbeats past the data retention
+// period of their workspace, the probes' status changes past the longest of those periods, the expired stats, the old notification history and the
 // old TLS info.
 // In cluster mode every api replica has one, and the run lock lets one of them run each hour.
 type hourlyCleanup struct {
 	heartbeats          heartbeat.Service
-	settings            setting.Service
+	workspaces          workspace.Repository
+	workspaceSettings   setting.WorkspaceService
 	stats               stats.Service
 	notificationHistory notification_sent_history.Service
 	tlsInfo             monitor_tls_info.Service
@@ -67,9 +70,9 @@ func (h *hourlyCleanup) runHourly(ctx context.Context, now time.Time) {
 	}
 
 	h.logger.Infow("Running the hourly cleanup", "hour", label)
-	cleanupHeartbeats(h.heartbeats, h.settings, h.logger)
+	cleanupHeartbeats(h.heartbeats, h.workspaces, h.workspaceSettings, h.logger)
 	cleanupStats(h.stats, h.logger)
 	cleanupNotificationHistory(h.notificationHistory, h.retention.NotificationHistoryDays, h.logger)
 	cleanupMonitorTLSInfo(h.tlsInfo, h.retention.TLSInfoDays, h.logger)
-	cleanupProbeStatusChanges(h.probes, h.settings, h.logger)
+	cleanupProbeStatusChanges(h.probes, h.workspaces, h.workspaceSettings, h.logger)
 }

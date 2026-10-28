@@ -13,6 +13,7 @@ import (
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
@@ -40,7 +41,7 @@ type countingHeartbeats struct {
 	c *cleanups
 }
 
-func (s countingHeartbeats) DeleteOlderThan(context.Context, time.Time) (int64, error) {
+func (s countingHeartbeats) DeleteOlderThan(context.Context, workspace.ID, time.Time) (int64, error) {
 	s.c.heartbeats.Add(1)
 	return 0, nil
 }
@@ -87,11 +88,18 @@ func (s countingProbes) DeleteStatusChangesOlderThan(context.Context, time.Time)
 	return 0, nil
 }
 
-// noStoredSettings is a setting service with no stored data retention period
-type noStoredSettings struct{ setting.Service }
+// oneWorkspace is a workspace repository whose install has one workspace
+type oneWorkspace struct{ workspace.Repository }
 
-func (noStoredSettings) GetByKey(context.Context, string) (*setting.Model, error) {
-	return nil, nil
+func (oneWorkspace) ListIDsAnyWorkspace(context.Context) ([]workspace.ID, error) {
+	return []workspace.ID{"w-1"}, nil
+}
+
+// thirtyDays is a workspace setting service whose workspaces keep 30 days
+type thirtyDays struct{ setting.WorkspaceService }
+
+func (thirtyDays) GetByKey(context.Context, workspace.ID, string) (*setting.Model, error) {
+	return &setting.Model{Key: setting.DataRetentionPeriodKey, Value: "30", Type: "int"}, nil
 }
 
 // testRetention is the retention the replicas of these tests run with
@@ -101,7 +109,8 @@ var testRetention = Retention{NotificationHistoryDays: 90, TLSInfoDays: 30}
 func newReplica(c *cleanups, lock RunLock, logger *zap.SugaredLogger) *hourlyCleanup {
 	return &hourlyCleanup{
 		heartbeats:          countingHeartbeats{c: c},
-		settings:            noStoredSettings{},
+		workspaces:          oneWorkspace{},
+		workspaceSettings:   thirtyDays{},
 		stats:               countingStats{c: c},
 		notificationHistory: countingNotificationHistory{c: c},
 		tlsInfo:             countingTLSInfo{c: c},

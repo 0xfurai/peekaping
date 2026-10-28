@@ -3,6 +3,8 @@ package heartbeat
 import (
 	"context"
 	"time"
+
+	"peekaping/internal/modules/workspace"
 )
 
 type Repository interface {
@@ -29,7 +31,8 @@ type Repository interface {
 		periods map[string]time.Duration,
 		now time.Time,
 	) (map[string]*float64, error)
-	DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error)
+	// DeleteOlderThan deletes the heartbeats of the workspace's monitors that are older than cutoff
+	DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	HasAny(ctx context.Context) (bool, error)
 }

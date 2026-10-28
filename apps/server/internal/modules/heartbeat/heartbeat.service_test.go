@@ -17,6 +17,7 @@ import (
 	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,7 @@ import (
 
 type backend struct {
 	svc      heartbeat.Service
+	db       *bun.DB
 	bus      *eventstest.Bus
 	monitorA string
 	monitorB string
@@ -87,11 +89,17 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, b backend)) {
 				require.NoError(t, err)
 			}
 			bus := eventstest.NewBus()
-			fn(t, backend{heartbeat.NewService(heartbeat.NewSQLRepository(db), bus, zap.NewNop().Sugar()), bus, monitorA, monitorB})
+			fn(t, backend{heartbeat.NewService(heartbeat.NewSQLRepository(db), bus, zap.NewNop().Sugar()), db, bus, monitorA, monitorB})
 		}
 	}
 	t.Run("SQLite", sqlBackend(sqliteDB))
 	t.Run("Postgres", sqlBackend(postgresDB))
+}
+
+// workspaceID is the workspace of the backend's monitors
+func (b backend) workspaceID(t *testing.T) workspace.ID {
+	t.Helper()
+	return workspace.ID(workspacetest.OldestOrAdd(t, b.db))
 }
 
 // heartbeat records a heartbeat now. The pause keeps the times of the
@@ -290,7 +298,7 @@ func TestDeleteOlderThanKeepsNewerHeartbeats(t *testing.T) {
 		b.heartbeat(t, b.monitorA, shared.MonitorStatusUp, "new 1", false)
 		b.heartbeat(t, b.monitorB, shared.MonitorStatusUp, "new 2", false)
 
-		deleted, err := b.svc.DeleteOlderThan(ctx, cutoff)
+		deleted, err := b.svc.DeleteOlderThan(ctx, b.workspaceID(t), cutoff)
 		require.NoError(t, err)
 		assert.Equal(t, int64(2), deleted)
 
@@ -350,7 +358,7 @@ func TestDeleteOlderThanDeletesHeartbeatsWrittenOutOfTimeOrder(t *testing.T) {
 			}
 
 			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), eventstest.NewBus(), zap.NewNop().Sugar())
-			deleted, err := svc.DeleteOlderThan(ctx, cutoff)
+			deleted, err := svc.DeleteOlderThan(ctx, workspace.ID(workspacetest.OldestOrAdd(t, db)), cutoff)
 			require.NoError(t, err)
 
 			assert.Equal(t, int64(6000), deleted)
@@ -493,7 +501,7 @@ func TestDeleteOlderThanClearsABacklogLargerThanOneBatch(t *testing.T) {
 			deletes := &deleteCounter{}
 			db.AddQueryHook(deletes)
 			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), eventstest.NewBus(), zap.NewNop().Sugar())
-			deleted, err := svc.DeleteOlderThan(ctx, cutoff)
+			deleted, err := svc.DeleteOlderThan(ctx, workspace.ID(workspacetest.OldestOrAdd(t, db)), cutoff)
 			require.NoError(t, err)
 
 			assert.Equal(t, int64(12_000), deleted)
@@ -510,7 +518,7 @@ func TestDeleteOlderThanClearsABacklogLargerThanOneBatch(t *testing.T) {
 			}
 
 			// Once every heartbeat is older than the cutoff, one run deletes them all.
-			deleted, err = svc.DeleteOlderThan(ctx, now.Add(time.Minute))
+			deleted, err = svc.DeleteOlderThan(ctx, workspace.ID(workspacetest.OldestOrAdd(t, db)), now.Add(time.Minute))
 			require.NoError(t, err)
 			assert.Equal(t, int64(4), deleted)
 			for _, monitorID := range []string{monitorA, monitorB} {
@@ -520,4 +528,33 @@ func TestDeleteOlderThanClearsABacklogLargerThanOneBatch(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDeleteOlderThanDeletesOnlyTheHeartbeatsOfTheWorkspacesMonitors(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, b backend) {
+		ctx := context.Background()
+		first := b.workspaceID(t)
+		second := workspace.ID(uuid.NewString())
+		workspacetest.Add(t, b.db, second, "Second")
+		othersMonitor := uuid.NewString()
+		_, err := b.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, ?, 'http', 'Other', 60, 10, 1, 10, 0)`, othersMonitor, string(second))
+		require.NoError(t, err)
+		old := time.Now().UTC().AddDate(0, 0, -30)
+		for _, id := range []string{b.monitorA, othersMonitor} {
+			_, err := b.db.Exec(`INSERT INTO heartbeats (id, monitor_id, status, msg, time) VALUES (?, ?, 1, 'old', ?)`, uuid.NewString(), id, old)
+			require.NoError(t, err)
+		}
+		cutoff := time.Now().UTC().AddDate(0, 0, -10)
+
+		deleted, err := b.svc.DeleteOlderThan(ctx, first, cutoff)
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), deleted)
+
+		mine, err := b.svc.FindByMonitorIDPaginated(ctx, b.monitorA, 10, 0, nil, true)
+		require.NoError(t, err)
+		assert.Empty(t, mine)
+		theirs, err := b.svc.FindByMonitorIDPaginated(ctx, othersMonitor, 10, 0, nil, true)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"old"}, msgs(theirs), "the other workspace keeps its heartbeat")
+	})
 }
