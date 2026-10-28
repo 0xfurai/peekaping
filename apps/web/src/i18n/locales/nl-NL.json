@@ -1524,6 +1524,7 @@
     "search_placeholder": "Zoek statuspagina's op titel...",
     "show_locations": "Elke locatie tonen",
     "show_locations_info": "Toont bij monitors die vanaf meerdere locaties worden gecontroleerd de status en geschiedenis van elke locatie",
+    "slug_already_used": "Een andere statuspagina gebruikt dit adres al",
     "update_status_page": "Statuspagina bijwerken",
     "view_page": "Pagina bekijken"
   },

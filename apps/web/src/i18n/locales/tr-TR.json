@@ -1524,6 +1524,7 @@
     "search_placeholder": "Başlığa göre durum sayfalarını ara…",
     "show_locations": "Her konumu göster",
     "show_locations_info": "Birden çok konumdan denetlenen izleyiciler için her konumun durumunu ve geçmişini gösterir",
+    "slug_already_used": "Bu adresi başka bir durum sayfası zaten kullanıyor",
     "update_status_page": "Durum Sayfasını Güncelle",
     "view_page": "Sayfayı Görüntüle"
   },

@@ -1524,6 +1524,7 @@
     "search_placeholder": "Sök status-sidor efter titel...",
     "show_locations": "Visa varje plats",
     "show_locations_info": "För övervakningar som kontrolleras från flera platser visas status och historik för varje plats",
+    "slug_already_used": "En annan statussida använder redan den här adressen",
     "update_status_page": "Uppdatera status­sida",
     "view_page": "Visa sida"
   },

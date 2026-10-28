@@ -1523,6 +1523,7 @@
     "search_placeholder": "Cuardaigh leathanacha stádas de réir teideal…",
     "show_locations": "Taispeáin gach suíomh",
     "show_locations_info": "Maidir le monatóirí a sheiceáiltear ó roinnt suíomhanna, taispeántar stádas agus stair gach suímh",
+    "slug_already_used": "Tá an seoladh seo in úsáid ag leathanach stádais eile cheana féin",
     "update_status_page": "Nuashonraigh Leathanach Stádas",
     "view_page": "Féach an leathanach"
   },

@@ -66,6 +66,11 @@ type DomainAlreadyUsedError = {
   domain: string;
 };
 
+type SlugAlreadyUsedError = {
+  code: "SLUG_EXISTS";
+  slug: string;
+};
+
 const statusPageDefaultValues: StatusPageFormValues = {
   title: "",
   slug: "",
@@ -99,7 +104,7 @@ const CreateEditForm = ({
     resolver: zodResolver(statusPageSchema),
   });
 
-  const handleMutationError = (error: AxiosError<{error: DomainAlreadyUsedError}>) => {
+  const handleMutationError = (error: AxiosError<{error: DomainAlreadyUsedError | SlugAlreadyUsedError}>) => {
     // Fallback toast
     const fallbackMessage = mode === "create" ? "Failed to create status page" : "Failed to update status page";
     commonMutationErrorHandler(fallbackMessage)(error);
@@ -115,6 +120,10 @@ const CreateEditForm = ({
       if (errorData.domain) {
         setDomainToHighlight(errorData.domain);
       }
+    }
+
+    if (errorData?.code === "SLUG_EXISTS") {
+      form.setError("slug", { message: t("status_pages.slug_already_used") });
     }
   };
 
@@ -149,7 +158,7 @@ const CreateEditForm = ({
 
   const handleSubmit = (data: StatusPageFormValues) => {
     // Clear previous errors
-    form.clearErrors("domains");
+    form.clearErrors(["domains", "slug"]);
     setDomainToHighlight(undefined);
     
     const { monitors, ...rest } = data;
