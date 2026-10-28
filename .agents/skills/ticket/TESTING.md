@@ -57,7 +57,7 @@ PEE_TEST_MONGO_URI='mongodb://127.0.0.1:<mongo port>' PEE_TEST_POSTGRES_DSN='pos
 docker stop pp-<n>-mongo
 ```
 
-A test that can't reach its database skips, so look for `SKIP` in the output. The Test workflow sets none of the variables, so only the SQLite subtests run there, and a repository change is unverified until you've run the PostgreSQL check above. The `import-mongo` job sets both variables for the import tests.
+A test that can't reach its database skips, so look for `SKIP` in the output. The Test and Lint workflow sets `PEE_TEST_POSTGRES_DSN` for a PostgreSQL service in its test and race jobs, and fails when a PostgreSQL subtest skips, so CI runs every repository test on both SQLite and PostgreSQL. Run the PostgreSQL check above before pushing a repository change anyway: it's faster than a CI round. The `import-mongo` job sets both variables for the import tests.
 
 Web, from the worktree root then `apps/web`:
 
