@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 	"strconv"
 
 	"go.uber.org/zap"
@@ -14,9 +15,12 @@ import (
 
 type Service = shared.SettingService
 
-// DataRetentionPeriodKey holds the data retention period: how many days
-// heartbeats are kept.
-const DataRetentionPeriodKey = "KEEP_DATA_PERIOD_DAYS"
+// WorkspaceService is the settings of a workspace (docs/adr/0005 section 5)
+type WorkspaceService = shared.WorkspaceSettingService
+
+// DataRetentionPeriodKey holds the data retention period: how many days a workspace keeps its
+// heartbeats. It is a workspace setting.
+const DataRetentionPeriodKey = workspace.DataRetentionPeriodKey
 
 // The data retention periods the settings API accepts. Zero or less would
 // delete every heartbeat, and so would a period so long that the cutoff date
@@ -26,8 +30,9 @@ const (
 	MaxDataRetentionDays = 36500
 )
 
-// userEditableKeys are the only settings the settings API can reach. Every
-// other key, such as the JWT signing secrets, is internal to the server.
+// userEditableKeys are the only settings the settings API can reach, all of them settings of the
+// request's workspace. Every other key, such as the JWT signing secrets, is internal to the
+// server and stays in the install's settings.
 var userEditableKeys = map[string]bool{
 	DataRetentionPeriodKey: true,
 }
@@ -52,20 +57,23 @@ func ParseDataRetentionPeriod(value string) (int, error) {
 }
 
 // APIService is the settings service as the settings API sees it: keys that
-// aren't user-editable behave as if they don't exist.
+// aren't user-editable behave as if they don't exist. Every key it reaches is a
+// setting of the workspace it is given.
 type APIService interface {
 	IsUserEditable(key string) bool
-	GetByKey(ctx context.Context, key string) (*Model, error)
-	SetByKey(ctx context.Context, key string, entity *Model) (*Model, error)
-	DeleteByKey(ctx context.Context, key string) error
+	GetByKey(ctx context.Context, workspaceID workspace.ID, key string) (*Model, error)
+	SetByKey(ctx context.Context, workspaceID workspace.ID, key string, entity *Model) (*Model, error)
+	DeleteByKey(ctx context.Context, workspaceID workspace.ID, key string) error
 }
 
 type APIServiceImpl struct {
-	service Service
+	workspaceSettings WorkspaceService
 }
 
-func NewAPIService(service Service) APIService {
-	return &APIServiceImpl{service}
+// NewAPIService serves the user-editable keys from the settings of workspaces. The install's own
+// settings are not reachable through it.
+func NewAPIService(workspaceSettings WorkspaceService) APIService {
+	return &APIServiceImpl{workspaceSettings}
 }
 
 // IsUserEditable reports whether the settings API can reach key.
@@ -73,14 +81,14 @@ func (s *APIServiceImpl) IsUserEditable(key string) bool {
 	return userEditableKeys[key]
 }
 
-func (s *APIServiceImpl) GetByKey(ctx context.Context, key string) (*Model, error) {
+func (s *APIServiceImpl) GetByKey(ctx context.Context, workspaceID workspace.ID, key string) (*Model, error) {
 	if !userEditableKeys[key] {
 		return nil, nil
 	}
-	return s.service.GetByKey(ctx, key)
+	return s.workspaceSettings.GetByKey(ctx, workspaceID, key)
 }
 
-func (s *APIServiceImpl) SetByKey(ctx context.Context, key string, entity *Model) (*Model, error) {
+func (s *APIServiceImpl) SetByKey(ctx context.Context, workspaceID workspace.ID, key string, entity *Model) (*Model, error) {
 	if !userEditableKeys[key] {
 		return nil, ErrSettingNotFound
 	}
@@ -92,14 +100,35 @@ func (s *APIServiceImpl) SetByKey(ctx context.Context, key string, entity *Model
 			return nil, err
 		}
 	}
-	return s.service.SetByKey(ctx, key, entity)
+	return s.workspaceSettings.SetByKey(ctx, workspaceID, key, entity)
 }
 
-func (s *APIServiceImpl) DeleteByKey(ctx context.Context, key string) error {
+func (s *APIServiceImpl) DeleteByKey(ctx context.Context, workspaceID workspace.ID, key string) error {
 	if !userEditableKeys[key] {
 		return ErrSettingNotFound
 	}
-	return s.service.DeleteByKey(ctx, key)
+	return s.workspaceSettings.DeleteByKey(ctx, workspaceID, key)
+}
+
+// WorkspaceServiceImpl keeps the settings of workspaces
+type WorkspaceServiceImpl struct {
+	repository WorkspaceRepository
+}
+
+func NewWorkspaceService(repository WorkspaceRepository) WorkspaceService {
+	return &WorkspaceServiceImpl{repository}
+}
+
+func (s *WorkspaceServiceImpl) GetByKey(ctx context.Context, workspaceID workspace.ID, key string) (*Model, error) {
+	return s.repository.GetByKey(ctx, workspaceID, key)
+}
+
+func (s *WorkspaceServiceImpl) SetByKey(ctx context.Context, workspaceID workspace.ID, key string, entity *Model) (*Model, error) {
+	return s.repository.SetByKey(ctx, workspaceID, key, entity)
+}
+
+func (s *WorkspaceServiceImpl) DeleteByKey(ctx context.Context, workspaceID workspace.ID, key string) error {
+	return s.repository.DeleteByKey(ctx, workspaceID, key)
 }
 
 type ServiceImpl struct {
@@ -154,11 +183,6 @@ func (mr *ServiceImpl) InitializeSettings(ctx context.Context) error {
 	// Initialize refresh token secret key
 	if err := mr.initializeSecretKey(ctx, shared.RefreshTokenSecretKey); err != nil {
 		return fmt.Errorf("failed to initialize refresh token secret key: %w", err)
-	}
-
-	// Initialize certificate expiry notification days (7, 14, 21 days default)
-	if err := mr.initializeDefaultSetting(ctx, "cert_expiry_notify_days", "[7,14,21]", "json"); err != nil {
-		return fmt.Errorf("failed to initialize certificate expiry notification days: %w", err)
 	}
 
 	mr.logger.Info("Settings initialized successfully")

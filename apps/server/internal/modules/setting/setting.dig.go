@@ -7,5 +7,5 @@ import (
 )
 
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, NewSQLRepository, NewService, NewAPIService, NewController, NewRoute)
+	return utils.Provide(container, NewSQLRepository, NewService, NewSQLWorkspaceRepository, NewWorkspaceService, NewAPIService, NewController, NewRoute)
 }
