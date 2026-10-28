@@ -126,6 +126,32 @@
       "passwords_mismatch": "Parollar mos kelmadi"
     }
   },
+  "invite": {
+    "accept": "Taklifni qabul qilish",
+    "accepting": "Qo'shilmoqda...",
+    "creating": "Yaratilmoqda...",
+    "description": "Sizni {{workspace}} ga {{role}} sifatida qo'shilishga taklif qilishdi.",
+    "errors": {
+      "other_email": "Bu taklif boshqa e-pochta manzili uchun."
+    },
+    "for_email": "Bu taklif {{email}} uchun.",
+    "have_account": "Allaqachon hisobingiz bormi?",
+    "open_app": "Peekaping ni ochish",
+    "other_account": "Siz {{current}} sifatida kirgansiz, lekin bu taklif {{invited}} uchun. Qabul qilish uchun tizimdan chiqing, so'ng {{invited}} bilan kiring yoki ro'yxatdan o'ting.",
+    "sign_in_instead": "Buning o'rniga kirish",
+    "sign_out": "Chiqish",
+    "signup_description": "Hisob yaratish va {{workspace}} ga {{role}} sifatida qo'shilish uchun parol tanlang.",
+    "signup_submit": "Hisob yaratish va qo'shilish",
+    "title": "{{workspace}} ga qo'shilish",
+    "unavailable": {
+      "accepted": "Bu taklif allaqachon ishlatilgan.",
+      "expired": "Bu taklifning muddati tugagan. Yangisini so'rang.",
+      "not_found": "Bunday taklif havolasi mavjud emas. Uni to'liq nusxalaganingizni tekshiring.",
+      "revoked": "Bu taklif bekor qilingan. Yangisini so'rang.",
+      "title": "Bu taklifdan foydalanib bo'lmaydi",
+      "unknown": "Bu taklifdan foydalanib bo'lmaydi. Yangisini so'rang."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Pay",
       "tue": "Sesh",
       "wed": "Chorshanba"
+    }
+  },
+  "members": {
+    "change_role_aria": "{{email}} rolini o'zgartirish",
+    "errors": {
+      "account_exists": "Bu e-pochta bilan hisob allaqachon mavjud. Tizimga kiring va taklifni qabul qiling.",
+      "already_member": "Bu shaxs allaqachon ushbu ish maydonining a'zosi.",
+      "forbidden": "Bu ish maydonidagi rolingiz bunga ruxsat bermaydi.",
+      "generic": "Nimadir xato ketdi. Qayta urinib ko'ring.",
+      "last_owner": "Ish maydonida kamida bitta egasi bo'lishi kerak.",
+      "member_not_found": "Bu a'zo endi ish maydonida emas."
+    },
+    "invite": {
+      "copied": "Havola nusxalandi",
+      "copy": "Nusxalash",
+      "creating": "Yaratilmoqda...",
+      "description": "E-pochta manzili va rol uchun havola yarating. Hech qanday xat yuborilmaydi: havolani nusxalab, o'zingiz yuboring.",
+      "done": "Tayyor",
+      "email_label": "E-pochta",
+      "link_note": "Bu havola bir marta ishlaydi va 7 kundan keyin muddati tugaydi. U faqat hozir ko'rsatiladi, shuning uchun bu sahifadan chiqishdan oldin nusxalab oling.",
+      "link_title": "Taklif havolasi",
+      "role_label": "Rol",
+      "submit": "Taklif havolasini yaratish",
+      "title": "Kimnidir taklif qilish"
+    },
+    "leave": {
+      "button": "Ish maydonidan chiqish",
+      "confirm": "Chiqish",
+      "description": "Siz bu ish maydoniga va uning ma'lumotlariga kirish huquqini darhol yo'qotasiz.",
+      "done": "Siz ish maydonidan chiqdingiz",
+      "last_owner": "Siz oxirgi egasisiz, shuning uchun chiqa olmaysiz. Avval boshqa a'zoni egasi qiling.",
+      "title": "Bu ish maydonidan chiqish"
+    },
+    "list": {
+      "description": "Bu ish maydonida ishlaydigan hamma va ularning rollari.",
+      "email": "E-pochta",
+      "joined": "Qo'shilgan sana",
+      "role": "Rol",
+      "title": "A'zolar",
+      "you": "siz"
+    },
+    "page_name": "A'zolar",
+    "pending": {
+      "description": "Hali ishlatilmagan takliflar. Bekor qilingan taklifning havolasi ishlamay qoladi.",
+      "email": "E-pochta",
+      "empty": "Kutilayotgan takliflar yo'q.",
+      "expired": "Muddati tugagan",
+      "expires": "Muddati tugaydi",
+      "revoke": "Bekor qilish",
+      "revoke_aria": "{{email}} uchun taklifni bekor qilish",
+      "revoked": "Taklif bekor qilindi",
+      "role": "Rol",
+      "title": "Kutilayotgan takliflar"
+    },
+    "remove": "Olib tashlash",
+    "remove_aria": "{{email}} ni olib tashlash",
+    "remove_dialog": {
+      "confirm": "Olib tashlash",
+      "description": "{{email}} bu ish maydoniga kirish huquqini darhol yo'qotadi.",
+      "title": "A'zoni olib tashlash"
+    },
+    "removed": "A'zo olib tashlandi",
+    "role_updated": "Rol yangilandi",
+    "roles": {
+      "admin": "Admin",
+      "member": "A'zo",
+      "owner": "Egasi"
+    },
+    "settings_card": {
+      "description": "Bu ish maydonida kimlar ishlashini ko'ring va admin yoki egasi bo'lsangiz, odamlarni taklif qiling hamda ularning rollarini boshqaring.",
+      "open": "A'zolarni ochish",
+      "title": "A'zolar"
     }
   },
   "messages": {
@@ -1592,7 +1690,17 @@
     "intervals_retries": "Intervallar, Qayta urinishlar, Timeoutlar"
   },
   "workspaces": {
+    "create": "Ish maydonini yaratish",
+    "create_error": "Ish maydonini yaratib bo'lmadi",
+    "creating": "Yaratilmoqda...",
+    "name_label": "Nomi",
+    "name_placeholder": "Mening jamoam",
+    "name_required": "Nom kiriting",
+    "new": "Yangi ish maydoni",
+    "new_description": "Ish maydonining o'z monitorlari, bildirishnoma kanallari, holat sahifalari va a'zolari bor. Siz uning egasi bo'lasiz.",
+    "new_title": "Yangi ish maydoni",
     "none_description": "Hisobingiz hech bir ish maydonining a'zosi emas, shuning uchun bu yerda ko'rsatadigan narsa yo'q. Ish maydonini boshqaradigan kishidan sizni qo'shishini so'rang.",
-    "none_title": "Siz hali hech qanday ish maydonida emassiz"
+    "none_title": "Siz hali hech qanday ish maydonida emassiz",
+    "switcher_label": "Ish maydonini almashtirish"
   }
 }

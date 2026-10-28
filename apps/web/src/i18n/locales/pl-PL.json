@@ -126,6 +126,32 @@
       "passwords_mismatch": "Hasła się nie zgadzają"
     }
   },
+  "invite": {
+    "accept": "Zaakceptuj zaproszenie",
+    "accepting": "Dołączanie...",
+    "creating": "Tworzenie...",
+    "description": "Zaproszono Cię do dołączenia do {{workspace}} jako {{role}}.",
+    "errors": {
+      "other_email": "To zaproszenie jest dla innego adresu e-mail."
+    },
+    "for_email": "To zaproszenie jest dla adresu {{email}}.",
+    "have_account": "Masz już konto?",
+    "open_app": "Otwórz Peekaping",
+    "other_account": "Zalogowano jako {{current}}, ale to zaproszenie jest dla adresu {{invited}}. Wyloguj się, a następnie zaloguj się lub zarejestruj z użyciem {{invited}}, aby je zaakceptować.",
+    "sign_in_instead": "Zaloguj się",
+    "sign_out": "Wyloguj się",
+    "signup_description": "Wybierz hasło, aby utworzyć konto i dołączyć do {{workspace}} jako {{role}}.",
+    "signup_submit": "Utwórz konto i dołącz",
+    "title": "Dołącz do {{workspace}}",
+    "unavailable": {
+      "accepted": "To zaproszenie zostało już wykorzystane.",
+      "expired": "To zaproszenie wygasło. Poproś o nowe.",
+      "not_found": "Ten link z zaproszeniem nie istnieje. Sprawdź, czy skopiowano go w całości.",
+      "revoked": "To zaproszenie zostało cofnięte. Poproś o nowe.",
+      "title": "Tego zaproszenia nie można użyć",
+      "unknown": "Tego zaproszenia nie można użyć. Poproś o nowe."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Czw",
       "tue": "Wt",
       "wed": "śro"
+    }
+  },
+  "members": {
+    "change_role_aria": "Zmień rolę użytkownika {{email}}",
+    "errors": {
+      "account_exists": "Konto z tym adresem e-mail już istnieje. Zaloguj się i zaakceptuj zaproszenie.",
+      "already_member": "Ta osoba jest już członkiem tego obszaru roboczego.",
+      "forbidden": "Twoja rola w tym obszarze roboczym nie pozwala na tę czynność.",
+      "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+      "last_owner": "Obszar roboczy musi mieć co najmniej jednego właściciela.",
+      "member_not_found": "Ten członek nie należy już do tego obszaru roboczego."
+    },
+    "invite": {
+      "copied": "Skopiowano link",
+      "copy": "Kopiuj",
+      "creating": "Tworzenie...",
+      "description": "Utwórz link dla adresu e-mail i roli. Żadna wiadomość nie jest wysyłana: skopiuj link i wyślij go samodzielnie.",
+      "done": "Gotowe",
+      "email_label": "E-mail",
+      "link_note": "Ten link działa tylko raz i wygasa po 7 dniach. Jest wyświetlany tylko teraz, więc skopiuj go, zanim opuścisz tę stronę.",
+      "link_title": "Link z zaproszeniem",
+      "role_label": "Rola",
+      "submit": "Utwórz link z zaproszeniem",
+      "title": "Zaproś kogoś"
+    },
+    "leave": {
+      "button": "Opuść obszar roboczy",
+      "confirm": "Opuść",
+      "description": "Natychmiast tracisz dostęp do tego obszaru roboczego i jego danych.",
+      "done": "Opuszczono obszar roboczy",
+      "last_owner": "Jesteś ostatnim właścicielem, więc nie możesz wyjść. Najpierw ustaw innego członka jako właściciela.",
+      "title": "Opuść ten obszar roboczy"
+    },
+    "list": {
+      "description": "Wszyscy, którzy pracują w tym obszarze roboczym, i ich role.",
+      "email": "E-mail",
+      "joined": "Data dołączenia",
+      "role": "Rola",
+      "title": "Członkowie",
+      "you": "ty"
+    },
+    "page_name": "Członkowie",
+    "pending": {
+      "description": "Zaproszenia, które nie zostały jeszcze wykorzystane. Link do cofniętego zaproszenia przestaje działać.",
+      "email": "E-mail",
+      "empty": "Brak oczekujących zaproszeń.",
+      "expired": "Wygasło",
+      "expires": "Wygasa",
+      "revoke": "Cofnij",
+      "revoke_aria": "Cofnij zaproszenie dla {{email}}",
+      "revoked": "Zaproszenie zostało cofnięte",
+      "role": "Rola",
+      "title": "Oczekujące zaproszenia"
+    },
+    "remove": "Usuń",
+    "remove_aria": "Usuń użytkownika {{email}}",
+    "remove_dialog": {
+      "confirm": "Usuń",
+      "description": "{{email}} natychmiast traci dostęp do tego obszaru roboczego.",
+      "title": "Usuń członka"
+    },
+    "removed": "Członek został usunięty",
+    "role_updated": "Rola została zaktualizowana",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Członek",
+      "owner": "Właściciel"
+    },
+    "settings_card": {
+      "description": "Zobacz, kto pracuje w tym obszarze roboczym, a jeśli jesteś administratorem lub właścicielem, zapraszaj osoby i zarządzaj ich rolami.",
+      "open": "Otwórz członków",
+      "title": "Członkowie"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Interwały, ponawiania, limity czasu"
   },
   "workspaces": {
+    "create": "Utwórz obszar roboczy",
+    "create_error": "Nie udało się utworzyć obszaru roboczego",
+    "creating": "Tworzenie...",
+    "name_label": "Nazwa",
+    "name_placeholder": "Mój zespół",
+    "name_required": "Wpisz nazwę",
+    "new": "Nowy obszar roboczy",
+    "new_description": "Obszar roboczy ma własne monitory, kanały powiadomień, strony statusu i członków. Zostaniesz jego właścicielem.",
+    "new_title": "Nowy obszar roboczy",
     "none_description": "Twoje konto nie jest członkiem żadnego obszaru roboczego, więc nie ma tu nic do pokazania. Poproś osobę zarządzającą obszarem roboczym, aby Cię dodała.",
-    "none_title": "Nie należysz jeszcze do żadnego obszaru roboczego"
+    "none_title": "Nie należysz jeszcze do żadnego obszaru roboczego",
+    "switcher_label": "Przełącz obszar roboczy"
   }
 }

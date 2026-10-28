@@ -126,6 +126,32 @@
       "passwords_mismatch": "Passordene stemmer ikke"
     }
   },
+  "invite": {
+    "accept": "Godta invitasjon",
+    "accepting": "Blir med...",
+    "creating": "Oppretter...",
+    "description": "Du er invitert til å bli med i {{workspace}} som {{role}}.",
+    "errors": {
+      "other_email": "Denne invitasjonen er til en annen e-postadresse."
+    },
+    "for_email": "Denne invitasjonen er til {{email}}.",
+    "have_account": "Har du allerede en konto?",
+    "open_app": "Åpne Peekaping",
+    "other_account": "Du er logget inn som {{current}}, men denne invitasjonen er til {{invited}}. Logg ut, og logg deretter inn eller registrer deg med {{invited}} for å godta den.",
+    "sign_in_instead": "Logg inn i stedet",
+    "sign_out": "Logg ut",
+    "signup_description": "Velg et passord for å opprette kontoen din og bli med i {{workspace}} som {{role}}.",
+    "signup_submit": "Opprett konto og bli med",
+    "title": "Bli med i {{workspace}}",
+    "unavailable": {
+      "accepted": "Denne invitasjonen er allerede brukt.",
+      "expired": "Denne invitasjonen er utløpt. Be om en ny.",
+      "not_found": "Denne invitasjonslenken finnes ikke. Sjekk at du har kopiert hele lenken.",
+      "revoked": "Denne invitasjonen ble trukket tilbake. Be om en ny.",
+      "title": "Denne invitasjonen kan ikke brukes",
+      "unknown": "Denne invitasjonen kan ikke brukes. Be om en ny."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Tor",
       "tue": "ti",
       "wed": "Ons"
+    }
+  },
+  "members": {
+    "change_role_aria": "Endre rollen til {{email}}",
+    "errors": {
+      "account_exists": "Det finnes allerede en konto med denne e-postadressen. Logg inn og godta invitasjonen.",
+      "already_member": "Denne personen er allerede medlem av dette arbeidsområdet.",
+      "forbidden": "Rollen din i dette arbeidsområdet tillater ikke dette.",
+      "generic": "Noe gikk galt. Prøv igjen.",
+      "last_owner": "Et arbeidsområde må ha minst én eier.",
+      "member_not_found": "Dette medlemmet er ikke lenger i arbeidsområdet."
+    },
+    "invite": {
+      "copied": "Lenken er kopiert",
+      "copy": "Kopier",
+      "creating": "Oppretter...",
+      "description": "Lag en lenke for en e-postadresse og en rolle. Det sendes ingen e-post: kopier lenken og send den selv.",
+      "done": "Ferdig",
+      "email_label": "E-post",
+      "link_note": "Denne lenken fungerer bare én gang og utløper om 7 dager. Den vises bare nå, så kopier den før du forlater siden.",
+      "link_title": "Invitasjonslenke",
+      "role_label": "Rolle",
+      "submit": "Opprett invitasjonslenke",
+      "title": "Inviter noen"
+    },
+    "leave": {
+      "button": "Forlat arbeidsområdet",
+      "confirm": "Forlat",
+      "description": "Du mister tilgangen til dette arbeidsområdet og dataene i det umiddelbart.",
+      "done": "Du forlot arbeidsområdet",
+      "last_owner": "Du er den siste eieren, så du kan ikke forlate det. Gjør først et annet medlem til eier.",
+      "title": "Forlat dette arbeidsområdet"
+    },
+    "list": {
+      "description": "Alle som jobber i dette arbeidsområdet, og rollene deres.",
+      "email": "E-post",
+      "joined": "Ble med",
+      "role": "Rolle",
+      "title": "Medlemmer",
+      "you": "deg"
+    },
+    "page_name": "Medlemmer",
+    "pending": {
+      "description": "Invitasjoner som ikke er brukt ennå. Lenken til en trukket invitasjon slutter å fungere.",
+      "email": "E-post",
+      "empty": "Ingen ventende invitasjoner.",
+      "expired": "Utløpt",
+      "expires": "Utløper",
+      "revoke": "Trekk tilbake",
+      "revoke_aria": "Trekk tilbake invitasjonen til {{email}}",
+      "revoked": "Invitasjonen er trukket tilbake",
+      "role": "Rolle",
+      "title": "Ventende invitasjoner"
+    },
+    "remove": "Fjern",
+    "remove_aria": "Fjern {{email}}",
+    "remove_dialog": {
+      "confirm": "Fjern",
+      "description": "{{email}} mister tilgangen til dette arbeidsområdet umiddelbart.",
+      "title": "Fjern medlem"
+    },
+    "removed": "Medlemmet er fjernet",
+    "role_updated": "Rollen er oppdatert",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Medlem",
+      "owner": "Eier"
+    },
+    "settings_card": {
+      "description": "Se hvem som jobber i dette arbeidsområdet, og inviter folk og administrer rollene deres hvis du er administrator eller eier.",
+      "open": "Åpne medlemmer",
+      "title": "Medlemmer"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervaller, Gjenopprøvninger, Tidsavbrudd"
   },
   "workspaces": {
+    "create": "Opprett arbeidsområde",
+    "create_error": "Kunne ikke opprette arbeidsområdet",
+    "creating": "Oppretter...",
+    "name_label": "Navn",
+    "name_placeholder": "Teamet mitt",
+    "name_required": "Skriv inn et navn",
+    "new": "Nytt arbeidsområde",
+    "new_description": "Et arbeidsområde har sine egne monitorer, varslingskanaler, statussider og medlemmer. Du blir eieren.",
+    "new_title": "Nytt arbeidsområde",
     "none_description": "Kontoen din er ikke medlem av noe arbeidsområde, så det er ingenting å vise her. Be noen som styrer et arbeidsområde om å legge deg til.",
-    "none_title": "Du er ikke i et arbeidsområde ennå"
+    "none_title": "Du er ikke i et arbeidsområde ennå",
+    "switcher_label": "Bytt arbeidsområde"
   }
 }

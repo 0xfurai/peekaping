@@ -126,6 +126,32 @@
       "passwords_mismatch": "Passwörter stimmen nicht überein"
     }
   },
+  "invite": {
+    "accept": "Einladung annehmen",
+    "accepting": "Beitritt läuft...",
+    "creating": "Wird erstellt...",
+    "description": "Du wurdest eingeladen, {{workspace}} beizutreten, mit der Rolle: {{role}}.",
+    "errors": {
+      "other_email": "Diese Einladung gilt für eine andere E-Mail-Adresse."
+    },
+    "for_email": "Diese Einladung gilt für {{email}}.",
+    "have_account": "Du hast bereits ein Konto?",
+    "open_app": "Peekaping öffnen",
+    "other_account": "Du bist als {{current}} angemeldet, aber diese Einladung gilt für {{invited}}. Melde dich ab und melde dich dann mit {{invited}} an oder registriere dich damit, um sie anzunehmen.",
+    "sign_in_instead": "Stattdessen anmelden",
+    "sign_out": "Abmelden",
+    "signup_description": "Wähle ein Passwort, um dein Konto zu erstellen und {{workspace}} beizutreten, mit der Rolle: {{role}}.",
+    "signup_submit": "Konto erstellen und beitreten",
+    "title": "{{workspace}} beitreten",
+    "unavailable": {
+      "accepted": "Diese Einladung wurde bereits verwendet.",
+      "expired": "Diese Einladung ist abgelaufen. Fordere eine neue an.",
+      "not_found": "Dieser Einladungslink existiert nicht. Prüfe, ob du ihn vollständig kopiert hast.",
+      "revoked": "Diese Einladung wurde widerrufen. Fordere eine neue an.",
+      "title": "Diese Einladung kann nicht verwendet werden",
+      "unknown": "Diese Einladung kann nicht verwendet werden. Fordere eine neue an."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Do",
       "tue": "Di",
       "wed": "Mi"
+    }
+  },
+  "members": {
+    "change_role_aria": "Rolle von {{email}} ändern",
+    "errors": {
+      "account_exists": "Ein Konto mit dieser E-Mail-Adresse existiert bereits. Melde dich an und nimm die Einladung an.",
+      "already_member": "Diese Person ist bereits Mitglied dieses Arbeitsbereichs.",
+      "forbidden": "Deine Rolle in diesem Arbeitsbereich erlaubt dies nicht.",
+      "generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+      "last_owner": "Ein Arbeitsbereich braucht mindestens einen Inhaber.",
+      "member_not_found": "Dieses Mitglied ist nicht mehr im Arbeitsbereich."
+    },
+    "invite": {
+      "copied": "Link kopiert",
+      "copy": "Kopieren",
+      "creating": "Wird erstellt...",
+      "description": "Erstelle einen Link für eine E-Mail-Adresse und eine Rolle. Es wird keine E-Mail verschickt: Kopiere den Link und sende ihn selbst.",
+      "done": "Fertig",
+      "email_label": "E-Mail",
+      "link_note": "Dieser Link funktioniert nur einmal und läuft nach 7 Tagen ab. Er wird nur jetzt angezeigt, kopiere ihn also, bevor du diese Seite verlässt.",
+      "link_title": "Einladungslink",
+      "role_label": "Rolle",
+      "submit": "Einladungslink erstellen",
+      "title": "Jemanden einladen"
+    },
+    "leave": {
+      "button": "Arbeitsbereich verlassen",
+      "confirm": "Verlassen",
+      "description": "Du verlierst sofort den Zugriff auf diesen Arbeitsbereich und seine Daten.",
+      "done": "Du hast den Arbeitsbereich verlassen",
+      "last_owner": "Du bist der letzte Inhaber und kannst daher nicht austreten. Mache zuerst ein anderes Mitglied zum Inhaber.",
+      "title": "Diesen Arbeitsbereich verlassen"
+    },
+    "list": {
+      "description": "Alle, die in diesem Arbeitsbereich arbeiten, und ihre Rolle.",
+      "email": "E-Mail",
+      "joined": "Beigetreten",
+      "role": "Rolle",
+      "title": "Mitglieder",
+      "you": "du"
+    },
+    "page_name": "Mitglieder",
+    "pending": {
+      "description": "Einladungen, die noch nicht verwendet wurden. Der Link einer widerrufenen Einladung funktioniert nicht mehr.",
+      "email": "E-Mail",
+      "empty": "Keine offenen Einladungen.",
+      "expired": "Abgelaufen",
+      "expires": "Läuft ab",
+      "revoke": "Widerrufen",
+      "revoke_aria": "Einladung für {{email}} widerrufen",
+      "revoked": "Einladung widerrufen",
+      "role": "Rolle",
+      "title": "Offene Einladungen"
+    },
+    "remove": "Entfernen",
+    "remove_aria": "{{email}} entfernen",
+    "remove_dialog": {
+      "confirm": "Entfernen",
+      "description": "{{email}} verliert sofort den Zugriff auf diesen Arbeitsbereich.",
+      "title": "Mitglied entfernen"
+    },
+    "removed": "Mitglied entfernt",
+    "role_updated": "Rolle aktualisiert",
+    "roles": {
+      "admin": "Admin",
+      "member": "Mitglied",
+      "owner": "Inhaber"
+    },
+    "settings_card": {
+      "description": "Sieh nach, wer in diesem Arbeitsbereich arbeitet, und lade als Admin oder Inhaber Personen ein und verwalte ihre Rollen.",
+      "open": "Mitglieder öffnen",
+      "title": "Mitglieder"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervalle, Wiederholungen, Time-Outs"
   },
   "workspaces": {
+    "create": "Arbeitsbereich erstellen",
+    "create_error": "Arbeitsbereich konnte nicht erstellt werden",
+    "creating": "Wird erstellt...",
+    "name_label": "Name",
+    "name_placeholder": "Mein Team",
+    "name_required": "Namen eingeben",
+    "new": "Neuer Arbeitsbereich",
+    "new_description": "Ein Arbeitsbereich hat eigene Monitore, Benachrichtigungskanäle, Statusseiten und Mitglieder. Du wirst sein Inhaber.",
+    "new_title": "Neuer Arbeitsbereich",
     "none_description": "Dein Konto ist in keinem Arbeitsbereich Mitglied, deshalb gibt es hier nichts anzuzeigen. Bitte jemanden, der einen Arbeitsbereich betreut, dich hinzuzufügen.",
-    "none_title": "Du bist noch in keinem Arbeitsbereich"
+    "none_title": "Du bist noch in keinem Arbeitsbereich",
+    "switcher_label": "Arbeitsbereich wechseln"
   }
 }

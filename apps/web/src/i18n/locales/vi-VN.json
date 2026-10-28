@@ -126,6 +126,32 @@
       "passwords_mismatch": "Mật khẩu không khớp"
     }
   },
+  "invite": {
+    "accept": "Chấp nhận lời mời",
+    "accepting": "Đang tham gia...",
+    "creating": "Đang tạo...",
+    "description": "Bạn được mời tham gia {{workspace}} với vai trò {{role}}.",
+    "errors": {
+      "other_email": "Lời mời này dành cho một địa chỉ email khác."
+    },
+    "for_email": "Lời mời này dành cho {{email}}.",
+    "have_account": "Bạn đã có tài khoản?",
+    "open_app": "Mở Peekaping",
+    "other_account": "Bạn đang đăng nhập với {{current}}, nhưng lời mời này dành cho {{invited}}. Hãy đăng xuất, sau đó đăng nhập hoặc đăng ký bằng {{invited}} để chấp nhận.",
+    "sign_in_instead": "Đăng nhập",
+    "sign_out": "Đăng xuất",
+    "signup_description": "Chọn mật khẩu để tạo tài khoản và tham gia {{workspace}} với vai trò {{role}}.",
+    "signup_submit": "Tạo tài khoản và tham gia",
+    "title": "Tham gia {{workspace}}",
+    "unavailable": {
+      "accepted": "Lời mời này đã được sử dụng.",
+      "expired": "Lời mời này đã hết hạn. Hãy yêu cầu lời mời mới.",
+      "not_found": "Liên kết mời này không tồn tại. Hãy kiểm tra xem bạn đã sao chép đủ toàn bộ liên kết chưa.",
+      "revoked": "Lời mời này đã bị thu hồi. Hãy yêu cầu lời mời mới.",
+      "title": "Không thể dùng lời mời này",
+      "unknown": "Không thể dùng lời mời này. Hãy yêu cầu lời mời mới."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Thu",
       "tue": "Thứ ba",
       "wed": "Thu Tư"
+    }
+  },
+  "members": {
+    "change_role_aria": "Đổi vai trò của {{email}}",
+    "errors": {
+      "account_exists": "Đã có tài khoản với email này. Hãy đăng nhập và chấp nhận lời mời.",
+      "already_member": "Người này đã là thành viên của không gian làm việc này.",
+      "forbidden": "Vai trò của bạn trong không gian làm việc này không cho phép thực hiện việc này.",
+      "generic": "Đã xảy ra lỗi. Vui lòng thử lại.",
+      "last_owner": "Một không gian làm việc cần có ít nhất một chủ sở hữu.",
+      "member_not_found": "Thành viên này không còn trong không gian làm việc."
+    },
+    "invite": {
+      "copied": "Đã sao chép liên kết",
+      "copy": "Sao chép",
+      "creating": "Đang tạo...",
+      "description": "Tạo một liên kết cho một địa chỉ email và một vai trò. Hệ thống không gửi email: hãy sao chép liên kết và tự gửi.",
+      "done": "Xong",
+      "email_label": "Email",
+      "link_note": "Liên kết này chỉ dùng được một lần và hết hạn sau 7 ngày. Liên kết chỉ hiển thị lúc này, vì vậy hãy sao chép trước khi rời khỏi trang.",
+      "link_title": "Liên kết mời",
+      "role_label": "Vai trò",
+      "submit": "Tạo liên kết mời",
+      "title": "Mời người khác"
+    },
+    "leave": {
+      "button": "Rời không gian làm việc",
+      "confirm": "Rời đi",
+      "description": "Bạn sẽ mất quyền truy cập vào không gian làm việc này và dữ liệu của nó ngay lập tức.",
+      "done": "Bạn đã rời khỏi không gian làm việc",
+      "last_owner": "Bạn là chủ sở hữu cuối cùng nên không thể rời đi. Hãy chọn một thành viên khác làm chủ sở hữu trước.",
+      "title": "Rời khỏi không gian làm việc này"
+    },
+    "list": {
+      "description": "Tất cả những người làm việc trong không gian làm việc này và vai trò của họ.",
+      "email": "Email",
+      "joined": "Ngày tham gia",
+      "role": "Vai trò",
+      "title": "Thành viên",
+      "you": "bạn"
+    },
+    "page_name": "Thành viên",
+    "pending": {
+      "description": "Các lời mời chưa được sử dụng. Liên kết của lời mời đã thu hồi sẽ ngừng hoạt động.",
+      "email": "Email",
+      "empty": "Không có lời mời nào đang chờ.",
+      "expired": "Đã hết hạn",
+      "expires": "Hết hạn",
+      "revoke": "Thu hồi",
+      "revoke_aria": "Thu hồi lời mời dành cho {{email}}",
+      "revoked": "Đã thu hồi lời mời",
+      "role": "Vai trò",
+      "title": "Lời mời đang chờ"
+    },
+    "remove": "Xóa",
+    "remove_aria": "Xóa {{email}}",
+    "remove_dialog": {
+      "confirm": "Xóa",
+      "description": "{{email}} sẽ mất quyền truy cập vào không gian làm việc này ngay lập tức.",
+      "title": "Xóa thành viên"
+    },
+    "removed": "Đã xóa thành viên",
+    "role_updated": "Đã cập nhật vai trò",
+    "roles": {
+      "admin": "Quản trị viên",
+      "member": "Thành viên",
+      "owner": "Chủ sở hữu"
+    },
+    "settings_card": {
+      "description": "Xem ai đang làm việc trong không gian làm việc này và, nếu bạn là quản trị viên hoặc chủ sở hữu, mời mọi người và quản lý vai trò của họ.",
+      "open": "Mở danh sách thành viên",
+      "title": "Thành viên"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Khoảng thời gian, Lần thử lại, Thời gian chờ"
   },
   "workspaces": {
+    "create": "Tạo không gian làm việc",
+    "create_error": "Không thể tạo không gian làm việc",
+    "creating": "Đang tạo...",
+    "name_label": "Tên",
+    "name_placeholder": "Nhóm của tôi",
+    "name_required": "Nhập tên",
+    "new": "Không gian làm việc mới",
+    "new_description": "Mỗi không gian làm việc có monitor, kênh thông báo, trang trạng thái và thành viên riêng. Bạn sẽ là chủ sở hữu của nó.",
+    "new_title": "Không gian làm việc mới",
     "none_description": "Tài khoản của bạn chưa là thành viên của không gian làm việc nào nên ở đây không có gì để hiển thị. Hãy nhờ người quản lý một không gian làm việc thêm bạn vào.",
-    "none_title": "Bạn chưa thuộc không gian làm việc nào"
+    "none_title": "Bạn chưa thuộc không gian làm việc nào",
+    "switcher_label": "Chuyển không gian làm việc"
   }
 }

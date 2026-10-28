@@ -126,6 +126,32 @@
       "passwords_mismatch": "Las contraseñas no coinciden"
     }
   },
+  "invite": {
+    "accept": "Aceptar invitación",
+    "accepting": "Uniéndose...",
+    "creating": "Creando...",
+    "description": "Te han invitado a unirte a {{workspace}} con el rol: {{role}}.",
+    "errors": {
+      "other_email": "Esta invitación es para otra dirección de correo electrónico."
+    },
+    "for_email": "Esta invitación es para {{email}}.",
+    "have_account": "¿Ya tienes una cuenta?",
+    "open_app": "Abrir Peekaping",
+    "other_account": "Has iniciado sesión como {{current}}, pero esta invitación es para {{invited}}. Cierra sesión y luego inicia sesión o regístrate con {{invited}} para aceptarla.",
+    "sign_in_instead": "Iniciar sesión en su lugar",
+    "sign_out": "Cerrar sesión",
+    "signup_description": "Elige una contraseña para crear tu cuenta y unirte a {{workspace}} con el rol: {{role}}.",
+    "signup_submit": "Crear cuenta y unirse",
+    "title": "Unirse a {{workspace}}",
+    "unavailable": {
+      "accepted": "Esta invitación ya se ha usado.",
+      "expired": "Esta invitación ha caducado. Pide una nueva.",
+      "not_found": "Este enlace de invitación no existe. Comprueba que lo has copiado completo.",
+      "revoked": "Esta invitación fue revocada. Pide una nueva.",
+      "title": "Esta invitación no se puede usar",
+      "unknown": "Esta invitación no se puede usar. Pide una nueva."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Jue",
       "tue": "Mar",
       "wed": "Mié"
+    }
+  },
+  "members": {
+    "change_role_aria": "Cambiar el rol de {{email}}",
+    "errors": {
+      "account_exists": "Ya existe una cuenta con este correo electrónico. Inicia sesión y acepta la invitación.",
+      "already_member": "Esta persona ya es miembro de este espacio de trabajo.",
+      "forbidden": "Tu rol en este espacio de trabajo no permite esta acción.",
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "last_owner": "Un espacio de trabajo necesita al menos un propietario.",
+      "member_not_found": "Este miembro ya no está en el espacio de trabajo."
+    },
+    "invite": {
+      "copied": "Enlace copiado",
+      "copy": "Copiar",
+      "creating": "Creando...",
+      "description": "Crea un enlace para una dirección de correo electrónico y un rol. No se envía ningún correo: copia el enlace y envíalo tú.",
+      "done": "Hecho",
+      "email_label": "Correo electrónico",
+      "link_note": "Este enlace funciona una sola vez y caduca en 7 días. Solo se muestra ahora, así que cópialo antes de salir de esta página.",
+      "link_title": "Enlace de invitación",
+      "role_label": "Rol",
+      "submit": "Crear enlace de invitación",
+      "title": "Invitar a alguien"
+    },
+    "leave": {
+      "button": "Salir del espacio de trabajo",
+      "confirm": "Salir",
+      "description": "Pierdes el acceso a este espacio de trabajo y a sus datos de inmediato.",
+      "done": "Has salido del espacio de trabajo",
+      "last_owner": "Eres el último propietario, así que no puedes salir. Antes, haz propietario a otro miembro.",
+      "title": "Salir de este espacio de trabajo"
+    },
+    "list": {
+      "description": "Todas las personas que trabajan en este espacio de trabajo y su rol.",
+      "email": "Correo electrónico",
+      "joined": "Se unió",
+      "role": "Rol",
+      "title": "Miembros",
+      "you": "tú"
+    },
+    "page_name": "Miembros",
+    "pending": {
+      "description": "Invitaciones que aún no se han usado. El enlace de una invitación revocada deja de funcionar.",
+      "email": "Correo electrónico",
+      "empty": "No hay invitaciones pendientes.",
+      "expired": "Caducada",
+      "expires": "Caduca",
+      "revoke": "Revocar",
+      "revoke_aria": "Revocar la invitación para {{email}}",
+      "revoked": "Invitación revocada",
+      "role": "Rol",
+      "title": "Invitaciones pendientes"
+    },
+    "remove": "Quitar",
+    "remove_aria": "Quitar a {{email}}",
+    "remove_dialog": {
+      "confirm": "Quitar",
+      "description": "{{email}} pierde el acceso a este espacio de trabajo de inmediato.",
+      "title": "Quitar miembro"
+    },
+    "removed": "Miembro eliminado",
+    "role_updated": "Rol actualizado",
+    "roles": {
+      "admin": "Administrador",
+      "member": "Miembro",
+      "owner": "Propietario"
+    },
+    "settings_card": {
+      "description": "Consulta quién trabaja en este espacio de trabajo y, si eres administrador o propietario, invita a personas y gestiona sus roles.",
+      "open": "Abrir miembros",
+      "title": "Miembros"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervalos, reintentos, timeouts"
   },
   "workspaces": {
+    "create": "Crear espacio de trabajo",
+    "create_error": "No se pudo crear el espacio de trabajo",
+    "creating": "Creando...",
+    "name_label": "Nombre",
+    "name_placeholder": "Mi equipo",
+    "name_required": "Introduce un nombre",
+    "new": "Nuevo espacio de trabajo",
+    "new_description": "Un espacio de trabajo tiene sus propios monitores, canales de notificación, páginas de estado y miembros. Tú serás su propietario.",
+    "new_title": "Nuevo espacio de trabajo",
     "none_description": "Tu cuenta no es miembro de ningún espacio de trabajo, así que aquí no hay nada que mostrar. Pide a quien administra un espacio de trabajo que te añada.",
-    "none_title": "Todavía no estás en ningún espacio de trabajo"
+    "none_title": "Todavía no estás en ningún espacio de trabajo",
+    "switcher_label": "Cambiar de espacio de trabajo"
   }
 }

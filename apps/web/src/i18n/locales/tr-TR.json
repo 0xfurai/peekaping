@@ -126,6 +126,32 @@
       "passwords_mismatch": "Parolalar eşleşmiyor"
     }
   },
+  "invite": {
+    "accept": "Daveti kabul et",
+    "accepting": "Katılınıyor...",
+    "creating": "Oluşturuluyor...",
+    "description": "{{workspace}} alanına {{role}} olarak katılmaya davet edildiniz.",
+    "errors": {
+      "other_email": "Bu davet başka bir e-posta adresi için."
+    },
+    "for_email": "Bu davet {{email}} için.",
+    "have_account": "Zaten bir hesabınız var mı?",
+    "open_app": "Peekaping'i aç",
+    "other_account": "{{current}} olarak giriş yaptınız ancak bu davet {{invited}} için. Kabul etmek için çıkış yapın, ardından {{invited}} ile giriş yapın veya kayıt olun.",
+    "sign_in_instead": "Bunun yerine giriş yap",
+    "sign_out": "Çıkış yap",
+    "signup_description": "Hesabınızı oluşturmak ve {{workspace}} alanına {{role}} olarak katılmak için bir parola seçin.",
+    "signup_submit": "Hesap oluştur ve katıl",
+    "title": "{{workspace}} alanına katıl",
+    "unavailable": {
+      "accepted": "Bu davet zaten kullanılmış.",
+      "expired": "Bu davetin süresi dolmuş. Yenisini isteyin.",
+      "not_found": "Bu davet bağlantısı mevcut değil. Tamamını kopyaladığınızdan emin olun.",
+      "revoked": "Bu davet iptal edilmiş. Yenisini isteyin.",
+      "title": "Bu davet kullanılamıyor",
+      "unknown": "Bu davet kullanılamıyor. Yenisini isteyin."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Per",
       "tue": "Sal",
       "wed": "Çar"
+    }
+  },
+  "members": {
+    "change_role_aria": "{{email}} rolünü değiştir",
+    "errors": {
+      "account_exists": "Bu e-posta ile zaten bir hesap var. Giriş yapıp daveti kabul edin.",
+      "already_member": "Bu kişi zaten bu çalışma alanının üyesi.",
+      "forbidden": "Bu çalışma alanındaki rolünüz buna izin vermiyor.",
+      "generic": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+      "last_owner": "Bir çalışma alanının en az bir sahibi olmalıdır.",
+      "member_not_found": "Bu üye artık çalışma alanında değil."
+    },
+    "invite": {
+      "copied": "Bağlantı kopyalandı",
+      "copy": "Kopyala",
+      "creating": "Oluşturuluyor...",
+      "description": "Bir e-posta adresi ve rol için bağlantı oluşturun. E-posta gönderilmez: bağlantıyı kopyalayıp kendiniz iletin.",
+      "done": "Bitti",
+      "email_label": "E-posta",
+      "link_note": "Bu bağlantı yalnızca bir kez kullanılabilir ve 7 gün sonra sona erer. Sadece şimdi gösterilir, bu yüzden bu sayfadan ayrılmadan önce kopyalayın.",
+      "link_title": "Davet bağlantısı",
+      "role_label": "Rol",
+      "submit": "Davet bağlantısı oluştur",
+      "title": "Birini davet et"
+    },
+    "leave": {
+      "button": "Çalışma alanından ayrıl",
+      "confirm": "Ayrıl",
+      "description": "Bu çalışma alanına ve verilerine erişiminizi hemen kaybedersiniz.",
+      "done": "Çalışma alanından ayrıldınız",
+      "last_owner": "Son sahip sizsiniz, bu yüzden ayrılamazsınız. Önce başka bir üyeyi sahip yapın.",
+      "title": "Bu çalışma alanından ayrıl"
+    },
+    "list": {
+      "description": "Bu çalışma alanında çalışan herkes ve rolleri.",
+      "email": "E-posta",
+      "joined": "Katılma tarihi",
+      "role": "Rol",
+      "title": "Üyeler",
+      "you": "siz"
+    },
+    "page_name": "Üyeler",
+    "pending": {
+      "description": "Henüz kullanılmamış davetler. İptal edilen bir davetin bağlantısı çalışmaz.",
+      "email": "E-posta",
+      "empty": "Bekleyen davet yok.",
+      "expired": "Süresi doldu",
+      "expires": "Sona erer",
+      "revoke": "İptal et",
+      "revoke_aria": "{{email}} için daveti iptal et",
+      "revoked": "Davet iptal edildi",
+      "role": "Rol",
+      "title": "Bekleyen davetler"
+    },
+    "remove": "Kaldır",
+    "remove_aria": "{{email}} kişisini kaldır",
+    "remove_dialog": {
+      "confirm": "Kaldır",
+      "description": "{{email}} bu çalışma alanına erişimini hemen kaybeder.",
+      "title": "Üyeyi kaldır"
+    },
+    "removed": "Üye kaldırıldı",
+    "role_updated": "Rol güncellendi",
+    "roles": {
+      "admin": "Yönetici",
+      "member": "Üye",
+      "owner": "Sahip"
+    },
+    "settings_card": {
+      "description": "Bu çalışma alanında kimlerin çalıştığını görün; yönetici veya sahipseniz kişileri davet edin ve rollerini yönetin.",
+      "open": "Üyeleri aç",
+      "title": "Üyeler"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Aralıklar, Tekrarlar, Zaman Aşımı"
   },
   "workspaces": {
+    "create": "Çalışma alanı oluştur",
+    "create_error": "Çalışma alanı oluşturulamadı",
+    "creating": "Oluşturuluyor...",
+    "name_label": "Ad",
+    "name_placeholder": "Ekibim",
+    "name_required": "Bir ad girin",
+    "new": "Yeni çalışma alanı",
+    "new_description": "Bir çalışma alanının kendi monitörleri, bildirim kanalları, durum sayfaları ve üyeleri vardır. Sahibi siz olursunuz.",
+    "new_title": "Yeni çalışma alanı",
     "none_description": "Hesabınız hiçbir çalışma alanının üyesi değil, bu yüzden burada gösterilecek bir şey yok. Bir çalışma alanını yöneten birinden sizi eklemesini isteyin.",
-    "none_title": "Henüz hiçbir çalışma alanında değilsiniz"
+    "none_title": "Henüz hiçbir çalışma alanında değilsiniz",
+    "switcher_label": "Çalışma alanı değiştir"
   }
 }

@@ -126,6 +126,32 @@
       "passwords_mismatch": "Lozinke se ne podudaraju"
     }
   },
+  "invite": {
+    "accept": "Prihvati pozivnicu",
+    "accepting": "Pridruživanje...",
+    "creating": "Izrada...",
+    "description": "Pozvani ste da se pridružite radnom prostoru {{workspace}} kao {{role}}.",
+    "errors": {
+      "other_email": "Ova je pozivnica za drugu adresu e-pošte."
+    },
+    "for_email": "Ova je pozivnica za {{email}}.",
+    "have_account": "Već imate račun?",
+    "open_app": "Otvori Peekaping",
+    "other_account": "Prijavljeni ste kao {{current}}, ali ova je pozivnica za {{invited}}. Odjavite se, zatim se prijavite ili registrirajte s {{invited}} da je prihvatite.",
+    "sign_in_instead": "Umjesto toga se prijavite",
+    "sign_out": "Odjava",
+    "signup_description": "Odaberite lozinku da izradite račun i pridružite se radnom prostoru {{workspace}} kao {{role}}.",
+    "signup_submit": "Izradi račun i pridruži se",
+    "title": "Pridružite se: {{workspace}}",
+    "unavailable": {
+      "accepted": "Ova je pozivnica već iskorištena.",
+      "expired": "Ova je pozivnica istekla. Zatražite novu.",
+      "not_found": "Ova poveznica pozivnice ne postoji. Provjerite jeste li je kopirali cijelu.",
+      "revoked": "Ova je pozivnica opozvana. Zatražite novu.",
+      "title": "Ova se pozivnica ne može upotrijebiti",
+      "unknown": "Ova se pozivnica ne može upotrijebiti. Zatražite novu."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Čet",
       "tue": "uto.",
       "wed": "sri"
+    }
+  },
+  "members": {
+    "change_role_aria": "Promijeni ulogu za {{email}}",
+    "errors": {
+      "account_exists": "Račun s ovom adresom e-pošte već postoji. Prijavite se i prihvatite pozivnicu.",
+      "already_member": "Ova osoba već je član ovog radnog prostora.",
+      "forbidden": "Vaša uloga u ovom radnom prostoru ne dopušta ovo.",
+      "generic": "Nešto je pošlo po zlu. Pokušajte ponovno.",
+      "last_owner": "Radni prostor mora imati barem jednog vlasnika.",
+      "member_not_found": "Ovaj član više nije u radnom prostoru."
+    },
+    "invite": {
+      "copied": "Poveznica je kopirana",
+      "copy": "Kopiraj",
+      "creating": "Izrada...",
+      "description": "Izradite poveznicu za adresu e-pošte i ulogu. E-pošta se ne šalje: kopirajte poveznicu i pošaljite je sami.",
+      "done": "Gotovo",
+      "email_label": "E-pošta",
+      "link_note": "Ova poveznica vrijedi samo jednom i istječe za 7 dana. Prikazuje se samo sada, zato je kopirajte prije nego napustite ovu stranicu.",
+      "link_title": "Poveznica pozivnice",
+      "role_label": "Uloga",
+      "submit": "Izradi poveznicu pozivnice",
+      "title": "Pozovi nekoga"
+    },
+    "leave": {
+      "button": "Napusti radni prostor",
+      "confirm": "Napusti",
+      "description": "Odmah gubite pristup ovom radnom prostoru i njegovim podacima.",
+      "done": "Napustili ste radni prostor",
+      "last_owner": "Vi ste posljednji vlasnik pa ne možete otići. Prvo nekog drugog člana učinite vlasnikom.",
+      "title": "Napusti ovaj radni prostor"
+    },
+    "list": {
+      "description": "Svi koji rade u ovom radnom prostoru i njihove uloge.",
+      "email": "E-pošta",
+      "joined": "Pridruženo",
+      "role": "Uloga",
+      "title": "Članovi",
+      "you": "vi"
+    },
+    "page_name": "Članovi",
+    "pending": {
+      "description": "Pozivnice koje još nisu iskorištene. Poveznica opozvane pozivnice prestaje raditi.",
+      "email": "E-pošta",
+      "empty": "Nema pozivnica na čekanju.",
+      "expired": "Isteklo",
+      "expires": "Istječe",
+      "revoke": "Opozovi",
+      "revoke_aria": "Opozovi pozivnicu za {{email}}",
+      "revoked": "Pozivnica je opozvana",
+      "role": "Uloga",
+      "title": "Pozivnice na čekanju"
+    },
+    "remove": "Ukloni",
+    "remove_aria": "Ukloni {{email}}",
+    "remove_dialog": {
+      "confirm": "Ukloni",
+      "description": "{{email}} odmah gubi pristup ovom radnom prostoru.",
+      "title": "Ukloni člana"
+    },
+    "removed": "Član je uklonjen",
+    "role_updated": "Uloga je ažurirana",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Član",
+      "owner": "Vlasnik"
+    },
+    "settings_card": {
+      "description": "Pogledajte tko radi u ovom radnom prostoru i, ako ste administrator ili vlasnik, pozovite ljude i upravljajte njihovim ulogama.",
+      "open": "Otvori članove",
+      "title": "Članovi"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervali, Pokušaji, Timeouti"
   },
   "workspaces": {
+    "create": "Izradi radni prostor",
+    "create_error": "Izrada radnog prostora nije uspjela",
+    "creating": "Izrada...",
+    "name_label": "Naziv",
+    "name_placeholder": "Moj tim",
+    "name_required": "Unesite naziv",
+    "new": "Novi radni prostor",
+    "new_description": "Radni prostor ima vlastite nadzore, kanale obavijesti, statusne stranice i članove. Vi ćete biti njegov vlasnik.",
+    "new_title": "Novi radni prostor",
     "none_description": "Vaš račun nije član nijednog radnog prostora, pa ovdje nema ničega za prikazati. Zamolite nekoga tko upravlja radnim prostorom da vas doda.",
-    "none_title": "Još niste ni u jednom radnom prostoru"
+    "none_title": "Još niste ni u jednom radnom prostoru",
+    "switcher_label": "Promijeni radni prostor"
   }
 }

@@ -126,6 +126,32 @@
       "passwords_mismatch": "Pasahitzak ez datoz bat"
     }
   },
+  "invite": {
+    "accept": "Onartu gonbidapena",
+    "accepting": "Batzen...",
+    "creating": "Sortzen...",
+    "description": "{{workspace}} lan-eremura batzeko gonbidatu zaituzte, rola: {{role}}.",
+    "errors": {
+      "other_email": "Gonbidapen hau beste helbide elektroniko baterako da."
+    },
+    "for_email": "Gonbidapen hau {{email}} helbiderako da.",
+    "have_account": "Badaukazu konturik?",
+    "open_app": "Ireki Peekaping",
+    "other_account": "{{current}} gisa hasi duzu saioa, baina gonbidapen hau {{invited}} helbiderako da. Amaitu saioa eta, ondoren, hasi saioa edo eman izena {{invited}} helbidearekin hura onartzeko.",
+    "sign_in_instead": "Hasi saioa horren ordez",
+    "sign_out": "Amaitu saioa",
+    "signup_description": "Aukeratu pasahitz bat zure kontua sortzeko eta {{workspace}} lan-eremura batzeko, rola: {{role}}.",
+    "signup_submit": "Sortu kontua eta batu",
+    "title": "Batu {{workspace}} lan-eremura",
+    "unavailable": {
+      "accepted": "Gonbidapen hau erabilita dago dagoeneko.",
+      "expired": "Gonbidapen hau iraungi da. Eskatu berri bat.",
+      "not_found": "Gonbidapen-esteka hau ez dago. Egiaztatu osorik kopiatu duzula.",
+      "revoked": "Gonbidapen hau indargabetu da. Eskatu berri bat.",
+      "title": "Gonbidapen hau ezin da erabili",
+      "unknown": "Gonbidapen hau ezin da erabili. Eskatu berri bat."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "O.",
       "tue": "astea",
       "wed": "Az"
+    }
+  },
+  "members": {
+    "change_role_aria": "Aldatu {{email}} erabiltzailearen rola",
+    "errors": {
+      "account_exists": "Helbide elektroniko honekin kontu bat badago jada. Hasi saioa eta onartu gonbidapena.",
+      "already_member": "Pertsona hau lan-eremu honetako kidea da dagoeneko.",
+      "forbidden": "Zure rolak ez du horretarako baimenik lan-eremu honetan.",
+      "generic": "Zerbait okerra gertatu da. Saiatu berriro.",
+      "last_owner": "Lan-eremu batek gutxienez jabe bat behar du.",
+      "member_not_found": "Kide hau ez dago jada lan-eremuan."
+    },
+    "invite": {
+      "copied": "Esteka kopiatu da",
+      "copy": "Kopiatu",
+      "creating": "Sortzen...",
+      "description": "Sortu esteka bat helbide elektroniko eta rol baterako. Ez da mezu elektronikorik bidaltzen: kopiatu esteka eta bidali zeuk.",
+      "done": "Eginda",
+      "email_label": "Helbide elektronikoa",
+      "link_note": "Esteka honek behin bakarrik funtzionatzen du eta 7 egunera iraungitzen da. Orain bakarrik erakusten da, beraz kopiatu orri hau utzi aurretik.",
+      "link_title": "Gonbidapen-esteka",
+      "role_label": "Rola",
+      "submit": "Sortu gonbidapen-esteka",
+      "title": "Gonbidatu norbait"
+    },
+    "leave": {
+      "button": "Utzi lan-eremua",
+      "confirm": "Utzi",
+      "description": "Berehala galtzen duzu lan-eremu honetarako eta bere datuetarako sarbidea.",
+      "done": "Lan-eremua utzi duzu",
+      "last_owner": "Azken jabea zara, beraz ezin duzu utzi. Egin lehenik beste kide bat jabe.",
+      "title": "Utzi lan-eremu hau"
+    },
+    "list": {
+      "description": "Lan-eremu honetan lan egiten duten guztiak eta haien rola.",
+      "email": "Helbide elektronikoa",
+      "joined": "Batu zen",
+      "role": "Rola",
+      "title": "Kideak",
+      "you": "zu"
+    },
+    "page_name": "Kideak",
+    "pending": {
+      "description": "Oraindik erabili gabeko gonbidapenak. Indargabetutako gonbidapen baten esteka ez da gehiago ibiltzen.",
+      "email": "Helbide elektronikoa",
+      "empty": "Ez dago zain dagoen gonbidapenik.",
+      "expired": "Iraungita",
+      "expires": "Iraungitzen da",
+      "revoke": "Indargabetu",
+      "revoke_aria": "Indargabetu {{email}} erabiltzailearen gonbidapena",
+      "revoked": "Gonbidapena indargabetu da",
+      "role": "Rola",
+      "title": "Zain dauden gonbidapenak"
+    },
+    "remove": "Kendu",
+    "remove_aria": "Kendu {{email}}",
+    "remove_dialog": {
+      "confirm": "Kendu",
+      "description": "{{email}} erabiltzaileak berehala galtzen du lan-eremu honetarako sarbidea.",
+      "title": "Kendu kidea"
+    },
+    "removed": "Kidea kendu da",
+    "role_updated": "Rola eguneratu da",
+    "roles": {
+      "admin": "Administratzailea",
+      "member": "Kidea",
+      "owner": "Jabea"
+    },
+    "settings_card": {
+      "description": "Ikusi nor ari den lan egiten lan-eremu honetan eta, administratzailea edo jabea bazara, gonbidatu jendea eta kudeatu haien rolak.",
+      "open": "Ireki kideak",
+      "title": "Kideak"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Ebakien, Errepikapenak, Denbora-mugak"
   },
   "workspaces": {
+    "create": "Sortu lan-eremua",
+    "create_error": "Ezin izan da lan-eremua sortu",
+    "creating": "Sortzen...",
+    "name_label": "Izena",
+    "name_placeholder": "Nire taldea",
+    "name_required": "Sartu izen bat",
+    "new": "Lan-eremu berria",
+    "new_description": "Lan-eremu batek bere monitoreak, jakinarazpen-kanalak, egoera-orriak eta kideak ditu. Zu izango zara bere jabea.",
+    "new_title": "Lan-eremu berria",
     "none_description": "Zure kontua ez da lan-eremu bateko kide, beraz ez dago hemen ezer erakusteko. Eskatu lan-eremu bat kudeatzen duen norbaiti zu gehitzeko.",
-    "none_title": "Oraindik ez zaude lan-eremurik batean"
+    "none_title": "Oraindik ez zaude lan-eremurik batean",
+    "switcher_label": "Aldatu lan-eremua"
   }
 }

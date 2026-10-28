@@ -126,6 +126,32 @@
       "passwords_mismatch": "A jelszavak nem egyeznek"
     }
   },
+  "invite": {
+    "accept": "Meghívó elfogadása",
+    "accepting": "Csatlakozás...",
+    "creating": "Létrehozás...",
+    "description": "Meghívták, hogy csatlakozzon a(z) {{workspace}} munkaterülethez {{role}} szerepkörrel.",
+    "errors": {
+      "other_email": "Ez a meghívó egy másik e-mail-címre szól."
+    },
+    "for_email": "Ez a meghívó a(z) {{email}} címre szól.",
+    "have_account": "Már van fiókja?",
+    "open_app": "Peekaping megnyitása",
+    "other_account": "Ön {{current}} fiókkal van bejelentkezve, de ez a meghívó a(z) {{invited}} címre szól. Jelentkezzen ki, majd jelentkezzen be vagy regisztráljon a(z) {{invited}} címmel az elfogadáshoz.",
+    "sign_in_instead": "Inkább bejelentkezem",
+    "sign_out": "Kijelentkezés",
+    "signup_description": "Válasszon jelszót a fiókja létrehozásához, és csatlakozzon a(z) {{workspace}} munkaterülethez {{role}} szerepkörrel.",
+    "signup_submit": "Fiók létrehozása és csatlakozás",
+    "title": "Csatlakozás: {{workspace}}",
+    "unavailable": {
+      "accepted": "Ezt a meghívót már felhasználták.",
+      "expired": "Ez a meghívó lejárt. Kérjen újat.",
+      "not_found": "Ez a meghívó hivatkozás nem létezik. Ellenőrizze, hogy teljesen kimásolta-e.",
+      "revoked": "Ez a meghívó vissza lett vonva. Kérjen újat.",
+      "title": "Ez a meghívó nem használható",
+      "unknown": "Ez a meghívó nem használható. Kérjen újat."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "csüt",
       "tue": "kedd",
       "wed": "Sze"
+    }
+  },
+  "members": {
+    "change_role_aria": "{{email}} szerepkörének módosítása",
+    "errors": {
+      "account_exists": "Ezzel az e-mail-címmel már létezik fiók. Jelentkezzen be, és fogadja el a meghívót.",
+      "already_member": "Ez a személy már tagja ennek a munkaterületnek.",
+      "forbidden": "A munkaterületen betöltött szerepköre ezt nem teszi lehetővé.",
+      "generic": "Valami hiba történt. Kérjük, próbálja újra.",
+      "last_owner": "Egy munkaterületnek legalább egy tulajdonosa kell legyen.",
+      "member_not_found": "Ez a tag már nincs a munkaterületen."
+    },
+    "invite": {
+      "copied": "Hivatkozás kimásolva",
+      "copy": "Másolás",
+      "creating": "Létrehozás...",
+      "description": "Hozzon létre egy hivatkozást egy e-mail-címhez és egy szerepkörhöz. E-mailt nem küldünk: másolja ki a hivatkozást, és küldje el saját maga.",
+      "done": "Kész",
+      "email_label": "E-mail",
+      "link_note": "Ez a hivatkozás egyszer használható, és 7 nap múlva lejár. Csak most látható, ezért az oldal elhagyása előtt másolja ki.",
+      "link_title": "Meghívó hivatkozás",
+      "role_label": "Szerepkör",
+      "submit": "Meghívó hivatkozás létrehozása",
+      "title": "Valaki meghívása"
+    },
+    "leave": {
+      "button": "Kilépés a munkaterületből",
+      "confirm": "Kilépés",
+      "description": "Azonnal elveszíti a hozzáférést ehhez a munkaterülethez és az adataihoz.",
+      "done": "Kilépett a munkaterületből",
+      "last_owner": "Ön az utolsó tulajdonos, ezért nem léphet ki. Előbb tegyen egy másik tagot tulajdonossá.",
+      "title": "Kilépés ebből a munkaterületből"
+    },
+    "list": {
+      "description": "Mindenki, aki ebben a munkaterületen dolgozik, és a szerepköre.",
+      "email": "E-mail",
+      "joined": "Csatlakozott",
+      "role": "Szerepkör",
+      "title": "Tagok",
+      "you": "Ön"
+    },
+    "page_name": "Tagok",
+    "pending": {
+      "description": "Még fel nem használt meghívók. A visszavont meghívó hivatkozása nem működik tovább.",
+      "email": "E-mail",
+      "empty": "Nincs függőben lévő meghívó.",
+      "expired": "Lejárt",
+      "expires": "Lejár",
+      "revoke": "Visszavonás",
+      "revoke_aria": "{{email}} meghívójának visszavonása",
+      "revoked": "Meghívó visszavonva",
+      "role": "Szerepkör",
+      "title": "Függőben lévő meghívók"
+    },
+    "remove": "Eltávolítás",
+    "remove_aria": "{{email}} eltávolítása",
+    "remove_dialog": {
+      "confirm": "Eltávolítás",
+      "description": "{{email}} azonnal elveszíti a hozzáférést ehhez a munkaterülethez.",
+      "title": "Tag eltávolítása"
+    },
+    "removed": "Tag eltávolítva",
+    "role_updated": "Szerepkör frissítve",
+    "roles": {
+      "admin": "Adminisztrátor",
+      "member": "Tag",
+      "owner": "Tulajdonos"
+    },
+    "settings_card": {
+      "description": "Nézze meg, ki dolgozik ebben a munkaterületen, és ha adminisztrátor vagy tulajdonos, hívjon meg embereket, és kezelje a szerepköreiket.",
+      "open": "Tagok megnyitása",
+      "title": "Tagok"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervallumok, Ismétlések, Időkorlátok"
   },
   "workspaces": {
+    "create": "Munkaterület létrehozása",
+    "create_error": "A munkaterület létrehozása sikertelen",
+    "creating": "Létrehozás...",
+    "name_label": "Név",
+    "name_placeholder": "Csapatom",
+    "name_required": "Adjon meg egy nevet",
+    "new": "Új munkaterület",
+    "new_description": "A munkaterületnek saját figyelői, értesítési csatornái, állapotlapjai és tagjai vannak. Ön lesz a tulajdonosa.",
+    "new_title": "Új munkaterület",
     "none_description": "A fiókja egyetlen munkaterületnek sem tagja, ezért itt nincs mit megjeleníteni. Kérjen meg valakit, aki munkaterületet kezel, hogy adja hozzá.",
-    "none_title": "Még nem tartozik egyetlen munkaterülethez sem"
+    "none_title": "Még nem tartozik egyetlen munkaterülethez sem",
+    "switcher_label": "Munkaterület váltása"
   }
 }

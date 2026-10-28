@@ -126,6 +126,32 @@
       "passwords_mismatch": "As senhas não coincidem"
     }
   },
+  "invite": {
+    "accept": "Aceitar convite",
+    "accepting": "A aderir...",
+    "creating": "A criar...",
+    "description": "Foi convidado para aderir a {{workspace}} como {{role}}.",
+    "errors": {
+      "other_email": "Este convite é para outro endereço de e-mail."
+    },
+    "for_email": "Este convite é para {{email}}.",
+    "have_account": "Já tem uma conta?",
+    "open_app": "Abrir o Peekaping",
+    "other_account": "Tem sessão iniciada como {{current}}, mas este convite é para {{invited}}. Termine a sessão e depois inicie sessão ou registe-se com {{invited}} para o aceitar.",
+    "sign_in_instead": "Iniciar sessão",
+    "sign_out": "Terminar sessão",
+    "signup_description": "Escolha uma palavra-passe para criar a sua conta e aderir a {{workspace}} como {{role}}.",
+    "signup_submit": "Criar conta e aderir",
+    "title": "Aderir a {{workspace}}",
+    "unavailable": {
+      "accepted": "Este convite já foi utilizado.",
+      "expired": "Este convite expirou. Peça um novo.",
+      "not_found": "Esta ligação de convite não existe. Verifique se copiou a ligação completa.",
+      "revoked": "Este convite foi revogado. Peça um novo.",
+      "title": "Este convite não pode ser utilizado",
+      "unknown": "Este convite não pode ser utilizado. Peça um novo."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Qui",
       "tue": "Ter",
       "wed": "Qua"
+    }
+  },
+  "members": {
+    "change_role_aria": "Alterar a função de {{email}}",
+    "errors": {
+      "account_exists": "Já existe uma conta com este e-mail. Inicie sessão e aceite o convite.",
+      "already_member": "Esta pessoa já é membro deste espaço de trabalho.",
+      "forbidden": "A sua função neste espaço de trabalho não permite esta ação.",
+      "generic": "Algo correu mal. Tente novamente.",
+      "last_owner": "Um espaço de trabalho precisa de pelo menos um proprietário.",
+      "member_not_found": "Este membro já não está no espaço de trabalho."
+    },
+    "invite": {
+      "copied": "Ligação copiada",
+      "copy": "Copiar",
+      "creating": "A criar...",
+      "description": "Crie uma ligação para um endereço de e-mail e uma função. Não é enviado nenhum e-mail: copie a ligação e envie-a você mesmo.",
+      "done": "Concluído",
+      "email_label": "E-mail",
+      "link_note": "Esta ligação funciona uma só vez e expira em 7 dias. É mostrada apenas agora, por isso copie-a antes de sair desta página.",
+      "link_title": "Ligação de convite",
+      "role_label": "Função",
+      "submit": "Criar ligação de convite",
+      "title": "Convidar alguém"
+    },
+    "leave": {
+      "button": "Sair do espaço de trabalho",
+      "confirm": "Sair",
+      "description": "Perde imediatamente o acesso a este espaço de trabalho e aos respetivos dados.",
+      "done": "Saiu do espaço de trabalho",
+      "last_owner": "É o último proprietário, por isso não pode sair. Torne primeiro outro membro proprietário.",
+      "title": "Sair deste espaço de trabalho"
+    },
+    "list": {
+      "description": "Todos os que trabalham neste espaço de trabalho e as suas funções.",
+      "email": "E-mail",
+      "joined": "Aderiu em",
+      "role": "Função",
+      "title": "Membros",
+      "you": "você"
+    },
+    "page_name": "Membros",
+    "pending": {
+      "description": "Convites que ainda não foram utilizados. A ligação de um convite revogado deixa de funcionar.",
+      "email": "E-mail",
+      "empty": "Sem convites pendentes.",
+      "expired": "Expirado",
+      "expires": "Expira",
+      "revoke": "Revogar",
+      "revoke_aria": "Revogar o convite de {{email}}",
+      "revoked": "Convite revogado",
+      "role": "Função",
+      "title": "Convites pendentes"
+    },
+    "remove": "Remover",
+    "remove_aria": "Remover {{email}}",
+    "remove_dialog": {
+      "confirm": "Remover",
+      "description": "{{email}} perde imediatamente o acesso a este espaço de trabalho.",
+      "title": "Remover membro"
+    },
+    "removed": "Membro removido",
+    "role_updated": "Função atualizada",
+    "roles": {
+      "admin": "Administrador",
+      "member": "Membro",
+      "owner": "Proprietário"
+    },
+    "settings_card": {
+      "description": "Veja quem trabalha neste espaço de trabalho e, se for administrador ou proprietário, convide pessoas e gira as respetivas funções.",
+      "open": "Abrir membros",
+      "title": "Membros"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervalos, Tentativas, Timeouts"
   },
   "workspaces": {
+    "create": "Criar espaço de trabalho",
+    "create_error": "Falha ao criar o espaço de trabalho",
+    "creating": "A criar...",
+    "name_label": "Nome",
+    "name_placeholder": "A minha equipa",
+    "name_required": "Introduza um nome",
+    "new": "Novo espaço de trabalho",
+    "new_description": "Um espaço de trabalho tem os seus próprios monitores, canais de notificação, páginas de estado e membros. Será o proprietário.",
+    "new_title": "Novo espaço de trabalho",
     "none_description": "A sua conta não é membro de nenhum espaço de trabalho, por isso não há nada para mostrar aqui. Peça a quem gere um espaço de trabalho que o adicione.",
-    "none_title": "Ainda não está em nenhum espaço de trabalho"
+    "none_title": "Ainda não está em nenhum espaço de trabalho",
+    "switcher_label": "Mudar de espaço de trabalho"
   }
 }

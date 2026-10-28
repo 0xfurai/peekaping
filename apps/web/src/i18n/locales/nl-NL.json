@@ -126,6 +126,32 @@
       "passwords_mismatch": "Wachtwoorden komen niet overeen"
     }
   },
+  "invite": {
+    "accept": "Uitnodiging accepteren",
+    "accepting": "Lid worden...",
+    "creating": "Aanmaken...",
+    "description": "Je bent uitgenodigd om als {{role}} lid te worden van {{workspace}}.",
+    "errors": {
+      "other_email": "Deze uitnodiging is voor een ander e-mailadres."
+    },
+    "for_email": "Deze uitnodiging is voor {{email}}.",
+    "have_account": "Heb je al een account?",
+    "open_app": "Peekaping openen",
+    "other_account": "Je bent ingelogd als {{current}}, maar deze uitnodiging is voor {{invited}}. Log uit en log daarna in of registreer je met {{invited}} om hem te accepteren.",
+    "sign_in_instead": "Log in",
+    "sign_out": "Uitloggen",
+    "signup_description": "Kies een wachtwoord om je account aan te maken en als {{role}} lid te worden van {{workspace}}.",
+    "signup_submit": "Account aanmaken en lid worden",
+    "title": "Lid worden van {{workspace}}",
+    "unavailable": {
+      "accepted": "Deze uitnodiging is al gebruikt.",
+      "expired": "Deze uitnodiging is verlopen. Vraag een nieuwe aan.",
+      "not_found": "Deze uitnodigingslink bestaat niet. Controleer of je de hele link hebt gekopieerd.",
+      "revoked": "Deze uitnodiging is ingetrokken. Vraag een nieuwe aan.",
+      "title": "Deze uitnodiging kan niet worden gebruikt",
+      "unknown": "Deze uitnodiging kan niet worden gebruikt. Vraag een nieuwe aan."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Do",
       "tue": "Di",
       "wed": "Wo"
+    }
+  },
+  "members": {
+    "change_role_aria": "Rol van {{email}} wijzigen",
+    "errors": {
+      "account_exists": "Er bestaat al een account met dit e-mailadres. Log in en accepteer de uitnodiging.",
+      "already_member": "Deze persoon is al lid van deze werkruimte.",
+      "forbidden": "Je rol in deze werkruimte staat dit niet toe.",
+      "generic": "Er ging iets mis. Probeer het opnieuw.",
+      "last_owner": "Een werkruimte heeft minstens één eigenaar nodig.",
+      "member_not_found": "Dit lid zit niet meer in de werkruimte."
+    },
+    "invite": {
+      "copied": "Link gekopieerd",
+      "copy": "Kopiëren",
+      "creating": "Maken...",
+      "description": "Maak een link voor een e-mailadres en een rol. Er wordt geen e-mail verstuurd: kopieer de link en stuur hem zelf.",
+      "done": "Klaar",
+      "email_label": "E-mailadres",
+      "link_note": "Deze link werkt één keer en verloopt na 7 dagen. Hij wordt alleen nu getoond, dus kopieer hem voordat je deze pagina verlaat.",
+      "link_title": "Uitnodigingslink",
+      "role_label": "Rol",
+      "submit": "Uitnodigingslink maken",
+      "title": "Iemand uitnodigen"
+    },
+    "leave": {
+      "button": "Werkruimte verlaten",
+      "confirm": "Verlaten",
+      "description": "Je verliest meteen de toegang tot deze werkruimte en de gegevens erin.",
+      "done": "Je hebt de werkruimte verlaten",
+      "last_owner": "Je bent de laatste eigenaar, dus je kunt niet weg. Maak eerst een ander lid eigenaar.",
+      "title": "Deze werkruimte verlaten"
+    },
+    "list": {
+      "description": "Iedereen die in deze werkruimte werkt, en hun rol.",
+      "email": "E-mailadres",
+      "joined": "Lid sinds",
+      "role": "Rol",
+      "title": "Leden",
+      "you": "jij"
+    },
+    "page_name": "Leden",
+    "pending": {
+      "description": "Uitnodigingen die nog niet zijn gebruikt. De link van een ingetrokken uitnodiging werkt niet meer.",
+      "email": "E-mailadres",
+      "empty": "Geen openstaande uitnodigingen.",
+      "expired": "Verlopen",
+      "expires": "Verloopt",
+      "revoke": "Intrekken",
+      "revoke_aria": "Uitnodiging voor {{email}} intrekken",
+      "revoked": "Uitnodiging ingetrokken",
+      "role": "Rol",
+      "title": "Openstaande uitnodigingen"
+    },
+    "remove": "Verwijderen",
+    "remove_aria": "{{email}} verwijderen",
+    "remove_dialog": {
+      "confirm": "Verwijderen",
+      "description": "{{email}} verliest meteen de toegang tot deze werkruimte.",
+      "title": "Lid verwijderen"
+    },
+    "removed": "Lid verwijderd",
+    "role_updated": "Rol bijgewerkt",
+    "roles": {
+      "admin": "Beheerder",
+      "member": "Lid",
+      "owner": "Eigenaar"
+    },
+    "settings_card": {
+      "description": "Zie wie in deze werkruimte werkt en nodig, als je beheerder of eigenaar bent, mensen uit en beheer hun rollen.",
+      "open": "Leden openen",
+      "title": "Leden"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervallen, Pogingen, Time-outs"
   },
   "workspaces": {
+    "create": "Werkruimte aanmaken",
+    "create_error": "Werkruimte aanmaken mislukt",
+    "creating": "Aanmaken...",
+    "name_label": "Naam",
+    "name_placeholder": "Mijn team",
+    "name_required": "Voer een naam in",
+    "new": "Nieuwe werkruimte",
+    "new_description": "Een werkruimte heeft eigen monitors, meldingskanalen, statuspagina's en leden. Jij wordt de eigenaar.",
+    "new_title": "Nieuwe werkruimte",
     "none_description": "Je account is geen lid van een werkruimte, dus er is hier niets om te tonen. Vraag iemand die een werkruimte beheert om je toe te voegen.",
-    "none_title": "Je zit nog in geen enkele werkruimte"
+    "none_title": "Je zit nog in geen enkele werkruimte",
+    "switcher_label": "Van werkruimte wisselen"
   }
 }

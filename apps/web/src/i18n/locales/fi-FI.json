@@ -126,6 +126,32 @@
       "passwords_mismatch": "Salasanat eivät täsmää"
     }
   },
+  "invite": {
+    "accept": "Hyväksy kutsu",
+    "accepting": "Liitytään...",
+    "creating": "Luodaan...",
+    "description": "Sinut on kutsuttu liittymään työtilaan {{workspace}} roolilla {{role}}.",
+    "errors": {
+      "other_email": "Tämä kutsu on toiselle sähköpostiosoitteelle."
+    },
+    "for_email": "Tämä kutsu on osoitteelle {{email}}.",
+    "have_account": "Onko sinulla jo tili?",
+    "open_app": "Avaa Peekaping",
+    "other_account": "Olet kirjautunut tunnuksella {{current}}, mutta tämä kutsu on osoitteelle {{invited}}. Kirjaudu ulos ja kirjaudu sitten sisään tai rekisteröidy osoitteella {{invited}} hyväksyäksesi sen.",
+    "sign_in_instead": "Kirjaudu sisään",
+    "sign_out": "Kirjaudu ulos",
+    "signup_description": "Valitse salasana luodaksesi tilisi ja liittyäksesi työtilaan {{workspace}} roolilla {{role}}.",
+    "signup_submit": "Luo tili ja liity",
+    "title": "Liity työtilaan {{workspace}}",
+    "unavailable": {
+      "accepted": "Tämä kutsu on jo käytetty.",
+      "expired": "Tämä kutsu on vanhentunut. Pyydä uusi.",
+      "not_found": "Tätä kutsulinkkiä ei ole olemassa. Tarkista, että kopioit sen kokonaan.",
+      "revoked": "Tämä kutsu on peruutettu. Pyydä uusi.",
+      "title": "Tätä kutsua ei voi käyttää",
+      "unknown": "Tätä kutsua ei voi käyttää. Pyydä uusi."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Tor",
       "tue": "Ti",
       "wed": "ke"
+    }
+  },
+  "members": {
+    "change_role_aria": "Vaihda käyttäjän {{email}} roolia",
+    "errors": {
+      "account_exists": "Tällä sähköpostiosoitteella on jo tili. Kirjaudu sisään ja hyväksy kutsu.",
+      "already_member": "Tämä henkilö on jo tämän työtilan jäsen.",
+      "forbidden": "Roolisi tässä työtilassa ei salli tätä.",
+      "generic": "Jokin meni pieleen. Yritä uudelleen.",
+      "last_owner": "Työtilassa täytyy olla vähintään yksi omistaja.",
+      "member_not_found": "Tämä jäsen ei ole enää työtilassa."
+    },
+    "invite": {
+      "copied": "Linkki kopioitu",
+      "copy": "Kopioi",
+      "creating": "Luodaan...",
+      "description": "Luo linkki sähköpostiosoitteelle ja roolille. Sähköpostia ei lähetetä: kopioi linkki ja lähetä se itse.",
+      "done": "Valmis",
+      "email_label": "Sähköposti",
+      "link_note": "Linkki toimii vain kerran ja vanhenee 7 päivässä. Se näytetään vain nyt, joten kopioi se ennen kuin poistut sivulta.",
+      "link_title": "Kutsulinkki",
+      "role_label": "Rooli",
+      "submit": "Luo kutsulinkki",
+      "title": "Kutsu joku"
+    },
+    "leave": {
+      "button": "Poistu työtilasta",
+      "confirm": "Poistu",
+      "description": "Menetät pääsyn tähän työtilaan ja sen tietoihin heti.",
+      "done": "Poistuit työtilasta",
+      "last_owner": "Olet viimeinen omistaja, joten et voi poistua. Tee ensin toisesta jäsenestä omistaja.",
+      "title": "Poistu tästä työtilasta"
+    },
+    "list": {
+      "description": "Kaikki tämän työtilan jäsenet ja heidän roolinsa.",
+      "email": "Sähköposti",
+      "joined": "Liittynyt",
+      "role": "Rooli",
+      "title": "Jäsenet",
+      "you": "sinä"
+    },
+    "page_name": "Jäsenet",
+    "pending": {
+      "description": "Kutsut, joita ei ole vielä käytetty. Peruutetun kutsun linkki lakkaa toimimasta.",
+      "email": "Sähköposti",
+      "empty": "Ei odottavia kutsuja.",
+      "expired": "Vanhentunut",
+      "expires": "Vanhenee",
+      "revoke": "Peruuta",
+      "revoke_aria": "Peruuta käyttäjän {{email}} kutsu",
+      "revoked": "Kutsu peruutettu",
+      "role": "Rooli",
+      "title": "Odottavat kutsut"
+    },
+    "remove": "Poista",
+    "remove_aria": "Poista {{email}}",
+    "remove_dialog": {
+      "confirm": "Poista",
+      "description": "{{email}} menettää pääsyn tähän työtilaan heti.",
+      "title": "Poista jäsen"
+    },
+    "removed": "Jäsen poistettu",
+    "role_updated": "Rooli päivitetty",
+    "roles": {
+      "admin": "Ylläpitäjä",
+      "member": "Jäsen",
+      "owner": "Omistaja"
+    },
+    "settings_card": {
+      "description": "Katso, ketkä työskentelevät tässä työtilassa, ja kutsu ihmisiä ja hallitse heidän rooliaan, jos olet ylläpitäjä tai omistaja.",
+      "open": "Avaa jäsenet",
+      "title": "Jäsenet"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Väli, Uudelleenkokeilut, Aikakatkaisut"
   },
   "workspaces": {
+    "create": "Luo työtila",
+    "create_error": "Työtilan luominen epäonnistui",
+    "creating": "Luodaan...",
+    "name_label": "Nimi",
+    "name_placeholder": "Tiimini",
+    "name_required": "Anna nimi",
+    "new": "Uusi työtila",
+    "new_description": "Työtilalla on omat valvontansa, ilmoituskanavansa, tilasivunsa ja jäsenensä. Sinusta tulee sen omistaja.",
+    "new_title": "Uusi työtila",
     "none_description": "Tilisi ei ole minkään työtilan jäsen, joten tässä ei ole mitään näytettävää. Pyydä työtilaa ylläpitävää lisäämään sinut.",
-    "none_title": "Et ole vielä missään työtilassa"
+    "none_title": "Et ole vielä missään työtilassa",
+    "switcher_label": "Vaihda työtilaa"
   }
 }

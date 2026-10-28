@@ -126,6 +126,32 @@
       "passwords_mismatch": "Lösenorden matchar inte"
     }
   },
+  "invite": {
+    "accept": "Acceptera inbjudan",
+    "accepting": "Ansluter...",
+    "creating": "Skapar...",
+    "description": "Du har blivit inbjuden att gå med i {{workspace}} som {{role}}.",
+    "errors": {
+      "other_email": "Den här inbjudan gäller en annan e-postadress."
+    },
+    "for_email": "Den här inbjudan gäller {{email}}.",
+    "have_account": "Har du redan ett konto?",
+    "open_app": "Öppna Peekaping",
+    "other_account": "Du är inloggad som {{current}}, men den här inbjudan gäller {{invited}}. Logga ut och logga sedan in eller registrera dig med {{invited}} för att acceptera den.",
+    "sign_in_instead": "Logga in i stället",
+    "sign_out": "Logga ut",
+    "signup_description": "Välj ett lösenord för att skapa ditt konto och gå med i {{workspace}} som {{role}}.",
+    "signup_submit": "Skapa konto och gå med",
+    "title": "Gå med i {{workspace}}",
+    "unavailable": {
+      "accepted": "Den här inbjudan har redan använts.",
+      "expired": "Den här inbjudan har upphört att gälla. Be om en ny.",
+      "not_found": "Den här inbjudningslänken finns inte. Kontrollera att du har kopierat hela länken.",
+      "revoked": "Den här inbjudan har återkallats. Be om en ny.",
+      "title": "Den här inbjudan kan inte användas",
+      "unknown": "Den här inbjudan kan inte användas. Be om en ny."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "tors.",
       "tue": "tis.",
       "wed": "Ons"
+    }
+  },
+  "members": {
+    "change_role_aria": "Ändra roll för {{email}}",
+    "errors": {
+      "account_exists": "Det finns redan ett konto med den här e-postadressen. Logga in och acceptera inbjudan.",
+      "already_member": "Den här personen är redan medlem i arbetsytan.",
+      "forbidden": "Din roll i den här arbetsytan tillåter inte detta.",
+      "generic": "Något gick fel. Försök igen.",
+      "last_owner": "En arbetsyta behöver minst en ägare.",
+      "member_not_found": "Den här medlemmen finns inte längre i arbetsytan."
+    },
+    "invite": {
+      "copied": "Länken har kopierats",
+      "copy": "Kopiera",
+      "creating": "Skapar...",
+      "description": "Skapa en länk för en e-postadress och en roll. Inget skickas via e-post: kopiera länken och skicka den själv.",
+      "done": "Klar",
+      "email_label": "E-post",
+      "link_note": "Länken fungerar en gång och upphör att gälla efter 7 dagar. Den visas bara nu, så kopiera den innan du lämnar sidan.",
+      "link_title": "Inbjudningslänk",
+      "role_label": "Roll",
+      "submit": "Skapa inbjudningslänk",
+      "title": "Bjud in någon"
+    },
+    "leave": {
+      "button": "Lämna arbetsytan",
+      "confirm": "Lämna",
+      "description": "Du förlorar åtkomsten till den här arbetsytan och dess data direkt.",
+      "done": "Du har lämnat arbetsytan",
+      "last_owner": "Du är den sista ägaren, så du kan inte lämna. Gör först en annan medlem till ägare.",
+      "title": "Lämna den här arbetsytan"
+    },
+    "list": {
+      "description": "Alla som arbetar i den här arbetsytan och deras roller.",
+      "email": "E-post",
+      "joined": "Gick med",
+      "role": "Roll",
+      "title": "Medlemmar",
+      "you": "du"
+    },
+    "page_name": "Medlemmar",
+    "pending": {
+      "description": "Inbjudningar som ännu inte har använts. Länken till en återkallad inbjudan slutar fungera.",
+      "email": "E-post",
+      "empty": "Inga väntande inbjudningar.",
+      "expired": "Utgången",
+      "expires": "Förfaller",
+      "revoke": "Återkalla",
+      "revoke_aria": "Återkalla inbjudan till {{email}}",
+      "revoked": "Inbjudan har återkallats",
+      "role": "Roll",
+      "title": "Väntande inbjudningar"
+    },
+    "remove": "Ta bort",
+    "remove_aria": "Ta bort {{email}}",
+    "remove_dialog": {
+      "confirm": "Ta bort",
+      "description": "{{email}} förlorar åtkomsten till den här arbetsytan direkt.",
+      "title": "Ta bort medlem"
+    },
+    "removed": "Medlemmen har tagits bort",
+    "role_updated": "Rollen har uppdaterats",
+    "roles": {
+      "admin": "Administratör",
+      "member": "Medlem",
+      "owner": "Ägare"
+    },
+    "settings_card": {
+      "description": "Se vem som arbetar i den här arbetsytan och, om du är administratör eller ägare, bjud in personer och hantera deras roller.",
+      "open": "Öppna medlemmar",
+      "title": "Medlemmar"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervaller, Upprepningar, Timeout"
   },
   "workspaces": {
+    "create": "Skapa arbetsyta",
+    "create_error": "Det gick inte att skapa arbetsytan",
+    "creating": "Skapar...",
+    "name_label": "Namn",
+    "name_placeholder": "Mitt team",
+    "name_required": "Ange ett namn",
+    "new": "Ny arbetsyta",
+    "new_description": "En arbetsyta har egna övervakare, aviseringskanaler, statussidor och medlemmar. Du blir dess ägare.",
+    "new_title": "Ny arbetsyta",
     "none_description": "Ditt konto är inte medlem i någon arbetsyta, så det finns inget att visa här. Be någon som hanterar en arbetsyta att lägga till dig.",
-    "none_title": "Du är inte med i någon arbetsyta ännu"
+    "none_title": "Du är inte med i någon arbetsyta ännu",
+    "switcher_label": "Byt arbetsyta"
   }
 }

@@ -126,6 +126,32 @@
       "passwords_mismatch": "Slaptažodžiai nesutampa"
     }
   },
+  "invite": {
+    "accept": "Priimti kvietimą",
+    "accepting": "Jungiamasi...",
+    "creating": "Kuriama...",
+    "description": "Esate pakviesti prisijungti prie {{workspace}} kaip {{role}}.",
+    "errors": {
+      "other_email": "Šis kvietimas skirtas kitam el. pašto adresui."
+    },
+    "for_email": "Šis kvietimas skirtas {{email}}.",
+    "have_account": "Jau turite paskyrą?",
+    "open_app": "Atidaryti Peekaping",
+    "other_account": "Esate prisijungę kaip {{current}}, bet šis kvietimas skirtas {{invited}}. Atsijunkite, tada prisijunkite arba užsiregistruokite su {{invited}}, kad jį priimtumėte.",
+    "sign_in_instead": "Prisijungti",
+    "sign_out": "Atsijungti",
+    "signup_description": "Pasirinkite slaptažodį, kad sukurtumėte paskyrą ir prisijungtumėte prie {{workspace}} kaip {{role}}.",
+    "signup_submit": "Sukurti paskyrą ir prisijungti",
+    "title": "Prisijunkite prie {{workspace}}",
+    "unavailable": {
+      "accepted": "Šis kvietimas jau panaudotas.",
+      "expired": "Šio kvietimo galiojimas baigėsi. Paprašykite naujo.",
+      "not_found": "Tokios kvietimo nuorodos nėra. Patikrinkite, ar nukopijavote ją visą.",
+      "revoked": "Šis kvietimas buvo atšauktas. Paprašykite naujo.",
+      "title": "Šio kvietimo naudoti negalima",
+      "unknown": "Šio kvietimo naudoti negalima. Paprašykite naujo."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "ktv",
       "tue": "Antr.",
       "wed": "Tre"
+    }
+  },
+  "members": {
+    "change_role_aria": "Pakeisti {{email}} rolę",
+    "errors": {
+      "account_exists": "Paskyra su šiuo el. pašto adresu jau egzistuoja. Prisijunkite ir priimkite kvietimą.",
+      "already_member": "Šis asmuo jau yra šios darbo erdvės narys.",
+      "forbidden": "Jūsų rolė šioje darbo erdvėje neleidžia to daryti.",
+      "generic": "Kažkas nepavyko. Bandykite dar kartą.",
+      "last_owner": "Darbo erdvė turi turėti bent vieną savininką.",
+      "member_not_found": "Šio nario šioje darbo erdvėje jau nebėra."
+    },
+    "invite": {
+      "copied": "Nuoroda nukopijuota",
+      "copy": "Kopijuoti",
+      "creating": "Kuriama...",
+      "description": "Sukurkite nuorodą el. pašto adresui ir rolei. Laiškas nesiunčiamas: nukopijuokite nuorodą ir išsiųskite patys.",
+      "done": "Atlikta",
+      "email_label": "El. paštas",
+      "link_note": "Ši nuoroda veikia tik vieną kartą ir baigia galioti po 7 dienų. Ji rodoma tik dabar, todėl nukopijuokite ją prieš išeidami iš šio puslapio.",
+      "link_title": "Kvietimo nuoroda",
+      "role_label": "Rolė",
+      "submit": "Sukurti kvietimo nuorodą",
+      "title": "Pakviesti žmogų"
+    },
+    "leave": {
+      "button": "Palikti darbo erdvę",
+      "confirm": "Palikti",
+      "description": "Iškart prarasite prieigą prie šios darbo erdvės ir jos duomenų.",
+      "done": "Palikote darbo erdvę",
+      "last_owner": "Esate paskutinis savininkas, todėl negalite išeiti. Pirmiausia paskirkite kitą narį savininku.",
+      "title": "Palikti šią darbo erdvę"
+    },
+    "list": {
+      "description": "Visi, kurie dirba šioje darbo erdvėje, ir jų rolės.",
+      "email": "El. paštas",
+      "joined": "Prisijungė",
+      "role": "Rolė",
+      "title": "Nariai",
+      "you": "jūs"
+    },
+    "page_name": "Nariai",
+    "pending": {
+      "description": "Kvietimai, kurie dar nepanaudoti. Atšauktų kvietimų nuorodos nustoja veikti.",
+      "email": "El. paštas",
+      "empty": "Laukiančių kvietimų nėra.",
+      "expired": "Nebegalioja",
+      "expires": "Baigia galioti",
+      "revoke": "Atšaukti",
+      "revoke_aria": "Atšaukti kvietimą, skirtą {{email}}",
+      "revoked": "Kvietimas atšauktas",
+      "role": "Rolė",
+      "title": "Laukiantys kvietimai"
+    },
+    "remove": "Pašalinti",
+    "remove_aria": "Pašalinti {{email}}",
+    "remove_dialog": {
+      "confirm": "Pašalinti",
+      "description": "{{email}} iškart praranda prieigą prie šios darbo erdvės.",
+      "title": "Pašalinti narį"
+    },
+    "removed": "Narys pašalintas",
+    "role_updated": "Rolė atnaujinta",
+    "roles": {
+      "admin": "Administratorius",
+      "member": "Narys",
+      "owner": "Savininkas"
+    },
+    "settings_card": {
+      "description": "Peržiūrėkite, kas dirba šioje darbo erdvėje, o jei esate administratorius ar savininkas, kvieskite žmones ir valdykite jų roles.",
+      "open": "Atidaryti narius",
+      "title": "Nariai"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervalai, bandymai, terminai"
   },
   "workspaces": {
+    "create": "Sukurti darbo erdvę",
+    "create_error": "Nepavyko sukurti darbo erdvės",
+    "creating": "Kuriama...",
+    "name_label": "Pavadinimas",
+    "name_placeholder": "Mano komanda",
+    "name_required": "Įveskite pavadinimą",
+    "new": "Nauja darbo erdvė",
+    "new_description": "Darbo erdvė turi savo monitorius, pranešimų kanalus, būsenos puslapius ir narius. Būsite jos savininkas.",
+    "new_title": "Nauja darbo erdvė",
     "none_description": "Jūsų paskyra nėra jokios darbo erdvės narė, todėl čia nėra ką rodyti. Paprašykite darbo erdvę valdančio asmens jus pridėti.",
-    "none_title": "Dar nesate jokioje darbo erdvėje"
+    "none_title": "Dar nesate jokioje darbo erdvėje",
+    "switcher_label": "Perjungti darbo erdvę"
   }
 }

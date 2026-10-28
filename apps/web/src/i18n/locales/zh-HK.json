@@ -126,6 +126,32 @@
       "passwords_mismatch": "密碼不一致"
     }
   },
+  "invite": {
+    "accept": "接受邀請",
+    "accepting": "加入緊...",
+    "creating": "建立緊...",
+    "description": "你獲邀以 {{role}} 身份加入 {{workspace}}。",
+    "errors": {
+      "other_email": "呢個邀請係畀另一個電郵地址嘅。"
+    },
+    "for_email": "呢個邀請係畀 {{email}} 嘅。",
+    "have_account": "已經有帳戶？",
+    "open_app": "開啟 Peekaping",
+    "other_account": "你而家以 {{current}} 登入，但呢個邀請係畀 {{invited}} 嘅。請先登出，再用 {{invited}} 登入或者註冊嚟接受邀請。",
+    "sign_in_instead": "改為登入",
+    "sign_out": "登出",
+    "signup_description": "設定密碼嚟建立帳戶，並以 {{role}} 身份加入 {{workspace}}。",
+    "signup_submit": "建立帳戶並加入",
+    "title": "加入 {{workspace}}",
+    "unavailable": {
+      "accepted": "呢個邀請已經被使用咗。",
+      "expired": "呢個邀請已經過期。請再問人攞一個新嘅。",
+      "not_found": "呢個邀請連結唔存在。請檢查你有冇完整複製成條連結。",
+      "revoked": "呢個邀請已經被撤銷。請再問人攞一個新嘅。",
+      "title": "呢個邀請用唔到",
+      "unknown": "呢個邀請用唔到。請再問人攞一個新嘅。"
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "星期四",
       "tue": "週二",
       "wed": "週三"
+    }
+  },
+  "members": {
+    "change_role_aria": "更改 {{email}} 嘅角色",
+    "errors": {
+      "account_exists": "已經有用呢個電郵嘅帳戶。請登入再接受邀請。",
+      "already_member": "呢個人已經係呢個工作區嘅成員。",
+      "forbidden": "你喺呢個工作區嘅角色唔可以做呢個操作。",
+      "generic": "出咗啲問題，請再試一次。",
+      "last_owner": "工作區至少要有一位擁有者。",
+      "member_not_found": "呢位成員已經唔喺工作區入面。"
+    },
+    "invite": {
+      "copied": "連結已複製",
+      "copy": "複製",
+      "creating": "建立緊...",
+      "description": "為一個電郵地址同角色建立連結。系統唔會寄電郵：請複製連結再自行傳送。",
+      "done": "完成",
+      "email_label": "電郵",
+      "link_note": "呢個連結只可以用一次，7 日後到期。佢只會喺而家顯示，所以離開呢頁之前請先複製。",
+      "link_title": "邀請連結",
+      "role_label": "角色",
+      "submit": "建立邀請連結",
+      "title": "邀請其他人"
+    },
+    "leave": {
+      "button": "離開工作區",
+      "confirm": "離開",
+      "description": "你會即時失去呢個工作區同佢嘅資料嘅存取權限。",
+      "done": "你已離開工作區",
+      "last_owner": "你係最後一位擁有者，所以唔可以離開。請先將另一位成員設為擁有者。",
+      "title": "離開呢個工作區"
+    },
+    "list": {
+      "description": "喺呢個工作區入面做嘢嘅所有人同佢哋嘅角色。",
+      "email": "電郵",
+      "joined": "加入時間",
+      "role": "角色",
+      "title": "成員",
+      "you": "你"
+    },
+    "page_name": "成員",
+    "pending": {
+      "description": "未被使用嘅邀請。已撤銷邀請嘅連結會失效。",
+      "email": "電郵",
+      "empty": "冇待處理嘅邀請。",
+      "expired": "已過期",
+      "expires": "到期日",
+      "revoke": "撤銷",
+      "revoke_aria": "撤銷發畀 {{email}} 嘅邀請",
+      "revoked": "邀請已撤銷",
+      "role": "角色",
+      "title": "待處理嘅邀請"
+    },
+    "remove": "移除",
+    "remove_aria": "移除 {{email}}",
+    "remove_dialog": {
+      "confirm": "移除",
+      "description": "{{email}} 會即時失去呢個工作區嘅存取權限。",
+      "title": "移除成員"
+    },
+    "removed": "成員已移除",
+    "role_updated": "角色已更新",
+    "roles": {
+      "admin": "管理員",
+      "member": "成員",
+      "owner": "擁有者"
+    },
+    "settings_card": {
+      "description": "睇下邊個喺呢個工作區入面做嘢；如果你係管理員或者擁有者，仲可以邀請其他人同管理佢哋嘅角色。",
+      "open": "開啟成員",
+      "title": "成員"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "間隔、重試、逾時"
   },
   "workspaces": {
+    "create": "建立工作區",
+    "create_error": "建立工作區失敗",
+    "creating": "建立緊...",
+    "name_label": "名稱",
+    "name_placeholder": "我嘅團隊",
+    "name_required": "請輸入名稱",
+    "new": "新增工作區",
+    "new_description": "每個工作區都有自己嘅監察項目、通知渠道、狀態頁同成員。你會係佢嘅擁有者。",
+    "new_title": "新增工作區",
     "none_description": "你嘅帳戶唔係任何工作區嘅成員，所以呢度冇嘢可以顯示。請搵管理緊工作區嘅人將你加入。",
-    "none_title": "你仲未喺任何工作區入面"
+    "none_title": "你仲未喺任何工作區入面",
+    "switcher_label": "切換工作區"
   }
 }

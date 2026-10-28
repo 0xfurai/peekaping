@@ -126,6 +126,32 @@
       "passwords_mismatch": "Ní ionann na pasfhocail"
     }
   },
+  "invite": {
+    "accept": "Glac leis an gcuireadh",
+    "accepting": "Ag dul isteach...",
+    "creating": "Ag cruthú...",
+    "description": "Tugadh cuireadh duit dul isteach i {{workspace}} mar {{role}}.",
+    "errors": {
+      "other_email": "Tá an cuireadh seo do sheoladh ríomhphoist eile."
+    },
+    "for_email": "Tá an cuireadh seo do {{email}}.",
+    "have_account": "An bhfuil cuntas agat cheana féin?",
+    "open_app": "Oscail Peekaping",
+    "other_account": "Tá tú sínithe isteach mar {{current}}, ach tá an cuireadh seo do {{invited}}. Sínigh amach, ansin sínigh isteach nó cláraigh le {{invited}} chun glacadh leis.",
+    "sign_in_instead": "Sínigh isteach ina ionad",
+    "sign_out": "Sínigh amach",
+    "signup_description": "Roghnaigh focal faire chun do chuntas a chruthú agus dul isteach i {{workspace}} mar {{role}}.",
+    "signup_submit": "Cruthaigh cuntas agus téigh isteach",
+    "title": "Téigh isteach i {{workspace}}",
+    "unavailable": {
+      "accepted": "Úsáideadh an cuireadh seo cheana.",
+      "expired": "Chuaigh an cuireadh seo in éag. Iarr ceann nua.",
+      "not_found": "Níl an nasc cuiridh seo ann. Seiceáil gur chóipeáil tú é ar fad.",
+      "revoked": "Cúlghairadh an cuireadh seo. Iarr ceann nua.",
+      "title": "Ní féidir an cuireadh seo a úsáid",
+      "unknown": "Ní féidir an cuireadh seo a úsáid. Iarr ceann nua."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Déardaoin",
       "tue": "Dé",
       "wed": "Cé"
+    }
+  },
+  "members": {
+    "change_role_aria": "Athraigh ról {{email}}",
+    "errors": {
+      "account_exists": "Tá cuntas leis an ríomhphost seo ann cheana féin. Sínigh isteach agus glac leis an gcuireadh.",
+      "already_member": "Is ball den spás oibre seo an duine seo cheana féin.",
+      "forbidden": "Ní cheadaíonn do ról sa spás oibre seo é seo.",
+      "generic": "Chuaigh rud éigin mícheart. Bain triail eile as.",
+      "last_owner": "Teastaíonn úinéir amháin ar a laghad ó spás oibre.",
+      "member_not_found": "Níl an ball seo sa spás oibre a thuilleadh."
+    },
+    "invite": {
+      "copied": "Nasc cóipeáilte",
+      "copy": "Cóipeáil",
+      "creating": "Ag cruthú...",
+      "description": "Cruthaigh nasc le haghaidh seoladh ríomhphoist agus róil. Ní sheoltar aon ríomhphost: cóipeáil an nasc agus seol tú féin é.",
+      "done": "Déanta",
+      "email_label": "Ríomhphost",
+      "link_note": "Oibríonn an nasc seo uair amháin agus rachaidh sé in éag i gceann 7 lá. Ní thaispeántar é ach anois, mar sin cóipeáil é sula bhfágann tú an leathanach seo.",
+      "link_title": "Nasc cuiridh",
+      "role_label": "Ról",
+      "submit": "Cruthaigh nasc cuiridh",
+      "title": "Tabhair cuireadh do dhuine"
+    },
+    "leave": {
+      "button": "Fág an spás oibre",
+      "confirm": "Fág",
+      "description": "Cailleann tú rochtain ar an spás oibre seo agus ar a shonraí láithreach.",
+      "done": "D'fhág tú an spás oibre",
+      "last_owner": "Is tusa an t-úinéir deireanach, mar sin ní féidir leat imeacht. Déan úinéir de bhall eile ar dtús.",
+      "title": "Fág an spás oibre seo"
+    },
+    "list": {
+      "description": "Gach duine a oibríonn sa spás oibre seo, agus a ról.",
+      "email": "Ríomhphost",
+      "joined": "Chuaigh isteach",
+      "role": "Ról",
+      "title": "Baill",
+      "you": "tú"
+    },
+    "page_name": "Baill",
+    "pending": {
+      "description": "Cuirí nár úsáideadh go fóill. Stopann nasc cuiridh a cúlghairmeadh ag obair.",
+      "email": "Ríomhphost",
+      "empty": "Níl aon chuireadh ar feitheamh.",
+      "expired": "Imithe in éag",
+      "expires": "Éagann",
+      "revoke": "Cúlghair",
+      "revoke_aria": "Cúlghair an cuireadh do {{email}}",
+      "revoked": "Cuireadh cúlghairthe",
+      "role": "Ról",
+      "title": "Cuirí ar feitheamh"
+    },
+    "remove": "Bain",
+    "remove_aria": "Bain {{email}}",
+    "remove_dialog": {
+      "confirm": "Bain",
+      "description": "Cailleann {{email}} rochtain ar an spás oibre seo láithreach.",
+      "title": "Bain ball"
+    },
+    "removed": "Ball bainte",
+    "role_updated": "Ról nuashonraithe",
+    "roles": {
+      "admin": "Riarthóir",
+      "member": "Ball",
+      "owner": "Úinéir"
+    },
+    "settings_card": {
+      "description": "Féach cé a oibríonn sa spás oibre seo agus, más riarthóir nó úinéir thú, tabhair cuireadh do dhaoine agus bainistigh a róil.",
+      "open": "Oscail baill",
+      "title": "Baill"
     }
   },
   "messages": {
@@ -1592,7 +1690,17 @@
     "intervals_retries": "Interlaicí, Athbhreithnithe, Téimshocraí"
   },
   "workspaces": {
+    "create": "Cruthaigh spás oibre",
+    "create_error": "Theip ar an spás oibre a chruthú",
+    "creating": "Ag cruthú...",
+    "name_label": "Ainm",
+    "name_placeholder": "An fhoireann s'agam",
+    "name_required": "Cuir isteach ainm",
+    "new": "Spás oibre nua",
+    "new_description": "Tá a móntóirí, canálacha fógairtí, leathanaigh stádais agus baill féin ag spás oibre. Beidh tú i d'úinéir air.",
+    "new_title": "Spás oibre nua",
     "none_description": "Níl do chuntas ina bhall d'aon spás oibre, mar sin níl aon rud le taispeáint anseo. Iarr ar dhuine a reáchtálann spás oibre tú a chur leis.",
-    "none_title": "Níl tú i spás oibre fós"
+    "none_title": "Níl tú i spás oibre fós",
+    "switcher_label": "Athraigh spás oibre"
   }
 }

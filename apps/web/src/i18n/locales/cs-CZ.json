@@ -126,6 +126,32 @@
       "passwords_mismatch": "Hesla se neshodují"
     }
   },
+  "invite": {
+    "accept": "Přijmout pozvánku",
+    "accepting": "Připojuji se...",
+    "creating": "Vytvářím...",
+    "description": "Byli jste pozváni do {{workspace}}, role: {{role}}.",
+    "errors": {
+      "other_email": "Tato pozvánka je pro jinou e-mailovou adresu."
+    },
+    "for_email": "Tato pozvánka je pro {{email}}.",
+    "have_account": "Už máte účet?",
+    "open_app": "Otevřít Peekaping",
+    "other_account": "Jste přihlášeni jako {{current}}, ale pozvánka je pro {{invited}}. Odhlaste se a poté se přihlaste nebo zaregistrujte pomocí {{invited}}, abyste ji mohli přijmout.",
+    "sign_in_instead": "Místo toho se přihlásit",
+    "sign_out": "Odhlásit se",
+    "signup_description": "Zvolte heslo, vytvořte si účet a připojte se k {{workspace}}, role: {{role}}.",
+    "signup_submit": "Vytvořit účet a připojit se",
+    "title": "Připojit se k {{workspace}}",
+    "unavailable": {
+      "accepted": "Tato pozvánka už byla použita.",
+      "expired": "Platnost této pozvánky vypršela. Požádejte o novou.",
+      "not_found": "Tento odkaz na pozvánku neexistuje. Zkontrolujte, zda jste ho zkopírovali celý.",
+      "revoked": "Tato pozvánka byla zrušena. Požádejte o novou.",
+      "title": "Tuto pozvánku nelze použít",
+      "unknown": "Tuto pozvánku nelze použít. Požádejte o novou."
+    }
+  },
   "maintenance": {
     "card": {
       "aria": {
@@ -229,6 +255,78 @@
       "thu": "Čt",
       "tue": "Út",
       "wed": "Stř"
+    }
+  },
+  "members": {
+    "change_role_aria": "Změnit roli uživatele {{email}}",
+    "errors": {
+      "account_exists": "Účet s tímto e-mailem již existuje. Přihlaste se a pozvánku přijměte.",
+      "already_member": "Tato osoba už je členem tohoto pracovního prostoru.",
+      "forbidden": "Vaše role v tomto pracovním prostoru to nedovoluje.",
+      "generic": "Něco se pokazilo. Zkuste to prosím znovu.",
+      "last_owner": "Pracovní prostor potřebuje alespoň jednoho vlastníka.",
+      "member_not_found": "Tento člen už v pracovním prostoru není."
+    },
+    "invite": {
+      "copied": "Odkaz zkopírován",
+      "copy": "Kopírovat",
+      "creating": "Vytvářím...",
+      "description": "Vytvořte odkaz pro e-mailovou adresu a roli. Žádný e-mail se neodesílá: zkopírujte odkaz a pošlete ho sami.",
+      "done": "Hotovo",
+      "email_label": "E-mail",
+      "link_note": "Odkaz lze použít jen jednou a platí 7 dní. Zobrazí se pouze teď, proto ho zkopírujte, než tuto stránku opustíte.",
+      "link_title": "Odkaz na pozvánku",
+      "role_label": "Role",
+      "submit": "Vytvořit odkaz na pozvánku",
+      "title": "Pozvat někoho"
+    },
+    "leave": {
+      "button": "Opustit pracovní prostor",
+      "confirm": "Opustit",
+      "description": "Okamžitě ztratíte přístup k tomuto pracovnímu prostoru a jeho datům.",
+      "done": "Opustili jste pracovní prostor",
+      "last_owner": "Jste poslední vlastník, proto nemůžete odejít. Nejdřív udělejte vlastníkem jiného člena.",
+      "title": "Opustit tento pracovní prostor"
+    },
+    "list": {
+      "description": "Všichni, kdo v tomto pracovním prostoru pracují, a jejich role.",
+      "email": "E-mail",
+      "joined": "Připojil(a) se",
+      "role": "Role",
+      "title": "Členové",
+      "you": "vy"
+    },
+    "page_name": "Členové",
+    "pending": {
+      "description": "Pozvánky, které ještě nebyly použity. Odkaz zrušené pozvánky přestane fungovat.",
+      "email": "E-mail",
+      "empty": "Žádné čekající pozvánky.",
+      "expired": "Vypršela",
+      "expires": "Vyprší",
+      "revoke": "Zrušit",
+      "revoke_aria": "Zrušit pozvánku pro {{email}}",
+      "revoked": "Pozvánka byla zrušena",
+      "role": "Role",
+      "title": "Čekající pozvánky"
+    },
+    "remove": "Odebrat",
+    "remove_aria": "Odebrat {{email}}",
+    "remove_dialog": {
+      "confirm": "Odebrat",
+      "description": "{{email}} okamžitě ztratí přístup k tomuto pracovnímu prostoru.",
+      "title": "Odebrat člena"
+    },
+    "removed": "Člen byl odebrán",
+    "role_updated": "Role byla aktualizována",
+    "roles": {
+      "admin": "Správce",
+      "member": "Člen",
+      "owner": "Vlastník"
+    },
+    "settings_card": {
+      "description": "Podívejte se, kdo v tomto pracovním prostoru pracuje, a pokud jste správce nebo vlastník, zvěte další lidi a spravujte jejich role.",
+      "open": "Otevřít členy",
+      "title": "Členové"
     }
   },
   "messages": {
@@ -1593,7 +1691,17 @@
     "intervals_retries": "Intervaly, Opakování, Časové limity"
   },
   "workspaces": {
+    "create": "Vytvořit pracovní prostor",
+    "create_error": "Pracovní prostor se nepodařilo vytvořit",
+    "creating": "Vytvářím...",
+    "name_label": "Název",
+    "name_placeholder": "Můj tým",
+    "name_required": "Zadejte název",
+    "new": "Nový pracovní prostor",
+    "new_description": "Pracovní prostor má vlastní monitory, kanály oznámení, stránky stavu a členy. Budete jeho vlastníkem.",
+    "new_title": "Nový pracovní prostor",
     "none_description": "Váš účet není členem žádného pracovního prostoru, takže tu není co zobrazit. Požádejte někoho, kdo pracovní prostor spravuje, aby vás přidal.",
-    "none_title": "Zatím nejste v žádném pracovním prostoru"
+    "none_title": "Zatím nejste v žádném pracovním prostoru",
+    "switcher_label": "Přepnout pracovní prostor"
   }
 }
