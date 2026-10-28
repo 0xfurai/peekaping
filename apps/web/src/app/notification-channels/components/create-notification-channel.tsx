@@ -8,10 +8,8 @@ import {
 import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import type {
-  NotificationChannelCreateUpdateDto,
-  NotificationChannelModel,
-} from "@/api";
+import type { NotificationChannelModel } from "@/api";
+import { channelCreateBody } from "../channel-payload";
 
 const CreateNotificationChannel = ({
   onSuccess,
@@ -35,16 +33,8 @@ const CreateNotificationChannel = ({
   });
 
   const handleSubmit = (data: NotificationChannelFormValues) => {
-    const payload: NotificationChannelCreateUpdateDto = {
-      name: data.name,
-      type: data.type,
-      config: JSON.stringify(data),
-      active: true,
-      is_default: false,
-    };
-
     createNotifierMutation.mutate({
-      body: payload,
+      body: channelCreateBody(data),
     });
   };
 
