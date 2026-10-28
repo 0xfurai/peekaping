@@ -28,3 +28,39 @@ describe("LoginForm", () => {
     expect(login()).not.toContain("/forgot-password");
   });
 });
+
+// The same form with the signup part of /auth/config: open, closed, or not fetched yet
+const loginWithSignup = (signupOpen?: boolean) =>
+  renderAs({ instanceAdmin: false, role: "owner" }, <LoginForm />, "/login", (queryClient) => {
+    if (signupOpen !== undefined) {
+      queryClient.setQueryData(getAuthConfigQueryKey(), {
+        data: {
+          accountEmails: false,
+          signupMode: signupOpen ? "open" : "invite",
+          signupOpen,
+          turnstileSiteKey: null,
+        },
+      });
+    }
+  });
+
+describe("LoginForm sign up", () => {
+  it("links to the register page when signup is open", () => {
+    const html = loginWithSignup(true);
+    expect(html).toContain('href="/register"');
+    expect(html).toContain(text("auth.login.sign_up"));
+  });
+
+  it("asks for an invite instead of linking when signup is closed", () => {
+    const html = loginWithSignup(false);
+    expect(html).not.toContain("/register");
+    expect(html).not.toContain(text("auth.login.sign_up"));
+    expect(html).toContain("Ask an admin of this install for an invite");
+  });
+
+  it("offers neither while /auth/config is loading", () => {
+    const html = loginWithSignup();
+    expect(html).not.toContain("/register");
+    expect(html).not.toContain(text("auth.login.ask_admin"));
+  });
+});

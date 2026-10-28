@@ -10,7 +10,8 @@
       "sign_up": "Registriraj se",
       "submit": "Prijava",
       "title": "Dobrodošli natrag",
-      "forgot_password": "Zaboravili ste lozinku?"
+      "forgot_password": "Zaboravili ste lozinku?",
+      "ask_admin": "Zatražite pozivnicu od administratora ove instalacije"
     },
     "register": {
       "description": "Kreiraj svoj administratorski račun",
@@ -19,7 +20,13 @@
       "submit": "Kreiraj",
       "title": "Pozdrav",
       "telemetry_note": "Anonimno: bez naziva nadzora, URL-ova i hostova. To možete promijeniti kasnije u „Postavke“.",
-      "telemetry_whats_sent": "Što se šalje"
+      "telemetry_whats_sent": "Što se šalje",
+      "errors": {
+        "rate_limited": "Previše registracija s vaše mreže. Pokušajte ponovno za sat vremena.",
+        "email_taken": "Račun s ovom e-adresom već postoji.",
+        "sign_in_instead": "Umjesto toga prijavite se.",
+        "check_failed": "Provjera nije uspjela. Pokušajte ponovno."
+      }
     },
     "twofa": {
       "code_label": "Kod 2FA",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Potvrdite svoju e-adresu: poslali smo poveznicu na {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Vaši će monitori početi raditi kada potvrdite svoju e-adresu."
     }
   },
   "bars": {

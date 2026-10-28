@@ -10,7 +10,8 @@
       "sign_up": "Registreren",
       "submit": "Inloggen",
       "title": "Welkom terug",
-      "forgot_password": "Wachtwoord vergeten?"
+      "forgot_password": "Wachtwoord vergeten?",
+      "ask_admin": "Vraag een beheerder van deze installatie om een uitnodiging"
     },
     "register": {
       "description": "Maak uw beheerdersaccount aan.",
@@ -19,7 +20,13 @@
       "submit": "Registreren",
       "title": "Hallo",
       "telemetry_note": "Anoniem: geen namen van monitoren, URL's of hosts. Je kunt het later wijzigen onder ‘Instellingen’.",
-      "telemetry_whats_sent": "Wat er wordt verstuurd"
+      "telemetry_whats_sent": "Wat er wordt verstuurd",
+      "errors": {
+        "rate_limited": "Te veel aanmeldingen vanaf je netwerk. Probeer het over een uur opnieuw.",
+        "email_taken": "Er bestaat al een account met dit e-mailadres.",
+        "sign_in_instead": "Log in plaats daarvan in.",
+        "check_failed": "De controle is niet geslaagd. Probeer het opnieuw."
+      }
     },
     "twofa": {
       "code_label": "2FA-code",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Bevestig je e-mailadres: we hebben een link gestuurd naar {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Je monitoren starten zodra je je e-mailadres hebt geverifieerd."
     }
   },
   "bars": {

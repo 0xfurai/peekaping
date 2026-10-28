@@ -10,7 +10,8 @@
       "sign_up": "הירשם",
       "submit": "התחבר",
       "title": "ברוך שוב",
-      "forgot_password": "שכחת סיסמה?"
+      "forgot_password": "שכחת סיסמה?",
+      "ask_admin": "בקשו הזמנה ממנהל של ההתקנה הזו"
     },
     "register": {
       "description": "צור את חשבון המנהל שלך",
@@ -19,7 +20,13 @@
       "submit": "צור",
       "title": "שלום",
       "telemetry_note": "אנונימי: ללא שמות מעקבים, כתובות URL או מארחים. אפשר לשנות זאת מאוחר יותר ב“הגדרות”.",
-      "telemetry_whats_sent": "מה נשלח"
+      "telemetry_whats_sent": "מה נשלח",
+      "errors": {
+        "rate_limited": "יותר מדי הרשמות מהרשת שלך. נסו שוב בעוד שעה.",
+        "email_taken": "כבר קיים חשבון עם כתובת האימייל הזו.",
+        "sign_in_instead": "התחברו במקום זאת.",
+        "check_failed": "הבדיקה לא עברה. נסו שוב."
+      }
     },
     "twofa": {
       "code_label": "קוד 2FA",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "אמת את האימייל שלך: שלחנו קישור אל {{email}}."
+    },
+    "suspension_notice": {
+      "message": "הניטורים שלך יתחילו לפעול לאחר שתאמתו את האימייל."
     }
   },
   "bars": {

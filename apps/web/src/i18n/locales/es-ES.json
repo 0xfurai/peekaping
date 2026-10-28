@@ -10,7 +10,8 @@
       "sign_up": "Regístrate",
       "submit": "Iniciar sesión",
       "title": "¡Bienvenido de nuevo!",
-      "forgot_password": "¿Olvidaste tu contraseña?"
+      "forgot_password": "¿Olvidaste tu contraseña?",
+      "ask_admin": "Pide una invitación a un administrador de esta instalación"
     },
     "register": {
       "description": "Crea tu cuenta de administrador",
@@ -19,7 +20,13 @@
       "submit": "Crear",
       "title": "Hola",
       "telemetry_note": "Anónimo: sin nombres de monitores, URL ni hosts. Puede cambiarlo más tarde en «Configuración».",
-      "telemetry_whats_sent": "Qué se envía"
+      "telemetry_whats_sent": "Qué se envía",
+      "errors": {
+        "rate_limited": "Demasiados registros desde tu red. Inténtalo de nuevo dentro de una hora.",
+        "email_taken": "Ya existe una cuenta con este correo electrónico.",
+        "sign_in_instead": "Inicia sesión en su lugar.",
+        "check_failed": "La comprobación no se superó. Inténtalo de nuevo."
+      }
     },
     "twofa": {
       "code_label": "Código 2FA",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Verifica tu correo: hemos enviado un enlace a {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Tus monitores empezarán cuando verifiques tu correo electrónico."
     }
   },
   "bars": {

@@ -10,7 +10,8 @@
       "sign_up": "Sign up",
       "submit": "Login",
       "title": "Welcome back",
-      "forgot_password": "Forgot password?"
+      "forgot_password": "Forgot password?",
+      "ask_admin": "Ask an admin of this install for an invite"
     },
     "register": {
       "description": "Create your admin account",
@@ -19,7 +20,13 @@
       "submit": "Create",
       "title": "Hello",
       "telemetry_note": "Anonymous: no monitor names, URLs or hosts. You can change this later in Settings.",
-      "telemetry_whats_sent": "What's sent"
+      "telemetry_whats_sent": "What's sent",
+      "errors": {
+        "rate_limited": "Too many signups from your network. Try again in an hour.",
+        "email_taken": "An account with this email exists.",
+        "sign_in_instead": "Sign in instead.",
+        "check_failed": "The check didn't pass. Try again."
+      }
     },
     "twofa": {
       "code_label": "2FA Code",
@@ -63,6 +70,9 @@
     },
     "verification_banner": {
       "message": "Verify your email: we sent a link to {{email}}."
+    },
+    "suspension_notice": {
+      "message": "Your monitors start once you verify your email."
     }
   },
   "bars": {
