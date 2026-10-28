@@ -36,6 +36,21 @@ func passwordFingerprint(passwordHash string) string {
 	return hex.EncodeToString(sum[:16])
 }
 
+func init() {
+	// A token carries the time it was issued (iat) to the millisecond, not to the second. A password
+	// reset ends the sessions issued before it, and a user who signs in again right after it must
+	// get a session that works: with whole seconds, a token issued before the reset and one issued
+	// after it could not be told apart within the second it happened in.
+	jwt.TimePrecision = time.Millisecond
+}
+
+// SessionCutoffs says when a user's earlier sessions were ended
+type SessionCutoffs interface {
+	// TokensValidAfter returns the moment before which issued tokens no longer work, nil for none
+	// and for a user that doesn't exist
+	TokensValidAfter(ctx context.Context, userID string) (*time.Time, error)
+}
+
 // secretTTL is how long a signing secret stays in memory before it is read from
 // the settings again. So a secret that changes in the database, by this process
 // or by another one in cluster mode, is used within this time.
@@ -51,8 +66,20 @@ type TokenMaker struct {
 	logger         *zap.SugaredLogger
 	clock          func() time.Time
 
+	// cutoffs ends the sessions issued before a user's tokens_valid_after. Nil checks nothing.
+	cutoffs SessionCutoffs
+
 	mu      sync.Mutex
 	secrets map[string]cachedSecret
+}
+
+// WithSessionCutoffs makes VerifyToken refuse a token issued before its user's cutoff (a password
+// reset ends every session). It reads the cutoff from the database on every verification, one
+// primary-key lookup, and does not cache it: a reset takes effect on every API replica at once,
+// and a cache would keep an ended session alive for as long as it lasts. It returns the maker.
+func (maker *TokenMaker) WithSessionCutoffs(cutoffs SessionCutoffs) *TokenMaker {
+	maker.cutoffs = cutoffs
+	return maker
 }
 
 func NewTokenMaker(settingService shared.SettingService, logger *zap.SugaredLogger) *TokenMaker {
@@ -202,5 +229,33 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 		return nil, ErrInvalidToken
 	}
 
+	if err := maker.checkSessionNotEnded(ctx, claims); err != nil {
+		return nil, err
+	}
+
 	return claims, nil
+}
+
+// checkSessionNotEnded refuses a token issued before its user's sessions were ended. A failure to
+// read the cutoff refuses the token too, since a token that might be an ended session must not pass.
+func (maker *TokenMaker) checkSessionNotEnded(ctx context.Context, claims *Claims) error {
+	if maker.cutoffs == nil {
+		return nil
+	}
+	cutoff, err := maker.cutoffs.TokensValidAfter(ctx, claims.UserID)
+	if err != nil {
+		maker.logger.Errorw("Failed to read when the sessions of a user were ended", "userId", claims.UserID, "error", err)
+		return fmt.Errorf("failed to check the session: %w", err)
+	}
+	if cutoff == nil {
+		return nil
+	}
+	if claims.IssuedAt == nil {
+		return ErrInvalidToken
+	}
+	// Round to the millisecond: a fractional iat does not survive the float it travels as exactly
+	if claims.IssuedAt.Time.Round(time.Millisecond).Before(cutoff.Round(time.Millisecond)) {
+		return ErrInvalidToken
+	}
+	return nil
 }

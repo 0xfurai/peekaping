@@ -33,7 +33,7 @@ func TestService_AcceptInvite_AMembershipAddedMeanwhileIsAlreadyAMemberAndNotAnU
 		acme, err := repo.Create(ctx, "Acme")
 		require.NoError(t, err)
 		service := workspace.NewService(repo, blindMembers{workspace.NewSQLMemberRepository(db)}, workspace.NewSQLInviteRepository(db),
-			dbtx.NewSQLTransactor(db), eventstest.NewBus(), &config.Config{ClientURL: "http://localhost:3000"}, zap.NewNop().Sugar())
+			dbtx.NewSQLTransactor(db), eventstest.NewBus(), &config.Config{ClientURL: "http://localhost:3000"}, nil, zap.NewNop().Sugar())
 		created, err := service.CreateInvite(workspace.WithContext(ctx, acme.ID, workspace.RoleOwner), "", "bob@example.com", workspace.RoleMember)
 		require.NoError(t, err)
 		require.NoError(t, repo.AddMember(ctx, acme.ID, bob, workspace.RoleAdmin), "the other accept won")

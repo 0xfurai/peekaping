@@ -104,22 +104,35 @@ func (m *Mailer) Send(ctx context.Context, to, subject, text, html string) error
 // sends an account email answers at once, so that how long the SMTP server takes does not tell a
 // visitor whether the address has an account. Wait waits for the sends that are running.
 func (m *Mailer) Deliver(to, subject, text, html string) {
+	m.Background(func(ctx context.Context) {
+		if err := m.Send(ctx, to, subject, text, html); err != nil {
+			// The recipient is left out of the log: it is somebody's address
+			m.logger.Errorw("Failed to send an account email", "subject", subject, "error", err)
+		}
+	})
+}
+
+// Background runs fn in its own goroutine with a context that ends after deliverTimeout, and Wait
+// waits for it. It does nothing without a sender. A panic in fn is logged and goes no further.
+func (m *Mailer) Background(fn func(ctx context.Context)) {
 	if !m.Enabled() {
 		return
 	}
 	m.pending.Add(1)
 	go func() {
 		defer m.pending.Done()
+		defer func() {
+			if r := recover(); r != nil {
+				m.logger.Errorw("An account email job panicked", "panic", r)
+			}
+		}()
 		ctx, cancel := context.WithTimeout(context.Background(), deliverTimeout)
 		defer cancel()
-		if err := m.Send(ctx, to, subject, text, html); err != nil {
-			// The recipient is left out of the log: it is somebody's address
-			m.logger.Errorw("Failed to send an account email", "subject", subject, "error", err)
-		}
+		fn(ctx)
 	}()
 }
 
-// Wait returns once the sends that Deliver started have finished. Tests use it, and so can a
+// Wait returns once the jobs that Deliver and Background started have finished. Tests use it, and so can a
 // shutdown that wants to let the last mails out.
 func (m *Mailer) Wait() { m.pending.Wait() }
 

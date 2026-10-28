@@ -8,6 +8,9 @@ import (
 // ErrAdminExists is returned by CreateFirst when the install already has a user.
 var ErrAdminExists = errors.New("admin already exists")
 
+// ErrUserNotFound is for a request about a user that does not exist
+var ErrUserNotFound = errors.New("user not found")
+
 // ErrEmailTaken is returned by Register for an invite whose email already has an account, in any
 // case: that user signs in and accepts the invite instead.
 var ErrEmailTaken = errors.New("an account with this email exists: sign in and accept the invite")

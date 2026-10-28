@@ -36,12 +36,20 @@ type Invites interface {
 	AcceptInvite(ctx context.Context, token, userID string) (*workspace.Membership, error)
 }
 
+// Verifier is what signup needs of the account emails: whether the install sends them, and to
+// send the verification link of a new account. *AccountService is one. A nil Verifier sends nothing.
+type Verifier interface {
+	Enabled() bool
+	SendVerification(ctx context.Context, user *Model) error
+}
+
 type ServiceImpl struct {
 	repo       Repository
 	transactor dbtx.Transactor
 	workspaces workspace.Repository
 	invites    Invites
 	tokenMaker *TokenMaker
+	verifier   Verifier
 	logger     *zap.SugaredLogger
 }
 
@@ -51,6 +59,7 @@ func NewService(
 	workspaces workspace.Repository,
 	invites Invites,
 	tokenMaker *TokenMaker,
+	verifier Verifier,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
@@ -59,6 +68,7 @@ func NewService(
 		workspaces: workspaces,
 		invites:    invites,
 		tokenMaker: tokenMaker,
+		verifier:   verifier,
 		logger:     logger.Named("[auth-service]"),
 	}
 }
@@ -112,6 +122,7 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 	if err != nil {
 		return nil, err
 	}
+	s.askToVerify(ctx, user)
 
 	// Generate access token
 	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
@@ -130,6 +141,17 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		RefreshToken: refreshToken,
 		User:         user,
 	}, nil
+}
+
+// askToVerify emails the new user a verification link, when the install has a sender. It runs after
+// the signup committed and never fails it: the user can ask for the link again.
+func (s *ServiceImpl) askToVerify(ctx context.Context, user *Model) {
+	if s.verifier == nil {
+		return
+	}
+	if err := s.verifier.SendVerification(ctx, user); err != nil {
+		s.logger.Errorw("Failed to send the verification email of a new account", "userId", user.ID, "error", err)
+	}
 }
 
 // registerThroughInvite creates the account of someone an invite names. The user is no instance
@@ -171,6 +193,7 @@ func (s *ServiceImpl) registerThroughInvite(ctx context.Context, dto RegisterDto
 	if err != nil {
 		return nil, err
 	}
+	s.askToVerify(ctx, user)
 	return s.signedIn(ctx, user)
 }
 
@@ -213,8 +236,10 @@ func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error
 		return nil, err
 	}
 	me := &MeResponse{
-		User:       &MeUser{ID: user.ID, Email: user.Email, InstanceAdmin: user.InstanceAdmin},
+		User:       &MeUser{ID: user.ID, Email: user.Email, InstanceAdmin: user.InstanceAdmin, EmailVerified: user.EmailVerifiedAt != nil},
 		Workspaces: make([]MeWorkspace, len(memberships)),
+
+		AccountEmails: s.verifier != nil && s.verifier.Enabled(),
 	}
 	for i, m := range memberships {
 		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role)}

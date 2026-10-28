@@ -8,26 +8,49 @@ import (
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/ratelimit"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 )
 
 type Controller struct {
-	service Service
-	logger  *zap.SugaredLogger
+	service  Service
+	accounts *AccountService
+	proxies  *httpx.TrustedProxies
+	logger   *zap.SugaredLogger
+
+	// The limits on the routes that send an email, per email address and per client address. They
+	// count in this process's memory (see package ratelimit).
+	forgotByEmail, forgotByIP, resendByEmail, resendByIP *ratelimit.Limiter
 }
+
+// The most emails the account routes send per hour to one address, and per hour from one client
+const (
+	maxAccountEmailsPerAddress = 5
+	maxAccountEmailsPerClient  = 20
+)
 
 func NewController(
 	service Service,
+	accounts *AccountService,
+	proxies *httpx.TrustedProxies,
 	logger *zap.SugaredLogger,
 ) *Controller {
 	return &Controller{
-		service: service,
-		logger:  logger,
+		service:  service,
+		accounts: accounts,
+		proxies:  proxies,
+		logger:   logger,
+
+		forgotByEmail: ratelimit.New(maxAccountEmailsPerAddress, time.Hour),
+		forgotByIP:    ratelimit.New(maxAccountEmailsPerClient, time.Hour),
+		resendByEmail: ratelimit.New(maxAccountEmailsPerAddress, time.Hour),
+		resendByIP:    ratelimit.New(maxAccountEmailsPerClient, time.Hour),
 	}
 }
 

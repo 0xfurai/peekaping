@@ -28,6 +28,9 @@ type MeResponse struct {
 	Workspaces []MeWorkspace `json:"workspaces"`
 	// DefaultWorkspaceID is the workspace they joined first, or null for a user in none
 	DefaultWorkspaceID *string `json:"defaultWorkspaceId"`
+	// AccountEmails is whether the install sends account emails (ACCOUNT_SMTP_HOST is set): when it
+	// is, the app shows the verification banner to a user whose address is not verified
+	AccountEmails bool `json:"accountEmails"`
 }
 
 type MeUser struct {
@@ -35,6 +38,9 @@ type MeUser struct {
 	Email string `json:"email"`
 	// InstanceAdmin is whether the user manages what belongs to the install and not to a workspace
 	InstanceAdmin bool `json:"instanceAdmin"`
+	// EmailVerified is whether the user followed the link in the verification email. Accounts that
+	// existed before account emails count as verified.
+	EmailVerified bool `json:"emailVerified"`
 }
 
 type MeWorkspace struct {
@@ -91,4 +97,28 @@ type TwoFAVerifyResponseDto struct {
 type TwoFADisableRequestDto struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
+}
+
+// AuthConfigResponse is what the app needs to know about the install before anyone signs in
+type AuthConfigResponse struct {
+	// AccountEmails is whether the install can send account emails: a password reset link, an
+	// email verification link and emailed invites. When it is false the app offers none of them.
+	AccountEmails bool `json:"accountEmails"`
+}
+
+// ForgotPasswordDto asks for a password reset link to be sent to an address
+type ForgotPasswordDto struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+// ResetPasswordDto sets a new password with the token of a reset link. The password must pass the
+// same rules as at signup.
+type ResetPasswordDto struct {
+	Token    string `json:"token" validate:"required"`
+	Password string `json:"password" validate:"required,password"`
+}
+
+// VerifyEmailDto verifies an address with the token of a verification link
+type VerifyEmailDto struct {
+	Token string `json:"token" validate:"required"`
 }
