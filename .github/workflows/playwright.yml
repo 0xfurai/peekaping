@@ -61,7 +61,7 @@ jobs:
   # main always run them, so an app change that breaks a bundle fails there.
   changes:
     name: Detect single-mode changes
-    runs-on: ubuntu-24.04
+    runs-on: nexus-runner
     outputs:
       single: ${{ github.event_name != 'pull_request' || steps.diff.outputs.single }}
       # The e2e configs to run. A job's `if` can't read `matrix`, so the single config is left out
@@ -85,7 +85,7 @@ jobs:
   # The dev images don't depend on the database, so both dev jobs reuse them.
   build-images:
     name: Build ${{ matrix.name }}
-    runs-on: ubuntu-24.04
+    runs-on: nexus-runner
     strategy:
       fail-fast: false
       matrix:
@@ -125,7 +125,7 @@ jobs:
     name: Build single
     needs: changes
     if: ${{ needs.changes.outputs.single == 'true' }}
-    runs-on: ubuntu-24.04
+    runs-on: nexus-runner
     steps:
     - uses: actions/checkout@v4
     - uses: docker/setup-buildx-action@v3
@@ -154,7 +154,7 @@ jobs:
     needs: [changes, build-single-images]
     if: ${{ !cancelled() && needs.changes.outputs.single == 'true' }}
     timeout-minutes: 30
-    runs-on: ubuntu-24.04
+    runs-on: nexus-runner
     steps:
     - uses: actions/checkout@v4
     - name: Download image
@@ -174,7 +174,7 @@ jobs:
     # were skipped.
     if: ${{ !cancelled() }}
     timeout-minutes: 60
-    runs-on: ubuntu-24.04
+    runs-on: nexus-runner
     strategy:
       fail-fast: false
       matrix:

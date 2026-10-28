@@ -37,7 +37,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
 
     # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
     # Each test creates a schema or database of its own, so they share this one server
@@ -154,7 +154,7 @@ jobs:
   # The race detector slows the tests down several times over, so it runs beside the
   # main job without coverage instead of making that job slower
   race:
-    runs-on: ubuntu-latest
+    runs-on: nexus-runner
     timeout-minutes: 40
 
     # The same PostgreSQL as the test job, so its subtests run under the race detector too
