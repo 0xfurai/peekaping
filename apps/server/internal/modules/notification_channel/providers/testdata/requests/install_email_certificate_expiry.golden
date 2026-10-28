@@ -1,0 +1,12 @@
+To: oncall@example.com
+Subject: Peekaping Notification
+
+🚨 Certificate Expiry Warning
+
+Monitor: Public API
+Certificate: api.example.com (server)
+Expires in: 7 days
+Valid until: 2026-10-24 09:30:00
+Notification threshold: 7 days
+Valid for: api.example.com
+Issuer: CN=R11,O=Let's Encrypt,C=US

@@ -29,6 +29,9 @@ type EmailConfig struct {
 	CustomBody    string `json:"custom_body"`
 }
 
+// defaultEmailSubject is the subject of a notification email that has no custom one
+const defaultEmailSubject = "Peekaping Notification"
+
 type EmailSender struct {
 	logger *zap.SugaredLogger
 }
@@ -67,7 +70,7 @@ func (e *EmailSender) Send(
 
 	bindings := PrepareTemplateBindings(m, heartbeat, message)
 
-	finalSubject := "Peekaping Notification"
+	finalSubject := defaultEmailSubject
 	if cfg.CustomSubject != "" {
 		if rendered, err := engine.ParseAndRenderString(cfg.CustomSubject, bindings); err == nil {
 			finalSubject = rendered

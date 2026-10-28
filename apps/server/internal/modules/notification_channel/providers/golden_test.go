@@ -456,7 +456,7 @@ func TestSendWithoutAMonitor(t *testing.T) {
 
 func TestEveryGoldenFileHasACase(t *testing.T) {
 	var names []string
-	for _, tc := range slices.Concat(goldenCases, emailGoldenCases) {
+	for _, tc := range slices.Concat(goldenCases, emailGoldenCases, installEmailGoldenCases) {
 		names = append(names, tc.name+".golden")
 	}
 	files, err := os.ReadDir(filepath.Join("testdata", "requests"))

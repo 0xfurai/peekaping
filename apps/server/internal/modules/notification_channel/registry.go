@@ -3,7 +3,9 @@ package notification_channel
 import (
 	"maps"
 	"peekaping/internal/config"
+	"peekaping/internal/mailer"
 	"peekaping/internal/modules/notification_channel/providers"
+	"peekaping/internal/modules/workspace"
 	"slices"
 
 	"go.uber.org/zap"
@@ -16,11 +18,13 @@ type ProviderRegistry struct {
 }
 
 // NewProviderRegistry builds the provider for every notification channel type. The providers
-// share one HTTP client, so they reuse connections.
-func NewProviderRegistry(logger *zap.SugaredLogger, cfg *config.Config) *ProviderRegistry {
+// share one HTTP client, so they reuse connections. The install email provider sends through the
+// install's account-email sender, to a member of the channel's workspace.
+func NewProviderRegistry(logger *zap.SugaredLogger, cfg *config.Config, accountMailer *mailer.Mailer, members workspace.MemberRepository) *ProviderRegistry {
 	client := providers.NewHTTPClient()
 	return &ProviderRegistry{byType: map[string]NotificationChannelProvider{
 		"smtp":           providers.NewEmailSender(logger),
+		"install_email":  providers.NewInstallEmailSender(logger, accountMailer, members),
 		"telegram":       providers.NewTelegramSender(logger, client),
 		"webhook":        providers.NewWebhookSender(logger, client),
 		"slack":          providers.NewSlackSender(logger, cfg, client),

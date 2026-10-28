@@ -399,7 +399,8 @@ func (l *NotificationEventListener) send(
 		}
 	}()
 
-	ctx, cancel := context.WithTimeout(ctx, l.sendTimeout)
+	// The channel's workspace, for a provider that checks its config against it
+	ctx, cancel := context.WithTimeout(providers.WithWorkspace(ctx, notificationChannel.WorkspaceID), l.sendTimeout)
 	defer cancel()
 
 	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential

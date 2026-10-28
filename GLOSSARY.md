@@ -134,6 +134,10 @@ _Avoid_: Notifier, notification provider, integration
 The kind of destination a notification channel sends to, such as Slack, Telegram or SMTP. Each has its own config fields and form (`channel-types/<type>/`).
 _Avoid_: Integration, provider, notifier type
 
+**Install email channel**:
+A channel type (`install_email`) that emails a notification through the install's sender for account emails, to one address that must be a member of the channel's workspace. The address is checked when the channel is saved or tested, and again at each send: a recipient who has left the workspace gets nothing and the send fails. Only members are allowed so that a workspace on the cloud can't use the install's sender to mail strangers. Without a sender it can't be created or tested (400). The SMTP channel, with a server of its own and any recipient, is a different type and stays as it is.
+_Avoid_: System email channel, built-in email
+
 **Saved secret**:
 A secret field of a notification channel's config, such as a bot token, an SMTP password or a webhook URL that works as a credential. The API never returns it: it shows `********` instead, and a save or test that sends `********` back keeps the stored value.
 A URL a channel sends to, such as a webhook or server URL, isn't a saved secret, but the API masks the parts of it that can hold a password or token: the password of its user info, a user name that stands alone, and every query value show as `********`. A save or test that sends the URL back exactly as shown keeps the stored one; changing any other part of it means typing those parts again.
@@ -226,7 +230,7 @@ A workspace held back with a reason. Its monitors are kept, listed and editable,
 _Avoid_: Disabled, frozen, paused (that's a monitor switched off by a person)
 
 **Account emails**:
-The emails an account gets: a password reset link, a verification link for its address, and an invite. One sender sends them for the whole install, set with `ACCOUNT_SMTP_*`; it is separate from the SMTP settings of an email notification channel. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
+The emails an account gets: a password reset link, a verification link for its address, and an invite. One sender sends them for the whole install, set with `ACCOUNT_SMTP_*`; it is separate from the SMTP settings of an email notification channel, and an install email channel is the one notification channel that sends through it. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
 _Avoid_: Transactional email, system email
 
 ### Deployment

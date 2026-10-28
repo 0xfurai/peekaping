@@ -86,7 +86,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 	}
 	notification_channel.Config = config
 
-	if _, err := ic.validateConfig(notification_channel.Type, notification_channel.Config); err != nil {
+	if _, err := ic.validateConfig(ctx, workspaceID, notification_channel.Type, notification_channel.Config); err != nil {
 		return nil, err
 	}
 
@@ -147,7 +147,7 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 	}
 	notification.Config = config
 
-	if _, err := ic.validateConfig(notification.Type, notification.Config); err != nil {
+	if _, err := ic.validateConfig(ctx, workspaceID, notification.Type, notification.Config); err != nil {
 		return nil, err
 	}
 
@@ -215,7 +215,7 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 			config = *notification.Config
 		}
 
-		if _, err := ic.validateConfig(channelType, config); err != nil {
+		if _, err := ic.validateConfig(ctx, workspaceID, channelType, config); err != nil {
 			return nil, err
 		}
 	}
@@ -284,7 +284,7 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 		return nil, resolveErr
 	}
 
-	integration, lookupErr := ic.validateConfig(notificationChannel.Type, config)
+	integration, lookupErr := ic.validateConfig(ctx, workspaceID, notificationChannel.Type, config)
 	if lookupErr != nil {
 		return nil, lookupErr
 	}
@@ -301,7 +301,7 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	}
 
 	// Send the test notification, with the deadline the listener gives each send
-	sendCtx, cancel := context.WithTimeout(ctx, sendTimeout)
+	sendCtx, cancel := context.WithTimeout(providers.WithWorkspace(ctx, workspaceID), sendTimeout)
 	defer cancel()
 	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential
 	err = providers.RedactURLErrors(integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat))
@@ -354,15 +354,20 @@ func (ic *Controller) resolveConfig(channelType, config string, saved *Model) (s
 	return resolved, used, nil
 }
 
-// validateConfig looks up the provider for channelType and checks config with it.
-// On failure it returns the existing 400 response.
-func (ic *Controller) validateConfig(channelType, config string) (NotificationChannelProvider, error) {
+// validateConfig looks up the provider for channelType and checks config with it, for a channel
+// of the workspace. On failure it returns the existing 400 response.
+func (ic *Controller) validateConfig(ctx context.Context, workspaceID workspace.ID, channelType, config string) (NotificationChannelProvider, error) {
 	integration, ok := ic.providers.Get(channelType)
 	if !ok {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Unsupported notification type"))
 	}
 	if err := integration.Validate(config); err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
+	}
+	if scoped, ok := integration.(WorkspaceValidator); ok {
+		if err := scoped.ValidateInWorkspace(providers.WithWorkspace(ctx, workspaceID), config); err != nil {
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
+		}
 	}
 	return integration, nil
 }
