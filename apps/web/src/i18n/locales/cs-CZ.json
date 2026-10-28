@@ -74,7 +74,8 @@
       "message": "Ověřte svůj e-mail: poslali jsme odkaz na {{email}}."
     },
     "suspension_notice": {
-      "message": "Vaše monitory se spustí, jakmile ověříte svůj e-mail."
+      "message": "Vaše monitory se spustí, jakmile ověříte svůj e-mail.",
+      "member_message": "Monitory tohoto pracovního prostoru se spustí, jakmile jeho vlastník ověří svůj e-mail."
     }
   },
   "bars": {

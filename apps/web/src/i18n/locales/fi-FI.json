@@ -74,7 +74,8 @@
       "message": "Vahvista sähköpostiosoitteesi: lähetimme linkin osoitteeseen {{email}}."
     },
     "suspension_notice": {
-      "message": "Valvontasi alkavat, kun olet vahvistanut sähköpostiosoitteesi."
+      "message": "Valvontasi alkavat, kun olet vahvistanut sähköpostiosoitteesi.",
+      "member_message": "Tämän työtilan valvonnat alkavat, kun sen omistaja on vahvistanut sähköpostiosoitteensa."
     }
   },
   "bars": {

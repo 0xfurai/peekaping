@@ -74,7 +74,8 @@
       "message": "Verify your email: we sent a link to {{email}}."
     },
     "suspension_notice": {
-      "message": "Your monitors start once you verify your email."
+      "message": "Your monitors start once you verify your email.",
+      "member_message": "This workspace's monitors start once its owner verifies their email."
     }
   },
   "bars": {

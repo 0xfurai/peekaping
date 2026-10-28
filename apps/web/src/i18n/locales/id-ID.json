@@ -74,7 +74,8 @@
       "message": "Verifikasi email Anda: kami telah mengirim tautan ke {{email}}."
     },
     "suspension_notice": {
-      "message": "Monitor Anda mulai berjalan setelah Anda memverifikasi email."
+      "message": "Monitor Anda mulai berjalan setelah Anda memverifikasi email.",
+      "member_message": "Monitor ruang kerja ini mulai berjalan setelah pemiliknya memverifikasi email."
     }
   },
   "bars": {

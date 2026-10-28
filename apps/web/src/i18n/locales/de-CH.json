@@ -74,7 +74,8 @@
       "message": "Bestätigen Sie Ihre E-Mail-Adresse: Wir haben einen Link an {{email}} gesendet."
     },
     "suspension_notice": {
-      "message": "Deine Monitore starten, sobald du deine E-Mail-Adresse bestätigt hast."
+      "message": "Deine Monitore starten, sobald du deine E-Mail-Adresse bestätigt hast.",
+      "member_message": "Die Monitore dieses Arbeitsbereichs starten, sobald dessen Eigentümer seine E-Mail-Adresse bestätigt hat."
     }
   },
   "bars": {

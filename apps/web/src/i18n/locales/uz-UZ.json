@@ -74,7 +74,8 @@
       "message": "Elektron pochtangizni tasdiqlang: {{email}} manziliga havola yubordik."
     },
     "suspension_notice": {
-      "message": "Monitorlaringiz elektron pochtangizni tasdiqlaganingizdan so'ng ishga tushadi."
+      "message": "Monitorlaringiz elektron pochtangizni tasdiqlaganingizdan so'ng ishga tushadi.",
+      "member_message": "Bu ish maydonining monitorlari egasi elektron pochtasini tasdiqlaganidan so'ng ishga tushadi."
     }
   },
   "bars": {

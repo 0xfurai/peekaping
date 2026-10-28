@@ -74,7 +74,8 @@
       "message": "Zweryfikuj swój e-mail: wysłaliśmy link na adres {{email}}."
     },
     "suspension_notice": {
-      "message": "Twoje monitory ruszą po zweryfikowaniu adresu e-mail."
+      "message": "Twoje monitory ruszą po zweryfikowaniu adresu e-mail.",
+      "member_message": "Monitory tej przestrzeni roboczej ruszą po zweryfikowaniu adresu e-mail przez jej właściciela."
     }
   },
   "bars": {

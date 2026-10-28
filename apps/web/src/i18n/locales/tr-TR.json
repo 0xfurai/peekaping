@@ -74,7 +74,8 @@
       "message": "E-postanızı doğrulayın: {{email}} adresine bir bağlantı gönderdik."
     },
     "suspension_notice": {
-      "message": "E-postanızı doğruladığınızda monitörleriniz başlar."
+      "message": "E-postanızı doğruladığınızda monitörleriniz başlar.",
+      "member_message": "Bu çalışma alanının monitörleri, sahibi e-postasını doğruladığında başlar."
     }
   },
   "bars": {

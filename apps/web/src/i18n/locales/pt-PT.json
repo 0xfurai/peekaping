@@ -74,7 +74,8 @@
       "message": "Verifique o seu e-mail: enviámos uma ligação para {{email}}."
     },
     "suspension_notice": {
-      "message": "Os seus monitores começam assim que verificar o seu e-mail."
+      "message": "Os seus monitores começam assim que verificar o seu e-mail.",
+      "member_message": "Os monitores deste espaço de trabalho começam assim que o proprietário verificar o seu e-mail."
     }
   },
   "bars": {

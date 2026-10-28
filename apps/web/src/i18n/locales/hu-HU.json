@@ -74,7 +74,8 @@
       "message": "Erősítse meg az e-mail-címét: hivatkozást küldtünk a következő címre: {{email}}."
     },
     "suspension_notice": {
-      "message": "A monitorai az e-mail-címe megerősítése után indulnak el."
+      "message": "A monitorai az e-mail-címe megerősítése után indulnak el.",
+      "member_message": "A munkaterület monitorai azután indulnak el, hogy a tulajdonosa megerősíti az e-mail-címét."
     }
   },
   "bars": {

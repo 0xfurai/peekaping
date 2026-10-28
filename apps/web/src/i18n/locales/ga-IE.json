@@ -74,7 +74,8 @@
       "message": "Fíoraigh do ríomhphost: sheolamar nasc chuig {{email}}."
     },
     "suspension_notice": {
-      "message": "Tosóidh do mhonatóirí nuair a dhearbhóidh tú do ríomhphost."
+      "message": "Tosóidh do mhonatóirí nuair a dhearbhóidh tú do ríomhphost.",
+      "member_message": "Tosóidh monatóirí an spáis oibre seo nuair a dhearbhóidh a úinéir a ríomhphost."
     }
   },
   "bars": {

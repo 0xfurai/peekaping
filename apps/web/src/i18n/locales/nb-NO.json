@@ -74,7 +74,8 @@
       "message": "Bekreft e-posten din: vi har sendt en lenke til {{email}}."
     },
     "suspension_notice": {
-      "message": "Overvåkingene dine starter når du har bekreftet e-postadressen din."
+      "message": "Overvåkingene dine starter når du har bekreftet e-postadressen din.",
+      "member_message": "Overvåkingene i dette arbeidsområdet starter når eieren har bekreftet e-postadressen sin."
     }
   },
   "bars": {

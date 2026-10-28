@@ -74,7 +74,8 @@
       "message": "Kinnita oma e-posti aadress: saatsime lingi aadressile {{email}}."
     },
     "suspension_notice": {
-      "message": "Teie monitorid käivituvad pärast e-posti aadressi kinnitamist."
+      "message": "Teie monitorid käivituvad pärast e-posti aadressi kinnitamist.",
+      "member_message": "Selle tööruumi monitorid käivituvad pärast seda, kui selle omanik on oma e-posti aadressi kinnitanud."
     }
   },
   "bars": {

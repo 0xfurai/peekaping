@@ -74,7 +74,8 @@
       "message": "Verifică-ți e-mailul: am trimis un link la {{email}}."
     },
     "suspension_notice": {
-      "message": "Monitoarele dvs. pornesc după ce vă verificați e-mailul."
+      "message": "Monitoarele dvs. pornesc după ce vă verificați e-mailul.",
+      "member_message": "Monitoarele acestui spațiu de lucru pornesc după ce proprietarul său își verifică e-mailul."
     }
   },
   "bars": {
