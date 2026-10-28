@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Syötä tämä salaisuus uudelleen tai poista se: lähetyksen kohde on muuttunut",
       "reenter_hint": "Syötä tämä salaisuus uudelleen: lähetyksen kohde on muuttunut",
+      "reenter_url_error": "Kirjoita tämän URL-osoitteen tunnistetiedot uudelleen: URL-osoite on muuttunut tallennuksen jälkeen",
       "remove": "Poista",
       "saved_hint": "Tallennettu — kirjoita korvataksesi"
     }

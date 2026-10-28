@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Masukkan ulang rahasia ini atau hapus: tujuan pengirimannya berubah",
       "reenter_hint": "Masukkan ulang rahasia ini: tujuan pengirimannya berubah",
+      "reenter_url_error": "Ketik ulang kredensial URL ini: URL berubah sejak disimpan",
       "remove": "Hapus",
       "saved_hint": "Tersimpan — ketik untuk mengganti"
     }

@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Vuelve a introducir este secreto o quítalo: ha cambiado el destino de envío",
       "reenter_hint": "Vuelve a introducir este secreto: ha cambiado el destino de envío",
+      "reenter_url_error": "Vuelve a escribir las credenciales de esta URL: la URL ha cambiado desde que se guardó",
       "remove": "Quitar",
       "saved_hint": "Guardado — escribe para reemplazar"
     }

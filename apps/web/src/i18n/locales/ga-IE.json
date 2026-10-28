@@ -1151,6 +1151,7 @@
     "secret": {
       "reenter_error": "Cuir isteach an rún seo arís nó bain é: tá an áit a seoltar é athraithe",
       "reenter_hint": "Cuir isteach an rún seo arís: tá an áit a seoltar é athraithe",
+      "reenter_url_error": "Clóscríobh dintiúir an URL seo arís: tá an URL athraithe ó sábháladh é",
       "remove": "Bain",
       "saved_hint": "Sábháilte — clóscríobh chun a chur ina ionad"
     }

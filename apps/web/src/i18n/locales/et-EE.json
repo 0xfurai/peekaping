@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Sisesta see saladus uuesti või eemalda see: koht, kuhu saadetakse, muutus",
       "reenter_hint": "Sisesta see saladus uuesti: koht, kuhu saadetakse, muutus",
+      "reenter_url_error": "Sisesta selle URL-i mandaadid uuesti: URL on pärast salvestamist muutunud",
       "remove": "Eemalda",
       "saved_hint": "Salvestatud — asendamiseks sisesta uus"
     }

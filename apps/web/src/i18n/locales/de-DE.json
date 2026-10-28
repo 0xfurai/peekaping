@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Diesen geheimen Wert erneut eingeben oder entfernen: Das Ziel des Versands hat sich geändert",
       "reenter_hint": "Diesen geheimen Wert erneut eingeben: Das Ziel des Versands hat sich geändert",
+      "reenter_url_error": "Die Zugangsdaten dieser URL erneut eingeben: Die URL hat sich seit dem Speichern geändert",
       "remove": "Entfernen",
       "saved_hint": "Gespeichert — zum Ersetzen eingeben"
     }

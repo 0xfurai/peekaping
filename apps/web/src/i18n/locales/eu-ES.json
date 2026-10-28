@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Sartu berriro sekretu hau edo kendu: bidaltzen den helmuga aldatu da",
       "reenter_hint": "Sartu berriro sekretu hau: bidaltzen den helmuga aldatu da",
+      "reenter_url_error": "Idatzi berriro URL honen kredentzialak: URLa aldatu da gorde zenetik",
       "remove": "Kendu",
       "saved_hint": "Gordeta — idatzi ordezkatzeko"
     }

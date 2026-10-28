@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Hãy nhập lại khóa bí mật này hoặc xóa nó: nơi gửi đã thay đổi",
       "reenter_hint": "Hãy nhập lại khóa bí mật này: nơi gửi đã thay đổi",
+      "reenter_url_error": "Hãy nhập lại thông tin xác thực của URL này: URL đã thay đổi kể từ khi được lưu",
       "remove": "Xóa",
       "saved_hint": "Đã lưu — nhập để thay thế"
     }

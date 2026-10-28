@@ -1151,6 +1151,7 @@
     "secret": {
       "reenter_error": "Introduceți din nou acest secret sau eliminați-l: destinația de trimitere s-a schimbat",
       "reenter_hint": "Introduceți din nou acest secret: destinația de trimitere s-a schimbat",
+      "reenter_url_error": "Introduceți din nou datele de autentificare din acest URL: URL-ul s-a schimbat de la salvare",
       "remove": "Elimină",
       "saved_hint": "Salvat — tastați pentru a înlocui"
     }

@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Voer dit geheim opnieuw in of verwijder het: de bestemming waar het naartoe wordt verstuurd, is gewijzigd",
       "reenter_hint": "Voer dit geheim opnieuw in: de bestemming waar het naartoe wordt verstuurd, is gewijzigd",
+      "reenter_url_error": "Voer de inloggegevens in deze URL opnieuw in: de URL is gewijzigd sinds hij is opgeslagen",
       "remove": "Verwijderen",
       "saved_hint": "Opgeslagen — typ om te vervangen"
     }
