@@ -167,17 +167,23 @@ func TestWorkspaceAuth_AnAPIKeyRunsAsAnAdminInItsOwnWorkspace(t *testing.T) {
 }
 
 func TestInstanceAdminAuth_ReadsTheFlagAndRefusesAnAPIKey(t *testing.T) {
-	serve := func(jwt interface{ Auth() httpx.Middleware }, users usersStub) int {
+	serve := func(jwt interface{ Auth() httpx.Middleware }, users usersStub, header, value string) int {
 		chain := middleware.NewAuthChain(jwt, keyOf(wsA), membershipsStub{}, users, nil, zap.NewNop().Sugar())
 		router := httpx.NewRouter()
 		router.Handle("PUT", "/install", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }, chain.InstanceAdminAuth())
 		w := httptest.NewRecorder()
-		router.ServeHTTP(w, httptest.NewRequest(http.MethodPut, "/install", nil))
+		req := httptest.NewRequest(http.MethodPut, "/install", nil)
+		if header != "" {
+			req.Header.Set(header, value)
+		}
+		router.ServeHTTP(w, req)
 		return w.Code
 	}
+	const jwt, key = "Authorization", "X-API-Key"
 
-	assert.Equal(t, http.StatusOK, serve(signedIn{}, usersStub{"user-1": {InstanceAdmin: true}}))
-	assert.Equal(t, http.StatusForbidden, serve(signedIn{}, usersStub{"user-1": {InstanceAdmin: false}}))
-	assert.Equal(t, http.StatusForbidden, serve(signedIn{}, usersStub{}), "a user who is gone")
-	assert.Equal(t, http.StatusForbidden, serve(keyOf(wsA), usersStub{"user-1": {InstanceAdmin: true}}), "an API key, whoever's flag")
+	assert.Equal(t, http.StatusOK, serve(signedIn{}, usersStub{"user-1": {InstanceAdmin: true}}, jwt, "Bearer t"))
+	assert.Equal(t, http.StatusForbidden, serve(signedIn{}, usersStub{"user-1": {InstanceAdmin: false}}, jwt, "Bearer t"))
+	assert.Equal(t, http.StatusForbidden, serve(signedIn{}, usersStub{}, jwt, "Bearer t"), "a user who is gone")
+	assert.Equal(t, http.StatusForbidden, serve(keyOf(wsA), usersStub{"user-1": {InstanceAdmin: true}}, key, "pk_k"), "an API key, whoever's flag")
+	assert.Equal(t, http.StatusUnauthorized, serve(signedIn{}, usersStub{"user-1": {InstanceAdmin: true}}, "", ""), "no credentials")
 }
