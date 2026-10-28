@@ -42,7 +42,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
 import { TurnstileWidget } from "@/components/turnstile-widget";
-import { canSubmitRegister, registerBody, registerFailureKey } from "@/lib/signup";
+import { canSubmitRegister, registerBody, registerDescriptionKey, registerFailureKey } from "@/lib/signup";
 
 const createRegisterSchema = (t: (key: string) => string) => z
   .object({
@@ -84,10 +84,13 @@ export function RegisterErrorAlert({ message, signInLink }: { message: string; s
 export function RegisterForm({
   className,
   turnstileSiteKey,
+  signupMode,
   ...props
 }: React.ComponentPropsWithoutRef<"div"> & {
   // The key of the Turnstile widget the install asks for, or null without one
   turnstileSiteKey?: string | null;
+  // The install's signup mode. Open mode signs up strangers, who are not admins.
+  signupMode?: "invite" | "open";
 }) {
   const { t } = useLocalizedTranslation();
   const [serverError, setServerError] = React.useState<string | null>(null);
@@ -200,7 +203,7 @@ export function RegisterForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">{t("auth.register.title")}</CardTitle>
-          <CardDescription>{t("auth.register.description")}</CardDescription>
+          <CardDescription>{t(registerDescriptionKey(signupMode))}</CardDescription>
         </CardHeader>
 
         <CardContent>

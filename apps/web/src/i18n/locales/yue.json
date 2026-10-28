@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "創建你的管理員帳戶",
+      "description_open": "創建你的帳戶",
       "have_account": "已有帳戶？",
       "sign_in": "登入",
       "submit": "創建",

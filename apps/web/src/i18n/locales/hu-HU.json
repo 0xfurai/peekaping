@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Hozd létre az adminisztrátori fiókodat",
+      "description_open": "Hozd létre a fiókodat",
       "have_account": "Már van fiókod?",
       "sign_in": "Bejelentkezés",
       "submit": "Létrehoz",

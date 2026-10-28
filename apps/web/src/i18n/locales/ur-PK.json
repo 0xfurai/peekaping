@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "اپنا ایڈمن اکاؤنٹ بنائیں",
+      "description_open": "اپنا اکاؤنٹ بنائیں",
       "have_account": "کیا آپ کا اکاؤنٹ پہلے سے موجود ہے؟",
       "sign_in": "سائن ان",
       "submit": "بنائیں",

@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Yönetici hesabınızı oluşturun",
+      "description_open": "Hesabınızı oluşturun",
       "have_account": "Zaten bir hesabınız var mı?",
       "sign_in": "Giriş Yap",
       "submit": "Oluştur",

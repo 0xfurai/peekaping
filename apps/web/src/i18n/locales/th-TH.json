@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "สร้างบัญชีผู้ดูแลระบบของคุณ",
+      "description_open": "สร้างบัญชีของคุณ",
       "have_account": "มีบัญชีอยู่แล้ว?",
       "sign_in": "เข้าสู่ระบบ",
       "submit": "สร้าง",

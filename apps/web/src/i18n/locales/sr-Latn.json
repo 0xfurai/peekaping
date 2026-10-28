@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Kreiraj svoj admin nalog",
+      "description_open": "Kreiraj svoj nalog",
       "have_account": "Već imate nalog?",
       "sign_in": "Prijavi se",
       "submit": "Kreiraj",

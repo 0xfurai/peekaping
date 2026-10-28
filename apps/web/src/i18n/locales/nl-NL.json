@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Maak uw beheerdersaccount aan.",
+      "description_open": "Maak uw account aan.",
       "have_account": "Heeft u al een account?",
       "sign_in": "Inloggen",
       "submit": "Registreren",

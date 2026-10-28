@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Opret din admin-konto",
+      "description_open": "Opret din konto",
       "have_account": "Har du allerede en konto?",
       "sign_in": "Log ind",
       "submit": "Opret",

@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Kreiraj svoj administratorski račun",
+      "description_open": "Kreiraj svoj račun",
       "have_account": "Imate već račun?",
       "sign_in": "Prijavi se",
       "submit": "Kreiraj",

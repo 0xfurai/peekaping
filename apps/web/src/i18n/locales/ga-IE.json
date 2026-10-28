@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Cruthaigh do chuntas riarthóra",
+      "description_open": "Cruthaigh do chuntas",
       "have_account": "An bhfuil cuntas agat cheana féin?",
       "sign_in": "Logáil isteach",
       "submit": "Cruthaigh",

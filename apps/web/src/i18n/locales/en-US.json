@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Create your admin account",
+      "description_open": "Create your account",
       "have_account": "Already have an account?",
       "sign_in": "Sign in",
       "submit": "Create",

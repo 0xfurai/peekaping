@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "أنشئ حساب المسؤول الخاص بك",
+      "description_open": "أنشئ حسابك",
       "have_account": "هل لديك حساب بالفعل؟",
       "sign_in": "تسجيل الدخول",
       "submit": "إنشاء",

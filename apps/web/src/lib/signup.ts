@@ -25,6 +25,14 @@ export const loginSignupOffer = (config: SignupConfig | undefined): "register" |
   return config.signupOpen ? "register" : "ask_admin";
 };
 
+/**
+ * The translation key of the register card's description. The first signup of an invite install
+ * makes the instance admin; a signup in open mode is an ordinary account. /auth/config does not say
+ * when an open install has no user yet, so open mode always reads as an ordinary account.
+ */
+export const registerDescriptionKey = (signupMode: "invite" | "open" | undefined): string =>
+  signupMode === "open" ? "auth.register.description_open" : "auth.register.description";
+
 /** The register button waits for the widget's answer when the install uses Turnstile. */
 export const canSubmitRegister = (siteKey: string | null | undefined, token: string | null): boolean =>
   !siteKey || Boolean(token);

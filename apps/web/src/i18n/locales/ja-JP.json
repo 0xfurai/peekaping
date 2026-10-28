@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "管理者アカウントを作成",
+      "description_open": "アカウントを作成",
       "have_account": "既にアカウントをお持ちですか？",
       "sign_in": "ログイン",
       "submit": "登録",

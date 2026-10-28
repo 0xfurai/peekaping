@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Crea il tuo account amministratore",
+      "description_open": "Crea il tuo account",
       "have_account": "Hai già un account?",
       "sign_in": "Accedi",
       "submit": "Crea",
