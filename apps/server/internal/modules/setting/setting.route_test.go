@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/middleware"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/utils"
 	"strings"
 	"testing"
@@ -26,7 +27,17 @@ type acceptingAPIKeys struct {
 }
 
 func (acceptingAPIKeys) ValidateKey(context.Context, string) (*api_key.Model, error) {
-	return &api_key.Model{ID: "api-key-1"}, nil
+	return &api_key.Model{ID: "api-key-1", WorkspaceID: testWorkspace}, nil
+}
+
+// testWorkspace is the workspace of the test user and of the API key
+const testWorkspace = workspace.ID("w-1")
+
+// onlyWorkspace puts every user in testWorkspace
+type onlyWorkspace struct{}
+
+func (onlyWorkspace) ListMemberships(context.Context, string) ([]workspace.Membership, error) {
+	return []workspace.Membership{{Workspace: workspace.Workspace{ID: testWorkspace}, Role: workspace.RoleOwner}}, nil
 }
 
 // settingsAPI serves the settings routes of an upgraded install behind the
@@ -53,6 +64,8 @@ func newSettingsAPI(t *testing.T) *settingsAPI {
 	authChain := middleware.NewAuthChain(
 		auth.NewMiddlewareProvider(tokenMaker),
 		api_key.NewMiddlewareProvider(acceptingAPIKeys{}),
+		onlyWorkspace{},
+		nil,
 		nil,
 		logger,
 	)

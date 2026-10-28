@@ -28,7 +28,7 @@ func (uc *Route) ConnectRoute(
 ) {
 	router := rg.Group("/settings")
 
-	router.Use(uc.middleware.AllAuth())
+	router.Use(uc.middleware.WorkspaceAuth())
 
 	httpx.Register(router, "GET", "key/{key}", huma.Operation{Summary: "Get setting by key", Tags: []string{"setting"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, uc.controller.GetByKey)
 	httpx.Register(router, "PUT", "key/{key}", huma.Operation{Summary: "Set setting by key", Description: "Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.", Tags: []string{"setting"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.SetByKey)

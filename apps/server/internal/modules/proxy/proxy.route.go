@@ -29,7 +29,7 @@ func (uc *Route) ConnectRoute(
 ) {
 	router := rg.Group("proxies")
 
-	router.Use(uc.middleware.AllAuth())
+	router.Use(uc.middleware.WorkspaceAuth())
 	httpx.Register(router, "GET", "", huma.Operation{Summary: "Get proxies", Tags: []string{"proxy"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.FindAll)
 	httpx.Register(router, "POST", "", huma.Operation{Summary: "Create proxy", Tags: []string{"proxy"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.Create)
 	httpx.Register(router, "GET", "{id}", huma.Operation{Summary: "Get proxy by ID", Tags: []string{"proxy"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, uc.controller.FindByID)

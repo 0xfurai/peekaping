@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/workspace"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,32 +27,32 @@ func (m *MockService) Create(ctx context.Context, req *CreateRequest) (*APIKeyWi
 	return args.Get(0).(*APIKeyWithToken), args.Error(1)
 }
 
-func (m *MockService) FindAll(ctx context.Context) ([]*Model, error) {
-	args := m.Called(ctx)
+func (m *MockService) FindAll(ctx context.Context, workspaceID workspace.ID) ([]*Model, error) {
+	args := m.Called(ctx, workspaceID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
-func (m *MockService) FindByID(ctx context.Context, id string) (*Model, error) {
-	args := m.Called(ctx, id)
+func (m *MockService) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	args := m.Called(ctx, workspaceID, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockService) Update(ctx context.Context, id string, req *UpdateRequest) (*Model, error) {
-	args := m.Called(ctx, id, req)
+func (m *MockService) Update(ctx context.Context, workspaceID workspace.ID, id string, req *UpdateRequest) (*Model, error) {
+	args := m.Called(ctx, workspaceID, id, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockService) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockService) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	args := m.Called(ctx, workspaceID, id)
 	return args.Error(0)
 }
 

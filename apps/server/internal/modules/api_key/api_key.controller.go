@@ -2,8 +2,10 @@ package api_key
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
 	"time"
 
@@ -21,6 +23,18 @@ func NewController(service Service, logger *zap.SugaredLogger) *Controller {
 		service: service,
 		logger:  logger.Named("[api-key-controller]"),
 	}
+}
+
+// fail turns the error of the service into its answer: 403 for a member, 404 for a workspace the
+// request isn't in or a key it doesn't have, else 500
+func fail(err error) error {
+	if answer := workspacehttp.Fail(err); answer != nil {
+		return answer
+	}
+	if errors.Is(err, ErrNotFound) {
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("API key not found"))
+	}
+	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 }
 
 // CreateAPIKey creates a new API key
@@ -57,7 +71,7 @@ func (c *Controller) CreateAPIKey(ctx context.Context, input *CreateAPIKeyInput)
 
 	apiKey, err := c.service.Create(ctx, serviceReq)
 	if err != nil {
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		return nil, fail(err)
 	}
 
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("API key created successfully", apiKey.ToAPIKeyWithTokenResponse()))
@@ -67,9 +81,13 @@ func (c *Controller) CreateAPIKey(ctx context.Context, input *CreateAPIKeyInput)
 func (c *Controller) GetAPIKeys(ctx context.Context, input *GetAPIKeysInput) (*httpx.Output[utils.ApiResponse[[]*APIKeyResponse]], error) {
 	// MARK: GetAPIKeys
 
-	apiKeys, err := c.service.FindAll(ctx)
+	workspaceID, err := workspacehttp.Scope(ctx)
 	if err != nil {
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		return nil, err
+	}
+	apiKeys, err := c.service.FindAll(ctx, workspaceID)
+	if err != nil {
+		return nil, fail(err)
 	}
 
 	responses := make([]*APIKeyResponse, len(apiKeys))
@@ -85,10 +103,14 @@ func (c *Controller) GetAPIKey(ctx context.Context, input *GetAPIKeyInput) (*htt
 	r := input.Request
 	// MARK: GetAPIKey
 
-	id := r.PathValue("id")
-	apiKey, err := c.service.FindByID(ctx, id)
+	workspaceID, err := workspacehttp.Scope(ctx)
 	if err != nil {
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		return nil, err
+	}
+	id := r.PathValue("id")
+	apiKey, err := c.service.FindByID(ctx, workspaceID, id)
+	if err != nil {
+		return nil, fail(err)
 	}
 	if apiKey == nil {
 		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("API key not found"))
@@ -102,6 +124,10 @@ func (c *Controller) UpdateAPIKey(ctx context.Context, input *UpdateAPIKeyInput)
 	r := input.Request
 	// MARK: UpdateAPIKey
 
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	id := r.PathValue("id")
 	req, decodeErr := input.Decode()
 	if err := decodeErr; err != nil {
@@ -131,12 +157,9 @@ func (c *Controller) UpdateAPIKey(ctx context.Context, input *UpdateAPIKeyInput)
 		MaxUsageCount: req.MaxUsageCount,
 	}
 
-	apiKey, err := c.service.Update(ctx, id, serviceReq)
+	apiKey, err := c.service.Update(ctx, workspaceID, id, serviceReq)
 	if err != nil {
-		if err.Error() == "API key not found" {
-			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("API key not found"))
-		}
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+		return nil, fail(err)
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("API key updated successfully", apiKey.ToAPIKeyResponse()))
@@ -147,14 +170,12 @@ func (c *Controller) DeleteAPIKey(ctx context.Context, input *DeleteAPIKeyInput)
 	r := input.Request
 	// MARK: DeleteAPIKey
 
-	id := r.PathValue("id")
-	if _, err := utils.RequireRecord(ctx, c.logger, "API key", c.service.FindByID, id); err != nil {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
 		return nil, err
 	}
-
-	err := c.service.Delete(ctx, id)
-	if err != nil {
-		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
+	if err := c.service.Delete(ctx, workspaceID, r.PathValue("id")); err != nil {
+		return nil, fail(err)
 	}
 
 	return httpx.Reply(http.StatusNoContent, httpx.NoBody{})

@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/mongoimport"
 	"peekaping/internal/mongoimport/mongoimporttest"
 
@@ -189,11 +190,15 @@ func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report
 		mongoKeys := mongoimporttest.List[mongoimporttest.APIKeyDocument](t, in, "api_keys", bson.M{}, nil)
 		require.Len(t, mongoKeys, 2)
 		sqlKeys := api_key.NewSQLRepository(db)
+		// The keys belong to the install's one workspace
+		var workspaceID workspace.ID
+		require.NoError(t, db.NewSelect().Table("workspaces").Column("id").Scan(ctx, &workspaceID))
 		for _, want := range mongoKeys {
-			got, err := sqlKeys.FindByID(ctx, uuidOf(t, want.ID.Hex()))
+			got, err := sqlKeys.FindByID(ctx, workspaceID, uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, want.Name)
 			assert.Equal(t, want.Name, got.Name)
+			assert.Equal(t, workspaceID, got.WorkspaceID)
 			assert.Equal(t, want.KeyHash, got.KeyHash)
 			assert.Equal(t, want.DisplayKey, got.DisplayKey)
 			assert.Equal(t, want.UsageCount, got.UsageCount)
@@ -203,7 +208,7 @@ func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report
 			assertSameTime(t, want.CreatedAt, got.CreatedAt)
 			assertSameTime(t, want.UpdatedAt, got.UpdatedAt)
 		}
-		used, err := sqlKeys.FindByID(ctx, uuidOf(t, in.APIKeyID))
+		used, err := sqlKeys.FindByID(ctx, workspaceID, uuidOf(t, in.APIKeyID))
 		require.NoError(t, err)
 		assert.Equal(t, "CI", used.Name)
 		assert.EqualValues(t, 1, used.UsageCount)
@@ -214,6 +219,7 @@ func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report
 		validated, err := service.ValidateKey(ctx, in.APIKeyToken)
 		require.NoError(t, err)
 		assert.Equal(t, uuidOf(t, in.APIKeyID), validated.ID)
+		assert.Equal(t, workspaceID, validated.WorkspaceID)
 
 		r := collectionReport(t, report, "api_keys")
 		assert.Equal(t, "api_keys", r.Table)
