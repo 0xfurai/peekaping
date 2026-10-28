@@ -17,7 +17,7 @@ import (
 
 // GotifyConfig holds the configuration for Gotify notifications
 type GotifyConfig struct {
-	ServerURL        string `json:"server_url" validate:"required,url" endpoint:"true"`
+	ServerURL        string `json:"server_url" validate:"required,url" endpoint:"true" urlCredentials:"true"`
 	ApplicationToken string `json:"application_token" validate:"required" secret:"true"`
 	Priority         *int   `json:"priority" validate:"omitempty,min=0,max=10"`
 	Title            string `json:"title"`
