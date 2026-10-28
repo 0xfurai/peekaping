@@ -73,6 +73,7 @@
     "no_tags_available": "Keine Tags verfügbar",
     "please_refresh_page": "Bitte aktualisieren Sie die Seite.",
     "required": "Erforderlich",
+    "retry": "Erneut versuchen",
     "save": "Speichern",
     "saving": "Speichern...",
     "search": "Suchen",
@@ -131,6 +132,7 @@
     "accepting": "Beitritt läuft...",
     "creating": "Wird erstellt...",
     "description": "Du wurdest eingeladen, {{workspace}} beizutreten, mit der Rolle: {{role}}.",
+    "enter_failed": "Du bist dem Arbeitsbereich beigetreten, aber er konnte nicht geöffnet werden. Versuche es erneut.",
     "errors": {
       "other_email": "Diese Einladung gilt für eine andere E-Mail-Adresse."
     },
@@ -286,6 +288,7 @@
       "description": "Du verlierst sofort den Zugriff auf diesen Arbeitsbereich und seine Daten.",
       "done": "Du hast den Arbeitsbereich verlassen",
       "last_owner": "Du bist der letzte Inhaber und kannst daher nicht austreten. Mache zuerst ein anderes Mitglied zum Inhaber.",
+      "refresh_failed": "Du hast den Arbeitsbereich verlassen, aber deine Arbeitsbereiche konnten nicht geladen werden. Versuche es erneut.",
       "title": "Diesen Arbeitsbereich verlassen"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Arbeitsbereich erstellen",
     "create_error": "Arbeitsbereich konnte nicht erstellt werden",
+    "create_first": "Arbeitsbereich erstellen",
     "creating": "Wird erstellt...",
     "enter": "Arbeitsbereich öffnen",
     "entering": "Wird geöffnet...",
@@ -1705,6 +1709,7 @@
     "new_title": "Neuer Arbeitsbereich",
     "none_description": "Dein Konto ist in keinem Arbeitsbereich Mitglied, deshalb gibt es hier nichts anzuzeigen. Bitte jemanden, der einen Arbeitsbereich betreut, dich hinzuzufügen.",
     "none_title": "Du bist noch in keinem Arbeitsbereich",
+    "refresh_failed": "Deine Arbeitsbereiche konnten nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.",
     "switcher_label": "Arbeitsbereich wechseln"
   }
 }

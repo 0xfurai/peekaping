@@ -73,6 +73,7 @@
     "no_tags_available": "Etiketarik ez dago",
     "please_refresh_page": "Mesedez, berritu orria.",
     "required": "Beharrezkoa",
+    "retry": "Saiatu berriro",
     "save": "Gorde",
     "saving": "Gordetzen...",
     "search": "Bilatu",
@@ -131,6 +132,7 @@
     "accepting": "Batzen...",
     "creating": "Sortzen...",
     "description": "{{workspace}} lan-eremura batzeko gonbidatu zaituzte, rola: {{role}}.",
+    "enter_failed": "Lan-eremura batu zara, baina ezin izan da ireki. Saiatu berriro.",
     "errors": {
       "other_email": "Gonbidapen hau beste helbide elektroniko baterako da."
     },
@@ -286,6 +288,7 @@
       "description": "Berehala galtzen duzu lan-eremu honetarako eta bere datuetarako sarbidea.",
       "done": "Lan-eremua utzi duzu",
       "last_owner": "Azken jabea zara, beraz ezin duzu utzi. Egin lehenik beste kide bat jabe.",
+      "refresh_failed": "Lan-eremutik irten zara, baina ezin izan dira zure lan-eremuak kargatu. Saiatu berriro.",
       "title": "Utzi lan-eremu hau"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Sortu lan-eremua",
     "create_error": "Ezin izan da lan-eremua sortu",
+    "create_first": "Sortu lan-eremu bat",
     "creating": "Sortzen...",
     "enter": "Ireki lan-eremua",
     "entering": "Irekitzen...",
@@ -1705,6 +1709,7 @@
     "new_title": "Lan-eremu berria",
     "none_description": "Zure kontua ez da lan-eremu bateko kide, beraz ez dago hemen ezer erakusteko. Eskatu lan-eremu bat kudeatzen duen norbaiti zu gehitzeko.",
     "none_title": "Oraindik ez zaude lan-eremurik batean",
+    "refresh_failed": "Ezin izan dira zure lan-eremuak kargatu. Egiaztatu konexioa eta saiatu berriro.",
     "switcher_label": "Aldatu lan-eremua"
   }
 }

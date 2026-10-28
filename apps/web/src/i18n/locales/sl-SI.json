@@ -73,6 +73,7 @@
     "no_tags_available": "Oznake niso na voljo",
     "please_refresh_page": "Prosimo, osvežite stran.",
     "required": "Obvezno",
+    "retry": "Poskusi znova",
     "save": "Shrani",
     "saving": "Shranjevanje...",
     "search": "Išči",
@@ -131,6 +132,7 @@
     "accepting": "Pridruževanje...",
     "creating": "Ustvarjanje...",
     "description": "Povabljeni ste, da se pridružite delovnemu prostoru {{workspace}} kot {{role}}.",
+    "enter_failed": "Pridružili ste se delovnemu prostoru, vendar ga ni bilo mogoče odpreti. Poskusite znova.",
     "errors": {
       "other_email": "To povabilo je za drug e-poštni naslov."
     },
@@ -286,6 +288,7 @@
       "description": "Takoj izgubite dostop do tega delovnega prostora in njegovih podatkov.",
       "done": "Zapustili ste delovni prostor",
       "last_owner": "Ste zadnji lastnik, zato ne morete oditi. Najprej imenujte drugega člana za lastnika.",
+      "refresh_failed": "Zapustili ste delovni prostor, vendar vaših delovnih prostorov ni bilo mogoče naložiti. Poskusite znova.",
       "title": "Zapusti ta delovni prostor"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Ustvari delovni prostor",
     "create_error": "Delovnega prostora ni bilo mogoče ustvariti",
+    "create_first": "Ustvari delovni prostor",
     "creating": "Ustvarjanje...",
     "enter": "Odpri delovni prostor",
     "entering": "Odpiranje...",
@@ -1705,6 +1709,7 @@
     "new_title": "Nov delovni prostor",
     "none_description": "Vaš račun ni član nobenega delovnega prostora, zato tu ni ničesar za prikazati. Prosite nekoga, ki upravlja delovni prostor, naj vas doda.",
     "none_title": "Še niste v nobenem delovnem prostoru",
+    "refresh_failed": "Vaših delovnih prostorov ni bilo mogoče naložiti. Preverite povezavo in poskusite znova.",
     "switcher_label": "Zamenjaj delovni prostor"
   }
 }

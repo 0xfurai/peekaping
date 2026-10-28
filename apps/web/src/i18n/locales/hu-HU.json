@@ -73,6 +73,7 @@
     "no_tags_available": "Nincs elérhető címke",
     "please_refresh_page": "Kérjük, frissítse az oldalt.",
     "required": "Kötelező",
+    "retry": "Újrapróbálkozás",
     "save": "Mentés",
     "saving": "Mentés...",
     "search": "Keresés",
@@ -131,6 +132,7 @@
     "accepting": "Csatlakozás...",
     "creating": "Létrehozás...",
     "description": "Meghívták, hogy csatlakozzon a(z) {{workspace}} munkaterülethez {{role}} szerepkörrel.",
+    "enter_failed": "Csatlakozott a munkaterülethez, de a megnyitása nem sikerült. Próbálja újra.",
     "errors": {
       "other_email": "Ez a meghívó egy másik e-mail-címre szól."
     },
@@ -286,6 +288,7 @@
       "description": "Azonnal elveszíti a hozzáférést ehhez a munkaterülethez és az adataihoz.",
       "done": "Kilépett a munkaterületből",
       "last_owner": "Ön az utolsó tulajdonos, ezért nem léphet ki. Előbb tegyen egy másik tagot tulajdonossá.",
+      "refresh_failed": "Elhagyta a munkaterületet, de a munkaterületei betöltése nem sikerült. Próbálja újra.",
       "title": "Kilépés ebből a munkaterületből"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Munkaterület létrehozása",
     "create_error": "A munkaterület létrehozása sikertelen",
+    "create_first": "Munkaterület létrehozása",
     "creating": "Létrehozás...",
     "enter": "Munkaterület megnyitása",
     "entering": "Megnyitás...",
@@ -1705,6 +1709,7 @@
     "new_title": "Új munkaterület",
     "none_description": "A fiókja egyetlen munkaterületnek sem tagja, ezért itt nincs mit megjeleníteni. Kérjen meg valakit, aki munkaterületet kezel, hogy adja hozzá.",
     "none_title": "Még nem tartozik egyetlen munkaterülethez sem",
+    "refresh_failed": "A munkaterületeit nem sikerült betölteni. Ellenőrizze a kapcsolatot, és próbálja újra.",
     "switcher_label": "Munkaterület váltása"
   }
 }

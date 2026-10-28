@@ -73,6 +73,7 @@
     "no_tags_available": "Nema dostupnih oznaka",
     "please_refresh_page": "Molimo osvežite stranicu.",
     "required": "Obavezno",
+    "retry": "Pokušaj ponovo",
     "save": "Sačuvaj",
     "saving": "Snimam...",
     "search": "Pretraži",
@@ -131,6 +132,7 @@
     "accepting": "Pridruživanje...",
     "creating": "Pravljenje...",
     "description": "Pozvani ste da se pridružite radnom prostoru {{workspace}} kao {{role}}.",
+    "enter_failed": "Pridružili ste se radnom prostoru, ali otvaranje nije uspelo. Pokušajte ponovo.",
     "errors": {
       "other_email": "Ova pozivnica je za drugu adresu e-pošte."
     },
@@ -286,6 +288,7 @@
       "description": "Odmah gubite pristup ovom radnom prostoru i njegovim podacima.",
       "done": "Napustili ste radni prostor",
       "last_owner": "Vi ste poslednji vlasnik, pa ne možete da odete. Prvo postavite drugog člana za vlasnika.",
+      "refresh_failed": "Napustili ste radni prostor, ali učitavanje vaših radnih prostora nije uspelo. Pokušajte ponovo.",
       "title": "Napusti ovaj radni prostor"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Napravi radni prostor",
     "create_error": "Pravljenje radnog prostora nije uspelo",
+    "create_first": "Napravi radni prostor",
     "creating": "Pravljenje...",
     "enter": "Otvori radni prostor",
     "entering": "Otvaranje...",
@@ -1705,6 +1709,7 @@
     "new_title": "Novi radni prostor",
     "none_description": "Vaš nalog nije član nijednog radnog prostora, pa ovde nema šta da se prikaže. Zamolite nekoga ko upravlja radnim prostorom da vas doda.",
     "none_title": "Još niste ni u jednom radnom prostoru",
+    "refresh_failed": "Nije uspelo učitavanje vaših radnih prostora. Proverite vezu i pokušajte ponovo.",
     "switcher_label": "Promeni radni prostor"
   }
 }

@@ -73,6 +73,7 @@
     "no_tags_available": "Keine Tags verfügbar",
     "please_refresh_page": "Bitte aktualisieren Sie die Seite.",
     "required": "Erforderlich",
+    "retry": "Erneut versuchen",
     "save": "Speichern",
     "saving": "Speichern...",
     "search": "Suchen",
@@ -131,6 +132,7 @@
     "accepting": "Beitritt läuft...",
     "creating": "Wird erstellt...",
     "description": "Sie wurden eingeladen, {{workspace}} beizutreten, mit der Rolle: {{role}}.",
+    "enter_failed": "Sie sind dem Arbeitsbereich beigetreten, aber er konnte nicht geöffnet werden. Versuchen Sie es erneut.",
     "errors": {
       "other_email": "Diese Einladung gilt für eine andere E-Mail-Adresse."
     },
@@ -286,6 +288,7 @@
       "description": "Sie verlieren sofort den Zugriff auf diesen Arbeitsbereich und seine Daten.",
       "done": "Sie haben den Arbeitsbereich verlassen",
       "last_owner": "Sie sind der letzte Inhaber und können daher nicht austreten. Machen Sie zuerst ein anderes Mitglied zum Inhaber.",
+      "refresh_failed": "Sie haben den Arbeitsbereich verlassen, aber Ihre Arbeitsbereiche konnten nicht geladen werden. Versuchen Sie es erneut.",
       "title": "Diesen Arbeitsbereich verlassen"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Arbeitsbereich erstellen",
     "create_error": "Arbeitsbereich konnte nicht erstellt werden",
+    "create_first": "Arbeitsbereich erstellen",
     "creating": "Wird erstellt...",
     "enter": "Arbeitsbereich öffnen",
     "entering": "Wird geöffnet...",
@@ -1705,6 +1709,7 @@
     "new_title": "Neuer Arbeitsbereich",
     "none_description": "Ihr Konto ist in keinem Arbeitsbereich Mitglied, deshalb gibt es hier nichts anzuzeigen. Bitten Sie jemanden, der einen Arbeitsbereich betreut, Sie hinzuzufügen.",
     "none_title": "Sie sind noch in keinem Arbeitsbereich",
+    "refresh_failed": "Ihre Arbeitsbereiche konnten nicht geladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     "switcher_label": "Arbeitsbereich wechseln"
   }
 }

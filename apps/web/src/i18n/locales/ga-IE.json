@@ -73,6 +73,7 @@
     "no_tags_available": "Níl aon clibeanna ar fáil",
     "please_refresh_page": "Athnuaigh an leathanach le do thoil.",
     "required": "Riachtanach",
+    "retry": "Bain triail eile as",
     "save": "Sábháil",
     "saving": "Ag sábáil...",
     "search": "Cuardaigh",
@@ -131,6 +132,7 @@
     "accepting": "Ag dul isteach...",
     "creating": "Ag cruthú...",
     "description": "Tugadh cuireadh duit dul isteach i {{workspace}} mar {{role}}.",
+    "enter_failed": "Chuaigh tú isteach sa spás oibre, ach theip ar a oscailt. Bain triail eile as.",
     "errors": {
       "other_email": "Tá an cuireadh seo do sheoladh ríomhphoist eile."
     },
@@ -286,6 +288,7 @@
       "description": "Cailleann tú rochtain ar an spás oibre seo agus ar a shonraí láithreach.",
       "done": "D'fhág tú an spás oibre",
       "last_owner": "Is tusa an t-úinéir deireanach, mar sin ní féidir leat imeacht. Déan úinéir de bhall eile ar dtús.",
+      "refresh_failed": "D'fhág tú an spás oibre, ach theip ar do spásanna oibre a luchtú. Bain triail eile as.",
       "title": "Fág an spás oibre seo"
     },
     "list": {
@@ -1692,6 +1695,7 @@
   "workspaces": {
     "create": "Cruthaigh spás oibre",
     "create_error": "Theip ar an spás oibre a chruthú",
+    "create_first": "Cruthaigh spás oibre",
     "creating": "Ag cruthú...",
     "enter": "Oscail spás oibre",
     "entering": "Ag oscailt...",
@@ -1704,6 +1708,7 @@
     "new_title": "Spás oibre nua",
     "none_description": "Níl do chuntas ina bhall d'aon spás oibre, mar sin níl aon rud le taispeáint anseo. Iarr ar dhuine a reáchtálann spás oibre tú a chur leis.",
     "none_title": "Níl tú i spás oibre fós",
+    "refresh_failed": "Níorbh fhéidir do spásanna oibre a luchtú. Seiceáil do cheangal agus bain triail eile as.",
     "switcher_label": "Athraigh spás oibre"
   }
 }
