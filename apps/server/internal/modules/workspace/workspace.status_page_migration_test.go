@@ -88,7 +88,7 @@ func TestMigrations_TheStatusPageWorkspaceGoesDownAndComesBack(t *testing.T) {
 		var domains int
 		require.NoError(t, db.NewSelect().Table("domain_status_page").ColumnExpr("COUNT(*)").Where("status_page_id = ?", pageID).Scan(ctx, &domains), "with its domain")
 		assert.Equal(t, 1, domains)
-		assert.True(t, indexExists(t, db, "idx_status_pages_slug") || true)
+		assert.True(t, indexExists(t, db, "idx_status_pages_slug"), "and the slug index stays")
 
 		_, err = upgrade.Migrate(ctx)
 		require.NoError(t, err)

@@ -34,5 +34,12 @@ func usePostgres(t *testing.T, dsn string) func(*config.Config) {
 			time.Sleep(200 * time.Millisecond)
 		}
 		require.NoError(t, err)
+		// WITH (FORCE) (PostgreSQL 13+, CI runs 17) also ends a connection the app still holds
+		t.Cleanup(func() {
+			admin := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+			defer admin.Close()
+			_, err := admin.Exec("DROP DATABASE IF EXISTS " + cfg.DBName + " WITH (FORCE)")
+			require.NoError(t, err)
+		})
 	}
 }
