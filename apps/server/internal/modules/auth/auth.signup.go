@@ -3,6 +3,8 @@ package auth
 import (
 	"context"
 	"errors"
+	"strconv"
+	"strings"
 	"time"
 
 	"peekaping/internal/config"
@@ -43,6 +45,12 @@ func NewSignupGate(cfg *config.Config, users Repository, logger *zap.SugaredLogg
 		perClient: ratelimit.New(maxOpenSignupsPerClient, time.Hour),
 		users:     users,
 		logger:    logger.Named("[signup]"),
+	}
+	if g.open && strings.TrimSpace(cfg.TrustedProxies) == "" {
+		// Behind a reverse proxy every request connects from the proxy, so with no trusted proxy
+		// the limit sees one client for all of them
+		g.logger.Warn("SIGNUP_MODE=open without TRUSTED_PROXIES: behind a reverse proxy every signup comes from the proxy's address, so all of them share one limit of " +
+			strconv.Itoa(maxOpenSignupsPerClient) + " an hour. Set TRUSTED_PROXIES to the proxy's address or range, such as 127.0.0.1,10.0.0.0/8, so that each visitor is counted by their own address")
 	}
 	if cfg.SignupTurnstileEnabled() {
 		g.siteKey = cfg.SignupTurnstileSiteKey
