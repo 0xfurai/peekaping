@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "已删除监控",
       "paused": "监控已暂停",
+      "push_token_already_used": "另一个监控项已在使用此推送令牌。请生成一个新的。",
       "reset_success": "监控数据已成功重置",
       "resumed": "监控已恢复"
     },

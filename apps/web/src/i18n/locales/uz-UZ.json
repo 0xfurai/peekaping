@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monitor o'chirildi",
       "paused": "Monitor to'xtatildi",
+      "push_token_already_used": "Boshqa monitor bu push tokenidan allaqachon foydalanmoqda. Yangisini yarating.",
       "reset_success": "Monitor ma'lumotlari muvaffaqiyatli qayta o‘rnatildi",
       "resumed": "Monitoring qayta boshlandi"
     },

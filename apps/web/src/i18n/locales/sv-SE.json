@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Övervakning borttagen",
       "paused": "Övervakning pausad",
+      "push_token_already_used": "En annan monitor använder redan den här push-token. Generera en ny.",
       "reset_success": "Monitordata återställdes framgångsrikt",
       "resumed": "Övervakning återupptagen"
     },

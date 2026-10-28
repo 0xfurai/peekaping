@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monitorius pašalintas",
       "paused": "Stebėjimas pristabdytas",
+      "push_token_already_used": "Kitas monitorius jau naudoja šį push raktą. Sugeneruokite naują.",
       "reset_success": "Monitorio duomenys sėkmingai atstatyti",
       "resumed": "Monitoringas tęsiamas"
     },

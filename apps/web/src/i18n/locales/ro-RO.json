@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monitor șters",
       "paused": "Monitor în pauză",
+      "push_token_already_used": "Un alt monitor folosește deja acest token push. Generați unul nou.",
       "reset_success": "Datele monitorului au fost resetate cu succes",
       "resumed": "Monitorizarea reluată"
     },

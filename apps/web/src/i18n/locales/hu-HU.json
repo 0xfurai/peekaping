@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Figyelő törölve",
       "paused": "Megfigyelés szünetelve",
+      "push_token_already_used": "Egy másik monitor már használja ezt a push tokent. Hozzon létre egy újat.",
       "reset_success": "Monitor adatai sikeresen visszaállítva",
       "resumed": "Monitor folytatva"
     },

@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monitorea ezabatu da",
       "paused": "Monitorea pausatuta",
+      "push_token_already_used": "Beste monitore batek dagoeneko erabiltzen du push token hau. Sortu berri bat.",
       "reset_success": "Monitoreko datuak ondo berrabiarazi dira",
       "resumed": "Monitorea berrabiarazi da"
     },

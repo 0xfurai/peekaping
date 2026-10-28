@@ -34,7 +34,7 @@ import type {
   PutMonitorsByIdData,
 } from "@/api";
 import type { UtilsApiResponseMonitorMonitorResponseDto } from "@/api/types.gen";
-import { commonMutationErrorHandler } from "@/lib/utils";
+import { apiErrorCode, commonMutationErrorHandler } from "@/lib/utils";
 import {
   deserializeMonitor,
   checkedMonitorFormSchema,
@@ -136,6 +136,17 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     }
   }, [mode, monitor, form]);
 
+  // Another monitor holding the push token has a message of its own, since the response carries
+  // only its code
+  const handleMutationError = (fallbackMessage: string) => (error: unknown) => {
+    if (apiErrorCode(error) === "PUSH_TOKEN_EXISTS") {
+      toast.error(t("monitors.toasts.push_token_already_used"));
+      console.error(error);
+      return;
+    }
+    commonMutationErrorHandler(fallbackMessage)(error);
+  };
+
   const createMonitorMutation = useMutation({
     ...postMonitorsMutation(),
     onSuccess: (res) => {
@@ -148,7 +159,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       });
       navigate(`/monitors/${res.data.id}`);
     },
-    onError: commonMutationErrorHandler("Failed to create monitor"),
+    onError: handleMutationError("Failed to create monitor"),
   });
 
   const editMonitorMutation = useMutation({
@@ -168,7 +179,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
 
       navigate(`/monitors/${monitorId}`);
     },
-    onError: commonMutationErrorHandler("Failed to update monitor"),
+    onError: handleMutationError("Failed to update monitor"),
   });
 
   const value = useMemo(
