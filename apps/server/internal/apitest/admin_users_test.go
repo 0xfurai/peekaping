@@ -683,6 +683,88 @@ func TestAdminUsers_AnAdminTurnsOffAUsersTwoFactor(t *testing.T) {
 	})
 }
 
+// MARK: Notice to the user
+
+// enableTwoFactor turns 2FA on for the user, who signs in with the admin's password
+func (a *app) enableTwoFactor(t *testing.T, email string) {
+	t.Helper()
+	user := bearer(a.sessionOf(t, email).AccessToken)
+	w := a.request(t, http.MethodPost, "/api/v1/auth/2fa/setup", map[string]any{"email": email, "password": adminPassword}, user)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	var setup struct {
+		Secret string `json:"secret"`
+	}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &setup))
+	code, err := totp.GenerateCode(setup.Secret, time.Now())
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, a.request(t, http.MethodPost, "/api/v1/auth/2fa/verify", map[string]any{"email": email, "code": code}, user).Code)
+}
+
+// With a sender, the user is told when an instance admin made a reset link for them or turned off
+// their 2FA: an instance admin can sign in as them with either (ADR 0005 section 10)
+func TestAdminUsers_WithASenderTheUserIsToldOfAResetLinkAndOfTwoFactorTurnedOff(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
+		userID := a.createUser(t, "user@example.com")
+		a.enableTwoFactor(t, "user@example.com")
+
+		link := decode[adminResetLink](t, a.request(t, http.MethodPost, adminUsersPath+"/"+userID+"/reset-link", nil, a.asAdmin), http.StatusCreated)
+		a.settled(t)
+		sent := mailTo(mail, "user@example.com")
+		require.Len(t, sent, 1)
+		assert.Equal(t, senderAddress, sent[0].From)
+		assert.Equal(t, "An instance admin made a password reset link for your account", subjectOf(t, sent[0]))
+		text := textOf(t, sent[0])
+		assert.Contains(t, text, "An instance admin of "+clientURL+" made a password reset link for your account")
+		assert.NotContains(t, text, "pkr_", "the notice does not carry the link")
+		assert.NotContains(t, text, strings.TrimPrefix(link.Link, clientURL+"/reset-password/"))
+		assert.Empty(t, mailTo(mail, adminEmail)[1:], "and the admin gets nothing")
+
+		require.Equal(t, http.StatusOK, a.request(t, http.MethodPost, adminUsersPath+"/"+userID+"/disable-2fa", nil, a.asAdmin).Code)
+		a.settled(t)
+		sent = mailTo(mail, "user@example.com")
+		require.Len(t, sent, 2)
+		assert.Equal(t, "An instance admin turned off two-step verification for your account", subjectOf(t, sent[1]))
+		assert.Contains(t, textOf(t, sent[1]), "An instance admin of "+clientURL+" turned off two-step verification for your account")
+
+		// 2FA was off already: nothing was turned off, so nothing is said
+		require.Equal(t, http.StatusOK, a.request(t, http.MethodPost, adminUsersPath+"/"+userID+"/disable-2fa", nil, a.asAdmin).Code)
+		a.settled(t)
+		assert.Len(t, mailTo(mail, "user@example.com"), 2)
+
+		// a user who does not exist is told nothing
+		missing := "00000000-0000-0000-0000-000000000000"
+		require.Equal(t, http.StatusNotFound, a.request(t, http.MethodPost, adminUsersPath+"/"+missing+"/reset-link", nil, a.asAdmin).Code)
+		a.settled(t)
+		assert.Len(t, mail.Messages(), 3, "the admin's verification and the two notices")
+	})
+}
+
+// A notice that can not be sent is logged without the address, and the action stands
+func TestAdminUsers_ANoticeThatFailsToSendIsLoggedWithoutTheAddressAndTheActionStands(t *testing.T) {
+	server := smtptest.Start(t)
+	core, logs := observer.New(zap.InfoLevel)
+	a := newAppDecorated(t, func(container *dig.Container) error {
+		return container.Decorate(func(*zap.SugaredLogger) *zap.SugaredLogger { return zap.New(core).Sugar() })
+	}, withAccountSMTP(server), withSignupMode(config.SignupModeInvite))
+	a.registerAdmin(t)
+	server.WaitFor(t, 1)
+	userID := a.createUser(t, "user@example.com")
+	a.enableTwoFactor(t, "user@example.com")
+	server.RejectMessages("554 5.7.1 no <user@example.com>")
+
+	require.Equal(t, http.StatusCreated, a.request(t, http.MethodPost, adminUsersPath+"/"+userID+"/reset-link", nil, a.asAdmin).Code)
+	require.Equal(t, http.StatusOK, a.request(t, http.MethodPost, adminUsersPath+"/"+userID+"/disable-2fa", nil, a.asAdmin).Code)
+	a.settled(t)
+
+	assert.False(t, a.adminView(t, "user@example.com").TwoFactorEnabled, "the action stands")
+	assert.Empty(t, mailTo(server, "user@example.com"))
+	failures := logs.FilterMessage("Failed to send an account email").All()
+	assert.Len(t, failures, 2)
+	for _, entry := range logs.All() {
+		assert.NotContains(t, fmt.Sprint(entry.Message, entry.ContextMap()), "user@example.com")
+	}
+}
+
 // MARK: Delete
 
 func TestAdminUsers_DeleteIsRefusedForTheLastOwnerOfAWorkspaceAndNamesIt(t *testing.T) {

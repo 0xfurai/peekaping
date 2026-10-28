@@ -50,6 +50,32 @@ func Invite(workspaceName, inviter, role, link string, lifetime time.Duration) M
 		fmt.Sprintf("The link works once and expires in %s. If you weren't expecting it, ignore this email.", duration(lifetime)))
 }
 
+// ResetLinkMade tells a user that an instance admin made a password reset link for their account.
+// installURL is the address of the install. The notice carries no link: whoever holds the link may
+// set the password.
+func ResetLinkMade(installURL string) Message {
+	return notice("An instance admin made a password reset link for your account",
+		fmt.Sprintf("An instance admin of %s made a password reset link for your account.", installURL),
+		"Whoever has the link can set a new password and sign in as you. If you didn't expect this, ask the people who run this install.")
+}
+
+// TwoFactorTurnedOff tells a user that an instance admin turned off two-step verification for their
+// account
+func TwoFactorTurnedOff(installURL string) Message {
+	return notice("An instance admin turned off two-step verification for your account",
+		fmt.Sprintf("An instance admin of %s turned off two-step verification for your account.", installURL),
+		"Your password is enough to sign in until you set it up again. If you didn't expect this, ask the people who run this install.")
+}
+
+// notice is an email that says what happened and has no link
+func notice(subject, what, footer string) Message {
+	return Message{
+		Subject: subject,
+		Text:    what + "\n\n" + footer + "\n",
+		HTML:    "<p>" + html.EscapeString(what) + "</p>\n<p>" + html.EscapeString(footer) + "</p>\n",
+	}
+}
+
 func message(subject, intro, action, link, footer string) Message {
 	text := intro + "\n\n" + action + ":\n" + link + "\n\n" + footer + "\n"
 	page := "<p>" + html.EscapeString(intro) + "</p>\n" +

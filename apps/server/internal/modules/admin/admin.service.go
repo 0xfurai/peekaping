@@ -3,9 +3,12 @@ package admin
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
+	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/mailer"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/workspace"
@@ -23,9 +26,11 @@ type Service interface {
 	// ErrUserNotFound, ErrSelf (disabling oneself) or ErrLastInstanceAdmin. A disabled user's
 	// sessions end and their workspaces run on.
 	UpdateUser(ctx context.Context, actorID, userID string, update UserUpdate) (*User, error)
-	// CreateResetLink makes a single-use password reset link for the user: ErrUserNotFound
+	// CreateResetLink makes a single-use password reset link for the user: ErrUserNotFound. With a
+	// sender for account emails the user is told, in the background, that it was made.
 	CreateResetLink(ctx context.Context, actorID, userID string) (*ResetLink, error)
-	// DisableTwoFA turns the user's 2FA off: ErrUserNotFound
+	// DisableTwoFA turns the user's 2FA off: ErrUserNotFound. With a sender for account emails a
+	// user who had it on is told, in the background.
 	DisableTwoFA(ctx context.Context, actorID, userID string) (*User, error)
 	// DeleteUser deletes the user: ErrUserNotFound, ErrSelf, ErrLastInstanceAdmin, or ErrLastOwner
 	// (a LastOwnerError, naming the workspaces) while they are the only owner of a workspace
@@ -42,6 +47,8 @@ type ServiceImpl struct {
 	transactor dbtx.Transactor
 	links      ResetLinks
 	bus        events.EventBus
+	mailer     *mailer.Mailer
+	installURL string
 	logger     *zap.SugaredLogger
 	now        func() time.Time
 }
@@ -51,6 +58,8 @@ func NewService(
 	transactor dbtx.Transactor,
 	links ResetLinks,
 	bus events.EventBus,
+	mailer *mailer.Mailer,
+	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
@@ -58,6 +67,8 @@ func NewService(
 		transactor: transactor,
 		links:      links,
 		bus:        bus,
+		mailer:     mailer,
+		installURL: strings.TrimRight(cfg.ClientURL, "/"),
 		logger:     logger.Named("[admin-service]"),
 		now:        time.Now,
 	}
@@ -159,6 +170,13 @@ func (s *ServiceImpl) UpdateUser(ctx context.Context, actorID, userID string, up
 }
 
 func (s *ServiceImpl) CreateResetLink(ctx context.Context, actorID, userID string) (*ResetLink, error) {
+	user, err := s.repo.FindUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, ErrUserNotFound
+	}
 	link, expiresAt, err := s.links.CreateResetLink(ctx, userID)
 	if errors.Is(err, auth.ErrUserNotFound) {
 		return nil, ErrUserNotFound
@@ -167,11 +185,15 @@ func (s *ServiceImpl) CreateResetLink(ctx context.Context, actorID, userID strin
 		return nil, err
 	}
 	s.log(actorID, ActionCreateResetLink, userID)
+	s.notify(user.Email, mailer.ResetLinkMade(s.installURL))
 	return &ResetLink{Link: link, ExpiresAt: expiresAt}, nil
 }
 
 func (s *ServiceImpl) DisableTwoFA(ctx context.Context, actorID, userID string) (*User, error) {
-	var updated *User
+	var (
+		updated *User
+		wasOn   bool
+	)
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		user, err := s.repo.FindUser(ctx, userID)
 		if err != nil {
@@ -180,6 +202,7 @@ func (s *ServiceImpl) DisableTwoFA(ctx context.Context, actorID, userID string) 
 		if user == nil {
 			return ErrUserNotFound
 		}
+		wasOn = user.TwoFactor
 		if err := s.repo.ClearTwoFA(ctx, userID); err != nil {
 			return err
 		}
@@ -190,6 +213,9 @@ func (s *ServiceImpl) DisableTwoFA(ctx context.Context, actorID, userID string) 
 		return nil, err
 	}
 	s.log(actorID, ActionDisableTwoFA, userID)
+	if wasOn {
+		s.notify(updated.Email, mailer.TwoFactorTurnedOff(s.installURL))
+	}
 	return updated, nil
 }
 
@@ -231,6 +257,13 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 	s.announceSessionsEnded(ctx, userID)
 	s.announceLeft(ctx, userID, left)
 	return nil
+}
+
+// notify emails the user that an instance admin did something that lets the admin act as them. It
+// sends in the background and does nothing without a sender; a failure is logged without the
+// address and does not fail the action (ADR 0005, section 10).
+func (s *ServiceImpl) notify(to string, message mailer.Message) {
+	s.mailer.Deliver(to, message.Subject, message.Text, message.HTML)
 }
 
 // announceSessionsEnded tells the rest of the install that the user's sessions ended, once that is
