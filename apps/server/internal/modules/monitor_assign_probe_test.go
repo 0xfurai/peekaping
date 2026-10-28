@@ -69,7 +69,7 @@ func newAssignFixture(t *testing.T, ctx context.Context, db *bun.DB) *assignFixt
 func (f *assignFixture) insert(t *testing.T, ctx context.Context, monitorType string, active bool) string {
 	t.Helper()
 	id := uuid.NewString()
-	workspacetest.Ensure(t, f.db)
+	workspacetest.OldestOrAdd(t, f.db)
 	_, err := f.db.ExecContext(ctx,
 		`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active, config)
 		 VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), ?, ?, 60, 16, 0, 60, 0, ?, '{}')`, id, monitorType, monitorType, active)

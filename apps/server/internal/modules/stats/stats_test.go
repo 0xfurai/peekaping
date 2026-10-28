@@ -79,6 +79,14 @@ func insertMonitor(t *testing.T, db *bun.DB) string {
 	return id
 }
 
+// insertOldMonitor stores a monitor in a schema from before monitors had a workspace
+func insertOldMonitor(t *testing.T, db *bun.DB) string {
+	t.Helper()
+	id := uuid.NewString()
+	workspacetest.InsertMonitorWithoutWorkspace(t, db, id)
+	return id
+}
+
 // forEachBackend runs fn against a stats service on every database backend,
 // with one monitor to aggregate heartbeats for.
 func forEachBackend(t *testing.T, fn func(t *testing.T, svc stats.Service, monitorID string)) {

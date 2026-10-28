@@ -56,7 +56,7 @@ func (h *harness) create(t *testing.T, name string) *tag.Model {
 func (h *harness) monitor(t *testing.T) string {
 	t.Helper()
 	id := uuid.NewString()
-	workspacetest.Ensure(t, h.db)
+	workspacetest.OldestOrAdd(t, h.db)
 	_, err := h.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 	require.NoError(t, err)
 	return id

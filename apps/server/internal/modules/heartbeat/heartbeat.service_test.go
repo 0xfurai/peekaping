@@ -82,7 +82,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, b backend)) {
 			require.NoError(t, err)
 			monitorA, monitorB := uuid.NewString(), uuid.NewString()
 			for _, id := range []string{monitorA, monitorB} {
-				workspacetest.Ensure(t, db)
+				workspacetest.OldestOrAdd(t, db)
 				_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 				require.NoError(t, err)
 			}
@@ -161,7 +161,7 @@ func TestSQLRepository_CreateKeepsAGivenTime(t *testing.T) {
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
 			monitorID := uuid.NewString()
-			workspacetest.Ensure(t, db)
+			workspacetest.OldestOrAdd(t, db)
 			_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
 			require.NoError(t, err)
 			svc := heartbeat.NewService(heartbeat.NewSQLRepository(db), eventstest.NewBus(), zap.NewNop().Sugar())
@@ -329,7 +329,7 @@ func TestDeleteOlderThanDeletesHeartbeatsWrittenOutOfTimeOrder(t *testing.T) {
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
 			monitorID := uuid.NewString()
-			workspacetest.Ensure(t, db)
+			workspacetest.OldestOrAdd(t, db)
 			_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
 			require.NoError(t, err)
 
@@ -457,7 +457,7 @@ func TestDeleteOlderThanClearsABacklogLargerThanOneBatch(t *testing.T) {
 			require.NoError(t, err)
 			monitorA, monitorB := uuid.NewString(), uuid.NewString()
 			for _, id := range []string{monitorA, monitorB} {
-				workspacetest.Ensure(t, db)
+				workspacetest.OldestOrAdd(t, db)
 				_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 				require.NoError(t, err)
 			}

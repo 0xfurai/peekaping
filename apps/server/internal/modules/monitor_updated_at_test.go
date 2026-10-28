@@ -49,7 +49,7 @@ func TestMonitorPartialUpdateMovesUpdatedAt(t *testing.T) {
 		require.NoError(t, migrator.Init(context.Background()))
 		_, err := migrator.Migrate(context.Background())
 		require.NoError(t, err)
-		workspacetest.Ensure(t, db)
+		workspacetest.OldestOrAdd(t, db)
 		return monitor.NewSQLRepository(db)
 	}
 

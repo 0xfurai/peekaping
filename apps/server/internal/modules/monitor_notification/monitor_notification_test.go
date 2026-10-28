@@ -77,7 +77,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 				svc: monitor_notification.NewService(monitor_notification.NewSQLRepository(db), zap.NewNop().Sugar()),
 				monitor: func() string {
 					id := uuid.NewString()
-					workspacetest.Ensure(t, db)
+					workspacetest.OldestOrAdd(t, db)
 					_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 					require.NoError(t, err)
 					return id

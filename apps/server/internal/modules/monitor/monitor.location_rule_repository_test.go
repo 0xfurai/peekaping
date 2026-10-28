@@ -31,7 +31,7 @@ func TestSQLRepository_ExistingMonitorsReadAsAny(t *testing.T) {
 			}
 			migrateUp(t, db, before)
 			id := uuid.NewString()
-			workspacetest.InsertMonitor(t, db, id)
+			workspacetest.InsertMonitorWithoutWorkspace(t, db, id)
 
 			migrateUp(t, db, migrations.Migrations)
 

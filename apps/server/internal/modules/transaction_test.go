@@ -50,7 +50,7 @@ func forEachTxBackend(t *testing.T, fn func(t *testing.T, ctx context.Context, d
 			require.NoError(t, migrator.Init(ctx))
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
-			workspacetest.Ensure(t, db)
+			workspacetest.OldestOrAdd(t, db)
 			fn(t, ctx, db)
 		}
 	}
@@ -84,7 +84,7 @@ func forEachTxBackend(t *testing.T, fn func(t *testing.T, ctx context.Context, d
 func insertTxMonitor(t *testing.T, db *bun.DB) string {
 	t.Helper()
 	id := uuid.NewString()
-	workspacetest.Ensure(t, db)
+	workspacetest.OldestOrAdd(t, db)
 	_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 	require.NoError(t, err)
 	return id

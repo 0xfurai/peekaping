@@ -15,18 +15,18 @@ import (
 	"github.com/uptrace/bun/dialect"
 )
 
-// ID is the workspace that Ensure makes in a database that has none
+// ID is the workspace that OldestOrAdd adds in a database that has none
 const ID = workspace.ID("0d6f1e0e-6b1c-4d49-8c37-0b5f4a1b3a01")
 
 // Other is a second workspace, which Add makes
 const Other = workspace.ID("6a1c9d52-3b7e-4f0a-9d1e-5c2b8e7f4a02")
 
-// Ensure returns the ID of the database's oldest workspace, and makes the workspace ID when it has
-// none. A raw
-// INSERT into a table that belongs to a workspace names it as
-// (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), which is the workspace Ensure
-// returns, the one the upgrade gives an install's records.
-func Ensure(t testing.TB, db bun.IDB) string {
+// OldestOrAdd returns the ID of the database's oldest workspace by created_at, and adds the
+// workspace ID (named "Test") when the database has none. A raw INSERT into a table that belongs
+// to a workspace names it as (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), which
+// is the workspace OldestOrAdd returns, the one the upgrade gives an install's records. A test
+// that cares which workspace a row is in adds its own with Add instead.
+func OldestOrAdd(t testing.TB, db bun.IDB) string {
 	t.Helper()
 	ctx := context.Background()
 	var id string
@@ -49,15 +49,45 @@ func Add(t testing.TB, db bun.IDB, id workspace.ID, name string) {
 	}
 }
 
-// Prepare makes sure the install has what a monitor needs to be stored and then upgraded, in
-// whatever state the database is in. A database that has workspaces gets Ensure's workspace. An
-// older one, from before there were any, gets a user when it has none, so that the upgrade finds
-// an install to give a workspace to.
-func Prepare(t testing.TB, db *bun.DB) {
+// InsertMonitor stores a monitor with the given ID in the oldest workspace (see OldestOrAdd). It
+// fails the test on a database whose monitors have no workspace_id column yet, which needs
+// InsertMonitorWithoutWorkspace.
+func InsertMonitor(t testing.TB, db *bun.DB, id string) {
+	t.Helper()
+	if !hasColumn(t, db, "monitors", "workspace_id") {
+		t.Fatal("the monitors table has no workspace_id column yet: this schema is from before the monitors had a workspace, so use InsertMonitorWithoutWorkspace")
+	}
+	OldestOrAdd(t, db)
+	const statement = "INSERT INTO monitors (id, workspace_id, " + monitorColumns + ") VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), " + monitorValues + ")"
+	if _, err := db.ExecContext(context.Background(), statement, id); err != nil {
+		t.Fatalf("insert a monitor: %v", err)
+	}
+}
+
+// InsertMonitorWithoutWorkspace stores a monitor with the given ID in a database from before the
+// monitors had a workspace: one whose monitors table has no workspace_id column, as a test that
+// stops the migrations short of the one that adds it. It fails the test on a database that has the
+// column, which needs InsertMonitor. It does PrepareUpgrade first.
+func InsertMonitorWithoutWorkspace(t testing.TB, db *bun.DB, id string) {
+	t.Helper()
+	if hasColumn(t, db, "monitors", "workspace_id") {
+		t.Fatal("the monitors table has a workspace_id column: use InsertMonitor")
+	}
+	PrepareUpgrade(t, db)
+	const statement = "INSERT INTO monitors (id, " + monitorColumns + ") VALUES (?, " + monitorValues + ")"
+	if _, err := db.ExecContext(context.Background(), statement, id); err != nil {
+		t.Fatalf("insert a monitor: %v", err)
+	}
+}
+
+// PrepareUpgrade gives a database from before the monitors had a workspace what the upgrade needs
+// to find: the oldest workspace when the database has workspaces already (see OldestOrAdd), and
+// otherwise a user, when it has none, so that the upgrade finds an install to give a workspace to.
+func PrepareUpgrade(t testing.TB, db *bun.DB) {
 	t.Helper()
 	ctx := context.Background()
 	if hasTable(t, db, "workspaces") {
-		Ensure(t, db)
+		OldestOrAdd(t, db)
 		return
 	}
 	var users int
@@ -71,21 +101,10 @@ func Prepare(t testing.TB, db *bun.DB) {
 	}
 }
 
-// InsertMonitor stores a monitor with the given ID, in whatever state the database is in (see
-// Prepare). Where monitors have a workspace, it belongs to Ensure's.
-func InsertMonitor(t testing.TB, db *bun.DB, id string) {
-	t.Helper()
-	Prepare(t, db)
-	const columns = "type, name, interval, timeout, max_retries, retry_interval, resend_interval"
-	const values = "'http', 'Monitor', 60, 10, 1, 10, 0"
-	statement := "INSERT INTO monitors (id, " + columns + ") VALUES (?, " + values + ")"
-	if hasColumn(t, db, "monitors", "workspace_id") {
-		statement = "INSERT INTO monitors (id, workspace_id, " + columns + ") VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), " + values + ")"
-	}
-	if _, err := db.ExecContext(context.Background(), statement, id); err != nil {
-		t.Fatalf("insert a monitor: %v", err)
-	}
-}
+const (
+	monitorColumns = "type, name, interval, timeout, max_retries, retry_interval, resend_interval"
+	monitorValues  = "'http', 'Monitor', 60, 10, 1, 10, 0"
+)
 
 func hasTable(t testing.TB, db *bun.DB, table string) bool {
 	t.Helper()

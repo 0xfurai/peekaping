@@ -448,7 +448,7 @@ func TestService_DeleteRefusesAProbeWithMonitors(t *testing.T) {
 	created := f.create(t, "Frankfurt")
 	for _, active := range []bool{true, false, true} {
 		id := uuid.NewString()
-		workspacetest.Ensure(t, f.db)
+		workspacetest.OldestOrAdd(t, f.db)
 		_, err := f.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, active)
 		require.NoError(t, err)
 		_, err = f.db.Exec("INSERT INTO monitor_probes (monitor_id, probe_id) VALUES (?, ?)", id, created.ID)
