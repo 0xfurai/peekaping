@@ -67,6 +67,13 @@ type Service interface {
 	CreateWorkspace(ctx context.Context, userID, name string) (*Membership, error)
 }
 
+// MonitorWaker makes the scheduler and the probes pick up the monitors of a workspace whose
+// suspension was lifted. monitor.Service is one; the monitor module imports this one, so the
+// wiring joins them.
+type MonitorWaker interface {
+	PublishActiveUpdated(ctx context.Context, workspaceID ID) error
+}
+
 type ServiceImpl struct {
 	workspaces Repository
 	members    MemberRepository
@@ -78,6 +85,7 @@ type ServiceImpl struct {
 	// suspended, as the one their signup made is
 	signupOpen bool
 	mailer     *mailer.Mailer
+	monitors   MonitorWaker
 	logger     *zap.SugaredLogger
 	now        func() time.Time
 }
@@ -90,6 +98,7 @@ func NewService(
 	bus events.EventBus,
 	cfg *config.Config,
 	mailer *mailer.Mailer,
+	monitors MonitorWaker,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
@@ -101,6 +110,7 @@ func NewService(
 		clientURL:  cfg.ClientURL,
 		signupOpen: cfg.SignupOpen(),
 		mailer:     mailer,
+		monitors:   monitors,
 		logger:     logger.Named("[workspace-service]"),
 		now:        time.Now,
 	}
@@ -131,6 +141,7 @@ func (s *ServiceImpl) ChangeRole(ctx context.Context, userID string, role Role) 
 		return nil, err
 	}
 	var changed *Member
+	var lifted []ID
 	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		target, owners, err := s.targetAndOwners(ctx, id, userID)
 		if err != nil {
@@ -145,11 +156,15 @@ func (s *ServiceImpl) ChangeRole(ctx context.Context, userID string, role Role) 
 		updated := *target
 		updated.Role = role
 		changed = &updated
-		return nil
+		if role == RoleOwner {
+			lifted, err = s.workspaces.LiftUnverifiedWithVerifiedOwner(ctx, id)
+		}
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
+	s.wake(ctx, lifted)
 	return changed, nil
 }
 
@@ -197,6 +212,20 @@ func (s *ServiceImpl) Leave(ctx context.Context, userID string) error {
 	}
 	s.announceLeft(ctx, id, userID)
 	return nil
+}
+
+// wake has the scheduler and the probes pick up the monitors of workspaces whose suspension a
+// change of owners lifted: the monitors were not changed, so nothing else would tell them. A failure
+// is logged and does not undo the change.
+func (s *ServiceImpl) wake(ctx context.Context, lifted []ID) {
+	if s.monitors == nil {
+		return
+	}
+	for _, id := range lifted {
+		if err := s.monitors.PublishActiveUpdated(ctx, id); err != nil {
+			s.logger.Errorw("Failed to wake the monitors of a workspace that is no longer suspended", "workspaceId", id, "error", err)
+		}
+	}
 }
 
 // targetAndOwners reads the member a change is about and the workspace's owners, which are locked
@@ -342,6 +371,7 @@ func (s *ServiceImpl) PreviewInvite(ctx context.Context, token string) (*InviteP
 
 func (s *ServiceImpl) AcceptInvite(ctx context.Context, token, userID string) (*Membership, error) {
 	var joined *Membership
+	var lifted []ID
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		invite, err := s.lookupInvite(ctx, token)
 		if err != nil {
@@ -382,11 +412,15 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, token, userID string) (*
 			Role:      invite.Role,
 			JoinedAt:  now,
 		}
-		return nil
+		if invite.Role == RoleOwner {
+			lifted, err = s.workspaces.LiftUnverifiedWithVerifiedOwner(ctx, invite.WorkspaceID)
+		}
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
+	s.wake(ctx, lifted)
 	return joined, nil
 }
 

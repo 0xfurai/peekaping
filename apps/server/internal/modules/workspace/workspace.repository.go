@@ -17,6 +17,11 @@ type Repository interface {
 	// The lifted workspaces' monitors get a new updated_at, so that none counts as stale for the days
 	// it was held back.
 	LiftUnverifiedOwnedBy(ctx context.Context, userID string) ([]ID, error)
+	// LiftUnverifiedWithVerifiedOwner ends the SuspendedUnverified suspension of the workspace if
+	// one of its owners has a verified email, and returns it when it did (nil otherwise). It is for
+	// a role change that makes a verified user an owner: no owner may be left to verify. Like
+	// LiftUnverifiedOwnedBy, it gives the workspace's monitors a new updated_at.
+	LiftUnverifiedWithVerifiedOwner(ctx context.Context, id ID) ([]ID, error)
 	// AddMember makes the user a member of the workspace with the role.
 	AddMember(ctx context.Context, id ID, userID string, role Role) error
 	// ListMemberships returns the user's places in workspaces, the one they joined first at the
