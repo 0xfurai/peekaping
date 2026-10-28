@@ -11,6 +11,8 @@ import (
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacetest"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -21,7 +23,7 @@ type contextTagService struct {
 	seen context.Context
 }
 
-func (s *contextTagService) FindAll(ctx context.Context, _, _ int, _ string) ([]*tag.Model, error) {
+func (s *contextTagService) FindAll(ctx context.Context, _ workspace.ID, _, _ int, _ string) ([]*tag.Model, error) {
 	s.seen = ctx
 	return nil, nil
 }
@@ -31,6 +33,7 @@ func TestControllerPropagatesRequestContext(t *testing.T) {
 	parent := context.WithValue(context.Background(), requestKey{}, "request-value")
 	ctx, cancel := context.WithDeadline(parent, time.Now().Add(time.Minute))
 	cancel()
+	ctx = workspace.WithContext(ctx, workspacetest.ID, workspace.RoleAdmin) // the request of a workspace's route
 	service := &contextTagService{}
 	router := httpx.NewRouter()
 	httpx.Register(router, "GET", "/tags", huma.Operation{Errors: []int{400, 500}}, tag.NewController(service, zap.NewNop().Sugar()).FindAll,

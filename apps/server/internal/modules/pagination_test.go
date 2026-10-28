@@ -40,7 +40,7 @@ type tagPaginationService struct {
 	*paginationCall
 }
 
-func (s *tagPaginationService) FindAll(_ context.Context, page, limit int, _ string) ([]*tag.Model, error) {
+func (s *tagPaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _ string) ([]*tag.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
@@ -50,7 +50,7 @@ type proxyPaginationService struct {
 	*paginationCall
 }
 
-func (s *proxyPaginationService) FindAll(_ context.Context, page, limit int, _ string) ([]*proxy.Model, error) {
+func (s *proxyPaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _ string) ([]*proxy.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
@@ -60,7 +60,7 @@ type notificationPaginationService struct {
 	*paginationCall
 }
 
-func (s *notificationPaginationService) FindAll(_ context.Context, page, limit int, _ string) ([]*notification_channel.Model, error) {
+func (s *notificationPaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _ string) ([]*notification_channel.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }
@@ -70,7 +70,7 @@ type maintenancePaginationService struct {
 	*paginationCall
 }
 
-func (s *maintenancePaginationService) FindAll(_ context.Context, page, limit int, _, _ string) ([]*maintenance.Model, error) {
+func (s *maintenancePaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _, _ string) ([]*maintenance.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }

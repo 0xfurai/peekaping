@@ -12,6 +12,8 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/notification_channel"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacetest"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -87,9 +89,10 @@ func TestSQLRepositoryUpdatePartialKeepsOmittedFields(t *testing.T) {
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		ctx := context.Background()
 		repo := notification_channel.NewSQLRepository(db)
+		ws := workspace.ID(workspacetest.OldestOrAdd(t, db))
 
 		channelConfig := `{"webhook_url":"https://hooks.example.com/services/T000/B000/XXXX"}`
-		created, err := repo.Create(ctx, &notification_channel.Model{
+		created, err := repo.Create(ctx, ws, &notification_channel.Model{
 			Name:      "Ops pager (EU)",
 			Type:      "webhook",
 			Active:    true,
@@ -97,15 +100,15 @@ func TestSQLRepositoryUpdatePartialKeepsOmittedFields(t *testing.T) {
 			Config:    &channelConfig,
 		})
 		require.NoError(t, err)
-		saved, err := repo.FindByID(ctx, created.ID)
+		saved, err := repo.FindByID(ctx, ws, created.ID)
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 		require.True(t, saved.Active, "the channel starts active, so switching it off is a real change")
 
 		inactive := false
-		require.NoError(t, repo.UpdatePartial(ctx, created.ID, &notification_channel.UpdateModel{Active: &inactive}))
+		require.NoError(t, repo.UpdatePartial(ctx, ws, created.ID, &notification_channel.UpdateModel{Active: &inactive}))
 
-		got, err := repo.FindByID(ctx, created.ID)
+		got, err := repo.FindByID(ctx, ws, created.ID)
 		require.NoError(t, err)
 		require.NotNil(t, got)
 		assert.False(t, got.Active)
@@ -116,5 +119,60 @@ func TestSQLRepositoryUpdatePartialKeepsOmittedFields(t *testing.T) {
 			// PostgreSQL stores the config as JSONB, which rewrites the spacing.
 			assert.JSONEq(t, `{"webhook_url":"https://hooks.example.com/services/T000/B000/XXXX"}`, *got.Config)
 		}
+	})
+}
+
+func TestSQLRepositoryScopesEveryQueryToTheWorkspace(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		repo := notification_channel.NewSQLRepository(db)
+		mine := workspace.ID(workspacetest.OldestOrAdd(t, db))
+		workspacetest.Add(t, db, workspacetest.Other, "Other")
+		config := `{"webhook_url":"https://hooks.example.com/a"}`
+		channel, err := repo.Create(ctx, mine, &notification_channel.Model{Name: "Mine", Type: "webhook", Active: true, Config: &config, WorkspaceID: workspacetest.Other})
+		require.NoError(t, err)
+		assert.Equal(t, mine, channel.WorkspaceID, "the workspace is the argument's, whatever the model says")
+		theirs, err := repo.Create(ctx, workspacetest.Other, &notification_channel.Model{Name: "Theirs", Type: "webhook", Active: true, Config: &config})
+		require.NoError(t, err)
+
+		found, err := repo.FindByID(ctx, workspacetest.Other, channel.ID)
+		require.NoError(t, err)
+		assert.Nil(t, found)
+		anywhere, err := repo.FindByIDAnyWorkspace(ctx, channel.ID)
+		require.NoError(t, err)
+		require.NotNil(t, anywhere)
+		assert.Equal(t, mine, anywhere.WorkspaceID, "the background paths read it with its workspace")
+		listed, err := repo.FindAll(ctx, mine, 0, 10, "")
+		require.NoError(t, err)
+		require.Len(t, listed, 1)
+		assert.Equal(t, channel.ID, listed[0].ID)
+		searched, err := repo.FindAll(ctx, mine, 0, 10, "theirs")
+		require.NoError(t, err)
+		assert.Empty(t, searched)
+		all, err := repo.FindAllAnyWorkspace(ctx, 0, 10)
+		require.NoError(t, err)
+		assert.Len(t, all, 2)
+
+		rename := "Hijacked"
+		assert.ErrorIs(t, repo.UpdateFull(ctx, workspacetest.Other, channel.ID, &notification_channel.Model{Name: rename, Type: "webhook", Config: &config}), notification_channel.ErrNotFound)
+		assert.ErrorIs(t, repo.UpdatePartial(ctx, workspacetest.Other, channel.ID, &notification_channel.UpdateModel{Name: &rename}), notification_channel.ErrNotFound)
+		assert.ErrorIs(t, repo.UpdatePartial(ctx, workspacetest.Other, channel.ID, &notification_channel.UpdateModel{}), notification_channel.ErrNotFound)
+		assert.ErrorIs(t, repo.Delete(ctx, workspacetest.Other, channel.ID), notification_channel.ErrNotFound)
+		assert.ErrorIs(t, repo.Delete(ctx, mine, uuid.NewString()), notification_channel.ErrNotFound)
+
+		kept, err := repo.FindByID(ctx, mine, channel.ID)
+		require.NoError(t, err)
+		require.NotNil(t, kept)
+		assert.Equal(t, "Mine", kept.Name, "the channel is as it was")
+		other, err := repo.FindByID(ctx, workspacetest.Other, theirs.ID)
+		require.NoError(t, err)
+		assert.Equal(t, "Theirs", other.Name)
+
+		require.NoError(t, repo.UpdateFull(ctx, mine, channel.ID, &notification_channel.Model{Name: "Renamed", Type: "webhook", Active: true, Config: &config, WorkspaceID: workspacetest.Other}))
+		renamed, err := repo.FindByID(ctx, mine, channel.ID)
+		require.NoError(t, err)
+		assert.Equal(t, "Renamed", renamed.Name)
+		assert.Equal(t, mine, renamed.WorkspaceID, "an update can't move a channel to another workspace")
+		require.NoError(t, repo.Delete(ctx, mine, channel.ID))
 	})
 }

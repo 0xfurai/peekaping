@@ -2,7 +2,13 @@ package monitor_maintenance
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/utils"
+
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -16,6 +22,11 @@ type Service interface {
 	DeleteByMaintenanceID(ctx context.Context, maintenanceID string) error
 	SetMonitors(ctx context.Context, maintenanceID string, monitorIDs []string) error
 	GetMonitors(ctx context.Context, maintenanceID string) ([]string, error)
+	// RequireMonitors is nil when every monitor is in the workspace, and otherwise an error that
+	// wraps ErrUnknownMonitor and names the first that isn't. A maintenance window covers only
+	// monitors of its own workspace (docs/adr/0005 section 2), and a caller checks them all before
+	// it writes a link.
+	RequireMonitors(ctx context.Context, workspaceID workspace.ID, ids []string) error
 }
 
 type ServiceImpl struct {
@@ -73,9 +84,9 @@ func (mr *ServiceImpl) SetMonitors(ctx context.Context, maintenanceID string, mo
 		return err
 	}
 
-	// Create new relationships for each monitor
+	// Create new relationships for each monitor, by the lower case ID it is stored under
 	for _, monitorID := range monitorIDs {
-		_, err := mr.Create(ctx, monitorID, maintenanceID)
+		_, err := mr.Create(ctx, utils.LowerUUID(monitorID), maintenanceID)
 		if err != nil {
 			return err
 		}
@@ -96,4 +107,32 @@ func (mr *ServiceImpl) GetMonitors(ctx context.Context, maintenanceID string) ([
 	}
 
 	return monitorIDs, nil
+}
+
+func (mr *ServiceImpl) RequireMonitors(ctx context.Context, workspaceID workspace.ID, ids []string) error {
+	// An ID that isn't a UUID can't be one a database has, and PostgreSQL fails the query on it
+	// instead of finding nothing. The query takes the lower case form, so that a copy in another
+	// case finds the same record on SQLite, which compares text, as it does on PostgreSQL.
+	canonical := make([]string, len(ids))
+	for i, id := range ids {
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrUnknownMonitor, id)
+		}
+		canonical[i] = parsed.String()
+	}
+	found, err := mr.repository.FindMonitorIDsInWorkspace(ctx, workspaceID, canonical)
+	if err != nil {
+		return err
+	}
+	exists := make(map[string]bool, len(found))
+	for _, id := range found {
+		exists[strings.ToLower(id)] = true
+	}
+	for i, id := range canonical {
+		if !exists[id] {
+			return fmt.Errorf("%w: %s", ErrUnknownMonitor, ids[i])
+		}
+	}
+	return nil
 }

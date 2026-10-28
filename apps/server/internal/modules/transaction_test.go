@@ -93,24 +93,21 @@ func insertTxMonitor(t *testing.T, db *bun.DB) string {
 func insertTxTag(t *testing.T, db *bun.DB) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := db.Exec("INSERT INTO tags (id, name, color) VALUES (?, ?, '#3B82F6')", id, "tag-"+id)
-	require.NoError(t, err)
+	workspacetest.InsertTag(t, db, id, "tag-"+id)
 	return id
 }
 
 func insertTxChannel(t *testing.T, db *bun.DB) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := db.Exec("INSERT INTO notification_channels (id, name, type) VALUES (?, 'Ops', 'webhook')", id)
-	require.NoError(t, err)
+	workspacetest.InsertChannel(t, db, id)
 	return id
 }
 
 func insertTxProxy(t *testing.T, db *bun.DB) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := db.Exec("INSERT INTO proxies (id, protocol, host, port) VALUES (?, 'http', 'localhost', 8080)", id)
-	require.NoError(t, err)
+	workspacetest.InsertProxy(t, db, id)
 	return id
 }
 

@@ -11,15 +11,16 @@ import (
 )
 
 type proxyRow struct {
-	ID        string    `bun:"id"`
-	Protocol  string    `bun:"protocol" max:"10"`
-	Host      string    `bun:"host" max:"255"`
-	Port      int       `bun:"port"`
-	Auth      bool      `bun:"auth"`
-	Username  string    `bun:"username" max:"255"`
-	Password  string    `bun:"password" max:"255"`
-	CreatedAt time.Time `bun:"created_at"`
-	UpdatedAt time.Time `bun:"updated_at"`
+	ID          string    `bun:"id"`
+	WorkspaceID string    `bun:"workspace_id"`
+	Protocol    string    `bun:"protocol" max:"10"`
+	Host        string    `bun:"host" max:"255"`
+	Port        int       `bun:"port"`
+	Auth        bool      `bun:"auth"`
+	Username    string    `bun:"username" max:"255"`
+	Password    string    `bun:"password" max:"255"`
+	CreatedAt   time.Time `bun:"created_at"`
+	UpdatedAt   time.Time `bun:"updated_at"`
 }
 
 func (c *copier) copyProxies(ctx context.Context) error {
@@ -35,7 +36,7 @@ func (c *copier) copyProxies(ctx context.Context) error {
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 		c.proxies.add(id)
 		return out.add(ctx, proxyRow{
-			ID: uuidOf(id), Protocol: d.str("protocol"), Host: d.str("host"), Port: int(d.integer("port")), Auth: d.boolean("auth"),
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Protocol: d.str("protocol"), Host: d.str("host"), Port: int(d.integer("port")), Auth: d.boolean("auth"),
 			Username: d.str("username"), Password: d.str("password"), CreatedAt: created, UpdatedAt: updated,
 		})
 	})
@@ -192,14 +193,15 @@ func (c *copier) copyMonitors(ctx context.Context) error {
 }
 
 type channelRow struct {
-	ID        string    `bun:"id"`
-	Name      string    `bun:"name" max:"255"`
-	Type      string    `bun:"type" max:"50"`
-	Active    bool      `bun:"active"`
-	IsDefault bool      `bun:"is_default"`
-	Config    string    `bun:"config"`
-	CreatedAt time.Time `bun:"created_at"`
-	UpdatedAt time.Time `bun:"updated_at"`
+	WorkspaceID string    `bun:"workspace_id"`
+	ID          string    `bun:"id"`
+	Name        string    `bun:"name" max:"255"`
+	Type        string    `bun:"type" max:"50"`
+	Active      bool      `bun:"active"`
+	IsDefault   bool      `bun:"is_default"`
+	Config      string    `bun:"config"`
+	CreatedAt   time.Time `bun:"created_at"`
+	UpdatedAt   time.Time `bun:"updated_at"`
 }
 
 // copyChannels copies the notification channels. A full update of a channel in
@@ -227,7 +229,7 @@ func (c *copier) copyChannels(ctx context.Context) error {
 		}
 		c.channels.add(id)
 		return out.add(ctx, channelRow{
-			ID: uuidOf(id), Name: d.str("name"), Type: d.str("type"), Active: d.boolean("active"), IsDefault: isDefault,
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Name: d.str("name"), Type: d.str("type"), Active: d.boolean("active"), IsDefault: isDefault,
 			Config: jsonConfig(report, d.strPtr("config")), CreatedAt: created, UpdatedAt: updated,
 		})
 	})
@@ -239,6 +241,7 @@ func (c *copier) copyChannels(ctx context.Context) error {
 
 type tagRow struct {
 	ID          string    `bun:"id"`
+	WorkspaceID string    `bun:"workspace_id"`
 	Name        string    `bun:"name" max:"100"`
 	Color       string    `bun:"color" max:"7"`
 	Description *string   `bun:"description"`
@@ -265,7 +268,7 @@ func (c *copier) copyTags(ctx context.Context) error {
 		names[name] = true
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 		c.tags.add(id)
-		return out.add(ctx, tagRow{ID: uuidOf(id), Name: c.uniqueText(report, "name", stored, name, 100), Color: d.str("color"), Description: d.strPtr("description"), CreatedAt: created, UpdatedAt: updated})
+		return out.add(ctx, tagRow{ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Name: c.uniqueText(report, "name", stored, name, 100), Color: d.str("color"), Description: d.strPtr("description"), CreatedAt: created, UpdatedAt: updated})
 	})
 	if err != nil {
 		return err
@@ -275,6 +278,7 @@ func (c *copier) copyTags(ctx context.Context) error {
 
 type maintenanceRow struct {
 	ID            string    `bun:"id"`
+	WorkspaceID   string    `bun:"workspace_id"`
 	Title         string    `bun:"title" max:"255"`
 	Description   string    `bun:"description"`
 	Active        bool      `bun:"active"`
@@ -316,7 +320,7 @@ func (c *copier) copyMaintenance(ctx context.Context) error {
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
 		c.maintenances.add(id)
 		return out.add(ctx, maintenanceRow{
-			ID: uuidOf(id), Title: d.str("title"), Description: d.str("description"), Active: d.boolean("active"), Strategy: d.str("strategy"),
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Title: d.str("title"), Description: d.str("description"), Active: d.boolean("active"), Strategy: d.str("strategy"),
 			StartDateTime: d.strPtr("start_date_time"), EndDateTime: d.strPtr("end_date_time"),
 			StartTime: d.strPtr("start_time"), EndTime: d.strPtr("end_time"),
 			Weekdays: intsJSON(d.ints("weekdays")), DaysOfMonth: intsJSON(d.ints("days_of_month")),

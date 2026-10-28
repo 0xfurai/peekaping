@@ -80,6 +80,47 @@ func InsertMonitorWithoutWorkspace(t testing.TB, db *bun.DB, id string) {
 	}
 }
 
+// oldest is the SQL that names the oldest workspace, which OldestOrAdd returns
+const oldest = "(SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1)"
+
+// InsertChannel stores a notification channel with the given ID in the oldest workspace (see
+// OldestOrAdd)
+func InsertChannel(t testing.TB, db bun.IDB, id string) {
+	t.Helper()
+	OldestOrAdd(t, db)
+	if _, err := db.ExecContext(context.Background(), "INSERT INTO notification_channels (id, workspace_id, name, type) VALUES (?, "+oldest+", 'Ops', 'webhook')", id); err != nil {
+		t.Fatalf("insert a notification channel: %v", err)
+	}
+}
+
+// InsertTag stores a tag with the given ID and name in the oldest workspace (see OldestOrAdd)
+func InsertTag(t testing.TB, db bun.IDB, id, name string) {
+	t.Helper()
+	OldestOrAdd(t, db)
+	if _, err := db.ExecContext(context.Background(), "INSERT INTO tags (id, workspace_id, name, color) VALUES (?, "+oldest+", ?, '#3B82F6')", id, name); err != nil {
+		t.Fatalf("insert a tag: %v", err)
+	}
+}
+
+// InsertProxy stores a proxy with the given ID in the oldest workspace (see OldestOrAdd)
+func InsertProxy(t testing.TB, db bun.IDB, id string) {
+	t.Helper()
+	OldestOrAdd(t, db)
+	if _, err := db.ExecContext(context.Background(), "INSERT INTO proxies (id, workspace_id, protocol, host, port) VALUES (?, "+oldest+", 'http', 'localhost', 8080)", id); err != nil {
+		t.Fatalf("insert a proxy: %v", err)
+	}
+}
+
+// InsertMaintenance stores a maintenance window with the given ID in the oldest workspace (see
+// OldestOrAdd)
+func InsertMaintenance(t testing.TB, db bun.IDB, id string) {
+	t.Helper()
+	OldestOrAdd(t, db)
+	if _, err := db.ExecContext(context.Background(), "INSERT INTO maintenances (id, workspace_id, title, strategy) VALUES (?, "+oldest+", 'Upgrade', 'manual')", id); err != nil {
+		t.Fatalf("insert a maintenance window: %v", err)
+	}
+}
+
 // PrepareUpgrade gives a database from before the monitors had a workspace what the upgrade needs
 // to find: the oldest workspace when the database has workspaces already (see OldestOrAdd), and
 // otherwise a user, when it has none, so that the upgrade finds an install to give a workspace to.

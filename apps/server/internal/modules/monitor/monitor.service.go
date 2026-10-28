@@ -13,8 +13,10 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/utils"
 	"time"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -56,7 +58,14 @@ type Service interface {
 	// it whatever their workspace
 	GetHeartbeatsAnyWorkspace(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
 
-	RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) error
+	// RemoveProxyReference clears the proxy from the workspace's monitors that use it, and returns
+	// the monitors it changed as they are stored now. It runs in the transaction ctx carries, if
+	// any (dbtx), and publishes nothing: the caller calls PublishUpdated once its transaction has
+	// committed, since an event for a change that is rolled back would be a lie.
+	RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error)
+	// PublishUpdated publishes a monitor-updated event for each monitor, so that the scheduler and
+	// the probes load their config again
+	PublishUpdated(ctx context.Context, monitors []*Model)
 	FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error)
 
 	GetStatPoints(ctx context.Context, workspaceID workspace.ID, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
@@ -138,6 +147,7 @@ func NewMonitorService(
 }
 
 func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) (*Model, error) {
+	lowerLinkIDs(monitorCreateDto)
 	createModel := &Model{
 		WorkspaceID:    workspaceID,
 		Type:           monitorCreateDto.Type,
@@ -176,6 +186,11 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.
 	var createdModel *Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
 		var err error
+		// The channels, tags and proxy the monitor names must be its workspace's, and all of them
+		// are checked before the monitor or a link is written
+		if err = mr.requireLinks(ctx, workspaceID, monitorCreateDto.NotificationIds, monitorCreateDto.TagIds, monitorCreateDto.ProxyId); err != nil {
+			return err
+		}
 		createdModel, err = mr.monitorRepository.Create(ctx, workspaceID, createModel)
 		if err != nil {
 			return err
@@ -234,6 +249,7 @@ func (mr *MonitorServiceImpl) FindActiveByProbeAnyWorkspace(ctx context.Context,
 }
 
 func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, monitor *CreateUpdateDto) (*Model, error) {
+	lowerLinkIDs(monitor)
 	model := &Model{
 		ID:             id,
 		Name:           monitor.Name,
@@ -270,6 +286,9 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID worksp
 		// keeps the monitor's
 		model.LocationRule, model.LocationThreshold, err = validateFullLocationRule(current, monitor)
 		if err != nil {
+			return err
+		}
+		if err := mr.requireLinks(ctx, workspaceID, monitor.NotificationIds, monitor.TagIds, monitor.ProxyId); err != nil {
 			return err
 		}
 		if err := mr.monitorRepository.UpdateFull(ctx, workspaceID, id, model); err != nil {
@@ -316,6 +335,12 @@ func (mr *MonitorServiceImpl) find(ctx context.Context, workspaceID *workspace.I
 
 // updatePartial is UpdatePartial in the workspace, or across workspaces when there is none
 func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
+	monitor.NotificationIds = utils.LowerUUIDs(monitor.NotificationIds)
+	monitor.TagIds = utils.LowerUUIDs(monitor.TagIds)
+	if monitor.ProxyId != nil {
+		lowered := utils.LowerUUID(*monitor.ProxyId)
+		monitor.ProxyId = &lowered
+	}
 	model := &UpdateModel{
 		ID:             &id,
 		Type:           monitor.Type,
@@ -361,6 +386,17 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 		}
 		if rule, threshold, set := partialLocationRule(current, monitor); set {
 			model.LocationRule, model.LocationThreshold = &rule, threshold
+		}
+		// A background update changes a status and never links, so only a request's can name
+		// records of another workspace
+		if workspaceID != nil {
+			proxyID := ""
+			if monitor.ProxyId != nil {
+				proxyID = *monitor.ProxyId
+			}
+			if err := mr.requireLinks(ctx, *workspaceID, monitor.NotificationIds, monitor.TagIds, proxyID); err != nil {
+				return err
+			}
 		}
 		if workspaceID == nil {
 			err = mr.monitorRepository.UpdatePartialAnyWorkspace(ctx, id, model)
@@ -480,6 +516,38 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, workspaceID workspace.
 	return nil
 }
 
+// requireLinks checks that the notification channels, tags and proxy a request names are in the
+// workspace, and fails on the first that isn't. A monitor links only to records of its own
+// workspace (docs/adr/0005 section 2), and a record of another workspace is refused as one that
+// doesn't exist (section 8): the request fails with a 400 that names the kind.
+// Callers check before they write anything, so a refusal changes nothing. An empty proxy ID is no
+// proxy.
+func (mr *MonitorServiceImpl) requireLinks(ctx context.Context, workspaceID workspace.ID, notificationIDs, tagIDs []string, proxyID string) error {
+	if err := mr.monitorNotificationService.RequireChannels(ctx, workspaceID, distinct(notificationIDs)); err != nil {
+		return fmt.Errorf("link notification channel: %w", err)
+	}
+	if err := mr.monitorTagService.RequireTags(ctx, workspaceID, distinct(tagIDs)); err != nil {
+		return fmt.Errorf("link tag: %w", err)
+	}
+	if proxyID == "" {
+		return nil
+	}
+	// An ID that isn't a UUID is no proxy, and PostgreSQL fails the query on it instead of finding
+	// nothing. The query takes the lower case form, as the channels' and tags' do.
+	parsed, err := uuid.Parse(proxyID)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrProxyNotFound, proxyID)
+	}
+	found, err := mr.monitorRepository.ProxyInWorkspace(ctx, workspaceID, parsed.String())
+	if err != nil {
+		return fmt.Errorf("find proxy: %w", err)
+	}
+	if !found {
+		return fmt.Errorf("%w: %s", ErrProxyNotFound, proxyID)
+	}
+	return nil
+}
+
 // createLinks links the monitor to each notification channel and tag, once for each ID however
 // often the request repeats it. The first link that can't be saved fails the call; the caller's
 // transaction decides what that undoes.
@@ -495,6 +563,14 @@ func (mr *MonitorServiceImpl) createLinks(ctx context.Context, monitorID string,
 		}
 	}
 	return nil
+}
+
+// lowerLinkIDs writes the IDs of the channels, tags and proxy a request names in lower case, which
+// is how they are stored whatever case the request used.
+func lowerLinkIDs(dto *CreateUpdateDto) {
+	dto.NotificationIds = utils.LowerUUIDs(dto.NotificationIds)
+	dto.TagIds = utils.LowerUUIDs(dto.TagIds)
+	dto.ProxyId = utils.LowerUUID(dto.ProxyId)
 }
 
 // distinct returns the IDs without repeats, in the order they first appear.
@@ -634,8 +710,37 @@ func (mr *MonitorServiceImpl) GetHeartbeatsAnyWorkspace(ctx context.Context, id,
 	return mr.heartbeatService.FindByMonitorIDAndProbeIDPaginated(ctx, id, probeID, limit, page, important, reverse)
 }
 
-func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) error {
-	return mr.monitorRepository.RemoveProxyReference(ctx, workspaceID, proxyId)
+func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error) {
+	var changed []*Model
+	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		using, err := mr.monitorRepository.FindByProxyId(ctx, workspaceID, proxyId)
+		if err != nil || len(using) == 0 {
+			return err
+		}
+		if err := mr.monitorRepository.RemoveProxyReference(ctx, workspaceID, proxyId); err != nil {
+			return err
+		}
+		for _, m := range using {
+			updated, err := mr.monitorRepository.FindByID(ctx, workspaceID, m.ID)
+			if err != nil {
+				return err
+			}
+			if updated != nil {
+				changed = append(changed, updated)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return changed, nil
+}
+
+func (mr *MonitorServiceImpl) PublishUpdated(ctx context.Context, monitors []*Model) {
+	for _, m := range monitors {
+		mr.publishMonitor(ctx, events.MonitorUpdated, m)
+	}
 }
 
 func (mr *MonitorServiceImpl) FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error) {

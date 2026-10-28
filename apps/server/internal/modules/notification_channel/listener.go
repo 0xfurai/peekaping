@@ -15,6 +15,7 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/reporting"
 	"runtime/debug"
 	"sort"
@@ -153,7 +154,10 @@ func (l *NotificationEventListener) handleProbeEvent(ctx context.Context, probeE
 	}
 	standIn := &monitor.Model{ID: probeEvent.ProbeID, Type: shared.MonitorTypeProbe, Name: "Probe " + probeEvent.ProbeName, Status: status}
 	// A probe notification carries no heartbeat
-	l.sendToChannels(ctx, l.channelsByID(ctx, ids), message, standIn, nil)
+	// A probe belongs to the install, and an instance admin links it to the channels of a
+	// workspace they are in (docs/adr/0005 section 10), so its channels are read across workspaces.
+	// The fallback's channels are the ones linked to monitors, and each is in its monitor's workspace.
+	l.sendToChannels(ctx, l.channelsByID(ctx, nil, ids), message, standIn, nil)
 }
 
 // probeMonitorChannelIDs returns the ids of the channels of the probe's active monitors, each once.
@@ -264,8 +268,12 @@ func (l *NotificationEventListener) handleCertificateExpiryEvent(ctx context.Con
 	l.sendToChannels(ctx, notificationChannels, message, monitorModel, nil)
 }
 
-// findChannels returns the notification channels attached to a monitor, and the monitor
-// with its tags. The monitor is nil when there's nothing to send.
+// findChannels returns the notification channels linked to a monitor, and the monitor with its
+// tags. The monitor is nil when there's nothing to send.
+//
+// A monitor's notifications go only to its own channels: the links are checked to be in one
+// workspace when they are written, and the channels are read in the monitor's workspace, so a link
+// that somehow names another workspace's channel sends nothing.
 func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID string) ([]*Model, *monitor.Model) {
 	monitorNotifications, err := l.monitorNotificationService.FindByMonitorID(ctx, monitorID)
 	if err != nil {
@@ -278,30 +286,38 @@ func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID 
 		return nil, nil
 	}
 
-	ids := make([]string, len(monitorNotifications))
-	for i, mn := range monitorNotifications {
-		l.logger.Infof("Monitor notification: %s", mn.NotificationID)
-		ids[i] = mn.NotificationID
-	}
-	notificationChannels := l.channelsByID(ctx, ids)
-
-	// Fetch monitor details for context
+	// Fetch monitor details for context. The notification runs for the whole install, so the
+	// monitor is found whatever its workspace.
 	monitorModel, err := l.monitorSvc.FindByIDAnyWorkspace(ctx, monitorID)
 	if err != nil || monitorModel == nil {
 		l.logger.Warnf("Monitor not found for notification context: %s", monitorID)
 		return nil, nil
 	}
+
+	ids := make([]string, len(monitorNotifications))
+	for i, mn := range monitorNotifications {
+		l.logger.Infof("Monitor notification: %s", mn.NotificationID)
+		ids[i] = mn.NotificationID
+	}
+	notificationChannels := l.channelsByID(ctx, &monitorModel.WorkspaceID, ids)
 	l.loadMonitorTags(ctx, monitorModel)
 
 	return notificationChannels, monitorModel
 }
 
-// channelsByID returns the notification channels with the given ids. A channel that can't be
-// read, or that no longer exists, is logged and left out.
-func (l *NotificationEventListener) channelsByID(ctx context.Context, ids []string) []*Model {
+// channelsByID returns the notification channels with the given ids, in the workspace when there
+// is one and in any workspace when there is none. A channel that can't be read, or that no longer
+// exists, is logged and left out.
+func (l *NotificationEventListener) channelsByID(ctx context.Context, workspaceID *workspace.ID, ids []string) []*Model {
 	var notificationChannels []*Model
 	for _, id := range ids {
-		notification, err := l.service.FindByID(ctx, id)
+		var notification *Model
+		var err error
+		if workspaceID == nil {
+			notification, err = l.service.FindByIDAnyWorkspace(ctx, id)
+		} else {
+			notification, err = l.service.FindByID(ctx, *workspaceID, id)
+		}
 		if err != nil {
 			l.logger.Errorf("Failed to get notification by ID: %s, error: %v", id, err)
 			continue
@@ -400,7 +416,7 @@ func (l *NotificationEventListener) loadMonitorTags(ctx context.Context, m *moni
 
 	names := make([]string, 0, len(rels))
 	for _, rel := range rels {
-		t, err := l.tagService.FindByID(ctx, rel.TagID)
+		t, err := l.tagService.FindByID(ctx, m.WorkspaceID, rel.TagID)
 		if err != nil {
 			l.logger.Errorf("Failed to get tag %s for monitor %s, notifying without tags: %v", rel.TagID, m.ID, err)
 			return

@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/modules/workspace"
+
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -121,4 +123,16 @@ func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID str
 func (r *SQLRepositoryImpl) DeleteByMaintenanceID(ctx context.Context, maintenanceID string) error {
 	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("maintenance_id = ?", maintenanceID).Exec(ctx)
 	return err
+}
+
+func (r *SQLRepositoryImpl) FindMonitorIDsInWorkspace(ctx context.Context, workspaceID workspace.ID, ids []string) ([]string, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	var found []string
+	err := r.db.NewSelect().Table("monitors").Column("id").
+		Where("workspace_id = ?", string(workspaceID)).
+		Where("id IN (?)", bun.In(ids)).
+		Scan(ctx, &found)
+	return found, err
 }

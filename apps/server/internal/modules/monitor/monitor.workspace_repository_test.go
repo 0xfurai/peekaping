@@ -138,7 +138,7 @@ func TestSQLRepository_AProxyReferenceIsClearedAndFoundInTheWorkspaceOnly(t *tes
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
 		proxyID := uuid.NewString()
-		_, err := db.Exec("INSERT INTO proxies (id, protocol, host, port) VALUES (?, 'http', 'proxy.example.com', 8080)", proxyID)
+		_, err := db.Exec("INSERT INTO proxies (id, workspace_id, protocol, host, port) VALUES (?, ?, 'http', 'proxy.example.com', 8080)", proxyID, string(testWorkspace))
 		require.NoError(t, err)
 		viaProxy := func(name string) *Model {
 			m := createTestMonitor(name, true, shared.MonitorStatusPending)

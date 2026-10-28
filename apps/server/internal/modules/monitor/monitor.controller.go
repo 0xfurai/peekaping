@@ -215,6 +215,9 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 		case errors.As(err, &tokenTaken):
 			return nil, pushTokenTakenResponse(tokenTaken)
 		}
+		if linkErr := linkNotFoundResponse(err); linkErr != nil {
+			return nil, linkErr
+		}
 		ic.logger.Errorw("Failed to create monitor", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -299,6 +302,9 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 		case errors.As(err, &tokenTaken):
 			return nil, pushTokenTakenResponse(tokenTaken)
 		}
+		if linkErr := linkNotFoundResponse(err); linkErr != nil {
+			return nil, linkErr
+		}
 		ic.logger.Errorw("Failed to update monitor", "error", err)
 		if errors.Is(err, ErrMonitorNotFound) {
 			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse(err.Error()))
@@ -366,6 +372,9 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 	case errors.As(err, &tokenTaken):
 		return pushTokenTakenResponse(tokenTaken)
 	}
+	if linkErr := linkNotFoundResponse(err); linkErr != nil {
+		return linkErr
+	}
 	ic.logger.Errorw("Failed to "+action+" monitor", "error", err)
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 }
@@ -388,6 +397,22 @@ func (ic *MonitorController) failLookup(err error) error {
 // to another workspace, which a caller can't tell apart
 func monitorNotFoundResponse() error {
 	return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
+}
+
+// linkNotFoundResponse is the 400 for a request that links the monitor to a notification channel,
+// tag or proxy that isn't in its workspace, and nil for any other error. The message names the kind
+// and not the ID, so a record of another workspace and one that doesn't exist get the same answer
+// (docs/adr/0005 section 8).
+func linkNotFoundResponse(err error) error {
+	switch {
+	case errors.Is(err, monitor_notification.ErrUnknownChannel):
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Notification channel not found"))
+	case errors.Is(err, monitor_tag.ErrUnknownTag):
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Tag not found"))
+	case errors.Is(err, ErrProxyNotFound):
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Proxy not found"))
+	}
+	return nil
 }
 
 // pushTokenTakenResponse tells the client that the push token it sent belongs to another monitor

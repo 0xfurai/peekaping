@@ -84,8 +84,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 				},
 				channel: func() string {
 					id := uuid.NewString()
-					_, err := db.Exec("INSERT INTO notification_channels (id, name, type) VALUES (?, 'Ops', 'webhook')", id)
-					require.NoError(t, err)
+					workspacetest.InsertChannel(t, db, id)
 					return id
 				},
 			})
