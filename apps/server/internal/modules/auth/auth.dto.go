@@ -6,8 +6,13 @@ type RegisterDto struct {
 	// InviteToken is the token of an invite link (PP-154). With a valid one whose email is the
 	// body's, the user is created as a member of the inviting workspace, with the invite's role and
 	// no workspace of their own, and is no instance admin, whatever the first-user rule says.
-	// Without it, only the install's first user can register.
+	// Without it, who may register depends on SIGNUP_MODE: in invite mode only the install's first
+	// user, in open mode anyone, who then gets a workspace of their own.
 	InviteToken string `json:"inviteToken,omitempty"`
+	// TurnstileToken is the answer of the Cloudflare Turnstile widget (PP-155). An open signup
+	// without an invite needs one when the install has Turnstile set up; the server checks it with
+	// Cloudflare. An invite signup needs none.
+	TurnstileToken string `json:"turnstileToken,omitempty"`
 }
 
 type LoginDto struct {
@@ -48,6 +53,12 @@ type MeWorkspace struct {
 	Name string `json:"name"`
 	// Role is what the user may do there: owner, admin or member
 	Role string `json:"role"`
+	// Suspended is whether the workspace's monitors are held back: they are kept and shown, but none
+	// runs (PP-155)
+	Suspended bool `json:"suspended"`
+	// SuspendedReason says why a suspended workspace is: "unverified" is a new account's workspace,
+	// which runs once its owner has verified their email address. Null when the workspace runs.
+	SuspendedReason *string `json:"suspendedReason"`
 }
 
 type LoginResponse struct {
@@ -104,6 +115,16 @@ type AuthConfigResponse struct {
 	// AccountEmails is whether the install can send account emails: a password reset link, an
 	// email verification link and emailed invites. When it is false the app offers none of them.
 	AccountEmails bool `json:"accountEmails"`
+	// SignupMode is who may create an account (SIGNUP_MODE): "invite", where the install's first user
+	// signs up and everyone after joins through an invite, or "open", where anyone may sign up and
+	// gets a workspace of their own
+	SignupMode string `json:"signupMode" enum:"invite,open"`
+	// SignupOpen is whether the sign-up form should be offered: always in open mode, and in invite
+	// mode while the install has no user to sign up first
+	SignupOpen bool `json:"signupOpen"`
+	// TurnstileSiteKey is the public key of the Cloudflare Turnstile widget that open signup shows,
+	// or null when the install does not use it
+	TurnstileSiteKey *string `json:"turnstileSiteKey"`
 }
 
 // ForgotPasswordDto asks for a password reset link to be sent to an address

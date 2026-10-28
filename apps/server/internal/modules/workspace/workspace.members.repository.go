@@ -31,6 +31,9 @@ type MemberRepository interface {
 	LockOwners(ctx context.Context, id ID) ([]string, error)
 	// UserEmail returns the email of the user's account, or "" for a user that doesn't exist
 	UserEmail(ctx context.Context, userID string) (string, error)
+	// EmailVerified is whether the user's account has a verified email address. It is false for a
+	// user that doesn't exist.
+	EmailVerified(ctx context.Context, userID string) (bool, error)
 	// HasMemberWithEmail is whether a member of the workspace has the email, ignoring case
 	HasMemberWithEmail(ctx context.Context, id ID, email string) (bool, error)
 }
@@ -140,4 +143,16 @@ func (r *SQLMemberRepository) UserEmail(ctx context.Context, userID string) (str
 		return "", nil
 	}
 	return email, err
+}
+
+func (r *SQLMemberRepository) EmailVerified(ctx context.Context, userID string) (bool, error) {
+	if _, err := uuid.Parse(userID); err != nil {
+		return false, nil
+	}
+	var verifiedAt *time.Time
+	err := dbtx.DB(ctx, r.db).NewSelect().Table("users").Column("email_verified_at").Where("id = ?", userID).Scan(ctx, &verifiedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	return verifiedAt != nil, err
 }

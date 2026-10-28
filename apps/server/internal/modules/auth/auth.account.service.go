@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/mailer"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -47,6 +48,12 @@ var (
 	ErrAlreadyVerified = errors.New("this email address is verified already")
 )
 
+// MonitorWaker makes the scheduler and the probes pick up the monitors of a workspace that started to
+// run. monitor.Service is one.
+type MonitorWaker interface {
+	PublishActiveUpdated(ctx context.Context, workspaceID workspace.ID) error
+}
+
 // AccountService sends and spends the links of account emails: a password reset, and the
 // verification of an email address. Without a sender (ACCOUNT_SMTP_HOST) it does nothing.
 type AccountService struct {
@@ -54,6 +61,8 @@ type AccountService struct {
 	accounts   AccountRepository
 	transactor dbtx.Transactor
 	mailer     *mailer.Mailer
+	workspaces workspace.Repository
+	monitors   MonitorWaker
 	clientURL  string
 	logger     *zap.SugaredLogger
 	now        func() time.Time
@@ -64,6 +73,8 @@ func NewAccountService(
 	accounts AccountRepository,
 	transactor dbtx.Transactor,
 	mailer *mailer.Mailer,
+	workspaces workspace.Repository,
+	monitors MonitorWaker,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) *AccountService {
@@ -72,6 +83,8 @@ func NewAccountService(
 		accounts:   accounts,
 		transactor: transactor,
 		mailer:     mailer,
+		workspaces: workspaces,
+		monitors:   monitors,
 		clientURL:  cfg.ClientURL,
 		logger:     logger.Named("[account-service]"),
 		now:        time.Now,
@@ -130,7 +143,8 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 	if err != nil {
 		return fmt.Errorf("failed to hash the new password: %w", err)
 	}
-	return s.transactor.WithTx(ctx, func(ctx context.Context) error {
+	var lifted []workspace.ID
+	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		now := s.now().UTC()
 		userID, err := s.accounts.ConsumeToken(ctx, PurposeReset, hashAccountToken(token), now)
 		if err != nil {
@@ -149,8 +163,27 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 		if err := s.accounts.MarkEmailVerified(ctx, userID, now); err != nil {
 			return err
 		}
+		if lifted, err = s.workspaces.LiftUnverifiedOwnedBy(ctx, userID); err != nil {
+			return err
+		}
 		return s.accounts.DeleteUnusedTokens(ctx, userID, PurposeReset)
 	})
+	if err != nil {
+		return err
+	}
+	s.wake(ctx, lifted)
+	return nil
+}
+
+// wake has the scheduler and the probes pick up the monitors of workspaces whose suspension was
+// lifted: they were not changed, so nothing else would tell them. A failure is logged and does not
+// undo the verification; the scheduler reads the database again on its own schedule.
+func (s *AccountService) wake(ctx context.Context, lifted []workspace.ID) {
+	for _, id := range lifted {
+		if err := s.monitors.PublishActiveUpdated(ctx, id); err != nil {
+			s.logger.Errorw("Failed to wake the monitors of a workspace that is no longer suspended", "workspaceId", id, "error", err)
+		}
+	}
 }
 
 // SendVerification emails the user a verification link, unless the install has no sender or the
@@ -204,7 +237,8 @@ func (s *AccountService) VerifyEmail(ctx context.Context, token string) error {
 	if !validTokenShape(token, VerifyTokenPrefix) {
 		return ErrInvalidLink
 	}
-	return s.transactor.WithTx(ctx, func(ctx context.Context) error {
+	var lifted []workspace.ID
+	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		now := s.now().UTC()
 		userID, err := s.accounts.ConsumeToken(ctx, PurposeVerify, hashAccountToken(token), now)
 		if err != nil {
@@ -213,8 +247,18 @@ func (s *AccountService) VerifyEmail(ctx context.Context, token string) error {
 		if userID == "" {
 			return ErrInvalidLink
 		}
-		return s.accounts.MarkEmailVerified(ctx, userID, now)
+		if err := s.accounts.MarkEmailVerified(ctx, userID, now); err != nil {
+			return err
+		}
+		// A new account's workspaces run from the moment the address is verified
+		lifted, err = s.workspaces.LiftUnverifiedOwnedBy(ctx, userID)
+		return err
 	})
+	if err != nil {
+		return err
+	}
+	s.wake(ctx, lifted)
+	return nil
 }
 
 // issue makes a token for the user and stores its hash. A verification link replaces the user's

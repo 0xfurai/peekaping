@@ -66,6 +66,10 @@ type Service interface {
 	// PublishUpdated publishes a monitor-updated event for each monitor, so that the scheduler and
 	// the probes load their config again
 	PublishUpdated(ctx context.Context, monitors []*Model)
+	// PublishActiveUpdated publishes a monitor-updated event for each active monitor of the
+	// workspace, so that the scheduler and the probes pick up monitors that started to run without
+	// being changed: those of a workspace whose suspension was lifted (PP-155).
+	PublishActiveUpdated(ctx context.Context, workspaceID workspace.ID) error
 	FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error)
 
 	GetStatPoints(ctx context.Context, workspaceID workspace.ID, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
@@ -740,6 +744,23 @@ func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, workspac
 func (mr *MonitorServiceImpl) PublishUpdated(ctx context.Context, monitors []*Model) {
 	for _, m := range monitors {
 		mr.publishMonitor(ctx, events.MonitorUpdated, m)
+	}
+}
+
+// publishActivePageSize is how many monitors PublishActiveUpdated reads at a time
+const publishActivePageSize = 200
+
+func (mr *MonitorServiceImpl) PublishActiveUpdated(ctx context.Context, workspaceID workspace.ID) error {
+	active := true
+	for page := 0; ; page++ {
+		monitors, err := mr.monitorRepository.FindAll(ctx, workspaceID, page, publishActivePageSize, "", &active, nil, nil)
+		if err != nil {
+			return err
+		}
+		mr.PublishUpdated(ctx, monitors)
+		if len(monitors) < publishActivePageSize {
+			return nil
+		}
 	}
 }
 

@@ -36,7 +36,7 @@ func register(t *testing.T, err error, token string) (status int, logs []observe
 	t.Helper()
 	validation.InitializeValidator()
 	core, recorded := observer.New(zapcore.DebugLevel)
-	controller := auth.NewController(registerFailing{err: err}, nil, nil, zap.New(core).Sugar())
+	controller := auth.NewController(registerFailing{err: err}, nil, nil, nil, zap.New(core).Sugar())
 	body := fmt.Sprintf(`{"email":"bob@example.com","password":"Correct-horse-1","inviteToken":%q}`, token)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
