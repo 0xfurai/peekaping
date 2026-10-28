@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 	"go.uber.org/zap"
 )
 
@@ -220,5 +221,69 @@ func TestService_AcceptInvite_AVerifiedUserJoiningAsOwnerLiftsTheUnverifiedSuspe
 		require.NoError(t, err)
 		assert.False(t, found.Suspended())
 		assert.Equal(t, []workspace.ID{id}, waker.woken)
+	})
+}
+
+// verifiesAfterTheFirstRead is a member repository whose first EmailVerified answers as the database
+// does, and then lets the user verify their email in another transaction that commits before the
+// caller goes on: the moment the creation of a workspace read "not verified" and the verification
+// lifted nothing, since the workspace did not exist yet
+type verifiesAfterTheFirstRead struct {
+	workspace.MemberRepository
+	verify func()
+}
+
+func (r *verifiesAfterTheFirstRead) EmailVerified(ctx context.Context, userID string) (bool, error) {
+	verified, err := r.MemberRepository.EmailVerified(ctx, userID)
+	if verify := r.verify; verify != nil {
+		r.verify = nil
+		verify()
+	}
+	return verified, err
+}
+
+func TestService_CreateWorkspace_AVerificationThatCommitsDuringTheCreationLeavesTheWorkspaceRunning(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		if db.Dialect().Name() != dialect.PG {
+			// SQLite has one connection: a request's transaction holds it, so no other can commit between its steps
+			t.Skip("the interleaving exists on PostgreSQL only")
+		}
+		ctx := context.Background()
+		user := insertUser(t, db, "maker@example.com")
+		members := &verifiesAfterTheFirstRead{MemberRepository: workspace.NewSQLMemberRepository(db)}
+		members.verify = func() {
+			// what verifying an email does: mark the address, then lift what the user owns
+			_, err := db.ExecContext(ctx, "UPDATE users SET email_verified_at = ? WHERE id = ?", time.Now().UTC(), user)
+			require.NoError(t, err)
+			_, err = repo.LiftUnverifiedOwnedBy(ctx, user)
+			require.NoError(t, err)
+		}
+		service := workspace.NewService(repo, members, workspace.NewSQLInviteRepository(db), dbtx.NewSQLTransactor(db), eventstest.NewBus(),
+			&config.Config{ClientURL: "http://localhost:3000", SignupMode: config.SignupModeOpen}, nil, &wakeRecorder{}, zap.NewNop().Sugar())
+
+		made, err := service.CreateWorkspace(ctx, user, "Racing")
+
+		require.NoError(t, err)
+		found, err := repo.FindByID(ctx, made.Workspace.ID)
+		require.NoError(t, err)
+		assert.False(t, found.Suspended(), "the owner is verified, and nothing is left to lift it")
+		assert.Empty(t, found.SuspendedReason)
+	})
+}
+
+func TestService_CreateWorkspace_AnUnverifiedUsersWorkspaceIsSuspendedInAnOpenInstall(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		ctx := context.Background()
+		user := insertUser(t, db, "maker@example.com")
+		service := workspace.NewService(repo, workspace.NewSQLMemberRepository(db), workspace.NewSQLInviteRepository(db), dbtx.NewSQLTransactor(db), eventstest.NewBus(),
+			&config.Config{ClientURL: "http://localhost:3000", SignupMode: config.SignupModeOpen}, nil, &wakeRecorder{}, zap.NewNop().Sugar())
+
+		made, err := service.CreateWorkspace(ctx, user, "Waiting")
+
+		require.NoError(t, err)
+		found, err := repo.FindByID(ctx, made.Workspace.ID)
+		require.NoError(t, err)
+		assert.True(t, found.Suspended())
+		assert.Equal(t, workspace.SuspendedUnverified, found.SuspendedReason)
 	})
 }
