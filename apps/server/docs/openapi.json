@@ -4978,7 +4978,7 @@
   },
   "info": {
     "title": "Peekaping API",
-    "version": "0.0.48"
+    "version": "0.1.0"
   },
   "openapi": "3.1.0",
   "paths": {
