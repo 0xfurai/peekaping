@@ -195,3 +195,45 @@ jobs:
         run: go test -race -timeout 1800s -count=1 ./internal/... ./cmd/...
 
 
+
+  # The API tests again with the settings of Peekaping Cloud (PEE_TEST_CLOUD=1, cloudConfig in
+  # internal/apitest/cloud_test.go), which the guards of the cloud add to as they land. The test job
+  # runs the same tests with the self-host defaults. PostgreSQL is there for the isolation suite's
+  # PostgreSQL run. No coverage: the test job has it
+  api-cloud:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
+      PEE_TEST_CLOUD: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: apps/server/go.sum
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
+
+      - name: Run API tests with the cloud's settings
+        working-directory: apps/server
+        run: go test -timeout 300s -count=1 ./internal/apitest/...
