@@ -1,0 +1,19 @@
+name: nexus-runner check
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/nexus-runner-check.yml
+
+jobs:
+  check:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: nexus-runner
+    steps:
+      - uses: actions/checkout@v4
+      - name: Runner info
+        run: |
+          echo "runner: $RUNNER_NAME ($RUNNER_OS/$RUNNER_ARCH)"
+          uname -a
+          df -h .
+          docker version || true
