@@ -74,6 +74,9 @@ type ServiceImpl struct {
 	transactor dbtx.Transactor
 	bus        events.EventBus
 	clientURL  string
+	// signupOpen is SIGNUP_MODE=open: a workspace made by a user whose email is not verified is
+	// suspended, as the one their signup made is
+	signupOpen bool
 	mailer     *mailer.Mailer
 	logger     *zap.SugaredLogger
 	now        func() time.Time
@@ -96,6 +99,7 @@ func NewService(
 		transactor: transactor,
 		bus:        bus,
 		clientURL:  cfg.ClientURL,
+		signupOpen: cfg.SignupOpen(),
 		mailer:     mailer,
 		logger:     logger.Named("[workspace-service]"),
 		now:        time.Now,
@@ -432,7 +436,23 @@ func (s *ServiceImpl) lookupInvite(ctx context.Context, token string) (*Invite, 
 func (s *ServiceImpl) CreateWorkspace(ctx context.Context, userID, name string) (*Membership, error) {
 	var created *Membership
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		made, err := s.workspaces.Create(ctx, strings.TrimSpace(name))
+		// In an open install a user must verify their email before any workspace of theirs runs: one
+		// made by a user who has not is suspended, so that making workspaces is no way round it
+		suspend := false
+		if s.signupOpen {
+			verified, err := s.members.EmailVerified(ctx, userID)
+			if err != nil {
+				return err
+			}
+			suspend = !verified
+		}
+		var made *Workspace
+		var err error
+		if suspend {
+			made, err = s.workspaces.CreateSuspended(ctx, strings.TrimSpace(name), SuspendedUnverified)
+		} else {
+			made, err = s.workspaces.Create(ctx, strings.TrimSpace(name))
+		}
 		if err != nil {
 			return err
 		}

@@ -21,6 +21,7 @@ import (
 type Controller struct {
 	service  Service
 	accounts *AccountService
+	signup   *SignupGate
 	proxies  *httpx.TrustedProxies
 	logger   *zap.SugaredLogger
 
@@ -44,12 +45,14 @@ const (
 func NewController(
 	service Service,
 	accounts *AccountService,
+	signup *SignupGate,
 	proxies *httpx.TrustedProxies,
 	logger *zap.SugaredLogger,
 ) *Controller {
 	return &Controller{
 		service:  service,
 		accounts: accounts,
+		signup:   signup,
 		proxies:  proxies,
 		logger:   logger,
 
@@ -101,8 +104,24 @@ func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
+	// An open signup passes the gate: a limit per client and, when set up, Turnstile. An invite signup
+	// does not: the invite is the proof that the visitor is wanted.
+	if dto.InviteToken == "" && c.signup.Open() {
+		if err := c.signup.Admit(ctx, c.clientKey(input.Request), c.proxies.ClientIP(input.Request), dto.TurnstileToken); err != nil {
+			if errors.Is(err, ErrSignupRateLimited) {
+				return nil, tooManyRequests()
+			}
+			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("We could not verify that you are not a robot. Reload the page and try again."))
+		}
+	}
+
 	response, err := c.service.Register(ctx, dto)
 	if err != nil {
+		// Signing up with an address that has an account is for the visitor to fix, with a way out
+		if errors.Is(err, ErrEmailTaken) && dto.InviteToken == "" {
+			c.logger.Infow("Registration refused: an account with this email exists")
+			return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email address exists already: sign in instead"))
+		}
 		if errors.Is(err, ErrAdminExists) {
 			c.logger.Infow("Registration refused: the install has its admin already")
 			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))

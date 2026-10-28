@@ -51,6 +51,17 @@ type ServiceImpl struct {
 	tokenMaker *TokenMaker
 	verifier   Verifier
 	logger     *zap.SugaredLogger
+	// openSignup is SIGNUP_MODE=open: anyone may register, and gets a workspace of their own
+	openSignup bool
+}
+
+// ServiceOption changes how the service behaves
+type ServiceOption func(*ServiceImpl)
+
+// WithOpenSignup lets anyone register, as SIGNUP_MODE=open does. Without it only the install's
+// first user may, apart from those who register through an invite.
+func WithOpenSignup(open bool) ServiceOption {
+	return func(s *ServiceImpl) { s.openSignup = open }
 }
 
 func NewService(
@@ -61,8 +72,9 @@ func NewService(
 	tokenMaker *TokenMaker,
 	verifier Verifier,
 	logger *zap.SugaredLogger,
+	opts ...ServiceOption,
 ) Service {
-	return &ServiceImpl{
+	s := &ServiceImpl{
 		repo:       repo,
 		transactor: transactor,
 		workspaces: workspaces,
@@ -71,11 +83,18 @@ func NewService(
 		verifier:   verifier,
 		logger:     logger.Named("[auth-service]"),
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
 	if dto.InviteToken != "" {
 		return s.registerThroughInvite(ctx, dto)
+	}
+	if s.openSignup {
+		return s.registerOpen(ctx, dto)
 	}
 	count, err := s.repo.FindAllCount(ctx)
 	if err != nil {
@@ -117,7 +136,7 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 			return err
 		}
 		user = created
-		return s.joinFirstWorkspace(ctx, user.ID)
+		return s.joinFirstWorkspace(ctx, user.ID, false)
 	})
 	if err != nil {
 		return nil, err
@@ -141,6 +160,82 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		RefreshToken: refreshToken,
 		User:         user,
 	}, nil
+}
+
+// registerOpen creates the account of anyone who signs up when the install is open, with a workspace
+// of their own that they own. The user and the workspace are made in one transaction, so a user is
+// never left without the place they were promised. Only the install's first user is an instance
+// admin. The workspace is suspended until the user's email address is verified, and the verification
+// link is sent once the signup has committed.
+func (s *ServiceImpl) registerOpen(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
+	// Accounts keep the case their owner typed: the same person in another case is the same address
+	if existing, err := s.repo.FindByEmailIgnoringCase(ctx, dto.Email); err != nil {
+		return nil, err
+	} else if existing != nil {
+		return nil, ErrEmailTaken
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	user := &Model{Email: strings.TrimSpace(dto.Email), Password: string(hashedPassword), Active: true, CreatedAt: now, UpdatedAt: now}
+	// Counted before the transaction starts: the count reads outside it, and a database with one
+	// connection (SQLite) is held by the transaction
+	count, err := s.repo.FindAllCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		created, first, err := s.createOpenUser(ctx, user, count == 0)
+		if err != nil {
+			return err
+		}
+		user = created
+		if first {
+			// An install that has records and no user has a workspace already, the one its upgrade
+			// made: the user joins that, and it runs as it did. Without one, theirs is suspended.
+			return s.joinFirstWorkspace(ctx, user.ID, user.EmailVerifiedAt == nil)
+		}
+		var made *workspace.Workspace
+		if user.EmailVerifiedAt == nil {
+			made, err = s.workspaces.CreateSuspended(ctx, workspace.FirstWorkspaceName, workspace.SuspendedUnverified)
+		} else {
+			made, err = s.workspaces.Create(ctx, workspace.FirstWorkspaceName)
+		}
+		if err != nil {
+			return err
+		}
+		return s.workspaces.AddMember(ctx, made.ID, user.ID, workspace.RoleOwner)
+	})
+	if err != nil {
+		return nil, err
+	}
+	s.askToVerify(ctx, user)
+	return s.signedIn(ctx, user)
+}
+
+// createOpenUser inserts the user, as the install's first (an instance admin) when it has none, and
+// reports whether it did. Of any number of concurrent signups on a new install exactly one is the
+// first (CreateFirst), and the others are strangers.
+func (s *ServiceImpl) createOpenUser(ctx context.Context, user *Model, installIsEmpty bool) (created *Model, first bool, err error) {
+	if installIsEmpty {
+		created, err = s.repo.CreateFirst(ctx, user)
+		if err == nil {
+			return created, true, nil
+		}
+		if !errors.Is(err, ErrAdminExists) {
+			return nil, false, err
+		}
+	}
+	created, err = s.repo.Create(ctx, user)
+	if err != nil {
+		if dbtx.IsUniqueViolation(err) {
+			return nil, false, ErrEmailTaken
+		}
+		return nil, false, err
+	}
+	return created, false, nil
 }
 
 // askToVerify emails the new user a verification link, when the install has a sender. It runs after
@@ -211,14 +306,18 @@ func (s *ServiceImpl) signedIn(ctx context.Context, user *Model) (*LoginResponse
 }
 
 // joinFirstWorkspace makes the user the owner of the install's oldest workspace, or of a new one
-// when it has none
-func (s *ServiceImpl) joinFirstWorkspace(ctx context.Context, userID string) error {
+// when it has none, which is suspended when suspendNew says so
+func (s *ServiceImpl) joinFirstWorkspace(ctx context.Context, userID string, suspendNew bool) error {
 	target, err := s.workspaces.FindOldest(ctx)
 	if err != nil {
 		return err
 	}
 	if target == nil {
-		target, err = s.workspaces.Create(ctx, workspace.FirstWorkspaceName)
+		if suspendNew {
+			target, err = s.workspaces.CreateSuspended(ctx, workspace.FirstWorkspaceName, workspace.SuspendedUnverified)
+		} else {
+			target, err = s.workspaces.Create(ctx, workspace.FirstWorkspaceName)
+		}
 		if err != nil {
 			return err
 		}
@@ -242,7 +341,11 @@ func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error
 		AccountEmails: s.verifier != nil && s.verifier.Enabled(),
 	}
 	for i, m := range memberships {
-		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role)}
+		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended()}
+		if m.Workspace.Suspended() {
+			reason := m.Workspace.SuspendedReason
+			me.Workspaces[i].SuspendedReason = &reason
+		}
 	}
 	if len(memberships) > 0 {
 		defaultID := me.Workspaces[0].ID

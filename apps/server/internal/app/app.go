@@ -79,6 +79,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		provideProbeLookup,
 		provideProbeMonitorAssigner,
 		provideStaleProbeLookup,
+		provideMonitorWaker,
 	)
 	if err != nil {
 		return err
@@ -123,6 +124,11 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		utils.Provide(container, websocket.NewServer, internal.ProvideServer),
 	)
 }
+
+// provideMonitorWaker lets verifying an email address wake the monitors of the workspaces it lifts a
+// suspension from. The auth module can't import the monitor module (the monitor routes use the
+// auth middleware), so the wiring joins them.
+func provideMonitorWaker(monitors monitor.Service) auth.MonitorWaker { return monitors }
 
 // registerDatabase provides the storage backend DB_TYPE names. MongoDB storage was removed: a
 // config that names it is refused already, and this refuses it again for a graph built from a
