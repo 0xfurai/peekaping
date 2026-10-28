@@ -56,8 +56,8 @@ type AccountRepository interface {
 	// MarkEmailVerified records that the user's address was verified at the time, unless it was
 	// verified already: the first time stays
 	MarkEmailVerified(ctx context.Context, userID string, at time.Time) error
-	// TokensValidAfter returns when the user's earlier sessions were ended, nil for none, and for a
-	// user that doesn't exist. It is a SessionCutoffs.
+	// TokensValidAfter returns when the user's earlier sessions were ended, nil for none, and
+	// ErrSessionUserGone for a user that doesn't exist. It is a SessionCutoffs.
 	TokensValidAfter(ctx context.Context, userID string) (*time.Time, error)
 }
 
@@ -171,7 +171,7 @@ func (r *SQLAccountRepository) TokensValidAfter(ctx context.Context, userID stri
 	var after *time.Time
 	err := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).Column("tokens_valid_after").Where("id = ?", userID).Scan(ctx, &after)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return nil, ErrSessionUserGone
 	}
 	if err != nil {
 		return nil, err

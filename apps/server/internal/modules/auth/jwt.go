@@ -49,10 +49,14 @@ func init() {
 // a few milliseconds behind. The tokens_valid_after cutoff stays strict.
 const clockSkewLeeway = 5 * time.Second
 
+// ErrSessionUserGone is what SessionCutoffs returns for a user that no longer exists (an instance
+// admin deleted them). Their tokens are refused, though they have not expired.
+var ErrSessionUserGone = errors.New("the user of the session no longer exists")
+
 // SessionCutoffs says when a user's earlier sessions were ended
 type SessionCutoffs interface {
-	// TokensValidAfter returns the moment before which issued tokens no longer work, nil for none
-	// and for a user that doesn't exist
+	// TokensValidAfter returns the moment before which issued tokens no longer work, nil for none,
+	// and ErrSessionUserGone for a user that doesn't exist
 	TokensValidAfter(ctx context.Context, userID string) (*time.Time, error)
 }
 
@@ -79,7 +83,7 @@ type TokenMaker struct {
 }
 
 // WithSessionCutoffs makes VerifyToken refuse a token issued before its user's cutoff (a password
-// reset ends every session). It reads the cutoff from the database on every verification, one
+// reset ends every session), and a token of a user who was deleted. It reads the cutoff from the database on every verification, one
 // primary-key lookup, and does not cache it: a reset takes effect on every API replica at once,
 // and a cache would keep an ended session alive for as long as it lasts. It returns the maker.
 func (maker *TokenMaker) WithSessionCutoffs(cutoffs SessionCutoffs) *TokenMaker {
@@ -241,13 +245,17 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 	return claims, nil
 }
 
-// checkSessionNotEnded refuses a token issued before its user's sessions were ended. A failure to
+// checkSessionNotEnded refuses a token issued before its user's sessions were ended, and one whose
+// user no longer exists. A failure to
 // read the cutoff refuses the token too, since a token that might be an ended session must not pass.
 func (maker *TokenMaker) checkSessionNotEnded(ctx context.Context, claims *Claims) error {
 	if maker.cutoffs == nil {
 		return nil
 	}
 	cutoff, err := maker.cutoffs.TokensValidAfter(ctx, claims.UserID)
+	if errors.Is(err, ErrSessionUserGone) {
+		return ErrInvalidToken
+	}
 	if err != nil {
 		maker.logger.Errorw("Failed to read when the sessions of a user were ended", "userId", claims.UserID, "error", err)
 		return fmt.Errorf("failed to check the session: %w", err)

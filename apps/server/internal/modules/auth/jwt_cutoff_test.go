@@ -89,18 +89,29 @@ func TestTokenMaker_ATokenThatMightBeAnEndedSessionIsRefusedWhenTheCutoffCannotB
 	assert.Error(t, err)
 }
 
-func TestTokenMaker_WithoutCutoffsOrWithoutAUserRowATokenIsAccepted(t *testing.T) {
+func TestTokenMaker_WithoutCutoffsATokenIsAccepted(t *testing.T) {
 	h := newHarness(t)
 	session := h.register(t)
-	ctx := context.Background()
 
-	_, err := h.tokens.VerifyToken(ctx, session.AccessToken, "access")
+	_, err := h.tokens.VerifyToken(context.Background(), session.AccessToken, "access")
+
 	assert.NoError(t, err, "a maker with no cutoffs checks none")
+}
 
-	// a token for a user the database does not know has no cutoff to be before
+// An instance admin deletes a user (PP-371): the tokens they hold have not expired, but they end
+func TestTokenMaker_RefusesATokenOfAUserWhoNoLongerExists(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
 	tokens := auth.NewTokenMaker(h.settings, zap.NewNop().Sugar()).WithSessionCutoffs(auth.NewSQLAccountRepository(h.db))
-	ghost, err := tokens.CreateAccessToken(ctx, &auth.Model{ID: "00000000-0000-0000-0000-000000000000", Email: "ghost@example.com"})
+	ghost := &auth.Model{ID: "00000000-0000-0000-0000-000000000000", Email: "ghost@example.com"}
+
+	access, err := tokens.CreateAccessToken(ctx, ghost)
 	require.NoError(t, err)
-	_, err = tokens.VerifyToken(ctx, ghost, "access")
-	assert.NoError(t, err)
+	refresh, err := tokens.CreateRefreshToken(ctx, ghost)
+	require.NoError(t, err)
+
+	_, err = tokens.VerifyToken(ctx, access, "access")
+	assert.ErrorIs(t, err, auth.ErrInvalidToken)
+	_, err = tokens.VerifyToken(ctx, refresh, "refresh")
+	assert.ErrorIs(t, err, auth.ErrInvalidToken)
 }

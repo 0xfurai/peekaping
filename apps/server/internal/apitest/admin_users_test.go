@@ -532,6 +532,25 @@ func TestAdminUsers_DeleteRemovesTheUserAndTheirMembershipsAndAnnouncesThem(t *t
 	assert.Equal(t, []bool{true, true}, gone, "they were gone when it was announced")
 }
 
+func TestAdminUsers_ADeletedUsersTokensStopWorkingAtOnce(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		a := newAppWithAdmin(t, backend)
+		first := a.firstWorkspace(t)
+		userID := a.createUser(t, "user@example.com")
+		a.addMember(t, first, userID, workspace.RoleMember)
+		held := a.sessionOf(t, "user@example.com")
+		require.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/me", nil, bearer(held.AccessToken)).Code)
+		require.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/monitors", nil, bearer(held.AccessToken), inWorkspace(first)).Code)
+
+		require.Equal(t, http.StatusNoContent, a.request(t, http.MethodDelete, adminUsersPath+"/"+userID, nil, a.asAdmin).Code)
+
+		// The token has not expired, but its user is gone
+		assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodGet, "/api/v1/me", nil, bearer(held.AccessToken)).Code)
+		assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodGet, "/api/v1/monitors", nil, bearer(held.AccessToken), inWorkspace(first)).Code)
+		assert.Equal(t, http.StatusUnauthorized, a.refreshWith(t, held.RefreshToken).Code)
+	})
+}
+
 func TestAdminUsers_AnAdminCanNotDeleteThemselves(t *testing.T) {
 	a, leaves := newAppRecordingLeaves(t)
 	adminID := a.userID(t, adminEmail)
