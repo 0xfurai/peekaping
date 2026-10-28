@@ -2,7 +2,10 @@ package workspace_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	"peekaping/cmd/bun/migrations"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -136,5 +139,133 @@ func TestMigrations_TLSInfoAndNotificationHistoryKeepTheirUniqueRulesAndGoBackDo
 		assert.Equal(t, map[string]string{id: "{}"}, childRows(t, db, "monitor_tls_info", "info_json"))
 		assert.Equal(t, map[string]string{id: "7"}, childRows(t, db, "notification_sent_history", "days"))
 		insertTLSInfo(t, db, uuid.NewString(), `{}`)
+	})
+}
+
+// runMigrationAgain runs a Go migration a second time, as a re-run of the upgrade would
+func runMigrationAgain(db *bun.DB, name string) error {
+	for _, m := range migrations.Migrations.Sorted() {
+		if m.Name == name {
+			return m.Up(context.Background(), db, nil)
+		}
+	}
+	return fmt.Errorf("migration %s not found", name)
+}
+
+type pushMonitor struct {
+	id, name, typ string
+	token         *string // push_token as stored
+	config        *string
+}
+
+func ptr(s string) *string { return &s }
+
+func insertPushMonitor(t *testing.T, db *bun.DB, m pushMonitor) {
+	t.Helper()
+	_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token, config) VALUES (?, ?, ?, 60, 10, 1, 10, 0, ?, ?)`,
+		m.id, m.typ, m.name, m.token, m.config)
+	require.NoError(t, err)
+}
+
+// pushTokens are the stored push tokens by monitor id, with nil for NULL
+func pushTokens(t *testing.T, db *bun.DB) map[string]*string {
+	t.Helper()
+	var rows []struct {
+		ID    string  `bun:"id"`
+		Token *string `bun:"push_token"`
+	}
+	require.NoError(t, db.NewSelect().Table("monitors").Column("id", "push_token").Scan(context.Background(), &rows))
+	got := map[string]*string{}
+	for _, r := range rows {
+		got[r.ID] = r.Token
+	}
+	return got
+}
+
+func migrationApplied(t *testing.T, db *bun.DB, name string) bool {
+	t.Helper()
+	exists, err := db.NewSelect().Table("bun_migrations").Where("name = ?", name).Exists(context.Background())
+	require.NoError(t, err)
+	return exists
+}
+
+func TestMigrations_PushTokensAreFilledFromTheConfigAndEmptyOnesBecomeNull(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		upgrade := migratedBefore(t, db, pushTokensMigration)
+		fromConfig, emptyEverywhere, notPush, own, noConfig, brokenConfig, nullToken :=
+			uuid.NewString(), uuid.NewString(), uuid.NewString(), uuid.NewString(), uuid.NewString(), uuid.NewString(), uuid.NewString()
+		insertPushMonitor(t, db, pushMonitor{fromConfig, "From config", "push", ptr(""), ptr(`{"pushToken":"config-token"}`)})
+		insertPushMonitor(t, db, pushMonitor{emptyEverywhere, "Empty", "push", ptr(""), ptr(`{"pushToken":""}`)})
+		insertPushMonitor(t, db, pushMonitor{notPush, "Not push", "http", ptr(""), ptr(`{"pushToken":"ignored-token"}`)})
+		insertPushMonitor(t, db, pushMonitor{own, "Own", "push", ptr("own-token"), ptr(`{"pushToken":"other-token"}`)})
+		insertPushMonitor(t, db, pushMonitor{noConfig, "No config", "push", ptr(""), nil})
+		insertPushMonitor(t, db, pushMonitor{brokenConfig, "Odd config", "push", ptr(""), ptr(`{"pushToken":5}`)})
+		insertPushMonitor(t, db, pushMonitor{nullToken, "Null", "push", nil, ptr(`{"pushToken":"null-token"}`)})
+
+		_, err := upgrade.Migrate(ctx)
+		require.NoError(t, err)
+
+		assert.Equal(t, map[string]*string{
+			fromConfig:      ptr("config-token"),
+			emptyEverywhere: nil,
+			notPush:         nil,
+			own:             ptr("own-token"),
+			noConfig:        nil,
+			brokenConfig:    nil,
+			nullToken:       ptr("null-token"),
+		}, pushTokens(t, db))
+
+		// The database holds each token once from now on, and any number of monitors without one
+		_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token) VALUES (?, 'push', 'Twin', 60, 10, 1, 10, 0, 'own-token')`, uuid.NewString())
+		assert.Error(t, err)
+		_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token) VALUES (?, 'push', 'Another without', 60, 10, 1, 10, 0, NULL)`, uuid.NewString())
+		assert.NoError(t, err)
+	})
+}
+
+func TestMigrations_TwoMonitorsWithOnePushTokenStopTheUpgradeBeforeItChangesAnything(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		upgrade := migratedBefore(t, db, pushTokensMigration)
+		first, second, third, other, empty := uuid.NewString(), uuid.NewString(), uuid.NewString(), uuid.NewString(), uuid.NewString()
+		insertPushMonitor(t, db, pushMonitor{first, "First pusher", "push", ptr("shared-secret"), nil})
+		// The second holds it only in its config, which the upgrade would copy into push_token
+		insertPushMonitor(t, db, pushMonitor{second, "Second pusher", "push", ptr(""), ptr(`{"pushToken":"shared-secret"}`)})
+		insertPushMonitor(t, db, pushMonitor{third, "Third pusher", "push", ptr("shared-secret"), nil})
+		insertPushMonitor(t, db, pushMonitor{other, "Other", "push", ptr("unique-token"), nil})
+		insertPushMonitor(t, db, pushMonitor{empty, "Empty", "push", ptr(""), ptr(`{"pushToken":"fill-me"}`)})
+		before := pushTokens(t, db)
+
+		_, err := upgrade.Migrate(ctx)
+
+		require.Error(t, err)
+		for _, want := range []string{"First pusher", first, "Second pusher", second, "Third pusher", third} {
+			assert.Contains(t, err.Error(), want)
+		}
+		assert.NotContains(t, err.Error(), "shared-secret", "the token is a secret")
+		assert.NotContains(t, err.Error(), "unique-token")
+		assert.NotContains(t, err.Error(), "Other")
+		assert.Contains(t, err.Error(), "new push token", "it says what to do")
+		assert.Equal(t, before, pushTokens(t, db), "nothing changed, not even the token that could be filled")
+		assert.False(t, migrationApplied(t, db, pushTokensMigration))
+		_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token) VALUES (?, 'push', 'Twin', 60, 10, 1, 10, 0, 'unique-token')`, uuid.NewString())
+		assert.NoError(t, err, "no unique index yet")
+	})
+}
+
+func TestMigrations_RunningThePushTokenMigrationAgainChangesNothing(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		upgrade := migratedBefore(t, db, pushTokensMigration)
+		insertPushMonitor(t, db, pushMonitor{uuid.NewString(), "From config", "push", ptr(""), ptr(`{"pushToken":"config-token"}`)})
+		insertPushMonitor(t, db, pushMonitor{uuid.NewString(), "Empty", "push", ptr(""), nil})
+		_, err := upgrade.Migrate(ctx)
+		require.NoError(t, err)
+		want := pushTokens(t, db)
+
+		require.NoError(t, runMigrationAgain(db, pushTokensMigration))
+
+		assert.Equal(t, want, pushTokens(t, db))
 	})
 }
