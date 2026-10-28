@@ -232,13 +232,10 @@ func (s *ServiceImpl) ListInvites(ctx context.Context) ([]Invite, error) {
 }
 
 func (s *ServiceImpl) CreateInvite(ctx context.Context, userID, email string, role Role) (*CreatedInvite, error) {
-	id, actor, err := scope(ctx, RoleAdmin)
-	if err != nil {
+	if err := RequireInvite(ctx, role); err != nil {
 		return nil, err
 	}
-	if err := CanInvite(actor, role); err != nil {
-		return nil, err
-	}
+	id, _, _ := FromContext(ctx)
 	email = normalizeEmail(email)
 	token, hash, err := newInviteToken()
 	if err != nil {
