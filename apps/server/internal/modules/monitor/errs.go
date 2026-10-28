@@ -68,6 +68,23 @@ func (e *InvalidLocationRuleError) Error() string { return "invalid location_rul
 
 func (e *InvalidLocationRuleError) Unwrap() error { return e.Err }
 
+// MonitorTypeDisabledError is a monitor type that this install turns off (DISABLED_MONITOR_TYPES,
+// PP-157), on a write that would give a monitor that type: a create, or an update that changes the
+// type. A monitor that already has the type can still be edited. The controller answers 400 with
+// the code, so that a client can tell this refusal from an invalid configuration.
+type MonitorTypeDisabledError struct {
+	Code string `json:"code" example:"MONITOR_TYPE_DISABLED"`
+	Type string `json:"type" doc:"The monitor type that is turned off." example:"docker"`
+}
+
+func (e *MonitorTypeDisabledError) Error() string {
+	return fmt.Sprintf("%s monitors are turned off on this install", e.Type)
+}
+
+func monitorTypeDisabledError(monitorType string) *MonitorTypeDisabledError {
+	return &MonitorTypeDisabledError{Code: "MONITOR_TYPE_DISABLED", Type: monitorType}
+}
+
 // PushTokenAlreadyUsedError is a push token that another monitor holds. Push tokens are unique
 // across the install, and the database enforces it. The error leaves the token out: it is a secret
 // the caller already has, and a log or a response has no need to carry it again.

@@ -107,6 +107,12 @@ func (f *ExecutorRegistry) Types() []string {
 	return slices.Sorted(maps.Keys(f.registry))
 }
 
+// KnownTypes lists the monitor types this build has an executor for, sorted: the types the server
+// accepts, which a DISABLED_MONITOR_TYPES entry is checked against
+func KnownTypes() []string {
+	return NewExecutorRegistry(zap.NewNop().Sugar()).Types()
+}
+
 func (er *ExecutorRegistry) ValidateConfig(monitorType string, configJSON string) error {
 	executor, ok := er.GetExecutor(monitorType)
 	if !ok {

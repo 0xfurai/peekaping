@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
+	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/workspace"
@@ -62,6 +64,21 @@ func withSuspension(q *bun.SelectQuery) *bun.SelectQuery {
 // that picks monitors to run or to check for missed beats
 func inRunningWorkspace(q *bun.SelectQuery) *bun.SelectQuery {
 	return q.Where("NOT " + workspaceSuspended)
+}
+
+// runnable keeps the monitors that may run or be checked for missed beats: those in a workspace
+// that is not suspended and, when the install turns monitor types off, of a type that is on
+func (r *SQLRepositoryImpl) runnable(q *bun.SelectQuery) *bun.SelectQuery {
+	q = inRunningWorkspace(q)
+	if len(r.disabledTypes) > 0 {
+		q = q.Where("m.type NOT IN (?)", bun.In(r.disabledTypes))
+	}
+	return q
+}
+
+// typeDisabled is whether the install turns the monitor type off
+func (r *SQLRepositoryImpl) typeDisabled(monitorType string) bool {
+	return slices.Contains(r.disabledTypes, monitorType)
 }
 
 // sqlProbeLink is the row that says a monitor runs on a probe. It is what is written when a
@@ -199,6 +216,8 @@ type SQLRepositoryImpl struct {
 	db *bun.DB
 	// localProbe is how the local probe is known to be online
 	localProbe shared.LocalProbeLiveness
+	// disabledTypes are the monitor types the install turns off (DISABLED_MONITOR_TYPES, PP-157)
+	disabledTypes []string
 }
 
 // SQLRepositoryOption changes how the SQL repository behaves, for an install that has a reason to
@@ -208,6 +227,13 @@ type SQLRepositoryOption func(*SQLRepositoryImpl)
 // local probe is Peekaping's own process, which is always online (shared.LocalProbeIsTheProcess).
 func WithLocalProbe(liveness shared.LocalProbeLiveness) SQLRepositoryOption {
 	return func(r *SQLRepositoryImpl) { r.localProbe = liveness }
+}
+
+// WithRepositoryDisabledTypes tells the repository which monitor types the install turns off. Its lists of
+// monitors to run leave them out, and a monitor it reads says whether its type is one of them.
+// Without it no type is disabled.
+func WithRepositoryDisabledTypes(types []string) SQLRepositoryOption {
+	return func(r *SQLRepositoryImpl) { r.disabledTypes = types }
 }
 
 func NewSQLRepository(db *bun.DB, opts ...SQLRepositoryOption) MonitorRepository {
@@ -226,10 +252,16 @@ type sqlRepositoryParams struct {
 	// LocalProbe is provided by internal/app: the process itself in single mode, the local probe's
 	// instances in cluster mode. A container without it has the process.
 	LocalProbe shared.LocalProbeLiveness `optional:"true"`
+	// Config is the install's settings. A container without it disables no monitor type.
+	Config *config.Config `optional:"true"`
 }
 
 func provideSQLRepository(p sqlRepositoryParams) MonitorRepository {
-	return NewSQLRepository(p.DB, WithLocalProbe(p.LocalProbe))
+	opts := []SQLRepositoryOption{WithLocalProbe(p.LocalProbe)}
+	if p.Config != nil {
+		opts = append(opts, WithRepositoryDisabledTypes(p.Config.DisabledMonitorTypeList()))
+	}
+	return NewSQLRepository(p.DB, opts...)
 }
 
 func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID, monitor *Model) (*Model, error) {
@@ -400,15 +432,20 @@ func (r *SQLRepositoryImpl) RecordLocationAnyWorkspace(ctx context.Context, moni
 			}
 		}
 		var recorded sql.NullInt64
+		var monitorType string
 		var suspended bool
 		// A monitor that is gone has no row: nothing is recorded for it
-		if err := db.NewSelect().Model((*sqlModel)(nil)).Column("locations_status").ColumnExpr(workspaceSuspended+" AS workspace_suspended").
-			Where("m.id = ?", monitorID).Scan(ctx, &recorded, &suspended); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		if err := db.NewSelect().Model((*sqlModel)(nil)).Column("locations_status", "type").ColumnExpr(workspaceSuspended+" AS workspace_suspended").
+			Where("m.id = ?", monitorID).Scan(ctx, &recorded, &monitorType, &suspended); err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
 		// A result that was in flight when the workspace was suspended is dropped (PP-155)
 		if suspended {
 			return shared.ErrWorkspaceSuspended
+		}
+		// So is one for a monitor whose type was turned off since the check was dealt (PP-157)
+		if r.typeDisabled(monitorType) {
+			return shared.ErrMonitorTypeDisabled
 		}
 		judgement := shared.LocationJudgement{}
 		if recorded.Valid {
@@ -505,6 +542,7 @@ func (r *SQLRepositoryImpl) toDomainModels(ctx context.Context, sms []*sqlModel)
 	byID := make(map[string]*Model, len(sms))
 	for i, sm := range sms {
 		model := toDomainModelFromSQL(sm)
+		model.TypeDisabled = r.typeDisabled(sm.Type)
 		models = append(models, model)
 		ids[i], byID[sm.ID] = sm.ID, model
 	}
@@ -671,7 +709,7 @@ func (r *SQLRepositoryImpl) findAll(
 
 func (r *SQLRepositoryImpl) FindActiveAnyWorkspace(ctx context.Context) ([]*Model, error) {
 	var sms []*sqlModel
-	err := inRunningWorkspace(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
+	err := r.runnable(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
 		Where("m.active = ?", true).
 		Order("m.id DESC").
 		Scan(ctx)
@@ -684,7 +722,7 @@ func (r *SQLRepositoryImpl) FindActiveAnyWorkspace(ctx context.Context) ([]*Mode
 
 func (r *SQLRepositoryImpl) FindActivePaginatedAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
 	var sms []*sqlModel
-	err := inRunningWorkspace(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
+	err := r.runnable(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
 		Where("m.active = ?", true).
 		Order("m.id DESC").
 		Limit(limit).
@@ -699,7 +737,7 @@ func (r *SQLRepositoryImpl) FindActivePaginatedAnyWorkspace(ctx context.Context,
 
 func (r *SQLRepositoryImpl) FindActiveByProbeAnyWorkspace(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
 	var sms []*sqlModel
-	query := inRunningWorkspace(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
+	query := r.runnable(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
 		Where("m.active = ?", true)
 	if probeID == shared.LocalProbeID {
 		// A monitor without a row runs on the local probe (see toDomainModels)

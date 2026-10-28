@@ -210,7 +210,7 @@ func TestMonitorProbes_RejectsPushOnRemote(t *testing.T) {
 // arrive at the api, so a probe runs no push monitor. That must not stop the web app, which sends
 // probe_ids ["local"] for every monitor, from creating a push monitor.
 func TestMonitorProbes_APushMonitorOnTheLocalProbeWhoseInstancesLeavePushOut(t *testing.T) {
-	a := localProbeApp(t, nil)
+	a := localProbeApp(t, nil, withAllMonitorTypes)
 	a.sayHello(t, localToken, uuid.NewString())
 	httpID := a.createHTTPMonitor(t, "Checkout", "")
 

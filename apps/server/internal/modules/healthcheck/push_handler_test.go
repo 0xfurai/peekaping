@@ -146,3 +146,18 @@ func TestPushEndpoint(t *testing.T) {
 		assert.Equal(t, 0, payload.PingMs)
 	})
 }
+
+// PP-157: a push to a monitor whose type the install turns off answers 403 and stores nothing
+func TestPushEndpoint_RefusesAMonitorOfADisabledType(t *testing.T) {
+	monitors := &pushMonitorService{monitor: &monitor.Model{ID: "mon-1", Type: "push", Active: true, PushToken: "token", TypeDisabled: true}}
+	results := &capturingIngester{}
+	router := httpx.NewRouter()
+	RegisterPushEndpoint(router.Group("/api/v1"), monitors, nil, results, noMaintenance{}, zap.NewNop().Sugar())
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/v1/push/token?status=up", nil))
+
+	assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
+	assert.Contains(t, rec.Body.String(), "turned off")
+	assert.Empty(t, results.results)
+}

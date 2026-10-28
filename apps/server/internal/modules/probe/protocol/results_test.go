@@ -369,6 +369,18 @@ func TestResults_RejectsAResultOfAMonitorWhoseWorkspaceIsSuspended(t *testing.T)
 	assert.Empty(t, s.ingest.storedFor(monSkipped))
 }
 
+// The same goes for a monitor whose type the install turned off since it was dealt (PP-157)
+func TestResults_RejectsAResultOfAMonitorWhoseTypeIsDisabled(t *testing.T) {
+	s := newResultsServer(t)
+	s.monitors.byID[monSkipped].TypeDisabled = true
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t, checkResult("held", monSkipped, start), checkResult("control", monCheckout, start.Add(time.Second)))
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonNotAssigned), accepted("control")}, got)
+	assert.Empty(t, s.ingest.storedFor(monSkipped))
+}
+
 // An instance can be replaced to make room for a new one, or pruned, between the middleware's stamp
 // and the results handler. It has to say hello again, and stores nothing meanwhile.
 func TestResults_AnInstanceThatIsGoneMustSayHello(t *testing.T) {

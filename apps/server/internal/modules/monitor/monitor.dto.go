@@ -146,6 +146,9 @@ type UptimeStatsDto struct {
 // notification channels and tags linked to it. A monitor with none gets empty lists.
 type MonitorResponseDto struct {
 	shared.Monitor
+	// TypeDisabled repeats shared.Monitor.TypeDisabled, which the monitor's own JSON leaves out, as
+	// type_disabled
+	TypeDisabled    bool     `json:"type_disabled" doc:"True when the monitor's type is turned off on this install (DISABLED_MONITOR_TYPES). The monitor is kept and listed, but it is not checked, and nothing notifies for it; its active setting is left as it is, so it runs again if the type is turned back on. Such a monitor can still be edited, but not given a disabled type." example:"false"`
 	NotificationIds []string `json:"notification_ids" nullable:"false" example:"6830ad485361f19c598d6d90"`
 	TagIds          []string `json:"tag_ids" nullable:"false" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 }

@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/utils"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -122,6 +123,18 @@ type MonitorServiceImpl struct {
 	statPointsService          stats.Service
 	probes                     ProbeLookup
 	logger                     *zap.SugaredLogger
+	// disabledTypes are the monitor types the install turns off (DISABLED_MONITOR_TYPES, PP-157)
+	disabledTypes []string
+}
+
+// ServiceOption changes how the monitor service behaves, for an install that has a reason to
+type ServiceOption func(*MonitorServiceImpl)
+
+// WithServiceDisabledTypes tells the service which monitor types the install turns off, so that it
+// refuses to create a monitor of one or to change a monitor's type to one. Without it no type is
+// disabled.
+func WithServiceDisabledTypes(types []string) ServiceOption {
+	return func(s *MonitorServiceImpl) { s.disabledTypes = types }
 }
 
 func NewMonitorService(
@@ -135,22 +148,38 @@ func NewMonitorService(
 	statPointsService stats.Service,
 	probes ProbeLookup,
 	logger *zap.SugaredLogger,
+	opts ...ServiceOption,
 ) Service {
-	return &MonitorServiceImpl{
-		monitorRepository,
-		transactor,
-		heartbeatService,
-		eventBus,
-		monitorNotificationService,
-		monitorTagService,
-		executorRegistry,
-		statPointsService,
-		probes,
-		logger.Named("[monitor-service]"),
+	s := &MonitorServiceImpl{
+		monitorRepository:          monitorRepository,
+		transactor:                 transactor,
+		heartbeatService:           heartbeatService,
+		eventBus:                   eventBus,
+		monitorNotificationService: monitorNotificationService,
+		monitorTagService:          monitorTagService,
+		executorRegistry:           executorRegistry,
+		statPointsService:          statPointsService,
+		probes:                     probes,
+		logger:                     logger.Named("[monitor-service]"),
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
+// requireTypeEnabled refuses a monitor type that the install turns off
+func (mr *MonitorServiceImpl) requireTypeEnabled(monitorType string) error {
+	if slices.Contains(mr.disabledTypes, monitorType) {
+		return monitorTypeDisabledError(monitorType)
+	}
+	return nil
 }
 
 func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) (*Model, error) {
+	if err := mr.requireTypeEnabled(monitorCreateDto.Type); err != nil {
+		return nil, err
+	}
 	lowerLinkIDs(monitorCreateDto)
 	createModel := &Model{
 		WorkspaceID:    workspaceID,
@@ -293,6 +322,12 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID worksp
 		if current == nil {
 			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
 		}
+		// A monitor that already has a disabled type can still be edited, but not given one
+		if monitor.Type != current.Type {
+			if err := mr.requireTypeEnabled(monitor.Type); err != nil {
+				return err
+			}
+		}
 		if err := mr.validateFullProbes(ctx, current, monitor); err != nil {
 			return err
 		}
@@ -383,6 +418,11 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 		}
 		if current == nil {
 			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
+		if monitor.Type != nil && *monitor.Type != current.Type {
+			if err := mr.requireTypeEnabled(*monitor.Type); err != nil {
+				return err
+			}
 		}
 		if err := mr.validatePartialConfig(current, monitor); err != nil {
 			return err

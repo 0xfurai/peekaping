@@ -414,3 +414,29 @@ func TestLoadAndValidate_SignupSettingsThatCanNotWorkStopStartup(t *testing.T) {
 		})
 	}
 }
+
+func TestDisabledMonitorTypesAreEmptyByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Empty(t, cfg.ToInternalConfig().DisabledMonitorTypeList())
+
+	t.Setenv("DISABLED_MONITOR_TYPES", " docker , snmp ")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, []string{"docker", "snmp"}, cfg.ToInternalConfig().DisabledMonitorTypeList())
+}
+
+func TestAnUnknownDisabledMonitorTypeStopsStartupAndListsTheKnownTypes(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("DISABLED_MONITOR_TYPES", "docker,dockr")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, `DISABLED_MONITOR_TYPES has an unknown monitor type "dockr": the known types are`)
+	assert.ErrorContains(t, err, "docker")
+	assert.ErrorContains(t, err, "http")
+}
