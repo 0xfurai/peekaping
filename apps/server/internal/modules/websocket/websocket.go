@@ -18,6 +18,8 @@ type Server struct {
 	io         *socket.Server
 	eventBus   events.EventBus
 	tokenMaker *auth.TokenMaker
+	// onConnection runs first in the connection handler. Only tests set it, to slow the handler.
+	onConnection func()
 }
 
 type SocketData struct {
@@ -64,25 +66,11 @@ func NewServer(
 		next(nil)
 	})
 
-	io.On("connection", safe(logger, "connection", func(clients ...interface{}) {
-		var client *socket.Socket
-		if len(clients) > 0 {
-			client, _ = clients[0].(*socket.Socket)
-		}
-		if client == nil {
-			logger.Warnf("[WS]connection: dropped, no socket in %d arguments", len(clients))
-			return
-		}
-		// The auth middleware sets the data, so a socket without it never authenticated
-		data, ok := client.Data().(SocketData)
-		if !ok {
-			logger.Warn("[WS]connection: disconnecting a socket without user data")
-			client.Disconnect(true)
-			return
-		}
-
-		logger.Debugf("[WS]connection: %s", data.UserId)
-
+	// The room handlers go in a middleware of their own, after the auth one, so only an
+	// authenticated socket gets them. The library runs the middlewares before it sends CONNECT to
+	// the client, and emits "connection" after: a handler registered there could miss a join_room
+	// that the client sent as soon as it saw CONNECT.
+	io.Use(func(client *socket.Socket, next func(*socket.ExtendedError)) {
 		client.On("join_room", safe(logger, "join_room", func(args ...interface{}) {
 			roomName, ok := firstString(args)
 			if !ok {
@@ -108,6 +96,31 @@ func NewServer(
 			client.Leave(socket.Room(roomName))
 			// ack([]interface{}{map[string]string{"status": "ok"}}, nil)
 		}))
+
+		next(nil)
+	})
+
+	io.On("connection", safe(logger, "connection", func(clients ...interface{}) {
+		if server.onConnection != nil {
+			server.onConnection()
+		}
+		var client *socket.Socket
+		if len(clients) > 0 {
+			client, _ = clients[0].(*socket.Socket)
+		}
+		if client == nil {
+			logger.Warnf("[WS]connection: dropped, no socket in %d arguments", len(clients))
+			return
+		}
+		// The auth middleware sets the data, so a socket without it never authenticated
+		data, ok := client.Data().(SocketData)
+		if !ok {
+			logger.Warn("[WS]connection: disconnecting a socket without user data")
+			client.Disconnect(true)
+			return
+		}
+
+		logger.Debugf("[WS]connection: %s", data.UserId)
 	}))
 
 	// Listen for heartbeat events and broadcast to room

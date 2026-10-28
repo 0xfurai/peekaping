@@ -64,7 +64,7 @@ func TestRun_KeepsLongPollsAndWebsocketsOpenPastTheReadTimeout(t *testing.T) {
 		socket := in.dialSocket(t)
 		socket.join(t, "monitor:all")
 		socket.holdsAPollOpenFor(t, 3*read) // the long poll waits through the read timeout, with nothing to answer
-		pushUntil(t, in, "long-poll-", func() { socket.join(t, "monitor:all") }, func(msg string) bool {
+		pushUntil(t, in, "long-poll-", func(msg string) bool {
 			_, ok := socket.until(t, 200*time.Millisecond, func(e socketEvent) bool { return e.hb.MonitorID == pushID && e.hb.Msg == msg })
 			return ok
 		})
@@ -93,10 +93,7 @@ func TestRun_KeepsLongPollsAndWebsocketsOpenPastTheReadTimeout(t *testing.T) {
 			case <-time.After(10 * time.Millisecond):
 			}
 		}
-		join := func() {
-			require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte(`42["join_room","monitor:all"]`)))
-		}
-		pushUntil(t, in, "websocket-", join, func(msg string) bool {
+		pushUntil(t, in, "websocket-", func(msg string) bool {
 			timeout := time.After(200 * time.Millisecond)
 			for {
 				select {
@@ -115,17 +112,12 @@ func TestRun_KeepsLongPollsAndWebsocketsOpenPastTheReadTimeout(t *testing.T) {
 	})
 }
 
-// pushUntil pushes to the push monitor until arrived reports that a push reached the socket, and
-// sends join again before each push but the first. The socket's join is handled in its own
-// goroutine, so a push can go before it. And the server tells the client it is connected before
-// its connection handler has registered join_room, so a join sent at once can be dropped for good.
-func pushUntil(t *testing.T, in *instance, prefix string, join func(), arrived func(msg string) bool) {
+// pushUntil pushes to the push monitor until arrived reports that a push reached the socket. The
+// socket's join is handled in its own goroutine, so a push can go before it.
+func pushUntil(t *testing.T, in *instance, prefix string, arrived func(msg string) bool) {
 	t.Helper()
 	deadline := time.Now().Add(wait)
 	for i := 0; ; i++ {
-		if i > 0 {
-			join()
-		}
 		msg := fmt.Sprintf("%s%d", prefix, i)
 		status, body := in.request(t, http.MethodGet, "/api/v1/push/backup-push-token?msg="+url.QueryEscape(msg), nil)
 		require.Equal(t, http.StatusOK, status, string(body))
