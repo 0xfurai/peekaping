@@ -90,6 +90,7 @@ func TestCreateWorkspace_ABadNameOrCallerIsRefused(t *testing.T) {
 		before := a.count(t, "workspaces")
 		for name, body := range map[string]any{
 			"no name": map[string]any{}, "empty": map[string]any{"name": ""}, "too long": map[string]any{"name": strings.Repeat("x", 256)},
+			"only spaces": map[string]any{"name": "   \t "}, "only a newline": map[string]any{"name": "\n"},
 		} {
 			assert.Equal(t, http.StatusBadRequest, a.request(t, http.MethodPost, workspacesURL, body, a.asAdmin).Code, name)
 		}
