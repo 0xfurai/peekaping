@@ -9434,6 +9434,7 @@
     },
     "/api/v1/probes": {
       "get": {
+        "description": "Every probe, the local probe first. A user who is not an instance admin, and an API key, see each probe with its name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.",
         "operationId": "getProbes",
         "responses": {
           "200": {
@@ -9481,6 +9482,7 @@
         ]
       },
       "post": {
+        "description": "Only an instance admin may do this: any other user and any API key get 403.",
         "operationId": "postProbes",
         "requestBody": {
           "content": {
@@ -9523,6 +9525,16 @@
             },
             "description": "Unauthorized"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
           "500": {
             "content": {
               "application/json": {
@@ -9537,9 +9549,6 @@
         "security": [
           {
             "JwtAuth": []
-          },
-          {
-            "ApiKeyAuth": []
           }
         ],
         "summary": "Create probe",
@@ -9627,6 +9636,7 @@
     },
     "/api/v1/probes/{id}": {
       "delete": {
+        "description": "Only an instance admin may do this: any other user and any API key get 403.",
         "operationId": "deleteProbesById",
         "parameters": [
           {
@@ -9653,6 +9663,16 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
           },
           "404": {
             "content": {
@@ -9688,9 +9708,6 @@
         "security": [
           {
             "JwtAuth": []
-          },
-          {
-            "ApiKeyAuth": []
           }
         ],
         "summary": "Delete probe",
@@ -9699,6 +9716,7 @@
         ]
       },
       "get": {
+        "description": "A user who is not an instance admin, and an API key, see the probe's name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.",
         "operationId": "getProbesById",
         "parameters": [
           {
@@ -9768,6 +9786,7 @@
         ]
       },
       "put": {
+        "description": "Only an instance admin may do this: any other user and any API key get 403.",
         "operationId": "putProbesById",
         "parameters": [
           {
@@ -9822,6 +9841,16 @@
             },
             "description": "Unauthorized"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
           "404": {
             "content": {
               "application/json": {
@@ -9856,9 +9885,6 @@
         "security": [
           {
             "JwtAuth": []
-          },
-          {
-            "ApiKeyAuth": []
           }
         ],
         "summary": "Update probe",
@@ -9869,7 +9895,7 @@
     },
     "/api/v1/probes/{id}/assign-all-monitors": {
       "post": {
-        "description": "Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.",
+        "description": "Only an instance admin may do this: any other user and any API key get 403. Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.",
         "operationId": "postProbesByIdAssignAllMonitors",
         "parameters": [
           {
@@ -9904,6 +9930,16 @@
             },
             "description": "Unauthorized"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
           "404": {
             "content": {
               "application/json": {
@@ -9938,9 +9974,6 @@
         "security": [
           {
             "JwtAuth": []
-          },
-          {
-            "ApiKeyAuth": []
           }
         ],
         "summary": "Assign all monitors to a probe",
@@ -9951,7 +9984,7 @@
     },
     "/api/v1/probes/{id}/availability": {
       "get": {
-        "description": "A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.",
+        "description": "A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours. A user who is not an instance admin, and an API key, see each instance with an empty hostname and version.",
         "operationId": "getProbesByIdAvailability",
         "parameters": [
           {
@@ -10048,6 +10081,7 @@
     },
     "/api/v1/probes/{id}/rotate-token": {
       "post": {
+        "description": "Only an instance admin may do this: any other user and any API key get 403.",
         "operationId": "postProbesByIdRotateToken",
         "parameters": [
           {
@@ -10081,6 +10115,16 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
           },
           "404": {
             "content": {
@@ -10116,9 +10160,6 @@
         "security": [
           {
             "JwtAuth": []
-          },
-          {
-            "ApiKeyAuth": []
           }
         ],
         "summary": "Rotate probe token",

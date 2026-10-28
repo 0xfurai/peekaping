@@ -2167,6 +2167,7 @@ export const getProbesQueryKey = (options?: Options<GetProbesData>) =>
 
 /**
  * Get probes
+ * Every probe, the local probe first. A user who is not an instance admin, and an API key, see each probe with its name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.
  */
 export const getProbesOptions = (options?: Options<GetProbesData>) => {
   return queryOptions({
@@ -2188,6 +2189,7 @@ export const postProbesQueryKey = (options: Options<PostProbesData>) =>
 
 /**
  * Create probe
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const postProbesOptions = (options: Options<PostProbesData>) => {
   return queryOptions({
@@ -2206,6 +2208,7 @@ export const postProbesOptions = (options: Options<PostProbesData>) => {
 
 /**
  * Create probe
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const postProbesMutation = (
   options?: Partial<Options<PostProbesData>>
@@ -2258,6 +2261,7 @@ export const getProbesAvailabilityOptions = (
 
 /**
  * Delete probe
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const deleteProbesByIdMutation = (
   options?: Partial<Options<DeleteProbesByIdData>>
@@ -2288,6 +2292,7 @@ export const getProbesByIdQueryKey = (options: Options<GetProbesByIdData>) =>
 
 /**
  * Get probe
+ * A user who is not an instance admin, and an API key, see the probe's name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.
  */
 export const getProbesByIdOptions = (options: Options<GetProbesByIdData>) => {
   return queryOptions({
@@ -2306,6 +2311,7 @@ export const getProbesByIdOptions = (options: Options<GetProbesByIdData>) => {
 
 /**
  * Update probe
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const putProbesByIdMutation = (
   options?: Partial<Options<PutProbesByIdData>>
@@ -2337,7 +2343,7 @@ export const postProbesByIdAssignAllMonitorsQueryKey = (
 
 /**
  * Assign all monitors to a probe
- * Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
+ * Only an instance admin may do this: any other user and any API key get 403. Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
  */
 export const postProbesByIdAssignAllMonitorsOptions = (
   options: Options<PostProbesByIdAssignAllMonitorsData>
@@ -2358,7 +2364,7 @@ export const postProbesByIdAssignAllMonitorsOptions = (
 
 /**
  * Assign all monitors to a probe
- * Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
+ * Only an instance admin may do this: any other user and any API key get 403. Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
  */
 export const postProbesByIdAssignAllMonitorsMutation = (
   options?: Partial<Options<PostProbesByIdAssignAllMonitorsData>>
@@ -2390,7 +2396,7 @@ export const getProbesByIdAvailabilityQueryKey = (
 
 /**
  * Get the availability of a probe
- * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.
+ * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours. A user who is not an instance admin, and an API key, see each instance with an empty hostname and version.
  */
 export const getProbesByIdAvailabilityOptions = (
   options: Options<GetProbesByIdAvailabilityData>
@@ -2415,6 +2421,7 @@ export const postProbesByIdRotateTokenQueryKey = (
 
 /**
  * Rotate probe token
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const postProbesByIdRotateTokenOptions = (
   options: Options<PostProbesByIdRotateTokenData>
@@ -2435,6 +2442,7 @@ export const postProbesByIdRotateTokenOptions = (
 
 /**
  * Rotate probe token
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const postProbesByIdRotateTokenMutation = (
   options?: Partial<Options<PostProbesByIdRotateTokenData>>

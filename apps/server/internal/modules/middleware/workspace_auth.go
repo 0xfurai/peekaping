@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/workspace"
@@ -111,25 +112,33 @@ func isCanonicalUUID(s string) bool {
 func (ac *AuthChain) InstanceAdminAuth() httpx.Middleware {
 	return func(next http.Handler) http.Handler {
 		return ac.AllAuth()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			forbidden := func() {
-				httpx.JSON(w, http.StatusForbidden, utils.NewFailResponse("Only an instance admin may do this"))
-			}
-			if httpx.Value(r.Context(), "authType") != "jwt" {
-				forbidden()
-				return
-			}
-			userID, _ := httpx.Value(r.Context(), "userId").(string)
-			user, err := ac.users.FindByID(r.Context(), userID)
+			admin, err := ac.IsInstanceAdmin(r.Context())
 			if err != nil {
-				ac.logger.Errorw("Failed to read the instance admin flag of a user", "userId", userID, "error", err)
 				httpx.JSON(w, http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 				return
 			}
-			if user == nil || !user.InstanceAdmin {
-				forbidden()
+			if !admin {
+				httpx.JSON(w, http.StatusForbidden, utils.NewFailResponse("Only an instance admin may do this"))
 				return
 			}
 			next.ServeHTTP(w, r)
 		}))
 	}
+}
+
+// IsInstanceAdmin is whether an authenticated request comes from an instance admin: a signed-in
+// user with the flag, read now and not from the token. An API key belongs to a workspace and is
+// never one. It is the one place that decides, for InstanceAdminAuth and for the routes that
+// answer an instance admin more than a member.
+func (ac *AuthChain) IsInstanceAdmin(ctx context.Context) (bool, error) {
+	if httpx.Value(ctx, "authType") != "jwt" {
+		return false, nil
+	}
+	userID, _ := httpx.Value(ctx, "userId").(string)
+	user, err := ac.users.FindByID(ctx, userID)
+	if err != nil {
+		ac.logger.Errorw("Failed to read the instance admin flag of a user", "userId", userID, "error", err)
+		return false, err
+	}
+	return user != nil && user.InstanceAdmin, nil
 }
