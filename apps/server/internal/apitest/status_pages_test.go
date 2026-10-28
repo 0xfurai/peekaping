@@ -123,3 +123,24 @@ func TestStatusPagesAPI_RejectsInvalidInput(t *testing.T) {
 	got = decode[statusPageResponse](t, a.request(t, http.MethodGet, "/api/v1/status-pages/"+blog, nil, a.asAdmin), http.StatusOK)
 	assert.Empty(t, got.Domains)
 }
+
+func TestStatusPagesAPI_CustomDomainsAreLowerCaseAndFoundByAnyCase(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createStatusPage(t, statusPage{slug: "shop", published: true, domains: []string{" Status.Shop.EXAMPLE "}})
+	blog := a.createStatusPage(t, statusPage{slug: "blog"})
+
+	got := decode[statusPageResponse](t, a.request(t, http.MethodGet, "/api/v1/status-pages/"+id, nil, a.asAdmin), http.StatusOK)
+	assert.Equal(t, []string{"status.shop.example"}, got.Domains)
+	for _, domain := range []string{"status.shop.example", "STATUS.shop.example"} {
+		page := decode[struct {
+			Slug string `json:"slug"`
+		}](t, a.request(t, http.MethodGet, "/api/v1/status-pages/domain/"+domain, nil), http.StatusOK)
+		assert.Equal(t, "shop", page.Slug, domain)
+	}
+
+	// Another page can't have it in any case
+	a.expectStatus(t, http.StatusBadRequest, []call{
+		{"create", http.MethodPost, "/api/v1/status-pages", map[string]any{"slug": "docs", "title": "Docs", "domains": []string{"STATUS.shop.example"}}},
+		{"update", http.MethodPatch, "/api/v1/status-pages/" + blog, map[string]any{"domains": []string{"Status.Shop.Example"}}},
+	})
+}

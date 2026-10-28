@@ -22,6 +22,7 @@ import (
 )
 
 type harness struct {
+	db       *bun.DB
 	svc      status_page.Service
 	monitors monitor_status_page.Service
 	domains  domain_status_page.Service
@@ -44,7 +45,7 @@ func newHarness(t *testing.T) *harness {
 	logger := zap.NewNop().Sugar()
 	monitors := monitor_status_page.NewService(monitor_status_page.NewSQLRepository(db), logger)
 	domains := domain_status_page.NewService(domain_status_page.NewSQLRepository(db), logger)
-	return &harness{status_page.NewService(status_page.NewSQLRepository(db), nil, monitors, domains, logger), monitors, domains}
+	return &harness{db, status_page.NewService(status_page.NewSQLRepository(db), nil, monitors, domains, logger), monitors, domains}
 }
 
 func (h *harness) create(t *testing.T, dto status_page.CreateStatusPageDTO) *status_page.Model {
@@ -191,4 +192,67 @@ func TestStatusPageService_IsMonitorPublishedOnlyThroughAPublishedPage(t *testin
 	published, err := h.svc.IsMonitorPublished(ctx, onPublic)
 	require.NoError(t, err)
 	assert.False(t, published, "unpublishing the page unpublishes its monitors")
+}
+
+func TestStatusPageService_StoresDomainsLowerCaseAndFindsThemByAnyCase(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	page := h.create(t, status_page.CreateStatusPageDTO{Slug: "public", Published: true, Domains: []string{" Status.Example.COM ", "status.example.com"}})
+
+	assert.Equal(t, []string{"status.example.com"}, h.withMonitors(t, page.ID).Domains, "stored lower-case, and once")
+	for _, spelling := range []string{"STATUS.example.com", " status.example.com "} {
+		found, err := h.svc.FindPublishedByDomain(ctx, spelling)
+		require.NoError(t, err)
+		require.NotNil(t, found, spelling)
+		assert.Equal(t, page.ID, found.ID)
+	}
+
+	// Sending the page's own domain in another case keeps it
+	_, err := h.svc.Update(ctx, page.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"STATUS.Example.com", "Uptime.Example.com"}})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"status.example.com", "uptime.example.com"}, h.withMonitors(t, page.ID).Domains)
+}
+
+func TestStatusPageService_RejectsADomainAnotherPageOwnsInAnyCase(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	h.create(t, status_page.CreateStatusPageDTO{Slug: "public", Domains: []string{"status.example.com"}})
+	internal := h.create(t, status_page.CreateStatusPageDTO{Slug: "internal"})
+	var used *status_page.DomainAlreadyUsedError
+
+	_, err := h.svc.Create(ctx, &status_page.CreateStatusPageDTO{Slug: "copy", Title: "Copy", Domains: []string{" STATUS.Example.com"}})
+	require.ErrorAs(t, err, &used)
+	assert.Equal(t, "status.example.com", used.Domain)
+
+	_, err = h.svc.Update(ctx, internal.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"Status.Example.com"}})
+	require.ErrorAs(t, err, &used)
+	assert.Empty(t, h.withMonitors(t, internal.ID).Domains)
+}
+
+// racingDomains is a domain service whose check finds nothing, as when another page takes the
+// domain between the check and the write
+type racingDomains struct{ domain_status_page.Service }
+
+func (racingDomains) FindByDomain(context.Context, string) (*domain_status_page.Model, error) {
+	return nil, nil
+}
+
+// Two pages racing for one domain: the database lets one in, and the other is told the domain is
+// taken, as when the check found it
+func TestStatusPageService_APageThatLosesARaceForADomainIsToldItIsTaken(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	h.create(t, status_page.CreateStatusPageDTO{Slug: "public", Domains: []string{"status.example.com"}})
+	logger := zap.NewNop().Sugar()
+	racing := status_page.NewService(status_page.NewSQLRepository(h.db), nil, h.monitors, racingDomains{h.domains}, logger)
+	var used *status_page.DomainAlreadyUsedError
+
+	_, err := racing.Create(ctx, &status_page.CreateStatusPageDTO{Slug: "copy", Title: "Copy", Domains: []string{"Status.Example.com"}})
+	require.ErrorAs(t, err, &used)
+	assert.Equal(t, "DOMAIN_EXISTS", used.Code)
+	assert.Equal(t, "status.example.com", used.Domain)
+
+	internal := h.create(t, status_page.CreateStatusPageDTO{Slug: "internal"})
+	_, err = racing.Update(ctx, internal.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"status.example.com"}})
+	require.ErrorAs(t, err, &used)
 }
