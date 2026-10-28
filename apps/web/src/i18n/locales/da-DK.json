@@ -73,6 +73,7 @@
     "no_tags_available": "Ingen tags tilgængelige",
     "please_refresh_page": "Genindlæs siden, venligst.",
     "required": "Obligatorisk",
+    "retry": "Prøv igen",
     "save": "Gem",
     "saving": "Gemmer...",
     "search": "Søg",
@@ -131,6 +132,7 @@
     "accepting": "Tilslutter...",
     "creating": "Opretter...",
     "description": "Du er inviteret til at deltage i {{workspace}} med rollen: {{role}}.",
+    "enter_failed": "Du er kommet med i arbejdsområdet, men det kunne ikke åbnes. Prøv igen.",
     "errors": {
       "other_email": "Denne invitation er til en anden e-mailadresse."
     },
@@ -286,6 +288,7 @@
       "description": "Du mister straks adgangen til dette arbejdsområde og dets data.",
       "done": "Du har forladt arbejdsområdet",
       "last_owner": "Du er den sidste ejer, så du kan ikke forlade det. Gør først et andet medlem til ejer.",
+      "refresh_failed": "Du har forladt arbejdsområdet, men dine arbejdsområder kunne ikke indlæses. Prøv igen.",
       "title": "Forlad dette arbejdsområde"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Opret arbejdsområde",
     "create_error": "Arbejdsområdet kunne ikke oprettes",
+    "create_first": "Opret et arbejdsområde",
     "creating": "Opretter...",
     "enter": "Åbn arbejdsområde",
     "entering": "Åbner...",
@@ -1705,6 +1709,7 @@
     "new_title": "Nyt arbejdsområde",
     "none_description": "Din konto er ikke medlem af noget arbejdsområde, så der er intet at vise her. Bed en, der styrer et arbejdsområde, om at tilføje dig.",
     "none_title": "Du er endnu ikke i et arbejdsområde",
+    "refresh_failed": "Dine arbejdsområder kunne ikke indlæses. Tjek din forbindelse, og prøv igen.",
     "switcher_label": "Skift arbejdsområde"
   }
 }

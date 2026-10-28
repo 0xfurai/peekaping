@@ -73,6 +73,7 @@
     "no_tags_available": "Tidak ada tag tersedia",
     "please_refresh_page": "Silakan muat ulang halaman.",
     "required": "Wajib",
+    "retry": "Coba lagi",
     "save": "Simpan",
     "saving": "Menyimpan...",
     "search": "Cari",
@@ -131,6 +132,7 @@
     "accepting": "Bergabung...",
     "creating": "Membuat...",
     "description": "Anda diundang untuk bergabung dengan {{workspace}} sebagai {{role}}.",
+    "enter_failed": "Anda telah bergabung dengan ruang kerja, tetapi gagal membukanya. Coba lagi.",
     "errors": {
       "other_email": "Undangan ini untuk alamat email lain."
     },
@@ -286,6 +288,7 @@
       "description": "Anda langsung kehilangan akses ke ruang kerja ini beserta datanya.",
       "done": "Anda telah meninggalkan ruang kerja",
       "last_owner": "Anda adalah pemilik terakhir, jadi Anda tidak bisa pergi. Jadikan anggota lain sebagai pemilik terlebih dahulu.",
+      "refresh_failed": "Anda telah keluar dari ruang kerja, tetapi gagal memuat ruang kerja Anda. Coba lagi.",
       "title": "Tinggalkan ruang kerja ini"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Buat ruang kerja",
     "create_error": "Gagal membuat ruang kerja",
+    "create_first": "Buat ruang kerja",
     "creating": "Membuat...",
     "enter": "Buka ruang kerja",
     "entering": "Membuka...",
@@ -1705,6 +1709,7 @@
     "new_title": "Ruang kerja baru",
     "none_description": "Akun Anda bukan anggota ruang kerja mana pun, jadi tidak ada yang bisa ditampilkan di sini. Minta seseorang yang mengelola ruang kerja untuk menambahkan Anda.",
     "none_title": "Anda belum berada di ruang kerja mana pun",
+    "refresh_failed": "Ruang kerja Anda tidak dapat dimuat. Periksa koneksi Anda dan coba lagi.",
     "switcher_label": "Ganti ruang kerja"
   }
 }

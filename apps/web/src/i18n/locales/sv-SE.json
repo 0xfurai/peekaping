@@ -73,6 +73,7 @@
     "no_tags_available": "Inga taggar tillgängliga",
     "please_refresh_page": "Uppdatera sidan, tack.",
     "required": "Obligatorisk",
+    "retry": "Försök igen",
     "save": "Spara",
     "saving": "Sparar...",
     "search": "Sök",
@@ -131,6 +132,7 @@
     "accepting": "Ansluter...",
     "creating": "Skapar...",
     "description": "Du har blivit inbjuden att gå med i {{workspace}} som {{role}}.",
+    "enter_failed": "Du har gått med i arbetsytan, men den kunde inte öppnas. Försök igen.",
     "errors": {
       "other_email": "Den här inbjudan gäller en annan e-postadress."
     },
@@ -286,6 +288,7 @@
       "description": "Du förlorar åtkomsten till den här arbetsytan och dess data direkt.",
       "done": "Du har lämnat arbetsytan",
       "last_owner": "Du är den sista ägaren, så du kan inte lämna. Gör först en annan medlem till ägare.",
+      "refresh_failed": "Du har lämnat arbetsytan, men dina arbetsytor kunde inte läsas in. Försök igen.",
       "title": "Lämna den här arbetsytan"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Skapa arbetsyta",
     "create_error": "Det gick inte att skapa arbetsytan",
+    "create_first": "Skapa en arbetsyta",
     "creating": "Skapar...",
     "enter": "Öppna arbetsyta",
     "entering": "Öppnar...",
@@ -1705,6 +1709,7 @@
     "new_title": "Ny arbetsyta",
     "none_description": "Ditt konto är inte medlem i någon arbetsyta, så det finns inget att visa här. Be någon som hanterar en arbetsyta att lägga till dig.",
     "none_title": "Du är inte med i någon arbetsyta ännu",
+    "refresh_failed": "Dina arbetsytor kunde inte läsas in. Kontrollera anslutningen och försök igen.",
     "switcher_label": "Byt arbetsyta"
   }
 }

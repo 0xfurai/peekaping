@@ -38,14 +38,19 @@ const sameWorkspace = (a: string | null, b: string | null): boolean =>
 // It moves only when the default workspace isn't the failed one: if the server still says not
 // found there, going again would fail the same way forever. When /me lists no workspace it
 // moves nowhere, and the workspace layout shows the no-workspace page from the fresh /me.
+//
+// When /me itself fails, `onRefetchFailed` gets a `retry` that runs the recovery again for the
+// same failed workspace, so the caller can offer it to the user. The retry is as guarded as the
+// first try: if the user has left that workspace's address by then, it does nothing.
 export const recoverFromMissingWorkspace = (
   queryClient: QueryClient,
-  navigate: (to: string, options: { replace: boolean }) => void
+  navigate: (to: string, options: { replace: boolean }) => void,
+  onRefetchFailed?: (retry: () => void, failedWorkspaceId: string) => void
 ): ((failedWorkspaceId: string | null) => Promise<void>) => {
   // One recovery at a time per failed workspace; the refetch is shared by them (fetchQuery joins
   // a request in flight)
   const inFlight = new Map<string, Promise<void>>();
-  return (failedWorkspaceId) => {
+  const recover = (failedWorkspaceId: string | null): Promise<void> => {
     if (failedWorkspaceId === null || !sameWorkspace(failedWorkspaceId, currentWorkspaceId())) {
       return Promise.resolve();
     }
@@ -65,6 +70,7 @@ export const recoverFromMissingWorkspace = (
           }
         } catch (error) {
           console.error("Failed to refetch the workspaces after Workspace not found", error);
+          onRefetchFailed?.(() => void recover(failedWorkspaceId), failedWorkspaceId);
         } finally {
           inFlight.delete(key);
         }
@@ -73,4 +79,5 @@ export const recoverFromMissingWorkspace = (
     }
     return running;
   };
+  return recover;
 };

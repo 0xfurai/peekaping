@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { canLeave, type MemberRole } from "@/lib/member-roles";
+import { refreshMeThen } from "@/lib/refresh-me-then";
 import { workspaceErrorMessage } from "@/lib/workspace-errors";
 
 // Leaving the workspace, for every member. The last owner can't, and is told why.
@@ -42,9 +43,16 @@ export function LeaveCard({
       setConfirming(false);
       toast.success(t("members.leave.done"));
       // The workspace is gone from /me; the app's start is the default workspace, or the page
-      // for a user who has none
-      await queryClient.fetchQuery({ ...getMeOptions(), staleTime: 0 });
-      navigate("/");
+      // for a user who has none. If /me can't be fetched the page stays and offers a retry:
+      // going on could land in a workspace the user may no longer be in.
+      await refreshMeThen({
+        refresh: () => queryClient.fetchQuery({ ...getMeOptions(), staleTime: 0 }),
+        proceed: () => navigate("/"),
+        onFailed: (retry) =>
+          toast.error(t("members.leave.refresh_failed"), {
+            action: { label: t("common.retry"), onClick: retry },
+          }),
+      });
     },
     onError: (error) => {
       setConfirming(false);

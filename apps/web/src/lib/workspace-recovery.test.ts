@@ -146,6 +146,76 @@ describe("recoverFromMissingWorkspace", () => {
   });
 });
 
+describe("recoverFromMissingWorkspace when /me fails", () => {
+  beforeEach(() => at(`/w/${CURRENT}/monitors`));
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    client.instance.defaults.adapter = undefined;
+  });
+
+  // /me fails the first `failures` times, then answers with the default workspace
+  const serveMeFailing = (failures: number) => {
+    const asked = { me: 0 };
+    client.instance.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+      asked.me++;
+      if (asked.me <= failures) {
+        const response = { data: {}, status: 503, statusText: "", headers: {}, config } as AxiosResponse;
+        return Promise.reject(Object.assign(new Error("failed"), { isAxiosError: true, config, response }));
+      }
+      return {
+        data: {
+          data: {
+            user: { id: "u1", email: "a@b.c", instanceAdmin: false },
+            workspaces: [{ id: DEFAULT, name: "Main", role: "owner" }],
+            defaultWorkspaceId: DEFAULT,
+          },
+        },
+        status: 200,
+        statusText: "",
+        headers: {},
+        config,
+      } as AxiosResponse;
+    };
+    return asked;
+  };
+
+  it("does not move, tells the caller with a retry, and the retry recovers the same failed workspace", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const asked = serveMeFailing(1);
+    const navigate = vi.fn();
+    const onRefetchFailed = vi.fn();
+
+    await recoverFromMissingWorkspace(new QueryClient(), navigate, onRefetchFailed)(CURRENT);
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(onRefetchFailed).toHaveBeenCalledTimes(1);
+    expect(onRefetchFailed.mock.calls[0][1]).toBe(CURRENT);
+
+    onRefetchFailed.mock.calls[0][0]();
+    await vi.waitFor(() => expect(navigate).toHaveBeenCalledTimes(1));
+
+    expect(asked.me).toBe(2);
+    expect(navigate).toHaveBeenCalledWith(`/w/${DEFAULT}/monitors`, { replace: true });
+    expect(onRefetchFailed).toHaveBeenCalledTimes(1);
+  });
+
+  it("a retry does nothing once the user has left the failed workspace's address", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const asked = serveMeFailing(1);
+    const navigate = vi.fn();
+    const onRefetchFailed = vi.fn();
+
+    await recoverFromMissingWorkspace(new QueryClient(), navigate, onRefetchFailed)(CURRENT);
+    at(`/w/${OTHER}/monitors`);
+    onRefetchFailed.mock.calls[0][0]();
+    await Promise.resolve();
+
+    expect(asked.me).toBe(1);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+});
+
 describe("the response interceptor", () => {
   beforeAll(() => {
     setupInterceptors();

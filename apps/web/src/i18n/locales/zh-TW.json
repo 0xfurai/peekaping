@@ -73,6 +73,7 @@
     "no_tags_available": "尚無標籤可用",
     "please_refresh_page": "請刷新頁面。",
     "required": "必填",
+    "retry": "重試",
     "save": "儲存",
     "saving": "儲存中…",
     "search": "搜尋",
@@ -131,6 +132,7 @@
     "accepting": "加入中...",
     "creating": "建立中...",
     "description": "你受邀以 {{role}} 身分加入 {{workspace}}。",
+    "enter_failed": "您已加入該工作區，但開啟失敗。請重試。",
     "errors": {
       "other_email": "此邀請是寄給另一個電子郵件地址的。"
     },
@@ -286,6 +288,7 @@
       "description": "你將立即失去對此工作區及其資料的存取權限。",
       "done": "你已離開工作區",
       "last_owner": "你是最後一位擁有者，因此無法離開。請先將另一位成員設為擁有者。",
+      "refresh_failed": "您已離開該工作區，但載入您的工作區失敗。請重試。",
       "title": "離開此工作區"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "建立工作區",
     "create_error": "建立工作區失敗",
+    "create_first": "建立工作區",
     "creating": "建立中...",
     "enter": "開啟工作區",
     "entering": "開啟中...",
@@ -1705,6 +1709,7 @@
     "new_title": "新增工作區",
     "none_description": "你的帳號還不是任何工作區的成員，所以這裡沒有可顯示的內容。請讓管理工作區的人把你加入。",
     "none_title": "你還不在任何工作區中",
+    "refresh_failed": "無法載入您的工作區。請檢查網路連線後重試。",
     "switcher_label": "切換工作區"
   }
 }

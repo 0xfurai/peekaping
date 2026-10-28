@@ -73,6 +73,7 @@
     "no_tags_available": "Teglar mavjud emas",
     "please_refresh_page": "Iltimos, sahifani yangilang.",
     "required": "Majburiy",
+    "retry": "Qayta urinish",
     "save": "Saqlash",
     "saving": "Saqlanmoqda...",
     "search": "Qidirish",
@@ -131,6 +132,7 @@
     "accepting": "Qo'shilmoqda...",
     "creating": "Yaratilmoqda...",
     "description": "Sizni {{workspace}} ga {{role}} sifatida qo'shilishga taklif qilishdi.",
+    "enter_failed": "Siz ish maydoniga qo'shildingiz, lekin uni ochib bo'lmadi. Qayta urinib ko'ring.",
     "errors": {
       "other_email": "Bu taklif boshqa e-pochta manzili uchun."
     },
@@ -286,6 +288,7 @@
       "description": "Siz bu ish maydoniga va uning ma'lumotlariga kirish huquqini darhol yo'qotasiz.",
       "done": "Siz ish maydonidan chiqdingiz",
       "last_owner": "Siz oxirgi egasisiz, shuning uchun chiqa olmaysiz. Avval boshqa a'zoni egasi qiling.",
+      "refresh_failed": "Siz ish maydonidan chiqdingiz, lekin ish maydonlaringiz yuklanmadi. Qayta urinib ko'ring.",
       "title": "Bu ish maydonidan chiqish"
     },
     "list": {
@@ -1692,6 +1695,7 @@
   "workspaces": {
     "create": "Ish maydonini yaratish",
     "create_error": "Ish maydonini yaratib bo'lmadi",
+    "create_first": "Ish maydoni yaratish",
     "creating": "Yaratilmoqda...",
     "enter": "Ish maydonini ochish",
     "entering": "Ochilmoqda...",
@@ -1704,6 +1708,7 @@
     "new_title": "Yangi ish maydoni",
     "none_description": "Hisobingiz hech bir ish maydonining a'zosi emas, shuning uchun bu yerda ko'rsatadigan narsa yo'q. Ish maydonini boshqaradigan kishidan sizni qo'shishini so'rang.",
     "none_title": "Siz hali hech qanday ish maydonida emassiz",
+    "refresh_failed": "Ish maydonlaringiz yuklanmadi. Ulanishni tekshirib, qayta urinib ko'ring.",
     "switcher_label": "Ish maydonini almashtirish"
   }
 }
