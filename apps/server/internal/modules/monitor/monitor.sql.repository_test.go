@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/dbtx"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace/workspacetest"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -37,6 +38,7 @@ func setupTestDB(t *testing.T) *bun.DB {
 	_, err = db.Exec(`
 		CREATE TABLE monitors (
 			id TEXT PRIMARY KEY,
+			workspace_id TEXT NOT NULL,
 			type TEXT NOT NULL,
 			name TEXT NOT NULL,
 			interval INTEGER NOT NULL,
@@ -125,7 +127,7 @@ func TestSQLRepositoryImpl_FindAll_JoinAmbiguityFix(t *testing.T) {
 
 	// Create a monitor
 	monitor := createTestMonitor("Test Monitor", true, shared.MonitorStatus(0))
-	created, err := repo.Create(ctx, monitor)
+	created, err := repo.Create(ctx, testWorkspace, monitor)
 	require.NoError(t, err)
 
 	// Add a tag to trigger the JOIN
@@ -135,7 +137,7 @@ func TestSQLRepositoryImpl_FindAll_JoinAmbiguityFix(t *testing.T) {
 
 	t.Run("FindAll_WithTagsNoAmbiguousColumn", func(t *testing.T) {
 		// This should not fail with "ambiguous column name: created_at" error
-		monitors, err := repo.FindAll(ctx, 0, 10, "", nil, nil, []string{"test-tag"})
+		monitors, err := repo.FindAll(ctx, testWorkspace, 0, 10, "", nil, nil, []string{"test-tag"})
 
 		require.NoError(t, err)
 		assert.Len(t, monitors, 1)
@@ -148,14 +150,14 @@ func TestSQLRepositoryImpl_FindAll_JoinAmbiguityFix(t *testing.T) {
 	t.Run("FindAll_OrderingStillWorksWithJoin", func(t *testing.T) {
 		// Create another monitor with tag to test ordering with JOIN
 		monitor2 := createTestMonitor("Test Monitor 2", true, shared.MonitorStatus(0))
-		created2, err := repo.Create(ctx, monitor2)
+		created2, err := repo.Create(ctx, testWorkspace, monitor2)
 		require.NoError(t, err)
 
 		_, err = db.Exec("INSERT INTO monitor_tags (monitor_id, tag_id, created_at) VALUES (?, ?, ?)",
 			created2.ID, "test-tag", time.Now().Add(-2*time.Hour))
 		require.NoError(t, err)
 
-		monitors, err := repo.FindAll(ctx, 0, 10, "", nil, nil, []string{"test-tag"})
+		monitors, err := repo.FindAll(ctx, testWorkspace, 0, 10, "", nil, nil, []string{"test-tag"})
 
 		require.NoError(t, err)
 		assert.Len(t, monitors, 2)
@@ -176,7 +178,7 @@ func TestSQLRepositoryImpl_FindAll_PagesMonitorsCreatedAtTheSameTimeByID(t *test
 
 	createdAt := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	for _, id := range []string{"monitor-1", "monitor-2", "monitor-3", "monitor-4", "monitor-5"} {
-		_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, created_at) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, createdAt)
+		_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, created_at) VALUES (?, '0d6f1e0e-6b1c-4d49-8c37-0b5f4a1b3a01', 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, createdAt)
 		require.NoError(t, err)
 		_, err = db.Exec("INSERT INTO monitor_tags (monitor_id, tag_id) VALUES (?, 'tie')", id)
 		require.NoError(t, err)
@@ -186,7 +188,7 @@ func TestSQLRepositoryImpl_FindAll_PagesMonitorsCreatedAtTheSameTimeByID(t *test
 		t.Run(name, func(t *testing.T) {
 			var paged []string
 			for page := 0; ; page++ {
-				monitors, err := repo.FindAll(ctx, page, 2, "", nil, nil, tagIds)
+				monitors, err := repo.FindAll(ctx, testWorkspace, page, 2, "", nil, nil, tagIds)
 				require.NoError(t, err)
 				for _, m := range monitors {
 					paged = append(paged, m.ID)
@@ -248,6 +250,8 @@ func forEachSQLBackend(t *testing.T, fn func(t *testing.T, db *bun.DB)) {
 		t.Run(name, func(t *testing.T) {
 			db := open(t)
 			migrateUp(t, db, migrations.Migrations)
+			workspacetest.Ensure(t, db)
+			workspacetest.Add(t, db, otherWorkspace, "Other")
 			fn(t, db)
 		})
 	}
@@ -294,8 +298,7 @@ func TestSQLRepository_MonitorsAreBackfilledToLocal(t *testing.T) {
 			for range 3 {
 				id := uuid.NewString()
 				existing = append(existing, id)
-				_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
-				require.NoError(t, err)
+				workspacetest.InsertMonitor(t, db, id)
 			}
 
 			migrateUp(t, db, migrations.Migrations)
@@ -306,7 +309,7 @@ func TestSQLRepository_MonitorsAreBackfilledToLocal(t *testing.T) {
 				require.NoError(t, db.NewSelect().Table("monitor_probes").Column("probe_id").Where("monitor_id = ?", id).Scan(ctx, &probeIDs))
 				assert.Equal(t, []string{"local"}, probeIDs, id)
 			}
-			found, err := NewSQLRepository(db).FindByIDs(ctx, existing)
+			found, err := NewSQLRepository(db).FindByIDs(ctx, upgradedWorkspace(t, db), existing)
 			require.NoError(t, err)
 			require.Len(t, found, 3)
 			for _, m := range found {
@@ -322,19 +325,19 @@ func TestSQLRepository_CreateStoresProbeIDs(t *testing.T) {
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
 
-		onProbe, err := repo.Create(ctx, monitorOn("On a probe", true, "frankfurt"))
+		onProbe, err := repo.Create(ctx, testWorkspace, monitorOn("On a probe", true, "frankfurt"))
 		require.NoError(t, err)
-		unassigned, err := repo.Create(ctx, monitorOn("Unassigned", true))
+		unassigned, err := repo.Create(ctx, testWorkspace, monitorOn("Unassigned", true))
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"frankfurt"}, onProbe.ProbeIDs)
 		assert.Equal(t, []string{"local"}, unassigned.ProbeIDs, "a monitor with no probe runs on the local one")
 		for id, want := range map[string][]string{onProbe.ID: {"frankfurt"}, unassigned.ID: {"local"}} {
-			found, err := repo.FindByID(ctx, id)
+			found, err := repo.FindByID(ctx, testWorkspace, id)
 			require.NoError(t, err)
 			assert.Equal(t, want, found.ProbeIDs)
 		}
-		all, err := repo.FindAll(ctx, 0, 10, "", nil, nil, nil)
+		all, err := repo.FindAll(ctx, testWorkspace, 0, 10, "", nil, nil, nil)
 		require.NoError(t, err)
 		require.Len(t, all, 2)
 		for _, m := range all {
@@ -349,28 +352,28 @@ func TestSQLRepository_UpdatesReplaceTheProbesOnlyWhenGiven(t *testing.T) {
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
 		addProbe(t, db, "paris")
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "frankfurt"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "frankfurt"))
 		require.NoError(t, err)
 		probesOf := func() []string {
-			found, err := repo.FindByID(ctx, created.ID)
+			found, err := repo.FindByID(ctx, testWorkspace, created.ID)
 			require.NoError(t, err)
 			return found.ProbeIDs
 		}
 
 		renamed := *created
 		renamed.Name, renamed.ProbeIDs = "Checkout, renamed", nil
-		require.NoError(t, repo.UpdateFull(ctx, created.ID, &renamed))
+		require.NoError(t, repo.UpdateFull(ctx, testWorkspace, created.ID, &renamed))
 		assert.Equal(t, []string{"frankfurt"}, probesOf(), "a full update without probes keeps them")
 
 		renamed.ProbeIDs = []string{"paris"}
-		require.NoError(t, repo.UpdateFull(ctx, created.ID, &renamed))
+		require.NoError(t, repo.UpdateFull(ctx, testWorkspace, created.ID, &renamed))
 		assert.Equal(t, []string{"paris"}, probesOf(), "and replaces them with the given ones")
 
 		name := "Checkout, again"
-		require.NoError(t, repo.UpdatePartial(ctx, created.ID, &UpdateModel{Name: &name}))
+		require.NoError(t, repo.UpdatePartial(ctx, testWorkspace, created.ID, &UpdateModel{Name: &name}))
 		assert.Equal(t, []string{"paris"}, probesOf(), "a partial update without probes keeps them")
 
-		require.NoError(t, repo.UpdatePartial(ctx, created.ID, &UpdateModel{ProbeIDs: []string{"local"}}))
+		require.NoError(t, repo.UpdatePartial(ctx, testWorkspace, created.ID, &UpdateModel{ProbeIDs: []string{"local"}}))
 		assert.Equal(t, []string{"local"}, probesOf(), "and moves the monitor when the probes are all it changes")
 	})
 }
@@ -386,7 +389,7 @@ func TestSQLRepository_FindActiveByProbe(t *testing.T) {
 			probe  string
 			active bool
 		}{{"local", true}, {"frankfurt", true}, {"local", true}, {"frankfurt", false}, {"paris", true}, {"frankfurt", true}, {"local", false}} {
-			created, err := repo.Create(ctx, monitorOn("Monitor "+string(rune('a'+i)), spec.active, spec.probe))
+			created, err := repo.Create(ctx, testWorkspace, monitorOn("Monitor "+string(rune('a'+i)), spec.active, spec.probe))
 			require.NoError(t, err)
 			switch {
 			case spec.probe == "local" && spec.active:
@@ -396,22 +399,22 @@ func TestSQLRepository_FindActiveByProbe(t *testing.T) {
 			}
 		}
 
-		got, err := repo.FindActiveByProbe(ctx, "frankfurt", 0, 10)
+		got, err := repo.FindActiveByProbeAnyWorkspace(ctx, "frankfurt", 0, 10)
 		require.NoError(t, err)
 		assert.ElementsMatch(t, frankfurt, idsOf(got), "the active monitors of the probe, and no others")
 		for _, m := range got {
 			assert.Equal(t, []string{"frankfurt"}, m.ProbeIDs)
 		}
-		got, err = repo.FindActiveByProbe(ctx, "local", 0, 10)
+		got, err = repo.FindActiveByProbeAnyWorkspace(ctx, "local", 0, 10)
 		require.NoError(t, err)
 		assert.ElementsMatch(t, local, idsOf(got))
-		got, err = repo.FindActiveByProbe(ctx, "a-probe-with-no-monitors", 0, 10)
+		got, err = repo.FindActiveByProbeAnyWorkspace(ctx, "a-probe-with-no-monitors", 0, 10)
 		require.NoError(t, err)
 		assert.Empty(t, got)
 
 		var paged []string
 		for page := 0; ; page++ {
-			got, err := repo.FindActiveByProbe(ctx, "local", page, 1)
+			got, err := repo.FindActiveByProbeAnyWorkspace(ctx, "local", page, 1)
 			require.NoError(t, err)
 			paged = append(paged, idsOf(got)...)
 			if len(got) < 1 {
@@ -428,10 +431,10 @@ func TestSQLRepository_DeletingAMonitorRemovesItsProbeRows(t *testing.T) {
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "frankfurt"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "frankfurt"))
 		require.NoError(t, err)
 
-		require.NoError(t, repo.Delete(ctx, created.ID))
+		require.NoError(t, repo.Delete(ctx, testWorkspace, created.ID))
 
 		var rows int
 		require.NoError(t, db.NewSelect().Table("monitor_probes").ColumnExpr("count(*)").Where("monitor_id = ?", created.ID).Scan(ctx, &rows))
@@ -447,10 +450,11 @@ func TestSQLRepository_DeletingAMonitorAfterACancelledQueryStillRemovesItsRows(t
 	t.Setenv("BUNDEBUG", "0") // the query hook prints a cancelled query as a failure
 	db := sqliteDB(t)
 	migrateUp(t, db, migrations.Migrations)
+	workspacetest.Ensure(t, db)
 	repo := NewSQLRepository(db)
 	ctx := context.Background()
 	addProbe(t, db, "frankfurt")
-	created, err := repo.Create(ctx, monitorOn("Checkout", true, "frankfurt"))
+	created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "frankfurt"))
 	require.NoError(t, err)
 	for range 3 {
 		_, err = db.Exec("INSERT INTO heartbeats (id, monitor_id, status) VALUES (?, ?, 1)", uuid.NewString(), created.ID)
@@ -478,7 +482,7 @@ func TestSQLRepository_DeletingAMonitorAfterACancelledQueryStillRemovesItsRows(t
 	}
 	require.True(t, replaced, "the cancelled query never cost the connection")
 
-	require.NoError(t, repo.Delete(ctx, created.ID))
+	require.NoError(t, repo.Delete(ctx, testWorkspace, created.ID))
 
 	for _, table := range []string{"monitor_probes", "heartbeats"} {
 		var rows int
@@ -492,13 +496,13 @@ func TestSQLRepository_TheDatabaseRefusesToDeleteAProbeWithMonitors(t *testing.T
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
-		created, err := repo.Create(ctx, monitorOn("Checkout", true, "frankfurt"))
+		created, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "frankfurt"))
 		require.NoError(t, err)
 
 		_, err = db.Exec("DELETE FROM probes WHERE id = ?", "frankfurt")
 
 		assert.Error(t, err)
-		found, err := repo.FindByID(ctx, created.ID)
+		found, err := repo.FindByID(ctx, testWorkspace, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, []string{"frankfurt"}, found.ProbeIDs, "the monitor keeps its probe")
 	})
@@ -513,7 +517,7 @@ func TestSQLRepository_ProbeRowsFollowTheMonitorsTransaction(t *testing.T) {
 		addProbe(t, db, "frankfurt")
 
 		err := dbtx.NewSQLTransactor(db).WithTx(ctx, func(ctx context.Context) error {
-			_, err := repo.Create(ctx, monitorOn("Checkout", true, "frankfurt"))
+			_, err := repo.Create(ctx, testWorkspace, monitorOn("Checkout", true, "frankfurt"))
 			require.NoError(t, err)
 			return assert.AnError
 		})
@@ -533,18 +537,18 @@ func TestSQLRepository_AMonitorWithoutARowRunsOnLocal(t *testing.T) {
 		ctx := context.Background()
 		addProbe(t, db, "frankfurt")
 		rowless := uuid.NewString()
-		_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, rowless, true)
+		_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, rowless, true)
 		require.NoError(t, err)
-		remote, err := repo.Create(ctx, monitorOn("On a probe", true, "frankfurt"))
+		remote, err := repo.Create(ctx, testWorkspace, monitorOn("On a probe", true, "frankfurt"))
 		require.NoError(t, err)
 
-		found, err := repo.FindByID(ctx, rowless)
+		found, err := repo.FindByID(ctx, testWorkspace, rowless)
 		require.NoError(t, err)
 		assert.Equal(t, []string{"local"}, found.ProbeIDs)
-		onLocal, err := repo.FindActiveByProbe(ctx, "local", 0, 10)
+		onLocal, err := repo.FindActiveByProbeAnyWorkspace(ctx, "local", 0, 10)
 		require.NoError(t, err)
 		assert.Equal(t, []string{rowless}, idsOf(onLocal))
-		onRemote, err := repo.FindActiveByProbe(ctx, "frankfurt", 0, 10)
+		onRemote, err := repo.FindActiveByProbeAnyWorkspace(ctx, "frankfurt", 0, 10)
 		require.NoError(t, err)
 		assert.Equal(t, []string{remote.ID}, idsOf(onRemote))
 	})

@@ -79,7 +79,7 @@ func provideAnnouncements(client *redis.Client) probe.Announcements {
 func provideSilentWatch(source protocol.MonitorSource, announced probe.Announcements) *probe.SilentWatch {
 	return &probe.SilentWatch{
 		Monitors: func(ctx context.Context) (int, error) {
-			monitors, err := source.FindActiveByProbe(ctx, probe.LocalID)
+			monitors, err := source.FindActiveByProbeAnyWorkspace(ctx, probe.LocalID)
 			if err != nil {
 				return 0, err
 			}

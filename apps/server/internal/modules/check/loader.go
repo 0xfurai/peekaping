@@ -25,7 +25,8 @@ var (
 
 // MonitorFinder is the part of the monitor service the loader reads
 type MonitorFinder interface {
-	FindByID(ctx context.Context, id string) (*shared.Monitor, error)
+	// FindByIDAnyWorkspace loads the monitor a check was queued for, whatever its workspace
+	FindByIDAnyWorkspace(ctx context.Context, id string) (*shared.Monitor, error)
 }
 
 // ProxyFinder is the part of the proxy service the loader reads
@@ -79,7 +80,7 @@ func NewLoader(
 // A proxy or a push monitor's latest heartbeat that can't be read doesn't fail the load.
 // The check runs without it, and the failure is logged.
 func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
-	mon, err := l.monitorService.FindByID(ctx, monitorID)
+	mon, err := l.monitorService.FindByIDAnyWorkspace(ctx, monitorID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find monitor: %w", err)
 	}

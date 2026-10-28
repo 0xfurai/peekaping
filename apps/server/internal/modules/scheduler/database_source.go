@@ -15,8 +15,9 @@ type Loader interface {
 
 // MonitorFinder is the part of the monitor service the database source reads
 type MonitorFinder interface {
-	FindByID(ctx context.Context, id string) (*shared.Monitor, error)
-	FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error)
+	// The scheduler checks the monitors of every workspace
+	FindByIDAnyWorkspace(ctx context.Context, id string) (*shared.Monitor, error)
+	FindActiveByProbeAnyWorkspace(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error)
 }
 
 // DatabaseSource is the Source of the peekaping process: the monitors of the local probe in
@@ -36,12 +37,12 @@ func NewDatabaseSource(monitors MonitorFinder, loader Loader, eventBus events.Ev
 
 // ListActive pages the active monitors the local probe runs
 func (d *DatabaseSource) ListActive(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {
-	return d.monitors.FindActiveByProbe(ctx, shared.LocalProbeID, page, limit)
+	return d.monitors.FindActiveByProbeAnyWorkspace(ctx, shared.LocalProbeID, page, limit)
 }
 
 // Find reads the monitor, and returns nil when it is gone or the local probe doesn't run it
 func (d *DatabaseSource) Find(ctx context.Context, monitorID string) (*shared.Monitor, error) {
-	mon, err := d.monitors.FindByID(ctx, monitorID)
+	mon, err := d.monitors.FindByIDAnyWorkspace(ctx, monitorID)
 	if err != nil || mon == nil || !mon.RunsOn(shared.LocalProbeID) {
 		return nil, err
 	}

@@ -47,6 +47,7 @@ func (c *copier) copyProxies(ctx context.Context) error {
 
 type monitorRow struct {
 	ID             string    `bun:"id"`
+	WorkspaceID    string    `bun:"workspace_id"`
 	Type           string    `bun:"type" max:"20"`
 	Name           string    `bun:"name" max:"150"`
 	Interval       int       `bun:"interval"`
@@ -177,7 +178,7 @@ func (c *copier) copyMonitors(ctx context.Context) error {
 		c.monitors.add(id)
 		config := jsonConfig(report, d.strPtr("config"))
 		return out.add(ctx, monitorRow{
-			ID: uuidOf(id), Type: d.str("type"), Name: d.str("name"),
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Type: d.str("type"), Name: d.str("name"),
 			Interval: int(d.integer("interval")), Timeout: int(d.integer("timeout")), MaxRetries: int(d.integer("max_retries")),
 			RetryInterval: int(d.integer("retry_interval")), ResendInterval: int(d.integer("resend_interval")),
 			Active: d.boolean("active"), Status: int(d.integer("status")), CreatedAt: created, UpdatedAt: updated,

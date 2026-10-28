@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 	"strings"
@@ -111,6 +112,10 @@ func (ic *MonitorController) withLinksOf(ctx context.Context, monitor *Model) (*
 }
 
 func (ic *MonitorController) FindAll(ctx context.Context, input *FindAllInput) (*httpx.Output[utils.ApiResponse[[]*MonitorResponseDto]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	page, err := utils.GetQueryInt(r, "page", 0)
 	if err != nil || page < 0 {
@@ -156,7 +161,7 @@ func (ic *MonitorController) FindAll(ctx context.Context, input *FindAllInput) (
 		tagIds = validTagIds
 	}
 
-	response, err := ic.monitorService.FindAll(ctx, page, limit, q, active, statusPtr, tagIds)
+	response, err := ic.monitorService.FindAll(ctx, workspaceID, page, limit, q, active, statusPtr, tagIds)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitors", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -178,6 +183,10 @@ func (ic *MonitorController) FindAll(ctx context.Context, input *FindAllInput) (
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", monitors))
 }
 func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*httpx.Output[utils.ApiResponse[*MonitorResponseDto]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	monitor, decodeErr := input.Decode()
 	if err := decodeErr; err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
@@ -193,7 +202,7 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
 	}
 
-	createdMonitor, err := ic.monitorService.Create(ctx, monitor)
+	createdMonitor, err := ic.monitorService.Create(ctx, workspaceID, monitor)
 	if err != nil {
 		var invalidProbes *InvalidProbesError
 		var invalidRule *InvalidLocationRuleError
@@ -225,10 +234,14 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Monitor created successfully", response))
 }
 func (ic *MonitorController) FindByID(ctx context.Context, input *FindByIDInput) (*httpx.Output[utils.ApiResponse[*MonitorResponseDto]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
-	monitor, err := ic.monitorService.FindByID(ctx, id)
+	monitor, err := ic.monitorService.FindByID(ctx, workspaceID, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitor", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -251,6 +264,10 @@ func (ic *MonitorController) FindByID(ctx context.Context, input *FindByIDInput)
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", response))
 }
 func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullInput) (*httpx.Output[utils.ApiResponse[*MonitorResponseDto]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
@@ -269,7 +286,7 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
 	}
 
-	updatedMonitor, err := ic.monitorService.UpdateFull(ctx, id, &monitor)
+	updatedMonitor, err := ic.monitorService.UpdateFull(ctx, workspaceID, id, &monitor)
 	if err != nil {
 		var invalidProbes *InvalidProbesError
 		var invalidRule *InvalidLocationRuleError
@@ -298,6 +315,10 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Monitor updated successfully", response))
 }
 func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePartialInput) (*httpx.Output[utils.ApiResponse[*MonitorResponseDto]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
@@ -310,7 +331,7 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, id, &monitor, false)
+	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, workspaceID, id, &monitor, false)
 	if err != nil {
 		return nil, ic.failWrite("update", err)
 	}
@@ -349,6 +370,26 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 }
 
+// failLookup is the answer to the error of a read that loads the monitor first: 404 when the
+// monitor isn't in the workspace and 500 when the read failed. It returns nil for any other error.
+func (ic *MonitorController) failLookup(err error) error {
+	var lookup *LookupError
+	switch {
+	case errors.Is(err, ErrMonitorNotFound):
+		return monitorNotFoundResponse()
+	case errors.As(err, &lookup):
+		ic.logger.Errorw("Failed to find monitor", "error", err)
+		return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return nil
+}
+
+// monitorNotFoundResponse is the answer for a monitor that doesn't exist and for one that belongs
+// to another workspace, which a caller can't tell apart
+func monitorNotFoundResponse() error {
+	return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
+}
+
 // pushTokenTakenResponse tells the client that the push token it sent belongs to another monitor
 func pushTokenTakenResponse(err *PushTokenAlreadyUsedError) error {
 	return httpx.Fail(http.StatusBadRequest, PushTokenErrorResponse{Error: err})
@@ -360,16 +401,24 @@ func invalidProbesResponse(err *InvalidProbesError) error {
 }
 
 func (ic *MonitorController) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
-	if err := ic.monitorService.Delete(ctx, id); err != nil {
+	if err := ic.monitorService.Delete(ctx, workspaceID, id); err != nil {
 		return nil, ic.failWrite("delete", err)
 	}
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Monitor deleted successfully", nil))
 }
 func (ic *MonitorController) FindByMonitorIDPaginated(ctx context.Context, input *FindByMonitorIDPaginatedInput) (*httpx.Output[utils.ApiResponse[[]*heartbeat.Model]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
@@ -402,18 +451,21 @@ func (ic *MonitorController) FindByMonitorIDPaginated(ctx context.Context, input
 		}
 	}
 
-	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
-		return nil, err
-	}
-
-	results, err := ic.monitorService.GetHeartbeats(ctx, id, r.URL.Query().Get("probe_id"), limit, page, importantPtr, reverse)
+	results, err := ic.monitorService.GetHeartbeats(ctx, workspaceID, id, r.URL.Query().Get("probe_id"), limit, page, importantPtr, reverse)
 	if err != nil {
+		if failure := ic.failLookup(err); failure != nil {
+			return nil, failure
+		}
 		ic.logger.Errorw("Failed to get heartbeats", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", results))
 }
 func (ic *MonitorController) GetStatPoints(ctx context.Context, input *GetStatPointsInput) (*httpx.Output[utils.ApiResponse[*StatPointsSummaryDto]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
@@ -461,32 +513,38 @@ func (ic *MonitorController) GetStatPoints(ctx context.Context, input *GetStatPo
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Too many points requested: %d (max 1441)", estPoints)))
 	}
 
-	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
-		return nil, err
-	}
-
-	summary, err := ic.monitorService.GetStatPoints(ctx, id, r.URL.Query().Get("probe_id"), since, until, granularity)
+	summary, err := ic.monitorService.GetStatPoints(ctx, workspaceID, id, r.URL.Query().Get("probe_id"), since, until, granularity)
 	if err != nil {
+		if failure := ic.failLookup(err); failure != nil {
+			return nil, failure
+		}
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", summary))
 }
 func (ic *MonitorController) GetUptimeStats(ctx context.Context, input *GetUptimeStatsInput) (*httpx.Output[utils.ApiResponse[*CustomUptimeStatsDto]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
-	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
-		return nil, err
-	}
-
-	stats, err := ic.monitorService.GetUptimeStats(ctx, id, r.URL.Query().Get("probe_id"))
+	stats, err := ic.monitorService.GetUptimeStats(ctx, workspaceID, id, r.URL.Query().Get("probe_id"))
 	if err != nil {
+		if failure := ic.failLookup(err); failure != nil {
+			return nil, failure
+		}
 		ic.logger.Errorw("Failed to get uptime stats (short)", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", stats))
 }
 func (ic *MonitorController) FindByIDs(ctx context.Context, input *FindByIDsInput) (*httpx.Output[utils.ApiResponse[[]*MonitorResponseDto]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	idsStr := r.URL.Query().Get("ids")
 	if idsStr == "" {
@@ -504,7 +562,7 @@ func (ic *MonitorController) FindByIDs(ctx context.Context, input *FindByIDsInpu
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("maximum 100 monitor IDs allowed"))
 	}
 
-	monitors, err := ic.monitorService.FindByIDs(ctx, ids)
+	monitors, err := ic.monitorService.FindByIDs(ctx, workspaceID, ids)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch monitors", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -519,13 +577,17 @@ func (ic *MonitorController) FindByIDs(ctx context.Context, input *FindByIDsInpu
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", response))
 }
 func (ic *MonitorController) ResetMonitorData(ctx context.Context, input *ResetMonitorDataInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
-	err := ic.monitorService.ResetMonitorData(ctx, id)
+	err = ic.monitorService.ResetMonitorData(ctx, workspaceID, id)
 	if err != nil {
-		if err.Error() == "monitor not found" {
-			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
+		if failure := ic.failLookup(err); failure != nil {
+			return nil, failure
 		}
 		ic.logger.Errorw("Failed to reset monitor data", "monitorID", id, "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -534,10 +596,18 @@ func (ic *MonitorController) ResetMonitorData(ctx context.Context, input *ResetM
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Monitor data reset successfully", nil))
 }
 func (ic *MonitorController) GetTLSInfo(ctx context.Context, input *GetTLSInfoInput) (*httpx.Output[utils.NullableApiResponse[*monitor_tls_info.TLSInfo]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
-	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", ic.monitorService.FindByID, id); err != nil {
+	// The TLS info is read by the monitor's id, so the monitor is loaded in the workspace first
+	findInWorkspace := func(ctx context.Context, id string) (*Model, error) {
+		return ic.monitorService.FindByID(ctx, workspaceID, id)
+	}
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Monitor", findInWorkspace, id); err != nil {
 		return nil, err
 	}
 

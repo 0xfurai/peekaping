@@ -95,7 +95,7 @@ func notModified() (*httpx.Output[probeproto.AssignmentsResponse], error) {
 // each of the probe's instances on each API replica: the version and the dealing depend on the
 // database alone.
 func (c *Controller) assign(ctx context.Context, probeID, instanceID string) (*assignment, error) {
-	monitors, err := c.source.FindActiveByProbe(ctx, probeID)
+	monitors, err := c.source.FindActiveByProbeAnyWorkspace(ctx, probeID)
 	if err != nil {
 		return nil, err
 	}

@@ -12,48 +12,77 @@ import (
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/workspace"
 	"time"
 
 	"go.uber.org/zap"
 )
 
+// Service works on monitors, which belong to a workspace (docs/adr/0005 section 3).
+//
+// A method that serves a workspace's request takes the workspace right after the context, and
+// answers ErrMonitorNotFound for a monitor of another workspace. A method whose name ends in
+// AnyWorkspace works across workspaces, for the paths that run for the whole install.
 type Service interface {
-	Create(ctx context.Context, monitor *CreateUpdateDto) (*Model, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
-	FindByIDs(ctx context.Context, ids []string) ([]*Model, error)
-	FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error)
-	FindActive(ctx context.Context) ([]*Model, error)
-	FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error)
-	// FindActiveByProbe returns a page of the active monitors the probe runs
-	FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error)
-	UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
-	Delete(ctx context.Context, id string) error
+	// Create makes the monitor in the workspace, whatever workspace the monitor says
+	Create(ctx context.Context, workspaceID workspace.ID, monitor *CreateUpdateDto) (*Model, error)
+	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
+	// FindByIDAnyWorkspace is for a path that loads the monitor it was told about, whatever its
+	// workspace: a notification, a public status page, a badge, the probe protocol
+	FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error)
+	FindByIDs(ctx context.Context, workspaceID workspace.ID, ids []string) ([]*Model, error)
+	FindByIDsAnyWorkspace(ctx context.Context, ids []string) ([]*Model, error)
+	FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error)
+	// FindAllAnyWorkspace returns a page of every monitor of the install, paused ones included
+	FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error)
+	FindActiveAnyWorkspace(ctx context.Context) ([]*Model, error)
+	FindActivePaginatedAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error)
+	// FindActiveByProbeAnyWorkspace returns a page of the active monitors the probe runs. A probe
+	// belongs to the install, so it runs the monitors of every workspace.
+	FindActiveByProbeAnyWorkspace(ctx context.Context, probeID string, page int, limit int) ([]*Model, error)
+	UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, monitor *CreateUpdateDto) (*Model, error)
+	UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
+	// UpdatePartialAnyWorkspace is UpdatePartial for a background job that knows the monitor by its
+	// id alone, such as the one that stores a status change
+	UpdatePartialAnyWorkspace(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
+	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
 	ValidateMonitorConfig(monitorType string, configJSON string) error
 
-	GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
+	// GetHeartbeats, GetStatPoints and GetUptimeStats load the monitor in the workspace first, and
+	// answer ErrMonitorNotFound when it isn't there. The heartbeats and stats are then read by the
+	// monitor's id.
+	GetHeartbeats(ctx context.Context, workspaceID workspace.ID, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
+	// GetHeartbeatsAnyWorkspace is for a public status page, which shows the monitors published on
+	// it whatever their workspace
+	GetHeartbeatsAnyWorkspace(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
 
-	RemoveProxyReference(ctx context.Context, proxyId string) error
-	FindByProxyId(ctx context.Context, proxyId string) ([]*Model, error)
+	RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) error
+	FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error)
 
-	GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
-	GetUptimeStats(ctx context.Context, id, probeID string) (*CustomUptimeStatsDto, error)
-	// GetUptime24h returns the monitor's uptime over the last 24 hours as a percentage, from the
-	// checks one probe ran (all of them when probeID is empty), with one stats read. It is nil
-	// when the period has no Up or Down heartbeat, which is not the same as 0%.
-	GetUptime24h(ctx context.Context, id, probeID string) (*float64, error)
+	GetStatPoints(ctx context.Context, workspaceID workspace.ID, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
+	GetUptimeStats(ctx context.Context, workspaceID workspace.ID, id, probeID string) (*CustomUptimeStatsDto, error)
+	// GetUptime24hAnyWorkspace returns the monitor's uptime over the last 24 hours as a percentage,
+	// from the checks one probe ran (all of them when probeID is empty), with one stats read. It
+	// is nil when the period has no Up or Down heartbeat, which is not the same as 0%. It is for
+	// public status pages and badges.
+	GetUptime24hAnyWorkspace(ctx context.Context, id, probeID string) (*float64, error)
 
-	FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error)
-	ResetMonitorData(ctx context.Context, id string) error
-	RepairStoredStatuses(ctx context.Context) (int, error)
-	// AssignProbeToAll adds the probe to every monitor that isn't a push monitor, paused ones
-	// included, of one of the types (every type when there are none) and doesn't run on it yet,
-	// and returns how many it added. The monitors keep their other probes and their location
-	// rule. claim, when it isn't nil, runs first in the same transaction, and nothing is assigned
-	// when it says false: a caller that must assign once passes the step that clears its flag, so
-	// that the flag is cleared only if the assignment is stored. It returns the error of an
-	// unknown probe, and of a claim or write that fails, with nothing assigned.
-	AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error)
+	// FindOneByPushTokenAnyWorkspace finds the monitor a push token belongs to: the token alone
+	// names the monitor, and so its workspace
+	FindOneByPushTokenAnyWorkspace(ctx context.Context, pushToken string) (*Model, error)
+	ResetMonitorData(ctx context.Context, workspaceID workspace.ID, id string) error
+	// RepairStoredStatusesAnyWorkspace is the job at startup that repairs the monitors of every
+	// workspace
+	RepairStoredStatusesAnyWorkspace(ctx context.Context) (int, error)
+	// AssignProbeToAllAnyWorkspace adds the probe to every monitor of the install that isn't a
+	// push monitor, paused ones included, of one of the types (every type when there are none)
+	// and doesn't run on it yet, and returns how many it added. A probe belongs to the install, so
+	// it is assigned the monitors of every workspace. The monitors keep their other probes and
+	// their location rule. claim, when it isn't nil, runs first in the same transaction, and
+	// nothing is assigned when it says false: a caller that must assign once passes the step that
+	// clears its flag, so that the flag is cleared only if the assignment is stored. It returns
+	// the error of an unknown probe, and of a claim or write that fails, with nothing assigned.
+	AssignProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error)
 }
 
 // StatusRepairPageSize is how many monitors RepairStoredStatuses reads at a time.
@@ -108,8 +137,9 @@ func NewMonitorService(
 	}
 }
 
-func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *CreateUpdateDto) (*Model, error) {
+func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) (*Model, error) {
 	createModel := &Model{
+		WorkspaceID:    workspaceID,
 		Type:           monitorCreateDto.Type,
 		Name:           monitorCreateDto.Name,
 		Interval:       monitorCreateDto.Interval,
@@ -146,7 +176,7 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 	var createdModel *Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
 		var err error
-		createdModel, err = mr.monitorRepository.Create(ctx, createModel)
+		createdModel, err = mr.monitorRepository.Create(ctx, workspaceID, createModel)
 		if err != nil {
 			return err
 		}
@@ -162,16 +192,24 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 	return createdModel, nil
 }
 
-func (mr *MonitorServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	return mr.monitorRepository.FindByID(ctx, id)
+func (mr *MonitorServiceImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	return mr.monitorRepository.FindByID(ctx, workspaceID, id)
 }
 
-func (mr *MonitorServiceImpl) FindByIDs(ctx context.Context, ids []string) ([]*Model, error) {
-	return mr.monitorRepository.FindByIDs(ctx, ids)
+func (mr *MonitorServiceImpl) FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error) {
+	return mr.monitorRepository.FindByIDAnyWorkspace(ctx, id)
 }
 
-func (mr *MonitorServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error) {
-	monitors, err := mr.monitorRepository.FindAll(ctx, page, limit, q, active, status, tagIds)
+func (mr *MonitorServiceImpl) FindByIDs(ctx context.Context, workspaceID workspace.ID, ids []string) ([]*Model, error) {
+	return mr.monitorRepository.FindByIDs(ctx, workspaceID, ids)
+}
+
+func (mr *MonitorServiceImpl) FindByIDsAnyWorkspace(ctx context.Context, ids []string) ([]*Model, error) {
+	return mr.monitorRepository.FindByIDsAnyWorkspace(ctx, ids)
+}
+
+func (mr *MonitorServiceImpl) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error) {
+	monitors, err := mr.monitorRepository.FindAll(ctx, workspaceID, page, limit, q, active, status, tagIds)
 	if err != nil {
 		return nil, err
 	}
@@ -179,19 +217,23 @@ func (mr *MonitorServiceImpl) FindAll(ctx context.Context, page int, limit int, 
 	return monitors, nil
 }
 
-func (mr *MonitorServiceImpl) FindActive(ctx context.Context) ([]*Model, error) {
-	return mr.monitorRepository.FindActive(ctx)
+func (mr *MonitorServiceImpl) FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
+	return mr.monitorRepository.FindAllAnyWorkspace(ctx, page, limit)
 }
 
-func (mr *MonitorServiceImpl) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
-	return mr.monitorRepository.FindActivePaginated(ctx, page, limit)
+func (mr *MonitorServiceImpl) FindActiveAnyWorkspace(ctx context.Context) ([]*Model, error) {
+	return mr.monitorRepository.FindActiveAnyWorkspace(ctx)
 }
 
-func (mr *MonitorServiceImpl) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
-	return mr.monitorRepository.FindActiveByProbe(ctx, probeID, page, limit)
+func (mr *MonitorServiceImpl) FindActivePaginatedAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
+	return mr.monitorRepository.FindActivePaginatedAnyWorkspace(ctx, page, limit)
 }
 
-func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor *CreateUpdateDto) (*Model, error) {
+func (mr *MonitorServiceImpl) FindActiveByProbeAnyWorkspace(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
+	return mr.monitorRepository.FindActiveByProbeAnyWorkspace(ctx, probeID, page, limit)
+}
+
+func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, monitor *CreateUpdateDto) (*Model, error) {
 	model := &Model{
 		ID:             id,
 		Name:           monitor.Name,
@@ -214,7 +256,7 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 	// and the event carry what is stored, including its status and created_at.
 	var updatedMonitor *Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
-		current, err := mr.FindByID(ctx, id)
+		current, err := mr.FindByID(ctx, workspaceID, id)
 		if err != nil {
 			return err
 		}
@@ -230,13 +272,13 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		if err != nil {
 			return err
 		}
-		if err := mr.monitorRepository.UpdateFull(ctx, id, model); err != nil {
+		if err := mr.monitorRepository.UpdateFull(ctx, workspaceID, id, model); err != nil {
 			return err
 		}
 		if err := mr.replaceLinks(ctx, id, monitor.NotificationIds, monitor.TagIds); err != nil {
 			return err
 		}
-		updatedMonitor, err = mr.FindByID(ctx, id)
+		updatedMonitor, err = mr.FindByID(ctx, workspaceID, id)
 		if err != nil {
 			return err
 		}
@@ -255,7 +297,25 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 	return updatedMonitor, nil
 }
 
-func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
+func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
+	return mr.updatePartial(ctx, &workspaceID, id, monitor, noPublish)
+}
+
+func (mr *MonitorServiceImpl) UpdatePartialAnyWorkspace(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
+	return mr.updatePartial(ctx, nil, id, monitor, noPublish)
+}
+
+// find reads the monitor in the workspace, or across workspaces when there is none. A monitor of
+// another workspace is not found.
+func (mr *MonitorServiceImpl) find(ctx context.Context, workspaceID *workspace.ID, id string) (*Model, error) {
+	if workspaceID == nil {
+		return mr.monitorRepository.FindByIDAnyWorkspace(ctx, id)
+	}
+	return mr.monitorRepository.FindByID(ctx, *workspaceID, id)
+}
+
+// updatePartial is UpdatePartial in the workspace, or across workspaces when there is none
+func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
 	model := &UpdateModel{
 		ID:             &id,
 		Type:           monitor.Type,
@@ -278,7 +338,7 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 	// change only when IDs are sent: a request without them leaves the links as they are.
 	var updatedMonitor *Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
-		current, err := mr.FindByID(ctx, id)
+		current, err := mr.find(ctx, workspaceID, id)
 		if err != nil {
 			return err
 		}
@@ -302,7 +362,12 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		if rule, threshold, set := partialLocationRule(current, monitor); set {
 			model.LocationRule, model.LocationThreshold = &rule, threshold
 		}
-		if err := mr.monitorRepository.UpdatePartial(ctx, id, model); err != nil {
+		if workspaceID == nil {
+			err = mr.monitorRepository.UpdatePartialAnyWorkspace(ctx, id, model)
+		} else {
+			err = mr.monitorRepository.UpdatePartial(ctx, *workspaceID, id, model)
+		}
+		if err != nil {
 			return err
 		}
 		if len(monitor.NotificationIds) > 0 {
@@ -315,7 +380,7 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 				return err
 			}
 		}
-		updatedMonitor, err = mr.FindByID(ctx, id)
+		updatedMonitor, err = mr.find(ctx, workspaceID, id)
 		if err != nil {
 			return err
 		}
@@ -376,10 +441,10 @@ func validatePartialTimeout(current *Model, update *PartialUpdateDto) error {
 	return nil
 }
 
-func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
+func (mr *MonitorServiceImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
 	// The monitor goes with its links, heartbeats and stats, or stays with all of them
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
-		current, err := mr.FindByID(ctx, id)
+		current, err := mr.FindByID(ctx, workspaceID, id)
 		if err != nil {
 			return err
 		}
@@ -392,7 +457,7 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
 		if err := mr.statPointsService.DeleteByMonitorID(ctx, id); err != nil {
 			return fmt.Errorf("delete stats: %w", err)
 		}
-		if err := mr.monitorRepository.Delete(ctx, id); err != nil {
+		if err := mr.monitorRepository.Delete(ctx, workspaceID, id); err != nil {
 			return err
 		}
 		if err := mr.monitorNotificationService.DeleteByMonitorID(ctx, id); err != nil {
@@ -545,19 +610,39 @@ func (mr *MonitorServiceImpl) ValidateMonitorConfig(
 	return mr.executorRegistry.ValidateConfig(monitorType, configJSON)
 }
 
-func (mr *MonitorServiceImpl) GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+// requireMonitor loads the monitor in the workspace, and is ErrMonitorNotFound when it isn't
+// there. Every read of a monitor's heartbeats or stats goes through it first.
+func (mr *MonitorServiceImpl) requireMonitor(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	monitor, err := mr.monitorRepository.FindByID(ctx, workspaceID, id)
+	if err != nil {
+		return nil, &LookupError{Err: err}
+	}
+	if monitor == nil {
+		return nil, fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+	}
+	return monitor, nil
+}
+
+func (mr *MonitorServiceImpl) GetHeartbeats(ctx context.Context, workspaceID workspace.ID, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+	if _, err := mr.requireMonitor(ctx, workspaceID, id); err != nil {
+		return nil, err
+	}
 	return mr.heartbeatService.FindByMonitorIDAndProbeIDPaginated(ctx, id, probeID, limit, page, important, reverse)
 }
 
-func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, proxyId string) error {
-	return mr.monitorRepository.RemoveProxyReference(ctx, proxyId)
+func (mr *MonitorServiceImpl) GetHeartbeatsAnyWorkspace(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
+	return mr.heartbeatService.FindByMonitorIDAndProbeIDPaginated(ctx, id, probeID, limit, page, important, reverse)
 }
 
-func (mr *MonitorServiceImpl) FindByProxyId(ctx context.Context, proxyId string) ([]*Model, error) {
-	return mr.monitorRepository.FindByProxyId(ctx, proxyId)
+func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) error {
+	return mr.monitorRepository.RemoveProxyReference(ctx, workspaceID, proxyId)
 }
 
-func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error) {
+func (mr *MonitorServiceImpl) FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error) {
+	return mr.monitorRepository.FindByProxyId(ctx, workspaceID, proxyId)
+}
+
+func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, workspaceID workspace.ID, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error) {
 	var period stats.StatPeriod
 	switch granularity {
 	case "minute":
@@ -571,12 +656,9 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id, probeID str
 	}
 
 	// Get monitor information to pass interval for minute-level grouping
-	monitor, err := mr.FindByID(ctx, id)
+	monitor, err := mr.requireMonitor(ctx, workspaceID, id)
 	if err != nil {
 		return nil, err
-	}
-	if monitor == nil {
-		return nil, fmt.Errorf("monitor not found")
 	}
 
 	// Use the new method that accepts monitor interval
@@ -612,7 +694,10 @@ func (mr *MonitorServiceImpl) GetStatPoints(ctx context.Context, id, probeID str
 
 // GetUptimeStats returns uptime percentages for 24h, 7d, 30d and 365d. A period with no Up or
 // Down heartbeat is nil, not 0.
-func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id, probeID string) (*CustomUptimeStatsDto, error) {
+func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, workspaceID workspace.ID, id, probeID string) (*CustomUptimeStatsDto, error) {
+	if _, err := mr.requireMonitor(ctx, workspaceID, id); err != nil {
+		return nil, err
+	}
 	now := time.Now().UTC()
 	periods := map[string]time.Duration{
 		"24h":  24 * time.Hour,
@@ -642,7 +727,7 @@ func (mr *MonitorServiceImpl) GetUptimeStats(ctx context.Context, id, probeID st
 	return stats, nil
 }
 
-func (mr *MonitorServiceImpl) GetUptime24h(ctx context.Context, id, probeID string) (*float64, error) {
+func (mr *MonitorServiceImpl) GetUptime24hAnyWorkspace(ctx context.Context, id, probeID string) (*float64, error) {
 	now := time.Now().UTC()
 	summary, err := mr.statPointsService.Summarize(ctx, id, probeID, now.Add(-24*time.Hour), now)
 	if err != nil {
@@ -651,15 +736,15 @@ func (mr *MonitorServiceImpl) GetUptime24h(ctx context.Context, id, probeID stri
 	return summary.Uptime, nil
 }
 
-func (mr *MonitorServiceImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {
-	return mr.monitorRepository.FindOneByPushToken(ctx, pushToken)
+func (mr *MonitorServiceImpl) FindOneByPushTokenAnyWorkspace(ctx context.Context, pushToken string) (*Model, error) {
+	return mr.monitorRepository.FindOneByPushTokenAnyWorkspace(ctx, pushToken)
 }
 
 // assignPublishChunk is how many monitors AssignProbeToAll reads back at a time to announce
 const assignPublishChunk = 500
 
-// MARK: AssignProbeToAll
-func (mr *MonitorServiceImpl) AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error) {
+// MARK: AssignProbeToAllAnyWorkspace
+func (mr *MonitorServiceImpl) AssignProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error) {
 	var changed []string
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
 		if claim != nil {
@@ -677,7 +762,7 @@ func (mr *MonitorServiceImpl) AssignProbeToAll(ctx context.Context, probeID stri
 		if info == nil {
 			return &InvalidProbesError{Err: fmt.Errorf("probe %q doesn't exist", probeID)}
 		}
-		changed, err = mr.monitorRepository.AddProbeToAll(ctx, probeID, supportedTypes)
+		changed, err = mr.monitorRepository.AddProbeToAllAnyWorkspace(ctx, probeID, supportedTypes)
 		return err
 	})
 	if err != nil {
@@ -687,7 +772,7 @@ func (mr *MonitorServiceImpl) AssignProbeToAll(ctx context.Context, probeID stri
 	// Emit monitor updated events, once the assignment is committed. A monitor that can't be read
 	// back is logged: the assignment is stored, and the claim that made it is spent.
 	for _, ids := range chunked(changed, assignPublishChunk) {
-		monitors, err := mr.FindByIDs(ctx, ids)
+		monitors, err := mr.FindByIDsAnyWorkspace(ctx, ids)
 		if err != nil {
 			mr.logger.Errorw("Failed to read the monitors a probe was assigned", "probe_id", probeID, "error", err)
 			continue
@@ -699,18 +784,14 @@ func (mr *MonitorServiceImpl) AssignProbeToAll(ctx context.Context, probeID stri
 	return len(changed), nil
 }
 
-func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) error {
-	// First check if monitor exists
-	monitor, err := mr.monitorRepository.FindByID(ctx, id)
-	if err != nil {
+func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, workspaceID workspace.ID, id string) error {
+	// First check that the monitor exists in the workspace
+	if _, err := mr.requireMonitor(ctx, workspaceID, id); err != nil {
 		return err
-	}
-	if monitor == nil {
-		return fmt.Errorf("monitor not found")
 	}
 
 	// Delete all heartbeats for this monitor
-	err = mr.heartbeatService.DeleteByMonitorID(ctx, id)
+	err := mr.heartbeatService.DeleteByMonitorID(ctx, id)
 	if err != nil {
 		mr.logger.Errorw("Failed to delete heartbeats for monitor", "monitorID", id, "error", err)
 		return fmt.Errorf("failed to delete heartbeats: %w", err)
@@ -724,14 +805,14 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 	}
 
 	// Forget where the monitor stood on each probe, so that its next result is its first
-	if err := mr.monitorRepository.ResetLocations(ctx, id); err != nil {
+	if err := mr.monitorRepository.ResetLocations(ctx, workspaceID, id); err != nil {
 		mr.logger.Errorw("Failed to reset the locations of monitor", "monitorID", id, "error", err)
 		return fmt.Errorf("failed to reset locations: %w", err)
 	}
 
 	// Reset monitor status to pending (like a fresh monitor)
 	pendingStatus := shared.MonitorStatusPending
-	err = mr.monitorRepository.UpdatePartial(ctx, id, &UpdateModel{
+	err = mr.monitorRepository.UpdatePartial(ctx, workspaceID, id, &UpdateModel{
 		ID:     &id,
 		Status: &pendingStatus,
 	})
@@ -743,7 +824,7 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 	mr.logger.Infow("Successfully reset monitor data", "monitorID", id)
 
 	// Emit monitor updated event
-	updatedMonitor, _ := mr.FindByID(ctx, id)
+	updatedMonitor, _ := mr.FindByID(ctx, workspaceID, id)
 	if updatedMonitor != nil {
 		mr.publishMonitor(ctx, events.MonitorUpdated, updatedMonitor)
 	} else {
@@ -753,11 +834,11 @@ func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, id string) e
 	return nil
 }
 
-// RepairStoredStatuses gives every monitor, paused ones too, the status of its latest heartbeat,
+// RepairStoredStatusesAnyWorkspace gives every monitor, paused ones too, the status of its latest heartbeat,
 // and returns how many it changed. A monitor without heartbeats is left alone. A monitor that
 // fails is logged and skipped, and the errors come back joined. A cancelled ctx ends the sweep
 // at once with ctx.Err() among them.
-func (mr *MonitorServiceImpl) RepairStoredStatuses(ctx context.Context) (int, error) {
+func (mr *MonitorServiceImpl) RepairStoredStatusesAnyWorkspace(ctx context.Context) (int, error) {
 	repaired := 0
 	var failures []error
 
@@ -765,7 +846,7 @@ func (mr *MonitorServiceImpl) RepairStoredStatuses(ctx context.Context) (int, er
 		if err := ctx.Err(); err != nil {
 			return repaired, errors.Join(append(failures, err)...)
 		}
-		monitors, err := mr.monitorRepository.FindAll(ctx, page, StatusRepairPageSize, "", nil, nil, nil)
+		monitors, err := mr.monitorRepository.FindAllAnyWorkspace(ctx, page, StatusRepairPageSize)
 		if err != nil {
 			mr.logger.Errorw("Failed to list monitors to repair their status", "page", page, "error", err)
 			return repaired, errors.Join(append(failures, fmt.Errorf("list monitors, page %d: %w", page, err))...)
@@ -804,7 +885,7 @@ func (mr *MonitorServiceImpl) repairStoredStatus(ctx context.Context, m *Model) 
 	}
 
 	status := latest[0].Status
-	if err := mr.monitorRepository.UpdatePartial(ctx, m.ID, &UpdateModel{ID: &m.ID, Status: &status}); err != nil {
+	if err := mr.monitorRepository.UpdatePartialAnyWorkspace(ctx, m.ID, &UpdateModel{ID: &m.ID, Status: &status}); err != nil {
 		return false, err
 	}
 	mr.logger.Infow("Repaired monitor status", "monitorID", m.ID, "from", m.Status, "to", status)

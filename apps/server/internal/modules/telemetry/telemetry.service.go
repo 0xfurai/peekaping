@@ -24,7 +24,8 @@ import (
 // part of the module's service the telemetry needs, so no repository interface changes.
 type (
 	MonitorLister interface {
-		FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*monitor.Model, error)
+		// FindAllAnyWorkspace counts the monitors of every workspace: the usage ping describes the install
+		FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*monitor.Model, error)
 	}
 	ChannelLister interface {
 		FindAll(ctx context.Context, page int, limit int, q string) ([]*notification_channel.Model, error)
@@ -293,7 +294,7 @@ func (s *ServiceImpl) build(ctx context.Context, on bool) (Payload, error) {
 	monitorCount := 0
 	monitorTypes := map[string]struct{}{}
 	err := walkPages(ctx, func(ctx context.Context, page, limit int) ([]*monitor.Model, error) {
-		return s.monitors.FindAll(ctx, page, limit, "", nil, nil, nil)
+		return s.monitors.FindAllAnyWorkspace(ctx, page, limit)
 	}, func(m *monitor.Model) {
 		monitorCount++
 		addType(monitorTypes, m.Type)

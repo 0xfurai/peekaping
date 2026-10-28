@@ -315,7 +315,7 @@ func startJobs(ctx context.Context, p parts, cfg *config.Config, logger *zap.Sug
 	j.repairDone = make(chan struct{})
 	reporting.Go("repair", func() {
 		defer close(j.repairDone)
-		repaired, err := p.Monitors.RepairStoredStatuses(repairCtx)
+		repaired, err := p.Monitors.RepairStoredStatusesAnyWorkspace(repairCtx)
 		if errors.Is(err, context.Canceled) {
 			logger.Infow("Stopped repairing monitor statuses on shutdown", "repaired", repaired)
 			return

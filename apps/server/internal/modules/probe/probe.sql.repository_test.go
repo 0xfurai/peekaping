@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"slices"
 	"strings"
 	"testing"
@@ -238,7 +239,8 @@ func TestSQLRepository_DeleteRemovesTheProbesInstances(t *testing.T) {
 func addMonitorOn(t *testing.T, db *bun.DB, probeID string, active bool) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, active)
+	workspacetest.Ensure(t, db)
+	_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, active) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, active)
 	require.NoError(t, err)
 	_, err = db.Exec("INSERT INTO monitor_probes (monitor_id, probe_id) VALUES (?, ?)", id, probeID)
 	require.NoError(t, err)

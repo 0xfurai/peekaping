@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -44,7 +45,7 @@ func TestRegisterSingle_TheSchedulerChecksAMonitorAndStoresItsHeartbeatThroughTh
 		t.Cleanup(s.Stop)
 
 		// A push monitor that has had no push is Down when it is checked
-		mon, err := monitors.Create(ctx, &monitor.CreateUpdateDto{
+		mon, err := monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{
 			Type:     "push",
 			Name:     "Push",
 			Interval: 60,
@@ -92,7 +93,7 @@ func TestRegisterSingle_TheSchedulerChecksAMonitorWhoseTimeoutIsAboveEightyPerce
 		require.NoError(t, s.Start(ctx))
 		t.Cleanup(s.Stop)
 
-		mon, err := monitors.Create(ctx, &monitor.CreateUpdateDto{
+		mon, err := monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{
 			Type:     "push",
 			Name:     "Legacy",
 			Interval: 60,

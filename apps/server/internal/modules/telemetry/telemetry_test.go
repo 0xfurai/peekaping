@@ -97,7 +97,7 @@ type fakeMonitors struct {
 	err   error
 }
 
-func (f *fakeMonitors) FindAll(_ context.Context, pageNo, limit int, _ string, _ *bool, _ *int, _ []string) ([]*monitor.Model, error) {
+func (f *fakeMonitors) FindAllAnyWorkspace(_ context.Context, pageNo, limit int) ([]*monitor.Model, error) {
 	return page(f.items, pageNo, limit), f.err
 }
 

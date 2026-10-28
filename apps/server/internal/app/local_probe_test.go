@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 
 	"peekaping/internal/modules/events"
@@ -28,12 +29,12 @@ func localLocationOnline(t *testing.T, container *dig.Container) bool {
 		closeDB(t, db)
 		require.NoError(t, migrateDB(db))
 		ctx := context.Background()
-		created, err := monitors.Create(ctx, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
+		created, err := monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{Type: "http", Name: "Home", Active: true, Config: "{}"})
 		require.NoError(t, err)
 		local, err := probes.FindByID(ctx, probe.LocalID)
 		require.NoError(t, err)
 		require.Equal(t, probe.StatusOffline, local.Status, "the local probe starts offline: nothing has connected")
-		found, err := monitors.FindByID(ctx, created.ID)
+		found, err := monitors.FindByID(ctx, workspacetest.ID, created.ID)
 		require.NoError(t, err)
 		require.Len(t, found.Locations, 1)
 		online = found.Locations[0].Online

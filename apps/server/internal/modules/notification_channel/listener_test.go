@@ -60,13 +60,13 @@ type fakeMonitorService struct {
 	monitors map[string]*monitor.Model
 }
 
-func (s *fakeMonitorService) FindByID(_ context.Context, id string) (*monitor.Model, error) {
+func (s *fakeMonitorService) FindByIDAnyWorkspace(_ context.Context, id string) (*monitor.Model, error) {
 	return s.monitors[id], nil
 }
 
 // FindActiveByProbe pages through the active monitors of the probe, newest id first, the way the
 // repository does. The local probe also runs the monitors that have no probe rows.
-func (s *fakeMonitorService) FindActiveByProbe(_ context.Context, probeID string, page, limit int) ([]*monitor.Model, error) {
+func (s *fakeMonitorService) FindActiveByProbeAnyWorkspace(_ context.Context, probeID string, page, limit int) ([]*monitor.Model, error) {
 	ids := make([]string, 0, len(s.monitors))
 	for id := range s.monitors {
 		ids = append(ids, id)

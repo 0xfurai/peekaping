@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -74,8 +75,7 @@ func migrateUp(t *testing.T, db *bun.DB, ms *migrate.Migrations) {
 func insertMonitor(t *testing.T, db *bun.DB) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
-	require.NoError(t, err)
+	workspacetest.InsertMonitor(t, db, id)
 	return id
 }
 

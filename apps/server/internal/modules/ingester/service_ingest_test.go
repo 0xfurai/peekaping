@@ -127,7 +127,7 @@ func (f *fakeLocations) rows() []shared.MonitorLocation {
 	return rows
 }
 
-func (f *fakeLocations) RecordLocation(_ context.Context, _ string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
+func (f *fakeLocations) RecordLocationAnyWorkspace(_ context.Context, _ string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
 	if f.err != nil {
 		return f.err
 	}

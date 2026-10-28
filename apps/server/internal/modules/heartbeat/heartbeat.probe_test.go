@@ -2,6 +2,7 @@ package heartbeat_test
 
 import (
 	"context"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -45,8 +46,7 @@ func onEverySQLBackend(t *testing.T, fn func(t *testing.T, db *bun.DB, svc heart
 func insertMonitor(t *testing.T, db *bun.DB) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
-	require.NoError(t, err)
+	workspacetest.InsertMonitor(t, db, id)
 	return id
 }
 

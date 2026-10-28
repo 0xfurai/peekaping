@@ -3,6 +3,7 @@ package workspace_test
 import (
 	"context"
 	"fmt"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"testing"
 
@@ -26,8 +27,7 @@ const (
 
 func insertMonitor(t *testing.T, db *bun.DB, id string) {
 	t.Helper()
-	_, err := db.Exec(records["monitors"], id)
-	require.NoError(t, err)
+	workspacetest.InsertMonitor(t, db, id)
 }
 
 func insertTLSInfo(t *testing.T, db *bun.DB, monitorID, info string) {
@@ -165,6 +165,7 @@ func ptr(s string) *string { return &s }
 
 func insertPushMonitor(t *testing.T, db *bun.DB, m pushMonitor) {
 	t.Helper()
+	workspacetest.Prepare(t, db)
 	_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token, config) VALUES (?, ?, ?, 60, 10, 1, 10, 0, ?, ?)`,
 		m.id, m.typ, m.name, m.token, m.config)
 	require.NoError(t, err)
@@ -220,9 +221,9 @@ func TestMigrations_PushTokensAreFilledFromTheConfigAndEmptyOnesBecomeNull(t *te
 		}, pushTokens(t, db))
 
 		// The database holds each token once from now on, and any number of monitors without one
-		_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token) VALUES (?, 'push', 'Twin', 60, 10, 1, 10, 0, 'own-token')`, uuid.NewString())
+		_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'push', 'Twin', 60, 10, 1, 10, 0, 'own-token')`, uuid.NewString())
 		assert.Error(t, err)
-		_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token) VALUES (?, 'push', 'Another without', 60, 10, 1, 10, 0, NULL)`, uuid.NewString())
+		_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'push', 'Another without', 60, 10, 1, 10, 0, NULL)`, uuid.NewString())
 		assert.NoError(t, err)
 	})
 }

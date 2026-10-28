@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -75,7 +76,7 @@ func TestRegisterClusterAPI_TheLeadersWatchdogNamesTheProbesThatDoNotRunAStaleMo
 		require.NoError(t, err)
 		instance := &probe.Instance{ID: "instance-1", Hostname: "edge-1", LastSeenAt: time.Now().UTC(), SupportedTypes: []string{"http", "tcp"}}
 		require.NoError(t, probes.RegisterInstance(ctx, frankfurt.ID, instance))
-		created, err := monitors.Create(ctx, &monitor.CreateUpdateDto{
+		created, err := monitors.Create(ctx, workspacetest.ID, &monitor.CreateUpdateDto{
 			Type: "http", Name: "Checkout", Interval: 60, Timeout: 16, RetryInterval: 60, Active: true, Config: "{}",
 			ProbeIDs: []string{frankfurt.ID},
 		})

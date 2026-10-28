@@ -30,32 +30,32 @@ func TestSQLRepository_MonitorsWithoutAPushTokenStoreNullAndReadBackEmpty(t *tes
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
 
-		first, err := repo.Create(ctx, monitorWithToken("First", ""))
+		first, err := repo.Create(ctx, testWorkspace, monitorWithToken("First", ""))
 		require.NoError(t, err)
-		second, err := repo.Create(ctx, monitorWithToken("Second", ""))
+		second, err := repo.Create(ctx, testWorkspace, monitorWithToken("Second", ""))
 		require.NoError(t, err, "any number of monitors have no token")
 
 		for _, m := range []*Model{first, second} {
 			assert.Nil(t, storedToken(t, db, m.ID))
-			found, err := repo.FindByID(ctx, m.ID)
+			found, err := repo.FindByID(ctx, testWorkspace, m.ID)
 			require.NoError(t, err)
 			assert.Empty(t, found.PushToken)
 		}
 
 		// An update that takes the token away stores NULL as well, in both kinds of update
-		withToken, err := repo.Create(ctx, monitorWithToken("With", "a-token"))
+		withToken, err := repo.Create(ctx, testWorkspace, monitorWithToken("With", "a-token"))
 		require.NoError(t, err)
 		require.NotNil(t, storedToken(t, db, withToken.ID))
 		cleared := *withToken
 		cleared.PushToken = ""
-		require.NoError(t, repo.UpdateFull(ctx, withToken.ID, &cleared))
+		require.NoError(t, repo.UpdateFull(ctx, testWorkspace, withToken.ID, &cleared))
 		assert.Nil(t, storedToken(t, db, withToken.ID))
 
 		again := "again-token"
-		require.NoError(t, repo.UpdatePartial(ctx, withToken.ID, &UpdateModel{PushToken: &again}))
+		require.NoError(t, repo.UpdatePartial(ctx, testWorkspace, withToken.ID, &UpdateModel{PushToken: &again}))
 		assert.Equal(t, &again, storedToken(t, db, withToken.ID))
 		empty := ""
-		require.NoError(t, repo.UpdatePartial(ctx, withToken.ID, &UpdateModel{PushToken: &empty}))
+		require.NoError(t, repo.UpdatePartial(ctx, testWorkspace, withToken.ID, &UpdateModel{PushToken: &empty}))
 		assert.Nil(t, storedToken(t, db, withToken.ID))
 	})
 }
@@ -64,33 +64,33 @@ func TestSQLRepository_APushTokenAnotherMonitorHoldsIsRefused(t *testing.T) {
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
 		repo := NewSQLRepository(db)
 		ctx := context.Background()
-		held, err := repo.Create(ctx, monitorWithToken("Holder", "held-token"))
+		held, err := repo.Create(ctx, testWorkspace, monitorWithToken("Holder", "held-token"))
 		require.NoError(t, err)
-		other, err := repo.Create(ctx, monitorWithToken("Other", "other-token"))
+		other, err := repo.Create(ctx, testWorkspace, monitorWithToken("Other", "other-token"))
 		require.NoError(t, err)
 		var taken *PushTokenAlreadyUsedError
 
-		_, err = repo.Create(ctx, monitorWithToken("Newcomer", "held-token"))
+		_, err = repo.Create(ctx, testWorkspace, monitorWithToken("Newcomer", "held-token"))
 		assert.ErrorAs(t, err, &taken, "on create")
 
 		clash := *other
 		clash.PushToken = "held-token"
-		assert.ErrorAs(t, repo.UpdateFull(ctx, other.ID, &clash), &taken, "on a full update")
+		assert.ErrorAs(t, repo.UpdateFull(ctx, testWorkspace, other.ID, &clash), &taken, "on a full update")
 
 		token := "held-token"
-		assert.ErrorAs(t, repo.UpdatePartial(ctx, other.ID, &UpdateModel{PushToken: &token}), &taken, "on a partial update")
+		assert.ErrorAs(t, repo.UpdatePartial(ctx, testWorkspace, other.ID, &UpdateModel{PushToken: &token}), &taken, "on a partial update")
 
 		// A monitor may keep its own token
 		own := *held
 		own.Name = "Holder, renamed"
-		assert.NoError(t, repo.UpdateFull(ctx, held.ID, &own))
+		assert.NoError(t, repo.UpdateFull(ctx, testWorkspace, held.ID, &own))
 		assert.Equal(t, "other-token", mustFind(t, repo, other.ID).PushToken)
 	})
 }
 
 func mustFind(t *testing.T, repo MonitorRepository, id string) *Model {
 	t.Helper()
-	found, err := repo.FindByID(context.Background(), id)
+	found, err := repo.FindByID(context.Background(), testWorkspace, id)
 	require.NoError(t, err)
 	return found
 }
