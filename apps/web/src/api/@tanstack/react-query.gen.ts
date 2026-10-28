@@ -2705,6 +2705,7 @@ export const getPushByTokenOptions = (options: Options<GetPushByTokenData>) => {
 
 /**
  * Delete setting by key
+ * Admins and owners of the request's workspace can delete it; a member gets 403.
  */
 export const deleteSettingsKeyByKeyMutation = (
   options?: Partial<Options<DeleteSettingsKeyByKeyData>>
@@ -2736,6 +2737,7 @@ export const getSettingsKeyByKeyQueryKey = (
 
 /**
  * Get setting by key
+ * A setting of the request's workspace; any member can read it.
  */
 export const getSettingsKeyByKeyOptions = (
   options: Options<GetSettingsKeyByKeyData>
@@ -2756,7 +2758,7 @@ export const getSettingsKeyByKeyOptions = (
 
 /**
  * Set setting by key
- * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.
+ * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404. It is a setting of the request's workspace: members read it, admins and owners change it, and a member's change returns 403.
  */
 export const putSettingsKeyByKeyMutation = (
   options?: Partial<Options<PutSettingsKeyByKeyData>>
