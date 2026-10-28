@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor_status_page"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/utils"
 
 	"go.uber.org/zap"
 )
@@ -127,6 +128,7 @@ func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, 
 }
 
 func (s *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error) {
+	dto.MonitorIDs = utils.LowerUUIDs(dto.MonitorIDs)
 	// Every monitor must be in the workspace, and is checked before anything is written
 	if err := s.monitorStatusPageService.RequireMonitors(ctx, workspaceID, dto.MonitorIDs); err != nil {
 		return nil, err
@@ -291,6 +293,8 @@ func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id s
 		return nil, ErrNotFound
 	}
 	if dto.MonitorIDs != nil {
+		lowered := utils.LowerUUIDs(*dto.MonitorIDs)
+		dto.MonitorIDs = &lowered
 		if err := s.monitorStatusPageService.RequireMonitors(ctx, workspaceID, *dto.MonitorIDs); err != nil {
 			return nil, err
 		}
