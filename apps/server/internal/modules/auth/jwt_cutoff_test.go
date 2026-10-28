@@ -74,8 +74,11 @@ func TestTokenMaker_ATokenIssuedInTheSameMillisecondAsTheCutoffWorks(t *testing.
 	require.NoError(t, err)
 	claims, err := tokens.VerifyToken(ctx, token, "access")
 	require.NoError(t, err)
-	// the cutoff is the very instant the token says it was issued
-	require.NoError(t, accounts.SetPassword(ctx, user.ID, user.Password, claims.IssuedAt.Time))
+	require.NotNil(t, claims.AuthTime, "a token carries auth_time")
+	// the cutoff is the very instant the token says its session began. Not iat: the session's
+	// start is read before the settings the token needs, and iat after, so the two can differ
+	// by a millisecond
+	require.NoError(t, accounts.SetPassword(ctx, user.ID, user.Password, claims.AuthTime.Time))
 
 	_, err = tokens.VerifyToken(ctx, token, "access")
 
