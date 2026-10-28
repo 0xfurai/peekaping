@@ -7,6 +7,15 @@
 // happen in the same synchronous commit, so a subscriber that is only being replaced is back
 // before the leave goes out.
 
+/** The room of a workspace: the server lets a member of the workspace join it. */
+export const workspaceRoom = (workspaceId: string) => `workspace:${workspaceId}`;
+
+/** The room of a monitor: the server lets a member of the monitor's workspace join it. */
+export const monitorRoom = (monitorId: string) => `monitor:${monitorId}`;
+
+/** The event a room delivers its heartbeats as. */
+export const heartbeatEvent = (room: string) => `${room}:heartbeat`;
+
 /** What the registry needs from a socket.io-client `Socket`. */
 export interface RoomSocket {
   connected: boolean;

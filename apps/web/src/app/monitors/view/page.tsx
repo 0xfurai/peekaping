@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSocketRoom } from "@/context/websocket-context";
+import { heartbeatEvent, monitorRoom } from "@/lib/socket-rooms";
 import Layout from "@/layout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -366,8 +367,8 @@ const MonitorPageContent = () => {
   };
 
   useSocketRoom(
-    heartbeatsResponse && id ? `monitor:${id}` : null,
-    `monitor:${id}:heartbeat`,
+    heartbeatsResponse && id ? monitorRoom(id) : null,
+    heartbeatEvent(monitorRoom(id ?? "")),
     handleHeartbeat,
   );
 

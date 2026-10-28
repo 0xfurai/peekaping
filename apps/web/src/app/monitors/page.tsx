@@ -12,7 +12,7 @@ import {
   type UtilsApiResponseArrayHeartbeatModel,
   type TagModel,
 } from "@/api";
-import { useSocketRoom } from "@/context/websocket-context";
+import { useWorkspaceHeartbeats } from "@/context/websocket-context";
 import { useEffect, useState, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
@@ -168,7 +168,7 @@ const MonitorsPage = () => {
     );
   };
 
-  useSocketRoom("monitor:all", "monitor:all:heartbeat", handleHeartbeat);
+  useWorkspaceHeartbeats(handleHeartbeat);
 
   // Infinite scroll logic using the reusable hook
   const handleObserver = useCallback(
