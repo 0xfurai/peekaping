@@ -493,6 +493,21 @@ func (s *ServiceImpl) CreateWorkspace(ctx context.Context, userID, name string) 
 		if err := s.workspaces.AddMember(ctx, made.ID, userID, RoleOwner); err != nil {
 			return err
 		}
+		if suspend {
+			// The read above may be stale: a verification that committed since found no workspace of
+			// the user to lift, and would leave this one suspended for good. Read again with the user's
+			// row held, so that a verification either is seen now or waits for this workspace.
+			verified, err := s.members.LockEmailVerified(ctx, userID)
+			if err != nil {
+				return err
+			}
+			if verified {
+				if _, err := s.workspaces.LiftUnverifiedOwnedBy(ctx, userID); err != nil {
+					return err
+				}
+				made.SuspendedAt, made.SuspendedReason = nil, ""
+			}
+		}
 		created = &Membership{Workspace: *made, Role: RoleOwner, JoinedAt: made.CreatedAt}
 		return nil
 	})
