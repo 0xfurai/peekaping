@@ -54,7 +54,7 @@ export function MonitorStep({ onCreated }: { onCreated: (monitorId: string) => v
   return (
     <StepCard step={2} title={t("get_started.monitor.title")} description={t("get_started.monitor.description")}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-4">
+        <form onSubmit={form.handleSubmit(submit)} noValidate className="flex flex-col gap-4">
           <FormField
             control={form.control}
             name="url"
