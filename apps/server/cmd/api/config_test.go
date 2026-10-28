@@ -387,3 +387,32 @@ func TestANegativeChecksPerHostPerMinuteStopsStartup(t *testing.T) {
 
 	assert.ErrorContains(t, err, "must be at least 0")
 }
+
+func TestMinCheckIntervalIsTwentyByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("MIN_CHECK_INTERVAL", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 20, cfg.ToInternalConfig().MinCheckInterval)
+
+	t.Setenv("MIN_CHECK_INTERVAL", "60")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 60, cfg.ToInternalConfig().MinCheckInterval)
+}
+
+func TestAMinCheckIntervalBelowTwentyStopsStartup(t *testing.T) {
+	for _, value := range []string{"19", "1", "-1"} {
+		t.Run(value, func(t *testing.T) {
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			t.Setenv("MIN_CHECK_INTERVAL", value)
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			assert.ErrorContains(t, err, "must be at least 20")
+		})
+	}
+}

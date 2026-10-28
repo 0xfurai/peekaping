@@ -199,6 +199,21 @@ type Config struct {
 	// server's scheduler and each remote probe count for themselves. A probe uses the server's value
 	// from hello when that is stricter than its own.
 	ChecksPerHostPerMinute int `env:"CHECKS_PER_HOST_PER_MINUTE" validate:"min=0" default:"0"`
+
+	// MinCheckInterval is the smallest check interval and retry interval, in seconds, a monitor can
+	// be saved with (PP-159). 20, the default, is the smallest a monitor ever had; a value below it
+	// stops startup. A monitor stored with less is checked at the minimum. MinCheckIntervalSeconds
+	// is the value to read: a Config built without the variable counts as 20.
+	MinCheckInterval int `env:"MIN_CHECK_INTERVAL" validate:"min=20" default:"20"`
+}
+
+// AbsoluteMinCheckInterval is the shortest check interval, in seconds, that any install allows:
+// the monitor DTOs' minimum. It is also the floor of MIN_CHECK_INTERVAL.
+const AbsoluteMinCheckInterval = 20
+
+// MinCheckIntervalSeconds is MIN_CHECK_INTERVAL, and never less than AbsoluteMinCheckInterval
+func (c *Config) MinCheckIntervalSeconds() int {
+	return max(c.MinCheckInterval, AbsoluteMinCheckInterval)
 }
 
 // MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left
