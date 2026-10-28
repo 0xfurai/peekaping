@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -303,6 +304,76 @@ func TestAdminUsers_TheLastInstanceAdminKeepsTheFlag(t *testing.T) {
 		stillAdmin := decode[adminUsersPage](t, a.request(t, http.MethodGet, adminUsersPath+"?q=ops@", nil, ops), http.StatusOK)
 		require.Len(t, stillAdmin.Users, 1)
 		assert.True(t, stillAdmin.Users[0].InstanceAdmin)
+	})
+}
+
+func TestAdminUsers_ADisabledInstanceAdminDoesNotCountAsOne(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		a := newAppWithAdmin(t, backend)
+		adminID := a.userID(t, adminEmail)
+		opsID := a.createUser(t, "ops@example.com")
+		require.Equal(t, http.StatusOK, a.patchUser(t, opsID, map[string]any{"instanceAdmin": true}).Code)
+		require.Equal(t, http.StatusOK, a.patchUser(t, opsID, map[string]any{"active": false}).Code)
+
+		// ops still has the flag, but can't sign in: the one who can may not give theirs up
+		w := a.patchUser(t, adminID, map[string]any{"instanceAdmin": false})
+		assert.Equal(t, http.StatusConflict, w.Code, w.Body.String())
+		assert.True(t, a.adminView(t, adminEmail).InstanceAdmin)
+
+		// the disabled one is not the last, so they may lose the flag, or the account
+		assert.Equal(t, http.StatusOK, a.patchUser(t, opsID, map[string]any{"instanceAdmin": false}).Code)
+		assert.Equal(t, http.StatusOK, a.patchUser(t, opsID, map[string]any{"instanceAdmin": true}).Code)
+		assert.Equal(t, http.StatusNoContent, a.request(t, http.MethodDelete, adminUsersPath+"/"+opsID, nil, a.asAdmin).Code)
+		assert.Equal(t, 1, a.listUsers(t, "").Total)
+	})
+}
+
+// activeInstanceAdmins counts the users who hold the flag and can sign in
+func (a *app) activeInstanceAdmins(t *testing.T) int {
+	t.Helper()
+	var n int
+	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+		return db.NewSelect().Table("users").ColumnExpr("count(*)").Where("instance_admin = ?", true).Where("active = ?", true).Scan(context.Background(), &n)
+	}))
+	return n
+}
+
+// Two instance admins who take each other's flag, or disable each other, at once never leave the
+// install without one who can sign in: the second change sees the first. Nothing answers 5xx, and
+// PostgreSQL does not deadlock.
+func TestAdminUsers_TwoInstanceAdminsChangingEachOtherAtOnceNeverLeaveTheInstallWithoutOne(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		a := newAppWithAdmin(t, backend)
+		adminID := a.userID(t, adminEmail)
+		opsID := a.createUser(t, "ops@example.com")
+		require.Equal(t, http.StatusOK, a.patchUser(t, opsID, map[string]any{"instanceAdmin": true}).Code)
+		ops := a.loginAs(t, "ops@example.com")
+
+		restore := func() {
+			require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+				_, err := db.Exec("UPDATE users SET instance_admin = ?, active = ?, tokens_valid_after = NULL WHERE id IN (?, ?)", true, true, adminID, opsID)
+				return err
+			}))
+		}
+		for name, change := range map[string]map[string]any{
+			"take the flag": {"instanceAdmin": false},
+			"disable":       {"active": false},
+		} {
+			for range 5 {
+				var wg sync.WaitGroup
+				codes := make([]int, 2)
+				wg.Add(2)
+				go func() { defer wg.Done(); codes[0] = a.patchUser(t, opsID, change, a.asAdmin).Code }()
+				go func() { defer wg.Done(); codes[1] = a.patchUser(t, adminID, change, ops).Code }()
+				wg.Wait()
+
+				assert.Equal(t, 1, a.activeInstanceAdmins(t), "%s: %v", name, codes)
+				for _, code := range codes {
+					assert.Less(t, code, 500, "%s: %v", name, codes)
+				}
+				restore()
+			}
+		}
 	})
 }
 

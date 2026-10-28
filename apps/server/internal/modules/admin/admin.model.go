@@ -17,7 +17,7 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 	// ErrSelf is for an admin who tries to disable or delete their own account. It answers 409.
 	ErrSelf = errors.New("you can't do this to your own account")
-	// ErrLastInstanceAdmin is for a change that would leave the install with no instance admin. It
+	// ErrLastInstanceAdmin is for a change that would leave the install with no instance admin who can sign in (one with the flag and an active account). It
 	// answers 409.
 	ErrLastInstanceAdmin = errors.New("the install needs at least one instance admin")
 	// ErrLastOwner is for a deletion of a user who is the last owner of a workspace. The error that

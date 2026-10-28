@@ -89,9 +89,9 @@ func (s *ServiceImpl) UpdateUser(ctx context.Context, actorID, userID string, up
 		endedUsers bool
 	)
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		// The flags of the admins are locked first, so that two changes that race for the last
-		// admin take the same lock
-		admins, err := s.repo.LockInstanceAdmins(ctx)
+		// The active instance admins are locked first, so that two changes that race for the last
+		// one take the same lock
+		admins, err := s.repo.LockActiveInstanceAdmins(ctx)
 		if err != nil {
 			return err
 		}
@@ -104,10 +104,19 @@ func (s *ServiceImpl) UpdateUser(ctx context.Context, actorID, userID string, up
 		}
 		actions, endedUsers = nil, false
 
+		// The user stops being an active instance admin by losing the flag or by being disabled
+		flag, active := user.InstanceAdmin, user.Active
+		if update.InstanceAdmin != nil {
+			flag = *update.InstanceAdmin
+		}
+		if update.Active != nil {
+			active = *update.Active
+		}
+		if user.InstanceAdmin && user.Active && !(flag && active) && len(admins) <= 1 {
+			return ErrLastInstanceAdmin
+		}
+
 		if update.InstanceAdmin != nil && *update.InstanceAdmin != user.InstanceAdmin {
-			if !*update.InstanceAdmin && len(admins) <= 1 {
-				return ErrLastInstanceAdmin
-			}
 			if err := s.repo.SetInstanceAdmin(ctx, userID, *update.InstanceAdmin); err != nil {
 				return err
 			}
@@ -189,7 +198,7 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 	}
 	var left []Membership
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		admins, err := s.repo.LockInstanceAdmins(ctx)
+		admins, err := s.repo.LockActiveInstanceAdmins(ctx)
 		if err != nil {
 			return err
 		}
@@ -200,7 +209,8 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 		if user == nil {
 			return ErrUserNotFound
 		}
-		if user.InstanceAdmin && len(admins) <= 1 {
+		// A disabled instance admin is not counted: they can't sign in
+		if user.InstanceAdmin && user.Active && len(admins) <= 1 {
 			return ErrLastInstanceAdmin
 		}
 		lastOwned, err := s.repo.WorkspacesOwnedAloneAnyWorkspace(ctx, userID)

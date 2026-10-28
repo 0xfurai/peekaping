@@ -25,10 +25,11 @@ type Repository interface {
 	FindUser(ctx context.Context, id string) (*User, error)
 	// MembershipsAnyWorkspace fills the memberships of the users
 	MembershipsAnyWorkspace(ctx context.Context, users []*User) error
-	// LockInstanceAdmins returns the IDs of the instance admins. On PostgreSQL it holds their rows
-	// until the transaction ends, so that two admins can't each lose the flag by a change that saw
-	// the other still in place.
-	LockInstanceAdmins(ctx context.Context) ([]string, error)
+	// LockActiveInstanceAdmins returns the IDs of the instance admins who can sign in: those with
+	// the flag whose account is active. On PostgreSQL it holds their rows until the transaction
+	// ends, so that two admins can't each lose the flag, or be disabled, by a change that saw the
+	// other still in place.
+	LockActiveInstanceAdmins(ctx context.Context) ([]string, error)
 	SetInstanceAdmin(ctx context.Context, id string, on bool) error
 	// SetActive disables or enables the user. Disabling also ends the sessions issued before
 	// endSessionsAt, which the caller passes then and nil otherwise.
@@ -152,8 +153,8 @@ func (r *SQLRepository) MembershipsAnyWorkspace(ctx context.Context, users []*Us
 	return nil
 }
 
-func (r *SQLRepository) LockInstanceAdmins(ctx context.Context) ([]string, error) {
-	q := dbtx.DB(ctx, r.db).NewSelect().Table("users").Column("id").Where("instance_admin = ?", true).Order("id")
+func (r *SQLRepository) LockActiveInstanceAdmins(ctx context.Context) ([]string, error) {
+	q := dbtx.DB(ctx, r.db).NewSelect().Table("users").Column("id").Where("instance_admin = ?", true).Where("active = ?", true).Order("id")
 	if r.db.Dialect().Name() == dialect.PG {
 		q = q.For("UPDATE")
 	}
