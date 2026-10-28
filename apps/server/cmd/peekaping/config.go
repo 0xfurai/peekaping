@@ -119,6 +119,13 @@ type Config struct {
 	AccountSMTPPassword string `env:"ACCOUNT_SMTP_PASSWORD"`
 	AccountSMTPFrom     string `env:"ACCOUNT_SMTP_FROM"`
 	AccountSMTPTLS      string `env:"ACCOUNT_SMTP_TLS" validate:"oneof=starttls tls none" default:"starttls"`
+
+	// Who may create an account: invite (the default) or open. Open signup needs a sender for
+	// account emails; Turnstile (both keys or neither) guards open signups against bots. Validated
+	// in Validate() by config.ValidateSignup.
+	SignupMode             string `env:"SIGNUP_MODE" default:"invite"`
+	SignupTurnstileSiteKey string `env:"SIGNUP_TURNSTILE_SITE_KEY"`
+	SignupTurnstileSecret  string `env:"SIGNUP_TURNSTILE_SECRET"`
 }
 
 // LoadAndValidate loads and validates peekaping's configuration
@@ -212,6 +219,11 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	// A mistyped mode, open signup without a sender and half a Turnstile setting stop startup
+	if err := config.ValidateSignup(cfg.SignupMode, cfg.SignupTurnstileSiteKey, cfg.SignupTurnstileSecret, cfg.AccountSMTPHost); err != nil {
+		return err
+	}
+
 	// A WEB_DIR without a web build fails at startup, not on every page load
 	if cfg.WebDir != "" {
 		if err := web.CheckDir(cfg.WebDir); err != nil {
@@ -278,6 +290,9 @@ func (c *Config) ToInternalConfig() *config.Config {
 		AccountSMTPPassword:          c.AccountSMTPPassword,
 		AccountSMTPFrom:              c.AccountSMTPFrom,
 		AccountSMTPTLS:               c.AccountSMTPTLS,
+		SignupMode:                   c.SignupMode,
+		SignupTurnstileSiteKey:       c.SignupTurnstileSiteKey,
+		SignupTurnstileSecret:        c.SignupTurnstileSecret,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

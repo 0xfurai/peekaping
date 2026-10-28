@@ -367,3 +367,50 @@ func TestLoadAndValidate_AccountSMTPHostWithoutFromStopsStartup(t *testing.T) {
 
 	assert.ErrorContains(t, err, "ACCOUNT_SMTP_FROM is required when ACCOUNT_SMTP_HOST is set")
 }
+
+func TestLoadAndValidate_SignupModeDefaultsToInviteAndOpenIsLoadedFromTheEnvironment(t *testing.T) {
+	unsetRedis(t)
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.False(t, cfg.ToInternalConfig().SignupOpen())
+
+	t.Setenv("SIGNUP_MODE", "open")
+	t.Setenv("ACCOUNT_SMTP_HOST", "smtp.example.com")
+	t.Setenv("ACCOUNT_SMTP_FROM", "no-reply@example.com")
+	t.Setenv("SIGNUP_TURNSTILE_SITE_KEY", "site")
+	t.Setenv("SIGNUP_TURNSTILE_SECRET", "secret")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	internal := cfg.ToInternalConfig()
+	assert.True(t, internal.SignupOpen())
+	assert.True(t, internal.SignupTurnstileEnabled())
+}
+
+func TestLoadAndValidate_SignupSettingsThatCanNotWorkStopStartup(t *testing.T) {
+	tests := []struct {
+		name string
+		env  map[string]string
+		want string
+	}{
+		{"an unknown mode", map[string]string{"SIGNUP_MODE": "closed"}, `SIGNUP_MODE must be invite or open, got "closed"`},
+		{"open without a sender", map[string]string{"SIGNUP_MODE": "open"}, "SIGNUP_MODE=open needs a sender for account emails"},
+		{"one Turnstile key", map[string]string{"SIGNUP_TURNSTILE_SECRET": "secret"}, "SIGNUP_TURNSTILE_SITE_KEY and SIGNUP_TURNSTILE_SECRET must be set together"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			unsetRedis(t)
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			for k, v := range tc.env {
+				t.Setenv(k, v)
+			}
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			assert.ErrorContains(t, err, tc.want)
+		})
+	}
+}
