@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useWebSocket, WebSocketStatus } from "@/context/websocket-context";
+import { useSocketRoom } from "@/context/websocket-context";
 import Layout from "@/layout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -111,7 +111,6 @@ const MonitorPageContent = () => {
   const navigate = useNavigate();
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
-  const { socket, status: socketStatus } = useWebSocket();
   const { probeNames, unsupportedProbeIds, instanceHostnames, isPending: probesPending } = useProbes();
 
   // Read by the heartbeat handler, which must not resubscribe when the probes load
@@ -302,92 +301,73 @@ const MonitorPageContent = () => {
     enabled: !!id,
   });
 
-  useEffect(() => {
-    if (!socket || !heartbeatsResponse) return;
+  // The page joins the monitor's room once the heartbeats have loaded. The handler is read
+  // through a ref, so a refetch that changes its callbacks does not leave and join the room again.
+  const handleHeartbeat = (newHeartbeat: HeartbeatModel) => {
+    // TODO: new heartbeats have different timestamp then from the api response
+    setHeartbeatData((p) => [...p, newHeartbeat].slice(-150));
+    setLiveHeartbeats((p) => [...p, newHeartbeat].slice(-1500));
 
-    const roomName = `monitor:${id}`;
-
-    const handleHeartbeat = (newHeartbeat: HeartbeatModel) => {
-      // TODO: new heartbeats have different timestamp then from the api response
-      setHeartbeatData((p) => [...p, newHeartbeat].slice(-150));
-      setLiveHeartbeats((p) => [...p, newHeartbeat].slice(-1500));
-
-      // A probe instance that started after the page loaded isn't in the probes list yet, so
-      // refresh it to name the instance by its hostname. While the probes query is loading it
-      // fetches the instance anyway.
-      const { instanceHostnames: hostnames, probesPending: pending } = probesRef.current;
-      const lookUp = pending
-        ? null
-        : instanceToLookUp(newHeartbeat.instance_id, hostnames, askedInstanceIds.current);
-      if (lookUp) {
-        askedInstanceIds.current.add(lookUp);
-        queryClient.invalidateQueries({ queryKey: getProbesQueryKey() });
-      }
-
-      // If it's important, update the react-query cache for important heartbeats
-      if (newHeartbeat.important) {
-        const queryKey = getMonitorsByIdHeartbeatsInfiniteQueryKey({
-          path: { id: id! },
-          query: { important: true, limit: 20 },
-        });
-
-        queryClient.setQueryData(
-          queryKey,
-          (oldData: {
-            pageParams: number[];
-            pages: { data: HeartbeatModel[] }[];
-          }) => {
-            if (!oldData) {
-              // If no data, create a new structure
-              return {
-                pageParams: [0],
-                pages: [{ data: [newHeartbeat] }],
-              };
-            }
-
-            const flat = oldData.pages.flatMap((page) => page.data);
-            const filtered = flat.filter((hb) => hb.id !== newHeartbeat.id);
-            const newData = [newHeartbeat, ...filtered];
-
-            // convert array to pages by 20
-            const pages = [];
-            for (let i = 0; i < newData.length; i += 20) {
-              pages.push({ data: newData.slice(i, i + 20) });
-            }
-
-            return {
-              pageParams: oldData.pageParams,
-              pages: pages,
-            };
-          }
-        );
-      }
-
-      refetchUptimeStats();
-      refetchLastImportantHeartbeat();
-    };
-
-    if (socketStatus === WebSocketStatus.CONNECTED) {
-      socket.on(`${roomName}:heartbeat`, handleHeartbeat);
-      socket.emit("join_room", roomName);
-      console.log("Subscribed to heartbeat", roomName);
+    // A probe instance that started after the page loaded isn't in the probes list yet, so
+    // refresh it to name the instance by its hostname. While the probes query is loading it
+    // fetches the instance anyway.
+    const { instanceHostnames: hostnames, probesPending: pending } = probesRef.current;
+    const lookUp = pending
+      ? null
+      : instanceToLookUp(newHeartbeat.instance_id, hostnames, askedInstanceIds.current);
+    if (lookUp) {
+      askedInstanceIds.current.add(lookUp);
+      queryClient.invalidateQueries({ queryKey: getProbesQueryKey() });
     }
 
-    return () => {
-      socket.off(`${roomName}:heartbeat`, handleHeartbeat);
-      if (socketStatus === WebSocketStatus.CONNECTED) {
-        socket.emit("leave_room", roomName);
-      }
-    };
-  }, [
-    socket,
-    socketStatus,
-    id,
-    heartbeatsResponse,
-    queryClient,
-    refetchUptimeStats,
-    refetchLastImportantHeartbeat,
-  ]);
+    // If it's important, update the react-query cache for important heartbeats
+    if (newHeartbeat.important) {
+      const queryKey = getMonitorsByIdHeartbeatsInfiniteQueryKey({
+        path: { id: id! },
+        query: { important: true, limit: 20 },
+      });
+
+      queryClient.setQueryData(
+        queryKey,
+        (oldData: {
+          pageParams: number[];
+          pages: { data: HeartbeatModel[] }[];
+        }) => {
+          if (!oldData) {
+            // If no data, create a new structure
+            return {
+              pageParams: [0],
+              pages: [{ data: [newHeartbeat] }],
+            };
+          }
+
+          const flat = oldData.pages.flatMap((page) => page.data);
+          const filtered = flat.filter((hb) => hb.id !== newHeartbeat.id);
+          const newData = [newHeartbeat, ...filtered];
+
+          // convert array to pages by 20
+          const pages = [];
+          for (let i = 0; i < newData.length; i += 20) {
+            pages.push({ data: newData.slice(i, i + 20) });
+          }
+
+          return {
+            pageParams: oldData.pageParams,
+            pages: pages,
+          };
+        }
+      );
+    }
+
+    refetchUptimeStats();
+    refetchLastImportantHeartbeat();
+  };
+
+  useSocketRoom(
+    heartbeatsResponse && id ? `monitor:${id}` : null,
+    `monitor:${id}:heartbeat`,
+    handleHeartbeat,
+  );
 
   const dataStats = useMemo(() => {
     if (!stats) return [];
