@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Dagen",
       "description": "Bepaal hoelang gegevens bewaard blijven (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Alleen een beheerder of eigenaar van de werkruimte kan dit wijzigen.",
       "title": "Gegevensbewaartermijn"
     },
     "error_reporting": {

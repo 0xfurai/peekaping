@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Dage",
       "description": "Indstil, hvor mange dage data skal opbevares (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Kun en administrator eller ejer af arbejdsområdet kan ændre dette.",
       "title": "Dataopbevaringsperiode"
     },
     "error_reporting": {

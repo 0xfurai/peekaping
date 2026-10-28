@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Dny",
       "description": "Nastavte, na kolik dní se budou data uchovávat (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Změnit to může jen správce nebo vlastník pracovního prostoru.",
       "title": "Doba uchovávání dat"
     },
     "error_reporting": {

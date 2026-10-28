@@ -37,6 +37,7 @@ import React from "react";
 import { useLocation } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -51,6 +52,8 @@ const KeepDataPeriodSetting = () => {
       .min(1, { message: t("settings.validation.min_days") }),
   });
   const KEEP_DATA_KEY = "KEEP_DATA_PERIOD_DAYS";
+  // A member sees the period but only an admin or owner changes it
+  const { canManageWorkspace } = useCurrentAccess();
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery(
     getSettingsKeyByKeyOptions({ path: { key: KEEP_DATA_KEY } })
@@ -100,6 +103,21 @@ const KeepDataPeriodSetting = () => {
       <CardContent>
         {isLoading ? (
           <div className="h-10 flex items-center">{t("common.loading")}</div>
+        ) : !canManageWorkspace ? (
+          <div className="flex flex-col gap-2 max-w-xs">
+            <Label htmlFor="keep-data-period">
+              {t("settings.data_retention.days_label")}
+            </Label>
+            <Input
+              id="keep-data-period"
+              type="number"
+              readOnly
+              value={data?.data?.value ?? ""}
+            />
+            <p className="text-sm text-muted-foreground">
+              {t("settings.data_retention.read_only")}
+            </p>
+          </div>
         ) : (
           <Form {...form}>
             <form
@@ -298,6 +316,7 @@ const ErrorReportingSetting = () => {
 
 const SettingsPage = () => {
   const { t } = useLocalizedTranslation();
+  const { instanceAdmin } = useCurrentAccess();
   // The upgrade notice links to a card, such as /settings#error-reports
   const { hash } = useLocation();
   React.useEffect(() => {
@@ -318,8 +337,13 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
         <KeepDataPeriodSetting />
-        <TelemetrySetting />
-        <ErrorReportingSetting />
+        {/* The usage ping and error reports belong to the install, not to the workspace */}
+        {instanceAdmin && (
+          <>
+            <TelemetrySetting />
+            <ErrorReportingSetting />
+          </>
+        )}
       </div>
     </Layout>
   );

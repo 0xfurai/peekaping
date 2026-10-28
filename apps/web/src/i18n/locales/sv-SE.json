@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Dagar",
       "description": "Ange hur många dagar data ska sparas (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Bara en administratör eller ägare av arbetsytan kan ändra detta.",
       "title": "Lagringstid för data"
     },
     "error_reporting": {

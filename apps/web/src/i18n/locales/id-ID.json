@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Hari",
       "description": "Tetapkan berapa hari data akan disimpan (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Hanya admin atau pemilik ruang kerja yang dapat mengubah ini.",
       "title": "Periode Retensi Data"
     },
     "error_reporting": {

@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Ngày",
       "description": "Đặt số ngày lưu dữ liệu (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Chỉ quản trị viên hoặc chủ sở hữu của không gian làm việc mới có thể thay đổi mục này.",
       "title": "Thời gian lưu trữ dữ liệu"
     },
     "error_reporting": {

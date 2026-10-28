@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "روز",
       "description": "تعیین تعداد روزی که داده‌ها نگهداری می‌شوند (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "فقط مدیر یا مالک فضای کاری می‌تواند این را تغییر دهد.",
       "title": "مدت زمان نگهداری داده"
     },
     "error_reporting": {

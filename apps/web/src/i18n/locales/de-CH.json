@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Tage",
       "description": "Legen Sie fest, wie viele Tage Daten gespeichert werden (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Nur ein Admin oder Besitzer des Arbeitsbereichs kann dies ändern.",
       "title": "Datenaufbewahrungsdauer"
     },
     "error_reporting": {

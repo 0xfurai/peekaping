@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "วัน",
       "description": "กำหนดจำนวนวันในการเก็บข้อมูล (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "เฉพาะผู้ดูแลหรือเจ้าของพื้นที่ทำงานเท่านั้นที่เปลี่ยนค่านี้ได้",
       "title": "ระยะเวลาการเก็บข้อมูล"
     },
     "error_reporting": {

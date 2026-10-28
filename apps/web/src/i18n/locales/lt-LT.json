@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Dienos",
       "description": "Nustatykite, kiek dienų laikyti duomenis (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Tai gali pakeisti tik darbo srities administratorius arba savininkas.",
       "title": "Duomenų saugojimo laikotarpis"
     },
     "error_reporting": {

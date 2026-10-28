@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "일",
       "description": "데이터 보관 일수를 설정하세요 (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "워크스페이스 관리자 또는 소유자만 이 값을 변경할 수 있습니다.",
       "title": "데이터 보존 기간"
     },
     "error_reporting": {

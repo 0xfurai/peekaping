@@ -1439,6 +1439,7 @@
     "data_retention": {
       "days_label": "Laethanta",
       "description": "Socraigh líon na lá a choinneálfar sonraí (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Ní féidir ach le riarthóir nó úinéir an spáis oibre é seo a athrú.",
       "title": "Am Cothromaíochta na Sonraí"
     },
     "error_reporting": {

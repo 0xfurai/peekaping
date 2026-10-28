@@ -27,12 +27,14 @@ import { useAuthStore } from "@/store/auth";
 import { VERSION } from "../version";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { Link } from "react-router-dom";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const user = useAuthStore((state) => state.user);
   const { t } = useLocalizedTranslation();
   const workspacePath = useWorkspacePath();
+  const { instanceAdmin } = useCurrentAccess();
 
   const data = {
     user: {
@@ -66,11 +68,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         url: "/proxies",
         icon: Network,
       },
-      {
-        title: t("navigation.probes"),
-        url: "/probes",
-        icon: Radar,
-      },
+      // Probes belong to the install: only an instance admin manages them
+      ...(instanceAdmin
+        ? [{ title: t("navigation.probes"), url: "/probes", icon: Radar }]
+        : []),
       {
         title: t("navigation.notification_channels"),
         url: "/notification-channels",

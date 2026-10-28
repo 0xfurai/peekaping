@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "日",
       "description": "データ保持期間（KEEP_DATA_PERIOD_DAYS）を日数で設定してください。",
+      "read_only": "これを変更できるのは、ワークスペースの管理者または所有者のみです。",
       "title": "データ保存期間"
     },
     "error_reporting": {
