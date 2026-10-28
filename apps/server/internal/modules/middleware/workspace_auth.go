@@ -104,12 +104,13 @@ func isCanonicalUUID(s string) bool {
 // MARK: InstanceAdminAuth
 
 // InstanceAdminAuth is for a route that manages the install and not a workspace (docs/adr/0005
-// section 10). It takes a signed-in user's JWT, as the routes it guards always did, and answers 403
-// unless the user is an instance admin. The flag is read on every request, since it can change
-// while a token is still valid. An API key belongs to a workspace and is never an instance admin.
+// section 10). It authenticates a request as AllAuth does, and answers 403 to any API key and to a
+// user who is not an instance admin. The flag is read on every request, since it can change while a
+// token is still valid. An API key belongs to a workspace and is never an instance admin. No or bad
+// credentials answer 401.
 func (ac *AuthChain) InstanceAdminAuth() httpx.Middleware {
 	return func(next http.Handler) http.Handler {
-		return ac.jwtOnly(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		return ac.AllAuth()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			forbidden := func() {
 				httpx.JSON(w, http.StatusForbidden, utils.NewFailResponse("Only an instance admin may do this"))
 			}

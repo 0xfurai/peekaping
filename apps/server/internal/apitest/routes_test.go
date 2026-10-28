@@ -63,6 +63,14 @@ var jwtOnlyRoutes = map[string]bool{
 	"PUT /api/v1/error-reporting":   true,
 }
 
+// instanceAdminRoutes are the jwtOnlyRoutes that an API key reaches the check of: it is
+// authenticated and then answered 403, since it is never an instance admin
+var instanceAdminRoutes = map[string]bool{
+	"PUT /api/v1/telemetry":         true,
+	"POST /api/v1/telemetry/notice": true,
+	"PUT /api/v1/error-reporting":   true,
+}
+
 // probeRoutes are the probe protocol's. A probe authenticates with its token and an instance id,
 // and the admin's JWT and API keys open none of them.
 var probeRoutes = map[string]bool{
@@ -146,7 +154,9 @@ func TestRouteTable_APIKeysReachOnlySharedRoutes(t *testing.T) {
 		}
 		t.Run(r.key(), func(t *testing.T) {
 			w := a.request(t, r.method, r.url(), nil, a.withAPIKey)
-			if jwtOnlyRoutes[r.key()] || probeRoutes[r.key()] {
+			if instanceAdminRoutes[r.key()] {
+				assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+			} else if jwtOnlyRoutes[r.key()] || probeRoutes[r.key()] {
 				assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
 			} else {
 				assert.NotEqual(t, http.StatusUnauthorized, w.Code, w.Body.String())

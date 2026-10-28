@@ -19,6 +19,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// ErrWorkspaceMismatch is what ValidateKey returns for a key whose request names another workspace
+var ErrWorkspaceMismatch = errors.New("API key belongs to another workspace")
+
+type requestedWorkspaceKey struct{}
+
+// WithRequestedWorkspace tells ValidateKey which workspace the request names with its
+// X-Workspace-ID header, so that it can refuse a key of another workspace before it counts a use
+func WithRequestedWorkspace(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, requestedWorkspaceKey{}, id)
+}
+
 // Service defines the interface for API key business logic. Keys belong to a workspace, and only
 // its admins and owners manage them: every method but ValidateKey returns workspace.ErrForbidden
 // to a member, and workspace.ErrNotFound for a context that runs in no workspace or in another
@@ -195,6 +206,12 @@ func (s *ServiceImpl) ValidateKey(ctx context.Context, key string) (*Model, erro
 	if !s.verifyKeyHash(ctx, apiKey, actualKey) {
 		s.logger.Warnw("API key verification failed", "apiKeyId", apiKeyID)
 		return nil, errors.New("invalid API key")
+	}
+
+	// A request that names another workspace is refused before the key is counted: it is not a use
+	if named, ok := ctx.Value(requestedWorkspaceKey{}).(string); ok && !strings.EqualFold(named, string(apiKey.WorkspaceID)) {
+		s.logger.Warnw("API key used with the header of another workspace", "apiKeyId", apiKey.ID)
+		return nil, ErrWorkspaceMismatch
 	}
 
 	// Check the usage limit and count the use in one step, so that concurrent

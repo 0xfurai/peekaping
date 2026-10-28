@@ -251,14 +251,14 @@ func TestErrorReportingAPI_APIKeyCanReadButNotChangeTheChoice(t *testing.T) {
 
 	// The choice is the admin's, so an API key can't opt the install out
 	w := a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.withAPIKey)
-	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
 	assert.Equal(t, true, a.errorReporting(t)["enabled"])
 	assert.Nil(t, a.storedSetting(t, "ERROR_REPORTING_ENABLED"))
 
 	// Nor can it opt the admin out
 	a.setErrorReporting(t, true)
 	w = a.request(t, http.MethodPut, errorReportingPath, map[string]any{"enabled": false}, a.withAPIKey)
-	assert.Equal(t, http.StatusUnauthorized, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
 	assert.True(t, reporting.Enabled())
 	assert.Equal(t, map[string]any{"enabled": true, "forced_off": false}, errorReportingBody(t, a.request(t, http.MethodGet, errorReportingPath, nil, a.withAPIKey), http.StatusOK))
 }

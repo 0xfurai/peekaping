@@ -70,7 +70,14 @@ func TestInstanceAdmin_AnAPIKeyCanNotChangeTheInstall(t *testing.T) {
 	for _, route := range installRoutes {
 		t.Run(route.name, func(t *testing.T) {
 			w := a.request(t, route.method, route.path, route.body, a.withAPIKey)
-			assert.Equal(t, http.StatusUnauthorized, w.Code, "the route takes the JWT of a signed-in user only: "+w.Body.String())
+			assert.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+		})
+	}
+	// and a request with no credentials, or a bad key, is not authenticated at all
+	for _, route := range installRoutes {
+		t.Run(route.name+"/unauthenticated", func(t *testing.T) {
+			assert.Equal(t, http.StatusUnauthorized, a.request(t, route.method, route.path, route.body).Code)
+			assert.Equal(t, http.StatusUnauthorized, a.request(t, route.method, route.path, route.body, withHeader("X-API-Key", "pk_nope")).Code)
 		})
 	}
 }
