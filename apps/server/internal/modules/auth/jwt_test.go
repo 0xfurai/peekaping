@@ -889,3 +889,46 @@ func TestTokenMaker_CreateToken_EdgeCases(t *testing.T) {
 
 	mockSettingService.AssertExpectations(t)
 }
+
+// PP-152: replicas' clocks differ by a few milliseconds, and nbf is exact to the millisecond, so a
+// token made on one replica must verify on another whose clock is a little behind.
+func TestTokenMaker_VerifyToken_AllowsAFewSecondsOfClockSkewInNotBefore(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		ahead time.Duration
+		valid bool
+	}{
+		{"2s ahead verifies", 2 * time.Second, true},
+		{"10s ahead is refused", 10 * time.Second, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockSettingService := &MockSettingService{}
+			tokenMaker := NewTokenMaker(mockSettingService, zap.NewNop().Sugar())
+			ctx := context.Background()
+			future := time.Now().UTC().Add(tc.ahead)
+			claims := &Claims{
+				UserID: "user123",
+				Type:   "access",
+				RegisteredClaims: jwt.RegisteredClaims{
+					ExpiresAt: jwt.NewNumericDate(future.Add(time.Hour)),
+					IssuedAt:  jwt.NewNumericDate(future),
+					NotBefore: jwt.NewNumericDate(future),
+				},
+			}
+			tokenString, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("test-secret-key"))
+			require.NoError(t, err)
+			mockSettingService.On("GetByKey", ctx, shared.AccessTokenSecretKey).Return(&shared.SettingModel{
+				Key:   shared.AccessTokenSecretKey,
+				Value: "test-secret-key",
+			}, nil)
+
+			_, err = tokenMaker.VerifyToken(ctx, tokenString, "access")
+
+			if tc.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorIs(t, err, ErrInvalidToken)
+			}
+		})
+	}
+}

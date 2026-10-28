@@ -44,6 +44,11 @@ func init() {
 	jwt.TimePrecision = time.Millisecond
 }
 
+// clockSkewLeeway is how far the clocks of two replicas may differ. nbf is exact to the millisecond,
+// so without it a token made on one replica could be "not valid yet" on another whose clock is
+// a few milliseconds behind. The tokens_valid_after cutoff stays strict.
+const clockSkewLeeway = 5 * time.Second
+
 // SessionCutoffs says when a user's earlier sessions were ended
 type SessionCutoffs interface {
 	// TokensValidAfter returns the moment before which issued tokens no longer work, nil for none
@@ -215,7 +220,7 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 	// Tokens are signed with HS256 only, so any other algorithm is rejected.
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
-	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}), jwt.WithLeeway(clockSkewLeeway))
 
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
