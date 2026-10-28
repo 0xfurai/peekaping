@@ -8,6 +8,7 @@
     "test": "bun test",
     "check-types": "tsc --noEmit",
     "report": "bun run scripts/report.ts",
+    "dashboard": "bun run scripts/dashboard.ts",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
