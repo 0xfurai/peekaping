@@ -175,14 +175,29 @@ func (r *SQLRepositoryImpl) ListIDsAnyWorkspace(ctx context.Context) ([]ID, erro
 }
 
 func (r *SQLRepositoryImpl) LiftUnverifiedOwnedBy(ctx context.Context, userID string) ([]ID, error) {
+	return r.liftUnverified(ctx, func(q *bun.SelectQuery) *bun.SelectQuery {
+		return q.Where("id IN (SELECT workspace_id FROM workspace_members WHERE user_id = ? AND role = ?)", userID, string(RoleOwner))
+	})
+}
+
+func (r *SQLRepositoryImpl) LiftUnverifiedWithVerifiedOwner(ctx context.Context, id ID) ([]ID, error) {
+	return r.liftUnverified(ctx, func(q *bun.SelectQuery) *bun.SelectQuery {
+		return q.Where("id = ?", string(id)).
+			Where(`EXISTS (SELECT 1 FROM workspace_members m JOIN users u ON u.id = m.user_id
+				WHERE m.workspace_id = workspaces.id AND m.role = ? AND u.email_verified_at IS NOT NULL)`, string(RoleOwner))
+	})
+}
+
+// liftUnverified ends the SuspendedUnverified suspension of the workspaces that narrow selects,
+// and returns them
+func (r *SQLRepositoryImpl) liftUnverified(ctx context.Context, narrow func(*bun.SelectQuery) *bun.SelectQuery) ([]ID, error) {
 	var lifted []ID
 	// Read and write in one transaction, so that the IDs returned are the ones that were lifted
 	err := dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
 		q := dbtx.DB(ctx, r.db)
 		var ids []string
-		err := q.NewSelect().Table("workspaces").Column("id").
-			Where("suspended_reason = ?", SuspendedUnverified).
-			Where("id IN (SELECT workspace_id FROM workspace_members WHERE user_id = ? AND role = ?)", userID, string(RoleOwner)).
+		err := narrow(q.NewSelect().Table("workspaces").Column("id").
+			Where("suspended_reason = ?", SuspendedUnverified)).
 			Order("created_at", "id").
 			Scan(ctx, &ids)
 		if err != nil || len(ids) == 0 {
