@@ -91,6 +91,19 @@
         },
         "type": "object"
       },
+      "admin.UpdateWorkspaceDto": {
+        "additionalProperties": true,
+        "properties": {
+          "suspended": {
+            "description": "Suspend (true) or resume (false) the workspace. Required.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
       "admin.UserResponse": {
         "additionalProperties": false,
         "properties": {
@@ -192,6 +205,124 @@
         },
         "required": [
           "users",
+          "total",
+          "page",
+          "limit"
+        ],
+        "type": "object"
+      },
+      "admin.WorkspaceMonitorsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "active": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "paused": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "active",
+          "paused"
+        ],
+        "type": "object"
+      },
+      "admin.WorkspaceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "customDomains": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "memberCount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "monitors": {
+            "$ref": "#/components/schemas/admin.WorkspaceMonitorsResponse"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owners": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "statusPages": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "suspended": {
+            "type": "boolean"
+          },
+          "suspendedAt": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "suspendedReason": {
+            "enum": [
+              "admin",
+              "unverified"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "owners",
+          "memberCount",
+          "monitors",
+          "statusPages",
+          "customDomains",
+          "suspended",
+          "suspendedReason",
+          "suspendedAt"
+        ],
+        "type": "object"
+      },
+      "admin.WorkspacesPageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "page": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "total": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "workspaces": {
+            "items": {
+              "$ref": "#/components/schemas/admin.WorkspaceResponse"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "workspaces",
           "total",
           "page",
           "limit"
@@ -506,6 +637,15 @@
             "format": "int64",
             "type": "integer"
           },
+          "supportContact": {
+            "examples": [
+              "support@example.com"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "user": {
             "$ref": "#/components/schemas/auth.MeUser"
           },
@@ -525,7 +665,8 @@
           "defaultWorkspaceId",
           "accountEmails",
           "disabledMonitorTypes",
-          "minCheckInterval"
+          "minCheckInterval",
+          "supportContact"
         ],
         "type": "object"
       },
@@ -3959,6 +4100,44 @@
         ],
         "type": "object"
       },
+      "status_page.UnavailableErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "examples": [
+              "STATUS_PAGE_UNAVAILABLE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "status_page.UnavailableResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error": {
+            "$ref": "#/components/schemas/status_page.UnavailableErrorBody"
+          },
+          "message": {
+            "examples": [
+              "This status page is unavailable"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data",
+          "error"
+        ],
+        "type": "object"
+      },
       "status_page.UpdateStatusPageDTO": {
         "additionalProperties": true,
         "properties": {
@@ -4678,6 +4857,38 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/admin.UsersPageResponse"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
+      "utils.ApiResponse_admin.WorkspaceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/admin.WorkspaceResponse"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
+      "utils.ApiResponse_admin.WorkspacesPageResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/admin.WorkspacesPageResponse"
           },
           "message": {
             "type": "string"
@@ -5885,6 +6096,208 @@
           }
         ],
         "summary": "Make a password reset link for a user",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/workspaces": {
+      "get": {
+        "description": "Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended (\"admin\" when an instance admin suspended it, \"unverified\" when it waits for its owner to verify their email address) and since when. Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first.",
+        "operationId": "getAdminWorkspaces",
+        "parameters": [
+          {
+            "description": "Only workspaces whose name or whose owner's email contains this text, ignoring case",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "Only workspaces whose name or whose owner's email contains this text, ignoring case",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page number, from 0",
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 0,
+              "description": "Page number, from 0",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Workspaces per page",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "description": "Workspaces per page",
+              "format": "int64",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.ApiResponse_admin.WorkspacesPageResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "List the workspaces of the install",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/workspaces/{id}": {
+      "patch": {
+        "description": "Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. suspended is required. The answer is the workspace as the list shows it.",
+        "operationId": "patchAdminWorkspacesById",
+        "parameters": [
+          {
+            "description": "The workspace's ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "The workspace's ID",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admin.UpdateWorkspaceDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.ApiResponse_admin.WorkspaceResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Suspend or resume a workspace",
         "tags": [
           "admin"
         ]
@@ -7315,6 +7728,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get certificate expiry badge",
@@ -7514,6 +7937,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get ping badge",
@@ -7723,6 +8156,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get ping badge",
@@ -7922,6 +8365,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get response time badge",
@@ -8121,6 +8574,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get status badge",
@@ -8320,6 +8783,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get uptime badge",
@@ -8529,6 +9002,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get uptime badge",
@@ -12748,7 +13231,7 @@
     },
     "/api/v1/push/{token}": {
       "get": {
-        "description": "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address) or when its type is turned off on this install (DISABLED_MONITOR_TYPES): the push is not stored and sends no notification.",
+        "description": "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one) or when its type is turned off on this install (DISABLED_MONITOR_TYPES): the push is not stored and sends no notification.",
         "operationId": "getPushByToken",
         "parameters": [
           {
@@ -13320,6 +13803,7 @@
     },
     "/api/v1/status-pages/domain/{domain}": {
       "get": {
+        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.",
         "operationId": "getStatusPagesDomainByDomain",
         "parameters": [
           {
@@ -13363,6 +13847,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get a status page by domain name",
@@ -13373,6 +13867,7 @@
     },
     "/api/v1/status-pages/slug/{slug}": {
       "get": {
+        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.",
         "operationId": "getStatusPagesSlugBySlug",
         "parameters": [
           {
@@ -13416,6 +13911,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get a status page by slug",
@@ -13426,6 +13931,7 @@
     },
     "/api/v1/status-pages/slug/{slug}/monitors": {
       "get": {
+        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.",
         "operationId": "getStatusPagesSlugBySlugMonitors",
         "parameters": [
           {
@@ -13444,7 +13950,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
+                  "$ref": "#/components/schemas/utils.ApiResponse_status_page.Model"
                 }
               }
             },
@@ -13469,6 +13975,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get monitors for a status page by slug with heartbeats and uptime",
@@ -13479,6 +13995,7 @@
     },
     "/api/v1/status-pages/slug/{slug}/monitors/homepage": {
       "get": {
+        "description": "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.",
         "operationId": "getStatusPagesSlugBySlugMonitorsHomepage",
         "parameters": [
           {
@@ -13497,7 +14014,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
+                  "$ref": "#/components/schemas/utils.ApiResponse_status_page.Model"
                 }
               }
             },
@@ -13522,6 +14039,16 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/status_page.UnavailableResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get monitors for a status page by slug for homepage",

@@ -31,6 +31,14 @@ export type AdminUpdateUserDto = {
   [key: string]: unknown | (boolean | null) | (boolean | null) | undefined;
 };
 
+export type AdminUpdateWorkspaceDto = {
+  /**
+   * Suspend (true) or resume (false) the workspace. Required.
+   */
+  suspended?: boolean | null;
+  [key: string]: unknown | (boolean | null) | undefined;
+};
+
 export type AdminUserResponse = {
   active: boolean;
   createdAt: string;
@@ -54,6 +62,32 @@ export type AdminUsersPageResponse = {
   page: number;
   total: number;
   users: Array<AdminUserResponse>;
+};
+
+export type AdminWorkspaceMonitorsResponse = {
+  active: number;
+  paused: number;
+};
+
+export type AdminWorkspaceResponse = {
+  createdAt: string;
+  customDomains: number;
+  id: string;
+  memberCount: number;
+  monitors: AdminWorkspaceMonitorsResponse;
+  name: string;
+  owners: Array<string>;
+  statusPages: number;
+  suspended: boolean;
+  suspendedAt: string | null;
+  suspendedReason: "admin" | "unverified";
+};
+
+export type AdminWorkspacesPageResponse = {
+  limit: number;
+  page: number;
+  total: number;
+  workspaces: Array<AdminWorkspaceResponse>;
 };
 
 export type ApiKeyApiKeyConfigResponse = {
@@ -140,6 +174,7 @@ export type AuthMeResponse = {
   defaultWorkspaceId: string | null;
   disabledMonitorTypes: Array<string>;
   minCheckInterval: number;
+  supportContact: string | null;
   user: AuthMeUser;
   workspaces: Array<AuthMeWorkspace> | null;
 };
@@ -1172,6 +1207,16 @@ export type StatusPageStatusPageWithMonitorsResponseDto = {
   updated_at: string;
 };
 
+export type StatusPageUnavailableErrorBody = {
+  code: string;
+};
+
+export type StatusPageUnavailableResponse = {
+  data: null;
+  error: StatusPageUnavailableErrorBody;
+  message: string;
+};
+
 export type StatusPageUpdateStatusPageDto = {
   auto_refresh_interval?: number | null;
   custom_css?: string | null;
@@ -1405,6 +1450,16 @@ export type UtilsApiResponseAdminUserResponse = {
 
 export type UtilsApiResponseAdminUsersPageResponse = {
   data: AdminUsersPageResponse;
+  message: string;
+};
+
+export type UtilsApiResponseAdminWorkspaceResponse = {
+  data: AdminWorkspaceResponse;
+  message: string;
+};
+
+export type UtilsApiResponseAdminWorkspacesPageResponse = {
+  data: AdminWorkspacesPageResponse;
   message: string;
 };
 
@@ -1846,6 +1901,106 @@ export type PostAdminUsersByIdResetLinkResponses = {
 
 export type PostAdminUsersByIdResetLinkResponse =
   PostAdminUsersByIdResetLinkResponses[keyof PostAdminUsersByIdResetLinkResponses];
+
+export type GetAdminWorkspacesData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * Only workspaces whose name or whose owner's email contains this text, ignoring case
+     */
+    q?: string;
+    /**
+     * Page number, from 0
+     */
+    page?: number;
+    /**
+     * Workspaces per page
+     */
+    limit?: number;
+  };
+  url: "/api/v1/admin/workspaces";
+};
+
+export type GetAdminWorkspacesErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetAdminWorkspacesError =
+  GetAdminWorkspacesErrors[keyof GetAdminWorkspacesErrors];
+
+export type GetAdminWorkspacesResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAdminWorkspacesPageResponse;
+};
+
+export type GetAdminWorkspacesResponse =
+  GetAdminWorkspacesResponses[keyof GetAdminWorkspacesResponses];
+
+export type PatchAdminWorkspacesByIdData = {
+  body: AdminUpdateWorkspaceDto;
+  path: {
+    /**
+     * The workspace's ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/admin/workspaces/{id}";
+};
+
+export type PatchAdminWorkspacesByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PatchAdminWorkspacesByIdError =
+  PatchAdminWorkspacesByIdErrors[keyof PatchAdminWorkspacesByIdErrors];
+
+export type PatchAdminWorkspacesByIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAdminWorkspaceResponse;
+};
+
+export type PatchAdminWorkspacesByIdResponse =
+  PatchAdminWorkspacesByIdResponses[keyof PatchAdminWorkspacesByIdResponses];
 
 export type GetApiKeysData = {
   body?: never;
@@ -2597,6 +2752,10 @@ export type GetBadgeByMonitorIdCertExpErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetBadgeByMonitorIdCertExpError =
@@ -2694,6 +2853,10 @@ export type GetBadgeByMonitorIdPingErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetBadgeByMonitorIdPingError =
@@ -2795,6 +2958,10 @@ export type GetBadgeByMonitorIdPingByDurationErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetBadgeByMonitorIdPingByDurationError =
@@ -2892,6 +3059,10 @@ export type GetBadgeByMonitorIdResponseErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetBadgeByMonitorIdResponseError =
@@ -2989,6 +3160,10 @@ export type GetBadgeByMonitorIdStatusErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetBadgeByMonitorIdStatusError =
@@ -3086,6 +3261,10 @@ export type GetBadgeByMonitorIdUptimeErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetBadgeByMonitorIdUptimeError =
@@ -3187,6 +3366,10 @@ export type GetBadgeByMonitorIdUptimeByDurationErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetBadgeByMonitorIdUptimeByDurationError =
@@ -5754,6 +5937,10 @@ export type GetStatusPagesDomainByDomainErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetStatusPagesDomainByDomainError =
@@ -5790,6 +5977,10 @@ export type GetStatusPagesSlugBySlugErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetStatusPagesSlugBySlugError =
@@ -5826,6 +6017,10 @@ export type GetStatusPagesSlugBySlugMonitorsErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetStatusPagesSlugBySlugMonitorsError =
@@ -5835,7 +6030,7 @@ export type GetStatusPagesSlugBySlugMonitorsResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseArrayStatusPageMonitorWithHeartbeatsAndUptimeDto;
+  200: UtilsApiResponseStatusPageModel;
 };
 
 export type GetStatusPagesSlugBySlugMonitorsResponse =
@@ -5862,6 +6057,10 @@ export type GetStatusPagesSlugBySlugMonitorsHomepageErrors = {
    * Internal Server Error
    */
   500: HttpxErrorBody;
+  /**
+   * Service Unavailable
+   */
+  503: StatusPageUnavailableResponse;
 };
 
 export type GetStatusPagesSlugBySlugMonitorsHomepageError =
@@ -5871,7 +6070,7 @@ export type GetStatusPagesSlugBySlugMonitorsHomepageResponses = {
   /**
    * OK
    */
-  200: UtilsApiResponseArrayStatusPageMonitorWithHeartbeatsAndUptimeDto;
+  200: UtilsApiResponseStatusPageModel;
 };
 
 export type GetStatusPagesSlugBySlugMonitorsHomepageResponse =

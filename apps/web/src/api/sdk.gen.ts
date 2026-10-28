@@ -17,6 +17,12 @@ import type {
   PostAdminUsersByIdResetLinkData,
   PostAdminUsersByIdResetLinkResponses,
   PostAdminUsersByIdResetLinkErrors,
+  GetAdminWorkspacesData,
+  GetAdminWorkspacesResponses,
+  GetAdminWorkspacesErrors,
+  PatchAdminWorkspacesByIdData,
+  PatchAdminWorkspacesByIdResponses,
+  PatchAdminWorkspacesByIdErrors,
   GetApiKeysData,
   GetApiKeysResponses,
   GetApiKeysErrors,
@@ -487,6 +493,58 @@ export const postAdminUsersByIdResetLink = <
     ],
     url: "/api/v1/admin/users/{id}/reset-link",
     ...options,
+  });
+};
+
+/**
+ * List the workspaces of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended ("admin" when an instance admin suspended it, "unverified" when it waits for its owner to verify their email address) and since when. Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first.
+ */
+export const getAdminWorkspaces = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAdminWorkspacesData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAdminWorkspacesResponses,
+    GetAdminWorkspacesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/workspaces",
+    ...options,
+  });
+};
+
+/**
+ * Suspend or resume a workspace
+ * Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. suspended is required. The answer is the workspace as the list shows it.
+ */
+export const patchAdminWorkspacesById = <ThrowOnError extends boolean = false>(
+  options: Options<PatchAdminWorkspacesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchAdminWorkspacesByIdResponses,
+    PatchAdminWorkspacesByIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/workspaces/{id}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };
 
@@ -2380,7 +2438,7 @@ export const putProxiesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Send a heartbeat to a push monitor
- * Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address) or when its type is turned off on this install (DISABLED_MONITOR_TYPES): the push is not stored and sends no notification.
+ * Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one) or when its type is turned off on this install (DISABLED_MONITOR_TYPES): the push is not stored and sends no notification.
  */
 export const getPushByToken = <ThrowOnError extends boolean = false>(
   options: Options<GetPushByTokenData, ThrowOnError>
@@ -2544,6 +2602,7 @@ export const postStatusPages = <ThrowOnError extends boolean = false>(
 
 /**
  * Get a status page by domain name
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesDomainByDomain = <
   ThrowOnError extends boolean = false,
@@ -2563,6 +2622,7 @@ export const getStatusPagesDomainByDomain = <
 
 /**
  * Get a status page by slug
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
   options: Options<GetStatusPagesSlugBySlugData, ThrowOnError>
@@ -2580,6 +2640,7 @@ export const getStatusPagesSlugBySlug = <ThrowOnError extends boolean = false>(
 
 /**
  * Get monitors for a status page by slug with heartbeats and uptime
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitors = <
   ThrowOnError extends boolean = false,
@@ -2599,6 +2660,7 @@ export const getStatusPagesSlugBySlugMonitors = <
 
 /**
  * Get monitors for a status page by slug for homepage
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitorsHomepage = <
   ThrowOnError extends boolean = false,
