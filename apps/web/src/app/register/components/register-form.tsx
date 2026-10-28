@@ -91,16 +91,19 @@ export function RegisterForm({
   className,
   turnstileSiteKey,
   signupMode,
+  firstSignup,
   ...props
 }: React.ComponentPropsWithoutRef<"div"> & {
   // The key of the Turnstile widget the install asks for, or null without one
   turnstileSiteKey?: string | null;
-  // The install's signup mode. Open mode signs up strangers, who are not admins.
+  // The install's signup mode. Open mode signs up strangers, who are not admins after the first.
   signupMode?: "invite" | "open";
+  // Whether the install has no user yet, so that this signup becomes its instance admin
+  firstSignup?: boolean;
 }) {
   const { t } = useLocalizedTranslation();
   // The install's first signup becomes its admin and chooses for the install; anyone else may not
-  const installPreferences = showInstallPreferences(signupMode);
+  const installPreferences = showInstallPreferences(firstSignup);
   const [serverError, setServerError] = React.useState<string | null>(null);
   // A signup the visitor can fix by signing in gets a link beside its message
   const [emailTaken, setEmailTaken] = React.useState(false);
@@ -213,7 +216,7 @@ export function RegisterForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">{t("auth.register.title")}</CardTitle>
-          <CardDescription>{t(registerDescriptionKey(signupMode))}</CardDescription>
+          <CardDescription>{t(registerDescriptionKey(signupMode, firstSignup))}</CardDescription>
         </CardHeader>
 
         <CardContent>
