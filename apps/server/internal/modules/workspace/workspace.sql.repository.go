@@ -106,6 +106,25 @@ func (r *SQLRepositoryImpl) create(ctx context.Context, name, reason string) (*W
 	return sm.toDomain(), nil
 }
 
+func (r *SQLRepositoryImpl) Rename(ctx context.Context, id ID, name string) (*Workspace, error) {
+	sm := new(sqlModel)
+	// RETURNING hands back the row that was updated, so there is no gap in which another rename
+	// could slip in between the write and the read
+	err := dbtx.DB(ctx, r.db).NewUpdate().Model(sm).
+		Set("name = ?", name).
+		Set("updated_at = ?", time.Now().UTC()).
+		Where("w.id = ?", string(id)).
+		Returning("*").
+		Scan(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return sm.toDomain(), nil
+}
+
 func (r *SQLRepositoryImpl) AddMember(ctx context.Context, id ID, userID string, role Role) error {
 	mm := &memberModel{WorkspaceID: string(id), UserID: userID, Role: string(role), JoinedAt: time.Now().UTC()}
 	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(mm).Exec(ctx)

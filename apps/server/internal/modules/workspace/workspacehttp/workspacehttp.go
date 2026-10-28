@@ -31,7 +31,7 @@ func Scope(ctx context.Context) (workspace.ID, error) {
 // Fail turns the error of a role check, and of the people of a workspace, into its answer: 404 for
 // no workspace, a member or an invite that isn't there, 403 for a role that is too low or an
 // invite for another email, 409 for the last owner and for someone who is a member already, 410
-// for an invite that can't be used, 400 for a role that doesn't exist. It returns nil for any
+// for an invite that can't be used, 400 for a role that doesn't exist or a name that is blank. It returns nil for any
 // other error, which the caller maps as it does today.
 func Fail(err error) error {
 	switch {
@@ -51,6 +51,8 @@ func Fail(err error) error {
 		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("A workspace needs at least one owner"))
 	case errors.Is(err, workspace.ErrAlreadyMember):
 		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("Already a member of this workspace"))
+	case errors.Is(err, workspace.ErrInvalidName):
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("The workspace needs a name"))
 	case errors.Is(err, workspace.ErrInvalidRole):
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("The role must be owner, admin or member"))
 	}

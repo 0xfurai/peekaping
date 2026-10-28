@@ -230,3 +230,15 @@ func (c *Controller) CreateWorkspace(ctx context.Context, input *CreateWorkspace
 	}
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Workspace created successfully", workspaceResponse(created)))
 }
+
+func (c *Controller) RenameWorkspace(ctx context.Context, input *RenameWorkspaceInput) (*httpx.Output[utils.ApiResponse[*WorkspaceResponse]], error) {
+	body, err := decode(input)
+	if err != nil {
+		return nil, err
+	}
+	renamed, err := c.service.RenameWorkspace(ctx, body.Name)
+	if err != nil {
+		return nil, c.fail(err)
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Workspace renamed successfully", workspaceResponse(renamed)))
+}

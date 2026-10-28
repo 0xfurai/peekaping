@@ -103,6 +103,7 @@ import {
   putTelemetry,
   postTelemetryNotice,
   getVersion,
+  patchWorkspace,
   getWorkspaceInvites,
   postWorkspaceInvites,
   deleteWorkspaceInvitesById,
@@ -353,6 +354,9 @@ import type {
   PostTelemetryNoticeError,
   PostTelemetryNoticeResponse,
   GetVersionData,
+  PatchWorkspaceData,
+  PatchWorkspaceError,
+  PatchWorkspaceResponse,
   GetWorkspaceInvitesData,
   PostWorkspaceInvitesData,
   PostWorkspaceInvitesError,
@@ -4057,6 +4061,34 @@ export const getVersionOptions = (options?: Options<GetVersionData>) => {
     },
     queryKey: getVersionQueryKey(options),
   });
+};
+
+/**
+ * Rename the workspace
+ * An admin or owner (or an API key) renames the workspace the request runs in. The name is trimmed and must be 1 to 255 characters. A member is refused (403).
+ */
+export const patchWorkspaceMutation = (
+  options?: Partial<Options<PatchWorkspaceData>>
+): UseMutationOptions<
+  PatchWorkspaceResponse,
+  AxiosError<PatchWorkspaceError>,
+  Options<PatchWorkspaceData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchWorkspaceResponse,
+    AxiosError<PatchWorkspaceError>,
+    Options<PatchWorkspaceData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchWorkspace({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getWorkspaceInvitesQueryKey = (

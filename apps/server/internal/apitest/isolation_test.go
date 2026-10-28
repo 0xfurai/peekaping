@@ -234,6 +234,10 @@ var isolationCases = map[string]isolationCase{
 	"PUT /api/v1/api-keys/{id}":    byID("API key", withBody(map[string]any{"name": "Hijacked"})),
 	"DELETE /api/v1/api-keys/{id}": byID("API key", plain),
 
+	"PATCH /api/v1/workspace": byID("", func(isolationIDs) []isolationRequest {
+		// B renames its own workspace: A's keeps its name, which the walk's snapshot of A checks
+		return []isolationRequest{{body: map[string]any{"name": "Bobs renamed"}, status: http.StatusOK, own: true}}
+	}),
 	"GET /api/v1/workspace/members": byID("", func(isolationIDs) []isolationRequest {
 		// B's members are B's own: A's owner is not among them
 		return []isolationRequest{{own: true, status: http.StatusOK, forbid: []string{adminEmail}}}
