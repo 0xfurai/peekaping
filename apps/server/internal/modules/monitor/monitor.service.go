@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"peekaping/internal/dbtx"
@@ -16,6 +17,45 @@ import (
 
 	"go.uber.org/zap"
 )
+
+// resolvePushToken returns the push token to store in the monitor's push_token column.
+// The web app generates a token in the browser and sends it both at the top level and
+// inside config.pushToken, but an API client may send only one of the two. The push
+// endpoint looks the monitor up by the column, so a token that only reached config
+// would leave the monitor unreachable; take whichever of the two is set.
+func resolvePushToken(topLevel, configJSON string) string {
+	if topLevel != "" {
+		return topLevel
+	}
+
+	var cfg struct {
+		PushToken string `json:"pushToken"`
+	}
+	if err := json.Unmarshal([]byte(configJSON), &cfg); err != nil {
+		return ""
+	}
+	return cfg.PushToken
+}
+
+// resolvePartialPushToken is resolvePushToken for a partial update, whose fields are
+// pointers: nil means the request left the field out, so the monitor keeps what it has.
+// Only a request that sends one of the two token fields changes the column, and a token
+// that reaches config alone still lands in it.
+func resolvePartialPushToken(topLevel, configJSON *string) *string {
+	if topLevel == nil && configJSON == nil {
+		return nil
+	}
+
+	token := resolvePushToken(deref(topLevel), deref(configJSON))
+	return &token
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
 
 type Service interface {
 	Create(ctx context.Context, monitor *CreateUpdateDto) (*Model, error)
@@ -269,7 +309,7 @@ func (mr *MonitorServiceImpl) UpdatePartial(ctx context.Context, id string, moni
 		Status:         monitor.Status,
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
-		PushToken:      monitor.PushToken,
+		PushToken:      resolvePartialPushToken(monitor.PushToken, monitor.Config),
 		ProbeIDs:       monitor.ProbeIDs,
 	}
 

@@ -121,3 +121,28 @@ func TestCreateUpdateDtoApplyCreateDefaultsLeavesTheRestAlone(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateUpdateDtoApplyUpdateDefaultsSyncsThePushToken(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		dto        CreateUpdateDto
+		wantToken  string
+		wantConfig string
+	}{
+		{"top level only", CreateUpdateDto{Type: "push", PushToken: "abc", Config: `{}`}, "abc", `{"pushToken":"abc"}`},
+		{"config only", CreateUpdateDto{Type: "push", Config: `{"pushToken":"abc"}`}, "abc", `{"pushToken":"abc"}`},
+		{"both differ, top level wins", CreateUpdateDto{Type: "push", PushToken: "top", Config: `{"pushToken":"inner"}`}, "top", `{"pushToken":"top"}`},
+		{"neither generates none, so the validation rejects it", CreateUpdateDto{Type: "push", Config: `{"pushToken":""}`}, "", `{"pushToken":""}`},
+		{"no config generates none", CreateUpdateDto{Type: "push"}, "", ""},
+		{"an http monitor is left alone", CreateUpdateDto{Type: "http", PushToken: "abc", Config: `{}`}, "abc", `{}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			dto := tc.dto
+
+			dto.ApplyUpdateDefaults()
+
+			assert.Equal(t, tc.wantToken, dto.PushToken)
+			assert.Equal(t, tc.wantConfig, dto.Config)
+		})
+	}
+}

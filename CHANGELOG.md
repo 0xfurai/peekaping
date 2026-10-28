@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix: creating a push monitor through the API without a push token works. The server generates a token and returns it in `push_token` and in `config.pushToken`, where before it answered 400 (`PushConfig.PushToken ... required`). A token sent only as `push_token` is copied into `config.pushToken`, and a token you send is kept (#273) (thanks @ausebiblibre)
+- fix: a push monitor updated through the API with its token in only one of `push_token` and `config.pushToken` stays reachable at its push URL. The push endpoint looks the monitor up by `push_token`, so a full or partial update that sent the token only inside the config emptied it, and every push answered `Monitor not found for pushToken`. A full update now fills either field from the other, as a create does, and a partial update fills `push_token` from the config. An update never generates a token (#234) (thanks @rayhankey3)
+  - Upgrade note: a monitor whose `push_token` is already empty keeps answering 404 until it is saved once more, which fills it from its config.
 
 ## [0.0.48] - 2026-10-27
 

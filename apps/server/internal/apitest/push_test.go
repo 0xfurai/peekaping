@@ -168,6 +168,71 @@ func TestPush_CreateStillRejectsAConfigThatIsNotJSON(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 }
 
+// A full update that moves the token into config alone keeps the monitor reachable, and
+// a partial update that sends neither token field leaves the stored one alone.
+func TestPush_TokenSurvivesAnUpdateThatOnlySendsConfig(t *testing.T) {
+	a := newAppWithAdmin(t)
+	monitorID := a.createMonitor(t, "Nightly backup", "original-token")
+
+	full := pushMonitorBody("Nightly backup", "rotated-token")
+	delete(full, "push_token")
+	decode[any](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+monitorID, full, a.asAdmin), http.StatusOK)
+
+	w := a.request(t, http.MethodGet, "/api/v1/push/rotated-token?status=up", nil)
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	// A partial update that touches neither token field must not clear the column.
+	decode[any](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+monitorID, map[string]any{"name": "Renamed backup"}, a.asAdmin), http.StatusOK)
+
+	w = a.request(t, http.MethodGet, "/api/v1/push/rotated-token?status=up", nil)
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+}
+
+// A full update with the token only at the top level copies it into config.pushToken, the
+// same way a create does.
+func TestPush_FullUpdateWithTheTokenOnlyAtTheTopLevel(t *testing.T) {
+	a := newAppWithAdmin(t)
+	monitorID := a.createMonitor(t, "Nightly backup", "original-token")
+
+	full := pushMonitorBody("Nightly backup", "rotated-token")
+	full["config"] = "{}"
+	monitor := decode[createdPushMonitor](t, a.request(t, http.MethodPut, "/api/v1/monitors/"+monitorID, full, a.asAdmin), http.StatusOK)
+
+	assert.Equal(t, "rotated-token", monitor.PushToken)
+	assert.Equal(t, "rotated-token", configToken(t, monitor.Config))
+	assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/rotated-token", nil).Code)
+}
+
+// A full update generates no token: one would replace the token the monitored service pushes
+// with, so an update that sends none is rejected and the monitor keeps its own.
+func TestPush_FullUpdateWithoutATokenIsRejected(t *testing.T) {
+	a := newAppWithAdmin(t)
+	monitorID := a.createMonitor(t, "Nightly backup", "original-token")
+
+	full := pushMonitorBody("Nightly backup", "")
+	delete(full, "push_token")
+	full["config"] = "{}"
+	w := a.request(t, http.MethodPut, "/api/v1/monitors/"+monitorID, full, a.asAdmin)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/original-token", nil).Code)
+}
+
+// A partial update that sends an empty top-level token and the real one inside config
+// has to fill the column: the repository only skips the column when the field is absent,
+// so an empty string that arrives as "" would otherwise be stored as-is.
+func TestPush_PartialUpdateFillsTheColumnFromConfig(t *testing.T) {
+	a := newAppWithAdmin(t)
+	monitorID := a.createMonitor(t, "Nightly backup", "original-token")
+
+	patch := pushMonitorBody("Nightly backup", "partial-token")
+	patch["push_token"] = ""
+	decode[any](t, a.request(t, http.MethodPatch, "/api/v1/monitors/"+monitorID, patch, a.asAdmin), http.StatusOK)
+
+	w := a.request(t, http.MethodGet, "/api/v1/push/partial-token?status=up", nil)
+	assert.Equal(t, http.StatusOK, w.Code, w.Body.String())
+}
+
 func TestPush_IgnoresMalformedResponseTime(t *testing.T) {
 	a := newAppWithAdmin(t)
 	monitorID := a.createMonitor(t, "Nightly backup", "backup-push-token")

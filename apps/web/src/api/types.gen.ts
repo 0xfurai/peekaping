@@ -362,7 +362,7 @@ export type MonitorCreateUpdateDto = {
   probe_ids?: Array<string> | null;
   proxy_id?: string;
   /**
-   * For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept; when push_token and config.pushToken differ, push_token wins. A full update needs the same token here and in config.pushToken.
+   * For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept; when push_token and config.pushToken differ, push_token wins. A full update takes the token from either field the same way, but generates none: one with neither answers 400.
    */
   push_token?: string;
   resend_interval?: number;
