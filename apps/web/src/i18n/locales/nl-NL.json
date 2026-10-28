@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "De handtekening verifiëren",
         "signing_secret_label": "Ondertekeningsgeheim",
         "signing_secret_placeholder": "Laat leeg om niet-ondertekende verzoeken te verzenden"
+      },
+      "install_email": {
+        "description": "Verstuurd door deze installatie, een SMTP-server is niet nodig.",
+        "to_description": "Een lid van deze werkruimte. Meldingen worden verstuurd zodra het lid het adres heeft geverifieerd.",
+        "to_label": "Ontvanger",
+        "to_placeholder": "Kies een lid"
       }
     },
     "important": "Belangrijke meldingen",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Moet minimaal 1 dag zijn"
+    },
+    "workspace_name": {
+      "description": "De naam die wordt getoond in de werkruimteschakelaar en aan de leden.",
+      "title": "Naam van de werkruimte"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Je account is geen lid van een werkruimte, dus er is hier niets om te tonen. Vraag iemand die een werkruimte beheert om je toe te voegen.",
     "none_title": "Je zit nog in geen enkele werkruimte",
     "refresh_failed": "Je werkruimtes konden niet worden geladen. Controleer je verbinding en probeer het opnieuw.",
+    "rename_error": "Werkruimte hernoemen mislukt",
+    "rename_success": "Werkruimte hernoemd",
     "switcher_label": "Van werkruimte wisselen"
   }
 }

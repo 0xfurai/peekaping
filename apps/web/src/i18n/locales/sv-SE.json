@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Så verifierar du signaturen",
         "signing_secret_label": "Signeringshemlighet",
         "signing_secret_placeholder": "Lämna tomt för att skicka osignerade förfrågningar"
+      },
+      "install_email": {
+        "description": "Skickas av den här installationen, ingen SMTP-server behövs.",
+        "to_description": "En medlem i den här arbetsytan. Aviseringar skickas när medlemmen har verifierat adressen.",
+        "to_label": "Mottagare",
+        "to_placeholder": "Välj en medlem"
       }
     },
     "important": "Viktiga notiser",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Måste vara minst 1 dag"
+    },
+    "workspace_name": {
+      "description": "Namnet som visas i arbetsytebytaren och för medlemmarna.",
+      "title": "Arbetsytans namn"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Ditt konto är inte medlem i någon arbetsyta, så det finns inget att visa här. Be någon som hanterar en arbetsyta att lägga till dig.",
     "none_title": "Du är inte med i någon arbetsyta ännu",
     "refresh_failed": "Dina arbetsytor kunde inte läsas in. Kontrollera anslutningen och försök igen.",
+    "rename_error": "Det gick inte att byta namn på arbetsytan",
+    "rename_success": "Arbetsytan har bytt namn",
     "switcher_label": "Byt arbetsyta"
   }
 }

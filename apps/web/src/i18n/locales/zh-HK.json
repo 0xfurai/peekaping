@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "如何驗證簽名",
         "signing_secret_label": "簽名密鑰",
         "signing_secret_placeholder": "留空則發送未簽名的請求"
+      },
+      "install_email": {
+        "description": "由此安裝直接發送，無需 SMTP 伺服器。",
+        "to_description": "此工作區的成員。其驗證地址後才會發送通知。",
+        "to_label": "收件人",
+        "to_placeholder": "揀選成員"
       }
     },
     "important": "重要通知",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "必須至少 1 天"
+    },
+    "workspace_name": {
+      "description": "顯示在工作區切換器中以及對成員顯示的名稱。",
+      "title": "工作區名稱"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "你嘅帳戶唔係任何工作區嘅成員，所以呢度冇嘢可以顯示。請搵管理緊工作區嘅人將你加入。",
     "none_title": "你仲未喺任何工作區入面",
     "refresh_failed": "無法載入你的工作區。請檢查網絡連線後重試。",
+    "rename_error": "重新命名工作區失敗",
+    "rename_success": "工作區已重新命名",
     "switcher_label": "切換工作區"
   }
 }

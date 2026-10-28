@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "İmza nasıl doğrulanır",
         "signing_secret_label": "İmzalama Gizli Anahtarı",
         "signing_secret_placeholder": "İmzasız istek göndermek için boş bırakın"
+      },
+      "install_email": {
+        "description": "Bu kurulum tarafından gönderilir, SMTP sunucusu gerekmez.",
+        "to_description": "Bu çalışma alanının bir üyesi. Bildirimler, üye adresi doğruladıktan sonra gönderilir.",
+        "to_label": "Alıcı",
+        "to_placeholder": "Bir üye seçin"
       }
     },
     "important": "Önemli Bildirimler",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "En az 1 gün olmalıdır"
+    },
+    "workspace_name": {
+      "description": "Çalışma alanı değiştiricide ve üyelerine gösterilen ad.",
+      "title": "Çalışma alanı adı"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Hesabınız hiçbir çalışma alanının üyesi değil, bu yüzden burada gösterilecek bir şey yok. Bir çalışma alanını yöneten birinden sizi eklemesini isteyin.",
     "none_title": "Henüz hiçbir çalışma alanında değilsiniz",
     "refresh_failed": "Çalışma alanlarınız yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.",
+    "rename_error": "Çalışma alanı yeniden adlandırılamadı",
+    "rename_success": "Çalışma alanı yeniden adlandırıldı",
     "switcher_label": "Çalışma alanı değiştir"
   }
 }

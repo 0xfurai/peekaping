@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Kako preveriti podpis",
         "signing_secret_label": "Skrivnost za podpis",
         "signing_secret_placeholder": "Pustite prazno za pošiljanje nepodpisanih zahtevkov"
+      },
+      "install_email": {
+        "description": "Pošlje jo ta namestitev, strežnik SMTP ni potreben.",
+        "to_description": "Član tega delovnega prostora. Obvestila se pošljejo, ko potrdi naslov.",
+        "to_label": "Prejemnik",
+        "to_placeholder": "Izberite člana"
       }
     },
     "important": "Pomembna obvestila",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Mora biti vsaj 1 dan"
+    },
+    "workspace_name": {
+      "description": "Ime, ki se prikazuje v preklopniku delovnih prostorov in članom.",
+      "title": "Ime delovnega prostora"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Vaš račun ni član nobenega delovnega prostora, zato tu ni ničesar za prikazati. Prosite nekoga, ki upravlja delovni prostor, naj vas doda.",
     "none_title": "Še niste v nobenem delovnem prostoru",
     "refresh_failed": "Vaših delovnih prostorov ni bilo mogoče naložiti. Preverite povezavo in poskusite znova.",
+    "rename_error": "Preimenovanje delovnega prostora ni uspelo",
+    "rename_success": "Delovni prostor je preimenovan",
     "switcher_label": "Zamenjaj delovni prostor"
   }
 }

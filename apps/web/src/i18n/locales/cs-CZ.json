@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Jak ověřit podpis",
         "signing_secret_label": "Tajný klíč pro podpis",
         "signing_secret_placeholder": "Ponechte prázdné pro odesílání nepodepsaných požadavků"
+      },
+      "install_email": {
+        "description": "Odesílá tato instalace, SMTP server není potřeba.",
+        "to_description": "Člen tohoto pracovního prostoru. Oznámení se odesílají, jakmile adresu ověří.",
+        "to_label": "Příjemce",
+        "to_placeholder": "Vyberte člena"
       }
     },
     "important": "Důležité notifikace",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Musí být alespoň 1 den"
+    },
+    "workspace_name": {
+      "description": "Název zobrazený v přepínači pracovních prostorů a jeho členům.",
+      "title": "Název pracovního prostoru"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Váš účet není členem žádného pracovního prostoru, takže tu není co zobrazit. Požádejte někoho, kdo pracovní prostor spravuje, aby vás přidal.",
     "none_title": "Zatím nejste v žádném pracovním prostoru",
     "refresh_failed": "Vaše pracovní prostory se nepodařilo načíst. Zkontrolujte připojení a zkuste to znovu.",
+    "rename_error": "Pracovní prostor se nepodařilo přejmenovat",
+    "rename_success": "Pracovní prostor byl přejmenován",
     "switcher_label": "Přepnout pracovní prostor"
   }
 }

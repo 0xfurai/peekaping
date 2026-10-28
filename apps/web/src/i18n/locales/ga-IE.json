@@ -1378,6 +1378,12 @@
         "signing_secret_docs_link": "Conas an síniú a fhíorú",
         "signing_secret_label": "Rún sínithe",
         "signing_secret_placeholder": "Fág folamh chun iarratais gan síniú a sheoladh"
+      },
+      "install_email": {
+        "description": "Seoltar leis an suiteáil seo é, níl freastalaí SMTP ag teastáil.",
+        "to_description": "Ball den spás oibre seo. Seoltar fógraí nuair a bheidh an seoladh fíoraithe aige.",
+        "to_label": "Faighteoir",
+        "to_placeholder": "Roghnaigh ball"
       }
     },
     "important": "Fógraí tábhachtacha",
@@ -1729,6 +1735,10 @@
     },
     "validation": {
       "min_days": "Caithfidh sé a bheith ar a laghad 1 lá."
+    },
+    "workspace_name": {
+      "description": "An t-ainm a thaispeántar san athraitheoir spás oibre agus dá bhaill.",
+      "title": "Ainm an spáis oibre"
     }
   },
   "status": {
@@ -1871,6 +1881,8 @@
     "none_description": "Níl do chuntas ina bhall d'aon spás oibre, mar sin níl aon rud le taispeáint anseo. Iarr ar dhuine a reáchtálann spás oibre tú a chur leis.",
     "none_title": "Níl tú i spás oibre fós",
     "refresh_failed": "Níorbh fhéidir do spásanna oibre a luchtú. Seiceáil do cheangal agus bain triail eile as.",
+    "rename_error": "Theip ar athainmniú an spáis oibre",
+    "rename_success": "Athainmníodh an spás oibre",
     "switcher_label": "Athraigh spás oibre"
   }
 }

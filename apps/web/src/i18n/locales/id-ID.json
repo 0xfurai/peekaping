@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Cara memverifikasi tanda tangan",
         "signing_secret_label": "Rahasia Penandatanganan",
         "signing_secret_placeholder": "Biarkan kosong untuk mengirim permintaan tanpa tanda tangan"
+      },
+      "install_email": {
+        "description": "Dikirim oleh instalasi ini, tidak perlu server SMTP.",
+        "to_description": "Anggota ruang kerja ini. Notifikasi dikirim setelah ia memverifikasi alamatnya.",
+        "to_label": "Penerima",
+        "to_placeholder": "Pilih anggota"
       }
     },
     "important": "Notifikasi Penting",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Harus minimal 1 hari"
+    },
+    "workspace_name": {
+      "description": "Nama yang ditampilkan di pengalih ruang kerja dan kepada anggotanya.",
+      "title": "Nama ruang kerja"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Akun Anda bukan anggota ruang kerja mana pun, jadi tidak ada yang bisa ditampilkan di sini. Minta seseorang yang mengelola ruang kerja untuk menambahkan Anda.",
     "none_title": "Anda belum berada di ruang kerja mana pun",
     "refresh_failed": "Ruang kerja Anda tidak dapat dimuat. Periksa koneksi Anda dan coba lagi.",
+    "rename_error": "Gagal mengganti nama ruang kerja",
+    "rename_success": "Ruang kerja diganti namanya",
     "switcher_label": "Ganti ruang kerja"
   }
 }

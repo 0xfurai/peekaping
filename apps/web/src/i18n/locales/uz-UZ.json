@@ -1378,6 +1378,12 @@
         "signing_secret_docs_link": "Imzoni qanday tekshirish mumkin",
         "signing_secret_label": "Imzolash siri",
         "signing_secret_placeholder": "Imzosiz so‘rovlar yuborish uchun bo‘sh qoldiring"
+      },
+      "install_email": {
+        "description": "Shu o'rnatma yuboradi, SMTP serveri kerak emas.",
+        "to_description": "Ushbu ish maydonining a'zosi. Bildirishnomalar u manzilni tasdiqlagandan keyin yuboriladi.",
+        "to_label": "Qabul qiluvchi",
+        "to_placeholder": "A'zoni tanlang"
       }
     },
     "important": "Muhim Xabarnomalar",
@@ -1729,6 +1735,10 @@
     },
     "validation": {
       "min_days": "Kamida 1 kun bo'lishi kerak"
+    },
+    "workspace_name": {
+      "description": "Ish maydonlari almashtirgichida va uning a'zolariga ko'rsatiladigan nom.",
+      "title": "Ish maydoni nomi"
     }
   },
   "status": {
@@ -1871,6 +1881,8 @@
     "none_description": "Hisobingiz hech bir ish maydonining a'zosi emas, shuning uchun bu yerda ko'rsatadigan narsa yo'q. Ish maydonini boshqaradigan kishidan sizni qo'shishini so'rang.",
     "none_title": "Siz hali hech qanday ish maydonida emassiz",
     "refresh_failed": "Ish maydonlaringiz yuklanmadi. Ulanishni tekshirib, qayta urinib ko'ring.",
+    "rename_error": "Ish maydoni nomini o'zgartirib bo'lmadi",
+    "rename_success": "Ish maydoni nomi o'zgartirildi",
     "switcher_label": "Ish maydonini almashtirish"
   }
 }

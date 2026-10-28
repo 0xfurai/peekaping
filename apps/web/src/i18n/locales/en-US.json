@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "How to verify the signature",
         "signing_secret_label": "Signing Secret",
         "signing_secret_placeholder": "Leave empty to send unsigned requests"
+      },
+      "install_email": {
+        "description": "Sent by this install, no SMTP server needed.",
+        "to_description": "A member of this workspace. Notifications are sent once they have verified the address.",
+        "to_label": "Recipient",
+        "to_placeholder": "Choose a member"
       }
     },
     "important": "Important Notifications",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Must be at least 1 day"
+    },
+    "workspace_name": {
+      "description": "The name shown in the workspace switcher and to its members.",
+      "title": "Workspace name"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Your account isn't a member of any workspace, so there is nothing to show here. Ask someone who runs a workspace to add you.",
     "none_title": "You're not in a workspace yet",
     "refresh_failed": "Couldn't load your workspaces. Check your connection and try again.",
+    "rename_error": "Failed to rename the workspace",
+    "rename_success": "Workspace renamed",
     "switcher_label": "Switch workspace"
   }
 }

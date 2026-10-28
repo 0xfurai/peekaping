@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Allekirjoituksen tarkistaminen",
         "signing_secret_label": "Allekirjoitussalaisuus",
         "signing_secret_placeholder": "Jätä tyhjäksi, jos haluat lähettää allekirjoittamattomia pyyntöjä"
+      },
+      "install_email": {
+        "description": "Tämä asennus lähettää sen, SMTP-palvelinta ei tarvita.",
+        "to_description": "Tämän työtilan jäsen. Ilmoitukset lähetetään, kun hän on vahvistanut osoitteen.",
+        "to_label": "Vastaanottaja",
+        "to_placeholder": "Valitse jäsen"
       }
     },
     "important": "Tärkeät ilmoitukset",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Täytyy olla vähintään 1 päivä"
+    },
+    "workspace_name": {
+      "description": "Nimi, joka näkyy työtilan vaihtajassa ja sen jäsenille.",
+      "title": "Työtilan nimi"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Tilisi ei ole minkään työtilan jäsen, joten tässä ei ole mitään näytettävää. Pyydä työtilaa ylläpitävää lisäämään sinut.",
     "none_title": "Et ole vielä missään työtilassa",
     "refresh_failed": "Työtilojasi ei voitu ladata. Tarkista yhteytesi ja yritä uudelleen.",
+    "rename_error": "Työtilan uudelleennimeäminen epäonnistui",
+    "rename_success": "Työtila nimettiin uudelleen",
     "switcher_label": "Vaihda työtilaa"
   }
 }

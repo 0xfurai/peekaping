@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Cách xác minh chữ ký",
         "signing_secret_label": "Khóa bí mật ký",
         "signing_secret_placeholder": "Để trống để gửi yêu cầu không ký"
+      },
+      "install_email": {
+        "description": "Do bản cài đặt này gửi, không cần máy chủ SMTP.",
+        "to_description": "Một thành viên của không gian làm việc này. Thông báo được gửi sau khi họ xác minh địa chỉ.",
+        "to_label": "Người nhận",
+        "to_placeholder": "Chọn một thành viên"
       }
     },
     "important": "Thông báo quan trọng",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Phải ít nhất 1 ngày"
+    },
+    "workspace_name": {
+      "description": "Tên hiển thị trong bộ chuyển không gian làm việc và cho các thành viên.",
+      "title": "Tên không gian làm việc"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Tài khoản của bạn chưa là thành viên của không gian làm việc nào nên ở đây không có gì để hiển thị. Hãy nhờ người quản lý một không gian làm việc thêm bạn vào.",
     "none_title": "Bạn chưa thuộc không gian làm việc nào",
     "refresh_failed": "Không thể tải các không gian làm việc của bạn. Hãy kiểm tra kết nối và thử lại.",
+    "rename_error": "Không đổi được tên không gian làm việc",
+    "rename_success": "Đã đổi tên không gian làm việc",
     "switcher_label": "Chuyển không gian làm việc"
   }
 }

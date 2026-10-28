@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Nola egiaztatu sinadura",
         "signing_secret_label": "Sinadura-sekretua",
         "signing_secret_placeholder": "Utzi hutsik sinatu gabeko eskaerak bidaltzeko"
+      },
+      "install_email": {
+        "description": "Instalazio honek bidaltzen du, ez da SMTP zerbitzaririk behar.",
+        "to_description": "Lan-eremu honetako kide bat. Jakinarazpenak helbidea egiaztatu ondoren bidaliko dira.",
+        "to_label": "Hartzailea",
+        "to_placeholder": "Aukeratu kide bat"
       }
     },
     "important": "Jakinarazpen garrantzitsuak",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Gutxienez 1 egun"
+    },
+    "workspace_name": {
+      "description": "Lan-eremuen aldatzailean eta bere kideei erakusten zaien izena.",
+      "title": "Lan-eremuaren izena"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Zure kontua ez da lan-eremu bateko kide, beraz ez dago hemen ezer erakusteko. Eskatu lan-eremu bat kudeatzen duen norbaiti zu gehitzeko.",
     "none_title": "Oraindik ez zaude lan-eremurik batean",
     "refresh_failed": "Ezin izan dira zure lan-eremuak kargatu. Egiaztatu konexioa eta saiatu berriro.",
+    "rename_error": "Ezin izan da lan-eremuaren izena aldatu",
+    "rename_success": "Lan-eremuaren izena aldatu da",
     "switcher_label": "Aldatu lan-eremua"
   }
 }

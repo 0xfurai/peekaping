@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Sådan verificerer du signaturen",
         "signing_secret_label": "Signeringshemmelighed",
         "signing_secret_placeholder": "Lad feltet stå tomt for at sende usignerede anmodninger"
+      },
+      "install_email": {
+        "description": "Sendes af denne installation, ingen SMTP-server er nødvendig.",
+        "to_description": "Et medlem af dette arbejdsområde. Notifikationer sendes, når medlemmet har bekræftet adressen.",
+        "to_label": "Modtager",
+        "to_placeholder": "Vælg et medlem"
       }
     },
     "important": "Vigtige meddelelser",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Må være mindst 1 dag"
+    },
+    "workspace_name": {
+      "description": "Navnet, der vises i arbejdsområdeskifteren og for dets medlemmer.",
+      "title": "Arbejdsområdets navn"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Din konto er ikke medlem af noget arbejdsområde, så der er intet at vise her. Bed en, der styrer et arbejdsområde, om at tilføje dig.",
     "none_title": "Du er endnu ikke i et arbejdsområde",
     "refresh_failed": "Dine arbejdsområder kunne ikke indlæses. Tjek din forbindelse, og prøv igen.",
+    "rename_error": "Arbejdsområdet kunne ikke omdøbes",
+    "rename_success": "Arbejdsområdet er omdøbt",
     "switcher_label": "Skift arbejdsområde"
   }
 }

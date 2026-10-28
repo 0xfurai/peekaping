@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Come verificare la firma",
         "signing_secret_label": "Segreto di firma",
         "signing_secret_placeholder": "Lascia vuoto per inviare richieste non firmate"
+      },
+      "install_email": {
+        "description": "Inviata da questa installazione, non serve alcun server SMTP.",
+        "to_description": "Un membro di questo spazio di lavoro. Le notifiche vengono inviate dopo che ha verificato l'indirizzo.",
+        "to_label": "Destinatario",
+        "to_placeholder": "Scegli un membro"
       }
     },
     "important": "Notifiche importanti",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Deve essere almeno 1 giorno"
+    },
+    "workspace_name": {
+      "description": "Il nome mostrato nel selettore degli spazi di lavoro e ai suoi membri.",
+      "title": "Nome dello spazio di lavoro"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Il tuo account non è membro di nessuno spazio di lavoro, quindi qui non c'è nulla da mostrare. Chiedi a chi gestisce uno spazio di lavoro di aggiungerti.",
     "none_title": "Non fai ancora parte di nessuno spazio di lavoro",
     "refresh_failed": "Impossibile caricare i tuoi spazi di lavoro. Controlla la connessione e riprova.",
+    "rename_error": "Impossibile rinominare lo spazio di lavoro",
+    "rename_success": "Spazio di lavoro rinominato",
     "switcher_label": "Cambia spazio di lavoro"
   }
 }

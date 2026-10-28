@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "서명 확인 방법",
         "signing_secret_label": "서명 시크릿",
         "signing_secret_placeholder": "비워 두면 서명 없이 요청을 보냅니다"
+      },
+      "install_email": {
+        "description": "이 설치본에서 보내므로 SMTP 서버가 필요 없습니다.",
+        "to_description": "이 워크스페이스의 멤버입니다. 주소를 인증하면 알림이 전송됩니다.",
+        "to_label": "수신자",
+        "to_placeholder": "멤버 선택"
       }
     },
     "important": "중요 알림",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "최소 1일 이상이어야 합니다"
+    },
+    "workspace_name": {
+      "description": "워크스페이스 전환기와 멤버에게 표시되는 이름입니다.",
+      "title": "워크스페이스 이름"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "계정이 어떤 워크스페이스의 구성원도 아니어서 여기에 표시할 내용이 없습니다. 워크스페이스를 운영하는 사람에게 추가해 달라고 요청하세요.",
     "none_title": "아직 어떤 워크스페이스에도 속해 있지 않습니다",
     "refresh_failed": "워크스페이스를 불러오지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    "rename_error": "워크스페이스 이름을 변경하지 못했습니다",
+    "rename_success": "워크스페이스 이름을 변경했습니다",
     "switcher_label": "워크스페이스 전환"
   }
 }
