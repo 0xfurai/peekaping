@@ -208,3 +208,20 @@ func TestRepository_ListIDsAnyWorkspace(t *testing.T) {
 		assert.Equal(t, []workspace.ID{first.ID, second.ID}, ids, "every workspace, the oldest first")
 	})
 }
+
+func TestRepository_FindByID(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		ctx := context.Background()
+		made, err := repo.Create(ctx, "Acme")
+		require.NoError(t, err)
+
+		found, err := repo.FindByID(ctx, made.ID)
+		require.NoError(t, err)
+		require.NotNil(t, found)
+		assert.Equal(t, "Acme", found.Name)
+
+		missing, err := repo.FindByID(ctx, workspace.ID("00000000-0000-0000-0000-000000000000"))
+		require.NoError(t, err)
+		assert.Nil(t, missing, "no workspace has that ID")
+	})
+}

@@ -268,23 +268,23 @@ func (s *ServiceImpl) CreateInvite(ctx context.Context, userID, email string, ro
 		return nil, err
 	}
 	created := &CreatedInvite{Invite: invite, Token: token, Link: s.inviteLink(token)}
-	s.emailInvite(ctx, created, hash)
+	s.emailInvite(ctx, created)
 	return created, nil
 }
 
 // emailInvite emails the invite's link to the invited address, when the install has a sender for
 // account emails. The invite is made already and its answer carries the link, so a failure is
 // logged and nothing more.
-func (s *ServiceImpl) emailInvite(ctx context.Context, created *CreatedInvite, tokenHash string) {
+func (s *ServiceImpl) emailInvite(ctx context.Context, created *CreatedInvite) {
 	if !s.mailer.Enabled() {
 		return
 	}
 	// The name of the workspace and the inviter are looked up in the request's context, before it ends
 	workspaceName := ""
-	if stored, err := s.invites.FindByTokenHashAnyWorkspace(ctx, tokenHash); err != nil {
-		s.logger.Errorw("Failed to read an invite to email it", "inviteId", created.ID, "error", err)
+	if stored, err := s.workspaces.FindByID(ctx, created.WorkspaceID); err != nil {
+		s.logger.Errorw("Failed to read the workspace of an invite to email it", "inviteId", created.ID, "error", err)
 	} else if stored != nil {
-		workspaceName = stored.WorkspaceName
+		workspaceName = stored.Name
 	}
 	inviter := ""
 	if created.InvitedBy != nil {
