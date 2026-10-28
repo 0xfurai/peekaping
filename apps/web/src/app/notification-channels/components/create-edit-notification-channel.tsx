@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useMe } from "@/hooks/useMe";
 import {
   askedToReenter,
   reenterError,
@@ -34,8 +35,8 @@ import {
 import { SavedSecrets } from "./saved-secrets";
 import {
   channelFormSchema,
-  channelTypeOptions,
   channelTypes,
+  selectableChannelTypeOptions,
   getChannelType,
   isChannelType,
   type NotificationChannelFormValues,
@@ -59,6 +60,7 @@ export default function CreateEditNotificationChannel({
   channelId?: string;
 }) {
   const { t } = useLocalizedTranslation();
+  const accountEmails = useMe().data?.data?.accountEmails === true;
   // A saved config lacks any field added to its type since it was stored
   const [openingValues] = useState(() => ({
     ...getChannelType(initialValues.type)?.defaultValues,
@@ -92,6 +94,11 @@ export default function CreateEditNotificationChannel({
   });
 
   const type = baseForm.watch("type");
+  // A saved channel of a type the install no longer offers still opens and edits
+  const typeOptions = selectableChannelTypeOptions({
+    accountEmails,
+    keep: mode === "edit" ? openingValues.type : undefined,
+  });
 
   const TypeFormComponent = getChannelType(type)?.Form ?? null;
 
@@ -181,7 +188,7 @@ export default function CreateEditNotificationChannel({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {channelTypeOptions.map((item) => (
+                {typeOptions.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>

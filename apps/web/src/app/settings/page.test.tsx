@@ -61,4 +61,16 @@ describe("SettingsPage", () => {
     expect(html).toContain(`href="/w/${WORKSPACE_ID}/settings/members"`);
     expect(html).toContain(text("members.settings_card.open"));
   });
+
+  it.each(["admin", "owner"] as const)("shows an %s the workspace's name in a field, with Save", (role) => {
+    const html = settings({ instanceAdmin: false, role });
+    expect(html).toContain(text("settings.workspace_name.title"));
+    expect(html).toMatch(/<input[^>]*value="Main"/);
+  });
+
+  it("shows a member no field to rename the workspace", () => {
+    const html = settings({ instanceAdmin: false, role: "member" });
+    expect(html).not.toContain(text("settings.workspace_name.title"));
+    expect(html).not.toContain('value="Main"');
+  });
 });
