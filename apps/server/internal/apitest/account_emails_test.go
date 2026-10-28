@@ -644,3 +644,48 @@ func TestInvites_ASendFailureStillAnswersWithTheLink(t *testing.T) {
 		assert.Empty(t, mailTo(mail, "bob@example.com"))
 	})
 }
+
+// PP-152: an invite is an email to anyone, so the route that makes one is limited per caller and
+// per recipient address
+
+func TestInvites_AnAddressIsInvitedThreeTimesAnHourAndNoMore(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
+		for i := 0; i < 3; i++ {
+			a.invite(t, "Bob@Example.com", "member", a.asAdmin)
+		}
+
+		w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": " bob@example.com ", "role": "member"}, a.asAdmin)
+		assert.Equal(t, http.StatusTooManyRequests, w.Code, "the same address in another case and with spaces")
+
+		a.invite(t, "carol@example.com", "member", a.asAdmin)
+		a.settled(t)
+		assert.Len(t, mailTo(mail, "bob@example.com"), 3, "the refused invite sent nothing")
+	})
+}
+
+func TestInvites_ACallerMakesTwentyInvitesAnHourAndNoMore(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
+		for i := 0; i < 20; i++ {
+			a.invite(t, fmt.Sprintf("person%d@example.com", i), "member", a.asAdmin)
+		}
+
+		w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "one-more@example.com", "role": "member"}, a.asAdmin)
+		assert.Equal(t, http.StatusTooManyRequests, w.Code, "the user")
+
+		// an API key is its own caller, with its own count
+		a.invite(t, "by-key@example.com", "member", a.withAPIKey)
+		a.settled(t)
+		assert.Empty(t, mailTo(mail, "one-more@example.com"))
+	})
+}
+
+func TestInvites_AnInviteThatIsRefusedForItsBodyDoesNotCountAgainstTheLimits(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, _ *smtptest.Server) {
+		for i := 0; i < 5; i++ {
+			w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "bob@example.com", "role": "emperor"}, a.asAdmin)
+			require.Equal(t, http.StatusBadRequest, w.Code)
+		}
+
+		a.invite(t, "bob@example.com", "member", a.asAdmin)
+	})
+}
