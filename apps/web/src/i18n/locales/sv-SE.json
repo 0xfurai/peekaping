@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Allmänt",
     "intervals_retries": "Intervaller, Upprepningar, Timeout"
+  },
+  "workspaces": {
+    "none_description": "Ditt konto är inte medlem i någon arbetsyta, så det finns inget att visa här. Be någon som hanterar en arbetsyta att lägga till dig.",
+    "none_title": "Du är inte med i någon arbetsyta ännu"
   }
 }

@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Generale",
     "intervals_retries": "Intervalli, Riprovi, Timeout"
+  },
+  "workspaces": {
+    "none_description": "Il tuo account non è membro di nessuno spazio di lavoro, quindi qui non c'è nulla da mostrare. Chiedi a chi gestisce uno spazio di lavoro di aggiungerti.",
+    "none_title": "Non fai ancora parte di nessuno spazio di lavoro"
   }
 }

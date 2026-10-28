@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Bendros",
     "intervals_retries": "Intervalai, bandymai, terminai"
+  },
+  "workspaces": {
+    "none_description": "Jūsų paskyra nėra jokios darbo erdvės narė, todėl čia nėra ką rodyti. Paprašykite darbo erdvę valdančio asmens jus pridėti.",
+    "none_title": "Dar nesate jokioje darbo erdvėje"
   }
 }

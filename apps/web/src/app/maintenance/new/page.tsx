@@ -13,11 +13,13 @@ import type { MaintenanceCreateUpdateDto } from "@/api";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const NewMaintenance = () => {
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
 
   const createMaintenanceMutation = useMutation({
     ...postMaintenancesMutation(),
@@ -26,7 +28,7 @@ const NewMaintenance = () => {
 
       queryClient.invalidateQueries({ queryKey: getMaintenancesQueryKey() });
 
-      navigate("/maintenances");
+      navigate(workspacePath("/maintenances"));
     },
     onError: commonMutationErrorHandler(t("maintenance.toasts.create_error")),
   });

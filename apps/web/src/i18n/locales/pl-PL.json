@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Ogólne",
     "intervals_retries": "Interwały, ponawiania, limity czasu"
+  },
+  "workspaces": {
+    "none_description": "Twoje konto nie jest członkiem żadnego obszaru roboczego, więc nie ma tu nic do pokazania. Poproś osobę zarządzającą obszarem roboczym, aby Cię dodała.",
+    "none_title": "Nie należysz jeszcze do żadnego obszaru roboczego"
   }
 }

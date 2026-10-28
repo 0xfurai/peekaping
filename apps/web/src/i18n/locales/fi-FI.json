@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Yleiset",
     "intervals_retries": "Väli, Uudelleenkokeilut, Aikakatkaisut"
+  },
+  "workspaces": {
+    "none_description": "Tilisi ei ole minkään työtilan jäsen, joten tässä ei ole mitään näytettävää. Pyydä työtilaa ylläpitävää lisäämään sinut.",
+    "none_title": "Et ole vielä missään työtilassa"
   }
 }

@@ -7,6 +7,7 @@ import type {
 import { client } from "./api/client.gen";
 import axios from "axios";
 import { getConfig } from "./lib/config";
+import { currentWorkspaceId } from "./lib/workspace-path";
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -30,6 +31,17 @@ const processQueue = (error: unknown = null, token: string | null = null) => {
 };
 
 export const setupInterceptors = () => {
+  // The workspace comes from the address at the moment a request goes out, not
+  // from a copy kept in a store, so a request can't carry a workspace other than
+  // the one the page shows. Account routes and /me go out without one.
+  client.instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+    const workspaceId = currentWorkspaceId();
+    if (workspaceId) {
+      config.headers.set("X-Workspace-ID", workspaceId);
+    }
+    return config;
+  });
+
   client.instance.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: AxiosError) => {

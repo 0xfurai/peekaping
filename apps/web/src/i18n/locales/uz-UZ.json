@@ -1588,5 +1588,9 @@
   "ui": {
     "general": "Umumiy",
     "intervals_retries": "Intervallar, Qayta urinishlar, Timeoutlar"
+  },
+  "workspaces": {
+    "none_description": "Hisobingiz hech bir ish maydonining a'zosi emas, shuning uchun bu yerda ko'rsatadigan narsa yo'q. Ish maydonini boshqaradigan kishidan sizni qo'shishini so'rang.",
+    "none_title": "Siz hali hech qanday ish maydonida emassiz"
   }
 }

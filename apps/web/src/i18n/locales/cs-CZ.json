@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Obecné",
     "intervals_retries": "Intervaly, Opakování, Časové limity"
+  },
+  "workspaces": {
+    "none_description": "Váš účet není členem žádného pracovního prostoru, takže tu není co zobrazit. Požádejte někoho, kdo pracovní prostor spravuje, aby vás přidal.",
+    "none_title": "Zatím nejste v žádném pracovním prostoru"
   }
 }

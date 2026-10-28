@@ -17,11 +17,13 @@ import { toast } from "sonner";
 import type { MaintenanceCreateUpdateDto } from "@/api";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const EditMaintenance = () => {
   const { t } = useLocalizedTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -56,7 +58,7 @@ const EditMaintenance = () => {
           },
         }),
       });
-      navigate("/maintenances");
+      navigate(workspacePath("/maintenances"));
     },
     onError: commonMutationErrorHandler(t("maintenance.toasts.update_error"))
   });
