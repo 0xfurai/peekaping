@@ -17,11 +17,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Upgrade note: the upgrade stops, before it changes anything, when two monitors share a push token or two status pages share a custom domain (ignoring case and spaces). The error names the monitors, or the domain and the status pages, and leaves the push tokens out. Fix them in the version you run now: give all but one monitor of each group a new push token, or remove the domain from all but one of its status pages. Then upgrade again. A status page that lists one domain twice in different cases keeps the oldest, a domain that is empty is removed, and a monitor that has its push token only in its config gets it as its push token. `bun db import-mongo` fills a push token from the config the same way.
   - Upgrade note: the TLS information and notification history of monitors that no longer exist are removed. They were not shown anywhere.
   - `bun db import-mongo` stores no push token as none, clears a push token that an earlier monitor holds, normalizes domains and gives a domain that two status pages held to the first, and its report counts each.
-- chore: the Helm chart's bundled PostgreSQL and Redis (off by default) move to the Bitnami subcharts `postgresql` 18.12.16 and `redis` 28.3.10, with the latest PostgreSQL 18.6.0 and Redis 8.10.3 images
 
 ### Fixed
 
-- fix: creating a push monitor through the API without a push token works. The server generates a token and returns it in `push_token` and in `config.pushToken`, where before it answered 400 (`PushConfig.PushToken ... required`). A token sent only as `push_token` is copied into `config.pushToken`, and a token you send is kept (#273) (thanks @ausebiblibre)
+## [0.1.0] - 2026-10-28
+
+### Added
+
+### Changed
+
+- chore: the Helm chart's bundled PostgreSQL and Redis (off by default) move to the Bitnami subcharts `postgresql` 18.12.16 and `redis` 28.3.10, with the latest PostgreSQL 18.6.0 and Redis 8.10.3 images
+- chore: 0.1.0 takes the place of 0.0.49. It is the last release that also publishes the single-mode image under its old name, `peekaping-bundle-sqlite`, as 0.0.48 promised for 0.0.49
+  - Upgrade note: switch `peekaping-bundle-sqlite` to `peekaping` in your compose file or `docker run` line. The old name gets no tags after 0.1.0. See [Upgrading to single mode](apps/docs/docs/self-hosting/upgrading-to-single-mode.md)
+- fix: a failing monitor is checked again after its retry interval while it has retries left, and after its interval once they are used up. Before, the retry interval setting did nothing and every check waited the full interval. Max retries 0 or a retry interval of 0 keeps the interval (#582)
+- fix: a new monitor's first failed check counts toward max retries like any other, so it is Pending while retries are left and Down after them. Before, the first failed check was Down at once and notified, even with retries left (#580)
+- fix: a monitor's first heartbeat notifies only when it is Up or Down. A new monitor that starts Pending, or in a maintenance window, no longer sends a notification (#579)
+- fix: the check timeout can be at most 0.8 × the check interval. The API answers 400 to a longer timeout on create, update and PATCH, and the monitor form shows an error under the timeout field. Before, the rule compared the wrong way round and PATCH didn't check it at all, so a timeout above the interval made the scheduler skip every second check (#584, #590)
+  - Upgrade note: a monitor already stored with a longer timeout keeps being checked. Saving it again asks for a shorter timeout, or a longer interval.
+- fix: notification channel URLs that hold credentials come back from the API masked, such as `https://user:********@host/x?token=********`. This covers the webhook URL, the ntfy, Gotify, WhatsApp and Telegram server URL, the Matrix homeserver URL, the PagerDuty integration URL and the Signal URL. Saving or testing a channel with the URL as shown keeps the stored one. To change a masked URL, type its credentials again: the form asks for them (#594, #595)
+
+### Fixed
+
+- fix: creating a push monitor through the API without a push token works. The server generates a token and returns it in `push_token` and in `config.pushToken`, where before it answered 400 (`PushConfig.PushToken ... required`). A token sent only as `push_token` is copied into `config.pushToken`, and a token you send is kept (#273, #574) (thanks @ausebiblibre)
+- fix: a public status page shows a monitor that hasn't been checked yet, or is retrying, as Pending, not Down, and doesn't count it as an outage (#585)
+- fix: the monitor page keeps getting live heartbeats. A room join sent right after the socket connected could be lost, and the page sent a leave and a join each time its data refetched, which could leave it out of the room (#592, #593)
+- fix: TCP monitors work with a bracketed IPv6 host such as `[::1]` again (#118, #461) (thanks @miniwestxyz, @SynapShift)
+- fix: PagerTree alerts for a monitor carry one stable `id`, so an Up resolves the alert its Down opened. The payload uses the lowercase keys PagerTree reads (#578)
+- fix: each monitor's Grafana OnCall alerts go to an alert group of their own (`alert_uid` `Peekaping/<monitor id>`). Before, all monitors shared one group, and any monitor's Up resolved it while others were still Down (#576)
+- fix: the ntfy topic is no longer logged, and email notifications are no longer printed to stdout with their recipient, subject and body (#577)
+- fix: after a logout, the web app stops sending the previous user's access token. Before, it kept sending it until the page was reloaded (#583)
+- fix: a wrong code when turning on two-factor authentication gets a 400 and an error, and two-factor stays off. Before, the API answered 200 and the web said two-factor was on when it wasn't (#586)
 
 ## [0.0.48] - 2026-10-27
 
