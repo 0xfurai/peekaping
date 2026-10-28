@@ -100,8 +100,9 @@ export type AuthRefreshTokenDto = {
 
 export type AuthRegisterDto = {
   email: string;
+  inviteToken?: string;
   password: string;
-  [key: string]: unknown | string;
+  [key: string]: unknown | string | undefined;
 };
 
 export type AuthTwoFaDisableRequestDto = {
@@ -1242,6 +1243,16 @@ export type UtilsApiResponseArrayTagModel = {
   message: string;
 };
 
+export type UtilsApiResponseArrayWorkspaceWorkspacehttpInviteResponse = {
+  data: Array<WorkspacehttpInviteResponse> | null;
+  message: string;
+};
+
+export type UtilsApiResponseArrayWorkspaceWorkspacehttpMemberResponse = {
+  data: Array<WorkspacehttpMemberResponse> | null;
+  message: string;
+};
+
 export type UtilsApiResponseApiKeyApiKeyConfigResponse = {
   data: ApiKeyApiKeyConfigResponse;
   message: string;
@@ -1342,9 +1353,88 @@ export type UtilsApiResponseTagModel = {
   message: string;
 };
 
+export type UtilsApiResponseWorkspaceWorkspacehttpCreatedInviteResponse = {
+  data: WorkspacehttpCreatedInviteResponse;
+  message: string;
+};
+
+export type UtilsApiResponseWorkspaceWorkspacehttpInvitePreviewResponse = {
+  data: WorkspacehttpInvitePreviewResponse;
+  message: string;
+};
+
+export type UtilsApiResponseWorkspaceWorkspacehttpMemberResponse = {
+  data: WorkspacehttpMemberResponse;
+  message: string;
+};
+
+export type UtilsApiResponseWorkspaceWorkspacehttpWorkspaceResponse = {
+  data: WorkspacehttpWorkspaceResponse;
+  message: string;
+};
+
 export type UtilsNullableApiResponseSharedTlsInfo = {
   data: SharedTlsInfo | null;
   message: string;
+};
+
+export type WorkspacehttpChangeRoleDto = {
+  role: "owner" | "admin" | "member";
+  [key: string]: unknown | ("owner" | "admin" | "member");
+};
+
+export type WorkspacehttpCreateInviteDto = {
+  email: string;
+  role: "owner" | "admin" | "member";
+  [key: string]: unknown | string | ("owner" | "admin" | "member");
+};
+
+export type WorkspacehttpCreateWorkspaceDto = {
+  name: string;
+  [key: string]: unknown | string;
+};
+
+export type WorkspacehttpCreatedInviteResponse = {
+  createdAt: string;
+  email: string;
+  expiresAt: string;
+  id: string;
+  invitedBy: string | null;
+  link: string;
+  role: "owner" | "admin" | "member";
+  status: "pending" | "expired";
+  token: string;
+};
+
+export type WorkspacehttpInvitePreviewResponse = {
+  email: string;
+  role: "owner" | "admin" | "member";
+  status: "pending" | "accepted" | "revoked" | "expired";
+  valid: boolean;
+  workspaceName: string;
+};
+
+export type WorkspacehttpInviteResponse = {
+  createdAt: string;
+  email: string;
+  expiresAt: string;
+  id: string;
+  invitedBy: string | null;
+  role: "owner" | "admin" | "member";
+  status: "pending" | "expired";
+};
+
+export type WorkspacehttpMemberResponse = {
+  email: string;
+  joinedAt: string;
+  role: "owner" | "admin" | "member";
+  userId: string;
+};
+
+export type WorkspacehttpWorkspaceResponse = {
+  id: string;
+  name: string;
+  role: "owner" | "admin" | "member";
 };
 
 export type GetApiKeysData = {
@@ -1790,6 +1880,22 @@ export type PostAuthRegisterErrors = {
    * Bad Request
    */
   400: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Gone
+   */
+  410: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -2581,6 +2687,94 @@ export type GetHealthResponses = {
 };
 
 export type GetHealthResponse = GetHealthResponses[keyof GetHealthResponses];
+
+export type GetInvitesByTokenData = {
+  body?: never;
+  path: {
+    /**
+     * The invite's token, from its link
+     */
+    token: string;
+  };
+  query?: never;
+  url: "/api/v1/invites/{token}";
+};
+
+export type GetInvitesByTokenErrors = {
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetInvitesByTokenError =
+  GetInvitesByTokenErrors[keyof GetInvitesByTokenErrors];
+
+export type GetInvitesByTokenResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseWorkspaceWorkspacehttpInvitePreviewResponse;
+};
+
+export type GetInvitesByTokenResponse =
+  GetInvitesByTokenResponses[keyof GetInvitesByTokenResponses];
+
+export type PostInvitesByTokenAcceptData = {
+  body?: never;
+  path: {
+    /**
+     * The invite's token, from its link
+     */
+    token: string;
+  };
+  query?: never;
+  url: "/api/v1/invites/{token}/accept";
+};
+
+export type PostInvitesByTokenAcceptErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Gone
+   */
+  410: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostInvitesByTokenAcceptError =
+  PostInvitesByTokenAcceptErrors[keyof PostInvitesByTokenAcceptErrors];
+
+export type PostInvitesByTokenAcceptResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseWorkspaceWorkspacehttpWorkspaceResponse;
+};
+
+export type PostInvitesByTokenAcceptResponse =
+  PostInvitesByTokenAcceptResponses[keyof PostInvitesByTokenAcceptResponses];
 
 export type GetMaintenancesData = {
   body?: never;
@@ -5619,6 +5813,387 @@ export type GetVersionResponses = {
 };
 
 export type GetVersionResponse = GetVersionResponses[keyof GetVersionResponses];
+
+export type GetWorkspaceInvitesData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/invites";
+};
+
+export type GetWorkspaceInvitesErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetWorkspaceInvitesError =
+  GetWorkspaceInvitesErrors[keyof GetWorkspaceInvitesErrors];
+
+export type GetWorkspaceInvitesResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayWorkspaceWorkspacehttpInviteResponse;
+};
+
+export type GetWorkspaceInvitesResponse =
+  GetWorkspaceInvitesResponses[keyof GetWorkspaceInvitesResponses];
+
+export type PostWorkspaceInvitesData = {
+  body: WorkspacehttpCreateInviteDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/invites";
+};
+
+export type PostWorkspaceInvitesErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostWorkspaceInvitesError =
+  PostWorkspaceInvitesErrors[keyof PostWorkspaceInvitesErrors];
+
+export type PostWorkspaceInvitesResponses = {
+  /**
+   * Created
+   */
+  201: UtilsApiResponseWorkspaceWorkspacehttpCreatedInviteResponse;
+};
+
+export type PostWorkspaceInvitesResponse =
+  PostWorkspaceInvitesResponses[keyof PostWorkspaceInvitesResponses];
+
+export type DeleteWorkspaceInvitesByIdData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path: {
+    /**
+     * The invite's ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/workspace/invites/{id}";
+};
+
+export type DeleteWorkspaceInvitesByIdErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type DeleteWorkspaceInvitesByIdError =
+  DeleteWorkspaceInvitesByIdErrors[keyof DeleteWorkspaceInvitesByIdErrors];
+
+export type DeleteWorkspaceInvitesByIdResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteWorkspaceInvitesByIdResponse =
+  DeleteWorkspaceInvitesByIdResponses[keyof DeleteWorkspaceInvitesByIdResponses];
+
+export type PostWorkspaceLeaveData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/leave";
+};
+
+export type PostWorkspaceLeaveErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostWorkspaceLeaveError =
+  PostWorkspaceLeaveErrors[keyof PostWorkspaceLeaveErrors];
+
+export type PostWorkspaceLeaveResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type PostWorkspaceLeaveResponse =
+  PostWorkspaceLeaveResponses[keyof PostWorkspaceLeaveResponses];
+
+export type GetWorkspaceMembersData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/members";
+};
+
+export type GetWorkspaceMembersErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetWorkspaceMembersError =
+  GetWorkspaceMembersErrors[keyof GetWorkspaceMembersErrors];
+
+export type GetWorkspaceMembersResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseArrayWorkspaceWorkspacehttpMemberResponse;
+};
+
+export type GetWorkspaceMembersResponse =
+  GetWorkspaceMembersResponses[keyof GetWorkspaceMembersResponses];
+
+export type DeleteWorkspaceMembersByUserIdData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path: {
+    /**
+     * The member's user ID
+     */
+    userId: string;
+  };
+  query?: never;
+  url: "/api/v1/workspace/members/{userId}";
+};
+
+export type DeleteWorkspaceMembersByUserIdErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type DeleteWorkspaceMembersByUserIdError =
+  DeleteWorkspaceMembersByUserIdErrors[keyof DeleteWorkspaceMembersByUserIdErrors];
+
+export type DeleteWorkspaceMembersByUserIdResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteWorkspaceMembersByUserIdResponse =
+  DeleteWorkspaceMembersByUserIdResponses[keyof DeleteWorkspaceMembersByUserIdResponses];
+
+export type PatchWorkspaceMembersByUserIdData = {
+  body: WorkspacehttpChangeRoleDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path: {
+    /**
+     * The member's user ID
+     */
+    userId: string;
+  };
+  query?: never;
+  url: "/api/v1/workspace/members/{userId}";
+};
+
+export type PatchWorkspaceMembersByUserIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Conflict
+   */
+  409: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PatchWorkspaceMembersByUserIdError =
+  PatchWorkspaceMembersByUserIdErrors[keyof PatchWorkspaceMembersByUserIdErrors];
+
+export type PatchWorkspaceMembersByUserIdResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseWorkspaceWorkspacehttpMemberResponse;
+};
+
+export type PatchWorkspaceMembersByUserIdResponse =
+  PatchWorkspaceMembersByUserIdResponses[keyof PatchWorkspaceMembersByUserIdResponses];
+
+export type PostWorkspacesData = {
+  body: WorkspacehttpCreateWorkspaceDto;
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspaces";
+};
+
+export type PostWorkspacesErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PostWorkspacesError =
+  PostWorkspacesErrors[keyof PostWorkspacesErrors];
+
+export type PostWorkspacesResponses = {
+  /**
+   * Created
+   */
+  201: UtilsApiResponseWorkspaceWorkspacehttpWorkspaceResponse;
+};
+
+export type PostWorkspacesResponse =
+  PostWorkspacesResponses[keyof PostWorkspacesResponses];
 
 export type GetHealthRootData = {
   body?: never;

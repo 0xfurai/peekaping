@@ -25,6 +25,8 @@ import {
   getErrorReporting,
   putErrorReporting,
   getHealth,
+  getInvitesByToken,
+  postInvitesByTokenAccept,
   getMaintenances,
   postMaintenances,
   deleteMaintenancesById,
@@ -91,6 +93,14 @@ import {
   putTelemetry,
   postTelemetryNotice,
   getVersion,
+  getWorkspaceInvites,
+  postWorkspaceInvites,
+  deleteWorkspaceInvitesById,
+  postWorkspaceLeave,
+  getWorkspaceMembers,
+  deleteWorkspaceMembersByUserId,
+  patchWorkspaceMembersByUserId,
+  postWorkspaces,
   getHealthRoot,
   probeGetAssignments,
   probePostBye,
@@ -149,6 +159,10 @@ import type {
   PutErrorReportingError,
   PutErrorReportingResponse,
   GetHealthData,
+  GetInvitesByTokenData,
+  PostInvitesByTokenAcceptData,
+  PostInvitesByTokenAcceptError,
+  PostInvitesByTokenAcceptResponse,
   GetMaintenancesData,
   GetMaintenancesError,
   GetMaintenancesResponse,
@@ -301,6 +315,26 @@ import type {
   PostTelemetryNoticeError,
   PostTelemetryNoticeResponse,
   GetVersionData,
+  GetWorkspaceInvitesData,
+  PostWorkspaceInvitesData,
+  PostWorkspaceInvitesError,
+  PostWorkspaceInvitesResponse,
+  DeleteWorkspaceInvitesByIdData,
+  DeleteWorkspaceInvitesByIdError,
+  DeleteWorkspaceInvitesByIdResponse,
+  PostWorkspaceLeaveData,
+  PostWorkspaceLeaveError,
+  PostWorkspaceLeaveResponse,
+  GetWorkspaceMembersData,
+  DeleteWorkspaceMembersByUserIdData,
+  DeleteWorkspaceMembersByUserIdError,
+  DeleteWorkspaceMembersByUserIdResponse,
+  PatchWorkspaceMembersByUserIdData,
+  PatchWorkspaceMembersByUserIdError,
+  PatchWorkspaceMembersByUserIdResponse,
+  PostWorkspacesData,
+  PostWorkspacesError,
+  PostWorkspacesResponse,
   GetHealthRootData,
   ProbeGetAssignmentsData,
   ProbePostByeData,
@@ -803,6 +837,7 @@ export const postAuthRegisterQueryKey = (
 
 /**
  * Register new admin
+ * Creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite.
  */
 export const postAuthRegisterOptions = (
   options: Options<PostAuthRegisterData>
@@ -823,6 +858,7 @@ export const postAuthRegisterOptions = (
 
 /**
  * Register new admin
+ * Creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite.
  */
 export const postAuthRegisterMutation = (
   options?: Partial<Options<PostAuthRegisterData>>
@@ -1088,6 +1124,84 @@ export const getHealthOptions = (options?: Options<GetHealthData>) => {
     },
     queryKey: getHealthQueryKey(options),
   });
+};
+
+export const getInvitesByTokenQueryKey = (
+  options: Options<GetInvitesByTokenData>
+) => createQueryKey("getInvitesByToken", options);
+
+/**
+ * Look at an invite
+ * What the holder of an invite link may see: the workspace's name, the invited email, the role and whether the invite can still be used. It needs no sign-in.
+ */
+export const getInvitesByTokenOptions = (
+  options: Options<GetInvitesByTokenData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getInvitesByToken({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getInvitesByTokenQueryKey(options),
+  });
+};
+
+export const postInvitesByTokenAcceptQueryKey = (
+  options: Options<PostInvitesByTokenAcceptData>
+) => createQueryKey("postInvitesByTokenAccept", options);
+
+/**
+ * Accept an invite
+ * A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken).
+ */
+export const postInvitesByTokenAcceptOptions = (
+  options: Options<PostInvitesByTokenAcceptData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postInvitesByTokenAccept({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postInvitesByTokenAcceptQueryKey(options),
+  });
+};
+
+/**
+ * Accept an invite
+ * A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken).
+ */
+export const postInvitesByTokenAcceptMutation = (
+  options?: Partial<Options<PostInvitesByTokenAcceptData>>
+): UseMutationOptions<
+  PostInvitesByTokenAcceptResponse,
+  AxiosError<PostInvitesByTokenAcceptError>,
+  Options<PostInvitesByTokenAcceptData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostInvitesByTokenAcceptResponse,
+    AxiosError<PostInvitesByTokenAcceptError>,
+    Options<PostInvitesByTokenAcceptData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postInvitesByTokenAccept({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getMaintenancesQueryKey = (
@@ -3432,6 +3546,296 @@ export const getVersionOptions = (options?: Options<GetVersionData>) => {
     },
     queryKey: getVersionQueryKey(options),
   });
+};
+
+export const getWorkspaceInvitesQueryKey = (
+  options?: Options<GetWorkspaceInvitesData>
+) => createQueryKey("getWorkspaceInvites", options);
+
+/**
+ * List the invites of the workspace
+ * The invites that were neither used nor revoked. An admin or owner sees them. They hold no token: that is shown once, when the invite is made.
+ */
+export const getWorkspaceInvitesOptions = (
+  options?: Options<GetWorkspaceInvitesData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkspaceInvites({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWorkspaceInvitesQueryKey(options),
+  });
+};
+
+export const postWorkspaceInvitesQueryKey = (
+  options: Options<PostWorkspaceInvitesData>
+) => createQueryKey("postWorkspaceInvites", options);
+
+/**
+ * Invite someone to the workspace
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. Nothing is emailed: copy the link to the person you invite. An earlier invite for the same email is revoked.
+ */
+export const postWorkspaceInvitesOptions = (
+  options: Options<PostWorkspaceInvitesData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postWorkspaceInvites({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postWorkspaceInvitesQueryKey(options),
+  });
+};
+
+/**
+ * Invite someone to the workspace
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. Nothing is emailed: copy the link to the person you invite. An earlier invite for the same email is revoked.
+ */
+export const postWorkspaceInvitesMutation = (
+  options?: Partial<Options<PostWorkspaceInvitesData>>
+): UseMutationOptions<
+  PostWorkspaceInvitesResponse,
+  AxiosError<PostWorkspaceInvitesError>,
+  Options<PostWorkspaceInvitesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostWorkspaceInvitesResponse,
+    AxiosError<PostWorkspaceInvitesError>,
+    Options<PostWorkspaceInvitesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postWorkspaceInvites({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Revoke an invite
+ * An admin or owner revokes an invite that was neither used nor revoked; its link stops working.
+ */
+export const deleteWorkspaceInvitesByIdMutation = (
+  options?: Partial<Options<DeleteWorkspaceInvitesByIdData>>
+): UseMutationOptions<
+  DeleteWorkspaceInvitesByIdResponse,
+  AxiosError<DeleteWorkspaceInvitesByIdError>,
+  Options<DeleteWorkspaceInvitesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteWorkspaceInvitesByIdResponse,
+    AxiosError<DeleteWorkspaceInvitesByIdError>,
+    Options<DeleteWorkspaceInvitesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteWorkspaceInvitesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postWorkspaceLeaveQueryKey = (
+  options?: Options<PostWorkspaceLeaveData>
+) => createQueryKey("postWorkspaceLeave", options);
+
+/**
+ * Leave the workspace
+ * The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).
+ */
+export const postWorkspaceLeaveOptions = (
+  options?: Options<PostWorkspaceLeaveData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postWorkspaceLeave({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postWorkspaceLeaveQueryKey(options),
+  });
+};
+
+/**
+ * Leave the workspace
+ * The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).
+ */
+export const postWorkspaceLeaveMutation = (
+  options?: Partial<Options<PostWorkspaceLeaveData>>
+): UseMutationOptions<
+  PostWorkspaceLeaveResponse,
+  AxiosError<PostWorkspaceLeaveError>,
+  Options<PostWorkspaceLeaveData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostWorkspaceLeaveResponse,
+    AxiosError<PostWorkspaceLeaveError>,
+    Options<PostWorkspaceLeaveData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postWorkspaceLeave({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getWorkspaceMembersQueryKey = (
+  options?: Options<GetWorkspaceMembersData>
+) => createQueryKey("getWorkspaceMembers", options);
+
+/**
+ * List the members of the workspace
+ * Every member of the workspace sees who is in it and with which role.
+ */
+export const getWorkspaceMembersOptions = (
+  options?: Options<GetWorkspaceMembersData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getWorkspaceMembers({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getWorkspaceMembersQueryKey(options),
+  });
+};
+
+/**
+ * Remove a member
+ * An admin or owner removes a member or an admin. Only an owner removes an owner, and the last owner can't be removed (409). The removed user loses access to the workspace at once.
+ */
+export const deleteWorkspaceMembersByUserIdMutation = (
+  options?: Partial<Options<DeleteWorkspaceMembersByUserIdData>>
+): UseMutationOptions<
+  DeleteWorkspaceMembersByUserIdResponse,
+  AxiosError<DeleteWorkspaceMembersByUserIdError>,
+  Options<DeleteWorkspaceMembersByUserIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteWorkspaceMembersByUserIdResponse,
+    AxiosError<DeleteWorkspaceMembersByUserIdError>,
+    Options<DeleteWorkspaceMembersByUserIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteWorkspaceMembersByUserId({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Change a member's role
+ * An admin or owner changes the role of a member or an admin. Only an owner makes an owner or changes one, and the last owner stays an owner (409).
+ */
+export const patchWorkspaceMembersByUserIdMutation = (
+  options?: Partial<Options<PatchWorkspaceMembersByUserIdData>>
+): UseMutationOptions<
+  PatchWorkspaceMembersByUserIdResponse,
+  AxiosError<PatchWorkspaceMembersByUserIdError>,
+  Options<PatchWorkspaceMembersByUserIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchWorkspaceMembersByUserIdResponse,
+    AxiosError<PatchWorkspaceMembersByUserIdError>,
+    Options<PatchWorkspaceMembersByUserIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchWorkspaceMembersByUserId({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postWorkspacesQueryKey = (options: Options<PostWorkspacesData>) =>
+  createQueryKey("postWorkspaces", options);
+
+/**
+ * Create a workspace
+ * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace.
+ */
+export const postWorkspacesOptions = (options: Options<PostWorkspacesData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postWorkspaces({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postWorkspacesQueryKey(options),
+  });
+};
+
+/**
+ * Create a workspace
+ * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace.
+ */
+export const postWorkspacesMutation = (
+  options?: Partial<Options<PostWorkspacesData>>
+): UseMutationOptions<
+  PostWorkspacesResponse,
+  AxiosError<PostWorkspacesError>,
+  Options<PostWorkspacesData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostWorkspacesResponse,
+    AxiosError<PostWorkspacesError>,
+    Options<PostWorkspacesData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postWorkspaces({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getHealthRootQueryKey = (options?: Options<GetHealthRootData>) =>
