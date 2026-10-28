@@ -125,3 +125,67 @@ func TestRepository_JoinsTheTransactionInTheContext(t *testing.T) {
 		assert.Empty(t, members(t, db))
 	})
 }
+
+// A new workspace starts with the defaults of a new install (docs/adr/0005 section 5): a data
+// retention period of 180 days and certificate expiry notifications at 7, 14 and 21 days.
+var newWorkspaceSettings = map[string]settingRow{
+	"KEEP_DATA_PERIOD_DAYS":   {Key: "KEEP_DATA_PERIOD_DAYS", Value: "180", Type: "int"},
+	"cert_expiry_notify_days": {Key: "cert_expiry_notify_days", Value: "[7,14,21]", Type: "json"},
+}
+
+func TestRepository_ANewWorkspaceStartsWithTheDefaultSettings(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		ctx := context.Background()
+		first, err := repo.Create(ctx, "First")
+		require.NoError(t, err)
+		second, err := repo.Create(ctx, "Second")
+		require.NoError(t, err)
+
+		var rows []struct {
+			WorkspaceID string `bun:"workspace_id"`
+			Key         string `bun:"key"`
+			Value       string `bun:"value"`
+			Type        string `bun:"type"`
+		}
+		require.NoError(t, db.NewSelect().Table("workspace_settings").Column("workspace_id", "key", "value", "type").Scan(ctx, &rows))
+		got := map[string]map[string]settingRow{}
+		for _, row := range rows {
+			if got[row.WorkspaceID] == nil {
+				got[row.WorkspaceID] = map[string]settingRow{}
+			}
+			got[row.WorkspaceID][row.Key] = settingRow{Key: row.Key, Value: row.Value, Type: row.Type}
+		}
+		assert.Equal(t, map[string]map[string]settingRow{
+			string(first.ID):  newWorkspaceSettings,
+			string(second.ID): newWorkspaceSettings,
+		}, got)
+	})
+}
+
+func TestCreateFirst_StartsWithTheDefaultSettings(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, _ workspace.Repository) {
+		created, err := workspace.CreateFirst(context.Background(), db)
+		require.NoError(t, err)
+
+		var rows []settingRow
+		require.NoError(t, db.NewSelect().Table("workspace_settings").Column("key", "value", "type").Where("workspace_id = ?", created.ID).Scan(context.Background(), &rows))
+		got := map[string]settingRow{}
+		for _, row := range rows {
+			got[row.Key] = row
+		}
+		assert.Equal(t, newWorkspaceSettings, got)
+	})
+}
+
+func TestRepository_AWorkspaceWhoseSettingsFailIsNotCreated(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		ctx := context.Background()
+		_, err := db.Exec("DROP TABLE workspace_settings")
+		require.NoError(t, err)
+
+		_, err = repo.Create(ctx, "Broken")
+
+		require.Error(t, err)
+		assert.Empty(t, workspaces(t, db), "the workspace and its settings are made together")
+	})
+}
