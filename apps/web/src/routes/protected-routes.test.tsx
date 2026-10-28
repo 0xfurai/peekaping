@@ -88,4 +88,21 @@ describe("protected routes", () => {
       expect(html).toContain(`data-redirect="/w/${WORKSPACE_ID}`);
     }
   });
+
+  it("opens Get started in the default workspace for a user who just registered", () => {
+    const html = renderAs({ instanceAdmin: false, role: "owner" }, <Routes>{protectedRoutes}</Routes>, "/register");
+    expect(html).toContain(`data-redirect="/w/${WORKSPACE_ID}/get-started"`);
+  });
+
+  it("resolves /get-started to the default workspace's Get started page", () => {
+    const html = renderAs({ instanceAdmin: false, role: "owner" }, <Routes>{protectedRoutes}</Routes>, "/get-started");
+    expect(html).toContain(`data-redirect="/w/${WORKSPACE_ID}/get-started"`);
+  });
+
+  it("keeps a signed-in user's start, the monitors, off Get started", () => {
+    const html = renderAs({ instanceAdmin: false, role: "owner" }, <Routes>{protectedRoutes}</Routes>, "/login");
+    expect(html).not.toContain("get-started");
+    const home = renderAs({ instanceAdmin: false, role: "owner" }, <Routes>{protectedRoutes}</Routes>, `/w/${WORKSPACE_ID}`);
+    expect(home).toContain(`data-redirect="/w/${WORKSPACE_ID}/monitors"`);
+  });
 });

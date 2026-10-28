@@ -13,7 +13,7 @@ describe("createAndEnterWorkspace", () => {
     });
 
     expect(create).toHaveBeenCalledTimes(1);
-    expect(enter).toHaveBeenCalledWith(ID);
+    expect(enter).toHaveBeenCalledWith(ID, "/get-started");
   });
 
   it("does not enter when the create failed", async () => {
@@ -44,7 +44,7 @@ describe("createAndEnterWorkspace", () => {
     expect(retry).toEqual({ kind: "entered" });
     expect(create).toHaveBeenCalledTimes(1);
     expect(enter).toHaveBeenCalledTimes(2);
-    expect(enter).toHaveBeenLastCalledWith(ID);
+    expect(enter).toHaveBeenLastCalledWith(ID, "/get-started");
   });
 
   it("can fail to enter again on the retry and still names the same workspace", async () => {
