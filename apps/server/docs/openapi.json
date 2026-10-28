@@ -235,6 +235,75 @@
         ],
         "type": "object"
       },
+      "auth.MeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "defaultWorkspaceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user": {
+            "$ref": "#/components/schemas/auth.MeUser"
+          },
+          "workspaces": {
+            "items": {
+              "$ref": "#/components/schemas/auth.MeWorkspace"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "user",
+          "workspaces",
+          "defaultWorkspaceId"
+        ],
+        "type": "object"
+      },
+      "auth.MeUser": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instanceAdmin": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "instanceAdmin"
+        ],
+        "type": "object"
+      },
+      "auth.MeWorkspace": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role"
+        ],
+        "type": "object"
+      },
       "auth.Model": {
         "additionalProperties": false,
         "properties": {
@@ -4093,6 +4162,22 @@
         ],
         "type": "object"
       },
+      "utils.ApiResponse_auth.MeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/auth.MeResponse"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
       "utils.ApiResponse_maintenance.MaintenanceResponseDto": {
         "additionalProperties": false,
         "properties": {
@@ -4384,6 +4469,17 @@
     "/api/v1/api-keys": {
       "get": {
         "operationId": "getApiKeys",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -4428,6 +4524,17 @@
       },
       "post": {
         "operationId": "postApiKeys",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -4525,6 +4632,15 @@
               "description": "API key ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4582,6 +4698,15 @@
             "required": true,
             "schema": {
               "description": "API key ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -4648,6 +4773,15 @@
             "required": true,
             "schema": {
               "description": "API key ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -6655,6 +6789,16 @@
             },
             "description": "Unauthorized"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
           "500": {
             "content": {
               "application/json": {
@@ -6744,6 +6888,15 @@
               "minimum": 1,
               "type": "integer"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -6803,6 +6956,17 @@
       },
       "post": {
         "operationId": "postMaintenances",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -6882,6 +7046,15 @@
               "description": "Maintenance ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -6951,6 +7124,15 @@
               "description": "Maintenance ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7018,6 +7200,15 @@
             "required": true,
             "schema": {
               "description": "Maintenance ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -7107,6 +7298,15 @@
             "required": true,
             "schema": {
               "description": "Maintenance ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -7200,6 +7400,15 @@
               "description": "Maintenance ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7271,6 +7480,15 @@
               "description": "Maintenance ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7326,6 +7544,53 @@
         "summary": "Resume maintenance",
         "tags": [
           "maintenance"
+        ]
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "description": "The user, the workspaces they are a member of with their role in each, and the default workspace: the one they joined first, which a request without X-Workspace-ID runs in. A user in no workspace gets an empty list and a null default.",
+        "operationId": "getMe",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.ApiResponse_auth.MeResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Get the signed-in user and their workspaces",
+        "tags": [
+          "auth"
         ]
       }
     },
@@ -7394,6 +7659,15 @@
               "description": "Comma-separated list of tag IDs to filter by",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7453,6 +7727,17 @@
       },
       "post": {
         "operationId": "postMonitors",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -7539,6 +7824,15 @@
               "description": "Comma-separated list of monitor IDs",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7610,6 +7904,15 @@
               "description": "Monitor ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7679,6 +7982,15 @@
               "description": "Monitor ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7746,6 +8058,15 @@
             "required": true,
             "schema": {
               "description": "Monitor ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -7842,6 +8163,15 @@
             "required": true,
             "schema": {
               "description": "Monitor ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -7997,6 +8327,15 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -8076,6 +8415,15 @@
             "required": true,
             "schema": {
               "description": "Monitor ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -8191,6 +8539,15 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -8284,6 +8641,15 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -8353,6 +8719,15 @@
             "required": true,
             "schema": {
               "description": "Monitor ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -8450,6 +8825,15 @@
               "minimum": 1,
               "type": "integer"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -8509,6 +8893,17 @@
       },
       "post": {
         "operationId": "postNotificationChannels",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -8578,6 +8973,17 @@
     "/api/v1/notification-channels/test": {
       "post": {
         "operationId": "postNotificationChannelsTest",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -8657,6 +9063,15 @@
               "description": "Notification ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -8726,6 +9141,15 @@
               "description": "Notification ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -8793,6 +9217,15 @@
             "required": true,
             "schema": {
               "description": "Notification ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -8882,6 +9315,15 @@
             "required": true,
             "schema": {
               "description": "Notification ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -9694,6 +10136,15 @@
               "minimum": 1,
               "type": "integer"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -9753,6 +10204,17 @@
       },
       "post": {
         "operationId": "postProxies",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -9832,6 +10294,15 @@
               "description": "Proxy ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -9901,6 +10372,15 @@
               "description": "Proxy ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -9968,6 +10448,15 @@
             "required": true,
             "schema": {
               "description": "Proxy ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -10057,6 +10546,15 @@
             "required": true,
             "schema": {
               "description": "Proxy ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -10240,6 +10738,15 @@
               "description": "Setting Key",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -10307,6 +10814,15 @@
             "required": true,
             "schema": {
               "description": "Setting Key",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -10377,6 +10893,15 @@
             "required": true,
             "schema": {
               "description": "Setting Key",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -10494,6 +11019,15 @@
               "minimum": 1,
               "type": "integer"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -10553,6 +11087,17 @@
       },
       "post": {
         "operationId": "postStatusPages",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -10851,6 +11396,15 @@
               "description": "Status Page ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -10920,6 +11474,15 @@
               "description": "Status Page ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -10987,6 +11550,15 @@
             "required": true,
             "schema": {
               "description": "Status Page ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -11111,6 +11683,15 @@
               "minimum": 1,
               "type": "integer"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11170,6 +11751,17 @@
       },
       "post": {
         "operationId": "postTags",
+        "parameters": [
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -11259,6 +11851,15 @@
               "description": "Tag ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11328,6 +11929,15 @@
               "description": "Tag ID",
               "type": "string"
             }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11395,6 +12005,15 @@
             "required": true,
             "schema": {
               "description": "Tag ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -11494,6 +12113,15 @@
             "required": true,
             "schema": {
               "description": "Tag ID",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.",
+            "in": "header",
+            "name": "X-Workspace-ID",
+            "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -11677,6 +12305,16 @@
             },
             "description": "Unauthorized"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
           "500": {
             "content": {
               "application/json": {
@@ -11723,6 +12361,16 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
           },
           "500": {
             "content": {

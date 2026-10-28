@@ -141,6 +141,29 @@ func (c *Controller) UpdatePassword(ctx context.Context, input *UpdatePasswordIn
 
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Password updated successfully", nil))
 }
+
+// Me answers with the signed-in user and their workspaces. It needs no workspace: a user in none
+// gets an empty list.
+func (c *Controller) Me(ctx context.Context, _ *MeInput) (*httpx.Output[utils.ApiResponse[*MeResponse]], error) {
+	userId, _ := httpx.Lookup(ctx, "userId")
+	id, _ := userId.(string)
+	me, err := c.service.Me(ctx, id)
+	if err != nil {
+		c.logger.Errorw("Failed to read the signed-in user", "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	if me == nil {
+		return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
+	}
+	out, err := httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Signed-in user retrieved successfully", me))
+	if err != nil {
+		return nil, err
+	}
+	// The answer names the user and their workspaces, so a browser must not keep it on disk
+	noStore := "no-store"
+	out.CacheControl = &noStore
+	return out, nil
+}
 func (c *Controller) SetupTwoFA(ctx context.Context, input *SetupTwoFAInput) (*httpx.Output[TwoFASetupResponseDto], error) {
 	userId, _ := httpx.Lookup(ctx, "userId")
 

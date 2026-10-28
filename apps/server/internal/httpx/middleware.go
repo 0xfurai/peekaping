@@ -118,7 +118,7 @@ func CORS(origins *CORSOrigins) Middleware {
 			w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 			if r.Method == http.MethodOptions {
 				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
-				w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID")
+				w.Header().Set("Access-Control-Allow-Headers", "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Workspace-ID")
 				w.WriteHeader(http.StatusNoContent)
 				return
 			}

@@ -3,19 +3,24 @@ package api_key
 import (
 	"net/http"
 	"peekaping/internal/httpx"
-	"peekaping/internal/modules/auth"
 
 	"github.com/danielgtaylor/huma/v2"
 )
 
+// RouteAuth is the authentication of the API key management routes: a signed-in user, in the
+// workspace the request names. The middleware package provides it, and it can't be imported here.
+type RouteAuth interface {
+	WorkspaceJWTAuth() httpx.Middleware
+}
+
 type Route struct {
 	controller *Controller
-	middleware *auth.MiddlewareProvider
+	middleware RouteAuth
 }
 
 func NewRoute(
 	controller *Controller,
-	middleware *auth.MiddlewareProvider,
+	middleware RouteAuth,
 ) *Route {
 	return &Route{
 		controller,
@@ -29,8 +34,10 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	// Config endpoint doesn't require authentication
 	httpx.Register(apiKeys, "GET", "config", huma.Operation{Summary: "Get API key configuration", Tags: []string{"api_key"}, DefaultStatus: http.StatusOK, Errors: []int{}}, controller.GetAPIKeyConfig)
 
-	// All other API key management endpoints require JWT authentication
-	apiKeys.Use(r.middleware.Auth())
+	// All other API key management endpoints require JWT authentication, and an admin or owner of
+	// the workspace the request runs in
+	apiKeys.Use(r.middleware.WorkspaceJWTAuth())
+	apiKeys.Document(httpx.WorkspaceIDHeader)
 	{
 		httpx.Register(apiKeys, "POST", "", huma.Operation{Summary: "Create API key", Tags: []string{"api_key"}, DefaultStatus: http.StatusCreated, Security: httpx.JWTOnly, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.CreateAPIKey)
 		httpx.Register(apiKeys, "GET", "", huma.Operation{Summary: "Get API keys", Tags: []string{"api_key"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusInternalServerError, http.StatusUnauthorized}}, controller.GetAPIKeys)

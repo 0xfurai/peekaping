@@ -132,6 +132,7 @@ func (c *copier) copySettings(ctx context.Context) error {
 
 type apiKeyRow struct {
 	ID            string     `bun:"id"`
+	WorkspaceID   string     `bun:"workspace_id"`
 	Name          string     `bun:"name" max:"255"`
 	KeyHash       string     `bun:"key_hash" max:"255"`
 	DisplayKey    string     `bun:"display_key" max:"20"`
@@ -158,6 +159,7 @@ func (c *copier) copyAPIKeys(ctx context.Context) error {
 		created, updated := stamps(report, d, id, "createdAt", "updatedAt")
 		return out.add(ctx, apiKeyRow{
 			ID:            uuidOf(id),
+			WorkspaceID:   string(c.workspaceID),
 			Name:          d.str("name"),
 			KeyHash:       d.str("key_hash"),
 			DisplayKey:    d.str("display_key"),

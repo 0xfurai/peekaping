@@ -93,6 +93,9 @@ import type {
   PatchMaintenancesByIdResumeData,
   PatchMaintenancesByIdResumeResponses,
   PatchMaintenancesByIdResumeErrors,
+  GetMeData,
+  GetMeResponses,
+  GetMeErrors,
   GetMonitorsData,
   GetMonitorsResponses,
   GetMonitorsErrors,
@@ -1035,6 +1038,30 @@ export const patchMaintenancesByIdResume = <
       },
     ],
     url: "/api/v1/maintenances/{id}/resume",
+    ...options,
+  });
+};
+
+/**
+ * Get the signed-in user and their workspaces
+ * The user, the workspaces they are a member of with their role in each, and the default workspace: the one they joined first, which a request without X-Workspace-ID runs in. A user in no workspace gets an empty list and a null default.
+ */
+export const getMe = <ThrowOnError extends boolean = false>(
+  options?: Options<GetMeData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetMeResponses,
+    GetMeErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/me",
     ...options,
   });
 };

@@ -2,7 +2,11 @@ package api_key
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
+
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -12,6 +16,7 @@ type sqlModel struct {
 	bun.BaseModel `bun:"table:api_keys,alias:ak"`
 
 	ID            string     `bun:"id,pk"`
+	WorkspaceID   string     `bun:"workspace_id,notnull"`
 	Name          string     `bun:"name,notnull"`
 	KeyHash       string     `bun:"key_hash,notnull"`
 	DisplayKey    string     `bun:"display_key,notnull"`
@@ -32,6 +37,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 
 	return &Model{
 		ID:            sm.ID,
+		WorkspaceID:   workspace.ID(sm.WorkspaceID),
 		Name:          sm.Name,
 		KeyHash:       sm.KeyHash,
 		DisplayKey:    displayKey,
@@ -47,6 +53,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:            m.ID,
+		WorkspaceID:   string(m.WorkspaceID),
 		Name:          m.Name,
 		KeyHash:       m.KeyHash,
 		DisplayKey:    m.DisplayKey,
@@ -75,6 +82,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*A
 
 	sm := &sqlModel{
 		ID:            apiKeyID,
+		WorkspaceID:   string(apiKey.WorkspaceID),
 		Name:          apiKey.Name,
 		KeyHash:       apiKey.KeyHash,
 		DisplayKey:    apiKey.DisplayKey,
@@ -99,11 +107,23 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*A
 }
 
 // MARK: FindByID
-func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	return r.find(ctx, id, &workspaceID)
+}
+
+// MARK: FindByIDAnyWorkspace
+func (r *SQLRepositoryImpl) FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error) {
+	return r.find(ctx, id, nil)
+}
+
+func (r *SQLRepositoryImpl) find(ctx context.Context, id string, workspaceID *workspace.ID) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
-	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+	query := r.db.NewSelect().Model(sm).Where("id = ?", id)
+	if workspaceID != nil {
+		query = query.Where("workspace_id = ?", string(*workspaceID))
+	}
+	if err := query.Scan(ctx); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
@@ -112,9 +132,9 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 }
 
 // MARK: FindAll
-func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context, workspaceID workspace.ID) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().Model(&sms).Order("created_at DESC").Scan(ctx)
+	err := r.db.NewSelect().Model(&sms).Where("workspace_id = ?", string(workspaceID)).Order("created_at DESC").Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -127,11 +147,11 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 }
 
 // MARK: Update
-func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
+func (r *SQLRepositoryImpl) Update(ctx context.Context, workspaceID workspace.ID, id string, update *UpdateModel) (*Model, error) {
 	sm := new(sqlModel)
 
 	// Build update query dynamically
-	query := r.db.NewUpdate().Model(sm).Where("id = ?", id)
+	query := r.db.NewUpdate().Model(sm).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
 
 	if update.Name != nil {
 		query = query.Set("name = ?", *update.Name)
@@ -145,8 +165,14 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 
 	query = query.Set("updated_at = ?", time.Now())
 
-	_, err := query.Returning("*").Exec(ctx)
+	res, err := query.Returning("*").Exec(ctx)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	if err := requireRow(res); err != nil {
 		return nil, err
 	}
 
@@ -154,9 +180,24 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 }
 
 // MARK: Delete
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
-	return err
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	res, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return requireRow(res)
+}
+
+// requireRow is ErrNotFound when the statement matched no row: the key isn't in the workspace
+func requireRow(res sql.Result) error {
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 // MARK: ConsumeUsage

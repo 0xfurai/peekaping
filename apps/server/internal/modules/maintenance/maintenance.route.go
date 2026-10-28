@@ -29,7 +29,8 @@ func (uc *Route) ConnectRoute(
 ) {
 	router := rg.Group("maintenances")
 
-	router.Use(uc.middleware.AllAuth())
+	router.Use(uc.middleware.WorkspaceAuth())
+	router.Document(httpx.WorkspaceIDHeader)
 	httpx.Register(router, "GET", "", huma.Operation{Summary: "Get maintenances", Tags: []string{"maintenance"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.FindAll)
 	httpx.Register(router, "POST", "", huma.Operation{Summary: "Create maintenance", Tags: []string{"maintenance"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.controller.Create)
 	httpx.Register(router, "GET", "{id}", huma.Operation{Summary: "Get maintenance by ID", Tags: []string{"maintenance"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, uc.controller.FindByID)

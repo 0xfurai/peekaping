@@ -29,7 +29,8 @@ func (r *Route) ConnectRoute(
 ) {
 	router := rg.Group("tags")
 
-	router.Use(r.middleware.AllAuth())
+	router.Use(r.middleware.WorkspaceAuth())
+	router.Document(httpx.WorkspaceIDHeader)
 
 	httpx.Register(router, "GET", "", huma.Operation{Summary: "Get tags", Tags: []string{"tag"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.FindAll)
 	httpx.Register(router, "POST", "", huma.Operation{Summary: "Create tag", Tags: []string{"tag"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusConflict, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.Create)

@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/bruteforce"
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/maintenance"
+	"peekaping/internal/modules/middleware"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/probe"
@@ -38,10 +39,10 @@ func OpenAPI() *huma.OpenAPI {
 		maintenance.NewRoute(nil, nil), nil, nil,
 		status_page.NewRoute(nil, nil), nil,
 		tag.NewRoute(nil, nil), nil,
-		telemetry.NewRoute(nil, nil, nil), nil,
-		error_reporting.NewRoute(nil, nil, nil), nil,
+		telemetry.NewRoute(nil, nil), nil,
+		error_reporting.NewRoute(nil, nil), nil,
 		badge.NewRoute(nil), nil,
-		api_key.NewRoute(nil, nil), nil,
+		api_key.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
 		probe.NewRoute(nil, nil), nil,
 		protocol.NewRoute(nil, nil), nil,
 		nil, nil,
