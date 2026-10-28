@@ -672,10 +672,53 @@ func TestInvites_ACallerMakesTwentyInvitesAnHourAndNoMore(t *testing.T) {
 		w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "one-more@example.com", "role": "member"}, a.asAdmin)
 		assert.Equal(t, http.StatusTooManyRequests, w.Code, "the user")
 
-		// an API key is its own caller, with its own count
+		// the workspace's API keys are counted apart from its users
 		a.invite(t, "by-key@example.com", "member", a.withAPIKey)
 		a.settled(t)
 		assert.Empty(t, mailTo(mail, "one-more@example.com"))
+	})
+}
+
+func TestInvites_TheAPIKeysOfAWorkspaceShareTwentyInvitesAnHour(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, _ *smtptest.Server) {
+		second := decode[struct {
+			Token string `json:"token"`
+		}](t, a.request(t, http.MethodPost, "/api/v1/api-keys", map[string]string{"name": "second"}, a.asAdmin), http.StatusCreated)
+		withSecondKey := withHeader("X-API-Key", second.Token)
+		for i := 0; i < 10; i++ {
+			a.invite(t, fmt.Sprintf("first-key%d@example.com", i), "member", a.withAPIKey)
+			a.invite(t, fmt.Sprintf("second-key%d@example.com", i), "member", withSecondKey)
+		}
+
+		for name, key := range map[string]credentials{"the first key": a.withAPIKey, "the second key": withSecondKey} {
+			w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "one-more@example.com", "role": "member"}, key)
+			assert.Equal(t, http.StatusTooManyRequests, w.Code, name)
+		}
+		// a new key gets no count of its own either
+		third := decode[struct {
+			Token string `json:"token"`
+		}](t, a.request(t, http.MethodPost, "/api/v1/api-keys", map[string]string{"name": "third"}, a.asAdmin), http.StatusCreated)
+		w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "one-more@example.com", "role": "member"}, withHeader("X-API-Key", third.Token))
+		assert.Equal(t, http.StatusTooManyRequests, w.Code, "a new key")
+	})
+}
+
+func TestInvites_ACallerThatMayNotInviteUsesUpNoAddressQuota(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, _ *smtptest.Server) {
+		tm := newTeam(t, a)
+		for i := 0; i < 3; i++ {
+			w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "bob@example.com", "role": "member"}, tm.member)
+			require.Equal(t, http.StatusForbidden, w.Code, "a member invites nobody")
+			w = a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "bob@example.com", "role": "owner"}, tm.admin)
+			require.Equal(t, http.StatusForbidden, w.Code, "an admin invites no owner")
+		}
+
+		side := a.createWorkspace(t, "Side")
+		sideAdmin := a.userIn(t, "side-admin@example.com", side, workspace.RoleAdmin)
+		for i := 0; i < 3; i++ {
+			w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "bob@example.com", "role": "member"}, sideAdmin, inWorkspace(side))
+			require.Equal(t, http.StatusCreated, w.Code, "the admin of another workspace still invites the address 3 times: %s", w.Body.String())
+		}
 	})
 }
 
