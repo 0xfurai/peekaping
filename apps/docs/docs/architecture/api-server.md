@@ -197,6 +197,22 @@ With it on, these addresses are blocked: loopback (`127.0.0.0/8`, `::1`), the pr
 - Notification channels connect to addresses users type, so they are covered too: the webhook, Slack, Discord, Teams, Google Chat, Mattermost, WeCom, ntfy, Gotify, Matrix, Signal, Telegram, WhatsApp, PagerDuty, PagerTree and Grafana OnCall channels send through the same check, and so does the SMTP channel's server. A webhook, a redirect from one, or a host name that resolves to a blocked address sends nothing. Saving or testing a channel whose URL or SMTP host is a blocked IP address answers 400 with the code `TARGET_NOT_ALLOWED`; a name is saved, and a test that dials one that resolves to a blocked address answers 400 with "target address is not allowed". The account emails (`ACCOUNT_SMTP_*`) and the install email channel, which sends through them, are the install's own setting and are not checked. A proxy set in the server's environment (`HTTPS_PROXY`) is the install's too: the channel's connection is to the proxy, and what it dials is not checked.
 - A remote probe blocks private targets when its own `BLOCK_PRIVATE_TARGETS` is on, or when the server it connects to has it on: the server states its setting when the probe says hello, and the probe follows it at each hello. A server or probe from before the setting left it out, which means off.
 
+### API rate limits
+
+`API_RATE_LIMIT_PER_WORKSPACE` and `API_RATE_LIMIT_PER_API_KEY` cap how many requests a workspace, and one of its API keys, may make. They apply to the api and to `peekaping`. Both are off by default, so a self-hosted install is unchanged; turn them on where a workspace's scripts should not be able to take the server from the others.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `API_RATE_LIMIT_PER_WORKSPACE` | int | No | `0` | Requests per minute one workspace may make, all of its users and API keys together. `0` is off |
+| `API_RATE_LIMIT_PER_API_KEY` | int | No | `0` | Requests per minute one API key may make. `0` is off. Every request of a key also counts toward its workspace's limit |
+
+A negative value stops startup with a configuration error.
+
+- A request over either limit answers 429 with the body `{"message": "Too many requests, try again later", "data": null}` and a `Retry-After` header: the seconds until the oldest request leaves the minute, rounded up, and at least 1. The same header comes with the 429 of an invite, a password reset or verification email, and an open signup.
+- The count is a sliding minute: the limit is how many requests were made in the last 60 seconds. A request that is refused is not counted, so a client that keeps trying gets in as soon as the wait is over. A request that its API key's limit refuses is not counted for the workspace, so one key that keeps trying uses up none of the requests the workspace's other keys and users need. A request that the workspace's limit refuses has already counted toward its key's.
+- Only a request that runs in a workspace is counted, once it is signed in or its API key is accepted. The routes that run in no workspace are not: `GET /api/v1/me`, `/api/v1/auth/*`, `/api/v1/admin/*`, `POST /api/v1/workspaces`, and viewing or accepting an invite. A request with no or bad credentials is not counted either; the login lockout and the limits on the account routes guard those.
+- Each api replica keeps its own count, in memory, and forgets it when it restarts. An install with several replicas therefore allows each replica's share: with 3 replicas and a limit of 600, a workspace may make up to 1,800 requests a minute if the load balancer spreads them evenly. The limit guards against a script that runs away, and is not an exact quota.
+
 ### Metrics Configuration
 
 | Variable | Type | Required | Default | Description |
