@@ -77,6 +77,15 @@ type harness struct {
 	db     *bun.DB
 	userA  string
 	userB  string
+	// connections has a channel for each socket ID, which the server closes when the socket
+	// is connected
+	connections sync.Map
+}
+
+// connection is the channel the server closes when the socket with the ID has connected
+func (h *harness) connection(id string) chan struct{} {
+	c, _ := h.connections.LoadOrStore(id, make(chan struct{}))
+	return c.(chan struct{})
 }
 
 func newHarness(t *testing.T) *harness {
@@ -105,9 +114,8 @@ func newHarnessWithConnectionDelay(t *testing.T, delay time.Duration) *harness {
 	bus := eventstest.NewBus()
 	server, err := websocket.NewServer(&config.Config{}, bus, tokens, workspace.NewSQLRepository(db), monitor.NewSQLRepository(db), logger)
 	require.NoError(t, err)
-	if delay > 0 {
-		websocket.SlowConnectionHandler(server, delay)
-	}
+	h := &harness{bus: bus, tokens: tokens, db: db}
+	websocket.OnConnection(server, delay, func(id string) { close(h.connection(id)) })
 	srv := httptest.NewServer(server)
 	// Dropping the connections ends the open requests, so Close doesn't wait
 	// for them. server.Close isn't called: engine.io then writes to its
@@ -116,7 +124,7 @@ func newHarnessWithConnectionDelay(t *testing.T, delay time.Duration) *harness {
 		srv.CloseClientConnections()
 		srv.Close()
 	})
-	h := &harness{url: srv.URL, bus: bus, tokens: tokens, db: db}
+	h.url = srv.URL
 	workspacetest.Add(t, db, workspaceA, "A")
 	workspacetest.Add(t, db, workspaceB, "B")
 	h.addMonitor(t, workspaceA, monitorA)
@@ -297,11 +305,28 @@ func (h *harness) connect(t *testing.T) *client {
 	return h.connectAs(t, h.userA)
 }
 
+// connectAs connects as the user and returns once the server has the socket connected.
+//
+// socket.io writes CONNECT to the client before it records the socket, a few statements later in
+// the same goroutine. A packet that comes back in between is for a namespace the client has no
+// socket in yet, and the library closes the whole session for it ("invalid state"). A browser's
+// round trip is longer than that gap; a test on loopback, with the race detector on a busy
+// machine, is not. The server's connection handler runs after the socket is recorded, so the
+// client waits for it before it sends anything.
 func (h *harness) connectAs(t *testing.T, userID string) *client {
 	t.Helper()
 	c := h.dial(t, h.tokenFor(t, userID))
 	packet := c.next(t)
 	require.True(t, strings.HasPrefix(packet, "40"), "expected CONNECT, got %s", packet)
+	var connect struct {
+		Sid string `json:"sid"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(strings.TrimPrefix(packet, "40")), &connect), packet)
+	select {
+	case <-h.connection(connect.Sid):
+	case <-time.After(wait):
+		require.FailNow(t, "the server didn't connect the socket within "+wait.String())
+	}
 	return c
 }
 
@@ -702,6 +727,25 @@ func TestMonitorRoomIsOpenToMembersOfItsWorkspace(t *testing.T) {
 
 	seen := a.untilMsg(t, "a-1")
 	assert.Equal(t, heartbeatOf("monitor:"+monitorA), seen[len(seen)-1].name)
+}
+
+// Heartbeats published one right after the other all arrive, in order. engine.io's websocket
+// transport drops all but the first packet of a batch that starts with a pre-encoded one, which
+// is what a broadcast with io.To(room).Emit sends, so the server emits to the sockets one by one.
+func TestABurstOfHeartbeatsArrivesWhole(t *testing.T) {
+	h := newHarness(t)
+	a := h.connectAs(t, h.userA)
+	a.joinOK(t, "monitor:"+monitorA)
+
+	var want []string
+	for i := 0; i < 50; i++ {
+		msg := fmt.Sprintf("burst-%d", i)
+		want = append(want, msg)
+		publishHeartbeat(t, h.bus, monitorA, msg)
+	}
+
+	seen := a.untilMsg(t, want[len(want)-1])
+	assert.Equal(t, want, heartbeatMsgs(seen))
 }
 
 // A heartbeat goes to its workspace's room and its own monitor's room, and to no other
