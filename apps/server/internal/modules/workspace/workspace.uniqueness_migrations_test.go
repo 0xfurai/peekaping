@@ -269,3 +269,137 @@ func TestMigrations_RunningThePushTokenMigrationAgainChangesNothing(t *testing.T
 		assert.Equal(t, want, pushTokens(t, db))
 	})
 }
+
+func insertStatusPage(t *testing.T, db *bun.DB, slug string) string {
+	t.Helper()
+	id := uuid.NewString()
+	_, err := db.Exec("INSERT INTO status_pages (id, slug, title) VALUES (?, ?, ?)", id, slug, slug)
+	require.NoError(t, err)
+	return id
+}
+
+// insertDomain stores a custom domain as the old code could: not normalized. The creation time
+// puts the rows in an order, since a row made first is the one that stays.
+func insertDomain(t *testing.T, db *bun.DB, pageID, domain, createdAt string) {
+	t.Helper()
+	_, err := db.Exec("INSERT INTO domain_status_page (id, status_page_id, domain, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+		uuid.NewString(), pageID, domain, createdAt, createdAt)
+	require.NoError(t, err)
+}
+
+// domainsOf are the domains stored for a page
+func domainsOf(t *testing.T, db *bun.DB, pageID string) []string {
+	t.Helper()
+	domains := []string{}
+	require.NoError(t, db.NewSelect().Table("domain_status_page").Column("domain").Where("status_page_id = ?", pageID).Order("domain").Scan(context.Background(), &domains))
+	return domains
+}
+
+func TestMigrations_CustomDomainsAreNormalizedAndAPagesOwnDuplicatesDropped(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		upgrade := migratedBefore(t, db, customDomainsMigration)
+		shop, blog := insertStatusPage(t, db, "shop"), insertStatusPage(t, db, "blog")
+		insertDomain(t, db, shop, "Status.Shop.Example", "2026-01-01 00:00:01")
+		insertDomain(t, db, shop, "status.shop.example", "2026-01-01 00:00:02") // the same once normalized
+		insertDomain(t, db, shop, "  STATUS.SHOP.EXAMPLE ", "2026-01-01 00:00:03")
+		insertDomain(t, db, shop, "shop.example", "2026-01-01 00:00:04")
+		insertDomain(t, db, blog, " Blog.Example\t", "2026-01-01 00:00:05")
+
+		_, err := upgrade.Migrate(ctx)
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"shop.example", "status.shop.example"}, domainsOf(t, db, shop))
+		assert.Equal(t, []string{"blog.example"}, domainsOf(t, db, blog))
+
+		// The database holds each domain once from now on
+		_, err = db.Exec("INSERT INTO domain_status_page (id, status_page_id, domain) VALUES (?, ?, 'blog.example')", uuid.NewString(), shop)
+		assert.Error(t, err)
+	})
+}
+
+func TestMigrations_TheOldestOfAPagesDuplicateDomainsStays(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		upgrade := migratedBefore(t, db, customDomainsMigration)
+		page := insertStatusPage(t, db, "shop")
+		insertDomain(t, db, page, "status.example", "2026-01-01 00:00:09")
+		insertDomain(t, db, page, "Status.Example", "2026-01-01 00:00:01")
+		var oldest string
+		require.NoError(t, db.NewSelect().Table("domain_status_page").Column("id").Where("domain = 'Status.Example'").Scan(context.Background(), &oldest))
+
+		_, err := upgrade.Migrate(context.Background())
+		require.NoError(t, err)
+
+		var kept []string
+		require.NoError(t, db.NewSelect().Table("domain_status_page").Column("id").Scan(context.Background(), &kept))
+		assert.Equal(t, []string{oldest}, kept)
+		assert.Equal(t, []string{"status.example"}, domainsOf(t, db, page))
+	})
+}
+
+func TestMigrations_TwoPagesWithOneDomainStopTheUpgradeBeforeItChangesAnything(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		upgrade := migratedBefore(t, db, customDomainsMigration)
+		shop, blog, docs := insertStatusPage(t, db, "shop"), insertStatusPage(t, db, "blog"), insertStatusPage(t, db, "docs")
+		insertDomain(t, db, shop, "Status.Example", "2026-01-01 00:00:01")
+		insertDomain(t, db, blog, "status.example ", "2026-01-01 00:00:02") // the same domain, to the code
+		insertDomain(t, db, docs, "Docs.Example", "2026-01-01 00:00:03")
+		insertDomain(t, db, docs, "docs.example", "2026-01-01 00:00:04")
+
+		_, err := upgrade.Migrate(ctx)
+
+		require.Error(t, err)
+		for _, want := range []string{"status.example", `"shop"`, `"blog"`} {
+			assert.Contains(t, err.Error(), want)
+		}
+		assert.NotContains(t, err.Error(), "docs", "a page's own duplicates are not a conflict")
+		assert.Contains(t, err.Error(), "remove", "it says what to do")
+		assert.Equal(t, []string{"Status.Example"}, domainsOf(t, db, shop), "nothing changed")
+		assert.Equal(t, []string{"status.example "}, domainsOf(t, db, blog))
+		assert.ElementsMatch(t, []string{"Docs.Example", "docs.example"}, domainsOf(t, db, docs), "not even the duplicate that could be dropped")
+		assert.False(t, migrationApplied(t, db, customDomainsMigration))
+	})
+}
+
+func TestMigrations_RunningTheCustomDomainMigrationAgainChangesNothing(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		upgrade := migratedBefore(t, db, customDomainsMigration)
+		page := insertStatusPage(t, db, "shop")
+		insertDomain(t, db, page, "Status.Example", "2026-01-01 00:00:01")
+		_, err := upgrade.Migrate(context.Background())
+		require.NoError(t, err)
+
+		require.NoError(t, runMigrationAgain(db, customDomainsMigration))
+
+		assert.Equal(t, []string{"status.example"}, domainsOf(t, db, page))
+	})
+}
+
+func TestMigrations_UniquenessMigrationsGoDownAndComeBack(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		upgrade := migratedBefore(t, db, monitorChildrenMigration)
+		monitor, page := uuid.NewString(), insertStatusPage(t, db, "shop")
+		insertPushMonitor(t, db, pushMonitor{monitor, "Pusher", "push", ptr(""), ptr(`{"pushToken":"config-token"}`)})
+		insertDomain(t, db, page, "Status.Example", "2026-01-01 00:00:01")
+		_, err := upgrade.Migrate(ctx)
+		require.NoError(t, err)
+
+		_, err = upgrade.Rollback(ctx)
+		require.NoError(t, err)
+		// The indexes go, so the old code's rows are accepted again; the data stays
+		_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, push_token) VALUES (?, 'push', 'Twin', 60, 10, 1, 10, 0, 'config-token')`, uuid.NewString())
+		assert.NoError(t, err)
+		insertDomain(t, db, insertStatusPage(t, db, "blog"), "status.example", "2026-01-01 00:00:02")
+		_, err = db.Exec("DELETE FROM monitors WHERE name = 'Twin'")
+		require.NoError(t, err)
+		_, err = db.Exec("DELETE FROM status_pages WHERE slug = 'blog'")
+		require.NoError(t, err)
+
+		_, err = upgrade.Migrate(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"status.example"}, domainsOf(t, db, page))
+		assert.Equal(t, map[string]*string{monitor: ptr("config-token")}, pushTokens(t, db))
+	})
+}
