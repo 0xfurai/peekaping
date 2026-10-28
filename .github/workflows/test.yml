@@ -156,7 +156,7 @@ jobs:
   # main job without coverage instead of making that job slower
   race:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
 
     # The same PostgreSQL as the test job, so its subtests run under the race detector too
     services:
@@ -190,8 +190,9 @@ jobs:
 
       - name: Run server tests with the race detector
         working-directory: apps/server
-        # internal/apitest takes 800 to 880 seconds on its own under -race, so the per-package
-        # timeout leaves room for a slower runner. -count=1 as in the test job
-        run: go test -race -timeout 1800s -count=1 ./internal/... ./cmd/...
+        # On the GitHub-hosted runners internal/apitest alone takes 1395 to 1491 seconds under
+        # -race, and it hit a 1800 second timeout once with nothing hung, so the per-package
+        # timeout leaves room for a slower run. -count=1 as in the test job
+        run: go test -race -timeout 3000s -count=1 ./internal/... ./cmd/...
 
 
