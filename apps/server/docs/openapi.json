@@ -1,6 +1,59 @@
 {
   "components": {
     "schemas": {
+      "admin.LastOwnerErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "examples": [
+              "LAST_OWNER"
+            ],
+            "type": "string"
+          },
+          "workspaces": {
+            "items": {
+              "$ref": "#/components/schemas/admin.LastOwnerWorkspace"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "workspaces"
+        ],
+        "type": "object"
+      },
+      "admin.LastOwnerErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/admin.LastOwnerErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "admin.LastOwnerWorkspace": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
       "admin.ResetLinkResponse": {
         "additionalProperties": false,
         "properties": {
@@ -5290,7 +5343,7 @@
     },
     "/api/v1/admin/users/{id}": {
       "delete": {
-        "description": "Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: the answer names the workspaces.",
+        "description": "Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: that answer is {\"error\":{\"code\":\"LAST_OWNER\",\"workspaces\":[{\"id\",\"name\"}]}}, listing the workspaces whose only owner the user is. The other refusals answer with a message.",
         "operationId": "deleteAdminUsersById",
         "parameters": [
           {
@@ -5342,7 +5395,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/admin.LastOwnerErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
                 }
               }
             },

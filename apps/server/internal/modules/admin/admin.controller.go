@@ -46,21 +46,14 @@ func (c *Controller) fail(err error) error {
 	case errors.Is(err, ErrLastInstanceAdmin):
 		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("The install needs at least one instance admin"))
 	case errors.As(err, &lastOwner):
-		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("The user is the last owner of: "+workspaceNames(lastOwner.Workspaces)+". Make someone else an owner, or delete the workspace, first"))
+		workspaces := make([]LastOwnerWorkspace, len(lastOwner.Workspaces))
+		for i, ref := range lastOwner.Workspaces {
+			workspaces[i] = LastOwnerWorkspace{ID: string(ref.ID), Name: ref.Name}
+		}
+		return httpx.Fail(http.StatusConflict, LastOwnerErrorResponse{Error: LastOwnerErrorBody{Code: "LAST_OWNER", Workspaces: workspaces}})
 	}
 	c.logger.Errorw("An admin request failed", "error", err)
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-}
-
-func workspaceNames(refs []WorkspaceRef) string {
-	out := ""
-	for i, ref := range refs {
-		if i > 0 {
-			out += ", "
-		}
-		out += `"` + ref.Name + `"`
-	}
-	return out
 }
 
 func (c *Controller) ListUsers(ctx context.Context, input *ListUsersInput) (*httpx.Output[utils.ApiResponse[*UsersPageResponse]], error) {

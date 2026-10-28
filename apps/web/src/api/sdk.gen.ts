@@ -386,7 +386,7 @@ export const getAdminUsers = <ThrowOnError extends boolean = false>(
 
 /**
  * Delete a user
- * Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: the answer names the workspaces.
+ * Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: that answer is {"error":{"code":"LAST_OWNER","workspaces":[{"id","name"}]}}, listing the workspaces whose only owner the user is. The other refusals answer with a message.
  */
 export const deleteAdminUsersById = <ThrowOnError extends boolean = false>(
   options: Options<DeleteAdminUsersByIdData, ThrowOnError>
