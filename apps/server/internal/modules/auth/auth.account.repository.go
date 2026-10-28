@@ -50,6 +50,9 @@ type AccountRepository interface {
 	DeleteSpentTokens(ctx context.Context, before time.Time) (int64, error)
 	// SetPassword sets the user's password hash and ends every session issued before at
 	SetPassword(ctx context.Context, userID, passwordHash string, at time.Time) error
+	// EndSessions ends every session issued before at, as a password reset does, without touching
+	// the password
+	EndSessions(ctx context.Context, userID string, at time.Time) error
 	// MarkEmailVerified records that the user's address was verified at the time, unless it was
 	// verified already: the first time stays
 	MarkEmailVerified(ctx context.Context, userID string, at time.Time) error
@@ -142,6 +145,14 @@ func (r *SQLAccountRepository) DeleteSpentTokens(ctx context.Context, before tim
 func (r *SQLAccountRepository) SetPassword(ctx context.Context, userID, passwordHash string, at time.Time) error {
 	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("password = ?", passwordHash).
+		Set("tokens_valid_after = ?", at.UTC()).
+		Set("updated_at = ?", time.Now().UTC()).
+		Where("id = ?", userID).Exec(ctx)
+	return err
+}
+
+func (r *SQLAccountRepository) EndSessions(ctx context.Context, userID string, at time.Time) error {
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("tokens_valid_after = ?", at.UTC()).
 		Set("updated_at = ?", time.Now().UTC()).
 		Where("id = ?", userID).Exec(ctx)

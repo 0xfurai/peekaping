@@ -120,6 +120,26 @@ func (s *AccountService) RequestPasswordReset(email string) {
 	})
 }
 
+// CreateResetLink makes a single-use reset link for the user, for an instance admin to hand over: it
+// needs no sender for account emails and sends nothing. The link opens the web app's reset page and
+// works once, until it expires ResetTokenLifetime from now; using it ends every session of the
+// user. The token is in the link only: the service stores its hash. ErrUserNotFound is for a user
+// that does not exist.
+func (s *AccountService) CreateResetLink(ctx context.Context, userID string) (link string, expiresAt time.Time, err error) {
+	user, err := s.repo.FindByID(ctx, userID)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	if user == nil {
+		return "", time.Time{}, ErrUserNotFound
+	}
+	token, err := s.issue(ctx, userID, PurposeReset, ResetTokenPrefix, ResetTokenLifetime)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	return s.link("reset-password", token), s.now().UTC().Add(ResetTokenLifetime), nil
+}
+
 // ResetPassword spends a reset token: it sets the user's password, ends every session the user
 // has (see Model.TokensValidAfter), marks the address verified if it was not, and invalidates
 // their other unused reset links. The password

@@ -16,6 +16,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// ErrAccountDisabled is for a sign-in or a refresh by a user an instance admin disabled. It answers
+// 401. The sign-in says so only to someone who knew the password.
+var ErrAccountDisabled = errors.New("this account is disabled")
+
 type Service interface {
 	Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error)
 	Login(ctx context.Context, dto LoginDto) (*LoginResponse, error)
@@ -142,6 +146,7 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		return nil, err
 	}
 	s.askToVerify(ctx, user)
+	s.recordLogin(ctx, user)
 
 	// Generate access token
 	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
@@ -294,6 +299,7 @@ func (s *ServiceImpl) registerThroughInvite(ctx context.Context, dto RegisterDto
 
 // signedIn issues the tokens of a user who just registered
 func (s *ServiceImpl) signedIn(ctx context.Context, user *Model) (*LoginResponse, error) {
+	s.recordLogin(ctx, user)
 	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
 	if err != nil {
 		return nil, err
@@ -303,6 +309,13 @@ func (s *ServiceImpl) signedIn(ctx context.Context, user *Model) (*LoginResponse
 		return nil, err
 	}
 	return &LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken, User: user}, nil
+}
+
+// recordLogin stores when the user signed in. A failure is logged and never fails the sign-in.
+func (s *ServiceImpl) recordLogin(ctx context.Context, user *Model) {
+	if err := s.repo.RecordLogin(ctx, user.ID, time.Now().UTC()); err != nil {
+		s.logger.Errorw("Failed to record when a user signed in", "userId", user.ID, "error", err)
+	}
 }
 
 // joinFirstWorkspace makes the user the owner of the install's oldest workspace, or of a new one
@@ -370,6 +383,12 @@ func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, 
 		return nil, errors.New("invalid credentials")
 	}
 
+	// A disabled account can't sign in. It is said only after the password was right, so that the
+	// answer tells nobody which addresses have accounts.
+	if !user.Active {
+		return nil, ErrAccountDisabled
+	}
+
 	// Enforce 2FA if enabled
 	if user.TwoFASecret != "" && user.TwoFAStatus {
 		if dto.Token == "" {
@@ -379,6 +398,8 @@ func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, 
 			return nil, errors.New("invalid 2FA token")
 		}
 	}
+
+	s.recordLogin(ctx, user)
 
 	// Generate access token
 	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
@@ -421,6 +442,11 @@ func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*L
 	// that didn't set the fingerprint, no longer works
 	if subtle.ConstantTimeCompare([]byte(claims.PasswordFingerprint), []byte(passwordFingerprint(user.Password))) != 1 {
 		return nil, errors.New("invalid refresh token")
+	}
+
+	// A disabled account gets no new session, whatever token it still holds
+	if !user.Active {
+		return nil, ErrAccountDisabled
 	}
 
 	// Generate new access token
