@@ -792,6 +792,10 @@
           "selected_proxy": "Izabrani proksi",
           "title": "Proksi"
         },
+        "run_from": {
+          "default_locations": "Pokreće se na podrazumevanim lokacijama",
+          "label": "Pokreni sa"
+        },
         "tags": {
           "label": "Oznake",
           "no_tags": "Nema dostupnih oznaka",

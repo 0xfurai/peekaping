@@ -792,6 +792,10 @@
           "selected_proxy": "Valgt proxy",
           "title": "Mellomtjener"
         },
+        "run_from": {
+          "default_locations": "Kjører på standardplasseringene",
+          "label": "Kjør fra"
+        },
         "tags": {
           "label": "Tagger",
           "no_tags": "Ingen tagger tilgjengelig",

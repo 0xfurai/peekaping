@@ -792,6 +792,10 @@
           "selected_proxy": "已選代理",
           "title": "代理"
         },
+        "run_from": {
+          "default_locations": "喺預設位置行",
+          "label": "由邊度行"
+        },
         "tags": {
           "label": "標籤",
           "no_tags": "無可用標籤",

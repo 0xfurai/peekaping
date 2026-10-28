@@ -792,6 +792,10 @@
           "selected_proxy": "選択済みプロキシ",
           "title": "プロキシ"
         },
+        "run_from": {
+          "default_locations": "デフォルトのロケーションで実行されます",
+          "label": "実行元"
+        },
         "tags": {
           "label": "タグ",
           "no_tags": "タグがありません",

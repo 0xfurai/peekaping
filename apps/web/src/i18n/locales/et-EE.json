@@ -792,6 +792,10 @@
           "selected_proxy": "Valitud proksi",
           "title": "Proksi"
         },
+        "run_from": {
+          "default_locations": "Töötab vaikimisi asukohtades",
+          "label": "Käivita asukohtadest"
+        },
         "tags": {
           "label": "Märgid",
           "no_tags": "Silte pole saadaval",

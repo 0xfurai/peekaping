@@ -792,6 +792,10 @@
           "selected_proxy": "Geselecteerde proxy",
           "title": "Proxy"
         },
+        "run_from": {
+          "default_locations": "Draait op de standaardlocaties",
+          "label": "Uitvoeren vanaf"
+        },
         "tags": {
           "label": "Tags",
           "no_tags": "Geen tags beschikbaar",

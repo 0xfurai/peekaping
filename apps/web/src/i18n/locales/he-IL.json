@@ -792,6 +792,10 @@
           "selected_proxy": "פרוקסי נבחר",
           "title": "פרוקסי"
         },
+        "run_from": {
+          "default_locations": "רץ במיקומי ברירת המחדל",
+          "label": "הרצה מ"
+        },
         "tags": {
           "label": "תגיות",
           "no_tags": "אין תגיות זמינות",

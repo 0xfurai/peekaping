@@ -792,6 +792,10 @@
           "selected_proxy": "Proxy selectat",
           "title": "Proxy"
         },
+        "run_from": {
+          "default_locations": "Rulează în locațiile implicite",
+          "label": "Rulează din"
+        },
         "tags": {
           "label": "Etichete",
           "no_tags": "Nu există etichete disponibile",

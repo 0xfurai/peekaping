@@ -792,6 +792,10 @@
           "selected_proxy": "Seçilen Proxy",
           "title": "Vekil"
         },
+        "run_from": {
+          "default_locations": "Varsayılan konumlarda çalışır",
+          "label": "Şuradan çalıştır"
+        },
         "tags": {
           "label": "Etiketler",
           "no_tags": "Etiket yok",

@@ -792,6 +792,10 @@
           "selected_proxy": "Valittu välityspalvelin",
           "title": "Välityspalvelin"
         },
+        "run_from": {
+          "default_locations": "Suoritetaan oletussijainneissa",
+          "label": "Suorita sijainneista"
+        },
         "tags": {
           "label": "Tunnisteet",
           "no_tags": "Ei tagoja saatavilla",

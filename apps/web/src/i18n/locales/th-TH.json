@@ -792,6 +792,10 @@
           "selected_proxy": "พร็อกซีที่เลือก",
           "title": "พร็อกซี่"
         },
+        "run_from": {
+          "default_locations": "ทำงานในตำแหน่งเริ่มต้น",
+          "label": "รันจาก"
+        },
         "tags": {
           "label": "แท็ก",
           "no_tags": "ไม่มีแท็ก",

@@ -792,6 +792,10 @@
           "selected_proxy": "已选代理",
           "title": "代理"
         },
+        "run_from": {
+          "default_locations": "在默认位置运行",
+          "label": "运行位置"
+        },
         "tags": {
           "label": "标签",
           "no_tags": "暂无标签",

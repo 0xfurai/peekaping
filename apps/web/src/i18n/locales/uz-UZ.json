@@ -792,6 +792,10 @@
           "selected_proxy": "Tanlangan proksi",
           "title": "Proksi"
         },
+        "run_from": {
+          "default_locations": "Standart joylashuvlarda ishlaydi",
+          "label": "Quyidan ishga tushirish"
+        },
         "tags": {
           "label": "Teglar",
           "no_tags": "Teglar mavjud emas",

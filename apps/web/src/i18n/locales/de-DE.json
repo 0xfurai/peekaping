@@ -792,6 +792,10 @@
           "selected_proxy": "Ausgewählter Proxy",
           "title": "Proxy-Server"
         },
+        "run_from": {
+          "default_locations": "Läuft an den Standardstandorten",
+          "label": "Ausführen von"
+        },
         "tags": {
           "label": "Schlagwörter",
           "no_tags": "Keine Tags verfügbar",

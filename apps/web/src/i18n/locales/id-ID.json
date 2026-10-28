@@ -792,6 +792,10 @@
           "selected_proxy": "Proxy Terpilih",
           "title": "Proksi"
         },
+        "run_from": {
+          "default_locations": "Berjalan di lokasi bawaan",
+          "label": "Jalankan dari"
+        },
         "tags": {
           "label": "Tag",
           "no_tags": "Tidak ada tag yang tersedia",

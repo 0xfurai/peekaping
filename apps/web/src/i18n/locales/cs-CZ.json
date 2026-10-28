@@ -792,6 +792,10 @@
           "selected_proxy": "Vybraný proxy server",
           "title": "Proxy"
         },
+        "run_from": {
+          "default_locations": "Běží na výchozích místech",
+          "label": "Spouštět z"
+        },
         "tags": {
           "label": "Tagy",
           "no_tags": "Žádné štítky nejsou k dispozici.",
