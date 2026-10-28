@@ -51,7 +51,6 @@ func NewService(
 	}
 }
 
-
 func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
 	count, err := s.repo.FindAllCount(ctx)
 	if err != nil {

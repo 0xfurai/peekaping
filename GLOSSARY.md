@@ -187,7 +187,7 @@ _Avoid_: Keep-data period, history limit
 
 ### Workspaces
 
-Decided in [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md) and built in Peekaping Cloud's milestone 2. Until that ships, an install has no workspaces: every signed-in user sees everything.
+Decided in [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md) and built in Peekaping Cloud's milestone 2. Until that milestone is done, an install has one workspace, and every signed-in user sees everything in it.
 
 **Workspace**:
 What owns monitors and everything around them: notification channels, status pages, maintenance windows, tags, proxies, API keys, its settings and its plan. People work in it as its members, and it sees nothing of another workspace. A user can be a member of several, and a request runs in one of them: the one it names, or else the user's default workspace, the one they joined first. Probes and install settings belong to the install, not to a workspace. See [ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md).
