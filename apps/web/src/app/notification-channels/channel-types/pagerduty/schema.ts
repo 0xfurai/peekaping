@@ -4,7 +4,7 @@ import { withSavedSecret } from "../../secrets";
 export const pagerDutySchema = z.object({
   type: z.literal("pagerduty"),
   pagerduty_integration_key: withSavedSecret(z.string().min(1, { message: "Integration key is required" })),
-  pagerduty_integration_url: z.string().url({ message: "Valid integration URL is required" }),
+  pagerduty_integration_url: withSavedSecret(z.string().url({ message: "Valid integration URL is required" })),
   pagerduty_priority: z.string().optional(),
   pagerduty_auto_resolve: z.string().optional(),
 });
