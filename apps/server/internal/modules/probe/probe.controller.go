@@ -203,10 +203,16 @@ func (c *Controller) GetProbes(ctx context.Context, input *GetProbesInput) (*htt
 		return nil, c.fail(err, "")
 	}
 
+	// One read of the reader's flag for the whole list
+	admin, err := c.admins.IsInstanceAdmin(ctx)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
 	responses := make([]*ProbeResponse, len(probes))
 	for i, p := range probes {
-		if responses[i], err = c.view(ctx, p); err != nil {
-			return nil, c.fail(err, "")
+		responses[i] = c.response(p)
+		if !admin {
+			responses[i].WithoutAdminDetails()
 		}
 	}
 
