@@ -1175,7 +1175,7 @@
             "type": "string"
           },
           "push_token": {
-            "description": "For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept; when push_token and config.pushToken differ, push_token wins. A full update needs the same token here and in config.pushToken.",
+            "description": "For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept; when push_token and config.pushToken differ, push_token wins. A full update needs the same token here and in config.pushToken. Push tokens are unique across the install: a token another monitor holds is refused with 400 and the code PUSH_TOKEN_EXISTS.",
             "examples": [
               "3KQ7WBH2ZV5XJYPN4D6TFAE2GM"
             ],
@@ -1706,6 +1706,33 @@
             ]
           }
         },
+        "type": "object"
+      },
+      "monitor.PushTokenAlreadyUsedError": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "examples": [
+              "PUSH_TOKEN_EXISTS"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "monitor.PushTokenErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/monitor.PushTokenAlreadyUsedError"
+          }
+        },
+        "required": [
+          "error"
+        ],
         "type": "object"
       },
       "monitor.StatPoint": {
@@ -7451,7 +7478,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/monitor.PushTokenErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
                 }
               }
             },
@@ -7741,7 +7775,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/monitor.PushTokenErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
                 }
               }
             },
@@ -7830,7 +7871,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/monitor.PushTokenErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
                 }
               }
             },

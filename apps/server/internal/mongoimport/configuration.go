@@ -59,7 +59,7 @@ type monitorRow struct {
 	UpdatedAt      time.Time `bun:"updated_at"`
 	Config         string    `bun:"config"`
 	ProxyID        *string   `bun:"proxy_id"`
-	PushToken      string    `bun:"push_token" max:"255"`
+	PushToken      *string   `bun:"push_token" max:"255"` // NULL for a monitor without one: the column is unique
 }
 
 // jsonConfig returns a config that PostgreSQL's JSONB column accepts. An empty
@@ -109,6 +109,22 @@ func removeNULEscapes(text string) (string, bool) {
 	return without.String(), changed
 }
 
+// pushToken is the token to store for a monitor, NULL for none. SQL keeps push tokens unique, and
+// MongoDB did not: a monitor without one has an empty string, and two monitors may hold the same
+// token. The first monitor keeps a token, and a later one with the same token goes without, which
+// the report counts. A push to a shared token reached just one of them anyway.
+func (c *copier) pushToken(report *CollectionReport, token string) *string {
+	if token == "" {
+		return nil
+	}
+	if c.pushTokens[token] {
+		report.fix("push_token is held by an earlier monitor: cleared")
+		return nil
+	}
+	c.pushTokens[token] = true
+	return &token
+}
+
 func (c *copier) copyMonitors(ctx context.Context) error {
 	report := c.report.collection("monitor", "monitors")
 	out := newBatcher[monitorRow](c.tx, "monitors", report)
@@ -137,7 +153,7 @@ func (c *copier) copyMonitors(ctx context.Context) error {
 			Interval: int(d.integer("interval")), Timeout: int(d.integer("timeout")), MaxRetries: int(d.integer("max_retries")),
 			RetryInterval: int(d.integer("retry_interval")), ResendInterval: int(d.integer("resend_interval")),
 			Active: d.boolean("active"), Status: int(d.integer("status")), CreatedAt: created, UpdatedAt: updated,
-			Config: jsonConfig(report, d.strPtr("config")), ProxyID: proxyID, PushToken: d.str("push_token"),
+			Config: jsonConfig(report, d.strPtr("config")), ProxyID: proxyID, PushToken: c.pushToken(report, d.str("push_token")),
 		})
 	})
 	if err != nil {

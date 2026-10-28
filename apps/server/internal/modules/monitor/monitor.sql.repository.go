@@ -36,7 +36,9 @@ type sqlModel struct {
 	UpdatedAt         time.Time            `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 	Config            string               `bun:"config"`
 	ProxyId           *string              `bun:"proxy_id"`
-	PushToken         string               `bun:"push_token"`
+	// PushToken is NULL for a monitor without one: the column is unique, which an empty string
+	// would break for the second such monitor
+	PushToken string `bun:"push_token,nullzero"`
 	// LocationsStatus is the status the monitor's locations last added up to. Only the ingester's
 	// RecordLocation writes it.
 	LocationsStatus *int `bun:"locations_status,scanonly"`
@@ -214,7 +216,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Model,
 
 	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
-		return nil, err
+		return nil, pushTokenConflict(err)
 	}
 
 	// A monitor without probes runs on the local one
@@ -623,7 +625,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *
 		Exec(ctx)
 
 	if err != nil {
-		return err
+		return pushTokenConflict(err)
 	}
 
 	rowAffected, err := result.RowsAffected()
@@ -702,7 +704,12 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monito
 		hasUpdates = true
 	}
 	if monitor.PushToken != nil {
-		query = query.Set("push_token = ?", *monitor.PushToken)
+		if *monitor.PushToken == "" {
+			// NULL, not an empty string, for a monitor without a token
+			query = query.Set("push_token = ?", nil)
+		} else {
+			query = query.Set("push_token = ?", *monitor.PushToken)
+		}
 		hasUpdates = true
 	}
 
@@ -721,6 +728,16 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monito
 	query = query.Set("updated_at = ?", time.Now())
 
 	_, err := query.Exec(ctx)
+	return pushTokenConflict(err)
+}
+
+// pushTokenConflict is the error for a write of a monitor that the database refused because
+// another monitor holds its push token, and err otherwise. The push token is the only unique
+// column such a write can break: the id of a new monitor is made here.
+func pushTokenConflict(err error) error {
+	if dbtx.IsUniqueViolation(err) {
+		return pushTokenAlreadyUsedError()
+	}
 	return err
 }
 

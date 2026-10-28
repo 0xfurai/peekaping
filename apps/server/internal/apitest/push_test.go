@@ -230,3 +230,49 @@ func TestPush_RecordsMaintenanceDuringMaintenanceWindow(t *testing.T) {
 	assert.Equal(t, "disk full", hb.Msg)
 	assert.Equal(t, 12, hb.Ping)
 }
+
+// A monitor that is not a push monitor has no token, and any number of them can
+func TestPush_MonitorsWithoutATokenCoexistAndReadBackEmpty(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	first := a.createHTTPMonitor(t, "First", "")
+	second := a.createHTTPMonitor(t, "Second", "")
+
+	for _, id := range []string{first, second} {
+		got := decode[createdPushMonitor](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin), http.StatusOK)
+		assert.Empty(t, got.PushToken)
+	}
+}
+
+// pushTokenTaken is the answer to a write with a push token another monitor holds
+type pushTokenTaken struct {
+	Error struct {
+		Code string `json:"code"`
+	} `json:"error"`
+}
+
+func TestPush_ATokenAnotherMonitorHoldsIsRefused(t *testing.T) {
+	a := newAppWithAdmin(t)
+	a.createMonitor(t, "Holder", "held-token")
+	other := a.createMonitor(t, "Other", "other-token")
+	path := "/api/v1/monitors/" + other
+
+	for name, c := range map[string]call{
+		"create":         {method: http.MethodPost, path: "/api/v1/monitors", body: pushMonitorBody("Newcomer", "held-token")},
+		"full update":    {method: http.MethodPut, path: path, body: pushMonitorBody("Other", "held-token")},
+		"partial update": {method: http.MethodPatch, path: path, body: map[string]any{"push_token": "held-token"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			w := a.request(t, c.method, c.path, c.body, a.asAdmin)
+
+			require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+			var got pushTokenTaken
+			require.NoError(t, json.Unmarshal(w.Body.Bytes(), &got), w.Body.String())
+			assert.Equal(t, "PUSH_TOKEN_EXISTS", got.Error.Code)
+			assert.NotContains(t, w.Body.String(), "held-token", "the response doesn't repeat the token")
+		})
+	}
+
+	kept := decode[createdPushMonitor](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+	assert.Equal(t, "other-token", kept.PushToken, "a refused write changes nothing")
+}

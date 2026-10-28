@@ -77,3 +77,10 @@ type GetTLSInfoParams struct {
 	Id string `path:"id" doc:"Monitor ID" required:"true"`
 }
 type GetTLSInfoInput = httpx.Input[httpx.NoBody, GetTLSInfoParams]
+
+// PushTokenErrorResponse is the answer to a write with a push token that another monitor holds.
+// It is a 400 like the other refusals of the write, with the reason in a code, as a status page
+// domain that another page holds is.
+type PushTokenErrorResponse struct {
+	Error *PushTokenAlreadyUsedError `json:"error"`
+}
