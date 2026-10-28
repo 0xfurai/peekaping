@@ -16,6 +16,12 @@ import (
 // isn't a UUID is an error of the database there, and the text SQLite compares is never one.
 func forEachDatabase(t *testing.T, fn func(t *testing.T, a *app)) {
 	t.Helper()
+	forEachDatabaseWith(t, nil, fn)
+}
+
+// forEachDatabaseWith is forEachDatabase with options that change the config of each app
+func forEachDatabaseWith(t *testing.T, options []func(*config.Config), fn func(t *testing.T, a *app)) {
+	t.Helper()
 	backends := []struct {
 		name   string
 		option func(*config.Config)
@@ -27,7 +33,9 @@ func forEachDatabase(t *testing.T, fn func(t *testing.T, a *app)) {
 		}{"PostgreSQL", usePostgres(t, dsn)})
 	}
 	for _, backend := range backends {
-		t.Run(backend.name, func(t *testing.T) { fn(t, newAppWithAdmin(t, backend.option)) })
+		t.Run(backend.name, func(t *testing.T) {
+			fn(t, newAppWithAdmin(t, append([]func(*config.Config){backend.option}, options...)...))
+		})
 	}
 }
 

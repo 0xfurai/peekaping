@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 
+	"peekaping/internal/config"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
@@ -40,8 +42,10 @@ func (a *app) count(t *testing.T, table string) int {
 
 func TestInviteSignup_JoinsTheInvitingWorkspaceWithTheRoleAndHasNoWorkspaceOfTheirOwnNorInstanceAdmin(t *testing.T) {
 	isolationBackends(t, func(t *testing.T, a *app) {
-		// the install has a user already: the first-user rule would refuse anyone else
-		require.Equal(t, http.StatusBadRequest, a.request(t, http.MethodPost, registerPath, map[string]any{"email": "x@example.com", "password": adminPassword}).Code)
+		// the install has a user already: in invite mode the first-user rule would refuse anyone else
+		if !cloudRun() {
+			require.Equal(t, http.StatusBadRequest, a.request(t, http.MethodPost, registerPath, map[string]any{"email": "x@example.com", "password": adminPassword}).Code)
+		}
 		created := a.invite(t, "Bob@Example.com", "admin", a.asAdmin)
 		workspacesBefore := a.count(t, "workspaces")
 
@@ -166,7 +170,7 @@ func TestInviteSignup_ABadPasswordCreatesNobodyAndKeepsTheInvite(t *testing.T) {
 }
 
 func TestInviteSignup_WithoutATokenRegisterIsAsItWas(t *testing.T) {
-	isolationBackends(t, func(t *testing.T, a *app) {
+	forEachDatabaseWith(t, []func(*config.Config){selfHosted}, func(t *testing.T, a *app) {
 		w := a.request(t, http.MethodPost, registerPath, map[string]any{"email": "bob@example.com", "password": adminPassword})
 
 		assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())

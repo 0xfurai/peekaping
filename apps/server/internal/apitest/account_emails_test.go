@@ -67,7 +67,9 @@ func forEachDatabaseWithMail(t *testing.T, fn func(t *testing.T, a *app, mail *s
 	for _, backend := range backends {
 		t.Run(backend.name, func(t *testing.T) {
 			server := smtptest.Start(t)
-			a := newAppWithAdmin(t, backend.option, withAccountSMTP(server))
+			// In invite mode, whatever the run's default: these tests are about the emails, and the admin
+			// they start from has not verified their address
+			a := newAppWithAdmin(t, backend.option, withAccountSMTP(server), withSignupMode(config.SignupModeInvite))
 			server.WaitFor(t, 1)
 			fn(t, a, server)
 		})
@@ -163,13 +165,13 @@ func TestAccountEmails_TheConfigSaysWhetherTheInstallHasASender(t *testing.T) {
 		AccountEmails bool `json:"accountEmails"`
 	}
 	t.Run("unset: off", func(t *testing.T) {
-		a := newAppWithAdmin(t)
+		a := newAppWithAdmin(t, selfHosted)
 
 		assert.False(t, decode[authConfig](t, a.request(t, http.MethodGet, configPath, nil), http.StatusOK).AccountEmails, "public: it takes no credentials")
 		assert.False(t, a.me(t, a.asAdmin).AccountEmails)
 	})
 	t.Run("set: on", func(t *testing.T) {
-		a := newAppWithAdmin(t, withAccountSMTP(smtptest.Start(t)))
+		a := newAppWithAdmin(t, withAccountSMTP(smtptest.Start(t)), withSignupMode(config.SignupModeInvite))
 
 		assert.True(t, decode[authConfig](t, a.request(t, http.MethodGet, configPath, nil), http.StatusOK).AccountEmails)
 		assert.True(t, a.me(t, a.asAdmin).AccountEmails)
@@ -178,7 +180,7 @@ func TestAccountEmails_TheConfigSaysWhetherTheInstallHasASender(t *testing.T) {
 
 // AC5: without a sender nothing changes
 func TestAccountEmails_WithoutASenderThereIsNothingToSendOrVerify(t *testing.T) {
-	forEachDatabase(t, func(t *testing.T, a *app) {
+	forEachDatabaseWith(t, []func(*config.Config){selfHosted}, func(t *testing.T, a *app) {
 		assert.Equal(t, http.StatusNotFound, a.forgot(t, adminEmail).Code, "no reset link without a sender")
 		assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodPost, resendVerifyPath, nil, a.asAdmin).Code)
 
@@ -565,7 +567,7 @@ func TestVerifyEmail_ASenderThatIsDownDoesNotFailTheSignup(t *testing.T) {
 	require.NoError(t, listener.Close())
 	a := newApp(t, func(cfg *config.Config) {
 		cfg.AccountSMTPHost, cfg.AccountSMTPPort, cfg.AccountSMTPTLS, cfg.AccountSMTPFrom = "127.0.0.1", port, "none", senderAddress
-	})
+	}, withSignupMode(config.SignupModeInvite))
 
 	w := a.request(t, http.MethodPost, registerPath, map[string]any{"email": adminEmail, "password": adminPassword})
 
@@ -574,7 +576,7 @@ func TestVerifyEmail_ASenderThatIsDownDoesNotFailTheSignup(t *testing.T) {
 }
 
 func TestVerifyEmail_WithoutASenderASignupAsksNoOne(t *testing.T) {
-	forEachDatabase(t, func(t *testing.T, a *app) {
+	forEachDatabaseWith(t, []func(*config.Config){selfHosted}, func(t *testing.T, a *app) {
 		created := a.invite(t, "bob@example.com", "member", a.asAdmin)
 		session := decode[registered](t, a.signUpThrough(t, created.Token, "bob@example.com"), http.StatusCreated)
 
