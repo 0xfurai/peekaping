@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import { adminErrorMessage } from "@/lib/admin-users";
+import { adminErrorMessage, dismissWhileIdle } from "@/lib/admin-users";
 
 // The actions that ask for a confirmation first: each ends the user's sessions, takes away a
 // protection or deletes the account
@@ -54,7 +54,7 @@ export function UserActionDialogContent({
         </Alert>
       )}
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" disabled={pending} onClick={onCancel}>
           {t("admin.users.confirm.cancel")}
         </Button>
         <Button
@@ -126,10 +126,17 @@ export function UserActionDialog({
 
   // Show the refusal only for the action it answered
   const error = failure && failure.target === target ? failure.message : null;
+  // A pending action can't be cancelled: the dialog stays until its answer
+  const { onOpenChange, onEscapeKeyDown, onPointerDownOutside } = dismissWhileIdle(pending, close);
 
   return (
-    <Dialog open={target !== null} onOpenChange={(open) => !open && close()}>
-      <DialogContent aria-describedby={descriptionId}>
+    <Dialog open={target !== null} onOpenChange={onOpenChange}>
+      <DialogContent
+        aria-describedby={descriptionId}
+        showCloseButton={!pending}
+        onEscapeKeyDown={onEscapeKeyDown}
+        onPointerDownOutside={onPointerDownOutside}
+      >
         <DialogHeader>
           <DialogTitle>{t(`admin.users.confirm.${target?.kind ?? "delete"}.title`)}</DialogTitle>
         </DialogHeader>

@@ -41,6 +41,22 @@ export const userActions = (
   return actions;
 };
 
+// How a confirmation dialog takes being dismissed (Escape, a click outside, its close button):
+// it closes, unless its action is pending. The request lands all the same, and a dialog that is gone
+// would hide its answer, or show the admin a list that does not have it yet.
+export const dismissWhileIdle = (pending: boolean, close: () => void) => {
+  const block = (event: Event) => {
+    if (pending) event.preventDefault();
+  };
+  return {
+    onOpenChange: (open: boolean) => {
+      if (!open && !pending) close();
+    },
+    onEscapeKeyDown: block,
+    onPointerDownOutside: block,
+  };
+};
+
 type Translate = (key: string, vars?: Record<string, unknown>) => string;
 
 // The 409 of a delete that the user's workspaces block: the server's code and the workspaces the

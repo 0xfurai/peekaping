@@ -113,6 +113,18 @@ describe("UserActionDialogContent", () => {
     expect(html).not.toContain('role="alert"');
   });
 
+  it("lets the admin cancel while nothing is pending", () => {
+    const html = render(<UserActionDialogContent {...base} error={null} />);
+    expect(html).not.toContain('disabled=""');
+  });
+
+  it("disables Cancel and the confirm button while the action is pending", () => {
+    const html = render(<UserActionDialogContent {...base} pending error={null} />);
+    const buttons = html.match(/<button[^>]*>/g) ?? [];
+    expect(buttons).toHaveLength(2);
+    for (const button of buttons) expect(button).toContain('disabled=""');
+  });
+
   it("shows the server's 409, with the workspaces that block the delete", () => {
     const config = { headers: new AxiosHeaders() };
     const refusal = new AxiosError("Request failed", "ERR_BAD_REQUEST", config, null, {
