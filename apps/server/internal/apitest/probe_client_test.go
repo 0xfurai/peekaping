@@ -73,7 +73,7 @@ func newSingleApp(t *testing.T) *app {
 	require.NoError(t, container.Invoke(func(settings setting.Service) error { return settings.InitializeSettings(ctx) }))
 	require.NoError(t, container.Invoke(func(waker *protocol.Waker) { waker.Subscribe() }))
 
-	a := &app{container: container}
+	a := &app{container: container, cfg: cfg}
 	require.NoError(t, container.Invoke(func(server *internal.Server) { a.router = server.Router }))
 	a.registerAdmin(t)
 	return a

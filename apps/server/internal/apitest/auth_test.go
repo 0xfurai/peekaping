@@ -65,7 +65,7 @@ func TestAuthAPI_ConcurrentFirstRegistrationsCreateOneAdmin(t *testing.T) {
 	}
 	for name, email := range emails {
 		t.Run(name, func(t *testing.T) {
-			a := newApp(t)
+			a := newApp(t, selfHosted) // the first-user rule is invite mode's; open mode's race is in signup_modes_test.go
 			responses := make(chan *httptest.ResponseRecorder, attempts)
 			start := make(chan struct{})
 			var wg sync.WaitGroup
@@ -433,7 +433,7 @@ func TestAuthAPI_AccountLockoutCountsLoginsPaddedBeforeTheEmail(t *testing.T) {
 }
 
 func TestAuthAPI_RejectsInvalidInput(t *testing.T) {
-	a := newAppWithAdmin(t)
+	a := newAppWithAdmin(t, selfHosted)
 
 	requests := []struct {
 		name, method, path string

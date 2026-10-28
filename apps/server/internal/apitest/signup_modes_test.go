@@ -557,11 +557,11 @@ func TestSignupModes_InInviteModeTurnstileIsNotAskedFor(t *testing.T) {
 
 func TestSignupModes_TheConfigSaysWhoMaySignUp(t *testing.T) {
 	t.Run("invite, no user yet", func(t *testing.T) {
-		a := newApp(t, withSignupMode(config.SignupModeInvite))
+		a := newApp(t, selfHosted)
 		assert.Equal(t, signupConfig{SignupMode: "invite", SignupOpen: true}, a.authConfig(t))
 	})
 	t.Run("invite, with a user", func(t *testing.T) {
-		a := newApp(t, withSignupMode(config.SignupModeInvite))
+		a := newApp(t, selfHosted)
 		a.signedUp(t, "first@example.com")
 		assert.Equal(t, signupConfig{SignupMode: "invite", SignupOpen: false}, a.authConfig(t))
 	})
