@@ -1,6 +1,7 @@
 package apitest
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
 )
 
 type monitorResponse struct {
@@ -135,6 +137,108 @@ func TestMonitorsAPI_RejectsATimeoutAboveEightyPercentOfTheInterval(t *testing.T
 
 	list := decode[[]monitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
 	require.Len(t, list, 1)
+}
+
+// monitorTimings are the check interval, timeout and retry interval a monitor is stored with.
+type monitorTimings struct {
+	Interval      int `json:"interval"`
+	Timeout       int `json:"timeout"`
+	RetryInterval int `json:"retry_interval"`
+}
+
+func (a *app) monitorTimings(t *testing.T, id string) monitorTimings {
+	t.Helper()
+	return decode[monitorTimings](t, a.request(t, http.MethodGet, "/api/v1/monitors/"+id, nil, a.asAdmin), http.StatusOK)
+}
+
+// createMonitorWithTimings creates a push monitor with the given check interval and timeout.
+func (a *app) createMonitorWithTimings(t *testing.T, interval, timeout int) string {
+	t.Helper()
+	body := with(with(pushMonitorBody("Timed", "timed-push-token"), "interval", interval), "timeout", timeout)
+	return decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated).ID
+}
+
+// The timeout rule holds for a partial update too, checked against the values the monitor would
+// have after it.
+func TestMonitorsAPI_PatchRejectsATimeoutAboveEightyPercentOfTheInterval(t *testing.T) {
+	for _, c := range []struct {
+		name              string
+		patch             map[string]any
+		interval, timeout int
+	}{
+		{"a shorter check interval", map[string]any{"interval": 20}, 60, 48},
+		{"a longer timeout", map[string]any{"timeout": 49}, 60, 16},
+		{"both together", map[string]any{"interval": 30, "timeout": 25}, 60, 48},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			a := newAppWithAdmin(t)
+			id := a.createMonitorWithTimings(t, c.interval, c.timeout)
+
+			reply := a.request(t, http.MethodPatch, "/api/v1/monitors/"+id, c.patch, a.asAdmin)
+			assert.Equal(t, http.StatusBadRequest, reply.Code, reply.Body.String())
+			assert.Contains(t, reply.Body.String(), "timeout", "the error names the timeout")
+
+			assert.Equal(t, monitorTimings{Interval: c.interval, Timeout: c.timeout, RetryInterval: 60}, a.monitorTimings(t, id), "nothing is stored")
+		})
+	}
+}
+
+func TestMonitorsAPI_PatchRejectsTimingsBelowTheirMinimum(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createMonitorWithTimings(t, 60, 48)
+	path := "/api/v1/monitors/" + id
+
+	// A shorter check interval also breaks the timeout rule here, so each error must name the minimum
+	for _, c := range []call{
+		{"check interval of 19 s", http.MethodPatch, path, map[string]any{"interval": 19}},
+		{"check interval of 0", http.MethodPatch, path, map[string]any{"interval": 0}},
+		{"timeout of 15 s", http.MethodPatch, path, map[string]any{"timeout": 15}},
+		{"timeout of 0", http.MethodPatch, path, map[string]any{"timeout": 0}},
+		{"retry interval of 19 s", http.MethodPatch, path, map[string]any{"retry_interval": 19}},
+		{"retry interval of 0", http.MethodPatch, path, map[string]any{"retry_interval": 0}},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			reply := a.request(t, c.method, c.path, c.body, a.asAdmin)
+			assert.Equal(t, http.StatusBadRequest, reply.Code, reply.Body.String())
+			assert.Contains(t, reply.Body.String(), "'min' tag", "the error names the minimum")
+		})
+	}
+
+	assert.Equal(t, monitorTimings{Interval: 60, Timeout: 48, RetryInterval: 60}, a.monitorTimings(t, id), "nothing is stored")
+}
+
+func TestMonitorsAPI_PatchStoresValidTimings(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createMonitorWithTimings(t, 60, 48)
+	path := "/api/v1/monitors/" + id
+
+	reply := a.request(t, http.MethodPatch, path, map[string]any{"interval": 120}, a.asAdmin)
+	require.Equal(t, http.StatusOK, reply.Code, reply.Body.String())
+	assert.Equal(t, monitorTimings{Interval: 120, Timeout: 48, RetryInterval: 60}, a.monitorTimings(t, id))
+
+	reply = a.request(t, http.MethodPatch, path, map[string]any{"interval": 20, "timeout": 16, "retry_interval": 20}, a.asAdmin)
+	require.Equal(t, http.StatusOK, reply.Code, reply.Body.String())
+	assert.Equal(t, monitorTimings{Interval: 20, Timeout: 16, RetryInterval: 20}, a.monitorTimings(t, id))
+}
+
+// A monitor stored with a timeout above 0.8 x its check interval (made by an older version) can
+// still be paused, resumed and renamed: a partial update that sends neither is not held to the rule.
+func TestMonitorsAPI_PatchLeavesAMonitorThatBreaksTheTimeoutRuleAlone(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createMonitorWithTimings(t, 60, 48)
+	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+		_, err := db.ExecContext(context.Background(), "UPDATE monitors SET interval = 20, timeout = 48 WHERE id = ?", id)
+		return err
+	}))
+	require.Equal(t, monitorTimings{Interval: 20, Timeout: 48, RetryInterval: 60}, a.monitorTimings(t, id))
+	path := "/api/v1/monitors/" + id
+
+	a.expectStatus(t, http.StatusOK, []call{
+		{"pause", http.MethodPatch, path, map[string]any{"active": false}},
+		{"resume", http.MethodPatch, path, map[string]any{"active": true}},
+		{"rename", http.MethodPatch, path, map[string]any{"name": "Renamed"}},
+	})
+	assert.Equal(t, monitorTimings{Interval: 20, Timeout: 48, RetryInterval: 60}, a.monitorTimings(t, id))
 }
 
 func TestMonitorsAPI_AcceptsATimeoutOfAtMostEightyPercentOfTheInterval(t *testing.T) {

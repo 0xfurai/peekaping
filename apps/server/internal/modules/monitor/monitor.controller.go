@@ -300,6 +300,10 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
+	if err := validation.Validate.Struct(monitor); err != nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+
 	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, id, &monitor, false)
 	if err != nil {
 		return nil, ic.failWrite("update", err)
@@ -317,6 +321,7 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 // failWrite maps the error of a write that looks up the monitor itself to its response.
 func (ic *MonitorController) failWrite(action string, err error) error {
 	var invalidConfig *InvalidConfigError
+	var invalidTimeout *InvalidTimeoutError
 	var invalidProbes *InvalidProbesError
 	var invalidRule *InvalidLocationRuleError
 	switch {
@@ -324,6 +329,8 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
 	case errors.As(err, &invalidConfig):
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", invalidConfig.Err)))
+	case errors.As(err, &invalidTimeout):
+		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid timeout: %v", invalidTimeout)))
 	case errors.As(err, &invalidProbes):
 		return invalidProbesResponse(invalidProbes)
 	case errors.As(err, &invalidRule):

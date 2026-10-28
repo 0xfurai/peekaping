@@ -1107,6 +1107,7 @@ components:
           examples:
             - 60
           format: int64
+          minimum: 20
           type:
             - integer
             - "null"
@@ -1180,6 +1181,7 @@ components:
           examples:
             - 60
           format: int64
+          minimum: 20
           type:
             - integer
             - "null"
@@ -1203,6 +1205,7 @@ components:
           examples:
             - 16
           format: int64
+          minimum: 16
           type:
             - integer
             - "null"

@@ -109,11 +109,11 @@ func (dto *CreateUpdateDto) applyPushToken() {
 
 type PartialUpdateDto struct {
 	Name            *string                  `json:"name,omitempty" example:"My Monitor"`
-	Interval        *int                     `json:"interval,omitempty" example:"60"`
-	Timeout         *int                     `json:"timeout,omitempty" example:"16"`
+	Interval        *int                     `json:"interval,omitempty" validate:"omitempty,min=20" example:"60"`
+	Timeout         *int                     `json:"timeout,omitempty" validate:"omitempty,min=16" example:"16"`
 	Type            *string                  `json:"type,omitempty" example:"http"`
 	MaxRetries      *int                     `json:"max_retries,omitempty" example:"3"`
-	RetryInterval   *int                     `json:"retry_interval,omitempty" example:"60"`
+	RetryInterval   *int                     `json:"retry_interval,omitempty" validate:"omitempty,min=20" example:"60"`
 	ResendInterval  *int                     `json:"resend_interval,omitempty" example:"10"`
 	Active          *bool                    `json:"active,omitempty" example:"true"`
 	NotificationIds []string                 `json:"notification_ids,omitempty" example:"6830ad485361f19c598d6d90"`

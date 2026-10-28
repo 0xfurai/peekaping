@@ -1544,6 +1544,7 @@
               60
             ],
             "format": "int64",
+            "minimum": 20,
             "type": [
               "integer",
               "null"
@@ -1653,6 +1654,7 @@
               60
             ],
             "format": "int64",
+            "minimum": 20,
             "type": [
               "integer",
               "null"
@@ -1688,6 +1690,7 @@
               16
             ],
             "format": "int64",
+            "minimum": 16,
             "type": [
               "integer",
               "null"
