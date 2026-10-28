@@ -106,11 +106,11 @@ func assertAppliedMigrations(t *testing.T, databasePath string) {
 	if err := db.QueryRow("SELECT COUNT(*) FROM bun_migrations").Scan(&total); err != nil {
 		t.Fatalf("count applied migrations: %v", err)
 	}
-	if total != 39 {
-		t.Fatalf("expected 26 embedded SQL migrations and thirteen Go migrations, got %d applied migrations", total)
+	if total != 40 {
+		t.Fatalf("expected 26 embedded SQL migrations and fourteen Go migrations, got %d applied migrations", total)
 	}
 
-	for _, name := range []string{"20261017120100", "20261028120200", "20261031120000", "20261101120100", "20261101120300", "20261101120400", "20261102120000", "20261103120000", "20261104120000", "20261104120100", "20261104120200", "20261104120300", "20261104120400"} {
+	for _, name := range []string{"20261017120100", "20261028120200", "20261031120000", "20261101120100", "20261101120300", "20261101120400", "20261102120000", "20261103120000", "20261104120000", "20261104120100", "20261104120200", "20261104120300", "20261104120400", "20261105120000"} {
 		var goMigrationCount int
 		if err := db.QueryRow("SELECT COUNT(*) FROM bun_migrations WHERE name = ?", name).Scan(&goMigrationCount); err != nil {
 			t.Fatalf("check applied Go migration: %v", err)

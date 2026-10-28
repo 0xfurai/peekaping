@@ -59,9 +59,9 @@ func uuids(t *testing.T, objectIDs ...string) []string {
 func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report *mongoimport.Report) {
 	ctx := context.Background()
 
-	t.Run("every channel, proxy, tag and maintenance window is in the workspace the import made", func(t *testing.T) {
+	t.Run("every channel, proxy, tag, maintenance window and status page is in the workspace the import made", func(t *testing.T) {
 		imported := string(importedWorkspace(t, db))
-		for table, collection := range map[string]string{"notification_channels": "notification_channel", "proxies": "proxies", "tags": "tags", "maintenances": "maintenance"} {
+		for table, collection := range map[string]string{"notification_channels": "notification_channel", "proxies": "proxies", "tags": "tags", "maintenances": "maintenance", "status_pages": "status_pages"} {
 			var inImported, outside int
 			require.NoError(t, db.NewSelect().Table(table).ColumnExpr("COUNT(*)").Where("workspace_id = ?", imported).Scan(ctx, &inImported), table)
 			require.NoError(t, db.NewSelect().Table(table).ColumnExpr("COUNT(*)").Where("workspace_id <> ?", imported).Scan(ctx, &outside), table)
@@ -297,11 +297,12 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 
 	t.Run("status pages", func(t *testing.T) {
 		pages, domains, links := status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db)
-		shop, err := pages.FindBySlug(ctx, "shop")
+		shop, err := pages.FindBySlugAnyWorkspace(ctx, "shop")
 		require.NoError(t, err)
 		require.NotNil(t, shop)
 		raw := rawDocument(t, in, "status_pages", in.ID("status_page", "shop"))
 		assert.Equal(t, uuidOf(t, in.ID("status_page", "shop")), shop.ID)
+		assert.Equal(t, importedWorkspace(t, db), shop.WorkspaceID, "in the workspace the import made")
 		assert.Equal(t, "Shop status", shop.Title)
 		assert.Equal(t, "Is the shop up?", shop.Description)
 		assert.Equal(t, "https://example.com/icon.png", shop.Icon)
@@ -310,7 +311,7 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		assert.Equal(t, "Thanks", shop.FooterText)
 		assert.Equal(t, 60, shop.AutoRefreshInterval)
 		assertSameTime(t, raw["created_at"].(primitive.DateTime).Time(), shop.CreatedAt)
-		internal, err := pages.FindBySlug(ctx, "internal")
+		internal, err := pages.FindBySlugAnyWorkspace(ctx, "internal")
 		require.NoError(t, err)
 		require.NotNil(t, internal)
 		assert.False(t, internal.Published)

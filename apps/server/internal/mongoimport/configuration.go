@@ -336,6 +336,7 @@ func (c *copier) copyMaintenance(ctx context.Context) error {
 
 type statusPageRow struct {
 	ID                  string    `bun:"id"`
+	WorkspaceID         string    `bun:"workspace_id"`
 	Slug                string    `bun:"slug" max:"255"`
 	Title               string    `bun:"title" max:"255"`
 	Description         string    `bun:"description"`
@@ -392,7 +393,7 @@ func (c *copier) copyStatusPages(ctx context.Context) error {
 		c.statusPages[id] = page
 		c.statusPageOrder = append(c.statusPageOrder, page)
 		return out.add(ctx, statusPageRow{
-			ID: uuidOf(id), Slug: slug, Title: d.str("title"), Description: d.str("description"), Icon: d.str("icon"), Theme: d.str("theme"),
+			ID: uuidOf(id), WorkspaceID: string(c.workspaceID), Slug: slug, Title: d.str("title"), Description: d.str("description"), Icon: d.str("icon"), Theme: d.str("theme"),
 			Published: d.boolean("published"), CreatedAt: created, UpdatedAt: updated, FooterText: d.str("footer_text"),
 			AutoRefreshInterval: int(d.integer("auto_refresh_interval")),
 		})

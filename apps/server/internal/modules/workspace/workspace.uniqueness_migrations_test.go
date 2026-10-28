@@ -277,6 +277,7 @@ func TestMigrations_RunningThePushTokenMigrationAgainChangesNothing(t *testing.T
 
 func insertStatusPage(t *testing.T, db *bun.DB, slug string) string {
 	t.Helper()
+	workspacetest.PrepareUpgrade(t, db) // the upgrade needs a user to give a workspace to
 	id := uuid.NewString()
 	_, err := db.Exec("INSERT INTO status_pages (id, slug, title) VALUES (?, ?, ?)", id, slug, slug)
 	require.NoError(t, err)

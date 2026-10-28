@@ -106,7 +106,7 @@ func TestImportKeepsEveryRowWhenCutValuesCollide(t *testing.T) {
 					want = renamed(want, 255, i+1)
 				}
 			}
-			got, err := pages.FindBySlug(ctx, want)
+			got, err := pages.FindBySlugAnyWorkspace(ctx, want)
 			require.NoError(t, err)
 			assert.NotNil(t, got, "no status page with the slug %q", want)
 		}

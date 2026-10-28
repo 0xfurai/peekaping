@@ -7,22 +7,40 @@ import (
 	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor_status_page"
+	"peekaping/internal/modules/workspace"
 
 	"go.uber.org/zap"
 )
 
+// Service works on status pages, which belong to a workspace (docs/adr/0005 section 3). The methods
+// that serve a workspace take it right after the context, and answer nil or ErrNotFound for a page
+// of another workspace. A page's slug and custom domains are unique across the install (section
+// 6): one that another workspace's page holds is refused as taken, with the answer the same
+// workspace's page gets. The AnyWorkspace methods serve the public pages, which a visitor finds by
+// slug or custom domain, the badges, and the usage ping.
 type Service interface {
-	Create(ctx context.Context, dto *CreateStatusPageDTO) (*Model, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
-	FindByIDWithMonitors(ctx context.Context, id string) (*StatusPageWithMonitorsResponseDTO, error)
-	FindPublishedBySlug(ctx context.Context, slug string) (*Model, error)
-	FindPublishedByDomain(ctx context.Context, domain string) (*Model, error)
-	FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error)
-	Update(ctx context.Context, id string, dto *UpdateStatusPageDTO) (*Model, error)
-	Delete(ctx context.Context, id string) error
+	// Create makes the page in the workspace. Every monitor it names must be in the workspace, or
+	// the error wraps monitor_status_page.ErrUnknownMonitor and nothing is written.
+	Create(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error)
+	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
+	FindByIDWithMonitors(ctx context.Context, workspaceID workspace.ID, id string) (*StatusPageWithMonitorsResponseDTO, error)
+	// FindPublishedBySlugAnyWorkspace serves a visitor, who is in no workspace
+	FindPublishedBySlugAnyWorkspace(ctx context.Context, slug string) (*Model, error)
+	// FindPublishedByDomainAnyWorkspace serves a visitor of a custom domain
+	FindPublishedByDomainAnyWorkspace(ctx context.Context, domain string) (*Model, error)
+	FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error)
+	// FindAllAnyWorkspace lists the pages of every workspace: the usage ping describes the install
+	FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error)
+	// Update changes the page. Like Create, it refuses a monitor that isn't in the workspace before
+	// it writes anything.
+	Update(ctx context.Context, workspaceID workspace.ID, id string, dto *UpdateStatusPageDTO) (*Model, error)
+	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
 
+	// GetMonitorsForStatusPage lists the links of a page the caller has loaded already: a page of
+	// the request's workspace, or a published page
 	GetMonitorsForStatusPage(ctx context.Context, statusPageID string) ([]*monitor_status_page.Model, error)
-	IsMonitorPublished(ctx context.Context, monitorID string) (bool, error)
+	// IsMonitorPublishedAnyWorkspace serves the badges, which a visitor asks for
+	IsMonitorPublishedAnyWorkspace(ctx context.Context, monitorID string) (bool, error)
 }
 
 type ServiceImpl struct {
@@ -108,7 +126,12 @@ func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, 
 	return nil
 }
 
-func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Model, error) {
+func (s *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error) {
+	// Every monitor must be in the workspace, and is checked before anything is written
+	if err := s.monitorStatusPageService.RequireMonitors(ctx, workspaceID, dto.MonitorIDs); err != nil {
+		return nil, err
+	}
+
 	// Pre-validate domain uniqueness before creating the status page to avoid
 	// partial creation without domains.
 	domains := normalizedDomains(dto.Domains)
@@ -130,7 +153,7 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 		AutoRefreshInterval: dto.AutoRefreshInterval,
 	}
 
-	created, err := s.repository.Create(ctx, model)
+	created, err := s.repository.Create(ctx, workspaceID, model)
 	if err != nil {
 		return nil, err
 	}
@@ -162,17 +185,17 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 	return created, nil
 }
 
-func (s *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	return s.repository.FindByID(ctx, id)
+func (s *ServiceImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	return s.repository.FindByID(ctx, workspaceID, id)
 }
 
 func (s *ServiceImpl) FindByIDWithMonitors(
-	ctx context.Context, id string,
+	ctx context.Context, workspaceID workspace.ID, id string,
 ) (*StatusPageWithMonitorsResponseDTO, error) {
 	s.logger.Debugw("Finding status page by ID with monitors", "id", id)
 
 	// First, get the status page model
-	model, err := s.repository.FindByID(ctx, id)
+	model, err := s.repository.FindByID(ctx, workspaceID, id)
 	if err != nil {
 		s.logger.Errorw("Failed to find status page by ID", "error", err, "id", id)
 		return nil, err
@@ -220,16 +243,16 @@ func (s *ServiceImpl) FindByIDWithMonitors(
 	return dto, nil
 }
 
-// FindPublishedBySlug returns the published status page at slug. A page that
-// doesn't exist or isn't published is nil, so public callers can't tell the
-// two apart.
-func (s *ServiceImpl) FindPublishedBySlug(ctx context.Context, slug string) (*Model, error) {
-	return publishedOnly(s.repository.FindBySlug(ctx, slug))
+// FindPublishedBySlugAnyWorkspace returns the published status page at slug, whatever workspace it
+// is in: a visitor is in none. A page that doesn't exist or isn't published is nil, so public
+// callers can't tell the two apart.
+func (s *ServiceImpl) FindPublishedBySlugAnyWorkspace(ctx context.Context, slug string) (*Model, error) {
+	return publishedOnly(s.repository.FindBySlugAnyWorkspace(ctx, slug))
 }
 
-// FindPublishedByDomain returns the published status page served at a custom
-// domain, or nil like FindPublishedBySlug.
-func (s *ServiceImpl) FindPublishedByDomain(ctx context.Context, domain string) (*Model, error) {
+// FindPublishedByDomainAnyWorkspace returns the published status page served at a custom
+// domain, or nil like FindPublishedBySlugAnyWorkspace.
+func (s *ServiceImpl) FindPublishedByDomainAnyWorkspace(ctx context.Context, domain string) (*Model, error) {
 	// Find the domain-status page relationship
 	domainStatusPage, err := s.domainStatusPageService.FindByDomain(ctx, domain)
 	if err != nil {
@@ -239,7 +262,7 @@ func (s *ServiceImpl) FindPublishedByDomain(ctx context.Context, domain string) 
 		return nil, nil
 	}
 
-	return publishedOnly(s.repository.FindByID(ctx, domainStatusPage.StatusPageID))
+	return publishedOnly(s.repository.FindByIDAnyWorkspace(ctx, domainStatusPage.StatusPageID))
 }
 
 func publishedOnly(page *Model, err error) (*Model, error) {
@@ -249,11 +272,30 @@ func publishedOnly(page *Model, err error) (*Model, error) {
 	return page, nil
 }
 
-func (s *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	return s.repository.FindAll(ctx, page, limit, q)
+func (s *ServiceImpl) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error) {
+	return s.repository.FindAll(ctx, workspaceID, page, limit, q)
 }
 
-func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPageDTO) (*Model, error) {
+func (s *ServiceImpl) FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
+	return s.repository.FindAllAnyWorkspace(ctx, page, limit)
+}
+
+func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id string, dto *UpdateStatusPageDTO) (*Model, error) {
+	// The page must be in the workspace, and so must every monitor it is given: they are checked
+	// before anything is written
+	found, err := s.repository.FindByID(ctx, workspaceID, id)
+	if err != nil {
+		return nil, err
+	}
+	if found == nil {
+		return nil, ErrNotFound
+	}
+	if dto.MonitorIDs != nil {
+		if err := s.monitorStatusPageService.RequireMonitors(ctx, workspaceID, *dto.MonitorIDs); err != nil {
+			return nil, err
+		}
+	}
+
 	updateModel := &UpdateModel{
 		Slug:                dto.Slug,
 		Title:               dto.Title,
@@ -266,7 +308,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		AutoRefreshInterval: dto.AutoRefreshInterval,
 	}
 
-	err := s.repository.Update(ctx, id, updateModel)
+	err = s.repository.Update(ctx, workspaceID, id, updateModel)
 	if err != nil {
 		return nil, err
 	}
@@ -357,11 +399,11 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		}
 	}
 
-	return s.repository.FindByID(ctx, id)
+	return s.repository.FindByID(ctx, workspaceID, id)
 }
 
-func (s *ServiceImpl) Delete(ctx context.Context, id string) error {
-	err := s.repository.Delete(ctx, id)
+func (s *ServiceImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	err := s.repository.Delete(ctx, workspaceID, id)
 	if err != nil {
 		return err
 	}
@@ -379,15 +421,15 @@ func (s *ServiceImpl) GetMonitorsForStatusPage(ctx context.Context, statusPageID
 	return s.monitorStatusPageService.GetMonitorsForStatusPage(ctx, statusPageID)
 }
 
-// IsMonitorPublished reports whether the monitor is on at least one published
-// status page.
-func (s *ServiceImpl) IsMonitorPublished(ctx context.Context, monitorID string) (bool, error) {
+// IsMonitorPublishedAnyWorkspace reports whether the monitor is on at least one published
+// status page. The badge of a monitor is public, so the page is found in whatever workspace it is.
+func (s *ServiceImpl) IsMonitorPublishedAnyWorkspace(ctx context.Context, monitorID string) (bool, error) {
 	links, err := s.monitorStatusPageService.GetStatusPagesForMonitor(ctx, monitorID)
 	if err != nil {
 		return false, err
 	}
 	for _, link := range links {
-		page, err := s.repository.FindByID(ctx, link.StatusPageID)
+		page, err := s.repository.FindByIDAnyWorkspace(ctx, link.StatusPageID)
 		if err != nil {
 			return false, err
 		}
