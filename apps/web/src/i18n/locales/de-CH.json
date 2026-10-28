@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Allgemein",
     "intervals_retries": "Intervalle, Wiederholungen, Time-Outs"
+  },
+  "workspaces": {
+    "none_description": "Dein Konto ist in keinem Arbeitsbereich Mitglied, deshalb gibt es hier nichts anzuzeigen. Bitte jemanden, der einen Arbeitsbereich betreut, dich hinzuzufügen.",
+    "none_title": "Du bist noch in keinem Arbeitsbereich"
   }
 }

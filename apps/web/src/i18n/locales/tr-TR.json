@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Genel",
     "intervals_retries": "Aralıklar, Tekrarlar, Zaman Aşımı"
+  },
+  "workspaces": {
+    "none_description": "Hesabınız hiçbir çalışma alanının üyesi değil, bu yüzden burada gösterilecek bir şey yok. Bir çalışma alanını yöneten birinden sizi eklemesini isteyin.",
+    "none_title": "Henüz hiçbir çalışma alanında değilsiniz"
   }
 }

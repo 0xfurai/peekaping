@@ -1588,5 +1588,9 @@
   "ui": {
     "general": "General",
     "intervals_retries": "Intervale, Reîncercări, Timeout-uri"
+  },
+  "workspaces": {
+    "none_description": "Contul tău nu este membru al niciunui spațiu de lucru, așa că nu este nimic de afișat aici. Roagă pe cineva care administrează un spațiu de lucru să te adauge.",
+    "none_title": "Nu faci încă parte dintr-un spațiu de lucru"
   }
 }

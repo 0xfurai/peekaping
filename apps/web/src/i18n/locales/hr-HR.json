@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Općenito",
     "intervals_retries": "Intervali, Pokušaji, Timeouti"
+  },
+  "workspaces": {
+    "none_description": "Vaš račun nije član nijednog radnog prostora, pa ovdje nema ničega za prikazati. Zamolite nekoga tko upravlja radnim prostorom da vas doda.",
+    "none_title": "Još niste ni u jednom radnom prostoru"
   }
 }

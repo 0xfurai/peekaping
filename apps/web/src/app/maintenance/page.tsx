@@ -36,10 +36,12 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import EmptyList from "@/components/empty-list";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 export default function MaintenancePage() {
   const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
@@ -222,11 +224,11 @@ export default function MaintenancePage() {
   };
 
   const handleCreateClick = () => {
-    navigate("/maintenances/new");
+    navigate(workspacePath("/maintenances/new"));
   };
 
   const handleEditClick = (id: string) => {
-    navigate(`/maintenances/${id}/edit`);
+    navigate(workspacePath(`/maintenances/${id}/edit`));
   };
 
   const handleObserver = useCallback(
@@ -309,7 +311,7 @@ export default function MaintenancePage() {
             title={t("maintenance.page.empty_state.title")}
             text={t("maintenance.page.empty_state.description")}
             actionText={t("maintenance.page.empty_state.action")}
-            onClick={() => navigate("/maintenances/new")}
+            onClick={() => navigate(workspacePath("/maintenances/new"))}
           />
         )}
 

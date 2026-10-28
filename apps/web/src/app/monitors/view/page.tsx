@@ -61,6 +61,7 @@ import { getMonitorStatusView } from "../components/monitor-status";
 import { currentStatus, hasLocations, heartbeatsOfProbe, instanceToLookUp, monitorStatusOf, sortLocations } from "../locations";
 import LocationsSection from "./locations-section";
 import { NoData } from "@/components/no-data";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 function formatDuration(ms: number, t: (key: string) => string): string {
   // Handle negative durations (clock skew) by returning empty string
@@ -109,6 +110,7 @@ interface TLSInfo {
 const MonitorPageContent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
   const { probeNames, unsupportedProbeIds, instanceHostnames, isPending: probesPending } = useProbes();
@@ -204,7 +206,7 @@ const MonitorPageContent = () => {
       queryClient.invalidateQueries({
         queryKey: getMonitorsInfiniteQueryKey(),
       });
-      navigate("/monitors");
+      navigate(workspacePath("/monitors"));
     },
     onError: commonMutationErrorHandler("Failed to delete monitor"),
   });
@@ -527,7 +529,7 @@ const MonitorPageContent = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
-              onClick={() => navigate("/monitors/" + id + "/edit")}
+              onClick={() => navigate(workspacePath(`/monitors/${id}/edit`))}
             >
               <Edit />
               {t("monitors.view.buttons.edit")}
@@ -536,7 +538,7 @@ const MonitorPageContent = () => {
               variant="ghost"
               className="rounded-none border-r"
               onClick={() => {
-                navigate("/monitors/new", {
+                navigate(workspacePath("/monitors/new"), {
                   state: {
                     cloneData: monitor,
                   },

@@ -44,6 +44,7 @@ import {
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
 import { probeTypeError, withEffectiveProbes } from "../monitor-types/shared/probe-support";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 type Mode = "create" | "edit";
 
@@ -94,6 +95,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   initialValues,
 }) => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
   const [notifierSheetOpen, setNotifierSheetOpen] = useState(false);
@@ -157,7 +159,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       queryClient.invalidateQueries({
         queryKey: getMonitorsQueryKey(),
       });
-      navigate(`/monitors/${res.data.id}`);
+      navigate(workspacePath(`/monitors/${res.data.id}`));
     },
     onError: handleMutationError("Failed to create monitor"),
   });
@@ -177,7 +179,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
         queryKey: getMonitorsByIdQueryKey({ path: { id: monitorId! } }),
       });
 
-      navigate(`/monitors/${monitorId}`);
+      navigate(workspacePath(`/monitors/${monitorId}`));
     },
     onError: handleMutationError("Failed to update monitor"),
   });

@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Geral",
     "intervals_retries": "Intervalos, Tentativas, Timeouts"
+  },
+  "workspaces": {
+    "none_description": "A sua conta não é membro de nenhum espaço de trabalho, por isso não há nada para mostrar aqui. Peça a quem gere um espaço de trabalho que o adicione.",
+    "none_title": "Ainda não está em nenhum espaço de trabalho"
   }
 }

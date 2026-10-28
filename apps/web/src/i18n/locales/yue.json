@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "一般",
     "intervals_retries": "間隔、重試、逾時"
+  },
+  "workspaces": {
+    "none_description": "你個帳戶唔係任何工作區嘅成員，所以呢度冇嘢可以顯示。請搵管理緊工作區嘅人將你加入去。",
+    "none_title": "你仲未喺任何工作區入面"
   }
 }

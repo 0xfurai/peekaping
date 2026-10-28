@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Orokorra",
     "intervals_retries": "Ebakien, Errepikapenak, Denbora-mugak"
+  },
+  "workspaces": {
+    "none_description": "Zure kontua ez da lan-eremu bateko kide, beraz ez dago hemen ezer erakusteko. Eskatu lan-eremu bat kudeatzen duen norbaiti zu gehitzeko.",
+    "none_title": "Oraindik ez zaude lan-eremurik batean"
   }
 }

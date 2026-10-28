@@ -10,6 +10,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
 import StaleMarker from "./stale-marker";
 import { getMonitorStatusView } from "./monitor-status";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 interface MonitorCardProps {
   monitor: MonitorMonitorResponseDto;
@@ -21,6 +22,7 @@ interface MonitorCardProps {
 
 const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps) => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
 
   const { data: heartbeats } = useQuery({
@@ -40,7 +42,7 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
     <Card
       key={monitor.id}
       className="mb-2 p-2 hover:cursor-pointer light:hover:bg-gray-100 dark:hover:bg-zinc-800"
-      onClick={() => navigate(`/monitors/${monitor.id}`)}
+      onClick={() => navigate(workspacePath(`/monitors/${monitor.id}`))}
       data-testid="monitor-card"
     >
       <CardContent className="px-2">

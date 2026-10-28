@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Chung",
     "intervals_retries": "Khoảng thời gian, Lần thử lại, Thời gian chờ"
+  },
+  "workspaces": {
+    "none_description": "Tài khoản của bạn chưa là thành viên của không gian làm việc nào nên ở đây không có gì để hiển thị. Hãy nhờ người quản lý một không gian làm việc thêm bạn vào.",
+    "none_title": "Bạn chưa thuộc không gian làm việc nào"
   }
 }

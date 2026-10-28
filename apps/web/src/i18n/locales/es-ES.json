@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "General",
     "intervals_retries": "Intervalos, reintentos, timeouts"
+  },
+  "workspaces": {
+    "none_description": "Tu cuenta no es miembro de ningún espacio de trabajo, así que aquí no hay nada que mostrar. Pide a quien administra un espacio de trabajo que te añada.",
+    "none_title": "Todavía no estás en ningún espacio de trabajo"
   }
 }

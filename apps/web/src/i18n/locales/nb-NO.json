@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Generelt",
     "intervals_retries": "Intervaller, Gjenopprøvninger, Tidsavbrudd"
+  },
+  "workspaces": {
+    "none_description": "Kontoen din er ikke medlem av noe arbeidsområde, så det er ingenting å vise her. Be noen som styrer et arbeidsområde om å legge deg til.",
+    "none_title": "Du er ikke i et arbeidsområde ennå"
   }
 }

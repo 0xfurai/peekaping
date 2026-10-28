@@ -14,9 +14,11 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import EmptyList from "@/components/empty-list";
 import { Button } from "@/components/ui/button";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const StatusPagesPage = () => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
   const { t } = useLocalizedTranslation();
@@ -72,7 +74,7 @@ const StatusPagesPage = () => {
     <Layout
       pageName={t("status_pages.page_name")}
       onCreate={() => {
-        navigate("/status-pages/new");
+        navigate(workspacePath("/status-pages/new"));
       }}
     >
       <div>
@@ -116,7 +118,7 @@ const StatusPagesPage = () => {
           <StatusPageCard
             key={statusPage.id}
             statusPage={statusPage}
-            onClick={() => navigate(`/status-pages/${statusPage.id}/edit`)}
+            onClick={() => navigate(workspacePath(`/status-pages/${statusPage.id}/edit`))}
           />
         ))}
 
@@ -136,7 +138,7 @@ const StatusPagesPage = () => {
             title={t("status_pages.messages.no_status_pages_found")}
             text={t("status_pages.messages.get_started_by_creating_your_first_status_page")}
             actionText={t("status_pages.messages.create_your_first_status_page")}
-            onClick={() => navigate("/status-pages/new")}
+            onClick={() => navigate(workspacePath("/status-pages/new"))}
           />
         )}
       </div>
