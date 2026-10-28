@@ -7,10 +7,13 @@ import (
 	"time"
 
 	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/shared"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // PP-152: a password reset ends every session of the user. A token is refused when it was issued
@@ -145,4 +148,112 @@ func TestTokenMaker_CheckUserCanSignInRefusesADisabledOrDeletedUserAndOneThatCan
 	assert.Error(t, err, "an account that can't be read is refused")
 	assert.NotErrorIs(t, err, auth.ErrInvalidToken)
 	assert.NoError(t, h.tokens.CheckUserCanSignIn(ctx, user.ID), "a maker with no cutoffs checks none")
+}
+
+// afterFind runs a hook once FindByID has answered, to force the moment a request has read the
+// user and another one commits before the first goes on
+type afterFind struct {
+	auth.Repository
+	hook func(user *auth.Model)
+}
+
+func (r *afterFind) FindByID(ctx context.Context, id string) (*auth.Model, error) {
+	user, err := r.Repository.FindByID(ctx, id)
+	if user != nil && r.hook != nil {
+		hook := r.hook
+		r.hook = nil
+		hook(user)
+	}
+	return user, err
+}
+
+func TestRefreshToken_ARefreshThatRacesAPasswordResetGetsATokenThatIsRefused(t *testing.T) {
+	h := newHarness(t)
+	session := h.register(t)
+	ctx := context.Background()
+	accounts := auth.NewSQLAccountRepository(h.db)
+	tokens := auth.NewTokenMaker(h.settings, zap.NewNop().Sugar()).WithSessionCutoffs(accounts)
+	repo := &afterFind{Repository: auth.NewSQLRepository(h.db)}
+	svc := newService(h.db, repo, tokens, zap.NewNop().Sugar())
+	time.Sleep(5 * time.Millisecond)
+	// the reset commits after the refresh has read the user and before it makes its tokens
+	repo.hook = func(user *auth.Model) {
+		hashed, err := bcrypt.GenerateFromPassword([]byte("Reset-password-1"), bcrypt.MinCost)
+		require.NoError(t, err)
+		require.NoError(t, accounts.SetPassword(ctx, user.ID, string(hashed), time.Now().UTC().Truncate(time.Millisecond)))
+		time.Sleep(5 * time.Millisecond)
+	}
+
+	refreshed, err := svc.RefreshToken(ctx, session.RefreshToken)
+	require.NoError(t, err, "the refresh token was valid when the request began")
+
+	_, err = tokens.VerifyToken(ctx, refreshed.AccessToken, "access")
+	assert.ErrorIs(t, err, auth.ErrInvalidToken, "an access token of a session that began before the reset")
+	_, err = tokens.VerifyToken(ctx, refreshed.RefreshToken, "refresh")
+	assert.ErrorIs(t, err, auth.ErrInvalidToken, "a refresh token of a session that began before the reset")
+}
+
+func TestRefreshToken_TheNewTokensKeepTheTimeTheSessionBegan(t *testing.T) {
+	h := newHarness(t)
+	session := h.register(t)
+	ctx := context.Background()
+	began, err := h.tokens.VerifyToken(ctx, session.RefreshToken, "refresh")
+	require.NoError(t, err)
+	require.NotNil(t, began.AuthTime, "a token carries auth_time")
+	time.Sleep(20 * time.Millisecond)
+
+	refreshed, err := h.svc.RefreshToken(ctx, session.RefreshToken)
+	require.NoError(t, err)
+
+	for kind, token := range map[string]string{"access": refreshed.AccessToken, "refresh": refreshed.RefreshToken} {
+		claims, err := h.tokens.VerifyToken(ctx, token, kind)
+		require.NoError(t, err)
+		require.NotNil(t, claims.AuthTime, kind)
+		assert.True(t, claims.AuthTime.Time.Equal(began.AuthTime.Time), "%s: auth_time is the session's start, not the refresh", kind)
+		assert.True(t, claims.IssuedAt.Time.After(began.AuthTime.Time), "%s: iat is the refresh", kind)
+	}
+}
+
+func TestTokenMaker_ATokenWithoutAuthTimeIsJudgedByItsIssueTime(t *testing.T) {
+	h := newHarness(t)
+	h.register(t)
+	ctx := context.Background()
+	accounts := auth.NewSQLAccountRepository(h.db)
+	tokens := auth.NewTokenMaker(h.settings, zap.NewNop().Sugar()).WithSessionCutoffs(accounts)
+	user, err := auth.NewSQLRepository(h.db).FindByEmail(ctx, adminEmail)
+	require.NoError(t, err)
+	legacy := func(issued time.Time) string {
+		return sign(t, h.secret(t, shared.AccessTokenSecretKey), auth.Claims{UserID: user.ID, Email: adminEmail, Type: "access",
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(issued.Add(time.Hour)), IssuedAt: jwt.NewNumericDate(issued), NotBefore: jwt.NewNumericDate(issued),
+			}})
+	}
+	cutoff := time.Now().UTC().Add(-time.Minute).Truncate(time.Millisecond)
+	require.NoError(t, accounts.SetPassword(ctx, user.ID, user.Password, cutoff))
+
+	_, err = tokens.VerifyToken(ctx, legacy(cutoff.Add(-time.Second)), "access")
+	assert.ErrorIs(t, err, auth.ErrInvalidToken, "issued before the cutoff")
+	_, err = tokens.VerifyToken(ctx, legacy(cutoff.Add(time.Second)), "access")
+	assert.NoError(t, err, "issued after the cutoff")
+}
+
+func TestTokenMaker_AuthTimeSurvivesBeingCopiedFromTokenToToken(t *testing.T) {
+	h := newHarness(t)
+	h.register(t)
+	ctx := context.Background()
+	user, err := auth.NewSQLRepository(h.db).FindByEmail(ctx, adminEmail)
+	require.NoError(t, err)
+	// 1793208344.587 is a value a float reads back as .586999..., which jwt.NumericDate truncates to .586
+	began := time.UnixMilli(1793208344587).UTC()
+
+	for i := 0; i < 5; i++ {
+		token, err := h.tokens.CreateRefreshTokenForSession(ctx, user, began)
+		require.NoError(t, err)
+		verified := &auth.Claims{}
+		_, _, err = jwt.NewParser().ParseUnverified(token, verified)
+		require.NoError(t, err)
+		began = verified.AuthTime.Time
+	}
+
+	assert.Equal(t, int64(1793208344587), began.UnixMilli(), "after five copies")
 }

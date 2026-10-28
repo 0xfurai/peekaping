@@ -6424,6 +6424,10 @@ export type PostWorkspaceInvitesErrors = {
    */
   409: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
