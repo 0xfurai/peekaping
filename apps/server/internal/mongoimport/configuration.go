@@ -113,7 +113,22 @@ func removeNULEscapes(text string) (string, bool) {
 // MongoDB did not: a monitor without one has an empty string, and two monitors may hold the same
 // token. The first monitor keeps a token, and a later one with the same token goes without, which
 // the report counts. A push to a shared token reached just one of them anyway.
-func (c *copier) pushToken(report *CollectionReport, token string) *string {
+//
+// A push monitor made through the API once held its token in its config only, with an empty
+// push_token. The upgrade fills push_token from config.pushToken for such a monitor (migration
+// 20261101120300), and so does the import: pushToken is the document's push_token, or else, for a
+// push monitor, the one in its config.
+func (c *copier) pushToken(report *CollectionReport, typ, token, config string) *string {
+	if token == "" && typ == "push" {
+		var parsed struct {
+			PushToken string `json:"pushToken"`
+		}
+		// A config that isn't an object of this shape has no token
+		if json.Unmarshal([]byte(config), &parsed) == nil && parsed.PushToken != "" {
+			token = parsed.PushToken
+			report.fix("push_token is empty: used the one in the config")
+		}
+	}
 	if token == "" {
 		return nil
 	}
@@ -148,12 +163,13 @@ func (c *copier) copyMonitors(ctx context.Context) error {
 			}
 		}
 		c.monitors.add(id)
+		config := jsonConfig(report, d.strPtr("config"))
 		return out.add(ctx, monitorRow{
 			ID: uuidOf(id), Type: d.str("type"), Name: d.str("name"),
 			Interval: int(d.integer("interval")), Timeout: int(d.integer("timeout")), MaxRetries: int(d.integer("max_retries")),
 			RetryInterval: int(d.integer("retry_interval")), ResendInterval: int(d.integer("resend_interval")),
 			Active: d.boolean("active"), Status: int(d.integer("status")), CreatedAt: created, UpdatedAt: updated,
-			Config: jsonConfig(report, d.strPtr("config")), ProxyID: proxyID, PushToken: c.pushToken(report, d.str("push_token")),
+			Config: config, ProxyID: proxyID, PushToken: c.pushToken(report, d.str("type"), d.str("push_token"), config),
 		})
 	})
 	if err != nil {
