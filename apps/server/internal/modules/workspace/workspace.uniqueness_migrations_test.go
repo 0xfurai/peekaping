@@ -3,6 +3,7 @@ package workspace_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"peekaping/cmd/bun/migrations"
@@ -11,11 +12,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 )
 
 // The migrations that tie the tables of a monitor to the monitor and make push tokens and custom
 // domains unique across the install (PP-146, docs/adr/0005 section 6)
 const (
+	checkUniquenessMigration = "20261031120000"
 	monitorChildrenMigration = "20261101120200"
 	pushTokensMigration      = "20261101120300"
 	customDomainsMigration   = "20261101120400"
@@ -401,5 +404,158 @@ func TestMigrations_UniquenessMigrationsGoDownAndComeBack(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, []string{"status.example"}, domainsOf(t, db, page))
 		assert.Equal(t, map[string]*string{monitor: ptr("config-token")}, pushTokens(t, db))
+	})
+}
+
+// The upgrade checks push tokens and custom domains before its first PP-146 migration, so that a
+// duplicate stops it with nothing changed (PP-146).
+
+func tableExists(t *testing.T, db *bun.DB, table string) bool {
+	t.Helper()
+	var count int
+	query := "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?"
+	if db.Dialect().Name() == dialect.PG {
+		query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = ?"
+	}
+	require.NoError(t, db.NewRaw(query, table).Scan(context.Background(), &count))
+	return count > 0
+}
+
+// columnType is the declared type of a column, or "" when the table has no such column
+func columnType(t *testing.T, db *bun.DB, table, column string) string {
+	t.Helper()
+	var types []string
+	if db.Dialect().Name() == dialect.PG {
+		require.NoError(t, db.NewRaw("SELECT data_type FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = ? AND column_name = ?", table, column).Scan(context.Background(), &types))
+	} else {
+		require.NoError(t, db.NewRaw("SELECT type FROM pragma_table_info(?) WHERE name = ?", table, column).Scan(context.Background(), &types))
+	}
+	if len(types) == 0 {
+		return ""
+	}
+	return strings.ToLower(types[0])
+}
+
+func indexExists(t *testing.T, db *bun.DB, name string) bool {
+	t.Helper()
+	var count int
+	query := "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = ?"
+	if db.Dialect().Name() == dialect.PG {
+		query = "SELECT COUNT(*) FROM pg_indexes WHERE schemaname = current_schema() AND indexname = ?"
+	}
+	require.NoError(t, db.NewRaw(query, name).Scan(context.Background(), &count))
+	return count > 0
+}
+
+// assertNoWorkspaceSchema is that none of what the PP-146 migrations change is there
+func assertNoWorkspaceSchema(t *testing.T, db *bun.DB) {
+	t.Helper()
+	for _, table := range []string{"workspaces", "workspace_members"} {
+		assert.False(t, tableExists(t, db, table), table)
+	}
+	assert.Empty(t, columnType(t, db, "users", "instance_admin"))
+	assert.NotEqual(t, "uuid", columnType(t, db, "monitor_tls_info", "monitor_id"), "the TLS info table is not rebuilt")
+	assert.NotEqual(t, "uuid", columnType(t, db, "notification_sent_history", "monitor_id"), "the notification history table is not rebuilt")
+	assert.False(t, indexExists(t, db, "idx_monitors_push_token"))
+	assert.False(t, indexExists(t, db, "idx_domain_status_page_domain"))
+	for _, name := range []string{workspacesMigration, adoptMigration, monitorChildrenMigration, pushTokensMigration, customDomainsMigration} {
+		assert.False(t, migrationApplied(t, db, name), name)
+	}
+}
+
+func seedSharedPushToken(t *testing.T, db *bun.DB) {
+	t.Helper()
+	insertPushMonitor(t, db, pushMonitor{uuid.NewString(), "First pusher", "push", ptr("shared-secret"), nil})
+	insertPushMonitor(t, db, pushMonitor{uuid.NewString(), "Second pusher", "push", ptr(""), ptr(`{"pushToken":"shared-secret"}`)})
+}
+
+func seedSharedDomain(t *testing.T, db *bun.DB) {
+	t.Helper()
+	insertDomain(t, db, insertStatusPage(t, db, "shop"), "Status.Example", "2026-01-01 00:00:01")
+	insertDomain(t, db, insertStatusPage(t, db, "blog"), "status.example ", "2026-01-01 00:00:02")
+}
+
+func TestMigrations_ADuplicatePushTokenOrDomainStopsTheUpgradeBeforeAnyPP146Change(t *testing.T) {
+	cases := map[string]struct {
+		seed []func(*testing.T, *bun.DB)
+		want []string
+	}{
+		"push token": {[]func(*testing.T, *bun.DB){seedSharedPushToken}, []string{"First pusher", "Second pusher"}},
+		"domain":     {[]func(*testing.T, *bun.DB){seedSharedDomain}, []string{"status.example", `"shop"`, `"blog"`}},
+		"both": {[]func(*testing.T, *bun.DB){seedSharedPushToken, seedSharedDomain},
+			[]string{"First pusher", "Second pusher", "status.example", `"shop"`, `"blog"`}},
+	}
+	for name, c := range cases {
+		t.Run(name, func(t *testing.T) {
+			forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+				upgrade := migratedBefore(t, db, checkUniquenessMigration)
+				insertUser(t, db, "owner@example.com")
+				for _, seed := range c.seed {
+					seed(t, db)
+				}
+
+				_, err := upgrade.Migrate(context.Background())
+
+				require.Error(t, err)
+				for _, want := range c.want {
+					assert.Contains(t, err.Error(), want)
+				}
+				assert.NotContains(t, err.Error(), "shared-secret", "the token is a secret")
+				assertNoWorkspaceSchema(t, db)
+				assert.False(t, migrationApplied(t, db, checkUniquenessMigration))
+			})
+		})
+	}
+}
+
+func TestMigrations_TheUpgradeGoesThroughWhenNothingIsShared(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		upgrade := migratedBefore(t, db, checkUniquenessMigration)
+		insertPushMonitor(t, db, pushMonitor{uuid.NewString(), "Pusher", "push", ptr(""), ptr(`{"pushToken":"config-token"}`)})
+		insertPushMonitor(t, db, pushMonitor{uuid.NewString(), "Other", "push", ptr(""), ptr(`{"pushToken":""}`)})
+		page := insertStatusPage(t, db, "shop")
+		insertDomain(t, db, page, "Status.Example", "2026-01-01 00:00:01")
+		insertDomain(t, db, page, "status.example", "2026-01-01 00:00:02")
+
+		_, err := upgrade.Migrate(ctx)
+
+		require.NoError(t, err)
+		assert.True(t, migrationApplied(t, db, checkUniquenessMigration))
+		assert.True(t, tableExists(t, db, "workspaces"))
+	})
+}
+
+func TestMigrations_ACheckThatFindsNothingChangesNothing(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		migratedBefore(t, db, checkUniquenessMigration)
+		monitor := uuid.NewString()
+		insertPushMonitor(t, db, pushMonitor{monitor, "Pusher", "push", ptr(""), ptr(`{"pushToken":"config-token"}`)})
+		page := insertStatusPage(t, db, "shop")
+		insertDomain(t, db, page, "Status.Example", "2026-01-01 00:00:01")
+
+		require.NoError(t, runMigrationAgain(db, checkUniquenessMigration))
+
+		assert.Equal(t, map[string]*string{monitor: ptr("")}, pushTokens(t, db), "the token is not filled in")
+		assert.Equal(t, []string{"Status.Example"}, domainsOf(t, db, page), "the domain is not normalized")
+	})
+}
+
+func TestMigrations_ADomainThatIsEmptyOnceTrimmedIsNotAConflictAndIsDeleted(t *testing.T) {
+	forEachUnmigratedBackend(t, func(t *testing.T, db *bun.DB) {
+		ctx := context.Background()
+		upgrade := migratedBefore(t, db, checkUniquenessMigration)
+		shop, blog := insertStatusPage(t, db, "shop"), insertStatusPage(t, db, "blog")
+		insertDomain(t, db, shop, "", "2026-01-01 00:00:01")
+		insertDomain(t, db, blog, "  ", "2026-01-01 00:00:02")
+		insertDomain(t, db, blog, "blog.example", "2026-01-01 00:00:03")
+		insertDomain(t, db, shop, "\t", "2026-01-01 00:00:04")
+
+		_, err := upgrade.Migrate(ctx)
+
+		require.NoError(t, err, "empty is not shared")
+		assert.Empty(t, domainsOf(t, db, shop), "an empty domain serves nothing")
+		assert.Equal(t, []string{"blog.example"}, domainsOf(t, db, blog))
+		assert.True(t, indexExists(t, db, "idx_domain_status_page_domain"))
 	})
 }

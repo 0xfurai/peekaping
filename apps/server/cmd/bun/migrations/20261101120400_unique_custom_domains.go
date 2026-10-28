@@ -20,7 +20,12 @@ import (
 // stays.
 //
 // A domain that two pages hold can't be fixed here: the upgrade doesn't know which page should
-// keep it. So it stops, before it changes anything, and names the domain and the pages.
+// keep it. So it stops, before it changes anything (the migration check_unique_push_tokens_and_domains checks
+// this first, before any other change of the upgrade, and this one checks again), and names the
+// domain and the pages.
+//
+// A domain that is empty once trimmed is no one's: it serves nothing. It is not a conflict, and
+// the rows that hold one are deleted.
 //
 // A re-run finds nothing to change.
 
@@ -39,35 +44,51 @@ func normalizedDomain(domain string) string {
 	return strings.ToLower(strings.TrimSpace(domain))
 }
 
+// loadPageDomains reads the domain rows with the slug of their page, the oldest row of a page's
+// domain first
+func loadPageDomains(ctx context.Context, q bun.IDB) ([]pageDomain, error) {
+	var rows []pageDomain
+	err := q.NewSelect().
+		TableExpr("domain_status_page AS d").
+		Join("JOIN status_pages AS p ON p.id = d.status_page_id").
+		ColumnExpr("d.id AS id, d.status_page_id AS status_page_id, d.domain AS domain, p.slug AS slug").
+		OrderExpr("d.created_at, d.id").
+		Scan(ctx, &rows)
+	return rows, err
+}
+
+// checkCustomDomainsAreUnique reads the domains and returns an error that names each one that
+// more than one page holds, or nil. It changes nothing. The check migration runs it before any
+// other change of this upgrade, and the migration that makes the domains unique runs it again.
+func checkCustomDomainsAreUnique(ctx context.Context, q bun.IDB) error {
+	rows, err := loadPageDomains(ctx, q)
+	if err != nil {
+		return err
+	}
+	return sharedCustomDomains(rows)
+}
+
 func makeCustomDomainsUnique(ctx context.Context, db *bun.DB) error {
 	return db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		// The oldest row of a page's domain comes first
-		var rows []pageDomain
-		err := tx.NewSelect().
-			TableExpr("domain_status_page AS d").
-			Join("JOIN status_pages AS p ON p.id = d.status_page_id").
-			ColumnExpr("d.id AS id, d.status_page_id AS status_page_id, d.domain AS domain, p.slug AS slug").
-			OrderExpr("d.created_at, d.id").
-			Scan(ctx, &rows)
+		rows, err := loadPageDomains(ctx, tx)
 		if err != nil {
 			return err
 		}
+		if err := sharedCustomDomains(rows); err != nil {
+			return err
+		}
 
-		// The first row of each page for each domain stays, and the rest are that page's duplicates
+		// The first row of each page for each domain stays, and the rest are that page's duplicates.
+		// A row with no domain once trimmed serves nothing, and goes too.
 		type held struct{ domain, page string }
 		kept := map[held]bool{}
-		slugsByDomain := map[string]map[string]bool{}
-		var duplicates []string
+		var remove []string
 		var renamed []pageDomain
 		for _, row := range rows {
 			domain := normalizedDomain(row.Domain)
-			if slugsByDomain[domain] == nil {
-				slugsByDomain[domain] = map[string]bool{}
-			}
-			slugsByDomain[domain][row.Slug] = true
 			key := held{domain, row.StatusPageID}
-			if kept[key] {
-				duplicates = append(duplicates, row.ID)
+			if domain == "" || kept[key] {
+				remove = append(remove, row.ID)
 				continue
 			}
 			kept[key] = true
@@ -76,13 +97,10 @@ func makeCustomDomainsUnique(ctx context.Context, db *bun.DB) error {
 				renamed = append(renamed, row)
 			}
 		}
-		if err := sharedCustomDomains(slugsByDomain); err != nil {
-			return err
-		}
 
-		// The duplicates go first: a page's row can't take a domain its other row still holds
-		if len(duplicates) > 0 {
-			if _, err := tx.NewDelete().Table("domain_status_page").Where("id IN (?)", bun.In(duplicates)).Exec(ctx); err != nil {
+		// The rows that go are deleted first: a page's row can't take a domain its other row still holds
+		if len(remove) > 0 {
+			if _, err := tx.NewDelete().Table("domain_status_page").Where("id IN (?)", bun.In(remove)).Exec(ctx); err != nil {
 				return err
 			}
 		}
@@ -98,8 +116,20 @@ func makeCustomDomainsUnique(ctx context.Context, db *bun.DB) error {
 }
 
 // sharedCustomDomains is an error that names each domain more than one page holds, with the
-// pages' slugs, or nil when no domain is shared
-func sharedCustomDomains(slugsByDomain map[string]map[string]bool) error {
+// pages' slugs, or nil when no domain is shared. A domain that is empty once trimmed is held by
+// no one: it serves nothing, and the migration deletes it.
+func sharedCustomDomains(rows []pageDomain) error {
+	slugsByDomain := map[string]map[string]bool{}
+	for _, row := range rows {
+		domain := normalizedDomain(row.Domain)
+		if domain == "" {
+			continue
+		}
+		if slugsByDomain[domain] == nil {
+			slugsByDomain[domain] = map[string]bool{}
+		}
+		slugsByDomain[domain][row.Slug] = true
+	}
 	var shared []string
 	for domain, slugSet := range slugsByDomain {
 		if len(slugSet) < 2 {

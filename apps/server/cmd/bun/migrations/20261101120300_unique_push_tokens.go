@@ -23,7 +23,8 @@ import (
 //
 // Two monitors with one token can't be fixed here: the upgrade doesn't know which should keep
 // it, and a new token breaks the push URL of the monitor that gets it. So it stops, before it
-// changes anything, and names the monitors. Their tokens stay out of the error: a token is a
+// changes anything (the migration check_unique_push_tokens_and_domains checks this first, before
+// any other change of the upgrade, and this one checks again), and names the monitors. Their tokens stay out of the error: a token is a
 // secret, and the error ends up in logs.
 //
 // It is done in Go because the config is JSON and SQLite and PostgreSQL don't read it the same
@@ -70,20 +71,33 @@ func (m *pushTokenMonitor) sameAs(token string) bool {
 	return m.PushToken != nil && *m.PushToken == token
 }
 
+// loadPushTokenMonitors reads every monitor, in the order of their ids
+func loadPushTokenMonitors(ctx context.Context, q bun.IDB) ([]pushTokenMonitor, error) {
+	var monitors []pushTokenMonitor
+	if err := q.NewSelect().Model(&monitors).Order("id").Scan(ctx); err != nil {
+		return nil, err
+	}
+	return monitors, nil
+}
+
+// checkPushTokensAreUnique reads the monitors and returns an error that names the ones that share
+// a token, or nil. It changes nothing. The check migration runs it before any other change of
+// this upgrade, and the migration that makes the tokens unique runs it again.
+func checkPushTokensAreUnique(ctx context.Context, q bun.IDB) error {
+	monitors, err := loadPushTokenMonitors(ctx, q)
+	if err != nil {
+		return err
+	}
+	return sharedPushTokens(monitors)
+}
+
 func makePushTokensUnique(ctx context.Context, db *bun.DB) error {
 	return db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		var monitors []pushTokenMonitor
-		if err := tx.NewSelect().Model(&monitors).Order("id").Scan(ctx); err != nil {
+		monitors, err := loadPushTokenMonitors(ctx, tx)
+		if err != nil {
 			return err
 		}
-
-		byToken := map[string][]pushTokenMonitor{}
-		for i := range monitors {
-			if token := monitors[i].effectiveToken(); token != "" {
-				byToken[token] = append(byToken[token], monitors[i])
-			}
-		}
-		if err := sharedPushTokens(byToken); err != nil {
+		if err := sharedPushTokens(monitors); err != nil {
 			return err
 		}
 
@@ -102,14 +116,20 @@ func makePushTokensUnique(ctx context.Context, db *bun.DB) error {
 			}
 		}
 
-		_, err := tx.ExecContext(ctx, "CREATE UNIQUE INDEX IF NOT EXISTS idx_monitors_push_token ON monitors(push_token)")
+		_, err = tx.ExecContext(ctx, "CREATE UNIQUE INDEX IF NOT EXISTS idx_monitors_push_token ON monitors(push_token)")
 		return err
 	})
 }
 
 // sharedPushTokens is an error that names the monitors that share a token, one group for each
 // token, or nil when no token is shared
-func sharedPushTokens(byToken map[string][]pushTokenMonitor) error {
+func sharedPushTokens(monitors []pushTokenMonitor) error {
+	byToken := map[string][]pushTokenMonitor{}
+	for i := range monitors {
+		if token := monitors[i].effectiveToken(); token != "" {
+			byToken[token] = append(byToken[token], monitors[i])
+		}
+	}
 	var groups []string
 	for _, group := range byToken {
 		if len(group) < 2 {
