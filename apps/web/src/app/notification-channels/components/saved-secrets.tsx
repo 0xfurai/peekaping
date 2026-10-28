@@ -8,7 +8,7 @@ import {
   REENTER_ERROR_TYPE,
   SECRET_PLACEHOLDER,
   configFieldKeys,
-  secretsToReenter,
+  askedToReenter,
 } from "../secrets";
 
 type SavedSecretsContextValue = {
@@ -68,13 +68,14 @@ export function SavedSecrets({
   const reconcile = React.useCallback(
     (values: Record<string, unknown>) => {
       if (!saved) return;
-      const asked = secretsToReenter(values, saved).filter((key) => shown.current.has(key));
+      const asked = askedToReenter(values, saved, shown.current);
       setReenter((current) => (sameSet(current, asked) ? current : new Set(asked)));
 
-      // An error that asks for a secret goes once the secret is no longer asked for: it was
-      // typed or removed, or the endpoint is back as saved
+      // An error that asks for a secret or a URL goes once it is no longer asked for: it was
+      // typed or removed, or the endpoint or URL is back as saved
       const type = typeof values.type === "string" ? values.type : "";
-      for (const key of configFieldKeys[type]?.secrets ?? []) {
+      const fields = configFieldKeys[type];
+      for (const key of [...(fields?.secrets ?? []), ...(fields?.urls ?? [])]) {
         if (!asked.includes(key) && getFieldState(key).error?.type === REENTER_ERROR_TYPE) {
           clearErrors(key);
         }

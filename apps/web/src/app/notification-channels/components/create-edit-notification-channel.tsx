@@ -26,9 +26,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import {
-  REENTER_ERROR_MESSAGE,
-  REENTER_ERROR_TYPE,
-  secretsToReenter,
+  askedToReenter,
+  reenterError,
   withoutSavedSecrets,
   withoutUnaskedSecrets,
 } from "../secrets";
@@ -77,14 +76,12 @@ export default function CreateEditNotificationChannel({
     const validate = zodResolver(channelFormSchema);
     return async (values, context, options) => {
       const result = await validate(values, context, options);
-      const reenter = savedValues
-        ? secretsToReenter(values, savedValues).filter((key) => shownSecrets.current.has(key))
-        : [];
+      const reenter = savedValues ? askedToReenter(values, savedValues, shownSecrets.current) : [];
       if (reenter.length === 0) return result;
 
       const errors: Record<string, unknown> = { ...result.errors };
       for (const key of reenter) {
-        errors[key] = { type: REENTER_ERROR_TYPE, message: REENTER_ERROR_MESSAGE };
+        errors[key] = reenterError(values.type, key);
       }
       return { values: {}, errors: errors as FieldErrors<NotificationChannelFormValues> };
     };
@@ -127,14 +124,12 @@ export default function CreateEditNotificationChannel({
     const values = baseForm.getValues();
 
     // The same refusal as saving: a saved secret that can't be kept is not sent
-    const reenter = savedValues
-      ? secretsToReenter(values, savedValues).filter((key) => shownSecrets.current.has(key))
-      : [];
+    const reenter = savedValues ? askedToReenter(values, savedValues, shownSecrets.current) : [];
     if (reenter.length > 0) {
       reenter.forEach((key, index) =>
         baseForm.setError(
           key as Parameters<typeof baseForm.setError>[0],
-          { type: REENTER_ERROR_TYPE, message: REENTER_ERROR_MESSAGE },
+          reenterError(values.type, key),
           { shouldFocus: index === 0 }
         )
       );
