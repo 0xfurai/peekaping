@@ -56,10 +56,14 @@ type Service interface {
 	// it whatever their workspace
 	GetHeartbeatsAnyWorkspace(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error)
 
-	// RemoveProxyReference clears the proxy from the workspace's monitors that use it, and publishes a
-	// monitor-updated event for each monitor it changed, so that the scheduler and the probes load
-	// their config again
-	RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) error
+	// RemoveProxyReference clears the proxy from the workspace's monitors that use it, and returns
+	// the monitors it changed as they are stored now. It runs in the transaction ctx carries, if
+	// any (dbtx), and publishes nothing: the caller calls PublishUpdated once its transaction has
+	// committed, since an event for a change that is rolled back would be a lie.
+	RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error)
+	// PublishUpdated publishes a monitor-updated event for each monitor, so that the scheduler and
+	// the probes load their config again
+	PublishUpdated(ctx context.Context, monitors []*Model)
 	FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error)
 
 	GetStatPoints(ctx context.Context, workspaceID workspace.ID, id, probeID string, since, until time.Time, granularity string) (*StatPointsSummaryDto, error)
@@ -682,10 +686,7 @@ func (mr *MonitorServiceImpl) GetHeartbeatsAnyWorkspace(ctx context.Context, id,
 	return mr.heartbeatService.FindByMonitorIDAndProbeIDPaginated(ctx, id, probeID, limit, page, important, reverse)
 }
 
-func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) error {
-	// The monitors and the change are one step, and the events come after it is committed, with
-	// the monitors as they are stored now: the scheduler loads their config again and the probes
-	// are told
+func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error) {
 	var changed []*Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
 		using, err := mr.monitorRepository.FindByProxyId(ctx, workspaceID, proxyId)
@@ -707,12 +708,15 @@ func (mr *MonitorServiceImpl) RemoveProxyReference(ctx context.Context, workspac
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	for _, m := range changed {
+	return changed, nil
+}
+
+func (mr *MonitorServiceImpl) PublishUpdated(ctx context.Context, monitors []*Model) {
+	for _, m := range monitors {
 		mr.publishMonitor(ctx, events.MonitorUpdated, m)
 	}
-	return nil
 }
 
 func (mr *MonitorServiceImpl) FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error) {

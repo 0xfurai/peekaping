@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
@@ -186,7 +187,8 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID works
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
-	result, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	// the service deletes the proxy in the same transaction as the references to it
+	result, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
 	return requireOneRow(result, err)
 }
 
