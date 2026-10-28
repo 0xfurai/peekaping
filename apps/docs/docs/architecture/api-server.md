@@ -181,6 +181,10 @@ It applies to the api and to `peekaping`.
 - Its public status pages (by slug and by custom domain, with their monitors) and the badges of its monitors answer 503 with `{"error":{"code":"STATUS_PAGE_UNAVAILABLE"}}` and the message "This status page is unavailable", and say nothing of why. A page that is not published is still 404. A new account's workspace answers the same while it waits for its owner's email verification.
 - Resuming lifts only the admin's hold: the monitors run again in the state they had, and a workspace that still waits for its owner's email verification keeps waiting (`suspendedReason` `unverified`).
 
+### Deleting a workspace
+
+An instance admin deletes a workspace with `DELETE /api/v1/admin/workspaces/{id}`, which answers 204 (404 for a workspace that does not exist; anyone else, and any API key, gets 403). It is for good: the workspace's monitors with their heartbeats and stats, notification channels, proxies, tags, maintenance windows, status pages and custom domains, API keys, invites and settings all go with it, by cascade. Its monitors stop at once, its public status pages and badges are gone (404), and its members' open sockets leave its rooms. Its members keep their accounts and their other workspaces; a member who had only this workspace signs in to an empty account (`GET /api/v1/me` answers an empty `workspaces` list). An admin may delete a workspace they are a member of. The delete is logged with who did it.
+
 ### Monitor Types Configuration
 
 `DISABLED_MONITOR_TYPES` turns monitor types off for the whole install. It applies to the api and to `peekaping`. Use it where a type would reach something it should not: the Docker monitor reads the Docker socket of the machine the server runs on, which on a shared install is the host's own containers.
