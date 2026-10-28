@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Ponovno vnesite to skrivnost ali jo odstranite: mesto, kamor se pošilja, se je spremenilo",
       "reenter_hint": "Ponovno vnesite to skrivnost: mesto, kamor se pošilja, se je spremenilo",
+      "reenter_url_error": "Ponovno vnesite poverilnice v tem URL-ju: URL se je od shranjevanja spremenil",
       "remove": "Odstrani",
       "saved_hint": "Shranjeno — vnesite za zamenjavo"
     }

@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Wpisz ten sekret ponownie lub go usuń: zmieniło się miejsce, do którego jest wysyłany",
       "reenter_hint": "Wpisz ten sekret ponownie: zmieniło się miejsce, do którego jest wysyłany",
+      "reenter_url_error": "Wpisz ponownie dane uwierzytelniające w tym adresie URL: adres URL zmienił się od zapisania",
       "remove": "Usuń",
       "saved_hint": "Zapisano — wpisz, aby zastąpić"
     }

@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Indtast denne hemmelighed igen eller fjern den: det sted, den sendes til, er ændret",
       "reenter_hint": "Indtast denne hemmelighed igen: det sted, den sendes til, er ændret",
+      "reenter_url_error": "Indtast legitimationsoplysningerne i denne URL igen: URL'en er ændret, siden den blev gemt",
       "remove": "Fjern",
       "saved_hint": "Gemt — skriv for at erstatte"
     }

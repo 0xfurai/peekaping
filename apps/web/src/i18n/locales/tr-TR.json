@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Bu gizli anahtarı yeniden girin veya kaldırın: gönderildiği yer değişti",
       "reenter_hint": "Bu gizli anahtarı yeniden girin: gönderildiği yer değişti",
+      "reenter_url_error": "Bu URL'nin kimlik bilgilerini yeniden girin: URL kaydedildiğinden beri değişti",
       "remove": "Kaldır",
       "saved_hint": "Kaydedildi — değiştirmek için yazın"
     }

@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Ponovo unesite ovaj tajni ključ ili ga uklonite: promenjeno je mesto na koje se šalje",
       "reenter_hint": "Ponovo unesite ovaj tajni ključ: promenjeno je mesto na koje se šalje",
+      "reenter_url_error": "Ponovo unesite akreditive u ovom URL-u: URL se promenio od čuvanja",
       "remove": "Ukloni",
       "saved_hint": "Sačuvano — unesite za zamenu"
     }

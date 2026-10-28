@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Zadejte tento tajný údaj znovu, nebo ho odeberte: změnilo se místo, kam se odesílá",
       "reenter_hint": "Zadejte tento tajný údaj znovu: změnilo se místo, kam se odesílá",
+      "reenter_url_error": "Zadejte přihlašovací údaje v této adrese URL znovu: adresa URL se od uložení změnila",
       "remove": "Odebrat",
       "saved_hint": "Uloženo — pro nahrazení začněte psát"
     }

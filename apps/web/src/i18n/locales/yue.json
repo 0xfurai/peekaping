@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "請重新輸入呢個密鑰，或者移除佢：發送目的地已經變咗",
       "reenter_hint": "請重新輸入呢個密鑰：發送目的地已經變咗",
+      "reenter_url_error": "請重新輸入呢個 URL 嘅憑證：URL 自儲存之後已經變咗",
       "remove": "移除",
       "saved_hint": "已儲存 — 輸入就可以取代"
     }

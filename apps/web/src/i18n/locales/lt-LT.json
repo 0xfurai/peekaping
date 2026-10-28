@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Įveskite šią paslaptį iš naujo arba pašalinkite ją: pasikeitė vieta, į kurią siunčiama",
       "reenter_hint": "Įveskite šią paslaptį iš naujo: pasikeitė vieta, į kurią siunčiama",
+      "reenter_url_error": "Įveskite šio URL prisijungimo duomenis iš naujo: URL pasikeitė po išsaugojimo",
       "remove": "Pašalinti",
       "saved_hint": "Išsaugota — įveskite, kad pakeistumėte"
     }

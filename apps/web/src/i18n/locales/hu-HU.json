@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Adja meg újra ezt a titkot, vagy távolítsa el: megváltozott a küldés célja",
       "reenter_hint": "Adja meg újra ezt a titkot: megváltozott a küldés célja",
+      "reenter_url_error": "Adja meg újra az URL hitelesítő adatait: az URL megváltozott a mentés óta",
       "remove": "Eltávolítás",
       "saved_hint": "Mentve — írjon be újat a cseréhez"
     }

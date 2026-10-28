@@ -1151,6 +1151,7 @@
     "secret": {
       "reenter_error": "Bu sirni qayta kiriting yoki olib tashlang: yuboriladigan manzil o‘zgargan",
       "reenter_hint": "Bu sirni qayta kiriting: yuboriladigan manzil o‘zgargan",
+      "reenter_url_error": "Ushbu URL’dagi kirish maʼlumotlarini qayta kiriting: URL saqlanganidan keyin o‘zgargan",
       "remove": "Olib tashlash",
       "saved_hint": "Saqlangan — almashtirish uchun yozing"
     }

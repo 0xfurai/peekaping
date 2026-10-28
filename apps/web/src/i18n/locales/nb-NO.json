@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Skriv inn denne hemmeligheten på nytt eller fjern den: stedet den sendes til, er endret",
       "reenter_hint": "Skriv inn denne hemmeligheten på nytt: stedet den sendes til, er endret",
+      "reenter_url_error": "Skriv inn legitimasjonen i denne URL-en på nytt: URL-en er endret siden den ble lagret",
       "remove": "Fjern",
       "saved_hint": "Lagret — skriv for å erstatte"
     }

@@ -65,6 +65,18 @@ describe("notification channel type registry", () => {
     }
   });
 
+  it("accepts the placeholder in a URL field whose credentials the API masks", () => {
+    for (const definition of channelTypes) {
+      for (const key of configFieldKeys[definition.type]?.urls ?? []) {
+        // ntfy's server URL has no URL check to fail
+        const values = { name: "Channel", ...definition.defaultValues, [key]: SECRET_PLACEHOLDER };
+        const result = channelFormSchema.safeParse(values);
+        const issues = result.success ? [] : result.error.issues.filter((issue) => issue.path[0] === key);
+        expect(issues, `${definition.type}.${key}: ${JSON.stringify(issues)}`).toEqual([]);
+      }
+    }
+  });
+
   describe.each(channelTypes.map((definition) => [definition.type, definition] as const))(
     "%s",
     (type, definition) => {

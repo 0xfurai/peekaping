@@ -1152,6 +1152,7 @@
     "secret": {
       "reenter_error": "Ange den här hemligheten igen eller ta bort den: platsen den skickas till har ändrats",
       "reenter_hint": "Ange den här hemligheten igen: platsen den skickas till har ändrats",
+      "reenter_url_error": "Ange inloggningsuppgifterna i den här webbadressen igen: webbadressen har ändrats sedan den sparades",
       "remove": "Ta bort",
       "saved_hint": "Sparad — skriv för att ersätta"
     }
