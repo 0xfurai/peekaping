@@ -5908,7 +5908,7 @@
     },
     "/api/v1/auth/reset-password": {
       "post": {
-        "description": "Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400.",
+        "description": "Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.",
         "operationId": "postAuthResetPassword",
         "requestBody": {
           "content": {
@@ -5951,6 +5951,16 @@
             },
             "description": "Request Entity Too Large"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
           "500": {
             "content": {
               "application/json": {
@@ -5970,7 +5980,7 @@
     },
     "/api/v1/auth/verify-email": {
       "post": {
-        "description": "Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400.",
+        "description": "Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.",
         "operationId": "postAuthVerifyEmail",
         "requestBody": {
           "content": {
@@ -6012,6 +6022,16 @@
               }
             },
             "description": "Request Entity Too Large"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           },
           "500": {
             "content": {

@@ -2024,6 +2024,10 @@ export type PostAuthResetPasswordErrors = {
    */
   413: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -2058,6 +2062,10 @@ export type PostAuthVerifyEmailErrors = {
    * Request Entity Too Large
    */
   413: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */

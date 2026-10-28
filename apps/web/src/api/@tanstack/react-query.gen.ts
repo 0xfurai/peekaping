@@ -985,7 +985,7 @@ export const postAuthResetPasswordQueryKey = (
 
 /**
  * Reset the password with a reset link's token
- * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400.
+ * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
  */
 export const postAuthResetPasswordOptions = (
   options: Options<PostAuthResetPasswordData>
@@ -1006,7 +1006,7 @@ export const postAuthResetPasswordOptions = (
 
 /**
  * Reset the password with a reset link's token
- * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400.
+ * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
  */
 export const postAuthResetPasswordMutation = (
   options?: Partial<Options<PostAuthResetPasswordData>>
@@ -1038,7 +1038,7 @@ export const postAuthVerifyEmailQueryKey = (
 
 /**
  * Verify an email address with a verification link's token
- * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400.
+ * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
  */
 export const postAuthVerifyEmailOptions = (
   options: Options<PostAuthVerifyEmailData>
@@ -1059,7 +1059,7 @@ export const postAuthVerifyEmailOptions = (
 
 /**
  * Verify an email address with a verification link's token
- * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400.
+ * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
  */
 export const postAuthVerifyEmailMutation = (
   options?: Partial<Options<PostAuthVerifyEmailData>>

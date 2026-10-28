@@ -699,7 +699,7 @@ export const postAuthRegister = <ThrowOnError extends boolean = false>(
 
 /**
  * Reset the password with a reset link's token
- * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400.
+ * Sets the new password (the signup rules apply), marks the token used and ends every session of the user: refresh tokens and access tokens issued before are refused. The user's other unused reset links stop working. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
  */
 export const postAuthResetPassword = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthResetPasswordData, ThrowOnError>
@@ -721,7 +721,7 @@ export const postAuthResetPassword = <ThrowOnError extends boolean = false>(
 
 /**
  * Verify an email address with a verification link's token
- * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400.
+ * Records that the account's address was verified and marks the token used. A token that is unknown, used or expired answers 400. At most 20 requests per hour from one client address; more answer 429.
  */
 export const postAuthVerifyEmail = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthVerifyEmailData, ThrowOnError>
