@@ -3,12 +3,16 @@ package mailer_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
 	"mime/quotedprintable"
+	"net"
 	"net/mail"
+	"net/textproto"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -19,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func newMailer(t *testing.T, server *smtptest.Server) *mailer.Mailer {
@@ -124,6 +129,34 @@ func TestMailer_DeliverSurvivesAServerThatRefusesTheMessage(t *testing.T) {
 
 	assert.NotPanics(t, func() { m.Deliver("alice@example.com", "Hi", "Hello", ""); m.Wait() })
 	assert.Empty(t, server.Messages())
+}
+
+func TestMailer_DeliverLogsNoRecipientWhenTheServerRejectsItAndEchoesTheAddress(t *testing.T) {
+	server := smtptest.Start(t)
+	server.RejectRecipients("550 5.1.1 <alice@example.com>: Recipient address rejected: User unknown")
+	core, logs := observer.New(zap.ErrorLevel)
+	m := mailer.New(&config.Config{
+		AccountSMTPHost: server.Host(), AccountSMTPPort: server.Port(), AccountSMTPFrom: "Peekaping <no-reply@example.com>", AccountSMTPTLS: "none",
+	}, zap.New(core).Sugar())
+
+	m.Deliver("alice@example.com", "Hi", "Hello", "")
+	m.Wait()
+
+	entries := logs.All()
+	require.Len(t, entries, 1)
+	line := fmt.Sprintf("%s %v", entries[0].Message, entries[0].ContextMap())
+	assert.NotContains(t, line, "alice")
+	assert.NotContains(t, line, "example.com")
+	assert.NotContains(t, line, "Recipient address rejected")
+	assert.Contains(t, line, "550", "the reply code is what the log keeps")
+}
+
+func TestDescribe_KeepsTheReplyCodeOrTheTypeAndNeverTheText(t *testing.T) {
+	assert.Equal(t, "the server replied 550", mailer.Describe(fmt.Errorf("wrapped: %w", &textproto.Error{Code: 550, Msg: "<alice@example.com> unknown"})))
+	assert.Equal(t, "send failed: timed out", mailer.Describe(fmt.Errorf("failed to send email: %w", context.DeadlineExceeded)))
+	assert.Equal(t, "send failed: syscall.Errno", mailer.Describe(&net.OpError{Op: "dial", Addr: &net.TCPAddr{}, Err: syscall.ECONNREFUSED}))
+	got := mailer.Describe(errors.New("invalid recipient alice@example.com"))
+	assert.Equal(t, "send failed: *errors.errorString", got)
 }
 
 func TestMessages_NameTheLinkAndItsLifetime(t *testing.T) {
