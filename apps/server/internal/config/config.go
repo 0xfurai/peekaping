@@ -157,6 +157,20 @@ type Config struct {
 	// AccountSMTPTLS is how the connection is secured: starttls (the default, and it fails when
 	// the server doesn't offer it), tls (TLS from the first byte, usually port 465) or none
 	AccountSMTPTLS string `env:"ACCOUNT_SMTP_TLS" validate:"oneof=starttls tls none" default:"starttls"`
+
+	// Who may create an account (PP-155, docs/adr/0005 section 11): "invite" (the default) lets the
+	// first user sign up and everyone after join through an invite, "open" lets anyone sign up and
+	// gives each a workspace of their own. Checked by ValidateSignup, which also requires a sender
+	// for account emails in open mode. Empty counts as invite.
+	SignupMode string `env:"SIGNUP_MODE" default:"invite"`
+	// SignupTurnstileSiteKey and SignupTurnstileSecret turn on Cloudflare Turnstile for open signup:
+	// both or neither. The site key is public (the web app shows the widget with it); the secret
+	// stays on the server, which checks every answer.
+	SignupTurnstileSiteKey string `env:"SIGNUP_TURNSTILE_SITE_KEY"`
+	SignupTurnstileSecret  string `env:"SIGNUP_TURNSTILE_SECRET"`
+	// SignupTurnstileVerifyURL replaces Cloudflare's siteverify address. It has no environment
+	// variable: tests point it at a fake server, and the binaries never set it.
+	SignupTurnstileVerifyURL string
 }
 
 // MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left

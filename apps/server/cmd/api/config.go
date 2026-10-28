@@ -110,6 +110,13 @@ type Config struct {
 	// AccountSMTPTLS is how the connection is secured: starttls (the default, and it fails when
 	// the server doesn't offer it), tls (TLS from the first byte, usually port 465) or none
 	AccountSMTPTLS string `env:"ACCOUNT_SMTP_TLS" validate:"oneof=starttls tls none" default:"starttls"`
+
+	// Who may create an account: invite (the default) or open. Open signup needs a sender for
+	// account emails; Turnstile (both keys or neither) guards open signups against bots. Validated
+	// in Validate() by config.ValidateSignup.
+	SignupMode             string `env:"SIGNUP_MODE" default:"invite"`
+	SignupTurnstileSiteKey string `env:"SIGNUP_TURNSTILE_SITE_KEY"`
+	SignupTurnstileSecret  string `env:"SIGNUP_TURNSTILE_SECRET"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -209,6 +216,11 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	// A mistyped mode, open signup without a sender and half a Turnstile setting stop startup
+	if err := config.ValidateSignup(cfg.SignupMode, cfg.SignupTurnstileSiteKey, cfg.SignupTurnstileSecret, cfg.AccountSMTPHost); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -256,6 +268,9 @@ func (c *Config) ToInternalConfig() *config.Config {
 		AccountSMTPPassword:          c.AccountSMTPPassword,
 		AccountSMTPFrom:              c.AccountSMTPFrom,
 		AccountSMTPTLS:               c.AccountSMTPTLS,
+		SignupMode:                   c.SignupMode,
+		SignupTurnstileSiteKey:       c.SignupTurnstileSiteKey,
+		SignupTurnstileSecret:        c.SignupTurnstileSecret,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

@@ -235,3 +235,56 @@ func TestAccountSMTPHostWithoutFromStopsStartup(t *testing.T) {
 
 	assert.ErrorContains(t, err, "ACCOUNT_SMTP_FROM is required when ACCOUNT_SMTP_HOST is set")
 }
+
+func TestSignupModeDefaultsToInviteAndOpenIsLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, "invite", cfg.ToInternalConfig().SignupMode)
+	assert.False(t, cfg.ToInternalConfig().SignupOpen())
+
+	t.Setenv("SIGNUP_MODE", "open")
+	t.Setenv("ACCOUNT_SMTP_HOST", "smtp.example.com")
+	t.Setenv("ACCOUNT_SMTP_FROM", "no-reply@example.com")
+	t.Setenv("SIGNUP_TURNSTILE_SITE_KEY", "site")
+	t.Setenv("SIGNUP_TURNSTILE_SECRET", "secret")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	internal := cfg.ToInternalConfig()
+	assert.True(t, internal.SignupOpen())
+	assert.True(t, internal.SignupTurnstileEnabled())
+	assert.Equal(t, "site", internal.SignupTurnstileSiteKey)
+	assert.Equal(t, "secret", internal.SignupTurnstileSecret)
+}
+
+func TestSignupModeThatIsNotInviteOrOpenStopsStartup(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("SIGNUP_MODE", "closed")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, `SIGNUP_MODE must be invite or open, got "closed"`)
+}
+
+func TestOpenSignupWithoutASenderStopsStartup(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("SIGNUP_MODE", "open")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, "SIGNUP_MODE=open needs a sender for account emails")
+}
+
+func TestOneTurnstileKeyWithoutTheOtherStopsStartup(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("SIGNUP_TURNSTILE_SITE_KEY", "site")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, "SIGNUP_TURNSTILE_SITE_KEY and SIGNUP_TURNSTILE_SECRET must be set together")
+}
