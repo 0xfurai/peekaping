@@ -293,7 +293,7 @@ Set a component's `image.tag` only to run another build of that component, such 
 ```yaml
 api:
   image:
-    tag: "0.0.49-rc.1"
+    tag: "0.1.1-rc.1"
 ```
 
 A component's `image.tag` changes that component's container only. `web.image.tag` also sets `seed-web-root`, the init container of the web pods. `migrate.image.tag` sets the migrate Job and the `wait-for-migrations` init containers of the API pods, because they run the migrate image. Everything else stays on the chart's `appVersion`.
@@ -350,7 +350,7 @@ Each component has a `replicaCount`, which is 3 by default, and `resources` with
 
    ```bash
    helm upgrade peekaping oci://ghcr.io/0xfurai/charts/peekaping \
-     --version 0.0.49 \
+     --version 0.1.0 \
      --namespace peekaping \
      --values peekaping-values.yaml
    ```
