@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- feat: the first step to workspaces ([ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md)). An install that upgrades gets one workspace, "Default", and its users become its owners and instance admins. On a new install the first user to sign up gets it. Nothing changes in the app yet. `bun db import-mongo` gives the database it fills the same workspace
+
 ### Changed
 
 - chore: the Helm chart's bundled PostgreSQL and Redis (off by default) move to the Bitnami subcharts `postgresql` 18.12.16 and `redis` 28.3.10, with the latest PostgreSQL 18.6.0 and Redis 8.10.3 images
