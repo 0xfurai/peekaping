@@ -1,10 +1,15 @@
 package shared
 
 import (
+	"errors"
 	"time"
 
 	"peekaping/internal/modules/workspace/workspaceid"
 )
+
+// ErrWorkspaceSuspended is what recording a result for a monitor of a suspended workspace returns:
+// nothing is stored for it and nothing is judged (PP-155)
+var ErrWorkspaceSuspended = errors.New("monitor's workspace is suspended")
 
 // LocationRule is how many of a monitor's locations must be Down for the monitor to be Down
 type LocationRule string

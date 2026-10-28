@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"testing"
+	"time"
 
 	"peekaping/internal/modules/shared"
 
@@ -116,5 +117,31 @@ func TestSQLRepository_AMonitorReadByIDSaysWhetherItsWorkspaceIsSuspended(t *tes
 		// writing the monitor back never stores the flag
 		held.WorkspaceSuspended = false
 		require.NoError(t, repo.UpdateFull(ctx, otherWorkspace, held.ID, held))
+	})
+}
+
+// A result in flight when the workspace is suspended must not change the monitor: nothing is
+// recorded on its rows, the judge is not asked, and the caller is told why
+func TestSQLRepository_ALocationOfAMonitorOfASuspendedWorkspaceIsNotRecorded(t *testing.T) {
+	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
+		repo := NewSQLRepository(db)
+		ctx := context.Background()
+		held, err := repo.Create(ctx, otherWorkspace, monitorOn("Held", true, "local"))
+		require.NoError(t, err)
+		suspend(t, db, string(otherWorkspace), "unverified")
+
+		judged := false
+		err = repo.RecordLocationAnyWorkspace(ctx, held.ID, stateOf("local", up, 12, time.Now()), func(shared.LocationJudgement) *shared.MonitorStatus {
+			judged = true
+			return statusPtr(up)
+		})
+
+		assert.ErrorIs(t, err, shared.ErrWorkspaceSuspended)
+		assert.False(t, judged)
+		assert.Nil(t, recordedStatus(t, db, held.ID))
+		after, err := repo.FindByIDAnyWorkspace(ctx, held.ID)
+		require.NoError(t, err)
+		require.Len(t, after.Locations, 1)
+		assert.Nil(t, after.Locations[0].Status, "the probe's row is untouched")
 	})
 }

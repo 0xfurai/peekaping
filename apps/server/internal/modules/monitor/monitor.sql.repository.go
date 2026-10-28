@@ -385,7 +385,9 @@ func (r *SQLRepositoryImpl) locationsOf(ctx context.Context, db bun.IDB, ids []s
 // results recorded at once see one another in turn: each one's recorded status is what the other
 // recorded. PostgreSQL holds the monitor's row with SELECT ... FOR UPDATE. SQLite has no row locks:
 // its transaction begins with BEGIN IMMEDIATE (see sqlitedb.DSN) and so holds the one writer for the
-// whole database. A probe the monitor doesn't run on has no row to write, and none is made.
+// whole database. A probe the monitor doesn't run on has no row to write, and none is made. The
+// monitor of a suspended workspace has nothing recorded and nothing judged: it returns
+// shared.ErrWorkspaceSuspended.
 func (r *SQLRepositoryImpl) RecordLocationAnyWorkspace(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
 	return dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
 		db := dbtx.DB(ctx, r.db)
@@ -398,9 +400,15 @@ func (r *SQLRepositoryImpl) RecordLocationAnyWorkspace(ctx context.Context, moni
 			}
 		}
 		var recorded sql.NullInt64
+		var suspended bool
 		// A monitor that is gone has no row: nothing is recorded for it
-		if err := db.NewSelect().Model((*sqlModel)(nil)).Column("locations_status").Where("id = ?", monitorID).Scan(ctx, &recorded); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		if err := db.NewSelect().Model((*sqlModel)(nil)).Column("locations_status").ColumnExpr(workspaceSuspended+" AS workspace_suspended").
+			Where("m.id = ?", monitorID).Scan(ctx, &recorded, &suspended); err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err
+		}
+		// A result that was in flight when the workspace was suspended is dropped (PP-155)
+		if suspended {
+			return shared.ErrWorkspaceSuspended
 		}
 		judgement := shared.LocationJudgement{}
 		if recorded.Valid {
