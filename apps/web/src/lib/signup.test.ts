@@ -7,6 +7,7 @@ import {
   registerDescriptionKey,
   registerFailureKey,
   registerPageView,
+  showInstallPreferences,
 } from "./signup";
 
 const config = (signupMode: "invite" | "open", signupOpen: boolean) => ({
@@ -121,5 +122,16 @@ describe("registerDescriptionKey", () => {
   it("calls it the admin account in invite mode, and while the mode is unknown", () => {
     expect(registerDescriptionKey("invite")).toBe("auth.register.description");
     expect(registerDescriptionKey(undefined)).toBe("auth.register.description");
+  });
+});
+
+describe("showInstallPreferences", () => {
+  it("shows them on an invite install, whose form is only offered to its first user", () => {
+    expect(showInstallPreferences("invite")).toBe(true);
+  });
+
+  it("hides them in open mode and while the mode is unknown", () => {
+    expect(showInstallPreferences("open")).toBe(false);
+    expect(showInstallPreferences(undefined)).toBe(false);
   });
 });

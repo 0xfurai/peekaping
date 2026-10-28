@@ -42,7 +42,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
 import { TurnstileWidget } from "@/components/turnstile-widget";
-import { canSubmitRegister, registerBody, registerDescriptionKey, registerFailureKey } from "@/lib/signup";
+import {
+  canSubmitRegister,
+  registerBody,
+  registerDescriptionKey,
+  registerFailureKey,
+  showInstallPreferences,
+} from "@/lib/signup";
 
 const createRegisterSchema = (t: (key: string) => string) => z
   .object({
@@ -93,6 +99,8 @@ export function RegisterForm({
   signupMode?: "invite" | "open";
 }) {
   const { t } = useLocalizedTranslation();
+  // The install's first signup becomes its admin and chooses for the install; anyone else may not
+  const installPreferences = showInstallPreferences(signupMode);
   const [serverError, setServerError] = React.useState<string | null>(null);
   // A signup the visitor can fix by signing in gets a link beside its message
   const [emailTaken, setEmailTaken] = React.useState(false);
@@ -144,10 +152,12 @@ export function RegisterForm({
       if (response.data?.accessToken && response.data?.refreshToken) {
         setTokens(response.data.accessToken, response.data.refreshToken);
         setUser(response.data.user ?? null);
-        // Storing the tokens signs the API client in, so these requests are the admin's. Both
-        // send the choice, on or off: an unticked box is an opt-out to store, not nothing.
-        telemetryMutation.mutate({ body: { enabled: sendUsageStatistics } });
-        errorReportingMutation.mutate({ body: { enabled: sendErrorReports } });
+        if (installPreferences) {
+          // Storing the tokens signs the API client in, so these requests are the admin's. Both
+          // send the choice, on or off: an unticked box is an opt-out to store, not nothing.
+          telemetryMutation.mutate({ body: { enabled: sendUsageStatistics } });
+          errorReportingMutation.mutate({ body: { enabled: sendErrorReports } });
+        }
         toast.success(t("messages.register_success"));
       } else {
         toast.error(t("messages.register_no_tokens"));
@@ -257,44 +267,46 @@ export function RegisterForm({
                 )}
               />
 
-              <div className="grid gap-2">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="send-usage-statistics"
-                    checked={sendUsageStatistics}
-                    onCheckedChange={(checked) =>
-                      setSendUsageStatistics(checked === true)
-                    }
-                  />
-                  <Label
-                    htmlFor="send-usage-statistics"
-                    className="text-xs text-muted-foreground font-normal"
-                  >
-                    {t("telemetry.label")}
-                  </Label>
+              {installPreferences && (
+                <div className="grid gap-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="send-usage-statistics"
+                      checked={sendUsageStatistics}
+                      onCheckedChange={(checked) =>
+                        setSendUsageStatistics(checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor="send-usage-statistics"
+                      className="text-xs text-muted-foreground font-normal"
+                    >
+                      {t("telemetry.label")}
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="send-error-reports"
+                      checked={sendErrorReports}
+                      onCheckedChange={(checked) =>
+                        setSendErrorReports(checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor="send-error-reports"
+                      className="text-xs text-muted-foreground font-normal"
+                    >
+                      {t("error_reporting.label")}
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("auth.register.telemetry_note")}{" "}
+                    <TelemetryDocsLink>
+                      {t("auth.register.telemetry_whats_sent")}
+                    </TelemetryDocsLink>
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="send-error-reports"
-                    checked={sendErrorReports}
-                    onCheckedChange={(checked) =>
-                      setSendErrorReports(checked === true)
-                    }
-                  />
-                  <Label
-                    htmlFor="send-error-reports"
-                    className="text-xs text-muted-foreground font-normal"
-                  >
-                    {t("error_reporting.label")}
-                  </Label>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("auth.register.telemetry_note")}{" "}
-                  <TelemetryDocsLink>
-                    {t("auth.register.telemetry_whats_sent")}
-                  </TelemetryDocsLink>
-                </p>
-              </div>
+              )}
 
               {turnstileSiteKey && (
                 <TurnstileWidget
