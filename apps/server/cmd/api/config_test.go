@@ -198,3 +198,40 @@ func TestValidate_RefusesMongoStorage(t *testing.T) {
 		})
 	}
 }
+
+func TestAccountSMTPIsOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.False(t, cfg.ToInternalConfig().AccountEmailsEnabled())
+	assert.Equal(t, 587, cfg.ToInternalConfig().AccountSMTPPort)
+
+	t.Setenv("ACCOUNT_SMTP_HOST", "smtp.example.com")
+	t.Setenv("ACCOUNT_SMTP_PORT", "465")
+	t.Setenv("ACCOUNT_SMTP_USER", "mailer")
+	t.Setenv("ACCOUNT_SMTP_PASSWORD", "secret")
+	t.Setenv("ACCOUNT_SMTP_FROM", "no-reply@example.com")
+	t.Setenv("ACCOUNT_SMTP_TLS", "tls")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	internal := cfg.ToInternalConfig()
+	assert.True(t, internal.AccountEmailsEnabled())
+	assert.Equal(t, "smtp.example.com", internal.AccountSMTPHost)
+	assert.Equal(t, 465, internal.AccountSMTPPort)
+	assert.Equal(t, "mailer", internal.AccountSMTPUser)
+	assert.Equal(t, "secret", internal.AccountSMTPPassword)
+	assert.Equal(t, "no-reply@example.com", internal.AccountSMTPFrom)
+	assert.Equal(t, "tls", internal.AccountSMTPTLS)
+}
+
+func TestAccountSMTPHostWithoutFromStopsStartup(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("ACCOUNT_SMTP_HOST", "smtp.example.com")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, "ACCOUNT_SMTP_FROM is required when ACCOUNT_SMTP_HOST is set")
+}

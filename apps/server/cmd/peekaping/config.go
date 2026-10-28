@@ -109,6 +109,16 @@ type Config struct {
 	// Where the web app reaches the API, written to the /env.js peekaping generates. Empty means
 	// the origin the web app is served from.
 	APIURL string `env:"API_URL"`
+
+	// Account emails: password reset, email verification and invites are sent by one sender for
+	// the whole install. With ACCOUNT_SMTP_HOST unset (the default) they are off. Validated in
+	// Validate(): ACCOUNT_SMTP_FROM is required when the host is set.
+	AccountSMTPHost     string `env:"ACCOUNT_SMTP_HOST"`
+	AccountSMTPPort     int    `env:"ACCOUNT_SMTP_PORT" validate:"min=1,max=65535" default:"587"`
+	AccountSMTPUser     string `env:"ACCOUNT_SMTP_USER"`
+	AccountSMTPPassword string `env:"ACCOUNT_SMTP_PASSWORD"`
+	AccountSMTPFrom     string `env:"ACCOUNT_SMTP_FROM"`
+	AccountSMTPTLS      string `env:"ACCOUNT_SMTP_TLS" validate:"oneof=starttls tls none" default:"starttls"`
 }
 
 // LoadAndValidate loads and validates peekaping's configuration
@@ -197,6 +207,11 @@ func Validate(cfg *Config) error {
 		return fmt.Errorf("PROBE_OFFLINE_AFTER must be at most %s", config.MaxProbeOfflineAfter)
 	}
 
+	// A sender host without a sender address stops startup, not the first password reset
+	if err := config.ValidateAccountSMTP(cfg.AccountSMTPHost, cfg.AccountSMTPFrom, cfg.AccountSMTPTLS); err != nil {
+		return err
+	}
+
 	// A WEB_DIR without a web build fails at startup, not on every page load
 	if cfg.WebDir != "" {
 		if err := web.CheckDir(cfg.WebDir); err != nil {
@@ -257,6 +272,12 @@ func (c *Config) ToInternalConfig() *config.Config {
 		ErrorReporting:               c.ErrorReporting,
 		ErrorReportingDSN:            c.ErrorReportingDSN,
 		ProbeOfflineAfter:            c.ProbeOfflineAfter,
+		AccountSMTPHost:              c.AccountSMTPHost,
+		AccountSMTPPort:              c.AccountSMTPPort,
+		AccountSMTPUser:              c.AccountSMTPUser,
+		AccountSMTPPassword:          c.AccountSMTPPassword,
+		AccountSMTPFrom:              c.AccountSMTPFrom,
+		AccountSMTPTLS:               c.AccountSMTPTLS,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,
