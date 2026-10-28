@@ -153,6 +153,20 @@ Each link is a single-use token with a lifetime: a password reset link expires a
 
 An install that upgrades counts its existing users as verified.
 
+### Signup Configuration
+
+`SIGNUP_MODE` says who may create an account. They apply to the api and to `peekaping`.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `SIGNUP_MODE` | string | No | `invite` | `invite`: the first user signs up and gets the first workspace, as its owner and an instance admin, and everyone after joins a workspace through an invite. `open`: anyone may sign up and gets a workspace of their own, as its owner; only the install's very first user is an instance admin. Someone who signs up through an invite joins the inviting workspace instead, in both modes. Any other value stops startup. `open` needs [account emails](#account-emails-configuration), because each new account must verify its email address: without `ACCOUNT_SMTP_HOST` startup stops and says so |
+| `SIGNUP_TURNSTILE_SITE_KEY` | string | With the secret | empty | The public key of a [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) widget. `GET /api/v1/auth/config` returns it as `turnstileSiteKey` in `open` mode, for the web app to show the widget |
+| `SIGNUP_TURNSTILE_SECRET` | string | With the site key | empty | The widget's secret. With both set, `POST /api/v1/auth/register` in `open` mode needs a `turnstileToken` that the server checks with Cloudflare (5-second timeout). A missing or refused token, and a Cloudflare that cannot be reached, answer 400 and create no account. Set both or neither: one alone stops startup. The secret is masked in the startup log |
+
+In `open` mode, the workspace of a new account is suspended until its owner has verified their email address by following the link, or by resetting the password with the emailed link. A suspended workspace keeps its monitors, and its members can create, edit and read them, but none runs: no checks, no missed-push detection, no notifications, and a probe is dealt none of them. `GET /api/v1/me` marks the workspace `suspended` with `suspendedReason` `unverified`. A push to a suspended workspace's push URL answers 403 and is not stored. Verifying lifts the suspension, and the monitors start running. A workspace of an `invite` install, or of one upgraded to workspaces, is never suspended.
+
+Signups without an invite are limited to 5 an hour per client address (see `TRUSTED_PROXIES`) in `open` mode, counted in the memory of each API replica; more answer 429. A signup through an invite is not limited and needs no Turnstile answer: the invite is the proof that the visitor is wanted. `GET /api/v1/auth/config` also returns `signupMode` and `signupOpen`: true in `open` mode, and in `invite` mode while the install has no user.
+
 ### Metrics Configuration
 
 | Variable | Type | Required | Default | Description |

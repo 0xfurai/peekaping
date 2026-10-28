@@ -146,8 +146,22 @@ components:
       properties:
         accountEmails:
           type: boolean
+        signupMode:
+          enum:
+            - invite
+            - open
+          type: string
+        signupOpen:
+          type: boolean
+        turnstileSiteKey:
+          type:
+            - string
+            - "null"
       required:
         - accountEmails
+        - signupMode
+        - signupOpen
+        - turnstileSiteKey
       type: object
     auth.ForgotPasswordDto:
       additionalProperties: true
@@ -238,10 +252,18 @@ components:
           type: string
         role:
           type: string
+        suspended:
+          type: boolean
+        suspendedReason:
+          type:
+            - string
+            - "null"
       required:
         - id
         - name
         - role
+        - suspended
+        - suspendedReason
       type: object
     auth.Model:
       additionalProperties: false
@@ -288,6 +310,8 @@ components:
           type: string
         password:
           minLength: 1
+          type: string
+        turnstileToken:
           type: string
       required:
         - email
@@ -3862,7 +3886,7 @@ paths:
         - auth
   /api/v1/auth/config:
     get:
-      description: "Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them."
+      description: "Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them. signupMode is SIGNUP_MODE (invite or open), signupOpen is whether to offer a sign-up form (always in open mode, and in invite mode while the install has no user), and turnstileSiteKey is the public key of the Turnstile widget that open signup shows, or null."
       operationId: getAuthConfig
       responses:
         "200":
@@ -4045,7 +4069,7 @@ paths:
         - auth
   /api/v1/auth/register:
     post:
-      description: "Creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite."
+      description: "Who may register depends on SIGNUP_MODE. In invite mode (the default) it creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user (400). In open mode anyone may register: it creates the user and a workspace of their own, \"My workspace\", that they own. Only the install's very first user is an instance admin. The new workspace is suspended until the user verifies their email address (GET /me says so), and the verification email is sent. In open mode a client address may register 5 times an hour (429), an email that has an account is refused (409), and when the install uses Cloudflare Turnstile the body needs turnstileToken, which the server checks: a missing, refused or unchecked answer is 400. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite."
       operationId: postAuthRegister
       requestBody:
         content:
@@ -4090,6 +4114,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Gone
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
         "500":
           content:
             application/json:
@@ -7659,6 +7689,7 @@ paths:
         - proxy
   /api/v1/push/{token}:
     get:
+      description: "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address): the push is not stored and sends no notification."
       operationId: getPushByToken
       parameters:
         - description: Secret push token, authenticating the monitor.
@@ -7699,6 +7730,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
         "404":
           content:
             application/json:

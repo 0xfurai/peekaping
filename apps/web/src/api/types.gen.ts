@@ -55,6 +55,9 @@ export type ApiKeyUpdateApiKeyDto = {
 
 export type AuthAuthConfigResponse = {
   accountEmails: boolean;
+  signupMode: "invite" | "open";
+  signupOpen: boolean;
+  turnstileSiteKey: string | null;
 };
 
 export type AuthForgotPasswordDto = {
@@ -93,6 +96,8 @@ export type AuthMeWorkspace = {
   id: string;
   name: string;
   role: string;
+  suspended: boolean;
+  suspendedReason: string | null;
 };
 
 export type AuthModel = {
@@ -113,6 +118,7 @@ export type AuthRegisterDto = {
   email: string;
   inviteToken?: string;
   password: string;
+  turnstileToken?: string;
   [key: string]: unknown | string | undefined;
 };
 
@@ -1988,6 +1994,10 @@ export type PostAuthRegisterErrors = {
    * Gone
    */
   410: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -5056,6 +5066,10 @@ export type GetPushByTokenErrors = {
    * Bad Request
    */
   400: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
   /**
    * Not Found
    */
