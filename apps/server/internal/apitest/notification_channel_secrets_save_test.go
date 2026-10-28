@@ -486,3 +486,109 @@ func TestNotificationChannelsAPI_AChangedTypeDoesNotKeepTheOldSecrets(t *testing
 		assert.Equal(t, "sendgrid", decode[channelWithConfig](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK).Type)
 	})
 }
+
+// The web form saves the config it got back as it is. A URL the API showed with its credentials
+// masked must keep the stored URL, and the channel's other saved secrets with it.
+func TestNotificationChannelsAPI_SavingTheMaskedURLKeepsTheStoredURL(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for _, u := range urlCredentialCases {
+		t.Run(u.channelType, func(t *testing.T) {
+			stored := u.storedChannel(t)
+			shown := u.shownChannel(t)
+			id := a.createSecretChannel(t, stored)
+			path := "/api/v1/notification-channels/" + id
+
+			decode[any](t, a.put(t, id, u.channelType, shown.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, stored.config(nil), a.storedChannelConfig(t, id), "PUT")
+
+			decode[any](t, a.patch(t, id, "", shown.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, stored.config(nil), a.storedChannelConfig(t, id), "PATCH")
+
+			// The form of the web app: the config it got, saved back as it is
+			got := decode[channelWithConfig](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+			decode[any](t, a.put(t, id, u.channelType, got.Config), http.StatusOK)
+			assert.JSONEq(t, stored.config(nil), a.storedChannelConfig(t, id), "PUT of the config the API showed")
+
+			// Another field changes while the URL is kept
+			renamed := shown.withVisible(map[string]any{"future_field": "x"})
+			decode[any](t, a.put(t, id, u.channelType, renamed.withPlaceholders(nil)), http.StatusOK)
+			assert.JSONEq(t, stored.withVisible(map[string]any{"future_field": "x"}).config(nil), a.storedChannelConfig(t, id), "PUT with another field changed")
+		})
+	}
+}
+
+// A URL that is typed anew is saved as typed. It moves the channel, so its secrets are typed too.
+func TestNotificationChannelsAPI_SavingANewURLReplacesTheStoredURL(t *testing.T) {
+	a := newSecretsApp(t)
+	u := urlCredentialCases[0]
+	id := a.createSecretChannel(t, u.storedChannel(t))
+
+	typed := "http://other:newpw@127.0.0.1:2/hook?token=newtoken"
+	decode[any](t, a.put(t, id, "webhook", u.storedChannel(t).withVisible(map[string]any{"webhook_url": typed}).config(nil)), http.StatusOK)
+	assert.JSONEq(t, u.storedChannel(t).withVisible(map[string]any{"webhook_url": typed}).config(nil), a.storedChannelConfig(t, id))
+}
+
+// A URL that still holds the placeholder but is not exactly the one the API showed is refused, so
+// that a masked password is never sent to a new place or kept under a new URL
+func TestNotificationChannelsAPI_AChangedMaskedURLIsRefused(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for _, u := range urlCredentialCases {
+		t.Run(u.channelType, func(t *testing.T) {
+			stored := u.storedChannel(t)
+			id := a.createSecretChannel(t, stored)
+			before := a.storedChannelConfig(t, id)
+
+			moved := strings.Replace(u.shown, "127.0.0.1:1", "127.0.0.2:1", 1)
+			config := u.shownChannel(t).withVisible(map[string]any{u.key: moved}).withPlaceholders(nil)
+
+			w := a.put(t, id, u.channelType, config)
+			requireRefusedAsPlaceholder(t, w, "PUT")
+			assert.Contains(t, w.Body.String(), u.key, "PUT names the URL")
+			w = a.patch(t, id, "", config)
+			requireRefusedAsPlaceholder(t, w, "PATCH")
+			assert.Contains(t, w.Body.String(), u.key, "PATCH names the URL")
+
+			// Typing over one of the masked parts changes the URL, so the secrets are not kept for it
+			edited := strings.Replace(u.shown, "********", "mine", 1)
+			w = a.put(t, id, u.channelType, u.shownChannel(t).withVisible(map[string]any{u.key: edited}).withPlaceholders(nil))
+			requireRefusedAsPlaceholder(t, w, "PUT with the first placeholder typed over")
+
+			assert.Equal(t, before, a.storedChannelConfig(t, id), "nothing is saved")
+		})
+	}
+}
+
+func TestNotificationChannelsAPI_AMaskedURLOnACreatedChannelIsRefused(t *testing.T) {
+	a := newSecretsApp(t)
+
+	for _, u := range urlCredentialCases {
+		t.Run(u.channelType, func(t *testing.T) {
+			w := a.request(t, http.MethodPost, "/api/v1/notification-channels", u.shownChannel(t).body("Channel"), a.asAdmin)
+			require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+			assert.Contains(t, w.Body.String(), "re-enter the saved secrets (")
+			assert.Contains(t, w.Body.String(), u.key)
+		})
+	}
+}
+
+// A masked URL of one type means nothing under another
+func TestNotificationChannelsAPI_AMaskedURLAfterATypeChangeIsRefused(t *testing.T) {
+	a := newSecretsApp(t)
+	webhook := urlCredentialCases[0]
+	signal := urlCredentialCases[2]
+	id := a.createSecretChannel(t, webhook.storedChannel(t))
+	before := a.storedChannelConfig(t, id)
+
+	// The signal config sends the masked webhook URL back as its own
+	config := signal.shownChannel(t).withVisible(map[string]any{"signal_url": webhook.shown}).withPlaceholders(nil)
+
+	w := a.put(t, id, "signal", config)
+	require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	assert.Contains(t, w.Body.String(), "re-enter the saved secrets (signal_url)")
+	w = a.patch(t, id, "signal", config)
+	require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	assert.Contains(t, w.Body.String(), "re-enter the saved secrets (signal_url)")
+	assert.Equal(t, before, a.storedChannelConfig(t, id), "nothing is saved")
+}

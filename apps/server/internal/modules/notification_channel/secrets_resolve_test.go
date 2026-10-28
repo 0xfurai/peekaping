@@ -470,6 +470,10 @@ func TestMaskSecrets(t *testing.T) {
 	assert.Equal(t, `Post "********": dial tcp`, maskSecrets(`Post "http://user:***@127.0.0.1:1/api/webhooks/1/TOKENPATH": dial tcp`, []string{hookWithUser}), "as net/http prints it")
 	assert.Equal(t, `Post "********": dial tcp`, maskSecrets(`Post "http://user:xxxxx@127.0.0.1:1/api/webhooks/1/TOKENPATH": dial tcp`, []string{hookWithUser}), "as URL.Redacted writes it")
 	assert.Equal(t, "status 404 for ********", maskSecrets("status 404 for /api/webhooks/1/TOKENPATH", []string{hookWithUser}), "as its path and query")
+	// A saved URL with a password and a query value, as net/http prints it: the password is ***, the query stays
+	const hookWithQuery = "http://user:hunter2@127.0.0.1:1/hook?token=hunter2&channel=ops"
+	assert.Equal(t, `Post "********": dial tcp`, maskSecrets(`Post "http://user:***@127.0.0.1:1/hook?token=hunter2&channel=ops": dial tcp`, []string{hookWithQuery}), "a URL with a password and a query")
+	assert.Equal(t, "refused: ?********", maskSecrets("refused: ?token=hunter2&channel=ops", []string{hookWithQuery}), "its query alone")
 	assert.Equal(t, "got ?********", maskSecrets("got ?key=K&token=T", []string{"http://127.0.0.1:1/?key=K&token=T"}), "as its query")
 	assert.Equal(t, "see /, not ********", maskSecrets("see /, not /x", []string{"http://127.0.0.1:1/x"}), "a URL with no path to speak of doesn't mask every slash")
 	assert.Equal(t, "see /, host 127.0.0.1", maskSecrets("see /, host 127.0.0.1", []string{"http://127.0.0.1"}), "a bare host URL masks nothing but itself")
