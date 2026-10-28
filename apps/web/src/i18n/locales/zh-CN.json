@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "天",
       "description": "设置保留数据的天数（KEEP_DATA_PERIOD_DAYS）。",
+      "read_only": "只有工作区的管理员或所有者可以更改此项。",
       "title": "数据保留期限"
     },
     "error_reporting": {

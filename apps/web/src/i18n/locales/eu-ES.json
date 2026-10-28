@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Egunak",
       "description": "Ezarri zenbat egun data mantendu (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Lan-eremuko administratzaileak edo jabeak soilik alda dezake hau.",
       "title": "Datuen mantentze-epoa"
     },
     "error_reporting": {

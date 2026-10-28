@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Дні",
       "description": "Встановіть, скільки днів зберігати дані (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Змінити це можуть лише адміністратор або власник робочого простору.",
       "title": "Період зберігання даних"
     },
     "error_reporting": {

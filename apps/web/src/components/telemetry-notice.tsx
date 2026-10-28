@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { commonMutationErrorHandler } from "@/lib/utils";
 
 // The one-time notice for an install that upgraded to the version where the usage ping and error
@@ -22,8 +23,11 @@ export function TelemetryNotice() {
   const { t } = useLocalizedTranslation();
   const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
-  const { data: usage } = useQuery(getTelemetryOptions());
-  const pending = usage?.notice_pending === true;
+  // The usage ping and error reports belong to the install, so only an instance admin is told
+  // about them, and nobody else asks the server
+  const { instanceAdmin } = useCurrentAccess();
+  const { data: usage } = useQuery({ ...getTelemetryOptions(), enabled: instanceAdmin });
+  const pending = instanceAdmin && usage?.notice_pending === true;
   // Only an admin who still has the notice to read needs to know what is on
   const { data: errors } = useQuery({
     ...getErrorReportingOptions(),

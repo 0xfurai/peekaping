@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "ימים",
       "description": "הגדר את מספר הימים לשמירת נתונים (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "רק מנהל או בעלים של סביבת העבודה יכולים לשנות זאת.",
       "title": "תקופת שמירת נתונים"
     },
     "error_reporting": {

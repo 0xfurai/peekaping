@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Dnevi",
       "description": "Nastavite, koliko dni naj se shranjujejo podatki (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "To lahko spremeni samo skrbnik ali lastnik delovnega prostora.",
       "title": "Obdobje ohranjanja podatkov"
     },
     "error_reporting": {

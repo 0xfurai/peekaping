@@ -1439,6 +1439,7 @@
     "data_retention": {
       "days_label": "Kunlar",
       "description": "Ma'lumotlarni necha kun saqlashni belgilang (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Buni faqat ish maydonining administratori yoki egasi o'zgartira oladi.",
       "title": "Ma'lumot saqlash muddati"
     },
     "error_reporting": {

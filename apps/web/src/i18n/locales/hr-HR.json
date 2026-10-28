@@ -1440,6 +1440,7 @@
     "data_retention": {
       "days_label": "Dana",
       "description": "Postavite koliko dana podaci ostaju pohranjeni (KEEP_DATA_PERIOD_DAYS).",
+      "read_only": "Ovo može promijeniti samo administrator ili vlasnik radnog prostora.",
       "title": "Rok zadržavanja podataka"
     },
     "error_reporting": {
