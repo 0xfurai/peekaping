@@ -56,7 +56,11 @@ _Avoid_: Agent, worker
 
 **Local probe**:
 The probe that is Peekaping itself. Every install has it, and it can't be deleted. In single mode the `peekaping` process checks its monitors and the local probe takes no probe instances: `peekaping` refuses a `peekaping-probe` that uses its token, and ignores `PROBE_BOOTSTRAP_TOKEN`. In cluster mode on SQLite and PostgreSQL its probe instances do: `peekaping-probe` copies started with its token (`PROBE_BOOTSTRAP_TOKEN` on the api, the same value as `PROBE_TOKEN` on the probe), so it is offline while none is connected, as a remote probe is.
-_Avoid_: Built-in probe, default probe
+_Avoid_: Built-in probe
+
+**Default probe**:
+A probe an instance admin marked as one that new monitors run on. A monitor created without choosing probes runs on the default probes that aren't disabled and run its type, and on the local probe when none does. The local probe is a default probe until an instance admin says otherwise. Monitors that exist keep their probes.
+_Avoid_: Preferred probe, primary probe
 
 **Remote probe**:
 A probe that runs on another machine. It connects out to Peekaping with its token, gets the monitors assigned to it, and sends back their results.
@@ -202,7 +206,7 @@ What a member may do in their workspace. There are three. The member role manage
 _Avoid_: Permission, access level
 
 **Instance admin**:
-A user who manages what belongs to the install rather than to a workspace: probes, the usage ping and error reports. It's a flag on the user, not a role, and gives no access to any workspace's data. The first user to sign up gets it, and an install upgraded to workspaces gives it to its existing users.
+A user who manages what belongs to the install rather than to a workspace: probes, the usage ping and error reports, and the install's users (the admin area). It's a flag on the user, not a role, and gives no access to any workspace's data. The first user to sign up gets it, and an install upgraded to workspaces gives it to its existing users.
 _Avoid_: Superuser, site admin, root
 
 **Plan**:
