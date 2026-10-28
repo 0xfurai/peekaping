@@ -73,7 +73,7 @@ func (s *ServiceImpl) ListUsers(ctx context.Context, q string, page, limit int) 
 	if err != nil {
 		return nil, 0, err
 	}
-	if err := s.repo.Memberships(ctx, users); err != nil {
+	if err := s.repo.MembershipsAnyWorkspace(ctx, users); err != nil {
 		return nil, 0, err
 	}
 	return users, total, nil
@@ -203,7 +203,7 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 		if user.InstanceAdmin && len(admins) <= 1 {
 			return ErrLastInstanceAdmin
 		}
-		lastOwned, err := s.repo.LastOwnerWorkspaces(ctx, userID)
+		lastOwned, err := s.repo.WorkspacesOwnedAloneAnyWorkspace(ctx, userID)
 		if err != nil {
 			return err
 		}

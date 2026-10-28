@@ -2064,6 +2064,10 @@ func (f fakeProbes) FindProbe(_ context.Context, id string) (*ProbeInfo, error) 
 	return f.probes[id], f.err
 }
 
+func (f fakeProbes) FindDefaultProbes(context.Context) ([]*DefaultProbe, error) {
+	return nil, f.err
+}
+
 // The types a probe lists are the ones it has an executor for. A push monitor needs none: its pushes
 // arrive at the api, so it runs on the local probe whatever that probe lists, and peekaping-probe
 // lists every type but push. The local probe of a cluster is its instances, which report exactly that.

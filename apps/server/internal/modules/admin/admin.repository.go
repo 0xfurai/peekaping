@@ -23,8 +23,8 @@ type Repository interface {
 	ListUsers(ctx context.Context, q string, page, limit int) (users []*User, total int, err error)
 	// FindUser returns the user, memberships included, or nil when there is none with the ID
 	FindUser(ctx context.Context, id string) (*User, error)
-	// Memberships fills the memberships of the users
-	Memberships(ctx context.Context, users []*User) error
+	// MembershipsAnyWorkspace fills the memberships of the users
+	MembershipsAnyWorkspace(ctx context.Context, users []*User) error
 	// LockInstanceAdmins returns the IDs of the instance admins. On PostgreSQL it holds their rows
 	// until the transaction ends, so that two admins can't each lose the flag by a change that saw
 	// the other still in place.
@@ -35,10 +35,10 @@ type Repository interface {
 	SetActive(ctx context.Context, id string, active bool, endSessionsAt *time.Time) error
 	// ClearTwoFA turns the user's 2FA off and forgets its secret
 	ClearTwoFA(ctx context.Context, id string) error
-	// LastOwnerWorkspaces returns the workspaces the user is the only owner of. On PostgreSQL it
+	// WorkspacesOwnedAloneAnyWorkspace returns the workspaces the user is the only owner of. On PostgreSQL it
 	// first holds the owners of the user's workspaces until the transaction ends, so that two
 	// deletions of the two owners of a workspace can't both pass.
-	LastOwnerWorkspaces(ctx context.Context, userID string) ([]WorkspaceRef, error)
+	WorkspacesOwnedAloneAnyWorkspace(ctx context.Context, userID string) ([]WorkspaceRef, error)
 	// DeleteUser deletes the user. Their memberships and account links go with them.
 	DeleteUser(ctx context.Context, id string) error
 }
@@ -113,13 +113,13 @@ func (r *SQLRepository) FindUser(ctx context.Context, id string) (*User, error) 
 		return nil, err
 	}
 	user := row.toDomain()
-	if err := r.Memberships(ctx, []*User{user}); err != nil {
+	if err := r.MembershipsAnyWorkspace(ctx, []*User{user}); err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
-func (r *SQLRepository) Memberships(ctx context.Context, users []*User) error {
+func (r *SQLRepository) MembershipsAnyWorkspace(ctx context.Context, users []*User) error {
 	if len(users) == 0 {
 		return nil
 	}
@@ -190,7 +190,7 @@ func (r *SQLRepository) ClearTwoFA(ctx context.Context, id string) error {
 	return err
 }
 
-func (r *SQLRepository) LastOwnerWorkspaces(ctx context.Context, userID string) ([]WorkspaceRef, error) {
+func (r *SQLRepository) WorkspacesOwnedAloneAnyWorkspace(ctx context.Context, userID string) ([]WorkspaceRef, error) {
 	db := dbtx.DB(ctx, r.db)
 	if r.db.Dialect().Name() == dialect.PG {
 		// Lock the owners of every workspace the user owns, in a fixed order, as the roles of a

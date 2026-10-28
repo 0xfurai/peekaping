@@ -110,6 +110,8 @@ type UpdateRequest struct {
 	Name     *string
 	Location *string
 	Disabled *bool
+	// IsDefault marks the probe as one that monitors created without probes run on, or not
+	IsDefault *bool
 	// NotificationIDs replaces the probe's notification channels. Nil leaves them, and an empty
 	// slice clears them.
 	NotificationIDs []string
@@ -213,7 +215,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest)
 		if id == LocalID && req.Disabled != nil && *req.Disabled {
 			return ErrLocalProbe
 		}
-		updated, err = s.repo.Update(ctx, id, &UpdateModel{Name: req.Name, Location: req.Location, Disabled: req.Disabled})
+		updated, err = s.repo.Update(ctx, id, &UpdateModel{Name: req.Name, Location: req.Location, Disabled: req.Disabled, IsDefault: req.IsDefault})
 		if err != nil {
 			return err
 		}
