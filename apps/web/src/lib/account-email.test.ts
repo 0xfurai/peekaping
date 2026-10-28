@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AxiosError, type AxiosResponse } from "axios";
-import { accountEmailFailure, needsVerification } from "./account-email";
+import { accountEmailFailure, isSuspendedUnverified, needsVerification } from "./account-email";
 
 const failure = (status: number, message: string) =>
   new AxiosError("failed", "ERR_BAD_REQUEST", undefined, undefined, {
@@ -41,5 +41,23 @@ describe("needsVerification", () => {
 
   it("is false while /me is not loaded", () => {
     expect(needsVerification(undefined)).toBe(false);
+  });
+});
+
+describe("isSuspendedUnverified", () => {
+  const ID = "11111111-1111-4111-8111-111111111111";
+  const workspace = (suspended: boolean, suspendedReason: string | null) => [{ id: ID, suspended, suspendedReason }];
+
+  it("is true for the workspace the address names when it is suspended as unverified", () => {
+    expect(isSuspendedUnverified(workspace(true, "unverified"), ID)).toBe(true);
+    expect(isSuspendedUnverified(workspace(true, "unverified"), ID.toUpperCase())).toBe(true);
+  });
+
+  it("is false for a running workspace, another reason, another workspace or no workspace", () => {
+    expect(isSuspendedUnverified(workspace(false, null), ID)).toBe(false);
+    expect(isSuspendedUnverified(workspace(true, "other"), ID)).toBe(false);
+    expect(isSuspendedUnverified(workspace(true, "unverified"), "22222222-2222-4222-8222-222222222222")).toBe(false);
+    expect(isSuspendedUnverified(workspace(true, "unverified"), null)).toBe(false);
+    expect(isSuspendedUnverified(null, ID)).toBe(false);
   });
 });

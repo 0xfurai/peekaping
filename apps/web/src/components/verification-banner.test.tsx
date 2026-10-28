@@ -32,6 +32,86 @@ describe("VerificationBanner", () => {
   });
 });
 
+// The banner in a workspace, with /me carrying that workspace's suspension
+const inWorkspace = (opts: {
+  suspendedReason: string | null;
+  emailVerified?: boolean;
+  accountEmails?: boolean;
+}) =>
+  renderAs({ instanceAdmin: false, role: "owner" }, <VerificationBanner />, undefined, (queryClient) => {
+    queryClient.setQueryData(getMeQueryKey(), {
+      data: {
+        accountEmails: opts.accountEmails ?? true,
+        user: { id: "u1", email: USER_EMAIL, instanceAdmin: false, emailVerified: opts.emailVerified ?? false },
+        workspaces: [
+          {
+            id: WORKSPACE_ID,
+            name: "Main",
+            role: "owner",
+            suspended: opts.suspendedReason !== null,
+            suspendedReason: opts.suspendedReason,
+          },
+        ],
+        defaultWorkspaceId: WORKSPACE_ID,
+      },
+    });
+  });
+
+describe("VerificationBanner in a suspended workspace", () => {
+  const notice = text("auth.suspension_notice.message");
+
+  it("tells an unverified owner their monitors start once they verify, with Resend", () => {
+    const html = inWorkspace({ suspendedReason: "unverified" });
+    expect(html).toContain("Your monitors start once you verify your email.");
+    expect(html).toContain(`>${text("auth.resend.button")}<`);
+  });
+
+  it("replaces the generic banner instead of adding to it", () => {
+    const html = inWorkspace({ suspendedReason: "unverified" });
+    expect(html).not.toContain("Verify your email: we sent a link");
+    expect(html.split(notice).length - 1).toBe(1);
+  });
+
+  it("shows the generic banner, not the notice, for another reason", () => {
+    const html = inWorkspace({ suspendedReason: "something_else" });
+    expect(html).toContain("Verify your email: we sent a link");
+    expect(html).not.toContain(notice);
+  });
+
+  it("shows no notice in a workspace that runs", () => {
+    const html = inWorkspace({ suspendedReason: null, emailVerified: true });
+    expect(html).toBe("");
+  });
+
+  it("shows the notice without Resend to a verified member, whose own address is fine", () => {
+    const html = inWorkspace({ suspendedReason: "unverified", emailVerified: true });
+    expect(html).toContain(notice);
+    expect(html).not.toContain(text("auth.resend.button"));
+  });
+
+  it("shows the notice in the workspace of the address, not another one", () => {
+    const html = renderAs(
+      { instanceAdmin: false, role: "owner" },
+      <VerificationBanner />,
+      "/w/22222222-2222-4222-8222-222222222222/monitors",
+      (queryClient) => {
+        queryClient.setQueryData(getMeQueryKey(), {
+          data: {
+            accountEmails: true,
+            user: { id: "u1", email: USER_EMAIL, instanceAdmin: false, emailVerified: true },
+            workspaces: [
+              { id: WORKSPACE_ID, name: "Main", role: "owner", suspended: true, suspendedReason: "unverified" },
+              { id: "22222222-2222-4222-8222-222222222222", name: "Other", role: "owner", suspended: false, suspendedReason: null },
+            ],
+            defaultWorkspaceId: WORKSPACE_ID,
+          },
+        });
+      }
+    );
+    expect(html).toBe("");
+  });
+});
+
 describe("VerificationBannerView", () => {
   const view = (outcome: "idle" | "sent" | "rate_limited" | "error" | "already_verified") =>
     renderAs(

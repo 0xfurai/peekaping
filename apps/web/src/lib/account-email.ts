@@ -24,3 +24,15 @@ export const accountEmailFailure = (error: unknown): AccountEmailFailure => {
 export const needsVerification = (
   me: { accountEmails: boolean; user: { emailVerified: boolean } } | undefined
 ): boolean => Boolean(me?.accountEmails) && me?.user.emailVerified === false;
+
+/**
+ * Whether the workspace is held back until its owner verifies their email (a workspace made by an
+ * open signup). The app says so there in place of the general verification banner.
+ */
+export const isSuspendedUnverified = (
+  workspaces: { id: string; suspended?: boolean; suspendedReason?: string | null }[] | null | undefined,
+  workspaceId: string | null
+): boolean => {
+  const workspace = workspaces?.find((w) => w.id.toLowerCase() === workspaceId?.toLowerCase());
+  return workspace?.suspended === true && workspace.suspendedReason === "unverified";
+};

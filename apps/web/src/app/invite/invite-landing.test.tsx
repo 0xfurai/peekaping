@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getInvitesByTokenQueryKey } from "@/api/@tanstack/react-query.gen";
+import { getAuthConfigQueryKey, getInvitesByTokenQueryKey } from "@/api/@tanstack/react-query.gen";
 import { renderAs, text, USER_EMAIL } from "@/test-support/render-with-me";
 import { InviteLandingView } from "./invite-landing";
 
@@ -29,6 +29,22 @@ const landing = (signedIn: boolean, overrides?: Record<string, unknown>) => {
 };
 
 describe("InviteLanding", () => {
+  it("shows a visitor's invite signup no Turnstile check, on an install that has one", () => {
+    const html = renderAs(
+      { instanceAdmin: false, role: "owner" },
+      <InviteLandingView token={TOKEN} signedIn={false} />,
+      `/invite/${TOKEN}`,
+      (queryClient) => {
+        queryClient.setQueryData(getInvitesByTokenQueryKey({ path: { token: TOKEN } }), preview());
+        queryClient.setQueryData(getAuthConfigQueryKey(), {
+          data: { accountEmails: true, signupMode: "open", signupOpen: true, turnstileSiteKey: "0x4AAAAAAA" },
+        });
+      }
+    );
+    expect(html).toContain('type="password"');
+    expect(html).not.toContain("data-turnstile");
+  });
+
   it("offers Accept to a signed-in user whose email is the invited one, in any letter case", () => {
     const html = landing(true, { email: USER_EMAIL.toUpperCase() });
     expect(html).toContain("Acme");
