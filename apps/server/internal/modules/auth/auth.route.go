@@ -36,7 +36,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	auth := router.Group("/auth")
 	lockout := httpx.ErrorResponse[bruteforce.BlockResponse](auth, http.StatusTooManyRequests)
 	lockout.Headers = map[string]*huma.Param{"Retry-After": {Description: "Seconds until the login lockout expires.", Schema: &huma.Schema{Type: "integer"}}}
-	httpx.Register(auth, "POST", "/register", huma.Operation{Summary: "Register new admin", Tags: []string{"auth"}, DefaultStatus: http.StatusCreated, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError}}, controller.Register)
+	httpx.Register(auth, "POST", "/register", huma.Operation{Summary: "Register new admin", Description: "Creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite.", Tags: []string{"auth"}, DefaultStatus: http.StatusCreated, Errors: []int{http.StatusBadRequest, http.StatusForbidden, http.StatusNotFound, http.StatusConflict, http.StatusGone, http.StatusInternalServerError}}, controller.Register)
 
 	// Two lockouts guard the login. The body limit comes first, so that no guard reads more than
 	// a login needs and a body over it is refused with 413 before the handler sees it. The address

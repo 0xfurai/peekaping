@@ -48,7 +48,7 @@ import (
 )
 
 // isolationKinds are the kinds of record that a path or a body names by ID
-var isolationKinds = []string{"monitor", "channel", "proxy", "tag", "maintenance", "status page", "API key"}
+var isolationKinds = []string{"monitor", "channel", "proxy", "tag", "maintenance", "status page", "API key", "member", "invite", "invite token"}
 
 // isolationIDs are the IDs of the records of one kind each, by kind
 type isolationIDs map[string]string
@@ -233,6 +233,21 @@ var isolationCases = map[string]isolationCase{
 	"GET /api/v1/api-keys/{id}":    byID("API key", plain),
 	"PUT /api/v1/api-keys/{id}":    byID("API key", withBody(map[string]any{"name": "Hijacked"})),
 	"DELETE /api/v1/api-keys/{id}": byID("API key", plain),
+
+	"GET /api/v1/workspace/members": byID("", func(isolationIDs) []isolationRequest {
+		// B's members are B's own: A's owner is not among them
+		return []isolationRequest{{own: true, status: http.StatusOK, forbid: []string{adminEmail}}}
+	}),
+	"PATCH /api/v1/workspace/members/{userId}":  byID("member", withBody(map[string]any{"role": "member"})),
+	"DELETE /api/v1/workspace/members/{userId}": byID("member", plain),
+	"GET /api/v1/workspace/invites": byID("", func(isolationIDs) []isolationRequest {
+		return []isolationRequest{{own: true, status: http.StatusOK}}
+	}),
+	"POST /api/v1/workspace/invites": byID("", func(isolationIDs) []isolationRequest {
+		// the same email as A's invite: B's invite is B's, and must not revoke A's
+		return []isolationRequest{{name: "for A's invitee", body: map[string]any{"email": aliceOnly + "-invitee@example.com", "role": "member"}, status: http.StatusCreated, own: true, sameName: true}}
+	}),
+	"DELETE /api/v1/workspace/invites/{id}": byID("invite", plain),
 }
 
 // The routes that serve no workspace's records, each with the reason. A route is here only if what
@@ -245,6 +260,10 @@ var (
 		"POST /api/v1/auth/2fa/verify":  "the signed-in user's own two-factor secret",
 		"POST /api/v1/auth/2fa/disable": "the signed-in user's own two-factor secret",
 		"PUT /api/v1/auth/password":     "the signed-in user's own password",
+
+		"POST /api/v1/workspaces":             "the signed-in user makes a workspace of their own and reads none",
+		"POST /api/v1/invites/{token}/accept": "the signed-in user joins the workspace an invite's token names, if their account's email is the invited one; no workspace of the caller is read",
+		"POST /api/v1/workspace/leave":        "the signed-in user leaves the workspace the request runs in, which only a member of it can name (404 otherwise, as for every route); it takes no ID and removes the caller's own place alone",
 	}
 
 	// isolationInstallRoutes belong to the install, and the instance admin manages them (ADR 0005 section 10)
@@ -405,11 +424,12 @@ func newIsolationWorld(t *testing.T, a *app) *isolationWorld {
 	maintenance := decode[created](t, a.request(t, http.MethodPost, "/api/v1/maintenances", with(maintenanceBody(aliceOnly+" window"), "monitor_ids", []string{monitor}), a.asAdmin), http.StatusCreated).ID
 	page := a.createStatusPage(t, statusPage{slug: aliceOnly + "-page", published: true, monitors: []string{monitor}, domains: []string{aliceOnly + ".example.com"}})
 	key := a.createKey(t, aliceOnly+" key", a.asAdmin)
+	invited := a.invite(t, aliceOnly+"-invitee@example.com", "member", a.asAdmin)
 	decode[settingResponse](t, a.request(t, http.MethodPut, retentionPath, map[string]any{"value": aliceRetention, "type": "int"}, a.asAdmin), http.StatusOK)
 	for _, k := range decode[[]apiKeyResponse](t, a.request(t, http.MethodGet, "/api/v1/api-keys", nil, a.asAdmin), http.StatusOK) {
 		w.aliceKeys = append(w.aliceKeys, k.ID)
 	}
-	for kind, id := range map[string]string{"monitor": monitor, "channel": channel, "proxy": proxy, "tag": tag, "maintenance": maintenance, "status page": page, "API key": key} {
+	for kind, id := range map[string]string{"monitor": monitor, "channel": channel, "proxy": proxy, "tag": tag, "maintenance": maintenance, "status page": page, "API key": key, "member": a.userID(t, adminEmail), "invite": invited.ID, "invite token": invited.Token} {
 		w.ids[kind] = id
 		w.missing[kind] = uuid.NewString()
 	}
@@ -420,6 +440,7 @@ func newIsolationWorld(t *testing.T, a *app) *isolationWorld {
 		m.create(t, a, "bobs "+m.name, w.bob)
 	}
 	a.createMonitorAs(t, w.bob, "Bobs", "bobs-token")
+	a.invite(t, "bobs-invitee@example.com", "member", w.bob)
 	return w
 }
 
@@ -448,7 +469,7 @@ func (w *isolationWorld) build(t *testing.T, key string, c isolationCase, r isol
 	method, path, _ := strings.Cut(key, " ")
 	path = strings.ReplaceAll(path, "{key}", "KEEP_DATA_PERIOD_DAYS")
 	if c.kind != "" {
-		path = strings.ReplaceAll(path, "{id}", ids[c.kind])
+		path = strings.ReplaceAll(strings.ReplaceAll(path, "{id}", ids[c.kind]), "{userId}", ids[c.kind])
 	}
 	require.NotContains(t, path, "{", "every parameter of %s is filled", key)
 	name := key
@@ -542,6 +563,7 @@ func (w *isolationWorld) apiView(t *testing.T) map[string]string {
 		"/api/v1/maintenances", "/api/v1/maintenances/" + w.ids["maintenance"],
 		"/api/v1/status-pages", "/api/v1/status-pages/" + w.ids["status page"],
 		"/api/v1/api-keys", "/api/v1/api-keys/" + w.ids["API key"],
+		"/api/v1/workspace/members", "/api/v1/workspace/invites",
 		retentionPath,
 	}
 	for _, path := range paths {
@@ -679,7 +701,7 @@ func TestIsolation_EveryCaseNamesAKindOfRecord(t *testing.T) {
 	for key, c := range isolationCases {
 		method, path, _ := strings.Cut(key, " ")
 		assert.NotEmpty(t, method, key)
-		assert.Equal(t, c.kind != "", strings.Contains(path, "{id}"), "%s takes an ID in its path exactly when the case names a kind", key)
+		assert.Equal(t, c.kind != "", strings.Contains(path, "{id}") || strings.Contains(path, "{userId}"), "%s takes an ID in its path exactly when the case names a kind", key)
 		if c.kind != "" {
 			assert.Contains(t, isolationKinds, c.kind, key)
 		}

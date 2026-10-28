@@ -43,6 +43,8 @@ var publicRoutes = map[string]string{
 	"GET /api/v1/badge/{monitorId}/response":          "badge for a monitor on a published status page",
 
 	"GET /api/v1/push/{token}": "push URL, authenticated by its push token",
+
+	"GET /api/v1/invites/{token}": "an invite link's preview, authenticated by its token: only the workspace's name, the invited email, the role and whether it can still be used",
 }
 
 // jwtOnlyRoutes manage the account, its API keys, and install-wide choices that are the
@@ -53,6 +55,9 @@ var jwtOnlyRoutes = map[string]bool{
 	"POST /api/v1/auth/2fa/verify":                 true,
 	"POST /api/v1/auth/2fa/disable":                true,
 	"PUT /api/v1/auth/password":                    true,
+	"POST /api/v1/workspaces":                      true,
+	"POST /api/v1/workspace/leave":                 true,
+	"POST /api/v1/invites/{token}/accept":          true,
 	"POST /api/v1/api-keys":                        true,
 	"GET /api/v1/api-keys":                         true,
 	"GET /api/v1/api-keys/{id}":                    true,

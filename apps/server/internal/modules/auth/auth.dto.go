@@ -3,6 +3,11 @@ package auth
 type RegisterDto struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,password"`
+	// InviteToken is the token of an invite link (PP-154). With a valid one whose email is the
+	// body's, the user is created as a member of the inviting workspace, with the invite's role and
+	// no workspace of their own, and is no instance admin, whatever the first-user rule says.
+	// Without it, only the install's first user can register.
+	InviteToken string `json:"inviteToken,omitempty"`
 }
 
 type LoginDto struct {

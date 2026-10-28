@@ -8,6 +8,10 @@ import (
 // ErrAdminExists is returned by CreateFirst when the install already has a user.
 var ErrAdminExists = errors.New("admin already exists")
 
+// ErrEmailTaken is returned by Register for an invite whose email already has an account: that
+// user signs in and opens the link instead.
+var ErrEmailTaken = errors.New("an account with this email exists already: sign in and open the invite link")
+
 type Repository interface {
 	Create(ctx context.Context, user *Model) (*Model, error)
 	// CreateFirst creates the user only while no user exists, and returns

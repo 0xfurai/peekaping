@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 	"strings"
@@ -73,6 +74,13 @@ func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx
 		c.logger.Errorw("Failed to register admin", "error", err)
 		if errors.Is(err, ErrAdminExists) {
 			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		}
+		if errors.Is(err, ErrEmailTaken) {
+			return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse(err.Error()))
+		}
+		// An invite that doesn't exist, can't be used or names another email
+		if answer := workspacehttp.Fail(err); answer != nil {
+			return nil, answer
 		}
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 	}

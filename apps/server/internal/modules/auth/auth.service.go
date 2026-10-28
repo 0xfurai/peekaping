@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/base32"
 	"errors"
+	"strings"
 	"time"
 
 	"peekaping/internal/dbtx"
@@ -29,10 +30,17 @@ type Service interface {
 	DisableTwoFA(ctx context.Context, userId, password string) error
 }
 
+// Invites is what signup through an invite needs of the workspace module. workspace.Service is one.
+type Invites interface {
+	CheckInvite(ctx context.Context, token, email string) error
+	AcceptInvite(ctx context.Context, token, userID string) (*workspace.Membership, error)
+}
+
 type ServiceImpl struct {
 	repo       Repository
 	transactor dbtx.Transactor
 	workspaces workspace.Repository
+	invites    Invites
 	tokenMaker *TokenMaker
 	logger     *zap.SugaredLogger
 }
@@ -41,6 +49,7 @@ func NewService(
 	repo Repository,
 	transactor dbtx.Transactor,
 	workspaces workspace.Repository,
+	invites Invites,
 	tokenMaker *TokenMaker,
 	logger *zap.SugaredLogger,
 ) Service {
@@ -48,12 +57,16 @@ func NewService(
 		repo:       repo,
 		transactor: transactor,
 		workspaces: workspaces,
+		invites:    invites,
 		tokenMaker: tokenMaker,
 		logger:     logger.Named("[auth-service]"),
 	}
 }
 
 func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
+	if dto.InviteToken != "" {
+		return s.registerThroughInvite(ctx, dto)
+	}
 	count, err := s.repo.FindAllCount(ctx)
 	if err != nil {
 		return nil, err
@@ -117,6 +130,61 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 		RefreshToken: refreshToken,
 		User:         user,
 	}, nil
+}
+
+// registerThroughInvite creates the account of someone an invite names. The user is no instance
+// admin and gets no workspace of their own: they join the inviting workspace with the invite's
+// role, in the transaction that creates them, so a user is never left without the place the
+// invite gave. The first-user rule does not apply, and neither does the signup mode: the invite
+// is the permission.
+func (s *ServiceImpl) registerThroughInvite(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
+	// Ask before spending time on a password: a link that can't be used says why
+	if err := s.invites.CheckInvite(ctx, dto.InviteToken, dto.Email); err != nil {
+		return nil, err
+	}
+	for _, email := range []string{dto.Email, strings.ToLower(strings.TrimSpace(dto.Email))} {
+		if existing, err := s.repo.FindByEmail(ctx, email); err != nil {
+			return nil, err
+		} else if existing != nil {
+			return nil, ErrEmailTaken
+		}
+	}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	user := &Model{Email: strings.TrimSpace(dto.Email), Password: string(hashedPassword), Active: true, CreatedAt: now, UpdatedAt: now}
+	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		created, err := s.repo.Create(ctx, user)
+		if err != nil {
+			if dbtx.IsUniqueViolation(err) {
+				return ErrEmailTaken
+			}
+			return err
+		}
+		user = created
+		// The invite is checked again here, and spent, in the same transaction as the user
+		_, err = s.invites.AcceptInvite(ctx, dto.InviteToken, user.ID)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return s.signedIn(ctx, user)
+}
+
+// signedIn issues the tokens of a user who just registered
+func (s *ServiceImpl) signedIn(ctx context.Context, user *Model) (*LoginResponse, error) {
+	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	refreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	return &LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken, User: user}, nil
 }
 
 // joinFirstWorkspace makes the user the owner of the install's oldest workspace, or of a new one

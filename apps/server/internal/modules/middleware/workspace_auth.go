@@ -35,6 +35,12 @@ func (ac *AuthChain) WorkspaceJWTAuth() httpx.Middleware {
 	return ac.inWorkspace(ac.jwtOnly)
 }
 
+// JWTAuth is the JWT middleware for a route that only a signed-in user may reach and that runs in
+// no workspace, such as one that makes a workspace
+func (ac *AuthChain) JWTAuth() httpx.Middleware {
+	return ac.jwtOnly
+}
+
 // jwtOnly is the JWT middleware. It is built per request, as AllAuth does, so that the routes can
 // be registered with no middleware behind them to document the API.
 func (ac *AuthChain) jwtOnly(next http.Handler) http.Handler {

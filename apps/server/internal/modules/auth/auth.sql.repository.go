@@ -78,8 +78,9 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, user *Model) (*Model, er
 		UpdatedAt:      time.Now(),
 	}
 
-	// Let Bun handle ID generation based on the database type
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	// Let Bun handle ID generation based on the database type. The insert joins the transaction the
+	// context carries, so that signup through an invite creates the user and the membership together.
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}

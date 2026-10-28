@@ -18,6 +18,7 @@ import (
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/telemetry"
+	"peekaping/internal/modules/workspace/workspacehttp"
 
 	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/zap"
@@ -45,6 +46,7 @@ func OpenAPI() *huma.OpenAPI {
 		api_key.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
 		probe.NewRoute(nil, nil), nil,
 		protocol.NewRoute(nil, nil), nil,
+		workspacehttp.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
 		nil, nil,
 	)
 	return server.Router.API().OpenAPI()

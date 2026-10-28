@@ -10,8 +10,10 @@ import (
 	"time"
 
 	"peekaping/cmd/bun/migrations"
+	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/workspace"
@@ -65,7 +67,11 @@ func newHarness(t *testing.T) *harness {
 
 // newService is the auth service over repo and the workspaces of db
 func newService(db *bun.DB, repo auth.Repository, tokens *auth.TokenMaker, logger *zap.SugaredLogger) auth.Service {
-	return auth.NewService(repo, dbtx.NewSQLTransactor(db), workspace.NewSQLRepository(db), tokens, logger)
+	transactor := dbtx.NewSQLTransactor(db)
+	workspaces := workspace.NewSQLRepository(db)
+	invites := workspace.NewService(workspaces, workspace.NewSQLMemberRepository(db), workspace.NewSQLInviteRepository(db),
+		transactor, eventstest.NewBus(), &config.Config{ClientURL: "http://localhost:3000"}, logger)
+	return auth.NewService(repo, transactor, workspaces, invites, tokens, logger)
 }
 
 // restart is the same install after the server starts again, with its signing
@@ -205,7 +211,7 @@ func (failingAddMember) AddMember(context.Context, workspace.ID, string, workspa
 
 func TestService_Register_KeepsNoUserOrWorkspaceWhenTheMembershipFails(t *testing.T) {
 	h := newHarness(t)
-	failing := auth.NewService(auth.NewSQLRepository(h.db), dbtx.NewSQLTransactor(h.db), failingAddMember{workspace.NewSQLRepository(h.db)}, h.tokens, zap.NewNop().Sugar())
+	failing := auth.NewService(auth.NewSQLRepository(h.db), dbtx.NewSQLTransactor(h.db), failingAddMember{workspace.NewSQLRepository(h.db)}, nil, h.tokens, zap.NewNop().Sugar())
 
 	_, err := failing.Register(context.Background(), auth.RegisterDto{Email: adminEmail, Password: adminPassword})
 
