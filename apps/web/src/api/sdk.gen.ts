@@ -2069,6 +2069,7 @@ export const getPushByToken = <ThrowOnError extends boolean = false>(
 
 /**
  * Delete setting by key
+ * Admins and owners of the request's workspace can delete it; a member gets 403.
  */
 export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<DeleteSettingsKeyByKeyData, ThrowOnError>
@@ -2096,6 +2097,7 @@ export const deleteSettingsKeyByKey = <ThrowOnError extends boolean = false>(
 
 /**
  * Get setting by key
+ * A setting of the request's workspace; any member can read it.
  */
 export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<GetSettingsKeyByKeyData, ThrowOnError>
@@ -2123,7 +2125,7 @@ export const getSettingsKeyByKey = <ThrowOnError extends boolean = false>(
 
 /**
  * Set setting by key
- * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404.
+ * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404. It is a setting of the request's workspace: members read it, admins and owners change it, and a member's change returns 403.
  */
 export const putSettingsKeyByKey = <ThrowOnError extends boolean = false>(
   options: Options<PutSettingsKeyByKeyData, ThrowOnError>

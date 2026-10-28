@@ -4676,6 +4676,10 @@ export type DeleteSettingsKeyByKeyErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
    * Not Found
    */
   404: HttpxErrorBody;
@@ -4771,6 +4775,10 @@ export type PutSettingsKeyByKeyErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
   /**
    * Not Found
    */
