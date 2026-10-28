@@ -301,6 +301,10 @@ func (c *copier) copyDomains(ctx context.Context) error {
 			return nil
 		}
 		domain := domain_status_page.Normalize(d.str("domain"))
+		if domain == "" {
+			report.skip("the domain is empty")
+			return nil
+		}
 		if holder, held := holders[domain]; held {
 			if holder == page {
 				report.skip("the domain of this status page already copied")
