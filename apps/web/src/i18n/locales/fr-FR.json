@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Intervalle de réessai du heartbeat (Réessayer toutes les {{seconds}} secondes)",
+          "interval_too_short": "Ne peut pas être inférieur à {{minimum}} secondes",
           "max_retries_description": "Nombre maximal de tentatives avant que le service soit considéré comme hors service et qu'une notification soit envoyée",
           "request_timeout": "Expiration de la requête (Timeout après {{seconds}} secondes)",
           "resend_notification": "Renvoyer la notification si en panne X fois de suite (renvoi désactivé)",

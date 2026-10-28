@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Interwał ponownego próby (ponawiaj co {{seconds}} sekund)",
+          "interval_too_short": "Nie może być mniejszy niż {{minimum}} s",
           "max_retries_description": "Maksymalna liczba ponownych prób przed oznaczeniem usługi jako niedostępnej i wysłaniem powiadomienia.",
           "request_timeout": "Timeout żądania (po {{seconds}} sekundach)",
           "resend_notification": "Ponowne wysłanie powiadomienia, jeśli usługa będzie niedostępna X razy z rzędu (Ponowne wysłanie wyłączone)",

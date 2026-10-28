@@ -1,5 +1,7 @@
 import type { NotificationChannelCreateUpdateDto, MonitorCreateUpdateDto } from "@/api";
 import { httpDefaultValues } from "@/app/monitors/monitor-types/http/schema";
+import { withMinimumIntervals } from "@/app/monitors/monitor-types/shared/intervals-support";
+import { ABSOLUTE_MIN_CHECK_INTERVAL } from "@/hooks/useMinCheckInterval";
 import { serializeMonitor } from "@/app/monitors/monitor-types/registry";
 import { channelCreateBody } from "@/app/notification-channels/channel-payload";
 import type { NotificationChannelFormValues } from "@/app/notification-channels/channel-types/registry";
@@ -23,9 +25,13 @@ export const parseMonitorUrl = (input: string): { url: string; host: string } | 
 
 // The request that creates the first monitor: an HTTP monitor with the full form's defaults, named
 // after the host. It names no probe (an empty probe_ids is left out of the body), so the monitor
-// runs on the install's default probes.
-export const firstMonitorBody = ({ url, host }: { url: string; host: string }): MonitorCreateUpdateDto =>
-  serializeMonitor({ ...httpDefaultValues, url, name: host, probe_ids: [] });
+// runs on the install's default probes. The interval and retry interval start at the install's
+// minimum, as the full form's do.
+export const firstMonitorBody = (
+  { url, host }: { url: string; host: string },
+  minCheckInterval: number = ABSOLUTE_MIN_CHECK_INTERVAL
+): MonitorCreateUpdateDto =>
+  serializeMonitor(withMinimumIntervals({ ...httpDefaultValues, url, name: host, probe_ids: [] }, minCheckInterval));
 
 // The channel types step 3 offers, in order. Email, sent by the install, needs a sender for
 // account emails.

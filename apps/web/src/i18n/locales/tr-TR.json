@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Kalp Atışı Tekrar Aralığı (her {{seconds}} saniyede bir yeniden dene)",
+          "interval_too_short": "{{minimum}} saniyeden az olamaz",
           "max_retries_description": "Servisin 'down' olarak işaretlenip bildirim gönderilmeden önceki maksimum yeniden deneme sayısı",
           "request_timeout": "İstek Süresi Doldu ({{seconds}} saniye sonra zaman aşımı)",
           "resend_notification": "X kez arka arkaya kesildiğinde Bildirimi Yeniden Gönder (Yeniden gönderme devre dışı)",

@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Intervalo de reintentos de latido (Reintentar cada {{seconds}} segundos)",
+          "interval_too_short": "No puede ser menos de {{minimum}} segundos",
           "max_retries_description": "Reintentos máximos antes de que el servicio se marque como caído y se envíe una notificación",
           "request_timeout": "Tiempo de espera agotado (Se agotó el tiempo de espera después de {{seconds}} segundos)",
           "resend_notification": "Reenviar notificación si está caído X veces consecutivas (Reenviar deshabilitado)",

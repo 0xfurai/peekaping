@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Heartbeat-herhaalinterval (Herhaal elke {{seconds}} seconden)",
+          "interval_too_short": "Mag niet minder zijn dan {{minimum}} seconden",
           "max_retries_description": "Maximale pogingen voordat de service als Down wordt gemarkeerd en er een melding wordt verzonden.",
           "request_timeout": "Verzoek time-out (Time-out na {{seconds}} seconden)",
           "resend_notification": "Notificatie opnieuw verzenden bij X opeenvolgende keren uitgevallen (Verzenden uitgeschakeld)",

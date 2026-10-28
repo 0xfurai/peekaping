@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Interval de reîncercare a semnalului de viață (reîncearcă la fiecare {{seconds}} secunde)",
+          "interval_too_short": "Nu poate fi mai mic de {{minimum}} secunde",
           "max_retries_description": "Numărul maxim de încercări înainte ca serviciul să fie marcat ca inactiv și să se trimită o notificare.",
           "request_timeout": "Timeout cerere (Timeout după {{seconds}} secunde)",
           "resend_notification": "Retrimitere notificare dacă serviciul e indisponibil X ori consecutiv (Retrimitere dezactivată)",

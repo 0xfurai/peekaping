@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Heartbeat Retry Interval (Retry every {{seconds}} seconds)",
+          "interval_too_short": "Can't be less than {{minimum}} seconds",
           "max_retries_description": "Maximum retries before the service is marked as down and a notification is sent",
           "request_timeout": "Request Timeout (Timeout after {{seconds}} seconds)",
           "resend_notification": "Resend Notification if Down X times consecutively (Resend disabled)",

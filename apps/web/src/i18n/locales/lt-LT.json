@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Širdies ritmų bandymo intervalas (bandykite kas {{seconds}} sekundžių)",
+          "interval_too_short": "Negali būti mažesnis nei {{minimum}} s",
           "max_retries_description": "Maksimalus bandymų skaičius, kol paslauga pažymima neveikiančia ir siunčiamas pranešimas.",
           "request_timeout": "Užklausos timeout (Baigiasi po {{seconds}} sekundžių)",
           "resend_notification": "Persiųsti pranešimą, jei neveikia X kartus iš eilės (Persiuntimas išjungtas)",

@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Livssignalåterkopplingsintervall (Upprepa var {{seconds}} sekund)",
+          "interval_too_short": "Får inte vara mindre än {{minimum}} sekunder",
           "max_retries_description": "Maximalt antal försök innan tjänsten anses nere och en notifikation skickas",
           "request_timeout": "Begäran timeout (Timeout efter {{seconds}} sekunder)",
           "resend_notification": "Skicka om varning vid nedgång X gånger i rad (Skicka om inaktiverat)",

@@ -6,11 +6,14 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { getMonitorType } from "../registry";
 import { useMonitorTypeOptions } from "./type-options";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
+import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
+import { withMinimumIntervals } from "./intervals-support";
 
 const General = () => {
   const { form, mode } = useMonitorFormContext();
   const { t } = useLocalizedTranslation();
   const typeOptions = useMonitorTypeOptions();
+  const minCheckInterval = useMinCheckInterval();
 
   return (
     <>
@@ -45,7 +48,7 @@ const General = () => {
                 if (mode === "create" && definition) {
                   const name = form.getValues("name");
                   form.reset({
-                    ...definition.defaultValues,
+                    ...withMinimumIntervals(definition.defaultValues, minCheckInterval),
                     name: name || definition.defaultValues.name,
                     probe_ids: form.getValues("probe_ids"),
                   });

@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Lebenszeichen-Wiederholungsintervall (Wiederhole alle {{seconds}} Sekunden)",
+          "interval_too_short": "Darf nicht weniger als {{minimum}} Sekunden betragen",
           "max_retries_description": "Maximale Wiederholungen, bevor der Dienst als nicht erreichbar markiert wird und eine Benachrichtigung gesendet wird",
           "request_timeout": "Anforderungszeitüberschreitung (Zeitüberschreitung nach {{seconds}} Sekunden)",
           "resend_notification": "Benachrichtigung erneut senden, falls der Monitor X Mal hintereinander ausfällt (Neuversand deaktiviert)",

@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Titim Athsheachadán Lorglanna (Athsheachadú gach {{seconds}} soicind)",
+          "interval_too_short": "Ní féidir leis a bheith níos lú ná {{minimum}} soicind",
           "max_retries_description": "Iarrtais uasta roimh a bheith marcáilte mar thíos agus fógra a sheoladh",
           "request_timeout": "Teip Iarratais (tar éis {{seconds}} nóiméad)",
           "resend_notification": "Athsheol Fógra má tá sé i dorchadas X uaire le chéile (Neamhcheadaithe)",

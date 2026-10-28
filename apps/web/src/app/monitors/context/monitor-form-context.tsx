@@ -43,6 +43,8 @@ import {
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
 import { useCurrentAccess } from "@/hooks/useCurrentAccess";
+import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
+import { withMinimumIntervals } from "../monitor-types/shared/intervals-support";
 import { checkMonitorValues } from "../monitor-types/shared/check-values";
 import { defaultChannelIds } from "../monitor-types/shared/channel-support";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
@@ -110,6 +112,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
 
   const { probes } = useProbes();
   const { instanceAdmin } = useCurrentAccess();
+  const minCheckInterval = useMinCheckInterval();
   const probesChosenByHand = useRef(false);
 
   // A new monitor that isn't a clone starts with the workspace's default channels ticked: from the
@@ -126,11 +129,15 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   const form = useForm<MonitorFormValues>({
     // A new monitor starts as the first type the registry lists. Read here, not at module
     // level: the type forms import this module, so the registry is still loading then.
+    // The interval and retry interval start at the install's minimum.
     defaultValues:
       initialValues ??
-      (channels?.data
-        ? { ...monitorTypes[0].defaultValues, notification_ids: startingChannelIds.current }
-        : monitorTypes[0].defaultValues),
+      withMinimumIntervals(
+        channels?.data
+          ? { ...monitorTypes[0].defaultValues, notification_ids: startingChannelIds.current }
+          : monitorTypes[0].defaultValues,
+        minCheckInterval
+      ),
     // The schema, and a check of the probe that it can't make: which probes run which types
     // comes from the probes query
     resolver: (values, context, options) =>
@@ -139,8 +146,20 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
         saved: monitor?.data,
         // Someone who isn't an instance admin may leave a new monitor on no probe
         mayUseDefaultProbes: !instanceAdmin && mode === "create",
+        minCheckInterval,
       }),
   });
+
+  // The minimum arrives with /me, which the workspace layout has loaded by the time the form shows.
+  // If it comes later, a new monitor's intervals the user hasn't touched follow it.
+  useEffect(() => {
+    if (mode !== "create" || initialValues) return;
+    for (const name of ["interval", "retry_interval"] as const) {
+      if (!form.getFieldState(name).isDirty && Number(form.getValues(name)) < minCheckInterval) {
+        form.setValue(name, minCheckInterval);
+      }
+    }
+  }, [mode, initialValues, minCheckInterval, form]);
 
   // The default channels are ticked once, from this page's own answer. Not over a choice of the
   // user's: the channels they changed, or one they just made, stay.

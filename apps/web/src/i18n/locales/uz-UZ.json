@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Qayta urinish intervali (Har {{seconds}} soniyada qayta urinib ko'rish)",
+          "interval_too_short": "{{minimum}} soniyadan kam bo'lmasligi kerak",
           "max_retries_description": "Xizmatni pastda deb belgilashdan va bildirishnoma yuborishdan oldingi maksimal qayta urinishlar soni",
           "request_timeout": "So'rovning muddat tugashi ({{seconds}} soniya o'tgach)",
           "resend_notification": "X ta uzluksiz down bo'lsa, xabarni qayta yuborish (Qayta yuborish o'chirilgan)",

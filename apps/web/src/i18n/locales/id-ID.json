@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Interval Ulang Heartbeat (Ulang setiap {{seconds}} detik)",
+          "interval_too_short": "Tidak boleh kurang dari {{minimum}} detik",
           "max_retries_description": "Maksimum percobaan ulang sebelum layanan dinyatakan tidak aktif dan notifikasi dikirim",
           "request_timeout": "Waktu Permintaan Habis (Timeout setelah {{seconds}} detik)",
           "resend_notification": "Kirim ulang pemberitahuan jika Down X kali berturut-turut (Kirim ulang dinonaktifkan)",

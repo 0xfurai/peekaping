@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Bizikuntza berriztaiteko tartea (Berriztaiteko {{seconds}} segundo)",
+          "interval_too_short": "Ezin da {{minimum}} segundo baino txikiagoa izan",
           "max_retries_description": "Gehieneko saiakera kopurua, zerbitzuak 'ez dago' bezala markatu eta abisu bat bidaltzeko",
           "request_timeout": "Eskariaren denbora-mugua ({{seconds}} segundoen ondoren)",
           "resend_notification": "Berriz bidali abisua, X aldiz jarraian jaitsi (Berriz bidalketa desgaituta)",

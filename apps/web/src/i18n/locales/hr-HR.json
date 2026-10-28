@@ -750,6 +750,7 @@
       "shared": {
         "intervals": {
           "heartbeat_retry": "Interval ponovnog pokušaja sržega (ponovite svake {{seconds}} sekunde)",
+          "interval_too_short": "Ne smije biti manje od {{minimum}} sekundi",
           "max_retries_description": "Maksimalni broj ponovnih pokušaja prije nego što se usluga označi kao neispravna i pošalje se obavijest.",
           "request_timeout": "Zastoj zahtjeva (Timeout nakon {{seconds}} sekundi)",
           "resend_notification": "Ponovi obavijest ako je X puta uzastopno ne radi (ponovno slanje onemogućeno)",
