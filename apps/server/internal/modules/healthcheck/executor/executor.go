@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/netguard"
 	"slices"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -68,6 +69,21 @@ func (g *guarded) useGuard(guard *netguard.Guard) { g.guard = guard }
 
 // dialer makes d dial through the executor's guard
 func (g *guarded) dialer(d *net.Dialer) *net.Dialer { return g.guard.Dialer(d) }
+
+// on reports whether the guard refuses addresses now. An executor that has to change how it connects
+// to dial through the guard asks it at each check, so that a check with the option off connects as
+// it always did.
+func (g *guarded) on() bool { return g.guard.Enabled() }
+
+// hostOf returns the host of a host:port address, without the brackets of an IPv6 address. An
+// address without a port is returned as it is, without its brackets.
+func hostOf(address string) string {
+	address = strings.TrimSpace(address)
+	if host, _, err := net.SplitHostPort(address); err == nil {
+		return host
+	}
+	return strings.TrimSuffix(strings.TrimPrefix(address, "["), "]")
+}
 
 // guardUser is what the registry looks for in an executor to hand the guard to
 type guardUser interface {

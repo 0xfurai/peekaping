@@ -20,6 +20,7 @@ type MySQLConfig struct {
 }
 
 type MySQLExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -52,6 +53,15 @@ func (m *MySQLExecutor) Validate(configJSON string) error {
 	}
 
 	return GenericValidator(mysqlCfg)
+}
+
+// Targets lists the host a MySQL check connects to
+func (m *MySQLExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[MySQLConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return connectionStringHosts(cfg.ConnectionString), nil
 }
 
 func (m *MySQLExecutor) validateQuery(query string) error {
@@ -194,6 +204,13 @@ func (m *MySQLExecutor) mysqlQuery(ctx context.Context, connectionString, query 
 	cfg, err := m.parseMySQLURL(connectionString)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse MySQL connection string: %w", err)
+	}
+
+	// Dial through the guard while it is on. The driver would look up a network name that is
+	// registered for the whole process; the DialFunc of this configuration is the guard's alone, and
+	// it gets the network too, so a Unix socket is refused.
+	if m.on() {
+		cfg.DialFunc = m.guard.DialContext
 	}
 
 	// Open connection

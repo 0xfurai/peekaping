@@ -20,6 +20,7 @@ type PostgresConfig struct {
 }
 
 type PostgresExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -52,6 +53,15 @@ func (p *PostgresExecutor) Validate(configJSON string) error {
 	}
 
 	return GenericValidator(pgCfg)
+}
+
+// Targets lists the host a PostgreSQL check connects to
+func (p *PostgresExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[PostgresConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return connectionStringHosts(cfg.DatabaseConnectionString), nil
 }
 
 func (p *PostgresExecutor) validateQuery(query string) error {
@@ -111,6 +121,11 @@ func (p *PostgresExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *
 	if err != nil {
 		return DownResult(fmt.Errorf("failed to parse connection string: %w", err), startTime, time.Now().UTC())
 	}
+
+	// Dial as the driver does, through the guard. The connector connects over TCP whatever the
+	// string says: it drops the host parameter that would name a Unix socket.
+	conf := connector.Config()
+	conf.Dialer = p.dialer(&net.Dialer{Timeout: conf.DialTimeout, KeepAlive: 5 * time.Minute}).DialContext
 
 	db := sql.OpenDB(connector)
 	defer db.Close()
