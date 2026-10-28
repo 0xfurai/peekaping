@@ -3,6 +3,7 @@ package proxy
 import (
 	"context"
 	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/workspace"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -92,7 +93,12 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Par
 }
 
 func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
-	_ = mr.monitorService.RemoveProxyReference(ctx, id)
+	// The monitors of the request's workspace stop using the proxy. Proxies don't belong to a
+	// workspace yet, so another workspace's monitors keep the reference until the database clears
+	// it when the proxy is deleted (ON DELETE SET NULL).
+	if workspaceID, _, ok := workspace.FromContext(ctx); ok {
+		_ = mr.monitorService.RemoveProxyReference(ctx, workspaceID, id)
+	}
 	err := mr.repository.Delete(ctx, id)
 	if err != nil {
 		return err

@@ -104,7 +104,7 @@ type fakeSource struct {
 	mu     sync.Mutex
 }
 
-func (s *fakeSource) FindActiveByProbe(_ context.Context, probeID string) ([]*monitor.Model, error) {
+func (s *fakeSource) FindActiveByProbeAnyWorkspace(_ context.Context, probeID string) ([]*monitor.Model, error) {
 	s.mu.Lock()
 	s.calls++
 	s.mu.Unlock()
@@ -122,7 +122,7 @@ type fakeMonitors struct {
 	finds []string
 }
 
-func (m *fakeMonitors) FindByID(_ context.Context, id string) (*monitor.Model, error) {
+func (m *fakeMonitors) FindByIDAnyWorkspace(_ context.Context, id string) (*monitor.Model, error) {
 	m.finds = append(m.finds, id)
 	return m.byID[id], m.err
 }

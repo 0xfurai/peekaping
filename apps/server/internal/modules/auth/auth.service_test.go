@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -180,7 +181,8 @@ func TestService_Register_JoinsTheOldestWorkspaceOfAnInstanceWithRecordsAndNoUse
 	time.Sleep(5 * time.Millisecond)
 	_, err = workspaces.Create(ctx, "Newer")
 	require.NoError(t, err)
-	_, err = h.db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES ('7d2bd0f5-1b4b-4b43-a3f3-1f6a7c1d0b11', 'http', 'Kept', 60, 10, 1, 10, 0)`)
+	workspacetest.Ensure(t, h.db)
+	_, err = h.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES ('7d2bd0f5-1b4b-4b43-a3f3-1f6a7c1d0b11', (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Kept', 60, 10, 1, 10, 0)`)
 	require.NoError(t, err)
 
 	session := h.register(t)

@@ -90,11 +90,11 @@ func TestDatabaseSource_ListActiveReturnsTheDatabaseError(t *testing.T) {
 // failingMonitors is a monitor database and loader that fail every call
 type failingMonitors struct{ err error }
 
-func (f failingMonitors) FindByID(context.Context, string) (*shared.Monitor, error) {
+func (f failingMonitors) FindByIDAnyWorkspace(context.Context, string) (*shared.Monitor, error) {
 	return nil, f.err
 }
 
-func (f failingMonitors) FindActiveByProbe(context.Context, string, int, int) ([]*shared.Monitor, error) {
+func (f failingMonitors) FindActiveByProbeAnyWorkspace(context.Context, string, int, int) ([]*shared.Monitor, error) {
 	return nil, f.err
 }
 

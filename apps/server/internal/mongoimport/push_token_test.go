@@ -43,7 +43,7 @@ func TestImportStoresNoPushTokenAsNullAndKeepsASharedTokenOnTheFirstMonitor(t *t
 
 		monitors := monitor.NewSQLRepository(db)
 		for id, want := range map[primitive.ObjectID]string{first: "shared-token", second: "", own: "own-token", noneA: "", noneB: ""} {
-			got, err := monitors.FindByID(ctx, uuidOf(t, id.Hex()))
+			got, err := monitors.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, id.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got)
 			assert.Equal(t, want, got.PushToken, got.Name)
@@ -90,7 +90,7 @@ func TestImportFillsAnEmptyPushTokenOfAPushMonitorFromItsConfig(t *testing.T) {
 		for id, want := range map[primitive.ObjectID]string{
 			own: "own-token", fromConfig: "config-token", emptyEverywhere: "", notPush: "", brokenConfig: "", noToken: "", twin: "",
 		} {
-			got, err := monitors.FindByID(ctx, uuidOf(t, id.Hex()))
+			got, err := monitors.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, id.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got)
 			assert.Equal(t, want, got.PushToken, got.Name)
@@ -131,10 +131,10 @@ func TestImportTreatsPushTokensThatAreTheSameOnceCutAsDuplicates(t *testing.T) {
 		monitors := monitor.NewSQLRepository(db)
 		r := collectionReport(t, report, "monitor")
 		assert.Equal(t, 2, r.Copied)
-		got, err := monitors.FindByID(ctx, uuidOf(t, first.Hex()))
+		got, err := monitors.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, first.Hex()))
 		require.NoError(t, err)
 		require.NotNil(t, got)
-		other, err := monitors.FindByID(ctx, uuidOf(t, second.Hex()))
+		other, err := monitors.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, second.Hex()))
 		require.NoError(t, err)
 		require.NotNil(t, other)
 		if db.Dialect().Name() == dialect.PG {

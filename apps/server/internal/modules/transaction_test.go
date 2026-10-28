@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"testing"
 	"time"
@@ -49,6 +50,7 @@ func forEachTxBackend(t *testing.T, fn func(t *testing.T, ctx context.Context, d
 			require.NoError(t, migrator.Init(ctx))
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
+			workspacetest.Ensure(t, db)
 			fn(t, ctx, db)
 		}
 	}
@@ -82,7 +84,8 @@ func forEachTxBackend(t *testing.T, fn func(t *testing.T, ctx context.Context, d
 func insertTxMonitor(t *testing.T, db *bun.DB) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
+	workspacetest.Ensure(t, db)
+	_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 	require.NoError(t, err)
 	return id
 }
@@ -215,67 +218,67 @@ func TestMonitorRepository_RunsInTheTransactionInCtx(t *testing.T) {
 		newMonitor := func(name, pushToken string) *monitor.Model {
 			return &monitor.Model{Type: "push", Name: name, Interval: 60, Timeout: 16, MaxRetries: 1, RetryInterval: 60, Active: true, Config: `{}`, ProxyId: proxyID, PushToken: pushToken}
 		}
-		kept, err := repo.Create(ctx, newMonitor("kept", "kept-token"))
+		kept, err := repo.Create(ctx, workspacetest.ID, newMonitor("kept", "kept-token"))
 		require.NoError(t, err)
 		_, err = db.Exec("INSERT INTO monitor_tags (id, monitor_id, tag_id) VALUES (?, ?, ?)", uuid.NewString(), kept.ID, tagID)
 		require.NoError(t, err)
 
 		// Every method runs in the transaction: each one sees what the ones before it wrote there.
 		err = dbtx.NewSQLTransactor(db).WithTx(ctx, func(ctx context.Context) error {
-			added, err := repo.Create(ctx, newMonitor("added", "added-token"))
+			added, err := repo.Create(ctx, workspacetest.ID, newMonitor("added", "added-token"))
 			require.NoError(t, err)
-			found, err := repo.FindByID(ctx, added.ID)
+			found, err := repo.FindByID(ctx, workspacetest.ID, added.ID)
 			require.NoError(t, err)
 			require.NotNil(t, found, "FindByID sees the monitor Create wrote")
-			byIDs, err := repo.FindByIDs(ctx, []string{kept.ID, added.ID})
+			byIDs, err := repo.FindByIDs(ctx, workspacetest.ID, []string{kept.ID, added.ID})
 			require.NoError(t, err)
 			assert.Len(t, byIDs, 2, "FindByIDs sees both monitors")
-			all, err := repo.FindAll(ctx, 0, 10, "", nil, nil, nil)
+			all, err := repo.FindAll(ctx, workspacetest.ID, 0, 10, "", nil, nil, nil)
 			require.NoError(t, err)
 			assert.Len(t, all, 2, "FindAll sees both monitors")
-			tagged, err := repo.FindAll(ctx, 0, 10, "", nil, nil, []string{tagID})
+			tagged, err := repo.FindAll(ctx, workspacetest.ID, 0, 10, "", nil, nil, []string{tagID})
 			require.NoError(t, err)
 			assert.Len(t, tagged, 1, "FindAll by tag joins the committed link")
-			active, err := repo.FindActive(ctx)
+			active, err := repo.FindActiveAnyWorkspace(ctx)
 			require.NoError(t, err)
 			assert.Len(t, active, 2, "FindActive sees both monitors")
-			page, err := repo.FindActivePaginated(ctx, 0, 10)
+			page, err := repo.FindActivePaginatedAnyWorkspace(ctx, 0, 10)
 			require.NoError(t, err)
 			assert.Len(t, page, 2, "FindActivePaginated sees both monitors")
-			byToken, err := repo.FindOneByPushToken(ctx, "added-token")
+			byToken, err := repo.FindOneByPushTokenAnyWorkspace(ctx, "added-token")
 			require.NoError(t, err)
 			require.NotNil(t, byToken, "FindOneByPushToken sees the monitor Create wrote")
 			assert.Equal(t, added.ID, byToken.ID)
-			byProxy, err := repo.FindByProxyId(ctx, proxyID)
+			byProxy, err := repo.FindByProxyId(ctx, workspacetest.ID, proxyID)
 			require.NoError(t, err)
 			assert.Len(t, byProxy, 2, "FindByProxyId sees both monitors")
 
 			renamed := *added
 			renamed.Name = "added-renamed"
-			require.NoError(t, repo.UpdateFull(ctx, added.ID, &renamed))
-			found, err = repo.FindByID(ctx, added.ID)
+			require.NoError(t, repo.UpdateFull(ctx, workspacetest.ID, added.ID, &renamed))
+			found, err = repo.FindByID(ctx, workspacetest.ID, added.ID)
 			require.NoError(t, err)
 			assert.Equal(t, "added-renamed", found.Name, "UpdateFull updated the monitor Create wrote")
 			name := "kept-renamed"
-			require.NoError(t, repo.UpdatePartial(ctx, kept.ID, &monitor.UpdateModel{Name: &name}))
-			found, err = repo.FindByID(ctx, kept.ID)
+			require.NoError(t, repo.UpdatePartial(ctx, workspacetest.ID, kept.ID, &monitor.UpdateModel{Name: &name}))
+			found, err = repo.FindByID(ctx, workspacetest.ID, kept.ID)
 			require.NoError(t, err)
 			assert.Equal(t, "kept-renamed", found.Name, "UpdatePartial updated the committed monitor")
 
-			require.NoError(t, repo.RemoveProxyReference(ctx, proxyID))
-			byProxy, err = repo.FindByProxyId(ctx, proxyID)
+			require.NoError(t, repo.RemoveProxyReference(ctx, workspacetest.ID, proxyID))
+			byProxy, err = repo.FindByProxyId(ctx, workspacetest.ID, proxyID)
 			require.NoError(t, err)
 			assert.Empty(t, byProxy, "RemoveProxyReference cleared both monitors' proxy")
 
-			require.NoError(t, repo.Delete(ctx, added.ID))
-			found, err = repo.FindByID(ctx, added.ID)
+			require.NoError(t, repo.Delete(ctx, workspacetest.ID, added.ID))
+			found, err = repo.FindByID(ctx, workspacetest.ID, added.ID)
 			require.NoError(t, err)
 			assert.Nil(t, found, "Delete removed the monitor Create wrote")
 			return errRollBack
 		})
 
 		require.ErrorIs(t, err, errRollBack)
-		all, err := repo.FindAll(ctx, 0, 10, "", nil, nil, nil)
+		all, err := repo.FindAll(ctx, workspacetest.ID, 0, 10, "", nil, nil, nil)
 		require.NoError(t, err)
 		require.Len(t, all, 1, "the rollback undid the Create")
 		assert.Equal(t, kept.ID, all[0].ID)

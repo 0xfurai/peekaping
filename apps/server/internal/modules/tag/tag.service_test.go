@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 
 	"peekaping/cmd/bun/migrations"
@@ -55,7 +56,8 @@ func (h *harness) create(t *testing.T, name string) *tag.Model {
 func (h *harness) monitor(t *testing.T) string {
 	t.Helper()
 	id := uuid.NewString()
-	_, err := h.db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
+	workspacetest.Ensure(t, h.db)
+	_, err := h.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 	require.NoError(t, err)
 	return id
 }

@@ -96,7 +96,7 @@ func (db *fakeDB) get(id string) shared.Monitor {
 	return *db.byID[id]
 }
 
-func (db *fakeDB) FindByID(_ context.Context, id string) (*shared.Monitor, error) {
+func (db *fakeDB) FindByIDAnyWorkspace(_ context.Context, id string) (*shared.Monitor, error) {
 	db.mu.Lock()
 	hold := db.held[id]
 	delete(db.held, id)
@@ -118,12 +118,12 @@ func (db *fakeDB) FindByID(_ context.Context, id string) (*shared.Monitor, error
 
 // FindActivePaginated pages every active monitor, whichever probe runs it, as the stale-monitor
 // watchdog reads them
-func (db *fakeDB) FindActivePaginated(ctx context.Context, page, limit int) ([]*shared.Monitor, error) {
+func (db *fakeDB) FindActivePaginatedAnyWorkspace(ctx context.Context, page, limit int) ([]*shared.Monitor, error) {
 	return db.pageActive(page, limit, func(*shared.Monitor) bool { return true })
 }
 
 // FindActiveByProbe pages the active monitors the probe runs
-func (db *fakeDB) FindActiveByProbe(_ context.Context, probeID string, page, limit int) ([]*shared.Monitor, error) {
+func (db *fakeDB) FindActiveByProbeAnyWorkspace(_ context.Context, probeID string, page, limit int) ([]*shared.Monitor, error) {
 	return db.pageActive(page, limit, func(m *shared.Monitor) bool { return m.RunsOn(probeID) })
 }
 
@@ -144,7 +144,7 @@ func (db *fakeDB) pageActive(page, limit int, keep func(*shared.Monitor) bool) (
 }
 
 func (db *fakeDB) Load(ctx context.Context, id string) (*check.Job, error) {
-	m, _ := db.FindByID(ctx, id)
+	m, _ := db.FindByIDAnyWorkspace(ctx, id)
 	if m == nil {
 		return nil, check.ErrMonitorNotFound
 	}

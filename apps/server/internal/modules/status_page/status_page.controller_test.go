@@ -8,6 +8,7 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,7 +29,7 @@ type locationsService struct {
 	heartbeatsErr map[string]error
 }
 
-func (s *locationsService) GetHeartbeats(_ context.Context, _, probeID string, _, _ int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
+func (s *locationsService) GetHeartbeatsAnyWorkspace(_ context.Context, _, probeID string, _, _ int, _ *bool, _ bool) ([]*heartbeat.Model, error) {
 	if err := s.heartbeatsErr[probeID]; err != nil {
 		return nil, err
 	}
@@ -36,7 +37,7 @@ func (s *locationsService) GetHeartbeats(_ context.Context, _, probeID string, _
 }
 
 // GetUptime24h answers nil for a probe that has no entry in uptimes: no heartbeats in the period
-func (s *locationsService) GetUptime24h(_ context.Context, _, probeID string) (*float64, error) {
+func (s *locationsService) GetUptime24hAnyWorkspace(_ context.Context, _, probeID string) (*float64, error) {
 	s.uptimeCalls = append(s.uptimeCalls, probeID)
 	if err := s.uptimeErr[probeID]; err != nil {
 		return nil, err
@@ -48,7 +49,7 @@ func (s *locationsService) GetUptime24h(_ context.Context, _, probeID string) (*
 	return &uptime, nil
 }
 
-func (s *locationsService) GetUptimeStats(context.Context, string, string) (*monitor.CustomUptimeStatsDto, error) {
+func (s *locationsService) GetUptimeStats(context.Context, workspace.ID, string, string) (*monitor.CustomUptimeStatsDto, error) {
 	s.statsCalls++
 	return nil, errors.New("stats were not meant to be read")
 }

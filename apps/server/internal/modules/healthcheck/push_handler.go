@@ -39,7 +39,7 @@ func RegisterPushEndpoint(
 		r := input.Request
 		token := r.PathValue("token")
 
-		monitor, err := monitorService.FindOneByPushToken(ctx, token)
+		monitor, err := monitorService.FindOneByPushTokenAnyWorkspace(ctx, token)
 		if err != nil {
 			logger.Errorw("Failed to find monitor with push token", "error", err)
 			return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))

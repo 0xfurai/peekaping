@@ -37,7 +37,7 @@ var serverOnly = []struct{ path, why string }{
 const modulesPrefix = "peekaping/internal/modules/"
 
 // probeModules are the only packages of the server's modules that the probe links. Each holds no
-// storage or queue: the types the modules share, the in-process event bus, the executors of the
+// storage or queue: the types the modules share, the type of a workspace's ID, the in-process event bus, the executors of the
 // monitor types, what the probe's scheduler runs a check with (the job, the supervisor that runs
 // one and the contract its result is ingested through), and the scheduler itself. A package that
 // is not here must not get into the probe through an import; move what the probe needs of it
@@ -50,6 +50,7 @@ var probeModules = []string{
 	"ingester/ingest",
 	"scheduler",
 	"shared",
+	"workspace/workspaceid",
 }
 
 // goTool finds the go command the test runs: the one on PATH, or else the one of the toolchain

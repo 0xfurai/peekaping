@@ -2,11 +2,16 @@
 // It imports no other module, so that every module can import it.
 package workspace
 
-import "time"
+import (
+	"time"
+
+	"peekaping/internal/modules/workspace/workspaceid"
+)
 
 // ID is the ID of a workspace. It is a type of its own so that it can't be swapped with the string
-// ID of a record that a workspace owns.
-type ID string
+// ID of a record that a workspace owns. It is defined in a package of its own that the probe may
+// link (workspaceid), and this is the same type.
+type ID = workspaceid.ID
 
 // Role is what a member may do in their workspace.
 type Role string

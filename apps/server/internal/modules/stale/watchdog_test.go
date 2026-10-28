@@ -25,14 +25,14 @@ type fakeMonitors struct {
 	byID   map[string]*shared.Monitor
 }
 
-func (m *fakeMonitors) FindActivePaginated(_ context.Context, page, _ int) ([]*shared.Monitor, error) {
+func (m *fakeMonitors) FindActivePaginatedAnyWorkspace(_ context.Context, page, _ int) ([]*shared.Monitor, error) {
 	if page == 0 {
 		return m.active, nil
 	}
 	return nil, nil
 }
 
-func (m *fakeMonitors) FindByID(_ context.Context, id string) (*shared.Monitor, error) {
+func (m *fakeMonitors) FindByIDAnyWorkspace(_ context.Context, id string) (*shared.Monitor, error) {
 	return m.byID[id], nil
 }
 
@@ -661,12 +661,12 @@ type stopsOnRead struct {
 	heartbeatReads int
 }
 
-func (s *stopsOnRead) FindActivePaginated(ctx context.Context, page, limit int) ([]*shared.Monitor, error) {
+func (s *stopsOnRead) FindActivePaginatedAnyWorkspace(ctx context.Context, page, limit int) ([]*shared.Monitor, error) {
 	if s.failOnMonitors {
 		s.cancel()
 		return nil, ctx.Err()
 	}
-	return s.fakeMonitors.FindActivePaginated(ctx, page, limit)
+	return s.fakeMonitors.FindActivePaginatedAnyWorkspace(ctx, page, limit)
 }
 
 func (s *stopsOnRead) FindByMonitorIDPaginated(ctx context.Context, _ string, _, _ int, _ *bool, _ bool) ([]*shared.HeartBeatModel, error) {
