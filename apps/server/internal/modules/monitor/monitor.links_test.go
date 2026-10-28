@@ -22,7 +22,7 @@ import (
 func linkedCreateDto() *CreateUpdateDto {
 	return &CreateUpdateDto{
 		Type: "http", Name: "Checkout", Interval: 60, Timeout: 16, RetryInterval: 60, Active: true, Config: "{}",
-		NotificationIds: []string{"channel-a", "channel-a", "channel-b"}, TagIds: []string{"tag-a"}, ProxyId: "proxy-a",
+		NotificationIds: []string{"channel-a", "channel-a", "channel-b"}, TagIds: []string{"tag-a"}, ProxyId: "8d3f0a56-2c30-4d6d-9c85-2b8f4e5c7a33",
 	}
 }
 
@@ -40,7 +40,7 @@ func TestMonitorService_ALinkOutsideTheWorkspaceFailsTheWriteBeforeAnythingIsWri
 			t.On("RequireTags", mock.Anything, testWorkspace, []string{"tag-a"}).Return(fmt.Errorf("%w: tag-a", monitor_tag.ErrUnknownTag))
 		}, monitor_tag.ErrUnknownTag},
 		{"proxy", func(_ *MockMonitorNotificationService, _ *MockMonitorTagService, r *MockMonitorRepository) {
-			r.On("ProxyInWorkspace", mock.Anything, testWorkspace, "proxy-a").Return(false, nil)
+			r.On("ProxyInWorkspace", mock.Anything, testWorkspace, "8d3f0a56-2c30-4d6d-9c85-2b8f4e5c7a33").Return(false, nil)
 		}, ErrProxyNotFound},
 	}
 	for _, tc := range cases {
@@ -92,7 +92,7 @@ func TestMonitorService_APartialUpdateChecksOnlyTheLinksItNames(t *testing.T) {
 
 	t.Run("a proxy of another workspace", func(t *testing.T) {
 		service, repo, _, _, _, _, _, _ := setupMonitorService()
-		proxyID := "proxy-a"
+		proxyID := "8d3f0a56-2c30-4d6d-9c85-2b8f4e5c7a33"
 		repo.On("FindByID", mock.Anything, testWorkspace, "mon-1").Return(current, nil)
 		repo.On("ProxyInWorkspace", mock.Anything, testWorkspace, proxyID).Return(false, nil)
 
