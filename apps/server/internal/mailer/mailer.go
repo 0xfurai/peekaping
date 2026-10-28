@@ -108,10 +108,37 @@ func (m *Mailer) Send(ctx context.Context, to, subject, text, html string) error
 func (m *Mailer) Deliver(to, subject, text, html string) {
 	m.Background(func(ctx context.Context) {
 		if err := m.Send(ctx, to, subject, text, html); err != nil {
-			// The recipient is left out of the log: it is somebody's address
-			m.logger.Errorw("Failed to send an account email", "subject", subject, "error", err)
+			// The recipient is left out of the log: it is somebody's address. So is the server's text
+			// (see Describe)
+			m.logger.Errorw("Failed to send an account email", "subject", subject, "reason", Describe(err))
 		}
 	})
+}
+
+// Describe says why a Send failed in a form that is safe to log: the SMTP reply code, or the type of
+// the error. It never carries the text of the error, because an SMTP server echoes the recipient's
+// address in a rejection ("550 5.1.1 <alice@example.com>: user unknown") and net/smtp returns that
+// text.
+func Describe(err error) string {
+	var reply *textproto.Error
+	if errors.As(err, &reply) {
+		return fmt.Sprintf("the server replied %d", reply.Code)
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "send failed: timed out"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "send failed: cancelled"
+	}
+	leaf := err
+	for {
+		next := errors.Unwrap(leaf)
+		if next == nil {
+			break
+		}
+		leaf = next
+	}
+	return fmt.Sprintf("send failed: %T", leaf)
 }
 
 // Background runs fn in its own goroutine with a context that ends after deliverTimeout, and Wait

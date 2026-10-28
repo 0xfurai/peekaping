@@ -21,22 +21,39 @@ async function adminWorkspace(api: APIRequestContext): Promise<{ id: string; nam
   return workspace!;
 }
 
+// Runs every step even when an earlier one throws, then reports all the failures at once, so a
+// failed cleanup step can't leave the ones after it undone.
+async function runAll(steps: (() => Promise<void>)[]) {
+  const failures: unknown[] = [];
+  for (const step of steps) {
+    try {
+      await step();
+    } catch (error) {
+      failures.push(error);
+    }
+  }
+  if (failures.length === 1) throw failures[0];
+  if (failures.length > 1) throw new AggregateError(failures, `${failures.length} cleanup steps failed`);
+}
+
 // Removes what the test left in the admin's workspace if it failed before the UI did: the member
 // (who stays a user, with a workspace of their own, since there is no API to delete a user) and
-// the invite.
+// the invite. Every deletion is tried, whichever of the others fails.
 async function removeFromWorkspace(api: APIRequestContext, email: string) {
-  const invites = await api.get('workspace/invites');
-  if (invites.ok()) {
-    for (const invite of (await invites.json()).data as { id: string; email: string }[]) {
-      if (invite.email === email) await deleteCreated(api, `workspace/invites/${invite.id}`);
-    }
-  }
-  const members = await api.get('workspace/members');
-  if (members.ok()) {
-    for (const member of (await members.json()).data as { userId: string; email: string }[]) {
-      if (member.email === email) await deleteCreated(api, `workspace/members/${member.userId}`);
-    }
-  }
+  await runAll([
+    async () => {
+      const invites = await api.get('workspace/invites');
+      if (!invites.ok()) return;
+      const mine = ((await invites.json()).data as { id: string; email: string }[]).filter((i) => i.email === email);
+      await runAll(mine.map((invite) => () => deleteCreated(api, `workspace/invites/${invite.id}`)));
+    },
+    async () => {
+      const members = await api.get('workspace/members');
+      if (!members.ok()) return;
+      const mine = ((await members.json()).data as { userId: string; email: string }[]).filter((m) => m.email === email);
+      await runAll(mine.map((member) => () => deleteCreated(api, `workspace/members/${member.userId}`)));
+    },
+  ]);
 }
 
 const switcher = (page: Page) => page.getByRole('button', { name: 'Switch workspace' });
@@ -131,9 +148,15 @@ test('an admin invites a member by a link, who works in the workspace, makes the
     // /me was fetched again: the first workspace is gone from the switcher, which leaves one
     await expect(switcher(member)).toHaveCount(0);
   } finally {
-    await memberContext.close();
-    await deleteCreated(api, `monitors/${monitor.id}`);
-    await removeFromWorkspace(api, email);
-    await api.dispose();
+    // Each step runs even if an earlier one throws; the failures are reported together after
+    try {
+      await runAll([
+        () => memberContext.close(),
+        () => deleteCreated(api, `monitors/${monitor.id}`),
+        () => removeFromWorkspace(api, email),
+      ]);
+    } finally {
+      await api.dispose();
+    }
   }
 });

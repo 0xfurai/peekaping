@@ -19,6 +19,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/mailer"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/smtpclient/smtptest"
 
 	"github.com/stretchr/testify/assert"
@@ -603,6 +604,22 @@ func TestInvites_WithASenderTheInviteIsEmailedAndTheLinkStaysInTheAnswer(t *test
 		assert.Contains(t, text, "expires in 7 days")
 		assert.Contains(t, subjectOf(t, sent[0]), "My workspace")
 		assert.Equal(t, 1, len(mail.Messages())-1, "only the invite, besides the admin's verification link")
+	})
+}
+
+func TestInvites_AWorkspaceNameWithLineBreaksStillGetsItsInviteEmailed(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
+		made := decode[workspaceResponse](t, a.request(t, http.MethodPost, workspacesURL,
+			map[string]any{"name": "Side\r\nBcc: victim@example.com\tproject"}, a.asAdmin), http.StatusCreated)
+
+		w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "bob@example.com", "role": "member"}, a.asAdmin, inWorkspace(workspace.ID(made.ID)))
+		decode[createdInviteResponse](t, w, http.StatusCreated)
+
+		a.settled(t)
+		sent := mailTo(mail, "bob@example.com")
+		require.Len(t, sent, 1, "a line break in the name must not stop the invite email")
+		assert.Equal(t, "You're invited to Side  Bcc: victim@example.com project on Peekaping", subjectOf(t, sent[0]))
+		assert.NotContains(t, sent[0].Data, "\r\nBcc:", "and must not add a header")
 	})
 }
 
