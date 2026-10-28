@@ -2,12 +2,14 @@ package proxy_test
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"path/filepath"
 	"testing"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/proxy"
@@ -28,22 +30,54 @@ type removal struct {
 	proxy     string
 }
 
-// recordingMonitors answers the one monitor service call the proxy service makes
+// recordingMonitors answers the monitor service calls the proxy service makes. It clears the proxy
+// from the monitors the way the real service does, in the transaction the context carries.
 type recordingMonitors struct {
 	monitor.Service
+	db       *bun.DB
 	removals []removal
-	err      error
+	// published is every monitor that PublishUpdated was given
+	published []*monitor.Model
+	err       error
 	// onRemove runs inside the call, to see what the proxy is like by then
-	onRemove func()
+	onRemove func(ctx context.Context)
 }
 
-func (m *recordingMonitors) RemoveProxyReference(_ context.Context, workspaceID workspace.ID, proxyID string) error {
+func (m *recordingMonitors) RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyID string) ([]*monitor.Model, error) {
 	m.removals = append(m.removals, removal{workspaceID, proxyID})
 	if m.onRemove != nil {
-		m.onRemove()
+		m.onRemove(ctx)
 	}
-	return m.err
+	if m.err != nil {
+		return nil, m.err
+	}
+	var ids []string
+	idb := dbtx.DB(ctx, m.db)
+	if err := idb.NewSelect().Table("monitors").Column("id").Where("proxy_id = ?", proxyID).Where("workspace_id = ?", string(workspaceID)).Scan(ctx, &ids); err != nil {
+		return nil, err
+	}
+	if _, err := idb.NewUpdate().Table("monitors").Set("proxy_id = NULL").Where("proxy_id = ?", proxyID).Where("workspace_id = ?", string(workspaceID)).Exec(ctx); err != nil {
+		return nil, err
+	}
+	changed := make([]*monitor.Model, 0, len(ids))
+	for _, id := range ids {
+		changed = append(changed, &monitor.Model{ID: id})
+	}
+	return changed, nil
 }
+
+func (m *recordingMonitors) PublishUpdated(_ context.Context, monitors []*monitor.Model) {
+	m.published = append(m.published, monitors...)
+}
+
+// failingDelete is a repository whose delete fails, as a database does when it goes away between
+// the service's steps
+type failingDelete struct {
+	proxy.Repository
+	err error
+}
+
+func (f *failingDelete) Delete(context.Context, workspace.ID, string) error { return f.err }
 
 type harness struct {
 	db       *bun.DB
@@ -66,9 +100,32 @@ func newHarness(t *testing.T) *harness {
 	_, err = migrator.Migrate(ctx)
 	require.NoError(t, err)
 
-	monitors := &recordingMonitors{}
-	svc := proxy.NewService(proxy.NewServiceParams{Repository: proxy.NewSQLRepository(db), MonitorService: monitors, Logger: logger})
-	return &harness{db: db, svc: svc, monitors: monitors, ws: workspace.ID(workspacetest.OldestOrAdd(t, db))}
+	monitors := &recordingMonitors{db: db}
+	h := &harness{db: db, monitors: monitors, ws: workspace.ID(workspacetest.OldestOrAdd(t, db))}
+	h.svc = h.serviceOver(proxy.NewSQLRepository(db))
+	return h
+}
+
+// serviceOver is the proxy service on the repository, with the harness's database and monitors
+func (h *harness) serviceOver(repository proxy.Repository) proxy.Service {
+	return proxy.NewService(proxy.NewServiceParams{Repository: repository, MonitorService: h.monitors, Transactor: dbtx.NewSQLTransactor(h.db), Logger: zap.NewNop().Sugar()})
+}
+
+// monitorUsing stores a monitor that uses the proxy, and returns its ID
+func (h *harness) monitorUsing(t *testing.T, workspaceID workspace.ID, proxyID string) string {
+	t.Helper()
+	id := uuid.NewString()
+	_, err := h.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, proxy_id) VALUES (?, ?, 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, string(workspaceID), proxyID)
+	require.NoError(t, err)
+	return id
+}
+
+// proxyOf is the proxy a monitor uses, empty when it uses none
+func (h *harness) proxyOf(t *testing.T, monitorID string) string {
+	t.Helper()
+	var proxyID sql.NullString
+	require.NoError(t, h.db.NewSelect().Table("monitors").Column("proxy_id").Where("id = ?", monitorID).Scan(context.Background(), &proxyID))
+	return proxyID.String
 }
 
 func (h *harness) create(t *testing.T, workspaceID workspace.ID, host string) *proxy.Model {
@@ -173,10 +230,11 @@ func TestProxyService_DeleteClearsTheProxyFromTheWorkspacesMonitorsAndDeletesIt(
 	h := newHarness(t)
 	ctx := context.Background()
 	created := h.create(t, h.ws, "proxy.example.com")
-	h.monitors.onRemove = func() {
-		found, err := h.svc.FindByID(ctx, h.ws, created.ID)
+	h.monitors.onRemove = func(ctx context.Context) {
+		// through the transaction the call runs in: the database has one connection
+		count, err := dbtx.DB(ctx, h.db).NewSelect().Table("proxies").Where("id = ?", created.ID).Count(ctx)
 		require.NoError(t, err)
-		assert.NotNil(t, found, "the monitors are cleared while the proxy still exists, so the database clears nothing silently")
+		assert.Equal(t, 1, count, "the monitors are cleared while the proxy still exists, so the database clears nothing silently")
 	}
 
 	require.NoError(t, h.svc.Delete(ctx, h.ws, created.ID))
@@ -208,4 +266,38 @@ func TestProxyService_DeletingAMissingProxyIsNotFound(t *testing.T) {
 
 	assert.ErrorIs(t, err, proxy.ErrNotFound)
 	assert.Empty(t, h.monitors.removals)
+}
+
+func TestProxyService_ADeleteThatFailsLeavesTheMonitorsTheirProxyAndPublishesNothing(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	created := h.create(t, h.ws, "proxy.example.com")
+	first, second := h.monitorUsing(t, h.ws, created.ID), h.monitorUsing(t, h.ws, created.ID)
+	svc := h.serviceOver(&failingDelete{Repository: proxy.NewSQLRepository(h.db), err: errors.New("delete failed")})
+
+	err := svc.Delete(ctx, h.ws, created.ID)
+
+	assert.ErrorContains(t, err, "delete failed")
+	assert.Equal(t, created.ID, h.proxyOf(t, first), "the monitors still use the proxy that was not deleted")
+	assert.Equal(t, created.ID, h.proxyOf(t, second))
+	assert.Empty(t, h.monitors.published, "and nobody is told they changed")
+}
+
+func TestProxyService_ADeleteTellsTheMonitorsItClearedOnceItHasCommitted(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	created := h.create(t, h.ws, "proxy.example.com")
+	using := h.monitorUsing(t, h.ws, created.ID)
+	h.monitors.onRemove = func(context.Context) {
+		assert.Empty(t, h.monitors.published, "nothing is published inside the transaction")
+	}
+
+	require.NoError(t, h.svc.Delete(ctx, h.ws, created.ID))
+
+	require.Len(t, h.monitors.published, 1)
+	assert.Equal(t, using, h.monitors.published[0].ID)
+	assert.Empty(t, h.proxyOf(t, using))
+	found, err := h.svc.FindByID(ctx, h.ws, created.ID)
+	require.NoError(t, err)
+	assert.Nil(t, found)
 }

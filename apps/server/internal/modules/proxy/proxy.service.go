@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/workspace"
 
@@ -27,6 +28,7 @@ type Service interface {
 type ServiceImpl struct {
 	repository     Repository
 	monitorService monitor.Service
+	transactor     dbtx.Transactor
 	logger         *zap.SugaredLogger
 }
 
@@ -34,13 +36,16 @@ type NewServiceParams struct {
 	dig.In
 	Repository     Repository
 	MonitorService monitor.Service
-	Logger         *zap.SugaredLogger
+	// Transactor makes the deletes of a proxy and of the references to it one transaction
+	Transactor dbtx.Transactor
+	Logger     *zap.SugaredLogger
 }
 
 func NewService(params NewServiceParams) Service {
 	return &ServiceImpl{
 		repository:     params.Repository,
 		monitorService: params.MonitorService,
+		transactor:     params.Transactor,
 		logger:         params.Logger.Named("[proxy-service]"),
 	}
 }
@@ -110,9 +115,20 @@ func (mr *ServiceImpl) Delete(ctx context.Context, workspaceID workspace.ID, id 
 
 	// The workspace's monitors stop using the proxy, and are told they changed. The database
 	// would clear the reference when the proxy goes, but silently: nothing would tell the
-	// scheduler to load the monitors' config again. A failure stops the delete.
-	if err := mr.monitorService.RemoveProxyReference(ctx, workspaceID, id); err != nil {
+	// scheduler to load the monitors' config again. Clearing them and deleting the proxy are one
+	// transaction, so a delete that fails leaves the monitors their proxy, and the events go out
+	// only after it has committed.
+	var changed []*monitor.Model
+	err = mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		if changed, err = mr.monitorService.RemoveProxyReference(ctx, workspaceID, id); err != nil {
+			return err
+		}
+		return mr.repository.Delete(ctx, workspaceID, id)
+	})
+	if err != nil {
 		return err
 	}
-	return mr.repository.Delete(ctx, workspaceID, id)
+	mr.monitorService.PublishUpdated(ctx, changed)
+	return nil
 }

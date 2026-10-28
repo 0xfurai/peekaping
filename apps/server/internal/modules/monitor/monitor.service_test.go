@@ -1793,7 +1793,7 @@ func TestMonitorService_FindByIDs(t *testing.T) {
 func TestMonitorService_RemoveProxyReference(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("clears the proxy and publishes a monitor-updated event for each monitor it changed", func(t *testing.T) {
+	t.Run("clears the proxy and returns the monitors it changed, which PublishUpdated announces", func(t *testing.T) {
 		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		proxyId := "proxy123"
 		using := []*Model{{ID: "monitor1", ProxyId: proxyId}, {ID: "monitor2", ProxyId: proxyId}}
@@ -1801,23 +1801,30 @@ func TestMonitorService_RemoveProxyReference(t *testing.T) {
 		mockRepo.On("RemoveProxyReference", mock.Anything, testWorkspace, proxyId).Return(nil)
 		mockRepo.On("FindByID", mock.Anything, testWorkspace, "monitor1").Return(&Model{ID: "monitor1", Name: "One"}, nil)
 		mockRepo.On("FindByID", mock.Anything, testWorkspace, "monitor2").Return(&Model{ID: "monitor2", Name: "Two"}, nil)
-		err := service.RemoveProxyReference(ctx, testWorkspace, proxyId)
+		changed, err := service.RemoveProxyReference(ctx, testWorkspace, proxyId)
 
 		assert.NoError(t, err)
+		assert.Empty(t, bus.Topics(), "it publishes nothing: the caller does, after its transaction commits")
+		require.Len(t, changed, 2)
+		assert.Equal(t, "One", changed[0].Name, "the monitors are as they are stored now")
+		assert.Empty(t, changed[0].ProxyId)
+		assert.Equal(t, "Two", changed[1].Name)
+
+		service.PublishUpdated(ctx, changed)
 		updated := eventstest.Published(bus, events.MonitorUpdated)
 		require.Len(t, updated, 2)
-		assert.Equal(t, "One", updated[0].Name, "the event carries the monitor as it is stored now")
-		assert.Empty(t, updated[0].ProxyId)
+		assert.Equal(t, "One", updated[0].Name)
 		assert.Equal(t, "Two", updated[1].Name)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("publishes nothing when no monitor of the workspace uses the proxy", func(t *testing.T) {
+	t.Run("changes nothing when no monitor of the workspace uses the proxy", func(t *testing.T) {
 		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		mockRepo.On("FindByProxyId", mock.Anything, testWorkspace, "proxy123").Return([]*Model{}, nil)
-		err := service.RemoveProxyReference(ctx, testWorkspace, "proxy123")
+		changed, err := service.RemoveProxyReference(ctx, testWorkspace, "proxy123")
 
 		assert.NoError(t, err)
+		assert.Empty(t, changed)
 		assert.Empty(t, bus.Topics())
 		mockRepo.AssertNotCalled(t, "RemoveProxyReference", mock.Anything, mock.Anything, mock.Anything)
 	})
@@ -1827,9 +1834,10 @@ func TestMonitorService_RemoveProxyReference(t *testing.T) {
 		proxyId := "proxy123"
 		mockRepo.On("FindByProxyId", mock.Anything, testWorkspace, proxyId).Return([]*Model{{ID: "monitor1"}}, nil)
 		mockRepo.On("RemoveProxyReference", mock.Anything, testWorkspace, proxyId).Return(errors.New("repository error"))
-		err := service.RemoveProxyReference(ctx, testWorkspace, proxyId)
+		changed, err := service.RemoveProxyReference(ctx, testWorkspace, proxyId)
 
 		assert.Error(t, err)
+		assert.Nil(t, changed)
 		assert.Contains(t, err.Error(), "repository error")
 		assert.Empty(t, bus.Topics())
 		mockRepo.AssertExpectations(t)
