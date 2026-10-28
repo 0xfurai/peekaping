@@ -48,6 +48,8 @@ function join(socket: RoomSocket, registry: Registry, room: string) {
   if (registry.joined.has(room)) return;
   registry.joined.add(room);
   socket.emit("join_room", room);
+  // The e2e specs wait for this line (e2e/support/monitor-list.ts) to know the page is in the room
+  console.log("Subscribed to heartbeat", room);
 }
 
 function leaveWhenUnused(socket: RoomSocket, registry: Registry, room: string) {
