@@ -274,7 +274,7 @@ test.describe('Setup screen', () => {
         json: {
           status: 'success',
           message: 'Auth config retrieved successfully',
-          data: { accountEmails: false, signupMode: 'invite', signupOpen: true, turnstileSiteKey: null },
+          data: { accountEmails: false, firstSignup: true, signupMode: 'invite', signupOpen: true, turnstileSiteKey: null },
         },
       }),
     );
