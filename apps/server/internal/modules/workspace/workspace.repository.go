@@ -8,6 +8,13 @@ import "context"
 type Repository interface {
 	// Create adds a workspace with no member.
 	Create(ctx context.Context, name string) (*Workspace, error)
+	// CreateSuspended adds a workspace with no member that is suspended for the reason from the
+	// start, so that there is no moment at which its monitors could run.
+	CreateSuspended(ctx context.Context, name string, reason string) (*Workspace, error)
+	// LiftUnverifiedOwnedBy ends the SuspendedUnverified suspension of every workspace the user
+	// owns, and returns the workspaces it lifted: the caller wakes their monitors. A workspace
+	// suspended for another reason, or one the user is only an admin or member of, stays as it is.
+	LiftUnverifiedOwnedBy(ctx context.Context, userID string) ([]ID, error)
 	// AddMember makes the user a member of the workspace with the role.
 	AddMember(ctx context.Context, id ID, userID string, role Role) error
 	// ListMemberships returns the user's places in workspaces, the one they joined first at the
