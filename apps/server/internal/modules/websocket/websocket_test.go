@@ -80,6 +80,9 @@ type harness struct {
 	// connections has a channel for each socket ID, which the server closes when the socket
 	// is connected
 	connections sync.Map
+	// onConnection, when set, runs in the server's connection handler before the socket's channel
+	// in connections is closed
+	onConnection atomic.Pointer[func(id string)]
 }
 
 // connection is the channel the server closes when the socket with the ID has connected
@@ -90,12 +93,19 @@ func (h *harness) connection(id string) chan struct{} {
 
 func newHarness(t *testing.T) *harness {
 	t.Helper()
-	return newHarnessWithConnectionDelay(t, 0)
+	return newHarnessWith(t, 0, 0)
 }
 
 // newHarnessWithConnectionDelay is newHarness with the server's connection handler waiting for
 // delay first, when it isn't zero.
 func newHarnessWithConnectionDelay(t *testing.T, delay time.Duration) *harness {
+	t.Helper()
+	return newHarnessWith(t, delay, 0)
+}
+
+// newHarnessWith is newHarness with the connection delay, and with the server sweeping its open
+// sockets every sweep when it isn't zero.
+func newHarnessWith(t *testing.T, delay, sweep time.Duration) *harness {
 	t.Helper()
 	ctx := context.Background()
 	sqlDB, err := sql.Open(sqliteshim.ShimName, filepath.Join(t.TempDir(), "websocket.db"))
@@ -116,7 +126,15 @@ func newHarnessWithConnectionDelay(t *testing.T, delay time.Duration) *harness {
 	server, err := websocket.NewServer(&config.Config{}, bus, tokens, workspace.NewSQLRepository(db), monitor.NewSQLRepository(db), logger)
 	require.NoError(t, err)
 	h := &harness{bus: bus, tokens: tokens, db: db}
-	websocket.OnConnection(server, delay, func(id string) { close(h.connection(id)) })
+	websocket.OnConnection(server, delay, func(id string) {
+		if hook := h.onConnection.Load(); hook != nil {
+			(*hook)(id)
+		}
+		close(h.connection(id))
+	})
+	if sweep != 0 {
+		websocket.SweepEvery(server, sweep)
+	}
 	srv := httptest.NewServer(server)
 	// Dropping the connections ends the open requests, so Close doesn't wait
 	// for them. server.Close isn't called: engine.io then writes to its
@@ -167,6 +185,14 @@ func (h *harness) tokenFor(t *testing.T, userID string) string {
 	token, err := h.tokens.CreateAccessToken(context.Background(), &auth.Model{ID: userID, Email: userID + "@example.com"})
 	require.NoError(t, err)
 	return token
+}
+
+// endSessions ends every session of the user that began before now, as a password reset does,
+// without publishing SessionsEnded. It returns the error, so a server goroutine may call it.
+func (h *harness) endSessions(userID string) error {
+	// A session that began in this millisecond is the new one, so the cutoff is after it
+	time.Sleep(2 * time.Millisecond)
+	return auth.NewSQLAccountRepository(h.db).EndSessions(context.Background(), userID, time.Now().UTC())
 }
 
 // accessToken is an access token of userA
@@ -1032,4 +1058,55 @@ func TestADeletedUserIsRefusedTheirJoin(t *testing.T) {
 	t.Logf("membership rows left after the delete: %d", members)
 
 	a.joinRefused(t, roomOf(workspaceA))
+}
+
+// A socket outlives its token's check, and may miss SessionsEnded: a socket whose session ended
+// (a password reset moved the cutoff, the account is still active) joins no room
+func TestASocketWhoseSessionEndedIsRefusedItsJoin(t *testing.T) {
+	h := newHarness(t)
+	a := h.connectAs(t, h.userA)
+	a.joinOK(t, roomOf(workspaceA))
+
+	require.NoError(t, h.endSessions(h.userA))
+
+	a.joinRefused(t, roomOf(workspaceA))
+	a.joinRefused(t, "monitor:"+monitorA)
+	fresh := h.connectAs(t, h.userA)
+	fresh.joinOK(t, roomOf(workspaceA))
+}
+
+// The socket is known to SessionsEnded before the library marks it connected, and a socket that
+// is not connected yet ignores Disconnect. A session that ends in that window still closes the
+// socket, once it is connected.
+func TestASessionThatEndsWhileTheSocketConnectsClosesIt(t *testing.T) {
+	h := newHarness(t)
+	var ended atomic.Value
+	hook := func(string) {
+		if err := h.endSessions(h.userA); err != nil {
+			ended.Store(err)
+		}
+	}
+	h.onConnection.Store(&hook)
+
+	c := h.dial(t, h.accessToken(t))
+
+	c.closed(t)
+	assert.Nil(t, ended.Load(), "ending the sessions failed")
+}
+
+// SessionsEnded travels over Redis pub/sub, which replays nothing a replica missed. The sweep
+// closes a socket whose user was disabled with no event published; the sockets of others stay.
+func TestTheSweepClosesASocketWhoseUserWasDisabled(t *testing.T) {
+	h := newHarnessWith(t, 0, 50*time.Millisecond)
+	teammate := h.addUser(t, workspaceA)
+	a, other := h.connectAs(t, h.userA), h.connectAs(t, teammate)
+	a.joinOK(t, roomOf(workspaceA))
+	other.joinOK(t, roomOf(workspaceA))
+
+	_, err := h.db.Exec("UPDATE users SET active = ? WHERE id = ?", false, h.userA)
+	require.NoError(t, err)
+
+	a.closed(t)
+	publishHeartbeat(t, h.bus, monitorA, "a-after")
+	assert.Equal(t, []string{"a-after"}, heartbeatMsgs(other.untilMsg(t, "a-after")), "the teammate's socket stays")
 }

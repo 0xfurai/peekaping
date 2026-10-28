@@ -453,7 +453,7 @@ func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*L
 	// reset that commits after the user was read here ends that session, whenever these are made.
 	// A token from before auth_time was added falls back to when it was issued.
 	began := time.Now().UTC()
-	if start := claims.sessionStart(); start != nil {
+	if start := claims.SessionStart(); start != nil {
 		began = *start
 	}
 

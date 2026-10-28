@@ -51,3 +51,14 @@ func RequireRole(ctx context.Context, min Role) error {
 	}
 	return nil
 }
+
+// RequireInvite is nil when the caller of the request may invite someone with the role to its
+// workspace: an admin or an owner, and only an owner invites an owner (CanInvite). It returns
+// ErrNotFound for a context with no workspace, ErrForbidden or ErrInvalidRole.
+func RequireInvite(ctx context.Context, role Role) error {
+	if err := RequireRole(ctx, RoleAdmin); err != nil {
+		return err
+	}
+	_, actor, _ := FromContext(ctx)
+	return CanInvite(actor, role)
+}
