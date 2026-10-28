@@ -131,6 +131,40 @@ func TestEndpointDefaultsPerProvider(t *testing.T) {
 	}, got)
 }
 
+// TestURLCredentialKeysPerProvider pins which config keys of each notification channel type are
+// URLs the channel sends to whose credentials (user info and query values) the API masks. A
+// new type with a URL field that can hold a credential has to be added here.
+func TestURLCredentialKeysPerProvider(t *testing.T) {
+	want := map[string][]string{
+		"discord":        {},
+		"gotify":         {"server_url"},
+		"google_chat":    {},
+		"grafana_oncall": {},
+		"line":           {},
+		"matrix":         {"homeserver_url"},
+		"mattermost":     {},
+		"ntfy":           {"server_url"},
+		"opsgenie":       {},
+		"pagerduty":      {"pagerduty_integration_url"},
+		"pagertree":      {},
+		"pushbullet":     {},
+		"pushover":       {},
+		"sendgrid":       {},
+		"signal":         {"signal_url"},
+		"slack":          {},
+		"smtp":           {},
+		"teams":          {},
+		"telegram":       {"server_url"},
+		"twilio":         {},
+		"webhook":        {"webhook_url"},
+		"wecom":          {},
+		"whatsapp":       {"server_url"},
+	}
+
+	got := fieldKeys(newRealRegistry(), func(field configField) bool { return field.urlCredentials })
+	assert.Equal(t, want, got)
+}
+
 // TestUntaggedConfigKeysAreNotSecretsByName catches a secret field that was added without its
 // tag: a key named like a credential has to be tagged, or listed here as the one that isn't.
 func TestUntaggedConfigKeysAreNotSecretsByName(t *testing.T) {
@@ -203,6 +237,46 @@ func (p *secretTestProvider) Send(_ context.Context, configJSON, _ string, _ *mo
 	return nil
 }
 
+// urlTestProvider is a notification channel provider whose config has a URL it sends to that may
+// hold credentials and is an endpoint, the webhook URL, one that is not an endpoint, the signal
+// URL, and a secret, the token
+type urlTestProvider struct {
+	NotificationChannelProvider
+}
+
+type urlTestConfig struct {
+	Plain     string `json:"plain"`
+	Webhook   string `json:"webhook_url" endpoint:"true" urlCredentials:"true"`
+	SignalURL string `json:"signal_url" urlCredentials:"true"`
+	Token     string `json:"token" secret:"true"`
+}
+
+func (*urlTestProvider) Unmarshal(config string) (any, error) {
+	var cfg urlTestConfig
+	if err := json.Unmarshal([]byte(config), &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
+// urlOnlyProvider is a notification channel provider whose config has a URL that may hold
+// credentials and nothing else that is tagged, as the Signal config does
+type urlOnlyProvider struct {
+	NotificationChannelProvider
+}
+
+type urlOnlyConfig struct {
+	SignalURL string `json:"signal_url" urlCredentials:"true"`
+}
+
+func (*urlOnlyProvider) Unmarshal(config string) (any, error) {
+	var cfg urlOnlyConfig
+	if err := json.Unmarshal([]byte(config), &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
 // noSecretsProvider is a notification channel provider whose config has no secrets
 type noSecretsProvider struct {
 	NotificationChannelProvider
@@ -273,6 +347,105 @@ func TestRedactConfig(t *testing.T) {
 		got := redactConfig(provider, `{"url":"https://example.com/?a=1&b=<2>","big":12345678901234567890,"token":"abc"}`)
 		assert.Contains(t, got, `"url":"https://example.com/?a=1&b=<2>"`)
 		assert.Contains(t, got, `"big":12345678901234567890`)
+	})
+}
+
+func TestMaskURLCredentials(t *testing.T) {
+	cases := []struct {
+		name  string
+		value string
+		want  string
+	}{
+		{"an empty value stays empty", ``, ``},
+		{"a password and query values", `https://user:hunter2@hooks.example/x?token=abc&channel=ops`, `https://user:********@hooks.example/x?token=********&channel=********`},
+		{"a user name alone", `https://tok123@ntfy.example`, `https://********@ntfy.example`},
+		{"a user name alone with a path and a port", `https://tok123@ntfy.example:8443/topic`, `https://********@ntfy.example:8443/topic`},
+		{"a user name with an empty password", `https://sk_live_abc:@hooks.example/x`, `https://********@hooks.example/x`},
+		{"an empty user name and password", `https://:@hooks.example/x`, `https://:@hooks.example/x`},
+		{"an empty user name with a password", `https://:hunter2@hooks.example/x`, `https://:********@hooks.example/x`},
+		{"an empty user info", `https://@hooks.example/x`, `https://@hooks.example/x`},
+		{"a password with an at sign in it", `https://user:p@ss@hooks.example/x`, `https://user:********@hooks.example/x`},
+		{"an @ in the path is not user info", `https://hooks.example/@user/x`, `https://hooks.example/@user/x`},
+		{"an @ in the query is not user info", `https://hooks.example/x?mail=a@b.example`, `https://hooks.example/x?mail=********`},
+		{"an @ in the fragment is not user info", `https://hooks.example/x#a@b`, `https://hooks.example/x#a@b`},
+		{"a query value that is empty stays", `https://hooks.example/x?a=&b=2`, `https://hooks.example/x?a=&b=********`},
+		{"a query key with no value is masked", `https://hooks.example/x?secrettoken&b=2`, `https://hooks.example/x?********&b=********`},
+		{"a query value with an equals sign", `https://hooks.example/x?a=b=c`, `https://hooks.example/x?a=********`},
+		{"a query that is a bare question mark stays", `https://hooks.example/a%20b/?`, `https://hooks.example/a%20b/?`},
+		{"empty query segments stay", `https://hooks.example/x?a=1&&b=2&`, `https://hooks.example/x?a=********&&b=********&`},
+		{"a query value written with escapes", `https://hooks.example/x?a=%7Etok%20en`, `https://hooks.example/x?a=********`},
+		{"the fragment stays", `https://hooks.example/x?a=1#frag?b=2`, `https://hooks.example/x?a=********#frag?b=2`},
+		{"a query before a fragment with no path", `https://hooks.example?a=1#f`, `https://hooks.example?a=********#f`},
+		{"everything at once", `https://u:p@h.example:8080/a%20b/c?x=1&y=#f`, `https://u:********@h.example:8080/a%20b/c?x=********&y=#f`},
+		{"a bare host stays", `https://ntfy.sh`, `https://ntfy.sh`},
+		{"a path with escapes stays as written", `https://hooks.example/a%20b/c%2Fd`, `https://hooks.example/a%20b/c%2Fd`},
+		{"an IPv6 host stays", `http://[::1]:8080/x?a=1`, `http://[::1]:8080/x?a=********`},
+		{"an upper case scheme stays", `HTTPS://User:pw@Hooks.Example/X`, `HTTPS://User:********@Hooks.Example/X`},
+		{"a URL with nothing to mask comes back as it is", `http://127.0.0.1:1/hook`, `http://127.0.0.1:1/hook`},
+		{"not a URL", `not a url`, `********`},
+		{"no scheme", `hooks.example/x?token=abc`, `********`},
+		{"no host", `https:///x?token=abc`, `********`},
+		{"a scheme with no slashes", `mailto:user@hooks.example`, `********`},
+		{"a bad escape", `https://user:pw@hooks.example/%zz`, `********`},
+		{"a control character", "https://hooks.example/x\n?token=abc", `********`},
+		{"a bad port", `https://user:pw@hooks.example:port/x`, `********`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, maskURLCredentials(tc.value))
+		})
+	}
+}
+
+func TestRedactConfigMasksURLCredentials(t *testing.T) {
+	provider := &urlTestProvider{}
+	cases := []struct {
+		name     string
+		provider NotificationChannelProvider
+		config   string
+		want     string
+	}{
+		{"a password and a query value are masked", provider, `{"webhook_url":"https://user:hunter2@hooks.example/x?token=hunter2"}`, `{"webhook_url":"https://user:********@hooks.example/x?token=********"}`},
+		{"a user name alone is masked", provider, `{"signal_url":"https://tok123@signal.example"}`, `{"signal_url":"https://********@signal.example"}`},
+		{"a URL with no credentials stays", provider, `{"webhook_url":"https://hooks.example/x","signal_url":"http://127.0.0.1:8080"}`, `{"webhook_url":"https://hooks.example/x","signal_url":"http://127.0.0.1:8080"}`},
+		{"a URL that can't be read is masked whole", provider, `{"webhook_url":"not a url?token=hunter2"}`, `{"webhook_url":"********"}`},
+		{"an empty URL stays empty", provider, `{"webhook_url":"","signal_url":""}`, `{"webhook_url":"","signal_url":""}`},
+		{"a null URL stays null", provider, `{"webhook_url":null}`, `{"webhook_url":null}`},
+		{"an absent URL stays absent", provider, `{"plain":"https://user:pw@x.example/?a=1"}`, `{"plain":"https://user:pw@x.example/?a=1"}`},
+		{"a number is masked whole", provider, `{"webhook_url":123}`, `{"webhook_url":"********"}`},
+		{"an object is masked whole", provider, `{"signal_url":{"a":"https://user:pw@x.example"}}`, `{"signal_url":"********"}`},
+		{"an array is masked whole", provider, `{"webhook_url":["https://x.example"]}`, `{"webhook_url":"********"}`},
+		{"a bool is masked whole", provider, `{"webhook_url":false}`, `{"webhook_url":"********"}`},
+		{"a key of another letter case is the same field", provider, `{"Webhook_URL":"https://user:pw@x.example/?a=1","SIGNAL_URL":7}`, `{"Webhook_URL":"https://user:********@x.example/?a=********","SIGNAL_URL":"********"}`},
+		{"a field that is not a URL credential field stays", provider, `{"plain":"https://user:pw@x.example/?a=1","webhook_url":"https://x.example"}`, `{"plain":"https://user:pw@x.example/?a=1","webhook_url":"https://x.example"}`},
+		{"secrets are replaced beside the URLs", provider, `{"webhook_url":"https://u:p@x.example","token":"abc"}`, `{"webhook_url":"https://u:********@x.example","token":"********"}`},
+		{"unknown fields stay", provider, `{"future":{"a":[1,2]},"webhook_url":"https://u:p@x.example"}`, `{"future":{"a":[1,2]},"webhook_url":"https://u:********@x.example"}`},
+		{"a null config stays", provider, `null`, `null`},
+		{"a config that isn't JSON comes back empty", provider, `{"webhook_url":"https://u:p@x.example"`, ``},
+		{"a config that isn't an object comes back empty", provider, `["https://u:p@x.example"]`, ``},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			requireSameConfig(t, tc.want, redactConfig(tc.provider, tc.config))
+		})
+	}
+
+	t.Run("a type with only URL credentials masks them", func(t *testing.T) {
+		got := redactConfig(&urlOnlyProvider{}, `{"signal_url":"https://u:p@x.example/?a=1"}`)
+		assert.JSONEq(t, `{"signal_url":"https://u:********@x.example/?a=********"}`, got)
+		assert.Equal(t, ``, redactConfig(&urlOnlyProvider{}, `{"signal_url":`), "and fails closed when the config can't be read")
+	})
+
+	t.Run("values that are not masked stay as they were written", func(t *testing.T) {
+		got := redactConfig(provider, `{"webhook_url":"https://x.example/a&b","plain":"a&b<c>","big":12345678901234567890}`)
+		assert.Contains(t, got, `"webhook_url":"https://x.example/a&b"`)
+		assert.Contains(t, got, `"plain":"a&b<c>"`)
+		assert.Contains(t, got, `"big":12345678901234567890`)
+	})
+
+	t.Run("a masked URL is not HTML escaped", func(t *testing.T) {
+		got := redactConfig(provider, `{"webhook_url":"https://u:p@x.example/?a=<b>&c=d"}`)
+		assert.Contains(t, got, `"webhook_url":"https://u:********@x.example/?a=********&c=********"`)
 	})
 }
 

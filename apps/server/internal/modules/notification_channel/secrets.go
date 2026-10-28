@@ -15,20 +15,23 @@ import (
 const secretPlaceholder = "********"
 
 // configField is a field of a provider's config that its struct marks with `secret:"true"`,
-// `endpoint:"true"` or both. A secret is hidden from responses. An endpoint decides where the
-// channel sends its secrets, so a saved secret can only be kept while it stays as it is.
+// `endpoint:"true"`, `urlCredentials:"true"` or a mix. A secret is hidden from responses. An
+// endpoint decides where the channel sends its secrets, so a saved secret can only be kept while it
+// stays as it is. A urlCredentials field is a URL the channel sends to, which isn't a secret itself
+// but may hold credentials, so responses mask its user info and query values.
 type configField struct {
 	// key is the JSON key of the field
 	key string
 	// index is the position of the field in the config struct
-	index    int
-	secret   bool
-	endpoint bool
+	index          int
+	secret         bool
+	endpoint       bool
+	urlCredentials bool
 	// endpointDefault is, for an endpoint, the value the provider uses when the field is empty
 	endpointDefault string
 }
 
-// configFields returns the secret and endpoint fields of a provider's config, which it reads from
+// configFields returns the secret, endpoint and URL credential fields of a provider's config, which it reads from
 // the struct the provider's Unmarshal returns. It returns nothing for a nil provider (an unknown
 // channel type) or a provider that has no config struct.
 func configFields(provider NotificationChannelProvider) []configField {
@@ -52,7 +55,8 @@ func configFields(provider NotificationChannelProvider) []configField {
 		field := t.Field(i)
 		secret := field.Tag.Get("secret") == "true"
 		endpoint := field.Tag.Get("endpoint") == "true"
-		if !field.IsExported() || (!secret && !endpoint) {
+		urlCredentials := field.Tag.Get("urlCredentials") == "true"
+		if !field.IsExported() || (!secret && !endpoint && !urlCredentials) {
 			continue
 		}
 		name, _, _ := strings.Cut(field.Tag.Get("json"), ",")
@@ -63,7 +67,7 @@ func configFields(provider NotificationChannelProvider) []configField {
 			name = field.Name
 		}
 		fields = append(fields, configField{
-			key: name, index: i, secret: secret, endpoint: endpoint,
+			key: name, index: i, secret: secret, endpoint: endpoint, urlCredentials: urlCredentials,
 			endpointDefault: field.Tag.Get("endpointDefault"),
 		})
 	}
@@ -79,6 +83,17 @@ func secretFields(provider NotificationChannelProvider) []configField {
 		}
 	}
 	return secrets
+}
+
+// urlCredentialFields returns the fields that hold a URL whose credentials are masked
+func urlCredentialFields(provider NotificationChannelProvider) []configField {
+	var urls []configField
+	for _, field := range configFields(provider) {
+		if field.urlCredentials {
+			urls = append(urls, field)
+		}
+	}
+	return urls
 }
 
 // secretKeys returns the config keys of a provider that hold secrets
@@ -170,21 +185,95 @@ func stringValue(raw json.RawMessage) (string, bool) {
 	return s, true
 }
 
+// maskURLCredentials returns a URL with the credentials it carries replaced by the placeholder:
+// the password of its user info (the user name stays), a user name that stands alone, since it is
+// often a token, and every query value (the keys stay). The rest of the URL stays byte for byte as
+// it was written, and a URL with nothing to mask comes back as it is. A value that can't be read
+// as a URL with a scheme and a host comes back as the placeholder whole, since it may be a
+// credential in any form. The empty string stays empty.
+func maskURLCredentials(value string) string {
+	if value == "" {
+		return ""
+	}
+	parsed, err := url.Parse(value)
+	schemeEnd := strings.Index(value, "://")
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" || schemeEnd < 0 {
+		return secretPlaceholder
+	}
+
+	// The authority runs from after "://" up to the first "/", "?" or "#"
+	authorityStart := schemeEnd + len("://")
+	authorityEnd := len(value)
+	if i := strings.IndexAny(value[authorityStart:], "/?#"); i >= 0 {
+		authorityEnd = authorityStart + i
+	}
+	authority, rest := value[authorityStart:authorityEnd], value[authorityEnd:]
+
+	// url.Parse ends the user info at the last "@" of the authority
+	if at := strings.LastIndex(authority, "@"); at >= 0 {
+		userinfo := authority[:at]
+		// A user name with an empty password ("sk_live_abc:@") stands alone too
+		if user, password, _ := strings.Cut(userinfo, ":"); password != "" {
+			userinfo = user + ":" + secretPlaceholder
+		} else if user != "" {
+			userinfo = secretPlaceholder
+		}
+		authority = userinfo + authority[at:]
+	}
+
+	// The query runs from the first "?" to the "#" that starts the fragment
+	beforeFragment, fragment, hasFragment := strings.Cut(rest, "#")
+	path, query, hasQuery := strings.Cut(beforeFragment, "?")
+	if hasQuery {
+		segments := strings.Split(query, "&")
+		for i, segment := range segments {
+			if segment == "" {
+				continue
+			}
+			if key, queryValue, hasValue := strings.Cut(segment, "="); !hasValue {
+				segments[i] = secretPlaceholder
+			} else if queryValue != "" {
+				segments[i] = key + "=" + secretPlaceholder
+			}
+		}
+		query = "?" + strings.Join(segments, "&")
+	}
+	masked := value[:authorityStart] + authority + path + query
+	if hasFragment {
+		masked += "#" + fragment
+	}
+	return masked
+}
+
+// jsonString returns s as a JSON string, without escaping HTML so that it stays as written
+func jsonString(s string) json.RawMessage {
+	var out bytes.Buffer
+	encoder := json.NewEncoder(&out)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(s); err != nil {
+		return json.RawMessage(`"` + secretPlaceholder + `"`)
+	}
+	return json.RawMessage(strings.TrimSuffix(out.String(), "\n"))
+}
+
 // redactConfig returns config with each secret that is set replaced by the placeholder. A
 // secret that is absent, null or an empty string stays as it is, so a response tells set from
 // unset. Any other value under a secret's key (a number, a bool, an object, an array) is
-// replaced too: a provider can't have read it as a secret, but it may still be one. Fields that
-// aren't secrets are left alone.
+// replaced too: a provider can't have read it as a secret, but it may still be one. A URL field
+// that holds credentials (urlCredentials) keeps its URL with the credentials masked, as
+// maskURLCredentials writes it, and any value of it that isn't a string (or null) is replaced
+// whole. Fields that are neither are left alone.
 //
-// It fails closed. A config of a type with secrets that isn't a JSON object can't be read, and a
-// config of a type with no provider (nil) can't be told secrets from the rest, so both come back
-// empty rather than risk showing a secret in them.
+// It fails closed. A config of a type with secrets or URL credentials that isn't a JSON object
+// can't be read, and a config of a type with no provider (nil) can't be told secrets from the
+// rest, so both come back empty rather than risk showing a secret in them.
 func redactConfig(provider NotificationChannelProvider, config string) string {
 	if provider == nil {
 		return ""
 	}
 	secrets := secretFields(provider)
-	if len(secrets) == 0 {
+	urls := urlCredentialFields(provider)
+	if len(secrets) == 0 && len(urls) == 0 {
 		return config
 	}
 	fields, ok := parseConfig(config)
@@ -196,11 +285,21 @@ func redactConfig(provider NotificationChannelProvider, config string) string {
 	}
 
 	for key, raw := range fields {
-		if _, isSecret := fieldForKey(secrets, key); !isSecret {
+		if _, isSecret := fieldForKey(secrets, key); isSecret {
+			// stringValue reads null as the empty string
+			if value, isString := stringValue(raw); !isString || value != "" {
+				fields[key] = json.RawMessage(`"` + secretPlaceholder + `"`)
+			}
 			continue
 		}
-		// stringValue reads null as the empty string
-		if value, isString := stringValue(raw); !isString || value != "" {
+		if _, isURL := fieldForKey(urls, key); !isURL {
+			continue
+		}
+		if value, isString := stringValue(raw); isString {
+			if masked := maskURLCredentials(value); masked != value {
+				fields[key] = jsonString(masked)
+			}
+		} else if string(bytes.TrimSpace(raw)) != "null" {
 			fields[key] = json.RawMessage(`"` + secretPlaceholder + `"`)
 		}
 	}
@@ -212,24 +311,64 @@ func redactConfig(provider NotificationChannelProvider, config string) string {
 // placeholders keeps its secrets. saved is nil when there is no saved channel of the same type
 // to resolve from.
 //
+// A URL field that holds credentials (urlCredentials) is resolved first. The API shows it with
+// the credentials masked, so one that holds the placeholder and is exactly the saved URL as the
+// API shows it becomes the saved URL. That is the only way it resolves: changing any part of the
+// URL means typing its credentials again. Then the secrets are resolved, with the endpoints
+// checked against the URL as saved.
+//
 // A placeholder is never a value. One that can't be resolved is left in place, and its key is
 // returned in unresolved, sorted: the saved config isn't there, or holds no such secret, or the
-// incoming config changed an endpoint, a field that decides where the secrets are sent. An
-// endpoint that is itself a secret counts as unchanged when it is sent as the placeholder.
+// incoming config changed an endpoint, a field that decides where the secrets are sent. A URL
+// that holds the placeholder and isn't the saved URL as shown is unresolved too. An endpoint that
+// is itself a secret counts as unchanged when it is sent as the placeholder.
 //
-// used are the saved secrets that were put in, for a caller that has to keep them out of a
-// message. It is empty when anything is unresolved.
+// used are the saved secrets and URLs that were put in, for a caller that has to keep them out of
+// a message. It is empty when anything is unresolved.
 //
 // An incoming config that isn't a JSON object is returned as it is, for validation to reject.
 func resolveSecrets(provider NotificationChannelProvider, incoming string, saved *string) (resolved string, unresolved, used []string) {
 	fields := configFields(provider)
 	secrets := secretFields(provider)
-	if len(secrets) == 0 {
+	urls := urlCredentialFields(provider)
+	if len(secrets) == 0 && len(urls) == 0 {
 		return incoming, nil, nil
 	}
 	incomingFields, ok := parseConfig(incoming)
 	if !ok || incomingFields == nil {
 		return incoming, nil, nil
+	}
+
+	missing := map[string]bool{}
+
+	// A URL that holds the placeholder is the saved URL as shown, or it is unresolved
+	var savedFields map[string]json.RawMessage
+	if saved != nil {
+		savedFields, _ = parseConfig(*saved)
+	}
+	urlsResolved := false
+	for key, raw := range incomingFields {
+		field, isURL := fieldForKey(urls, key)
+		if _, isSecret := fieldForKey(secrets, key); !isURL || isSecret {
+			continue
+		}
+		value, isString := stringValue(raw)
+		if !isString || !strings.Contains(value, secretPlaceholder) {
+			continue
+		}
+		if savedRaw, ok := savedSecret(savedFields, key); ok {
+			if savedValue, _ := stringValue(savedRaw); maskURLCredentials(savedValue) == value {
+				incomingFields[key] = savedRaw
+				used = append(used, savedValue)
+				urlsResolved = true
+				continue
+			}
+		}
+		missing[field.key] = true
+	}
+	current := incoming
+	if urlsResolved {
+		current = encodeConfig(incomingFields)
 	}
 
 	placeholders := map[string]configField{}
@@ -239,18 +378,13 @@ func resolveSecrets(provider NotificationChannelProvider, incoming string, saved
 			placeholders[key] = field
 		}
 	}
-	if len(placeholders) == 0 {
-		return incoming, nil, nil
-	}
 
-	var savedFields map[string]json.RawMessage
-	if saved != nil && endpointsUnchanged(provider, fields, incoming, *saved) {
-		savedFields, _ = parseConfig(*saved)
+	var savedSecretFields map[string]json.RawMessage
+	if len(placeholders) > 0 && saved != nil && endpointsUnchanged(provider, fields, current, *saved) {
+		savedSecretFields, _ = parseConfig(*saved)
 	}
-
-	missing := map[string]bool{}
 	for key, field := range placeholders {
-		secret, ok := savedSecret(savedFields, key)
+		secret, ok := savedSecret(savedSecretFields, key)
 		if !ok {
 			missing[field.key] = true
 			continue
@@ -266,6 +400,9 @@ func resolveSecrets(provider NotificationChannelProvider, incoming string, saved
 		}
 		sort.Strings(unresolved)
 		return incoming, unresolved, nil
+	}
+	if len(placeholders) == 0 && !urlsResolved {
+		return incoming, nil, nil
 	}
 	sort.Strings(used)
 	return encodeConfig(incomingFields), nil, used
