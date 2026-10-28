@@ -9,6 +9,8 @@ const savedHint = 'Saved — type to replace';
 const reenterHint = "Re-enter this secret: where it's sent changed";
 // What saving or testing says while a secret still holds the placeholder after its endpoint changed
 const reenterError = "Re-enter this secret or remove it: where it's sent changed";
+// What the form says, as soon as the URL is edited, about a URL that still holds masked credentials
+const reenterURLError = "Type this URL's credentials again: the URL changed since it was saved";
 
 test('A saved webhook secret stays hidden in the edit form and survives a rename', async ({ page, request }) => {
   const id = randomID();
@@ -393,6 +395,71 @@ test('A saved webhook URL passes the form checks untouched', async ({ page, requ
     await page.goto(`/notification-channels/${channelID}/edit`);
     await pressTest(page);
     await expectWebhooks(request, id, 1);
+  } finally {
+    for (const path of created) await deleteCreated(api, path);
+    await api.dispose();
+  }
+});
+
+test('A webhook URL with masked credentials must have them typed again once it is edited', async ({ page }) => {
+  const id = randomID();
+  const password = `hunter2-${id}`;
+  const token = `tok-${id}`;
+  const masked = `${webhookURL(id).replace('://', '://user:********@')}?token=********`;
+  const created: string[] = [];
+  const api = await adminAPI(page);
+
+  try {
+    const channelID = await createWebhookChannel(
+      api,
+      created,
+      `Secrets ${id}`,
+      `${webhookURL(id).replace('://', `://user:${password}@`)}?token=${token}`,
+      {},
+    );
+    const saves: string[] = [];
+    page.on('request', (r) => {
+      if (r.method() === 'PUT' && r.url().endsWith(`/notification-channels/${channelID}`)) saves.push(r.url());
+    });
+
+    // The URL is shown with its credentials masked, and the page never holds them
+    await page.goto(`/notification-channels/${channelID}/edit`);
+    const url = page.locator('input[name="webhook_url"]');
+    const urlItem = secretItem(page, 'webhook_url');
+    await expect(url).toHaveValue(masked);
+    await expect(urlItem.getByText(reenterURLError)).toHaveCount(0);
+    const content = await page.content();
+    expect(content).not.toContain(password);
+    expect(content).not.toContain(token);
+
+    // Another path with the masks still in it can't keep the credentials: the URL says so at
+    // once, and saving is refused
+    const moved = masked.replace(`/webhooks/${id}`, `/webhooks/${id}-new`);
+    await url.fill(moved);
+    await expect(urlItem.getByText(reenterURLError)).toBeVisible();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(urlItem.getByText(reenterURLError)).toBeVisible();
+    expect(saves).toHaveLength(0);
+    expect(await savedConfig(api, channelID)).toMatchObject({ webhook_url: masked });
+
+    // The URL as shown is the saved one again
+    await url.fill(masked);
+    await expect(urlItem.getByText(reenterURLError)).toHaveCount(0);
+
+    // Typing the credentials again clears the error, and the form saves the new URL
+    await url.fill(moved);
+    await expect(urlItem.getByText(reenterURLError)).toBeVisible();
+    await url.fill(`${webhookURL(`${id}-new`).replace('://', '://user:new-password@')}?token=new-token`);
+    await expect(urlItem.getByText(reenterURLError)).toHaveCount(0);
+    const updated = page.waitForResponse(
+      (response) => response.url().endsWith(`/notification-channels/${channelID}`) && response.request().method() === 'PUT',
+    );
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    const updatedResponse = await updated;
+    expect(updatedResponse.status(), await updatedResponse.text()).toBe(200);
+    expect(await savedConfig(api, channelID)).toMatchObject({
+      webhook_url: `${webhookURL(`${id}-new`).replace('://', '://user:********@')}?token=********`,
+    });
   } finally {
     for (const path of created) await deleteCreated(api, path);
     await api.dispose();
