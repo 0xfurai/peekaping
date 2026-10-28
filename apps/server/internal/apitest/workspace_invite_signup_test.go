@@ -125,8 +125,28 @@ func TestInviteSignup_AnEmailThatHasAnAccountSignsInInstead(t *testing.T) {
 		w := a.signUpThrough(t, created.Token, "bob@example.com")
 
 		assert.Equal(t, http.StatusConflict, w.Code, w.Body.String())
-		assert.Contains(t, w.Body.String(), "sign in")
+		assert.Contains(t, w.Body.String(), "sign in and accept the invite")
 		assert.True(t, a.preview(t, created.Token).Valid)
+	})
+}
+
+// The invite lower-cases its email and accounts keep the case their owner typed, so an account
+// the invite names can be stored in another case. It is the same person: no second account.
+func TestInviteSignup_AnAccountWhoseEmailDiffersOnlyInCaseSignsInInsteadAndNoSecondAccountIsMade(t *testing.T) {
+	isolationBackends(t, func(t *testing.T, a *app) {
+		a.createUser(t, "Alice@Example.com")
+		created := a.invite(t, "alice@example.com", "member", a.asAdmin)
+		users, members := a.count(t, "users"), a.count(t, "workspace_members")
+
+		for _, typed := range []string{"alice@example.com", "ALICE@example.com", "Alice@Example.com"} {
+			w := a.signUpThrough(t, created.Token, typed)
+
+			assert.Equal(t, http.StatusConflict, w.Code, "%s: %s", typed, w.Body.String())
+			assert.Contains(t, w.Body.String(), "An account with this email exists: sign in and accept the invite", typed)
+		}
+		assert.Equal(t, users, a.count(t, "users"))
+		assert.Equal(t, members, a.count(t, "workspace_members"))
+		assert.True(t, a.preview(t, created.Token).Valid, "and the invite is not spent")
 	})
 }
 

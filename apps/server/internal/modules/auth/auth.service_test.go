@@ -444,3 +444,48 @@ func TestService_IssuesNoTokensWithoutSigningSecrets(t *testing.T) {
 	_, err = h.svc.RefreshToken(ctx, session.RefreshToken)
 	assert.Error(t, err)
 }
+
+// invitedBy is a token for an invite to the email, made as an owner of the install's workspace
+func (h *harness) invitedBy(t *testing.T, email string) string {
+	t.Helper()
+	ctx := context.Background()
+	workspaces := workspace.NewSQLRepository(h.db)
+	first, err := workspaces.FindOldest(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, first)
+	invites := workspace.NewService(workspaces, workspace.NewSQLMemberRepository(h.db), workspace.NewSQLInviteRepository(h.db),
+		dbtx.NewSQLTransactor(h.db), eventstest.NewBus(), &config.Config{ClientURL: "http://localhost:3000"}, zap.NewNop().Sugar())
+	created, err := invites.CreateInvite(workspace.WithContext(ctx, first.ID, workspace.RoleOwner), "", email, workspace.RoleMember)
+	require.NoError(t, err)
+	return created.Token
+}
+
+func TestService_Register_ThroughAnInviteStoresTheEmailTrimmedInTheCaseTyped(t *testing.T) {
+	h := newHarness(t)
+	h.register(t)
+	token := h.invitedBy(t, "carol@example.com")
+
+	session, err := h.svc.Register(context.Background(), auth.RegisterDto{Email: " Carol@Example.com ", Password: adminPassword, InviteToken: token})
+
+	require.NoError(t, err)
+	assert.Equal(t, "Carol@Example.com", session.User.Email)
+	stored, err := auth.NewSQLRepository(h.db).FindByEmail(context.Background(), "Carol@Example.com")
+	require.NoError(t, err)
+	require.NotNil(t, stored, "stored without the spaces")
+	assert.Equal(t, session.User.ID, stored.ID)
+}
+
+func TestService_Register_ThroughAnInviteRefusesAnAccountWhoseEmailDiffersInCaseOrSpaces(t *testing.T) {
+	h := newHarness(t)
+	h.register(t)
+	_, err := auth.NewSQLRepository(h.db).Create(context.Background(), &auth.Model{Email: "Dora@Example.com", Password: "hash", Active: true})
+	require.NoError(t, err)
+	token := h.invitedBy(t, "dora@example.com")
+
+	for _, typed := range []string{"dora@example.com", "DORA@example.com", " Dora@Example.com ", "Dora@Example.com"} {
+		_, err := h.svc.Register(context.Background(), auth.RegisterDto{Email: typed, Password: adminPassword, InviteToken: token})
+
+		assert.ErrorIs(t, err, auth.ErrEmailTaken, typed)
+	}
+	assert.Equal(t, 2, h.count(t, "users"))
+}
