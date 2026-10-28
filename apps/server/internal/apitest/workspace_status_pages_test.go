@@ -3,6 +3,7 @@ package apitest
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"peekaping/internal/modules/workspace"
@@ -105,6 +106,29 @@ func TestStatusPageWorkspaces_APageCannotShowAnotherWorkspacesMonitor(t *testing
 	bobsOwn := a.createMonitorAs(t, bob, "Bobs second", "bobs-second-token")
 	decode[any](t, a.request(t, http.MethodPatch, path, map[string]any{"monitor_ids": []string{bobsOwn}}, bob), http.StatusOK)
 	assert.Equal(t, []string{bobsOwn}, decode[statusPageResponse](t, a.request(t, http.MethodGet, path, nil, bob), http.StatusOK).MonitorIDs)
+}
+
+// An ID that isn't a UUID names no monitor, and gets the answer a UUID nobody has gets, on
+// PostgreSQL too, where the id column is a uuid. An upper case copy of an ID names the monitor.
+func TestStatusPageWorkspaces_AMalformedMonitorIDIsAnUnknownOne(t *testing.T) {
+	forEachDatabase(t, func(t *testing.T, a *app) {
+		monitor := a.createMonitor(t, "Shown", "shown-token")
+		for _, malformed := range []string{"not-a-uuid", "12345"} {
+			body := func(id string) map[string]any {
+				return map[string]any{"slug": "doomed", "title": "Doomed", "monitor_ids": []string{id}}
+			}
+			w := a.request(t, http.MethodPost, statusPagesPath, body(malformed), a.asAdmin)
+			unknown := a.request(t, http.MethodPost, statusPagesPath, body(missingRecordID), a.asAdmin)
+
+			assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+			assert.JSONEq(t, unknown.Body.String(), w.Body.String())
+		}
+
+		page := a.createStatusPage(t, statusPage{slug: "upper", monitors: []string{strings.ToUpper(monitor)}})
+		assert.Equal(t, []string{monitor}, decode[statusPageResponse](t, a.request(t, http.MethodGet, statusPagesPath+"/"+page, nil, a.asAdmin), http.StatusOK).MonitorIDs, "shown by the lower case ID")
+		decode[any](t, a.request(t, http.MethodPatch, statusPagesPath+"/"+page, map[string]any{"monitor_ids": []string{strings.ToUpper(monitor)}}, a.asAdmin), http.StatusOK)
+		assert.Equal(t, []string{monitor}, decode[statusPageResponse](t, a.request(t, http.MethodGet, statusPagesPath+"/"+page, nil, a.asAdmin), http.StatusOK).MonitorIDs)
+	})
 }
 
 // A visitor needs no workspace: a published page of any workspace is found by its slug or its
