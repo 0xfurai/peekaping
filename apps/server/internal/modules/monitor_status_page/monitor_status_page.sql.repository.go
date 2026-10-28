@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/modules/workspace"
+
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -251,4 +253,23 @@ func (r *SQLRepositoryImpl) DeleteAllMonitorsForStatusPage(ctx context.Context, 
 		Where("status_page_id = ?", statusPageID).
 		Exec(ctx)
 	return err
+}
+
+func (r *SQLRepositoryImpl) FindMonitorIDsInWorkspace(ctx context.Context, workspaceID workspace.ID, ids []string) ([]string, error) {
+	// An ID that is not a UUID names no monitor. PostgreSQL would refuse the whole query for it.
+	known := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if _, err := uuid.Parse(id); err == nil {
+			known = append(known, id)
+		}
+	}
+	if len(known) == 0 {
+		return nil, nil
+	}
+	var found []string
+	err := r.db.NewSelect().Table("monitors").Column("id").
+		Where("workspace_id = ?", string(workspaceID)).
+		Where("id IN (?)", bun.In(known)).
+		Scan(ctx, &found)
+	return found, err
 }

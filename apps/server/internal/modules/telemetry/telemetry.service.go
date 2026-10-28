@@ -32,7 +32,8 @@ type (
 		FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*notification_channel.Model, error)
 	}
 	StatusPageLister interface {
-		FindAll(ctx context.Context, page int, limit int, q string) ([]*status_page.Model, error)
+		// FindAllAnyWorkspace asks whether any workspace has a page: the usage ping describes the install
+		FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*status_page.Model, error)
 	}
 	MaintenanceLister interface {
 		// FindAllAnyWorkspace asks whether any workspace has a window: the usage ping describes the install
@@ -315,7 +316,7 @@ func (s *ServiceImpl) build(ctx context.Context, on bool) (Payload, error) {
 		return Payload{}, fmt.Errorf("list notification channels: %w", err)
 	}
 
-	statusPages, err := s.statusPages.FindAll(ctx, 0, 1, "")
+	statusPages, err := s.statusPages.FindAllAnyWorkspace(ctx, 0, 1)
 	if err != nil {
 		return Payload{}, fmt.Errorf("list status pages: %w", err)
 	}

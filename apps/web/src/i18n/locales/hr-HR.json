@@ -1524,6 +1524,7 @@
     "search_placeholder": "Pretraži statusne stranice po nazivu...",
     "show_locations": "Prikaži svaku lokaciju",
     "show_locations_info": "Za monitore koji se provjeravaju s više lokacija prikazuje status i povijest svake lokacije",
+    "slug_already_used": "Druga statusna stranica već koristi ovu adresu",
     "update_status_page": "Ažuriraj statusnu stranicu",
     "view_page": "Pogledaj stranicu"
   },

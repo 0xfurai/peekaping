@@ -109,7 +109,7 @@ func (f *fakeChannels) FindAllAnyWorkspace(_ context.Context, pageNo, limit int)
 
 type fakeStatusPages struct{ items []*status_page.Model }
 
-func (f *fakeStatusPages) FindAll(_ context.Context, pageNo, limit int, _ string) ([]*status_page.Model, error) {
+func (f *fakeStatusPages) FindAllAnyWorkspace(_ context.Context, pageNo, limit int) ([]*status_page.Model, error) {
 	return page(f.items, pageNo, limit), nil
 }
 

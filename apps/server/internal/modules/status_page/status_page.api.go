@@ -54,3 +54,9 @@ type GetMonitorsBySlugForHomepageInput = httpx.Input[httpx.NoBody, GetMonitorsBy
 type DomainErrorResponse struct {
 	Error *DomainAlreadyUsedError `json:"error"`
 }
+
+// SlugErrorResponse is the response to a slug another status page holds, in the shape of the
+// custom-domain conflict's.
+type SlugErrorResponse struct {
+	Error *SlugAlreadyUsedError `json:"error"`
+}

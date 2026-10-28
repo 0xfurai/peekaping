@@ -1524,6 +1524,7 @@
     "search_placeholder": "Ieškoti būsenų puslapių pagal pavadinimą...",
     "show_locations": "Rodyti kiekvieną vietą",
     "show_locations_info": "Stebėjimams, tikrinamiems iš kelių vietų, rodoma kiekvienos vietos būsena ir istorija",
+    "slug_already_used": "Šį adresą jau naudoja kitas būsenos puslapis",
     "update_status_page": "Atnaujinti statuso puslapį",
     "view_page": "Peržiūrėti puslapį"
   },

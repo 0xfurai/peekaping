@@ -245,6 +245,17 @@ func ErrorVariants[T any](router *Router, status int) *huma.Response {
 	return response
 }
 
+// ErrorVariants2 is ErrorVariants for an operation that answers with either of two error bodies
+// besides the usual one.
+func ErrorVariants2[T, U any](router *Router, status int) *huma.Response {
+	response := ErrorResponse[T](router, status)
+	media := response.Content["application/json"]
+	media.Schema = &huma.Schema{AnyOf: []*huma.Schema{media.Schema,
+		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[U](), true, "Error"),
+		router.API().OpenAPI().Components.Schemas.Schema(reflect.TypeFor[ErrorBody](), true, "Error")}}
+	return response
+}
+
 // normalizeRequest documents the existing validator's rules without enabling
 // Huma validation. In particular, untagged fields are optional and unknown JSON
 // fields are accepted. Runtime validators and their messages remain unchanged.

@@ -190,7 +190,7 @@ type MockStatusPageService struct {
 	status_page.Service
 }
 
-func (m *MockStatusPageService) IsMonitorPublished(ctx context.Context, monitorID string) (bool, error) {
+func (m *MockStatusPageService) IsMonitorPublishedAnyWorkspace(ctx context.Context, monitorID string) (bool, error) {
 	args := m.Called(ctx, monitorID)
 	return args.Bool(0), args.Error(1)
 }
@@ -317,7 +317,7 @@ func TestServiceImpl_IsMonitorPublic(t *testing.T) {
 		service, mockMonitorService, _, _, _, mockStatusPageService := setupBadgeService()
 
 		mockMonitorService.On("FindByIDAnyWorkspace", ctx, "monitor123").Return(activeMonitor, nil)
-		mockStatusPageService.On("IsMonitorPublished", ctx, "monitor123").Return(true, nil)
+		mockStatusPageService.On("IsMonitorPublishedAnyWorkspace", ctx, "monitor123").Return(true, nil)
 
 		result, err := service.IsMonitorPublic(ctx, "monitor123")
 
@@ -331,7 +331,7 @@ func TestServiceImpl_IsMonitorPublic(t *testing.T) {
 		service, mockMonitorService, _, _, _, mockStatusPageService := setupBadgeService()
 
 		mockMonitorService.On("FindByIDAnyWorkspace", ctx, "monitor123").Return(activeMonitor, nil)
-		mockStatusPageService.On("IsMonitorPublished", ctx, "monitor123").Return(false, nil)
+		mockStatusPageService.On("IsMonitorPublishedAnyWorkspace", ctx, "monitor123").Return(false, nil)
 
 		result, err := service.IsMonitorPublic(ctx, "monitor123")
 
@@ -385,14 +385,14 @@ func TestServiceImpl_IsMonitorPublic(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, result)
 		mockMonitorService.AssertExpectations(t)
-		mockStatusPageService.AssertNotCalled(t, "IsMonitorPublished", mock.Anything, mock.Anything)
+		mockStatusPageService.AssertNotCalled(t, "IsMonitorPublishedAnyWorkspace", mock.Anything, mock.Anything)
 	})
 
 	t.Run("status page lookup fails", func(t *testing.T) {
 		service, mockMonitorService, _, _, _, mockStatusPageService := setupBadgeService()
 
 		mockMonitorService.On("FindByIDAnyWorkspace", ctx, "monitor123").Return(activeMonitor, nil)
-		mockStatusPageService.On("IsMonitorPublished", ctx, "monitor123").Return(false, errors.New("status page error"))
+		mockStatusPageService.On("IsMonitorPublishedAnyWorkspace", ctx, "monitor123").Return(false, errors.New("status page error"))
 
 		result, err := service.IsMonitorPublic(ctx, "monitor123")
 

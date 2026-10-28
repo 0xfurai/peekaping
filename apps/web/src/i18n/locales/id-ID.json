@@ -1524,6 +1524,7 @@
     "search_placeholder": "Cari halaman status berdasarkan judul...",
     "show_locations": "Tampilkan setiap lokasi",
     "show_locations_info": "Untuk monitor yang diperiksa dari beberapa lokasi, tampilkan status dan riwayat setiap lokasi",
+    "slug_already_used": "Halaman status lain sudah menggunakan alamat ini",
     "update_status_page": "Perbarui Halaman Status",
     "view_page": "Lihat Halaman"
   },

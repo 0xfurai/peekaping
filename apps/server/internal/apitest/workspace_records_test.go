@@ -14,11 +14,11 @@ import (
 )
 
 // The notification channels, proxies, tags and maintenance windows of an install belong to a
-// workspace (PP-149, docs/adr/0005 sections 2, 3 and 8).
+// workspace (PP-149, docs/adr/0005 sections 2, 3 and 8), and so do its status pages (PP-150).
 
 const missingRecordID = "00000000-0000-4000-8000-000000000000"
 
-// recordModule is one of the four kinds of record that belong to a workspace
+// recordModule is one of the kinds of record that belong to a workspace
 type recordModule struct {
 	name  string
 	table string
@@ -73,6 +73,20 @@ var recordModules = []recordModule{
 		},
 	},
 	{
+		name: "status page", table: "status_pages", path: "/api/v1/status-pages", shown: "title",
+		body: statusPageBody,
+		routes: func(id string) []call {
+			path := "/api/v1/status-pages/" + id
+			return []call{
+				{"get", http.MethodGet, path, nil},
+				{"update", http.MethodPatch, path, map[string]any{"title": "Hijacked", "published": false}},
+				{"update the monitors", http.MethodPatch, path, map[string]any{"monitor_ids": []string{}}},
+				{"update the domains", http.MethodPatch, path, map[string]any{"domains": []string{"hijacked.example"}}},
+				{"delete", http.MethodDelete, path, nil},
+			}
+		},
+	},
+	{
 		name: "maintenance window", table: "maintenances", path: "/api/v1/maintenances", shown: "title",
 		body: maintenanceBody,
 		routes: func(id string) []call {
@@ -87,6 +101,11 @@ var recordModules = []recordModule{
 			}
 		},
 	},
+}
+
+// statusPageBody is a status page named by name, with a slug made of it
+func statusPageBody(name string) map[string]any {
+	return map[string]any{"slug": strings.ToLower(strings.ReplaceAll(name, " ", "-")), "title": name, "published": true}
 }
 
 // proxyBody2 is a proxy named by its host, in the shape of the other modules' bodies

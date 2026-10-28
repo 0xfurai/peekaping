@@ -80,7 +80,7 @@ type statusPagePaginationService struct {
 	*paginationCall
 }
 
-func (s *statusPagePaginationService) FindAll(_ context.Context, page, limit int, _ string) ([]*status_page.Model, error) {
+func (s *statusPagePaginationService) FindAll(_ context.Context, _ workspace.ID, page, limit int, _ string) ([]*status_page.Model, error) {
 	s.record(page, limit)
 	return nil, nil
 }

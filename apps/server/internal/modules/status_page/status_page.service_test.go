@@ -10,6 +10,8 @@ import (
 	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/monitor_status_page"
 	"peekaping/internal/modules/status_page"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacetest"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +24,9 @@ import (
 )
 
 type harness struct {
-	db       *bun.DB
+	db *bun.DB
+	// ws is the workspace the tests' requests run in: the install's oldest one
+	ws       workspace.ID
 	svc      status_page.Service
 	monitors monitor_status_page.Service
 	domains  domain_status_page.Service
@@ -45,7 +49,15 @@ func newHarness(t *testing.T) *harness {
 	logger := zap.NewNop().Sugar()
 	monitors := monitor_status_page.NewService(monitor_status_page.NewSQLRepository(db), logger)
 	domains := domain_status_page.NewService(domain_status_page.NewSQLRepository(db), logger)
-	return &harness{db, status_page.NewService(status_page.NewSQLRepository(db), nil, monitors, domains, logger), monitors, domains}
+	return &harness{db, workspace.ID(workspacetest.OldestOrAdd(t, db)), status_page.NewService(status_page.NewSQLRepository(db), nil, monitors, domains, logger), monitors, domains}
+}
+
+// monitor stores a monitor in the harness's workspace and returns its ID
+func (h *harness) monitor(t *testing.T) string {
+	t.Helper()
+	id := uuid.NewString()
+	workspacetest.InsertMonitor(t, h.db, id)
+	return id
 }
 
 func (h *harness) create(t *testing.T, dto status_page.CreateStatusPageDTO) *status_page.Model {
@@ -53,14 +65,14 @@ func (h *harness) create(t *testing.T, dto status_page.CreateStatusPageDTO) *sta
 	if dto.Title == "" {
 		dto.Title = "Status of " + dto.Slug
 	}
-	created, err := h.svc.Create(context.Background(), &dto)
+	created, err := h.svc.Create(context.Background(), h.ws, &dto)
 	require.NoError(t, err)
 	return created
 }
 
 func (h *harness) withMonitors(t *testing.T, id string) *status_page.StatusPageWithMonitorsResponseDTO {
 	t.Helper()
-	page, err := h.svc.FindByIDWithMonitors(context.Background(), id)
+	page, err := h.svc.FindByIDWithMonitors(context.Background(), h.ws, id)
 	require.NoError(t, err)
 	require.NotNil(t, page)
 	return page
@@ -74,21 +86,21 @@ func TestStatusPageService_RejectsADomainAnotherPageOwns(t *testing.T) {
 	public := h.create(t, status_page.CreateStatusPageDTO{Slug: "public", Domains: []string{"status.example.com"}})
 	internal := h.create(t, status_page.CreateStatusPageDTO{Slug: "internal"})
 
-	_, err := h.svc.Create(ctx, &status_page.CreateStatusPageDTO{Slug: "copy", Title: "Copy", Domains: []string{"status.example.com"}})
+	_, err := h.svc.Create(ctx, h.ws, &status_page.CreateStatusPageDTO{Slug: "copy", Title: "Copy", Domains: []string{"status.example.com"}})
 	var used *status_page.DomainAlreadyUsedError
 	require.ErrorAs(t, err, &used)
 	assert.Equal(t, "DOMAIN_EXISTS", used.Code)
 	assert.Equal(t, "status.example.com", used.Domain)
-	all, err := h.svc.FindAll(ctx, 0, 10, "")
+	all, err := h.svc.FindAll(ctx, h.ws, 0, 10, "")
 	require.NoError(t, err)
 	assert.Len(t, all, 2, "the rejected page isn't created")
 
 	// Domains only: this holds whether or not Update saves other fields before checking domains.
-	_, err = h.svc.Update(ctx, internal.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"status.example.com"}})
+	_, err = h.svc.Update(ctx, h.ws, internal.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"status.example.com"}})
 	require.ErrorAs(t, err, &used)
 	assert.Empty(t, h.withMonitors(t, internal.ID).Domains)
 
-	_, err = h.svc.Update(ctx, public.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"status.example.com", "uptime.example.com"}})
+	_, err = h.svc.Update(ctx, h.ws, public.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"status.example.com", "uptime.example.com"}})
 	require.NoError(t, err, "a page can keep its own domain")
 	assert.ElementsMatch(t, []string{"status.example.com", "uptime.example.com"}, h.withMonitors(t, public.ID).Domains)
 }
@@ -99,20 +111,24 @@ func TestStatusPageService_HidesUnpublishedPagesFromPublicLookups(t *testing.T) 
 	public := h.create(t, status_page.CreateStatusPageDTO{Slug: "public", Published: true, Domains: []string{"status.example.com"}})
 	h.create(t, status_page.CreateStatusPageDTO{Slug: "draft", Published: false, Domains: []string{"draft.example.com"}})
 
-	found, err := h.svc.FindPublishedBySlug(ctx, "public")
+	found, err := h.svc.FindPublishedBySlugAnyWorkspace(ctx, "public")
 	require.NoError(t, err)
 	require.NotNil(t, found)
 	assert.Equal(t, public.ID, found.ID)
-	found, err = h.svc.FindPublishedByDomain(ctx, "status.example.com")
+	found, err = h.svc.FindPublishedByDomainAnyWorkspace(ctx, "status.example.com")
 	require.NoError(t, err)
 	require.NotNil(t, found)
 	assert.Equal(t, public.ID, found.ID)
 
 	for name, lookup := range map[string]func() (*status_page.Model, error){
-		"unpublished slug":   func() (*status_page.Model, error) { return h.svc.FindPublishedBySlug(ctx, "draft") },
-		"unpublished domain": func() (*status_page.Model, error) { return h.svc.FindPublishedByDomain(ctx, "draft.example.com") },
-		"unknown slug":       func() (*status_page.Model, error) { return h.svc.FindPublishedBySlug(ctx, "missing") },
-		"unknown domain":     func() (*status_page.Model, error) { return h.svc.FindPublishedByDomain(ctx, "missing.example.com") },
+		"unpublished slug": func() (*status_page.Model, error) { return h.svc.FindPublishedBySlugAnyWorkspace(ctx, "draft") },
+		"unpublished domain": func() (*status_page.Model, error) {
+			return h.svc.FindPublishedByDomainAnyWorkspace(ctx, "draft.example.com")
+		},
+		"unknown slug": func() (*status_page.Model, error) { return h.svc.FindPublishedBySlugAnyWorkspace(ctx, "missing") },
+		"unknown domain": func() (*status_page.Model, error) {
+			return h.svc.FindPublishedByDomainAnyWorkspace(ctx, "missing.example.com")
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			page, err := lookup()
@@ -125,7 +141,7 @@ func TestStatusPageService_HidesUnpublishedPagesFromPublicLookups(t *testing.T) 
 func TestStatusPageService_UpdateReplacesMonitorsAndDomains(t *testing.T) {
 	h := newHarness(t)
 	ctx := context.Background()
-	web, db, api := uuid.NewString(), uuid.NewString(), uuid.NewString()
+	web, db, api := h.monitor(t), h.monitor(t), h.monitor(t)
 	page := h.create(t, status_page.CreateStatusPageDTO{
 		Slug:       "public",
 		MonitorIDs: []string{web, db},
@@ -135,7 +151,7 @@ func TestStatusPageService_UpdateReplacesMonitorsAndDomains(t *testing.T) {
 	assert.ElementsMatch(t, []string{web, db}, created.MonitorIDs)
 	assert.ElementsMatch(t, []string{"status.example.com", "uptime.example.com"}, created.Domains)
 
-	updated, err := h.svc.Update(ctx, page.ID, &status_page.UpdateStatusPageDTO{
+	updated, err := h.svc.Update(ctx, h.ws, page.ID, &status_page.UpdateStatusPageDTO{
 		Title:      ptr("Public status"),
 		MonitorIDs: &[]string{db, api},
 		Domains:    &[]string{"uptime.example.com", "health.example.com"},
@@ -149,7 +165,7 @@ func TestStatusPageService_UpdateReplacesMonitorsAndDomains(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, gone, "a removed domain is free for other pages")
 
-	_, err = h.svc.Update(ctx, page.ID, &status_page.UpdateStatusPageDTO{Description: ptr("All systems")})
+	_, err = h.svc.Update(ctx, h.ws, page.ID, &status_page.UpdateStatusPageDTO{Description: ptr("All systems")})
 	require.NoError(t, err)
 	untouched := h.withMonitors(t, page.ID)
 	assert.ElementsMatch(t, []string{db, api}, untouched.MonitorIDs, "an update without monitor_ids keeps the monitors")
@@ -159,13 +175,13 @@ func TestStatusPageService_UpdateReplacesMonitorsAndDomains(t *testing.T) {
 func TestStatusPageService_DeleteRemovesThePageAndItsMonitorLinks(t *testing.T) {
 	h := newHarness(t)
 	ctx := context.Background()
-	web, db := uuid.NewString(), uuid.NewString()
+	web, db := h.monitor(t), h.monitor(t)
 	page := h.create(t, status_page.CreateStatusPageDTO{Slug: "public", MonitorIDs: []string{web, db}})
 	other := h.create(t, status_page.CreateStatusPageDTO{Slug: "other", MonitorIDs: []string{web}})
 
-	require.NoError(t, h.svc.Delete(ctx, page.ID))
+	require.NoError(t, h.svc.Delete(ctx, h.ws, page.ID))
 
-	missing, err := h.svc.FindByIDWithMonitors(ctx, page.ID)
+	missing, err := h.svc.FindByIDWithMonitors(ctx, h.ws, page.ID)
 	require.NoError(t, err)
 	assert.Nil(t, missing)
 	links, err := h.monitors.GetMonitorsForStatusPage(ctx, page.ID)
@@ -177,19 +193,19 @@ func TestStatusPageService_DeleteRemovesThePageAndItsMonitorLinks(t *testing.T) 
 func TestStatusPageService_IsMonitorPublishedOnlyThroughAPublishedPage(t *testing.T) {
 	h := newHarness(t)
 	ctx := context.Background()
-	onPublic, onDraft, onBoth, nowhere := uuid.NewString(), uuid.NewString(), uuid.NewString(), uuid.NewString()
+	onPublic, onDraft, onBoth, nowhere := h.monitor(t), h.monitor(t), h.monitor(t), uuid.NewString()
 	public := h.create(t, status_page.CreateStatusPageDTO{Slug: "public", Published: true, MonitorIDs: []string{onPublic, onBoth}})
 	h.create(t, status_page.CreateStatusPageDTO{Slug: "draft", Published: false, MonitorIDs: []string{onDraft, onBoth}})
 
 	for monitorID, want := range map[string]bool{onPublic: true, onDraft: false, onBoth: true, nowhere: false} {
-		published, err := h.svc.IsMonitorPublished(ctx, monitorID)
+		published, err := h.svc.IsMonitorPublishedAnyWorkspace(ctx, monitorID)
 		require.NoError(t, err)
 		assert.Equal(t, want, published, monitorID)
 	}
 
-	_, err := h.svc.Update(ctx, public.ID, &status_page.UpdateStatusPageDTO{Published: ptr(false)})
+	_, err := h.svc.Update(ctx, h.ws, public.ID, &status_page.UpdateStatusPageDTO{Published: ptr(false)})
 	require.NoError(t, err)
-	published, err := h.svc.IsMonitorPublished(ctx, onPublic)
+	published, err := h.svc.IsMonitorPublishedAnyWorkspace(ctx, onPublic)
 	require.NoError(t, err)
 	assert.False(t, published, "unpublishing the page unpublishes its monitors")
 }
@@ -201,14 +217,14 @@ func TestStatusPageService_StoresDomainsLowerCaseAndFindsThemByAnyCase(t *testin
 
 	assert.Equal(t, []string{"status.example.com"}, h.withMonitors(t, page.ID).Domains, "stored lower-case, and once")
 	for _, spelling := range []string{"STATUS.example.com", " status.example.com "} {
-		found, err := h.svc.FindPublishedByDomain(ctx, spelling)
+		found, err := h.svc.FindPublishedByDomainAnyWorkspace(ctx, spelling)
 		require.NoError(t, err)
 		require.NotNil(t, found, spelling)
 		assert.Equal(t, page.ID, found.ID)
 	}
 
 	// Sending the page's own domain in another case keeps it
-	_, err := h.svc.Update(ctx, page.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"STATUS.Example.com", "Uptime.Example.com"}})
+	_, err := h.svc.Update(ctx, h.ws, page.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"STATUS.Example.com", "Uptime.Example.com"}})
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []string{"status.example.com", "uptime.example.com"}, h.withMonitors(t, page.ID).Domains)
 }
@@ -220,11 +236,11 @@ func TestStatusPageService_RejectsADomainAnotherPageOwnsInAnyCase(t *testing.T) 
 	internal := h.create(t, status_page.CreateStatusPageDTO{Slug: "internal"})
 	var used *status_page.DomainAlreadyUsedError
 
-	_, err := h.svc.Create(ctx, &status_page.CreateStatusPageDTO{Slug: "copy", Title: "Copy", Domains: []string{" STATUS.Example.com"}})
+	_, err := h.svc.Create(ctx, h.ws, &status_page.CreateStatusPageDTO{Slug: "copy", Title: "Copy", Domains: []string{" STATUS.Example.com"}})
 	require.ErrorAs(t, err, &used)
 	assert.Equal(t, "status.example.com", used.Domain)
 
-	_, err = h.svc.Update(ctx, internal.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"Status.Example.com"}})
+	_, err = h.svc.Update(ctx, h.ws, internal.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"Status.Example.com"}})
 	require.ErrorAs(t, err, &used)
 	assert.Empty(t, h.withMonitors(t, internal.ID).Domains)
 }
@@ -247,12 +263,165 @@ func TestStatusPageService_APageThatLosesARaceForADomainIsToldItIsTaken(t *testi
 	racing := status_page.NewService(status_page.NewSQLRepository(h.db), nil, h.monitors, racingDomains{h.domains}, logger)
 	var used *status_page.DomainAlreadyUsedError
 
-	_, err := racing.Create(ctx, &status_page.CreateStatusPageDTO{Slug: "copy", Title: "Copy", Domains: []string{"Status.Example.com"}})
+	_, err := racing.Create(ctx, h.ws, &status_page.CreateStatusPageDTO{Slug: "copy", Title: "Copy", Domains: []string{"Status.Example.com"}})
 	require.ErrorAs(t, err, &used)
 	assert.Equal(t, "DOMAIN_EXISTS", used.Code)
 	assert.Equal(t, "status.example.com", used.Domain)
 
 	internal := h.create(t, status_page.CreateStatusPageDTO{Slug: "internal"})
-	_, err = racing.Update(ctx, internal.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"status.example.com"}})
+	_, err = racing.Update(ctx, h.ws, internal.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"status.example.com"}})
 	require.ErrorAs(t, err, &used)
+}
+
+// Custom domains are unique across the install, so a domain a page of another workspace holds is
+// taken, and the service says nothing else about that page
+func TestStatusPageService_ADomainAPageOfAnotherWorkspaceHoldsIsTaken(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	theirs, err := h.svc.Create(ctx, workspacetest.Other, &status_page.CreateStatusPageDTO{Slug: "theirs", Title: "Theirs", Domains: []string{"status.example.com"}})
+	require.NoError(t, err)
+	mine := h.create(t, status_page.CreateStatusPageDTO{Slug: "mine"})
+	var used *status_page.DomainAlreadyUsedError
+
+	_, err = h.svc.Create(ctx, h.ws, &status_page.CreateStatusPageDTO{Slug: "copy", Title: "Copy", Domains: []string{"Status.Example.com"}})
+	require.ErrorAs(t, err, &used)
+	assert.Equal(t, "DOMAIN_EXISTS", used.Code)
+	assert.Equal(t, "status.example.com", used.Domain)
+	assert.NotContains(t, err.Error(), theirs.ID)
+
+	_, err = h.svc.Update(ctx, h.ws, mine.ID, &status_page.UpdateStatusPageDTO{Domains: &[]string{"status.example.com"}})
+	require.ErrorAs(t, err, &used)
+	assert.Empty(t, h.withMonitors(t, mine.ID).Domains)
+	all, err := h.svc.FindAll(ctx, h.ws, 0, 10, "")
+	require.NoError(t, err)
+	assert.Len(t, all, 1, "the refused page isn't created, and the other workspace's isn't listed")
+}
+
+// A page's monitors must be in its workspace, and are checked before anything is written
+func TestStatusPageService_RefusesAMonitorOfAnotherWorkspaceAndWritesNothing(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	mine := h.monitor(t)
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	theirs := uuid.NewString()
+	_, err := h.db.Exec("INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, ?, 'http', 'Theirs', 60, 10, 1, 10, 0)", theirs, string(workspacetest.Other))
+	require.NoError(t, err)
+	page := h.create(t, status_page.CreateStatusPageDTO{Slug: "page", Title: "Page", MonitorIDs: []string{mine}})
+
+	for name, ids := range map[string][]string{"another workspace's": {mine, theirs}, "unknown": {mine, uuid.NewString()}} {
+		t.Run(name, func(t *testing.T) {
+			_, err := h.svc.Create(ctx, h.ws, &status_page.CreateStatusPageDTO{Slug: "doomed", Title: "Doomed", MonitorIDs: ids})
+			assert.ErrorIs(t, err, monitor_status_page.ErrUnknownMonitor)
+			found, err := h.svc.FindPublishedBySlugAnyWorkspace(ctx, "doomed")
+			require.NoError(t, err)
+			assert.Nil(t, found, "no page is stored")
+
+			_, err = h.svc.Update(ctx, h.ws, page.ID, &status_page.UpdateStatusPageDTO{Title: ptr("Renamed"), MonitorIDs: &ids})
+			assert.ErrorIs(t, err, monitor_status_page.ErrUnknownMonitor)
+			saved := h.withMonitors(t, page.ID)
+			assert.Equal(t, "Page", saved.Title, "the page keeps its title")
+			assert.Equal(t, []string{mine}, saved.MonitorIDs, "and its monitors")
+		})
+	}
+}
+
+func TestStatusPageService_APageOfAnotherWorkspaceIsNotFound(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	theirs, err := h.svc.Create(ctx, workspacetest.Other, &status_page.CreateStatusPageDTO{Slug: "theirs", Title: "Theirs"})
+	require.NoError(t, err)
+
+	found, err := h.svc.FindByID(ctx, h.ws, theirs.ID)
+	require.NoError(t, err)
+	assert.Nil(t, found)
+	_, err = h.svc.Update(ctx, h.ws, theirs.ID, &status_page.UpdateStatusPageDTO{Title: ptr("Hijacked")})
+	assert.ErrorIs(t, err, status_page.ErrNotFound)
+	assert.ErrorIs(t, h.svc.Delete(ctx, h.ws, theirs.ID), status_page.ErrNotFound)
+	found, err = h.svc.FindByID(ctx, workspacetest.Other, theirs.ID)
+	require.NoError(t, err)
+	require.NotNil(t, found)
+	assert.Equal(t, "Theirs", found.Title)
+}
+
+func TestStatusPageService_RejectsASlugAnotherPageHolds(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	h.create(t, status_page.CreateStatusPageDTO{Slug: "public"})
+	_, err := h.svc.Create(ctx, workspacetest.Other, &status_page.CreateStatusPageDTO{Slug: "theirs", Title: "Theirs"})
+	require.NoError(t, err)
+	mine := h.create(t, status_page.CreateStatusPageDTO{Slug: "mine"})
+	var used *status_page.SlugAlreadyUsedError
+
+	for name, create := range map[string]workspace.ID{"the same workspace's": h.ws, "another workspace's": workspacetest.Other} {
+		t.Run("create naming "+name+" page's slug", func(t *testing.T) {
+			slug := "public"
+			if create == workspacetest.Other {
+				slug = "mine"
+			}
+			_, err := h.svc.Create(ctx, create, &status_page.CreateStatusPageDTO{Slug: slug, Title: "Copy"})
+			require.ErrorAs(t, err, &used)
+			assert.Equal(t, "SLUG_EXISTS", used.Code)
+			assert.Equal(t, slug, used.Slug)
+		})
+	}
+
+	_, err = h.svc.Update(ctx, h.ws, mine.ID, &status_page.UpdateStatusPageDTO{Slug: ptr("public")})
+	require.ErrorAs(t, err, &used)
+	assert.Equal(t, "SLUG_EXISTS", used.Code)
+	_, err = h.svc.Update(ctx, h.ws, mine.ID, &status_page.UpdateStatusPageDTO{Slug: ptr("theirs"), Title: ptr("Renamed")})
+	require.ErrorAs(t, err, &used, "a slug of another workspace's page is taken too")
+	kept, err := h.svc.FindByID(ctx, h.ws, mine.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "mine", kept.Slug)
+	assert.NotEqual(t, "Renamed", kept.Title, "a refused update changes nothing")
+
+	_, err = h.svc.Update(ctx, h.ws, mine.ID, &status_page.UpdateStatusPageDTO{Slug: ptr("mine"), Title: ptr("Same slug")})
+	require.NoError(t, err, "a page can keep its own slug")
+}
+
+// racingSlugs is a repository whose slug check finds nothing, as when another page takes the slug
+// between the check and the write: it is stored just after the check
+type racingSlugs struct {
+	status_page.Repository
+	take func()
+}
+
+func (r racingSlugs) FindBySlugAnyWorkspace(ctx context.Context, slug string) (*status_page.Model, error) {
+	found, err := r.Repository.FindBySlugAnyWorkspace(ctx, slug)
+	r.take()
+	return found, err
+}
+
+// Two pages racing for one slug: the database lets one in, and the other is told the slug is
+// taken, as when the check found it
+func TestStatusPageService_APageThatLosesARaceForASlugIsToldItIsTaken(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	// racingFor is a service whose first slug check is followed by another page taking the slug
+	racingFor := func(slug string) status_page.Service {
+		taken := false
+		return status_page.NewService(racingSlugs{status_page.NewSQLRepository(h.db), func() {
+			if !taken {
+				taken = true
+				workspacetest.InsertStatusPage(t, h.db, uuid.NewString(), slug)
+			}
+		}}, nil, h.monitors, h.domains, zap.NewNop().Sugar())
+	}
+	var used *status_page.SlugAlreadyUsedError
+
+	_, err := racingFor("contested").Create(ctx, h.ws, &status_page.CreateStatusPageDTO{Slug: "contested", Title: "Late"})
+	require.ErrorAs(t, err, &used)
+	assert.Equal(t, "SLUG_EXISTS", used.Code)
+	assert.Equal(t, "contested", used.Slug)
+
+	other := h.create(t, status_page.CreateStatusPageDTO{Slug: "other"})
+	_, err = racingFor("contested-2").Update(ctx, h.ws, other.ID, &status_page.UpdateStatusPageDTO{Slug: ptr("contested-2")})
+	require.ErrorAs(t, err, &used)
+	assert.Equal(t, "contested-2", used.Slug)
+	kept, err := h.svc.FindByID(ctx, h.ws, other.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "other", kept.Slug)
 }
