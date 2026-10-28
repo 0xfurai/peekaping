@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"peekaping/internal/legacyid"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
@@ -232,6 +233,20 @@ func uuidOf(id primitive.ObjectID) string {
 	return mapped
 }
 
+// adoptWorkspace gives the copied install its workspace, as the upgrade to workspaces gives one
+// to an install it finds: one workspace, with every imported user its owner and an instance
+// admin. The migrations ran on an empty database, so they made none.
+func (c *copier) adoptWorkspace(ctx context.Context) error {
+	adopted, err := workspace.AdoptExistingInstall(ctx, c.tx)
+	if err != nil {
+		return fmt.Errorf("make the workspace: %w", err)
+	}
+	if adopted != nil {
+		c.report.Workspace = &WorkspaceReport{Name: adopted.Workspace.Name, Owners: adopted.Owners}
+	}
+	return nil
+}
+
 // copyAll copies the collections in the order the foreign keys allow, each after
 // the collections it refers to.
 func (c *copier) copyAll(ctx context.Context) error {
@@ -243,6 +258,7 @@ func (c *copier) copyAll(ctx context.Context) error {
 		func(ctx context.Context) error { return c.copyStats(ctx, "stat_minutely") },
 		func(ctx context.Context) error { return c.copyStats(ctx, "stat_hourly") },
 		func(ctx context.Context) error { return c.copyStats(ctx, "stat_daily") },
+		c.adoptWorkspace,
 	} {
 		if err := step(ctx); err != nil {
 			return err

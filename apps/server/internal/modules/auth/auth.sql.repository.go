@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
+
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
@@ -19,6 +21,7 @@ type sqlModel struct {
 	TwoFASecret    string    `bun:"twofa_secret"`
 	TwoFAStatus    bool      `bun:"twofa_status,notnull,default:false"`
 	TwoFALastToken string    `bun:"twofa_last_token"`
+	InstanceAdmin  bool      `bun:"instance_admin,notnull,default:false"`
 	CreatedAt      time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt      time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }
@@ -32,6 +35,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		TwoFASecret:    sm.TwoFASecret,
 		TwoFAStatus:    sm.TwoFAStatus,
 		TwoFALastToken: sm.TwoFALastToken,
+		InstanceAdmin:  sm.InstanceAdmin,
 		CreatedAt:      sm.CreatedAt,
 		UpdatedAt:      sm.UpdatedAt,
 	}
@@ -46,6 +50,7 @@ func toSQLModel(m *Model) *sqlModel {
 		TwoFASecret:    m.TwoFASecret,
 		TwoFAStatus:    m.TwoFAStatus,
 		TwoFALastToken: m.TwoFALastToken,
+		InstanceAdmin:  m.InstanceAdmin,
 		CreatedAt:      m.CreatedAt,
 		UpdatedAt:      m.UpdatedAt,
 	}
@@ -68,6 +73,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, user *Model) (*Model, er
 		TwoFASecret:    user.TwoFASecret,
 		TwoFAStatus:    user.TwoFAStatus,
 		TwoFALastToken: user.TwoFALastToken,
+		InstanceAdmin:  user.InstanceAdmin,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 	}
@@ -94,6 +100,7 @@ func (r *SQLRepositoryImpl) CreateFirst(ctx context.Context, user *Model) (*Mode
 		TwoFASecret:    user.TwoFASecret,
 		TwoFAStatus:    user.TwoFAStatus,
 		TwoFALastToken: user.TwoFALastToken,
+		InstanceAdmin:  true, // the first user manages the install
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 	}
@@ -101,9 +108,9 @@ func (r *SQLRepositoryImpl) CreateFirst(ctx context.Context, user *Model) (*Mode
 	// One statement inserts the user only while the table is empty. SQLite
 	// serialises its writes, so that statement alone is atomic there.
 	insert := func(db bun.IDB) error {
-		res, err := db.ExecContext(ctx, `INSERT INTO users (id, email, password, active, twofa_secret, twofa_status, twofa_last_token, created_at, updated_at)
-			SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM users)`,
-			sm.ID, sm.Email, sm.Password, sm.Active, sm.TwoFASecret, sm.TwoFAStatus, sm.TwoFALastToken, sm.CreatedAt, sm.UpdatedAt)
+		res, err := db.ExecContext(ctx, `INSERT INTO users (id, email, password, active, twofa_secret, twofa_status, twofa_last_token, instance_admin, created_at, updated_at)
+			SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM users)`,
+			sm.ID, sm.Email, sm.Password, sm.Active, sm.TwoFASecret, sm.TwoFAStatus, sm.TwoFALastToken, sm.InstanceAdmin, sm.CreatedAt, sm.UpdatedAt)
 		if err != nil {
 			return err
 		}
@@ -118,24 +125,37 @@ func (r *SQLRepositoryImpl) CreateFirst(ctx context.Context, user *Model) (*Mode
 	}
 
 	var err error
-	if r.db.Dialect().Name() == dialect.PG {
-		// Two PostgreSQL transactions can both see an empty table, so they take
-		// turns: the lock is held until the transaction ends, and the call that
-		// gets it next sees the user the one before it created.
-		err = r.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-			if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(?)", firstAdminLockKey); err != nil {
-				return err
-			}
-			return insert(tx)
-		})
-	} else {
-		err = insert(r.db)
+	switch handle := dbtx.DB(ctx, r.db).(type) {
+	case bun.Tx:
+		// The caller's transaction ends the lock, so what the caller writes after the user, such
+		// as the user's workspace, is committed before the next call gets the lock
+		err = r.createFirstIn(ctx, handle, insert)
+	default:
+		if r.db.Dialect().Name() == dialect.PG {
+			err = r.db.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+				return r.createFirstIn(ctx, tx, insert)
+			})
+		} else {
+			err = insert(r.db)
+		}
 	}
 	if err != nil {
 		return nil, err
 	}
 
 	return toDomainModelFromSQL(sm), nil
+}
+
+// createFirstIn inserts the user in tx. Two PostgreSQL transactions can both see an empty table,
+// so they take turns: the lock is held until the transaction ends, and the call that gets it
+// next sees the user the one before it created.
+func (r *SQLRepositoryImpl) createFirstIn(ctx context.Context, tx bun.Tx, insert func(bun.IDB) error) error {
+	if r.db.Dialect().Name() == dialect.PG {
+		if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(?)", firstAdminLockKey); err != nil {
+			return err
+		}
+	}
+	return insert(tx)
 }
 
 func (r *SQLRepositoryImpl) FindByEmail(ctx context.Context, email string) (*Model, error) {

@@ -97,8 +97,46 @@ func TestAuthAPI_ConcurrentFirstRegistrationsCreateOneAdmin(t *testing.T) {
 				return db.NewSelect().Table("users").ColumnExpr("count(*)").Scan(context.Background(), &admins)
 			}))
 			assert.Equal(t, 1, admins)
+
+			// The one that won is the owner of the one workspace, and the others left none
+			var owners, workspaces int
+			require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+				if err := db.NewSelect().Table("workspace_members").ColumnExpr("count(*)").Where("role = 'owner'").Scan(context.Background(), &owners); err != nil {
+					return err
+				}
+				return db.NewSelect().Table("workspaces").ColumnExpr("count(*)").Scan(context.Background(), &workspaces)
+			}))
+			assert.Equal(t, 1, owners)
+			assert.Equal(t, 1, workspaces)
 		})
 	}
+}
+
+// Signup makes the workspace, and the API shows nothing of it yet
+func TestAuthAPI_RegisterMakesTheWorkspaceAndShowsNoWorkspaceFields(t *testing.T) {
+	a := newApp(t)
+
+	w := a.request(t, http.MethodPost, "/api/v1/auth/register", map[string]string{"email": adminEmail, "password": adminPassword})
+
+	require.Equal(t, http.StatusCreated, w.Code, w.Body.String())
+	assert.NotContains(t, w.Body.String(), "instance")
+	assert.NotContains(t, w.Body.String(), "workspace")
+	var rows []struct {
+		Name          string `bun:"name"`
+		Role          string `bun:"role"`
+		InstanceAdmin bool   `bun:"instance_admin"`
+	}
+	require.NoError(t, a.container.Invoke(func(db *bun.DB) error {
+		return db.NewSelect().TableExpr("workspace_members AS m").
+			Join("JOIN workspaces AS w ON w.id = m.workspace_id").
+			Join("JOIN users AS u ON u.id = m.user_id").
+			ColumnExpr("w.name, m.role, u.instance_admin").
+			Scan(context.Background(), &rows)
+	}))
+	require.Len(t, rows, 1)
+	assert.Equal(t, "My workspace", rows[0].Name)
+	assert.Equal(t, "owner", rows[0].Role)
+	assert.True(t, rows[0].InstanceAdmin)
 }
 
 func (a *app) refresh(t *testing.T, refreshToken string) *httptest.ResponseRecorder {

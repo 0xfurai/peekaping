@@ -11,6 +11,8 @@ import (
 // read, how many rows it wrote, and why it skipped or changed the rest.
 type Report struct {
 	Collections []*CollectionReport
+	// Workspace is the workspace that the import made for the imported users, or nil when it made none
+	Workspace *WorkspaceReport
 	// Notes are things the SQL tables have no place for, which the import leaves out.
 	Notes []string
 }
@@ -26,6 +28,13 @@ type CollectionReport struct {
 	Skipped map[string]int
 	// Fixed counts the rows that were copied with a value changed to fit, by what changed.
 	Fixed map[string]int
+}
+
+// WorkspaceReport says what the import did to give the install its first workspace.
+type WorkspaceReport struct {
+	Name string
+	// Owners is how many imported users it made owners and instance admins of the workspace.
+	Owners int
 }
 
 func (r *Report) collection(collection, table string) *CollectionReport {
@@ -69,6 +78,9 @@ func (r *Report) Write(w io.Writer) {
 		for _, what := range sortedKeys(c.Fixed) {
 			fmt.Fprintf(w, "changed %s: %d %s\n", c.Collection, c.Fixed[what], what)
 		}
+	}
+	if ws := r.Workspace; ws != nil {
+		fmt.Fprintf(w, "workspace %s: made, with %d users as its owners and instance admins\n", ws.Name, ws.Owners)
 	}
 	for _, note := range r.Notes {
 		fmt.Fprintf(w, "not kept: %s\n", note)

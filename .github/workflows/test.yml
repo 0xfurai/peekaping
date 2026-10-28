@@ -126,11 +126,12 @@ jobs:
           # pipeline would be tee's
           set -o pipefail
           # -coverpkg credits code that tests in other packages reach, such as
-          # the controllers internal/apitest drives through the router. The timeout
+          # the controllers internal/apitest drives through the router, and the Go
+          # migrations in cmd/bun/migrations that tests in other packages run. The timeout
           # is per package: internal/apitest runs its tests one at a time, and with
           # coverage it takes about two minutes on its own. -count=1 so that a cached
           # result never stands in for a run against the PostgreSQL service
-          go test -timeout 300s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/... | tee server-test.log
+          go test -timeout 300s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/migrations ./internal/... ./cmd/... | tee server-test.log
           # Every PostgreSQL subtest skips with this message when the variable is unset, which
           # would leave this job green without running them
           if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
@@ -155,7 +156,7 @@ jobs:
   # main job without coverage instead of making that job slower
   race:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
 
     # The same PostgreSQL as the test job, so its subtests run under the race detector too
     services:
@@ -189,8 +190,9 @@ jobs:
 
       - name: Run server tests with the race detector
         working-directory: apps/server
-        # internal/apitest takes 800 to 880 seconds on its own under -race, so the per-package
-        # timeout leaves room for a slower runner. -count=1 as in the test job
-        run: go test -race -timeout 1800s -count=1 ./internal/... ./cmd/...
+        # On the GitHub-hosted runners internal/apitest alone takes 1395 to 1491 seconds under
+        # -race, and it hit a 1800 second timeout once with nothing hung, so the per-package
+        # timeout leaves room for a slower run. -count=1 as in the test job
+        run: go test -race -timeout 3000s -count=1 ./internal/... ./cmd/...
 
 

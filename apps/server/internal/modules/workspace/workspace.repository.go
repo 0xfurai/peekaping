@@ -1,0 +1,18 @@
+package workspace
+
+import "context"
+
+// Repository stores workspaces and their members. Every method joins the transaction its ctx
+// carries (see internal/dbtx), so that a service can create a workspace and its first member
+// together with the user.
+type Repository interface {
+	// Create adds a workspace with no member.
+	Create(ctx context.Context, name string) (*Workspace, error)
+	// AddMember makes the user a member of the workspace with the role.
+	AddMember(ctx context.Context, id ID, userID string, role Role) error
+	// ListMemberships returns the user's places in workspaces, the one they joined first at the
+	// front: that is their default workspace. The workspace ID breaks a tie.
+	ListMemberships(ctx context.Context, userID string) ([]Membership, error)
+	// FindOldest returns the workspace that was created first, or nil when the install has none.
+	FindOldest(ctx context.Context) (*Workspace, error)
+}

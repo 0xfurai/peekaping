@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/setting"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -98,6 +99,7 @@ func TestRepository_CreateFirst_CreatesOnlyTheFirstUser(t *testing.T) {
 		assert.NotEmpty(t, created.ID)
 		assert.Equal(t, "first@example.com", created.Email)
 		assert.True(t, created.Active)
+		assert.True(t, created.InstanceAdmin, "the first user manages the install")
 
 		stored, err := repo.FindByID(ctx, created.ID)
 		require.NoError(t, err)
@@ -105,6 +107,7 @@ func TestRepository_CreateFirst_CreatesOnlyTheFirstUser(t *testing.T) {
 		assert.Equal(t, "first@example.com", stored.Email)
 		assert.Equal(t, "password-hash", stored.Password)
 		assert.True(t, stored.Active)
+		assert.True(t, stored.InstanceAdmin)
 
 		for _, email := range []string{"second@example.com", "first@example.com"} {
 			second, err := repo.CreateFirst(ctx, newUser(email))
@@ -151,4 +154,55 @@ func TestRepository_CreateFirst_ConcurrentCallsCreateOneUser(t *testing.T) {
 		require.NoError(t, err)
 		assert.EqualValues(t, 1, count)
 	})
+}
+
+// The first signup writes the user and its workspace in one transaction. Signups that arrive
+// together still make one user, one workspace and one membership, on both databases.
+func TestService_Register_ConcurrentSignupsMakeOneUserAndOneWorkspace(t *testing.T) {
+	for name, open := range map[string]func(*testing.T) *bun.DB{"SQLite": sqliteDB, "Postgres": postgresDB} {
+		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
+			db := open(t)
+			migrator := migrate.NewMigrator(db, migrations.Migrations)
+			require.NoError(t, migrator.Init(ctx))
+			_, err := migrator.Migrate(ctx)
+			require.NoError(t, err)
+			logger := zap.NewNop().Sugar()
+			settings := setting.NewService(setting.NewSQLRepository(db), logger)
+			require.NoError(t, settings.InitializeSettings(ctx))
+			svc := newService(db, auth.NewSQLRepository(db), auth.NewTokenMaker(settings, logger), logger)
+			const calls = 10
+
+			errs := make(chan error, calls)
+			start := make(chan struct{})
+			var wg sync.WaitGroup
+			for n := range calls {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					<-start
+					_, err := svc.Register(ctx, auth.RegisterDto{Email: fmt.Sprintf("admin%d@example.com", n), Password: "Correct-horse-1"})
+					errs <- err
+				}()
+			}
+			close(start)
+			wg.Wait()
+			close(errs)
+
+			created := 0
+			for err := range errs {
+				if err == nil {
+					created++
+					continue
+				}
+				assert.ErrorIs(t, err, auth.ErrAdminExists)
+			}
+			assert.Equal(t, 1, created, "signups that created a user")
+			for table, want := range map[string]int{"users": 1, "workspaces": 1, "workspace_members": 1} {
+				n, err := db.NewSelect().Table(table).Count(ctx)
+				require.NoError(t, err)
+				assert.Equal(t, want, n, table)
+			}
+		})
+	}
 }

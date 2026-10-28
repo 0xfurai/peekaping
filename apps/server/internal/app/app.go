@@ -57,6 +57,7 @@ import (
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/telemetry"
 	"peekaping/internal/modules/websocket"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
@@ -110,6 +111,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		monitor_tag.RegisterDependencies(container),
 		badge.RegisterDependencies(container),
 		api_key.RegisterDependencies(container),
+		workspace.RegisterDependencies(container),
 		middleware.RegisterDependencies(container),
 		metrics.RegisterDependencies(container),
 		telemetry.RegisterDependencies(container),
