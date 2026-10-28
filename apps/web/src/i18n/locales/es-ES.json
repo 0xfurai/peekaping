@@ -73,6 +73,7 @@
     "no_tags_available": "No hay etiquetas disponibles",
     "please_refresh_page": "Por favor, actualice la página.",
     "required": "Requerido",
+    "retry": "Reintentar",
     "save": "Guardar",
     "saving": "Guardando...",
     "search": "Buscar",
@@ -131,6 +132,7 @@
     "accepting": "Uniéndose...",
     "creating": "Creando...",
     "description": "Te han invitado a unirte a {{workspace}} con el rol: {{role}}.",
+    "enter_failed": "Te has unido al espacio de trabajo, pero no se pudo abrir. Inténtalo de nuevo.",
     "errors": {
       "other_email": "Esta invitación es para otra dirección de correo electrónico."
     },
@@ -286,6 +288,7 @@
       "description": "Pierdes el acceso a este espacio de trabajo y a sus datos de inmediato.",
       "done": "Has salido del espacio de trabajo",
       "last_owner": "Eres el último propietario, así que no puedes salir. Antes, haz propietario a otro miembro.",
+      "refresh_failed": "Has salido del espacio de trabajo, pero no se pudieron cargar tus espacios de trabajo. Inténtalo de nuevo.",
       "title": "Salir de este espacio de trabajo"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Crear espacio de trabajo",
     "create_error": "No se pudo crear el espacio de trabajo",
+    "create_first": "Crear un espacio de trabajo",
     "creating": "Creando...",
     "enter": "Abrir espacio de trabajo",
     "entering": "Abriendo...",
@@ -1705,6 +1709,7 @@
     "new_title": "Nuevo espacio de trabajo",
     "none_description": "Tu cuenta no es miembro de ningún espacio de trabajo, así que aquí no hay nada que mostrar. Pide a quien administra un espacio de trabajo que te añada.",
     "none_title": "Todavía no estás en ningún espacio de trabajo",
+    "refresh_failed": "No se pudieron cargar tus espacios de trabajo. Comprueba tu conexión e inténtalo de nuevo.",
     "switcher_label": "Cambiar de espacio de trabajo"
   }
 }

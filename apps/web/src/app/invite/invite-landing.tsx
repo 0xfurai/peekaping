@@ -33,6 +33,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Loading } from "@/components/loading";
 import { useEnterWorkspace } from "@/hooks/useEnterWorkspace";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { acceptInviteAndEnter } from "@/lib/accept-invite-and-enter";
 import { inviteNextPath } from "@/lib/next-path";
 import { workspaceErrorKey, workspaceErrorMessage } from "@/lib/workspace-errors";
 import { useAuthStore } from "@/store/auth";
@@ -61,28 +62,52 @@ function AcceptInvite({ token, preview }: { token: string; preview: Preview }) {
   const { t } = useLocalizedTranslation();
   const enterWorkspace = useEnterWorkspace();
   const [failure, setFailure] = useState<string | null>(null);
+  // The workspace a try joined but could not open. The invite is single-use, so a retry opens
+  // this workspace instead of sending the invite again.
+  const [acceptedId, setAcceptedId] = useState<string | null>(null);
+  const [entering, setEntering] = useState(false);
 
   const accept = useMutation({
     ...postInvitesByTokenAcceptMutation(),
-    onSuccess: (response) => enterWorkspace(response.data.id),
-    onError: (error) => setFailure(workspaceErrorMessage(error, t, t("members.errors.generic"))),
   });
+
+  const submit = async () => {
+    setFailure(null);
+    setEntering(true);
+    try {
+      const result = await acceptInviteAndEnter({
+        acceptedId,
+        accept: async () => (await accept.mutateAsync({ path: { token } })).data.id,
+        enter: enterWorkspace,
+      });
+      if (result.kind === "accept_failed") {
+        setFailure(workspaceErrorMessage(result.error, t, t("members.errors.generic")));
+      } else if (result.kind === "enter_failed") {
+        console.error("Failed to enter the workspace the invite joined", result.error);
+        setAcceptedId(result.workspaceId);
+        setFailure(t("invite.enter_failed"));
+      }
+    } finally {
+      setEntering(false);
+    }
+  };
+
+  const busy = accept.isPending || entering;
+  const joined = acceptedId !== null;
 
   return (
     <div className="grid gap-4">
       {failure && <Failure message={failure} />}
-      <Button
-        type="button"
-        className="w-full"
-        disabled={accept.isPending}
-        onClick={() => {
-          setFailure(null);
-          accept.mutate({ path: { token } });
-        }}
-      >
-        {accept.isPending ? t("invite.accepting") : t("invite.accept")}
+      <Button type="button" className="w-full" disabled={busy} onClick={() => void submit()}>
+        {joined
+          ? busy
+            ? t("workspaces.entering")
+            : t("workspaces.enter")
+          : busy
+            ? t("invite.accepting")
+            : t("invite.accept")}
       </Button>
-      {failure && (
+      {failure && !joined && (
         <Button asChild variant="outline" className="w-full">
           <Link to="/">{t("invite.open_app")}</Link>
         </Button>

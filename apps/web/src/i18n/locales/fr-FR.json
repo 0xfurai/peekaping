@@ -73,6 +73,7 @@
     "no_tags_available": "Aucun tag disponible",
     "please_refresh_page": "Veuillez actualiser la page.",
     "required": "Obligatoire",
+    "retry": "Réessayer",
     "save": "Enregistrer",
     "saving": "Sauvegarde en cours...",
     "search": "Rechercher",
@@ -131,6 +132,7 @@
     "accepting": "Adhésion...",
     "creating": "Création...",
     "description": "Vous êtes invité à rejoindre {{workspace}} en tant que {{role}}.",
+    "enter_failed": "Vous avez rejoint l'espace de travail, mais son ouverture a échoué. Réessayez.",
     "errors": {
       "other_email": "Cette invitation est destinée à une autre adresse e-mail."
     },
@@ -286,6 +288,7 @@
       "description": "Vous perdez immédiatement l'accès à cet espace de travail et à ses données.",
       "done": "Vous avez quitté l'espace de travail",
       "last_owner": "Vous êtes le dernier propriétaire, vous ne pouvez donc pas partir. Nommez d'abord un autre membre propriétaire.",
+      "refresh_failed": "Vous avez quitté l'espace de travail, mais le chargement de vos espaces de travail a échoué. Réessayez.",
       "title": "Quitter cet espace de travail"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Créer l'espace de travail",
     "create_error": "Échec de la création de l'espace de travail",
+    "create_first": "Créer un espace de travail",
     "creating": "Création...",
     "enter": "Ouvrir l'espace de travail",
     "entering": "Ouverture...",
@@ -1705,6 +1709,7 @@
     "new_title": "Nouvel espace de travail",
     "none_description": "Votre compte n'est membre d'aucun espace de travail, il n'y a donc rien à afficher ici. Demandez à une personne qui gère un espace de travail de vous y ajouter.",
     "none_title": "Vous n'êtes encore dans aucun espace de travail",
+    "refresh_failed": "Impossible de charger vos espaces de travail. Vérifiez votre connexion et réessayez.",
     "switcher_label": "Changer d'espace de travail"
   }
 }

@@ -73,6 +73,7 @@
     "no_tags_available": "Geen tags beschikbaar",
     "please_refresh_page": "Vernieuw de pagina.",
     "required": "Verplicht",
+    "retry": "Opnieuw proberen",
     "save": "Opslaan",
     "saving": "Bezig met opslaan...",
     "search": "Zoek",
@@ -131,6 +132,7 @@
     "accepting": "Lid worden...",
     "creating": "Aanmaken...",
     "description": "Je bent uitgenodigd om als {{role}} lid te worden van {{workspace}}.",
+    "enter_failed": "Je bent lid geworden van de werkruimte, maar openen is mislukt. Probeer het opnieuw.",
     "errors": {
       "other_email": "Deze uitnodiging is voor een ander e-mailadres."
     },
@@ -286,6 +288,7 @@
       "description": "Je verliest meteen de toegang tot deze werkruimte en de gegevens erin.",
       "done": "Je hebt de werkruimte verlaten",
       "last_owner": "Je bent de laatste eigenaar, dus je kunt niet weg. Maak eerst een ander lid eigenaar.",
+      "refresh_failed": "Je hebt de werkruimte verlaten, maar het laden van je werkruimtes is mislukt. Probeer het opnieuw.",
       "title": "Deze werkruimte verlaten"
     },
     "list": {
@@ -1693,6 +1696,7 @@
   "workspaces": {
     "create": "Werkruimte aanmaken",
     "create_error": "Werkruimte aanmaken mislukt",
+    "create_first": "Een werkruimte maken",
     "creating": "Aanmaken...",
     "enter": "Werkruimte openen",
     "entering": "Openen...",
@@ -1705,6 +1709,7 @@
     "new_title": "Nieuwe werkruimte",
     "none_description": "Je account is geen lid van een werkruimte, dus er is hier niets om te tonen. Vraag iemand die een werkruimte beheert om je toe te voegen.",
     "none_title": "Je zit nog in geen enkele werkruimte",
+    "refresh_failed": "Je werkruimtes konden niet worden geladen. Controleer je verbinding en probeer het opnieuw.",
     "switcher_label": "Van werkruimte wisselen"
   }
 }
