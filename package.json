@@ -4,7 +4,7 @@
   "workspaces": ["apps/*"],
   "scripts": {
     "build": "bun run --filter '*' build",
-    "dev": "concurrently --names web,api,probe,openapi,docs --prefix-colors auto \"bun run --cwd apps/web dev\" \"bun run dev:api\" \"bun run dev:probe\" \"bun run --cwd apps/server docs:watch\" \"bun run --cwd apps/docs dev\"",
+    "dev": "concurrently --kill-others-on-fail --names web,api,probe,openapi,docs --prefix-colors auto \"bun run --cwd apps/web dev\" \"bun run dev:api\" \"bun run dev:probe\" \"bun run --cwd apps/server docs:watch\" \"bun run --cwd apps/docs dev\"",
     "dev:api": "bun run --cwd apps/server dev:api",
     "dev:probe": "bun run --cwd apps/server dev:probe",
     "lint": "bun run --filter '*' lint",
