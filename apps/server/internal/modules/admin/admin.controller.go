@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// maxPageSize is the most users one page holds
+// maxPageSize is the most users or workspaces one page holds
 const maxPageSize = 100
 
 type Controller struct {
@@ -41,6 +41,8 @@ func (c *Controller) fail(err error) error {
 	switch {
 	case errors.Is(err, ErrUserNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("User not found"))
+	case errors.Is(err, ErrWorkspaceNotFound):
+		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Workspace not found"))
 	case errors.Is(err, ErrSelf):
 		return httpx.Fail(http.StatusConflict, utils.NewFailResponse("You can't do this to your own account"))
 	case errors.Is(err, ErrLastInstanceAdmin):
@@ -136,4 +138,41 @@ func (c *Controller) DeleteUser(ctx context.Context, input *DeleteUserInput) (*h
 		return nil, c.fail(err)
 	}
 	return httpx.Reply(http.StatusNoContent, httpx.NoBody{})
+}
+
+func (c *Controller) ListWorkspaces(ctx context.Context, input *ListWorkspacesInput) (*httpx.Output[utils.ApiResponse[*WorkspacesPageResponse]], error) {
+	r := input.Request
+	page, err := utils.GetQueryInt(r, "page", 0)
+	if err != nil || page < 0 {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
+	}
+	limit, err := utils.GetQueryInt(r, "limit", 20)
+	if err != nil || limit < 1 || limit > maxPageSize {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
+	}
+	workspaces, total, err := c.service.ListWorkspaces(ctx, r.URL.Query().Get("q"), page, limit)
+	if err != nil {
+		return nil, c.fail(err)
+	}
+	out := make([]*WorkspaceResponse, len(workspaces))
+	for i, w := range workspaces {
+		out[i] = workspaceResponse(w)
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Workspaces retrieved successfully", &WorkspacesPageResponse{Workspaces: out, Total: total, Page: page, Limit: limit}))
+}
+
+func (c *Controller) UpdateWorkspace(ctx context.Context, input *UpdateWorkspaceInput) (*httpx.Output[utils.ApiResponse[*WorkspaceResponse]], error) {
+	actorID, err := actor(ctx)
+	if err != nil {
+		return nil, err
+	}
+	body, err := input.Decode()
+	if err != nil || body.Suspended == nil {
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Name what to change: suspended"))
+	}
+	updated, err := c.service.SetWorkspaceSuspended(ctx, actorID, input.Request.PathValue("id"), *body.Suspended)
+	if err != nil {
+		return nil, c.fail(err)
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Workspace updated successfully", workspaceResponse(updated)))
 }

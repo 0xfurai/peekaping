@@ -294,6 +294,8 @@ var (
 		"POST /api/v1/admin/users/{id}/reset-link":  "the install's users, instance admin only: a password reset link reaches the user, not a workspace",
 		"POST /api/v1/admin/users/{id}/disable-2fa": "the install's users, instance admin only: the user's own 2FA, not a workspace",
 		"DELETE /api/v1/admin/users/{id}":           "the install's users, instance admin only: a user's memberships go with them, no workspace's records do",
+		"GET /api/v1/admin/workspaces":              "the install's workspaces, instance admin only: counts and metadata, never a workspace's records",
+		"PATCH /api/v1/admin/workspaces/{id}":       "the install's workspaces, instance admin only: suspending or resuming reaches the workspace's hold, not its records",
 	}
 )
 
