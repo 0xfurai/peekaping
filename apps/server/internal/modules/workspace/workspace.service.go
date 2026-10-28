@@ -314,6 +314,10 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, token, userID string) (*
 		}
 		now := s.now().UTC()
 		if err := s.workspaces.AddMember(ctx, invite.WorkspaceID, userID, invite.Role); err != nil {
+			// The user became a member since the lookup above: the answer a later accept gets
+			if dbtx.IsUniqueViolation(err) {
+				return ErrAlreadyMember
+			}
 			return err
 		}
 		// The invite works once: of two accepts that race, the one that finds it used rolls back
