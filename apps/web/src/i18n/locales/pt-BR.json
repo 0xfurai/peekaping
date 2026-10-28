@@ -502,7 +502,8 @@
           "heartbeat_retry": "Intervalo de reenvio do heartbeat (Reenviar a cada {{seconds}} segundos)",
           "max_retries_description": "Número máximo de tentativas antes que o serviço seja marcado como indisponível e uma notificação seja enviada",
           "request_timeout": "Tempo limite de solicitação (Tempo limite após {{seconds}} segundos)",
-          "resend_notification": "Reenviar notificação se ficar fora do ar X vezes consecutivas (Reenviar desativado)"
+          "resend_notification": "Reenviar notificação se ficar fora do ar X vezes consecutivas (Reenviar desativado)",
+          "timeout_too_long": "Não pode ser maior que 80% do intervalo de verificação"
         },
         "location_rule": {
           "all": "todas as localizações estiverem indisponíveis",

@@ -162,7 +162,7 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, monitorCreateDto *Crea
 		CreatedAt:      time.Now().UTC(),
 		Config:         monitorCreateDto.Config,
 		ProxyId:        monitorCreateDto.ProxyId,
-		PushToken:      resolvePushToken(monitorCreateDto.PushToken, monitorCreateDto.Config),
+		PushToken:      monitorCreateDto.PushToken,
 		ProbeIDs:       monitorCreateDto.ProbeIDs,
 
 		LocationRule:      locationRuleOrAny(monitorCreateDto.LocationRule),
@@ -245,7 +245,7 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, id string, monitor
 		UpdatedAt:      time.Now().UTC(),
 		Config:         monitor.Config,
 		ProxyId:        monitor.ProxyId,
-		PushToken:      resolvePushToken(monitor.PushToken, monitor.Config),
+		PushToken:      monitor.PushToken,
 		ProbeIDs:       monitor.ProbeIDs,
 	}
 

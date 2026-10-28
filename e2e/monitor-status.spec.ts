@@ -26,8 +26,8 @@ test('a failing target shows Pending, then Down, on the card and the page', asyn
   await setTargetStatus(request, id, 200);
   const api = await adminAPI(page);
   try {
-    // One failed check with max retries 1 is Pending, the next one Down. A
-    // monitor's first check is Down at once, so it has to start Up.
+    // One failed check with max retries 1 is Pending, the next one Down. It starts
+    // Up so the test sees the Up to Pending to Down run on one monitor.
     const monitor = await createHTTPMonitor(api, name, targetURL(id), { maxRetries: 1 });
     created.push(`monitors/${monitor.id}`);
 

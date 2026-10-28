@@ -11,16 +11,16 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:api_keys,alias:ak"`
 
-	ID             string     `bun:"id,pk"`
-	Name           string     `bun:"name,notnull"`
-	KeyHash        string     `bun:"key_hash,notnull"`
-	DisplayKey     string     `bun:"display_key,notnull"`
-	LastUsed       *time.Time `bun:"last_used"`
-	ExpiresAt      *time.Time `bun:"expires_at"`
-	UsageCount     int64      `bun:"usage_count,notnull,default:0"`
-	MaxUsageCount  *int64     `bun:"max_usage_count"`
-	CreatedAt      time.Time  `bun:"created_at,nullzero,notnull,default:current_timestamp"`
-	UpdatedAt      time.Time  `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	ID            string     `bun:"id,pk"`
+	Name          string     `bun:"name,notnull"`
+	KeyHash       string     `bun:"key_hash,notnull"`
+	DisplayKey    string     `bun:"display_key,notnull"`
+	LastUsed      *time.Time `bun:"last_used"`
+	ExpiresAt     *time.Time `bun:"expires_at"`
+	UsageCount    int64      `bun:"usage_count,notnull,default:0"`
+	MaxUsageCount *int64     `bun:"max_usage_count"`
+	CreatedAt     time.Time  `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+	UpdatedAt     time.Time  `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
 }
 
 func toDomainModelFromSQL(sm *sqlModel) *Model {
@@ -29,7 +29,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 	if displayKey == "" {
 		displayKey = ApiKeyPrefix + sm.ID[:6] + "..."
 	}
-	
+
 	return &Model{
 		ID:            sm.ID,
 		Name:          sm.Name,
@@ -129,10 +129,10 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
 // MARK: Update
 func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *UpdateModel) (*Model, error) {
 	sm := new(sqlModel)
-	
+
 	// Build update query dynamically
 	query := r.db.NewUpdate().Model(sm).Where("id = ?", id)
-	
+
 	if update.Name != nil {
 		query = query.Set("name = ?", *update.Name)
 	}
@@ -142,14 +142,14 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 	if update.MaxUsageCount != nil {
 		query = query.Set("max_usage_count = ?", *update.MaxUsageCount)
 	}
-	
+
 	query = query.Set("updated_at = ?", time.Now())
-	
+
 	_, err := query.Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return toDomainModelFromSQL(sm), nil
 }
 

@@ -1,7 +1,9 @@
 package monitor
 
 import (
+	"crypto/rand"
 	"encoding/json"
+	"strings"
 
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
@@ -21,7 +23,7 @@ type CreateUpdateDto struct {
 	TagIds          []string `json:"tag_ids" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 	ProxyId         string   `json:"proxy_id" example:"6830ad485361f19c598d6d90"`
 	Config          string   `json:"config"`
-	PushToken       string   `json:"push_token"`
+	PushToken       string   `json:"push_token" doc:"For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept; when push_token and config.pushToken differ, push_token wins. A full update takes the token from either field the same way, but generates none: one with neither answers 400." example:"3KQ7WBH2ZV5XJYPN4D6TFAE2GM"`
 	// ProbeIDs are the probes that run the monitor, one or more. A create without it runs on the
 	// local probe, and an update without it keeps the monitor's probes.
 	ProbeIDs []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only." example:"local"`
@@ -45,7 +47,8 @@ func (dto *CreateUpdateDto) UnmarshalJSON(data []byte) error {
 	return err
 }
 
-// ApplyCreateDefaults keeps omitted active fields active for create requests.
+// ApplyCreateDefaults keeps omitted active fields active for create requests, and gives a push
+// monitor a push token when the request has none.
 // Full updates keep their existing zero-value semantics.
 func (dto *CreateUpdateDto) ApplyCreateDefaults() {
 	if dto == nil {
@@ -53,6 +56,67 @@ func (dto *CreateUpdateDto) ApplyCreateDefaults() {
 	}
 	if !dto.activeSet {
 		dto.Active = true
+	}
+	if dto.Type == pushMonitorType {
+		dto.applyPushToken(true)
+	}
+}
+
+// ApplyUpdateDefaults makes a full update of a push monitor carry one token in push_token and
+// config.pushToken, taken from whichever of the two the request sets. It generates none: that
+// would replace the token the monitored service pushes with, so an update without one is
+// rejected by the validation.
+func (dto *CreateUpdateDto) ApplyUpdateDefaults() {
+	if dto != nil && dto.Type == pushMonitorType {
+		dto.applyPushToken(false)
+	}
+}
+
+// pushMonitorType is the type of a push monitor.
+const pushMonitorType = "push"
+
+// applyPushToken makes push_token and config.pushToken one token: push_token, else the one in
+// the config, else, when generate is set, a new one. A config that isn't a JSON object with a
+// text token is left as it is, so the validation rejects it.
+func (dto *CreateUpdateDto) applyPushToken(generate bool) {
+	config := map[string]json.RawMessage{}
+	if strings.TrimSpace(dto.Config) != "" {
+		if err := json.Unmarshal([]byte(dto.Config), &config); err != nil {
+			return
+		}
+		if config == nil {
+			config = map[string]json.RawMessage{}
+		}
+	}
+	var configToken string
+	if raw, ok := config["pushToken"]; ok {
+		if err := json.Unmarshal(raw, &configToken); err != nil {
+			return
+		}
+	}
+
+	token := dto.PushToken
+	if token == "" {
+		token = configToken
+	}
+	if token == "" && generate {
+		token = rand.Text()
+	}
+	if token == "" {
+		return
+	}
+	dto.PushToken = token
+	if configToken == token {
+		return
+	}
+
+	encoded, err := json.Marshal(token)
+	if err != nil {
+		return
+	}
+	config["pushToken"] = encoded
+	if updated, err := json.Marshal(config); err == nil {
+		dto.Config = string(updated)
 	}
 }
 

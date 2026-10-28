@@ -6,6 +6,8 @@ import (
 	"math"
 	"net/http"
 	"net/http/httptest"
+	"slices"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -42,6 +44,27 @@ func monitorOf(id, url string) probeproto.Monitor {
 		m.Interval = checkedOnce
 		m.Config = fmt.Sprintf(`{"url":%q,"method":"GET","encoding":"json","accepted_statuscodes":["2XX"],"authMethod":"none"}`, url)
 	})
+}
+
+// failingTarget is a web server that answers 500 to every check, and notes when each came
+func failingTarget(t *testing.T) (url string, checked func() []time.Time) {
+	t.Helper()
+	var (
+		mu    sync.Mutex
+		times []time.Time
+	)
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		times = append(times, time.Now())
+		mu.Unlock()
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	t.Cleanup(target.Close)
+	return target.URL, func() []time.Time {
+		mu.Lock()
+		defer mu.Unlock()
+		return slices.Clone(times)
+	}
 }
 
 func newProbe(server *assignmentServer) *probeclient.Probe {
@@ -329,4 +352,23 @@ func TestProbe_KeepsCheckingWhileTheServerIsUnreachable(t *testing.T) {
 	require.Eventually(t, func() bool { return checks.Load() >= before+2 }, 10*time.Second, 10*time.Millisecond,
 		"the probe goes on checking its last assignment")
 	assert.True(t, probe.Ready(), "and stays ready")
+}
+
+func TestProbe_ChecksAFailingMonitorAtItsRetryIntervalWhileItHasRetriesLeft(t *testing.T) {
+	url, checked := failingTarget(t)
+	monitor := monitorOf("a", url)
+	monitor.MaxRetries, monitor.RetryInterval = 2, 1
+	server := newAssignmentServer(t, snapshot("v1", monitor))
+	runProbe(t, newProbe(server))
+
+	// The check interval is far off, so only the retry interval brings the checks after the first
+	require.Eventually(t, func() bool { return len(checked()) == 3 }, 10*time.Second, 10*time.Millisecond,
+		"the first check, then a retry for each of the 2 max retries")
+	times := checked()
+	for i := 1; i < len(times); i++ {
+		assert.GreaterOrEqual(t, times[i].Sub(times[i-1]), 800*time.Millisecond, "retry %d is a retry interval after the check before", i)
+		assert.Less(t, times[i].Sub(times[i-1]), 5*time.Second, "and well before the interval")
+	}
+	time.Sleep(1500 * time.Millisecond)
+	assert.Len(t, checked(), 3, "the third failure is Down, and then the monitor waits for its interval")
 }

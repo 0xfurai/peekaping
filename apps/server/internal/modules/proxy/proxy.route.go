@@ -1,10 +1,11 @@
 package proxy
 
 import (
-	"github.com/danielgtaylor/huma/v2"
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/middleware"
+
+	"github.com/danielgtaylor/huma/v2"
 )
 
 type Route struct {

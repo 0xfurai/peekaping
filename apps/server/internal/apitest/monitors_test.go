@@ -1,6 +1,7 @@
 package apitest
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -101,7 +102,7 @@ func TestMonitorsAPI_RejectsInvalidInput(t *testing.T) {
 	a.expectStatus(t, http.StatusBadRequest, []call{
 		{"malformed JSON", http.MethodPost, "/api/v1/monitors", "{"},
 		{"name too short", http.MethodPost, "/api/v1/monitors", shortName},
-		{"config fails its monitor type", http.MethodPost, "/api/v1/monitors", with(monitor, "config", "{}")},
+		{"config fails its monitor type", http.MethodPost, "/api/v1/monitors", with(monitor, "config", `{"pushToken":5}`)},
 		{"unknown monitor type", http.MethodPost, "/api/v1/monitors", with(monitor, "type", "carrier-pigeon")},
 		{"full update with a name too short", http.MethodPut, path, shortName},
 		{"partial update with a bad config", http.MethodPatch, path, map[string]any{"config": "{}"}},
@@ -114,4 +115,41 @@ func TestMonitorsAPI_RejectsInvalidInput(t *testing.T) {
 	list := decode[[]monitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
 	require.Len(t, list, 1)
 	assert.Equal(t, "Checkout", list[0].Name)
+}
+
+// A timeout is at most 0.8 x the check interval, so a check ends before the next one is due.
+func TestMonitorsAPI_RejectsATimeoutAboveEightyPercentOfTheInterval(t *testing.T) {
+	a := newAppWithAdmin(t)
+	id := a.createMonitor(t, "Checkout", "checkout-push-token")
+	path := "/api/v1/monitors/" + id
+
+	tooLong := with(with(pushMonitorBody("Search", "search-push-token"), "interval", 60), "timeout", 49)
+	reply := a.request(t, http.MethodPost, "/api/v1/monitors", tooLong, a.asAdmin)
+	assert.Equal(t, http.StatusBadRequest, reply.Code, reply.Body.String())
+	assert.Contains(t, reply.Body.String(), "timeout", "the error names the timeout")
+
+	a.expectStatus(t, http.StatusBadRequest, []call{
+		{"full update with a timeout of 49 s on a 60 s interval", http.MethodPut, path, with(with(pushMonitorBody("Checkout", "checkout-push-token"), "interval", 60), "timeout", 49)},
+		{"timeout longer than the interval", http.MethodPost, "/api/v1/monitors", with(with(pushMonitorBody("Search", "search-push-token"), "interval", 60), "timeout", 90)},
+	})
+
+	list := decode[[]monitorResponse](t, a.request(t, http.MethodGet, "/api/v1/monitors", nil, a.asAdmin), http.StatusOK)
+	require.Len(t, list, 1)
+}
+
+func TestMonitorsAPI_AcceptsATimeoutOfAtMostEightyPercentOfTheInterval(t *testing.T) {
+	a := newAppWithAdmin(t)
+	for i, c := range []struct {
+		name              string
+		interval, timeout int
+	}{
+		{"80 percent of 60", 60, 48},
+		{"80 percent of the shortest interval", 20, 16},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			token := fmt.Sprintf("accepted-token-%d", i)
+			body := with(with(pushMonitorBody("Accepted", token), "interval", c.interval), "timeout", c.timeout)
+			decode[monitorResponse](t, a.request(t, http.MethodPost, "/api/v1/monitors", body, a.asAdmin), http.StatusCreated)
+		})
+	}
 }

@@ -22,9 +22,9 @@ export async function adminAPI(page: Page): Promise<APIRequestContext> {
 
 // Creates an HTTP monitor checked every 20 seconds, the minimum. Pass active: false for a paused
 // one, which is never checked and so has no heartbeats. A monitor that
-// is Up and then starts failing spends its max retries in Pending, one failed
-// check each, before it is Down. One whose first check fails is Down at once, and
-// that failure already counts as one of its retries (PP-135).
+// starts failing spends its max retries in Pending, one failed check each, before
+// it is Down, whether its first check fails or a later one (PP-135). With max retries 0 (the
+// default here) a failed check is Down at once.
 export async function createHTTPMonitor(
   api: APIRequestContext,
   name: string,

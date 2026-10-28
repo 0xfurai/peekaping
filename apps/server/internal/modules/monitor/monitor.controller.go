@@ -255,6 +255,7 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 	if err := decodeErr; err != nil {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
+	monitor.ApplyUpdateDefaults()
 
 	// validate
 	if err := validation.Validate.Struct(monitor); err != nil {

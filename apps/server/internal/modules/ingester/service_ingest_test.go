@@ -302,20 +302,17 @@ func TestIngester_StatusTransitions(t *testing.T) {
 			step: step{check: down, want: down, retries: 1, important: true, notified: true},
 		},
 		{
-			// PP-135 changes this: GLOSSARY.md says a failed check with retries left is Pending
-			name:    "first heartbeat Down skips Pending even with retries left",
+			name:    "first failed check with retries left is Pending, important and does not notify",
 			monitor: monitorSettings{maxRetries: 3},
-			step:    step{check: down, want: down, retries: 1, important: true, notified: true},
+			step:    step{check: down, want: pending, retries: 1, important: true},
 		},
 		{
-			// PP-134 changes this: GLOSSARY.md says notifications are sent when a monitor goes Down or comes back Up
-			name: "first heartbeat Pending is important and notifies",
-			step: step{check: pending, want: pending, important: true, notified: true},
+			name: "first heartbeat Pending is important and does not notify",
+			step: step{check: pending, want: pending, important: true},
 		},
 		{
-			// PP-134 changes this: GLOSSARY.md says a maintenance window raises no notifications
-			name: "first heartbeat Maintenance is important and notifies",
-			step: step{check: maintenance, want: maintenance, important: true, notified: true},
+			name: "first heartbeat Maintenance is important and does not notify",
+			step: step{check: maintenance, want: maintenance, important: true},
 		},
 
 		{
@@ -453,6 +450,26 @@ func TestIngester_MaxRetries(t *testing.T) {
 				{check: up, want: up, important: true, notified: true},
 				{check: down, want: down, retries: 1, important: true, notified: true},
 				{check: down, want: down, retries: 2},
+			},
+		},
+		{
+			name:    "max retries 3 on a new monitor: the first failed check is Pending, and Down notifies after the retries",
+			monitor: monitorSettings{maxRetries: 3},
+			steps: []step{
+				{check: down, want: pending, retries: 1, important: true},
+				{check: down, want: pending, retries: 2},
+				{check: down, want: pending, retries: 3},
+				{check: down, want: down, retries: 4, important: true, notified: true},
+				{check: down, want: down, retries: 5},
+			},
+		},
+		{
+			name:    "max retries 3 on a new monitor: an Up check after the first failure ends the retries",
+			monitor: monitorSettings{maxRetries: 3},
+			steps: []step{
+				{check: down, want: pending, retries: 1, important: true},
+				{check: up, want: up, important: true},
+				{check: down, want: pending, retries: 1},
 			},
 		},
 		{

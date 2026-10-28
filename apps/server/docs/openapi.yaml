@@ -839,6 +839,9 @@ components:
             - 6830ad485361f19c598d6d90
           type: string
         push_token:
+          description: "For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept; when push_token and config.pushToken differ, push_token wins. A full update takes the token from either field the same way, but generates none: one with neither answers 400."
+          examples:
+            - 3KQ7WBH2ZV5XJYPN4D6TFAE2GM
           type: string
         resend_interval:
           examples:

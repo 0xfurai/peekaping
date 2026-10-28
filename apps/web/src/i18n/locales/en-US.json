@@ -502,7 +502,8 @@
           "heartbeat_retry": "Heartbeat Retry Interval (Retry every {{seconds}} seconds)",
           "max_retries_description": "Maximum retries before the service is marked as down and a notification is sent",
           "request_timeout": "Request Timeout (Timeout after {{seconds}} seconds)",
-          "resend_notification": "Resend Notification if Down X times consecutively (Resend disabled)"
+          "resend_notification": "Resend Notification if Down X times consecutively (Resend disabled)",
+          "timeout_too_long": "Can't be more than 80% of the check interval"
         },
         "location_rule": {
           "all": "All locations are Down",

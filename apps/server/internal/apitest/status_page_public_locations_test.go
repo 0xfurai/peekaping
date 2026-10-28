@@ -90,6 +90,34 @@ func TestPublicStatusPage_ShowsTheMonitorsOwnStatusAndNoLocationsByDefault(t *te
 	}
 }
 
+// A monitor that has never been checked is Pending, as GLOSSARY.md names the status of a new monitor:
+// it is stored Pending on create. A monitor that has been checked keeps its own status.
+func TestPublicStatusPage_ShowsAMonitorThatHasNeverBeenCheckedAsPending(t *testing.T) {
+	a := newAppWithAdmin(t)
+	unchecked := a.createHTTPMonitor(t, "Unchecked", "")
+	checked := a.createHTTPMonitor(t, "Checked", "")
+	a.recordHeartbeat(t, checked, shared.MonitorStatusDown)
+	a.storeStatus(t, checked, shared.MonitorStatusDown)
+	a.createStatusPage(t, statusPage{slug: "shop", published: true, monitors: []string{unchecked, checked}})
+
+	for _, path := range publicMonitorPaths {
+		t.Run(path, func(t *testing.T) {
+			monitors := decode[[]publicMonitorWithLocations](t, a.request(t, http.MethodGet, path, nil), http.StatusOK)
+			byName := map[string]publicMonitorWithLocations{}
+			for _, m := range monitors {
+				byName[m.Name] = m
+			}
+			require.Len(t, byName, 2)
+			if assert.NotNil(t, byName["Unchecked"].Status) {
+				assert.Equal(t, 2, *byName["Unchecked"].Status, "a monitor that has never been checked is Pending")
+			}
+			if assert.NotNil(t, byName["Checked"].Status) {
+				assert.Equal(t, 0, *byName["Checked"].Status, "a checked monitor keeps its own status")
+			}
+		})
+	}
+}
+
 func TestPublicStatusPage_ListsEachLocationWhenTheSettingIsOn(t *testing.T) {
 	a := newAppWithAdmin(t)
 	id := a.checkoutOnTwoProbes(t)

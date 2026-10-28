@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: creating a push monitor through the API without a push token works. The server generates a token and returns it in `push_token` and in `config.pushToken`, where before it answered 400 (`PushConfig.PushToken ... required`). A token sent only as `push_token` is copied into `config.pushToken`, and a token you send is kept (#273) (thanks @ausebiblibre)
+- fix: a push monitor updated through the API with its token in only one of `push_token` and `config.pushToken` stays reachable at its push URL. The push endpoint looks the monitor up by `push_token`, so a full or partial update that sent the token only inside the config emptied it, and every push answered `Monitor not found for pushToken`. A full update now fills either field from the other, as a create does, and a partial update fills `push_token` from the config. An update never generates a token (#234) (thanks @rayhankey3)
+  - Upgrade note: a monitor whose `push_token` is already empty keeps answering 404 until it is saved once more, which fills it from its config.
+
 ## [0.0.48] - 2026-10-27
 
 ### Added
@@ -182,8 +186,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: in single mode the Probes page shows the local probe online (PP-325)
 - fix: the heartbeat bar fits its bars again when the sidebar opens or closes (#267)
 - fix: an empty password field shows the "Password is required" message in every language. Its translation key was missing (#357) (thanks @larswmh)
-- fix: a push monitor created or updated through the API with its token only inside `config.pushToken` is reachable at its push URL again. The web app generates the token in the browser and sends it both at the top level and inside the config, but a client that sends only one of the two left the `push_token` column empty, and the push endpoint looks the monitor up by that column, so every push answered `Monitor not found for pushToken`. The create, the full update and the partial update now take whichever of the two is set; a partial update that sends neither keeps the token the monitor has (#234, #273)
-  - Upgrade note: a monitor created before this change with an empty `push_token` column keeps answering 404 until it is saved once more, which fills the column from its config.
 
 ## [0.0.47] - 2026-10-19
 

@@ -100,6 +100,15 @@ type Scheduler struct {
 type schedule struct {
 	interval time.Duration
 	timer    *time.Timer
+	// failures is how many of the monitor's checks in a row have failed. The ingester keeps its
+	// own count, which a Pending monitor's retries are taken from, but the scheduler can't see
+	// it, and a remote probe never does: this counts the same way. It starts at 0 when the
+	// scheduler starts, and survives a reschedule (an edit, a reconcile, RunNow). Pausing the
+	// monitor, or moving it to another probe, drops the schedule and with it the count.
+	failures int
+	// retrying is set while the timer is a retry timer: it is armed for a retry interval after a
+	// failed check, not for the next multiple of the interval
+	retrying bool
 }
 
 // checkRun is a monitor's running check
@@ -351,10 +360,11 @@ func (s *Scheduler) set(mon *shared.Monitor, checkNow bool) bool {
 		return false
 	}
 
+	sc := &schedule{interval: checkInterval(mon)}
 	if old := s.schedules[mon.ID]; old != nil {
 		old.timer.Stop()
+		sc.failures = old.failures
 	}
-	sc := &schedule{interval: checkInterval(mon)}
 	s.schedules[mon.ID] = sc
 	s.arm(mon.ID, sc, time.Now())
 
@@ -368,7 +378,59 @@ func (s *Scheduler) set(mon *shared.Monitor, checkNow bool) bool {
 // The caller holds mu.
 func (s *Scheduler) arm(monitorID string, sc *schedule, after time.Time) {
 	due := nextAligned(after, sc.interval)
+	sc.retrying = false
 	sc.timer = time.AfterFunc(due.Sub(after), func() { s.fire(monitorID, sc) })
+}
+
+// armRetry replaces the schedule's timer with one for a retry interval from now. When it fires,
+// the next timer is on the grid of the interval again, as after any other timer. The caller holds mu.
+func (s *Scheduler) armRetry(monitorID string, sc *schedule, retryInterval time.Duration) {
+	sc.timer.Stop()
+	sc.retrying = true
+	sc.timer = time.AfterFunc(retryInterval, func() { s.fire(monitorID, sc) })
+}
+
+// retryInterval is how long after a failed check the monitor is checked again, or zero when it
+// is checked on its interval. It is checked sooner while its retries last, as the ingester keeps
+// it Pending: after a failed check, when no more than max retries checks in a row have failed.
+func retryInterval(mon *shared.Monitor, failures int) time.Duration {
+	if failures <= 0 || mon.MaxRetries <= 0 || mon.RetryInterval <= 0 || failures > mon.MaxRetries {
+		return 0
+	}
+	return time.Duration(mon.RetryInterval) * time.Second
+}
+
+// afterCheck counts the result of the monitor's check, and sets its next check a retry interval
+// away while its retries last. A result that is not Down ends the run of failures: it is a
+// success, or Maintenance, or a status that is no failure for the ingester either. The result
+// of a check that was cancelled, or of a monitor whose schedule is gone, counts for nothing.
+// So does a result that was not stored (stored is false): the ingester has not seen it, so it
+// leaves the count where it was. The monitor is still checked a retry interval later if that count
+// calls for it, and otherwise its timer stays as it is.
+func (s *Scheduler) afterCheck(ctx context.Context, mon *shared.Monitor, status shared.MonitorStatus, stored bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	sc := s.schedules[mon.ID]
+	if !s.running() || ctx.Err() != nil || sc == nil {
+		return
+	}
+
+	switch {
+	case !stored:
+	case status != shared.MonitorStatusDown:
+		sc.failures = 0
+	default:
+		sc.failures++
+	}
+	switch retry := retryInterval(mon, sc.failures); {
+	case retry > 0:
+		s.armRetry(mon.ID, sc, retry)
+	case !stored:
+	case sc.retrying:
+		// A retry timer is still set: something else checked the monitor meanwhile. Back on the grid.
+		sc.timer.Stop()
+		s.arm(mon.ID, sc, time.Now())
+	}
 }
 
 // fire is a monitor's timer going off: it sets the next timer, then starts a check
@@ -526,9 +588,11 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 	}
 	ingestCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), ingestTimeout)
 	defer cancel()
-	if err := s.ingester.Ingest(ingestCtx, result); err != nil {
+	err = s.ingester.Ingest(ingestCtx, result)
+	if err != nil {
 		s.logger.Errorw("Failed to ingest the result of a check", "monitor_id", monitorID, "error", err)
 	}
+	s.afterCheck(ctx, mon, result.Status, err == nil)
 }
 
 // The source's signals reschedule monitors as they are created, changed (pausing is a change)

@@ -179,7 +179,11 @@ func (c *Controller) VerifyTwoFA(ctx context.Context, input *VerifyTwoFAInput) (
 		return nil, httpx.Fail(http.StatusBadRequest, TwoFAVerifyResponseDto{Success: false, Message: err.Error()})
 	}
 
-	return httpx.Reply(http.StatusOK, TwoFAVerifyResponseDto{Success: success, Message: "2FA verification successful"})
+	if !success {
+		return nil, httpx.Fail(http.StatusBadRequest, TwoFAVerifyResponseDto{Success: false, Message: "invalid 2FA code"})
+	}
+
+	return httpx.Reply(http.StatusOK, TwoFAVerifyResponseDto{Success: true, Message: "2FA verification successful"})
 }
 func (c *Controller) DisableTwoFA(ctx context.Context, input *DisableTwoFAInput) (*httpx.Output[utils.ApiResponse[any]], error) {
 	userId, _ := httpx.Lookup(ctx, "userId")

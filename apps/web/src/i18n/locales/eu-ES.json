@@ -502,7 +502,8 @@
           "heartbeat_retry": "Bizikuntza berriztaiteko tartea (Berriztaiteko {{seconds}} segundo)",
           "max_retries_description": "Gehieneko saiakera kopurua, zerbitzuak 'ez dago' bezala markatu eta abisu bat bidaltzeko",
           "request_timeout": "Eskariaren denbora-mugua ({{seconds}} segundoen ondoren)",
-          "resend_notification": "Berriz bidali abisua, X aldiz jarraian jaitsi (Berriz bidalketa desgaituta)"
+          "resend_notification": "Berriz bidali abisua, X aldiz jarraian jaitsi (Berriz bidalketa desgaituta)",
+          "timeout_too_long": "Ezin da egiaztatze-tartearen % 80 baino handiagoa izan"
         },
         "location_rule": {
           "all": "kokaleku guztiak behera daudenean",

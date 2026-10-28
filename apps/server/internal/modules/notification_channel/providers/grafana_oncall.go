@@ -109,6 +109,13 @@ func (g *GrafanaOncallSender) Send(
 			}
 		}
 
+		// OnCall groups alerts by alert_uid and resolves a group on state ok, so the monitor's id
+		// in the form of PagerDuty's dedup key keeps its Up from resolving other monitors' alerts.
+		// A test notification's monitor has no ID, and so no alert group of its own.
+		if monitor != nil && monitor.ID != "" {
+			payload["alert_uid"] = fmt.Sprintf("Peekaping/%s", monitor.ID)
+		}
+
 		payload["status"] = humanReadableStatus(int(heartbeat.Status))
 		payload["ping_ms"] = heartbeat.Ping
 		payload["retries"] = heartbeat.Retries

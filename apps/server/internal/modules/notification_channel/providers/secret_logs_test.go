@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -95,6 +96,19 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 			channel: "grafana oncall",
 		},
 		{
+			// On a public ntfy server the topic works as the password, and the server URL can carry
+			// credentials as userinfo
+			name: "ntfy",
+			send: func(logger *zap.SugaredLogger, serverURL string) error {
+				cfg := `{"server_url": "` + ntfyServerURLWithUserinfo(serverURL) + `", "topic": "secret-ntfy-topic", "authentication_type": "none"}`
+				return NewNTFYSender(logger, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+			},
+			secrets: func(serverURL string) []string {
+				return []string{"secret-ntfy-topic", "secret-pass", ntfyServerURLWithUserinfo(serverURL), serverURL}
+			},
+			channel: "ntfy",
+		},
+		{
 			// PagerDuty's URL is a public endpoint; its integration key is the credential
 			name: "pagerduty",
 			send: func(logger *zap.SugaredLogger, serverURL string) error {
@@ -123,6 +137,49 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 			assert.Contains(t, strings.ToLower(logged), tc.channel+" notification sent", "the log says which channel the send went to and that it succeeded")
 		})
 	}
+}
+
+// An email send must write nothing to stdout, and must leave the message (recipient, subject and
+// body) out of its logs, at every level
+func TestEmailSender_DoesNotPrintOrLogTheMessage(t *testing.T) {
+	server := startFakeSMTPServer(t)
+	config := withSMTPServer(t, `{"username": "alerts@example.com", "password": "smtp-pass", "from": "alerts@example.com", "to": "oncall@example.com",`+
+		` "custom_subject": "secret-subject", "custom_body": "secret-email-body"}`, server.port())
+	core, logs := observer.New(zap.DebugLevel)
+
+	stdout := captureStdout(t, func() {
+		require.NoError(t, NewEmailSender(zap.New(core).Sugar()).Send(context.Background(), config, "Monitor is down", testMonitor(), testHeartbeat()))
+	})
+
+	assert.Empty(t, stdout)
+	logged := loggedText(logs)
+	for _, secret := range []string{"secret-email-body", "secret-subject", "oncall@example.com", "smtp-pass"} {
+		assert.NotContains(t, logged, secret)
+	}
+	assert.Contains(t, strings.ToLower(logged), "email notification sent", "the log says which channel the send went to and that it succeeded")
+	assert.Contains(t, <-server.sessions, "secret-email-body", "the message still reaches the SMTP server")
+}
+
+// captureStdout returns what fn wrote to os.Stdout
+func captureStdout(t *testing.T, fn func()) string {
+	t.Helper()
+	reader, writer, err := os.Pipe()
+	require.NoError(t, err)
+	original := os.Stdout
+	os.Stdout = writer
+	defer func() { os.Stdout = original }()
+
+	fn()
+
+	require.NoError(t, writer.Close())
+	out, err := io.ReadAll(reader)
+	require.NoError(t, err)
+	return string(out)
+}
+
+// ntfyServerURLWithUserinfo is serverURL with credentials in front of its host
+func ntfyServerURLWithUserinfo(serverURL string) string {
+	return strings.Replace(serverURL, "://", "://user:secret-pass@", 1)
 }
 
 // stubTransport answers every request with 200, so a sender with a fixed endpoint (LINE,

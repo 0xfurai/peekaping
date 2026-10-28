@@ -502,7 +502,8 @@
           "heartbeat_retry": "Interval ponovnog pokušaja sržega (ponovite svake {{seconds}} sekunde)",
           "max_retries_description": "Maksimalni broj ponovnih pokušaja prije nego što se usluga označi kao neispravna i pošalje se obavijest.",
           "request_timeout": "Zastoj zahtjeva (Timeout nakon {{seconds}} sekundi)",
-          "resend_notification": "Ponovi obavijest ako je X puta uzastopno ne radi (ponovno slanje onemogućeno)"
+          "resend_notification": "Ponovi obavijest ako je X puta uzastopno ne radi (ponovno slanje onemogućeno)",
+          "timeout_too_long": "Ne smije biti veće od 80 % intervala provjere"
         },
         "location_rule": {
           "all": "sve lokacije ne rade",

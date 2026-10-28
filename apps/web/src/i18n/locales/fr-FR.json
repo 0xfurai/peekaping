@@ -502,7 +502,8 @@
           "heartbeat_retry": "Intervalle de réessai du heartbeat (Réessayer toutes les {{seconds}} secondes)",
           "max_retries_description": "Nombre maximal de tentatives avant que le service soit considéré comme hors service et qu'une notification soit envoyée",
           "request_timeout": "Expiration de la requête (Timeout après {{seconds}} secondes)",
-          "resend_notification": "Renvoyer la notification si en panne X fois de suite (renvoi désactivé)"
+          "resend_notification": "Renvoyer la notification si en panne X fois de suite (renvoi désactivé)",
+          "timeout_too_long": "Ne peut pas dépasser 80 % de l'intervalle de vérification"
         },
         "location_rule": {
           "all": "tous les emplacements sont hors service",

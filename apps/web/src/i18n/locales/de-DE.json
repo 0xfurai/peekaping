@@ -502,7 +502,8 @@
           "heartbeat_retry": "Lebenszeichen-Wiederholungsintervall (Wiederhole alle {{seconds}} Sekunden)",
           "max_retries_description": "Maximale Wiederholungsversuche, bevor der Dienst als ausgefallen markiert wird und eine Benachrichtigung gesendet wird",
           "request_timeout": "Zeitüberschreitung der Anfrage (Timeout nach {{seconds}} Sekunden)",
-          "resend_notification": "Benachrichtigung erneut senden, wenn der Monitor X Mal hintereinander ausfällt (Wiederholung deaktiviert)"
+          "resend_notification": "Benachrichtigung erneut senden, wenn der Monitor X Mal hintereinander ausfällt (Wiederholung deaktiviert)",
+          "timeout_too_long": "Darf nicht mehr als 80 % des Prüfintervalls betragen"
         },
         "location_rule": {
           "all": "alle Standorte ausgefallen sind",

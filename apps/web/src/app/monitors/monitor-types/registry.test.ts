@@ -159,6 +159,23 @@ describe("monitor type registry", () => {
         }
       });
 
+      it("refuses a timeout above 80% of the interval, and takes one up to it", () => {
+        const timeoutIssues = (interval: unknown, timeout: unknown) =>
+          checkedMonitorFormSchema
+            .safeParse({ ...definition.defaultValues, interval, timeout })
+            .error?.issues.filter((issue) => issue.path[0] === "timeout") ?? [];
+        const tooLong = timeoutIssues(60, 49);
+        expect(tooLong).toHaveLength(1);
+        expect(tooLong[0].message).toBe("monitors.form.shared.intervals.timeout_too_long");
+        expect(timeoutIssues(60, 48)).toHaveLength(0);
+        // The shortest interval and the shortest timeout
+        expect(timeoutIssues(20, 16)).toHaveLength(0);
+        expect(timeoutIssues(20, 17)).toHaveLength(1);
+        // The number inputs hand the form strings
+        expect(timeoutIssues("60", "49")).toHaveLength(1);
+        expect(timeoutIssues("60", "48")).toHaveLength(0);
+      });
+
       it("refuses a monitor on no probe", () => {
         const result = definition.schema.safeParse({ ...definition.defaultValues, probe_ids: [] });
         expect(result.success).toBe(false);

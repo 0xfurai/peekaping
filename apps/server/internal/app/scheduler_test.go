@@ -67,3 +67,49 @@ func TestRegisterSingle_TheSchedulerChecksAMonitorAndStoresItsHeartbeatThroughTh
 		assert.True(t, latest[0].Important, "a monitor's first heartbeat is important")
 	}))
 }
+
+// A monitor saved before the timeout limit (0.8 x the check interval) keeps running: the scheduler
+// loads it and checks it, and only saving it again asks for a shorter timeout. The monitor is
+// created through the service, which is how a stored one gets past the API's check.
+func TestRegisterSingle_TheSchedulerChecksAMonitorWhoseTimeoutIsAboveEightyPercentOfItsInterval(t *testing.T) {
+	container := dig.New()
+	cfg := singleConfig(t)
+	cfg.CheckConcurrency = 4
+	require.NoError(t, RegisterSingle(container, cfg))
+
+	require.NoError(t, container.Invoke(func(
+		s *scheduler.Scheduler,
+		monitors monitor.Service,
+		heartbeats heartbeat.Service,
+		bus events.EventBus,
+		db *bun.DB,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		require.NoError(t, migrateDB(db))
+
+		ctx := context.Background()
+		require.NoError(t, s.Start(ctx))
+		t.Cleanup(s.Stop)
+
+		mon, err := monitors.Create(ctx, &monitor.CreateUpdateDto{
+			Type:     "push",
+			Name:     "Legacy",
+			Interval: 60,
+			Timeout:  90,
+			Active:   true,
+			Config:   `{"pushToken":"legacy-token"}`,
+		})
+		require.NoError(t, err)
+
+		var latest []*shared.HeartBeatModel
+		deadline := time.Now().Add(5 * time.Second)
+		for len(latest) != 1 {
+			latest, err = heartbeats.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
+			require.NoError(t, err)
+			require.True(t, len(latest) == 1 || time.Now().Before(deadline), "the monitor is checked, whatever its timeout")
+			time.Sleep(20 * time.Millisecond)
+		}
+		assert.Equal(t, shared.MonitorStatusDown, latest[0].Status)
+	}))
+}

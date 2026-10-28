@@ -502,7 +502,8 @@
           "heartbeat_retry": "Širdies ritmų bandymo intervalas (bandykite kas {{seconds}} sekundžių)",
           "max_retries_description": "Maksimalus bandymų skaičius, kol paslauga pažymima neveikiančia ir siunčiamas pranešimas.",
           "request_timeout": "Užklausos timeout (Baigiasi po {{seconds}} sekundžių)",
-          "resend_notification": "Persiųsti pranešimą, jei neveikia X kartus iš eilės (Persiuntimas išjungtas)"
+          "resend_notification": "Persiųsti pranešimą, jei neveikia X kartus iš eilės (Persiuntimas išjungtas)",
+          "timeout_too_long": "Negali būti didesnis nei 80 % tikrinimo intervalo"
         },
         "location_rule": {
           "all": "neveikia visos vietos",

@@ -502,7 +502,8 @@
           "heartbeat_retry": "Heartbeat-herhaalinterval (Herhaal elke {{seconds}} seconden)",
           "max_retries_description": "Maximale pogingen voordat de service als Down wordt gemarkeerd en er een melding wordt verzonden.",
           "request_timeout": "Verzoek time-out (Time-out na {{seconds}} seconden)",
-          "resend_notification": "Notificatie opnieuw verzenden bij X opeenvolgende keren uitgevallen (Verzenden uitgeschakeld)"
+          "resend_notification": "Notificatie opnieuw verzenden bij X opeenvolgende keren uitgevallen (Verzenden uitgeschakeld)",
+          "timeout_too_long": "Mag niet meer zijn dan 80% van het controle-interval"
         },
         "location_rule": {
           "all": "alle locaties zijn uitgevallen",

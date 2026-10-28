@@ -2,7 +2,6 @@ package healthcheck
 
 import (
 	"context"
-	"github.com/danielgtaylor/huma/v2"
 	"math"
 	"net/http"
 	"peekaping/internal/httpx"
@@ -14,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/danielgtaylor/huma/v2"
 
 	"peekaping/internal/modules/shared"
 
