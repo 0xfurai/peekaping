@@ -416,3 +416,18 @@ func TestAMinCheckIntervalBelowTwentyStopsStartup(t *testing.T) {
 		})
 	}
 }
+
+func TestSupportContactIsEmptyByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("SUPPORT_CONTACT", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Empty(t, cfg.ToInternalConfig().SupportContact)
+
+	t.Setenv("SUPPORT_CONTACT", "support@example.com")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, "support@example.com", cfg.ToInternalConfig().SupportContact)
+}

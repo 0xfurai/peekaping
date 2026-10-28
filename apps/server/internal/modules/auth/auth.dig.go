@@ -33,7 +33,7 @@ func ProvideService(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) Service {
-	return NewService(repo, transactor, workspaces, invites, tokenMaker, verifier, logger, WithOpenSignup(cfg.SignupOpen()), WithDisabledMonitorTypes(cfg.DisabledMonitorTypeList()), WithMinCheckInterval(cfg.MinCheckIntervalSeconds()))
+	return NewService(repo, transactor, workspaces, invites, tokenMaker, verifier, logger, WithOpenSignup(cfg.SignupOpen()), WithDisabledMonitorTypes(cfg.DisabledMonitorTypeList()), WithMinCheckInterval(cfg.MinCheckIntervalSeconds()), WithSupportContact(cfg.SupportContact))
 }
 
 // ProvideTokenMaker is the token maker of the app: it refuses the tokens of sessions that a

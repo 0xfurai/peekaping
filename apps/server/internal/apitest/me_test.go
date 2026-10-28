@@ -26,6 +26,7 @@ type meResponse struct {
 	DefaultWorkspaceID   *string  `json:"defaultWorkspaceId"`
 	DisabledMonitorTypes []string `json:"disabledMonitorTypes"`
 	MinCheckInterval     int      `json:"minCheckInterval"`
+	SupportContact       *string  `json:"supportContact"`
 }
 
 func TestMe_ReturnsTheUserTheirWorkspaceAndTheDefault(t *testing.T) {

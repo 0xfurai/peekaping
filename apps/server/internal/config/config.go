@@ -205,6 +205,11 @@ type Config struct {
 	// stops startup. A monitor stored with less is checked at the minimum. MinCheckIntervalSeconds
 	// is the value to read: a Config built without the variable counts as 20.
 	MinCheckInterval int `env:"MIN_CHECK_INTERVAL" validate:"min=20" default:"20"`
+
+	// SupportContact is how a member of a suspended workspace gets in touch with whoever runs the
+	// install (PP-372): free text, an email address or a URL, shown in the suspension banner and
+	// returned by GET /me. Unset, the banner says nothing about how.
+	SupportContact string `env:"SUPPORT_CONTACT"`
 }
 
 // AbsoluteMinCheckInterval is the shortest check interval, in seconds, that any install allows:
