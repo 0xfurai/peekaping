@@ -194,3 +194,24 @@ func TestTokenMaker_ATokenWithoutAuthTimeIsJudgedByItsIssueTime(t *testing.T) {
 	_, err = tokens.VerifyToken(ctx, legacy(cutoff.Add(time.Second)), "access")
 	assert.NoError(t, err, "issued after the cutoff")
 }
+
+func TestTokenMaker_AuthTimeSurvivesBeingCopiedFromTokenToToken(t *testing.T) {
+	h := newHarness(t)
+	h.register(t)
+	ctx := context.Background()
+	user, err := auth.NewSQLRepository(h.db).FindByEmail(ctx, adminEmail)
+	require.NoError(t, err)
+	// 1793208344.587 is a value a float reads back as .586999..., which jwt.NumericDate truncates to .586
+	began := time.UnixMilli(1793208344587).UTC()
+
+	for i := 0; i < 5; i++ {
+		token, err := h.tokens.CreateRefreshTokenForSession(ctx, user, began)
+		require.NoError(t, err)
+		verified := &auth.Claims{}
+		_, _, err = jwt.NewParser().ParseUnverified(token, verified)
+		require.NoError(t, err)
+		began = verified.AuthTime.Time
+	}
+
+	assert.Equal(t, int64(1793208344587), began.UnixMilli(), "after five copies")
+}
