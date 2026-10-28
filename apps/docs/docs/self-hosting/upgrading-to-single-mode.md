@@ -21,7 +21,7 @@ From release 0.0.48, the single-mode image is published as `0xfurai/peekaping` o
 
 Nothing else changes: not the port, the volume, the environment variables or the user.
 
-The old name gets the same tags in 0.0.48 and 0.0.49, and none from 0.0.50. If you keep it, you stop getting releases at 0.0.49. Releases up to 0.0.47 exist only under the old name.
+The old name gets the same tags in 0.0.48 and 0.1.0 (the release after 0.0.48), and none after 0.1.0. If you keep it, you stop getting releases at 0.1.0. Releases up to 0.0.47 exist only under the old name.
 
 ## Which release you run
 
