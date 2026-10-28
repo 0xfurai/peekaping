@@ -8,8 +8,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// DefaultName is the name of the workspace that an install gets when it first has one.
-const DefaultName = "Default"
+// FirstWorkspaceName is the name of the workspace that an install gets when it first has one.
+const FirstWorkspaceName = "My workspace"
 
 // recordTables are the tables whose rows a workspace will own, apart from the users.
 var recordTables = []string{"monitors", "notification_channels", "proxies", "tags", "maintenances", "status_pages", "api_keys"}
@@ -22,7 +22,7 @@ type Adoption struct {
 }
 
 // AdoptExistingInstall gives an install that has data and no workspace its first one, as the
-// upgrade to workspaces does (the migration adopt_existing_install): the workspace "Default",
+// upgrade to workspaces does (the migration adopt_existing_install): the workspace "My workspace",
 // with every user as its owner and an instance admin. It returns nil, and changes nothing, when
 // the install already has a workspace, and when it has no user and no record, which is a new
 // install that the first signup gives its workspace.
@@ -41,7 +41,7 @@ func AdoptExistingInstall(ctx context.Context, q bun.IDB) (*Adoption, error) {
 	}
 
 	now := time.Now().UTC()
-	sm := &sqlModel{ID: uuid.NewString(), Name: DefaultName, CreatedAt: now, UpdatedAt: now}
+	sm := &sqlModel{ID: uuid.NewString(), Name: FirstWorkspaceName, CreatedAt: now, UpdatedAt: now}
 	if _, err := q.NewInsert().Model(sm).Exec(ctx); err != nil {
 		return nil, err
 	}

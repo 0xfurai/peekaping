@@ -9,7 +9,7 @@ import (
 )
 
 // Gives an install upgraded to workspaces its first one (PP-146, docs/adr/0005): the workspace
-// "Default", with every user of the install as its owner and as an instance admin. A self-hosted
+// "My workspace", with every user of the install as its owner and as an instance admin. A self-hosted
 // install has one user, so it sees no change.
 //
 // An install that has no user and no record is a new one, and gets no workspace: the first
@@ -58,7 +58,7 @@ func adoptExistingInstall(ctx context.Context, db *bun.DB) error {
 		}
 
 		now := time.Now().UTC()
-		workspace := &adoptedWorkspace{ID: uuid.NewString(), Name: "Default", CreatedAt: now, UpdatedAt: now}
+		workspace := &adoptedWorkspace{ID: uuid.NewString(), Name: "My workspace", CreatedAt: now, UpdatedAt: now}
 		if _, err := tx.NewInsert().Model(workspace).Exec(ctx); err != nil {
 			return err
 		}

@@ -125,7 +125,7 @@ func (s *ServiceImpl) joinFirstWorkspace(ctx context.Context, userID string) err
 		return err
 	}
 	if target == nil {
-		target, err = s.workspaces.Create(ctx, workspace.DefaultName)
+		target, err = s.workspaces.Create(ctx, workspace.FirstWorkspaceName)
 		if err != nil {
 			return err
 		}

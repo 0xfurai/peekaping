@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- feat: the first step to workspaces ([ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md)). An install that upgrades gets one workspace, "Default", and its users become its owners and instance admins. On a new install the first user to sign up gets it. Nothing changes in the app yet. `bun db import-mongo` gives the database it fills the same workspace
+- feat: the first step to workspaces ([ADR 0005](docs/adr/0005-workspaces-and-data-isolation.md)). An install that upgrades gets one workspace, "My workspace", and its users become its owners and instance admins. On a new install the first user to sign up gets it. Nothing changes in the app yet. `bun db import-mongo` gives the database it fills the same workspace
 
 ### Changed
 
