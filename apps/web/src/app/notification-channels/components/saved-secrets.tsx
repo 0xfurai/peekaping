@@ -9,6 +9,7 @@ import {
   SECRET_PLACEHOLDER,
   configFieldKeys,
   askedToReenter,
+  reenterError,
 } from "../secrets";
 
 type SavedSecretsContextValue = {
@@ -49,7 +50,7 @@ export function SavedSecrets({
   shown: React.MutableRefObject<Set<string>>;
   children: React.ReactNode;
 }) {
-  const { watch, getValues, getFieldState, clearErrors } = useFormContext();
+  const { watch, getValues, getFieldState, setError, clearErrors } = useFormContext();
   const [reenter, setReenter] = React.useState<ReadonlySet<string>>(new Set());
   const [shownVersion, setShownVersion] = React.useState(0);
 
@@ -80,8 +81,16 @@ export function SavedSecrets({
           clearErrors(key);
         }
       }
+
+      // A URL has no hint of its own to show: it gets the error as soon as it is asked for,
+      // rather than only when the form saves or tests
+      for (const key of fields?.urls ?? []) {
+        if (asked.includes(key) && getFieldState(key).error?.type !== REENTER_ERROR_TYPE) {
+          setError(key, reenterError(type, key));
+        }
+      }
     },
-    [saved, shown, getFieldState, clearErrors]
+    [saved, shown, getFieldState, setError, clearErrors]
   );
 
   React.useEffect(() => {
