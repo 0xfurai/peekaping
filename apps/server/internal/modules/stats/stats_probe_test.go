@@ -108,7 +108,7 @@ func TestMigrationsGiveExistingStatsToTheLocalProbe(t *testing.T) {
 		t.Run(backend.name, func(t *testing.T) {
 			db := backend.open(t)
 			migrateUp(t, db, migrationsBefore(addProbeIDToStatsMigration))
-			monitorID, quietID := insertMonitor(t, db), insertMonitor(t, db)
+			monitorID, quietID := insertOldMonitor(t, db), insertOldMonitor(t, db)
 			day := time.Date(2026, 10, 24, 0, 0, 0, 0, time.UTC)
 			low, high := 100.0, 300.0
 			for _, table := range []string{"stat_minutely", "stat_hourly", "stat_daily"} {

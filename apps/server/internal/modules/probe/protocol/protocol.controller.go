@@ -223,7 +223,7 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 // own at the same time assigns nothing more. A failure answers 503 and leaves the flag set: the
 // probe says hello again, and that hello assigns.
 func (c *Controller) assignAllMonitors(ctx context.Context, probeID string, supportedTypes []string) error {
-	assigned, err := c.monitors.AssignProbeToAll(ctx, probeID, supportedTypes, func(ctx context.Context) (bool, error) {
+	assigned, err := c.monitors.AssignProbeToAllAnyWorkspace(ctx, probeID, supportedTypes, func(ctx context.Context) (bool, error) {
 		return c.service.ClaimPendingAssignment(ctx, probeID)
 	})
 	if err != nil {

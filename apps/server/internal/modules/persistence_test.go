@@ -8,6 +8,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"sync"
 	"testing"
@@ -86,7 +87,8 @@ func sqlRepositories(t *testing.T, db *bun.DB) repositories {
 	_, err = db.Exec("INSERT INTO status_pages (id, slug, title) VALUES (?, ?, ?)", statusID, "domain-models", "Domain models")
 	require.NoError(t, err)
 	for _, id := range []string{monitorID, replacementID} {
-		_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
+		workspacetest.OldestOrAdd(t, db)
+		_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
 		require.NoError(t, err)
 	}
 	return repositories{

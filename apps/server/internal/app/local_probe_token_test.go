@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"testing"
 	"time"
@@ -99,7 +100,7 @@ func (in *probeInstall) instancesOf(t *testing.T, probeID string) []*probe.Insta
 // createMonitorOn creates an active HTTP monitor on the probe
 func (in *probeInstall) createMonitorOn(t *testing.T, name, probeID string) string {
 	t.Helper()
-	created, err := in.monitors.Create(context.Background(), &monitor.CreateUpdateDto{
+	created, err := in.monitors.Create(context.Background(), workspacetest.ID, &monitor.CreateUpdateDto{
 		Type: "http", Name: name, Active: true, Interval: 60, Timeout: 16, RetryInterval: 60, NotificationIds: []string{},
 		Config:   `{"url":"http://127.0.0.1:9/","method":"GET","encoding":"json","accepted_statuscodes":["2XX"],"authMethod":"none"}`,
 		ProbeIDs: []string{probeID},

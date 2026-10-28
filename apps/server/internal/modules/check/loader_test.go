@@ -25,7 +25,7 @@ type fakeMonitorService struct {
 	err error
 }
 
-func (s *fakeMonitorService) FindByID(_ context.Context, id string) (*monitor.Model, error) {
+func (s *fakeMonitorService) FindByIDAnyWorkspace(_ context.Context, id string) (*monitor.Model, error) {
 	if s.err != nil {
 		return nil, s.err
 	}

@@ -179,7 +179,7 @@ func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatL
 	monitorModels := make([]*MonitorWithHeartbeatsAndUptimeDTO, 0, len(monitors))
 	for _, msp := range monitors {
 		// Get the actual monitor data
-		monitorModel, err := c.monitorService.FindByID(ctx, msp.MonitorID)
+		monitorModel, err := c.monitorService.FindByIDAnyWorkspace(ctx, msp.MonitorID)
 		if err != nil {
 			c.logger.Errorw("Failed to get monitor by ID", "error", err, "monitorID", msp.MonitorID)
 			continue
@@ -255,14 +255,14 @@ func (c *Controller) publicLocations(ctx context.Context, m *shared.Monitor, hea
 	for _, location := range locations {
 		// A visitor's page doesn't fail for want of a location's heartbeats, as it doesn't for the
 		// monitor's own: the location is listed without them
-		heartbeats, err := c.monitorService.GetHeartbeats(ctx, m.ID, location.ProbeID, heartbeatLimit, 0, nil, true)
+		heartbeats, err := c.monitorService.GetHeartbeatsAnyWorkspace(ctx, m.ID, location.ProbeID, heartbeatLimit, 0, nil, true)
 		if err != nil {
 			c.logger.Errorw("Failed to get the heartbeats of a location", "error", err, "monitorID", m.ID, "probeID", location.ProbeID)
 			heartbeats = nil
 		}
 		// Only the last 24 hours are shown. Nor does the page fail for want of this number: the
 		// location is listed with a null uptime.
-		uptime24h, err := c.monitorService.GetUptime24h(ctx, m.ID, location.ProbeID)
+		uptime24h, err := c.monitorService.GetUptime24hAnyWorkspace(ctx, m.ID, location.ProbeID)
 		if err != nil {
 			c.logger.Errorw("Failed to get the 24h uptime of a location", "error", err, "monitorID", m.ID, "probeID", location.ProbeID)
 			uptime24h = nil

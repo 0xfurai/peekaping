@@ -13,6 +13,16 @@ var (
 	ErrMonitorNotFound = errors.New("monitor not found")
 )
 
+// LookupError is a read of the monitor that failed, as opposed to one that found nothing. A route
+// that loads the monitor before it reads its heartbeats or stats answers it with a 500.
+type LookupError struct {
+	Err error
+}
+
+func (e *LookupError) Error() string { return "find monitor: " + e.Err.Error() }
+
+func (e *LookupError) Unwrap() error { return e.Err }
+
 // InvalidConfigError is a monitor type and config that don't fit together. Err says why.
 type InvalidConfigError struct {
 	Err error

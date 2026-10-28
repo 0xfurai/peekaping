@@ -3,6 +3,7 @@ package ingester
 import (
 	"context"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -32,10 +33,11 @@ func TestService_IngestJudgesEachProbeOfAMonitorOverSQLite(t *testing.T) {
 	require.NoError(t, migrator.Init(ctx))
 	_, err = migrator.Migrate(ctx)
 	require.NoError(t, err)
+	workspacetest.OldestOrAdd(t, db)
 	_, err = db.Exec("INSERT INTO probes (id, name, status) VALUES (?, ?, 'online')", probeA, "Frankfurt")
 	require.NoError(t, err)
 	monitors := monitor.NewSQLRepository(db)
-	created, err := monitors.Create(ctx, &shared.Monitor{Type: "http", Name: "Checkout", Interval: 60, Timeout: 16, Active: true, ProbeIDs: []string{"local", probeA}})
+	created, err := monitors.Create(ctx, workspacetest.ID, &shared.Monitor{Type: "http", Name: "Checkout", Interval: 60, Timeout: 16, Active: true, ProbeIDs: []string{"local", probeA}})
 	require.NoError(t, err)
 	bus := eventstest.NewBus()
 	heartbeats := heartbeat.NewService(heartbeat.NewSQLRepository(db), bus, logger)
@@ -72,7 +74,7 @@ func TestService_IngestJudgesEachProbeOfAMonitorOverSQLite(t *testing.T) {
 	}
 	assert.Equal(t, []string{"up", "pending", "up"}, frankfurt, "and so is the remote probe")
 
-	found, err := monitors.FindByID(ctx, created.ID)
+	found, err := monitors.FindByID(ctx, workspacetest.ID, created.ID)
 	require.NoError(t, err)
 	require.Len(t, found.Locations, 2)
 	byProbe := map[string]shared.MonitorLocation{found.Locations[0].ProbeID: found.Locations[0], found.Locations[1].ProbeID: found.Locations[1]}
@@ -101,10 +103,11 @@ func TestService_IngestAnnouncesAChangeThatAnOfflineProbeWouldHideOverSQLite(t *
 	require.NoError(t, migrator.Init(ctx))
 	_, err = migrator.Migrate(ctx)
 	require.NoError(t, err)
+	workspacetest.OldestOrAdd(t, db)
 	_, err = db.Exec("INSERT INTO probes (id, name, status) VALUES (?, ?, 'online')", probeA, "Frankfurt")
 	require.NoError(t, err)
 	monitors := monitor.NewSQLRepository(db)
-	created, err := monitors.Create(ctx, &shared.Monitor{Type: "http", Name: "Checkout", Interval: 60, Timeout: 16, Active: true, ProbeIDs: []string{"local", probeA}})
+	created, err := monitors.Create(ctx, workspacetest.ID, &shared.Monitor{Type: "http", Name: "Checkout", Interval: 60, Timeout: 16, Active: true, ProbeIDs: []string{"local", probeA}})
 	require.NoError(t, err)
 	bus := eventstest.NewBus()
 	heartbeats := heartbeat.NewService(heartbeat.NewSQLRepository(db), bus, logger)
@@ -135,6 +138,6 @@ func TestService_IngestAnnouncesAChangeThatAnOfflineProbeWouldHideOverSQLite(t *
 
 	// A reset, as the monitor service does it
 	require.NoError(t, heartbeats.DeleteByMonitorID(ctx, created.ID))
-	require.NoError(t, monitors.ResetLocations(ctx, created.ID))
+	require.NoError(t, monitors.ResetLocations(ctx, workspacetest.ID, created.ID))
 	assert.Equal(t, []string{changed, notified}, ingest("local", up), "after a reset the next result is the monitor's first")
 }

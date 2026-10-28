@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -59,7 +60,8 @@ func newHarness(t *testing.T) *harness {
 	_, err = migrator.Migrate(ctx)
 	require.NoError(t, err)
 	monitorID := uuid.NewString()
-	_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
+	workspacetest.OldestOrAdd(t, db)
+	_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
 	require.NoError(t, err)
 
 	logger := zap.NewNop().Sugar()

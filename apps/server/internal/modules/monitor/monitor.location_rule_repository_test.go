@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"context"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 
 	"peekaping/cmd/bun/migrations"
@@ -30,12 +31,11 @@ func TestSQLRepository_ExistingMonitorsReadAsAny(t *testing.T) {
 			}
 			migrateUp(t, db, before)
 			id := uuid.NewString()
-			_, err := db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, id)
-			require.NoError(t, err)
+			workspacetest.InsertMonitorWithoutWorkspace(t, db, id)
 
 			migrateUp(t, db, migrations.Migrations)
 
-			found, err := NewSQLRepository(db).FindByID(ctx, id)
+			found, err := NewSQLRepository(db).FindByID(ctx, upgradedWorkspace(t, db), id)
 			require.NoError(t, err)
 			assert.Equal(t, shared.LocationRuleAny, found.LocationRule)
 			assert.Nil(t, found.LocationThreshold)
@@ -53,13 +53,13 @@ func TestSQLRepository_StoresTheLocationRule(t *testing.T) {
 		monitor := monitorOn("Checkout", true, "local", "frankfurt", "paris")
 		monitor.LocationRule, monitor.LocationThreshold = shared.LocationRuleAtLeast, &threshold
 
-		created, err := repo.Create(ctx, monitor)
+		created, err := repo.Create(ctx, testWorkspace, monitor)
 		require.NoError(t, err)
 		assert.Equal(t, shared.LocationRuleAtLeast, created.LocationRule, "the create answers with what is stored")
 		require.NotNil(t, created.LocationThreshold)
 		assert.Equal(t, 2, *created.LocationThreshold)
 		stored := func() (shared.LocationRule, *int) {
-			found, err := repo.FindByID(ctx, created.ID)
+			found, err := repo.FindByID(ctx, testWorkspace, created.ID)
 			require.NoError(t, err)
 			return found.LocationRule, found.LocationThreshold
 		}
@@ -69,30 +69,30 @@ func TestSQLRepository_StoresTheLocationRule(t *testing.T) {
 
 		renamed := *created
 		renamed.Name = "Checkout, renamed"
-		require.NoError(t, repo.UpdateFull(ctx, created.ID, &renamed))
+		require.NoError(t, repo.UpdateFull(ctx, testWorkspace, created.ID, &renamed))
 		rule, got = stored()
 		assert.Equal(t, shared.LocationRuleAtLeast, rule, "a full update writes the rule it is given")
 		assert.Equal(t, &threshold, got)
 
 		renamed.LocationRule, renamed.LocationThreshold = shared.LocationRuleAll, nil
-		require.NoError(t, repo.UpdateFull(ctx, created.ID, &renamed))
+		require.NoError(t, repo.UpdateFull(ctx, testWorkspace, created.ID, &renamed))
 		rule, got = stored()
 		assert.Equal(t, shared.LocationRuleAll, rule)
 		assert.Nil(t, got, "and the threshold goes with a rule that has none")
 
 		name := "Checkout, again"
-		require.NoError(t, repo.UpdatePartial(ctx, created.ID, &UpdateModel{Name: &name}))
+		require.NoError(t, repo.UpdatePartial(ctx, testWorkspace, created.ID, &UpdateModel{Name: &name}))
 		rule, _ = stored()
 		assert.Equal(t, shared.LocationRuleAll, rule, "a partial update without a rule keeps it")
 
 		atLeast, three := shared.LocationRuleAtLeast, 3
-		require.NoError(t, repo.UpdatePartial(ctx, created.ID, &UpdateModel{LocationRule: &atLeast, LocationThreshold: &three}))
+		require.NoError(t, repo.UpdatePartial(ctx, testWorkspace, created.ID, &UpdateModel{LocationRule: &atLeast, LocationThreshold: &three}))
 		rule, got = stored()
 		assert.Equal(t, shared.LocationRuleAtLeast, rule)
 		assert.Equal(t, &three, got)
 
 		anyRule := shared.LocationRuleAny
-		require.NoError(t, repo.UpdatePartial(ctx, created.ID, &UpdateModel{LocationRule: &anyRule}))
+		require.NoError(t, repo.UpdatePartial(ctx, testWorkspace, created.ID, &UpdateModel{LocationRule: &anyRule}))
 		rule, got = stored()
 		assert.Equal(t, shared.LocationRuleAny, rule)
 		assert.Nil(t, got, "a partial update to a rule without a threshold clears it")
@@ -101,7 +101,7 @@ func TestSQLRepository_StoresTheLocationRule(t *testing.T) {
 
 func TestSQLRepository_AMonitorCreatedWithoutARuleIsAny(t *testing.T) {
 	forEachSQLBackend(t, func(t *testing.T, db *bun.DB) {
-		created, err := NewSQLRepository(db).Create(context.Background(), createTestMonitor("Checkout", true, shared.MonitorStatusPending))
+		created, err := NewSQLRepository(db).Create(context.Background(), testWorkspace, createTestMonitor("Checkout", true, shared.MonitorStatusPending))
 
 		require.NoError(t, err)
 		assert.Equal(t, shared.LocationRuleAny, created.LocationRule)

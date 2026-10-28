@@ -163,7 +163,7 @@ func (l *NotificationEventListener) probeMonitorChannelIDs(ctx context.Context, 
 	var ids []string
 	seen := map[string]bool{}
 	for page := 0; ; page++ {
-		monitors, err := l.monitorSvc.FindActiveByProbe(ctx, probeID, page, probeMonitorPageSize)
+		monitors, err := l.monitorSvc.FindActiveByProbeAnyWorkspace(ctx, probeID, page, probeMonitorPageSize)
 		if err != nil {
 			return nil, err
 		}
@@ -286,7 +286,7 @@ func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID 
 	notificationChannels := l.channelsByID(ctx, ids)
 
 	// Fetch monitor details for context
-	monitorModel, err := l.monitorSvc.FindByID(ctx, monitorID)
+	monitorModel, err := l.monitorSvc.FindByIDAnyWorkspace(ctx, monitorID)
 	if err != nil || monitorModel == nil {
 		l.logger.Warnf("Monitor not found for notification context: %s", monitorID)
 		return nil, nil

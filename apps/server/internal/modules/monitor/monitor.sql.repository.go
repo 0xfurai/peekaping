@@ -9,6 +9,7 @@ import (
 
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -19,7 +20,9 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:monitors,alias:m"`
 
-	ID             string `bun:"id,pk"`
+	ID string `bun:"id,pk"`
+	// WorkspaceID is set when the monitor is created and never changes
+	WorkspaceID    string `bun:"workspace_id,notnull"`
 	Type           string `bun:"type,notnull"`
 	Name           string `bun:"name,notnull"`
 	Interval       int    `bun:"interval,notnull"`
@@ -116,6 +119,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 
 	return &Model{
 		ID:                sm.ID,
+		WorkspaceID:       workspace.ID(sm.WorkspaceID),
 		Type:              sm.Type,
 		Name:              sm.Name,
 		Interval:          sm.Interval,
@@ -152,6 +156,7 @@ func toSQLModel(m *Model) *sqlModel {
 
 	return &sqlModel{
 		ID:                m.ID,
+		WorkspaceID:       string(m.WorkspaceID),
 		Type:              m.Type,
 		Name:              m.Name,
 		Interval:          m.Interval,
@@ -208,9 +213,10 @@ func provideSQLRepository(p sqlRepositoryParams) MonitorRepository {
 	return NewSQLRepository(p.DB, WithLocalProbe(p.LocalProbe))
 }
 
-func (r *SQLRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Model, error) {
+func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID, monitor *Model) (*Model, error) {
 	sm := toSQLModel(monitor)
 	sm.ID = uuid.New().String()
+	sm.WorkspaceID = string(workspaceID) // whatever the monitor says
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
@@ -259,15 +265,15 @@ func (r *SQLRepositoryImpl) replaceProbes(ctx context.Context, monitorID string,
 // assignChunk is how many monitors AddProbeToAll writes with one statement
 const assignChunk = 500
 
-// AddProbeToAll adds the probe to the monitors it can run, with a read and then writes in chunks.
+// AddProbeToAllAnyWorkspace adds the probe to the monitors it can run, with a read and then writes in chunks.
 // Adding a probe can't break a monitor's location rule: any and all have no number, and an at_least
 // number stays within the larger count of probes. So the rule needs no check here, as it does when
 // an update sets the probes.
-func (r *SQLRepositoryImpl) AddProbeToAll(ctx context.Context, probeID string, supportedTypes []string) ([]string, error) {
+func (r *SQLRepositoryImpl) AddProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string) ([]string, error) {
 	db := dbtx.DB(ctx, r.db)
 
-	// This is the one place that decides which monitors a probe is assigned: a workspace filter
-	// goes here once monitors belong to workspaces (ADR 0005).
+	// This is the one place that decides which monitors a probe is assigned. A probe belongs to the
+	// install, so it is assigned the monitors of every workspace (ADR 0005 section 10).
 	var rows []struct {
 		ID string `bun:"id"`
 		// Unlinked is true for a monitor with no probe rows, which runs on the local probe
@@ -354,14 +360,14 @@ func (r *SQLRepositoryImpl) locationsOf(ctx context.Context, db bun.IDB, ids []s
 	return rows, err
 }
 
-// RecordLocation stores what a result left on the monitor's row for the probe that ran it, then
+// RecordLocationAnyWorkspace stores what a result left on the monitor's row for the probe that ran it, then
 // calls judge with the monitor's recorded status and its rows from just before and just after, and
 // records what judge returns. The monitor is held from the first read to the last write, so two
 // results recorded at once see one another in turn: each one's recorded status is what the other
 // recorded. PostgreSQL holds the monitor's row with SELECT ... FOR UPDATE. SQLite has no row locks:
 // its transaction begins with BEGIN IMMEDIATE (see sqlitedb.DSN) and so holds the one writer for the
 // whole database. A probe the monitor doesn't run on has no row to write, and none is made.
-func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
+func (r *SQLRepositoryImpl) RecordLocationAnyWorkspace(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error {
 	return dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
 		db := dbtx.DB(ctx, r.db)
 		// The monitor's own row is what is held, so that a monitor without probe rows is held too
@@ -411,18 +417,37 @@ func (r *SQLRepositoryImpl) RecordLocation(ctx context.Context, monitorID string
 	})
 }
 
-// ResetLocations clears the state of the monitor's rows and its recorded status
-func (r *SQLRepositoryImpl) ResetLocations(ctx context.Context, monitorID string) error {
+// ResetLocations clears the state of the monitor's rows and its recorded status. The monitor is
+// looked up in the workspace first, so a monitor of another workspace keeps its state.
+func (r *SQLRepositoryImpl) ResetLocations(ctx context.Context, workspaceID workspace.ID, monitorID string) error {
 	return dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
 		db := dbtx.DB(ctx, r.db)
-		if _, err := db.NewUpdate().Model((*sqlProbeLink)(nil)).
-			Set("status = NULL").Set("last_ping = NULL").Set("last_heartbeat_at = NULL").
-			Where("monitor_id = ?", monitorID).Exec(ctx); err != nil {
+		result, err := db.NewUpdate().Model((*sqlModel)(nil)).Set("locations_status = NULL").
+			Where("id = ?", monitorID).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+		if err := requireOneRow(result, err, monitorID); err != nil {
 			return err
 		}
-		_, err := db.NewUpdate().Model((*sqlModel)(nil)).Set("locations_status = NULL").Where("id = ?", monitorID).Exec(ctx)
+		_, err = db.NewUpdate().Model((*sqlProbeLink)(nil)).
+			Set("status = NULL").Set("last_ping = NULL").Set("last_heartbeat_at = NULL").
+			Where("monitor_id = ?", monitorID).Exec(ctx)
 		return err
 	})
+}
+
+// requireOneRow turns a write that changed no row into ErrMonitorNotFound: the monitor doesn't
+// exist, or belongs to another workspace, and the caller can't tell which
+func requireOneRow(result sql.Result, err error, id string) error {
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+	}
+	return nil
 }
 
 func statusColumn(status *shared.MonitorStatus) *int {
@@ -485,11 +510,24 @@ func (r *SQLRepositoryImpl) toDomainModelWithProbes(ctx context.Context, sm *sql
 	return models[0], nil
 }
 
-func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	return r.find(ctx, &workspaceID, id)
+}
+
+func (r *SQLRepositoryImpl) FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error) {
+	return r.find(ctx, nil, id)
+}
+
+// find reads the monitor, in the workspace when there is one. A monitor of another workspace is
+// not found.
+func (r *SQLRepositoryImpl) find(ctx context.Context, workspaceID *workspace.ID, id string) (*Model, error) {
 	sm := new(sqlModel)
-	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
-	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+	query := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("m.id = ?", id)
+	if workspaceID != nil {
+		query = query.Where("m.workspace_id = ?", string(*workspaceID))
+	}
+	if err := query.Scan(ctx); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
@@ -497,17 +535,27 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 	return r.toDomainModelWithProbes(ctx, sm)
 }
 
-func (r *SQLRepositoryImpl) FindByIDs(ctx context.Context, ids []string) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindByIDs(ctx context.Context, workspaceID workspace.ID, ids []string) ([]*Model, error) {
+	return r.findMany(ctx, &workspaceID, ids)
+}
+
+func (r *SQLRepositoryImpl) FindByIDsAnyWorkspace(ctx context.Context, ids []string) ([]*Model, error) {
+	return r.findMany(ctx, nil, ids)
+}
+
+func (r *SQLRepositoryImpl) findMany(ctx context.Context, workspaceID *workspace.ID, ids []string) ([]*Model, error) {
 	if len(ids) == 0 {
 		return []*Model{}, nil
 	}
 
 	var sms []*sqlModel
-	err := dbtx.DB(ctx, r.db).NewSelect().
+	query := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
-		Where("id IN (?)", bun.In(ids)).
-		Scan(ctx)
-	if err != nil {
+		Where("m.id IN (?)", bun.In(ids))
+	if workspaceID != nil {
+		query = query.Where("m.workspace_id = ?", string(*workspaceID))
+	}
+	if err := query.Scan(ctx); err != nil {
 		return nil, err
 	}
 
@@ -516,6 +564,24 @@ func (r *SQLRepositoryImpl) FindByIDs(ctx context.Context, ids []string) ([]*Mod
 
 func (r *SQLRepositoryImpl) FindAll(
 	ctx context.Context,
+	workspaceID workspace.ID,
+	page int,
+	limit int,
+	q string,
+	active *bool,
+	status *int,
+	tagIds []string,
+) ([]*Model, error) {
+	return r.findAll(ctx, &workspaceID, page, limit, q, active, status, tagIds)
+}
+
+func (r *SQLRepositoryImpl) FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
+	return r.findAll(ctx, nil, page, limit, "", nil, nil, nil)
+}
+
+func (r *SQLRepositoryImpl) findAll(
+	ctx context.Context,
+	workspaceID *workspace.ID,
 	page int,
 	limit int,
 	q string,
@@ -524,6 +590,10 @@ func (r *SQLRepositoryImpl) FindAll(
 	tagIds []string,
 ) ([]*Model, error) {
 	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil))
+
+	if workspaceID != nil {
+		query = query.Where("m.workspace_id = ?", string(*workspaceID))
+	}
 
 	// If tagIds filtering is requested, use JOIN
 	if len(tagIds) > 0 {
@@ -561,7 +631,7 @@ func (r *SQLRepositoryImpl) FindAll(
 	return r.toDomainModels(ctx, sms)
 }
 
-func (r *SQLRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindActiveAnyWorkspace(ctx context.Context) ([]*Model, error) {
 	var sms []*sqlModel
 	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
@@ -575,7 +645,7 @@ func (r *SQLRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error) {
 	return r.toDomainModels(ctx, sms)
 }
 
-func (r *SQLRepositoryImpl) FindActivePaginated(ctx context.Context, page int, limit int) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindActivePaginatedAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
 	var sms []*sqlModel
 	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
@@ -591,7 +661,7 @@ func (r *SQLRepositoryImpl) FindActivePaginated(ctx context.Context, page int, l
 	return r.toDomainModels(ctx, sms)
 }
 
-func (r *SQLRepositoryImpl) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindActiveByProbeAnyWorkspace(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
 	var sms []*sqlModel
 	query := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
@@ -614,14 +684,16 @@ func (r *SQLRepositoryImpl) FindActiveByProbe(ctx context.Context, probeID strin
 	return r.toDomainModels(ctx, sms)
 }
 
-func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *Model) error {
+func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, monitor *Model) error {
 	sm := toSQLModel(monitor)
 	sm.UpdatedAt = time.Now()
 
+	// The workspace is in the where clause and never in the set: a monitor can't be moved
 	result, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
-		ExcludeColumn("id", "created_at", "status").
+		Where("workspace_id = ?", string(workspaceID)).
+		ExcludeColumn("id", "workspace_id", "created_at", "status").
 		Exec(ctx)
 
 	if err != nil {
@@ -644,8 +716,21 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, monitor *
 	return nil
 }
 
-func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monitor *UpdateModel) error {
+func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, monitor *UpdateModel) error {
+	return r.updatePartial(ctx, &workspaceID, id, monitor)
+}
+
+func (r *SQLRepositoryImpl) UpdatePartialAnyWorkspace(ctx context.Context, id string, monitor *UpdateModel) error {
+	return r.updatePartial(ctx, nil, id, monitor)
+}
+
+// updatePartial changes the fields the update sets. In a workspace, a monitor of another workspace
+// matches no row and is ErrMonitorNotFound. Without one, a monitor that is gone is not an error.
+func (r *SQLRepositoryImpl) updatePartial(ctx context.Context, workspaceID *workspace.ID, id string, monitor *UpdateModel) error {
 	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+	if workspaceID != nil {
+		query = query.Where("workspace_id = ?", string(*workspaceID))
+	}
 
 	hasUpdates := false
 
@@ -714,21 +799,43 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monito
 	}
 
 	if monitor.ProbeIDs != nil {
-		if err := r.replaceProbes(ctx, id, monitor.ProbeIDs); err != nil {
-			return err
-		}
 		hasUpdates = true
 	}
 
 	if !hasUpdates {
+		if workspaceID == nil {
+			return nil
+		}
+		// Nothing to write, but a monitor of another workspace is still not found
+		found, err := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).
+			Where("id = ?", id).Where("workspace_id = ?", string(*workspaceID)).Exists(ctx)
+		if err != nil {
+			return err
+		}
+		if !found {
+			return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+		}
 		return nil
 	}
 
 	// Always set updated_at
 	query = query.Set("updated_at = ?", time.Now())
 
-	_, err := query.Exec(ctx)
-	return pushTokenConflict(err)
+	// The monitor is written before its probes, so that the probes of a monitor of another
+	// workspace are never touched
+	result, err := query.Exec(ctx)
+	if err != nil {
+		return pushTokenConflict(err)
+	}
+	if workspaceID != nil {
+		if err := requireOneRow(result, nil, id); err != nil {
+			return err
+		}
+	}
+	if monitor.ProbeIDs != nil {
+		return r.replaceProbes(ctx, id, monitor.ProbeIDs)
+	}
+	return nil
 }
 
 // pushTokenConflict is the error for a write of a monitor that the database refused because
@@ -741,25 +848,28 @@ func pushTokenConflict(err error) error {
 	return err
 }
 
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
-	return err
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	result, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).
+		Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	return requireOneRow(result, err, id)
 }
 
-func (r *SQLRepositoryImpl) RemoveProxyReference(ctx context.Context, proxyId string) error {
+func (r *SQLRepositoryImpl) RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) error {
 	_, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model((*sqlModel)(nil)).
 		Set("proxy_id = ?", nil).
 		Where("proxy_id = ?", proxyId).
+		Where("workspace_id = ?", string(workspaceID)).
 		Exec(ctx)
 	return err
 }
 
-func (r *SQLRepositoryImpl) FindByProxyId(ctx context.Context, proxyId string) ([]*Model, error) {
+func (r *SQLRepositoryImpl) FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error) {
 	var sms []*sqlModel
 	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("proxy_id = ?", proxyId).
+		Where("workspace_id = ?", string(workspaceID)).
 		Scan(ctx)
 	if err != nil {
 		return nil, err
@@ -768,11 +878,11 @@ func (r *SQLRepositoryImpl) FindByProxyId(ctx context.Context, proxyId string) (
 	return r.toDomainModels(ctx, sms)
 }
 
-func (r *SQLRepositoryImpl) FindOneByPushToken(ctx context.Context, pushToken string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindOneByPushTokenAnyWorkspace(ctx context.Context, pushToken string) (*Model, error) {
 	sm := new(sqlModel)
 	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("push_token = ?", pushToken).Scan(ctx)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err

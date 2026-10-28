@@ -2,6 +2,7 @@ package mongoimport_test
 
 import (
 	"context"
+	"peekaping/internal/modules/workspace"
 	"testing"
 	"time"
 
@@ -35,6 +36,14 @@ func rawDocument(t *testing.T, in *mongoimporttest.Install, collection, objectID
 	require.NoError(t, err)
 	require.NoError(t, in.Collection(collection).FindOne(context.Background(), bson.M{"_id": id}).Decode(&raw))
 	return raw
+}
+
+// importedWorkspace is the workspace the import made for the imported records
+func importedWorkspace(t *testing.T, db *bun.DB) workspace.ID {
+	t.Helper()
+	var id string
+	require.NoError(t, db.NewSelect().Table("workspaces").Column("id").Order("created_at", "id").Limit(1).Scan(context.Background(), &id))
+	return workspace.ID(id)
 }
 
 // uuids maps ObjectIDs to the UUIDs they become.
@@ -73,9 +82,10 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 
 	t.Run("monitors", func(t *testing.T) {
 		sqlMonitors := monitor.NewSQLRepository(db)
+		imported := importedWorkspace(t, db)
 		for _, name := range []string{"checkout", "nightly", "paused", "broken", "wide"} {
 			want := mongoimporttest.GetByID[mongoimporttest.MonitorDocument](t, in, "monitor", in.ID("monitor", name))
-			got, err := sqlMonitors.FindByID(ctx, uuidOf(t, want.ID.Hex()))
+			got, err := sqlMonitors.FindByID(ctx, imported, uuidOf(t, want.ID.Hex()))
 			require.NoError(t, err)
 			require.NotNil(t, got, name)
 
@@ -105,13 +115,24 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 			assertSameTime(t, want.CreatedAt, got.CreatedAt, name)
 			assertSameTime(t, want.UpdatedAt, got.UpdatedAt, name)
 		}
-		checkout, err := sqlMonitors.FindByID(ctx, uuidOf(t, in.ID("monitor", "checkout")))
+		checkout, err := sqlMonitors.FindByID(ctx, imported, uuidOf(t, in.ID("monitor", "checkout")))
 		require.NoError(t, err)
 		assert.Equal(t, uuidOf(t, in.ID("proxy", "auth")), checkout.ProxyId)
-		nightly, err := sqlMonitors.FindOneByPushToken(ctx, "nightly-token")
+		nightly, err := sqlMonitors.FindOneByPushTokenAnyWorkspace(ctx, "nightly-token")
 		require.NoError(t, err)
 		require.NotNil(t, nightly)
 		assert.Equal(t, uuidOf(t, in.ID("monitor", "nightly")), nightly.ID)
+
+		// Every imported monitor is in the one workspace the import made
+		var workspaces int
+		require.NoError(t, db.NewSelect().Table("workspaces").ColumnExpr("COUNT(*)").Scan(ctx, &workspaces))
+		assert.Equal(t, 1, workspaces)
+		var inImported, total int
+		require.NoError(t, db.NewSelect().Table("monitors").ColumnExpr("COUNT(*)").Where("workspace_id = ?", string(imported)).Scan(ctx, &inImported))
+		require.NoError(t, db.NewSelect().Table("monitors").ColumnExpr("COUNT(*)").Scan(ctx, &total))
+		assert.Equal(t, 5, total)
+		assert.Equal(t, total, inImported, "in the workspace of the import")
+		assert.Equal(t, imported, checkout.WorkspaceID)
 
 		r := collectionReport(t, report, "monitor")
 		assert.Equal(t, "monitors", r.Table)

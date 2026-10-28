@@ -23,8 +23,9 @@ type Rechecker interface {
 
 // MonitorFinder is the part of the monitor service the watchdog reads
 type MonitorFinder interface {
-	FindByID(ctx context.Context, id string) (*shared.Monitor, error)
-	FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error)
+	// The watchdog watches the monitors of every workspace
+	FindByIDAnyWorkspace(ctx context.Context, id string) (*shared.Monitor, error)
+	FindActivePaginatedAnyWorkspace(ctx context.Context, page int, limit int) ([]*shared.Monitor, error)
 }
 
 // HeartbeatFinder is the part of the heartbeat service the watchdog reads
@@ -159,7 +160,7 @@ func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 	const pageSize = 100
 	seen := make(map[string]bool)
 	for page := 0; ; page++ {
-		monitors, err := w.monitors.FindActivePaginated(ctx, page, pageSize)
+		monitors, err := w.monitors.FindActivePaginatedAnyWorkspace(ctx, page, pageSize)
 		if err != nil {
 			return fmt.Errorf("failed to find active monitors (page %d): %w", page, err)
 		}
@@ -188,7 +189,7 @@ func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 		if seen[id] {
 			continue
 		}
-		mon, err := w.monitors.FindByID(ctx, id)
+		mon, err := w.monitors.FindByIDAnyWorkspace(ctx, id)
 		if err != nil {
 			if ctx.Err() != nil {
 				return err

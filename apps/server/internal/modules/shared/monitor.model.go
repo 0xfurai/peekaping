@@ -2,6 +2,8 @@ package shared
 
 import (
 	"time"
+
+	"peekaping/internal/modules/workspace/workspaceid"
 )
 
 // LocationRule is how many of a monitor's locations must be Down for the monitor to be Down
@@ -18,6 +20,10 @@ const (
 
 type Monitor struct {
 	ID string `json:"id"`
+
+	// WorkspaceID is the workspace the monitor belongs to. It is stored with the monitor and read
+	// back with it, never taken from a request body, and it is not part of the API's answer.
+	WorkspaceID workspaceid.ID `json:"-"`
 
 	// connection type: http, tcp, ping, etc
 	Type string `json:"type" validate:"required" example:"http"`

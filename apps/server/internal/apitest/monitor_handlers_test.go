@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"peekaping/internal/modules/workspace"
 	"sync"
 	"testing"
 
@@ -44,29 +45,29 @@ func (s *recordingMonitorService) ValidateMonitorConfig(monitorType, configJSON 
 	return s.Service.ValidateMonitorConfig(monitorType, configJSON)
 }
 
-func (s *recordingMonitorService) FindByID(ctx context.Context, id string) (*monitor.Model, error) {
+func (s *recordingMonitorService) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*monitor.Model, error) {
 	s.record("FindByID")
-	return s.Service.FindByID(ctx, id)
+	return s.Service.FindByID(ctx, workspaceID, id)
 }
 
-func (s *recordingMonitorService) Create(ctx context.Context, dto *monitor.CreateUpdateDto) (*monitor.Model, error) {
+func (s *recordingMonitorService) Create(ctx context.Context, workspaceID workspace.ID, dto *monitor.CreateUpdateDto) (*monitor.Model, error) {
 	s.record("Create")
-	return s.Service.Create(ctx, dto)
+	return s.Service.Create(ctx, workspaceID, dto)
 }
 
-func (s *recordingMonitorService) UpdateFull(ctx context.Context, id string, dto *monitor.CreateUpdateDto) (*monitor.Model, error) {
+func (s *recordingMonitorService) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, dto *monitor.CreateUpdateDto) (*monitor.Model, error) {
 	s.record("UpdateFull")
-	return s.Service.UpdateFull(ctx, id, dto)
+	return s.Service.UpdateFull(ctx, workspaceID, id, dto)
 }
 
-func (s *recordingMonitorService) UpdatePartial(ctx context.Context, id string, dto *monitor.PartialUpdateDto, noPublish bool) (*monitor.Model, error) {
+func (s *recordingMonitorService) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, dto *monitor.PartialUpdateDto, noPublish bool) (*monitor.Model, error) {
 	s.record("UpdatePartial")
-	return s.Service.UpdatePartial(ctx, id, dto, noPublish)
+	return s.Service.UpdatePartial(ctx, workspaceID, id, dto, noPublish)
 }
 
-func (s *recordingMonitorService) Delete(ctx context.Context, id string) error {
+func (s *recordingMonitorService) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
 	s.record("Delete")
-	return s.Service.Delete(ctx, id)
+	return s.Service.Delete(ctx, workspaceID, id)
 }
 
 // failMessage returns the message of an error response.

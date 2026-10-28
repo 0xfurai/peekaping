@@ -29,7 +29,7 @@ func (a *app) recordLocationCheck(t *testing.T, monitorID, probeID string, statu
 			return err
 		}
 		state := shared.LocationState{ProbeID: probeID, Status: &status, LastPing: &ping, LastHeartbeatAt: &at}
-		return monitors.RecordLocation(ctx, monitorID, state, func(shared.LocationJudgement) *shared.MonitorStatus { return nil })
+		return monitors.RecordLocationAnyWorkspace(ctx, monitorID, state, func(shared.LocationJudgement) *shared.MonitorStatus { return nil })
 	}))
 }
 

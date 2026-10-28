@@ -79,7 +79,7 @@ type pushMonitorService struct {
 	monitor *monitor.Model
 }
 
-func (s *pushMonitorService) FindOneByPushToken(_ context.Context, token string) (*monitor.Model, error) {
+func (s *pushMonitorService) FindOneByPushTokenAnyWorkspace(_ context.Context, token string) (*monitor.Model, error) {
 	if token != s.monitor.PushToken {
 		return nil, nil
 	}

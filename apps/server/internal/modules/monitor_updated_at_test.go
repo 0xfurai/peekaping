@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"testing"
 	"time"
@@ -28,16 +29,16 @@ import (
 func TestMonitorPartialUpdateMovesUpdatedAt(t *testing.T) {
 	exercise := func(t *testing.T, repo monitor.MonitorRepository) {
 		ctx := context.Background()
-		created, err := repo.Create(ctx, &monitor.Model{Type: "http", Name: "Monitor", Interval: 60, Timeout: 10, Active: true, Config: "{}"})
+		created, err := repo.Create(ctx, workspacetest.ID, &monitor.Model{Type: "http", Name: "Monitor", Interval: 60, Timeout: 10, Active: true, Config: "{}"})
 		require.NoError(t, err)
-		before, err := repo.FindByID(ctx, created.ID)
+		before, err := repo.FindByID(ctx, workspacetest.ID, created.ID)
 		require.NoError(t, err)
 
 		time.Sleep(50 * time.Millisecond)
 		active := true
-		require.NoError(t, repo.UpdatePartial(ctx, created.ID, &monitor.UpdateModel{Active: &active}))
+		require.NoError(t, repo.UpdatePartial(ctx, workspacetest.ID, created.ID, &monitor.UpdateModel{Active: &active}))
 
-		after, err := repo.FindByID(ctx, created.ID)
+		after, err := repo.FindByID(ctx, workspacetest.ID, created.ID)
 		require.NoError(t, err)
 		assert.True(t, after.UpdatedAt.After(before.UpdatedAt), "updated_at %v should move past %v", after.UpdatedAt, before.UpdatedAt)
 	}
@@ -48,6 +49,7 @@ func TestMonitorPartialUpdateMovesUpdatedAt(t *testing.T) {
 		require.NoError(t, migrator.Init(context.Background()))
 		_, err := migrator.Migrate(context.Background())
 		require.NoError(t, err)
+		workspacetest.OldestOrAdd(t, db)
 		return monitor.NewSQLRepository(db)
 	}
 

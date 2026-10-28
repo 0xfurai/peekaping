@@ -74,7 +74,7 @@ func TestImportKeepsEveryRowWhenCutValuesCollide(t *testing.T) {
 
 		monitors := monitor.NewSQLRepository(db)
 		// A name wider than the column is cut on PostgreSQL only
-		wide, err := monitors.FindByID(ctx, uuidOf(t, wideMonitor.Hex()))
+		wide, err := monitors.FindByID(ctx, importedWorkspace(t, db), uuidOf(t, wideMonitor.Hex()))
 		require.NoError(t, err)
 		assert.Equal(t, cut(db, mongoimporttest.LongName, 150), wide.Name)
 		if postgres {

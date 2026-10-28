@@ -3,6 +3,7 @@ package monitor_tls_info_test
 import (
 	"context"
 	"path/filepath"
+	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
 
@@ -32,7 +33,8 @@ func newService(t *testing.T) (monitor_tls_info.Service, string) {
 	_, err = migrator.Migrate(ctx)
 	require.NoError(t, err)
 	monitorID := uuid.NewString()
-	_, err = db.Exec(`INSERT INTO monitors (id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
+	workspacetest.OldestOrAdd(t, db)
+	_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
 	require.NoError(t, err)
 	return monitor_tls_info.NewService(monitor_tls_info.NewSQLRepository(db), zap.NewNop().Sugar()), monitorID
 }

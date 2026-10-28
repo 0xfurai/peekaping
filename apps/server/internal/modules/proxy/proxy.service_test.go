@@ -3,11 +3,9 @@ package proxy
 import (
 	"context"
 	"errors"
-	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -64,158 +62,20 @@ func (m *MockRepository) Delete(ctx context.Context, id string) error {
 	return args.Error(0)
 }
 
-// MockMonitorService implements monitor.Service interface for testing
+// MockMonitorService answers the monitor service calls the proxy service makes. The rest of the
+// interface panics on the nil embedded service.
 type MockMonitorService struct {
+	monitor.Service
 	mock.Mock
 }
 
-func (m *MockMonitorService) Create(ctx context.Context, monitor *monitor.CreateUpdateDto) (*shared.Monitor, error) {
-	args := m.Called(ctx, monitor)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindByID(ctx context.Context, id string) (*shared.Monitor, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindByIDs(ctx context.Context, ids []string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, ids)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindAll(ctx context.Context, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, page, limit, q, active, status, tagIds)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindActive(ctx context.Context) ([]*shared.Monitor, error) {
-	args := m.Called(ctx)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) UpdateFull(ctx context.Context, id string, monitor *monitor.CreateUpdateDto) (*shared.Monitor, error) {
-	args := m.Called(ctx, id, monitor)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) UpdatePartial(ctx context.Context, id string, monitor *monitor.PartialUpdateDto, noPublish bool) (*shared.Monitor, error) {
-	args := m.Called(ctx, id, monitor, noPublish)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) Delete(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockMonitorService) RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyID string) error {
+	args := m.Called(ctx, workspaceID, proxyID)
 	return args.Error(0)
 }
 
-func (m *MockMonitorService) ValidateMonitorConfig(monitorType string, configJSON string) error {
-	args := m.Called(monitorType, configJSON)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) GetHeartbeats(ctx context.Context, id, probeID string, limit, page int, important *bool, reverse bool) ([]*heartbeat.Model, error) {
-	args := m.Called(ctx, id, limit, page, important, reverse)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*heartbeat.Model), args.Error(1)
-}
-
-func (m *MockMonitorService) RemoveProxyReference(ctx context.Context, proxyID string) error {
-	args := m.Called(ctx, proxyID)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) FindByProxyId(ctx context.Context, proxyId string) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, proxyId)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) GetStatPoints(ctx context.Context, id, probeID string, since, until time.Time, granularity string) (*monitor.StatPointsSummaryDto, error) {
-	args := m.Called(ctx, id, since, until, granularity)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*monitor.StatPointsSummaryDto), args.Error(1)
-}
-
-func (m *MockMonitorService) GetUptimeStats(ctx context.Context, id, probeID string) (*monitor.CustomUptimeStatsDto, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*monitor.CustomUptimeStatsDto), args.Error(1)
-}
-
-func (m *MockMonitorService) FindOneByPushToken(ctx context.Context, pushToken string) (*shared.Monitor, error) {
-	args := m.Called(ctx, pushToken)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) GetUptime24h(ctx context.Context, id, probeID string) (*float64, error) {
-	args := m.Called(ctx, id, probeID)
-	uptime, _ := args.Get(0).(*float64)
-	return uptime, args.Error(1)
-}
-
-func (m *MockMonitorService) ResetMonitorData(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
-	return args.Error(0)
-}
-
-func (m *MockMonitorService) RepairStoredStatuses(ctx context.Context) (int, error) {
-	args := m.Called(ctx)
-	return args.Int(0), args.Error(1)
-}
-
-func (m *MockMonitorService) AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error) {
-	args := m.Called(ctx, probeID, supportedTypes, claim)
-	return args.Int(0), args.Error(1)
-}
-
-func (m *MockMonitorService) FindActiveByProbe(ctx context.Context, probeID string, page int, limit int) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, probeID, page, limit)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
-
-func (m *MockMonitorService) FindActivePaginated(ctx context.Context, page int, limit int) ([]*shared.Monitor, error) {
-	args := m.Called(ctx, page, limit)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*shared.Monitor), args.Error(1)
-}
+// testWorkspace is the workspace the tests' requests run in
+const testWorkspace = workspace.ID("0d6f1e0e-6b1c-4d49-8c37-0b5f4a1b3a01")
 
 func TestNewService(t *testing.T) {
 	// Setup
@@ -784,13 +644,13 @@ func TestServiceImpl_Delete(t *testing.T) {
 			}
 
 			if tt.expectMonitorServiceCall {
-				mockMonitorService.On("RemoveProxyReference", mock.Anything, tt.id).Return(tt.monitorServiceError)
+				mockMonitorService.On("RemoveProxyReference", mock.Anything, testWorkspace, tt.id).Return(tt.monitorServiceError)
 			}
 
 			mockRepo.On("Delete", mock.Anything, tt.id).Return(tt.repoError)
 
 			// Execute
-			err := service.Delete(context.Background(), tt.id)
+			err := service.Delete(workspace.WithContext(context.Background(), testWorkspace, workspace.RoleAdmin), tt.id)
 
 			// Assert
 			if tt.expectedError {

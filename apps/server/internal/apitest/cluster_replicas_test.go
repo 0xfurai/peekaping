@@ -201,7 +201,7 @@ func (a *app) findMonitor(t *testing.T, id string) *monitor.Model {
 	var found *monitor.Model
 	require.NoError(t, a.container.Invoke(func(monitors monitor.Service) error {
 		var err error
-		found, err = monitors.FindByID(context.Background(), id)
+		found, err = monitors.FindByIDAnyWorkspace(context.Background(), id)
 		return err
 	}))
 	require.NotNil(t, found)

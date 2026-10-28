@@ -43,7 +43,7 @@ func provideProbeMonitorAssigner(monitors monitor.Service, probes probe.Service)
 // the assignment, and the probe page stops saying it waits for its first instance. The claim says
 // true whether or not it found the flag.
 func (a *probeMonitorAssigner) AssignProbeToAll(ctx context.Context, probeID string, supportedTypes []string) (int, error) {
-	return a.monitors.AssignProbeToAll(ctx, probeID, supportedTypes, func(ctx context.Context) (bool, error) {
+	return a.monitors.AssignProbeToAllAnyWorkspace(ctx, probeID, supportedTypes, func(ctx context.Context) (bool, error) {
 		if _, err := a.probes.ClaimPendingAssignment(ctx, probeID); err != nil {
 			return false, err
 		}

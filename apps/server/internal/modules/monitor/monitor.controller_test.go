@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,7 @@ type creatingService struct {
 
 func (creatingService) ValidateMonitorConfig(string, string) error { return nil }
 
-func (creatingService) Create(_ context.Context, dto *CreateUpdateDto) (*Model, error) {
+func (creatingService) Create(_ context.Context, _ workspace.ID, dto *CreateUpdateDto) (*Model, error) {
 	return &Model{ID: "mon-1", Type: dto.Type, Name: dto.Name, Config: dto.Config}, nil
 }
 
@@ -53,6 +54,7 @@ func TestControllerCreateLogsTheMonitorsIDAndTypeButNotItsConfig(t *testing.T) {
 		` "config": "{\"url\": \"https://example.com\", \"authMethod\": \"basic\", \"basic_auth_pass\": \"secret-monitor-password\"}"}`
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 
@@ -104,6 +106,7 @@ func TestControllerCreateAnswersWithoutReadingTheLinksBack(t *testing.T) {
 				`, "config": "{\"url\": \"https://example.com\"}"}`
 			req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 			req.Header.Set("Content-Type", "application/json")
+			req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)
 

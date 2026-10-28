@@ -55,7 +55,7 @@ func (f *fakeMonitors) remove(id string) {
 	delete(f.monitors, id)
 }
 
-func (f *fakeMonitors) FindByID(ctx context.Context, id string) (*monitor.Model, error) {
+func (f *fakeMonitors) FindByIDAnyWorkspace(ctx context.Context, id string) (*monitor.Model, error) {
 	f.calls.Add(1)
 	if f.findGate != nil {
 		select {
@@ -76,7 +76,7 @@ func (f *fakeMonitors) FindByID(ctx context.Context, id string) (*monitor.Model,
 	return &m, nil
 }
 
-func (f *fakeMonitors) FindActive(ctx context.Context) ([]*monitor.Model, error) {
+func (f *fakeMonitors) FindActiveAnyWorkspace(ctx context.Context) ([]*monitor.Model, error) {
 	defer f.activeCalls.Add(1)
 	// The result is as of the call, however long the gate holds it
 	f.mu.Lock()

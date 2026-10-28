@@ -25,13 +25,13 @@ type (
 // LocationStore keeps a monitor's state on each probe it runs on, which the ingester reads and
 // writes to judge the monitor as a whole. The monitor repository is one.
 type LocationStore interface {
-	// RecordLocation stores what the result left on the monitor's row for the probe, calls judge
+	// RecordLocationAnyWorkspace stores what the result left on the monitor's row for the probe, calls judge
 	// with the monitor's last recorded status and its rows from just before and just after, and
 	// records the status judge returns (nil clears it). All of it happens with the monitor held,
 	// so two results of one monitor, recorded at once, see one another in turn. A monitor without
 	// a row for the probe has nothing stored on a row, and a monitor without rows (one from before
 	// probes) is judged on none.
-	RecordLocation(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error
+	RecordLocationAnyWorkspace(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error
 }
 
 type ServiceImpl struct {
@@ -330,7 +330,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		locationsAfter  []shared.MonitorLocation
 		locationsBefore []shared.MonitorLocation
 	)
-	err = s.locations.RecordLocation(ctx, r.MonitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
+	err = s.locations.RecordLocationAnyWorkspace(ctx, r.MonitorID, state, func(j shared.LocationJudgement) *shared.MonitorStatus {
 		rowsBefore, recordedBefore = j.Before, j.Recorded
 		// A location with no status yet but a heartbeat on the probe has that heartbeat's status: the
 		// row of a monitor from before it kept one
@@ -498,7 +498,7 @@ func (s *ServiceImpl) restoreLocation(ctx context.Context, monitorID, probeID st
 	// The failure may be the context's own
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
 	defer cancel()
-	err := s.locations.RecordLocation(ctx, monitorID, old, func(shared.LocationJudgement) *shared.MonitorStatus { return recorded })
+	err := s.locations.RecordLocationAnyWorkspace(ctx, monitorID, old, func(shared.LocationJudgement) *shared.MonitorStatus { return recorded })
 	if err != nil {
 		s.logger.Errorw("Failed to put the location of monitor back after a failed heartbeat", "monitor_id", monitorID, "probe_id", probeID, "error", err)
 	}
