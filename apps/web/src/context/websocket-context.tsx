@@ -175,7 +175,8 @@ export const useSocketRoom = <A extends unknown[]>(
  */
 export const useWorkspaceHeartbeats = <A extends unknown[]>(handler: (...args: A) => void) => {
   const { pathname } = useLocation();
-  const workspaceId = workspaceIdFromPathname(pathname);
+  // The address may spell the ID in upper case, the room is named by the lower-case one
+  const workspaceId = workspaceIdFromPathname(pathname)?.toLowerCase();
   const room = workspaceId ? workspaceRoom(workspaceId) : null;
   useSocketRoom(room, room ? heartbeatEvent(room) : '', handler);
 };

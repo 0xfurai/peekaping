@@ -193,6 +193,12 @@ describe("room names", () => {
     expect(monitorRoom("m-1")).toBe("monitor:m-1");
   });
 
+  it("names the room of a workspace by its lower-case ID when the address has it in upper case", () => {
+    const upper = workspaceId.toUpperCase();
+    expect(workspaceRoom(upper)).toBe(`workspace:${workspaceId}`);
+    expect(heartbeatEvent(workspaceRoom(upper))).toBe(`workspace:${workspaceId}:heartbeat`);
+  });
+
   it("names the event a room delivers its heartbeats as", () => {
     expect(heartbeatEvent(workspaceRoom(workspaceId))).toBe(`workspace:${workspaceId}:heartbeat`);
     expect(heartbeatEvent(monitorRoom("m-1"))).toBe("monitor:m-1:heartbeat");
