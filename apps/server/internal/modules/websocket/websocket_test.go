@@ -44,10 +44,10 @@ import (
 
 const (
 	// monitorA is a monitor of workspace A, monitorB one of workspace B
-	monitorA = "monitor-a"
-	monitorB = "monitor-b"
+	monitorA = "5b0c6f1a-2d3e-4f40-8a51-0c7d9e1b2a01"
+	monitorB = "5b0c6f1a-2d3e-4f40-8a51-0c7d9e1b2a02"
 	// monitorA2 is a second monitor of workspace A
-	monitorA2 = "monitor-a2"
+	monitorA2 = "5b0c6f1a-2d3e-4f40-8a51-0c7d9e1b2a03"
 
 	workspaceA = workspacetest.ID
 	workspaceB = workspacetest.Other
@@ -394,6 +394,15 @@ func heartbeatMsgs(seen []rawEvent) []string {
 		if strings.HasSuffix(e.name, ":heartbeat") && json.Unmarshal(e.payload, &hb) == nil {
 			out = append(out, hb.Msg)
 		}
+	}
+	return out
+}
+
+// eventNames are the names of the events
+func eventNames(seen []rawEvent) []string {
+	var out []string
+	for _, e := range seen {
+		out = append(out, e.name)
 	}
 	return out
 }
@@ -779,7 +788,9 @@ func TestJoinsOfRoomsTheUserMayNotEnterAreRefused(t *testing.T) {
 		"another workspace":              roomOf(workspaceA),
 		"another workspace's monitor":    "monitor:" + monitorA,
 		"the old install-wide room":      "monitor:all",
-		"a monitor that doesn't exist":   "monitor:no-such-monitor",
+		"a monitor that doesn't exist":   "monitor:" + uuid.NewString(),
+		"a monitor ID that isn't a UUID": "monitor:abc",
+		"a workspace ID that isn't one":  "workspace:abc",
 		"a workspace that doesn't exist": roomOf(workspace.ID(uuid.NewString())),
 		"a workspace with no ID":         "workspace:",
 		"a monitor with no ID":           "monitor:",
@@ -797,6 +808,44 @@ func TestJoinsOfRoomsTheUserMayNotEnterAreRefused(t *testing.T) {
 	publishHeartbeat(t, h.bus, monitorB, "b-1")
 	seen := b.untilMsg(t, "b-1")
 	assert.Equal(t, []string{"b-1"}, heartbeatMsgs(seen))
+}
+
+// An upper-case copy of a member's own workspace ID is the same workspace: the join is accepted and
+// the room is the one the heartbeats go to
+func TestAnUpperCaseIDJoinsTheRoomOfTheLowerCaseOne(t *testing.T) {
+	h := newHarness(t)
+	a := h.connectAs(t, h.userA)
+	a.joinOK(t, "workspace:"+strings.ToUpper(string(workspaceA)))
+	a.joinOK(t, "monitor:"+strings.ToUpper(monitorA))
+
+	publishHeartbeat(t, h.bus, monitorA, "a-1")
+	got := 0
+	seen := a.untilEvent(t, "both events of heartbeat a-1", func(e rawEvent) bool {
+		if strings.Contains(string(e.payload), `"a-1"`) {
+			got++
+		}
+		return got == 2
+	})
+	var names []string
+	for _, e := range seen {
+		names = append(names, e.name)
+	}
+	assert.ElementsMatch(t, []string{heartbeatOf(roomOf(workspaceA)), heartbeatOf("monitor:" + monitorA)}, names)
+
+	// leave_room takes the same form
+	require.Equal(t, map[string]string{"status": "ok"}, a.emitWithAck(t, "leave_room", "workspace:"+strings.ToUpper(string(workspaceA))))
+	publishHeartbeat(t, h.bus, monitorA, "a-2")
+	seen = a.untilMsg(t, "a-2")
+	assert.Equal(t, []string{heartbeatOf("monitor:" + monitorA)}, eventNames(seen))
+}
+
+// A malformed ID is refused whatever the prefix, and a user of no workspace is refused the same way
+func TestAMalformedIDIsRefused(t *testing.T) {
+	h := newHarness(t)
+	a := h.connectAs(t, h.userA)
+	for _, room := range []string{"monitor:abc", "monitor:all", "workspace:abc", "workspace:" + string(workspaceA) + "x", "monitor: " + monitorA} {
+		a.joinRefused(t, room)
+	}
 }
 
 // A user in no workspace can join none
@@ -819,26 +868,21 @@ func TestAUserRemovedBeforeTheyJoinIsRefused(t *testing.T) {
 	a.joinRefused(t, "monitor:"+monitorA)
 }
 
-// An update about a probe belongs to the install: every signed-in user gets it, with no workspace's
-// records in it
-func TestAProbeStatusChangeReachesEveryUser(t *testing.T) {
+// Nothing about a probe goes over the websocket: a probe going offline or coming back reaches no
+// socket, so nothing install-wide is sent to the members of every workspace
+func TestAProbeGoingOfflineSendsNothingToAMember(t *testing.T) {
 	h := newHarness(t)
-	a, b := h.connectAs(t, h.userA), h.connectAs(t, h.userB)
-	since := time.Date(2026, 10, 28, 9, 30, 0, 0, time.UTC)
+	a := h.connectAs(t, h.userA)
+	a.joinOK(t, roomOf(workspaceA))
 
+	since := time.Date(2026, 10, 28, 9, 30, 0, 0, time.UTC)
 	require.NoError(t, events.Publish(context.Background(), h.bus, probe.ProbeOffline, probe.Event{ProbeID: "probe-frankfurt", ProbeName: "Frankfurt", Since: since}))
 	require.NoError(t, events.Publish(context.Background(), h.bus, probe.ProbeOnline, probe.Event{ProbeID: "probe-frankfurt", ProbeName: "Frankfurt", Since: since}))
+	// The heartbeat closes the read: whatever the probe events sent comes before it
+	publishHeartbeat(t, h.bus, monitorA, "a-after")
 
-	for name, c := range map[string]*client{"A's member": a, "B's member": b} {
-		t.Run(name, func(t *testing.T) {
-			seen := c.untilEvent(t, "probe status online", func(e rawEvent) bool { return strings.Contains(string(e.payload), `"online"`) })
-			require.Len(t, seen, 2)
-			assert.Equal(t, "probe:status", seen[0].name)
-			assert.JSONEq(t, `{"probe_id":"probe-frankfurt","probe_name":"Frankfurt","status":"offline","since":"2026-10-28T09:30:00Z"}`, string(seen[0].payload))
-			assert.Equal(t, "probe:status", seen[1].name)
-			assert.JSONEq(t, `{"probe_id":"probe-frankfurt","probe_name":"Frankfurt","status":"online","since":"2026-10-28T09:30:00Z"}`, string(seen[1].payload))
-		})
-	}
+	seen := a.untilMsg(t, "a-after")
+	assert.Equal(t, []string{heartbeatOf(roomOf(workspaceA))}, eventNames(seen))
 }
 
 // A member who leaves a workspace stops getting its updates on the sockets they have open, with no
@@ -848,6 +892,10 @@ func TestAMemberWhoLeavesStopsGettingTheWorkspacesUpdates(t *testing.T) {
 	otherInA := h.addUser(t, workspaceA)
 	// Two sockets of the member who leaves, one with a monitor room, and a teammate's
 	first, second, teammate := h.connectAs(t, h.userA), h.connectAs(t, h.userA), h.connectAs(t, otherInA)
+	// The member who leaves A stays in B
+	require.NoError(t, workspace.NewSQLRepository(h.db).AddMember(context.Background(), workspaceB, h.userA, workspace.RoleMember))
+	first.joinOK(t, roomOf(workspaceB))
+	second.joinOK(t, roomOf(workspaceB))
 	first.joinOK(t, roomOf(workspaceA))
 	first.joinOK(t, "monitor:"+monitorA)
 	second.joinOK(t, roomOf(workspaceA))
@@ -857,17 +905,18 @@ func TestAMemberWhoLeavesStopsGettingTheWorkspacesUpdates(t *testing.T) {
 	require.NoError(t, events.Publish(context.Background(), h.bus, workspace.MemberLeft, workspace.MemberLeftEvent{WorkspaceID: workspaceA, UserID: h.userA}))
 
 	publishHeartbeat(t, h.bus, monitorA, "a-after")
-	// The probe update closes the read: it reaches every socket, after the heartbeat
-	require.NoError(t, events.Publish(context.Background(), h.bus, probe.ProbeOffline, probe.Event{ProbeID: "probe-1", ProbeName: "P", Since: time.Now()}))
+	// The heartbeat of workspace B closes the read: the member who left is in B's room still, and
+	// it comes after the one of A
+	publishHeartbeat(t, h.bus, monitorB, "b-after")
 
 	for name, c := range map[string]*client{"first socket": first, "second socket": second} {
 		t.Run(name, func(t *testing.T) {
-			seen := c.untilEvent(t, "probe status", func(e rawEvent) bool { return e.name == "probe:status" })
-			assert.Empty(t, heartbeatMsgs(seen), "the member who left gets no update of the workspace")
+			seen := c.untilMsg(t, "b-after")
+			assert.Equal(t, []string{"b-after"}, heartbeatMsgs(seen), "the member who left gets no update of the workspace")
 		})
 	}
 	t.Run("a teammate", func(t *testing.T) {
-		seen := teammate.untilEvent(t, "probe status", func(e rawEvent) bool { return e.name == "probe:status" })
+		seen := teammate.untilMsg(t, "a-after")
 		assert.Equal(t, []string{"a-after"}, heartbeatMsgs(seen))
 	})
 }
