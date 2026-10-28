@@ -3,10 +3,12 @@ package workspacehttp
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/ratelimit"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 
@@ -18,10 +20,35 @@ type Controller struct {
 	service workspace.Service
 	logger  *zap.SugaredLogger
 	now     func() time.Time
+
+	// The limits on POST /workspace/invites, which sends an email to any address: per caller (a
+	// user, or an API key) and per recipient. They count in this process's memory (see package ratelimit).
+	inviteByCaller, inviteByRecipient *ratelimit.Limiter
 }
 
+// The most invites per hour that one caller makes, and that one address gets
+const (
+	maxInvitesPerCaller    = 20
+	maxInvitesPerRecipient = 3
+)
+
 func NewController(service workspace.Service, logger *zap.SugaredLogger) *Controller {
-	return &Controller{service: service, logger: logger.Named("[workspace-controller]"), now: time.Now}
+	return &Controller{
+		service: service, logger: logger.Named("[workspace-controller]"), now: time.Now,
+		inviteByCaller:    ratelimit.New(maxInvitesPerCaller, time.Hour),
+		inviteByRecipient: ratelimit.New(maxInvitesPerRecipient, time.Hour),
+	}
+}
+
+// inviteCaller is what the per-caller limit counts an invite under: the user, or the API key
+func inviteCaller(ctx context.Context) string {
+	if id, _ := httpx.Value(ctx, "userId").(string); id != "" {
+		return "user:" + id
+	}
+	if id, _ := httpx.Value(ctx, "apiKeyId").(string); id != "" {
+		return "key:" + id
+	}
+	return "unknown"
 }
 
 // fail turns the error of the service into its answer, and a failure that is not one of the rules
@@ -121,6 +148,13 @@ func (c *Controller) CreateInvite(ctx context.Context, input *CreateInviteInput)
 	body, err := decode(input)
 	if err != nil {
 		return nil, err
+	}
+	// Every invite emails its address, so a caller and an address are each limited
+	if allowed, _ := c.inviteByCaller.Allow(inviteCaller(ctx)); !allowed {
+		return nil, httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse("Too many invites, try again later"))
+	}
+	if allowed, _ := c.inviteByRecipient.Allow(strings.ToLower(strings.TrimSpace(body.Email))); !allowed {
+		return nil, httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse("This address was invited too often, try again later"))
 	}
 	// An API key has no user: its invites have no inviter
 	userID, _ := httpx.Value(ctx, "userId").(string)
