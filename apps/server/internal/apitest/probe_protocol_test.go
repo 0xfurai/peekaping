@@ -1760,3 +1760,33 @@ func TestProbeProtocol_ResultsAreDocumented(t *testing.T) {
 		assert.Contains(t, op.Responses, status)
 	}
 }
+
+// The server states its CHECKS_PER_HOST_PER_MINUTE in hello, so that a probe spaces its checks to
+// one host at least that closely too. Off (0) leaves the field out, as every older server does.
+func TestProbeProtocol_HelloStatesTheChecksPerHostPerMinuteCap(t *testing.T) {
+	tests := []struct {
+		name string
+		cap  int
+		want int
+	}{
+		{"off by default", 0, 0},
+		{"set", 90, 90},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			a := newAppWithAdmin(t, func(cfg *config.Config) { cfg.ChecksPerHostPerMinute = tc.cap })
+			made := a.createProbe(t, map[string]any{"name": "Frankfurt", "location": "eu-central"})
+
+			instanceID := uuid.NewString()
+			w := a.request(t, http.MethodPost, helloPath, helloFrom(instanceID), asProbe(made.Token, instanceID))
+			require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+			var welcome probeproto.HelloResponse
+			require.NoError(t, json.Unmarshal(w.Body.Bytes(), &welcome))
+			assert.Equal(t, tc.want, welcome.ChecksPerHostPerMinute)
+			if tc.cap == 0 {
+				assert.NotContains(t, w.Body.String(), "checks_per_host_per_minute", "an absent field is off")
+			}
+		})
+	}
+}

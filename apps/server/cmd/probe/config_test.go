@@ -245,3 +245,28 @@ func TestNewRuntime_PassesBlockPrivateTargetsToTheProbe(t *testing.T) {
 		assert.Equal(t, on, built.(*probeclient.Probe).BlocksPrivateTargets())
 	}
 }
+
+func TestConfig_ChecksPerHostPerMinuteIsOffByDefaultAndReadFromTheEnvironment(t *testing.T) {
+	cfg, err := loadConfig(t, minimal())
+	require.NoError(t, err)
+	assert.Zero(t, cfg.ChecksPerHostPerMinute)
+
+	cfg, err = loadConfig(t, with(minimal(), "CHECKS_PER_HOST_PER_MINUTE", "120"))
+	require.NoError(t, err)
+	assert.Equal(t, 120, cfg.ChecksPerHostPerMinute)
+}
+
+func TestConfig_ANegativeChecksPerHostPerMinuteStopsStartup(t *testing.T) {
+	_, err := loadConfig(t, with(minimal(), "CHECKS_PER_HOST_PER_MINUTE", "-1"))
+
+	assert.ErrorContains(t, err, "CHECKS_PER_HOST_PER_MINUTE must be at least 0")
+}
+
+func TestNewRuntime_PassesChecksPerHostPerMinuteToTheProbe(t *testing.T) {
+	cfg := &Config{URL: "https://peekaping.example.com", Token: "secret-token", Concurrency: 1, ChecksPerHostPerMinute: 90}
+
+	built, err := newRuntime(cfg, zap.NewNop().Sugar())
+
+	require.NoError(t, err)
+	assert.Equal(t, 90, built.(*probeclient.Probe).ChecksPerHostPerMinute())
+}

@@ -862,6 +862,7 @@ export type ProbeprotoHelloResponse = {
   batch_max: number;
   block_private_targets?: boolean;
   buffer_max: number;
+  checks_per_host_per_minute?: number;
   flush_interval_ms: number;
   poll_timeout_ms: number;
   probe: ProbeprotoProbeInfo;

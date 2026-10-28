@@ -2078,6 +2078,9 @@ components:
         buffer_max:
           format: int64
           type: integer
+        checks_per_host_per_minute:
+          format: int64
+          type: integer
         flush_interval_ms:
           format: int64
           type: integer

@@ -69,6 +69,12 @@ type HelloResponse struct {
 	// and so did every server before it existed: an absent field is off, and a probe that doesn't
 	// know it ignores it, so the protocol version stays the same.
 	BlockPrivateTargets bool `json:"block_private_targets,omitempty"`
+	// ChecksPerHostPerMinute is the server's CHECKS_PER_HOST_PER_MINUTE: the most checks to one target
+	// host a checking process runs per minute. A probe spaces its own checks to the stricter of this
+	// and its own setting. A server that has none set leaves it out, as every server before it did:
+	// an absent field is 0, off, and a probe that doesn't know it ignores it, so the protocol version
+	// stays the same.
+	ChecksPerHostPerMinute int `json:"checks_per_host_per_minute,omitempty"`
 }
 
 type Proxy struct {
