@@ -212,11 +212,10 @@ func maskURLCredentials(value string) string {
 	// url.Parse ends the user info at the last "@" of the authority
 	if at := strings.LastIndex(authority, "@"); at >= 0 {
 		userinfo := authority[:at]
-		if user, password, hasPassword := strings.Cut(userinfo, ":"); hasPassword {
-			if password != "" {
-				userinfo = user + ":" + secretPlaceholder
-			}
-		} else if userinfo != "" {
+		// A user name with an empty password ("sk_live_abc:@") stands alone too
+		if user, password, _ := strings.Cut(userinfo, ":"); password != "" {
+			userinfo = user + ":" + secretPlaceholder
+		} else if user != "" {
 			userinfo = secretPlaceholder
 		}
 		authority = userinfo + authority[at:]
