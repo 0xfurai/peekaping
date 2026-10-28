@@ -459,7 +459,7 @@ func TestMonitorService_Create(t *testing.T) {
 			NotificationIds: []string{"channel-a", "channel-b"},
 			TagIds:          []string{"tag-a"},
 			Config:          "{}",
-			ProxyId:         "proxy123",
+			ProxyId:         "6a1b8d34-0a1e-4f4b-9a63-0f6d2c3a5e11",
 			PushToken:       "token123",
 		}
 
@@ -498,7 +498,7 @@ func TestMonitorService_Create(t *testing.T) {
 			Active:         true,
 			Status:         shared.MonitorStatusPending,
 			Config:         "{}",
-			ProxyId:        "proxy123",
+			ProxyId:        "6a1b8d34-0a1e-4f4b-9a63-0f6d2c3a5e11",
 			PushToken:      "token123",
 		}, saved, "the repository gets every field of the request, in the request's workspace, and the monitor starts Pending")
 		mockRepo.AssertExpectations(t)
@@ -632,7 +632,7 @@ func TestMonitorService_UpdateFull(t *testing.T) {
 			NotificationIds: []string{"channel-a", "channel-b"},
 			TagIds:          []string{"tag-a"},
 			Config:          "{\"host\":\"example.com\"}",
-			ProxyId:         "proxy456",
+			ProxyId:         "7c2e9f45-1b2f-4c5c-8b74-1a7e3d4b6f22",
 			PushToken:       "token456",
 		}
 

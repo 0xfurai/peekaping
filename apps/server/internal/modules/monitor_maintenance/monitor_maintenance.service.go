@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/utils"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -82,9 +84,9 @@ func (mr *ServiceImpl) SetMonitors(ctx context.Context, maintenanceID string, mo
 		return err
 	}
 
-	// Create new relationships for each monitor
+	// Create new relationships for each monitor, by the lower case ID it is stored under
 	for _, monitorID := range monitorIDs {
-		_, err := mr.Create(ctx, monitorID, maintenanceID)
+		_, err := mr.Create(ctx, utils.LowerUUID(monitorID), maintenanceID)
 		if err != nil {
 			return err
 		}
@@ -108,18 +110,28 @@ func (mr *ServiceImpl) GetMonitors(ctx context.Context, maintenanceID string) ([
 }
 
 func (mr *ServiceImpl) RequireMonitors(ctx context.Context, workspaceID workspace.ID, ids []string) error {
-	found, err := mr.repository.FindMonitorIDsInWorkspace(ctx, workspaceID, ids)
+	// An ID that isn't a UUID can't be one a database has, and PostgreSQL fails the query on it
+	// instead of finding nothing. The query takes the lower case form, so that a copy in another
+	// case finds the same record on SQLite, which compares text, as it does on PostgreSQL.
+	canonical := make([]string, len(ids))
+	for i, id := range ids {
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrUnknownMonitor, id)
+		}
+		canonical[i] = parsed.String()
+	}
+	found, err := mr.repository.FindMonitorIDsInWorkspace(ctx, workspaceID, canonical)
 	if err != nil {
 		return err
 	}
-	// The database compares UUIDs in any letter case, SQLite compares text
 	exists := make(map[string]bool, len(found))
 	for _, id := range found {
 		exists[strings.ToLower(id)] = true
 	}
-	for _, id := range ids {
-		if !exists[strings.ToLower(id)] {
-			return fmt.Errorf("%w: %s", ErrUnknownMonitor, id)
+	for i, id := range canonical {
+		if !exists[id] {
+			return fmt.Errorf("%w: %s", ErrUnknownMonitor, ids[i])
 		}
 	}
 	return nil

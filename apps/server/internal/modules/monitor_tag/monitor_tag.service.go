@@ -7,6 +7,7 @@ import (
 
 	"peekaping/internal/modules/workspace"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -85,18 +86,28 @@ func (s *ServiceImpl) DeleteByMonitorAndTag(ctx context.Context, monitorID strin
 }
 
 func (s *ServiceImpl) RequireTags(ctx context.Context, workspaceID workspace.ID, ids []string) error {
-	found, err := s.repository.FindTagIDsInWorkspace(ctx, workspaceID, ids)
+	// An ID that isn't a UUID can't be one a database has, and PostgreSQL fails the query on it
+	// instead of finding nothing. The query takes the lower case form, so that a copy in another
+	// case finds the same record on SQLite, which compares text, as it does on PostgreSQL.
+	canonical := make([]string, len(ids))
+	for i, id := range ids {
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			return fmt.Errorf("%w: %s", ErrUnknownTag, id)
+		}
+		canonical[i] = parsed.String()
+	}
+	found, err := s.repository.FindTagIDsInWorkspace(ctx, workspaceID, canonical)
 	if err != nil {
 		return err
 	}
-	// The database compares UUIDs in any letter case, SQLite compares text
 	exists := make(map[string]bool, len(found))
 	for _, id := range found {
 		exists[strings.ToLower(id)] = true
 	}
-	for _, id := range ids {
-		if !exists[strings.ToLower(id)] {
-			return fmt.Errorf("%w: %s", ErrUnknownTag, id)
+	for i, id := range canonical {
+		if !exists[id] {
+			return fmt.Errorf("%w: %s", ErrUnknownTag, ids[i])
 		}
 	}
 	return nil
