@@ -24,6 +24,7 @@ import (
 	"peekaping/internal/app"
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"peekaping/internal/mailer"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
@@ -119,6 +120,7 @@ type parts struct {
 	WebSocket *websocket.Server
 	Consumer  *notification_channel.QueueConsumer
 	EventBus  events.EventBus
+	Mailer    *mailer.Mailer
 	Database  graceful.Database
 
 	Settings             setting.Service
@@ -443,6 +445,11 @@ func shutdown(httpServer *http.Server, handlers *graceful.RunningHandlers, webso
 		errs = append(errs, err)
 		running = append(running, "HTTP handlers")
 	}
+
+	// No handler can start an account email any more. Let the ones being sent go out before the
+	// database closes: a send reads and writes it. It is bound by graceful.MailerDrain, which the
+	// shares of shutdownTimeouts don't include: it waits only while a send is running.
+	graceful.DrainMailer(p.Mailer, graceful.MailerDrain, logger)
 
 	busCtx, cancelBus := context.WithTimeout(context.Background(), shutdownTimeouts.EventBus)
 	defer cancelBus()

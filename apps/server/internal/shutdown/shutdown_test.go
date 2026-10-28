@@ -8,7 +8,9 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/mailer"
 	"peekaping/internal/shutdown"
+	"peekaping/internal/smtpclient/smtptest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -76,4 +78,30 @@ func (r *recordQueries) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) cont
 
 func (r *recordQueries) AfterQuery(_ context.Context, event *bun.QueryEvent) {
 	r.queries = append(r.queries, event.Query)
+}
+
+func TestDrainMailer_WaitsForTheSendsAndLogsHowManyWereDroppedWhenItGivesUp(t *testing.T) {
+	logger, logs := observedLogger()
+	server := smtptest.Start(t)
+	m := mailer.New(&config.Config{
+		AccountSMTPHost: server.Host(), AccountSMTPPort: server.Port(), AccountSMTPFrom: "no-reply@example.com", AccountSMTPTLS: "none",
+	}, zap.NewNop().Sugar())
+	release := make(chan struct{})
+	defer close(release)
+	m.Background(func(context.Context) { <-release })
+	m.Background(func(context.Context) { <-release })
+
+	shutdown.DrainMailer(m, 50*time.Millisecond, logger)
+
+	dropped := logs.FilterMessage("Gave up waiting for account emails that were still being sent")
+	require.Equal(t, 1, dropped.Len())
+	assert.EqualValues(t, 2, dropped.All()[0].ContextMap()["dropped"])
+}
+
+func TestDrainMailer_SaysNothingWhenNoSendIsPending(t *testing.T) {
+	logger, logs := observedLogger()
+
+	shutdown.DrainMailer(mailer.New(&config.Config{}, zap.NewNop().Sugar()), time.Second, logger)
+
+	assert.Zero(t, logs.Len())
 }

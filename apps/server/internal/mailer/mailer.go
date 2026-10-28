@@ -22,6 +22,7 @@ import (
 	"net/textproto"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"peekaping/internal/config"
@@ -48,6 +49,7 @@ type Mailer struct {
 	now    func() time.Time
 
 	pending sync.WaitGroup
+	running atomic.Int64
 }
 
 // New builds the mailer the config describes. The config was validated at startup
@@ -119,8 +121,10 @@ func (m *Mailer) Background(fn func(ctx context.Context)) {
 		return
 	}
 	m.pending.Add(1)
+	m.running.Add(1)
 	go func() {
 		defer m.pending.Done()
+		defer m.running.Add(-1)
 		defer func() {
 			if r := recover(); r != nil {
 				m.logger.Errorw("An account email job panicked", "panic", r)
@@ -135,6 +139,25 @@ func (m *Mailer) Background(fn func(ctx context.Context)) {
 // Wait returns once the jobs that Deliver and Background started have finished. Tests use it, and so can a
 // shutdown that wants to let the last mails out.
 func (m *Mailer) Wait() { m.pending.Wait() }
+
+// WaitFor is Wait with a bound: it returns once the jobs have finished or after timeout, and says
+// how many are still running (0 when they all finished). The jobs are not stopped; the caller is
+// about to exit. A shutdown uses it to let the last mails out without waiting on a slow server.
+func (m *Mailer) WaitFor(timeout time.Duration) (stillRunning int) {
+	done := make(chan struct{})
+	go func() {
+		m.pending.Wait()
+		close(done)
+	}()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	select {
+	case <-done:
+		return 0
+	case <-timer.C:
+		return int(m.running.Load())
+	}
+}
 
 func (m *Mailer) build(to *mail.Address, subject, text, html string) ([]byte, error) {
 	var id [12]byte

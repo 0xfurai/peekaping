@@ -144,3 +144,28 @@ func TestMessages_NameTheLinkAndItsLifetime(t *testing.T) {
 	assert.Contains(t, invite.Text, "expires in 7 days")
 	assert.NotContains(t, invite.HTML, "<b>", "names are escaped in the HTML")
 }
+
+func TestMailer_WaitForGivesUpAfterTheBoundAndSaysHowManySendsAreStillRunning(t *testing.T) {
+	m := newMailer(t, smtptest.Start(t))
+	release := make(chan struct{})
+	finished := make(chan struct{}, 2)
+	for range 2 {
+		m.Background(func(context.Context) { <-release; finished <- struct{}{} })
+	}
+
+	started := time.Now()
+	stillRunning := m.WaitFor(50 * time.Millisecond)
+
+	assert.Equal(t, 2, stillRunning)
+	assert.Less(t, time.Since(started), 5*time.Second)
+
+	close(release)
+	<-finished
+	<-finished
+	assert.Zero(t, m.WaitFor(5*time.Second), "once the sends return, nothing is left")
+}
+
+func TestMailer_WaitForReturnsAtOnceWhenNothingIsSending(t *testing.T) {
+	assert.Zero(t, mailer.New(&config.Config{}, zap.NewNop().Sugar()).WaitFor(time.Hour))
+	assert.Zero(t, newMailer(t, smtptest.Start(t)).WaitFor(time.Hour))
+}
