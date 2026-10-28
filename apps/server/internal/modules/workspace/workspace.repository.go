@@ -15,4 +15,8 @@ type Repository interface {
 	ListMemberships(ctx context.Context, userID string) ([]Membership, error)
 	// FindOldest returns the workspace that was created first, or nil when the install has none.
 	FindOldest(ctx context.Context) (*Workspace, error)
+	// ListIDsAnyWorkspace returns the ID of every workspace of the install, the oldest first. It
+	// is for the background work that goes through the workspaces one by one, such as the cleanup
+	// job.
+	ListIDsAnyWorkspace(ctx context.Context) ([]ID, error)
 }

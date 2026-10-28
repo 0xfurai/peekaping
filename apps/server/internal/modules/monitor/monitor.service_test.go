@@ -178,8 +178,8 @@ func (m *MockHeartbeatService) FindUptimeStatsByMonitorID(ctx context.Context, m
 	return args.Get(0).(map[string]*float64), args.Error(1)
 }
 
-func (m *MockHeartbeatService) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
-	args := m.Called(ctx, cutoff)
+func (m *MockHeartbeatService) DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error) {
+	args := m.Called(ctx, workspaceID, cutoff)
 	return args.Get(0).(int64), args.Error(1)
 }
 

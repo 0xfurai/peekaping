@@ -3,6 +3,7 @@ package heartbeat
 import (
 	"context"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/workspace"
 	"time"
 
 	"go.uber.org/zap"
@@ -15,7 +16,8 @@ type Service interface {
 	Delete(ctx context.Context, id string) error
 
 	FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]*float64, error)
-	DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error)
+	// DeleteOlderThan deletes the heartbeats of the workspace's monitors that are older than cutoff
+	DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error)
 	// FindByMonitorIDPaginated lists a monitor's heartbeats from every probe
 	FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error)
 	// FindByMonitorIDAndProbeIDPaginated is FindByMonitorIDPaginated narrowed to the heartbeats one
@@ -97,8 +99,8 @@ func (mr *ServiceImpl) FindUptimeStatsByMonitorID(ctx context.Context, monitorID
 	return mr.repository.FindUptimeStatsByMonitorID(ctx, monitorID, periods, now)
 }
 
-func (mr *ServiceImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
-	return mr.repository.DeleteOlderThan(ctx, cutoff)
+func (mr *ServiceImpl) DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error) {
+	return mr.repository.DeleteOlderThan(ctx, workspaceID, cutoff)
 }
 
 func (mr *ServiceImpl) FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error) {

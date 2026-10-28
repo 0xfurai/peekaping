@@ -189,3 +189,22 @@ func TestRepository_AWorkspaceWhoseSettingsFailIsNotCreated(t *testing.T) {
 		assert.Empty(t, workspaces(t, db), "the workspace and its settings are made together")
 	})
 }
+
+func TestRepository_ListIDsAnyWorkspace(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		ctx := context.Background()
+		none, err := repo.ListIDsAnyWorkspace(ctx)
+		require.NoError(t, err)
+		assert.Empty(t, none)
+
+		first, err := repo.Create(ctx, "First")
+		require.NoError(t, err)
+		time.Sleep(5 * time.Millisecond)
+		second, err := repo.Create(ctx, "Second")
+		require.NoError(t, err)
+
+		ids, err := repo.ListIDsAnyWorkspace(ctx)
+		require.NoError(t, err)
+		assert.Equal(t, []workspace.ID{first.ID, second.ID}, ids, "every workspace, the oldest first")
+	})
+}
