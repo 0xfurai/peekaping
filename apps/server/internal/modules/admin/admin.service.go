@@ -150,8 +150,9 @@ func (s *ServiceImpl) UpdateUser(ctx context.Context, actorID, userID string, up
 		s.log(actorID, action, userID)
 	}
 	if endedUsers {
-		// Their open sockets stop getting the workspaces' updates: the sessions ended, the
-		// memberships did not
+		// Their open sockets close, and stop getting the workspaces' updates: the sessions ended,
+		// the memberships did not
+		s.announceSessionsEnded(ctx, userID)
 		s.announceLeft(ctx, userID, updated.Memberships)
 	}
 	return updated, nil
@@ -227,8 +228,18 @@ func (s *ServiceImpl) DeleteUser(ctx context.Context, actorID, userID string) er
 		return err
 	}
 	s.log(actorID, ActionDeleteUser, userID)
+	s.announceSessionsEnded(ctx, userID)
 	s.announceLeft(ctx, userID, left)
 	return nil
+}
+
+// announceSessionsEnded tells the rest of the install that the user's sessions ended, once that is
+// stored, so that their open sockets close. A bus that fails is logged and not returned: the change
+// stands.
+func (s *ServiceImpl) announceSessionsEnded(ctx context.Context, userID string) {
+	if err := events.Publish(ctx, s.bus, auth.SessionsEnded, auth.SessionsEndedEvent{UserID: userID}); err != nil {
+		s.logger.Errorw("Failed to publish that the sessions of a user ended", "userId", userID, "error", err)
+	}
 }
 
 // announceLeft tells the rest of the install that the user's places in the workspaces are gone, or

@@ -13,7 +13,10 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/modules/auth"
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/smtpclient/smtptest"
 
 	"github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
@@ -467,6 +470,140 @@ func TestAdminUsers_ADisabledInstanceAdminLosesTheAdminArea(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, a.patchUser(t, opsID, map[string]any{"active": false}).Code)
 	assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodGet, adminUsersPath, nil, ops).Code)
+}
+
+// MARK: Sessions ended
+
+// endedSessions records the SessionsEnded events and, as each is published, what the user's row
+// looked like: "gone", "disabled", "ended" (the sessions' cutoff is set) or "live"
+type endedSessions struct {
+	mu     sync.Mutex
+	users  []string
+	states []string
+}
+
+type endingBus struct {
+	events.EventBus
+	db    *bun.DB
+	ended *endedSessions
+}
+
+func (b *endingBus) PublishMessage(ctx context.Context, msg events.Message) error {
+	if msg.Topic == auth.SessionsEnded.Name() {
+		e := msg.Value.(auth.SessionsEndedEvent)
+		var rows []struct {
+			Active           bool       `bun:"active"`
+			TokensValidAfter *time.Time `bun:"tokens_valid_after"`
+		}
+		_ = b.db.NewSelect().Table("users").Column("active", "tokens_valid_after").Where("id = ?", e.UserID).Scan(context.Background(), &rows)
+		state := "live"
+		switch {
+		case len(rows) == 0:
+			state = "gone"
+		case !rows[0].Active:
+			state = "disabled"
+		case rows[0].TokensValidAfter != nil:
+			state = "ended"
+		}
+		b.ended.mu.Lock()
+		b.ended.users = append(b.ended.users, e.UserID)
+		b.ended.states = append(b.ended.states, state)
+		b.ended.mu.Unlock()
+	}
+	return b.EventBus.PublishMessage(ctx, msg)
+}
+
+// snapshot is the users whose sessions ended so far, and the state of their row at that moment
+func (e *endedSessions) snapshot() (users, states []string) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return append([]string(nil), e.users...), append([]string(nil), e.states...)
+}
+
+func newAppRecordingEnded(t *testing.T, options ...func(*config.Config)) (*app, *endedSessions) {
+	t.Helper()
+	ended := &endedSessions{}
+	a := newAppDecorated(t, func(c *dig.Container) error {
+		return c.Decorate(func(bus events.EventBus, db *bun.DB) events.EventBus {
+			return &endingBus{EventBus: bus, db: db, ended: ended}
+		})
+	}, options...)
+	a.registerAdmin(t)
+	return a, ended
+}
+
+func TestAdminUsers_DisablingAUserAnnouncesThatTheirSessionsEndedOnceItIsStored(t *testing.T) {
+	a, ended := newAppRecordingEnded(t, selfHosted)
+	adminID := a.userID(t, adminEmail)
+	userID := a.createUser(t, "user@example.com")
+
+	// nothing that leaves the sessions alone announces them
+	require.Equal(t, http.StatusOK, a.patchUser(t, userID, map[string]any{"instanceAdmin": true}).Code)
+	require.Equal(t, http.StatusConflict, a.patchUser(t, adminID, map[string]any{"active": false}).Code)
+	users, _ := ended.snapshot()
+	require.Empty(t, users)
+
+	require.Equal(t, http.StatusOK, a.patchUser(t, userID, map[string]any{"active": false}).Code)
+	users, states := ended.snapshot()
+	assert.Equal(t, []string{userID}, users)
+	assert.Equal(t, []string{"disabled"}, states, "it was stored when it was announced")
+
+	require.Equal(t, http.StatusOK, a.patchUser(t, userID, map[string]any{"active": true}).Code)
+	users, _ = ended.snapshot()
+	assert.Len(t, users, 1, "enabling them again ends nothing")
+}
+
+func TestAdminUsers_DeletingAUserAnnouncesThatTheirSessionsEndedOnceTheyAreGone(t *testing.T) {
+	a, ended := newAppRecordingEnded(t, selfHosted)
+	solo := a.createWorkspace(t, "Solo")
+	userID := a.createUser(t, "user@example.com")
+	a.addMember(t, solo, userID, workspace.RoleOwner)
+
+	require.Equal(t, http.StatusConflict, a.request(t, http.MethodDelete, adminUsersPath+"/"+userID, nil, a.asAdmin).Code, "the last owner of a workspace")
+	users, _ := ended.snapshot()
+	require.Empty(t, users, "a refused delete announces nothing")
+
+	a.addMember(t, solo, a.createUser(t, "co@example.com"), workspace.RoleOwner)
+	require.Equal(t, http.StatusNoContent, a.request(t, http.MethodDelete, adminUsersPath+"/"+userID, nil, a.asAdmin).Code)
+	users, states := ended.snapshot()
+	assert.Equal(t, []string{userID}, users)
+	assert.Equal(t, []string{"gone"}, states)
+}
+
+func TestAdminUsers_UsingAnAdminMadeResetLinkAnnouncesThatTheirSessionsEnded(t *testing.T) {
+	a, ended := newAppRecordingEnded(t, selfHosted)
+	userID := a.createUser(t, "user@example.com")
+	link := decode[adminResetLink](t, a.request(t, http.MethodPost, adminUsersPath+"/"+userID+"/reset-link", nil, a.asAdmin), http.StatusCreated)
+	token := strings.TrimPrefix(link.Link, clientURL+"/reset-password/")
+	users, _ := ended.snapshot()
+	require.Empty(t, users, "making the link ends nothing")
+
+	require.Equal(t, http.StatusBadRequest, a.reset(t, "pkr_unknown", "Brand-new-pass-9").Code)
+	users, _ = ended.snapshot()
+	require.Empty(t, users, "a link that does not work ends nothing")
+
+	require.Equal(t, http.StatusOK, a.reset(t, token, "Brand-new-pass-9").Code)
+	users, states := ended.snapshot()
+	assert.Equal(t, []string{userID}, users)
+	assert.Equal(t, []string{"ended"}, states, "the cutoff was stored when it was announced")
+	require.Equal(t, http.StatusBadRequest, a.reset(t, token, "Another-pass-77").Code)
+	users, _ = ended.snapshot()
+	assert.Len(t, users, 1, "a link spent already ends nothing")
+}
+
+func TestAdminUsers_AUsersOwnResetThroughTheEmailedLinkAnnouncesThatTheirSessionsEnded(t *testing.T) {
+	server := smtptest.Start(t)
+	a, ended := newAppRecordingEnded(t, withAccountSMTP(server), withSignupMode(config.SignupModeInvite))
+	server.WaitFor(t, 1)
+	a.forgot(t, adminEmail)
+	a.settled(t)
+	token := tokenIn(t, mailTo(server, adminEmail)[1], "pkr_")
+
+	require.Equal(t, http.StatusOK, a.reset(t, token, newPassword).Code)
+
+	users, states := ended.snapshot()
+	assert.Equal(t, []string{a.userID(t, adminEmail)}, users)
+	assert.Equal(t, []string{"ended"}, states)
 }
 
 // MARK: Reset link
