@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/domain_status_page"
+	"peekaping/internal/modules/workspace/workspacetest"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -74,8 +75,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 				svc: domain_status_page.NewService(domain_status_page.NewSQLRepository(db), zap.NewNop().Sugar()),
 				page: func() string {
 					id := uuid.NewString()
-					_, err := db.Exec("INSERT INTO status_pages (id, slug, title) VALUES (?, ?, 'Status')", id, "page-"+id)
-					require.NoError(t, err)
+					workspacetest.InsertStatusPage(t, db, id, "page-"+id)
 					return id
 				},
 			})

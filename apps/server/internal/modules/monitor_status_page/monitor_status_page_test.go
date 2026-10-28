@@ -83,8 +83,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 				},
 				page: func() string {
 					id := uuid.NewString()
-					_, err := db.Exec("INSERT INTO status_pages (id, slug, title) VALUES (?, ?, 'Status')", id, "page-"+id)
-					require.NoError(t, err)
+					workspacetest.InsertStatusPage(t, db, id, "page-"+id)
 					return id
 				},
 			})

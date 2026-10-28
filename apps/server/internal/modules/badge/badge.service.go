@@ -98,7 +98,7 @@ func (s *ServiceImpl) IsMonitorPublic(ctx context.Context, monitorID string) (bo
 	}
 
 	// Monitor is public if it's on at least one published status page
-	return s.statusPageService.IsMonitorPublished(ctx, monitorID)
+	return s.statusPageService.IsMonitorPublishedAnyWorkspace(ctx, monitorID)
 }
 
 func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {

@@ -121,6 +121,16 @@ func InsertMaintenance(t testing.TB, db bun.IDB, id string) {
 	}
 }
 
+// InsertStatusPage stores a status page with the given ID and slug in the oldest workspace (see
+// OldestOrAdd)
+func InsertStatusPage(t testing.TB, db bun.IDB, id, slug string) {
+	t.Helper()
+	OldestOrAdd(t, db)
+	if _, err := db.ExecContext(context.Background(), "INSERT INTO status_pages (id, workspace_id, slug, title) VALUES (?, "+oldest+", ?, ?)", id, slug, slug); err != nil {
+		t.Fatalf("insert a status page: %v", err)
+	}
+}
+
 // PrepareUpgrade gives a database from before the monitors had a workspace what the upgrade needs
 // to find: the oldest workspace when the database has workspaces already (see OldestOrAdd), and
 // otherwise a user, when it has none, so that the upgrade finds an install to give a workspace to.
