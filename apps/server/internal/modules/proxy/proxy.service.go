@@ -5,6 +5,7 @@ import (
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/netguard"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -29,6 +30,7 @@ type ServiceImpl struct {
 	repository     Repository
 	monitorService monitor.Service
 	transactor     dbtx.Transactor
+	guard          *netguard.Guard
 	logger         *zap.SugaredLogger
 }
 
@@ -38,7 +40,10 @@ type NewServiceParams struct {
 	MonitorService monitor.Service
 	// Transactor makes the deletes of a proxy and of the references to it one transaction
 	Transactor dbtx.Transactor
-	Logger     *zap.SugaredLogger
+	// Guard refuses a proxy at an address the install blocks (BLOCK_PRIVATE_TARGETS, PP-156). A
+	// container that has none blocks nothing.
+	Guard  *netguard.Guard `optional:"true"`
+	Logger *zap.SugaredLogger
 }
 
 func NewService(params NewServiceParams) Service {
@@ -46,11 +51,15 @@ func NewService(params NewServiceParams) Service {
 		repository:     params.Repository,
 		monitorService: params.MonitorService,
 		transactor:     params.Transactor,
+		guard:          params.Guard,
 		logger:         params.Logger.Named("[proxy-service]"),
 	}
 }
 
 func (mr *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, entity *CreateUpdateDto) (*Model, error) {
+	if err := mr.guard.CheckLiteral(entity.Host); err != nil {
+		return nil, err
+	}
 	model := &Model{
 		Protocol: entity.Protocol,
 		Host:     entity.Host,
@@ -71,6 +80,9 @@ func (mr *ServiceImpl) FindAll(ctx context.Context, workspaceID workspace.ID, pa
 }
 
 func (mr *ServiceImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, entity *CreateUpdateDto) (*Model, error) {
+	if err := mr.guard.CheckLiteral(entity.Host); err != nil {
+		return nil, err
+	}
 	model := &Model{
 		Protocol: entity.Protocol,
 		Host:     entity.Host,
@@ -88,6 +100,13 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID,
 }
 
 func (mr *ServiceImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *PartialUpdateDto) (*Model, error) {
+	// An update that leaves the host alone is not held to the setting: a proxy stored before it was
+	// turned on can still be renamed or have its port changed
+	if entity.Host != nil {
+		if err := mr.guard.CheckLiteral(*entity.Host); err != nil {
+			return nil, err
+		}
+	}
 	updateModel := &UpdateModel{
 		Protocol: entity.Protocol,
 		Host:     entity.Host,

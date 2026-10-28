@@ -25,6 +25,9 @@ type Config struct {
 	AllowInsecure bool `env:"PROBE_ALLOW_INSECURE"`
 	// Concurrency is how many checks run at the same time
 	Concurrency int `env:"PROBE_CONCURRENCY" default:"128"`
+	// BlockPrivateTargets keeps the probe's checks from reaching loopback, private and link-local
+	// addresses and cloud metadata. The probe also blocks when the server it connects to does.
+	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
 	// ReadyAddr is where the /ready endpoint listens
 	ReadyAddr string `env:"PROBE_READY_ADDR" default:"127.0.0.1:8081"`
 

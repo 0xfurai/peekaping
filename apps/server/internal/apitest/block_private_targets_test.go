@@ -1,0 +1,158 @@
+package apitest
+
+import (
+	"encoding/json"
+	"net/http"
+	"testing"
+
+	"peekaping/internal/config"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// PP-156: with BLOCK_PRIVATE_TARGETS on, saving a monitor whose target is a literal blocked address,
+// or a proxy whose host is one, is refused with 400 and TARGET_NOT_ALLOWED. A name is saved: what it
+// resolves to is checked when the check dials.
+
+// withBlockPrivateTargets sets BLOCK_PRIVATE_TARGETS to the value a test needs, whatever the run's
+// default is
+func withBlockPrivateTargets(on bool) func(*config.Config) {
+	return func(cfg *config.Config) { cfg.BlockPrivateTargets = on }
+}
+
+// withLoopbackTargets lets monitors and proxies point at this machine, as a self-hosted install
+// does. A test whose servers listen on 127.0.0.1 sets it, since the cloud blocks that address.
+func withLoopbackTargets(cfg *config.Config) { cfg.BlockPrivateTargets = false }
+
+type targetNotAllowedError struct {
+	Message string `json:"message"`
+	Error   struct {
+		Code string `json:"code"`
+		Host string `json:"host"`
+	} `json:"error"`
+}
+
+func assertTargetNotAllowed(t *testing.T, w *httpRecorder, host string) {
+	t.Helper()
+	require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	var got targetNotAllowedError
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &got), w.Body.String())
+	assert.Equal(t, "TARGET_NOT_ALLOWED", got.Error.Code)
+	assert.Equal(t, host, got.Error.Host)
+	assert.Equal(t, "target address is not allowed: "+host, got.Message)
+}
+
+// monitorWithConfig is a monitor body of the given type and config
+func monitorWithConfig(name, monitorType, monitorConfig string) map[string]any {
+	return with(with(httpMonitorBody(name, ""), "type", monitorType), "config", monitorConfig)
+}
+
+func httpConfigFor(url string) string {
+	return `{"url":"` + url + `","method":"GET","encoding":"json","accepted_statuscodes":["2XX"],"authMethod":"none"}`
+}
+
+func TestBlockPrivateTargets_AMonitorAtABlockedAddressIsRefusedOnCreate(t *testing.T) {
+	a := newAppWithAdmin(t, withBlockPrivateTargets(true))
+	tests := []struct {
+		name string
+		body map[string]any
+		host string
+	}{
+		{"http on loopback", monitorWithConfig("Local", "http", httpConfigFor("http://127.0.0.1:8080/health")), "127.0.0.1"},
+		{"http on the metadata address", monitorWithConfig("Metadata", "http", httpConfigFor("http://169.254.169.254/latest/meta-data")), "169.254.169.254"},
+		{"http on a private IPv6 address", monitorWithConfig("IPv6 monitor", "http-keyword", httpConfigFor("http://[fd12::1]/")), "fd12::1"},
+		{"tcp on a private network", monitorWithConfig("Database", "tcp", `{"host":"10.0.0.5","port":5432}`), "10.0.0.5"},
+		{"ping on a private network", monitorWithConfig("Router", "ping", `{"host":"192.168.1.1"}`), "192.168.1.1"},
+		{"dns through a local resolver", monitorWithConfig("Dns", "dns", `{"host":"example.com","resolver_server":"127.0.0.53","port":53,"resolve_type":"A"}`), "127.0.0.53"},
+		{"smtp on carrier-grade NAT", monitorWithConfig("Mail", "smtp", `{"host":"100.64.0.1","port":25}`), "100.64.0.1"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assertTargetNotAllowed(t, a.request(t, http.MethodPost, monitorsPath, tc.body, a.asAdmin), tc.host)
+		})
+	}
+	listed := decode[[]typedMonitor](t, a.request(t, http.MethodGet, monitorsPath, nil, a.asAdmin), http.StatusOK)
+	assert.Empty(t, listed, "nothing was stored")
+}
+
+func TestBlockPrivateTargets_AHostnameTargetIsSaved(t *testing.T) {
+	a := newAppWithAdmin(t, withBlockPrivateTargets(true))
+
+	for _, body := range []map[string]any{
+		monitorWithConfig("Site", "http", httpConfigFor("https://internal.corp.example/health")),
+		monitorWithConfig("Localhost", "http", httpConfigFor("http://localhost:8080/")),
+		monitorWithConfig("Public", "http", httpConfigFor("http://8.8.8.8/")),
+		monitorWithConfig("Database", "tcp", `{"host":"db.corp.example","port":5432}`),
+		monitorWithConfig("Push", "push", `{"pushToken":"abcdefghijklmnopqrstuvwxyz012345"}`),
+	} {
+		decode[typedMonitor](t, a.request(t, http.MethodPost, monitorsPath, body, a.asAdmin), http.StatusCreated)
+	}
+}
+
+func TestBlockPrivateTargets_AMonitorCannotBeMovedToABlockedAddress(t *testing.T) {
+	a := newAppWithAdmin(t, withBlockPrivateTargets(true))
+	id := a.createHTTPMonitor(t, "Site", "")
+	path := monitorsPath + "/" + id
+	blocked := httpConfigFor("http://10.1.2.3/")
+
+	put := a.request(t, http.MethodPut, path, with(httpMonitorBody("Site", ""), "config", blocked), a.asAdmin)
+	patchConfig := a.request(t, http.MethodPatch, path, map[string]any{"config": blocked}, a.asAdmin)
+	patchType := a.request(t, http.MethodPatch, path, map[string]any{"type": "tcp", "config": `{"host":"169.254.169.254","port":80}`}, a.asAdmin)
+
+	assertTargetNotAllowed(t, put, "10.1.2.3")
+	assertTargetNotAllowed(t, patchConfig, "10.1.2.3")
+	assertTargetNotAllowed(t, patchType, "169.254.169.254")
+	got := a.typedMonitorOf(t, id)
+	assert.Equal(t, "http", got.Type, "it stays what it was")
+
+	// a name, and an edit that leaves the target alone, still save
+	decode[typedMonitor](t, a.request(t, http.MethodPatch, path, map[string]any{"config": httpConfigFor("https://other.example.com/")}, a.asAdmin), http.StatusOK)
+	decode[typedMonitor](t, a.request(t, http.MethodPatch, path, map[string]any{"name": "Renamed"}, a.asAdmin), http.StatusOK)
+}
+
+func TestBlockPrivateTargets_AMonitorStoredBeforeCanStillBePausedAndRenamed(t *testing.T) {
+	a := newAppWithAdmin(t, withBlockPrivateTargets(true))
+	id := a.storeMonitor(t, "Local", "http", httpConfigFor("http://127.0.0.1:8080/"), "")
+	path := monitorsPath + "/" + id
+
+	renamed := decode[typedMonitor](t, a.request(t, http.MethodPatch, path, map[string]any{"name": "Local v2", "active": false}, a.asAdmin), http.StatusOK)
+
+	assert.Equal(t, "Local v2", renamed.Name)
+	assert.False(t, renamed.Active)
+}
+
+func TestBlockPrivateTargets_AProxyAtABlockedAddressIsRefused(t *testing.T) {
+	a := newAppWithAdmin(t, withBlockPrivateTargets(true))
+
+	for _, host := range []string{"127.0.0.1", "10.0.0.1", "169.254.169.254", "::1"} {
+		assertTargetNotAllowed(t, a.request(t, http.MethodPost, "/api/v1/proxies", proxyBody(host), a.asAdmin), host)
+	}
+	id := decode[created](t, a.request(t, http.MethodPost, "/api/v1/proxies", proxyBody("proxy.corp.example"), a.asAdmin), http.StatusCreated).ID
+	path := "/api/v1/proxies/" + id
+
+	assertTargetNotAllowed(t, a.request(t, http.MethodPut, path, proxyBody("192.168.0.9"), a.asAdmin), "192.168.0.9")
+	assertTargetNotAllowed(t, a.request(t, http.MethodPatch, path, map[string]any{"host": "172.16.0.2"}, a.asAdmin), "172.16.0.2")
+	// a name, a public address and an edit that leaves the host alone save
+	decode[created](t, a.request(t, http.MethodPatch, path, map[string]any{"port": 3128}, a.asAdmin), http.StatusOK)
+	decode[created](t, a.request(t, http.MethodPatch, path, map[string]any{"host": "8.8.8.8"}, a.asAdmin), http.StatusOK)
+	decode[created](t, a.request(t, http.MethodPut, path, proxyBody("other.corp.example"), a.asAdmin), http.StatusOK)
+}
+
+func TestBlockPrivateTargets_OffEverythingSaves(t *testing.T) {
+	a := newAppWithAdmin(t, withBlockPrivateTargets(false))
+
+	for _, body := range []map[string]any{
+		monitorWithConfig("Local", "http", httpConfigFor("http://127.0.0.1:8080/health")),
+		monitorWithConfig("Metadata", "http", httpConfigFor("http://169.254.169.254/")),
+		monitorWithConfig("Database", "tcp", `{"host":"10.0.0.5","port":5432}`),
+		monitorWithConfig("Router", "ping", `{"host":"192.168.1.1"}`),
+	} {
+		id := decode[created](t, a.request(t, http.MethodPost, monitorsPath, body, a.asAdmin), http.StatusCreated).ID
+		decode[typedMonitor](t, a.request(t, http.MethodPut, monitorsPath+"/"+id, body, a.asAdmin), http.StatusOK)
+		decode[typedMonitor](t, a.request(t, http.MethodPatch, monitorsPath+"/"+id, map[string]any{"config": body["config"]}, a.asAdmin), http.StatusOK)
+	}
+	proxyID := decode[created](t, a.request(t, http.MethodPost, "/api/v1/proxies", proxyBody("127.0.0.1"), a.asAdmin), http.StatusCreated).ID
+	decode[created](t, a.request(t, http.MethodPut, "/api/v1/proxies/"+proxyID, proxyBody("10.0.0.1"), a.asAdmin), http.StatusOK)
+	decode[created](t, a.request(t, http.MethodPatch, "/api/v1/proxies/"+proxyID, map[string]any{"host": "::1"}, a.asAdmin), http.StatusOK)
+}

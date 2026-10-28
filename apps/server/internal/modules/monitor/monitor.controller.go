@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/workspace/workspacehttp"
+	"peekaping/internal/netguard"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 	"strings"
@@ -199,6 +200,10 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 
 	// Validate monitor type and config
 	if err := ic.monitorService.ValidateMonitorConfig(monitor.Type, monitor.Config); err != nil {
+		var blocked *netguard.TargetError
+		if errors.As(err, &blocked) {
+			return nil, utils.TargetNotAllowed(blocked)
+		}
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
 	}
 
@@ -290,6 +295,10 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 
 	// Validate monitor type and config
 	if err := ic.monitorService.ValidateMonitorConfig(monitor.Type, monitor.Config); err != nil {
+		var blocked *netguard.TargetError
+		if errors.As(err, &blocked) {
+			return nil, utils.TargetNotAllowed(blocked)
+		}
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", err)))
 	}
 
@@ -360,6 +369,7 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 
 // failWrite maps the error of a write that looks up the monitor itself to its response.
 func (ic *MonitorController) failWrite(action string, err error) error {
+	var blocked *netguard.TargetError
 	var invalidConfig *InvalidConfigError
 	var invalidTimeout *InvalidTimeoutError
 	var invalidProbes *InvalidProbesError
@@ -369,6 +379,8 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
+	case errors.As(err, &blocked):
+		return utils.TargetNotAllowed(blocked)
 	case errors.As(err, &invalidConfig):
 		return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(fmt.Sprintf("Invalid monitor configuration: %v", invalidConfig.Err)))
 	case errors.As(err, &invalidTimeout):
