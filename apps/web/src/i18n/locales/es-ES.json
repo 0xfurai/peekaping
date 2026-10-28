@@ -1524,6 +1524,7 @@
     "search_placeholder": "Buscar páginas de estado por título...",
     "show_locations": "Mostrar cada ubicación",
     "show_locations_info": "En los monitores que se comprueban desde varias ubicaciones, muestra el estado y el historial de cada una",
+    "slug_already_used": "Otra página de estado ya usa esta dirección",
     "update_status_page": "Actualizar página de estado",
     "view_page": "Ver página"
   },

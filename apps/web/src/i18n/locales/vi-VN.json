@@ -1524,6 +1524,7 @@
     "search_placeholder": "Tìm trang trạng thái theo tiêu đề...",
     "show_locations": "Hiển thị từng vị trí",
     "show_locations_info": "Với các monitor được kiểm tra từ nhiều vị trí, hiển thị trạng thái và lịch sử của từng vị trí",
+    "slug_already_used": "Một trang trạng thái khác đã sử dụng địa chỉ này",
     "update_status_page": "Cập nhật trang trạng thái",
     "view_page": "Xem trang"
   },

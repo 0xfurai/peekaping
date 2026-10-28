@@ -1524,6 +1524,7 @@
     "search_placeholder": "Statusseiten nach Titel suchen...",
     "show_locations": "Jeden Standort anzeigen",
     "show_locations_info": "Bei Monitoren, die von mehreren Standorten aus geprüft werden, Status und Verlauf jedes Standorts anzeigen",
+    "slug_already_used": "Eine andere Statusseite verwendet diese Adresse bereits",
     "update_status_page": "Statusseite aktualisieren",
     "view_page": "Seite anzeigen"
   },

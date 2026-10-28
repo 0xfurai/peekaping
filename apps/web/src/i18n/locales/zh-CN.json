@@ -1524,6 +1524,7 @@
     "search_placeholder": "按标题搜索状态页面…",
     "show_locations": "显示每个位置",
     "show_locations_info": "对于从多个位置检查的监控项，显示每个位置的状态和历史记录",
+    "slug_already_used": "另一个状态页已在使用此地址",
     "update_status_page": "更新状态页面",
     "view_page": "查看页面"
   },

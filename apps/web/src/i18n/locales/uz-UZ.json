@@ -1523,6 +1523,7 @@
     "search_placeholder": "Status sahifalarini sarlavha bo'yicha qidirish...",
     "show_locations": "Har bir joylashuvni ko'rsatish",
     "show_locations_info": "Bir nechta joylashuvdan tekshiriladigan monitorlar uchun har bir joylashuvning holati va tarixi ko'rsatiladi",
+    "slug_already_used": "Bu manzildan boshqa holat sahifasi allaqachon foydalanmoqda",
     "update_status_page": "Holat sahifasini yangilash",
     "view_page": "Sahifani ko‘rish"
   },

@@ -1524,6 +1524,7 @@
     "search_placeholder": "Søk status­sider etter tittel…",
     "show_locations": "Vis hver plassering",
     "show_locations_info": "For overvåkinger som sjekkes fra flere plasseringer, vises status og historikk for hver plassering",
+    "slug_already_used": "En annen statusside bruker allerede denne adressen",
     "update_status_page": "Oppdater statusside",
     "view_page": "Se side"
   },

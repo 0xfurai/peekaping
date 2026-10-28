@@ -1524,6 +1524,7 @@
     "search_placeholder": "제목으로 상태 페이지 검색...",
     "show_locations": "각 위치 표시",
     "show_locations_info": "여러 위치에서 확인하는 모니터에 대해 위치별 상태와 기록을 표시합니다",
+    "slug_already_used": "다른 상태 페이지가 이미 이 주소를 사용하고 있습니다",
     "update_status_page": "상태 페이지 업데이트",
     "view_page": "페이지 보기"
   },

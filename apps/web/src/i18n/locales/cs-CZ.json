@@ -1524,6 +1524,7 @@
     "search_placeholder": "Hledat stránky stavu podle názvu...",
     "show_locations": "Zobrazit každé umístění",
     "show_locations_info": "U monitorů kontrolovaných z více umístění zobrazí stav a historii každého z nich",
+    "slug_already_used": "Tuto adresu už používá jiná stavová stránka",
     "update_status_page": "Aktualizovat stránku stavu",
     "view_page": "Zobrazit stránku"
   },

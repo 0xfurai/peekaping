@@ -1524,6 +1524,7 @@
     "search_placeholder": "Otsi olekupäevikke pealkirja järgi...",
     "show_locations": "Näita iga asukohta",
     "show_locations_info": "Mitmest asukohast kontrollitavate monitooride puhul näidatakse iga asukoha olekut ja ajalugu",
+    "slug_already_used": "Teine olekuleht kasutab seda aadressi juba",
     "update_status_page": "Uuenda olekulehte",
     "view_page": "Vaata lehte"
   },

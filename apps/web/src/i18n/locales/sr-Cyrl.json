@@ -1523,6 +1523,7 @@
     "search_placeholder": "Pretraži statusne stranice po naslovu...",
     "show_locations": "Прикажи сваку локацију",
     "show_locations_info": "За мониторе који се проверавају са више локација приказује статус и историју сваке локације",
+    "slug_already_used": "Друга страница статуса већ користи ову адресу",
     "update_status_page": "Ажурирај статусну страницу",
     "view_page": "Pogledaj stranicu"
   },

@@ -1524,6 +1524,7 @@
     "search_placeholder": "按標題搜尋狀態頁面…",
     "show_locations": "顯示每個位置",
     "show_locations_info": "對於由多個位置檢查嘅監測，會顯示每個位置嘅狀態同歷史",
+    "slug_already_used": "另一個狀態頁已經用緊呢個地址",
     "update_status_page": "更新狀態頁面",
     "view_page": "查看頁面"
   },
