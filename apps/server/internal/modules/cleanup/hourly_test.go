@@ -29,6 +29,10 @@ type cleanups struct {
 	heartbeats, stats, notificationHistory, tlsInfo, probeStatusChanges atomic.Int32
 
 	notificationHistoryDays, tlsInfoDays atomic.Int32
+
+	// accountTokens counts the account token cleanups, and cutoff holds the latest one's cutoff
+	accountTokens atomic.Int32
+	cutoff        atomic.Int64
 }
 
 // all returns how many times each cleanup ran, in the order of runHourly
@@ -88,6 +92,14 @@ func (s countingProbes) DeleteStatusChangesOlderThan(context.Context, time.Time)
 	return 0, nil
 }
 
+type countingAccountTokens struct{ c *cleanups }
+
+func (s countingAccountTokens) DeleteSpentTokens(_ context.Context, before time.Time) (int64, error) {
+	s.c.accountTokens.Add(1)
+	s.c.cutoff.Store(before.UnixNano())
+	return 0, nil
+}
+
 // oneWorkspace is a workspace repository whose install has one workspace
 type oneWorkspace struct{ workspace.Repository }
 
@@ -115,6 +127,7 @@ func newReplica(c *cleanups, lock RunLock, logger *zap.SugaredLogger) *hourlyCle
 		notificationHistory: countingNotificationHistory{c: c},
 		tlsInfo:             countingTLSInfo{c: c},
 		probes:              countingProbes{c: c},
+		accountTokens:       countingAccountTokens{c: c},
 		lock:                lock,
 		retention:           testRetention,
 		logger:              logger,
@@ -261,4 +274,14 @@ func TestHourlyCleanupInSingleModeRunsEveryHour(t *testing.T) {
 	assert.Equal(t, [5]int32{3, 3, 3, 3, 3}, c.all())
 	assert.Len(t, logs.FilterMessage("Running the hourly cleanup").All(), 3)
 	assert.Empty(t, logs.FilterMessage("Another replica runs the hourly cleanup").All())
+}
+
+// PP-152: the hourly cleanup deletes the account tokens that were used or expired a day ago
+func TestHourlyCleanupDeletesTheAccountTokensSpentMoreThanADayAgo(t *testing.T) {
+	c := &cleanups{}
+
+	newReplica(c, NewMemoryRunLock(), zap.NewNop().Sugar()).runHourly(context.Background(), noon)
+
+	assert.EqualValues(t, 1, c.accountTokens.Load())
+	assert.Equal(t, noon.Add(-24*time.Hour), time.Unix(0, c.cutoff.Load()).UTC())
 }

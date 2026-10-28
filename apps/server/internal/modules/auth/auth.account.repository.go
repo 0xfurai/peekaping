@@ -45,6 +45,9 @@ type AccountRepository interface {
 	ConsumeToken(ctx context.Context, purpose, tokenHash string, now time.Time) (userID string, err error)
 	// DeleteUnusedTokens deletes the user's tokens of the purpose that were not used
 	DeleteUnusedTokens(ctx context.Context, userID, purpose string) error
+	// DeleteSpentTokens deletes the tokens that were used before the cutoff, and those that expired
+	// before it, and returns how many. A token that still works, or ended after the cutoff, stays.
+	DeleteSpentTokens(ctx context.Context, before time.Time) (int64, error)
 	// SetPassword sets the user's password hash and ends every session issued before at
 	SetPassword(ctx context.Context, userID, passwordHash string, at time.Time) error
 	// MarkEmailVerified records that the user's address was verified at the time, unless it was
@@ -123,6 +126,17 @@ func (r *SQLAccountRepository) DeleteUnusedTokens(ctx context.Context, userID, p
 	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*accountTokenModel)(nil)).
 		Where("user_id = ?", userID).Where("purpose = ?", purpose).Where("used_at IS NULL").Exec(ctx)
 	return err
+}
+
+func (r *SQLAccountRepository) DeleteSpentTokens(ctx context.Context, before time.Time) (int64, error) {
+	res, err := dbtx.DB(ctx, r.db).NewDelete().Model((*accountTokenModel)(nil)).
+		WhereGroup(" AND ", func(q *bun.DeleteQuery) *bun.DeleteQuery {
+			return q.Where("used_at < ?", before.UTC()).WhereOr("expires_at < ?", before.UTC())
+		}).Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
 }
 
 func (r *SQLAccountRepository) SetPassword(ctx context.Context, userID, passwordHash string, at time.Time) error {

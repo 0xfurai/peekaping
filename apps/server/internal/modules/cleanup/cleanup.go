@@ -131,13 +131,25 @@ func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, olderThanDay
 	logger.Infow("Successfully cleaned up monitor TLS info records", "older_than_days", olderThanDays)
 }
 
+// cleanupAccountTokens deletes the account tokens that were used or have expired for more than a day
+func cleanupAccountTokens(tokens AccountTokens, now time.Time, logger *zap.SugaredLogger) {
+	cutoff := now.UTC().Add(-spentTokenRetention)
+	deleted, err := tokens.DeleteSpentTokens(context.Background(), cutoff)
+	if err != nil {
+		logger.Errorw("Failed to delete spent account tokens", "error", err)
+		return
+	}
+	logger.Infow("Deleted spent account tokens", "count", deleted, "cutoff", cutoff)
+}
+
 // hourlySpec is when the cleanup runs: at minute 0 of every hour. It is a variable so that a
 // test can make the scheduling fail.
 var hourlySpec = "0 * * * *"
 
 // StartCleanupCron schedules the hourly cleanup: the heartbeats past the data retention period of
 // their workspace, the probes' status changes past the longest of those periods, the expired
-// stats, the old notification history and the old TLS info. It returns an error if the cleanup
+// stats, the old notification history, the old TLS info and the account tokens spent for more than
+// a day. It returns an error if the cleanup
 // can't be scheduled, and then nothing runs.
 //
 // Every process that calls it fires at the top of the hour, so in cluster mode, where several
@@ -154,6 +166,7 @@ func StartCleanupCron(
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
 	probeService probe.Service,
+	accountTokens AccountTokens,
 	lock RunLock,
 	retention Retention,
 	logger *zap.SugaredLogger,
@@ -166,6 +179,7 @@ func StartCleanupCron(
 		notificationHistory: notificationHistoryService,
 		tlsInfo:             tlsInfoService,
 		probes:              probeService,
+		accountTokens:       accountTokens,
 		lock:                lock,
 		retention:           retention,
 		logger:              logger,

@@ -23,6 +23,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/mailer"
+	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/cleanup"
 	"peekaping/internal/modules/error_reporting"
 	"peekaping/internal/modules/events"
@@ -124,6 +125,7 @@ type parts struct {
 	Stats                stats.Service
 	NotificationHistory  notification_sent_history.Service
 	TLSInfo              monitor_tls_info.Service
+	AccountTokens        auth.AccountRepository
 	CleanupLock          cleanup.RunLock
 	Monitors             monitor.Service
 	NotificationListener *notification_channel.NotificationEventListener
@@ -264,7 +266,7 @@ func startJobs(ctx context.Context, p parts, cfg *Config, logger *zap.SugaredLog
 		TLSInfoDays:             cfg.TLSInfoRetentionDays,
 	}
 	var err error
-	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Workspaces, p.WorkspaceSettings, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.CleanupLock, retention, logger)
+	j.cleanup, err = cleanup.StartCleanupCron(p.Heartbeats, p.Workspaces, p.WorkspaceSettings, p.Stats, p.NotificationHistory, p.TLSInfo, p.Probes, p.AccountTokens, p.CleanupLock, retention, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start the hourly cleanup: %w", err)
 	}

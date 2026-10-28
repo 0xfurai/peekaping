@@ -344,7 +344,7 @@ func TestStartCleanupCronStopsWhenItsCronIsStopped(t *testing.T) {
 	in := newInstall(t)
 
 	// The hourly job doesn't run in the test, so it needs no stats, history or TLS services
-	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
+	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
 	require.NoError(t, err)
 	require.Len(t, c.Entries(), 1, "the hourly cleanup is scheduled")
 
@@ -383,7 +383,7 @@ func TestStartCleanupCronsJobRunsTheHourlyCleanupUnderTheLock(t *testing.T) {
 			retention := Retention{NotificationHistoryDays: 45, TLSInfoDays: 7}
 
 			cron, err := StartCleanupCron(countingHeartbeats{Service: in.heartbeats, c: c}, in.workspaces, in.workspaceSettings,
-				countingStats{c: c}, countingNotificationHistory{c: c}, countingTLSInfo{c: c}, countingProbes{Service: in.probes, c: c}, tc.lock, retention, zap.NewNop().Sugar())
+				countingStats{c: c}, countingNotificationHistory{c: c}, countingTLSInfo{c: c}, countingProbes{Service: in.probes, c: c}, countingAccountTokens{c: c}, tc.lock, retention, zap.NewNop().Sugar())
 			require.NoError(t, err)
 			t.Cleanup(func() { <-cron.Stop().Done() })
 			require.Len(t, cron.Entries(), 1)
@@ -406,7 +406,7 @@ func TestStartCleanupCronFailsWhenItCantScheduleTheCleanup(t *testing.T) {
 	hourlySpec = "not a cron spec"
 	t.Cleanup(func() { hourlySpec = spec })
 
-	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
+	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
 
 	require.Error(t, err)
 	assert.ErrorContains(t, err, "failed to schedule the hourly cleanup")
@@ -419,7 +419,7 @@ func TestStartCleanupCronFailsWhenItCantScheduleTheCleanup(t *testing.T) {
 func TestStartCleanupCronFiresAtTheTopOfTheHourInUTC(t *testing.T) {
 	in := newInstall(t)
 
-	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
+	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
 	require.NoError(t, err)
 	t.Cleanup(func() { <-c.Stop().Done() })
 
