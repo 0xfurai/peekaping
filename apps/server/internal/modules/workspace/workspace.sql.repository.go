@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 )
 
 type sqlModel struct {
@@ -184,6 +185,33 @@ func (r *SQLRepositoryImpl) FindOldest(ctx context.Context) (*Workspace, error) 
 		return nil, err
 	}
 	return sm.toDomain(), nil
+}
+
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, id ID) (*Deleted, error) {
+	db := dbtx.DB(ctx, r.db)
+	lock := db.NewSelect().Table("workspaces").Column("id").Where("id = ?", string(id))
+	if r.db.Dialect().Name() == dialect.PG {
+		lock = lock.For("UPDATE")
+	}
+	var found []string
+	if err := lock.Scan(ctx, &found); err != nil {
+		return nil, err
+	}
+	if len(found) == 0 {
+		return nil, nil
+	}
+	deleted := &Deleted{MonitorIDs: []string{}, UserIDs: []string{}}
+	if err := db.NewSelect().Table("monitors").Column("id").Where("workspace_id = ?", string(id)).Order("id").Scan(ctx, &deleted.MonitorIDs); err != nil {
+		return nil, err
+	}
+	if err := db.NewSelect().Table("workspace_members").Column("user_id").Where("workspace_id = ?", string(id)).Order("user_id").Scan(ctx, &deleted.UserIDs); err != nil {
+		return nil, err
+	}
+	// The foreign keys of everything that belongs to the workspace cascade, on both databases
+	if _, err := db.NewDelete().Table("workspaces").Where("id = ?", string(id)).Exec(ctx); err != nil {
+		return nil, err
+	}
+	return deleted, nil
 }
 
 func (r *SQLRepositoryImpl) ListIDsAnyWorkspace(ctx context.Context) ([]ID, error) {

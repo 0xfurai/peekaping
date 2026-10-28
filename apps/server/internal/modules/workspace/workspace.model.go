@@ -70,3 +70,10 @@ type Membership struct {
 	Role      Role      `json:"role"`
 	JoinedAt  time.Time `json:"joinedAt"`
 }
+
+// Deleted is what a deleted workspace held that the rest of the install is told about: its
+// monitors, so that they stop, and its members, so that their open sockets leave its rooms.
+type Deleted struct {
+	MonitorIDs []string
+	UserIDs    []string
+}

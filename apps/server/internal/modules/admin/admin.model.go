@@ -117,4 +117,5 @@ const (
 
 	ActionSuspendWorkspace = "suspend_workspace"
 	ActionResumeWorkspace  = "resume_workspace"
+	ActionDeleteWorkspace  = "delete_workspace"
 )

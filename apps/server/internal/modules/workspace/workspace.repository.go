@@ -34,6 +34,12 @@ type Repository interface {
 	FindByID(ctx context.Context, id ID) (*Workspace, error)
 	// FindOldest returns the workspace that was created first, or nil when the install has none.
 	FindOldest(ctx context.Context) (*Workspace, error)
+	// Delete removes the workspace and, by cascade, everything in it: its members, settings,
+	// invites, API keys and records, and what hangs on those. It returns the monitors the workspace
+	// held and the users who were its members, or nil when there is no workspace with the ID. On
+	// PostgreSQL it holds the workspace's row first, so that a monitor or a member added at the same
+	// time is not missed in what it returns: the insert waits, and is refused once the row is gone.
+	Delete(ctx context.Context, id ID) (*Deleted, error)
 	// ListIDsAnyWorkspace returns the ID of every workspace of the install, the oldest first. It
 	// is for the background work that goes through the workspaces one by one, such as the cleanup
 	// job.
