@@ -9,7 +9,8 @@
       "no_account": "Nemáte účet?",
       "sign_up": "Zaregistrujte se",
       "submit": "Přihlásit se",
-      "title": "Vítejte zpět"
+      "title": "Vítejte zpět",
+      "forgot_password": "Zapomněli jste heslo?"
     },
     "register": {
       "description": "Vytvořte si svůj administrátorský účet",
@@ -27,6 +28,41 @@
       "title": "Dvoufázové ověření vyžadováno",
       "verify_button": "Ověřit 2FA",
       "verifying": "Ověřování..."
+    },
+    "forgot": {
+      "title": "Obnovení hesla",
+      "description": "Zadejte e-mail svého účtu a pošleme vám odkaz.",
+      "submit": "Odeslat odkaz",
+      "sent": "Pokud účet s tímto e-mailem existuje, poslali jsme odkaz. Platí hodinu.",
+      "back_to_login": "Zpět na přihlášení"
+    },
+    "reset": {
+      "title": "Zvolte nové heslo",
+      "description": "Zadejte nové heslo ke svému účtu.",
+      "submit": "Nastavit heslo",
+      "success": "Vaše heslo bylo změněno a byli jste odhlášeni všude. Přihlaste se novým heslem.",
+      "sign_in": "Přihlásit se",
+      "invalid_link": "Tento odkaz už byl použit nebo vypršel.",
+      "request_new": "Požádat o nový odkaz"
+    },
+    "verify": {
+      "title": "Ověřte svůj e-mail",
+      "verifying": "Ověřujeme váš e-mail...",
+      "success": "Váš e-mail je ověřen.",
+      "open_app": "Otevřít Peekaping",
+      "invalid_link": "Tento odkaz už byl použit nebo vypršel."
+    },
+    "errors": {
+      "rate_limited": "Příliš mnoho požadavků. Zkuste to později.",
+      "generic": "Něco se pokazilo. Zkuste to znovu.",
+      "already_verified": "Váš e-mail je už ověřen."
+    },
+    "resend": {
+      "button": "Poslat znovu",
+      "sent": "Poslali jsme nový odkaz. Zkontrolujte schránku."
+    },
+    "verification_banner": {
+      "message": "Ověřte svůj e-mail: poslali jsme odkaz na {{email}}."
     }
   },
   "bars": {

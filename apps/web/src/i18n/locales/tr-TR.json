@@ -9,7 +9,8 @@
       "no_account": "Hesabınız yok mu?",
       "sign_up": "Kayıt Ol",
       "submit": "Giriş",
-      "title": "Tekrar hoş geldiniz"
+      "title": "Tekrar hoş geldiniz",
+      "forgot_password": "Parolanızı mı unuttunuz?"
     },
     "register": {
       "description": "Yönetici hesabınızı oluşturun",
@@ -27,6 +28,41 @@
       "title": "İki Faktörlü Kimlik Doğrulama Gerekli",
       "verify_button": "2FA'yı doğrula",
       "verifying": "Doğrulanıyor..."
+    },
+    "forgot": {
+      "title": "Parolanızı sıfırlayın",
+      "description": "Hesabınızın e-postasını girin, size bir bağlantı gönderelim.",
+      "submit": "Bağlantı gönder",
+      "sent": "Bu e-postayla bir hesap varsa, bir bağlantı gönderdik. Bir saat geçerlidir.",
+      "back_to_login": "Girişe dön"
+    },
+    "reset": {
+      "title": "Yeni bir parola seçin",
+      "description": "Hesabınız için yeni bir parola girin.",
+      "submit": "Parolayı belirle",
+      "success": "Parolanız değiştirildi ve her yerden çıkış yaptırıldınız. Yeni parolayla giriş yapın.",
+      "sign_in": "Giriş yap",
+      "invalid_link": "Bu bağlantı kullanılmış veya süresi dolmuş.",
+      "request_new": "Yeni bağlantı iste"
+    },
+    "verify": {
+      "title": "E-postanızı doğrulayın",
+      "verifying": "E-postanız doğrulanıyor...",
+      "success": "E-postanız doğrulandı.",
+      "open_app": "Peekaping'i aç",
+      "invalid_link": "Bu bağlantı kullanılmış veya süresi dolmuş."
+    },
+    "errors": {
+      "rate_limited": "Çok fazla istek. Daha sonra tekrar deneyin.",
+      "generic": "Bir şeyler ters gitti. Tekrar deneyin.",
+      "already_verified": "E-postanız zaten doğrulanmış."
+    },
+    "resend": {
+      "button": "Yeniden gönder",
+      "sent": "Yeni bir bağlantı gönderdik. Gelen kutunuzu kontrol edin."
+    },
+    "verification_banner": {
+      "message": "E-postanızı doğrulayın: {{email}} adresine bir bağlantı gönderdik."
     }
   },
   "bars": {

@@ -9,7 +9,8 @@
       "no_account": "Non hai un account?",
       "sign_up": "Iscriviti",
       "submit": "Accedi",
-      "title": "Bentornato"
+      "title": "Bentornato",
+      "forgot_password": "Password dimenticata?"
     },
     "register": {
       "description": "Crea il tuo account amministratore",
@@ -27,6 +28,41 @@
       "title": "Autenticazione a due fattori richiesta",
       "verify_button": "Verifica 2FA",
       "verifying": "Verifica in corso..."
+    },
+    "forgot": {
+      "title": "Reimposta la password",
+      "description": "Inserisci l'email del tuo account e ti invieremo un link.",
+      "submit": "Invia il link",
+      "sent": "Se esiste un account con questa email, abbiamo inviato un link. Vale un'ora.",
+      "back_to_login": "Torna all'accesso"
+    },
+    "reset": {
+      "title": "Scegli una nuova password",
+      "description": "Inserisci una nuova password per il tuo account.",
+      "submit": "Imposta la password",
+      "success": "La tua password è stata cambiata e sei stato disconnesso ovunque. Accedi con la nuova password.",
+      "sign_in": "Accedi",
+      "invalid_link": "Questo link è già stato usato o è scaduto.",
+      "request_new": "Richiedi un nuovo link"
+    },
+    "verify": {
+      "title": "Verifica la tua email",
+      "verifying": "Verifica della tua email in corso...",
+      "success": "La tua email è verificata.",
+      "open_app": "Apri Peekaping",
+      "invalid_link": "Questo link è già stato usato o è scaduto."
+    },
+    "errors": {
+      "rate_limited": "Troppe richieste. Riprova più tardi.",
+      "generic": "Qualcosa è andato storto. Riprova.",
+      "already_verified": "La tua email è già verificata."
+    },
+    "resend": {
+      "button": "Invia di nuovo",
+      "sent": "Abbiamo inviato un nuovo link. Controlla la posta in arrivo."
+    },
+    "verification_banner": {
+      "message": "Verifica la tua email: abbiamo inviato un link a {{email}}."
     }
   },
   "bars": {

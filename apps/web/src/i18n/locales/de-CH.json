@@ -9,7 +9,8 @@
       "no_account": "Noch kein Konto?",
       "sign_up": "Registrieren",
       "submit": "Anmelden",
-      "title": "Willkommen zurück"
+      "title": "Willkommen zurück",
+      "forgot_password": "Passwort vergessen?"
     },
     "register": {
       "description": "Erstelle dein Admin-Konto",
@@ -27,6 +28,41 @@
       "title": "Zwei-Faktor-Authentifizierung erforderlich",
       "verify_button": "2FA verifizieren",
       "verifying": "Verifizierung läuft..."
+    },
+    "forgot": {
+      "title": "Passwort zurücksetzen",
+      "description": "Geben Sie die E-Mail-Adresse Ihres Kontos ein, dann senden wir Ihnen einen Link.",
+      "submit": "Link senden",
+      "sent": "Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link gesendet. Er gilt eine Stunde.",
+      "back_to_login": "Zurück zur Anmeldung"
+    },
+    "reset": {
+      "title": "Neues Passwort wählen",
+      "description": "Geben Sie ein neues Passwort für Ihr Konto ein.",
+      "submit": "Passwort festlegen",
+      "success": "Ihr Passwort wurde geändert, und Sie wurden überall abgemeldet. Melden Sie sich mit dem neuen Passwort an.",
+      "sign_in": "Anmelden",
+      "invalid_link": "Dieser Link wurde bereits verwendet oder ist abgelaufen.",
+      "request_new": "Neuen Link anfordern"
+    },
+    "verify": {
+      "title": "E-Mail-Adresse bestätigen",
+      "verifying": "Ihre E-Mail-Adresse wird bestätigt...",
+      "success": "Ihre E-Mail-Adresse ist bestätigt.",
+      "open_app": "Peekaping öffnen",
+      "invalid_link": "Dieser Link wurde bereits verwendet oder ist abgelaufen."
+    },
+    "errors": {
+      "rate_limited": "Zu viele Anfragen. Versuchen Sie es später erneut.",
+      "generic": "Etwas ist schiefgelaufen. Versuchen Sie es erneut.",
+      "already_verified": "Ihre E-Mail-Adresse ist bereits bestätigt."
+    },
+    "resend": {
+      "button": "Erneut senden",
+      "sent": "Wir haben einen neuen Link gesendet. Schauen Sie in Ihrem Posteingang nach."
+    },
+    "verification_banner": {
+      "message": "Bestätigen Sie Ihre E-Mail-Adresse: Wir haben einen Link an {{email}} gesendet."
     }
   },
   "bars": {

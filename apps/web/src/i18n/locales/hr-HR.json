@@ -9,7 +9,8 @@
       "no_account": "Nemate račun?",
       "sign_up": "Registriraj se",
       "submit": "Prijava",
-      "title": "Dobrodošli natrag"
+      "title": "Dobrodošli natrag",
+      "forgot_password": "Zaboravili ste lozinku?"
     },
     "register": {
       "description": "Kreiraj svoj administratorski račun",
@@ -27,6 +28,41 @@
       "title": "Potrebna dvofaktorska autentikacija",
       "verify_button": "Potvrdi 2FA",
       "verifying": "Provjeravanje..."
+    },
+    "forgot": {
+      "title": "Ponovno postavljanje lozinke",
+      "description": "Unesite e-adresu svojeg računa i poslat ćemo vam poveznicu.",
+      "submit": "Pošalji poveznicu",
+      "sent": "Ako račun s ovom e-adresom postoji, poslali smo poveznicu. Vrijedi sat vremena.",
+      "back_to_login": "Natrag na prijavu"
+    },
+    "reset": {
+      "title": "Odaberite novu lozinku",
+      "description": "Unesite novu lozinku za svoj račun.",
+      "submit": "Postavi lozinku",
+      "success": "Vaša je lozinka promijenjena i odjavljeni ste posvuda. Prijavite se novom lozinkom.",
+      "sign_in": "Prijava",
+      "invalid_link": "Ova je poveznica iskorištena ili je istekla.",
+      "request_new": "Zatraži novu poveznicu"
+    },
+    "verify": {
+      "title": "Potvrdite svoju e-adresu",
+      "verifying": "Potvrđujemo vašu e-adresu...",
+      "success": "Vaša je e-adresa potvrđena.",
+      "open_app": "Otvori Peekaping",
+      "invalid_link": "Ova je poveznica iskorištena ili je istekla."
+    },
+    "errors": {
+      "rate_limited": "Previše zahtjeva. Pokušajte ponovno kasnije.",
+      "generic": "Nešto je pošlo po zlu. Pokušajte ponovno.",
+      "already_verified": "Vaša je e-adresa već potvrđena."
+    },
+    "resend": {
+      "button": "Pošalji ponovno",
+      "sent": "Poslali smo novu poveznicu. Provjerite pristiglu poštu."
+    },
+    "verification_banner": {
+      "message": "Potvrdite svoju e-adresu: poslali smo poveznicu na {{email}}."
     }
   },
   "bars": {

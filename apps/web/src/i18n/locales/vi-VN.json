@@ -9,7 +9,8 @@
       "no_account": "Bạn chưa có tài khoản?",
       "sign_up": "Đăng ký",
       "submit": "Đăng nhập",
-      "title": "Chào mừng trở lại"
+      "title": "Chào mừng trở lại",
+      "forgot_password": "Quên mật khẩu?"
     },
     "register": {
       "description": "Tạo tài khoản quản trị của bạn",
@@ -27,6 +28,41 @@
       "title": "Xác thực hai yếu tố cần thiết",
       "verify_button": "Xác thực 2FA",
       "verifying": "Đang xác thực..."
+    },
+    "forgot": {
+      "title": "Đặt lại mật khẩu",
+      "description": "Nhập email của tài khoản, chúng tôi sẽ gửi cho bạn một liên kết.",
+      "submit": "Gửi liên kết",
+      "sent": "Nếu có tài khoản dùng email này, chúng tôi đã gửi một liên kết. Liên kết có hiệu lực trong một giờ.",
+      "back_to_login": "Quay lại đăng nhập"
+    },
+    "reset": {
+      "title": "Chọn mật khẩu mới",
+      "description": "Nhập mật khẩu mới cho tài khoản của bạn.",
+      "submit": "Đặt mật khẩu",
+      "success": "Mật khẩu của bạn đã được đổi và bạn đã bị đăng xuất khỏi mọi nơi. Hãy đăng nhập bằng mật khẩu mới.",
+      "sign_in": "Đăng nhập",
+      "invalid_link": "Liên kết này đã được dùng hoặc đã hết hạn.",
+      "request_new": "Yêu cầu liên kết mới"
+    },
+    "verify": {
+      "title": "Xác minh email của bạn",
+      "verifying": "Đang xác minh email của bạn...",
+      "success": "Email của bạn đã được xác minh.",
+      "open_app": "Mở Peekaping",
+      "invalid_link": "Liên kết này đã được dùng hoặc đã hết hạn."
+    },
+    "errors": {
+      "rate_limited": "Quá nhiều yêu cầu. Hãy thử lại sau.",
+      "generic": "Đã xảy ra lỗi. Hãy thử lại.",
+      "already_verified": "Email của bạn đã được xác minh."
+    },
+    "resend": {
+      "button": "Gửi lại",
+      "sent": "Chúng tôi đã gửi một liên kết mới. Hãy kiểm tra hộp thư đến."
+    },
+    "verification_banner": {
+      "message": "Xác minh email của bạn: chúng tôi đã gửi một liên kết đến {{email}}."
     }
   },
   "bars": {

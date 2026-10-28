@@ -9,7 +9,8 @@
       "no_account": "Har du ikke konto?",
       "sign_up": "Registrer deg",
       "submit": "Logg inn",
-      "title": "Velkommen tilbake"
+      "title": "Velkommen tilbake",
+      "forgot_password": "Glemt passordet?"
     },
     "register": {
       "description": "Opprett din admin-konto",
@@ -27,6 +28,41 @@
       "title": "To-faktorautentisering påkrevd",
       "verify_button": "Verifiser 2FA",
       "verifying": "Verifiserer..."
+    },
+    "forgot": {
+      "title": "Tilbakestill passordet",
+      "description": "Skriv inn e-posten til kontoen din, så sender vi deg en lenke.",
+      "submit": "Send lenke",
+      "sent": "Hvis det finnes en konto med denne e-posten, har vi sendt en lenke. Den virker i én time.",
+      "back_to_login": "Tilbake til innlogging"
+    },
+    "reset": {
+      "title": "Velg et nytt passord",
+      "description": "Skriv inn et nytt passord for kontoen din.",
+      "submit": "Angi passord",
+      "success": "Passordet ditt er endret, og du er logget ut overalt. Logg inn med det nye passordet.",
+      "sign_in": "Logg inn",
+      "invalid_link": "Denne lenken er brukt eller utløpt.",
+      "request_new": "Be om en ny lenke"
+    },
+    "verify": {
+      "title": "Bekreft e-posten din",
+      "verifying": "Bekrefter e-posten din...",
+      "success": "E-posten din er bekreftet.",
+      "open_app": "Åpne Peekaping",
+      "invalid_link": "Denne lenken er brukt eller utløpt."
+    },
+    "errors": {
+      "rate_limited": "For mange forespørsler. Prøv igjen senere.",
+      "generic": "Noe gikk galt. Prøv igjen.",
+      "already_verified": "E-posten din er allerede bekreftet."
+    },
+    "resend": {
+      "button": "Send på nytt",
+      "sent": "Vi har sendt en ny lenke. Sjekk innboksen din."
+    },
+    "verification_banner": {
+      "message": "Bekreft e-posten din: vi har sendt en lenke til {{email}}."
     }
   },
   "bars": {

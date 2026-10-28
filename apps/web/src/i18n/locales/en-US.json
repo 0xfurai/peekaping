@@ -9,7 +9,8 @@
       "no_account": "Don't have an account?",
       "sign_up": "Sign up",
       "submit": "Login",
-      "title": "Welcome back"
+      "title": "Welcome back",
+      "forgot_password": "Forgot password?"
     },
     "register": {
       "description": "Create your admin account",
@@ -27,6 +28,41 @@
       "title": "Two-Factor Authentication Required",
       "verify_button": "Verify 2FA",
       "verifying": "Verifying..."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "description": "Enter the email of your account and we'll send you a link.",
+      "submit": "Send link",
+      "sent": "If an account exists for this email, we sent a link. It works for an hour.",
+      "back_to_login": "Back to sign in"
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "description": "Enter a new password for your account.",
+      "submit": "Set password",
+      "success": "Your password is changed, and you were signed out everywhere. Sign in with the new password.",
+      "sign_in": "Sign in",
+      "invalid_link": "This link is used or expired.",
+      "request_new": "Request a new link"
+    },
+    "verify": {
+      "title": "Verify your email",
+      "verifying": "Verifying your email...",
+      "success": "Your email is verified.",
+      "open_app": "Open Peekaping",
+      "invalid_link": "This link is used or expired."
+    },
+    "errors": {
+      "rate_limited": "Too many requests. Try again later.",
+      "generic": "Something went wrong. Try again.",
+      "already_verified": "Your email is already verified."
+    },
+    "resend": {
+      "button": "Resend",
+      "sent": "We sent a new link. Check your inbox."
+    },
+    "verification_banner": {
+      "message": "Verify your email: we sent a link to {{email}}."
     }
   },
   "bars": {

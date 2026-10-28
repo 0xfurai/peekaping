@@ -9,7 +9,8 @@
       "no_account": "¿No tienes una cuenta?",
       "sign_up": "Regístrate",
       "submit": "Iniciar sesión",
-      "title": "¡Bienvenido de nuevo!"
+      "title": "¡Bienvenido de nuevo!",
+      "forgot_password": "¿Olvidaste tu contraseña?"
     },
     "register": {
       "description": "Crea tu cuenta de administrador",
@@ -27,6 +28,41 @@
       "title": "Autenticación de dos factores requerida",
       "verify_button": "Verificar 2FA",
       "verifying": "Verificando..."
+    },
+    "forgot": {
+      "title": "Restablece tu contraseña",
+      "description": "Introduce el correo de tu cuenta y te enviaremos un enlace.",
+      "submit": "Enviar enlace",
+      "sent": "Si existe una cuenta con este correo, hemos enviado un enlace. Funciona durante una hora.",
+      "back_to_login": "Volver a iniciar sesión"
+    },
+    "reset": {
+      "title": "Elige una contraseña nueva",
+      "description": "Introduce una contraseña nueva para tu cuenta.",
+      "submit": "Guardar contraseña",
+      "success": "Tu contraseña ha cambiado y se cerró tu sesión en todas partes. Inicia sesión con la contraseña nueva.",
+      "sign_in": "Iniciar sesión",
+      "invalid_link": "Este enlace ya se usó o ha caducado.",
+      "request_new": "Solicitar un enlace nuevo"
+    },
+    "verify": {
+      "title": "Verifica tu correo",
+      "verifying": "Verificando tu correo...",
+      "success": "Tu correo está verificado.",
+      "open_app": "Abrir Peekaping",
+      "invalid_link": "Este enlace ya se usó o ha caducado."
+    },
+    "errors": {
+      "rate_limited": "Demasiadas solicitudes. Inténtalo de nuevo más tarde.",
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "already_verified": "Tu correo ya está verificado."
+    },
+    "resend": {
+      "button": "Reenviar",
+      "sent": "Hemos enviado un enlace nuevo. Revisa tu bandeja de entrada."
+    },
+    "verification_banner": {
+      "message": "Verifica tu correo: hemos enviado un enlace a {{email}}."
     }
   },
   "bars": {

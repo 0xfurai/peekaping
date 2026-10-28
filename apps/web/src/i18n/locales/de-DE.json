@@ -9,7 +9,8 @@
       "no_account": "Noch kein Konto?",
       "sign_up": "Registrieren",
       "submit": "Anmelden",
-      "title": "Willkommen zurück"
+      "title": "Willkommen zurück",
+      "forgot_password": "Passwort vergessen?"
     },
     "register": {
       "description": "Erstellen Sie Ihr Admin-Konto",
@@ -27,6 +28,41 @@
       "title": "Zwei-Faktor-Authentifizierung erforderlich",
       "verify_button": "2FA verifizieren",
       "verifying": "Verifizierung läuft..."
+    },
+    "forgot": {
+      "title": "Passwort zurücksetzen",
+      "description": "Gib die E-Mail-Adresse deines Kontos ein, dann senden wir dir einen Link.",
+      "submit": "Link senden",
+      "sent": "Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link gesendet. Er gilt eine Stunde.",
+      "back_to_login": "Zurück zur Anmeldung"
+    },
+    "reset": {
+      "title": "Neues Passwort wählen",
+      "description": "Gib ein neues Passwort für dein Konto ein.",
+      "submit": "Passwort festlegen",
+      "success": "Dein Passwort wurde geändert, und du wurdest überall abgemeldet. Melde dich mit dem neuen Passwort an.",
+      "sign_in": "Anmelden",
+      "invalid_link": "Dieser Link wurde bereits verwendet oder ist abgelaufen.",
+      "request_new": "Neuen Link anfordern"
+    },
+    "verify": {
+      "title": "E-Mail-Adresse bestätigen",
+      "verifying": "Deine E-Mail-Adresse wird bestätigt...",
+      "success": "Deine E-Mail-Adresse ist bestätigt.",
+      "open_app": "Peekaping öffnen",
+      "invalid_link": "Dieser Link wurde bereits verwendet oder ist abgelaufen."
+    },
+    "errors": {
+      "rate_limited": "Zu viele Anfragen. Versuche es später erneut.",
+      "generic": "Etwas ist schiefgelaufen. Versuche es erneut.",
+      "already_verified": "Deine E-Mail-Adresse ist bereits bestätigt."
+    },
+    "resend": {
+      "button": "Erneut senden",
+      "sent": "Wir haben einen neuen Link gesendet. Sieh in deinem Posteingang nach."
+    },
+    "verification_banner": {
+      "message": "Bestätige deine E-Mail-Adresse: Wir haben einen Link an {{email}} gesendet."
     }
   },
   "bars": {

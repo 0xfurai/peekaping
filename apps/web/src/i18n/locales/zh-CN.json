@@ -9,7 +9,8 @@
       "no_account": "还没有账号？",
       "sign_up": "注册",
       "submit": "登录",
-      "title": "欢迎回来"
+      "title": "欢迎回来",
+      "forgot_password": "忘记密码?"
     },
     "register": {
       "description": "创建您的管理员账户",
@@ -27,6 +28,41 @@
       "title": "需要双因素认证",
       "verify_button": "验证 2FA",
       "verifying": "正在验证…"
+    },
+    "forgot": {
+      "title": "重置密码",
+      "description": "输入你账户的邮箱,我们会给你发送一个链接。",
+      "submit": "发送链接",
+      "sent": "如果此邮箱对应的账户存在,我们已发送链接。链接一小时内有效。",
+      "back_to_login": "返回登录"
+    },
+    "reset": {
+      "title": "选择新密码",
+      "description": "为你的账户输入新密码。",
+      "submit": "设置密码",
+      "success": "你的密码已更改,并且已在所有设备上退出登录。请使用新密码登录。",
+      "sign_in": "登录",
+      "invalid_link": "此链接已被使用或已过期。",
+      "request_new": "请求新链接"
+    },
+    "verify": {
+      "title": "验证你的邮箱",
+      "verifying": "正在验证你的邮箱...",
+      "success": "你的邮箱已验证。",
+      "open_app": "打开 Peekaping",
+      "invalid_link": "此链接已被使用或已过期。"
+    },
+    "errors": {
+      "rate_limited": "请求过于频繁,请稍后再试。",
+      "generic": "出了点问题,请重试。",
+      "already_verified": "你的邮箱已经验证过了。"
+    },
+    "resend": {
+      "button": "重新发送",
+      "sent": "我们已发送新链接,请查看你的收件箱。"
+    },
+    "verification_banner": {
+      "message": "请验证你的邮箱:我们已向 {{email}} 发送了链接。"
     }
   },
   "bars": {

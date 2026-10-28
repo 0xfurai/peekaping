@@ -9,7 +9,8 @@
       "no_account": "Har du ikke en konto?",
       "sign_up": "Tilmeld dig",
       "submit": "Log ind",
-      "title": "Velkommen tilbage"
+      "title": "Velkommen tilbage",
+      "forgot_password": "Glemt adgangskode?"
     },
     "register": {
       "description": "Opret din admin-konto",
@@ -27,6 +28,41 @@
       "title": "To-faktor-godkendelse påkrævet",
       "verify_button": "Bekræft 2FA",
       "verifying": "Verificerer..."
+    },
+    "forgot": {
+      "title": "Nulstil din adgangskode",
+      "description": "Indtast e-mailen på din konto, så sender vi dig et link.",
+      "submit": "Send link",
+      "sent": "Hvis der findes en konto med denne e-mail, har vi sendt et link. Det virker i en time.",
+      "back_to_login": "Tilbage til log ind"
+    },
+    "reset": {
+      "title": "Vælg en ny adgangskode",
+      "description": "Indtast en ny adgangskode til din konto.",
+      "submit": "Angiv adgangskode",
+      "success": "Din adgangskode er ændret, og du er logget ud overalt. Log ind med den nye adgangskode.",
+      "sign_in": "Log ind",
+      "invalid_link": "Dette link er brugt eller udløbet.",
+      "request_new": "Bed om et nyt link"
+    },
+    "verify": {
+      "title": "Bekræft din e-mail",
+      "verifying": "Bekræfter din e-mail...",
+      "success": "Din e-mail er bekræftet.",
+      "open_app": "Åbn Peekaping",
+      "invalid_link": "Dette link er brugt eller udløbet."
+    },
+    "errors": {
+      "rate_limited": "For mange forespørgsler. Prøv igen senere.",
+      "generic": "Noget gik galt. Prøv igen.",
+      "already_verified": "Din e-mail er allerede bekræftet."
+    },
+    "resend": {
+      "button": "Send igen",
+      "sent": "Vi har sendt et nyt link. Tjek din indbakke."
+    },
+    "verification_banner": {
+      "message": "Bekræft din e-mail: vi har sendt et link til {{email}}."
     }
   },
   "bars": {

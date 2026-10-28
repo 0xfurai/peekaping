@@ -9,7 +9,8 @@
       "no_account": "Nie masz konta?",
       "sign_up": "Zarejestruj się",
       "submit": "Zaloguj",
-      "title": "Witaj ponownie"
+      "title": "Witaj ponownie",
+      "forgot_password": "Nie pamiętasz hasła?"
     },
     "register": {
       "description": "Utwórz swoje konto administratora",
@@ -27,6 +28,41 @@
       "title": "Wymagane uwierzytelnienie dwuskładnikowe",
       "verify_button": "Zweryfikuj 2FA",
       "verifying": "Weryfikowanie…"
+    },
+    "forgot": {
+      "title": "Zresetuj hasło",
+      "description": "Podaj e-mail swojego konta, a wyślemy ci link.",
+      "submit": "Wyślij link",
+      "sent": "Jeśli istnieje konto z tym e-mailem, wysłaliśmy link. Działa przez godzinę.",
+      "back_to_login": "Wróć do logowania"
+    },
+    "reset": {
+      "title": "Wybierz nowe hasło",
+      "description": "Podaj nowe hasło do swojego konta.",
+      "submit": "Ustaw hasło",
+      "success": "Twoje hasło zostało zmienione i wylogowano cię wszędzie. Zaloguj się nowym hasłem.",
+      "sign_in": "Zaloguj się",
+      "invalid_link": "Ten link został już użyty lub wygasł.",
+      "request_new": "Poproś o nowy link"
+    },
+    "verify": {
+      "title": "Zweryfikuj swój e-mail",
+      "verifying": "Weryfikowanie twojego e-maila...",
+      "success": "Twój e-mail został zweryfikowany.",
+      "open_app": "Otwórz Peekaping",
+      "invalid_link": "Ten link został już użyty lub wygasł."
+    },
+    "errors": {
+      "rate_limited": "Zbyt wiele żądań. Spróbuj ponownie później.",
+      "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+      "already_verified": "Twój e-mail jest już zweryfikowany."
+    },
+    "resend": {
+      "button": "Wyślij ponownie",
+      "sent": "Wysłaliśmy nowy link. Sprawdź skrzynkę odbiorczą."
+    },
+    "verification_banner": {
+      "message": "Zweryfikuj swój e-mail: wysłaliśmy link na adres {{email}}."
     }
   },
   "bars": {

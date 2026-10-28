@@ -9,7 +9,8 @@
       "no_account": "Ez duzu konturik?",
       "sign_up": "Erregistratu",
       "submit": "Saioa hasi",
-      "title": "Berriz ongi etorri"
+      "title": "Berriz ongi etorri",
+      "forgot_password": "Pasahitza ahaztu duzu?"
     },
     "register": {
       "description": "Sortu zure administratzaile kontua",
@@ -27,6 +28,41 @@
       "title": "Bi faktoreko autentifikazioa beharrezkoa",
       "verify_button": "Egiaztatu 2FA",
       "verifying": "Egiaztatzen..."
+    },
+    "forgot": {
+      "title": "Berrezarri pasahitza",
+      "description": "Idatzi zure kontuaren helbide elektronikoa eta esteka bat bidaliko dizugu.",
+      "submit": "Bidali esteka",
+      "sent": "Helbide elektroniko honekin konturik badago, esteka bat bidali dugu. Ordubetez dabil.",
+      "back_to_login": "Itzuli saioa hastera"
+    },
+    "reset": {
+      "title": "Aukeratu pasahitz berri bat",
+      "description": "Idatzi zure kontuaren pasahitz berria.",
+      "submit": "Ezarri pasahitza",
+      "success": "Zure pasahitza aldatu da eta leku guztietatik saioa itxi da. Hasi saioa pasahitz berriarekin.",
+      "sign_in": "Hasi saioa",
+      "invalid_link": "Esteka hau erabilita dago edo iraungi da.",
+      "request_new": "Eskatu esteka berri bat"
+    },
+    "verify": {
+      "title": "Egiaztatu zure helbide elektronikoa",
+      "verifying": "Zure helbide elektronikoa egiaztatzen...",
+      "success": "Zure helbide elektronikoa egiaztatu da.",
+      "open_app": "Ireki Peekaping",
+      "invalid_link": "Esteka hau erabilita dago edo iraungi da."
+    },
+    "errors": {
+      "rate_limited": "Eskaera gehiegi. Saiatu berriro geroago.",
+      "generic": "Zerbait gaizki joan da. Saiatu berriro.",
+      "already_verified": "Zure helbide elektronikoa lehendik ere egiaztatuta dago."
+    },
+    "resend": {
+      "button": "Bidali berriro",
+      "sent": "Esteka berri bat bidali dugu. Begiratu zure sarrera-ontzia."
+    },
+    "verification_banner": {
+      "message": "Egiaztatu zure helbide elektronikoa: esteka bat bidali dugu {{email}} helbidera."
     }
   },
   "bars": {

@@ -9,7 +9,8 @@
       "no_account": "Nemaš račun?",
       "sign_up": "Registrujte se",
       "submit": "Prijava",
-      "title": "Dobrodošli nazad"
+      "title": "Dobrodošli nazad",
+      "forgot_password": "Zaboravili ste lozinku?"
     },
     "register": {
       "description": "Kreiraj svoj admin nalog",
@@ -27,6 +28,41 @@
       "title": "Potrebna dvofaktorska autentifikacija",
       "verify_button": "Potvrdi 2FA",
       "verifying": "Proveravanje..."
+    },
+    "forgot": {
+      "title": "Ponovno postavljanje lozinke",
+      "description": "Unesite imejl svog naloga i poslaćemo vam vezu.",
+      "submit": "Pošalji vezu",
+      "sent": "Ako nalog sa ovim imejlom postoji, poslali smo vezu. Važi jedan sat.",
+      "back_to_login": "Nazad na prijavu"
+    },
+    "reset": {
+      "title": "Izaberite novu lozinku",
+      "description": "Unesite novu lozinku za svoj nalog.",
+      "submit": "Postavi lozinku",
+      "success": "Vaša lozinka je promenjena i odjavljeni ste svuda. Prijavite se novom lozinkom.",
+      "sign_in": "Prijava",
+      "invalid_link": "Ova veza je iskorišćena ili je istekla.",
+      "request_new": "Zatraži novu vezu"
+    },
+    "verify": {
+      "title": "Potvrdite svoj imejl",
+      "verifying": "Potvrđujemo vaš imejl...",
+      "success": "Vaš imejl je potvrđen.",
+      "open_app": "Otvori Peekaping",
+      "invalid_link": "Ova veza je iskorišćena ili je istekla."
+    },
+    "errors": {
+      "rate_limited": "Previše zahteva. Pokušajte ponovo kasnije.",
+      "generic": "Nešto je pošlo naopako. Pokušajte ponovo.",
+      "already_verified": "Vaš imejl je već potvrđen."
+    },
+    "resend": {
+      "button": "Pošalji ponovo",
+      "sent": "Poslali smo novu vezu. Proverite prijemno sanduče."
+    },
+    "verification_banner": {
+      "message": "Potvrdite svoj imejl: poslali smo vezu na {{email}}."
     }
   },
   "bars": {
