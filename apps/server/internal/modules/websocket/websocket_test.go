@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/websocket"
 
+	gorilla "github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
@@ -36,10 +38,6 @@ import (
 const (
 	monitorA = "monitor-a"
 	monitorB = "monitor-b"
-	// probeMonitor and sentinelMonitor are the monitors whose rooms a client uses to find out that
-	// the server handles its join_room and leave_room
-	probeMonitor    = "monitor-probe"
-	sentinelMonitor = "monitor-sentinel"
 )
 
 // wait is how long a test waits for a packet, a join or a delivery. It only bounds a failure: a
@@ -47,8 +45,10 @@ const (
 // packages' tests starve.
 const wait = 30 * time.Second
 
-// rejoinEvery is how many rounds of waitUntilJoined pass before it sends join_room again
-const rejoinEvery = 10
+// httpClient makes the test clients' POSTs and handshakes. Those answer at once, so a call that
+// hangs fails with its own message instead of the Go test timeout. The long polls don't use it:
+// they wait for up to the ping interval.
+var httpClient = &http.Client{Timeout: 10 * time.Second}
 
 // publishHeartbeat publishes a heartbeat the way the ingester does.
 func publishHeartbeat(t *testing.T, bus *eventstest.Bus, monitorID, msg string) {
@@ -63,6 +63,13 @@ type harness struct {
 }
 
 func newHarness(t *testing.T) *harness {
+	t.Helper()
+	return newHarnessWithConnectionDelay(t, 0)
+}
+
+// newHarnessWithConnectionDelay is newHarness with the server's connection handler waiting for
+// delay first, when it isn't zero.
+func newHarnessWithConnectionDelay(t *testing.T, delay time.Duration) *harness {
 	t.Helper()
 	ctx := context.Background()
 	sqlDB, err := sql.Open(sqliteshim.ShimName, filepath.Join(t.TempDir(), "websocket.db"))
@@ -81,6 +88,9 @@ func newHarness(t *testing.T) *harness {
 	bus := eventstest.NewBus()
 	server, err := websocket.NewServer(&config.Config{}, bus, tokens, logger)
 	require.NoError(t, err)
+	if delay > 0 {
+		websocket.SlowConnectionHandler(server, delay)
+	}
 	srv := httptest.NewServer(server)
 	// Dropping the connections ends the open long polls, so Close doesn't wait
 	// for them. server.Close isn't called: engine.io then writes to those
@@ -100,12 +110,12 @@ func (h *harness) accessToken(t *testing.T) string {
 }
 
 // client speaks Engine.IO v4 long polling, the transport a socket.io client
-// starts with.
+// starts with, or a websocket (see dialWebsocket).
 type client struct {
 	url     string
 	packets chan string
-	// handlingRooms is set once the server is known to handle the client's join_room and leave_room
-	handlingRooms bool
+	// send writes one Engine.IO packet to the server
+	send func(packet string) error
 }
 
 type event struct {
@@ -143,7 +153,7 @@ func (h *harness) open(t *testing.T, extra url.Values, connect string) *client {
 		query[name] = values
 	}
 	base := h.url + "/socket.io/?" + query.Encode()
-	resp, err := http.Get(base)
+	resp, err := httpClient.Get(base)
 	require.NoError(t, err)
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -155,13 +165,14 @@ func (h *harness) open(t *testing.T, extra url.Values, connect string) *client {
 	require.NoError(t, json.Unmarshal(body[1:], &open))
 
 	c := &client{url: base + "&sid=" + url.QueryEscape(open.SID), packets: make(chan string, 256)}
+	c.send = c.post
 	require.NoError(t, c.post(connect))
 	go c.read()
 	return c
 }
 
 func (c *client) post(packet string) error {
-	resp, err := http.Post(c.url, "text/plain;charset=UTF-8", strings.NewReader(packet))
+	resp, err := httpClient.Post(c.url, "text/plain;charset=UTF-8", strings.NewReader(packet))
 	if err != nil {
 		return err
 	}
@@ -223,7 +234,7 @@ func (c *client) emit(t *testing.T, name, arg string) {
 	t.Helper()
 	packet, err := json.Marshal([]string{name, arg})
 	require.NoError(t, err)
-	require.NoError(t, c.post("42"+string(packet)))
+	require.NoError(t, c.send("42"+string(packet)))
 }
 
 // until reads events until one carries msg and returns every event read,
@@ -257,58 +268,21 @@ func (c *client) until(t *testing.T, msg string) []event {
 	}
 }
 
-// join enters a room and waits until it delivers. It waits first until the server is handling the
-// client's join_room and leave_room at all, so that a room under test gets one join and one leave:
-// a join sent again could still be pending when the test leaves the room, and put the client back
-// in it.
+// join enters a room and waits until it delivers. Socket.io handles each message in its own
+// goroutine, so the room isn't joined when the POST returns: the client publishes test heartbeats
+// until one arrives. It sends join_room once, so that a room under test gets one join and one leave.
 func (c *client) join(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
 	t.Helper()
-	c.waitUntilHandlingRooms(t, bus)
 	c.emit(t, "join_room", room)
-	c.waitUntilJoined(t, bus, room, monitorID, false)
+	c.waitUntilJoined(t, bus, room, monitorID)
 }
 
-// waitUntilHandlingRooms uses rooms of its own to wait until the server handles the client's
-// join_room and leave_room. The server tells a client it is connected before its connection handler
-// has registered them (join_room first, then leave_room), so a message sent right away can be
-// dropped for good: only a later one works. The client joins the probe room, with join_room sent
-// again every few rounds, and the sentinel room. It leaves the probe room, with leave_room sent
-// again each round, until a heartbeat for the sentinel room arrives with none for the probe room
-// before it. A message sent again can still be pending when this returns, which only affects
-// these rooms.
-func (c *client) waitUntilHandlingRooms(t *testing.T, bus *eventstest.Bus) {
-	t.Helper()
-	if c.handlingRooms {
-		return
-	}
-	probe, sentinel := "monitor:"+probeMonitor, "monitor:"+sentinelMonitor
-	c.emit(t, "join_room", probe)
-	c.waitUntilJoined(t, bus, probe, probeMonitor, true)
-	c.emit(t, "join_room", sentinel)
-	c.waitUntilJoined(t, bus, sentinel, sentinelMonitor, false)
-
-	deadline := time.Now().Add(wait)
-	for round := 0; ; round++ {
-		c.emit(t, "leave_room", probe)
-		probeMsg, sentinelMsg := fmt.Sprintf("probe-%d", round), fmt.Sprintf("sentinel-%d", round)
-		publishHeartbeat(t, bus, probeMonitor, probeMsg)
-		publishHeartbeat(t, bus, sentinelMonitor, sentinelMsg)
-		if !slices.Contains(messages(c.until(t, sentinelMsg)), probeMsg) {
-			break
-		}
-		require.True(t, time.Now().Before(deadline), "%s still delivers after leave_room", probe)
-	}
-	c.handlingRooms = true
-}
-
-// waitUntilJoined publishes test heartbeats for monitorID until one arrives, and with rejoin sends
-// join_room again every few rounds. Socket.io runs each event handler in its own goroutine, so the
-// room isn't joined when the POST returns.
-func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monitorID string, rejoin bool) {
+// waitUntilJoined publishes test heartbeats for monitorID until one arrives on the client.
+func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monitorID string) {
 	t.Helper()
 	msg := "joined " + room
 	deadline := time.Now().Add(wait)
-	for round := 1; ; round++ {
+	for {
 		publishHeartbeat(t, bus, monitorID, msg)
 		select {
 		case packet, ok := <-c.packets:
@@ -319,9 +293,6 @@ func (c *client) waitUntilJoined(t *testing.T, bus *eventstest.Bus, room, monito
 		case <-time.After(20 * time.Millisecond):
 		}
 		require.True(t, time.Now().Before(deadline), "%s delivered nothing", room)
-		if rejoin && round%rejoinEvery == 0 {
-			c.emit(t, "join_room", room)
-		}
 	}
 }
 
@@ -373,6 +344,70 @@ func TestConnectionTakesTheTokenFromTheAuthPayloadOnly(t *testing.T) {
 		packet := h.open(t, nil, `40{"token":5}`).next(t)
 		assert.True(t, strings.HasPrefix(packet, "44"), "expected CONNECT_ERROR, got %s", packet)
 	})
+}
+
+// dialWebsocket opens a socket.io session over a websocket, the transport the web app uses, and
+// returns once it has read the CONNECT packet.
+func (h *harness) dialWebsocket(t *testing.T, token string) *client {
+	t.Helper()
+	query := url.Values{"EIO": {"4"}, "transport": {"websocket"}}
+	conn, _, err := gorilla.DefaultDialer.Dial("ws"+strings.TrimPrefix(h.url, "http")+"/socket.io/?"+query.Encode(), nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = conn.Close() })
+	read := func() string {
+		require.NoError(t, conn.SetReadDeadline(time.Now().Add(wait)))
+		_, packet, err := conn.ReadMessage()
+		require.NoError(t, err)
+		return string(packet)
+	}
+	require.True(t, strings.HasPrefix(read(), "0{"), "expected Engine.IO OPEN")
+	payload, err := json.Marshal(map[string]string{"token": token})
+	require.NoError(t, err)
+	require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte("40"+string(payload))))
+	connect := read()
+	require.True(t, strings.HasPrefix(connect, "40"), "expected CONNECT, got %s", connect)
+
+	require.NoError(t, conn.SetReadDeadline(time.Time{}))
+	// gorilla allows one writer at a time, and the reader answers pings
+	var writing sync.Mutex
+	c := &client{packets: make(chan string, 256)}
+	c.send = func(packet string) error {
+		writing.Lock()
+		defer writing.Unlock()
+		return conn.WriteMessage(gorilla.TextMessage, []byte(packet))
+	}
+	go func() {
+		defer close(c.packets)
+		for {
+			_, packet, err := conn.ReadMessage()
+			if err != nil {
+				return
+			}
+			if string(packet) == "2" {
+				_ = c.send("3")
+				continue
+			}
+			c.packets <- string(packet)
+		}
+	}()
+	return c
+}
+
+// A client sends join_room as soon as it sees CONNECT, the way the web app does. The server
+// registers its handler before it sends CONNECT, so the join is handled even when the connection
+// handler runs late.
+func TestJoinSentRightAfterConnectIsHandled(t *testing.T) {
+	for name, connect := range map[string]func(*testing.T, *harness) *client{
+		"long polling": func(t *testing.T, h *harness) *client { return h.connect(t) },
+		"websocket":    func(t *testing.T, h *harness) *client { return h.dialWebsocket(t, h.accessToken(t)) },
+	} {
+		t.Run(name, func(t *testing.T) {
+			h := newHarnessWithConnectionDelay(t, 300*time.Millisecond)
+			c := connect(t, h)
+
+			c.join(t, h.bus, "monitor:"+monitorA, monitorA)
+		})
+	}
 }
 
 func TestMonitorRoomGetsOnlyThatMonitorsHeartbeats(t *testing.T) {

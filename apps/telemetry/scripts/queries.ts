@@ -1,4 +1,4 @@
-// The SQL behind `bun run report`, kept free of I/O so it can be tested.
+// The SQL behind `bun run report` and `bun run dashboard`. Everything but fetchRows is free of I/O.
 //
 // Every report counts distinct instance IDs (index1) with count(DISTINCT ...), which Analytics Engine supports.
 // Sampling is applied per index, and only to indexes with a high write volume. An instance sends about one ping
@@ -75,6 +75,23 @@ export function sqlApiRequest(accountId: string, token: string, sql: string): { 
     url: `https://api.cloudflare.com/client/v4/accounts/${accountId}/analytics_engine/sql`,
     init: { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: sql },
   };
+}
+
+// Runs one query and returns its rows. The error carries the status and the API's message, never the token.
+export async function fetchRows(
+  fetchFn: typeof fetch,
+  accountId: string,
+  token: string,
+  sql: string,
+): Promise<Record<string, unknown>[]> {
+  const { url, init } = sqlApiRequest(accountId, token, sql);
+  const response = await fetchFn(url, init);
+  if (!response.ok) {
+    throw new Error(`The SQL API answered ${response.status}: ${(await response.text()).trim().slice(0, 500)}`);
+  }
+  const body = (await response.json()) as { data?: unknown };
+  if (!Array.isArray(body.data)) throw new Error("The SQL API answer has no data array");
+  return body.data as Record<string, unknown>[];
 }
 
 export function formatTable(query: ReportQuery, rows: Record<string, unknown>[]): string {
