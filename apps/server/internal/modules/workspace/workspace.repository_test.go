@@ -250,3 +250,40 @@ func TestRepository_RenameChangesOnlyThatWorkspace(t *testing.T) {
 		assert.Nil(t, missing, "no workspace has that ID")
 	})
 }
+
+func TestMemberRepository_HasVerifiedMemberWithEmailNeedsAMemberWhoVerifiedTheAddress(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		ctx := context.Background()
+		members := workspace.NewSQLMemberRepository(db)
+		verified, unverified, outsider := insertUser(t, db, "Verified@Example.com"), insertUser(t, db, "unverified@example.com"), insertUser(t, db, "outsider@example.com")
+		_, err := db.Exec("UPDATE users SET email_verified_at = ? WHERE id IN (?, ?)", time.Now().UTC(), verified, outsider)
+		require.NoError(t, err)
+		ws, err := repo.Create(ctx, "Acme")
+		require.NoError(t, err)
+		other, err := repo.Create(ctx, "Other")
+		require.NoError(t, err)
+		require.NoError(t, repo.AddMember(ctx, ws.ID, verified, workspace.RoleOwner))
+		require.NoError(t, repo.AddMember(ctx, ws.ID, unverified, workspace.RoleMember))
+		require.NoError(t, repo.AddMember(ctx, other.ID, outsider, workspace.RoleOwner))
+
+		for name, tt := range map[string]struct {
+			id            workspace.ID
+			email         string
+			member, ready bool
+		}{
+			"a verified member, ignoring case": {ws.ID, "verified@example.COM", true, true},
+			"an unverified member":             {ws.ID, "unverified@example.com", true, false},
+			"a verified member of another one": {ws.ID, "outsider@example.com", false, false},
+			"no user at all":                   {ws.ID, "nobody@example.com", false, false},
+		} {
+			t.Run(name, func(t *testing.T) {
+				member, err := members.HasMemberWithEmail(ctx, tt.id, tt.email)
+				require.NoError(t, err)
+				assert.Equal(t, tt.member, member)
+				ready, err := members.HasVerifiedMemberWithEmail(ctx, tt.id, tt.email)
+				require.NoError(t, err)
+				assert.Equal(t, tt.ready, ready)
+			})
+		}
+	})
+}

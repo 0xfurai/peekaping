@@ -135,7 +135,7 @@ The kind of destination a notification channel sends to, such as Slack, Telegram
 _Avoid_: Integration, provider, notifier type
 
 **Install email channel**:
-A channel type (`install_email`) that emails a notification through the install's sender for account emails, to one address that must be a member of the channel's workspace. The address is checked when the channel is saved or tested, and again at each send: a recipient who has left the workspace gets nothing and the send fails. Only members are allowed so that a workspace on the cloud can't use the install's sender to mail strangers. Without a sender it can't be created or tested (400). The SMTP channel, with a server of its own and any recipient, is a different type and stays as it is.
+A channel type (`install_email`) that emails a notification through the install's sender for account emails, to one address that must be a member of the channel's workspace. Saving the channel needs only a member's address, verified or not: a cloud signup sets it up in onboarding before verifying. A send, including a test, needs the member to have verified the address, and the member check is made again at each send: a recipient who has left the workspace or has not verified gets nothing and the send fails (a test answers 400). Only verified members are mailed so that a workspace can't use the install's sender to mail strangers, not even by signing up with a stranger's address and joining a workspace of their own with it. Without a sender it can't be created or tested (400). The SMTP channel, with a server of its own and any recipient, is a different type and stays as it is.
 _Avoid_: System email channel, built-in email
 
 **Saved secret**:

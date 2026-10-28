@@ -38,10 +38,17 @@ func (f *fakeAccountMailer) Send(_ context.Context, to, subject, text, html stri
 	return nil
 }
 
-// fakeMembers holds the members' emails by workspace, and compares them as the repository does
+// fakeMembers holds the members' emails by workspace, and compares them as the repository does. A
+// member is verified unless the address is in unverified (in lower case).
 type fakeMembers struct {
-	emails map[workspace.ID][]string
-	err    error
+	emails     map[workspace.ID][]string
+	unverified map[string]bool
+	err        error
+}
+
+func (f *fakeMembers) HasVerifiedMemberWithEmail(ctx context.Context, id workspace.ID, email string) (bool, error) {
+	member, err := f.HasMemberWithEmail(ctx, id, email)
+	return member && !f.unverified[strings.ToLower(email)], err
 }
 
 func (f *fakeMembers) HasMemberWithEmail(_ context.Context, id workspace.ID, email string) (bool, error) {
@@ -131,6 +138,25 @@ func TestInstallEmailChannel_ARecipientWhoLeftTheWorkspaceGetsNothingAndTheSendF
 
 	assert.ErrorIs(t, err, ErrRecipientNotMember)
 	assert.Len(t, mail.sent, 1, "nothing more went out")
+}
+
+func TestInstallEmailChannel_AnUnverifiedMembersChannelIsAcceptedButNothingIsSentToThem(t *testing.T) {
+	sender, mail, members := newInstallEmailSender(true, "oncall@example.com")
+	members.unverified = map[string]bool{"oncall@example.com": true}
+	const config = `{"to": "oncall@example.com"}`
+
+	// a cloud signup sets the channel up before verifying
+	require.NoError(t, sender.ValidateInWorkspace(inInstallEmailWorkspace(), config))
+	err := sender.Send(inInstallEmailWorkspace(), config, "down", nil, nil)
+
+	assert.ErrorIs(t, err, ErrRecipientNotVerified)
+	assert.NotErrorIs(t, err, ErrRecipientNotMember)
+	assert.Empty(t, mail.sent)
+
+	// once they verify, the same channel sends
+	members.unverified = nil
+	require.NoError(t, sender.Send(inInstallEmailWorkspace(), config, "down", nil, nil))
+	assert.Len(t, mail.sent, 1)
 }
 
 func TestInstallEmailChannel_WithoutASenderNothingIsAcceptedOrSent(t *testing.T) {

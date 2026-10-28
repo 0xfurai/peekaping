@@ -19,6 +19,7 @@ import (
 var (
 	ErrNoInstallSender       = errors.New("this install has no sender for account emails (ACCOUNT_SMTP_HOST is not set)")
 	ErrRecipientNotMember    = errors.New("the recipient must be the email address of a member of the workspace")
+	ErrRecipientNotVerified  = errors.New("the recipient has not verified their email address yet")
 	errNoWorkspaceForChannel = errors.New("the channel's workspace is not known")
 )
 
@@ -34,10 +35,11 @@ type AccountMailer interface {
 	Send(ctx context.Context, to, subject, text, html string) error
 }
 
-// WorkspaceMembers answers whether an email address is a member's in a workspace. It ignores case
-// (workspace.MemberRepository is one).
+// WorkspaceMembers answers whether an email address is a member's in a workspace, and whether that
+// member has verified it. It ignores case (workspace.MemberRepository is one).
 type WorkspaceMembers interface {
 	HasMemberWithEmail(ctx context.Context, id workspace.ID, email string) (bool, error)
+	HasVerifiedMemberWithEmail(ctx context.Context, id workspace.ID, email string) (bool, error)
 }
 
 type workspaceKey struct{}
@@ -56,7 +58,9 @@ func workspaceFrom(ctx context.Context) (workspace.ID, bool) {
 
 // InstallEmailSender sends a notification through the install's account-email sender to one member
 // of the workspace. Only members may be the recipient so that a workspace of the cloud can't use
-// the install's sender to mail strangers.
+// the install's sender to mail strangers, and a send needs the member to have verified the address:
+// on an open-signup install anyone can sign up with another person's address and join a workspace
+// of their own with it, so a member's address alone doesn't show that it is theirs.
 type InstallEmailSender struct {
 	logger  *zap.SugaredLogger
 	mailer  AccountMailer
@@ -90,7 +94,9 @@ func (e *InstallEmailSender) Validate(configJSON string) error {
 
 // ValidateInWorkspace is Validate for a channel of the workspace in ctx (see WithWorkspace). It also
 // refuses a config on an install with no sender, and a recipient who is not a member of the
-// workspace.
+// workspace. A member who has not verified the address is accepted: a cloud signup sets the channel
+// up before verifying, while its workspace is suspended and nothing runs. Send is what needs the
+// verified address.
 func (e *InstallEmailSender) ValidateInWorkspace(ctx context.Context, configJSON string) error {
 	if err := e.Validate(configJSON); err != nil {
 		return err
@@ -98,13 +104,14 @@ func (e *InstallEmailSender) ValidateInWorkspace(ctx context.Context, configJSON
 	if !e.mailer.Enabled() {
 		return ErrNoInstallSender
 	}
-	_, err := e.recipient(ctx, configJSON)
+	_, err := e.recipient(ctx, configJSON, false)
 	return err
 }
 
 // recipient returns the address to send to: the member's email as the workspace knows it. It
-// returns ErrRecipientNotMember when the config's address is no member's.
-func (e *InstallEmailSender) recipient(ctx context.Context, configJSON string) (string, error) {
+// returns ErrRecipientNotMember when the config's address is no member's. With verified it also
+// returns ErrRecipientNotVerified for a member who has not verified the address.
+func (e *InstallEmailSender) recipient(ctx context.Context, configJSON string, verified bool) (string, error) {
 	id, ok := workspaceFrom(ctx)
 	if !ok {
 		return "", errNoWorkspaceForChannel
@@ -117,6 +124,15 @@ func (e *InstallEmailSender) recipient(ctx context.Context, configJSON string) (
 	if e.members == nil {
 		return "", ErrRecipientNotMember
 	}
+	if verified {
+		ok, err := e.members.HasVerifiedMemberWithEmail(ctx, id, to)
+		if err != nil {
+			return "", fmt.Errorf("failed to check the recipient: %w", err)
+		}
+		if ok {
+			return to, nil
+		}
+	}
 	member, err := e.members.HasMemberWithEmail(ctx, id, to)
 	if err != nil {
 		return "", fmt.Errorf("failed to check the recipient: %w", err)
@@ -124,11 +140,16 @@ func (e *InstallEmailSender) recipient(ctx context.Context, configJSON string) (
 	if !member {
 		return "", ErrRecipientNotMember
 	}
+	if verified {
+		// A member, so the address has not been verified
+		return "", ErrRecipientNotVerified
+	}
 	return to, nil
 }
 
 // Send emails the notification. The recipient is checked again here, since they may have left the
-// workspace since the channel was saved: then nothing is sent and the error says so.
+// workspace since the channel was saved: then nothing is sent and the error says so. A member who
+// has not verified the address gets nothing either (ErrRecipientNotVerified).
 func (e *InstallEmailSender) Send(
 	ctx context.Context,
 	configJSON string,
@@ -142,7 +163,7 @@ func (e *InstallEmailSender) Send(
 	if !e.mailer.Enabled() {
 		return ErrNoInstallSender
 	}
-	to, err := e.recipient(ctx, configJSON)
+	to, err := e.recipient(ctx, configJSON, true)
 	if err != nil {
 		return err
 	}

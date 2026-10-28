@@ -305,6 +305,10 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	defer cancel()
 	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential
 	err = providers.RedactURLErrors(integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat))
+	if errors.Is(err, providers.ErrRecipientNotVerified) {
+		// The caller can fix it, as with a config the provider refuses: their recipient has to verify
+		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Failed to send test notification: "+err.Error()))
+	}
 	if err != nil {
 		// A failed send repeats what it was sent to, which has the secrets in it. The ones taken from
 		// the saved channel are not the caller's to read back.

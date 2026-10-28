@@ -27,11 +27,21 @@ func installEmailBody(name, to string) map[string]any {
 	return map[string]any{"name": name, "type": "install_email", "active": true, "config": `{"to":"` + to + `"}`}
 }
 
-// installEmailTeam is the first workspace with a member besides its owner
+// installEmailTeam is the first workspace with a member besides its owner. Both have verified their
+// address, which a send needs.
 func installEmailTeam(t *testing.T, a *app) workspace.ID {
+	t.Helper()
+	id := installEmailTeamUnverified(t, a)
+	a.verifyEmailDirectly(t, installEmailMember)
+	return id
+}
+
+// installEmailTeamUnverified is installEmailTeam where the member has not verified their address
+func installEmailTeamUnverified(t *testing.T, a *app) workspace.ID {
 	t.Helper()
 	id := a.firstWorkspace(t)
 	a.userIn(t, installEmailMember, id, workspace.RoleMember)
+	a.verifyEmailDirectly(t, adminEmail)
 	return id
 }
 
@@ -142,5 +152,39 @@ func TestInstallEmailChannel_WhenTheRecipientLeavesTheWorkspaceNothingIsSent(t *
 		test := a.request(t, http.MethodPost, channelTestPath, installEmailBody("Mail the team", installEmailMember), a.asAdmin)
 		assert.Equal(t, http.StatusBadRequest, test.Code, test.Body.String())
 		assert.False(t, strings.Contains(test.Body.String(), "ACCOUNT_SMTP"), "the sender is there")
+	})
+}
+
+func TestInstallEmailChannel_AnUnverifiedMembersAddressIsSavedButNothingIsSentUntilTheyVerify(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
+		installEmailTeamUnverified(t, a)
+		a.takeNotificationsFromTheQueue(t)
+
+		// saving needs only a member: a cloud signup sets the channel up before it verifies
+		created201 := a.request(t, http.MethodPost, channelsPath, installEmailBody("Mail the team", installEmailMember), a.asAdmin)
+		channel := decode[created](t, created201, http.StatusCreated).ID
+		update := a.request(t, http.MethodPut, channelsPath+"/"+channel, installEmailBody("Mail the team again", installEmailMember), a.asAdmin)
+		assert.Equal(t, http.StatusOK, update.Code, update.Body.String())
+		patch := a.request(t, http.MethodPatch, channelsPath+"/"+channel, map[string]any{"config": `{"to":"` + installEmailMember + `"}`}, a.asAdmin)
+		assert.Equal(t, http.StatusOK, patch.Code, patch.Body.String())
+
+		// but a send does not go out, and the test says why
+		test := a.request(t, http.MethodPost, channelTestPath, installEmailBody("Mail the team", installEmailMember), a.asAdmin)
+		assert.Equal(t, http.StatusBadRequest, test.Code, test.Body.String())
+		assert.Contains(t, test.Body.String(), "has not verified their email address")
+		decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors",
+			with(pushMonitorBody("Nightly backup", "unverified-token"), "notification_ids", []string{channel}), a.asAdmin), http.StatusCreated)
+		require.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/unverified-token?status=down&msg=disk%20full", nil).Code)
+		time.Sleep(time.Second) // long enough for a send that shouldn't happen
+		a.settled(t)
+		assert.Empty(t, mailTo(mail, installEmailMember), "nothing went to an address that is not verified")
+
+		// after they verify, the same channel sends
+		a.verifyEmailDirectly(t, installEmailMember)
+		test = a.request(t, http.MethodPost, channelTestPath, installEmailBody("Mail the team", installEmailMember), a.asAdmin)
+		assert.Equal(t, http.StatusOK, test.Code, test.Body.String())
+		require.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/unverified-token?status=up", nil).Code)
+		require.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/unverified-token?status=down&msg=again", nil).Code)
+		require.Eventually(t, func() bool { return len(mailTo(mail, installEmailMember)) >= 2 }, 10*time.Second, 20*time.Millisecond, "the test and the notification are mailed")
 	})
 }
