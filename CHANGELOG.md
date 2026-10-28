@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Upgrade note: the upgrade stops, before it changes anything, when two monitors share a push token or two status pages share a custom domain (ignoring case and spaces). The error names the monitors, or the domain and the status pages, and leaves the push tokens out. Fix them in the version you run now: give all but one monitor of each group a new push token, or remove the domain from all but one of its status pages. Then upgrade again. A status page that lists one domain twice in different cases keeps the oldest, a domain that is empty is removed, and a monitor that has its push token only in its config gets it as its push token. `bun db import-mongo` fills a push token from the config the same way.
   - Upgrade note: the TLS information and notification history of monitors that no longer exist are removed. They were not shown anywhere.
   - `bun db import-mongo` stores no push token as none, clears a push token that an earlier monitor holds, normalizes domains and gives a domain that two status pages held to the first, and its report counts each.
+- feat: a new monitor's form ticks the notification channels marked as default, which you can untick. A clone keeps its source's channels and an edit keeps the monitor's own. The first channel made in Get started is one.
 
 ### Fixed
 

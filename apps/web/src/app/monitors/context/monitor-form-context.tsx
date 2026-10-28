@@ -14,6 +14,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import {
+  getNotificationChannelsOptions,
   getMonitorsInfiniteQueryKey,
   getMonitorsQueryKey,
   postMonitorsMutation,
@@ -43,6 +44,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
 import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { checkMonitorValues } from "../monitor-types/shared/check-values";
+import { defaultChannelIds } from "../monitor-types/shared/channel-support";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 type Mode = "create" | "edit";
@@ -110,10 +112,25 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   const { instanceAdmin } = useCurrentAccess();
   const probesChosenByHand = useRef(false);
 
+  // A new monitor that isn't a clone starts with the workspace's default channels ticked: from the
+  // channels already loaded, and again from the answer to this page's own request, since the loaded
+  // ones may be old (see below).
+  const presetsChannels = mode === "create" && !initialValues;
+  const { data: channels, isFetchedAfterMount: channelsFetched } = useQuery({
+    ...getNotificationChannelsOptions(),
+    enabled: presetsChannels,
+  });
+  const startingChannelIds = useRef(defaultChannelIds(channels?.data));
+  const channelsPreset = useRef(false);
+
   const form = useForm<MonitorFormValues>({
     // A new monitor starts as the first type the registry lists. Read here, not at module
     // level: the type forms import this module, so the registry is still loading then.
-    defaultValues: initialValues ?? monitorTypes[0].defaultValues,
+    defaultValues:
+      initialValues ??
+      (channels?.data
+        ? { ...monitorTypes[0].defaultValues, notification_ids: startingChannelIds.current }
+        : monitorTypes[0].defaultValues),
     // The schema, and a check of the probe that it can't make: which probes run which types
     // comes from the probes query
     resolver: (values, context, options) =>
@@ -124,6 +141,19 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
         mayUseDefaultProbes: !instanceAdmin && mode === "create",
       }),
   });
+
+  // The default channels are ticked once, from this page's own answer. Not over a choice of the
+  // user's: the channels they changed, or one they just made, stay.
+  useEffect(() => {
+    if (!presetsChannels || channelsPreset.current || !channelsFetched || !channels?.data) return;
+    channelsPreset.current = true;
+    const current = form.getValues("notification_ids");
+    const untouched =
+      !form.getFieldState("notification_ids").isDirty &&
+      current.length === startingChannelIds.current.length &&
+      current.every((id) => startingChannelIds.current.includes(id));
+    if (untouched) form.setValue("notification_ids", defaultChannelIds(channels.data));
+  }, [presetsChannels, channelsFetched, channels, form]);
 
   // In edit mode the form shows the saved monitor once it is loaded
   useEffect(() => {
