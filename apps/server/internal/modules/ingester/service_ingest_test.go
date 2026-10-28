@@ -13,6 +13,7 @@ import (
 	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -87,6 +88,8 @@ type fakeCertificateService struct {
 	err     error
 	updated []string
 	checked []string
+	// checkedIn are the workspaces the checks were for, as the results named them
+	checkedIn []workspace.ID
 }
 
 func (s *fakeCertificateService) UpdateTLSInfo(_ context.Context, id string, _ *certificate.TLSInfo) error {
@@ -94,7 +97,8 @@ func (s *fakeCertificateService) UpdateTLSInfo(_ context.Context, id string, _ *
 	return s.err
 }
 
-func (s *fakeCertificateService) CheckCertificateExpiry(_ context.Context, _ *certificate.TLSInfo, id string, _ string) error {
+func (s *fakeCertificateService) CheckCertificateExpiry(_ context.Context, workspaceID workspace.ID, _ *certificate.TLSInfo, id string, _ string) error {
+	s.checkedIn = append(s.checkedIn, workspaceID)
 	s.checked = append(s.checked, id)
 	return s.err
 }
@@ -760,11 +764,15 @@ func TestIngester_TLSInfo(t *testing.T) {
 			payload.MonitorType = tc.monitorType
 			payload.TLSInfo = tc.tlsInfo
 			payload.CheckCertExpiry = tc.checkExpiry
+			payload.WorkspaceID = "workspace-1"
 
 			require.NoError(t, ti.ingest(t, payload))
 			assert.Len(t, ti.heartbeats.stored, 1)
 			assert.Equal(t, tc.wantUpdated, ti.certs.updated)
 			assert.Equal(t, tc.wantChecked, ti.certs.checked)
+			for _, id := range ti.certs.checkedIn {
+				assert.Equal(t, workspace.ID("workspace-1"), id, "the check gets the workspace the result names, without loading the monitor")
+			}
 		})
 	}
 }

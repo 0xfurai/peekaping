@@ -19,6 +19,7 @@ func TestResultFromMonitor_CarriesTheMonitorSettingsAndTheCheck(t *testing.T) {
 	tlsInfo := &certificate.TLSInfo{Valid: true}
 	m := &monitor.Model{
 		ID:             "mon-1",
+		WorkspaceID:    "workspace-1",
 		Name:           "Checkout",
 		Type:           "http",
 		Interval:       60,
@@ -34,6 +35,7 @@ func TestResultFromMonitor_CarriesTheMonitorSettingsAndTheCheck(t *testing.T) {
 	assert.Equal(t, &ingester.Result{
 		ProbeID:            "local",
 		MonitorID:          "mon-1",
+		WorkspaceID:        "workspace-1",
 		MonitorName:        "Checkout",
 		MonitorType:        "http",
 		MonitorInterval:    60,

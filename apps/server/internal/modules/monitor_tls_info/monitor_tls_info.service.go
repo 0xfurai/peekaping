@@ -70,7 +70,7 @@ func (s *ServiceImpl) StoreTLSInfo(ctx context.Context, monitorID string, infoJS
 	_, err := s.repository.Upsert(ctx, monitorID, infoJSON)
 	if dbtx.IsForeignKeyViolation(err) {
 		// The monitor was deleted while its check was being handled: there is nothing to keep it for
-		s.logger.Warnf("Skipped storing TLS info for monitor %s: the monitor no longer exists", monitorID)
+		s.logger.Debugf("Skipped storing TLS info for monitor %s: the monitor no longer exists", monitorID)
 		return nil
 	}
 	if err != nil {

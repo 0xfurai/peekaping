@@ -18,22 +18,17 @@ import (
 )
 
 type Service interface {
-	CheckCertificateExpiry(ctx context.Context, tlsInfo *TLSInfo, monitorID string, monitorName string) error
+	// CheckCertificateExpiry sends the notifications for the certificate of a monitor of the
+	// workspace that are due at the days the workspace asks for
+	CheckCertificateExpiry(ctx context.Context, workspaceID workspace.ID, tlsInfo *TLSInfo, monitorID string, monitorName string) error
 	UpdateTLSInfo(ctx context.Context, monitorID string, tlsInfo *TLSInfo) error
 	// GetNotificationDays returns the certificate expiry notification days of the workspace
 	GetNotificationDays(ctx context.Context, workspaceID workspace.ID) ([]int, error)
 	SetNotificationDays(ctx context.Context, workspaceID workspace.ID, days []int) error
 }
 
-// MonitorFinder finds the monitor a certificate check is for, to know its workspace. The check
-// runs for the whole install, so it finds the monitor in any workspace. monitor.Service is one.
-type MonitorFinder interface {
-	FindByIDAnyWorkspace(ctx context.Context, id string) (*shared.Monitor, error)
-}
-
 type ServiceImpl struct {
 	settingService             shared.WorkspaceSettingService
-	monitors                   MonitorFinder
 	notificationService        NotificationService
 	notificationHistoryService notification_sent_history.Service
 	tlsInfoService             monitor_tls_info.Service
@@ -47,7 +42,6 @@ type NotificationService interface {
 
 func NewService(
 	settingService shared.WorkspaceSettingService,
-	monitors MonitorFinder,
 	notificationService NotificationService,
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
@@ -55,7 +49,6 @@ func NewService(
 ) Service {
 	return &ServiceImpl{
 		settingService:             settingService,
-		monitors:                   monitors,
 		notificationService:        notificationService,
 		notificationHistoryService: notificationHistoryService,
 		tlsInfoService:             tlsInfoService,
@@ -64,21 +57,14 @@ func NewService(
 }
 
 // CheckCertificateExpiry checks certificate expiry and sends notifications if needed
-func (s *ServiceImpl) CheckCertificateExpiry(ctx context.Context, tlsInfo *TLSInfo, monitorID string, monitorName string) error {
+func (s *ServiceImpl) CheckCertificateExpiry(ctx context.Context, workspaceID workspace.ID, tlsInfo *TLSInfo, monitorID string, monitorName string) error {
 	if tlsInfo == nil || tlsInfo.CertInfo == nil {
 		s.logger.Debug("No TLS info or certificate info available")
 		return nil
 	}
 
 	// The days are those of the monitor's workspace
-	monitor, err := s.monitors.FindByIDAnyWorkspace(ctx, monitorID)
-	if err != nil {
-		return fmt.Errorf("failed to find monitor %s: %w", monitorID, err)
-	}
-	if monitor == nil {
-		return fmt.Errorf("monitor %s not found", monitorID)
-	}
-	notifyDays, err := s.GetNotificationDays(ctx, monitor.WorkspaceID)
+	notifyDays, err := s.GetNotificationDays(ctx, workspaceID)
 	if err != nil {
 		s.logger.Errorf("Failed to get notification days: %v", err)
 		return err
@@ -218,13 +204,10 @@ func (s *ServiceImpl) GetNotificationDays(ctx context.Context, workspaceID works
 		return nil, fmt.Errorf("failed to get certificate notification days setting: %w", err)
 	}
 
-	// If setting doesn't exist, initialize with default values
+	// A workspace that has none stored uses the defaults. They are not stored here: the check
+	// reads this on every result.
 	if setting == nil {
-		defaultDays := []int{7, 14, 21}
-		if err := s.SetNotificationDays(ctx, workspaceID, defaultDays); err != nil {
-			s.logger.Errorf("Failed to initialize default notification days: %v", err)
-		}
-		return defaultDays, nil
+		return []int{7, 14, 21}, nil
 	}
 
 	// Parse the JSON array from the setting value
