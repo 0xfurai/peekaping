@@ -13,8 +13,10 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stats"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/utils"
 	"time"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -145,6 +147,7 @@ func NewMonitorService(
 }
 
 func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, monitorCreateDto *CreateUpdateDto) (*Model, error) {
+	lowerLinkIDs(monitorCreateDto)
 	createModel := &Model{
 		WorkspaceID:    workspaceID,
 		Type:           monitorCreateDto.Type,
@@ -246,6 +249,7 @@ func (mr *MonitorServiceImpl) FindActiveByProbeAnyWorkspace(ctx context.Context,
 }
 
 func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, monitor *CreateUpdateDto) (*Model, error) {
+	lowerLinkIDs(monitor)
 	model := &Model{
 		ID:             id,
 		Name:           monitor.Name,
@@ -331,6 +335,12 @@ func (mr *MonitorServiceImpl) find(ctx context.Context, workspaceID *workspace.I
 
 // updatePartial is UpdatePartial in the workspace, or across workspaces when there is none
 func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *workspace.ID, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error) {
+	monitor.NotificationIds = utils.LowerUUIDs(monitor.NotificationIds)
+	monitor.TagIds = utils.LowerUUIDs(monitor.TagIds)
+	if monitor.ProxyId != nil {
+		lowered := utils.LowerUUID(*monitor.ProxyId)
+		monitor.ProxyId = &lowered
+	}
 	model := &UpdateModel{
 		ID:             &id,
 		Type:           monitor.Type,
@@ -522,7 +532,13 @@ func (mr *MonitorServiceImpl) requireLinks(ctx context.Context, workspaceID work
 	if proxyID == "" {
 		return nil
 	}
-	found, err := mr.monitorRepository.ProxyInWorkspace(ctx, workspaceID, proxyID)
+	// An ID that isn't a UUID is no proxy, and PostgreSQL fails the query on it instead of finding
+	// nothing. The query takes the lower case form, as the channels' and tags' do.
+	parsed, err := uuid.Parse(proxyID)
+	if err != nil {
+		return fmt.Errorf("%w: %s", ErrProxyNotFound, proxyID)
+	}
+	found, err := mr.monitorRepository.ProxyInWorkspace(ctx, workspaceID, parsed.String())
 	if err != nil {
 		return fmt.Errorf("find proxy: %w", err)
 	}
@@ -547,6 +563,14 @@ func (mr *MonitorServiceImpl) createLinks(ctx context.Context, monitorID string,
 		}
 	}
 	return nil
+}
+
+// lowerLinkIDs writes the IDs of the channels, tags and proxy a request names in lower case, which
+// is how they are stored whatever case the request used.
+func lowerLinkIDs(dto *CreateUpdateDto) {
+	dto.NotificationIds = utils.LowerUUIDs(dto.NotificationIds)
+	dto.TagIds = utils.LowerUUIDs(dto.TagIds)
+	dto.ProxyId = utils.LowerUUID(dto.ProxyId)
 }
 
 // distinct returns the IDs without repeats, in the order they first appear.

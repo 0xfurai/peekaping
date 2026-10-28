@@ -4,12 +4,10 @@ package apitest
 
 import (
 	"cmp"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"sync"
 	"testing"
@@ -24,7 +22,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
-	"github.com/uptrace/bun/driver/pgdriver"
 	"go.uber.org/dig"
 	"golang.org/x/time/rate"
 )
@@ -70,30 +67,6 @@ type ingestRun struct {
 }
 
 func (r ingestRun) rate() float64 { return float64(r.results) / r.stored.Seconds() }
-
-// usePostgres points the app at a database of its own on the PostgreSQL server the DSN names
-func usePostgres(t *testing.T, dsn string) func(*config.Config) {
-	t.Helper()
-	parsed, err := url.Parse(dsn)
-	require.NoError(t, err)
-	password, _ := parsed.User.Password()
-	return func(cfg *config.Config) {
-		cfg.DBType, cfg.DBHost, cfg.DBPort = "postgres", parsed.Hostname(), parsed.Port()
-		cfg.DBUser, cfg.DBPass = parsed.User.Username(), password
-		cfg.DBName = "ingest_rate_" + uuid.NewString()[:8]
-		admin := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
-		defer admin.Close()
-		// A Docker Desktop port forwarding resets the first connection now and then
-		var err error
-		for range 5 {
-			if _, err = admin.Exec("CREATE DATABASE " + cfg.DBName); err == nil {
-				break
-			}
-			time.Sleep(200 * time.Millisecond)
-		}
-		require.NoError(t, err)
-	}
-}
 
 // measureIngest posts the results through the API, which stores them itself, and waits for all of
 // them to be stored
