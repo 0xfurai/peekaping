@@ -11,6 +11,8 @@ var (
 	ErrNotFound = errors.New("workspace not found")
 	// ErrForbidden is for a member whose role doesn't allow what they ask. It answers 403.
 	ErrForbidden = errors.New("your role in the workspace doesn't allow this")
+	// ErrInvalidName is for a workspace name that is blank. It answers 400.
+	ErrInvalidName = errors.New("the workspace needs a name")
 )
 
 type contextKey struct{}
