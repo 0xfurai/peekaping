@@ -293,6 +293,12 @@ func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID 
 		l.logger.Warnf("Monitor not found for notification context: %s", monitorID)
 		return nil, nil
 	}
+	// Nothing of a suspended workspace is checked, so nothing is due a notification. One that was
+	// on its way when the suspension began (a result in flight) is dropped here (PP-155).
+	if monitorModel.WorkspaceSuspended {
+		l.logger.Debugf("Monitor %s is in a suspended workspace: no notification is sent", monitorID)
+		return nil, nil
+	}
 
 	ids := make([]string, len(monitorNotifications))
 	for i, mn := range monitorNotifications {
