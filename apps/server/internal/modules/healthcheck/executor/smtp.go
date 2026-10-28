@@ -50,6 +50,7 @@ type SMTPConfig struct {
 }
 
 type SMTPExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -82,6 +83,15 @@ func (s *SMTPExecutor) Validate(configJSON string) error {
 		return err
 	}
 	return GenericValidator(config.(*SMTPConfig))
+}
+
+// Targets lists the host an SMTP check dials
+func (s *SMTPExecutor) Targets(configJSON string) ([]string, error) {
+	config, err := GenericUnmarshal[SMTPConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return []string{config.Host}, nil
 }
 
 func (s *SMTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
@@ -138,9 +148,9 @@ func (s *SMTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	default:
 	}
 
-	dialer := &net.Dialer{
+	dialer := s.dialer(&net.Dialer{
 		Timeout: time.Duration(m.Timeout) * time.Second,
-	}
+	})
 	tcpConnection, err := dialer.DialContext(ctx, "tcp", address)
 	if err != nil {
 		return down("SMTP connection failed: %v", err)
