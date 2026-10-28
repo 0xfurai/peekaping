@@ -132,7 +132,7 @@ _Avoid_: Integration, provider, notifier type
 
 **Saved secret**:
 A secret field of a notification channel's config, such as a bot token, an SMTP password or a webhook URL that works as a credential. The API never returns it: it shows `********` instead, and a save or test that sends `********` back keeps the stored value.
-A URL a channel sends to, such as a webhook or server URL, isn't a saved secret, but the API masks the credentials in it: the password of its user info, a user name that stands alone, and every query value show as `********`. A save or test that sends the URL back exactly as shown keeps the stored one; changing any other part of it means typing those credentials again.
+A URL a channel sends to, such as a webhook or server URL, isn't a saved secret, but the API masks the parts of it that can hold a password or token: the password of its user info, a user name that stands alone, and every query value show as `********`. A save or test that sends the URL back exactly as shown keeps the stored one; changing any other part of it means typing those parts again.
 _Avoid_: Credential, masked field, hidden value
 
 **Endpoint field**:
