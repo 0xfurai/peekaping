@@ -48,8 +48,19 @@ export CLOUDFLARE_ANALYTICS_TOKEN=...   # a token with Account > Account Analyti
 bun run report                          # the last 30 days; --days N for 1 to 92
 ```
 
+Or put the two variables in `apps/telemetry/.env` (gitignored): Bun loads it when you run the command from this folder.
+
 It queries the [Analytics Engine SQL API](https://developers.cloudflare.com/analytics/analytics-engine/sql-api/) and prints distinct instances per day, overall and by version, mode, storage backend, monitor type and notification channel type. Days are UTC, and today is still counting.
 
 The counts are exact: the SQL API supports `count(DISTINCT index1)`, and the index is the instance ID. Analytics Engine samples per index, and only an index with a high write volume is sampled. An instance sends about one ping a day (up to 101 points), so in practice none is sampled and the report ignores `_sample_interval`. Before the first ping arrives, the dataset doesn't exist and the SQL API fails the query.
+
+### Dashboard
+
+```sh
+bun run dashboard                       # same variables and --days as report
+bun run dashboard --out /tmp/t.html --no-open
+```
+
+It runs the same queries and writes `dashboard.html` (gitignored), one self-contained page that loads nothing from the network, then opens it in the browser. The page shows active installs per finished day, today so far, and bars by version, mode, storage backend, monitor type and channel type for the latest finished day, with the raw tables at the bottom. It is a snapshot: run the command again to refresh it.
 
 The deploy token is not the report token. Create the report token with only the read permission.
