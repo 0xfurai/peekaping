@@ -12,7 +12,7 @@ import {
   type UtilsApiResponseArrayHeartbeatModel,
   type TagModel,
 } from "@/api";
-import { useWebSocket, WebSocketStatus } from "@/context/websocket-context";
+import { useSocketRoom } from "@/context/websocket-context";
 import { useEffect, useState, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
@@ -144,47 +144,29 @@ const MonitorsPage = () => {
   // No more client-side filtering needed since API now supports tag filtering
   const monitors = allMonitors;
 
-  const { socket, status: socketStatus } = useWebSocket();
-
-  useEffect(() => {
-    if (!socket || socketStatus !== WebSocketStatus.CONNECTED) return;
-
-    const roomName = "monitor:all";
-
-    const handleHeartbeat = (newHeartbeat: HeartbeatModel) => {
-      queryClient.setQueryData(
-        getMonitorsByIdHeartbeatsQueryKey({
-          path: {
-            id: newHeartbeat.monitor_id!,
-          },
-          query: {
-            limit: 50,
-            reverse: true,
-          },
-        }),
-        (oldData: UtilsApiResponseArrayHeartbeatModel) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            data: [...(oldData.data || []), newHeartbeat].slice(-50),
-          };
-        }
-      );
-    };
-
-    socket.on(`${roomName}:heartbeat`, handleHeartbeat);
-    socket.emit("join_room", roomName);
-    console.log("Subscribed to heartbeat", roomName);
-
-    return () => {
-      socket.off(`${roomName}:heartbeat`, handleHeartbeat);
-      console.log("Unsubscribed from heartbeat", `${roomName}:heartbeat`);
-
-      if (socket.connected) {
-        socket.emit("leave_room", roomName);
+  // Joined again after a reconnect (PP-205), and not left while the list stays mounted
+  const handleHeartbeat = (newHeartbeat: HeartbeatModel) => {
+    queryClient.setQueryData(
+      getMonitorsByIdHeartbeatsQueryKey({
+        path: {
+          id: newHeartbeat.monitor_id!,
+        },
+        query: {
+          limit: 50,
+          reverse: true,
+        },
+      }),
+      (oldData: UtilsApiResponseArrayHeartbeatModel) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          data: [...(oldData.data || []), newHeartbeat].slice(-50),
+        };
       }
-    };
-  }, [socket, socketStatus, queryClient]);
+    );
+  };
+
+  useSocketRoom("monitor:all", "monitor:all:heartbeat", handleHeartbeat);
 
   // Infinite scroll logic using the reusable hook
   const handleObserver = useCallback(
