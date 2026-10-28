@@ -193,7 +193,7 @@ Run the full stack (backend, frontend, docs) in development mode:
 make dev
 
 # Option 2: Using Bun directly
-bun run dev docs:watch
+bun run dev
 ```
 
 - The web UI will be available at [http://localhost:8383](http://localhost:8383)

@@ -1,7 +1,6 @@
 .env
 .git
 .gitignore
-.turbo
 .vscode
 node_modules
 docker-compose.yml
