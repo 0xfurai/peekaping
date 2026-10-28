@@ -136,6 +136,23 @@ These are required in cluster mode, where the API replicas reach each other thro
 | `TRUSTED_PROXIES` | string | No | empty | Comma-separated IP addresses and CIDR ranges of the proxies whose `X-Forwarded-For` and `X-Real-IP` headers are believed, such as `127.0.0.1,10.0.0.0/8`. The login lockout counts failures per client address. A request from any other address counts as coming from the address it connected from, so with the setting empty (its own default, and the single-mode bundles' setting) no header is believed. The cluster Compose files and the Helm chart set loopback and the private ranges when it is unset, and an explicitly empty value there trusts nobody. For a request from a listed proxy, the client is the last `X-Forwarded-For` address that isn't listed here (the leftmost when all are), or `X-Real-IP` when there is no `X-Forwarded-For`; an `X-Forwarded-For` it can't read makes the client the proxy's own address. An invalid entry stops startup |
 | `CORS_ORIGINS` | string | No | empty | Comma-separated origins whose pages may read the API's responses, such as `https://status.example.com,http://localhost:8383`. Empty (the default) allows the origin of `CLIENT_URL`: its scheme, host and port, without a path. A default port (`:80` for `http`, `:443` for `https`) is left out, as browsers leave it out. A request from any other origin is still served, but its browser won't hand the response to the page. `*` alone allows any origin. Responses never allow credentials, since the API takes its token in the `Authorization` header. The web app calling the API on its own origin needs no entry. With `API_URL` set to another origin, list the web app's origin and those of your status page custom domains. `/metrics` is never readable from another origin. An entry that isn't an origin (`https://x.example/path`, `example.com`, or `*` next to other entries) stops startup |
 
+### Account Emails Configuration
+
+One sender sends the account emails of the whole install: the password reset link, the email verification link and the invite emails. It is separate from the SMTP settings of an email notification channel, which belong to the channel. Leave `ACCOUNT_SMTP_HOST` unset to switch account emails off: the sign-in page shows no "Forgot password" link, no one is asked to verify an address and invites are copied, not emailed. `GET /api/v1/auth/config` tells the web app which it is. They apply to the api and to `peekaping`.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `ACCOUNT_SMTP_HOST` | string | No | empty | The SMTP server. Setting it turns account emails on |
+| `ACCOUNT_SMTP_PORT` | int | No | `587` | The SMTP port, from 1 to 65535. Use `465` with `ACCOUNT_SMTP_TLS=tls` |
+| `ACCOUNT_SMTP_USER` | string | No | empty | The login. Empty means the server needs none |
+| `ACCOUNT_SMTP_PASSWORD` | string | No | empty | The password for `ACCOUNT_SMTP_USER`. It is masked in the startup log |
+| `ACCOUNT_SMTP_FROM` | string | When the host is set | empty | The address the emails come from, such as `no-reply@example.com` or `Peekaping <no-reply@example.com>`. A host without it stops startup |
+| `ACCOUNT_SMTP_TLS` | string | No | `starttls` | `starttls` upgrades the connection and refuses to send when the server doesn't offer it, `tls` wraps the connection in TLS from the first byte (port 465), and `none` sends in the clear, for a relay on the same host or network |
+
+Each link is a single-use token with a lifetime: a password reset link expires after one hour, a verification link after three days, and an invite after seven. The server stores only a hash of a token. Using a reset link sets the new password and ends every session of the user: refresh tokens and access tokens issued before are refused. Asking for a reset link or a new verification link is limited to 5 emails an hour per address and 20 requests an hour per client address (see `TRUSTED_PROXIES`), counted in the memory of each API replica. A request for a reset link answers the same whether or not the address has an account. The emails are in English, and the links open the web app at `CLIENT_URL`, so set it to the address people use.
+
+An install that upgrades counts its existing users as verified.
+
 ### Metrics Configuration
 
 | Variable | Type | Required | Default | Description |
@@ -172,7 +189,7 @@ The anonymous usage ping and the error reports are both on until an admin turns 
 
 The API server exposes the following endpoint groups:
 
-- `/api/v1/auth` - Authentication (login, register, logout, 2FA)
+- `/api/v1/auth` - Authentication (login, register, logout, 2FA), and with [account emails](#account-emails-configuration) the password reset (`forgot-password`, `reset-password`) and email verification (`verify-email`, `verify-email/resend`) routes. `GET /api/v1/auth/config` is public and says whether account emails are on
 - `/api/v1/monitors` - Monitor management
 - `/api/v1/heartbeats` - Heartbeat data retrieval
 - `/api/v1/notification-channels` - Notification channel configuration

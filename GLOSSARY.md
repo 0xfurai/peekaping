@@ -210,12 +210,16 @@ The limits a workspace is held to, such as how many monitors it may have and its
 _Avoid_: Tier, subscription (that's the billing record), package
 
 **Invite**:
-A link an admin or owner makes for an email address and a role. It works once, for 7 days, until it is revoked. Opening it adds the account with that email to the workspace with the invite's role, or lets someone without an account sign up as a member of that workspace, with no workspace of their own. Until the cloud can send email, the inviter copies the link. The link's token is shown once and stored only as a hash.
+A link an admin or owner makes for an email address and a role. It works once, for 7 days, until it is revoked. Opening it adds the account with that email to the workspace with the invite's role, or lets someone without an account sign up as a member of that workspace, with no workspace of their own. When the install has a sender for account emails, the link is also emailed to the invited address; the inviter can always copy it. The link's token is shown once and stored only as a hash.
 _Avoid_: Invitation, join link
 
 **Signup mode**:
 Who may create an account on an install, set with `SIGNUP_MODE`. In `invite`, the default, the first user signs up and everyone after joins a workspace through an invite. In `open` anyone may sign up, and each new user gets a workspace of their own, unless they sign up through an invite: then they join the inviting workspace instead. The cloud runs `open`.
 _Avoid_: Registration mode, signup policy
+
+**Account emails**:
+The emails an account gets: a password reset link, a verification link for its address, and an invite. One sender sends them for the whole install, set with `ACCOUNT_SMTP_*`; it is separate from the SMTP settings of an email notification channel. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
+_Avoid_: Transactional email, system email
 
 ### Deployment
 
