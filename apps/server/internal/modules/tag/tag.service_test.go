@@ -200,3 +200,25 @@ func TestTagService_ATagOfAnotherWorkspaceIsNotFoundAndLeftAlone(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, links, 1, "with its links")
 }
+
+// A tag that isn't in the workspace is not found, whatever name the request carries: the answer
+// can't depend on the names the workspace has, or it would tell who holds a name elsewhere
+// (docs/adr/0005 section 8)
+func TestTagService_AnUpdateOfAnotherWorkspacesTagIsNotFoundEvenWithANameTheWorkspaceHas(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	mine := h.create(t, "production")
+	_, err := h.svc.Create(ctx, workspacetest.Other, &tag.CreateUpdateDto{Name: "staging", Color: "#EF4444"})
+	require.NoError(t, err)
+
+	_, err = h.svc.UpdateFull(ctx, workspacetest.Other, mine.ID, &tag.CreateUpdateDto{Name: "staging", Color: "#000000"})
+	assert.ErrorIs(t, err, tag.ErrNotFound)
+	_, err = h.svc.UpdatePartial(ctx, workspacetest.Other, mine.ID, &tag.PartialUpdateDto{Name: ptr("staging")})
+	assert.ErrorIs(t, err, tag.ErrNotFound)
+	_, err = h.svc.UpdateFull(ctx, workspacetest.Other, uuid.NewString(), &tag.CreateUpdateDto{Name: "staging", Color: "#000000"})
+	assert.ErrorIs(t, err, tag.ErrNotFound, "as a tag that doesn't exist at all")
+	_, err = h.svc.UpdatePartial(ctx, workspacetest.Other, uuid.NewString(), &tag.PartialUpdateDto{Name: ptr("staging")})
+	assert.ErrorIs(t, err, tag.ErrNotFound)
+	assert.Equal(t, "production", h.find(t, mine.ID).Name)
+}

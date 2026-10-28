@@ -78,6 +78,12 @@ func (s *ServiceImpl) FindAll(
 }
 
 func (s *ServiceImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, entity *CreateUpdateDto) (*Model, error) {
+	// The tag comes first: a tag of another workspace is not found whatever name the request has,
+	// or the answer would tell what names this workspace holds (docs/adr/0005 section 8)
+	if err := s.requireTag(ctx, workspaceID, id); err != nil {
+		return nil, err
+	}
+
 	// Check if another tag of the workspace has the same name (exclude current tag)
 	existingTag, err := s.repository.FindByName(ctx, workspaceID, entity.Name)
 	if err != nil {
@@ -103,6 +109,10 @@ func (s *ServiceImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, 
 }
 
 func (s *ServiceImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *PartialUpdateDto) (*Model, error) {
+	if err := s.requireTag(ctx, workspaceID, id); err != nil {
+		return nil, err
+	}
+
 	// Check if another tag of the workspace has the same name (exclude current tag)
 	if entity.Name != nil {
 		existingTag, err := s.repository.FindByName(ctx, workspaceID, *entity.Name)
@@ -135,6 +145,18 @@ func (s *ServiceImpl) UpdatePartial(ctx context.Context, workspaceID workspace.I
 	}
 
 	return updatedModel, nil
+}
+
+// requireTag is ErrNotFound unless the tag is in the workspace
+func (s *ServiceImpl) requireTag(ctx context.Context, workspaceID workspace.ID, id string) error {
+	found, err := s.repository.FindByID(ctx, workspaceID, id)
+	if err != nil {
+		return err
+	}
+	if found == nil {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (s *ServiceImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
