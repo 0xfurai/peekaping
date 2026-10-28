@@ -50,7 +50,7 @@ type Member struct {
 	JoinedAt time.Time `json:"joinedAt"`
 }
 
-// Invite is an invitation to a workspace. The token is not part of it: the invite stores a hash.
+// Invite is a link that lets one email address join a workspace. The token is not part of it: the invite stores a hash.
 type Invite struct {
 	ID            string
 	WorkspaceID   ID
