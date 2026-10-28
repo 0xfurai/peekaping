@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Fixed
+
+## [0.1.0] - 2026-10-28
+
+### Added
+
+### Changed
+
 - chore: the Helm chart's bundled PostgreSQL and Redis (off by default) move to the Bitnami subcharts `postgresql` 18.12.16 and `redis` 28.3.10, with the latest PostgreSQL 18.6.0 and Redis 8.10.3 images
 - chore: 0.1.0 takes the place of 0.0.49. It is the last release that also publishes the single-mode image under its old name, `peekaping-bundle-sqlite`, as 0.0.48 promised for 0.0.49
   - Upgrade note: switch `peekaping-bundle-sqlite` to `peekaping` in your compose file or `docker run` line. The old name gets no tags after 0.1.0. See [Upgrading to single mode](apps/docs/docs/self-hosting/upgrading-to-single-mode.md)
