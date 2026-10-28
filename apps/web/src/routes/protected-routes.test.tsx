@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { Routes } from "react-router-dom";
+import type { QueryClient } from "@tanstack/react-query";
+import { getMeQueryKey, getMonitorsQueryKey } from "@/api/@tanstack/react-query.gen";
 import { renderAs, text, WORKSPACE_ID } from "@/test-support/render-with-me";
 import { protectedRoutes } from "./protected-routes";
 
@@ -42,6 +44,17 @@ describe("protected routes", () => {
       const html = renderAs({ instanceAdmin: true, role: "owner" }, <Routes>{protectedRoutes}</Routes>, path);
       expect(html).toContain('data-redirect="/admin/users"');
     }
+  });
+
+  it("opens the admin area with no workspace's data in the cache, so that the way back to another workspace shows none of it", () => {
+    let cache: QueryClient | undefined;
+    renderAs({ instanceAdmin: true, role: "owner" }, <Routes>{protectedRoutes}</Routes>, "/admin/users", (queryClient) => {
+      cache = queryClient;
+      queryClient.setQueryData(getMonitorsQueryKey(), { data: [{ id: "m1" }] });
+    });
+    expect(cache?.getQueryData(getMonitorsQueryKey())).toBeUndefined();
+    // Who is signed in is not a workspace's data
+    expect(cache?.getQueryData(getMeQueryKey())).toBeDefined();
   });
 
   it.each(["/admin", "/admin/users", "/admin/probes", "/admin/probes/22222222-2222-4222-8222-222222222222"])(
