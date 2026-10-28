@@ -9,6 +9,11 @@ jobs:
   check:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: nexus-runner
+    strategy:
+      fail-fast: false
+      matrix:
+        job: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    name: check ${{ matrix.job }}
     steps:
       - uses: actions/checkout@v4
       - name: Runner info
@@ -17,3 +22,8 @@ jobs:
           uname -a
           df -h .
           docker version || true
+      - name: Hold the runner so jobs overlap
+        run: |
+          date -u +%T
+          sleep 60
+          date -u +%T
