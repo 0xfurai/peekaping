@@ -55,6 +55,7 @@ export type ApiKeyUpdateApiKeyDto = {
 
 export type AuthAuthConfigResponse = {
   accountEmails: boolean;
+  firstSignup: boolean;
   signupMode: "invite" | "open";
   signupOpen: boolean;
   turnstileSiteKey: string | null;
