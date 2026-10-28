@@ -2535,6 +2535,10 @@ export type PutErrorReportingErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5501,6 +5505,10 @@ export type PutTelemetryErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5530,6 +5538,10 @@ export type PostTelemetryNoticeErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
   /**
    * Internal Server Error
    */
