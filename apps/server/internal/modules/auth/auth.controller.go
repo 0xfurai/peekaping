@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
@@ -71,22 +72,52 @@ func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx
 
 	response, err := c.service.Register(ctx, dto)
 	if err != nil {
-		c.logger.Errorw("Failed to register admin", "error", err)
 		if errors.Is(err, ErrAdminExists) {
+			c.logger.Infow("Registration refused: the install has its admin already")
 			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		}
-		if errors.Is(err, ErrEmailTaken) {
-			return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email exists: sign in and accept the invite"))
+		// An invite that doesn't exist, can't be used or names another email is the visitor's
+		// problem, not the server's: it is logged as the refusal it is, without the token
+		if reason := inviteRefusal(err); reason != "" {
+			c.logger.Infow("Invite refused: " + reason)
+			if errors.Is(err, ErrEmailTaken) {
+				return nil, httpx.Fail(http.StatusConflict, utils.NewFailResponse("An account with this email exists: sign in and accept the invite"))
+			}
+			if answer := workspacehttp.Fail(err); answer != nil {
+				return nil, answer
+			}
 		}
-		// An invite that doesn't exist, can't be used or names another email
-		if answer := workspacehttp.Fail(err); answer != nil {
-			return nil, answer
-		}
+		c.logger.Errorw("Failed to register", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
 	}
 
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("User registered successfully", response))
 }
+
+// inviteRefusal says why a signup through an invite was refused, or returns "" for a failure
+// that is not a refusal
+func inviteRefusal(err error) string {
+	switch {
+	case errors.Is(err, workspace.ErrInviteUsed):
+		return "already used"
+	case errors.Is(err, workspace.ErrInviteExpired):
+		return "expired"
+	case errors.Is(err, workspace.ErrInviteRevoked):
+		return "revoked"
+	case errors.Is(err, workspace.ErrInviteUnavailable):
+		return "can't be used"
+	case errors.Is(err, workspace.ErrInviteNotFound):
+		return "not found"
+	case errors.Is(err, workspace.ErrInviteEmailMismatch):
+		return "for another email address"
+	case errors.Is(err, workspace.ErrAlreadyMember):
+		return "already a member of the workspace"
+	case errors.Is(err, ErrEmailTaken):
+		return "an account with this email exists"
+	}
+	return ""
+}
+
 func (c *Controller) Login(ctx context.Context, input *LoginInput) (*httpx.Output[utils.ApiResponse[*LoginResponse]], error) {
 	dto, decodeErr := input.Decode()
 	if err := decodeErr; err != nil {
