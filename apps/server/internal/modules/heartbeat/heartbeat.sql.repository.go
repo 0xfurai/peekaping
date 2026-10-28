@@ -6,6 +6,7 @@ import (
 
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -239,15 +240,39 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 // large backlog never holds SQLite's single connection for long.
 const deleteBatchSize = 5000
 
-// DeleteOlderThan deletes the oldest heartbeats in batches through
-// idx_heartbeats_time, so each batch reads only the rows it deletes, whatever
-// order they were written in.
-func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
+// DeleteOlderThan deletes the heartbeats of the workspace's monitors older than cutoff, one monitor
+// at a time and in batches, so each batch is served by the (monitor_id, time) index and reads only
+// the rows it deletes, whatever order they were written in. Going through idx_heartbeats_time with
+// the workspace's monitors as a filter would walk the old rows of every other workspace first.
+func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, workspaceID workspace.ID, cutoff time.Time) (int64, error) {
+	var monitorIDs []string
+	err := r.db.NewSelect().
+		TableExpr("monitors").
+		Column("id").
+		Where("workspace_id = ?", string(workspaceID)).
+		Scan(ctx, &monitorIDs)
+	if err != nil {
+		return 0, err
+	}
+	var deleted int64
+	for _, monitorID := range monitorIDs {
+		n, err := r.deleteMonitorOlderThan(ctx, monitorID, cutoff)
+		deleted += n
+		if err != nil {
+			return deleted, err
+		}
+	}
+	return deleted, nil
+}
+
+// deleteMonitorOlderThan deletes the monitor's heartbeats older than cutoff, deleteBatchSize at a time
+func (r *SQLRepositoryImpl) deleteMonitorOlderThan(ctx context.Context, monitorID string, cutoff time.Time) (int64, error) {
 	var deleted int64
 	for {
 		batch := r.db.NewSelect().
 			Model((*sqlModel)(nil)).
 			Column("id").
+			Where("monitor_id = ?", monitorID).
 			Where("time < ?", cutoff).
 			OrderExpr("time").
 			Limit(deleteBatchSize)

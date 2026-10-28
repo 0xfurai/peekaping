@@ -55,7 +55,16 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) Create(ctx context.Context, name string) (*Workspace, error) {
 	now := time.Now().UTC()
 	sm := &sqlModel{ID: uuid.NewString(), Name: name, CreatedAt: now, UpdatedAt: now}
-	if _, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Exec(ctx); err != nil {
+	// The workspace and its settings are made together, in the transaction the context carries or
+	// one of their own
+	err := dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
+		q := dbtx.DB(ctx, r.db)
+		if _, err := q.NewInsert().Model(sm).Exec(ctx); err != nil {
+			return err
+		}
+		return insertDefaultSettings(ctx, q, ID(sm.ID))
+	})
+	if err != nil {
 		return nil, err
 	}
 	return sm.toDomain(), nil
@@ -100,4 +109,16 @@ func (r *SQLRepositoryImpl) FindOldest(ctx context.Context) (*Workspace, error) 
 		return nil, err
 	}
 	return sm.toDomain(), nil
+}
+
+func (r *SQLRepositoryImpl) ListIDsAnyWorkspace(ctx context.Context) ([]ID, error) {
+	var ids []string
+	if err := dbtx.DB(ctx, r.db).NewSelect().Table("workspaces").Column("id").Order("created_at", "id").Scan(ctx, &ids); err != nil {
+		return nil, err
+	}
+	out := make([]ID, len(ids))
+	for i, id := range ids {
+		out[i] = ID(id)
+	}
+	return out, nil
 }

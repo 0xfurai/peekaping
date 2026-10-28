@@ -3,115 +3,94 @@ package cleanup
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
-	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/reporting"
 
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
 
-// unsetDataRetentionDays is the data retention period of an install that never
-// stored one. It was the default for every install before newInstallDataRetentionDays,
-// so upgrading keeps their heartbeats as long as before.
-const unsetDataRetentionDays = 365
-
-// newInstallDataRetentionDays is the data retention period a new install starts with.
-const newInstallDataRetentionDays = 180
-
-// initDataRetentionPeriod stores newInstallDataRetentionDays when no period is
-// stored and the install has neither an admin nor a heartbeat yet, which is
-// only true before its first setup. An install set up before that default, even
-// one whose heartbeats were all deleted since, keeps unsetDataRetentionDays.
-func initDataRetentionPeriod(heartbeatService heartbeat.Service, userRepository auth.Repository, settingService setting.Service, logger *zap.SugaredLogger) {
-	ctx := context.Background()
-	stored, err := settingService.GetByKey(ctx, setting.DataRetentionPeriodKey)
+// workspaceCutoff is the start of the workspace's data retention period: what is older is past
+// it. The workspace's own period decides (docs/adr/0005 section 4). A workspace that has none
+// stored keeps 365 days, as an install does that never stored one. It returns false, and logs why,
+// when the period can't be read or holds a value the settings API would have refused; what names
+// the data that is then left alone: falling back to a default could delete data its users meant to
+// keep.
+func workspaceCutoff(ctx context.Context, workspaceSettings setting.WorkspaceService, id workspace.ID, what string, logger *zap.SugaredLogger) (time.Time, bool) {
+	stored, err := workspaceSettings.GetByKey(ctx, id, setting.DataRetentionPeriodKey)
 	if err != nil {
-		logger.Errorw("Failed to read the data retention period", "error", err)
-		return
-	}
-	if stored != nil {
-		return
-	}
-	users, err := userRepository.FindAllCount(ctx)
-	if err != nil {
-		logger.Errorw("Failed to count users, not storing a data retention period", "error", err)
-		return
-	}
-	if users > 0 {
-		return
-	}
-	hasHeartbeats, err := heartbeatService.HasAny(ctx)
-	if err != nil {
-		logger.Errorw("Failed to check for heartbeats, not storing a data retention period", "error", err)
-		return
-	}
-	if hasHeartbeats {
-		return
-	}
-	_, err = settingService.SetByKey(ctx, setting.DataRetentionPeriodKey, &setting.Model{
-		Value: strconv.Itoa(newInstallDataRetentionDays),
-		Type:  "int",
-	})
-	if err != nil {
-		logger.Errorw("Failed to store the data retention period", "error", err)
-		return
-	}
-	logger.Infow("Stored the data retention period for a new install", "days", newInstallDataRetentionDays)
-}
-
-// dataRetentionCutoff is the start of the data retention period: what is older is past it. It
-// returns false, and logs why, when the period can't be read; what names the data that is then
-// left alone.
-func dataRetentionCutoff(settingService setting.Service, what string, logger *zap.SugaredLogger) (time.Time, bool) {
-	keepDays := unsetDataRetentionDays
-	settingModel, err := settingService.GetByKey(context.Background(), setting.DataRetentionPeriodKey)
-	if err != nil {
-		logger.Errorw("Failed to fetch KEEP_DATA_PERIOD_DAYS setting, not deleting "+what, "error", err)
+		logger.Errorw("Failed to fetch KEEP_DATA_PERIOD_DAYS setting, not deleting "+what, "workspace", id, "error", err)
 		return time.Time{}, false
 	}
-	if settingModel != nil {
-		keepDays, err = setting.ParseDataRetentionPeriod(settingModel.Value)
+	keepDays := setting.DefaultDataRetentionDays
+	if stored != nil {
+		keepDays, err = setting.ParseDataRetentionPeriod(stored.Value)
 		if err != nil {
-			// A value stored before the settings API checked it. Falling back to
-			// a default could delete data the user meant to keep.
-			logger.Errorw("Invalid KEEP_DATA_PERIOD_DAYS value, not deleting "+what, "value", settingModel.Value, "error", err)
+			// A value stored before the settings API checked it.
+			logger.Errorw("Invalid KEEP_DATA_PERIOD_DAYS value, not deleting "+what, "workspace", id, "value", stored.Value, "error", err)
 			return time.Time{}, false
 		}
 	}
 	return time.Now().UTC().AddDate(0, 0, -keepDays), true
 }
 
-func cleanupHeartbeats(heartbeatService heartbeat.Service, settingService setting.Service, logger *zap.SugaredLogger) {
-	cutoff, ok := dataRetentionCutoff(settingService, "heartbeats", logger)
-	if !ok {
-		return
-	}
-	deleted, err := heartbeatService.DeleteOlderThan(context.Background(), cutoff)
+// cleanupHeartbeats goes through the workspaces and deletes each one's heartbeats older than its own
+// data retention period. A workspace whose period can't be used is skipped, and the others go on.
+func cleanupHeartbeats(heartbeatService heartbeat.Service, workspaces workspace.Repository, workspaceSettings setting.WorkspaceService, logger *zap.SugaredLogger) {
+	ctx := context.Background()
+	ids, err := workspaces.ListIDsAnyWorkspace(ctx)
 	if err != nil {
-		logger.Errorw("Failed to delete old heartbeats", "error", err)
+		logger.Errorw("Failed to list the workspaces, not deleting heartbeats", "error", err)
 		return
 	}
-	logger.Infow("Deleted old heartbeats", "count", deleted, "cutoff", cutoff)
+	for _, id := range ids {
+		cutoff, ok := workspaceCutoff(ctx, workspaceSettings, id, "heartbeats", logger)
+		if !ok {
+			continue
+		}
+		deleted, err := heartbeatService.DeleteOlderThan(ctx, id, cutoff)
+		if err != nil {
+			logger.Errorw("Failed to delete old heartbeats", "workspace", id, "error", err)
+			continue
+		}
+		logger.Infow("Deleted old heartbeats", "workspace", id, "count", deleted, "cutoff", cutoff)
+	}
 }
 
-// cleanupProbeStatusChanges deletes the probes' status changes past the data retention period,
-// except each probe's latest one before it, so that the status of a probe at the start of any
-// range is still known.
-func cleanupProbeStatusChanges(probeService probe.Service, settingService setting.Service, logger *zap.SugaredLogger) {
-	cutoff, ok := dataRetentionCutoff(settingService, "probe status changes", logger)
-	if !ok {
+// cleanupProbeStatusChanges deletes the probes' status changes past the longest data retention
+// period of the workspaces, except each probe's latest one before it, so that the status of a probe
+// at the start of any range is still known. Probes belong to the install, so no one workspace's
+// period decides. One with none stored counts as 365 days. If any workspace's period can't be used,
+// the run deletes nothing: that period might be the longest, so no cutoff is a safe guess.
+func cleanupProbeStatusChanges(probeService probe.Service, workspaces workspace.Repository, workspaceSettings setting.WorkspaceService, logger *zap.SugaredLogger) {
+	ctx := context.Background()
+	ids, err := workspaces.ListIDsAnyWorkspace(ctx)
+	if err != nil {
+		logger.Errorw("Failed to list the workspaces, not deleting probe status changes", "error", err)
 		return
 	}
-	deleted, err := probeService.DeleteStatusChangesOlderThan(context.Background(), cutoff)
+	var cutoff time.Time
+	for i, id := range ids {
+		workspaceCut, ok := workspaceCutoff(ctx, workspaceSettings, id, "probe status changes", logger)
+		if !ok {
+			return
+		}
+		if i == 0 || workspaceCut.Before(cutoff) {
+			cutoff = workspaceCut
+		}
+	}
+	if len(ids) == 0 {
+		return
+	}
+	deleted, err := probeService.DeleteStatusChangesOlderThan(ctx, cutoff)
 	if err != nil {
 		logger.Errorw("Failed to delete old probe status changes", "error", err)
 		return
@@ -156,10 +135,10 @@ func cleanupMonitorTLSInfo(tlsInfoService monitor_tls_info.Service, olderThanDay
 // test can make the scheduling fail.
 var hourlySpec = "0 * * * *"
 
-// StartCleanupCron stores the data retention period of a new install, then schedules the
-// hourly cleanup: the heartbeats and the probes' status changes past the data retention period,
-// the expired stats, the old notification history and the old TLS info. It returns an error if the cleanup can't be
-// scheduled, and then nothing runs.
+// StartCleanupCron schedules the hourly cleanup: the heartbeats past the data retention period of
+// their workspace, the probes' status changes past the longest of those periods, the expired
+// stats, the old notification history and the old TLS info. It returns an error if the cleanup
+// can't be scheduled, and then nothing runs.
 //
 // Every process that calls it fires at the top of the hour, so in cluster mode, where several
 // api replicas do, the cleanup runs under lock: the first replica to claim the hour runs it and
@@ -169,8 +148,8 @@ var hourlySpec = "0 * * * *"
 // job running then has finished.
 func StartCleanupCron(
 	heartbeatService heartbeat.Service,
-	userRepository auth.Repository,
-	settingService setting.Service,
+	workspaces workspace.Repository,
+	workspaceSettings setting.WorkspaceService,
 	statsService stats.Service,
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
@@ -179,11 +158,10 @@ func StartCleanupCron(
 	retention Retention,
 	logger *zap.SugaredLogger,
 ) (*cron.Cron, error) {
-	initDataRetentionPeriod(heartbeatService, userRepository, settingService, logger)
-
 	hourly := &hourlyCleanup{
 		heartbeats:          heartbeatService,
-		settings:            settingService,
+		workspaces:          workspaces,
+		workspaceSettings:   workspaceSettings,
 		stats:               statsService,
 		notificationHistory: notificationHistoryService,
 		tlsInfo:             tlsInfoService,

@@ -3,7 +3,10 @@ package mongoimport
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
+
+	"peekaping/internal/modules/workspace"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -67,10 +70,28 @@ type settingRow struct {
 	UpdatedAt time.Time `bun:"updated_at"`
 }
 
+type workspaceSettingRow struct {
+	WorkspaceID string    `bun:"workspace_id"`
+	Key         string    `bun:"key" max:"255"`
+	Value       string    `bun:"value"`
+	Type        string    `bun:"type" max:"50"`
+	CreatedAt   time.Time `bun:"created_at"`
+	UpdatedAt   time.Time `bun:"updated_at"`
+}
+
+// unsetDataRetentionDays is the data retention period of an install that never stored one: the
+// value it used when the setting was unset, which an upgrade keeps (docs/adr/0005 section 5)
+const unsetDataRetentionDays = "365"
+
 // copySettings copies the settings, including the JWT signing secrets, without
 // which every session and refresh token would stop working. A setting is
 // upserted by its key, so a key should have one document. If it has more, the
 // one saved last wins.
+//
+// The data retention period and the certificate expiry notification days belong to a workspace,
+// so they go to the settings of the install's workspace, replacing the defaults it started with.
+// An install that never stored a data retention period keeps 365 days there, as an upgrade does.
+// An install with no workspace has nothing to hold them, and they are left out.
 //
 // The target may have been started once, which writes its own default settings
 // with new JWT signing secrets. They are deleted first, so that the install's
@@ -118,16 +139,48 @@ func (c *copier) copySettings(ctx context.Context) error {
 		return err
 	}
 	out := newBatcher[settingRow](c.tx, "settings", report)
+	workspaceOut := newBatcher[workspaceSettingRow](c.tx, "workspace_settings", report)
 	stored := map[string]bool{}
+	workspaceKeys := []string{workspace.DataRetentionPeriodKey, workspace.CertExpiryNotifyDaysKey}
 	for _, key := range keys {
 		winner := chosen[key]
+		if slices.Contains(workspaceKeys, key) {
+			if c.workspaceID == "" {
+				report.skip("a workspace setting, and the install has no workspace")
+				continue
+			}
+			created, updated := stamps(report, winner.d, winner.id, "created_at", "updated_at")
+			if _, err := c.tx.ExecContext(ctx, "DELETE FROM workspace_settings WHERE workspace_id = ? AND key = ?", string(c.workspaceID), key); err != nil {
+				return fmt.Errorf("replace the default %s of the workspace: %w", key, err)
+			}
+			err := workspaceOut.add(ctx, workspaceSettingRow{WorkspaceID: string(c.workspaceID), Key: key, Value: winner.d.str("value"), Type: winner.d.str("type"), CreatedAt: created, UpdatedAt: updated})
+			if err != nil {
+				return err
+			}
+			continue
+		}
 		created, updated := stamps(report, winner.d, winner.id, "created_at", "updated_at")
 		row := settingRow{Key: c.uniqueText(report, "key", stored, key, 255), Value: winner.d.str("value"), Type: winner.d.str("type"), CreatedAt: created, UpdatedAt: updated}
 		if err := out.add(ctx, row); err != nil {
 			return err
 		}
 	}
-	return out.flush(ctx)
+	if err := out.flush(ctx); err != nil {
+		return err
+	}
+	if err := workspaceOut.flush(ctx); err != nil {
+		return err
+	}
+	if c.workspaceID != "" {
+		if _, stored := chosen[workspace.DataRetentionPeriodKey]; !stored {
+			_, err := c.tx.ExecContext(ctx, "UPDATE workspace_settings SET value = ? WHERE workspace_id = ? AND key = ?", unsetDataRetentionDays, string(c.workspaceID), workspace.DataRetentionPeriodKey)
+			if err != nil {
+				return fmt.Errorf("keep the data retention period of an install that never stored one: %w", err)
+			}
+			c.report.note("the install never stored a data retention period, so the workspace keeps %s days, as an upgraded install does", unsetDataRetentionDays)
+		}
+	}
+	return nil
 }
 
 type apiKeyRow struct {

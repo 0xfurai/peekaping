@@ -144,7 +144,7 @@ These are required in cluster mode, where the API replicas reach each other thro
 
 ### Cleanup Configuration
 
-Every hour, at the top of the hour in UTC, the API server deletes the heartbeats older than the data retention period (a setting in the web app), the expired stats, the old notification history and the old TLS information. The two variables below set how long the last two are kept.
+Every hour, at the top of the hour in UTC, the API server deletes the heartbeats older than the data retention period, the expired stats, the old notification history and the old TLS information. The data retention period is set per workspace, in Settings, by an admin or owner, and an upgrade keeps the install's value for its one workspace. The two variables below set how long the last two are kept.
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|

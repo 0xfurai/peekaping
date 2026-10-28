@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 	"slices"
 	"strings"
 	"time"
@@ -17,14 +18,17 @@ import (
 )
 
 type Service interface {
-	CheckCertificateExpiry(ctx context.Context, tlsInfo *TLSInfo, monitorID string, monitorName string) error
+	// CheckCertificateExpiry sends the notifications for the certificate of a monitor of the
+	// workspace that are due at the days the workspace asks for
+	CheckCertificateExpiry(ctx context.Context, workspaceID workspace.ID, tlsInfo *TLSInfo, monitorID string, monitorName string) error
 	UpdateTLSInfo(ctx context.Context, monitorID string, tlsInfo *TLSInfo) error
-	GetNotificationDays(ctx context.Context) ([]int, error)
-	SetNotificationDays(ctx context.Context, days []int) error
+	// GetNotificationDays returns the certificate expiry notification days of the workspace
+	GetNotificationDays(ctx context.Context, workspaceID workspace.ID) ([]int, error)
+	SetNotificationDays(ctx context.Context, workspaceID workspace.ID, days []int) error
 }
 
 type ServiceImpl struct {
-	settingService             shared.SettingService
+	settingService             shared.WorkspaceSettingService
 	notificationService        NotificationService
 	notificationHistoryService notification_sent_history.Service
 	tlsInfoService             monitor_tls_info.Service
@@ -37,7 +41,7 @@ type NotificationService interface {
 }
 
 func NewService(
-	settingService shared.SettingService,
+	settingService shared.WorkspaceSettingService,
 	notificationService NotificationService,
 	notificationHistoryService notification_sent_history.Service,
 	tlsInfoService monitor_tls_info.Service,
@@ -53,14 +57,14 @@ func NewService(
 }
 
 // CheckCertificateExpiry checks certificate expiry and sends notifications if needed
-func (s *ServiceImpl) CheckCertificateExpiry(ctx context.Context, tlsInfo *TLSInfo, monitorID string, monitorName string) error {
+func (s *ServiceImpl) CheckCertificateExpiry(ctx context.Context, workspaceID workspace.ID, tlsInfo *TLSInfo, monitorID string, monitorName string) error {
 	if tlsInfo == nil || tlsInfo.CertInfo == nil {
 		s.logger.Debug("No TLS info or certificate info available")
 		return nil
 	}
 
-	// Get notification days from settings
-	notifyDays, err := s.GetNotificationDays(ctx)
+	// The days are those of the monitor's workspace
+	notifyDays, err := s.GetNotificationDays(ctx, workspaceID)
 	if err != nil {
 		s.logger.Errorf("Failed to get notification days: %v", err)
 		return err
@@ -191,22 +195,19 @@ func (s *ServiceImpl) storeTLSInfo(ctx context.Context, monitorID string, tlsInf
 	return nil
 }
 
-// GetNotificationDays retrieves the certificate expiry notification days from settings
-func (s *ServiceImpl) GetNotificationDays(ctx context.Context) ([]int, error) {
-	const settingKey = "cert_expiry_notify_days"
+// GetNotificationDays retrieves the certificate expiry notification days from the workspace's settings
+func (s *ServiceImpl) GetNotificationDays(ctx context.Context, workspaceID workspace.ID) ([]int, error) {
+	const settingKey = workspace.CertExpiryNotifyDaysKey
 
-	setting, err := s.settingService.GetByKey(ctx, settingKey)
+	setting, err := s.settingService.GetByKey(ctx, workspaceID, settingKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get certificate notification days setting: %w", err)
 	}
 
-	// If setting doesn't exist, initialize with default values
+	// A workspace that has none stored uses the defaults. They are not stored here: the check
+	// reads this on every result.
 	if setting == nil {
-		defaultDays := []int{7, 14, 21}
-		if err := s.SetNotificationDays(ctx, defaultDays); err != nil {
-			s.logger.Errorf("Failed to initialize default notification days: %v", err)
-		}
-		return defaultDays, nil
+		return []int{7, 14, 21}, nil
 	}
 
 	// Parse the JSON array from the setting value
@@ -220,9 +221,9 @@ func (s *ServiceImpl) GetNotificationDays(ctx context.Context) ([]int, error) {
 	return days, nil
 }
 
-// SetNotificationDays sets the certificate expiry notification days in settings
-func (s *ServiceImpl) SetNotificationDays(ctx context.Context, days []int) error {
-	const settingKey = "cert_expiry_notify_days"
+// SetNotificationDays sets the certificate expiry notification days in the workspace's settings
+func (s *ServiceImpl) SetNotificationDays(ctx context.Context, workspaceID workspace.ID, days []int) error {
+	const settingKey = workspace.CertExpiryNotifyDaysKey
 
 	// Convert to JSON
 	jsonData, err := json.Marshal(days)
@@ -236,7 +237,7 @@ func (s *ServiceImpl) SetNotificationDays(ctx context.Context, days []int) error
 		Type:  "json",
 	}
 
-	_, err = s.settingService.SetByKey(ctx, settingKey, model)
+	_, err = s.settingService.SetByKey(ctx, workspaceID, settingKey, model)
 	if err != nil {
 		return fmt.Errorf("failed to save notification days setting: %w", err)
 	}
@@ -279,8 +280,8 @@ func extractCommonName(subject string) string {
 }
 
 // Helper function to check if certificate expiry notification is enabled
-func (s *ServiceImpl) IsExpiryNotificationEnabled(ctx context.Context) bool {
-	days, err := s.GetNotificationDays(ctx)
+func (s *ServiceImpl) IsExpiryNotificationEnabled(ctx context.Context, workspaceID workspace.ID) bool {
+	days, err := s.GetNotificationDays(ctx, workspaceID)
 	if err != nil {
 		s.logger.Errorf("Failed to check if expiry notification is enabled: %v", err)
 		return false

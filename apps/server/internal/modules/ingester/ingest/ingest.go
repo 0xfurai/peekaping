@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace/workspaceid"
 )
 
 // Result is the outcome of one check, or of one push to a push monitor, with the monitor
@@ -20,8 +21,12 @@ type Result struct {
 	// InstanceID is the probe instance that ran the check, from the probe protocol's
 	// X-Probe-Instance header. Empty for what no probe instance ran: the peekaping process's own
 	// checks in single mode, and pushes. The heartbeat then stores no instance.
-	InstanceID        string
-	MonitorID         string
+	InstanceID string
+	MonitorID  string
+	// WorkspaceID is the workspace of the monitor, for what the ingest logic reads of the
+	// workspace without loading the monitor: the certificate expiry days. The results a remote
+	// probe sends carry none; the server builds its own from the monitor.
+	WorkspaceID       workspaceid.ID
 	MonitorName       string
 	MonitorType       string
 	MonitorInterval   int

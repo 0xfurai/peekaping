@@ -3,6 +3,8 @@ package shared
 import (
 	"context"
 	"time"
+
+	"peekaping/internal/modules/workspace/workspaceid"
 )
 
 // Keys of the JWT signing secrets. Releases before the settings API was
@@ -31,6 +33,16 @@ type SettingService interface {
 	CreateIfAbsent(ctx context.Context, key string, entity *SettingModel) (*SettingModel, error)
 	DeleteByKey(ctx context.Context, key string) error
 	InitializeSettings(ctx context.Context) error
+}
+
+// WorkspaceSettingService stores the settings that belong to a workspace, such as its data
+// retention period (docs/adr/0005 section 5). The workspace is an argument of every method: a
+// caller serving a request passes the request's workspace, and background work passes the
+// workspace of the monitor it works on.
+type WorkspaceSettingService interface {
+	GetByKey(ctx context.Context, workspaceID workspaceid.ID, key string) (*SettingModel, error)
+	SetByKey(ctx context.Context, workspaceID workspaceid.ID, key string, entity *SettingModel) (*SettingModel, error)
+	DeleteByKey(ctx context.Context, workspaceID workspaceid.ID, key string) error
 }
 
 type SettingModel struct {

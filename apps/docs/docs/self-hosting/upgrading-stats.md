@@ -23,7 +23,7 @@ The integrity check must print `ok`. The `mode=rw` URI requires an existing data
 
 ### How much history survives
 
-The migration rebuilds stats from the heartbeats still in the database. History whose raw heartbeats have already expired cannot be reconstructed. The data retention period (`KEEP_DATA_PERIOD_DAYS`) controls heartbeat retention; an existing install without a saved setting uses 365 days.
+The migration rebuilds stats from the heartbeats still in the database. History whose raw heartbeats have already expired cannot be reconstructed. The data retention period (`KEEP_DATA_PERIOD_DAYS`) controls heartbeat retention; an existing install without a saved setting uses 365 days. The period is set per workspace, in Settings, by an admin or owner, and an upgrade keeps the install's value for its one workspace.
 
 After a successful rebuild, the migration drops the old `stats` table. Its rows mixed minute, hour and day counts, so they cannot provide accurate replacement buckets. Keep the pre-upgrade backup if you need to retain those original rows.
 

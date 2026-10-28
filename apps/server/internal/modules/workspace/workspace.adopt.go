@@ -51,7 +51,8 @@ func AdoptExistingInstall(ctx context.Context, q bun.IDB) (*Adoption, error) {
 	return &Adoption{Workspace: *created, Owners: owners}, nil
 }
 
-// CreateFirst adds the first workspace of an install, named FirstWorkspaceName, with no member. It
+// CreateFirst adds the first workspace of an install, named FirstWorkspaceName, with no member and
+// with the settings of a new workspace (NewWorkspaceDefaults). It
 // is for the code that fills a database with an install's data and needs the workspace before the
 // records that belong to it, such as the importer of a MongoDB install: that one adds the members
 // with AdoptUsers once it has copied the users.
@@ -59,6 +60,9 @@ func CreateFirst(ctx context.Context, q bun.IDB) (*Workspace, error) {
 	now := time.Now().UTC()
 	sm := &sqlModel{ID: uuid.NewString(), Name: FirstWorkspaceName, CreatedAt: now, UpdatedAt: now}
 	if _, err := q.NewInsert().Model(sm).Exec(ctx); err != nil {
+		return nil, err
+	}
+	if err := insertDefaultSettings(ctx, q, ID(sm.ID)); err != nil {
 		return nil, err
 	}
 	return sm.toDomain(), nil
