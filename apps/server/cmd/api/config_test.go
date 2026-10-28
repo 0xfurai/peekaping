@@ -329,3 +329,36 @@ func TestBlockPrivateTargetsIsOffByDefaultAndLoadedFromTheEnvironment(t *testing
 	require.NoError(t, err)
 	assert.True(t, cfg.ToInternalConfig().BlockPrivateTargets)
 }
+
+func TestAPIRateLimitsAreOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("API_RATE_LIMIT_PER_WORKSPACE", "")
+	t.Setenv("API_RATE_LIMIT_PER_API_KEY", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Zero(t, cfg.ToInternalConfig().APIRateLimitPerWorkspace)
+	assert.Zero(t, cfg.ToInternalConfig().APIRateLimitPerAPIKey)
+
+	t.Setenv("API_RATE_LIMIT_PER_WORKSPACE", "600")
+	t.Setenv("API_RATE_LIMIT_PER_API_KEY", "120")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 600, cfg.ToInternalConfig().APIRateLimitPerWorkspace)
+	assert.Equal(t, 120, cfg.ToInternalConfig().APIRateLimitPerAPIKey)
+}
+
+func TestANegativeAPIRateLimitStopsStartup(t *testing.T) {
+	for _, name := range []string{"API_RATE_LIMIT_PER_WORKSPACE", "API_RATE_LIMIT_PER_API_KEY"} {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("DB_TYPE", "sqlite")
+			t.Setenv("DB_NAME", "peekaping.db")
+			t.Setenv(name, "-1")
+
+			_, err := LoadAndValidate(t.TempDir())
+
+			assert.ErrorContains(t, err, "must be at least 0")
+		})
+	}
+}

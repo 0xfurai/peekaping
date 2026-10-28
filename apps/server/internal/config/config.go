@@ -183,6 +183,15 @@ type Config struct {
 	// install monitors its own network; the cloud turns it on. A remote probe blocks when its own
 	// setting is on or the server's is, which the server states in hello.
 	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
+
+	// APIRateLimitPerWorkspace and APIRateLimitPerAPIKey cap the requests a workspace, and one of
+	// its API keys, may make per minute (PP-159). 0, the default, is off. A request over either
+	// answers 429 with Retry-After. Each api replica counts for itself (see package ratelimit).
+	APIRateLimitPerWorkspace int `env:"API_RATE_LIMIT_PER_WORKSPACE" validate:"min=0" default:"0"`
+	APIRateLimitPerAPIKey    int `env:"API_RATE_LIMIT_PER_API_KEY" validate:"min=0" default:"0"`
+	// APIRateLimitWindow is the time the two limits count over. It has no environment variable: it
+	// is a minute unless a test shortens it.
+	APIRateLimitWindow time.Duration
 }
 
 // MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left

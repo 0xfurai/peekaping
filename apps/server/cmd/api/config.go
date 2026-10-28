@@ -126,6 +126,10 @@ type Config struct {
 	// BlockPrivateTargets keeps monitors from reaching loopback, private and link-local addresses
 	// and cloud metadata. Off by default: a self-hosted install monitors its own network.
 	BlockPrivateTargets bool `env:"BLOCK_PRIVATE_TARGETS" default:"false"`
+
+	// Requests per minute a workspace, and one of its API keys, may make. 0, the default, is off.
+	APIRateLimitPerWorkspace int `env:"API_RATE_LIMIT_PER_WORKSPACE" validate:"min=0" default:"0"`
+	APIRateLimitPerAPIKey    int `env:"API_RATE_LIMIT_PER_API_KEY" validate:"min=0" default:"0"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -287,6 +291,8 @@ func (c *Config) ToInternalConfig() *config.Config {
 		SignupTurnstileSecret:        c.SignupTurnstileSecret,
 		DisabledMonitorTypes:         c.DisabledMonitorTypes,
 		BlockPrivateTargets:          c.BlockPrivateTargets,
+		APIRateLimitPerWorkspace:     c.APIRateLimitPerWorkspace,
+		APIRateLimitPerAPIKey:        c.APIRateLimitPerAPIKey,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,
