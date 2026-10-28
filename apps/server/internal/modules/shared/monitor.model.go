@@ -25,6 +25,13 @@ type Monitor struct {
 	// back with it, never taken from a request body, and it is not part of the API's answer.
 	WorkspaceID workspaceid.ID `json:"-"`
 
+	// WorkspaceSuspended is whether the monitor's workspace is suspended (PP-155): the monitor is
+	// kept and shown, but it does not run. A read of one monitor by its ID or push token fills it
+	// in, so that the paths that run or judge a monitor can skip it; the lists that pick monitors
+	// to run leave suspended workspaces out in the query itself. It is not stored with the monitor
+	// and not part of the API's answer.
+	WorkspaceSuspended bool `json:"-"`
+
 	// connection type: http, tcp, ping, etc
 	Type string `json:"type" validate:"required" example:"http"`
 

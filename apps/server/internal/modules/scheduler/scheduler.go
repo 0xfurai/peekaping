@@ -552,6 +552,9 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 	case errors.Is(err, job.ErrMonitorPaused):
 		s.logger.Infow("Monitor is paused, skipping its check", "monitor_id", monitorID)
 		return
+	case errors.Is(err, job.ErrWorkspaceSuspended):
+		s.logger.Infow("Monitor's workspace is suspended, skipping its check", "monitor_id", monitorID)
+		return
 	case err != nil && ctx.Err() != nil:
 		// An update, pause, delete or stop cancelled the check while it loaded
 		s.logger.Debugw("Check was cancelled while it loaded", "monitor_id", monitorID)
