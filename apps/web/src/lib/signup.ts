@@ -42,9 +42,12 @@ export const registerDescriptionKey = (signupMode: "invite" | "open" | undefined
  */
 export const showInstallPreferences = (signupMode: "invite" | "open" | undefined): boolean => signupMode === "invite";
 
-/** The register button waits for the widget's answer when the install uses Turnstile. */
-export const canSubmitRegister = (siteKey: string | null | undefined, token: string | null): boolean =>
-  !siteKey || Boolean(token);
+/**
+ * The register button waits for the widget's answer when the install uses Turnstile, and while a
+ * request is pending, so that a second click can't send the signup twice.
+ */
+export const canSubmitRegister = (siteKey: string | null | undefined, token: string | null, pending = false): boolean =>
+  !pending && (!siteKey || Boolean(token));
 
 export type RegisterValues = { email: string; password: string; confirmPassword: string };
 
