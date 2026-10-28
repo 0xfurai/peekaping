@@ -321,6 +321,11 @@ func countingListener(t *testing.T) (host, port string, accepted func() int64) {
 	return host, port, count.Load
 }
 
+// socketHTTP makes the socket clients' POSTs and handshakes. Those answer at once, so a call that
+// hangs fails with its own message instead of the Go test timeout. The long polls don't use it:
+// they wait for up to the ping interval.
+var socketHTTP = &http.Client{Timeout: 10 * time.Second}
+
 // socketClient speaks Engine.IO v4 long polling, the transport a socket.io client starts with.
 // A reader keeps one long poll open, answers pings, and passes on the socket.io events.
 type socketClient struct {
@@ -356,7 +361,7 @@ func (in *instance) dialSocket(t *testing.T) *socketClient {
 	t.Helper()
 	query := url.Values{"EIO": {"4"}, "transport": {"polling"}}
 	base := in.url + "/socket.io/?" + query.Encode()
-	resp, err := http.Get(base)
+	resp, err := socketHTTP.Get(base)
 	require.NoError(t, err)
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -382,7 +387,7 @@ func (in *instance) dialSocket(t *testing.T) *socketClient {
 }
 
 func (c *socketClient) post(packet string) error {
-	resp, err := http.Post(c.url, "text/plain;charset=UTF-8", strings.NewReader(packet))
+	resp, err := socketHTTP.Post(c.url, "text/plain;charset=UTF-8", strings.NewReader(packet))
 	if err != nil {
 		return err
 	}

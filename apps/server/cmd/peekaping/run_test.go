@@ -39,14 +39,11 @@ func TestRun_ChecksAMonitorCreatedThroughTheAPIAndIngestsPushesWithoutRedis(t *t
 	socket := in.dialSocket(t)
 	socket.join(t, "monitor:all")
 
-	// The join is handled in its own goroutine, and dropped if it came before the server's
-	// connection handler registered join_room. Push, and join again, until a push reaches the websocket.
+	// The join is handled in its own goroutine, so a push can go before it. Push until one reaches
+	// the websocket.
 	pushID := in.createMonitor(t, pushMonitor("Backup", "backup-push-token"))
 	deadline := time.Now().Add(wait)
 	for i := 0; ; i++ {
-		if i > 0 {
-			socket.join(t, "monitor:all")
-		}
 		msg := fmt.Sprintf("push %d", i)
 		status, body := in.request(t, http.MethodGet, "/api/v1/push/backup-push-token?msg="+url.QueryEscape(msg), nil)
 		require.Equal(t, http.StatusOK, status, string(body))
