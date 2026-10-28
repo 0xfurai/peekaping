@@ -66,6 +66,24 @@ export type AuthLoginResponse = {
   user: AuthModel;
 };
 
+export type AuthMeResponse = {
+  defaultWorkspaceId: string | null;
+  user: AuthMeUser;
+  workspaces: Array<AuthMeWorkspace> | null;
+};
+
+export type AuthMeUser = {
+  email: string;
+  id: string;
+  instanceAdmin: boolean;
+};
+
+export type AuthMeWorkspace = {
+  id: string;
+  name: string;
+  role: string;
+};
+
 export type AuthModel = {
   active: boolean;
   createdAt: string;
@@ -1235,6 +1253,11 @@ export type UtilsApiResponseAuthLoginResponse = {
   message: string;
 };
 
+export type UtilsApiResponseAuthMeResponse = {
+  data: AuthMeResponse;
+  message: string;
+};
+
 export type UtilsApiResponseMaintenanceMaintenanceResponseDto = {
   data: MaintenanceMaintenanceResponseDto;
   message: string;
@@ -1317,6 +1340,12 @@ export type UtilsNullableApiResponseSharedTlsInfo = {
 
 export type GetApiKeysData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: never;
   url: "/api/v1/api-keys";
@@ -1346,6 +1375,12 @@ export type GetApiKeysResponse = GetApiKeysResponses[keyof GetApiKeysResponses];
 
 export type PostApiKeysData = {
   body: ApiKeyCreateApiKeyDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: never;
   url: "/api/v1/api-keys";
@@ -1397,6 +1432,12 @@ export type GetApiKeysConfigResponse =
 
 export type DeleteApiKeysByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * API key ID
@@ -1437,6 +1478,12 @@ export type DeleteApiKeysByIdResponse =
 
 export type GetApiKeysByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * API key ID
@@ -1477,6 +1524,12 @@ export type GetApiKeysByIdResponse =
 
 export type PutApiKeysByIdData = {
   body: ApiKeyUpdateApiKeyDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * API key ID
@@ -2518,6 +2571,12 @@ export type GetHealthResponse = GetHealthResponses[keyof GetHealthResponses];
 
 export type GetMaintenancesData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: {
     /**
@@ -2570,6 +2629,12 @@ export type GetMaintenancesResponse =
 
 export type PostMaintenancesData = {
   body: MaintenanceCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: never;
   url: "/api/v1/maintenances";
@@ -2605,6 +2670,12 @@ export type PostMaintenancesResponse =
 
 export type DeleteMaintenancesByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Maintenance ID
@@ -2645,6 +2716,12 @@ export type DeleteMaintenancesByIdResponse =
 
 export type GetMaintenancesByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Maintenance ID
@@ -2685,6 +2762,12 @@ export type GetMaintenancesByIdResponse =
 
 export type PatchMaintenancesByIdData = {
   body: MaintenancePartialUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Maintenance ID
@@ -2729,6 +2812,12 @@ export type PatchMaintenancesByIdResponse =
 
 export type PutMaintenancesByIdData = {
   body: MaintenanceCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Maintenance ID
@@ -2773,6 +2862,12 @@ export type PutMaintenancesByIdResponse =
 
 export type PatchMaintenancesByIdPauseData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Maintenance ID
@@ -2813,6 +2908,12 @@ export type PatchMaintenancesByIdPauseResponse =
 
 export type PatchMaintenancesByIdResumeData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Maintenance ID
@@ -2851,8 +2952,43 @@ export type PatchMaintenancesByIdResumeResponses = {
 export type PatchMaintenancesByIdResumeResponse =
   PatchMaintenancesByIdResumeResponses[keyof PatchMaintenancesByIdResumeResponses];
 
+export type GetMeData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/me";
+};
+
+export type GetMeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetMeError = GetMeErrors[keyof GetMeErrors];
+
+export type GetMeResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAuthMeResponse;
+};
+
+export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
+
 export type GetMonitorsData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: {
     /**
@@ -2912,6 +3048,12 @@ export type GetMonitorsResponse =
 
 export type PostMonitorsData = {
   body: MonitorCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: never;
   url: "/api/v1/monitors";
@@ -2946,6 +3088,12 @@ export type PostMonitorsResponse =
 
 export type GetMonitorsBatchData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query: {
     /**
@@ -2986,6 +3134,12 @@ export type GetMonitorsBatchResponse =
 
 export type DeleteMonitorsByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Monitor ID
@@ -3026,6 +3180,12 @@ export type DeleteMonitorsByIdResponse =
 
 export type GetMonitorsByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Monitor ID
@@ -3066,6 +3226,12 @@ export type GetMonitorsByIdResponse =
 
 export type PatchMonitorsByIdData = {
   body: MonitorPartialUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Monitor ID
@@ -3110,6 +3276,12 @@ export type PatchMonitorsByIdResponse =
 
 export type PutMonitorsByIdData = {
   body: MonitorCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Monitor ID
@@ -3154,6 +3326,12 @@ export type PutMonitorsByIdResponse =
 
 export type GetMonitorsByIdHeartbeatsData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Monitor ID
@@ -3219,6 +3397,12 @@ export type GetMonitorsByIdHeartbeatsResponse =
 
 export type PostMonitorsByIdResetData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Monitor ID
@@ -3259,6 +3443,12 @@ export type PostMonitorsByIdResetResponse =
 
 export type GetMonitorsByIdStatsPointsData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Monitor ID
@@ -3320,6 +3510,12 @@ export type GetMonitorsByIdStatsPointsResponse =
 
 export type GetMonitorsByIdStatsUptimeData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Monitor ID
@@ -3365,6 +3561,12 @@ export type GetMonitorsByIdStatsUptimeResponse =
 
 export type GetMonitorsByIdTlsData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Monitor ID
@@ -3405,6 +3607,12 @@ export type GetMonitorsByIdTlsResponse =
 
 export type GetNotificationChannelsData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: {
     /**
@@ -3453,6 +3661,12 @@ export type GetNotificationChannelsResponse =
 
 export type PostNotificationChannelsData = {
   body: NotificationChannelCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: never;
   url: "/api/v1/notification-channels";
@@ -3488,6 +3702,12 @@ export type PostNotificationChannelsResponse =
 
 export type PostNotificationChannelsTestData = {
   body: NotificationChannelTestDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: never;
   url: "/api/v1/notification-channels/test";
@@ -3523,6 +3743,12 @@ export type PostNotificationChannelsTestResponse =
 
 export type DeleteNotificationChannelsByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Notification ID
@@ -3563,6 +3789,12 @@ export type DeleteNotificationChannelsByIdResponse =
 
 export type GetNotificationChannelsByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Notification ID
@@ -3603,6 +3835,12 @@ export type GetNotificationChannelsByIdResponse =
 
 export type PatchNotificationChannelsByIdData = {
   body: NotificationChannelPartialUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Notification ID
@@ -3647,6 +3885,12 @@ export type PatchNotificationChannelsByIdResponse =
 
 export type PutNotificationChannelsByIdData = {
   body: NotificationChannelCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Notification ID
@@ -4060,6 +4304,12 @@ export type PostProbesByIdRotateTokenResponse =
 
 export type GetProxiesData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: {
     /**
@@ -4106,6 +4356,12 @@ export type GetProxiesResponse = GetProxiesResponses[keyof GetProxiesResponses];
 
 export type PostProxiesData = {
   body: ProxyCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: never;
   url: "/api/v1/proxies";
@@ -4140,6 +4396,12 @@ export type PostProxiesResponse =
 
 export type DeleteProxiesByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Proxy ID
@@ -4180,6 +4442,12 @@ export type DeleteProxiesByIdResponse =
 
 export type GetProxiesByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Proxy ID
@@ -4220,6 +4488,12 @@ export type GetProxiesByIdResponse =
 
 export type PatchProxiesByIdData = {
   body: ProxyPartialUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Proxy ID
@@ -4264,6 +4538,12 @@ export type PatchProxiesByIdResponse =
 
 export type PutProxiesByIdData = {
   body: ProxyCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Proxy ID
@@ -4361,6 +4641,12 @@ export type GetPushByTokenResponse =
 
 export type DeleteSettingsKeyByKeyData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Setting Key
@@ -4401,6 +4687,12 @@ export type DeleteSettingsKeyByKeyResponse =
 
 export type GetSettingsKeyByKeyData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Setting Key
@@ -4441,6 +4733,12 @@ export type GetSettingsKeyByKeyResponse =
 
 export type PutSettingsKeyByKeyData = {
   body: SettingCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Setting Key
@@ -4485,6 +4783,12 @@ export type PutSettingsKeyByKeyResponse =
 
 export type GetStatusPagesData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: {
     /**
@@ -4533,6 +4837,12 @@ export type GetStatusPagesResponse =
 
 export type PostStatusPagesData = {
   body: StatusPageCreateStatusPageDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: never;
   url: "/api/v1/status-pages";
@@ -4712,6 +5022,12 @@ export type GetStatusPagesSlugBySlugMonitorsHomepageResponse =
 
 export type DeleteStatusPagesByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Status Page ID
@@ -4752,6 +5068,12 @@ export type DeleteStatusPagesByIdResponse =
 
 export type GetStatusPagesByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Status Page ID
@@ -4792,6 +5114,12 @@ export type GetStatusPagesByIdResponse =
 
 export type PatchStatusPagesByIdData = {
   body: StatusPageUpdateStatusPageDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Status Page ID
@@ -4836,6 +5164,12 @@ export type PatchStatusPagesByIdResponse =
 
 export type GetTagsData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: {
     /**
@@ -4882,6 +5216,12 @@ export type GetTagsResponse = GetTagsResponses[keyof GetTagsResponses];
 
 export type PostTagsData = {
   body: TagCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path?: never;
   query?: never;
   url: "/api/v1/tags";
@@ -4919,6 +5259,12 @@ export type PostTagsResponse = PostTagsResponses[keyof PostTagsResponses];
 
 export type DeleteTagsByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Tag ID
@@ -4959,6 +5305,12 @@ export type DeleteTagsByIdResponse =
 
 export type GetTagsByIdData = {
   body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Tag ID
@@ -4998,6 +5350,12 @@ export type GetTagsByIdResponse =
 
 export type PatchTagsByIdData = {
   body: TagPartialUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Tag ID
@@ -5045,6 +5403,12 @@ export type PatchTagsByIdResponse =
 
 export type PutTagsByIdData = {
   body: TagCreateUpdateDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
   path: {
     /**
      * Tag ID
