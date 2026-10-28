@@ -907,6 +907,7 @@
       "reset_success": "監控資料已成功重置",
       "resumed": "監控已恢復"
     },
+    "type_disabled": "此安裝已停用 {{type}} 類型的監控",
     "view": {
       "buttons": {
         "clone": "複製",

@@ -907,6 +907,7 @@
       "reset_success": "Data monitor berhasil direset",
       "resumed": "Pemantauan dilanjutkan"
     },
+    "type_disabled": "Monitor {{type}} dinonaktifkan pada instalasi ini",
     "view": {
       "buttons": {
         "clone": "Duplikat",

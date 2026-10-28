@@ -907,6 +907,7 @@
       "reset_success": "Datele monitorului au fost resetate cu succes",
       "resumed": "Monitorizarea reluată"
     },
+    "type_disabled": "Monitoarele {{type}} sunt dezactivate pe această instalare",
     "view": {
       "buttons": {
         "clone": "Clonează",

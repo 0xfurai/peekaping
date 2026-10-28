@@ -907,6 +907,7 @@
       "reset_success": "Data monitoru byla úspěšně resetována.",
       "resumed": "Monitor byl obnoven."
     },
+    "type_disabled": "Monitory typu {{type}} jsou na této instalaci vypnuté",
     "view": {
       "buttons": {
         "clone": "Duplikovat",

@@ -907,6 +907,7 @@
       "reset_success": "Monitor adatai sikeresen visszaállítva",
       "resumed": "Monitor folytatva"
     },
+    "type_disabled": "A(z) {{type}} típusú monitorok ki vannak kapcsolva ezen a telepítésen",
     "view": {
       "buttons": {
         "clone": "Klónozás",

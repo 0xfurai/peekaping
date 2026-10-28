@@ -907,6 +907,7 @@
       "reset_success": "Monitor data reset successfully",
       "resumed": "Monitor resumed"
     },
+    "type_disabled": "{{type}} monitors are turned off on this install",
     "view": {
       "buttons": {
         "clone": "Clone",

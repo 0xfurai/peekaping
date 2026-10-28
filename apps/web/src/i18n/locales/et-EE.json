@@ -907,6 +907,7 @@
       "reset_success": "Monitordi andmed lähtestati edukalt",
       "resumed": "Kontroll jätkati"
     },
+    "type_disabled": "{{type}}-tüüpi monitorid on selles paigalduses välja lülitatud",
     "view": {
       "buttons": {
         "clone": "Kopeeri",

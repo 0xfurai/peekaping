@@ -907,6 +907,7 @@
       "reset_success": "모니터 데이터가 성공적으로 초기화되었습니다",
       "resumed": "모니터링이 재개되었습니다"
     },
+    "type_disabled": "{{type}} 모니터는 이 설치에서 꺼져 있습니다",
     "view": {
       "buttons": {
         "clone": "복제",

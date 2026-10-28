@@ -907,6 +907,7 @@
       "reset_success": "Podaci monitora su resetovani uspešno",
       "resumed": "Monitor obnovljen"
     },
+    "type_disabled": "Monitori tipa {{type}} su isključeni na ovoj instalaciji",
     "view": {
       "buttons": {
         "clone": "Kloniraj",

@@ -907,6 +907,7 @@
       "reset_success": "モニターデータを正常にリセットしました",
       "resumed": "監視が再開されました"
     },
+    "type_disabled": "{{type}} タイプのモニターはこのインストールでは無効になっています",
     "view": {
       "buttons": {
         "clone": "複製",

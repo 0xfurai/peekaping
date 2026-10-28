@@ -907,6 +907,7 @@
       "reset_success": "Podatki nadzornika so bili uspešno ponastavljeni",
       "resumed": "Nadzor ponovno zagnan"
     },
+    "type_disabled": "Monitorji vrste {{type}} so na tej namestitvi izklopljeni",
     "view": {
       "buttons": {
         "clone": "Kloniraj",

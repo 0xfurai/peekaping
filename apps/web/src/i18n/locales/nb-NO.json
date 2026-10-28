@@ -907,6 +907,7 @@
       "reset_success": "Monitor data tilbakestilt vellykket",
       "resumed": "Overvåking gjenopptatt"
     },
+    "type_disabled": "{{type}}-monitorer er slått av på denne installasjonen",
     "view": {
       "buttons": {
         "clone": "Klon",

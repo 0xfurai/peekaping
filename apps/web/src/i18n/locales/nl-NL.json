@@ -907,6 +907,7 @@
       "reset_success": "Monitorgegevens succesvol gereset",
       "resumed": "Monitor hervat"
     },
+    "type_disabled": "{{type}}-monitors zijn uitgeschakeld op deze installatie",
     "view": {
       "buttons": {
         "clone": "Kloon",
