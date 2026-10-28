@@ -67,7 +67,7 @@ Adding `NET_RAW` (for example `cap_add: [NET_RAW]` in Compose) usually doesn't h
 
 ## Environment Variables
 
-The probe reads its settings from the environment: `PEEKAPING_URL`, `PROBE_TOKEN`, `PROBE_ALLOW_INSECURE`, `PROBE_CONCURRENCY`, `BLOCK_PRIVATE_TARGETS`, `PROBE_READY_ADDR` and `LOG_LEVEL`. [Remote probes](../self-hosting/remote-probes.md#settings) lists each one with its default. It has no `DB_*` or `REDIS_*` variables.
+The probe reads its settings from the environment: `PEEKAPING_URL`, `PROBE_TOKEN`, `PROBE_ALLOW_INSECURE`, `PROBE_CONCURRENCY`, `BLOCK_PRIVATE_TARGETS`, `CHECKS_PER_HOST_PER_MINUTE`, `PROBE_READY_ADDR` and `LOG_LEVEL`. [Remote probes](../self-hosting/remote-probes.md#settings) lists each one with its default. It has no `DB_*` or `REDIS_*` variables.
 
 The API reads `PROBE_BOOTSTRAP_TOKEN` (the local probe's token) and `PROBE_OFFLINE_AFTER` (how long a silent probe may stay quiet before it is offline). See [API Server](./api-server.md#local-probe-configuration).
 
