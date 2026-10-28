@@ -2,7 +2,9 @@ package apitest
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -182,4 +184,80 @@ func TestInviteSignup_TheFirstUserStillGetsTheWorkspaceAndTheFlag(t *testing.T) 
 	assert.True(t, me.User.InstanceAdmin)
 	require.Len(t, me.Workspaces, 1)
 	assert.Equal(t, "owner", me.Workspaces[0].Role)
+}
+
+// raceTwice runs both calls at once, each after the other is ready, and waits for both to answer
+func raceTwice(first, second func() int) (int, int) {
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	var a, b int
+	wg.Add(2)
+	go func() { defer wg.Done(); <-start; a = first() }()
+	go func() { defer wg.Done(); <-start; b = second() }()
+	close(start)
+	wg.Wait()
+	return a, b
+}
+
+// assertOneWinsTheOtherIsRefused checks that one answer is the success and the other one of the
+// refusals, which is the used-invite 410 or the 409 of an address that has an account, or of a
+// user who is a member, by then
+func assertOneWinsTheOtherIsRefused(t *testing.T, round, success int, codes []int, refusals ...int) {
+	t.Helper()
+	wins := 0
+	for _, code := range codes {
+		if code == success {
+			wins++
+		} else {
+			assert.Contains(t, refusals, code, "round %d: the other is refused as the invite was used or the person is in already: %v", round, codes)
+		}
+	}
+	assert.Equal(t, 1, wins, "round %d: exactly one succeeds: %v", round, codes)
+}
+
+// Two people sign up with one invite at once: the invite works once, so one of them is made and
+// the other is told it was used, or that the address has an account by then. Nothing answers 5xx,
+// and one user and one membership are added.
+func TestInviteSignup_TwoSignupsWithOneTokenAtOnceMakeOneUserAndOneMembership(t *testing.T) {
+	isolationBackends(t, func(t *testing.T, a *app) {
+		for round := range 5 {
+			email := fmt.Sprintf("racer%d@example.com", round)
+			created := a.invite(t, email, "member", a.asAdmin)
+			users, members := a.count(t, "users"), a.count(t, "workspace_members")
+
+			first, second := raceTwice(
+				func() int { return a.signUpThrough(t, created.Token, email).Code },
+				func() int { return a.signUpThrough(t, created.Token, email).Code },
+			)
+
+			assertOneWinsTheOtherIsRefused(t, round, http.StatusCreated, []int{first, second}, http.StatusGone, http.StatusConflict)
+			assert.Equal(t, users+1, a.count(t, "users"), "round %d: %v", round, []int{first, second})
+			assert.Equal(t, members+1, a.count(t, "workspace_members"), "round %d: %v", round, []int{first, second})
+			assert.Equal(t, "accepted", a.preview(t, created.Token).Status)
+		}
+	})
+}
+
+// Two sessions of one account accept one invite at once: one joins and the other is told the
+// invite was used or that they are a member by then. Nothing answers 5xx, and one membership is
+// added.
+func TestInvites_TwoAcceptsOfOneTokenByTwoSessionsAtOnceMakeOneMembership(t *testing.T) {
+	isolationBackends(t, func(t *testing.T, a *app) {
+		for round := range 5 {
+			email := fmt.Sprintf("sitter%d@example.com", round)
+			a.createUser(t, email)
+			created := a.invite(t, email, "member", a.asAdmin)
+			phone, laptop := a.loginAs(t, email), a.loginAs(t, email)
+			members := a.count(t, "workspace_members")
+
+			first, second := raceTwice(
+				func() int { return a.accept(t, created.Token, phone).Code },
+				func() int { return a.accept(t, created.Token, laptop).Code },
+			)
+
+			assertOneWinsTheOtherIsRefused(t, round, http.StatusOK, []int{first, second}, http.StatusGone, http.StatusConflict)
+			assert.Equal(t, members+1, a.count(t, "workspace_members"), "round %d: %v", round, []int{first, second})
+			assert.Equal(t, "accepted", a.preview(t, created.Token).Status)
+		}
+	})
 }
