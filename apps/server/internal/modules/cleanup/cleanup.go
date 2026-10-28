@@ -19,25 +19,25 @@ import (
 )
 
 // workspaceCutoff is the start of the workspace's data retention period: what is older is past
-// it. It returns false, and logs why, when the workspace has no usable period; what names the data
-// that is then left alone. The workspace's own period decides (docs/adr/0005 section 4), and a
-// workspace that has none, or a value the settings API would have refused, keeps what it has:
-// falling back to a default could delete data its users meant to keep.
+// it. The workspace's own period decides (docs/adr/0005 section 4). A workspace that has none
+// stored keeps 365 days, as an install does that never stored one. It returns false, and logs why,
+// when the period can't be read or holds a value the settings API would have refused; what names
+// the data that is then left alone: falling back to a default could delete data its users meant to
+// keep.
 func workspaceCutoff(ctx context.Context, workspaceSettings setting.WorkspaceService, id workspace.ID, what string, logger *zap.SugaredLogger) (time.Time, bool) {
 	stored, err := workspaceSettings.GetByKey(ctx, id, setting.DataRetentionPeriodKey)
 	if err != nil {
 		logger.Errorw("Failed to fetch KEEP_DATA_PERIOD_DAYS setting, not deleting "+what, "workspace", id, "error", err)
 		return time.Time{}, false
 	}
-	if stored == nil {
-		logger.Errorw("The workspace has no KEEP_DATA_PERIOD_DAYS setting, not deleting "+what, "workspace", id)
-		return time.Time{}, false
-	}
-	keepDays, err := setting.ParseDataRetentionPeriod(stored.Value)
-	if err != nil {
-		// A value stored before the settings API checked it.
-		logger.Errorw("Invalid KEEP_DATA_PERIOD_DAYS value, not deleting "+what, "workspace", id, "value", stored.Value, "error", err)
-		return time.Time{}, false
+	keepDays := setting.DefaultDataRetentionDays
+	if stored != nil {
+		keepDays, err = setting.ParseDataRetentionPeriod(stored.Value)
+		if err != nil {
+			// A value stored before the settings API checked it.
+			logger.Errorw("Invalid KEEP_DATA_PERIOD_DAYS value, not deleting "+what, "workspace", id, "value", stored.Value, "error", err)
+			return time.Time{}, false
+		}
 	}
 	return time.Now().UTC().AddDate(0, 0, -keepDays), true
 }
@@ -68,7 +68,8 @@ func cleanupHeartbeats(heartbeatService heartbeat.Service, workspaces workspace.
 // cleanupProbeStatusChanges deletes the probes' status changes past the longest data retention
 // period of the workspaces, except each probe's latest one before it, so that the status of a probe
 // at the start of any range is still known. Probes belong to the install, so no one workspace's
-// period decides. A workspace whose period can't be used doesn't count.
+// period decides. A workspace whose period can't be used doesn't count; one with none stored counts
+// as 365 days.
 func cleanupProbeStatusChanges(probeService probe.Service, workspaces workspace.Repository, workspaceSettings setting.WorkspaceService, logger *zap.SugaredLogger) {
 	ctx := context.Background()
 	ids, err := workspaces.ListIDsAnyWorkspace(ctx)

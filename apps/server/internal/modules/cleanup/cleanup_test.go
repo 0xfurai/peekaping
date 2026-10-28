@@ -165,14 +165,26 @@ func TestCleanupHeartbeatsSkipsAnUnusablePeriod(t *testing.T) {
 
 	t.Run("none stored", func(t *testing.T) {
 		in := newInstall(t)
-		in.recordHeartbeats(t, 400, 1)
+		in.recordHeartbeats(t, 400, 300, 1)
 		core, logs := observer.New(zap.InfoLevel)
 
 		cleanupHeartbeats(in.heartbeats, in.workspaces, in.workspaceSettings, zap.New(core).Sugar())
 
-		assert.Equal(t, []string{"400d", "1d"}, in.heartbeatsLeft(t), "a workspace with no period keeps what it has")
-		require.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)
+		assert.Equal(t, []string{"300d", "1d"}, in.heartbeatsLeft(t), "a workspace with no period keeps 365 days")
+		assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
 	})
+}
+
+func TestCleanupHeartbeatsKeepsAWorkspaceWhosePeriodWasDeletedFor365Days(t *testing.T) {
+	in := newInstall(t)
+	id := in.workspaceID(t)
+	in.storePeriod(t, id, "30")
+	require.NoError(t, in.workspaceSettings.DeleteByKey(context.Background(), id, setting.DataRetentionPeriodKey))
+	in.recordHeartbeats(t, 400, 366, 364, 100, 1)
+
+	cleanupHeartbeats(in.heartbeats, in.workspaces, in.workspaceSettings, zap.NewNop().Sugar())
+
+	assert.Equal(t, []string{"364d", "100d", "1d"}, in.heartbeatsLeft(t), "what is older than 365 days goes, what is younger stays")
 }
 
 // probeHistory makes a probe whose status changes happened the given days ago, oldest first, the
@@ -219,15 +231,15 @@ func TestCleanupProbeStatusChangesKeepsEachProbesLatestChangeBeforeTheRetentionP
 	assert.Equal(t, []string{"online 200d"}, in.probeHistoryLeft(t, steady), "a probe that has not changed since keeps the change that made it so")
 }
 
-func TestCleanupProbeStatusChangesKeepsEverythingWhenNoWorkspaceHasAPeriod(t *testing.T) {
+func TestCleanupProbeStatusChangesUses365DaysWhenNoWorkspaceHasAPeriod(t *testing.T) {
 	in := newInstall(t)
 	probeID := in.probeHistory(t, "Old", 500, 400, 300)
 	core, logs := observer.New(zap.InfoLevel)
 
 	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, zap.New(core).Sugar())
 
-	assert.Equal(t, []string{"online 500d", "offline 400d", "online 300d"}, in.probeHistoryLeft(t, probeID))
-	require.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)
+	assert.Equal(t, []string{"offline 400d", "online 300d"}, in.probeHistoryLeft(t, probeID), "the change 500 days old goes; the 400 days old one is the latest before the 365 day cutoff, so it stays")
+	assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
 }
 
 func TestCleanupProbeStatusChangesSkipsAnUnusablePeriod(t *testing.T) {
