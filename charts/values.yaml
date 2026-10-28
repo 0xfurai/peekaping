@@ -89,7 +89,7 @@ config:
     # created, and existing ones are kept but not checked. "docker" keeps the Docker monitor from
     # reading the Docker socket of the node.
     # DISABLED_MONITOR_TYPES: "docker"
-    # Keep monitors from reaching loopback, private and link-local addresses and cloud metadata
+    # Keep monitors and notification channels from reaching loopback, private and link-local addresses and cloud metadata
     # (169.254.169.254). Off by default, since a self-hosted install usually monitors its own
     # network. A remote probe blocks them too when the server it connects to has this on.
     # BLOCK_PRIVATE_TARGETS: "true"
