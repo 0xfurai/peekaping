@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Kreirajte svoj prvi monitor",
+      "add_channel": "Dodaj kanal obaveštenja",
       "description": "Počnite tako što ćete kreirati svoj prvi monitor kako biste pratili stanje vaših servisa.",
       "title": "Nema pronađenih monitora"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Preimenovanje radnog prostora nije uspelo",
     "rename_success": "Radni prostor je preimenovan",
     "switcher_label": "Promeni radni prostor"
+  },
+  "get_started": {
+    "page_name": "Prvi koraci",
+    "skip": "Preskoči podešavanje",
+    "step_of": "Korak {{current}} od {{total}}",
+    "name": {
+      "description": "Ovde su vaši monitori, kanali obaveštenja i stranice statusa. Naziv možete kasnije promeniti u Podešavanjima.",
+      "title": "Imenujte svoj radni prostor"
+    },
+    "monitor": {
+      "create": "Kreiraj monitor",
+      "create_failed": "Kreiranje monitora nije uspelo",
+      "creating": "Kreiranje...",
+      "description": "Unesite adresu veb-sajta ili API-ja. Peekaping je proverava i obaveštava vas kada prestane da odgovara.",
+      "full_form": "Ili podesite monitor sa svim opcijama",
+      "title": "Dodajte svoj prvi monitor",
+      "url_invalid": "Unesite adresu koja počinje sa http:// ili https://",
+      "url_label": "Adresa za nadgledanje"
+    },
+    "channel": {
+      "description": "Izaberite kuda Peekaping šalje upozorenje kada vaš monitor padne. Postaće podrazumevani za nove monitore.",
+      "link_failed": "Kanal je sačuvan, ali povezivanje sa monitorom nije uspelo. Dodajte ga na stranici za uređivanje monitora.",
+      "title": "Primajte obaveštenja"
+    },
+    "done": {
+      "description": "Peekaping nadgleda vašu uslugu. Evo šta možete da uradite dalje.",
+      "title": "Sve je spremno",
+      "unverified": "Vaš monitor će raditi pošto se potvrdi vaša adresa e-pošte. Vezu za potvrdu potražite u prijemnom sandučetu.",
+      "links": {
+        "members": "Pozovite svoj tim",
+        "monitor": "Otvorite svoj monitor",
+        "monitors": "Idi na monitore",
+        "probes": "Upravljajte sondama",
+        "status_pages": "Objavite statusnu stranicu"
+      }
+    }
   }
 }

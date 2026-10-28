@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Buat monitor pertama Anda",
+      "add_channel": "Tambahkan saluran notifikasi",
       "description": "Mulailah dengan membuat monitor pertama Anda untuk melacak kesehatan layanan Anda.",
       "title": "Tidak ada monitor yang ditemukan"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Gagal mengganti nama ruang kerja",
     "rename_success": "Ruang kerja diganti namanya",
     "switcher_label": "Ganti ruang kerja"
+  },
+  "get_started": {
+    "page_name": "Mulai",
+    "skip": "Lewati penyiapan",
+    "step_of": "Langkah {{current}} dari {{total}}",
+    "name": {
+      "description": "Di sini tempat monitor, saluran notifikasi, dan halaman status Anda. Anda dapat mengganti namanya nanti di Pengaturan.",
+      "title": "Beri nama ruang kerja Anda"
+    },
+    "monitor": {
+      "create": "Buat monitor",
+      "create_failed": "Gagal membuat monitor",
+      "creating": "Membuat...",
+      "description": "Masukkan alamat situs web atau API. Peekaping memeriksanya dan memberi tahu Anda saat berhenti merespons.",
+      "full_form": "Atau siapkan monitor dengan semua opsi",
+      "title": "Tambahkan monitor pertama Anda",
+      "url_invalid": "Masukkan alamat yang diawali http:// atau https://",
+      "url_label": "Alamat yang dipantau"
+    },
+    "channel": {
+      "description": "Pilih ke mana Peekaping mengirim peringatan saat monitor Anda mati. Ini menjadi default untuk monitor baru.",
+      "link_failed": "Saluran telah disimpan, tetapi gagal menautkannya ke monitor Anda. Tambahkan di halaman edit monitor.",
+      "title": "Dapatkan notifikasi"
+    },
+    "done": {
+      "description": "Peekaping sedang memantau layanan Anda. Berikut yang bisa Anda lakukan selanjutnya.",
+      "title": "Semua siap",
+      "unverified": "Monitor Anda berjalan setelah alamat email Anda diverifikasi. Periksa kotak masuk untuk tautan verifikasi.",
+      "links": {
+        "members": "Undang tim Anda",
+        "monitor": "Buka monitor Anda",
+        "monitors": "Buka daftar monitor",
+        "probes": "Kelola probe",
+        "status_pages": "Publikasikan halaman status"
+      }
+    }
   }
 }

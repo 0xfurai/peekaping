@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Birinchi monitoringni yarating",
+      "add_channel": "Xabarnoma kanalini qo'shish",
       "description": "Birinchi monitorni yaratish orqali xizmatlaringizning sog‘lig‘ini kuzatishni boshlang.",
       "title": "Hech qanday monitor topilmadi"
     },
@@ -1884,5 +1885,41 @@
     "rename_error": "Ish maydoni nomini o'zgartirib bo'lmadi",
     "rename_success": "Ish maydoni nomi o'zgartirildi",
     "switcher_label": "Ish maydonini almashtirish"
+  },
+  "get_started": {
+    "page_name": "Boshlash",
+    "skip": "Sozlashni o'tkazib yuborish",
+    "step_of": "{{current}}-qadam, jami {{total}} ta",
+    "name": {
+      "description": "Monitorlar, bildirishnoma kanallari va holat sahifalaringiz shu yerda turadi. Nomni keyinroq Sozlamalarda o'zgartirishingiz mumkin.",
+      "title": "Ish maydoningizga nom bering"
+    },
+    "monitor": {
+      "create": "Monitoring yaratish",
+      "create_failed": "Monitoringni yaratib bo'lmadi",
+      "creating": "Yaratilmoqda...",
+      "description": "Veb-sayt yoki API manzilini kiriting. Peekaping uni tekshiradi va javob berishdan to'xtaganda sizga xabar beradi.",
+      "full_form": "Yoki monitoringni barcha parametrlar bilan sozlang",
+      "title": "Birinchi monitoringingizni qo'shing",
+      "url_invalid": "http:// yoki https:// bilan boshlanadigan manzilni kiriting",
+      "url_label": "Kuzatiladigan manzil"
+    },
+    "channel": {
+      "description": "Monitoringingiz ishdan chiqqanda Peekaping ogohlantirishni qayerga yuborishini tanlang. U yangi monitoringlar uchun standart bo'ladi.",
+      "link_failed": "Kanal saqlandi, lekin uni monitoringingizga bog'lab bo'lmadi. Uni monitoringni tahrirlash sahifasida qo'shing.",
+      "title": "Bildirishnomalarni oling"
+    },
+    "done": {
+      "description": "Peekaping xizmatingizni kuzatmoqda. Keyingi qadamda quyidagilarni qilishingiz mumkin.",
+      "title": "Hammasi tayyor",
+      "unverified": "Monitoringingiz elektron pochta manzilingiz tasdiqlangach ishga tushadi. Tasdiqlash havolasi uchun kiruvchi xatlarni tekshiring.",
+      "links": {
+        "members": "Jamoangizni taklif qilish",
+        "monitor": "Monitoringni ochish",
+        "monitors": "Monitoringlarga o'tish",
+        "probes": "Zondlarni boshqarish",
+        "status_pages": "Holat sahifasini e'lon qilish"
+      }
+    }
   }
 }

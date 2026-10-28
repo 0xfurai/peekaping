@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Opprett din første overvåking",
+      "add_channel": "Legg til en varslingskanal",
       "description": "Kom i gang ved å opprette din første overvåkning for å spore helsen til tjenestene dine.",
       "title": "Ingen overvåkningsmonitter funnet"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Kunne ikke omdøpe arbeidsområdet",
     "rename_success": "Arbeidsområdet er omdøpt",
     "switcher_label": "Bytt arbeidsområde"
+  },
+  "get_started": {
+    "page_name": "Kom i gang",
+    "skip": "Hopp over oppsettet",
+    "step_of": "Trinn {{current}} av {{total}}",
+    "name": {
+      "description": "Her ligger overvåkingene, varslingskanalene og statussidene dine. Du kan endre navnet senere i Innstillinger.",
+      "title": "Gi arbeidsområdet ditt et navn"
+    },
+    "monitor": {
+      "create": "Opprett overvåking",
+      "create_failed": "Kunne ikke opprette overvåkingen",
+      "creating": "Oppretter...",
+      "description": "Skriv inn adressen til et nettsted eller en API. Peekaping sjekker den og varsler deg når den slutter å svare.",
+      "full_form": "Eller sett opp en overvåking med alle alternativene",
+      "title": "Legg til din første overvåking",
+      "url_invalid": "Skriv inn en adresse som starter med http:// eller https://",
+      "url_label": "Adresse som skal overvåkes"
+    },
+    "channel": {
+      "description": "Velg hvor Peekaping sender en varsling når overvåkingen din går ned. Den blir standard for nye overvåkinger.",
+      "link_failed": "Kanalen ble lagret, men koblingen til overvåkingen mislyktes. Legg den til på overvåkingens redigeringsside.",
+      "title": "Få beskjed"
+    },
+    "done": {
+      "description": "Peekaping overvåker tjenesten din. Dette kan du gjøre videre.",
+      "title": "Alt er klart",
+      "unverified": "Overvåkingen din kjører når e-postadressen din er bekreftet. Sjekk innboksen for bekreftelseslenken.",
+      "links": {
+        "members": "Inviter teamet ditt",
+        "monitor": "Åpne overvåkingen",
+        "monitors": "Gå til overvåkinger",
+        "probes": "Administrer prober",
+        "status_pages": "Publiser en statusside"
+      }
+    }
   }
 }

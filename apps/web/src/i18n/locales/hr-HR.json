@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Kreiraj prvi nadzor",
+      "add_channel": "Dodaj kanal obavijesti",
       "description": "Započnite kreiranjem vašeg prvog nadzora kako biste pratili zdravlje vaših usluga.",
       "title": "Nema monitora"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Preimenovanje radnog prostora nije uspjelo",
     "rename_success": "Radni prostor je preimenovan",
     "switcher_label": "Promijeni radni prostor"
+  },
+  "get_started": {
+    "page_name": "Prvi koraci",
+    "skip": "Preskoči postavljanje",
+    "step_of": "Korak {{current}} od {{total}}",
+    "name": {
+      "description": "Ovdje su vaši nadzori, kanali obavijesti i statusne stranice. Naziv možete kasnije promijeniti u Postavkama.",
+      "title": "Imenujte svoj radni prostor"
+    },
+    "monitor": {
+      "create": "Izradi nadzor",
+      "create_failed": "Izrada nadzora nije uspjela",
+      "creating": "Izrada...",
+      "description": "Unesite adresu web-mjesta ili API-ja. Peekaping je provjerava i javlja vam kada prestane odgovarati.",
+      "full_form": "Ili postavite nadzor sa svim opcijama",
+      "title": "Dodajte svoj prvi nadzor",
+      "url_invalid": "Unesite adresu koja počinje s http:// ili https://",
+      "url_label": "Adresa za nadzor"
+    },
+    "channel": {
+      "description": "Odaberite kamo Peekaping šalje upozorenje kada vaš nadzor padne. Postat će zadani kanal za nove nadzore.",
+      "link_failed": "Kanal je spremljen, ali povezivanje s nadzorom nije uspjelo. Dodajte ga na stranici za uređivanje nadzora.",
+      "title": "Primajte obavijesti"
+    },
+    "done": {
+      "description": "Peekaping nadzire vašu uslugu. Evo što možete učiniti dalje.",
+      "title": "Sve je spremno",
+      "unverified": "Vaš će nadzor raditi nakon što se potvrdi vaša adresa e-pošte. Poveznicu za potvrdu potražite u pristigloj pošti.",
+      "links": {
+        "members": "Pozovite svoj tim",
+        "monitor": "Otvorite svoj nadzor",
+        "monitors": "Idi na nadzore",
+        "probes": "Upravljajte sondama",
+        "status_pages": "Objavite statusnu stranicu"
+      }
+    }
   }
 }

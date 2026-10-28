@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "建立您的第一個監控",
+      "add_channel": "新增通知頻道",
       "description": "開始建立您的第一個監控，以追蹤您服務的健康狀況。",
       "title": "未找到監控"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "重新命名工作區失敗",
     "rename_success": "工作區已重新命名",
     "switcher_label": "切換工作區"
+  },
+  "get_started": {
+    "page_name": "開始使用",
+    "skip": "跳過設定",
+    "step_of": "第 {{current}} 步，共 {{total}} 步",
+    "name": {
+      "description": "你的監控、通知頻道和狀態頁都在這裡。之後可以在設定中重新命名。",
+      "title": "為你的工作區命名"
+    },
+    "monitor": {
+      "create": "建立監控",
+      "create_failed": "建立監控失敗",
+      "creating": "正在建立...",
+      "description": "輸入網站或 API 的地址。Peekaping 會檢查它，並在它停止回應時通知你。",
+      "full_form": "或者使用全部選項來設定監控",
+      "title": "新增你的第一個監控",
+      "url_invalid": "請輸入以 http:// 或 https:// 開頭的地址",
+      "url_label": "要監控的地址"
+    },
+    "channel": {
+      "description": "選擇監控宕機時 Peekaping 把警報發送到哪裡。它將成為新監控的預設頻道。",
+      "link_failed": "頻道已儲存，但關聯到監控失敗。請在監控的編輯頁面中加入。",
+      "title": "接收通知"
+    },
+    "done": {
+      "description": "Peekaping 正在監控你的服務。接下來你可以這樣做。",
+      "title": "一切準備就緒",
+      "unverified": "電郵地址驗證後，你的監控才會運行。請在收件箱中查看驗證連結。",
+      "links": {
+        "members": "邀請你的團隊",
+        "monitor": "打開你的監控",
+        "monitors": "前往監控列表",
+        "probes": "管理探針",
+        "status_pages": "發佈狀態頁面"
+      }
+    }
   }
 }

@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Create your first monitor",
+      "add_channel": "Add a notification channel",
       "description": "Get started by creating your first monitor to track the health of your services.",
       "title": "No monitors found"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Failed to rename the workspace",
     "rename_success": "Workspace renamed",
     "switcher_label": "Switch workspace"
+  },
+  "get_started": {
+    "page_name": "Get started",
+    "skip": "Skip setup",
+    "step_of": "Step {{current}} of {{total}}",
+    "name": {
+      "description": "Your monitors, notification channels and status pages live here. You can rename it later in Settings.",
+      "title": "Name your workspace"
+    },
+    "monitor": {
+      "create": "Create monitor",
+      "create_failed": "Failed to create monitor",
+      "creating": "Creating...",
+      "description": "Enter the address of a website or API. Peekaping checks it and tells you when it stops responding.",
+      "full_form": "Set up a monitor with all the options instead",
+      "title": "Add your first monitor",
+      "url_invalid": "Enter an address that starts with http:// or https://",
+      "url_label": "Address to monitor"
+    },
+    "channel": {
+      "description": "Choose where Peekaping sends an alert when your monitor goes down. It becomes the default for new monitors.",
+      "link_failed": "The channel was saved, but linking it to your monitor failed. Add it on the monitor's edit page.",
+      "title": "Get notified"
+    },
+    "done": {
+      "description": "Peekaping is watching your service. Here is what you can do next.",
+      "title": "You're all set",
+      "unverified": "Your monitor runs once your email address is verified. Check your inbox for the verification link.",
+      "links": {
+        "members": "Invite your team",
+        "monitor": "Open your monitor",
+        "monitors": "Go to monitors",
+        "probes": "Manage probes",
+        "status_pages": "Publish a status page"
+      }
+    }
   }
 }

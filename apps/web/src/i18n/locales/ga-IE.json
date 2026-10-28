@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Cruthaigh do mhórbhainisteoir a thús",
+      "add_channel": "Cuir cainéal fógra leis",
       "description": "Tósaigh trí do monitor a chruthú chun sláinte do na seirbhísí a rianú.",
       "title": "Níor aimsíodh aon mhonáiteoirí"
     },
@@ -1884,5 +1885,41 @@
     "rename_error": "Theip ar athainmniú an spáis oibre",
     "rename_success": "Athainmníodh an spás oibre",
     "switcher_label": "Athraigh spás oibre"
+  },
+  "get_started": {
+    "page_name": "Tús a chur leis",
+    "skip": "Léim thar an socrú",
+    "step_of": "Céim {{current}} de {{total}}",
+    "name": {
+      "description": "Tá do mhonatóirí, do chainéil fógra agus do leathanaigh stádais anseo. Is féidir leat é a athainmniú níos déanaí sna Socruithe.",
+      "title": "Tabhair ainm do spás oibre"
+    },
+    "monitor": {
+      "create": "Cruthaigh monatóir",
+      "create_failed": "Theip ar chruthú an mhonatóra",
+      "creating": "Á chruthú...",
+      "description": "Cuir isteach seoladh suímh gréasáin nó API. Seiceálann Peekaping é agus cuireann sé in iúl duit nuair a stopann sé de fhreagairt.",
+      "full_form": "Nó socraigh monatóir leis na roghanna go léir",
+      "title": "Cuir do chéad mhonatóir leis",
+      "url_invalid": "Cuir isteach seoladh a thosaíonn le http:// nó https://",
+      "url_label": "Seoladh le monatóiriú"
+    },
+    "channel": {
+      "description": "Roghnaigh cá seolann Peekaping foláireamh nuair a thagann do mhonatóir anuas. Beidh sé mar réamhshocrú do mhonatóirí nua.",
+      "link_failed": "Sábháladh an cainéal, ach theip ar a nascadh le do mhonatóir. Cuir leis é ar leathanach eagarthóireachta an mhonatóra.",
+      "title": "Faigh fógraí"
+    },
+    "done": {
+      "description": "Tá Peekaping ag faire ar do sheirbhís. Seo a bhféadfá a dhéanamh ar ball.",
+      "title": "Tá gach rud réidh",
+      "unverified": "Rithfidh do mhonatóir nuair a bheidh do sheoladh ríomhphoist fíoraithe. Seiceáil do bhosca isteach don nasc fíoraithe.",
+      "links": {
+        "members": "Tabhair cuireadh do d'fhoireann",
+        "monitor": "Oscail do mhonatóir",
+        "monitors": "Téigh chuig na monatóirí",
+        "probes": "Bainistigh tóireadóirí",
+        "status_pages": "Foilsigh leathanach stádais"
+      }
+    }
   }
 }

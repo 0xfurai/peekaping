@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Creați primul monitor",
+      "add_channel": "Adăugați un canal de notificare",
       "description": "Începe prin crearea primului monitor pentru a urmări starea de sănătate a serviciilor tale.",
       "title": "Nu există monitoare"
     },
@@ -1884,5 +1885,41 @@
     "rename_error": "Redenumirea spațiului de lucru a eșuat",
     "rename_success": "Spațiul de lucru a fost redenumit",
     "switcher_label": "Schimbă spațiul de lucru"
+  },
+  "get_started": {
+    "page_name": "Primii pași",
+    "skip": "Omite configurarea",
+    "step_of": "Pasul {{current}} din {{total}}",
+    "name": {
+      "description": "Aici se află monitoarele, canalele de notificare și paginile de stare. Îi puteți schimba numele mai târziu în Setări.",
+      "title": "Dați un nume spațiului de lucru"
+    },
+    "monitor": {
+      "create": "Creează monitorul",
+      "create_failed": "Crearea monitorului a eșuat",
+      "creating": "Se creează...",
+      "description": "Introduceți adresa unui site web sau a unui API. Peekaping o verifică și vă anunță când nu mai răspunde.",
+      "full_form": "Sau configurați un monitor cu toate opțiunile",
+      "title": "Adăugați primul monitor",
+      "url_invalid": "Introduceți o adresă care începe cu http:// sau https://",
+      "url_label": "Adresa de monitorizat"
+    },
+    "channel": {
+      "description": "Alegeți unde trimite Peekaping o alertă când monitorul dvs. cade. Va deveni implicit pentru monitoarele noi.",
+      "link_failed": "Canalul a fost salvat, dar asocierea cu monitorul a eșuat. Adăugați-l în pagina de editare a monitorului.",
+      "title": "Primiți notificări"
+    },
+    "done": {
+      "description": "Peekaping vă monitorizează serviciul. Iată ce puteți face în continuare.",
+      "title": "Totul este gata",
+      "unverified": "Monitorul dvs. va rula după verificarea adresei de e-mail. Căutați linkul de verificare în căsuța de e-mail.",
+      "links": {
+        "members": "Invitați-vă echipa",
+        "monitor": "Deschideți monitorul",
+        "monitors": "Mergeți la monitoare",
+        "probes": "Gestionați sondele",
+        "status_pages": "Publicați o pagină de stare"
+      }
+    }
   }
 }

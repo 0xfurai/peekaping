@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Luo ensimmäinen valvonta",
+      "add_channel": "Lisää ilmoituskanava",
       "description": "Aloita luomalla ensimmäinen seuranta, jolla seuraat palveluidesi kuntoa.",
       "title": "Valvonta ei löytynyt"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Työtilan uudelleennimeäminen epäonnistui",
     "rename_success": "Työtila nimettiin uudelleen",
     "switcher_label": "Vaihda työtilaa"
+  },
+  "get_started": {
+    "page_name": "Aloitus",
+    "skip": "Ohita käyttöönotto",
+    "step_of": "Vaihe {{current}} / {{total}}",
+    "name": {
+      "description": "Täällä ovat valvontasi, ilmoituskanavasi ja tilasivusi. Voit nimetä sen myöhemmin uudelleen Asetuksissa.",
+      "title": "Nimeä työtilasi"
+    },
+    "monitor": {
+      "create": "Luo valvonta",
+      "create_failed": "Valvonnan luominen epäonnistui",
+      "creating": "Luodaan...",
+      "description": "Anna verkkosivuston tai API:n osoite. Peekaping tarkistaa sen ja kertoo, kun se lakkaa vastaamasta.",
+      "full_form": "Tai määritä valvonta kaikilla asetuksilla",
+      "title": "Lisää ensimmäinen valvontasi",
+      "url_invalid": "Anna osoite, joka alkaa merkinnällä http:// tai https://",
+      "url_label": "Valvottava osoite"
+    },
+    "channel": {
+      "description": "Valitse, minne Peekaping lähettää hälytyksen, kun valvontasi kaatuu. Siitä tulee uusien valvontojen oletus.",
+      "link_failed": "Kanava tallennettiin, mutta sen liittäminen valvontaan epäonnistui. Lisää se valvonnan muokkaussivulla.",
+      "title": "Saa ilmoituksia"
+    },
+    "done": {
+      "description": "Peekaping valvoo palveluasi. Tässä, mitä voit tehdä seuraavaksi.",
+      "title": "Kaikki valmista",
+      "unverified": "Valvontasi alkaa toimia, kun sähköpostiosoitteesi on vahvistettu. Vahvistuslinkki on postilaatikossasi.",
+      "links": {
+        "members": "Kutsu tiimisi",
+        "monitor": "Avaa valvontasi",
+        "monitors": "Siirry valvontoihin",
+        "probes": "Hallitse luotaimia",
+        "status_pages": "Julkaise tilasivu"
+      }
+    }
   }
 }

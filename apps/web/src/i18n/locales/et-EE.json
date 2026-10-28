@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Loo esimene jälgija",
+      "add_channel": "Lisa teavituskanal",
       "description": "Alustamiseks looge oma esimene monitor, et jälgida oma teenuste tervist.",
       "title": "Monitoore ei leitud"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Tööruumi ümbernimetamine ebaõnnestus",
     "rename_success": "Tööruum on ümber nimetatud",
     "switcher_label": "Vaheta tööruumi"
+  },
+  "get_started": {
+    "page_name": "Alustamine",
+    "skip": "Jäta seadistamine vahele",
+    "step_of": "Samm {{current}} / {{total}}",
+    "name": {
+      "description": "Siin asuvad sinu monitoorid, teavituskanalid ja olekulehed. Nime saad hiljem seadetes muuta.",
+      "title": "Pane oma tööruumile nimi"
+    },
+    "monitor": {
+      "create": "Loo monitoor",
+      "create_failed": "Monitoori loomine ebaõnnestus",
+      "creating": "Loomine...",
+      "description": "Sisesta veebisaidi või API aadress. Peekaping kontrollib seda ja annab teada, kui see enam ei vasta.",
+      "full_form": "Või seadista monitoor kõigi valikutega",
+      "title": "Lisa oma esimene monitoor",
+      "url_invalid": "Sisesta aadress, mis algab http:// või https://",
+      "url_label": "Jälgitav aadress"
+    },
+    "channel": {
+      "description": "Vali, kuhu Peekaping saadab hoiatuse, kui sinu monitoor kukub. See muutub uute monitooride vaikeväärtuseks.",
+      "link_failed": "Kanal salvestati, kuid selle sidumine monitooriga ebaõnnestus. Lisa see monitoori muutmise lehel.",
+      "title": "Saa teavitusi"
+    },
+    "done": {
+      "description": "Peekaping jälgib sinu teenust. Siin on, mida saad edasi teha.",
+      "title": "Kõik valmis",
+      "unverified": "Sinu monitoor hakkab tööle, kui e-posti aadress on kinnitatud. Kinnituslingi leiad oma postkastist.",
+      "links": {
+        "members": "Kutsu oma meeskond",
+        "monitor": "Ava oma monitoor",
+        "monitors": "Mine monitooride juurde",
+        "probes": "Halda sonde",
+        "status_pages": "Avalda olekuleht"
+      }
+    }
   }
 }

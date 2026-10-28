@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Crear tu primer monitor",
+      "add_channel": "Añadir un canal de notificación",
       "description": "Comience creando su primer monitor para supervisar la salud de sus servicios.",
       "title": "No se encontraron monitores"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "No se pudo renombrar el espacio de trabajo",
     "rename_success": "Espacio de trabajo renombrado",
     "switcher_label": "Cambiar de espacio de trabajo"
+  },
+  "get_started": {
+    "page_name": "Primeros pasos",
+    "skip": "Omitir configuración",
+    "step_of": "Paso {{current}} de {{total}}",
+    "name": {
+      "description": "Aquí están tus monitores, canales de notificación y páginas de estado. Puedes cambiarle el nombre más tarde en Ajustes.",
+      "title": "Ponle nombre a tu espacio de trabajo"
+    },
+    "monitor": {
+      "create": "Crear monitor",
+      "create_failed": "No se pudo crear el monitor",
+      "creating": "Creando...",
+      "description": "Introduce la dirección de un sitio web o una API. Peekaping la comprueba y te avisa cuando deja de responder.",
+      "full_form": "O configura un monitor con todas las opciones",
+      "title": "Añade tu primer monitor",
+      "url_invalid": "Introduce una dirección que empiece por http:// o https://",
+      "url_label": "Dirección a monitorizar"
+    },
+    "channel": {
+      "description": "Elige adónde envía Peekaping una alerta cuando tu monitor se caiga. Será el canal por defecto de los monitores nuevos.",
+      "link_failed": "El canal se guardó, pero no se pudo vincular a tu monitor. Añádelo en la página de edición del monitor.",
+      "title": "Recibe avisos"
+    },
+    "done": {
+      "description": "Peekaping está vigilando tu servicio. Esto es lo que puedes hacer a continuación.",
+      "title": "Todo listo",
+      "unverified": "Tu monitor se ejecutará cuando se verifique tu correo electrónico. Busca el enlace de verificación en tu bandeja de entrada.",
+      "links": {
+        "members": "Invitar a tu equipo",
+        "monitor": "Abrir tu monitor",
+        "monitors": "Ir a los monitores",
+        "probes": "Gestionar sondas",
+        "status_pages": "Publicar una página de estado"
+      }
+    }
   }
 }

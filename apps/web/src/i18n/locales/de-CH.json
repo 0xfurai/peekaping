@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Erstelle deinen ersten Monitor",
+      "add_channel": "Benachrichtigungskanal hinzufügen",
       "description": "Legen Sie los, indem Sie Ihren ersten Monitor erstellen, um den Gesundheitszustand Ihrer Dienste zu überwachen.",
       "title": "Keine Monitore gefunden"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Der Arbeitsbereich konnte nicht umbenannt werden",
     "rename_success": "Arbeitsbereich umbenannt",
     "switcher_label": "Arbeitsbereich wechseln"
+  },
+  "get_started": {
+    "page_name": "Erste Schritte",
+    "skip": "Einrichtung überspringen",
+    "step_of": "Schritt {{current}} von {{total}}",
+    "name": {
+      "description": "Hier befinden sich Ihre Monitore, Benachrichtigungskanäle und Statusseiten. Den Namen können Sie später in den Einstellungen ändern.",
+      "title": "Benennen Sie Ihren Arbeitsbereich"
+    },
+    "monitor": {
+      "create": "Monitor erstellen",
+      "create_failed": "Der Monitor konnte nicht erstellt werden",
+      "creating": "Wird erstellt...",
+      "description": "Gib die Adresse einer Website oder API ein. Peekaping prüft sie und meldet dir, wenn sie nicht mehr antwortet.",
+      "full_form": "Oder richte einen Monitor mit allen Optionen ein",
+      "title": "Füge deinen ersten Monitor hinzu",
+      "url_invalid": "Gib eine Adresse ein, die mit http:// oder https:// beginnt",
+      "url_label": "Zu überwachende Adresse"
+    },
+    "channel": {
+      "description": "Wähle, wohin Peekaping einen Alarm sendet, wenn dein Monitor ausfällt. Er wird zum Standard für neue Monitore.",
+      "link_failed": "Der Kanal wurde gespeichert, aber die Verknüpfung mit deinem Monitor ist fehlgeschlagen. Füge ihn auf der Bearbeitungsseite des Monitors hinzu.",
+      "title": "Lass dich benachrichtigen"
+    },
+    "done": {
+      "description": "Peekaping überwacht deinen Dienst. Das kannst du als Nächstes tun.",
+      "title": "Alles bereit",
+      "unverified": "Dein Monitor läuft, sobald deine E-Mail-Adresse bestätigt ist. Den Bestätigungslink findest du in deinem Posteingang.",
+      "links": {
+        "members": "Team einladen",
+        "monitor": "Monitor öffnen",
+        "monitors": "Zu den Monitoren",
+        "probes": "Sonden verwalten",
+        "status_pages": "Statusseite veröffentlichen"
+      }
+    }
   }
 }

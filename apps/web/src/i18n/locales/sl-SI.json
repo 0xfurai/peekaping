@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Ustvari svoj prvi monitor",
+      "add_channel": "Dodaj kanal obvestil",
       "description": "Začnite z ustvarjanjem prvega nadzornika, ki bo spremljal zdravje vaših storitev.",
       "title": "Ni monitorjev"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Preimenovanje delovnega prostora ni uspelo",
     "rename_success": "Delovni prostor je preimenovan",
     "switcher_label": "Zamenjaj delovni prostor"
+  },
+  "get_started": {
+    "page_name": "Začnimo",
+    "skip": "Preskoči nastavitev",
+    "step_of": "Korak {{current}} od {{total}}",
+    "name": {
+      "description": "Tukaj so vaši nadzori, kanali za obvestila in statusne strani. Ime lahko pozneje spremenite v Nastavitvah.",
+      "title": "Poimenujte svoj delovni prostor"
+    },
+    "monitor": {
+      "create": "Ustvari monitor",
+      "create_failed": "Monitorja ni bilo mogoče ustvariti",
+      "creating": "Ustvarjanje...",
+      "description": "Vnesite naslov spletnega mesta ali API-ja. Peekaping ga preverja in vas obvesti, ko preneha odgovarjati.",
+      "full_form": "Ali nastavite monitor z vsemi možnostmi",
+      "title": "Dodajte svoj prvi monitor",
+      "url_invalid": "Vnesite naslov, ki se začne s http:// ali https://",
+      "url_label": "Naslov za nadzor"
+    },
+    "channel": {
+      "description": "Izberite, kam Peekaping pošlje opozorilo, ko vaš monitor odpove. Postal bo privzeti za nove monitorje.",
+      "link_failed": "Kanal je shranjen, vendar povezava z monitorjem ni uspela. Dodajte ga na strani za urejanje monitorja.",
+      "title": "Prejemajte obvestila"
+    },
+    "done": {
+      "description": "Peekaping nadzira vašo storitev. Tole lahko storite naprej.",
+      "title": "Vse je pripravljeno",
+      "unverified": "Vaš monitor bo deloval, ko bo vaš e-poštni naslov potrjen. Povezavo za potrditev poiščite v nabiralniku.",
+      "links": {
+        "members": "Povabite svojo ekipo",
+        "monitor": "Odprite svoj monitor",
+        "monitors": "Pojdi na monitorje",
+        "probes": "Upravljajte sonde",
+        "status_pages": "Objavite statusno stran"
+      }
+    }
   }
 }

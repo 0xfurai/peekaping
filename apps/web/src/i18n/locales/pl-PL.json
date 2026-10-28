@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Utwórz swój pierwszy monitor",
+      "add_channel": "Dodaj kanał powiadomień",
       "description": "Rozpocznij od utworzenia pierwszego monitora, aby śledzić stan Twoich usług.",
       "title": "Nie znaleziono monitorów"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "Nie udało się zmienić nazwy obszaru roboczego",
     "rename_success": "Zmieniono nazwę obszaru roboczego",
     "switcher_label": "Przełącz obszar roboczy"
+  },
+  "get_started": {
+    "page_name": "Pierwsze kroki",
+    "skip": "Pomiń konfigurację",
+    "step_of": "Krok {{current}} z {{total}}",
+    "name": {
+      "description": "Tutaj znajdują się Twoje monitory, kanały powiadomień i strony statusu. Nazwę możesz później zmienić w Ustawieniach.",
+      "title": "Nazwij swój obszar roboczy"
+    },
+    "monitor": {
+      "create": "Utwórz monitor",
+      "create_failed": "Nie udało się utworzyć monitora",
+      "creating": "Tworzenie...",
+      "description": "Wpisz adres strony internetowej lub API. Peekaping sprawdza go i powiadamia Cię, gdy przestanie odpowiadać.",
+      "full_form": "Albo skonfiguruj monitor ze wszystkimi opcjami",
+      "title": "Dodaj swój pierwszy monitor",
+      "url_invalid": "Wpisz adres zaczynający się od http:// lub https://",
+      "url_label": "Adres do monitorowania"
+    },
+    "channel": {
+      "description": "Wybierz, dokąd Peekaping ma wysłać alert, gdy Twój monitor przestanie działać. Będzie to domyślny kanał dla nowych monitorów.",
+      "link_failed": "Kanał został zapisany, ale nie udało się go powiązać z monitorem. Dodaj go na stronie edycji monitora.",
+      "title": "Otrzymuj powiadomienia"
+    },
+    "done": {
+      "description": "Peekaping obserwuje Twoją usługę. Oto, co możesz zrobić dalej.",
+      "title": "Wszystko gotowe",
+      "unverified": "Twój monitor ruszy po zweryfikowaniu adresu e-mail. Link weryfikacyjny znajdziesz w skrzynce odbiorczej.",
+      "links": {
+        "members": "Zaproś swój zespół",
+        "monitor": "Otwórz monitor",
+        "monitors": "Przejdź do monitorów",
+        "probes": "Zarządzaj sondami",
+        "status_pages": "Opublikuj stronę statusu"
+      }
+    }
   }
 }

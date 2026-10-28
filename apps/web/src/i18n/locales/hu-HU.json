@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Hozd létre az első figyelődet",
+      "add_channel": "Értesítési csatorna hozzáadása",
       "description": "Kezdje el az első monitor létrehozásával, hogy nyomon kövesse a szolgáltatásainak egészségét.",
       "title": "Nem találhatók monitorok"
     },
@@ -1885,5 +1886,41 @@
     "rename_error": "A munkaterület átnevezése nem sikerült",
     "rename_success": "A munkaterület át lett nevezve",
     "switcher_label": "Munkaterület váltása"
+  },
+  "get_started": {
+    "page_name": "Első lépések",
+    "skip": "Beállítás kihagyása",
+    "step_of": "{{current}}. lépés / {{total}}",
+    "name": {
+      "description": "Itt találhatók a monitorai, értesítési csatornái és állapotoldalai. A nevet később átírhatja a Beállításokban.",
+      "title": "Nevezze el a munkaterületét"
+    },
+    "monitor": {
+      "create": "Figyelő létrehozása",
+      "create_failed": "A figyelő létrehozása nem sikerült",
+      "creating": "Létrehozás...",
+      "description": "Adja meg egy weboldal vagy API címét. A Peekaping ellenőrzi, és szól, ha nem válaszol többé.",
+      "full_form": "Vagy állítson be egy figyelőt az összes lehetőséggel",
+      "title": "Adja hozzá az első figyelőjét",
+      "url_invalid": "Adjon meg egy http:// vagy https:// kezdetű címet",
+      "url_label": "Figyelendő cím"
+    },
+    "channel": {
+      "description": "Válassza ki, hová küldjön a Peekaping riasztást, ha a figyelője leáll. Ez lesz az új figyelők alapértelmezettje.",
+      "link_failed": "A csatorna mentve lett, de a figyelőhöz kapcsolása nem sikerült. Adja hozzá a figyelő szerkesztőoldalán.",
+      "title": "Kérjen értesítést"
+    },
+    "done": {
+      "description": "A Peekaping figyeli a szolgáltatását. Ezt teheti ezután.",
+      "title": "Minden kész",
+      "unverified": "A figyelője az e-mail-címe megerősítése után kezd futni. A megerősítő linket a postaládájában találja.",
+      "links": {
+        "members": "Hívja meg a csapatát",
+        "monitor": "A figyelő megnyitása",
+        "monitors": "Ugrás a figyelőkhöz",
+        "probes": "Szondák kezelése",
+        "status_pages": "Állapotoldal közzététele"
+      }
+    }
   }
 }
