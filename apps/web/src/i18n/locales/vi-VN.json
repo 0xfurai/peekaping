@@ -26,7 +26,8 @@
         "rate_limited": "Có quá nhiều lượt đăng ký từ mạng của bạn. Hãy thử lại sau một giờ.",
         "email_taken": "Đã có tài khoản dùng email này.",
         "sign_in_instead": "Hãy đăng nhập.",
-        "check_failed": "Kiểm tra không thành công. Hãy thử lại."
+        "check_failed": "Kiểm tra không thành công. Hãy thử lại.",
+        "check_load_failed": "Không tải được bước kiểm tra. Hãy kiểm tra kết nối và thử lại."
       }
     },
     "twofa": {

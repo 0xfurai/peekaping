@@ -26,7 +26,8 @@
         "rate_limited": "Zu viele Registrierungen aus deinem Netzwerk. Versuche es in einer Stunde erneut.",
         "email_taken": "Ein Konto mit dieser E-Mail-Adresse existiert bereits.",
         "sign_in_instead": "Melde dich stattdessen an.",
-        "check_failed": "Die Prüfung ist fehlgeschlagen. Versuche es erneut."
+        "check_failed": "Die Prüfung ist fehlgeschlagen. Versuche es erneut.",
+        "check_load_failed": "Die Prüfung konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut."
       }
     },
     "twofa": {

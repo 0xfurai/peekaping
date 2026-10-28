@@ -26,7 +26,8 @@
         "rate_limited": "你所在网络的注册次数过多。请一小时后再试。",
         "email_taken": "使用此邮箱的账户已存在。",
         "sign_in_instead": "请改为登录。",
-        "check_failed": "验证未通过。请重试。"
+        "check_failed": "验证未通过。请重试。",
+        "check_load_failed": "无法加载验证。请检查网络连接后重试。"
       }
     },
     "twofa": {

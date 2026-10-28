@@ -26,7 +26,8 @@
         "rate_limited": "Demasiados registos a partir da sua rede. Tente novamente dentro de uma hora.",
         "email_taken": "Já existe uma conta com este e-mail.",
         "sign_in_instead": "Inicie sessão.",
-        "check_failed": "A verificação não passou. Tente novamente."
+        "check_failed": "A verificação não passou. Tente novamente.",
+        "check_load_failed": "Não foi possível carregar a verificação. Verifique a sua ligação e tente novamente."
       }
     },
     "twofa": {

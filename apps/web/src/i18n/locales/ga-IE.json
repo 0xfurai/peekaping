@@ -26,7 +26,8 @@
         "rate_limited": "An iomarca clárúchán ó do líonra. Bain triail eile as faoi uair an chloig.",
         "email_taken": "Tá cuntas leis an ríomhphost seo ann cheana.",
         "sign_in_instead": "Sínigh isteach ina ionad.",
-        "check_failed": "Níor éirigh leis an seiceáil. Bain triail eile as."
+        "check_failed": "Níor éirigh leis an seiceáil. Bain triail eile as.",
+        "check_load_failed": "Níorbh fhéidir an tseiceáil a luchtú. Seiceáil do cheangal agus bain triail eile as."
       }
     },
     "twofa": {

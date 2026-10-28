@@ -26,7 +26,8 @@
         "rate_limited": "Troppe registrazioni dalla tua rete. Riprova tra un'ora.",
         "email_taken": "Esiste già un account con questa e-mail.",
         "sign_in_instead": "Accedi invece.",
-        "check_failed": "Il controllo non è stato superato. Riprova."
+        "check_failed": "Il controllo non è stato superato. Riprova.",
+        "check_load_failed": "Impossibile caricare il controllo. Verifica la connessione e riprova."
       }
     },
     "twofa": {

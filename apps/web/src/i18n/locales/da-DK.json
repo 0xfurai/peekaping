@@ -26,7 +26,8 @@
         "rate_limited": "For mange tilmeldinger fra dit netværk. Prøv igen om en time.",
         "email_taken": "Der findes allerede en konto med denne e-mail.",
         "sign_in_instead": "Log ind i stedet.",
-        "check_failed": "Kontrollen blev ikke bestået. Prøv igen."
+        "check_failed": "Kontrollen blev ikke bestået. Prøv igen.",
+        "check_load_failed": "Kontrollen kunne ikke indlæses. Tjek din forbindelse og prøv igen."
       }
     },
     "twofa": {

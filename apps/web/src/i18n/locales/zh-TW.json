@@ -26,7 +26,8 @@
         "rate_limited": "你所在網路的註冊次數過多。請一小時後再試。",
         "email_taken": "使用此電子郵件的帳戶已存在。",
         "sign_in_instead": "請改為登入。",
-        "check_failed": "驗證未通過。請再試一次。"
+        "check_failed": "驗證未通過。請再試一次。",
+        "check_load_failed": "無法載入驗證。請檢查網路連線後再試一次。"
       }
     },
     "twofa": {

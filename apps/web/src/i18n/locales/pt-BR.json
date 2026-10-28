@@ -26,7 +26,8 @@
         "rate_limited": "Cadastros demais vindos da sua rede. Tente de novo em uma hora.",
         "email_taken": "Já existe uma conta com este e-mail.",
         "sign_in_instead": "Entre com ela.",
-        "check_failed": "A verificação não passou. Tente de novo."
+        "check_failed": "A verificação não passou. Tente de novo.",
+        "check_load_failed": "Não foi possível carregar a verificação. Confira sua conexão e tente de novo."
       }
     },
     "twofa": {

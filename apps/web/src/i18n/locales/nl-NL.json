@@ -26,7 +26,8 @@
         "rate_limited": "Te veel aanmeldingen vanaf je netwerk. Probeer het over een uur opnieuw.",
         "email_taken": "Er bestaat al een account met dit e-mailadres.",
         "sign_in_instead": "Log in plaats daarvan in.",
-        "check_failed": "De controle is niet geslaagd. Probeer het opnieuw."
+        "check_failed": "De controle is niet geslaagd. Probeer het opnieuw.",
+        "check_load_failed": "De controle kon niet worden geladen. Controleer je verbinding en probeer het opnieuw."
       }
     },
     "twofa": {
