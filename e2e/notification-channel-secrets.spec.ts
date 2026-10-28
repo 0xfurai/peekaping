@@ -418,8 +418,10 @@ test('A webhook URL with masked credentials must have them typed again once it i
       {},
     );
     const saves: string[] = [];
+    const tests: string[] = [];
     page.on('request', (r) => {
       if (r.method() === 'PUT' && r.url().endsWith(`/notification-channels/${channelID}`)) saves.push(r.url());
+      if (r.method() === 'POST' && r.url().endsWith('/notification-channels/test')) tests.push(r.url());
     });
 
     // The URL is shown with its credentials masked, and the page never holds them
@@ -433,12 +435,15 @@ test('A webhook URL with masked credentials must have them typed again once it i
     expect(content).not.toContain(token);
 
     // Another path with the masks still in it can't keep the credentials: the URL says so at
-    // once, and saving is refused
+    // once, and testing and saving are refused
     const moved = masked.replace(`/webhooks/${id}`, `/webhooks/${id}-new`);
     await url.fill(moved);
     await expect(urlItem.getByText(reenterURLError)).toBeVisible();
+    await page.getByRole('button', { name: 'Test', exact: true }).click();
+    await expect(urlItem.getByText(reenterURLError)).toBeVisible();
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(urlItem.getByText(reenterURLError)).toBeVisible();
+    expect(tests).toHaveLength(0);
     expect(saves).toHaveLength(0);
     expect(await savedConfig(api, channelID)).toMatchObject({ webhook_url: masked });
 
