@@ -3992,6 +3992,10 @@ export type PostProbesErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4065,6 +4069,10 @@ export type DeleteProbesByIdErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
   /**
    * Not Found
    */
@@ -4153,6 +4161,10 @@ export type PutProbesByIdErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
    * Not Found
    */
   404: HttpxErrorBody;
@@ -4195,6 +4207,10 @@ export type PostProbesByIdAssignAllMonitorsErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
   /**
    * Not Found
    */
@@ -4288,6 +4304,10 @@ export type PostProbesByIdRotateTokenErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
   /**
    * Not Found
    */

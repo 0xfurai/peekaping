@@ -79,7 +79,7 @@ func TestProbeAvailabilityAPI_OneProbeWithItsInstances(t *testing.T) {
 		return svc.RegisterInstance(context.Background(), made.ID, &probe.Instance{ID: "instance-1", Hostname: "fra-1", Version: "1.4.0", LastSeenAt: time.Now().UTC()})
 	}))
 
-	got := decode[probeAvailability](t, a.request(t, http.MethodGet, probesPath+"/"+made.ID+"/availability", nil, a.withAPIKey), http.StatusOK)
+	got := decode[probeAvailability](t, a.request(t, http.MethodGet, probesPath+"/"+made.ID+"/availability", nil, a.asAdmin), http.StatusOK)
 
 	assert.Equal(t, made.ID, got.ProbeID)
 	assert.Equal(t, "24h", got.Range, "24h is the default")

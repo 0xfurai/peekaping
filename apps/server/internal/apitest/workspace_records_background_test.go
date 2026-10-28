@@ -120,9 +120,8 @@ func TestRecordWorkspaces_AProbeIsLinkedOnlyToChannelsOfAWorkspaceTheAdminIsIn(t
 		assert.Equal(t, "Frankfurt", unchanged.Name)
 		assert.Equal(t, []string{mine}, unchanged.NotificationIDs)
 	})
-	t.Run("an API key links its own workspace's channels only", func(t *testing.T) {
-		assert.Equal(t, http.StatusBadRequest, a.request(t, http.MethodPut, path, map[string]any{"notification_ids": []string{theirs}}, a.withAPIKey).Code)
-		decode[probeResponse](t, a.request(t, http.MethodPut, path, map[string]any{"notification_ids": []string{mine}}, a.withAPIKey), http.StatusOK)
+	t.Run("an API key links no channels", func(t *testing.T) {
+		assert.Equal(t, http.StatusForbidden, a.request(t, http.MethodPut, path, map[string]any{"notification_ids": []string{mine}}, a.withAPIKey).Code)
 	})
 	t.Run("a member of both workspaces links either", func(t *testing.T) {
 		a.addMember(t, second, a.userID(t, adminEmail), workspace.RoleMember)

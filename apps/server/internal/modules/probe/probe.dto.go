@@ -119,6 +119,27 @@ func ToProbeResponse(m *Model) *ProbeResponse {
 	}
 }
 
+// WithoutAdminDetails leaves out what only an instance admin sees (docs/adr/0005 section 10): each
+// instance's hostname, OS, architecture, version and protocol version, which become empty or 0, and
+// the probe's notification channels, which become an empty list. The instances stay, so the count is
+// still shown, and so does everything else.
+func (r *ProbeResponse) WithoutAdminDetails() {
+	r.NotificationIDs = []string{}
+	for _, instance := range r.Instances {
+		instance.Hostname, instance.OS, instance.Arch, instance.Version, instance.ProtocolVersion = "", "", "", "", 0
+	}
+}
+
+// WithoutAdminDetails leaves out each instance's hostname and version, which become empty
+func (r *ProbeAvailabilityResponse) WithoutAdminDetails() {
+	if r.Instances == nil {
+		return
+	}
+	for _, instance := range *r.Instances {
+		instance.Hostname, instance.Version = "", ""
+	}
+}
+
 // ToProbeWithTokenResponse converts a ModelWithToken to ProbeWithTokenResponse
 func ToProbeWithTokenResponse(m *ModelWithToken) *ProbeWithTokenResponse {
 	return &ProbeWithTokenResponse{ProbeResponse: *ToProbeResponse(&m.Model), Token: m.Token}

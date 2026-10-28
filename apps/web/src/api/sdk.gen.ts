@@ -1623,6 +1623,7 @@ export const putNotificationChannelsById = <
 
 /**
  * Get probes
+ * Every probe, the local probe first. A user who is not an instance admin, and an API key, see each probe with its name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.
  */
 export const getProbes = <ThrowOnError extends boolean = false>(
   options?: Options<GetProbesData, ThrowOnError>
@@ -1650,6 +1651,7 @@ export const getProbes = <ThrowOnError extends boolean = false>(
 
 /**
  * Create probe
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const postProbes = <ThrowOnError extends boolean = false>(
   options: Options<PostProbesData, ThrowOnError>
@@ -1664,10 +1666,6 @@ export const postProbes = <ThrowOnError extends boolean = false>(
       {
         scheme: "bearer",
         type: "http",
-      },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
       },
     ],
     url: "/api/v1/probes",
@@ -1709,6 +1707,7 @@ export const getProbesAvailability = <ThrowOnError extends boolean = false>(
 
 /**
  * Delete probe
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const deleteProbesById = <ThrowOnError extends boolean = false>(
   options: Options<DeleteProbesByIdData, ThrowOnError>
@@ -1723,10 +1722,6 @@ export const deleteProbesById = <ThrowOnError extends boolean = false>(
         scheme: "bearer",
         type: "http",
       },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
-      },
     ],
     url: "/api/v1/probes/{id}",
     ...options,
@@ -1735,6 +1730,7 @@ export const deleteProbesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Get probe
+ * A user who is not an instance admin, and an API key, see the probe's name, location, status and supported monitor types, but its instances come with an empty hostname, OS, architecture and version and a protocol version of 0, and notification_ids is an empty list.
  */
 export const getProbesById = <ThrowOnError extends boolean = false>(
   options: Options<GetProbesByIdData, ThrowOnError>
@@ -1762,6 +1758,7 @@ export const getProbesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Update probe
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const putProbesById = <ThrowOnError extends boolean = false>(
   options: Options<PutProbesByIdData, ThrowOnError>
@@ -1777,10 +1774,6 @@ export const putProbesById = <ThrowOnError extends boolean = false>(
         scheme: "bearer",
         type: "http",
       },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
-      },
     ],
     url: "/api/v1/probes/{id}",
     ...options,
@@ -1793,7 +1786,7 @@ export const putProbesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Assign all monitors to a probe
- * Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
+ * Only an instance admin may do this: any other user and any API key get 403. Adds the probe to every monitor it can run now: push monitors are left out, and so are the types the probe's online instances don't run. A probe with no instance yet is assigned every monitor by its first hello instead, and the answer says it is pending.
  */
 export const postProbesByIdAssignAllMonitors = <
   ThrowOnError extends boolean = false,
@@ -1811,10 +1804,6 @@ export const postProbesByIdAssignAllMonitors = <
         scheme: "bearer",
         type: "http",
       },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
-      },
     ],
     url: "/api/v1/probes/{id}/assign-all-monitors",
     ...options,
@@ -1823,7 +1812,7 @@ export const postProbesByIdAssignAllMonitors = <
 
 /**
  * Get the availability of a probe
- * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours.
+ * A probe's online and offline periods over the range and its uptime, with its instances and when each was connected over the last 24 hours. A user who is not an instance admin, and an API key, see each instance with an empty hostname and version.
  */
 export const getProbesByIdAvailability = <ThrowOnError extends boolean = false>(
   options: Options<GetProbesByIdAvailabilityData, ThrowOnError>
@@ -1851,6 +1840,7 @@ export const getProbesByIdAvailability = <ThrowOnError extends boolean = false>(
 
 /**
  * Rotate probe token
+ * Only an instance admin may do this: any other user and any API key get 403.
  */
 export const postProbesByIdRotateToken = <ThrowOnError extends boolean = false>(
   options: Options<PostProbesByIdRotateTokenData, ThrowOnError>
@@ -1865,10 +1855,6 @@ export const postProbesByIdRotateToken = <ThrowOnError extends boolean = false>(
       {
         scheme: "bearer",
         type: "http",
-      },
-      {
-        name: "X-API-Key",
-        type: "apiKey",
       },
     ],
     url: "/api/v1/probes/{id}/rotate-token",
