@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"peekaping/internal/config"
@@ -219,6 +220,7 @@ func NewServer(
 	})
 
 	events.Subscribe(subscriber, workspace.MemberLeft, server.memberLeft)
+	events.Subscribe(subscriber, auth.SessionsEnded, server.sessionsEnded)
 
 	return server, nil
 }
@@ -315,6 +317,16 @@ func (s *Server) join(us *userSocket, roomName string) (refusal string) {
 		target = workspaceID
 	}
 
+	// A socket outlives the check of its token. An account an instance admin disabled or deleted
+	// since joins nothing, though its memberships stand.
+	if err := s.tokenMaker.CheckUserCanSignIn(ctx, us.userID); err != nil {
+		if !errors.Is(err, auth.ErrInvalidToken) {
+			s.logger.Warnw("join_room refused: could not read the user's account", "user_id", us.userID, "error", err)
+			return "could not read the account"
+		}
+		return "the account is disabled or gone"
+	}
+
 	memberships, err := s.workspaces.ListMemberships(ctx, us.userID)
 	if err != nil {
 		s.logger.Warnw("join_room refused: could not read the user's memberships", "user_id", us.userID, "error", err)
@@ -332,6 +344,15 @@ func (s *Server) join(us *userSocket, roomName string) (refusal string) {
 func (s *Server) memberLeft(ctx context.Context, e workspace.MemberLeftEvent) {
 	for _, us := range s.socketsOf(e.UserID) {
 		s.leaveWorkspace(ctx, us, e.WorkspaceID)
+	}
+}
+
+// sessionsEnded closes every open socket of the user: their sessions ended, and a socket is a
+// session that no token check reaches again. The client may connect again, with the token of a new
+// session if it has one.
+func (s *Server) sessionsEnded(_ context.Context, e auth.SessionsEndedEvent) {
+	for _, us := range s.socketsOf(e.UserID) {
+		us.client.Disconnect(true)
 	}
 }
 

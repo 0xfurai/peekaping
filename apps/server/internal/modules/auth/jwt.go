@@ -58,6 +58,9 @@ type SessionCutoffs interface {
 	// TokensValidAfter returns the moment before which issued tokens no longer work, nil for none,
 	// and ErrSessionUserGone for a user that doesn't exist
 	TokensValidAfter(ctx context.Context, userID string) (*time.Time, error)
+	// UserActive says whether the user's account is active (an instance admin may disable it), and
+	// returns ErrSessionUserGone for a user that doesn't exist
+	UserActive(ctx context.Context, userID string) (bool, error)
 }
 
 // secretTTL is how long a signing secret stays in memory before it is read from
@@ -243,6 +246,28 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 	}
 
 	return claims, nil
+}
+
+// CheckUserCanSignIn returns nil when the user exists and their account is active, and
+// ErrInvalidToken when it is disabled or gone. It is for a session that outlives its token's
+// check, as an open socket does: the token was verified once, when the socket connected. A failure
+// to read the account refuses too. A maker with no cutoffs checks nothing.
+func (maker *TokenMaker) CheckUserCanSignIn(ctx context.Context, userID string) error {
+	if maker.cutoffs == nil {
+		return nil
+	}
+	active, err := maker.cutoffs.UserActive(ctx, userID)
+	if errors.Is(err, ErrSessionUserGone) {
+		return ErrInvalidToken
+	}
+	if err != nil {
+		maker.logger.Errorw("Failed to read whether the account of a session is active", "userId", userID, "error", err)
+		return fmt.Errorf("failed to check the account: %w", err)
+	}
+	if !active {
+		return ErrInvalidToken
+	}
+	return nil
 }
 
 // checkSessionNotEnded refuses a token issued before its user's sessions were ended, and one whose

@@ -59,6 +59,9 @@ type AccountRepository interface {
 	// TokensValidAfter returns when the user's earlier sessions were ended, nil for none, and
 	// ErrSessionUserGone for a user that doesn't exist. It is a SessionCutoffs.
 	TokensValidAfter(ctx context.Context, userID string) (*time.Time, error)
+	// UserActive says whether the user's account is active, and returns ErrSessionUserGone for a
+	// user that doesn't exist. It is a SessionCutoffs.
+	UserActive(ctx context.Context, userID string) (bool, error)
 }
 
 type accountTokenModel struct {
@@ -181,4 +184,13 @@ func (r *SQLAccountRepository) TokensValidAfter(ctx context.Context, userID stri
 		after = &utc
 	}
 	return after, nil
+}
+
+func (r *SQLAccountRepository) UserActive(ctx context.Context, userID string) (bool, error) {
+	var active bool
+	err := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).Column("active").Where("id = ?", userID).Scan(ctx, &active)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, ErrSessionUserGone
+	}
+	return active, err
 }

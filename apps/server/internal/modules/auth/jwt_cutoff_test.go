@@ -22,6 +22,10 @@ func (failingCutoffs) TokensValidAfter(context.Context, string) (*time.Time, err
 	return nil, errors.New("database is down")
 }
 
+func (failingCutoffs) UserActive(context.Context, string) (bool, error) {
+	return false, errors.New("database is down")
+}
+
 func TestTokenMaker_RefusesATokenIssuedBeforeTheUsersCutoffAndAcceptsOneIssuedAfter(t *testing.T) {
 	h := newHarness(t)
 	session := h.register(t)
@@ -114,4 +118,31 @@ func TestTokenMaker_RefusesATokenOfAUserWhoNoLongerExists(t *testing.T) {
 	assert.ErrorIs(t, err, auth.ErrInvalidToken)
 	_, err = tokens.VerifyToken(ctx, refresh, "refresh")
 	assert.ErrorIs(t, err, auth.ErrInvalidToken)
+}
+
+// An open socket checks its user once more when it joins a room (PP-371): the account has to exist
+// and be active
+func TestTokenMaker_CheckUserCanSignInRefusesADisabledOrDeletedUserAndOneThatCannotBeRead(t *testing.T) {
+	h := newHarness(t)
+	h.register(t)
+	ctx := context.Background()
+	user, err := auth.NewSQLRepository(h.db).FindByEmail(ctx, adminEmail)
+	require.NoError(t, err)
+	tokens := auth.NewTokenMaker(h.settings, zap.NewNop().Sugar()).WithSessionCutoffs(auth.NewSQLAccountRepository(h.db))
+
+	assert.NoError(t, tokens.CheckUserCanSignIn(ctx, user.ID))
+
+	_, err = h.db.Exec("UPDATE users SET active = ? WHERE id = ?", false, user.ID)
+	require.NoError(t, err)
+	assert.ErrorIs(t, tokens.CheckUserCanSignIn(ctx, user.ID), auth.ErrInvalidToken, "disabled")
+
+	_, err = h.db.Exec("DELETE FROM users WHERE id = ?", user.ID)
+	require.NoError(t, err)
+	assert.ErrorIs(t, tokens.CheckUserCanSignIn(ctx, user.ID), auth.ErrInvalidToken, "gone")
+
+	failing := auth.NewTokenMaker(h.settings, zap.NewNop().Sugar()).WithSessionCutoffs(failingCutoffs{})
+	err = failing.CheckUserCanSignIn(ctx, user.ID)
+	assert.Error(t, err, "an account that can't be read is refused")
+	assert.NotErrorIs(t, err, auth.ErrInvalidToken)
+	assert.NoError(t, h.tokens.CheckUserCanSignIn(ctx, user.ID), "a maker with no cutoffs checks none")
 }

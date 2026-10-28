@@ -101,7 +101,8 @@ func newHarnessWithConnectionDelay(t *testing.T, delay time.Duration) *harness {
 	logger := zap.NewNop().Sugar()
 	settings := setting.NewService(setting.NewSQLRepository(db), logger)
 	require.NoError(t, settings.InitializeSettings(ctx))
-	tokens := auth.NewTokenMaker(settings, logger)
+	// The cutoffs read the user, as the API's token maker does
+	tokens := auth.NewTokenMaker(settings, logger).WithSessionCutoffs(auth.NewSQLAccountRepository(db))
 	bus := eventstest.NewBus()
 	server, err := websocket.NewServer(&config.Config{}, bus, tokens, workspace.NewSQLRepository(db), monitor.NewSQLRepository(db), logger)
 	require.NoError(t, err)
@@ -911,4 +912,80 @@ func TestMemberLeftForAUserWithNoSocketIsHarmless(t *testing.T) {
 
 	publishHeartbeat(t, h.bus, monitorA, "a-1")
 	a.untilMsg(t, "a-1")
+}
+
+// closed waits for the server to close the client's connection
+func (c *client) closed(t *testing.T) {
+	t.Helper()
+	deadline := time.After(wait)
+	for {
+		select {
+		case _, ok := <-c.packets:
+			if !ok {
+				return
+			}
+		case <-deadline:
+			require.FailNow(t, "the connection was not closed within "+wait.String())
+		}
+	}
+}
+
+// When a user's sessions end, every socket they have open is closed, whatever rooms it is in; the
+// sockets of the others stay
+func TestSessionsEndedClosesEveryOpenSocketOfTheUser(t *testing.T) {
+	h := newHarness(t)
+	teammate := h.addUser(t, workspaceA)
+	first, second, other := h.connectAs(t, h.userA), h.connectAs(t, h.userA), h.connectAs(t, teammate)
+	first.joinOK(t, roomOf(workspaceA))
+	other.joinOK(t, roomOf(workspaceA))
+
+	require.NoError(t, events.Publish(context.Background(), h.bus, auth.SessionsEnded, auth.SessionsEndedEvent{UserID: h.userA}))
+
+	first.closed(t)
+	second.closed(t)
+	publishHeartbeat(t, h.bus, monitorA, "a-after")
+	assert.Equal(t, []string{"a-after"}, heartbeatMsgs(other.untilMsg(t, "a-after")), "the teammate's socket stays")
+}
+
+// SessionsEnded for a user with no open socket, or one that names nothing, changes nothing
+func TestSessionsEndedForAUserWithNoSocketIsHarmless(t *testing.T) {
+	h := newHarness(t)
+	a := h.connectAs(t, h.userA)
+	a.joinOK(t, roomOf(workspaceA))
+
+	require.NoError(t, events.Publish(context.Background(), h.bus, auth.SessionsEnded, auth.SessionsEndedEvent{UserID: "nobody"}))
+	require.NoError(t, events.Publish(context.Background(), h.bus, auth.SessionsEnded, auth.SessionsEndedEvent{}))
+
+	publishHeartbeat(t, h.bus, monitorA, "a-1")
+	a.untilMsg(t, "a-1")
+}
+
+// A user whose account was disabled while their socket stayed open joins no room: the membership
+// is still there, the account is not
+func TestADisabledUserIsRefusedTheirJoin(t *testing.T) {
+	h := newHarness(t)
+	a := h.connectAs(t, h.userA)
+	a.joinOK(t, roomOf(workspaceA))
+
+	_, err := h.db.Exec("UPDATE users SET active = ? WHERE id = ?", false, h.userA)
+	require.NoError(t, err)
+	a.joinRefused(t, roomOf(workspaceA))
+	a.joinRefused(t, "monitor:"+monitorA)
+
+	_, err = h.db.Exec("UPDATE users SET active = ? WHERE id = ?", true, h.userA)
+	require.NoError(t, err)
+	a.joinOK(t, roomOf(workspaceA))
+}
+
+// A user who was deleted joins no room, even while their membership rows are left
+func TestADeletedUserIsRefusedTheirJoin(t *testing.T) {
+	h := newHarness(t)
+	a := h.connectAs(t, h.userA)
+	_, err := h.db.Exec("DELETE FROM users WHERE id = ?", h.userA)
+	require.NoError(t, err)
+	var members int
+	require.NoError(t, h.db.NewSelect().Table("workspace_members").ColumnExpr("count(*)").Where("user_id = ?", h.userA).Scan(context.Background(), &members))
+	t.Logf("membership rows left after the delete: %d", members)
+
+	a.joinRefused(t, roomOf(workspaceA))
 }
