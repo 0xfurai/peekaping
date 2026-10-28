@@ -130,6 +130,10 @@ type Config struct {
 	// Requests per minute a workspace, and one of its API keys, may make. 0, the default, is off.
 	APIRateLimitPerWorkspace int `env:"API_RATE_LIMIT_PER_WORKSPACE" validate:"min=0" default:"0"`
 	APIRateLimitPerAPIKey    int `env:"API_RATE_LIMIT_PER_API_KEY" validate:"min=0" default:"0"`
+
+	// Checks per minute to one target host that one checking process runs, all workspaces together.
+	// 0, the default, is off.
+	ChecksPerHostPerMinute int `env:"CHECKS_PER_HOST_PER_MINUTE" validate:"min=0" default:"0"`
 }
 
 // LoadAndValidate loads and validates the API service configuration
@@ -293,6 +297,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		BlockPrivateTargets:          c.BlockPrivateTargets,
 		APIRateLimitPerWorkspace:     c.APIRateLimitPerWorkspace,
 		APIRateLimitPerAPIKey:        c.APIRateLimitPerAPIKey,
+		ChecksPerHostPerMinute:       c.ChecksPerHostPerMinute,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

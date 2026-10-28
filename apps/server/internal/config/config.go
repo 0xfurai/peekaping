@@ -192,6 +192,13 @@ type Config struct {
 	// APIRateLimitWindow is the time the two limits count over. It has no environment variable: it
 	// is a minute unless a test shortens it.
 	APIRateLimitWindow time.Duration
+
+	// ChecksPerHostPerMinute caps how many checks to one target host a checking process runs per
+	// minute, across all workspaces (PP-159). 0, the default, is off. A check whose turn is a few
+	// seconds away waits for it; a check further out skips its tick. The cap is per process: the
+	// server's scheduler and each remote probe count for themselves. A probe uses the server's value
+	// from hello when that is stricter than its own.
+	ChecksPerHostPerMinute int `env:"CHECKS_PER_HOST_PER_MINUTE" validate:"min=0" default:"0"`
 }
 
 // MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left
