@@ -30,10 +30,10 @@ describe("selectableMonitorTypes", () => {
 
 describe("monitorTypeDisabledReason", () => {
   it("names the type by its label in the Type select", () => {
-    expect(monitorTypeDisabledReason(i18n.t, "docker")).toBe("Docker Container monitors are turned off on this install");
+    expect(monitorTypeDisabledReason(i18n.t, "docker")).toBe("The Docker Container type is turned off on this install");
   });
 
   it("names a type the app doesn't know as the server gave it", () => {
-    expect(monitorTypeDisabledReason(i18n.t, "carrier-pigeon")).toBe("carrier-pigeon monitors are turned off on this install");
+    expect(monitorTypeDisabledReason(i18n.t, "carrier-pigeon")).toBe("The carrier-pigeon type is turned off on this install");
   });
 });

@@ -907,7 +907,7 @@
       "reset_success": "Seurantatiedot nollattiin onnistuneesti",
       "resumed": "Valvonta jatkettu"
     },
-    "type_disabled": "{{type}}-tyyppiset valvonnat on poistettu käytöstä tässä asennuksessa",
+    "type_disabled": "Tyyppi {{type}} on poistettu käytöstä tässä asennuksessa",
     "view": {
       "buttons": {
         "clone": "Kloonaa",

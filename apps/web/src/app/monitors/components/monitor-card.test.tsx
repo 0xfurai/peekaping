@@ -26,7 +26,7 @@ describe("MonitorCard", () => {
 
     expect(html).toContain(text("monitors.view.status.paused"));
     expect(html).toContain('data-testid="monitor-type-disabled"');
-    expect(html).toContain("Docker Container monitors are turned off on this install");
+    expect(html).toContain("The Docker Container type is turned off on this install");
   });
 
   it("shows no reason for a monitor that is paused by hand", () => {

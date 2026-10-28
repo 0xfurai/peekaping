@@ -907,7 +907,7 @@
       "reset_success": "Podaci monitora uspješno resetirani",
       "resumed": "Nadzor nastavio"
     },
-    "type_disabled": "Nadzori vrste {{type}} isključeni su na ovoj instalaciji",
+    "type_disabled": "Vrsta {{type}} isključena je na ovoj instalaciji",
     "view": {
       "buttons": {
         "clone": "Kloniraj",

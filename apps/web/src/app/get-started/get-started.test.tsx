@@ -111,7 +111,7 @@ describe("step 2, the monitor, on an install that turns HTTP monitors off", () =
   });
 
   it("says why, and leads to the full form, where the other types are", () => {
-    expect(html).toContain("HTTP(S) Monitor monitors are turned off on this install");
+    expect(html).toContain("The HTTP(S) Monitor type is turned off on this install");
     expect(html).toContain(`href="/w/${WORKSPACE_ID}/monitors/new"`);
     expect(html).toContain(text("get_started.monitor.full_form"));
   });

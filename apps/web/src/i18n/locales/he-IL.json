@@ -907,7 +907,7 @@
       "reset_success": "נתוני המעקב נרעננו בהצלחה",
       "resumed": "המעקב נמשך"
     },
-    "type_disabled": "מנטרים מסוג {{type}} כבויים בהתקנה זו",
+    "type_disabled": "הסוג {{type}} כבוי בהתקנה זו",
     "view": {
       "buttons": {
         "clone": "שכפל",

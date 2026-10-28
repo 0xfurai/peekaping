@@ -907,7 +907,7 @@
       "reset_success": "Dados do monitor redefinidos com sucesso",
       "resumed": "Monitoramento retomado"
     },
-    "type_disabled": "Os monitores {{type}} estão desativados nesta instalação",
+    "type_disabled": "O tipo {{type}} está desativado nesta instalação",
     "view": {
       "buttons": {
         "clone": "Clonar",

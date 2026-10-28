@@ -907,7 +907,7 @@
       "reset_success": "Dane monitora zostały pomyślnie zresetowane",
       "resumed": "Monitor wznowiony"
     },
-    "type_disabled": "Monitory typu {{type}} są wyłączone w tej instalacji",
+    "type_disabled": "Typ {{type}} jest wyłączony w tej instalacji",
     "view": {
       "buttons": {
         "clone": "Klonuj",

@@ -907,7 +907,7 @@
       "reset_success": "Baineadh sonraí an mhionadaithe go rathúil",
       "resumed": "Monatóireacht seasmhaíodh arís"
     },
-    "type_disabled": "Tá monatóirí {{type}} múchta ar an suiteáil seo",
+    "type_disabled": "Tá an cineál {{type}} múchta ar an suiteáil seo",
     "view": {
       "buttons": {
         "clone": "Clónáil",

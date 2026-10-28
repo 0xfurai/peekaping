@@ -907,7 +907,7 @@
       "reset_success": "Monitoreko datuak ondo berrabiarazi dira",
       "resumed": "Monitorea berrabiarazi da"
     },
-    "type_disabled": "{{type}} motako monitoreak desaktibatuta daude instalazio honetan",
+    "type_disabled": "{{type}} mota desaktibatuta dago instalazio honetan",
     "view": {
       "buttons": {
         "clone": "Klonatu",

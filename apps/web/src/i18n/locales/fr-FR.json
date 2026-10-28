@@ -907,7 +907,7 @@
       "reset_success": "Réinitialisation des données du moniteur réussie",
       "resumed": "Surveillance reprise"
     },
-    "type_disabled": "Les moniteurs {{type}} sont désactivés sur cette installation",
+    "type_disabled": "Le type {{type}} est désactivé sur cette installation",
     "view": {
       "buttons": {
         "clone": "Cloner",

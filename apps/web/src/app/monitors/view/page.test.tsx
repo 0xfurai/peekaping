@@ -45,6 +45,9 @@ const page = (saved: MonitorMonitorResponseDto) =>
 
 // The button that pauses or resumes, as the markup has it
 const toggle = (html: string) => html.match(/<button[^>]*data-testid="monitor-pause-toggle"[^>]*>.*?<\/button>/)?.[0] ?? "";
+// The button that clones, as the markup has it: the one that holds the Clone label
+const clone = (html: string) =>
+  [...html.matchAll(/<button[^>]*>.*?<\/button>/g)].map((m) => m[0]).find((b) => b.includes(text("monitors.view.buttons.clone"))) ?? "";
 // The tag carries the attribute `disabled=""`; its classes mention `disabled:` too, so look for the attribute
 const isOff = (tag: string) => tag.includes(' disabled=""');
 
@@ -54,10 +57,10 @@ describe("the monitor page", () => {
 
     expect(html).toContain(`>${text("monitors.view.status.paused")}<`);
     expect(html).toContain('data-testid="monitor-type-disabled"');
-    expect(html).toContain("Docker Container monitors are turned off on this install");
+    expect(html).toContain("The Docker Container type is turned off on this install");
     expect(toggle(html)).toContain(text("monitors.view.buttons.resume"));
     expect(isOff(toggle(html))).toBe(true);
-    expect(toggle(html)).toContain('title="Docker Container monitors are turned off on this install"');
+    expect(toggle(html)).toContain('title="The Docker Container type is turned off on this install"');
   });
 
   it("turns Resume off for a turned-off type that was also paused by hand", () => {
@@ -65,6 +68,20 @@ describe("the monitor page", () => {
 
     expect(toggle(html)).toContain(text("monitors.view.buttons.resume"));
     expect(isOff(toggle(html))).toBe(true);
+  });
+
+  it("turns Clone off for a monitor of a turned-off type, with the reason, since the copy would have no type", () => {
+    const html = page(monitor({ active: true, type_disabled: true }));
+
+    expect(isOff(clone(html))).toBe(true);
+    expect(clone(html)).toContain('title="The Docker Container type is turned off on this install"');
+  });
+
+  it("leaves Clone on for a monitor of a type that is on", () => {
+    const html = page(monitor({ type: "http" }));
+
+    expect(clone(html)).not.toBe("");
+    expect(isOff(clone(html))).toBe(false);
   });
 
   it("leaves Pause on for a running monitor", () => {

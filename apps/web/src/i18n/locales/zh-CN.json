@@ -907,7 +907,7 @@
       "reset_success": "监控数据已成功重置",
       "resumed": "监控已恢复"
     },
-    "type_disabled": "此安装已关闭 {{type}} 类型的监控",
+    "type_disabled": "此安装已关闭 {{type}} 类型",
     "view": {
       "buttons": {
         "clone": "克隆",

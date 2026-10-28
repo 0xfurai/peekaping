@@ -546,6 +546,8 @@ const MonitorPageContent = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
+              disabled={typeDisabled}
+              title={typeDisabledReason}
               onClick={() => {
                 navigate(workspacePath("/monitors/new"), {
                   state: {
