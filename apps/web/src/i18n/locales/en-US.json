@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "General",
     "intervals_retries": "Intervals, Retries, Timeouts"
+  },
+  "workspaces": {
+    "none_description": "Your account isn't a member of any workspace, so there is nothing to show here. Ask someone who runs a workspace to add you.",
+    "none_title": "You're not in a workspace yet"
   }
 }

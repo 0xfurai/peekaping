@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Generelt",
     "intervals_retries": "Interval, gentagelser, tidsgrænser"
+  },
+  "workspaces": {
+    "none_description": "Din konto er ikke medlem af noget arbejdsområde, så der er intet at vise her. Bed en, der styrer et arbejdsområde, om at tilføje dig.",
+    "none_title": "Du er endnu ikke i et arbejdsområde"
   }
 }

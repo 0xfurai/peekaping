@@ -10,6 +10,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 export function NavMain({
   items,
@@ -20,6 +21,7 @@ export function NavMain({
     icon?: LucideIcon;
   }[];
 }) {
+  const workspacePath = useWorkspacePath();
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -27,7 +29,7 @@ export function NavMain({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton tooltip={item.title} asChild>
-                <Link to={item.url}>
+                <Link to={workspacePath(item.url)}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
                 </Link>

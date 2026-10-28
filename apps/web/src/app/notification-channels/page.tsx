@@ -36,9 +36,11 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import EmptyList from "@/components/empty-list";
 import { Button } from "@/components/ui/button";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const NotifiersPage = () => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
@@ -128,7 +130,7 @@ const NotifiersPage = () => {
   return (
     <Layout
       pageName={t("navigation.notification_channels")}
-      onCreate={() => navigate("/notification-channels/new")}
+      onCreate={() => navigate(workspacePath("/notification-channels/new"))}
     >
       <div>
         <div className="mb-4 space-y-4">
@@ -171,7 +173,7 @@ const NotifiersPage = () => {
             key={notifier.id}
             notifier={notifier}
             onClick={() =>
-              navigate(`/notification-channels/${notifier.id}/edit`)
+              navigate(workspacePath(`/notification-channels/${notifier.id}/edit`))
             }
             onDelete={() => handleDeleteClick(notifier)}
           />
@@ -191,7 +193,7 @@ const NotifiersPage = () => {
             title={t("notifications.empty_state.title")}
             text={t("notifications.empty_state.description")}
             actionText={t("notifications.empty_state.action")}
-            onClick={() => navigate("/notification-channels/new")}
+            onClick={() => navigate(workspacePath("/notification-channels/new"))}
           />
         )}
       </div>

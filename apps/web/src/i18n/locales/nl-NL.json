@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Algemeen",
     "intervals_retries": "Intervallen, Pogingen, Time-outs"
+  },
+  "workspaces": {
+    "none_description": "Je account is geen lid van een werkruimte, dus er is hier niets om te tonen. Vraag iemand die een werkruimte beheert om je toe te voegen.",
+    "none_title": "Je zit nog in geen enkele werkruimte"
   }
 }

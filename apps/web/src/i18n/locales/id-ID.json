@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Umum",
     "intervals_retries": "Interval, Ulang, Timeout"
+  },
+  "workspaces": {
+    "none_description": "Akun Anda bukan anggota ruang kerja mana pun, jadi tidak ada yang bisa ditampilkan di sini. Minta seseorang yang mengelola ruang kerja untuk menambahkan Anda.",
+    "none_title": "Anda belum berada di ruang kerja mana pun"
   }
 }

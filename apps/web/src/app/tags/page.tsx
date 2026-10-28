@@ -36,10 +36,12 @@ import {
   invalidateByPartialQueryKey,
 } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const TagsPage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
   const { getParam, updateSearchParams, clearAllParams, hasParams } =
     useSearchParams();
@@ -109,7 +111,7 @@ const TagsPage = () => {
     useIntersectionObserver<HTMLDivElement>(handleObserver);
 
   const handleEdit = (tag: TagModel) => {
-    navigate(`/tags/${tag.id}/edit`);
+    navigate(workspacePath(`/tags/${tag.id}/edit`));
   };
 
   const handleDelete = (tag: TagModel) => {
@@ -118,7 +120,7 @@ const TagsPage = () => {
   };
 
   const handleCreate = () => {
-    navigate("/tags/new");
+    navigate(workspacePath("/tags/new"));
   };
 
   return (

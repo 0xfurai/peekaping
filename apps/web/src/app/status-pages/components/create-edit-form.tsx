@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import type { AxiosError } from "axios";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const statusPageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -89,6 +90,7 @@ const CreateEditForm = ({
 }) => {
   const { t } = useLocalizedTranslation();
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const [domainToHighlight, setDomainToHighlight] = useState<string | undefined>(undefined);
 
@@ -123,7 +125,7 @@ const CreateEditForm = ({
       queryClient.invalidateQueries({
         queryKey: getStatusPagesInfiniteQueryKey(),
       });
-      navigate("/status-pages");
+      navigate(workspacePath("/status-pages"));
     },
     onError: handleMutationError,
   });
@@ -140,7 +142,7 @@ const CreateEditForm = ({
       queryClient.removeQueries({
         queryKey: getStatusPagesByIdQueryKey({ path: { id: id! } }),
       });
-      navigate("/status-pages");
+      navigate(workspacePath("/status-pages"));
     },
     onError: handleMutationError,
   });

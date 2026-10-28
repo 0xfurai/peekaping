@@ -1588,5 +1588,9 @@
   "ui": {
     "general": "Ginearálta",
     "intervals_retries": "Interlaicí, Athbhreithnithe, Téimshocraí"
+  },
+  "workspaces": {
+    "none_description": "Níl do chuntas ina bhall d'aon spás oibre, mar sin níl aon rud le taispeáint anseo. Iarr ar dhuine a reáchtálann spás oibre tú a chur leis.",
+    "none_title": "Níl tú i spás oibre fós"
   }
 }

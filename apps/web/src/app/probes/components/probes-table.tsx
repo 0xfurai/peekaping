@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { useTimezone } from "@/context/timezone-context";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 import { formatDateToTimezone } from "@/lib/formatDateToTimezone";
 import { AvailabilityBar } from "./availability-bar";
 import { formatUptime } from "./availability-layout";
@@ -72,6 +73,7 @@ const ProbesTable = ({
 }: ProbesTableProps) => {
   const { t } = useLocalizedTranslation();
   const { timezone } = useTimezone();
+  const workspacePath = useWorkspacePath();
 
   const formatLastSeen = (lastSeenAt: string) =>
     formatDateToTimezone(lastSeenAt, timezone, {
@@ -101,7 +103,7 @@ const ProbesTable = ({
           <TableRow key={probe.id} data-testid={`probe-row-${probe.id}`}>
             <TableCell className="font-medium">
               <Link
-                to={`/probes/${probe.id}`}
+                to={workspacePath(`/probes/${probe.id}`)}
                 className="hover:underline"
                 data-testid="probe-link"
               >

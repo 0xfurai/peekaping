@@ -43,9 +43,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getContrastingTextColor } from "@/lib/utils";
 import { useDelayedLoading } from "@/hooks/useDelayedLoading";
 import { useProbes } from "@/hooks/useProbes";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 const MonitorsPage = () => {
   const navigate = useNavigate();
+  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   const { t } = useLocalizedTranslation();
   const { hasRemoteProbe, monitorProbes, unsupportedProbeIds } = useProbes();
@@ -217,7 +219,7 @@ const MonitorsPage = () => {
     <Layout
       pageName={t("monitors.title")}
       onCreate={() => {
-        navigate("/monitors/new");
+        navigate(workspacePath("/monitors/new"));
       }}
     >
       <div>
@@ -386,7 +388,7 @@ const MonitorsPage = () => {
             title={t("monitors.empty_state.title")}
             text={t("monitors.empty_state.description")}
             actionText={t("monitors.empty_state.action")}
-            onClick={() => navigate("/monitors/new")}
+            onClick={() => navigate(workspacePath("/monitors/new"))}
           />
         )}
 

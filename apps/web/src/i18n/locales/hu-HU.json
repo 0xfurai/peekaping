@@ -1589,5 +1589,9 @@
   "ui": {
     "general": "Általános",
     "intervals_retries": "Intervallumok, Ismétlések, Időkorlátok"
+  },
+  "workspaces": {
+    "none_description": "A fiókja egyetlen munkaterületnek sem tagja, ezért itt nincs mit megjeleníteni. Kérjen meg valakit, aki munkaterületet kezel, hogy adja hozzá.",
+    "none_title": "Még nem tartozik egyetlen munkaterülethez sem"
   }
 }
