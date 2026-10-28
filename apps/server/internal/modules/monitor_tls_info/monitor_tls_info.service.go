@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"peekaping/internal/dbtx"
+
 	"go.uber.org/zap"
 )
 
@@ -66,6 +68,11 @@ func (s *ServiceImpl) StoreTLSInfo(ctx context.Context, monitorID string, infoJS
 	s.logger.Debugf("Storing TLS info for monitor: %s", monitorID)
 
 	_, err := s.repository.Upsert(ctx, monitorID, infoJSON)
+	if dbtx.IsForeignKeyViolation(err) {
+		// The monitor was deleted while its check was being handled: there is nothing to keep it for
+		s.logger.Warnf("Skipped storing TLS info for monitor %s: the monitor no longer exists", monitorID)
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("failed to store TLS info: %w", err)
 	}
