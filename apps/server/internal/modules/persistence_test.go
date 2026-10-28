@@ -20,8 +20,10 @@ import (
 	"peekaping/internal/modules/monitor_status_page"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
+	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/status_page"
+	"peekaping/internal/modules/tag"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -78,6 +80,8 @@ type repositories struct {
 	workspaceID workspace.ID
 	// otherWorkspaceID is a second workspace, with no records
 	otherWorkspaceID workspace.ID
+	proxies          proxy.Repository
+	tags             tag.Repository
 }
 
 func sqlRepositories(t *testing.T, db *bun.DB) repositories {
@@ -100,6 +104,7 @@ func sqlRepositories(t *testing.T, db *bun.DB) repositories {
 		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db), status_page.NewSQLRepository(db),
 		setting.NewSQLRepository(db), monitor_tls_info.NewSQLRepository(db), notification_sent_history.NewSQLRepository(db),
 		statusID, monitorID, replacementID, workspace.ID(workspacetest.OldestOrAdd(t, db)), workspacetest.Other,
+		proxy.NewSQLRepository(db), tag.NewSQLRepository(db),
 	}
 }
 
@@ -158,6 +163,52 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		actual, err = repos.maintenance.FindByID(ctx, repos.workspaceID, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, input.Title, actual.Title)
+	})
+	// A write names the workspace it runs in, and one that names another workspace's record changes
+	// no row and is reported as not found, whatever the service above it checked first (ADR 0005
+	// section 3). Each write is tried on its own from the other workspace, and the record is read back
+	t.Run("WritesStayInTheirWorkspace", func(t *testing.T) {
+		other := repos.otherWorkspaceID
+
+		kept, err := repos.proxies.Create(ctx, repos.workspaceID, &proxy.Model{Protocol: "http", Host: "mine.example.com", Port: 8080})
+		require.NoError(t, err)
+		host, port := "hijacked.example.com", 1
+		_, err = repos.proxies.UpdateFull(ctx, other, kept.ID, &proxy.Model{Protocol: "http", Host: host, Port: port})
+		assert.ErrorIs(t, err, proxy.ErrNotFound)
+		_, err = repos.proxies.UpdatePartial(ctx, other, kept.ID, &proxy.UpdateModel{Host: &host})
+		assert.ErrorIs(t, err, proxy.ErrNotFound)
+		assert.ErrorIs(t, repos.proxies.Delete(ctx, other, kept.ID), proxy.ErrNotFound)
+		proxyNow, err := repos.proxies.FindByID(ctx, repos.workspaceID, kept.ID)
+		require.NoError(t, err)
+		require.NotNil(t, proxyNow, "the proxy is still there")
+		assert.Equal(t, "mine.example.com", proxyNow.Host)
+
+		tagKept, err := repos.tags.Create(ctx, repos.workspaceID, &tag.Model{Name: "mine", Color: "#3B82F6"})
+		require.NoError(t, err)
+		name := "hijacked"
+		assert.ErrorIs(t, repos.tags.UpdateFull(ctx, other, tagKept.ID, &tag.Model{Name: name, Color: "#000000"}), tag.ErrNotFound)
+		assert.ErrorIs(t, repos.tags.UpdatePartial(ctx, other, tagKept.ID, &tag.UpdateModel{Name: &name}), tag.ErrNotFound)
+		assert.ErrorIs(t, repos.tags.Delete(ctx, other, tagKept.ID), tag.ErrNotFound)
+		tagNow, err := repos.tags.FindByID(ctx, repos.workspaceID, tagKept.ID)
+		require.NoError(t, err)
+		require.NotNil(t, tagNow, "the tag is still there")
+		assert.Equal(t, "mine", tagNow.Name)
+
+		window, err := repos.maintenance.Create(ctx, repos.workspaceID, &maintenance.Model{Title: "Mine", Active: true, Strategy: "manual"})
+		require.NoError(t, err)
+		title, off := "Hijacked", false
+		_, err = repos.maintenance.UpdateFull(ctx, other, window.ID, &maintenance.Model{Title: title, Strategy: "manual"})
+		assert.ErrorIs(t, err, maintenance.ErrNotFound)
+		_, err = repos.maintenance.UpdatePartial(ctx, other, window.ID, &maintenance.UpdateModel{Title: &title})
+		assert.ErrorIs(t, err, maintenance.ErrNotFound)
+		_, err = repos.maintenance.SetActive(ctx, other, window.ID, off)
+		assert.ErrorIs(t, err, maintenance.ErrNotFound)
+		assert.ErrorIs(t, repos.maintenance.Delete(ctx, other, window.ID), maintenance.ErrNotFound)
+		windowNow, err := repos.maintenance.FindByID(ctx, repos.workspaceID, window.ID)
+		require.NoError(t, err)
+		require.NotNil(t, windowNow, "the window is still there")
+		assert.Equal(t, "Mine", windowNow.Title)
+		assert.True(t, windowNow.Active)
 	})
 	t.Run("StatusPageShowLocations", func(t *testing.T) {
 		plain, err := repos.pages.Create(ctx, repos.workspaceID, &status_page.Model{Slug: "plain-page", Title: "Plain"})
