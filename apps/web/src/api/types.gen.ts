@@ -998,6 +998,15 @@ export type StatusPagePublicLocationDto = {
   uptime_24h: number | null;
 };
 
+export type StatusPageSlugAlreadyUsedError = {
+  code: string;
+  slug: string;
+};
+
+export type StatusPageSlugErrorResponse = {
+  error: StatusPageSlugAlreadyUsedError;
+};
+
 export type StatusPageStatusPageWithMonitorsResponseDto = {
   auto_refresh_interval: number;
   created_at: string;
@@ -4856,7 +4865,10 @@ export type PostStatusPagesErrors = {
   /**
    * Bad Request
    */
-  400: StatusPageDomainErrorResponse | HttpxErrorBody;
+  400:
+    | StatusPageDomainErrorResponse
+    | StatusPageSlugErrorResponse
+    | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -5138,7 +5150,10 @@ export type PatchStatusPagesByIdErrors = {
   /**
    * Bad Request
    */
-  400: StatusPageDomainErrorResponse | HttpxErrorBody;
+  400:
+    | StatusPageDomainErrorResponse
+    | StatusPageSlugErrorResponse
+    | HttpxErrorBody;
   /**
    * Unauthorized
    */

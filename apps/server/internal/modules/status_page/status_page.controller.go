@@ -58,6 +58,10 @@ func (c *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Out
 		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
 			return nil, httpx.Fail(http.StatusBadRequest, DomainErrorResponse{Error: domainErr})
 		}
+		var slugErr *SlugAlreadyUsedError
+		if errors.As(err, &slugErr) {
+			return nil, httpx.Fail(http.StatusBadRequest, SlugErrorResponse{Error: slugErr})
+		}
 		c.logger.Errorw("Failed to create status page", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -157,6 +161,10 @@ func (c *Controller) Update(ctx context.Context, input *UpdateInput) (*httpx.Out
 		// Surface domain uniqueness validation errors as 400
 		if domainErr, ok := err.(*DomainAlreadyUsedError); ok {
 			return nil, httpx.Fail(http.StatusBadRequest, DomainErrorResponse{Error: domainErr})
+		}
+		var slugErr *SlugAlreadyUsedError
+		if errors.As(err, &slugErr) {
+			return nil, httpx.Fail(http.StatusBadRequest, SlugErrorResponse{Error: slugErr})
 		}
 		c.logger.Errorw("Failed to update status page", "error", err, "id", id)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))

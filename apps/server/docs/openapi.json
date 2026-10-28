@@ -3354,6 +3354,34 @@
         ],
         "type": "object"
       },
+      "status_page.SlugAlreadyUsedError": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "slug"
+        ],
+        "type": "object"
+      },
+      "status_page.SlugErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/status_page.SlugAlreadyUsedError"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
       "status_page.StatusPageWithMonitorsResponseDTO": {
         "additionalProperties": false,
         "properties": {
@@ -11128,6 +11156,9 @@
                       "$ref": "#/components/schemas/status_page.DomainErrorResponse"
                     },
                     {
+                      "$ref": "#/components/schemas/status_page.SlugErrorResponse"
+                    },
+                    {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
                     }
                   ]
@@ -11591,6 +11622,9 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/status_page.DomainErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/status_page.SlugErrorResponse"
                     },
                     {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
