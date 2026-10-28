@@ -127,9 +127,11 @@ export const setupInterceptors = () => {
       }
 
       // The user isn't in the workspace the address names (removed meanwhile, say): the page
-      // moves to the one they are in. The request still fails.
+      // moves to the one they are in, if the request was about the workspace the page is still
+      // on. The request still fails.
       if (isWorkspaceNotFound(error)) {
-        notifyWorkspaceNotFound();
+        const failedWorkspaceId = error.config?.headers?.get?.("X-Workspace-ID");
+        notifyWorkspaceNotFound(typeof failedWorkspaceId === "string" ? failedWorkspaceId : null);
       }
 
       return Promise.reject(error);
