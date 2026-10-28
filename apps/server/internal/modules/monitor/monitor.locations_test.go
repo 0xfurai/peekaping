@@ -464,7 +464,7 @@ func TestSQLRepository_ProbeStateIsBackfilledFromTheLatestHeartbeat(t *testing.T
 			}
 			newMonitor := func(probeIDs ...string) string {
 				id := uuid.NewString()
-				workspacetest.InsertMonitor(t, db, id)
+				workspacetest.InsertMonitorWithoutWorkspace(t, db, id)
 				for _, probeID := range probeIDs {
 					_, err := db.Exec(`INSERT INTO monitor_probes (monitor_id, probe_id) VALUES (?, ?)`, id, probeID)
 					require.NoError(t, err)

@@ -50,6 +50,14 @@ func insertMonitor(t *testing.T, db *bun.DB) string {
 	return id
 }
 
+// insertOldMonitor stores a monitor in a schema from before monitors had a workspace
+func insertOldMonitor(t *testing.T, db *bun.DB) string {
+	t.Helper()
+	id := uuid.NewString()
+	workspacetest.InsertMonitorWithoutWorkspace(t, db, id)
+	return id
+}
+
 func TestSQLRepository_CreateRecordsTheProbeThatProducedTheHeartbeat(t *testing.T) {
 	onEverySQLBackend(t, func(t *testing.T, _ *bun.DB, svc heartbeat.Service, bus *eventstest.Bus, monitorID string) {
 		ctx := context.Background()
@@ -99,7 +107,7 @@ func TestMigrationsBackfillExistingHeartbeatsWithTheLocalProbe(t *testing.T) {
 			require.NoError(t, old.Init(ctx))
 			_, err := old.Migrate(ctx)
 			require.NoError(t, err)
-			monitorID, heartbeatID := insertMonitor(t, db), uuid.NewString()
+			monitorID, heartbeatID := insertOldMonitor(t, db), uuid.NewString()
 			_, err = db.Exec(`INSERT INTO heartbeats (id, monitor_id, status, msg, ping, time) VALUES (?, ?, 1, 'before the upgrade', 7, ?)`,
 				heartbeatID, monitorID, time.Date(2026, 10, 20, 8, 0, 0, 0, time.UTC))
 			require.NoError(t, err)

@@ -58,7 +58,7 @@ func onEveryMonitorStore(t *testing.T, exercise func(t *testing.T, repo monitor.
 		require.NoError(t, migrator.Init(context.Background()))
 		_, err := migrator.Migrate(context.Background())
 		require.NoError(t, err)
-		workspacetest.Ensure(t, db)
+		workspacetest.OldestOrAdd(t, db)
 		insertTied := func(t *testing.T, n int, createdAt time.Time) ([]string, string) {
 			t.Helper()
 			tagID := uuid.NewString()
@@ -67,7 +67,7 @@ func onEveryMonitorStore(t *testing.T, exercise func(t *testing.T, repo monitor.
 			ids := make([]string, 0, n)
 			for i := 1; i <= n; i++ {
 				id := fmt.Sprintf("00000000-0000-4000-8000-%012d", i)
-				workspacetest.Ensure(t, db)
+				workspacetest.OldestOrAdd(t, db)
 				_, err := db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval, created_at) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0, ?)`, id, createdAt)
 				require.NoError(t, err)
 				_, err = db.Exec("INSERT INTO monitor_tags (id, monitor_id, tag_id) VALUES (?, ?, ?)", uuid.NewString(), id, tagID)

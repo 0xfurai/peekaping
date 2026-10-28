@@ -76,7 +76,7 @@ func TestMigrations_HeartbeatInstanceIDGoesDownAndComesBack(t *testing.T) {
 			require.NoError(t, err)
 			exists, _, _ := heartbeatColumn(t, db, "instance_id")
 			require.False(t, exists, "no column before the migration")
-			monitorID, heartbeatID := insertMonitor(t, db), uuid.NewString()
+			monitorID, heartbeatID := insertOldMonitor(t, db), uuid.NewString()
 			_, err = db.Exec(`INSERT INTO heartbeats (id, monitor_id, status, msg, ping, time) VALUES (?, ?, 1, 'before', 7, CURRENT_TIMESTAMP)`, heartbeatID, monitorID)
 			require.NoError(t, err)
 

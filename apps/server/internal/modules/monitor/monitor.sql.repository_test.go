@@ -250,7 +250,7 @@ func forEachSQLBackend(t *testing.T, fn func(t *testing.T, db *bun.DB)) {
 		t.Run(name, func(t *testing.T) {
 			db := open(t)
 			migrateUp(t, db, migrations.Migrations)
-			workspacetest.Ensure(t, db)
+			workspacetest.OldestOrAdd(t, db)
 			workspacetest.Add(t, db, otherWorkspace, "Other")
 			fn(t, db)
 		})
@@ -298,7 +298,7 @@ func TestSQLRepository_MonitorsAreBackfilledToLocal(t *testing.T) {
 			for range 3 {
 				id := uuid.NewString()
 				existing = append(existing, id)
-				workspacetest.InsertMonitor(t, db, id)
+				workspacetest.InsertMonitorWithoutWorkspace(t, db, id)
 			}
 
 			migrateUp(t, db, migrations.Migrations)
@@ -450,7 +450,7 @@ func TestSQLRepository_DeletingAMonitorAfterACancelledQueryStillRemovesItsRows(t
 	t.Setenv("BUNDEBUG", "0") // the query hook prints a cancelled query as a failure
 	db := sqliteDB(t)
 	migrateUp(t, db, migrations.Migrations)
-	workspacetest.Ensure(t, db)
+	workspacetest.OldestOrAdd(t, db)
 	repo := NewSQLRepository(db)
 	ctx := context.Background()
 	addProbe(t, db, "frankfurt")
