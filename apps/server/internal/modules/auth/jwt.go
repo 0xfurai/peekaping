@@ -26,6 +26,10 @@ type Claims struct {
 	// PasswordFingerprint is set on refresh tokens: it identifies the password the
 	// user had when the token was issued, so a password change ends older ones.
 	PasswordFingerprint string `json:"pwf,omitempty"`
+	// AuthTime is when the session began: the login or signup that started it. A refresh copies
+	// it into the tokens it makes, so a session is judged by its start and not by the refresh.
+	// Tokens issued before this claim existed lack it, and iat stands in.
+	AuthTime *jwt.NumericDate `json:"auth_time,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -132,7 +136,14 @@ func (maker *TokenMaker) refreshSecret(ctx context.Context) (string, error) {
 	return maker.secret(ctx, shared.RefreshTokenSecretKey, "refresh token secret key")
 }
 
+// CreateAccessToken makes the access token of a session that begins now
 func (maker *TokenMaker) CreateAccessToken(ctx context.Context, user *Model) (string, error) {
+	return maker.CreateAccessTokenForSession(ctx, user, maker.clock())
+}
+
+// CreateAccessTokenForSession makes an access token for a session that began at authTime: now for
+// a login or signup, the refresh token's auth_time for a refresh
+func (maker *TokenMaker) CreateAccessTokenForSession(ctx context.Context, user *Model, authTime time.Time) (string, error) {
 	// Get access token expiration
 	expirySetting, err := maker.settingService.GetByKey(ctx, "ACCESS_TOKEN_EXPIRED_IN")
 	if err != nil {
@@ -153,10 +164,16 @@ func (maker *TokenMaker) CreateAccessToken(ctx context.Context, user *Model) (st
 		return "", err
 	}
 
-	return maker.createToken(user, "access", accessExpiry, secretKey)
+	return maker.createToken(user, "access", accessExpiry, secretKey, authTime)
 }
 
+// CreateRefreshToken makes the refresh token of a session that begins now
 func (maker *TokenMaker) CreateRefreshToken(ctx context.Context, user *Model) (string, error) {
+	return maker.CreateRefreshTokenForSession(ctx, user, maker.clock())
+}
+
+// CreateRefreshTokenForSession is CreateAccessTokenForSession for a refresh token
+func (maker *TokenMaker) CreateRefreshTokenForSession(ctx context.Context, user *Model, authTime time.Time) (string, error) {
 	// Get refresh token expiration
 	expirySetting, err := maker.settingService.GetByKey(ctx, "REFRESH_TOKEN_EXPIRED_IN")
 	if err != nil {
@@ -177,14 +194,16 @@ func (maker *TokenMaker) CreateRefreshToken(ctx context.Context, user *Model) (s
 		return "", err
 	}
 
-	return maker.createToken(user, "refresh", refreshExpiry, secretKey)
+	return maker.createToken(user, "refresh", refreshExpiry, secretKey, authTime)
 }
 
-func (maker *TokenMaker) createToken(user *Model, tokenType string, duration time.Duration, secretKey string) (string, error) {
+func (maker *TokenMaker) createToken(user *Model, tokenType string, duration time.Duration, secretKey string, authTime time.Time) (string, error) {
 	claims := &Claims{
 		UserID: user.ID,
 		Email:  user.Email,
 		Type:   tokenType,
+		// Rounded, so that copying the claim of a token that was parsed from a float keeps its value
+		AuthTime: jwt.NewNumericDate(authTime.UTC().Round(time.Millisecond)),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(duration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
@@ -198,6 +217,18 @@ func (maker *TokenMaker) createToken(user *Model, tokenType string, duration tim
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secretKey))
+}
+
+// sessionStart is when the session of the claims began: auth_time, or the issue time of a token
+// that predates the claim. Nil when the token says neither.
+func (claims *Claims) sessionStart() *time.Time {
+	if claims.AuthTime != nil {
+		return &claims.AuthTime.Time
+	}
+	if claims.IssuedAt != nil {
+		return &claims.IssuedAt.Time
+	}
+	return nil
 }
 
 func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, tokenType string) (*Claims, error) {
@@ -241,7 +272,7 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 	return claims, nil
 }
 
-// checkSessionNotEnded refuses a token issued before its user's sessions were ended. A failure to
+// checkSessionNotEnded refuses a token of a session that began before its user's sessions were ended. A failure to
 // read the cutoff refuses the token too, since a token that might be an ended session must not pass.
 func (maker *TokenMaker) checkSessionNotEnded(ctx context.Context, claims *Claims) error {
 	if maker.cutoffs == nil {
@@ -255,11 +286,14 @@ func (maker *TokenMaker) checkSessionNotEnded(ctx context.Context, claims *Claim
 	if cutoff == nil {
 		return nil
 	}
-	if claims.IssuedAt == nil {
+	// A session is judged by when it began, not by when a token of it was minted: a refresh that
+	// raced a reset mints its tokens after the cutoff, and they still belong to the ended session
+	start := claims.sessionStart()
+	if start == nil {
 		return ErrInvalidToken
 	}
-	// Round to the millisecond: a fractional iat does not survive the float it travels as exactly
-	if claims.IssuedAt.Time.Round(time.Millisecond).Before(cutoff.Round(time.Millisecond)) {
+	// Round to the millisecond: a fractional time does not survive the float it travels as exactly
+	if start.Round(time.Millisecond).Before(cutoff.Round(time.Millisecond)) {
 		return ErrInvalidToken
 	}
 	return nil
