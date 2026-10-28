@@ -9,14 +9,13 @@ import (
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/workspace"
 	"runtime/debug"
 	"slices"
 	"strings"
 	"sync"
-	"time"
 
+	"github.com/google/uuid"
 	"github.com/zishang520/socket.io/v2/socket"
 	"go.uber.org/zap"
 )
@@ -28,14 +27,10 @@ import (
 //   - workspace:<id> gets "workspace:<id>:heartbeat" for every monitor of the workspace.
 //   - monitor:<id> gets "monitor:<id>:heartbeat" for that monitor.
 //
-// Every signed-in socket is in the install room, which gets what is about the install and carries
-// no workspace's records: "probe:status", a probe going offline or coming back.
+// The ID in a room name is a UUID, and the room is named by its lower-case form.
 const (
 	workspacePrefix = "workspace:"
 	monitorPrefix   = "monitor:"
-	installRoom     = "install"
-	// probeStatusEvent is the event the install room gets when a probe goes offline or comes back
-	probeStatusEvent = "probe:status"
 	// maxRoomName bounds what a client may make the server look up
 	maxRoomName = 128
 )
@@ -132,7 +127,6 @@ func NewServer(
 			return
 		}
 		us := server.register(client, data.UserId)
-		client.Join(socket.Room(installRoom))
 		client.On("disconnect", safe(logger, "disconnect", func(...interface{}) { server.unregister(us) }))
 
 		client.On("join_room", safe(logger, "join_room", func(args ...interface{}) {
@@ -160,15 +154,16 @@ func NewServer(
 				reply(ack, "error", "not allowed")
 				return
 			}
-			// Only the rooms a client joins: it stays in the install room, and in its own
-			if _, _, ok := parseRoom(roomName); !ok {
+			// Only the rooms a client joins
+			prefix, id, ok := parseRoom(roomName)
+			if !ok {
 				logger.Debugf("leave_room: ignored %q", roomName)
 				reply(ack, "error", "not allowed")
 				return
 			}
 			logger.Debugf("leave_room: %s", roomName)
 			us.mu.Lock()
-			client.Leave(socket.Room(roomName))
+			client.Leave(socket.Room(prefix + id))
 			us.mu.Unlock()
 			reply(ack, "ok", "")
 		}))
@@ -223,32 +218,9 @@ func NewServer(
 		server.monitorWorkspaces.Delete(monitorID)
 	})
 
-	// A probe belongs to the install, so its status goes to every signed-in socket, in the install
-	// room. The event names the probe and carries no workspace's records.
-	//
-	// On a cluster, the bus hands these two topics to one api replica only (the notification queue
-	// takes them), so only the sockets on that replica hear of a probe.
-	events.Subscribe(subscriber, probe.ProbeOffline, func(_ context.Context, e probe.Event) {
-		server.sendProbeStatus("offline", e)
-	})
-	events.Subscribe(subscriber, probe.ProbeOnline, func(_ context.Context, e probe.Event) {
-		server.sendProbeStatus("online", e)
-	})
-
 	events.Subscribe(subscriber, workspace.MemberLeft, server.memberLeft)
 
 	return server, nil
-}
-
-type probeStatus struct {
-	ProbeID   string    `json:"probe_id"`
-	ProbeName string    `json:"probe_name"`
-	Status    string    `json:"status"`
-	Since     time.Time `json:"since"`
-}
-
-func (s *Server) sendProbeStatus(status string, e probe.Event) {
-	s.io.To(socket.Room(installRoom)).Emit(probeStatusEvent, &probeStatus{ProbeID: e.ProbeID, ProbeName: e.ProbeName, Status: status, Since: e.Since})
 }
 
 func (s *Server) register(client *socket.Socket, userID string) *userSocket {
@@ -281,15 +253,23 @@ func (s *Server) socketsOf(userID string) []*userSocket {
 	return out
 }
 
-// parseRoom splits a room name a client may ask for into its prefix and its ID.
+// parseRoom splits a room name a client may ask for into its prefix and its ID. The ID has to be a
+// UUID, so that nothing else is looked up in the database, and it comes back in its canonical
+// lower-case form, the one the room is named by.
 func parseRoom(name string) (prefix, id string, ok bool) {
 	if len(name) > maxRoomName {
 		return "", "", false
 	}
 	for _, p := range []string{workspacePrefix, monitorPrefix} {
-		if id, found := strings.CutPrefix(name, p); found && id != "" {
-			return p, id, true
+		raw, found := strings.CutPrefix(name, p)
+		if !found {
+			continue
 		}
+		parsed, err := uuid.Parse(raw)
+		if err != nil {
+			return "", "", false
+		}
+		return p, parsed.String(), true
 	}
 	return "", "", false
 }
@@ -343,7 +323,7 @@ func (s *Server) join(us *userSocket, roomName string) (refusal string) {
 	if !slices.ContainsFunc(memberships, func(m workspace.Membership) bool { return m.Workspace.ID == target }) {
 		return "not a member of the workspace"
 	}
-	us.client.Join(socket.Room(roomName))
+	us.client.Join(socket.Room(prefix + id))
 	return ""
 }
 
