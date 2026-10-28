@@ -40,6 +40,10 @@ type MeResponse struct {
 	// empty by default: the app hides them from the monitor type list, and shows a monitor of one as
 	// paused. The server refuses to create such a monitor or to change a monitor's type to one.
 	DisabledMonitorTypes []string `json:"disabledMonitorTypes" nullable:"false"`
+	// MinCheckInterval is the smallest check interval and retry interval, in seconds, the install
+	// lets a monitor be saved with (MIN_CHECK_INTERVAL, PP-159): 20 by default. The app uses it as the
+	// minimum and the default of the monitor form.
+	MinCheckInterval int `json:"minCheckInterval" example:"20"`
 }
 
 type MeUser struct {

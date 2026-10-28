@@ -213,9 +213,12 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 		var invalidRule *InvalidLocationRuleError
 		var tokenTaken *PushTokenAlreadyUsedError
 		var typeDisabled *MonitorTypeDisabledError
+		var tooShort *IntervalTooShortError
 		switch {
 		case errors.As(err, &typeDisabled):
 			return nil, monitorTypeDisabledResponse(typeDisabled)
+		case errors.As(err, &tooShort):
+			return nil, intervalTooShortResponse(tooShort)
 		case errors.As(err, &invalidProbes):
 			return nil, invalidProbesResponse(invalidProbes)
 		case errors.As(err, &invalidRule):
@@ -308,9 +311,12 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 		var invalidRule *InvalidLocationRuleError
 		var tokenTaken *PushTokenAlreadyUsedError
 		var typeDisabled *MonitorTypeDisabledError
+		var tooShort *IntervalTooShortError
 		switch {
 		case errors.As(err, &typeDisabled):
 			return nil, monitorTypeDisabledResponse(typeDisabled)
+		case errors.As(err, &tooShort):
+			return nil, intervalTooShortResponse(tooShort)
 		case errors.As(err, &invalidProbes):
 			return nil, invalidProbesResponse(invalidProbes)
 		case errors.As(err, &invalidRule):
@@ -376,6 +382,7 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 	var invalidRule *InvalidLocationRuleError
 	var tokenTaken *PushTokenAlreadyUsedError
 	var typeDisabled *MonitorTypeDisabledError
+	var tooShort *IntervalTooShortError
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
@@ -393,6 +400,8 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 		return pushTokenTakenResponse(tokenTaken)
 	case errors.As(err, &typeDisabled):
 		return monitorTypeDisabledResponse(typeDisabled)
+	case errors.As(err, &tooShort):
+		return intervalTooShortResponse(tooShort)
 	}
 	if linkErr := linkNotFoundResponse(err); linkErr != nil {
 		return linkErr
@@ -446,6 +455,12 @@ func pushTokenTakenResponse(err *PushTokenAlreadyUsedError) error {
 // monitor can't be given it
 func monitorTypeDisabledResponse(err *MonitorTypeDisabledError) error {
 	return httpx.Fail(http.StatusBadRequest, MonitorTypeDisabledResponse{Message: err.Error(), Error: err})
+}
+
+// intervalTooShortResponse tells the client that the interval or retry interval it sent is below the
+// install's minimum, and what the minimum is
+func intervalTooShortResponse(err *IntervalTooShortError) error {
+	return httpx.Fail(http.StatusBadRequest, IntervalTooShortResponse{Message: err.Error(), Error: err})
 }
 
 // invalidProbesResponse tells the client why the probes it sent don't fit the monitor

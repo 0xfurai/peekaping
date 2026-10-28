@@ -139,6 +139,7 @@ export type AuthMeResponse = {
   accountEmails: boolean;
   defaultWorkspaceId: string | null;
   disabledMonitorTypes: Array<string>;
+  minCheckInterval: number;
   user: AuthMeUser;
   workspaces: Array<AuthMeWorkspace> | null;
 };
@@ -509,6 +510,24 @@ export type MonitorCustomUptimeStatsDto = {
    * The probe the percentages count. Omitted when they count every probe's checks.
    */
   probe_id?: string;
+};
+
+export type MonitorIntervalTooShortError = {
+  code: string;
+  /**
+   * The field that is below the minimum: interval or retry_interval.
+   */
+  field: string;
+  /**
+   * The smallest interval and retry interval this install allows, in seconds.
+   */
+  minimum: number;
+};
+
+export type MonitorIntervalTooShortResponse = {
+  data: null;
+  error: MonitorIntervalTooShortError;
+  message: string;
 };
 
 export type MonitorModelLocation = {
@@ -3855,6 +3874,7 @@ export type PostMonitorsErrors = {
     | MonitorPushTokenErrorResponse
     | MonitorMonitorTypeDisabledResponse
     | UtilsTargetNotAllowedResponse
+    | MonitorIntervalTooShortResponse
     | HttpxErrorBody;
   /**
    * Unauthorized
@@ -4042,6 +4062,7 @@ export type PatchMonitorsByIdErrors = {
     | MonitorPushTokenErrorResponse
     | MonitorMonitorTypeDisabledResponse
     | UtilsTargetNotAllowedResponse
+    | MonitorIntervalTooShortResponse
     | HttpxErrorBody;
   /**
    * Unauthorized
@@ -4096,6 +4117,7 @@ export type PutMonitorsByIdErrors = {
     | MonitorPushTokenErrorResponse
     | MonitorMonitorTypeDisabledResponse
     | UtilsTargetNotAllowedResponse
+    | MonitorIntervalTooShortResponse
     | HttpxErrorBody;
   /**
    * Unauthorized

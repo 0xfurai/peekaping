@@ -49,6 +49,26 @@ func (e *InvalidTimeoutError) Error() string {
 	return fmt.Sprintf("timeout %d s is above 0.8 x the %d s check interval", e.Timeout, e.Interval)
 }
 
+// IntervalTooShortError is a check interval or retry interval below MIN_CHECK_INTERVAL (PP-159),
+// on a write that sets it: a create, an update, or a partial update that sends the field. The
+// controller answers 400 with the code, so that a client can tell this refusal from an invalid
+// configuration.
+type IntervalTooShortError struct {
+	Code    string `json:"code" example:"INTERVAL_TOO_SHORT"`
+	Field   string `json:"field" doc:"The field that is below the minimum: interval or retry_interval." example:"interval"`
+	Minimum int    `json:"minimum" doc:"The smallest interval and retry interval this install allows, in seconds." example:"60"`
+	// Value is what the request sent, in seconds
+	Value int `json:"-"`
+}
+
+func (e *IntervalTooShortError) Error() string {
+	return fmt.Sprintf("%s of %d s is below the minimum of %d seconds", e.Field, e.Value, e.Minimum)
+}
+
+func intervalTooShortError(field string, value, minimum int) *IntervalTooShortError {
+	return &IntervalTooShortError{Code: "INTERVAL_TOO_SHORT", Field: field, Minimum: minimum, Value: value}
+}
+
 // InvalidProbesError is a probe_ids that a monitor can't have. Err says why.
 type InvalidProbesError struct {
 	Err error
