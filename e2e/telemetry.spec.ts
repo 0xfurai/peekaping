@@ -194,7 +194,7 @@ test.describe('Upgrade notice', () => {
     await expect(page.locator('#error-reports')).toBeInViewport();
     await expect(banner(page).getByRole('link', { name: 'Turn off usage statistics in Settings' })).toHaveAttribute(
       'href',
-      '/settings#usage-statistics',
+      /^\/w\/[0-9a-f-]{36}\/settings#usage-statistics$/,
     );
   });
 
