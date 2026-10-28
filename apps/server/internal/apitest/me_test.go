@@ -40,6 +40,16 @@ func TestMe_ReturnsTheUserTheirWorkspaceAndTheDefault(t *testing.T) {
 	assert.Equal(t, me.Workspaces[0].ID, *me.DefaultWorkspaceID)
 }
 
+// The answer names the user and their workspaces, so a browser must not keep it on disk
+func TestMe_IsNotStoredByTheBrowser(t *testing.T) {
+	a := newAppWithAdmin(t)
+
+	w := a.request(t, http.MethodGet, "/api/v1/me", nil, a.asAdmin)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "no-store", w.Header().Get("Cache-Control"))
+}
+
 func TestMe_ListsEveryWorkspaceWithTheRoleInEachAndTheOneJoinedFirstAsDefault(t *testing.T) {
 	a := newAppWithAdmin(t)
 	// Bob joins Beta before Alpha: the order is the order of joining, not of names
