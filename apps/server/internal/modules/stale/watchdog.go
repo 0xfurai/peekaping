@@ -197,7 +197,8 @@ func (w *Watchdog) checkStaleMonitors(ctx context.Context) error {
 			w.logger.Errorw("Failed to find stale monitor", "monitor_id", id, "error", err)
 			continue
 		}
-		if mon == nil || !mon.Active {
+		// A monitor whose workspace was suspended is no longer checked, so it is not stale either
+		if mon == nil || !mon.Active || mon.WorkspaceSuspended {
 			gone = append(gone, id)
 		}
 	}

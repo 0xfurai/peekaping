@@ -262,10 +262,10 @@ func (c *Controller) dealtMonitors(ctx context.Context, owner *probe.Model, inst
 }
 
 // dealtTo reports whether the instance may send results for the monitor, by the rule that
-// dealtMonitors lists by: the monitor is active, runs on the instance's probe, and is of a type the
-// instance supports. m is nil when there is no such monitor.
+// dealtMonitors lists by: the monitor is active, its workspace is not suspended, it runs on the
+// instance's probe, and it is of a type the instance supports. m is nil when there is no such monitor.
 func dealtTo(m *monitor.Model, owner *probe.Model, instance *probe.Instance) bool {
-	return m != nil && m.RunsOn(owner.ID) && len(Dealable([]*monitor.Model{m}, instance.SupportedTypes)) == 1
+	return m != nil && !m.WorkspaceSuspended && m.RunsOn(owner.ID) && len(Dealable([]*monitor.Model{m}, instance.SupportedTypes)) == 1
 }
 
 // otherMonitor reads a monitor that the listing did not deal the probe, to tell one that does not

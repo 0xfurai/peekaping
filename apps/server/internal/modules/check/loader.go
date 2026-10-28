@@ -22,6 +22,8 @@ type Job = job.Job
 var (
 	ErrMonitorNotFound = job.ErrMonitorNotFound
 	ErrMonitorPaused   = job.ErrMonitorPaused
+	// ErrWorkspaceSuspended is for a monitor whose workspace is suspended
+	ErrWorkspaceSuspended = job.ErrWorkspaceSuspended
 )
 
 // MonitorFinder is the part of the monitor service the loader reads
@@ -76,6 +78,7 @@ func NewLoader(
 // Load reads what a check of the monitor needs. The job is nil whenever the error is not:
 //   - ErrMonitorNotFound: there is no such monitor (anymore). Callers drop the check.
 //   - ErrMonitorPaused: the monitor is paused. Callers drop the check.
+//   - ErrWorkspaceSuspended: the monitor's workspace is suspended. Callers drop the check.
 //   - any other error: a read that must succeed failed (the monitor or its maintenance
 //     windows). Callers may try again later.
 //
@@ -94,6 +97,11 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 
 	if !mon.Active {
 		return nil, ErrMonitorPaused
+	}
+
+	// A check queued before the workspace was suspended runs no more
+	if mon.WorkspaceSuspended {
+		return nil, ErrWorkspaceSuspended
 	}
 
 	isUnderMaintenance, err := l.isUnderMaintenance(ctx, monitorID)

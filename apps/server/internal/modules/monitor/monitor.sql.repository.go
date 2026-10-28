@@ -45,6 +45,23 @@ type sqlModel struct {
 	// LocationsStatus is the status the monitor's locations last added up to. Only the ingester's
 	// RecordLocation writes it.
 	LocationsStatus *int `bun:"locations_status,scanonly"`
+	// WorkspaceSuspended is read with the monitor by the lookups that ask for it (withSuspension)
+	WorkspaceSuspended bool `bun:"workspace_suspended,scanonly"`
+}
+
+// workspaceSuspended is true for a monitor whose workspace is suspended (PP-155). It is a
+// primary-key lookup on workspaces for each monitor row.
+const workspaceSuspended = "EXISTS (SELECT 1 FROM workspaces AS ws WHERE ws.id = m.workspace_id AND ws.suspended_at IS NOT NULL)"
+
+// withSuspension reads the monitor's own columns and whether its workspace is suspended
+func withSuspension(q *bun.SelectQuery) *bun.SelectQuery {
+	return q.ColumnExpr("m.*").ColumnExpr(workspaceSuspended + " AS workspace_suspended")
+}
+
+// inRunningWorkspace keeps the monitors whose workspace is not suspended: the filter of every query
+// that picks monitors to run or to check for missed beats
+func inRunningWorkspace(q *bun.SelectQuery) *bun.SelectQuery {
+	return q.Where("NOT " + workspaceSuspended)
 }
 
 // sqlProbeLink is the row that says a monitor runs on a probe. It is what is written when a
@@ -136,6 +153,8 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		Config:            sm.Config,
 		ProxyId:           proxyId,
 		PushToken:         sm.PushToken,
+
+		WorkspaceSuspended: sm.WorkspaceSuspended,
 	}
 }
 
@@ -534,7 +553,7 @@ func (r *SQLRepositoryImpl) FindWorkspaceIDAnyWorkspace(ctx context.Context, id 
 // not found.
 func (r *SQLRepositoryImpl) find(ctx context.Context, workspaceID *workspace.ID, id string) (*Model, error) {
 	sm := new(sqlModel)
-	query := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("m.id = ?", id)
+	query := withSuspension(dbtx.DB(ctx, r.db).NewSelect().Model(sm)).Where("m.id = ?", id)
 	if workspaceID != nil {
 		query = query.Where("m.workspace_id = ?", string(*workspaceID))
 	}
@@ -561,8 +580,7 @@ func (r *SQLRepositoryImpl) findMany(ctx context.Context, workspaceID *workspace
 	}
 
 	var sms []*sqlModel
-	query := dbtx.DB(ctx, r.db).NewSelect().
-		Model(&sms).
+	query := withSuspension(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
 		Where("m.id IN (?)", bun.In(ids))
 	if workspaceID != nil {
 		query = query.Where("m.workspace_id = ?", string(*workspaceID))
@@ -645,10 +663,9 @@ func (r *SQLRepositoryImpl) findAll(
 
 func (r *SQLRepositoryImpl) FindActiveAnyWorkspace(ctx context.Context) ([]*Model, error) {
 	var sms []*sqlModel
-	err := dbtx.DB(ctx, r.db).NewSelect().
-		Model(&sms).
-		Where("active = ?", true).
-		Order("id DESC").
+	err := inRunningWorkspace(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
+		Where("m.active = ?", true).
+		Order("m.id DESC").
 		Scan(ctx)
 	if err != nil {
 		return nil, err
@@ -659,10 +676,9 @@ func (r *SQLRepositoryImpl) FindActiveAnyWorkspace(ctx context.Context) ([]*Mode
 
 func (r *SQLRepositoryImpl) FindActivePaginatedAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
 	var sms []*sqlModel
-	err := dbtx.DB(ctx, r.db).NewSelect().
-		Model(&sms).
-		Where("active = ?", true).
-		Order("id DESC").
+	err := inRunningWorkspace(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
+		Where("m.active = ?", true).
+		Order("m.id DESC").
 		Limit(limit).
 		Offset(page * limit).
 		Scan(ctx)
@@ -675,8 +691,7 @@ func (r *SQLRepositoryImpl) FindActivePaginatedAnyWorkspace(ctx context.Context,
 
 func (r *SQLRepositoryImpl) FindActiveByProbeAnyWorkspace(ctx context.Context, probeID string, page int, limit int) ([]*Model, error) {
 	var sms []*sqlModel
-	query := dbtx.DB(ctx, r.db).NewSelect().
-		Model(&sms).
+	query := inRunningWorkspace(dbtx.DB(ctx, r.db).NewSelect().Model(&sms)).
 		Where("m.active = ?", true)
 	if probeID == shared.LocalProbeID {
 		// A monitor without a row runs on the local probe (see toDomainModels)
@@ -898,7 +913,7 @@ func (r *SQLRepositoryImpl) FindByProxyId(ctx context.Context, workspaceID works
 
 func (r *SQLRepositoryImpl) FindOneByPushTokenAnyWorkspace(ctx context.Context, pushToken string) (*Model, error) {
 	sm := new(sqlModel)
-	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("push_token = ?", pushToken).Scan(ctx)
+	err := withSuspension(dbtx.DB(ctx, r.db).NewSelect().Model(sm)).Where("m.push_token = ?", pushToken).Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil

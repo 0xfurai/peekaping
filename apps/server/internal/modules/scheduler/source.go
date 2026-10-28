@@ -19,7 +19,8 @@ type Source interface {
 	// check (it moved to another probe).
 	Find(ctx context.Context, monitorID string) (*shared.Monitor, error)
 	// Load returns what one check of the monitor needs. It returns job.ErrMonitorNotFound for
-	// a monitor that is gone and job.ErrMonitorPaused for one that is paused.
+	// a monitor that is gone, job.ErrMonitorPaused for one that is paused and
+	// job.ErrWorkspaceSuspended for one whose workspace is suspended.
 	Load(ctx context.Context, monitorID string) (*job.Job, error)
 	// Watch calls the functions when a monitor is created, changed (paused and resumed
 	// included) or gone. A call is only a notice: the scheduler reads the monitor with Find.
