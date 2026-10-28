@@ -98,6 +98,7 @@ type signupConfig struct {
 	AccountEmails    bool    `json:"accountEmails"`
 	SignupMode       string  `json:"signupMode"`
 	SignupOpen       bool    `json:"signupOpen"`
+	FirstSignup      bool    `json:"firstSignup"`
 	TurnstileSiteKey *string `json:"turnstileSiteKey"`
 }
 
@@ -590,12 +591,18 @@ func TestSignupModes_InInviteModeTurnstileIsNotAskedFor(t *testing.T) {
 func TestSignupModes_TheConfigSaysWhoMaySignUp(t *testing.T) {
 	t.Run("invite, no user yet", func(t *testing.T) {
 		a := newApp(t, selfHosted)
-		assert.Equal(t, signupConfig{SignupMode: "invite", SignupOpen: true}, a.authConfig(t))
+		assert.Equal(t, signupConfig{SignupMode: "invite", SignupOpen: true, FirstSignup: true}, a.authConfig(t))
 	})
 	t.Run("invite, with a user", func(t *testing.T) {
 		a := newApp(t, selfHosted)
 		a.signedUp(t, "first@example.com")
 		assert.Equal(t, signupConfig{SignupMode: "invite", SignupOpen: false}, a.authConfig(t))
+	})
+	t.Run("open, no user yet", func(t *testing.T) {
+		a := newApp(t, withOpenSignup(smtptest.Start(t)))
+		got := a.authConfig(t)
+		assert.True(t, got.SignupOpen)
+		assert.True(t, got.FirstSignup, "the first signup becomes the instance admin")
 	})
 	t.Run("open", func(t *testing.T) {
 		a := newApp(t, withOpenSignup(smtptest.Start(t)))
@@ -603,6 +610,7 @@ func TestSignupModes_TheConfigSaysWhoMaySignUp(t *testing.T) {
 		got := a.authConfig(t)
 		assert.Equal(t, "open", got.SignupMode)
 		assert.True(t, got.SignupOpen)
+		assert.False(t, got.FirstSignup, "a later signup is no instance admin")
 		assert.True(t, got.AccountEmails)
 		assert.Nil(t, got.TurnstileSiteKey)
 	})

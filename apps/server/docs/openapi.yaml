@@ -146,6 +146,8 @@ components:
       properties:
         accountEmails:
           type: boolean
+        firstSignup:
+          type: boolean
         signupMode:
           enum:
             - invite
@@ -161,6 +163,7 @@ components:
         - accountEmails
         - signupMode
         - signupOpen
+        - firstSignup
         - turnstileSiteKey
       type: object
     auth.ForgotPasswordDto:
@@ -3886,7 +3889,7 @@ paths:
         - auth
   /api/v1/auth/config:
     get:
-      description: "Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them. signupMode is SIGNUP_MODE (invite or open), signupOpen is whether to offer a sign-up form (always in open mode, and in invite mode while the install has no user), and turnstileSiteKey is the public key of the Turnstile widget that open signup shows, or null."
+      description: "Whether the install sends account emails (a password reset link, an email verification link and emailed invites): accountEmails is true when ACCOUNT_SMTP_HOST is set. When it is false the app offers none of them. signupMode is SIGNUP_MODE (invite or open), signupOpen is whether to offer a sign-up form (always in open mode, and in invite mode while the install has no user), firstSignup is whether the install has no user yet in either mode (the next signup becomes its instance admin), and turnstileSiteKey is the public key of the Turnstile widget that open signup shows, or null."
       operationId: getAuthConfig
       responses:
         "200":

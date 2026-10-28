@@ -70,12 +70,9 @@ func (g *SignupGate) Mode() string {
 	return config.SignupModeInvite
 }
 
-// Offered is whether the app should offer a sign-up form: always in open mode, and in invite mode
-// while the install has no user, who would sign up first
-func (g *SignupGate) Offered(ctx context.Context) (bool, error) {
-	if g.Open() {
-		return true, nil
-	}
+// FirstSignup is whether the install has no user yet, in either mode: the next signup is its first
+// user, who becomes the instance admin
+func (g *SignupGate) FirstSignup(ctx context.Context) (bool, error) {
 	if g == nil || g.users == nil {
 		return false, nil
 	}
