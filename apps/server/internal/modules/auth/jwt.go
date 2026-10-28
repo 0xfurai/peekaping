@@ -6,7 +6,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"peekaping/internal/modules/shared"
+	"strconv"
 	"sync"
 	"time"
 
@@ -29,8 +31,28 @@ type Claims struct {
 	// AuthTime is when the session began: the login or signup that started it. A refresh copies
 	// it into the tokens it makes, so a session is judged by its start and not by the refresh.
 	// Tokens issued before this claim existed lack it, and iat stands in.
-	AuthTime *jwt.NumericDate `json:"auth_time,omitempty"`
+	AuthTime *SessionTime `json:"auth_time,omitempty"`
 	jwt.RegisteredClaims
+}
+
+// SessionTime is a moment to the millisecond, which travels in a token as seconds with three
+// decimals, like jwt.NumericDate. It reads the number back to the nearest millisecond: jwt.NumericDate
+// truncates, so a moment that is copied from one token to the next could lose a millisecond each time.
+type SessionTime struct{ time.Time }
+
+func newSessionTime(t time.Time) *SessionTime { return &SessionTime{t.UTC().Round(time.Millisecond)} }
+
+func (t SessionTime) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.FormatFloat(float64(t.Time.UnixMilli())/1000, 'f', 3, 64)), nil
+}
+
+func (t *SessionTime) UnmarshalJSON(data []byte) error {
+	seconds, err := strconv.ParseFloat(string(data), 64)
+	if err != nil || math.IsNaN(seconds) || math.IsInf(seconds, 0) {
+		return fmt.Errorf("auth_time is not a number of seconds: %s", data)
+	}
+	t.Time = time.UnixMilli(int64(math.Round(seconds * 1000))).UTC()
+	return nil
 }
 
 // passwordFingerprint identifies a user's password without revealing it: the
@@ -199,11 +221,10 @@ func (maker *TokenMaker) CreateRefreshTokenForSession(ctx context.Context, user 
 
 func (maker *TokenMaker) createToken(user *Model, tokenType string, duration time.Duration, secretKey string, authTime time.Time) (string, error) {
 	claims := &Claims{
-		UserID: user.ID,
-		Email:  user.Email,
-		Type:   tokenType,
-		// Rounded, so that copying the claim of a token that was parsed from a float keeps its value
-		AuthTime: jwt.NewNumericDate(authTime.UTC().Round(time.Millisecond)),
+		UserID:   user.ID,
+		Email:    user.Email,
+		Type:     tokenType,
+		AuthTime: newSessionTime(authTime),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(duration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
