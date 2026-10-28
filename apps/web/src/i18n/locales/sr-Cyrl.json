@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Креирај свој админ налог",
+      "description_open": "Креирај свој налог",
       "have_account": "Већ имате налог?",
       "sign_in": "Пријави се",
       "submit": "Креирај",

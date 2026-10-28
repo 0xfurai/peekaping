@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "צור את חשבון המנהל שלך",
+      "description_open": "צור את החשבון שלך",
       "have_account": "יש לך כבר חשבון?",
       "sign_in": "התחבר",
       "submit": "צור",

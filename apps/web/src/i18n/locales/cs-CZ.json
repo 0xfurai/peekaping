@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Vytvořte si svůj administrátorský účet",
+      "description_open": "Vytvořte si svůj účet",
       "have_account": "Už máte účet?",
       "sign_in": "Přihlásit se",
       "submit": "Vytvořit",

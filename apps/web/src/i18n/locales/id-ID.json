@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Buat akun admin Anda",
+      "description_open": "Buat akun Anda",
       "have_account": "Sudah punya akun?",
       "sign_in": "Masuk",
       "submit": "Buat",

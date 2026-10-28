@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Admin hisobingizni yarating",
+      "description_open": "Hisobingizni yarating",
       "have_account": "Allaqachon hisobingiz bormi?",
       "sign_in": "Kirish",
       "submit": "Yaratish",

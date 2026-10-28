@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Erstelle dein Admin-Konto",
+      "description_open": "Erstelle dein Konto",
       "have_account": "Sie haben bereits ein Konto?",
       "sign_in": "Anmelden",
       "submit": "Erstellen",

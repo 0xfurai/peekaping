@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Creați contul de admin",
+      "description_open": "Creați-vă contul",
       "have_account": "Ai deja un cont?",
       "sign_in": "Autentificare",
       "submit": "Creează",

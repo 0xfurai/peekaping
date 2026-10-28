@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "관리자 계정 만들기",
+      "description_open": "계정 만들기",
       "have_account": "이미 계정이 있나요?",
       "sign_in": "로그인",
       "submit": "생성",

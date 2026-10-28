@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Loo oma admini konto",
+      "description_open": "Loo oma konto",
       "have_account": "Sul on juba konto?",
       "sign_in": "Logi sisse",
       "submit": "Loo",

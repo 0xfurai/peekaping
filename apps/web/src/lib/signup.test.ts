@@ -4,6 +4,7 @@ import {
   canSubmitRegister,
   loginSignupOffer,
   registerBody,
+  registerDescriptionKey,
   registerFailureKey,
   registerPageView,
 } from "./signup";
@@ -109,5 +110,16 @@ describe("registerFailureKey", () => {
     expect(registerFailureKey(failure(400, "Password too weak"))).toBeUndefined();
     expect(registerFailureKey(failure(500, "boom"))).toBeUndefined();
     expect(registerFailureKey(new Error("network"))).toBeUndefined();
+  });
+});
+
+describe("registerDescriptionKey", () => {
+  it("calls the account an ordinary one in open mode", () => {
+    expect(registerDescriptionKey("open")).toBe("auth.register.description_open");
+  });
+
+  it("calls it the admin account in invite mode, and while the mode is unknown", () => {
+    expect(registerDescriptionKey("invite")).toBe("auth.register.description");
+    expect(registerDescriptionKey(undefined)).toBe("auth.register.description");
   });
 });

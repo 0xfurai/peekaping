@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import { renderAs, text } from "@/test-support/render-with-me";
 import { RegisterErrorAlert, RegisterForm } from "./register-form";
 
-const register = (turnstileSiteKey: string | null) =>
-  renderAs({ instanceAdmin: false, role: "owner" }, <RegisterForm turnstileSiteKey={turnstileSiteKey} />, "/register");
+const register = (turnstileSiteKey: string | null, signupMode?: "invite" | "open") =>
+  renderAs(
+    { instanceAdmin: false, role: "owner" },
+    <RegisterForm turnstileSiteKey={turnstileSiteKey} signupMode={signupMode} />,
+    "/register"
+  );
 
 const submitTag = (html: string) => html.match(/<button[^>]*type="submit"[^>]*>/)?.[0] ?? "";
 
@@ -19,6 +23,18 @@ describe("RegisterForm", () => {
     expect(html).not.toContain("data-turnstile");
     expect(html).toContain(text("auth.register.submit"));
     expect(submitTag(html)).not.toContain('disabled=""');
+  });
+});
+
+describe("RegisterForm description", () => {
+  it("says \"Create your account\" on an open signup", () => {
+    const html = register(null, "open");
+    expect(html).toContain("Create your account");
+    expect(html).not.toContain("Create your admin account");
+  });
+
+  it("says \"Create your admin account\" on an invite install", () => {
+    expect(register(null, "invite")).toContain("Create your admin account");
   });
 });
 

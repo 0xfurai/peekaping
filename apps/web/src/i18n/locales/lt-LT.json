@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Sukurkite savo administratoriaus paskyrą",
+      "description_open": "Sukurkite savo paskyrą",
       "have_account": "Ar jau turite paskyrą?",
       "sign_in": "Prisijungti",
       "submit": "Sukurti",

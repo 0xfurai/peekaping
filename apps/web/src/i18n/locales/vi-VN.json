@@ -15,6 +15,7 @@
     },
     "register": {
       "description": "Tạo tài khoản quản trị của bạn",
+      "description_open": "Tạo tài khoản của bạn",
       "have_account": "Bạn đã có tài khoản?",
       "sign_in": "Đăng nhập",
       "submit": "Tạo",
