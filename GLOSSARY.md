@@ -217,6 +217,10 @@ _Avoid_: Invitation, join link
 Who may create an account on an install, set with `SIGNUP_MODE`. In `invite`, the default, the first user signs up and everyone after joins a workspace through an invite. In `open` anyone may sign up, and each new user gets a workspace of their own, unless they sign up through an invite: then they join the inviting workspace instead. The cloud runs `open`.
 _Avoid_: Registration mode, signup policy
 
+**Suspension**:
+A workspace held back with a reason. Its monitors are kept, listed and editable, but none runs: no checks, no missed-push detection, no notifications, and a push to one of them answers 403. The reason `unverified` is for a workspace made by an open signup, and it ends when its owner verifies their email address. Nothing is suspended on an install that runs `invite` or was upgraded to workspaces.
+_Avoid_: Disabled, frozen, paused (that's a monitor switched off by a person)
+
 **Account emails**:
 The emails an account gets: a password reset link, a verification link for its address, and an invite. One sender sends them for the whole install, set with `ACCOUNT_SMTP_*`; it is separate from the SMTP settings of an email notification channel. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
 _Avoid_: Transactional email, system email
