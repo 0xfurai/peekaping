@@ -74,7 +74,8 @@
       "message": "Verifica la tua email: abbiamo inviato un link a {{email}}."
     },
     "suspension_notice": {
-      "message": "I tuoi monitor partiranno dopo che avrai verificato la tua e-mail."
+      "message": "I tuoi monitor partiranno dopo che avrai verificato la tua e-mail.",
+      "member_message": "I monitor di questo spazio di lavoro partiranno dopo che il suo proprietario avrà verificato la propria e-mail."
     }
   },
   "bars": {

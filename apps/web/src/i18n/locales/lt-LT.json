@@ -74,7 +74,8 @@
       "message": "Patvirtinkite el. paštą: nuorodą išsiuntėme adresu {{email}}."
     },
     "suspension_notice": {
-      "message": "Jūsų stebėjimai pradės veikti, kai patvirtinsite el. pašto adresą."
+      "message": "Jūsų stebėjimai pradės veikti, kai patvirtinsite el. pašto adresą.",
+      "member_message": "Šios darbo erdvės stebėjimai pradės veikti, kai jos savininkas patvirtins el. pašto adresą."
     }
   },
   "bars": {

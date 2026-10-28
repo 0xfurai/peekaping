@@ -74,7 +74,8 @@
       "message": "Bevestig je e-mailadres: we hebben een link gestuurd naar {{email}}."
     },
     "suspension_notice": {
-      "message": "Je monitoren starten zodra je je e-mailadres hebt geverifieerd."
+      "message": "Je monitoren starten zodra je je e-mailadres hebt geverifieerd.",
+      "member_message": "De monitoren van deze werkruimte starten zodra de eigenaar zijn e-mailadres heeft geverifieerd."
     }
   },
   "bars": {

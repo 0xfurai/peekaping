@@ -74,7 +74,8 @@
       "message": "Verifiera din e-postadress: vi har skickat en länk till {{email}}."
     },
     "suspension_notice": {
-      "message": "Dina övervakare startar när du har verifierat din e-postadress."
+      "message": "Dina övervakare startar när du har verifierat din e-postadress.",
+      "member_message": "Den här arbetsytans övervakare startar när ägaren har verifierat sin e-postadress."
     }
   },
   "bars": {

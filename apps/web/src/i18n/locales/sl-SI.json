@@ -74,7 +74,8 @@
       "message": "Potrdite svoj e-naslov: povezavo smo poslali na {{email}}."
     },
     "suspension_notice": {
-      "message": "Vaši monitorji se zaženejo, ko potrdite svoj e-poštni naslov."
+      "message": "Vaši monitorji se zaženejo, ko potrdite svoj e-poštni naslov.",
+      "member_message": "Monitorji tega delovnega prostora se zaženejo, ko lastnik potrdi svoj e-poštni naslov."
     }
   },
   "bars": {

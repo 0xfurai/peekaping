@@ -74,7 +74,8 @@
       "message": "Xác minh email của bạn: chúng tôi đã gửi một liên kết đến {{email}}."
     },
     "suspension_notice": {
-      "message": "Các monitor của bạn sẽ bắt đầu chạy khi bạn xác minh email."
+      "message": "Các monitor của bạn sẽ bắt đầu chạy khi bạn xác minh email.",
+      "member_message": "Các monitor của không gian làm việc này sẽ bắt đầu chạy khi chủ sở hữu xác minh email."
     }
   },
   "bars": {

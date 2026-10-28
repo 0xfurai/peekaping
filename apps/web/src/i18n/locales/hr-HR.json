@@ -74,7 +74,8 @@
       "message": "Potvrdite svoju e-adresu: poslali smo poveznicu na {{email}}."
     },
     "suspension_notice": {
-      "message": "Vaši će monitori početi raditi kada potvrdite svoju e-adresu."
+      "message": "Vaši će monitori početi raditi kada potvrdite svoju e-adresu.",
+      "member_message": "Monitori ovog radnog prostora počet će raditi kada njegov vlasnik potvrdi svoju e-adresu."
     }
   },
   "bars": {

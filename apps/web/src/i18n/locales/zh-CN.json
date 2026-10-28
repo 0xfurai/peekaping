@@ -74,7 +74,8 @@
       "message": "请验证你的邮箱:我们已向 {{email}} 发送了链接。"
     },
     "suspension_notice": {
-      "message": "验证邮箱后，你的监控项才会开始运行。"
+      "message": "验证邮箱后，你的监控项才会开始运行。",
+      "member_message": "此工作区的监控项会在其所有者验证邮箱后开始运行。"
     }
   },
   "bars": {

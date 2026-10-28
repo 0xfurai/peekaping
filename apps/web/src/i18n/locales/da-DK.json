@@ -74,7 +74,8 @@
       "message": "Bekræft din e-mail: vi har sendt et link til {{email}}."
     },
     "suspension_notice": {
-      "message": "Dine monitorer starter, når du har bekræftet din e-mail."
+      "message": "Dine monitorer starter, når du har bekræftet din e-mail.",
+      "member_message": "Dette arbejdsområdes monitorer starter, når dets ejer har bekræftet sin e-mail."
     }
   },
   "bars": {
