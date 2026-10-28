@@ -25,6 +25,26 @@ type UserWorkspaceResponse struct {
 	Role string `json:"role" enum:"owner,admin,member"`
 }
 
+// LastOwnerErrorResponse is the 409 for deleting a user who is the last owner of a workspace. Like
+// a push token that another monitor holds, it carries a code, and it lists the workspaces so that a
+// client does not read their names out of a message.
+type LastOwnerErrorResponse struct {
+	Error LastOwnerErrorBody `json:"error"`
+}
+
+// LastOwnerErrorBody is the code of a LastOwnerErrorResponse and the workspaces the user is the
+// only owner of
+type LastOwnerErrorBody struct {
+	Code       string               `json:"code" example:"LAST_OWNER"`
+	Workspaces []LastOwnerWorkspace `json:"workspaces"`
+}
+
+// LastOwnerWorkspace is a workspace the user is the last owner of
+type LastOwnerWorkspace struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // UserResponse is a user of the install, as the admin area shows them
 type UserResponse struct {
 	ID    string `json:"id"`

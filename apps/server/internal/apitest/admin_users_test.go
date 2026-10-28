@@ -779,8 +779,20 @@ func TestAdminUsers_DeleteIsRefusedForTheLastOwnerOfAWorkspaceAndNamesIt(t *test
 
 		w := a.request(t, http.MethodDelete, adminUsersPath+"/"+userID, nil, a.asAdmin)
 		require.Equal(t, http.StatusConflict, w.Code, w.Body.String())
-		assert.Contains(t, w.Body.String(), `\"Only mine\"`, "it names the workspace they are the last owner of")
-		assert.NotContains(t, w.Body.String(), "Shared", "and not the one with another owner")
+		var refused struct {
+			Error struct {
+				Code       string `json:"code"`
+				Workspaces []struct {
+					ID   string `json:"id"`
+					Name string `json:"name"`
+				} `json:"workspaces"`
+			} `json:"error"`
+		}
+		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &refused), w.Body.String())
+		assert.Equal(t, "LAST_OWNER", refused.Error.Code)
+		require.Len(t, refused.Error.Workspaces, 1, "it lists the workspace they are the last owner of, and not the one with another owner")
+		assert.Equal(t, string(sole), refused.Error.Workspaces[0].ID)
+		assert.Equal(t, "Only mine", refused.Error.Workspaces[0].Name)
 		assert.Equal(t, 3, a.listUsers(t, "").Total, "nothing was deleted")
 		assert.Len(t, a.adminView(t, "user@example.com").Workspaces, 2)
 

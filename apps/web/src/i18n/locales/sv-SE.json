@@ -173,8 +173,8 @@
       "message": "Verifiera din e-postadress: vi har skickat en länk till {{email}}."
     },
     "suspension_notice": {
-      "message": "Dina övervakare startar när du har verifierat din e-postadress.",
-      "member_message": "Den här arbetsytans övervakare startar när ägaren har verifierat sin e-postadress."
+      "message": "Dina övervakningar startar när du har verifierat din e-postadress.",
+      "member_message": "Den här arbetsytans övervakningar startar när ägaren har verifierat sin e-postadress."
     }
   },
   "bars": {
@@ -1863,7 +1863,7 @@
     "name_placeholder": "Mitt team",
     "name_required": "Ange ett namn",
     "new": "Ny arbetsyta",
-    "new_description": "En arbetsyta har egna övervakare, aviseringskanaler, statussidor och medlemmar. Du blir dess ägare.",
+    "new_description": "En arbetsyta har egna övervakningar, aviseringskanaler, statussidor och medlemmar. Du blir dess ägare.",
     "new_title": "Ny arbetsyta",
     "none_description": "Ditt konto är inte medlem i någon arbetsyta, så det finns inget att visa här. Be någon som hanterar en arbetsyta att lägga till dig.",
     "none_title": "Du är inte med i någon arbetsyta ännu",

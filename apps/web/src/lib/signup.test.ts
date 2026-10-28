@@ -71,6 +71,12 @@ describe("canSubmitRegister", () => {
     expect(canSubmitRegister("0x4AAA", "")).toBe(false);
     expect(canSubmitRegister("0x4AAA", "tok")).toBe(true);
   });
+
+  it("waits for a pending request, with or without a site key", () => {
+    expect(canSubmitRegister(null, null, true)).toBe(false);
+    expect(canSubmitRegister("0x4AAA", "tok", true)).toBe(false);
+    expect(canSubmitRegister(null, null, false)).toBe(true);
+  });
 });
 
 describe("registerBody", () => {

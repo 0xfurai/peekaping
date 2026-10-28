@@ -534,7 +534,7 @@ export const getAdminUsersInfiniteOptions = (
 
 /**
  * Delete a user
- * Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: the answer names the workspaces.
+ * Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: that answer is {"error":{"code":"LAST_OWNER","workspaces":[{"id","name"}]}}, listing the workspaces whose only owner the user is. The other refusals answer with a message.
  */
 export const deleteAdminUsersByIdMutation = (
   options?: Partial<Options<DeleteAdminUsersByIdData>>
@@ -4090,7 +4090,7 @@ export const postWorkspaceInvitesQueryKey = (
 
 /**
  * Invite someone to the workspace
- * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked.
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or an API key) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429.
  */
 export const postWorkspaceInvitesOptions = (
   options: Options<PostWorkspaceInvitesData>
@@ -4111,7 +4111,7 @@ export const postWorkspaceInvitesOptions = (
 
 /**
  * Invite someone to the workspace
- * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked.
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or an API key) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429.
  */
 export const postWorkspaceInvitesMutation = (
   options?: Partial<Options<PostWorkspaceInvitesData>>

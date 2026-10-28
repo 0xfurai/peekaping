@@ -1,5 +1,41 @@
 components:
   schemas:
+    admin.LastOwnerErrorBody:
+      additionalProperties: false
+      properties:
+        code:
+          examples:
+            - LAST_OWNER
+          type: string
+        workspaces:
+          items:
+            $ref: "#/components/schemas/admin.LastOwnerWorkspace"
+          type:
+            - array
+            - "null"
+      required:
+        - code
+        - workspaces
+      type: object
+    admin.LastOwnerErrorResponse:
+      additionalProperties: false
+      properties:
+        error:
+          $ref: "#/components/schemas/admin.LastOwnerErrorBody"
+      required:
+        - error
+      type: object
+    admin.LastOwnerWorkspace:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
+      type: object
     admin.ResetLinkResponse:
       additionalProperties: false
       properties:
@@ -3760,7 +3796,7 @@ paths:
         - admin
   /api/v1/admin/users/{id}:
     delete:
-      description: "Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: the answer names the workspaces."
+      description: "Only an instance admin may do this. The user's memberships go with them. It is refused (409) for yourself, for the last instance admin, and while the user is the last owner of a workspace: that answer is {\"error\":{\"code\":\"LAST_OWNER\",\"workspaces\":[{\"id\",\"name\"}]}}, listing the workspaces whose only owner the user is. The other refusals answer with a message."
       operationId: deleteAdminUsersById
       parameters:
         - description: The user's ID
@@ -3795,7 +3831,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/admin.LastOwnerErrorResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Conflict
         "500":
           content:
@@ -9262,7 +9300,7 @@ paths:
       tags:
         - workspace
     post:
-      description: An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked.
+      description: An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or an API key) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429.
       operationId: postWorkspaceInvites
       parameters:
         - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
@@ -9314,6 +9352,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
         "500":
           content:
             application/json:

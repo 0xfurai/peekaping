@@ -449,14 +449,22 @@ func (s *ServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*L
 		return nil, ErrAccountDisabled
 	}
 
+	// The new tokens belong to the session the refresh token belongs to, and carry its start: a
+	// reset that commits after the user was read here ends that session, whenever these are made.
+	// A token from before auth_time was added falls back to when it was issued.
+	began := time.Now().UTC()
+	if start := claims.sessionStart(); start != nil {
+		began = *start
+	}
+
 	// Generate new access token
-	accessToken, err := s.tokenMaker.CreateAccessToken(ctx, user)
+	accessToken, err := s.tokenMaker.CreateAccessTokenForSession(ctx, user, began)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate new refresh token
-	newRefreshToken, err := s.tokenMaker.CreateRefreshToken(ctx, user)
+	newRefreshToken, err := s.tokenMaker.CreateRefreshTokenForSession(ctx, user, began)
 	if err != nil {
 		return nil, err
 	}

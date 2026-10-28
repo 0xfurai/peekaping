@@ -265,7 +265,22 @@ test.describe('Setup screen', () => {
       }),
     );
 
+  // The register page follows /auth/config: with signup closed it sends a visitor to the login page,
+  // and this stack already has its admin. Answer as a fresh install in invite mode, where the first
+  // signup is open.
+  const fakeFreshInstall = (page: Page) =>
+    page.route('**/api/v1/auth/config', (route) =>
+      route.fulfill({
+        json: {
+          status: 'success',
+          message: 'Auth config retrieved successfully',
+          data: { accountEmails: false, signupMode: 'invite', signupOpen: true, turnstileSiteKey: null },
+        },
+      }),
+    );
+
   const fillAndSubmit = async (page: Page) => {
+    await fakeFreshInstall(page);
     await page.goto('/register');
     await page.getByRole('textbox', { name: 'Email' }).fill('new@admin.test');
     await page.locator('input[name="password"]').fill('TestPassword1234!');
