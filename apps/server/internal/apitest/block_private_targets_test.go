@@ -63,6 +63,8 @@ func TestBlockPrivateTargets_AMonitorAtABlockedAddressIsRefusedOnCreate(t *testi
 		{"ping on a private network", monitorWithConfig("Router", "ping", `{"host":"192.168.1.1"}`), "192.168.1.1"},
 		{"dns through a local resolver", monitorWithConfig("Dns", "dns", `{"host":"example.com","resolver_server":"127.0.0.53","port":53,"resolve_type":"A"}`), "127.0.0.53"},
 		{"smtp on carrier-grade NAT", monitorWithConfig("Mail", "smtp", `{"host":"100.64.0.1","port":25}`), "100.64.0.1"},
+		{"postgres on a private network", monitorWithConfig("Postgres", "postgres", `{"database_connection_string":"postgres://app:secret@10.1.2.3:5432/app"}`), "10.1.2.3"},
+		{"redis on loopback", monitorWithConfig("Cache", "redis", `{"databaseConnectionString":"redis://127.0.0.1:6379"}`), "127.0.0.1"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -81,6 +83,8 @@ func TestBlockPrivateTargets_AHostnameTargetIsSaved(t *testing.T) {
 		monitorWithConfig("Localhost", "http", httpConfigFor("http://localhost:8080/")),
 		monitorWithConfig("Public", "http", httpConfigFor("http://8.8.8.8/")),
 		monitorWithConfig("Database", "tcp", `{"host":"db.corp.example","port":5432}`),
+		monitorWithConfig("Postgres", "postgres", `{"database_connection_string":"postgres://app:secret@db.corp.example:5432/app"}`),
+		monitorWithConfig("Cache", "redis", `{"databaseConnectionString":"redis://localhost:6379"}`),
 		monitorWithConfig("Push", "push", `{"pushToken":"abcdefghijklmnopqrstuvwxyz012345"}`),
 	} {
 		decode[typedMonitor](t, a.request(t, http.MethodPost, monitorsPath, body, a.asAdmin), http.StatusCreated)
