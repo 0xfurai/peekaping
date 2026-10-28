@@ -18,8 +18,7 @@ var (
 // which (docs/adr/0005 section 8). A notification channel or tag that isn't there is
 // monitor_notification.ErrUnknownChannel or monitor_tag.ErrUnknownTag.
 //
-// The request fails as it did before records had a workspace, when the database refused the link
-// to an ID that didn't exist: the controller has no case for it and answers 500.
+// The controller answers 400 with "Proxy not found", the same for both.
 var ErrProxyNotFound = errors.New("proxy not found")
 
 // LookupError is a read of the monitor that failed, as opposed to one that found nothing. A route

@@ -505,7 +505,7 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, workspaceID workspace.
 // requireLinks checks that the notification channels, tags and proxy a request names are in the
 // workspace, and fails on the first that isn't. A monitor links only to records of its own
 // workspace (docs/adr/0005 section 2), and a record of another workspace is refused as one that
-// doesn't exist (section 8): the request fails as an unknown ID has always failed, with a 500.
+// doesn't exist (section 8): the request fails with a 400 that names the kind.
 // Callers check before they write anything, so a refusal changes nothing. An empty proxy ID is no
 // proxy.
 func (mr *MonitorServiceImpl) requireLinks(ctx context.Context, workspaceID workspace.ID, notificationIDs, tagIDs []string, proxyID string) error {
