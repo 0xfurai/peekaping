@@ -91,9 +91,10 @@ Some paths have to read across workspaces. They use separate methods whose names
 - notification sending, from a monitor to its own channels;
 - the usage ping's counts;
 - `/metrics`, which lists every monitor of the install with no auth, for the people who run it. The cloud must keep it off the public internet;
-- startup jobs such as status repair.
+- startup jobs such as status repair;
+- an API key's authentication, finding the key by the ID in its token, which then says its workspace.
 
-A new caller needs a reason in review. PP-153 proves that no handler serving a workspace's request reaches another workspace.
+A new caller needs a reason in review. PP-153 proves that no handler serving a workspace's request reaches another workspace: `apps/server/internal/apitest/isolation_test.go` walks every route, and `apps/server/internal/isolation_test.go` lists the functions that may call an `AnyWorkspace` method, so a new caller needs a reviewed change to that list.
 
 We rejected a query hook that adds the filter by itself. It hides the filter, so a missing one fails silently. Background work would also need a way to switch the hook off, and that switch becomes the hole. PP-91 isn't a prerequisite: if it lands first, its helpers take the workspace ID as an argument too.
 
