@@ -33,6 +33,15 @@ export const loginSignupOffer = (config: SignupConfig | undefined): "register" |
 export const registerDescriptionKey = (signupMode: "invite" | "open" | undefined): string =>
   signupMode === "open" ? "auth.register.description_open" : "auth.register.description";
 
+/**
+ * Whether the register form shows the install-wide choices (the usage ping and the error reports).
+ * Only an instance admin may set them, and the first signup is the only one /auth/config is sure
+ * makes one: in invite mode the form shows only while the install has no user. In open mode the
+ * config can't tell whether the visitor is the first, so the choices are left to Settings; with no
+ * mode known they are left out too.
+ */
+export const showInstallPreferences = (signupMode: "invite" | "open" | undefined): boolean => signupMode === "invite";
+
 /** The register button waits for the widget's answer when the install uses Turnstile. */
 export const canSubmitRegister = (siteKey: string | null | undefined, token: string | null): boolean =>
   !siteKey || Boolean(token);
