@@ -134,7 +134,7 @@ func TestAuthAPI_RegisterMakesTheWorkspaceAndShowsNoWorkspaceFields(t *testing.T
 			Scan(context.Background(), &rows)
 	}))
 	require.Len(t, rows, 1)
-	assert.Equal(t, "Default", rows[0].Name)
+	assert.Equal(t, "My workspace", rows[0].Name)
 	assert.Equal(t, "owner", rows[0].Role)
 	assert.True(t, rows[0].InstanceAdmin)
 }

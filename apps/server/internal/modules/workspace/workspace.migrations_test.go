@@ -170,7 +170,7 @@ func TestMigrations_AnUpgradedInstallHasOneWorkspaceWithEveryUserItsOwnerAndAnIn
 
 		ws := workspaces(t, db)
 		require.Len(t, ws, 1)
-		assert.Equal(t, "Default", ws[0].Name)
+		assert.Equal(t, "My workspace", ws[0].Name)
 		assert.ElementsMatch(t, []memberRow{{ws[0].ID, first, "owner"}, {ws[0].ID, second, "owner"}}, members(t, db))
 		assert.Equal(t, map[string]bool{first: true, second: true}, instanceAdmins(t, db))
 	})
@@ -223,7 +223,7 @@ func TestMigrations_AnInstallWithRecordsAndNoUserGetsTheWorkspaceForTheFirstSign
 
 				ws := workspaces(t, db)
 				require.Len(t, ws, 1)
-				assert.Equal(t, "Default", ws[0].Name)
+				assert.Equal(t, "My workspace", ws[0].Name)
 				assert.Empty(t, members(t, db))
 			})
 		})

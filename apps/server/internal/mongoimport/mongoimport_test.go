@@ -84,7 +84,7 @@ func checkWorkspace(t *testing.T, in *mongoimporttest.Install, db *bun.DB, repor
 	}
 	require.NoError(t, db.NewSelect().Table("workspaces").Column("id", "name").Scan(ctx, &workspaces))
 	require.Len(t, workspaces, 1)
-	assert.Equal(t, "Default", workspaces[0].Name)
+	assert.Equal(t, "My workspace", workspaces[0].Name)
 
 	var users []struct {
 		ID            string `bun:"id"`
@@ -103,9 +103,9 @@ func checkWorkspace(t *testing.T, in *mongoimporttest.Install, db *bun.DB, repor
 	}
 
 	require.NotNil(t, report.Workspace)
-	assert.Equal(t, "Default", report.Workspace.Name)
+	assert.Equal(t, "My workspace", report.Workspace.Name)
 	assert.Equal(t, 2, report.Workspace.Owners)
-	assert.Contains(t, report.String(), "workspace Default: made, with 2 users as its owners and instance admins\n")
+	assert.Contains(t, report.String(), "workspace My workspace: made, with 2 users as its owners and instance admins\n")
 }
 
 func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report *mongoimport.Report) {
