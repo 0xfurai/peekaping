@@ -188,14 +188,21 @@ func TestMonitorsAPI_PatchRejectsTimingsBelowTheirMinimum(t *testing.T) {
 	id := a.createMonitorWithTimings(t, 60, 48)
 	path := "/api/v1/monitors/" + id
 
-	a.expectStatus(t, http.StatusBadRequest, []call{
+	// A shorter check interval also breaks the timeout rule here, so each error must name the minimum
+	for _, c := range []call{
 		{"check interval of 19 s", http.MethodPatch, path, map[string]any{"interval": 19}},
 		{"check interval of 0", http.MethodPatch, path, map[string]any{"interval": 0}},
 		{"timeout of 15 s", http.MethodPatch, path, map[string]any{"timeout": 15}},
 		{"timeout of 0", http.MethodPatch, path, map[string]any{"timeout": 0}},
 		{"retry interval of 19 s", http.MethodPatch, path, map[string]any{"retry_interval": 19}},
 		{"retry interval of 0", http.MethodPatch, path, map[string]any{"retry_interval": 0}},
-	})
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			reply := a.request(t, c.method, c.path, c.body, a.asAdmin)
+			assert.Equal(t, http.StatusBadRequest, reply.Code, reply.Body.String())
+			assert.Contains(t, reply.Body.String(), "'min' tag", "the error names the minimum")
+		})
+	}
 
 	assert.Equal(t, monitorTimings{Interval: 60, Timeout: 48, RetryInterval: 60}, a.monitorTimings(t, id), "nothing is stored")
 }
