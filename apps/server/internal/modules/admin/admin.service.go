@@ -161,10 +161,10 @@ func (s *ServiceImpl) UpdateUser(ctx context.Context, actorID, userID string, up
 		s.log(actorID, action, userID)
 	}
 	if endedUsers {
-		// Their open sockets close, and stop getting the workspaces' updates: the sessions ended,
-		// the memberships did not
+		// Their open sockets close, which ends the workspaces' updates too. The sessions ended and
+		// the memberships did not, so nothing announces MemberLeft: its subscribers take it for a
+		// membership that is gone.
 		s.announceSessionsEnded(ctx, userID)
-		s.announceLeft(ctx, userID, updated.Memberships)
 	}
 	return updated, nil
 }
@@ -275,8 +275,8 @@ func (s *ServiceImpl) announceSessionsEnded(ctx context.Context, userID string) 
 	}
 }
 
-// announceLeft tells the rest of the install that the user's places in the workspaces are gone, or
-// no longer reach them, once that is stored. A bus that fails is logged and not returned: the change
+// announceLeft tells the rest of the install that the user's places in the workspaces are gone,
+// once that is stored. A bus that fails is logged and not returned: the change
 // stands.
 func (s *ServiceImpl) announceLeft(ctx context.Context, userID string, memberships []Membership) {
 	for _, m := range memberships {

@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { renderAs, text } from "@/test-support/render-with-me";
 import { RegisterErrorAlert, RegisterForm } from "./register-form";
 
-const register = (turnstileSiteKey: string | null, signupMode?: "invite" | "open") =>
+const register = (turnstileSiteKey: string | null, signupMode?: "invite" | "open", firstSignup?: boolean) =>
   renderAs(
     { instanceAdmin: false, role: "owner" },
-    <RegisterForm turnstileSiteKey={turnstileSiteKey} signupMode={signupMode} />,
+    <RegisterForm turnstileSiteKey={turnstileSiteKey} signupMode={signupMode} firstSignup={firstSignup} />,
     "/register"
   );
 
@@ -27,35 +27,45 @@ describe("RegisterForm", () => {
 });
 
 describe("RegisterForm description", () => {
-  it("says \"Create your account\" on an open signup", () => {
-    const html = register(null, "open");
+  it("says \"Create your account\" on a later open signup", () => {
+    const html = register(null, "open", false);
     expect(html).toContain("Create your account");
     expect(html).not.toContain("Create your admin account");
   });
 
+  it("says \"Create your admin account\" on the first signup of an open install", () => {
+    expect(register(null, "open", true)).toContain("Create your admin account");
+  });
+
   it("says \"Create your admin account\" on an invite install", () => {
-    expect(register(null, "invite")).toContain("Create your admin account");
+    expect(register(null, "invite", true)).toContain("Create your admin account");
   });
 });
 
 describe("RegisterForm install-wide choices", () => {
   // Only an instance admin may set the usage ping and the error reports, so only the install's
-  // first signup (invite mode, while it has no user) is offered them
+  // first signup, in either mode, is offered them
   it("offers the usage ping and error report choices to the first signup of an invite install", () => {
-    const html = register(null, "invite");
+    const html = register(null, "invite", true);
     expect(html).toContain('id="send-usage-statistics"');
     expect(html).toContain('id="send-error-reports"');
     expect(html).toContain(text("auth.register.telemetry_note"));
   });
 
-  it("leaves them out of an open signup, which can't tell it is the first", () => {
-    const html = register(null, "open");
+  it("offers them to the first signup of an open install", () => {
+    const html = register(null, "open", true);
+    expect(html).toContain('id="send-usage-statistics"');
+    expect(html).toContain('id="send-error-reports"');
+  });
+
+  it("leaves them out of a later open signup, which is no instance admin", () => {
+    const html = register(null, "open", false);
     expect(html).not.toContain("send-usage-statistics");
     expect(html).not.toContain("send-error-reports");
     expect(html).not.toContain(text("auth.register.telemetry_note"));
   });
 
-  it("leaves them out while the mode is unknown", () => {
+  it("leaves them out while the config is unknown", () => {
     expect(register(null)).not.toContain("send-usage-statistics");
   });
 });

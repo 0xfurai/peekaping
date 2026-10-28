@@ -11,3 +11,9 @@ func OnConnection(s *Server, delay time.Duration, fn func(id string)) {
 		time.Sleep(delay)
 	}
 }
+
+// SweepEvery makes the server sweep its open sockets every interval. Call it before the first
+// client connects: the sweep starts with the first socket.
+func SweepEvery(s *Server, every time.Duration) {
+	s.sweepEvery = every
+}
