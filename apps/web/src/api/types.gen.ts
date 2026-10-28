@@ -1954,6 +1954,50 @@ export type GetAdminWorkspacesResponses = {
 export type GetAdminWorkspacesResponse =
   GetAdminWorkspacesResponses[keyof GetAdminWorkspacesResponses];
 
+export type DeleteAdminWorkspacesByIdData = {
+  body?: never;
+  path: {
+    /**
+     * The workspace's ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/admin/workspaces/{id}";
+};
+
+export type DeleteAdminWorkspacesByIdErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type DeleteAdminWorkspacesByIdError =
+  DeleteAdminWorkspacesByIdErrors[keyof DeleteAdminWorkspacesByIdErrors];
+
+export type DeleteAdminWorkspacesByIdResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteAdminWorkspacesByIdResponse =
+  DeleteAdminWorkspacesByIdResponses[keyof DeleteAdminWorkspacesByIdResponses];
+
 export type PatchAdminWorkspacesByIdData = {
   body: AdminUpdateWorkspaceDto;
   path: {

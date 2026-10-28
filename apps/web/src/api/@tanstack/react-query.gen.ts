@@ -8,6 +8,7 @@ import {
   postAdminUsersByIdDisable2Fa,
   postAdminUsersByIdResetLink,
   getAdminWorkspaces,
+  deleteAdminWorkspacesById,
   patchAdminWorkspacesById,
   getApiKeys,
   postApiKeys,
@@ -145,6 +146,9 @@ import type {
   GetAdminWorkspacesData,
   GetAdminWorkspacesError,
   GetAdminWorkspacesResponse,
+  DeleteAdminWorkspacesByIdData,
+  DeleteAdminWorkspacesByIdError,
+  DeleteAdminWorkspacesByIdResponse,
   PatchAdminWorkspacesByIdData,
   PatchAdminWorkspacesByIdError,
   PatchAdminWorkspacesByIdResponse,
@@ -781,6 +785,34 @@ export const getAdminWorkspacesInfiniteOptions = (
       queryKey: getAdminWorkspacesInfiniteQueryKey(options),
     }
   );
+};
+
+/**
+ * Delete a workspace
+ * Only an instance admin may do this. The workspace and everything in it are deleted for good: its monitors, with their heartbeats and stats, its notification channels, proxies, tags, maintenance windows, status pages and custom domains, its API keys, invites and settings. Its monitors stop at once, its public status pages and badges are gone, and its members' open sockets leave its rooms. Its members keep their accounts and their other workspaces; one who had only this workspace is left with none. An admin may delete a workspace they are a member of. Deleting a workspace that does not exist answers 404.
+ */
+export const deleteAdminWorkspacesByIdMutation = (
+  options?: Partial<Options<DeleteAdminWorkspacesByIdData>>
+): UseMutationOptions<
+  DeleteAdminWorkspacesByIdResponse,
+  AxiosError<DeleteAdminWorkspacesByIdError>,
+  Options<DeleteAdminWorkspacesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    DeleteAdminWorkspacesByIdResponse,
+    AxiosError<DeleteAdminWorkspacesByIdError>,
+    Options<DeleteAdminWorkspacesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteAdminWorkspacesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 /**

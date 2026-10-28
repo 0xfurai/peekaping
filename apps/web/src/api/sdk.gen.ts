@@ -20,6 +20,9 @@ import type {
   GetAdminWorkspacesData,
   GetAdminWorkspacesResponses,
   GetAdminWorkspacesErrors,
+  DeleteAdminWorkspacesByIdData,
+  DeleteAdminWorkspacesByIdResponses,
+  DeleteAdminWorkspacesByIdErrors,
   PatchAdminWorkspacesByIdData,
   PatchAdminWorkspacesByIdResponses,
   PatchAdminWorkspacesByIdErrors,
@@ -516,6 +519,29 @@ export const getAdminWorkspaces = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/api/v1/admin/workspaces",
+    ...options,
+  });
+};
+
+/**
+ * Delete a workspace
+ * Only an instance admin may do this. The workspace and everything in it are deleted for good: its monitors, with their heartbeats and stats, its notification channels, proxies, tags, maintenance windows, status pages and custom domains, its API keys, invites and settings. Its monitors stop at once, its public status pages and badges are gone, and its members' open sockets leave its rooms. Its members keep their accounts and their other workspaces; one who had only this workspace is left with none. An admin may delete a workspace they are a member of. Deleting a workspace that does not exist answers 404.
+ */
+export const deleteAdminWorkspacesById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAdminWorkspacesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteAdminWorkspacesByIdResponses,
+    DeleteAdminWorkspacesByIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/workspaces/{id}",
     ...options,
   });
 };
