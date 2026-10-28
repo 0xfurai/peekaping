@@ -30,6 +30,10 @@ const (
 	MaxDataRetentionDays = 36500
 )
 
+// DefaultDataRetentionDays is the data retention period of a workspace that has none stored: the
+// 365 days an install used before it stored one (docs/adr/0005 section 5).
+const DefaultDataRetentionDays = 365
+
 // userEditableKeys are the only settings the settings API can reach, all of them settings of the
 // request's workspace. Every other key, such as the JWT signing secrets, is internal to the
 // server and stays in the install's settings.
