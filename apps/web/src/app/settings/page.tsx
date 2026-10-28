@@ -34,10 +34,11 @@ import {
   putTelemetryMutation,
 } from "@/api/@tanstack/react-query.gen";
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useCurrentAccess } from "@/hooks/useCurrentAccess";
+import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -317,6 +318,7 @@ const ErrorReportingSetting = () => {
 const SettingsPage = () => {
   const { t } = useLocalizedTranslation();
   const { instanceAdmin } = useCurrentAccess();
+  const workspacePath = useWorkspacePath();
   // The upgrade notice links to a card, such as /settings#error-reports
   const { hash } = useLocation();
   React.useEffect(() => {
@@ -337,6 +339,21 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
         <KeepDataPeriodSetting />
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("members.settings_card.title")}</CardTitle>
+            <CardDescription>
+              {t("members.settings_card.description")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link to={workspacePath("/settings/members")}>
+                {t("members.settings_card.open")}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
         {/* The usage ping and error reports belong to the install, not to the workspace */}
         {instanceAdmin && (
           <>

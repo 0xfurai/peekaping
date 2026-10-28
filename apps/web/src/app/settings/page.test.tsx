@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { getSettingsKeyByKeyQueryKey } from "@/api/@tanstack/react-query.gen";
-import { renderAs, text } from "@/test-support/render-with-me";
+import { renderAs, text, WORKSPACE_ID } from "@/test-support/render-with-me";
 import SettingsPage from "./page";
 
 // The timezone card reads the browser's storage, which a static render doesn't have
@@ -54,5 +54,11 @@ describe("SettingsPage", () => {
     const html = settings({ instanceAdmin: true, role: "member" });
     expect(html).toContain(text("settings.telemetry.title"));
     expect(html).toContain(text("settings.data_retention.read_only"));
+  });
+
+  it.each(["member", "admin", "owner"] as const)("links a %s to the workspace's members", (role) => {
+    const html = settings({ instanceAdmin: false, role });
+    expect(html).toContain(`href="/w/${WORKSPACE_ID}/settings/members"`);
+    expect(html).toContain(text("members.settings_card.open"));
   });
 });

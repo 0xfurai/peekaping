@@ -23,6 +23,7 @@ import {
 import { NavUser } from "./nav-user";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 import { useAuthStore } from "@/store/auth";
 import { VERSION } from "../version";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
@@ -104,6 +105,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <WorkspaceSwitcher />
       </SidebarHeader>
 
       <SidebarContent>
