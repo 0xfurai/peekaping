@@ -26,7 +26,8 @@
         "rate_limited": "Terlalu banyak pendaftaran dari jaringan Anda. Coba lagi dalam satu jam.",
         "email_taken": "Sudah ada akun dengan email ini.",
         "sign_in_instead": "Masuk saja.",
-        "check_failed": "Pemeriksaan tidak lolos. Coba lagi."
+        "check_failed": "Pemeriksaan tidak lolos. Coba lagi.",
+        "check_load_failed": "Pemeriksaan gagal dimuat. Periksa koneksi Anda dan coba lagi."
       }
     },
     "twofa": {

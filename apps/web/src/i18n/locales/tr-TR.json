@@ -26,7 +26,8 @@
         "rate_limited": "Ağınızdan çok fazla kayıt yapıldı. Bir saat sonra tekrar deneyin.",
         "email_taken": "Bu e-postayla bir hesap zaten var.",
         "sign_in_instead": "Bunun yerine oturum açın.",
-        "check_failed": "Doğrulama geçilemedi. Tekrar deneyin."
+        "check_failed": "Doğrulama geçilemedi. Tekrar deneyin.",
+        "check_load_failed": "Doğrulama yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin."
       }
     },
     "twofa": {

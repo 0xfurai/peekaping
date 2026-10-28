@@ -26,7 +26,8 @@
         "rate_limited": "Trop d'inscriptions depuis votre réseau. Réessayez dans une heure.",
         "email_taken": "Un compte existe déjà avec cet e-mail.",
         "sign_in_instead": "Connectez-vous plutôt.",
-        "check_failed": "La vérification a échoué. Réessayez."
+        "check_failed": "La vérification a échoué. Réessayez.",
+        "check_load_failed": "La vérification n'a pas pu se charger. Vérifiez votre connexion et réessayez."
       }
     },
     "twofa": {

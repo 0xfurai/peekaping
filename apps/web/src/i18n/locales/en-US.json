@@ -26,7 +26,8 @@
         "rate_limited": "Too many signups from your network. Try again in an hour.",
         "email_taken": "An account with this email exists.",
         "sign_in_instead": "Sign in instead.",
-        "check_failed": "The check didn't pass. Try again."
+        "check_failed": "The check didn't pass. Try again.",
+        "check_load_failed": "The check couldn't load. Check your connection and try again."
       }
     },
     "twofa": {

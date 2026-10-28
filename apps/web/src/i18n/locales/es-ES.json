@@ -26,7 +26,8 @@
         "rate_limited": "Demasiados registros desde tu red. Inténtalo de nuevo dentro de una hora.",
         "email_taken": "Ya existe una cuenta con este correo electrónico.",
         "sign_in_instead": "Inicia sesión en su lugar.",
-        "check_failed": "La comprobación no se superó. Inténtalo de nuevo."
+        "check_failed": "La comprobación no se superó. Inténtalo de nuevo.",
+        "check_load_failed": "No se pudo cargar la comprobación. Revisa tu conexión e inténtalo de nuevo."
       }
     },
     "twofa": {

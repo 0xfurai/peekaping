@@ -26,7 +26,8 @@
         "rate_limited": "Zbyt wiele rejestracji z Twojej sieci. Spróbuj ponownie za godzinę.",
         "email_taken": "Konto z tym adresem e-mail już istnieje.",
         "sign_in_instead": "Zaloguj się zamiast tego.",
-        "check_failed": "Weryfikacja nie powiodła się. Spróbuj ponownie."
+        "check_failed": "Weryfikacja nie powiodła się. Spróbuj ponownie.",
+        "check_load_failed": "Nie udało się załadować weryfikacji. Sprawdź połączenie i spróbuj ponownie."
       }
     },
     "twofa": {

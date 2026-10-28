@@ -26,7 +26,8 @@
         "rate_limited": "Previše registracija s vaše mreže. Pokušajte ponovno za sat vremena.",
         "email_taken": "Račun s ovom e-adresom već postoji.",
         "sign_in_instead": "Umjesto toga prijavite se.",
-        "check_failed": "Provjera nije uspjela. Pokušajte ponovno."
+        "check_failed": "Provjera nije uspjela. Pokušajte ponovno.",
+        "check_load_failed": "Provjera se nije mogla učitati. Provjerite vezu i pokušajte ponovno."
       }
     },
     "twofa": {

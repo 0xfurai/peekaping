@@ -26,7 +26,8 @@
         "rate_limited": "你個網絡有太多人註冊。請一個鐘之後再試。",
         "email_taken": "呢個電郵已經有帳戶。",
         "sign_in_instead": "改為登入。",
-        "check_failed": "驗證冇通過。請再試一次。"
+        "check_failed": "驗證冇通過。請再試一次。",
+        "check_load_failed": "載入唔到驗證。請檢查你嘅網絡連線，然後再試一次。"
       }
     },
     "twofa": {
