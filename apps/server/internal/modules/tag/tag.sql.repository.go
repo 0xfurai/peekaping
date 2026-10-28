@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
@@ -68,7 +69,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nameTaken(err)
 	}
 
 	return toDomainModelFromSQL(sm), nil
@@ -127,7 +128,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspac
 		Where("workspace_id = ?", string(workspaceID)).
 		ExcludeColumn("id", "workspace_id", "created_at").
 		Exec(ctx)
-	return requireOneRow(result, err)
+	return requireOneRow(result, nameTaken(err))
 }
 
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel) error {
@@ -163,12 +164,21 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID works
 	query = query.Set("updated_at = ?", time.Now())
 
 	result, err := query.Exec(ctx)
-	return requireOneRow(result, err)
+	return requireOneRow(result, nameTaken(err))
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
 	result, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
 	return requireOneRow(result, err)
+}
+
+// nameTaken turns the database's refusal of a name the workspace has already, which a request that
+// ran between the service's check and the write can cause, into the answer the check gives
+func nameTaken(err error) error {
+	if dbtx.IsUniqueViolation(err) {
+		return ErrNameTaken
+	}
+	return err
 }
 
 // requireOneRow turns a write that changed no row into ErrNotFound: the tag doesn't exist, or
