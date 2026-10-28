@@ -127,6 +127,21 @@ func TestAPIKeyWorkspace_AKeyThatNamesAnotherWorkspaceAnswers404(t *testing.T) {
 	}
 }
 
+// A request that names another workspace is refused before the key is counted: it must not use up
+// a key with a limit
+func TestAPIKeyWorkspace_AMismatchedWorkspaceHeaderDoesNotUseUpALimitedKey(t *testing.T) {
+	a := newAppWithAdmin(t)
+	other := a.createWorkspace(t, "Other")
+	token := decode[struct {
+		Token string `json:"token"`
+	}](t, a.request(t, http.MethodPost, "/api/v1/api-keys", map[string]any{"name": "Once", "max_usage_count": 1}, a.asAdmin), http.StatusCreated).Token
+	once := withHeader("X-API-Key", token)
+
+	assert.Equal(t, http.StatusNotFound, a.request(t, http.MethodGet, "/api/v1/monitors", nil, once, inWorkspace(other)).Code)
+	assert.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/monitors", nil, once).Code, "the only use is still there")
+	assert.Equal(t, http.StatusUnauthorized, a.request(t, http.MethodGet, "/api/v1/monitors", nil, once).Code, "and now it is spent")
+}
+
 func TestAPIKeyWorkspace_KeysAreManagedOnlyWithinTheirWorkspace(t *testing.T) {
 	a := newAppWithAdmin(t)
 	other := a.createWorkspace(t, "Other")

@@ -1,11 +1,15 @@
 package api_key
 
 import (
+	"errors"
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
 	"strings"
 )
+
+// workspaceHeader names the workspace a request runs in (docs/adr/0005 section 7)
+const workspaceHeader = "X-Workspace-ID"
 
 // MiddlewareProvider holds API key middleware functions
 type MiddlewareProvider struct {
@@ -40,7 +44,17 @@ func (p *MiddlewareProvider) Auth() httpx.Middleware {
 			}
 
 			// Validate the API key
-			apiKey, err := p.service.ValidateKey(r.Context(), authHeader)
+			ctx := r.Context()
+			if named := r.Header.Get(workspaceHeader); named != "" {
+				ctx = WithRequestedWorkspace(ctx, named)
+			}
+			apiKey, err := p.service.ValidateKey(ctx, authHeader)
+			if errors.Is(err, ErrWorkspaceMismatch) {
+				// The same answer as the workspace middleware gives, which a request never reaches
+				httpx.JSON(w, http.StatusNotFound, utils.NewFailResponse("Workspace not found"))
+
+				return
+			}
 			if err != nil {
 				httpx.JSON(w, http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired API key"))
 
