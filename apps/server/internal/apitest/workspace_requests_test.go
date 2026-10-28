@@ -187,3 +187,28 @@ func TestAPIKeyWorkspace_ANewKeyNeverTakesItsWorkspaceFromTheBody(t *testing.T) 
 
 	assert.Equal(t, []string{"sneaky", "apitest"}, a.keyNames(t, a.asAdmin))
 }
+
+// A user who was removed from every workspace can still sign in and manage their account
+func TestWorkspaceRequests_AUserInNoWorkspaceCanManageTheirAccountAndReachNoWorkspaceRoute(t *testing.T) {
+	a := newAppWithAdmin(t)
+	a.createUser(t, "loner@example.com")
+	newPassword := "Another-horse-2"
+
+	session := decode[tokens](t, a.login(t, map[string]any{"email": "loner@example.com", "password": adminPassword}), http.StatusOK)
+	loner := bearer(session.AccessToken)
+
+	refreshed := decode[tokens](t, a.refresh(t, session.RefreshToken), http.StatusOK)
+	assert.NotEmpty(t, refreshed.AccessToken)
+	setup := a.request(t, http.MethodPost, "/api/v1/auth/2fa/setup", map[string]any{"email": "loner@example.com", "password": adminPassword}, loner)
+	assert.Equal(t, http.StatusOK, setup.Code, setup.Body.String())
+	changed := a.request(t, http.MethodPut, "/api/v1/auth/password", map[string]any{"currentPassword": adminPassword, "newPassword": newPassword}, loner)
+	assert.Equal(t, http.StatusOK, changed.Code, changed.Body.String())
+
+	for _, route := range workspaceRoutes {
+		t.Run(route.name, func(t *testing.T) {
+			w := a.request(t, route.method, route.path, route.body, loner)
+			assert.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
+			assert.JSONEq(t, `{"message":"Workspace not found","data":null}`, w.Body.String())
+		})
+	}
+}

@@ -82,7 +82,7 @@ func TestCORS_APreflightFromAnAllowedOriginIsAnswered(t *testing.T) {
 	assert.Equal(t, 204, w.Code)
 	assert.Equal(t, "https://client.example", w.Header().Get("Access-Control-Allow-Origin"))
 	assert.Equal(t, "GET,POST,PUT,DELETE,OPTIONS,PATCH", w.Header().Get("Access-Control-Allow-Methods"))
-	assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID", w.Header().Get("Access-Control-Allow-Headers"))
+	assert.Equal(t, "Origin,X-Requested-With,Content-Type,Accept,Authorization,X-Request-ID,X-Workspace-ID", w.Header().Get("Access-Control-Allow-Headers"))
 	assert.Equal(t, []string{"Origin"}, w.Header().Values("Vary"))
 	assert.Empty(t, w.Header().Get("Access-Control-Allow-Credentials"))
 	assert.Empty(t, w.Header().Get("Access-Control-Max-Age"))

@@ -15,6 +15,30 @@ type RefreshTokenDto struct {
 	RefreshToken string `json:"refreshToken" validate:"required"`
 }
 
+// MeResponse is the signed-in user, the workspaces they are in and the one their requests run in
+// without an X-Workspace-ID header
+type MeResponse struct {
+	User *MeUser `json:"user"`
+	// Workspaces are the user's places, the one they joined first at the front
+	Workspaces []MeWorkspace `json:"workspaces"`
+	// DefaultWorkspaceID is the workspace they joined first, or null for a user in none
+	DefaultWorkspaceID *string `json:"defaultWorkspaceId"`
+}
+
+type MeUser struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	// InstanceAdmin is whether the user manages what belongs to the install and not to a workspace
+	InstanceAdmin bool `json:"instanceAdmin"`
+}
+
+type MeWorkspace struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Role is what the user may do there: owner, admin or member
+	Role string `json:"role"`
+}
+
 type LoginResponse struct {
 	User         *Model `json:"user"`
 	AccessToken  string `json:"accessToken"`

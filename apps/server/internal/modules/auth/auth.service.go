@@ -20,6 +20,8 @@ type Service interface {
 	Login(ctx context.Context, dto LoginDto) (*LoginResponse, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error)
 	UpdatePassword(ctx context.Context, userId string, dto UpdatePasswordDto) error
+	// Me returns the user with their workspaces, or nil for a user that doesn't exist
+	Me(ctx context.Context, userId string) (*MeResponse, error)
 
 	// 2FA methods
 	SetupTwoFA(ctx context.Context, userId, password string) (secret string, provisioningURI string, err error)
@@ -131,6 +133,29 @@ func (s *ServiceImpl) joinFirstWorkspace(ctx context.Context, userID string) err
 		}
 	}
 	return s.workspaces.AddMember(ctx, target.ID, userID, workspace.RoleOwner)
+}
+
+func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error) {
+	user, err := s.repo.FindByID(ctx, userId)
+	if err != nil || user == nil {
+		return nil, err
+	}
+	memberships, err := s.workspaces.ListMemberships(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	me := &MeResponse{
+		User:       &MeUser{ID: user.ID, Email: user.Email, InstanceAdmin: user.InstanceAdmin},
+		Workspaces: make([]MeWorkspace, len(memberships)),
+	}
+	for i, m := range memberships {
+		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role)}
+	}
+	if len(memberships) > 0 {
+		defaultID := me.Workspaces[0].ID
+		me.DefaultWorkspaceID = &defaultID
+	}
+	return me, nil
 }
 
 func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, error) {

@@ -37,6 +37,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	// All other API key management endpoints require JWT authentication, and an admin or owner of
 	// the workspace the request runs in
 	apiKeys.Use(r.middleware.WorkspaceJWTAuth())
+	apiKeys.Document(httpx.WorkspaceIDHeader)
 	{
 		httpx.Register(apiKeys, "POST", "", huma.Operation{Summary: "Create API key", Tags: []string{"api_key"}, DefaultStatus: http.StatusCreated, Security: httpx.JWTOnly, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.CreateAPIKey)
 		httpx.Register(apiKeys, "GET", "", huma.Operation{Summary: "Get API keys", Tags: []string{"api_key"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusInternalServerError, http.StatusUnauthorized}}, controller.GetAPIKeys)

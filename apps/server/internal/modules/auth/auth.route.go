@@ -51,4 +51,10 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	httpx.Register(auth, "POST", "/2fa/verify", huma.Operation{Summary: "Verify 2FA (TOTP) code for user", Responses: map[string]*huma.Response{"400": httpx.ErrorVariants[TwoFAVerifyResponseDto](auth, 400)}, Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized}}, controller.VerifyTwoFA)
 	httpx.Register(auth, "POST", "/2fa/disable", huma.Operation{Summary: "Disable 2FA (TOTP) for user", Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized}}, controller.DisableTwoFA)
 	httpx.Register(auth, "PUT", "/password", huma.Operation{Summary: "Update user password", Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusUnauthorized, http.StatusBadRequest, http.StatusInternalServerError}}, controller.UpdatePassword)
+
+	// The signed-in user and their workspaces. It is not a workspace route: it names no workspace,
+	// so that a user in none can still read it.
+	me := router.Group("/me")
+	me.Use(r.middleware.Auth())
+	httpx.Register(me, "GET", "", huma.Operation{Summary: "Get the signed-in user and their workspaces", Description: "The user, the workspaces they are a member of with their role in each, and the default workspace: the one they joined first, which a request without X-Workspace-ID runs in. A user in no workspace gets an empty list and a null default.", Tags: []string{"auth"}, DefaultStatus: http.StatusOK, Security: httpx.JWTOnly, Errors: []int{http.StatusUnauthorized, http.StatusInternalServerError}}, controller.Me)
 }
