@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Nadzor izbrisan",
       "paused": "Monitor zaustavljen",
+      "push_token_already_used": "Drugi monitor već koristi ovaj push token. Generirajte novi.",
       "reset_success": "Podaci monitora uspješno resetirani",
       "resumed": "Nadzor nastavio"
     },

@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Moniteur supprimé",
       "paused": "Surveillance interrompue",
+      "push_token_already_used": "Un autre moniteur utilise déjà ce jeton push. Générez-en un nouveau.",
       "reset_success": "Réinitialisation des données du moniteur réussie",
       "resumed": "Surveillance reprise"
     },

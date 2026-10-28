@@ -2,6 +2,7 @@ package status_page
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/events"
@@ -66,10 +67,36 @@ func domainAlreadyUsedError(domain string) *DomainAlreadyUsedError {
 	}
 }
 
-// validateDomains ensures that provided domains are not already used
+// normalizedDomains is the domains as they are stored: lower-case, trimmed, and each once.
+// A domain that is empty once trimmed is no domain.
+func normalizedDomains(domains []string) []string {
+	normalized := make([]string, 0, len(domains))
+	seen := map[string]bool{}
+	for _, domain := range domains {
+		domain = domain_status_page.Normalize(domain)
+		if domain != "" && !seen[domain] {
+			seen[domain] = true
+			normalized = append(normalized, domain)
+		}
+	}
+	return normalized
+}
+
+// addDomain gives the status page a domain. A domain that another page took since the check, or
+// that the database refuses for being held, is reported as the check reports it.
+func (s *ServiceImpl) addDomain(ctx context.Context, statusPageID, domain string) error {
+	_, err := s.domainStatusPageService.AddDomainToStatusPage(ctx, statusPageID, domain)
+	var taken *domain_status_page.DomainTakenError
+	if errors.As(err, &taken) {
+		return domainAlreadyUsedError(taken.Domain)
+	}
+	return err
+}
+
+// validateDomains ensures that provided domains, in any case, are not already used
 // by any existing status page.
 func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, domains []string) error {
-	for _, domain := range domains {
+	for _, domain := range normalizedDomains(domains) {
 		existing, err := s.domainStatusPageService.FindByDomain(ctx, domain)
 		if err != nil {
 			return err
@@ -84,8 +111,9 @@ func (s *ServiceImpl) validateDomains(ctx context.Context, statusPageID string, 
 func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Model, error) {
 	// Pre-validate domain uniqueness before creating the status page to avoid
 	// partial creation without domains.
-	if len(dto.Domains) > 0 {
-		if err := s.validateDomains(ctx, "", dto.Domains); err != nil {
+	domains := normalizedDomains(dto.Domains)
+	if len(domains) > 0 {
+		if err := s.validateDomains(ctx, "", domains); err != nil {
 			return nil, err
 		}
 	}
@@ -120,10 +148,10 @@ func (s *ServiceImpl) Create(ctx context.Context, dto *CreateStatusPageDTO) (*Mo
 	}
 
 	// Add domains if provided
-	if len(dto.Domains) > 0 {
-		s.logger.Debugw("Adding domains to status page", "statusPageID", created.ID, "domains", dto.Domains)
-		for _, domain := range dto.Domains {
-			_, err := s.domainStatusPageService.AddDomainToStatusPage(ctx, created.ID, domain)
+	if len(domains) > 0 {
+		s.logger.Debugw("Adding domains to status page", "statusPageID", created.ID, "domains", domains)
+		for _, domain := range domains {
+			err := s.addDomain(ctx, created.ID, domain)
 			if err != nil {
 				// Since we pre-validate, reaching here likely means a race. Surface error.
 				return nil, err
@@ -286,17 +314,17 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 	}
 
 	if dto.Domains != nil {
+		// The list as it is stored, so that the page's own domain in another case is kept
+		domains := normalizedDomains(*dto.Domains)
+
 		// Pre-validate the new domain list for uniqueness against other pages
-		if err := s.validateDomains(ctx, id, *dto.Domains); err != nil {
+		if err := s.validateDomains(ctx, id, domains); err != nil {
 			return nil, err
 		}
 
-		if len(*dto.Domains) > 0 {
-			for _, domain := range *dto.Domains {
-				_, err := s.domainStatusPageService.AddDomainToStatusPage(ctx, id, domain)
-				if err != nil {
-					return nil, err
-				}
+		for _, domain := range domains {
+			if err := s.addDomain(ctx, id, domain); err != nil {
+				return nil, err
 			}
 		}
 
@@ -313,7 +341,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, dto *UpdateStatusPa
 		}
 
 		newDomainIDs := make(map[string]bool)
-		for _, domain := range *dto.Domains {
+		for _, domain := range domains {
 			newDomainIDs[domain] = true
 		}
 

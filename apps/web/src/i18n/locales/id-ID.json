@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monitor dihapus",
       "paused": "Pemantauan dijeda",
+      "push_token_already_used": "Monitor lain sudah menggunakan token push ini. Buat token baru.",
       "reset_success": "Data monitor berhasil direset",
       "resumed": "Pemantauan dilanjutkan"
     },

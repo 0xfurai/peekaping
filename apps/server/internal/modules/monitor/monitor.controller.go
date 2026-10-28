@@ -197,11 +197,14 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	if err != nil {
 		var invalidProbes *InvalidProbesError
 		var invalidRule *InvalidLocationRuleError
+		var tokenTaken *PushTokenAlreadyUsedError
 		switch {
 		case errors.As(err, &invalidProbes):
 			return nil, invalidProbesResponse(invalidProbes)
 		case errors.As(err, &invalidRule):
 			return nil, invalidLocationRuleResponse(invalidRule)
+		case errors.As(err, &tokenTaken):
+			return nil, pushTokenTakenResponse(tokenTaken)
 		}
 		ic.logger.Errorw("Failed to create monitor", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -270,11 +273,14 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 	if err != nil {
 		var invalidProbes *InvalidProbesError
 		var invalidRule *InvalidLocationRuleError
+		var tokenTaken *PushTokenAlreadyUsedError
 		switch {
 		case errors.As(err, &invalidProbes):
 			return nil, invalidProbesResponse(invalidProbes)
 		case errors.As(err, &invalidRule):
 			return nil, invalidLocationRuleResponse(invalidRule)
+		case errors.As(err, &tokenTaken):
+			return nil, pushTokenTakenResponse(tokenTaken)
 		}
 		ic.logger.Errorw("Failed to update monitor", "error", err)
 		if errors.Is(err, ErrMonitorNotFound) {
@@ -324,6 +330,7 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 	var invalidTimeout *InvalidTimeoutError
 	var invalidProbes *InvalidProbesError
 	var invalidRule *InvalidLocationRuleError
+	var tokenTaken *PushTokenAlreadyUsedError
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
@@ -335,9 +342,16 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 		return invalidProbesResponse(invalidProbes)
 	case errors.As(err, &invalidRule):
 		return invalidLocationRuleResponse(invalidRule)
+	case errors.As(err, &tokenTaken):
+		return pushTokenTakenResponse(tokenTaken)
 	}
 	ic.logger.Errorw("Failed to "+action+" monitor", "error", err)
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+}
+
+// pushTokenTakenResponse tells the client that the push token it sent belongs to another monitor
+func pushTokenTakenResponse(err *PushTokenAlreadyUsedError) error {
+	return httpx.Fail(http.StatusBadRequest, PushTokenErrorResponse{Error: err})
 }
 
 // invalidProbesResponse tells the client why the probes it sent don't fit the monitor

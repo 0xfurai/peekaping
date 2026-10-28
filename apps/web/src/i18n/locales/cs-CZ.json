@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monitor byl smazán",
       "paused": "Monitor pozastaven",
+      "push_token_already_used": "Tento push token už používá jiný monitor. Vygenerujte nový.",
       "reset_success": "Data monitoru byla úspěšně resetována.",
       "resumed": "Monitor byl obnoven."
     },

@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monitor slettet",
       "paused": "Monitor sat på pause",
+      "push_token_already_used": "En anden monitor bruger allerede dette push-token. Generer et nyt.",
       "reset_success": "Monitordata nulstillet med succes",
       "resumed": "Overvågning genoptaget"
     },

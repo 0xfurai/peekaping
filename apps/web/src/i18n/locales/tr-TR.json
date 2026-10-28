@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "İzleyici silindi",
       "paused": "İzleme duraklatıldı",
+      "push_token_already_used": "Başka bir monitör bu push belirtecini zaten kullanıyor. Yeni bir tane oluşturun.",
       "reset_success": "İzleme verileri başarıyla sıfırlandı",
       "resumed": "İzleme yeniden başladı"
     },

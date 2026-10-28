@@ -215,15 +215,17 @@ type copier struct {
 	cutsText bool
 
 	proxies, monitors, channels, tags, maintenances idSet
-	statusPages                                     map[primitive.ObjectID]*statusPage
-	statusPageOrder                                 []*statusPage
+	// pushTokens are the push tokens the monitors copied so far hold
+	pushTokens      map[string]bool
+	statusPages     map[primitive.ObjectID]*statusPage
+	statusPageOrder []*statusPage
 }
 
 func newCopier(tx bun.Tx, src *source, report *Report, progress io.Writer) *copier {
 	return &copier{
 		tx: tx, src: src, report: report, progress: progress, cutsText: cutsText(tx),
 		proxies: idSet{}, monitors: idSet{}, channels: idSet{}, tags: idSet{}, maintenances: idSet{},
-		statusPages: map[primitive.ObjectID]*statusPage{},
+		statusPages: map[primitive.ObjectID]*statusPage{}, pushTokens: map[string]bool{},
 	}
 }
 

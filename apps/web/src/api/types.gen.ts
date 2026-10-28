@@ -362,7 +362,7 @@ export type MonitorCreateUpdateDto = {
   probe_ids?: Array<string> | null;
   proxy_id?: string;
   /**
-   * For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept; when push_token and config.pushToken differ, push_token wins. A full update needs the same token here and in config.pushToken.
+   * For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept; when push_token and config.pushToken differ, push_token wins. A full update needs the same token here and in config.pushToken. Push tokens are unique across the install: a token another monitor holds is refused with 400 and the code PUSH_TOKEN_EXISTS.
    */
   push_token?: string;
   resend_interval?: number;
@@ -518,6 +518,14 @@ export type MonitorPartialUpdateDto = {
     | (number | null)
     | (string | null)
     | undefined;
+};
+
+export type MonitorPushTokenAlreadyUsedError = {
+  code: string;
+};
+
+export type MonitorPushTokenErrorResponse = {
+  error: MonitorPushTokenAlreadyUsedError;
 };
 
 export type MonitorStatPoint = {
@@ -2913,7 +2921,7 @@ export type PostMonitorsErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: MonitorPushTokenErrorResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -3072,7 +3080,7 @@ export type PatchMonitorsByIdErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: MonitorPushTokenErrorResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -3116,7 +3124,7 @@ export type PutMonitorsByIdErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: MonitorPushTokenErrorResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */

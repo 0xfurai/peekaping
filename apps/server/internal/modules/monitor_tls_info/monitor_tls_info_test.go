@@ -108,3 +108,17 @@ func TestService_FindsNothingForAMonitorWithoutTLSInfo(t *testing.T) {
 		})
 	}
 }
+
+// A monitor can be deleted while a check of it is still being handled. The TLS info has nothing to
+// belong to then, and is dropped without a failure.
+func TestService_StoringTLSInfoForADeletedMonitorIsSkipped(t *testing.T) {
+	svc, _ := newService(t)
+	ctx := context.Background()
+	deleted := uuid.NewString()
+
+	require.NoError(t, svc.StoreTLSInfoObject(ctx, deleted, tlsInfo("example.com", 30)))
+
+	read, err := svc.GetTLSInfo(ctx, deleted)
+	require.NoError(t, err)
+	assert.Nil(t, read)
+}

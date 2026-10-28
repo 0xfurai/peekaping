@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -59,7 +60,7 @@ type monitorRow struct {
 	UpdatedAt      time.Time `bun:"updated_at"`
 	Config         string    `bun:"config"`
 	ProxyID        *string   `bun:"proxy_id"`
-	PushToken      string    `bun:"push_token" max:"255"`
+	PushToken      *string   `bun:"push_token" max:"255"` // NULL for a monitor without one: the column is unique
 }
 
 // jsonConfig returns a config that PostgreSQL's JSONB column accepts. An empty
@@ -109,6 +110,48 @@ func removeNULEscapes(text string) (string, bool) {
 	return without.String(), changed
 }
 
+// pushToken is the token to store for a monitor, NULL for none. SQL keeps push tokens unique, and
+// MongoDB did not: a monitor without one has an empty string, and two monitors may hold the same
+// token. The first monitor keeps a token, and a later one with the same token goes without, which
+// the report counts. A push to a shared token reached just one of them anyway.
+//
+// A push monitor made through the API once held its token in its config only, with an empty
+// push_token. The upgrade fills push_token from config.pushToken for such a monitor (migration
+// 20261101120300), and so does the import: pushToken is the document's push_token, or else, for a
+// push monitor, the one in its config.
+func (c *copier) pushToken(report *CollectionReport, typ, token, config string) *string {
+	if token == "" && typ == "push" {
+		var parsed struct {
+			PushToken string `json:"pushToken"`
+		}
+		// A config that isn't an object of this shape has no token
+		if json.Unmarshal([]byte(config), &parsed) == nil && parsed.PushToken != "" {
+			token = parsed.PushToken
+			report.fix("push_token is empty: used the one in the config")
+		}
+	}
+	if token == "" {
+		return nil
+	}
+	// PostgreSQL cuts the token to the width of its column, so two tokens that differ only after it
+	// are one token there: the duplicate check is on the cut token, which is also the one stored
+	const width = 255 // the max tag of monitorRow.PushToken
+	cut := false
+	if c.cutsText && utf8.RuneCountInString(token) > width {
+		token = string([]rune(token)[:width])
+		cut = true
+	}
+	if c.pushTokens[token] {
+		report.fix("push_token is held by an earlier monitor: cleared")
+		return nil
+	}
+	c.pushTokens[token] = true
+	if cut {
+		report.fix("push_token cut to 255 characters")
+	}
+	return &token
+}
+
 func (c *copier) copyMonitors(ctx context.Context) error {
 	report := c.report.collection("monitor", "monitors")
 	out := newBatcher[monitorRow](c.tx, "monitors", report)
@@ -132,12 +175,13 @@ func (c *copier) copyMonitors(ctx context.Context) error {
 			}
 		}
 		c.monitors.add(id)
+		config := jsonConfig(report, d.strPtr("config"))
 		return out.add(ctx, monitorRow{
 			ID: uuidOf(id), Type: d.str("type"), Name: d.str("name"),
 			Interval: int(d.integer("interval")), Timeout: int(d.integer("timeout")), MaxRetries: int(d.integer("max_retries")),
 			RetryInterval: int(d.integer("retry_interval")), ResendInterval: int(d.integer("resend_interval")),
 			Active: d.boolean("active"), Status: int(d.integer("status")), CreatedAt: created, UpdatedAt: updated,
-			Config: jsonConfig(report, d.strPtr("config")), ProxyID: proxyID, PushToken: d.str("push_token"),
+			Config: config, ProxyID: proxyID, PushToken: c.pushToken(report, d.str("type"), d.str("push_token"), config),
 		})
 	})
 	if err != nil {

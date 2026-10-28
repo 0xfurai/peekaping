@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Seuranta poistettu",
       "paused": "Seuranta keskeytetty",
+      "push_token_already_used": "Toinen monitori käyttää jo tätä push-tunnistetta. Luo uusi.",
       "reset_success": "Seurantatiedot nollattiin onnistuneesti",
       "resumed": "Valvonta jatkettu"
     },

@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monitor excluído",
       "paused": "Monitor pausado",
+      "push_token_already_used": "Outro monitor já utiliza este token de push. Gere um novo.",
       "reset_success": "Dados do monitor redefinidos com sucesso",
       "resumed": "Monitorização retomada"
     },

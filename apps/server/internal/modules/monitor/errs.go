@@ -49,3 +49,18 @@ type InvalidLocationRuleError struct {
 func (e *InvalidLocationRuleError) Error() string { return "invalid location_rule: " + e.Err.Error() }
 
 func (e *InvalidLocationRuleError) Unwrap() error { return e.Err }
+
+// PushTokenAlreadyUsedError is a push token that another monitor holds. Push tokens are unique
+// across the install, and the database enforces it. The error leaves the token out: it is a secret
+// the caller already has, and a log or a response has no need to carry it again.
+type PushTokenAlreadyUsedError struct {
+	Code string `json:"code" example:"PUSH_TOKEN_EXISTS"`
+}
+
+func (e *PushTokenAlreadyUsedError) Error() string {
+	return "push token is already used by another monitor"
+}
+
+func pushTokenAlreadyUsedError() *PushTokenAlreadyUsedError {
+	return &PushTokenAlreadyUsedError{Code: "PUSH_TOKEN_EXISTS"}
+}

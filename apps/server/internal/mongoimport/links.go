@@ -6,6 +6,8 @@ import (
 	"sort"
 	"time"
 
+	"peekaping/internal/modules/domain_status_page"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -279,11 +281,13 @@ type domainRow struct {
 	UpdatedAt    time.Time `bun:"updated_at"`
 }
 
-// copyDomains copies the custom domains of the status pages.
+// copyDomains copies the custom domains of the status pages. SQL stores a domain lower-case and
+// trimmed, and keeps it unique across the install, so the domains are normalized, and a domain
+// that an earlier status page holds is not given to a second one.
 func (c *copier) copyDomains(ctx context.Context) error {
 	report := c.report.collection("domain_status_page", "domain_status_page")
 	out := newBatcher[domainRow](c.tx, "domain_status_page", report)
-	seen := map[[2]string]bool{}
+	holders := map[string]primitive.ObjectID{}
 	err := c.src.each(ctx, "domain_status_page", byID, func(d doc) error {
 		report.Read++
 		id, ok := d.id()
@@ -296,14 +300,25 @@ func (c *copier) copyDomains(ctx context.Context) error {
 			report.skip("status page no longer exists")
 			return nil
 		}
-		key := [2]string{page.Hex(), d.str("domain")}
-		if seen[key] {
-			report.skip("the domain of this status page already copied")
+		domain := domain_status_page.Normalize(d.str("domain"))
+		if domain == "" {
+			report.skip("the domain is empty")
 			return nil
 		}
-		seen[key] = true
+		if holder, held := holders[domain]; held {
+			if holder == page {
+				report.skip("the domain of this status page already copied")
+			} else {
+				report.skip("the domain is held by another status page")
+			}
+			return nil
+		}
+		holders[domain] = page
+		if domain != d.str("domain") {
+			report.fix("domain lower-cased and trimmed")
+		}
 		created, updated := stamps(report, d, id, "created_at", "updated_at")
-		return out.add(ctx, domainRow{ID: uuidOf(id), StatusPageID: uuidOf(page), Domain: d.str("domain"), CreatedAt: created, UpdatedAt: updated})
+		return out.add(ctx, domainRow{ID: uuidOf(id), StatusPageID: uuidOf(page), Domain: domain, CreatedAt: created, UpdatedAt: updated})
 	})
 	if err != nil {
 		return err

@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monatóir scriosta",
       "paused": "Monaitéir coise",
+      "push_token_already_used": "Tá an comhartha brú seo in úsáid ag monatóir eile cheana. Gin ceann nua.",
       "reset_success": "Baineadh sonraí an mhionadaithe go rathúil",
       "resumed": "Monatóireacht seasmhaíodh arís"
     },

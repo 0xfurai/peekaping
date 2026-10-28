@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Monitor kustutatud",
       "paused": "Jälgimine peatatud",
+      "push_token_already_used": "Teine monitor kasutab seda push-tokenit juba. Loo uus.",
       "reset_success": "Monitordi andmed lähtestati edukalt",
       "resumed": "Kontroll jätkati"
     },

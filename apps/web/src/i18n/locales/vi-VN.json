@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Giám sát đã bị xóa",
       "paused": "Giám sát tạm dừng",
+      "push_token_already_used": "Một monitor khác đã dùng token push này. Hãy tạo token mới.",
       "reset_success": "Dữ liệu giám sát đã được đặt lại thành công",
       "resumed": "Giám sát đã tiếp tục"
     },

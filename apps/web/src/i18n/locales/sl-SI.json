@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "Spremljanje izbrisano",
       "paused": "Nadzor je ustavljen",
+      "push_token_already_used": "Ta push žeton že uporablja drug monitor. Ustvarite novega.",
       "reset_success": "Podatki nadzornika so bili uspešno ponastavljeni",
       "resumed": "Nadzor ponovno zagnan"
     },

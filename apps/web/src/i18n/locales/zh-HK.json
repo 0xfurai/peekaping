@@ -649,6 +649,7 @@
     "toasts": {
       "deleted": "監控已刪除",
       "paused": "監控已暫停",
+      "push_token_already_used": "已有另一個監測項目使用此推送權杖。請產生一個新的。",
       "reset_success": "監控資料已成功重置",
       "resumed": "監控已恢復"
     },

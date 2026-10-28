@@ -67,7 +67,8 @@ func forEachUnmigratedBackend(t *testing.T, fn func(t *testing.T, db *bun.DB)) {
 }
 
 // migratedBefore migrates the database as it was before the migration named first, and returns
-// the migrator that has every migration, to upgrade it with
+// the migrator that has every migration, to upgrade it with. The migrator marks a migration
+// applied only when it succeeded, as the app's does (cmd/bun/migrate.go).
 func migratedBefore(t *testing.T, db *bun.DB, first string) *migrate.Migrator {
 	t.Helper()
 	ctx := context.Background()
@@ -81,7 +82,7 @@ func migratedBefore(t *testing.T, db *bun.DB, first string) *migrate.Migrator {
 	require.NoError(t, old.Init(ctx))
 	_, err := old.Migrate(ctx)
 	require.NoError(t, err)
-	return migrate.NewMigrator(db, migrations.Migrations)
+	return migrate.NewMigrator(db, migrations.Migrations, migrate.WithMarkAppliedOnSuccess(true))
 }
 
 func insertUser(t *testing.T, db *bun.DB, email string) string {

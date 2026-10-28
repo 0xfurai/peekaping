@@ -114,7 +114,7 @@ func createTestMonitor(name string, active bool, status shared.MonitorStatus) *s
 		Status:         status,
 		Config:         `{"url": "https://example.com"}`,
 		ProxyId:        "",
-		PushToken:      "test-token",
+		PushToken:      "test-token-" + uuid.NewString(), // unique, as the column is
 	}
 }
 
