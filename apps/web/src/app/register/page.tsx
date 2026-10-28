@@ -20,7 +20,13 @@ const SHRegisterPage = () => {
           Peekaping
         </a>
 
-        {view === "form" && <RegisterForm turnstileSiteKey={config?.turnstileSiteKey} signupMode={config?.signupMode} />}
+        {view === "form" && (
+          <RegisterForm
+            turnstileSiteKey={config?.turnstileSiteKey}
+            signupMode={config?.signupMode}
+            firstSignup={config?.firstSignup}
+          />
+        )}
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ type Controller struct {
 	now     func() time.Time
 
 	// The limits on POST /workspace/invites, which sends an email to any address: per caller (a
-	// user, or an API key) and per recipient. They count in this process's memory (see package ratelimit).
+	// user, or the API keys of a workspace) and per recipient. They count in this process's memory (see package ratelimit).
 	inviteByCaller, inviteByRecipient *ratelimit.Limiter
 }
 
@@ -40,13 +40,17 @@ func NewController(service workspace.Service, logger *zap.SugaredLogger) *Contro
 	}
 }
 
-// inviteCaller is what the per-caller limit counts an invite under: the user, or the API key
+// inviteCaller is what the per-caller limit counts an invite under: the user, across all their
+// workspaces, or for an API key its workspace. An admin makes as many keys as they like, so every
+// key of a workspace shares one count.
 func inviteCaller(ctx context.Context) string {
 	if id, _ := httpx.Value(ctx, "userId").(string); id != "" {
 		return "user:" + id
 	}
 	if id, _ := httpx.Value(ctx, "apiKeyId").(string); id != "" {
-		return "key:" + id
+		// The key runs in its own workspace, which the invite was authorized in
+		workspaceID, _, _ := workspace.FromContext(ctx)
+		return "workspace:" + string(workspaceID)
 	}
 	return "unknown"
 }
@@ -148,6 +152,11 @@ func (c *Controller) CreateInvite(ctx context.Context, input *CreateInviteInput)
 	body, err := decode(input)
 	if err != nil {
 		return nil, err
+	}
+	// A caller that may not invite is refused before the limits, so that it uses up no address's
+	// quota: that would keep the admins of other workspaces from inviting the address
+	if err := workspace.RequireInvite(ctx, workspace.Role(body.Role)); err != nil {
+		return nil, c.fail(err)
 	}
 	// Every invite emails its address, so a caller and an address are each limited
 	if allowed, _ := c.inviteByCaller.Allow(inviteCaller(ctx)); !allowed {
