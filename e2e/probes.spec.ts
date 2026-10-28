@@ -16,7 +16,7 @@ async function deleteProbes(page: Page, names: string[]) {
 test('A probe is created, its token rotated and the probe deleted', async ({ page }) => {
   const probeName = `E2E probe ${randomID()}`;
 
-  await page.goto('/probes');
+  await page.goto('/admin/probes');
 
   // The local probe is Peekaping itself: it can be edited, but not rotated or deleted.
   const local = page.getByTestId('probe-row-local');
@@ -71,7 +71,7 @@ test('A probe is edited and disabled', async ({ page }) => {
   const probeName = `E2E probe ${randomID()}`;
   const renamed = `${probeName} renamed`;
 
-  await page.goto('/probes');
+  await page.goto('/admin/probes');
   try {
     const api = await adminAPI(page);
     const created = await api.post('probes', { data: { name: probeName } });
@@ -118,7 +118,7 @@ test("A probe's channels are set and cleared in the edit form", async ({ page })
     };
     expect(await channelIDs()).toEqual([]);
 
-    await page.goto('/probes');
+    await page.goto('/admin/probes');
     const openEditDialog = async () => {
       await page.getByRole('row', { name: new RegExp(probeName) }).getByRole('button', { name: 'Edit probe' }).click();
       const dialog = page.getByRole('dialog', { name: 'Edit probe' });

@@ -78,7 +78,7 @@ test('an admin invites a member by a link, who works in the workspace, makes the
     // What the member won't see, the admin does
     await page.goto(`/w/${first.id}/security`);
     await expect(page.getByText('API Keys').first()).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Probes' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Admin', exact: true })).toBeVisible();
 
     // 1. The admin makes an invite link
     await page.goto(`/w/${first.id}/settings/members`);
@@ -100,9 +100,9 @@ test('an admin invites a member by a link, who works in the workspace, makes the
     await expect(member).toHaveURL(new RegExp(`/w/${first.id}/monitors$`));
     await expect(member.getByText(monitorName)).toBeVisible();
 
-    // 3. A member has no Probes link, no API keys, no invite or role controls, and no switcher
+    // 3. A member has no Admin link, no API keys, no invite or role controls, and no switcher
     await expect(member.getByRole('link', { name: 'Monitors' }).first()).toBeVisible();
-    await expect(member.getByRole('link', { name: 'Probes' })).toHaveCount(0);
+    await expect(member.getByRole('link', { name: 'Admin', exact: true })).toHaveCount(0);
     await expect(switcher(member)).toHaveCount(0);
 
     await member.goto(`/w/${first.id}/security`);

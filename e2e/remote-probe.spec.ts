@@ -102,7 +102,7 @@ test('A probe created with Assign to all monitors is added to an existing monito
       const { id } = await createHTTPMonitor(api, n.monitor, targetURL('assign-all-create'));
       expect(await probeIDsOf(api, id)).toEqual(['local']);
 
-      await page.goto('/probes');
+      await page.goto('/admin/probes');
       await page.getByTestId('create-entity').click();
       const dialog = page.getByRole('dialog', { name: 'Create probe' });
       // The box is checked by default, and warns what the token reads.
@@ -125,7 +125,7 @@ test('A probe created with Assign to all monitors is added to an existing monito
       // which monitor types the probe runs. The probe's page says it waits.
       const probeID = await probeIDOf(api, n.probe);
       expect(await probeIDsOf(api, id)).toEqual(['local']);
-      await page.goto(`/probes/${probeID}`);
+      await page.goto(`/admin/probes/${probeID}`);
       await expect(page.getByTestId('probe-assign-all-pending')).toContainText('Waiting for its first instance');
 
       startProbeContainer(n.container, token);
@@ -140,7 +140,7 @@ test('A probe created with Assign to all monitors is added to an existing monito
       await expectRemoteUp(page, n.probe, n.container);
 
       // The wait is over once the monitors are assigned.
-      await page.goto(`/probes/${probeID}`);
+      await page.goto(`/admin/probes/${probeID}`);
       await expect(page.getByTestId('probe-assign-all-pending')).toHaveCount(0);
     } finally {
       await api.dispose();
@@ -158,7 +158,7 @@ test('Assign to all monitors on the Probes page adds a probe to the monitors it 
     try {
       // A probe that no instance has connected to yet.
       const { id: probeID, token } = await createProbe(api, n.probe);
-      await page.goto('/probes');
+      await page.goto('/admin/probes');
       const row = page.getByRole('row', { name: new RegExp(n.probe) });
       const assignAll = async () => {
         await row.getByRole('button', { name: `Assign probe ${n.probe} to all monitors` }).click();
@@ -178,7 +178,7 @@ test('Assign to all monitors on the Probes page adds a probe to the monitors it 
       // With no instance on record, the action only notes the request.
       await assignAll();
       await expect(page.getByText('It will be added to every monitor it runs when it connects')).toBeVisible();
-      await page.goto(`/probes/${probeID}`);
+      await page.goto(`/admin/probes/${probeID}`);
       await expect(page.getByTestId('probe-assign-all-pending')).toBeVisible();
 
       // The first hello makes the assignment, and the probe stops waiting.
@@ -191,7 +191,7 @@ test('Assign to all monitors on the Probes page adds a probe to the monitors it 
       const { id } = await createHTTPMonitor(api, n.monitor, targetURL('assign-all-action'));
       expect(await probeIDsOf(api, id)).toEqual(['local']);
 
-      await page.goto('/probes');
+      await page.goto('/admin/probes');
       await assignAll();
       // Other monitors of the install may be added too, so the count isn't asserted.
       await expect(page.getByText(/Monitors added: [1-9]\d*/)).toBeVisible();
