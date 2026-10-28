@@ -291,6 +291,21 @@ func TestResetPassword_RefusesAnExpiredUnknownOrForeignToken(t *testing.T) {
 	})
 }
 
+// The link came to the address, so following it proves the address as a verification link does
+func TestResetPassword_AlsoVerifiesAnAddressThatWasNotVerified(t *testing.T) {
+	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
+		require.False(t, a.me(t, a.asAdmin).User.EmailVerified)
+		a.forgot(t, adminEmail)
+		a.settled(t)
+		token := tokenIn(t, mailTo(mail, adminEmail)[1], "pkr_")
+
+		require.Equal(t, http.StatusOK, a.reset(t, token, newPassword).Code)
+
+		fresh := decode[tokens](t, a.login(t, map[string]any{"email": adminEmail, "password": newPassword}), http.StatusOK)
+		assert.True(t, a.me(t, bearer(fresh.AccessToken)).User.EmailVerified)
+	})
+}
+
 // A token that is not live is answered before the password is hashed: bcrypt refuses a password
 // longer than 72 bytes, so a request that reached it would answer 500 instead of 400
 func TestResetPassword_ARefusedTokenIsAnsweredBeforeThePasswordIsHashed(t *testing.T) {

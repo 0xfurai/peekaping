@@ -108,7 +108,8 @@ func (s *AccountService) RequestPasswordReset(email string) {
 }
 
 // ResetPassword spends a reset token: it sets the user's password, ends every session the user
-// has (see Model.TokensValidAfter), and invalidates their other unused reset links. The password
+// has (see Model.TokensValidAfter), marks the address verified if it was not, and invalidates
+// their other unused reset links. The password
 // has been validated by the caller. A token that is unknown, used or expired returns ErrInvalidLink
 // and changes nothing, and so does a failure.
 func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword string) error {
@@ -141,6 +142,11 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 		// To the millisecond, as the tokens' issue times are: a session started right after this
 		// instant must be later than it
 		if err := s.accounts.SetPassword(ctx, userID, string(hashed), now.Truncate(time.Millisecond)); err != nil {
+			return err
+		}
+		// The link reached the address, which proves it as a verification link does (the first
+		// time stays when it was verified already)
+		if err := s.accounts.MarkEmailVerified(ctx, userID, now); err != nil {
 			return err
 		}
 		return s.accounts.DeleteUnusedTokens(ctx, userID, PurposeReset)
