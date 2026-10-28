@@ -13,8 +13,10 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/events"
+	"peekaping/internal/modules/ingester"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/scheduler"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/smtpclient/smtptest"
 
 	"github.com/stretchr/testify/assert"
@@ -351,6 +353,36 @@ func TestSignupModes_ANewWorkspaceIsSuspendedUntilItsOwnerVerifiesTheEmail(t *te
 		// and the scheduler was told to pick up the monitors, by the event it hears for any update
 		require.Eventually(t, func() bool { return len(heard.seen()) >= 2 }, 5*time.Second, 10*time.Millisecond)
 		assert.ElementsMatch(t, []string{httpID, pushID}, heard.seen())
+	})
+}
+
+// Nothing suspended produces a result today, but a result in flight (or from a probe dealt the
+// monitor before a suspension) must not be stored once the workspace is suspended
+func TestSignupModes_AResultForAMonitorOfASuspendedWorkspaceIsDropped(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		mail := smtptest.Start(t)
+		a := newApp(t, backend, withOpenSignup(mail))
+		a.signedUp(t, "first@example.com")
+		owner := a.signedUp(t, "owner@example.com")
+		monitorID := decode[created](t, a.request(t, http.MethodPost, monitorsPath, httpMonitorBody("Site", ""), owner), http.StatusCreated).ID
+		ingest := func() {
+			require.NoError(t, a.container.Invoke(func(service ingester.Service) error {
+				now := time.Now().UTC()
+				return service.Ingest(context.Background(), &ingester.Result{
+					MonitorID: monitorID, MonitorName: "Site", MonitorType: "http", Status: shared.MonitorStatusDown,
+					Message: "connection refused", StartTime: now, EndTime: now,
+				})
+			}))
+		}
+
+		ingest()
+
+		assert.Empty(t, a.storedHeartbeats(t, monitorID), "a result for a suspended workspace's monitor stores nothing")
+
+		a.verifyWithMail(t, mail, "owner@example.com")
+		ingest()
+
+		assert.Len(t, a.storedHeartbeats(t, monitorID), 1, "and once the suspension is lifted it is stored")
 	})
 }
 

@@ -2,6 +2,7 @@ package ingester
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
@@ -358,6 +359,12 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		}
 		return &currentStatus
 	})
+	if errors.Is(err, shared.ErrWorkspaceSuspended) {
+		// The workspace was suspended after the check was dealt or while its result was on the way:
+		// the result is dropped, with no heartbeat and no status change (PP-155)
+		s.logger.Debugw("Dropping a result for a monitor of a suspended workspace", "monitor_id", r.MonitorID, "probe_id", probeID)
+		return nil
+	}
 	if err != nil {
 		s.logger.Errorw("Failed to record the location of monitor", "monitor_id", r.MonitorID, "probe_id", probeID, "error", err)
 		return fmt.Errorf("failed to record the location: %w", err)
