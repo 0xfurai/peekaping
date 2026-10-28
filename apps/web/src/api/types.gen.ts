@@ -673,6 +673,14 @@ export type MonitorStatPointsSummaryDto = {
   uptime: number | null;
 };
 
+export type NetguardTargetError = {
+  code: string;
+  /**
+   * The address that is not allowed.
+   */
+  host: string;
+};
+
 export type NotificationChannelCreateUpdateDto = {
   active?: boolean;
   config?: string;
@@ -852,6 +860,7 @@ export type ProbeprotoHelloRequest = {
 
 export type ProbeprotoHelloResponse = {
   batch_max: number;
+  block_private_targets?: boolean;
   buffer_max: number;
   flush_interval_ms: number;
   poll_timeout_ms: number;
@@ -1506,6 +1515,12 @@ export type UtilsApiResponseWorkspaceWorkspacehttpWorkspaceResponse = {
 
 export type UtilsNullableApiResponseSharedTlsInfo = {
   data: SharedTlsInfo | null;
+  message: string;
+};
+
+export type UtilsTargetNotAllowedResponse = {
+  data: null;
+  error: NetguardTargetError;
   message: string;
 };
 
@@ -3838,6 +3853,7 @@ export type PostMonitorsErrors = {
   400:
     | MonitorPushTokenErrorResponse
     | MonitorMonitorTypeDisabledResponse
+    | UtilsTargetNotAllowedResponse
     | HttpxErrorBody;
   /**
    * Unauthorized
@@ -4024,6 +4040,7 @@ export type PatchMonitorsByIdErrors = {
   400:
     | MonitorPushTokenErrorResponse
     | MonitorMonitorTypeDisabledResponse
+    | UtilsTargetNotAllowedResponse
     | HttpxErrorBody;
   /**
    * Unauthorized
@@ -4077,6 +4094,7 @@ export type PutMonitorsByIdErrors = {
   400:
     | MonitorPushTokenErrorResponse
     | MonitorMonitorTypeDisabledResponse
+    | UtilsTargetNotAllowedResponse
     | HttpxErrorBody;
   /**
    * Unauthorized
@@ -5172,7 +5190,7 @@ export type PostProxiesErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: UtilsTargetNotAllowedResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -5309,7 +5327,7 @@ export type PatchProxiesByIdErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: UtilsTargetNotAllowedResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -5359,7 +5377,7 @@ export type PutProxiesByIdErrors = {
   /**
    * Bad Request
    */
-  400: HttpxErrorBody;
+  400: UtilsTargetNotAllowedResponse | HttpxErrorBody;
   /**
    * Unauthorized
    */

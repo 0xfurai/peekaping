@@ -1614,6 +1614,22 @@ components:
         - avgPing
         - uptime
       type: object
+    netguard.TargetError:
+      additionalProperties: false
+      properties:
+        code:
+          examples:
+            - TARGET_NOT_ALLOWED
+          type: string
+        host:
+          description: The address that is not allowed.
+          examples:
+            - 169.254.169.254
+          type: string
+      required:
+        - code
+        - host
+      type: object
     notification_channel.CreateUpdateDto:
       additionalProperties: true
       properties:
@@ -2057,6 +2073,8 @@ components:
         batch_max:
           format: int64
           type: integer
+        block_private_targets:
+          type: boolean
         buffer_max:
           format: int64
           type: integer
@@ -3564,6 +3582,22 @@ components:
       required:
         - message
         - data
+      type: object
+    utils.TargetNotAllowedResponse:
+      additionalProperties: false
+      properties:
+        data:
+          type: "null"
+        error:
+          $ref: "#/components/schemas/netguard.TargetError"
+        message:
+          examples:
+            - "target address is not allowed: 169.254.169.254"
+          type: string
+      required:
+        - message
+        - data
+        - error
       type: object
     workspacehttp.ChangeRoleDto:
       additionalProperties: true
@@ -6451,6 +6485,7 @@ paths:
                 anyOf:
                   - $ref: "#/components/schemas/monitor.PushTokenErrorResponse"
                   - $ref: "#/components/schemas/monitor.MonitorTypeDisabledResponse"
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
                   - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
@@ -6650,6 +6685,7 @@ paths:
                 anyOf:
                   - $ref: "#/components/schemas/monitor.PushTokenErrorResponse"
                   - $ref: "#/components/schemas/monitor.MonitorTypeDisabledResponse"
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
                   - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
@@ -6712,6 +6748,7 @@ paths:
                 anyOf:
                   - $ref: "#/components/schemas/monitor.PushTokenErrorResponse"
                   - $ref: "#/components/schemas/monitor.MonitorTypeDisabledResponse"
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
                   - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
@@ -7976,7 +8013,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
           content:
@@ -8124,7 +8163,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
           content:
@@ -8183,7 +8224,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
           content:

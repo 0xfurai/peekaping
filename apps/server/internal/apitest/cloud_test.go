@@ -26,7 +26,7 @@ const cloudEnv = "PEE_TEST_CLOUD"
 //
 //   - open signup (PP-155), which needs a sender for account emails: a fake SMTP server
 //   - monitor types that are disabled (PP-157): docker
-//   - the private address block (PP-156)
+//   - the private address block (PP-156): BLOCK_PRIVATE_TARGETS
 //   - rate limits (PP-159)
 //
 // registerAdmin verifies the admin's email in a cloud run, since an open signup's workspace is
@@ -35,6 +35,7 @@ func cloudConfig(t testing.TB, cfg *config.Config) {
 	withAccountSMTP(smtptest.Start(t))(cfg)
 	cfg.SignupMode = config.SignupModeOpen
 	cfg.DisabledMonitorTypes = "docker"
+	cfg.BlockPrivateTargets = true
 }
 
 // cloudRun reports whether this run uses the cloud's settings

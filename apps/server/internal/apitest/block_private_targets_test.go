@@ -16,14 +16,11 @@ import (
 // resolves to is checked when the check dials.
 
 // withBlockPrivateTargets sets BLOCK_PRIVATE_TARGETS to the value a test needs, whatever the run's
-// default is
+// default is. A test whose servers listen on 127.0.0.1 and that saves monitors or proxies pointing
+// at them sets it to false, since the cloud's run blocks that address; none needed it so far.
 func withBlockPrivateTargets(on bool) func(*config.Config) {
 	return func(cfg *config.Config) { cfg.BlockPrivateTargets = on }
 }
-
-// withLoopbackTargets lets monitors and proxies point at this machine, as a self-hosted install
-// does. A test whose servers listen on 127.0.0.1 sets it, since the cloud blocks that address.
-func withLoopbackTargets(cfg *config.Config) { cfg.BlockPrivateTargets = false }
 
 type targetNotAllowedError struct {
 	Message string `json:"message"`
