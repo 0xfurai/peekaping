@@ -15,6 +15,7 @@ import (
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -44,8 +45,32 @@ func (r *recordingNotificationService) SendCertificateExpiryNotification(_ conte
 type harness struct {
 	svc           certificate.Service
 	notifications *recordingNotificationService
-	settings      shared.SettingService
+	settings      shared.WorkspaceSettingService
+	db            *bun.DB
+	workspaceID   workspace.ID
 	monitorID     string
+}
+
+// dbMonitors finds the monitors the harness stored, as the monitor service does
+type dbMonitors struct{ db *bun.DB }
+
+func (m dbMonitors) FindByIDAnyWorkspace(ctx context.Context, id string) (*shared.Monitor, error) {
+	var workspaceID string
+	if err := m.db.NewSelect().Table("monitors").Column("workspace_id").Where("id = ?", id).Scan(ctx, &workspaceID); err != nil {
+		return nil, err
+	}
+	return &shared.Monitor{ID: id, WorkspaceID: workspace.ID(workspaceID)}, nil
+}
+
+// addMonitorIn stores a monitor in a new workspace and returns the workspace and the monitor
+func (h *harness) addMonitorIn(t *testing.T) (workspace.ID, string) {
+	t.Helper()
+	id := workspace.ID(uuid.NewString())
+	workspacetest.Add(t, h.db, id, "Other")
+	monitorID := uuid.NewString()
+	_, err := h.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, ?, 'http', 'Other monitor', 60, 10, 1, 10, 0)`, monitorID, string(id))
+	require.NoError(t, err)
+	return id, monitorID
 }
 
 func newHarness(t *testing.T) *harness {
@@ -65,16 +90,19 @@ func newHarness(t *testing.T) *harness {
 	require.NoError(t, err)
 
 	logger := zap.NewNop().Sugar()
-	settings := setting.NewService(setting.NewSQLRepository(db), logger)
+	settings := setting.NewWorkspaceService(setting.NewSQLWorkspaceRepository(db))
 	notifications := &recordingNotificationService{}
 	svc := certificate.NewService(
 		settings,
+		dbMonitors{db},
 		notifications,
 		notification_sent_history.NewService(notification_sent_history.NewSQLRepository(db), logger),
 		monitor_tls_info.NewService(monitor_tls_info.NewSQLRepository(db), logger),
 		logger,
 	)
-	return &harness{svc, notifications, settings, monitorID}
+	var workspaceID string
+	require.NoError(t, db.NewSelect().Table("monitors").Column("workspace_id").Where("id = ?", monitorID).Scan(ctx, &workspaceID))
+	return &harness{svc, notifications, settings, db, workspace.ID(workspaceID), monitorID}
 }
 
 // check does what the ingester does after a TLS check: store the TLS info,
@@ -139,7 +167,7 @@ func TestCheckCertificateExpiry_FailedSendDoesNotFallBackToFartherThresholds(t *
 // The thresholds setting can hold the days in any order.
 func TestCheckCertificateExpiry_NearestThresholdWinsInAnySettingOrder(t *testing.T) {
 	h := newHarness(t)
-	require.NoError(t, h.svc.SetNotificationDays(context.Background(), []int{21, 14, 7}))
+	require.NoError(t, h.svc.SetNotificationDays(context.Background(), h.workspaceID, []int{21, 14, 7}))
 
 	assert.Equal(t, []int{7}, h.check(t, certA, 5))
 	assert.Empty(t, h.check(t, certA, 4))
@@ -170,7 +198,7 @@ func TestCheckCertificateExpiry_SendsNothing(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := newHarness(t)
-			require.NoError(t, h.svc.SetNotificationDays(context.Background(), tt.notifyDays))
+			require.NoError(t, h.svc.SetNotificationDays(context.Background(), h.workspaceID, tt.notifyDays))
 
 			assert.Empty(t, h.checkValidTo(t, certA, tt.daysRemaining, tt.validTo))
 		})
@@ -196,11 +224,11 @@ func TestGetNotificationDays_SeedsTheDefaultsWhenTheSettingIsMissing(t *testing.
 	h := newHarness(t)
 	ctx := context.Background()
 
-	days, err := h.svc.GetNotificationDays(ctx)
+	days, err := h.svc.GetNotificationDays(ctx, h.workspaceID)
 	require.NoError(t, err)
 	assert.Equal(t, []int{7, 14, 21}, days)
 
-	stored, err := h.settings.GetByKey(ctx, "cert_expiry_notify_days")
+	stored, err := h.settings.GetByKey(ctx, h.workspaceID, "cert_expiry_notify_days")
 	require.NoError(t, err)
 	require.NotNil(t, stored)
 	assert.Equal(t, "[7,14,21]", stored.Value)
@@ -209,9 +237,30 @@ func TestGetNotificationDays_SeedsTheDefaultsWhenTheSettingIsMissing(t *testing.
 func TestGetNotificationDays_ReadsTheSetting(t *testing.T) {
 	h := newHarness(t)
 	ctx := context.Background()
-	require.NoError(t, h.svc.SetNotificationDays(ctx, []int{3, 30}))
+	require.NoError(t, h.svc.SetNotificationDays(ctx, h.workspaceID, []int{3, 30}))
 
-	days, err := h.svc.GetNotificationDays(ctx)
+	days, err := h.svc.GetNotificationDays(ctx, h.workspaceID)
 	require.NoError(t, err)
 	assert.Equal(t, []int{3, 30}, days)
+}
+
+// AC4: the checks use the days of the monitor's workspace
+func TestCheckCertificateExpiry_UsesTheDaysOfTheMonitorsWorkspace(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	otherWorkspace, otherMonitor := h.addMonitorIn(t)
+	require.NoError(t, h.svc.SetNotificationDays(ctx, otherWorkspace, []int{3}))
+	checkOther := func(fingerprint string, daysRemaining int) []int {
+		tlsInfo := &certificate.TLSInfo{Valid: true, CertInfo: &certificate.CertificateInfo{
+			Subject: "CN=example.com", Fingerprint256: fingerprint, DaysRemaining: daysRemaining, CertType: "server",
+		}}
+		before := len(h.notifications.targets)
+		require.NoError(t, h.svc.UpdateTLSInfo(ctx, otherMonitor, tlsInfo))
+		require.NoError(t, h.svc.CheckCertificateExpiry(ctx, tlsInfo, otherMonitor, "Other monitor"))
+		return h.notifications.targets[before:]
+	}
+
+	assert.Empty(t, checkOther(certA, 10), "10 days is inside the install's 14, but the workspace asks for 3")
+	assert.Equal(t, []int{3}, checkOther(certA, 2), "it is notified at 3 days")
+	assert.Equal(t, []int{14}, h.check(t, certA, 10), "and the other workspace keeps its own days")
 }
