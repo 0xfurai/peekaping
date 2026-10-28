@@ -105,6 +105,9 @@ config:
     # the default, is the smallest a monitor can have; a lower value stops startup. A monitor
     # stored with less is checked at the minimum.
     # MIN_CHECK_INTERVAL: "60"
+    # How a member of a suspended workspace gets in touch with whoever runs the install: free
+    # text, an email address or a URL. Unset by default.
+    # SUPPORT_CONTACT: "support@example.com"
     # Proxies whose X-Forwarded-For and X-Real-IP the API believes: IP addresses and
     # CIDR ranges, comma-separated. The login lockout counts failed logins per client
     # address, and a client can send those headers itself, so the API ignores them from
