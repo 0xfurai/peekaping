@@ -35,6 +35,7 @@ type probeResponse struct {
 	Location        string                  `json:"location"`
 	TokenPrefix     string                  `json:"token_prefix"`
 	Disabled        bool                    `json:"disabled"`
+	IsDefault       bool                    `json:"is_default"`
 	Status          string                  `json:"status"`
 	SupportedTypes  []string                `json:"supported_types"`
 	NotificationIDs []string                `json:"notification_ids"`
