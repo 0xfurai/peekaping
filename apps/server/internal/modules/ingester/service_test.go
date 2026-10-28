@@ -76,6 +76,22 @@ func TestService_IngestReturnsAFailedWrite(t *testing.T) {
 	assert.Empty(t, ti.bus.TakeTopics())
 }
 
+// PP-157: a result for a monitor whose type the install turned off since the check was dealt is
+// dropped the same way
+func TestService_IngestDropsAResultForAMonitorOfADisabledType(t *testing.T) {
+	ti := newTestIngester()
+	ti.locations.err = shared.ErrMonitorTypeDisabled
+	result := checkResult(monitorSettings{}, down)
+	result.TLSInfo = &shared.TLSInfo{}
+	result.CheckCertExpiry = true
+
+	require.NoError(t, ti.service.Ingest(context.Background(), &result))
+
+	assert.Nil(t, ti.heartbeats.latest())
+	assert.Empty(t, ti.bus.TakeTopics())
+	assert.Empty(t, ti.certs.checked, "its certificate is not looked at either")
+}
+
 // PP-155: a result for a monitor of a suspended workspace, in flight or from a probe that was dealt
 // the monitor before the suspension, is dropped: no heartbeat, no status change, no notification
 func TestService_IngestDropsAResultForAMonitorOfASuspendedWorkspace(t *testing.T) {

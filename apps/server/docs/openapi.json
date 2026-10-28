@@ -493,6 +493,12 @@
               "null"
             ]
           },
+          "disabledMonitorTypes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "user": {
             "$ref": "#/components/schemas/auth.MeUser"
           },
@@ -510,7 +516,8 @@
           "user",
           "workspaces",
           "defaultWorkspaceId",
-          "accountEmails"
+          "accountEmails",
+          "disabledMonitorTypes"
         ],
         "type": "object"
       },
@@ -1862,12 +1869,20 @@
             ],
             "type": "string"
           },
+          "type_disabled": {
+            "description": "True when the monitor's type is turned off on this install (DISABLED_MONITOR_TYPES). The monitor is kept and listed, but it is not checked, and nothing notifies for it; its active setting is left as it is, so it runs again if the type is turned back on. Such a monitor can still be edited, but not given a disabled type.",
+            "examples": [
+              false
+            ],
+            "type": "boolean"
+          },
           "updated_at": {
             "format": "date-time",
             "type": "string"
           }
         },
         "required": [
+          "type_disabled",
           "notification_ids",
           "tag_ids",
           "id",
@@ -1889,6 +1904,52 @@
           "locations",
           "created_at",
           "updated_at"
+        ],
+        "type": "object"
+      },
+      "monitor.MonitorTypeDisabledError": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "examples": [
+              "MONITOR_TYPE_DISABLED"
+            ],
+            "type": "string"
+          },
+          "type": {
+            "description": "The monitor type that is turned off.",
+            "examples": [
+              "docker"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "type"
+        ],
+        "type": "object"
+      },
+      "monitor.MonitorTypeDisabledResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error": {
+            "$ref": "#/components/schemas/monitor.MonitorTypeDisabledError"
+          },
+          "message": {
+            "examples": [
+              "docker monitors are turned off on this install"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data",
+          "error"
         ],
         "type": "object"
       },
@@ -9545,6 +9606,9 @@
                       "$ref": "#/components/schemas/monitor.PushTokenErrorResponse"
                     },
                     {
+                      "$ref": "#/components/schemas/monitor.MonitorTypeDisabledResponse"
+                    },
+                    {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
                     }
                   ]
@@ -9878,6 +9942,9 @@
                       "$ref": "#/components/schemas/monitor.PushTokenErrorResponse"
                     },
                     {
+                      "$ref": "#/components/schemas/monitor.MonitorTypeDisabledResponse"
+                    },
+                    {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
                     }
                   ]
@@ -9981,6 +10048,9 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/monitor.PushTokenErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/monitor.MonitorTypeDisabledResponse"
                     },
                     {
                       "$ref": "#/components/schemas/httpx.ErrorBody"
@@ -12455,7 +12525,7 @@
     },
     "/api/v1/push/{token}": {
       "get": {
-        "description": "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address): the push is not stored and sends no notification.",
+        "description": "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address) or when its type is turned off on this install (DISABLED_MONITOR_TYPES): the push is not stored and sends no notification.",
         "operationId": "getPushByToken",
         "parameters": [
           {

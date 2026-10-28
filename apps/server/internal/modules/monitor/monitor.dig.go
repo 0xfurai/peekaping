@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
@@ -37,8 +38,14 @@ type serviceParams struct {
 	// probes but the local one.
 	Probes ProbeLookup `optional:"true"`
 	Logger *zap.SugaredLogger
+	// Config is the install's settings. A container without it disables no monitor type.
+	Config *config.Config `optional:"true"`
 }
 
 func provideMonitorService(p serviceParams) Service {
-	return NewMonitorService(p.Repository, p.Transactor, p.Heartbeats, p.EventBus, p.Notifications, p.Tags, p.ExecutorRegistry, p.Stats, p.Probes, p.Logger)
+	var opts []ServiceOption
+	if p.Config != nil {
+		opts = append(opts, WithServiceDisabledTypes(p.Config.DisabledMonitorTypeList()))
+	}
+	return NewMonitorService(p.Repository, p.Transactor, p.Heartbeats, p.EventBus, p.Notifications, p.Tags, p.ExecutorRegistry, p.Stats, p.Probes, p.Logger, opts...)
 }

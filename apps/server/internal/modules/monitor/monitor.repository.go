@@ -69,7 +69,8 @@ type MonitorRepository interface {
 	// it). All of it happens with the monitor held, so two results of one monitor see one another
 	// in turn: each one's recorded status is what the other's judge returned. A monitor without a
 	// row for the probe has nothing stored on the row, and one without rows is judged on none. A monitor
-	// of a suspended workspace has nothing stored and nothing judged: shared.ErrWorkspaceSuspended.
+	// of a suspended workspace has nothing stored and nothing judged: shared.ErrWorkspaceSuspended. So does
+	// a monitor of a disabled type: shared.ErrMonitorTypeDisabled.
 	RecordLocationAnyWorkspace(ctx context.Context, monitorID string, state shared.LocationState, judge func(shared.LocationJudgement) *shared.MonitorStatus) error
 	// ResetLocations forgets where the monitor stood: its probes' rows lose their state and the
 	// monitor loses its recorded status, so that its next result is its first. It is

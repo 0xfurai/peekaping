@@ -14,6 +14,10 @@ _Avoid_: Check (that's one run), probe, service
 The kind of check a monitor runs, such as HTTP, TCP, ping, DNS, Docker or push.
 _Avoid_: Connection type, check type
 
+**Disabled monitor type**:
+A monitor type the install turns off with `DISABLED_MONITOR_TYPES`, empty by default. No monitor can be created with it or changed to it. A monitor that already has it is kept and listed, but it runs nothing: no checks, no missed-push detection, no notifications, and a push to it answers 403. Its stored settings, `active` among them, are left as they are, so it runs again once the type is turned back on. The cloud turns off `docker`, since the Docker monitor reads the Docker socket of the machine the server runs on.
+_Avoid_: Paused (that's a monitor switched off by a person), unsupported
+
 **Check**:
 One attempt by a monitor to reach its target and judge whether it's healthy.
 _Avoid_: Health check, probe, ping

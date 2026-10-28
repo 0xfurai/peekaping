@@ -97,7 +97,7 @@ func (ic *MonitorController) withLinks(ctx context.Context, monitors []*Model) (
 		for _, rel := range tagRels[m.ID] {
 			tagIds = append(tagIds, rel.TagID)
 		}
-		responses[i] = &MonitorResponseDto{Monitor: *m, NotificationIds: notificationIds, TagIds: tagIds}
+		responses[i] = &MonitorResponseDto{Monitor: *m, TypeDisabled: m.TypeDisabled, NotificationIds: notificationIds, TagIds: tagIds}
 	}
 	return responses, nil
 }
@@ -207,7 +207,10 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 		var invalidProbes *InvalidProbesError
 		var invalidRule *InvalidLocationRuleError
 		var tokenTaken *PushTokenAlreadyUsedError
+		var typeDisabled *MonitorTypeDisabledError
 		switch {
+		case errors.As(err, &typeDisabled):
+			return nil, monitorTypeDisabledResponse(typeDisabled)
 		case errors.As(err, &invalidProbes):
 			return nil, invalidProbesResponse(invalidProbes)
 		case errors.As(err, &invalidRule):
@@ -230,6 +233,7 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	// and a client sending the POST again would create a second one.
 	response := &MonitorResponseDto{
 		Monitor:         *createdMonitor,
+		TypeDisabled:    createdMonitor.TypeDisabled,
 		NotificationIds: distinct(monitor.NotificationIds),
 		TagIds:          distinct(monitor.TagIds),
 	}
@@ -294,7 +298,10 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 		var invalidProbes *InvalidProbesError
 		var invalidRule *InvalidLocationRuleError
 		var tokenTaken *PushTokenAlreadyUsedError
+		var typeDisabled *MonitorTypeDisabledError
 		switch {
+		case errors.As(err, &typeDisabled):
+			return nil, monitorTypeDisabledResponse(typeDisabled)
 		case errors.As(err, &invalidProbes):
 			return nil, invalidProbesResponse(invalidProbes)
 		case errors.As(err, &invalidRule):
@@ -358,6 +365,7 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 	var invalidProbes *InvalidProbesError
 	var invalidRule *InvalidLocationRuleError
 	var tokenTaken *PushTokenAlreadyUsedError
+	var typeDisabled *MonitorTypeDisabledError
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
@@ -371,6 +379,8 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 		return invalidLocationRuleResponse(invalidRule)
 	case errors.As(err, &tokenTaken):
 		return pushTokenTakenResponse(tokenTaken)
+	case errors.As(err, &typeDisabled):
+		return monitorTypeDisabledResponse(typeDisabled)
 	}
 	if linkErr := linkNotFoundResponse(err); linkErr != nil {
 		return linkErr
@@ -418,6 +428,12 @@ func linkNotFoundResponse(err error) error {
 // pushTokenTakenResponse tells the client that the push token it sent belongs to another monitor
 func pushTokenTakenResponse(err *PushTokenAlreadyUsedError) error {
 	return httpx.Fail(http.StatusBadRequest, PushTokenErrorResponse{Error: err})
+}
+
+// monitorTypeDisabledResponse tells the client that this install turns the monitor type off, so a
+// monitor can't be given it
+func monitorTypeDisabledResponse(err *MonitorTypeDisabledError) error {
+	return httpx.Fail(http.StatusBadRequest, MonitorTypeDisabledResponse{Message: err.Error(), Error: err})
 }
 
 // invalidProbesResponse tells the client why the probes it sent don't fit the monitor

@@ -20,6 +20,9 @@ var (
 	// ErrWorkspaceSuspended means the monitor's workspace is suspended, so it gets no checks until
 	// the suspension is lifted (PP-155)
 	ErrWorkspaceSuspended = shared.ErrWorkspaceSuspended
+	// ErrMonitorTypeDisabled means the install turns the monitor's type off (DISABLED_MONITOR_TYPES),
+	// so it gets no checks until the type is turned back on (PP-157)
+	ErrMonitorTypeDisabled = shared.ErrMonitorTypeDisabled
 )
 
 // Job is everything one check of a monitor needs, as the monitor stands when it is loaded

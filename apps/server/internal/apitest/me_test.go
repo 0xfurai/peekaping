@@ -23,7 +23,8 @@ type meResponse struct {
 		Suspended       bool    `json:"suspended"`
 		SuspendedReason *string `json:"suspendedReason"`
 	} `json:"workspaces"`
-	DefaultWorkspaceID *string `json:"defaultWorkspaceId"`
+	DefaultWorkspaceID   *string  `json:"defaultWorkspaceId"`
+	DisabledMonitorTypes []string `json:"disabledMonitorTypes"`
 }
 
 func TestMe_ReturnsTheUserTheirWorkspaceAndTheDefault(t *testing.T) {

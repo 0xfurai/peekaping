@@ -824,9 +824,9 @@ func shortPoll(c *dig.Container) error {
 }
 
 // localProbeApp is an app whose local probe has a token
-func localProbeApp(t *testing.T, decorate func(*dig.Container) error) *app {
+func localProbeApp(t *testing.T, decorate func(*dig.Container) error, options ...func(*config.Config)) *app {
 	t.Helper()
-	a := newAppDecorated(t, decorate, func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
+	a := newAppDecorated(t, decorate, append([]func(*config.Config){func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken }}, options...)...)
 	a.registerAdmin(t)
 	return a
 }

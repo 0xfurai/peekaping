@@ -615,6 +615,25 @@ func TestListener_SendsNothingForAMonitorOfASuspendedWorkspace(t *testing.T) {
 	assert.Equal(t, []string{channelConfig("b")}, provider.sentConfigs(), "a monitor of a workspace that runs still does")
 }
 
+// PP-157: nothing notifies for a monitor whose type the install turned off
+func TestListener_SendsNothingForAMonitorOfADisabledType(t *testing.T) {
+	f := newListenerFixture(t)
+	provider := &recordingProvider{}
+	f.addProvider("test-healthy", provider)
+	f.addMonitor("held", "Held")
+	f.addMonitor("runs", "Runs")
+	f.monitors.monitors["held"].TypeDisabled = true
+	f.attach("held", testChannel("a", "test-healthy"))
+	f.attach("runs", testChannel("b", "test-healthy"))
+
+	f.publishImportantHeartbeat(downHeartbeat("held"))
+	f.publishCertificateExpiry(certificateExpiry("held"))
+	assert.Empty(t, provider.sentConfigs(), "a status change of its monitor notifies no channel")
+
+	f.publishImportantHeartbeat(downHeartbeat("runs"))
+	assert.Equal(t, []string{channelConfig("b")}, provider.sentConfigs(), "a monitor of a type that is on still does")
+}
+
 func TestListener_IgnoresEventsWithTheWrongPayload(t *testing.T) {
 	f := newListenerFixture(t)
 	provider := &recordingProvider{}

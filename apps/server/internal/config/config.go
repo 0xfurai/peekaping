@@ -171,6 +171,12 @@ type Config struct {
 	// SignupTurnstileVerifyURL replaces Cloudflare's siteverify address. It has no environment
 	// variable: tests point it at a fake server, and the binaries never set it.
 	SignupTurnstileVerifyURL string
+
+	// DisabledMonitorTypes is a comma-separated list of monitor types this install refuses and does
+	// not run (PP-157), empty by default. The Docker monitor, for one, reads the Docker socket of
+	// the machine the server runs on, which a shared install can't offer. DisabledMonitorTypeList
+	// splits it, and ValidateDisabledMonitorTypes checks the entries at startup.
+	DisabledMonitorTypes string `env:"DISABLED_MONITOR_TYPES"`
 }
 
 // MinProbeOfflineAfter is the shortest PROBE_OFFLINE_AFTER. A probe instance that says bye is left
