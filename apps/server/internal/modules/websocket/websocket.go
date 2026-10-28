@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/zishang520/engine.io/v2/types"
 	"github.com/zishang520/socket.io/v2/socket"
 	"go.uber.org/zap"
 )
@@ -42,8 +43,10 @@ type Server struct {
 	workspaces workspace.Repository
 	monitors   monitor.MonitorRepository
 	logger     *zap.SugaredLogger
-	// onConnection runs first in the connection handler. Only tests set it, to slow the handler.
-	onConnection func()
+	// onConnection runs first in the connection handler, with the ID of the socket that connected.
+	// Only tests set it: by then the library knows the socket, so a test waits for it before it
+	// sends anything (see connectAs in the tests), and a test can slow the handler.
+	onConnection func(id string)
 
 	// monitorWorkspaces remembers the workspace of each monitor that has had a heartbeat or a
 	// join, so that a heartbeat costs no read: a monitor never changes workspace. A deleted
@@ -172,9 +175,6 @@ func NewServer(
 	})
 
 	io.On("connection", safe(logger, "connection", func(clients ...interface{}) {
-		if server.onConnection != nil {
-			server.onConnection()
-		}
 		var client *socket.Socket
 		if len(clients) > 0 {
 			client, _ = clients[0].(*socket.Socket)
@@ -182,6 +182,9 @@ func NewServer(
 		if client == nil {
 			logger.Warnf("[WS]connection: dropped, no socket in %d arguments", len(clients))
 			return
+		}
+		if server.onConnection != nil {
+			server.onConnection(string(client.Id()))
 		}
 		// The auth middleware sets the data, so a socket without it never authenticated
 		data, ok := client.Data().(SocketData)
@@ -199,7 +202,7 @@ func NewServer(
 	// A heartbeat goes to its workspace's room and to its monitor's room, and to no other
 	events.Subscribe(subscriber, events.HeartbeatEvent, func(ctx context.Context, hb heartbeat.Model) {
 		monitorRoom := monitorPrefix + hb.MonitorID
-		server.io.To(socket.Room(monitorRoom)).Emit(monitorRoom+":heartbeat", &hb)
+		server.emitToRoom(monitorRoom, monitorRoom+":heartbeat", &hb)
 
 		workspaceID, found, err := server.workspaceOf(ctx, hb.MonitorID)
 		if err != nil {
@@ -211,7 +214,7 @@ func NewServer(
 			return
 		}
 		workspaceRoom := workspacePrefix + string(workspaceID)
-		server.io.To(socket.Room(workspaceRoom)).Emit(workspaceRoom+":heartbeat", &hb)
+		server.emitToRoom(workspaceRoom, workspaceRoom+":heartbeat", &hb)
 	})
 
 	events.Subscribe(subscriber, events.MonitorDeleted, func(_ context.Context, monitorID string) {
@@ -221,6 +224,26 @@ func NewServer(
 	events.Subscribe(subscriber, workspace.MemberLeft, server.memberLeft)
 
 	return server, nil
+}
+
+// emitToRoom sends an event to each socket in the room, one socket at a time. It is not
+// io.To(room).Emit: that broadcast marks its packet as pre-encoded, and engine.io's websocket
+// transport (zishang520/engine.io v2.5.0) writes only the first packet of a batch that starts with
+// a pre-encoded one and drops the rest. A client that gets two broadcasts while the transport is
+// still writing the one before them loses all but the first, so a burst of heartbeats reaches the
+// web app with holes in it. A packet from Socket.Emit isn't pre-encoded, and the transport sends
+// every one of a batch of those.
+func (s *Server) emitToRoom(room, event string, payload any) {
+	namespace := s.io.Sockets()
+	for _, id := range namespace.Adapter().Sockets(types.NewSet(socket.Room(room))).Keys() {
+		client, ok := namespace.Sockets().Load(id)
+		if !ok {
+			continue
+		}
+		if err := client.Emit(event, payload); err != nil {
+			s.logger.Warnw("Event not sent to a socket", "event", event, "error", err)
+		}
+	}
 }
 
 func (s *Server) register(client *socket.Socket, userID string) *userSocket {
