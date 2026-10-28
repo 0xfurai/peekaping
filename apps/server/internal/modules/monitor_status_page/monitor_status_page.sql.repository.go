@@ -256,13 +256,20 @@ func (r *SQLRepositoryImpl) DeleteAllMonitorsForStatusPage(ctx context.Context, 
 }
 
 func (r *SQLRepositoryImpl) FindMonitorIDsInWorkspace(ctx context.Context, workspaceID workspace.ID, ids []string) ([]string, error) {
-	if len(ids) == 0 {
+	// An ID that is not a UUID names no monitor. PostgreSQL would refuse the whole query for it.
+	known := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if _, err := uuid.Parse(id); err == nil {
+			known = append(known, id)
+		}
+	}
+	if len(known) == 0 {
 		return nil, nil
 	}
 	var found []string
 	err := r.db.NewSelect().Table("monitors").Column("id").
 		Where("workspace_id = ?", string(workspaceID)).
-		Where("id IN (?)", bun.In(ids)).
+		Where("id IN (?)", bun.In(known)).
 		Scan(ctx, &found)
 	return found, err
 }
