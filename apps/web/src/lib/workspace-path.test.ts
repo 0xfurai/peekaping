@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   inWorkspace,
+  isAdminPath,
   workspaceIdFromPathname,
   withoutWorkspace,
 } from "./workspace-path";
@@ -77,5 +78,19 @@ describe("withoutWorkspace", () => {
   it("leaves an address without the prefix alone", () => {
     expect(withoutWorkspace("/monitors")).toBe("/monitors");
     expect(withoutWorkspace("/")).toBe("/");
+  });
+});
+
+describe("isAdminPath", () => {
+  it("is true for the admin area and what is in it", () => {
+    expect(isAdminPath("/admin")).toBe(true);
+    expect(isAdminPath("/admin/")).toBe(true);
+    expect(isAdminPath("/admin/probes/p1")).toBe(true);
+  });
+
+  it("is false for anything else, a workspace page named admin included", () => {
+    expect(isAdminPath("/administrator")).toBe(false);
+    expect(isAdminPath(`/w/${ID}/admin`)).toBe(false);
+    expect(isAdminPath("/")).toBe(false);
   });
 });

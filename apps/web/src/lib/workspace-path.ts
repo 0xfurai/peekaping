@@ -31,3 +31,7 @@ export const workspacePath = (path: string): string => {
   const id = currentWorkspaceId();
   return id ? inWorkspace(id, path) : path;
 };
+
+/** Whether an address is in the admin area (`/admin/...`), which is outside every workspace. */
+export const isAdminPath = (pathname: string): boolean =>
+  pathname === "/admin" || pathname.startsWith("/admin/");

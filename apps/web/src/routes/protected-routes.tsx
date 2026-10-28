@@ -1,9 +1,12 @@
-import { Route } from "react-router-dom";
+import { Navigate, Route } from "react-router-dom";
 import { WorkspaceLayout } from "@/components/workspace-layout";
 import { RedirectToWorkspace } from "@/components/redirect-to-workspace";
 import { RedirectAfterLogin } from "@/components/redirect-after-login";
 import { WorkspaceHome } from "@/components/workspace-home";
 import { RequireInstanceAdmin } from "@/components/require-instance-admin";
+import { AdminLayout } from "@/components/admin-layout";
+import { RedirectProbesToAdmin } from "@/components/redirect-probes-to-admin";
+import UsersPage from "@/app/admin/users/page";
 import MonitorsPage from "@/app/monitors/page";
 import NewMonitor from "@/app/monitors/new/page";
 import SettingsPage from "@/app/settings/page";
@@ -32,7 +35,18 @@ import EditTag from "@/app/tags/edit/page";
 // The signed-in app lives under /w/<workspaceId>/ (docs/adr/0005, section 7).
 // Any other address is an old one, or names no workspace, and redirects into
 // the user's default workspace.
+//
+// The admin area (/admin) holds what belongs to the install and not to a workspace, and only an
+// instance admin sees it (PP-371).
 export const protectedRoutes = [
+  <Route path="/admin" element={<AdminLayout />}>
+    <Route path="users" element={<UsersPage />} />
+    <Route path="probes" element={<ProbesPage />} />
+    <Route path="probes/:id" element={<ProbePage />} />
+    <Route index element={<Navigate to="/admin/users" replace />} />
+    <Route path="*" element={<Navigate to="/admin/users" replace />} />
+  </Route>,
+
   <Route path="/w/:workspaceId" element={<WorkspaceLayout />}>
     {/* Monitor routes */}
     <Route path="monitors" element={<MonitorsPage />} />
@@ -50,9 +64,9 @@ export const protectedRoutes = [
     <Route path="proxies/new" element={<NewProxy />} />
     <Route path="proxies/:id/edit" element={<EditProxy />} />
 
-    {/* Probe routes: probes belong to the install, so only an instance admin opens them */}
-    <Route path="probes" element={<RequireInstanceAdmin><ProbesPage /></RequireInstanceAdmin>} />
-    <Route path="probes/:id" element={<RequireInstanceAdmin><ProbePage /></RequireInstanceAdmin>} />
+    {/* Probes belong to the install and live in the admin area; the old address leads there */}
+    <Route path="probes" element={<RequireInstanceAdmin><RedirectProbesToAdmin /></RequireInstanceAdmin>} />
+    <Route path="probes/:id" element={<RequireInstanceAdmin><RedirectProbesToAdmin /></RequireInstanceAdmin>} />
 
     {/* Notification channel routes */}
     <Route path="notification-channels" element={<NotificationChannelsPage />} />

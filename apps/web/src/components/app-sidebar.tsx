@@ -8,7 +8,7 @@ import {
   Vibrate,
   ListCheckIcon,
   Tag,
-  Radar,
+  ShieldIcon,
 } from "lucide-react";
 
 import {
@@ -69,15 +69,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         url: "/proxies",
         icon: Network,
       },
-      // Probes belong to the install: only an instance admin manages them
-      ...(instanceAdmin
-        ? [{ title: t("navigation.probes"), url: "/probes", icon: Radar }]
-        : []),
       {
         title: t("navigation.notification_channels"),
         url: "/notification-channels",
         icon: Vibrate,
       },
+      // What belongs to the install (probes, users) lives in the admin area, outside the
+      // workspace: only an instance admin is offered it
+      ...(instanceAdmin
+        ? [{ title: t("navigation.admin"), url: "/admin", icon: ShieldIcon, absolute: true }]
+        : []),
     ],
     navSecondary: [
       {

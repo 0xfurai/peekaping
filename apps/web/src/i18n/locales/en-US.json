@@ -3,6 +3,105 @@
     "cancel": "Cancel",
     "saving": "Saving..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Back to {{name}}",
+      "probes": "Probes",
+      "title": "Admin",
+      "users": "Users"
+    },
+    "users": {
+      "actions": {
+        "delete": "Delete user",
+        "disable": "Disable user",
+        "disableTwoFactor": "Turn off 2FA",
+        "enable": "Enable user",
+        "grantAdmin": "Make instance admin",
+        "resetLink": "Make reset link",
+        "revokeAdmin": "Remove instance admin"
+      },
+      "actions_aria": "Actions for {{email}}",
+      "columns": {
+        "created": "Created",
+        "email": "Email",
+        "email_verified": "Email verified",
+        "instance_admin": "Instance admin",
+        "last_sign_in": "Last sign-in",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Workspaces"
+      },
+      "confirm": {
+        "cancel": "Cancel",
+        "delete": {
+          "confirm": "Delete user",
+          "description": "Delete {{email}}? Their account is removed, and so are their places in workspaces. This can't be undone.",
+          "title": "Delete user"
+        },
+        "disable": {
+          "confirm": "Disable",
+          "description": "{{email}} can't sign in and is signed out everywhere now. Their workspaces keep running. You can enable them again later.",
+          "title": "Disable user"
+        },
+        "disableTwoFactor": {
+          "confirm": "Turn off 2FA",
+          "description": "{{email}} will sign in with their password alone, and can set 2FA up again. Do this only once you are sure it is them asking.",
+          "title": "Turn off 2FA"
+        }
+      },
+      "description": "Everyone with an account on this install. Instance admins manage the install itself, such as probes and users. A user's role in a workspace is set by that workspace's owners.",
+      "empty": "No users found",
+      "errors": {
+        "last_instance_admin": "The install needs at least one instance admin.",
+        "last_owner": "The user is the last owner of {{workspaces}}. Make someone else an owner, or delete the workspace, first.",
+        "self": "You can't do this to your own account."
+      },
+      "load_failed": "Couldn't load the users.",
+      "messages": {
+        "admin_granted": "{{email}} is now an instance admin",
+        "admin_revoked": "{{email}} is no longer an instance admin",
+        "deleted": "{{email}} is deleted",
+        "disabled": "{{email}} is disabled and signed out",
+        "enabled": "{{email}} is enabled",
+        "two_factor_off": "2FA is off for {{email}}",
+        "update_failed": "Couldn't update the user."
+      },
+      "never": "Never",
+      "none": "None",
+      "page_name": "Users",
+      "paging": {
+        "next": "Next",
+        "page": "Page {{page}} of {{pages}}",
+        "previous": "Previous"
+      },
+      "reset_link": {
+        "close": "Close",
+        "copied": "Link copied",
+        "copy": "Copy link",
+        "copy_failed": "Couldn't copy the link. Select it and copy it by hand.",
+        "description": "A link for {{email}} to choose a new password. Copy it and pass it on now: it is shown only once.",
+        "emailed": "This install sends account emails, so the user is told by email that a link was made for them.",
+        "expires": "The link works once and expires {{when}}.",
+        "failed": "Couldn't make the link.",
+        "label": "Link",
+        "making": "Making the link...",
+        "signs_out": "Using the link signs the user out everywhere.",
+        "title": "Password reset link"
+      },
+      "search_label": "Search users by email",
+      "search_placeholder": "Search by email",
+      "total": "{{total}} found",
+      "values": {
+        "active": "Active",
+        "disabled": "Disabled",
+        "no": "No",
+        "two_factor_off": "Off",
+        "two_factor_on": "On",
+        "yes": "Yes"
+      },
+      "you": "you"
+    }
+  },
   "auth": {
     "login": {
       "description": "Login with your Email",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Maintenance",
     "monitors": "Monitors",
     "notification_channels": "Notification Channels",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "A monitor created without choosing probes runs on the default probes that aren't disabled and run its type, and on the local probe when none does. Monitors that exist keep their probes.",
+      "failed": "Couldn't change whether the probe is a default.",
+      "label": "Default probe",
+      "off": "{{name}} is no longer a default probe",
+      "on": "{{name}} is now a default probe",
+      "title": "Default for new monitors"
+    },
+    "default_badge": "Default",
     "page_name": "Probes",
     "description": "Probes run monitor checks from the places where they are installed. The local probe is Peekaping itself.",
     "local_name": "Local",
