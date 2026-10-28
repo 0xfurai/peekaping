@@ -26,6 +26,8 @@ type Service interface {
 	// ResolveMonitorID returns the ID of the monitor that a badge URL names
 	ResolveMonitorID(ctx context.Context, id string) string
 	GetMonitorBadgeData(ctx context.Context, monitorID string) (*MonitorBadgeData, error)
+	// IsMonitorPublic is whether the monitor is active and on a published status page. It is
+	// status_page.ErrUnavailable for one whose workspace is suspended.
 	IsMonitorPublic(ctx context.Context, monitorID string) (bool, error)
 }
 
@@ -98,7 +100,15 @@ func (s *ServiceImpl) IsMonitorPublic(ctx context.Context, monitorID string) (bo
 	}
 
 	// Monitor is public if it's on at least one published status page
-	return s.statusPageService.IsMonitorPublishedAnyWorkspace(ctx, monitorID)
+	published, err := s.statusPageService.IsMonitorPublishedAnyWorkspace(ctx, monitorID)
+	if err != nil || !published {
+		return false, err
+	}
+	// A badge says no more than its status page does: unavailable while the workspace is suspended
+	if monitor.WorkspaceSuspended {
+		return false, status_page.ErrUnavailable
+	}
+	return true, nil
 }
 
 func (s *ServiceImpl) GetMonitorBadgeData(ctx context.Context, monitorID string) (*MonitorBadgeData, error) {

@@ -20,13 +20,18 @@ func NewRoute(controller *Controller, middleware *middleware.AuthChain) *Route {
 	}
 }
 
+// unavailableNote is what a public route says of the 503 it answers for a suspended workspace
+const unavailableNote = "Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message \"This status page is unavailable\" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404."
+
 func (r *Route) ConnectRoute(rg *httpx.Router, controller *Controller) {
 	// Public routes
 	sp := rg.Group("status-pages")
-	httpx.Register(sp, "GET", "/slug/{slug}", huma.Operation{Summary: "Get a status page by slug", Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.FindBySlug)
-	httpx.Register(sp, "GET", "/domain/{domain}", huma.Operation{Summary: "Get a status page by domain name", Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.FindByDomain)
-	httpx.Register(sp, "GET", "/slug/{slug}/monitors", huma.Operation{Summary: "Get monitors for a status page by slug with heartbeats and uptime", Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetMonitorsBySlug)
-	httpx.Register(sp, "GET", "/slug/{slug}/monitors/homepage", huma.Operation{Summary: "Get monitors for a status page by slug for homepage", Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetMonitorsBySlugForHomepage)
+	// A public page of a suspended workspace answers 503 and says nothing of why (PP-372)
+	unavailable := map[string]*huma.Response{"503": httpx.ErrorResponse[UnavailableResponse](sp, http.StatusServiceUnavailable)}
+	httpx.Register(sp, "GET", "/slug/{slug}", huma.Operation{Summary: "Get a status page by slug", Description: unavailableNote, Responses: unavailable, Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.FindBySlug)
+	httpx.Register(sp, "GET", "/domain/{domain}", huma.Operation{Summary: "Get a status page by domain name", Description: unavailableNote, Responses: unavailable, Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.FindByDomain)
+	httpx.Register(sp, "GET", "/slug/{slug}/monitors", huma.Operation{Summary: "Get monitors for a status page by slug with heartbeats and uptime", Description: unavailableNote, Responses: unavailable, Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetMonitorsBySlug)
+	httpx.Register(sp, "GET", "/slug/{slug}/monitors/homepage", huma.Operation{Summary: "Get monitors for a status page by slug for homepage", Description: unavailableNote, Responses: unavailable, Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetMonitorsBySlugForHomepage)
 
 	sp.Use(r.middleware.WorkspaceAuth())
 	sp.Document(httpx.WorkspaceIDHeader)

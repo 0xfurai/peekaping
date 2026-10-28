@@ -29,6 +29,9 @@ type Repository interface {
 	) ([]*Model, error)
 	// FindAllAnyWorkspace lists the pages of every workspace: the usage ping describes the install
 	FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error)
+	// WorkspaceSuspended is whether the workspace is under a hold that keeps its public pages and
+	// badges from answering: the email verification's or an instance admin's (PP-372)
+	WorkspaceSuspended(ctx context.Context, workspaceID workspace.ID) (bool, error)
 	Update(ctx context.Context, workspaceID workspace.ID, id string, statusPage *UpdateModel) error
 	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
 }
