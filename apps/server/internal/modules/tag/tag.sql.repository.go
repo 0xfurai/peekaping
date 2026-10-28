@@ -2,7 +2,11 @@ package tag
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
+
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -11,8 +15,12 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:tags,alias:t"`
 
-	ID          string    `bun:"id,pk"`
-	Name        string    `bun:"name,notnull,unique"`
+	ID string `bun:"id,pk"`
+	// WorkspaceID is set when the tag is created and never changes
+	WorkspaceID string `bun:"workspace_id,notnull"`
+	// Name is unique within a workspace: the database holds the rule in an index of
+	// (workspace_id, name)
+	Name        string    `bun:"name,notnull"`
 	Color       string    `bun:"color,notnull"`
 	Description *string   `bun:"description"`
 	CreatedAt   time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
@@ -22,6 +30,7 @@ type sqlModel struct {
 func toDomainModelFromSQL(sm *sqlModel) *Model {
 	return &Model{
 		ID:          sm.ID,
+		WorkspaceID: workspace.ID(sm.WorkspaceID),
 		Name:        sm.Name,
 		Color:       sm.Color,
 		Description: sm.Description,
@@ -33,6 +42,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 func toSQLModel(m *Model) *sqlModel {
 	return &sqlModel{
 		ID:          m.ID,
+		WorkspaceID: string(m.WorkspaceID),
 		Name:        m.Name,
 		Color:       m.Color,
 		Description: m.Description,
@@ -49,9 +59,10 @@ func NewSQLRepository(db *bun.DB) Repository {
 	return &SQLRepositoryImpl{db: db}
 }
 
-func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
+func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID, entity *Model) (*Model, error) {
 	sm := toSQLModel(entity)
 	sm.ID = uuid.New().String()
+	sm.WorkspaceID = string(workspaceID) // whatever the tag says
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
@@ -63,11 +74,18 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
+func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	return r.findOne(ctx, r.db.NewSelect().Where("id = ?", id), workspaceID)
+}
+
+func (r *SQLRepositoryImpl) FindByName(ctx context.Context, workspaceID workspace.ID, name string) (*Model, error) {
+	return r.findOne(ctx, r.db.NewSelect().Where("name = ?", name), workspaceID)
+}
+
+func (r *SQLRepositoryImpl) findOne(ctx context.Context, query *bun.SelectQuery, workspaceID workspace.ID) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
-	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+	if err := query.Model(sm).Where("workspace_id = ?", string(workspaceID)).Scan(ctx); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
@@ -75,20 +93,8 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 	return toDomainModelFromSQL(sm), nil
 }
 
-func (r *SQLRepositoryImpl) FindByName(ctx context.Context, name string) (*Model, error) {
-	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("name = ?", name).Scan(ctx)
-	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return toDomainModelFromSQL(sm), nil
-}
-
-func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil))
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error) {
+	query := r.db.NewSelect().Model((*sqlModel)(nil)).Where("workspace_id = ?", string(workspaceID))
 
 	if q != "" {
 		query = query.Where("LOWER(name) LIKE ?", "%"+q+"%")
@@ -111,20 +117,21 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q 
 	return models, nil
 }
 
-func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) error {
+func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, entity *Model) error {
 	sm := toSQLModel(entity)
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewUpdate().
+	result, err := r.db.NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
-		ExcludeColumn("id", "created_at").
+		Where("workspace_id = ?", string(workspaceID)).
+		ExcludeColumn("id", "workspace_id", "created_at").
 		Exec(ctx)
-	return err
+	return requireOneRow(result, err)
 }
 
-func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) error {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel) error {
+	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
 
 	hasUpdates := false
 
@@ -142,17 +149,40 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	}
 
 	if !hasUpdates {
+		found, err := r.FindByID(ctx, workspaceID, id)
+		if err != nil {
+			return err
+		}
+		if found == nil {
+			return ErrNotFound
+		}
 		return nil
 	}
 
 	// Always set updated_at
 	query = query.Set("updated_at = ?", time.Now())
 
-	_, err := query.Exec(ctx)
-	return err
+	result, err := query.Exec(ctx)
+	return requireOneRow(result, err)
 }
 
-func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
-	return err
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	result, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	return requireOneRow(result, err)
+}
+
+// requireOneRow turns a write that changed no row into ErrNotFound: the tag doesn't exist, or
+// belongs to another workspace, and the caller can't tell which
+func requireOneRow(result sql.Result, err error) error {
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
 }

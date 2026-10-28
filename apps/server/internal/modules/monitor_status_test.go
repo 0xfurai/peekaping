@@ -62,8 +62,7 @@ func onEveryMonitorStore(t *testing.T, exercise func(t *testing.T, repo monitor.
 		insertTied := func(t *testing.T, n int, createdAt time.Time) ([]string, string) {
 			t.Helper()
 			tagID := uuid.NewString()
-			_, err := db.Exec("INSERT INTO tags (id, name) VALUES (?, 'tie')", tagID)
-			require.NoError(t, err)
+			workspacetest.InsertTag(t, db, tagID, "tie")
 			ids := make([]string, 0, n)
 			for i := 1; i <= n; i++ {
 				id := fmt.Sprintf("00000000-0000-4000-8000-%012d", i)

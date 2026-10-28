@@ -54,7 +54,7 @@ func (a *app) storedChannelConfig(t *testing.T, id string) string {
 	t.Helper()
 	var config string
 	require.NoError(t, a.container.Invoke(func(channels notification_channel.Service) error {
-		channel, err := channels.FindByID(context.Background(), id)
+		channel, err := channels.FindByIDAnyWorkspace(context.Background(), id)
 		if err != nil {
 			return err
 		}

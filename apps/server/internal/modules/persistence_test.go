@@ -8,6 +8,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacetest"
 	"strings"
 	"sync"
@@ -73,6 +74,8 @@ type repositories struct {
 	statusPageID  string
 	monitorID     string
 	replacementID string
+	// workspaceID is the workspace of the monitors and the maintenance window
+	workspaceID workspace.ID
 }
 
 func sqlRepositories(t *testing.T, db *bun.DB) repositories {
@@ -94,7 +97,7 @@ func sqlRepositories(t *testing.T, db *bun.DB) repositories {
 	return repositories{
 		maintenance.NewSQLRepository(db), monitor_status_page.NewSQLRepository(db), domain_status_page.NewSQLRepository(db), status_page.NewSQLRepository(db),
 		setting.NewSQLRepository(db), monitor_tls_info.NewSQLRepository(db), notification_sent_history.NewSQLRepository(db),
-		statusID, monitorID, replacementID,
+		statusID, monitorID, replacementID, workspace.ID(workspacetest.OldestOrAdd(t, db)),
 	}
 }
 
@@ -131,15 +134,16 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		timezone, cron := "UTC", "0 9 * * 1,3"
 		startDate, endDate, interval, duration := "2026-01-01T00:00", "2026-12-31T00:00", 2, 90
 		input := &maintenance.Model{Title: "Maintenance", Description: "Description", Active: true, Strategy: "recurring-weekday", StartDateTime: &startDate, EndDateTime: &endDate, Weekdays: []int{1, 3}, DaysOfMonth: []int{5, 10}, IntervalDay: &interval, Cron: &cron, Timezone: &timezone, Duration: &duration}
-		created, err := repos.maintenance.Create(ctx, input)
+		created, err := repos.maintenance.Create(ctx, repos.workspaceID, input)
 		require.NoError(t, err)
-		actual, err := repos.maintenance.FindByID(ctx, created.ID)
+		actual, err := repos.maintenance.FindByID(ctx, repos.workspaceID, created.ID)
 		require.NoError(t, err)
 		expected := *input
 		expected.ID, expected.CreatedAt, expected.UpdatedAt = actual.ID, actual.CreatedAt, actual.UpdatedAt
+		expected.WorkspaceID = repos.workspaceID
 		assert.Equal(t, &expected, actual)
 		title, active, zero := "", false, 0
-		updated, err := repos.maintenance.UpdatePartial(ctx, created.ID, &maintenance.UpdateModel{Title: &title, Active: &active, IntervalDay: &zero, Weekdays: []int{2, 4}})
+		updated, err := repos.maintenance.UpdatePartial(ctx, repos.workspaceID, created.ID, &maintenance.UpdateModel{Title: &title, Active: &active, IntervalDay: &zero, Weekdays: []int{2, 4}})
 		require.NoError(t, err)
 		assert.Empty(t, updated.Title)
 		assert.False(t, updated.Active)
@@ -147,9 +151,9 @@ func exerciseRepositories(t *testing.T, repos repositories) {
 		assert.Equal(t, []int{2, 4}, updated.Weekdays)
 		assert.Equal(t, input.Description, updated.Description)
 		input.Title = "Replaced"
-		_, err = repos.maintenance.UpdateFull(ctx, created.ID, input)
+		_, err = repos.maintenance.UpdateFull(ctx, repos.workspaceID, created.ID, input)
 		require.NoError(t, err)
-		actual, err = repos.maintenance.FindByID(ctx, created.ID)
+		actual, err = repos.maintenance.FindByID(ctx, repos.workspaceID, created.ID)
 		require.NoError(t, err)
 		assert.Equal(t, input.Title, actual.Title)
 	})

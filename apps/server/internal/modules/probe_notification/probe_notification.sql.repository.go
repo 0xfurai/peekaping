@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"peekaping/internal/dbtx"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -48,15 +49,26 @@ func (r *SQLRepositoryImpl) FindByProbeID(ctx context.Context, probeID string) (
 // being left with half of the channels it was given: the probe service calls it inside WithTx.
 // Called without one, it checks every channel before it changes anything, so that an unknown
 // channel leaves the links as they were.
-func (r *SQLRepositoryImpl) Replace(ctx context.Context, probeID string, notificationIDs []string) error {
+func (r *SQLRepositoryImpl) Replace(ctx context.Context, probeID string, notificationIDs []string, workspaces []workspace.ID) error {
 	ids, err := canonicalChannelIDs(notificationIDs)
 	if err != nil {
 		return err
 	}
 	db := dbtx.DB(ctx, r.db)
 	if len(ids) > 0 {
+		// A channel of a workspace that isn't one of these is not there, whatever workspace it is in
+		if len(workspaces) == 0 {
+			return fmt.Errorf("%w: %s", ErrUnknownChannel, ids[0])
+		}
+		scope := make([]string, len(workspaces))
+		for i, id := range workspaces {
+			scope[i] = string(id)
+		}
 		var found []string
-		err := db.NewSelect().Table("notification_channels").Column("id").Where("id IN (?)", bun.In(ids)).Scan(ctx, &found)
+		err := db.NewSelect().Table("notification_channels").Column("id").
+			Where("id IN (?)", bun.In(ids)).
+			Where("workspace_id IN (?)", bun.In(scope)).
+			Scan(ctx, &found)
 		if err != nil {
 			return err
 		}

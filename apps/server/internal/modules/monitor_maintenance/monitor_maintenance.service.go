@@ -2,6 +2,10 @@ package monitor_maintenance
 
 import (
 	"context"
+	"fmt"
+	"strings"
+
+	"peekaping/internal/modules/workspace"
 
 	"go.uber.org/zap"
 )
@@ -16,6 +20,11 @@ type Service interface {
 	DeleteByMaintenanceID(ctx context.Context, maintenanceID string) error
 	SetMonitors(ctx context.Context, maintenanceID string, monitorIDs []string) error
 	GetMonitors(ctx context.Context, maintenanceID string) ([]string, error)
+	// RequireMonitors is nil when every monitor is in the workspace, and otherwise an error that
+	// wraps ErrUnknownMonitor and names the first that isn't. A maintenance window covers only
+	// monitors of its own workspace (docs/adr/0005 section 2), and a caller checks them all before
+	// it writes a link.
+	RequireMonitors(ctx context.Context, workspaceID workspace.ID, ids []string) error
 }
 
 type ServiceImpl struct {
@@ -96,4 +105,22 @@ func (mr *ServiceImpl) GetMonitors(ctx context.Context, maintenanceID string) ([
 	}
 
 	return monitorIDs, nil
+}
+
+func (mr *ServiceImpl) RequireMonitors(ctx context.Context, workspaceID workspace.ID, ids []string) error {
+	found, err := mr.repository.FindMonitorIDsInWorkspace(ctx, workspaceID, ids)
+	if err != nil {
+		return err
+	}
+	// The database compares UUIDs in any letter case, SQLite compares text
+	exists := make(map[string]bool, len(found))
+	for _, id := range found {
+		exists[strings.ToLower(id)] = true
+	}
+	for _, id := range ids {
+		if !exists[strings.ToLower(id)] {
+			return fmt.Errorf("%w: %s", ErrUnknownMonitor, id)
+		}
+	}
+	return nil
 }

@@ -93,7 +93,7 @@ func TestImportKeepsEveryRowWhenCutValuesCollide(t *testing.T) {
 					want = renamed(want, 100, i+1)
 				}
 			}
-			got, err := tags.FindByName(ctx, want)
+			got, err := tags.FindByName(ctx, importedWorkspace(t, db), want)
 			require.NoError(t, err)
 			assert.NotNil(t, got, "no tag named %q", want)
 		}

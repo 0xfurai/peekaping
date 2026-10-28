@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/notification_channel/providers"
+	"peekaping/internal/modules/workspace"
 	"strings"
 	"testing"
 
@@ -27,6 +28,9 @@ func (p validatingProvider) Validate(string) error {
 
 func (validatingProvider) Unmarshal(string) (any, error) { return nil, nil }
 
+// testWorkspace is the workspace the tests' requests run in
+const testWorkspace = workspace.ID("0d6f1e0e-6b1c-4d49-8c37-0b5f4a1b3a01")
+
 type updateRecordingService struct {
 	Service
 	saved   *Model
@@ -34,16 +38,16 @@ type updateRecordingService struct {
 	patch   *PartialUpdateDto
 }
 
-func (s *updateRecordingService) FindByID(_ context.Context, _ string) (*Model, error) {
+func (s *updateRecordingService) FindByID(_ context.Context, _ workspace.ID, _ string) (*Model, error) {
 	return s.saved, nil
 }
 
-func (s *updateRecordingService) UpdateFull(_ context.Context, _ string, _ *CreateUpdateDto) (*Model, error) {
+func (s *updateRecordingService) UpdateFull(_ context.Context, _ workspace.ID, _ string, _ *CreateUpdateDto) (*Model, error) {
 	s.updated = true
 	return &Model{}, nil
 }
 
-func (s *updateRecordingService) UpdatePartial(_ context.Context, _ string, dto *PartialUpdateDto) (*Model, error) {
+func (s *updateRecordingService) UpdatePartial(_ context.Context, _ workspace.ID, _ string, dto *PartialUpdateDto) (*Model, error) {
 	s.updated = true
 	s.patch = dto
 	return &Model{}, nil
@@ -78,6 +82,7 @@ func TestControllerUpdateValidatesConfig(t *testing.T) {
 
 				body := `{"name": "Alerts", "type": "` + tc.channelType + `", "config": "{}"}`
 				req := httptest.NewRequest(method, "/channel-1", strings.NewReader(body))
+				req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 				req.Header.Set("Content-Type", "application/json")
 				rec := httptest.NewRecorder()
 				router.ServeHTTP(rec, req)
@@ -120,6 +125,8 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 			httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 			req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(tc.body))
+
+			req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)
@@ -136,6 +143,8 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"name": "Renamed"}`))
+
+		req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 		req.Header.Set("Content-Type", "application/json")
 		router.ServeHTTP(httptest.NewRecorder(), req)
 
@@ -154,6 +163,8 @@ func TestControllerUpdatePartialMergesSavedChannel(t *testing.T) {
 		httpx.Register(router, "PATCH", "/{id}", huma.Operation{Errors: []int{400, 404, 500}}, NewController(service, providers, zap.NewNop().Sugar()).UpdatePartial)
 
 		req := httptest.NewRequest(http.MethodPatch, "/channel-1", strings.NewReader(`{"active": false}`))
+
+		req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 		router.ServeHTTP(rec, req)
@@ -183,6 +194,8 @@ func TestControllerTestSendsWithADeadline(t *testing.T) {
 	httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, NewController(nil, providers, zap.NewNop().Sugar()).Test)
 
 	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(`{"name": "Alerts", "type": "test-valid", "config": "{}"}`))
+
+	req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
@@ -205,6 +218,7 @@ func TestControllerTestKeepsTheTelegramTokenOutOfAFailedSend(t *testing.T) {
 	const botToken = "123456:secret-bot-token"
 	body := `{"name": "Alerts", "type": "telegram", "config": "{\"bot_token\": \"` + botToken + `\", \"chat_id\": \"42\", \"server_url\": \"` + server.URL + `\"}"}`
 	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(body))
+	req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)

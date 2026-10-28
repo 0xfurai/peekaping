@@ -2,6 +2,10 @@ package monitor_notification
 
 import (
 	"context"
+	"fmt"
+	"strings"
+
+	"peekaping/internal/modules/workspace"
 
 	"go.uber.org/zap"
 )
@@ -16,6 +20,10 @@ type Service interface {
 	FindByMonitorIDs(ctx context.Context, monitorIDs []string) (map[string][]*Model, error)
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	DeleteByNotificationID(ctx context.Context, notificationID string) error
+	// RequireChannels is nil when every channel is in the workspace, and otherwise an error that
+	// wraps ErrUnknownChannel and names the first that isn't. A monitor links only to channels of
+	// its own workspace (docs/adr/0005 section 2), and a caller checks them all before it writes a link.
+	RequireChannels(ctx context.Context, workspaceID workspace.ID, ids []string) error
 }
 
 type ServiceImpl struct {
@@ -64,4 +72,22 @@ func (mr *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) 
 
 func (mr *ServiceImpl) DeleteByNotificationID(ctx context.Context, notificationID string) error {
 	return mr.repository.DeleteByNotificationID(ctx, notificationID)
+}
+
+func (mr *ServiceImpl) RequireChannels(ctx context.Context, workspaceID workspace.ID, ids []string) error {
+	found, err := mr.repository.FindChannelIDsInWorkspace(ctx, workspaceID, ids)
+	if err != nil {
+		return err
+	}
+	// The database compares UUIDs in any letter case, SQLite compares text
+	exists := make(map[string]bool, len(found))
+	for _, id := range found {
+		exists[strings.ToLower(id)] = true
+	}
+	for _, id := range ids {
+		if !exists[strings.ToLower(id)] {
+			return fmt.Errorf("%w: %s", ErrUnknownChannel, id)
+		}
+	}
+	return nil
 }

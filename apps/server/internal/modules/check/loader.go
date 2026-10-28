@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/check/job"
 	"peekaping/internal/modules/maintenance"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 )
 
 // Job and the errors Load returns are package job's, where the probe's scheduler reaches them
@@ -31,12 +32,13 @@ type MonitorFinder interface {
 
 // ProxyFinder is the part of the proxy service the loader reads
 type ProxyFinder interface {
-	FindByID(ctx context.Context, id string) (*shared.Proxy, error)
+	// FindByID reads the proxy in the workspace of the monitor that names it
+	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*shared.Proxy, error)
 }
 
 // MaintenanceReader is the part of the maintenance service the loader reads
 type MaintenanceReader interface {
-	GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*maintenance.Model, error)
+	GetMaintenancesByMonitorIDAnyWorkspace(ctx context.Context, monitorID string) ([]*maintenance.Model, error)
 	IsUnderMaintenance(ctx context.Context, m *maintenance.Model) (bool, error)
 }
 
@@ -108,7 +110,7 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 
 	// Fetch proxy if configured
 	if mon.ProxyId != "" {
-		proxyModel, err := l.proxyService.FindByID(ctx, mon.ProxyId)
+		proxyModel, err := l.proxyService.FindByID(ctx, mon.WorkspaceID, mon.ProxyId)
 		if err != nil {
 			l.logger.Warnw("Failed to fetch proxy, continuing without it",
 				"monitor_id", monitorID,
@@ -135,7 +137,7 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 }
 
 func (l *Loader) isUnderMaintenance(ctx context.Context, monitorID string) (bool, error) {
-	maintenances, err := l.maintenanceService.GetMaintenancesByMonitorID(ctx, monitorID)
+	maintenances, err := l.maintenanceService.GetMaintenancesByMonitorIDAnyWorkspace(ctx, monitorID)
 	if err != nil {
 		return false, err
 	}

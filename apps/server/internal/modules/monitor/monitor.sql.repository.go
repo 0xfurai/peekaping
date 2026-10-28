@@ -858,10 +858,16 @@ func (r *SQLRepositoryImpl) RemoveProxyReference(ctx context.Context, workspaceI
 	_, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model((*sqlModel)(nil)).
 		Set("proxy_id = ?", nil).
+		Set("updated_at = ?", time.Now()).
 		Where("proxy_id = ?", proxyId).
 		Where("workspace_id = ?", string(workspaceID)).
 		Exec(ctx)
 	return err
+}
+
+func (r *SQLRepositoryImpl) ProxyInWorkspace(ctx context.Context, workspaceID workspace.ID, proxyID string) (bool, error) {
+	return dbtx.DB(ctx, r.db).NewSelect().Table("proxies").
+		Where("id = ?", proxyID).Where("workspace_id = ?", string(workspaceID)).Exists(ctx)
 }
 
 func (r *SQLRepositoryImpl) FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error) {

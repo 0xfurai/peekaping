@@ -2,12 +2,15 @@ package notification_channel
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
 	"strconv"
@@ -34,6 +37,10 @@ func NewController(
 	}
 }
 func (ic *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.Output[utils.ApiResponse[[]*Model]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	// Extract query parameters for pagination and search
 	page, err := utils.GetQueryInt(r, "page", 0)
@@ -48,7 +55,7 @@ func (ic *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.
 
 	q := r.URL.Query().Get("q")
 
-	response, err := ic.service.FindAll(ctx, page, limit, q)
+	response, err := ic.service.FindAll(ctx, workspaceID, page, limit, q)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch notifications", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -57,6 +64,10 @@ func (ic *Controller) FindAll(ctx context.Context, input *FindAllInput) (*httpx.
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", redactModels(ic.providers, response)))
 }
 func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	notification_channel, decodeErr := input.Decode()
 	if err := decodeErr; err != nil {
 		ic.logger.Errorw("Invalid request body", "error", err)
@@ -79,7 +90,7 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 		return nil, err
 	}
 
-	createdNotification, err := ic.service.Create(ctx, notification_channel)
+	createdNotification, err := ic.service.Create(ctx, workspaceID, notification_channel)
 	if err != nil {
 		ic.logger.Errorw("Failed to create notification", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -88,10 +99,14 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 	return httpx.Reply(http.StatusCreated, utils.NewSuccessResponse("Notification created successfully", redactModel(ic.providers, createdNotification)))
 }
 func (ic *Controller) FindByID(ctx context.Context, input *FindByIDInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
-	notification, err := ic.service.FindByID(ctx, id)
+	notification, err := ic.service.FindByID(ctx, workspaceID, id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch notification", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -104,6 +119,10 @@ func (ic *Controller) FindByID(ctx context.Context, input *FindByIDInput) (*http
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("success", redactModel(ic.providers, notification)))
 }
 func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
@@ -116,7 +135,7 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, id)
+	current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Notification channel", findIn(ic.service, workspaceID), id)
 	if lookupErr != nil {
 		return nil, lookupErr
 	}
@@ -132,8 +151,11 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		return nil, err
 	}
 
-	updatedNotification, err := ic.service.UpdateFull(ctx, id, &notification)
+	updatedNotification, err := ic.service.UpdateFull(ctx, workspaceID, id, &notification)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, notFoundResponse()
+		}
 		ic.logger.Errorw("Failed to update notification", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -141,6 +163,10 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("notification updated successfully", redactModel(ic.providers, updatedNotification)))
 }
 func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInput) (*httpx.Output[utils.ApiResponse[*Model]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
@@ -154,7 +180,7 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, id)
+	current, lookupErr := utils.RequireRecord(ctx, ic.logger, "Notification channel", findIn(ic.service, workspaceID), id)
 	if lookupErr != nil {
 		return nil, lookupErr
 	}
@@ -194,8 +220,11 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 		}
 	}
 
-	updatedNotification, err := ic.service.UpdatePartial(ctx, id, &notification)
+	updatedNotification, err := ic.service.UpdatePartial(ctx, workspaceID, id, &notification)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, notFoundResponse()
+		}
 		ic.logger.Errorw("Failed to update notification", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -203,15 +232,22 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("notification updated successfully", redactModel(ic.providers, updatedNotification)))
 }
 func (ic *Controller) Delete(ctx context.Context, input *DeleteInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	r := input.Request
 	id := r.PathValue("id")
 
-	if _, err := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, id); err != nil {
+	if _, err := utils.RequireRecord(ctx, ic.logger, "Notification channel", findIn(ic.service, workspaceID), id); err != nil {
 		return nil, err
 	}
 
-	err := ic.service.Delete(ctx, id)
+	err = ic.service.Delete(ctx, workspaceID, id)
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, notFoundResponse()
+		}
 		ic.logger.Errorw("Failed to delete notification", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -219,6 +255,10 @@ func (ic *Controller) Delete(ctx context.Context, input *DeleteInput) (*httpx.Ou
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse[any]("Notification deleted successfully", nil))
 }
 func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output[utils.ApiResponse[any]], error) {
+	workspaceID, err := workspacehttp.Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
 	notificationChannel, decodeErr := input.Decode()
 	if err := decodeErr; err != nil {
 		ic.logger.Errorw("Invalid request body", "error", err)
@@ -233,7 +273,7 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	// channel it edits
 	var saved *Model
 	if notificationChannel.ID != "" {
-		record, err := utils.RequireRecord(ctx, ic.logger, "Notification channel", ic.service.FindByID, notificationChannel.ID)
+		record, err := utils.RequireRecord(ctx, ic.logger, "Notification channel", findIn(ic.service, workspaceID), notificationChannel.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -264,7 +304,7 @@ func (ic *Controller) Test(ctx context.Context, input *TestInput) (*httpx.Output
 	sendCtx, cancel := context.WithTimeout(ctx, sendTimeout)
 	defer cancel()
 	// An HTTP client's errors hold the request URL, and for a channel the URL holds a credential
-	err := providers.RedactURLErrors(integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat))
+	err = providers.RedactURLErrors(integration.Send(sendCtx, config, testMessage, testMonitor, testHeartbeat))
 	if err != nil {
 		// A failed send repeats what it was sent to, which has the secrets in it. The ones taken from
 		// the saved channel are not the caller's to read back.
@@ -325,4 +365,18 @@ func (ic *Controller) validateConfig(channelType, config string) (NotificationCh
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Invalid config: "+err.Error()))
 	}
 	return integration, nil
+}
+
+// findIn is the lookup of a channel in the workspace of the request: a channel of another workspace
+// is not found, as one that doesn't exist is
+func findIn(service Service, workspaceID workspace.ID) func(context.Context, string) (*Model, error) {
+	return func(ctx context.Context, id string) (*Model, error) {
+		return service.FindByID(ctx, workspaceID, id)
+	}
+}
+
+// notFoundResponse is the answer for a channel that doesn't exist and for one that belongs to
+// another workspace, which a caller can't tell apart
+func notFoundResponse() error {
+	return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Notification channel not found"))
 }

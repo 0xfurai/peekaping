@@ -15,6 +15,8 @@ import (
 	"peekaping/internal/dbtx"
 	"peekaping/internal/infra"
 	"peekaping/internal/modules/probe_notification"
+	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacetest"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -63,6 +65,10 @@ type fixture struct {
 	svc     probe_notification.Service
 	probe   func() string
 	channel func() string
+	// members are the workspaces the caller is a member of: the install's one workspace
+	members []workspace.ID
+	// channelIn makes a channel in the workspace, which it adds
+	channelIn func(id workspace.ID) string
 	// delete removes a channel the way the database does, to see its links go with it
 	deleteChannel func(id string)
 }
@@ -77,8 +83,21 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 			require.NoError(t, migrator.Init(ctx))
 			_, err := migrator.Migrate(ctx)
 			require.NoError(t, err)
+			first := workspace.ID(workspacetest.OldestOrAdd(t, db))
 			fn(t, fixture{
-				db:  db,
+				db:      db,
+				members: []workspace.ID{first},
+				channelIn: func(id workspace.ID) string {
+					var exists int
+					require.NoError(t, db.NewSelect().Table("workspaces").ColumnExpr("COUNT(*)").Where("id = ?", string(id)).Scan(ctx, &exists))
+					if exists == 0 {
+						workspacetest.Add(t, db, id, string(id))
+					}
+					channel := uuid.NewString()
+					_, err := db.Exec("INSERT INTO notification_channels (id, workspace_id, name, type) VALUES (?, ?, 'Ops', 'webhook')", channel, string(id))
+					require.NoError(t, err)
+					return channel
+				},
 				svc: probe_notification.NewService(probe_notification.NewSQLRepository(db), zap.NewNop().Sugar()),
 				probe: func() string {
 					id := uuid.NewString()
@@ -88,7 +107,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 				},
 				channel: func() string {
 					id := uuid.NewString()
-					_, err := db.Exec("INSERT INTO notification_channels (id, name, type) VALUES (?, 'Ops', 'webhook')", id)
+					_, err := db.Exec("INSERT INTO notification_channels (id, workspace_id, name, type) VALUES (?, ?, 'Ops', 'webhook')", id, string(first))
 					require.NoError(t, err)
 					return id
 				},
@@ -119,16 +138,16 @@ func TestProbeNotifications_ReplaceSetsTheProbesChannels(t *testing.T) {
 		edge, core := f.probe(), f.probe()
 		slack, email, pager := f.channel(), f.channel(), f.channel()
 
-		require.NoError(t, f.svc.Replace(ctx, edge, []string{slack, email}))
-		require.NoError(t, f.svc.Replace(ctx, core, []string{email}))
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{slack, email}, f.members))
+		require.NoError(t, f.svc.Replace(ctx, core, []string{email}, f.members))
 		assert.ElementsMatch(t, []string{slack, email}, channelsOf(t, f.svc, edge))
 		assert.ElementsMatch(t, []string{email}, channelsOf(t, f.svc, core))
 
-		require.NoError(t, f.svc.Replace(ctx, edge, []string{email, pager}))
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{email, pager}, f.members))
 		assert.ElementsMatch(t, []string{email, pager}, channelsOf(t, f.svc, edge), "Replace drops the channels it doesn't name")
 		assert.ElementsMatch(t, []string{email}, channelsOf(t, f.svc, core), "Replace keeps other probes' links")
 
-		require.NoError(t, f.svc.Replace(ctx, edge, []string{}))
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{}, f.members))
 		assert.Empty(t, channelsOf(t, f.svc, edge))
 		assert.ElementsMatch(t, []string{email}, channelsOf(t, f.svc, core))
 	})
@@ -138,7 +157,7 @@ func TestProbeNotifications_ReplaceCountsARepeatedChannelOnce(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, f fixture) {
 		edge, slack := f.probe(), f.channel()
 
-		require.NoError(t, f.svc.Replace(context.Background(), edge, []string{slack, slack, strings.ToUpper(slack)}))
+		require.NoError(t, f.svc.Replace(context.Background(), edge, []string{slack, slack, strings.ToUpper(slack)}, f.members))
 
 		assert.Equal(t, []string{slack}, channelsOf(t, f.svc, edge))
 	})
@@ -149,10 +168,10 @@ func TestProbeNotifications_ReplaceRefusesAnUnknownChannelAndChangesNothing(t *t
 		ctx := context.Background()
 		edge := f.probe()
 		slack, email := f.channel(), f.channel()
-		require.NoError(t, f.svc.Replace(ctx, edge, []string{slack}))
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{slack}, f.members))
 
 		for name, unknown := range map[string]string{"no such channel": uuid.NewString(), "not an id": "nope"} {
-			err := f.svc.Replace(ctx, edge, []string{email, unknown})
+			err := f.svc.Replace(ctx, edge, []string{email, unknown}, f.members)
 
 			require.ErrorIs(t, err, probe_notification.ErrUnknownChannel, name)
 			assert.ErrorContains(t, err, unknown, name)
@@ -171,12 +190,12 @@ func TestProbeNotifications_ReplaceAndDeleteJoinTheCallersTransaction(t *testing
 		t.Cleanup(cancel)
 		edge := f.probe()
 		slack, email := f.channel(), f.channel()
-		require.NoError(t, f.svc.Replace(ctx, edge, []string{slack}))
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{slack}, f.members))
 		transactor := dbtx.NewSQLTransactor(f.db)
 		errRollBack := errors.New("roll back")
 
 		err := transactor.WithTx(ctx, func(ctx context.Context) error {
-			require.NoError(t, f.svc.Replace(ctx, edge, []string{email}))
+			require.NoError(t, f.svc.Replace(ctx, edge, []string{email}, f.members))
 			links, err := f.svc.FindByProbeID(ctx, edge)
 			require.NoError(t, err)
 			require.Len(t, links, 1)
@@ -189,7 +208,7 @@ func TestProbeNotifications_ReplaceAndDeleteJoinTheCallersTransaction(t *testing
 		assert.Equal(t, []string{slack}, channelsOf(t, f.svc, edge), "the swap and the delete were rolled back")
 
 		err = transactor.WithTx(ctx, func(ctx context.Context) error {
-			return f.svc.Replace(ctx, edge, []string{email})
+			return f.svc.Replace(ctx, edge, []string{email}, f.members)
 		})
 
 		require.NoError(t, err)
@@ -202,8 +221,8 @@ func TestProbeNotifications_DeletingAChannelClearsItsLinks(t *testing.T) {
 		ctx := context.Background()
 		edge, core := f.probe(), f.probe()
 		slack, email := f.channel(), f.channel()
-		require.NoError(t, f.svc.Replace(ctx, edge, []string{slack, email}))
-		require.NoError(t, f.svc.Replace(ctx, core, []string{slack}))
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{slack, email}, f.members))
+		require.NoError(t, f.svc.Replace(ctx, core, []string{slack}, f.members))
 
 		require.NoError(t, f.svc.DeleteByNotificationID(ctx, slack))
 		assert.ElementsMatch(t, []string{email}, channelsOf(t, f.svc, edge))
@@ -211,5 +230,49 @@ func TestProbeNotifications_DeletingAChannelClearsItsLinks(t *testing.T) {
 
 		f.deleteChannel(email)
 		assert.Empty(t, channelsOf(t, f.svc, edge), "the database drops the links of a channel that is deleted")
+	})
+}
+
+// An instance admin links a probe to the channels of a workspace they are a member of and to no
+// other (docs/adr/0005 section 10): a channel of another workspace is refused as one that doesn't exist
+func TestProbeNotifications_ReplaceRefusesAChannelOfAWorkspaceTheCallerIsNotIn(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		edge := f.probe()
+		mine, theirs := f.channel(), f.channelIn(workspacetest.Other)
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{mine}, f.members))
+
+		err := f.svc.Replace(ctx, edge, []string{mine, theirs}, f.members)
+
+		require.ErrorIs(t, err, probe_notification.ErrUnknownChannel)
+		assert.ErrorContains(t, err, theirs, "it says what a channel that doesn't exist says")
+		assert.Equal(t, []string{mine}, channelsOf(t, f.svc, edge), "and changes nothing")
+		unknown := f.svc.Replace(ctx, edge, []string{mine, uuid.NewString()}, f.members)
+		require.ErrorIs(t, unknown, probe_notification.ErrUnknownChannel)
+	})
+}
+
+func TestProbeNotifications_ReplaceTakesChannelsOfEveryWorkspaceTheCallerIsIn(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		edge := f.probe()
+		mine, theirs := f.channel(), f.channelIn(workspacetest.Other)
+
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{mine, theirs}, append(f.members, workspacetest.Other)))
+
+		assert.ElementsMatch(t, []string{mine, theirs}, channelsOf(t, f.svc, edge))
+	})
+}
+
+func TestProbeNotifications_ACallerInNoWorkspaceLinksNoChannel(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, f fixture) {
+		ctx := context.Background()
+		edge, channel := f.probe(), f.channel()
+
+		err := f.svc.Replace(ctx, edge, []string{channel}, nil)
+
+		require.ErrorIs(t, err, probe_notification.ErrUnknownChannel)
+		assert.Empty(t, channelsOf(t, f.svc, edge))
+		require.NoError(t, f.svc.Replace(ctx, edge, []string{}, nil), "a list with no channel clears the probe's")
 	})
 }

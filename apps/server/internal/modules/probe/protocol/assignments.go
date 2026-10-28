@@ -145,8 +145,8 @@ func findInstance(instances []*probe.Instance, id string) *probe.Instance {
 	return nil
 }
 
-// proxiesOf reads the proxies of the monitors, each once. A proxy that no longer exists is nil in
-// the map: the monitor that names it has none.
+// proxiesOf reads the proxies of the monitors, each once, in the workspace of the monitor that
+// names it. A proxy that no longer exists is nil in the map: the monitor that names it has none.
 func (c *Controller) proxiesOf(ctx context.Context, monitors []*monitor.Model) (map[string]*proxy.Model, error) {
 	proxies := make(map[string]*proxy.Model)
 	for _, m := range monitors {
@@ -156,7 +156,7 @@ func (c *Controller) proxiesOf(ctx context.Context, monitors []*monitor.Model) (
 		if _, read := proxies[m.ProxyId]; read {
 			continue
 		}
-		found, err := c.proxies.FindByID(ctx, m.ProxyId)
+		found, err := c.proxies.FindByID(ctx, m.WorkspaceID, m.ProxyId)
 		if err != nil {
 			return nil, err
 		}

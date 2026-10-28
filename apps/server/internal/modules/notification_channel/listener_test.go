@@ -31,6 +31,7 @@ import (
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/stale"
 	"peekaping/internal/modules/tag"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/reporting"
 	"peekaping/internal/reporting/reportingtest"
 
@@ -48,7 +49,17 @@ type fakeChannelService struct {
 	errs     map[string]error
 }
 
-func (s *fakeChannelService) FindByID(_ context.Context, id string) (*Model, error) {
+// FindByID finds a channel of the workspace, as the repository does: one of another workspace is
+// not there
+func (s *fakeChannelService) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	found, err := s.FindByIDAnyWorkspace(ctx, id)
+	if err != nil || found == nil || found.WorkspaceID != workspaceID {
+		return nil, err
+	}
+	return found, nil
+}
+
+func (s *fakeChannelService) FindByIDAnyWorkspace(_ context.Context, id string) (*Model, error) {
 	if err := s.errs[id]; err != nil {
 		return nil, err
 	}
@@ -1410,8 +1421,12 @@ type fakeTagService struct {
 	err  error
 }
 
-func (f *fakeTagService) FindByID(ctx context.Context, id string) (*tag.Model, error) {
-	return f.tags[id], f.err
+func (f *fakeTagService) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*tag.Model, error) {
+	found := f.tags[id]
+	if found != nil && found.WorkspaceID != workspaceID {
+		return nil, f.err
+	}
+	return found, f.err
 }
 
 func newTagTestListener(monitorTags *fakeMonitorTagService, tags *fakeTagService) *NotificationEventListener {
@@ -1472,4 +1487,60 @@ func TestLoadMonitorTags(t *testing.T) {
 
 		assert.Nil(t, m.Tags)
 	})
+}
+
+// A monitor's notifications go only to the channels linked to it, and only to those of its own
+// workspace (docs/adr/0005 sections 2 and 4, AC5)
+func TestListener_AMonitorNotifiesItsOwnLinkedChannelsOnly(t *testing.T) {
+	const first, second = workspace.ID("ws-first"), workspace.ID("ws-second")
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addMonitor("mon-1", "Public API")
+	f.monitors.monitors["mon-1"].WorkspaceID = first
+	linked, unlinked, other := testChannel("linked", "test-slack"), testChannel("unlinked", "test-slack"), testChannel("other", "test-slack")
+	linked.WorkspaceID, unlinked.WorkspaceID, other.WorkspaceID = first, first, second
+	f.attach("mon-1", linked)
+	f.channels.channels["unlinked"] = unlinked // in the same workspace, linked to no monitor
+	f.channels.channels["other"] = other       // in another workspace
+
+	f.publishImportantHeartbeat(downHeartbeat("mon-1"))
+
+	assert.Equal(t, []string{channelConfig("linked")}, slack.sentConfigs())
+}
+
+func TestListener_ALinkToAChannelOfAnotherWorkspaceSendsNothing(t *testing.T) {
+	const first, second = workspace.ID("ws-first"), workspace.ID("ws-second")
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	f.addMonitor("mon-1", "Public API")
+	f.monitors.monitors["mon-1"].WorkspaceID = first
+	mine, theirs := testChannel("mine", "test-slack"), testChannel("theirs", "test-slack")
+	mine.WorkspaceID, theirs.WorkspaceID = first, second
+	f.attach("mon-1", mine)
+	f.attach("mon-1", theirs) // data the API refuses to write, but the sender doesn't trust
+
+	f.publishImportantHeartbeat(downHeartbeat("mon-1"))
+	f.publishCertificateExpiry(certificateExpiry("mon-1"))
+
+	assert.Equal(t, []string{channelConfig("mine"), channelConfig("mine")}, slack.sentConfigs(), "the heartbeat and the certificate, to the monitor's own channel")
+}
+
+// A probe belongs to the install, and an instance admin links it to the channels of a workspace
+// they are in: its notifications reach those, whatever the workspace
+func TestListener_AProbeNotifiesTheChannelsLinkedToItInAnyWorkspace(t *testing.T) {
+	f := newListenerFixture(t)
+	slack := &recordingProvider{}
+	f.addProvider("test-slack", slack)
+	inFirst, inSecond := testChannel("first", "test-slack"), testChannel("second", "test-slack")
+	inFirst.WorkspaceID, inSecond.WorkspaceID = "ws-first", "ws-second"
+	f.attachProbe("probe-1", inFirst)
+	f.attachProbe("probe-1", inSecond)
+	unlinked := testChannel("unlinked", "test-slack")
+	f.channels.channels["unlinked"] = unlinked
+
+	f.publishProbeEvent(probe.ProbeOffline, probeEvent("probe-1"))
+
+	assert.ElementsMatch(t, []string{channelConfig("first"), channelConfig("second")}, slack.sentConfigs())
 }

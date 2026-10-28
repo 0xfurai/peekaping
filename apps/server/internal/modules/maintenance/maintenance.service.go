@@ -8,25 +8,38 @@ import (
 
 	"peekaping/internal/modules/maintenance/utils"
 	"peekaping/internal/modules/monitor_maintenance"
+	"peekaping/internal/modules/workspace"
 )
 
+// Service works on maintenance windows, which belong to a workspace (docs/adr/0005 section 3).
+//
+// A method that serves a workspace's request takes the workspace right after the context, and
+// answers ErrNotFound for a window of another workspace. A window covers only the monitors of its
+// own workspace: a create or update that names a monitor of another workspace, or one that doesn't
+// exist, fails with monitor_maintenance.ErrUnknownMonitor before anything is written. A method
+// whose name ends in AnyWorkspace works across workspaces, for the paths that run for the whole
+// install.
 type Service interface {
-	Create(ctx context.Context, entity *Model, monitorIDs []string) (*Model, error)
-	FindByID(ctx context.Context, id string) (*Model, error)
-	FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*Model, error)
-	UpdateFull(ctx context.Context, id string, entity *Model, monitorIDs []string) (*Model, error)
-	UpdatePartial(ctx context.Context, id string, entity *UpdateModel, monitorIDs []string) (*Model, error)
-	Delete(ctx context.Context, id string) error
+	// Create makes the window in the workspace, whatever workspace the window says
+	Create(ctx context.Context, workspaceID workspace.ID, entity *Model, monitorIDs []string) (*Model, error)
+	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
+	FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string, strategy string) ([]*Model, error)
+	// FindAllAnyWorkspace returns a page of every window of the install, for the usage ping
+	FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error)
+	UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, entity *Model, monitorIDs []string) (*Model, error)
+	UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel, monitorIDs []string) (*Model, error)
+	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
 
-	SetActive(ctx context.Context, id string, active bool) (*Model, error)
+	SetActive(ctx context.Context, workspaceID workspace.ID, id string, active bool) (*Model, error)
 
 	// GetStatus returns whether the maintenance is currently active
 	IsUnderMaintenance(ctx context.Context, maintenance *Model) (bool, error)
 
-	// Get maintenances by monitor ID
-	GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*Model, error)
+	// GetMaintenancesByMonitorIDAnyWorkspace returns the active windows of a monitor. It is for
+	// the checks and the push endpoint, which decide for a monitor whatever its workspace.
+	GetMaintenancesByMonitorIDAnyWorkspace(ctx context.Context, monitorID string) ([]*Model, error)
 
-	// Get monitors for a maintenance
+	// Get monitors for a maintenance. The caller has loaded the window in its workspace first.
 	GetMonitors(ctx context.Context, id string) ([]string, error)
 }
 
@@ -56,7 +69,7 @@ func NewService(
 	}
 }
 
-func (mr *ServiceImpl) Create(ctx context.Context, entity *Model, monitorIDs []string) (*Model, error) {
+func (mr *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, entity *Model, monitorIDs []string) (*Model, error) {
 	// Validate cron and duration
 	if err := mr.validator.ValidateCronAndDuration(&utils.ValidationParams{
 		Cron:     entity.Cron,
@@ -89,8 +102,13 @@ func (mr *ServiceImpl) Create(ctx context.Context, entity *Model, monitorIDs []s
 		mr.logger.Debugf("Calculated duration from start/end times: %d minutes", duration)
 	}
 
+	// Every monitor must be in the workspace, and is checked before the window is written
+	if err := mr.monitorMaintenanceService.RequireMonitors(ctx, workspaceID, monitorIDs); err != nil {
+		return nil, err
+	}
+
 	// Store times directly without timezone conversion
-	created, err := mr.repository.Create(ctx, entity)
+	created, err := mr.repository.Create(ctx, workspaceID, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +124,8 @@ func (mr *ServiceImpl) Create(ctx context.Context, entity *Model, monitorIDs []s
 	return created, nil
 }
 
-func (mr *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) {
-	model, err := mr.repository.FindByID(ctx, id)
+func (mr *ServiceImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	model, err := mr.repository.FindByID(ctx, workspaceID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +133,12 @@ func (mr *ServiceImpl) FindByID(ctx context.Context, id string) (*Model, error) 
 	return model, nil
 }
 
-func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q string, strategy string) ([]*Model, error) {
-	models, err := mr.repository.FindAll(ctx, page, limit, q, strategy)
+func (mr *ServiceImpl) FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
+	return mr.repository.FindAllAnyWorkspace(ctx, page, limit)
+}
+
+func (mr *ServiceImpl) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string, strategy string) ([]*Model, error) {
+	models, err := mr.repository.FindAll(ctx, workspaceID, page, limit, q, strategy)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +146,7 @@ func (mr *ServiceImpl) FindAll(ctx context.Context, page int, limit int, q strin
 	return models, nil
 }
 
-func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Model, monitorIDs []string) (*Model, error) {
+func (mr *ServiceImpl) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, entity *Model, monitorIDs []string) (*Model, error) {
 	// Validate cron and duration
 	if err := mr.validator.ValidateCronAndDuration(&utils.ValidationParams{
 		Cron:     entity.Cron,
@@ -157,8 +179,14 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Model,
 		mr.logger.Debugf("Calculated duration from start/end times: %d minutes", duration)
 	}
 
+	// A window of another workspace is not found, whatever monitors the request names, and every
+	// monitor must be in the workspace, both before anything is written
+	if err := mr.requireWindowAndMonitors(ctx, workspaceID, id, monitorIDs); err != nil {
+		return nil, err
+	}
+
 	// Store times directly without timezone conversion
-	updated, err := mr.repository.UpdateFull(ctx, id, entity)
+	updated, err := mr.repository.UpdateFull(ctx, workspaceID, id, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -174,13 +202,16 @@ func (mr *ServiceImpl) UpdateFull(ctx context.Context, id string, entity *Model,
 	return updated, nil
 }
 
-func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel, monitorIDs []string) (*Model, error) {
+func (mr *ServiceImpl) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel, monitorIDs []string) (*Model, error) {
 	// If strategy is being updated, we might need to regenerate cron expression
 	if entity.Strategy != nil {
 		// Get the current maintenance to merge with partial update
-		current, err := mr.repository.FindByID(ctx, id)
+		current, err := mr.repository.FindByID(ctx, workspaceID, id)
 		if err != nil {
 			return nil, err
+		}
+		if current == nil {
+			return nil, ErrNotFound
 		}
 
 		schedule := &Model{
@@ -223,9 +254,12 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Upd
 	// Calculate duration from StartTime and EndTime if not provided
 	if entity.Duration == nil {
 		// Get current maintenance to merge with partial update
-		current, err := mr.repository.FindByID(ctx, id)
+		current, err := mr.repository.FindByID(ctx, workspaceID, id)
 		if err != nil {
 			return nil, err
+		}
+		if current == nil {
+			return nil, ErrNotFound
 		}
 
 		// Determine start and end times (use provided values or current values)
@@ -259,8 +293,14 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Upd
 		return nil, err
 	}
 
+	// A window of another workspace is not found, whatever monitors the request names, and every
+	// monitor must be in the workspace, both before anything is written
+	if err := mr.requireWindowAndMonitors(ctx, workspaceID, id, monitorIDs); err != nil {
+		return nil, err
+	}
+
 	// Store times directly without timezone conversion
-	updated, err := mr.repository.UpdatePartial(ctx, id, entity)
+	updated, err := mr.repository.UpdatePartial(ctx, workspaceID, id, entity)
 	if err != nil {
 		return nil, err
 	}
@@ -276,12 +316,25 @@ func (mr *ServiceImpl) UpdatePartial(ctx context.Context, id string, entity *Upd
 	return updated, nil
 }
 
-func (mr *ServiceImpl) Delete(ctx context.Context, id string) error {
-	return mr.repository.Delete(ctx, id)
+func (mr *ServiceImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	return mr.repository.Delete(ctx, workspaceID, id)
 }
 
-func (mr *ServiceImpl) SetActive(ctx context.Context, id string, active bool) (*Model, error) {
-	model, err := mr.repository.SetActive(ctx, id, active)
+// requireWindowAndMonitors is ErrNotFound when the window isn't in the workspace, and otherwise
+// the error of the first monitor that isn't in it
+func (mr *ServiceImpl) requireWindowAndMonitors(ctx context.Context, workspaceID workspace.ID, id string, monitorIDs []string) error {
+	found, err := mr.repository.FindByID(ctx, workspaceID, id)
+	if err != nil {
+		return err
+	}
+	if found == nil {
+		return ErrNotFound
+	}
+	return mr.monitorMaintenanceService.RequireMonitors(ctx, workspaceID, monitorIDs)
+}
+
+func (mr *ServiceImpl) SetActive(ctx context.Context, workspaceID workspace.ID, id string, active bool) (*Model, error) {
+	model, err := mr.repository.SetActive(ctx, workspaceID, id, active)
 	if err != nil {
 		return nil, err
 	}
@@ -380,9 +433,9 @@ func (mr *ServiceImpl) generateCronExpression(model *Model) (*string, error) {
 	return mr.cronGenerator.GenerateCronExpression(model.Strategy, params)
 }
 
-// GetMaintenancesByMonitorID returns all active maintenances for a given monitor_id
-func (mr *ServiceImpl) GetMaintenancesByMonitorID(ctx context.Context, monitorID string) ([]*Model, error) {
-	models, err := mr.repository.GetMaintenancesByMonitorID(ctx, monitorID)
+// GetMaintenancesByMonitorIDAnyWorkspace returns all active maintenances for a given monitor_id
+func (mr *ServiceImpl) GetMaintenancesByMonitorIDAnyWorkspace(ctx context.Context, monitorID string) ([]*Model, error) {
+	models, err := mr.repository.GetMaintenancesByMonitorIDAnyWorkspace(ctx, monitorID)
 	if err != nil {
 		return nil, err
 	}
