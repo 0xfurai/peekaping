@@ -59,6 +59,11 @@ func (m *MockMonitorRepository) FindByIDsAnyWorkspace(ctx context.Context, ids [
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
+func (m *MockMonitorRepository) FindWorkspaceIDAnyWorkspace(ctx context.Context, id string) (workspace.ID, bool, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(workspace.ID), args.Bool(1), args.Error(2)
+}
+
 func (m *MockMonitorRepository) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string, active *bool, status *int, tagIds []string) ([]*Model, error) {
 	args := m.Called(ctx, workspaceID, page, limit, q, active, status, tagIds)
 	return args.Get(0).([]*Model), args.Error(1)

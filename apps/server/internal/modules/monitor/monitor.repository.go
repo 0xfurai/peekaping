@@ -21,6 +21,10 @@ type MonitorRepository interface {
 	Create(ctx context.Context, workspaceID workspace.ID, monitor *Model) (*Model, error)
 	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
 	FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error)
+	// FindWorkspaceIDAnyWorkspace returns the workspace the monitor is in, and false when there is
+	// no such monitor. It reads that one column, for the paths that only route by workspace, such
+	// as the websocket. A monitor never changes workspace.
+	FindWorkspaceIDAnyWorkspace(ctx context.Context, id string) (workspace.ID, bool, error)
 	FindByIDs(ctx context.Context, workspaceID workspace.ID, ids []string) ([]*Model, error)
 	FindByIDsAnyWorkspace(ctx context.Context, ids []string) ([]*Model, error)
 	FindAll(
