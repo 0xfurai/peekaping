@@ -21,6 +21,7 @@ var peekapingTables = []string{
 	"monitor_notifications", "monitor_tags", "monitor_maintenances", "monitor_status_pages", "domain_status_page",
 	"monitor_tls_info", "notification_sent_history",
 	"heartbeats", "stat_minutely", "stat_hourly", "stat_daily",
+	"workspaces", "workspace_members",
 }
 
 // A mistyped database name finds no install to copy, and the target is left as it was.

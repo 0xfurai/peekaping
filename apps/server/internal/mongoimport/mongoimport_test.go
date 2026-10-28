@@ -34,6 +34,7 @@ func TestImport(t *testing.T) {
 		t.Log("\n" + report.String())
 
 		t.Run("accounts", func(t *testing.T) { checkAccounts(t, in, db, report) })
+		t.Run("workspace", func(t *testing.T) { checkWorkspace(t, in, db, report) })
 		t.Run("configuration", func(t *testing.T) { checkConfiguration(t, in, db, report) })
 		t.Run("history", func(t *testing.T) { checkHistory(t, in, db, report) })
 	})
@@ -70,6 +71,41 @@ func collectionReport(t *testing.T, report *mongoimport.Report, collection strin
 func assertSameTime(t *testing.T, want, got time.Time, msgAndArgs ...any) {
 	t.Helper()
 	assert.WithinDuration(t, want, got, time.Millisecond, msgAndArgs...)
+}
+
+// The new database is like an upgraded install: one workspace, with every imported user its owner
+// and an instance admin
+func checkWorkspace(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report *mongoimport.Report) {
+	ctx := context.Background()
+
+	var workspaces []struct {
+		ID   string `bun:"id"`
+		Name string `bun:"name"`
+	}
+	require.NoError(t, db.NewSelect().Table("workspaces").Column("id", "name").Scan(ctx, &workspaces))
+	require.Len(t, workspaces, 1)
+	assert.Equal(t, "Default", workspaces[0].Name)
+
+	var users []struct {
+		ID            string `bun:"id"`
+		Role          string `bun:"role"`
+		WorkspaceID   string `bun:"workspace_id"`
+		InstanceAdmin bool   `bun:"instance_admin"`
+	}
+	require.NoError(t, db.NewSelect().TableExpr("users AS u").
+		Join("LEFT JOIN workspace_members AS m ON m.user_id = u.id").
+		ColumnExpr("u.id, u.instance_admin, m.role, m.workspace_id").Scan(ctx, &users))
+	require.Len(t, users, 2, "every imported user, once")
+	for _, u := range users {
+		assert.Equal(t, "owner", u.Role, u.ID)
+		assert.Equal(t, workspaces[0].ID, u.WorkspaceID, u.ID)
+		assert.True(t, u.InstanceAdmin, u.ID)
+	}
+
+	require.NotNil(t, report.Workspace)
+	assert.Equal(t, "Default", report.Workspace.Name)
+	assert.Equal(t, 2, report.Workspace.Owners)
+	assert.Contains(t, report.String(), "workspace Default: made, with 2 users as its owners and instance admins\n")
 }
 
 func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report *mongoimport.Report) {

@@ -51,8 +51,6 @@ func NewService(
 	}
 }
 
-// defaultWorkspaceName is the name of the workspace that the first signup creates
-const defaultWorkspaceName = "Default"
 
 func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
 	count, err := s.repo.FindAllCount(ctx)
@@ -128,7 +126,7 @@ func (s *ServiceImpl) joinFirstWorkspace(ctx context.Context, userID string) err
 		return err
 	}
 	if target == nil {
-		target, err = s.workspaces.Create(ctx, defaultWorkspaceName)
+		target, err = s.workspaces.Create(ctx, workspace.DefaultName)
 		if err != nil {
 			return err
 		}
