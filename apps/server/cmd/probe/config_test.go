@@ -3,8 +3,11 @@ package main
 import (
 	"testing"
 
+	"peekaping/internal/probeclient"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 // loadConfig loads the probe's configuration from env alone: the variables the probe reads that
@@ -230,4 +233,15 @@ func TestConfig_BlockPrivateTargetsIsOffByDefaultAndReadFromTheEnvironment(t *te
 	cfg, err = loadConfig(t, with(minimal(), "BLOCK_PRIVATE_TARGETS", "true"))
 	require.NoError(t, err)
 	assert.True(t, cfg.BlockPrivateTargets)
+}
+
+func TestNewRuntime_PassesBlockPrivateTargetsToTheProbe(t *testing.T) {
+	for _, on := range []bool{true, false} {
+		cfg := &Config{URL: "https://peekaping.example.com", Token: "secret-token", Concurrency: 1, BlockPrivateTargets: on}
+
+		built, err := newRuntime(cfg, zap.NewNop().Sugar())
+
+		require.NoError(t, err)
+		assert.Equal(t, on, built.(*probeclient.Probe).BlocksPrivateTargets())
+	}
 }

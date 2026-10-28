@@ -12,6 +12,8 @@ import (
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/healthcheck/supervisor"
 	"peekaping/internal/modules/scheduler"
+	"peekaping/internal/netguard"
+	"peekaping/internal/probeproto"
 )
 
 const (
@@ -39,6 +41,10 @@ type Config struct {
 	// DefaultFlushTimeout when zero
 	FlushTimeout time.Duration
 	Logger       *zap.SugaredLogger
+	// BlockPrivateTargets is the probe's own BLOCK_PRIVATE_TARGETS: its checks can't reach loopback,
+	// private and link-local addresses. They can't either while the server it connects to blocks
+	// them, which its hello states.
+	BlockPrivateTargets bool
 
 	// Sleep and Now stand in for the probe's waits and clock in tests; see SessionConfig
 	Sleep func(ctx context.Context, d time.Duration) error
@@ -54,6 +60,7 @@ type Config struct {
 // stop.
 type Probe struct {
 	session   *Session
+	guard     *netguard.Guard
 	source    *Source
 	sink      *Sink
 	scheduler *scheduler.Scheduler
@@ -76,7 +83,8 @@ func New(cfg Config) *Probe {
 	if cfg.Logger == nil {
 		cfg.Logger = zap.NewNop().Sugar()
 	}
-	registry := executor.NewExecutorRegistry(cfg.Logger)
+	guard := netguard.New(cfg.BlockPrivateTargets)
+	registry := executor.NewExecutorRegistry(cfg.Logger, executor.WithGuard(guard))
 	executors := NewExecutors(registry)
 
 	session := NewSession(SessionConfig{
@@ -88,6 +96,11 @@ func New(cfg Config) *Probe {
 		Logger:         cfg.Logger,
 		Sleep:          cfg.Sleep,
 		Now:            cfg.Now,
+		// Said at every hello, before the probe gets an assignment: the setting is the probe's own or
+		// the server's, so a server that stops blocking releases a probe that didn't ask to
+		OnWelcome: func(welcome *probeproto.HelloResponse) {
+			guard.Set(cfg.BlockPrivateTargets || welcome.BlockPrivateTargets)
+		},
 	})
 	source := NewSource(session)
 	sink := NewSink(session)
@@ -97,6 +110,7 @@ func New(cfg Config) *Probe {
 	}
 	return &Probe{
 		session: session,
+		guard:   guard,
 		source:  source,
 		sink:    sink,
 		scheduler: scheduler.New(scheduler.Config{
@@ -111,6 +125,10 @@ func New(cfg Config) *Probe {
 		flushTimeout: flushTimeout,
 	}
 }
+
+// BlocksPrivateTargets reports whether the probe's checks are barred from private and internal
+// addresses now: its own setting is on, or the server's was at the last hello
+func (p *Probe) BlocksPrivateTargets() bool { return p.guard.Enabled() }
 
 // InstanceID is the random id this process goes by at the server
 func (p *Probe) InstanceID() string { return p.session.InstanceID() }

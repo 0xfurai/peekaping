@@ -63,6 +63,9 @@ type SessionConfig struct {
 	Sleep func(ctx context.Context, d time.Duration) error
 	// Now is the probe's clock; time.Now when nil
 	Now func() time.Time
+	// OnWelcome, if set, is called with each answer to hello before the session counts as greeted,
+	// so that what the answer states is in force before the probe gets an assignment
+	OnWelcome func(*probeproto.HelloResponse)
 }
 
 // Tunables are the limits the server's hello states, or their defaults before there is one
@@ -87,6 +90,8 @@ type Session struct {
 	logger *zap.SugaredLogger
 	sleep  func(ctx context.Context, d time.Duration) error
 	now    func() time.Time
+	// onWelcome is SessionConfig.OnWelcome
+	onWelcome func(*probeproto.HelloResponse)
 
 	// gate lets one caller say hello at a time. It is a channel so that a caller waiting for
 	// its turn can give up when its context ends.
@@ -120,7 +125,9 @@ func NewSession(cfg SessionConfig) *Session {
 		logger: cfg.Logger.With("component", "probe_session"),
 		sleep:  cfg.Sleep,
 		now:    cfg.Now,
-		gate:   make(chan struct{}, 1),
+
+		onWelcome: cfg.OnWelcome,
+		gate:      make(chan struct{}, 1),
 	}
 	if s.sleep == nil {
 		s.sleep = sleepFor
@@ -248,6 +255,9 @@ func (s *Session) lose() {
 // greet takes the server's answer to hello, logs who the probe is connected as, and warns when the
 // server's clock is not the probe's
 func (s *Session) greet(welcome *probeproto.HelloResponse) {
+	if s.onWelcome != nil {
+		s.onWelcome(welcome)
+	}
 	s.mu.Lock()
 	s.welcome = welcome
 	s.greeted = true

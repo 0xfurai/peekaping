@@ -267,3 +267,30 @@ func TestTypes_WireFormat(t *testing.T) {
 	assert.Equal(t, "/probe/v1", probeproto.PathPrefix)
 	assert.Equal(t, "X-Probe-Instance", probeproto.HeaderInstanceID)
 }
+
+// A hello answer from a server that predates BLOCK_PRIVATE_TARGETS has no such field, and the
+// protocol version is the same: the probe reads it as off. A server that blocks states it, and a
+// probe built before the field ignores it.
+func TestClient_HelloReadsWhetherTheServerBlocksPrivateTargets(t *testing.T) {
+	tests := []struct {
+		name, body string
+		want       bool
+	}{
+		{"an older server's answer", `{"protocol_version":1,"server_version":"0.0.47","poll_timeout_ms":25000}`, false},
+		{"a server that blocks", `{"protocol_version":1,"server_version":"0.1.0","block_private_targets":true}`, true},
+		{"a server that says it does not", `{"protocol_version":1,"server_version":"0.1.0","block_private_targets":false}`, false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			client := newClient(t, func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = io.WriteString(w, tc.body)
+			})
+
+			got, err := client.Hello(context.Background(), &probeproto.HelloRequest{})
+
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, got.BlockPrivateTargets)
+		})
+	}
+}

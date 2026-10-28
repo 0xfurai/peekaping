@@ -64,6 +64,11 @@ type HelloResponse struct {
 	FlushIntervalMs int       `json:"flush_interval_ms"`
 	BatchMax        int       `json:"batch_max"`
 	BufferMax       int       `json:"buffer_max"`
+	// BlockPrivateTargets is true when the server blocks private and internal addresses
+	// (BLOCK_PRIVATE_TARGETS), which the probe then blocks too. A server that doesn't leaves it out,
+	// and so did every server before it existed: an absent field is off, and a probe that doesn't
+	// know it ignores it, so the protocol version stays the same.
+	BlockPrivateTargets bool `json:"block_private_targets,omitempty"`
 }
 
 type Proxy struct {

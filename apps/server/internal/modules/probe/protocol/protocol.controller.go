@@ -15,6 +15,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/probe"
 	"peekaping/internal/modules/proxy"
+	"peekaping/internal/netguard"
 	"peekaping/internal/probeproto"
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
@@ -44,6 +45,7 @@ type Controller struct {
 	waker       *Waker
 	bus         events.EventBus
 	timing      Timing
+	guard       *netguard.Guard
 	accepted    Window
 	// storeSlots limits the monitors all the results requests store at the same time
 	storeSlots chan struct{}
@@ -67,6 +69,9 @@ type ControllerParams struct {
 	Waker  *Waker
 	Bus    events.EventBus
 	Timing Timing
+	// Guard says whether the server blocks private targets, which hello tells the probe. A
+	// container that has none blocks nothing.
+	Guard  *netguard.Guard `optional:"true"`
 	Logger *zap.SugaredLogger
 }
 
@@ -89,6 +94,7 @@ func NewController(p ControllerParams) *Controller {
 		waker:       p.Waker,
 		bus:         p.Bus,
 		timing:      timing,
+		guard:       p.Guard,
 		accepted:    window,
 		storeSlots:  make(chan struct{}, StoreConcurrencyTotal),
 		now:         time.Now,
@@ -213,6 +219,8 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		FlushIntervalMs: int(FlushInterval / time.Millisecond),
 		BatchMax:        BatchMax,
 		BufferMax:       BufferMax,
+
+		BlockPrivateTargets: c.guard.Enabled(),
 	})
 }
 

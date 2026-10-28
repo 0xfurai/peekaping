@@ -156,3 +156,24 @@ func TestBlockPrivateTargets_OffEverythingSaves(t *testing.T) {
 	decode[created](t, a.request(t, http.MethodPut, "/api/v1/proxies/"+proxyID, proxyBody("10.0.0.1"), a.asAdmin), http.StatusOK)
 	decode[created](t, a.request(t, http.MethodPatch, "/api/v1/proxies/"+proxyID, map[string]any{"host": "::1"}, a.asAdmin), http.StatusOK)
 }
+
+// AC5, the server's side: hello tells a probe whether the server it connects to blocks private
+// targets, so that the probe blocks them too. A server that doesn't leaves the field out, as every
+// server did before.
+func TestBlockPrivateTargets_HelloStatesTheServersSetting(t *testing.T) {
+	for _, on := range []bool{true, false} {
+		a := newAppWithAdmin(t, withBlockPrivateTargets(on))
+		remote := a.createProbe(t, map[string]any{"name": "Frankfurt", "location": "eu-central"})
+
+		w := a.request(t, http.MethodPost, helloPath, helloFrom("instance-1"), asProbe(remote.Token, "instance-1"))
+
+		require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+		var raw map[string]any
+		require.NoError(t, json.Unmarshal(w.Body.Bytes(), &raw))
+		if on {
+			assert.Equal(t, true, raw["block_private_targets"])
+		} else {
+			assert.NotContains(t, raw, "block_private_targets", "a server that doesn't block says nothing, as before")
+		}
+	}
+}
