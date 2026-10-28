@@ -344,3 +344,84 @@ func TestStatusPageService_APageOfAnotherWorkspaceIsNotFound(t *testing.T) {
 	require.NotNil(t, found)
 	assert.Equal(t, "Theirs", found.Title)
 }
+
+func TestStatusPageService_RejectsASlugAnotherPageHolds(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	workspacetest.Add(t, h.db, workspacetest.Other, "Other")
+	h.create(t, status_page.CreateStatusPageDTO{Slug: "public"})
+	_, err := h.svc.Create(ctx, workspacetest.Other, &status_page.CreateStatusPageDTO{Slug: "theirs", Title: "Theirs"})
+	require.NoError(t, err)
+	mine := h.create(t, status_page.CreateStatusPageDTO{Slug: "mine"})
+	var used *status_page.SlugAlreadyUsedError
+
+	for name, create := range map[string]workspace.ID{"the same workspace's": h.ws, "another workspace's": workspacetest.Other} {
+		t.Run("create naming "+name+" page's slug", func(t *testing.T) {
+			slug := "public"
+			if create == workspacetest.Other {
+				slug = "mine"
+			}
+			_, err := h.svc.Create(ctx, create, &status_page.CreateStatusPageDTO{Slug: slug, Title: "Copy"})
+			require.ErrorAs(t, err, &used)
+			assert.Equal(t, "SLUG_EXISTS", used.Code)
+			assert.Equal(t, slug, used.Slug)
+		})
+	}
+
+	_, err = h.svc.Update(ctx, h.ws, mine.ID, &status_page.UpdateStatusPageDTO{Slug: ptr("public")})
+	require.ErrorAs(t, err, &used)
+	assert.Equal(t, "SLUG_EXISTS", used.Code)
+	_, err = h.svc.Update(ctx, h.ws, mine.ID, &status_page.UpdateStatusPageDTO{Slug: ptr("theirs"), Title: ptr("Renamed")})
+	require.ErrorAs(t, err, &used, "a slug of another workspace's page is taken too")
+	kept, err := h.svc.FindByID(ctx, h.ws, mine.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "mine", kept.Slug)
+	assert.NotEqual(t, "Renamed", kept.Title, "a refused update changes nothing")
+
+	_, err = h.svc.Update(ctx, h.ws, mine.ID, &status_page.UpdateStatusPageDTO{Slug: ptr("mine"), Title: ptr("Same slug")})
+	require.NoError(t, err, "a page can keep its own slug")
+}
+
+// racingSlugs is a repository whose slug check finds nothing, as when another page takes the slug
+// between the check and the write: it is stored just after the check
+type racingSlugs struct {
+	status_page.Repository
+	take func()
+}
+
+func (r racingSlugs) FindBySlugAnyWorkspace(ctx context.Context, slug string) (*status_page.Model, error) {
+	found, err := r.Repository.FindBySlugAnyWorkspace(ctx, slug)
+	r.take()
+	return found, err
+}
+
+// Two pages racing for one slug: the database lets one in, and the other is told the slug is
+// taken, as when the check found it
+func TestStatusPageService_APageThatLosesARaceForASlugIsToldItIsTaken(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
+	// racingFor is a service whose first slug check is followed by another page taking the slug
+	racingFor := func(slug string) status_page.Service {
+		taken := false
+		return status_page.NewService(racingSlugs{status_page.NewSQLRepository(h.db), func() {
+			if !taken {
+				taken = true
+				workspacetest.InsertStatusPage(t, h.db, uuid.NewString(), slug)
+			}
+		}}, nil, h.monitors, h.domains, zap.NewNop().Sugar())
+	}
+	var used *status_page.SlugAlreadyUsedError
+
+	_, err := racingFor("contested").Create(ctx, h.ws, &status_page.CreateStatusPageDTO{Slug: "contested", Title: "Late"})
+	require.ErrorAs(t, err, &used)
+	assert.Equal(t, "SLUG_EXISTS", used.Code)
+	assert.Equal(t, "contested", used.Slug)
+
+	other := h.create(t, status_page.CreateStatusPageDTO{Slug: "other"})
+	_, err = racingFor("contested-2").Update(ctx, h.ws, other.ID, &status_page.UpdateStatusPageDTO{Slug: ptr("contested-2")})
+	require.ErrorAs(t, err, &used)
+	assert.Equal(t, "contested-2", used.Slug)
+	kept, err := h.svc.FindByID(ctx, h.ws, other.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "other", kept.Slug)
+}

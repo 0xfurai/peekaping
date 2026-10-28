@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/monitor_status_page"
@@ -86,6 +87,47 @@ func domainAlreadyUsedError(domain string) *DomainAlreadyUsedError {
 	}
 }
 
+// SlugAlreadyUsedError represents a validation error when a slug is already held by another status
+// page. Slugs are unique across the install, so the page may be in any workspace, and the error
+// says nothing about it.
+type SlugAlreadyUsedError struct {
+	Code string `json:"code"`
+	Slug string `json:"slug"`
+}
+
+func (e *SlugAlreadyUsedError) Error() string {
+	return fmt.Sprintf(`{"code":"%s", "slug":"%s"}`, e.Code, e.Slug)
+}
+
+func slugAlreadyUsedError(slug string) *SlugAlreadyUsedError {
+	return &SlugAlreadyUsedError{
+		Code: "SLUG_EXISTS",
+		Slug: slug,
+	}
+}
+
+// validateSlug ensures that no other status page, in any workspace, holds the slug. The page
+// itself, when it has an ID, may keep its own.
+func (s *ServiceImpl) validateSlug(ctx context.Context, statusPageID, slug string) error {
+	existing, err := s.repository.FindBySlugAnyWorkspace(ctx, slug)
+	if err != nil {
+		return err
+	}
+	if existing != nil && existing.ID != statusPageID {
+		return slugAlreadyUsedError(slug)
+	}
+	return nil
+}
+
+// slugWriteError is the error of a write of a slug: a slug that another page took since the check
+// is reported as the check reports it.
+func slugWriteError(err error, slug string) error {
+	if dbtx.IsUniqueViolation(err) {
+		return slugAlreadyUsedError(slug)
+	}
+	return err
+}
+
 // normalizedDomains is the domains as they are stored: lower-case, trimmed, and each once.
 // A domain that is empty once trimmed is no domain.
 func normalizedDomains(domains []string) []string {
@@ -134,6 +176,12 @@ func (s *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, dto 
 		return nil, err
 	}
 
+	// The slug is checked before the page is written, and again by the database if another page
+	// takes it in between
+	if err := s.validateSlug(ctx, "", dto.Slug); err != nil {
+		return nil, err
+	}
+
 	// Pre-validate domain uniqueness before creating the status page to avoid
 	// partial creation without domains.
 	domains := normalizedDomains(dto.Domains)
@@ -157,7 +205,7 @@ func (s *ServiceImpl) Create(ctx context.Context, workspaceID workspace.ID, dto 
 
 	created, err := s.repository.Create(ctx, workspaceID, model)
 	if err != nil {
-		return nil, err
+		return nil, slugWriteError(err, dto.Slug)
 	}
 
 	// Add monitors if provided
@@ -300,6 +348,12 @@ func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id s
 		}
 	}
 
+	if dto.Slug != nil {
+		if err := s.validateSlug(ctx, id, *dto.Slug); err != nil {
+			return nil, err
+		}
+	}
+
 	updateModel := &UpdateModel{
 		Slug:                dto.Slug,
 		Title:               dto.Title,
@@ -314,6 +368,9 @@ func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id s
 
 	err = s.repository.Update(ctx, workspaceID, id, updateModel)
 	if err != nil {
+		if dto.Slug != nil {
+			err = slugWriteError(err, *dto.Slug)
+		}
 		return nil, err
 	}
 

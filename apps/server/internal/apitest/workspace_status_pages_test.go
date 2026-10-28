@@ -31,8 +31,7 @@ type slugOrDomainCase struct {
 	name   string
 	create map[string]any
 	update map[string]any
-	// refusal is what the refusal says, and status the code it has, when the test pins them: the
-	// answer for a slug is whatever it was before workspaces, which is not the test's business
+	// refusal is what the refusal says, and status the code it has
 	refusal string
 	status  int
 }
@@ -203,9 +202,10 @@ func TestStatusPageWorkspaces_ASlugOrDomainAnotherWorkspaceHoldsIsTaken(t *testi
 	}
 	for _, c := range []slugOrDomainCase{
 		{
-			name:   "slug",
-			create: map[string]any{"slug": "alices-shop", "title": "Copy"},
-			update: map[string]any{"slug": "alices-shop"},
+			name:    "slug",
+			create:  map[string]any{"slug": "alices-shop", "title": "Copy"},
+			update:  map[string]any{"slug": "alices-shop"},
+			refusal: `"code":"SLUG_EXISTS"`, status: http.StatusBadRequest,
 		},
 		{
 			name:    "domain",
@@ -221,7 +221,7 @@ func TestStatusPageWorkspaces_ASlugOrDomainAnotherWorkspaceHoldsIsTaken(t *testi
 			assert.GreaterOrEqual(t, same.Code, http.StatusBadRequest, "it is refused: "+same.Body.String())
 			c.check(t, same)
 			assert.Equal(t, same.Code, cross.Code, cross.Body.String())
-			assert.JSONEq(t, same.Body.String(), cross.Body.String(), "today's answer")
+			assert.JSONEq(t, same.Body.String(), cross.Body.String(), "the same answer")
 			assert.NotContains(t, cross.Body.String(), "Alice", "and nothing of the page that holds it")
 			assert.Len(t, idsOfList(t, a.request(t, http.MethodGet, statusPagesPath, nil, bob)), bobsCount, "no page is stored")
 		})
@@ -232,7 +232,7 @@ func TestStatusPageWorkspaces_ASlugOrDomainAnotherWorkspaceHoldsIsTaken(t *testi
 			assert.GreaterOrEqual(t, same.Code, http.StatusBadRequest, "it is refused: "+same.Body.String())
 			c.check(t, same)
 			assert.Equal(t, same.Code, cross.Code, cross.Body.String())
-			assert.JSONEq(t, same.Body.String(), cross.Body.String(), "today's answer")
+			assert.JSONEq(t, same.Body.String(), cross.Body.String(), "the same answer")
 			assert.NotContains(t, cross.Body.String(), "Alice")
 			if c.name == "domain" {
 				assert.JSONEq(t, bobsBefore, a.request(t, http.MethodGet, bobsPath, nil, bob).Body.String(), "Bob's page keeps its domains")
