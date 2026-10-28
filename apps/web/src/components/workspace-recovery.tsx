@@ -14,7 +14,7 @@ export function WorkspaceRecovery() {
 
   useEffect(() => {
     const recover = recoverFromMissingWorkspace(queryClient, navigate);
-    setWorkspaceNotFoundHandler(() => void recover());
+    setWorkspaceNotFoundHandler((failedWorkspaceId) => void recover(failedWorkspaceId));
     return () => setWorkspaceNotFoundHandler(null);
   }, [queryClient, navigate]);
 

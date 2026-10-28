@@ -8,11 +8,12 @@ import { recoverFromMissingWorkspace, setWorkspaceNotFoundHandler } from "./work
 
 const CURRENT = "0b9c2f5e-6c1a-4d5e-9a57-3f1d2c4b8a10";
 const DEFAULT = "7f3e1a90-2b44-4c6d-8e15-a9d0c5b7e321";
+const OTHER = "c4a8d2e6-91b3-4f07-a5c2-6e8b0d3f1a49";
 
 type Me = { workspaces: { id: string; name: string; role: string }[]; defaultWorkspaceId: string | null };
 
 // Answers /me with the given body and counts how often it is asked; answers anything else 404 "Workspace not found"
-const serve = (me: Me) => {
+const serve = (me: Me, onMe?: () => void) => {
   const asked = { me: 0 };
   client.instance.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
     const respond = (status: number, data: unknown) => {
@@ -22,6 +23,7 @@ const serve = (me: Me) => {
     };
     if (config.url === "/api/v1/me") {
       asked.me++;
+      onMe?.();
       return respond(200, { data: { user: { id: "u1", email: "a@b.c", instanceAdmin: false }, ...me } });
     }
     return respond(404, { message: "Workspace not found", data: null });
@@ -48,7 +50,7 @@ describe("recoverFromMissingWorkspace", () => {
     const navigate = vi.fn();
     const recover = recoverFromMissingWorkspace(queryClient, navigate);
 
-    await Promise.all([recover(), recover(), recover()]);
+    await Promise.all([recover(CURRENT), recover(CURRENT), recover(CURRENT)]);
 
     expect(asked.me).toBe(1);
     expect(navigate).toHaveBeenCalledTimes(1);
@@ -65,7 +67,7 @@ describe("recoverFromMissingWorkspace", () => {
     });
     const navigate = vi.fn();
 
-    await recoverFromMissingWorkspace(new QueryClient(), navigate)();
+    await recoverFromMissingWorkspace(new QueryClient(), navigate)(DEFAULT);
 
     expect(asked.me).toBe(1);
     expect(navigate).not.toHaveBeenCalled();
@@ -76,11 +78,58 @@ describe("recoverFromMissingWorkspace", () => {
     const queryClient = new QueryClient();
     const navigate = vi.fn();
 
-    await recoverFromMissingWorkspace(queryClient, navigate)();
+    await recoverFromMissingWorkspace(queryClient, navigate)(CURRENT);
 
     expect(asked.me).toBe(1);
     expect(navigate).not.toHaveBeenCalled();
     expect(queryClient.getQueryData<{ data: Me }>(getMeQueryKey())?.data.workspaces).toEqual([]);
+  });
+
+  it("leaves the page alone when the user switched to another workspace before the failed request's answer came", async () => {
+    at(`/w/${OTHER}/monitors`);
+    const asked = serve({
+      workspaces: [
+        { id: DEFAULT, name: "Main", role: "owner" },
+        { id: OTHER, name: "Other", role: "owner" },
+      ],
+      defaultWorkspaceId: DEFAULT,
+    });
+    const navigate = vi.fn();
+
+    // The request that failed was sent from CURRENT
+    await recoverFromMissingWorkspace(new QueryClient(), navigate)(CURRENT);
+
+    expect(asked.me).toBe(0);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("leaves the page alone when the user switched away while /me was being refetched", async () => {
+    const asked = serve(
+      {
+        workspaces: [
+          { id: DEFAULT, name: "Main", role: "owner" },
+          { id: OTHER, name: "Other", role: "owner" },
+        ],
+        defaultWorkspaceId: DEFAULT,
+      },
+      () => at(`/w/${OTHER}/monitors`)
+    );
+    const navigate = vi.fn();
+
+    await recoverFromMissingWorkspace(new QueryClient(), navigate)(CURRENT);
+
+    expect(asked.me).toBe(1);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("does nothing for an answer to a request that named no workspace", async () => {
+    const asked = serve({ workspaces: [], defaultWorkspaceId: DEFAULT });
+    const navigate = vi.fn();
+
+    await recoverFromMissingWorkspace(new QueryClient(), navigate)(null);
+
+    expect(asked.me).toBe(0);
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it("recovers again for a later answer", async () => {
@@ -90,8 +139,8 @@ describe("recoverFromMissingWorkspace", () => {
     });
     const recover = recoverFromMissingWorkspace(new QueryClient(), vi.fn());
 
-    await recover();
-    await recover();
+    await recover(CURRENT);
+    await recover(CURRENT);
 
     expect(asked.me).toBe(2);
   });
@@ -116,6 +165,8 @@ describe("the response interceptor", () => {
     await expect(client.get({ url: "/api/v1/monitors", throwOnError: true })).rejects.toBeDefined();
 
     expect(handler).toHaveBeenCalledTimes(1);
+    // With the workspace the failed request named, which the page may have left by the time it fails
+    expect(handler).toHaveBeenCalledWith(CURRENT);
   });
 
   it("ignores any other 404", async () => {
