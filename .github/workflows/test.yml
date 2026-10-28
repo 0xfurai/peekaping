@@ -39,6 +39,24 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
+    # Each test creates a schema or database of its own, so they share this one server
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
+
     steps:
       - uses: actions/checkout@v4
 
@@ -104,11 +122,20 @@ jobs:
         working-directory: apps/server
         run: |
           pwd
+          # A failing go test must fail the step: without pipefail, the exit status of the
+          # pipeline would be tee's
+          set -o pipefail
           # -coverpkg credits code that tests in other packages reach, such as
           # the controllers internal/apitest drives through the router. The timeout
           # is per package: internal/apitest runs its tests one at a time, and with
           # coverage it takes about two minutes on its own
-          go test -timeout 300s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/...
+          go test -timeout 300s -v -coverprofile=coverage.txt -coverpkg=./internal/... ./internal/... ./cmd/... | tee server-test.log
+          # Every PostgreSQL subtest skips with this message when the variable is unset, which
+          # would leave this job green without running them
+          if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
+            echo 'A PostgreSQL test skipped: PEE_TEST_POSTGRES_DSN is not set'
+            exit 1
+          fi
 
       # The slim probe leaves out the executors of five monitor types (Dockerfile.probe, GO_TAGS=slim)
       - name: Run slim probe tests
@@ -128,6 +155,23 @@ jobs:
   race:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+
+    # The same PostgreSQL as the test job, so its subtests run under the race detector too
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
 
     steps:
       - uses: actions/checkout@v4
