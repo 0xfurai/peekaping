@@ -68,8 +68,8 @@ func cleanupHeartbeats(heartbeatService heartbeat.Service, workspaces workspace.
 // cleanupProbeStatusChanges deletes the probes' status changes past the longest data retention
 // period of the workspaces, except each probe's latest one before it, so that the status of a probe
 // at the start of any range is still known. Probes belong to the install, so no one workspace's
-// period decides. A workspace whose period can't be used doesn't count; one with none stored counts
-// as 365 days.
+// period decides. One with none stored counts as 365 days. If any workspace's period can't be used,
+// the run deletes nothing: that period might be the longest, so no cutoff is a safe guess.
 func cleanupProbeStatusChanges(probeService probe.Service, workspaces workspace.Repository, workspaceSettings setting.WorkspaceService, logger *zap.SugaredLogger) {
 	ctx := context.Background()
 	ids, err := workspaces.ListIDsAnyWorkspace(ctx)
@@ -78,14 +78,16 @@ func cleanupProbeStatusChanges(probeService probe.Service, workspaces workspace.
 		return
 	}
 	var cutoff time.Time
-	found := false
-	for _, id := range ids {
+	for i, id := range ids {
 		workspaceCut, ok := workspaceCutoff(ctx, workspaceSettings, id, "probe status changes", logger)
-		if ok && (!found || workspaceCut.Before(cutoff)) {
-			cutoff, found = workspaceCut, true
+		if !ok {
+			return
+		}
+		if i == 0 || workspaceCut.Before(cutoff) {
+			cutoff = workspaceCut
 		}
 	}
-	if !found {
+	if len(ids) == 0 {
 		return
 	}
 	deleted, err := probeService.DeleteStatusChangesOlderThan(ctx, cutoff)

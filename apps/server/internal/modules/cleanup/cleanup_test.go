@@ -266,14 +266,42 @@ func TestCleanupProbeStatusChangesFollowsTheLongestPeriodOfTheWorkspaces(t *test
 	other := workspace.ID(uuid.NewString())
 	workspacetest.Add(t, in.db, other, "Other")
 	in.storePeriod(t, other, "100")
-	broken := workspace.ID(uuid.NewString())
-	workspacetest.Add(t, in.db, broken, "Broken")
-	in.storePeriod(t, broken, "abc")
 	probeID := in.probeHistory(t, "Busy", 200, 150, 120, 60, 10)
 
 	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, zap.NewNop().Sugar())
 
-	assert.Equal(t, []string{"online 120d", "offline 60d", "online 10d"}, in.probeHistoryLeft(t, probeID), "the 100 day period of the second workspace decides; the broken one is ignored")
+	assert.Equal(t, []string{"online 120d", "offline 60d", "online 10d"}, in.probeHistoryLeft(t, probeID), "the 100 day period of the second workspace decides")
+}
+
+// A period that can't be used might be the longest one, so no cutoff is a safe guess: the run
+// deletes nothing and the next one tries again.
+func TestCleanupProbeStatusChangesDeletesNothingWhenAnyWorkspacesPeriodIsUnusable(t *testing.T) {
+	in := newInstall(t)
+	in.storePeriod(t, in.workspaceID(t), "30")
+	broken := workspace.ID(uuid.NewString())
+	workspacetest.Add(t, in.db, broken, "Broken")
+	in.storePeriod(t, broken, "abc")
+	probeID := in.probeHistory(t, "Busy", 200, 150, 120, 60, 10)
+	core, logs := observer.New(zap.InfoLevel)
+
+	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, zap.New(core).Sugar())
+
+	assert.Len(t, in.probeHistoryLeft(t, probeID), 5)
+	assert.NotEmpty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
+	assert.Empty(t, logs.FilterMessage("Deleted old probe status changes").All())
+}
+
+func TestCleanupProbeStatusChangesDeletesNothingWhenAWorkspacesPeriodCantBeRead(t *testing.T) {
+	in := newInstall(t)
+	in.storePeriod(t, in.workspaceID(t), "30")
+	other := workspace.ID(uuid.NewString())
+	workspacetest.Add(t, in.db, other, "Other")
+	in.storePeriod(t, other, "100")
+	probeID := in.probeHistory(t, "Busy", 200, 150, 120, 60, 10)
+
+	cleanupProbeStatusChanges(in.probes, in.workspaces, unreadableSettings{in.workspaceSettings}, zap.NewNop().Sugar())
+
+	assert.Len(t, in.probeHistoryLeft(t, probeID), 5)
 }
 
 // expiringStats is a stats service whose DeleteExpired returns fixed results.
