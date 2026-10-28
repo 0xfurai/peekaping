@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacetest"
 	"testing"
 	"time"
@@ -112,5 +113,54 @@ func TestRegisterSingle_TheSchedulerChecksAMonitorWhoseTimeoutIsAboveEightyPerce
 			time.Sleep(20 * time.Millisecond)
 		}
 		assert.Equal(t, shared.MonitorStatusDown, latest[0].Status)
+	}))
+}
+
+// The scheduler checks the monitors of every workspace: a probe belongs to the install, not to a
+// workspace, and each check is stored for the monitor that was checked, whose status follows
+func TestRegisterSingle_TheSchedulerChecksTheMonitorsOfEveryWorkspace(t *testing.T) {
+	container := dig.New()
+	cfg := singleConfig(t)
+	cfg.CheckConcurrency = 4
+	require.NoError(t, RegisterSingle(container, cfg))
+
+	require.NoError(t, container.Invoke(func(
+		s *scheduler.Scheduler,
+		monitors monitor.Service,
+		listener *monitor.MonitorEventListener,
+		heartbeats heartbeat.Service,
+		bus events.EventBus,
+		db *bun.DB,
+	) {
+		closeEventBus(t, bus)
+		closeDB(t, db)
+		require.NoError(t, migrateDB(db))
+		workspacetest.Add(t, db, workspacetest.Other, "Other")
+		listener.Subscribe(bus) // as cmd/peekaping does: it stores a status change on the monitor
+
+		ctx := context.Background()
+		require.NoError(t, s.Start(ctx))
+		t.Cleanup(s.Stop)
+
+		create := func(workspaceID workspace.ID, name string) *monitor.Model {
+			mon, err := monitors.Create(ctx, workspaceID, &monitor.CreateUpdateDto{
+				Type: "push", Name: name, Interval: 60, Timeout: 16, Active: true,
+				Config: `{"pushToken":"` + name + `-token"}`, PushToken: name + "-token",
+			})
+			require.NoError(t, err)
+			return mon
+		}
+		first, second := create(workspacetest.ID, "First"), create(workspacetest.Other, "Second")
+
+		for _, mon := range []*monitor.Model{first, second} {
+			require.Eventually(t, func() bool {
+				latest, err := heartbeats.FindByMonitorIDPaginated(ctx, mon.ID, 1, 0, nil, false)
+				return err == nil && len(latest) == 1 && latest[0].Status == shared.MonitorStatusDown
+			}, 5*time.Second, 20*time.Millisecond, "the check of %s is stored as a heartbeat of that monitor", mon.Name)
+			require.Eventually(t, func() bool {
+				stored, err := monitors.FindByIDAnyWorkspace(ctx, mon.ID)
+				return err == nil && stored != nil && stored.Status == shared.MonitorStatusDown
+			}, 5*time.Second, 20*time.Millisecond, "and the status of %s follows", mon.Name)
+		}
 	}))
 }

@@ -123,6 +123,17 @@ func checkConfiguration(t *testing.T, in *mongoimporttest.Install, db *bun.DB, r
 		require.NotNil(t, nightly)
 		assert.Equal(t, uuidOf(t, in.ID("monitor", "nightly")), nightly.ID)
 
+		// Every imported monitor is in the one workspace the import made
+		var workspaces int
+		require.NoError(t, db.NewSelect().Table("workspaces").ColumnExpr("COUNT(*)").Scan(ctx, &workspaces))
+		assert.Equal(t, 1, workspaces)
+		var inImported, total int
+		require.NoError(t, db.NewSelect().Table("monitors").ColumnExpr("COUNT(*)").Where("workspace_id = ?", string(imported)).Scan(ctx, &inImported))
+		require.NoError(t, db.NewSelect().Table("monitors").ColumnExpr("COUNT(*)").Scan(ctx, &total))
+		assert.Equal(t, 5, total)
+		assert.Equal(t, total, inImported, "in the workspace of the import")
+		assert.Equal(t, imported, checkout.WorkspaceID)
+
 		r := collectionReport(t, report, "monitor")
 		assert.Equal(t, "monitors", r.Table)
 		assert.Equal(t, 5, r.Read)
