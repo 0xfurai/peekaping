@@ -25,6 +25,7 @@ import (
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/migrate"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // recordingNotificationService stands in for the notification channels. It
@@ -49,17 +50,7 @@ type harness struct {
 	db            *bun.DB
 	workspaceID   workspace.ID
 	monitorID     string
-}
-
-// dbMonitors finds the monitors the harness stored, as the monitor service does
-type dbMonitors struct{ db *bun.DB }
-
-func (m dbMonitors) FindByIDAnyWorkspace(ctx context.Context, id string) (*shared.Monitor, error) {
-	var workspaceID string
-	if err := m.db.NewSelect().Table("monitors").Column("workspace_id").Where("id = ?", id).Scan(ctx, &workspaceID); err != nil {
-		return nil, err
-	}
-	return &shared.Monitor{ID: id, WorkspaceID: workspace.ID(workspaceID)}, nil
+	logs          *observer.ObservedLogs
 }
 
 // addMonitorIn stores a monitor in a new workspace and returns the workspace and the monitor
@@ -78,6 +69,10 @@ func newHarness(t *testing.T) *harness {
 	ctx := context.Background()
 	sqlDB, err := sql.Open(sqliteshim.ShimName, filepath.Join(t.TempDir(), "certificate.db"))
 	require.NoError(t, err)
+	// As the server opens SQLite: the foreign keys hold, on the one connection this sets them on
+	sqlDB.SetMaxOpenConns(1)
+	_, err = sqlDB.Exec("PRAGMA foreign_keys = ON")
+	require.NoError(t, err)
 	db := bun.NewDB(sqlDB, sqlitedialect.New())
 	t.Cleanup(func() { require.NoError(t, db.Close()) })
 	migrator := migrate.NewMigrator(db, migrations.Migrations)
@@ -89,12 +84,12 @@ func newHarness(t *testing.T) *harness {
 	_, err = db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, (SELECT id FROM workspaces ORDER BY created_at, id LIMIT 1), 'http', 'Monitor', 60, 10, 1, 10, 0)`, monitorID)
 	require.NoError(t, err)
 
-	logger := zap.NewNop().Sugar()
+	core, logs := observer.New(zap.DebugLevel)
+	logger := zap.New(core).Sugar()
 	settings := setting.NewWorkspaceService(setting.NewSQLWorkspaceRepository(db))
 	notifications := &recordingNotificationService{}
 	svc := certificate.NewService(
 		settings,
-		dbMonitors{db},
 		notifications,
 		notification_sent_history.NewService(notification_sent_history.NewSQLRepository(db), logger),
 		monitor_tls_info.NewService(monitor_tls_info.NewSQLRepository(db), logger),
@@ -102,7 +97,7 @@ func newHarness(t *testing.T) *harness {
 	)
 	var workspaceID string
 	require.NoError(t, db.NewSelect().Table("monitors").Column("workspace_id").Where("id = ?", monitorID).Scan(ctx, &workspaceID))
-	return &harness{svc, notifications, settings, db, workspace.ID(workspaceID), monitorID}
+	return &harness{svc, notifications, settings, db, workspace.ID(workspaceID), monitorID, logs}
 }
 
 // check does what the ingester does after a TLS check: store the TLS info,
@@ -125,7 +120,7 @@ func (h *harness) checkValidTo(t *testing.T, fingerprint string, daysRemaining i
 	}}
 	before := len(h.notifications.targets)
 	require.NoError(t, h.svc.UpdateTLSInfo(ctx, h.monitorID, tlsInfo))
-	require.NoError(t, h.svc.CheckCertificateExpiry(ctx, tlsInfo, h.monitorID, "Monitor"))
+	require.NoError(t, h.svc.CheckCertificateExpiry(ctx, h.workspaceID, tlsInfo, h.monitorID, "Monitor"))
 	return h.notifications.targets[before:]
 }
 
@@ -215,12 +210,13 @@ func TestCheckCertificateExpiry_IgnoresMissingCertificateInfo(t *testing.T) {
 	h := newHarness(t)
 	ctx := context.Background()
 
-	require.NoError(t, h.svc.CheckCertificateExpiry(ctx, nil, h.monitorID, "Monitor"))
-	require.NoError(t, h.svc.CheckCertificateExpiry(ctx, &certificate.TLSInfo{Valid: false}, h.monitorID, "Monitor"))
+	require.NoError(t, h.svc.CheckCertificateExpiry(ctx, h.workspaceID, nil, h.monitorID, "Monitor"))
+	require.NoError(t, h.svc.CheckCertificateExpiry(ctx, h.workspaceID, &certificate.TLSInfo{Valid: false}, h.monitorID, "Monitor"))
 	assert.Empty(t, h.notifications.targets)
 }
 
-func TestGetNotificationDays_SeedsTheDefaultsWhenTheSettingIsMissing(t *testing.T) {
+// A read on every certificate check must not write: the default is returned and nothing is stored
+func TestGetNotificationDays_ReturnsTheDefaultsWithoutStoringThemWhenTheSettingIsMissing(t *testing.T) {
 	h := newHarness(t)
 	ctx := context.Background()
 
@@ -230,8 +226,33 @@ func TestGetNotificationDays_SeedsTheDefaultsWhenTheSettingIsMissing(t *testing.
 
 	stored, err := h.settings.GetByKey(ctx, h.workspaceID, "cert_expiry_notify_days")
 	require.NoError(t, err)
-	require.NotNil(t, stored)
-	assert.Equal(t, "[7,14,21]", stored.Value)
+	assert.Nil(t, stored)
+}
+
+// The monitor is deleted while its check is handled: that is expected and not worth a warning
+func TestUpdateTLSInfo_AMonitorDeletedMidFlightIsLoggedAtDebug(t *testing.T) {
+	h := newHarness(t)
+	tlsInfo := &certificate.TLSInfo{Valid: true, CertInfo: &certificate.CertificateInfo{Subject: "CN=example.com", Fingerprint256: certA, DaysRemaining: 10, CertType: "server"}}
+
+	require.NoError(t, h.svc.UpdateTLSInfo(context.Background(), uuid.NewString(), tlsInfo))
+
+	assert.Empty(t, h.logs.Filter(func(e observer.LoggedEntry) bool { return e.Level >= zap.WarnLevel }).All())
+	assert.Len(t, h.logs.FilterMessageSnippet("no longer exists").FilterLevelExact(zap.DebugLevel).All(), 1)
+}
+
+func TestCheckCertificateExpiry_AMonitorDeletedMidFlightIsLoggedAtDebug(t *testing.T) {
+	h := newHarness(t)
+	tlsInfo := &certificate.TLSInfo{Valid: true, CertInfo: &certificate.CertificateInfo{Subject: "CN=example.com", Fingerprint256: certA, DaysRemaining: 10, CertType: "server"}}
+	gone := uuid.NewString()
+	_, err := h.db.Exec(`INSERT INTO monitors (id, workspace_id, type, name, interval, timeout, max_retries, retry_interval, resend_interval) VALUES (?, ?, 'http', 'Gone', 60, 10, 1, 10, 0)`, gone, string(h.workspaceID))
+	require.NoError(t, err)
+	_, err = h.db.Exec(`DELETE FROM monitors WHERE id = ?`, gone)
+	require.NoError(t, err)
+
+	require.NoError(t, h.svc.CheckCertificateExpiry(context.Background(), h.workspaceID, tlsInfo, gone, "Gone"))
+
+	assert.Empty(t, h.logs.Filter(func(e observer.LoggedEntry) bool { return e.Level >= zap.WarnLevel }).All())
+	assert.Len(t, h.logs.FilterMessageSnippet("no longer exists").FilterLevelExact(zap.DebugLevel).All(), 1)
 }
 
 func TestGetNotificationDays_ReadsTheSetting(t *testing.T) {
@@ -256,7 +277,7 @@ func TestCheckCertificateExpiry_UsesTheDaysOfTheMonitorsWorkspace(t *testing.T) 
 		}}
 		before := len(h.notifications.targets)
 		require.NoError(t, h.svc.UpdateTLSInfo(ctx, otherMonitor, tlsInfo))
-		require.NoError(t, h.svc.CheckCertificateExpiry(ctx, tlsInfo, otherMonitor, "Other monitor"))
+		require.NoError(t, h.svc.CheckCertificateExpiry(ctx, otherWorkspace, tlsInfo, otherMonitor, "Other monitor"))
 		return h.notifications.targets[before:]
 	}
 

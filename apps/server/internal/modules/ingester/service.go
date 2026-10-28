@@ -439,7 +439,7 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 
 		// Check certificate expiry and send notifications only if enabled (the flag comes from the result)
 		if r.CheckCertExpiry {
-			if err := s.certificateService.CheckCertificateExpiry(ctx, r.TLSInfo, r.MonitorID, r.MonitorName); err != nil {
+			if err := s.certificateService.CheckCertificateExpiry(ctx, r.WorkspaceID, r.TLSInfo, r.MonitorID, r.MonitorName); err != nil {
 				s.logger.Errorw("Failed to check certificate expiry for monitor",
 					"monitor_name", r.MonitorName,
 					"error", err,

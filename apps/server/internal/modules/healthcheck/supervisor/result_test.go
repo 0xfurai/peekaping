@@ -17,6 +17,7 @@ func TestTickResult_IngestResultCarriesTheCheckAndTheMonitorSettings(t *testing.
 	tick := &TickResult{
 		Monitor: &shared.Monitor{
 			ID:             "mon-1",
+			WorkspaceID:    "workspace-1",
 			Name:           "Test",
 			Type:           "http",
 			Interval:       60,
@@ -40,6 +41,7 @@ func TestTickResult_IngestResultCarriesTheCheckAndTheMonitorSettings(t *testing.
 	assert.Equal(t, &ingest.Result{
 		ProbeID:            "local",
 		MonitorID:          "mon-1",
+		WorkspaceID:        "workspace-1",
 		MonitorName:        "Test",
 		MonitorType:        "http",
 		MonitorInterval:    60,

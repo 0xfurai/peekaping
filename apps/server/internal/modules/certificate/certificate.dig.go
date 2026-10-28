@@ -2,7 +2,6 @@ package certificate
 
 import (
 	"peekaping/internal/modules/events"
-	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/shared"
@@ -15,7 +14,6 @@ import (
 func RegisterDependencies(container *dig.Container) error {
 	return utils.Provide(container, func(
 		settingService shared.WorkspaceSettingService,
-		monitors monitor.Service,
 		eventBus events.EventBus,
 		notificationHistoryService notification_sent_history.Service,
 		tlsInfoService monitor_tls_info.Service,
@@ -23,6 +21,6 @@ func RegisterDependencies(container *dig.Container) error {
 	) Service {
 		// Use event-based notification service to integrate with existing notification system
 		notificationService := NewEventBasedNotificationService(eventBus, logger)
-		return NewService(settingService, monitors, notificationService, notificationHistoryService, tlsInfoService, logger)
+		return NewService(settingService, notificationService, notificationHistoryService, tlsInfoService, logger)
 	})
 }
