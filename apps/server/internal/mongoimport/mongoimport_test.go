@@ -160,7 +160,7 @@ func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report
 	t.Run("settings", func(t *testing.T) {
 		sqlSettings := setting.NewSQLRepository(db)
 		// The JWT signing secrets come across, or every session and refresh token would stop working
-		for _, key := range []string{shared.AccessTokenSecretKey, shared.RefreshTokenSecretKey, "ACCESS_TOKEN_EXPIRED_IN", "REFRESH_TOKEN_EXPIRED_IN", "cert_expiry_notify_days"} {
+		for _, key := range []string{shared.AccessTokenSecretKey, shared.RefreshTokenSecretKey, "ACCESS_TOKEN_EXPIRED_IN", "REFRESH_TOKEN_EXPIRED_IN"} {
 			want := mongoimporttest.Get[mongoimporttest.SettingDocument](t, in, "setting", bson.M{"key": key})
 			got, err := sqlSettings.GetByKey(ctx, key)
 			require.NoError(t, err)
@@ -172,10 +172,25 @@ func checkAccounts(t *testing.T, in *mongoimporttest.Install, db *bun.DB, report
 		}
 		assert.NotEmpty(t, mustSetting(t, sqlSettings, shared.AccessTokenSecretKey).Value)
 
-		// The retention setting has two documents, and the one saved last wins
-		retention := mustSetting(t, sqlSettings, setting.DataRetentionPeriodKey)
+		// The data retention period and the certificate days belong to the workspace, and replace
+		// the defaults it started with. The retention setting has two documents, and the one saved
+		// last wins. The install's own settings hold neither.
+		workspaceID := onlyWorkspace(t, db)
+		workspaceSettings := setting.NewSQLWorkspaceRepository(db)
+		retention := mustWorkspaceSetting(t, workspaceSettings, workspaceID, setting.DataRetentionPeriodKey)
 		assert.Equal(t, mongoimporttest.RetentionDays, retention.Value)
 		assert.Equal(t, "int", retention.Type)
+		certDays := mustWorkspaceSetting(t, workspaceSettings, workspaceID, workspace.CertExpiryNotifyDaysKey)
+		assert.Equal(t, mongoimporttest.CertExpiryNotifyDays, certDays.Value)
+		assert.Equal(t, "json", certDays.Type)
+		for _, key := range []string{setting.DataRetentionPeriodKey, workspace.CertExpiryNotifyDaysKey} {
+			inInstall, err := sqlSettings.GetByKey(ctx, key)
+			require.NoError(t, err)
+			assert.Nil(t, inInstall, key)
+		}
+		var workspaceRows int
+		require.NoError(t, db.NewSelect().Table("workspace_settings").ColumnExpr("COUNT(*)").Scan(ctx, &workspaceRows))
+		assert.Equal(t, 2, workspaceRows, "one row for each, in place of the defaults")
 
 		r := collectionReport(t, report, "setting")
 		assert.Equal(t, "settings", r.Table)
@@ -237,6 +252,22 @@ func mustSetting(t *testing.T, repo setting.Repository, key string) *setting.Mod
 	return got
 }
 
+func mustWorkspaceSetting(t *testing.T, repo setting.WorkspaceRepository, id workspace.ID, key string) *setting.Model {
+	t.Helper()
+	got, err := repo.GetByKey(context.Background(), id, key)
+	require.NoError(t, err)
+	require.NotNil(t, got, key)
+	return got
+}
+
+// onlyWorkspace is the ID of the import's workspace
+func onlyWorkspace(t *testing.T, db *bun.DB) workspace.ID {
+	t.Helper()
+	var id workspace.ID
+	require.NoError(t, db.NewSelect().Table("workspaces").Column("id").Scan(context.Background(), &id))
+	return id
+}
+
 func assertSameTimePtr(t *testing.T, want, got *time.Time) {
 	t.Helper()
 	if want == nil {
@@ -271,7 +302,7 @@ func TestImportRefusesATargetThatHoldsData(t *testing.T) {
 			_, err := mongoimport.Run(ctx, db, opts)
 			require.NoError(t, err)
 			before := tableCounts(t, db, tables...)
-			require.Equal(t, map[string]int{"users": 2, "settings": 6, "api_keys": 2}, before)
+			require.Equal(t, map[string]int{"users": 2, "settings": 4, "api_keys": 2}, before)
 
 			// Importing again would double every row, so it changes nothing and says why
 			_, err = mongoimport.Run(ctx, db, opts)
@@ -293,18 +324,18 @@ func TestImportRefusesATargetThatHoldsData(t *testing.T) {
 			require.NoError(t, err)
 
 			settings := setting.NewSQLRepository(db)
-			for _, key := range []string{shared.AccessTokenSecretKey, shared.RefreshTokenSecretKey, setting.DataRetentionPeriodKey} {
+			for _, key := range []string{shared.AccessTokenSecretKey, shared.RefreshTokenSecretKey} {
 				want := mongoimporttest.Get[mongoimporttest.SettingDocument](t, in, "setting", bson.M{"key": key})
 				assert.Equal(t, want.Value, mustSetting(t, settings, key).Value, key)
 			}
 			assert.NotEqual(t, started.Value, mustSetting(t, settings, shared.AccessTokenSecretKey).Value, "the target's own signing secret is still there")
-			assert.Equal(t, mongoimporttest.RetentionDays, mustSetting(t, settings, setting.DataRetentionPeriodKey).Value, "the target's own 180 days are still there")
+			assert.Equal(t, mongoimporttest.RetentionDays, mustWorkspaceSetting(t, setting.NewSQLWorkspaceRepository(db), onlyWorkspace(t, db), setting.DataRetentionPeriodKey).Value, "the install's period is the workspace's")
 			gone, err := settings.GetByKey(ctx, "only_on_the_target")
 			require.NoError(t, err)
 			assert.Nil(t, gone, "a setting only the target had is still there")
-			assert.Equal(t, map[string]int{"users": 2, "settings": 6, "api_keys": 2}, tableCounts(t, db, tables...))
+			assert.Equal(t, map[string]int{"users": 2, "settings": 4, "api_keys": 2}, tableCounts(t, db, tables...))
 			require.NotEmpty(t, report.Notes)
-			assert.Equal(t, "the 7 settings that the target had written when Peekaping first started on it were replaced by the install's", report.Notes[0])
+			assert.Equal(t, "the 5 settings that the target had written when Peekaping first started on it were replaced by the install's", report.Notes[0])
 		})
 	})
 
@@ -319,7 +350,7 @@ func TestImportRefusesATargetThatHoldsData(t *testing.T) {
 			_, err = mongoimport.Run(ctx, db, opts)
 			assert.ErrorIs(t, err, mongoimport.ErrTargetNotEmpty)
 			assert.ErrorContains(t, err, "users have rows")
-			assert.Equal(t, map[string]int{"users": 1, "settings": 7, "api_keys": 0}, tableCounts(t, db, tables...))
+			assert.Equal(t, map[string]int{"users": 1, "settings": 5, "api_keys": 0}, tableCounts(t, db, tables...))
 			assert.Equal(t, started.Value, mustSetting(t, setting.NewSQLRepository(db), shared.AccessTokenSecretKey).Value, "the settings were replaced")
 		})
 	})
@@ -342,8 +373,7 @@ func TestImportRefusesATargetThatHoldsData(t *testing.T) {
 }
 
 // firstStart does what Peekaping's first start does to an empty database: migrates it and
-// writes the default settings, the data retention period of a new install, and a setting of
-// its own that the install has no counterpart for.
+// writes the default settings, and a setting of its own that the install has no counterpart for.
 func firstStart(t *testing.T, db *bun.DB) {
 	t.Helper()
 	ctx := context.Background()
@@ -353,8 +383,26 @@ func firstStart(t *testing.T, db *bun.DB) {
 	require.NoError(t, err)
 	settings := setting.NewService(setting.NewSQLRepository(db), zap.NewNop().Sugar())
 	require.NoError(t, settings.InitializeSettings(ctx))
-	_, err = settings.SetByKey(ctx, setting.DataRetentionPeriodKey, &setting.Model{Value: "180", Type: "int"})
-	require.NoError(t, err)
 	_, err = settings.SetByKey(ctx, "only_on_the_target", &setting.Model{Value: "x", Type: "string"})
 	require.NoError(t, err)
+}
+
+// An install that never stored a data retention period used 365 days, and its workspace keeps them,
+// as an upgraded install does
+func TestImportKeepsAYearForAnInstallThatNeverStoredARetentionPeriod(t *testing.T) {
+	in := mongoimporttest.Seed(t)
+	ctx := context.Background()
+	_, err := in.Collection("setting").DeleteMany(ctx, bson.M{"key": setting.DataRetentionPeriodKey})
+	require.NoError(t, err)
+
+	forEachTarget(t, func(t *testing.T, db *bun.DB) {
+		report, err := mongoimport.Run(ctx, db, in.Options())
+		require.NoError(t, err)
+
+		workspaceSettings := setting.NewSQLWorkspaceRepository(db)
+		id := onlyWorkspace(t, db)
+		assert.Equal(t, "365", mustWorkspaceSetting(t, workspaceSettings, id, setting.DataRetentionPeriodKey).Value)
+		assert.Equal(t, mongoimporttest.CertExpiryNotifyDays, mustWorkspaceSetting(t, workspaceSettings, id, workspace.CertExpiryNotifyDaysKey).Value)
+		assert.Contains(t, report.Notes, "the install never stored a data retention period, so the workspace keeps 365 days, as an upgraded install does")
+	})
 }
