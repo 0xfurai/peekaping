@@ -7195,7 +7195,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
           content:
@@ -7242,7 +7244,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
           content:
@@ -7390,7 +7394,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
           content:
@@ -7449,7 +7455,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/utils.TargetNotAllowedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
         "401":
           content:

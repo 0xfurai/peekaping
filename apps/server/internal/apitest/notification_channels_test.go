@@ -100,7 +100,8 @@ func TestNotificationChannelsAPI_RejectsInvalidInput(t *testing.T) {
 }
 
 func TestNotificationChannelsAPI_SendsTestNotification(t *testing.T) {
-	a := newAppWithAdmin(t)
+	// The webhook listens on this machine, which the cloud's run blocks
+	a := newAppWithAdmin(t, withBlockPrivateTargets(false))
 	received := make(chan string, 1)
 	hook := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
