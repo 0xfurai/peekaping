@@ -9,6 +9,7 @@ import (
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/probe_notification"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/utils"
 
 	"github.com/go-playground/validator/v10"
@@ -31,17 +32,21 @@ type Controller struct {
 	availability AvailabilityService
 	monitors     MonitorAssigner
 	liveness     shared.LocalProbeLiveness
+	workspaces   workspace.Repository
 	logger       *zap.SugaredLogger
 }
 
 // NewController makes the controller. monitors assigns the probe to monitors. liveness says whether
-// the local probe follows its stored status or is up as long as Peekaping runs.
-func NewController(service Service, availability AvailabilityService, monitors MonitorAssigner, liveness shared.LocalProbeLiveness, logger *zap.SugaredLogger) *Controller {
+// the local probe follows its stored status or is up as long as Peekaping runs. workspaces tells
+// which workspaces a caller is a member of, since a probe is linked only to channels of those
+// (docs/adr/0005 section 10).
+func NewController(service Service, availability AvailabilityService, monitors MonitorAssigner, liveness shared.LocalProbeLiveness, workspaces workspace.Repository, logger *zap.SugaredLogger) *Controller {
 	return &Controller{
 		service:      service,
 		availability: availability,
 		monitors:     monitors,
 		liveness:     liveness,
+		workspaces:   workspaces,
 		logger:       logger.Named("[probe-controller]"),
 	}
 }
@@ -57,11 +62,12 @@ type controllerParams struct {
 	// LocalProbe is how the local probe is known to be up: the process itself when the install
 	// provides none
 	LocalProbe shared.LocalProbeLiveness `optional:"true"`
+	Workspaces workspace.Repository
 	Logger     *zap.SugaredLogger
 }
 
 func provideController(p controllerParams) *Controller {
-	return NewController(p.Service, p.Availability, p.Monitors, p.LocalProbe, p.Logger)
+	return NewController(p.Service, p.Availability, p.Monitors, p.LocalProbe, p.Workspaces, p.Logger)
 }
 
 // response maps a probe to its response. The local probe in single mode is online whatever status
@@ -112,6 +118,35 @@ func (c *Controller) fail(err error, localMessage string) error {
 	return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 }
 
+// channelWorkspaces returns the workspaces whose channels the caller may link to a probe: the ones
+// a signed-in user is a member of, and the one an API key belongs to. A probe belongs to the
+// install, and the channels it notifies are those of a workspace its manager is in (docs/adr/0005
+// section 10), so a channel of any other workspace is refused as one that doesn't exist. It reads
+// nothing when the request names no channel.
+func (c *Controller) channelWorkspaces(ctx context.Context, notificationIDs []string) ([]workspace.ID, error) {
+	if len(notificationIDs) == 0 {
+		return nil, nil
+	}
+	switch httpx.Value(ctx, "authType") {
+	case "api_key":
+		if own, _ := httpx.Value(ctx, "apiKeyWorkspaceId").(workspace.ID); own != "" {
+			return []workspace.ID{own}, nil
+		}
+	case "jwt":
+		userID, _ := httpx.Value(ctx, "userId").(string)
+		places, err := c.workspaces.ListMemberships(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		member := make([]workspace.ID, len(places))
+		for i, place := range places {
+			member[i] = place.Workspace.ID
+		}
+		return member, nil
+	}
+	return nil, nil
+}
+
 // CreateProbe creates a probe and answers with its token, once
 func (c *Controller) CreateProbe(ctx context.Context, input *CreateProbeInput) (*httpx.Output[utils.ApiResponse[*ProbeWithTokenResponse]], error) {
 	// MARK: CreateProbe
@@ -124,10 +159,15 @@ func (c *Controller) CreateProbe(ctx context.Context, input *CreateProbeInput) (
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
+	channelWorkspaces, err := c.channelWorkspaces(ctx, req.NotificationIDs)
+	if err != nil {
+		return nil, c.fail(err, "")
+	}
 	created, err := c.service.Create(ctx, &CreateRequest{
 		Name:              req.Name,
 		Location:          req.Location,
 		NotificationIDs:   req.NotificationIDs,
+		ChannelWorkspaces: channelWorkspaces,
 		AssignAllMonitors: req.AssignAllMonitors,
 	})
 	if err != nil {
@@ -183,11 +223,16 @@ func (c *Controller) UpdateProbe(ctx context.Context, input *UpdateProbeInput) (
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
+	channelWorkspaces, err := c.channelWorkspaces(ctx, req.NotificationIDs)
+	if err != nil {
+		return nil, c.fail(err, localProbeCantBeDisabled)
+	}
 	updated, err := c.service.Update(ctx, r.PathValue("id"), &UpdateRequest{
-		Name:            req.Name,
-		Location:        req.Location,
-		Disabled:        req.Disabled,
-		NotificationIDs: req.NotificationIDs,
+		Name:              req.Name,
+		Location:          req.Location,
+		Disabled:          req.Disabled,
+		NotificationIDs:   req.NotificationIDs,
+		ChannelWorkspaces: channelWorkspaces,
 	})
 	if err != nil {
 		return nil, c.fail(err, localProbeCantBeDisabled)

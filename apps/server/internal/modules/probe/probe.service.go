@@ -9,6 +9,7 @@ import (
 
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/probe_notification"
+	"peekaping/internal/modules/workspace"
 
 	"go.uber.org/zap"
 )
@@ -95,6 +96,9 @@ type CreateRequest struct {
 	// NotificationIDs are the notification channels that hear about the probe. A probe with none
 	// notifies the channels of its active monitors instead.
 	NotificationIDs []string
+	// ChannelWorkspaces are the workspaces the channels may be in: the ones the caller is a member
+	// of. A channel of another workspace is refused as one that doesn't exist.
+	ChannelWorkspaces []workspace.ID
 	// AssignAllMonitors makes the probe wait to be assigned every monitor it can run when its
 	// first instance says hello. It has no monitors until then, since the types it runs come with
 	// its instances.
@@ -109,6 +113,9 @@ type UpdateRequest struct {
 	// NotificationIDs replaces the probe's notification channels. Nil leaves them, and an empty
 	// slice clears them.
 	NotificationIDs []string
+	// ChannelWorkspaces are the workspaces the channels may be in: the ones the caller is a member
+	// of. A channel of another workspace is refused as one that doesn't exist.
+	ChannelWorkspaces []workspace.ID
 }
 
 type ServiceImpl struct {
@@ -154,7 +161,7 @@ func (s *ServiceImpl) Create(ctx context.Context, req *CreateRequest) (*ModelWit
 		if len(req.NotificationIDs) == 0 {
 			return nil
 		}
-		return s.channels.Replace(ctx, created.ID, req.NotificationIDs)
+		return s.channels.Replace(ctx, created.ID, req.NotificationIDs, req.ChannelWorkspaces)
 	})
 	if err != nil {
 		return nil, err
@@ -216,7 +223,7 @@ func (s *ServiceImpl) Update(ctx context.Context, id string, req *UpdateRequest)
 		if req.NotificationIDs == nil {
 			return nil
 		}
-		return s.channels.Replace(ctx, id, req.NotificationIDs)
+		return s.channels.Replace(ctx, id, req.NotificationIDs, req.ChannelWorkspaces)
 	})
 	if err != nil {
 		return nil, err

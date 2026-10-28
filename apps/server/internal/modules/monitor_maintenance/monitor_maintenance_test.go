@@ -83,8 +83,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 				},
 				window: func() string {
 					id := uuid.NewString()
-					_, err := db.Exec("INSERT INTO maintenances (id, title, strategy) VALUES (?, 'Upgrade', 'manual')", id)
-					require.NoError(t, err)
+					workspacetest.InsertMaintenance(t, db, id)
 					return id
 				},
 			})

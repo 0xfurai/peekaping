@@ -100,7 +100,7 @@ func (c *capturingIngester) Ingest(_ context.Context, r *ingester.Result) error 
 // heartbeat keeps the status it reports.
 type noMaintenance struct{ maintenance.Service }
 
-func (noMaintenance) GetMaintenancesByMonitorID(context.Context, string) ([]*maintenance.Model, error) {
+func (noMaintenance) GetMaintenancesByMonitorIDAnyWorkspace(context.Context, string) ([]*maintenance.Model, error) {
 	return nil, nil
 }
 

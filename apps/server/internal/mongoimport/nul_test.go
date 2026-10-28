@@ -45,7 +45,7 @@ func TestImportRemovesNULEscapesFromConfigs(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, got)
 		assert.JSONEq(t, want, got.Config)
-		channel, err := notification_channel.NewSQLRepository(db).FindByID(ctx, uuidOf(t, channelID.Hex()))
+		channel, err := notification_channel.NewSQLRepository(db).FindByID(ctx, importedWorkspace(t, db), uuidOf(t, channelID.Hex()))
 		require.NoError(t, err)
 		require.NotNil(t, channel)
 		assert.JSONEq(t, want, *channel.Config)

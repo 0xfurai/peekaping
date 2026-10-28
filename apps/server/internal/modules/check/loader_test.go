@@ -11,6 +11,7 @@ import (
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/proxy"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +42,7 @@ type fakeProxyService struct {
 	err     error
 }
 
-func (s *fakeProxyService) FindByID(_ context.Context, id string) (*proxy.Model, error) {
+func (s *fakeProxyService) FindByID(_ context.Context, _ workspace.ID, id string) (*proxy.Model, error) {
 	if s.err != nil {
 		return nil, s.err
 	}
@@ -57,7 +58,7 @@ type fakeMaintenanceService struct {
 	statusErr map[string]bool
 }
 
-func (s *fakeMaintenanceService) GetMaintenancesByMonitorID(_ context.Context, _ string) ([]*maintenance.Model, error) {
+func (s *fakeMaintenanceService) GetMaintenancesByMonitorIDAnyWorkspace(_ context.Context, _ string) ([]*maintenance.Model, error) {
 	return s.windows, s.listErr
 }
 

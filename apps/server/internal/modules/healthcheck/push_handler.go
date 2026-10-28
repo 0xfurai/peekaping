@@ -108,7 +108,7 @@ const maintenanceMessage = "Monitor under maintenance"
 // the monitor is active. A window that can't be read doesn't hide another
 // active window; the caller keeps the reported heartbeat rather than drop it.
 func MonitorUnderMaintenance(ctx context.Context, service maintenance.Service, monitorID string) (bool, error) {
-	maintenances, err := service.GetMaintenancesByMonitorID(ctx, monitorID)
+	maintenances, err := service.GetMaintenancesByMonitorIDAnyWorkspace(ctx, monitorID)
 	if err != nil {
 		return false, err
 	}

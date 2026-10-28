@@ -13,6 +13,15 @@ var (
 	ErrMonitorNotFound = errors.New("monitor not found")
 )
 
+// ErrProxyNotFound is returned, wrapped with the id, when a monitor is given a proxy that isn't in
+// its workspace: it doesn't exist, or it belongs to another workspace, and the caller can't tell
+// which (docs/adr/0005 section 8). A notification channel or tag that isn't there is
+// monitor_notification.ErrUnknownChannel or monitor_tag.ErrUnknownTag.
+//
+// The request fails as it did before records had a workspace, when the database refused the link
+// to an ID that didn't exist: the controller has no case for it and answers 500.
+var ErrProxyNotFound = errors.New("proxy not found")
+
 // LookupError is a read of the monitor that failed, as opposed to one that found nothing. A route
 // that loads the monitor before it reads its heartbeats or stats answers it with a 500.
 type LookupError struct {

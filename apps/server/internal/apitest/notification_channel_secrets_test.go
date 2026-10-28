@@ -226,8 +226,9 @@ func TestNotificationChannelsAPI_SecretChannelsCoverEveryProvider(t *testing.T) 
 func TestNotificationChannelsAPI_AChannelOfAnUnknownTypeShowsNoConfig(t *testing.T) {
 	a := newSecretsApp(t)
 	var id string
+	first := a.firstWorkspace(t)
 	require.NoError(t, a.container.Invoke(func(channels notification_channel.Service) error {
-		created, err := channels.Create(context.Background(), &notification_channel.CreateUpdateDto{
+		created, err := channels.Create(context.Background(), first, &notification_channel.CreateUpdateDto{
 			Name: "Retired", Type: "retired-type", Active: true, Config: `{"api_token":"retired-SECRET-token"}`,
 		})
 		if err != nil {

@@ -84,8 +84,7 @@ func forEachBackend(t *testing.T, fn func(t *testing.T, f fixture)) {
 				},
 				tag: func() string {
 					id := uuid.NewString()
-					_, err := db.Exec("INSERT INTO tags (id, name, color) VALUES (?, ?, '#3B82F6')", id, "tag-"+id)
-					require.NoError(t, err)
+					workspacetest.InsertTag(t, db, id, "tag-"+id)
 					return id
 				},
 			})

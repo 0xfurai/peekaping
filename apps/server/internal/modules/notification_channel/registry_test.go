@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"peekaping/internal/modules/workspace"
 	"strings"
 	"testing"
 
@@ -129,6 +130,7 @@ func TestProviderRegistry_ControllerAndListenerUseTheContainersRegistry(t *testi
 		router := httpx.NewRouter()
 		httpx.Register(router, "POST", "/test", huma.Operation{Errors: []int{400, 404, 500}}, controller.Test)
 		req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(`{"name": "Alerts", "type": "test-fake", "config": "{}"}`))
+		req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 		req.Header.Set("Content-Type", "application/json")
 		rec := httptest.NewRecorder()
 		router.ServeHTTP(rec, req)

@@ -125,6 +125,17 @@ func (m *MockMonitorRepository) RemoveProxyReference(ctx context.Context, worksp
 	return args.Error(0)
 }
 
+// ProxyInWorkspace finds every proxy unless a test says what it finds
+func (m *MockMonitorRepository) ProxyInWorkspace(ctx context.Context, workspaceID workspace.ID, proxyID string) (bool, error) {
+	for _, call := range m.ExpectedCalls {
+		if call.Method == "ProxyInWorkspace" {
+			args := m.Called(ctx, workspaceID, proxyID)
+			return args.Bool(0), args.Error(1)
+		}
+	}
+	return true, nil
+}
+
 func (m *MockMonitorRepository) FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error) {
 	args := m.Called(ctx, workspaceID, proxyId)
 	return args.Get(0).([]*Model), args.Error(1)
@@ -201,6 +212,16 @@ func (m *MockMonitorNotificationService) Create(ctx context.Context, monitorID s
 	return args.Get(0).(*monitor_notification.Model), args.Error(1)
 }
 
+// RequireChannels accepts every channel unless a test says what it finds
+func (m *MockMonitorNotificationService) RequireChannels(ctx context.Context, workspaceID workspace.ID, ids []string) error {
+	for _, call := range m.ExpectedCalls {
+		if call.Method == "RequireChannels" {
+			return m.Called(ctx, workspaceID, ids).Error(0)
+		}
+	}
+	return nil
+}
+
 func (m *MockMonitorNotificationService) FindByID(ctx context.Context, id string) (*monitor_notification.Model, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*monitor_notification.Model), args.Error(1)
@@ -238,6 +259,16 @@ type MockMonitorTagService struct {
 func (m *MockMonitorTagService) Create(ctx context.Context, monitorID string, tagID string) (*monitor_tag.Model, error) {
 	args := m.Called(ctx, monitorID, tagID)
 	return args.Get(0).(*monitor_tag.Model), args.Error(1)
+}
+
+// RequireTags accepts every tag unless a test says what it finds
+func (m *MockMonitorTagService) RequireTags(ctx context.Context, workspaceID workspace.ID, ids []string) error {
+	for _, call := range m.ExpectedCalls {
+		if call.Method == "RequireTags" {
+			return m.Called(ctx, workspaceID, ids).Error(0)
+		}
+	}
+	return nil
 }
 
 func (m *MockMonitorTagService) FindByID(ctx context.Context, id string) (*monitor_tag.Model, error) {
@@ -1762,28 +1793,45 @@ func TestMonitorService_FindByIDs(t *testing.T) {
 func TestMonitorService_RemoveProxyReference(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("successful proxy reference removal", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+	t.Run("clears the proxy and publishes a monitor-updated event for each monitor it changed", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		proxyId := "proxy123"
-
-		mockRepo.On("RemoveProxyReference", ctx, testWorkspace, proxyId).Return(nil)
-
+		using := []*Model{{ID: "monitor1", ProxyId: proxyId}, {ID: "monitor2", ProxyId: proxyId}}
+		mockRepo.On("FindByProxyId", mock.Anything, testWorkspace, proxyId).Return(using, nil)
+		mockRepo.On("RemoveProxyReference", mock.Anything, testWorkspace, proxyId).Return(nil)
+		mockRepo.On("FindByID", mock.Anything, testWorkspace, "monitor1").Return(&Model{ID: "monitor1", Name: "One"}, nil)
+		mockRepo.On("FindByID", mock.Anything, testWorkspace, "monitor2").Return(&Model{ID: "monitor2", Name: "Two"}, nil)
 		err := service.RemoveProxyReference(ctx, testWorkspace, proxyId)
 
 		assert.NoError(t, err)
+		updated := eventstest.Published(bus, events.MonitorUpdated)
+		require.Len(t, updated, 2)
+		assert.Equal(t, "One", updated[0].Name, "the event carries the monitor as it is stored now")
+		assert.Empty(t, updated[0].ProxyId)
+		assert.Equal(t, "Two", updated[1].Name)
 		mockRepo.AssertExpectations(t)
 	})
 
-	t.Run("repository error", func(t *testing.T) {
-		service, mockRepo, _, _, _, _, _, _ := setupMonitorService()
+	t.Run("publishes nothing when no monitor of the workspace uses the proxy", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
+		mockRepo.On("FindByProxyId", mock.Anything, testWorkspace, "proxy123").Return([]*Model{}, nil)
+		err := service.RemoveProxyReference(ctx, testWorkspace, "proxy123")
+
+		assert.NoError(t, err)
+		assert.Empty(t, bus.Topics())
+		mockRepo.AssertNotCalled(t, "RemoveProxyReference", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("repository error publishes nothing", func(t *testing.T) {
+		service, mockRepo, _, bus, _, _, _, _ := setupMonitorService()
 		proxyId := "proxy123"
-
-		mockRepo.On("RemoveProxyReference", ctx, testWorkspace, proxyId).Return(errors.New("repository error"))
-
+		mockRepo.On("FindByProxyId", mock.Anything, testWorkspace, proxyId).Return([]*Model{{ID: "monitor1"}}, nil)
+		mockRepo.On("RemoveProxyReference", mock.Anything, testWorkspace, proxyId).Return(errors.New("repository error"))
 		err := service.RemoveProxyReference(ctx, testWorkspace, proxyId)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "repository error")
+		assert.Empty(t, bus.Topics())
 		mockRepo.AssertExpectations(t)
 	})
 }

@@ -103,7 +103,7 @@ func (f *fakeMonitors) FindAllAnyWorkspace(_ context.Context, pageNo, limit int)
 
 type fakeChannels struct{ items []*notification_channel.Model }
 
-func (f *fakeChannels) FindAll(_ context.Context, pageNo, limit int, _ string) ([]*notification_channel.Model, error) {
+func (f *fakeChannels) FindAllAnyWorkspace(_ context.Context, pageNo, limit int) ([]*notification_channel.Model, error) {
 	return page(f.items, pageNo, limit), nil
 }
 
@@ -115,7 +115,7 @@ func (f *fakeStatusPages) FindAll(_ context.Context, pageNo, limit int, _ string
 
 type fakeMaintenances struct{ items []*maintenance.Model }
 
-func (f *fakeMaintenances) FindAll(_ context.Context, pageNo, limit int, _ string, _ string) ([]*maintenance.Model, error) {
+func (f *fakeMaintenances) FindAllAnyWorkspace(_ context.Context, pageNo, limit int) ([]*maintenance.Model, error) {
 	return page(f.items, pageNo, limit), nil
 }
 

@@ -2,6 +2,10 @@ package monitor_tag
 
 import (
 	"context"
+	"fmt"
+	"strings"
+
+	"peekaping/internal/modules/workspace"
 
 	"go.uber.org/zap"
 )
@@ -18,6 +22,10 @@ type Service interface {
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	DeleteByTagID(ctx context.Context, tagID string) error
 	DeleteByMonitorAndTag(ctx context.Context, monitorID string, tagID string) error
+	// RequireTags is nil when every tag is in the workspace, and otherwise an error that wraps
+	// ErrUnknownTag and names the first that isn't. A monitor links only to tags of its own
+	// workspace (docs/adr/0005 section 2), and a caller checks them all before it writes a link.
+	RequireTags(ctx context.Context, workspaceID workspace.ID, ids []string) error
 }
 
 type ServiceImpl struct {
@@ -74,4 +82,22 @@ func (s *ServiceImpl) DeleteByTagID(ctx context.Context, tagID string) error {
 
 func (s *ServiceImpl) DeleteByMonitorAndTag(ctx context.Context, monitorID string, tagID string) error {
 	return s.repository.DeleteByMonitorAndTag(ctx, monitorID, tagID)
+}
+
+func (s *ServiceImpl) RequireTags(ctx context.Context, workspaceID workspace.ID, ids []string) error {
+	found, err := s.repository.FindTagIDsInWorkspace(ctx, workspaceID, ids)
+	if err != nil {
+		return err
+	}
+	// The database compares UUIDs in any letter case, SQLite compares text
+	exists := make(map[string]bool, len(found))
+	for _, id := range found {
+		exists[strings.ToLower(id)] = true
+	}
+	for _, id := range ids {
+		if !exists[strings.ToLower(id)] {
+			return fmt.Errorf("%w: %s", ErrUnknownTag, id)
+		}
+	}
+	return nil
 }

@@ -133,7 +133,7 @@ type fakeMaintenance struct {
 	under map[string]bool
 }
 
-func (f *fakeMaintenance) GetMaintenancesByMonitorID(_ context.Context, monitorID string) ([]*maintenance.Model, error) {
+func (f *fakeMaintenance) GetMaintenancesByMonitorIDAnyWorkspace(_ context.Context, monitorID string) ([]*maintenance.Model, error) {
 	if f.under[monitorID] {
 		return []*maintenance.Model{{ID: "window-of-" + monitorID}}, nil
 	}

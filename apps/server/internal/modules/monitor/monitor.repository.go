@@ -52,7 +52,11 @@ type MonitorRepository interface {
 	// id alone. A monitor that is gone is not an error.
 	UpdatePartialAnyWorkspace(ctx context.Context, id string, monitor *UpdateModel) error
 	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
+	// RemoveProxyReference clears the proxy from the workspace's monitors that use it, which get a
+	// new updated_at
 	RemoveProxyReference(ctx context.Context, workspaceID workspace.ID, proxyId string) error
+	// ProxyInWorkspace is whether the proxy exists and belongs to the workspace
+	ProxyInWorkspace(ctx context.Context, workspaceID workspace.ID, proxyID string) (bool, error)
 	FindByProxyId(ctx context.Context, workspaceID workspace.ID, proxyId string) ([]*Model, error)
 	FindOneByPushTokenAnyWorkspace(ctx context.Context, pushToken string) (*Model, error)
 	// RecordLocationAnyWorkspace stores what a result left on the monitor's row for the probe that

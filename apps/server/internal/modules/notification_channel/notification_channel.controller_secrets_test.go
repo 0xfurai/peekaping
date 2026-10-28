@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"peekaping/internal/modules/workspace"
 	"strconv"
 	"strings"
 	"testing"
@@ -27,22 +28,22 @@ type channelStore struct {
 	channels map[string]*Model
 }
 
-func (s *channelStore) Create(_ context.Context, entity *CreateUpdateDto) (*Model, error) {
+func (s *channelStore) Create(_ context.Context, _ workspace.ID, entity *CreateUpdateDto) (*Model, error) {
 	created := &Model{ID: "created", Name: entity.Name, Type: entity.Type, Active: entity.Active, IsDefault: entity.IsDefault, Config: &entity.Config}
 	s.channels[created.ID] = created
 	return created, nil
 }
 
-func (s *channelStore) FindByID(_ context.Context, id string) (*Model, error) {
+func (s *channelStore) FindByID(_ context.Context, _ workspace.ID, id string) (*Model, error) {
 	return s.channels[id], nil
 }
 
-func (s *channelStore) UpdateFull(_ context.Context, id string, entity *CreateUpdateDto) (*Model, error) {
+func (s *channelStore) UpdateFull(_ context.Context, _ workspace.ID, id string, entity *CreateUpdateDto) (*Model, error) {
 	s.channels[id] = &Model{ID: id, Name: entity.Name, Type: entity.Type, Active: entity.Active, IsDefault: entity.IsDefault, Config: &entity.Config}
 	return s.channels[id], nil
 }
 
-func (s *channelStore) UpdatePartial(_ context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
+func (s *channelStore) UpdatePartial(_ context.Context, _ workspace.ID, id string, entity *PartialUpdateDto) (*Model, error) {
 	channel := *s.channels[id]
 	if entity.Name != nil {
 		channel.Name = *entity.Name
@@ -90,6 +91,7 @@ func newSecretsFixture(t *testing.T, config string) *secretsFixture {
 func (f *secretsFixture) do(method, path, body string) *httptest.ResponseRecorder {
 	f.t.Helper()
 	req := httptest.NewRequest(method, path, strings.NewReader(body))
+	req = req.WithContext(workspace.WithContext(req.Context(), testWorkspace, workspace.RoleAdmin))
 	req.Header.Set("Content-Type", "application/json")
 	rec := httptest.NewRecorder()
 	f.router.ServeHTTP(rec, req)

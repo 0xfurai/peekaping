@@ -8,6 +8,7 @@ import (
 
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/probe_notification"
+	"peekaping/internal/modules/workspace"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,42 +22,58 @@ type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) Create(ctx context.Context, entity *Model) (*Model, error) {
-	args := m.Called(ctx, entity)
+func (m *MockRepository) Create(ctx context.Context, workspaceID workspace.ID, entity *Model) (*Model, error) {
+	args := m.Called(ctx, workspaceID, entity)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindByID(ctx context.Context, id string) (*Model, error) {
-	args := m.Called(ctx, id)
+func (m *MockRepository) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
+	args := m.Called(ctx, workspaceID, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*Model), args.Error(1)
 }
 
-func (m *MockRepository) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	args := m.Called(ctx, page, limit, q)
+func (m *MockRepository) FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error) {
+	args := m.Called(ctx, workspaceID, page, limit, q)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*Model), args.Error(1)
 }
 
-func (m *MockRepository) UpdateFull(ctx context.Context, id string, entity *Model) error {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, entity *Model) error {
+	args := m.Called(ctx, workspaceID, id, entity)
 	return args.Error(0)
 }
 
-func (m *MockRepository) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) error {
-	args := m.Called(ctx, id, entity)
+func (m *MockRepository) UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, entity *UpdateModel) error {
+	args := m.Called(ctx, workspaceID, id, entity)
 	return args.Error(0)
 }
 
-func (m *MockRepository) Delete(ctx context.Context, id string) error {
+func (m *MockRepository) FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error) {
 	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*Model), args.Error(1)
+}
+
+func (m *MockRepository) FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
+	args := m.Called(ctx, page, limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*Model), args.Error(1)
+}
+
+func (m *MockRepository) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
+	args := m.Called(ctx, workspaceID, id)
 	return args.Error(0)
 }
 
@@ -105,6 +122,10 @@ func (m *MockMonitorNotificationService) FindByMonitorIDs(ctx context.Context, m
 func (m *MockMonitorNotificationService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
 	args := m.Called(ctx, monitorID)
 	return args.Error(0)
+}
+
+func (m *MockMonitorNotificationService) RequireChannels(context.Context, workspace.ID, []string) error {
+	return nil
 }
 
 func (m *MockMonitorNotificationService) DeleteByNotificationID(ctx context.Context, notificationID string) error {
@@ -159,7 +180,7 @@ func TestServiceImpl_Create(t *testing.T) {
 					CreatedAt: time.Now(),
 					UpdatedAt: time.Now(),
 				}
-				mr.On("Create", mock.Anything, mock.MatchedBy(func(model *Model) bool {
+				mr.On("Create", mock.Anything, testWorkspace, mock.MatchedBy(func(model *Model) bool {
 					return model.Name == "Test Channel" &&
 						model.Type == "email" &&
 						model.Active == true &&
@@ -189,7 +210,7 @@ func TestServiceImpl_Create(t *testing.T) {
 				Config:    "config-string",
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("repository error"))
+				mr.On("Create", mock.Anything, testWorkspace, mock.Anything).Return(nil, errors.New("repository error"))
 			},
 			expectedModel: nil,
 			expectedError: errors.New("repository error"),
@@ -205,7 +226,7 @@ func TestServiceImpl_Create(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.Create(ctx, tt.input)
+			result, err := service.Create(ctx, testWorkspace, tt.input)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -245,7 +266,7 @@ func TestServiceImpl_FindByID(t *testing.T) {
 					IsDefault: false,
 					Config:    stringPtr("config-string"),
 				}
-				mr.On("FindByID", mock.Anything, "test-id").Return(expectedModel, nil)
+				mr.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(expectedModel, nil)
 			},
 			expectedModel: &Model{
 				ID:        "test-id",
@@ -261,7 +282,7 @@ func TestServiceImpl_FindByID(t *testing.T) {
 			name: "repository error",
 			id:   "test-id",
 			mockSetup: func(mr *MockRepository) {
-				mr.On("FindByID", mock.Anything, "test-id").Return(nil, errors.New("not found"))
+				mr.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(nil, errors.New("not found"))
 			},
 			expectedModel: nil,
 			expectedError: errors.New("not found"),
@@ -277,7 +298,7 @@ func TestServiceImpl_FindByID(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.FindByID(ctx, tt.id)
+			result, err := service.FindByID(ctx, testWorkspace, tt.id)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -327,7 +348,7 @@ func TestServiceImpl_FindAll(t *testing.T) {
 						Config:    stringPtr("config-2"),
 					},
 				}
-				mr.On("FindAll", mock.Anything, 1, 10, "test").Return(expectedModels, nil)
+				mr.On("FindAll", mock.Anything, testWorkspace, 1, 10, "test").Return(expectedModels, nil)
 			},
 			expectedModels: []*Model{
 				{
@@ -355,7 +376,7 @@ func TestServiceImpl_FindAll(t *testing.T) {
 			limit: 10,
 			query: "test",
 			mockSetup: func(mr *MockRepository) {
-				mr.On("FindAll", mock.Anything, 1, 10, "test").Return(nil, errors.New("repository error"))
+				mr.On("FindAll", mock.Anything, testWorkspace, 1, 10, "test").Return(nil, errors.New("repository error"))
 			},
 			expectedModels: nil,
 			expectedError:  errors.New("repository error"),
@@ -371,7 +392,7 @@ func TestServiceImpl_FindAll(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.FindAll(ctx, tt.page, tt.limit, tt.query)
+			result, err := service.FindAll(ctx, testWorkspace, tt.page, tt.limit, tt.query)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -407,7 +428,7 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 				Config:    "updated-config",
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdateFull", mock.Anything, "test-id", mock.MatchedBy(func(model *Model) bool {
+				mr.On("UpdateFull", mock.Anything, testWorkspace, "test-id", mock.MatchedBy(func(model *Model) bool {
 					return model.ID == "test-id" &&
 						model.Name == "Updated Channel" &&
 						model.Type == "webhook" &&
@@ -437,7 +458,7 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 				Config:    "updated-config",
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdateFull", mock.Anything, "test-id", mock.Anything).Return(errors.New("update failed"))
+				mr.On("UpdateFull", mock.Anything, testWorkspace, "test-id", mock.Anything).Return(errors.New("update failed"))
 			},
 			expectedModel: nil,
 			expectedError: errors.New("update failed"),
@@ -453,7 +474,7 @@ func TestServiceImpl_UpdateFull(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.UpdateFull(ctx, tt.id, tt.input)
+			result, err := service.UpdateFull(ctx, testWorkspace, tt.id, tt.input)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -494,7 +515,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
+				mr.On("UpdatePartial", mock.Anything, testWorkspace, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
 					return *model.ID == "test-id" &&
 						*model.Name == "Partially Updated Channel" &&
 						*model.Type == "email" &&
@@ -511,7 +532,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 					IsDefault: false,
 					Config:    stringPtr("partial-config"),
 				}
-				mr.On("FindByID", mock.Anything, "test-id").Return(updatedModel, nil)
+				mr.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(updatedModel, nil)
 			},
 			expectedModel: &Model{
 				ID:        "test-id",
@@ -530,7 +551,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Name: stringPtr("Renamed Channel"),
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
+				mr.On("UpdatePartial", mock.Anything, testWorkspace, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
 					return *model.Name == "Renamed Channel" &&
 						model.Type == nil &&
 						model.Active == nil &&
@@ -538,7 +559,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 						model.Config == nil
 				})).Return(nil)
 
-				mr.On("FindByID", mock.Anything, "test-id").Return(&Model{ID: "test-id", Name: "Renamed Channel"}, nil)
+				mr.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(&Model{ID: "test-id", Name: "Renamed Channel"}, nil)
 			},
 			expectedModel: &Model{ID: "test-id", Name: "Renamed Channel"},
 			expectedError: nil,
@@ -550,7 +571,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Active: boolPtr(false),
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdatePartial", mock.Anything, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
+				mr.On("UpdatePartial", mock.Anything, testWorkspace, "test-id", mock.MatchedBy(func(model *UpdateModel) bool {
 					return model.Active != nil && *model.Active == false &&
 						model.Name == nil &&
 						model.Type == nil &&
@@ -558,7 +579,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 						model.Config == nil
 				})).Return(nil)
 
-				mr.On("FindByID", mock.Anything, "test-id").Return(&Model{ID: "test-id", Name: "Alerts", Type: "email", Active: false}, nil)
+				mr.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(&Model{ID: "test-id", Name: "Alerts", Type: "email", Active: false}, nil)
 			},
 			expectedModel: &Model{ID: "test-id", Name: "Alerts", Type: "email", Active: false},
 			expectedError: nil,
@@ -574,7 +595,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(errors.New("update failed"))
+				mr.On("UpdatePartial", mock.Anything, testWorkspace, "test-id", mock.Anything).Return(errors.New("update failed"))
 			},
 			expectedModel: nil,
 			expectedError: errors.New("update failed"),
@@ -590,8 +611,8 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 				Config:    stringPtr("partial-config"),
 			},
 			mockSetup: func(mr *MockRepository) {
-				mr.On("UpdatePartial", mock.Anything, "test-id", mock.Anything).Return(nil)
-				mr.On("FindByID", mock.Anything, "test-id").Return(nil, errors.New("find failed"))
+				mr.On("UpdatePartial", mock.Anything, testWorkspace, "test-id", mock.Anything).Return(nil)
+				mr.On("FindByID", mock.Anything, testWorkspace, "test-id").Return(nil, errors.New("find failed"))
 			},
 			expectedModel: nil,
 			expectedError: errors.New("find failed"),
@@ -607,7 +628,7 @@ func TestServiceImpl_UpdatePartial(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			ctx := context.Background()
-			result, err := service.UpdatePartial(ctx, tt.id, tt.input)
+			result, err := service.UpdatePartial(ctx, testWorkspace, tt.id, tt.input)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -634,7 +655,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 			name: "successful delete with cascade",
 			id:   "test-id",
 			mockSetup: func(mr *MockRepository, mns *MockMonitorNotificationService) {
-				mr.On("Delete", mock.Anything, "test-id").Return(nil)
+				mr.On("Delete", mock.Anything, testWorkspace, "test-id").Return(nil)
 				mns.On("DeleteByNotificationID", mock.Anything, "test-id").Return(nil)
 			},
 			expectedError: nil,
@@ -643,7 +664,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 			name: "repository delete error",
 			id:   "test-id",
 			mockSetup: func(mr *MockRepository, mns *MockMonitorNotificationService) {
-				mr.On("Delete", mock.Anything, "test-id").Return(errors.New("delete failed"))
+				mr.On("Delete", mock.Anything, testWorkspace, "test-id").Return(errors.New("delete failed"))
 			},
 			expectedError: errors.New("delete failed"),
 		},
@@ -651,7 +672,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 			name: "successful delete with cascade error (should not fail)",
 			id:   "test-id",
 			mockSetup: func(mr *MockRepository, mns *MockMonitorNotificationService) {
-				mr.On("Delete", mock.Anything, "test-id").Return(nil)
+				mr.On("Delete", mock.Anything, testWorkspace, "test-id").Return(nil)
 				mns.On("DeleteByNotificationID", mock.Anything, "test-id").Return(errors.New("cascade delete failed"))
 			},
 			expectedError: nil, // The channel is gone, so the failure is only logged
@@ -667,7 +688,7 @@ func TestServiceImpl_Delete(t *testing.T) {
 			tt.mockSetup(mockRepo, mockMonitorNotificationService)
 
 			ctx := context.Background()
-			err := service.Delete(ctx, tt.id)
+			err := service.Delete(ctx, testWorkspace, tt.id)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -685,12 +706,12 @@ func TestServiceImpl_Delete(t *testing.T) {
 func TestServiceImpl_DeleteLogsCascadeFailure(t *testing.T) {
 	mockRepo := &MockRepository{}
 	mockMonitorNotificationService := &MockMonitorNotificationService{}
-	mockRepo.On("Delete", mock.Anything, "test-id").Return(nil)
+	mockRepo.On("Delete", mock.Anything, testWorkspace, "test-id").Return(nil)
 	mockMonitorNotificationService.On("DeleteByNotificationID", mock.Anything, "test-id").Return(errors.New("cascade delete failed"))
 	core, logs := observer.New(zap.WarnLevel)
 	service := NewService(mockRepo, mockMonitorNotificationService, &fakeProbeLinks{}, zap.New(core).Sugar())
 
-	err := service.Delete(context.Background(), "test-id")
+	err := service.Delete(context.Background(), testWorkspace, "test-id")
 
 	// Links left behind are skipped when notifications are sent
 	assert.NoError(t, err)
@@ -703,23 +724,23 @@ func TestServiceImpl_DeleteLogsCascadeFailure(t *testing.T) {
 func TestServiceImpl_DeleteClearsTheChannelsProbeLinks(t *testing.T) {
 	mockRepo := &MockRepository{}
 	mockMonitorNotificationService := &MockMonitorNotificationService{}
-	mockRepo.On("Delete", mock.Anything, "test-id").Return(nil)
+	mockRepo.On("Delete", mock.Anything, testWorkspace, "test-id").Return(nil)
 	mockMonitorNotificationService.On("DeleteByNotificationID", mock.Anything, "test-id").Return(nil)
 	probeLinks := &fakeProbeLinks{}
 	service := NewService(mockRepo, mockMonitorNotificationService, probeLinks, zap.NewNop().Sugar())
 
-	require.NoError(t, service.Delete(context.Background(), "test-id"))
+	require.NoError(t, service.Delete(context.Background(), testWorkspace, "test-id"))
 
 	assert.Equal(t, []string{"test-id"}, probeLinks.cleared)
 }
 
 func TestServiceImpl_DeleteLeavesProbeLinksWhenTheChannelIsNotDeleted(t *testing.T) {
 	mockRepo := &MockRepository{}
-	mockRepo.On("Delete", mock.Anything, "test-id").Return(errors.New("delete failed"))
+	mockRepo.On("Delete", mock.Anything, testWorkspace, "test-id").Return(errors.New("delete failed"))
 	probeLinks := &fakeProbeLinks{}
 	service := NewService(mockRepo, &MockMonitorNotificationService{}, probeLinks, zap.NewNop().Sugar())
 
-	require.EqualError(t, service.Delete(context.Background(), "test-id"), "delete failed")
+	require.EqualError(t, service.Delete(context.Background(), testWorkspace, "test-id"), "delete failed")
 
 	assert.Empty(t, probeLinks.cleared)
 }
@@ -727,13 +748,13 @@ func TestServiceImpl_DeleteLeavesProbeLinksWhenTheChannelIsNotDeleted(t *testing
 func TestServiceImpl_DeleteLogsProbeLinkFailure(t *testing.T) {
 	mockRepo := &MockRepository{}
 	mockMonitorNotificationService := &MockMonitorNotificationService{}
-	mockRepo.On("Delete", mock.Anything, "test-id").Return(nil)
+	mockRepo.On("Delete", mock.Anything, testWorkspace, "test-id").Return(nil)
 	mockMonitorNotificationService.On("DeleteByNotificationID", mock.Anything, "test-id").Return(nil)
 	core, logs := observer.New(zap.WarnLevel)
 	probeLinks := &fakeProbeLinks{err: errors.New("cascade delete failed")}
 	service := NewService(mockRepo, mockMonitorNotificationService, probeLinks, zap.New(core).Sugar())
 
-	err := service.Delete(context.Background(), "test-id")
+	err := service.Delete(context.Background(), testWorkspace, "test-id")
 
 	// The channel is gone, and its links are skipped when notifying
 	assert.NoError(t, err)

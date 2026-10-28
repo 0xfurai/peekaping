@@ -2,6 +2,8 @@ package monitor_tag
 
 import (
 	"context"
+
+	"peekaping/internal/modules/workspace"
 )
 
 type Repository interface {
@@ -16,4 +18,7 @@ type Repository interface {
 	DeleteByMonitorID(ctx context.Context, monitorID string) error
 	DeleteByTagID(ctx context.Context, tagID string) error
 	DeleteByMonitorAndTag(ctx context.Context, monitorID string, tagID string) error
+	// FindTagIDsInWorkspace returns which of the tags are in the workspace. The ID of a tag of
+	// another workspace, or of none, is left out.
+	FindTagIDsInWorkspace(ctx context.Context, workspaceID workspace.ID, ids []string) ([]string, error)
 }
