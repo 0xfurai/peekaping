@@ -239,7 +239,9 @@ func TestRepository_RenameChangesOnlyThatWorkspace(t *testing.T) {
 		require.NotNil(t, renamed)
 		assert.Equal(t, "Acme", renamed.Name)
 		assert.Equal(t, first.ID, renamed.ID)
-		assert.Equal(t, first.CreatedAt.UTC(), renamed.CreatedAt.UTC())
+		// To the microsecond, as both databases store it: Create returns the clock's own time, which
+		// on Linux has nanoseconds
+		assert.Equal(t, first.CreatedAt.UTC().Truncate(time.Microsecond), renamed.CreatedAt.UTC().Truncate(time.Microsecond))
 
 		untouched, err := repo.FindByID(ctx, other.ID)
 		require.NoError(t, err)
