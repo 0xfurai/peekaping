@@ -59,6 +59,10 @@ func (mr *MonitorServiceImpl) defaultProbeIDs(ctx context.Context, monitorType s
 		return nil, nil
 	}
 	defaults, err := mr.probes.FindDefaultProbes(ctx)
+	if errors.Is(err, ErrNoProbes) {
+		// Without probes the local one is all there is
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
