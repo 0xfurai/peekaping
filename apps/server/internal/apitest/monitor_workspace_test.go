@@ -3,6 +3,7 @@ package apitest
 import (
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -116,8 +117,12 @@ func TestMonitorWorkspace_AMemberOfAnotherWorkspaceReachesNoMonitorOfThisOne(t *
 		t.Run(route.name, func(t *testing.T) {
 			w := a.request(t, route.method, route.path, route.body, bob)
 			assert.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
-			unknown := a.request(t, route.method, "/api/v1/monitors/00000000-0000-4000-8000-000000000000"+route.path[len(path):], route.body, bob)
+			const missing = "00000000-0000-4000-8000-000000000000"
+			unknown := a.request(t, route.method, "/api/v1/monitors/"+missing+route.path[len(path):], route.body, bob)
 			assert.Equal(t, unknown.Code, w.Code, "the same answer as for a monitor that doesn't exist")
+			// a message may repeat the ID the caller sent, which is the one thing that differs
+			assert.JSONEq(t, strings.ReplaceAll(unknown.Body.String(), missing, "<id>"), strings.ReplaceAll(w.Body.String(), id, "<id>"),
+				"with the same body, so the two can't be told apart (ADR 0005 section 8)")
 			assert.NotContains(t, w.Body.String(), "Checkout", "and nothing of the monitor")
 		})
 	}
