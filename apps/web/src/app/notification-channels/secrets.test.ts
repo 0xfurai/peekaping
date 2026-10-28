@@ -60,10 +60,18 @@ describe("secretsToReenter: URL credentials", () => {
 });
 
 describe("withoutSavedSecrets", () => {
-  it("empties a masked URL as well as a placeholder", () => {
+  it("empties a placeholder and a masked URL", () => {
     expect(
       withoutSavedSecrets({ type: "webhook", webhook_url: MASKED, name: "n", token: SECRET_PLACEHOLDER })
     ).toEqual({ type: "webhook", webhook_url: "", name: "n", token: "" });
+  });
+
+  it("keeps other text that merely contains the placeholder", () => {
+    const body = '{"text": "********"}';
+    expect(withoutSavedSecrets({ webhook_custom_body: body, name: "a ******** b" })).toEqual({
+      webhook_custom_body: body,
+      name: "a ******** b",
+    });
   });
 });
 

@@ -78,15 +78,21 @@ export function reenterError(type: string, key: string) {
   return { type: REENTER_ERROR_TYPE, message: url ? REENTER_URL_ERROR_MESSAGE : REENTER_ERROR_MESSAGE };
 }
 
-// The form values with every saved-secret placeholder emptied, and every value that holds one,
-// such as a URL with masked credentials. A placeholder stands for a secret of the saved channel,
-// so it means nothing once the form leaves that channel's type: ntfy, Gotify, WhatsApp and
-// Telegram share the key `server_url`, and another type's masked URL is no URL of this one.
+// The form values with every saved-secret placeholder emptied, and every URL that holds one
+// (its masked credentials). A placeholder stands for a secret of the saved channel, so it means
+// nothing once the form leaves that channel's type: ntfy, Gotify, WhatsApp and Telegram share the
+// key `server_url`, and another type's masked URL is no URL of this one. Other text that merely
+// contains the placeholder, such as a custom body, is the user's own.
+const urlKeys = new Set(Object.values(configFieldKeys).flatMap((keys) => keys.urls));
+
 export function withoutSavedSecrets<T extends Record<string, unknown>>(values: T): T {
   return Object.fromEntries(
     Object.entries(values).map(([key, value]) => [
       key,
-      typeof value === "string" && value.includes(SECRET_PLACEHOLDER) ? "" : value,
+      value === SECRET_PLACEHOLDER ||
+      (urlKeys.has(key) && typeof value === "string" && value.includes(SECRET_PLACEHOLDER))
+        ? ""
+        : value,
     ])
   ) as T;
 }
