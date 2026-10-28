@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/monitor_maintenance"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
@@ -72,6 +73,9 @@ func (ic *Controller) Create(ctx context.Context, input *CreateInput) (*httpx.Ou
 
 	created, err := ic.service.Create(ctx, workspaceID, entity.toModel(), entity.MonitorIds)
 	if err != nil {
+		if errors.Is(err, monitor_maintenance.ErrUnknownMonitor) {
+			return nil, unknownMonitorResponse()
+		}
 		ic.logger.Errorw("Failed to create maintenance", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -152,6 +156,9 @@ func (ic *Controller) UpdateFull(ctx context.Context, input *UpdateFullInput) (*
 		if errors.Is(err, ErrNotFound) {
 			return nil, notFoundResponse()
 		}
+		if errors.Is(err, monitor_maintenance.ErrUnknownMonitor) {
+			return nil, unknownMonitorResponse()
+		}
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -183,6 +190,9 @@ func (ic *Controller) UpdatePartial(ctx context.Context, input *UpdatePartialInp
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return nil, notFoundResponse()
+		}
+		if errors.Is(err, monitor_maintenance.ErrUnknownMonitor) {
+			return nil, unknownMonitorResponse()
 		}
 		ic.logger.Errorw("Failed to update maintenance", "error", err)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -265,4 +275,11 @@ func findIn(service Service, workspaceID workspace.ID) func(context.Context, str
 // another workspace, which a caller can't tell apart
 func notFoundResponse() error {
 	return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Maintenance window not found"))
+}
+
+// unknownMonitorResponse is the 400 for a window that covers a monitor that isn't in its workspace.
+// It names no ID, so a monitor of another workspace and one that doesn't exist get the same answer
+// (docs/adr/0005 section 8).
+func unknownMonitorResponse() error {
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse("Monitor not found"))
 }

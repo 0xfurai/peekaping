@@ -294,6 +294,7 @@ func TestRecordWorkspaces_AMonitorCannotLinkToAnotherWorkspacesRecords(t *testin
 		"a proxy": func(body map[string]any, id string) map[string]any { return with(body, "proxy_id", id) },
 	}
 	foreign := map[string]string{"a notification channel": channel, "a tag": tag, "a proxy": proxy}
+	message := map[string]string{"a notification channel": "Notification channel not found", "a tag": "Tag not found", "a proxy": "Proxy not found"}
 	bobsMonitor := decode[created](t, a.request(t, http.MethodPost, monitorsPath, pushMonitorBody("Bobs", "bobs-token"), bob), http.StatusCreated).ID
 	bobsBefore := a.request(t, http.MethodGet, monitorsPath+"/"+bobsMonitor, nil, bob).Body.String()
 
@@ -303,7 +304,8 @@ func TestRecordWorkspaces_AMonitorCannotLinkToAnotherWorkspacesRecords(t *testin
 			w := a.request(t, http.MethodPost, monitorsPath, link(pushMonitorBody("Doomed", token), foreign[what]), bob)
 			unknown := a.request(t, http.MethodPost, monitorsPath, link(pushMonitorBody("Doomed", token), missingRecordID), bob)
 
-			assert.Equal(t, http.StatusInternalServerError, w.Code, "as an ID that doesn't exist has always been answered: "+w.Body.String())
+			assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+			assert.Contains(t, w.Body.String(), message[what])
 			assert.Equal(t, unknown.Code, w.Code)
 			assert.JSONEq(t, unknown.Body.String(), w.Body.String())
 			assert.Equal(t, []string{bobsMonitor}, monitorIDsOf(t, a.request(t, http.MethodGet, monitorsPath, nil, bob)), "no monitor is stored")
@@ -319,7 +321,8 @@ func TestRecordWorkspaces_AMonitorCannotLinkToAnotherWorkspacesRecords(t *testin
 				}
 				w, unknown := change(foreign[what]), change(missingRecordID)
 
-				assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+				assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+				assert.Contains(t, w.Body.String(), message[what])
 				assert.Equal(t, unknown.Code, w.Code)
 				assert.JSONEq(t, unknown.Body.String(), w.Body.String())
 				assert.JSONEq(t, bobsBefore, a.request(t, http.MethodGet, monitorsPath+"/"+bobsMonitor, nil, bob).Body.String(), "the monitor and its links are as they were")
@@ -356,7 +359,8 @@ func TestRecordWorkspaces_AMaintenanceWindowCannotCoverAnotherWorkspacesMonitor(
 		w := a.request(t, http.MethodPost, "/api/v1/maintenances", with(maintenanceBody("Doomed"), "monitor_ids", []string{alices}), bob)
 		unknown := a.request(t, http.MethodPost, "/api/v1/maintenances", with(maintenanceBody("Doomed"), "monitor_ids", []string{missingRecordID}), bob)
 
-		assert.Equal(t, http.StatusInternalServerError, w.Code, "as an ID that doesn't exist has always been answered: "+w.Body.String())
+		assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+		assert.Contains(t, w.Body.String(), "Monitor not found")
 		assert.Equal(t, unknown.Code, w.Code)
 		assert.JSONEq(t, unknown.Body.String(), w.Body.String())
 		assert.Equal(t, []string{window}, idsOfList(t, a.request(t, http.MethodGet, "/api/v1/maintenances", nil, bob)), "no window is stored")
@@ -373,7 +377,8 @@ func TestRecordWorkspaces_AMaintenanceWindowCannotCoverAnotherWorkspacesMonitor(
 			w := a.request(t, update.method, path, update.body([]string{bobs, alices}), bob)
 			unknown := a.request(t, update.method, path, update.body([]string{bobs, missingRecordID}), bob)
 
-			assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+			assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+			assert.Contains(t, w.Body.String(), "Monitor not found")
 			assert.Equal(t, unknown.Code, w.Code)
 			assert.JSONEq(t, unknown.Body.String(), w.Body.String())
 			assert.JSONEq(t, before, a.request(t, http.MethodGet, path, nil, bob).Body.String(), "the window still covers what it covered")
@@ -381,7 +386,7 @@ func TestRecordWorkspaces_AMaintenanceWindowCannotCoverAnotherWorkspacesMonitor(
 	}
 	// and the other way round: Alice's window can't cover Bob's monitor
 	w := a.request(t, http.MethodPost, "/api/v1/maintenances", with(maintenanceBody("Alices window"), "monitor_ids", []string{bobs}), a.asAdmin)
-	assert.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+	assert.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
 	// while a window over its own monitors works
 	decode[created](t, a.request(t, http.MethodPost, "/api/v1/maintenances", with(maintenanceBody("Alices window"), "monitor_ids", []string{alices}), a.asAdmin), http.StatusCreated)
 }
