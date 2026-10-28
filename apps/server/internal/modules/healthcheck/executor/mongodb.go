@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	"peekaping/internal/modules/shared"
 	"strconv"
@@ -26,6 +27,7 @@ type MongoDBConfig struct {
 }
 
 type MongoDBExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -54,6 +56,36 @@ func (m *MongoDBExecutor) Validate(configJSON string) error {
 	}
 
 	return GenericValidator(mongoCfg)
+}
+
+// Targets lists the hosts a MongoDB check connects to: those of a seed list, or the name an SRV
+// record is looked up for (what it points to is checked when the driver dials it). A host that is a
+// Unix socket is left out: the dialer refuses it.
+func (m *MongoDBExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[MongoDBConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	_, rest, ok := strings.Cut(cfg.ConnectionString, "://")
+	if !ok {
+		return nil, nil
+	}
+	// The hosts end at the database or the options. The user and password end at the last "@",
+	// which they escape in themselves.
+	authority := rest
+	if end := strings.IndexAny(authority, "/?"); end >= 0 {
+		authority = authority[:end]
+	}
+	if at := strings.LastIndex(authority, "@"); at >= 0 {
+		authority = authority[at+1:]
+	}
+	var hosts []string
+	for _, entry := range strings.Split(authority, ",") {
+		if host, err := url.PathUnescape(strings.TrimSpace(entry)); err == nil && !strings.HasSuffix(host, ".sock") && host != "" {
+			hosts = append(hosts, hostOf(host))
+		}
+	}
+	return hosts, nil
 }
 
 func (m *MongoDBExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
@@ -189,6 +221,11 @@ func (m *MongoDBExecutor) runMongoDBCommand(ctx context.Context, connectionStrin
 		ctx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}
+
+	// Dial through the guard: every connection the driver makes goes through the dialer, including
+	// those to the servers an SRV record or the replica set's configuration names, and a Unix
+	// socket is a connection it makes in the same way.
+	clientOptions.SetDialer(m.dialer(&net.Dialer{Timeout: timeout}))
 
 	// Connect to MongoDB
 	client, err := mongo.Connect(ctx, clientOptions)

@@ -33,6 +33,7 @@ type KafkaProducerSASLOptions struct {
 }
 
 type KafkaProducerExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -95,6 +96,22 @@ func (k *KafkaProducerExecutor) Validate(configJSON string) error {
 	return GenericValidator(kafkaCfg)
 }
 
+// Targets lists the hosts of the brokers a Kafka check connects to. The brokers the cluster
+// announces afterwards are not known here: they are dialed through the guard too.
+func (k *KafkaProducerExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[KafkaProducerConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	var hosts []string
+	for _, broker := range cfg.Brokers {
+		if host := hostOf(broker); host != "" {
+			hosts = append(hosts, host)
+		}
+	}
+	return hosts, nil
+}
+
 func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := k.Unmarshal(monitor.Config)
 	if err != nil {
@@ -125,6 +142,14 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	// broker has just created has no leader yet, and the next attempt finds it.
 	config.Metadata.Timeout = timeout
 	config.Metadata.AllowAutoTopicCreation = cfg.AllowAutoTopicCreation
+
+	// While the guard is on, sarama dials every broker through it, the ones the cluster announces
+	// in its metadata included. TLS is still negotiated by sarama, over the connection the dialer
+	// returns.
+	if k.on() {
+		config.Net.Proxy.Enable = true
+		config.Net.Proxy.Dialer = k.dialer(&net.Dialer{Timeout: timeout, KeepAlive: config.Net.KeepAlive})
+	}
 
 	// Configure SSL if enabled
 	if cfg.SSL {

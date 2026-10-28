@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/url"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/netguard"
 	"regexp"
 	"strconv"
 	"strings"
@@ -25,6 +26,7 @@ type SQLServerConfig struct {
 }
 
 type SQLServerExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -271,6 +273,24 @@ func (s *SQLServerExecutor) validateQuery(query string) error {
 	return fmt.Errorf("query must start with one of: %s", strings.Join(allowedPrefixes, ", "))
 }
 
+// Targets lists the server a SQL Server check connects to, whichever form the connection string is
+// written in
+func (s *SQLServerExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[SQLServerConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	dsn, err := s.parseConnectionString(cfg.DatabaseConnectionString)
+	if err != nil {
+		return nil, nil
+	}
+	parsed, _, err := msdsn.Parse(dsn)
+	if err != nil || parsed.Host == "" {
+		return nil, nil
+	}
+	return []string{parsed.Host}, nil
+}
+
 func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := s.Unmarshal(m.Config)
 	if err != nil {
@@ -306,7 +326,7 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 	deadline, _ := ctx.Deadline()
 
 	// Open connection
-	connector, err := newSQLServerConnector(dsn, deadline)
+	connector, err := newSQLServerConnector(dsn, deadline, s.guard)
 	if err != nil {
 		return DownResult(fmt.Errorf("failed to open SQL Server connection: %w", err), startTime, time.Now().UTC())
 	}
@@ -360,7 +380,11 @@ func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel 
 // without one: a server that accepts the connection and never answers would
 // keep the check waiting forever. The deadline is the check's own, not the dial
 // context's, which is shorter and would cut a slow query short.
-func newSQLServerConnector(dsn string, deadline time.Time) (*mssql.Connector, error) {
+//
+// The dialer is the guard's, which the driver uses for every connection it makes: the one to the
+// server, to each address the server's name resolves to, and the UDP request to the SQL Server
+// Browser that finds the port of a named instance.
+func newSQLServerConnector(dsn string, deadline time.Time, guard *netguard.Guard) (*mssql.Connector, error) {
 	cfg, _, err := msdsn.Parse(dsn)
 	if err != nil {
 		return nil, err
@@ -369,14 +393,14 @@ func newSQLServerConnector(dsn string, deadline time.Time) (*mssql.Connector, er
 	if err != nil {
 		return nil, err
 	}
-	connector.Dialer = deadlineDialer{dialer: net.Dialer{KeepAlive: cfg.KeepAlive}, deadline: deadline}
+	connector.Dialer = deadlineDialer{dialer: guard.Dialer(&net.Dialer{KeepAlive: cfg.KeepAlive}), deadline: deadline}
 	return connector, nil
 }
 
 // deadlineDialer dials like the driver's own dialer, and returns connections
 // that can't outlive the deadline.
 type deadlineDialer struct {
-	dialer   net.Dialer
+	dialer   *net.Dialer
 	deadline time.Time
 }
 
