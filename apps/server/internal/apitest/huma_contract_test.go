@@ -378,6 +378,42 @@ func TestOpenAPI_TelemetryEnabledIsNotNullable(t *testing.T) {
 	}
 }
 
+// A workspace PATCH refuses a null suspended like a missing one, so the description leaves null out.
+// The field stays optional: the PATCH grows other fields, and refusing an empty change is the
+// handler's job.
+func TestOpenAPI_WorkspaceSuspendedIsNotNullable(t *testing.T) {
+	a := newAppWithAdmin(t)
+	acme := a.createAcme(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/admin.UpdateWorkspaceDto")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		body   string
+		valid  bool
+		status int
+	}{
+		{`{"suspended":true}`, true, 200},
+		{`{"suspended":false}`, true, 200},
+		{`{"suspended":null}`, false, 400},
+	} {
+		t.Run(tc.body, func(t *testing.T) {
+			value, err := jsonschema.UnmarshalJSON(strings.NewReader(tc.body))
+			require.NoError(t, err)
+			if tc.valid {
+				assert.NoError(t, schema.Validate(value))
+			} else {
+				assert.Error(t, schema.Validate(value))
+			}
+			w := a.request(t, "PATCH", "/api/v1/admin/workspaces/"+string(acme.id), tc.body, a.asAdmin)
+			assert.Equal(t, tc.status, w.Code, w.Body.String())
+		})
+	}
+}
+
 func TestOpenAPI_StatPointsDatabaseErrorMatchesSchema(t *testing.T) {
 	a := newAppWithAdmin(t)
 	id := a.createMonitor(t, "Database failure", "database-failure")

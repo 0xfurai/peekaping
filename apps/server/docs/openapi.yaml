@@ -67,9 +67,7 @@ components:
       properties:
         suspended:
           description: Suspend (true) or resume (false) the workspace. Required.
-          type:
-            - boolean
-            - "null"
+          type: boolean
       type: object
     admin.UserResponse:
       additionalProperties: false

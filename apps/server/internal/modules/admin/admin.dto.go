@@ -111,8 +111,9 @@ type DeleteUserInput = httpx.Input[httpx.NoBody, UserParams]
 
 // UpdateWorkspaceDto is the request to suspend or resume a workspace
 type UpdateWorkspaceDto struct {
-	// Suspended holds the workspace back (true) or lets it run again (false). It is required.
-	Suspended *bool `json:"suspended,omitempty" doc:"Suspend (true) or resume (false) the workspace. Required." required:"true"`
+	// Suspended holds the workspace back (true) or lets it run again (false). It is required, and a
+	// null reads as missing, so it is not nullable.
+	Suspended *bool `json:"suspended,omitempty" doc:"Suspend (true) or resume (false) the workspace. Required." required:"true" nullable:"false"`
 }
 
 // WorkspaceMonitorsResponse counts a workspace's monitors by whether they run
