@@ -2045,8 +2045,10 @@
       "url_label": "Adresse som skal overvåkes"
     },
     "channel": {
+      "continue_unlinked": "Fortsett uten å koble til",
       "description": "Velg hvor Peekaping sender en varsling når overvåkingen din går ned. Den blir standard for nye overvåkinger.",
       "link_failed": "Kanalen ble lagret, men koblingen til overvåkingen mislyktes. Legg den til på overvåkingens redigeringsside.",
+      "retry_link": "Prøv å koble til igjen",
       "title": "Få beskjed"
     },
     "done": {

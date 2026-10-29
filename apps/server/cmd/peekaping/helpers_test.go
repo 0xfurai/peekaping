@@ -246,7 +246,10 @@ func (in *instance) request(t testing.TB, method, path string, body any) (int, [
 		req.Header.Set("Authorization", "Bearer "+in.accessToken)
 	}
 	resp, err := testHTTP.Do(req)
-	require.NoError(t, err, "%s %s\n%s", method, path, goroutines())
+	if err != nil {
+		// the stacks only on failure: collecting them takes an 8 MiB buffer per call
+		require.NoError(t, err, "%s %s\n%s", method, path, goroutines())
+	}
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)

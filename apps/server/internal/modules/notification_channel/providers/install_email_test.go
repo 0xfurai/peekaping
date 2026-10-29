@@ -129,6 +129,25 @@ func TestInstallEmailChannel_TheEmailNamesTheMonitorAndItsStatus(t *testing.T) {
 	assert.Contains(t, up.text, "200 - OK")
 }
 
+// The mailer refuses a subject with a line break, so a monitor name with one is put on one line in
+// the subject, and the body has the name as it is
+func TestInstallEmailChannel_AMonitorNameWithALineBreakIsOneLineInTheSubject(t *testing.T) {
+	sender, mail, _ := newInstallEmailSender(true, "oncall@example.com")
+	const channel = `{"to": "oncall@example.com"}`
+	message, golden, hb := goldenNotification(downEvent)
+	mon := *golden
+	mon.Name = "Public\nAPI\r\n"
+	require.NoError(t, sender.Send(inInstallEmailWorkspace(), channel, message, &mon, hb))
+	certificate := &monitor.Model{Name: "\tEdge\rproxy", Type: "http"}
+	require.NoError(t, sender.Send(inInstallEmailWorkspace(), channel, "the certificate expires", certificate, nil))
+
+	require.Len(t, mail.sent, 2)
+	assert.Equal(t, "Public API is Down", mail.sent[0].subject)
+	assert.Contains(t, mail.sent[0].text, "Monitor: Public\nAPI\r\n")
+	assert.Equal(t, defaultEmailSubject+": Edge proxy", mail.sent[1].subject)
+	assert.Contains(t, mail.sent[1].text, "Monitor: \tEdge\rproxy")
+}
+
 // A test notification has a monitor that isn't saved and a heartbeat with no time: the email has
 // no link and no time. Without a monitor or a public URL it has neither link nor name.
 func TestInstallEmailChannel_AnEmailWithoutAMonitorPageOrHeartbeatLeavesThemOut(t *testing.T) {

@@ -2045,8 +2045,10 @@
       "url_label": "Monitorizatu beharreko helbidea"
     },
     "channel": {
+      "continue_unlinked": "Jarraitu lotu gabe",
       "description": "Aukeratu non bidaliko duen Peekaping-ek abisua zure monitorea erortzen denean. Monitore berrien lehenetsia izango da.",
       "link_failed": "Kanala gorde da, baina ezin izan da zure monitorearekin lotu. Gehitu monitorearen edizio-orrian.",
+      "retry_link": "Saiatu berriro lotzen",
       "title": "Jaso jakinarazpenak"
     },
     "done": {
