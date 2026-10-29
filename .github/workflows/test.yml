@@ -123,8 +123,21 @@ jobs:
         working-directory: apps/web
         run: bun run build
 
+      # The SQLite tests keep their databases in t.TempDir(), and nexus-runner's disk takes tens of
+      # milliseconds per fsync: one test that writes 20,000 times took 535 seconds there, 23 on a
+      # GitHub-hosted runner. So the tests' temporary files live in memory. The pod's own /dev/shm
+      # holds only 64 MB, so this mounts a tmpfs of its own (the runner may sudo). GOTMPDIR keeps
+      # the test binaries go test builds on disk
+      - name: Keep the tests' temporary files in memory
+        run: |
+          sudo mkdir -p /mnt/test-tmp
+          sudo mount -t tmpfs -o size=2g,mode=1777 tmpfs /mnt/test-tmp
+
       - name: Run server tests with coverage
         working-directory: apps/server
+        env:
+          TMPDIR: /mnt/test-tmp
+          GOTMPDIR: ${{ runner.temp }}
         run: |
           pwd
           # A failing go test must fail the step: without pipefail, the exit status of the
@@ -194,8 +207,17 @@ jobs:
         working-directory: apps/server
         run: go mod download
 
+      # In memory, as in the test job
+      - name: Keep the tests' temporary files in memory
+        run: |
+          sudo mkdir -p /mnt/test-tmp
+          sudo mount -t tmpfs -o size=2g,mode=1777 tmpfs /mnt/test-tmp
+
       - name: Run server tests with the race detector
         working-directory: apps/server
+        env:
+          TMPDIR: /mnt/test-tmp
+          GOTMPDIR: ${{ runner.temp }}
         # On the GitHub-hosted runners internal/apitest alone takes 1395 to 1491 seconds under
         # -race, and it hit a 1800 second timeout once with nothing hung, so the per-package
         # timeout leaves room for a slower run. -count=1 as in the test job
@@ -242,6 +264,15 @@ jobs:
         working-directory: apps/server
         run: go mod download
 
+      # In memory, as in the test job
+      - name: Keep the tests' temporary files in memory
+        run: |
+          sudo mkdir -p /mnt/test-tmp
+          sudo mount -t tmpfs -o size=2g,mode=1777 tmpfs /mnt/test-tmp
+
       - name: Run API tests with the cloud's settings
         working-directory: apps/server
+        env:
+          TMPDIR: /mnt/test-tmp
+          GOTMPDIR: ${{ runner.temp }}
         run: go test -timeout 1200s -count=1 ./internal/apitest/...
