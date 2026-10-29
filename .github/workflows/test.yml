@@ -149,10 +149,16 @@ jobs:
         working-directory: apps/web
         run: bun run build
 
-  # Every Go package's tests but the API tests, which go-api-test runs
+  # Every Go package's tests but the API tests, which go-api-test runs, in two halves of about the
+  # same length: the executors, the probe and the commands, and everything else
   go-test:
+    name: go-test (${{ matrix.group }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [checks, rest]
 
     # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
     # Each test creates a schema or database of its own, so they share this one server
@@ -194,9 +200,15 @@ jobs:
           # -coverpkg credits code that tests in other packages reach, such as the Go
           # migrations in cmd/bun/migrations that tests in other packages run. -count=1 so that
           # a cached result never stands in for a run against the PostgreSQL service
+          all=$(go list ./internal/... ./cmd/... | grep -v '/internal/apitest$')
+          checks=$(grep -E '/cmd/|/internal/modules/healthcheck(/|$)|/internal/probeclient(/|$)|/internal/modules/probe(/|$)' <<<"$all")
+          if [ "${{ matrix.group }}" = checks ]; then
+            packages=$checks
+          else
+            packages=$(grep -v -x -F -f <(echo "$checks") <<<"$all")
+          fi
           go test -timeout 1200s -count=1 -parallel 4 -v -coverprofile=coverage.txt \
-            -coverpkg=./internal/...,./cmd/bun/migrations \
-            $(go list ./internal/... ./cmd/... | grep -v '/internal/apitest$') | tee server-test.log
+            -coverpkg=./internal/...,./cmd/bun/migrations $packages | tee server-test.log
           # Every PostgreSQL subtest skips with this message when the variable is unset, which
           # would leave this job green without running them
           if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
@@ -204,7 +216,7 @@ jobs:
             exit 1
           fi
 
-      # Codecov merges this upload with go-test's or go-api-test's, both under the server flag
+      # Codecov merges the uploads of go-test's halves and go-api-test, all under the server flag
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -273,7 +285,7 @@ jobs:
             exit 1
           fi
 
-      # Codecov merges this upload with go-test's or go-api-test's, both under the server flag
+      # Codecov merges the uploads of go-test's halves and go-api-test, all under the server flag
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
