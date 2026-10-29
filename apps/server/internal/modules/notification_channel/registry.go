@@ -31,7 +31,7 @@ func NewProviderRegistry(logger *zap.SugaredLogger, settings *installsettings.Re
 	client := providers.NewGuardedHTTPClient(guard)
 	return &ProviderRegistry{guard: guard, byType: map[string]NotificationChannelProvider{
 		"smtp":           providers.NewGuardedEmailSender(logger, guard),
-		"install_email":  providers.NewInstallEmailSender(logger, cfg, accountMailer, members),
+		"install_email":  providers.NewInstallEmailSender(logger, settings, accountMailer, members),
 		"telegram":       providers.NewTelegramSender(logger, client),
 		"webhook":        providers.NewWebhookSender(logger, client),
 		"slack":          providers.NewSlackSender(logger, settings, client),

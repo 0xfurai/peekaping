@@ -9,7 +9,6 @@ import (
 	"strings"
 	"unicode"
 
-	"peekaping/internal/config"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
@@ -67,16 +66,16 @@ func workspaceFrom(ctx context.Context) (workspace.ID, bool) {
 // on an open-signup install anyone can sign up with another person's address and join a workspace
 // of their own with it, so a member's address alone doesn't show that it is theirs.
 type InstallEmailSender struct {
-	logger  *zap.SugaredLogger
-	config  *config.Config
-	mailer  AccountMailer
-	members WorkspaceMembers
+	logger    *zap.SugaredLogger
+	publicURL PublicURLSource
+	mailer    AccountMailer
+	members   WorkspaceMembers
 }
 
-// NewInstallEmailSender creates an InstallEmailSender. The config's ClientURL is what the email
-// links to the monitor's page with.
-func NewInstallEmailSender(logger *zap.SugaredLogger, cfg *config.Config, mail AccountMailer, members WorkspaceMembers) *InstallEmailSender {
-	return &InstallEmailSender{logger: logger, config: cfg, mailer: mail, members: members}
+// NewInstallEmailSender creates an InstallEmailSender. The install's public URL at the moment of a
+// send is what the email links to the monitor's page with.
+func NewInstallEmailSender(logger *zap.SugaredLogger, publicURL PublicURLSource, mail AccountMailer, members WorkspaceMembers) *InstallEmailSender {
+	return &InstallEmailSender{logger: logger, publicURL: publicURL, mailer: mail, members: members}
 }
 
 // Unmarshal reads the config. The address is trimmed, since a pasted one often has a space.
@@ -176,7 +175,7 @@ func (e *InstallEmailSender) Send(
 		return err
 	}
 	workspaceID, _ := workspaceFrom(ctx)
-	email := installEmail(e.monitorLink(workspaceID, m), message, m, heartbeat)
+	email := installEmail(e.monitorLink(ctx, workspaceID, m), message, m, heartbeat)
 	if err := e.mailer.Send(ctx, to, email.Subject, email.Text, email.HTML); err != nil {
 		// The server's own text repeats the recipient's address
 		return fmt.Errorf("failed to send the email: %s", mailer.Describe(err))
@@ -188,14 +187,14 @@ func (e *InstallEmailSender) Send(
 // monitorLink is the address of the monitor's page in its workspace, or "" when the install's
 // public URL is not set or there is no page: a probe's stand-in monitor, or a test notification's
 // monitor, which isn't saved
-func (e *InstallEmailSender) monitorLink(workspaceID workspace.ID, m *monitor.Model) string {
-	if e.config == nil || m == nil || m.ID == "" || m.IsProbeEvent() {
+func (e *InstallEmailSender) monitorLink(ctx context.Context, workspaceID workspace.ID, m *monitor.Model) string {
+	if m == nil || m.ID == "" || m.IsProbeEvent() {
 		return ""
 	}
 	if m.WorkspaceID != "" {
 		workspaceID = m.WorkspaceID
 	}
-	base := strings.TrimRight(e.config.ClientURL, "/")
+	base := strings.TrimRight(publicURL(ctx, e.publicURL), "/")
 	if base == "" || workspaceID == "" {
 		return ""
 	}

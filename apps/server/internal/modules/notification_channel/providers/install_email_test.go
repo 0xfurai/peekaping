@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
@@ -156,7 +157,7 @@ func TestInstallEmailChannel_AnEmailWithoutAMonitorPageOrHeartbeatLeavesThemOut(
 	testHeartbeat := &heartbeat.Model{Status: shared.MonitorStatusDown, Msg: "This is a test notification from Peekaping"}
 	require.NoError(t, sender.Send(inInstallEmailWorkspace(), channel, testHeartbeat.Msg, testMonitor, testHeartbeat))
 	require.NoError(t, sender.Send(inInstallEmailWorkspace(), channel, "general", nil, nil))
-	noURL := NewInstallEmailSender(nopLogger(), &config.Config{}, mail, &fakeMembers{emails: map[workspace.ID][]string{installEmailWorkspace: {"oncall@example.com"}}})
+	noURL := NewInstallEmailSender(nopLogger(), installsettings.Static(&config.Config{}), mail, &fakeMembers{emails: map[workspace.ID][]string{installEmailWorkspace: {"oncall@example.com"}}})
 	message, mon, hb := goldenNotification(downEvent)
 	require.NoError(t, noURL.Send(inInstallEmailWorkspace(), channel, message, mon, hb))
 
