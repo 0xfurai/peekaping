@@ -80,7 +80,7 @@ export type AdminWorkspaceResponse = {
   statusPages: number;
   suspended: boolean;
   suspendedAt: string | null;
-  suspendedReason: "admin" | "unverified";
+  suspendedReason: "admin" | "unverified" | null;
 };
 
 export type AdminWorkspacesPageResponse = {
@@ -655,7 +655,7 @@ export type MonitorPartialUpdateDto = {
   /**
    * How many of the monitor's locations must be Down for the monitor to be Down: any, all or at_least. Omitted, the monitor keeps its rule.
    */
-  location_rule?: "any" | "all" | "at_least";
+  location_rule?: "any" | "all" | "at_least" | null;
   /**
    * With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Sent with a rule other than at_least it is rejected; a rule sent without it has none.
    */
@@ -680,7 +680,7 @@ export type MonitorPartialUpdateDto = {
     | (boolean | null)
     | (string | null)
     | (number | null)
-    | ("any" | "all" | "at_least")
+    | ("any" | "all" | "at_least" | null)
     | (number | null)
     | (number | null)
     | (string | null)

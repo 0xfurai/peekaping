@@ -276,7 +276,8 @@
           "suspendedReason": {
             "enum": [
               "admin",
-              "unverified"
+              "unverified",
+              null
             ],
             "type": [
               "string",
@@ -2191,7 +2192,8 @@
             "enum": [
               "any",
               "all",
-              "at_least"
+              "at_least",
+              null
             ],
             "examples": [
               "any"

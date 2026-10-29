@@ -198,6 +198,7 @@ components:
           enum:
             - admin
             - unverified
+            - null
           type:
             - string
             - "null"
@@ -1571,6 +1572,7 @@ components:
             - any
             - all
             - at_least
+            - null
           examples:
             - any
           type:

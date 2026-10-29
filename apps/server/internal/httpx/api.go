@@ -199,7 +199,49 @@ func (a operationAPI) DocumentOperation(op *huma.Operation) {
 			}
 		}
 	}
+	for _, schema := range registry.Map() {
+		documentNull(schema)
+	}
 	a.OpenAPI().AddOperation(op)
+}
+
+// documentNull finishes the nullable properties of schema and of the objects and lists in it. Huma
+// marks a `nullable:"true"` field nullable but leaves null out of its enum.
+func documentNull(schema *huma.Schema) {
+	if schema == nil {
+		return
+	}
+	for _, property := range schema.Properties {
+		if property.Nullable {
+			allowNull(property)
+		}
+		documentNull(property)
+	}
+	documentNull(schema.Items)
+}
+
+// allowNull documents null as a value of property. An enum lists null beside its values. A $ref has
+// no type to add null to, so it becomes anyOf the $ref and null. A property without a type, such as
+// one allowNull already turned into anyOf, is left as it is.
+func allowNull(property *huma.Schema) {
+	if property.Ref != "" {
+		property.AnyOf = []*huma.Schema{{Ref: property.Ref}, {Type: "null"}}
+		property.Ref, property.Nullable = "", false
+		return
+	}
+	if property.Type == "" {
+		property.Nullable = false
+		return
+	}
+	property.Nullable = true
+	for _, value := range property.Enum {
+		if value == nil {
+			return
+		}
+	}
+	if len(property.Enum) > 0 {
+		property.Enum = append(property.Enum, nil)
+	}
 }
 
 func Register[I, T any](router *Router, method, path string, op huma.Operation, handler func(context.Context, *I) (*Output[T], error), middleware ...Middleware) {
@@ -315,7 +357,7 @@ func normalizeRequest(registry huma.Registry, t reflect.Type) {
 		// A pointer field accepts null, as the validator treats it as unset. A field the validator
 		// requires rejects null, so it opts out with `nullable:"false"`.
 		if f.Type.Kind() == reflect.Pointer && f.Tag.Get("nullable") != "false" {
-			property.Nullable = true
+			allowNull(property)
 		}
 		rules := strings.Split(f.Tag.Get("validate"), ",")
 		optional, required := false, false
