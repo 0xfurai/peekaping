@@ -77,6 +77,7 @@ describe("meWithWorkspaceName", () => {
     data: {
       accountEmails: false,
       defaultWorkspaceId: "w1",
+      disabledMonitorTypes: [],
       user: { id: "u1", email: "user@example.com", emailVerified: true, instanceAdmin: false },
       workspaces: [
         { id: "w1", name: "Main", role: "owner", suspended: false, suspendedReason: null },
