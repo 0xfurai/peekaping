@@ -1,6 +1,8 @@
 package status_page
 
 import (
+	"net/http"
+
 	"peekaping/internal/httpx"
 )
 
@@ -59,4 +61,27 @@ type DomainErrorResponse struct {
 // custom-domain conflict's.
 type SlugErrorResponse struct {
 	Error *SlugAlreadyUsedError `json:"error"`
+}
+
+// UnavailableErrorBody is the code of an UnavailableResponse
+type UnavailableErrorBody struct {
+	Code string `json:"code" example:"STATUS_PAGE_UNAVAILABLE"`
+}
+
+// UnavailableResponse is the answer of a public status page, or of a badge of a monitor on one,
+// whose workspace is suspended (PP-372): 503 with a code, and no word on why. A visitor is not told
+// that an instance admin suspended the workspace, or that it waits for its owner's email
+// verification.
+type UnavailableResponse struct {
+	Message string               `json:"message" example:"This status page is unavailable"`
+	Data    httpx.Null           `json:"data"`
+	Error   UnavailableErrorBody `json:"error"`
+}
+
+// Unavailable is the error that makes a route answer with an UnavailableResponse
+func Unavailable() error {
+	return httpx.Fail(http.StatusServiceUnavailable, UnavailableResponse{
+		Message: "This status page is unavailable",
+		Error:   UnavailableErrorBody{Code: "STATUS_PAGE_UNAVAILABLE"},
+	})
 }

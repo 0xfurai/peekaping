@@ -82,6 +82,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		provideStaleProbeLookup,
 		provideMonitorWaker,
 		provideWorkspaceWaker,
+		provideAdminWaker,
 	)
 	if err != nil {
 		return err
@@ -136,6 +137,10 @@ func provideMonitorWaker(monitors monitor.Service) auth.MonitorWaker { return mo
 // provideWorkspaceWaker lets a role change that makes a verified user the owner of a suspended
 // workspace wake its monitors, as verifying does. The monitor module imports the workspace module.
 func provideWorkspaceWaker(monitors monitor.Service) workspace.MonitorWaker { return monitors }
+
+// provideAdminWaker lets an instance admin's resuming of a workspace wake its monitors, as lifting
+// the verification suspension does.
+func provideAdminWaker(monitors monitor.Service) admin.MonitorWaker { return monitors }
 
 // registerDatabase provides the storage backend DB_TYPE names. MongoDB storage was removed: a
 // config that names it is refused already, and this refuses it again for a graph built from a

@@ -11,6 +11,11 @@ import (
 // belongs to another workspace, and the caller can't tell which (docs/adr/0005 section 8)
 var ErrNotFound = errors.New("status page not found")
 
+// ErrUnavailable is a published status page, or the badge of a monitor on one, whose workspace is
+// suspended (PP-372). The public routes answer it with 503 and say nothing of why: a visitor is not
+// told that an admin suspended the workspace, or that it waits for its owner's email verification.
+var ErrUnavailable = errors.New("status page unavailable")
+
 type Model struct {
 	ID string `json:"id"`
 	// WorkspaceID is the workspace the page belongs to. It is stored with the page and read back

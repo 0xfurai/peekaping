@@ -42,6 +42,21 @@ type Repository interface {
 	WorkspacesOwnedAloneAnyWorkspace(ctx context.Context, userID string) ([]WorkspaceRef, error)
 	// DeleteUser deletes the user. Their memberships and account links go with them.
 	DeleteUser(ctx context.Context, id string) error
+
+	// ListWorkspacesAnyWorkspace returns a page of the install's workspaces, the oldest first, with
+	// how many match: those whose name or whose owner's email contains q, ignoring case, or all of
+	// them for an empty q. It counts their members, monitors, status pages and domains and reads
+	// nothing else inside them.
+	ListWorkspacesAnyWorkspace(ctx context.Context, q string, page, limit int) (workspaces []*Workspace, total int, err error)
+	// FindWorkspaceAnyWorkspace returns the workspace as ListWorkspacesAnyWorkspace shows it, or nil
+	// when there is none with the ID
+	FindWorkspaceAnyWorkspace(ctx context.Context, id string) (*Workspace, error)
+	// SetAdminSuspended puts the admin's hold on the workspace, or takes it off, and says whether
+	// that changed anything: a hold that is on keeps its time. Taking it off while no other hold
+	// remains gives the workspace's monitors a new updated_at, as lifting the verification hold does,
+	// so that none counts as stale for the time it was held back. The verification hold is not
+	// touched. remaining is whether the workspace is still suspended, by the other hold.
+	SetAdminSuspended(ctx context.Context, id string, on bool) (changed, remaining bool, err error)
 }
 
 type SQLRepository struct {
@@ -228,4 +243,160 @@ func (r *SQLRepository) WorkspacesOwnedAloneAnyWorkspace(ctx context.Context, us
 func (r *SQLRepository) DeleteUser(ctx context.Context, id string) error {
 	_, err := dbtx.DB(ctx, r.db).NewDelete().Table("users").Where("id = ?", id).Exec(ctx)
 	return err
+}
+
+// workspaceRow is a workspace with its counts
+type workspaceRow struct {
+	ID               string     `bun:"id"`
+	Name             string     `bun:"name"`
+	CreatedAt        time.Time  `bun:"created_at"`
+	SuspendedAt      *time.Time `bun:"suspended_at"`
+	SuspendedReason  *string    `bun:"suspended_reason"`
+	AdminSuspendedAt *time.Time `bun:"admin_suspended_at"`
+	MemberCount      int        `bun:"member_count"`
+	ActiveMonitors   int        `bun:"active_monitors"`
+	PausedMonitors   int        `bun:"paused_monitors"`
+	StatusPages      int        `bun:"status_pages"`
+	CustomDomains    int        `bun:"custom_domains"`
+}
+
+// toDomain shows the admin's hold before the verification one, as workspace.Workspace.ShownReason does
+func (r workspaceRow) toDomain() *Workspace {
+	w := &Workspace{
+		ID: workspace.ID(r.ID), Name: r.Name, CreatedAt: r.CreatedAt.UTC(), Owners: []string{},
+		MemberCount: r.MemberCount, ActiveMonitors: r.ActiveMonitors, PausedMonitors: r.PausedMonitors,
+		StatusPages: r.StatusPages, CustomDomains: r.CustomDomains,
+	}
+	shown := workspace.Workspace{SuspendedAt: r.SuspendedAt, AdminSuspendedAt: r.AdminSuspendedAt}
+	if r.SuspendedReason != nil {
+		shown.SuspendedReason = *r.SuspendedReason
+	}
+	w.SuspendedReason = shown.ShownReason()
+	switch {
+	case r.AdminSuspendedAt != nil:
+		at := r.AdminSuspendedAt.UTC()
+		w.SuspendedAt = &at
+	case r.SuspendedAt != nil:
+		at := r.SuspendedAt.UTC()
+		w.SuspendedAt = &at
+	}
+	return w
+}
+
+// workspaceColumns are the columns of a workspace and its counts, each count a subquery of its own
+// so that none multiplies another
+const workspaceColumns = `w.id, w.name, w.created_at, w.suspended_at, w.suspended_reason, w.admin_suspended_at,
+	(SELECT COUNT(*) FROM workspace_members AS wm WHERE wm.workspace_id = w.id) AS member_count,
+	(SELECT COUNT(*) FROM monitors AS mo WHERE mo.workspace_id = w.id AND mo.active = ?) AS active_monitors,
+	(SELECT COUNT(*) FROM monitors AS mo WHERE mo.workspace_id = w.id AND mo.active = ?) AS paused_monitors,
+	(SELECT COUNT(*) FROM status_pages AS sp WHERE sp.workspace_id = w.id) AS status_pages,
+	(SELECT COUNT(*) FROM domain_status_page AS d JOIN status_pages AS sp ON sp.id = d.status_page_id WHERE sp.workspace_id = w.id) AS custom_domains`
+
+func (r *SQLRepository) workspaceQuery(ctx context.Context) *bun.SelectQuery {
+	return dbtx.DB(ctx, r.db).NewSelect().TableExpr("workspaces AS w")
+}
+
+func (r *SQLRepository) ListWorkspacesAnyWorkspace(ctx context.Context, q string, page, limit int) ([]*Workspace, int, error) {
+	query := r.workspaceQuery(ctx)
+	if q = strings.TrimSpace(q); q != "" {
+		pattern := "%" + likeEscaper.Replace(strings.ToLower(q)) + "%"
+		query = query.Where(`(lower(w.name) LIKE ? ESCAPE '\' OR EXISTS (
+			SELECT 1 FROM workspace_members AS o JOIN users AS u ON u.id = o.user_id
+			WHERE o.workspace_id = w.id AND o.role = ? AND lower(u.email) LIKE ? ESCAPE '\'))`, pattern, string(workspace.RoleOwner), pattern)
+	}
+	var rows []workspaceRow
+	total, err := query.ColumnExpr(workspaceColumns, true, false).Order("w.created_at", "w.id").Limit(limit).Offset(page*limit).ScanAndCount(ctx, &rows)
+	if err != nil {
+		return nil, 0, err
+	}
+	workspaces := make([]*Workspace, len(rows))
+	byID := make(map[string]*Workspace, len(rows))
+	ids := make([]string, len(rows))
+	for i, row := range rows {
+		workspaces[i] = row.toDomain()
+		byID[row.ID] = workspaces[i]
+		ids[i] = row.ID
+	}
+	if err := r.fillOwners(ctx, byID, ids); err != nil {
+		return nil, 0, err
+	}
+	return workspaces, total, nil
+}
+
+// fillOwners sets the owners' emails of the workspaces, in one query for all of them
+func (r *SQLRepository) fillOwners(ctx context.Context, byID map[string]*Workspace, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	var owners []struct {
+		WorkspaceID string `bun:"workspace_id"`
+		Email       string `bun:"email"`
+	}
+	err := dbtx.DB(ctx, r.db).NewSelect().
+		TableExpr("workspace_members AS m").
+		Join("JOIN users AS u ON u.id = m.user_id").
+		ColumnExpr("m.workspace_id, u.email").
+		Where("m.workspace_id IN (?)", bun.In(ids)).Where("m.role = ?", string(workspace.RoleOwner)).
+		Order("u.email", "u.id").
+		Scan(ctx, &owners)
+	if err != nil {
+		return err
+	}
+	for _, o := range owners {
+		w := byID[o.WorkspaceID]
+		w.Owners = append(w.Owners, o.Email)
+	}
+	return nil
+}
+
+func (r *SQLRepository) FindWorkspaceAnyWorkspace(ctx context.Context, id string) (*Workspace, error) {
+	if _, err := uuid.Parse(id); err != nil {
+		return nil, nil
+	}
+	var row workspaceRow
+	err := r.workspaceQuery(ctx).ColumnExpr(workspaceColumns, true, false).Where("w.id = ?", id).Scan(ctx, &row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	w := row.toDomain()
+	if err := r.fillOwners(ctx, map[string]*Workspace{row.ID: w}, []string{row.ID}); err != nil {
+		return nil, err
+	}
+	return w, nil
+}
+
+func (r *SQLRepository) SetAdminSuspended(ctx context.Context, id string, on bool) (bool, bool, error) {
+	db := dbtx.DB(ctx, r.db)
+	now := time.Now().UTC()
+	var res sql.Result
+	var err error
+	if on {
+		// A hold that is on keeps the time it began
+		res, err = db.NewUpdate().Table("workspaces").Set("admin_suspended_at = ?", now).Set("updated_at = ?", now).
+			Where("id = ?", id).Where("admin_suspended_at IS NULL").Exec(ctx)
+	} else {
+		res, err = db.NewUpdate().Table("workspaces").Set("admin_suspended_at = NULL").Set("updated_at = ?", now).
+			Where("id = ?", id).Where("admin_suspended_at IS NOT NULL").Exec(ctx)
+	}
+	if err != nil {
+		return false, false, err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return false, false, err
+	}
+	var held bool
+	if err := db.NewSelect().Table("workspaces").ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL)").Where("id = ?", id).Scan(ctx, &held); err != nil {
+		return false, false, err
+	}
+	if !on && affected > 0 && !held {
+		// The monitors start to run now, as a monitor that was just saved or resumed does
+		if _, err := db.NewUpdate().Table("monitors").Set("updated_at = ?", now).Where("workspace_id = ?", id).Exec(ctx); err != nil {
+			return false, false, err
+		}
+	}
+	return affected > 0, held, nil
 }

@@ -288,6 +288,55 @@ func TestService_CreateWorkspace_AnUnverifiedUsersWorkspaceIsSuspendedInAnOpenIn
 	})
 }
 
+// PP-372: an instance admin's hold is its own, so a workspace can be under it and the verification
+// one at once. The reason shown is the admin's first, then the verification's.
+func TestWorkspace_ShownReasonIsTheAdminsBeforeTheVerificationsAndNoneWhenItRuns(t *testing.T) {
+	now := time.Now()
+	unverified := workspace.SuspendedUnverified
+	cases := []struct {
+		name      string
+		ws        workspace.Workspace
+		suspended bool
+		reason    string
+	}{
+		{"runs", workspace.Workspace{}, false, ""},
+		{"verification only", workspace.Workspace{SuspendedAt: &now, SuspendedReason: unverified}, true, workspace.SuspendedUnverified},
+		{"admin only", workspace.Workspace{AdminSuspendedAt: &now}, true, workspace.SuspendedByAdmin},
+		{"both", workspace.Workspace{SuspendedAt: &now, SuspendedReason: unverified, AdminSuspendedAt: &now}, true, workspace.SuspendedByAdmin},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			assert.Equal(t, c.suspended, c.ws.Suspended())
+			assert.Equal(t, c.reason, c.ws.ShownReason())
+		})
+	}
+	assert.Equal(t, "admin", workspace.SuspendedByAdmin)
+}
+
+// lifting the verification hold leaves the admin's
+func TestRepository_LiftUnverifiedLeavesTheAdminsHold(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		ctx := context.Background()
+		user := insertUser(t, db, "owner@example.com")
+		held, err := repo.CreateSuspended(ctx, "Held", workspace.SuspendedUnverified)
+		require.NoError(t, err)
+		require.NoError(t, repo.AddMember(ctx, held.ID, user, workspace.RoleOwner))
+		_, err = db.Exec("UPDATE workspaces SET admin_suspended_at = ? WHERE id = ?", time.Now().UTC(), string(held.ID))
+		require.NoError(t, err)
+
+		lifted, err := repo.LiftUnverifiedOwnedBy(ctx, user)
+		require.NoError(t, err)
+		assert.Equal(t, []workspace.ID{held.ID}, lifted)
+
+		found, err := repo.FindByID(ctx, held.ID)
+		require.NoError(t, err)
+		assert.Nil(t, found.SuspendedAt)
+		assert.NotNil(t, found.AdminSuspendedAt, "the admin's hold stays")
+		assert.True(t, found.Suspended())
+		assert.Equal(t, workspace.SuspendedByAdmin, found.ShownReason())
+	})
+}
+
 // verifiesDuringTheLift is a workspace repository whose first LiftUnverifiedWithVerifiedOwner
 // answers as the database does, and then lets the user verify their email from another
 // connection while the caller's transaction is still open: the moment a new owner's role was

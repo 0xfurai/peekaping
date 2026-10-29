@@ -44,6 +44,10 @@ type MeResponse struct {
 	// lets a monitor be saved with (MIN_CHECK_INTERVAL, PP-159): 20 by default. The app uses it as the
 	// minimum and the default of the monitor form.
 	MinCheckInterval int `json:"minCheckInterval" example:"20"`
+	// SupportContact is how a member of a suspended workspace gets in touch with whoever runs the
+	// install (SUPPORT_CONTACT, PP-372): free text, an email address or a URL, for the suspension
+	// banner. Null when the install sets none.
+	SupportContact *string `json:"supportContact" nullable:"true" example:"support@example.com"`
 }
 
 type MeUser struct {
@@ -64,8 +68,10 @@ type MeWorkspace struct {
 	// Suspended is whether the workspace's monitors are held back: they are kept and shown, but none
 	// runs (PP-155)
 	Suspended bool `json:"suspended"`
-	// SuspendedReason says why a suspended workspace is: "unverified" is a new account's workspace,
-	// which runs once its owner has verified their email address. Null when the workspace runs.
+	// SuspendedReason says why a suspended workspace is: "admin" is a workspace an instance admin
+	// suspended, which runs once they resume it; "unverified" is a new account's workspace, which
+	// runs once its owner has verified their email address. "admin" is told first when both hold.
+	// Null when the workspace runs.
 	SuspendedReason *string `json:"suspendedReason"`
 }
 

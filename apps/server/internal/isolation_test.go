@@ -85,9 +85,11 @@ var anyWorkspaceCallers = map[string]string{
 	// API keys
 	"internal/modules/api_key.ServiceImpl.findForToken": "an API key is found by the ID in its token, which then says its workspace",
 	// admin area
-	"internal/modules/admin.SQLRepository.FindUser": "the admin area shows each user's workspaces, by name and role, whichever they are in; an instance admin sees no workspace's records",
-	"internal/modules/admin.ServiceImpl.ListUsers":  "the admin area lists each user with their workspaces, by name and role; an instance admin sees no workspace's records",
-	"internal/modules/admin.ServiceImpl.DeleteUser": "deleting a user checks whether they are the last owner of any workspace they are in, and refuses naming it",
+	"internal/modules/admin.SQLRepository.FindUser":            "the admin area shows each user's workspaces, by name and role, whichever they are in; an instance admin sees no workspace's records",
+	"internal/modules/admin.ServiceImpl.ListUsers":             "the admin area lists each user with their workspaces, by name and role; an instance admin sees no workspace's records",
+	"internal/modules/admin.ServiceImpl.DeleteUser":            "deleting a user checks whether they are the last owner of any workspace they are in, and refuses naming it",
+	"internal/modules/admin.ServiceImpl.ListWorkspaces":        "the admin area lists every workspace of the install with counts and metadata only; an instance admin sees no workspace's records (PP-372)",
+	"internal/modules/admin.ServiceImpl.SetWorkspaceSuspended": "an instance admin suspends or resumes a workspace without joining it, and gets its counts and metadata back; no workspace's records are read (PP-372)",
 	// invites
 	"internal/modules/workspace.ServiceImpl.lookupInvite": "an invite is found by the hash of its token, which then says its workspace, as an API key's does (PP-154)",
 }

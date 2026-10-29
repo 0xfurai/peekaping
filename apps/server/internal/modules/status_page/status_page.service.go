@@ -26,9 +26,11 @@ type Service interface {
 	Create(ctx context.Context, workspaceID workspace.ID, dto *CreateStatusPageDTO) (*Model, error)
 	FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error)
 	FindByIDWithMonitors(ctx context.Context, workspaceID workspace.ID, id string) (*StatusPageWithMonitorsResponseDTO, error)
-	// FindPublishedBySlugAnyWorkspace serves a visitor, who is in no workspace
+	// FindPublishedBySlugAnyWorkspace serves a visitor, who is in no workspace. A published page
+	// whose workspace is suspended is ErrUnavailable.
 	FindPublishedBySlugAnyWorkspace(ctx context.Context, slug string) (*Model, error)
-	// FindPublishedByDomainAnyWorkspace serves a visitor of a custom domain
+	// FindPublishedByDomainAnyWorkspace serves a visitor of a custom domain, and is ErrUnavailable
+	// like FindPublishedBySlugAnyWorkspace
 	FindPublishedByDomainAnyWorkspace(ctx context.Context, domain string) (*Model, error)
 	FindAll(ctx context.Context, workspaceID workspace.ID, page int, limit int, q string) ([]*Model, error)
 	// FindAllAnyWorkspace lists the pages of every workspace: the usage ping describes the install
@@ -295,9 +297,11 @@ func (s *ServiceImpl) FindByIDWithMonitors(
 
 // FindPublishedBySlugAnyWorkspace returns the published status page at slug, whatever workspace it
 // is in: a visitor is in none. A page that doesn't exist or isn't published is nil, so public
-// callers can't tell the two apart.
+// callers can't tell the two apart. A published page whose workspace is suspended, by either hold,
+// is ErrUnavailable.
 func (s *ServiceImpl) FindPublishedBySlugAnyWorkspace(ctx context.Context, slug string) (*Model, error) {
-	return publishedOnly(s.repository.FindBySlugAnyWorkspace(ctx, slug))
+	page, err := s.repository.FindBySlugAnyWorkspace(ctx, slug)
+	return s.available(ctx, page, err)
 }
 
 // FindPublishedByDomainAnyWorkspace returns the published status page served at a custom
@@ -312,12 +316,23 @@ func (s *ServiceImpl) FindPublishedByDomainAnyWorkspace(ctx context.Context, dom
 		return nil, nil
 	}
 
-	return publishedOnly(s.repository.FindByIDAnyWorkspace(ctx, domainStatusPage.StatusPageID))
+	page, err := s.repository.FindByIDAnyWorkspace(ctx, domainStatusPage.StatusPageID)
+	return s.available(ctx, page, err)
 }
 
-func publishedOnly(page *Model, err error) (*Model, error) {
+// available is the page when it is published and its workspace is not suspended: nil when it is not
+// published, ErrUnavailable when it is and its workspace is suspended. Whether a page is published
+// is checked first, so that an unpublished page of a suspended workspace stays as hidden as any.
+func (s *ServiceImpl) available(ctx context.Context, page *Model, err error) (*Model, error) {
 	if err != nil || page == nil || !page.Published {
 		return nil, err
+	}
+	suspended, err := s.repository.WorkspaceSuspended(ctx, page.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	if suspended {
+		return nil, ErrUnavailable
 	}
 	return page, nil
 }

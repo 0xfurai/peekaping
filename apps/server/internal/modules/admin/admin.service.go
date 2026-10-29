@@ -35,6 +35,23 @@ type Service interface {
 	// DeleteUser deletes the user: ErrUserNotFound, ErrSelf, ErrLastInstanceAdmin, or ErrLastOwner
 	// (a LastOwnerError, naming the workspaces) while they are the only owner of a workspace
 	DeleteUser(ctx context.Context, actorID, userID string) error
+	// ListWorkspaces returns a page of the install's workspaces, the oldest first, with their
+	// counts and whether and why each is suspended, and how many match the search: a name or an
+	// owner's email that contains q, ignoring case. An instance admin sees no workspace's records,
+	// so nothing inside a workspace is read.
+	ListWorkspaces(ctx context.Context, q string, page, limit int) ([]*Workspace, int, error)
+	// SetWorkspaceSuspended puts the admin's hold on the workspace (suspended true) or takes it off:
+	// ErrWorkspaceNotFound. The hold is its own, beside the one that waits for the owner's email
+	// verification: resuming leaves that one, and the workspace's monitors run again once no hold
+	// remains. Nothing is deleted. A change that changes nothing is not logged.
+	SetWorkspaceSuspended(ctx context.Context, actorID, workspaceID string, suspended bool) (*Workspace, error)
+}
+
+// MonitorWaker has the scheduler and the probes pick up the active monitors of a workspace whose
+// suspension was lifted: the monitors were not changed, so nothing else would tell them.
+// monitor.Service is one.
+type MonitorWaker interface {
+	PublishActiveUpdated(ctx context.Context, workspaceID workspace.ID) error
 }
 
 // ResetLinks makes password reset links. auth.AccountService is one.
@@ -46,6 +63,7 @@ type ServiceImpl struct {
 	repo       Repository
 	transactor dbtx.Transactor
 	links      ResetLinks
+	monitors   MonitorWaker
 	bus        events.EventBus
 	mailer     *mailer.Mailer
 	installURL string
@@ -57,6 +75,7 @@ func NewService(
 	repo Repository,
 	transactor dbtx.Transactor,
 	links ResetLinks,
+	monitors MonitorWaker,
 	bus events.EventBus,
 	mailer *mailer.Mailer,
 	cfg *config.Config,
@@ -66,6 +85,7 @@ func NewService(
 		repo:       repo,
 		transactor: transactor,
 		links:      links,
+		monitors:   monitors,
 		bus:        bus,
 		mailer:     mailer,
 		installURL: strings.TrimRight(cfg.ClientURL, "/"),
@@ -77,6 +97,11 @@ func NewService(
 // log writes the one line an admin action leaves
 func (s *ServiceImpl) log(actorID, action, userID string) {
 	s.logger.Infow("Admin action", "actorUserId", actorID, "action", action, "targetUserId", userID)
+}
+
+// logWorkspace writes the one line an admin action on a workspace leaves
+func (s *ServiceImpl) logWorkspace(actorID, action string, workspaceID string) {
+	s.logger.Infow("Admin action", "actorUserId", actorID, "action", action, "targetWorkspaceId", workspaceID)
 }
 
 func (s *ServiceImpl) ListUsers(ctx context.Context, q string, page, limit int) ([]*User, int, error) {
@@ -283,5 +308,58 @@ func (s *ServiceImpl) announceLeft(ctx context.Context, userID string, membershi
 		if err := events.Publish(ctx, s.bus, workspace.MemberLeft, workspace.MemberLeftEvent{WorkspaceID: m.WorkspaceID, UserID: userID}); err != nil {
 			s.logger.Errorw("Failed to publish that a member left a workspace", "workspaceId", m.WorkspaceID, "userId", userID, "error", err)
 		}
+	}
+}
+
+func (s *ServiceImpl) ListWorkspaces(ctx context.Context, q string, page, limit int) ([]*Workspace, int, error) {
+	return s.repo.ListWorkspacesAnyWorkspace(ctx, q, page, limit)
+}
+
+func (s *ServiceImpl) SetWorkspaceSuspended(ctx context.Context, actorID, workspaceID string, suspended bool) (*Workspace, error) {
+	var (
+		updated   *Workspace
+		changed   bool
+		remaining bool
+	)
+	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
+		found, err := s.repo.FindWorkspaceAnyWorkspace(ctx, workspaceID)
+		if err != nil {
+			return err
+		}
+		if found == nil {
+			return ErrWorkspaceNotFound
+		}
+		changed, remaining, err = s.repo.SetAdminSuspended(ctx, workspaceID, suspended)
+		if err != nil {
+			return err
+		}
+		updated, err = s.repo.FindWorkspaceAnyWorkspace(ctx, workspaceID)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	if changed {
+		if suspended {
+			s.logWorkspace(actorID, ActionSuspendWorkspace, workspaceID)
+		} else {
+			s.logWorkspace(actorID, ActionResumeWorkspace, workspaceID)
+			if !remaining {
+				s.wake(ctx, workspace.ID(workspaceID))
+			}
+		}
+	}
+	return updated, nil
+}
+
+// wake has the scheduler and the probes pick up the monitors of a workspace that runs again. A
+// failure is logged and does not undo the resuming; the scheduler reads the database again on its
+// own schedule.
+func (s *ServiceImpl) wake(ctx context.Context, id workspace.ID) {
+	if s.monitors == nil {
+		return
+	}
+	if err := s.monitors.PublishActiveUpdated(ctx, id); err != nil {
+		s.logger.Errorw("Failed to wake the monitors of a workspace that is no longer suspended", "workspaceId", id, "error", err)
 	}
 }

@@ -49,15 +49,23 @@ type sqlModel struct {
 	LocationsStatus *int `bun:"locations_status,scanonly"`
 	// WorkspaceSuspended is read with the monitor by the lookups that ask for it (withSuspension)
 	WorkspaceSuspended bool `bun:"workspace_suspended,scanonly"`
+	// WorkspaceSuspendedByAdmin is whether an instance admin holds the workspace (PP-372), read with it
+	WorkspaceSuspendedByAdmin bool `bun:"workspace_suspended_by_admin,scanonly"`
 }
 
-// workspaceSuspended is true for a monitor whose workspace is suspended (PP-155). It is a
+// workspaceSuspended is true for a monitor whose workspace is suspended (PP-155), by the email
+// verification or by an instance admin (PP-372): either hold keeps the monitor from running. It is a
 // primary-key lookup on workspaces for each monitor row.
-const workspaceSuspended = "EXISTS (SELECT 1 FROM workspaces AS ws WHERE ws.id = m.workspace_id AND ws.suspended_at IS NOT NULL)"
+const workspaceSuspended = "EXISTS (SELECT 1 FROM workspaces AS ws WHERE ws.id = m.workspace_id AND (ws.suspended_at IS NOT NULL OR ws.admin_suspended_at IS NOT NULL))"
 
-// withSuspension reads the monitor's own columns and whether its workspace is suspended
+// workspaceSuspendedByAdmin is true for a monitor whose workspace an instance admin holds, which a
+// push says in its refusal
+const workspaceSuspendedByAdmin = "EXISTS (SELECT 1 FROM workspaces AS ws WHERE ws.id = m.workspace_id AND ws.admin_suspended_at IS NOT NULL)"
+
+// withSuspension reads the monitor's own columns and whether its workspace is suspended, and
+// whether an instance admin holds it
 func withSuspension(q *bun.SelectQuery) *bun.SelectQuery {
-	return q.ColumnExpr("m.*").ColumnExpr(workspaceSuspended + " AS workspace_suspended")
+	return q.ColumnExpr("m.*").ColumnExpr(workspaceSuspended + " AS workspace_suspended").ColumnExpr(workspaceSuspendedByAdmin + " AS workspace_suspended_by_admin")
 }
 
 // inRunningWorkspace keeps the monitors whose workspace is not suspended: the filter of every query
@@ -171,7 +179,8 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		ProxyId:           proxyId,
 		PushToken:         sm.PushToken,
 
-		WorkspaceSuspended: sm.WorkspaceSuspended,
+		WorkspaceSuspended:        sm.WorkspaceSuspended,
+		WorkspaceSuspendedByAdmin: sm.WorkspaceSuspendedByAdmin,
 	}
 }
 

@@ -63,6 +63,8 @@ type ServiceImpl struct {
 	disabledMonitorTypes []string
 	// minCheckInterval is MIN_CHECK_INTERVAL in seconds, as /me states it
 	minCheckInterval int
+	// supportContact is SUPPORT_CONTACT, as /me states it: empty when unset
+	supportContact string
 }
 
 // ServiceOption changes how the service behaves
@@ -84,6 +86,12 @@ func WithDisabledMonitorTypes(types []string) ServiceOption {
 // as MIN_CHECK_INTERVAL does. Without it /me says 20, the smallest any install allows.
 func WithMinCheckInterval(seconds int) ServiceOption {
 	return func(s *ServiceImpl) { s.minCheckInterval = seconds }
+}
+
+// WithSupportContact sets the contact /me gives a suspended workspace's members, as SUPPORT_CONTACT
+// does. Without it /me says null.
+func WithSupportContact(contact string) ServiceOption {
+	return func(s *ServiceImpl) { s.supportContact = strings.TrimSpace(contact) }
 }
 
 func NewService(
@@ -377,9 +385,13 @@ func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error
 	for i, m := range memberships {
 		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended()}
 		if m.Workspace.Suspended() {
-			reason := m.Workspace.SuspendedReason
+			reason := m.Workspace.ShownReason()
 			me.Workspaces[i].SuspendedReason = &reason
 		}
+	}
+	if s.supportContact != "" {
+		contact := s.supportContact
+		me.SupportContact = &contact
 	}
 	if len(memberships) > 0 {
 		defaultID := me.Workspaces[0].ID

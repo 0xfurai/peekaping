@@ -1,5 +1,5 @@
 // Package admin is the admin area of the install (docs/adr/0005 section 10): what an instance admin
-// does to the users of the install. Its routes are install routes: they name no workspace, and the
+// does to the users and the workspaces of the install. Its routes are install routes: they name no workspace, and the
 // instance admin flag gives no access to any workspace's data.
 package admin
 
@@ -20,6 +20,8 @@ var (
 	// ErrLastInstanceAdmin is for a change that would leave the install with no instance admin who can sign in (one with the flag and an active account). It
 	// answers 409.
 	ErrLastInstanceAdmin = errors.New("the install needs at least one instance admin")
+	// ErrWorkspaceNotFound is for a workspace that does not exist. It answers 404.
+	ErrWorkspaceNotFound = errors.New("workspace not found")
 	// ErrLastOwner is for a deletion of a user who is the last owner of a workspace. The error that
 	// wraps it, LastOwnerError, names the workspaces. It answers 409.
 	ErrLastOwner = errors.New("the user is the last owner of a workspace")
@@ -82,6 +84,28 @@ type ResetLink struct {
 	ExpiresAt time.Time
 }
 
+// Workspace is a workspace as the admin area shows it: counts and metadata, never what is inside. It
+// holds no monitor's target, no channel and no status page's content.
+type Workspace struct {
+	ID        workspace.ID
+	Name      string
+	CreatedAt time.Time
+	// Owners are the emails of the workspace's owners, in order
+	Owners []string
+	// MemberCount counts every member, owners included
+	MemberCount    int
+	ActiveMonitors int
+	PausedMonitors int
+	StatusPages    int
+	// CustomDomains counts the domains of all the workspace's status pages
+	CustomDomains int
+	// SuspendedAt is when the hold the reason names began: the admin's when an admin holds the
+	// workspace, else the verification's. Nil when the workspace runs.
+	SuspendedAt *time.Time
+	// SuspendedReason is workspace.SuspendedByAdmin, workspace.SuspendedUnverified, or empty
+	SuspendedReason string
+}
+
 // The names of the admin actions, as the log says them
 const (
 	ActionSetInstanceAdmin = "set_instance_admin"
@@ -90,4 +114,7 @@ const (
 	ActionCreateResetLink  = "create_reset_link"
 	ActionDisableTwoFA     = "disable_2fa"
 	ActionDeleteUser       = "delete_user"
+
+	ActionSuspendWorkspace = "suspend_workspace"
+	ActionResumeWorkspace  = "resume_workspace"
 )

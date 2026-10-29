@@ -22,12 +22,15 @@ type sqlModel struct {
 	// SuspendedAt and SuspendedReason are NULL for a workspace that runs
 	SuspendedAt     *time.Time `bun:"suspended_at"`
 	SuspendedReason *string    `bun:"suspended_reason"`
+	// AdminSuspendedAt is NULL unless an instance admin holds the workspace
+	AdminSuspendedAt *time.Time `bun:"admin_suspended_at"`
 }
 
 func (m *sqlModel) toDomain() *Workspace {
 	return &Workspace{
 		ID: ID(m.ID), Name: m.Name, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt,
 		SuspendedAt: utcOrNil(m.SuspendedAt), SuspendedReason: reasonOrEmpty(m.SuspendedReason),
+		AdminSuspendedAt: utcOrNil(m.AdminSuspendedAt),
 	}
 }
 
@@ -64,8 +67,9 @@ type membershipRow struct {
 	Role        string    `bun:"role"`
 	JoinedAt    time.Time `bun:"joined_at"`
 
-	SuspendedAt     *time.Time `bun:"suspended_at"`
-	SuspendedReason *string    `bun:"suspended_reason"`
+	SuspendedAt      *time.Time `bun:"suspended_at"`
+	SuspendedReason  *string    `bun:"suspended_reason"`
+	AdminSuspendedAt *time.Time `bun:"admin_suspended_at"`
 }
 
 type SQLRepositoryImpl struct {
@@ -136,7 +140,7 @@ func (r *SQLRepositoryImpl) ListMemberships(ctx context.Context, userID string) 
 	err := dbtx.DB(ctx, r.db).NewSelect().
 		TableExpr("workspace_members AS m").
 		Join("JOIN workspaces AS w ON w.id = m.workspace_id").
-		ColumnExpr("w.id AS workspace_id, w.name, w.created_at, w.updated_at, w.suspended_at, w.suspended_reason, m.role, m.joined_at").
+		ColumnExpr("w.id AS workspace_id, w.name, w.created_at, w.updated_at, w.suspended_at, w.suspended_reason, w.admin_suspended_at, m.role, m.joined_at").
 		Where("m.user_id = ?", userID).
 		Order("m.joined_at", "w.id").
 		Scan(ctx, &rows)
@@ -149,6 +153,7 @@ func (r *SQLRepositoryImpl) ListMemberships(ctx context.Context, userID string) 
 			Workspace: Workspace{
 				ID: ID(row.WorkspaceID), Name: row.Name, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
 				SuspendedAt: utcOrNil(row.SuspendedAt), SuspendedReason: reasonOrEmpty(row.SuspendedReason),
+				AdminSuspendedAt: utcOrNil(row.AdminSuspendedAt),
 			},
 			Role:     Role(row.Role),
 			JoinedAt: row.JoinedAt,
@@ -208,7 +213,7 @@ func (r *SQLRepositoryImpl) LiftUnverifiedWithVerifiedOwner(ctx context.Context,
 }
 
 // liftUnverified ends the SuspendedUnverified suspension of the workspaces that narrow selects,
-// and returns them
+// and returns them. An instance admin's hold (admin_suspended_at) is a hold of its own and stays.
 func (r *SQLRepositoryImpl) liftUnverified(ctx context.Context, narrow func(*bun.SelectQuery) *bun.SelectQuery) ([]ID, error) {
 	var lifted []ID
 	// Read and write in one transaction, so that the IDs returned are the ones that were lifted

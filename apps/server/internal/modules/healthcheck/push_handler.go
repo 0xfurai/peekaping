@@ -35,7 +35,7 @@ func RegisterPushEndpoint(
 	maintenanceService maintenance.Service,
 	logger *zap.SugaredLogger,
 ) {
-	httpx.Register(router, "GET", "/push/{token}", huma.Operation{Summary: "Send a heartbeat to a push monitor", Description: "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address) or when its type is turned off on this install (DISABLED_MONITOR_TYPES): the push is not stored and sends no notification.", Tags: []string{"Push"}, Errors: []int{400, 403, 404, 500}}, func(ctx context.Context, input *PushInput) (*httpx.Output[PushResponse], error) {
+	httpx.Register(router, "GET", "/push/{token}", huma.Operation{Summary: "Send a heartbeat to a push monitor", Description: "Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one) or when its type is turned off on this install (DISABLED_MONITOR_TYPES): the push is not stored and sends no notification.", Tags: []string{"Push"}, Errors: []int{400, 403, 404, 500}}, func(ctx context.Context, input *PushInput) (*httpx.Output[PushResponse], error) {
 		r := input.Request
 		token := r.PathValue("token")
 
@@ -52,6 +52,9 @@ func RegisterPushEndpoint(
 			// The token holder is told why their pushes are not counted, as for a paused monitor: the
 			// token is the secret that names the monitor. Nothing is stored and nothing is sent.
 			logger.Infow("Push refused: the monitor's workspace is suspended", "monitor_id", monitor.ID)
+			if monitor.WorkspaceSuspendedByAdmin {
+				return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended by the install's administrator"))
+			}
 			return nil, httpx.Fail(http.StatusForbidden, utils.NewFailResponse("The workspace of this monitor is suspended until its owner verifies their email address"))
 		}
 		if monitor.TypeDisabled {

@@ -7,6 +7,8 @@ import {
   patchAdminUsersById,
   postAdminUsersByIdDisable2Fa,
   postAdminUsersByIdResetLink,
+  getAdminWorkspaces,
+  patchAdminWorkspacesById,
   getApiKeys,
   postApiKeys,
   getApiKeysConfig,
@@ -140,6 +142,12 @@ import type {
   PostAdminUsersByIdResetLinkData,
   PostAdminUsersByIdResetLinkError,
   PostAdminUsersByIdResetLinkResponse,
+  GetAdminWorkspacesData,
+  GetAdminWorkspacesError,
+  GetAdminWorkspacesResponse,
+  PatchAdminWorkspacesByIdData,
+  PatchAdminWorkspacesByIdError,
+  PatchAdminWorkspacesByIdResponse,
   GetApiKeysData,
   PostApiKeysData,
   PostApiKeysError,
@@ -688,6 +696,111 @@ export const postAdminUsersByIdResetLinkMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await postAdminUsersByIdResetLink({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getAdminWorkspacesQueryKey = (
+  options?: Options<GetAdminWorkspacesData>
+) => createQueryKey("getAdminWorkspaces", options);
+
+/**
+ * List the workspaces of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended ("admin" when an instance admin suspended it, "unverified" when it waits for its owner to verify their email address) and since when. Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first.
+ */
+export const getAdminWorkspacesOptions = (
+  options?: Options<GetAdminWorkspacesData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAdminWorkspaces({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAdminWorkspacesQueryKey(options),
+  });
+};
+
+export const getAdminWorkspacesInfiniteQueryKey = (
+  options?: Options<GetAdminWorkspacesData>
+): QueryKey<Options<GetAdminWorkspacesData>> =>
+  createQueryKey("getAdminWorkspaces", options, true);
+
+/**
+ * List the workspaces of the install
+ * Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended ("admin" when an instance admin suspended it, "unverified" when it waits for its owner to verify their email address) and since when. Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first.
+ */
+export const getAdminWorkspacesInfiniteOptions = (
+  options?: Options<GetAdminWorkspacesData>
+) => {
+  return infiniteQueryOptions<
+    GetAdminWorkspacesResponse,
+    AxiosError<GetAdminWorkspacesError>,
+    InfiniteData<GetAdminWorkspacesResponse>,
+    QueryKey<Options<GetAdminWorkspacesData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetAdminWorkspacesData>>[0],
+        "body" | "headers" | "path" | "query"
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetAdminWorkspacesData>>[0],
+          "body" | "headers" | "path" | "query"
+        > =
+          typeof pageParam === "object"
+            ? pageParam
+            : {
+                query: {
+                  page: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getAdminWorkspaces({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getAdminWorkspacesInfiniteQueryKey(options),
+    }
+  );
+};
+
+/**
+ * Suspend or resume a workspace
+ * Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. suspended is required. The answer is the workspace as the list shows it.
+ */
+export const patchAdminWorkspacesByIdMutation = (
+  options?: Partial<Options<PatchAdminWorkspacesByIdData>>
+): UseMutationOptions<
+  PatchAdminWorkspacesByIdResponse,
+  AxiosError<PatchAdminWorkspacesByIdError>,
+  Options<PatchAdminWorkspacesByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PatchAdminWorkspacesByIdResponse,
+    AxiosError<PatchAdminWorkspacesByIdError>,
+    Options<PatchAdminWorkspacesByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await patchAdminWorkspacesById({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -3323,7 +3436,7 @@ export const getPushByTokenQueryKey = (options: Options<GetPushByTokenData>) =>
 
 /**
  * Send a heartbeat to a push monitor
- * Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address) or when its type is turned off on this install (DISABLED_MONITOR_TYPES): the push is not stored and sends no notification.
+ * Stores the push as the monitor's heartbeat. 404 when no monitor has the token, 400 when the monitor is paused, and 403 when the monitor's workspace is suspended (a new account's workspace is, until its owner verifies their email address, and an instance admin can suspend one) or when its type is turned off on this install (DISABLED_MONITOR_TYPES): the push is not stored and sends no notification.
  */
 export const getPushByTokenOptions = (options: Options<GetPushByTokenData>) => {
   return queryOptions({
@@ -3552,6 +3665,7 @@ export const getStatusPagesDomainByDomainQueryKey = (
 
 /**
  * Get a status page by domain name
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesDomainByDomainOptions = (
   options: Options<GetStatusPagesDomainByDomainData>
@@ -3576,6 +3690,7 @@ export const getStatusPagesSlugBySlugQueryKey = (
 
 /**
  * Get a status page by slug
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugOptions = (
   options: Options<GetStatusPagesSlugBySlugData>
@@ -3600,6 +3715,7 @@ export const getStatusPagesSlugBySlugMonitorsQueryKey = (
 
 /**
  * Get monitors for a status page by slug with heartbeats and uptime
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitorsOptions = (
   options: Options<GetStatusPagesSlugBySlugMonitorsData>
@@ -3624,6 +3740,7 @@ export const getStatusPagesSlugBySlugMonitorsHomepageQueryKey = (
 
 /**
  * Get monitors for a status page by slug for homepage
+ * Answers 503 with the code STATUS_PAGE_UNAVAILABLE and the message "This status page is unavailable" when the page is published and its workspace is suspended, whether by an instance admin or while it waits for its owner to verify their email address. It does not say which, and a page that is not published is still 404.
  */
 export const getStatusPagesSlugBySlugMonitorsHomepageOptions = (
   options: Options<GetStatusPagesSlugBySlugMonitorsHomepageData>

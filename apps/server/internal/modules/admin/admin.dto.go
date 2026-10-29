@@ -108,3 +108,74 @@ type UpdateUserInput = httpx.Input[UpdateUserDto, UserParams]
 type CreateResetLinkInput = httpx.Input[httpx.NoBody, UserParams]
 type DisableTwoFAInput = httpx.Input[httpx.NoBody, UserParams]
 type DeleteUserInput = httpx.Input[httpx.NoBody, UserParams]
+
+// UpdateWorkspaceDto is the request to suspend or resume a workspace
+type UpdateWorkspaceDto struct {
+	// Suspended holds the workspace back (true) or lets it run again (false). It is required, and a
+	// null reads as missing, so it is not nullable.
+	Suspended *bool `json:"suspended,omitempty" doc:"Suspend (true) or resume (false) the workspace. Required." required:"true" nullable:"false"`
+}
+
+// WorkspaceMonitorsResponse counts a workspace's monitors by whether they run
+type WorkspaceMonitorsResponse struct {
+	Active int `json:"active"`
+	Paused int `json:"paused"`
+}
+
+// WorkspaceResponse is a workspace of the install, as the admin area shows it: counts and metadata,
+// never a monitor, a channel or anything else inside it
+type WorkspaceResponse struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
+	// Owners are the emails of the workspace's owners, in order. Never null.
+	Owners []string `json:"owners" nullable:"false"`
+	// MemberCount counts every member, owners included
+	MemberCount int                       `json:"memberCount"`
+	Monitors    WorkspaceMonitorsResponse `json:"monitors"`
+	StatusPages int                       `json:"statusPages"`
+	// CustomDomains counts the domains of all the workspace's status pages
+	CustomDomains int `json:"customDomains"`
+	// Suspended is whether the workspace's monitors are held back, whichever hold it is under
+	Suspended bool `json:"suspended"`
+	// SuspendedReason says why: "admin" when an instance admin suspended it, else "unverified" when
+	// it waits for its owner to verify their email address. Null when the workspace runs.
+	SuspendedReason *string `json:"suspendedReason" nullable:"true" enum:"admin,unverified"`
+	// SuspendedAt is when that hold began, or null when the workspace runs
+	SuspendedAt *time.Time `json:"suspendedAt" nullable:"true"`
+}
+
+func workspaceResponse(w *Workspace) *WorkspaceResponse {
+	out := &WorkspaceResponse{
+		ID: string(w.ID), Name: w.Name, CreatedAt: w.CreatedAt, Owners: append([]string{}, w.Owners...),
+		MemberCount: w.MemberCount, Monitors: WorkspaceMonitorsResponse{Active: w.ActiveMonitors, Paused: w.PausedMonitors},
+		StatusPages: w.StatusPages, CustomDomains: w.CustomDomains,
+		Suspended: w.SuspendedAt != nil, SuspendedAt: w.SuspendedAt,
+	}
+	if w.SuspendedReason != "" {
+		reason := w.SuspendedReason
+		out.SuspendedReason = &reason
+	}
+	return out
+}
+
+// WorkspacesPageResponse is a page of workspaces
+type WorkspacesPageResponse struct {
+	Workspaces []*WorkspaceResponse `json:"workspaces" nullable:"false"`
+	// Total is how many workspaces match the search, on all pages
+	Total int `json:"total"`
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
+}
+
+type ListWorkspacesParams struct {
+	Q     string `query:"q" doc:"Only workspaces whose name or whose owner's email contains this text, ignoring case"`
+	Page  int    `query:"page" doc:"Page number, from 0" default:"0" minimum:"0"`
+	Limit int    `query:"limit" doc:"Workspaces per page" default:"20" minimum:"1" maximum:"100"`
+}
+type ListWorkspacesInput = httpx.Input[httpx.NoBody, ListWorkspacesParams]
+
+type WorkspaceParams struct {
+	ID string `path:"id" doc:"The workspace's ID" required:"true"`
+}
+type UpdateWorkspaceInput = httpx.Input[UpdateWorkspaceDto, WorkspaceParams]

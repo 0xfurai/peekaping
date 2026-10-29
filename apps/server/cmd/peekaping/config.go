@@ -147,6 +147,10 @@ type Config struct {
 	// The smallest check interval and retry interval, in seconds, that a monitor can be saved with.
 	// Never below 20: the timeout minimum (16) and the 0.8 rule rely on it.
 	MinCheckInterval int `env:"MIN_CHECK_INTERVAL" validate:"min=20" default:"20"`
+
+	// How a member of a suspended workspace gets in touch with whoever runs the install: free text,
+	// an email address or a URL. Unset by default.
+	SupportContact string `env:"SUPPORT_CONTACT"`
 }
 
 // LoadAndValidate loads and validates peekaping's configuration
@@ -325,6 +329,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		APIRateLimitPerAPIKey:        c.APIRateLimitPerAPIKey,
 		ChecksPerHostPerMinute:       c.ChecksPerHostPerMinute,
 		MinCheckInterval:             c.MinCheckInterval,
+		SupportContact:               c.SupportContact,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

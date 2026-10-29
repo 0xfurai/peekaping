@@ -89,6 +89,9 @@ func (c *Controller) FindBySlug(ctx context.Context, input *FindBySlugInput) (*h
 	r := input.Request
 	slug := r.PathValue("slug")
 	page, err := c.service.FindPublishedBySlugAnyWorkspace(ctx, slug)
+	if errors.Is(err, ErrUnavailable) {
+		return nil, Unavailable()
+	}
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -102,6 +105,9 @@ func (c *Controller) FindByDomain(ctx context.Context, input *FindByDomainInput)
 	r := input.Request
 	domain := r.PathValue("domain")
 	page, err := c.service.FindPublishedByDomainAnyWorkspace(ctx, domain)
+	if errors.Is(err, ErrUnavailable) {
+		return nil, Unavailable()
+	}
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by domain", "error", err, "domain", domain)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
@@ -226,6 +232,9 @@ func (c *Controller) GetMonitorsBySlugForHomepage(ctx context.Context, input *Ge
 func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatLimit int) (*httpx.Output[utils.ApiResponse[[]*MonitorWithHeartbeatsAndUptimeDTO]], error) {
 	// First get the status page
 	page, err := c.service.FindPublishedBySlugAnyWorkspace(ctx, slug)
+	if errors.Is(err, ErrUnavailable) {
+		return nil, Unavailable()
+	}
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
 		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
