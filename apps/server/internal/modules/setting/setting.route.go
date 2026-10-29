@@ -29,7 +29,7 @@ func (uc *Route) ConnectRoute(
 	router := rg.Group("/settings")
 
 	router.Use(uc.middleware.WorkspaceAuth())
-	router.Document(httpx.WorkspaceIDHeader)
+	router.DocumentWorkspace()
 
 	httpx.Register(router, "GET", "key/{key}", huma.Operation{Summary: "Get setting by key", Description: "A setting of the request's workspace; any member can read it.", Tags: []string{"setting"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusInternalServerError, http.StatusNotFound, http.StatusUnauthorized}}, uc.controller.GetByKey)
 	httpx.Register(router, "PUT", "key/{key}", huma.Operation{Summary: "Set setting by key", Description: "Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404. It is a setting of the request's workspace: members read it, admins and owners change it, and a member's change returns 403.", Tags: []string{"setting"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusNotFound, http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized, http.StatusForbidden}}, uc.controller.SetByKey)
