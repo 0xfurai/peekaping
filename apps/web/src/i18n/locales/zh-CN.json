@@ -3,6 +3,105 @@
     "cancel": "取消",
     "saving": "保存中…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "返回 {{name}}",
+      "probes": "探针",
+      "title": "管理",
+      "users": "用户"
+    },
+    "users": {
+      "actions": {
+        "delete": "删除用户",
+        "disable": "禁用用户",
+        "disableTwoFactor": "关闭 2FA",
+        "enable": "启用用户",
+        "grantAdmin": "设为实例管理员",
+        "resetLink": "生成重置链接",
+        "revokeAdmin": "移除实例管理员"
+      },
+      "actions_aria": "{{email}} 的操作",
+      "columns": {
+        "created": "创建时间",
+        "email": "邮箱",
+        "email_verified": "邮箱已验证",
+        "instance_admin": "实例管理员",
+        "last_sign_in": "上次登录",
+        "status": "状态",
+        "two_factor": "2FA",
+        "workspaces": "工作区"
+      },
+      "confirm": {
+        "cancel": "取消",
+        "delete": {
+          "confirm": "删除用户",
+          "description": "删除 {{email}}？其账号会被移除，其在工作区中的位置也会一并移除。此操作无法撤销。",
+          "title": "删除用户"
+        },
+        "disable": {
+          "confirm": "禁用",
+          "description": "{{email}} 将无法登录，并会在所有设备上退出登录。其工作区会继续运行。你之后可以重新启用。",
+          "title": "禁用用户"
+        },
+        "disableTwoFactor": {
+          "confirm": "关闭 2FA",
+          "description": "{{email}} 将仅使用密码登录，并可重新设置 2FA。请在确认确实是本人提出请求后再执行。",
+          "title": "关闭 2FA"
+        }
+      },
+      "description": "此部署上所有拥有账号的人。实例管理员负责管理部署本身，例如探针和用户。用户在工作区中的角色由该工作区的所有者设置。",
+      "empty": "未找到用户",
+      "errors": {
+        "last_instance_admin": "部署至少需要一名实例管理员。",
+        "last_owner": "该用户是 {{workspaces}} 的最后一位所有者。请先指定其他所有者，或删除该工作区。",
+        "self": "你不能对自己的账号执行此操作。"
+      },
+      "load_failed": "无法加载用户。",
+      "messages": {
+        "admin_granted": "{{email}} 现在是实例管理员",
+        "admin_revoked": "{{email}} 不再是实例管理员",
+        "deleted": "{{email}} 已删除",
+        "disabled": "{{email}} 已被禁用并退出登录",
+        "enabled": "{{email}} 已启用",
+        "two_factor_off": "已关闭 {{email}} 的 2FA",
+        "update_failed": "无法更新用户。"
+      },
+      "never": "从未",
+      "none": "无",
+      "page_name": "用户",
+      "paging": {
+        "next": "下一页",
+        "page": "第 {{page}} 页，共 {{pages}} 页",
+        "previous": "上一页"
+      },
+      "reset_link": {
+        "close": "关闭",
+        "copied": "链接已复制",
+        "copy": "复制链接",
+        "copy_failed": "无法复制链接。请选中后手动复制。",
+        "description": "供 {{email}} 设置新密码的链接。请立即复制并转交：它只显示一次。",
+        "emailed": "此部署会发送账号邮件，因此用户会收到邮件，告知已为其生成链接。",
+        "expires": "该链接仅可使用一次，将于{{when}}过期。",
+        "failed": "无法生成链接。",
+        "label": "链接",
+        "making": "正在生成链接...",
+        "signs_out": "使用该链接会让用户在所有设备上退出登录。",
+        "title": "密码重置链接"
+      },
+      "search_label": "按邮箱搜索用户",
+      "search_placeholder": "按邮箱搜索",
+      "total": "找到 {{total}} 个",
+      "values": {
+        "active": "正常",
+        "disabled": "已禁用",
+        "no": "否",
+        "two_factor_off": "关",
+        "two_factor_on": "开",
+        "yes": "是"
+      },
+      "you": "你"
+    }
+  },
   "auth": {
     "login": {
       "description": "使用您的电子邮件登录",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "管理",
     "maintenance": "维护",
     "monitors": "监控",
     "notification_channels": "通知渠道",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "创建时未选择探针的监控项，会在未被禁用且支持其类型的默认探针上运行；若没有，则在本地探针上运行。已有的监控项保留其探针。",
+      "failed": "无法更改该探针是否为默认。",
+      "label": "默认探针",
+      "off": "{{name}} 不再是默认探针",
+      "on": "{{name}} 现在是默认探针",
+      "title": "新监控项的默认设置"
+    },
+    "default_badge": "默认",
     "page_name": "探针",
     "description": "探针在其安装的位置运行监控的检查。本地探针就是 Peekaping 本身。",
     "local_name": "本地",

@@ -3,6 +3,105 @@
     "cancel": "Avbryt",
     "saving": "Lagrer..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Tilbake til {{name}}",
+      "probes": "Prober",
+      "title": "Admin",
+      "users": "Brukere"
+    },
+    "users": {
+      "actions": {
+        "delete": "Slett bruker",
+        "disable": "Deaktiver bruker",
+        "disableTwoFactor": "Slå av 2FA",
+        "enable": "Aktiver bruker",
+        "grantAdmin": "Gjør til instansadministrator",
+        "resetLink": "Lag tilbakestillingslenke",
+        "revokeAdmin": "Fjern som instansadministrator"
+      },
+      "actions_aria": "Handlinger for {{email}}",
+      "columns": {
+        "created": "Opprettet",
+        "email": "E-post",
+        "email_verified": "E-post bekreftet",
+        "instance_admin": "Instansadministrator",
+        "last_sign_in": "Siste innlogging",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Arbeidsområder"
+      },
+      "confirm": {
+        "cancel": "Avbryt",
+        "delete": {
+          "confirm": "Slett bruker",
+          "description": "Slette {{email}}? Kontoen fjernes, og det samme gjelder plassene i arbeidsområder. Dette kan ikke angres.",
+          "title": "Slett bruker"
+        },
+        "disable": {
+          "confirm": "Deaktiver",
+          "description": "{{email}} kan ikke logge inn og blir logget ut overalt nå. Arbeidsområdene deres fortsetter å kjøre. Du kan aktivere brukeren igjen senere.",
+          "title": "Deaktiver bruker"
+        },
+        "disableTwoFactor": {
+          "confirm": "Slå av 2FA",
+          "description": "{{email}} logger inn med passordet alene, og kan sette opp 2FA igjen. Gjør dette bare når du er sikker på at det er vedkommende som ber om det.",
+          "title": "Slå av 2FA"
+        }
+      },
+      "description": "Alle med en konto på denne installasjonen. Instansadministratorer styrer selve installasjonen, for eksempel prober og brukere. En brukers rolle i et arbeidsområde settes av eierne av arbeidsområdet.",
+      "empty": "Fant ingen brukere",
+      "errors": {
+        "last_instance_admin": "Installasjonen trenger minst én instansadministrator.",
+        "last_owner": "Brukeren er den siste eieren av {{workspaces}}. Gjør noen andre til eier, eller slett arbeidsområdet, først.",
+        "self": "Du kan ikke gjøre dette med din egen konto."
+      },
+      "load_failed": "Kunne ikke laste brukerne.",
+      "messages": {
+        "admin_granted": "{{email}} er nå instansadministrator",
+        "admin_revoked": "{{email}} er ikke lenger instansadministrator",
+        "deleted": "{{email}} er slettet",
+        "disabled": "{{email}} er deaktivert og logget ut",
+        "enabled": "{{email}} er aktivert",
+        "two_factor_off": "2FA er slått av for {{email}}",
+        "update_failed": "Kunne ikke oppdatere brukeren."
+      },
+      "never": "Aldri",
+      "none": "Ingen",
+      "page_name": "Brukere",
+      "paging": {
+        "next": "Neste",
+        "page": "Side {{page}} av {{pages}}",
+        "previous": "Forrige"
+      },
+      "reset_link": {
+        "close": "Lukk",
+        "copied": "Lenken er kopiert",
+        "copy": "Kopier lenke",
+        "copy_failed": "Kunne ikke kopiere lenken. Marker den og kopier den for hånd.",
+        "description": "En lenke der {{email}} kan velge et nytt passord. Kopier den og gi den videre nå: den vises bare én gang.",
+        "emailed": "Denne installasjonen sender e-post om kontoer, så brukeren får beskjed på e-post om at det er laget en lenke til dem.",
+        "expires": "Lenken fungerer én gang og utløper {{when}}.",
+        "failed": "Kunne ikke lage lenken.",
+        "label": "Lenke",
+        "making": "Lager lenken...",
+        "signs_out": "Når lenken brukes, logges brukeren ut overalt.",
+        "title": "Lenke for tilbakestilling av passord"
+      },
+      "search_label": "Søk etter brukere på e-post",
+      "search_placeholder": "Søk på e-post",
+      "total": "{{total}} funnet",
+      "values": {
+        "active": "Aktiv",
+        "disabled": "Deaktivert",
+        "no": "Nei",
+        "two_factor_off": "Av",
+        "two_factor_on": "På",
+        "yes": "Ja"
+      },
+      "you": "deg"
+    }
+  },
   "auth": {
     "login": {
       "description": "Logg inn med din e-post",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Vedlikehold",
     "monitors": "Overvåkninger",
     "notification_channels": "Varslingskanaler",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "En monitor som opprettes uten å velge prober, kjører på standardprobene som ikke er deaktivert og kjører typen, og på den lokale proben når ingen gjør det. Eksisterende monitorer beholder probene sine.",
+      "failed": "Kunne ikke endre om proben er en standard.",
+      "label": "Standardprobe",
+      "off": "{{name}} er ikke lenger en standardprobe",
+      "on": "{{name}} er nå en standardprobe",
+      "title": "Standard for nye monitorer"
+    },
+    "default_badge": "Standard",
     "page_name": "Prober",
     "description": "Prober kjører kontroller av overvåkninger fra stedene der de er installert. Den lokale proben er Peekaping selv.",
     "local_name": "Lokal",

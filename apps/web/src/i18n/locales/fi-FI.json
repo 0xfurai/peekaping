@@ -3,6 +3,105 @@
     "cancel": "Peruuta",
     "saving": "Tallennetaan..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Takaisin kohteeseen {{name}}",
+      "probes": "Luotaimet",
+      "title": "Ylläpito",
+      "users": "Käyttäjät"
+    },
+    "users": {
+      "actions": {
+        "delete": "Poista käyttäjä",
+        "disable": "Poista käyttäjä käytöstä",
+        "disableTwoFactor": "Poista 2FA käytöstä",
+        "enable": "Ota käyttäjä käyttöön",
+        "grantAdmin": "Tee instanssin ylläpitäjäksi",
+        "resetLink": "Luo palautuslinkki",
+        "revokeAdmin": "Poista instanssin ylläpitäjän oikeus"
+      },
+      "actions_aria": "Toiminnot: {{email}}",
+      "columns": {
+        "created": "Luotu",
+        "email": "Sähköposti",
+        "email_verified": "Sähköposti vahvistettu",
+        "instance_admin": "Instanssin ylläpitäjä",
+        "last_sign_in": "Viimeisin kirjautuminen",
+        "status": "Tila",
+        "two_factor": "2FA",
+        "workspaces": "Työtilat"
+      },
+      "confirm": {
+        "cancel": "Peru",
+        "delete": {
+          "confirm": "Poista käyttäjä",
+          "description": "Poistetaanko {{email}}? Hänen tilinsä ja paikkansa työtiloissa poistetaan. Tätä ei voi perua.",
+          "title": "Poista käyttäjä"
+        },
+        "disable": {
+          "confirm": "Poista käytöstä",
+          "description": "{{email}} ei voi kirjautua sisään ja hänet kirjataan ulos kaikkialta heti. Hänen työtilansa jatkavat toimintaansa. Voit ottaa hänet takaisin käyttöön myöhemmin.",
+          "title": "Poista käyttäjä käytöstä"
+        },
+        "disableTwoFactor": {
+          "confirm": "Poista 2FA käytöstä",
+          "description": "{{email}} kirjautuu jatkossa pelkällä salasanalla ja voi ottaa 2FA:n uudelleen käyttöön. Tee tämä vasta, kun olet varma, että pyyntö tulee häneltä itseltään.",
+          "title": "Poista 2FA käytöstä"
+        }
+      },
+      "description": "Kaikki, joilla on tili tässä asennuksessa. Instanssin ylläpitäjät hallitsevat itse asennusta, kuten luotaimia ja käyttäjiä. Käyttäjän roolin työtilassa määräävät kyseisen työtilan omistajat.",
+      "empty": "Käyttäjiä ei löytynyt",
+      "errors": {
+        "last_instance_admin": "Asennuksessa on oltava vähintään yksi instanssin ylläpitäjä.",
+        "last_owner": "Käyttäjä on viimeinen omistaja kohteessa {{workspaces}}. Tee ensin joku muu omistajaksi tai poista työtila.",
+        "self": "Et voi tehdä tätä omalle tilillesi."
+      },
+      "load_failed": "Käyttäjien lataaminen epäonnistui.",
+      "messages": {
+        "admin_granted": "{{email}} on nyt instanssin ylläpitäjä",
+        "admin_revoked": "{{email}} ei ole enää instanssin ylläpitäjä",
+        "deleted": "{{email}} on poistettu",
+        "disabled": "{{email}} on poistettu käytöstä ja kirjattu ulos",
+        "enabled": "{{email}} on otettu käyttöön",
+        "two_factor_off": "2FA on pois päältä käyttäjältä {{email}}",
+        "update_failed": "Käyttäjän päivittäminen epäonnistui."
+      },
+      "never": "Ei koskaan",
+      "none": "Ei mitään",
+      "page_name": "Käyttäjät",
+      "paging": {
+        "next": "Seuraava",
+        "page": "Sivu {{page}} / {{pages}}",
+        "previous": "Edellinen"
+      },
+      "reset_link": {
+        "close": "Sulje",
+        "copied": "Linkki kopioitu",
+        "copy": "Kopioi linkki",
+        "copy_failed": "Linkin kopioiminen epäonnistui. Valitse se ja kopioi käsin.",
+        "description": "Linkki, jolla {{email}} valitsee uuden salasanan. Kopioi se ja välitä se nyt: se näytetään vain kerran.",
+        "emailed": "Tämä asennus lähettää tilisähköposteja, joten käyttäjälle ilmoitetaan sähköpostilla, että hänelle on luotu linkki.",
+        "expires": "Linkki toimii kerran ja vanhenee {{when}}.",
+        "failed": "Linkin luominen epäonnistui.",
+        "label": "Linkki",
+        "making": "Luodaan linkkiä...",
+        "signs_out": "Linkin käyttö kirjaa käyttäjän ulos kaikkialta.",
+        "title": "Salasanan palautuslinkki"
+      },
+      "search_label": "Hae käyttäjiä sähköpostin mukaan",
+      "search_placeholder": "Hae sähköpostilla",
+      "total": "{{total}} löytyi",
+      "values": {
+        "active": "Aktiivinen",
+        "disabled": "Poistettu käytöstä",
+        "no": "Ei",
+        "two_factor_off": "Pois",
+        "two_factor_on": "Päällä",
+        "yes": "Kyllä"
+      },
+      "you": "sinä"
+    }
+  },
   "auth": {
     "login": {
       "description": "Kirjaudu sähköpostilla",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Ylläpito",
     "maintenance": "Huolto",
     "monitors": "Valvonta",
     "notification_channels": "Ilmoituskanavat",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Ilman luotainvalintaa luotu monitori suoritetaan oletusluotaimilla, jotka eivät ole pois käytöstä ja tukevat sen tyyppiä, ja paikallisella luotaimella, jos mikään ei tue. Olemassa olevat monitorit pitävät luotaimensa.",
+      "failed": "Luotaimen oletusasetuksen muuttaminen epäonnistui.",
+      "label": "Oletusluotain",
+      "off": "{{name}} ei ole enää oletusluotain",
+      "on": "{{name}} on nyt oletusluotain",
+      "title": "Oletus uusille monitoreille"
+    },
+    "default_badge": "Oletus",
     "page_name": "Luotaimet",
     "description": "Luotaimet suorittavat valvontojen tarkistukset paikoista, joihin ne on asennettu. Paikallinen luotain on Peekaping itse.",
     "local_name": "Paikallinen",

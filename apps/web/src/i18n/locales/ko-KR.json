@@ -3,6 +3,105 @@
     "cancel": "취소",
     "saving": "저장 중..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "{{name}}(으)로 돌아가기",
+      "probes": "프로브",
+      "title": "관리자",
+      "users": "사용자"
+    },
+    "users": {
+      "actions": {
+        "delete": "사용자 삭제",
+        "disable": "사용자 비활성화",
+        "disableTwoFactor": "2FA 끄기",
+        "enable": "사용자 활성화",
+        "grantAdmin": "인스턴스 관리자로 지정",
+        "resetLink": "재설정 링크 만들기",
+        "revokeAdmin": "인스턴스 관리자 해제"
+      },
+      "actions_aria": "{{email}}에 대한 작업",
+      "columns": {
+        "created": "생성일",
+        "email": "이메일",
+        "email_verified": "이메일 인증됨",
+        "instance_admin": "인스턴스 관리자",
+        "last_sign_in": "마지막 로그인",
+        "status": "상태",
+        "two_factor": "2FA",
+        "workspaces": "워크스페이스"
+      },
+      "confirm": {
+        "cancel": "취소",
+        "delete": {
+          "confirm": "사용자 삭제",
+          "description": "{{email}}님을 삭제할까요? 계정과 워크스페이스 멤버십이 제거됩니다. 이 작업은 되돌릴 수 없습니다.",
+          "title": "사용자 삭제"
+        },
+        "disable": {
+          "confirm": "비활성화",
+          "description": "{{email}}님은 로그인할 수 없으며 지금 모든 곳에서 로그아웃됩니다. 해당 사용자의 워크스페이스는 계속 실행됩니다. 나중에 다시 활성화할 수 있습니다.",
+          "title": "사용자 비활성화"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA 끄기",
+          "description": "{{email}}님은 비밀번호만으로 로그인하게 되며 2FA를 다시 설정할 수 있습니다. 본인이 직접 요청한 것이 확실할 때만 진행하세요.",
+          "title": "2FA 끄기"
+        }
+      },
+      "description": "이 설치에 계정이 있는 모든 사람입니다. 인스턴스 관리자는 프로브와 사용자 같은 설치 자체를 관리합니다. 워크스페이스에서의 사용자 역할은 해당 워크스페이스의 소유자가 정합니다.",
+      "empty": "사용자를 찾을 수 없습니다",
+      "errors": {
+        "last_instance_admin": "설치에는 인스턴스 관리자가 최소 한 명 필요합니다.",
+        "last_owner": "이 사용자는 {{workspaces}}의 마지막 소유자입니다. 먼저 다른 사람을 소유자로 지정하거나 워크스페이스를 삭제하세요.",
+        "self": "자신의 계정에는 이 작업을 할 수 없습니다."
+      },
+      "load_failed": "사용자를 불러오지 못했습니다.",
+      "messages": {
+        "admin_granted": "{{email}}님이 이제 인스턴스 관리자입니다",
+        "admin_revoked": "{{email}}님은 더 이상 인스턴스 관리자가 아닙니다",
+        "deleted": "{{email}}님이 삭제되었습니다",
+        "disabled": "{{email}}님이 비활성화되어 로그아웃되었습니다",
+        "enabled": "{{email}}님이 활성화되었습니다",
+        "two_factor_off": "{{email}}님의 2FA가 꺼졌습니다",
+        "update_failed": "사용자를 업데이트하지 못했습니다."
+      },
+      "never": "한 번도 없음",
+      "none": "없음",
+      "page_name": "사용자",
+      "paging": {
+        "next": "다음",
+        "page": "{{pages}}페이지 중 {{page}}페이지",
+        "previous": "이전"
+      },
+      "reset_link": {
+        "close": "닫기",
+        "copied": "링크가 복사되었습니다",
+        "copy": "링크 복사",
+        "copy_failed": "링크를 복사하지 못했습니다. 직접 선택해서 복사하세요.",
+        "description": "{{email}}님이 새 비밀번호를 정할 수 있는 링크입니다. 한 번만 표시되므로 지금 복사해서 전달하세요.",
+        "emailed": "이 설치는 계정 이메일을 보내므로, 링크가 만들어졌다는 사실이 사용자에게 이메일로 안내됩니다.",
+        "expires": "이 링크는 한 번만 사용할 수 있으며 {{when}} 만료됩니다.",
+        "failed": "링크를 만들지 못했습니다.",
+        "label": "링크",
+        "making": "링크를 만드는 중...",
+        "signs_out": "링크를 사용하면 사용자가 모든 곳에서 로그아웃됩니다.",
+        "title": "비밀번호 재설정 링크"
+      },
+      "search_label": "이메일로 사용자 검색",
+      "search_placeholder": "이메일로 검색",
+      "total": "{{total}}명 찾음",
+      "values": {
+        "active": "활성",
+        "disabled": "비활성화됨",
+        "no": "아니요",
+        "two_factor_off": "꺼짐",
+        "two_factor_on": "켜짐",
+        "yes": "예"
+      },
+      "you": "나"
+    }
+  },
   "auth": {
     "login": {
       "description": "이메일로 로그인",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "관리자",
     "maintenance": "유지보수",
     "monitors": "모니터",
     "notification_channels": "알림 채널",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "프로브를 선택하지 않고 만든 모니터는 비활성화되지 않았고 해당 유형을 실행하는 기본 프로브에서 실행되며, 해당하는 프로브가 없으면 로컬 프로브에서 실행됩니다. 기존 모니터는 프로브가 그대로 유지됩니다.",
+      "failed": "프로브의 기본값 여부를 변경하지 못했습니다.",
+      "label": "기본 프로브",
+      "off": "{{name}}은(는) 더 이상 기본 프로브가 아닙니다",
+      "on": "{{name}}이(가) 이제 기본 프로브입니다",
+      "title": "새 모니터 기본값"
+    },
+    "default_badge": "기본값",
     "page_name": "프로브",
     "description": "프로브는 설치된 위치에서 모니터의 검사를 실행합니다. 로컬 프로브는 Peekaping 자체입니다.",
     "local_name": "로컬",

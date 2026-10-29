@@ -3,6 +3,105 @@
     "cancel": "Cealaigh",
     "saving": "Ag sábháil…"
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Ar ais go {{name}}",
+      "probes": "Tóireadóirí",
+      "title": "Riar",
+      "users": "Úsáideoirí"
+    },
+    "users": {
+      "actions": {
+        "delete": "Scrios úsáideoir",
+        "disable": "Díchumasaigh úsáideoir",
+        "disableTwoFactor": "Cas 2FA as",
+        "enable": "Cumasaigh úsáideoir",
+        "grantAdmin": "Déan riarthóir cása de",
+        "resetLink": "Cruthaigh nasc athshocraithe",
+        "revokeAdmin": "Bain stádas riarthóra cása de"
+      },
+      "actions_aria": "Gníomhartha do {{email}}",
+      "columns": {
+        "created": "Cruthaithe",
+        "email": "Ríomhphost",
+        "email_verified": "Ríomhphost fíoraithe",
+        "instance_admin": "Riarthóir cása",
+        "last_sign_in": "Sínigh isteach is déanaí",
+        "status": "Stádas",
+        "two_factor": "2FA",
+        "workspaces": "Spásanna oibre"
+      },
+      "confirm": {
+        "cancel": "Cealaigh",
+        "delete": {
+          "confirm": "Scrios úsáideoir",
+          "description": "An scriosfar {{email}}? Baintear a chuntas, agus a áiteanna i spásanna oibre. Ní féidir é seo a chealú.",
+          "title": "Scrios úsáideoir"
+        },
+        "disable": {
+          "confirm": "Díchumasaigh",
+          "description": "Ní féidir le {{email}} sínigh isteach agus tá sé sínithe amach i ngach áit anois. Coinníonn a spásanna oibre ag rith. Is féidir leat é a chumasú arís ar ball.",
+          "title": "Díchumasaigh úsáideoir"
+        },
+        "disableTwoFactor": {
+          "confirm": "Cas 2FA as",
+          "description": "Sínfidh {{email}} isteach lena phasfhocal amháin, agus is féidir 2FA a shocrú arís. Ná déan é seo ach nuair atá tú cinnte gurb é an t-úsáideoir féin atá á iarraidh.",
+          "title": "Cas 2FA as"
+        }
+      },
+      "description": "An té ar bith a bhfuil cuntas aige ar an suiteáil seo. Bainistíonn riarthóirí an chása an suiteáil féin, amhail tóireadóirí agus úsáideoirí. Socraíonn úinéirí spáis oibre ról úsáideora sa spás oibre sin.",
+      "empty": "Níor aimsíodh aon úsáideoir",
+      "errors": {
+        "last_instance_admin": "Teastaíonn riarthóir cása amháin ar a laghad ón suiteáil.",
+        "last_owner": "Is é an t-úsáideoir an t-úinéir deireanach ar {{workspaces}}. Déan úinéir de dhuine eile, nó scrios an spás oibre, ar dtús.",
+        "self": "Ní féidir leat é seo a dhéanamh le do chuntas féin."
+      },
+      "load_failed": "Níorbh fhéidir na húsáideoirí a luchtú.",
+      "messages": {
+        "admin_granted": "Is riarthóir cása {{email}} anois",
+        "admin_revoked": "Níl {{email}} ina riarthóir cása a thuilleadh",
+        "deleted": "Scriosadh {{email}}",
+        "disabled": "Tá {{email}} díchumasaithe agus sínithe amach",
+        "enabled": "Tá {{email}} cumasaithe",
+        "two_factor_off": "Tá 2FA as do {{email}}",
+        "update_failed": "Níorbh fhéidir an t-úsáideoir a nuashonrú."
+      },
+      "never": "Riamh",
+      "none": "Ceann ar bith",
+      "page_name": "Úsáideoirí",
+      "paging": {
+        "next": "Ar aghaidh",
+        "page": "Leathanach {{page}} de {{pages}}",
+        "previous": "Roimhe seo"
+      },
+      "reset_link": {
+        "close": "Dún",
+        "copied": "Nasc cóipeáilte",
+        "copy": "Cóipeáil an nasc",
+        "copy_failed": "Níorbh fhéidir an nasc a chóipeáil. Roghnaigh é agus cóipeáil de láimh é.",
+        "description": "Nasc ionas go roghnóidh {{email}} pasfhocal nua. Cóipeáil é agus tabhair ar aghaidh anois é: ní thaispeántar é ach uair amháin.",
+        "emailed": "Seolann an suiteáil seo ríomhphoist chuntais, mar sin cuirtear in iúl don úsáideoir trí ríomhphost gur cruthaíodh nasc dó.",
+        "expires": "Oibríonn an nasc uair amháin agus rachaidh sé in éag {{when}}.",
+        "failed": "Níorbh fhéidir an nasc a chruthú.",
+        "label": "Nasc",
+        "making": "Nasc á chruthú...",
+        "signs_out": "Má úsáidtear an nasc, síníonn sé an t-úsáideoir amach i ngach áit.",
+        "title": "Nasc athshocraithe pasfhocail"
+      },
+      "search_label": "Cuardaigh úsáideoirí de réir ríomhphoist",
+      "search_placeholder": "Cuardaigh de réir ríomhphoist",
+      "total": "{{total}} aimsithe",
+      "values": {
+        "active": "Gníomhach",
+        "disabled": "Díchumasaithe",
+        "no": "Níl",
+        "two_factor_off": "As",
+        "two_factor_on": "Air",
+        "yes": "Tá"
+      },
+      "you": "tú"
+    }
+  },
   "auth": {
     "login": {
       "description": "Logáil isteach le do ríomhphost",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Riar",
     "maintenance": "Cothromaíocht",
     "monitors": "Móntóirí",
     "notification_channels": "Canálacha Fógairtí",
@@ -1308,6 +1408,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Ritheann monatóir a cruthaíodh gan tóireadóirí a roghnú ar na tóireadóirí réamhshocraithe nach bhfuil díchumasaithe agus a ritheann a chineál, agus ar an tóireadóir áitiúil mura ritheann aon cheann. Coinníonn monatóirí atá ann cheana a dtóireadóirí.",
+      "failed": "Níorbh fhéidir an socrú réamhshocraithe den tóireadóir a athrú.",
+      "label": "Tóireadóir réamhshocraithe",
+      "off": "Níl {{name}} ina thóireadóir réamhshocraithe a thuilleadh",
+      "on": "Is tóireadóir réamhshocraithe {{name}} anois",
+      "title": "Réamhshocrú do mhonatóirí nua"
+    },
+    "default_badge": "Réamhshocrú",
     "page_name": "Tóireadóirí",
     "description": "Ritheann tóireadóirí seiceálacha móntóirí ó na háiteanna ina bhfuil siad suiteáilte. Is é Peekaping féin an tóireadóir áitiúil.",
     "local_name": "Áitiúil",

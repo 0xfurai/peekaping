@@ -3,6 +3,105 @@
     "cancel": "Annulla",
     "saving": "Salvataggio..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Torna a {{name}}",
+      "probes": "Sonde",
+      "title": "Amministrazione",
+      "users": "Utenti"
+    },
+    "users": {
+      "actions": {
+        "delete": "Elimina utente",
+        "disable": "Disattiva utente",
+        "disableTwoFactor": "Disattiva 2FA",
+        "enable": "Attiva utente",
+        "grantAdmin": "Rendi amministratore dell'istanza",
+        "resetLink": "Crea link di reimpostazione",
+        "revokeAdmin": "Rimuovi amministratore dell'istanza"
+      },
+      "actions_aria": "Azioni per {{email}}",
+      "columns": {
+        "created": "Creato",
+        "email": "Email",
+        "email_verified": "Email verificata",
+        "instance_admin": "Amministratore dell'istanza",
+        "last_sign_in": "Ultimo accesso",
+        "status": "Stato",
+        "two_factor": "2FA",
+        "workspaces": "Spazi di lavoro"
+      },
+      "confirm": {
+        "cancel": "Annulla",
+        "delete": {
+          "confirm": "Elimina utente",
+          "description": "Eliminare {{email}}? Il suo account viene rimosso, insieme ai suoi posti negli spazi di lavoro. L'operazione non può essere annullata.",
+          "title": "Elimina utente"
+        },
+        "disable": {
+          "confirm": "Disattiva",
+          "description": "{{email}} non può più accedere ed è disconnesso ovunque, da subito. I suoi spazi di lavoro continuano a funzionare. Potrai riattivarlo in seguito.",
+          "title": "Disattiva utente"
+        },
+        "disableTwoFactor": {
+          "confirm": "Disattiva 2FA",
+          "description": "{{email}} accederà solo con la password e potrà configurare di nuovo la 2FA. Fallo solo quando sei sicuro che sia davvero la persona a chiederlo.",
+          "title": "Disattiva 2FA"
+        }
+      },
+      "description": "Tutte le persone con un account su questa installazione. Gli amministratori dell'istanza gestiscono l'installazione stessa, ad esempio sonde e utenti. Il ruolo di un utente in uno spazio di lavoro è stabilito dai proprietari di quello spazio.",
+      "empty": "Nessun utente trovato",
+      "errors": {
+        "last_instance_admin": "L'installazione richiede almeno un amministratore dell'istanza.",
+        "last_owner": "L'utente è l'ultimo proprietario di {{workspaces}}. Prima rendi proprietario qualcun altro o elimina lo spazio di lavoro.",
+        "self": "Non puoi farlo sul tuo stesso account."
+      },
+      "load_failed": "Impossibile caricare gli utenti.",
+      "messages": {
+        "admin_granted": "{{email}} è ora amministratore dell'istanza",
+        "admin_revoked": "{{email}} non è più amministratore dell'istanza",
+        "deleted": "{{email}} è eliminato",
+        "disabled": "{{email}} è disattivato e disconnesso",
+        "enabled": "{{email}} è attivato",
+        "two_factor_off": "La 2FA è disattivata per {{email}}",
+        "update_failed": "Impossibile aggiornare l'utente."
+      },
+      "never": "Mai",
+      "none": "Nessuno",
+      "page_name": "Utenti",
+      "paging": {
+        "next": "Successiva",
+        "page": "Pagina {{page}} di {{pages}}",
+        "previous": "Precedente"
+      },
+      "reset_link": {
+        "close": "Chiudi",
+        "copied": "Link copiato",
+        "copy": "Copia link",
+        "copy_failed": "Impossibile copiare il link. Selezionalo e copialo a mano.",
+        "description": "Un link con cui {{email}} sceglie una nuova password. Copialo e consegnalo ora: viene mostrato una sola volta.",
+        "emailed": "Questa installazione invia email dell'account, quindi l'utente viene avvisato via email che è stato creato un link per lui.",
+        "expires": "Il link funziona una sola volta e scade {{when}}.",
+        "failed": "Impossibile creare il link.",
+        "label": "Link",
+        "making": "Creazione del link...",
+        "signs_out": "Usare il link disconnette l'utente ovunque.",
+        "title": "Link di reimpostazione della password"
+      },
+      "search_label": "Cerca utenti per email",
+      "search_placeholder": "Cerca per email",
+      "total": "{{total}} trovati",
+      "values": {
+        "active": "Attivo",
+        "disabled": "Disattivato",
+        "no": "No",
+        "two_factor_off": "Disattiva",
+        "two_factor_on": "Attiva",
+        "yes": "Sì"
+      },
+      "you": "tu"
+    }
+  },
   "auth": {
     "login": {
       "description": "Accedi con la tua e-mail",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Amministrazione",
     "maintenance": "Manutenzione",
     "monitors": "Monitor",
     "notification_channels": "Canali di notifica",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Un monitor creato senza scegliere le sonde viene eseguito sulle sonde predefinite non disattivate che supportano il suo tipo, e sulla sonda locale se nessuna lo fa. I monitor esistenti mantengono le loro sonde.",
+      "failed": "Impossibile cambiare se la sonda è predefinita.",
+      "label": "Sonda predefinita",
+      "off": "{{name}} non è più una sonda predefinita",
+      "on": "{{name}} è ora una sonda predefinita",
+      "title": "Predefinita per i nuovi monitor"
+    },
+    "default_badge": "Predefinita",
     "page_name": "Sonde",
     "description": "Le sonde eseguono i controlli dei monitor dai luoghi in cui sono installate. La sonda locale è Peekaping stesso.",
     "local_name": "Locale",

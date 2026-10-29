@@ -3,6 +3,105 @@
     "cancel": "Anulează",
     "saving": "Se salvează..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Înapoi la {{name}}",
+      "probes": "Sonde",
+      "title": "Administrare",
+      "users": "Utilizatori"
+    },
+    "users": {
+      "actions": {
+        "delete": "Șterge utilizatorul",
+        "disable": "Dezactivează utilizatorul",
+        "disableTwoFactor": "Dezactivează 2FA",
+        "enable": "Activează utilizatorul",
+        "grantAdmin": "Fă administrator de instanță",
+        "resetLink": "Creează link de resetare",
+        "revokeAdmin": "Elimină administratorul de instanță"
+      },
+      "actions_aria": "Acțiuni pentru {{email}}",
+      "columns": {
+        "created": "Creat",
+        "email": "E-mail",
+        "email_verified": "E-mail verificat",
+        "instance_admin": "Administrator de instanță",
+        "last_sign_in": "Ultima autentificare",
+        "status": "Stare",
+        "two_factor": "2FA",
+        "workspaces": "Spații de lucru"
+      },
+      "confirm": {
+        "cancel": "Anulează",
+        "delete": {
+          "confirm": "Șterge utilizatorul",
+          "description": "Ștergeți {{email}}? Contul este eliminat, la fel și locurile din spațiile de lucru. Această acțiune nu poate fi anulată.",
+          "title": "Șterge utilizatorul"
+        },
+        "disable": {
+          "confirm": "Dezactivează",
+          "description": "{{email}} nu se poate autentifica și este acum deconectat de peste tot. Spațiile sale de lucru continuă să ruleze. Îl puteți activa din nou mai târziu.",
+          "title": "Dezactivează utilizatorul"
+        },
+        "disableTwoFactor": {
+          "confirm": "Dezactivează 2FA",
+          "description": "{{email}} se va autentifica doar cu parola și poate configura din nou 2FA. Faceți asta doar după ce sunteți sigur că persoana respectivă este cea care cere.",
+          "title": "Dezactivează 2FA"
+        }
+      },
+      "description": "Toți cei care au un cont pe această instalare. Administratorii de instanță gestionează instalarea în sine, de exemplu sondele și utilizatorii. Rolul unui utilizator într-un spațiu de lucru este stabilit de proprietarii acelui spațiu de lucru.",
+      "empty": "Nu s-a găsit niciun utilizator",
+      "errors": {
+        "last_instance_admin": "Instalarea are nevoie de cel puțin un administrator de instanță.",
+        "last_owner": "Utilizatorul este ultimul proprietar al {{workspaces}}. Mai întâi desemnați alt proprietar sau ștergeți spațiul de lucru.",
+        "self": "Nu puteți face asta pe propriul cont."
+      },
+      "load_failed": "Nu s-au putut încărca utilizatorii.",
+      "messages": {
+        "admin_granted": "{{email}} este acum administrator de instanță",
+        "admin_revoked": "{{email}} nu mai este administrator de instanță",
+        "deleted": "{{email}} a fost șters",
+        "disabled": "{{email}} este dezactivat și deconectat",
+        "enabled": "{{email}} este activat",
+        "two_factor_off": "2FA este dezactivat pentru {{email}}",
+        "update_failed": "Nu s-a putut actualiza utilizatorul."
+      },
+      "never": "Niciodată",
+      "none": "Niciunul",
+      "page_name": "Utilizatori",
+      "paging": {
+        "next": "Următorul",
+        "page": "Pagina {{page}} din {{pages}}",
+        "previous": "Anterior"
+      },
+      "reset_link": {
+        "close": "Închide",
+        "copied": "Link copiat",
+        "copy": "Copiază linkul",
+        "copy_failed": "Nu s-a putut copia linkul. Selectați-l și copiați-l manual.",
+        "description": "Un link prin care {{email}} își alege o parolă nouă. Copiați-l și transmiteți-l acum: este afișat o singură dată.",
+        "emailed": "Această instalare trimite e-mailuri despre cont, așa că utilizatorul este înștiințat prin e-mail că a fost creat un link pentru el.",
+        "expires": "Linkul funcționează o singură dată și expiră {{when}}.",
+        "failed": "Nu s-a putut crea linkul.",
+        "label": "Link",
+        "making": "Se creează linkul...",
+        "signs_out": "Folosirea linkului deconectează utilizatorul de peste tot.",
+        "title": "Link de resetare a parolei"
+      },
+      "search_label": "Caută utilizatori după e-mail",
+      "search_placeholder": "Caută după e-mail",
+      "total": "{{total}} găsiți",
+      "values": {
+        "active": "Activ",
+        "disabled": "Dezactivat",
+        "no": "Nu",
+        "two_factor_off": "Oprit",
+        "two_factor_on": "Pornit",
+        "yes": "Da"
+      },
+      "you": "tu"
+    }
+  },
   "auth": {
     "login": {
       "description": "Autentifică-te cu e-mailul tău",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administrare",
     "maintenance": "Întreținere",
     "monitors": "Monitoare",
     "notification_channels": "Canale de notificare",
@@ -1308,6 +1408,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Un monitor creat fără a alege sonde rulează pe sondele implicite care nu sunt dezactivate și rulează tipul său, iar pe sonda locală când niciuna nu o face. Monitoarele existente își păstrează sondele.",
+      "failed": "Nu s-a putut schimba dacă sonda este implicită.",
+      "label": "Sondă implicită",
+      "off": "{{name}} nu mai este o sondă implicită",
+      "on": "{{name}} este acum o sondă implicită",
+      "title": "Implicit pentru monitoarele noi"
+    },
+    "default_badge": "Implicit",
     "page_name": "Sonde",
     "description": "Sondele execută verificările monitoarelor din locurile în care sunt instalate. Sonda locală este chiar Peekaping.",
     "local_name": "Locală",

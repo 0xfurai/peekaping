@@ -3,6 +3,105 @@
     "cancel": "Otkaži",
     "saving": "Spremanje..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Natrag na {{name}}",
+      "probes": "Sonde",
+      "title": "Administracija",
+      "users": "Korisnici"
+    },
+    "users": {
+      "actions": {
+        "delete": "Obriši korisnika",
+        "disable": "Onemogući korisnika",
+        "disableTwoFactor": "Isključi 2FA",
+        "enable": "Omogući korisnika",
+        "grantAdmin": "Postavi za administratora instance",
+        "resetLink": "Izradi poveznicu za poništavanje",
+        "revokeAdmin": "Ukloni administratora instance"
+      },
+      "actions_aria": "Radnje za {{email}}",
+      "columns": {
+        "created": "Izrađen",
+        "email": "E-pošta",
+        "email_verified": "E-pošta potvrđena",
+        "instance_admin": "Administrator instance",
+        "last_sign_in": "Posljednja prijava",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Radni prostori"
+      },
+      "confirm": {
+        "cancel": "Otkaži",
+        "delete": {
+          "confirm": "Obriši korisnika",
+          "description": "Obrisati {{email}}? Njegov račun se uklanja, a time i njegova mjesta u radnim prostorima. Ovo se ne može poništiti.",
+          "title": "Obriši korisnika"
+        },
+        "disable": {
+          "confirm": "Onemogući",
+          "description": "{{email}} se ne može prijaviti i odmah je odjavljen svugdje. Njegovi radni prostori nastavljaju raditi. Kasnije ga možete ponovno omogućiti.",
+          "title": "Onemogući korisnika"
+        },
+        "disableTwoFactor": {
+          "confirm": "Isključi 2FA",
+          "description": "{{email}} će se prijavljivati samo lozinkom i može ponovno postaviti 2FA. Učinite to tek kad ste sigurni da to doista traži ta osoba.",
+          "title": "Isključi 2FA"
+        }
+      },
+      "description": "Svi koji imaju račun na ovoj instalaciji. Administratori instance upravljaju samom instalacijom, primjerice sondama i korisnicima. Ulogu korisnika u radnom prostoru određuju vlasnici tog radnog prostora.",
+      "empty": "Nema pronađenih korisnika",
+      "errors": {
+        "last_instance_admin": "Instalacija treba barem jednog administratora instance.",
+        "last_owner": "Korisnik je posljednji vlasnik: {{workspaces}}. Prvo postavite nekog drugog za vlasnika ili obrišite radni prostor.",
+        "self": "Ovo ne možete učiniti sa svojim računom."
+      },
+      "load_failed": "Korisnike nije moguće učitati.",
+      "messages": {
+        "admin_granted": "{{email}} je sada administrator instance",
+        "admin_revoked": "{{email}} više nije administrator instance",
+        "deleted": "{{email}} je obrisan",
+        "disabled": "{{email}} je onemogućen i odjavljen",
+        "enabled": "{{email}} je omogućen",
+        "two_factor_off": "2FA je isključen za {{email}}",
+        "update_failed": "Korisnika nije moguće ažurirati."
+      },
+      "never": "Nikad",
+      "none": "Nema",
+      "page_name": "Korisnici",
+      "paging": {
+        "next": "Sljedeća",
+        "page": "Stranica {{page}} od {{pages}}",
+        "previous": "Prethodna"
+      },
+      "reset_link": {
+        "close": "Zatvori",
+        "copied": "Poveznica kopirana",
+        "copy": "Kopiraj poveznicu",
+        "copy_failed": "Poveznicu nije moguće kopirati. Označite je i kopirajte ručno.",
+        "description": "Poveznica kojom {{email}} bira novu lozinku. Kopirajte je i proslijedite sada: prikazuje se samo jednom.",
+        "emailed": "Ova instalacija šalje e-poštu o računu, pa se korisnika e-poštom obavještava da je za njega izrađena poveznica.",
+        "expires": "Poveznica vrijedi jednom i istječe {{when}}.",
+        "failed": "Poveznicu nije moguće izraditi.",
+        "label": "Poveznica",
+        "making": "Izrada poveznice...",
+        "signs_out": "Korištenjem poveznice korisnik se odjavljuje svugdje.",
+        "title": "Poveznica za poništavanje lozinke"
+      },
+      "search_label": "Pretraži korisnike po e-pošti",
+      "search_placeholder": "Pretraži po e-pošti",
+      "total": "Pronađeno: {{total}}",
+      "values": {
+        "active": "Aktivan",
+        "disabled": "Onemogućen",
+        "no": "Ne",
+        "two_factor_off": "Isključeno",
+        "two_factor_on": "Uključeno",
+        "yes": "Da"
+      },
+      "you": "vi"
+    }
+  },
   "auth": {
     "login": {
       "description": "Prijavite se s vašom e‑mail adresom",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administracija",
     "maintenance": "Održavanje",
     "monitors": "Nadzori",
     "notification_channels": "Kanali obavijesti",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Monitor izrađen bez odabira sondi izvodi se na zadanim sondama koje nisu onemogućene i podržavaju njegovu vrstu, a na lokalnoj sondi ako nijedna ne podržava. Postojeći monitori zadržavaju svoje sonde.",
+      "failed": "Nije moguće promijeniti je li sonda zadana.",
+      "label": "Zadana sonda",
+      "off": "{{name}} više nije zadana sonda",
+      "on": "{{name}} je sada zadana sonda",
+      "title": "Zadano za nove monitore"
+    },
+    "default_badge": "Zadano",
     "page_name": "Sonde",
     "description": "Sonde izvršavaju provjere nadzora s mjesta na kojima su instalirane. Lokalna sonda je sam Peekaping.",
     "local_name": "Lokalna",

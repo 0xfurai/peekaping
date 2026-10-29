@@ -44,14 +44,14 @@ test('A probe that went offline and came back shows the gap and two instances', 
   test.setTimeout(480_000);
   const n = names();
 
-  await page.goto('/probes');
+  await page.goto('/admin/probes');
   await withTearDown(page, n, async () => {
     const api = await adminAPI(page);
     const created = await createProbe(api, n.probe).finally(() => api.dispose());
     const probeID = created.id;
     startProbeContainer(n.container, created.token);
 
-    await page.goto('/probes');
+    await page.goto('/admin/probes');
     await expectOnline(page, probeID, n.probe, n.container);
 
     // The row has the 24 hour bar and the uptime, from the one list request. A probe's history
@@ -76,7 +76,7 @@ test('A probe that went offline and came back shows the gap and two instances', 
     expect(await percentOf(await row.getByTestId('probe-uptime').textContent())).toBeLessThan(100);
 
     await row.getByTestId('probe-link').click();
-    await expect(page).toHaveURL(new RegExp(`/probes/${probeID}$`));
+    await expect(page).toHaveURL(new RegExp(`/admin/probes/${probeID}$`));
 
     // Offline from creation until the first instance connected, online, offline from when that
     // instance was last seen until the second came, online again.

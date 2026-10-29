@@ -3,6 +3,105 @@
     "cancel": "Avbryt",
     "saving": "Sparar..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Tillbaka till {{name}}",
+      "probes": "Sonder",
+      "title": "Admin",
+      "users": "Användare"
+    },
+    "users": {
+      "actions": {
+        "delete": "Ta bort användare",
+        "disable": "Inaktivera användare",
+        "disableTwoFactor": "Stäng av 2FA",
+        "enable": "Aktivera användare",
+        "grantAdmin": "Gör till instansadministratör",
+        "resetLink": "Skapa återställningslänk",
+        "revokeAdmin": "Ta bort instansadministratör"
+      },
+      "actions_aria": "Åtgärder för {{email}}",
+      "columns": {
+        "created": "Skapad",
+        "email": "E-post",
+        "email_verified": "E-post verifierad",
+        "instance_admin": "Instansadministratör",
+        "last_sign_in": "Senaste inloggning",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Arbetsytor"
+      },
+      "confirm": {
+        "cancel": "Avbryt",
+        "delete": {
+          "confirm": "Ta bort användare",
+          "description": "Ta bort {{email}}? Kontot tas bort, och likaså användarens platser i arbetsytor. Det går inte att ångra.",
+          "title": "Ta bort användare"
+        },
+        "disable": {
+          "confirm": "Inaktivera",
+          "description": "{{email}} kan inte logga in och loggas nu ut överallt. Användarens arbetsytor fortsätter att köras. Du kan aktivera användaren igen senare.",
+          "title": "Inaktivera användare"
+        },
+        "disableTwoFactor": {
+          "confirm": "Stäng av 2FA",
+          "description": "{{email}} loggar in med bara sitt lösenord och kan ställa in 2FA igen. Gör detta först när du är säker på att det är personen själv som frågar.",
+          "title": "Stäng av 2FA"
+        }
+      },
+      "description": "Alla som har ett konto på den här installationen. Instansadministratörer hanterar själva installationen, till exempel sonder och användare. En användares roll i en arbetsyta bestäms av arbetsytans ägare.",
+      "empty": "Inga användare hittades",
+      "errors": {
+        "last_instance_admin": "Installationen behöver minst en instansadministratör.",
+        "last_owner": "Användaren är den sista ägaren av {{workspaces}}. Gör någon annan till ägare, eller ta bort arbetsytan, först.",
+        "self": "Du kan inte göra det här med ditt eget konto."
+      },
+      "load_failed": "Det gick inte att läsa in användarna.",
+      "messages": {
+        "admin_granted": "{{email}} är nu instansadministratör",
+        "admin_revoked": "{{email}} är inte längre instansadministratör",
+        "deleted": "{{email}} har tagits bort",
+        "disabled": "{{email}} är inaktiverad och utloggad",
+        "enabled": "{{email}} är aktiverad",
+        "two_factor_off": "2FA är avstängt för {{email}}",
+        "update_failed": "Det gick inte att uppdatera användaren."
+      },
+      "never": "Aldrig",
+      "none": "Inga",
+      "page_name": "Användare",
+      "paging": {
+        "next": "Nästa",
+        "page": "Sida {{page}} av {{pages}}",
+        "previous": "Föregående"
+      },
+      "reset_link": {
+        "close": "Stäng",
+        "copied": "Länken har kopierats",
+        "copy": "Kopiera länk",
+        "copy_failed": "Det gick inte att kopiera länken. Markera den och kopiera den för hand.",
+        "description": "En länk där {{email}} kan välja ett nytt lösenord. Kopiera den och skicka vidare den nu: den visas bara en gång.",
+        "emailed": "Den här installationen skickar kontomejl, så användaren får ett mejl om att en länk har skapats åt dem.",
+        "expires": "Länken fungerar en gång och går ut {{when}}.",
+        "failed": "Det gick inte att skapa länken.",
+        "label": "Länk",
+        "making": "Skapar länken...",
+        "signs_out": "Användaren loggas ut överallt när länken används.",
+        "title": "Länk för återställning av lösenord"
+      },
+      "search_label": "Sök användare efter e-post",
+      "search_placeholder": "Sök efter e-post",
+      "total": "{{total}} hittades",
+      "values": {
+        "active": "Aktiv",
+        "disabled": "Inaktiverad",
+        "no": "Nej",
+        "two_factor_off": "Av",
+        "two_factor_on": "På",
+        "yes": "Ja"
+      },
+      "you": "du"
+    }
+  },
   "auth": {
     "login": {
       "description": "Logga in med din e-post",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Admin",
     "maintenance": "Underhåll",
     "monitors": "Övervakningar",
     "notification_channels": "Aviseringskanaler",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "En övervakare som skapas utan att sonder väljs körs på de standardsonder som inte är inaktiverade och som kör dess typ, och på den lokala sonden om ingen gör det. Befintliga övervakare behåller sina sonder.",
+      "failed": "Det gick inte att ändra om sonden är en standardsond.",
+      "label": "Standardsond",
+      "off": "{{name}} är inte längre en standardsond",
+      "on": "{{name}} är nu en standardsond",
+      "title": "Standard för nya övervakare"
+    },
+    "default_badge": "Standard",
     "page_name": "Sonder",
     "description": "Sonder kör kontroller av övervakningar från de platser där de är installerade. Den lokala sonden är Peekaping självt.",
     "local_name": "Lokal",

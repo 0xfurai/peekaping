@@ -19,6 +19,8 @@ export function NavMain({
     title: string;
     url: string;
     icon?: LucideIcon;
+    // An address outside every workspace, such as the admin area's, which is not put in one
+    absolute?: boolean;
   }[];
 }) {
   const workspacePath = useWorkspacePath();
@@ -29,7 +31,7 @@ export function NavMain({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton tooltip={item.title} asChild>
-                <Link to={workspacePath(item.url)}>
+                <Link to={item.absolute ? item.url : workspacePath(item.url)}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
                 </Link>

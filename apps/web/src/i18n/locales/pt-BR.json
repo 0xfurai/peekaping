@@ -3,6 +3,105 @@
     "cancel": "Cancelar",
     "saving": "Salvando..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Voltar para {{name}}",
+      "probes": "Sondas",
+      "title": "Administração",
+      "users": "Usuários"
+    },
+    "users": {
+      "actions": {
+        "delete": "Excluir usuário",
+        "disable": "Desativar usuário",
+        "disableTwoFactor": "Desativar 2FA",
+        "enable": "Ativar usuário",
+        "grantAdmin": "Tornar administrador da instância",
+        "resetLink": "Gerar link de redefinição",
+        "revokeAdmin": "Remover administrador da instância"
+      },
+      "actions_aria": "Ações para {{email}}",
+      "columns": {
+        "created": "Criado em",
+        "email": "E-mail",
+        "email_verified": "E-mail verificado",
+        "instance_admin": "Administrador da instância",
+        "last_sign_in": "Último login",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Espaços de trabalho"
+      },
+      "confirm": {
+        "cancel": "Cancelar",
+        "delete": {
+          "confirm": "Excluir usuário",
+          "description": "Excluir {{email}}? A conta será removida, assim como as vagas em espaços de trabalho. Isso não pode ser desfeito.",
+          "title": "Excluir usuário"
+        },
+        "disable": {
+          "confirm": "Desativar",
+          "description": "{{email}} não poderá fazer login e será desconectado de todos os lugares agora. Os espaços de trabalho dele continuam funcionando. Você pode ativá-lo novamente depois.",
+          "title": "Desativar usuário"
+        },
+        "disableTwoFactor": {
+          "confirm": "Desativar 2FA",
+          "description": "{{email}} fará login apenas com a senha e poderá configurar o 2FA novamente. Faça isso somente quando tiver certeza de que é a própria pessoa que está pedindo.",
+          "title": "Desativar 2FA"
+        }
+      },
+      "description": "Todas as pessoas com conta nesta instalação. Os administradores da instância gerenciam a própria instalação, como sondas e usuários. A função de um usuário em um espaço de trabalho é definida pelos proprietários desse espaço.",
+      "empty": "Nenhum usuário encontrado",
+      "errors": {
+        "last_instance_admin": "A instalação precisa de pelo menos um administrador da instância.",
+        "last_owner": "O usuário é o último proprietário de {{workspaces}}. Torne outra pessoa proprietária ou exclua o espaço de trabalho primeiro.",
+        "self": "Você não pode fazer isso com a sua própria conta."
+      },
+      "load_failed": "Não foi possível carregar os usuários.",
+      "messages": {
+        "admin_granted": "{{email}} agora é administrador da instância",
+        "admin_revoked": "{{email}} não é mais administrador da instância",
+        "deleted": "{{email}} foi excluído",
+        "disabled": "{{email}} foi desativado e desconectado",
+        "enabled": "{{email}} foi ativado",
+        "two_factor_off": "O 2FA de {{email}} foi desativado",
+        "update_failed": "Não foi possível atualizar o usuário."
+      },
+      "never": "Nunca",
+      "none": "Nenhum",
+      "page_name": "Usuários",
+      "paging": {
+        "next": "Próxima",
+        "page": "Página {{page}} de {{pages}}",
+        "previous": "Anterior"
+      },
+      "reset_link": {
+        "close": "Fechar",
+        "copied": "Link copiado",
+        "copy": "Copiar link",
+        "copy_failed": "Não foi possível copiar o link. Selecione-o e copie manualmente.",
+        "description": "Um link para {{email}} escolher uma nova senha. Copie-o e repasse agora: ele é exibido apenas uma vez.",
+        "emailed": "Esta instalação envia e-mails de conta, então o usuário é avisado por e-mail de que um link foi gerado para ele.",
+        "expires": "O link funciona uma vez e expira {{when}}.",
+        "failed": "Não foi possível gerar o link.",
+        "label": "Link",
+        "making": "Gerando o link...",
+        "signs_out": "Usar o link desconecta o usuário de todos os lugares.",
+        "title": "Link de redefinição de senha"
+      },
+      "search_label": "Pesquisar usuários por e-mail",
+      "search_placeholder": "Pesquisar por e-mail",
+      "total": "{{total}} encontrado(s)",
+      "values": {
+        "active": "Ativo",
+        "disabled": "Desativado",
+        "no": "Não",
+        "two_factor_off": "Desativado",
+        "two_factor_on": "Ativado",
+        "yes": "Sim"
+      },
+      "you": "você"
+    }
+  },
   "auth": {
     "login": {
       "description": "Faça login com seu e-mail",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administração",
     "maintenance": "Manutenção",
     "monitors": "Monitores",
     "notification_channels": "Canais de Notificação",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Um monitor criado sem escolher sondas é executado nas sondas padrão que não estão desativadas e executam o seu tipo, e na sonda local quando nenhuma o faz. Os monitores existentes mantêm suas sondas.",
+      "failed": "Não foi possível alterar se a sonda é padrão.",
+      "label": "Sonda padrão",
+      "off": "{{name}} não é mais uma sonda padrão",
+      "on": "{{name}} agora é uma sonda padrão",
+      "title": "Padrão para novos monitores"
+    },
+    "default_badge": "Padrão",
     "page_name": "Sondas",
     "description": "As sondas executam as verificações dos monitores a partir dos locais onde estão instaladas. A sonda local é o próprio Peekaping.",
     "local_name": "Local",

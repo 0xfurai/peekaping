@@ -20,6 +20,7 @@ import { formatDateToTimezone } from "@/lib/formatDateToTimezone";
 import Layout from "@/layout";
 import { AvailabilityBar, InstanceBar } from "../components/availability-bar";
 import { formatUptime, instanceName } from "../components/availability-layout";
+import DefaultProbeSwitch from "../components/default-probe-switch";
 import ProbeStatusBadge from "../components/probe-status-badge";
 
 // How often the probe and its availability refresh, so that a probe that went offline shows up
@@ -73,7 +74,7 @@ const ProbePage = () => {
   if (probeQuery.isError || !probe) {
     return (
       <Layout pageName={t("probes.page_name")}>
-        <BackButton to="/probes" />
+        <BackButton to="/admin/probes" />
         <p className="text-sm text-muted-foreground" data-testid="probe-error">
           {isNotFound(probeQuery.error)
             ? t("probes.detail.not_found")
@@ -99,7 +100,7 @@ const ProbePage = () => {
     <Layout pageName={probe.name}>
       <div className="flex flex-col gap-4">
         <div>
-          <BackButton to="/probes" className="mb-2" />
+          <BackButton to="/admin/probes" className="mb-2" />
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4">
             <h2 className="text-xl font-semibold break-words">{probe.name}</h2>
             <ProbeStatusBadge status={probe.status} />
@@ -110,6 +111,8 @@ const ProbePage = () => {
             )}
           </div>
         </div>
+
+        <DefaultProbeSwitch probe={probe} />
 
         {probe.assign_all_pending && (
           <p

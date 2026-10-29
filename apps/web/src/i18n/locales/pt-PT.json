@@ -3,6 +3,105 @@
     "cancel": "Cancelar",
     "saving": "A guardar..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Voltar a {{name}}",
+      "probes": "Sondas",
+      "title": "Administração",
+      "users": "Utilizadores"
+    },
+    "users": {
+      "actions": {
+        "delete": "Eliminar utilizador",
+        "disable": "Desativar utilizador",
+        "disableTwoFactor": "Desativar 2FA",
+        "enable": "Ativar utilizador",
+        "grantAdmin": "Tornar administrador da instância",
+        "resetLink": "Criar ligação de reposição",
+        "revokeAdmin": "Remover administrador da instância"
+      },
+      "actions_aria": "Ações para {{email}}",
+      "columns": {
+        "created": "Criado em",
+        "email": "E-mail",
+        "email_verified": "E-mail verificado",
+        "instance_admin": "Administrador da instância",
+        "last_sign_in": "Último início de sessão",
+        "status": "Estado",
+        "two_factor": "2FA",
+        "workspaces": "Espaços de trabalho"
+      },
+      "confirm": {
+        "cancel": "Cancelar",
+        "delete": {
+          "confirm": "Eliminar utilizador",
+          "description": "Eliminar {{email}}? A conta é removida, tal como os lugares em espaços de trabalho. Isto não pode ser anulado.",
+          "title": "Eliminar utilizador"
+        },
+        "disable": {
+          "confirm": "Desativar",
+          "description": "{{email}} não pode iniciar sessão e a sua sessão é agora terminada em todo o lado. Os espaços de trabalho continuam a funcionar. Pode ativá-lo novamente mais tarde.",
+          "title": "Desativar utilizador"
+        },
+        "disableTwoFactor": {
+          "confirm": "Desativar 2FA",
+          "description": "{{email}} iniciará sessão apenas com a palavra-passe e poderá configurar o 2FA novamente. Faça isto apenas quando tiver a certeza de que é a própria pessoa a pedir.",
+          "title": "Desativar 2FA"
+        }
+      },
+      "description": "Todas as pessoas com conta nesta instalação. Os administradores da instância gerem a própria instalação, como as sondas e os utilizadores. A função de um utilizador num espaço de trabalho é definida pelos proprietários desse espaço.",
+      "empty": "Nenhum utilizador encontrado",
+      "errors": {
+        "last_instance_admin": "A instalação precisa de pelo menos um administrador da instância.",
+        "last_owner": "O utilizador é o último proprietário de {{workspaces}}. Torne outra pessoa proprietária ou elimine primeiro o espaço de trabalho.",
+        "self": "Não pode fazer isto à sua própria conta."
+      },
+      "load_failed": "Não foi possível carregar os utilizadores.",
+      "messages": {
+        "admin_granted": "{{email}} é agora administrador da instância",
+        "admin_revoked": "{{email}} já não é administrador da instância",
+        "deleted": "{{email}} foi eliminado",
+        "disabled": "{{email}} foi desativado e a sua sessão foi terminada",
+        "enabled": "{{email}} foi ativado",
+        "two_factor_off": "O 2FA de {{email}} foi desativado",
+        "update_failed": "Não foi possível atualizar o utilizador."
+      },
+      "never": "Nunca",
+      "none": "Nenhum",
+      "page_name": "Utilizadores",
+      "paging": {
+        "next": "Seguinte",
+        "page": "Página {{page}} de {{pages}}",
+        "previous": "Anterior"
+      },
+      "reset_link": {
+        "close": "Fechar",
+        "copied": "Ligação copiada",
+        "copy": "Copiar ligação",
+        "copy_failed": "Não foi possível copiar a ligação. Selecione-a e copie-a manualmente.",
+        "description": "Uma ligação para {{email}} escolher uma nova palavra-passe. Copie-a e entregue-a agora: só é mostrada uma vez.",
+        "emailed": "Esta instalação envia e-mails de conta, por isso o utilizador é avisado por e-mail de que foi criada uma ligação para si.",
+        "expires": "A ligação funciona uma só vez e expira {{when}}.",
+        "failed": "Não foi possível criar a ligação.",
+        "label": "Ligação",
+        "making": "A criar a ligação...",
+        "signs_out": "Utilizar a ligação termina a sessão do utilizador em todo o lado.",
+        "title": "Ligação de reposição da palavra-passe"
+      },
+      "search_label": "Pesquisar utilizadores por e-mail",
+      "search_placeholder": "Pesquisar por e-mail",
+      "total": "{{total}} encontrado(s)",
+      "values": {
+        "active": "Ativo",
+        "disabled": "Desativado",
+        "no": "Não",
+        "two_factor_off": "Desativado",
+        "two_factor_on": "Ativado",
+        "yes": "Sim"
+      },
+      "you": "você"
+    }
+  },
   "auth": {
     "login": {
       "description": "Iniciar sessão com o seu e‑mail",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administração",
     "maintenance": "Manutenção",
     "monitors": "Monitores",
     "notification_channels": "Canais de notificação",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Um monitor criado sem escolher sondas é executado nas sondas padrão que não estão desativadas e executam o seu tipo, e na sonda local quando nenhuma o faz. Os monitores existentes mantêm as suas sondas.",
+      "failed": "Não foi possível alterar se a sonda é padrão.",
+      "label": "Sonda padrão",
+      "off": "{{name}} já não é uma sonda padrão",
+      "on": "{{name}} é agora uma sonda padrão",
+      "title": "Padrão para novos monitores"
+    },
+    "default_badge": "Padrão",
     "page_name": "Sondas",
     "description": "As sondas executam as verificações dos monitores a partir dos locais onde estão instaladas. A sonda local é o próprio Peekaping.",
     "local_name": "Local",

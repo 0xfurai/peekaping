@@ -3,6 +3,105 @@
     "cancel": "Cancelar",
     "saving": "Guardando..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Volver a {{name}}",
+      "probes": "Sondas",
+      "title": "Administración",
+      "users": "Usuarios"
+    },
+    "users": {
+      "actions": {
+        "delete": "Eliminar usuario",
+        "disable": "Desactivar usuario",
+        "disableTwoFactor": "Desactivar 2FA",
+        "enable": "Activar usuario",
+        "grantAdmin": "Hacer administrador de la instalación",
+        "resetLink": "Crear enlace de restablecimiento",
+        "revokeAdmin": "Quitar administrador de la instalación"
+      },
+      "actions_aria": "Acciones para {{email}}",
+      "columns": {
+        "created": "Creado",
+        "email": "Correo electrónico",
+        "email_verified": "Correo verificado",
+        "instance_admin": "Administrador de la instalación",
+        "last_sign_in": "Último inicio de sesión",
+        "status": "Estado",
+        "two_factor": "2FA",
+        "workspaces": "Espacios de trabajo"
+      },
+      "confirm": {
+        "cancel": "Cancelar",
+        "delete": {
+          "confirm": "Eliminar usuario",
+          "description": "¿Eliminar a {{email}}? Se elimina su cuenta y también sus plazas en los espacios de trabajo. No se puede deshacer.",
+          "title": "Eliminar usuario"
+        },
+        "disable": {
+          "confirm": "Desactivar",
+          "description": "{{email}} no puede iniciar sesión y ahora tiene la sesión cerrada en todas partes. Sus espacios de trabajo siguen funcionando. Puedes volver a activarlo más tarde.",
+          "title": "Desactivar usuario"
+        },
+        "disableTwoFactor": {
+          "confirm": "Desactivar 2FA",
+          "description": "{{email}} iniciará sesión solo con su contraseña y podrá volver a configurar la 2FA. Hazlo solo cuando estés seguro de que es esa persona quien lo pide.",
+          "title": "Desactivar 2FA"
+        }
+      },
+      "description": "Todas las personas con una cuenta en esta instalación. Los administradores de la instalación gestionan la propia instalación, como las sondas y los usuarios. El rol de un usuario en un espacio de trabajo lo establecen los propietarios de ese espacio.",
+      "empty": "No se encontraron usuarios",
+      "errors": {
+        "last_instance_admin": "La instalación necesita al menos un administrador de la instalación.",
+        "last_owner": "El usuario es el último propietario de estos espacios de trabajo: {{workspaces}}. Primero haz propietario a otra persona o elimina el espacio de trabajo.",
+        "self": "No puedes hacer esto con tu propia cuenta."
+      },
+      "load_failed": "No se pudieron cargar los usuarios.",
+      "messages": {
+        "admin_granted": "{{email}} ahora es administrador de la instalación",
+        "admin_revoked": "{{email}} ya no es administrador de la instalación",
+        "deleted": "{{email}} se ha eliminado",
+        "disabled": "{{email}} está desactivado y con la sesión cerrada",
+        "enabled": "{{email}} está activado",
+        "two_factor_off": "La 2FA está desactivada para {{email}}",
+        "update_failed": "No se pudo actualizar el usuario."
+      },
+      "never": "Nunca",
+      "none": "Ninguno",
+      "page_name": "Usuarios",
+      "paging": {
+        "next": "Siguiente",
+        "page": "Página {{page}} de {{pages}}",
+        "previous": "Anterior"
+      },
+      "reset_link": {
+        "close": "Cerrar",
+        "copied": "Enlace copiado",
+        "copy": "Copiar enlace",
+        "copy_failed": "No se pudo copiar el enlace. Selecciónalo y cópialo a mano.",
+        "description": "Un enlace para que {{email}} elija una contraseña nueva. Cópialo y pásaselo ahora: solo se muestra una vez.",
+        "emailed": "Esta instalación envía correos de la cuenta, así que se avisa al usuario por correo de que se creó un enlace para él.",
+        "expires": "El enlace funciona una sola vez y caduca el {{when}}.",
+        "failed": "No se pudo crear el enlace.",
+        "label": "Enlace",
+        "making": "Creando el enlace...",
+        "signs_out": "Al usar el enlace, se cierra la sesión del usuario en todas partes.",
+        "title": "Enlace para restablecer la contraseña"
+      },
+      "search_label": "Buscar usuarios por correo electrónico",
+      "search_placeholder": "Buscar por correo electrónico",
+      "total": "{{total}} encontrados",
+      "values": {
+        "active": "Activo",
+        "disabled": "Desactivado",
+        "no": "No",
+        "two_factor_off": "Desactivada",
+        "two_factor_on": "Activada",
+        "yes": "Sí"
+      },
+      "you": "tú"
+    }
+  },
   "auth": {
     "login": {
       "description": "Inicia sesión con tu correo electrónico",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administración",
     "maintenance": "Mantenimiento",
     "monitors": "Monitores",
     "notification_channels": "Canales de notificación",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Un monitor creado sin elegir sondas se ejecuta en las sondas predeterminadas que no están desactivadas y ejecutan su tipo, y en la sonda local si ninguna lo hace. Los monitores existentes conservan sus sondas.",
+      "failed": "No se pudo cambiar si la sonda es predeterminada.",
+      "label": "Sonda predeterminada",
+      "off": "{{name}} ya no es una sonda predeterminada",
+      "on": "{{name}} ahora es una sonda predeterminada",
+      "title": "Predeterminada para monitores nuevos"
+    },
+    "default_badge": "Predeterminada",
     "page_name": "Sondas",
     "description": "Las sondas ejecutan las comprobaciones de los monitores desde los lugares donde están instaladas. La sonda local es el propio Peekaping.",
     "local_name": "Local",

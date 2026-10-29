@@ -3,6 +3,105 @@
     "cancel": "Abbrechen",
     "saving": "Speichern..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Zurück zu {{name}}",
+      "probes": "Sonden",
+      "title": "Administration",
+      "users": "Benutzer"
+    },
+    "users": {
+      "actions": {
+        "delete": "Benutzer löschen",
+        "disable": "Benutzer deaktivieren",
+        "disableTwoFactor": "2FA ausschalten",
+        "enable": "Benutzer aktivieren",
+        "grantAdmin": "Zum Instanz-Admin machen",
+        "resetLink": "Link zum Zurücksetzen erstellen",
+        "revokeAdmin": "Instanz-Admin entziehen"
+      },
+      "actions_aria": "Aktionen für {{email}}",
+      "columns": {
+        "created": "Erstellt",
+        "email": "E-Mail",
+        "email_verified": "E-Mail bestätigt",
+        "instance_admin": "Instanz-Admin",
+        "last_sign_in": "Letzte Anmeldung",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Arbeitsbereiche"
+      },
+      "confirm": {
+        "cancel": "Abbrechen",
+        "delete": {
+          "confirm": "Benutzer löschen",
+          "description": "{{email}} löschen? Das Konto wird entfernt, ebenso die Plätze in Arbeitsbereichen. Das lässt sich nicht rückgängig machen.",
+          "title": "Benutzer löschen"
+        },
+        "disable": {
+          "confirm": "Deaktivieren",
+          "description": "{{email}} kann sich nicht mehr anmelden und ist jetzt überall abgemeldet. Die Arbeitsbereiche laufen weiter. Sie können den Benutzer später wieder aktivieren.",
+          "title": "Benutzer deaktivieren"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA ausschalten",
+          "description": "{{email}} meldet sich dann nur noch mit dem Passwort an und kann 2FA erneut einrichten. Tun Sie das nur, wenn Sie sicher sind, dass die Person selbst darum bittet.",
+          "title": "2FA ausschalten"
+        }
+      },
+      "description": "Alle mit einem Konto auf dieser Installation. Instanz-Admins verwalten die Installation selbst, etwa Sonden und Benutzer. Die Rolle eines Benutzers in einem Arbeitsbereich legen die Inhaber dieses Arbeitsbereichs fest.",
+      "empty": "Keine Benutzer gefunden",
+      "errors": {
+        "last_instance_admin": "Die Installation braucht mindestens einen Instanz-Admin.",
+        "last_owner": "Der Benutzer ist der letzte Inhaber dieser Arbeitsbereiche: {{workspaces}}. Machen Sie zuerst jemand anderen zum Inhaber oder löschen Sie den Arbeitsbereich.",
+        "self": "Das geht mit dem eigenen Konto nicht."
+      },
+      "load_failed": "Die Benutzer konnten nicht geladen werden.",
+      "messages": {
+        "admin_granted": "{{email}} ist jetzt Instanz-Admin",
+        "admin_revoked": "{{email}} ist kein Instanz-Admin mehr",
+        "deleted": "{{email}} wurde gelöscht",
+        "disabled": "{{email}} ist deaktiviert und abgemeldet",
+        "enabled": "{{email}} ist aktiviert",
+        "two_factor_off": "2FA ist für {{email}} ausgeschaltet",
+        "update_failed": "Der Benutzer konnte nicht aktualisiert werden."
+      },
+      "never": "Nie",
+      "none": "Keine",
+      "page_name": "Benutzer",
+      "paging": {
+        "next": "Weiter",
+        "page": "Seite {{page}} von {{pages}}",
+        "previous": "Zurück"
+      },
+      "reset_link": {
+        "close": "Schließen",
+        "copied": "Link kopiert",
+        "copy": "Link kopieren",
+        "copy_failed": "Der Link konnte nicht kopiert werden. Markieren Sie ihn und kopieren Sie ihn von Hand.",
+        "description": "Ein Link, mit dem {{email}} ein neues Passwort wählt. Kopieren Sie ihn und geben Sie ihn jetzt weiter: Er wird nur einmal angezeigt.",
+        "emailed": "Diese Installation verschickt Konto-E-Mails, deshalb erfährt der Benutzer per E-Mail, dass ein Link für ihn erstellt wurde.",
+        "expires": "Der Link funktioniert nur einmal und läuft am {{when}} ab.",
+        "failed": "Der Link konnte nicht erstellt werden.",
+        "label": "Link",
+        "making": "Link wird erstellt...",
+        "signs_out": "Wird der Link benutzt, wird der Benutzer überall abgemeldet.",
+        "title": "Link zum Zurücksetzen des Passworts"
+      },
+      "search_label": "Benutzer nach E-Mail suchen",
+      "search_placeholder": "Nach E-Mail suchen",
+      "total": "{{total}} gefunden",
+      "values": {
+        "active": "Aktiv",
+        "disabled": "Deaktiviert",
+        "no": "Nein",
+        "two_factor_off": "Aus",
+        "two_factor_on": "An",
+        "yes": "Ja"
+      },
+      "you": "Sie"
+    }
+  },
   "auth": {
     "login": {
       "description": "Mit Ihrer E-Mail anmelden",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Administration",
     "maintenance": "Wartung",
     "monitors": "Monitore",
     "notification_channels": "Benachrichtigungskanäle",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Ein Monitor, der ohne Auswahl von Sonden erstellt wird, läuft auf den Standardsonden, die nicht deaktiviert sind und seinen Typ ausführen, und auf der lokalen Sonde, wenn keine das tut. Bestehende Monitore behalten ihre Sonden.",
+      "failed": "Es konnte nicht geändert werden, ob die Sonde eine Standardsonde ist.",
+      "label": "Standardsonde",
+      "off": "{{name}} ist keine Standardsonde mehr",
+      "on": "{{name}} ist jetzt eine Standardsonde",
+      "title": "Standard für neue Monitore"
+    },
+    "default_badge": "Standard",
     "page_name": "Sonden",
     "description": "Sonden führen die Prüfungen der Monitore von den Orten aus, an denen sie installiert sind. Die lokale Sonde ist Peekaping selbst.",
     "local_name": "Lokal",

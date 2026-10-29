@@ -12,24 +12,28 @@ const sidebar = (access: Parameters<typeof renderAs>[0]) =>
   );
 
 describe("AppSidebar", () => {
-  it("has no Probes link for a user who isn't an instance admin", () => {
+  it("has no Admin entry, and no Probes link, for a user who isn't an instance admin", () => {
     const html = sidebar({ instanceAdmin: false, role: "member" });
-    expect(html).not.toContain(`/w/${WORKSPACE_ID}/probes`);
+    expect(html).not.toContain('href="/admin');
+    expect(html).not.toContain(text("navigation.admin"));
+    expect(html).not.toContain("/probes");
     expect(html).not.toContain(text("navigation.probes"));
     // The rest of the navigation is still there
     expect(html).toContain(`/w/${WORKSPACE_ID}/monitors`);
     expect(html).toContain(`/w/${WORKSPACE_ID}/proxies`);
   });
 
-  it("has no Probes link for a workspace owner who isn't an instance admin", () => {
+  it("has no Admin entry for a workspace owner who isn't an instance admin", () => {
     const html = sidebar({ instanceAdmin: false, role: "owner" });
-    expect(html).not.toContain(`/w/${WORKSPACE_ID}/probes`);
+    expect(html).not.toContain('href="/admin');
   });
 
-  it("links to Probes for an instance admin who owns the workspace", () => {
+  it("links an instance admin to the admin area, outside the workspace, in place of a Probes link", () => {
     const html = sidebar({ instanceAdmin: true, role: "owner" });
-    expect(html).toContain(`/w/${WORKSPACE_ID}/probes`);
-    expect(html).toContain(text("navigation.probes"));
+    expect(html).toContain('href="/admin"');
+    expect(html).toContain(text("navigation.admin"));
+    expect(html).not.toContain(`/w/${WORKSPACE_ID}/admin`);
+    expect(html).not.toContain(`/w/${WORKSPACE_ID}/probes`);
   });
 });
 

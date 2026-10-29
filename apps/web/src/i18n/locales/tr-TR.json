@@ -3,6 +3,105 @@
     "cancel": "İptal",
     "saving": "Kaydediliyor..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "{{name}} çalışma alanına dön",
+      "probes": "Problar",
+      "title": "Yönetici",
+      "users": "Kullanıcılar"
+    },
+    "users": {
+      "actions": {
+        "delete": "Kullanıcıyı sil",
+        "disable": "Kullanıcıyı devre dışı bırak",
+        "disableTwoFactor": "2FA'yı kapat",
+        "enable": "Kullanıcıyı etkinleştir",
+        "grantAdmin": "Örnek yöneticisi yap",
+        "resetLink": "Sıfırlama bağlantısı oluştur",
+        "revokeAdmin": "Örnek yöneticiliğini kaldır"
+      },
+      "actions_aria": "{{email}} için işlemler",
+      "columns": {
+        "created": "Oluşturulma",
+        "email": "E-posta",
+        "email_verified": "E-posta doğrulandı",
+        "instance_admin": "Örnek yöneticisi",
+        "last_sign_in": "Son giriş",
+        "status": "Durum",
+        "two_factor": "2FA",
+        "workspaces": "Çalışma alanları"
+      },
+      "confirm": {
+        "cancel": "İptal",
+        "delete": {
+          "confirm": "Kullanıcıyı sil",
+          "description": "{{email}} silinsin mi? Hesabı ve çalışma alanlarındaki yeri kaldırılır. Bu işlem geri alınamaz.",
+          "title": "Kullanıcıyı sil"
+        },
+        "disable": {
+          "confirm": "Devre dışı bırak",
+          "description": "{{email}} giriş yapamaz ve her yerde oturumu kapatılır. Çalışma alanları çalışmaya devam eder. Daha sonra tekrar etkinleştirebilirsiniz.",
+          "title": "Kullanıcıyı devre dışı bırak"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA'yı kapat",
+          "description": "{{email}} yalnızca parolasıyla giriş yapacak ve 2FA'yı yeniden kurabilecek. Bunu yalnızca isteyenin gerçekten o kişi olduğundan emin olduktan sonra yapın.",
+          "title": "2FA'yı kapat"
+        }
+      },
+      "description": "Bu kurulumda hesabı olan herkes. Örnek yöneticileri, problar ve kullanıcılar gibi kurulumun kendisini yönetir. Bir kullanıcının çalışma alanındaki rolünü o çalışma alanının sahipleri belirler.",
+      "empty": "Kullanıcı bulunamadı",
+      "errors": {
+        "last_instance_admin": "Kurulumun en az bir örnek yöneticisi olmalı.",
+        "last_owner": "Kullanıcı {{workspaces}} çalışma alanının son sahibi. Önce başka birini sahip yapın veya çalışma alanını silin.",
+        "self": "Bunu kendi hesabınıza yapamazsınız."
+      },
+      "load_failed": "Kullanıcılar yüklenemedi.",
+      "messages": {
+        "admin_granted": "{{email}} artık bir örnek yöneticisi",
+        "admin_revoked": "{{email}} artık örnek yöneticisi değil",
+        "deleted": "{{email}} silindi",
+        "disabled": "{{email}} devre dışı bırakıldı ve oturumu kapatıldı",
+        "enabled": "{{email}} etkinleştirildi",
+        "two_factor_off": "{{email}} için 2FA kapatıldı",
+        "update_failed": "Kullanıcı güncellenemedi."
+      },
+      "never": "Hiç",
+      "none": "Yok",
+      "page_name": "Kullanıcılar",
+      "paging": {
+        "next": "Sonraki",
+        "page": "Sayfa {{page}} / {{pages}}",
+        "previous": "Önceki"
+      },
+      "reset_link": {
+        "close": "Kapat",
+        "copied": "Bağlantı kopyalandı",
+        "copy": "Bağlantıyı kopyala",
+        "copy_failed": "Bağlantı kopyalanamadı. Seçip elle kopyalayın.",
+        "description": "{{email}} için yeni parola belirleme bağlantısı. Kopyalayıp hemen iletin: yalnızca bir kez gösterilir.",
+        "emailed": "Bu kurulum hesap e-postaları gönderir, bu yüzden kullanıcıya kendisi için bir bağlantı oluşturulduğu e-postayla bildirilir.",
+        "expires": "Bağlantı bir kez çalışır ve {{when}} sona erer.",
+        "failed": "Bağlantı oluşturulamadı.",
+        "label": "Bağlantı",
+        "making": "Bağlantı oluşturuluyor...",
+        "signs_out": "Bağlantıyı kullanmak kullanıcının oturumunu her yerde kapatır.",
+        "title": "Parola sıfırlama bağlantısı"
+      },
+      "search_label": "Kullanıcıları e-postaya göre ara",
+      "search_placeholder": "E-postaya göre ara",
+      "total": "{{total}} bulundu",
+      "values": {
+        "active": "Etkin",
+        "disabled": "Devre dışı",
+        "no": "Hayır",
+        "two_factor_off": "Kapalı",
+        "two_factor_on": "Açık",
+        "yes": "Evet"
+      },
+      "you": "siz"
+    }
+  },
   "auth": {
     "login": {
       "description": "E-posta ile Giriş Yap",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Yönetici",
     "maintenance": "Bakım",
     "monitors": "Monitörler",
     "notification_channels": "Bildirim Kanalları",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Prob seçilmeden oluşturulan bir monitör, devre dışı olmayan ve türünü çalıştıran varsayılan problarda, hiçbiri çalıştırmıyorsa yerel probda çalışır. Mevcut monitörler problarını korur.",
+      "failed": "Probun varsayılan olup olmadığı değiştirilemedi.",
+      "label": "Varsayılan prob",
+      "off": "{{name}} artık varsayılan prob değil",
+      "on": "{{name}} artık varsayılan bir prob",
+      "title": "Yeni monitörler için varsayılan"
+    },
+    "default_badge": "Varsayılan",
     "page_name": "Problar",
     "description": "Problar, monitörlerin kontrollerini kurulu oldukları yerlerden çalıştırır. Yerel prob, Peekaping'in kendisidir.",
     "local_name": "Yerel",

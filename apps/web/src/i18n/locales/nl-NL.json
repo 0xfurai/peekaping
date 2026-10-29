@@ -3,6 +3,105 @@
     "cancel": "Annuleren",
     "saving": "Bezig met opslaan..."
   },
+  "admin": {
+    "nav": {
+      "back_to_workspace": "Terug naar {{name}}",
+      "probes": "Probes",
+      "title": "Beheer",
+      "users": "Gebruikers"
+    },
+    "users": {
+      "actions": {
+        "delete": "Gebruiker verwijderen",
+        "disable": "Gebruiker uitschakelen",
+        "disableTwoFactor": "2FA uitschakelen",
+        "enable": "Gebruiker inschakelen",
+        "grantAdmin": "Instantiebeheerder maken",
+        "resetLink": "Resetlink maken",
+        "revokeAdmin": "Instantiebeheerder verwijderen"
+      },
+      "actions_aria": "Acties voor {{email}}",
+      "columns": {
+        "created": "Aangemaakt",
+        "email": "E-mailadres",
+        "email_verified": "E-mailadres geverifieerd",
+        "instance_admin": "Instantiebeheerder",
+        "last_sign_in": "Laatste aanmelding",
+        "status": "Status",
+        "two_factor": "2FA",
+        "workspaces": "Werkruimtes"
+      },
+      "confirm": {
+        "cancel": "Annuleren",
+        "delete": {
+          "confirm": "Gebruiker verwijderen",
+          "description": "{{email}} verwijderen? Het account wordt verwijderd, en ook de plekken in werkruimtes. Dit kan niet ongedaan worden gemaakt.",
+          "title": "Gebruiker verwijderen"
+        },
+        "disable": {
+          "confirm": "Uitschakelen",
+          "description": "{{email}} kan niet meer aanmelden en wordt nu overal afgemeld. De werkruimtes van deze gebruiker blijven draaien. Je kunt de gebruiker later weer inschakelen.",
+          "title": "Gebruiker uitschakelen"
+        },
+        "disableTwoFactor": {
+          "confirm": "2FA uitschakelen",
+          "description": "{{email}} meldt zich aan met alleen het wachtwoord en kan 2FA opnieuw instellen. Doe dit alleen als je zeker weet dat de gebruiker het zelf vraagt.",
+          "title": "2FA uitschakelen"
+        }
+      },
+      "description": "Iedereen met een account op deze installatie. Instantiebeheerders beheren de installatie zelf, zoals probes en gebruikers. De rol van een gebruiker in een werkruimte wordt bepaald door de eigenaren van die werkruimte.",
+      "empty": "Geen gebruikers gevonden",
+      "errors": {
+        "last_instance_admin": "De installatie heeft minimaal één instantiebeheerder nodig.",
+        "last_owner": "De gebruiker is de laatste eigenaar van {{workspaces}}. Maak eerst iemand anders eigenaar, of verwijder de werkruimte.",
+        "self": "Je kunt dit niet doen met je eigen account."
+      },
+      "load_failed": "De gebruikers konden niet worden geladen.",
+      "messages": {
+        "admin_granted": "{{email}} is nu instantiebeheerder",
+        "admin_revoked": "{{email}} is geen instantiebeheerder meer",
+        "deleted": "{{email}} is verwijderd",
+        "disabled": "{{email}} is uitgeschakeld en afgemeld",
+        "enabled": "{{email}} is ingeschakeld",
+        "two_factor_off": "2FA is uitgeschakeld voor {{email}}",
+        "update_failed": "De gebruiker kon niet worden bijgewerkt."
+      },
+      "never": "Nooit",
+      "none": "Geen",
+      "page_name": "Gebruikers",
+      "paging": {
+        "next": "Volgende",
+        "page": "Pagina {{page}} van {{pages}}",
+        "previous": "Vorige"
+      },
+      "reset_link": {
+        "close": "Sluiten",
+        "copied": "Link gekopieerd",
+        "copy": "Link kopiëren",
+        "copy_failed": "De link kon niet worden gekopieerd. Selecteer hem en kopieer hem handmatig.",
+        "description": "Een link waarmee {{email}} een nieuw wachtwoord kan kiezen. Kopieer de link en geef hem nu door: hij wordt maar één keer getoond.",
+        "emailed": "Deze installatie verstuurt account-e-mails, dus de gebruiker krijgt een e-mail dat er een link voor hem of haar is gemaakt.",
+        "expires": "De link werkt één keer en verloopt {{when}}.",
+        "failed": "De link kon niet worden gemaakt.",
+        "label": "Link",
+        "making": "Link maken...",
+        "signs_out": "Door de link te gebruiken wordt de gebruiker overal afgemeld.",
+        "title": "Link voor wachtwoordreset"
+      },
+      "search_label": "Gebruikers zoeken op e-mailadres",
+      "search_placeholder": "Zoeken op e-mailadres",
+      "total": "{{total}} gevonden",
+      "values": {
+        "active": "Actief",
+        "disabled": "Uitgeschakeld",
+        "no": "Nee",
+        "two_factor_off": "Uit",
+        "two_factor_on": "Aan",
+        "yes": "Ja"
+      },
+      "you": "jij"
+    }
+  },
   "auth": {
     "login": {
       "description": "Inloggen met uw e-mailadres",
@@ -863,6 +962,7 @@
     }
   },
   "navigation": {
+    "admin": "Beheer",
     "maintenance": "Onderhoud",
     "monitors": "Monitoren",
     "notification_channels": "Notificatiekanalen",
@@ -1309,6 +1409,15 @@
     }
   },
   "probes": {
+    "default": {
+      "description": "Een monitor die wordt gemaakt zonder probes te kiezen, draait op de standaardprobes die niet zijn uitgeschakeld en het type uitvoeren, en op de lokale probe als geen enkele dat doet. Bestaande monitors houden hun probes.",
+      "failed": "De standaardstatus van de probe kon niet worden gewijzigd.",
+      "label": "Standaardprobe",
+      "off": "{{name}} is geen standaardprobe meer",
+      "on": "{{name}} is nu een standaardprobe",
+      "title": "Standaard voor nieuwe monitors"
+    },
+    "default_badge": "Standaard",
     "page_name": "Probes",
     "description": "Probes voeren de controles van monitoren uit vanaf de plekken waar ze zijn geïnstalleerd. De lokale probe is Peekaping zelf.",
     "local_name": "Lokaal",
