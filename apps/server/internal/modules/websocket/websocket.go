@@ -48,9 +48,12 @@ type Server struct {
 	monitors   monitor.MonitorRepository
 	logger     *zap.SugaredLogger
 	// onConnection runs first in the connection handler, with the ID of the socket that connected.
-	// Only tests set it: by then the library knows the socket, so a test waits for it before it
-	// sends anything (see connectAs in the tests), and a test can slow the handler.
+	// Only tests set it, to slow the handler or act inside it.
 	onConnection func(id string)
+	// onConnected runs last in the connection handler, however it ends, with the ID of the socket.
+	// Only tests set it: by then the handler has checked the socket's session, so a test waits for
+	// it before it sends anything or changes the user (see connectAs in the tests).
+	onConnected func(id string)
 
 	// monitorWorkspaces remembers the workspace of each monitor that has had a heartbeat or a
 	// join, so that a heartbeat costs no read: a monitor never changes workspace. A deleted
@@ -202,6 +205,9 @@ func NewServer(
 		if client == nil {
 			logger.Warnf("[WS]connection: dropped, no socket in %d arguments", len(clients))
 			return
+		}
+		if server.onConnected != nil {
+			defer server.onConnected(string(client.Id()))
 		}
 		if server.onConnection != nil {
 			server.onConnection(string(client.Id()))
