@@ -46,7 +46,7 @@ func RegisterDependencies(container *dig.Container) error {
 func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	people := router.Group("workspace")
 	people.Use(r.middleware.WorkspaceAuth())
-	people.Document(httpx.WorkspaceIDHeader)
+	people.DocumentWorkspace()
 	{
 		httpx.Register(people, "PATCH", "", huma.Operation{Summary: "Rename the workspace", Description: "An admin or owner (or an API key) renames the workspace the request runs in. The name is trimmed and must be 1 to 255 characters. A member is refused (403).", Tags: []string{"workspace"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusInternalServerError}}, controller.RenameWorkspace)
 		httpx.Register(people, "GET", "limits", huma.Operation{Summary: "Get the limits of the workspace", Description: "Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. installLimitsName is the install's name for its default limits, such as Free tier (WORKSPACE_LIMITS_NAME), or null when it has none. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.", Tags: []string{"workspace"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusUnauthorized, http.StatusNotFound, http.StatusInternalServerError}}, controller.GetLimits)
@@ -61,7 +61,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	// Leaving is a user's own act: an API key has no user, so it can't
 	leaving := router.Group("workspace")
 	leaving.Use(r.middleware.WorkspaceJWTAuth())
-	leaving.Document(httpx.WorkspaceIDHeader)
+	leaving.DocumentWorkspace()
 	httpx.Register(leaving, "POST", "leave", huma.Operation{Summary: "Leave the workspace", Description: "The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).", Tags: []string{"workspace"}, DefaultStatus: http.StatusNoContent, Security: httpx.JWTOnly, Errors: []int{http.StatusUnauthorized, http.StatusNotFound, http.StatusConflict, http.StatusInternalServerError}}, controller.Leave)
 
 	// A new workspace belongs to the user, not to a workspace they are in

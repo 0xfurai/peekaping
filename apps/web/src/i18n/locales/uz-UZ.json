@@ -228,6 +228,7 @@
         "password_set": "Parol oʻrnatilgan. Almashtirish uchun yangisini kiriting.",
         "password_not_set": "Parol oʻrnatilmagan",
         "password_removed": "Saqlaganingizda parol olib tashlanadi.",
+        "password_reenter": "Xost, port, xavfsizlik yoki foydalanuvchini o‘zgartirish saqlangan parolni o‘chiradi. Uni qayta kiriting.",
         "remove_password": "Parolni olib tashlash",
         "keep_password": "Parolni qoldirish",
         "from": "Joʻnatuvchi manzili"
@@ -257,7 +258,7 @@
         "no_sender": "Pochta joʻnatuvchisi yoʻq. Avval joʻnatuvchini saqlang."
       },
       "limits": {
-        "title": "Yangi ish maydonlari uchun standart chegaralar",
+        "title": "Standart chegaralar",
         "description": "O'z chegarasi bo'lmagan har bir ish maydonining chegaralari. Chegara kerak bo'lmasa, uni bo'sh qoldiring. Ish maydonlari sahifasida ish maydoniga berilgan chegaralar bularni almashtiradi.",
         "name_label": "Standart cheklovlar nomi",
         "name_help": "Ish maydonining Foydalanish sahifasida ko'rsatiladi, masalan, Bepul tarif. Bo'sh qoldirilsa, sahifada cheklovlarni administratoringiz belgilagani aytiladi."

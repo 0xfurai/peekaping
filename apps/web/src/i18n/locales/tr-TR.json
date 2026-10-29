@@ -228,6 +228,7 @@
         "password_set": "Bir parola ayarlı. Değiştirmek için yazın.",
         "password_not_set": "Parola ayarlı değil",
         "password_removed": "Kaydettiğinizde parola kaldırılır.",
+        "password_reenter": "Ana makineyi, bağlantı noktasını, güvenliği veya kullanıcıyı değiştirmek kayıtlı parolayı kaldırır. Parolayı yeniden girin.",
         "remove_password": "Parolayı kaldır",
         "keep_password": "Parolayı koru",
         "from": "Gönderen adresi"
@@ -257,7 +258,7 @@
         "no_sender": "E-posta göndericisi yok. Önce bir gönderici kaydedin."
       },
       "limits": {
-        "title": "Yeni çalışma alanları için varsayılan sınırlar",
+        "title": "Varsayılan sınırlar",
         "description": "Kendine ait sınırı olmayan her çalışma alanının sınırları. Sınır istemiyorsanız ilgili alanı boş bırakın. Bir çalışma alanına Çalışma alanları sayfasında verilen sınırlar bunların yerine geçer.",
         "name_label": "Varsayılan sınırların adı",
         "name_help": "Bir çalışma alanının Kullanım sayfasında gösterilir, örneğin Ücretsiz katman. Boş bırakılırsa sayfa, sınırları yöneticinizin belirlediğini söyler."

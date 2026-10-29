@@ -228,6 +228,7 @@
         "password_set": "Salasana on asetettu. Kirjoita uusi korvataksesi sen.",
         "password_not_set": "Salasanaa ei ole asetettu",
         "password_removed": "Salasana poistetaan, kun tallennat.",
+        "password_reenter": "Isännän, portin, suojauksen tai käyttäjän vaihtaminen poistaa tallennetun salasanan. Anna se uudelleen.",
         "remove_password": "Poista salasana",
         "keep_password": "Säilytä salasana",
         "from": "Lähettäjän osoite"
@@ -257,7 +258,7 @@
         "no_sender": "Sähköpostin lähettäjää ei ole. Tallenna lähettäjä ensin."
       },
       "limits": {
-        "title": "Oletusrajat uusille työtiloille",
+        "title": "Oletusrajat",
         "description": "Jokaisen työtilan rajat, jolla ei ole omia. Jätä raja tyhjäksi, jos rajaa ei ole. Työtilalle Työtilat-sivulla annetut rajat korvaavat nämä.",
         "name_label": "Oletusrajojen nimi",
         "name_help": "Näkyy työtilan Käyttö-sivulla, esimerkiksi Ilmainen taso. Jos kenttä jätetään tyhjäksi, sivu kertoo, että ylläpitäjä on asettanut rajat."

@@ -5,6 +5,7 @@ import {
   getTelemetryQueryKey,
 } from "@/api/@tanstack/react-query.gen";
 import type { AdminInstallSettingsResponse } from "@/api/types.gen";
+import { SAVE_INSTALL_SETTINGS } from "@/lib/install-settings";
 import { renderAs, text as english, USER_EMAIL } from "@/test-support/render-with-me";
 import InstallSettingsPage from "./page";
 
@@ -200,5 +201,36 @@ describe("InstallSettingsPage", () => {
 
   it("has nothing to save until a field changes", () => {
     expect(page()).toMatch(/<button[^>]*type="submit"[^>]*disabled=""/);
+  });
+
+  it("keeps the fields editable while no save is pending", () => {
+    expect(page()).not.toMatch(/<fieldset[^>]*disabled/);
+  });
+
+  it("disables the fields while a save is pending, so that nothing typed then is lost", () => {
+    const html = renderAs({ instanceAdmin: true, role: "owner" }, <InstallSettingsPage />, "/admin/settings", (queryClient) => {
+      queryClient.setQueryData(getAdminSettingsQueryKey(), { data: SETTINGS, message: "" });
+      queryClient.setQueryData(getTelemetryQueryKey(), { enabled: true, forced_off: false, notice_pending: false, payload: {} });
+      queryClient.setQueryData(getErrorReportingQueryKey(), { enabled: true, forced_off: false });
+      queryClient.getMutationCache().build(queryClient, { mutationKey: [...SAVE_INSTALL_SETTINGS] }, {
+        context: undefined,
+        data: undefined,
+        error: null,
+        failureCount: 0,
+        failureReason: null,
+        isPaused: false,
+        status: "pending",
+        variables: undefined,
+        submittedAt: 0,
+      });
+    });
+    const fieldset = html.match(/<fieldset[^>]*>/)?.[0] ?? "";
+    expect(fieldset).toContain('disabled=""');
+    // Every field of the form is inside it
+    const inside = html.slice(html.indexOf(fieldset), html.indexOf("</fieldset>"));
+    for (const id of ["install-signup-mode", "install-smtp-host", "install-smtp-password", "install-public-url"]) {
+      expect(inside).toContain(`id="${id}"`);
+    }
+    expect(html).toMatch(new RegExp(`<button[^>]*type="submit"[^>]*disabled=""[^>]*>${text("common.saving")}<`));
   });
 });

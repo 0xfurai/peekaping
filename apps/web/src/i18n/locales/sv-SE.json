@@ -228,6 +228,7 @@
         "password_set": "Ett lösenord är angivet. Skriv för att ersätta det.",
         "password_not_set": "Inget lösenord angivet",
         "password_removed": "Lösenordet tas bort när du sparar.",
+        "password_reenter": "Om du ändrar värd, port, säkerhet eller användare tas det sparade lösenordet bort. Ange det igen.",
         "remove_password": "Ta bort lösenord",
         "keep_password": "Behåll lösenord",
         "from": "Avsändaradress"
@@ -257,7 +258,7 @@
         "no_sender": "Det finns ingen e-postavsändare. Spara en avsändare först."
       },
       "limits": {
-        "title": "Standardgränser för nya arbetsytor",
+        "title": "Standardgränser",
         "description": "Gränserna för varje arbetsyta som inte har egna. Lämna en gräns tom för ingen gräns. Gränser som en arbetsyta får på sidan Arbetsytor ersätter dessa.",
         "name_label": "Namn på standardgränserna",
         "name_help": "Visas på sidan Användning för en arbetsyta, till exempel Gratisnivå. Om fältet lämnas tomt står det på sidan att administratören har satt gränserna."

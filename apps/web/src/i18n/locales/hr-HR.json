@@ -228,6 +228,7 @@
         "password_set": "Lozinka je postavljena. Upišite novu da biste je zamijenili.",
         "password_not_set": "Lozinka nije postavljena",
         "password_removed": "Lozinka će se ukloniti kad spremite.",
+        "password_reenter": "Promjenom hosta, porta, sigurnosti ili korisnika uklanja se spremljena lozinka. Unesite je ponovno.",
         "remove_password": "Ukloni lozinku",
         "keep_password": "Zadrži lozinku",
         "from": "Adresa pošiljatelja"
@@ -257,7 +258,7 @@
         "no_sender": "Nema pošiljatelja e-pošte. Najprije spremite pošiljatelja."
       },
       "limits": {
-        "title": "Zadana ograničenja za nove radne prostore",
+        "title": "Zadana ograničenja",
         "description": "Ograničenja svakog radnog prostora koji nema vlastita. Ostavite ograničenje prazno ako ga ne želite. Ograničenja koja radni prostor dobije na stranici Radni prostori zamjenjuju ova.",
         "name_label": "Naziv zadanih ograničenja",
         "name_help": "Prikazuje se na stranici Korištenje radnog prostora, na primjer Besplatna razina. Ako se ostavi prazno, stranica navodi da je ograničenja postavio vaš administrator."

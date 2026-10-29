@@ -150,8 +150,8 @@ export type AdminSendTestEmailDto = {
   /**
    * The address to send the test email to.
    */
-  to?: string;
-  [key: string]: unknown | string | undefined;
+  to: string;
+  [key: string]: unknown | string;
 };
 
 export type AdminSettingErrorBody = {
@@ -198,7 +198,7 @@ export type AdminUpdateAccountSmtpDto = {
    */
   host?: string;
   /**
-   * The password. Write-only: it is never returned. Left out it stays as it is; empty clears it.
+   * The password. Write-only: it is never returned. Left out it stays as it is, unless the request changes the host, port, TLS mode or user: then the saved password is cleared, so that it is never sent to another server. Empty clears it.
    */
   password?: string;
   /**
@@ -389,7 +389,7 @@ export type AdminWorkspaceResponse = {
   statusPages: number;
   suspended: boolean;
   suspendedAt: string | null;
-  suspendedReason: "admin" | "unverified";
+  suspendedReason: "admin" | "unverified" | null;
 };
 
 export type AdminWorkspacesPageResponse = {
@@ -1037,7 +1037,7 @@ export type MonitorPartialUpdateDto = {
   /**
    * How many of the monitor's locations must be Down for the monitor to be Down: any, all or at_least. Omitted, the monitor keeps its rule.
    */
-  location_rule?: "any" | "all" | "at_least";
+  location_rule?: "any" | "all" | "at_least" | null;
   /**
    * With the at_least rule, how many locations must be Down: from 1 to the number of probes the monitor runs on. Sent with a rule other than at_least it is rejected; a rule sent without it has none.
    */
@@ -1062,7 +1062,7 @@ export type MonitorPartialUpdateDto = {
     | (boolean | null)
     | (string | null)
     | (number | null)
-    | ("any" | "all" | "at_least")
+    | ("any" | "all" | "at_least" | null)
     | (number | null)
     | (number | null)
     | (string | null)
@@ -2592,6 +2592,10 @@ export type GetApiKeysErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -2630,6 +2634,10 @@ export type PostApiKeysErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -2693,6 +2701,10 @@ export type DeleteApiKeysByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -2738,6 +2750,10 @@ export type GetApiKeysByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -2788,6 +2804,10 @@ export type PutApiKeysByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -4170,6 +4190,10 @@ export type GetMaintenancesErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4210,6 +4234,10 @@ export type PostMaintenancesErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -4257,6 +4285,10 @@ export type DeleteMaintenancesByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4302,6 +4334,10 @@ export type GetMaintenancesByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -4353,6 +4389,10 @@ export type PatchMaintenancesByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4403,6 +4443,10 @@ export type PutMaintenancesByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4449,6 +4493,10 @@ export type PatchMaintenancesByIdPauseErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4494,6 +4542,10 @@ export type PatchMaintenancesByIdResumeErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -4590,6 +4642,10 @@ export type GetMonitorsErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4639,6 +4695,10 @@ export type PostMonitorsErrors = {
    */
   403: LimitsReachedResponse | HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4683,6 +4743,10 @@ export type GetMonitorsBatchErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -4730,6 +4794,10 @@ export type DeleteMonitorsByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4775,6 +4843,10 @@ export type GetMonitorsByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -4835,6 +4907,10 @@ export type PatchMonitorsByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -4893,6 +4969,10 @@ export type PutMonitorsByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -4965,6 +5045,10 @@ export type GetMonitorsByIdHeartbeatsErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5010,6 +5094,10 @@ export type PostMonitorsByIdResetErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -5078,6 +5166,10 @@ export type GetMonitorsByIdStatsPointsErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5129,6 +5221,10 @@ export type GetMonitorsByIdStatsUptimeErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5174,6 +5270,10 @@ export type GetMonitorsByIdTlsErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -5229,6 +5329,10 @@ export type GetNotificationChannelsErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5270,6 +5374,10 @@ export type PostNotificationChannelsErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5310,6 +5418,10 @@ export type PostNotificationChannelsTestErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -5357,6 +5469,10 @@ export type DeleteNotificationChannelsByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5402,6 +5518,10 @@ export type GetNotificationChannelsByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -5453,6 +5573,10 @@ export type PatchNotificationChannelsByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5502,6 +5626,10 @@ export type PutNotificationChannelsByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -5946,6 +6074,10 @@ export type GetProxiesErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -5984,6 +6116,10 @@ export type PostProxiesErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -6030,6 +6166,10 @@ export type DeleteProxiesByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -6075,6 +6215,10 @@ export type GetProxiesByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -6126,6 +6270,10 @@ export type PatchProxiesByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -6175,6 +6323,10 @@ export type PutProxiesByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -6283,6 +6435,10 @@ export type DeleteSettingsKeyByKeyErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -6328,6 +6484,10 @@ export type GetSettingsKeyByKeyErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -6383,6 +6543,10 @@ export type PutSettingsKeyByKeyErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -6437,6 +6601,10 @@ export type GetStatusPagesErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -6484,6 +6652,10 @@ export type PostStatusPagesErrors = {
    * Forbidden
    */
   403: LimitsReachedResponse | HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -6691,6 +6863,10 @@ export type DeleteStatusPagesByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -6736,6 +6912,10 @@ export type GetStatusPagesByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -6794,6 +6974,10 @@ export type PatchStatusPagesByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -6848,6 +7032,10 @@ export type GetTagsErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -6890,6 +7078,10 @@ export type PostTagsErrors = {
    * Conflict
    */
   409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -6934,6 +7126,10 @@ export type DeleteTagsByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -6980,6 +7176,10 @@ export type GetTagsByIdErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -7034,6 +7234,10 @@ export type PatchTagsByIdErrors = {
    */
   409: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -7086,6 +7290,10 @@ export type PutTagsByIdErrors = {
    * Conflict
    */
   409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -7254,6 +7462,10 @@ export type PatchWorkspaceErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -7298,6 +7510,10 @@ export type GetWorkspaceInvitesErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -7406,6 +7622,10 @@ export type DeleteWorkspaceInvitesByIdErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -7451,6 +7671,10 @@ export type PostWorkspaceLeaveErrors = {
    */
   409: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -7492,6 +7716,10 @@ export type GetWorkspaceLimitsErrors = {
    */
   404: HttpxErrorBody;
   /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
    * Internal Server Error
    */
   500: HttpxErrorBody;
@@ -7532,6 +7760,10 @@ export type GetWorkspaceMembersErrors = {
    * Not Found
    */
   404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -7586,6 +7818,10 @@ export type DeleteWorkspaceMembersByUserIdErrors = {
    * Conflict
    */
   409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */
@@ -7644,6 +7880,10 @@ export type PatchWorkspaceMembersByUserIdErrors = {
    * Conflict
    */
   409: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
   /**
    * Internal Server Error
    */

@@ -516,69 +516,65 @@ func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id s
 		AutoRefreshInterval: dto.AutoRefreshInterval,
 	}
 
-	err = s.repository.Update(ctx, workspaceID, id, updateModel)
-	if err != nil {
-		if dto.Slug != nil {
-			err = slugWriteError(err, *dto.Slug)
-		}
-		return nil, err
-	}
-
-	// Update monitors if provided
-	if dto.MonitorIDs != nil {
-		// Get current monitors
-		currentMonitors, err := s.monitorStatusPageService.GetMonitorsForStatusPage(ctx, id)
-		if err != nil {
-			return nil, err
-		}
-
-		// Remove monitors that are no longer in the list
-		currentMonitorIDs := make(map[string]bool)
-		for _, monitor := range currentMonitors {
-			currentMonitorIDs[monitor.MonitorID] = true
-		}
-
-		newMonitorIDs := make(map[string]bool)
-		for _, monitorID := range *dto.MonitorIDs {
-			newMonitorIDs[monitorID] = true
-		}
-
-		// Remove monitors that are no longer in the list
-		for monitorID := range currentMonitorIDs {
-			if !newMonitorIDs[monitorID] {
-				err := s.monitorStatusPageService.RemoveMonitorFromStatusPage(ctx, id, monitorID)
-				if err != nil {
-					// Log the error but don't fail the entire update
-					continue
-				}
-			}
-		}
-
-		// Add new monitors
-		for i, monitorID := range *dto.MonitorIDs {
-			if !currentMonitorIDs[monitorID] {
-				_, err := s.monitorStatusPageService.AddMonitorToStatusPage(ctx, id, monitorID, i, true)
-				if err != nil {
-					// Log the error but don't fail the entire update
-					continue
-				}
-			}
-		}
-	}
-
-	if dto.Domains != nil {
-		// The domains are replaced in one transaction, after the count against the workspace's
-		// limit in it: the check above saw no other write that may have come since
-		err := s.inTx(ctx, func(ctx context.Context) error {
-			currentDomains, err := s.domainStatusPageService.GetDomainsForStatusPage(ctx, id)
-			if err != nil {
+	// The page, its monitors and its domains are written in one transaction, after the count against
+	// the workspace's limit in it, so that a refused update stores nothing of the request: the check
+	// above saw no other write that may have come since
+	err = s.inTx(ctx, func(ctx context.Context) error {
+		var currentDomains []*domain_status_page.Model
+		if dto.Domains != nil {
+			var err error
+			if currentDomains, err = s.domainStatusPageService.GetDomainsForStatusPage(ctx, id); err != nil {
 				return err
 			}
 			added, removed := domainChange(currentDomains, domains)
 			if err := s.requireRoom(ctx, workspaceID, workspaceLimits, 0, added, removed); err != nil {
 				return err
 			}
+		}
 
+		if err := s.repository.Update(ctx, workspaceID, id, updateModel); err != nil {
+			if dto.Slug != nil {
+				err = slugWriteError(err, *dto.Slug)
+			}
+			return err
+		}
+
+		// A failed write of a monitor or a domain fails the update: in a transaction it can't be
+		// stepped over
+		if dto.MonitorIDs != nil {
+			currentMonitors, err := s.monitorStatusPageService.GetMonitorsForStatusPage(ctx, id)
+			if err != nil {
+				return err
+			}
+			currentMonitorIDs := make(map[string]bool)
+			for _, monitor := range currentMonitors {
+				currentMonitorIDs[monitor.MonitorID] = true
+			}
+			newMonitorIDs := make(map[string]bool)
+			for _, monitorID := range *dto.MonitorIDs {
+				newMonitorIDs[monitorID] = true
+			}
+
+			// Remove monitors that are no longer in the list
+			for monitorID := range currentMonitorIDs {
+				if !newMonitorIDs[monitorID] {
+					if err := s.monitorStatusPageService.RemoveMonitorFromStatusPage(ctx, id, monitorID); err != nil {
+						return err
+					}
+				}
+			}
+
+			// Add new monitors
+			for i, monitorID := range *dto.MonitorIDs {
+				if !currentMonitorIDs[monitorID] {
+					if _, err := s.monitorStatusPageService.AddMonitorToStatusPage(ctx, id, monitorID, i, true); err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		if dto.Domains != nil {
 			for _, domain := range domains {
 				if err := s.addDomain(ctx, id, domain); err != nil {
 					return err
@@ -590,8 +586,7 @@ func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id s
 				newDomainIDs[domain] = true
 			}
 
-			// Remove domains that are no longer in the list. A failed removal fails the update: in a
-			// transaction it can't be stepped over.
+			// Remove domains that are no longer in the list
 			for _, current := range currentDomains {
 				if !newDomainIDs[current.Domain] {
 					if err := s.domainStatusPageService.RemoveDomainFromStatusPage(ctx, id, current.Domain); err != nil {
@@ -599,11 +594,11 @@ func (s *ServiceImpl) Update(ctx context.Context, workspaceID workspace.ID, id s
 					}
 				}
 			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
 		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return s.repository.FindByID(ctx, workspaceID, id)

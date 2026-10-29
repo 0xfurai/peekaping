@@ -228,6 +228,7 @@
         "password_set": "Tá pasfhocal socraithe. Clóscríobh chun é a athsholáthar.",
         "password_not_set": "Níl pasfhocal socraithe",
         "password_removed": "Bainfear an pasfhocal nuair a shábhálann tú.",
+        "password_reenter": "Má athraítear an t-óstach, an port, an tslándáil nó an t-úsáideoir, bainfear an pasfhocal sábháilte. Cuir isteach arís é.",
         "remove_password": "Bain an pasfhocal",
         "keep_password": "Coinnigh an pasfhocal",
         "from": "Seoladh an tseoltóra"
@@ -257,7 +258,7 @@
         "no_sender": "Níl seoltóir ríomhphoist ann. Sábháil seoltóir ar dtús."
       },
       "limits": {
-        "title": "Réamhtheorainneacha do spásanna oibre nua",
+        "title": "Réamhtheorainneacha",
         "description": "Teorainneacha gach spáis oibre nach bhfuil aon cheann dá chuid féin aige. Fág teorainn folamh gan teorainn. Cuireann na teorainneacha a thugtar do spás oibre ar an leathanach Spásanna oibre ionad na gcinn seo.",
         "name_label": "Ainm na dteorainneacha réamhshocraithe",
         "name_help": "Taispeántar é ar leathanach Úsáide spáis oibre, mar shampla Leibhéal saor in aisce. Má fhágtar folamh é, deir an leathanach gur shocraigh do riarthóir na teorainneacha."

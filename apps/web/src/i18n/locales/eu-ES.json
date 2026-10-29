@@ -228,6 +228,7 @@
         "password_set": "Pasahitz bat ezarrita dago. Idatzi ordezkatzeko.",
         "password_not_set": "Ez dago pasahitzik ezarrita",
         "password_removed": "Pasahitza kenduko da gordetzean.",
+        "password_reenter": "Ostalaria, ataka, segurtasuna edo erabiltzailea aldatzean, gordetako pasahitza kentzen da. Idatzi berriro.",
         "remove_password": "Kendu pasahitza",
         "keep_password": "Mantendu pasahitza",
         "from": "Igorlearen helbidea"
@@ -257,7 +258,7 @@
         "no_sender": "Ez dago posta-igorlerik. Gorde igorle bat lehenik."
       },
       "limits": {
-        "title": "Lan-eremu berrien muga lehenetsiak",
+        "title": "Muga lehenetsiak",
         "description": "Berezko mugarik ez duen lan-eremu bakoitzaren mugak. Utzi muga hutsik mugarik ez izateko. Lan-eremu bati Lan-eremuak orrian ematen zaizkion mugek hauek ordezkatzen dituzte.",
         "name_label": "Lehenetsitako mugen izena",
         "name_help": "Lan-eremu baten Erabilera orrian bistaratzen da, adibidez Doako plana. Hutsik utziz gero, orriak dio zure administratzaileak ezarri dituela mugak."

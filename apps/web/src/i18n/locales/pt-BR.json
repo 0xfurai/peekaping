@@ -228,6 +228,7 @@
         "password_set": "Há uma senha definida. Digite para substituí-la.",
         "password_not_set": "Nenhuma senha definida",
         "password_removed": "A senha será removida quando você salvar.",
+        "password_reenter": "Alterar o host, a porta, a segurança ou o usuário remove a senha salva. Digite-a novamente.",
         "remove_password": "Remover senha",
         "keep_password": "Manter senha",
         "from": "Endereço do remetente"
@@ -257,7 +258,7 @@
         "no_sender": "Não há remetente de e-mail. Salve um remetente primeiro."
       },
       "limits": {
-        "title": "Limites padrão para novos espaços de trabalho",
+        "title": "Limites padrão",
         "description": "Os limites de cada espaço de trabalho que não tem limites próprios. Deixe um limite em branco para não ter nenhum. Os limites dados a um espaço de trabalho na página Espaços de trabalho substituem estes.",
         "name_label": "Nome dos limites padrão",
         "name_help": "Exibido na página de Uso de um espaço de trabalho, como Plano gratuito. Se ficar em branco, a página informa que o administrador definiu os limites."

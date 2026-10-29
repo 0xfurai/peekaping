@@ -228,6 +228,7 @@
         "password_set": "Slaptažodis nustatytas. Įveskite naują, kad jį pakeistumėte.",
         "password_not_set": "Slaptažodis nenustatytas",
         "password_removed": "Išsaugojus slaptažodis bus pašalintas.",
+        "password_reenter": "Pakeitus serverį, prievadą, saugumą ar naudotoją, išsaugotas slaptažodis pašalinamas. Įveskite jį iš naujo.",
         "remove_password": "Pašalinti slaptažodį",
         "keep_password": "Palikti slaptažodį",
         "from": "Siuntėjo adresas"
@@ -257,7 +258,7 @@
         "no_sender": "Nėra el. laiškų siuntėjo. Pirmiausia išsaugokite siuntėją."
       },
       "limits": {
-        "title": "Numatytosios naujų darbo erdvių ribos",
+        "title": "Numatytosios ribos",
         "description": "Kiekvienos darbo erdvės, neturinčios savų ribų, ribos. Palikite ribą tuščią, jei jos nereikia. Darbo erdvių puslapyje darbo erdvei suteiktos ribos pakeičia šias.",
         "name_label": "Numatytųjų apribojimų pavadinimas",
         "name_help": "Rodomas darbo erdvės puslapyje Naudojimas, pavyzdžiui, Nemokamas planas. Jei paliekama tuščia, puslapyje nurodoma, kad apribojimus nustatė jūsų administratorius."

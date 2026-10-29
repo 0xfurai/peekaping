@@ -228,6 +228,7 @@
         "password_set": "Der er angivet en adgangskode. Skriv for at erstatte den.",
         "password_not_set": "Ingen adgangskode angivet",
         "password_removed": "Adgangskoden fjernes, når du gemmer.",
+        "password_reenter": "Hvis du ændrer vært, port, sikkerhed eller bruger, fjernes den gemte adgangskode. Indtast den igen.",
         "remove_password": "Fjern adgangskode",
         "keep_password": "Behold adgangskode",
         "from": "Afsenderadresse"
@@ -257,7 +258,7 @@
         "no_sender": "Der er ingen e-mailafsender. Gem en afsender først."
       },
       "limits": {
-        "title": "Standardgrænser for nye arbejdsområder",
+        "title": "Standardgrænser",
         "description": "Grænserne for hvert arbejdsområde, der ikke har egne. Lad en grænse stå tom for ingen grænse. Grænser, et arbejdsområde får på siden Arbejdsområder, erstatter disse.",
         "name_label": "Navn på standardgrænserne",
         "name_help": "Vises på et arbejdsområdes side Forbrug, for eksempel Gratis abonnement. Hvis feltet er tomt, står der på siden, at din administrator har fastsat grænserne."

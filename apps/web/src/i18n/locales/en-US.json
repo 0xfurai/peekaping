@@ -228,6 +228,7 @@
         "password_set": "A password is set. Type to replace it.",
         "password_not_set": "No password set",
         "password_removed": "The password is removed when you save.",
+        "password_reenter": "Changing the host, port, security or user removes the saved password. Enter it again.",
         "remove_password": "Remove password",
         "keep_password": "Keep password",
         "from": "From address"
@@ -257,7 +258,7 @@
         "no_sender": "There is no email sender. Save a sender first."
       },
       "limits": {
-        "title": "Default limits for new workspaces",
+        "title": "Default limits",
         "description": "The limits of every workspace that has none of its own. Leave a limit blank for none. Limits a workspace is given on the Workspaces page replace these.",
         "name_label": "Name of the default limits",
         "name_help": "Shown on a workspace's Usage page, such as Free tier. Left blank, the page says your administrator set the limits."

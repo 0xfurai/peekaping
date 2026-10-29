@@ -228,6 +228,7 @@
         "password_set": "Jelszó be van állítva. Írjon be újat a cseréjéhez.",
         "password_not_set": "Nincs jelszó beállítva",
         "password_removed": "A jelszó mentéskor törlődik.",
+        "password_reenter": "A gazdagép, a port, a biztonság vagy a felhasználó módosítása törli a mentett jelszót. Adja meg újra.",
         "remove_password": "Jelszó eltávolítása",
         "keep_password": "Jelszó megtartása",
         "from": "Feladó címe"
@@ -257,7 +258,7 @@
         "no_sender": "Nincs e-mail-küldő. Előbb mentsen egy küldőt."
       },
       "limits": {
-        "title": "Alapértelmezett korlátok az új munkaterületeknek",
+        "title": "Alapértelmezett korlátok",
         "description": "Minden olyan munkaterület korlátai, amelynek nincsenek sajátjai. Hagyjon egy korlátot üresen, ha nem kér korlátot. A munkaterületnek a Munkaterületek oldalon adott korlátok felváltják ezeket.",
         "name_label": "Az alapértelmezett korlátok neve",
         "name_help": "A munkaterület Használat oldalán jelenik meg, például Ingyenes csomag. Üresen hagyva az oldal azt jelzi, hogy a korlátokat az adminisztrátor állította be."
