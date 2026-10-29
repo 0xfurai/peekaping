@@ -527,6 +527,13 @@ func (r *SQLRepositoryImpl) replaceProbes(ctx context.Context, monitorID string,
 // assignChunk is how many monitors AddProbeToAll writes with one statement
 const assignChunk = 500
 
+// errWorkspaceBelowHeld ends an assignment of a probe that found a workspace to hold below one it
+// holds already: a monitor was created there in between. Held then, the workspaces would be held
+// out of id order, and two assignments at once could each wait for one the other holds. The
+// assignment is undone instead, its transaction rolled back, and made again from the start
+// (AssignProbeToAllAnyWorkspace does).
+var errWorkspaceBelowHeld = errors.New("found a workspace to hold below one held already")
+
 // AddProbeToAllAnyWorkspace adds the probe to the monitors it can run, with a read and then writes in chunks.
 // A monitor that runs on as many probes as its workspace's limit allows is skipped, and counted.
 // Adding a probe can't break a monitor's location rule: any and all have no number, and an at_least
@@ -558,7 +565,10 @@ func (r *SQLRepositoryImpl) AddProbeToAllAnyWorkspace(ctx context.Context, probe
 	// until the new links are committed, so that an update of a monitor's probes, or another
 	// assignment, can't add one beside this one past the limit (limits.LockWorkspace). They are
 	// held in id order, so that two assignments at once never each wait for one the other holds.
+	// One found later that sorts above every one held keeps that order and is held then; one that
+	// sorts below ends the assignment with errWorkspaceBelowHeld.
 	held := map[string]bool{}
+	highest := ""
 	hold := func(workspaceIDs []string) error {
 		var limited []string
 		for _, id := range workspaceIDs {
@@ -567,11 +577,16 @@ func (r *SQLRepositoryImpl) AddProbeToAllAnyWorkspace(ctx context.Context, probe
 			}
 		}
 		slices.Sort(limited)
-		for _, id := range slices.Compact(limited) {
+		limited = slices.Compact(limited)
+		if len(limited) > 0 && len(held) > 0 && limited[0] < highest {
+			return errWorkspaceBelowHeld
+		}
+		for _, id := range limited {
 			if err := r.LockWorkspace(ctx, workspace.ID(id)); err != nil {
 				return fmt.Errorf("lock the workspace: %w", err)
 			}
 			held[id] = true
+			highest = id
 		}
 		return nil
 	}
@@ -600,7 +615,8 @@ func (r *SQLRepositoryImpl) AddProbeToAllAnyWorkspace(ctx context.Context, probe
 			return nil, 0, err
 		}
 		// A monitor created since the read of the workspaces can be of one this doesn't hold yet. It
-		// is held now, and the probes counted again.
+		// is held now, and the probes counted again, unless it sorts below one held: then the
+		// assignment ends with errWorkspaceBelowHeld, to be made again.
 		before := len(held)
 		workspaceIDs := make([]string, len(rows))
 		for i, row := range rows {
