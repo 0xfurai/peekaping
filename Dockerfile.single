@@ -3,7 +3,7 @@
 # PostgreSQL server in a container of its own (DB_TYPE=postgres).
 
 # Stage 1: Build peekaping and the migration tool
-FROM golang:1.26.4-alpine AS go-builder
+FROM golang:1.27.3-alpine AS go-builder
 
 RUN apk add --no-cache git
 WORKDIR /app/server

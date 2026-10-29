@@ -90,7 +90,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26.4'
+          go-version: '1.27.3'
           cache-dependency-path: apps/server/go.sum
 
       - name: Install dependencies
@@ -190,7 +190,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26.4'
+          go-version: '1.27.3'
           cache-dependency-path: apps/server/go.sum
 
       - name: Install dependencies
@@ -237,7 +237,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26.4'
+          go-version: '1.27.3'
           cache-dependency-path: apps/server/go.sum
 
       - name: Install dependencies
