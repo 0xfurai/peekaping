@@ -49,7 +49,9 @@ type MonitorRepository interface {
 	// and returns the ids of the monitors it changed. A changed monitor has a new updated_at, and
 	// one that had no probe rows, and so ran on the local probe, gets that row as well. A monitor
 	// that runs on as many probes as its workspace's limit allows (PP-160) is skipped, and the
-	// second value counts those. Call it in a transaction: the rows are many.
+	// second value counts those. Call it in a transaction: the rows are many. It holds the
+	// workspaces with a probe limit in id order, and ends with errWorkspaceBelowHeld when it finds
+	// one to hold below one it holds: the caller rolls back and calls it again.
 	AddProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string) ([]string, int, error)
 	// LockWorkspace holds the workspace until the transaction ctx carries ends, so that a count
 	// against one of its limits and the write that follows see no other such write beside them
