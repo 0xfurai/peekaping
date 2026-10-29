@@ -1876,7 +1876,8 @@
       "days_label": "Dana",
       "description": "Postavite koliko dana podaci ostaju pohranjeni (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Ovo može promijeniti samo administrator ili vlasnik radnog prostora.",
-      "title": "Rok zadržavanja podataka"
+      "title": "Rok zadržavanja podataka",
+      "capped": "Do {{max}} dana u ovom radnom prostoru"
     },
     "error_reporting": {
       "cluster_note": "U klasterskom načinu rada promjena stiže do svakog procesa unutar jedne minute.",
@@ -2103,7 +2104,8 @@
       "custom_domains": "Statusne stranice ovog radnog prostora zajedno mogu imati najviše {{max}} prilagođenih domena",
       "members": "Ovaj radni prostor može imati najviše {{max}} članova, uključujući pozivnice na čekanju",
       "owned_workspaces": "Možete biti vlasnik najviše {{max}} radnih prostora",
-      "probes": "Nadzor u ovom radnom prostoru može raditi na najviše {{max}} sondi"
+      "probes": "Nadzor u ovom radnom prostoru može raditi na najviše {{max}} sondi",
+      "retention_days": "Ovaj radni prostor može čuvati podatke najviše {{max}} dana"
     },
     "names": {
       "monitors": "Aktivni nadzori",

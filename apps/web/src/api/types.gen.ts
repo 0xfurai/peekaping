@@ -35,7 +35,7 @@ export type AdminDefaultLimitsSettingsResponse = {
    */
   probes_per_monitor: AdminLimitSettingResponse;
   /**
-   * The longest data retention period a workspace may keep, in days. It is saved, but does not cap a workspace's data retention yet.
+   * The longest data retention period a workspace may keep, in days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer.
    */
   retention_days: AdminLimitSettingResponse;
   /**
@@ -237,7 +237,7 @@ export type AdminUpdateDefaultLimitsDto = {
    */
   probes_per_monitor?: number | null;
   /**
-   * The longest data retention period a workspace may keep, 1 to 36500 days. It is saved and checked, but does not cap a workspace's data retention yet. Null clears it: no limit.
+   * The longest data retention period a workspace may keep, 1 to 36500 days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer. Null clears it: no limit.
    */
   retention_days?: number | null;
   /**
@@ -677,7 +677,8 @@ export type LimitsReachedError = {
     | "custom_domains"
     | "members"
     | "owned_workspaces"
-    | "probes";
+    | "probes"
+    | "retention_days";
   /**
    * The limit's value for the workspace.
    */
@@ -6518,7 +6519,7 @@ export type PutSettingsKeyByKeyErrors = {
   /**
    * Forbidden
    */
-  403: HttpxErrorBody;
+  403: LimitsReachedResponse | HttpxErrorBody;
   /**
    * Not Found
    */

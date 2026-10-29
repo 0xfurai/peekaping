@@ -1876,7 +1876,8 @@
       "days_label": "Dagen",
       "description": "Bepaal hoelang gegevens bewaard blijven (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Alleen een beheerder of eigenaar van de werkruimte kan dit wijzigen.",
-      "title": "Gegevensbewaartermijn"
+      "title": "Gegevensbewaartermijn",
+      "capped": "Tot {{max}} dagen in deze werkruimte"
     },
     "error_reporting": {
       "cluster_note": "In clustermodus bereikt een wijziging elk proces binnen een minuut.",
@@ -2103,7 +2104,8 @@
       "custom_domains": "De statuspagina's van deze werkruimte mogen samen maximaal {{max}} aangepaste domeinen hebben",
       "members": "Deze werkruimte mag maximaal {{max}} leden hebben, openstaande uitnodigingen meegeteld",
       "owned_workspaces": "Je mag maximaal {{max}} werkruimtes bezitten",
-      "probes": "Een monitor in deze werkruimte mag op maximaal {{max}} probes draaien"
+      "probes": "Een monitor in deze werkruimte mag op maximaal {{max}} probes draaien",
+      "retention_days": "Deze werkruimte mag gegevens maximaal {{max}} dagen bewaren"
     },
     "names": {
       "monitors": "Actieve monitors",

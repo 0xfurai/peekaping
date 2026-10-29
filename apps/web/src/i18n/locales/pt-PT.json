@@ -1876,7 +1876,8 @@
       "days_label": "Dias",
       "description": "Definir quantos dias manter os dados (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Apenas um administrador ou proprietário do espaço de trabalho pode alterar isto.",
-      "title": "Período de Retenção de Dados"
+      "title": "Período de Retenção de Dados",
+      "capped": "Até {{max}} dias neste espaço de trabalho"
     },
     "error_reporting": {
       "cluster_note": "No modo cluster, uma alteração chega a todos os processos no prazo de um minuto.",
@@ -2103,7 +2104,8 @@
       "custom_domains": "As páginas de estado deste espaço de trabalho podem ter, no total, no máximo {{max}} domínios personalizados",
       "members": "Este espaço de trabalho pode ter, no máximo, {{max}} membros, incluindo os convites pendentes",
       "owned_workspaces": "Pode ser proprietário de, no máximo, {{max}} espaços de trabalho",
-      "probes": "Um monitor deste espaço de trabalho pode ser executado em, no máximo, {{max}} sondas"
+      "probes": "Um monitor deste espaço de trabalho pode ser executado em, no máximo, {{max}} sondas",
+      "retention_days": "Este espaço de trabalho pode guardar os dados, no máximo, durante {{max}} dias"
     },
     "names": {
       "monitors": "Monitores ativos",

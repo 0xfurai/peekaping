@@ -1876,7 +1876,8 @@
       "days_label": "Dager",
       "description": "Angi hvor mange dager data skal beholdes (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Bare en administrator eller eier av arbeidsområdet kan endre dette.",
-      "title": "Databeholdelsesperiode"
+      "title": "Databeholdelsesperiode",
+      "capped": "Opptil {{max}} dager i dette arbeidsområdet"
     },
     "error_reporting": {
       "cluster_note": "I klyngemodus når en endring alle prosesser innen ett minutt.",
@@ -2103,7 +2104,8 @@
       "custom_domains": "Statussidene i dette arbeidsområdet kan ha høyst {{max}} egendefinerte domener til sammen",
       "members": "Dette arbeidsområdet kan ha høyst {{max}} medlemmer, inkludert ventende invitasjoner",
       "owned_workspaces": "Du kan eie høyst {{max}} arbeidsområder",
-      "probes": "En overvåking i dette arbeidsområdet kan kjøre på høyst {{max}} prober"
+      "probes": "En overvåking i dette arbeidsområdet kan kjøre på høyst {{max}} prober",
+      "retention_days": "Dette arbeidsområdet kan lagre data i høyst {{max}} dager"
     },
     "names": {
       "monitors": "Aktive overvåkinger",

@@ -46,7 +46,7 @@ components:
           description: How many probes one monitor may run on.
         retention_days:
           $ref: "#/components/schemas/admin.LimitSettingResponse"
-          description: The longest data retention period a workspace may keep, in days. It is saved, but does not cap a workspace's data retention yet.
+          description: "The longest data retention period a workspace may keep, in days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer."
         status_pages:
           $ref: "#/components/schemas/admin.LimitSettingResponse"
           description: How many status pages a workspace may have.
@@ -407,7 +407,7 @@ components:
             - integer
             - "null"
         retention_days:
-          description: "The longest data retention period a workspace may keep, 1 to 36500 days. It is saved and checked, but does not cap a workspace's data retention yet. Null clears it: no limit."
+          description: "The longest data retention period a workspace may keep, 1 to 36500 days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer. Null clears it: no limit."
           format: int64
           maximum: 36500
           minimum: 1
@@ -1350,6 +1350,7 @@ components:
             - members
             - owned_workspaces
             - probes
+            - retention_days
           examples:
             - monitors
           type: string
@@ -10090,7 +10091,7 @@ paths:
       tags:
         - setting
     put:
-      description: "Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404. It is a setting of the request's workspace: members read it, admins and owners change it, and a member's change returns 403."
+      description: "Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404. It is a setting of the request's workspace: members read it, admins and owners change it, and a member's change returns 403. A period longer than the workspace's retention_days limit is refused (403 LIMIT_REACHED, limit retention_days); one at the limit is saved."
       operationId: putSettingsKeyByKey
       parameters:
         - description: Setting Key
@@ -10135,7 +10136,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/httpx.ErrorBody"
+                anyOf:
+                  - $ref: "#/components/schemas/limits.ReachedResponse"
+                  - $ref: "#/components/schemas/httpx.ErrorBody"
           description: Forbidden
         "404":
           content:

@@ -54,7 +54,7 @@ type DefaultLimitsSettingsResponse struct {
 	Members          LimitSettingResponse `json:"members" doc:"How many members a workspace may have, with its pending invites counted."`
 	OwnedWorkspaces  LimitSettingResponse `json:"owned_workspaces" doc:"How many workspaces one user may own, counted against this default alone."`
 	ProbesPerMonitor LimitSettingResponse `json:"probes_per_monitor" doc:"How many probes one monitor may run on."`
-	RetentionDays    LimitSettingResponse `json:"retention_days" doc:"The longest data retention period a workspace may keep, in days. It is saved, but does not cap a workspace's data retention yet."`
+	RetentionDays    LimitSettingResponse `json:"retention_days" doc:"The longest data retention period a workspace may keep, in days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer."`
 }
 
 // AccountSMTPSettingsResponse is the sender of account emails
@@ -155,7 +155,7 @@ type UpdateDefaultLimitsDto struct {
 	Members          LimitChange `json:"members,omitempty" doc:"How many members a workspace may have, with its pending invites, 1 or more. Null clears it: no limit."`
 	OwnedWorkspaces  LimitChange `json:"owned_workspaces,omitempty" doc:"How many workspaces one user may own, 1 or more. Null clears it: no limit."`
 	ProbesPerMonitor LimitChange `json:"probes_per_monitor,omitempty" doc:"How many probes one monitor may run on, 1 or more. Null clears it: no limit."`
-	RetentionDays    LimitChange `json:"retention_days,omitempty" doc:"The longest data retention period a workspace may keep, 1 to 36500 days. It is saved and checked, but does not cap a workspace's data retention yet. Null clears it: no limit." maximum:"36500"`
+	RetentionDays    LimitChange `json:"retention_days,omitempty" doc:"The longest data retention period a workspace may keep, 1 to 36500 days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer. Null clears it: no limit." maximum:"36500"`
 }
 
 // change is the limits the request names, by name: nil for one it clears

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getSettingsKeyByKeyQueryKey } from "@/api/@tanstack/react-query.gen";
+import { getSettingsKeyByKeyQueryKey, getWorkspaceLimitsQueryKey } from "@/api/@tanstack/react-query.gen";
 import { renderAs, text, WORKSPACE_ID } from "@/test-support/render-with-me";
 import SettingsPage from "./page";
 
@@ -8,12 +8,33 @@ vi.mock("@/context/timezone-context", () => ({
   useTimezone: () => ({ timezone: "UTC", setTimezone: () => {} }),
 }));
 
-const settings = (access: Parameters<typeof renderAs>[0]) =>
+// retentionCap is the workspace's retention_days limit, null for none; left out, the limits aren't
+// loaded
+const settings = (access: Parameters<typeof renderAs>[0], retentionCap?: number | null) =>
   renderAs(access, <SettingsPage />, undefined, (queryClient) => {
     queryClient.setQueryData(
       getSettingsKeyByKeyQueryKey({ path: { key: "KEEP_DATA_PERIOD_DAYS" } }),
       { data: { key: "KEEP_DATA_PERIOD_DAYS", type: "int", value: "90" } }
     );
+    if (retentionCap === undefined) return;
+    // GET /workspace/limits as loaded, with the workspace's retention_days limit
+    const use = (max: number | null, used = 0) => ({ max, used, source: max === null ? "none" : "install" });
+    queryClient.setQueryData(getWorkspaceLimitsQueryKey(), {
+      message: "",
+      data: {
+        source: "install",
+        limits: {
+          monitors: use(null),
+          min_check_interval: use(null, 20),
+          status_pages: use(null),
+          custom_domains: use(null),
+          members: use(null),
+          owned_workspaces: use(null),
+          probes_per_monitor: use(null),
+          retention_days: use(retentionCap, 90),
+        },
+      },
+    });
   });
 
 describe("SettingsPage", () => {
@@ -40,6 +61,27 @@ describe("SettingsPage", () => {
     expect(html).not.toContain("readOnly");
     expect(html).not.toContain(text("settings.data_retention.read_only"));
     expect(html).toContain(`>${text("common.save")}<`);
+  });
+
+  // PP-161: the workspace's plan can cap the period
+  it("shows an admin the cap next to the field, and takes it as the field's maximum", () => {
+    const html = settings({ instanceAdmin: false, role: "admin" }, 120);
+    expect(html).toContain("Up to 120 days on this workspace");
+    expect(html).toMatch(/<input[^>]*max="120"/);
+  });
+
+  it("shows a member the cap beside the read-only period", () => {
+    const html = settings({ instanceAdmin: false, role: "member" }, 120);
+    expect(html).toContain("Up to 120 days on this workspace");
+  });
+
+  it.each([
+    ["without a cap", null],
+    ["while the limits load", undefined],
+  ])("shows no cap %s, and keeps the 100 year maximum", (_, cap) => {
+    const html = settings({ instanceAdmin: false, role: "admin" }, cap);
+    expect(html).not.toContain("on this workspace");
+    expect(html).toMatch(/<input[^>]*max="36500"/);
   });
 
   it.each(["member", "owner"] as const)(

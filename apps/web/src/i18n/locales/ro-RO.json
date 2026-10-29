@@ -1875,7 +1875,8 @@
       "days_label": "Zile",
       "description": "Setează câte zile să păstrezi datele (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Doar un administrator sau proprietarul spațiului de lucru poate modifica acest lucru.",
-      "title": "Perioada de păstrare a datelor"
+      "title": "Perioada de păstrare a datelor",
+      "capped": "Până la {{max}} zile în acest spațiu de lucru"
     },
     "error_reporting": {
       "cluster_note": "În modul cluster, o modificare ajunge la toate procesele în cel mult un minut.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "Paginile de stare ale acestui spațiu de lucru pot avea împreună cel mult {{max}} domenii personalizate",
       "members": "Acest spațiu de lucru poate avea cel mult {{max}} membri, inclusiv invitațiile în așteptare",
       "owned_workspaces": "Puteți deține cel mult {{max}} spații de lucru",
-      "probes": "Un monitor din acest spațiu de lucru poate rula pe cel mult {{max}} sonde"
+      "probes": "Un monitor din acest spațiu de lucru poate rula pe cel mult {{max}} sonde",
+      "retention_days": "Acest spațiu de lucru poate păstra datele cel mult {{max}} zile"
     },
     "names": {
       "monitors": "Monitoare active",

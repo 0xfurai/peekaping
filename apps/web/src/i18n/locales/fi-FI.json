@@ -1876,7 +1876,8 @@
       "days_label": "Päiviä",
       "description": "Aseta kuinka monta päivää tietoa säilytetään (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Vain työtilan ylläpitäjä tai omistaja voi muuttaa tätä.",
-      "title": "Tietojen säilytysaika"
+      "title": "Tietojen säilytysaika",
+      "capped": "Enintään {{max}} päivää tässä työtilassa"
     },
     "error_reporting": {
       "cluster_note": "Klusteritilassa muutos tavoittaa jokaisen prosessin minuutissa.",
@@ -2103,7 +2104,8 @@
       "custom_domains": "Tämän työtilan tilasivuilla voi olla yhteensä enintään {{max}} mukautettua verkkotunnusta",
       "members": "Tässä työtilassa voi olla enintään {{max}} jäsentä, odottavat kutsut mukaan lukien",
       "owned_workspaces": "Voit omistaa enintään {{max}} työtilaa",
-      "probes": "Tämän työtilan valvonta voi toimia enintään {{max}} luotaimella"
+      "probes": "Tämän työtilan valvonta voi toimia enintään {{max}} luotaimella",
+      "retention_days": "Tämä työtila voi säilyttää tietoja enintään {{max}} päivää"
     },
     "names": {
       "monitors": "Aktiiviset valvonnat",

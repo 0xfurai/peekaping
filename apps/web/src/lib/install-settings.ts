@@ -6,6 +6,7 @@ import type {
   AdminUpdateDefaultLimitsDto,
   AdminUpdateInstallSettingsDto,
 } from "@/api/types.gen";
+import { MAX_DATA_RETENTION_DAYS } from "@/lib/data-retention";
 
 // The install settings an instance admin changes on Admin → Settings (docs/adr/0005, section 5):
 // the signup mode, the sender of account emails, the public URL and the default limits of a
@@ -105,21 +106,18 @@ export const installSettingsChange = (
   return body;
 };
 
-// The longest data retention period, in days, a default limit can hold: the server's
-// installsettings.MaxRetentionDays
-export const MAX_DEFAULT_RETENTION_DAYS = 36500;
-
 /**
  * The whole numbers a default limit can be saved with, as the server checks them: 1 or more, the
  * shortest check interval at least the install's MIN_CHECK_INTERVAL, since a smaller one would never
- * apply, and a retention period at most MAX_DEFAULT_RETENTION_DAYS.
+ * apply, and a retention period at most MAX_DATA_RETENTION_DAYS, the server's
+ * installsettings.MaxRetentionDays.
  */
 export const defaultLimitBounds = (
   name: DefaultLimit,
   minCheckInterval: number
 ): { min: number; max?: number } => {
   if (name === "min_check_interval") return { min: Math.max(minCheckInterval, 1) };
-  if (name === "retention_days") return { min: 1, max: MAX_DEFAULT_RETENTION_DAYS };
+  if (name === "retention_days") return { min: 1, max: MAX_DATA_RETENTION_DAYS };
   return { min: 1 };
 };
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/notification_sent_history"
@@ -51,6 +52,9 @@ type hourlyCleanup struct {
 	lock                RunLock
 	retention           Retention
 	logger              *zap.SugaredLogger
+	// caps are the workspaces' limits, whose retention_days caps each data retention period. nil
+	// is no caps.
+	caps limits.Source
 }
 
 // hourOf is the hour whose cleanup a replica that fires at now takes: now rounded to the
@@ -81,10 +85,13 @@ func (h *hourlyCleanup) runHourly(ctx context.Context, now time.Time) {
 	}
 
 	h.logger.Infow("Running the hourly cleanup", "hour", label)
-	cleanupHeartbeats(h.heartbeats, h.workspaces, h.workspaceSettings, h.logger)
+	// One read of the caps for the run, so that the heartbeats and the probe status changes go by
+	// the same ones
+	caps := readCaps(ctx, h.caps, h.logger)
+	cleanupHeartbeats(h.heartbeats, h.workspaces, h.workspaceSettings, caps, h.logger)
 	cleanupStats(h.stats, h.logger)
 	cleanupNotificationHistory(h.notificationHistory, h.retention.NotificationHistoryDays, h.logger)
 	cleanupMonitorTLSInfo(h.tlsInfo, h.retention.TLSInfoDays, h.logger)
-	cleanupProbeStatusChanges(h.probes, h.workspaces, h.workspaceSettings, h.logger)
+	cleanupProbeStatusChanges(h.probes, h.workspaces, h.workspaceSettings, caps, h.logger)
 	cleanupAccountTokens(h.accountTokens, now, h.logger)
 }

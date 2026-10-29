@@ -31,6 +31,12 @@ func DB(ctx context.Context, db bun.IDB) bun.IDB {
 	return db
 }
 
+// InTx reports whether ctx carries a transaction, which a WithTx call made with it joins
+func InTx(ctx context.Context) bool {
+	_, ok := ctx.Value(txKey{}).(bun.Tx)
+	return ok
+}
+
 type sqlTransactor struct {
 	db *bun.DB
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
@@ -73,6 +74,10 @@ func (ic *Controller) SetByKey(ctx context.Context, input *SetByKeyInput) (*http
 	}
 	if errors.Is(err, ErrInvalidValue) {
 		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+	var reached *limits.ReachedError
+	if errors.As(err, &reached) {
+		return nil, limits.Fail(reached)
 	}
 	if err != nil {
 		ic.logger.Errorw("Failed to set setting by key", "error", err)

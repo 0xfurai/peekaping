@@ -1876,7 +1876,8 @@
       "days_label": "Dnevi",
       "description": "Nastavite, koliko dni naj se shranjujejo podatki (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "To lahko spremeni samo skrbnik ali lastnik delovnega prostora.",
-      "title": "Obdobje ohranjanja podatkov"
+      "title": "Obdobje ohranjanja podatkov",
+      "capped": "Največ {{max}} dni v tem delovnem prostoru"
     },
     "error_reporting": {
       "cluster_note": "V gručnem načinu pride sprememba do vsakega procesa v eni minuti.",
@@ -2103,7 +2104,8 @@
       "custom_domains": "Največje skupno število domen po meri na statusnih straneh tega delovnega prostora: {{max}}",
       "members": "Največje število članov tega delovnega prostora, vključno s čakajočimi povabili: {{max}}",
       "owned_workspaces": "Največje število delovnih prostorov, ki jih lahko imate v lasti: {{max}}",
-      "probes": "Največje število sond, na katerih lahko teče monitor v tem delovnem prostoru: {{max}}"
+      "probes": "Največje število sond, na katerih lahko teče monitor v tem delovnem prostoru: {{max}}",
+      "retention_days": "Najdaljše obdobje hrambe podatkov v tem delovnem prostoru (v dneh): {{max}}"
     },
     "names": {
       "monitors": "Aktivni monitorji",
