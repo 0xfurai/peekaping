@@ -44,10 +44,12 @@ services:
     # it catches holds reset links. An install in the stack reaches SMTP inside
     # the network at mailpit:1025, whatever port is published. A server run
     # natively reaches it on the published port: set E2E_MAILPIT_SMTP_HOST=localhost
-    # (and E2E_MAILPIT_SMTP_PORT, if it isn't 1025) for the specs too.
+    # for the specs too. E2E_MAILPIT_SMTP_PUBLISHED_PORT moves the published port (then
+    # set E2E_MAILPIT_SMTP_PORT to it for a native server); it is its own variable, since
+    # E2E_MAILPIT_SMTP_PORT is where the specs' sender sends, mailpit:1025 in the stack.
     ports:
       - "127.0.0.1:${E2E_MAILPIT_PORT:-8025}:8025"
-      - "127.0.0.1:${E2E_MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${E2E_MAILPIT_SMTP_PUBLISHED_PORT:-1025}:1025"
     networks:
       - default
       - appnet
