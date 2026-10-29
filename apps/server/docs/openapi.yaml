@@ -3695,6 +3695,16 @@ components:
         - role
         - joinedAt
       type: object
+    workspacehttp.RenameWorkspaceDto:
+      additionalProperties: true
+      properties:
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - name
+      type: object
     workspacehttp.WorkspaceResponse:
       additionalProperties: false
       properties:
@@ -9254,6 +9264,66 @@ paths:
       summary: Get server version
       tags:
         - System
+  /api/v1/workspace:
+    patch:
+      description: An admin or owner (or an API key) renames the workspace the request runs in. The name is trimmed and must be 1 to 255 characters. A member is refused (403).
+      operationId: patchWorkspace
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/workspacehttp.RenameWorkspaceDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_workspace_workspacehttp.WorkspaceResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Rename the workspace
+      tags:
+        - workspace
   /api/v1/workspace/invites:
     get:
       description: "The invites that were neither used nor revoked. An admin or owner sees them. They hold no token: that is shown once, when the invite is made."

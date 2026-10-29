@@ -22,6 +22,9 @@ type Repository interface {
 	// a role change that makes a verified user an owner: no owner may be left to verify. Like
 	// LiftUnverifiedOwnedBy, it gives the workspace's monitors a new updated_at.
 	LiftUnverifiedWithVerifiedOwner(ctx context.Context, id ID) ([]ID, error)
+	// Rename gives the workspace a new name and returns it, or nil when there is no workspace with
+	// the ID. It changes no other workspace.
+	Rename(ctx context.Context, id ID, name string) (*Workspace, error)
 	// AddMember makes the user a member of the workspace with the role.
 	AddMember(ctx context.Context, id ID, userID string, role Role) error
 	// ListMemberships returns the user's places in workspaces, the one they joined first at the

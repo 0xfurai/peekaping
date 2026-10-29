@@ -65,6 +65,10 @@ type Service interface {
 
 	// CreateWorkspace makes a workspace with the user as its owner and the settings of a new one
 	CreateWorkspace(ctx context.Context, userID, name string) (*Membership, error)
+	// RenameWorkspace renames the workspace the context runs in, for an admin or an owner:
+	// ErrNotFound, ErrForbidden or ErrInvalidName (a name that is blank once trimmed). The
+	// membership it returns holds the caller's role there; its JoinedAt is not read.
+	RenameWorkspace(ctx context.Context, name string) (*Membership, error)
 }
 
 // MonitorWaker makes the scheduler and the probes pick up the monitors of a workspace whose
@@ -556,4 +560,23 @@ func hashInviteToken(token string) string {
 // inviteLink is the address in the web app that opens the invite
 func (s *ServiceImpl) inviteLink(token string) string {
 	return strings.TrimRight(s.clientURL, "/") + "/invite/" + token
+}
+
+func (s *ServiceImpl) RenameWorkspace(ctx context.Context, name string) (*Membership, error) {
+	id, role, err := scope(ctx, RoleAdmin)
+	if err != nil {
+		return nil, err
+	}
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, ErrInvalidName
+	}
+	renamed, err := s.workspaces.Rename(ctx, id, name)
+	if err != nil {
+		return nil, err
+	}
+	if renamed == nil {
+		return nil, ErrNotFound
+	}
+	return &Membership{Workspace: *renamed, Role: role}, nil
 }

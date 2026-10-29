@@ -1543,6 +1543,11 @@ export type WorkspacehttpMemberResponse = {
   userId: string;
 };
 
+export type WorkspacehttpRenameWorkspaceDto = {
+  name: string;
+  [key: string]: unknown | string;
+};
+
 export type WorkspacehttpWorkspaceResponse = {
   id: string;
   name: string;
@@ -6358,6 +6363,55 @@ export type GetVersionResponses = {
 };
 
 export type GetVersionResponse = GetVersionResponses[keyof GetVersionResponses];
+
+export type PatchWorkspaceData = {
+  body: WorkspacehttpRenameWorkspaceDto;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace";
+};
+
+export type PatchWorkspaceErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpxErrorBody;
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type PatchWorkspaceError =
+  PatchWorkspaceErrors[keyof PatchWorkspaceErrors];
+
+export type PatchWorkspaceResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseWorkspaceWorkspacehttpWorkspaceResponse;
+};
+
+export type PatchWorkspaceResponse =
+  PatchWorkspaceResponses[keyof PatchWorkspaceResponses];
 
 export type GetWorkspaceInvitesData = {
   body?: never;

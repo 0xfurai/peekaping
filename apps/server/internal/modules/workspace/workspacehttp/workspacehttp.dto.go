@@ -27,6 +27,17 @@ type CreateWorkspaceDto struct {
 	Name string `json:"name" validate:"required,min=1,max=255"`
 }
 
+// normalize trims the name, so that one of only spaces is refused as empty and the trimmed name is stored
+func (d *CreateWorkspaceDto) normalize() { d.Name = strings.TrimSpace(d.Name) }
+
+// RenameWorkspaceDto is the request to rename the workspace
+type RenameWorkspaceDto struct {
+	Name string `json:"name" validate:"required,min=1,max=255"`
+}
+
+// normalize trims the name, so that one of only spaces is refused as empty
+func (d *RenameWorkspaceDto) normalize() { d.Name = strings.TrimSpace(d.Name) }
+
 // MemberResponse is a member of the workspace
 type MemberResponse struct {
 	UserID   string    `json:"userId"`
@@ -119,3 +130,4 @@ type PreviewInviteInput = httpx.Input[httpx.NoBody, InviteTokenParams]
 type AcceptInviteInput = httpx.Input[httpx.NoBody, InviteTokenParams]
 
 type CreateWorkspaceInput = httpx.Input[CreateWorkspaceDto, struct{}]
+type RenameWorkspaceInput = httpx.Input[RenameWorkspaceDto, struct{}]

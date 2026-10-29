@@ -225,3 +225,30 @@ func TestRepository_FindByID(t *testing.T) {
 		assert.Nil(t, missing, "no workspace has that ID")
 	})
 }
+
+func TestRepository_RenameChangesOnlyThatWorkspace(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		ctx := context.Background()
+		first, err := repo.Create(ctx, "First")
+		require.NoError(t, err)
+		other, err := repo.Create(ctx, "Other")
+		require.NoError(t, err)
+
+		renamed, err := repo.Rename(ctx, first.ID, "Acme")
+		require.NoError(t, err)
+		require.NotNil(t, renamed)
+		assert.Equal(t, "Acme", renamed.Name)
+		assert.Equal(t, first.ID, renamed.ID)
+		// To the microsecond, as both databases store it: Create returns the clock's own time, which
+		// on Linux has nanoseconds
+		assert.Equal(t, first.CreatedAt.UTC().Truncate(time.Microsecond), renamed.CreatedAt.UTC().Truncate(time.Microsecond))
+
+		untouched, err := repo.FindByID(ctx, other.ID)
+		require.NoError(t, err)
+		assert.Equal(t, "Other", untouched.Name)
+
+		missing, err := repo.Rename(ctx, workspace.ID("00000000-0000-0000-0000-000000000000"), "Nobody")
+		require.NoError(t, err)
+		assert.Nil(t, missing, "no workspace has that ID")
+	})
+}

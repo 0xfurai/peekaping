@@ -302,6 +302,9 @@ import type {
   PostTelemetryNoticeErrors,
   GetVersionData,
   GetVersionResponses,
+  PatchWorkspaceData,
+  PatchWorkspaceResponses,
+  PatchWorkspaceErrors,
   GetWorkspaceInvitesData,
   GetWorkspaceInvitesResponses,
   GetWorkspaceInvitesErrors,
@@ -2966,6 +2969,38 @@ export const getVersion = <ThrowOnError extends boolean = false>(
     responseType: "json",
     url: "/api/v1/version",
     ...options,
+  });
+};
+
+/**
+ * Rename the workspace
+ * An admin or owner (or an API key) renames the workspace the request runs in. The name is trimmed and must be 1 to 255 characters. A member is refused (403).
+ */
+export const patchWorkspace = <ThrowOnError extends boolean = false>(
+  options: Options<PatchWorkspaceData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchWorkspaceResponses,
+    PatchWorkspaceErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };
 

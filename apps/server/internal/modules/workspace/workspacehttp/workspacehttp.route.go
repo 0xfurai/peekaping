@@ -37,8 +37,8 @@ func RegisterDependencies(container *dig.Container) error {
 
 // ConnectRoute registers, under /api/v1:
 //
-//   - /workspace/members, /workspace/invites and /workspace/leave: the people of the workspace the
-//     request runs in (X-Workspace-ID, else the user's default one)
+//   - PATCH /workspace, /workspace/members, /workspace/invites and /workspace/leave: the name and
+//     the people of the workspace the request runs in (X-Workspace-ID, else the user's default one)
 //   - POST /workspaces: a new workspace for the signed-in user
 //   - /invites/{token}: what a holder of an invite link sees, and accepting it
 func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
@@ -46,6 +46,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	people.Use(r.middleware.WorkspaceAuth())
 	people.Document(httpx.WorkspaceIDHeader)
 	{
+		httpx.Register(people, "PATCH", "", huma.Operation{Summary: "Rename the workspace", Description: "An admin or owner (or an API key) renames the workspace the request runs in. The name is trimmed and must be 1 to 255 characters. A member is refused (403).", Tags: []string{"workspace"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusInternalServerError}}, controller.RenameWorkspace)
 		httpx.Register(people, "GET", "members", huma.Operation{Summary: "List the members of the workspace", Description: "Every member of the workspace sees who is in it and with which role.", Tags: []string{"workspace"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusUnauthorized, http.StatusNotFound, http.StatusInternalServerError}}, controller.ListMembers)
 		httpx.Register(people, "PATCH", "members/{userId}", huma.Operation{Summary: "Change a member's role", Description: "An admin or owner changes the role of a member or an admin. Only an owner makes an owner or changes one, and the last owner stays an owner (409).", Tags: []string{"workspace"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusConflict, http.StatusInternalServerError}}, controller.ChangeRole)
 		httpx.Register(people, "DELETE", "members/{userId}", huma.Operation{Summary: "Remove a member", Description: "An admin or owner removes a member or an admin. Only an owner removes an owner, and the last owner can't be removed (409). The removed user loses access to the workspace at once.", Tags: []string{"workspace"}, DefaultStatus: http.StatusNoContent, Security: httpx.SharedAuth, Errors: []int{http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusConflict, http.StatusInternalServerError}}, controller.RemoveMember)
