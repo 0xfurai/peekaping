@@ -5,8 +5,7 @@ import { FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/
 import { useProbes } from "@/hooks/useProbes";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
-import { probeRunsType } from "./probe-support";
-import { runFromChoices, runFromDefaultIds, toggleRunFrom, type RunFromChoice } from "./run-from";
+import { runFromAfterTypeChange, runFromChoices, runFromDefaultIds, toggleRunFrom, type RunFromChoice } from "./run-from";
 
 // The list itself: a checkbox for each choice, in a group named by the element labelledBy names
 export const RunFromList = ({
@@ -59,11 +58,8 @@ const RunFrom = () => {
     }
     if (!typeChanged && savedType === type) return;
     const current: string[] = getValues("probe_ids");
-    const kept = current.filter((id) => {
-      const probe = probes.find((candidate) => candidate.id === id);
-      return !probe || probeRunsType(probe, type);
-    });
-    if (kept.length !== current.length) setValue("probe_ids", kept);
+    const kept = runFromAfterTypeChange(probes, type, current);
+    if (kept.join("\0") !== current.join("\0")) setValue("probe_ids", kept);
   }, [presetsProbes, probesChosenByHand, savedType, setValue, getValues, type, probes]);
 
   // The form's resolver reports a probe that doesn't run the type, or none ticked on a saved monitor
