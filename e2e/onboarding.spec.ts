@@ -137,8 +137,9 @@ test('@cloud a new signup is walked through Get started and verifies their email
       const downAt = new Date();
       await setTargetStatus(page.request, targetID, 503);
       await expect(statusCard(page)).toHaveText('Down', { timeout: 60_000 });
-      // The mail's text is the Down check's message; the Up one would say "200 - 200 OK"
-      const mail = await waitForMail(email, /Peekaping Notification/, {
+      // The subject names the monitor and its status, and the text has the Down check's message; the
+      // Up one would say "200 - 200 OK"
+      const mail = await waitForMail(email, /is Down/, {
         since: downAt,
         body: /HTTP request failed with status: 503/,
         timeout: 60_000,
