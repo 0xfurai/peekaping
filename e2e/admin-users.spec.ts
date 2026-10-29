@@ -39,18 +39,19 @@ async function adminWorkspace(api: APIRequestContext): Promise<{ id: string; nam
 }
 
 // Removes what the test left if it failed before the UI did: the user (deleting the user takes
-// their place in the workspace with it) and the invite, if the user never signed up.
+// their place in the workspace with it) and the invite, if the user never signed up. A listing that
+// fails fails the test rather than skip its deletions unseen.
 async function removeUser(api: APIRequestContext, email: string) {
   await runAll([
     async () => {
       const users = await api.get('admin/users', { params: { q: email } });
-      if (!users.ok()) return;
+      expect(users.ok(), `listing the users to clean up: ${await users.text()}`).toBeTruthy();
       const mine = ((await users.json()).data.users as { id: string; email: string }[]).filter((u) => u.email === email);
       await runAll(mine.map((user) => () => deleteCreated(api, `admin/users/${user.id}`)));
     },
     async () => {
       const invites = await api.get('workspace/invites');
-      if (!invites.ok()) return;
+      expect(invites.ok(), `listing the invites to clean up: ${await invites.text()}`).toBeTruthy();
       const mine = ((await invites.json()).data as { id: string; email: string }[]).filter((i) => i.email === email);
       await runAll(mine.map((invite) => () => deleteCreated(api, `workspace/invites/${invite.id}`)));
     },
