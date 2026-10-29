@@ -76,8 +76,9 @@ func (g *SignupGate) FirstSignup(ctx context.Context) (bool, error) {
 	if g == nil || g.users == nil {
 		return false, nil
 	}
-	count, err := g.users.FindAllCount(ctx)
-	return count == 0, err
+	// /auth/config asks on every page load, so this stops at the first user instead of counting
+	exists, err := g.users.AnyUser(ctx)
+	return !exists, err
 }
 
 // TurnstileSiteKey is the public key of the widget the app shows, or nil when open signup does not

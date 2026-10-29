@@ -49,6 +49,9 @@ export const showInstallPreferences = (firstSignup: boolean | undefined): boolea
 export const canSubmitRegister = (siteKey: string | null | undefined, token: string | null, pending = false): boolean =>
   !pending && (!siteKey || Boolean(token));
 
+/** The register button's label: while the request is pending it says so, as the button is disabled. */
+export const registerSubmitKey = (pending: boolean): string => (pending ? "common.loading" : "auth.register.submit");
+
 export type RegisterValues = { email: string; password: string; confirmPassword: string };
 
 /** The request body: the form's values, with the Turnstile token when the widget gave one. */
@@ -56,6 +59,16 @@ export const registerBody = (values: RegisterValues, turnstileToken: string | nu
   ...values,
   ...(turnstileToken ? { turnstileToken } : {}),
 });
+
+/** A refused signup: its message, whether the address has an account, and the address it was for. */
+export type RegisterFailure = { message: string; emailTaken: boolean; email: string };
+
+/**
+ * The refused signup the form shows: only while the email field holds the address it was for. Its
+ * "Sign in instead" advice is about that address, so editing the address takes it away.
+ */
+export const shownRegisterFailure = (failure: RegisterFailure | null, email: string): RegisterFailure | null =>
+  failure && failure.email === email ? failure : null;
 
 /**
  * The translation key of a signup answer the visitor can act on, by its status and message

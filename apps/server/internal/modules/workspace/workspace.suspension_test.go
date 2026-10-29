@@ -287,3 +287,102 @@ func TestService_CreateWorkspace_AnUnverifiedUsersWorkspaceIsSuspendedInAnOpenIn
 		assert.Equal(t, workspace.SuspendedUnverified, found.SuspendedReason)
 	})
 }
+
+// verifiesDuringTheLift is a workspace repository whose first LiftUnverifiedWithVerifiedOwner
+// answers as the database does, and then lets the user verify their email from another
+// connection while the caller's transaction is still open: the moment a new owner's role was
+// written but not committed, so the verification finds no workspace of theirs to lift. It waits
+// for the verification for a moment only, since one that waits for the caller's lock goes on only
+// once the caller commits.
+type verifiesDuringTheLift struct {
+	workspace.Repository
+	verify   func() error
+	verified chan error
+}
+
+func (r *verifiesDuringTheLift) LiftUnverifiedWithVerifiedOwner(ctx context.Context, id workspace.ID) ([]workspace.ID, error) {
+	lifted, err := r.Repository.LiftUnverifiedWithVerifiedOwner(ctx, id)
+	if verify := r.verify; verify != nil {
+		r.verify = nil
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			r.verified <- verify()
+		}()
+		select {
+		case <-done:
+		case <-time.After(500 * time.Millisecond):
+		}
+	}
+	return lifted, err
+}
+
+// racingVerification is verifiesDuringTheLift for the user, with what verifying an email does: mark
+// the address, then lift what the user owns
+func racingVerification(db *bun.DB, repo workspace.Repository, user string) *verifiesDuringTheLift {
+	return &verifiesDuringTheLift{
+		Repository: repo,
+		verified:   make(chan error, 1),
+		verify: func() error {
+			ctx := context.Background()
+			if _, err := db.ExecContext(ctx, "UPDATE users SET email_verified_at = ? WHERE id = ?", time.Now().UTC(), user); err != nil {
+				return err
+			}
+			_, err := repo.LiftUnverifiedOwnedBy(ctx, user)
+			return err
+		},
+	}
+}
+
+// requireLiftedAfterTheVerification waits for the racing verification to end, and checks the
+// workspace runs
+func requireLiftedAfterTheVerification(t *testing.T, racing *verifiesDuringTheLift, id workspace.ID) {
+	t.Helper()
+	select {
+	case err := <-racing.verified:
+		require.NoError(t, err)
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "the verification never ended")
+	}
+	found, err := racing.Repository.FindByID(context.Background(), id)
+	require.NoError(t, err)
+	assert.False(t, found.Suspended(), "the new owner is verified, and nothing is left to lift it")
+}
+
+func TestService_ChangeRole_AVerificationThatCommitsDuringTheChangeLeavesTheWorkspaceRunning(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		if db.Dialect().Name() != dialect.PG {
+			// SQLite has one connection: a request's transaction holds it, so no other can commit between its steps
+			t.Skip("the interleaving exists on PostgreSQL only")
+		}
+		ctx := context.Background()
+		id, _, admin := suspendedWorkspace(t, db, repo, false)
+		racing := racingVerification(db, repo, admin)
+		service := newServiceWithWaker(db, racing, &wakeRecorder{})
+
+		_, err := service.ChangeRole(workspace.WithContext(ctx, id, workspace.RoleOwner), admin, workspace.RoleOwner)
+
+		require.NoError(t, err)
+		requireLiftedAfterTheVerification(t, racing, id)
+	})
+}
+
+func TestService_AcceptInvite_AVerificationThatCommitsDuringTheAcceptLeavesTheWorkspaceRunning(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB, repo workspace.Repository) {
+		if db.Dialect().Name() != dialect.PG {
+			t.Skip("the interleaving exists on PostgreSQL only")
+		}
+		ctx := context.Background()
+		id, _, _ := suspendedWorkspace(t, db, repo, false)
+		guest := insertUser(t, db, "guest@example.com")
+		racing := racingVerification(db, repo, guest)
+		service := newServiceWithWaker(db, racing, &wakeRecorder{})
+		created, err := service.CreateInvite(workspace.WithContext(ctx, id, workspace.RoleOwner), "", "guest@example.com", workspace.RoleOwner)
+		require.NoError(t, err)
+
+		_, err = service.AcceptInvite(ctx, created.Token, guest)
+
+		require.NoError(t, err)
+		requireLiftedAfterTheVerification(t, racing, id)
+	})
+}

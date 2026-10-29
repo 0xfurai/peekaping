@@ -2,7 +2,6 @@ package websocket_test
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http/httptest"
@@ -28,6 +27,7 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacetest"
+	"peekaping/internal/sqlitedb"
 
 	"github.com/google/uuid"
 	gorilla "github.com/gorilla/websocket"
@@ -35,7 +35,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
-	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/migrate"
 	"go.uber.org/zap"
 )
@@ -108,7 +107,9 @@ func newHarnessWithConnectionDelay(t *testing.T, delay time.Duration) *harness {
 func newHarnessWith(t *testing.T, delay, sweep time.Duration) *harness {
 	t.Helper()
 	ctx := context.Background()
-	sqlDB, err := sql.Open(sqliteshim.ShimName, filepath.Join(t.TempDir(), "websocket.db"))
+	// The server reads while the tests write; the server's own settings (one connection, a busy
+	// timeout) make a read wait for a write instead of failing with SQLITE_BUSY
+	sqlDB, err := sqlitedb.Open(filepath.Join(t.TempDir(), "websocket.db"))
 	require.NoError(t, err)
 	db := bun.NewDB(sqlDB, sqlitedialect.New())
 	t.Cleanup(func() { require.NoError(t, db.Close()) })
