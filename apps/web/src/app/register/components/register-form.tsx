@@ -47,7 +47,9 @@ import {
   registerBody,
   registerDescriptionKey,
   registerFailureKey,
+  shownRegisterFailure,
   showInstallPreferences,
+  type RegisterFailure,
 } from "@/lib/signup";
 
 const createRegisterSchema = (t: (key: string) => string) => z
@@ -104,9 +106,8 @@ export function RegisterForm({
   const { t } = useLocalizedTranslation();
   // The install's first signup becomes its admin and chooses for the install; anyone else may not
   const installPreferences = showInstallPreferences(firstSignup);
-  const [serverError, setServerError] = React.useState<string | null>(null);
-  // A signup the visitor can fix by signing in gets a link beside its message
-  const [emailTaken, setEmailTaken] = React.useState(false);
+  // A refused signup's message. One the visitor can fix by signing in gets a link beside it.
+  const [failure, setFailure] = React.useState<RegisterFailure | null>(null);
   const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null);
   const [turnstileReset, setTurnstileReset] = React.useState(0);
   const setTokens = useAuthStore(
@@ -166,27 +167,27 @@ export function RegisterForm({
         toast.error(t("messages.register_no_tokens"));
       }
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       // A token is good for one check, so a refused signup needs a new one
       if (turnstileSiteKey) {
         setTurnstileToken(null);
         setTurnstileReset((n) => n + 1);
       }
+      const email = variables.body.email;
       const failureKey = registerFailureKey(error);
       if (failureKey) {
         const errorMessage = t(failureKey);
-        setServerError(errorMessage);
-        setEmailTaken(failureKey === "auth.register.errors.email_taken");
+        setFailure({ message: errorMessage, emailTaken: failureKey === "auth.register.errors.email_taken", email });
         toast.error(errorMessage);
       } else if (isAxiosError(error)) {
         const errorMessage =
           error.response?.data.message ||
           t("messages.register_error");
-        setServerError(errorMessage);
+        setFailure({ message: errorMessage, emailTaken: false, email });
         toast.error(errorMessage);
       } else {
         const errorMessage = t("messages.unexpected_error");
-        setServerError(errorMessage);
+        setFailure({ message: errorMessage, emailTaken: false, email });
         console.error(error);
       }
     },
@@ -203,9 +204,11 @@ export function RegisterForm({
     },
   });
 
+  // The refused signup shows while the email field holds its address
+  const shownFailure = shownRegisterFailure(failure, form.watch("email"));
+
   function onSubmit(data: RegisterFormValues) {
-    setServerError(null);
-    setEmailTaken(false);
+    setFailure(null);
     registerMutation.mutate({
       body: registerBody(data, turnstileSiteKey ? turnstileToken : null),
     });
@@ -319,7 +322,7 @@ export function RegisterForm({
                 />
               )}
 
-              {serverError && <RegisterErrorAlert message={serverError} signInLink={emailTaken} />}
+              {shownFailure && <RegisterErrorAlert message={shownFailure.message} signInLink={shownFailure.emailTaken} />}
 
               <Button
                 type="submit"

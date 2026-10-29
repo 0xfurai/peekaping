@@ -57,6 +57,16 @@ export const registerBody = (values: RegisterValues, turnstileToken: string | nu
   ...(turnstileToken ? { turnstileToken } : {}),
 });
 
+/** A refused signup: its message, whether the address has an account, and the address it was for. */
+export type RegisterFailure = { message: string; emailTaken: boolean; email: string };
+
+/**
+ * The refused signup the form shows: only while the email field holds the address it was for. Its
+ * "Sign in instead" advice is about that address, so editing the address takes it away.
+ */
+export const shownRegisterFailure = (failure: RegisterFailure | null, email: string): RegisterFailure | null =>
+  failure && failure.email === email ? failure : null;
+
 /**
  * The translation key of a signup answer the visitor can act on, by its status and message
  * (auth.controller Register). undefined when the answer is any other, and the caller shows the

@@ -7,6 +7,7 @@ import {
   registerDescriptionKey,
   registerFailureKey,
   registerPageView,
+  shownRegisterFailure,
   showInstallPreferences,
 } from "./signup";
 
@@ -89,6 +90,24 @@ describe("registerBody", () => {
   it("sends none without a token", () => {
     expect(registerBody(values, null)).toEqual(values);
     expect("turnstileToken" in registerBody(values, null)).toBe(false);
+  });
+});
+
+describe("shownRegisterFailure", () => {
+  const taken = { message: "An account with this email exists", emailTaken: true, email: "a@example.com" };
+
+  it("shows a refused signup, with its sign-in advice, while the address is the one it was for", () => {
+    expect(shownRegisterFailure(taken, "a@example.com")).toEqual(taken);
+  });
+
+  it("drops it once the address is edited", () => {
+    expect(shownRegisterFailure(taken, "a@example.co")).toBeNull();
+    expect(shownRegisterFailure(taken, "b@example.com")).toBeNull();
+    expect(shownRegisterFailure(taken, "")).toBeNull();
+  });
+
+  it("shows nothing before a signup was refused", () => {
+    expect(shownRegisterFailure(null, "a@example.com")).toBeNull();
   });
 });
 
