@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import {
   getAdminSettingsOptions,
   getAdminSettingsQueryKey,
+  getErrorReportingOptions,
+  getTelemetryOptions,
   postAdminSettingsTestEmailMutation,
   putAdminSettingsMutation,
 } from "@/api/@tanstack/react-query.gen";
@@ -437,13 +439,19 @@ const InstallSettingsPage = () => {
   const { t } = useLocalizedTranslation();
   const { data, isLoading, isError } = useQuery(getAdminSettingsOptions());
   const settings = data?.data;
-  const loaded = settings !== undefined;
+  // The cards' own queries, read from the cache without a fetch of their own. The notice above the
+  // page shows once they answer, so it waits for them too
+  const usage = useQuery({ ...getTelemetryOptions(), enabled: false });
+  const errors = useQuery({ ...getErrorReportingOptions(), enabled: false });
+  const settled = !isLoading && usage.status !== "pending" && errors.status !== "pending";
 
-  // The upgrade notice links to a card, such as /admin/settings#error-reports
+  // The upgrade notice links to a card, such as /admin/settings#error-reports. The scroll waits
+  // until everything above the card has loaded: an answer that came after it would push the card
+  // out of view
   const { hash } = useLocation();
   useEffect(() => {
-    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
-  }, [hash, loaded]);
+    if (hash && settled) document.getElementById(hash.slice(1))?.scrollIntoView();
+  }, [hash, settled]);
 
   return (
     <Layout pageName={t("admin.settings.page_name")}>
