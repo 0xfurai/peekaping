@@ -181,6 +181,8 @@ func TestDriversFull_Targets(t *testing.T) {
 		{"sqlserver with braces", "sqlserver", `{"database_connection_string": "Server=sql.example.com,1433;Database={d;e};User Id=sa;Password={p;q}"}`, []string{"sql.example.com"}},
 		{"sqlserver in the URL form", "sqlserver", `{"database_connection_string": "sqlserver://sa:secret@[fd00::9]:1433?database=master"}`, []string{"fd00::9"}},
 		{"sqlserver in the mssql:// form", "sqlserver", `{"database_connection_string": "mssql://sa:secret@192.168.1.5/master"}`, []string{"192.168.1.5"}},
+		{"sqlserver with a failover partner", "sqlserver", `{"database_connection_string": "Server=sql.example.com,1433;Database=master;User Id=sa;Password=secret;FailoverPartner=sql2.example.com;FailoverPort=1444"}`, []string{"sql.example.com", "sql2.example.com"}},
+		{"sqlserver URL with a failover partner", "sqlserver", `{"database_connection_string": "sqlserver://sa:secret@sql.example.com:1433?database=master&failoverpartner=10.0.0.9"}`, []string{"sql.example.com", "10.0.0.9"}},
 		{"mongodb", "mongodb", `{"connectionString": "mongodb://u:p%40ss@db.example.com:27017/admin?authSource=admin"}`, []string{"db.example.com"}},
 		{"mongodb seed list", "mongodb", `{"connectionString": "mongodb://u:p@a.example.com:27017,10.0.0.2:27018,[fd00::3]:27019/admin?replicaSet=rs0"}`, []string{"a.example.com", "10.0.0.2", "fd00::3"}},
 		{"mongodb srv", "mongodb", `{"connectionString": "mongodb+srv://u:p@cluster0.example.com/admin"}`, []string{"cluster0.example.com"}},
@@ -219,6 +221,7 @@ func TestDriversFull_RefuseBlockedLiteralTargetsOnSave(t *testing.T) {
 	}{
 		{"sqlserver", "sqlserver", `{"database_connection_string": "Server=10.0.0.4,1433;Database=master;User Id=sa;Password=secret;Encrypt=false"}`, "10.0.0.4"},
 		{"sqlserver URL", "sqlserver", `{"database_connection_string": "sqlserver://sa:secret@127.0.0.1:1433?database=master"}`, "127.0.0.1"},
+		{"sqlserver failover partner", "sqlserver", `{"database_connection_string": "Server=sql.example.com,1433;Database=master;User Id=sa;Password=secret;FailoverPartner=169.254.169.254;FailoverPort=1433"}`, "169.254.169.254"},
 		{"the second mongodb host", "mongodb", `{"connectionString": "mongodb://a.example.com:27017,192.168.1.2:27017/admin"}`, "192.168.1.2"},
 		{"the second kafka broker", "kafka-producer", `{"brokers": ["k1.example.com:9092", "169.254.169.254:9092"], "topic": "t", "message": "m", "sasl_options": {"mechanism": "None"}}`, "169.254.169.254"},
 		{"grpc", "grpc-keyword", grpcConfig("10.1.1.1:50051", false), "10.1.1.1"},

@@ -1405,7 +1405,8 @@
       "updated_success": "Notifikátor byl úspěšně aktualizován"
     },
     "new": {
-      "title": "Nový notifikační kanál"
+      "title": "Nový notifikační kanál",
+      "default_hint": "Tento kanál bude u nových monitorů zaškrtnutý."
     },
     "no_important": "Nebyly nalezeny žádné důležité notifikace.",
     "placeholders": {

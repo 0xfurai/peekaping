@@ -92,12 +92,20 @@ describe("runFromDefaultIds", () => {
 });
 
 describe("toggleRunFrom", () => {
-  it("adds and removes a probe, keeping the ones the list doesn't show", () => {
-    expect(toggleRunFrom(["gone", "local"], "eu", true)).toEqual(["gone", "local", "eu"]);
-    expect(toggleRunFrom(["gone", "local", "eu"], "local", false)).toEqual(["gone", "eu"]);
+  it("adds and removes a probe", () => {
+    expect(toggleRunFrom(["local"], ["local", "eu"], "eu", true)).toEqual(["local", "eu"]);
+    expect(toggleRunFrom(["local", "eu"], ["local", "eu"], "local", false)).toEqual(["eu"]);
   });
 
   it("adds a probe once", () => {
-    expect(toggleRunFrom(["eu"], "eu", true)).toEqual(["eu"]);
+    expect(toggleRunFrom(["eu"], ["eu"], "eu", true)).toEqual(["eu"]);
+  });
+
+  // A saved monitor on a probe that no longer runs its type, or was disabled, is refused on save with
+  // that probe, and the list doesn't show it to untick: the first change drops it
+  it("drops the probes the list doesn't show", () => {
+    expect(toggleRunFrom(["gone", "local"], ["local", "eu"], "eu", true)).toEqual(["local", "eu"]);
+    expect(toggleRunFrom(["gone", "local", "eu"], ["local", "eu"], "local", false)).toEqual(["eu"]);
+    expect(toggleRunFrom(["off"], ["eu"], "eu", true)).toEqual(["eu"]);
   });
 });

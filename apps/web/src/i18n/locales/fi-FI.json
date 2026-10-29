@@ -1405,7 +1405,8 @@
       "updated_success": "Ilmoittaja päivitetty onnistuneesti"
     },
     "new": {
-      "title": "Uusi ilmoituskanava"
+      "title": "Uusi ilmoituskanava",
+      "default_hint": "Tämä kanava valitaan uusissa monitoreissa."
     },
     "no_important": "Ei tärkeitä ilmoituksia löytynyt.",
     "placeholders": {
