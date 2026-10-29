@@ -12,7 +12,8 @@
 # cloud suite sets in the environment (ACCOUNT_SMTP_HOST=mailpit, with
 # SIGNUP_MODE=open, for e2e/onboarding.spec.ts), or the one e2e/admin-settings.spec.ts
 # saves in Admin → Settings and removes again. The tests read it through its
-# HTTP API on localhost:8025 (E2E_MAILPIT_URL).
+# HTTP API on localhost:8025 (E2E_MAILPIT_URL). A server run natively, outside
+# the stack, sends to localhost:1025 instead (E2E_MAILPIT_SMTP_HOST=localhost).
 networks:
   appnet:
 
@@ -39,11 +40,14 @@ services:
   mailpit:
     image: axllent/mailpit:v1.27
     restart: unless-stopped
-    # Loopback only: Mailpit's API needs no sign-in, and the mail it catches
-    # holds reset links. SMTP isn't published; the install reaches it inside
-    # the network.
+    # Loopback only: Mailpit's API and SMTP server need no sign-in, and the mail
+    # it catches holds reset links. An install in the stack reaches SMTP inside
+    # the network at mailpit:1025, whatever port is published. A server run
+    # natively reaches it on the published port: set E2E_MAILPIT_SMTP_HOST=localhost
+    # (and E2E_MAILPIT_SMTP_PORT, if it isn't 1025) for the specs too.
     ports:
       - "127.0.0.1:${E2E_MAILPIT_PORT:-8025}:8025"
+      - "127.0.0.1:${E2E_MAILPIT_SMTP_PORT:-1025}:1025"
     networks:
       - default
       - appnet
