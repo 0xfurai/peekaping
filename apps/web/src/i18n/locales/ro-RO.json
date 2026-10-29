@@ -1906,8 +1906,10 @@
       "url_label": "Adresa de monitorizat"
     },
     "channel": {
+      "continue_unlinked": "Continuă fără asociere",
       "description": "Alegeți unde trimite Peekaping o alertă când monitorul dvs. cade. Va deveni implicit pentru monitoarele noi.",
       "link_failed": "Canalul a fost salvat, dar asocierea cu monitorul a eșuat. Adăugați-l în pagina de editare a monitorului.",
+      "retry_link": "Încearcă din nou asocierea",
       "title": "Primiți notificări"
     },
     "done": {
