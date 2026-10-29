@@ -206,10 +206,10 @@ func (m *MySQLExecutor) mysqlQuery(ctx context.Context, connectionString, query 
 		return "", fmt.Errorf("failed to parse MySQL connection string: %w", err)
 	}
 
-	// Dial through the guard while it is on. The driver would look up a network name that is
+	// Dial through the guard (see hasGuard). The driver would look up a network name that is
 	// registered for the whole process; the DialFunc of this configuration is the guard's alone, and
-	// it gets the network too, so a Unix socket is refused.
-	if m.on() {
+	// it gets the network too, so a Unix socket is refused while the guard is on.
+	if m.hasGuard() {
 		cfg.DialFunc = m.guard.DialContext
 	}
 
