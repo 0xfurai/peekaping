@@ -188,6 +188,8 @@ Signup modes are two, set with `SIGNUP_MODE` (PP-155):
 - **`invite`**, the default. The first user signs up as today and gets the first workspace, as its owner, with the instance admin flag. After that, people join only through an invite to a workspace.
 - **`open`**, for the cloud. Anyone may sign up, and each new user gets a workspace of their own, as its owner. Their monitors run only once their email is verified (PP-152).
 
+In `open` mode the workspace of a new account is suspended (`workspaces.suspended_at`, with `suspended_reason` `unverified`) until its owner verifies their email address, or resets the password with the emailed link. Every query that picks monitors to run or to check for missed beats skips a suspended workspace's monitors, and a read of one monitor says whether its workspace is suspended, so the scheduler, the check loader, probe dealing and results, the watchdog and the push handler (403) all hold them back. A workspace that an unverified user makes later is suspended the same way. Signups without an invite are limited to 5 an hour per client address and, with `SIGNUP_TURNSTILE_*` set, need a Turnstile answer that fails closed; a signup through an invite needs neither.
+
 In both modes an invite adds the invited user to an existing workspace with the role the invite names (PP-154). Someone who signs up through an invite joins that workspace and gets no workspace of their own, in `open` mode too. Invites are their own records, added by PP-154. Without an email sender, the inviter copies the invite link.
 
 Any signed-in user can create another workspace and becomes its owner (PP-154). Like open signup, that waits for the isolation suite (section 12).

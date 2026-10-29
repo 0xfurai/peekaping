@@ -17,6 +17,9 @@ var (
 	ErrMonitorNotFound = errors.New("monitor not found")
 	// ErrMonitorPaused means the monitor is paused, so it gets no checks until it's resumed
 	ErrMonitorPaused = errors.New("monitor is paused")
+	// ErrWorkspaceSuspended means the monitor's workspace is suspended, so it gets no checks until
+	// the suspension is lifted (PP-155)
+	ErrWorkspaceSuspended = shared.ErrWorkspaceSuspended
 )
 
 // Job is everything one check of a monitor needs, as the monitor stands when it is loaded

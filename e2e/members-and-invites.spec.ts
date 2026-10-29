@@ -38,18 +38,19 @@ async function runAll(steps: (() => Promise<void>)[]) {
 
 // Removes what the test left in the admin's workspace if it failed before the UI did: the member
 // (who stays a user, with a workspace of their own, since there is no API to delete a user) and
-// the invite. Every deletion is tried, whichever of the others fails.
+// the invite. Every deletion is tried, whichever of the others fails, and a listing that fails
+// fails the test rather than skip its deletions unseen.
 async function removeFromWorkspace(api: APIRequestContext, email: string) {
   await runAll([
     async () => {
       const invites = await api.get('workspace/invites');
-      if (!invites.ok()) return;
+      expect(invites.ok(), `listing the invites to clean up: ${await invites.text()}`).toBeTruthy();
       const mine = ((await invites.json()).data as { id: string; email: string }[]).filter((i) => i.email === email);
       await runAll(mine.map((invite) => () => deleteCreated(api, `workspace/invites/${invite.id}`)));
     },
     async () => {
       const members = await api.get('workspace/members');
-      if (!members.ok()) return;
+      expect(members.ok(), `listing the members to clean up: ${await members.text()}`).toBeTruthy();
       const mine = ((await members.json()).data as { userId: string; email: string }[]).filter((m) => m.email === email);
       await runAll(mine.map((member) => () => deleteCreated(api, `workspace/members/${member.userId}`)));
     },
@@ -93,7 +94,7 @@ test('an admin invites a member by a link, who works in the workspace, makes the
     // 2. A signed-out visitor opens it, signs up, and is in the workspace
     const member = await memberContext.newPage();
     await member.goto(inviteLink);
-    await expect(member.getByText(`Join ${first.name}`).first()).toBeVisible();
+    await expect(member.getByText(`Join ${first.name}`, { exact: true }).first()).toBeVisible();
     await expect(member.getByLabel('Email')).toHaveValue(email);
     await member.getByLabel('Password', { exact: true }).fill(memberPassword);
     await member.getByRole('button', { name: 'Create account and join' }).click();

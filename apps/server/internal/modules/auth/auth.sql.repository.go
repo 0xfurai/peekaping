@@ -220,6 +220,10 @@ func (r *SQLRepositoryImpl) FindAllCount(ctx context.Context) (int64, error) {
 	return int64(count), err
 }
 
+func (r *SQLRepositoryImpl) AnyUser(ctx context.Context) (bool, error) {
+	return r.db.NewSelect().Model((*sqlModel)(nil)).Exists(ctx)
+}
+
 func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, entity *UpdateModel) error {
 	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
 

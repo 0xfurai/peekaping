@@ -17,9 +17,11 @@ type meResponse struct {
 		InstanceAdmin bool   `json:"instanceAdmin"`
 	} `json:"user"`
 	Workspaces []struct {
-		ID   string `json:"id"`
-		Name string `json:"name"`
-		Role string `json:"role"`
+		ID              string  `json:"id"`
+		Name            string  `json:"name"`
+		Role            string  `json:"role"`
+		Suspended       bool    `json:"suspended"`
+		SuspendedReason *string `json:"suspendedReason"`
 	} `json:"workspaces"`
 	DefaultWorkspaceID *string `json:"defaultWorkspaceId"`
 }

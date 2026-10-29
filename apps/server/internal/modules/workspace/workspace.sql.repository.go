@@ -19,10 +19,31 @@ type sqlModel struct {
 	Name      string    `bun:"name,notnull"`
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
+	// SuspendedAt and SuspendedReason are NULL for a workspace that runs
+	SuspendedAt     *time.Time `bun:"suspended_at"`
+	SuspendedReason *string    `bun:"suspended_reason"`
 }
 
 func (m *sqlModel) toDomain() *Workspace {
-	return &Workspace{ID: ID(m.ID), Name: m.Name, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}
+	return &Workspace{
+		ID: ID(m.ID), Name: m.Name, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt,
+		SuspendedAt: utcOrNil(m.SuspendedAt), SuspendedReason: reasonOrEmpty(m.SuspendedReason),
+	}
+}
+
+func utcOrNil(t *time.Time) *time.Time {
+	if t == nil {
+		return nil
+	}
+	utc := t.UTC()
+	return &utc
+}
+
+func reasonOrEmpty(reason *string) string {
+	if reason == nil {
+		return ""
+	}
+	return *reason
 }
 
 type memberModel struct {
@@ -42,6 +63,9 @@ type membershipRow struct {
 	UpdatedAt   time.Time `bun:"updated_at"`
 	Role        string    `bun:"role"`
 	JoinedAt    time.Time `bun:"joined_at"`
+
+	SuspendedAt     *time.Time `bun:"suspended_at"`
+	SuspendedReason *string    `bun:"suspended_reason"`
 }
 
 type SQLRepositoryImpl struct {
@@ -53,8 +77,20 @@ func NewSQLRepository(db *bun.DB) Repository {
 }
 
 func (r *SQLRepositoryImpl) Create(ctx context.Context, name string) (*Workspace, error) {
+	return r.create(ctx, name, "")
+}
+
+func (r *SQLRepositoryImpl) CreateSuspended(ctx context.Context, name string, reason string) (*Workspace, error) {
+	return r.create(ctx, name, reason)
+}
+
+// create adds the workspace, suspended for the reason when there is one
+func (r *SQLRepositoryImpl) create(ctx context.Context, name, reason string) (*Workspace, error) {
 	now := time.Now().UTC()
 	sm := &sqlModel{ID: uuid.NewString(), Name: name, CreatedAt: now, UpdatedAt: now}
+	if reason != "" {
+		sm.SuspendedAt, sm.SuspendedReason = &now, &reason
+	}
 	// The workspace and its settings are made together, in the transaction the context carries or
 	// one of their own
 	err := dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
@@ -81,7 +117,7 @@ func (r *SQLRepositoryImpl) ListMemberships(ctx context.Context, userID string) 
 	err := dbtx.DB(ctx, r.db).NewSelect().
 		TableExpr("workspace_members AS m").
 		Join("JOIN workspaces AS w ON w.id = m.workspace_id").
-		ColumnExpr("w.id AS workspace_id, w.name, w.created_at, w.updated_at, m.role, m.joined_at").
+		ColumnExpr("w.id AS workspace_id, w.name, w.created_at, w.updated_at, w.suspended_at, w.suspended_reason, m.role, m.joined_at").
 		Where("m.user_id = ?", userID).
 		Order("m.joined_at", "w.id").
 		Scan(ctx, &rows)
@@ -91,9 +127,12 @@ func (r *SQLRepositoryImpl) ListMemberships(ctx context.Context, userID string) 
 	memberships := make([]Membership, len(rows))
 	for i, row := range rows {
 		memberships[i] = Membership{
-			Workspace: Workspace{ID: ID(row.WorkspaceID), Name: row.Name, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt},
-			Role:      Role(row.Role),
-			JoinedAt:  row.JoinedAt,
+			Workspace: Workspace{
+				ID: ID(row.WorkspaceID), Name: row.Name, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
+				SuspendedAt: utcOrNil(row.SuspendedAt), SuspendedReason: reasonOrEmpty(row.SuspendedReason),
+			},
+			Role:     Role(row.Role),
+			JoinedAt: row.JoinedAt,
 		}
 	}
 	return memberships, nil
@@ -133,4 +172,65 @@ func (r *SQLRepositoryImpl) ListIDsAnyWorkspace(ctx context.Context) ([]ID, erro
 		out[i] = ID(id)
 	}
 	return out, nil
+}
+
+func (r *SQLRepositoryImpl) LiftUnverifiedOwnedBy(ctx context.Context, userID string) ([]ID, error) {
+	return r.liftUnverified(ctx, func(q *bun.SelectQuery) *bun.SelectQuery {
+		return q.Where("id IN (SELECT workspace_id FROM workspace_members WHERE user_id = ? AND role = ?)", userID, string(RoleOwner))
+	})
+}
+
+func (r *SQLRepositoryImpl) LiftUnverifiedWithVerifiedOwner(ctx context.Context, id ID) ([]ID, error) {
+	return r.liftUnverified(ctx, func(q *bun.SelectQuery) *bun.SelectQuery {
+		return q.Where("id = ?", string(id)).
+			Where(`EXISTS (SELECT 1 FROM workspace_members m JOIN users u ON u.id = m.user_id
+				WHERE m.workspace_id = workspaces.id AND m.role = ? AND u.email_verified_at IS NOT NULL)`, string(RoleOwner))
+	})
+}
+
+// liftUnverified ends the SuspendedUnverified suspension of the workspaces that narrow selects,
+// and returns them
+func (r *SQLRepositoryImpl) liftUnverified(ctx context.Context, narrow func(*bun.SelectQuery) *bun.SelectQuery) ([]ID, error) {
+	var lifted []ID
+	// Read and write in one transaction, so that the IDs returned are the ones that were lifted
+	err := dbtx.NewSQLTransactor(r.db).WithTx(ctx, func(ctx context.Context) error {
+		q := dbtx.DB(ctx, r.db)
+		var ids []string
+		err := narrow(q.NewSelect().Table("workspaces").Column("id").
+			Where("suspended_reason = ?", SuspendedUnverified)).
+			Order("created_at", "id").
+			Scan(ctx, &ids)
+		if err != nil || len(ids) == 0 {
+			return err
+		}
+		_, err = q.NewUpdate().Table("workspaces").
+			Set("suspended_at = NULL").
+			Set("suspended_reason = NULL").
+			Set("updated_at = ?", time.Now().UTC()).
+			Where("id IN (?)", bun.In(ids)).
+			Where("suspended_reason = ?", SuspendedUnverified).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+		// The workspace's monitors start to run now, as a monitor that was just saved or resumed does:
+		// the stale-monitor watchdog counts from the later of the heartbeat and updated_at, so a monitor
+		// made days ago and never checked is not stale on the first look
+		_, err = q.NewUpdate().Table("monitors").
+			Set("updated_at = ?", time.Now().UTC()).
+			Where("workspace_id IN (?)", bun.In(ids)).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+		lifted = make([]ID, len(ids))
+		for i, id := range ids {
+			lifted[i] = ID(id)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return lifted, nil
 }

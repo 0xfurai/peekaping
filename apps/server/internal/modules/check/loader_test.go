@@ -145,6 +145,18 @@ func TestLoader_SkipsMonitorsThatCantBeChecked(t *testing.T) {
 		assert.Nil(t, job)
 	})
 
+	t.Run("a monitor of a suspended workspace", func(t *testing.T) {
+		mon := activeMonitor()
+		mon.WorkspaceSuspended = true
+		f := newFixture(t, mon)
+
+		job, err := f.loader.Load(context.Background(), monitorID)
+
+		assert.ErrorIs(t, err, ErrWorkspaceSuspended)
+		assert.Nil(t, job)
+		assert.Zero(t, f.heartbeats.reads)
+	})
+
 	t.Run("a monitor that can't be read", func(t *testing.T) {
 		f := newFixture(t, activeMonitor())
 		f.monitors.err = errors.New("database error")
@@ -154,6 +166,7 @@ func TestLoader_SkipsMonitorsThatCantBeChecked(t *testing.T) {
 		assert.ErrorIs(t, err, f.monitors.err)
 		assert.NotErrorIs(t, err, ErrMonitorNotFound)
 		assert.NotErrorIs(t, err, ErrMonitorPaused)
+		assert.NotErrorIs(t, err, ErrWorkspaceSuspended)
 		assert.Nil(t, job)
 	})
 }

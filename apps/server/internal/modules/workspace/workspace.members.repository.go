@@ -31,6 +31,13 @@ type MemberRepository interface {
 	LockOwners(ctx context.Context, id ID) ([]string, error)
 	// UserEmail returns the email of the user's account, or "" for a user that doesn't exist
 	UserEmail(ctx context.Context, userID string) (string, error)
+	// EmailVerified is whether the user's account has a verified email address. It is false for a
+	// user that doesn't exist.
+	EmailVerified(ctx context.Context, userID string) (bool, error)
+	// LockEmailVerified is EmailVerified that, on PostgreSQL, holds the user's row until the
+	// transaction ends: a verification that is in flight is waited for, and one that starts after
+	// waits for this transaction, so it finds what this transaction made
+	LockEmailVerified(ctx context.Context, userID string) (bool, error)
 	// HasMemberWithEmail is whether a member of the workspace has the email, ignoring case
 	HasMemberWithEmail(ctx context.Context, id ID, email string) (bool, error)
 }
@@ -140,4 +147,28 @@ func (r *SQLMemberRepository) UserEmail(ctx context.Context, userID string) (str
 		return "", nil
 	}
 	return email, err
+}
+
+func (r *SQLMemberRepository) EmailVerified(ctx context.Context, userID string) (bool, error) {
+	return r.emailVerified(ctx, userID, false)
+}
+
+func (r *SQLMemberRepository) LockEmailVerified(ctx context.Context, userID string) (bool, error) {
+	return r.emailVerified(ctx, userID, true)
+}
+
+func (r *SQLMemberRepository) emailVerified(ctx context.Context, userID string, lock bool) (bool, error) {
+	if _, err := uuid.Parse(userID); err != nil {
+		return false, nil
+	}
+	var verifiedAt *time.Time
+	q := dbtx.DB(ctx, r.db).NewSelect().Table("users").Column("email_verified_at").Where("id = ?", userID)
+	if lock && r.db.Dialect().Name() == dialect.PG {
+		q = q.For("UPDATE")
+	}
+	err := q.Scan(ctx, &verifiedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	return verifiedAt != nil, err
 }

@@ -107,7 +107,7 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 		ServiceName: "peekaping:apitest",
 	}
 	if cloudRun() {
-		cloudConfig(cfg)
+		cloudConfig(t, cfg)
 	}
 	for _, option := range options {
 		option(cfg)
@@ -200,6 +200,10 @@ func (a *app) registerAdmin(t *testing.T) {
 		"email": adminEmail, "password": adminPassword,
 	}), http.StatusCreated)
 	a.accessToken = registered.AccessToken
+	if a.cfg.SignupOpen() {
+		// An open signup's workspace is suspended until the email is verified (PP-155)
+		a.verifyEmailDirectly(t, adminEmail)
+	}
 
 	created := decode[struct {
 		Token string `json:"token"`

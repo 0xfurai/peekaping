@@ -70,7 +70,7 @@ func newService(db *bun.DB, repo auth.Repository, tokens *auth.TokenMaker, logge
 	transactor := dbtx.NewSQLTransactor(db)
 	workspaces := workspace.NewSQLRepository(db)
 	invites := workspace.NewService(workspaces, workspace.NewSQLMemberRepository(db), workspace.NewSQLInviteRepository(db),
-		transactor, eventstest.NewBus(), &config.Config{ClientURL: "http://localhost:3000"}, nil, logger)
+		transactor, eventstest.NewBus(), &config.Config{ClientURL: "http://localhost:3000"}, nil, nil, logger)
 	return auth.NewService(repo, transactor, workspaces, invites, tokens, nil, logger)
 }
 
@@ -454,7 +454,7 @@ func (h *harness) invitedBy(t *testing.T, email string) string {
 	require.NoError(t, err)
 	require.NotNil(t, first)
 	invites := workspace.NewService(workspaces, workspace.NewSQLMemberRepository(h.db), workspace.NewSQLInviteRepository(h.db),
-		dbtx.NewSQLTransactor(h.db), eventstest.NewBus(), &config.Config{ClientURL: "http://localhost:3000"}, nil, zap.NewNop().Sugar())
+		dbtx.NewSQLTransactor(h.db), eventstest.NewBus(), &config.Config{ClientURL: "http://localhost:3000"}, nil, nil, zap.NewNop().Sugar())
 	created, err := invites.CreateInvite(workspace.WithContext(ctx, first.ID, workspace.RoleOwner), "", email, workspace.RoleMember)
 	require.NoError(t, err)
 	return created.Token

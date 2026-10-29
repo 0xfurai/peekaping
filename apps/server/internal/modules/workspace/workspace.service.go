@@ -67,6 +67,13 @@ type Service interface {
 	CreateWorkspace(ctx context.Context, userID, name string) (*Membership, error)
 }
 
+// MonitorWaker makes the scheduler and the probes pick up the monitors of a workspace whose
+// suspension was lifted. monitor.Service is one; the monitor module imports this one, so the
+// wiring joins them.
+type MonitorWaker interface {
+	PublishActiveUpdated(ctx context.Context, workspaceID ID) error
+}
+
 type ServiceImpl struct {
 	workspaces Repository
 	members    MemberRepository
@@ -74,7 +81,11 @@ type ServiceImpl struct {
 	transactor dbtx.Transactor
 	bus        events.EventBus
 	clientURL  string
+	// signupOpen is SIGNUP_MODE=open: a workspace made by a user whose email is not verified is
+	// suspended, as the one their signup made is
+	signupOpen bool
 	mailer     *mailer.Mailer
+	monitors   MonitorWaker
 	logger     *zap.SugaredLogger
 	now        func() time.Time
 }
@@ -87,6 +98,7 @@ func NewService(
 	bus events.EventBus,
 	cfg *config.Config,
 	mailer *mailer.Mailer,
+	monitors MonitorWaker,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
@@ -96,7 +108,9 @@ func NewService(
 		transactor: transactor,
 		bus:        bus,
 		clientURL:  cfg.ClientURL,
+		signupOpen: cfg.SignupOpen(),
 		mailer:     mailer,
+		monitors:   monitors,
 		logger:     logger.Named("[workspace-service]"),
 		now:        time.Now,
 	}
@@ -127,6 +141,7 @@ func (s *ServiceImpl) ChangeRole(ctx context.Context, userID string, role Role) 
 		return nil, err
 	}
 	var changed *Member
+	var lifted []ID
 	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		target, owners, err := s.targetAndOwners(ctx, id, userID)
 		if err != nil {
@@ -141,12 +156,29 @@ func (s *ServiceImpl) ChangeRole(ctx context.Context, userID string, role Role) 
 		updated := *target
 		updated.Role = role
 		changed = &updated
-		return nil
+		if role == RoleOwner {
+			lifted, err = s.liftForNewOwner(ctx, id, userID)
+		}
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
+	s.wake(ctx, lifted)
 	return changed, nil
+}
+
+// liftForNewOwner ends the workspace's unverified suspension, inside the transaction that made
+// userID one of its owners, when an owner has a verified email address. The new owner's row is
+// held before the lift reads, as CreateWorkspace does: on PostgreSQL a verification in flight that committed after
+// the lift's read would otherwise find the owner role uncommitted and lift nothing, and the
+// workspace would stay suspended for good. Now it is either seen by the lift or waits for the
+// commit, and then finds the owner.
+func (s *ServiceImpl) liftForNewOwner(ctx context.Context, id ID, userID string) ([]ID, error) {
+	if _, err := s.members.LockEmailVerified(ctx, userID); err != nil {
+		return nil, err
+	}
+	return s.workspaces.LiftUnverifiedWithVerifiedOwner(ctx, id)
 }
 
 func (s *ServiceImpl) RemoveMember(ctx context.Context, userID string) error {
@@ -193,6 +225,20 @@ func (s *ServiceImpl) Leave(ctx context.Context, userID string) error {
 	}
 	s.announceLeft(ctx, id, userID)
 	return nil
+}
+
+// wake has the scheduler and the probes pick up the monitors of workspaces whose suspension a
+// change of owners lifted: the monitors were not changed, so nothing else would tell them. A failure
+// is logged and does not undo the change.
+func (s *ServiceImpl) wake(ctx context.Context, lifted []ID) {
+	if s.monitors == nil {
+		return
+	}
+	for _, id := range lifted {
+		if err := s.monitors.PublishActiveUpdated(ctx, id); err != nil {
+			s.logger.Errorw("Failed to wake the monitors of a workspace that is no longer suspended", "workspaceId", id, "error", err)
+		}
+	}
 }
 
 // targetAndOwners reads the member a change is about and the workspace's owners, which are locked
@@ -338,6 +384,7 @@ func (s *ServiceImpl) PreviewInvite(ctx context.Context, token string) (*InviteP
 
 func (s *ServiceImpl) AcceptInvite(ctx context.Context, token, userID string) (*Membership, error) {
 	var joined *Membership
+	var lifted []ID
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		invite, err := s.lookupInvite(ctx, token)
 		if err != nil {
@@ -378,11 +425,15 @@ func (s *ServiceImpl) AcceptInvite(ctx context.Context, token, userID string) (*
 			Role:      invite.Role,
 			JoinedAt:  now,
 		}
-		return nil
+		if invite.Role == RoleOwner {
+			lifted, err = s.liftForNewOwner(ctx, invite.WorkspaceID, userID)
+		}
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
+	s.wake(ctx, lifted)
 	return joined, nil
 }
 
@@ -432,12 +483,43 @@ func (s *ServiceImpl) lookupInvite(ctx context.Context, token string) (*Invite, 
 func (s *ServiceImpl) CreateWorkspace(ctx context.Context, userID, name string) (*Membership, error) {
 	var created *Membership
 	err := s.transactor.WithTx(ctx, func(ctx context.Context) error {
-		made, err := s.workspaces.Create(ctx, strings.TrimSpace(name))
+		// In an open install a user must verify their email before any workspace of theirs runs: one
+		// made by a user who has not is suspended, so that making workspaces is no way round it
+		suspend := false
+		if s.signupOpen {
+			verified, err := s.members.EmailVerified(ctx, userID)
+			if err != nil {
+				return err
+			}
+			suspend = !verified
+		}
+		var made *Workspace
+		var err error
+		if suspend {
+			made, err = s.workspaces.CreateSuspended(ctx, strings.TrimSpace(name), SuspendedUnverified)
+		} else {
+			made, err = s.workspaces.Create(ctx, strings.TrimSpace(name))
+		}
 		if err != nil {
 			return err
 		}
 		if err := s.workspaces.AddMember(ctx, made.ID, userID, RoleOwner); err != nil {
 			return err
+		}
+		if suspend {
+			// The read above may be stale: a verification that committed since found no workspace of
+			// the user to lift, and would leave this one suspended for good. Read again with the user's
+			// row held, so that a verification either is seen now or waits for this workspace.
+			verified, err := s.members.LockEmailVerified(ctx, userID)
+			if err != nil {
+				return err
+			}
+			if verified {
+				if _, err := s.workspaces.LiftUnverifiedOwnedBy(ctx, userID); err != nil {
+					return err
+				}
+				made.SuspendedAt, made.SuspendedReason = nil, ""
+			}
 		}
 		created = &Membership{Workspace: *made, Role: RoleOwner, JoinedAt: made.CreatedAt}
 		return nil

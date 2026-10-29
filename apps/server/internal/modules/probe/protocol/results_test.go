@@ -356,6 +356,19 @@ func TestResults_AcceptsAResultOfAMonitorTheListingSkipped(t *testing.T) {
 	assert.Equal(t, []string{monSkipped}, s.monitors.finds)
 }
 
+// A result a probe sends for a monitor whose workspace was suspended since it was dealt is dropped
+// for good, as a monitor that is no longer its own is (PP-155)
+func TestResults_RejectsAResultOfAMonitorWhoseWorkspaceIsSuspended(t *testing.T) {
+	s := newResultsServer(t)
+	s.monitors.byID[monSkipped].WorkspaceSuspended = true
+	start := time.Now().UTC().Add(-time.Minute)
+
+	got := s.results(t, checkResult("held", monSkipped, start), checkResult("control", monCheckout, start.Add(time.Second)))
+
+	assert.Equal(t, []probeproto.ResultOutcome{rejected("held", probeproto.ReasonNotAssigned), accepted("control")}, got)
+	assert.Empty(t, s.ingest.storedFor(monSkipped))
+}
+
 // An instance can be replaced to make room for a new one, or pruned, between the middleware's stamp
 // and the results handler. It has to say hello again, and stores nothing meanwhile.
 func TestResults_AnInstanceThatIsGoneMustSayHello(t *testing.T) {

@@ -14,9 +14,22 @@ import (
 // an account or not
 const forgotPasswordMessage = "If an account exists for this email address, a link to reset the password is on its way"
 
-// AuthConfig tells the app, before anyone signs in, whether the install sends account emails
+// AuthConfig tells the app, before anyone signs in, whether the install sends account emails and
+// who may sign up
 func (c *Controller) AuthConfig(ctx context.Context, _ *AuthConfigInput) (*httpx.Output[utils.ApiResponse[*AuthConfigResponse]], error) {
-	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Auth config retrieved successfully", &AuthConfigResponse{AccountEmails: c.accounts.Enabled()}))
+	first, err := c.signup.FirstSignup(ctx)
+	if err != nil {
+		c.logger.Errorw("Failed to tell whether the install has a user", "error", err)
+		return nil, httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	// The sign-up form is offered always in open mode, and in invite mode to the first user
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Auth config retrieved successfully", &AuthConfigResponse{
+		AccountEmails:    c.accounts.Enabled(),
+		SignupMode:       c.signup.Mode(),
+		SignupOpen:       c.signup.Open() || first,
+		FirstSignup:      first,
+		TurnstileSiteKey: c.signup.TurnstileSiteKey(),
+	}))
 }
 
 // clientKey is what a per-client limit counts a request under: its client address. When the address

@@ -295,6 +295,22 @@ func TestWatchdog_ForgetsMonitorsThatWerePausedOrDeleted(t *testing.T) {
 	assert.Empty(t, f.published(MonitorStaleRecovered), "a paused monitor wasn't checked again")
 }
 
+func TestWatchdog_ForgetsAMonitorWhoseWorkspaceWasSuspended(t *testing.T) {
+	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
+	f := newWatchdogFixture(t)
+	held := testMonitor("held", 60, 10, now.Add(-time.Hour))
+	held.WorkspaceSuspended = true
+	f.monitors.byID["held"] = held // the paged listing leaves it out, and the read by id says why
+	require.NoError(t, f.store.Put(context.Background(), Entry{MonitorID: "held", Since: now.Add(-time.Hour), DetectedAt: now.Add(-time.Minute), Notified: true}))
+
+	f.run(t)
+
+	count, err := f.store.Count(context.Background())
+	require.NoError(t, err)
+	assert.Zero(t, count)
+	assert.Empty(t, f.published(MonitorStaleRecovered), "a suspended monitor wasn't checked again")
+}
+
 func TestWatchdog_SavingANotifiedMonitorIsNotARecovery(t *testing.T) {
 	now := time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC)
 	mon := testMonitor("silent", 60, 10, now.Add(-time.Hour))

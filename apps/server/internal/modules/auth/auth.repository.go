@@ -11,8 +11,8 @@ var ErrAdminExists = errors.New("admin already exists")
 // ErrUserNotFound is for a request about a user that does not exist
 var ErrUserNotFound = errors.New("user not found")
 
-// ErrEmailTaken is returned by Register for an invite whose email already has an account, in any
-// case: that user signs in and accepts the invite instead.
+// ErrEmailTaken is returned by Register for an email that already has an account, in any case. With
+// an invite, that user signs in and accepts the invite instead.
 var ErrEmailTaken = errors.New("an account with this email exists: sign in and accept the invite")
 
 type Repository interface {
@@ -27,5 +27,8 @@ type Repository interface {
 	FindByEmailIgnoringCase(ctx context.Context, email string) (*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
 	FindAllCount(ctx context.Context) (int64, error)
+	// AnyUser is whether the install has a user. It reads at most one row, where FindAllCount
+	// counts them all.
+	AnyUser(ctx context.Context) (bool, error)
 	Update(ctx context.Context, id string, entity *UpdateModel) error
 }

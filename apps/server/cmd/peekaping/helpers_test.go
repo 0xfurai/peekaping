@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -12,6 +13,7 @@ import (
 	"net/http/httptrace"
 	"net/url"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -39,10 +41,28 @@ const (
 	adminPassword = "Correct-horse-1"
 	// wait is how long a test waits for something the app does on its own
 	wait = 10 * time.Second
+	// connectWait is how long a socket waits for the answer to its socket.io CONNECT before it
+	// dials again (see dialWebsocket)
+	connectWait = 2 * time.Second
 )
 
 // loadConfig loads peekaping's config from the environment, with a SQLite database of its own,
 // changed by env. The REDIS_* variables, WEB_DIR and API_URL are unset unless env sets them.
+// testHTTP makes the tests' requests to peekaping, each bound by a timeout: a request peekaping
+// never answers fails its test with the goroutines' stacks instead of hanging until the Go test
+// timeout, which CI's job limit can beat, leaving no stack at all
+var testHTTP = &http.Client{Timeout: 3 * wait}
+
+// pollHTTP makes the socket clients' long polls, which the server answers at the latest with its
+// next ping, 25 seconds away
+var pollHTTP = &http.Client{Timeout: time.Minute}
+
+// goroutines returns the stacks of every goroutine, for a test that gave up waiting
+func goroutines() string {
+	buf := make([]byte, 8<<20)
+	return string(buf[:runtime.Stack(buf, true)])
+}
+
 func loadConfig(t *testing.T, env map[string]string) *Config {
 	t.Helper()
 	validation.RegisterCustomValidators()
@@ -116,7 +136,7 @@ func startPeekaping(t testing.TB, cfg *Config, logger *zap.SugaredLogger, logs *
 
 	deadline := time.Now().Add(wait)
 	for {
-		resp, err := http.Get(in.url + "/api/v1/health")
+		resp, err := testHTTP.Get(in.url + "/api/v1/health")
 		if err == nil {
 			_ = resp.Body.Close()
 			if resp.StatusCode == http.StatusOK {
@@ -225,8 +245,11 @@ func (in *instance) request(t testing.TB, method, path string, body any) (int, [
 	if in.accessToken != "" {
 		req.Header.Set("Authorization", "Bearer "+in.accessToken)
 	}
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
+	resp, err := testHTTP.Do(req)
+	if err != nil {
+		// the stacks only on failure: collecting them takes an 8 MiB buffer per call
+		require.NoError(t, err, "%s %s\n%s", method, path, goroutines())
+	}
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
@@ -342,8 +365,12 @@ var socketHTTP = &http.Client{Timeout: 10 * time.Second}
 // socketClient speaks Engine.IO v4 long polling, the transport a socket.io client starts with.
 // A reader keeps one long poll open, answers pings, and passes on the socket.io events.
 type socketClient struct {
+	t       testing.TB
 	url     string
 	packets chan string
+	// stop ends the reader's long poll
+	stop context.CancelFunc
+	ctx  context.Context
 	// polls counts the long polls that got an answer
 	polls atomic.Int64
 	// pollStart is when the long poll that is open now was written to the connection, in Unix
@@ -369,8 +396,23 @@ func (in *instance) socketConnect(t *testing.T) string {
 }
 
 // dialSocket opens a socket.io session with the admin's access token. The test's cleanup closes
-// it.
+// it. A CONNECT that gets no answer is dialed again, as for dialWebsocket.
 func (in *instance) dialSocket(t *testing.T) *socketClient {
+	t.Helper()
+	deadline := time.Now().Add(wait)
+	for {
+		if c := in.trySocket(t); c != nil {
+			t.Cleanup(c.close)
+			return c
+		}
+		require.True(t, time.Now().Before(deadline), "no CONNECT within %s\n%s", wait, goroutines())
+		t.Logf("no CONNECT within %s, dialing again", connectWait)
+	}
+}
+
+// trySocket opens a long-polling session and sends its CONNECT. It returns the client once the
+// CONNECT is answered, or closes the session and returns nil when it isn't within connectWait.
+func (in *instance) trySocket(t *testing.T) *socketClient {
 	t.Helper()
 	query := url.Values{"EIO": {"4"}, "transport": {"polling"}}
 	base := in.url + "/socket.io/?" + query.Encode()
@@ -385,18 +427,20 @@ func (in *instance) dialSocket(t *testing.T) *socketClient {
 	}
 	require.NoError(t, json.Unmarshal(body[1:], &open))
 
-	c := &socketClient{url: base + "&sid=" + url.QueryEscape(open.SID), packets: make(chan string, 256)}
+	c := &socketClient{t: t, url: base + "&sid=" + url.QueryEscape(open.SID), packets: make(chan string, 256)}
+	c.ctx, c.stop = context.WithCancel(context.Background())
 	require.NoError(t, c.post(in.socketConnect(t)))
 	go c.read()
-	t.Cleanup(c.close)
 
 	select {
-	case packet := <-c.packets:
+	case packet, ok := <-c.packets:
+		require.True(t, ok, "the session ended before its CONNECT was answered")
 		require.True(t, strings.HasPrefix(packet, "40"), "expected CONNECT, got %s", packet)
-	case <-time.After(wait):
-		require.FailNow(t, "no CONNECT within "+wait.String())
+		return c
+	case <-time.After(connectWait):
+		c.close()
+		return nil
 	}
-	return c
 }
 
 func (c *socketClient) post(packet string) error {
@@ -421,11 +465,11 @@ func (c *socketClient) read() {
 		trace := &httptrace.ClientTrace{WroteRequest: func(httptrace.WroteRequestInfo) {
 			c.pollStart.Store(time.Now().UnixNano())
 		}}
-		req, err := http.NewRequestWithContext(httptrace.WithClientTrace(context.Background(), trace), http.MethodGet, c.url, nil)
+		req, err := http.NewRequestWithContext(httptrace.WithClientTrace(c.ctx, trace), http.MethodGet, c.url, nil)
 		if err != nil {
 			return
 		}
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := pollHTTP.Do(req)
 		if err != nil {
 			return
 		}
@@ -450,21 +494,56 @@ func (c *socketClient) read() {
 	}
 }
 
-// close ends the session, which answers its open long poll
+// close ends the session and waits for the reader to stop. The close doesn't always answer the
+// reader's long poll: one the server takes in while the session closes is never answered, and
+// would hold the reader until the server stops, which the test's cleanup does only after this. So
+// the reader's poll is ended here.
 func (c *socketClient) close() {
 	_ = c.post("1")
-	for range c.packets {
+	c.stop()
+	deadline := time.After(pollHTTP.Timeout + wait)
+	for {
+		select {
+		case _, ok := <-c.packets:
+			if !ok {
+				return
+			}
+		case <-deadline:
+			c.t.Errorf("the socket's reader didn't stop after the session was closed\n%s", goroutines())
+			return
+		}
 	}
 }
 
 // dialWebsocket opens a socket.io session over a websocket, the transport a socket.io client
 // upgrades to, with the admin's access token. The test's cleanup closes it.
+//
+// socket.io (zishang520/socket.io v2.4.11 on engine.io v2.5.0) can drop a CONNECT that comes right
+// after the OPEN: the transport reads from the connection before the handshake has given the
+// session to socket.io, so a CONNECT read in between reaches no listener and is never answered.
+// A socket.io client gives up after its connect timeout and connects again; so does this one,
+// after connectWait, on a new connection.
 func (in *instance) dialWebsocket(t *testing.T) *gorilla.Conn {
+	t.Helper()
+	deadline := time.Now().Add(wait)
+	for {
+		if conn := in.tryWebsocket(t); conn != nil {
+			t.Cleanup(func() { _ = conn.Close() })
+			require.NoError(t, conn.SetReadDeadline(time.Now().Add(wait)))
+			return conn
+		}
+		require.True(t, time.Now().Before(deadline), "no CONNECT within %s\n%s", wait, goroutines())
+		t.Logf("no CONNECT within %s, dialing again", connectWait)
+	}
+}
+
+// tryWebsocket opens a websocket session and sends its CONNECT. It returns the connection once the
+// CONNECT is answered, or closes it and returns nil when it isn't within connectWait.
+func (in *instance) tryWebsocket(t *testing.T) *gorilla.Conn {
 	t.Helper()
 	query := url.Values{"EIO": {"4"}, "transport": {"websocket"}}
 	conn, resp, err := gorilla.DefaultDialer.Dial("ws"+strings.TrimPrefix(in.url, "http")+"/socket.io/?"+query.Encode(), nil)
 	require.NoError(t, err)
-	t.Cleanup(func() { _ = conn.Close() })
 	require.Equal(t, http.StatusSwitchingProtocols, resp.StatusCode)
 	require.NoError(t, conn.SetReadDeadline(time.Now().Add(wait)))
 
@@ -472,7 +551,13 @@ func (in *instance) dialWebsocket(t *testing.T) *gorilla.Conn {
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(open), "0{"), "Engine.IO OPEN: %s", open)
 	require.NoError(t, conn.WriteMessage(gorilla.TextMessage, []byte(in.socketConnect(t))))
+	require.NoError(t, conn.SetReadDeadline(time.Now().Add(connectWait)))
 	_, connect, err := conn.ReadMessage()
+	var netErr net.Error
+	if errors.As(err, &netErr) && netErr.Timeout() {
+		_ = conn.Close()
+		return nil
+	}
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(string(connect), "40"), "socket.io CONNECT: %s", connect)
 	return conn
