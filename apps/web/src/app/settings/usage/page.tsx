@@ -42,18 +42,21 @@ function Row({ row }: { row: UsageRow }) {
   }
 
   const label = t(`limits.names.${row.name}`);
+  const count = t(`usage.count.${row.name}`, { used: row.used, max: row.max });
   return (
     <div data-limit={row.name} className="flex flex-col gap-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-sm font-medium">{label}</span>
-        <span className="text-sm">{t(`usage.count.${row.name}`, { used: row.used, max: row.max })}</span>
+        <span className="text-sm">{count}</span>
       </div>
+      {/* Above a lowered limit the bar stays full, and says the count as it is in words */}
       <div
         role="progressbar"
         aria-label={label}
         aria-valuemin={0}
-        aria-valuenow={row.used}
+        aria-valuenow={Math.min(row.used, row.max)}
         aria-valuemax={row.max}
+        aria-valuetext={count}
         data-level={row.level}
         className="h-2 w-full overflow-hidden rounded-full bg-muted"
       >

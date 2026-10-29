@@ -87,6 +87,18 @@ describe("UsagePage", () => {
     expect(row(html, "status_pages")).toContain(text("usage.reached"));
   });
 
+  it("keeps the bar's value at its maximum when the usage is above a lowered limit", () => {
+    const html = usage("owner", {
+      ...LIMITED,
+      limits: { ...LIMITED.limits, monitors: { max: 20, used: 25, source: "install" } },
+    });
+    expect(row(html, "monitors")).toContain("25 of 20 monitors");
+    expect(row(html, "monitors")).toMatch(
+      /role="progressbar"[^>]*aria-valuenow="20"[^>]*aria-valuemax="20"[^>]*aria-valuetext="25 of 20 monitors"/
+    );
+    expect(row(html, "monitors")).toContain('data-level="reached"');
+  });
+
   it("shows the shortest interval and the retention as values, with no bar", () => {
     const html = usage("owner");
     expect(row(html, "min_check_interval")).toContain(text("usage.labels.min_check_interval"));
