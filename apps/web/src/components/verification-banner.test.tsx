@@ -98,6 +98,23 @@ describe("VerificationBanner in a suspended workspace", () => {
     }
   });
 
+  // Resend sends the member's own link, which does not start the owner's monitors
+  it("tells an unverified member that Resend verifies their own address, beside the owner's notice", () => {
+    for (const role of ["member", "admin"] as const) {
+      const html = inWorkspace({ role, suspendedReason: "unverified", emailVerified: false });
+      expect(html).toContain("This workspace&#x27;s monitors start once its owner verifies their email.");
+      expect(html).toContain(`Verify your email: we sent a link to ${USER_EMAIL}.`);
+      expect(html).toContain(`>${text("auth.resend.button")}<`);
+      expect(html).not.toContain(notice);
+    }
+  });
+
+  it("keeps a single notice for an unverified owner, whose own address is what starts the monitors", () => {
+    const html = inWorkspace({ role: "owner", suspendedReason: "unverified", emailVerified: false });
+    expect(html).toContain(notice);
+    expect(html).not.toContain("Verify your email: we sent a link");
+  });
+
   it("shows the notice in the workspace of the address, not another one", () => {
     const html = renderAs(
       { instanceAdmin: false, role: "owner" },
