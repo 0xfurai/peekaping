@@ -28,6 +28,12 @@ const StartingChannels = () => {
   return <output>{JSON.stringify(form.getValues("notification_ids"))}</output>;
 };
 
+// The type the form starts on
+const StartingType = () => {
+  const { form } = useMonitorFormContext();
+  return <output>{form.getValues("type")}</output>;
+};
+
 const startingChannels = (html: string): string[] => JSON.parse(html.match(/<output>(.*)<\/output>/)![1].replace(/&quot;/g, '"'));
 
 const seedChannels = (list: NotificationChannelModel[] | null) => (queryClient: QueryClient) =>
@@ -95,5 +101,24 @@ describe("The channels a monitor form starts on", () => {
     it("keeps a monitor with none on none", () => {
       expect(startingChannels(edit({ ...monitor, notification_ids: [] }))).toEqual([]);
     });
+  });
+});
+
+describe("The type a new monitor form starts on", () => {
+  const create = (disabledMonitorTypes: string[]) =>
+    renderAs(
+      { instanceAdmin: false, role: "member", disabledMonitorTypes },
+      <MonitorFormProvider mode="create">
+        <StartingType />
+      </MonitorFormProvider>
+    );
+
+  it("is HTTP, the first the Type select lists", () => {
+    expect(create([])).toBe("<output>http</output>");
+  });
+
+  it("is the first type the install doesn't turn off", () => {
+    expect(create(["http"])).toBe("<output>http-keyword</output>");
+    expect(create(["http", "http-keyword", "http-json-query", "docker"])).toBe("<output>tcp</output>");
   });
 });
