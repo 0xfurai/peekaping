@@ -76,15 +76,17 @@ type harness struct {
 	db     *bun.DB
 	userA  string
 	userB  string
-	// connections has a channel for each socket ID, which the server closes when the socket
-	// is connected
+	// connections has a channel for each socket ID, which the server closes when its connection
+	// handler is done with the socket: it has checked the session, and closed the socket if the
+	// session ended
 	connections sync.Map
-	// onConnection, when set, runs in the server's connection handler before the socket's channel
-	// in connections is closed
+	// onConnection, when set, runs first in the server's connection handler
 	onConnection atomic.Pointer[func(id string)]
 }
 
-// connection is the channel the server closes when the socket with the ID has connected
+// connection is the channel the server closes when its connection handler is done with the socket
+// with the ID. A test that changed the user before then could have the handler close the socket
+// for it, where the test meant a join to be refused.
 func (h *harness) connection(id string) chan struct{} {
 	c, _ := h.connections.LoadOrStore(id, make(chan struct{}))
 	return c.(chan struct{})
@@ -131,8 +133,8 @@ func newHarnessWith(t *testing.T, delay, sweep time.Duration) *harness {
 		if hook := h.onConnection.Load(); hook != nil {
 			(*hook)(id)
 		}
-		close(h.connection(id))
 	})
+	websocket.OnConnected(server, func(id string) { close(h.connection(id)) })
 	if sweep != 0 {
 		websocket.SweepEvery(server, sweep)
 	}
