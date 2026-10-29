@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
@@ -243,5 +244,32 @@ func TestRepository_FindByEmailIgnoringCase_FindsTheAccountInAnyCaseAroundSpaces
 		exact, err := repo.FindByEmail(ctx, "alice@example.com")
 		require.NoError(t, err)
 		assert.Nil(t, exact, "FindByEmail, which login uses, stays exact")
+	})
+}
+
+// Two sign-ins can overlap, and the earlier one can commit last; the later time stays.
+func TestRepository_RecordLogin_KeepsTheLaterTime(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, repo auth.Repository) {
+		ctx := context.Background()
+		user, err := repo.Create(ctx, newUser("login@example.com"))
+		require.NoError(t, err)
+
+		later := time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
+		earlier := later.Add(-time.Minute)
+		require.NoError(t, repo.RecordLogin(ctx, user.ID, later))
+		require.NoError(t, repo.RecordLogin(ctx, user.ID, earlier))
+
+		stored, err := repo.FindByID(ctx, user.ID)
+		require.NoError(t, err)
+		require.NotNil(t, stored.LastLoginAt)
+		assert.True(t, later.Equal(*stored.LastLoginAt), "last_login_at is %s, want %s", stored.LastLoginAt, later)
+
+		// A sign-in after it still moves the time forward
+		next := later.Add(time.Minute)
+		require.NoError(t, repo.RecordLogin(ctx, user.ID, next))
+		stored, err = repo.FindByID(ctx, user.ID)
+		require.NoError(t, err)
+		require.NotNil(t, stored.LastLoginAt)
+		assert.True(t, next.Equal(*stored.LastLoginAt), "last_login_at is %s, want %s", stored.LastLoginAt, next)
 	})
 }
