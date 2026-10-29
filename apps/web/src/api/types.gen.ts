@@ -9,6 +9,41 @@ export type AdminAccountSmtpSettingsResponse = {
   user: AdminStringSettingResponse;
 };
 
+export type AdminDefaultLimitsSettingsResponse = {
+  /**
+   * How many custom domains a workspace's status pages may have, together.
+   */
+  custom_domains: AdminLimitSettingResponse;
+  /**
+   * How many members a workspace may have, with its pending invites counted.
+   */
+  members: AdminLimitSettingResponse;
+  /**
+   * The shortest check interval and retry interval of a workspace's monitors, in seconds. MIN_CHECK_INTERVAL applies as well: the stricter wins.
+   */
+  min_check_interval: AdminLimitSettingResponse;
+  /**
+   * How many active monitors a workspace may have.
+   */
+  monitors: AdminLimitSettingResponse;
+  /**
+   * How many workspaces one user may own, counted against this default alone.
+   */
+  owned_workspaces: AdminLimitSettingResponse;
+  /**
+   * How many probes one monitor may run on.
+   */
+  probes_per_monitor: AdminLimitSettingResponse;
+  /**
+   * The longest data retention period a workspace may keep, in days.
+   */
+  retention_days: AdminLimitSettingResponse;
+  /**
+   * How many status pages a workspace may have.
+   */
+  status_pages: AdminLimitSettingResponse;
+};
+
 export type AdminInstallSettingsResponse = {
   /**
    * Whether the install has a sender for account emails: an SMTP host is set.
@@ -17,6 +52,7 @@ export type AdminInstallSettingsResponse = {
   accountSmtp: AdminAccountSmtpSettingsResponse;
   publicUrl: AdminStringSettingResponse;
   signupMode: AdminStringSettingResponse;
+  workspaceLimits: AdminDefaultLimitsSettingsResponse;
 };
 
 export type AdminIntSettingResponse = {
@@ -47,6 +83,25 @@ export type AdminLastOwnerErrorResponse = {
 export type AdminLastOwnerWorkspace = {
   id: string;
   name: string;
+};
+
+export type AdminLimitSettingResponse = {
+  /**
+   * The environment variable that sets it, and locks it when set.
+   */
+  envVar: string;
+  /**
+   * Whether the server's environment sets the value. A locked setting can't be changed here.
+   */
+  locked: boolean;
+  /**
+   * Where the value comes from: the server's environment, saved in the admin area, or the default (none).
+   */
+  source: "environment" | "saved" | "default";
+  /**
+   * The limit, or null for none.
+   */
+  value: number | null;
 };
 
 export type AdminLimitValuesResponse = {
@@ -103,7 +158,7 @@ export type AdminSettingErrorBody = {
     | "SENDER_NEEDED_FOR_OPEN_SIGNUP"
     | "NO_SENDER";
   /**
-   * The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host and the like.
+   * The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors and the like.
    */
   field?: string;
 };
@@ -156,6 +211,41 @@ export type AdminUpdateAccountSmtpDto = {
   user?: string;
 };
 
+export type AdminUpdateDefaultLimitsDto = {
+  /**
+   * How many custom domains a workspace's status pages may have together, 1 or more. Null clears it: no limit.
+   */
+  custom_domains?: number | null;
+  /**
+   * How many members a workspace may have, with its pending invites, 1 or more. Null clears it: no limit.
+   */
+  members?: number | null;
+  /**
+   * The shortest check interval of a workspace's monitors, in seconds: at least MIN_CHECK_INTERVAL. Null clears it: no limit.
+   */
+  min_check_interval?: number | null;
+  /**
+   * How many active monitors a workspace may have, 1 or more. Null clears it: no limit.
+   */
+  monitors?: number | null;
+  /**
+   * How many workspaces one user may own, 1 or more. Null clears it: no limit.
+   */
+  owned_workspaces?: number | null;
+  /**
+   * How many probes one monitor may run on, 1 or more. Null clears it: no limit.
+   */
+  probes_per_monitor?: number | null;
+  /**
+   * The longest data retention period a workspace may keep, 1 to 36500 days. Null clears it: no limit.
+   */
+  retention_days?: number | null;
+  /**
+   * How many status pages a workspace may have, 1 or more. Null clears it: no limit.
+   */
+  status_pages?: number | null;
+};
+
 export type AdminUpdateInstallSettingsDto = {
   accountSmtp?: AdminUpdateAccountSmtpDto | null;
   /**
@@ -166,11 +256,16 @@ export type AdminUpdateInstallSettingsDto = {
    * invite or open. Open needs a sender. Empty clears it (invite).
    */
   signupMode?: string | null;
+  /**
+   * The install's default limits, the limits of a workspace that has none of its own. A limit left out stays as it is, a number saves it and null clears it.
+   */
+  workspaceLimits?: AdminUpdateDefaultLimitsDto | null;
   [key: string]:
     | unknown
     | (AdminUpdateAccountSmtpDto | null)
     | (string | null)
     | (string | null)
+    | (AdminUpdateDefaultLimitsDto | null)
     | undefined;
 };
 
