@@ -4175,6 +4175,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -4220,6 +4231,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -4276,6 +4298,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -4322,6 +4355,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -4380,6 +4424,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6056,6 +6111,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6102,6 +6168,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6150,6 +6227,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6197,6 +6285,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6256,6 +6355,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6315,6 +6425,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6363,6 +6484,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6411,6 +6543,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6524,6 +6667,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6575,6 +6729,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6623,6 +6788,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6671,6 +6847,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6718,6 +6905,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6782,6 +6980,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6846,6 +7055,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6939,6 +7159,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -6987,6 +7218,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7070,6 +7312,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7126,6 +7379,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7174,6 +7438,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7240,6 +7515,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7288,6 +7574,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7337,6 +7634,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7385,6 +7693,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7432,6 +7751,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7493,6 +7823,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -7554,6 +7895,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8066,6 +8418,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8114,6 +8477,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8162,6 +8536,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8209,6 +8594,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8270,6 +8666,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8331,6 +8738,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8450,6 +8868,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8498,6 +8927,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8564,6 +9004,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8630,6 +9081,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8679,6 +9141,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8859,6 +9332,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8906,6 +9390,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -8968,6 +9463,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9034,6 +9540,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Unauthorized
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9086,6 +9603,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9134,6 +9662,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9181,6 +9720,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9246,6 +9796,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9311,6 +9872,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9492,6 +10064,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9540,6 +10123,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9667,6 +10261,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9711,6 +10316,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9752,6 +10368,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Not Found
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9809,6 +10436,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:
@@ -9881,6 +10519,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Conflict
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Too Many Requests
+          headers:
+            Retry-After:
+              description: Seconds to wait before sending the request again.
+              schema:
+                type: integer
         "500":
           content:
             application/json:

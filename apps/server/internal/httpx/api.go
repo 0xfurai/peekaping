@@ -24,8 +24,8 @@ var JWTOnly = []map[string][]string{{"JwtAuth": {}}}
 var SharedAuth = []map[string][]string{{"JwtAuth": {}}, {"ApiKeyAuth": {}}}
 
 // WorkspaceIDHeader is the header that names the workspace a request runs in. A route group whose
-// records belong to a workspace documents it with Router.Document, next to the middleware that
-// reads it.
+// records belong to a workspace documents it with Router.DocumentWorkspace, next to the middleware
+// that reads it.
 var WorkspaceIDHeader = &huma.Param{
 	Name:        "X-Workspace-ID",
 	In:          "header",
@@ -215,7 +215,7 @@ func Register[I, T any](router *Router, method, path string, op huma.Operation, 
 		op.Responses = map[string]*huma.Response{}
 	}
 	// Explicit error responses avoid Huma's Problem Details/422 defaults.
-	for _, status := range op.Errors {
+	for _, status := range append(op.Errors, router.errors...) {
 		if op.Responses[strconv.Itoa(status)] != nil {
 			continue
 		}
