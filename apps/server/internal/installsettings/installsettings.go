@@ -622,7 +622,7 @@ func checkFrom(_ *config.Config, value string) string {
 // value, which is never checked.
 func checkLimit(_ *config.Config, value string) string {
 	if n, err := strconv.Atoi(value); err != nil || n < 1 {
-		return "must be a whole number of 1 or more, or null for no limit"
+		return "must be a whole number of 1 or more"
 	}
 	return ""
 }
@@ -632,7 +632,7 @@ func checkLimit(_ *config.Config, value string) string {
 func checkMinCheckInterval(cfg *config.Config, value string) string {
 	minimum := cfg.MinCheckIntervalSeconds()
 	if n, err := strconv.Atoi(value); err != nil || n < minimum {
-		return fmt.Sprintf("must be at least %d seconds, the install's MIN_CHECK_INTERVAL, or null for no limit", minimum)
+		return fmt.Sprintf("must be at least %d seconds, the install's MIN_CHECK_INTERVAL", minimum)
 	}
 	return ""
 }
@@ -640,7 +640,7 @@ func checkMinCheckInterval(cfg *config.Config, value string) string {
 // checkRetentionDays is checkLimit, and at most MaxRetentionDays
 func checkRetentionDays(_ *config.Config, value string) string {
 	if n, err := strconv.Atoi(value); err != nil || n < 1 || n > MaxRetentionDays {
-		return fmt.Sprintf("must be a number of days from 1 to %d, or null for no limit", MaxRetentionDays)
+		return fmt.Sprintf("must be a number of days from 1 to %d", MaxRetentionDays)
 	}
 	return ""
 }
