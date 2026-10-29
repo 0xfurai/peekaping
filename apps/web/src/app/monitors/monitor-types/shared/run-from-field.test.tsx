@@ -65,6 +65,16 @@ describe("Run from, for someone who isn't an instance admin", () => {
     ]);
   });
 
+  // A screen reader names the checkboxes' group by the field's heading
+  it("is a group named by its heading", () => {
+    const html = create(member, [local, eu], { probe_ids: ["local"] });
+    const group = html.match(/<div[^>]*data-testid="monitor-run-from"[^>]*>/)?.[0] ?? "";
+    expect(group).toContain('role="group"');
+    const labelledBy = group.match(/aria-labelledby="([^"]+)"/)?.[1];
+    expect(labelledBy).toBeTruthy();
+    expect(html).toMatch(new RegExp(`<label[^>]*id="${labelledBy}"[^>]*>${text("monitors.form.shared.run_from.label")}</label>`));
+  });
+
   it("shows no status, instance, link or advanced option of the probe", () => {
     const html = create(member, [local, eu], { probe_ids: ["local"] });
     expect(html).not.toContain("secret-host.internal");
@@ -108,6 +118,23 @@ describe("Run from, for someone who isn't an instance admin", () => {
         ["Berlin", true],
         ["Virginia · US East", true],
       ]);
+    });
+
+    it("can move off a disabled probe to the one probe left, which the list then shows", () => {
+      const paused = probe("paused", { name: "Paused", supported_types: ["http"], disabled: true });
+      const onPaused = { ...monitor, probe_ids: ["paused"] };
+      const html = renderAs(
+        member,
+        <MonitorFormProvider mode="edit" monitorId="m1" initialValues={deserializeMonitor(onPaused as never)}>
+          <CreateEditForm />
+        </MonitorFormProvider>,
+        undefined,
+        (queryClient) => {
+          queryClient.setQueryData(getProbesQueryKey(), { data: [paused, us] });
+          queryClient.setQueryData(getMonitorsByIdQueryKey({ path: { id: "m1" } }), { data: onPaused });
+        }
+      );
+      expect(boxes(html)).toEqual([["Virginia · US East", false]]);
     });
 
     it("doesn't say it runs on the default locations when none is ticked, since that keeps its probes", () => {
