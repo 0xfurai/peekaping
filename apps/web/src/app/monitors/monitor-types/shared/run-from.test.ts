@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProbeProbeResponse } from "@/api/types.gen";
-import { runFromAfterTypeChange, runFromChoices, runFromDefaultIds, toggleRunFrom } from "./run-from";
+import { runFromAfterTypeChange, runFromChoices, runFromDefaultIds, runFromFormIds, toggleRunFrom } from "./run-from";
 
 const probe = (id: string, over: Partial<ProbeProbeResponse> = {}): ProbeProbeResponse => ({
   id,
@@ -86,8 +86,39 @@ describe("runFromDefaultIds", () => {
     expect(runFromDefaultIds([eu], "http")).toEqual(["eu"]);
   });
 
-  it("is the local probe before the probes load", () => {
-    expect(runFromDefaultIds([], "http")).toEqual(["local"]);
+  // Before the probes load, or when the probes query fails, a new monitor is sent without probes
+  // and the server puts it on the install's default ones
+  it("is none before the probes load", () => {
+    expect(runFromDefaultIds([], "http")).toEqual([]);
+  });
+});
+
+describe("runFromFormIds", () => {
+  const fresh = { presets: true, typeChanged: false, typeIsSaved: false };
+  const saved = { presets: false, typeChanged: false, typeIsSaved: true };
+
+  // The form starts on the local probe; with no probe data the create form is still enabled
+  it("leaves a new monitor on no probe while there is no probe data", () => {
+    expect(runFromFormIds([], "http", ["local"], fresh)).toEqual([]);
+  });
+
+  it("puts a new monitor on the default probes once they load", () => {
+    expect(runFromFormIds([local, eu, us], "http", [], fresh)).toEqual(["local", "us"]);
+  });
+
+  it("keeps a saved monitor's probes while there is no probe data", () => {
+    expect(runFromFormIds([], "http", ["eu", "us"], saved)).toBeUndefined();
+    expect(runFromFormIds([], "tcp", ["eu", "us"], { ...saved, typeChanged: true, typeIsSaved: false })).toBeUndefined();
+  });
+
+  it("keeps a saved monitor's probes while its type does", () => {
+    expect(runFromFormIds([local, eu, us], "http", ["eu", "us"], saved)).toBeUndefined();
+  });
+
+  it("drops the probes that don't run a new type", () => {
+    expect(runFromFormIds([local, eu, us], "tcp", ["eu", "us"], { ...saved, typeChanged: true, typeIsSaved: false })).toEqual([
+      "eu",
+    ]);
   });
 });
 
