@@ -23,6 +23,9 @@ type DBConfig struct {
 }
 
 type Config struct {
+	// Environment remembers which variables the environment set, for the install settings
+	Environment
+
 	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
 
@@ -148,7 +151,9 @@ type Config struct {
 	// Account emails: password reset, email verification and invites are sent by one sender for
 	// the whole install. With ACCOUNT_SMTP_HOST unset (the default) they are off: the app shows
 	// no "Forgot password" link and no verification banner, and invites are copied, not emailed.
-	// ACCOUNT_SMTP_FROM is required when the host is set, which ValidateAccountSMTP checks.
+	// ACCOUNT_SMTP_FROM is required when the host is set, which ValidateAccountSMTP checks. These are
+	// install settings: read them through installsettings.Resolver, which also takes the sender an
+	// instance admin saved when the variables are unset.
 	AccountSMTPHost     string `env:"ACCOUNT_SMTP_HOST"`
 	AccountSMTPPort     int    `env:"ACCOUNT_SMTP_PORT" validate:"min=1,max=65535" default:"587"`
 	AccountSMTPUser     string `env:"ACCOUNT_SMTP_USER"`
@@ -161,7 +166,8 @@ type Config struct {
 	// Who may create an account (PP-155, docs/adr/0005 section 11): "invite" (the default) lets the
 	// first user sign up and everyone after join through an invite, "open" lets anyone sign up and
 	// gives each a workspace of their own. Checked by ValidateSignup, which also requires a sender
-	// for account emails in open mode. Empty counts as invite.
+	// for account emails in open mode. Empty counts as invite. An install setting: read it through
+	// installsettings.Resolver.
 	SignupMode string `env:"SIGNUP_MODE" default:"invite"`
 	// SignupTurnstileSiteKey and SignupTurnstileSecret turn on Cloudflare Turnstile for open signup:
 	// both or neither. The site key is public (the web app shows the widget with it); the secret
@@ -210,6 +216,12 @@ type Config struct {
 	// install (PP-372): free text, an email address or a URL, shown in the suspension banner and
 	// returned by GET /me. Unset, the banner says nothing about how.
 	SupportContact string `env:"SUPPORT_CONTACT"`
+
+	// InstallSettingsCacheLifetime is how long a process keeps the install settings it read from the
+	// database (package installsettings), so a change saved on another api replica takes effect
+	// within it. It has no environment variable: it is installsettings.DefaultCacheLifetime unless a
+	// test shortens it.
+	InstallSettingsCacheLifetime time.Duration
 }
 
 // AbsoluteMinCheckInterval is the shortest check interval, in seconds, that any install allows:
@@ -301,6 +313,8 @@ func LoadConfig[T any](path string) (config T, err error) {
 
 	// Override with environment variables (takes precedence)
 	envVarsFromEnv := loadFromEnv(&config)
+	// The install settings tell a value the environment set from a default (see Environment)
+	recordEnvironment(&config, envVarsFromFile, envVarsFromEnv)
 
 	// Apply default values for fields that weren't set
 	defaultsApplied := applyDefaults(&config)

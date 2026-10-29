@@ -1,7 +1,8 @@
 // Package mailer sends the emails an account gets: a password reset link, an email verification
 // link and a workspace invite. They all go out from one sender for the whole install, set by the
-// ACCOUNT_SMTP_* settings. Without ACCOUNT_SMTP_HOST the mailer is off (Enabled is false) and the
-// app offers nothing that needs email.
+// ACCOUNT_SMTP_* variables or saved by an instance admin (package installsettings), and read at each
+// send. Without a host the mailer is off (Enabled is false) and the app offers nothing that needs
+// email.
 //
 // The SMTP notification channels have SMTP settings of their own, per channel. They share the client
 // (internal/smtpclient) and nothing else with this. The install email channel is the exception: it
@@ -31,13 +32,14 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/smtpclient"
 
 	"go.uber.org/zap"
 )
 
 // ErrDisabled is what Send returns when the install has no sender
-var ErrDisabled = errors.New("account emails are off: ACCOUNT_SMTP_HOST is not set")
+var ErrDisabled = errors.New("account emails are off: the install has no sender")
 
 // deliverTimeout is how long a background send may take before it is given up on
 const deliverTimeout = 30 * time.Second
@@ -45,52 +47,85 @@ const deliverTimeout = 30 * time.Second
 // sendFunc is smtpclient.Send; tests replace it
 type sendFunc func(ctx context.Context, server smtpclient.Server, from string, to []string, msg []byte) error
 
+// Settings gives the install's sender at the moment of a send, or nil when it has none.
+// *installsettings.Resolver is one: the environment's sender, else the one an instance admin saved.
+type Settings interface {
+	AccountSMTP(ctx context.Context) *installsettings.AccountSMTP
+}
+
 type Mailer struct {
-	server smtpclient.Server
-	// from is the sender; empty when the mailer is off
-	from   *mail.Address
-	send   sendFunc
-	logger *zap.SugaredLogger
-	now    func() time.Time
+	settings Settings
+	send     sendFunc
+	logger   *zap.SugaredLogger
+	now      func() time.Time
 
 	pending sync.WaitGroup
 	running atomic.Int64
 }
 
-// New builds the mailer the config describes. The config was validated at startup
-// (config.ValidateAccountSMTP), so a sender that does not parse leaves the mailer off, and says
-// so in the log.
+// sender is where one send goes and from whom
+type sender struct {
+	server smtpclient.Server
+	from   *mail.Address
+}
+
+// New builds a mailer with the sender the config describes, and nothing saved. Tests use it; the
+// app's mailer is NewFrom the install settings.
 func New(cfg *config.Config, logger *zap.SugaredLogger) *Mailer {
-	m := &Mailer{send: smtpclient.Send, logger: logger.Named("[mailer]"), now: time.Now}
-	if !cfg.AccountEmailsEnabled() {
-		return m
+	m := NewFrom(installsettings.Static(cfg), logger)
+	if s := m.settings.AccountSMTP(context.Background()); s != nil {
+		if _, err := mail.ParseAddress(s.From); err != nil {
+			m.logger.Errorw("ACCOUNT_SMTP_FROM is not an email address: account emails stay off", "error", err)
+		}
 	}
-	from, err := mail.ParseAddress(cfg.AccountSMTPFrom)
-	if err != nil {
-		m.logger.Errorw("ACCOUNT_SMTP_FROM is not an email address: account emails stay off", "error", err)
-		return m
-	}
-	var auth smtp.Auth
-	if cfg.AccountSMTPUser != "" {
-		auth = smtp.PlainAuth("", cfg.AccountSMTPUser, cfg.AccountSMTPPassword, cfg.AccountSMTPHost)
-	}
-	mode := smtpclient.TLSMode(cfg.AccountSMTPTLS)
-	if mode == "" {
-		mode = smtpclient.StartTLS
-	}
-	m.server = smtpclient.Server{Host: strings.TrimSpace(cfg.AccountSMTPHost), Port: cfg.AccountSMTPPort, Auth: auth, TLS: mode}
-	m.from = from
 	return m
 }
 
-// Enabled is whether the install has a sender. When it is not, Send and Deliver do nothing.
-func (m *Mailer) Enabled() bool { return m != nil && m.from != nil }
+// NewFrom builds a mailer that reads the sender from settings at each send, so that a sender an
+// instance admin saves, changes or removes takes effect without a restart
+func NewFrom(settings Settings, logger *zap.SugaredLogger) *Mailer {
+	return &Mailer{settings: settings, send: smtpclient.Send, logger: logger.Named("[mailer]"), now: time.Now}
+}
+
+// sender is the install's sender now. The settings were validated when they were set (at startup,
+// or by installsettings when saved), so a sender whose address does not parse counts as none.
+func (m *Mailer) sender(ctx context.Context) (sender, bool) {
+	if m == nil || m.settings == nil {
+		return sender{}, false
+	}
+	s := m.settings.AccountSMTP(ctx)
+	if s == nil || strings.TrimSpace(s.Host) == "" {
+		return sender{}, false
+	}
+	from, err := mail.ParseAddress(s.From)
+	if err != nil {
+		return sender{}, false
+	}
+	host := strings.TrimSpace(s.Host)
+	var auth smtp.Auth
+	if s.User != "" {
+		// PlainAuth sends the password only over TLS or to a server on this machine
+		auth = smtp.PlainAuth("", s.User, s.Password, host)
+	}
+	mode := smtpclient.TLSMode(s.TLS)
+	if mode == "" {
+		mode = smtpclient.StartTLS
+	}
+	return sender{server: smtpclient.Server{Host: host, Port: s.Port, Auth: auth, TLS: mode}, from: from}, true
+}
+
+// Enabled is whether the install has a sender now. When it has none, Send and Deliver do nothing.
+func (m *Mailer) Enabled() bool {
+	_, ok := m.sender(context.Background())
+	return ok
+}
 
 // Send emails one recipient and waits for the server to take the message. text is the plain
 // message and html, when it is not empty, an alternative to it. It returns ErrDisabled without a
 // sender. A recipient or subject with a line break is refused: it would add headers.
 func (m *Mailer) Send(ctx context.Context, to, subject, text, html string) error {
-	if !m.Enabled() {
+	s, ok := m.sender(ctx)
+	if !ok {
 		return ErrDisabled
 	}
 	recipient, err := mail.ParseAddress(to)
@@ -100,11 +135,11 @@ func (m *Mailer) Send(ctx context.Context, to, subject, text, html string) error
 	if strings.ContainsAny(subject, "\r\n") {
 		return errors.New("the subject has a line break")
 	}
-	msg, err := m.build(recipient, subject, text, html)
+	msg, err := m.build(s.from, recipient, subject, text, html)
 	if err != nil {
 		return err
 	}
-	return m.send(ctx, m.server, m.from.Address, []string{recipient.Address}, msg)
+	return m.send(ctx, s.server, s.from.Address, []string{recipient.Address}, msg)
 }
 
 // Deliver sends in the background and logs a failure; it never fails the caller. A request that
@@ -236,18 +271,18 @@ func (m *Mailer) WaitFor(timeout time.Duration) (stillRunning int) {
 	}
 }
 
-func (m *Mailer) build(to *mail.Address, subject, text, html string) ([]byte, error) {
+func (m *Mailer) build(from, to *mail.Address, subject, text, html string) ([]byte, error) {
 	var id [12]byte
 	if _, err := rand.Read(id[:]); err != nil {
 		return nil, err
 	}
 	domain := "localhost"
-	if _, after, ok := strings.Cut(m.from.Address, "@"); ok && after != "" {
+	if _, after, ok := strings.Cut(from.Address, "@"); ok && after != "" {
 		domain = after
 	}
 	var out bytes.Buffer
 	header := func(name, value string) { fmt.Fprintf(&out, "%s: %s\r\n", name, value) }
-	header("From", m.from.String())
+	header("From", from.String())
 	header("To", to.String())
 	header("Subject", mime.QEncoding.Encode("utf-8", subject))
 	header("Date", m.now().UTC().Format(time.RFC1123Z))

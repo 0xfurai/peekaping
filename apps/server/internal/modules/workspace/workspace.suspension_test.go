@@ -7,6 +7,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/events/eventstest"
 	"peekaping/internal/modules/workspace"
 
@@ -142,7 +143,7 @@ func suspendedWorkspace(t *testing.T, db *bun.DB, repo workspace.Repository, adm
 
 func newServiceWithWaker(db *bun.DB, repo workspace.Repository, waker workspace.MonitorWaker) workspace.Service {
 	return workspace.NewService(repo, workspace.NewSQLMemberRepository(db), workspace.NewSQLInviteRepository(db),
-		dbtx.NewSQLTransactor(db), eventstest.NewBus(), &config.Config{ClientURL: "http://localhost:3000"}, nil, waker, zap.NewNop().Sugar())
+		dbtx.NewSQLTransactor(db), eventstest.NewBus(), installsettings.Static(&config.Config{ClientURL: "http://localhost:3000"}), nil, waker, zap.NewNop().Sugar())
 }
 
 // A suspension ends when a verified user owns the workspace. Verifying lifts it for the owner who
@@ -259,7 +260,7 @@ func TestService_CreateWorkspace_AVerificationThatCommitsDuringTheCreationLeaves
 			require.NoError(t, err)
 		}
 		service := workspace.NewService(repo, members, workspace.NewSQLInviteRepository(db), dbtx.NewSQLTransactor(db), eventstest.NewBus(),
-			&config.Config{ClientURL: "http://localhost:3000", SignupMode: config.SignupModeOpen}, nil, &wakeRecorder{}, zap.NewNop().Sugar())
+			installsettings.Static(&config.Config{ClientURL: "http://localhost:3000", SignupMode: config.SignupModeOpen}), nil, &wakeRecorder{}, zap.NewNop().Sugar())
 
 		made, err := service.CreateWorkspace(ctx, user, "Racing")
 
@@ -276,7 +277,7 @@ func TestService_CreateWorkspace_AnUnverifiedUsersWorkspaceIsSuspendedInAnOpenIn
 		ctx := context.Background()
 		user := insertUser(t, db, "maker@example.com")
 		service := workspace.NewService(repo, workspace.NewSQLMemberRepository(db), workspace.NewSQLInviteRepository(db), dbtx.NewSQLTransactor(db), eventstest.NewBus(),
-			&config.Config{ClientURL: "http://localhost:3000", SignupMode: config.SignupModeOpen}, nil, &wakeRecorder{}, zap.NewNop().Sugar())
+			installsettings.Static(&config.Config{ClientURL: "http://localhost:3000", SignupMode: config.SignupModeOpen}), nil, &wakeRecorder{}, zap.NewNop().Sugar())
 
 		made, err := service.CreateWorkspace(ctx, user, "Waiting")
 

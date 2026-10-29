@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -72,7 +73,7 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 			name: "google chat",
 			send: func(logger *zap.SugaredLogger, serverURL string) error {
 				cfg := `{"webhook_url": "` + serverURL + `/v1/spaces/AAA/messages?key=secret-chat-key&token=secret-chat-token"}`
-				return NewGoogleChatSender(logger, &config.Config{}, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+				return NewGoogleChatSender(logger, installsettings.Static(&config.Config{}), NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
 			},
 			secrets: func(serverURL string) []string { return []string{"secret-chat-key", "secret-chat-token", serverURL} },
 			channel: "google chat",
@@ -113,7 +114,7 @@ func TestSenders_DoNotLogSecretURLs(t *testing.T) {
 			name: "pagerduty",
 			send: func(logger *zap.SugaredLogger, serverURL string) error {
 				cfg := `{"pagerduty_integration_key": "secret-pd-key", "pagerduty_integration_url": "` + serverURL + `/v2/enqueue"}`
-				return NewPagerDutySender(logger, &config.Config{}, NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
+				return NewPagerDutySender(logger, installsettings.Static(&config.Config{}), NewHTTPClient()).Send(context.Background(), cfg, "Monitor is down", testMonitor(), testHeartbeat())
 			},
 			secrets: func(string) []string { return []string{"secret-pd-key"} },
 			channel: "pagerduty",
@@ -214,7 +215,7 @@ func TestSenders_DoNotLogTheMonitorsConfig(t *testing.T) {
 	}{
 		{"slack", func(logger *zap.SugaredLogger) error {
 			cfg := `{"slack_webhook_url": "https://hooks.slack.com/services/T000/B000/xxx"}`
-			return NewSlackSender(logger, &config.Config{}, client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
+			return NewSlackSender(logger, installsettings.Static(&config.Config{}), client).Send(context.Background(), cfg, "Monitor is down", m, testHeartbeat())
 		}},
 		{"telegram", func(logger *zap.SugaredLogger) error {
 			cfg := `{"bot_token": "123456:token", "chat_id": "42", "use_template": true, "template": "{{ name }} is {{ status }}"}`
