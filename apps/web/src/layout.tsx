@@ -8,6 +8,7 @@ import { AdminSidebar } from "@/components/admin-sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { isAdminPath } from "@/lib/workspace-path";
 import { SiteHeader } from "./components/app-header";
+import { SuspendedWorkspaceBanner } from "./components/suspended-workspace-banner";
 import { TelemetryNotice } from "./components/telemetry-notice";
 import { VerificationBanner } from "./components/verification-banner";
 import { useLocalizedTranslation } from "./hooks/useTranslation";
@@ -38,6 +39,9 @@ export default function Layout({
       )}
       <SidebarInset>
         <SiteHeader pageName={pageName} onCreate={onCreate} />
+        <div className="empty:hidden px-4 pt-4">
+          <SuspendedWorkspaceBanner />
+        </div>
         <div className="empty:hidden px-4 pt-4">
           <VerificationBanner />
         </div>
