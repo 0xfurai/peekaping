@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
@@ -52,6 +53,9 @@ type Service interface {
 	UpdatePartialAnyWorkspace(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
 	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
 	ValidateMonitorConfig(monitorType string, configJSON string) error
+	// MinCheckInterval is the smallest interval and retry interval, in seconds, that a write may
+	// set: MIN_CHECK_INTERVAL, and never below the DTOs' 20, which the service leaves to them
+	MinCheckInterval() int
 
 	// GetHeartbeats, GetStatPoints and GetUptimeStats load the monitor in the workspace first, and
 	// answer ErrMonitorNotFound when it isn't there. The heartbeats and stats are then read by the
@@ -202,6 +206,10 @@ func (mr *MonitorServiceImpl) requireIntervals(interval, retryInterval *int) err
 		return intervalTooShortError("retry_interval", *retryInterval, mr.minCheckInterval)
 	}
 	return nil
+}
+
+func (mr *MonitorServiceImpl) MinCheckInterval() int {
+	return max(mr.minCheckInterval, config.AbsoluteMinCheckInterval)
 }
 
 // atMinimum gives a monitor stored with a check interval or retry interval below the minimum the
