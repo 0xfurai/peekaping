@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -259,4 +261,84 @@ func TestLimits_Probes_AnAssignmentCantPassTheLimitBesideAnotherWrite(t *testing
 			assert.Len(t, a.monitorProbes(t, site), 2)
 		})
 	}
+}
+
+// heldWorkspaces is a query hook that records, for each transaction of the marked write, the
+// workspaces it holds (limits.LockWorkspace), in the order it holds them
+type heldWorkspaces struct {
+	mu       sync.Mutex
+	attempts [][]string
+}
+
+// lockedWorkspace is the query of limits.LockWorkspace, with the workspace it holds
+var lockedWorkspace = regexp.MustCompile(`^SELECT "id" FROM "workspaces" WHERE \(id = '([^']+)'\) FOR UPDATE$`)
+
+func (h *heldWorkspaces) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context {
+	return ctx
+}
+
+func (h *heldWorkspaces) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
+	if ctx.Value(midway{}) == nil {
+		return
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if event.Query == "BEGIN" {
+		h.attempts = append(h.attempts, []string{})
+	} else if found := lockedWorkspace.FindStringSubmatch(event.Query); found != nil && len(h.attempts) > 0 {
+		h.attempts[len(h.attempts)-1] = append(h.attempts[len(h.attempts)-1], found[1])
+	}
+}
+
+// AC4: an assignment holds the workspaces with a probe limit in id order. A monitor created, once
+// the assignment holds its workspaces, in a workspace that sorts below them isn't held out of
+// order: the assignment is made again from the start, and gives that monitor the probe too, within
+// its limit.
+func TestLimits_Probes_AnAssignmentHoldsItsWorkspacesInOrderWhenAMonitorIsCreatedBelow(t *testing.T) {
+	a := newPostgresApp(t)
+	frankfurt := a.probeThatRuns(t, "Frankfurt", "http")
+	first, second := a.firstWorkspace(t), a.createWorkspace(t, "Second")
+	a.addMember(t, second, a.userID(t, adminEmail), workspace.RoleOwner)
+	lower, higher := min(first, second), max(first, second)
+	for _, id := range []workspace.ID{lower, higher} {
+		a.setOwnLimits(t, id, &limits.Limits{ProbesPerMonitor: limitOf(2)})
+	}
+	existing := decode[created](t, a.request(t, http.MethodPost, monitorsPath, httpMonitorBody("Existing", ""), a.asAdmin, inWorkspace(higher)), http.StatusCreated).ID
+
+	held := &heldWorkspaces{}
+	a.hookQueries(t, held)
+	var createdBelow *httpRecorder
+	hook := &stopMidway{
+		// The assignment holds the workspace of the one monitor there is
+		matches: func(query string) bool { return lockedWorkspace.MatchString(query) },
+		others: []func(){func() {
+			createdBelow = a.request(t, http.MethodPost, monitorsPath, httpMonitorBody("Created below", ""), a.asAdmin, inWorkspace(lower))
+		}},
+	}
+	a.hookQueries(t, hook)
+
+	ctx := context.WithValue(context.Background(), midway{}, true)
+	var added int
+	require.NoError(t, a.container.Invoke(func(monitors monitor.Service) error {
+		var err error
+		added, err = monitors.AssignProbeToAllAnyWorkspace(ctx, frankfurt.ID, nil, nil)
+		return err
+	}))
+	hook.done.Wait()
+
+	require.True(t, hook.fired.Load(), "the assignment held a workspace")
+	below := decode[created](t, createdBelow, http.StatusCreated).ID
+	held.mu.Lock()
+	attempts := held.attempts
+	held.mu.Unlock()
+	for i, workspaces := range attempts {
+		assert.True(t, slices.IsSorted(workspaces), "attempt %d holds its workspaces in id order: %v", i+1, workspaces)
+	}
+	assert.Equal(t, [][]string{{string(higher)}, {string(lower), string(higher)}}, attempts, "the assignment is made again, holding both")
+	assert.Equal(t, 2, added)
+	probesIn := func(id workspace.ID, monitorID string) []string {
+		return decode[monitorWithProbes](t, a.request(t, http.MethodGet, monitorsPath+"/"+monitorID, nil, a.asAdmin, inWorkspace(id)), http.StatusOK).ProbeIDs
+	}
+	assert.ElementsMatch(t, []string{"local", frankfurt.ID}, probesIn(higher, existing))
+	assert.ElementsMatch(t, []string{"local", frankfurt.ID}, probesIn(lower, below))
 }
