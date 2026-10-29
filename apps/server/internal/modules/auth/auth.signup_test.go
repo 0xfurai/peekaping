@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/auth"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ import (
 func signupWarnings(t *testing.T, cfg config.Config) []observer.LoggedEntry {
 	t.Helper()
 	core, logs := observer.New(zap.WarnLevel)
-	auth.NewSignupGate(&cfg, nil, zap.New(core).Sugar())
+	auth.NewSignupGate(&cfg, installsettings.Static(&cfg), nil, zap.New(core).Sugar())
 	return logs.AllUntimed()
 }
 

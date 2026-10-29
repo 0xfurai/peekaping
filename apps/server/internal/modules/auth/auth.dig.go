@@ -3,6 +3,7 @@ package auth
 import (
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/utils"
@@ -31,9 +32,10 @@ func ProvideService(
 	tokenMaker *TokenMaker,
 	verifier Verifier,
 	cfg *config.Config,
+	settings *installsettings.Resolver,
 	logger *zap.SugaredLogger,
 ) Service {
-	return NewService(repo, transactor, workspaces, invites, tokenMaker, verifier, logger, WithOpenSignup(cfg.SignupOpen()), WithDisabledMonitorTypes(cfg.DisabledMonitorTypeList()), WithMinCheckInterval(cfg.MinCheckIntervalSeconds()), WithSupportContact(cfg.SupportContact))
+	return NewService(repo, transactor, workspaces, invites, tokenMaker, verifier, logger, WithSignupMode(settings), WithDisabledMonitorTypes(cfg.DisabledMonitorTypeList()), WithMinCheckInterval(cfg.MinCheckIntervalSeconds()), WithSupportContact(cfg.SupportContact))
 }
 
 // ProvideTokenMaker is the token maker of the app: it refuses the tokens of sessions that a

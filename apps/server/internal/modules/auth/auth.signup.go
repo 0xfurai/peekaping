@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/ratelimit"
 	"peekaping/internal/turnstile"
 
@@ -30,28 +31,27 @@ var (
 // proof that the visitor is wanted. The limit counts in this process's memory (see package
 // ratelimit).
 type SignupGate struct {
-	open      bool
-	siteKey   string
-	perClient *ratelimit.Limiter
-	turnstile *turnstile.Verifier
-	users     Repository
-	logger    *zap.SugaredLogger
+	// settings say whether signup is open: SIGNUP_MODE, or the mode an instance admin saved
+	settings       *installsettings.Resolver
+	trustedProxies bool
+	siteKey        string
+	perClient      *ratelimit.Limiter
+	turnstile      *turnstile.Verifier
+	users          Repository
+	logger         *zap.SugaredLogger
 }
 
-// NewSignupGate builds the gate from the install's settings
-func NewSignupGate(cfg *config.Config, users Repository, logger *zap.SugaredLogger) *SignupGate {
+// NewSignupGate builds the gate from the install's settings. The signup mode is read on each
+// request, so a mode an instance admin saves takes effect without a restart.
+func NewSignupGate(cfg *config.Config, settings *installsettings.Resolver, users Repository, logger *zap.SugaredLogger) *SignupGate {
 	g := &SignupGate{
-		open:      cfg.SignupOpen(),
-		perClient: ratelimit.New(maxOpenSignupsPerClient, time.Hour),
-		users:     users,
-		logger:    logger.Named("[signup]"),
+		settings:       settings,
+		trustedProxies: strings.TrimSpace(cfg.TrustedProxies) != "",
+		perClient:      ratelimit.New(maxOpenSignupsPerClient, time.Hour),
+		users:          users,
+		logger:         logger.Named("[signup]"),
 	}
-	if g.open && strings.TrimSpace(cfg.TrustedProxies) == "" {
-		// Behind a reverse proxy every request connects from the proxy, so with no trusted proxy
-		// the limit sees one client for all of them
-		g.logger.Warn("SIGNUP_MODE=open without TRUSTED_PROXIES: behind a reverse proxy every signup comes from the proxy's address, so all of them share one limit of " +
-			strconv.Itoa(maxOpenSignupsPerClient) + " an hour. Set TRUSTED_PROXIES to the proxy's address or range, such as 127.0.0.1,10.0.0.0/8, so that each visitor is counted by their own address")
-	}
+	g.WarnIfProxiesUntrusted(context.Background())
 	if cfg.SignupTurnstileEnabled() {
 		g.siteKey = cfg.SignupTurnstileSiteKey
 		g.turnstile = turnstile.New(cfg.SignupTurnstileSecret, cfg.SignupTurnstileVerifyURL)
@@ -59,12 +59,26 @@ func NewSignupGate(cfg *config.Config, users Repository, logger *zap.SugaredLogg
 	return g
 }
 
-// Open is whether the install lets anyone sign up. A nil gate is an install that does not.
-func (g *SignupGate) Open() bool { return g != nil && g.open }
+// WarnIfProxiesUntrusted logs a warning when signup is open and no proxy is trusted: at startup,
+// and when an instance admin opens signup
+func (g *SignupGate) WarnIfProxiesUntrusted(ctx context.Context) {
+	if g == nil || g.trustedProxies || !g.Open(ctx) {
+		return
+	}
+	// Behind a reverse proxy every request connects from the proxy, so with no trusted proxy the
+	// limit sees one client for all of them
+	g.logger.Warn("SIGNUP_MODE=open without TRUSTED_PROXIES: behind a reverse proxy every signup comes from the proxy's address, so all of them share one limit of " +
+		strconv.Itoa(maxOpenSignupsPerClient) + " an hour. Set TRUSTED_PROXIES to the proxy's address or range, such as 127.0.0.1,10.0.0.0/8, so that each visitor is counted by their own address")
+}
 
-// Mode is the install's SIGNUP_MODE
-func (g *SignupGate) Mode() string {
-	if g.Open() {
+// Open is whether the install lets anyone sign up now. A nil gate is an install that does not.
+func (g *SignupGate) Open(ctx context.Context) bool {
+	return g != nil && g.settings != nil && g.settings.SignupOpen(ctx)
+}
+
+// Mode is the install's signup mode now
+func (g *SignupGate) Mode(ctx context.Context) string {
+	if g.Open(ctx) {
 		return config.SignupModeOpen
 	}
 	return config.SignupModeInvite
@@ -83,8 +97,8 @@ func (g *SignupGate) FirstSignup(ctx context.Context) (bool, error) {
 
 // TurnstileSiteKey is the public key of the widget the app shows, or nil when open signup does not
 // use Turnstile. Invite mode never does.
-func (g *SignupGate) TurnstileSiteKey() *string {
-	if !g.Open() || g.turnstile == nil {
+func (g *SignupGate) TurnstileSiteKey(ctx context.Context) *string {
+	if !g.Open(ctx) || g.turnstile == nil {
 		return nil
 	}
 	key := g.siteKey
@@ -98,7 +112,7 @@ func (g *SignupGate) TurnstileSiteKey() *string {
 // call to Cloudflare; a signup that passed the limit and not Turnstile still counts. An unreachable
 // Cloudflare refuses the signup too (fail closed), and the reason is logged.
 func (g *SignupGate) Admit(ctx context.Context, client, remoteIP, answer string) (retryAfter time.Duration, err error) {
-	if !g.Open() {
+	if !g.Open(ctx) {
 		return 0, nil
 	}
 	if allowed, wait := g.perClient.Allow(client); !allowed {

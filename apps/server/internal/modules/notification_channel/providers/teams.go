@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -32,17 +31,17 @@ const teamsLogoURL = "https://peekaping.com/logo-mascot.png"
 var teamsErrorCode = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_.]{0,63}$`)
 
 type TeamsSender struct {
-	logger *zap.SugaredLogger
-	config *config.Config
-	client *http.Client
+	logger    *zap.SugaredLogger
+	publicURL PublicURLSource
+	client    *http.Client
 }
 
 // NewTeamsSender creates a TeamsSender
-func NewTeamsSender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *TeamsSender {
+func NewTeamsSender(logger *zap.SugaredLogger, publicURL PublicURLSource, client *http.Client) *TeamsSender {
 	return &TeamsSender{
-		logger: logger,
-		config: config,
-		client: client,
+		logger:    logger,
+		publicURL: publicURL,
+		client:    client,
 	}
 }
 
@@ -66,14 +65,11 @@ func (s *TeamsSender) Validate(configJSON string) error {
 }
 
 // getServerURL returns the server URL to use for links
-func (s *TeamsSender) getServerURL(cfg *TeamsConfig) string {
+func (s *TeamsSender) getServerURL(ctx context.Context, cfg *TeamsConfig) string {
 	if cfg.ServerURL != "" {
 		return strings.TrimRight(cfg.ServerURL, "/")
 	}
-	if s.config != nil && s.config.ClientURL != "" {
-		return strings.TrimRight(s.config.ClientURL, "/")
-	}
-	return ""
+	return strings.TrimRight(publicURL(ctx, s.publicURL), "/")
 }
 
 // getTitle returns the card title and the container style that colors it
@@ -138,6 +134,7 @@ func formatText(message string) string {
 
 // buildAdaptiveCard builds the Microsoft Teams adaptive card
 func (s *TeamsSender) buildAdaptiveCard(
+	ctx context.Context,
 	cfg *TeamsConfig,
 	monitor *monitor.Model,
 	heartbeat *heartbeat.Model,
@@ -228,7 +225,7 @@ func (s *TeamsSender) buildAdaptiveCard(
 	actions := []map[string]any{}
 
 	// Test notifications use a monitor that isn't saved, so there is no page to link to
-	if link := peekapingLink(s.getServerURL(cfg), monitor); link != "" && monitor.ID != "" {
+	if link := peekapingLink(s.getServerURL(ctx, cfg), monitor); link != "" && monitor.ID != "" {
 		actions = append(actions, map[string]any{
 			"type":  "Action.OpenUrl",
 			"title": "View in Peekaping",
@@ -300,7 +297,7 @@ func (s *TeamsSender) Send(
 		"attachments": []map[string]any{
 			{
 				"contentType": "application/vnd.microsoft.card.adaptive",
-				"content":     s.buildAdaptiveCard(cfg, monitor, heartbeat, message),
+				"content":     s.buildAdaptiveCard(ctx, cfg, monitor, heartbeat, message),
 			},
 		},
 	}

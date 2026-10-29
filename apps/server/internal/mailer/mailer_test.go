@@ -15,11 +15,13 @@ import (
 	"net/textproto"
 	"os"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/mailer"
 	"peekaping/internal/smtpclient/smtptest"
 
@@ -232,4 +234,48 @@ func TestMailer_WaitForGivesUpAfterTheBoundAndSaysHowManySendsAreStillRunning(t 
 func TestMailer_WaitForReturnsAtOnceWhenNothingIsSending(t *testing.T) {
 	assert.Zero(t, mailer.New(&config.Config{}, zap.NewNop().Sugar()).WaitFor(time.Hour))
 	assert.Zero(t, newMailer(t, smtptest.Start(t)).WaitFor(time.Hour))
+}
+
+// switchableSender is an install's sender that an instance admin changes while the app runs
+type switchableSender struct {
+	mu     sync.Mutex
+	sender *installsettings.AccountSMTP
+}
+
+func (s *switchableSender) AccountSMTP(context.Context) *installsettings.AccountSMTP {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.sender
+}
+
+func (s *switchableSender) set(sender *installsettings.AccountSMTP) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.sender = sender
+}
+
+func TestMailer_EachSendUsesTheSenderOfTheMoment(t *testing.T) {
+	first, second := smtptest.Start(t), smtptest.Start(t)
+	settings := &switchableSender{}
+	m := mailer.NewFrom(settings, zap.NewNop().Sugar())
+	assert.False(t, m.Enabled())
+	assert.ErrorIs(t, m.Send(context.Background(), "a@example.com", "Hi", "Hello", ""), mailer.ErrDisabled)
+
+	settings.set(&installsettings.AccountSMTP{Host: first.Host(), Port: first.Port(), From: "first@example.com", TLS: "none"})
+	require.True(t, m.Enabled())
+	require.NoError(t, m.Send(context.Background(), "a@example.com", "Hi", "Hello", ""))
+	settings.set(&installsettings.AccountSMTP{Host: second.Host(), Port: second.Port(), From: "second@example.com", TLS: "none"})
+	require.NoError(t, m.Send(context.Background(), "a@example.com", "Hi", "Hello", ""))
+
+	assert.Equal(t, "first@example.com", first.WaitFor(t, 1)[0].From)
+	assert.Equal(t, "second@example.com", second.WaitFor(t, 1)[0].From)
+
+	settings.set(nil)
+	assert.False(t, m.Enabled(), "a sender that was removed turns the mails off")
+}
+
+func TestMailer_ASenderWhoseFromDoesNotParseIsOff(t *testing.T) {
+	m := mailer.NewFrom(&switchableSender{sender: &installsettings.AccountSMTP{Host: "127.0.0.1", Port: 25, From: "not an address"}}, zap.NewNop().Sugar())
+
+	assert.False(t, m.Enabled())
 }

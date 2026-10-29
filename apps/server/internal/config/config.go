@@ -151,7 +151,9 @@ type Config struct {
 	// Account emails: password reset, email verification and invites are sent by one sender for
 	// the whole install. With ACCOUNT_SMTP_HOST unset (the default) they are off: the app shows
 	// no "Forgot password" link and no verification banner, and invites are copied, not emailed.
-	// ACCOUNT_SMTP_FROM is required when the host is set, which ValidateAccountSMTP checks.
+	// ACCOUNT_SMTP_FROM is required when the host is set, which ValidateAccountSMTP checks. These are
+	// install settings: read them through installsettings.Resolver, which also takes the sender an
+	// instance admin saved when the variables are unset.
 	AccountSMTPHost     string `env:"ACCOUNT_SMTP_HOST"`
 	AccountSMTPPort     int    `env:"ACCOUNT_SMTP_PORT" validate:"min=1,max=65535" default:"587"`
 	AccountSMTPUser     string `env:"ACCOUNT_SMTP_USER"`
@@ -164,7 +166,8 @@ type Config struct {
 	// Who may create an account (PP-155, docs/adr/0005 section 11): "invite" (the default) lets the
 	// first user sign up and everyone after join through an invite, "open" lets anyone sign up and
 	// gives each a workspace of their own. Checked by ValidateSignup, which also requires a sender
-	// for account emails in open mode. Empty counts as invite.
+	// for account emails in open mode. Empty counts as invite. An install setting: read it through
+	// installsettings.Resolver.
 	SignupMode string `env:"SIGNUP_MODE" default:"invite"`
 	// SignupTurnstileSiteKey and SignupTurnstileSecret turn on Cloudflare Turnstile for open signup:
 	// both or neither. The site key is public (the web app shows the widget with it); the secret
