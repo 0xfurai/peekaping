@@ -5,8 +5,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"golang.org/x/time/rate"
 )
 
 const (
@@ -34,11 +32,13 @@ type HostSpacer struct {
 	maxHosts  int
 }
 
-// hostBucket is the turns of one host
+// hostBucket is the turns of one host. A bucket with a burst of one is kept as the time of the
+// host's next turn: x/time/rate cannot take a turn later than now and still answer right the
+// checks that come in before then, which a check with several hosts needs.
 type hostBucket struct {
-	limiter *rate.Limiter
-	// idleAfter is when the bucket is full again, so that forgetting it changes nothing
-	idleAfter time.Time
+	// nextTurn is the earliest a check may start on the host. The bucket is full from then, so
+	// forgetting it after that changes nothing.
+	nextTurn time.Time
 	// skipped counts the checks skipped since they were last reported, and reportedAt is when that was
 	skipped    int
 	reportedAt time.Time
@@ -86,6 +86,7 @@ func (s *HostSpacer) SetPerMinute(perMinute int) {
 	perMinute = max(perMinute, 0)
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	old := s.perMinute
 	s.perMinute = perMinute
 	if perMinute == 0 {
 		clear(s.hosts)
@@ -93,10 +94,10 @@ func (s *HostSpacer) SetPerMinute(perMinute int) {
 	}
 	now := s.now()
 	for _, bucket := range s.hosts {
-		bucket.limiter.SetLimitAt(now, limitOf(perMinute))
-		// Turns already taken are repaid at the new rate: the bucket is full when its tokens reach 1
-		missing := 1 - bucket.limiter.TokensAt(now)
-		bucket.idleAfter = now.Add(time.Duration(max(missing, 0) / float64(limitOf(perMinute)) * float64(time.Second)))
+		// Turns already taken are repaid at the new rate
+		if ahead := bucket.nextTurn.Sub(now); ahead > 0 && old > 0 {
+			bucket.nextTurn = now.Add(time.Duration(float64(ahead) * float64(old) / float64(perMinute)))
+		}
 	}
 }
 
@@ -116,8 +117,6 @@ func (s *HostSpacer) tracked() int {
 	defer s.mu.Unlock()
 	return len(s.hosts)
 }
-
-func limitOf(perMinute int) rate.Limit { return rate.Limit(float64(perMinute) / 60) }
 
 func intervalOf(perMinute int) time.Duration {
 	return time.Minute / time.Duration(perMinute)
@@ -149,6 +148,10 @@ func (t Turn) Release() {
 // Reserve takes the check's turn on each of its hosts. The check waits for the latest of them if
 // that is no more than maxWait, and otherwise takes none and is denied. A host that is listed twice
 // counts once, whatever its case. With the spacer off every check has its turn now.
+//
+// The check dials all of its hosts once it starts, so it takes its turn on each of them at that
+// start, not now. Each host's next turn is counted from the start too: a check of one of the hosts
+// alone that comes in while this one waits does not get in just before it.
 func (s *HostSpacer) Reserve(hosts []string, maxWait time.Duration) Turn {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -158,60 +161,58 @@ func (s *HostSpacer) Reserve(hosts []string, maxWait time.Duration) Turn {
 	now := s.now()
 	s.sweep(now)
 
-	type taken struct {
-		bucket      *hostBucket
-		reservation *rate.Reservation
-		delay       time.Duration
-	}
-	var (
-		reserved []taken
-		seen     = make(map[string]struct{}, len(hosts))
-		longest  time.Duration
-		farthest string
-		// farthestBucket is the bucket of farthest
-		farthestBucket *hostBucket
-	)
+	held := make(map[string]struct{}, len(hosts))
+	names := make([]string, 0, len(hosts))
 	for _, host := range hosts {
 		host = normalizeHost(host)
 		if host == "" {
 			continue
 		}
-		if _, dup := seen[host]; dup {
+		if _, dup := held[host]; dup {
 			continue
 		}
-		seen[host] = struct{}{}
+		held[host] = struct{}{}
+		names = append(names, host)
+	}
+	if len(names) == 0 {
+		return Turn{}
+	}
 
-		bucket := s.bucket(host, now, seen)
-		reservation := bucket.limiter.ReserveN(now, 1)
-		delay := reservation.DelayFrom(now)
-		reserved = append(reserved, taken{bucket, reservation, delay})
-		if delay > longest || farthest == "" {
-			longest, farthest, farthestBucket = delay, host, bucket
+	// All the hosts are held before any bucket is made, so making room forgets none of them
+	buckets := make([]*hostBucket, len(names))
+	var longest time.Duration
+	farthest := 0
+	for i, host := range names {
+		buckets[i] = s.bucket(host, held)
+		if wait := buckets[i].nextTurn.Sub(now); wait > longest {
+			longest, farthest = wait, i
 		}
 	}
 
 	if longest > maxWait {
-		for _, t := range reserved {
-			t.reservation.CancelAt(now)
-		}
-		bucket := farthestBucket
+		// No turn was taken yet, so there is none to give back
+		bucket := buckets[farthest]
 		bucket.skipped++
-		turn := Turn{Denied: true, Host: farthest}
+		turn := Turn{Denied: true, Host: names[farthest]}
 		if now.Sub(bucket.reportedAt) >= skipReportEvery {
 			turn.ReportSkipped, bucket.skipped, bucket.reportedAt = bucket.skipped, 0, now
 		}
 		return turn
 	}
 
-	interval := intervalOf(s.perMinute)
-	for _, t := range reserved {
-		t.bucket.idleAfter = now.Add(t.delay).Add(interval)
+	next := now.Add(longest).Add(intervalOf(s.perMinute))
+	before := make([]time.Time, len(buckets))
+	for i, bucket := range buckets {
+		before[i], bucket.nextTurn = bucket.nextTurn, next
 	}
 	return Turn{Wait: longest, release: func() {
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		for _, t := range reserved {
-			t.reservation.CancelAt(s.now())
+		for i, bucket := range buckets {
+			// A turn taken on the host after this one keeps its place, so this one cannot be given back
+			if bucket.nextTurn.Equal(next) {
+				bucket.nextTurn = before[i]
+			}
 		}
 	}}
 }
@@ -230,17 +231,14 @@ func (s *HostSpacer) Wait(ctx context.Context, turn Turn) error {
 
 // bucket finds the host's bucket, or makes it. Making room never forgets the buckets of held, the
 // hosts of the check that is taking its turns. The caller holds mu.
-func (s *HostSpacer) bucket(host string, now time.Time, held map[string]struct{}) *hostBucket {
+func (s *HostSpacer) bucket(host string, held map[string]struct{}) *hostBucket {
 	if bucket, ok := s.hosts[host]; ok {
 		return bucket
 	}
 	if len(s.hosts) >= s.maxHosts {
 		s.evictOldest(held)
 	}
-	bucket := &hostBucket{
-		limiter:   rate.NewLimiter(limitOf(s.perMinute), 1),
-		idleAfter: now.Add(intervalOf(s.perMinute)),
-	}
+	bucket := &hostBucket{}
 	s.hosts[host] = bucket
 	return bucket
 }
@@ -253,7 +251,7 @@ func (s *HostSpacer) sweep(now time.Time) {
 	}
 	s.lastSweep = now
 	for host, bucket := range s.hosts {
-		if now.After(bucket.idleAfter) && (bucket.skipped == 0 || now.Sub(bucket.reportedAt) >= skipReportEvery) {
+		if now.After(bucket.nextTurn) && (bucket.skipped == 0 || now.Sub(bucket.reportedAt) >= skipReportEvery) {
 			delete(s.hosts, host)
 		}
 	}
@@ -270,8 +268,8 @@ func (s *HostSpacer) evictOldest(held map[string]struct{}) {
 		if _, ok := held[host]; ok {
 			continue
 		}
-		if oldest == "" || bucket.idleAfter.Before(oldestIdle) {
-			oldest, oldestIdle = host, bucket.idleAfter
+		if oldest == "" || bucket.nextTurn.Before(oldestIdle) {
+			oldest, oldestIdle = host, bucket.nextTurn
 		}
 	}
 	delete(s.hosts, oldest)
