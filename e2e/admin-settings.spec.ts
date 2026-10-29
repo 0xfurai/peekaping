@@ -38,6 +38,8 @@ const senderSaved = ({ accountSmtp }: InstallSettings) =>
 test('an instance admin saves an email sender, sends a test email, and a password reset email arrives', async ({
   page,
 }) => {
+  // Two emails, each with up to 30 s to arrive, besides the pages and the cleanup
+  test.setTimeout(90_000);
   test.skip(!mailpitURL, 'needs Mailpit (docker-compose.e2e.yml) and E2E_MAILPIT_URL');
   // Made before signing out, for the cleanup: signing out clears the page's session
   const api = await adminAPI(page);
