@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -8,15 +8,17 @@ import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { probeRunsType } from "./probe-support";
 import { runFromChoices, runFromDefaultIds, toggleRunFrom, type RunFromChoice } from "./run-from";
 
-// The list itself: a checkbox for each choice
+// The list itself: a checkbox for each choice, in a group named by the element labelledBy names
 export const RunFromList = ({
   choices,
   onToggle,
+  labelledBy,
 }: {
   choices: RunFromChoice[];
   onToggle: (id: string, ticked: boolean) => void;
+  labelledBy?: string;
 }) => (
-  <div className="flex flex-col gap-2" data-testid="monitor-run-from">
+  <div className="flex flex-col gap-2" data-testid="monitor-run-from" role="group" aria-labelledby={labelledBy}>
     {choices.map((choice) => (
       <label key={choice.id} className="flex items-center gap-2 text-sm font-normal">
         <Checkbox checked={choice.ticked} onCheckedChange={(checked) => onToggle(choice.id, checked === true)} />
@@ -39,6 +41,7 @@ const RunFrom = () => {
   const probeIds: string[] = form.watch("probe_ids");
   const { choices, hidden } = runFromChoices(probes, type, probeIds);
   const { setValue, getValues, trigger } = form;
+  const labelId = useId();
 
   // A new monitor starts on the default probes for its type: when the probes load, and when the type
   // changes, until the user has ticked something. After that, and for a saved monitor or a clone, a
@@ -77,9 +80,10 @@ const RunFrom = () => {
       name="probe_ids"
       render={() => (
         <FormItem>
-          <FormLabel>{t("monitors.form.shared.run_from.label")}</FormLabel>
+          <FormLabel id={labelId}>{t("monitors.form.shared.run_from.label")}</FormLabel>
           <RunFromList
             choices={choices}
+            labelledBy={labelId}
             onToggle={(id, ticked) => {
               probesChosenByHand.current = true;
               setValue("probe_ids", toggleRunFrom(getValues("probe_ids"), id, ticked), { shouldDirty: true });
