@@ -1,5 +1,4 @@
 import type { ProbeProbeResponse } from "@/api/types.gen";
-import { LOCAL_PROBE_ID } from "@/app/probes/components/local-probe";
 import { probeRunsType } from "./probe-support";
 
 export type RunFromChoice = { id: string; label: string; ticked: boolean };
@@ -32,9 +31,11 @@ export const runFromChoices = (
 };
 
 // The probes a new monitor of the type starts on: the default ones that run it. With a single probe
-// to run on (the list is hidden) that probe, default or not. Before the probes load, the local probe.
+// to run on (the list is hidden) that probe, default or not. With no probe data (before the probes
+// load, or when the probes query fails) none, so the monitor is sent without probes and the server
+// puts it on the install's default ones.
 export const runFromDefaultIds = (probes: ProbeProbeResponse[], type: string): string[] => {
-  if (probes.length === 0) return [LOCAL_PROBE_ID];
+  if (probes.length === 0) return [];
   const candidates = runFromProbes(probes, type);
   if (type !== "push" && candidates.length <= 1) return candidates.map((probe) => probe.id);
   return candidates.filter((probe) => probe.is_default).map((probe) => probe.id);
@@ -60,4 +61,24 @@ export const runFromAfterTypeChange = (probes: ProbeProbeResponse[], type: strin
   if (kept.length > 0 || probeIds.length === 0) return kept;
   const candidates = runFromProbes(probes, type);
   return candidates.length === 1 ? [candidates[0].id] : kept;
+};
+
+// What the form's probes become when the probes load or the type changes, or undefined to leave them
+// as they are. A new monitor the user hasn't ticked anything for (`presets`) starts on the default
+// probes, and on none while there is no probe data. Otherwise a type change drops only the probes
+// that don't run the new type, and a saved monitor keeps its own probes while its type does, even
+// one the list leaves out. With no probe data a saved monitor or a clone keeps what it has.
+export const runFromFormIds = (
+  probes: ProbeProbeResponse[],
+  type: string,
+  current: string[],
+  { presets, typeChanged, typeIsSaved }: { presets: boolean; typeChanged: boolean; typeIsSaved: boolean }
+): string[] | undefined => {
+  if (presets) {
+    const ids = runFromDefaultIds(probes, type);
+    return ids.join("\0") !== current.join("\0") ? ids : undefined;
+  }
+  if (probes.length === 0 || (!typeChanged && typeIsSaved)) return undefined;
+  const kept = runFromAfterTypeChange(probes, type, current);
+  return kept.join("\0") !== current.join("\0") ? kept : undefined;
 };
