@@ -92,6 +92,13 @@ describe("AppRouter", () => {
     expect(html).not.toContain("auth routes");
   });
 
+  it("shows the unavailable page alone when a refetch fails after the page was found", () => {
+    const html = appAfter({ data: ACME, error: UNAVAILABLE });
+    expect(html).toContain(text("status.messages.status_page_unavailable"));
+    expect(html).not.toContain("status page acme");
+    expect(html).not.toContain("auth routes");
+  });
+
   it("shows the sign-in routes on a host that is no status page's domain", () => {
     const html = appAfter({ error: NOT_FOUND });
     expect(html).toContain("auth routes");
