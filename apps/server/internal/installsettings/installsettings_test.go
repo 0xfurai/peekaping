@@ -593,6 +593,33 @@ func TestUpdate_AFailedWriteOnANewEndpointKeepsNoOldPassword(t *testing.T) {
 	}
 }
 
+// Open signup needs a sender, since new accounts must verify their email address. A save that
+// opens signup and adds the sender, and fails partway, must not leave signup open with no sender.
+func TestUpdate_AFailedWriteNeverOpensSignupWithoutASender(t *testing.T) {
+	change := Change{
+		SignupMode: ptr(config.SignupModeOpen), SMTPHost: ptr("smtp.peek.example"), SMTPPort: ptr(2525),
+		SMTPFrom: ptr("no-reply@peek.example"),
+	}
+	// Each write in turn is the one that fails, until a save goes through
+	for failAt := 1; ; failAt++ {
+		store := newMemoryStore()
+		writes := 0
+		store.failWrite = func(string) bool { writes++; return writes == failAt }
+		r, _ := newResolver(t, defaults(), store)
+
+		_, err := r.Update(ctx, change)
+		if err == nil {
+			require.Greater(t, failAt, 1, "the change writes something")
+			break
+		}
+		require.ErrorIs(t, err, errWriteFailed)
+		if mode, _ := store.get(KeySignupMode); mode == config.SignupModeOpen {
+			host, _ := store.get(KeySMTPHost)
+			assert.NotEmpty(t, host, "write %d failed: signup is open with no sender", failAt)
+		}
+	}
+}
+
 func TestUpdate_AnySenderVariableInTheEnvironmentLocksTheWholeSender(t *testing.T) {
 	for name, tc := range map[string]struct {
 		change Change
