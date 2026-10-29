@@ -16,7 +16,7 @@ export function MonitorsEmptyState() {
       actionText={t("monitors.empty_state.action")}
       onClick={() => navigate(workspacePath("/monitors/new"))}
       secondaryActionText={t("monitors.empty_state.add_channel")}
-      onSecondaryClick={() => navigate(workspacePath("/notification-channels/new"))}
+      secondaryTo={workspacePath("/notification-channels/new")}
     />
   );
 }

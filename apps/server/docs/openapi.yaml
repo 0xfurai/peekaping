@@ -2588,6 +2588,7 @@ components:
       additionalProperties: false
       properties:
         active:
+          description: False for a paused monitor, and for one whose type is turned off on this install (DISABLED_MONITOR_TYPES), which is not checked
           type: boolean
         heartbeats:
           items:

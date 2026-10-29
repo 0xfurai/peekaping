@@ -1079,6 +1079,9 @@ export type StatusPageModel = {
 };
 
 export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
+  /**
+   * False for a paused monitor, and for one whose type is turned off on this install (DISABLED_MONITOR_TYPES), which is not checked
+   */
   active: boolean;
   heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
   id: string;
