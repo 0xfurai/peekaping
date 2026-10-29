@@ -8,7 +8,8 @@
       "back_to_workspace": "Vissza ide: {{name}}",
       "probes": "Szondák",
       "title": "Adminisztráció",
-      "users": "Felhasználók"
+      "users": "Felhasználók",
+      "settings": "Beállítások"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Igen"
       },
       "you": "te"
+    },
+    "settings": {
+      "page_name": "Beállítások",
+      "description": "A teljes telepítés beállításai. A szerver környezete által megadott érték itt zárolva van.",
+      "load_failed": "A beállításokat nem sikerült betölteni.",
+      "saved": "Beállítások mentve",
+      "save_failed": "A beállítások nem lettek mentve.",
+      "locked": "A szerver környezete adja meg",
+      "source": {
+        "environment": "A szerver környezetéből",
+        "saved": "Itt mentve",
+        "default": "Alapértelmezett"
+      },
+      "signup": {
+        "title": "Regisztráció",
+        "description": "Ki hozhat létre fiókot ezen a telepítésen.",
+        "label": "Regisztrációs mód",
+        "invite": "Csak meghívással",
+        "open": "Nyitott",
+        "invite_help": "Az első felhasználó regisztrál, utána mindenki meghívóval csatlakozik egy munkaterülethez.",
+        "open_help": "Bárki regisztrálhat, és saját munkaterületet kap. Az új fiókok megerősítik az e-mail-címüket, ezért e-mail-küldő szükséges."
+      },
+      "sender": {
+        "title": "E-mail-küldő",
+        "description": "Az SMTP-szerver, amely a fiók e-mailjeit küldi: jelszó-visszaállító hivatkozások, e-mail-megerősítés és meghívók.",
+        "on": "A fiók e-mailjei be vannak kapcsolva.",
+        "off": "A fiók e-mailjei ki vannak kapcsolva: nincs SMTP-kiszolgáló.",
+        "host": "SMTP szerver",
+        "port": "Port",
+        "tls": "Biztonság",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nincs",
+        "user": "Felhasználó",
+        "password": "Jelszó",
+        "password_set": "Jelszó be van állítva. Írjon be újat a cseréjéhez.",
+        "password_not_set": "Nincs jelszó beállítva",
+        "password_removed": "A jelszó mentéskor törlődik.",
+        "remove_password": "Jelszó eltávolítása",
+        "keep_password": "Jelszó megtartása",
+        "from": "Feladó címe"
+      },
+      "public_url": {
+        "title": "Nyilvános URL",
+        "description": "A webalkalmazás címe, amelyet az e-mailek és értesítések hivatkozásai megnyitnak.",
+        "label": "Nyilvános URL"
+      },
+      "test_email": {
+        "title": "Teszt e-mail küldése",
+        "description": "Rövid e-mailt küld a mentett küldőn keresztül, hogy ellenőrizze, működik-e.",
+        "to": "Címzett",
+        "send": "Teszt e-mail küldése",
+        "sending": "Küldés…",
+        "sent": "Teszt e-mail elküldve ide: {{to}}.",
+        "failed": "A teszt e-mail nem lett elküldve.",
+        "unsaved": "A küldőn nem mentett módosítások vannak. A teszt a mentett küldőt használja, ezért előbb mentsen."
+      },
+      "validation": {
+        "port": "Adjon meg egy portot 1 és 65535 között, vagy hagyja üresen az alapértelmezéshez."
+      },
+      "errors": {
+        "locked": "{{field}} értékét a szerver környezete adja meg, itt nem módosítható.",
+        "open_needs_sender": "A nyitott regisztrációhoz e-mail-küldő kell, mert az új fiókok megerősítik az e-mail-címüket. Előbb állítsa be a küldőt, vagy ugyanabban a mentésben.",
+        "sender_needed": "A regisztráció nyitott, és az új fiókoknak szükségük van a küldőre az e-mail-címük megerősítéséhez. Előbb állítsa a regisztrációt csak meghívással módra.",
+        "no_sender": "Nincs e-mail-küldő. Előbb mentsen egy küldőt."
+      }
     }
   },
   "auth": {

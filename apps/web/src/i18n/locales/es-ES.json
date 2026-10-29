@@ -8,7 +8,8 @@
       "back_to_workspace": "Volver a {{name}}",
       "probes": "Sondas",
       "title": "Administración",
-      "users": "Usuarios"
+      "users": "Usuarios",
+      "settings": "Configuración"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Sí"
       },
       "you": "tú"
+    },
+    "settings": {
+      "page_name": "Configuración",
+      "description": "Ajustes de toda la instalación. Un valor que fija el entorno del servidor está bloqueado aquí.",
+      "load_failed": "No se pudieron cargar los ajustes.",
+      "saved": "Ajustes guardados",
+      "save_failed": "Los ajustes no se guardaron.",
+      "locked": "Fijado por el entorno del servidor",
+      "source": {
+        "environment": "Del entorno del servidor",
+        "saved": "Guardado aquí",
+        "default": "Predeterminado"
+      },
+      "signup": {
+        "title": "Registro",
+        "description": "Quién puede crear una cuenta en esta instalación.",
+        "label": "Modo de registro",
+        "invite": "Solo con invitación",
+        "open": "Abierto",
+        "invite_help": "El primer usuario se registra, y todos los demás se unen a un espacio de trabajo mediante una invitación.",
+        "open_help": "Cualquiera puede registrarse y obtiene su propio espacio de trabajo. Las cuentas nuevas verifican su dirección de correo, así que necesita un remitente de correo."
+      },
+      "sender": {
+        "title": "Remitente de correo",
+        "description": "El servidor SMTP que envía los correos de la cuenta: enlaces para restablecer la contraseña, verificación del correo e invitaciones.",
+        "on": "Los correos de la cuenta están activados.",
+        "off": "Los correos de la cuenta están desactivados: no hay host SMTP.",
+        "host": "Servidor SMTP",
+        "port": "Puerto",
+        "tls": "Seguridad",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Ninguno",
+        "user": "Usuario",
+        "password": "Contraseña",
+        "password_set": "Hay una contraseña establecida. Escribe para reemplazarla.",
+        "password_not_set": "No hay contraseña establecida",
+        "password_removed": "La contraseña se quitará al guardar.",
+        "remove_password": "Quitar contraseña",
+        "keep_password": "Conservar contraseña",
+        "from": "Dirección del remitente"
+      },
+      "public_url": {
+        "title": "URL pública",
+        "description": "La dirección de la aplicación web, que abren los enlaces de los correos y las notificaciones.",
+        "label": "URL pública"
+      },
+      "test_email": {
+        "title": "Enviar un correo de prueba",
+        "description": "Envía un correo breve a través del remitente guardado para comprobar que funciona.",
+        "to": "Enviar a",
+        "send": "Enviar un correo de prueba",
+        "sending": "Enviando…",
+        "sent": "Correo de prueba enviado a {{to}}.",
+        "failed": "El correo de prueba no se envió.",
+        "unsaved": "El remitente tiene cambios sin guardar. La prueba usa el remitente guardado, así que guarda primero."
+      },
+      "validation": {
+        "port": "Introduce un puerto del 1 al 65535, o déjalo vacío para usar el predeterminado."
+      },
+      "errors": {
+        "locked": "{{field}} lo fija el entorno del servidor y no se puede cambiar aquí.",
+        "open_needs_sender": "El registro abierto necesita un remitente de correo, porque las cuentas nuevas verifican su dirección de correo. Configura primero el remitente, o en el mismo guardado.",
+        "sender_needed": "El registro está abierto, y las cuentas nuevas necesitan el remitente para verificar su dirección de correo. Cambia primero el registro a solo con invitación.",
+        "no_sender": "No hay remitente de correo. Guarda primero un remitente."
+      }
     }
   },
   "auth": {

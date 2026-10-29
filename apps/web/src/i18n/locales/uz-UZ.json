@@ -8,7 +8,8 @@
       "back_to_workspace": "{{name}} ga qaytish",
       "probes": "Zondlar",
       "title": "Admin",
-      "users": "Foydalanuvchilar"
+      "users": "Foydalanuvchilar",
+      "settings": "Sozlamalar"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Ha"
       },
       "you": "siz"
+    },
+    "settings": {
+      "page_name": "Sozlamalar",
+      "description": "Butun oʻrnatmaning sozlamalari. Server muhiti belgilagan qiymat bu yerda qulflangan.",
+      "load_failed": "Sozlamalarni yuklab boʻlmadi.",
+      "saved": "Sozlamalar saqlandi",
+      "save_failed": "Sozlamalar saqlanmadi.",
+      "locked": "Server muhiti tomonidan belgilangan",
+      "source": {
+        "environment": "Server muhitidan",
+        "saved": "Shu yerda saqlangan",
+        "default": "Standart"
+      },
+      "signup": {
+        "title": "Roʻyxatdan oʻtish",
+        "description": "Bu oʻrnatmada kim hisob yarata oladi.",
+        "label": "Roʻyxatdan oʻtish rejimi",
+        "invite": "Faqat taklif bilan",
+        "open": "Ochiq",
+        "invite_help": "Birinchi foydalanuvchi roʻyxatdan oʻtadi, undan keyingilarning hammasi taklif orqali ish maydoniga qoʻshiladi.",
+        "open_help": "Har kim roʻyxatdan oʻtib, oʻz ish maydonini oladi. Yangi hisoblar elektron pochta manzilini tasdiqlaydi, shuning uchun pochta joʻnatuvchisi kerak."
+      },
+      "sender": {
+        "title": "Pochta joʻnatuvchisi",
+        "description": "Hisob xatlarini yuboradigan SMTP server: parolni tiklash havolalari, pochtani tasdiqlash va takliflar.",
+        "on": "Hisob xatlari yoqilgan.",
+        "off": "Hisob xatlari oʻchirilgan: SMTP xost yoʻq.",
+        "host": "SMTP Xost",
+        "port": "Port",
+        "tls": "Xavfsizlik",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Yoʻq",
+        "user": "Foydalanuvchi",
+        "password": "Parol",
+        "password_set": "Parol oʻrnatilgan. Almashtirish uchun yangisini kiriting.",
+        "password_not_set": "Parol oʻrnatilmagan",
+        "password_removed": "Saqlaganingizda parol olib tashlanadi.",
+        "remove_password": "Parolni olib tashlash",
+        "keep_password": "Parolni qoldirish",
+        "from": "Joʻnatuvchi manzili"
+      },
+      "public_url": {
+        "title": "Ommaviy URL",
+        "description": "Xatlar va bildirishnomalardagi havolalar ochadigan veb-ilova manzili.",
+        "label": "Ommaviy URL"
+      },
+      "test_email": {
+        "title": "Sinov xatini yuborish",
+        "description": "Ishlashini tekshirish uchun saqlangan joʻnatuvchi orqali qisqa xat yuboradi.",
+        "to": "Kimga yuborish",
+        "send": "Sinov xatini yuborish",
+        "sending": "Yuborilmoqda…",
+        "sent": "Sinov xati {{to}} manziliga yuborildi.",
+        "failed": "Sinov xati yuborilmadi.",
+        "unsaved": "Joʻnatuvchida saqlanmagan oʻzgarishlar bor. Sinov saqlangan joʻnatuvchidan foydalanadi, shuning uchun avval saqlang."
+      },
+      "validation": {
+        "port": "1 dan 65535 gacha port kiriting yoki standart qiymat uchun boʻsh qoldiring."
+      },
+      "errors": {
+        "locked": "{{field}} server muhiti tomonidan belgilangan va bu yerda oʻzgartirib boʻlmaydi.",
+        "open_needs_sender": "Ochiq roʻyxatdan oʻtish uchun pochta joʻnatuvchisi kerak, chunki yangi hisoblar pochta manzilini tasdiqlaydi. Avval joʻnatuvchini sozlang yoki shu saqlashda sozlang.",
+        "sender_needed": "Roʻyxatdan oʻtish ochiq, yangi hisoblarga pochta manzilini tasdiqlash uchun joʻnatuvchi kerak. Avval roʻyxatdan oʻtishni faqat taklif bilan rejimiga oʻtkazing.",
+        "no_sender": "Pochta joʻnatuvchisi yoʻq. Avval joʻnatuvchini saqlang."
+      }
     }
   },
   "auth": {

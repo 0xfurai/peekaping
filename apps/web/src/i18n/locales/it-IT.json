@@ -8,7 +8,8 @@
       "back_to_workspace": "Torna a {{name}}",
       "probes": "Sonde",
       "title": "Amministrazione",
-      "users": "Utenti"
+      "users": "Utenti",
+      "settings": "Impostazioni"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Sì"
       },
       "you": "tu"
+    },
+    "settings": {
+      "page_name": "Impostazioni",
+      "description": "Impostazioni dell'intera installazione. Un valore impostato dall'ambiente del server è bloccato qui.",
+      "load_failed": "Impossibile caricare le impostazioni.",
+      "saved": "Impostazioni salvate",
+      "save_failed": "Le impostazioni non sono state salvate.",
+      "locked": "Impostato dall'ambiente del server",
+      "source": {
+        "environment": "Dall'ambiente del server",
+        "saved": "Salvato qui",
+        "default": "Predefinito"
+      },
+      "signup": {
+        "title": "Registrazione",
+        "description": "Chi può creare un account su questa installazione.",
+        "label": "Modalità di registrazione",
+        "invite": "Solo su invito",
+        "open": "Aperta",
+        "invite_help": "Il primo utente si registra, e tutti gli altri entrano in uno spazio di lavoro tramite un invito.",
+        "open_help": "Chiunque può registrarsi e ottiene un proprio spazio di lavoro. I nuovi account verificano il proprio indirizzo email, quindi serve un mittente email."
+      },
+      "sender": {
+        "title": "Mittente email",
+        "description": "Il server SMTP che invia le email dell'account: link per reimpostare la password, verifica dell'email e inviti.",
+        "on": "Le email dell'account sono attive.",
+        "off": "Le email dell'account sono disattivate: non c'è un host SMTP.",
+        "host": "Host SMTP",
+        "port": "Porta",
+        "tls": "Sicurezza",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nessuna",
+        "user": "Utente",
+        "password": "Password",
+        "password_set": "È impostata una password. Digita per sostituirla.",
+        "password_not_set": "Nessuna password impostata",
+        "password_removed": "La password verrà rimossa al salvataggio.",
+        "remove_password": "Rimuovi password",
+        "keep_password": "Mantieni password",
+        "from": "Indirizzo del mittente"
+      },
+      "public_url": {
+        "title": "URL pubblico",
+        "description": "L'indirizzo dell'app web, che aprono i link nelle email e nelle notifiche.",
+        "label": "URL pubblico"
+      },
+      "test_email": {
+        "title": "Invia un'email di prova",
+        "description": "Invia una breve email tramite il mittente salvato, per verificare che funzioni.",
+        "to": "Invia a",
+        "send": "Invia un'email di prova",
+        "sending": "Invio in corso…",
+        "sent": "Email di prova inviata a {{to}}.",
+        "failed": "L'email di prova non è stata inviata.",
+        "unsaved": "Il mittente ha modifiche non salvate. La prova usa il mittente salvato, quindi salva prima."
+      },
+      "validation": {
+        "port": "Inserisci una porta da 1 a 65535, oppure lascia vuoto per il valore predefinito."
+      },
+      "errors": {
+        "locked": "{{field}} è impostato dall'ambiente del server e non può essere modificato qui.",
+        "open_needs_sender": "La registrazione aperta richiede un mittente email, perché i nuovi account verificano il proprio indirizzo email. Configura prima il mittente, o nello stesso salvataggio.",
+        "sender_needed": "La registrazione è aperta, e i nuovi account hanno bisogno del mittente per verificare il proprio indirizzo email. Passa prima la registrazione a solo su invito.",
+        "no_sender": "Non c'è un mittente email. Salva prima un mittente."
+      }
     }
   },
   "auth": {

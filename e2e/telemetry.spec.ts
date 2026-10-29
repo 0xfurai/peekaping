@@ -23,7 +23,7 @@ test.describe('Choices on the server', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('Usage statistics are on by default; turning them off removes the instance ID, and turning them on again makes a new one', async ({ page }) => {
-    await page.goto('/settings');
+    await page.goto('/admin/settings');
     const toggle = page.getByRole('switch', { name: switchName });
     const preview = page.locator('pre');
 
@@ -60,7 +60,7 @@ test.describe('Choices on the server', () => {
   });
 
   test('Error reports are on by default, separate from usage statistics; turning them off and on is stored', async ({ page }) => {
-    await page.goto('/settings');
+    await page.goto('/admin/settings');
     const toggle = page.getByRole('switch', { name: errorReportsSwitchName });
     const usageToggle = page.getByRole('switch', { name: switchName });
 
@@ -97,7 +97,7 @@ test('Settings shows the switch as forced off when the environment switches usag
     route.fulfill({ json: { enabled: true, forced_off: true, notice_pending: false, payload } }),
   );
 
-  await page.goto('/settings');
+  await page.goto('/admin/settings');
 
   const toggle = page.getByRole('switch', { name: switchName });
   await expect(toggle).toBeDisabled();
@@ -113,7 +113,7 @@ test('Settings shows error reports as forced off when the environment switches t
     route.fulfill({ json: { enabled: true, forced_off: true } }),
   );
 
-  await page.goto('/settings');
+  await page.goto('/admin/settings');
 
   const toggle = page.getByRole('switch', { name: errorReportsSwitchName });
   await expect(toggle).toBeDisabled();
@@ -189,12 +189,13 @@ test.describe('Upgrade notice', () => {
 
     await banner(page).getByRole('link', { name: 'Turn off error reports in Settings' }).click();
 
-    await expect(page).toHaveURL(/\/settings#error-reports$/);
+    // The switches belong to the install, so they are on Admin → Settings, outside every workspace
+    await expect(page).toHaveURL(/\/admin\/settings#error-reports$/);
     await expect(page.getByRole('switch', { name: errorReportsSwitchName })).toBeVisible();
     await expect(page.locator('#error-reports')).toBeInViewport();
     await expect(banner(page).getByRole('link', { name: 'Turn off usage statistics in Settings' })).toHaveAttribute(
       'href',
-      /^\/w\/[0-9a-f-]{36}\/settings#usage-statistics$/,
+      '/admin/settings#usage-statistics',
     );
   });
 
@@ -235,7 +236,7 @@ test.describe('Upgrade notice', () => {
   for (const card of cards) {
     test(`Changing the ${card.name} card hides the notice`, async ({ page }) => {
       const server = await fakeServer(page);
-      await page.goto('/settings');
+      await page.goto('/admin/settings');
       await expect(banner(page)).toBeVisible();
 
       await page.getByRole('switch', { name: card.switchName }).click();

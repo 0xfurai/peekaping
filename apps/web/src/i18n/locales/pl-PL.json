@@ -8,7 +8,8 @@
       "back_to_workspace": "Wróć do: {{name}}",
       "probes": "Sondy",
       "title": "Administracja",
-      "users": "Użytkownicy"
+      "users": "Użytkownicy",
+      "settings": "Ustawienia"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Tak"
       },
       "you": "ty"
+    },
+    "settings": {
+      "page_name": "Ustawienia",
+      "description": "Ustawienia całej instalacji. Wartość ustawiona przez środowisko serwera jest tu zablokowana.",
+      "load_failed": "Nie udało się wczytać ustawień.",
+      "saved": "Ustawienia zapisane",
+      "save_failed": "Ustawienia nie zostały zapisane.",
+      "locked": "Ustawione przez środowisko serwera",
+      "source": {
+        "environment": "Ze środowiska serwera",
+        "saved": "Zapisane tutaj",
+        "default": "Domyślny"
+      },
+      "signup": {
+        "title": "Rejestracja",
+        "description": "Kto może założyć konto w tej instalacji.",
+        "label": "Tryb rejestracji",
+        "invite": "Tylko z zaproszeniem",
+        "open": "Otwarta",
+        "invite_help": "Pierwszy użytkownik się rejestruje, a wszyscy kolejni dołączają do obszaru roboczego przez zaproszenie.",
+        "open_help": "Każdy może się zarejestrować i dostaje własny obszar roboczy. Nowe konta potwierdzają swój adres e-mail, więc potrzebny jest nadawca e-maili."
+      },
+      "sender": {
+        "title": "Nadawca e-maili",
+        "description": "Serwer SMTP, który wysyła e-maile konta: linki do resetowania hasła, potwierdzenie adresu e-mail i zaproszenia.",
+        "on": "E-maile konta są włączone.",
+        "off": "E-maile konta są wyłączone: brak hosta SMTP.",
+        "host": "Serwer SMTP",
+        "port": "Port",
+        "tls": "Bezpieczeństwo",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Brak",
+        "user": "Użytkownik",
+        "password": "Hasło",
+        "password_set": "Hasło jest ustawione. Wpisz nowe, aby je zastąpić.",
+        "password_not_set": "Nie ustawiono hasła",
+        "password_removed": "Hasło zostanie usunięte po zapisaniu.",
+        "remove_password": "Usuń hasło",
+        "keep_password": "Zachowaj hasło",
+        "from": "Adres nadawcy"
+      },
+      "public_url": {
+        "title": "Publiczny URL",
+        "description": "Adres aplikacji internetowej, który otwierają linki w e-mailach i powiadomieniach.",
+        "label": "Publiczny URL"
+      },
+      "test_email": {
+        "title": "Wyślij testowy e-mail",
+        "description": "Wysyła krótki e-mail przez zapisanego nadawcę, aby sprawdzić, czy działa.",
+        "to": "Wyślij do",
+        "send": "Wyślij testowy e-mail",
+        "sending": "Wysyłanie…",
+        "sent": "Testowy e-mail wysłano do {{to}}.",
+        "failed": "Testowy e-mail nie został wysłany.",
+        "unsaved": "Nadawca ma niezapisane zmiany. Test używa zapisanego nadawcy, więc najpierw zapisz."
+      },
+      "validation": {
+        "port": "Wpisz port od 1 do 65535 lub zostaw puste dla wartości domyślnej."
+      },
+      "errors": {
+        "locked": "{{field}} ustawia środowisko serwera i nie można tego tu zmienić.",
+        "open_needs_sender": "Otwarta rejestracja wymaga nadawcy e-maili, ponieważ nowe konta potwierdzają swój adres e-mail. Najpierw skonfiguruj nadawcę albo zrób to w tym samym zapisie.",
+        "sender_needed": "Rejestracja jest otwarta, a nowe konta potrzebują nadawcy, aby potwierdzić swój adres e-mail. Najpierw przełącz rejestrację na tylko z zaproszeniem.",
+        "no_sender": "Brak nadawcy e-maili. Najpierw zapisz nadawcę."
+      }
     }
   },
   "auth": {

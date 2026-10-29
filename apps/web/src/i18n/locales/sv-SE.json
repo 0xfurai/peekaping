@@ -8,7 +8,8 @@
       "back_to_workspace": "Tillbaka till {{name}}",
       "probes": "Sonder",
       "title": "Admin",
-      "users": "Användare"
+      "users": "Användare",
+      "settings": "Inställningar"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Ja"
       },
       "you": "du"
+    },
+    "settings": {
+      "page_name": "Inställningar",
+      "description": "Inställningar för hela installationen. Ett värde som serverns miljö sätter är låst här.",
+      "load_failed": "Inställningarna kunde inte läsas in.",
+      "saved": "Inställningar sparade",
+      "save_failed": "Inställningarna sparades inte.",
+      "locked": "Satt av serverns miljö",
+      "source": {
+        "environment": "Från serverns miljö",
+        "saved": "Sparat här",
+        "default": "Standard"
+      },
+      "signup": {
+        "title": "Registrering",
+        "description": "Vem som får skapa ett konto på den här installationen.",
+        "label": "Registreringsläge",
+        "invite": "Endast med inbjudan",
+        "open": "Öppen",
+        "invite_help": "Den första användaren registrerar sig, och alla efter går med i en arbetsyta via en inbjudan.",
+        "open_help": "Vem som helst kan registrera sig och får en egen arbetsyta. Nya konton bekräftar sin e-postadress, så det krävs en e-postavsändare."
+      },
+      "sender": {
+        "title": "E-postavsändare",
+        "description": "SMTP-servern som skickar kontots e-post: länkar för att återställa lösenord, bekräftelse av e-post och inbjudningar.",
+        "on": "Kontots e-post är på.",
+        "off": "Kontots e-post är av: det finns ingen SMTP-värd.",
+        "host": "SMTP‑värd",
+        "port": "Port",
+        "tls": "Säkerhet",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Ingen",
+        "user": "Användare",
+        "password": "Lösenord",
+        "password_set": "Ett lösenord är angivet. Skriv för att ersätta det.",
+        "password_not_set": "Inget lösenord angivet",
+        "password_removed": "Lösenordet tas bort när du sparar.",
+        "remove_password": "Ta bort lösenord",
+        "keep_password": "Behåll lösenord",
+        "from": "Avsändaradress"
+      },
+      "public_url": {
+        "title": "Offentlig URL",
+        "description": "Webbappens adress, som länkarna i e-post och aviseringar öppnar.",
+        "label": "Offentlig URL"
+      },
+      "test_email": {
+        "title": "Skicka ett testmejl",
+        "description": "Skickar ett kort mejl via den sparade avsändaren för att kontrollera att den fungerar.",
+        "to": "Skicka till",
+        "send": "Skicka ett testmejl",
+        "sending": "Skickar…",
+        "sent": "Testmejl skickat till {{to}}.",
+        "failed": "Testmejlet skickades inte.",
+        "unsaved": "Avsändaren har osparade ändringar. Testet använder den sparade avsändaren, så spara först."
+      },
+      "validation": {
+        "port": "Ange en port från 1 till 65535, eller lämna tomt för standardvärdet."
+      },
+      "errors": {
+        "locked": "{{field}} sätts av serverns miljö och kan inte ändras här.",
+        "open_needs_sender": "Öppen registrering kräver en e-postavsändare, eftersom nya konton bekräftar sin e-postadress. Ställ in avsändaren först, eller i samma sparning.",
+        "sender_needed": "Registreringen är öppen, och nya konton behöver avsändaren för att bekräfta sin e-postadress. Byt registreringen till endast med inbjudan först.",
+        "no_sender": "Det finns ingen e-postavsändare. Spara en avsändare först."
+      }
     }
   },
   "auth": {

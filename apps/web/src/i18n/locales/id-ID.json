@@ -8,7 +8,8 @@
       "back_to_workspace": "Kembali ke {{name}}",
       "probes": "Probe",
       "title": "Admin",
-      "users": "Pengguna"
+      "users": "Pengguna",
+      "settings": "Pengaturan"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Ya"
       },
       "you": "Anda"
+    },
+    "settings": {
+      "page_name": "Pengaturan",
+      "description": "Pengaturan seluruh instalasi. Nilai yang diatur oleh lingkungan server dikunci di sini.",
+      "load_failed": "Pengaturan tidak dapat dimuat.",
+      "saved": "Pengaturan disimpan",
+      "save_failed": "Pengaturan tidak disimpan.",
+      "locked": "Diatur oleh lingkungan server",
+      "source": {
+        "environment": "Dari lingkungan server",
+        "saved": "Disimpan di sini",
+        "default": "Bawaan"
+      },
+      "signup": {
+        "title": "Pendaftaran",
+        "description": "Siapa yang boleh membuat akun di instalasi ini.",
+        "label": "Mode pendaftaran",
+        "invite": "Hanya dengan undangan",
+        "open": "Terbuka",
+        "invite_help": "Pengguna pertama mendaftar, dan semua orang setelahnya bergabung ke ruang kerja melalui undangan.",
+        "open_help": "Siapa pun bisa mendaftar dan mendapat ruang kerja sendiri. Akun baru memverifikasi alamat emailnya, jadi ini memerlukan pengirim email."
+      },
+      "sender": {
+        "title": "Pengirim email",
+        "description": "Server SMTP yang mengirim email akun: tautan atur ulang kata sandi, verifikasi email, dan undangan.",
+        "on": "Email akun aktif.",
+        "off": "Email akun nonaktif: tidak ada host SMTP.",
+        "host": "Host SMTP",
+        "port": "Port",
+        "tls": "Keamanan",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Tidak ada",
+        "user": "Pengguna",
+        "password": "Kata Sandi",
+        "password_set": "Kata sandi sudah diatur. Ketik untuk menggantinya.",
+        "password_not_set": "Belum ada kata sandi",
+        "password_removed": "Kata sandi dihapus saat Anda menyimpan.",
+        "remove_password": "Hapus kata sandi",
+        "keep_password": "Pertahankan kata sandi",
+        "from": "Alamat pengirim"
+      },
+      "public_url": {
+        "title": "URL publik",
+        "description": "Alamat aplikasi web, yang dibuka oleh tautan di email dan notifikasi.",
+        "label": "URL publik"
+      },
+      "test_email": {
+        "title": "Kirim email uji",
+        "description": "Mengirim email singkat melalui pengirim yang disimpan, untuk memeriksa apakah berfungsi.",
+        "to": "Kirim ke",
+        "send": "Kirim email uji",
+        "sending": "Mengirim…",
+        "sent": "Email uji dikirim ke {{to}}.",
+        "failed": "Email uji tidak terkirim.",
+        "unsaved": "Pengirim memiliki perubahan yang belum disimpan. Pengujian memakai pengirim yang disimpan, jadi simpan dulu."
+      },
+      "validation": {
+        "port": "Masukkan port dari 1 hingga 65535, atau biarkan kosong untuk nilai bawaan."
+      },
+      "errors": {
+        "locked": "{{field}} diatur oleh lingkungan server dan tidak dapat diubah di sini.",
+        "open_needs_sender": "Pendaftaran terbuka memerlukan pengirim email, karena akun baru memverifikasi alamat emailnya. Atur pengirim terlebih dahulu, atau dalam penyimpanan yang sama.",
+        "sender_needed": "Pendaftaran terbuka, dan akun baru memerlukan pengirim untuk memverifikasi alamat emailnya. Ubah pendaftaran ke hanya dengan undangan terlebih dahulu.",
+        "no_sender": "Tidak ada pengirim email. Simpan pengirim terlebih dahulu."
+      }
     }
   },
   "auth": {

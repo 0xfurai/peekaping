@@ -8,7 +8,8 @@
       "back_to_workspace": "Back to {{name}}",
       "probes": "Probes",
       "title": "Admin",
-      "users": "Users"
+      "users": "Users",
+      "settings": "Settings"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Yes"
       },
       "you": "you"
+    },
+    "settings": {
+      "page_name": "Settings",
+      "description": "Settings of the whole install. A value the server's environment sets is locked here.",
+      "load_failed": "The settings couldn't be loaded.",
+      "saved": "Settings saved",
+      "save_failed": "The settings weren't saved.",
+      "locked": "Set by the server's environment",
+      "source": {
+        "environment": "From the server's environment",
+        "saved": "Saved here",
+        "default": "Default"
+      },
+      "signup": {
+        "title": "Signup",
+        "description": "Who may create an account on this install.",
+        "label": "Signup mode",
+        "invite": "Invite only",
+        "open": "Open",
+        "invite_help": "The first user signs up, and everyone after joins a workspace through an invite.",
+        "open_help": "Anyone may sign up and gets a workspace of their own. New accounts verify their email address, so this needs an email sender."
+      },
+      "sender": {
+        "title": "Email sender",
+        "description": "The SMTP server that sends account emails: password reset links, email verification and invites.",
+        "on": "Account emails are on.",
+        "off": "Account emails are off: there is no SMTP host.",
+        "host": "SMTP Host",
+        "port": "Port",
+        "tls": "Security",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "None",
+        "user": "User",
+        "password": "Password",
+        "password_set": "A password is set. Type to replace it.",
+        "password_not_set": "No password set",
+        "password_removed": "The password is removed when you save.",
+        "remove_password": "Remove password",
+        "keep_password": "Keep password",
+        "from": "From address"
+      },
+      "public_url": {
+        "title": "Public URL",
+        "description": "The web app's address, which the links in emails and notifications open.",
+        "label": "Public URL"
+      },
+      "test_email": {
+        "title": "Send a test email",
+        "description": "Sends a short email through the saved sender, to check that it works.",
+        "to": "Send to",
+        "send": "Send a test email",
+        "sending": "Sending…",
+        "sent": "Test email sent to {{to}}.",
+        "failed": "The test email wasn't sent.",
+        "unsaved": "The sender has unsaved changes. The test uses the saved sender, so save first."
+      },
+      "validation": {
+        "port": "Enter a port from 1 to 65535, or leave it empty for the default."
+      },
+      "errors": {
+        "locked": "{{field}} is set by the server's environment and can't be changed here.",
+        "open_needs_sender": "Open signup needs an email sender, because new accounts verify their email address. Set up the sender first, or in the same save.",
+        "sender_needed": "Signup is open, and new accounts need the sender to verify their email address. Switch signup to invite only first.",
+        "no_sender": "There is no email sender. Save a sender first."
+      }
     }
   },
   "auth": {

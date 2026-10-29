@@ -8,7 +8,8 @@
       "back_to_workspace": "Tilbake til {{name}}",
       "probes": "Prober",
       "title": "Admin",
-      "users": "Brukere"
+      "users": "Brukere",
+      "settings": "Innstillinger"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Ja"
       },
       "you": "deg"
+    },
+    "settings": {
+      "page_name": "Innstillinger",
+      "description": "Innstillinger for hele installasjonen. En verdi som serverens miljø setter, er låst her.",
+      "load_failed": "Innstillingene kunne ikke lastes inn.",
+      "saved": "Innstillinger lagret",
+      "save_failed": "Innstillingene ble ikke lagret.",
+      "locked": "Satt av serverens miljø",
+      "source": {
+        "environment": "Fra serverens miljø",
+        "saved": "Lagret her",
+        "default": "Standard"
+      },
+      "signup": {
+        "title": "Registrering",
+        "description": "Hvem som kan opprette en konto på denne installasjonen.",
+        "label": "Registreringsmodus",
+        "invite": "Kun med invitasjon",
+        "open": "Åpen",
+        "invite_help": "Den første brukeren registrerer seg, og alle etter blir med i et arbeidsområde via en invitasjon.",
+        "open_help": "Alle kan registrere seg og får sitt eget arbeidsområde. Nye kontoer bekrefter e-postadressen sin, så dette krever en e-postavsender."
+      },
+      "sender": {
+        "title": "E-postavsender",
+        "description": "SMTP-serveren som sender konto-e-poster: lenker for tilbakestilling av passord, bekreftelse av e-post og invitasjoner.",
+        "on": "Konto-e-poster er på.",
+        "off": "Konto-e-poster er av: det finnes ingen SMTP-vert.",
+        "host": "SMTP-vert",
+        "port": "Port",
+        "tls": "Sikkerhet",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Ingen",
+        "user": "Bruker",
+        "password": "Passord",
+        "password_set": "Et passord er satt. Skriv for å erstatte det.",
+        "password_not_set": "Ingen passord satt",
+        "password_removed": "Passordet fjernes når du lagrer.",
+        "remove_password": "Fjern passord",
+        "keep_password": "Behold passord",
+        "from": "Avsenderadresse"
+      },
+      "public_url": {
+        "title": "Offentlig URL",
+        "description": "Adressen til nettappen, som lenkene i e-poster og varsler åpner.",
+        "label": "Offentlig URL"
+      },
+      "test_email": {
+        "title": "Send en test-e-post",
+        "description": "Sender en kort e-post via den lagrede avsenderen for å sjekke at den virker.",
+        "to": "Send til",
+        "send": "Send en test-e-post",
+        "sending": "Sender…",
+        "sent": "Test-e-post sendt til {{to}}.",
+        "failed": "Test-e-posten ble ikke sendt.",
+        "unsaved": "Avsenderen har endringer som ikke er lagret. Testen bruker den lagrede avsenderen, så lagre først."
+      },
+      "validation": {
+        "port": "Skriv inn en port fra 1 til 65535, eller la feltet stå tomt for standardverdien."
+      },
+      "errors": {
+        "locked": "{{field}} er satt av serverens miljø og kan ikke endres her.",
+        "open_needs_sender": "Åpen registrering krever en e-postavsender, fordi nye kontoer bekrefter e-postadressen sin. Sett opp avsenderen først, eller i samme lagring.",
+        "sender_needed": "Registreringen er åpen, og nye kontoer trenger avsenderen for å bekrefte e-postadressen sin. Bytt registreringen til kun med invitasjon først.",
+        "no_sender": "Det finnes ingen e-postavsender. Lagre en avsender først."
+      }
     }
   },
   "auth": {

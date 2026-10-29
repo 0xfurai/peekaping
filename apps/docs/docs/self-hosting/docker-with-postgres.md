@@ -231,7 +231,7 @@ TZ="America/New_York"
 
 `PROBE_BOOTSTRAP_TOKEN` is required: run `openssl rand -hex 32` and paste the result after the `=`. It is the token of the local probe, which gives access to the config of the monitors on it, so keep it secret. If you change it, run `docker compose up -d` again: it recreates the `api` and the `probe` with the new value. `docker compose up` stops with `PROBE_BOOTSTRAP_TOKEN is not set` while it is missing or empty.
 
-`TELEMETRY=off` and `ERROR_REPORTING=off` are optional. The first switches off the anonymous [usage statistics](./telemetry.md) and the second switches off the [error reports](./telemetry.md#error-reporting), whatever an admin chose. Without them, both are on until an admin turns them off in Settings.
+`TELEMETRY=off` and `ERROR_REPORTING=off` are optional. The first switches off the anonymous [usage statistics](./telemetry.md) and the second switches off the [error reports](./telemetry.md#error-reporting), whatever an admin chose. Without them, both are on until an admin turns them off in Admin → Settings.
 
 :::info JWT Settings
 JWT settings (access/refresh token expiration times and secret keys) are now automatically managed in the database. Default secure settings are initialized on first startup, and secret keys are generated automatically.

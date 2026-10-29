@@ -11,17 +11,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { commonMutationErrorHandler } from "@/lib/utils";
 
 // The one-time notice for an install that upgraded to the version where the usage ping and error
 // reports are on by default. The server says it is pending (GET /telemetry) until the admin
 // dismisses it or makes a choice for either feature, and it is never pending when the environment
-// switches both features off. It names only the features that are really on.
+// switches both features off. It names only the features that are really on, and links to their
+// switches on Admin → Settings.
 export function TelemetryNotice() {
   const { t } = useLocalizedTranslation();
-  const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
   // The usage ping and error reports belong to the install, so only an instance admin is told
   // about them, and nobody else asks the server
@@ -55,7 +54,7 @@ export function TelemetryNotice() {
         {usageOn && (
           <div className="flex flex-col gap-1">
             <p>{t("telemetry_notice.usage_statistics")}</p>
-            <Link to={workspacePath("/settings#usage-statistics")} className="underline w-fit">
+            <Link to="/admin/settings#usage-statistics" className="underline w-fit">
               {t("telemetry_notice.settings_usage")}
             </Link>
           </div>
@@ -63,7 +62,7 @@ export function TelemetryNotice() {
         {errorsOn && (
           <div className="flex flex-col gap-1">
             <p>{t("telemetry_notice.error_reports")}</p>
-            <Link to={workspacePath("/settings#error-reports")} className="underline w-fit">
+            <Link to="/admin/settings#error-reports" className="underline w-fit">
               {t("telemetry_notice.settings_errors")}
             </Link>
           </div>

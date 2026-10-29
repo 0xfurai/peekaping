@@ -8,7 +8,8 @@
       "back_to_workspace": "返回 {{name}}",
       "probes": "探針",
       "title": "管理",
-      "users": "使用者"
+      "users": "使用者",
+      "settings": "設定"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "是"
       },
       "you": "你"
+    },
+    "settings": {
+      "page_name": "設定",
+      "description": "整個安裝的設定。由伺服器環境設定的值在這裡會被鎖定。",
+      "load_failed": "無法載入設定。",
+      "saved": "設定已儲存",
+      "save_failed": "設定未儲存。",
+      "locked": "由伺服器環境設定",
+      "source": {
+        "environment": "來自伺服器環境",
+        "saved": "儲存在此",
+        "default": "預設"
+      },
+      "signup": {
+        "title": "註冊",
+        "description": "誰可以在此安裝上建立帳號。",
+        "label": "註冊模式",
+        "invite": "僅限邀請",
+        "open": "開放",
+        "invite_help": "第一位使用者註冊，之後的所有人透過邀請加入工作區。",
+        "open_help": "任何人都可以註冊，並取得自己的工作區。新帳號需要驗證電子郵件地址，因此需要郵件寄件者。"
+      },
+      "sender": {
+        "title": "郵件寄件者",
+        "description": "寄送帳號郵件的 SMTP 伺服器：重設密碼連結、電子郵件驗證與邀請。",
+        "on": "帳號郵件已開啟。",
+        "off": "帳號郵件已關閉：沒有 SMTP 主機。",
+        "host": "SMTP 主機",
+        "port": "埠號",
+        "tls": "安全",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "無",
+        "user": "使用者",
+        "password": "密碼",
+        "password_set": "已設定密碼。輸入新密碼即可取代。",
+        "password_not_set": "未設定密碼",
+        "password_removed": "儲存時將移除密碼。",
+        "remove_password": "移除密碼",
+        "keep_password": "保留密碼",
+        "from": "寄件地址"
+      },
+      "public_url": {
+        "title": "公開 URL",
+        "description": "網頁應用程式的位址，郵件與通知中的連結會開啟它。",
+        "label": "公開 URL"
+      },
+      "test_email": {
+        "title": "寄送測試郵件",
+        "description": "透過已儲存的寄件者寄送一封簡短郵件，以檢查其是否正常運作。",
+        "to": "寄送至",
+        "send": "寄送測試郵件",
+        "sending": "正在寄送…",
+        "sent": "測試郵件已寄送至 {{to}}。",
+        "failed": "測試郵件未寄出。",
+        "unsaved": "寄件者有未儲存的變更。測試使用已儲存的寄件者，請先儲存。"
+      },
+      "validation": {
+        "port": "請輸入 1 到 65535 之間的連接埠，或留空以使用預設值。"
+      },
+      "errors": {
+        "locked": "{{field}} 由伺服器環境設定，無法在此變更。",
+        "open_needs_sender": "開放註冊需要郵件寄件者，因為新帳號需要驗證電子郵件地址。請先設定寄件者，或在同一次儲存中設定。",
+        "sender_needed": "註冊已開放，新帳號需要寄件者來驗證電子郵件地址。請先將註冊切換為僅限邀請。",
+        "no_sender": "沒有郵件寄件者。請先儲存寄件者。"
+      }
     }
   },
   "auth": {

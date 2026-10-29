@@ -8,7 +8,8 @@
       "back_to_workspace": "返回 {{name}}",
       "probes": "探针",
       "title": "管理",
-      "users": "用户"
+      "users": "用户",
+      "settings": "设置"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "是"
       },
       "you": "你"
+    },
+    "settings": {
+      "page_name": "设置",
+      "description": "整个安装的设置。由服务器环境设置的值在这里被锁定。",
+      "load_failed": "无法加载设置。",
+      "saved": "设置已保存",
+      "save_failed": "设置未保存。",
+      "locked": "由服务器环境设置",
+      "source": {
+        "environment": "来自服务器环境",
+        "saved": "保存在此处",
+        "default": "默认"
+      },
+      "signup": {
+        "title": "注册",
+        "description": "谁可以在此安装上创建账户。",
+        "label": "注册模式",
+        "invite": "仅限邀请",
+        "open": "开放",
+        "invite_help": "第一个用户注册，之后的所有人通过邀请加入工作区。",
+        "open_help": "任何人都可以注册，并获得自己的工作区。新账户需要验证邮箱地址，因此需要邮件发件人。"
+      },
+      "sender": {
+        "title": "邮件发件人",
+        "description": "发送账户邮件的 SMTP 服务器：密码重置链接、邮箱验证和邀请。",
+        "on": "账户邮件已开启。",
+        "off": "账户邮件已关闭：没有 SMTP 主机。",
+        "host": "SMTP 主机",
+        "port": "端口",
+        "tls": "安全",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "无",
+        "user": "用户",
+        "password": "密码",
+        "password_set": "已设置密码。输入新密码即可替换。",
+        "password_not_set": "未设置密码",
+        "password_removed": "保存时将移除密码。",
+        "remove_password": "移除密码",
+        "keep_password": "保留密码",
+        "from": "发件地址"
+      },
+      "public_url": {
+        "title": "公开 URL",
+        "description": "Web 应用的地址，邮件和通知中的链接会打开它。",
+        "label": "公开 URL"
+      },
+      "test_email": {
+        "title": "发送测试邮件",
+        "description": "通过已保存的发件人发送一封简短邮件，以检查其是否正常工作。",
+        "to": "发送至",
+        "send": "发送测试邮件",
+        "sending": "正在发送…",
+        "sent": "测试邮件已发送至 {{to}}。",
+        "failed": "测试邮件未发送。",
+        "unsaved": "发件人有未保存的更改。测试使用已保存的发件人，请先保存。"
+      },
+      "validation": {
+        "port": "请输入 1 到 65535 之间的端口，或留空以使用默认值。"
+      },
+      "errors": {
+        "locked": "{{field}} 由服务器环境设置，无法在此更改。",
+        "open_needs_sender": "开放注册需要邮件发件人，因为新账户需要验证邮箱地址。请先设置发件人，或在同一次保存中设置。",
+        "sender_needed": "注册已开放，新账户需要发件人来验证邮箱地址。请先将注册切换为仅限邀请。",
+        "no_sender": "没有邮件发件人。请先保存发件人。"
+      }
     }
   },
   "auth": {

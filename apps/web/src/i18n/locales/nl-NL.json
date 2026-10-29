@@ -8,7 +8,8 @@
       "back_to_workspace": "Terug naar {{name}}",
       "probes": "Probes",
       "title": "Beheer",
-      "users": "Gebruikers"
+      "users": "Gebruikers",
+      "settings": "Instellingen"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Ja"
       },
       "you": "jij"
+    },
+    "settings": {
+      "page_name": "Instellingen",
+      "description": "Instellingen van de hele installatie. Een waarde die de omgeving van de server instelt, is hier vergrendeld.",
+      "load_failed": "De instellingen konden niet worden geladen.",
+      "saved": "Instellingen opgeslagen",
+      "save_failed": "De instellingen zijn niet opgeslagen.",
+      "locked": "Ingesteld door de omgeving van de server",
+      "source": {
+        "environment": "Uit de omgeving van de server",
+        "saved": "Hier opgeslagen",
+        "default": "Standaard"
+      },
+      "signup": {
+        "title": "Registratie",
+        "description": "Wie een account mag aanmaken op deze installatie.",
+        "label": "Registratiemodus",
+        "invite": "Alleen op uitnodiging",
+        "open": "Open",
+        "invite_help": "De eerste gebruiker registreert zich, en iedereen daarna sluit zich aan bij een werkruimte via een uitnodiging.",
+        "open_help": "Iedereen kan zich registreren en krijgt een eigen werkruimte. Nieuwe accounts bevestigen hun e-mailadres, dus hiervoor is een e-mailafzender nodig."
+      },
+      "sender": {
+        "title": "E-mailafzender",
+        "description": "De SMTP-server die de account-e-mails verstuurt: links om het wachtwoord opnieuw in te stellen, e-mailverificatie en uitnodigingen.",
+        "on": "Account-e-mails staan aan.",
+        "off": "Account-e-mails staan uit: er is geen SMTP-host.",
+        "host": "SMTP-hostnaam",
+        "port": "Poort",
+        "tls": "Beveiliging",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Geen",
+        "user": "Gebruikersnaam",
+        "password": "Wachtwoord",
+        "password_set": "Er is een wachtwoord ingesteld. Typ om het te vervangen.",
+        "password_not_set": "Geen wachtwoord ingesteld",
+        "password_removed": "Het wachtwoord wordt verwijderd wanneer je opslaat.",
+        "remove_password": "Wachtwoord verwijderen",
+        "keep_password": "Wachtwoord behouden",
+        "from": "Afzenderadres"
+      },
+      "public_url": {
+        "title": "Openbare URL",
+        "description": "Het adres van de webapp, dat de links in e-mails en meldingen openen.",
+        "label": "Openbare URL"
+      },
+      "test_email": {
+        "title": "Testmail versturen",
+        "description": "Verstuurt een korte e-mail via de opgeslagen afzender, om te controleren of die werkt.",
+        "to": "Versturen naar",
+        "send": "Testmail versturen",
+        "sending": "Versturen…",
+        "sent": "Testmail verstuurd naar {{to}}.",
+        "failed": "De testmail is niet verstuurd.",
+        "unsaved": "De afzender heeft niet-opgeslagen wijzigingen. De test gebruikt de opgeslagen afzender, dus sla eerst op."
+      },
+      "validation": {
+        "port": "Voer een poort in van 1 tot 65535, of laat het leeg voor de standaardwaarde."
+      },
+      "errors": {
+        "locked": "{{field}} wordt ingesteld door de omgeving van de server en kan hier niet worden gewijzigd.",
+        "open_needs_sender": "Open registratie heeft een e-mailafzender nodig, omdat nieuwe accounts hun e-mailadres bevestigen. Stel eerst de afzender in, of in dezelfde opslag.",
+        "sender_needed": "De registratie is open, en nieuwe accounts hebben de afzender nodig om hun e-mailadres te bevestigen. Zet de registratie eerst op alleen op uitnodiging.",
+        "no_sender": "Er is geen e-mailafzender. Sla eerst een afzender op."
+      }
     }
   },
   "auth": {

@@ -8,7 +8,8 @@
       "back_to_workspace": "Zurück zu {{name}}",
       "probes": "Sonden",
       "title": "Administration",
-      "users": "Benutzer"
+      "users": "Benutzer",
+      "settings": "Einstellungen"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Ja"
       },
       "you": "du"
+    },
+    "settings": {
+      "page_name": "Einstellungen",
+      "description": "Einstellungen der ganzen Installation. Ein Wert, den die Umgebung des Servers setzt, ist hier gesperrt.",
+      "load_failed": "Die Einstellungen konnten nicht geladen werden.",
+      "saved": "Einstellungen gespeichert",
+      "save_failed": "Die Einstellungen wurden nicht gespeichert.",
+      "locked": "Von der Umgebung des Servers gesetzt",
+      "source": {
+        "environment": "Aus der Umgebung des Servers",
+        "saved": "Hier gespeichert",
+        "default": "Standard"
+      },
+      "signup": {
+        "title": "Registrierung",
+        "description": "Wer auf dieser Installation ein Konto erstellen darf.",
+        "label": "Registrierungsmodus",
+        "invite": "Nur mit Einladung",
+        "open": "Offen",
+        "invite_help": "Der erste Benutzer registriert sich, und alle weiteren treten einem Arbeitsbereich über eine Einladung bei.",
+        "open_help": "Jeder kann sich registrieren und erhält einen eigenen Arbeitsbereich. Neue Konten bestätigen ihre E-Mail-Adresse, daher braucht es einen E-Mail-Absender."
+      },
+      "sender": {
+        "title": "E-Mail-Absender",
+        "description": "Der SMTP-Server, der die Konto-E-Mails versendet: Links zum Zurücksetzen des Passworts, E-Mail-Bestätigung und Einladungen.",
+        "on": "Konto-E-Mails sind eingeschaltet.",
+        "off": "Konto-E-Mails sind ausgeschaltet: Es gibt keinen SMTP-Host.",
+        "host": "SMTP-Host",
+        "port": "Port",
+        "tls": "Sicherheit",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Keine",
+        "user": "Benutzer",
+        "password": "Passwort",
+        "password_set": "Ein Passwort ist gesetzt. Tippen Sie, um es zu ersetzen.",
+        "password_not_set": "Kein Passwort gesetzt",
+        "password_removed": "Das Passwort wird beim Speichern entfernt.",
+        "remove_password": "Passwort entfernen",
+        "keep_password": "Passwort behalten",
+        "from": "Absenderadresse"
+      },
+      "public_url": {
+        "title": "Öffentliche URL",
+        "description": "Die Adresse der Web-App, die die Links in E-Mails und Benachrichtigungen öffnen.",
+        "label": "Öffentliche URL"
+      },
+      "test_email": {
+        "title": "Test-E-Mail senden",
+        "description": "Sendet eine kurze E-Mail über den gespeicherten Absender, um zu prüfen, ob er funktioniert.",
+        "to": "Senden an",
+        "send": "Test-E-Mail senden",
+        "sending": "Wird gesendet…",
+        "sent": "Test-E-Mail an {{to}} gesendet.",
+        "failed": "Die Test-E-Mail wurde nicht gesendet.",
+        "unsaved": "Der Absender hat ungespeicherte Änderungen. Der Test verwendet den gespeicherten Absender, speichern Sie also zuerst."
+      },
+      "validation": {
+        "port": "Geben Sie einen Port von 1 bis 65535 ein, oder lassen Sie das Feld für den Standardwert leer."
+      },
+      "errors": {
+        "locked": "{{field}} wird von der Umgebung des Servers gesetzt und kann hier nicht geändert werden.",
+        "open_needs_sender": "Offene Registrierung braucht einen E-Mail-Absender, weil neue Konten ihre E-Mail-Adresse bestätigen. Richten Sie zuerst den Absender ein, oder im selben Speichern.",
+        "sender_needed": "Die Registrierung ist offen, und neue Konten brauchen den Absender, um ihre E-Mail-Adresse zu bestätigen. Stellen Sie die Registrierung zuerst auf nur mit Einladung um.",
+        "no_sender": "Es gibt keinen E-Mail-Absender. Speichern Sie zuerst einen Absender."
+      }
     }
   },
   "auth": {

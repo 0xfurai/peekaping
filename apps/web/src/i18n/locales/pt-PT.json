@@ -8,7 +8,8 @@
       "back_to_workspace": "Voltar a {{name}}",
       "probes": "Sondas",
       "title": "Administração",
-      "users": "Utilizadores"
+      "users": "Utilizadores",
+      "settings": "Definições"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Sim"
       },
       "you": "você"
+    },
+    "settings": {
+      "page_name": "Definições",
+      "description": "Definições de toda a instalação. Um valor definido pelo ambiente do servidor fica bloqueado aqui.",
+      "load_failed": "Não foi possível carregar as definições.",
+      "saved": "Definições guardadas",
+      "save_failed": "As definições não foram guardadas.",
+      "locked": "Definido pelo ambiente do servidor",
+      "source": {
+        "environment": "Do ambiente do servidor",
+        "saved": "Guardado aqui",
+        "default": "Padrão"
+      },
+      "signup": {
+        "title": "Registo",
+        "description": "Quem pode criar uma conta nesta instalação.",
+        "label": "Modo de registo",
+        "invite": "Apenas por convite",
+        "open": "Aberto",
+        "invite_help": "O primeiro utilizador regista-se, e todos os seguintes juntam-se a um espaço de trabalho através de um convite.",
+        "open_help": "Qualquer pessoa se pode registar e recebe um espaço de trabalho próprio. As contas novas verificam o endereço de e-mail, por isso é preciso um remetente de e-mail."
+      },
+      "sender": {
+        "title": "Remetente de e-mail",
+        "description": "O servidor SMTP que envia os e-mails da conta: ligações para repor a palavra-passe, verificação do e-mail e convites.",
+        "on": "Os e-mails da conta estão ativados.",
+        "off": "Os e-mails da conta estão desativados: não há anfitrião SMTP.",
+        "host": "Host SMTP",
+        "port": "Porta",
+        "tls": "Segurança",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nenhuma",
+        "user": "Utilizador",
+        "password": "Palavra-passe",
+        "password_set": "Está definida uma palavra-passe. Escreva para a substituir.",
+        "password_not_set": "Nenhuma palavra-passe definida",
+        "password_removed": "A palavra-passe será removida quando guardar.",
+        "remove_password": "Remover palavra-passe",
+        "keep_password": "Manter palavra-passe",
+        "from": "Endereço do remetente"
+      },
+      "public_url": {
+        "title": "URL pública",
+        "description": "O endereço da aplicação web, que as ligações nos e-mails e notificações abrem.",
+        "label": "URL pública"
+      },
+      "test_email": {
+        "title": "Enviar um e-mail de teste",
+        "description": "Envia um e-mail curto através do remetente guardado, para verificar que funciona.",
+        "to": "Enviar para",
+        "send": "Enviar um e-mail de teste",
+        "sending": "A enviar…",
+        "sent": "E-mail de teste enviado para {{to}}.",
+        "failed": "O e-mail de teste não foi enviado.",
+        "unsaved": "O remetente tem alterações por guardar. O teste usa o remetente guardado, por isso guarde primeiro."
+      },
+      "validation": {
+        "port": "Introduza uma porta de 1 a 65535, ou deixe vazio para o valor predefinido."
+      },
+      "errors": {
+        "locked": "{{field}} é definido pelo ambiente do servidor e não pode ser alterado aqui.",
+        "open_needs_sender": "O registo aberto precisa de um remetente de e-mail, porque as contas novas verificam o endereço de e-mail. Configure primeiro o remetente, ou na mesma gravação.",
+        "sender_needed": "O registo está aberto, e as contas novas precisam do remetente para verificar o endereço de e-mail. Mude primeiro o registo para apenas por convite.",
+        "no_sender": "Não há remetente de e-mail. Guarde primeiro um remetente."
+      }
     }
   },
   "auth": {

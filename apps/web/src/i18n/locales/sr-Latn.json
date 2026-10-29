@@ -8,7 +8,8 @@
       "back_to_workspace": "Nazad na {{name}}",
       "probes": "Sonde",
       "title": "Administracija",
-      "users": "Korisnici"
+      "users": "Korisnici",
+      "settings": "Podešavanja"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Da"
       },
       "you": "vi"
+    },
+    "settings": {
+      "page_name": "Podešavanja",
+      "description": "Podešavanja cele instalacije. Vrednost koju postavlja okruženje servera ovde je zaključana.",
+      "load_failed": "Podešavanja nije moguće učitati.",
+      "saved": "Podešavanja su sačuvana",
+      "save_failed": "Podešavanja nisu sačuvana.",
+      "locked": "Postavlja okruženje servera",
+      "source": {
+        "environment": "Iz okruženja servera",
+        "saved": "Sačuvano ovde",
+        "default": "Podrazumevano"
+      },
+      "signup": {
+        "title": "Registracija",
+        "description": "Ko može da napravi nalog na ovoj instalaciji.",
+        "label": "Režim registracije",
+        "invite": "Samo uz pozivnicu",
+        "open": "Otvorena",
+        "invite_help": "Prvi korisnik se registruje, a svi posle njega se pridružuju radnom prostoru preko pozivnice.",
+        "open_help": "Svako može da se registruje i dobija sopstveni radni prostor. Novi nalozi potvrđuju svoju adresu e-pošte, pa je potreban pošiljalac e-pošte."
+      },
+      "sender": {
+        "title": "Pošiljalac e-pošte",
+        "description": "SMTP server koji šalje e-poštu naloga: veze za resetovanje lozinke, potvrdu e-pošte i pozivnice.",
+        "on": "E-pošta naloga je uključena.",
+        "off": "E-pošta naloga je isključena: nema SMTP hosta.",
+        "host": "SMTP poslužitelj",
+        "port": "Port",
+        "tls": "Sigurnost",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Bez",
+        "user": "Korisnik",
+        "password": "Lozinka",
+        "password_set": "Lozinka je postavljena. Ukucajte novu da biste je zamenili.",
+        "password_not_set": "Lozinka nije postavljena",
+        "password_removed": "Lozinka će biti uklonjena kada sačuvate.",
+        "remove_password": "Ukloni lozinku",
+        "keep_password": "Zadrži lozinku",
+        "from": "Adresa pošiljaoca"
+      },
+      "public_url": {
+        "title": "Javni URL",
+        "description": "Adresa veb aplikacije koju otvaraju veze u e-pošti i obaveštenjima.",
+        "label": "Javni URL"
+      },
+      "test_email": {
+        "title": "Pošalji probnu e-poštu",
+        "description": "Šalje kratku poruku preko sačuvanog pošiljaoca da proveri da li radi.",
+        "to": "Pošalji na",
+        "send": "Pošalji probnu e-poštu",
+        "sending": "Slanje…",
+        "sent": "Probna e-pošta je poslata na {{to}}.",
+        "failed": "Probna e-pošta nije poslata.",
+        "unsaved": "Pošiljalac ima nesačuvane izmene. Proba koristi sačuvanog pošiljaoca, pa prvo sačuvajte."
+      },
+      "validation": {
+        "port": "Unesite port od 1 do 65535 ili ostavite prazno za podrazumevanu vrednost."
+      },
+      "errors": {
+        "locked": "{{field}} postavlja okruženje servera i ne može se ovde promeniti.",
+        "open_needs_sender": "Otvorenoj registraciji je potreban pošiljalac e-pošte, jer novi nalozi potvrđuju svoju adresu e-pošte. Prvo podesite pošiljaoca ili to uradite u istom čuvanju.",
+        "sender_needed": "Registracija je otvorena, a novim nalozima je potreban pošiljalac da potvrde svoju adresu e-pošte. Prvo prebacite registraciju na samo uz pozivnicu.",
+        "no_sender": "Nema pošiljaoca e-pošte. Prvo sačuvajte pošiljaoca."
+      }
     }
   },
   "auth": {

@@ -42,19 +42,18 @@ describe("SettingsPage", () => {
     expect(html).toContain(`>${text("common.save")}<`);
   });
 
-  it("shows an instance admin who owns the workspace everything, as before", () => {
-    const html = settings({ instanceAdmin: true, role: "owner" });
-    expect(html).toContain(text("settings.telemetry.title"));
-    expect(html).toContain(text("settings.error_reporting.title"));
-    expect(html).not.toContain("readOnly");
-    expect(html).toContain(`>${text("common.save")}<`);
-  });
-
-  it("lets an instance admin who is only a member of the workspace change the telemetry but not the retention period", () => {
-    const html = settings({ instanceAdmin: true, role: "member" });
-    expect(html).toContain(text("settings.telemetry.title"));
-    expect(html).toContain(text("settings.data_retention.read_only"));
-  });
+  it.each(["member", "owner"] as const)(
+    "shows an instance admin who is a %s no usage ping or error report switches: they moved to Admin → Settings",
+    (role) => {
+      const html = settings({ instanceAdmin: true, role });
+      expect(html).not.toContain(text("settings.telemetry.title"));
+      expect(html).not.toContain(text("settings.error_reporting.title"));
+      expect(html).not.toContain('id="usage-statistics"');
+      expect(html).not.toContain('id="error-reports"');
+      expect(html).not.toContain('role="switch"');
+      expect(html).toContain(text("settings.data_retention.title"));
+    }
+  );
 
   it.each(["member", "admin", "owner"] as const)("links a %s to the workspace's members", (role) => {
     const html = settings({ instanceAdmin: false, role });

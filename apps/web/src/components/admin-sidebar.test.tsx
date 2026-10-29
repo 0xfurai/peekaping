@@ -21,6 +21,14 @@ describe("AdminSidebar", () => {
     expect(html).toContain(text("admin.nav.probes"));
   });
 
+  it("links the install settings last", () => {
+    const html = sidebar({ instanceAdmin: true, role: "owner" });
+    expect(html).toContain('href="/admin/settings"');
+    expect(html).toContain(text("admin.nav.settings"));
+    const links = [...html.matchAll(/href="(\/admin\/[^"]*)"/g)].map((match) => match[1]);
+    expect(links.at(-1)).toBe("/admin/settings");
+  });
+
   it("has a way back to the user's workspace, named", () => {
     const html = sidebar({ instanceAdmin: true, role: "owner" });
     expect(html).toContain(`href="/w/${WORKSPACE_ID}/monitors"`);

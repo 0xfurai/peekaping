@@ -32,7 +32,7 @@ describe("protected routes", () => {
   });
 
   it("shows an instance admin the admin area's pages", () => {
-    for (const path of ["/admin/users", "/admin/probes", "/admin/probes/22222222-2222-4222-8222-222222222222"]) {
+    for (const path of ["/admin/users", "/admin/probes", "/admin/probes/22222222-2222-4222-8222-222222222222", "/admin/settings"]) {
       const html = renderAs({ instanceAdmin: true, role: "owner" }, <Routes>{protectedRoutes}</Routes>, path);
       expect(html).not.toContain("data-redirect");
       expect(html).toContain(text("admin.nav.users"));
@@ -57,7 +57,12 @@ describe("protected routes", () => {
     expect(cache?.getQueryData(getMeQueryKey())).toBeDefined();
   });
 
-  it.each(["/admin", "/admin/users", "/admin/probes", "/admin/probes/22222222-2222-4222-8222-222222222222"])(
+  it("shows an instance admin the install settings on /admin/settings", () => {
+    const html = renderAs({ instanceAdmin: true, role: "owner" }, <Routes>{protectedRoutes}</Routes>, "/admin/settings");
+    expect(html).toContain(text("admin.settings.description").replace(/'/g, "&#x27;"));
+  });
+
+  it.each(["/admin", "/admin/users", "/admin/probes", "/admin/probes/22222222-2222-4222-8222-222222222222", "/admin/settings"])(
     "sends a user who isn't an instance admin from %s to their workspace's monitors, showing nothing of the area",
     (path) => {
       for (const role of ["member", "owner"] as const) {

@@ -22,4 +22,10 @@ describe("TelemetryNotice", () => {
   it("is shown to an instance admin", () => {
     expect(notice({ instanceAdmin: true, role: "owner" })).toContain(text("telemetry_notice.title"));
   });
+
+  it("links each feature to its card on Admin → Settings, outside every workspace", () => {
+    const html = notice({ instanceAdmin: true, role: "owner" });
+    expect(html).toContain('href="/admin/settings#usage-statistics"');
+    expect(html).toContain('href="/admin/settings#error-reports"');
+  });
 });

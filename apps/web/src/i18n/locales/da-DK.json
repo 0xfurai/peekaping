@@ -8,7 +8,8 @@
       "back_to_workspace": "Tilbage til {{name}}",
       "probes": "Probes",
       "title": "Administration",
-      "users": "Brugere"
+      "users": "Brugere",
+      "settings": "Indstillinger"
     },
     "users": {
       "actions": {
@@ -100,6 +101,72 @@
         "yes": "Ja"
       },
       "you": "dig"
+    },
+    "settings": {
+      "page_name": "Indstillinger",
+      "description": "Indstillinger for hele installationen. En værdi, som serverens miljø sætter, er låst her.",
+      "load_failed": "Indstillingerne kunne ikke indlæses.",
+      "saved": "Indstillinger gemt",
+      "save_failed": "Indstillingerne blev ikke gemt.",
+      "locked": "Sat af serverens miljø",
+      "source": {
+        "environment": "Fra serverens miljø",
+        "saved": "Gemt her",
+        "default": "Standard"
+      },
+      "signup": {
+        "title": "Tilmelding",
+        "description": "Hvem der må oprette en konto på denne installation.",
+        "label": "Tilmeldingstilstand",
+        "invite": "Kun med invitation",
+        "open": "Åben",
+        "invite_help": "Den første bruger tilmelder sig, og alle derefter slutter sig til et arbejdsområde via en invitation.",
+        "open_help": "Alle kan tilmelde sig og får deres eget arbejdsområde. Nye konti bekræfter deres e-mailadresse, så det kræver en e-mailafsender."
+      },
+      "sender": {
+        "title": "E-mailafsender",
+        "description": "SMTP-serveren, der sender konto-e-mails: links til nulstilling af adgangskode, bekræftelse af e-mail og invitationer.",
+        "on": "Konto-e-mails er slået til.",
+        "off": "Konto-e-mails er slået fra: der er ingen SMTP-vært.",
+        "host": "SMTP-vært",
+        "port": "Port",
+        "tls": "Sikkerhed",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Ingen",
+        "user": "Bruger",
+        "password": "Adgangskode",
+        "password_set": "Der er angivet en adgangskode. Skriv for at erstatte den.",
+        "password_not_set": "Ingen adgangskode angivet",
+        "password_removed": "Adgangskoden fjernes, når du gemmer.",
+        "remove_password": "Fjern adgangskode",
+        "keep_password": "Behold adgangskode",
+        "from": "Afsenderadresse"
+      },
+      "public_url": {
+        "title": "Offentlig URL",
+        "description": "Webappens adresse, som links i e-mails og notifikationer åbner.",
+        "label": "Offentlig URL"
+      },
+      "test_email": {
+        "title": "Send en test-e-mail",
+        "description": "Sender en kort e-mail via den gemte afsender for at kontrollere, at den virker.",
+        "to": "Send til",
+        "send": "Send en test-e-mail",
+        "sending": "Sender…",
+        "sent": "Test-e-mail sendt til {{to}}.",
+        "failed": "Test-e-mailen blev ikke sendt.",
+        "unsaved": "Afsenderen har ændringer, der ikke er gemt. Testen bruger den gemte afsender, så gem først."
+      },
+      "validation": {
+        "port": "Angiv en port fra 1 til 65535, eller lad feltet være tomt for standardværdien."
+      },
+      "errors": {
+        "locked": "{{field}} er sat af serverens miljø og kan ikke ændres her.",
+        "open_needs_sender": "Åben tilmelding kræver en e-mailafsender, fordi nye konti bekræfter deres e-mailadresse. Opsæt afsenderen først, eller i samme gemning.",
+        "sender_needed": "Tilmelding er åben, og nye konti skal bruge afsenderen til at bekræfte deres e-mailadresse. Skift tilmelding til kun med invitation først.",
+        "no_sender": "Der er ingen e-mailafsender. Gem en afsender først."
+      }
     }
   },
   "auth": {
