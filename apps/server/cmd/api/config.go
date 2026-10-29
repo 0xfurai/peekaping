@@ -14,6 +14,9 @@ import (
 
 // Config defines the configuration schema for the API service
 type Config struct {
+	// Which variables the environment set: an install setting whose variable is set is locked to it
+	config.Environment
+
 	// Server configuration
 	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
@@ -258,6 +261,7 @@ func Validate(cfg *Config) error {
 // This is needed for backward compatibility with existing code
 func (c *Config) ToInternalConfig() *config.Config {
 	return &config.Config{
+		Environment:                  c.Environment,
 		Port:                         c.Port,
 		ClientURL:                    c.ClientURL,
 		DBHost:                       c.DBHost,
