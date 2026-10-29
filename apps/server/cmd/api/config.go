@@ -153,6 +153,10 @@ type Config struct {
 	WorkspaceLimitProbesPerMonitor int `env:"WORKSPACE_LIMIT_PROBES_PER_MONITOR" validate:"min=0" default:"0"`
 	WorkspaceLimitRetentionDays    int `env:"WORKSPACE_LIMIT_RETENTION_DAYS" validate:"min=0" default:"0"`
 
+	// The install's name for its default limits, such as "Free tier", shown on a workspace's Usage
+	// page. Unset by default.
+	WorkspaceLimitsName string `env:"WORKSPACE_LIMITS_NAME"`
+
 	// How a member of a suspended workspace gets in touch with whoever runs the install: free text,
 	// an email address or a URL. Unset by default.
 	SupportContact string `env:"SUPPORT_CONTACT"`
@@ -331,6 +335,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		WorkspaceLimitOwnedWorkspaces:  c.WorkspaceLimitOwnedWorkspaces,
 		WorkspaceLimitProbesPerMonitor: c.WorkspaceLimitProbesPerMonitor,
 		WorkspaceLimitRetentionDays:    c.WorkspaceLimitRetentionDays,
+		WorkspaceLimitsName:            c.WorkspaceLimitsName,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

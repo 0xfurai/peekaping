@@ -46,3 +46,20 @@ func TestWorkspaceLimitsAreUnsetByDefaultAndLoadedFromTheEnvironment(t *testing.
 		})
 	}
 }
+
+// PP-163: the install's name for its default limits, unset by default
+func TestWorkspaceLimitsNameIsUnsetByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("WORKSPACE_LIMITS_NAME", "")
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Empty(t, cfg.ToInternalConfig().WorkspaceLimitsName)
+
+	t.Setenv("WORKSPACE_LIMITS_NAME", "Free tier")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	internal := cfg.ToInternalConfig()
+	assert.Equal(t, "Free tier", internal.WorkspaceLimitsName)
+	assert.True(t, internal.FromEnvironment("WORKSPACE_LIMITS_NAME"))
+}

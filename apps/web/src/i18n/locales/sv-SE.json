@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Standardgränser",
-        "description": "Gränserna för varje arbetsyta som inte har egna. Lämna en gräns tom för ingen gräns. Gränser som en arbetsyta får på sidan Arbetsytor ersätter dessa."
+        "description": "Gränserna för varje arbetsyta som inte har egna. Lämna en gräns tom för ingen gräns. Gränser som en arbetsyta får på sidan Arbetsytor ersätter dessa.",
+        "name_label": "Namn på standardgränserna",
+        "name_help": "Visas på sidan Användning för en arbetsyta, till exempel Gratisnivå. Om fältet lämnas tomt står det på sidan att administratören har satt gränserna."
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "Ingen gräns",
     "invalid": "Ange ett heltal på 1 eller mer, eller lämna fältet tomt för ingen gräns.",
     "retention_too_long": "Får inte vara mer än {{max}} dagar"
+  },
+  "usage": {
+    "title": "Användning",
+    "description": "Hur mycket av sina gränser den här arbetsytan använder.",
+    "open": "Öppna användning",
+    "plan": "Abonnemang",
+    "set_by_admin": "Satt av din administratör",
+    "count": {
+      "monitors": "{{used}} av {{max}} övervakningar",
+      "status_pages": "{{used}} av {{max}} statussidor",
+      "custom_domains": "{{used}} av {{max}} anpassade domäner",
+      "members": "{{used}} av {{max}} medlemmar, väntande inbjudningar inräknade",
+      "owned_workspaces": "Du äger {{used}} av {{max}} arbetsytor",
+      "probes_per_monitor": "Upp till {{used}} av {{max}} sonder på en övervakning"
+    },
+    "labels": {
+      "min_check_interval": "Kortaste kontrollintervall",
+      "retention_days": "Längsta lagringstid för data"
+    },
+    "seconds": "{{value}} sekunder",
+    "days": "{{value}} dagar",
+    "near": "Nära gränsen",
+    "reached": "Vid gränsen"
   }
 }

@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Výchozí limity",
-        "description": "Limity každého pracovního prostoru, který nemá vlastní. Nechte limit prázdný, aby nebyl. Limity přidělené pracovnímu prostoru na stránce Pracovní prostory je nahrazují."
+        "description": "Limity každého pracovního prostoru, který nemá vlastní. Nechte limit prázdný, aby nebyl. Limity přidělené pracovnímu prostoru na stránce Pracovní prostory je nahrazují.",
+        "name_label": "Název výchozích limitů",
+        "name_help": "Zobrazuje se na stránce Využití pracovního prostoru, například Tarif zdarma. Pokud zůstane prázdné, stránka uvede, že limity nastavil váš správce."
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "Bez limitu",
     "invalid": "Zadejte celé číslo 1 nebo větší, nebo pole nechte prázdné, aby limit nebyl.",
     "retention_too_long": "Nesmí být víc než {{max}} dní"
+  },
+  "usage": {
+    "title": "Využití",
+    "description": "Kolik ze svých limitů tento pracovní prostor využívá.",
+    "open": "Otevřít využití",
+    "plan": "Tarif",
+    "set_by_admin": "Nastavil váš správce",
+    "count": {
+      "monitors": "{{used}} z {{max}} monitorů",
+      "status_pages": "{{used}} z {{max}} stránek stavu",
+      "custom_domains": "{{used}} z {{max}} vlastních domén",
+      "members": "{{used}} z {{max}} členů včetně čekajících pozvánek",
+      "owned_workspaces": "Vlastníte {{used}} z {{max}} pracovních prostorů",
+      "probes_per_monitor": "Až {{used}} z {{max}} sond na jednom monitoru"
+    },
+    "labels": {
+      "min_check_interval": "Nejkratší interval kontroly",
+      "retention_days": "Nejdelší uchovávání dat"
+    },
+    "seconds": "{{value}} s",
+    "days": "{{value}} d",
+    "near": "Blízko limitu",
+    "reached": "Na limitu"
   }
 }

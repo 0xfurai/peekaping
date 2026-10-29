@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Limites padrão",
-        "description": "Os limites de cada espaço de trabalho que não tem limites próprios. Deixe um limite em branco para não ter nenhum. Os limites dados a um espaço de trabalho na página Espaços de trabalho substituem estes."
+        "description": "Os limites de cada espaço de trabalho que não tem limites próprios. Deixe um limite em branco para não ter nenhum. Os limites dados a um espaço de trabalho na página Espaços de trabalho substituem estes.",
+        "name_label": "Nome dos limites padrão",
+        "name_help": "Exibido na página de Uso de um espaço de trabalho, como Plano gratuito. Se ficar em branco, a página informa que o administrador definiu os limites."
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "Sem limite",
     "invalid": "Digite um número inteiro igual ou maior que 1, ou deixe em branco para não ter limite.",
     "retention_too_long": "Não pode ser maior que {{max}} dias"
+  },
+  "usage": {
+    "title": "Uso",
+    "description": "Quanto este espaço de trabalho usa dos seus limites.",
+    "open": "Abrir uso",
+    "plan": "Plano",
+    "set_by_admin": "Definido pelo seu administrador",
+    "count": {
+      "monitors": "{{used}} de {{max}} monitores",
+      "status_pages": "{{used}} de {{max}} páginas de status",
+      "custom_domains": "{{used}} de {{max}} domínios personalizados",
+      "members": "{{used}} de {{max}} membros, incluindo convites pendentes",
+      "owned_workspaces": "Você é proprietário de {{used}} de {{max}} espaços de trabalho",
+      "probes_per_monitor": "Até {{used}} de {{max}} sondas em um monitor"
+    },
+    "labels": {
+      "min_check_interval": "Menor intervalo de verificação",
+      "retention_days": "Maior retenção de dados"
+    },
+    "seconds": "{{value}} segundos",
+    "days": "{{value}} dias",
+    "near": "Perto do limite",
+    "reached": "No limite"
   }
 }

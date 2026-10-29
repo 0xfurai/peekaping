@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Standardgrenser",
-        "description": "Grensene for hvert arbeidsområde som ikke har egne. La en grense stå tom for ingen grense. Grenser et arbeidsområde får på siden Arbeidsområder, erstatter disse."
+        "description": "Grensene for hvert arbeidsområde som ikke har egne. La en grense stå tom for ingen grense. Grenser et arbeidsområde får på siden Arbeidsområder, erstatter disse.",
+        "name_label": "Navn på standardgrensene",
+        "name_help": "Vises på Bruk-siden til et arbeidsområde, for eksempel Gratisnivå. Hvis feltet er tomt, står det på siden at administratoren din har satt grensene."
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "Ingen grense",
     "invalid": "Skriv inn et helt tall på 1 eller mer, eller la feltet stå tomt for ingen grense.",
     "retention_too_long": "Kan ikke være over {{max}} dager"
+  },
+  "usage": {
+    "title": "Bruk",
+    "description": "Hvor mye dette arbeidsområdet bruker av grensene sine.",
+    "open": "Åpne bruk",
+    "plan": "Abonnement",
+    "set_by_admin": "Satt av administratoren din",
+    "count": {
+      "monitors": "{{used}} av {{max}} overvåkinger",
+      "status_pages": "{{used}} av {{max}} statussider",
+      "custom_domains": "{{used}} av {{max}} egendefinerte domener",
+      "members": "{{used}} av {{max}} medlemmer, inkludert ventende invitasjoner",
+      "owned_workspaces": "Du eier {{used}} av {{max}} arbeidsområder",
+      "probes_per_monitor": "Opptil {{used}} av {{max}} prober på én overvåking"
+    },
+    "labels": {
+      "min_check_interval": "Korteste kontrollintervall",
+      "retention_days": "Lengste databeholdelse"
+    },
+    "seconds": "{{value}} sekunder",
+    "days": "{{value}} dager",
+    "near": "Nær grensen",
+    "reached": "På grensen"
   }
 }

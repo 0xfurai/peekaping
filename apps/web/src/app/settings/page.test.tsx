@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { getSettingsKeyByKeyQueryKey, getWorkspaceLimitsQueryKey } from "@/api/@tanstack/react-query.gen";
+import type { LimitsReport } from "@/api/types.gen";
 import { renderAs, text, WORKSPACE_ID } from "@/test-support/render-with-me";
 import SettingsPage from "./page";
 
@@ -8,33 +9,43 @@ vi.mock("@/context/timezone-context", () => ({
   useTimezone: () => ({ timezone: "UTC", setTimezone: () => {} }),
 }));
 
-// retentionCap is the workspace's retention_days limit, null for none; left out, the limits aren't
-// loaded
-const settings = (access: Parameters<typeof renderAs>[0], retentionCap?: number | null) =>
+type Limits = {
+  // the monitors limited, or no limit
+  limited?: boolean;
+  // the workspace's retention_days limit, null for none
+  retentionCap?: number | null;
+  // the limits not loaded yet
+  loading?: boolean;
+};
+
+// GET /workspace/limits with the monitors limited or not, and the workspace's retention_days limit
+const limitsReport = ({ limited = false, retentionCap = null }: Limits): LimitsReport => {
+  const none = { max: null, used: 0, source: "none" as const };
+  return {
+    source: limited || retentionCap !== null ? "install" : "none",
+    installLimitsName: null,
+    limits: {
+      monitors: limited ? { max: 20, used: 14, source: "install" } : none,
+      min_check_interval: { ...none, used: 20 },
+      status_pages: none,
+      custom_domains: none,
+      members: none,
+      owned_workspaces: none,
+      probes_per_monitor: none,
+      retention_days:
+        retentionCap === null ? { ...none, used: 90 } : { max: retentionCap, used: 90, source: "install" },
+    },
+  };
+};
+
+const settings = (access: Parameters<typeof renderAs>[0], limits: Limits = {}) =>
   renderAs(access, <SettingsPage />, undefined, (queryClient) => {
     queryClient.setQueryData(
       getSettingsKeyByKeyQueryKey({ path: { key: "KEEP_DATA_PERIOD_DAYS" } }),
       { data: { key: "KEEP_DATA_PERIOD_DAYS", type: "int", value: "90" } }
     );
-    if (retentionCap === undefined) return;
-    // GET /workspace/limits as loaded, with the workspace's retention_days limit
-    const use = (max: number | null, used = 0) => ({ max, used, source: max === null ? "none" : "install" });
-    queryClient.setQueryData(getWorkspaceLimitsQueryKey(), {
-      message: "",
-      data: {
-        source: "install",
-        limits: {
-          monitors: use(null),
-          min_check_interval: use(null, 20),
-          status_pages: use(null),
-          custom_domains: use(null),
-          members: use(null),
-          owned_workspaces: use(null),
-          probes_per_monitor: use(null),
-          retention_days: use(retentionCap, 90),
-        },
-      },
-    });
+    if (limits.loading) return;
+    queryClient.setQueryData(getWorkspaceLimitsQueryKey(), { data: limitsReport(limits), message: "" });
   });
 
 describe("SettingsPage", () => {
@@ -65,21 +76,21 @@ describe("SettingsPage", () => {
 
   // PP-161: the workspace's plan can cap the period
   it("shows an admin the cap next to the field, and takes it as the field's maximum", () => {
-    const html = settings({ instanceAdmin: false, role: "admin" }, 120);
+    const html = settings({ instanceAdmin: false, role: "admin" }, { retentionCap: 120 });
     expect(html).toContain("Up to 120 days on this workspace");
     expect(html).toMatch(/<input[^>]*max="120"/);
   });
 
   it("shows a member the cap beside the read-only period", () => {
-    const html = settings({ instanceAdmin: false, role: "member" }, 120);
+    const html = settings({ instanceAdmin: false, role: "member" }, { retentionCap: 120 });
     expect(html).toContain("Up to 120 days on this workspace");
   });
 
   it.each([
-    ["without a cap", null],
-    ["while the limits load", undefined],
-  ])("shows no cap %s, and keeps the 100 year maximum", (_, cap) => {
-    const html = settings({ instanceAdmin: false, role: "admin" }, cap);
+    ["without a cap", {}],
+    ["while the limits load", { loading: true }],
+  ])("shows no cap %s, and keeps the 100 year maximum", (_, limits) => {
+    const html = settings({ instanceAdmin: false, role: "admin" }, limits);
     expect(html).not.toContain("on this workspace");
     expect(html).toMatch(/<input[^>]*max="36500"/);
   });
@@ -101,6 +112,25 @@ describe("SettingsPage", () => {
     const html = settings({ instanceAdmin: false, role });
     expect(html).toContain(`href="/w/${WORKSPACE_ID}/settings/members"`);
     expect(html).toContain(text("members.settings_card.open"));
+  });
+
+  it.each(["admin", "owner"] as const)("links an %s of a workspace with limits to its usage, after the members", (role) => {
+    const html = settings({ instanceAdmin: false, role }, { limited: true });
+    expect(html).toContain(`href="/w/${WORKSPACE_ID}/settings/usage"`);
+    expect(html).toContain(text("usage.open"));
+    expect(html.indexOf(text("usage.open"))).toBeGreaterThan(html.indexOf(text("members.settings_card.open")));
+  });
+
+  it("shows a workspace without limits no usage entry", () => {
+    const html = settings({ instanceAdmin: false, role: "owner" }, { limited: false });
+    expect(html).not.toContain("/settings/usage");
+    expect(html).not.toContain(text("usage.open"));
+  });
+
+  it("shows a plain member no usage entry, though the workspace has limits", () => {
+    const html = settings({ instanceAdmin: false, role: "member" }, { limited: true });
+    expect(html).not.toContain("/settings/usage");
+    expect(html).not.toContain(text("usage.open"));
   });
 
   it.each(["admin", "owner"] as const)("shows an %s the workspace's name in a field, with Save", (role) => {

@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "默认上限",
-        "description": "所有没有自有上限的工作区的上限。如不设某项上限，请将其留空。在“工作区”页面为某个工作区设置的上限会取代这些默认值。"
+        "description": "所有没有自有上限的工作区的上限。如不设某项上限，请将其留空。在“工作区”页面为某个工作区设置的上限会取代这些默认值。",
+        "name_label": "默认限额的名称",
+        "name_help": "显示在工作区的用量页面上，例如“免费版”。留空时，页面会显示限额由你的管理员设定。"
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "无上限",
     "invalid": "请输入 1 或更大的整数；如不设上限，请留空。",
     "retention_too_long": "不能多于 {{max}} 天"
+  },
+  "usage": {
+    "title": "用量",
+    "description": "此工作区已使用其限额的多少。",
+    "open": "打开用量",
+    "plan": "套餐",
+    "set_by_admin": "由你的管理员设定",
+    "count": {
+      "monitors": "{{used}} / {{max}} 个监控",
+      "status_pages": "{{used}} / {{max}} 个状态页面",
+      "custom_domains": "{{used}} / {{max}} 个自定义域名",
+      "members": "{{used}} / {{max}} 个成员（含待处理的邀请）",
+      "owned_workspaces": "你拥有 {{used}} / {{max}} 个工作区",
+      "probes_per_monitor": "单个监控最多使用 {{used}} / {{max}} 个探针"
+    },
+    "labels": {
+      "min_check_interval": "最短检查间隔",
+      "retention_days": "最长数据保留期限"
+    },
+    "seconds": "{{value}} 秒",
+    "days": "{{value}} 天",
+    "near": "接近限额",
+    "reached": "已达限额"
   }
 }

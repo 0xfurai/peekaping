@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Zadana ograničenja",
-        "description": "Ograničenja svakog radnog prostora koji nema vlastita. Ostavite ograničenje prazno ako ga ne želite. Ograničenja koja radni prostor dobije na stranici Radni prostori zamjenjuju ova."
+        "description": "Ograničenja svakog radnog prostora koji nema vlastita. Ostavite ograničenje prazno ako ga ne želite. Ograničenja koja radni prostor dobije na stranici Radni prostori zamjenjuju ova.",
+        "name_label": "Naziv zadanih ograničenja",
+        "name_help": "Prikazuje se na stranici Korištenje radnog prostora, na primjer Besplatna razina. Ako se ostavi prazno, stranica navodi da je ograničenja postavio vaš administrator."
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "Bez ograničenja",
     "invalid": "Unesite cijeli broj od 1 naviše ili ostavite prazno ako ne želite ograničenje.",
     "retention_too_long": "Ne smije biti više od {{max}} dana"
+  },
+  "usage": {
+    "title": "Korištenje",
+    "description": "Koliko ovaj radni prostor koristi od svojih ograničenja.",
+    "open": "Otvori korištenje",
+    "plan": "Plan",
+    "set_by_admin": "Postavio vaš administrator",
+    "count": {
+      "monitors": "{{used}} od {{max}} nadzora",
+      "status_pages": "{{used}} od {{max}} statusnih stranica",
+      "custom_domains": "{{used}} od {{max}} prilagođenih domena",
+      "members": "{{used}} od {{max}} članova, uključujući pozivnice na čekanju",
+      "owned_workspaces": "Vlasnik ste {{used}} od {{max}} radnih prostora",
+      "probes_per_monitor": "Do {{used}} od {{max}} sondi na jednom nadzoru"
+    },
+    "labels": {
+      "min_check_interval": "Najkraći interval provjere",
+      "retention_days": "Najduže zadržavanje podataka"
+    },
+    "seconds": "{{value}} s",
+    "days": "{{value}} d",
+    "near": "Blizu ograničenja",
+    "reached": "Na ograničenju"
   }
 }

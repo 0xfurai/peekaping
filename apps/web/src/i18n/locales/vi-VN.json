@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Giới hạn mặc định",
-        "description": "Giới hạn của mọi không gian làm việc không có giới hạn riêng. Để trống một giới hạn nếu không muốn giới hạn đó. Các giới hạn được đặt cho một không gian làm việc ở trang Không gian làm việc sẽ thay thế các giới hạn này."
+        "description": "Giới hạn của mọi không gian làm việc không có giới hạn riêng. Để trống một giới hạn nếu không muốn giới hạn đó. Các giới hạn được đặt cho một không gian làm việc ở trang Không gian làm việc sẽ thay thế các giới hạn này.",
+        "name_label": "Tên của các giới hạn mặc định",
+        "name_help": "Hiển thị trên trang Mức sử dụng của không gian làm việc, chẳng hạn như Gói miễn phí. Nếu để trống, trang sẽ cho biết quản trị viên của bạn đã đặt các giới hạn."
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "Không giới hạn",
     "invalid": "Nhập một số nguyên từ 1 trở lên, hoặc để trống nếu không muốn giới hạn.",
     "retention_too_long": "Không được lớn hơn {{max}} ngày"
+  },
+  "usage": {
+    "title": "Mức sử dụng",
+    "description": "Không gian làm việc này đang dùng bao nhiêu trong các giới hạn của nó.",
+    "open": "Mở mức sử dụng",
+    "plan": "Gói",
+    "set_by_admin": "Do quản trị viên của bạn đặt",
+    "count": {
+      "monitors": "{{used}} trên {{max}} giám sát",
+      "status_pages": "{{used}} trên {{max}} trang trạng thái",
+      "custom_domains": "{{used}} trên {{max}} tên miền tùy chỉnh",
+      "members": "{{used}} trên {{max}} thành viên, tính cả lời mời đang chờ",
+      "owned_workspaces": "Bạn sở hữu {{used}} trên {{max}} không gian làm việc",
+      "probes_per_monitor": "Tối đa {{used}} trên {{max}} đầu dò cho một giám sát"
+    },
+    "labels": {
+      "min_check_interval": "Khoảng thời gian kiểm tra ngắn nhất",
+      "retention_days": "Thời gian lưu trữ dữ liệu dài nhất"
+    },
+    "seconds": "{{value}} giây",
+    "days": "{{value}} ngày",
+    "near": "Gần đến giới hạn",
+    "reached": "Đã đạt giới hạn"
   }
 }

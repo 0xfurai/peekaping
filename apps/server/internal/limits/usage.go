@@ -9,6 +9,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/workspace/workspaceid"
 
 	"github.com/uptrace/bun"
@@ -131,23 +132,37 @@ type Uses struct {
 type Report struct {
 	Source Origin `json:"source" enum:"workspace,install,none" doc:"Where the workspace's limits come from."`
 	Limits Uses   `json:"limits"`
+	// InstallLimitsName is the install's name for its default limits (PP-163)
+	InstallLimitsName *string `json:"installLimitsName" nullable:"true" doc:"The install's name for its default limits, such as Free tier (WORKSPACE_LIMITS_NAME, or Admin → Settings), or null when it has none." example:"Free tier"`
+}
+
+// LimitsName is the install's name for its default limits, empty for none
+// (installsettings.Resolver is one)
+type LimitsName interface {
+	WorkspaceLimitsName(ctx context.Context) string
 }
 
 // Usage reports a workspace's limits and what it has of each
 type Usage struct {
 	db     *bun.DB
 	source Source
+	// name is the install's name for its default limits, nil for none
+	name LimitsName
 	// minCheckInterval is the install's MIN_CHECK_INTERVAL
 	minCheckInterval int
 	now              func() time.Time
 }
 
-func NewUsage(db *bun.DB, source Source, cfg *config.Config) *Usage {
+func NewUsage(db *bun.DB, source Source, cfg *config.Config, settings *installsettings.Resolver) *Usage {
 	minimum := config.AbsoluteMinCheckInterval
 	if cfg != nil {
 		minimum = cfg.MinCheckIntervalSeconds()
 	}
-	return &Usage{db: db, source: source, minCheckInterval: minimum, now: time.Now}
+	u := &Usage{db: db, source: source, minCheckInterval: minimum, now: time.Now}
+	if settings != nil {
+		u.name = settings
+	}
+	return u
 }
 
 // Report is the workspace's limits, where they come from and what it has of each. userID is the
@@ -192,8 +207,14 @@ func (u *Usage) Report(ctx context.Context, workspaceID workspaceid.ID, userID s
 	if l.MinCheckInterval != nil {
 		minimum = max(minimum, *l.MinCheckInterval)
 	}
+	var name *string
+	if u.name != nil {
+		if n := u.name.WorkspaceLimitsName(ctx); n != "" {
+			name = &n
+		}
+	}
 	of := func(limit *int, n int) Use { return Use{Max: limit, Used: n, Source: origin} }
-	return &Report{Source: origin, Limits: Uses{
+	return &Report{Source: origin, InstallLimitsName: name, Limits: Uses{
 		Monitors:         of(l.Monitors, used.monitors),
 		MinCheckInterval: of(l.MinCheckInterval, minimum),
 		StatusPages:      of(l.StatusPages, used.pages),

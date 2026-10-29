@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Réamhtheorainneacha",
-        "description": "Teorainneacha gach spáis oibre nach bhfuil aon cheann dá chuid féin aige. Fág teorainn folamh gan teorainn. Cuireann na teorainneacha a thugtar do spás oibre ar an leathanach Spásanna oibre ionad na gcinn seo."
+        "description": "Teorainneacha gach spáis oibre nach bhfuil aon cheann dá chuid féin aige. Fág teorainn folamh gan teorainn. Cuireann na teorainneacha a thugtar do spás oibre ar an leathanach Spásanna oibre ionad na gcinn seo.",
+        "name_label": "Ainm na dteorainneacha réamhshocraithe",
+        "name_help": "Taispeántar é ar leathanach Úsáide spáis oibre, mar shampla Leibhéal saor in aisce. Má fhágtar folamh é, deir an leathanach gur shocraigh do riarthóir na teorainneacha."
       }
     }
   },
@@ -2119,5 +2121,28 @@
     "none": "Gan teorainn",
     "invalid": "Cuir isteach slánuimhir 1 nó níos mó, nó fág folamh é gan teorainn.",
     "retention_too_long": "Ní féidir leis a bheith níos mó ná {{max}} lá"
+  },
+  "usage": {
+    "title": "Úsáid",
+    "description": "An méid dá theorainneacha a úsáideann an spás oibre seo.",
+    "open": "Oscail an úsáid",
+    "plan": "Plean",
+    "set_by_admin": "Socraithe ag do riarthóir",
+    "count": {
+      "monitors": "{{used}} as {{max}} monatóir",
+      "status_pages": "{{used}} as {{max}} leathanach stádais",
+      "custom_domains": "{{used}} as {{max}} fearann saincheaptha",
+      "members": "{{used}} as {{max}} ball, cuirí ar feitheamh san áireamh",
+      "owned_workspaces": "Is leatsa {{used}} as {{max}} spás oibre",
+      "probes_per_monitor": "Suas le {{used}} as {{max}} tóireadóir ar monatóir amháin"
+    },
+    "labels": {
+      "min_check_interval": "An t-eatramh seiceála is giorra",
+      "retention_days": "An choinneáil sonraí is faide"
+    },
+    "seconds": "{{value}} soicind",
+    "days": "{{value}} lá",
+    "near": "In aice leis an teorainn",
+    "reached": "Ag an teorainn"
   }
 }

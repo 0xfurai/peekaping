@@ -833,3 +833,29 @@ func TestUpdate_RefusesAnInvalidDefaultLimit(t *testing.T) {
 		assert.Equal(t, "workspaceLimits.robots", refused.Field)
 	})
 }
+
+// PP-163: the install's name for its default limits comes from the environment, which locks it,
+// then the store, then none
+func TestResolver_TheLimitsNameComesFromTheEnvironmentThenTheStoreThenNone(t *testing.T) {
+	store := newMemoryStore()
+	r, _ := newResolver(t, defaults(), store)
+	assert.Equal(t, "", r.WorkspaceLimitsName(ctx))
+
+	_, err := r.Update(ctx, Change{WorkspaceLimitsName: ptr("Hobby")})
+	require.NoError(t, err)
+	assert.Equal(t, "Hobby", r.WorkspaceLimitsName(ctx))
+	stored, _ := store.get(KeyWorkspaceLimitsName)
+	assert.Equal(t, "Hobby", stored)
+
+	cfg := defaults()
+	cfg.WorkspaceLimitsName = "Free tier"
+	cfg.SetFromEnvironment("WORKSPACE_LIMITS_NAME")
+	locked, _ := newResolver(t, cfg, store)
+	view, err := locked.Describe(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, Field[string]{Value: "Free tier", Source: SourceEnvironment, EnvVar: "WORKSPACE_LIMITS_NAME"}, view.WorkspaceLimitsName)
+	_, err = locked.Update(ctx, Change{WorkspaceLimitsName: ptr("")})
+	var refused *Error
+	require.ErrorAs(t, err, &refused)
+	assert.Equal(t, CodeLocked, refused.Code)
+}

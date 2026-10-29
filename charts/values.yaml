@@ -118,6 +118,9 @@ config:
     # WORKSPACE_LIMIT_MEMBERS: "3"
     # WORKSPACE_LIMIT_OWNED_WORKSPACES: "1"
     # WORKSPACE_LIMIT_RETENTION_DAYS: "30"
+    # The install's name for these defaults, shown on a workspace's Usage page. Unset, the
+    # page says an administrator set the limits.
+    # WORKSPACE_LIMITS_NAME: "Free tier"
     # How a member of a suspended workspace gets in touch with whoever runs the install: free
     # text, an email address or a URL. Unset by default.
     # SUPPORT_CONTACT: "support@example.com"

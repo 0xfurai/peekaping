@@ -63,6 +63,7 @@ const createSchema = (
     from: z.string(),
     tls: z.string(),
     workspaceLimits: defaultLimitsSchema(t, minCheckInterval, settings.workspaceLimits),
+    workspaceLimitsName: z.string(),
   });
 
 type Setting = { source: SettingSource; locked: boolean; envVar: string };
@@ -124,8 +125,9 @@ function NativeSelect({ className, ...props }: ComponentProps<"select">) {
 
 const option = "bg-popover text-popover-foreground";
 
-// The signup mode, the sender, the public URL and the default limits, saved together: a save sends
-// only what changed, so that open signup and the sender it needs can be set in one go.
+// The signup mode, the sender, the public URL and the default limits with their name, saved
+// together: a save sends only what changed, so that open signup and the sender it needs can be set
+// in one go.
 function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsResponse }) {
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
@@ -303,6 +305,22 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
             <CardDescription>{t("admin.settings.limits.description")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
+            <SettingField
+              id="install-limits-name"
+              label={t("admin.settings.limits.name_label")}
+              setting={settings.workspaceLimitsName}
+            >
+              <Input
+                id="install-limits-name"
+                aria-describedby={`${describedBy("install-limits-name", settings.workspaceLimitsName)["aria-describedby"]} install-limits-name-help`}
+                maxLength={100}
+                readOnly={settings.workspaceLimitsName.locked}
+                {...bind("workspaceLimitsName")}
+              />
+              <p id="install-limits-name-help" className="text-xs text-muted-foreground">
+                {t("admin.settings.limits.name_help")}
+              </p>
+            </SettingField>
             {DEFAULT_LIMITS.map((name) => {
               const id = `install-limit-${name}`;
               const setting = settings.workspaceLimits[name];

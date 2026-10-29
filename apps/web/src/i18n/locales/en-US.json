@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Default limits",
-        "description": "The limits of every workspace that has none of its own. Leave a limit blank for none. Limits a workspace is given on the Workspaces page replace these."
+        "description": "The limits of every workspace that has none of its own. Leave a limit blank for none. Limits a workspace is given on the Workspaces page replace these.",
+        "name_label": "Name of the default limits",
+        "name_help": "Shown on a workspace's Usage page, such as Free tier. Left blank, the page says your administrator set the limits."
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "No limit",
     "invalid": "Enter a whole number of 1 or more, or leave it blank for no limit.",
     "retention_too_long": "Can't be more than {{max}} days"
+  },
+  "usage": {
+    "title": "Usage",
+    "description": "What this workspace uses of its limits.",
+    "open": "Open usage",
+    "plan": "Plan",
+    "set_by_admin": "Set by your administrator",
+    "count": {
+      "monitors": "{{used}} of {{max}} monitors",
+      "status_pages": "{{used}} of {{max}} status pages",
+      "custom_domains": "{{used}} of {{max}} custom domains",
+      "members": "{{used}} of {{max}} members, pending invites included",
+      "owned_workspaces": "You own {{used}} of {{max}} workspaces",
+      "probes_per_monitor": "Up to {{used}} of {{max}} probes on one monitor"
+    },
+    "labels": {
+      "min_check_interval": "Shortest check interval",
+      "retention_days": "Longest data retention"
+    },
+    "seconds": "{{value}} seconds",
+    "days": "{{value}} days",
+    "near": "Close to the limit",
+    "reached": "At the limit"
   }
 }

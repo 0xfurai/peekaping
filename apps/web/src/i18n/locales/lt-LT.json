@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Numatytosios ribos",
-        "description": "Kiekvienos darbo erdvės, neturinčios savų ribų, ribos. Palikite ribą tuščią, jei jos nereikia. Darbo erdvių puslapyje darbo erdvei suteiktos ribos pakeičia šias."
+        "description": "Kiekvienos darbo erdvės, neturinčios savų ribų, ribos. Palikite ribą tuščią, jei jos nereikia. Darbo erdvių puslapyje darbo erdvei suteiktos ribos pakeičia šias.",
+        "name_label": "Numatytųjų apribojimų pavadinimas",
+        "name_help": "Rodomas darbo erdvės puslapyje Naudojimas, pavyzdžiui, Nemokamas planas. Jei paliekama tuščia, puslapyje nurodoma, kad apribojimus nustatė jūsų administratorius."
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "Be ribos",
     "invalid": "Įveskite sveikąjį skaičių nuo 1 arba palikite tuščią, jei ribos nereikia.",
     "retention_too_long": "Negali būti daugiau nei {{max}} d."
+  },
+  "usage": {
+    "title": "Naudojimas",
+    "description": "Kiek ši darbo erdvė naudoja iš savo apribojimų.",
+    "open": "Atidaryti naudojimą",
+    "plan": "Planas",
+    "set_by_admin": "Nustatė jūsų administratorius",
+    "count": {
+      "monitors": "Monitoriai: {{used}} iš {{max}}",
+      "status_pages": "Būsenos puslapiai: {{used}} iš {{max}}",
+      "custom_domains": "Pasirinktiniai domenai: {{used}} iš {{max}}",
+      "members": "Nariai: {{used}} iš {{max}}, įskaitant laukiančius kvietimus",
+      "owned_workspaces": "Darbo erdvės, kurių savininkas esate: {{used}} iš {{max}}",
+      "probes_per_monitor": "Zondai viename monitoriuje: iki {{used}} iš {{max}}"
+    },
+    "labels": {
+      "min_check_interval": "Trumpiausias patikrinimo intervalas",
+      "retention_days": "Ilgiausias duomenų saugojimas"
+    },
+    "seconds": "{{value}} s",
+    "days": "{{value}} d.",
+    "near": "Arti apribojimo",
+    "reached": "Pasiektas apribojimas"
   }
 }

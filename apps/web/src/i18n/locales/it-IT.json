@@ -259,7 +259,9 @@
       },
       "limits": {
         "title": "Limiti predefiniti",
-        "description": "I limiti di ogni spazio di lavoro che non ne ha di propri. Lascia vuoto un limite per non averne. I limiti assegnati a uno spazio di lavoro nella pagina Spazi di lavoro sostituiscono questi."
+        "description": "I limiti di ogni spazio di lavoro che non ne ha di propri. Lascia vuoto un limite per non averne. I limiti assegnati a uno spazio di lavoro nella pagina Spazi di lavoro sostituiscono questi.",
+        "name_label": "Nome dei limiti predefiniti",
+        "name_help": "Mostrato nella pagina Utilizzo di uno spazio di lavoro, ad esempio Piano gratuito. Se lasciato vuoto, la pagina indica che i limiti sono stati impostati dal tuo amministratore."
       }
     }
   },
@@ -2120,5 +2122,28 @@
     "none": "Nessun limite",
     "invalid": "Inserisci un numero intero pari o superiore a 1, oppure lascia vuoto per nessun limite.",
     "retention_too_long": "Non può superare {{max}} giorni"
+  },
+  "usage": {
+    "title": "Utilizzo",
+    "description": "Quanto questo spazio di lavoro usa dei propri limiti.",
+    "open": "Apri utilizzo",
+    "plan": "Piano",
+    "set_by_admin": "Impostato dal tuo amministratore",
+    "count": {
+      "monitors": "{{used}} di {{max}} monitor",
+      "status_pages": "{{used}} di {{max}} pagine di stato",
+      "custom_domains": "{{used}} di {{max}} domini personalizzati",
+      "members": "{{used}} di {{max}} membri, inclusi gli inviti in sospeso",
+      "owned_workspaces": "Possiedi {{used}} di {{max}} spazi di lavoro",
+      "probes_per_monitor": "Fino a {{used}} di {{max}} sonde su un monitor"
+    },
+    "labels": {
+      "min_check_interval": "Intervallo di verifica più breve",
+      "retention_days": "Conservazione dei dati più lunga"
+    },
+    "seconds": "{{value}} secondi",
+    "days": "{{value}} giorni",
+    "near": "Vicino al limite",
+    "reached": "Al limite"
   }
 }
