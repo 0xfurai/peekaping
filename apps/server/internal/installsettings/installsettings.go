@@ -178,6 +178,9 @@ var (
 
 	// all is every setting, in the order Update reports changes
 	all = []setting{signupMode, publicURL, smtpHost, smtpPort, smtpUser, smtpPassword, smtpFrom, smtpTLS}
+	// passwordLast is all with the SMTP password at the end: the order Update writes a change of the
+	// endpoint in, so that a new password is stored only next to the endpoint it was entered for
+	passwordLast = []setting{signupMode, publicURL, smtpHost, smtpPort, smtpUser, smtpFrom, smtpTLS, smtpPassword}
 	// senderSettings is the settings of the sender, which the environment sets as one
 	senderSettings = []setting{smtpHost, smtpPort, smtpUser, smtpPassword, smtpFrom, smtpTLS}
 )
@@ -351,11 +354,32 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 
 	var changed []string
 	for _, s := range all {
-		before, had := current[s.key]
+		if differs(current, next, s.key) {
+			changed = append(changed, s.field)
+		}
+	}
+	// The keys are written one by one, without a transaction (the settings table has none), so a
+	// write that fails keeps the ones before it. The order makes sure that the saved password is
+	// never left next to an endpoint it wasn't entered for: when the endpoint changes, the old
+	// password goes first, and a new one is written last, after the endpoint.
+	order, cleared := all, false
+	if r.endpoint(current) != r.endpoint(next) {
+		_, hadPassword := current[KeySMTPPassword]
+		if hadPassword && differs(current, next, KeySMTPPassword) {
+			if err := r.store.DeleteByKey(ctx, KeySMTPPassword); err != nil {
+				r.invalidate(nil)
+				return nil, fmt.Errorf("failed to save %s: %w", smtpPassword.field, err)
+			}
+			cleared = true
+		}
+		order = passwordLast
+	}
+	for _, s := range order {
 		after, has := next[s.key]
-		if had == has && before == after {
+		if !differs(current, next, s.key) || (s.key == KeySMTPPassword && cleared && !has) {
 			continue
 		}
+		var err error
 		if has {
 			_, err = r.store.SetByKey(ctx, s.key, &shared.SettingModel{Key: s.key, Value: after, Type: s.kind})
 		} else {
@@ -365,10 +389,17 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 			r.invalidate(nil)
 			return nil, fmt.Errorf("failed to save %s: %w", s.field, err)
 		}
-		changed = append(changed, s.field)
 	}
 	r.invalidate(next)
 	return changed, nil
+}
+
+// differs is whether a key is saved in one of current and next and not in the other, or with
+// another value
+func differs(current, next map[string]string, key string) bool {
+	before, had := current[key]
+	after, has := next[key]
+	return had != has || before != after
 }
 
 // lockedBy is the variable of the environment that locks the setting, or empty when none does. The
