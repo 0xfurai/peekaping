@@ -8,7 +8,9 @@
       "back_to_workspace": "Voltar a {{name}}",
       "probes": "Sondas",
       "title": "Administração",
-      "users": "Utilizadores"
+      "users": "Utilizadores",
+      "workspaces": "Espaços de trabalho",
+      "settings": "Definições"
     },
     "users": {
       "actions": {
@@ -100,6 +102,134 @@
         "yes": "Sim"
       },
       "you": "você"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Eliminar espaço de trabalho",
+        "resume": "Retomar espaço de trabalho",
+        "suspend": "Suspender espaço de trabalho"
+      },
+      "actions_aria": "Ações para {{name}}",
+      "columns": {
+        "created": "Criado em",
+        "custom_domains": "Domínios personalizados",
+        "members": "Membros",
+        "monitors": "Monitores",
+        "name": "Nome",
+        "owners": "Proprietários",
+        "status": "Estado",
+        "status_pages": "Páginas de estado"
+      },
+      "confirm": {
+        "cancel": "Cancelar",
+        "delete": {
+          "confirm": "Eliminar espaço de trabalho",
+          "description": "Eliminar {{name}}? Tudo o que contém é removido: os monitores e o respetivo histórico, as páginas de estado, os canais de notificação e o acesso dos membros. Isto não pode ser anulado.",
+          "name_label": "Escreva o nome do espaço de trabalho para confirmar: {{name}}",
+          "title": "Eliminar espaço de trabalho"
+        },
+        "resume": {
+          "confirm": "Retomar",
+          "description": "Os monitores de {{name}} voltam a funcionar no estado em que estavam e os membros podem utilizá-lo como antes. Um espaço de trabalho que aguarda a verificação do e-mail do proprietário continua a aguardar.",
+          "title": "Retomar espaço de trabalho"
+        },
+        "suspend": {
+          "confirm": "Suspender",
+          "description": "Os monitores de {{name}} deixam de funcionar, as páginas de estado públicas indicam que estão indisponíveis e os membros veem que está suspenso. Nada é eliminado e pode retomá-lo mais tarde.",
+          "title": "Suspender espaço de trabalho"
+        }
+      },
+      "description": "Todos os espaços de trabalho desta instalação, com os respetivos proprietários, membros e quanto contêm. Apenas são mostradas contagens, nada do conteúdo de um espaço de trabalho.",
+      "empty": "Nenhum espaço de trabalho encontrado",
+      "load_failed": "Não foi possível carregar os espaços de trabalho.",
+      "messages": {
+        "deleted": "{{name}} foi eliminado",
+        "failed": "Não foi possível alterar o espaço de trabalho.",
+        "resumed": "{{name}} foi retomado",
+        "suspended": "{{name}} foi suspenso"
+      },
+      "monitors": "{{active}} ativos, {{paused}} em pausa",
+      "none": "Nenhum",
+      "page_name": "Espaços de trabalho",
+      "paging": {
+        "next": "Seguinte",
+        "page": "Página {{page}} de {{pages}}",
+        "previous": "Anterior"
+      },
+      "search_label": "Pesquisar espaços de trabalho por nome ou e-mail do proprietário",
+      "search_placeholder": "Pesquisar por nome ou e-mail do proprietário",
+      "status": {
+        "running": "Em execução",
+        "suspended_admin": "Suspenso por um administrador",
+        "suspended_unverified": "Suspenso até o proprietário verificar o e-mail"
+      },
+      "total": "{{total}} encontrado(s)"
+    },
+    "settings": {
+      "page_name": "Definições",
+      "description": "Definições de toda a instalação. Um valor definido pelo ambiente do servidor fica bloqueado aqui.",
+      "load_failed": "Não foi possível carregar as definições.",
+      "saved": "Definições guardadas",
+      "save_failed": "As definições não foram guardadas.",
+      "locked": "Definido pelo ambiente do servidor",
+      "source": {
+        "environment": "Do ambiente do servidor",
+        "saved": "Guardado aqui",
+        "default": "Padrão"
+      },
+      "signup": {
+        "title": "Registo",
+        "description": "Quem pode criar uma conta nesta instalação.",
+        "label": "Modo de registo",
+        "invite": "Apenas por convite",
+        "open": "Aberto",
+        "invite_help": "O primeiro utilizador regista-se, e todos os seguintes juntam-se a um espaço de trabalho através de um convite.",
+        "open_help": "Qualquer pessoa se pode registar e recebe um espaço de trabalho próprio. As contas novas verificam o endereço de e-mail, por isso é preciso um remetente de e-mail."
+      },
+      "sender": {
+        "title": "Remetente de e-mail",
+        "description": "O servidor SMTP que envia os e-mails da conta: ligações para repor a palavra-passe, verificação do e-mail e convites.",
+        "on": "Os e-mails da conta estão ativados.",
+        "off": "Os e-mails da conta estão desativados: não há anfitrião SMTP.",
+        "host": "Host SMTP",
+        "port": "Porta",
+        "tls": "Segurança",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nenhuma",
+        "user": "Utilizador",
+        "password": "Palavra-passe",
+        "password_set": "Está definida uma palavra-passe. Escreva para a substituir.",
+        "password_not_set": "Nenhuma palavra-passe definida",
+        "password_removed": "A palavra-passe será removida quando guardar.",
+        "remove_password": "Remover palavra-passe",
+        "keep_password": "Manter palavra-passe",
+        "from": "Endereço do remetente"
+      },
+      "public_url": {
+        "title": "URL pública",
+        "description": "O endereço da aplicação web, que as ligações nos e-mails e notificações abrem.",
+        "label": "URL pública"
+      },
+      "test_email": {
+        "title": "Enviar um e-mail de teste",
+        "description": "Envia um e-mail curto através do remetente guardado, para verificar que funciona.",
+        "to": "Enviar para",
+        "send": "Enviar um e-mail de teste",
+        "sending": "A enviar…",
+        "sent": "E-mail de teste enviado para {{to}}.",
+        "failed": "O e-mail de teste não foi enviado.",
+        "unsaved": "O remetente tem alterações por guardar. O teste usa o remetente guardado, por isso guarde primeiro."
+      },
+      "validation": {
+        "port": "Introduza uma porta de 1 a 65535, ou deixe vazio para o valor predefinido."
+      },
+      "errors": {
+        "locked": "{{field}} é definido pelo ambiente do servidor e não pode ser alterado aqui.",
+        "open_needs_sender": "O registo aberto precisa de um remetente de e-mail, porque as contas novas verificam o endereço de e-mail. Configure primeiro o remetente, ou na mesma gravação.",
+        "sender_needed": "O registo está aberto, e as contas novas precisam do remetente para verificar o endereço de e-mail. Mude primeiro o registo para apenas por convite.",
+        "no_sender": "Não há remetente de e-mail. Guarde primeiro um remetente."
+      }
     }
   },
   "auth": {
@@ -1407,7 +1537,8 @@
       "updated_success": "Notificador actualizado com sucesso"
     },
     "new": {
-      "title": "Novo Canal de Notificação"
+      "title": "Novo Canal de Notificação",
+      "default_hint": "Este canal será assinalado nos novos monitores."
     },
     "no_important": "Nenhuma notificação importante encontrada.",
     "placeholders": {
@@ -1759,6 +1890,7 @@
       "refresh_in": "Atualizar em",
       "refresh_now": "Actualizar agora",
       "status_page_not_found": "Página de estado não encontrada ou não publicada.",
+      "status_page_unavailable": "Esta página de estado está indisponível",
       "under_maintenance": "Em manutenção",
       "unknown": "Desconhecido"
     }
@@ -1888,6 +2020,11 @@
     "refresh_failed": "Não foi possível carregar os seus espaços de trabalho. Verifique a ligação e tente novamente.",
     "rename_error": "Falha ao renomear o espaço de trabalho",
     "rename_success": "Espaço de trabalho renomeado",
+    "suspended_banner": {
+      "contact": "Para entrar em contacto:",
+      "message": "Este espaço de trabalho foi suspenso pelo administrador desta instalação. Os monitores não estão em execução e as páginas de estado estão indisponíveis.",
+      "no_contact": "Contacte a pessoa responsável por esta instalação."
+    },
     "switcher_label": "Mudar de espaço de trabalho"
   },
   "get_started": {

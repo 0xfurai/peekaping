@@ -8,7 +8,9 @@
       "back_to_workspace": "Înapoi la {{name}}",
       "probes": "Sonde",
       "title": "Administrare",
-      "users": "Utilizatori"
+      "users": "Utilizatori",
+      "workspaces": "Spații de lucru",
+      "settings": "Setări"
     },
     "users": {
       "actions": {
@@ -100,6 +102,134 @@
         "yes": "Da"
       },
       "you": "tu"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Șterge spațiul de lucru",
+        "resume": "Reactivează spațiul de lucru",
+        "suspend": "Suspendă spațiul de lucru"
+      },
+      "actions_aria": "Acțiuni pentru {{name}}",
+      "columns": {
+        "created": "Creat",
+        "custom_domains": "Domenii personalizate",
+        "members": "Membri",
+        "monitors": "Monitoare",
+        "name": "Nume",
+        "owners": "Proprietari",
+        "status": "Stare",
+        "status_pages": "Pagini de stare"
+      },
+      "confirm": {
+        "cancel": "Anulează",
+        "delete": {
+          "confirm": "Șterge spațiul de lucru",
+          "description": "Ștergeți {{name}}? Tot ce conține dispare: monitoarele și istoricul lor, paginile de stare, canalele de notificare și accesul membrilor. Această acțiune nu poate fi anulată.",
+          "name_label": "Introduceți numele spațiului de lucru pentru a confirma: {{name}}",
+          "title": "Șterge spațiul de lucru"
+        },
+        "resume": {
+          "confirm": "Reactivează",
+          "description": "Monitoarele din {{name}} rulează din nou în starea pe care o aveau, iar membrii îl pot folosi ca înainte. Un spațiu de lucru care așteaptă verificarea e-mailului proprietarului continuă să aștepte.",
+          "title": "Reactivează spațiul de lucru"
+        },
+        "suspend": {
+          "confirm": "Suspendă",
+          "description": "Monitoarele din {{name}} nu mai rulează, paginile de stare publice arată că sunt indisponibile, iar membrii văd că este suspendat. Nimic nu este șters și îl puteți reactiva mai târziu.",
+          "title": "Suspendă spațiul de lucru"
+        }
+      },
+      "description": "Toate spațiile de lucru de pe această instalare, cu proprietarii, membrii lor și cât conțin. Se afișează doar numere, nimic din interiorul unui spațiu de lucru.",
+      "empty": "Nu s-a găsit niciun spațiu de lucru",
+      "load_failed": "Nu s-au putut încărca spațiile de lucru.",
+      "messages": {
+        "deleted": "{{name}} a fost șters",
+        "failed": "Nu s-a putut modifica spațiul de lucru.",
+        "resumed": "{{name}} a fost reactivat",
+        "suspended": "{{name}} a fost suspendat"
+      },
+      "monitors": "{{active}} active, {{paused}} în pauză",
+      "none": "Niciunul",
+      "page_name": "Spații de lucru",
+      "paging": {
+        "next": "Următorul",
+        "page": "Pagina {{page}} din {{pages}}",
+        "previous": "Anterior"
+      },
+      "search_label": "Caută spații de lucru după nume sau e-mailul proprietarului",
+      "search_placeholder": "Caută după nume sau e-mailul proprietarului",
+      "status": {
+        "running": "Rulează",
+        "suspended_admin": "Suspendat de un administrator",
+        "suspended_unverified": "Suspendat până când proprietarul își verifică e-mailul"
+      },
+      "total": "{{total}} găsite"
+    },
+    "settings": {
+      "page_name": "Setări",
+      "description": "Setările întregii instalări. O valoare setată de mediul serverului este blocată aici.",
+      "load_failed": "Setările nu au putut fi încărcate.",
+      "saved": "Setări salvate",
+      "save_failed": "Setările nu au fost salvate.",
+      "locked": "Setat de mediul serverului",
+      "source": {
+        "environment": "Din mediul serverului",
+        "saved": "Salvat aici",
+        "default": "Implicit"
+      },
+      "signup": {
+        "title": "Înregistrare",
+        "description": "Cine poate crea un cont pe această instalare.",
+        "label": "Mod de înregistrare",
+        "invite": "Doar cu invitație",
+        "open": "Deschisă",
+        "invite_help": "Primul utilizator se înregistrează, iar toți cei de după se alătură unui spațiu de lucru printr-o invitație.",
+        "open_help": "Oricine se poate înregistra și primește propriul spațiu de lucru. Conturile noi își verifică adresa de e-mail, deci este nevoie de un expeditor de e-mail."
+      },
+      "sender": {
+        "title": "Expeditor de e-mail",
+        "description": "Serverul SMTP care trimite e-mailurile contului: linkuri de resetare a parolei, verificarea e-mailului și invitații.",
+        "on": "E-mailurile contului sunt activate.",
+        "off": "E-mailurile contului sunt dezactivate: nu există gazdă SMTP.",
+        "host": "Gazda SMTP",
+        "port": "Port",
+        "tls": "Securitate",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Niciuna",
+        "user": "Utilizator",
+        "password": "Parola",
+        "password_set": "Este setată o parolă. Tastați pentru a o înlocui.",
+        "password_not_set": "Nicio parolă setată",
+        "password_removed": "Parola va fi eliminată la salvare.",
+        "remove_password": "Elimină parola",
+        "keep_password": "Păstrează parola",
+        "from": "Adresa expeditorului"
+      },
+      "public_url": {
+        "title": "URL public",
+        "description": "Adresa aplicației web, pe care o deschid linkurile din e-mailuri și notificări.",
+        "label": "URL public"
+      },
+      "test_email": {
+        "title": "Trimite un e-mail de test",
+        "description": "Trimite un e-mail scurt prin expeditorul salvat, pentru a verifica dacă funcționează.",
+        "to": "Trimite către",
+        "send": "Trimite un e-mail de test",
+        "sending": "Se trimite…",
+        "sent": "E-mailul de test a fost trimis către {{to}}.",
+        "failed": "E-mailul de test nu a fost trimis.",
+        "unsaved": "Expeditorul are modificări nesalvate. Testul folosește expeditorul salvat, așa că salvați mai întâi."
+      },
+      "validation": {
+        "port": "Introduceți un port între 1 și 65535 sau lăsați gol pentru valoarea implicită."
+      },
+      "errors": {
+        "locked": "{{field}} este setat de mediul serverului și nu poate fi modificat aici.",
+        "open_needs_sender": "Înregistrarea deschisă are nevoie de un expeditor de e-mail, pentru că conturile noi își verifică adresa de e-mail. Configurați mai întâi expeditorul sau în aceeași salvare.",
+        "sender_needed": "Înregistrarea este deschisă, iar conturile noi au nevoie de expeditor pentru a-și verifica adresa de e-mail. Treceți mai întâi înregistrarea pe doar cu invitație.",
+        "no_sender": "Nu există expeditor de e-mail. Salvați mai întâi un expeditor."
+      }
     }
   },
   "auth": {
@@ -1406,7 +1536,8 @@
       "updated_success": "Notifier actualizat cu succes"
     },
     "new": {
-      "title": "Canal nou de notificare"
+      "title": "Canal nou de notificare",
+      "default_hint": "Acest canal va fi bifat la monitoarele noi."
     },
     "no_important": "Nu există notificări importante.",
     "placeholders": {
@@ -1758,6 +1889,7 @@
       "refresh_in": "Actualizare în",
       "refresh_now": "Reîmprospătează acum",
       "status_page_not_found": "Pagina de stare nu a fost găsită sau nu este publicată.",
+      "status_page_unavailable": "Această pagină de stare nu este disponibilă",
       "under_maintenance": "În întreținere",
       "unknown": "Necunoscut"
     }
@@ -1887,6 +2019,11 @@
     "refresh_failed": "Spațiile tale de lucru nu au putut fi încărcate. Verifică conexiunea și încearcă din nou.",
     "rename_error": "Redenumirea spațiului de lucru a eșuat",
     "rename_success": "Spațiul de lucru a fost redenumit",
+    "suspended_banner": {
+      "contact": "Pentru contact:",
+      "message": "Acest spațiu de lucru este suspendat de administratorul acestei instalări. Monitoarele sale nu rulează, iar paginile de stare nu sunt disponibile.",
+      "no_contact": "Contactați persoana care administrează această instalare."
+    },
     "switcher_label": "Schimbă spațiul de lucru"
   },
   "get_started": {

@@ -8,7 +8,9 @@
       "back_to_workspace": "返回 {{name}}",
       "probes": "探針",
       "title": "管理",
-      "users": "使用者"
+      "users": "使用者",
+      "workspaces": "工作區",
+      "settings": "設定"
     },
     "users": {
       "actions": {
@@ -100,6 +102,134 @@
         "yes": "係"
       },
       "you": "你"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "刪除工作區",
+        "resume": "恢復工作區",
+        "suspend": "暫停工作區"
+      },
+      "actions_aria": "{{name}} 嘅操作",
+      "columns": {
+        "created": "建立時間",
+        "custom_domains": "自訂域名",
+        "members": "成員",
+        "monitors": "監控",
+        "name": "名稱",
+        "owners": "擁有者",
+        "status": "狀態",
+        "status_pages": "狀態頁面"
+      },
+      "confirm": {
+        "cancel": "取消",
+        "delete": {
+          "confirm": "刪除工作區",
+          "description": "刪除 {{name}}？其中所有內容都會被移除：監控及其歷史記錄、狀態頁面、通知頻道，以及成員嘅存取權。此操作無法復原。",
+          "name_label": "輸入工作區名稱以確認：{{name}}",
+          "title": "刪除工作區"
+        },
+        "resume": {
+          "confirm": "恢復",
+          "description": "{{name}} 嘅監控會以原本嘅狀態重新運行，成員可以如常使用。正等待擁有者驗證電郵嘅工作區會繼續等待。",
+          "title": "恢復工作區"
+        },
+        "suspend": {
+          "confirm": "暫停",
+          "description": "{{name}} 嘅監控會停止運行，其公開狀態頁面會顯示無法使用，成員會見到工作區已暫停。不會刪除任何內容，你之後可以恢復。",
+          "title": "暫停工作區"
+        }
+      },
+      "description": "此部署上嘅所有工作區，連同擁有者、成員及其內容數量。只顯示數量，不會顯示工作區內嘅任何內容。",
+      "empty": "搵唔到工作區",
+      "load_failed": "無法載入工作區。",
+      "messages": {
+        "deleted": "{{name}} 已刪除",
+        "failed": "無法更改工作區。",
+        "resumed": "{{name}} 已恢復",
+        "suspended": "{{name}} 已暫停"
+      },
+      "monitors": "{{active}} 個運行中，{{paused}} 個已暫停",
+      "none": "冇",
+      "page_name": "工作區",
+      "paging": {
+        "next": "下一頁",
+        "page": "第 {{page}} 頁，共 {{pages}} 頁",
+        "previous": "上一頁"
+      },
+      "search_label": "按名稱或擁有者電郵搜尋工作區",
+      "search_placeholder": "按名稱或擁有者電郵搜尋",
+      "status": {
+        "running": "運行中",
+        "suspended_admin": "已被管理員暫停",
+        "suspended_unverified": "已暫停，直至擁有者驗證電郵"
+      },
+      "total": "搵到 {{total}} 個"
+    },
+    "settings": {
+      "page_name": "設定",
+      "description": "整個安裝的設定。由伺服器環境設定的值在這裡會被鎖定。",
+      "load_failed": "無法載入設定。",
+      "saved": "設定已儲存",
+      "save_failed": "設定未儲存。",
+      "locked": "由伺服器環境設定",
+      "source": {
+        "environment": "來自伺服器環境",
+        "saved": "儲存在此",
+        "default": "預設"
+      },
+      "signup": {
+        "title": "註冊",
+        "description": "誰可以在此安裝上建立帳戶。",
+        "label": "註冊模式",
+        "invite": "僅限邀請",
+        "open": "開放",
+        "invite_help": "第一位用戶註冊，之後的所有人透過邀請加入工作區。",
+        "open_help": "任何人都可以註冊，並獲得自己的工作區。新帳戶需要驗證電郵地址，因此需要電郵寄件者。"
+      },
+      "sender": {
+        "title": "電郵寄件者",
+        "description": "發送帳戶電郵的 SMTP 伺服器：重設密碼連結、電郵驗證及邀請。",
+        "on": "帳戶電郵已開啟。",
+        "off": "帳戶電郵已關閉：沒有 SMTP 主機。",
+        "host": "SMTP 主機",
+        "port": "端口",
+        "tls": "安全",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "無",
+        "user": "使用者",
+        "password": "密碼",
+        "password_set": "已設定密碼。輸入新密碼即可取代。",
+        "password_not_set": "未設定密碼",
+        "password_removed": "儲存時將移除密碼。",
+        "remove_password": "移除密碼",
+        "keep_password": "保留密碼",
+        "from": "寄件地址"
+      },
+      "public_url": {
+        "title": "公開 URL",
+        "description": "網頁應用程式的地址，電郵及通知中的連結會開啟它。",
+        "label": "公開 URL"
+      },
+      "test_email": {
+        "title": "發送測試電郵",
+        "description": "透過已儲存的寄件者發送一封簡短電郵，以檢查其是否正常運作。",
+        "to": "發送至",
+        "send": "發送測試電郵",
+        "sending": "正在發送…",
+        "sent": "測試電郵已發送至 {{to}}。",
+        "failed": "測試電郵未發送。",
+        "unsaved": "寄件者有未儲存的變更。測試使用已儲存的寄件者，請先儲存。"
+      },
+      "validation": {
+        "port": "請輸入 1 至 65535 之間的連接埠，或留空以使用預設值。"
+      },
+      "errors": {
+        "locked": "{{field}} 由伺服器環境設定，無法在此更改。",
+        "open_needs_sender": "開放註冊需要電郵寄件者，因為新帳戶需要驗證電郵地址。請先設定寄件者，或在同一次儲存中設定。",
+        "sender_needed": "註冊已開放，新帳戶需要寄件者來驗證電郵地址。請先將註冊切換為僅限邀請。",
+        "no_sender": "沒有電郵寄件者。請先儲存寄件者。"
+      }
     }
   },
   "auth": {
@@ -1407,7 +1537,8 @@
       "updated_success": "通知器已成功更新"
     },
     "new": {
-      "title": "新增通知頻道"
+      "title": "新增通知頻道",
+      "default_hint": "新增監控時會預設勾選此頻道。"
     },
     "no_important": "未找到重要通知。",
     "placeholders": {
@@ -1759,6 +1890,7 @@
       "refresh_in": "距離重新整理",
       "refresh_now": "立即刷新",
       "status_page_not_found": "狀態頁面未找到或尚未發布。",
+      "status_page_unavailable": "此狀態頁面無法使用",
       "under_maintenance": "維修中",
       "unknown": "未知"
     }
@@ -1888,6 +2020,11 @@
     "refresh_failed": "無法載入你的工作區。請檢查網絡連線後重試。",
     "rename_error": "重新命名工作區失敗",
     "rename_success": "工作區已重新命名",
+    "suspended_banner": {
+      "contact": "聯絡方式：",
+      "message": "此工作區已被此部署嘅管理員暫停。其監控不會運行，狀態頁面亦無法使用。",
+      "no_contact": "請聯絡負責管理此部署嘅人。"
+    },
     "switcher_label": "切換工作區"
   },
   "get_started": {

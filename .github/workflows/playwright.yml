@@ -14,7 +14,6 @@ on:
       - 'docker-compose.dev.*.yml'
       - 'docker-compose.single.*.yml'
       - 'docker-compose.e2e.yml'
-      - 'docker-compose.e2e-cloud.yml'
       - 'Dockerfile.single'
       - 'startup.single.sh'
       - 'startup.single.user.sh'
@@ -35,7 +34,6 @@ on:
       - 'docker-compose.dev.*.yml'
       - 'docker-compose.single.*.yml'
       - 'docker-compose.e2e.yml'
-      - 'docker-compose.e2e-cloud.yml'
       - 'Dockerfile.single'
       - 'startup.single.sh'
       - 'startup.single.user.sh'
@@ -186,15 +184,16 @@ jobs:
         # include below adds a combination instead of adding a key to the dev SQLite one.
         suite: [default]
         include:
-          # The open-signup install with a mail catcher (e2e/onboarding.spec.ts): the dev SQLite stack
-          # with SIGNUP_MODE=open and Mailpit as its mail server, running only the @cloud specs.
+          # The open-signup install (e2e/onboarding.spec.ts): the dev SQLite stack with SIGNUP_MODE=open
+          # and Mailpit as its mail server in the environment, running only the @cloud specs.
           - { database: sqlite, config: dev, suite: cloud }
     env:
-      # Every docker compose command below runs the stack plus the e2e target, and the cloud suite's
-      # Mailpit.
-      COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml${{ matrix.suite == 'cloud' && ':docker-compose.e2e-cloud.yml' || '' }}
-      # Where the specs read the mail the install sent; unset for the suites without a mail catcher.
-      E2E_MAILPIT_URL: ${{ matrix.suite == 'cloud' && 'http://localhost:8025' || '' }}
+      # Every docker compose command below runs the stack plus the e2e target and Mailpit. The
+      # default suites set no sender in the environment, so Admin → Settings can save one that
+      # sends to Mailpit (e2e/admin-settings.spec.ts).
+      COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml
+      # Where the specs read the mail the install sent
+      E2E_MAILPIT_URL: http://localhost:8025
     steps:
     # Prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -278,7 +277,9 @@ jobs:
         EOF
 
     # The cloud suite's install lets anyone sign up and sends its account emails to Mailpit, which
-    # catches them (the emails don't leave the network, and no real address gets one).
+    # catches them (the emails don't leave the network, and no real address gets one). The other
+    # suites leave the sender out of the environment: a variable that is set locks its setting in
+    # Admin → Settings, which e2e/admin-settings.spec.ts changes.
     - name: Add the cloud suite's settings to .env
       if: ${{ matrix.suite == 'cloud' }}
       run: |
@@ -325,7 +326,6 @@ jobs:
         echo "The stack is healthy"
 
     - name: Wait for the mail catcher
-      if: ${{ matrix.suite == 'cloud' }}
       run: |
         if ! timeout 60 bash -c "until curl -sf $E2E_MAILPIT_URL/readyz; do sleep 2; done" >/dev/null; then
           echo "::error::Mailpit wasn't ready after 60 seconds"

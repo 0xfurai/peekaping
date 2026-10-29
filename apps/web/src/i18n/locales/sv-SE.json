@@ -8,7 +8,9 @@
       "back_to_workspace": "Tillbaka till {{name}}",
       "probes": "Sonder",
       "title": "Admin",
-      "users": "Användare"
+      "users": "Användare",
+      "workspaces": "Arbetsytor",
+      "settings": "Inställningar"
     },
     "users": {
       "actions": {
@@ -100,6 +102,134 @@
         "yes": "Ja"
       },
       "you": "du"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ta bort arbetsyta",
+        "resume": "Återuppta arbetsyta",
+        "suspend": "Spärra arbetsyta"
+      },
+      "actions_aria": "Åtgärder för {{name}}",
+      "columns": {
+        "created": "Skapad",
+        "custom_domains": "Anpassade domäner",
+        "members": "Medlemmar",
+        "monitors": "Övervakningar",
+        "name": "Namn",
+        "owners": "Ägare",
+        "status": "Status",
+        "status_pages": "Status-sidor"
+      },
+      "confirm": {
+        "cancel": "Avbryt",
+        "delete": {
+          "confirm": "Ta bort arbetsyta",
+          "description": "Ta bort {{name}}? Allt i den försvinner: dess övervakningar och deras historik, status-sidor, aviseringskanaler och medlemmarnas åtkomst. Det går inte att ångra.",
+          "name_label": "Skriv arbetsytans namn för att bekräfta: {{name}}",
+          "title": "Ta bort arbetsyta"
+        },
+        "resume": {
+          "confirm": "Återuppta",
+          "description": "Övervakningarna i {{name}} körs igen i det läge de hade, och medlemmarna kan använda den som tidigare. En arbetsyta som väntar på att ägaren verifierar sin e-post fortsätter att vänta.",
+          "title": "Återuppta arbetsyta"
+        },
+        "suspend": {
+          "confirm": "Spärra",
+          "description": "Övervakningarna i {{name}} slutar köras, dess offentliga status-sidor visar att de inte är tillgängliga, och medlemmarna ser att den är spärrad. Inget tas bort, och du kan återuppta den senare.",
+          "title": "Spärra arbetsyta"
+        }
+      },
+      "description": "Alla arbetsytor på den här installationen, med ägare, medlemmar och hur mycket de innehåller. Bara antal visas, inget av innehållet i en arbetsyta.",
+      "empty": "Inga arbetsytor hittades",
+      "load_failed": "Det gick inte att läsa in arbetsytorna.",
+      "messages": {
+        "deleted": "{{name}} har tagits bort",
+        "failed": "Det gick inte att ändra arbetsytan.",
+        "resumed": "{{name}} har återupptagits",
+        "suspended": "{{name}} är spärrad"
+      },
+      "monitors": "{{active}} aktiva, {{paused}} pausade",
+      "none": "Inga",
+      "page_name": "Arbetsytor",
+      "paging": {
+        "next": "Nästa",
+        "page": "Sida {{page}} av {{pages}}",
+        "previous": "Föregående"
+      },
+      "search_label": "Sök arbetsytor efter namn eller ägarens e-post",
+      "search_placeholder": "Sök efter namn eller ägarens e-post",
+      "status": {
+        "running": "Körs",
+        "suspended_admin": "Spärrad av en administratör",
+        "suspended_unverified": "Spärrad tills ägaren verifierar sin e-post"
+      },
+      "total": "{{total}} hittades"
+    },
+    "settings": {
+      "page_name": "Inställningar",
+      "description": "Inställningar för hela installationen. Ett värde som serverns miljö sätter är låst här.",
+      "load_failed": "Inställningarna kunde inte läsas in.",
+      "saved": "Inställningar sparade",
+      "save_failed": "Inställningarna sparades inte.",
+      "locked": "Satt av serverns miljö",
+      "source": {
+        "environment": "Från serverns miljö",
+        "saved": "Sparat här",
+        "default": "Standard"
+      },
+      "signup": {
+        "title": "Registrering",
+        "description": "Vem som får skapa ett konto på den här installationen.",
+        "label": "Registreringsläge",
+        "invite": "Endast med inbjudan",
+        "open": "Öppen",
+        "invite_help": "Den första användaren registrerar sig, och alla efter går med i en arbetsyta via en inbjudan.",
+        "open_help": "Vem som helst kan registrera sig och får en egen arbetsyta. Nya konton bekräftar sin e-postadress, så det krävs en e-postavsändare."
+      },
+      "sender": {
+        "title": "E-postavsändare",
+        "description": "SMTP-servern som skickar kontots e-post: länkar för att återställa lösenord, bekräftelse av e-post och inbjudningar.",
+        "on": "Kontots e-post är på.",
+        "off": "Kontots e-post är av: det finns ingen SMTP-värd.",
+        "host": "SMTP‑värd",
+        "port": "Port",
+        "tls": "Säkerhet",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Ingen",
+        "user": "Användare",
+        "password": "Lösenord",
+        "password_set": "Ett lösenord är angivet. Skriv för att ersätta det.",
+        "password_not_set": "Inget lösenord angivet",
+        "password_removed": "Lösenordet tas bort när du sparar.",
+        "remove_password": "Ta bort lösenord",
+        "keep_password": "Behåll lösenord",
+        "from": "Avsändaradress"
+      },
+      "public_url": {
+        "title": "Offentlig URL",
+        "description": "Webbappens adress, som länkarna i e-post och aviseringar öppnar.",
+        "label": "Offentlig URL"
+      },
+      "test_email": {
+        "title": "Skicka ett testmejl",
+        "description": "Skickar ett kort mejl via den sparade avsändaren för att kontrollera att den fungerar.",
+        "to": "Skicka till",
+        "send": "Skicka ett testmejl",
+        "sending": "Skickar…",
+        "sent": "Testmejl skickat till {{to}}.",
+        "failed": "Testmejlet skickades inte.",
+        "unsaved": "Avsändaren har osparade ändringar. Testet använder den sparade avsändaren, så spara först."
+      },
+      "validation": {
+        "port": "Ange en port från 1 till 65535, eller lämna tomt för standardvärdet."
+      },
+      "errors": {
+        "locked": "{{field}} sätts av serverns miljö och kan inte ändras här.",
+        "open_needs_sender": "Öppen registrering kräver en e-postavsändare, eftersom nya konton bekräftar sin e-postadress. Ställ in avsändaren först, eller i samma sparning.",
+        "sender_needed": "Registreringen är öppen, och nya konton behöver avsändaren för att bekräfta sin e-postadress. Byt registreringen till endast med inbjudan först.",
+        "no_sender": "Det finns ingen e-postavsändare. Spara en avsändare först."
+      }
     }
   },
   "auth": {
@@ -1407,7 +1537,8 @@
       "updated_success": "Notifier uppdaterad framgångsrikt"
     },
     "new": {
-      "title": "Ny notifikationskanal"
+      "title": "Ny notifikationskanal",
+      "default_hint": "Den här kanalen kryssas i på nya monitorer."
     },
     "no_important": "Inga viktiga aviseringar hittades.",
     "placeholders": {
@@ -1759,6 +1890,7 @@
       "refresh_in": "Uppdatera om",
       "refresh_now": "Uppdatera nu",
       "status_page_not_found": "Status-sidan hittades inte eller är inte publicerad.",
+      "status_page_unavailable": "Den här status-sidan är inte tillgänglig",
       "under_maintenance": "Underhåll",
       "unknown": "Okänd"
     }
@@ -1888,6 +2020,11 @@
     "refresh_failed": "Dina arbetsytor kunde inte läsas in. Kontrollera anslutningen och försök igen.",
     "rename_error": "Det gick inte att byta namn på arbetsytan",
     "rename_success": "Arbetsytan har bytt namn",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Den här arbetsytan är spärrad av administratören för den här installationen. Dess övervakningar körs inte, och dess status-sidor är inte tillgängliga.",
+      "no_contact": "Kontakta den som driver den här installationen."
+    },
     "switcher_label": "Byt arbetsyta"
   },
   "get_started": {

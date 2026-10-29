@@ -13,12 +13,26 @@ const sidebar = (access: Parameters<typeof renderAs>[0]) =>
   );
 
 describe("AdminSidebar", () => {
-  it("links Users and Probes in the admin area", () => {
+  it("links Users, Workspaces and Probes in the admin area, in that order", () => {
     const html = sidebar({ instanceAdmin: true, role: "owner" });
     expect(html).toContain('href="/admin/users"');
+    expect(html).toContain('href="/admin/workspaces"');
     expect(html).toContain('href="/admin/probes"');
     expect(html).toContain(text("admin.nav.users"));
+    expect(html).toContain(text("admin.nav.workspaces"));
     expect(html).toContain(text("admin.nav.probes"));
+    const users = html.indexOf('href="/admin/users"');
+    const workspaces = html.indexOf('href="/admin/workspaces"');
+    expect(users).toBeLessThan(workspaces);
+    expect(workspaces).toBeLessThan(html.indexOf('href="/admin/probes"'));
+  });
+
+  it("links the install settings last", () => {
+    const html = sidebar({ instanceAdmin: true, role: "owner" });
+    expect(html).toContain('href="/admin/settings"');
+    expect(html).toContain(text("admin.nav.settings"));
+    const links = [...html.matchAll(/href="(\/admin\/[^"]*)"/g)].map((match) => match[1]);
+    expect(links.at(-1)).toBe("/admin/settings");
   });
 
   it("has a way back to the user's workspace, named", () => {

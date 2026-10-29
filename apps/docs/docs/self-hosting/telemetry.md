@@ -9,15 +9,15 @@ Peekaping can send two kinds of anonymous data to the Peekaping project:
 - **[Usage statistics](#usage-statistics)** are a usage ping that says how your install is set up: the version, the mode, the storage backend and which kinds of monitors you use. We use it to see what is safe to change or remove.
 - **[Error reports](#error-reporting)** say where Peekaping's own code crashed. We use them to find and fix bugs that show only on someone else's server.
 
-**Both are on until an admin turns them off.** A new install sends both, and so does an install that upgrades from an older version, where they didn't exist. Each one has its own box on the setup screen, ticked, and its own switch in Settings, and turning one off does not turn off the other. An install that upgrades shows its admin a one-time notice, see [The upgrade notice](#the-upgrade-notice).
+**Both are on until an admin turns them off.** A new install sends both, and so does an install that upgrades from an older version, where they didn't exist. Each one has its own box on the setup screen, ticked, and its own switch in Admin → Settings, and turning one off does not turn off the other. An install that upgrades shows its admin a one-time notice, see [The upgrade notice](#the-upgrade-notice).
 
 An environment variable switches either one off whatever the setting says, and nothing is sent while it applies. See [Turn it on or off](#turn-it-on-or-off) for the usage statistics and [Turn error reporting on or off](#turn-error-reporting-on-or-off) for the error reports. To send neither, set both `TELEMETRY=off` and `ERROR_REPORTING=off`.
 
 ## The upgrade notice
 
-An install that upgrades from a version without these features starts sending both. So its admin sees a notice once, as a banner at the top of the app. It says that usage statistics and error reports are on, what each one sends and never sends, and links to the cards in Settings that turn them off. It names only the features that are on: one that an environment variable switches off isn't mentioned, and there is no notice when both are switched off.
+An install that upgrades from a version without these features starts sending both. So its admin sees a notice once, as a banner at the top of the app. It says that usage statistics and error reports are on, what each one sends and never sends, and links to the cards in Admin → Settings that turn them off. It names only the features that are on: one that an environment variable switches off isn't mentioned, and there is no notice when both are switched off.
 
-The notice stops showing when the admin dismisses it, or makes a choice for either feature in Settings. Dismissing it is not a choice: both stay on. The install stores that it was shown, so it doesn't come back in another browser or after you clear your browser's data, and it doesn't come back on a later upgrade. A new install has no notice, since its admin made the choice on the setup screen.
+The notice stops showing when the admin dismisses it, or makes a choice for either feature in Admin → Settings. Dismissing it is not a choice: both stay on. The install stores that it was shown, so it doesn't come back in another browser or after you clear your browser's data, and it doesn't come back on a later upgrade. A new install has no notice, since its admin made the choice on the setup screen.
 
 ## Usage statistics
 
@@ -105,9 +105,9 @@ A usage ping that fails to reach the Worker is dropped, not retried. A failure n
 Any of these turns it on or off for an admin:
 
 - **The setup screen.** When you create the admin account, the box "Send anonymous usage statistics" is ticked. Untick it to opt out. Either way, your choice is stored.
-- **Settings.** The "Usage statistics" card has a switch. Turning it off deletes the instance ID, and turning it on creates a new one.
+- **Admin → Settings.** The "Usage statistics" card has a switch. Turning it off deletes the instance ID, and turning it on creates a new one.
 
-An environment variable switches it off whatever the setting says. While one applies, Peekaping sends nothing, and the switch in Settings is off and can't be changed:
+An environment variable switches it off whatever the setting says. While one applies, Peekaping sends nothing, and the switch in Admin → Settings is off and can't be changed:
 
 | Variable | Value | Effect |
 | --- | --- | --- |
@@ -121,11 +121,11 @@ TELEMETRY=off
 
 In Kubernetes, put `TELEMETRY: "off"` under `config.env` in your Helm values. See [Kubernetes (Helm)](./kubernetes-helm.md#configuration).
 
-Set the variable on the `peekaping` container in single mode, and on every API replica in cluster mode. Those are the processes that send the usage ping and answer Settings.
+Set the variable on the `peekaping` container in single mode, and on every API replica in cluster mode. Those are the processes that send the usage ping and answer Admin → Settings.
 
 ### See exactly what is sent
 
-The "Usage statistics" card in Settings shows the JSON the next usage ping would send. It comes from the same code that builds the usage ping, so it is exact. After you opt out, `instance_id` is empty, and nothing is sent.
+The "Usage statistics" card in Admin → Settings shows the JSON the next usage ping would send. It comes from the same code that builds the usage ping, so it is exact. After you opt out, `instance_id` is empty, and nothing is sent.
 
 ## Error reporting
 
@@ -188,9 +188,9 @@ A report that fails to reach Sentry is dropped, not retried. Sending a report ne
 Any of these turns it on or off for an admin:
 
 - **The setup screen.** When you create the admin account, the box "Send error reports" is ticked. Untick it to opt out. It is a different box from "Send anonymous usage statistics".
-- **Settings.** The "Error reports" card has a switch.
+- **Admin → Settings.** The "Error reports" card has a switch.
 
-An environment variable switches it off whatever the setting says. While one applies, Peekaping sends no reports, and the switch in Settings is off and can't be changed:
+An environment variable switches it off whatever the setting says. While one applies, Peekaping sends no reports, and the switch in Admin → Settings is off and can't be changed:
 
 | Variable | Value | Effect |
 | --- | --- | --- |
@@ -208,4 +208,4 @@ Set the variable on the `peekaping` container in single mode. In cluster mode, s
 
 ### In cluster mode
 
-The API reads and changes the setting. The stored setting is the source of truth. A change in Settings stores it and takes effect in the API at once, with no restart. The API is the only process that reports, so it reads the setting itself. With several API replicas, the replica that took the change applies it at once, and each of the others follows the stored setting within a minute.
+The API reads and changes the setting. The stored setting is the source of truth. A change in Admin → Settings stores it and takes effect in the API at once, with no restart. The API is the only process that reports, so it reads the setting itself. With several API replicas, the replica that took the change applies it at once, and each of the others follows the stored setting within a minute.

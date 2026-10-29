@@ -8,7 +8,9 @@
       "back_to_workspace": "Vissza ide: {{name}}",
       "probes": "Szondák",
       "title": "Adminisztráció",
-      "users": "Felhasználók"
+      "users": "Felhasználók",
+      "workspaces": "Munkaterületek",
+      "settings": "Beállítások"
     },
     "users": {
       "actions": {
@@ -100,6 +102,134 @@
         "yes": "Igen"
       },
       "you": "te"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Munkaterület törlése",
+        "resume": "Munkaterület újraindítása",
+        "suspend": "Munkaterület felfüggesztése"
+      },
+      "actions_aria": "Műveletek: {{name}}",
+      "columns": {
+        "created": "Létrehozva",
+        "custom_domains": "Egyéni domainek",
+        "members": "Tagok",
+        "monitors": "Monitorok",
+        "name": "Név",
+        "owners": "Tulajdonosok",
+        "status": "Állapot",
+        "status_pages": "Állapotlapok"
+      },
+      "confirm": {
+        "cancel": "Mégse",
+        "delete": {
+          "confirm": "Munkaterület törlése",
+          "description": "Törlöd ezt: {{name}}? Minden törlődik, ami benne van: a monitorok és az előzményeik, az állapotlapok, az értesítési csatornák és a tagok hozzáférése. Ez nem vonható vissza.",
+          "name_label": "A megerősítéshez írd be a munkaterület nevét: {{name}}",
+          "title": "Munkaterület törlése"
+        },
+        "resume": {
+          "confirm": "Újraindítás",
+          "description": "A(z) {{name}} monitorai abban az állapotban futnak újra, amelyben voltak, és a tagjai ugyanúgy használhatják, mint korábban. Az a munkaterület, amely a tulajdonosa e-mail-címének ellenőrzésére vár, továbbra is várakozik.",
+          "title": "Munkaterület újraindítása"
+        },
+        "suspend": {
+          "confirm": "Felfüggesztés",
+          "description": "A(z) {{name}} monitorai leállnak, a nyilvános állapotlapjai jelzik, hogy nem érhetők el, a tagjai pedig látják, hogy fel van függesztve. Semmi sem törlődik, és később újraindíthatod.",
+          "title": "Munkaterület felfüggesztése"
+        }
+      },
+      "description": "A telepítés összes munkaterülete a tulajdonosaival, a tagjaival és azzal, hogy mennyi mindent tartalmaz. Csak darabszámok látszanak, a munkaterületek tartalma nem.",
+      "empty": "Nem található munkaterület",
+      "load_failed": "A munkaterületek betöltése nem sikerült.",
+      "messages": {
+        "deleted": "{{name}} törölve",
+        "failed": "A munkaterület módosítása nem sikerült.",
+        "resumed": "{{name}} újraindítva",
+        "suspended": "{{name}} felfüggesztve"
+      },
+      "monitors": "{{active}} aktív, {{paused}} szüneteltetve",
+      "none": "Nincs",
+      "page_name": "Munkaterületek",
+      "paging": {
+        "next": "Következő",
+        "page": "{{page}}. oldal / {{pages}}",
+        "previous": "Előző"
+      },
+      "search_label": "Munkaterületek keresése név vagy a tulajdonos e-mail-címe alapján",
+      "search_placeholder": "Keresés név vagy a tulajdonos e-mail-címe alapján",
+      "status": {
+        "running": "Fut",
+        "suspended_admin": "Egy adminisztrátor felfüggesztette",
+        "suspended_unverified": "Felfüggesztve, amíg a tulajdonos meg nem erősíti az e-mail-címét"
+      },
+      "total": "{{total}} találat"
+    },
+    "settings": {
+      "page_name": "Beállítások",
+      "description": "A teljes telepítés beállításai. A szerver környezete által megadott érték itt zárolva van.",
+      "load_failed": "A beállításokat nem sikerült betölteni.",
+      "saved": "Beállítások mentve",
+      "save_failed": "A beállítások nem lettek mentve.",
+      "locked": "A szerver környezete adja meg",
+      "source": {
+        "environment": "A szerver környezetéből",
+        "saved": "Itt mentve",
+        "default": "Alapértelmezett"
+      },
+      "signup": {
+        "title": "Regisztráció",
+        "description": "Ki hozhat létre fiókot ezen a telepítésen.",
+        "label": "Regisztrációs mód",
+        "invite": "Csak meghívással",
+        "open": "Nyitott",
+        "invite_help": "Az első felhasználó regisztrál, utána mindenki meghívóval csatlakozik egy munkaterülethez.",
+        "open_help": "Bárki regisztrálhat, és saját munkaterületet kap. Az új fiókok megerősítik az e-mail-címüket, ezért e-mail-küldő szükséges."
+      },
+      "sender": {
+        "title": "E-mail-küldő",
+        "description": "Az SMTP-szerver, amely a fiók e-mailjeit küldi: jelszó-visszaállító hivatkozások, e-mail-megerősítés és meghívók.",
+        "on": "A fiók e-mailjei be vannak kapcsolva.",
+        "off": "A fiók e-mailjei ki vannak kapcsolva: nincs SMTP-kiszolgáló.",
+        "host": "SMTP szerver",
+        "port": "Port",
+        "tls": "Biztonság",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nincs",
+        "user": "Felhasználó",
+        "password": "Jelszó",
+        "password_set": "Jelszó be van állítva. Írjon be újat a cseréjéhez.",
+        "password_not_set": "Nincs jelszó beállítva",
+        "password_removed": "A jelszó mentéskor törlődik.",
+        "remove_password": "Jelszó eltávolítása",
+        "keep_password": "Jelszó megtartása",
+        "from": "Feladó címe"
+      },
+      "public_url": {
+        "title": "Nyilvános URL",
+        "description": "A webalkalmazás címe, amelyet az e-mailek és értesítések hivatkozásai megnyitnak.",
+        "label": "Nyilvános URL"
+      },
+      "test_email": {
+        "title": "Teszt e-mail küldése",
+        "description": "Rövid e-mailt küld a mentett küldőn keresztül, hogy ellenőrizze, működik-e.",
+        "to": "Címzett",
+        "send": "Teszt e-mail küldése",
+        "sending": "Küldés…",
+        "sent": "Teszt e-mail elküldve ide: {{to}}.",
+        "failed": "A teszt e-mail nem lett elküldve.",
+        "unsaved": "A küldőn nem mentett módosítások vannak. A teszt a mentett küldőt használja, ezért előbb mentsen."
+      },
+      "validation": {
+        "port": "Adjon meg egy portot 1 és 65535 között, vagy hagyja üresen az alapértelmezéshez."
+      },
+      "errors": {
+        "locked": "{{field}} értékét a szerver környezete adja meg, itt nem módosítható.",
+        "open_needs_sender": "A nyitott regisztrációhoz e-mail-küldő kell, mert az új fiókok megerősítik az e-mail-címüket. Előbb állítsa be a küldőt, vagy ugyanabban a mentésben.",
+        "sender_needed": "A regisztráció nyitott, és az új fiókoknak szükségük van a küldőre az e-mail-címük megerősítéséhez. Előbb állítsa a regisztrációt csak meghívással módra.",
+        "no_sender": "Nincs e-mail-küldő. Előbb mentsen egy küldőt."
+      }
     }
   },
   "auth": {
@@ -1407,7 +1537,8 @@
       "updated_success": "Értesítő sikeresen frissítve"
     },
     "new": {
-      "title": "Új értesítési csatorna"
+      "title": "Új értesítési csatorna",
+      "default_hint": "Ez a csatorna be lesz jelölve az új monitoroknál."
     },
     "no_important": "Nem található fontos értesítés.",
     "placeholders": {
@@ -1759,6 +1890,7 @@
       "refresh_in": "Frissítés:",
       "refresh_now": "Frissítés most",
       "status_page_not_found": "A státuszlap nem található, vagy még nem publikált.",
+      "status_page_unavailable": "Ez az állapotlap nem érhető el",
       "under_maintenance": "Karbantartás alatt",
       "unknown": "Ismeretlen"
     }
@@ -1888,6 +2020,11 @@
     "refresh_failed": "A munkaterületeit nem sikerült betölteni. Ellenőrizze a kapcsolatot, és próbálja újra.",
     "rename_error": "A munkaterület átnevezése nem sikerült",
     "rename_success": "A munkaterület át lett nevezve",
+    "suspended_banner": {
+      "contact": "Kapcsolatfelvétel:",
+      "message": "Ezt a munkaterületet a telepítés adminisztrátora felfüggesztette. A monitorai nem futnak, és az állapotlapjai nem érhetők el.",
+      "no_contact": "Fordulj ahhoz, aki ezt a telepítést üzemelteti."
+    },
     "switcher_label": "Munkaterület váltása"
   },
   "get_started": {

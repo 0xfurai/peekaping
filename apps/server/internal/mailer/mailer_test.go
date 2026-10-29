@@ -2,6 +2,8 @@ package mailer_test
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
@@ -11,12 +13,15 @@ import (
 	"net"
 	"net/mail"
 	"net/textproto"
+	"os"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/mailer"
 	"peekaping/internal/smtpclient/smtptest"
 
@@ -154,9 +159,37 @@ func TestMailer_DeliverLogsNoRecipientWhenTheServerRejectsItAndEchoesTheAddress(
 func TestDescribe_KeepsTheReplyCodeOrTheTypeAndNeverTheText(t *testing.T) {
 	assert.Equal(t, "the server replied 550", mailer.Describe(fmt.Errorf("wrapped: %w", &textproto.Error{Code: 550, Msg: "<alice@example.com> unknown"})))
 	assert.Equal(t, "send failed: timed out", mailer.Describe(fmt.Errorf("failed to send email: %w", context.DeadlineExceeded)))
-	assert.Equal(t, "send failed: syscall.Errno", mailer.Describe(&net.OpError{Op: "dial", Addr: &net.TCPAddr{}, Err: syscall.ECONNREFUSED}))
 	got := mailer.Describe(errors.New("invalid recipient alice@example.com"))
 	assert.Equal(t, "send failed: *errors.errorString", got)
+}
+
+func TestDescribe_NamesTheFailureClassWithoutTheServerTextOrAnAddress(t *testing.T) {
+	server := &net.TCPAddr{IP: net.ParseIP("192.0.2.10"), Port: 587}
+	cases := []struct {
+		name string
+		err  error
+		want string
+	}{
+		{"a refused dial", &net.OpError{Op: "dial", Net: "tcp", Addr: server, Err: &os.SyscallError{Syscall: "connect", Err: syscall.ECONNREFUSED}}, "send failed: dial: connection refused"},
+		{"a reset read", fmt.Errorf("smtp: %w", &net.OpError{Op: "read", Net: "tcp", Addr: server, Err: syscall.ECONNRESET}), "send failed: read: connection reset by peer"},
+		{"a read that timed out", &net.OpError{Op: "read", Net: "tcp", Addr: server, Err: os.ErrDeadlineExceeded}, "send failed: read: timed out"},
+		{"a host that does not exist", &net.OpError{Op: "dial", Net: "tcp", Err: &net.DNSError{Err: "no such host", Name: "smtp.example.com", Server: "192.0.2.53:53", IsNotFound: true}}, "send failed: the host name could not be resolved (not found)"},
+		{"a lookup that timed out", &net.DNSError{Err: "i/o timeout", Name: "smtp.example.com", Server: "192.0.2.53:53", IsTimeout: true}, "send failed: the host name could not be resolved (timeout)"},
+		{"a lookup that failed otherwise", &net.DNSError{Err: "server misbehaving", Name: "smtp.example.com", Server: "192.0.2.53:53"}, "send failed: the host name could not be resolved"},
+		{"a timeout outside a connection", fmt.Errorf("smtp: %w", os.ErrDeadlineExceeded), "send failed: timed out"},
+		{"a certificate from an unknown authority", &tls.CertificateVerificationError{Err: x509.UnknownAuthorityError{}}, "send failed: the certificate could not be verified"},
+		{"a certificate for another host", fmt.Errorf("starttls: %w", x509.HostnameError{Certificate: &x509.Certificate{DNSNames: []string{"mail.example.com"}}, Host: "192.0.2.10"}), "send failed: the certificate could not be verified"},
+		{"a reply", &textproto.Error{Code: 550, Msg: "5.1.1 <alice@example.com>: user unknown"}, "the server replied 550"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := mailer.Describe(tc.err)
+			assert.Equal(t, tc.want, got)
+			for _, secret := range []string{"192.0.2", "example.com", "alice", "587", ":53"} {
+				assert.NotContains(t, got, secret)
+			}
+		})
+	}
 }
 
 func TestMessages_NameTheLinkAndItsLifetime(t *testing.T) {
@@ -201,4 +234,48 @@ func TestMailer_WaitForGivesUpAfterTheBoundAndSaysHowManySendsAreStillRunning(t 
 func TestMailer_WaitForReturnsAtOnceWhenNothingIsSending(t *testing.T) {
 	assert.Zero(t, mailer.New(&config.Config{}, zap.NewNop().Sugar()).WaitFor(time.Hour))
 	assert.Zero(t, newMailer(t, smtptest.Start(t)).WaitFor(time.Hour))
+}
+
+// switchableSender is an install's sender that an instance admin changes while the app runs
+type switchableSender struct {
+	mu     sync.Mutex
+	sender *installsettings.AccountSMTP
+}
+
+func (s *switchableSender) AccountSMTP(context.Context) *installsettings.AccountSMTP {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.sender
+}
+
+func (s *switchableSender) set(sender *installsettings.AccountSMTP) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.sender = sender
+}
+
+func TestMailer_EachSendUsesTheSenderOfTheMoment(t *testing.T) {
+	first, second := smtptest.Start(t), smtptest.Start(t)
+	settings := &switchableSender{}
+	m := mailer.NewFrom(settings, zap.NewNop().Sugar())
+	assert.False(t, m.Enabled())
+	assert.ErrorIs(t, m.Send(context.Background(), "a@example.com", "Hi", "Hello", ""), mailer.ErrDisabled)
+
+	settings.set(&installsettings.AccountSMTP{Host: first.Host(), Port: first.Port(), From: "first@example.com", TLS: "none"})
+	require.True(t, m.Enabled())
+	require.NoError(t, m.Send(context.Background(), "a@example.com", "Hi", "Hello", ""))
+	settings.set(&installsettings.AccountSMTP{Host: second.Host(), Port: second.Port(), From: "second@example.com", TLS: "none"})
+	require.NoError(t, m.Send(context.Background(), "a@example.com", "Hi", "Hello", ""))
+
+	assert.Equal(t, "first@example.com", first.WaitFor(t, 1)[0].From)
+	assert.Equal(t, "second@example.com", second.WaitFor(t, 1)[0].From)
+
+	settings.set(nil)
+	assert.False(t, m.Enabled(), "a sender that was removed turns the mails off")
+}
+
+func TestMailer_ASenderWhoseFromDoesNotParseIsOff(t *testing.T) {
+	m := mailer.NewFrom(&switchableSender{sender: &installsettings.AccountSMTP{Host: "127.0.0.1", Port: 25, From: "not an address"}}, zap.NewNop().Sugar())
+
+	assert.False(t, m.Enabled())
 }

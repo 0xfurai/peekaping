@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/workspace"
@@ -65,7 +65,7 @@ type AccountService struct {
 	workspaces workspace.Repository
 	monitors   MonitorWaker
 	bus        events.EventBus
-	clientURL  string
+	settings   *installsettings.Resolver
 	logger     *zap.SugaredLogger
 	now        func() time.Time
 }
@@ -78,7 +78,7 @@ func NewAccountService(
 	workspaces workspace.Repository,
 	monitors MonitorWaker,
 	bus events.EventBus,
-	cfg *config.Config,
+	settings *installsettings.Resolver,
 	logger *zap.SugaredLogger,
 ) *AccountService {
 	return &AccountService{
@@ -89,7 +89,7 @@ func NewAccountService(
 		workspaces: workspaces,
 		monitors:   monitors,
 		bus:        bus,
-		clientURL:  cfg.ClientURL,
+		settings:   settings,
 		logger:     logger.Named("[account-service]"),
 		now:        time.Now,
 	}
@@ -117,7 +117,7 @@ func (s *AccountService) RequestPasswordReset(email string) {
 			s.logger.Errorw("Failed to make a password reset token", "userId", user.ID, "error", err)
 			return
 		}
-		message := mailer.ResetPassword(s.link("reset-password", token), ResetTokenLifetime)
+		message := mailer.ResetPassword(s.link(ctx, "reset-password", token), ResetTokenLifetime)
 		if err := s.mailer.Send(ctx, user.Email, message.Subject, message.Text, message.HTML); err != nil {
 			s.logger.Errorw("Failed to send a password reset email", "userId", user.ID, "reason", mailer.Describe(err))
 		}
@@ -141,7 +141,7 @@ func (s *AccountService) CreateResetLink(ctx context.Context, userID string) (li
 	if err != nil {
 		return "", time.Time{}, err
 	}
-	return s.link("reset-password", token), s.now().UTC().Add(ResetTokenLifetime), nil
+	return s.link(ctx, "reset-password", token), s.now().UTC().Add(ResetTokenLifetime), nil
 }
 
 // ResetPassword spends a reset token: it sets the user's password, ends every session the user
@@ -230,7 +230,7 @@ func (s *AccountService) SendVerification(ctx context.Context, user *Model) erro
 	if err != nil {
 		return err
 	}
-	message := mailer.VerifyEmail(s.link("verify-email", token), VerifyTokenLifetime)
+	message := mailer.VerifyEmail(s.link(ctx, "verify-email", token), VerifyTokenLifetime)
 	s.mailer.Deliver(user.Email, message.Subject, message.Text, message.HTML)
 	return nil
 }
@@ -321,8 +321,8 @@ func (s *AccountService) issue(ctx context.Context, userID, purpose, prefix stri
 }
 
 // link is the address in the web app that opens a link of the email
-func (s *AccountService) link(page, token string) string {
-	return strings.TrimRight(s.clientURL, "/") + "/" + page + "/" + token
+func (s *AccountService) link(ctx context.Context, page, token string) string {
+	return strings.TrimRight(s.settings.PublicURL(ctx), "/") + "/" + page + "/" + token
 }
 
 func validTokenShape(token, prefix string) bool {

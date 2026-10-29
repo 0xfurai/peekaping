@@ -91,7 +91,11 @@ type Instance struct {
 	// empty list means every type, as it does for a probe: an instance of an old probe reports
 	// none.
 	SupportedTypes []string
-	LastSeenAt     time.Time
+	// EnforcesPrivateTargetBlock is whether the instance's hello said it blocks private targets
+	// when the server does (BLOCK_PRIVATE_TARGETS). An instance of an older probe doesn't, and a
+	// server that blocks them deals it no monitors.
+	EnforcesPrivateTargetBlock bool
+	LastSeenAt                 time.Time
 }
 
 // StatusChange is one time a probe went online or offline: its status from At on, until the next

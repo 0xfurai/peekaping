@@ -26,6 +26,7 @@ import (
 	"peekaping/internal"
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/limits"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/admin"
@@ -65,6 +66,7 @@ import (
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
+	"go.uber.org/zap"
 )
 
 // Register provides what both binaries share. dig builds a value only when an Invoke needs it.
@@ -77,7 +79,8 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		internal.ProvideLogger,
 		internal.ProvideTrustedProxies,
 		internal.ProvideCORSOrigins,
-		mailer.New,
+		installsettings.NewFromStore,
+		provideMailer,
 		provideProbeLookup,
 		provideProbeMonitorAssigner,
 		provideStaleProbeLookup,
@@ -129,6 +132,11 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		error_reporting.RegisterDependencies(container),
 		utils.Provide(container, websocket.NewServer, internal.ProvideServer),
 	)
+}
+
+// provideMailer is the sender of account emails, which reads the install settings at each send
+func provideMailer(settings *installsettings.Resolver, logger *zap.SugaredLogger) *mailer.Mailer {
+	return mailer.NewFrom(settings, logger)
 }
 
 // provideMonitorWaker lets verifying an email address wake the monitors of the workspaces it lifts a

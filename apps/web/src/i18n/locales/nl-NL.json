@@ -8,7 +8,9 @@
       "back_to_workspace": "Terug naar {{name}}",
       "probes": "Probes",
       "title": "Beheer",
-      "users": "Gebruikers"
+      "users": "Gebruikers",
+      "workspaces": "Werkruimtes",
+      "settings": "Instellingen"
     },
     "users": {
       "actions": {
@@ -100,6 +102,134 @@
         "yes": "Ja"
       },
       "you": "jij"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Werkruimte verwijderen",
+        "resume": "Werkruimte hervatten",
+        "suspend": "Werkruimte opschorten"
+      },
+      "actions_aria": "Acties voor {{name}}",
+      "columns": {
+        "created": "Aangemaakt",
+        "custom_domains": "Aangepaste domeinen",
+        "members": "Leden",
+        "monitors": "Monitoren",
+        "name": "Naam",
+        "owners": "Eigenaren",
+        "status": "Status",
+        "status_pages": "Statuspagina's"
+      },
+      "confirm": {
+        "cancel": "Annuleren",
+        "delete": {
+          "confirm": "Werkruimte verwijderen",
+          "description": "{{name}} verwijderen? Alles erin verdwijnt: de monitoren en hun geschiedenis, statuspagina's, notificatiekanalen en de toegang van de leden. Dit kan niet ongedaan worden gemaakt.",
+          "name_label": "Typ de naam van de werkruimte om te bevestigen: {{name}}",
+          "title": "Werkruimte verwijderen"
+        },
+        "resume": {
+          "confirm": "Hervatten",
+          "description": "De monitoren van {{name}} draaien weer in de staat die ze hadden, en de leden kunnen de werkruimte gebruiken zoals voorheen. Een werkruimte die wacht tot de eigenaar het e-mailadres bevestigt, blijft wachten.",
+          "title": "Werkruimte hervatten"
+        },
+        "suspend": {
+          "confirm": "Opschorten",
+          "description": "De monitoren van {{name}} stoppen, de openbare statuspagina's melden dat ze niet beschikbaar zijn, en de leden zien dat de werkruimte is opgeschort. Er wordt niets verwijderd en de werkruimte kan later worden hervat.",
+          "title": "Werkruimte opschorten"
+        }
+      },
+      "description": "Alle werkruimtes op deze installatie, met hun eigenaren, hun leden en hoeveel ze bevatten. Alleen aantallen worden getoond, niets van de inhoud van een werkruimte.",
+      "empty": "Geen werkruimtes gevonden",
+      "load_failed": "De werkruimtes konden niet worden geladen.",
+      "messages": {
+        "deleted": "{{name}} is verwijderd",
+        "failed": "De werkruimte kon niet worden gewijzigd.",
+        "resumed": "{{name}} is hervat",
+        "suspended": "{{name}} is opgeschort"
+      },
+      "monitors": "{{active}} actief, {{paused}} gepauzeerd",
+      "none": "Geen",
+      "page_name": "Werkruimtes",
+      "paging": {
+        "next": "Volgende",
+        "page": "Pagina {{page}} van {{pages}}",
+        "previous": "Vorige"
+      },
+      "search_label": "Werkruimtes zoeken op naam of e-mailadres van de eigenaar",
+      "search_placeholder": "Zoeken op naam of e-mailadres van de eigenaar",
+      "status": {
+        "running": "Actief",
+        "suspended_admin": "Opgeschort door een beheerder",
+        "suspended_unverified": "Opgeschort totdat de eigenaar het e-mailadres bevestigt"
+      },
+      "total": "{{total}} gevonden"
+    },
+    "settings": {
+      "page_name": "Instellingen",
+      "description": "Instellingen van de hele installatie. Een waarde die de omgeving van de server instelt, is hier vergrendeld.",
+      "load_failed": "De instellingen konden niet worden geladen.",
+      "saved": "Instellingen opgeslagen",
+      "save_failed": "De instellingen zijn niet opgeslagen.",
+      "locked": "Ingesteld door de omgeving van de server",
+      "source": {
+        "environment": "Uit de omgeving van de server",
+        "saved": "Hier opgeslagen",
+        "default": "Standaard"
+      },
+      "signup": {
+        "title": "Registratie",
+        "description": "Wie een account mag aanmaken op deze installatie.",
+        "label": "Registratiemodus",
+        "invite": "Alleen op uitnodiging",
+        "open": "Open",
+        "invite_help": "De eerste gebruiker registreert zich, en iedereen daarna sluit zich aan bij een werkruimte via een uitnodiging.",
+        "open_help": "Iedereen kan zich registreren en krijgt een eigen werkruimte. Nieuwe accounts bevestigen hun e-mailadres, dus hiervoor is een e-mailafzender nodig."
+      },
+      "sender": {
+        "title": "E-mailafzender",
+        "description": "De SMTP-server die de account-e-mails verstuurt: links om het wachtwoord opnieuw in te stellen, e-mailverificatie en uitnodigingen.",
+        "on": "Account-e-mails staan aan.",
+        "off": "Account-e-mails staan uit: er is geen SMTP-host.",
+        "host": "SMTP-hostnaam",
+        "port": "Poort",
+        "tls": "Beveiliging",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Geen",
+        "user": "Gebruikersnaam",
+        "password": "Wachtwoord",
+        "password_set": "Er is een wachtwoord ingesteld. Typ om het te vervangen.",
+        "password_not_set": "Geen wachtwoord ingesteld",
+        "password_removed": "Het wachtwoord wordt verwijderd wanneer je opslaat.",
+        "remove_password": "Wachtwoord verwijderen",
+        "keep_password": "Wachtwoord behouden",
+        "from": "Afzenderadres"
+      },
+      "public_url": {
+        "title": "Openbare URL",
+        "description": "Het adres van de webapp, dat de links in e-mails en meldingen openen.",
+        "label": "Openbare URL"
+      },
+      "test_email": {
+        "title": "Testmail versturen",
+        "description": "Verstuurt een korte e-mail via de opgeslagen afzender, om te controleren of die werkt.",
+        "to": "Versturen naar",
+        "send": "Testmail versturen",
+        "sending": "Versturen…",
+        "sent": "Testmail verstuurd naar {{to}}.",
+        "failed": "De testmail is niet verstuurd.",
+        "unsaved": "De afzender heeft niet-opgeslagen wijzigingen. De test gebruikt de opgeslagen afzender, dus sla eerst op."
+      },
+      "validation": {
+        "port": "Voer een poort in van 1 tot 65535, of laat het leeg voor de standaardwaarde."
+      },
+      "errors": {
+        "locked": "{{field}} wordt ingesteld door de omgeving van de server en kan hier niet worden gewijzigd.",
+        "open_needs_sender": "Open registratie heeft een e-mailafzender nodig, omdat nieuwe accounts hun e-mailadres bevestigen. Stel eerst de afzender in, of in dezelfde opslag.",
+        "sender_needed": "De registratie is open, en nieuwe accounts hebben de afzender nodig om hun e-mailadres te bevestigen. Zet de registratie eerst op alleen op uitnodiging.",
+        "no_sender": "Er is geen e-mailafzender. Sla eerst een afzender op."
+      }
     }
   },
   "auth": {
@@ -1407,7 +1537,8 @@
       "updated_success": "Notifier succesvol bijgewerkt"
     },
     "new": {
-      "title": "Nieuw notificatiekanaal"
+      "title": "Nieuw notificatiekanaal",
+      "default_hint": "Dit kanaal wordt aangevinkt bij nieuwe monitors."
     },
     "no_important": "Geen belangrijke meldingen gevonden.",
     "placeholders": {
@@ -1759,6 +1890,7 @@
       "refresh_in": "Vernieuwen in",
       "refresh_now": "Vernieuwen",
       "status_page_not_found": "Statuspagina niet gevonden of niet gepubliceerd.",
+      "status_page_unavailable": "Deze statuspagina is niet beschikbaar",
       "under_maintenance": "In onderhoud",
       "unknown": "Onbekend"
     }
@@ -1888,6 +2020,11 @@
     "refresh_failed": "Je werkruimtes konden niet worden geladen. Controleer je verbinding en probeer het opnieuw.",
     "rename_error": "Werkruimte hernoemen mislukt",
     "rename_success": "Werkruimte hernoemd",
+    "suspended_banner": {
+      "contact": "Contact opnemen:",
+      "message": "Deze werkruimte is opgeschort door de beheerder van deze installatie. De monitoren draaien niet en de statuspagina's zijn niet beschikbaar.",
+      "no_contact": "Neem contact op met degene die deze installatie beheert."
+    },
     "switcher_label": "Van werkruimte wisselen"
   },
   "get_started": {

@@ -2,6 +2,15 @@
 
 import type { Options as ClientOptions, TDataShape, Client } from "./client";
 import type {
+  GetAdminSettingsData,
+  GetAdminSettingsResponses,
+  GetAdminSettingsErrors,
+  PutAdminSettingsData,
+  PutAdminSettingsResponses,
+  PutAdminSettingsErrors,
+  PostAdminSettingsTestEmailData,
+  PostAdminSettingsTestEmailResponses,
+  PostAdminSettingsTestEmailErrors,
   GetAdminUsersData,
   GetAdminUsersResponses,
   GetAdminUsersErrors,
@@ -370,6 +379,88 @@ export type Options<
    * used to access values that aren't defined as part of the SDK function.
    */
   meta?: Record<string, unknown>;
+};
+
+/**
+ * Get the install settings
+ * Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*) and the public URL (CLIENT_URL), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now.
+ */
+export const getAdminSettings = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAdminSettingsData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAdminSettingsResponses,
+    GetAdminSettingsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/settings",
+    ...options,
+  });
+};
+
+/**
+ * Change the install settings
+ * Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds. The answer is the settings as GET shows them.
+ */
+export const putAdminSettings = <ThrowOnError extends boolean = false>(
+  options: Options<PutAdminSettingsData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).put<
+    PutAdminSettingsResponses,
+    PutAdminSettingsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/settings",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Send a test email
+ * Only an instance admin may do this. Sends a fixed test message to the address through the install's sender for account emails as it is now, and answers once the SMTP server took it. Without a sender it answers 400 with the code NO_SENDER. A send that fails answers 502 with the SMTP reply code or the kind of failure, never the server's text.
+ */
+export const postAdminSettingsTestEmail = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAdminSettingsTestEmailData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAdminSettingsTestEmailResponses,
+    PostAdminSettingsTestEmailErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/admin/settings/test-email",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
 };
 
 /**

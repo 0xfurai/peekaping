@@ -106,7 +106,7 @@ func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx
 
 	// An open signup passes the gate: a limit per client and, when set up, Turnstile. An invite signup
 	// does not: the invite is the proof that the visitor is wanted.
-	if dto.InviteToken == "" && c.signup.Open() {
+	if dto.InviteToken == "" && c.signup.Open(ctx) {
 		if retryAfter, err := c.signup.Admit(ctx, c.clientKey(input.Request), c.proxies.ClientIP(input.Request), dto.TurnstileToken); err != nil {
 			if errors.Is(err, ErrSignupRateLimited) {
 				return nil, tooManyRequests(retryAfter)

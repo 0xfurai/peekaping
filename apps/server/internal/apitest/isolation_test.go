@@ -297,6 +297,9 @@ var (
 		"GET /api/v1/admin/workspaces":              "the install's workspaces, instance admin only: counts and metadata, never a workspace's records",
 		"PATCH /api/v1/admin/workspaces/{id}":       "the install's workspaces, instance admin only: suspending or resuming reaches the workspace's hold, not its records",
 		"DELETE /api/v1/admin/workspaces/{id}":      "the install's workspaces, instance admin only: deleting reaches the workspace and everything in it by cascade, no record is read",
+		"GET /api/v1/admin/settings":                "the install settings, instance admin only: the signup mode, the sender and the public URL belong to the install, not a workspace",
+		"PUT /api/v1/admin/settings":                "the install settings, instance admin only: a change reaches the install, not a workspace",
+		"POST /api/v1/admin/settings/test-email":    "the install settings, instance admin only: a test email through the install's sender, no workspace is read",
 	}
 )
 

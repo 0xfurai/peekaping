@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"sort"
 	"testing"
 	"time"
@@ -512,11 +513,15 @@ func TestAdminWorkspaces_SuspendingTwiceKeepsTheFirstTime(t *testing.T) {
 func TestAdminWorkspaces_ResumingBringsEverythingBackAsItWas(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
-		w := a.createAcme(t)
-		member := a.loginAs(t, w.memberEmail)
 		source := a.schedulerSource(t)
 		var heard updates
 		source.Watch(func(string) {}, heard.add, func(string) {})
+		w := a.createAcme(t)
+		// pausing a monitor of the workspace is an update too, and it comes over Redis, so it can
+		// arrive late: wait for it, so that it is not taken for one the resuming sent
+		require.Eventually(t, func() bool { return slices.Contains(heard.seen(), w.paused) }, 5*time.Second, 10*time.Millisecond)
+		heard.reset()
+		member := a.loginAs(t, w.memberEmail)
 		countsBefore := a.adminWorkspaceView(t, w.id)
 		updatedBefore := a.monitorUpdatedAt(t, w.activeA)
 
