@@ -22,6 +22,7 @@ type workspaceResponse struct {
 }
 
 func TestCreateWorkspace_AnySignedInUserOwnsTheWorkspaceTheyMakeWithTheDefaultSettings(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 		a.createUser(t, "loner@example.com")
@@ -72,6 +73,7 @@ func TestCreateWorkspace_AnySignedInUserOwnsTheWorkspaceTheyMakeWithTheDefaultSe
 }
 
 func TestCreateWorkspace_TheOthersDefaultStaysTheOneTheyJoinedFirst(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		made := decode[workspaceResponse](t, a.request(t, http.MethodPost, workspacesURL, map[string]any{"name": "Second"}, a.asAdmin), http.StatusCreated)
 
@@ -86,6 +88,7 @@ func TestCreateWorkspace_TheOthersDefaultStaysTheOneTheyJoinedFirst(t *testing.T
 }
 
 func TestCreateWorkspace_ABadNameOrCallerIsRefused(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		before := a.count(t, "workspaces")
 		for name, body := range map[string]any{

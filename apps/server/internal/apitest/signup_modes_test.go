@@ -120,6 +120,7 @@ func (a *app) verifyWithMail(t *testing.T, mail *smtptest.Server, email string) 
 
 // AC2: an install that sets nothing, and one that says invite, behave as before
 func TestSignupModes_InviteModeLetsTheFirstUserInAndNoOneElse(t *testing.T) {
+	parallel(t)
 	for name, mode := range map[string]string{"unset": "", "invite": config.SignupModeInvite} {
 		t.Run(name, func(t *testing.T) {
 			forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
@@ -154,6 +155,7 @@ func TestSignupModes_InviteModeLetsTheFirstUserInAndNoOneElse(t *testing.T) {
 // AC3: anyone signs up and gets a workspace of their own, as its owner; only the install's first
 // user is an instance admin
 func TestSignupModes_OpenModeGivesEveryStrangerAWorkspaceOfTheirOwn(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		mail := smtptest.Start(t)
 		a := newApp(t, backend, withOpenSignup(mail))
@@ -198,6 +200,7 @@ func TestSignupModes_OpenModeGivesEveryStrangerAWorkspaceOfTheirOwn(t *testing.T
 // Of signups that arrive together on a fresh open install, exactly one is the first: the instance
 // admin. The others are strangers with a workspace each.
 func TestSignupModes_OfSimultaneousSignupsOnAFreshOpenInstallExactlyOneIsTheInstanceAdmin(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newApp(t, backend, withOpenSignup(smtptest.Start(t)))
 		const signups = 6
@@ -230,6 +233,7 @@ func TestSignupModes_OfSimultaneousSignupsOnAFreshOpenInstallExactlyOneIsTheInst
 
 // AC3: someone who signs up through an invite joins the inviting workspace instead, in both modes
 func TestSignupModes_AnInviteSignupInOpenModeJoinsTheInvitingWorkspaceAndGetsNoneOfTheirOwn(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newApp(t, backend, withOpenSignup(smtptest.Start(t)))
 		owner := a.signedUp(t, "owner@example.com")
@@ -301,6 +305,7 @@ func (u *updates) seen() []string {
 
 // AC4: a new account's workspace holds its monitors, but none runs until its email is verified
 func TestSignupModes_ANewWorkspaceIsSuspendedUntilItsOwnerVerifiesTheEmail(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		mail := smtptest.Start(t)
 		a := newApp(t, backend, withOpenSignup(mail), func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
@@ -367,6 +372,7 @@ func TestSignupModes_ANewWorkspaceIsSuspendedUntilItsOwnerVerifiesTheEmail(t *te
 // Nothing suspended produces a result today, but a result in flight (or from a probe dealt the
 // monitor before a suspension) must not be stored once the workspace is suspended
 func TestSignupModes_AResultForAMonitorOfASuspendedWorkspaceIsDropped(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		mail := smtptest.Start(t)
 		a := newApp(t, backend, withOpenSignup(mail))
@@ -396,6 +402,7 @@ func TestSignupModes_AResultForAMonitorOfASuspendedWorkspaceIsDropped(t *testing
 
 // A reset link proves the address too, so it lifts the suspension as a verification link does
 func TestSignupModes_AResetPasswordLinkLiftsTheSuspensionToo(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		mail := smtptest.Start(t)
 		a := newApp(t, backend, withOpenSignup(mail))
@@ -422,6 +429,7 @@ func TestSignupModes_AResetPasswordLinkLiftsTheSuspensionToo(t *testing.T) {
 // Only the workspaces the user owns, and only this kind of suspension, are lifted: a user who is a
 // member of someone else's suspended workspace does not lift it by verifying
 func TestSignupModes_VerifyingLiftsOnlyTheVerifiedUsersOwnWorkspaces(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		mail := smtptest.Start(t)
 		a := newApp(t, backend, withOpenSignup(mail))
@@ -448,6 +456,7 @@ func TestSignupModes_VerifyingLiftsOnlyTheVerifiedUsersOwnWorkspaces(t *testing.
 // A user who has not verified their address can not get around the suspension by making a
 // workspace; once they have, the workspaces they make run
 func TestSignupModes_AWorkspaceAnUnverifiedUserMakesIsSuspendedToo(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		mail := smtptest.Start(t)
 		a := newApp(t, backend, withOpenSignup(mail))
@@ -475,6 +484,7 @@ func TestSignupModes_AWorkspaceAnUnverifiedUserMakesIsSuspendedToo(t *testing.T)
 }
 
 func TestSignupModes_InInviteModeAWorkspaceTheUserMakesRuns(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newApp(t, backend, withSignupMode(config.SignupModeInvite))
 		first := a.signedUp(t, "first@example.com")
@@ -489,6 +499,7 @@ func TestSignupModes_InInviteModeAWorkspaceTheUserMakesRuns(t *testing.T) {
 
 // AC5: five signups an hour from one client address; an invite signup is not counted
 func TestSignupModes_OpenSignupsAreLimitedPerClientAddress(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newApp(t, backend, withOpenSignup(smtptest.Start(t)))
 		owner := a.signedUp(t, "owner@example.com") // from the default address of a test request, which is a client of its own
@@ -537,6 +548,7 @@ func (a *app) signUpWithAnswer(t *testing.T, email, answer string, creds ...cred
 
 // AC5: with Turnstile set, open signup needs an answer the server checks
 func TestSignupModes_WithTurnstileOpenSignupNeedsAnAnswerThatCloudflareAccepts(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		siteverify := fakeSiteverify(t)
 		a := newApp(t, backend, withOpenSignup(smtptest.Start(t)), withTurnstile(siteverify.URL))
@@ -597,6 +609,7 @@ func TestSignupModes_InInviteModeTurnstileIsNotAskedFor(t *testing.T) {
 }
 
 func TestSignupModes_TheConfigSaysWhoMaySignUp(t *testing.T) {
+	parallel(t)
 	t.Run("invite, no user yet", func(t *testing.T) {
 		a := newApp(t, selfHosted)
 		assert.Equal(t, signupConfig{SignupMode: "invite", SignupOpen: true, FirstSignup: true}, a.authConfig(t))

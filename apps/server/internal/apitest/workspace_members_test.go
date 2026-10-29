@@ -65,6 +65,7 @@ func (tm *team) setRole(userID, role string, creds credentials, t *testing.T) *h
 }
 
 func TestMembers_EveryMemberSeesWhoIsInTheWorkspaceWithTheirRoles(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 
@@ -87,6 +88,7 @@ func TestMembers_EveryMemberSeesWhoIsInTheWorkspaceWithTheirRoles(t *testing.T) 
 }
 
 func TestMembers_AnAdminChangesMembersAndAdminsAndNeverOwners(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 
@@ -109,6 +111,7 @@ func TestMembers_AnAdminChangesMembersAndAdminsAndNeverOwners(t *testing.T) {
 }
 
 func TestMembers_AMemberChangesNobody(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 
@@ -121,6 +124,7 @@ func TestMembers_AMemberChangesNobody(t *testing.T) {
 }
 
 func TestMembers_OnlyAnOwnerMakesDemotesOrRemovesOwners(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 
@@ -135,6 +139,7 @@ func TestMembers_OnlyAnOwnerMakesDemotesOrRemovesOwners(t *testing.T) {
 }
 
 func TestMembers_TheLastOwnerCanNotLeaveBeRemovedOrBeDemoted(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeamWithoutSecondOwner(t, a)
 		require.Equal(t, 1, a.ownerCount(t, tm.id))
@@ -173,6 +178,7 @@ func (a *app) ownerCount(t *testing.T, id workspace.ID) int {
 }
 
 func TestMembers_ARoleThatDoesNotExistOrAMemberWhoIsNotThereIsRefused(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 
@@ -187,6 +193,7 @@ func TestMembers_ARoleThatDoesNotExistOrAMemberWhoIsNotThereIsRefused(t *testing
 }
 
 func TestMembers_AnAPIKeyActsAsAnAdminAndCanNotLeave(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 
@@ -199,6 +206,7 @@ func TestMembers_AnAPIKeyActsAsAnAdminAndCanNotLeave(t *testing.T) {
 }
 
 func TestMembers_ARemovedMemberLosesTheWorkspaceAtOnce(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 		require.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/monitors", nil, tm.member).Code)
@@ -216,6 +224,7 @@ func TestMembers_ARemovedMemberLosesTheWorkspaceAtOnce(t *testing.T) {
 }
 
 func TestMembers_AMemberWhoLeavesLosesTheWorkspaceAtOnceAndKeepsTheirOthers(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 		other := a.createWorkspace(t, "Other")
@@ -322,6 +331,7 @@ type httpRecorder = httptest.ResponseRecorder
 // Leaving takes no ID, so the isolation suite exempts it: what it can reach is the workspace the
 // request names, and naming one the caller is not in answers 404 and changes nothing
 func TestMembers_ANonMemberNamingThisWorkspaceCanNotLeaveChangeOrRemoveAnyone(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 		other := a.createWorkspace(t, "Other")
@@ -343,6 +353,7 @@ func TestMembers_ANonMemberNamingThisWorkspaceCanNotLeaveChangeOrRemoveAnyone(t 
 // change reads the owners under a lock, so the second sees the first (or is refused as it is no
 // longer an owner). Nothing answers 5xx, and PostgreSQL does not deadlock.
 func TestMembers_TwoOwnersChangingEachOtherAtOnceNeverLeaveTheWorkspaceWithoutOne(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 		adminID := a.userID(t, adminEmail)

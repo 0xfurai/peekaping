@@ -81,6 +81,7 @@ func (a *app) listMonitors(t *testing.T) []monitorResponse {
 }
 
 func TestMonitorsAPI_CreateFailsWholeWhenALinkFails(t *testing.T) {
+	parallel(t)
 	for _, tc := range []struct {
 		name string
 		link string
@@ -241,6 +242,7 @@ func withoutIDs(monitors []monitorWithLinks) []monitorWithLinks {
 }
 
 func TestMonitorsAPI_EveryEndpointReturnsTheLinks(t *testing.T) {
+	parallel(t)
 	linked := func(f linkedMonitors) monitorWithLinks {
 		return monitorWithLinks{Name: "Linked", Interval: 60, NotificationIDs: []string{f.channelA}, TagIDs: []string{f.tagA}}
 	}
@@ -352,6 +354,7 @@ func (q *linkQueries) get(t *testing.T, a *app, path string) *httptest.ResponseR
 }
 
 func TestMonitorsAPI_ListsLoadTheLinksInOneQueryPerRelation(t *testing.T) {
+	parallel(t)
 	for _, tc := range []struct {
 		name string
 		path func(ids []string) string
@@ -434,6 +437,7 @@ func TestMonitorsAPI_PartialUpdateChangesLinksOnlyWhenIDsAreSent(t *testing.T) {
 }
 
 func TestMonitorsAPI_RepeatedLinkIDsAreLinkedOnce(t *testing.T) {
+	parallel(t)
 	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch} {
 		t.Run(method, func(t *testing.T) {
 			a := newAppWithAdmin(t)
@@ -462,6 +466,7 @@ func TestMonitorsAPI_RepeatedLinkIDsAreLinkedOnce(t *testing.T) {
 }
 
 func TestMonitorsAPI_UpdateFailsWholeWhenALinkFails(t *testing.T) {
+	parallel(t)
 	for _, tc := range []struct {
 		name   string
 		method string
@@ -504,6 +509,7 @@ func TestMonitorsAPI_UpdateFailsWholeWhenALinkFails(t *testing.T) {
 }
 
 func TestMonitorsAPI_UpdatedEventSeesTheMonitorsChannels(t *testing.T) {
+	parallel(t)
 	for _, method := range []string{http.MethodPut, http.MethodPatch} {
 		t.Run(method, func(t *testing.T) {
 			a := newAppWithAdmin(t)

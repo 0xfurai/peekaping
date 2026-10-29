@@ -75,6 +75,7 @@ func (a *app) expire(t *testing.T, inviteID string) {
 }
 
 func TestInvites_AnOwnerOrAdminInvitesByEmailWithARoleAndGetsASingleUseLinkOnce(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 
@@ -101,6 +102,7 @@ func TestInvites_AnOwnerOrAdminInvitesByEmailWithARoleAndGetsASingleUseLinkOnce(
 }
 
 func TestInvites_TheTokenIsStoredOnlyAsAHash(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		created := a.invite(t, "bob@example.com", "member", a.asAdmin)
 
@@ -148,6 +150,7 @@ func TestInvites_TheTokenIsStoredOnlyAsAHash(t *testing.T) {
 }
 
 func TestInvites_OnlyAnOwnerInvitesAnOwnerAndAMemberInvitesNobody(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 		invite := func(role string, creds credentials) int {
@@ -165,6 +168,7 @@ func TestInvites_OnlyAnOwnerInvitesAnOwnerAndAMemberInvitesNobody(t *testing.T) 
 }
 
 func TestInvites_ABadEmailOrRoleOrAMemberAlreadyInIsRefused(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		newTeam(t, a)
 		post := func(body map[string]any) *httpRecorder {
@@ -181,6 +185,7 @@ func TestInvites_ABadEmailOrRoleOrAMemberAlreadyInIsRefused(t *testing.T) {
 }
 
 func TestInvites_TheListHoldsThePendingOnesAndAMoreRecentInviteForTheSameEmailReplacesTheOlder(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		first := a.invite(t, "bob@example.com", "member", a.asAdmin)
 		other := a.invite(t, "carol@example.com", "admin", a.asAdmin)
@@ -203,6 +208,7 @@ func TestInvites_TheListHoldsThePendingOnesAndAMoreRecentInviteForTheSameEmailRe
 }
 
 func TestInvites_AnInviteByAnAPIKeyHasNoInviter(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		created := a.invite(t, "bob@example.com", "member", a.withAPIKey)
 
@@ -211,6 +217,7 @@ func TestInvites_AnInviteByAnAPIKeyHasNoInviter(t *testing.T) {
 }
 
 func TestInvites_RevokingStopsTheLinkAndItLeavesTheList(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		tm := newTeam(t, a)
 		created := a.invite(t, "bob@example.com", "member", tm.admin)
@@ -233,6 +240,7 @@ func TestInvites_RevokingStopsTheLinkAndItLeavesTheList(t *testing.T) {
 }
 
 func TestInvites_APreviewShowsOnlyTheWorkspaceNameTheEmailTheRoleAndWhetherItIsValid(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		created := a.invite(t, "Bob@Example.com", "admin", a.asAdmin)
 
@@ -262,6 +270,7 @@ func keysOfAny(m map[string]any) []string {
 }
 
 func TestInvites_ASignedInUserWhoseEmailMatchesJoinsWithTheRoleOfTheInvite(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		other := a.createWorkspace(t, "Bobs own")
 		a.addMember(t, other, a.createUser(t, "Bob@Example.com"), workspace.RoleOwner)
@@ -287,6 +296,7 @@ func TestInvites_ASignedInUserWhoseEmailMatchesJoinsWithTheRoleOfTheInvite(t *te
 }
 
 func TestInvites_AnInviteWorksOnce(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		a.createUser(t, "bob@example.com")
 		bob := a.loginAs(t, "bob@example.com")
@@ -304,6 +314,7 @@ func TestInvites_AnInviteWorksOnce(t *testing.T) {
 }
 
 func TestInvites_AnAccountWithAnotherEmailIsRefusedAndTheInviteStaysUsable(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		a.createUser(t, "mallory@example.com")
 		mallory := a.loginAs(t, "mallory@example.com")
@@ -321,6 +332,7 @@ func TestInvites_AnAccountWithAnotherEmailIsRefusedAndTheInviteStaysUsable(t *te
 }
 
 func TestInvites_AnExpiredInviteIsRefused(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		a.createUser(t, "bob@example.com")
 		created := a.invite(t, "bob@example.com", "member", a.asAdmin)
@@ -341,6 +353,7 @@ func TestInvites_AnExpiredInviteIsRefused(t *testing.T) {
 }
 
 func TestInvites_AUnknownTokenAnAnonymousCallerAndAMemberAlreadyInAreRefused(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		a.createUser(t, "late@example.com")
 		late := a.loginAs(t, "late@example.com")

@@ -102,6 +102,7 @@ func TestMinCheckInterval_ASaveBelowTheMinimumIsRefused(t *testing.T) {
 // so it answers the same code, with the minimum the install allows: 20 with MIN_CHECK_INTERVAL
 // unset, and the raised minimum when it is set.
 func TestMinCheckInterval_ASaveBelowTwentyAnswersTheCodeAndTheMinimum(t *testing.T) {
+	parallel(t)
 	for name, tc := range map[string]struct {
 		options []func(*config.Config)
 		minimum int

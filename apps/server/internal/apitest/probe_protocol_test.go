@@ -374,6 +374,7 @@ func TestProbeProtocol_HelloPastTheCapWithEveryInstanceOnlineAnswers429(t *testi
 // of the server or a lost answer, and must not be turned away at 64, nor make room by taking
 // another's place.
 func TestProbeProtocol_HelloAgainFromAKnownInstanceAtTheCap(t *testing.T) {
+	parallel(t)
 	// holdAtTheCap holds 64 instances, the first of them last seen at firstSeen and the rest just now
 	holdAtTheCap := func(t *testing.T, firstSeen time.Duration) (*app, probeWithToken) {
 		a, made := probeApp(t)
@@ -511,6 +512,7 @@ func (a *app) clearQueuedNotifications(t *testing.T) {
 }
 
 func TestProbeProtocol_RequestBringsAnOfflineProbeOnline(t *testing.T) {
+	parallel(t)
 	// An offline probe whose instance said hello before: what the sweep leaves behind when the
 	// instance goes quiet
 	offlineProbe := func(t *testing.T) (a *app, made probeWithToken, instanceID string) {
@@ -1767,6 +1769,7 @@ func TestProbeProtocol_ResultsAreDocumented(t *testing.T) {
 // The server states its CHECKS_PER_HOST_PER_MINUTE in hello, so that a probe spaces its checks to
 // one host at least that closely too. Off (0) leaves the field out, as every older server does.
 func TestProbeProtocol_HelloStatesTheChecksPerHostPerMinuteCap(t *testing.T) {
+	parallel(t)
 	tests := []struct {
 		name string
 		cap  int

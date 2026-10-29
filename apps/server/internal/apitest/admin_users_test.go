@@ -158,6 +158,7 @@ func TestAdminUsers_AnInstanceAdminWithoutAWorkspaceReachesThem(t *testing.T) {
 // MARK: List and search
 
 func TestAdminUsers_ListShowsEveryUserWithTheirWorkspacesAndState(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		first := a.firstWorkspace(t)
@@ -207,6 +208,7 @@ func mustParse(t *testing.T, s string) time.Time {
 }
 
 func TestAdminUsers_SearchFindsAnEmailIgnoringCaseAndTakesWildcardsLiterally(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		for _, email := range []string{"Alice@Example.com", "alice.smith@corp.test", "bob_x@example.com", "bobby@example.com"} {
@@ -271,6 +273,7 @@ func TestAdminUsers_LastSignInIsWhenTheyLastLoggedIn(t *testing.T) {
 // MARK: The instance admin flag
 
 func TestAdminUsers_GiveAndTakeTheInstanceAdminFlag(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		opsID := a.createUser(t, "ops@example.com")
@@ -290,6 +293,7 @@ func TestAdminUsers_GiveAndTakeTheInstanceAdminFlag(t *testing.T) {
 }
 
 func TestAdminUsers_TheLastInstanceAdminKeepsTheFlag(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		adminID := a.userID(t, adminEmail)
@@ -311,6 +315,7 @@ func TestAdminUsers_TheLastInstanceAdminKeepsTheFlag(t *testing.T) {
 }
 
 func TestAdminUsers_ADisabledInstanceAdminDoesNotCountAsOne(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		adminID := a.userID(t, adminEmail)
@@ -345,6 +350,7 @@ func (a *app) activeInstanceAdmins(t *testing.T) int {
 // install without one who can sign in: the second change sees the first. Nothing answers 5xx, and
 // PostgreSQL does not deadlock.
 func TestAdminUsers_TwoInstanceAdminsChangingEachOtherAtOnceNeverLeaveTheInstallWithoutOne(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		adminID := a.userID(t, adminEmail)
@@ -397,6 +403,7 @@ func TestAdminUsers_AChangeNeedsAFieldAndAnExistingUser(t *testing.T) {
 // MARK: Disable and enable
 
 func TestAdminUsers_ADisabledUserCanNotSignInAndTheirSessionsEnd(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		second := a.createWorkspace(t, "Second")
@@ -609,6 +616,7 @@ func TestAdminUsers_AUsersOwnResetThroughTheEmailedLinkAnnouncesThatTheirSession
 // MARK: Reset link
 
 func TestAdminUsers_AResetLinkWorksOnceWithoutAnEmailSender(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend, selfHosted)
 		require.False(t, a.cfg.AccountEmailsEnabled(), "this install has no sender")
@@ -658,6 +666,7 @@ func TestAdminUsers_AResetLinkExpiresAndAFreshOneReplacesNothing(t *testing.T) {
 // MARK: 2FA
 
 func TestAdminUsers_AnAdminTurnsOffAUsersTwoFactor(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		userID := a.createUser(t, "user@example.com")
@@ -703,6 +712,7 @@ func (a *app) enableTwoFactor(t *testing.T, email string) {
 // With a sender, the user is told when an instance admin made a reset link for them or turned off
 // their 2FA: an instance admin can sign in as them with either (ADR 0005 section 10)
 func TestAdminUsers_WithASenderTheUserIsToldOfAResetLinkAndOfTwoFactorTurnedOff(t *testing.T) {
+	parallel(t)
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
 		userID := a.createUser(t, "user@example.com")
 		a.enableTwoFactor(t, "user@example.com")
@@ -768,6 +778,7 @@ func TestAdminUsers_ANoticeThatFailsToSendIsLoggedWithoutTheAddressAndTheActionS
 // MARK: Delete
 
 func TestAdminUsers_DeleteIsRefusedForTheLastOwnerOfAWorkspaceAndNamesIt(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		sole := a.createWorkspace(t, "Only mine")
@@ -835,6 +846,7 @@ func TestAdminUsers_DeleteRemovesTheUserAndTheirMembershipsAndAnnouncesThem(t *t
 }
 
 func TestAdminUsers_ADeletedUsersTokensStopWorkingAtOnce(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend)
 		first := a.firstWorkspace(t)

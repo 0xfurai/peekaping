@@ -43,6 +43,7 @@ func forEachDatabaseWith(t *testing.T, options []func(*config.Config), fn func(t
 // proxy, and a maintenance window that names one as a monitor, get the answer a UUID nobody has
 // gets, 400 naming the kind, and not a 500 from a database that can't read the value as a UUID.
 func TestMalformedLinkIDs_AreRefusedAsUnknownOnEveryDatabase(t *testing.T) {
+	parallel(t)
 	forEachDatabase(t, func(t *testing.T, a *app) {
 		for _, malformed := range []string{"not-a-uuid", "12345", "00000000-0000-0000-0000-00000000000g"} {
 			for what, link := range map[string]func(map[string]any, string) map[string]any{
@@ -77,6 +78,7 @@ func TestMalformedLinkIDs_AreRefusedAsUnknownOnEveryDatabase(t *testing.T) {
 
 // A UUID in upper case is the record the lower case one names, on SQLite as on PostgreSQL
 func TestMalformedLinkIDs_AnUpperCaseCopyOfAnIDNamesTheSameRecord(t *testing.T) {
+	parallel(t)
 	forEachDatabase(t, func(t *testing.T, a *app) {
 		channel, tag := a.createChannel(t, "Channel"), a.createTag(t, "Tag")
 		proxy := decode[created](t, a.request(t, http.MethodPost, "/api/v1/proxies", proxyBody("upper.example"), a.asAdmin), http.StatusCreated).ID

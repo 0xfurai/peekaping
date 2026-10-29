@@ -103,6 +103,7 @@ func (a *app) activeMonitors(t *testing.T) int {
 // AC5: resumes at once, by PATCH and by PUT, in a workspace one below its limit end with one of
 // them resumed
 func TestLimits_Monitors_ResumesAtOnceBelowTheLimitResumeOne(t *testing.T) {
+	parallel(t)
 	for name, backend := range racingBackends(t) {
 		t.Run(name, func(t *testing.T) {
 			a := newAppWithAdmin(t, backend, withMonitorLimit(3))
@@ -145,6 +146,7 @@ func TestLimits_Monitors_ResumesAtOnceBelowTheLimitResumeOne(t *testing.T) {
 // the workspace. Read before, a pause of the monitor and a resume of another can both land between
 // the read and the write, and the edit then makes the monitor active again past the limit.
 func TestLimits_Monitors_AnEditThatKeepsAMonitorActiveCantPassTheLimit(t *testing.T) {
+	parallel(t)
 	active, name := true, "Edited again"
 	for method, edit := range map[string]func(ctx context.Context, monitors monitor.Service, workspaceID workspace.ID, id string) error{
 		http.MethodPut: func(ctx context.Context, monitors monitor.Service, workspaceID workspace.ID, id string) error {
@@ -196,6 +198,7 @@ func TestLimits_Monitors_AnEditThatKeepsAMonitorActiveCantPassTheLimit(t *testin
 // AC4: probes assigned to every monitor at once, to a monitor one below its probe limit, end with
 // the monitor at its limit
 func TestLimits_Probes_AssignsAtOnceEndAtTheLimit(t *testing.T) {
+	parallel(t)
 	for name, backend := range racingBackends(t) {
 		t.Run(name, func(t *testing.T) {
 			a := newAppWithAdmin(t, backend)
@@ -225,6 +228,7 @@ func TestLimits_Probes_AssignsAtOnceEndAtTheLimit(t *testing.T) {
 // AC4: a probe assigned to every monitor counts a monitor's probes after it holds the workspace, and
 // adds the probe before another assignment or an update of the monitor's probes counts them
 func TestLimits_Probes_AnAssignmentCantPassTheLimitBesideAnotherWrite(t *testing.T) {
+	parallel(t)
 	for name, other := range map[string]func(t *testing.T, a *app, site, probe string){
 		"another assignment": func(t *testing.T, a *app, _ string, probe string) {
 			require.NoError(t, a.container.Invoke(func(monitors monitor.Service) error {
@@ -295,6 +299,7 @@ func (h *heldWorkspaces) AfterQuery(ctx context.Context, event *bun.QueryEvent) 
 // order: the assignment is made again from the start, and gives that monitor the probe too, within
 // its limit.
 func TestLimits_Probes_AnAssignmentHoldsItsWorkspacesInOrderWhenAMonitorIsCreatedBelow(t *testing.T) {
+	parallel(t)
 	a := newPostgresApp(t)
 	frankfurt := a.probeThatRuns(t, "Frankfurt", "http")
 	first, second := a.firstWorkspace(t), a.createWorkspace(t, "Second")

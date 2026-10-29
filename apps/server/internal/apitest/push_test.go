@@ -87,6 +87,7 @@ func configToken(t *testing.T, config string) string {
 }
 
 func TestPush_APIClientCreatesAPushMonitorWithoutAToken(t *testing.T) {
+	parallel(t)
 	for name, fields := range map[string]map[string]any{
 		"no config":        {},
 		"empty config":     {"config": ""},

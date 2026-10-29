@@ -403,6 +403,7 @@ func TestIsolation_ANewRouteInNeitherListIsReported(t *testing.T) {
 
 // Every exemption has a route that isn't a workspace case, and the sets don't overlap (AC1)
 func TestIsolation_NoRouteIsExemptedAndCovered(t *testing.T) {
+	parallel(t)
 	exempt := isolationExemptions()
 	for key := range isolationCases {
 		assert.NotContains(t, exempt, key)
@@ -689,6 +690,7 @@ func isolationBackends(t *testing.T, fn func(t *testing.T, a *app)) {
 // A member of workspace B calls every route of the router that serves a workspace's records with
 // workspace A's IDs. It answers as it does for an ID that no record has, and A's data is as it was (AC1)
 func TestIsolation_AMemberOfAnotherWorkspaceReachesNothingOfThisOne(t *testing.T) {
+	parallel(t)
 	isolationBackends(t, func(t *testing.T, a *app) {
 		w := newIsolationWorld(t, a)
 		before := w.snapshot(t, true)
@@ -720,6 +722,7 @@ func TestIsolation_AMemberOfAnotherWorkspaceReachesNothingOfThisOne(t *testing.T
 
 // The IDs of the cases are distinct kinds, and a case names a kind that is there
 func TestIsolation_EveryCaseNamesAKindOfRecord(t *testing.T) {
+	parallel(t)
 	for key, c := range isolationCases {
 		method, path, _ := strings.Cut(key, " ")
 		assert.NotEmpty(t, method, key)

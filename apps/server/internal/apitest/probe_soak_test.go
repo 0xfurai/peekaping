@@ -33,6 +33,7 @@ import (
 // that stopped are dealt to the others, which check each at once, so each of those monitors has a
 // check close to its last.
 func TestProbeSoak_ThreeInstancesOneStops(t *testing.T) {
+	serial(t) // it times the checks, which tests beside it would slow
 	runProbeSoak(t, newSingleApp(t))
 }
 
@@ -42,6 +43,7 @@ func TestProbeSoak_ThreeInstancesOneStops(t *testing.T) {
 //
 //	go test -tags soak -run TestProbeSoak_ThreeInstancesOneStopsAgainstTheClusterAPI -count=1 -timeout 15m -v ./internal/apitest/
 func TestProbeSoak_ThreeInstancesOneStopsAgainstTheClusterAPI(t *testing.T) {
+	serial(t) // it times the checks, which tests beside it would slow
 	a := newAppWithAdmin(t)
 	a.countStatsOnTheLocalBus(t)
 	runProbeSoak(t, a)

@@ -161,6 +161,7 @@ func (a *app) createMonitorWithTimings(t *testing.T, interval, timeout int) stri
 // The timeout rule holds for a partial update too, checked against the values the monitor would
 // have after it.
 func TestMonitorsAPI_PatchRejectsATimeoutAboveEightyPercentOfTheInterval(t *testing.T) {
+	parallel(t)
 	for _, c := range []struct {
 		name              string
 		patch             map[string]any

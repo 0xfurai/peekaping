@@ -44,6 +44,7 @@ func (a *app) postPage(t *testing.T, slug string, domains ...string) *httpRecord
 // AC4: a status page create while the workspace has as many as its limit is refused, from the
 // install's defaults and from the workspace's own limits, at the line and above it
 func TestLimits_StatusPages_ACreateAtOrAboveTheLimitIsRefused(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend, withLimits(func(cfg *config.Config) { cfg.WorkspaceLimitStatusPages = 2 }))
 
@@ -67,6 +68,7 @@ func TestLimits_StatusPages_ACreateAtOrAboveTheLimitIsRefused(t *testing.T) {
 
 // AC4: custom domains count across every status page of the workspace, on create and on update
 func TestLimits_CustomDomains_CountAcrossTheWorkspacesPagesOnCreateAndUpdate(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend, withLimits(func(cfg *config.Config) { cfg.WorkspaceLimitCustomDomains = 2 }))
 		decode[created](t, a.postPage(t, "first", "one.example.com"), http.StatusCreated)
@@ -113,6 +115,7 @@ func (r domainsComeBetween) CountDomains(ctx context.Context, id workspace.ID) (
 // AC5: an update refused for its domains in its transaction, after a domain came in since its check,
 // stores nothing of the request: not the page's fields and not its monitors either
 func TestLimits_CustomDomains_AnUpdateRefusedInItsTransactionStoresNothing(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		var between func()
 		a := newAppDecorated(t, func(container *dig.Container) error {
@@ -161,6 +164,7 @@ func withMemberLimit(n int) func(*config.Config) {
 
 // AC4: the members limit counts the members and the pending invites when an invite is made
 func TestLimits_Members_AnInviteCountsThePendingOnesBesideTheMembers(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend, withMemberLimit(3))
 		a.addMember(t, a.firstWorkspace(t), a.createUser(t, "bob@example.com"), workspace.RoleMember)
@@ -183,6 +187,7 @@ func TestLimits_Members_AnInviteCountsThePendingOnesBesideTheMembers(t *testing.
 // AC4: an invite that was counted when it was made can be accepted at the limit, by a signed-in
 // user and by a signup through it; once the workspace has as many members as its limit, it can't
 func TestLimits_Members_ACountedInviteIsAcceptedAndOneOverTheLimitIsNot(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend, withMemberLimit(3))
 		a.createUser(t, "bob@example.com")
@@ -222,6 +227,7 @@ func (a *app) countWhere(t *testing.T, table, where string, args ...any) int {
 // AC4: the workspaces a user owns are counted when they create one, against the install's
 // defaults: the new workspace has no limits of its own yet
 func TestLimits_OwnedWorkspaces_ACreateAtTheUsersLimitIsRefused(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend, withLimits(func(cfg *config.Config) { cfg.WorkspaceLimitOwnedWorkspaces = 2 }))
 		create := func(creds credentials) *httpRecorder {
@@ -270,6 +276,7 @@ func (r slowMembers) CountMembers(ctx context.Context, id workspace.ID) (int, er
 
 // AC5: two writes at once at one below the limit end with one of them refused
 func TestLimits_TwoCreatesAtOnceBelowTheLimitStoreOne(t *testing.T) {
+	parallel(t)
 	backends := map[string]func(*config.Config){"SQLite": func(*config.Config) {}}
 	if dsn := os.Getenv("PEE_TEST_POSTGRES_DSN"); dsn != "" {
 		backends["PostgreSQL"] = usePostgres(t, dsn)
@@ -465,6 +472,7 @@ func (a *app) adminLimitsOf(t *testing.T, id workspace.ID) adminLimits {
 // AC6: an instance admin sets a workspace's own limits, makes it unlimited with {}, and clears them
 // back to the install's defaults; the list shows each, and the services enforce it
 func TestLimits_Admin_SetsUnlimitsAndClearsAWorkspacesOwnLimits(t *testing.T) {
+	parallel(t)
 	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
 		a := newAppWithAdmin(t, backend, withLimits(func(cfg *config.Config) { cfg.WorkspaceLimitStatusPages = 1 }))
 		id := a.firstWorkspace(t)
