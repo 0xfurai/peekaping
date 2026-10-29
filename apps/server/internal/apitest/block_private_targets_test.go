@@ -7,8 +7,12 @@ import (
 
 	"peekaping/internal/config"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // PP-156: with BLOCK_PRIVATE_TARGETS on, saving a monitor whose target is a literal blocked address,
@@ -177,4 +181,74 @@ func TestBlockPrivateTargets_HelloStatesTheServersSetting(t *testing.T) {
 			assert.NotContains(t, raw, "block_private_targets", "a server that doesn't block says nothing, as before")
 		}
 	}
+}
+
+// helloSaying is the hello of an instance as JSON, with enforces_private_target_block when the
+// probe enforces the block, and without it as a probe from before says hello
+func helloSaying(t *testing.T, instanceID string, enforces bool) map[string]any {
+	t.Helper()
+	raw, err := json.Marshal(helloFrom(instanceID))
+	require.NoError(t, err)
+	var hello map[string]any
+	require.NoError(t, json.Unmarshal(raw, &hello))
+	delete(hello, "enforces_private_target_block")
+	if enforces {
+		hello["enforces_private_target_block"] = true
+	}
+	return hello
+}
+
+// A probe from before the setting ignores block_private_targets, so a server that blocks private
+// targets deals no monitor to an instance whose hello doesn't say that it enforces the block. The
+// probe's other instances get its monitors, and the probe API says which instances don't enforce it.
+func TestBlockPrivateTargets_AnInstanceThatDoesNotEnforceTheBlockIsDealtNoMonitors(t *testing.T) {
+	a := localProbeApp(t, nil, withBlockPrivateTargets(true))
+	checkout := a.createHTTPMonitor(t, "Checkout", "")
+	old, current := uuid.NewString(), uuid.NewString()
+
+	w := a.request(t, http.MethodPost, helloPath, helloSaying(t, old, false), asProbe(localToken, old))
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.Empty(t, decodeAssignments(t, a.assignments(t, localToken, old, "")).Monitors, "an old probe would check private targets")
+
+	w = a.request(t, http.MethodPost, helloPath, helloSaying(t, current, true), asProbe(localToken, current))
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	assert.Equal(t, []string{checkout}, monitorIDs(decodeAssignments(t, a.assignments(t, localToken, current, "")).Monitors))
+	assert.Empty(t, decodeAssignments(t, a.assignments(t, localToken, old, "")).Monitors, "nothing is dealt to it beside the other")
+
+	enforces := map[string]bool{}
+	for _, instance := range a.getProbe(t, "local").Instances {
+		enforces[instance.ID] = instance.EnforcesPrivateTargetBlock
+	}
+	assert.Equal(t, map[string]bool{old: false, current: true}, enforces)
+}
+
+// The server says why an instance gets nothing, once for each instance and not at each hello
+func TestBlockPrivateTargets_AnInstanceThatDoesNotEnforceTheBlockIsWarnedOfOnce(t *testing.T) {
+	core, logs := observer.New(zap.WarnLevel)
+	a := localProbeApp(t, func(container *dig.Container) error {
+		return container.Decorate(func(*zap.SugaredLogger) *zap.SugaredLogger { return zap.New(core).Sugar() })
+	}, withBlockPrivateTargets(true))
+	old, current := uuid.NewString(), uuid.NewString()
+
+	for range 2 {
+		require.Equal(t, http.StatusOK, a.request(t, http.MethodPost, helloPath, helloSaying(t, old, false), asProbe(localToken, old)).Code)
+	}
+	require.Equal(t, http.StatusOK, a.request(t, http.MethodPost, helloPath, helloSaying(t, current, true), asProbe(localToken, current)).Code)
+
+	warned := logs.FilterMessageSnippet("too old to block private targets").All()
+	require.Len(t, warned, 1)
+	assert.Equal(t, old, warned[0].ContextMap()["instanceId"])
+}
+
+// With the setting off, an instance that doesn't say it enforces the block gets its monitors as
+// before
+func TestBlockPrivateTargets_OffAnInstanceThatDoesNotEnforceTheBlockGetsItsMonitors(t *testing.T) {
+	a := localProbeApp(t, nil, withBlockPrivateTargets(false))
+	checkout := a.createHTTPMonitor(t, "Checkout", "")
+	old := uuid.NewString()
+
+	w := a.request(t, http.MethodPost, helloPath, helloSaying(t, old, false), asProbe(localToken, old))
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	assert.Equal(t, []string{checkout}, monitorIDs(decodeAssignments(t, a.assignments(t, localToken, old, "")).Monitors))
 }

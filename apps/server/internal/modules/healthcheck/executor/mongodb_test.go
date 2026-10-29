@@ -51,7 +51,10 @@ func TestMongoDBExecutor_ServerNeverAnswers(t *testing.T) {
 
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
 	assert.Contains(t, result.Message, "MongoDB command failed: failed to execute MongoDB command: server selection error: ")
-	assert.Contains(t, result.Message, "{ Addr: "+addr+", Type: Unknown }") // the server is known by its address, but never said what it is
+	// The server is known by its address, but never said what it is. The driver's handshake and its
+	// server selection share the monitor's timeout, so the handshake's read timeout may or may not
+	// be in the topology as the server's last error by the time selection gives up.
+	assert.Contains(t, result.Message, "{ Addr: "+addr+", Type: Unknown")
 	assert.Less(t, elapsed, 3*time.Second, "the check must end within the monitor's timeout plus 1s")
 }
 
