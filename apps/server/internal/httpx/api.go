@@ -205,16 +205,17 @@ func (a operationAPI) DocumentOperation(op *huma.Operation) {
 	a.OpenAPI().AddOperation(op)
 }
 
-// documentNull finishes the nullable properties of schema and of the objects and lists in it. Huma
-// marks a `nullable:"true"` field nullable but leaves null out of its enum.
+// documentNull finishes schema and every schema in it, properties and list items alike, when they
+// are nullable. Huma marks a `nullable:"true"` field nullable but leaves null out of its enum, and
+// it marks the items of a list of pointers nullable the same way.
 func documentNull(schema *huma.Schema) {
 	if schema == nil {
 		return
 	}
+	if schema.Nullable {
+		allowNull(schema)
+	}
 	for _, property := range schema.Properties {
-		if property.Nullable {
-			allowNull(property)
-		}
 		documentNull(property)
 	}
 	documentNull(schema.Items)

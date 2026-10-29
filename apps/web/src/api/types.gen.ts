@@ -176,8 +176,8 @@ export type AdminUpdateWorkspaceDto = {
   /**
    * Suspend (true) or resume (false) the workspace. Required.
    */
-  suspended?: boolean | null;
-  [key: string]: unknown | (boolean | null) | undefined;
+  suspended?: boolean;
+  [key: string]: unknown | boolean | undefined;
 };
 
 export type AdminUserResponse = {
