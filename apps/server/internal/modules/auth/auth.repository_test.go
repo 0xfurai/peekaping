@@ -120,6 +120,24 @@ func TestRepository_CreateFirst_CreatesOnlyTheFirstUser(t *testing.T) {
 	})
 }
 
+// AnyUser says whether a user exists, which the first signup is judged by
+func TestRepository_AnyUser_IsWhetherTheInstallHasAUser(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, repo auth.Repository) {
+		ctx := context.Background()
+		exists, err := repo.AnyUser(ctx)
+		require.NoError(t, err)
+		assert.False(t, exists, "a new install has no user")
+
+		for _, email := range []string{"first@example.com", "second@example.com"} {
+			_, err := repo.Create(ctx, newUser(email))
+			require.NoError(t, err)
+			exists, err = repo.AnyUser(ctx)
+			require.NoError(t, err)
+			assert.True(t, exists, email)
+		}
+	})
+}
+
 func TestRepository_CreateFirst_ConcurrentCallsCreateOneUser(t *testing.T) {
 	forEachBackend(t, func(t *testing.T, repo auth.Repository) {
 		ctx := context.Background()
