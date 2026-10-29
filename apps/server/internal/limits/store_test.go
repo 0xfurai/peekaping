@@ -7,11 +7,15 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"peekaping/cmd/bun/migrations"
 	"peekaping/internal/config"
+	"peekaping/internal/dbtx"
 	"peekaping/internal/infra"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/limits"
+	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
@@ -103,10 +107,36 @@ func TestSQLStore_StoresAWorkspacesOwnLimits(t *testing.T) {
 		assert.False(t, ok, "removed, the workspace has the install's defaults again")
 		assert.Contains(t, own, second.ID, "and the other workspace keeps its own")
 
-		chain := limits.NewChain(store, limits.EnvDefaults{Monitors: ptr(10)})
+		chain := limits.NewChain(store, limits.FixedDefaults{Monitors: ptr(10)})
 		got, origin, err := chain.For(ctx, first.ID)
 		require.NoError(t, err)
 		assert.Equal(t, limits.OriginInstall, origin)
 		assert.Equal(t, 10, *got.Monitors)
+	})
+}
+
+// A read of the limits in a transaction, which a monitor's write makes, reads the install's
+// defaults in it too: a SQLite database has a single connection, which the transaction holds
+func TestSettingsDefaults_AreReadInTheTransactionTheContextCarries(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, db *bun.DB) {
+		settings := setting.NewService(setting.NewSQLRepository(db), zap.NewNop().Sugar())
+		cfg := &config.Config{InstallSettingsCacheLifetime: time.Nanosecond}
+		resolver := installsettings.New(cfg, settings, zap.NewNop().Sugar())
+		_, err := resolver.Update(context.Background(), installsettings.Change{WorkspaceLimits: map[string]*int{installsettings.LimitMonitors: ptr(4)}})
+		require.NoError(t, err)
+		chain := limits.NewChain(limits.NewSQLStore(db), limits.SettingsDefaults{Settings: resolver})
+
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		err = dbtx.NewSQLTransactor(db).WithTx(ctx, func(ctx context.Context) error {
+			// The install settings' cache has expired: they are read here
+			time.Sleep(time.Millisecond)
+			snapshot, err := chain.Snapshot(ctx)
+			if err == nil {
+				assert.Equal(t, 4, *snapshot.Defaults.Monitors)
+			}
+			return err
+		})
+		require.NoError(t, err)
 	})
 }

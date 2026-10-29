@@ -377,3 +377,145 @@ func TestUpdate_ReportsOnlyTheFieldsItChanged(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []string{"accountSmtp.user"}, changed)
 }
+
+// MARK: Default limits (PP-160)
+
+func TestResolver_EachDefaultLimitIsNoneWhenNothingSetsIt(t *testing.T) {
+	r, _ := newResolver(t, defaults(), newMemoryStore())
+
+	got, err := r.DefaultLimits(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, DefaultLimits{
+		Monitors:         Field[*int]{Source: SourceDefault, EnvVar: "WORKSPACE_LIMIT_MONITORS"},
+		MinCheckInterval: Field[*int]{Source: SourceDefault, EnvVar: "WORKSPACE_LIMIT_MIN_CHECK_INTERVAL"},
+		StatusPages:      Field[*int]{Source: SourceDefault, EnvVar: "WORKSPACE_LIMIT_STATUS_PAGES"},
+		CustomDomains:    Field[*int]{Source: SourceDefault, EnvVar: "WORKSPACE_LIMIT_CUSTOM_DOMAINS"},
+		Members:          Field[*int]{Source: SourceDefault, EnvVar: "WORKSPACE_LIMIT_MEMBERS"},
+		OwnedWorkspaces:  Field[*int]{Source: SourceDefault, EnvVar: "WORKSPACE_LIMIT_OWNED_WORKSPACES"},
+		ProbesPerMonitor: Field[*int]{Source: SourceDefault, EnvVar: "WORKSPACE_LIMIT_PROBES_PER_MONITOR"},
+		RetentionDays:    Field[*int]{Source: SourceDefault, EnvVar: "WORKSPACE_LIMIT_RETENTION_DAYS"},
+	}, got)
+	view, err := r.Describe(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, got, view.WorkspaceLimits)
+}
+
+func TestResolver_ADefaultLimitComesFromTheEnvironmentThenTheStoreThenNone(t *testing.T) {
+	cfg := defaults()
+	cfg.WorkspaceLimitMonitors = 10
+	cfg.SetFromEnvironment("WORKSPACE_LIMIT_MONITORS", "WORKSPACE_LIMIT_MEMBERS")
+	store := newMemoryStore()
+	store.put("install.workspace_limits.monitors", "50")
+	store.put("install.workspace_limits.members", "4")
+	store.put("install.workspace_limits.status_pages", "3")
+	store.put("install.workspace_limits.retention_days", "not a number")
+	r, _ := newResolver(t, cfg, store)
+
+	got, err := r.DefaultLimits(ctx)
+
+	require.NoError(t, err)
+	assert.Equal(t, Field[*int]{Value: ptr(10), Source: SourceEnvironment, EnvVar: "WORKSPACE_LIMIT_MONITORS"}, got.Monitors, "the environment wins")
+	assert.True(t, got.Monitors.Locked())
+	assert.Equal(t, Field[*int]{Source: SourceEnvironment, EnvVar: "WORKSPACE_LIMIT_MEMBERS"}, got.Members, "0 in the environment is no limit, and locked")
+	assert.Equal(t, Field[*int]{Value: ptr(3), Source: SourceSaved, EnvVar: "WORKSPACE_LIMIT_STATUS_PAGES"}, got.StatusPages)
+	assert.Nil(t, got.RetentionDays.Value, "a saved value that is no number is no limit")
+	assert.Equal(t, Field[*int]{Source: SourceDefault, EnvVar: "WORKSPACE_LIMIT_CUSTOM_DOMAINS"}, got.CustomDomains)
+}
+
+func TestResolver_AFailedReadOfTheDefaultLimitsIsAnError(t *testing.T) {
+	store := newMemoryStore()
+	store.put("install.workspace_limits.monitors", "5")
+	r, c := newResolver(t, defaults(), store)
+	got, err := r.DefaultLimits(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, ptr(5), got.Monitors.Value)
+
+	store.fail = errors.New("database is gone")
+	c.at = c.at.Add(time.Hour)
+
+	_, err = r.DefaultLimits(ctx)
+	assert.Error(t, err, "limits it can't read are no reason to have none")
+}
+
+func TestUpdate_SavesAndClearsADefaultLimit(t *testing.T) {
+	cfg := defaults()
+	cfg.MinCheckInterval = 30
+	store := newMemoryStore()
+	r, _ := newResolver(t, cfg, store)
+
+	changed, err := r.Update(ctx, Change{WorkspaceLimits: map[string]*int{
+		LimitMonitors: ptr(25), LimitMinCheckInterval: ptr(30), LimitRetentionDays: ptr(MaxRetentionDays),
+	}})
+
+	require.NoError(t, err)
+	assert.Equal(t, []string{"workspaceLimits.monitors", "workspaceLimits.min_check_interval", "workspaceLimits.retention_days"}, changed)
+	saved, _ := store.get("install.workspace_limits.monitors")
+	assert.Equal(t, "25", saved)
+	got, err := r.DefaultLimits(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, Field[*int]{Value: ptr(25), Source: SourceSaved, EnvVar: "WORKSPACE_LIMIT_MONITORS"}, got.Monitors, "at once in this process")
+
+	changed, err = r.Update(ctx, Change{WorkspaceLimits: map[string]*int{LimitMonitors: nil}})
+
+	require.NoError(t, err)
+	assert.Equal(t, []string{"workspaceLimits.monitors"}, changed)
+	_, stored := store.get("install.workspace_limits.monitors")
+	assert.False(t, stored)
+	got, err = r.DefaultLimits(ctx)
+	require.NoError(t, err)
+	assert.Nil(t, got.Monitors.Value, "cleared, there is no limit")
+	assert.Equal(t, ptr(30), got.MinCheckInterval.Value, "a limit the change leaves out stays")
+}
+
+func TestUpdate_RefusesADefaultLimitTheEnvironmentSets(t *testing.T) {
+	cfg := defaults()
+	cfg.SetFromEnvironment("WORKSPACE_LIMIT_MEMBERS")
+	store := newMemoryStore()
+	r, _ := newResolver(t, cfg, store)
+
+	for name, value := range map[string]*int{"set": ptr(5), "clear": nil} {
+		_, err := r.Update(ctx, Change{WorkspaceLimits: map[string]*int{LimitStatusPages: ptr(2), LimitMembers: value}})
+
+		var refused *Error
+		require.ErrorAs(t, err, &refused, name)
+		assert.Equal(t, CodeLocked, refused.Code, name)
+		assert.Equal(t, "workspaceLimits.members", refused.Field, name)
+	}
+	_, stored := store.get("install.workspace_limits.status_pages")
+	assert.False(t, stored, "a refused change stores nothing")
+}
+
+func TestUpdate_RefusesAnInvalidDefaultLimit(t *testing.T) {
+	cfg := defaults()
+	cfg.MinCheckInterval = 60
+	for name, tc := range map[string]struct {
+		limit string
+		value int
+	}{
+		"zero":                     {LimitMonitors, 0},
+		"negative":                 {LimitProbesPerMonitor, -2},
+		"below MIN_CHECK_INTERVAL": {LimitMinCheckInterval, 59},
+		"no retention":             {LimitRetentionDays, 0},
+		"too long a retention":     {LimitRetentionDays, MaxRetentionDays + 1},
+	} {
+		t.Run(name, func(t *testing.T) {
+			r, _ := newResolver(t, cfg, newMemoryStore())
+
+			_, err := r.Update(ctx, Change{WorkspaceLimits: map[string]*int{tc.limit: ptr(tc.value)}})
+
+			var refused *Error
+			require.ErrorAs(t, err, &refused)
+			assert.Equal(t, CodeInvalid, refused.Code)
+			assert.Equal(t, "workspaceLimits."+tc.limit, refused.Field)
+			assert.NotEmpty(t, refused.Message)
+		})
+	}
+	t.Run("not a limit", func(t *testing.T) {
+		r, _ := newResolver(t, cfg, newMemoryStore())
+		_, err := r.Update(ctx, Change{WorkspaceLimits: map[string]*int{"robots": ptr(1)}})
+		var refused *Error
+		require.ErrorAs(t, err, &refused)
+		assert.Equal(t, "workspaceLimits.robots", refused.Field)
+	})
+}
