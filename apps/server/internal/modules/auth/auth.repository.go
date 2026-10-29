@@ -27,5 +27,8 @@ type Repository interface {
 	FindByEmailIgnoringCase(ctx context.Context, email string) (*Model, error)
 	FindByID(ctx context.Context, id string) (*Model, error)
 	FindAllCount(ctx context.Context) (int64, error)
+	// AnyUser is whether the install has a user. It reads at most one row, where FindAllCount
+	// counts them all.
+	AnyUser(ctx context.Context) (bool, error)
 	Update(ctx context.Context, id string, entity *UpdateModel) error
 }
