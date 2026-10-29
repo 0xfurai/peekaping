@@ -22,6 +22,23 @@ type memoryStore struct {
 	types  map[string]string
 	reads  int
 	fail   error
+	// hold, when set, stops the next read of its key after it took the value, until released
+	hold *hold
+}
+
+// hold is a read that a test stops in the middle: entered closes when the read has taken the
+// value, and the read returns once release is closed
+type hold struct {
+	key     string
+	entered chan struct{}
+	release chan struct{}
+}
+
+func (s *memoryStore) holdNextRead(key string) *hold {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.hold = &hold{key: key, entered: make(chan struct{}), release: make(chan struct{})}
+	return s.hold
 }
 
 func newMemoryStore() *memoryStore {
@@ -30,16 +47,29 @@ func newMemoryStore() *memoryStore {
 
 func (s *memoryStore) GetByKey(_ context.Context, key string) (*shared.SettingModel, error) {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.reads++
 	if s.fail != nil {
+		s.mu.Unlock()
 		return nil, s.fail
 	}
 	value, ok := s.values[key]
+	kind := s.types[key]
+	held := s.hold
+	if held != nil && held.key == key {
+		s.hold = nil
+	} else {
+		held = nil
+	}
+	s.mu.Unlock()
+	// The store stays usable while the read is held, so that a write can come in between
+	if held != nil {
+		close(held.entered)
+		<-held.release
+	}
 	if !ok {
 		return nil, nil
 	}
-	return &shared.SettingModel{Key: key, Value: value, Type: s.types[key]}, nil
+	return &shared.SettingModel{Key: key, Value: value, Type: kind}, nil
 }
 
 func (s *memoryStore) SetByKey(_ context.Context, key string, entity *shared.SettingModel) (*shared.SettingModel, error) {
@@ -239,6 +269,39 @@ func TestResolver_AFailedReadKeepsWhatWasReadBefore(t *testing.T) {
 	assert.Equal(t, "https://peek.example", r.PublicURL(ctx))
 	_, err := r.Describe(ctx)
 	assert.Error(t, err)
+}
+
+func TestResolver_AReadThatStartedBeforeItsOwnWriteIsNotKept(t *testing.T) {
+	store := newMemoryStore()
+	r, _ := newResolver(t, defaults(), store)
+
+	// A request reads the settings and takes the old public URL, then waits
+	held := store.holdNextRead(KeyPublicURL)
+	read := make(chan string)
+	go func() { read <- r.PublicURL(ctx) }()
+	<-held.entered
+
+	// The admin saves a new one while that read is still going
+	_, err := r.Update(ctx, Change{PublicURL: ptr("https://peek.example")})
+	require.NoError(t, err)
+	close(held.release)
+	assert.Equal(t, "http://localhost:3000", <-read, "the read that started first may answer the old value")
+
+	assert.Equal(t, "https://peek.example", r.PublicURL(ctx), "a read that started before the write must not be kept in the cache")
+}
+
+func TestResolver_AFailedReadAfterItsOwnWriteKeepsTheSavedValues(t *testing.T) {
+	store := newMemoryStore()
+	r, _ := newResolver(t, defaults(), store)
+	assert.Equal(t, "http://localhost:3000", r.PublicURL(ctx))
+	_, err := r.Update(ctx, Change{PublicURL: ptr("https://peek.example")})
+	require.NoError(t, err)
+
+	store.fail = errors.New("database is gone")
+
+	// The write succeeded, so this process knows the new values: it answers them, not the defaults
+	assert.Equal(t, "https://peek.example", r.PublicURL(ctx))
+	assert.Equal(t, "https://peek.example", r.PublicURL(ctx))
 }
 
 func TestResolver_StaticHasTheConfigsValuesAndStoresNothing(t *testing.T) {
