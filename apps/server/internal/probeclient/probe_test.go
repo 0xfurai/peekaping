@@ -293,7 +293,12 @@ func TestProbe_ShutdownEndsWithinItsDeadlineWhenTheServerStopsAnswering(t *testi
 // cancels the checks, and the results are still sent and the bye said.
 func TestProbe_ShutdownWithoutADeadlineWaitsForTheChecksUntilCancelled(t *testing.T) {
 	release := make(chan struct{})
+	arrived := make(chan struct{}, 1)
 	stuck := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case arrived <- struct{}{}:
+		default:
+		}
 		select {
 		case <-release:
 		case <-r.Context().Done():
@@ -306,6 +311,13 @@ func TestProbe_ShutdownWithoutADeadlineWaitsForTheChecksUntilCancelled(t *testin
 	probe := newProbe(server)
 	runProbe(t, probe)
 	require.Eventually(t, func() bool { return checks.Load() == 1 }, 5*time.Second, time.Millisecond)
+	// The quick check ending says nothing of the stuck one: Shutdown called before its request
+	// arrives finds no check in flight and returns at once.
+	select {
+	case <-arrived:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "the stuck check never reached its target")
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
