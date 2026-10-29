@@ -29,6 +29,14 @@ describe("MonitorCard", () => {
     expect(html).toContain("The Docker Container type is turned off on this install");
   });
 
+  it("shows a monitor past its workspace's limit as paused, with the reason, even though it is switched on", () => {
+    const html = renderAs(owner, <MonitorCard monitor={monitor({ type: "http", active: true, over_limit: true })} />);
+
+    expect(html).toContain(text("monitors.view.status.paused"));
+    expect(html).toContain('data-testid="monitor-over-limit"');
+    expect(html).toContain(text("monitors.over_limit"));
+  });
+
   it("shows no reason for a monitor that is paused by hand", () => {
     const html = renderAs(owner, <MonitorCard monitor={monitor({ active: false })} />);
 

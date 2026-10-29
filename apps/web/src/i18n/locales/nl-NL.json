@@ -1040,6 +1040,7 @@
       "resumed": "Monitor hervat"
     },
     "type_disabled": "Het type {{type}} is uitgeschakeld op deze installatie",
+    "over_limit": "Wordt niet gecontroleerd: de werkruimte heeft meer actieve monitors dan de limiet toestaat",
     "view": {
       "buttons": {
         "clone": "Kloon",

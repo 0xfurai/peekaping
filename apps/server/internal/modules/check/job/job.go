@@ -23,6 +23,9 @@ var (
 	// ErrMonitorTypeDisabled means the install turns the monitor's type off (DISABLED_MONITOR_TYPES),
 	// so it gets no checks until the type is turned back on (PP-157)
 	ErrMonitorTypeDisabled = shared.ErrMonitorTypeDisabled
+	// ErrMonitorOverLimit means the monitor is past its workspace's limit of active monitors, so it
+	// gets no checks until it is within it (PP-160)
+	ErrMonitorOverLimit = shared.ErrMonitorOverLimit
 )
 
 // Job is everything one check of a monitor needs, as the monitor stands when it is loaded

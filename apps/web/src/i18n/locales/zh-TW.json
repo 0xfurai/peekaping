@@ -1040,6 +1040,7 @@
       "resumed": "監控已恢復"
     },
     "type_disabled": "此安裝已關閉 {{type}} 類型",
+    "over_limit": "不會檢查：此工作區的啟用監控數超過其上限",
     "view": {
       "buttons": {
         "clone": "複製",

@@ -1040,6 +1040,7 @@
       "resumed": "Monitor folytatva"
     },
     "type_disabled": "A(z) {{type}} típus ki van kapcsolva ezen a telepítésen",
+    "over_limit": "Nincs ellenőrizve: a munkaterületnek több aktív monitora van, mint amennyit a korlátja enged",
     "view": {
       "buttons": {
         "clone": "Klónozás",

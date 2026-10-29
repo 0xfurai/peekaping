@@ -1040,6 +1040,7 @@
       "resumed": "Giám sát đã tiếp tục"
     },
     "type_disabled": "Loại {{type}} đã bị tắt trên bản cài đặt này",
+    "over_limit": "Không được kiểm tra: không gian làm việc có nhiều trình giám sát đang hoạt động hơn giới hạn cho phép",
     "view": {
       "buttons": {
         "clone": "Nhân bản",

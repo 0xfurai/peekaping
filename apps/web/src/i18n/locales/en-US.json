@@ -1040,6 +1040,7 @@
       "resumed": "Monitor resumed"
     },
     "type_disabled": "The {{type}} type is turned off on this install",
+    "over_limit": "Not checked: the workspace has more active monitors than its limit allows",
     "view": {
       "buttons": {
         "clone": "Clone",

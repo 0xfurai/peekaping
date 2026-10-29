@@ -1040,6 +1040,7 @@
       "resumed": "Monatóireacht seasmhaíodh arís"
     },
     "type_disabled": "Tá an cineál {{type}} múchta ar an suiteáil seo",
+    "over_limit": "Ní sheiceáiltear é: tá níos mó monatóirí gníomhacha ag an spás oibre ná mar a cheadaíonn a theorainn",
     "view": {
       "buttons": {
         "clone": "Clónáil",

@@ -558,6 +558,9 @@ func (s *Scheduler) runCheck(ctx context.Context, monitorID string) {
 	case errors.Is(err, job.ErrMonitorTypeDisabled):
 		s.logger.Infow("Monitor's type is turned off on this install, skipping its check", "monitor_id", monitorID)
 		return
+	case errors.Is(err, job.ErrMonitorOverLimit):
+		s.logger.Infow("Monitor is past its workspace's limit of active monitors, skipping its check", "monitor_id", monitorID)
+		return
 	case err != nil && ctx.Err() != nil:
 		// An update, pause, delete or stop cancelled the check while it loaded
 		s.logger.Debugw("Check was cancelled while it loaded", "monitor_id", monitorID)

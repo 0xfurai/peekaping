@@ -512,6 +512,30 @@ export type InternalVersionResponse = {
   version: string;
 };
 
+export type LimitsReachedError = {
+  code: string;
+  /**
+   * The limit the request would go over.
+   */
+  limit:
+    | "monitors"
+    | "status_pages"
+    | "custom_domains"
+    | "members"
+    | "owned_workspaces"
+    | "probes";
+  /**
+   * The limit's value for the workspace.
+   */
+  max: number;
+};
+
+export type LimitsReachedResponse = {
+  data: null;
+  error: LimitsReachedError;
+  message: string;
+};
+
 export type MaintenanceCreateUpdateDto = {
   active?: boolean;
   cron?: string | null;
@@ -755,6 +779,10 @@ export type MonitorMonitorResponseDto = {
   max_retries: number;
   name: string;
   notification_ids: Array<string>;
+  /**
+   * True when the monitor is active but past its workspace's limit of active monitors: the newest active monitors past the limit are not checked, and nothing notifies for them. Lowering a limit pauses and deletes nothing, so the monitor keeps its active setting and runs again once it is within the limit, when the limit is raised or an older monitor is paused or deleted.
+   */
+  over_limit: boolean;
   /**
    * The probes that run the monitor's checks, by id: one or more. local is Peekaping itself.
    */
@@ -4445,6 +4473,10 @@ export type PostMonitorsErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Forbidden
+   */
+  403: LimitsReachedResponse | HttpxErrorBody;
+  /**
    * Too Many Requests
    */
   429: HttpxErrorBody;
@@ -4649,6 +4681,10 @@ export type PatchMonitorsByIdErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Forbidden
+   */
+  403: LimitsReachedResponse | HttpxErrorBody;
+  /**
    * Not Found
    */
   404: HttpxErrorBody;
@@ -4707,6 +4743,10 @@ export type PutMonitorsByIdErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: LimitsReachedResponse | HttpxErrorBody;
   /**
    * Not Found
    */

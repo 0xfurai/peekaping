@@ -15,6 +15,10 @@ var ErrWorkspaceSuspended = errors.New("monitor's workspace is suspended")
 // DISABLED_MONITOR_TYPES turns off returns: nothing is checked, stored or judged for it (PP-157)
 var ErrMonitorTypeDisabled = errors.New("monitor's type is disabled on this install")
 
+// ErrMonitorOverLimit is what loading a monitor that is past its workspace's limit of active
+// monitors returns (PP-160): it is kept, listed and editable, but nothing checks it
+var ErrMonitorOverLimit = errors.New("monitor is past its workspace's limit of active monitors")
+
 // LocationRule is how many of a monitor's locations must be Down for the monitor to be Down
 type LocationRule string
 
@@ -53,6 +57,15 @@ type Monitor struct {
 	// query itself. It is not stored with the monitor, and the API answers it as type_disabled on
 	// the monitor response.
 	TypeDisabled bool `json:"-"`
+
+	// OverLimit is whether the monitor is active but past its workspace's limit of active monitors
+	// (PP-160): the newest active monitors past the limit, by created_at and then id, don't run.
+	// Lowering a limit pauses nothing, so the monitor keeps its active setting and runs again once
+	// it is within the limit: when the limit is raised or an older monitor is paused or deleted.
+	// The repository fills it in on every read, as it does TypeDisabled, and the lists that pick
+	// monitors to run leave these monitors out in the query itself. The API answers it as
+	// over_limit on the monitor response.
+	OverLimit bool `json:"-"`
 
 	// connection type: http, tcp, ping, etc
 	Type string `json:"type" validate:"required" example:"http"`

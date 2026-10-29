@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/netguard"
 	"peekaping/internal/utils"
@@ -100,7 +102,7 @@ func (ic *MonitorController) withLinks(ctx context.Context, monitors []*Model) (
 		for _, rel := range tagRels[m.ID] {
 			tagIds = append(tagIds, rel.TagID)
 		}
-		responses[i] = &MonitorResponseDto{Monitor: *m, TypeDisabled: m.TypeDisabled, NotificationIds: notificationIds, TagIds: tagIds}
+		responses[i] = &MonitorResponseDto{Monitor: *m, TypeDisabled: m.TypeDisabled, OverLimit: m.OverLimit, NotificationIds: notificationIds, TagIds: tagIds}
 	}
 	return responses, nil
 }
@@ -197,7 +199,7 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	monitor.ApplyCreateDefaults()
 
 	if err := validation.Validate.Struct(monitor); err != nil {
-		return nil, ic.failValidation(err, &monitor.Interval, &monitor.RetryInterval)
+		return nil, ic.failValidation(ctx, workspaceID, err, &monitor.Interval, &monitor.RetryInterval)
 	}
 
 	// Validate monitor type and config
@@ -216,9 +218,12 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 		var tokenTaken *PushTokenAlreadyUsedError
 		var typeDisabled *MonitorTypeDisabledError
 		var tooShort *IntervalTooShortError
+		var reached *limits.ReachedError
 		switch {
 		case errors.As(err, &typeDisabled):
 			return nil, monitorTypeDisabledResponse(typeDisabled)
+		case errors.As(err, &reached):
+			return nil, limits.Fail(reached)
 		case errors.As(err, &tooShort):
 			return nil, intervalTooShortResponse(tooShort)
 		case errors.As(err, &invalidProbes):
@@ -244,6 +249,7 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	response := &MonitorResponseDto{
 		Monitor:         *createdMonitor,
 		TypeDisabled:    createdMonitor.TypeDisabled,
+		OverLimit:       createdMonitor.OverLimit,
 		NotificationIds: distinct(monitor.NotificationIds),
 		TagIds:          distinct(monitor.TagIds),
 	}
@@ -295,7 +301,7 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 
 	// validate
 	if err := validation.Validate.Struct(monitor); err != nil {
-		return nil, ic.failValidation(err, &monitor.Interval, &monitor.RetryInterval)
+		return nil, ic.failValidation(ctx, workspaceID, err, &monitor.Interval, &monitor.RetryInterval)
 	}
 
 	// Validate monitor type and config
@@ -314,9 +320,12 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 		var tokenTaken *PushTokenAlreadyUsedError
 		var typeDisabled *MonitorTypeDisabledError
 		var tooShort *IntervalTooShortError
+		var reached *limits.ReachedError
 		switch {
 		case errors.As(err, &typeDisabled):
 			return nil, monitorTypeDisabledResponse(typeDisabled)
+		case errors.As(err, &reached):
+			return nil, limits.Fail(reached)
 		case errors.As(err, &tooShort):
 			return nil, intervalTooShortResponse(tooShort)
 		case errors.As(err, &invalidProbes):
@@ -358,7 +367,7 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 	}
 
 	if err := validation.Validate.Struct(monitor); err != nil {
-		return nil, ic.failValidation(err, monitor.Interval, monitor.RetryInterval)
+		return nil, ic.failValidation(ctx, workspaceID, err, monitor.Interval, monitor.RetryInterval)
 	}
 
 	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, workspaceID, id, &monitor, false)
@@ -385,6 +394,7 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 	var tokenTaken *PushTokenAlreadyUsedError
 	var typeDisabled *MonitorTypeDisabledError
 	var tooShort *IntervalTooShortError
+	var reached *limits.ReachedError
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
@@ -402,6 +412,8 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 		return pushTokenTakenResponse(tokenTaken)
 	case errors.As(err, &typeDisabled):
 		return monitorTypeDisabledResponse(typeDisabled)
+	case errors.As(err, &reached):
+		return limits.Fail(reached)
 	case errors.As(err, &tooShort):
 		return intervalTooShortResponse(tooShort)
 	}
@@ -461,10 +473,11 @@ func monitorTypeDisabledResponse(err *MonitorTypeDisabledError) error {
 
 // failValidation answers a write whose DTO fails validation. An interval or retry interval below the
 // DTOs' min=20 is below the install's minimum too, so it gets the same INTERVAL_TOO_SHORT answer as
-// the service's own check, with the minimum the install allows. It wins over the other failures of
-// the request, as the client can't tell the refusal by its code otherwise. Anything else is the
-// usual 400 with the validator's message.
-func (ic *MonitorController) failValidation(err error, interval, retryInterval *int) error {
+// the service's own check, with the minimum the service enforces for the workspace (the install's,
+// or the workspace's own limit when that is stricter). It wins over the other failures of the
+// request, as the client can't tell the refusal by its code otherwise. Anything else is the usual
+// 400 with the validator's message.
+func (ic *MonitorController) failValidation(ctx context.Context, workspaceID workspace.ID, err error, interval, retryInterval *int) error {
 	var invalid validator.ValidationErrors
 	if errors.As(err, &invalid) {
 		for _, f := range []struct {
@@ -478,7 +491,12 @@ func (ic *MonitorController) failValidation(err error, interval, retryInterval *
 				return fe.StructField() == f.structField && fe.Tag() == "min"
 			})
 			if tooShort && f.value != nil {
-				return intervalTooShortResponse(intervalTooShortError(f.name, *f.value, ic.monitorService.MinCheckInterval()))
+				minimum, minErr := ic.monitorService.MinCheckInterval(ctx, workspaceID)
+				if minErr != nil {
+					ic.logger.Errorw("Failed to read the minimum check interval", "error", minErr)
+					return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+				}
+				return intervalTooShortResponse(intervalTooShortError(f.name, *f.value, minimum))
 			}
 		}
 	}

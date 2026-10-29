@@ -1040,6 +1040,7 @@
       "resumed": "Monitor fortgesetzt"
     },
     "type_disabled": "Der Typ {{type}} ist auf dieser Installation ausgeschaltet",
+    "over_limit": "Wird nicht geprüft: Der Arbeitsbereich hat mehr aktive Monitore, als sein Limit erlaubt",
     "view": {
       "buttons": {
         "clone": "Duplizieren",

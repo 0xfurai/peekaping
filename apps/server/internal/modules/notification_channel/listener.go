@@ -304,6 +304,11 @@ func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID 
 		l.logger.Debugf("Monitor %s is of a type this install turns off: no notification is sent", monitorID)
 		return nil, nil
 	}
+	// Nor of a monitor past its workspace's limit of active monitors (PP-160)
+	if monitorModel.OverLimit {
+		l.logger.Debugf("Monitor %s is past its workspace's limit of active monitors: no notification is sent", monitorID)
+		return nil, nil
+	}
 
 	ids := make([]string, len(monitorNotifications))
 	for i, mn := range monitorNotifications {

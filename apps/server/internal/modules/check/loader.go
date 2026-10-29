@@ -26,6 +26,8 @@ var (
 	ErrWorkspaceSuspended = job.ErrWorkspaceSuspended
 	// ErrMonitorTypeDisabled is for a monitor of a type the install turns off
 	ErrMonitorTypeDisabled = job.ErrMonitorTypeDisabled
+	// ErrMonitorOverLimit is for a monitor past its workspace's limit of active monitors
+	ErrMonitorOverLimit = job.ErrMonitorOverLimit
 )
 
 // MonitorFinder is the part of the monitor service the loader reads
@@ -82,6 +84,8 @@ func NewLoader(
 //   - ErrMonitorPaused: the monitor is paused. Callers drop the check.
 //   - ErrWorkspaceSuspended: the monitor's workspace is suspended. Callers drop the check.
 //   - ErrMonitorTypeDisabled: the install turns the monitor's type off. Callers drop the check.
+//   - ErrMonitorOverLimit: the monitor is past its workspace's limit of active monitors. Callers
+//     drop the check.
 //   - any other error: a read that must succeed failed (the monitor or its maintenance
 //     windows). Callers may try again later.
 //
@@ -110,6 +114,11 @@ func (l *Loader) Load(ctx context.Context, monitorID string) (*Job, error) {
 	// So does a check queued before the type was turned off
 	if mon.TypeDisabled {
 		return nil, ErrMonitorTypeDisabled
+	}
+
+	// And one queued before the monitor went past its workspace's limit (PP-160)
+	if mon.OverLimit {
+		return nil, ErrMonitorOverLimit
 	}
 
 	isUnderMaintenance, err := l.isUnderMaintenance(ctx, monitorID)

@@ -1040,6 +1040,7 @@
       "resumed": "Valvonta jatkettu"
     },
     "type_disabled": "Tyyppi {{type}} on poistettu käytöstä tässä asennuksessa",
+    "over_limit": "Ei tarkisteta: työtilassa on enemmän aktiivisia valvontoja kuin sen raja sallii",
     "view": {
       "buttons": {
         "clone": "Kloonaa",

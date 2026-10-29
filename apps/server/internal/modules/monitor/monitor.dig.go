@@ -3,6 +3,7 @@ package monitor
 import (
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/modules/heartbeat"
@@ -40,10 +41,12 @@ type serviceParams struct {
 	Logger *zap.SugaredLogger
 	// Config is the install's settings. A container without it disables no monitor type and sets no minimum interval.
 	Config *config.Config `optional:"true"`
+	// Limits are the workspaces' limits, from package limits. A container without them has none.
+	Limits limits.Source `optional:"true"`
 }
 
 func provideMonitorService(p serviceParams) Service {
-	var opts []ServiceOption
+	opts := []ServiceOption{WithServiceLimits(p.Limits)}
 	if p.Config != nil {
 		opts = append(opts, WithServiceDisabledTypes(p.Config.DisabledMonitorTypeList()))
 		// 20 is the DTOs' own minimum, which the controllers enforce: the service adds nothing
