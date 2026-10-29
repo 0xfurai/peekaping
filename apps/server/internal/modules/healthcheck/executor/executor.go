@@ -206,6 +206,29 @@ func (er *ExecutorRegistry) ValidateConfig(monitorType string, configJSON string
 	return er.checkTargets(executor, configJSON)
 }
 
+// Targets lists the hosts a check of the monitor type with this config dials. It lists none for a
+// type that dials nothing (push), a type the registry doesn't know and a config that can't be read:
+// those are left to their own checks to report. It is what the per-host spacing (PP-159) counts a
+// check against.
+func (er *ExecutorRegistry) Targets(monitorType, configJSON string) []string {
+	if er == nil {
+		return nil
+	}
+	e, ok := er.GetExecutor(monitorType)
+	if !ok {
+		return nil
+	}
+	lister, ok := e.(TargetLister)
+	if !ok {
+		return nil
+	}
+	hosts, err := lister.Targets(configJSON)
+	if err != nil {
+		return nil
+	}
+	return slices.DeleteFunc(hosts, func(host string) bool { return strings.TrimSpace(host) == "" })
+}
+
 // checkTargets refuses a config that dials an IP address the guard blocks. It does nothing while
 // the guard is off, and for an executor that doesn't list its targets. A host that is a name
 // passes: what it resolves to is checked when the check dials.

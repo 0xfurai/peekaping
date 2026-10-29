@@ -97,6 +97,10 @@ config:
     # answers 429 with Retry-After. 0, the default, is off. Each api replica counts for itself.
     # API_RATE_LIMIT_PER_WORKSPACE: "600"
     # API_RATE_LIMIT_PER_API_KEY: "120"
+    # Checks per minute to one target host that one checking process runs (the server, or one
+    # remote probe), all workspaces together. A check whose turn is a few seconds away waits for it;
+    # one further out skips that tick. 0, the default, is off.
+    # CHECKS_PER_HOST_PER_MINUTE: "60"
     # Proxies whose X-Forwarded-For and X-Real-IP the API believes: IP addresses and
     # CIDR ranges, comma-separated. The login lockout counts failed logins per client
     # address, and a client can send those headers itself, so the API ignores them from

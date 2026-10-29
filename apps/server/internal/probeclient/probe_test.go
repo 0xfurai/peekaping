@@ -451,3 +451,50 @@ func TestProbe_FollowsTheServersSettingAtEachHello(t *testing.T) {
 
 	assert.False(t, probe.BlocksPrivateTargets())
 }
+
+// A probe spaces its checks to one host at its own CHECKS_PER_HOST_PER_MINUTE or the server's, which
+// hello states: the stricter one is the smaller that is not 0, and 0 on both is off
+func TestProbe_SpacesChecksAtTheStricterOfItsOwnCapAndTheServers(t *testing.T) {
+	tests := []struct {
+		name         string
+		own, servers int
+		want         int
+	}{
+		{"neither sets one", 0, 0, 0},
+		{"its own only", 120, 0, 120},
+		{"the server's only", 0, 90, 90},
+		{"the server's is stricter", 120, 90, 90},
+		{"its own is stricter", 60, 90, 60},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			server := newAssignmentServerWith(t, func(h *probeproto.HelloResponse) { h.ChecksPerHostPerMinute = tc.servers })
+			probe := probeclient.New(probeclient.Config{URL: server.URL, Token: probeToken, Version: "0.0.48", Logger: nopLogger(),
+				FlushTimeout: 2 * time.Second, ChecksPerHostPerMinute: tc.own})
+			assert.Equal(t, tc.own, probe.ChecksPerHostPerMinute(), "its own cap holds until the first hello")
+
+			runProbe(t, probe)
+
+			require.Eventually(t, func() bool { return probe.ChecksPerHostPerMinute() == tc.want }, 5*time.Second, time.Millisecond)
+		})
+	}
+}
+
+// The server's cap is read at each hello, as its private-target setting is
+func TestProbe_FollowsTheServersChecksPerHostPerMinuteAtEachHello(t *testing.T) {
+	var servers atomic.Int64
+	servers.Store(90)
+	server := newAssignmentServerWith(t, func(h *probeproto.HelloResponse) { h.ChecksPerHostPerMinute = int(servers.Load()) })
+	probe := probeclient.New(probeclient.Config{URL: server.URL, Token: probeToken, Version: "0.0.48", Logger: nopLogger(),
+		FlushTimeout: 2 * time.Second, ChecksPerHostPerMinute: 120})
+	runProbe(t, probe)
+	require.Eventually(t, func() bool { return probe.ChecksPerHostPerMinute() == 90 }, 5*time.Second, time.Millisecond)
+
+	servers.Store(30)
+	require.NoError(t, probe.SayHelloAgain(context.Background()))
+	assert.Equal(t, 30, probe.ChecksPerHostPerMinute(), "a stricter server")
+
+	servers.Store(0)
+	require.NoError(t, probe.SayHelloAgain(context.Background()))
+	assert.Equal(t, 120, probe.ChecksPerHostPerMinute(), "a server that stopped is back to the probe's own")
+}

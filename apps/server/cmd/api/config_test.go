@@ -362,3 +362,28 @@ func TestANegativeAPIRateLimitStopsStartup(t *testing.T) {
 		})
 	}
 }
+
+func TestChecksPerHostPerMinuteIsOffByDefaultAndLoadedFromTheEnvironment(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("CHECKS_PER_HOST_PER_MINUTE", "")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Zero(t, cfg.ToInternalConfig().ChecksPerHostPerMinute)
+
+	t.Setenv("CHECKS_PER_HOST_PER_MINUTE", "120")
+	cfg, err = LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	assert.Equal(t, 120, cfg.ToInternalConfig().ChecksPerHostPerMinute)
+}
+
+func TestANegativeChecksPerHostPerMinuteStopsStartup(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("CHECKS_PER_HOST_PER_MINUTE", "-1")
+
+	_, err := LoadAndValidate(t.TempDir())
+
+	assert.ErrorContains(t, err, "must be at least 0")
+}

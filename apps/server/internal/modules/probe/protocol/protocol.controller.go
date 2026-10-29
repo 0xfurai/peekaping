@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"peekaping/internal/config"
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/ingester"
@@ -47,7 +48,9 @@ type Controller struct {
 	bus         events.EventBus
 	timing      Timing
 	guard       *netguard.Guard
-	accepted    Window
+	// checksPerHost is the server's CHECKS_PER_HOST_PER_MINUTE, which hello tells the probe
+	checksPerHost int
+	accepted      Window
 	// storeSlots limits the monitors all the results requests store at the same time
 	storeSlots chan struct{}
 	// unguarded holds the ids of the instances already warned of, for the warning that an instance
@@ -75,7 +78,10 @@ type ControllerParams struct {
 	Timing Timing
 	// Guard says whether the server blocks private targets, which hello tells the probe. A
 	// container that has none blocks nothing.
-	Guard  *netguard.Guard `optional:"true"`
+	Guard *netguard.Guard `optional:"true"`
+	// Config gives the server's CHECKS_PER_HOST_PER_MINUTE, which hello tells the probe. A container
+	// that has none states no cap.
+	Config *config.Config `optional:"true"`
 	Logger *zap.SugaredLogger
 }
 
@@ -88,21 +94,26 @@ func NewController(p ControllerParams) *Controller {
 	if timing.StoreDeadline <= 0 {
 		timing.StoreDeadline = StoreDeadline
 	}
+	checksPerHost := 0
+	if p.Config != nil {
+		checksPerHost = p.Config.ChecksPerHostPerMinute
+	}
 	return &Controller{
-		service:     p.Probes,
-		source:      p.Source,
-		monitors:    p.Monitors,
-		proxies:     p.Proxies,
-		maintenance: p.Maintenance,
-		ingester:    p.Ingester,
-		waker:       p.Waker,
-		bus:         p.Bus,
-		timing:      timing,
-		guard:       p.Guard,
-		accepted:    window,
-		storeSlots:  make(chan struct{}, StoreConcurrencyTotal),
-		now:         time.Now,
-		logger:      p.Logger.Named("[probe-protocol-controller]"),
+		checksPerHost: checksPerHost,
+		service:       p.Probes,
+		source:        p.Source,
+		monitors:      p.Monitors,
+		proxies:       p.Proxies,
+		maintenance:   p.Maintenance,
+		ingester:      p.Ingester,
+		waker:         p.Waker,
+		bus:           p.Bus,
+		timing:        timing,
+		guard:         p.Guard,
+		accepted:      window,
+		storeSlots:    make(chan struct{}, StoreConcurrencyTotal),
+		now:           time.Now,
+		logger:        p.Logger.Named("[probe-protocol-controller]"),
 	}
 }
 
@@ -234,7 +245,8 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		BatchMax:        BatchMax,
 		BufferMax:       BufferMax,
 
-		BlockPrivateTargets: c.guard.Enabled(),
+		BlockPrivateTargets:    c.guard.Enabled(),
+		ChecksPerHostPerMinute: c.checksPerHost,
 	})
 }
 

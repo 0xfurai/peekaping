@@ -213,6 +213,22 @@ A negative value stops startup with a configuration error.
 - Only a request that runs in a workspace is counted, once it is signed in or its API key is accepted. The routes that run in no workspace are not: `GET /api/v1/me`, `/api/v1/auth/*`, `/api/v1/admin/*`, `POST /api/v1/workspaces`, and viewing or accepting an invite. A request with no or bad credentials is not counted either; the login lockout and the limits on the account routes guard those.
 - Each api replica keeps its own count, in memory, and forgets it when it restarts. An install with several replicas therefore allows each replica's share: with 3 replicas and a limit of 600, a workspace may make up to 1,800 requests a minute if the load balancer spreads them evenly. The limit guards against a script that runs away, and is not an exact quota.
 
+### Spacing checks to one host
+
+`CHECKS_PER_HOST_PER_MINUTE` caps how many checks to one target host run per minute, across all monitors and workspaces. It applies to the api, to `peekaping` and to `peekaping-probe`. It is off by default, so a self-hosted install is unchanged; turn it on where many workspaces may point monitors at the same host, so that together they can't hammer it.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `CHECKS_PER_HOST_PER_MINUTE` | int | No | `0` | The most checks to one target host that one checking process starts per minute. `0` is off |
+
+A negative value stops startup with a configuration error.
+
+- The host is the one the check dials: the host of an HTTP URL, a TCP, ping, database or broker host, a DNS monitor's resolver. Host names are compared in lower case. A monitor that dials several hosts takes a turn on each and waits for the latest. A push monitor dials nothing and is never limited, and neither is a monitor under maintenance.
+- Checks to one host are spaced evenly: at 60 a minute, they start a second apart. A check whose turn is at most a few seconds away (a quarter of its check interval, at most 5 seconds) waits for it, before its own timeout starts. A check whose turn is further away skips that tick: it makes no heartbeat, no Down and no notification, takes no check slot, and logs at debug level with the host. The monitor is checked again on its next tick. The first skip for a host, and then at most one a minute, is logged at info with how many checks were skipped.
+- The cap is per checking process: the scheduler of `peekaping`, the push checks of the api, and each `peekaping-probe` instance count for themselves. With 3 probe instances and a cap of 60, a host may see up to 180 checks a minute.
+- A remote probe uses the stricter of its own `CHECKS_PER_HOST_PER_MINUTE` and the server's (the smaller one that is not 0, or whichever is set). The server states its value when the probe says hello, and the probe follows it at each hello. A server or probe from before the setting left it out, which means off.
+- If more monitors want a host than the cap allows, some skip every tick: the cap and the number of monitors on one host have to fit the check intervals. Raise the cap, or give those monitors longer intervals.
+
 ### Metrics Configuration
 
 | Variable | Type | Required | Default | Description |
