@@ -40,6 +40,19 @@ func NewDockerExecutor(logger *zap.SugaredLogger) *DockerExecutor {
 
 func init() { registerOptional("docker", NewDockerExecutor) }
 
+// withoutEnvironmentProxy has the Docker client connect to the daemon without the proxy that
+// HTTP_PROXY and HTTPS_PROXY name. The client's HTTPClient is a copy, but of a client that holds
+// the same transport.
+func withoutEnvironmentProxy() client.Opt {
+	return func(c *client.Client) error {
+		if transport, ok := c.HTTPClient().Transport.(*http.Transport); ok {
+			transport.Proxy = nil
+			return nil
+		}
+		return fmt.Errorf("cannot turn the proxy off on transport: %T", c.HTTPClient().Transport)
+	}
+}
+
 func (e *DockerExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[DockerConfig](configJSON)
 }
@@ -169,9 +182,14 @@ func (e *DockerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pr
 		}
 
 		// Dial through the guard while it is on. This comes after the HTTP client above, so it is
-		// the dial function of that client's transport that it replaces.
+		// the dial function of that client's transport that it replaces. The daemon is dialed
+		// itself: through a proxy from the environment, which WithHost sets up for a tcp://
+		// daemon, the guard would check the proxy's address and not the daemon's.
 		if e.on() {
-			clientOpts = append(clientOpts, client.WithDialContext(e.dialer(&net.Dialer{Timeout: 32 * time.Second}).DialContext))
+			clientOpts = append(clientOpts,
+				client.WithDialContext(e.dialer(&net.Dialer{Timeout: 32 * time.Second}).DialContext),
+				withoutEnvironmentProxy(),
+			)
 		}
 
 		cli, cliErr = client.NewClientWithOpts(clientOpts...)

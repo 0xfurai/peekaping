@@ -1469,7 +1469,8 @@
       "updated_success": "Notifier został pomyślnie zaktualizowany"
     },
     "new": {
-      "title": "Nowy kanał powiadomień"
+      "title": "Nowy kanał powiadomień",
+      "default_hint": "Ten kanał będzie zaznaczony w nowych monitorach."
     },
     "no_important": "Nie znaleziono ważnych powiadomień.",
     "placeholders": {

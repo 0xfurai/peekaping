@@ -1469,7 +1469,8 @@
       "updated_success": "通知器已成功更新"
     },
     "new": {
-      "title": "新建通知渠道"
+      "title": "新建通知渠道",
+      "default_hint": "新建监控时将默认勾选此渠道。"
     },
     "no_important": "未找到重要通知。",
     "placeholders": {

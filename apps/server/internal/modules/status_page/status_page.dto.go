@@ -75,7 +75,7 @@ type PublicMonitorDTO struct {
 	ID     string `json:"id"`
 	Type   string `json:"type" validate:"required" example:"http"`
 	Name   string `json:"name" example:"Monitor"`
-	Active bool   `json:"active"`
+	Active bool   `json:"active" doc:"False for a paused monitor, and for one whose type is turned off on this install (DISABLED_MONITOR_TYPES), which is not checked"`
 	// Status is the monitor's own status, which is not the status of its latest heartbeat once the
 	// monitor runs on several probes.
 	Status shared.MonitorStatus `json:"status" doc:"The monitor's status: 0 Down, 1 Up, 2 Pending, 3 Maintenance" example:"1"`

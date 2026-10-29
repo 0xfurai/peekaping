@@ -1469,7 +1469,8 @@
       "updated_success": "Notifier oppdatert"
     },
     "new": {
-      "title": "Ny varslingkanal"
+      "title": "Ny varslingkanal",
+      "default_hint": "Denne kanalen blir krysset av på nye monitorer."
     },
     "no_important": "Ingen viktige varsler funnet.",
     "placeholders": {

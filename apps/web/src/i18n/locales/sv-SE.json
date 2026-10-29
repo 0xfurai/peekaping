@@ -1469,7 +1469,8 @@
       "updated_success": "Notifier uppdaterad framgångsrikt"
     },
     "new": {
-      "title": "Ny notifikationskanal"
+      "title": "Ny notifikationskanal",
+      "default_hint": "Den här kanalen kryssas i på nya monitorer."
     },
     "no_important": "Inga viktiga aviseringar hittades.",
     "placeholders": {

@@ -47,6 +47,11 @@ type HelloRequest struct {
 	Hostname        string   `json:"hostname"`
 	OS              string   `json:"os"`
 	Arch            string   `json:"arch"`
+	// EnforcesPrivateTargetBlock is true for a probe that blocks private and internal addresses
+	// when the hello answer's BlockPrivateTargets says so. A probe from before that field ignores
+	// it, and leaves this out: a server that blocks them deals no monitors to such an instance. A
+	// server from before ignores this, so the protocol version stays the same.
+	EnforcesPrivateTargetBlock bool `json:"enforces_private_target_block,omitempty"`
 }
 
 type ProbeInfo struct {

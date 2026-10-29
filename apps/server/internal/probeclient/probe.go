@@ -104,7 +104,9 @@ func New(cfg Config) *Probe {
 		Sleep:          cfg.Sleep,
 		Now:            cfg.Now,
 		// Said at every hello, before the probe gets an assignment: the setting is the probe's own or
-		// the server's, so a server that stops blocking releases a probe that didn't ask to
+		// the server's, so a server that stops blocking releases a probe that didn't ask to. Hello
+		// says so, as a server that blocks deals monitors only to a probe that follows it.
+		EnforcesPrivateTargetBlock: true,
 		OnWelcome: func(welcome *probeproto.HelloResponse) {
 			guard.Set(cfg.BlockPrivateTargets || welcome.BlockPrivateTargets)
 			checks.SetChecksPerHostPerMinute(stricterCap(cfg.ChecksPerHostPerMinute, welcome.ChecksPerHostPerMinute))

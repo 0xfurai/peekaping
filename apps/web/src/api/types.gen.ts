@@ -835,6 +835,10 @@ export type ProbeProbeAvailabilityResponse = {
 
 export type ProbeProbeInstanceResponse = {
   arch: string;
+  /**
+   * Whether the instance's hello said it blocks private targets when the server does. While BLOCK_PRIVATE_TARGETS is on, an instance that didn't (a probe from before the setting) is dealt no monitors: upgrade it.
+   */
+  enforces_private_target_block: boolean;
   hostname: string;
   id: string;
   last_seen_at: string;
@@ -903,13 +907,20 @@ export type ProbeprotoAssignmentsResponse = {
 
 export type ProbeprotoHelloRequest = {
   arch?: string;
+  enforces_private_target_block?: boolean;
   hostname?: string;
   instance_id?: string;
   os?: string;
   probe_version?: string;
   protocol_version?: number;
   supported_types?: Array<string> | null;
-  [key: string]: unknown | string | number | (Array<string> | null) | undefined;
+  [key: string]:
+    | unknown
+    | string
+    | boolean
+    | number
+    | (Array<string> | null)
+    | undefined;
 };
 
 export type ProbeprotoHelloResponse = {
@@ -1134,6 +1145,9 @@ export type StatusPageModel = {
 };
 
 export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
+  /**
+   * False for a paused monitor, and for one whose type is turned off on this install (DISABLED_MONITOR_TYPES), which is not checked
+   */
   active: boolean;
   heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
   id: string;

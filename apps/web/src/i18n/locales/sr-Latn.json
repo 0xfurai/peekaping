@@ -1469,7 +1469,8 @@
       "updated_success": "Obaveštivač je uspešno ažuriran"
     },
     "new": {
-      "title": "Novi kanal obaveštenja"
+      "title": "Novi kanal obaveštenja",
+      "default_hint": "Ovaj kanal će biti označen na novim monitorima."
     },
     "no_important": "Nema važnih obaveštenja.",
     "placeholders": {
