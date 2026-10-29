@@ -1191,29 +1191,24 @@ func (mr *MonitorServiceImpl) FindOneByPushTokenAnyWorkspace(ctx context.Context
 // assignPublishChunk is how many monitors AssignProbeToAll reads back at a time to announce
 const assignPublishChunk = 500
 
+// assignAttempts is how many times AssignProbeToAll is made, when the repository finds a workspace
+// to hold below one it holds already (errWorkspaceBelowHeld)
+const assignAttempts = 3
+
 // MARK: AssignProbeToAllAnyWorkspace
 func (mr *MonitorServiceImpl) AssignProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (int, error) {
+	// An attempt that found a workspace to hold below one it held is rolled back, which lets go of
+	// the workspaces it held, and the next one starts again in a new transaction. Inside a
+	// transaction of the caller's there is none to roll back, so it is not made again.
 	var changed []string
-	skipped := 0
-	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
-		if claim != nil {
-			claimed, err := claim(ctx)
-			if err != nil || !claimed {
-				return err
-			}
+	var skipped int
+	var err error
+	for attempt := 1; ; attempt++ {
+		changed, skipped, err = mr.assignProbeToAllOnceAnyWorkspace(ctx, probeID, supportedTypes, claim)
+		if !errors.Is(err, errWorkspaceBelowHeld) || attempt == assignAttempts || dbtx.InTx(ctx) {
+			break
 		}
-		// One look at the probe stands in for the check of each monitor that an update makes: the
-		// repository only picks monitors of the types the probe runs
-		info, err := mr.findProbe(ctx, probeID)
-		if err != nil {
-			return err
-		}
-		if info == nil {
-			return &InvalidProbesError{Err: fmt.Errorf("probe %q doesn't exist", probeID)}
-		}
-		changed, skipped, err = mr.monitorRepository.AddProbeToAllAnyWorkspace(ctx, probeID, supportedTypes)
-		return err
-	})
+	}
 	if err != nil {
 		return 0, err
 	}
@@ -1234,6 +1229,34 @@ func (mr *MonitorServiceImpl) AssignProbeToAllAnyWorkspace(ctx context.Context, 
 		}
 	}
 	return len(changed), nil
+}
+
+// assignProbeToAllOnceAnyWorkspace is one attempt of AssignProbeToAll, in a transaction of its
+// own: the claim, the look at the probe and the assignment
+func (mr *MonitorServiceImpl) assignProbeToAllOnceAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (changed []string, skipped int, err error) {
+	err = mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		if claim != nil {
+			claimed, err := claim(ctx)
+			if err != nil || !claimed {
+				return err
+			}
+		}
+		// One look at the probe stands in for the check of each monitor that an update makes: the
+		// repository only picks monitors of the types the probe runs
+		info, err := mr.findProbe(ctx, probeID)
+		if err != nil {
+			return err
+		}
+		if info == nil {
+			return &InvalidProbesError{Err: fmt.Errorf("probe %q doesn't exist", probeID)}
+		}
+		changed, skipped, err = mr.monitorRepository.AddProbeToAllAnyWorkspace(ctx, probeID, supportedTypes)
+		return err
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	return changed, skipped, nil
 }
 
 func (mr *MonitorServiceImpl) ResetMonitorData(ctx context.Context, workspaceID workspace.ID, id string) error {
