@@ -2044,8 +2044,10 @@
       "url_label": "Kuzatiladigan manzil"
     },
     "channel": {
+      "continue_unlinked": "Bog'lamasdan davom etish",
       "description": "Monitoringingiz ishdan chiqqanda Peekaping ogohlantirishni qayerga yuborishini tanlang. U yangi monitoringlar uchun standart bo'ladi.",
       "link_failed": "Kanal saqlandi, lekin uni monitoringingizga bog'lab bo'lmadi. Uni monitoringni tahrirlash sahifasida qo'shing.",
+      "retry_link": "Qayta bog'lab ko'rish",
       "title": "Bildirishnomalarni oling"
     },
     "done": {

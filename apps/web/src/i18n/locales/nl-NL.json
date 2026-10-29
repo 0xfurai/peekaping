@@ -2045,8 +2045,10 @@
       "url_label": "Te monitoren adres"
     },
     "channel": {
+      "continue_unlinked": "Doorgaan zonder koppelen",
       "description": "Kies waar Peekaping een melding naartoe stuurt als je monitor uitvalt. Het wordt de standaard voor nieuwe monitoren.",
       "link_failed": "Het kanaal is opgeslagen, maar het koppelen aan je monitor is mislukt. Voeg het toe op de bewerkpagina van de monitor.",
+      "retry_link": "Opnieuw proberen te koppelen",
       "title": "Ontvang meldingen"
     },
     "done": {
