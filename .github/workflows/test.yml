@@ -38,9 +38,13 @@ concurrency:
 jobs:
   test:
     runs-on: nexus-runner
+    timeout-minutes: 45
 
     # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
-    # Each test creates a schema or database of its own, so they share this one server
+    # Each test creates a schema or database of its own, so they share this one server. Its data
+    # lives in memory (--tmpfs): every DROP DATABASE forces a checkpoint, which waits for the disk,
+    # and on nexus-runner's disk one took longer than the client's 10 second read timeout. The
+    # data is thrown away with the job, so nothing needs it on disk
     services:
       postgres:
         image: postgres:17
@@ -53,6 +57,7 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+          --tmpfs /var/lib/postgresql/data
 
     env:
       PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
@@ -129,9 +134,9 @@ jobs:
           # the controllers internal/apitest drives through the router, and the Go
           # migrations in cmd/bun/migrations that tests in other packages run. The timeout
           # is per package: internal/apitest runs its tests one at a time, and with
-          # coverage it takes about two minutes on its own. -count=1 so that a cached
+          # coverage it takes more than 300 seconds on its own. -count=1 so that a cached
           # result never stands in for a run against the PostgreSQL service
-          go test -timeout 300s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/migrations ./internal/... ./cmd/... | tee server-test.log
+          go test -timeout 1200s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/migrations ./internal/... ./cmd/... | tee server-test.log
           # Every PostgreSQL subtest skips with this message when the variable is unset, which
           # would leave this job green without running them
           if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
@@ -171,6 +176,7 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+          --tmpfs /var/lib/postgresql/data
 
     env:
       PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
@@ -203,7 +209,7 @@ jobs:
   # PostgreSQL run. No coverage: the test job has it
   api-cloud:
     runs-on: nexus-runner
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -217,6 +223,7 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+          --tmpfs /var/lib/postgresql/data
 
     env:
       PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
@@ -237,4 +244,4 @@ jobs:
 
       - name: Run API tests with the cloud's settings
         working-directory: apps/server
-        run: go test -timeout 300s -count=1 ./internal/apitest/...
+        run: go test -timeout 1200s -count=1 ./internal/apitest/...
