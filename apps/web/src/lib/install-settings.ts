@@ -2,15 +2,31 @@ import { isAxiosError } from "axios";
 import type {
   AdminInstallSettingsResponse,
   AdminUpdateAccountSmtpDto,
+  AdminUpdateDefaultLimitsDto,
   AdminUpdateInstallSettingsDto,
 } from "@/api/types.gen";
 
 // The install settings an instance admin changes on Admin → Settings (docs/adr/0005, section 5):
-// the signup mode, the sender of account emails and the public URL. Each comes from the server's
-// environment, which locks it, or from the value saved here, or from the default. The server
-// decides and refuses; these only shape the form and its request.
+// the signup mode, the sender of account emails, the public URL and the default limits of a
+// workspace (PP-160). Each comes from the server's environment, which locks it, or from the value
+// saved here, or from the default. The server decides and refuses; these only shape the form and
+// its request.
 
 export type SettingSource = "environment" | "saved" | "default";
+
+// The install's default limits, in the order the page shows them, by their names in the admin API
+export const DEFAULT_LIMITS = [
+  "monitors",
+  "min_check_interval",
+  "status_pages",
+  "custom_domains",
+  "members",
+  "owned_workspaces",
+  "probes_per_monitor",
+  "retention_days",
+] as const satisfies readonly (keyof AdminInstallSettingsResponse["workspaceLimits"])[];
+
+export type DefaultLimit = (typeof DEFAULT_LIMITS)[number];
 
 // The form's values. The password is what the admin typed: empty keeps the one there is.
 export type InstallSettingsFormValues = {
@@ -22,6 +38,8 @@ export type InstallSettingsFormValues = {
   password: string;
   from: string;
   tls: string;
+  // Each default limit as typed: blank is none
+  workspaceLimits: Record<DefaultLimit, string>;
 };
 
 export const installSettingsFormValues = (
@@ -35,6 +53,9 @@ export const installSettingsFormValues = (
   password: "",
   from: settings.accountSmtp.from.value,
   tls: settings.accountSmtp.tls.value,
+  workspaceLimits: Object.fromEntries(
+    DEFAULT_LIMITS.map((name) => [name, settings.workspaceLimits[name].value?.toString() ?? ""])
+  ) as Record<DefaultLimit, string>,
 });
 
 // The request that saves what the admin changed, and nothing else: a field left as it loaded, or
@@ -65,7 +86,25 @@ export const installSettingsChange = (
   if (changed(smtp.from, values.from)) sender.from = values.from.trim();
   if (changed(smtp.tls, values.tls)) sender.tls = values.tls;
   if (Object.keys(sender).length > 0) body.accountSmtp = sender;
+
+  // A default limit emptied is sent as null, which clears it: no limit. The form's check keeps a
+  // value that is no whole number of 1 or more from being saved.
+  const limits: AdminUpdateDefaultLimitsDto = {};
+  for (const name of DEFAULT_LIMITS) {
+    const setting = settings.workspaceLimits[name];
+    const typed = values.workspaceLimits[name].trim();
+    if (setting.locked || typed === (setting.value?.toString() ?? "")) continue;
+    if (typed === "") limits[name] = null;
+    else if (Number.isFinite(Number(typed))) limits[name] = Number(typed);
+  }
+  if (Object.keys(limits).length > 0) body.workspaceLimits = limits;
   return body;
+};
+
+/** Whether a typed default limit can be saved: blank for none, or a whole number of 1 or more. */
+export const isDefaultLimit = (typed: string): boolean => {
+  const value = typed.trim();
+  return value === "" || (/^\d+$/.test(value) && Number(value) >= 1);
 };
 
 // The translation key of a setting's label, by its name in the admin API
@@ -78,6 +117,7 @@ const FIELD_LABELS: Record<string, string> = {
   "accountSmtp.password": "admin.settings.sender.password",
   "accountSmtp.from": "admin.settings.sender.from",
   "accountSmtp.tls": "admin.settings.sender.tls",
+  ...Object.fromEntries(DEFAULT_LIMITS.map((name) => [`workspaceLimits.${name}`, `limits.names.${name}`])),
 };
 
 type Translate = (key: string, vars?: Record<string, unknown>) => string;

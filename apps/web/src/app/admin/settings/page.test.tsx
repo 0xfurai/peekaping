@@ -32,6 +32,16 @@ const SETTINGS: AdminInstallSettingsResponse = {
     tls: field("starttls", "default", "ACCOUNT_SMTP_TLS"),
   },
   accountEmails: true,
+  workspaceLimits: {
+    monitors: field<number | null>(10, "environment", "WORKSPACE_LIMIT_MONITORS"),
+    min_check_interval: field<number | null>(300, "saved", "WORKSPACE_LIMIT_MIN_CHECK_INTERVAL"),
+    status_pages: field<number | null>(null, "default", "WORKSPACE_LIMIT_STATUS_PAGES"),
+    custom_domains: field<number | null>(null, "default", "WORKSPACE_LIMIT_CUSTOM_DOMAINS"),
+    members: field<number | null>(null, "default", "WORKSPACE_LIMIT_MEMBERS"),
+    owned_workspaces: field<number | null>(null, "default", "WORKSPACE_LIMIT_OWNED_WORKSPACES"),
+    probes_per_monitor: field<number | null>(null, "default", "WORKSPACE_LIMIT_PROBES_PER_MONITOR"),
+    retention_days: field<number | null>(null, "default", "WORKSPACE_LIMIT_RETENTION_DAYS"),
+  },
 };
 
 const page = (settings: AdminInstallSettingsResponse = SETTINGS) =>
@@ -139,6 +149,34 @@ describe("InstallSettingsPage", () => {
     const html = page();
     expect(tag(html, "install-test-email-to")).toContain(`value="${USER_EMAIL}"`);
     expect(html).toContain(`>${text("admin.settings.test_email.send")}<`);
+  });
+
+  it("has a section of the default limits, a field for each", () => {
+    const html = page();
+    expect(html).toContain(text("admin.settings.limits.title"));
+    for (const name of ["monitors", "min_check_interval", "status_pages", "custom_domains", "members", "owned_workspaces", "probes_per_monitor", "retention_days"]) {
+      expect(html).toContain(`for="install-limit-${name}"`);
+      expect(around(html, `install-limit-${name}`)).toContain(text(`limits.names.${name}`));
+    }
+  });
+
+  it("says where each default limit comes from, and locks one the environment sets", () => {
+    const html = page();
+    expect(around(html, "install-limit-monitors")).toContain(text("admin.settings.source.environment"));
+    expect(around(html, "install-limit-monitors")).toContain("WORKSPACE_LIMIT_MONITORS");
+    expect(tag(html, "install-limit-monitors")).toContain('readOnly=""');
+    expect(tag(html, "install-limit-monitors")).toContain('value="10"');
+    expect(around(html, "install-limit-min_check_interval")).toContain(text("admin.settings.source.saved"));
+    expect(tag(html, "install-limit-min_check_interval")).toContain('value="300"');
+    expect(tag(html, "install-limit-min_check_interval")).not.toContain("readOnly");
+    expect(tag(html, "install-limit-min_check_interval")).toContain('aria-describedby="install-limit-min_check_interval-source"');
+  });
+
+  it("shows a default limit of none blank", () => {
+    const html = page();
+    expect(around(html, "install-limit-members")).toContain(text("admin.settings.source.default"));
+    expect(tag(html, "install-limit-members")).toContain('value=""');
+    expect(tag(html, "install-limit-members")).toContain(`placeholder="${text("limits.none")}"`);
   });
 
   it("has nothing to save until a field changes", () => {

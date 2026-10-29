@@ -27,6 +27,16 @@ const SETTINGS: AdminInstallSettingsResponse = {
     tls: field("starttls"),
   },
   accountEmails: true,
+  workspaceLimits: {
+    monitors: field<number | null>(10, "saved", "WORKSPACE_LIMIT_MONITORS"),
+    min_check_interval: field<number | null>(null, "default", "WORKSPACE_LIMIT_MIN_CHECK_INTERVAL"),
+    status_pages: field<number | null>(2, "environment", "WORKSPACE_LIMIT_STATUS_PAGES"),
+    custom_domains: field<number | null>(null, "default", "WORKSPACE_LIMIT_CUSTOM_DOMAINS"),
+    members: field<number | null>(5, "saved", "WORKSPACE_LIMIT_MEMBERS"),
+    owned_workspaces: field<number | null>(null, "environment", "WORKSPACE_LIMIT_OWNED_WORKSPACES"),
+    probes_per_monitor: field<number | null>(null, "default", "WORKSPACE_LIMIT_PROBES_PER_MONITOR"),
+    retention_days: field<number | null>(null, "default", "WORKSPACE_LIMIT_RETENTION_DAYS"),
+  },
 };
 
 const values = installSettingsFormValues(SETTINGS);
@@ -74,6 +84,37 @@ describe("installSettingsChange", () => {
     expect(body).toEqual({});
   });
 
+  describe("the default limits", () => {
+    it("load as text, blank for none", () => {
+      expect(values.workspaceLimits).toEqual({
+        monitors: "10",
+        min_check_interval: "",
+        status_pages: "2",
+        custom_domains: "",
+        members: "5",
+        owned_workspaces: "",
+        probes_per_monitor: "",
+        retention_days: "",
+      });
+    });
+
+    it("send a typed number, and null for one that was emptied, which is no limit", () => {
+      const body = installSettingsChange(SETTINGS, {
+        ...values,
+        workspaceLimits: { ...values.workspaceLimits, monitors: "", min_check_interval: " 300 ", members: "5" },
+      });
+      expect(body).toEqual({ workspaceLimits: { monitors: null, min_check_interval: 300 } });
+    });
+
+    it("never send one the environment locks", () => {
+      const body = installSettingsChange(SETTINGS, {
+        ...values,
+        workspaceLimits: { ...values.workspaceLimits, status_pages: "9", owned_workspaces: "1" },
+      });
+      expect(body).toEqual({});
+    });
+  });
+
   describe("the password", () => {
     it("is left out while nothing is typed: the one there is stays", () => {
       expect(installSettingsChange(SETTINGS, { ...values, password: "" })).toEqual({});
@@ -112,6 +153,21 @@ const refusal = (status: number, data: unknown) =>
   });
 
 describe("installSettingsErrorMessage", () => {
+  it("names the default limit a refused value is for", () => {
+    const error = refusal(400, {
+      message: "workspaceLimits.min_check_interval: must be at least 60 seconds, the install's MIN_CHECK_INTERVAL",
+      error: { code: "INVALID_SETTING", field: "workspaceLimits.min_check_interval" },
+    });
+    expect(installSettingsErrorMessage(error, t, "fallback")).toBe(
+      "Shortest check interval (seconds): must be at least 60 seconds, the install's MIN_CHECK_INTERVAL"
+    );
+    const locked = refusal(409, {
+      message: "workspaceLimits.monitors: set by the server's environment (WORKSPACE_LIMIT_MONITORS)",
+      error: { code: "SETTING_LOCKED", field: "workspaceLimits.monitors" },
+    });
+    expect(installSettingsErrorMessage(locked, t, "fallback")).toContain("Active monitors");
+  });
+
   it("names the locked setting of a 409", () => {
     const error = refusal(409, {
       message: "signupMode: set by the server's environment (SIGNUP_MODE)",
