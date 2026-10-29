@@ -2,7 +2,7 @@ import { test, expect, type APIRequestContext, type Page, type Response } from '
 import { apiBaseURL } from './support/admin';
 import { adminAPI, deleteCreated, randomID } from './support/api';
 import { setTargetStatus, targetURL } from './support/fake-target';
-import { linkIn, waitForMail } from './support/mail';
+import { linkIn, mailpitURL, waitForMail } from './support/mail';
 
 // A visitor to an open-signup install signs up, is walked through Get started, and verifies their
 // email address (PP-370). The workspace of a new signup is suspended until then: the monitor is
@@ -41,9 +41,10 @@ test('@cloud a new signup is walked through Get started and verifies their email
   const config = await page.request.get(`${await apiBaseURL(page)}/auth/config`);
   expect(config.ok(), `GET auth/config: ${await config.text()}`).toBeTruthy();
   const { signupMode, accountEmails } = (await config.json()).data;
+  // A sender without the mail catcher (E2E_MAILPIT_URL unset) has no mail for the test to read
   test.skip(
-    signupMode !== 'open' || accountEmails !== true,
-    'needs an install with open signup and a sender for account emails (docker-compose.e2e-cloud.yml)',
+    signupMode !== 'open' || accountEmails !== true || !mailpitURL,
+    'needs an install with open signup and a sender for account emails, and E2E_MAILPIT_URL (docker-compose.e2e-cloud.yml)',
   );
 
   const run = randomID();

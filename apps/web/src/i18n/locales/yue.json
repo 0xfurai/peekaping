@@ -1909,8 +1909,10 @@
       "url_label": "要監控嘅地址"
     },
     "channel": {
+      "continue_unlinked": "唔連結繼續",
       "description": "揀 Peekaping 喺你嘅監控停咗之後將警報送去邊度。呢個會成為新監控嘅預設。",
       "link_failed": "頻道已儲存，但連結唔到你嘅監控。請喺監控嘅編輯頁加入。",
+      "retry_link": "再試一次連結",
       "title": "接收通知"
     },
     "done": {

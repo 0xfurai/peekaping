@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProbeProbeResponse } from "@/api/types.gen";
-import { runFromChoices, runFromDefaultIds, toggleRunFrom } from "./run-from";
+import { runFromAfterTypeChange, runFromChoices, runFromDefaultIds, toggleRunFrom } from "./run-from";
 
 const probe = (id: string, over: Partial<ProbeProbeResponse> = {}): ProbeProbeResponse => ({
   id,
@@ -107,5 +107,30 @@ describe("toggleRunFrom", () => {
     expect(toggleRunFrom(["gone", "local"], ["local", "eu"], "eu", true)).toEqual(["local", "eu"]);
     expect(toggleRunFrom(["gone", "local", "eu"], ["local", "eu"], "local", false)).toEqual(["eu"]);
     expect(toggleRunFrom(["off"], ["eu"], "eu", true)).toEqual(["eu"]);
+  });
+});
+
+describe("runFromAfterTypeChange", () => {
+  it("drops the probes that don't run the new type", () => {
+    expect(runFromAfterTypeChange([local, eu, us], "tcp", ["eu", "us"])).toEqual(["eu"]);
+  });
+
+  it("keeps a probe that isn't loaded", () => {
+    expect(runFromAfterTypeChange([local, eu, us], "tcp", ["gone", "us"])).toEqual(["gone"]);
+  });
+
+  // The list is hidden with one probe to choose from, and a saved monitor is refused with none, so a
+  // selection the type change empties moves to that probe instead of leaving no way to save
+  it("moves to the one probe that runs the new type when none of its probes does", () => {
+    expect(runFromAfterTypeChange([local, eu, us], "docker", ["eu", "us"])).toEqual(["local"]);
+    expect(runFromAfterTypeChange([off, eu, us], "tcp", ["us"])).toEqual(["eu"]);
+  });
+
+  it("is left empty when the new type has more than one probe to choose from", () => {
+    expect(runFromAfterTypeChange([local, eu, us], "tcp", ["us"])).toEqual([]);
+  });
+
+  it("leaves an empty selection empty", () => {
+    expect(runFromAfterTypeChange([local, eu], "docker", [])).toEqual([]);
   });
 });

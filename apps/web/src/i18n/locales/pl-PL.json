@@ -1909,8 +1909,10 @@
       "url_label": "Adres do monitorowania"
     },
     "channel": {
+      "continue_unlinked": "Kontynuuj bez połączenia",
       "description": "Wybierz, dokąd Peekaping ma wysłać alert, gdy Twój monitor przestanie działać. Będzie to domyślny kanał dla nowych monitorów.",
       "link_failed": "Kanał został zapisany, ale nie udało się go powiązać z monitorem. Dodaj go na stronie edycji monitora.",
+      "retry_link": "Spróbuj połączyć ponownie",
       "title": "Otrzymuj powiadomienia"
     },
     "done": {
