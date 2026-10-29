@@ -196,8 +196,10 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     });
     if (!next) return;
     typeSetByForm.current = next.type;
-    form.reset(valuesForNewType(next.defaultValues as MonitorFormValues, form.getValues()));
-  }, [presetsType, disabledTypes, form]);
+    form.reset(
+      valuesForNewType(withMinimumIntervals(next.defaultValues, minCheckInterval) as MonitorFormValues, form.getValues())
+    );
+  }, [presetsType, disabledTypes, minCheckInterval, form]);
 
   // In edit mode the form shows the saved monitor once it is loaded
   useEffect(() => {
