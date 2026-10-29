@@ -15,5 +15,5 @@ func RegisterDependencies(container *dig.Container) error {
 	if err := utils.Provide(container, func(service workspace.Service) WorkspaceDeleter { return service }); err != nil {
 		return err
 	}
-	return utils.Provide(container, NewSQLRepository, NewService, NewController, NewRoute)
+	return utils.Provide(container, NewSQLRepository, NewService, NewInstallSettings, NewController, NewRoute)
 }

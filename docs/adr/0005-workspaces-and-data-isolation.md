@@ -116,13 +116,15 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 | Usage ping (`TELEMETRY_ENABLED`, `TELEMETRY_INSTANCE_ID`, `TELEMETRY_LAST_SENT`) | install | `settings` |
 | Error reports (`ERROR_REPORTING_ENABLED`) and the one-time notice (`TELEMETRY_NOTICE_SEEN`) | install | `settings` |
 | Notification history and TLS info retention (`NOTIFICATION_HISTORY_RETENTION_DAYS`, `TLS_INFO_RETENTION_DAYS`) | install | environment |
-| Signup mode (`SIGNUP_MODE`, section 11) and every other environment variable | install | environment |
+| Signup mode (`SIGNUP_MODE`, section 11), the sender of account emails (`ACCOUNT_SMTP_*`) and the public URL (`CLIENT_URL`) (PP-373) | install | `settings` (`install.*`), with the environment winning |
+| Every other environment variable | install | environment |
 | Data retention period (`KEEP_DATA_PERIOD_DAYS`) | workspace | workspace settings |
 | Certificate expiry notification days (`cert_expiry_notify_days`) | workspace | workspace settings |
 | Plan | workspace | its own record (PP-160, PP-162) |
 
 - `/settings/key/KEEP_DATA_PERIOD_DAYS` keeps its path and works on the request's workspace. Members read it, admins change it. A plan can cap it (PP-161).
-- Only an instance admin (section 10) can change install settings: today that's the usage ping and error reports.
+- Only an instance admin (section 10) can change install settings: the usage ping and error reports, and the signup mode, the sender of account emails and the public URL (PP-373).
+- The signup mode, the sender and the public URL resolve as the environment first, then the value saved in `settings`, then the default, through one resolver (`internal/installsettings`) that every reader asks at the moment it needs the value. A setting whose variable is set is locked: the admin area shows it as set by the server's environment and the API refuses to change it. So a home user changes them in the web app with no restart, and the cloud pins them in its config. Each process keeps the saved values for 5 seconds, so a change reaches the other api replicas within that, as a workspace setting does. Startup still checks the variables that are set, and a save checks the values it would leave the same way: open signup needs a sender either way. The SMTP password is write-only. The `CORS_ORIGINS` default stays the environment's `CLIENT_URL`, so that saving a public URL can't lock the admin out of the API.
 - A new workspace starts with today's defaults for a new install: a data retention period of 180 days and certificate expiry notifications at 7, 14 and 21 days.
 - On upgrade, the install's current values move to the upgrade's workspace (section 12). An install that never stored a data retention period keeps 365 days, the value it uses today when the setting is unset.
 
@@ -186,7 +188,7 @@ Probes a workspace runs for itself are a later ticket, PP-286. They would give `
 
 ### 11. Signup
 
-Signup modes are two, set with `SIGNUP_MODE` (PP-155):
+Signup modes are two, set with `SIGNUP_MODE` (PP-155) or by an instance admin in the admin area when the variable is unset (section 5, PP-373):
 
 - **`invite`**, the default. The first user signs up as today and gets the first workspace, as its owner, with the instance admin flag. After that, people join only through an invite to a workspace.
 - **`open`**, for the cloud. Anyone may sign up, and each new user gets a workspace of their own, as its owner. Their monitors run only once their email is verified (PP-152).
