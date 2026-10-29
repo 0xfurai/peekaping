@@ -1403,7 +1403,8 @@
       "updated_success": "Notifikator muvaffaqiyatli yangilandi"
     },
     "new": {
-      "title": "Yangi Bildirishkan kanali"
+      "title": "Yangi Bildirishkan kanali",
+      "default_hint": "Bu kanal yangi monitorlarda belgilangan bo‘ladi."
     },
     "no_important": "Muhim xabarnomalar topilmadi.",
     "placeholders": {

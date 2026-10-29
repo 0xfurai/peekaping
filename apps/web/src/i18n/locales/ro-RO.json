@@ -1403,7 +1403,8 @@
       "updated_success": "Notifier actualizat cu succes"
     },
     "new": {
-      "title": "Canal nou de notificare"
+      "title": "Canal nou de notificare",
+      "default_hint": "Acest canal va fi bifat la monitoarele noi."
     },
     "no_important": "Nu există notificări importante.",
     "placeholders": {

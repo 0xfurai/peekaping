@@ -9,10 +9,13 @@ import type { NotificationChannelModel } from "@/api";
 import { channelCreateBody } from "../channel-payload";
 import { invalidateChannelLists } from "../channel-queries";
 
+// The form that creates a channel. `isDefault` makes it a default channel for new monitors.
 const CreateNotificationChannel = ({
   onSuccess,
+  isDefault = false,
 }: {
   onSuccess: (notifier: NotificationChannelModel) => void;
+  isDefault?: boolean;
 }) => {
   const { t } = useLocalizedTranslation();
   const queryClient = useQueryClient();
@@ -30,7 +33,7 @@ const CreateNotificationChannel = ({
 
   const handleSubmit = (data: NotificationChannelFormValues) => {
     createNotifierMutation.mutate({
-      body: channelCreateBody(data),
+      body: channelCreateBody(data, isDefault),
     });
   };
 

@@ -1404,7 +1404,8 @@
       "updated_success": "通知器已成功更新"
     },
     "new": {
-      "title": "新增通知通道"
+      "title": "新增通知通道",
+      "default_hint": "新監控會預先剔選呢個頻道。"
     },
     "no_important": "冇重要通知",
     "placeholders": {

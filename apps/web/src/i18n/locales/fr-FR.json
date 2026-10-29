@@ -1404,7 +1404,8 @@
       "updated_success": "Notificateur mis à jour avec succès"
     },
     "new": {
-      "title": "Nouveau canal de notification"
+      "title": "Nouveau canal de notification",
+      "default_hint": "Ce canal sera coché sur les nouveaux moniteurs."
     },
     "no_important": "Aucune notification importante trouvée.",
     "placeholders": {
