@@ -23,3 +23,8 @@ func OnConnected(s *Server, fn func(id string)) {
 func SweepEvery(s *Server, every time.Duration) {
 	s.sweepEvery = every
 }
+
+// StopSweep ends the server's sweep of its open sockets, as Close does, without closing engine.io
+func StopSweep(s *Server) {
+	s.stopSweeping()
+}
