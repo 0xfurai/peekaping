@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -21,7 +22,7 @@ import (
 )
 
 func newTestTeamsSender() *TeamsSender {
-	return NewTeamsSender(zap.NewNop().Sugar(), &config.Config{ClientURL: "https://peekaping.example.com/"}, NewHTTPClient())
+	return NewTeamsSender(zap.NewNop().Sugar(), installsettings.Static(&config.Config{ClientURL: "https://peekaping.example.com/"}), NewHTTPClient())
 }
 
 func sendTestTeamsMessage(sender *TeamsSender, configJSON string) error {
@@ -82,7 +83,7 @@ func (c testTeamsCard) text() string {
 
 func buildTestTeamsCard(t *testing.T, m *monitor.Model, hb *heartbeat.Model, message string) testTeamsCard {
 	t.Helper()
-	raw, err := json.Marshal(newTestTeamsSender().buildAdaptiveCard(&TeamsConfig{}, m, hb, message))
+	raw, err := json.Marshal(newTestTeamsSender().buildAdaptiveCard(context.Background(), &TeamsConfig{}, m, hb, message))
 	require.NoError(t, err)
 	var card testTeamsCard
 	require.NoError(t, json.Unmarshal(raw, &card))
@@ -187,6 +188,7 @@ func TestTeamsSender_CardLinksToMonitor(t *testing.T) {
 
 func TestTeamsSender_CardServerURLOverridesClientURL(t *testing.T) {
 	raw, err := json.Marshal(newTestTeamsSender().buildAdaptiveCard(
+		context.Background(),
 		&TeamsConfig{ServerURL: "https://status.example.com/"},
 		&monitor.Model{ID: "m1", Name: "API"},
 		&heartbeat.Model{Status: shared.MonitorStatusDown},

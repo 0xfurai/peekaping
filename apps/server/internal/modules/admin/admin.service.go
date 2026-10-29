@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
@@ -76,7 +76,7 @@ type ServiceImpl struct {
 	workspaces WorkspaceDeleter
 	bus        events.EventBus
 	mailer     *mailer.Mailer
-	installURL string
+	settings   *installsettings.Resolver
 	logger     *zap.SugaredLogger
 	now        func() time.Time
 }
@@ -89,7 +89,7 @@ func NewService(
 	workspaces WorkspaceDeleter,
 	bus events.EventBus,
 	mailer *mailer.Mailer,
-	cfg *config.Config,
+	settings *installsettings.Resolver,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
@@ -100,10 +100,15 @@ func NewService(
 		workspaces: workspaces,
 		bus:        bus,
 		mailer:     mailer,
-		installURL: strings.TrimRight(cfg.ClientURL, "/"),
+		settings:   settings,
 		logger:     logger.Named("[admin-service]"),
 		now:        time.Now,
 	}
+}
+
+// installURL is the address of the install that the notices name: the public URL now
+func (s *ServiceImpl) installURL(ctx context.Context) string {
+	return strings.TrimRight(s.settings.PublicURL(ctx), "/")
 }
 
 // log writes the one line an admin action leaves
@@ -222,7 +227,7 @@ func (s *ServiceImpl) CreateResetLink(ctx context.Context, actorID, userID strin
 		return nil, err
 	}
 	s.log(actorID, ActionCreateResetLink, userID)
-	s.notify(user.Email, mailer.ResetLinkMade(s.installURL))
+	s.notify(user.Email, mailer.ResetLinkMade(s.installURL(ctx)))
 	return &ResetLink{Link: link, ExpiresAt: expiresAt}, nil
 }
 
@@ -251,7 +256,7 @@ func (s *ServiceImpl) DisableTwoFA(ctx context.Context, actorID, userID string) 
 	}
 	s.log(actorID, ActionDisableTwoFA, userID)
 	if wasOn {
-		s.notify(updated.Email, mailer.TwoFactorTurnedOff(s.installURL))
+		s.notify(updated.Email, mailer.TwoFactorTurnedOff(s.installURL(ctx)))
 	}
 	return updated, nil
 }

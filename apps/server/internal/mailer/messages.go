@@ -67,6 +67,14 @@ func TwoFactorTurnedOff(installURL string) Message {
 		"Your password is enough to sign in until you set it up again. If you didn't expect this, ask the people who run this install.")
 }
 
+// TestEmail is the email an instance admin sends to check the install's sender for account emails.
+// installURL is the address of the install.
+func TestEmail(installURL string) Message {
+	return notice("Peekaping test email",
+		fmt.Sprintf("This is a test email from %s: its sender for account emails works.", installURL),
+		"An instance admin sent it from the admin area. There is nothing to do.")
+}
+
 // notice is an email that says what happened and has no link
 func notice(subject, what, footer string) Message {
 	return Message{

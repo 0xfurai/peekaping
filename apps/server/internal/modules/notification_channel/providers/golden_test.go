@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -129,7 +130,7 @@ func nopLogger() *zap.SugaredLogger {
 }
 
 // goldenAppConfig sets the URL that channels link back to Peekaping with
-var goldenAppConfig = &config.Config{ClientURL: "https://peekaping.example.com/"}
+var goldenAppConfig = installsettings.Static(&config.Config{ClientURL: "https://peekaping.example.com/"})
 
 var (
 	discord       = func(c *http.Client) goldenSender { return NewDiscordSender(nopLogger(), c) }

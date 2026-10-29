@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 
@@ -20,7 +21,7 @@ import (
 
 // newRealRegistry returns the registry the app runs with
 func newRealRegistry() *ProviderRegistry {
-	return NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, nil)
+	return NewProviderRegistry(zap.NewNop().Sugar(), installsettings.Static(&config.Config{}), nil, nil, nil)
 }
 
 // fieldKeys returns the sorted keys of each channel type's fields that match

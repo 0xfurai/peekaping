@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/notification_channel"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/shared"
@@ -284,7 +285,7 @@ func TestTelemetryAPI_ReportsEveryNotificationChannelTypeTheWorkerAccepts(t *tes
 	// A channel type the Worker would reject is left out of the ping without a trace
 	newApp(t)
 	typeRule := regexp.MustCompile(`^[a-z0-9_-]{1,32}$`)
-	types := notification_channel.NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, nil).Types()
+	types := notification_channel.NewProviderRegistry(zap.NewNop().Sugar(), installsettings.Static(&config.Config{}), nil, nil, nil).Types()
 	require.NotEmpty(t, types)
 	for _, name := range types {
 		assert.Regexp(t, typeRule, name)

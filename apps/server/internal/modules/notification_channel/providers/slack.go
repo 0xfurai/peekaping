@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"peekaping/internal/config"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
@@ -40,19 +39,19 @@ const slackPostMessageURL = "https://slack.com/api/chat.postMessage"
 var slackErrorCode = regexp.MustCompile(`^[a-z_]{1,64}$`)
 
 type SlackSender struct {
-	logger *zap.SugaredLogger
-	config *config.Config
-	client *http.Client
-	apiURL string
+	logger    *zap.SugaredLogger
+	publicURL PublicURLSource
+	client    *http.Client
+	apiURL    string
 }
 
 // NewSlackSender creates a SlackSender
-func NewSlackSender(logger *zap.SugaredLogger, config *config.Config, client *http.Client) *SlackSender {
+func NewSlackSender(logger *zap.SugaredLogger, publicURL PublicURLSource, client *http.Client) *SlackSender {
 	return &SlackSender{
-		logger: logger,
-		config: config,
-		client: client,
-		apiURL: slackPostMessageURL,
+		logger:    logger,
+		publicURL: publicURL,
+		client:    client,
+		apiURL:    slackPostMessageURL,
 	}
 }
 
@@ -255,7 +254,7 @@ func (s *SlackSender) Send(
 		title := "Peekaping Alert"
 
 		// Use blocks for modern Slack message format
-		blocks := s.buildBlocks(s.config.ClientURL, monitor, heartbeat, title, messageText)
+		blocks := s.buildBlocks(publicURL(ctx, s.publicURL), monitor, heartbeat, title, messageText)
 
 		// Without a heartbeat there is no status to color the message by, so it is grey
 		color := "#808080"
