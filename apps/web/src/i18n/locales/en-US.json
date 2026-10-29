@@ -1907,8 +1907,10 @@
       "url_label": "Address to monitor"
     },
     "channel": {
+      "continue_unlinked": "Continue without linking",
       "description": "Choose where Peekaping sends an alert when your monitor goes down. It becomes the default for new monitors.",
       "link_failed": "The channel was saved, but linking it to your monitor failed. Add it on the monitor's edit page.",
+      "retry_link": "Try linking again",
       "title": "Get notified"
     },
     "done": {

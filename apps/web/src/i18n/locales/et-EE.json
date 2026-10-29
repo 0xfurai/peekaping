@@ -1907,8 +1907,10 @@
       "url_label": "Jälgitav aadress"
     },
     "channel": {
+      "continue_unlinked": "Jätka sidumata",
       "description": "Vali, kuhu Peekaping saadab hoiatuse, kui sinu monitoor kukub. See muutub uute monitooride vaikeväärtuseks.",
       "link_failed": "Kanal salvestati, kuid selle sidumine monitooriga ebaõnnestus. Lisa see monitoori muutmise lehel.",
+      "retry_link": "Proovi uuesti siduda",
       "title": "Saa teavitusi"
     },
     "done": {
