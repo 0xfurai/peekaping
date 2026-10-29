@@ -1204,7 +1204,7 @@ func (mr *MonitorServiceImpl) AssignProbeToAllAnyWorkspace(ctx context.Context, 
 	var skipped int
 	var err error
 	for attempt := 1; ; attempt++ {
-		changed, skipped, err = mr.assignProbeToAll(ctx, probeID, supportedTypes, claim)
+		changed, skipped, err = mr.assignProbeToAllOnceAnyWorkspace(ctx, probeID, supportedTypes, claim)
 		if !errors.Is(err, errWorkspaceBelowHeld) || attempt == assignAttempts || dbtx.InTx(ctx) {
 			break
 		}
@@ -1231,9 +1231,9 @@ func (mr *MonitorServiceImpl) AssignProbeToAllAnyWorkspace(ctx context.Context, 
 	return len(changed), nil
 }
 
-// assignProbeToAll is one attempt of AssignProbeToAll, in a transaction of its own: the claim, the
-// look at the probe and the assignment
-func (mr *MonitorServiceImpl) assignProbeToAll(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (changed []string, skipped int, err error) {
+// assignProbeToAllOnceAnyWorkspace is one attempt of AssignProbeToAll, in a transaction of its
+// own: the claim, the look at the probe and the assignment
+func (mr *MonitorServiceImpl) assignProbeToAllOnceAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string, claim func(ctx context.Context) (bool, error)) (changed []string, skipped int, err error) {
 	err = mr.transactor.WithTx(ctx, func(ctx context.Context) error {
 		if claim != nil {
 			claimed, err := claim(ctx)
