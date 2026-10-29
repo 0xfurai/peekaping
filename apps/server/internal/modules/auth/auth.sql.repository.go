@@ -223,6 +223,10 @@ func (r *SQLRepositoryImpl) FindAllCount(ctx context.Context) (int64, error) {
 	return int64(count), err
 }
 
+func (r *SQLRepositoryImpl) AnyUser(ctx context.Context) (bool, error) {
+	return r.db.NewSelect().Model((*sqlModel)(nil)).Exists(ctx)
+}
+
 func (r *SQLRepositoryImpl) RecordLogin(ctx context.Context, id string, at time.Time) error {
 	// updated_at stays: signing in doesn't change the account
 	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
