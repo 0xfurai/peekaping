@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
+	"os"
+	"os/exec"
 	"strconv"
 	"sync/atomic"
 	"testing"
@@ -200,6 +202,52 @@ func TestRabbitMQExecutor_BlocksARedirectToAPrivateTarget(t *testing.T) {
 			assert.Zero(t, blockedRequests.Load(), "the address the redirect leads to saw no request")
 		})
 	}
+}
+
+// With the guard on, a RabbitMQ node is dialed itself, and not through a proxy from the environment:
+// the guard would check the proxy's address then, and a node at a blocked address would be reached
+// through the proxy. With the guard off the proxy is used as before. Go reads HTTP_PROXY once per
+// process, so the test runs itself again with a proxy set, the way the standard library's own tests
+// do.
+func TestRabbitMQExecutor_TheGuardChecksTheNodeAndNotAProxyFromTheEnvironment(t *testing.T) {
+	const name = "TestRabbitMQExecutor_TheGuardChecksTheNodeAndNotAProxyFromTheEnvironment"
+	if mode := os.Getenv("PEEKAPING_TEST_RABBITMQ_PROXY"); mode != "" {
+		guard := netguard.NewWithPrefixes(netip.MustParsePrefix("203.0.113.0/24"))
+		guard.Set(mode == "on")
+		result := guardedExecutor(t, "rabbitmq", guard).Execute(context.Background(),
+			driverMonitor("rabbitmq", `{"nodes": ["http://203.0.113.7:15672"], "username": "u", "password": "p"}`), nil)
+		if mode == "on" {
+			requireBlocked(t, result)
+		} else {
+			assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
+		}
+		return
+	}
+
+	// The proxy answers for the node, as one that could reach it would
+	proxy, proxied := countingServer(t, nil)
+	run := func(t *testing.T, mode string) {
+		t.Helper()
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+		cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^"+name+"$", "-test.v")
+		cmd.Env = append(os.Environ(), "PEEKAPING_TEST_RABBITMQ_PROXY="+mode,
+			"HTTP_PROXY="+proxy.URL, "http_proxy="+proxy.URL, "NO_PROXY=", "no_proxy=")
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err, string(out))
+		// A renamed test would match nothing and exit 0.
+		require.Contains(t, string(out), "--- PASS: "+name, string(out))
+	}
+
+	t.Run("on", func(t *testing.T) {
+		run(t, "on")
+		assert.Zero(t, proxied.Load(), "the proxy saw no request")
+	})
+	t.Run("off", func(t *testing.T) {
+		before := proxied.Load()
+		run(t, "off")
+		assert.Equal(t, before+1, proxied.Load(), "the check went through the proxy")
+	})
 }
 
 // pgdriver is told to connect over TCP whatever the string says, which keeps its Unix socket out

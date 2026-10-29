@@ -275,12 +275,21 @@ func (d guardedDirect) DialContext(ctx context.Context, network, addr string) (n
 
 // guardedClient is a client for a request that isn't the check's own, such as the OAuth token
 // request. It is built for the one check, and dials through the guard, which may be turned on while
-// the check runs. With no guard it is http.DefaultClient, as the request used before.
+// the check runs. With no guard it is http.DefaultClient, as the request used before. While the
+// guard is on, the target is dialed itself, and not through the proxy that HTTP_PROXY and
+// HTTPS_PROXY name: the guard would check the proxy's address then, and not the target's. It is
+// asked at each request, so a redirect after the guard was turned on goes without the proxy too.
 func guardedClient(guard *netguard.Guard) (*http.Client, func()) {
 	if guard == nil {
 		return http.DefaultClient, func() {}
 	}
 	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.Proxy = func(req *http.Request) (*url.URL, error) {
+		if guard.Enabled() {
+			return nil, nil
+		}
+		return http.ProxyFromEnvironment(req)
+	}
 	guardTransport(transport, guard)
 	return &http.Client{Transport: transport}, transport.CloseIdleConnections
 }
