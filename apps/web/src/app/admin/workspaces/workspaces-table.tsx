@@ -19,9 +19,10 @@ import {
 } from "@/components/ui/table";
 import { useTimezone } from "@/context/timezone-context";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import { workspaceActions } from "@/lib/admin-workspaces";
+import { limitsSummary, workspaceActions } from "@/lib/admin-workspaces";
 import { formatDateToTimezone } from "@/lib/formatDateToTimezone";
 import { WorkspaceActionDialog, type WorkspaceConfirmTarget } from "./workspace-action-dialog";
+import { WorkspaceLimitsDialog } from "./workspace-limits-dialog";
 
 const DATE_ONLY: Intl.DateTimeFormatOptions = {
   hour: undefined,
@@ -43,12 +44,36 @@ function WorkspaceStatus({ workspace }: { workspace: AdminWorkspaceResponse }) {
   );
 }
 
+// The limits a workspace is held to, in short, and where they come from: its own, the install's
+// defaults, or none
+function WorkspaceLimits({ workspace }: { workspace: AdminWorkspaceResponse }) {
+  const { t } = useLocalizedTranslation();
+  const { shown, more } = limitsSummary(workspace.limits);
+  const summary =
+    shown.length === 0
+      ? t("admin.workspaces.limits.unlimited")
+      : [
+          ...shown.map(({ name, value }) => t("admin.workspaces.limits.item", { name: t(`limits.names.${name}`), value })),
+          ...(more > 0 ? [t("admin.workspaces.limits.more", { number: more })] : []),
+        ].join(", ");
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span>{summary}</span>
+      <span className="text-xs text-muted-foreground">
+        {t(`admin.workspaces.limits.source.${workspace.limits.source}`)}
+      </span>
+    </div>
+  );
+}
+
 // The workspaces of the install, each with a menu of what an instance admin can do to it
-// (lib/admin-workspaces.ts). Every action asks for a confirmation first.
+// (lib/admin-workspaces.ts). Every action asks for a confirmation first, and Limits opens its
+// dialog.
 export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspaceResponse[] }) {
   const { t } = useLocalizedTranslation();
   const { timezone } = useTimezone();
   const [confirming, setConfirming] = useState<WorkspaceConfirmTarget | null>(null);
+  const [limitsOf, setLimitsOf] = useState<AdminWorkspaceResponse | null>(null);
 
   return (
     <>
@@ -62,6 +87,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspaceResp
             <TableHead>{t("admin.workspaces.columns.monitors")}</TableHead>
             <TableHead>{t("admin.workspaces.columns.status_pages")}</TableHead>
             <TableHead>{t("admin.workspaces.columns.custom_domains")}</TableHead>
+            <TableHead>{t("admin.workspaces.columns.limits")}</TableHead>
             <TableHead>{t("admin.workspaces.columns.status")}</TableHead>
             <TableHead />
           </TableRow>
@@ -92,6 +118,9 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspaceResp
               <TableCell>{workspace.statusPages}</TableCell>
               <TableCell>{workspace.customDomains}</TableCell>
               <TableCell>
+                <WorkspaceLimits workspace={workspace} />
+              </TableCell>
+              <TableCell>
                 <WorkspaceStatus workspace={workspace} />
               </TableCell>
               <TableCell className="text-right">
@@ -111,7 +140,9 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspaceResp
                       <DropdownMenuItem
                         key={action}
                         variant={action === "delete" ? "destructive" : "default"}
-                        onSelect={() => setConfirming({ kind: action, workspace })}
+                        onSelect={() =>
+                          action === "limits" ? setLimitsOf(workspace) : setConfirming({ kind: action, workspace })
+                        }
                       >
                         {t(`admin.workspaces.actions.${action}`)}
                       </DropdownMenuItem>
@@ -125,6 +156,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspaceResp
       </Table>
 
       <WorkspaceActionDialog target={confirming} onClose={() => setConfirming(null)} />
+      <WorkspaceLimitsDialog workspace={limitsOf} onClose={() => setLimitsOf(null)} />
     </>
   );
 }

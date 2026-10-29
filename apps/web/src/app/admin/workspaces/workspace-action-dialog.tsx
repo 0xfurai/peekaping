@@ -18,7 +18,10 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { adminErrorMessage, dismissWhileIdle } from "@/lib/admin-users";
 import { canDeleteWorkspace, type WorkspaceAction } from "@/lib/admin-workspaces";
 
-export type WorkspaceConfirmTarget = { kind: WorkspaceAction; workspace: AdminWorkspaceResponse };
+// The actions that ask for a confirmation: Limits opens a dialog of its own (workspace-limits-dialog)
+export type ConfirmedAction = Exclude<WorkspaceAction, "limits">;
+
+export type WorkspaceConfirmTarget = { kind: ConfirmedAction; workspace: AdminWorkspaceResponse };
 
 // The body of the confirmation: what the action does, the workspace's name to type before a delete,
 // the server's refusal when there was one, and the buttons. The title and the dialog around it are
@@ -34,7 +37,7 @@ export function WorkspaceActionDialogContent({
   onCancel,
   onConfirm,
 }: {
-  kind: WorkspaceAction;
+  kind: ConfirmedAction;
   name: string;
   // What the admin typed as the workspace's name, which a delete waits for
   typed: string;
