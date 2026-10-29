@@ -118,7 +118,7 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 | Error reports (`ERROR_REPORTING_ENABLED`) and the one-time notice (`TELEMETRY_NOTICE_SEEN`) | install | `settings` |
 | Notification history and TLS info retention (`NOTIFICATION_HISTORY_RETENTION_DAYS`, `TLS_INFO_RETENTION_DAYS`) | install | environment |
 | Signup mode (`SIGNUP_MODE`, section 11), the sender of account emails (`ACCOUNT_SMTP_*`) and the public URL (`CLIENT_URL`) (PP-373) | install | `settings` (`install.*`), with the environment winning |
-| Default limits of a workspace (`WORKSPACE_LIMIT_*`, PP-160) | install | `settings` (`install.workspace_limits.*`), with the environment winning |
+| Default limits of a workspace (`WORKSPACE_LIMIT_*`, PP-160) and the install's name for them (`WORKSPACE_LIMITS_NAME`, PP-163) | install | `settings` (`install.workspace_limits.*`, `install.workspace_limits_name`), with the environment winning |
 | Every other environment variable | install | environment |
 | Data retention period (`KEEP_DATA_PERIOD_DAYS`) | workspace | workspace settings |
 | Certificate expiry notification days (`cert_expiry_notify_days`) | workspace | workspace settings |

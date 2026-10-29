@@ -222,7 +222,7 @@ A user who manages what belongs to the install rather than to a workspace: probe
 _Avoid_: Superuser, site admin, root
 
 **Install setting**:
-A setting of the whole install that an instance admin can change in the admin area: the signup mode, the sender of account emails, the public URL (`CLIENT_URL`, the address links open) and the default limits of a workspace (`WORKSPACE_LIMIT_*`). Its value comes from the server's environment when its variable is set, which locks it, then from the value saved in the admin area, then from the default. The usage ping and error reports are install settings too, with switches of their own.
+A setting of the whole install that an instance admin can change in the admin area: the signup mode, the sender of account emails, the public URL (`CLIENT_URL`, the address links open) the default limits of a workspace (`WORKSPACE_LIMIT_*`) and the install's name for them (`WORKSPACE_LIMITS_NAME`, such as "Free tier"). Its value comes from the server's environment when its variable is set, which locks it, then from the value saved in the admin area, then from the default. The usage ping and error reports are install settings too, with switches of their own.
 _Avoid_: Global setting, system setting
 
 **Plan**:
