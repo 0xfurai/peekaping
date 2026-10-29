@@ -49,14 +49,14 @@ describe("usageLevel", () => {
 });
 
 describe("usageRows", () => {
-  it("has a row for each limit that is set, in order, and none for a limit that isn't", () => {
+  it("has a row for each limit that is set, in order, then the interval, and none for a count that isn't", () => {
     const rows = usageRows(
       report({
         members: { max: 5, used: 4, source: "install" },
         monitors: { max: 20, used: 14, source: "install" },
       })
     );
-    expect(rows.map((r) => r.name)).toEqual(["monitors", "members"]);
+    expect(rows.map((r) => r.name)).toEqual(["monitors", "members", "min_check_interval"]);
     expect(rows[0]).toEqual({ name: "monitors", kind: "count", used: 14, max: 20, level: "ok", percent: 70 });
     expect(rows[1]).toEqual({ name: "members", kind: "count", used: 4, max: 5, level: "near", percent: 80 });
   });
@@ -82,6 +82,20 @@ describe("usageRows", () => {
   it("shows the interval that applies, the stricter of the install's minimum and the limit", () => {
     const [row] = usageRows(report({ min_check_interval: { max: 30, used: 60, source: "install" } }));
     expect(row).toEqual({ name: "min_check_interval", kind: "value", value: 60 });
+  });
+
+  it("shows the interval that applies when the workspace has other limits but none of its own on the interval", () => {
+    const rows = usageRows(
+      report({
+        monitors: { max: 20, used: 14, source: "install" },
+        min_check_interval: { max: null, used: 60, source: "install" },
+      })
+    );
+    expect(rows.at(-1)).toEqual({ name: "min_check_interval", kind: "value", value: 60 });
+  });
+
+  it("has no rows for a workspace with no limits, not even the interval", () => {
+    expect(usageRows(report({ min_check_interval: { max: null, used: 60, source: "none" } }, "none"))).toEqual([]);
   });
 });
 

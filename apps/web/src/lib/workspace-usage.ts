@@ -40,9 +40,11 @@ export type UsageRow =
   | { name: ValueLimit; kind: "value"; value: number };
 
 // The rows of the limits that are set. The shortest check interval is the one that applies, the
-// stricter of the install's MIN_CHECK_INTERVAL and the limit; the retention is the longest period
-// the workspace may keep.
+// stricter of the install's MIN_CHECK_INTERVAL and the limit, so it is shown whenever the workspace
+// has any limit, set on the interval or not; the retention is the longest period the workspace may
+// keep. A workspace with no limits has no rows.
 export const usageRows = (report: LimitsReport): UsageRow[] => {
+  if (!hasLimits(report)) return [];
   const rows: UsageRow[] = [];
   for (const name of COUNTED_LIMITS) {
     const { max, used } = report.limits[name];
@@ -50,8 +52,7 @@ export const usageRows = (report: LimitsReport): UsageRow[] => {
     const percent = Math.min(100, Math.round((used / max) * 100));
     rows.push({ name, kind: "count", used, max, level: usageLevel(used, max), percent });
   }
-  const interval = report.limits.min_check_interval;
-  if (interval.max != null) rows.push({ name: "min_check_interval", kind: "value", value: interval.used });
+  rows.push({ name: "min_check_interval", kind: "value", value: report.limits.min_check_interval.used });
   const retention = report.limits.retention_days;
   if (retention.max != null) rows.push({ name: "retention_days", kind: "value", value: retention.max });
   return rows;
