@@ -19,7 +19,7 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -163,7 +163,7 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            runner: nexus-runner
+            runner: ubuntu-latest
             arch: amd64
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
@@ -224,7 +224,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   create-manifest:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     needs: [build-images, build-single-image]
     steps:
       - name: Log in to GHCR
@@ -407,7 +407,7 @@ jobs:
   # Runs last, once the pushed images have passed the e2e tests, so main changes only when the release can finish.
   # It starts from the commit the run started on, so its push fails if main moved.
   bump-version:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     needs: playwright-tests
     steps:
       - name: Checkout code
@@ -563,7 +563,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     needs: bump-version
     steps:
       - name: Download changelog artifact
@@ -619,7 +619,7 @@ jobs:
   # Runs once the images have passed the e2e tests and the GitHub release exists.
   # The chart's version and appVersion are the release, so it installs that release's images.
   publish-chart:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     needs: release
     permissions:
       contents: read

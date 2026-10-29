@@ -22,7 +22,7 @@ on:
 
 jobs:
   docs-snippets:
-    runs-on: nexus-runner
+    runs-on: ubuntu-latest
     permissions:
       contents: read
 
