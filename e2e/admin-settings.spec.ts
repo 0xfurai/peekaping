@@ -8,8 +8,10 @@ import { mailpitSMTP, mailpitURL, waitForMail } from './support/mail';
 //
 // It needs Mailpit (docker-compose.e2e.yml, E2E_MAILPIT_URL) and a sender the environment doesn't
 // set, since a variable that is set locks its field: so the cloud suite, which sets one, skips it.
-// The sender it saves is removed at the end, however the test ends: the other specs expect an
-// install with no sender (admin-users.spec.ts makes a reset link with none).
+// It skips when a sender is saved already, since it couldn't put that one back (a saved password
+// can't be read). The sender it saves is removed at the end, however the test ends: the other specs
+// expect an install with no sender (admin-users.spec.ts makes a reset link with none). It runs in a
+// project of its own, after every other spec (playwright.config.ts), so none of them sees its sender.
 test.describe.configure({ mode: 'serial' });
 
 type Setting = { value: unknown; source: string; locked: boolean };
@@ -30,15 +32,21 @@ async function installSettings(api: APIRequestContext): Promise<InstallSettings>
 const senderLocked = ({ accountSmtp }: InstallSettings) =>
   Object.values(accountSmtp).some((setting) => setting.locked);
 
+const senderSaved = ({ accountSmtp }: InstallSettings) =>
+  Object.values(accountSmtp).some((setting) => setting.source === 'saved');
+
 test('an instance admin saves an email sender, sends a test email, and a password reset email arrives', async ({
   page,
 }) => {
   test.skip(!mailpitURL, 'needs Mailpit (docker-compose.e2e.yml) and E2E_MAILPIT_URL');
   // Made before signing out, for the cleanup: signing out clears the page's session
   const api = await adminAPI(page);
+  // Whether this test may have saved the sender, which the cleanup then removes
+  let saved = false;
   try {
     const before = await installSettings(api);
     test.skip(senderLocked(before), "the server's environment sets the sender, so Admin → Settings can't change it");
+    test.skip(senderSaved(before), "a sender is saved in Admin → Settings already, and the test couldn't put it back after it saves its own");
     test.skip(before.signupMode.value === 'open', 'open signup needs its sender, so the test could not remove it');
 
     // 1. Admin → Settings: Mailpit as the sender, saved here
@@ -51,6 +59,7 @@ test('an instance admin saves an email sender, sends a test email, and a passwor
     await page.getByLabel('Port', { exact: true }).fill(String(mailpitSMTP.port));
     await page.getByLabel('Security', { exact: true }).selectOption('none');
     await page.getByLabel('From address', { exact: true }).fill('peekaping@e2e.test');
+    saved = true;
     await page.getByRole('button', { name: 'Save', exact: true }).click();
 
     await expect(page.getByText('Settings saved')).toBeVisible();
@@ -82,9 +91,9 @@ test('an instance admin saves an email sender, sends a test email, and a passwor
     await expect(page.getByText('If an account exists for this email, we sent a link.')).toBeVisible();
     await waitForMail(admin.email, /^Reset your Peekaping password$/, { since: asked, body: /\/reset-password\// });
   } finally {
-    // 4. The sender goes again, so the specs after this one see an install with no sender
-    const settings = await installSettings(api);
-    if (!senderLocked(settings) && settings.signupMode.value !== 'open') {
+    // 4. The sender this test saved goes again, so the install is left with no sender. One it
+    //    didn't save stays.
+    if (saved) {
       const cleared = await api.put('admin/settings', {
         data: { accountSmtp: { host: '', port: 0, user: '', password: '', from: '', tls: '' } },
       });
