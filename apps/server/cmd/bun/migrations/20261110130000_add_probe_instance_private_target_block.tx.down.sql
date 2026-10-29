@@ -1,0 +1,1 @@
+ALTER TABLE probe_instances DROP COLUMN enforces_private_target_block;
