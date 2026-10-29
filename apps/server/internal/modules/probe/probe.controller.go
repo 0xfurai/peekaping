@@ -260,6 +260,7 @@ func (c *Controller) UpdateProbe(ctx context.Context, input *UpdateProbeInput) (
 		Name:              req.Name,
 		Location:          req.Location,
 		Disabled:          req.Disabled,
+		IsDefault:         req.IsDefault,
 		NotificationIDs:   req.NotificationIDs,
 		ChannelWorkspaces: channelWorkspaces,
 	})

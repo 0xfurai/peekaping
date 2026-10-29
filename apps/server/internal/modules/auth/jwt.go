@@ -79,11 +79,25 @@ func init() {
 // a few milliseconds behind. The tokens_valid_after cutoff stays strict.
 const clockSkewLeeway = 5 * time.Second
 
-// SessionCutoffs says when a user's earlier sessions were ended
+// ErrSessionUserGone is what SessionCutoffs returns for a user that no longer exists (an instance
+// admin deleted them). Their tokens are refused, though they have not expired.
+var ErrSessionUserGone = errors.New("the user of the session no longer exists")
+
+// SessionState is what a user's sessions are judged by
+type SessionState struct {
+	// Active is whether the account is active: an instance admin may disable it, and a disabled
+	// account's sessions end
+	Active bool
+	// TokensValidAfter is the moment before which the sessions that began were ended, nil for none
+	TokensValidAfter *time.Time
+}
+
+// SessionCutoffs says whether a user's sessions stand: whether the account is active and when its
+// earlier sessions were ended
 type SessionCutoffs interface {
-	// TokensValidAfter returns the moment before which issued tokens no longer work, nil for none
-	// and for a user that doesn't exist
-	TokensValidAfter(ctx context.Context, userID string) (*time.Time, error)
+	// SessionState reads both in one lookup, and returns ErrSessionUserGone for a user that
+	// doesn't exist
+	SessionState(ctx context.Context, userID string) (SessionState, error)
 }
 
 // secretTTL is how long a signing secret stays in memory before it is read from
@@ -109,9 +123,10 @@ type TokenMaker struct {
 }
 
 // WithSessionCutoffs makes VerifyToken refuse a token issued before its user's cutoff (a password
-// reset ends every session). It reads the cutoff from the database on every verification, one
-// primary-key lookup, and does not cache it: a reset takes effect on every API replica at once,
-// and a cache would keep an ended session alive for as long as it lasts. It returns the maker.
+// reset ends every session), and a token of a user who was disabled or deleted. It reads the
+// cutoff and the account's state from the database on every verification, one primary-key lookup,
+// and does not cache them: a reset or a disable takes effect on every API replica at once, and a
+// cache would keep an ended session alive for as long as it lasts. It returns the maker.
 func (maker *TokenMaker) WithSessionCutoffs(cutoffs SessionCutoffs) *TokenMaker {
 	maker.cutoffs = cutoffs
 	return maker
@@ -244,9 +259,9 @@ func (maker *TokenMaker) createToken(user *Model, tokenType string, duration tim
 	return token.SignedString([]byte(secretKey))
 }
 
-// sessionStart is when the session of the claims began: auth_time, or the issue time of a token
+// SessionStart is when the session of the claims began: auth_time, or the issue time of a token
 // that predates the claim. Nil when the token says neither.
-func (claims *Claims) sessionStart() *time.Time {
+func (claims *Claims) SessionStart() *time.Time {
 	if claims.AuthTime != nil {
 		return &claims.AuthTime.Time
 	}
@@ -297,29 +312,63 @@ func (maker *TokenMaker) VerifyToken(ctx context.Context, tokenString string, to
 	return claims, nil
 }
 
-// checkSessionNotEnded refuses a token of a session that began before its user's sessions were ended. A failure to
-// read the cutoff refuses the token too, since a token that might be an ended session must not pass.
-func (maker *TokenMaker) checkSessionNotEnded(ctx context.Context, claims *Claims) error {
-	if maker.cutoffs == nil {
-		return nil
+// Ended is whether a session that began at start has ended by the state: the account is disabled,
+// or the session began before the cutoff. A session whose start is unknown has ended once there is
+// a cutoff.
+func (state SessionState) Ended(start *time.Time) bool {
+	if !state.Active {
+		return true
 	}
-	cutoff, err := maker.cutoffs.TokensValidAfter(ctx, claims.UserID)
-	if err != nil {
-		maker.logger.Errorw("Failed to read when the sessions of a user were ended", "userId", claims.UserID, "error", err)
-		return fmt.Errorf("failed to check the session: %w", err)
+	if state.TokensValidAfter == nil {
+		return false
 	}
-	if cutoff == nil {
-		return nil
-	}
-	// A session is judged by when it began, not by when a token of it was minted: a refresh that
-	// raced a reset mints its tokens after the cutoff, and they still belong to the ended session
-	start := claims.sessionStart()
 	if start == nil {
-		return ErrInvalidToken
+		return true
 	}
 	// Round to the millisecond: a fractional time does not survive the float it travels as exactly
-	if start.Round(time.Millisecond).Before(cutoff.Round(time.Millisecond)) {
+	return start.Round(time.Millisecond).Before(state.TokensValidAfter.Round(time.Millisecond))
+}
+
+// SessionStateOf reads what the sessions of the user are judged by (see SessionState.Ended), in one
+// lookup. It returns ErrInvalidToken for a user that no longer exists, whose every session has
+// ended, and another error when the user could not be read. A maker with no cutoffs reads nothing
+// and answers an active account with no cutoff.
+func (maker *TokenMaker) SessionStateOf(ctx context.Context, userID string) (SessionState, error) {
+	if maker.cutoffs == nil {
+		return SessionState{Active: true}, nil
+	}
+	state, err := maker.cutoffs.SessionState(ctx, userID)
+	if errors.Is(err, ErrSessionUserGone) {
+		return SessionState{}, ErrInvalidToken
+	}
+	if err != nil {
+		maker.logger.Errorw("Failed to read whether the sessions of a user stand", "userId", userID, "error", err)
+		return SessionState{}, fmt.Errorf("failed to check the session: %w", err)
+	}
+	return state, nil
+}
+
+// CheckSession returns nil when a session of the user that began at start still stands: the user
+// exists, their account is active, and the session began at or after their tokens_valid_after. It
+// returns ErrInvalidToken when the session ended. It is for a session that outlives its token's
+// check too, as an open socket does: the token was verified once, when the socket connected. A
+// failure to read the user refuses with another error, since a session that might have ended must
+// not pass. A login checks the account as well, but one that passed that check just before an
+// admin disabled the account began after any cutoff, so the account is checked here too.
+func (maker *TokenMaker) CheckSession(ctx context.Context, userID string, start *time.Time) error {
+	state, err := maker.SessionStateOf(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if state.Ended(start) {
 		return ErrInvalidToken
 	}
 	return nil
+}
+
+// checkSessionNotEnded refuses a token of a session that ended (see CheckSession). A session is
+// judged by when it began, not by when a token of it was minted: a refresh that raced a reset
+// mints its tokens after the cutoff, and they still belong to the ended session.
+func (maker *TokenMaker) checkSessionNotEnded(ctx context.Context, claims *Claims) error {
+	return maker.CheckSession(ctx, claims.UserID, claims.SessionStart())
 }

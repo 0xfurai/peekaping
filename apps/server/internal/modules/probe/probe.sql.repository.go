@@ -24,7 +24,9 @@ type sqlModel struct {
 	TokenHash   string `bun:"token_hash,nullzero"`
 	TokenPrefix string `bun:"token_prefix,notnull"`
 	Disabled    bool   `bun:"disabled,notnull"` // no Bun default: it would replace false with the column default
-	Status      string `bun:"status,notnull"`
+	// IsDefault marks a probe that new monitors without chosen probes run on
+	IsDefault bool   `bun:"is_default,notnull"` // no Bun default, as Disabled
+	Status    string `bun:"status,notnull"`
 	// SupportedTypes is a JSON array of monitor types, in a JSONB column
 	SupportedTypes string `bun:"supported_types,notnull"`
 	// AssignAllPending is true until the probe's first hello has assigned it every monitor
@@ -99,6 +101,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 		TokenHash:        sm.TokenHash,
 		TokenPrefix:      sm.TokenPrefix,
 		Disabled:         sm.Disabled,
+		IsDefault:        sm.IsDefault,
 		Status:           Status(sm.Status),
 		SupportedTypes:   decodeTypes(sm.SupportedTypes),
 		AssignAllPending: sm.AssignAllPending,
@@ -225,6 +228,9 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 	}
 	if update.Disabled != nil {
 		query = query.Set("disabled = ?", *update.Disabled)
+	}
+	if update.IsDefault != nil {
+		query = query.Set("is_default = ?", *update.IsDefault)
 	}
 	if _, err := query.Exec(ctx); err != nil {
 		return nil, err

@@ -28,6 +28,7 @@ type sqlModel struct {
 
 	EmailVerifiedAt  *time.Time `bun:"email_verified_at"`
 	TokensValidAfter *time.Time `bun:"tokens_valid_after"`
+	LastLoginAt      *time.Time `bun:"last_login_at"`
 
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
 	UpdatedAt time.Time `bun:"updated_at,nullzero,notnull,default:current_timestamp"`
@@ -46,6 +47,7 @@ func toDomainModelFromSQL(sm *sqlModel) *Model {
 
 		EmailVerifiedAt:  sm.EmailVerifiedAt,
 		TokensValidAfter: sm.TokensValidAfter,
+		LastLoginAt:      sm.LastLoginAt,
 
 		CreatedAt: sm.CreatedAt,
 		UpdatedAt: sm.UpdatedAt,
@@ -65,6 +67,7 @@ func toSQLModel(m *Model) *sqlModel {
 
 		EmailVerifiedAt:  m.EmailVerifiedAt,
 		TokensValidAfter: m.TokensValidAfter,
+		LastLoginAt:      m.LastLoginAt,
 
 		CreatedAt: m.CreatedAt,
 		UpdatedAt: m.UpdatedAt,
@@ -222,6 +225,16 @@ func (r *SQLRepositoryImpl) FindAllCount(ctx context.Context) (int64, error) {
 
 func (r *SQLRepositoryImpl) AnyUser(ctx context.Context) (bool, error) {
 	return r.db.NewSelect().Model((*sqlModel)(nil)).Exists(ctx)
+}
+
+func (r *SQLRepositoryImpl) RecordLogin(ctx context.Context, id string, at time.Time) error {
+	// updated_at stays: signing in doesn't change the account. Two sign-ins can overlap and the
+	// earlier one commit last, so the time only moves forward.
+	at = at.UTC()
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
+		Set("last_login_at = ?", at).Where("id = ?", id).
+		Where("last_login_at IS NULL OR last_login_at < ?", at).Exec(ctx)
+	return err
 }
 
 func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, entity *UpdateModel) error {

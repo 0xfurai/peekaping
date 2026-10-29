@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 // ErrAdminExists is returned by CreateFirst when the install already has a user.
@@ -31,4 +32,6 @@ type Repository interface {
 	// counts them all.
 	AnyUser(ctx context.Context) (bool, error)
 	Update(ctx context.Context, id string, entity *UpdateModel) error
+	// RecordLogin sets when the user last signed in
+	RecordLogin(ctx context.Context, id string, at time.Time) error
 }

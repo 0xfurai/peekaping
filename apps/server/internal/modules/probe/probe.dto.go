@@ -19,6 +19,9 @@ type UpdateProbeDto struct {
 	Name     *string `json:"name,omitempty" validate:"omitempty,min=1,max=255"`
 	Location *string `json:"location,omitempty" validate:"omitempty,max=255"`
 	Disabled *bool   `json:"disabled,omitempty" validate:"omitempty"`
+	// IsDefault marks the probe as one that a monitor created without choosing probes runs on
+	// (true), or not (false)
+	IsDefault *bool `json:"is_default,omitempty" validate:"omitempty" doc:"Whether a monitor created without probe_ids runs on this probe. Disabled probes, and probes that don't run the monitor's type, are skipped."`
 	// NotificationIDs replaces the probe's notification channels when present. An empty list
 	// clears them.
 	NotificationIDs []string `json:"notification_ids,omitempty" validate:"omitempty"`
@@ -46,6 +49,9 @@ type ProbeResponse struct {
 	Location    string `json:"location" validate:"required"`
 	TokenPrefix string `json:"token_prefix" validate:"required"`
 	Disabled    bool   `json:"disabled" validate:"required"`
+	// IsDefault is whether a monitor created without probe_ids runs on this probe. An instance admin
+	// sets it; the local probe is a default probe on an install that upgraded.
+	IsDefault bool `json:"is_default" validate:"required"`
 	// Status is online while one of the probe's instances is connected. The local probe in single
 	// mode is always online: the peekaping process checks its monitors.
 	Status string `json:"status" validate:"required" enum:"online,offline"`
@@ -109,6 +115,7 @@ func ToProbeResponse(m *Model) *ProbeResponse {
 		Location:         m.Location,
 		TokenPrefix:      m.TokenPrefix,
 		Disabled:         m.Disabled,
+		IsDefault:        m.IsDefault,
 		Status:           string(m.Status),
 		SupportedTypes:   supportedTypes,
 		NotificationIDs:  notificationIDs,

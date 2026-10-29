@@ -14,6 +14,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/mailer"
+	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
@@ -63,6 +64,7 @@ type AccountService struct {
 	mailer     *mailer.Mailer
 	workspaces workspace.Repository
 	monitors   MonitorWaker
+	bus        events.EventBus
 	clientURL  string
 	logger     *zap.SugaredLogger
 	now        func() time.Time
@@ -75,6 +77,7 @@ func NewAccountService(
 	mailer *mailer.Mailer,
 	workspaces workspace.Repository,
 	monitors MonitorWaker,
+	bus events.EventBus,
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
 ) *AccountService {
@@ -85,6 +88,7 @@ func NewAccountService(
 		mailer:     mailer,
 		workspaces: workspaces,
 		monitors:   monitors,
+		bus:        bus,
 		clientURL:  cfg.ClientURL,
 		logger:     logger.Named("[account-service]"),
 		now:        time.Now,
@@ -120,6 +124,26 @@ func (s *AccountService) RequestPasswordReset(email string) {
 	})
 }
 
+// CreateResetLink makes a single-use reset link for the user, for an instance admin to hand over: it
+// needs no sender for account emails and sends nothing. The link opens the web app's reset page and
+// works once, until it expires ResetTokenLifetime from now; using it ends every session of the
+// user. The token is in the link only: the service stores its hash. ErrUserNotFound is for a user
+// that does not exist.
+func (s *AccountService) CreateResetLink(ctx context.Context, userID string) (link string, expiresAt time.Time, err error) {
+	user, err := s.repo.FindByID(ctx, userID)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	if user == nil {
+		return "", time.Time{}, ErrUserNotFound
+	}
+	token, err := s.issue(ctx, userID, PurposeReset, ResetTokenPrefix, ResetTokenLifetime)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+	return s.link("reset-password", token), s.now().UTC().Add(ResetTokenLifetime), nil
+}
+
 // ResetPassword spends a reset token: it sets the user's password, ends every session the user
 // has (see Model.TokensValidAfter), marks the address verified if it was not, and invalidates
 // their other unused reset links. The password
@@ -143,7 +167,10 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 	if err != nil {
 		return fmt.Errorf("failed to hash the new password: %w", err)
 	}
-	var lifted []workspace.ID
+	var (
+		lifted  []workspace.ID
+		resetID string
+	)
 	err = s.transactor.WithTx(ctx, func(ctx context.Context) error {
 		now := s.now().UTC()
 		userID, err := s.accounts.ConsumeToken(ctx, PurposeReset, hashAccountToken(token), now)
@@ -153,6 +180,7 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 		if userID == "" {
 			return ErrInvalidLink
 		}
+		resetID = userID
 		// To the millisecond, as the tokens' issue times are: a session started right after this
 		// instant must be later than it
 		if err := s.accounts.SetPassword(ctx, userID, string(hashed), now.Truncate(time.Millisecond)); err != nil {
@@ -172,6 +200,11 @@ func (s *AccountService) ResetPassword(ctx context.Context, token, newPassword s
 		return err
 	}
 	s.wake(ctx, lifted)
+	// Their open sockets close: a socket is a session no token check reaches again. A bus that
+	// fails is logged: the reset stands.
+	if err := events.Publish(ctx, s.bus, SessionsEnded, SessionsEndedEvent{UserID: resetID}); err != nil {
+		s.logger.Errorw("Failed to publish that the sessions of a user ended", "userId", resetID, "error", err)
+	}
 	return nil
 }
 

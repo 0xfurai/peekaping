@@ -25,8 +25,9 @@ type CreateUpdateDto struct {
 	Config          string   `json:"config"`
 	PushToken       string   `json:"push_token" doc:"For a push monitor, the token of its push URL. When a create leaves it out here and in config.pushToken, the server generates one and returns it in push_token and in config.pushToken. A token you send is kept; when push_token and config.pushToken differ, push_token wins. A full update needs the same token here and in config.pushToken. Push tokens are unique across the install: a token another monitor holds is refused with 400 and the code PUSH_TOKEN_EXISTS." example:"3KQ7WBH2ZV5XJYPN4D6TFAE2GM"`
 	// ProbeIDs are the probes that run the monitor, one or more. A create without it runs on the
-	// local probe, and an update without it keeps the monitor's probes.
-	ProbeIDs []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create, the monitor runs on local; omitted on update, it keeps its probes. A push monitor runs on local only." example:"local"`
+	// default probes that run its type, the local probe when there are none, and an update without
+	// it keeps the monitor's probes.
+	ProbeIDs []string `json:"probe_ids" doc:"The probes that run the monitor's checks, by id: one or more, none twice, and each must run the monitor's type. Omitted on create (not an empty list), the monitor runs on the default probes that aren't disabled and run its type, which an instance admin chooses and which is local until then; omitted on update, it keeps its probes. A push monitor runs on local only." example:"local"`
 	// LocationRule and LocationThreshold are how many of the monitor's locations must be Down for
 	// it to be Down. Without a rule a create is any and an update keeps the monitor's rule.
 	LocationRule      shared.LocationRule `json:"location_rule,omitempty" enum:"any,all,at_least" doc:"How many of the monitor's locations must be Down for the monitor to be Down: any (one is enough), all (every location that counts) or at_least (location_threshold of them). Omitted on create, the rule is any; omitted on update, the monitor keeps its rule. Locations whose probe is offline, or that haven't reported, don't count." example:"any"`

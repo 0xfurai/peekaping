@@ -172,7 +172,8 @@ Workspaces come to SQLite and PostgreSQL only. MongoDB storage is deprecated (AD
 Some things belong to the install, not to a workspace: probes, token lifetimes, the usage ping and error reports. An **instance admin** manages them. It's a flag on the user, not a role, and it gives no access to any workspace's data. On the cloud, the instance admins are the people who run it.
 
 - The first user to sign up gets the flag. On upgrade, every existing user gets it. Today that's the one user, who also owns the upgrade's workspace, so a self-hoster sees no change.
-- v1 has no screen to give the flag to anyone else.
+- An instance admin gives and takes the flag from the admin area (PP-371). The last instance admin who can sign in can't lose the flag, be disabled or be deleted, and an admin can't disable or delete their own account.
+- Two actions of the admin area, making a password reset link for a user and turning off their 2FA, exist for installs without an email sender (PP-371), and they let an instance admin sign in as that user, so the flag's "no access to workspace data" holds only while neither is used. Every use is logged with who did it to whom, and when the install has an email sender it is emailed to the user.
 - ADR 0003 says an admin opts out of the usage ping and error reports. That admin is the instance admin.
 - **Probes** stay the install's. Only an instance admin creates, changes, deletes or rotates the token of one. An API key can't, since it belongs to a workspace; today it can.
 - Every member can see a probe's name, location, status and the monitor types it runs, so they can choose probes for their monitors. A probe instance's hostname, OS and version are shown to instance admins only.

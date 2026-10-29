@@ -21,8 +21,8 @@ import (
 
 type failingCutoffs struct{}
 
-func (failingCutoffs) TokensValidAfter(context.Context, string) (*time.Time, error) {
-	return nil, errors.New("database is down")
+func (failingCutoffs) SessionState(context.Context, string) (auth.SessionState, error) {
+	return auth.SessionState{}, errors.New("database is down")
 }
 
 func TestTokenMaker_RefusesATokenIssuedBeforeTheUsersCutoffAndAcceptsOneIssuedAfter(t *testing.T) {
@@ -74,11 +74,9 @@ func TestTokenMaker_ATokenIssuedInTheSameMillisecondAsTheCutoffWorks(t *testing.
 	require.NoError(t, err)
 	claims, err := tokens.VerifyToken(ctx, token, "access")
 	require.NoError(t, err)
-	require.NotNil(t, claims.AuthTime, "a token carries auth_time")
-	// the cutoff is the very instant the token says its session began. Not iat: the session's
-	// start is read before the settings the token needs, and iat after, so the two can differ
-	// by a millisecond
-	require.NoError(t, accounts.SetPassword(ctx, user.ID, user.Password, claims.AuthTime.Time))
+	// the cutoff is the very instant the token says its session began. Not iat: the session's start
+	// is read before the settings the token needs, and iat after, so the two can differ by a millisecond.
+	require.NoError(t, accounts.SetPassword(ctx, user.ID, user.Password, *claims.SessionStart()))
 
 	_, err = tokens.VerifyToken(ctx, token, "access")
 
@@ -95,20 +93,101 @@ func TestTokenMaker_ATokenThatMightBeAnEndedSessionIsRefusedWhenTheCutoffCannotB
 	assert.Error(t, err)
 }
 
-func TestTokenMaker_WithoutCutoffsOrWithoutAUserRowATokenIsAccepted(t *testing.T) {
+func TestTokenMaker_WithoutCutoffsATokenIsAccepted(t *testing.T) {
 	h := newHarness(t)
 	session := h.register(t)
-	ctx := context.Background()
 
-	_, err := h.tokens.VerifyToken(ctx, session.AccessToken, "access")
+	_, err := h.tokens.VerifyToken(context.Background(), session.AccessToken, "access")
+
 	assert.NoError(t, err, "a maker with no cutoffs checks none")
+}
 
-	// a token for a user the database does not know has no cutoff to be before
+// An instance admin deletes a user (PP-371): the tokens they hold have not expired, but they end
+func TestTokenMaker_RefusesATokenOfAUserWhoNoLongerExists(t *testing.T) {
+	h := newHarness(t)
+	ctx := context.Background()
 	tokens := auth.NewTokenMaker(h.settings, zap.NewNop().Sugar()).WithSessionCutoffs(auth.NewSQLAccountRepository(h.db))
-	ghost, err := tokens.CreateAccessToken(ctx, &auth.Model{ID: "00000000-0000-0000-0000-000000000000", Email: "ghost@example.com"})
+	ghost := &auth.Model{ID: "00000000-0000-0000-0000-000000000000", Email: "ghost@example.com"}
+
+	access, err := tokens.CreateAccessToken(ctx, ghost)
 	require.NoError(t, err)
-	_, err = tokens.VerifyToken(ctx, ghost, "access")
-	assert.NoError(t, err)
+	refresh, err := tokens.CreateRefreshToken(ctx, ghost)
+	require.NoError(t, err)
+
+	_, err = tokens.VerifyToken(ctx, access, "access")
+	assert.ErrorIs(t, err, auth.ErrInvalidToken)
+	_, err = tokens.VerifyToken(ctx, refresh, "refresh")
+	assert.ErrorIs(t, err, auth.ErrInvalidToken)
+}
+
+// An open socket checks its session once more when it joins a room (PP-371): the account has to
+// exist and be active, and the session must have begun at or after the cutoff
+func TestTokenMaker_CheckSessionRefusesADisabledDeletedOrEndedSessionAndOneThatCannotBeRead(t *testing.T) {
+	h := newHarness(t)
+	h.register(t)
+	ctx := context.Background()
+	user, err := auth.NewSQLRepository(h.db).FindByEmail(ctx, adminEmail)
+	require.NoError(t, err)
+	accounts := auth.NewSQLAccountRepository(h.db)
+	tokens := auth.NewTokenMaker(h.settings, zap.NewNop().Sugar()).WithSessionCutoffs(accounts)
+	began := time.Now().UTC().Truncate(time.Millisecond)
+
+	assert.NoError(t, tokens.CheckSession(ctx, user.ID, &began))
+	assert.NoError(t, tokens.CheckSession(ctx, user.ID, nil), "with no cutoff, a session of unknown start stands")
+
+	require.NoError(t, accounts.EndSessions(ctx, user.ID, began.Add(time.Millisecond)))
+	assert.ErrorIs(t, tokens.CheckSession(ctx, user.ID, &began), auth.ErrInvalidToken, "began before the cutoff")
+	assert.ErrorIs(t, tokens.CheckSession(ctx, user.ID, nil), auth.ErrInvalidToken, "unknown start, with a cutoff")
+	later := began.Add(time.Second)
+	assert.NoError(t, tokens.CheckSession(ctx, user.ID, &later), "began after the cutoff")
+
+	_, err = h.db.Exec("UPDATE users SET active = ? WHERE id = ?", false, user.ID)
+	require.NoError(t, err)
+	assert.ErrorIs(t, tokens.CheckSession(ctx, user.ID, &later), auth.ErrInvalidToken, "disabled")
+
+	_, err = h.db.Exec("DELETE FROM users WHERE id = ?", user.ID)
+	require.NoError(t, err)
+	assert.ErrorIs(t, tokens.CheckSession(ctx, user.ID, &later), auth.ErrInvalidToken, "gone")
+
+	failing := auth.NewTokenMaker(h.settings, zap.NewNop().Sugar()).WithSessionCutoffs(failingCutoffs{})
+	err = failing.CheckSession(ctx, user.ID, &later)
+	assert.Error(t, err, "a session that can't be read is refused")
+	assert.NotErrorIs(t, err, auth.ErrInvalidToken)
+	assert.NoError(t, h.tokens.CheckSession(ctx, user.ID, &began), "a maker with no cutoffs checks none")
+}
+
+// A login that passed the Active check just before an admin disabled the account gets a token whose
+// session began after any cutoff. The request-time check refuses it all the same (PP-371).
+func TestTokenMaker_RefusesATokenOfADisabledUserWhoseSessionBeganAfterTheCutoff(t *testing.T) {
+	h := newHarness(t)
+	h.register(t)
+	ctx := context.Background()
+	accounts := auth.NewSQLAccountRepository(h.db)
+	tokens := auth.NewTokenMaker(h.settings, zap.NewNop().Sugar()).WithSessionCutoffs(accounts)
+	user, err := auth.NewSQLRepository(h.db).FindByEmail(ctx, adminEmail)
+	require.NoError(t, err)
+	require.NoError(t, accounts.EndSessions(ctx, user.ID, time.Now().UTC().Add(-time.Minute).Truncate(time.Millisecond)))
+	_, err = h.db.Exec("UPDATE users SET active = ? WHERE id = ?", false, user.ID)
+	require.NoError(t, err)
+
+	for _, kind := range []string{"access", "refresh"} {
+		var token string
+		if kind == "access" {
+			token, err = tokens.CreateAccessToken(ctx, user)
+		} else {
+			token, err = tokens.CreateRefreshToken(ctx, user)
+		}
+		require.NoError(t, err)
+		_, err = tokens.VerifyToken(ctx, token, kind)
+		assert.ErrorIs(t, err, auth.ErrInvalidToken, kind)
+	}
+
+	_, err = h.db.Exec("UPDATE users SET active = ? WHERE id = ?", true, user.ID)
+	require.NoError(t, err)
+	token, err := tokens.CreateAccessToken(ctx, user)
+	require.NoError(t, err)
+	_, err = tokens.VerifyToken(ctx, token, "access")
+	assert.NoError(t, err, "enabled again")
 }
 
 // afterFind runs a hook once FindByID has answered, to force the moment a request has read the

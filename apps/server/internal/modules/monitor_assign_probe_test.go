@@ -35,6 +35,10 @@ func (k knownProbes) FindProbe(_ context.Context, id string) (*monitor.ProbeInfo
 	return &monitor.ProbeInfo{Name: id}, nil
 }
 
+func (k knownProbes) FindDefaultProbes(context.Context) ([]*monitor.DefaultProbe, error) {
+	return nil, nil
+}
+
 // assignFixture is a monitor service and probe repository over one database, with a probe that
 // waits to be assigned
 type assignFixture struct {

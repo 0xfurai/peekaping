@@ -173,13 +173,23 @@ func (mr *MonitorServiceImpl) Create(ctx context.Context, workspaceID workspace.
 		LocationThreshold: monitorCreateDto.LocationThreshold,
 	}
 
-	// A monitor created without probes runs on the local one
+	// A monitor created without probes (none, which is not an empty list) runs on the default
+	// probes that run its type, and on the local one when there are none
 	probes := 1
 	if monitorCreateDto.ProbeIDs != nil {
 		if err := mr.validateProbes(ctx, monitorCreateDto.Type, monitorCreateDto.ProbeIDs); err != nil {
 			return nil, err
 		}
 		probes = len(monitorCreateDto.ProbeIDs)
+	} else {
+		defaults, err := mr.defaultProbeIDs(ctx, monitorCreateDto.Type)
+		if err != nil {
+			return nil, err
+		}
+		if len(defaults) > 0 {
+			createModel.ProbeIDs = defaults
+			probes = len(defaults)
+		}
 	}
 	if err := validateLocationRule(createModel.LocationRule, createModel.LocationThreshold, probes); err != nil {
 		return nil, err

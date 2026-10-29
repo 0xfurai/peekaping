@@ -27,6 +27,7 @@ import (
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
 	"peekaping/internal/mailer"
+	"peekaping/internal/modules/admin"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
@@ -118,6 +119,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 		api_key.RegisterDependencies(container),
 		workspace.RegisterDependencies(container),
 		workspacehttp.RegisterDependencies(container),
+		admin.RegisterDependencies(container),
 		middleware.RegisterDependencies(container),
 		metrics.RegisterDependencies(container),
 		telemetry.RegisterDependencies(container),

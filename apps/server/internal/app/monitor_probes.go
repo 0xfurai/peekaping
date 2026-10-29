@@ -26,6 +26,22 @@ func (l *probeLookup) FindProbe(ctx context.Context, id string) (*monitor.ProbeI
 	return &monitor.ProbeInfo{Name: found.Name, SupportedTypes: found.SupportedTypes}, nil
 }
 
+// FindDefaultProbes returns the default probes that are not disabled, the local probe first. A
+// disabled probe is skipped: a monitor assigned to it would not run.
+func (l *probeLookup) FindDefaultProbes(ctx context.Context) ([]*monitor.DefaultProbe, error) {
+	all, err := l.probes.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var defaults []*monitor.DefaultProbe
+	for _, p := range all {
+		if p.IsDefault && !p.Disabled {
+			defaults = append(defaults, &monitor.DefaultProbe{ID: p.ID, ProbeInfo: monitor.ProbeInfo{Name: p.Name, SupportedTypes: p.SupportedTypes}})
+		}
+	}
+	return defaults, nil
+}
+
 // probeMonitorAssigner lets the probe controller assign a probe to monitors through the monitor
 // service. The probe module doesn't import the monitor module, so this is where the two meet.
 type probeMonitorAssigner struct {

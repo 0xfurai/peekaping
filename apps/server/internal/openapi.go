@@ -2,6 +2,7 @@ package internal
 
 import (
 	"peekaping/internal/config"
+	"peekaping/internal/modules/admin"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
@@ -47,6 +48,7 @@ func OpenAPI() *huma.OpenAPI {
 		probe.NewRoute(nil, nil), nil,
 		protocol.NewRoute(nil, nil), nil,
 		workspacehttp.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
+		admin.NewRoute(nil, (*middleware.AuthChain)(nil)), nil,
 		nil, nil,
 	)
 	return server.Router.API().OpenAPI()

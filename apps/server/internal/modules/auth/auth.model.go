@@ -22,8 +22,11 @@ type Model struct {
 	// TokensValidAfter ends the sessions issued before it: an access or refresh token issued
 	// earlier is refused. A password reset sets it. Nil means no session was ended.
 	TokensValidAfter *time.Time `json:"-"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	UpdatedAt        time.Time  `json:"updatedAt"`
+	// LastLoginAt is when the user last signed in, by a login or by the signup that signed them in.
+	// Nil means they have not since it was recorded. It is shown to instance admins only.
+	LastLoginAt *time.Time `json:"-"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 }
 
 type UpdateModel struct {

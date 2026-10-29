@@ -50,12 +50,16 @@ type AccountRepository interface {
 	DeleteSpentTokens(ctx context.Context, before time.Time) (int64, error)
 	// SetPassword sets the user's password hash and ends every session issued before at
 	SetPassword(ctx context.Context, userID, passwordHash string, at time.Time) error
+	// EndSessions ends every session issued before at, as a password reset does, without touching
+	// the password
+	EndSessions(ctx context.Context, userID string, at time.Time) error
 	// MarkEmailVerified records that the user's address was verified at the time, unless it was
 	// verified already: the first time stays
 	MarkEmailVerified(ctx context.Context, userID string, at time.Time) error
-	// TokensValidAfter returns when the user's earlier sessions were ended, nil for none, and for a
-	// user that doesn't exist. It is a SessionCutoffs.
-	TokensValidAfter(ctx context.Context, userID string) (*time.Time, error)
+	// SessionState returns whether the user's account is active and when their earlier sessions
+	// were ended, in one read, and ErrSessionUserGone for a user that doesn't exist. It is a
+	// SessionCutoffs.
+	SessionState(ctx context.Context, userID string) (SessionState, error)
 }
 
 type accountTokenModel struct {
@@ -148,6 +152,14 @@ func (r *SQLAccountRepository) SetPassword(ctx context.Context, userID, password
 	return err
 }
 
+func (r *SQLAccountRepository) EndSessions(ctx context.Context, userID string, at time.Time) error {
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
+		Set("tokens_valid_after = ?", at.UTC()).
+		Set("updated_at = ?", time.Now().UTC()).
+		Where("id = ?", userID).Exec(ctx)
+	return err
+}
+
 func (r *SQLAccountRepository) MarkEmailVerified(ctx context.Context, userID string, at time.Time) error {
 	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
 		Set("email_verified_at = ?", at.UTC()).
@@ -156,18 +168,22 @@ func (r *SQLAccountRepository) MarkEmailVerified(ctx context.Context, userID str
 	return err
 }
 
-func (r *SQLAccountRepository) TokensValidAfter(ctx context.Context, userID string) (*time.Time, error) {
-	var after *time.Time
-	err := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).Column("tokens_valid_after").Where("id = ?", userID).Scan(ctx, &after)
+func (r *SQLAccountRepository) SessionState(ctx context.Context, userID string) (SessionState, error) {
+	var row struct {
+		Active           bool       `bun:"active"`
+		TokensValidAfter *time.Time `bun:"tokens_valid_after"`
+	}
+	err := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).Column("active", "tokens_valid_after").Where("id = ?", userID).Scan(ctx, &row)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		return SessionState{}, ErrSessionUserGone
 	}
 	if err != nil {
-		return nil, err
+		return SessionState{}, err
 	}
-	if after != nil {
-		utc := after.UTC()
-		after = &utc
+	state := SessionState{Active: row.Active}
+	if row.TokensValidAfter != nil {
+		utc := row.TokensValidAfter.UTC()
+		state.TokensValidAfter = &utc
 	}
-	return after, nil
+	return state, nil
 }

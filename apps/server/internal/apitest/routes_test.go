@@ -77,6 +77,11 @@ var jwtOnlyRoutes = map[string]bool{
 	"DELETE /api/v1/probes/{id}":                   true,
 	"POST /api/v1/probes/{id}/assign-all-monitors": true,
 	"POST /api/v1/probes/{id}/rotate-token":        true,
+	"GET /api/v1/admin/users":                      true,
+	"PATCH /api/v1/admin/users/{id}":               true,
+	"POST /api/v1/admin/users/{id}/reset-link":     true,
+	"POST /api/v1/admin/users/{id}/disable-2fa":    true,
+	"DELETE /api/v1/admin/users/{id}":              true,
 }
 
 // instanceAdminRoutes are the jwtOnlyRoutes that an API key reaches the check of: it is
@@ -90,6 +95,11 @@ var instanceAdminRoutes = map[string]bool{
 	"DELETE /api/v1/probes/{id}":                   true,
 	"POST /api/v1/probes/{id}/assign-all-monitors": true,
 	"POST /api/v1/probes/{id}/rotate-token":        true,
+	"GET /api/v1/admin/users":                      true,
+	"PATCH /api/v1/admin/users/{id}":               true,
+	"POST /api/v1/admin/users/{id}/reset-link":     true,
+	"POST /api/v1/admin/users/{id}/disable-2fa":    true,
+	"DELETE /api/v1/admin/users/{id}":              true,
 }
 
 // probeRoutes are the probe protocol's. A probe authenticates with its token and an instance id,

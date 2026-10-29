@@ -284,6 +284,12 @@ var (
 		"DELETE /api/v1/probes/{id}":                   "probes belong to the install: instance admin only",
 		"POST /api/v1/probes/{id}/assign-all-monitors": "probes belong to the install, and an instance admin adds one to every monitor of it by design (ADR 0005 section 10)",
 		"POST /api/v1/probes/{id}/rotate-token":        "probes belong to the install: instance admin only",
+
+		"GET /api/v1/admin/users":                   "the install's users, instance admin only: each user's workspaces are shown by name and role, never a workspace's records",
+		"PATCH /api/v1/admin/users/{id}":            "the install's users, instance admin only: the instance admin flag and disabling reach the user, not a workspace",
+		"POST /api/v1/admin/users/{id}/reset-link":  "the install's users, instance admin only: a password reset link reaches the user, not a workspace",
+		"POST /api/v1/admin/users/{id}/disable-2fa": "the install's users, instance admin only: the user's own 2FA, not a workspace",
+		"DELETE /api/v1/admin/users/{id}":           "the install's users, instance admin only: a user's memberships go with them, no workspace's records do",
 	}
 )
 

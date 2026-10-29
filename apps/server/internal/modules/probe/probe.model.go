@@ -57,7 +57,10 @@ type Model struct {
 	// TokenPrefix is the first characters of the token, which the API shows in place of it
 	TokenPrefix string
 	Disabled    bool
-	Status      Status
+	// IsDefault marks the probes that a monitor created without choosing probes runs on, set by an
+	// instance admin. The local probe is one until they say otherwise.
+	IsDefault bool
+	Status    Status
 	// SupportedTypes are the monitor types the probe can run: the union over its online
 	// instances, each of which reports its own when it says hello. An empty list means every
 	// type. The service works the union out when it adds the probe's details (FindByID and
@@ -139,7 +142,8 @@ type CreateModel struct {
 
 // UpdateModel is what can change about a probe: nil fields stay as they are
 type UpdateModel struct {
-	Name     *string
-	Location *string
-	Disabled *bool
+	Name      *string
+	Location  *string
+	Disabled  *bool
+	IsDefault *bool
 }
