@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/mail"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -373,6 +374,11 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 			cleared = true
 		}
 		order = passwordLast
+	}
+	// Open signup needs a sender, so a save that opens it writes the mode last: one that fails
+	// partway leaves signup as it was, not open with no sender. Closing it stays first.
+	if differs(current, next, KeySignupMode) && r.resolve(next, signupMode).Value == config.SignupModeOpen {
+		order = append(slices.DeleteFunc(slices.Clone(order), func(s setting) bool { return s.key == KeySignupMode }), signupMode)
 	}
 	for _, s := range order {
 		after, has := next[s.key]
