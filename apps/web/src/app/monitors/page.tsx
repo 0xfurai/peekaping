@@ -28,7 +28,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import EmptyList from "@/components/empty-list";
+import { MonitorsEmptyState } from "./components/monitors-empty-state";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
@@ -384,12 +384,7 @@ const MonitorsPage = () => {
 
         {/* No monitors state */}
         {monitors.length === 0 && !isLoading && (
-          <EmptyList
-            title={t("monitors.empty_state.title")}
-            text={t("monitors.empty_state.description")}
-            actionText={t("monitors.empty_state.action")}
-            onClick={() => navigate(workspacePath("/monitors/new"))}
-          />
+          <MonitorsEmptyState />
         )}
 
         {/* Monitors list */}

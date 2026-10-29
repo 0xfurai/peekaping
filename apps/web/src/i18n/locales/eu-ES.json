@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Sortu zure lehen monitorra",
+      "add_channel": "Gehitu jakinarazpen-kanal bat",
       "description": "Hasieratu lehen monitoa sortuz, zure zerbitzuen osasuna jarraitzeko.",
       "title": "Monitoreik ez daude aurkitu"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "Jakinarazlea ongi eguneratu da"
     },
     "new": {
-      "title": "Jakinarazpen-kanal berria"
+      "title": "Jakinarazpen-kanal berria",
+      "default_hint": "Kanal hau monitore berrietan markatuta egongo da."
     },
     "no_important": "Ez da garrantzitsuen jakinarazpenik aurkitu.",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "Ezin izan da lan-eremuaren izena aldatu",
     "rename_success": "Lan-eremuaren izena aldatu da",
     "switcher_label": "Aldatu lan-eremua"
+  },
+  "get_started": {
+    "page_name": "Hasteko urratsak",
+    "skip": "Saltatu konfigurazioa",
+    "step_of": "{{current}}. urratsa, guztira {{total}}",
+    "name": {
+      "description": "Hemen daude zure monitoreak, jakinarazpen-kanalak eta egoera-orriak. Izena geroago alda dezakezu Ezarpenetan.",
+      "title": "Jarri izena zure lan-eremuari"
+    },
+    "monitor": {
+      "create": "Sortu monitorea",
+      "create_failed": "Ezin izan da monitorea sortu",
+      "creating": "Sortzen...",
+      "description": "Idatzi webgune edo API baten helbidea. Peekaping-ek egiaztatzen du eta erantzuteari uzten dionean abisatzen dizu.",
+      "full_form": "Edo konfiguratu monitore bat aukera guztiekin",
+      "title": "Gehitu zure lehen monitorea",
+      "url_invalid": "Idatzi http:// edo https:// hasten den helbide bat",
+      "url_label": "Monitorizatu beharreko helbidea"
+    },
+    "channel": {
+      "continue_unlinked": "Jarraitu lotu gabe",
+      "description": "Aukeratu non bidaliko duen Peekaping-ek abisua zure monitorea erortzen denean. Monitore berrien lehenetsia izango da.",
+      "link_failed": "Kanala gorde da, baina ezin izan da zure monitorearekin lotu. Gehitu monitorearen edizio-orrian.",
+      "retry_link": "Saiatu berriro lotzen",
+      "title": "Jaso jakinarazpenak"
+    },
+    "done": {
+      "description": "Peekaping zure zerbitzua zaintzen ari da. Hau egin dezakezu orain.",
+      "title": "Dena prest",
+      "unverified": "Zure monitorea zure helbide elektronikoa egiaztatu ondoren hasiko da martxan. Begiratu sarrera-ontzian egiaztatze-esteka.",
+      "links": {
+        "members": "Gonbidatu zure taldea",
+        "monitor": "Ireki zure monitorea",
+        "monitors": "Joan monitoreetara",
+        "probes": "Kudeatu zundak",
+        "status_pages": "Argitaratu egoera-orri bat"
+      }
+    }
   }
 }

@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Opret din første monitor",
+      "add_channel": "Tilføj en notifikationskanal",
       "description": "Kom i gang ved at oprette din første overvågning for at overvåge sundheden af dine tjenester.",
       "title": "Ingen overvågninger fundet"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "Notifier opdateret med succes"
     },
     "new": {
-      "title": "Ny beskedkanal"
+      "title": "Ny beskedkanal",
+      "default_hint": "Denne kanal bliver markeret på nye monitorer."
     },
     "no_important": "Ingen vigtige meddelelser fundet.",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "Arbejdsområdet kunne ikke omdøbes",
     "rename_success": "Arbejdsområdet er omdøbt",
     "switcher_label": "Skift arbejdsområde"
+  },
+  "get_started": {
+    "page_name": "Kom i gang",
+    "skip": "Spring opsætningen over",
+    "step_of": "Trin {{current}} af {{total}}",
+    "name": {
+      "description": "Her ligger dine monitorer, notifikationskanaler og statussider. Du kan omdøbe det senere under Indstillinger.",
+      "title": "Navngiv dit arbejdsområde"
+    },
+    "monitor": {
+      "create": "Opret monitor",
+      "create_failed": "Monitoren kunne ikke oprettes",
+      "creating": "Opretter...",
+      "description": "Indtast adressen på et websted eller en API. Peekaping tjekker den og fortæller dig, når den holder op med at svare.",
+      "full_form": "Eller opsæt en monitor med alle indstillinger",
+      "title": "Tilføj din første monitor",
+      "url_invalid": "Indtast en adresse, der starter med http:// eller https://",
+      "url_label": "Adresse der skal overvåges"
+    },
+    "channel": {
+      "continue_unlinked": "Fortsæt uden at tilknytte",
+      "description": "Vælg, hvor Peekaping sender en alarm, når din monitor går ned. Det bliver standard for nye monitorer.",
+      "link_failed": "Kanalen blev gemt, men det lykkedes ikke at knytte den til din monitor. Tilføj den på monitorens redigeringsside.",
+      "retry_link": "Prøv at tilknytte igen",
+      "title": "Få besked"
+    },
+    "done": {
+      "description": "Peekaping overvåger din tjeneste. Her er, hvad du kan gøre nu.",
+      "title": "Alt er klar",
+      "unverified": "Din monitor kører, når din e-mailadresse er bekræftet. Tjek din indbakke for bekræftelseslinket.",
+      "links": {
+        "members": "Inviter dit team",
+        "monitor": "Åbn din monitor",
+        "monitors": "Gå til monitorer",
+        "probes": "Administrer probes",
+        "status_pages": "Udgiv en statusside"
+      }
+    }
   }
 }

@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Maak je eerste monitor aan",
+      "add_channel": "Notificatiekanaal toevoegen",
       "description": "Begin met het aanmaken van je eerste monitor om de gezondheid van je diensten te volgen.",
       "title": "Geen monitors gevonden"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "Notifier succesvol bijgewerkt"
     },
     "new": {
-      "title": "Nieuw notificatiekanaal"
+      "title": "Nieuw notificatiekanaal",
+      "default_hint": "Dit kanaal wordt aangevinkt bij nieuwe monitors."
     },
     "no_important": "Geen belangrijke meldingen gevonden.",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "Werkruimte hernoemen mislukt",
     "rename_success": "Werkruimte hernoemd",
     "switcher_label": "Van werkruimte wisselen"
+  },
+  "get_started": {
+    "page_name": "Aan de slag",
+    "skip": "Installatie overslaan",
+    "step_of": "Stap {{current}} van {{total}}",
+    "name": {
+      "description": "Hier staan je monitoren, meldingskanalen en statuspagina's. Je kunt de naam later wijzigen in Instellingen.",
+      "title": "Geef je werkruimte een naam"
+    },
+    "monitor": {
+      "create": "Monitor aanmaken",
+      "create_failed": "Monitor aanmaken mislukt",
+      "creating": "Aanmaken...",
+      "description": "Voer het adres van een website of API in. Peekaping controleert het en laat je weten wanneer het niet meer reageert.",
+      "full_form": "Of stel een monitor in met alle opties",
+      "title": "Voeg je eerste monitor toe",
+      "url_invalid": "Voer een adres in dat begint met http:// of https://",
+      "url_label": "Te monitoren adres"
+    },
+    "channel": {
+      "continue_unlinked": "Doorgaan zonder koppelen",
+      "description": "Kies waar Peekaping een melding naartoe stuurt als je monitor uitvalt. Het wordt de standaard voor nieuwe monitoren.",
+      "link_failed": "Het kanaal is opgeslagen, maar het koppelen aan je monitor is mislukt. Voeg het toe op de bewerkpagina van de monitor.",
+      "retry_link": "Opnieuw proberen te koppelen",
+      "title": "Ontvang meldingen"
+    },
+    "done": {
+      "description": "Peekaping houdt je dienst in de gaten. Dit kun je hierna doen.",
+      "title": "Alles staat klaar",
+      "unverified": "Je monitor draait zodra je e-mailadres is geverifieerd. Zoek de verificatielink in je inbox.",
+      "links": {
+        "members": "Nodig je team uit",
+        "monitor": "Open je monitor",
+        "monitors": "Naar de monitoren",
+        "probes": "Probes beheren",
+        "status_pages": "Publiceer een statuspagina"
+      }
+    }
   }
 }

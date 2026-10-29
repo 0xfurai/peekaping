@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Créez votre premier moniteur",
+      "add_channel": "Ajouter un canal de notification",
       "description": "Commencez par créer votre premier moniteur pour surveiller la santé de vos services.",
       "title": "Aucun moniteur trouvé"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "Notificateur mis à jour avec succès"
     },
     "new": {
-      "title": "Nouveau canal de notification"
+      "title": "Nouveau canal de notification",
+      "default_hint": "Ce canal sera coché sur les nouveaux moniteurs."
     },
     "no_important": "Aucune notification importante trouvée.",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "Échec du renommage de l'espace de travail",
     "rename_success": "Espace de travail renommé",
     "switcher_label": "Changer d'espace de travail"
+  },
+  "get_started": {
+    "page_name": "Premiers pas",
+    "skip": "Passer la configuration",
+    "step_of": "Étape {{current}} sur {{total}}",
+    "name": {
+      "description": "Vos moniteurs, canaux de notification et pages de statut se trouvent ici. Vous pourrez le renommer plus tard dans les Paramètres.",
+      "title": "Nommez votre espace de travail"
+    },
+    "monitor": {
+      "create": "Créer le moniteur",
+      "create_failed": "Échec de la création du moniteur",
+      "creating": "Création...",
+      "description": "Saisissez l'adresse d'un site web ou d'une API. Peekaping la vérifie et vous prévient quand elle cesse de répondre.",
+      "full_form": "Ou configurez un moniteur avec toutes les options",
+      "title": "Ajoutez votre premier moniteur",
+      "url_invalid": "Saisissez une adresse qui commence par http:// ou https://",
+      "url_label": "Adresse à surveiller"
+    },
+    "channel": {
+      "continue_unlinked": "Continuer sans associer",
+      "description": "Choisissez où Peekaping envoie une alerte quand votre moniteur tombe. Il deviendra le canal par défaut des nouveaux moniteurs.",
+      "link_failed": "Le canal a été enregistré, mais son association à votre moniteur a échoué. Ajoutez-le depuis la page de modification du moniteur.",
+      "retry_link": "Réessayer l'association",
+      "title": "Soyez prévenu"
+    },
+    "done": {
+      "description": "Peekaping surveille votre service. Voici ce que vous pouvez faire ensuite.",
+      "title": "Tout est prêt",
+      "unverified": "Votre moniteur démarrera une fois votre adresse e-mail vérifiée. Cherchez le lien de vérification dans votre boîte de réception.",
+      "links": {
+        "members": "Inviter votre équipe",
+        "monitor": "Ouvrir votre moniteur",
+        "monitors": "Aller aux moniteurs",
+        "probes": "Gérer les sondes",
+        "status_pages": "Publier une page d'état"
+      }
+    }
   }
 }

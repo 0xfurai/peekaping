@@ -1,4 +1,3 @@
-import { getNotificationChannelsOptions } from "@/api/@tanstack/react-query.gen";
 import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
@@ -7,6 +6,7 @@ import { TypographyH4 } from "@/components/ui/typography";
 import { useQuery } from "@tanstack/react-query";
 import { useFormContext } from "react-hook-form";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { allNotificationChannelsOptions } from "./channel-support";
 
 // Without onNewNotifier the "new channel" button is left out, for forms that have no
 // place to create a channel.
@@ -15,8 +15,9 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier?: () => void }) => {
   const form = useFormContext();
   const notification_ids = form.watch("notification_ids");
 
+  // Every channel, so that a ticked one past the list's first page is shown and can be chosen
   const { data: notifications } = useQuery({
-    ...getNotificationChannelsOptions(),
+    ...allNotificationChannelsOptions(),
   });
 
   return (

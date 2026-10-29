@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Crea il tuo primo monitor",
+      "add_channel": "Aggiungi un canale di notifica",
       "description": "Inizia creando il tuo primo monitor per monitorare la salute dei tuoi servizi.",
       "title": "Nessun monitor trovato"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "Notificatore aggiornato con successo"
     },
     "new": {
-      "title": "Nuovo canale di notifica"
+      "title": "Nuovo canale di notifica",
+      "default_hint": "Questo canale sarà selezionato nei nuovi monitor."
     },
     "no_important": "Nessuna notifica importante trovata.",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "Impossibile rinominare lo spazio di lavoro",
     "rename_success": "Spazio di lavoro rinominato",
     "switcher_label": "Cambia spazio di lavoro"
+  },
+  "get_started": {
+    "page_name": "Per iniziare",
+    "skip": "Salta la configurazione",
+    "step_of": "Passaggio {{current}} di {{total}}",
+    "name": {
+      "description": "Qui trovi i tuoi monitor, i canali di notifica e le pagine di stato. Potrai rinominarlo più tardi nelle Impostazioni.",
+      "title": "Dai un nome al tuo spazio di lavoro"
+    },
+    "monitor": {
+      "create": "Crea monitor",
+      "create_failed": "Impossibile creare il monitor",
+      "creating": "Creazione...",
+      "description": "Inserisci l'indirizzo di un sito web o di un'API. Peekaping lo controlla e ti avvisa quando smette di rispondere.",
+      "full_form": "Oppure configura un monitor con tutte le opzioni",
+      "title": "Aggiungi il tuo primo monitor",
+      "url_invalid": "Inserisci un indirizzo che inizi con http:// o https://",
+      "url_label": "Indirizzo da monitorare"
+    },
+    "channel": {
+      "continue_unlinked": "Continua senza collegare",
+      "description": "Scegli dove Peekaping invia un avviso quando il tuo monitor va giù. Diventerà il canale predefinito dei nuovi monitor.",
+      "link_failed": "Il canale è stato salvato, ma il collegamento al monitor non è riuscito. Aggiungilo dalla pagina di modifica del monitor.",
+      "retry_link": "Riprova a collegare",
+      "title": "Ricevi le notifiche"
+    },
+    "done": {
+      "description": "Peekaping sta controllando il tuo servizio. Ecco cosa puoi fare ora.",
+      "title": "È tutto pronto",
+      "unverified": "Il tuo monitor funzionerà una volta verificato il tuo indirizzo email. Cerca il link di verifica nella posta in arrivo.",
+      "links": {
+        "members": "Invita il tuo team",
+        "monitor": "Apri il tuo monitor",
+        "monitors": "Vai ai monitor",
+        "probes": "Gestisci le sonde",
+        "status_pages": "Pubblica una pagina di stato"
+      }
+    }
   }
 }

@@ -2,8 +2,10 @@ import { test as setup, expect, type Page } from '@playwright/test';
 import { admin, apiBaseURL } from './support/admin';
 
 // Signs in as the e2e admin and saves the session for every other spec. A
-// fresh database gets the admin through the register form; a database from an
-// earlier run already has it, so the setup logs in instead.
+// fresh database gets the admin through the register form, which opens Get
+// started; the setup skips it so that every later spec starts from the monitors
+// list. A database from an earlier run already has the admin, so the setup logs
+// in instead.
 setup('Sign in as the e2e admin', async ({ page }) => {
   await page.goto('/login');
   const login = await page.request.post(`${await apiBaseURL(page)}/auth/login`, { data: admin });
@@ -19,6 +21,7 @@ setup('Sign in as the e2e admin', async ({ page }) => {
         : `Unexpected login answer for ${admin.email}`,
     ).toBe('invalid credentials');
     await register(page);
+    await getStarted(page);
   }
 
   await expect(page).toHaveURL(/\/monitors$/);
@@ -64,4 +67,14 @@ async function register(page: Page) {
     (await registered).status(),
     `Registering ${admin.email} failed. If the database has an admin with other credentials, set E2E_EMAIL and E2E_PASSWORD or reset the database.`,
   ).toBe(201);
+}
+
+// A new install's first user lands on Get started for their workspace. Continue with its name as it
+// is, then skip the rest of the setup.
+async function getStarted(page: Page) {
+  await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/get-started$/);
+  await expect(page.getByText('Name your workspace')).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Name' })).toHaveValue('My workspace');
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('link', { name: 'Skip setup' }).click();
 }

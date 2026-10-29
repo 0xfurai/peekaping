@@ -35,3 +35,6 @@ export const workspacePath = (path: string): string => {
 /** Whether an address is in the admin area (`/admin/...`), which is outside every workspace. */
 export const isAdminPath = (pathname: string): boolean =>
   pathname === "/admin" || pathname.startsWith("/admin/");
+
+/** The page that walks a new workspace's owner through a first monitor and channel. */
+export const GET_STARTED_PATH = "/get-started";

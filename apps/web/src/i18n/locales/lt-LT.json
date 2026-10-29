@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Sukurkite pirmą monitorių",
+      "add_channel": "Pridėti pranešimų kanalą",
       "description": "Pradėkite, sukūrę savo pirmąjį stebėsenos įrašą, ir stebėkite paslaugų būklę.",
       "title": "Nerasta monitorių"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "Pranešiklis sėkmingai atnaujintas"
     },
     "new": {
-      "title": "Naujas pranešimų kanalas"
+      "title": "Naujas pranešimų kanalas",
+      "default_hint": "Šis kanalas bus pažymėtas naujuose monitoriuose."
     },
     "no_important": "Nėra svarbių pranešimų.",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "Nepavyko pervadinti darbo erdvės",
     "rename_success": "Darbo erdvė pervadinta",
     "switcher_label": "Perjungti darbo erdvę"
+  },
+  "get_started": {
+    "page_name": "Pradžia",
+    "skip": "Praleisti sąranką",
+    "step_of": "{{current}} žingsnis iš {{total}}",
+    "name": {
+      "description": "Čia yra jūsų stebėjimai, pranešimų kanalai ir būsenos puslapiai. Pavadinimą vėliau galėsite pakeisti nustatymuose.",
+      "title": "Pavadinkite savo darbo erdvę"
+    },
+    "monitor": {
+      "create": "Sukurti monitorių",
+      "create_failed": "Nepavyko sukurti monitoriaus",
+      "creating": "Kuriama...",
+      "description": "Įveskite svetainės ar API adresą. „Peekaping“ jį tikrina ir praneša, kai jis nustoja atsakyti.",
+      "full_form": "Arba nustatykite monitorių su visomis parinktimis",
+      "title": "Pridėkite pirmąjį monitorių",
+      "url_invalid": "Įveskite adresą, prasidedantį http:// arba https://",
+      "url_label": "Stebimas adresas"
+    },
+    "channel": {
+      "continue_unlinked": "Tęsti nesusiejus",
+      "description": "Pasirinkite, kur „Peekaping“ siunčia įspėjimą, kai jūsų monitorius neveikia. Tai taps numatytuoju naujiems monitoriams.",
+      "link_failed": "Kanalas išsaugotas, bet susieti jo su monitoriumi nepavyko. Pridėkite jį monitoriaus redagavimo puslapyje.",
+      "retry_link": "Bandyti susieti dar kartą",
+      "title": "Gaukite pranešimus"
+    },
+    "done": {
+      "description": "„Peekaping“ stebi jūsų paslaugą. Štai ką galite daryti toliau.",
+      "title": "Viskas paruošta",
+      "unverified": "Jūsų monitorius veiks, kai bus patvirtintas el. pašto adresas. Patvirtinimo nuorodą rasite gautuosiuose.",
+      "links": {
+        "members": "Pakviesti savo komandą",
+        "monitor": "Atidaryti monitorių",
+        "monitors": "Eiti į monitorius",
+        "probes": "Tvarkyti zondus",
+        "status_pages": "Paskelbti būsenos puslapį"
+      }
+    }
   }
 }

@@ -39,20 +39,27 @@ import {
   selectableChannelTypeOptions,
   getChannelType,
   isChannelType,
+  type ChannelType,
   type NotificationChannelFormValues,
 } from "../channel-types/registry";
 
 export default function CreateEditNotificationChannel({
   onSubmit,
+  types,
+  hideTitle = false,
   initialValues = {
     name: "",
-    ...channelTypes[0].defaultValues,
+    ...(getChannelType(types?.[0]) ?? channelTypes[0]).defaultValues,
   },
   isLoading = false,
   mode = "create",
   channelId,
 }: {
   onSubmit: (data: NotificationChannelFormValues) => void;
+  // Offers only these types, in this order, and starts on the first. Without it the form offers
+  // every type the install can use.
+  types?: readonly ChannelType[];
+  hideTitle?: boolean;
   initialValues?: NotificationChannelFormValues;
   isLoading?: boolean;
   mode?: "create" | "edit";
@@ -95,10 +102,12 @@ export default function CreateEditNotificationChannel({
 
   const type = baseForm.watch("type");
   // A saved channel of a type the install no longer offers still opens and edits
-  const typeOptions = selectableChannelTypeOptions({
-    accountEmails,
-    keep: mode === "edit" ? openingValues.type : undefined,
-  });
+  const typeOptions = types
+    ? types.map((value) => ({ value, label: getChannelType(value)?.displayName ?? value }))
+    : selectableChannelTypeOptions({
+        accountEmails,
+        keep: mode === "edit" ? openingValues.type : undefined,
+      });
 
   const TypeFormComponent = getChannelType(type)?.Form ?? null;
 
@@ -163,9 +172,11 @@ export default function CreateEditNotificationChannel({
 
   return (
     <div className="flex flex-col gap-6 max-w-[600px]">
-      <CardTitle className="text-xl">
-        {mode === "edit" ? t("notifications.edit_title") : t("notifications.create_title")}
-      </CardTitle>
+      {!hideTitle && (
+        <CardTitle className="text-xl">
+          {mode === "edit" ? t("notifications.edit_title") : t("notifications.create_title")}
+        </CardTitle>
+      )}
 
       <Form {...baseForm}>
         <form
