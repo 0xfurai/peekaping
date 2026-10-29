@@ -25,30 +25,12 @@ jobs:
           docker info
           docker run --rm alpine sh -c 'cat /proc/sys/net/ipv4/ping_group_range; cat /proc/self/uid_map; df -hT /'
           docker run --rm --sysctl 'net.ipv4.ping_group_range=0 2147483647' alpine cat /proc/sys/net/ipv4/ping_group_range || echo "the default-Docker sysctl is refused"
-          docker run --rm --sysctl 'net.ipv4.ping_group_range=0 2147483647' --user 1000:1000 alpine ping -c1 -W2 127.0.0.1 || echo "no ping with the sysctl"
+          docker run --rm --sysctl 'net.ipv4.ping_group_range=0 65535' alpine cat /proc/sys/net/ipv4/ping_group_range || echo "0 65535 is refused"
+          docker run --rm --sysctl 'net.ipv4.ping_group_range=0 65535' --user 1000:1000 alpine ping -c1 -W2 127.0.0.1 || echo "no ping with 0 65535"
+          docker run --rm --user 1000:1000 alpine ping -c1 -W2 127.0.0.1 || echo "no ping without a sysctl"
       - name: fsync speed
         run: |
           probe() { echo "== $1"; dd if=/dev/zero of="$1/ddtest" bs=8k count=300 oflag=dsync 2>&1 | tail -1; rm -f "$1/ddtest"; }
           probe "$RUNNER_TEMP"; probe /tmp; probe /dev/shm
           echo "== container overlay"; docker run --rm alpine sh -c 'dd if=/dev/zero of=/ddtest bs=8k count=300 oflag=dsync 2>&1 | tail -1'
           echo "== container tmpfs"; docker run --rm --tmpfs /t alpine sh -c 'dd if=/dev/zero of=/t/ddtest bs=8k count=300 oflag=dsync 2>&1 | tail -1'
-      - name: PostgreSQL create and drop
-        run: |
-          bench() {
-            name=$1; shift
-            docker run -d --name "$name" -e POSTGRES_PASSWORD=pg "$@" >/dev/null
-            until docker exec "$name" pg_isready -U postgres -h 127.0.0.1 >/dev/null 2>&1; do sleep 1; done
-            sleep 2
-            start=$(date +%s%N)
-            for i in $(seq 1 10); do
-              docker exec "$name" psql -U postgres -qc "CREATE DATABASE t$i" >/dev/null
-              docker exec "$name" psql -U postgres -qc "CREATE TABLE x(a int); INSERT INTO x SELECT generate_series(1,1000)" -d "t$i" >/dev/null
-              docker exec "$name" psql -U postgres -qc "DROP DATABASE t$i WITH (FORCE)" >/dev/null
-            done
-            echo "$name: 10 x create, write, drop in $(( ($(date +%s%N) - start) / 1000000 )) ms"
-            docker rm -f "$name" >/dev/null
-          }
-          bench pg-default postgres:17
-          bench pg-nofsync postgres:17 -c fsync=off -c synchronous_commit=off -c full_page_writes=off
-          bench pg-tmpfs --tmpfs /var/lib/postgresql/data postgres:17
-          bench pg-tmpfs-nofsync --tmpfs /var/lib/postgresql/data postgres:17 -c fsync=off -c synchronous_commit=off -c full_page_writes=off
