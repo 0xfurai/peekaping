@@ -23,6 +23,9 @@ type DBConfig struct {
 }
 
 type Config struct {
+	// Environment remembers which variables the environment set, for the install settings
+	Environment
+
 	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
 
@@ -210,6 +213,12 @@ type Config struct {
 	// install (PP-372): free text, an email address or a URL, shown in the suspension banner and
 	// returned by GET /me. Unset, the banner says nothing about how.
 	SupportContact string `env:"SUPPORT_CONTACT"`
+
+	// InstallSettingsCacheLifetime is how long a process keeps the install settings it read from the
+	// database (package installsettings), so a change saved on another api replica takes effect
+	// within it. It has no environment variable: it is installsettings.DefaultCacheLifetime unless a
+	// test shortens it.
+	InstallSettingsCacheLifetime time.Duration
 }
 
 // AbsoluteMinCheckInterval is the shortest check interval, in seconds, that any install allows:
@@ -301,6 +310,8 @@ func LoadConfig[T any](path string) (config T, err error) {
 
 	// Override with environment variables (takes precedence)
 	envVarsFromEnv := loadFromEnv(&config)
+	// The install settings tell a value the environment set from a default (see Environment)
+	recordEnvironment(&config, envVarsFromFile, envVarsFromEnv)
 
 	// Apply default values for fields that weren't set
 	defaultsApplied := applyDefaults(&config)
