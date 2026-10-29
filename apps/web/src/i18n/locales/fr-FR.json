@@ -202,6 +202,7 @@
         "password_set": "Un mot de passe est défini. Saisissez-en un pour le remplacer.",
         "password_not_set": "Aucun mot de passe défini",
         "password_removed": "Le mot de passe sera supprimé à l'enregistrement.",
+        "password_reenter": "Modifier l'hôte, le port, la sécurité ou l'utilisateur supprime le mot de passe enregistré. Saisissez-le à nouveau.",
         "remove_password": "Supprimer le mot de passe",
         "keep_password": "Garder le mot de passe",
         "from": "Adresse de l'expéditeur"

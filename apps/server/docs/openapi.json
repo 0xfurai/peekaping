@@ -206,9 +206,13 @@
           "to": {
             "description": "The address to send the test email to.",
             "format": "email",
+            "minLength": 1,
             "type": "string"
           }
         },
+        "required": [
+          "to"
+        ],
         "type": "object"
       },
       "admin.SettingErrorBody": {
@@ -303,7 +307,7 @@
             "type": "string"
           },
           "password": {
-            "description": "The password. Write-only: it is never returned. Left out it stays as it is; empty clears it.",
+            "description": "The password. Write-only: it is never returned. Left out it stays as it is, unless the request changes the host, port, TLS mode or user: then the saved password is cleared, so that it is never sent to another server. Empty clears it.",
             "type": "string"
           },
           "port": {
@@ -328,10 +332,13 @@
         "additionalProperties": true,
         "properties": {
           "accountSmtp": {
-            "$ref": "#/components/schemas/admin.UpdateAccountSMTPDto",
-            "type": [
-              "",
-              "null"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/admin.UpdateAccountSMTPDto"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "publicUrl": {
@@ -556,7 +563,8 @@
           "suspendedReason": {
             "enum": [
               "admin",
-              "unverified"
+              "unverified",
+              null
             ],
             "type": [
               "string",
@@ -2542,7 +2550,8 @@
             "enum": [
               "any",
               "all",
-              "at_least"
+              "at_least",
+              null
             ],
             "examples": [
               "any"
@@ -7034,6 +7043,24 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -7108,6 +7135,24 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -7200,6 +7245,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -7274,6 +7337,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -7369,6 +7450,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -10103,6 +10202,24 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -10180,6 +10297,24 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -10261,6 +10396,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -10338,6 +10491,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -10437,6 +10608,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -10535,6 +10724,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -10615,6 +10822,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -10694,6 +10919,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -10874,6 +11117,24 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -10985,6 +11246,24 @@
             },
             "description": "Forbidden"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -11064,6 +11343,24 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -11145,6 +11442,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -11222,6 +11537,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -11354,6 +11687,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -11484,6 +11835,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -11630,6 +11999,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -11709,6 +12096,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -11842,6 +12247,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -11934,6 +12357,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -12013,6 +12454,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -12118,6 +12577,24 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -12202,6 +12679,24 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -12290,6 +12785,24 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -12370,6 +12883,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -12447,6 +12978,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -12553,6 +13102,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -12657,6 +13224,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -13498,6 +14083,24 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -13583,6 +14186,24 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -13663,6 +14284,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -13740,6 +14379,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -13846,6 +14503,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -13950,6 +14625,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -14143,6 +14836,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -14221,6 +14932,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -14331,6 +15060,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -14435,6 +15182,24 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -14522,6 +15287,24 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -14859,6 +15642,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -14936,6 +15737,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -15045,6 +15864,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -15149,6 +15986,24 @@
             },
             "description": "Unauthorized"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -15237,6 +16092,24 @@
             },
             "description": "Conflict"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -15317,6 +16190,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -15394,6 +16285,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -15503,6 +16412,24 @@
             },
             "description": "Conflict"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -15610,6 +16537,24 @@
               }
             },
             "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -15915,6 +16860,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -15995,6 +16958,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -16207,6 +17188,24 @@
             },
             "description": "Not Found"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -16281,6 +17280,24 @@
             },
             "description": "Conflict"
           },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
           "500": {
             "content": {
               "application/json": {
@@ -16348,6 +17365,24 @@
               }
             },
             "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -16442,6 +17477,24 @@
               }
             },
             "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {
@@ -16561,6 +17614,24 @@
               }
             },
             "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           },
           "500": {
             "content": {

@@ -10,6 +10,7 @@ import (
 	"peekaping/internal/modules/check"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/probeproto"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -176,22 +177,31 @@ func TestMinCheckInterval_AMonitorStoredBelowTheMinimumIsCheckedAtTheMinimum(t *
 }
 
 // A probe that holds an assignment from before the minimum was raised is dealt the new one: the
-// version covers the interval the probe is told
+// version covers the interval the probe is told. The install restarts on the same database, with
+// the minimum kept and then raised, so that the one monitor and the one probe instance stay the same.
 func TestMinCheckInterval_TheAssignmentVersionFollowsTheMinimum(t *testing.T) {
-	low := newAppWithAdmin(t, withMinCheckInterval(20), func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
-	low.storeMonitorAt(t, "Old", 30, 30)
-	low.sayHelloWith(t, localToken, "00000000-0000-4000-8000-000000000001", fullBuildTypes)
-	lowDealt := decodeAssignments(t, low.assignments(t, localToken, "00000000-0000-4000-8000-000000000001", ""))
-	require.Len(t, lowDealt.Monitors, 1)
-	assert.Equal(t, 30, lowDealt.Monitors[0].Interval, "a minimum of 20 leaves 30 alone")
+	const instanceID = "00000000-0000-4000-8000-000000000001"
+	probeToken := func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken }
+	dealtBy := func(a *app) probeproto.AssignmentsResponse {
+		t.Helper()
+		a.sayHelloWith(t, localToken, instanceID, fullBuildTypes)
+		dealt := decodeAssignments(t, a.assignments(t, localToken, instanceID, ""))
+		require.Len(t, dealt.Monitors, 1)
+		return dealt
+	}
 
-	high := newAppWithAdmin(t, withMinCheckInterval(60), func(cfg *config.Config) { cfg.ProbeBootstrapToken = localToken })
-	high.storeMonitorAt(t, "Old", 30, 30)
-	high.sayHelloWith(t, localToken, "00000000-0000-4000-8000-000000000001", fullBuildTypes)
-	highDealt := decodeAssignments(t, high.assignments(t, localToken, "00000000-0000-4000-8000-000000000001", ""))
-	require.Len(t, highDealt.Monitors, 1)
-	assert.Equal(t, 60, highDealt.Monitors[0].Interval)
-	assert.NotEqual(t, lowDealt.Version, highDealt.Version)
+	low := newAppWithAdmin(t, withMinCheckInterval(20), probeToken)
+	id := low.storeMonitorAt(t, "Old", 30, 30)
+	before := dealtBy(low)
+	assert.Equal(t, 30, before.Monitors[0].Interval, "a minimum of 20 leaves 30 alone")
+
+	same := dealtBy(newReplica(t, low, withMinCheckInterval(20), probeToken))
+	assert.Equal(t, before.Version, same.Version, "a restart with the same minimum deals the same assignment")
+
+	raised := dealtBy(newReplica(t, low, withMinCheckInterval(60), probeToken))
+	assert.Equal(t, id, raised.Monitors[0].ID)
+	assert.Equal(t, 60, raised.Monitors[0].Interval)
+	assert.NotEqual(t, before.Version, raised.Version, "the raised minimum changes what the probe is told")
 }
 
 // AC4: /me says the minimum

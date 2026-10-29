@@ -154,6 +154,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 	assert.Equal(t, true, spec.Components.Schemas["auth.LoginDto"].AdditionalProperties)
 	assert.ElementsMatch(t, []string{"name", "color"}, spec.Components.Schemas["tag.CreateUpdateDto"].Required)
 	assert.Empty(t, spec.Components.Schemas["monitor.PartialUpdateDto"].Required)
+	assert.ElementsMatch(t, []string{"to"}, spec.Components.Schemas["admin.SendTestEmailDto"].Required)
 	assert.Empty(t, spec.Paths["/api/v1/api-keys/{id}"]["delete"].Responses["204"].Content)
 }
 

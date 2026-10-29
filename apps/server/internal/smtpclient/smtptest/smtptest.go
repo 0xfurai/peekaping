@@ -4,6 +4,7 @@ package smtptest
 
 import (
 	"bufio"
+	"encoding/base64"
 	"fmt"
 	"net"
 	"strings"
@@ -21,6 +22,8 @@ type Message struct {
 	Data string
 	// Authenticated is whether the client logged in before it sent the message
 	Authenticated bool
+	// User and Password are what the client logged in with (AUTH PLAIN)
+	User, Password string
 }
 
 // Server is a fake SMTP server on a loopback port
@@ -127,6 +130,7 @@ func (s *Server) serve(conn net.Conn) {
 			reply("250 AUTH PLAIN")
 		case "AUTH":
 			current.Authenticated = true
+			current.User, current.Password = plainCredentials(rest)
 			reply("235 2.7.0 Authentication successful")
 		case "MAIL":
 			current.From = address(rest)
@@ -177,6 +181,20 @@ func (s *Server) serve(conn net.Conn) {
 			reply("502 5.5.2 Command not recognized")
 		}
 	}
+}
+
+// plainCredentials returns the user and password of "PLAIN <base64 of \x00user\x00password>"
+func plainCredentials(rest string) (string, string) {
+	_, encoded, _ := strings.Cut(rest, " ")
+	decoded, err := base64.StdEncoding.DecodeString(strings.TrimSpace(encoded))
+	if err != nil {
+		return "", ""
+	}
+	parts := strings.SplitN(string(decoded), "\x00", 3)
+	if len(parts) != 3 {
+		return "", ""
+	}
+	return parts[1], parts[2]
 }
 
 // address returns the address inside "FROM:<a@b>" or "TO:<a@b>"
