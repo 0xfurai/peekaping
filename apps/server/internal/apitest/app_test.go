@@ -106,6 +106,9 @@ func newAppDecorated(t *testing.T, decorate func(*dig.Container) error, options 
 
 		ServiceName: "peekaping:apitest",
 	}
+	if cloudRun() {
+		cloudConfig(cfg)
+	}
 	for _, option := range options {
 		option(cfg)
 	}
