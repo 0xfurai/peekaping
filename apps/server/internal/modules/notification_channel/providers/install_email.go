@@ -108,9 +108,10 @@ func (e *InstallEmailSender) ValidateInWorkspace(ctx context.Context, configJSON
 	return err
 }
 
-// recipient returns the address to send to: the member's email as the workspace knows it. It
-// returns ErrRecipientNotMember when the config's address is no member's. With verified it also
-// returns ErrRecipientNotVerified for a member who has not verified the address.
+// recipient returns the address to send to: the config's address as it is saved, once it is a
+// member's own email, compared ignoring case. It returns ErrRecipientNotMember when the config's
+// address is no member's. With verified it also returns ErrRecipientNotVerified for a member who
+// has not verified the address.
 func (e *InstallEmailSender) recipient(ctx context.Context, configJSON string, verified bool) (string, error) {
 	id, ok := workspaceFrom(ctx)
 	if !ok {
