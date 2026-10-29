@@ -159,11 +159,11 @@ func (c *Controller) CreateInvite(ctx context.Context, input *CreateInviteInput)
 		return nil, c.fail(err)
 	}
 	// Every invite emails its address, so a caller and an address are each limited
-	if allowed, _ := c.inviteByCaller.Allow(inviteCaller(ctx)); !allowed {
-		return nil, httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse("Too many invites, try again later"))
+	if allowed, retryAfter := c.inviteByCaller.Allow(inviteCaller(ctx)); !allowed {
+		return nil, httpx.TooManyRequests("Too many invites, try again later", retryAfter)
 	}
-	if allowed, _ := c.inviteByRecipient.Allow(strings.ToLower(strings.TrimSpace(body.Email))); !allowed {
-		return nil, httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse("This address was invited too often, try again later"))
+	if allowed, retryAfter := c.inviteByRecipient.Allow(strings.ToLower(strings.TrimSpace(body.Email))); !allowed {
+		return nil, httpx.TooManyRequests("This address was invited too often, try again later", retryAfter)
 	}
 	// An API key has no user: its invites have no inviter
 	userID, _ := httpx.Value(ctx, "userId").(string)

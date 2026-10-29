@@ -495,6 +495,7 @@ func TestSignupModes_OpenSignupsAreLimitedPerClientAddress(t *testing.T) {
 		sixth := a.signUp(t, "botf@example.com", busy)
 
 		assert.Equal(t, http.StatusTooManyRequests, sixth.Code, sixth.Body.String())
+		assertRetryAfterWithin(t, sixth, time.Hour)
 		assert.Equal(t, 6, a.count(t, "users"), "the sixth made no account")
 		assert.Equal(t, http.StatusCreated, a.signUp(t, "someone@example.com", quiet).Code, "another client is not held back")
 		through := a.request(t, http.MethodPost, registerPath, map[string]any{"email": "invited@example.com", "password": adminPassword, "inviteToken": invite.Token}, busy)

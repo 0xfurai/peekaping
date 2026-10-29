@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"peekaping/internal/httpx"
 	"peekaping/internal/utils"
@@ -43,8 +44,9 @@ func (c *Controller) clientKey(r *http.Request) string {
 	return "raw:" + r.RemoteAddr
 }
 
-func tooManyRequests() error {
-	return httpx.Fail(http.StatusTooManyRequests, utils.NewFailResponse("Too many requests, try again later"))
+// tooManyRequests is the 429 of the routes that limit a client, with the wait the limit gave
+func tooManyRequests(retryAfter time.Duration) error {
+	return httpx.TooManyRequests("Too many requests, try again later", retryAfter)
 }
 
 // ForgotPassword sends a reset link to the account with the email, if there is one. It answers 202
@@ -63,8 +65,8 @@ func (c *Controller) ForgotPassword(ctx context.Context, input *ForgotPasswordIn
 	if !c.accounts.Enabled() {
 		return nil, httpx.Fail(http.StatusNotFound, utils.NewFailResponse(ErrAccountEmailsOff.Error()))
 	}
-	if allowed, _ := c.forgotByIP.Allow(c.clientKey(input.Request)); !allowed {
-		return nil, tooManyRequests()
+	if allowed, retryAfter := c.forgotByIP.Allow(c.clientKey(input.Request)); !allowed {
+		return nil, tooManyRequests(retryAfter)
 	}
 	email := strings.ToLower(strings.TrimSpace(dto.Email))
 	if allowed, _ := c.forgotByEmail.Allow(email); allowed {
@@ -77,8 +79,8 @@ func (c *Controller) ForgotPassword(ctx context.Context, input *ForgotPasswordIn
 
 // ResetPassword sets a new password with the token of a reset link
 func (c *Controller) ResetPassword(ctx context.Context, input *ResetPasswordInput) (*httpx.Output[utils.ApiResponse[any]], error) {
-	if allowed, _ := c.resetByIP.Allow(c.clientKey(input.Request)); !allowed {
-		return nil, tooManyRequests()
+	if allowed, retryAfter := c.resetByIP.Allow(c.clientKey(input.Request)); !allowed {
+		return nil, tooManyRequests(retryAfter)
 	}
 	dto, decodeErr := input.Decode()
 	if decodeErr != nil {
@@ -99,8 +101,8 @@ func (c *Controller) ResetPassword(ctx context.Context, input *ResetPasswordInpu
 
 // VerifyEmail verifies an address with the token of a verification link
 func (c *Controller) VerifyEmail(ctx context.Context, input *VerifyEmailInput) (*httpx.Output[utils.ApiResponse[any]], error) {
-	if allowed, _ := c.verifyByIP.Allow(c.clientKey(input.Request)); !allowed {
-		return nil, tooManyRequests()
+	if allowed, retryAfter := c.verifyByIP.Allow(c.clientKey(input.Request)); !allowed {
+		return nil, tooManyRequests(retryAfter)
 	}
 	dto, decodeErr := input.Decode()
 	if decodeErr != nil {
@@ -135,12 +137,11 @@ func (c *Controller) ResendVerification(ctx context.Context, input *ResendVerifi
 	if email == "" {
 		return nil, httpx.Fail(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
 	}
-	tooMany := tooManyRequests()
-	if allowed, _ := c.resendByIP.Allow(c.clientKey(input.Request)); !allowed {
-		return nil, tooMany
+	if allowed, retryAfter := c.resendByIP.Allow(c.clientKey(input.Request)); !allowed {
+		return nil, tooManyRequests(retryAfter)
 	}
-	if allowed, _ := c.resendByEmail.Allow(strings.ToLower(email)); !allowed {
-		return nil, tooMany
+	if allowed, retryAfter := c.resendByEmail.Allow(strings.ToLower(email)); !allowed {
+		return nil, tooManyRequests(retryAfter)
 	}
 	if err := c.accounts.ResendVerification(ctx, id); err != nil {
 		switch {

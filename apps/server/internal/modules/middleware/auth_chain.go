@@ -6,6 +6,7 @@ import (
 	"peekaping/internal/httpx"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/ratelimit"
 	"peekaping/internal/utils"
 
 	"go.uber.org/zap"
@@ -37,6 +38,9 @@ type AuthChain struct {
 	users            users
 	trustedProxies   *httpx.TrustedProxies
 	logger           *zap.SugaredLogger
+
+	// The API rate limits (PP-159), nil when off. See WithAPIRateLimits.
+	workspaceLimit, apiKeyLimit *ratelimit.Limiter
 }
 
 // NewAuthChain creates a new authentication chain

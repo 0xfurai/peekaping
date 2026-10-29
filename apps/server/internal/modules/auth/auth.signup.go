@@ -91,25 +91,26 @@ func (g *SignupGate) TurnstileSiteKey() *string {
 	return &key
 }
 
-// Admit lets an open signup through, or returns ErrSignupRateLimited or ErrTurnstileRefused. client
+// Admit lets an open signup through, or returns ErrSignupRateLimited, with how long until the client
+// may sign up again, or ErrTurnstileRefused. client
 // is what the limit counts the signup under, and remoteIP the visitor's address for Cloudflare
 // (empty when it can't be read). The limit is checked first, so that a flood of signups spends no
 // call to Cloudflare; a signup that passed the limit and not Turnstile still counts. An unreachable
 // Cloudflare refuses the signup too (fail closed), and the reason is logged.
-func (g *SignupGate) Admit(ctx context.Context, client, remoteIP, answer string) error {
+func (g *SignupGate) Admit(ctx context.Context, client, remoteIP, answer string) (retryAfter time.Duration, err error) {
 	if !g.Open() {
-		return nil
+		return 0, nil
 	}
-	if allowed, _ := g.perClient.Allow(client); !allowed {
+	if allowed, wait := g.perClient.Allow(client); !allowed {
 		g.logger.Infow("An open signup was refused: the client address signed up too often")
-		return ErrSignupRateLimited
+		return wait, ErrSignupRateLimited
 	}
 	if g.turnstile == nil {
-		return nil
+		return 0, nil
 	}
 	if err := g.turnstile.Verify(ctx, answer, remoteIP); err != nil {
 		g.logger.Warnw("An open signup was refused: Turnstile did not accept it", "error", err)
-		return ErrTurnstileRefused
+		return 0, ErrTurnstileRefused
 	}
-	return nil
+	return 0, nil
 }

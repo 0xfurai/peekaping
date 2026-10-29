@@ -400,6 +400,7 @@ func TestForgotPassword_AtMostFiveEmailsAnHourPerAddressAndTwentyPerClient(t *te
 		}
 		limited := a.forgot(t, "one-more@example.com")
 		assert.Equal(t, http.StatusTooManyRequests, limited.Code, limited.Body.String())
+		assertRetryAfterWithin(t, limited, time.Hour)
 		a.settled(t)
 	})
 }
@@ -413,6 +414,7 @@ func TestResetPasswordAndVerifyEmail_AreLimitedToTwentyAttemptsAnHourPerClient(t
 
 		limited := a.reset(t, unknown, newPassword)
 		assert.Equal(t, http.StatusTooManyRequests, limited.Code, limited.Body.String())
+		assertRetryAfterWithin(t, limited, time.Hour)
 
 		// verify-email has a count of its own
 		unknownVerify := map[string]any{"token": "pkv_" + strings.Repeat("A", 43)}
@@ -658,6 +660,7 @@ func TestInvites_AnAddressIsInvitedThreeTimesAnHourAndNoMore(t *testing.T) {
 
 		w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": " bob@example.com ", "role": "member"}, a.asAdmin)
 		assert.Equal(t, http.StatusTooManyRequests, w.Code, "the same address in another case and with spaces")
+		assertRetryAfterWithin(t, w, time.Hour)
 
 		a.invite(t, "carol@example.com", "member", a.asAdmin)
 		a.settled(t)
@@ -673,6 +676,7 @@ func TestInvites_ACallerMakesTwentyInvitesAnHourAndNoMore(t *testing.T) {
 
 		w := a.request(t, http.MethodPost, invitesPath, map[string]any{"email": "one-more@example.com", "role": "member"}, a.asAdmin)
 		assert.Equal(t, http.StatusTooManyRequests, w.Code, "the user")
+		assertRetryAfterWithin(t, w, time.Hour)
 
 		// the workspace's API keys are counted apart from its users
 		a.invite(t, "by-key@example.com", "member", a.withAPIKey)
