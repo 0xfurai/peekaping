@@ -143,7 +143,7 @@ func TestCleanupHeartbeatsSkipsAnUnusablePeriod(t *testing.T) {
 			in.storePeriod(t, in.workspaceID(t), value)
 			core, logs := observer.New(zap.InfoLevel)
 
-			cleanupHeartbeats(in.heartbeats, in.workspaces, in.workspaceSettings, zap.New(core).Sugar())
+			cleanupHeartbeats(in.heartbeats, in.workspaces, in.workspaceSettings, nil, zap.New(core).Sugar())
 
 			assert.Equal(t, []string{"400d", "1d"}, in.heartbeatsLeft(t))
 			entries := logs.FilterLevelExact(zap.ErrorLevel).All()
@@ -157,7 +157,7 @@ func TestCleanupHeartbeatsSkipsAnUnusablePeriod(t *testing.T) {
 		in.recordHeartbeats(t, 400, 1)
 		core, logs := observer.New(zap.InfoLevel)
 
-		cleanupHeartbeats(in.heartbeats, in.workspaces, unreadableSettings{in.workspaceSettings}, zap.New(core).Sugar())
+		cleanupHeartbeats(in.heartbeats, in.workspaces, unreadableSettings{in.workspaceSettings}, nil, zap.New(core).Sugar())
 
 		assert.Equal(t, []string{"400d", "1d"}, in.heartbeatsLeft(t))
 		require.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)
@@ -168,7 +168,7 @@ func TestCleanupHeartbeatsSkipsAnUnusablePeriod(t *testing.T) {
 		in.recordHeartbeats(t, 400, 300, 1)
 		core, logs := observer.New(zap.InfoLevel)
 
-		cleanupHeartbeats(in.heartbeats, in.workspaces, in.workspaceSettings, zap.New(core).Sugar())
+		cleanupHeartbeats(in.heartbeats, in.workspaces, in.workspaceSettings, nil, zap.New(core).Sugar())
 
 		assert.Equal(t, []string{"300d", "1d"}, in.heartbeatsLeft(t), "a workspace with no period keeps 365 days")
 		assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
@@ -182,7 +182,7 @@ func TestCleanupHeartbeatsKeepsAWorkspaceWhosePeriodWasDeletedFor365Days(t *test
 	require.NoError(t, in.workspaceSettings.DeleteByKey(context.Background(), id, setting.DataRetentionPeriodKey))
 	in.recordHeartbeats(t, 400, 366, 364, 100, 1)
 
-	cleanupHeartbeats(in.heartbeats, in.workspaces, in.workspaceSettings, zap.NewNop().Sugar())
+	cleanupHeartbeats(in.heartbeats, in.workspaces, in.workspaceSettings, nil, zap.NewNop().Sugar())
 
 	assert.Equal(t, []string{"364d", "100d", "1d"}, in.heartbeatsLeft(t), "what is older than 365 days goes, what is younger stays")
 }
@@ -225,7 +225,7 @@ func TestCleanupProbeStatusChangesKeepsEachProbesLatestChangeBeforeTheRetentionP
 	steady := in.probeHistory(t, "Steady", 200)
 	logger := zap.NewNop().Sugar()
 
-	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, logger)
+	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, nil, logger)
 
 	assert.Equal(t, []string{"online 40d", "offline 10d"}, in.probeHistoryLeft(t, busy), "the changes 100 and 50 days old go; the 40 days old one is the latest before the 30 day cutoff, so it stays")
 	assert.Equal(t, []string{"online 200d"}, in.probeHistoryLeft(t, steady), "a probe that has not changed since keeps the change that made it so")
@@ -236,7 +236,7 @@ func TestCleanupProbeStatusChangesUses365DaysWhenNoWorkspaceHasAPeriod(t *testin
 	probeID := in.probeHistory(t, "Old", 500, 400, 300)
 	core, logs := observer.New(zap.InfoLevel)
 
-	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, zap.New(core).Sugar())
+	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, nil, zap.New(core).Sugar())
 
 	assert.Equal(t, []string{"offline 400d", "online 300d"}, in.probeHistoryLeft(t, probeID), "the change 500 days old goes; the 400 days old one is the latest before the 365 day cutoff, so it stays")
 	assert.Empty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
@@ -248,12 +248,12 @@ func TestCleanupProbeStatusChangesSkipsAnUnusablePeriod(t *testing.T) {
 	in.storePeriod(t, in.workspaceID(t), "abc")
 	core, logs := observer.New(zap.InfoLevel)
 
-	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, zap.New(core).Sugar())
+	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, nil, zap.New(core).Sugar())
 
 	assert.Equal(t, []string{"online 500d", "offline 400d", "online 300d"}, in.probeHistoryLeft(t, probeID))
 	require.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 1)
 
-	cleanupProbeStatusChanges(in.probes, in.workspaces, unreadableSettings{in.workspaceSettings}, zap.New(core).Sugar())
+	cleanupProbeStatusChanges(in.probes, in.workspaces, unreadableSettings{in.workspaceSettings}, nil, zap.New(core).Sugar())
 	assert.Len(t, in.probeHistoryLeft(t, probeID), 3)
 	assert.Len(t, logs.FilterLevelExact(zap.ErrorLevel).All(), 2)
 }
@@ -268,7 +268,7 @@ func TestCleanupProbeStatusChangesFollowsTheLongestPeriodOfTheWorkspaces(t *test
 	in.storePeriod(t, other, "100")
 	probeID := in.probeHistory(t, "Busy", 200, 150, 120, 60, 10)
 
-	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, zap.NewNop().Sugar())
+	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, nil, zap.NewNop().Sugar())
 
 	assert.Equal(t, []string{"online 120d", "offline 60d", "online 10d"}, in.probeHistoryLeft(t, probeID), "the 100 day period of the second workspace decides")
 }
@@ -284,7 +284,7 @@ func TestCleanupProbeStatusChangesDeletesNothingWhenAnyWorkspacesPeriodIsUnusabl
 	probeID := in.probeHistory(t, "Busy", 200, 150, 120, 60, 10)
 	core, logs := observer.New(zap.InfoLevel)
 
-	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, zap.New(core).Sugar())
+	cleanupProbeStatusChanges(in.probes, in.workspaces, in.workspaceSettings, nil, zap.New(core).Sugar())
 
 	assert.Len(t, in.probeHistoryLeft(t, probeID), 5)
 	assert.NotEmpty(t, logs.FilterLevelExact(zap.ErrorLevel).All())
@@ -299,7 +299,7 @@ func TestCleanupProbeStatusChangesDeletesNothingWhenAWorkspacesPeriodCantBeRead(
 	in.storePeriod(t, other, "100")
 	probeID := in.probeHistory(t, "Busy", 200, 150, 120, 60, 10)
 
-	cleanupProbeStatusChanges(in.probes, in.workspaces, unreadableSettings{in.workspaceSettings}, zap.NewNop().Sugar())
+	cleanupProbeStatusChanges(in.probes, in.workspaces, unreadableSettings{in.workspaceSettings}, nil, zap.NewNop().Sugar())
 
 	assert.Len(t, in.probeHistoryLeft(t, probeID), 5)
 }
@@ -344,7 +344,7 @@ func TestStartCleanupCronStopsWhenItsCronIsStopped(t *testing.T) {
 	in := newInstall(t)
 
 	// The hourly job doesn't run in the test, so it needs no stats, history or TLS services
-	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
+	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
 	require.NoError(t, err)
 	require.Len(t, c.Entries(), 1, "the hourly cleanup is scheduled")
 
@@ -382,7 +382,7 @@ func TestStartCleanupCronsJobRunsTheHourlyCleanupUnderTheLock(t *testing.T) {
 			c := &cleanups{}
 			retention := Retention{NotificationHistoryDays: 45, TLSInfoDays: 7}
 
-			cron, err := StartCleanupCron(countingHeartbeats{Service: in.heartbeats, c: c}, in.workspaces, in.workspaceSettings,
+			cron, err := StartCleanupCron(countingHeartbeats{Service: in.heartbeats, c: c}, in.workspaces, in.workspaceSettings, nil,
 				countingStats{c: c}, countingNotificationHistory{c: c}, countingTLSInfo{c: c}, countingProbes{Service: in.probes, c: c}, countingAccountTokens{c: c}, tc.lock, retention, zap.NewNop().Sugar())
 			require.NoError(t, err)
 			t.Cleanup(func() { <-cron.Stop().Done() })
@@ -406,7 +406,7 @@ func TestStartCleanupCronFailsWhenItCantScheduleTheCleanup(t *testing.T) {
 	hourlySpec = "not a cron spec"
 	t.Cleanup(func() { hourlySpec = spec })
 
-	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
+	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
 
 	require.Error(t, err)
 	assert.ErrorContains(t, err, "failed to schedule the hourly cleanup")
@@ -419,7 +419,7 @@ func TestStartCleanupCronFailsWhenItCantScheduleTheCleanup(t *testing.T) {
 func TestStartCleanupCronFiresAtTheTopOfTheHourInUTC(t *testing.T) {
 	in := newInstall(t)
 
-	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
+	c, err := StartCleanupCron(in.heartbeats, in.workspaces, in.workspaceSettings, nil, nil, nil, nil, nil, nil, NewMemoryRunLock(), testRetention, zap.NewNop().Sugar())
 	require.NoError(t, err)
 	t.Cleanup(func() { <-c.Stop().Done() })
 

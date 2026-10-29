@@ -9,11 +9,20 @@ vi.mock("@/context/timezone-context", () => ({
   useTimezone: () => ({ timezone: "UTC", setTimezone: () => {} }),
 }));
 
-// GET /workspace/limits with the monitors limited, or with no limit at all
-const limitsReport = (limited: boolean): LimitsReport => {
+type Limits = {
+  // the monitors limited, or no limit
+  limited?: boolean;
+  // the workspace's retention_days limit, null for none
+  retentionCap?: number | null;
+  // the limits not loaded yet
+  loading?: boolean;
+};
+
+// GET /workspace/limits with the monitors limited or not, and the workspace's retention_days limit
+const limitsReport = ({ limited = false, retentionCap = null }: Limits): LimitsReport => {
   const none = { max: null, used: 0, source: "none" as const };
   return {
-    source: limited ? "install" : "none",
+    source: limited || retentionCap !== null ? "install" : "none",
     installLimitsName: null,
     limits: {
       monitors: limited ? { max: 20, used: 14, source: "install" } : none,
@@ -23,18 +32,20 @@ const limitsReport = (limited: boolean): LimitsReport => {
       members: none,
       owned_workspaces: none,
       probes_per_monitor: none,
-      retention_days: { ...none, used: 90 },
+      retention_days:
+        retentionCap === null ? { ...none, used: 90 } : { max: retentionCap, used: 90, source: "install" },
     },
   };
 };
 
-const settings = (access: Parameters<typeof renderAs>[0], { limited = false } = {}) =>
+const settings = (access: Parameters<typeof renderAs>[0], limits: Limits = {}) =>
   renderAs(access, <SettingsPage />, undefined, (queryClient) => {
     queryClient.setQueryData(
       getSettingsKeyByKeyQueryKey({ path: { key: "KEEP_DATA_PERIOD_DAYS" } }),
       { data: { key: "KEEP_DATA_PERIOD_DAYS", type: "int", value: "90" } }
     );
-    queryClient.setQueryData(getWorkspaceLimitsQueryKey(), { data: limitsReport(limited), message: "" });
+    if (limits.loading) return;
+    queryClient.setQueryData(getWorkspaceLimitsQueryKey(), { data: limitsReport(limits), message: "" });
   });
 
 describe("SettingsPage", () => {
@@ -61,6 +72,27 @@ describe("SettingsPage", () => {
     expect(html).not.toContain("readOnly");
     expect(html).not.toContain(text("settings.data_retention.read_only"));
     expect(html).toContain(`>${text("common.save")}<`);
+  });
+
+  // PP-161: the workspace's plan can cap the period
+  it("shows an admin the cap next to the field, and takes it as the field's maximum", () => {
+    const html = settings({ instanceAdmin: false, role: "admin" }, { retentionCap: 120 });
+    expect(html).toContain("Up to 120 days on this workspace");
+    expect(html).toMatch(/<input[^>]*max="120"/);
+  });
+
+  it("shows a member the cap beside the read-only period", () => {
+    const html = settings({ instanceAdmin: false, role: "member" }, { retentionCap: 120 });
+    expect(html).toContain("Up to 120 days on this workspace");
+  });
+
+  it.each([
+    ["without a cap", {}],
+    ["while the limits load", { loading: true }],
+  ])("shows no cap %s, and keeps the 100 year maximum", (_, limits) => {
+    const html = settings({ instanceAdmin: false, role: "admin" }, limits);
+    expect(html).not.toContain("on this workspace");
+    expect(html).toMatch(/<input[^>]*max="36500"/);
   });
 
   it.each(["member", "owner"] as const)(

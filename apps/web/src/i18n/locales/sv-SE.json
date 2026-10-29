@@ -1877,7 +1877,8 @@
       "days_label": "Dagar",
       "description": "Ange hur många dagar data ska sparas (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Bara en administratör eller ägare av arbetsytan kan ändra detta.",
-      "title": "Lagringstid för data"
+      "title": "Lagringstid för data",
+      "capped": "Upp till {{max}} dagar i den här arbetsytan"
     },
     "error_reporting": {
       "cluster_note": "I klusterläge når en ändring alla processer inom en minut.",
@@ -2104,7 +2105,8 @@
       "custom_domains": "Statussidorna i den här arbetsytan kan ha högst {{max}} anpassade domäner tillsammans",
       "members": "Den här arbetsytan kan ha högst {{max}} medlemmar, väntande inbjudningar inräknade",
       "owned_workspaces": "Du kan äga högst {{max}} arbetsytor",
-      "probes": "En övervakning i den här arbetsytan kan köras på högst {{max}} sonder"
+      "probes": "En övervakning i den här arbetsytan kan köras på högst {{max}} sonder",
+      "retention_days": "Den här arbetsytan kan spara data i högst {{max}} dagar"
     },
     "names": {
       "monitors": "Aktiva övervakningar",

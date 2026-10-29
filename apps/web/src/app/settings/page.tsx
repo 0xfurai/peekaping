@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/card";
 import TimezoneSelector from "../../components/TimezoneSelector";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,8 @@ import {
   putSettingsKeyByKeyMutation,
   getSettingsKeyByKeyQueryKey,
 } from "@/api/@tanstack/react-query.gen";
+import { dataRetentionSchema, MAX_DATA_RETENTION_DAYS, retentionCap } from "@/lib/data-retention";
+import { showLimitReached } from "@/lib/limit-errors";
 import React from "react";
 import { Link } from "react-router-dom";
 import { commonMutationErrorHandler } from "@/lib/utils";
@@ -81,12 +82,9 @@ const WorkspaceNameSetting = () => {
 
 const KeepDataPeriodSetting = () => {
   const { t } = useLocalizedTranslation();
-  const keepDataPeriodSchema = z.object({
-    value: z.coerce
-      .number()
-      .int()
-      .min(1, { message: t("settings.validation.min_days") }),
-  });
+  // The workspace's plan can cap the period (PP-161): the field takes it as its maximum
+  const cap = retentionCap(useQuery(getWorkspaceLimitsOptions()).data);
+  const keepDataPeriodSchema = dataRetentionSchema(t, cap);
   const KEEP_DATA_KEY = "KEEP_DATA_PERIOD_DAYS";
   // A member sees the period but only an admin or owner changes it
   const { canManageWorkspace } = useCurrentAccess();
@@ -99,6 +97,12 @@ const KeepDataPeriodSetting = () => {
     resolver: zodResolver(keepDataPeriodSchema),
     defaultValues: { value: 365 },
   });
+  const capNote =
+    cap === null ? null : (
+      <p className="text-sm text-muted-foreground">
+        {t("settings.data_retention.capped", { max: cap })}
+      </p>
+    );
 
   // Reset form when data is loaded
   React.useEffect(() => {
@@ -117,7 +121,7 @@ const KeepDataPeriodSetting = () => {
         }),
       });
     },
-    onError: commonMutationErrorHandler(t("messages.setting_update_error")),
+    onError: showLimitReached(t, commonMutationErrorHandler(t("messages.setting_update_error"))),
   });
 
   function onSubmit(values: { value: number }) {
@@ -150,6 +154,7 @@ const KeepDataPeriodSetting = () => {
               readOnly
               value={data?.data?.value ?? ""}
             />
+            {capNote}
             <p className="text-sm text-muted-foreground">
               {t("settings.data_retention.read_only")}
             </p>
@@ -170,11 +175,12 @@ const KeepDataPeriodSetting = () => {
                       <Input
                         type="number"
                         min={1}
-                        max={36500}
+                        max={cap ?? MAX_DATA_RETENTION_DAYS}
                         {...field}
                         disabled={isLoading}
                       />
                     </FormControl>
+                    {capNote}
                     <FormMessage />
                   </FormItem>
                 )}

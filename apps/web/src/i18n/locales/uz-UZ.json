@@ -1876,7 +1876,8 @@
       "days_label": "Kunlar",
       "description": "Ma'lumotlarni necha kun saqlashni belgilang (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Buni faqat ish maydonining administratori yoki egasi o'zgartira oladi.",
-      "title": "Ma'lumot saqlash muddati"
+      "title": "Ma'lumot saqlash muddati",
+      "capped": "Bu ish maydonida ko'pi bilan {{max}} kun"
     },
     "error_reporting": {
       "cluster_note": "Klaster rejimida o'zgarish bir daqiqa ichida barcha jarayonlarga yetib boradi.",
@@ -2103,7 +2104,8 @@
       "custom_domains": "Bu ish maydonining holat sahifalarida jami ko'pi bilan {{max}} ta maxsus domen bo'lishi mumkin",
       "members": "Bu ish maydonida kutilayotgan takliflar bilan birga ko'pi bilan {{max}} ta a'zo bo'lishi mumkin",
       "owned_workspaces": "Siz ko'pi bilan {{max}} ta ish maydoniga egalik qila olasiz",
-      "probes": "Bu ish maydonidagi monitor ko'pi bilan {{max}} ta zondda ishlashi mumkin"
+      "probes": "Bu ish maydonidagi monitor ko'pi bilan {{max}} ta zondda ishlashi mumkin",
+      "retention_days": "Bu ish maydoni ma'lumotlarni ko'pi bilan {{max}} kun saqlashi mumkin"
     },
     "names": {
       "monitors": "Faol monitorlar",

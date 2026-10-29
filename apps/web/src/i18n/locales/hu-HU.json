@@ -1877,7 +1877,8 @@
       "days_label": "Napok",
       "description": "Állítsa be, hogy hány napig tartsuk a adatokat (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Ezt csak a munkaterület adminisztrátora vagy tulajdonosa módosíthatja.",
-      "title": "Adattartási időszak"
+      "title": "Adattartási időszak",
+      "capped": "Legfeljebb {{max}} nap ezen a munkaterületen"
     },
     "error_reporting": {
       "cluster_note": "Fürt üzemmódban a módosítás egy percen belül eléri az összes folyamatot.",
@@ -2104,7 +2105,8 @@
       "custom_domains": "Ennek a munkaterületnek az állapotlapjain együtt legfeljebb {{max}} egyéni domain lehet",
       "members": "Ennek a munkaterületnek legfeljebb {{max}} tagja lehet, a függőben lévő meghívókkal együtt",
       "owned_workspaces": "Legfeljebb {{max}} munkaterület tulajdonosa lehet",
-      "probes": "Az ebben a munkaterületben lévő monitorok legfeljebb {{max}} szondán futhatnak"
+      "probes": "Az ebben a munkaterületben lévő monitorok legfeljebb {{max}} szondán futhatnak",
+      "retention_days": "Ez a munkaterület legfeljebb {{max}} napig őrizheti meg az adatokat"
     },
     "names": {
       "monitors": "Aktív monitorok",

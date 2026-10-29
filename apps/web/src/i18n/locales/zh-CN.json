@@ -1877,7 +1877,8 @@
       "days_label": "天",
       "description": "设置保留数据的天数（KEEP_DATA_PERIOD_DAYS）。",
       "read_only": "只有工作区的管理员或所有者可以更改此项。",
-      "title": "数据保留期限"
+      "title": "数据保留期限",
+      "capped": "此工作区最多 {{max}} 天"
     },
     "error_reporting": {
       "cluster_note": "在集群模式下，更改会在一分钟内传达到每个进程。",
@@ -2104,7 +2105,8 @@
       "custom_domains": "此工作区的状态页面加起来最多可以有 {{max}} 个自定义域名",
       "members": "此工作区最多可以有 {{max}} 个成员（含待处理的邀请）",
       "owned_workspaces": "你最多可以拥有 {{max}} 个工作区",
-      "probes": "此工作区中的一个监控最多可以在 {{max}} 个探针上运行"
+      "probes": "此工作区中的一个监控最多可以在 {{max}} 个探针上运行",
+      "retention_days": "此工作区最多可以保留数据 {{max}} 天"
     },
     "names": {
       "monitors": "启用的监控",

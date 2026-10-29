@@ -1877,7 +1877,8 @@
       "days_label": "Dienos",
       "description": "Nustatykite, kiek dienų laikyti duomenis (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Tai gali pakeisti tik darbo srities administratorius arba savininkas.",
-      "title": "Duomenų saugojimo laikotarpis"
+      "title": "Duomenų saugojimo laikotarpis",
+      "capped": "Šioje darbo erdvėje ne daugiau kaip {{max}} d."
     },
     "error_reporting": {
       "cluster_note": "Klasterio režimu pakeitimas pasiekia kiekvieną procesą per minutę.",
@@ -2104,7 +2105,8 @@
       "custom_domains": "Didžiausias bendras visų šios darbo erdvės būsenos puslapių pasirinktinių domenų skaičius: {{max}}",
       "members": "Didžiausias šios darbo erdvės narių skaičius, įskaitant laukiančius kvietimus: {{max}}",
       "owned_workspaces": "Didžiausias darbo erdvių, kurių savininkas galite būti, skaičius: {{max}}",
-      "probes": "Didžiausias zondų, kuriuose gali veikti šios darbo erdvės monitorius, skaičius: {{max}}"
+      "probes": "Didžiausias zondų, kuriuose gali veikti šios darbo erdvės monitorius, skaičius: {{max}}",
+      "retention_days": "Ilgiausias šios darbo erdvės duomenų saugojimo laikotarpis (dienomis): {{max}}"
     },
     "names": {
       "monitors": "Aktyvūs monitoriai",
