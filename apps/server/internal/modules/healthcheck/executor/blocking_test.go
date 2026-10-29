@@ -325,6 +325,51 @@ func TestExecutors_FollowAGuardTurnedOnLater(t *testing.T) {
 	requireBlocked(t, after)
 }
 
+// A check builds its transport when it starts, and a probe's guard can be turned on while it runs,
+// at a hello. The transport asks the guard at each dial, so the request and any redirect it makes
+// after that are refused.
+func TestHTTPTransports_FollowAGuardTurnedOnAfterTheyAreBuilt(t *testing.T) {
+	server, requests := countingServer(t, nil)
+
+	t.Run("the check's transport", func(t *testing.T) {
+		guard := netguard.New(false)
+		transport := buildGuardedTransport(&http.Transport{}, nil, guard)
+		guard.Set(true)
+
+		_, err := (&http.Client{Transport: transport, Timeout: 2 * time.Second}).Get(server.URL)
+
+		require.ErrorIs(t, err, netguard.ErrBlocked)
+	})
+
+	t.Run("a SOCKS proxy's", func(t *testing.T) {
+		address, accepted := silentServer(t)
+		host, port, err := net.SplitHostPort(address)
+		require.NoError(t, err)
+		portNumber, _ := strconv.Atoi(port)
+		guard := netguard.New(false)
+		transport := buildGuardedTransport(&http.Transport{}, &Proxy{Protocol: "socks5", Host: host, Port: portNumber}, guard)
+		guard.Set(true)
+
+		_, err = (&http.Client{Transport: transport, Timeout: 2 * time.Second}).Get("http://target.invalid/")
+
+		require.ErrorIs(t, err, netguard.ErrBlocked)
+		assert.Zero(t, accepted(), "the proxy saw no connection")
+	})
+
+	t.Run("a token request's client", func(t *testing.T) {
+		guard := netguard.New(false)
+		client, closeIdle := guardedClient(guard)
+		defer closeIdle()
+		guard.Set(true)
+
+		_, err := client.Get(server.URL)
+
+		require.ErrorIs(t, err, netguard.ErrBlocked)
+	})
+
+	assert.Zero(t, requests.Load(), "the server saw no request")
+}
+
 func TestExecutorRegistry_RefusesBlockedLiteralTargets(t *testing.T) {
 	registry := NewExecutorRegistry(zap.NewNop().Sugar(), WithGuard(netguard.New(true)))
 	httpConfig := func(url string) string {
