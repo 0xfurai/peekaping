@@ -1,8 +1,8 @@
 module peekaping
 
-go 1.26.0
+go 1.27.0
 
-toolchain go1.26.4
+toolchain go1.27.3
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358
@@ -44,6 +44,7 @@ require (
 	github.com/uptrace/bun/extra/bundebug v1.2.14
 	github.com/urfave/cli/v2 v2.27.7
 	github.com/xdg-go/scram v1.1.2
+	github.com/zishang520/engine.io/v2 v2.5.0
 	github.com/zishang520/socket.io/v2 v2.4.11
 	go.mongodb.org/mongo-driver v1.17.3
 	go.uber.org/dig v1.18.2
@@ -154,7 +155,6 @@ require (
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zishang520/engine.io-go-parser v1.3.2 // indirect
-	github.com/zishang520/engine.io/v2 v2.5.0 // indirect
 	github.com/zishang520/socket.io-go-parser/v2 v2.5.3 // indirect
 	github.com/zishang520/webtransport-go v0.9.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect

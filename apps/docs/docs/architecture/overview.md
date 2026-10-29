@@ -138,7 +138,7 @@ MongoDB storage was removed. [Move to SQLite or PostgreSQL](../self-hosting/dock
 
 ## Technology Stack
 
-- **Language**: Go 1.26+
+- **Language**: Go 1.27+
 - **HTTP Server and Router**: Go `net/http` and `http.ServeMux`
 - **Database**: Bun ORM (SQL)
 - **Queue**: Asynq (Redis-based), for notifications
