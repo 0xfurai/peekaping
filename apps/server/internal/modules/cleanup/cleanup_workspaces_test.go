@@ -13,7 +13,9 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/limits"
+	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacetest"
 
@@ -168,6 +170,42 @@ func TestCleanupHeartbeatsKeepsTheShorterOfEachWorkspacesPeriodAndItsCap(t *test
 
 			assert.Equal(t, []string{"15d", "5d"}, in.heartbeatsOfLeft(t, uncappedMonitor), "a cap lowered below the period trims on the next run")
 			assert.Equal(t, []string{"5d"}, in.heartbeatsOfLeft(t, cappedMonitor))
+		})
+	}
+}
+
+// capsWithDefaults are the workspaces' limits as the install keeps them, with the install's defaults
+// from its install settings, as the server wires them (limits.dig.go)
+func (in install) capsWithDefaults() (*limits.Chain, *installsettings.Resolver) {
+	settings := setting.NewService(setting.NewSQLRepository(in.db), zap.NewNop().Sugar())
+	resolver := installsettings.New(&config.Config{InstallSettingsCacheLifetime: time.Nanosecond}, settings, zap.NewNop().Sugar())
+	return limits.NewChain(limits.NewSQLStore(in.db), limits.SettingsDefaults{Settings: resolver}), resolver
+}
+
+// PP-161: a workspace without limits of its own is capped at the install's default, saved in
+// Admin → Settings, and a workspace whose own limits are none is not
+func TestCleanupHeartbeatsCapsAWorkspaceWithoutLimitsOfItsOwnAtTheInstallsDefault(t *testing.T) {
+	for name, open := range map[string]func(*testing.T) install{"SQLite": sqliteInstall, "Postgres": postgresInstall} {
+		t.Run(name, func(t *testing.T) {
+			in := open(t)
+			caps, resolver := in.capsWithDefaults()
+			_, err := resolver.Update(context.Background(), installsettings.Change{WorkspaceLimits: map[string]*int{installsettings.LimitRetentionDays: limits.Of(10)}})
+			require.NoError(t, err)
+			byDefault := in.workspaceID(t)
+			noLimits := workspace.ID(uuid.NewString())
+			workspacetest.Add(t, in.db, noLimits, "No limits")
+			require.NoError(t, caps.SetOwn(context.Background(), noLimits, &limits.Limits{}))
+			in.storePeriod(t, byDefault, "30")
+			in.storePeriod(t, noLimits, "30")
+			byDefaultMonitor := in.monitorID
+			noLimitsMonitor := in.monitorIn(t, noLimits)
+			in.heartbeatsOf(t, byDefaultMonitor, 45, 15, 5)
+			in.heartbeatsOf(t, noLimitsMonitor, 45, 15, 5)
+
+			cleanupHeartbeats(in.heartbeats, in.workspaces, in.workspaceSettings, caps, zap.NewNop().Sugar())
+
+			assert.Equal(t, []string{"5d"}, in.heartbeatsOfLeft(t, byDefaultMonitor), "the install's 10 day default is shorter than the 30 day period")
+			assert.Equal(t, []string{"15d", "5d"}, in.heartbeatsOfLeft(t, noLimitsMonitor), "a workspace whose own limits are none keeps its 30 days")
 		})
 	}
 }
