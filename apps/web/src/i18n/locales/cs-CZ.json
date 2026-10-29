@@ -1875,7 +1875,8 @@
       "days_label": "Dny",
       "description": "Nastavte, na kolik dní se budou data uchovávat (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Změnit to může jen správce nebo vlastník pracovního prostoru.",
-      "title": "Doba uchovávání dat"
+      "title": "Doba uchovávání dat",
+      "capped": "Nejvýše {{max}} dní v tomto pracovním prostoru"
     },
     "error_reporting": {
       "cluster_note": "V clusterovém režimu se změna projeví ve všech procesech do jedné minuty.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "Stránky stavu tohoto pracovního prostoru mohou mít dohromady nejvýše {{max}} vlastních domén",
       "members": "Tento pracovní prostor může mít nejvýše {{max}} členů včetně čekajících pozvánek",
       "owned_workspaces": "Můžete vlastnit nejvýše {{max}} pracovních prostorů",
-      "probes": "Monitor v tomto pracovním prostoru může běžet nejvýše na {{max}} sondách"
+      "probes": "Monitor v tomto pracovním prostoru může běžet nejvýše na {{max}} sondách",
+      "retention_days": "Tento pracovní prostor může uchovávat data nejvýše {{max}} dní"
     },
     "names": {
       "monitors": "Aktivní monitory",

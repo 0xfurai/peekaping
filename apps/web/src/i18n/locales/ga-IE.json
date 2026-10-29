@@ -1874,7 +1874,8 @@
       "days_label": "Laethanta",
       "description": "Socraigh líon na lá a choinneálfar sonraí (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Ní féidir ach le riarthóir nó úinéir an spáis oibre é seo a athrú.",
-      "title": "Am Cothromaíochta na Sonraí"
+      "title": "Am Cothromaíochta na Sonraí",
+      "capped": "Suas le {{max}} lá sa spás oibre seo"
     },
     "error_reporting": {
       "cluster_note": "I mód braisle, sroicheann athrú gach próiseas laistigh de nóiméad.",
@@ -2101,7 +2102,8 @@
       "custom_domains": "Is féidir suas le {{max}} fearann saincheaptha a bheith ag leathanaigh stádais an spáis oibre seo le chéile",
       "members": "Is féidir suas le {{max}} ball a bheith sa spás oibre seo, cuirí ar feitheamh san áireamh",
       "owned_workspaces": "Is féidir leat a bheith i d'úinéir ar suas le {{max}} spás oibre",
-      "probes": "Is féidir le monatóir sa spás oibre seo rith ar suas le {{max}} tóireadóir"
+      "probes": "Is féidir le monatóir sa spás oibre seo rith ar suas le {{max}} tóireadóir",
+      "retention_days": "Is féidir leis an spás oibre seo sonraí a choinneáil ar feadh {{max}} lá ar a mhéad"
     },
     "names": {
       "monitors": "Monatóirí gníomhacha",

@@ -1875,7 +1875,8 @@
       "days_label": "Ngày",
       "description": "Đặt số ngày lưu dữ liệu (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Chỉ quản trị viên hoặc chủ sở hữu của không gian làm việc mới có thể thay đổi mục này.",
-      "title": "Thời gian lưu trữ dữ liệu"
+      "title": "Thời gian lưu trữ dữ liệu",
+      "capped": "Tối đa {{max}} ngày trong không gian làm việc này"
     },
     "error_reporting": {
       "cluster_note": "Ở chế độ cụm, thay đổi đến mọi tiến trình trong vòng một phút.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "Các trang trạng thái của không gian làm việc này có thể có tổng cộng tối đa {{max}} tên miền tùy chỉnh",
       "members": "Không gian làm việc này có thể có tối đa {{max}} thành viên, tính cả lời mời đang chờ",
       "owned_workspaces": "Bạn có thể sở hữu tối đa {{max}} không gian làm việc",
-      "probes": "Một giám sát trong không gian làm việc này có thể chạy trên tối đa {{max}} đầu dò"
+      "probes": "Một giám sát trong không gian làm việc này có thể chạy trên tối đa {{max}} đầu dò",
+      "retention_days": "Không gian làm việc này có thể lưu dữ liệu tối đa {{max}} ngày"
     },
     "names": {
       "monitors": "Giám sát đang hoạt động",

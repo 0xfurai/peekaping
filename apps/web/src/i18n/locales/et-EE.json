@@ -1875,7 +1875,8 @@
       "days_label": "päevad",
       "description": "Määrake, mitu päeva andmeid hoitakse (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Seda saab muuta ainult tööruumi administraator või omanik.",
-      "title": "Andmete säilitamise periood"
+      "title": "Andmete säilitamise periood",
+      "capped": "Kuni {{max}} päeva selles tööruumis"
     },
     "error_reporting": {
       "cluster_note": "Klastrirežiimis jõuab muudatus kõigi protsessideni ühe minuti jooksul.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "Selle tööruumi olekusivudel võib kokku olla kuni {{max}} kohandatud domeeni",
       "members": "Sellel tööruumil võib olla kuni {{max}} liiget, ootel kutsed kaasa arvatud",
       "owned_workspaces": "Sa võid olla kuni {{max}} tööruumi omanik",
-      "probes": "Selle tööruumi monitoor võib töötada kuni {{max}} sondil"
+      "probes": "Selle tööruumi monitoor võib töötada kuni {{max}} sondil",
+      "retention_days": "See tööruum võib andmeid säilitada kuni {{max}} päeva"
     },
     "names": {
       "monitors": "Aktiivsed monitoorid",

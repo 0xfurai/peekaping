@@ -1875,7 +1875,8 @@
       "days_label": "Egunak",
       "description": "Ezarri zenbat egun data mantendu (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Lan-eremuko administratzaileak edo jabeak soilik alda dezake hau.",
-      "title": "Datuen mantentze-epoa"
+      "title": "Datuen mantentze-epoa",
+      "capped": "Gehienez {{max}} egun lan-eremu honetan"
     },
     "error_reporting": {
       "cluster_note": "Kluster moduan, aldaketa prozesu guztietara iristen da minutu baten barruan.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "Lan-eremu honen egoera-orriek, guztira, gehienez {{max}} domeinu pertsonalizatu izan ditzakete",
       "members": "Lan-eremu honek gehienez {{max}} kide izan ditzake, zain dauden gonbidapenak barne",
       "owned_workspaces": "Gehienez {{max}} lan-eremuren jabe izan zaitezke",
-      "probes": "Lan-eremu honetako monitore batek gehienez {{max}} zundatan ibil daiteke"
+      "probes": "Lan-eremu honetako monitore batek gehienez {{max}} zundatan ibil daiteke",
+      "retention_days": "Lan-eremu honek gehienez {{max}} egunez gorde ditzake datuak"
     },
     "names": {
       "monitors": "Monitore aktiboak",

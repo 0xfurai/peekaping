@@ -1875,7 +1875,8 @@
       "days_label": "Dage",
       "description": "Indstil, hvor mange dage data skal opbevares (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Kun en administrator eller ejer af arbejdsområdet kan ændre dette.",
-      "title": "Dataopbevaringsperiode"
+      "title": "Dataopbevaringsperiode",
+      "capped": "Op til {{max}} dage i dette arbejdsområde"
     },
     "error_reporting": {
       "cluster_note": "I klyngetilstand når en ændring alle processer inden for et minut.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "Statussiderne i dette arbejdsområde kan højst have {{max}} egne domæner tilsammen",
       "members": "Dette arbejdsområde kan højst have {{max}} medlemmer, inklusive ventende invitationer",
       "owned_workspaces": "Du kan højst eje {{max}} arbejdsområder",
-      "probes": "En monitor i dette arbejdsområde kan højst køre på {{max}} probes"
+      "probes": "En monitor i dette arbejdsområde kan højst køre på {{max}} probes",
+      "retention_days": "Dette arbejdsområde kan højst gemme data i {{max}} dage"
     },
     "names": {
       "monitors": "Aktive monitorer",

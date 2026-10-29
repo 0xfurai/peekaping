@@ -1875,7 +1875,8 @@
       "days_label": "日",
       "description": "設定保留資料的天數 (KEEP_DATA_PERIOD_DAYS)。",
       "read_only": "淨係工作區嘅管理員或者擁有者先可以改呢個。",
-      "title": "資料保留期限"
+      "title": "資料保留期限",
+      "capped": "呢個工作區最多 {{max}} 日"
     },
     "error_reporting": {
       "cluster_note": "喺叢集模式，改動會喺一分鐘內去到每個程序。",
@@ -2102,7 +2103,8 @@
       "custom_domains": "呢個工作區嘅狀態頁面加埋最多可以有 {{max}} 個自訂域名",
       "members": "呢個工作區最多可以有 {{max}} 個成員，待處理嘅邀請都計埋",
       "owned_workspaces": "你最多可以擁有 {{max}} 個工作區",
-      "probes": "呢個工作區入面嘅監控最多可以喺 {{max}} 個探針上運行"
+      "probes": "呢個工作區入面嘅監控最多可以喺 {{max}} 個探針上運行",
+      "retention_days": "呢個工作區最多可以保留資料 {{max}} 日"
     },
     "names": {
       "monitors": "啟用中嘅監控",

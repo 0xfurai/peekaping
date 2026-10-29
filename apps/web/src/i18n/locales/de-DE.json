@@ -1875,7 +1875,8 @@
       "days_label": "Tage",
       "description": "Legen Sie fest, wie viele Tage Daten gespeichert bleiben sollen (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Nur ein Admin oder Eigentümer des Arbeitsbereichs kann dies ändern.",
-      "title": "Datenaufbewahrungsdauer"
+      "title": "Datenaufbewahrungsdauer",
+      "capped": "Bis zu {{max}} Tage in diesem Arbeitsbereich"
     },
     "error_reporting": {
       "cluster_note": "Im Cluster-Modus erreicht eine Änderung jeden Prozess innerhalb einer Minute.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "Die Statusseiten dieses Arbeitsbereichs dürfen zusammen höchstens {{max}} eigene Domains haben",
       "members": "Dieser Arbeitsbereich darf höchstens {{max}} Mitglieder haben, offene Einladungen eingerechnet",
       "owned_workspaces": "Sie dürfen höchstens {{max}} Arbeitsbereiche besitzen",
-      "probes": "Ein Monitor in diesem Arbeitsbereich darf auf höchstens {{max}} Sonden laufen"
+      "probes": "Ein Monitor in diesem Arbeitsbereich darf auf höchstens {{max}} Sonden laufen",
+      "retention_days": "Dieser Arbeitsbereich darf Daten höchstens {{max}} Tage aufbewahren"
     },
     "names": {
       "monitors": "Aktive Monitore",

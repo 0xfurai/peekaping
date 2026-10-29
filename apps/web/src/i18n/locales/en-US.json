@@ -1875,7 +1875,8 @@
       "days_label": "Days",
       "description": "Set how many days to keep data (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Only a workspace admin or owner can change this.",
-      "title": "Data Retention Period"
+      "title": "Data Retention Period",
+      "capped": "Up to {{max}} days on this workspace"
     },
     "error_reporting": {
       "cluster_note": "In cluster mode, a change reaches every process within a minute.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "This workspace's status pages can have at most {{max}} custom domains together",
       "members": "This workspace can have at most {{max}} members, pending invites included",
       "owned_workspaces": "You can own at most {{max}} workspaces",
-      "probes": "A monitor in this workspace can run on at most {{max}} probes"
+      "probes": "A monitor in this workspace can run on at most {{max}} probes",
+      "retention_days": "This workspace can keep data for at most {{max}} days"
     },
     "names": {
       "monitors": "Active monitors",

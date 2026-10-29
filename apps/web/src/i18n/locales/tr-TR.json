@@ -1875,7 +1875,8 @@
       "days_label": "Gün",
       "description": "Veriyi saklayacağınız gün sayısını ayarlayın (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Bunu yalnızca çalışma alanının yöneticisi veya sahibi değiştirebilir.",
-      "title": "Veri Saklama Süresi"
+      "title": "Veri Saklama Süresi",
+      "capped": "Bu çalışma alanında en fazla {{max}} gün"
     },
     "error_reporting": {
       "cluster_note": "Küme modunda bir değişiklik her sürece bir dakika içinde ulaşır.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "Bu çalışma alanının durum sayfalarında toplam en fazla {{max}} özel alan adı olabilir",
       "members": "Bu çalışma alanında, bekleyen davetler dahil, en fazla {{max}} üye olabilir",
       "owned_workspaces": "En fazla {{max}} çalışma alanına sahip olabilirsiniz",
-      "probes": "Bu çalışma alanındaki bir izleyici en fazla {{max}} prob üzerinde çalışabilir"
+      "probes": "Bu çalışma alanındaki bir izleyici en fazla {{max}} prob üzerinde çalışabilir",
+      "retention_days": "Bu çalışma alanı verileri en fazla {{max}} gün saklayabilir"
     },
     "names": {
       "monitors": "Etkin izleyiciler",

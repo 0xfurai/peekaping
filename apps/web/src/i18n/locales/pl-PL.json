@@ -1875,7 +1875,8 @@
       "days_label": "Dni",
       "description": "Ustaw, ile dni mają być przechowywane dane (KEEP_DATA_PERIOD_DAYS).",
       "read_only": "Tylko administrator lub właściciel przestrzeni roboczej może to zmienić.",
-      "title": "Okres przechowywania danych"
+      "title": "Okres przechowywania danych",
+      "capped": "Maksymalnie {{max}} dni w tym obszarze roboczym"
     },
     "error_reporting": {
       "cluster_note": "W trybie klastrowym zmiana dociera do każdego procesu w ciągu minuty.",
@@ -2102,7 +2103,8 @@
       "custom_domains": "Maksymalna łączna liczba własnych domen na stronach statusu tego obszaru roboczego: {{max}}",
       "members": "Maksymalna liczba członków tego obszaru roboczego, razem z oczekującymi zaproszeniami: {{max}}",
       "owned_workspaces": "Maksymalna liczba obszarów roboczych, których możesz być właścicielem: {{max}}",
-      "probes": "Maksymalna liczba sond, na których może działać monitor w tym obszarze roboczym: {{max}}"
+      "probes": "Maksymalna liczba sond, na których może działać monitor w tym obszarze roboczym: {{max}}",
+      "retention_days": "Najdłuższy okres przechowywania danych w tym obszarze roboczym (w dniach): {{max}}"
     },
     "names": {
       "monitors": "Aktywne monitory",
