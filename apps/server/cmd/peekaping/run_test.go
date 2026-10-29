@@ -301,7 +301,13 @@ func (in *instance) createWaitingForTheDatabase(t *testing.T, cfg *Config) (unlo
 			_ = resp.Body.Close()
 		}
 	}()
-	t.Cleanup(func() { <-answered })
+	t.Cleanup(func() {
+		select {
+		case <-answered:
+		case <-time.After(shutdownTimeouts.Total() + wait):
+			t.Errorf("the request waiting for the database was never answered\n%s", goroutines())
+		}
+	})
 	time.Sleep(500 * time.Millisecond) // the handler gets to its write
 	return unlock
 }
