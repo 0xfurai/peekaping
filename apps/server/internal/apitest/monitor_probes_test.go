@@ -42,6 +42,7 @@ func (a *app) probeThatRuns(t *testing.T, name string, types ...string) probeWit
 	hello := probeproto.HelloRequest{
 		InstanceID: instanceID, ProtocolVersion: probeproto.ProtocolVersion, ProbeVersion: "0.1.0",
 		SupportedTypes: types, Hostname: "edge-1.example.com", OS: "linux", Arch: "arm64",
+		EnforcesPrivateTargetBlock: true,
 	}
 	w := a.request(t, http.MethodPost, helloPath, hello, asProbe(made.Token, instanceID))
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
