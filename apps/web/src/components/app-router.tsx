@@ -1,13 +1,17 @@
 import { Routes } from "react-router-dom";
 import { useAuthStore } from "@/store/auth";
 import { useCheckCustomDomain } from "@/hooks/useCheckCustomDomain";
-import { publicRoutes, createCustomDomainRoute } from "@/routes/public-routes";
+import {
+  publicRoutes,
+  createCustomDomainRoute,
+  createCustomDomainUnavailableRoute,
+} from "@/routes/public-routes";
 import { authRoutes } from "@/routes/auth-routes";
 import { protectedRoutes } from "@/routes/protected-routes";
 
 export const AppRouter = () => {
   const accessToken = useAuthStore((state) => state.accessToken);
-  const { customDomain, isFetched } = useCheckCustomDomain(
+  const { customDomain, isFetched, unavailable } = useCheckCustomDomain(
     window.location.hostname
   );
 
@@ -25,8 +29,14 @@ export const AppRouter = () => {
   // `isFetched` turns true when it settles and stays true, so a later refetch — a reconnect after a laptop wakes, say —
   // leaves the routes below mounted. Gating on the hook's loading flag instead unmounted them for the length of every
   // background refetch, which wiped whatever was being typed into an open form (see issues #161 and #228).
-  const shouldShowCustomDomainRoute = isFetched && customDomain && customDomain.data?.slug && !accessToken;
-  const shouldRenderAuthRoutes = isFetched && (!customDomain || accessToken);
+  // A custom domain whose page's workspace is suspended answers 503 to the lookup: its visitors
+  // see that the page is unavailable, not the sign-in page. A refetch that fails keeps the data of
+  // the lookup before it, so the page's route gives way to this one.
+  const shouldShowUnavailableRoute = isFetched && unavailable && !accessToken;
+  const shouldShowCustomDomainRoute =
+    isFetched && customDomain && customDomain.data?.slug && !accessToken && !shouldShowUnavailableRoute;
+  const shouldRenderAuthRoutes =
+    isFetched && !shouldShowUnavailableRoute && (!customDomain || accessToken);
 
   return (
     <Routes>
@@ -37,6 +47,8 @@ export const AppRouter = () => {
       {shouldShowCustomDomainRoute && customDomain.data?.slug &&
         createCustomDomainRoute(customDomain.data.slug)
       }
+
+      {shouldShowUnavailableRoute && createCustomDomainUnavailableRoute()}
 
       {/* Auth-dependent routes - prioritize authenticated users over custom domain */}
       {shouldRenderAuthRoutes && (

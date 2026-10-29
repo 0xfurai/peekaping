@@ -8,7 +8,8 @@
       "back_to_workspace": "返回 {{name}}",
       "probes": "探针",
       "title": "管理",
-      "users": "用户"
+      "users": "用户",
+      "workspaces": "工作区"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "是"
       },
       "you": "你"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "删除工作区",
+        "resume": "恢复工作区",
+        "suspend": "暂停工作区"
+      },
+      "actions_aria": "{{name}} 的操作",
+      "columns": {
+        "created": "创建时间",
+        "custom_domains": "自定义域名",
+        "members": "成员",
+        "monitors": "监控",
+        "name": "名称",
+        "owners": "所有者",
+        "status": "状态",
+        "status_pages": "状态页面"
+      },
+      "confirm": {
+        "cancel": "取消",
+        "delete": {
+          "confirm": "删除工作区",
+          "description": "删除 {{name}}？其中的所有内容都会被移除：监控及其历史记录、状态页面、通知渠道，以及成员的访问权限。此操作无法撤销。",
+          "name_label": "输入工作区名称以确认：{{name}}",
+          "title": "删除工作区"
+        },
+        "resume": {
+          "confirm": "恢复",
+          "description": "{{name}} 的监控会以原来的状态重新运行，成员可以照常使用。正在等待所有者验证邮箱的工作区会继续等待。",
+          "title": "恢复工作区"
+        },
+        "suspend": {
+          "confirm": "暂停",
+          "description": "{{name}} 的监控会停止运行，其公开状态页面会显示不可用，成员会看到工作区已暂停。不会删除任何内容，你之后可以恢复。",
+          "title": "暂停工作区"
+        }
+      },
+      "description": "此部署上的所有工作区，以及其所有者、成员和内容数量。仅显示数量，不显示工作区内的任何内容。",
+      "empty": "未找到工作区",
+      "load_failed": "无法加载工作区。",
+      "messages": {
+        "deleted": "{{name}} 已删除",
+        "failed": "无法更改工作区。",
+        "resumed": "{{name}} 已恢复",
+        "suspended": "{{name}} 已暂停"
+      },
+      "monitors": "{{active}} 个运行中，{{paused}} 个已暂停",
+      "none": "无",
+      "page_name": "工作区",
+      "paging": {
+        "next": "下一页",
+        "page": "第 {{page}} 页，共 {{pages}} 页",
+        "previous": "上一页"
+      },
+      "search_label": "按名称或所有者邮箱搜索工作区",
+      "search_placeholder": "按名称或所有者邮箱搜索",
+      "status": {
+        "running": "运行中",
+        "suspended_admin": "已被管理员暂停",
+        "suspended_unverified": "已暂停，直到所有者验证邮箱"
+      },
+      "total": "找到 {{total}} 个"
     }
   },
   "auth": {
@@ -1759,6 +1822,7 @@
       "refresh_in": "刷新中",
       "refresh_now": "立即刷新",
       "status_page_not_found": "未找到状态页面或未发布。",
+      "status_page_unavailable": "此状态页面不可用",
       "under_maintenance": "维护中",
       "unknown": "未知"
     }
@@ -1888,6 +1952,11 @@
     "refresh_failed": "无法加载您的工作区。请检查网络连接后重试。",
     "rename_error": "重命名工作区失败",
     "rename_success": "工作区已重命名",
+    "suspended_banner": {
+      "contact": "联系方式：",
+      "message": "此工作区已被此部署的管理员暂停。其监控不会运行，状态页面也不可用。",
+      "no_contact": "请联系负责管理此部署的人。"
+    },
     "switcher_label": "切换工作区"
   },
   "get_started": {

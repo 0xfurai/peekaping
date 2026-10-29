@@ -8,7 +8,8 @@
       "back_to_workspace": "Natrag na {{name}}",
       "probes": "Sonde",
       "title": "Administracija",
-      "users": "Korisnici"
+      "users": "Korisnici",
+      "workspaces": "Radni prostori"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Da"
       },
       "you": "vi"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Obriši radni prostor",
+        "resume": "Ponovno aktiviraj radni prostor",
+        "suspend": "Suspendiraj radni prostor"
+      },
+      "actions_aria": "Radnje za {{name}}",
+      "columns": {
+        "created": "Izrađen",
+        "custom_domains": "Prilagođene domene",
+        "members": "Članovi",
+        "monitors": "Nadzori",
+        "name": "Naziv",
+        "owners": "Vlasnici",
+        "status": "Status",
+        "status_pages": "Statusne stranice"
+      },
+      "confirm": {
+        "cancel": "Otkaži",
+        "delete": {
+          "confirm": "Obriši radni prostor",
+          "description": "Obrisati {{name}}? Sve u njemu nestaje: njegovi nadzori i njihova povijest, statusne stranice, kanali obavijesti i pristup njegovih članova. Ovo se ne može poništiti.",
+          "name_label": "Upišite naziv radnog prostora za potvrdu: {{name}}",
+          "title": "Obriši radni prostor"
+        },
+        "resume": {
+          "confirm": "Ponovno aktiviraj",
+          "description": "Nadzori radnog prostora {{name}} ponovno rade u stanju u kojem su bili, a njegovi ga članovi mogu koristiti kao i prije. Radni prostor koji čeka da vlasnik potvrdi e-poštu i dalje čeka.",
+          "title": "Ponovno aktiviraj radni prostor"
+        },
+        "suspend": {
+          "confirm": "Suspendiraj",
+          "description": "Nadzori radnog prostora {{name}} prestaju raditi, njegove javne statusne stranice prikazuju da nisu dostupne, a njegovi članovi vide da je suspendiran. Ništa se ne briše i kasnije ga možete ponovno aktivirati.",
+          "title": "Suspendiraj radni prostor"
+        }
+      },
+      "description": "Svi radni prostori na ovoj instalaciji, s vlasnicima, članovima i količinom sadržaja. Prikazuju se samo brojevi, ništa iz samog radnog prostora.",
+      "empty": "Nema pronađenih radnih prostora",
+      "load_failed": "Radne prostore nije moguće učitati.",
+      "messages": {
+        "deleted": "{{name}} je obrisan",
+        "failed": "Radni prostor nije moguće promijeniti.",
+        "resumed": "{{name}} je ponovno aktiviran",
+        "suspended": "{{name}} je suspendiran"
+      },
+      "monitors": "Aktivno: {{active}}, pauzirano: {{paused}}",
+      "none": "Nema",
+      "page_name": "Radni prostori",
+      "paging": {
+        "next": "Sljedeća",
+        "page": "Stranica {{page}} od {{pages}}",
+        "previous": "Prethodna"
+      },
+      "search_label": "Pretraži radne prostore po nazivu ili e-pošti vlasnika",
+      "search_placeholder": "Pretraži po nazivu ili e-pošti vlasnika",
+      "status": {
+        "running": "Radi",
+        "suspended_admin": "Suspendirao administrator",
+        "suspended_unverified": "Suspendiran dok vlasnik ne potvrdi e-poštu"
+      },
+      "total": "Pronađeno: {{total}}"
     }
   },
   "auth": {
@@ -1759,6 +1822,7 @@
       "refresh_in": "Osveži u",
       "refresh_now": "Osvježi sada",
       "status_page_not_found": "Statusna stranica nije pronađena ili nije objavljena.",
+      "status_page_unavailable": "Ova statusna stranica nije dostupna",
       "under_maintenance": "U održavanju",
       "unknown": "Nepoznato"
     }
@@ -1888,6 +1952,11 @@
     "refresh_failed": "Vaše radne prostore nije bilo moguće učitati. Provjerite vezu i pokušajte ponovno.",
     "rename_error": "Preimenovanje radnog prostora nije uspjelo",
     "rename_success": "Radni prostor je preimenovan",
+    "suspended_banner": {
+      "contact": "Za kontakt:",
+      "message": "Ovaj radni prostor suspendirao je administrator ove instalacije. Njegovi nadzori ne rade, a njegove statusne stranice nisu dostupne.",
+      "no_contact": "Obratite se osobi koja upravlja ovom instalacijom."
+    },
     "switcher_label": "Promijeni radni prostor"
   },
   "get_started": {

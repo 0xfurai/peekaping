@@ -8,7 +8,8 @@
       "back_to_workspace": "Zurück zu {{name}}",
       "probes": "Sonden",
       "title": "Administration",
-      "users": "Benutzer"
+      "users": "Benutzer",
+      "workspaces": "Arbeitsbereiche"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Ja"
       },
       "you": "du"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Arbeitsbereich löschen",
+        "resume": "Arbeitsbereich reaktivieren",
+        "suspend": "Arbeitsbereich sperren"
+      },
+      "actions_aria": "Aktionen für {{name}}",
+      "columns": {
+        "created": "Erstellt",
+        "custom_domains": "Eigene Domains",
+        "members": "Mitglieder",
+        "monitors": "Monitore",
+        "name": "Name",
+        "owners": "Inhaber",
+        "status": "Status",
+        "status_pages": "Statusseiten"
+      },
+      "confirm": {
+        "cancel": "Abbrechen",
+        "delete": {
+          "confirm": "Arbeitsbereich löschen",
+          "description": "{{name}} löschen? Alles darin wird entfernt: die Monitore und ihr Verlauf, Statusseiten, Benachrichtigungskanäle und der Zugriff der Mitglieder. Das lässt sich nicht rückgängig machen.",
+          "name_label": "Gib zur Bestätigung den Namen des Arbeitsbereichs ein: {{name}}",
+          "title": "Arbeitsbereich löschen"
+        },
+        "resume": {
+          "confirm": "Reaktivieren",
+          "description": "Die Monitore von {{name}} laufen wieder in dem Zustand, den sie hatten, und die Mitglieder können den Arbeitsbereich wie zuvor nutzen. Ein Arbeitsbereich, der auf die E-Mail-Bestätigung seines Inhabers wartet, wartet weiter.",
+          "title": "Arbeitsbereich reaktivieren"
+        },
+        "suspend": {
+          "confirm": "Sperren",
+          "description": "Die Monitore von {{name}} laufen nicht mehr, die öffentlichen Statusseiten melden, dass sie nicht verfügbar sind, und die Mitglieder sehen, dass der Arbeitsbereich gesperrt ist. Nichts wird gelöscht, und du kannst ihn später reaktivieren.",
+          "title": "Arbeitsbereich sperren"
+        }
+      },
+      "description": "Alle Arbeitsbereiche auf dieser Installation mit ihren Inhabern, ihren Mitgliedern und ihrem Umfang. Es werden nur Anzahlen angezeigt, nichts aus dem Inhalt eines Arbeitsbereichs.",
+      "empty": "Keine Arbeitsbereiche gefunden",
+      "load_failed": "Die Arbeitsbereiche konnten nicht geladen werden.",
+      "messages": {
+        "deleted": "{{name}} wurde gelöscht",
+        "failed": "Der Arbeitsbereich konnte nicht geändert werden.",
+        "resumed": "{{name}} ist wieder aktiv",
+        "suspended": "{{name}} ist gesperrt"
+      },
+      "monitors": "{{active}} aktiv, {{paused}} pausiert",
+      "none": "Keine",
+      "page_name": "Arbeitsbereiche",
+      "paging": {
+        "next": "Weiter",
+        "page": "Seite {{page}} von {{pages}}",
+        "previous": "Zurück"
+      },
+      "search_label": "Arbeitsbereiche nach Name oder E-Mail des Inhabers suchen",
+      "search_placeholder": "Nach Name oder E-Mail des Inhabers suchen",
+      "status": {
+        "running": "Läuft",
+        "suspended_admin": "Von einem Admin gesperrt",
+        "suspended_unverified": "Gesperrt, bis der Inhaber seine E-Mail bestätigt"
+      },
+      "total": "{{total}} gefunden"
     }
   },
   "auth": {
@@ -1759,6 +1822,7 @@
       "refresh_in": "Aktualisierung in",
       "refresh_now": "Jetzt aktualisieren",
       "status_page_not_found": "Statusseite nicht gefunden oder nicht veröffentlicht.",
+      "status_page_unavailable": "Diese Statusseite ist nicht verfügbar",
       "under_maintenance": "Wartung",
       "unknown": "Unbekannt"
     }
@@ -1888,6 +1952,11 @@
     "refresh_failed": "Deine Arbeitsbereiche konnten nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.",
     "rename_error": "Der Arbeitsbereich konnte nicht umbenannt werden",
     "rename_success": "Arbeitsbereich umbenannt",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Dieser Arbeitsbereich wurde vom Administrator dieser Installation gesperrt. Seine Monitore laufen nicht, und seine Statusseiten sind nicht verfügbar.",
+      "no_contact": "Wende dich an die Person, die diese Installation betreibt."
+    },
     "switcher_label": "Arbeitsbereich wechseln"
   },
   "get_started": {

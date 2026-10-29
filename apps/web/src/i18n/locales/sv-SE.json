@@ -8,7 +8,8 @@
       "back_to_workspace": "Tillbaka till {{name}}",
       "probes": "Sonder",
       "title": "Admin",
-      "users": "Användare"
+      "users": "Användare",
+      "workspaces": "Arbetsytor"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Ja"
       },
       "you": "du"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ta bort arbetsyta",
+        "resume": "Återuppta arbetsyta",
+        "suspend": "Spärra arbetsyta"
+      },
+      "actions_aria": "Åtgärder för {{name}}",
+      "columns": {
+        "created": "Skapad",
+        "custom_domains": "Anpassade domäner",
+        "members": "Medlemmar",
+        "monitors": "Övervakningar",
+        "name": "Namn",
+        "owners": "Ägare",
+        "status": "Status",
+        "status_pages": "Status-sidor"
+      },
+      "confirm": {
+        "cancel": "Avbryt",
+        "delete": {
+          "confirm": "Ta bort arbetsyta",
+          "description": "Ta bort {{name}}? Allt i den försvinner: dess övervakningar och deras historik, status-sidor, aviseringskanaler och medlemmarnas åtkomst. Det går inte att ångra.",
+          "name_label": "Skriv arbetsytans namn för att bekräfta: {{name}}",
+          "title": "Ta bort arbetsyta"
+        },
+        "resume": {
+          "confirm": "Återuppta",
+          "description": "Övervakningarna i {{name}} körs igen i det läge de hade, och medlemmarna kan använda den som tidigare. En arbetsyta som väntar på att ägaren verifierar sin e-post fortsätter att vänta.",
+          "title": "Återuppta arbetsyta"
+        },
+        "suspend": {
+          "confirm": "Spärra",
+          "description": "Övervakningarna i {{name}} slutar köras, dess offentliga status-sidor visar att de inte är tillgängliga, och medlemmarna ser att den är spärrad. Inget tas bort, och du kan återuppta den senare.",
+          "title": "Spärra arbetsyta"
+        }
+      },
+      "description": "Alla arbetsytor på den här installationen, med ägare, medlemmar och hur mycket de innehåller. Bara antal visas, inget av innehållet i en arbetsyta.",
+      "empty": "Inga arbetsytor hittades",
+      "load_failed": "Det gick inte att läsa in arbetsytorna.",
+      "messages": {
+        "deleted": "{{name}} har tagits bort",
+        "failed": "Det gick inte att ändra arbetsytan.",
+        "resumed": "{{name}} har återupptagits",
+        "suspended": "{{name}} är spärrad"
+      },
+      "monitors": "{{active}} aktiva, {{paused}} pausade",
+      "none": "Inga",
+      "page_name": "Arbetsytor",
+      "paging": {
+        "next": "Nästa",
+        "page": "Sida {{page}} av {{pages}}",
+        "previous": "Föregående"
+      },
+      "search_label": "Sök arbetsytor efter namn eller ägarens e-post",
+      "search_placeholder": "Sök efter namn eller ägarens e-post",
+      "status": {
+        "running": "Körs",
+        "suspended_admin": "Spärrad av en administratör",
+        "suspended_unverified": "Spärrad tills ägaren verifierar sin e-post"
+      },
+      "total": "{{total}} hittades"
     }
   },
   "auth": {
@@ -1759,6 +1822,7 @@
       "refresh_in": "Uppdatera om",
       "refresh_now": "Uppdatera nu",
       "status_page_not_found": "Status-sidan hittades inte eller är inte publicerad.",
+      "status_page_unavailable": "Den här status-sidan är inte tillgänglig",
       "under_maintenance": "Underhåll",
       "unknown": "Okänd"
     }
@@ -1888,6 +1952,11 @@
     "refresh_failed": "Dina arbetsytor kunde inte läsas in. Kontrollera anslutningen och försök igen.",
     "rename_error": "Det gick inte att byta namn på arbetsytan",
     "rename_success": "Arbetsytan har bytt namn",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Den här arbetsytan är spärrad av administratören för den här installationen. Dess övervakningar körs inte, och dess status-sidor är inte tillgängliga.",
+      "no_contact": "Kontakta den som driver den här installationen."
+    },
     "switcher_label": "Byt arbetsyta"
   },
   "get_started": {

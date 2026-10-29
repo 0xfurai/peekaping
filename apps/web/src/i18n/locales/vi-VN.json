@@ -8,7 +8,8 @@
       "back_to_workspace": "Quay lại {{name}}",
       "probes": "Đầu dò",
       "title": "Quản trị",
-      "users": "Người dùng"
+      "users": "Người dùng",
+      "workspaces": "Không gian làm việc"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Có"
       },
       "you": "bạn"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Xóa không gian làm việc",
+        "resume": "Khôi phục không gian làm việc",
+        "suspend": "Tạm ngưng không gian làm việc"
+      },
+      "actions_aria": "Thao tác cho {{name}}",
+      "columns": {
+        "created": "Ngày tạo",
+        "custom_domains": "Tên miền tùy chỉnh",
+        "members": "Thành viên",
+        "monitors": "Giám sát",
+        "name": "Tên",
+        "owners": "Chủ sở hữu",
+        "status": "Trạng thái",
+        "status_pages": "Trang trạng thái"
+      },
+      "confirm": {
+        "cancel": "Hủy",
+        "delete": {
+          "confirm": "Xóa không gian làm việc",
+          "description": "Xóa {{name}}? Mọi thứ trong đó sẽ mất: các giám sát và lịch sử của chúng, trang trạng thái, kênh thông báo và quyền truy cập của thành viên. Không thể hoàn tác.",
+          "name_label": "Nhập tên không gian làm việc để xác nhận: {{name}}",
+          "title": "Xóa không gian làm việc"
+        },
+        "resume": {
+          "confirm": "Khôi phục",
+          "description": "Các giám sát của {{name}} chạy lại với trạng thái như trước, và thành viên có thể sử dụng như trước. Không gian làm việc đang chờ chủ sở hữu xác minh email sẽ tiếp tục chờ.",
+          "title": "Khôi phục không gian làm việc"
+        },
+        "suspend": {
+          "confirm": "Tạm ngưng",
+          "description": "Các giám sát của {{name}} ngừng chạy, các trang trạng thái công khai của nó báo không khả dụng, và thành viên sẽ thấy nó đã bị tạm ngưng. Không có gì bị xóa, và bạn có thể khôi phục sau.",
+          "title": "Tạm ngưng không gian làm việc"
+        }
+      },
+      "description": "Mọi không gian làm việc trên bản cài đặt này, cùng chủ sở hữu, thành viên và lượng nội dung của nó. Chỉ hiển thị số lượng, không hiển thị gì bên trong không gian làm việc.",
+      "empty": "Không tìm thấy không gian làm việc",
+      "load_failed": "Không thể tải danh sách không gian làm việc.",
+      "messages": {
+        "deleted": "{{name}} đã bị xóa",
+        "failed": "Không thể thay đổi không gian làm việc.",
+        "resumed": "{{name}} đã được khôi phục",
+        "suspended": "{{name}} đã bị tạm ngưng"
+      },
+      "monitors": "{{active}} hoạt động, {{paused}} tạm dừng",
+      "none": "Không có",
+      "page_name": "Không gian làm việc",
+      "paging": {
+        "next": "Sau",
+        "page": "Trang {{page}} / {{pages}}",
+        "previous": "Trước"
+      },
+      "search_label": "Tìm không gian làm việc theo tên hoặc email chủ sở hữu",
+      "search_placeholder": "Tìm theo tên hoặc email chủ sở hữu",
+      "status": {
+        "running": "Đang chạy",
+        "suspended_admin": "Bị quản trị viên tạm ngưng",
+        "suspended_unverified": "Tạm ngưng cho đến khi chủ sở hữu xác minh email"
+      },
+      "total": "Tìm thấy {{total}}"
     }
   },
   "auth": {
@@ -1759,6 +1822,7 @@
       "refresh_in": "Cập nhật trong",
       "refresh_now": "Làm mới ngay",
       "status_page_not_found": "Trang trạng thái không tìm thấy hoặc chưa được xuất bản.",
+      "status_page_unavailable": "Trang trạng thái này không khả dụng",
       "under_maintenance": "Đang bảo trì",
       "unknown": "Không xác định"
     }
@@ -1888,6 +1952,11 @@
     "refresh_failed": "Không thể tải các không gian làm việc của bạn. Hãy kiểm tra kết nối và thử lại.",
     "rename_error": "Không đổi được tên không gian làm việc",
     "rename_success": "Đã đổi tên không gian làm việc",
+    "suspended_banner": {
+      "contact": "Liên hệ:",
+      "message": "Không gian làm việc này đã bị quản trị viên của bản cài đặt này tạm ngưng. Các giám sát không chạy và các trang trạng thái không khả dụng.",
+      "no_contact": "Hãy liên hệ người quản lý bản cài đặt này."
+    },
     "switcher_label": "Chuyển không gian làm việc"
   },
   "get_started": {

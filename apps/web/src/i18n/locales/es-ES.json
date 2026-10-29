@@ -8,7 +8,8 @@
       "back_to_workspace": "Volver a {{name}}",
       "probes": "Sondas",
       "title": "Administración",
-      "users": "Usuarios"
+      "users": "Usuarios",
+      "workspaces": "Espacios de trabajo"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Sí"
       },
       "you": "tú"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Eliminar espacio de trabajo",
+        "resume": "Reanudar espacio de trabajo",
+        "suspend": "Suspender espacio de trabajo"
+      },
+      "actions_aria": "Acciones para {{name}}",
+      "columns": {
+        "created": "Creado",
+        "custom_domains": "Dominios personalizados",
+        "members": "Miembros",
+        "monitors": "Monitores",
+        "name": "Nombre",
+        "owners": "Propietarios",
+        "status": "Estado",
+        "status_pages": "Páginas de estado"
+      },
+      "confirm": {
+        "cancel": "Cancelar",
+        "delete": {
+          "confirm": "Eliminar espacio de trabajo",
+          "description": "¿Eliminar {{name}}? Se elimina todo lo que contiene: sus monitores y su historial, las páginas de estado, los canales de notificación y el acceso de sus miembros. No se puede deshacer.",
+          "name_label": "Escribe el nombre del espacio de trabajo para confirmar: {{name}}",
+          "title": "Eliminar espacio de trabajo"
+        },
+        "resume": {
+          "confirm": "Reanudar",
+          "description": "Los monitores de {{name}} vuelven a funcionar en el estado que tenían y sus miembros pueden usarlo como antes. Un espacio de trabajo que espera a que su propietario verifique su correo electrónico sigue esperando.",
+          "title": "Reanudar espacio de trabajo"
+        },
+        "suspend": {
+          "confirm": "Suspender",
+          "description": "Los monitores de {{name}} dejan de funcionar, sus páginas de estado públicas indican que no están disponibles y sus miembros ven que está suspendido. No se elimina nada y puedes reanudarlo más tarde.",
+          "title": "Suspender espacio de trabajo"
+        }
+      },
+      "description": "Todos los espacios de trabajo de esta instalación, con sus propietarios, sus miembros y cuánto contienen. Solo se muestran recuentos, nada del interior de un espacio de trabajo.",
+      "empty": "No se encontraron espacios de trabajo",
+      "load_failed": "No se pudieron cargar los espacios de trabajo.",
+      "messages": {
+        "deleted": "{{name}} se ha eliminado",
+        "failed": "No se pudo cambiar el espacio de trabajo.",
+        "resumed": "{{name}} se ha reanudado",
+        "suspended": "{{name}} está suspendido"
+      },
+      "monitors": "{{active}} activos, {{paused}} pausados",
+      "none": "Ninguno",
+      "page_name": "Espacios de trabajo",
+      "paging": {
+        "next": "Siguiente",
+        "page": "Página {{page}} de {{pages}}",
+        "previous": "Anterior"
+      },
+      "search_label": "Buscar espacios de trabajo por nombre o correo electrónico del propietario",
+      "search_placeholder": "Buscar por nombre o correo electrónico del propietario",
+      "status": {
+        "running": "En funcionamiento",
+        "suspended_admin": "Suspendido por un administrador",
+        "suspended_unverified": "Suspendido hasta que el propietario verifique su correo electrónico"
+      },
+      "total": "{{total}} encontrados"
     }
   },
   "auth": {
@@ -1759,6 +1822,7 @@
       "refresh_in": "Actualizar en",
       "refresh_now": "Actualizar ahora",
       "status_page_not_found": "Página de estado no encontrada o no publicada.",
+      "status_page_unavailable": "Esta página de estado no está disponible",
       "under_maintenance": "En mantenimiento",
       "unknown": "Desconocido"
     }
@@ -1888,6 +1952,11 @@
     "refresh_failed": "No se pudieron cargar tus espacios de trabajo. Comprueba tu conexión e inténtalo de nuevo.",
     "rename_error": "No se pudo renombrar el espacio de trabajo",
     "rename_success": "Espacio de trabajo renombrado",
+    "suspended_banner": {
+      "contact": "Para ponerte en contacto:",
+      "message": "El administrador de esta instalación ha suspendido este espacio de trabajo. Sus monitores no se ejecutan y sus páginas de estado no están disponibles.",
+      "no_contact": "Ponte en contacto con la persona que gestiona esta instalación."
+    },
     "switcher_label": "Cambiar de espacio de trabajo"
   },
   "get_started": {
