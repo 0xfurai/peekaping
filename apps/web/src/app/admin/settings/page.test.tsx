@@ -33,6 +33,16 @@ const SETTINGS: AdminInstallSettingsResponse = {
     tls: field("starttls", "default", "ACCOUNT_SMTP_TLS"),
   },
   accountEmails: true,
+  workspaceLimits: {
+    monitors: field<number | null>(10, "environment", "WORKSPACE_LIMIT_MONITORS"),
+    min_check_interval: field<number | null>(300, "saved", "WORKSPACE_LIMIT_MIN_CHECK_INTERVAL"),
+    status_pages: field<number | null>(null, "default", "WORKSPACE_LIMIT_STATUS_PAGES"),
+    custom_domains: field<number | null>(null, "default", "WORKSPACE_LIMIT_CUSTOM_DOMAINS"),
+    members: field<number | null>(null, "default", "WORKSPACE_LIMIT_MEMBERS"),
+    owned_workspaces: field<number | null>(null, "default", "WORKSPACE_LIMIT_OWNED_WORKSPACES"),
+    probes_per_monitor: field<number | null>(null, "default", "WORKSPACE_LIMIT_PROBES_PER_MONITOR"),
+    retention_days: field<number | null>(null, "default", "WORKSPACE_LIMIT_RETENTION_DAYS"),
+  },
 };
 
 const page = (settings: AdminInstallSettingsResponse = SETTINGS) =>

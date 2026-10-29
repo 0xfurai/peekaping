@@ -28,6 +28,16 @@ const SETTINGS: AdminInstallSettingsResponse = {
     tls: field("starttls"),
   },
   accountEmails: true,
+  workspaceLimits: {
+    monitors: field<number | null>(10, "saved", "WORKSPACE_LIMIT_MONITORS"),
+    min_check_interval: field<number | null>(null, "default", "WORKSPACE_LIMIT_MIN_CHECK_INTERVAL"),
+    status_pages: field<number | null>(2, "environment", "WORKSPACE_LIMIT_STATUS_PAGES"),
+    custom_domains: field<number | null>(null, "default", "WORKSPACE_LIMIT_CUSTOM_DOMAINS"),
+    members: field<number | null>(5, "saved", "WORKSPACE_LIMIT_MEMBERS"),
+    owned_workspaces: field<number | null>(null, "environment", "WORKSPACE_LIMIT_OWNED_WORKSPACES"),
+    probes_per_monitor: field<number | null>(null, "default", "WORKSPACE_LIMIT_PROBES_PER_MONITOR"),
+    retention_days: field<number | null>(null, "default", "WORKSPACE_LIMIT_RETENTION_DAYS"),
+  },
 };
 
 const values = installSettingsFormValues(SETTINGS);
