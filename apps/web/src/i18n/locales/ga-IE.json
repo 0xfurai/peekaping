@@ -202,6 +202,7 @@
         "password_set": "Tá pasfhocal socraithe. Clóscríobh chun é a athsholáthar.",
         "password_not_set": "Níl pasfhocal socraithe",
         "password_removed": "Bainfear an pasfhocal nuair a shábhálann tú.",
+        "password_reenter": "Má athraítear an t-óstach, an port, an tslándáil nó an t-úsáideoir, bainfear an pasfhocal sábháilte. Cuir isteach arís é.",
         "remove_password": "Bain an pasfhocal",
         "keep_password": "Coinnigh an pasfhocal",
         "from": "Seoladh an tseoltóra"

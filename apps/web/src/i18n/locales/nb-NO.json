@@ -202,6 +202,7 @@
         "password_set": "Et passord er satt. Skriv for å erstatte det.",
         "password_not_set": "Ingen passord satt",
         "password_removed": "Passordet fjernes når du lagrer.",
+        "password_reenter": "Hvis du endrer vert, port, sikkerhet eller bruker, fjernes det lagrede passordet. Skriv det inn på nytt.",
         "remove_password": "Fjern passord",
         "keep_password": "Behold passord",
         "from": "Avsenderadresse"

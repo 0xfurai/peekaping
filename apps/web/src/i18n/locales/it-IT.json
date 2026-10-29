@@ -202,6 +202,7 @@
         "password_set": "È impostata una password. Digita per sostituirla.",
         "password_not_set": "Nessuna password impostata",
         "password_removed": "La password verrà rimossa al salvataggio.",
+        "password_reenter": "Modificando host, porta, sicurezza o utente la password salvata viene rimossa. Inseriscila di nuovo.",
         "remove_password": "Rimuovi password",
         "keep_password": "Mantieni password",
         "from": "Indirizzo del mittente"

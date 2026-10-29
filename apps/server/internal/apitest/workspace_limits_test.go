@@ -13,6 +13,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/limits"
+	"peekaping/internal/modules/domain_status_page"
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/workspace"
 
@@ -90,6 +91,58 @@ func TestLimits_CustomDomains_CountAcrossTheWorkspacesPagesOnCreateAndUpdate(t *
 		assertLimitReached(t, a.request(t, http.MethodPatch, path, map[string]any{"domains": []string{"four.example.com", "five.example.com"}}, a.asAdmin), "custom_domains", 1)
 		decode[created](t, a.request(t, http.MethodPatch, path, map[string]any{"domains": []string{}}, a.asAdmin), http.StatusOK)
 		assert.Empty(t, a.pageDomains(t, second))
+	})
+}
+
+// domainsComeBetween runs between once, after the first count of custom domains: another page's
+// domain that is stored between an update's check and its write
+type domainsComeBetween struct {
+	status_page.Repository
+	between *func()
+	once    *sync.Once
+}
+
+func (r domainsComeBetween) CountDomains(ctx context.Context, id workspace.ID) (int, error) {
+	n, err := r.Repository.CountDomains(ctx, id)
+	if *r.between != nil {
+		r.once.Do(*r.between)
+	}
+	return n, err
+}
+
+// AC5: an update refused for its domains in its transaction, after a domain came in since its check,
+// stores nothing of the request: not the page's fields and not its monitors either
+func TestLimits_CustomDomains_AnUpdateRefusedInItsTransactionStoresNothing(t *testing.T) {
+	forEachBackend(t, func(t *testing.T, backend func(*config.Config)) {
+		var between func()
+		a := newAppDecorated(t, func(container *dig.Container) error {
+			return container.Decorate(func(r status_page.Repository) status_page.Repository {
+				return domainsComeBetween{Repository: r, between: &between, once: &sync.Once{}}
+			})
+		}, backend, withLimits(func(cfg *config.Config) { cfg.WorkspaceLimitCustomDomains = 1 }))
+		a.registerAdmin(t)
+		kept, other := a.createHTTPMonitor(t, "Kept", ""), a.createHTTPMonitor(t, "Other", "")
+		page := decode[created](t, a.request(t, http.MethodPost, statusPagesPath, map[string]any{"slug": "mine", "title": "Mine", "monitor_ids": []string{kept}}, a.asAdmin), http.StatusCreated).ID
+		otherPage := decode[created](t, a.postPage(t, "theirs"), http.StatusCreated).ID
+		require.NoError(t, a.container.Invoke(func(domains domain_status_page.Service) {
+			between = func() {
+				_, err := domains.AddDomainToStatusPage(context.Background(), otherPage, "theirs.example.com")
+				assert.NoError(t, err)
+			}
+		}))
+
+		path := statusPagesPath + "/" + page
+		w := a.request(t, http.MethodPatch, path, map[string]any{"title": "Renamed", "monitor_ids": []string{other}, "domains": []string{"mine.example.com"}}, a.asAdmin)
+
+		assertLimitReached(t, w, "custom_domains", 1)
+		stored := decode[struct {
+			Title      string   `json:"title"`
+			MonitorIDs []string `json:"monitor_ids"`
+			Domains    []string `json:"domains"`
+		}](t, a.request(t, http.MethodGet, path, nil, a.asAdmin), http.StatusOK)
+		assert.Equal(t, "Mine", stored.Title, "the page's fields are as they were")
+		assert.Equal(t, []string{kept}, stored.MonitorIDs, "and so are its monitors")
+		assert.Empty(t, stored.Domains)
 	})
 }
 
