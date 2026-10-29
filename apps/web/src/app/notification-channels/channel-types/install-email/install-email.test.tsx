@@ -42,6 +42,12 @@ describe("install email channel form", () => {
     expect(selected(html)).toBe("bob@example.com");
   });
 
+  it("shows a saved recipient that differs from a member's email only in case as saved", () => {
+    const html = render("Bob@Example.com");
+    expect(selected(html)).toBe("Bob@Example.com");
+    expect(html).not.toContain('value="bob@example.com"');
+  });
+
   it("says that it is sent through this install and once the member has verified the address", () => {
     const html = render("");
     expect(html).toContain(text("notifications.form.install_email.description"));
@@ -71,9 +77,16 @@ describe("recipientChoices", () => {
   });
 
   it("doesn't list a member twice that differs in case", () => {
-    expect(recipientChoices({ members, userEmail: "User@Example.com", current: USER_EMAIL })).toEqual([
+    expect(recipientChoices({ members, userEmail: "User@Example.com", current: "User@Example.com" })).toEqual([
       "User@Example.com",
       "bob@example.com",
+    ]);
+  });
+
+  it("lists a saved recipient that differs from a member's email only in case in that member's place", () => {
+    expect(recipientChoices({ members, userEmail: USER_EMAIL, current: "Bob@Example.com" })).toEqual([
+      USER_EMAIL,
+      "Bob@Example.com",
     ]);
   });
 });

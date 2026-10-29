@@ -14,6 +14,7 @@ import { commonMutationErrorHandler } from "@/lib/utils";
 import type { NotificationChannelCreateUpdateDto } from "@/api";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { invalidateChannelLists } from "../channel-queries";
 
 const EditNotificationChannel = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +35,7 @@ const EditNotificationChannel = () => {
       queryClient.removeQueries({
         queryKey: getNotificationChannelsByIdQueryKey({ path: { id: id! } }),
       });
+      invalidateChannelLists(queryClient);
       navigate(workspacePath("/notification-channels"));
     },
     onError: commonMutationErrorHandler(t("notifications.messages.update_failed")),

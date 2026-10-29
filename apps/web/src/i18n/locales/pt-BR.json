@@ -8,7 +8,8 @@
       "back_to_workspace": "Voltar para {{name}}",
       "probes": "Sondas",
       "title": "Administração",
-      "users": "Usuários"
+      "users": "Usuários",
+      "workspaces": "Espaços de trabalho"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Sim"
       },
       "you": "você"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Excluir espaço de trabalho",
+        "resume": "Retomar espaço de trabalho",
+        "suspend": "Suspender espaço de trabalho"
+      },
+      "actions_aria": "Ações para {{name}}",
+      "columns": {
+        "created": "Criado em",
+        "custom_domains": "Domínios personalizados",
+        "members": "Membros",
+        "monitors": "Monitores",
+        "name": "Nome",
+        "owners": "Proprietários",
+        "status": "Status",
+        "status_pages": "Páginas de status"
+      },
+      "confirm": {
+        "cancel": "Cancelar",
+        "delete": {
+          "confirm": "Excluir espaço de trabalho",
+          "description": "Excluir {{name}}? Tudo o que há nele será removido: os monitores e seu histórico, as páginas de status, os canais de notificação e o acesso dos membros. Isso não pode ser desfeito.",
+          "name_label": "Digite o nome do espaço de trabalho para confirmar: {{name}}",
+          "title": "Excluir espaço de trabalho"
+        },
+        "resume": {
+          "confirm": "Retomar",
+          "description": "Os monitores de {{name}} voltam a funcionar no estado em que estavam, e os membros podem usá-lo como antes. Um espaço de trabalho que aguarda a verificação do e-mail do proprietário continua aguardando.",
+          "title": "Retomar espaço de trabalho"
+        },
+        "suspend": {
+          "confirm": "Suspender",
+          "description": "Os monitores de {{name}} param de funcionar, as páginas de status públicas informam que estão indisponíveis e os membros veem que ele está suspenso. Nada é excluído, e você pode retomá-lo depois.",
+          "title": "Suspender espaço de trabalho"
+        }
+      },
+      "description": "Todos os espaços de trabalho desta instalação, com seus proprietários, seus membros e quanto cada um contém. Apenas as contagens são exibidas, nada do conteúdo de um espaço de trabalho.",
+      "empty": "Nenhum espaço de trabalho encontrado",
+      "load_failed": "Não foi possível carregar os espaços de trabalho.",
+      "messages": {
+        "deleted": "{{name}} foi excluído",
+        "failed": "Não foi possível alterar o espaço de trabalho.",
+        "resumed": "{{name}} foi retomado",
+        "suspended": "{{name}} foi suspenso"
+      },
+      "monitors": "{{active}} ativos, {{paused}} pausados",
+      "none": "Nenhum",
+      "page_name": "Espaços de trabalho",
+      "paging": {
+        "next": "Próxima",
+        "page": "Página {{page}} de {{pages}}",
+        "previous": "Anterior"
+      },
+      "search_label": "Pesquisar espaços de trabalho por nome ou e-mail do proprietário",
+      "search_placeholder": "Pesquisar por nome ou e-mail do proprietário",
+      "status": {
+        "running": "Em execução",
+        "suspended_admin": "Suspenso por um administrador",
+        "suspended_unverified": "Suspenso até o proprietário verificar o e-mail"
+      },
+      "total": "{{total}} encontrado(s)"
     }
   },
   "auth": {
@@ -1406,7 +1469,8 @@
       "updated_success": "Notificador atualizado com sucesso"
     },
     "new": {
-      "title": "Novo Canal de Notificação"
+      "title": "Novo Canal de Notificação",
+      "default_hint": "Este canal será marcado nos novos monitores."
     },
     "no_important": "Nenhuma notificação importante encontrada.",
     "placeholders": {
@@ -1758,6 +1822,7 @@
       "refresh_in": "Atualizar em",
       "refresh_now": "Atualizar agora",
       "status_page_not_found": "Página de status não encontrada ou não publicada.",
+      "status_page_unavailable": "Esta página de status está indisponível",
       "under_maintenance": "Em Manutenção",
       "unknown": "Desconhecido"
     }
@@ -1887,6 +1952,11 @@
     "refresh_failed": "Não foi possível carregar seus espaços de trabalho. Verifique sua conexão e tente novamente.",
     "rename_error": "Falha ao renomear o espaço de trabalho",
     "rename_success": "Espaço de trabalho renomeado",
+    "suspended_banner": {
+      "contact": "Para entrar em contato:",
+      "message": "Este espaço de trabalho foi suspenso pelo administrador desta instalação. Os monitores não estão em execução e as páginas de status estão indisponíveis.",
+      "no_contact": "Entre em contato com a pessoa responsável por esta instalação."
+    },
     "switcher_label": "Trocar de espaço de trabalho"
   },
   "get_started": {

@@ -8,7 +8,8 @@
       "back_to_workspace": "Torna a {{name}}",
       "probes": "Sonde",
       "title": "Amministrazione",
-      "users": "Utenti"
+      "users": "Utenti",
+      "workspaces": "Spazi di lavoro"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Sì"
       },
       "you": "tu"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Elimina spazio di lavoro",
+        "resume": "Riattiva spazio di lavoro",
+        "suspend": "Sospendi spazio di lavoro"
+      },
+      "actions_aria": "Azioni per {{name}}",
+      "columns": {
+        "created": "Creato",
+        "custom_domains": "Domini personalizzati",
+        "members": "Membri",
+        "monitors": "Monitor",
+        "name": "Nome",
+        "owners": "Proprietari",
+        "status": "Stato",
+        "status_pages": "Pagine di stato"
+      },
+      "confirm": {
+        "cancel": "Annulla",
+        "delete": {
+          "confirm": "Elimina spazio di lavoro",
+          "description": "Eliminare {{name}}? Tutto ciò che contiene viene rimosso: i monitor e la loro cronologia, le pagine di stato, i canali di notifica e l'accesso dei membri. L'operazione non può essere annullata.",
+          "name_label": "Digita il nome dello spazio di lavoro per confermare: {{name}}",
+          "title": "Elimina spazio di lavoro"
+        },
+        "resume": {
+          "confirm": "Riattiva",
+          "description": "I monitor di {{name}} tornano in esecuzione nello stato in cui erano e i membri possono usarlo come prima. Uno spazio di lavoro in attesa della verifica dell'email del proprietario resta in attesa.",
+          "title": "Riattiva spazio di lavoro"
+        },
+        "suspend": {
+          "confirm": "Sospendi",
+          "description": "I monitor di {{name}} si fermano, le sue pagine di stato pubbliche indicano che non sono disponibili e i membri vedono che è sospeso. Non viene eliminato nulla e puoi riattivarlo in seguito.",
+          "title": "Sospendi spazio di lavoro"
+        }
+      },
+      "description": "Tutti gli spazi di lavoro di questa installazione, con proprietari, membri e quanto contengono. Vengono mostrati solo i conteggi, nulla dall'interno di uno spazio di lavoro.",
+      "empty": "Nessuno spazio di lavoro trovato",
+      "load_failed": "Impossibile caricare gli spazi di lavoro.",
+      "messages": {
+        "deleted": "{{name}} è eliminato",
+        "failed": "Impossibile modificare lo spazio di lavoro.",
+        "resumed": "{{name}} è riattivato",
+        "suspended": "{{name}} è sospeso"
+      },
+      "monitors": "{{active}} attivi, {{paused}} in pausa",
+      "none": "Nessuno",
+      "page_name": "Spazi di lavoro",
+      "paging": {
+        "next": "Successiva",
+        "page": "Pagina {{page}} di {{pages}}",
+        "previous": "Precedente"
+      },
+      "search_label": "Cerca spazi di lavoro per nome o email del proprietario",
+      "search_placeholder": "Cerca per nome o email del proprietario",
+      "status": {
+        "running": "In esecuzione",
+        "suspended_admin": "Sospeso da un amministratore",
+        "suspended_unverified": "Sospeso finché il proprietario non verifica la propria email"
+      },
+      "total": "{{total}} trovati"
     }
   },
   "auth": {
@@ -1406,7 +1469,8 @@
       "updated_success": "Notificatore aggiornato con successo"
     },
     "new": {
-      "title": "Nuovo canale di notifica"
+      "title": "Nuovo canale di notifica",
+      "default_hint": "Questo canale sarà selezionato nei nuovi monitor."
     },
     "no_important": "Nessuna notifica importante trovata.",
     "placeholders": {
@@ -1758,6 +1822,7 @@
       "refresh_in": "Ricarica in",
       "refresh_now": "Aggiorna Ora",
       "status_page_not_found": "Pagina di stato non trovata o non pubblicata.",
+      "status_page_unavailable": "Questa pagina di stato non è disponibile",
       "under_maintenance": "In manutenzione",
       "unknown": "Sconosciuto"
     }
@@ -1887,6 +1952,11 @@
     "refresh_failed": "Impossibile caricare i tuoi spazi di lavoro. Controlla la connessione e riprova.",
     "rename_error": "Impossibile rinominare lo spazio di lavoro",
     "rename_success": "Spazio di lavoro rinominato",
+    "suspended_banner": {
+      "contact": "Per contatti:",
+      "message": "Questo spazio di lavoro è sospeso dall'amministratore di questa installazione. I suoi monitor non sono in esecuzione e le sue pagine di stato non sono disponibili.",
+      "no_contact": "Contatta la persona che gestisce questa installazione."
+    },
     "switcher_label": "Cambia spazio di lavoro"
   },
   "get_started": {

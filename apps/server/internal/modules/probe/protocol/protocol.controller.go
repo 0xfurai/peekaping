@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"sync"
 	"time"
 
 	"peekaping/internal/config"
@@ -52,8 +53,11 @@ type Controller struct {
 	accepted      Window
 	// storeSlots limits the monitors all the results requests store at the same time
 	storeSlots chan struct{}
-	now        func() time.Time
-	logger     *zap.SugaredLogger
+	// unguarded holds the ids of the instances already warned of, for the warning that an instance
+	// whose hello doesn't enforce the private target block is dealt no monitors: once each
+	unguarded sync.Map
+	now       func() time.Time
+	logger    *zap.SugaredLogger
 }
 
 type ControllerParams struct {
@@ -199,6 +203,8 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		ProtocolVersion: req.ProtocolVersion,
 		SupportedTypes:  req.SupportedTypes,
 		LastSeenAt:      now,
+
+		EnforcesPrivateTargetBlock: req.EnforcesPrivateTargetBlock,
 	})
 	if errors.Is(err, probe.ErrTooManyInstances) {
 		return nil, tooManyInstances(owner)
@@ -211,11 +217,19 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 	if changesAssignments(before, req.SupportedTypes, now) {
 		c.instancesChanged(r.Context(), owner.ID)
 	}
+	// An instance that would ignore the server's block is dealt nothing (see dealtTo), so it doesn't
+	// claim the assign-all flag either: the probe's next instance that can run its monitors does.
+	guarded := !c.guard.Enabled() || req.EnforcesPrivateTargetBlock
+	if !guarded {
+		c.warnUnguarded(owner, instanceID, req.ProbeVersion)
+	}
 	// The flag is read fresh, by the claim, now that the instance is on record, and not from the
 	// token lookup that made owner: an assign-all action that set it after that lookup is still
 	// seen. A probe that isn't waiting costs one conditional update here.
-	if err := c.assignAllMonitors(r.Context(), owner.ID, req.SupportedTypes); err != nil {
-		return nil, err
+	if guarded {
+		if err := c.assignAllMonitors(r.Context(), owner.ID, req.SupportedTypes); err != nil {
+			return nil, err
+		}
 	}
 	// The instance is on record, so the probe is connected. The middleware's stamp does this for
 	// every other route.
@@ -234,6 +248,17 @@ func (c *Controller) Hello(ctx context.Context, input *HelloInput) (*httpx.Outpu
 		BlockPrivateTargets:    c.guard.Enabled(),
 		ChecksPerHostPerMinute: c.checksPerHost,
 	})
+}
+
+// warnUnguarded logs, once for each instance, that the instance is dealt no monitors because its
+// hello didn't say it blocks private targets, which a probe from before BLOCK_PRIVATE_TARGETS
+// doesn't
+func (c *Controller) warnUnguarded(owner *probe.Model, instanceID, probeVersion string) {
+	if _, warned := c.unguarded.LoadOrStore(instanceID, struct{}{}); warned {
+		return
+	}
+	c.logger.Warnw("Probe instance gets no monitors: BLOCK_PRIVATE_TARGETS is on, and the probe is too old to block private targets. Upgrade the probe.",
+		"probeId", owner.ID, "probeName", owner.Name, "instanceId", instanceID, "probeVersion", probeVersion)
 }
 
 // assignAllMonitors gives a probe that was made to take over every monitor the ones its first

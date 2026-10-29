@@ -46,8 +46,9 @@ type sqlInstance struct {
 	Version         string `bun:"version,notnull"`
 	ProtocolVersion int    `bun:"protocol_version,notnull"`
 	// SupportedTypes is a JSON array of monitor types, in a JSONB column
-	SupportedTypes string    `bun:"supported_types,notnull"`
-	LastSeenAt     time.Time `bun:"last_seen_at,notnull"`
+	SupportedTypes             string    `bun:"supported_types,notnull"`
+	EnforcesPrivateTargetBlock bool      `bun:"enforces_private_target_block,notnull"`
+	LastSeenAt                 time.Time `bun:"last_seen_at,notnull"`
 }
 
 type sqlInstanceConnection struct {
@@ -90,6 +91,8 @@ func toDomainInstanceFromSQL(si *sqlInstance) *Instance {
 		ProtocolVersion: si.ProtocolVersion,
 		SupportedTypes:  decodeTypes(si.SupportedTypes),
 		LastSeenAt:      si.LastSeenAt,
+
+		EnforcesPrivateTargetBlock: si.EnforcesPrivateTargetBlock,
 	}
 }
 
@@ -308,8 +311,8 @@ func (r *SQLRepositoryImpl) UpsertInstance(ctx context.Context, probeID string, 
 		// again. The WHERE keeps another probe's instance out of reach: no row changes then. The
 		// statement names the table in full and not by an alias, which PostgreSQL allows in this
 		// WHERE only for a table with no alias.
-		result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, supported_types, last_seen_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		result, err := dbtx.DB(ctx, r.db).ExecContext(ctx, `INSERT INTO probe_instances (id, probe_id, hostname, os, arch, version, protocol_version, supported_types, enforces_private_target_block, last_seen_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT (id) DO UPDATE SET
 	hostname = EXCLUDED.hostname,
 	os = EXCLUDED.os,
@@ -317,9 +320,10 @@ ON CONFLICT (id) DO UPDATE SET
 	version = EXCLUDED.version,
 	protocol_version = EXCLUDED.protocol_version,
 	supported_types = EXCLUDED.supported_types,
+	enforces_private_target_block = EXCLUDED.enforces_private_target_block,
 	last_seen_at = EXCLUDED.last_seen_at
 WHERE probe_instances.probe_id = EXCLUDED.probe_id`,
-			inst.ID, probeID, inst.Hostname, inst.OS, inst.Arch, inst.Version, inst.ProtocolVersion, supportedTypes, inst.LastSeenAt.UTC())
+			inst.ID, probeID, inst.Hostname, inst.OS, inst.Arch, inst.Version, inst.ProtocolVersion, supportedTypes, inst.EnforcesPrivateTargetBlock, inst.LastSeenAt.UTC())
 		if err != nil {
 			return err
 		}

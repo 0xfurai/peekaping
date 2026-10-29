@@ -8,7 +8,8 @@
       "back_to_workspace": "Tagasi: {{name}}",
       "probes": "Sondid",
       "title": "Haldus",
-      "users": "Kasutajad"
+      "users": "Kasutajad",
+      "workspaces": "Tööruumid"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Jah"
       },
       "you": "sina"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Kustuta tööruum",
+        "resume": "Taasta tööruum",
+        "suspend": "Peata tööruum"
+      },
+      "actions_aria": "Tööruumi {{name}} toimingud",
+      "columns": {
+        "created": "Loodud",
+        "custom_domains": "Kohandatud domeenid",
+        "members": "Liikmed",
+        "monitors": "Monitoorid",
+        "name": "Nimi",
+        "owners": "Omanikud",
+        "status": "Olek",
+        "status_pages": "Olekusivud"
+      },
+      "confirm": {
+        "cancel": "Tühista",
+        "delete": {
+          "confirm": "Kustuta tööruum",
+          "description": "Kas kustutada {{name}}? Kõik selles kaob: selle monitoorid ja nende ajalugu, olekusivud, teavituskanalid ja liikmete juurdepääs. Seda ei saa tagasi võtta.",
+          "name_label": "Kinnitamiseks sisesta tööruumi nimi: {{name}}",
+          "title": "Kustuta tööruum"
+        },
+        "resume": {
+          "confirm": "Taasta",
+          "description": "Tööruumi {{name}} monitoorid töötavad uuesti selles olekus, milles nad olid, ja selle liikmed saavad seda kasutada nagu varem. Tööruum, mis ootab, et omanik oma e-posti kinnitaks, jääb ootama.",
+          "title": "Taasta tööruum"
+        },
+        "suspend": {
+          "confirm": "Peata",
+          "description": "Tööruumi {{name}} monitoorid lõpetavad töö, selle avalikud olekusivud teatavad, et need pole saadaval, ja selle liikmed näevad, et see on peatatud. Midagi ei kustutata ja saad selle hiljem taastada.",
+          "title": "Peata tööruum"
+        }
+      },
+      "description": "Kõik selle paigalduse tööruumid koos omanike, liikmete ja sisu mahuga. Näidatakse ainult arve, mitte midagi tööruumi seest.",
+      "empty": "Tööruume ei leitud",
+      "load_failed": "Tööruumide laadimine ebaõnnestus.",
+      "messages": {
+        "deleted": "{{name}} on kustutatud",
+        "failed": "Tööruumi muutmine ebaõnnestus.",
+        "resumed": "{{name}} on taastatud",
+        "suspended": "{{name}} on peatatud"
+      },
+      "monitors": "{{active}} aktiivset, {{paused}} peatatud",
+      "none": "Puudub",
+      "page_name": "Tööruumid",
+      "paging": {
+        "next": "Järgmine",
+        "page": "Leht {{page}} / {{pages}}",
+        "previous": "Eelmine"
+      },
+      "search_label": "Otsi tööruume nime või omaniku e-posti järgi",
+      "search_placeholder": "Otsi nime või omaniku e-posti järgi",
+      "status": {
+        "running": "Töötab",
+        "suspended_admin": "Halduri poolt peatatud",
+        "suspended_unverified": "Peatatud, kuni omanik oma e-posti kinnitab"
+      },
+      "total": "Leitud: {{total}}"
     }
   },
   "auth": {
@@ -1406,7 +1469,8 @@
       "updated_success": "Teavitaja uuendati edukalt"
     },
     "new": {
-      "title": "Uus teavituskanal"
+      "title": "Uus teavituskanal",
+      "default_hint": "See kanal märgitakse uutel monitoridel."
     },
     "no_important": "Ühtegi olulist teadet ei leitud.",
     "placeholders": {
@@ -1758,6 +1822,7 @@
       "refresh_in": "Värskendamine",
       "refresh_now": "Värskenda kohe",
       "status_page_not_found": "Statuse lehte ei leitud või pole avaldatud.",
+      "status_page_unavailable": "See olekusivu pole saadaval",
       "under_maintenance": "Hooldusel",
       "unknown": "Tundmatu"
     }
@@ -1887,6 +1952,11 @@
     "refresh_failed": "Teie tööruume ei õnnestunud laadida. Kontrollige ühendust ja proovige uuesti.",
     "rename_error": "Tööruumi ümbernimetamine ebaõnnestus",
     "rename_success": "Tööruum on ümber nimetatud",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Selle paigalduse haldur on selle tööruumi peatanud. Selle monitoorid ei tööta ja olekusivud pole saadaval.",
+      "no_contact": "Võta ühendust inimesega, kes seda paigaldust haldab."
+    },
     "switcher_label": "Vaheta tööruumi"
   },
   "get_started": {

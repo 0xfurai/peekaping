@@ -3,7 +3,6 @@ import type { NotificationChannelModel } from "@/api";
 import {
   getNotificationChannelsInfiniteOptions,
   deleteNotificationChannelsByIdMutation,
-  getNotificationChannelsInfiniteQueryKey,
 } from "@/api/@tanstack/react-query.gen";
 import Layout from "@/layout";
 import {
@@ -27,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import NotificationChannelCard from "./components/notification-channel-card";
+import { invalidateChannelLists } from "./channel-queries";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchParams } from "@/hooks/useSearchParams";
 import { toast } from "sonner";
@@ -84,9 +84,7 @@ const NotifiersPage = () => {
     ...deleteNotificationChannelsByIdMutation(),
     onSuccess: () => {
       toast.success(t("messages.notifier_delete_success"));
-      queryClient.invalidateQueries({
-        queryKey: getNotificationChannelsInfiniteQueryKey(),
-      });
+      invalidateChannelLists(queryClient);
       setShowConfirmDelete(false);
       setNotifierToDelete(null);
     },

@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, HelpCircleIcon, Radar, ShieldIcon, UsersIcon } from "lucide-react";
+import { ArrowLeftIcon, Building2Icon, HelpCircleIcon, Radar, ShieldIcon, UsersIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Sidebar,
@@ -19,8 +19,8 @@ import { inWorkspace } from "@/lib/workspace-path";
 import { VERSION } from "../version";
 
 // The sidebar of the admin area (/admin), which is outside every workspace: the install's own
-// pages, and a way back to the user's workspace. Workspaces (PP-372) and Settings (PP-373) join
-// the list when their pages exist.
+// pages, and a way back to the user's workspace. Settings (PP-373) joins the list when its page
+// exists.
 export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const user = useAuthStore((state) => state.user);
   const { t } = useLocalizedTranslation();
@@ -30,6 +30,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   const navMain = [
     { title: t("admin.nav.users"), url: "/admin/users", icon: UsersIcon, absolute: true },
+    { title: t("admin.nav.workspaces"), url: "/admin/workspaces", icon: Building2Icon, absolute: true },
     { title: t("admin.nav.probes"), url: "/admin/probes", icon: Radar, absolute: true },
   ];
   const navSecondary = [

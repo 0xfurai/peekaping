@@ -8,7 +8,8 @@
       "back_to_workspace": "Tilbage til {{name}}",
       "probes": "Probes",
       "title": "Administration",
-      "users": "Brugere"
+      "users": "Brugere",
+      "workspaces": "Arbejdsområder"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Ja"
       },
       "you": "dig"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Slet arbejdsområde",
+        "resume": "Genoptag arbejdsområde",
+        "suspend": "Suspendér arbejdsområde"
+      },
+      "actions_aria": "Handlinger for {{name}}",
+      "columns": {
+        "created": "Oprettet",
+        "custom_domains": "Egne domæner",
+        "members": "Medlemmer",
+        "monitors": "Monitorer",
+        "name": "Navn",
+        "owners": "Ejere",
+        "status": "Status",
+        "status_pages": "Statussider"
+      },
+      "confirm": {
+        "cancel": "Annullér",
+        "delete": {
+          "confirm": "Slet arbejdsområde",
+          "description": "Slet {{name}}? Alt i det forsvinder: monitorerne og deres historik, statussider, notifikationskanaler og medlemmernes adgang. Det kan ikke fortrydes.",
+          "name_label": "Skriv arbejdsområdets navn for at bekræfte: {{name}}",
+          "title": "Slet arbejdsområde"
+        },
+        "resume": {
+          "confirm": "Genoptag",
+          "description": "Monitorerne i {{name}} kører igen i den tilstand, de havde, og medlemmerne kan bruge det som før. Et arbejdsområde, der venter på, at ejeren bekræfter sin e-mail, bliver ved med at vente.",
+          "title": "Genoptag arbejdsområde"
+        },
+        "suspend": {
+          "confirm": "Suspendér",
+          "description": "Monitorerne i {{name}} holder op med at køre, de offentlige statussider viser, at de ikke er tilgængelige, og medlemmerne kan se, at det er suspenderet. Intet slettes, og du kan genoptage det senere.",
+          "title": "Suspendér arbejdsområde"
+        }
+      },
+      "description": "Alle arbejdsområder på denne installation med deres ejere, medlemmer og hvor meget de indeholder. Kun antal vises, intet fra indholdet af et arbejdsområde.",
+      "empty": "Ingen arbejdsområder fundet",
+      "load_failed": "Arbejdsområderne kunne ikke indlæses.",
+      "messages": {
+        "deleted": "{{name}} er slettet",
+        "failed": "Arbejdsområdet kunne ikke ændres.",
+        "resumed": "{{name}} er genoptaget",
+        "suspended": "{{name}} er suspenderet"
+      },
+      "monitors": "{{active}} aktive, {{paused}} på pause",
+      "none": "Ingen",
+      "page_name": "Arbejdsområder",
+      "paging": {
+        "next": "Næste",
+        "page": "Side {{page}} af {{pages}}",
+        "previous": "Forrige"
+      },
+      "search_label": "Søg efter arbejdsområder med navn eller ejerens e-mail",
+      "search_placeholder": "Søg efter navn eller ejerens e-mail",
+      "status": {
+        "running": "Kører",
+        "suspended_admin": "Suspenderet af en administrator",
+        "suspended_unverified": "Suspenderet, indtil ejeren bekræfter sin e-mail"
+      },
+      "total": "{{total}} fundet"
     }
   },
   "auth": {
@@ -1406,7 +1469,8 @@
       "updated_success": "Notifier opdateret med succes"
     },
     "new": {
-      "title": "Ny beskedkanal"
+      "title": "Ny beskedkanal",
+      "default_hint": "Denne kanal bliver markeret på nye monitorer."
     },
     "no_important": "Ingen vigtige meddelelser fundet.",
     "placeholders": {
@@ -1758,6 +1822,7 @@
       "refresh_in": "Genopfrisk i",
       "refresh_now": "Genopfrisk nu",
       "status_page_not_found": "Statusside ikke fundet eller er ikke offentliggjort.",
+      "status_page_unavailable": "Denne statusside er ikke tilgængelig",
       "under_maintenance": "Under vedligeholdelse",
       "unknown": "Ukendt"
     }
@@ -1887,6 +1952,11 @@
     "refresh_failed": "Dine arbejdsområder kunne ikke indlæses. Tjek din forbindelse, og prøv igen.",
     "rename_error": "Arbejdsområdet kunne ikke omdøbes",
     "rename_success": "Arbejdsområdet er omdøbt",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Dette arbejdsområde er suspenderet af administratoren af denne installation. Dets monitorer kører ikke, og dets statussider er ikke tilgængelige.",
+      "no_contact": "Kontakt den person, der driver denne installation."
+    },
     "switcher_label": "Skift arbejdsområde"
   },
   "get_started": {

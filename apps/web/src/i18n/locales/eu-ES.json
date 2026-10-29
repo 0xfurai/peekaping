@@ -8,7 +8,8 @@
       "back_to_workspace": "Itzuli hona: {{name}}",
       "probes": "Zundak",
       "title": "Administrazioa",
-      "users": "Erabiltzaileak"
+      "users": "Erabiltzaileak",
+      "workspaces": "Lan-eremuak"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Bai"
       },
       "you": "zu"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ezabatu lan-eremua",
+        "resume": "Berrekin lan-eremuari",
+        "suspend": "Eten lan-eremua"
+      },
+      "actions_aria": "{{name}} lan-eremuaren ekintzak",
+      "columns": {
+        "created": "Sortua",
+        "custom_domains": "Domeinu pertsonalizatuak",
+        "members": "Kideak",
+        "monitors": "Monitoreak",
+        "name": "Izena",
+        "owners": "Jabeak",
+        "status": "Egoera",
+        "status_pages": "Egoera-orriak"
+      },
+      "confirm": {
+        "cancel": "Ezeztatu",
+        "delete": {
+          "confirm": "Ezabatu lan-eremua",
+          "description": "{{name}} ezabatu? Barruan dagoen guztia desagertuko da: bere monitoreak eta haien historia, egoera-orriak, jakinarazpen-kanalak eta bere kideen sarbidea. Ezin da desegin.",
+          "name_label": "Berresteko, idatzi lan-eremuaren izena: {{name}}",
+          "title": "Ezabatu lan-eremua"
+        },
+        "resume": {
+          "confirm": "Berrekin",
+          "description": "{{name}} lan-eremuko monitoreak berriro abiatuko dira lehen zuten egoeran, eta bere kideek lehen bezala erabil dezakete. Jabeak helbide elektronikoa egiazta dezan zain dagoen lan-eremu batek zain jarraituko du.",
+          "title": "Berrekin lan-eremuari"
+        },
+        "suspend": {
+          "confirm": "Eten",
+          "description": "{{name}} lan-eremuko monitoreak gelditu egingo dira, bere egoera-orri publikoek erabilgarri ez daudela esango dute, eta bere kideek etenda dagoela ikusiko dute. Ez da ezer ezabatzen, eta geroago berriro martxan jar dezakezu.",
+          "title": "Eten lan-eremua"
+        }
+      },
+      "description": "Instalazio honetako lan-eremu guztiak, beren jabe eta kideekin, eta zenbat duten. Kopuruak bakarrik erakusten dira, ez lan-eremu baten barruko ezer.",
+      "empty": "Ez da lan-eremurik aurkitu",
+      "load_failed": "Ezin izan dira lan-eremuak kargatu.",
+      "messages": {
+        "deleted": "{{name}} ezabatu da",
+        "failed": "Ezin izan da lan-eremua aldatu.",
+        "resumed": "{{name}} berriro martxan dago",
+        "suspended": "{{name}} etenda dago"
+      },
+      "monitors": "{{active}} aktibo, {{paused}} pausatuta",
+      "none": "Bat ere ez",
+      "page_name": "Lan-eremuak",
+      "paging": {
+        "next": "Hurrengoa",
+        "page": "{{page}}. orria, {{pages}} orritatik",
+        "previous": "Aurrekoa"
+      },
+      "search_label": "Bilatu lan-eremuak izenaren edo jabearen helbide elektronikoaren bidez",
+      "search_placeholder": "Bilatu izenaren edo jabearen helbide elektronikoaren bidez",
+      "status": {
+        "running": "Martxan",
+        "suspended_admin": "Administratzaile batek etenda",
+        "suspended_unverified": "Etenda, jabeak bere helbide elektronikoa egiaztatu arte"
+      },
+      "total": "{{total}} aurkitu dira"
     }
   },
   "auth": {
@@ -1406,7 +1469,8 @@
       "updated_success": "Jakinarazlea ongi eguneratu da"
     },
     "new": {
-      "title": "Jakinarazpen-kanal berria"
+      "title": "Jakinarazpen-kanal berria",
+      "default_hint": "Kanal hau monitore berrietan markatuta egongo da."
     },
     "no_important": "Ez da garrantzitsuen jakinarazpenik aurkitu.",
     "placeholders": {
@@ -1758,6 +1822,7 @@
       "refresh_in": "Birritsi",
       "refresh_now": "Berritu orain",
       "status_page_not_found": "Egoera orrialdea ez da aurkitu edo argitaratu gabe dago.",
+      "status_page_unavailable": "Egoera-orri hau ez dago erabilgarri",
       "under_maintenance": "Mantentzean",
       "unknown": "Ezezaguna"
     }
@@ -1887,6 +1952,11 @@
     "refresh_failed": "Ezin izan dira zure lan-eremuak kargatu. Egiaztatu konexioa eta saiatu berriro.",
     "rename_error": "Ezin izan da lan-eremuaren izena aldatu",
     "rename_success": "Lan-eremuaren izena aldatu da",
+    "suspended_banner": {
+      "contact": "Harremanetarako:",
+      "message": "Instalazio honetako administratzaileak lan-eremu hau eten du. Bere monitoreak ez dabiltza, eta bere egoera-orriak ez daude erabilgarri.",
+      "no_contact": "Jarri harremanetan instalazio hau kudeatzen duen pertsonarekin."
+    },
     "switcher_label": "Aldatu lan-eremua"
   },
   "get_started": {

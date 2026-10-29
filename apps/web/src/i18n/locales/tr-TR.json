@@ -8,7 +8,8 @@
       "back_to_workspace": "{{name}} çalışma alanına dön",
       "probes": "Problar",
       "title": "Yönetici",
-      "users": "Kullanıcılar"
+      "users": "Kullanıcılar",
+      "workspaces": "Çalışma alanları"
     },
     "users": {
       "actions": {
@@ -100,6 +101,68 @@
         "yes": "Evet"
       },
       "you": "siz"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Çalışma alanını sil",
+        "resume": "Çalışma alanını devam ettir",
+        "suspend": "Çalışma alanını askıya al"
+      },
+      "actions_aria": "{{name}} için işlemler",
+      "columns": {
+        "created": "Oluşturulma",
+        "custom_domains": "Özel alan adları",
+        "members": "Üyeler",
+        "monitors": "İzleyiciler",
+        "name": "Ad",
+        "owners": "Sahipler",
+        "status": "Durum",
+        "status_pages": "Durum sayfaları"
+      },
+      "confirm": {
+        "cancel": "İptal",
+        "delete": {
+          "confirm": "Çalışma alanını sil",
+          "description": "{{name}} silinsin mi? İçindeki her şey gider: izleyicileri ve geçmişleri, durum sayfaları, bildirim kanalları ve üyelerinin erişimi. Bu işlem geri alınamaz.",
+          "name_label": "Onaylamak için çalışma alanının adını yazın: {{name}}",
+          "title": "Çalışma alanını sil"
+        },
+        "resume": {
+          "confirm": "Devam ettir",
+          "description": "{{name}} çalışma alanının izleyicileri önceki durumlarıyla yeniden çalışır ve üyeleri onu eskisi gibi kullanabilir. Sahibinin e-posta doğrulamasını bekleyen bir çalışma alanı beklemeye devam eder.",
+          "title": "Çalışma alanını devam ettir"
+        },
+        "suspend": {
+          "confirm": "Askıya al",
+          "description": "{{name}} çalışma alanının izleyicileri durur, herkese açık durum sayfaları kullanılamadıklarını gösterir ve üyeleri askıya alındığını görür. Hiçbir şey silinmez; daha sonra devam ettirebilirsiniz.",
+          "title": "Çalışma alanını askıya al"
+        }
+      },
+      "description": "Bu kurulumdaki tüm çalışma alanları; sahipleri, üyeleri ve ne kadar içerik barındırdıklarıyla birlikte. Yalnızca sayılar gösterilir, bir çalışma alanının içindeki hiçbir şey gösterilmez.",
+      "empty": "Çalışma alanı bulunamadı",
+      "load_failed": "Çalışma alanları yüklenemedi.",
+      "messages": {
+        "deleted": "{{name}} silindi",
+        "failed": "Çalışma alanı değiştirilemedi.",
+        "resumed": "{{name}} devam ettirildi",
+        "suspended": "{{name}} askıya alındı"
+      },
+      "monitors": "{{active}} etkin, {{paused}} duraklatıldı",
+      "none": "Yok",
+      "page_name": "Çalışma alanları",
+      "paging": {
+        "next": "Sonraki",
+        "page": "Sayfa {{page}} / {{pages}}",
+        "previous": "Önceki"
+      },
+      "search_label": "Çalışma alanlarını ada veya sahip e-postasına göre ara",
+      "search_placeholder": "Ada veya sahip e-postasına göre ara",
+      "status": {
+        "running": "Çalışıyor",
+        "suspended_admin": "Bir yönetici tarafından askıya alındı",
+        "suspended_unverified": "Sahibi e-postasını doğrulayana kadar askıya alındı"
+      },
+      "total": "{{total}} bulundu"
     }
   },
   "auth": {
@@ -1406,7 +1469,8 @@
       "updated_success": "Bildirimci başarıyla güncellendi"
     },
     "new": {
-      "title": "Yeni Bildirim Kanalı"
+      "title": "Yeni Bildirim Kanalı",
+      "default_hint": "Bu kanal yeni monitörlerde işaretli olacak."
     },
     "no_important": "Önemli bildirim bulunamadı.",
     "placeholders": {
@@ -1758,6 +1822,7 @@
       "refresh_in": "Yenile",
       "refresh_now": "Şimdi Yenile",
       "status_page_not_found": "Durum sayfası bulunamadı veya yayınlanmamış.",
+      "status_page_unavailable": "Bu durum sayfası kullanılamıyor",
       "under_maintenance": "Bakımda",
       "unknown": "Bilinmeyen"
     }
@@ -1887,6 +1952,11 @@
     "refresh_failed": "Çalışma alanlarınız yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.",
     "rename_error": "Çalışma alanı yeniden adlandırılamadı",
     "rename_success": "Çalışma alanı yeniden adlandırıldı",
+    "suspended_banner": {
+      "contact": "İletişim için:",
+      "message": "Bu çalışma alanı, bu kurulumun yöneticisi tarafından askıya alındı. İzleyicileri çalışmıyor ve durum sayfaları kullanılamıyor.",
+      "no_contact": "Bu kurulumu yöneten kişiyle iletişime geçin."
+    },
     "switcher_label": "Çalışma alanı değiştir"
   },
   "get_started": {

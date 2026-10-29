@@ -3094,6 +3094,10 @@
           "arch": {
             "type": "string"
           },
+          "enforces_private_target_block": {
+            "description": "Whether the instance's hello said it blocks private targets when the server does. While BLOCK_PRIVATE_TARGETS is on, an instance that didn't (a probe from before the setting) is dealt no monitors: upgrade it.",
+            "type": "boolean"
+          },
           "hostname": {
             "type": "string"
           },
@@ -3129,7 +3133,8 @@
           "version",
           "protocol_version",
           "supported_types",
-          "last_seen_at"
+          "last_seen_at",
+          "enforces_private_target_block"
         ],
         "type": "object"
       },
@@ -3357,6 +3362,9 @@
         "properties": {
           "arch": {
             "type": "string"
+          },
+          "enforces_private_target_block": {
+            "type": "boolean"
           },
           "hostname": {
             "type": "string"
@@ -4107,6 +4115,7 @@
         "additionalProperties": false,
         "properties": {
           "active": {
+            "description": "False for a paused monitor, and for one whose type is turned off on this install (DISABLED_MONITOR_TYPES), which is not checked",
             "type": "boolean"
           },
           "heartbeats": {
@@ -14566,7 +14575,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_status_page.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
                 }
               }
             },
@@ -14630,7 +14639,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_status_page.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
                 }
               }
             },
