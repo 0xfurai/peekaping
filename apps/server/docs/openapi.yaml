@@ -241,10 +241,9 @@ components:
       additionalProperties: true
       properties:
         accountSmtp:
-          $ref: "#/components/schemas/admin.UpdateAccountSMTPDto"
-          type:
-            - ""
-            - "null"
+          anyOf:
+            - $ref: "#/components/schemas/admin.UpdateAccountSMTPDto"
+            - type: "null"
         publicUrl:
           description: The web app's address, which the links in emails and notifications open. Empty clears it (the default).
           type:
