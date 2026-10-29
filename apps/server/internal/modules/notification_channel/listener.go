@@ -299,6 +299,11 @@ func (l *NotificationEventListener) findChannels(ctx context.Context, monitorID 
 		l.logger.Debugf("Monitor %s is in a suspended workspace: no notification is sent", monitorID)
 		return nil, nil
 	}
+	// Nor is anything of a monitor whose type the install turned off (PP-157)
+	if monitorModel.TypeDisabled {
+		l.logger.Debugf("Monitor %s is of a type this install turns off: no notification is sent", monitorID)
+		return nil, nil
+	}
 
 	ids := make([]string, len(monitorNotifications))
 	for i, mn := range monitorNotifications {

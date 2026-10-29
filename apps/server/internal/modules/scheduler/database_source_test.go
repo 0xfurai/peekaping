@@ -78,6 +78,18 @@ func TestDatabaseSource_FindReturnsNothingForAMonitorOfASuspendedWorkspace(t *te
 	assert.Nil(t, mon, "the scheduler drops a monitor it is told about, or finds on a reconcile, and checks nothing")
 }
 
+func TestDatabaseSource_FindReturnsNothingForAMonitorOfADisabledType(t *testing.T) {
+	t.Parallel()
+	db := newFakeDB()
+	db.put(monitorWith("held", func(m *shared.Monitor) { m.TypeDisabled = true }))
+	source := NewDatabaseSource(db, db, newBus(t))
+
+	mon, err := source.Find(context.Background(), "held")
+
+	require.NoError(t, err)
+	assert.Nil(t, mon, "the scheduler drops a monitor it is told about, or finds on a reconcile, and checks nothing")
+}
+
 func TestDatabaseSource_FindReturnsTheDatabaseError(t *testing.T) {
 	t.Parallel()
 	failure := errors.New("database is down")

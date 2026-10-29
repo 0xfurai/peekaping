@@ -78,6 +78,14 @@ type GetTLSInfoParams struct {
 }
 type GetTLSInfoInput = httpx.Input[httpx.NoBody, GetTLSInfoParams]
 
+// MonitorTypeDisabledResponse is the answer to a write that gives a monitor a type this install
+// turns off. It is a 400 with the usual message, which names the type, and the reason in a code.
+type MonitorTypeDisabledResponse struct {
+	Message string                    `json:"message" example:"docker monitors are turned off on this install"`
+	Data    httpx.Null                `json:"data"`
+	Error   *MonitorTypeDisabledError `json:"error"`
+}
+
 // PushTokenErrorResponse is the answer to a write with a push token that another monitor holds.
 // It is a 400 like the other refusals of the write, with the reason in a code, as a status page
 // domain that another page holds is.

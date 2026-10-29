@@ -167,6 +167,20 @@ In `open` mode, the workspace of a new account is suspended until its owner has 
 
 Signups without an invite are limited to 5 an hour per client address (see `TRUSTED_PROXIES`) in `open` mode, counted in the memory of each API replica; more answer 429. Behind a reverse proxy, set `TRUSTED_PROXIES` to the proxy's address or range (such as `127.0.0.1,10.0.0.0/8`) when you use `open` mode: without it every signup comes from the proxy's address and all visitors share one limit of 5 an hour, so the sixth signup of any visitor is refused. The server logs a warning at startup when `SIGNUP_MODE=open` and `TRUSTED_PROXIES` is empty. A signup through an invite is not limited and needs no Turnstile answer: the invite is the proof that the visitor is wanted. In `open` mode, signing up with an email that already has an account answers 409, which tells the visitor that the address is registered; the limit of 5 signups an hour per client address and the Turnstile check (when set) are what hold back someone who tries addresses one by one, and "Forgot password" stays silent about which addresses have accounts. `GET /api/v1/auth/config` also returns `signupMode` and `signupOpen`: true in `open` mode, and in `invite` mode while the install has no user.
 
+### Monitor Types Configuration
+
+`DISABLED_MONITOR_TYPES` turns monitor types off for the whole install. It applies to the api and to `peekaping`. Use it where a type would reach something it should not: the Docker monitor reads the Docker socket of the machine the server runs on, which on a shared install is the host's own containers.
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `DISABLED_MONITOR_TYPES` | string | No | empty | Comma-separated monitor types to turn off, such as `docker` or `docker,snmp`. Spaces are trimmed and case is ignored. The types are the ones in the monitor type list: `dns`, `docker`, `http`, `http-json-query`, `http-keyword`, `grpc-keyword`, `kafka-producer`, `mongodb`, `mqtt`, `mysql`, `ping`, `postgres`, `push`, `rabbitmq`, `redis`, `smtp`, `snmp`, `sqlserver` and `tcp`. A type the server does not know stops startup and lists the known ones. Empty (the default) turns nothing off |
+
+With a type turned off:
+
+- `POST /api/v1/monitors` for that type answers 400 with the code `MONITOR_TYPE_DISABLED` and a message that names the type, and so does a `PUT` or `PATCH` that changes a monitor's type to it. Editing a monitor that already has the type, without changing it, still works, and so does moving it to another type.
+- Monitors that already have the type are kept and listed with `type_disabled: true`, but none runs: no checks by the scheduler or by remote probes, no missed-push detection, no notifications, and a push to one of them answers 403. Nothing is changed in the monitor itself (`active`, its probes, its history), so removing the type from the list makes it run again. A result that was on its way when the type was turned off is dropped.
+- `GET /api/v1/me` returns `disabledMonitorTypes`, and the web app leaves those types out of the monitor type list and shows a monitor of one as paused, with the reason.
+
 ### Metrics Configuration
 
 | Variable | Type | Required | Default | Description |

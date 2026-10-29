@@ -359,6 +359,12 @@ func (s *ServiceImpl) Ingest(ctx context.Context, r *Result) error {
 		}
 		return &currentStatus
 	})
+	if errors.Is(err, shared.ErrMonitorTypeDisabled) {
+		// The type was turned off after the check was dealt or while its result was on the way:
+		// the result is dropped like one of a suspended workspace (PP-157)
+		s.logger.Debugw("Dropping a result for a monitor of a type this install turns off", "monitor_id", r.MonitorID, "probe_id", probeID)
+		return nil
+	}
 	if errors.Is(err, shared.ErrWorkspaceSuspended) {
 		// The workspace was suspended after the check was dealt or while its result was on the way:
 		// the result is dropped, with no heartbeat and no status change (PP-155)

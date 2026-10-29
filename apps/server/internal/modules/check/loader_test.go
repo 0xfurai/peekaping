@@ -157,6 +157,18 @@ func TestLoader_SkipsMonitorsThatCantBeChecked(t *testing.T) {
 		assert.Zero(t, f.heartbeats.reads)
 	})
 
+	t.Run("a monitor of a type the install turns off", func(t *testing.T) {
+		mon := activeMonitor()
+		mon.TypeDisabled = true
+		f := newFixture(t, mon)
+
+		job, err := f.loader.Load(context.Background(), monitorID)
+
+		assert.ErrorIs(t, err, ErrMonitorTypeDisabled)
+		assert.Nil(t, job)
+		assert.Zero(t, f.heartbeats.reads)
+	})
+
 	t.Run("a monitor that can't be read", func(t *testing.T) {
 		f := newFixture(t, activeMonitor())
 		f.monitors.err = errors.New("database error")

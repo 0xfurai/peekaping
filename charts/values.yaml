@@ -85,6 +85,10 @@ config:
     # and monitor TLS info (default 30, at least 1).
     # NOTIFICATION_HISTORY_RETENTION_DAYS: "90"
     # TLS_INFO_RETENTION_DAYS: "30"
+    # Monitor types to turn off, comma-separated (empty by default). A monitor of one can't be
+    # created, and existing ones are kept but not checked. "docker" keeps the Docker monitor from
+    # reading the Docker socket of the node.
+    # DISABLED_MONITOR_TYPES: "docker"
     # Proxies whose X-Forwarded-For and X-Real-IP the API believes: IP addresses and
     # CIDR ranges, comma-separated. The login lockout counts failed logins per client
     # address, and a client can send those headers itself, so the API ignores them from

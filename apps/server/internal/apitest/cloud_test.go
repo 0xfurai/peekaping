@@ -25,7 +25,7 @@ const cloudEnv = "PEE_TEST_CLOUD"
 // of the cloud add to it as they land, each in its own ticket:
 //
 //   - open signup (PP-155), which needs a sender for account emails: a fake SMTP server
-//   - monitor types that are disabled (PP-157)
+//   - monitor types that are disabled (PP-157): docker
 //   - the private address block (PP-156)
 //   - rate limits (PP-159)
 //
@@ -34,10 +34,15 @@ const cloudEnv = "PEE_TEST_CLOUD"
 func cloudConfig(t testing.TB, cfg *config.Config) {
 	withAccountSMTP(smtptest.Start(t))(cfg)
 	cfg.SignupMode = config.SignupModeOpen
+	cfg.DisabledMonitorTypes = "docker"
 }
 
 // cloudRun reports whether this run uses the cloud's settings
 func cloudRun() bool { return os.Getenv(cloudEnv) == "1" }
+
+// withAllMonitorTypes turns every monitor type on, as a self-hosted install has them. A test that
+// makes a Docker monitor through the API sets it, since the cloud turns that type off.
+func withAllMonitorTypes(cfg *config.Config) { cfg.DisabledMonitorTypes = "" }
 
 // selfHosted puts back the settings of a self-hosted install that cloudConfig changes: invite signup,
 // and no sender for account emails. A test that is about those sets it.

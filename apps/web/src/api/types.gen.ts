@@ -138,6 +138,7 @@ export type AuthLoginResponse = {
 export type AuthMeResponse = {
   accountEmails: boolean;
   defaultWorkspaceId: string | null;
+  disabledMonitorTypes: Array<string>;
   user: AuthMeUser;
   workspaces: Array<AuthMeWorkspace> | null;
 };
@@ -572,7 +573,25 @@ export type MonitorMonitorResponseDto = {
   tag_ids: Array<string>;
   timeout: number;
   type: string;
+  /**
+   * True when the monitor's type is turned off on this install (DISABLED_MONITOR_TYPES). The monitor is kept and listed, but it is not checked, and nothing notifies for it; its active setting is left as it is, so it runs again if the type is turned back on. Such a monitor can still be edited, but not given a disabled type.
+   */
+  type_disabled: boolean;
   updated_at: string;
+};
+
+export type MonitorMonitorTypeDisabledError = {
+  code: string;
+  /**
+   * The monitor type that is turned off.
+   */
+  type: string;
+};
+
+export type MonitorMonitorTypeDisabledResponse = {
+  data: null;
+  error: MonitorMonitorTypeDisabledError;
+  message: string;
 };
 
 export type MonitorPartialUpdateDto = {
@@ -1051,6 +1070,9 @@ export type StatusPageModel = {
 };
 
 export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
+  /**
+   * False for a paused monitor, and for one whose type is turned off on this install (DISABLED_MONITOR_TYPES), which is not checked
+   */
   active: boolean;
   heartbeats: Array<StatusPagePublicHeartbeatDto> | null;
   id: string;
@@ -3816,7 +3838,10 @@ export type PostMonitorsErrors = {
   /**
    * Bad Request
    */
-  400: MonitorPushTokenErrorResponse | HttpxErrorBody;
+  400:
+    | MonitorPushTokenErrorResponse
+    | MonitorMonitorTypeDisabledResponse
+    | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -3999,7 +4024,10 @@ export type PatchMonitorsByIdErrors = {
   /**
    * Bad Request
    */
-  400: MonitorPushTokenErrorResponse | HttpxErrorBody;
+  400:
+    | MonitorPushTokenErrorResponse
+    | MonitorMonitorTypeDisabledResponse
+    | HttpxErrorBody;
   /**
    * Unauthorized
    */
@@ -4049,7 +4077,10 @@ export type PutMonitorsByIdErrors = {
   /**
    * Bad Request
    */
-  400: MonitorPushTokenErrorResponse | HttpxErrorBody;
+  400:
+    | MonitorPushTokenErrorResponse
+    | MonitorMonitorTypeDisabledResponse
+    | HttpxErrorBody;
   /**
    * Unauthorized
    */

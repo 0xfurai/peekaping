@@ -36,6 +36,10 @@ type MeResponse struct {
 	// AccountEmails is whether the install sends account emails (ACCOUNT_SMTP_HOST is set): when it
 	// is, the app shows the verification banner to a user whose address is not verified
 	AccountEmails bool `json:"accountEmails"`
+	// DisabledMonitorTypes are the monitor types the install turns off (DISABLED_MONITOR_TYPES),
+	// empty by default: the app hides them from the monitor type list, and shows a monitor of one as
+	// paused. The server refuses to create such a monitor or to change a monitor's type to one.
+	DisabledMonitorTypes []string `json:"disabledMonitorTypes" nullable:"false"`
 }
 
 type MeUser struct {

@@ -6,6 +6,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/httpx"
+	"peekaping/internal/modules/healthcheck/executor"
 	"peekaping/internal/web"
 
 	"github.com/go-playground/validator/v10"
@@ -126,6 +127,10 @@ type Config struct {
 	SignupMode             string `env:"SIGNUP_MODE" default:"invite"`
 	SignupTurnstileSiteKey string `env:"SIGNUP_TURNSTILE_SITE_KEY"`
 	SignupTurnstileSecret  string `env:"SIGNUP_TURNSTILE_SECRET"`
+
+	// Monitor types this install refuses and does not run, comma-separated and empty by default.
+	// Validated in Validate() against the types the server has an executor for.
+	DisabledMonitorTypes string `env:"DISABLED_MONITOR_TYPES"`
 }
 
 // LoadAndValidate loads and validates peekaping's configuration
@@ -224,6 +229,11 @@ func Validate(cfg *Config) error {
 		return err
 	}
 
+	// A mistyped monitor type stops startup, with the types that exist
+	if err := config.ValidateDisabledMonitorTypes(cfg.DisabledMonitorTypes, executor.KnownTypes()); err != nil {
+		return err
+	}
+
 	// A WEB_DIR without a web build fails at startup, not on every page load
 	if cfg.WebDir != "" {
 		if err := web.CheckDir(cfg.WebDir); err != nil {
@@ -293,6 +303,7 @@ func (c *Config) ToInternalConfig() *config.Config {
 		SignupMode:                   c.SignupMode,
 		SignupTurnstileSiteKey:       c.SignupTurnstileSiteKey,
 		SignupTurnstileSecret:        c.SignupTurnstileSecret,
+		DisabledMonitorTypes:         c.DisabledMonitorTypes,
 
 		NotificationHistoryRetentionDays: c.NotificationHistoryRetentionDays,
 		TLSInfoRetentionDays:             c.TLSInfoRetentionDays,

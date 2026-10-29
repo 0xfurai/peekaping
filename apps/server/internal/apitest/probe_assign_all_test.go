@@ -314,7 +314,7 @@ func (a *app) assignAllMonitors(t *testing.T, probeID string) *httptest.Response
 // AC5: the action assigns a probe that has instances every monitor it can run now, and says how many
 // it added
 func TestProbeAssignAll_TheActionAssignsAProbeWithInstances(t *testing.T) {
-	a := newAppWithAdmin(t)
+	a := newAppWithAdmin(t, withAllMonitorTypes)
 	made := a.probeThatRuns(t, "Frankfurt", "http", "tcp")
 	site := a.createHTTPMonitor(t, "Site", "")
 	paused := a.createHTTPMonitor(t, "Paused", "")

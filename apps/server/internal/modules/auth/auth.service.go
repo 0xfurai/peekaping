@@ -57,6 +57,9 @@ type ServiceImpl struct {
 	logger     *zap.SugaredLogger
 	// openSignup is SIGNUP_MODE=open: anyone may register, and gets a workspace of their own
 	openSignup bool
+	// disabledMonitorTypes are the monitor types the install turns off (DISABLED_MONITOR_TYPES), as
+	// /me lists them
+	disabledMonitorTypes []string
 }
 
 // ServiceOption changes how the service behaves
@@ -66,6 +69,12 @@ type ServiceOption func(*ServiceImpl)
 // first user may, apart from those who register through an invite.
 func WithOpenSignup(open bool) ServiceOption {
 	return func(s *ServiceImpl) { s.openSignup = open }
+}
+
+// WithDisabledMonitorTypes sets the monitor types /me tells the app to hide, as
+// DISABLED_MONITOR_TYPES does. Without it none is.
+func WithDisabledMonitorTypes(types []string) ServiceOption {
+	return func(s *ServiceImpl) { s.disabledMonitorTypes = types }
 }
 
 func NewService(
@@ -352,6 +361,8 @@ func (s *ServiceImpl) Me(ctx context.Context, userId string) (*MeResponse, error
 		Workspaces: make([]MeWorkspace, len(memberships)),
 
 		AccountEmails: s.verifier != nil && s.verifier.Enabled(),
+		// A list, never null, so that the app can read it without a check
+		DisabledMonitorTypes: append([]string{}, s.disabledMonitorTypes...),
 	}
 	for i, m := range memberships {
 		me.Workspaces[i] = MeWorkspace{ID: string(m.Workspace.ID), Name: m.Workspace.Name, Role: string(m.Role), Suspended: m.Workspace.Suspended()}

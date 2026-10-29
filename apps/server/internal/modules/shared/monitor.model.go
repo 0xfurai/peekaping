@@ -11,6 +11,10 @@ import (
 // nothing is stored for it and nothing is judged (PP-155)
 var ErrWorkspaceSuspended = errors.New("monitor's workspace is suspended")
 
+// ErrMonitorTypeDisabled is what loading or recording a result for a monitor of a type that
+// DISABLED_MONITOR_TYPES turns off returns: nothing is checked, stored or judged for it (PP-157)
+var ErrMonitorTypeDisabled = errors.New("monitor's type is disabled on this install")
+
 // LocationRule is how many of a monitor's locations must be Down for the monitor to be Down
 type LocationRule string
 
@@ -36,6 +40,14 @@ type Monitor struct {
 	// to run leave suspended workspaces out in the query itself. It is not stored with the monitor
 	// and not part of the API's answer.
 	WorkspaceSuspended bool `json:"-"`
+
+	// TypeDisabled is whether the monitor's type is one of DISABLED_MONITOR_TYPES (PP-157): the
+	// monitor is kept and shown, but it does not run, as in a suspended workspace, and its stored
+	// state is left alone so that it runs again once the type is turned back on. The repository
+	// fills it in on every read; the lists that pick monitors to run leave these monitors out in the
+	// query itself. It is not stored with the monitor, and the API answers it as type_disabled on
+	// the monitor response.
+	TypeDisabled bool `json:"-"`
 
 	// connection type: http, tcp, ping, etc
 	Type string `json:"type" validate:"required" example:"http"`
