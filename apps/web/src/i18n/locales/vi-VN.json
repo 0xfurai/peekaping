@@ -1909,8 +1909,10 @@
       "url_label": "Địa chỉ cần giám sát"
     },
     "channel": {
+      "continue_unlinked": "Tiếp tục mà không liên kết",
       "description": "Chọn nơi Peekaping gửi cảnh báo khi bộ giám sát của bạn ngừng hoạt động. Kênh này sẽ là mặc định cho các bộ giám sát mới.",
       "link_failed": "Kênh đã được lưu nhưng không liên kết được với bộ giám sát của bạn. Hãy thêm nó ở trang chỉnh sửa bộ giám sát.",
+      "retry_link": "Thử liên kết lại",
       "title": "Nhận thông báo"
     },
     "done": {

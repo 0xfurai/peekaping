@@ -1909,8 +1909,10 @@
       "url_label": "Figyelendő cím"
     },
     "channel": {
+      "continue_unlinked": "Folytatás összekapcsolás nélkül",
       "description": "Válassza ki, hová küldjön a Peekaping riasztást, ha a figyelője leáll. Ez lesz az új figyelők alapértelmezettje.",
       "link_failed": "A csatorna mentve lett, de a figyelőhöz kapcsolása nem sikerült. Adja hozzá a figyelő szerkesztőoldalán.",
+      "retry_link": "Összekapcsolás újra",
       "title": "Kérjen értesítést"
     },
     "done": {
