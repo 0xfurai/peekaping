@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import StaleMarker from "./stale-marker";
 import { getMonitorStatusView } from "./monitor-status";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { monitorTypeDisabledReason } from "../monitor-types/disabled";
 
 interface MonitorCardProps {
   monitor: MonitorMonitorResponseDto;
@@ -24,6 +25,10 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
   const navigate = useNavigate();
   const workspacePath = useWorkspacePath();
   const { t } = useLocalizedTranslation();
+  // The install turned the monitor's type off: it shows as paused whatever its own setting is,
+  // since nothing checks it, and says why
+  const typeDisabled = monitor.type_disabled === true;
+  const paused = monitor.active === false || typeDisabled;
 
   const { data: heartbeats } = useQuery({
     ...getMonitorsByIdHeartbeatsOptions({
@@ -50,7 +55,7 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
           <div className="flex items-center mb-4 md:mb-0">
             <div className="text-sm text-gray-500 mr-4 min-w-[60px]">
               {(() => {
-                if (monitor.active === false) {
+                if (paused) {
                   return (
                     <span className="flex items-center text-yellow-500 font-semibold">
                       <Pause className="w-5 h-5 mr-1" />{" "}
@@ -79,6 +84,11 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
 
             <div className="flex flex-col min-w-[100px]">
               <h3 className="font-bold mb-1">{monitor.name}</h3>
+              {typeDisabled && (
+                <p className="text-xs text-amber-500 mb-1" data-testid="monitor-type-disabled">
+                  {monitorTypeDisabledReason(t, monitor.type ?? "")}
+                </p>
+              )}
               <div className="flex flex-wrap gap-1">
                 <Badge variant={"outline"}>{monitor.type}</Badge>
                 {probes?.map(({ id, name }) => {
@@ -108,7 +118,7 @@ const MonitorCard = ({ monitor, probes, unsupportedProbeIds }: MonitorCardProps)
             <div className="text-sm text-gray-500 mb-1">
               {t("monitors.card.check_interval")} {monitor.interval}s
             </div>
-            {monitor.active !== false && (
+            {!paused && (
               <StaleMarker
                 className="mb-1"
                 staleSince={monitor.stale_since}

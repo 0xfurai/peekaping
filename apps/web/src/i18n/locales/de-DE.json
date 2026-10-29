@@ -907,6 +907,7 @@
       "reset_success": "Monitordaten erfolgreich zurückgesetzt",
       "resumed": "Monitor fortgesetzt"
     },
+    "type_disabled": "Der Typ {{type}} ist auf dieser Installation ausgeschaltet",
     "view": {
       "buttons": {
         "clone": "Duplizieren",

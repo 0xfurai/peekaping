@@ -11,8 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useDisabledMonitorTypes } from "@/hooks/useDisabledMonitorTypes";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
+import { monitorTypeDisabledReason } from "@/app/monitors/monitor-types/disabled";
 import { firstMonitorBody, parseMonitorUrl } from "@/lib/get-started";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { SkipSetup } from "./skip-setup";
@@ -26,11 +28,13 @@ const createSchema = (t: (key: string) => string) =>
 type MonitorStepValues = z.infer<ReturnType<typeof createSchema>>;
 
 // Step 2: an HTTP(S) address to watch. Creating the monitor takes the full form's defaults and no
-// probe choice, and hands its id on.
+// probe choice, and hands its id on. On an install that turns HTTP monitors off there is nothing to
+// create here, so the step says so and leads to the full form, where the other types are.
 export function MonitorStep({ onCreated }: { onCreated: (monitorId: string) => void }) {
   const { t } = useLocalizedTranslation();
   const workspacePath = useWorkspacePath();
   const queryClient = useQueryClient();
+  const httpDisabled = useDisabledMonitorTypes().includes("http");
   const form = useForm<MonitorStepValues>({
     resolver: zodResolver(createSchema(t)),
     defaultValues: { url: "" },
@@ -50,6 +54,19 @@ export function MonitorStep({ onCreated }: { onCreated: (monitorId: string) => v
     const parsed = parseMonitorUrl(values.url);
     if (parsed) create.mutate({ body: firstMonitorBody(parsed) });
   };
+
+  if (httpDisabled) {
+    return (
+      <StepCard step={2} title={t("get_started.monitor.title")} description={monitorTypeDisabledReason(t, "http")}>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild>
+            <Link to={workspacePath("/monitors/new")}>{t("get_started.monitor.full_form")}</Link>
+          </Button>
+          <SkipSetup />
+        </div>
+      </StepCard>
+    );
+  }
 
   return (
     <StepCard step={2} title={t("get_started.monitor.title")} description={t("get_started.monitor.description")}>

@@ -907,6 +907,7 @@
       "reset_success": "Monitor ma'lumotlari muvaffaqiyatli qayta o‘rnatildi",
       "resumed": "Monitoring qayta boshlandi"
     },
+    "type_disabled": "{{type}} turi bu o'rnatishda o'chirilgan",
     "view": {
       "buttons": {
         "clone": "Klonlash",

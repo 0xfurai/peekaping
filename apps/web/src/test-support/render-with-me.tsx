@@ -13,6 +13,8 @@ export type Access = {
   role: "member" | "admin" | "owner";
   // Workspaces the user belongs to besides the one in the address
   otherWorkspaces?: { id: string; name: string; role: "member" | "admin" | "owner" }[];
+  // The monitor types the install turns off, as /me lists them
+  disabledMonitorTypes?: string[];
 };
 
 export const USER_EMAIL = "user@example.com";
@@ -44,6 +46,7 @@ export const renderAs = (
       user: { id: "u1", email: USER_EMAIL, instanceAdmin: access.instanceAdmin },
       workspaces: [{ id: WORKSPACE_ID, name: "Main", role: access.role }, ...(access.otherWorkspaces ?? [])],
       defaultWorkspaceId: WORKSPACE_ID,
+      disabledMonitorTypes: access.disabledMonitorTypes ?? [],
     },
   });
   seed?.(queryClient);

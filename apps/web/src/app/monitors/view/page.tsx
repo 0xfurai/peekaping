@@ -56,6 +56,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
 import clsx from "clsx";
 import { formatMonitorTarget } from "../monitor-types/registry";
+import { monitorTypeDisabledReason } from "../monitor-types/disabled";
 import { parseMonitorConfig } from "../monitor-types/monitor-target";
 import StaleMarker from "../components/stale-marker";
 import { getMonitorStatusView } from "../components/monitor-status";
@@ -144,6 +145,11 @@ const MonitorPageContent = () => {
   });
 
   const monitor = data?.data;
+  // The install turned the monitor's type off: nothing checks it, whatever its own setting is, so
+  // it reads as paused and can be neither paused nor resumed until the type is back on
+  const typeDisabled = monitor?.type_disabled === true;
+  const running = !!monitor?.active && !typeDisabled;
+  const typeDisabledReason = typeDisabled ? monitorTypeDisabledReason(t, monitor?.type ?? "") : undefined;
   const locations = useMemo(() => sortLocations(monitor?.locations ?? []), [monitor?.locations]);
   const showLocations = hasLocations(locations);
   // Parsed once here, since the page re-renders on every heartbeat
@@ -491,7 +497,9 @@ const MonitorPageContent = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
-              disabled={pauseMutation.isPending}
+              disabled={pauseMutation.isPending || typeDisabled}
+              title={typeDisabledReason}
+              data-testid="monitor-pause-toggle"
               onClick={() => {
                 if (monitor?.active) {
                   setShowConfirmPause(true);
@@ -507,7 +515,7 @@ const MonitorPageContent = () => {
                 }
               }}
             >
-              {monitor?.active ? (
+              {running ? (
                 <>
                   {pauseMutation.isPending ? (
                     <Loader2 className="animate-spin" />
@@ -538,6 +546,8 @@ const MonitorPageContent = () => {
             <Button
               variant="ghost"
               className="rounded-none border-r"
+              disabled={typeDisabled}
+              title={typeDisabledReason}
               onClick={() => {
                 navigate(workspacePath("/monitors/new"), {
                   state: {
@@ -573,6 +583,12 @@ const MonitorPageContent = () => {
           </div>
         </div>
 
+        {typeDisabledReason && (
+          <p className="mb-4 text-sm text-amber-500" data-testid="monitor-type-disabled">
+            {typeDisabledReason}
+          </p>
+        )}
+
         <div className="text-white space-y-6 mt-4">
           <div className="grid grid-cols-4 gap-4 mb-4">
             <Card
@@ -582,7 +598,7 @@ const MonitorPageContent = () => {
               )}
             >
               <div className="font-semibold">{t("monitors.view.current_status")}</div>
-              {monitor?.active ? (
+              {running ? (
                 <div
                   className={cn(
                     "font-semibold text-2xl",
@@ -595,16 +611,16 @@ const MonitorPageContent = () => {
                 <div className="font-semibold text-2xl">{t("monitors.view.status.paused")}</div>
               )}
 
-              {monitor?.active && lastImportantHeartbeatDuration > 0 && (
+              {running && lastImportantHeartbeatDuration > 0 && (
                 <div className="text-sm text-gray-400">{lihText}</div>
               )}
-              {monitor?.active && (
+              {running && (
                 <StaleMarker
                   staleSince={monitor?.stale_since}
                   lastHeartbeatTime={lastHeartbeat?.time}
                 />
               )}
-              {!monitor?.active && lastHeartbeat?.time && (
+              {!running && lastHeartbeat?.time && (
                 <div className="text-sm text-gray-400">
                   {formatDuration(
                     dayjs().diff(dayjs(lastHeartbeat?.time), "milliseconds"),

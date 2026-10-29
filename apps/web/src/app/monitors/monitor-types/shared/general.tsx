@@ -1,21 +1,17 @@
-import { useMemo } from "react";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
-import { getMonitorType, monitorTypes, type MonitorFormValues } from "../registry";
+import { getMonitorType, type MonitorFormValues } from "../registry";
+import { useMonitorTypeOptions } from "./type-options";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { valuesForNewType } from "./type-change";
 
 const General = () => {
   const { form, mode } = useMonitorFormContext();
   const { t } = useLocalizedTranslation();
-
-  const typeOptions = useMemo(
-    () => monitorTypes.map((definition) => ({ value: definition.type, label: t(definition.labelKey) })),
-    [t]
-  );
+  const typeOptions = useMonitorTypeOptions();
 
   return (
     <>

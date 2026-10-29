@@ -907,6 +907,7 @@
       "reset_success": "İzleme verileri başarıyla sıfırlandı",
       "resumed": "İzleme yeniden başladı"
     },
+    "type_disabled": "{{type}} türü bu kurulumda kapalıdır",
     "view": {
       "buttons": {
         "clone": "Klonla",

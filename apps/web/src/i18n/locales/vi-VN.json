@@ -907,6 +907,7 @@
       "reset_success": "Dữ liệu giám sát đã được đặt lại thành công",
       "resumed": "Giám sát đã tiếp tục"
     },
+    "type_disabled": "Loại {{type}} đã bị tắt trên bản cài đặt này",
     "view": {
       "buttons": {
         "clone": "Nhân bản",

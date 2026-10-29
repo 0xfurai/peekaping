@@ -907,6 +907,7 @@
       "reset_success": "Monitordata återställdes framgångsrikt",
       "resumed": "Övervakning återupptagen"
     },
+    "type_disabled": "Typen {{type}} är avstängd på den här installationen",
     "view": {
       "buttons": {
         "clone": "Klonera",

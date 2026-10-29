@@ -102,6 +102,31 @@ describe("step 2, the monitor", () => {
   });
 });
 
+describe("step 2, the monitor, on an install that turns HTTP monitors off", () => {
+  const html = renderAs({ ...owner, disabledMonitorTypes: ["http"] }, <MonitorStep onCreated={() => {}} />);
+
+  it("asks for no address, since it can't make an HTTP monitor", () => {
+    expect(html).not.toContain(text("get_started.monitor.url_label"));
+    expect(html).not.toContain(`>${text("get_started.monitor.create")}<`);
+  });
+
+  it("says why, and leads to the full form, where the other types are", () => {
+    expect(html).toContain("The HTTP(S) Monitor type is turned off on this install");
+    expect(html).toContain(`href="/w/${WORKSPACE_ID}/monitors/new"`);
+    expect(html).toContain(text("get_started.monitor.full_form"));
+  });
+
+  it("can still be skipped, to the monitors list", () => {
+    expect(html).toContain(`href="/w/${WORKSPACE_ID}/monitors"`);
+    expect(html).toContain(`>${text("get_started.skip")}<`);
+  });
+
+  it("is the usual step when only other types are turned off", () => {
+    const other = renderAs({ ...owner, disabledMonitorTypes: ["docker"] }, <MonitorStep onCreated={() => {}} />);
+    expect(other).toContain(text("get_started.monitor.url_label"));
+  });
+});
+
 describe("step 3, the channel", () => {
   const channel = (accountEmails: boolean) =>
     renderAs(owner, <ChannelStep monitorId="m1" onSaved={() => {}} />, undefined, withMe({ accountEmails }));

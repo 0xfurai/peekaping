@@ -907,6 +907,7 @@
       "reset_success": "Monitordata nulstillet med succes",
       "resumed": "Overvågning genoptaget"
     },
+    "type_disabled": "Typen {{type}} er slået fra på denne installation",
     "view": {
       "buttons": {
         "clone": "Klon",

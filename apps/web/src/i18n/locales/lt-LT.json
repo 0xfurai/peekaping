@@ -907,6 +907,7 @@
       "reset_success": "Monitorio duomenys sėkmingai atstatyti",
       "resumed": "Monitoringas tęsiamas"
     },
+    "type_disabled": "Tipas {{type}} šioje diegtyje išjungtas",
     "view": {
       "buttons": {
         "clone": "Klonuoti",
