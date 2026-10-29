@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Batas default untuk ruang kerja baru",
-        "description": "Batas setiap ruang kerja yang tidak punya batas sendiri. Kosongkan batas jika tidak ingin ada batas. Batas yang diberikan ke ruang kerja di halaman Ruang kerja menggantikan batas ini."
+        "description": "Batas setiap ruang kerja yang tidak punya batas sendiri. Kosongkan batas jika tidak ingin ada batas. Batas yang diberikan ke ruang kerja di halaman Ruang kerja menggantikan batas ini.",
+        "name_label": "Nama batas default",
+        "name_help": "Ditampilkan di halaman Penggunaan ruang kerja, misalnya Paket gratis. Jika dikosongkan, halaman menyatakan bahwa administrator Anda yang menetapkan batas."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Tanpa batas",
     "invalid": "Masukkan bilangan bulat 1 atau lebih, atau kosongkan untuk tanpa batas."
+  },
+  "usage": {
+    "title": "Penggunaan",
+    "description": "Seberapa banyak batas yang dipakai ruang kerja ini.",
+    "open": "Buka penggunaan",
+    "plan": "Paket",
+    "set_by_admin": "Ditetapkan oleh administrator Anda",
+    "count": {
+      "monitors": "{{used}} dari {{max}} monitor",
+      "status_pages": "{{used}} dari {{max}} halaman status",
+      "custom_domains": "{{used}} dari {{max}} domain kustom",
+      "members": "{{used}} dari {{max}} anggota, termasuk undangan yang tertunda",
+      "owned_workspaces": "Anda memiliki {{used}} dari {{max}} ruang kerja",
+      "probes_per_monitor": "Hingga {{used}} dari {{max}} probe pada satu monitor"
+    },
+    "labels": {
+      "min_check_interval": "Interval pemeriksaan terpendek",
+      "retention_days": "Retensi data terlama"
+    },
+    "seconds": "{{value}} detik",
+    "days": "{{value}} hari",
+    "near": "Mendekati batas",
+    "reached": "Mencapai batas"
   }
 }

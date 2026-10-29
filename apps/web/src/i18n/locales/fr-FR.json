@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Limites par défaut des nouveaux espaces de travail",
-        "description": "Les limites de tout espace de travail qui n'en a pas en propre. Laissez une limite vide pour ne pas en avoir. Les limites données à un espace de travail sur la page Espaces de travail remplacent celles-ci."
+        "description": "Les limites de tout espace de travail qui n'en a pas en propre. Laissez une limite vide pour ne pas en avoir. Les limites données à un espace de travail sur la page Espaces de travail remplacent celles-ci.",
+        "name_label": "Nom des limites par défaut",
+        "name_help": "Affiché sur la page Utilisation d'un espace de travail, par exemple Offre gratuite. Laissé vide, la page indique que votre administrateur a défini les limites."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Aucune limite",
     "invalid": "Saisissez un nombre entier supérieur ou égal à 1, ou laissez le champ vide pour ne pas avoir de limite."
+  },
+  "usage": {
+    "title": "Utilisation",
+    "description": "Ce que cet espace de travail utilise de ses limites.",
+    "open": "Ouvrir l'utilisation",
+    "plan": "Offre",
+    "set_by_admin": "Défini par votre administrateur",
+    "count": {
+      "monitors": "{{used}} sur {{max}} moniteurs",
+      "status_pages": "{{used}} sur {{max}} pages d'état",
+      "custom_domains": "{{used}} sur {{max}} domaines personnalisés",
+      "members": "{{used}} sur {{max}} membres, invitations en attente comprises",
+      "owned_workspaces": "Vous possédez {{used}} espaces de travail sur {{max}}",
+      "probes_per_monitor": "Jusqu'à {{used}} sondes sur {{max}} pour un moniteur"
+    },
+    "labels": {
+      "min_check_interval": "Intervalle de vérification le plus court",
+      "retention_days": "Conservation des données la plus longue"
+    },
+    "seconds": "{{value}} secondes",
+    "days": "{{value}} jours",
+    "near": "Proche de la limite",
+    "reached": "Limite atteinte"
   }
 }

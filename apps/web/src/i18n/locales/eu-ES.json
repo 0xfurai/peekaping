@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Lan-eremu berrien muga lehenetsiak",
-        "description": "Berezko mugarik ez duen lan-eremu bakoitzaren mugak. Utzi muga hutsik mugarik ez izateko. Lan-eremu bati Lan-eremuak orrian ematen zaizkion mugek hauek ordezkatzen dituzte."
+        "description": "Berezko mugarik ez duen lan-eremu bakoitzaren mugak. Utzi muga hutsik mugarik ez izateko. Lan-eremu bati Lan-eremuak orrian ematen zaizkion mugek hauek ordezkatzen dituzte.",
+        "name_label": "Lehenetsitako mugen izena",
+        "name_help": "Lan-eremu baten Erabilera orrian bistaratzen da, adibidez Doako plana. Hutsik utziz gero, orriak dio zure administratzaileak ezarri dituela mugak."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Mugarik gabe",
     "invalid": "Sartu 1 edo handiagoa den zenbaki oso bat, edo utzi hutsik mugarik ez izateko."
+  },
+  "usage": {
+    "title": "Erabilera",
+    "description": "Lan-eremu honek bere mugetatik zenbat erabiltzen duen.",
+    "open": "Ireki erabilera",
+    "plan": "Plana",
+    "set_by_admin": "Zure administratzaileak ezarria",
+    "count": {
+      "monitors": "Monitoreak: {{used}} / {{max}}",
+      "status_pages": "Egoera-orriak: {{used}} / {{max}}",
+      "custom_domains": "Domeinu pertsonalizatuak: {{used}} / {{max}}",
+      "members": "Kideak: {{used}} / {{max}}, zain dauden gonbidapenak barne",
+      "owned_workspaces": "Zure lan-eremuak: {{used}} / {{max}}",
+      "probes_per_monitor": "Monitore bakar batean {{used}} zunda, gehienez {{max}}"
+    },
+    "labels": {
+      "min_check_interval": "Egiaztapen tarterik laburrena",
+      "retention_days": "Datuen mantentze luzeena"
+    },
+    "seconds": "{{value}} segundo",
+    "days": "{{value}} egun",
+    "near": "Mugatik gertu",
+    "reached": "Mugan"
   }
 }

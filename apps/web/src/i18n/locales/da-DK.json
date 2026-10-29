@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Standardgrænser for nye arbejdsområder",
-        "description": "Grænserne for hvert arbejdsområde, der ikke har egne. Lad en grænse stå tom for ingen grænse. Grænser, et arbejdsområde får på siden Arbejdsområder, erstatter disse."
+        "description": "Grænserne for hvert arbejdsområde, der ikke har egne. Lad en grænse stå tom for ingen grænse. Grænser, et arbejdsområde får på siden Arbejdsområder, erstatter disse.",
+        "name_label": "Navn på standardgrænserne",
+        "name_help": "Vises på et arbejdsområdes side Forbrug, for eksempel Gratis abonnement. Hvis feltet er tomt, står der på siden, at din administrator har fastsat grænserne."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Ingen grænse",
     "invalid": "Indtast et helt tal på 1 eller mere, eller lad feltet stå tomt for ingen grænse."
+  },
+  "usage": {
+    "title": "Forbrug",
+    "description": "Hvor meget dette arbejdsområde bruger af sine grænser.",
+    "open": "Åbn forbrug",
+    "plan": "Abonnement",
+    "set_by_admin": "Fastsat af din administrator",
+    "count": {
+      "monitors": "{{used}} af {{max}} monitorer",
+      "status_pages": "{{used}} af {{max}} statussider",
+      "custom_domains": "{{used}} af {{max}} egne domæner",
+      "members": "{{used}} af {{max}} medlemmer, inklusive ventende invitationer",
+      "owned_workspaces": "Du ejer {{used}} af {{max}} arbejdsområder",
+      "probes_per_monitor": "Op til {{used}} af {{max}} probes på én monitor"
+    },
+    "labels": {
+      "min_check_interval": "Korteste kontrolinterval",
+      "retention_days": "Længste dataopbevaring"
+    },
+    "seconds": "{{value}} sekunder",
+    "days": "{{value}} dage",
+    "near": "Tæt på grænsen",
+    "reached": "På grænsen"
   }
 }

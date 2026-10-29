@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Uute tööruumide vaikelimiidid",
-        "description": "Iga sellise tööruumi limiidid, millel pole omi. Jäta limiit tühjaks, kui seda ei ole. Tööruumile lehel Tööruumid antud limiidid asendavad need."
+        "description": "Iga sellise tööruumi limiidid, millel pole omi. Jäta limiit tühjaks, kui seda ei ole. Tööruumile lehel Tööruumid antud limiidid asendavad need.",
+        "name_label": "Vaikepiirangute nimi",
+        "name_help": "Kuvatakse tööruumi lehel Kasutus, näiteks Tasuta pakett. Tühjaks jättes teatab leht, et piirangud määras teie haldur."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Limiiti pole",
     "invalid": "Sisesta täisarv alates 1 või jäta tühjaks, kui limiiti ei ole."
+  },
+  "usage": {
+    "title": "Kasutus",
+    "description": "Kui palju see tööruum oma piirangutest kasutab.",
+    "open": "Ava kasutus",
+    "plan": "Pakett",
+    "set_by_admin": "Määranud teie haldur",
+    "count": {
+      "monitors": "{{used}} / {{max}} monitoori",
+      "status_pages": "{{used}} / {{max}} olekusivu",
+      "custom_domains": "{{used}} / {{max}} kohandatud domeeni",
+      "members": "{{used}} / {{max}} liiget, ootel kutsed kaasa arvatud",
+      "owned_workspaces": "Sa omad {{used}} / {{max}} tööruumi",
+      "probes_per_monitor": "Kuni {{used}} / {{max}} sondi ühel monitooril"
+    },
+    "labels": {
+      "min_check_interval": "Lühim kontrollintervall",
+      "retention_days": "Pikim andmete säilitamine"
+    },
+    "seconds": "{{value}} sekundit",
+    "days": "{{value}} päeva",
+    "near": "Piirangu lähedal",
+    "reached": "Piiril"
   }
 }

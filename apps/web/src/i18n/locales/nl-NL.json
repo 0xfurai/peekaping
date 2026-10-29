@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Standaardlimieten voor nieuwe werkruimtes",
-        "description": "De limieten van elke werkruimte die geen eigen limieten heeft. Laat een limiet leeg voor geen limiet. Limieten die een werkruimte op de pagina Werkruimtes krijgt, vervangen deze."
+        "description": "De limieten van elke werkruimte die geen eigen limieten heeft. Laat een limiet leeg voor geen limiet. Limieten die een werkruimte op de pagina Werkruimtes krijgt, vervangen deze.",
+        "name_label": "Naam van de standaardlimieten",
+        "name_help": "Wordt getoond op de Gebruik-pagina van een werkruimte, bijvoorbeeld Gratis abonnement. Als dit leeg blijft, staat op de pagina dat je beheerder de limieten heeft ingesteld."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Geen limiet",
     "invalid": "Voer een geheel getal van 1 of meer in, of laat het leeg voor geen limiet."
+  },
+  "usage": {
+    "title": "Gebruik",
+    "description": "Hoeveel van de limieten deze werkruimte gebruikt.",
+    "open": "Gebruik openen",
+    "plan": "Abonnement",
+    "set_by_admin": "Ingesteld door je beheerder",
+    "count": {
+      "monitors": "{{used}} van {{max}} monitors",
+      "status_pages": "{{used}} van {{max}} statuspagina's",
+      "custom_domains": "{{used}} van {{max}} aangepaste domeinen",
+      "members": "{{used}} van {{max}} leden, openstaande uitnodigingen meegeteld",
+      "owned_workspaces": "Je bezit {{used}} van {{max}} werkruimtes",
+      "probes_per_monitor": "Tot {{used}} van {{max}} probes op één monitor"
+    },
+    "labels": {
+      "min_check_interval": "Kortste controle-interval",
+      "retention_days": "Langste gegevensbewaring"
+    },
+    "seconds": "{{value}} seconden",
+    "days": "{{value}} dagen",
+    "near": "Dicht bij de limiet",
+    "reached": "Op de limiet"
   }
 }

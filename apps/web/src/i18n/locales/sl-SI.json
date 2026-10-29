@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Privzete omejitve za nove delovne prostore",
-        "description": "Omejitve vsakega delovnega prostora, ki nima lastnih. Omejitev pustite prazno, če je ne želite. Omejitve, ki jih delovni prostor dobi na strani Delovni prostori, nadomestijo te."
+        "description": "Omejitve vsakega delovnega prostora, ki nima lastnih. Omejitev pustite prazno, če je ne želite. Omejitve, ki jih delovni prostor dobi na strani Delovni prostori, nadomestijo te.",
+        "name_label": "Ime privzetih omejitev",
+        "name_help": "Prikazano na strani Uporaba delovnega prostora, na primer Brezplačna raven. Če ostane prazno, stran navede, da je omejitve nastavil vaš skrbnik."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Brez omejitve",
     "invalid": "Vnesite celo število 1 ali več ali pustite prazno, če omejitve ne želite."
+  },
+  "usage": {
+    "title": "Uporaba",
+    "description": "Koliko svojih omejitev uporablja ta delovni prostor.",
+    "open": "Odpri uporabo",
+    "plan": "Paket",
+    "set_by_admin": "Nastavil vaš skrbnik",
+    "count": {
+      "monitors": "{{used}} od {{max}} monitorjev",
+      "status_pages": "{{used}} od {{max}} statusnih strani",
+      "custom_domains": "{{used}} od {{max}} domen po meri",
+      "members": "{{used}} od {{max}} članov, vključno s čakajočimi povabili",
+      "owned_workspaces": "V lasti imate {{used}} od {{max}} delovnih prostorov",
+      "probes_per_monitor": "Do {{used}} od {{max}} sond na enem monitorju"
+    },
+    "labels": {
+      "min_check_interval": "Najkrajši interval preverjanja",
+      "retention_days": "Najdaljše hranjenje podatkov"
+    },
+    "seconds": "{{value}} s",
+    "days": "{{value}} d",
+    "near": "Blizu omejitve",
+    "reached": "Na omejitvi"
   }
 }

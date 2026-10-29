@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Standardlimits für neue Arbeitsbereiche",
-        "description": "Die Limits jedes Arbeitsbereichs, der keine eigenen hat. Lass ein Limit leer, wenn es keins geben soll. Limits, die ein Arbeitsbereich auf der Seite Arbeitsbereiche erhält, ersetzen diese."
+        "description": "Die Limits jedes Arbeitsbereichs, der keine eigenen hat. Lass ein Limit leer, wenn es keins geben soll. Limits, die ein Arbeitsbereich auf der Seite Arbeitsbereiche erhält, ersetzen diese.",
+        "name_label": "Name der Standardlimits",
+        "name_help": "Wird auf der Nutzungsseite eines Arbeitsbereichs angezeigt, zum Beispiel Gratis-Tarif. Bleibt das Feld leer, steht auf der Seite, dass dein Administrator die Limits festgelegt hat."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Kein Limit",
     "invalid": "Gib eine ganze Zahl ab 1 ein oder lass das Feld leer, wenn es kein Limit geben soll."
+  },
+  "usage": {
+    "title": "Nutzung",
+    "description": "Wie viel dieser Arbeitsbereich von seinen Limits nutzt.",
+    "open": "Nutzung öffnen",
+    "plan": "Tarif",
+    "set_by_admin": "Von deinem Administrator festgelegt",
+    "count": {
+      "monitors": "{{used}} von {{max}} Monitoren",
+      "status_pages": "{{used}} von {{max}} Statusseiten",
+      "custom_domains": "{{used}} von {{max}} eigenen Domains",
+      "members": "{{used}} von {{max}} Mitgliedern, offene Einladungen eingerechnet",
+      "owned_workspaces": "Du besitzt {{used}} von {{max}} Arbeitsbereichen",
+      "probes_per_monitor": "Bis zu {{used}} von {{max}} Sonden bei einem Monitor"
+    },
+    "labels": {
+      "min_check_interval": "Kürzestes Prüfintervall",
+      "retention_days": "Längste Datenaufbewahrung"
+    },
+    "seconds": "{{value}} Sekunden",
+    "days": "{{value}} Tage",
+    "near": "Nahe am Limit",
+    "reached": "Am Limit"
   }
 }

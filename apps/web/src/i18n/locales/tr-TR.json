@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Yeni çalışma alanları için varsayılan sınırlar",
-        "description": "Kendine ait sınırı olmayan her çalışma alanının sınırları. Sınır istemiyorsanız ilgili alanı boş bırakın. Bir çalışma alanına Çalışma alanları sayfasında verilen sınırlar bunların yerine geçer."
+        "description": "Kendine ait sınırı olmayan her çalışma alanının sınırları. Sınır istemiyorsanız ilgili alanı boş bırakın. Bir çalışma alanına Çalışma alanları sayfasında verilen sınırlar bunların yerine geçer.",
+        "name_label": "Varsayılan sınırların adı",
+        "name_help": "Bir çalışma alanının Kullanım sayfasında gösterilir, örneğin Ücretsiz katman. Boş bırakılırsa sayfa, sınırları yöneticinizin belirlediğini söyler."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Sınır yok",
     "invalid": "1 veya daha büyük bir tam sayı girin ya da sınır istemiyorsanız boş bırakın."
+  },
+  "usage": {
+    "title": "Kullanım",
+    "description": "Bu çalışma alanının sınırlarının ne kadarını kullandığı.",
+    "open": "Kullanımı aç",
+    "plan": "Plan",
+    "set_by_admin": "Yöneticiniz tarafından belirlendi",
+    "count": {
+      "monitors": "{{used}} / {{max}} izleyici",
+      "status_pages": "{{used}} / {{max}} durum sayfası",
+      "custom_domains": "{{used}} / {{max}} özel alan adı",
+      "members": "{{used}} / {{max}} üye, bekleyen davetler dahil",
+      "owned_workspaces": "{{used}} / {{max}} çalışma alanına sahipsiniz",
+      "probes_per_monitor": "Bir izleyicide en fazla {{used}} / {{max}} prob"
+    },
+    "labels": {
+      "min_check_interval": "En kısa kontrol aralığı",
+      "retention_days": "En uzun veri saklama süresi"
+    },
+    "seconds": "{{value}} saniye",
+    "days": "{{value}} gün",
+    "near": "Sınıra yakın",
+    "reached": "Sınırda"
   }
 }

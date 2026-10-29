@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Yangi ish maydonlari uchun standart chegaralar",
-        "description": "O'z chegarasi bo'lmagan har bir ish maydonining chegaralari. Chegara kerak bo'lmasa, uni bo'sh qoldiring. Ish maydonlari sahifasida ish maydoniga berilgan chegaralar bularni almashtiradi."
+        "description": "O'z chegarasi bo'lmagan har bir ish maydonining chegaralari. Chegara kerak bo'lmasa, uni bo'sh qoldiring. Ish maydonlari sahifasida ish maydoniga berilgan chegaralar bularni almashtiradi.",
+        "name_label": "Standart cheklovlar nomi",
+        "name_help": "Ish maydonining Foydalanish sahifasida ko'rsatiladi, masalan, Bepul tarif. Bo'sh qoldirilsa, sahifada cheklovlarni administratoringiz belgilagani aytiladi."
       }
     }
   },
@@ -2115,5 +2117,28 @@
     },
     "none": "Chegarasiz",
     "invalid": "1 yoki undan katta butun son kiriting yoki chegara kerak bo'lmasa, bo'sh qoldiring."
+  },
+  "usage": {
+    "title": "Foydalanish",
+    "description": "Bu ish maydoni o'z cheklovlarining qanchasidan foydalanmoqda.",
+    "open": "Foydalanishni ochish",
+    "plan": "Tarif",
+    "set_by_admin": "Administratoringiz belgilagan",
+    "count": {
+      "monitors": "{{used}} / {{max}} ta monitor",
+      "status_pages": "{{used}} / {{max}} ta holat sahifasi",
+      "custom_domains": "{{used}} / {{max}} ta maxsus domen",
+      "members": "{{used}} / {{max}} ta a'zo, kutilayotgan takliflar bilan birga",
+      "owned_workspaces": "Siz {{used}} / {{max}} ta ish maydoniga egasiz",
+      "probes_per_monitor": "Bitta monitorda {{used}} / {{max}} tagacha zond"
+    },
+    "labels": {
+      "min_check_interval": "Eng qisqa tekshirish intervali",
+      "retention_days": "Ma'lumotlarni eng uzoq saqlash"
+    },
+    "seconds": "{{value}} soniya",
+    "days": "{{value}} kun",
+    "near": "Cheklovga yaqin",
+    "reached": "Cheklovda"
   }
 }

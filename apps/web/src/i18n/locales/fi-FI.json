@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Oletusrajat uusille työtiloille",
-        "description": "Jokaisen työtilan rajat, jolla ei ole omia. Jätä raja tyhjäksi, jos rajaa ei ole. Työtilalle Työtilat-sivulla annetut rajat korvaavat nämä."
+        "description": "Jokaisen työtilan rajat, jolla ei ole omia. Jätä raja tyhjäksi, jos rajaa ei ole. Työtilalle Työtilat-sivulla annetut rajat korvaavat nämä.",
+        "name_label": "Oletusrajojen nimi",
+        "name_help": "Näkyy työtilan Käyttö-sivulla, esimerkiksi Ilmainen taso. Jos kenttä jätetään tyhjäksi, sivu kertoo, että ylläpitäjä on asettanut rajat."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Ei rajaa",
     "invalid": "Syötä kokonaisluku 1 tai suurempi tai jätä kenttä tyhjäksi, jos rajaa ei ole."
+  },
+  "usage": {
+    "title": "Käyttö",
+    "description": "Kuinka paljon tämä työtila käyttää rajoistaan.",
+    "open": "Avaa käyttö",
+    "plan": "Paketti",
+    "set_by_admin": "Ylläpitäjäsi asettama",
+    "count": {
+      "monitors": "{{used}} / {{max}} valvontaa",
+      "status_pages": "{{used}} / {{max}} tilasivua",
+      "custom_domains": "{{used}} / {{max}} mukautettua verkkotunnusta",
+      "members": "{{used}} / {{max}} jäsentä, odottavat kutsut mukaan lukien",
+      "owned_workspaces": "Omistat {{used}} / {{max}} työtilaa",
+      "probes_per_monitor": "Jopa {{used}} / {{max}} luotainta yhdellä valvonnalla"
+    },
+    "labels": {
+      "min_check_interval": "Lyhin tarkistusväli",
+      "retention_days": "Pisin tietojen säilytys"
+    },
+    "seconds": "{{value}} sekuntia",
+    "days": "{{value}} päivää",
+    "near": "Lähellä rajaa",
+    "reached": "Rajalla"
   }
 }

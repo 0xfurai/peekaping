@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Domyślne limity dla nowych obszarów roboczych",
-        "description": "Limity każdego obszaru roboczego, który nie ma własnych. Zostaw limit pusty, aby go nie było. Limity nadane obszarowi roboczemu na stronie Obszary robocze zastępują te."
+        "description": "Limity każdego obszaru roboczego, który nie ma własnych. Zostaw limit pusty, aby go nie było. Limity nadane obszarowi roboczemu na stronie Obszary robocze zastępują te.",
+        "name_label": "Nazwa domyślnych limitów",
+        "name_help": "Wyświetlana na stronie Użycie obszaru roboczego, na przykład Plan bezpłatny. Jeśli pole zostanie puste, strona poda, że limity ustawił Twój administrator."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Bez limitu",
     "invalid": "Wpisz liczbę całkowitą równą 1 lub większą albo zostaw puste, aby nie było limitu."
+  },
+  "usage": {
+    "title": "Użycie",
+    "description": "Ile ze swoich limitów wykorzystuje ten obszar roboczy.",
+    "open": "Otwórz użycie",
+    "plan": "Plan",
+    "set_by_admin": "Ustawione przez Twojego administratora",
+    "count": {
+      "monitors": "{{used}} z {{max}} monitorów",
+      "status_pages": "{{used}} z {{max}} stron statusu",
+      "custom_domains": "{{used}} z {{max}} własnych domen",
+      "members": "{{used}} z {{max}} członków, razem z oczekującymi zaproszeniami",
+      "owned_workspaces": "Jesteś właścicielem {{used}} z {{max}} obszarów roboczych",
+      "probes_per_monitor": "Do {{used}} z {{max}} sond w jednym monitorze"
+    },
+    "labels": {
+      "min_check_interval": "Najkrótszy interwał sprawdzania",
+      "retention_days": "Najdłuższe przechowywanie danych"
+    },
+    "seconds": "{{value}} s",
+    "days": "{{value}} dn.",
+    "near": "Blisko limitu",
+    "reached": "Limit osiągnięty"
   }
 }

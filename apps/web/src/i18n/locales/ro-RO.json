@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Limite implicite pentru spațiile de lucru noi",
-        "description": "Limitele fiecărui spațiu de lucru care nu are limite proprii. Lăsați o limită goală pentru a nu avea niciuna. Limitele date unui spațiu de lucru pe pagina Spații de lucru le înlocuiesc pe acestea."
+        "description": "Limitele fiecărui spațiu de lucru care nu are limite proprii. Lăsați o limită goală pentru a nu avea niciuna. Limitele date unui spațiu de lucru pe pagina Spații de lucru le înlocuiesc pe acestea.",
+        "name_label": "Numele limitelor implicite",
+        "name_help": "Se afișează pe pagina Utilizare a unui spațiu de lucru, de exemplu Plan gratuit. Dacă rămâne necompletat, pagina arată că limitele au fost stabilite de administratorul dvs."
       }
     }
   },
@@ -2115,5 +2117,28 @@
     },
     "none": "Fără limită",
     "invalid": "Introduceți un număr întreg egal cu 1 sau mai mare, sau lăsați câmpul gol pentru nicio limită."
+  },
+  "usage": {
+    "title": "Utilizare",
+    "description": "Cât din limitele sale folosește acest spațiu de lucru.",
+    "open": "Deschide utilizarea",
+    "plan": "Plan",
+    "set_by_admin": "Stabilit de administratorul dvs.",
+    "count": {
+      "monitors": "{{used}} din {{max}} monitoare",
+      "status_pages": "{{used}} din {{max}} pagini de stare",
+      "custom_domains": "{{used}} din {{max}} domenii personalizate",
+      "members": "{{used}} din {{max}} membri, inclusiv invitațiile în așteptare",
+      "owned_workspaces": "Dețineți {{used}} din {{max}} spații de lucru",
+      "probes_per_monitor": "Până la {{used}} din {{max}} sonde pe un monitor"
+    },
+    "labels": {
+      "min_check_interval": "Cel mai scurt interval de verificare",
+      "retention_days": "Cea mai lungă păstrare a datelor"
+    },
+    "seconds": "{{value}} secunde",
+    "days": "{{value}} zile",
+    "near": "Aproape de limită",
+    "reached": "La limită"
   }
 }

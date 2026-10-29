@@ -258,7 +258,9 @@
       },
       "limits": {
         "title": "Alapértelmezett korlátok az új munkaterületeknek",
-        "description": "Minden olyan munkaterület korlátai, amelynek nincsenek sajátjai. Hagyjon egy korlátot üresen, ha nem kér korlátot. A munkaterületnek a Munkaterületek oldalon adott korlátok felváltják ezeket."
+        "description": "Minden olyan munkaterület korlátai, amelynek nincsenek sajátjai. Hagyjon egy korlátot üresen, ha nem kér korlátot. A munkaterületnek a Munkaterületek oldalon adott korlátok felváltják ezeket.",
+        "name_label": "Az alapértelmezett korlátok neve",
+        "name_help": "A munkaterület Használat oldalán jelenik meg, például Ingyenes csomag. Üresen hagyva az oldal azt jelzi, hogy a korlátokat az adminisztrátor állította be."
       }
     }
   },
@@ -2116,5 +2118,28 @@
     },
     "none": "Nincs korlát",
     "invalid": "Adjon meg egy 1 vagy nagyobb egész számot, vagy hagyja üresen, ha nem kér korlátot."
+  },
+  "usage": {
+    "title": "Használat",
+    "description": "Ez a munkaterület mennyit használ a korlátaiból.",
+    "open": "Használat megnyitása",
+    "plan": "Csomag",
+    "set_by_admin": "Az adminisztrátor állította be",
+    "count": {
+      "monitors": "{{max}} monitorból {{used}}",
+      "status_pages": "{{max}} állapotlapból {{used}}",
+      "custom_domains": "{{max}} egyéni domainből {{used}}",
+      "members": "{{max}} tagból {{used}}, a függőben lévő meghívókkal együtt",
+      "owned_workspaces": "{{max}} munkaterületből {{used}} a tiéd",
+      "probes_per_monitor": "Egy monitoron legfeljebb {{used}} szonda (a korlát: {{max}})"
+    },
+    "labels": {
+      "min_check_interval": "Legrövidebb ellenőrzési időköz",
+      "retention_days": "Leghosszabb adattartás"
+    },
+    "seconds": "{{value}} másodperc",
+    "days": "{{value}} nap",
+    "near": "Közel a korláthoz",
+    "reached": "A korlátnál"
   }
 }
