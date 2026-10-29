@@ -143,10 +143,11 @@ func (k *KafkaProducerExecutor) Execute(ctx context.Context, monitor *Monitor, p
 	config.Metadata.Timeout = timeout
 	config.Metadata.AllowAutoTopicCreation = cfg.AllowAutoTopicCreation
 
-	// While the guard is on, sarama dials every broker through it, the ones the cluster announces
-	// in its metadata included. TLS is still negotiated by sarama, over the connection the dialer
+	// With a guard, sarama dials every broker through it, the ones the cluster announces in its
+	// metadata included, so a guard turned on after the first dial refuses those. The dialer is the
+	// one sarama makes itself. TLS is still negotiated by sarama, over the connection the dialer
 	// returns.
-	if k.on() {
+	if k.hasGuard() {
 		config.Net.Proxy.Enable = true
 		config.Net.Proxy.Dialer = k.dialer(&net.Dialer{Timeout: timeout, KeepAlive: config.Net.KeepAlive})
 	}
