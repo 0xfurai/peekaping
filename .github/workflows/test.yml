@@ -41,28 +41,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  # Test and Lint is several jobs that run side by side, so a PR waits for the slowest of them,
+  # not for their sum
+
+  go-lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
 
-    # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
-    # Each test creates a schema or database of its own, so they share this one server
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_PASSWORD: pg
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache-dependency-path: apps/server/go.sum
 
-    env:
-      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
 
+      - name: Run go vet
+        working-directory: apps/server
+        run: go vet ./...
+
+      # The version is pinned: a new release adds checks that fail PRs nobody touched.
+      # Config and the linters still off, with their tickets: apps/server/.golangci.yml
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.15.0
+          working-directory: apps/server
+
+  # The OpenAPI description, generated from the Go code, and the web client generated from it are
+  # committed: this checks both are up to date
+  api-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -93,24 +107,35 @@ jobs:
           go-version: '1.27.3'
           cache-dependency-path: apps/server/go.sum
 
-      - name: Install dependencies
-        working-directory: apps/server
-        run: go mod download
-
-      - name: Run go vet
-        working-directory: apps/server
-        run: go vet ./...
-
-      # The version is pinned: a new release adds checks that fail PRs nobody touched.
-      # Config and the linters still off, with their tickets: apps/server/.golangci.yml
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: v2.15.0
-          working-directory: apps/server
-
       - name: Check OpenAPI and generated client
         run: bun run api:check
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Setup Bun cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
       - name: Run web lint
         working-directory: apps/web
@@ -124,34 +149,54 @@ jobs:
         working-directory: apps/web
         run: bun run build
 
+  # Every Go package's tests but the API tests, which go-api-test runs
+  go-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
+    # Each test creates a schema or database of its own, so they share this one server
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache-dependency-path: apps/server/go.sum
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
+
       - name: Run server tests with coverage
         working-directory: apps/server
-        env:
-          # The API tests a PR runs: workspace isolation, auth and sessions, API keys, the API
-          # contract, monitor CRUD and the private-address block. About 100 of the ~670
-          CRITICAL_API_TESTS: '^(TestIsolation|TestAuthAPI|TestMe|TestAPIKeyWorkspace|TestOpenAPI|TestHTTPContract|TestRouteTable|TestMonitorsAPI|TestBlockPrivateTargets)(_|$)'
         run: |
-          pwd
           # A failing go test must fail the step: without pipefail, the exit status of the
           # pipeline would be tee's
           set -o pipefail
-          # -coverpkg credits code that tests in other packages reach, such as
-          # the controllers internal/apitest drives through the router, and the Go
-          # migrations in cmd/bun/migrations that tests in other packages run. The timeout
-          # is per package, and internal/apitest is the slowest one. -count=1 so that a cached
-          # result never stands in for a run against the PostgreSQL service. -parallel 4: the
-          # API tests run in parallel, four at a time, as many as a GitHub-hosted runner has CPUs
-          flags="-timeout 1200s -count=1 -parallel 4 -v -coverpkg=./internal/...,./cmd/bun/migrations"
-          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
-            # A PR runs every other package's tests, and of the API tests only the critical set
-            # (CRITICAL_API_TESTS). All of them run after merge and nightly
-            go test $flags -coverprofile=coverage.txt $(go list ./internal/... ./cmd/... | grep -v '/internal/apitest$') | tee server-test.log
-            go test $flags -coverprofile=coverage-api.txt -run "$CRITICAL_API_TESTS" ./internal/apitest/ | tee -a server-test.log
-            # One profile for the upload: the second one without its mode line
-            tail -n +2 coverage-api.txt >> coverage.txt
-          else
-            go test $flags -coverprofile=coverage.txt ./internal/... ./cmd/... | tee server-test.log
-          fi
+          # -coverpkg credits code that tests in other packages reach, such as the Go
+          # migrations in cmd/bun/migrations that tests in other packages run. -count=1 so that
+          # a cached result never stands in for a run against the PostgreSQL service
+          go test -timeout 1200s -count=1 -parallel 4 -v -coverprofile=coverage.txt \
+            -coverpkg=./internal/...,./cmd/bun/migrations \
+            $(go list ./internal/... ./cmd/... | grep -v '/internal/apitest$') | tee server-test.log
           # Every PostgreSQL subtest skips with this message when the variable is unset, which
           # would leave this job green without running them
           if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
@@ -159,11 +204,7 @@ jobs:
             exit 1
           fi
 
-      # The slim probe leaves out the executors of five monitor types (Dockerfile.probe, GO_TAGS=slim)
-      - name: Run slim probe tests
-        working-directory: apps/server
-        run: go test -timeout 120s -tags slim ./internal/probeclient/ ./internal/modules/healthcheck/executor/ ./cmd/probe/
-
+      # Codecov merges this upload with go-test's or go-api-test's, both under the server flag
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -171,6 +212,96 @@ jobs:
           slug: 0xfurai/peekaping
           file: apps/server/coverage.txt
           flags: server
+
+  # The API tests (internal/apitest), which drive the controllers through the router. A PR runs the
+  # critical set, pushes to main and the nightly run all of them
+  go-api-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
+    # Each test creates a schema or database of its own, so they share this one server
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: pg
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      PEE_TEST_POSTGRES_DSN: postgres://postgres:pg@127.0.0.1:5432/postgres?sslmode=disable
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache-dependency-path: apps/server/go.sum
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
+
+      - name: Run API tests with coverage
+        working-directory: apps/server
+        env:
+          # The API tests a PR runs: workspace isolation, auth and sessions, API keys, the API
+          # contract, monitor CRUD and the private-address block. About 100 of the ~670
+          CRITICAL_API_TESTS: '^(TestIsolation|TestAuthAPI|TestMe|TestAPIKeyWorkspace|TestOpenAPI|TestHTTPContract|TestRouteTable|TestMonitorsAPI|TestBlockPrivateTargets)(_|$)'
+        run: |
+          set -o pipefail
+          # -parallel 4: the API tests run in parallel, four at a time, as many as a GitHub-hosted
+          # runner has CPUs
+          run=()
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            run=(-run "$CRITICAL_API_TESTS")
+          fi
+          go test -timeout 1200s -count=1 -parallel 4 -v -coverprofile=coverage.txt \
+            -coverpkg=./internal/...,./cmd/bun/migrations "${run[@]}" ./internal/apitest/ | tee server-test.log
+          # Every PostgreSQL subtest skips with this message when the variable is unset, which
+          # would leave this job green without running them
+          if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
+            echo 'A PostgreSQL test skipped: PEE_TEST_POSTGRES_DSN is not set'
+            exit 1
+          fi
+
+      # Codecov merges this upload with go-test's or go-api-test's, both under the server flag
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: 0xfurai/peekaping
+          file: apps/server/coverage.txt
+          flags: server
+
+  # The slim probe leaves out the executors of five monitor types (Dockerfile.probe, GO_TAGS=slim)
+  go-slim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache-dependency-path: apps/server/go.sum
+
+      - name: Install dependencies
+        working-directory: apps/server
+        run: go mod download
+
+      - name: Run slim probe tests
+        working-directory: apps/server
+        run: go test -timeout 120s -tags slim ./internal/probeclient/ ./internal/modules/healthcheck/executor/ ./cmd/probe/
 
   # The race detector slows the tests down several times over: internal/apitest alone takes
   # about 25 minutes under -race. So it runs only nightly and when started by hand, not on
