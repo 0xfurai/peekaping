@@ -23,7 +23,8 @@ type nullableRequest struct {
 }
 
 type nullableResponse struct {
-	Reason *string `json:"reason" nullable:"true" enum:"admin,unverified"`
+	Reason  *string   `json:"reason" nullable:"true" enum:"admin,unverified"`
+	Reasons []*string `json:"reasons,omitempty" enum:"admin,unverified"`
 }
 
 type nullableParams struct{}
@@ -66,6 +67,9 @@ func TestOpenAPI_NullableFieldsAcceptNull(t *testing.T) {
 		{response, `{"reason":null}`, true},
 		{response, `{"reason":"admin"}`, true},
 		{response, `{"reason":"other"}`, false},
+		{response, `{"reason":null,"reasons":[null]}`, true},
+		{response, `{"reason":null,"reasons":["admin",null]}`, true},
+		{response, `{"reason":null,"reasons":["other"]}`, false},
 	} {
 		value, err := jsonschema.UnmarshalJSON(strings.NewReader(tc.body))
 		require.NoError(t, err)
