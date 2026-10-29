@@ -439,11 +439,10 @@ components:
             - string
             - "null"
         workspaceLimits:
-          $ref: "#/components/schemas/admin.UpdateDefaultLimitsDto"
+          anyOf:
+            - $ref: "#/components/schemas/admin.UpdateDefaultLimitsDto"
+            - type: "null"
           description: The install's default limits, the limits of a workspace that has none of its own. A limit left out stays as it is, a number saves it and null clears it.
-          type:
-            - ""
-            - "null"
       type: object
     admin.UpdateUserDto:
       additionalProperties: true
