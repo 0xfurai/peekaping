@@ -1406,7 +1406,8 @@
       "updated_success": "Értesítő sikeresen frissítve"
     },
     "new": {
-      "title": "Új értesítési csatorna"
+      "title": "Új értesítési csatorna",
+      "default_hint": "Ez a csatorna be lesz jelölve az új monitoroknál."
     },
     "no_important": "Nem található fontos értesítés.",
     "placeholders": {

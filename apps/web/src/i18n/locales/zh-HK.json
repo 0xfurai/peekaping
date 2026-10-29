@@ -1406,7 +1406,8 @@
       "updated_success": "通知器已成功更新"
     },
     "new": {
-      "title": "新增通知頻道"
+      "title": "新增通知頻道",
+      "default_hint": "新增監控時會預設勾選此頻道。"
     },
     "no_important": "未找到重要通知。",
     "placeholders": {

@@ -1406,7 +1406,8 @@
       "updated_success": "Jakinarazlea ongi eguneratu da"
     },
     "new": {
-      "title": "Jakinarazpen-kanal berria"
+      "title": "Jakinarazpen-kanal berria",
+      "default_hint": "Kanal hau monitore berrietan markatuta egongo da."
     },
     "no_important": "Ez da garrantzitsuen jakinarazpenik aurkitu.",
     "placeholders": {
