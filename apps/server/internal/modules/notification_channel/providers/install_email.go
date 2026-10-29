@@ -7,6 +7,7 @@ import (
 	"html"
 	"net/url"
 	"strings"
+	"unicode"
 
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/heartbeat"
@@ -224,11 +225,12 @@ func installEmail(link, message string, m *monitor.Model, hb *heartbeat.Model) m
 		case m.IsProbeEvent() && m.Status == shared.MonitorStatusUp:
 			status = "online"
 		}
+		name := singleLine(m.Name)
 		if status != "" {
-			subject = m.Name + " is " + status
+			subject = name + " is " + status
 			fields = append(fields, [2]string{"Status", status})
 		} else {
-			subject = defaultEmailSubject + ": " + m.Name
+			subject = defaultEmailSubject + ": " + name
 		}
 	}
 	if hb != nil && !hb.Time.IsZero() {
@@ -257,6 +259,18 @@ func installEmail(link, message string, m *monitor.Model, hb *heartbeat.Model) m
 		fmt.Fprintf(&body, "<p><a href=\"%s\">Open the monitor</a></p>\n", html.EscapeString(link))
 	}
 	return mailer.Message{Subject: subject, Text: text.String(), HTML: body.String()}
+}
+
+// singleLine turns each control character (a line break, a tab) into a space. A monitor's name goes
+// into the subject, and the mailer refuses a subject with a line break (it would add headers), which
+// would leave the notification unsent.
+func singleLine(name string) string {
+	return strings.TrimSpace(strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return ' '
+		}
+		return r
+	}, name))
 }
 
 // statusName is a heartbeat status as the email says it

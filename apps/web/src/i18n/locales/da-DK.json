@@ -2046,8 +2046,10 @@
       "url_label": "Adresse der skal overvåges"
     },
     "channel": {
+      "continue_unlinked": "Fortsæt uden at tilknytte",
       "description": "Vælg, hvor Peekaping sender en alarm, når din monitor går ned. Det bliver standard for nye monitorer.",
       "link_failed": "Kanalen blev gemt, men det lykkedes ikke at knytte den til din monitor. Tilføj den på monitorens redigeringsside.",
+      "retry_link": "Prøv at tilknytte igen",
       "title": "Få besked"
     },
     "done": {

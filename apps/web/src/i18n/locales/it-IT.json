@@ -2046,8 +2046,10 @@
       "url_label": "Indirizzo da monitorare"
     },
     "channel": {
+      "continue_unlinked": "Continua senza collegare",
       "description": "Scegli dove Peekaping invia un avviso quando il tuo monitor va giù. Diventerà il canale predefinito dei nuovi monitor.",
       "link_failed": "Il canale è stato salvato, ma il collegamento al monitor non è riuscito. Aggiungilo dalla pagina di modifica del monitor.",
+      "retry_link": "Riprova a collegare",
       "title": "Ricevi le notifiche"
     },
     "done": {

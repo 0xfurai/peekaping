@@ -2046,8 +2046,10 @@
       "url_label": "Dirección a monitorizar"
     },
     "channel": {
+      "continue_unlinked": "Continuar sin vincular",
       "description": "Elige adónde envía Peekaping una alerta cuando tu monitor se caiga. Será el canal por defecto de los monitores nuevos.",
       "link_failed": "El canal se guardó, pero no se pudo vincular a tu monitor. Añádelo en la página de edición del monitor.",
+      "retry_link": "Intentar vincular de nuevo",
       "title": "Recibe avisos"
     },
     "done": {

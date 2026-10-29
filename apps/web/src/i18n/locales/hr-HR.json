@@ -2046,8 +2046,10 @@
       "url_label": "Adresa za nadzor"
     },
     "channel": {
+      "continue_unlinked": "Nastavi bez povezivanja",
       "description": "Odaberite kamo Peekaping šalje upozorenje kada vaš nadzor padne. Postat će zadani kanal za nove nadzore.",
       "link_failed": "Kanal je spremljen, ali povezivanje s nadzorom nije uspjelo. Dodajte ga na stranici za uređivanje nadzora.",
+      "retry_link": "Pokušaj ponovno povezati",
       "title": "Primajte obavijesti"
     },
     "done": {
