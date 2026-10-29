@@ -142,4 +142,14 @@ describe("VerificationBannerView", () => {
   it("hides itself after a 409, the address already verified", () => {
     expect(view("already_verified")).toBe("");
   });
+
+  // /me is fetched again after the 409, and the workspace stays held back until it says otherwise
+  it("keeps the suspension notice after a 409, without Resend", () => {
+    const html = renderAs(
+      { instanceAdmin: false, role: "owner" },
+      <VerificationBannerView email={USER_EMAIL} suspended outcome="already_verified" pending={false} onResend={() => {}} />
+    );
+    expect(html).toContain(text("auth.suspension_notice.message"));
+    expect(html).not.toContain(text("auth.resend.button"));
+  });
 });
