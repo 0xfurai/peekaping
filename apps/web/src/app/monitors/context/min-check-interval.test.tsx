@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { getWorkspaceLimitsQueryKey } from "@/api/@tanstack/react-query.gen";
 import "@/i18n";
 import i18n from "i18next";
 import { useMinCheckInterval } from "@/hooks/useMinCheckInterval";
@@ -18,13 +19,36 @@ const Starts = () => {
 const startedWith = (html: string) =>
   JSON.parse(html.match(/<output>(.*)<\/output>/)![1].replace(/&quot;/g, '"'));
 
-const newMonitor = (minCheckInterval?: number) =>
+// GET /workspace/limits as loaded, with the shortest interval that applies to the workspace
+const seedLimits = (minimum: number) => (queryClient: QueryClient) => {
+  const use = (max: number | null, used = 0) => ({ max, used, source: max === null ? "none" : "install" });
+  queryClient.setQueryData(getWorkspaceLimitsQueryKey(), {
+    message: "",
+    data: {
+      source: "install",
+      limits: {
+        monitors: use(null),
+        min_check_interval: use(minimum, minimum),
+        status_pages: use(null),
+        custom_domains: use(null),
+        members: use(null),
+        owned_workspaces: use(null),
+        probes_per_monitor: use(null),
+        retention_days: use(null),
+      },
+    },
+  });
+};
+
+const newMonitor = (minCheckInterval?: number, workspaceMinimum?: number) =>
   startedWith(
     renderAs(
       { instanceAdmin: false, role: "member", minCheckInterval },
       <MonitorFormProvider mode="create">
         <Starts />
-      </MonitorFormProvider>
+      </MonitorFormProvider>,
+      undefined,
+      workspaceMinimum === undefined ? undefined : seedLimits(workspaceMinimum)
     )
   );
 
@@ -36,12 +60,21 @@ describe("A new monitor's form", () => {
   it("starts at 20 when the install's minimum is 20", () => {
     expect(newMonitor(20)).toEqual({ interval: 20, retry_interval: 20, timeout: 16 });
   });
+
+  it("starts at the workspace's minimum, from its limits, when that is stricter than the install's", () => {
+    expect(newMonitor(60, 300)).toEqual({ interval: 300, retry_interval: 300, timeout: 16 });
+  });
 });
 
 describe("useMinCheckInterval", () => {
   const Minimum = () => <output>{useMinCheckInterval()}</output>;
 
-  it("is what /me says", () => {
+  it("is the shortest interval that applies to the workspace, from its limits", () => {
+    const html = renderAs({ instanceAdmin: false, role: "member", minCheckInterval: 60 }, <Minimum />, undefined, seedLimits(120));
+    expect(html).toContain("<output>120</output>");
+  });
+
+  it("is what /me says while the limits aren't loaded", () => {
     expect(renderAs({ instanceAdmin: false, role: "member", minCheckInterval: 90 }, <Minimum />)).toContain("<output>90</output>");
   });
 
