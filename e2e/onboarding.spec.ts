@@ -9,7 +9,7 @@ import { linkIn, mailpitURL, waitForMail } from './support/mail';
 // saved, but is not checked and sends nothing, so the test follows it across the verification.
 //
 // It needs an install with SIGNUP_MODE=open and a sender for account emails that a mail catcher
-// receives (docker-compose.e2e-cloud.yml, E2E_MAILPIT_URL), and skips on any other. The first user
+// receives (Mailpit in docker-compose.e2e.yml, E2E_MAILPIT_URL), and skips on any other. The first user
 // of a fresh install is covered by auth.setup.ts.
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -44,7 +44,7 @@ test('@cloud a new signup is walked through Get started and verifies their email
   // A sender without the mail catcher (E2E_MAILPIT_URL unset) has no mail for the test to read
   test.skip(
     signupMode !== 'open' || accountEmails !== true || !mailpitURL,
-    'needs an install with open signup and a sender for account emails, and E2E_MAILPIT_URL (docker-compose.e2e-cloud.yml)',
+    'needs an install with open signup and a sender for account emails (SIGNUP_MODE=open, ACCOUNT_SMTP_HOST=mailpit), and E2E_MAILPIT_URL',
   );
 
   const run = randomID();

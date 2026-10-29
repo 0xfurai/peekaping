@@ -76,7 +76,7 @@ bun run api:check   # verifies committed spec and client freshness
 
 The server exporter uses production Huma registrations without starting databases or Redis. The pinned formatter runs as part of client generation. See `apps/server/docs/README.md` for route coverage and compatibility details.
 
-E2E, from the worktree root. The dev stack binds fixed host ports (6379, 8034, 8383), so only one runs per machine: if `docker ps` shows another session's stack, wait for it. `docker-compose.e2e.yml` adds `e2e-target` on port 3033, the local service the tests' monitors check and notify. The stack reads a gitignored `.env`. A leftover SQLite database is fine: the setup logs in as the e2e admin (`test@test.com`) instead of registering, and fails with a message if the database has an admin with other credentials.
+E2E, from the worktree root. The dev stack binds fixed host ports (6379, 8034, 8383), so only one runs per machine: if `docker ps` shows another session's stack, wait for it. `docker-compose.e2e.yml` adds `e2e-target` on port 3033, the local service the tests' monitors check and notify, and Mailpit, a mail catcher, in every e2e job: a sender that sends to `mailpit:1025` delivers there (or to `localhost:1025`, published on loopback, from a server run natively: set `E2E_MAILPIT_SMTP_HOST=localhost` for the specs), and the specs read it on port 8025 through `E2E_MAILPIT_URL`. A default run sets no sender in `.env`, so `e2e/admin-settings.spec.ts` can save one in Admin → Settings (and removes it again); it skips without `E2E_MAILPIT_URL`, or when a sender is saved already. It runs in the `install-settings` project, after the `chromium` project's specs, so none of them sees its sender. The stack reads a gitignored `.env`. A leftover SQLite database is fine: the setup logs in as the e2e admin (`test@test.com`) instead of registering, and fails with a message if the database has an admin with other credentials.
 
 ```sh
 cat > .env <<'ENV'
@@ -95,7 +95,7 @@ export COMPOSE_FILE=docker-compose.dev.sqlite.yml:docker-compose.e2e.yml
 docker build -f apps/server/infra/Dockerfile.probe -t peekaping-probe apps/server   # the remote probe specs start this image
 docker compose up -d --build --wait --wait-timeout 120   # fails if a healthcheck doesn't pass in time
 bunx playwright install chromium
-PW_TEST_HTML_REPORT_OPEN=never bun run e2e
+E2E_MAILPIT_URL=http://localhost:8025 PW_TEST_HTML_REPORT_OPEN=never bun run e2e
 docker compose down
 ```
 
@@ -105,7 +105,7 @@ docker compose down
 
 CI runs the suite twice against the same database, so a test must leave nothing behind that breaks its next run.
 
-The cloud suite (`e2e/onboarding.spec.ts`, tagged `@cloud`) needs an open-signup install with a mail catcher, so a default run skips it. `docker-compose.e2e-cloud.yml` adds Mailpit: the api sends its mail to `mailpit:1025`, and the specs read it through `E2E_MAILPIT_URL`. Add the sender to `.env`, start the stack with the third file on a fresh database (the setup then verifies the first user's email through Mailpit), and run only the tagged specs:
+The cloud suite (`e2e/onboarding.spec.ts`, tagged `@cloud`) needs an open-signup install with the sender in the environment, so a default run skips it. Add the sender to `.env`, start the stack on a fresh database (the setup then verifies the first user's email through Mailpit), and run only the tagged specs:
 
 ```sh
 cat >> .env <<'ENV'
@@ -115,12 +115,12 @@ ACCOUNT_SMTP_PORT=1025
 ACCOUNT_SMTP_FROM=peekaping@e2e.test
 ACCOUNT_SMTP_TLS=none
 ENV
-export COMPOSE_FILE=docker-compose.dev.sqlite.yml:docker-compose.e2e.yml:docker-compose.e2e-cloud.yml
+export COMPOSE_FILE=docker-compose.dev.sqlite.yml:docker-compose.e2e.yml
 docker compose up -d --build --wait --wait-timeout 120
 E2E_MAILPIT_URL=http://localhost:8025 PW_TEST_HTML_REPORT_OPEN=never bunx playwright test --workers=1 --grep @cloud
 ```
 
-`--grep` leaves the setup project running. Remove the sender lines from `.env` before the next default run: with a sender and no `E2E_MAILPIT_URL`, a new database's first user can't verify their email. Open signup allows 5 signups an hour per client address, which the suite stays under (the setup and one spec per run).
+`--grep` leaves the setup project running. Remove the sender lines from `.env` before the next default run: they lock the sender in Admin → Settings, so `e2e/admin-settings.spec.ts` skips, and with no `E2E_MAILPIT_URL` a new database's first user can't verify their email. Open signup allows 5 signups an hour per client address, which the suite stays under (the setup and one spec per run).
 
 The usage ping and error reports are on by default, so a test stack must not reach Peekaping's endpoints. The two lines at the end of the `.env` above point them at an address nothing listens on (an empty `ERROR_REPORTING_DSN` would mean Peekaping's own Sentry project, so it is a dead DSN instead). The dev compose files default to the same values, and CI's `.env` sets them. A Go test that starts the app, or sets up error reporting, gives it a server or DSN of its own: `go test ./internal/reporting/` fails on one that doesn't.
 

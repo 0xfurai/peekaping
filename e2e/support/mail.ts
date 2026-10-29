@@ -1,9 +1,17 @@
 import { expect, request, type APIRequestContext } from '@playwright/test';
 
-// The mail catcher of an open-signup stack (docker-compose.e2e-cloud.yml): the install sends its
-// account emails and install email notifications to it, and the tests read them through its HTTP
-// API. Unset on a stack with no sender, which is how specs tell that there is no mail to read.
+// The mail catcher of an e2e stack (Mailpit in docker-compose.e2e.yml): a sender that sends to it,
+// set in the environment (the cloud suite's) or saved in Admin → Settings, delivers the install's
+// account emails and install email notifications there, and the tests read them through its HTTP
+// API. Unset where there is no mail catcher, which is how specs tell that there is no mail to read.
 export const mailpitURL = process.env.E2E_MAILPIT_URL;
+
+// How the install reaches Mailpit's SMTP server: by its compose service name on an e2e stack, or
+// as E2E_MAILPIT_SMTP_HOST and E2E_MAILPIT_SMTP_PORT say, e.g. localhost for a server run natively
+export const mailpitSMTP = {
+  host: process.env.E2E_MAILPIT_SMTP_HOST ?? 'mailpit',
+  port: Number(process.env.E2E_MAILPIT_SMTP_PORT ?? 1025),
+};
 
 export type Mail = { id: string; subject: string; to: string[]; text: string; created: Date };
 
@@ -12,7 +20,7 @@ export type Mail = { id: string; subject: string; to: string[]; text: string; cr
 const mailRetry = { timeout: 30_000, intervals: [250, 500, 1000] };
 
 async function mailpit(): Promise<APIRequestContext> {
-  if (!mailpitURL) throw new Error('E2E_MAILPIT_URL is not set: start the stack with docker-compose.e2e-cloud.yml');
+  if (!mailpitURL) throw new Error('E2E_MAILPIT_URL is not set: start the stack with docker-compose.e2e.yml and set it to http://localhost:8025');
   return request.newContext({ baseURL: `${mailpitURL.replace(/\/$/, '')}/` });
 }
 
