@@ -30,7 +30,7 @@ func (uc *MonitorRoute) ConnectRoute(
 ) {
 	router := rg.Group("monitors")
 	router.Use(uc.middleware.WorkspaceAuth())
-	router.Document(httpx.WorkspaceIDHeader)
+	router.DocumentWorkspace()
 
 	httpx.Register(router, "GET", "", huma.Operation{Summary: "Get monitors", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.FindAll)
 	httpx.Register(router, "GET", "batch", huma.Operation{Summary: "Get monitors by IDs", Tags: []string{"monitor"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, uc.monitorController.FindByIDs)
