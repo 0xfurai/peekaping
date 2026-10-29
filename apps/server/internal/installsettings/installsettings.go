@@ -1,7 +1,7 @@
 // Package installsettings resolves the install settings that an instance admin can change in the
 // web app (docs/adr/0005 section 5): the signup mode (SIGNUP_MODE), the sender of account emails
-// (ACCOUNT_SMTP_*), the public URL (CLIENT_URL) and the default limits of a workspace
-// (WORKSPACE_LIMIT_*, PP-160). Each value comes from the environment when its variable is set, then
+// (ACCOUNT_SMTP_*), the public URL (CLIENT_URL), the default limits of a workspace
+// (WORKSPACE_LIMIT_*, PP-160) and the install's name for them (WORKSPACE_LIMITS_NAME, PP-163). Each value comes from the environment when its variable is set, then
 // from the value saved in the settings table, then from the default. A setting the environment sets
 // is locked: Update refuses to change it.
 //
@@ -21,6 +21,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"peekaping/internal/config"
 	"peekaping/internal/modules/shared"
@@ -41,6 +42,8 @@ const (
 	KeySMTPPassword = "install.account_smtp.password"
 	KeySMTPFrom     = "install.account_smtp.from"
 	KeySMTPTLS      = "install.account_smtp.tls"
+	// KeyWorkspaceLimitsName is the install's name for its default limits (PP-163)
+	KeyWorkspaceLimitsName = "install.workspace_limits_name"
 )
 
 // The names of the default limits (PP-160), as the admin API names them inside workspaceLimits and
@@ -56,6 +59,9 @@ const (
 	LimitProbesPerMonitor = "probes_per_monitor"
 	LimitRetentionDays    = "retention_days"
 )
+
+// MaxLimitsNameLength is the longest name, in characters, the default limits can have
+const MaxLimitsNameLength = 100
 
 // MaxRetentionDays is the longest data retention period, in days, a default limit can hold
 const MaxRetentionDays = 36500
@@ -116,6 +122,8 @@ type View struct {
 	SMTPTLS      Field[string]
 	// WorkspaceLimits are the install's default limits
 	WorkspaceLimits DefaultLimits
+	// WorkspaceLimitsName is the install's name for its default limits, empty for none
+	WorkspaceLimitsName Field[string]
 }
 
 // DefaultLimits are the install's default limits: the limits of a workspace that has none of its
@@ -150,6 +158,8 @@ type Change struct {
 	// saves it, nil clears the saved value, so that there is no limit, and a limit the map doesn't
 	// hold stays as it is
 	WorkspaceLimits map[string]*int
+	// WorkspaceLimitsName changes the install's name for its default limits: empty clears it
+	WorkspaceLimitsName *string
 }
 
 // The codes of the errors Update returns
@@ -166,7 +176,8 @@ const (
 )
 
 // Error is why Update refused a change. Field is the setting it is about, as the admin API names it
-// (signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors and the like).
+// (signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors, workspaceLimitsName and the
+// like).
 type Error struct {
 	Code    string
 	Field   string
@@ -222,6 +233,8 @@ var (
 		return c.AccountSMTPTLS
 	}, checkTLS}
 
+	limitsName = setting{"workspaceLimitsName", "WORKSPACE_LIMITS_NAME", KeyWorkspaceLimitsName, "string", func(c *config.Config) string { return strings.TrimSpace(c.WorkspaceLimitsName) }, checkLimitsName}
+
 	limitMonitors         = limitSetting(LimitMonitors, "WORKSPACE_LIMIT_MONITORS", func(c *config.Config) int { return c.WorkspaceLimitMonitors }, checkLimit)
 	limitMinCheckInterval = limitSetting(LimitMinCheckInterval, "WORKSPACE_LIMIT_MIN_CHECK_INTERVAL", func(c *config.Config) int { return c.WorkspaceLimitMinCheckInterval }, checkMinCheckInterval)
 	limitStatusPages      = limitSetting(LimitStatusPages, "WORKSPACE_LIMIT_STATUS_PAGES", func(c *config.Config) int { return c.WorkspaceLimitStatusPages }, checkLimit)
@@ -247,7 +260,7 @@ var (
 	all = []setting{
 		signupMode, publicURL, smtpHost, smtpPort, smtpUser, smtpPassword, smtpFrom, smtpTLS,
 		limitMonitors, limitMinCheckInterval, limitStatusPages, limitCustomDomains, limitMembers,
-		limitOwnedWorkspaces, limitProbesPerMonitor, limitRetentionDays,
+		limitOwnedWorkspaces, limitProbesPerMonitor, limitRetentionDays, limitsName,
 	}
 )
 
@@ -319,6 +332,12 @@ func (r *Resolver) DefaultLimits(ctx context.Context) (DefaultLimits, error) {
 	return r.defaultLimits(values), nil
 }
 
+// WorkspaceLimitsName is the install's name for its default limits, such as "Free tier", or empty
+// when it has none
+func (r *Resolver) WorkspaceLimitsName(ctx context.Context) string {
+	return r.resolve(r.stored(ctx), limitsName).Value
+}
+
 // Describe reads the saved values afresh and gives every setting with its source
 func (r *Resolver) Describe(ctx context.Context) (*View, error) {
 	values, err := r.fresh(ctx)
@@ -332,7 +351,8 @@ func (r *Resolver) Describe(ctx context.Context) (*View, error) {
 // refuses (an *Error) a setting the environment sets, a value the setting can't hold, open signup
 // without a sender, and removing the sender while signup is open; a refused change stores nothing.
 // A default limit must be a whole number of 1 or more, a minimum check interval at least the
-// install's MIN_CHECK_INTERVAL, and a retention period at most MaxRetentionDays.
+// install's MIN_CHECK_INTERVAL, and a retention period at most MaxRetentionDays. The name of the
+// default limits is one line of at most MaxLimitsNameLength characters.
 // The change takes effect at once in this process.
 func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) {
 	if r.store == nil {
@@ -363,7 +383,7 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 	steps := []pending{
 		{signupMode, change.SignupMode}, {publicURL, change.PublicURL}, {smtpHost, change.SMTPHost},
 		{smtpPort, port}, {smtpUser, change.SMTPUser}, {smtpPassword, change.SMTPPassword},
-		{smtpFrom, change.SMTPFrom}, {smtpTLS, change.SMTPTLS},
+		{smtpFrom, change.SMTPFrom}, {smtpTLS, change.SMTPTLS}, {limitsName, change.WorkspaceLimitsName},
 	}
 	for name := range change.WorkspaceLimits {
 		if _, ok := limitsByName[name]; !ok {
@@ -511,7 +531,8 @@ func (r *Resolver) view(values map[string]string) *View {
 		SMTPFrom:     r.resolve(values, smtpFrom),
 		SMTPTLS:      r.resolve(values, smtpTLS),
 
-		WorkspaceLimits: r.defaultLimits(values),
+		WorkspaceLimits:     r.defaultLimits(values),
+		WorkspaceLimitsName: r.resolve(values, limitsName),
 	}
 }
 
@@ -641,6 +662,18 @@ func checkMinCheckInterval(cfg *config.Config, value string) string {
 func checkRetentionDays(_ *config.Config, value string) string {
 	if n, err := strconv.Atoi(value); err != nil || n < 1 || n > MaxRetentionDays {
 		return fmt.Sprintf("must be a number of days from 1 to %d", MaxRetentionDays)
+	}
+	return ""
+}
+
+// checkLimitsName is the check of the default limits' name: one line, at most MaxLimitsNameLength
+// characters
+func checkLimitsName(_ *config.Config, value string) string {
+	if strings.ContainsAny(value, "\r\n") {
+		return "must not have a line break"
+	}
+	if utf8.RuneCountInString(value) > MaxLimitsNameLength {
+		return fmt.Sprintf("must be at most %d characters", MaxLimitsNameLength)
 	}
 	return ""
 }

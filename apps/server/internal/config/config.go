@@ -227,6 +227,11 @@ type Config struct {
 	WorkspaceLimitOwnedWorkspaces  int `env:"WORKSPACE_LIMIT_OWNED_WORKSPACES" validate:"min=0" default:"0"`
 	WorkspaceLimitProbesPerMonitor int `env:"WORKSPACE_LIMIT_PROBES_PER_MONITOR" validate:"min=0" default:"0"`
 	WorkspaceLimitRetentionDays    int `env:"WORKSPACE_LIMIT_RETENTION_DAYS" validate:"min=0" default:"0"`
+	// WorkspaceLimitsName is the install's name for its default limits (PP-163), such as "Free tier"
+	// on the cloud: free text, shown on a workspace's Usage page when its limits are the defaults.
+	// Unset, the page says an administrator set them. An install setting: read it through
+	// installsettings.Resolver.
+	WorkspaceLimitsName string `env:"WORKSPACE_LIMITS_NAME"`
 
 	// SupportContact is how a member of a suspended workspace gets in touch with whoever runs the
 	// install (PP-372): free text, an email address or a URL, shown in the suspension banner and

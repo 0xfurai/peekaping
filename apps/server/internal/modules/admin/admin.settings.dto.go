@@ -78,6 +78,8 @@ type InstallSettingsResponse struct {
 	AccountEmails bool `json:"accountEmails" doc:"Whether the install has a sender for account emails: an SMTP host is set."`
 	// WorkspaceLimits are the install's default limits
 	WorkspaceLimits DefaultLimitsSettingsResponse `json:"workspaceLimits"`
+	// WorkspaceLimitsName is the install's name for its default limits (PP-163)
+	WorkspaceLimitsName StringSettingResponse `json:"workspaceLimitsName" doc:"The install's name for its default limits, such as Free tier, shown on a workspace's Usage page when its limits are the defaults. Empty for none."`
 }
 
 func stringSetting(f installsettings.Field[string]) StringSettingResponse {
@@ -112,6 +114,7 @@ func installSettingsResponse(v *installsettings.View) *InstallSettingsResponse {
 			ProbesPerMonitor: limitSetting(l.ProbesPerMonitor),
 			RetentionDays:    limitSetting(l.RetentionDays),
 		},
+		WorkspaceLimitsName: stringSetting(v.WorkspaceLimitsName),
 	}
 }
 
@@ -175,14 +178,15 @@ func (d UpdateDefaultLimitsDto) change() map[string]*int {
 
 // UpdateInstallSettingsDto is a partial change of the install settings
 type UpdateInstallSettingsDto struct {
-	SignupMode      *string                 `json:"signupMode,omitempty" doc:"invite or open. Open needs a sender. Empty clears it (invite)."`
-	PublicURL       *string                 `json:"publicUrl,omitempty" doc:"The web app's address, which the links in emails and notifications open. Empty clears it (the default)."`
-	AccountSMTP     *UpdateAccountSMTPDto   `json:"accountSmtp,omitempty"`
-	WorkspaceLimits *UpdateDefaultLimitsDto `json:"workspaceLimits,omitempty" doc:"The install's default limits, the limits of a workspace that has none of its own. A limit left out stays as it is, a number saves it and null clears it."`
+	SignupMode          *string                 `json:"signupMode,omitempty" doc:"invite or open. Open needs a sender. Empty clears it (invite)."`
+	PublicURL           *string                 `json:"publicUrl,omitempty" doc:"The web app's address, which the links in emails and notifications open. Empty clears it (the default)."`
+	AccountSMTP         *UpdateAccountSMTPDto   `json:"accountSmtp,omitempty"`
+	WorkspaceLimits     *UpdateDefaultLimitsDto `json:"workspaceLimits,omitempty" doc:"The install's default limits, the limits of a workspace that has none of its own. A limit left out stays as it is, a number saves it and null clears it."`
+	WorkspaceLimitsName *string                 `json:"workspaceLimitsName,omitempty" doc:"The install's name for its default limits, such as Free tier: one line of at most 100 characters. Empty clears it."`
 }
 
 func (d UpdateInstallSettingsDto) change() installsettings.Change {
-	change := installsettings.Change{SignupMode: d.SignupMode, PublicURL: d.PublicURL}
+	change := installsettings.Change{SignupMode: d.SignupMode, PublicURL: d.PublicURL, WorkspaceLimitsName: d.WorkspaceLimitsName}
 	if smtp := d.AccountSMTP; smtp != nil {
 		change.SMTPHost, change.SMTPPort, change.SMTPUser = smtp.Host, smtp.Port, smtp.User
 		change.SMTPPassword, change.SMTPFrom, change.SMTPTLS = smtp.Password, smtp.From, smtp.TLS
@@ -212,7 +216,7 @@ type SettingErrorResponse struct {
 type SettingErrorBody struct {
 	Code string `json:"code" enum:"SETTING_LOCKED,INVALID_SETTING,OPEN_SIGNUP_NEEDS_SENDER,SENDER_NEEDED_FOR_OPEN_SIGNUP,NO_SENDER" example:"SETTING_LOCKED"`
 	// Field is the setting, as the request names it, or empty
-	Field string `json:"field,omitempty" doc:"The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors and the like." example:"signupMode"`
+	Field string `json:"field,omitempty" doc:"The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors, workspaceLimitsName and the like." example:"signupMode"`
 }
 
 type GetInstallSettingsInput = httpx.Input[httpx.NoBody, struct{}]
