@@ -149,7 +149,10 @@ components:
         to:
           description: The address to send the test email to.
           format: email
+          minLength: 1
           type: string
+      required:
+        - to
       type: object
     admin.SettingErrorBody:
       additionalProperties: false

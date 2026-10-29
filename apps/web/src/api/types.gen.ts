@@ -77,8 +77,8 @@ export type AdminSendTestEmailDto = {
   /**
    * The address to send the test email to.
    */
-  to?: string;
-  [key: string]: unknown | string | undefined;
+  to: string;
+  [key: string]: unknown | string;
 };
 
 export type AdminSettingErrorBody = {

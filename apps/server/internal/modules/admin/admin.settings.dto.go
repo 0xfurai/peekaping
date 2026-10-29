@@ -104,7 +104,7 @@ func (d UpdateInstallSettingsDto) change() installsettings.Change {
 
 // SendTestEmailDto is the address a test email goes to
 type SendTestEmailDto struct {
-	To string `json:"to" doc:"The address to send the test email to." required:"true" format:"email"`
+	To string `json:"to" doc:"The address to send the test email to." validate:"required,email"`
 }
 
 // SettingErrorResponse is a refused change of the install settings, or a test email with no sender.
