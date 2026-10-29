@@ -17,6 +17,9 @@
 #
 # Each service matches a function in internal/testservice, which starts the same
 # image the same way. Add a service here when you add a function there.
+#
+# The databases keep their data in memory (tmpfs): it is thrown away with the
+# stack, so it needs no durable writes, and a slow disk doesn't slow them down.
 services:
   redis:
     image: redis:7-alpine
@@ -100,6 +103,8 @@ services:
       POSTGRES_USER: peekaping
       POSTGRES_PASSWORD: "p@ss:w/rd%1?x"
       POSTGRES_DB: peekaping
+    tmpfs:
+      - /var/lib/postgresql/data
     ports:
       - "127.0.0.1:15432:5432"
     healthcheck:
@@ -119,6 +124,8 @@ services:
       MYSQL_USER: peekaping
       MYSQL_PASSWORD: "p@ss:w/rd%1?x"
       MYSQL_DATABASE: peekaping
+    tmpfs:
+      - /var/lib/mysql
     ports:
       - "127.0.0.1:13306:3306"
     healthcheck:
@@ -141,9 +148,13 @@ services:
   # --auth, and the health check creates the user through the localhost
   # exception, which lets a client on the server's own host create the first
   # user. Once the user exists that call is refused, and the check signs in.
+  # restart: on-failure is a guard on top: a server that exits anyway starts again.
   mongodb:
     image: mongo:7
     command: ["mongod", "--auth", "--bind_ip_all"]
+    restart: on-failure
+    tmpfs:
+      - /data/db
     ports:
       - "127.0.0.1:27018:27017"
     healthcheck:
@@ -166,6 +177,8 @@ services:
   mongodb-rs:
     image: mongo:7
     command: ["mongod", "--replSet", "rs0", "--port", "27019", "--bind_ip_all"]
+    tmpfs:
+      - /data/db
     ports:
       - "127.0.0.1:27019:27019"
     healthcheck:

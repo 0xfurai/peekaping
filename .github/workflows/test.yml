@@ -136,8 +136,10 @@ jobs:
           # is per package. internal/apitest runs its tests one at a time and is the
           # slowest with internal/infra: on nexus-runner each takes 390 to 540 seconds,
           # so 1200 leaves room for a busier runner. -count=1 so that a cached
-          # result never stands in for a run against the PostgreSQL service
-          go test -timeout 1200s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/migrations ./internal/... ./cmd/... | tee server-test.log
+          # result never stands in for a run against the PostgreSQL service. -p 4 runs
+          # four packages at a time, as on a GitHub-hosted runner: nexus-runner shows 16
+          # CPUs, but its node is shared with the other jobs
+          go test -p 4 -timeout 1200s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/migrations ./internal/... ./cmd/... | tee server-test.log
           # Every PostgreSQL subtest skips with this message when the variable is unset, which
           # would leave this job green without running them
           if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
@@ -199,8 +201,8 @@ jobs:
         working-directory: apps/server
         # On the GitHub-hosted runners internal/apitest alone takes 1395 to 1491 seconds under
         # -race, and it hit a 1800 second timeout once with nothing hung, so the per-package
-        # timeout leaves room for a slower run. -count=1 as in the test job
-        run: go test -race -timeout 3000s -count=1 ./internal/... ./cmd/...
+        # timeout leaves room for a slower run. -count=1 and -p 4 as in the test job
+        run: go test -race -p 4 -timeout 3000s -count=1 ./internal/... ./cmd/...
 
 
 
