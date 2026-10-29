@@ -379,7 +379,8 @@ func TestOpenAPI_TelemetryEnabledIsNotNullable(t *testing.T) {
 	}
 }
 
-// A workspace PATCH refuses a null suspended like a missing one, so the description leaves null out.
+// A workspace PATCH refuses a null suspended or limits like a missing one, so the description leaves
+// null out.
 // The field stays optional: the PATCH grows other fields, and refusing an empty change is the
 // handler's job.
 func TestOpenAPI_WorkspaceSuspendedIsNotNullable(t *testing.T) {
@@ -400,6 +401,8 @@ func TestOpenAPI_WorkspaceSuspendedIsNotNullable(t *testing.T) {
 		{`{"suspended":true}`, true, 200},
 		{`{"suspended":false}`, true, 200},
 		{`{"suspended":null}`, false, 400},
+		{`{"limits":{}}`, true, 200},
+		{`{"limits":null}`, false, 400},
 	} {
 		t.Run(tc.body, func(t *testing.T) {
 			value, err := jsonschema.UnmarshalJSON(strings.NewReader(tc.body))
@@ -410,6 +413,39 @@ func TestOpenAPI_WorkspaceSuspendedIsNotNullable(t *testing.T) {
 				assert.Error(t, schema.Validate(value))
 			}
 			w := a.request(t, "PATCH", "/api/v1/admin/workspaces/"+string(acme.id), tc.body, a.asAdmin)
+			assert.Equal(t, tc.status, w.Code, w.Body.String())
+		})
+	}
+}
+
+// The description bounds a default retention_days as the server does, 1 to 36500 days
+func TestOpenAPI_DefaultRetentionDaysIsBounded(t *testing.T) {
+	a := newAppWithAdmin(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/admin.UpdateDefaultLimitsDto")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		days   int
+		valid  bool
+		status int
+	}{
+		{1, true, http.StatusOK},
+		{36500, true, http.StatusOK},
+		{0, false, http.StatusBadRequest},
+		{36501, false, http.StatusBadRequest},
+	} {
+		t.Run(strconv.Itoa(tc.days), func(t *testing.T) {
+			body := map[string]any{"retention_days": tc.days}
+			if tc.valid {
+				assert.NoError(t, schema.Validate(body))
+			} else {
+				assert.Error(t, schema.Validate(body))
+			}
+			w := a.putSettings(t, map[string]any{"workspaceLimits": body})
 			assert.Equal(t, tc.status, w.Code, w.Body.String())
 		})
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
 	"peekaping/internal/limits"
 	"peekaping/internal/modules/events"
@@ -54,6 +55,10 @@ type Service interface {
 	UpdatePartialAnyWorkspace(ctx context.Context, id string, monitor *PartialUpdateDto, noPublish bool) (*Model, error)
 	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
 	ValidateMonitorConfig(monitorType string, configJSON string) error
+	// MinCheckInterval is the smallest interval and retry interval, in seconds, that a write to the
+	// workspace may set: the stricter of MIN_CHECK_INTERVAL and the workspace's own limit, and never
+	// below the DTOs' 20, which the service leaves to them
+	MinCheckInterval(ctx context.Context, workspaceID workspace.ID) (int, error)
 
 	// GetHeartbeats, GetStatPoints and GetUptimeStats load the monitor in the workspace first, and
 	// answer ErrMonitorNotFound when it isn't there. The heartbeats and stats are then read by the
@@ -251,7 +256,8 @@ func requireIntervals(minimum int, interval, retryInterval *int) error {
 
 // requireRoomForActive refuses a write that adds an active monitor to a workspace that has as many
 // as its limit, or more. It holds the workspace first, in the caller's transaction, so that two
-// such writes at once count one after the other (limits.LockWorkspace).
+// such writes at once count one after the other (limits.LockWorkspace). An update holds it already,
+// from before it read the monitor (holdForLimits), and holding it again changes nothing.
 func (mr *MonitorServiceImpl) requireRoomForActive(ctx context.Context, workspaceID workspace.ID, l limits.Limits) error {
 	if l.Monitors == nil {
 		return nil
@@ -269,12 +275,38 @@ func (mr *MonitorServiceImpl) requireRoomForActive(ctx context.Context, workspac
 	return nil
 }
 
+// holdForLimits holds the workspace, in the caller's transaction, before an update that can go over
+// one of its limits reads the monitor: one that makes the monitor active, or sets its probes. Read
+// before, the monitor can change between the read and the write: a pause, and another monitor's
+// resume, would let an edit that keeps it active pass the limit. Held, what the update is checked
+// against is what it writes over, and no other write that counts against the limit lands between.
+func (mr *MonitorServiceImpl) holdForLimits(ctx context.Context, workspaceID workspace.ID, l limits.Limits, activates, setsProbes bool) error {
+	if !(activates && l.Monitors != nil) && !(setsProbes && l.ProbesPerMonitor != nil) {
+		return nil
+	}
+	if err := mr.monitorRepository.LockWorkspace(ctx, workspaceID); err != nil {
+		return fmt.Errorf("lock the workspace: %w", err)
+	}
+	return nil
+}
+
 // requireProbesWithin refuses more probes than a monitor of the workspace may run on
 func requireProbesWithin(l limits.Limits, probeIDs []string) error {
 	if l.ProbesPerMonitor != nil && len(probeIDs) > *l.ProbesPerMonitor {
 		return limits.Reached(limits.Probes, *l.ProbesPerMonitor)
 	}
 	return nil
+}
+
+// MinCheckInterval is the smallest interval and retry interval a write to the workspace may set:
+// what the service enforces (the stricter of MIN_CHECK_INTERVAL and the workspace's own limit,
+// minimumFor), and never below the DTOs' 20, which the service leaves to them
+func (mr *MonitorServiceImpl) MinCheckInterval(ctx context.Context, workspaceID workspace.ID) (int, error) {
+	l, err := mr.limitsOf(ctx, workspaceID)
+	if err != nil {
+		return 0, err
+	}
+	return max(mr.minimumFor(l), config.AbsoluteMinCheckInterval), nil
 }
 
 // atMinimum gives a monitor stored with a check interval or retry interval below the minimum of its
@@ -493,6 +525,9 @@ func (mr *MonitorServiceImpl) UpdateFull(ctx context.Context, workspaceID worksp
 	// and the event carry what is stored, including its status and created_at.
 	var updatedMonitor *Model
 	err = mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		if err := mr.holdForLimits(ctx, workspaceID, workspaceLimits, monitor.Active, monitor.ProbeIDs != nil); err != nil {
+			return err
+		}
 		current, err := mr.FindByID(ctx, workspaceID, id)
 		if err != nil {
 			return err
@@ -601,6 +636,32 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 	// change only when IDs are sent: a request without them leaves the links as they are.
 	var updatedMonitor *Model
 	err := mr.transactor.WithTx(ctx, func(ctx context.Context) error {
+		// An update that makes the monitor active or sets its probes holds the workspace before it
+		// reads the monitor (holdForLimits). A background update knows the monitor alone, so it looks
+		// the workspace up first: a monitor never moves.
+		activates := monitor.Active != nil && *monitor.Active
+		setsProbes := monitor.ProbeIDs != nil
+		scope := workspaceID
+		if scope == nil && (activates || setsProbes) {
+			owner, found, err := mr.monitorRepository.FindWorkspaceIDAnyWorkspace(ctx, id)
+			if err != nil {
+				return err
+			}
+			if !found {
+				return fmt.Errorf("%w: monitor %s", ErrMonitorNotFound, id)
+			}
+			scope = &owner
+		}
+		var workspaceLimits limits.Limits
+		if scope != nil {
+			var err error
+			if workspaceLimits, err = mr.limitsOf(ctx, *scope); err != nil {
+				return err
+			}
+			if err := mr.holdForLimits(ctx, *scope, workspaceLimits, activates, setsProbes); err != nil {
+				return err
+			}
+		}
 		current, err := mr.find(ctx, workspaceID, id)
 		if err != nil {
 			return err
@@ -616,9 +677,10 @@ func (mr *MonitorServiceImpl) updatePartial(ctx context.Context, workspaceID *wo
 		if err := mr.validatePartialConfig(current, monitor); err != nil {
 			return err
 		}
-		workspaceLimits, err := mr.limitsOf(ctx, current.WorkspaceID)
-		if err != nil {
-			return err
+		if scope == nil {
+			if workspaceLimits, err = mr.limitsOf(ctx, current.WorkspaceID); err != nil {
+				return err
+			}
 		}
 		// Only the intervals the request sends are checked: a monitor stored below the minimum can
 		// still be renamed or paused
