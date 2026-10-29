@@ -455,7 +455,7 @@ const InstallSettingsPage = () => {
 
   // The upgrade notice links to a card, such as /admin/settings#error-reports. The scroll waits
   // until everything above the card has loaded: an answer that came after it would push the card
-  // out of view. It scrolls again each time the page settles, until the user scrolls themselves
+  // out of view. It scrolls again each time the page settles, until the user scrolls or clicks
   const { hash } = useLocation();
   const userScrolled = useRef(false);
   useEffect(() => {
@@ -463,7 +463,8 @@ const InstallSettingsPage = () => {
     const stop = () => {
       userScrolled.current = true;
     };
-    const events = ["wheel", "touchmove", "keydown"] as const;
+    // pointerdown also catches a drag of the scrollbar, which sends no wheel or touch event
+    const events = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
     for (const event of events) window.addEventListener(event, stop, { passive: true });
     return () => {
       for (const event of events) window.removeEventListener(event, stop);
