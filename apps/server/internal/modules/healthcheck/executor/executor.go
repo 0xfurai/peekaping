@@ -75,6 +75,12 @@ func (g *guarded) dialer(d *net.Dialer) *net.Dialer { return g.guard.Dialer(d) }
 // it always did.
 func (g *guarded) on() bool { return g.guard.Enabled() }
 
+// hasGuard reports whether the executor was given a guard. An executor that connects as it always
+// did through the guard's dialer uses it whenever it has one, also while it is off: the guard is
+// asked at each dial, so one turned on while a check runs (a probe's, at a hello) refuses the
+// check's later dials, and off it lets them through.
+func (g *guarded) hasGuard() bool { return g.guard != nil }
+
 // hostOf returns the host of a host:port address, without the brackets of an IPv6 address. An
 // address without a port is returned as it is, without its brackets.
 func hostOf(address string) string {
