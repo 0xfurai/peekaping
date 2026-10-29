@@ -286,6 +286,13 @@ func (u *updates) add(id string) {
 	u.ids = append(u.ids, id)
 }
 
+// reset forgets the updates heard so far
+func (u *updates) reset() {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.ids = nil
+}
+
 func (u *updates) seen() []string {
 	u.mu.Lock()
 	defer u.mu.Unlock()
