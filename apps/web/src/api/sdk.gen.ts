@@ -69,6 +69,12 @@ import type {
   PutErrorReportingErrors,
   GetHealthData,
   GetHealthResponses,
+  GetInvitesByTokenData,
+  GetInvitesByTokenResponses,
+  GetInvitesByTokenErrors,
+  PostInvitesByTokenAcceptData,
+  PostInvitesByTokenAcceptResponses,
+  PostInvitesByTokenAcceptErrors,
   GetMaintenancesData,
   GetMaintenancesResponses,
   GetMaintenancesErrors,
@@ -266,6 +272,30 @@ import type {
   PostTelemetryNoticeErrors,
   GetVersionData,
   GetVersionResponses,
+  GetWorkspaceInvitesData,
+  GetWorkspaceInvitesResponses,
+  GetWorkspaceInvitesErrors,
+  PostWorkspaceInvitesData,
+  PostWorkspaceInvitesResponses,
+  PostWorkspaceInvitesErrors,
+  DeleteWorkspaceInvitesByIdData,
+  DeleteWorkspaceInvitesByIdResponses,
+  DeleteWorkspaceInvitesByIdErrors,
+  PostWorkspaceLeaveData,
+  PostWorkspaceLeaveResponses,
+  PostWorkspaceLeaveErrors,
+  GetWorkspaceMembersData,
+  GetWorkspaceMembersResponses,
+  GetWorkspaceMembersErrors,
+  DeleteWorkspaceMembersByUserIdData,
+  DeleteWorkspaceMembersByUserIdResponses,
+  DeleteWorkspaceMembersByUserIdErrors,
+  PatchWorkspaceMembersByUserIdData,
+  PatchWorkspaceMembersByUserIdResponses,
+  PatchWorkspaceMembersByUserIdErrors,
+  PostWorkspacesData,
+  PostWorkspacesResponses,
+  PostWorkspacesErrors,
   GetHealthRootData,
   GetHealthRootResponses,
   ProbeGetAssignmentsData,
@@ -591,6 +621,7 @@ export const postAuthRefresh = <ThrowOnError extends boolean = false>(
 
 /**
  * Register new admin
+ * Creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite.
  */
 export const postAuthRegister = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthRegisterData, ThrowOnError>
@@ -806,6 +837,48 @@ export const getHealth = <ThrowOnError extends boolean = false>(
   >({
     responseType: "json",
     url: "/api/v1/health",
+    ...options,
+  });
+};
+
+/**
+ * Look at an invite
+ * What the holder of an invite link may see: the workspace's name, the invited email, the role and whether the invite can still be used. It needs no sign-in.
+ */
+export const getInvitesByToken = <ThrowOnError extends boolean = false>(
+  options: Options<GetInvitesByTokenData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetInvitesByTokenResponses,
+    GetInvitesByTokenErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    url: "/api/v1/invites/{token}",
+    ...options,
+  });
+};
+
+/**
+ * Accept an invite
+ * A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken).
+ */
+export const postInvitesByTokenAccept = <ThrowOnError extends boolean = false>(
+  options: Options<PostInvitesByTokenAcceptData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostInvitesByTokenAcceptResponses,
+    PostInvitesByTokenAcceptErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/invites/{token}/accept",
     ...options,
   });
 };
@@ -2626,6 +2699,237 @@ export const getVersion = <ThrowOnError extends boolean = false>(
     responseType: "json",
     url: "/api/v1/version",
     ...options,
+  });
+};
+
+/**
+ * List the invites of the workspace
+ * The invites that were neither used nor revoked. An admin or owner sees them. They hold no token: that is shown once, when the invite is made.
+ */
+export const getWorkspaceInvites = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWorkspaceInvitesData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkspaceInvitesResponses,
+    GetWorkspaceInvitesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/invites",
+    ...options,
+  });
+};
+
+/**
+ * Invite someone to the workspace
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. Nothing is emailed: copy the link to the person you invite. An earlier invite for the same email is revoked.
+ */
+export const postWorkspaceInvites = <ThrowOnError extends boolean = false>(
+  options: Options<PostWorkspaceInvitesData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostWorkspaceInvitesResponses,
+    PostWorkspaceInvitesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/invites",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Revoke an invite
+ * An admin or owner revokes an invite that was neither used nor revoked; its link stops working.
+ */
+export const deleteWorkspaceInvitesById = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteWorkspaceInvitesByIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteWorkspaceInvitesByIdResponses,
+    DeleteWorkspaceInvitesByIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/invites/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Leave the workspace
+ * The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).
+ */
+export const postWorkspaceLeave = <ThrowOnError extends boolean = false>(
+  options?: Options<PostWorkspaceLeaveData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    PostWorkspaceLeaveResponses,
+    PostWorkspaceLeaveErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/workspace/leave",
+    ...options,
+  });
+};
+
+/**
+ * List the members of the workspace
+ * Every member of the workspace sees who is in it and with which role.
+ */
+export const getWorkspaceMembers = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWorkspaceMembersData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkspaceMembersResponses,
+    GetWorkspaceMembersErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/members",
+    ...options,
+  });
+};
+
+/**
+ * Remove a member
+ * An admin or owner removes a member or an admin. Only an owner removes an owner, and the last owner can't be removed (409). The removed user loses access to the workspace at once.
+ */
+export const deleteWorkspaceMembersByUserId = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteWorkspaceMembersByUserIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    DeleteWorkspaceMembersByUserIdResponses,
+    DeleteWorkspaceMembersByUserIdErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/members/{userId}",
+    ...options,
+  });
+};
+
+/**
+ * Change a member's role
+ * An admin or owner changes the role of a member or an admin. Only an owner makes an owner or changes one, and the last owner stays an owner (409).
+ */
+export const patchWorkspaceMembersByUserId = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchWorkspaceMembersByUserIdData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).patch<
+    PatchWorkspaceMembersByUserIdResponses,
+    PatchWorkspaceMembersByUserIdErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/members/{userId}",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * Create a workspace
+ * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace.
+ */
+export const postWorkspaces = <ThrowOnError extends boolean = false>(
+  options: Options<PostWorkspacesData, ThrowOnError>
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostWorkspacesResponses,
+    PostWorkspacesErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+    ],
+    url: "/api/v1/workspaces",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });
 };
 

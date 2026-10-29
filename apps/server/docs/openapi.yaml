@@ -260,6 +260,8 @@ components:
           format: email
           minLength: 1
           type: string
+        inviteToken:
+          type: string
         password:
           minLength: 1
           type: string
@@ -2945,6 +2947,36 @@ components:
         - message
         - data
       type: object
+    utils.ApiResponse_Array_workspace_workspacehttp.InviteResponse:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/workspacehttp.InviteResponse"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_Array_workspace_workspacehttp.MemberResponse:
+      additionalProperties: false
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/workspacehttp.MemberResponse"
+          type:
+            - array
+            - "null"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
     utils.ApiResponse_api_key.APIKeyConfigResponse:
       additionalProperties: false
       properties:
@@ -3165,6 +3197,50 @@ components:
         - message
         - data
       type: object
+    utils.ApiResponse_workspace_workspacehttp.CreatedInviteResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/workspacehttp.CreatedInviteResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_workspace_workspacehttp.InvitePreviewResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/workspacehttp.InvitePreviewResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_workspace_workspacehttp.MemberResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/workspacehttp.MemberResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
+    utils.ApiResponse_workspace_workspacehttp.WorkspaceResponse:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/workspacehttp.WorkspaceResponse"
+        message:
+          type: string
+      required:
+        - message
+        - data
+      type: object
     utils.NullableApiResponse_shared.TLSInfo:
       additionalProperties: false
       properties:
@@ -3177,6 +3253,197 @@ components:
       required:
         - message
         - data
+      type: object
+    workspacehttp.ChangeRoleDto:
+      additionalProperties: true
+      properties:
+        role:
+          enum:
+            - owner
+            - admin
+            - member
+          minLength: 1
+          type: string
+      required:
+        - role
+      type: object
+    workspacehttp.CreateInviteDto:
+      additionalProperties: true
+      properties:
+        email:
+          format: email
+          maxLength: 255
+          minLength: 1
+          type: string
+        role:
+          enum:
+            - owner
+            - admin
+            - member
+          minLength: 1
+          type: string
+      required:
+        - email
+        - role
+      type: object
+    workspacehttp.CreateWorkspaceDto:
+      additionalProperties: true
+      properties:
+        name:
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - name
+      type: object
+    workspacehttp.CreatedInviteResponse:
+      additionalProperties: false
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        email:
+          type: string
+        expiresAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        invitedBy:
+          type:
+            - string
+            - "null"
+        link:
+          type: string
+        role:
+          enum:
+            - owner
+            - admin
+            - member
+          type: string
+        status:
+          enum:
+            - pending
+            - expired
+          type: string
+        token:
+          type: string
+      required:
+        - token
+        - link
+        - id
+        - email
+        - role
+        - status
+        - invitedBy
+        - createdAt
+        - expiresAt
+      type: object
+    workspacehttp.InvitePreviewResponse:
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+        role:
+          enum:
+            - owner
+            - admin
+            - member
+          type: string
+        status:
+          enum:
+            - pending
+            - accepted
+            - revoked
+            - expired
+          type: string
+        valid:
+          type: boolean
+        workspaceName:
+          type: string
+      required:
+        - workspaceName
+        - email
+        - role
+        - valid
+        - status
+      type: object
+    workspacehttp.InviteResponse:
+      additionalProperties: false
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        email:
+          type: string
+        expiresAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        invitedBy:
+          type:
+            - string
+            - "null"
+        role:
+          enum:
+            - owner
+            - admin
+            - member
+          type: string
+        status:
+          enum:
+            - pending
+            - expired
+          type: string
+      required:
+        - id
+        - email
+        - role
+        - status
+        - invitedBy
+        - createdAt
+        - expiresAt
+      type: object
+    workspacehttp.MemberResponse:
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+        joinedAt:
+          format: date-time
+          type: string
+        role:
+          enum:
+            - owner
+            - admin
+            - member
+          type: string
+        userId:
+          type: string
+      required:
+        - userId
+        - email
+        - role
+        - joinedAt
+      type: object
+    workspacehttp.WorkspaceResponse:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        role:
+          enum:
+            - owner
+            - admin
+            - member
+          type: string
+      required:
+        - id
+        - name
+        - role
       type: object
   securitySchemes:
     ApiKeyAuth:
@@ -3656,6 +3923,7 @@ paths:
         - auth
   /api/v1/auth/register:
     post:
+      description: "Creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite."
       operationId: postAuthRegister
       requestBody:
         content:
@@ -3676,6 +3944,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/httpx.ErrorBody"
           description: Bad Request
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "410":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Gone
         "500":
           content:
             application/json:
@@ -4691,6 +4983,100 @@ paths:
       summary: Get server health
       tags:
         - System
+  /api/v1/invites/{token}:
+    get:
+      description: "What the holder of an invite link may see: the workspace's name, the invited email, the role and whether the invite can still be used. It needs no sign-in."
+      operationId: getInvitesByToken
+      parameters:
+        - description: The invite's token, from its link
+          in: path
+          name: token
+          required: true
+          schema:
+            description: The invite's token, from its link
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_workspace_workspacehttp.InvitePreviewResponse"
+          description: OK
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      summary: Look at an invite
+      tags:
+        - workspace
+  /api/v1/invites/{token}/accept:
+    post:
+      description: A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken).
+      operationId: postInvitesByTokenAccept
+      parameters:
+        - description: The invite's token, from its link
+          in: path
+          name: token
+          required: true
+          schema:
+            description: The invite's token, from its link
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_workspace_workspacehttp.WorkspaceResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "410":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Gone
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Accept an invite
+      tags:
+        - workspace
   /api/v1/maintenances:
     get:
       operationId: getMaintenances
@@ -8109,6 +8495,424 @@ paths:
       summary: Get server version
       tags:
         - System
+  /api/v1/workspace/invites:
+    get:
+      description: "The invites that were neither used nor revoked. An admin or owner sees them. They hold no token: that is shown once, when the invite is made."
+      operationId: getWorkspaceInvites
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_workspace_workspacehttp.InviteResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: List the invites of the workspace
+      tags:
+        - workspace
+    post:
+      description: "An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. Nothing is emailed: copy the link to the person you invite. An earlier invite for the same email is revoked."
+      operationId: postWorkspaceInvites
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/workspacehttp.CreateInviteDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_workspace_workspacehttp.CreatedInviteResponse"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Invite someone to the workspace
+      tags:
+        - workspace
+  /api/v1/workspace/invites/{id}:
+    delete:
+      description: An admin or owner revokes an invite that was neither used nor revoked; its link stops working.
+      operationId: deleteWorkspaceInvitesById
+      parameters:
+        - description: The invite's ID
+          in: path
+          name: id
+          required: true
+          schema:
+            description: The invite's ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Revoke an invite
+      tags:
+        - workspace
+  /api/v1/workspace/leave:
+    post:
+      description: The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).
+      operationId: postWorkspaceLeave
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Leave the workspace
+      tags:
+        - workspace
+  /api/v1/workspace/members:
+    get:
+      description: Every member of the workspace sees who is in it and with which role.
+      operationId: getWorkspaceMembers
+      parameters:
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_Array_workspace_workspacehttp.MemberResponse"
+          description: OK
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: List the members of the workspace
+      tags:
+        - workspace
+  /api/v1/workspace/members/{userId}:
+    delete:
+      description: An admin or owner removes a member or an admin. Only an owner removes an owner, and the last owner can't be removed (409). The removed user loses access to the workspace at once.
+      operationId: deleteWorkspaceMembersByUserId
+      parameters:
+        - description: The member's user ID
+          in: path
+          name: userId
+          required: true
+          schema:
+            description: The member's user ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Remove a member
+      tags:
+        - workspace
+    patch:
+      description: An admin or owner changes the role of a member or an admin. Only an owner makes an owner or changes one, and the last owner stays an owner (409).
+      operationId: patchWorkspaceMembersByUserId
+      parameters:
+        - description: The member's user ID
+          in: path
+          name: userId
+          required: true
+          schema:
+            description: The member's user ID
+            type: string
+        - description: The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+          in: header
+          name: X-Workspace-ID
+          schema:
+            format: uuid
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/workspacehttp.ChangeRoleDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_workspace_workspacehttp.MemberResponse"
+          description: OK
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Not Found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+        - ApiKeyAuth: []
+      summary: Change a member's role
+      tags:
+        - workspace
+  /api/v1/workspaces:
+    post:
+      description: Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace.
+      operationId: postWorkspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/workspacehttp.CreateWorkspaceDto"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/utils.ApiResponse_workspace_workspacehttp.WorkspaceResponse"
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Bad Request
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Unauthorized
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/httpx.ErrorBody"
+          description: Internal Server Error
+      security:
+        - JwtAuth: []
+      summary: Create a workspace
+      tags:
+        - workspace
   /health:
     get:
       operationId: getHealthRoot

@@ -52,7 +52,7 @@ func TestAPIReference_EveryWorkspaceOperationDocumentsTheWorkspaceHeader(t *test
 	require.Equal(t, http.StatusOK, w.Code)
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &spec))
 
-	workspacePrefixes := []string{"/api/v1/monitors", "/api/v1/notification-channels", "/api/v1/status-pages", "/api/v1/proxies", "/api/v1/maintenances", "/api/v1/tags", "/api/v1/settings", "/api/v1/api-keys"}
+	workspacePrefixes := []string{"/api/v1/monitors", "/api/v1/notification-channels", "/api/v1/status-pages", "/api/v1/proxies", "/api/v1/maintenances", "/api/v1/tags", "/api/v1/settings", "/api/v1/api-keys", "/api/v1/workspace"}
 	checked := 0
 	for path, operations := range spec.Paths {
 		inWorkspace := false

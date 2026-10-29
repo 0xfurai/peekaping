@@ -5,6 +5,7 @@ import (
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/workspace"
+	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/utils"
 
 	"go.uber.org/dig"
@@ -15,6 +16,9 @@ func RegisterDependencies(container *dig.Container) error {
 	// Provide authentication chain
 	// The API key routes take their authentication as an interface, since this package imports them
 	if err := utils.Provide(container, func(chain *AuthChain) api_key.RouteAuth { return chain }); err != nil {
+		return err
+	}
+	if err := utils.Provide(container, func(chain *AuthChain) workspacehttp.RouteAuth { return chain }); err != nil {
 		return err
 	}
 	return utils.Provide(container, func(
