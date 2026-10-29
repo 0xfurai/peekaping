@@ -3,12 +3,14 @@ import { WorkspaceLayout } from "@/components/workspace-layout";
 import { RedirectToWorkspace } from "@/components/redirect-to-workspace";
 import { RedirectAfterLogin } from "@/components/redirect-after-login";
 import { WorkspaceHome } from "@/components/workspace-home";
+import { GET_STARTED_PATH } from "@/lib/workspace-path";
 import { RequireInstanceAdmin } from "@/components/require-instance-admin";
 import { AdminLayout } from "@/components/admin-layout";
 import { RedirectProbesToAdmin } from "@/components/redirect-probes-to-admin";
 import UsersPage from "@/app/admin/users/page";
 import MonitorsPage from "@/app/monitors/page";
 import NewMonitor from "@/app/monitors/new/page";
+import GetStartedPage from "@/app/get-started/page";
 import SettingsPage from "@/app/settings/page";
 import MembersPage from "@/app/settings/members/page";
 import ProxiesPage from "@/app/proxies/page";
@@ -88,6 +90,9 @@ export const protectedRoutes = [
     <Route path="tags/new" element={<NewTag />} />
     <Route path="tags/:id/edit" element={<EditTag />} />
 
+    {/* First-run setup of a workspace without monitors */}
+    <Route path="get-started" element={<GetStartedPage />} />
+
     {/* The workspace's own address, and an address nothing matches in it */}
     <Route index element={<WorkspaceHome />} />
     <Route path="*" element={<WorkspaceHome />} />
@@ -95,7 +100,12 @@ export const protectedRoutes = [
 
   // Signing in leaves the app on /login: go to the app's start
   <Route path="/login" element={<RedirectAfterLogin />} />,
-  <Route path="/register" element={<RedirectToWorkspace path="/" />} />,
+  // Signing up leaves the app on /register, with the new user's workspace of their own: open its
+  // Get started page. An invite signup never passes here: it stays on the invite page.
+  <Route path="/register" element={<RedirectToWorkspace path={GET_STARTED_PATH} />} />,
+
+  // The default workspace's Get started page, for a link made before the workspace is known
+  <Route path={GET_STARTED_PATH} element={<RedirectToWorkspace path={GET_STARTED_PATH} />} />,
 
   // Old addresses: /monitors/<id>, /settings, / ...
   <Route path="*" element={<RedirectToWorkspace />} />

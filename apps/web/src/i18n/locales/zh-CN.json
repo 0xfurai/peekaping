@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "创建第一个监控",
+      "add_channel": "添加通知渠道",
       "description": "通过创建第一个监控，开始跟踪您的服务健康状况。",
       "title": "未找到监控项"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "通知器已成功更新"
     },
     "new": {
-      "title": "新建通知渠道"
+      "title": "新建通知渠道",
+      "default_hint": "新建监控时将默认勾选此渠道。"
     },
     "no_important": "未找到重要通知。",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "重命名工作区失败",
     "rename_success": "工作区已重命名",
     "switcher_label": "切换工作区"
+  },
+  "get_started": {
+    "page_name": "开始使用",
+    "skip": "跳过设置",
+    "step_of": "第 {{current}} 步，共 {{total}} 步",
+    "name": {
+      "description": "你的监控、通知渠道和状态页都在这里。之后可以在设置中重命名。",
+      "title": "为你的工作区命名"
+    },
+    "monitor": {
+      "create": "创建监控",
+      "create_failed": "创建监控失败",
+      "creating": "正在创建...",
+      "description": "输入网站或 API 的地址。Peekaping 会检查它，并在它停止响应时通知你。",
+      "full_form": "或者使用全部选项来设置监控",
+      "title": "添加你的第一个监控",
+      "url_invalid": "请输入以 http:// 或 https:// 开头的地址",
+      "url_label": "要监控的地址"
+    },
+    "channel": {
+      "continue_unlinked": "不关联并继续",
+      "description": "选择监控宕机时 Peekaping 把告警发送到哪里。它将成为新监控的默认渠道。",
+      "link_failed": "渠道已保存，但关联到监控失败。请在监控的编辑页面中添加。",
+      "retry_link": "重新尝试关联",
+      "title": "接收通知"
+    },
+    "done": {
+      "description": "Peekaping 正在监控你的服务。接下来你可以这样做。",
+      "title": "一切就绪",
+      "unverified": "邮箱地址验证后，你的监控才会运行。请在收件箱中查看验证链接。",
+      "links": {
+        "members": "邀请你的团队",
+        "monitor": "打开你的监控",
+        "monitors": "前往监控列表",
+        "probes": "管理探针",
+        "status_pages": "发布状态页面"
+      }
+    }
   }
 }

@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "İlk izleme oluştur",
+      "add_channel": "Bildirim kanalı ekle",
       "description": "İlk izleyicinizi oluşturarak hizmetlerinizin sağlığını izlemeye başlayın.",
       "title": "İzleyici bulunamadı"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "Bildirimci başarıyla güncellendi"
     },
     "new": {
-      "title": "Yeni Bildirim Kanalı"
+      "title": "Yeni Bildirim Kanalı",
+      "default_hint": "Bu kanal yeni monitörlerde işaretli olacak."
     },
     "no_important": "Önemli bildirim bulunamadı.",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "Çalışma alanı yeniden adlandırılamadı",
     "rename_success": "Çalışma alanı yeniden adlandırıldı",
     "switcher_label": "Çalışma alanı değiştir"
+  },
+  "get_started": {
+    "page_name": "Başlarken",
+    "skip": "Kurulumu atla",
+    "step_of": "Adım {{current}} / {{total}}",
+    "name": {
+      "description": "İzlemeleriniz, bildirim kanallarınız ve durum sayfalarınız burada yer alır. Adı daha sonra Ayarlar'dan değiştirebilirsiniz.",
+      "title": "Çalışma alanınıza ad verin"
+    },
+    "monitor": {
+      "create": "İzleme oluştur",
+      "create_failed": "İzleme oluşturulamadı",
+      "creating": "Oluşturuluyor...",
+      "description": "Bir web sitesinin veya API'nin adresini girin. Peekaping onu kontrol eder ve yanıt vermeyi bıraktığında sizi bilgilendirir.",
+      "full_form": "Ya da tüm seçeneklerle bir izleme kurun",
+      "title": "İlk izlemenizi ekleyin",
+      "url_invalid": "http:// veya https:// ile başlayan bir adres girin",
+      "url_label": "İzlenecek adres"
+    },
+    "channel": {
+      "continue_unlinked": "Bağlamadan devam et",
+      "description": "İzlemeniz çöktüğünde Peekaping'in uyarıyı nereye göndereceğini seçin. Yeni izlemeler için varsayılan olur.",
+      "link_failed": "Kanal kaydedildi ancak izlemenize bağlanamadı. İzlemenin düzenleme sayfasından ekleyin.",
+      "retry_link": "Yeniden bağlamayı dene",
+      "title": "Bildirim alın"
+    },
+    "done": {
+      "description": "Peekaping hizmetinizi izliyor. Bundan sonra yapabilecekleriniz şunlar.",
+      "title": "Her şey hazır",
+      "unverified": "E-posta adresiniz doğrulandığında izlemeniz çalışmaya başlar. Doğrulama bağlantısı için gelen kutunuza bakın.",
+      "links": {
+        "members": "Ekibinizi davet edin",
+        "monitor": "İzlemenizi açın",
+        "monitors": "İzlemelere git",
+        "probes": "Probları yönet",
+        "status_pages": "Bir durum sayfası yayınlayın"
+      }
+    }
   }
 }

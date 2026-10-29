@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Tạo bộ giám sát đầu tiên",
+      "add_channel": "Thêm kênh thông báo",
       "description": "Bắt đầu bằng cách tạo bộ giám sát đầu tiên để theo dõi tình trạng sức khỏe của các dịch vụ của bạn.",
       "title": "Không có bộ giám sát"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "Cập nhật thông báo thành công"
     },
     "new": {
-      "title": "Kênh thông báo mới"
+      "title": "Kênh thông báo mới",
+      "default_hint": "Kênh này sẽ được chọn sẵn ở các monitor mới."
     },
     "no_important": "Không tìm thấy thông báo quan trọng.",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "Không đổi được tên không gian làm việc",
     "rename_success": "Đã đổi tên không gian làm việc",
     "switcher_label": "Chuyển không gian làm việc"
+  },
+  "get_started": {
+    "page_name": "Bắt đầu",
+    "skip": "Bỏ qua thiết lập",
+    "step_of": "Bước {{current}} trên {{total}}",
+    "name": {
+      "description": "Các giám sát, kênh thông báo và trang trạng thái của bạn nằm ở đây. Bạn có thể đổi tên sau trong Cài đặt.",
+      "title": "Đặt tên cho không gian làm việc của bạn"
+    },
+    "monitor": {
+      "create": "Tạo bộ giám sát",
+      "create_failed": "Không tạo được bộ giám sát",
+      "creating": "Đang tạo...",
+      "description": "Nhập địa chỉ của một trang web hoặc API. Peekaping kiểm tra và báo cho bạn khi nó ngừng phản hồi.",
+      "full_form": "Hoặc thiết lập bộ giám sát với đầy đủ tùy chọn",
+      "title": "Thêm bộ giám sát đầu tiên của bạn",
+      "url_invalid": "Nhập địa chỉ bắt đầu bằng http:// hoặc https://",
+      "url_label": "Địa chỉ cần giám sát"
+    },
+    "channel": {
+      "continue_unlinked": "Tiếp tục mà không liên kết",
+      "description": "Chọn nơi Peekaping gửi cảnh báo khi bộ giám sát của bạn ngừng hoạt động. Kênh này sẽ là mặc định cho các bộ giám sát mới.",
+      "link_failed": "Kênh đã được lưu nhưng không liên kết được với bộ giám sát của bạn. Hãy thêm nó ở trang chỉnh sửa bộ giám sát.",
+      "retry_link": "Thử liên kết lại",
+      "title": "Nhận thông báo"
+    },
+    "done": {
+      "description": "Peekaping đang theo dõi dịch vụ của bạn. Sau đây là những việc bạn có thể làm tiếp.",
+      "title": "Mọi thứ đã sẵn sàng",
+      "unverified": "Bộ giám sát của bạn sẽ chạy sau khi địa chỉ email được xác minh. Hãy kiểm tra hộp thư để lấy liên kết xác minh.",
+      "links": {
+        "members": "Mời nhóm của bạn",
+        "monitor": "Mở bộ giám sát của bạn",
+        "monitors": "Đến danh sách giám sát",
+        "probes": "Quản lý đầu dò",
+        "status_pages": "Xuất bản trang trạng thái"
+      }
+    }
   }
 }

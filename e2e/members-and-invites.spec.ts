@@ -124,8 +124,13 @@ test('an admin invites a member by a link, who works in the workspace, makes the
     await member.getByRole('button', { name: 'New workspace' }).click();
     await member.getByRole('dialog').getByRole('textbox', { name: 'Name' }).fill(ownWorkspaceName);
     await member.getByRole('dialog').getByRole('button', { name: 'Create workspace' }).click();
-    await expect(member).toHaveURL(new RegExp(`/w/(?!${first.id})${UUID}/monitors$`));
+    // A new workspace opens on Get started, with the name just typed; skipping it leaves the monitors list
+    await expect(member).toHaveURL(new RegExp(`/w/(?!${first.id})${UUID}/get-started$`));
     const ownWorkspace = new URL(member.url()).pathname.split('/')[2];
+    await expect(member.getByRole('textbox', { name: 'Name' })).toHaveValue(ownWorkspaceName);
+    await member.getByRole('button', { name: 'Continue' }).click();
+    await member.getByRole('link', { name: 'Skip setup' }).click();
+    await expect(member).toHaveURL(new RegExp(`/w/${ownWorkspace}/monitors$`));
     await expect(switcher(member)).toContainText(ownWorkspaceName);
     await expect(member.getByText('No monitors found')).toBeVisible();
     await expect(member.getByText(monitorName)).toHaveCount(0);

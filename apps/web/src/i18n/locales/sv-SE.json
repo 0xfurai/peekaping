@@ -507,6 +507,7 @@
     },
     "empty_state": {
       "action": "Skapa din första övervakning",
+      "add_channel": "Lägg till en aviseringskanal",
       "description": "Börja med att skapa din första monitor för att spåra hälsan hos dina tjänster.",
       "title": "Inga övervakningar hittade"
     },
@@ -1403,7 +1404,8 @@
       "updated_success": "Notifier uppdaterad framgångsrikt"
     },
     "new": {
-      "title": "Ny notifikationskanal"
+      "title": "Ny notifikationskanal",
+      "default_hint": "Den här kanalen kryssas i på nya monitorer."
     },
     "no_important": "Inga viktiga aviseringar hittades.",
     "placeholders": {
@@ -1885,5 +1887,43 @@
     "rename_error": "Det gick inte att byta namn på arbetsytan",
     "rename_success": "Arbetsytan har bytt namn",
     "switcher_label": "Byt arbetsyta"
+  },
+  "get_started": {
+    "page_name": "Kom igång",
+    "skip": "Hoppa över konfigurationen",
+    "step_of": "Steg {{current}} av {{total}}",
+    "name": {
+      "description": "Här finns dina övervakningar, aviseringskanaler och statussidor. Du kan byta namn senare i Inställningar.",
+      "title": "Namnge din arbetsyta"
+    },
+    "monitor": {
+      "create": "Skapa övervakning",
+      "create_failed": "Det gick inte att skapa övervakningen",
+      "creating": "Skapar...",
+      "description": "Ange adressen till en webbplats eller ett API. Peekaping kontrollerar den och berättar när den slutar svara.",
+      "full_form": "Eller ställ in en övervakning med alla alternativ",
+      "title": "Lägg till din första övervakning",
+      "url_invalid": "Ange en adress som börjar med http:// eller https://",
+      "url_label": "Adress att övervaka"
+    },
+    "channel": {
+      "continue_unlinked": "Fortsätt utan att koppla",
+      "description": "Välj vart Peekaping skickar ett larm när din övervakning går ner. Den blir standard för nya övervakningar.",
+      "link_failed": "Kanalen sparades, men det gick inte att koppla den till din övervakning. Lägg till den på övervakningens redigeringssida.",
+      "retry_link": "Försök koppla igen",
+      "title": "Få aviseringar"
+    },
+    "done": {
+      "description": "Peekaping övervakar din tjänst. Det här kan du göra härnäst.",
+      "title": "Allt är klart",
+      "unverified": "Din övervakning körs när din e-postadress är verifierad. Leta efter verifieringslänken i inkorgen.",
+      "links": {
+        "members": "Bjud in ditt team",
+        "monitor": "Öppna din övervakning",
+        "monitors": "Gå till övervakningar",
+        "probes": "Hantera sonder",
+        "status_pages": "Publicera en statussida"
+      }
+    }
   }
 }
