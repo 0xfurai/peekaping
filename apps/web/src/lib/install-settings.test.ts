@@ -37,6 +37,7 @@ const SETTINGS: AdminInstallSettingsResponse = {
     probes_per_monitor: field<number | null>(null, "default", "WORKSPACE_LIMIT_PROBES_PER_MONITOR"),
     retention_days: field<number | null>(null, "default", "WORKSPACE_LIMIT_RETENTION_DAYS"),
   },
+  workspaceLimitsName: field("", "default", "WORKSPACE_LIMITS_NAME"),
 };
 
 const values = installSettingsFormValues(SETTINGS);
@@ -115,6 +116,27 @@ describe("installSettingsChange", () => {
     });
   });
 
+  describe("the name of the default limits", () => {
+    it("loads as it is, and sends what the admin typed, trimmed", () => {
+      expect(values.workspaceLimitsName).toBe("");
+      expect(installSettingsChange(SETTINGS, { ...values, workspaceLimitsName: " Free tier " })).toEqual({
+        workspaceLimitsName: "Free tier",
+      });
+    });
+
+    it("is sent empty when the admin clears it, which removes it", () => {
+      const named = { ...SETTINGS, workspaceLimitsName: field("Free tier", "saved", "WORKSPACE_LIMITS_NAME") };
+      expect(installSettingsChange(named, { ...installSettingsFormValues(named), workspaceLimitsName: "" })).toEqual({
+        workspaceLimitsName: "",
+      });
+    });
+
+    it("is never sent when the environment locks it", () => {
+      const locked = { ...SETTINGS, workspaceLimitsName: field("Free tier", "environment", "WORKSPACE_LIMITS_NAME") };
+      expect(installSettingsChange(locked, { ...installSettingsFormValues(locked), workspaceLimitsName: "Hobby" })).toEqual({});
+    });
+  });
+
   describe("the password", () => {
     it("is left out while nothing is typed: the one there is stays", () => {
       expect(installSettingsChange(SETTINGS, { ...values, password: "" })).toEqual({});
@@ -166,6 +188,14 @@ describe("installSettingsErrorMessage", () => {
       error: { code: "SETTING_LOCKED", field: "workspaceLimits.monitors" },
     });
     expect(installSettingsErrorMessage(locked, t, "fallback")).toContain("Active monitors");
+  });
+
+  it("names the name of the default limits when it is refused", () => {
+    const error = refusal(400, {
+      message: "workspaceLimitsName: must not have a line break",
+      error: { code: "INVALID_SETTING", field: "workspaceLimitsName" },
+    });
+    expect(installSettingsErrorMessage(error, t, "fallback")).toBe("Name of the default limits: must not have a line break");
   });
 
   it("names the locked setting of a 409", () => {

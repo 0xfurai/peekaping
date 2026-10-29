@@ -42,6 +42,7 @@ const SETTINGS: AdminInstallSettingsResponse = {
     probes_per_monitor: field<number | null>(null, "default", "WORKSPACE_LIMIT_PROBES_PER_MONITOR"),
     retention_days: field<number | null>(null, "default", "WORKSPACE_LIMIT_RETENTION_DAYS"),
   },
+  workspaceLimitsName: field("Free tier", "saved", "WORKSPACE_LIMITS_NAME"),
 };
 
 const page = (settings: AdminInstallSettingsResponse = SETTINGS) =>
@@ -177,6 +178,24 @@ describe("InstallSettingsPage", () => {
     expect(around(html, "install-limit-members")).toContain(text("admin.settings.source.default"));
     expect(tag(html, "install-limit-members")).toContain('value=""');
     expect(tag(html, "install-limit-members")).toContain(`placeholder="${text("limits.none")}"`);
+  });
+
+  it("has a field for the name of the default limits in their section, with its source", () => {
+    const html = page();
+    const section = html.slice(html.indexOf(text("admin.settings.limits.title")));
+    expect(section).toContain('for="install-limits-name"');
+    expect(around(html, "install-limits-name")).toContain(text("admin.settings.limits.name_label"));
+    expect(around(html, "install-limits-name")).toContain(text("admin.settings.source.saved"));
+    expect(tag(html, "install-limits-name")).toContain('value="Free tier"');
+    expect(tag(html, "install-limits-name")).not.toContain("readOnly");
+    expect(html).toContain(text("admin.settings.limits.name_help"));
+  });
+
+  it("locks the name of the default limits when the environment sets it", () => {
+    const html = page({ ...SETTINGS, workspaceLimitsName: field("Free tier", "environment", "WORKSPACE_LIMITS_NAME") });
+    expect(around(html, "install-limits-name")).toContain(text("admin.settings.source.environment"));
+    expect(around(html, "install-limits-name")).toContain("WORKSPACE_LIMITS_NAME");
+    expect(tag(html, "install-limits-name")).toContain('readOnly=""');
   });
 
   it("has nothing to save until a field changes", () => {

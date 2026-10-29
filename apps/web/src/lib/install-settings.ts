@@ -7,8 +7,8 @@ import type {
 } from "@/api/types.gen";
 
 // The install settings an instance admin changes on Admin → Settings (docs/adr/0005, section 5):
-// the signup mode, the sender of account emails, the public URL and the default limits of a
-// workspace (PP-160). Each comes from the server's environment, which locks it, or from the value
+// the signup mode, the sender of account emails, the public URL, the default limits of a
+// workspace (PP-160) and the install's name for them (PP-163). Each comes from the server's environment, which locks it, or from the value
 // saved here, or from the default. The server decides and refuses; these only shape the form and
 // its request.
 
@@ -40,6 +40,8 @@ export type InstallSettingsFormValues = {
   tls: string;
   // Each default limit as typed: blank is none
   workspaceLimits: Record<DefaultLimit, string>;
+  // The install's name for its default limits: blank is none
+  workspaceLimitsName: string;
 };
 
 export const installSettingsFormValues = (
@@ -56,6 +58,7 @@ export const installSettingsFormValues = (
   workspaceLimits: Object.fromEntries(
     DEFAULT_LIMITS.map((name) => [name, settings.workspaceLimits[name].value?.toString() ?? ""])
   ) as Record<DefaultLimit, string>,
+  workspaceLimitsName: settings.workspaceLimitsName.value,
 });
 
 // The request that saves what the admin changed, and nothing else: a field left as it loaded, or
@@ -98,6 +101,9 @@ export const installSettingsChange = (
     else if (Number.isFinite(Number(typed))) limits[name] = Number(typed);
   }
   if (Object.keys(limits).length > 0) body.workspaceLimits = limits;
+  if (changed(settings.workspaceLimitsName, values.workspaceLimitsName)) {
+    body.workspaceLimitsName = values.workspaceLimitsName.trim();
+  }
   return body;
 };
 
@@ -118,6 +124,7 @@ const FIELD_LABELS: Record<string, string> = {
   "accountSmtp.from": "admin.settings.sender.from",
   "accountSmtp.tls": "admin.settings.sender.tls",
   ...Object.fromEntries(DEFAULT_LIMITS.map((name) => [`workspaceLimits.${name}`, `limits.names.${name}`])),
+  workspaceLimitsName: "admin.settings.limits.name_label",
 };
 
 type Translate = (key: string, vars?: Record<string, unknown>) => string;
