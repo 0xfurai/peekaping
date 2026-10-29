@@ -1908,8 +1908,10 @@
       "url_label": "Zu überwachende Adresse"
     },
     "channel": {
+      "continue_unlinked": "Ohne Verknüpfung fortfahren",
       "description": "Wähle, wohin Peekaping einen Alarm sendet, wenn dein Monitor ausfällt. Er wird zum Standard für neue Monitore.",
       "link_failed": "Der Kanal wurde gespeichert, aber die Verknüpfung mit deinem Monitor ist fehlgeschlagen. Füge ihn auf der Bearbeitungsseite des Monitors hinzu.",
+      "retry_link": "Erneut verknüpfen",
       "title": "Lass dich benachrichtigen"
     },
     "done": {

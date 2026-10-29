@@ -1908,8 +1908,10 @@
       "url_label": "要监控的地址"
     },
     "channel": {
+      "continue_unlinked": "不关联并继续",
       "description": "选择监控宕机时 Peekaping 把告警发送到哪里。它将成为新监控的默认渠道。",
       "link_failed": "渠道已保存，但关联到监控失败。请在监控的编辑页面中添加。",
+      "retry_link": "重新尝试关联",
       "title": "接收通知"
     },
     "done": {

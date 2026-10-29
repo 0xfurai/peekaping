@@ -1908,8 +1908,10 @@
       "url_label": "Adresa za nadgledanje"
     },
     "channel": {
+      "continue_unlinked": "Nastavi bez povezivanja",
       "description": "Izaberite kuda Peekaping šalje upozorenje kada vaš monitor padne. Postaće podrazumevani za nove monitore.",
       "link_failed": "Kanal je sačuvan, ali povezivanje sa monitorom nije uspelo. Dodajte ga na stranici za uređivanje monitora.",
+      "retry_link": "Pokušaj ponovo da povežeš",
       "title": "Primajte obaveštenja"
     },
     "done": {
