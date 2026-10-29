@@ -32,7 +32,7 @@ func TestRun_ServesTheAPIUntilItsContextIsDone(t *testing.T) {
 	logger, logs := observedLogger()
 	in := startAPI(t, cfg, logger, logs)
 
-	resp, err := http.Get(in.url + "/api/v1/version")
+	resp, err := testHTTP.Get(in.url + "/api/v1/version")
 	require.NoError(t, err)
 	require.NoError(t, resp.Body.Close())
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
