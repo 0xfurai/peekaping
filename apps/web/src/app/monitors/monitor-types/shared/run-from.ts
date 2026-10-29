@@ -47,3 +47,17 @@ export const toggleRunFrom = (probeIds: string[], choiceIds: string[], id: strin
   const shown = probeIds.filter((existing) => choiceIds.includes(existing));
   return ticked ? (shown.includes(id) ? shown : [...shown, id]) : shown.filter((existing) => existing !== id);
 };
+
+// The monitor's probes after its type changes to `type`: the ones that don't run it go. A probe that
+// isn't loaded stays, as does a disabled one that runs the type. When none is left and one probe runs
+// the type, the monitor moves to it: the list is hidden then, and a saved monitor with no probe ticked
+// can't be saved.
+export const runFromAfterTypeChange = (probes: ProbeProbeResponse[], type: string, probeIds: string[]): string[] => {
+  const kept = probeIds.filter((id) => {
+    const probe = probes.find((candidate) => candidate.id === id);
+    return !probe || probeRunsType(probe, type);
+  });
+  if (kept.length > 0 || probeIds.length === 0) return kept;
+  const candidates = runFromProbes(probes, type);
+  return candidates.length === 1 ? [candidates[0].id] : kept;
+};

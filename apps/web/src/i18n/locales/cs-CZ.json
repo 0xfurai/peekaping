@@ -1908,8 +1908,10 @@
       "url_label": "Adresa ke sledování"
     },
     "channel": {
+      "continue_unlinked": "Pokračovat bez propojení",
       "description": "Vyberte, kam Peekaping pošle upozornění, když váš monitor přestane fungovat. Stane se výchozím kanálem pro nové monitory.",
       "link_failed": "Kanál byl uložen, ale propojit ho s monitorem se nepodařilo. Přidejte ho na stránce úprav monitoru.",
+      "retry_link": "Zkusit propojit znovu",
       "title": "Nechte si posílat oznámení"
     },
     "done": {
