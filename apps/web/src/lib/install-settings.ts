@@ -12,6 +12,9 @@ import type {
 
 export type SettingSource = "environment" | "saved" | "default";
 
+// The key of the save's mutation, so that the form knows while one is pending
+export const SAVE_INSTALL_SETTINGS = ["admin", "settings", "save"] as const;
+
 // The form's values. The password is what the admin typed: empty keeps the one there is.
 export type InstallSettingsFormValues = {
   signupMode: string;
