@@ -18,6 +18,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/events"
 	"peekaping/internal/modules/events/eventstest"
@@ -984,7 +985,7 @@ func TestNotificationListener_ProbeOfflineThenOnlineOpensAndResolvesOnePagerDuty
 	defer pagerDuty.Close()
 
 	f := newListenerFixture(t)
-	f.addProvider("pagerduty", providers.NewPagerDutySender(zap.NewNop().Sugar(), &config.Config{ClientURL: "https://peekaping.example.com"}, providers.NewHTTPClient()))
+	f.addProvider("pagerduty", providers.NewPagerDutySender(zap.NewNop().Sugar(), installsettings.Static(&config.Config{ClientURL: "https://peekaping.example.com"}), providers.NewHTTPClient()))
 	pagerDutyConfig := fmt.Sprintf(`{"pagerduty_integration_key": "routing-key", "pagerduty_integration_url": %q, "pagerduty_auto_resolve": "resolve"}`, pagerDuty.URL)
 	f.attachProbe("probe-1", &Model{ID: "pd", Name: "PagerDuty", Type: "pagerduty", Active: true, Config: &pagerDutyConfig})
 
@@ -1432,7 +1433,7 @@ func TestNotificationListener_EveryAPIReplicaStillGetsAHeartbeat(t *testing.T) {
 }
 
 func TestEveryChannelTypeHasGoldenRequests(t *testing.T) {
-	registry := NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, nil)
+	registry := NewProviderRegistry(zap.NewNop().Sugar(), installsettings.Static(&config.Config{}), nil, nil, nil)
 
 	// The listener sends both of these to every channel type
 	for _, event := range []string{"down", "certificate_expiry"} {

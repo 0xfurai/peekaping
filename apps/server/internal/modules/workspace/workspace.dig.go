@@ -1,8 +1,8 @@
 package workspace
 
 import (
-	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/limits"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/events"
@@ -25,7 +25,7 @@ type serviceParams struct {
 	Invites    InviteRepository
 	Transactor dbtx.Transactor
 	Bus        events.EventBus
-	Config     *config.Config
+	Settings   *installsettings.Resolver
 	Mailer     *mailer.Mailer
 	Monitors   MonitorWaker
 	Logger     *zap.SugaredLogger
@@ -38,5 +38,5 @@ func provideService(p serviceParams) Service {
 	if p.Limits != nil {
 		opts = append(opts, WithLimits(p.Limits))
 	}
-	return NewService(p.Workspaces, p.Members, p.Invites, p.Transactor, p.Bus, p.Config, p.Mailer, p.Monitors, p.Logger, opts...)
+	return NewService(p.Workspaces, p.Members, p.Invites, p.Transactor, p.Bus, p.Settings, p.Mailer, p.Monitors, p.Logger, opts...)
 }

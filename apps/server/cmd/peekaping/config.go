@@ -16,6 +16,9 @@ import (
 // section 5). Its variables keep the names, defaults and meaning they have for the API service,
 // and CHECK_CONCURRENCY sizes the scheduler's check pool. It needs no Redis.
 type Config struct {
+	// Which variables the environment set: an install setting whose variable is set is locked to it
+	config.Environment
+
 	// Server configuration
 	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"url" default:"http://localhost:3000"`
@@ -297,6 +300,7 @@ func (c *Config) RedisSettings() []string {
 // no Redis settings and no probe bootstrap token, which single mode doesn't use.
 func (c *Config) ToInternalConfig() *config.Config {
 	return &config.Config{
+		Environment:                    c.Environment,
 		Port:                           c.Port,
 		ClientURL:                      c.ClientURL,
 		DBHost:                         c.DBHost,

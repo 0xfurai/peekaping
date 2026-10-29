@@ -16,12 +16,13 @@ import (
 const maxPageSize = 100
 
 type Controller struct {
-	service Service
-	logger  *zap.SugaredLogger
+	service  Service
+	settings *InstallSettings
+	logger   *zap.SugaredLogger
 }
 
-func NewController(service Service, logger *zap.SugaredLogger) *Controller {
-	return &Controller{service: service, logger: logger.Named("[admin-controller]")}
+func NewController(service Service, settings *InstallSettings, logger *zap.SugaredLogger) *Controller {
+	return &Controller{service: service, settings: settings, logger: logger.Named("[admin-controller]")}
 }
 
 // actor is the ID of the instance admin the request comes from. The route's middleware let only a

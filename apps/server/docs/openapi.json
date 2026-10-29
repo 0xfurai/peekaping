@@ -1,6 +1,99 @@
 {
   "components": {
     "schemas": {
+      "admin.AccountSMTPSettingsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/admin.StringSettingResponse"
+          },
+          "host": {
+            "$ref": "#/components/schemas/admin.StringSettingResponse"
+          },
+          "password": {
+            "$ref": "#/components/schemas/admin.SecretSettingResponse"
+          },
+          "port": {
+            "$ref": "#/components/schemas/admin.IntSettingResponse"
+          },
+          "tls": {
+            "$ref": "#/components/schemas/admin.StringSettingResponse"
+          },
+          "user": {
+            "$ref": "#/components/schemas/admin.StringSettingResponse"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "user",
+          "password",
+          "from",
+          "tls"
+        ],
+        "type": "object"
+      },
+      "admin.InstallSettingsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "accountEmails": {
+            "description": "Whether the install has a sender for account emails: an SMTP host is set.",
+            "type": "boolean"
+          },
+          "accountSmtp": {
+            "$ref": "#/components/schemas/admin.AccountSMTPSettingsResponse"
+          },
+          "publicUrl": {
+            "$ref": "#/components/schemas/admin.StringSettingResponse"
+          },
+          "signupMode": {
+            "$ref": "#/components/schemas/admin.StringSettingResponse"
+          }
+        },
+        "required": [
+          "signupMode",
+          "publicUrl",
+          "accountSmtp",
+          "accountEmails"
+        ],
+        "type": "object"
+      },
+      "admin.IntSettingResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "envVar": {
+            "description": "The environment variable that sets it, and locks it when set.",
+            "examples": [
+              "ACCOUNT_SMTP_PORT"
+            ],
+            "type": "string"
+          },
+          "locked": {
+            "description": "Whether the server's environment sets the value. A locked setting can't be changed here.",
+            "type": "boolean"
+          },
+          "source": {
+            "description": "Where the value comes from: the server's environment, saved in the admin area, or the default.",
+            "enum": [
+              "environment",
+              "saved",
+              "default"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value",
+          "source",
+          "locked",
+          "envVar"
+        ],
+        "type": "object"
+      },
       "admin.LastOwnerErrorBody": {
         "additionalProperties": false,
         "properties": {
@@ -142,6 +235,193 @@
           "link",
           "expiresAt"
         ],
+        "type": "object"
+      },
+      "admin.SecretSettingResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "envVar": {
+            "description": "The environment variable that sets it, and locks it when set.",
+            "examples": [
+              "ACCOUNT_SMTP_PASSWORD"
+            ],
+            "type": "string"
+          },
+          "locked": {
+            "description": "Whether the server's environment sets the value. A locked setting can't be changed here.",
+            "type": "boolean"
+          },
+          "set": {
+            "description": "Whether a value is set. The value itself is never returned.",
+            "type": "boolean"
+          },
+          "source": {
+            "description": "Where the value comes from: the server's environment, saved in the admin area, or the default (none).",
+            "enum": [
+              "environment",
+              "saved",
+              "default"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "set",
+          "source",
+          "locked",
+          "envVar"
+        ],
+        "type": "object"
+      },
+      "admin.SendTestEmailDto": {
+        "additionalProperties": true,
+        "properties": {
+          "to": {
+            "description": "The address to send the test email to.",
+            "format": "email",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "admin.SettingErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "SETTING_LOCKED",
+              "INVALID_SETTING",
+              "OPEN_SIGNUP_NEEDS_SENDER",
+              "SENDER_NEEDED_FOR_OPEN_SIGNUP",
+              "NO_SENDER"
+            ],
+            "examples": [
+              "SETTING_LOCKED"
+            ],
+            "type": "string"
+          },
+          "field": {
+            "description": "The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host and the like.",
+            "examples": [
+              "signupMode"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "admin.SettingErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/admin.SettingErrorBody"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "error"
+        ],
+        "type": "object"
+      },
+      "admin.StringSettingResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "envVar": {
+            "description": "The environment variable that sets it, and locks it when set.",
+            "examples": [
+              "SIGNUP_MODE"
+            ],
+            "type": "string"
+          },
+          "locked": {
+            "description": "Whether the server's environment sets the value. A locked setting can't be changed here.",
+            "type": "boolean"
+          },
+          "source": {
+            "description": "Where the value comes from: the server's environment, saved in the admin area, or the default.",
+            "enum": [
+              "environment",
+              "saved",
+              "default"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "source",
+          "locked",
+          "envVar"
+        ],
+        "type": "object"
+      },
+      "admin.UpdateAccountSMTPDto": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "description": "The address account emails come from, such as no-reply@example.com or Peekaping \u003cno-reply@example.com\u003e. Required with a host.",
+            "type": "string"
+          },
+          "host": {
+            "description": "The SMTP server's host. Empty clears it, which turns account emails off.",
+            "type": "string"
+          },
+          "password": {
+            "description": "The password. Write-only: it is never returned. Left out it stays as it is; empty clears it.",
+            "type": "string"
+          },
+          "port": {
+            "description": "The SMTP server's port, 1 to 65535. 0 clears it (587).",
+            "format": "int64",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "tls": {
+            "description": "How the connection is secured: starttls, tls or none. Empty clears it (starttls).",
+            "type": "string"
+          },
+          "user": {
+            "description": "The user to sign in as. Empty signs in as nobody.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "admin.UpdateInstallSettingsDto": {
+        "additionalProperties": true,
+        "properties": {
+          "accountSmtp": {
+            "$ref": "#/components/schemas/admin.UpdateAccountSMTPDto",
+            "type": [
+              "",
+              "null"
+            ]
+          },
+          "publicUrl": {
+            "description": "The web app's address, which the links in emails and notifications open. Empty clears it (the default).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signupMode": {
+            "description": "invite or open. Open needs a sender. Empty clears it (invite).",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
         "type": "object"
       },
       "admin.UpdateUserDto": {
@@ -3140,6 +3420,10 @@
           "arch": {
             "type": "string"
           },
+          "enforces_private_target_block": {
+            "description": "Whether the instance's hello said it blocks private targets when the server does. While BLOCK_PRIVATE_TARGETS is on, an instance that didn't (a probe from before the setting) is dealt no monitors: upgrade it.",
+            "type": "boolean"
+          },
           "hostname": {
             "type": "string"
           },
@@ -3175,7 +3459,8 @@
           "version",
           "protocol_version",
           "supported_types",
-          "last_seen_at"
+          "last_seen_at",
+          "enforces_private_target_block"
         ],
         "type": "object"
       },
@@ -3403,6 +3688,9 @@
         "properties": {
           "arch": {
             "type": "string"
+          },
+          "enforces_private_target_block": {
+            "type": "boolean"
           },
           "hostname": {
             "type": "string"
@@ -4153,6 +4441,7 @@
         "additionalProperties": false,
         "properties": {
           "active": {
+            "description": "False for a paused monitor, and for one whose type is turned off on this install (DISABLED_MONITOR_TYPES), which is not checked",
             "type": "boolean"
           },
           "heartbeats": {
@@ -5146,6 +5435,22 @@
         ],
         "type": "object"
       },
+      "utils.ApiResponse_admin.InstallSettingsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/admin.InstallSettingsResponse"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "data"
+        ],
+        "type": "object"
+      },
       "utils.ApiResponse_admin.ResetLinkResponse": {
         "additionalProperties": false,
         "properties": {
@@ -5986,6 +6291,256 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/settings": {
+      "get": {
+        "description": "Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*) and the public URL (CLIENT_URL), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now.",
+        "operationId": "getAdminSettings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.ApiResponse_admin.InstallSettingsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Get the install settings",
+        "tags": [
+          "admin"
+        ]
+      },
+      "put": {
+        "description": "Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds. The answer is the settings as GET shows them.",
+        "operationId": "putAdminSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admin.UpdateInstallSettingsDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.ApiResponse_admin.InstallSettingsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/admin.SettingErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/admin.SettingErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Change the install settings",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/settings/test-email": {
+      "post": {
+        "description": "Only an instance admin may do this. Sends a fixed test message to the address through the install's sender for account emails as it is now, and answers once the SMTP server took it. Without a sender it answers 400 with the code NO_SENDER. A send that fails answers 502 with the SMTP reply code or the kind of failure, never the server's text.",
+        "operationId": "postAdminSettingsTestEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admin.SendTestEmailDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.ApiResponse_Any"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/admin.SettingErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/httpx.ErrorBody"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/httpx.ErrorBody"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          }
+        },
+        "security": [
+          {
+            "JwtAuth": []
+          }
+        ],
+        "summary": "Send a test email",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/admin/users": {
       "get": {
         "description": "Only an instance admin may do this: any other user and any API key get 403. Every user with their email, when they signed up and last signed in, whether their email is verified, whether they are an instance admin, whether they are disabled, whether they have 2FA on, and their workspaces with their role in each. q finds the users whose email contains it, ignoring case. The oldest user is first.",
@@ -14444,7 +14999,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_status_page.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
                 }
               }
             },
@@ -14508,7 +15063,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/utils.ApiResponse_status_page.Model"
+                  "$ref": "#/components/schemas/utils.ApiResponse_Array_status_page.MonitorWithHeartbeatsAndUptimeDTO"
                 }
               }
             },

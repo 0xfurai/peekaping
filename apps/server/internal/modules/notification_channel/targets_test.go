@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/netguard"
 
 	"github.com/stretchr/testify/assert"
@@ -14,7 +15,7 @@ import (
 )
 
 func guardedRegistry(on bool) *ProviderRegistry {
-	return NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, netguard.New(on))
+	return NewProviderRegistry(zap.NewNop().Sugar(), installsettings.Static(&config.Config{}), nil, nil, netguard.New(on))
 }
 
 // A channel whose URL or SMTP host is a blocked address is refused when it is saved or tested
@@ -69,7 +70,7 @@ func TestProviderRegistry_CheckTargetsDoesNothingWhileTheGuardIsOffOrMissing(t *
 	blocked := `{"webhook_url":"http://127.0.0.1/x","webhook_content_type":"json"}`
 
 	assert.NoError(t, guardedRegistry(false).CheckTargets("webhook", blocked))
-	assert.NoError(t, NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil, nil).CheckTargets("webhook", blocked))
+	assert.NoError(t, NewProviderRegistry(zap.NewNop().Sugar(), installsettings.Static(&config.Config{}), nil, nil, nil).CheckTargets("webhook", blocked))
 }
 
 // Every endpoint of a provider that is a URL or host must be marked as a target, or the guard's check

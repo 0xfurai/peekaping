@@ -2,7 +2,7 @@ package notification_channel
 
 import (
 	"maps"
-	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/notification_channel/providers"
 	"peekaping/internal/modules/workspace"
@@ -27,18 +27,18 @@ type ProviderRegistry struct {
 // the SMTP channel's sender connect through it, and CheckTargets uses it on a save. The install email
 // channel is not guarded: it sends through the install's own account-email sender. A nil guard
 // blocks nothing.
-func NewProviderRegistry(logger *zap.SugaredLogger, cfg *config.Config, accountMailer *mailer.Mailer, members workspace.MemberRepository, guard *netguard.Guard) *ProviderRegistry {
+func NewProviderRegistry(logger *zap.SugaredLogger, settings *installsettings.Resolver, accountMailer *mailer.Mailer, members workspace.MemberRepository, guard *netguard.Guard) *ProviderRegistry {
 	client := providers.NewGuardedHTTPClient(guard)
 	return &ProviderRegistry{guard: guard, byType: map[string]NotificationChannelProvider{
 		"smtp":           providers.NewGuardedEmailSender(logger, guard),
-		"install_email":  providers.NewInstallEmailSender(logger, accountMailer, members),
+		"install_email":  providers.NewInstallEmailSender(logger, settings, accountMailer, members),
 		"telegram":       providers.NewTelegramSender(logger, client),
 		"webhook":        providers.NewWebhookSender(logger, client),
-		"slack":          providers.NewSlackSender(logger, cfg, client),
+		"slack":          providers.NewSlackSender(logger, settings, client),
 		"ntfy":           providers.NewNTFYSender(logger, client),
-		"pagerduty":      providers.NewPagerDutySender(logger, cfg, client),
+		"pagerduty":      providers.NewPagerDutySender(logger, settings, client),
 		"opsgenie":       providers.NewOpsgenieSender(logger, client),
-		"google_chat":    providers.NewGoogleChatSender(logger, cfg, client),
+		"google_chat":    providers.NewGoogleChatSender(logger, settings, client),
 		"grafana_oncall": providers.NewGrafanaOncallSender(logger, client),
 		"signal":         providers.NewSignalSender(logger, client),
 		"gotify":         providers.NewGotifySender(logger, client),
@@ -53,7 +53,7 @@ func NewProviderRegistry(logger *zap.SugaredLogger, cfg *config.Config, accountM
 		"pushbullet":     providers.NewPushbulletSender(logger, client),
 		"pagertree":      providers.NewPagerTreeSender(logger, client),
 		"line":           providers.NewLineSender(logger, client),
-		"teams":          providers.NewTeamsSender(logger, cfg, client),
+		"teams":          providers.NewTeamsSender(logger, settings, client),
 	}}
 }
 

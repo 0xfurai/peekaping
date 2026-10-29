@@ -2,6 +2,9 @@
 
 import {
   type Options,
+  getAdminSettings,
+  putAdminSettings,
+  postAdminSettingsTestEmail,
   getAdminUsers,
   deleteAdminUsersById,
   patchAdminUsersById,
@@ -124,11 +127,18 @@ import {
 } from "../sdk.gen";
 import {
   queryOptions,
+  type UseMutationOptions,
   infiniteQueryOptions,
   type InfiniteData,
-  type UseMutationOptions,
 } from "@tanstack/react-query";
 import type {
+  GetAdminSettingsData,
+  PutAdminSettingsData,
+  PutAdminSettingsError,
+  PutAdminSettingsResponse,
+  PostAdminSettingsTestEmailData,
+  PostAdminSettingsTestEmailError,
+  PostAdminSettingsTestEmailResponse,
   GetAdminUsersData,
   GetAdminUsersError,
   GetAdminUsersResponse,
@@ -438,6 +448,112 @@ const createQueryKey = <TOptions extends Options>(
     params.query = options.query;
   }
   return [params];
+};
+
+export const getAdminSettingsQueryKey = (
+  options?: Options<GetAdminSettingsData>
+) => createQueryKey("getAdminSettings", options);
+
+/**
+ * Get the install settings
+ * Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*) and the public URL (CLIENT_URL), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now.
+ */
+export const getAdminSettingsOptions = (
+  options?: Options<GetAdminSettingsData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAdminSettings({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAdminSettingsQueryKey(options),
+  });
+};
+
+/**
+ * Change the install settings
+ * Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds. The answer is the settings as GET shows them.
+ */
+export const putAdminSettingsMutation = (
+  options?: Partial<Options<PutAdminSettingsData>>
+): UseMutationOptions<
+  PutAdminSettingsResponse,
+  AxiosError<PutAdminSettingsError>,
+  Options<PutAdminSettingsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PutAdminSettingsResponse,
+    AxiosError<PutAdminSettingsError>,
+    Options<PutAdminSettingsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await putAdminSettings({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAdminSettingsTestEmailQueryKey = (
+  options: Options<PostAdminSettingsTestEmailData>
+) => createQueryKey("postAdminSettingsTestEmail", options);
+
+/**
+ * Send a test email
+ * Only an instance admin may do this. Sends a fixed test message to the address through the install's sender for account emails as it is now, and answers once the SMTP server took it. Without a sender it answers 400 with the code NO_SENDER. A send that fails answers 502 with the SMTP reply code or the kind of failure, never the server's text.
+ */
+export const postAdminSettingsTestEmailOptions = (
+  options: Options<PostAdminSettingsTestEmailData>
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAdminSettingsTestEmail({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAdminSettingsTestEmailQueryKey(options),
+  });
+};
+
+/**
+ * Send a test email
+ * Only an instance admin may do this. Sends a fixed test message to the address through the install's sender for account emails as it is now, and answers once the SMTP server took it. Without a sender it answers 400 with the code NO_SENDER. A send that fails answers 502 with the SMTP reply code or the kind of failure, never the server's text.
+ */
+export const postAdminSettingsTestEmailMutation = (
+  options?: Partial<Options<PostAdminSettingsTestEmailData>>
+): UseMutationOptions<
+  PostAdminSettingsTestEmailResponse,
+  AxiosError<PostAdminSettingsTestEmailError>,
+  Options<PostAdminSettingsTestEmailData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAdminSettingsTestEmailResponse,
+    AxiosError<PostAdminSettingsTestEmailError>,
+    Options<PostAdminSettingsTestEmailData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAdminSettingsTestEmail({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getAdminUsersQueryKey = (options?: Options<GetAdminUsersData>) =>

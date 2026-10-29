@@ -8,15 +8,19 @@ import (
 	"net"
 	"net/netip"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/netguard"
 )
 
@@ -177,6 +181,8 @@ func TestDriversFull_Targets(t *testing.T) {
 		{"sqlserver with braces", "sqlserver", `{"database_connection_string": "Server=sql.example.com,1433;Database={d;e};User Id=sa;Password={p;q}"}`, []string{"sql.example.com"}},
 		{"sqlserver in the URL form", "sqlserver", `{"database_connection_string": "sqlserver://sa:secret@[fd00::9]:1433?database=master"}`, []string{"fd00::9"}},
 		{"sqlserver in the mssql:// form", "sqlserver", `{"database_connection_string": "mssql://sa:secret@192.168.1.5/master"}`, []string{"192.168.1.5"}},
+		{"sqlserver with a failover partner", "sqlserver", `{"database_connection_string": "Server=sql.example.com,1433;Database=master;User Id=sa;Password=secret;FailoverPartner=sql2.example.com;FailoverPort=1444"}`, []string{"sql.example.com", "sql2.example.com"}},
+		{"sqlserver URL with a failover partner", "sqlserver", `{"database_connection_string": "sqlserver://sa:secret@sql.example.com:1433?database=master&failoverpartner=10.0.0.9"}`, []string{"sql.example.com", "10.0.0.9"}},
 		{"mongodb", "mongodb", `{"connectionString": "mongodb://u:p%40ss@db.example.com:27017/admin?authSource=admin"}`, []string{"db.example.com"}},
 		{"mongodb seed list", "mongodb", `{"connectionString": "mongodb://u:p@a.example.com:27017,10.0.0.2:27018,[fd00::3]:27019/admin?replicaSet=rs0"}`, []string{"a.example.com", "10.0.0.2", "fd00::3"}},
 		{"mongodb srv", "mongodb", `{"connectionString": "mongodb+srv://u:p@cluster0.example.com/admin"}`, []string{"cluster0.example.com"}},
@@ -215,6 +221,7 @@ func TestDriversFull_RefuseBlockedLiteralTargetsOnSave(t *testing.T) {
 	}{
 		{"sqlserver", "sqlserver", `{"database_connection_string": "Server=10.0.0.4,1433;Database=master;User Id=sa;Password=secret;Encrypt=false"}`, "10.0.0.4"},
 		{"sqlserver URL", "sqlserver", `{"database_connection_string": "sqlserver://sa:secret@127.0.0.1:1433?database=master"}`, "127.0.0.1"},
+		{"sqlserver failover partner", "sqlserver", `{"database_connection_string": "Server=sql.example.com,1433;Database=master;User Id=sa;Password=secret;FailoverPartner=169.254.169.254;FailoverPort=1433"}`, "169.254.169.254"},
 		{"the second mongodb host", "mongodb", `{"connectionString": "mongodb://a.example.com:27017,192.168.1.2:27017/admin"}`, "192.168.1.2"},
 		{"the second kafka broker", "kafka-producer", `{"brokers": ["k1.example.com:9092", "169.254.169.254:9092"], "topic": "t", "message": "m", "sasl_options": {"mechanism": "None"}}`, "169.254.169.254"},
 		{"grpc", "grpc-keyword", grpcConfig("10.1.1.1:50051", false), "10.1.1.1"},
@@ -237,4 +244,35 @@ func TestDriversFull_RefuseBlockedLiteralTargetsOnSave(t *testing.T) {
 		assert.NoError(t, registry.ValidateConfig("grpc-keyword", grpcConfig("8.8.8.8:443", true)))
 		assert.NoError(t, registry.ValidateConfig("kafka-producer", `{"brokers": ["localhost:9092"], "topic": "t", "message": "m", "sasl_options": {"mechanism": "None"}}`))
 	})
+}
+
+// With the guard on, a Docker daemon over tcp:// is dialed itself, and not through a proxy from the
+// environment, which the Docker client sets up for it: the guard would check the proxy's address
+// then, and a daemon at a blocked address would be reached through the proxy. Go reads HTTP_PROXY
+// once per process, so the test runs itself again with a proxy set, the way the standard library's
+// own tests do.
+func TestDockerExecutor_TheGuardChecksTheDaemonAndNotAProxyFromTheEnvironment(t *testing.T) {
+	if os.Getenv("PEEKAPING_TEST_DOCKER_PROXY") != "" {
+		guard := netguard.NewWithPrefixes(netip.MustParsePrefix("203.0.113.0/24"))
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		result := guardedExecutor(t, "docker", guard).Execute(ctx, &Monitor{ID: "docker-proxy", Name: "Docker", Type: "docker", Timeout: 2,
+			Config: `{"container_id": "c", "connection_type": "tcp", "docker_daemon": "tcp://203.0.113.7:2375"}`}, nil)
+		assert.Equal(t, shared.MonitorStatusDown, result.Status)
+		assert.Contains(t, result.Message, blockedMessage)
+		return
+	}
+
+	proxy := listenTCP(t)
+	proxyURL := "http://127.0.0.1:" + strconv.Itoa(proxy.port)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestDockerExecutor_TheGuardChecksTheDaemonAndNotAProxyFromTheEnvironment$", "-test.v")
+	cmd.Env = append(os.Environ(), "PEEKAPING_TEST_DOCKER_PROXY=1",
+		"HTTP_PROXY="+proxyURL, "http_proxy="+proxyURL, "NO_PROXY=", "no_proxy=")
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(out))
+	// A renamed test would match nothing and exit 0.
+	require.Contains(t, string(out), "--- PASS: TestDockerExecutor_TheGuardChecksTheDaemonAndNotAProxyFromTheEnvironment", string(out))
+	assert.Zero(t, proxy.connections(), "the proxy saw no connection")
 }

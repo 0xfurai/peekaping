@@ -557,3 +557,15 @@ func TestSupportContactIsEmptyByDefaultAndLoadedFromTheEnvironment(t *testing.T)
 	require.NoError(t, err)
 	assert.Equal(t, "support@example.com", cfg.ToInternalConfig().SupportContact)
 }
+
+func TestLoadAndValidate_TheInternalConfigKnowsWhichVariablesTheEnvironmentSet(t *testing.T) {
+	t.Setenv("DB_TYPE", "sqlite")
+	t.Setenv("DB_NAME", "peekaping.db")
+	t.Setenv("CLIENT_URL", "https://peek.example")
+
+	cfg, err := LoadAndValidate(t.TempDir())
+	require.NoError(t, err)
+	internal := cfg.ToInternalConfig()
+	assert.True(t, internal.FromEnvironment("CLIENT_URL"))
+	assert.False(t, internal.FromEnvironment("SIGNUP_MODE"))
+}

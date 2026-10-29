@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -21,6 +22,21 @@ func GenericUnmarshal[T any](configJSON string) (*T, error) {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 	return &cfg, nil
+}
+
+// PublicURLSource gives the address of the web app at the moment of a send, for the links a
+// notification carries: CLIENT_URL, or the public URL an instance admin saved.
+// *installsettings.Resolver is one. A nil source gives no links.
+type PublicURLSource interface {
+	PublicURL(ctx context.Context) string
+}
+
+// publicURL is the source's address now, or "" without a source
+func publicURL(ctx context.Context, source PublicURLSource) string {
+	if source == nil {
+		return ""
+	}
+	return source.PublicURL(ctx)
 }
 
 // unknownMonitorName names the monitor of a notification that comes with none

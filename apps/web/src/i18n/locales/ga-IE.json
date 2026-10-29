@@ -8,7 +8,9 @@
       "back_to_workspace": "Ar ais go {{name}}",
       "probes": "Tóireadóirí",
       "title": "Riar",
-      "users": "Úsáideoirí"
+      "users": "Úsáideoirí",
+      "workspaces": "Spásanna oibre",
+      "settings": "Socruithe"
     },
     "users": {
       "actions": {
@@ -100,6 +102,134 @@
         "yes": "Tá"
       },
       "you": "tú"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Scrios an spás oibre",
+        "resume": "Atosaigh an spás oibre",
+        "suspend": "Cuir an spás oibre ar fionraí"
+      },
+      "actions_aria": "Gníomhartha do {{name}}",
+      "columns": {
+        "created": "Cruthaithe",
+        "custom_domains": "Fearainn shaincheaptha",
+        "members": "Baill",
+        "monitors": "Monaitiseoirí",
+        "name": "Ainm",
+        "owners": "Úinéirí",
+        "status": "Stádas",
+        "status_pages": "Leathanaigh stádais"
+      },
+      "confirm": {
+        "cancel": "Cealaigh",
+        "delete": {
+          "confirm": "Scrios an spás oibre",
+          "description": "An scriosfar {{name}}? Imeoidh gach rud atá ann: a mhonaitiseoirí agus a stair, a leathanaigh stádais, a chainéil fógraí, agus rochtain a bhall. Ní féidir é seo a chealú.",
+          "name_label": "Clóscríobh ainm an spáis oibre le deimhniú: {{name}}",
+          "title": "Scrios an spás oibre"
+        },
+        "resume": {
+          "confirm": "Atosaigh",
+          "description": "Ritheann monaitiseoirí {{name}} arís sa staid a bhí acu, agus is féidir lena bhaill é a úsáid mar a bhí roimhe. Spás oibre atá ag fanacht go bhfíoróidh a úinéir a ríomhphost, leanann sé ag fanacht.",
+          "title": "Atosaigh an spás oibre"
+        },
+        "suspend": {
+          "confirm": "Cuir ar fionraí",
+          "description": "Stopann monaitiseoirí {{name}}, taispeánann a leathanaigh stádais phoiblí nach bhfuil siad ar fáil, agus feiceann a bhaill go bhfuil sé ar fionraí. Ní scriostar aon rud, agus is féidir leat é a atosú ar ball.",
+          "title": "Cuir an spás oibre ar fionraí"
+        }
+      },
+      "description": "Gach spás oibre ar an suiteáil seo, lena úinéirí, a bhaill agus an méid atá ann. Ní thaispeántar ach líon, agus ní thaispeántar aon rud ó thaobh istigh de spás oibre.",
+      "empty": "Níor aimsíodh aon spás oibre",
+      "load_failed": "Níorbh fhéidir na spásanna oibre a luchtú.",
+      "messages": {
+        "deleted": "Scriosadh {{name}}",
+        "failed": "Níorbh fhéidir an spás oibre a athrú.",
+        "resumed": "Atosaíodh {{name}}",
+        "suspended": "Cuireadh {{name}} ar fionraí"
+      },
+      "monitors": "{{active}} gníomhach, {{paused}} ar sos",
+      "none": "Ceann ar bith",
+      "page_name": "Spásanna oibre",
+      "paging": {
+        "next": "Ar aghaidh",
+        "page": "Leathanach {{page}} de {{pages}}",
+        "previous": "Roimhe seo"
+      },
+      "search_label": "Cuardaigh spásanna oibre de réir ainm nó ríomhphost an úinéara",
+      "search_placeholder": "Cuardaigh de réir ainm nó ríomhphost an úinéara",
+      "status": {
+        "running": "Ag rith",
+        "suspended_admin": "Curtha ar fionraí ag riarthóir",
+        "suspended_unverified": "Ar fionraí go dtí go bhfíoróidh an t-úinéir a ríomhphost"
+      },
+      "total": "{{total}} aimsithe"
+    },
+    "settings": {
+      "page_name": "Socruithe",
+      "description": "Socruithe na suiteála ar fad. Tá luach a shocraíonn timpeallacht an fhreastalaí faoi ghlas anseo.",
+      "load_failed": "Níorbh fhéidir na socruithe a lódáil.",
+      "saved": "Socruithe sábháilte",
+      "save_failed": "Níor sábháladh na socruithe.",
+      "locked": "Socraithe ag timpeallacht an fhreastalaí",
+      "source": {
+        "environment": "Ó thimpeallacht an fhreastalaí",
+        "saved": "Sábháilte anseo",
+        "default": "Réamhshocraithe"
+      },
+      "signup": {
+        "title": "Clárú",
+        "description": "Cé a fhéadfaidh cuntas a chruthú ar an suiteáil seo.",
+        "label": "Mód clárúcháin",
+        "invite": "Le cuireadh amháin",
+        "open": "Oscailte",
+        "invite_help": "Cláraíonn an chéad úsáideoir, agus téann gach duine ina dhiaidh isteach i spás oibre trí chuireadh.",
+        "open_help": "Is féidir le duine ar bith clárú agus faigheann siad spás oibre dá gcuid féin. Deimhníonn cuntais nua a seoladh ríomhphoist, mar sin teastaíonn seoltóir ríomhphoist."
+      },
+      "sender": {
+        "title": "Seoltóir ríomhphoist",
+        "description": "An freastalaí SMTP a sheolann ríomhphoist an chuntais: naisc athshocraithe pasfhocail, deimhniú ríomhphoist agus cuirí.",
+        "on": "Tá ríomhphoist an chuntais ar siúl.",
+        "off": "Tá ríomhphoist an chuntais as: níl óstach SMTP ann.",
+        "host": "Óst SMTP",
+        "port": "Port",
+        "tls": "Slándáil",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Dada",
+        "user": "Úsáideoir",
+        "password": "Focal Faire",
+        "password_set": "Tá pasfhocal socraithe. Clóscríobh chun é a athsholáthar.",
+        "password_not_set": "Níl pasfhocal socraithe",
+        "password_removed": "Bainfear an pasfhocal nuair a shábhálann tú.",
+        "remove_password": "Bain an pasfhocal",
+        "keep_password": "Coinnigh an pasfhocal",
+        "from": "Seoladh an tseoltóra"
+      },
+      "public_url": {
+        "title": "URL poiblí",
+        "description": "Seoladh an aip ghréasáin, a osclaíonn na naisc i ríomhphoist agus i bhfógraí.",
+        "label": "URL poiblí"
+      },
+      "test_email": {
+        "title": "Seol ríomhphost tástála",
+        "description": "Seolann sé ríomhphost gearr tríd an seoltóir sábháilte, chun a sheiceáil go n-oibríonn sé.",
+        "to": "Seol chuig",
+        "send": "Seol ríomhphost tástála",
+        "sending": "Á sheoladh…",
+        "sent": "Seoladh ríomhphost tástála chuig {{to}}.",
+        "failed": "Níor seoladh an ríomhphost tástála.",
+        "unsaved": "Tá athruithe nár sábháladh ag an seoltóir. Úsáideann an tástáil an seoltóir sábháilte, mar sin sábháil ar dtús."
+      },
+      "validation": {
+        "port": "Cuir isteach port ó 1 go 65535, nó fág folamh é don réamhshocrú."
+      },
+      "errors": {
+        "locked": "Tá {{field}} socraithe ag timpeallacht an fhreastalaí agus ní féidir é a athrú anseo.",
+        "open_needs_sender": "Teastaíonn seoltóir ríomhphoist ó chlárú oscailte, mar go ndeimhníonn cuntais nua a seoladh ríomhphoist. Socraigh an seoltóir ar dtús, nó sa sábháil chéanna.",
+        "sender_needed": "Tá an clárú oscailte, agus teastaíonn an seoltóir ó chuntais nua chun a seoladh ríomhphoist a dheimhniú. Athraigh an clárú go le cuireadh amháin ar dtús.",
+        "no_sender": "Níl seoltóir ríomhphoist ann. Sábháil seoltóir ar dtús."
+      }
     }
   },
   "auth": {
@@ -1406,7 +1536,8 @@
       "updated_success": "Nuashonraíodh an Notifier go rathúil"
     },
     "new": {
-      "title": "Cán Fógra Nua"
+      "title": "Cán Fógra Nua",
+      "default_hint": "Beidh tic ar an gcainéal seo ar mhonatóirí nua."
     },
     "no_important": "Ní bhfaightear fógraí tábhachtacha.",
     "placeholders": {
@@ -1758,6 +1889,7 @@
       "refresh_in": "Athraigh i",
       "refresh_now": "Athbhreithnigh Anois",
       "status_page_not_found": "Níor aimsíodh an leathanach stádas nó níl foilsithe.",
+      "status_page_unavailable": "Níl an leathanach stádais seo ar fáil",
       "under_maintenance": "Faoi mhian",
       "unknown": "Anaithnid"
     }
@@ -1887,6 +2019,11 @@
     "refresh_failed": "Níorbh fhéidir do spásanna oibre a luchtú. Seiceáil do cheangal agus bain triail eile as.",
     "rename_error": "Theip ar athainmniú an spáis oibre",
     "rename_success": "Athainmníodh an spás oibre",
+    "suspended_banner": {
+      "contact": "Le teagmháil a dhéanamh:",
+      "message": "Tá an spás oibre seo curtha ar fionraí ag riarthóir na suiteála seo. Ní ritheann a mhonaitiseoirí, agus níl a leathanaigh stádais ar fáil.",
+      "no_contact": "Déan teagmháil leis an duine a ritheann an tsuiteáil seo."
+    },
     "switcher_label": "Athraigh spás oibre"
   },
   "get_started": {

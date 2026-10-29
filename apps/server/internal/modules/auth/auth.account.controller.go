@@ -26,10 +26,10 @@ func (c *Controller) AuthConfig(ctx context.Context, _ *AuthConfigInput) (*httpx
 	// The sign-up form is offered always in open mode, and in invite mode to the first user
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Auth config retrieved successfully", &AuthConfigResponse{
 		AccountEmails:    c.accounts.Enabled(),
-		SignupMode:       c.signup.Mode(),
-		SignupOpen:       c.signup.Open() || first,
+		SignupMode:       c.signup.Mode(ctx),
+		SignupOpen:       c.signup.Open(ctx) || first,
 		FirstSignup:      first,
-		TurnstileSiteKey: c.signup.TurnstileSiteKey(),
+		TurnstileSiteKey: c.signup.TurnstileSiteKey(ctx),
 	}))
 }
 

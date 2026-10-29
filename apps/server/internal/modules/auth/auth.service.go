@@ -10,6 +10,7 @@ import (
 
 	"peekaping/internal/config"
 	"peekaping/internal/dbtx"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/pquerna/otp/totp"
@@ -56,8 +57,9 @@ type ServiceImpl struct {
 	tokenMaker *TokenMaker
 	verifier   Verifier
 	logger     *zap.SugaredLogger
-	// openSignup is SIGNUP_MODE=open: anyone may register, and gets a workspace of their own
-	openSignup bool
+	// openSignup is whether signup is open now: anyone may register, and gets a workspace of their
+	// own. Nil is an install whose signup is by invite.
+	openSignup func(ctx context.Context) bool
 	// disabledMonitorTypes are the monitor types the install turns off (DISABLED_MONITOR_TYPES), as
 	// /me lists them
 	disabledMonitorTypes []string
@@ -73,7 +75,13 @@ type ServiceOption func(*ServiceImpl)
 // WithOpenSignup lets anyone register, as SIGNUP_MODE=open does. Without it only the install's
 // first user may, apart from those who register through an invite.
 func WithOpenSignup(open bool) ServiceOption {
-	return func(s *ServiceImpl) { s.openSignup = open }
+	return func(s *ServiceImpl) { s.openSignup = func(context.Context) bool { return open } }
+}
+
+// WithSignupMode reads whether signup is open from the install settings at each registration, so
+// that a mode an instance admin saves takes effect without a restart
+func WithSignupMode(settings *installsettings.Resolver) ServiceOption {
+	return func(s *ServiceImpl) { s.openSignup = settings.SignupOpen }
 }
 
 // WithDisabledMonitorTypes sets the monitor types /me tells the app to hide, as
@@ -123,7 +131,7 @@ func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResp
 	if dto.InviteToken != "" {
 		return s.registerThroughInvite(ctx, dto)
 	}
-	if s.openSignup {
+	if s.openSignup != nil && s.openSignup(ctx) {
 		return s.registerOpen(ctx, dto)
 	}
 	count, err := s.repo.FindAllCount(ctx)

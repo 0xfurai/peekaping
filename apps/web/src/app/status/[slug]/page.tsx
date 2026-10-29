@@ -22,6 +22,8 @@ import type { StatusPageMonitorWithHeartbeatsAndUptimeDto } from "@/api/types.ge
 import BarHistory from "@/components/bars";
 import { NoData } from "@/components/no-data";
 import { hasPublicLocations, publicMonitorStatus } from "../public-status";
+import { StatusPageUnavailable } from "../status-page-unavailable";
+import { isStatusPageUnavailable } from "@/lib/admin-workspaces";
 import { ThemeToggle } from "../../../components/theme-toggle";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
@@ -137,6 +139,9 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
       </div>
     );
   }
+
+  // The page's workspace is suspended: a neutral notice, not an error
+  if (isStatusPageUnavailable(statusPageError)) return <StatusPageUnavailable />;
 
   // Handle error state
   if (statusPageError) {

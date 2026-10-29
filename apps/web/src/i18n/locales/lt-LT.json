@@ -8,7 +8,9 @@
       "back_to_workspace": "Atgal į {{name}}",
       "probes": "Zondai",
       "title": "Administravimas",
-      "users": "Naudotojai"
+      "users": "Naudotojai",
+      "workspaces": "Darbo erdvės",
+      "settings": "Nustatymai"
     },
     "users": {
       "actions": {
@@ -100,6 +102,134 @@
         "yes": "Taip"
       },
       "you": "jūs"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ištrinti darbo erdvę",
+        "resume": "Tęsti darbo erdvės veiklą",
+        "suspend": "Sustabdyti darbo erdvę"
+      },
+      "actions_aria": "{{name}} veiksmai",
+      "columns": {
+        "created": "Sukurta",
+        "custom_domains": "Pasirinktiniai domenai",
+        "members": "Nariai",
+        "monitors": "Monitoriai",
+        "name": "Pavadinimas",
+        "owners": "Savininkai",
+        "status": "Būsena",
+        "status_pages": "Būsenos puslapiai"
+      },
+      "confirm": {
+        "cancel": "Atšaukti",
+        "delete": {
+          "confirm": "Ištrinti darbo erdvę",
+          "description": "Ištrinti {{name}}? Bus pašalinta viskas, kas joje yra: monitoriai ir jų istorija, būsenos puslapiai, pranešimų kanalai ir narių prieiga. Šio veiksmo anuliuoti negalima.",
+          "name_label": "Norėdami patvirtinti, įveskite darbo erdvės pavadinimą: {{name}}",
+          "title": "Ištrinti darbo erdvę"
+        },
+        "resume": {
+          "confirm": "Tęsti",
+          "description": "{{name}} monitoriai vėl veiks tokios būsenos, kokios buvo, o nariai galės ja naudotis kaip anksčiau. Darbo erdvė, laukianti, kol savininkas patvirtins el. paštą, ir toliau lauks.",
+          "title": "Tęsti darbo erdvės veiklą"
+        },
+        "suspend": {
+          "confirm": "Sustabdyti",
+          "description": "{{name}} monitoriai nustoja veikti, jos vieši būsenos puslapiai praneša, kad yra nepasiekiami, o nariai mato, kad ji sustabdyta. Niekas neištrinama, vėliau galėsite jos veiklą tęsti.",
+          "title": "Sustabdyti darbo erdvę"
+        }
+      },
+      "description": "Visos šio diegimo darbo erdvės su jų savininkais, nariais ir tuo, kiek jose yra. Rodomi tik skaičiai, o ne darbo erdvių turinys.",
+      "empty": "Darbo erdvių nerasta",
+      "load_failed": "Nepavyko įkelti darbo erdvių.",
+      "messages": {
+        "deleted": "{{name}} ištrinta",
+        "failed": "Nepavyko pakeisti darbo erdvės.",
+        "resumed": "{{name}} veikla tęsiama",
+        "suspended": "{{name}} sustabdyta"
+      },
+      "monitors": "Aktyvių: {{active}}, pristabdytų: {{paused}}",
+      "none": "Nėra",
+      "page_name": "Darbo erdvės",
+      "paging": {
+        "next": "Kitas",
+        "page": "{{page}} puslapis iš {{pages}}",
+        "previous": "Ankstesnis"
+      },
+      "search_label": "Ieškoti darbo erdvių pagal pavadinimą arba savininko el. paštą",
+      "search_placeholder": "Ieškoti pagal pavadinimą arba savininko el. paštą",
+      "status": {
+        "running": "Veikia",
+        "suspended_admin": "Sustabdė administratorius",
+        "suspended_unverified": "Sustabdyta, kol savininkas patvirtins el. paštą"
+      },
+      "total": "Rasta: {{total}}"
+    },
+    "settings": {
+      "page_name": "Nustatymai",
+      "description": "Visos diegimo sistemos nustatymai. Serverio aplinkos nustatyta reikšmė čia užrakinta.",
+      "load_failed": "Nepavyko įkelti nustatymų.",
+      "saved": "Nustatymai išsaugoti",
+      "save_failed": "Nustatymai nebuvo išsaugoti.",
+      "locked": "Nustatyta serverio aplinkos",
+      "source": {
+        "environment": "Iš serverio aplinkos",
+        "saved": "Išsaugota čia",
+        "default": "Numatytasis"
+      },
+      "signup": {
+        "title": "Registracija",
+        "description": "Kas gali susikurti paskyrą šioje diegimo sistemoje.",
+        "label": "Registracijos režimas",
+        "invite": "Tik su kvietimu",
+        "open": "Atvira",
+        "invite_help": "Pirmasis naudotojas užsiregistruoja, o visi kiti prisijungia prie darbo srities per kvietimą.",
+        "open_help": "Bet kas gali užsiregistruoti ir gauna savo darbo sritį. Naujos paskyros patvirtina savo el. pašto adresą, todėl reikia el. laiškų siuntėjo."
+      },
+      "sender": {
+        "title": "El. laiškų siuntėjas",
+        "description": "SMTP serveris, siunčiantis paskyros laiškus: slaptažodžio atkūrimo nuorodas, el. pašto patvirtinimą ir kvietimus.",
+        "on": "Paskyros laiškai įjungti.",
+        "off": "Paskyros laiškai išjungti: nėra SMTP serverio.",
+        "host": "SMTP serveris",
+        "port": "Portas",
+        "tls": "Saugumas",
+        "tls_starttls": "STARTTLS",
+        "tls_tls": "TLS",
+        "tls_none": "Nėra",
+        "user": "Vartotojas",
+        "password": "slaptažodis",
+        "password_set": "Slaptažodis nustatytas. Įveskite naują, kad jį pakeistumėte.",
+        "password_not_set": "Slaptažodis nenustatytas",
+        "password_removed": "Išsaugojus slaptažodis bus pašalintas.",
+        "remove_password": "Pašalinti slaptažodį",
+        "keep_password": "Palikti slaptažodį",
+        "from": "Siuntėjo adresas"
+      },
+      "public_url": {
+        "title": "Viešas URL",
+        "description": "Žiniatinklio programos adresas, kurį atveria nuorodos laiškuose ir pranešimuose.",
+        "label": "Viešas URL"
+      },
+      "test_email": {
+        "title": "Siųsti bandomąjį laišką",
+        "description": "Išsiunčia trumpą laišką per išsaugotą siuntėją, kad patikrintų, ar jis veikia.",
+        "to": "Siųsti adresu",
+        "send": "Siųsti bandomąjį laišką",
+        "sending": "Siunčiama…",
+        "sent": "Bandomasis laiškas išsiųstas adresu {{to}}.",
+        "failed": "Bandomasis laiškas nebuvo išsiųstas.",
+        "unsaved": "Siuntėjas turi neišsaugotų pakeitimų. Bandymas naudoja išsaugotą siuntėją, todėl pirmiausia išsaugokite."
+      },
+      "validation": {
+        "port": "Įveskite prievadą nuo 1 iki 65535 arba palikite tuščią numatytajai reikšmei."
+      },
+      "errors": {
+        "locked": "{{field}} nustato serverio aplinka, todėl čia to pakeisti negalima.",
+        "open_needs_sender": "Atvirai registracijai reikia el. laiškų siuntėjo, nes naujos paskyros patvirtina savo el. pašto adresą. Pirmiausia nustatykite siuntėją arba tai padarykite tame pačiame išsaugojime.",
+        "sender_needed": "Registracija atvira, o naujoms paskyroms reikia siuntėjo el. pašto adresui patvirtinti. Pirmiausia perjunkite registraciją į tik su kvietimu.",
+        "no_sender": "Nėra el. laiškų siuntėjo. Pirmiausia išsaugokite siuntėją."
+      }
     }
   },
   "auth": {
@@ -1407,7 +1537,8 @@
       "updated_success": "Pranešiklis sėkmingai atnaujintas"
     },
     "new": {
-      "title": "Naujas pranešimų kanalas"
+      "title": "Naujas pranešimų kanalas",
+      "default_hint": "Šis kanalas bus pažymėtas naujuose monitoriuose."
     },
     "no_important": "Nėra svarbių pranešimų.",
     "placeholders": {
@@ -1759,6 +1890,7 @@
       "refresh_in": "Per",
       "refresh_now": "Atnaujinti dabar",
       "status_page_not_found": "Statuso puslapis nerastas arba nebuvo paskelbtas.",
+      "status_page_unavailable": "Šis būsenos puslapis nepasiekiamas",
       "under_maintenance": "Priežiūroje",
       "unknown": "Nežinoma"
     }
@@ -1888,6 +2020,11 @@
     "refresh_failed": "Nepavyko įkelti jūsų darbo sričių. Patikrinkite ryšį ir bandykite dar kartą.",
     "rename_error": "Nepavyko pervadinti darbo erdvės",
     "rename_success": "Darbo erdvė pervadinta",
+    "suspended_banner": {
+      "contact": "Susisiekti:",
+      "message": "Šią darbo erdvę sustabdė šio diegimo administratorius. Jos monitoriai neveikia, o būsenos puslapiai nepasiekiami.",
+      "no_contact": "Susisiekite su asmeniu, kuris prižiūri šį diegimą."
+    },
     "switcher_label": "Perjungti darbo erdvę"
   },
   "get_started": {
