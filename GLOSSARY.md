@@ -226,7 +226,7 @@ A workspace held back with a reason. Its monitors are kept, listed and editable,
 _Avoid_: Disabled, frozen, paused (that's a monitor switched off by a person)
 
 **Account emails**:
-The emails an account gets: a password reset link, a verification link for its address, and an invite. One sender sends them for the whole install, set with `ACCOUNT_SMTP_*`; it is separate from the SMTP settings of an email notification channel. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
+The emails an account gets: a password reset link, a verification link for its address, and an invite. It is also told, in a notice that carries no link, when an instance admin makes a password reset link for it or turns off its two-step verification. One sender sends them for the whole install, set with `ACCOUNT_SMTP_*`; it is separate from the SMTP settings of an email notification channel. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
 _Avoid_: Transactional email, system email
 
 ### Deployment
