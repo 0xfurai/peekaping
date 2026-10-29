@@ -85,10 +85,13 @@ func (h *hourlyCleanup) runHourly(ctx context.Context, now time.Time) {
 	}
 
 	h.logger.Infow("Running the hourly cleanup", "hour", label)
-	cleanupHeartbeats(h.heartbeats, h.workspaces, h.workspaceSettings, h.caps, h.logger)
+	// One read of the caps for the run, so that the heartbeats and the probe status changes go by
+	// the same ones
+	caps := readCaps(ctx, h.caps, h.logger)
+	cleanupHeartbeats(h.heartbeats, h.workspaces, h.workspaceSettings, caps, h.logger)
 	cleanupStats(h.stats, h.logger)
 	cleanupNotificationHistory(h.notificationHistory, h.retention.NotificationHistoryDays, h.logger)
 	cleanupMonitorTLSInfo(h.tlsInfo, h.retention.TLSInfoDays, h.logger)
-	cleanupProbeStatusChanges(h.probes, h.workspaces, h.workspaceSettings, h.caps, h.logger)
+	cleanupProbeStatusChanges(h.probes, h.workspaces, h.workspaceSettings, caps, h.logger)
 	cleanupAccountTokens(h.accountTokens, now, h.logger)
 }
