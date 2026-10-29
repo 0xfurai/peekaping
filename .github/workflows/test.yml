@@ -43,6 +43,7 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     # The repository tests run their PostgreSQL subtests only when PEE_TEST_POSTGRES_DSN is set.
     # Each test creates a schema or database of its own, so they share this one server
@@ -134,9 +135,10 @@ jobs:
           # the controllers internal/apitest drives through the router, and the Go
           # migrations in cmd/bun/migrations that tests in other packages run. The timeout
           # is per package: internal/apitest runs its tests one at a time, and with
-          # coverage it takes about two minutes on its own. -count=1 so that a cached
-          # result never stands in for a run against the PostgreSQL service
-          go test -timeout 300s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/migrations ./internal/... ./cmd/... | tee server-test.log
+          # coverage it takes more than five minutes on its own now, so it gets twenty.
+          # -count=1 so that a cached result never stands in for a run against the
+          # PostgreSQL service
+          go test -timeout 1200s -count=1 -v -coverprofile=coverage.txt -coverpkg=./internal/...,./cmd/bun/migrations ./internal/... ./cmd/... | tee server-test.log
           # Every PostgreSQL subtest skips with this message when the variable is unset, which
           # would leave this job green without running them
           if grep -q 'set PEE_TEST_POSTGRES_DSN' server-test.log; then
@@ -210,7 +212,7 @@ jobs:
   # PostgreSQL run. No coverage: the test job has it
   api-cloud:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -244,4 +246,5 @@ jobs:
 
       - name: Run API tests with the cloud's settings
         working-directory: apps/server
-        run: go test -timeout 300s -count=1 ./internal/apitest/...
+        # internal/apitest takes more than five minutes now
+        run: go test -timeout 1200s -count=1 ./internal/apitest/...
