@@ -62,7 +62,7 @@
           },
           "retention_days": {
             "$ref": "#/components/schemas/admin.LimitSettingResponse",
-            "description": "The longest data retention period a workspace may keep, in days."
+            "description": "The longest data retention period a workspace may keep, in days. It is saved, but does not cap a workspace's data retention yet."
           },
           "status_pages": {
             "$ref": "#/components/schemas/admin.LimitSettingResponse",
@@ -551,8 +551,9 @@
             ]
           },
           "retention_days": {
-            "description": "The longest data retention period a workspace may keep, 1 to 36500 days. Null clears it: no limit.",
+            "description": "The longest data retention period a workspace may keep, 1 to 36500 days. It is saved and checked, but does not cap a workspace's data retention yet. Null clears it: no limit.",
             "format": "int64",
+            "maximum": 36500,
             "minimum": 1,
             "type": [
               "integer",
