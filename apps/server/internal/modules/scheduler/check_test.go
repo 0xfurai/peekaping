@@ -13,28 +13,55 @@ import (
 	"peekaping/internal/modules/shared"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
+// recordingPushExecutor is the push executor, recording what each of its checks returned
+type recordingPushExecutor struct {
+	*executor.PushExecutor
+	mu       sync.Mutex
+	returned map[string][]*executor.Result
+}
+
+func (e *recordingPushExecutor) Execute(ctx context.Context, m *executor.Monitor, proxy *executor.Proxy) *executor.Result {
+	result := e.PushExecutor.Execute(ctx, m, proxy)
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.returned[m.ID] = append(e.returned[m.ID], result)
+	return result
+}
+
+// returnedFor is what the monitor's checks returned, oldest first
+func (e *recordingPushExecutor) returnedFor(monitorID string) []*executor.Result {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return slices.Clone(e.returned[monitorID])
+}
+
 func TestScheduler_APushMonitorsCheckSeesItsLatestPush(t *testing.T) {
 	t.Parallel()
-	h := newHarness(t, func(cfg *Config) {
-		cfg.Executors = executorsByType{"push": executor.NewPushExecutor(zap.NewNop().Sugar())}
-	})
+	push := &recordingPushExecutor{PushExecutor: executor.NewPushExecutor(zap.NewNop().Sugar()), returned: map[string][]*executor.Result{}}
+	h := newHarness(t, func(cfg *Config) { cfg.Executors = executorsByType{"push": push} })
 	h.db.put(monitorWith("pushed", withInterval(60), ofType("push")))
 	h.db.put(monitorWith("silent", withInterval(60), ofType("push")))
 	h.db.setLastHeartbeat(shared.HeartBeatModel{MonitorID: "pushed", Status: shared.MonitorStatusUp, Time: time.Now().Add(-10 * time.Second)})
 
 	h.start()
 
-	eventually(t, 2*time.Second, func() bool { return len(h.ingest.ingested()) >= 1 }, "the silent monitor is reported")
-	time.Sleep(200 * time.Millisecond)
-	results := h.ingest.ingested()
-	require.Len(t, results, 1, "a push that came in time needs no heartbeat")
-	assert.Equal(t, "silent", results[0].MonitorID)
-	assert.Equal(t, shared.MonitorStatusDown, results[0].Status)
-	assert.Equal(t, "No push received yet", results[0].Message)
+	// Both are checked at the start, and again on the next whole minute: a start just before
+	// one checks them twice
+	eventually(t, 2*time.Second, func() bool { return len(push.returnedFor("pushed")) >= 1 }, "the pushed monitor is checked")
+	eventually(t, 2*time.Second, func() bool { return h.ingestedFor("silent") >= 1 }, "the silent monitor is reported")
+	for _, result := range push.returnedFor("pushed") {
+		assert.Nil(t, result, "a push that came in time needs no heartbeat")
+	}
+	assert.Zero(t, h.ingestedFor("pushed"), "a push that came in time needs no heartbeat")
+	for _, result := range h.ingest.ingested() {
+		if result.MonitorID == "silent" {
+			assert.Equal(t, shared.MonitorStatusDown, result.Status)
+			assert.Equal(t, "No push received yet", result.Message)
+		}
+	}
 }
 
 func TestScheduler_IngestsACheckWithTheMonitorsSettings(t *testing.T) {
