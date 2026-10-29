@@ -47,13 +47,13 @@ func installEmailTeamUnverified(t *testing.T, a *app) workspace.ID {
 
 func TestInstallEmailChannel_AMembersAddressIsSavedAndTheNotificationGoesToIt(t *testing.T) {
 	forEachDatabaseWithMail(t, func(t *testing.T, a *app, mail *smtptest.Server) {
-		installEmailTeam(t, a)
+		team := installEmailTeam(t, a)
 		a.takeNotificationsFromTheQueue(t)
 
 		// the address is compared trimmed and ignoring case
 		w := a.request(t, http.MethodPost, channelsPath, installEmailBody("Mail the team", " Member@Example.COM "), a.asAdmin)
 		channel := decode[created](t, w, http.StatusCreated).ID
-		decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors",
+		monitorID := decode[created](t, a.request(t, http.MethodPost, "/api/v1/monitors",
 			with(pushMonitorBody("Nightly backup", "install-email-token"), "notification_ids", []string{channel}), a.asAdmin), http.StatusCreated)
 
 		require.Equal(t, http.StatusOK, a.request(t, http.MethodGet, "/api/v1/push/install-email-token?status=down&msg=disk%20full", nil).Code)
@@ -63,8 +63,10 @@ func TestInstallEmailChannel_AMembersAddressIsSavedAndTheNotificationGoesToIt(t 
 		require.Eventually(t, func() bool { return len(mailTo(mail, typed)) >= 1 }, 10*time.Second, 20*time.Millisecond, "the notification is mailed to the member")
 		sent := mailTo(mail, typed)[0]
 		assert.Equal(t, senderAddress, sent.From, "from the install's sender")
-		assert.Equal(t, "Peekaping Notification", subjectOf(t, sent))
-		assert.Contains(t, textOf(t, sent), "disk full")
+		assert.Equal(t, "Nightly backup is Down", subjectOf(t, sent), "the subject names the monitor and its status")
+		text := textOf(t, sent)
+		assert.Contains(t, text, "disk full")
+		assert.Contains(t, text, clientURL+"/w/"+string(team)+"/monitors/"+monitorID.ID, "the email links to the monitor's page")
 	})
 }
 

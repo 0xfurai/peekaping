@@ -1404,7 +1404,8 @@
       "updated_success": "Nuashonraíodh an Notifier go rathúil"
     },
     "new": {
-      "title": "Cán Fógra Nua"
+      "title": "Cán Fógra Nua",
+      "default_hint": "Beidh tic ar an gcainéal seo ar mhonatóirí nua."
     },
     "no_important": "Ní bhfaightear fógraí tábhachtacha.",
     "placeholders": {

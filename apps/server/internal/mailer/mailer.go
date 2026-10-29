@@ -12,18 +12,22 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"mime"
 	"mime/multipart"
 	"mime/quotedprintable"
+	"net"
 	"net/mail"
 	"net/smtp"
 	"net/textproto"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"peekaping/internal/config"
@@ -116,14 +120,42 @@ func (m *Mailer) Deliver(to, subject, text, html string) {
 	})
 }
 
-// Describe says why a Send failed in a form that is safe to log: the SMTP reply code, or the type of
-// the error. It never carries the text of the error, because an SMTP server echoes the recipient's
-// address in a rejection ("550 5.1.1 <alice@example.com>: user unknown") and net/smtp returns that
-// text.
+// Describe says why a Send failed in a form that is safe to log: the SMTP reply code, or the class
+// of the failure (a host name that does not resolve, a certificate that does not verify, the network
+// operation and the OS error, a timeout), or else the type of the error. It never carries the text of
+// the error, because an SMTP server echoes the recipient's address in a rejection
+// ("550 5.1.1 <alice@example.com>: user unknown") and net/smtp returns that text. A network error's
+// text names the server's address too.
 func Describe(err error) string {
 	var reply *textproto.Error
 	if errors.As(err, &reply) {
 		return fmt.Sprintf("the server replied %d", reply.Code)
+	}
+	var dnsErr *net.DNSError
+	if errors.As(err, &dnsErr) {
+		switch {
+		case dnsErr.IsNotFound:
+			return "send failed: the host name could not be resolved (not found)"
+		case dnsErr.IsTimeout:
+			return "send failed: the host name could not be resolved (timeout)"
+		}
+		return "send failed: the host name could not be resolved"
+	}
+	if certificateUnverified(err) {
+		return "send failed: the certificate could not be verified"
+	}
+	var opErr *net.OpError
+	if errors.As(err, &opErr) && opErr.Op != "" {
+		// Op is a fixed word of the net package ("dial", "read", "write"), and an errno's text is the
+		// OS's own ("connection refused"); neither names the server
+		var errno syscall.Errno
+		switch {
+		case errors.As(opErr.Err, &errno):
+			return fmt.Sprintf("send failed: %s: %s", opErr.Op, errno.Error())
+		case opErr.Timeout():
+			return fmt.Sprintf("send failed: %s: timed out", opErr.Op)
+		}
+		return fmt.Sprintf("send failed: %s: %T", opErr.Op, leaf(opErr))
 	}
 	if errors.Is(err, context.DeadlineExceeded) {
 		return "send failed: timed out"
@@ -131,15 +163,32 @@ func Describe(err error) string {
 	if errors.Is(err, context.Canceled) {
 		return "send failed: cancelled"
 	}
-	leaf := err
-	for {
-		next := errors.Unwrap(leaf)
-		if next == nil {
-			break
-		}
-		leaf = next
+	var netErr net.Error
+	if errors.As(err, &netErr) && netErr.Timeout() {
+		return "send failed: timed out"
 	}
-	return fmt.Sprintf("send failed: %T", leaf)
+	return fmt.Sprintf("send failed: %T", leaf(err))
+}
+
+// certificateUnverified is whether err is a TLS certificate that failed verification
+func certificateUnverified(err error) bool {
+	var verification *tls.CertificateVerificationError
+	var unknownAuthority x509.UnknownAuthorityError
+	var hostname x509.HostnameError
+	var invalid x509.CertificateInvalidError
+	return errors.As(err, &verification) || errors.As(err, &unknownAuthority) ||
+		errors.As(err, &hostname) || errors.As(err, &invalid)
+}
+
+// leaf is the deepest error err wraps
+func leaf(err error) error {
+	for {
+		next := errors.Unwrap(err)
+		if next == nil {
+			return err
+		}
+		err = next
+	}
 }
 
 // Background runs fn in its own goroutine with a context that ends after deliverTimeout, and Wait

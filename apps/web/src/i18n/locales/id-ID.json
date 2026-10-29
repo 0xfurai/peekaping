@@ -1405,7 +1405,8 @@
       "updated_success": "Notifier berhasil diperbarui"
     },
     "new": {
-      "title": "Saluran Pemberitahuan Baru"
+      "title": "Saluran Pemberitahuan Baru",
+      "default_hint": "Saluran ini akan dicentang pada monitor baru."
     },
     "no_important": "Tidak ada notifikasi penting.",
     "placeholders": {
