@@ -206,6 +206,20 @@ type Config struct {
 	// is the value to read: a Config built without the variable counts as 20.
 	MinCheckInterval int `env:"MIN_CHECK_INTERVAL" validate:"min=20" default:"20"`
 
+	// WorkspaceLimit* are the install's default limits (PP-160, package limits): what a workspace
+	// that has no limits of its own is held to. Each is unset, or 0, by default, which is no limit,
+	// so an install that sets none has no limits. WorkspaceLimitMonitors counts active monitors,
+	// WorkspaceLimitMinCheckInterval is in seconds and applies beside MIN_CHECK_INTERVAL (the
+	// stricter wins), and WorkspaceLimitProbesPerMonitor is how many probes one monitor runs on.
+	WorkspaceLimitMonitors         int `env:"WORKSPACE_LIMIT_MONITORS" validate:"min=0" default:"0"`
+	WorkspaceLimitMinCheckInterval int `env:"WORKSPACE_LIMIT_MIN_CHECK_INTERVAL" validate:"min=0" default:"0"`
+	WorkspaceLimitStatusPages      int `env:"WORKSPACE_LIMIT_STATUS_PAGES" validate:"min=0" default:"0"`
+	WorkspaceLimitCustomDomains    int `env:"WORKSPACE_LIMIT_CUSTOM_DOMAINS" validate:"min=0" default:"0"`
+	WorkspaceLimitMembers          int `env:"WORKSPACE_LIMIT_MEMBERS" validate:"min=0" default:"0"`
+	WorkspaceLimitOwnedWorkspaces  int `env:"WORKSPACE_LIMIT_OWNED_WORKSPACES" validate:"min=0" default:"0"`
+	WorkspaceLimitProbesPerMonitor int `env:"WORKSPACE_LIMIT_PROBES_PER_MONITOR" validate:"min=0" default:"0"`
+	WorkspaceLimitRetentionDays    int `env:"WORKSPACE_LIMIT_RETENTION_DAYS" validate:"min=0" default:"0"`
+
 	// SupportContact is how a member of a suspended workspace gets in touch with whoever runs the
 	// install (PP-372): free text, an email address or a URL, shown in the suspension banner and
 	// returned by GET /me. Unset, the banner says nothing about how.
