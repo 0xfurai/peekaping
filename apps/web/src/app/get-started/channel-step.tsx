@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  getNotificationChannelsInfiniteQueryKey,
   getMonitorsByIdQueryKey,
   patchMonitorsByIdMutation,
   postNotificationChannelsMutation,
@@ -10,6 +9,7 @@ import CreateEditNotificationChannel from "@/app/notification-channels/component
 import type { NotificationChannelFormValues } from "@/app/notification-channels/channel-types/registry";
 import { useMe } from "@/hooks/useMe";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { invalidateChannelLists } from "@/app/notification-channels/channel-queries";
 import { createChannelAndLink, getStartedChannelTypes } from "@/lib/get-started";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { SkipSetup } from "./skip-setup";
@@ -33,7 +33,7 @@ export function ChannelStep({ monitorId, onSaved }: { monitorId: string | null; 
         create: async (body) => (await createChannel.mutateAsync({ body })).data,
         link: (id, channelId) => linkChannel.mutateAsync({ path: { id }, body: { notification_ids: [channelId] } }),
       });
-      queryClient.invalidateQueries({ queryKey: getNotificationChannelsInfiniteQueryKey() });
+      invalidateChannelLists(queryClient);
       if (monitorId) queryClient.removeQueries({ queryKey: getMonitorsByIdQueryKey({ path: { id: monitorId } }) });
       if (result.kind === "link_failed") toast.error(t("get_started.channel.link_failed"));
       else toast.success(t("notifications.messages.created_success"));

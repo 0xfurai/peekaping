@@ -1405,7 +1405,8 @@
       "updated_success": "Notifier 업데이트가 완료되었습니다."
     },
     "new": {
-      "title": "새 알림 채널"
+      "title": "새 알림 채널",
+      "default_hint": "이 채널은 새 모니터에서 선택된 상태가 됩니다."
     },
     "no_important": "중요 알림이 없습니다.",
     "placeholders": {
