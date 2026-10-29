@@ -31,7 +31,7 @@ const banner = (
 
 describe("SuspendedWorkspaceBanner", () => {
   // As the markup has it, apostrophes escaped
-  const message = text("workspaces.suspended_banner.message").replaceAll("'", "&#x27;");
+  const message = text("workspaces.suspended_banner.message").replace(/'/g, "&#x27;");
 
   it("tells every member an admin suspended the workspace, with a mailto link for an email contact", () => {
     for (const role of ["owner", "member"] as const) {
