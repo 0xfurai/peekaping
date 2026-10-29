@@ -6,6 +6,7 @@ package validation
 import (
 	"encoding/json"
 	"strings"
+	"sync"
 	"unicode"
 
 	"github.com/go-playground/validator/v10"
@@ -64,8 +65,12 @@ func validatePassword(fl validator.FieldLevel) bool {
 	return hasUpper && hasLower && hasNumber && hasSpecial
 }
 
+// registerCustom registers the custom rules once. The validator's Register methods are not safe
+// while another goroutine validates, and the API tests build many servers in one process.
+var registerCustom sync.Once
+
 func RegisterCustomValidators() {
-	Validate.RegisterValidation("password", validatePassword)
+	registerCustom.Do(func() { Validate.RegisterValidation("password", validatePassword) })
 }
 
 // InitializeValidator registers all custom validators on the global Validate instance
