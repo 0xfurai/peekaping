@@ -1404,7 +1404,8 @@
       "updated_success": "Notifikator je uspješno ažuriran"
     },
     "new": {
-      "title": "Novi kanal obavijesti"
+      "title": "Novi kanal obavijesti",
+      "default_hint": "Ovaj kanal bit će označen na novim monitorima."
     },
     "no_important": "Nema važnih obavijesti.",
     "placeholders": {
