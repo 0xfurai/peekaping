@@ -12,13 +12,16 @@ import (
 	"peekaping/internal/modules/monitor_tag"
 	"peekaping/internal/modules/monitor_tls_info"
 	"peekaping/internal/modules/stale"
+	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/netguard"
 	"peekaping/internal/utils"
 	"peekaping/internal/validation"
+	"slices"
 	"strings"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 )
 
@@ -196,7 +199,7 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	monitor.ApplyCreateDefaults()
 
 	if err := validation.Validate.Struct(monitor); err != nil {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return nil, ic.failValidation(ctx, workspaceID, err, &monitor.Interval, &monitor.RetryInterval)
 	}
 
 	// Validate monitor type and config
@@ -298,7 +301,7 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 
 	// validate
 	if err := validation.Validate.Struct(monitor); err != nil {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return nil, ic.failValidation(ctx, workspaceID, err, &monitor.Interval, &monitor.RetryInterval)
 	}
 
 	// Validate monitor type and config
@@ -364,7 +367,7 @@ func (ic *MonitorController) UpdatePartial(ctx context.Context, input *UpdatePar
 	}
 
 	if err := validation.Validate.Struct(monitor); err != nil {
-		return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		return nil, ic.failValidation(ctx, workspaceID, err, monitor.Interval, monitor.RetryInterval)
 	}
 
 	updatedMonitor, err := ic.monitorService.UpdatePartial(ctx, workspaceID, id, &monitor, false)
@@ -466,6 +469,38 @@ func pushTokenTakenResponse(err *PushTokenAlreadyUsedError) error {
 // monitor can't be given it
 func monitorTypeDisabledResponse(err *MonitorTypeDisabledError) error {
 	return httpx.Fail(http.StatusBadRequest, MonitorTypeDisabledResponse{Message: err.Error(), Error: err})
+}
+
+// failValidation answers a write whose DTO fails validation. An interval or retry interval below the
+// DTOs' min=20 is below the install's minimum too, so it gets the same INTERVAL_TOO_SHORT answer as
+// the service's own check, with the minimum the service enforces for the workspace (the install's,
+// or the workspace's own limit when that is stricter). It wins over the other failures of the
+// request, as the client can't tell the refusal by its code otherwise. Anything else is the usual
+// 400 with the validator's message.
+func (ic *MonitorController) failValidation(ctx context.Context, workspaceID workspace.ID, err error, interval, retryInterval *int) error {
+	var invalid validator.ValidationErrors
+	if errors.As(err, &invalid) {
+		for _, f := range []struct {
+			name, structField string
+			value             *int
+		}{
+			{"interval", "Interval", interval},
+			{"retry_interval", "RetryInterval", retryInterval},
+		} {
+			tooShort := slices.ContainsFunc(invalid, func(fe validator.FieldError) bool {
+				return fe.StructField() == f.structField && fe.Tag() == "min"
+			})
+			if tooShort && f.value != nil {
+				minimum, minErr := ic.monitorService.MinCheckInterval(ctx, workspaceID)
+				if minErr != nil {
+					ic.logger.Errorw("Failed to read the minimum check interval", "error", minErr)
+					return httpx.Fail(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+				}
+				return intervalTooShortResponse(intervalTooShortError(f.name, *f.value, minimum))
+			}
+		}
+	}
+	return httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 }
 
 // intervalTooShortResponse tells the client that the interval or retry interval it sent is below the

@@ -280,6 +280,9 @@ func TestLimits_MinCheckInterval_TheWorkspacesLimitAppliesOnSaveAndAtRunTime(t *
 
 	assertIntervalTooShortAt(t, a.request(t, http.MethodPost, monitorsPath, with(httpMonitorBody("New", ""), "interval", 90), a.asAdmin), "interval", 120)
 	assertIntervalTooShortAt(t, a.request(t, http.MethodPatch, monitorsPath+"/"+stored, map[string]any{"retry_interval": 90}, a.asAdmin), "retry_interval", 120)
+	// Below the DTOs' 20 the refusal names the same minimum the service enforces
+	assertIntervalTooShortAt(t, a.request(t, http.MethodPost, monitorsPath, with(httpMonitorBody("New", ""), "interval", 10), a.asAdmin), "interval", 120)
+	assertIntervalTooShortAt(t, a.request(t, http.MethodPatch, monitorsPath+"/"+stored, map[string]any{"retry_interval": 10}, a.asAdmin), "retry_interval", 120)
 	decode[limitedMonitor](t, a.request(t, http.MethodPost, monitorsPath, with(with(httpMonitorBody("New", ""), "interval", 120), "retry_interval", 120), a.asAdmin), http.StatusCreated)
 
 	found, err := a.schedulerSource(t).Find(context.Background(), stored)
