@@ -39,8 +39,11 @@ services:
   mailpit:
     image: axllent/mailpit:v1.27
     restart: unless-stopped
+    # Loopback only: Mailpit's API needs no sign-in, and the mail it catches
+    # holds reset links. SMTP isn't published; the install reaches it inside
+    # the network.
     ports:
-      - "${E2E_MAILPIT_PORT:-8025}:8025"
+      - "127.0.0.1:${E2E_MAILPIT_PORT:-8025}:8025"
     networks:
       - default
       - appnet
