@@ -17,6 +17,10 @@ on:
       - 'apps/server/**'
       - '.github/workflows/test-import-mongo.yml'
     branches: [ main, master ]
+  # Nightly, with the other test workflows, for flaky tests and services that changed
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
 
 # A new push to a PR replaces its run in progress, which would otherwise keep
 # its runners busy testing a commit nobody waits for. Other runs get a group of

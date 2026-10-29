@@ -42,10 +42,16 @@ on:
       - '.github/workflows/playwright.yml'
       - '!**/*.md'
     branches: [ main, master ]
+  # Nightly, for the combinations a PR skips (dev PostgreSQL, the single stacks) and for
+  # flaky tests. The other test workflows run at the same time
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
 
 # A new push to a PR replaces its run in progress, which would otherwise keep
-# its runners busy testing a commit nobody waits for. Other runs get a group of
-# their own: a shared one would cancel the queued runs of busy pushes to main.
+# its runners busy testing a commit nobody waits for. Other runs, the nightly one
+# and those started by hand included, get a group of their own: a shared one would
+# cancel the queued runs of busy pushes to main.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
@@ -58,15 +64,16 @@ env:
 jobs:
   # The single jobs check how the single-image bundles are packaged, which only
   # their own files change. A PR runs them when it touches those files; pushes to
-  # main always run them, so an app change that breaks a bundle fails there.
+  # main, the nightly run and a run started by hand always run them, so an app
+  # change that breaks a bundle fails there.
   changes:
     name: Detect single-mode changes
     runs-on: nexus-runner
     outputs:
       single: ${{ github.event_name != 'pull_request' || steps.diff.outputs.single }}
-      # The e2e configs to run. A job's `if` can't read `matrix`, so the single config is left out
-      # of the matrix itself.
-      configs: ${{ (github.event_name != 'pull_request' || steps.diff.outputs.single == 'true') && '["dev","single"]' || '["dev"]' }}
+      # The e2e combinations to run, as a matrix. A job's `if` can't read `matrix`, so the
+      # combinations an event skips are left out of the matrix itself.
+      e2e: ${{ steps.e2e.outputs.matrix }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -80,6 +87,24 @@ jobs:
         else
           echo "single=false" >> "$GITHUB_OUTPUT"
         fi
+    # Every PR runs the dev SQLite stack, with the default suite and the cloud suite (the
+    # open-signup install of e2e/onboarding.spec.ts: SIGNUP_MODE=open and Mailpit as its mail
+    # server, running only the @cloud specs). The dev PostgreSQL stack runs after the merge, nightly
+    # and by hand; the single stacks also run on a PR that changes them.
+    - name: Pick the e2e combinations
+      id: e2e
+      env:
+        EVENT: ${{ github.event_name }}
+        SINGLE: ${{ github.event_name != 'pull_request' || steps.diff.outputs.single == 'true' }}
+      run: |
+        include='{"config":"dev","database":"sqlite","suite":"default"},{"config":"dev","database":"sqlite","suite":"cloud"}'
+        if [ "$EVENT" != pull_request ]; then
+          include="$include"',{"config":"dev","database":"postgres","suite":"default"}'
+        fi
+        if [ "$SINGLE" = true ]; then
+          include="$include"',{"config":"single","database":"sqlite","suite":"default"},{"config":"single","database":"postgres","suite":"default"}'
+        fi
+        echo "matrix={\"include\":[$include]}" | tee -a "$GITHUB_OUTPUT"
 
   # Build each image once, on its own runner, and share it with the test jobs.
   # The dev images don't depend on the database, so both dev jobs reuse them.
@@ -177,16 +202,8 @@ jobs:
     runs-on: nexus-runner
     strategy:
       fail-fast: false
-      matrix:
-        database: [postgres, sqlite]
-        config: ${{ fromJSON(needs.changes.outputs.configs) }}
-        # `suite` is a dimension of its own, with one value for the combinations above, so that the
-        # include below adds a combination instead of adding a key to the dev SQLite one.
-        suite: [default]
-        include:
-          # The open-signup install (e2e/onboarding.spec.ts): the dev SQLite stack with SIGNUP_MODE=open
-          # and Mailpit as its mail server in the environment, running only the @cloud specs.
-          - { database: sqlite, config: dev, suite: cloud }
+      # The combinations the changes job picked for this event
+      matrix: ${{ fromJSON(needs.changes.outputs.e2e) }}
     env:
       # Every docker compose command below runs the stack plus the e2e target and Mailpit. The
       # default suites set no sender in the environment, so Admin → Settings can save one that
@@ -339,9 +356,10 @@ jobs:
       run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || '' }}
 
     # The suite must also pass on the database the first run left behind. It
-    # doubles the run time, so PRs skip it and main checks it after the merge.
+    # doubles the run time, so PRs skip it and main checks it after the merge, nightly and in a
+    # run started by hand.
     - name: Run Playwright tests again on the same database
-      if: ${{ github.event_name == 'push' }}
+      if: ${{ github.event_name != 'pull_request' }}
       run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || '' }}
       env:
         PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun
