@@ -83,10 +83,11 @@ func (r *RabbitMQExecutor) Execute(ctx context.Context, monitor *Monitor, proxyM
 	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(monitor.Timeout)*time.Second)
 	defer cancel()
 
-	// While the guard is on, the management API is called through a transport that dials through it,
-	// so a node that redirects to a blocked address is refused too
+	// With a guard, the management API is called through a transport of this check's that dials
+	// through it, so a node that redirects to a blocked address is refused too, also when the guard
+	// was turned on after the check started
 	client := r.client
-	if r.on() {
+	if r.hasGuard() {
 		var closeIdle func()
 		client, closeIdle = guardedClient(r.guard)
 		defer closeIdle()

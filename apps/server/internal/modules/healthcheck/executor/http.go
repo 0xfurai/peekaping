@@ -246,11 +246,13 @@ func (s *HTTPExecutor) Targets(configJSON string) ([]string, error) {
 	return hosts, nil
 }
 
-// guardTransport makes t dial through the guard while it is on. A transport that has a dial function
-// of its own stops trying HTTP/2 unless asked to, so it is asked to where it tried it before: when
-// it has no TLS config of its own.
+// guardTransport makes t dial through the guard. The guard may be off now: it is asked at each
+// dial, so a guard turned on while a check runs refuses the check's request and its redirects too,
+// and off it lets every dial through. A transport that has a dial function of its own stops trying
+// HTTP/2 unless asked to, so it is asked to where it tried it before: when it has no TLS config of
+// its own.
 func guardTransport(t *http.Transport, guard *netguard.Guard) {
-	if !guard.Enabled() {
+	if guard == nil {
 		return
 	}
 	if t.TLSClientConfig == nil {
@@ -272,9 +274,10 @@ func (d guardedDirect) DialContext(ctx context.Context, network, addr string) (n
 }
 
 // guardedClient is a client for a request that isn't the check's own, such as the OAuth token
-// request. While the guard is off it is http.DefaultClient, as the request used before.
+// request. It is built for the one check, and dials through the guard, which may be turned on while
+// the check runs. With no guard it is http.DefaultClient, as the request used before.
 func guardedClient(guard *netguard.Guard) (*http.Client, func()) {
-	if !guard.Enabled() {
+	if guard == nil {
 		return http.DefaultClient, func() {}
 	}
 	transport := http.DefaultTransport.(*http.Transport).Clone()
@@ -484,7 +487,7 @@ func buildGuardedTransport(base *http.Transport, proxyModel *Proxy, guard *netgu
 		}
 		address := net.JoinHostPort(proxyModel.Host, strconv.Itoa(proxyModel.Port))
 		var forward proxy.Dialer = proxy.Direct
-		if guard.Enabled() {
+		if guard != nil {
 			forward = guardedDirect{guard}
 		}
 		dialer, err := proxy.SOCKS5("tcp", address, auth, forward)
