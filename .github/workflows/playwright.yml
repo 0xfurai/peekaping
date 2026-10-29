@@ -14,6 +14,7 @@ on:
       - 'docker-compose.dev.*.yml'
       - 'docker-compose.single.*.yml'
       - 'docker-compose.e2e.yml'
+      - 'docker-compose.e2e-cloud.yml'
       - 'Dockerfile.single'
       - 'startup.single.sh'
       - 'startup.single.user.sh'
@@ -34,6 +35,7 @@ on:
       - 'docker-compose.dev.*.yml'
       - 'docker-compose.single.*.yml'
       - 'docker-compose.e2e.yml'
+      - 'docker-compose.e2e-cloud.yml'
       - 'Dockerfile.single'
       - 'startup.single.sh'
       - 'startup.single.user.sh'
@@ -168,7 +170,7 @@ jobs:
       run: scripts/test-single-user.sh peekaping-peekaping
 
   playwright-tests:
-    name: E2E ${{ matrix.config }} ${{ matrix.database }}
+    name: E2E ${{ matrix.config }} ${{ matrix.database }}${{ matrix.suite == 'cloud' && ' cloud' || '' }}
     needs: [changes, build-images, build-single-images]
     # Run every combination whose images built, even if another image failed or the single images
     # were skipped.
@@ -180,9 +182,19 @@ jobs:
       matrix:
         database: [postgres, sqlite]
         config: ${{ fromJSON(needs.changes.outputs.configs) }}
+        # `suite` is a dimension of its own, with one value for the combinations above, so that the
+        # include below adds a combination instead of adding a key to the dev SQLite one.
+        suite: [default]
+        include:
+          # The open-signup install with a mail catcher (e2e/onboarding.spec.ts): the dev SQLite stack
+          # with SIGNUP_MODE=open and Mailpit as its mail server, running only the @cloud specs.
+          - { database: sqlite, config: dev, suite: cloud }
     env:
-      # Every docker compose command below runs the stack plus the e2e target.
-      COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml
+      # Every docker compose command below runs the stack plus the e2e target, and the cloud suite's
+      # Mailpit.
+      COMPOSE_FILE: docker-compose.${{ matrix.config }}.${{ matrix.database }}.yml:docker-compose.e2e.yml${{ matrix.suite == 'cloud' && ':docker-compose.e2e-cloud.yml' || '' }}
+      # Where the specs read the mail the install sent; unset for the suites without a mail catcher.
+      E2E_MAILPIT_URL: ${{ matrix.suite == 'cloud' && 'http://localhost:8025' || '' }}
     steps:
     # Prepare environment and dependencies
     - uses: actions/checkout@v4
@@ -265,6 +277,21 @@ jobs:
         ERROR_REPORTING_DSN=http://public@127.0.0.1:9/1
         EOF
 
+    # The cloud suite's install lets anyone sign up and sends its account emails to Mailpit, which
+    # catches them (the emails don't leave the network, and no real address gets one).
+    - name: Add the cloud suite's settings to .env
+      if: ${{ matrix.suite == 'cloud' }}
+      run: |
+        cat >> .env << EOF
+
+        # Open signup, with Mailpit as the sender of account emails
+        SIGNUP_MODE=open
+        ACCOUNT_SMTP_HOST=mailpit
+        ACCOUNT_SMTP_PORT=1025
+        ACCOUNT_SMTP_FROM=peekaping@e2e.test
+        ACCOUNT_SMTP_TLS=none
+        EOF
+
     # Create and prepare data directories with proper permissions
     - name: Prepare data directories
       run: |
@@ -297,14 +324,25 @@ jobs:
         fi
         echo "The stack is healthy"
 
+    - name: Wait for the mail catcher
+      if: ${{ matrix.suite == 'cloud' }}
+      run: |
+        if ! timeout 60 bash -c "until curl -sf $E2E_MAILPIT_URL/readyz; do sleep 2; done" >/dev/null; then
+          echo "::error::Mailpit wasn't ready after 60 seconds"
+          docker compose ps
+          docker compose logs mailpit
+          exit 1
+        fi
+        echo "Mailpit is ready"
+
     - name: Run Playwright tests
-      run: bunx playwright test
+      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || '' }}
 
     # The suite must also pass on the database the first run left behind. It
     # doubles the run time, so PRs skip it and main checks it after the merge.
     - name: Run Playwright tests again on the same database
       if: ${{ github.event_name == 'push' }}
-      run: bunx playwright test
+      run: bunx playwright test ${{ matrix.suite == 'cloud' && '--grep @cloud' || '' }}
       env:
         PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report-rerun
 
@@ -321,7 +359,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
-        name: playwright-report-${{ matrix.config }}-${{ matrix.database }}
+        name: playwright-report-${{ matrix.config }}-${{ matrix.database }}${{ matrix.suite == 'cloud' && '-cloud' || '' }}
         path: |
           playwright-report/
           playwright-report-rerun/
