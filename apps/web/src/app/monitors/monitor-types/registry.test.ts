@@ -34,6 +34,7 @@ const savedMonitor = (body: ReturnType<typeof serializeMonitor>): MonitorMonitor
   tag_ids: body.tag_ids ?? [],
   type_disabled: false,
   active: true,
+  type_disabled: false,
   status: 1,
   created_at: "2026-10-22T00:00:00Z",
   updated_at: "2026-10-22T00:00:00Z",
