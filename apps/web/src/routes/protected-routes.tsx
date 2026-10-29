@@ -8,6 +8,7 @@ import { RequireInstanceAdmin } from "@/components/require-instance-admin";
 import { AdminLayout } from "@/components/admin-layout";
 import { RedirectProbesToAdmin } from "@/components/redirect-probes-to-admin";
 import UsersPage from "@/app/admin/users/page";
+import WorkspacesPage from "@/app/admin/workspaces/page";
 import InstallSettingsPage from "@/app/admin/settings/page";
 import MonitorsPage from "@/app/monitors/page";
 import NewMonitor from "@/app/monitors/new/page";
@@ -44,6 +45,7 @@ import EditTag from "@/app/tags/edit/page";
 export const protectedRoutes = [
   <Route path="/admin" element={<AdminLayout />}>
     <Route path="users" element={<UsersPage />} />
+    <Route path="workspaces" element={<WorkspacesPage />} />
     <Route path="probes" element={<ProbesPage />} />
     <Route path="probes/:id" element={<ProbePage />} />
     <Route path="settings" element={<InstallSettingsPage />} />

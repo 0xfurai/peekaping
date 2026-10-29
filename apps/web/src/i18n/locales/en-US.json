@@ -9,6 +9,7 @@
       "probes": "Probes",
       "title": "Admin",
       "users": "Users",
+      "workspaces": "Workspaces",
       "settings": "Settings"
     },
     "users": {
@@ -101,6 +102,68 @@
         "yes": "Yes"
       },
       "you": "you"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Delete workspace",
+        "resume": "Resume workspace",
+        "suspend": "Suspend workspace"
+      },
+      "actions_aria": "Actions for {{name}}",
+      "columns": {
+        "created": "Created",
+        "custom_domains": "Custom domains",
+        "members": "Members",
+        "monitors": "Monitors",
+        "name": "Name",
+        "owners": "Owners",
+        "status": "Status",
+        "status_pages": "Status pages"
+      },
+      "confirm": {
+        "cancel": "Cancel",
+        "delete": {
+          "confirm": "Delete workspace",
+          "description": "Delete {{name}}? Everything in it goes: its monitors and their history, status pages, notification channels, and its members' access. This can't be undone.",
+          "name_label": "Type the workspace's name to confirm: {{name}}",
+          "title": "Delete workspace"
+        },
+        "resume": {
+          "confirm": "Resume",
+          "description": "The monitors of {{name}} run again in the state they had, and its members can use it as before. A workspace that waits for its owner's email verification keeps waiting.",
+          "title": "Resume workspace"
+        },
+        "suspend": {
+          "confirm": "Suspend",
+          "description": "The monitors of {{name}} stop running, its public status pages say they are unavailable, and its members see that it is suspended. Nothing is deleted, and you can resume it later.",
+          "title": "Suspend workspace"
+        }
+      },
+      "description": "Every workspace on this install, with its owners, its members and how much it holds. Only counts are shown, nothing inside a workspace.",
+      "empty": "No workspaces found",
+      "load_failed": "Couldn't load the workspaces.",
+      "messages": {
+        "deleted": "{{name}} is deleted",
+        "failed": "Couldn't change the workspace.",
+        "resumed": "{{name}} is resumed",
+        "suspended": "{{name}} is suspended"
+      },
+      "monitors": "{{active}} active, {{paused}} paused",
+      "none": "None",
+      "page_name": "Workspaces",
+      "paging": {
+        "next": "Next",
+        "page": "Page {{page}} of {{pages}}",
+        "previous": "Previous"
+      },
+      "search_label": "Search workspaces by name or owner email",
+      "search_placeholder": "Search by name or owner email",
+      "status": {
+        "running": "Running",
+        "suspended_admin": "Suspended by an admin",
+        "suspended_unverified": "Suspended until the owner verifies their email"
+      },
+      "total": "{{total}} found"
     },
     "settings": {
       "page_name": "Settings",
@@ -1473,7 +1536,8 @@
       "updated_success": "Notifier updated successfully"
     },
     "new": {
-      "title": "New Notification Channel"
+      "title": "New Notification Channel",
+      "default_hint": "This channel will be ticked on new monitors."
     },
     "no_important": "No important notifications found.",
     "placeholders": {
@@ -1825,6 +1889,7 @@
       "refresh_in": "Refresh in",
       "refresh_now": "Refresh Now",
       "status_page_not_found": "Status page not found or is not published.",
+      "status_page_unavailable": "This status page is unavailable",
       "under_maintenance": "Under Maintenance",
       "unknown": "Unknown"
     }
@@ -1954,6 +2019,11 @@
     "refresh_failed": "Couldn't load your workspaces. Check your connection and try again.",
     "rename_error": "Failed to rename the workspace",
     "rename_success": "Workspace renamed",
+    "suspended_banner": {
+      "contact": "To get in touch:",
+      "message": "This workspace is suspended by the administrator of this install. Its monitors don't run, and its status pages are unavailable.",
+      "no_contact": "Contact the person who runs this install."
+    },
     "switcher_label": "Switch workspace"
   },
   "get_started": {

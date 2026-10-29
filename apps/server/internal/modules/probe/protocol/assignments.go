@@ -117,6 +117,7 @@ func (c *Controller) assign(ctx context.Context, probeID, instanceID string) (*a
 			online = append(online, caller)
 		}
 	}
+	online = c.dealtTo(online)
 
 	// A monitor is dealt among the instances that run its type, so the monitors to deal are those
 	// that some online instance runs
@@ -133,6 +134,17 @@ func (c *Controller) assign(ctx context.Context, probeID, instanceID string) (*a
 		wire[i] = toWireMonitor(m, proxies)
 	}
 	return &assignment{version: Version(dealable, proxies, online), monitors: wire}, nil
+}
+
+// dealtTo leaves out of instances those that monitors may not be dealt to. While the server blocks
+// private targets (BLOCK_PRIVATE_TARGETS), that is an instance whose hello didn't say it blocks
+// them too: a probe from before the setting ignores it, and would check them. Such an instance is
+// dealt nothing, and the probe's other instances share its monitors.
+func (c *Controller) dealtTo(instances []*probe.Instance) []*probe.Instance {
+	if !c.guard.Enabled() {
+		return instances
+	}
+	return slices.DeleteFunc(slices.Clone(instances), func(i *probe.Instance) bool { return !i.EnforcesPrivateTargetBlock })
 }
 
 // findInstance returns the instance with the id, or nil when there is none

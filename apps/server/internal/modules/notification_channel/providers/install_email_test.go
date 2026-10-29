@@ -8,7 +8,12 @@ import (
 	"sync"
 	"testing"
 
+	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/mailer"
+	"peekaping/internal/modules/heartbeat"
+	"peekaping/internal/modules/monitor"
+	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/stretchr/testify/assert"
@@ -68,7 +73,7 @@ const installEmailWorkspace = workspace.ID("ws-1")
 func newInstallEmailSender(enabled bool, members ...string) (*InstallEmailSender, *fakeAccountMailer, *fakeMembers) {
 	mail := &fakeAccountMailer{enabled: enabled}
 	m := &fakeMembers{emails: map[workspace.ID][]string{installEmailWorkspace: members}}
-	return NewInstallEmailSender(nopLogger(), mail, m), mail, m
+	return NewInstallEmailSender(nopLogger(), goldenAppConfig, mail, m), mail, m
 }
 
 func inInstallEmailWorkspace() context.Context {
@@ -78,7 +83,9 @@ func inInstallEmailWorkspace() context.Context {
 // installEmailGoldenCases cover what the listener sends to every channel type
 var installEmailGoldenCases = []goldenCase{
 	{name: "install_email_down", event: downEvent, config: `{"to": "oncall@example.com"}`},
+	{name: "install_email_up", event: upEvent, config: `{"to": "oncall@example.com"}`},
 	{name: "install_email_certificate_expiry", event: certExpiryEvent, config: `{"to": "oncall@example.com"}`},
+	{name: "install_email_probe_offline", event: probeOfflineEvent, config: `{"to": "oncall@example.com"}`},
 }
 
 func TestInstallEmailChannel_SendsTheNotificationToAMember(t *testing.T) {
@@ -93,10 +100,58 @@ func TestInstallEmailChannel_SendsTheNotificationToAMember(t *testing.T) {
 
 			require.Len(t, mail.sent, 1)
 			sent := mail.sent[0]
-			assert.Empty(t, sent.html)
-			assertGolden(t, tc.name, fmt.Sprintf("To: %s\nSubject: %s\n\n%s\n", sent.to, sent.subject, sent.text))
+			assertGolden(t, tc.name, fmt.Sprintf("To: %s\nSubject: %s\n\n%s\n--- HTML\n%s", sent.to, sent.subject, sent.text, sent.html))
 		})
 	}
+}
+
+// The recipient tells from the subject which monitor it is about and what happened, and the body
+// says it again with the message, the time and a link to the monitor's page
+func TestInstallEmailChannel_TheEmailNamesTheMonitorAndItsStatus(t *testing.T) {
+	sender, mail, _ := newInstallEmailSender(true, "oncall@example.com")
+	message, mon, hb := goldenNotification(downEvent)
+	require.NoError(t, sender.Send(inInstallEmailWorkspace(), `{"to": "oncall@example.com"}`, message, mon, hb))
+	message, mon, hb = goldenNotification(upEvent)
+	require.NoError(t, sender.Send(inInstallEmailWorkspace(), `{"to": "oncall@example.com"}`, message, mon, hb))
+
+	require.Len(t, mail.sent, 2)
+	down, up := mail.sent[0], mail.sent[1]
+	assert.Equal(t, "Public API is Down", down.subject)
+	assert.Equal(t, "Public API is Up", up.subject)
+	link := "https://peekaping.example.com/w/ws-1/monitors/mon-1"
+	for _, body := range []string{down.text, down.html} {
+		assert.Contains(t, body, "Public API")
+		assert.Contains(t, body, "Down")
+		assert.Contains(t, body, "connection refused")
+		assert.Contains(t, body, "2026-10-17 09:30:00 UTC")
+		assert.Contains(t, body, link)
+	}
+	assert.Contains(t, up.text, "200 - OK")
+}
+
+// A test notification has a monitor that isn't saved and a heartbeat with no time: the email has
+// no link and no time. Without a monitor or a public URL it has neither link nor name.
+func TestInstallEmailChannel_AnEmailWithoutAMonitorPageOrHeartbeatLeavesThemOut(t *testing.T) {
+	sender, mail, _ := newInstallEmailSender(true, "oncall@example.com")
+	const channel = `{"to": "oncall@example.com"}`
+	testMonitor := &monitor.Model{Name: "Test Monitor", Type: "http"}
+	testHeartbeat := &heartbeat.Model{Status: shared.MonitorStatusDown, Msg: "This is a test notification from Peekaping"}
+	require.NoError(t, sender.Send(inInstallEmailWorkspace(), channel, testHeartbeat.Msg, testMonitor, testHeartbeat))
+	require.NoError(t, sender.Send(inInstallEmailWorkspace(), channel, "general", nil, nil))
+	noURL := NewInstallEmailSender(nopLogger(), installsettings.Static(&config.Config{}), mail, &fakeMembers{emails: map[workspace.ID][]string{installEmailWorkspace: {"oncall@example.com"}}})
+	message, mon, hb := goldenNotification(downEvent)
+	require.NoError(t, noURL.Send(inInstallEmailWorkspace(), channel, message, mon, hb))
+
+	require.Len(t, mail.sent, 3)
+	test, general, unlinked := mail.sent[0], mail.sent[1], mail.sent[2]
+	assert.Equal(t, "Test Monitor is Down", test.subject)
+	assert.Contains(t, test.text, "This is a test notification from Peekaping")
+	assert.NotContains(t, test.text, "Time:")
+	assert.NotContains(t, test.text, "http")
+	assert.Equal(t, defaultEmailSubject, general.subject)
+	assert.Contains(t, general.text, "general")
+	assert.Equal(t, "Public API is Down", unlinked.subject)
+	assert.NotContains(t, unlinked.text, "/monitors/")
 }
 
 func TestInstallEmailChannel_TheAddressIsComparedTrimmedAndIgnoringCase(t *testing.T) {
@@ -216,7 +271,7 @@ func TestInstallEmailChannel_TheRealMailerFitsTheInterface(t *testing.T) {
 	var _ AccountMailer = (*mailer.Mailer)(nil)
 	var _ WorkspaceMembers = workspace.MemberRepository(nil)
 	var none *mailer.Mailer
-	sender := NewInstallEmailSender(nopLogger(), none, &fakeMembers{})
+	sender := NewInstallEmailSender(nopLogger(), goldenAppConfig, none, &fakeMembers{})
 
 	assert.ErrorIs(t, sender.ValidateInWorkspace(inInstallEmailWorkspace(), `{"to": "a@example.com"}`), ErrNoInstallSender)
 }

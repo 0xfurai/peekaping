@@ -40,7 +40,10 @@ export const runFromDefaultIds = (probes: ProbeProbeResponse[], type: string): s
   return candidates.filter((probe) => probe.is_default).map((probe) => probe.id);
 };
 
-// The monitor's probes after a tick or untick. Probes the list doesn't show (a disabled one the
-// monitor still runs on) stay as they were.
-export const toggleRunFrom = (probeIds: string[], id: string, ticked: boolean): string[] =>
-  ticked ? (probeIds.includes(id) ? probeIds : [...probeIds, id]) : probeIds.filter((existing) => existing !== id);
+// The monitor's probes after a tick or untick, out of the ids the list shows. A probe the list
+// doesn't show (disabled, or no longer running the type) stays on a saved monitor until the first
+// change, and goes with it: the save would be refused with it, and the list has no box to untick it.
+export const toggleRunFrom = (probeIds: string[], choiceIds: string[], id: string, ticked: boolean): string[] => {
+  const shown = probeIds.filter((existing) => choiceIds.includes(existing));
+  return ticked ? (shown.includes(id) ? shown : [...shown, id]) : shown.filter((existing) => existing !== id);
+};

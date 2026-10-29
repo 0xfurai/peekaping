@@ -9,6 +9,7 @@
       "probes": "Zondlar",
       "title": "Admin",
       "users": "Foydalanuvchilar",
+      "workspaces": "Ish maydonlari",
       "settings": "Sozlamalar"
     },
     "users": {
@@ -101,6 +102,68 @@
         "yes": "Ha"
       },
       "you": "siz"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Ish maydonini o'chirish",
+        "resume": "Ish maydonini davom ettirish",
+        "suspend": "Ish maydonini to'xtatib qo'yish"
+      },
+      "actions_aria": "{{name}} uchun amallar",
+      "columns": {
+        "created": "Yaratilgan",
+        "custom_domains": "Maxsus domenlar",
+        "members": "A'zolar",
+        "monitors": "Kuzatishlar",
+        "name": "Nomi",
+        "owners": "Egalari",
+        "status": "Holati",
+        "status_pages": "Holat sahifalari"
+      },
+      "confirm": {
+        "cancel": "Bekor qilish",
+        "delete": {
+          "confirm": "Ish maydonini o'chirish",
+          "description": "{{name}} o'chirilsinmi? Undagi hamma narsa yo'qoladi: kuzatishlari va ularning tarixi, holat sahifalari, xabarnoma kanallari va a'zolarining kirish huquqi. Buni bekor qilib bo'lmaydi.",
+          "name_label": "Tasdiqlash uchun ish maydoni nomini kiriting: {{name}}",
+          "title": "Ish maydonini o'chirish"
+        },
+        "resume": {
+          "confirm": "Davom ettirish",
+          "description": "{{name}} kuzatishlari avvalgi holatida yana ishlaydi va a'zolari undan avvalgidek foydalana oladi. Egasining e-pochta tasdiqlashini kutayotgan ish maydoni kutishda davom etadi.",
+          "title": "Ish maydonini davom ettirish"
+        },
+        "suspend": {
+          "confirm": "To'xtatib qo'yish",
+          "description": "{{name}} kuzatishlari ishlashdan to'xtaydi, uning ommaviy holat sahifalarida ular mavjud emasligi ko'rsatiladi va a'zolari uning to'xtatib qo'yilganini ko'radi. Hech narsa o'chirilmaydi, keyinroq uni davom ettirishingiz mumkin.",
+          "title": "Ish maydonini to'xtatib qo'yish"
+        }
+      },
+      "description": "Ushbu o'rnatishdagi barcha ish maydonlari, ularning egalari, a'zolari va qancha narsa saqlashi bilan. Faqat sonlar ko'rsatiladi, ish maydoni ichidagi hech narsa ko'rsatilmaydi.",
+      "empty": "Ish maydonlari topilmadi",
+      "load_failed": "Ish maydonlarini yuklab bo'lmadi.",
+      "messages": {
+        "deleted": "{{name}} o'chirildi",
+        "failed": "Ish maydonini o'zgartirib bo'lmadi.",
+        "resumed": "{{name}} davom ettirildi",
+        "suspended": "{{name}} to'xtatib qo'yildi"
+      },
+      "monitors": "{{active}} ta faol, {{paused}} ta pauzada",
+      "none": "Yo'q",
+      "page_name": "Ish maydonlari",
+      "paging": {
+        "next": "Keyingi",
+        "page": "{{page}}-sahifa / {{pages}}",
+        "previous": "Oldingi"
+      },
+      "search_label": "Ish maydonlarini nomi yoki egasining e-pochtasi bo'yicha qidirish",
+      "search_placeholder": "Nomi yoki egasining e-pochtasi bo'yicha qidirish",
+      "status": {
+        "running": "Ishlamoqda",
+        "suspended_admin": "Administrator tomonidan to'xtatib qo'yilgan",
+        "suspended_unverified": "Egasi e-pochtasini tasdiqlaguncha to'xtatib qo'yilgan"
+      },
+      "total": "{{total}} ta topildi"
     },
     "settings": {
       "page_name": "Sozlamalar",
@@ -1472,7 +1535,8 @@
       "updated_success": "Notifikator muvaffaqiyatli yangilandi"
     },
     "new": {
-      "title": "Yangi Bildirishkan kanali"
+      "title": "Yangi Bildirishkan kanali",
+      "default_hint": "Bu kanal yangi monitorlarda belgilangan bo‘ladi."
     },
     "no_important": "Muhim xabarnomalar topilmadi.",
     "placeholders": {
@@ -1824,6 +1888,7 @@
       "refresh_in": "ichida yangilash",
       "refresh_now": "Hozir yangilash",
       "status_page_not_found": "Status sahifasi topilmadi yoki nashr etilmagan.",
+      "status_page_unavailable": "Bu status sahifasi mavjud emas",
       "under_maintenance": "Texnik xizmat ko'rsatilmoqda",
       "unknown": "Noma'lum"
     }
@@ -1953,6 +2018,11 @@
     "refresh_failed": "Ish maydonlaringiz yuklanmadi. Ulanishni tekshirib, qayta urinib ko'ring.",
     "rename_error": "Ish maydoni nomini o'zgartirib bo'lmadi",
     "rename_success": "Ish maydoni nomi o'zgartirildi",
+    "suspended_banner": {
+      "contact": "Bog'lanish uchun:",
+      "message": "Bu ish maydoni ushbu o'rnatish administratori tomonidan to'xtatib qo'yilgan. Uning kuzatishlari ishlamaydi va holat sahifalari mavjud emas.",
+      "no_contact": "Ushbu o'rnatishni boshqaradigan odamga murojaat qiling."
+    },
     "switcher_label": "Ish maydonini almashtirish"
   },
   "get_started": {

@@ -289,10 +289,12 @@ func (c *Controller) publicMonitors(ctx context.Context, slug string, heartbeatL
 
 		monitorWithData := &MonitorWithHeartbeatsAndUptimeDTO{
 			PublicMonitorDTO: &PublicMonitorDTO{
-				ID:     monitorModel.ID,
-				Type:   monitorModel.Type,
-				Name:   monitorModel.Name,
-				Active: monitorModel.Active,
+				ID:   monitorModel.ID,
+				Type: monitorModel.Type,
+				Name: monitorModel.Name,
+				// A monitor of a type the install turns off is not checked, so a visitor sees it
+				// paused, whatever its own setting is
+				Active: monitorModel.Active && !monitorModel.TypeDisabled,
 				Status: monitorModel.Status,
 			},
 			Heartbeats: publicHeartbeats(heartbeats),

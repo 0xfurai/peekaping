@@ -425,6 +425,17 @@ func TestProbe_BlocksPrivateTargetsWhenItsOwnSettingOrTheServersIsOn(t *testing.
 	}
 }
 
+// A probe says in its hello that it blocks private targets when told to, so that a server that
+// blocks them deals monitors to it and not to a probe from before, which ignores the setting
+func TestProbe_SaysInItsHelloThatItEnforcesThePrivateTargetBlock(t *testing.T) {
+	server := newAssignmentServer(t)
+	probe := newProbe(server)
+	runProbe(t, probe)
+
+	require.Eventually(t, func() bool { return len(server.helloBodies()) > 0 }, 5*time.Second, time.Millisecond)
+	assert.Equal(t, true, server.helloBodies()[0]["enforces_private_target_block"])
+}
+
 // The server's setting is read at each hello: a probe that reconnects to a server that no longer
 // blocks stops blocking, unless its own setting is on
 func TestProbe_FollowsTheServersSettingAtEachHello(t *testing.T) {

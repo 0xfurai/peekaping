@@ -9,6 +9,7 @@
       "probes": "Prober",
       "title": "Admin",
       "users": "Brukere",
+      "workspaces": "Arbeidsområder",
       "settings": "Innstillinger"
     },
     "users": {
@@ -101,6 +102,68 @@
         "yes": "Ja"
       },
       "you": "deg"
+    },
+    "workspaces": {
+      "actions": {
+        "delete": "Slett arbeidsområde",
+        "resume": "Gjenoppta arbeidsområde",
+        "suspend": "Suspender arbeidsområde"
+      },
+      "actions_aria": "Handlinger for {{name}}",
+      "columns": {
+        "created": "Opprettet",
+        "custom_domains": "Egendefinerte domener",
+        "members": "Medlemmer",
+        "monitors": "Overvåkninger",
+        "name": "Navn",
+        "owners": "Eiere",
+        "status": "Status",
+        "status_pages": "Status-sider"
+      },
+      "confirm": {
+        "cancel": "Avbryt",
+        "delete": {
+          "confirm": "Slett arbeidsområde",
+          "description": "Slette {{name}}? Alt i det forsvinner: overvåkningene og historikken deres, status-sider, varslingskanaler og medlemmenes tilgang. Dette kan ikke angres.",
+          "name_label": "Skriv inn navnet på arbeidsområdet for å bekrefte: {{name}}",
+          "title": "Slett arbeidsområde"
+        },
+        "resume": {
+          "confirm": "Gjenoppta",
+          "description": "Overvåkningene i {{name}} kjører igjen i tilstanden de hadde, og medlemmene kan bruke det som før. Et arbeidsområde som venter på at eieren bekrefter e-posten sin, fortsetter å vente.",
+          "title": "Gjenoppta arbeidsområde"
+        },
+        "suspend": {
+          "confirm": "Suspender",
+          "description": "Overvåkningene i {{name}} slutter å kjøre, de offentlige status-sidene viser at de er utilgjengelige, og medlemmene ser at det er suspendert. Ingenting slettes, og du kan gjenoppta det senere.",
+          "title": "Suspender arbeidsområde"
+        }
+      },
+      "description": "Alle arbeidsområder på denne installasjonen, med eiere, medlemmer og hvor mye de inneholder. Bare antall vises, ingenting fra innholdet i et arbeidsområde.",
+      "empty": "Fant ingen arbeidsområder",
+      "load_failed": "Kunne ikke laste arbeidsområdene.",
+      "messages": {
+        "deleted": "{{name}} er slettet",
+        "failed": "Kunne ikke endre arbeidsområdet.",
+        "resumed": "{{name}} er gjenopptatt",
+        "suspended": "{{name}} er suspendert"
+      },
+      "monitors": "{{active}} aktive, {{paused}} satt på pause",
+      "none": "Ingen",
+      "page_name": "Arbeidsområder",
+      "paging": {
+        "next": "Neste",
+        "page": "Side {{page}} av {{pages}}",
+        "previous": "Forrige"
+      },
+      "search_label": "Søk etter arbeidsområder på navn eller eierens e-post",
+      "search_placeholder": "Søk på navn eller eierens e-post",
+      "status": {
+        "running": "Kjører",
+        "suspended_admin": "Suspendert av en administrator",
+        "suspended_unverified": "Suspendert til eieren bekrefter e-posten sin"
+      },
+      "total": "{{total}} funnet"
     },
     "settings": {
       "page_name": "Innstillinger",
@@ -1473,7 +1536,8 @@
       "updated_success": "Notifier oppdatert"
     },
     "new": {
-      "title": "Ny varslingkanal"
+      "title": "Ny varslingkanal",
+      "default_hint": "Denne kanalen blir krysset av på nye monitorer."
     },
     "no_important": "Ingen viktige varsler funnet.",
     "placeholders": {
@@ -1825,6 +1889,7 @@
       "refresh_in": "Oppdaterer om",
       "refresh_now": "Oppdater nå",
       "status_page_not_found": "Status‑siden ble ikke funnet eller er ikke publisert.",
+      "status_page_unavailable": "Denne status-siden er utilgjengelig",
       "under_maintenance": "Under vedlikehold",
       "unknown": "Ukjent"
     }
@@ -1954,6 +2019,11 @@
     "refresh_failed": "Arbeidsområdene dine kunne ikke lastes inn. Sjekk tilkoblingen og prøv igjen.",
     "rename_error": "Kunne ikke omdøpe arbeidsområdet",
     "rename_success": "Arbeidsområdet er omdøpt",
+    "suspended_banner": {
+      "contact": "Kontakt:",
+      "message": "Dette arbeidsområdet er suspendert av administratoren for denne installasjonen. Overvåkningene kjører ikke, og status-sidene er utilgjengelige.",
+      "no_contact": "Kontakt personen som driver denne installasjonen."
+    },
     "switcher_label": "Bytt arbeidsområde"
   },
   "get_started": {
