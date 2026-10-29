@@ -386,7 +386,7 @@ export type Options<
 
 /**
  * Get the install settings
- * Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*) and the public URL (CLIENT_URL), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now.
+ * Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*), the public URL (CLIENT_URL) and the default limits of a workspace (workspaceLimits, WORKSPACE_LIMIT_*), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now. A default limit is the limit of every workspace without limits of its own; its value is null for none.
  */
 export const getAdminSettings = <ThrowOnError extends boolean = false>(
   options?: Options<GetAdminSettingsData, ThrowOnError>
@@ -410,7 +410,7 @@ export const getAdminSettings = <ThrowOnError extends boolean = false>(
 
 /**
  * Change the install settings
- * Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds. The answer is the settings as GET shows them.
+ * Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. In workspaceLimits a number saves a default limit, null clears it (no limit) and a limit left out stays: each is a whole number of 1 or more, min_check_interval at least MIN_CHECK_INTERVAL and retention_days at most 36500. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds, a default limit as well. The answer is the settings as GET shows them.
  */
 export const putAdminSettings = <ThrowOnError extends boolean = false>(
   options: Options<PutAdminSettingsData, ThrowOnError>
@@ -642,7 +642,7 @@ export const deleteAdminWorkspacesById = <ThrowOnError extends boolean = false>(
 
 /**
  * Suspend or resume a workspace, or set its limits
- * Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. limits gives the workspace limits of its own, which replace the install's defaults (WORKSPACE_LIMIT_*) whole: a limit left out, or 0, is none, so {} is a workspace with no limits at all; a value below 0 is 400. clearLimits true removes them, and the install's defaults apply again. A limit that is lowered pauses and deletes nothing. Each set and clear is logged. Name at least one of suspended, limits and clearLimits, and not both limits and clearLimits (400). The answer is the workspace as the list shows it.
+ * Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. limits gives the workspace limits of its own, which replace the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) whole: a limit left out, or 0, is none, so {} is a workspace with no limits at all; a value below 0 is 400. clearLimits true removes them, and the install's defaults apply again. A limit that is lowered pauses and deletes nothing. Each set and clear is logged. Name at least one of suspended, limits and clearLimits, and not both limits and clearLimits (400). The answer is the workspace as the list shows it.
  */
 export const patchAdminWorkspacesById = <ThrowOnError extends boolean = false>(
   options: Options<PatchAdminWorkspacesByIdData, ThrowOnError>
@@ -3300,7 +3300,7 @@ export const postWorkspaceLeave = <ThrowOnError extends boolean = false>(
 
 /**
  * Get the limits of the workspace
- * Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.
+ * Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.
  */
 export const getWorkspaceLimits = <ThrowOnError extends boolean = false>(
   options?: Options<GetWorkspaceLimitsData, ThrowOnError>
@@ -3419,7 +3419,7 @@ export const patchWorkspaceMembersByUserId = <
 
 /**
  * Create a workspace
- * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace. A user who owns as many workspaces as the install's WORKSPACE_LIMIT_OWNED_WORKSPACES is refused (403 LIMIT_REACHED, limit owned_workspaces).
+ * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace. A user who owns as many workspaces as the install's default limit of owned workspaces (Admin → Settings, or WORKSPACE_LIMIT_OWNED_WORKSPACES) is refused (403 LIMIT_REACHED, limit owned_workspaces).
  */
 export const postWorkspaces = <ThrowOnError extends boolean = false>(
   options: Options<PostWorkspacesData, ThrowOnError>

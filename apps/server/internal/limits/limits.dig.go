@@ -1,7 +1,7 @@
 package limits
 
 import (
-	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/utils"
 
 	"github.com/uptrace/bun"
@@ -14,6 +14,6 @@ func RegisterDependencies(container *dig.Container) error {
 	return utils.Provide(container, provideChain, func(c *Chain) Source { return c }, NewUsage)
 }
 
-func provideChain(db *bun.DB, cfg *config.Config) *Chain {
-	return NewChain(NewSQLStore(db), FromConfig(cfg))
+func provideChain(db *bun.DB, settings *installsettings.Resolver) *Chain {
+	return NewChain(NewSQLStore(db), SettingsDefaults{Settings: settings})
 }

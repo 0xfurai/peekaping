@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
+
 	"github.com/uptrace/bun"
 )
 
@@ -35,9 +37,11 @@ func NewSQLRepository(db *bun.DB) Repository {
 	return &SQLRepositoryImpl{db: db}
 }
 
+// GetByKey joins the transaction ctx carries, if any (dbtx): the install settings are read inside
+// one when a write reads a workspace's limits, and a SQLite database has a single connection
 func (r *SQLRepositoryImpl) GetByKey(ctx context.Context, key string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("key = ?", key).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("key = ?", key).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil

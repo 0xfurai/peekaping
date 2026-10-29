@@ -33,6 +33,54 @@
         ],
         "type": "object"
       },
+      "admin.DefaultLimitsSettingsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "custom_domains": {
+            "$ref": "#/components/schemas/admin.LimitSettingResponse",
+            "description": "How many custom domains a workspace's status pages may have, together."
+          },
+          "members": {
+            "$ref": "#/components/schemas/admin.LimitSettingResponse",
+            "description": "How many members a workspace may have, with its pending invites counted."
+          },
+          "min_check_interval": {
+            "$ref": "#/components/schemas/admin.LimitSettingResponse",
+            "description": "The shortest check interval and retry interval of a workspace's monitors, in seconds. MIN_CHECK_INTERVAL applies as well: the stricter wins."
+          },
+          "monitors": {
+            "$ref": "#/components/schemas/admin.LimitSettingResponse",
+            "description": "How many active monitors a workspace may have."
+          },
+          "owned_workspaces": {
+            "$ref": "#/components/schemas/admin.LimitSettingResponse",
+            "description": "How many workspaces one user may own, counted against this default alone."
+          },
+          "probes_per_monitor": {
+            "$ref": "#/components/schemas/admin.LimitSettingResponse",
+            "description": "How many probes one monitor may run on."
+          },
+          "retention_days": {
+            "$ref": "#/components/schemas/admin.LimitSettingResponse",
+            "description": "The longest data retention period a workspace may keep, in days. It is saved, but does not cap a workspace's data retention yet."
+          },
+          "status_pages": {
+            "$ref": "#/components/schemas/admin.LimitSettingResponse",
+            "description": "How many status pages a workspace may have."
+          }
+        },
+        "required": [
+          "monitors",
+          "min_check_interval",
+          "status_pages",
+          "custom_domains",
+          "members",
+          "owned_workspaces",
+          "probes_per_monitor",
+          "retention_days"
+        ],
+        "type": "object"
+      },
       "admin.InstallSettingsResponse": {
         "additionalProperties": false,
         "properties": {
@@ -48,13 +96,17 @@
           },
           "signupMode": {
             "$ref": "#/components/schemas/admin.StringSettingResponse"
+          },
+          "workspaceLimits": {
+            "$ref": "#/components/schemas/admin.DefaultLimitsSettingsResponse"
           }
         },
         "required": [
           "signupMode",
           "publicUrl",
           "accountSmtp",
-          "accountEmails"
+          "accountEmails",
+          "workspaceLimits"
         ],
         "type": "object"
       },
@@ -144,6 +196,46 @@
         "required": [
           "id",
           "name"
+        ],
+        "type": "object"
+      },
+      "admin.LimitSettingResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "envVar": {
+            "description": "The environment variable that sets it, and locks it when set.",
+            "examples": [
+              "WORKSPACE_LIMIT_MONITORS"
+            ],
+            "type": "string"
+          },
+          "locked": {
+            "description": "Whether the server's environment sets the value. A locked setting can't be changed here.",
+            "type": "boolean"
+          },
+          "source": {
+            "description": "Where the value comes from: the server's environment, saved in the admin area, or the default (none).",
+            "enum": [
+              "environment",
+              "saved",
+              "default"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "description": "The limit, or null for none.",
+            "format": "int64",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "value",
+          "source",
+          "locked",
+          "envVar"
         ],
         "type": "object"
       },
@@ -305,7 +397,7 @@
             "type": "string"
           },
           "field": {
-            "description": "The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host and the like.",
+            "description": "The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors and the like.",
             "examples": [
               "signupMode"
             ],
@@ -401,6 +493,85 @@
         },
         "type": "object"
       },
+      "admin.UpdateDefaultLimitsDto": {
+        "additionalProperties": false,
+        "properties": {
+          "custom_domains": {
+            "description": "How many custom domains a workspace's status pages may have together, 1 or more. Null clears it: no limit.",
+            "format": "int64",
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "members": {
+            "description": "How many members a workspace may have, with its pending invites, 1 or more. Null clears it: no limit.",
+            "format": "int64",
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "min_check_interval": {
+            "description": "The shortest check interval of a workspace's monitors, in seconds: at least MIN_CHECK_INTERVAL. Null clears it: no limit.",
+            "format": "int64",
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "monitors": {
+            "description": "How many active monitors a workspace may have, 1 or more. Null clears it: no limit.",
+            "format": "int64",
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "owned_workspaces": {
+            "description": "How many workspaces one user may own, 1 or more. Null clears it: no limit.",
+            "format": "int64",
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "probes_per_monitor": {
+            "description": "How many probes one monitor may run on, 1 or more. Null clears it: no limit.",
+            "format": "int64",
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "retention_days": {
+            "description": "The longest data retention period a workspace may keep, 1 to 36500 days. It is saved and checked, but does not cap a workspace's data retention yet. Null clears it: no limit.",
+            "format": "int64",
+            "maximum": 36500,
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "status_pages": {
+            "description": "How many status pages a workspace may have, 1 or more. Null clears it: no limit.",
+            "format": "int64",
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
       "admin.UpdateInstallSettingsDto": {
         "additionalProperties": true,
         "properties": {
@@ -427,6 +598,17 @@
               "string",
               "null"
             ]
+          },
+          "workspaceLimits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/admin.UpdateDefaultLimitsDto"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The install's default limits, the limits of a workspace that has none of its own. A limit left out stays as it is, a number saves it and null clears it."
           }
         },
         "type": "object"
@@ -6295,7 +6477,7 @@
   "paths": {
     "/api/v1/admin/settings": {
       "get": {
-        "description": "Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*) and the public URL (CLIENT_URL), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now.",
+        "description": "Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*), the public URL (CLIENT_URL) and the default limits of a workspace (workspaceLimits, WORKSPACE_LIMIT_*), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now. A default limit is the limit of every workspace without limits of its own; its value is null for none.",
         "operationId": "getAdminSettings",
         "responses": {
           "200": {
@@ -6350,7 +6532,7 @@
         ]
       },
       "put": {
-        "description": "Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds. The answer is the settings as GET shows them.",
+        "description": "Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. In workspaceLimits a number saves a default limit, null clears it (no limit) and a limit left out stays: each is a whole number of 1 or more, min_check_interval at least MIN_CHECK_INTERVAL and retention_days at most 36500. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds, a default limit as well. The answer is the settings as GET shows them.",
         "operationId": "putAdminSettings",
         "requestBody": {
           "content": {
@@ -7175,7 +7357,7 @@
         ]
       },
       "patch": {
-        "description": "Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. limits gives the workspace limits of its own, which replace the install's defaults (WORKSPACE_LIMIT_*) whole: a limit left out, or 0, is none, so {} is a workspace with no limits at all; a value below 0 is 400. clearLimits true removes them, and the install's defaults apply again. A limit that is lowered pauses and deletes nothing. Each set and clear is logged. Name at least one of suspended, limits and clearLimits, and not both limits and clearLimits (400). The answer is the workspace as the list shows it.",
+        "description": "Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. limits gives the workspace limits of its own, which replace the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) whole: a limit left out, or 0, is none, so {} is a workspace with no limits at all; a value below 0 is 400. clearLimits true removes them, and the install's defaults apply again. A limit that is lowered pauses and deletes nothing. Each set and clear is logged. Name at least one of suspended, limits and clearLimits, and not both limits and clearLimits (400). The answer is the workspace as the list shows it.",
         "operationId": "patchAdminWorkspacesById",
         "parameters": [
           {
@@ -17641,7 +17823,7 @@
     },
     "/api/v1/workspace/limits": {
       "get": {
-        "description": "Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.",
+        "description": "Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.",
         "operationId": "getWorkspaceLimits",
         "parameters": [
           {
@@ -18068,7 +18250,7 @@
     },
     "/api/v1/workspaces": {
       "post": {
-        "description": "Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace. A user who owns as many workspaces as the install's WORKSPACE_LIMIT_OWNED_WORKSPACES is refused (403 LIMIT_REACHED, limit owned_workspaces).",
+        "description": "Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace. A user who owns as many workspaces as the install's default limit of owned workspaces (Admin → Settings, or WORKSPACE_LIMIT_OWNED_WORKSPACES) is refused (403 LIMIT_REACHED, limit owned_workspaces).",
         "operationId": "postWorkspaces",
         "requestBody": {
           "content": {

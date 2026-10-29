@@ -21,8 +21,8 @@ var (
 )
 
 // InstallSettings is what an instance admin does to the install settings (docs/adr/0005 section 5):
-// the signup mode, the sender of account emails and the public URL. A setting the server's
-// environment sets is locked. A change is logged with who made it and the settings it changed,
+// the signup mode, the sender of account emails, the public URL and the default limits of a
+// workspace. A setting the server's environment sets is locked. A change is logged with who made it and the settings it changed,
 // never a value.
 type InstallSettings struct {
 	settings *installsettings.Resolver

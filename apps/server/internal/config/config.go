@@ -217,6 +217,8 @@ type Config struct {
 	// so an install that sets none has no limits. WorkspaceLimitMonitors counts active monitors,
 	// WorkspaceLimitMinCheckInterval is in seconds and applies beside MIN_CHECK_INTERVAL (the
 	// stricter wins), and WorkspaceLimitProbesPerMonitor is how many probes one monitor runs on.
+	// These are install settings: read them through installsettings.Resolver, which also takes the
+	// default an instance admin saved when a variable is unset.
 	WorkspaceLimitMonitors         int `env:"WORKSPACE_LIMIT_MONITORS" validate:"min=0" default:"0"`
 	WorkspaceLimitMinCheckInterval int `env:"WORKSPACE_LIMIT_MIN_CHECK_INTERVAL" validate:"min=0" default:"0"`
 	WorkspaceLimitStatusPages      int `env:"WORKSPACE_LIMIT_STATUS_PAGES" validate:"min=0" default:"0"`

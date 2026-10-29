@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"peekaping/internal/config"
+	"peekaping/internal/installsettings"
 	"peekaping/internal/limits"
 	"peekaping/internal/modules/workspace/workspaceid"
 
@@ -50,7 +51,7 @@ func ptr(n int) *int { return &n }
 func TestChain_TheWorkspacesOwnLimitsComeFirstThenTheInstallsThenNone(t *testing.T) {
 	ctx := context.Background()
 	store := &fakeStore{own: map[workspaceid.ID]limits.Limits{"own": {Monitors: ptr(50)}}}
-	chain := limits.NewChain(store, limits.EnvDefaults{Monitors: ptr(10), MinCheckInterval: ptr(300)})
+	chain := limits.NewChain(store, limits.FixedDefaults{Monitors: ptr(10), MinCheckInterval: ptr(300)})
 
 	own, origin, err := chain.For(ctx, "own")
 	require.NoError(t, err)
@@ -62,7 +63,7 @@ func TestChain_TheWorkspacesOwnLimitsComeFirstThenTheInstallsThenNone(t *testing
 	assert.Equal(t, limits.OriginInstall, origin)
 	assert.Equal(t, limits.Limits{Monitors: ptr(10), MinCheckInterval: ptr(300)}, other)
 
-	none, origin, err := limits.NewChain(&fakeStore{}, limits.EnvDefaults{}).For(ctx, "other")
+	none, origin, err := limits.NewChain(&fakeStore{}, limits.FixedDefaults{}).For(ctx, "other")
 	require.NoError(t, err)
 	assert.Equal(t, limits.OriginNone, origin)
 	assert.True(t, none.IsZero())
@@ -70,7 +71,7 @@ func TestChain_TheWorkspacesOwnLimitsComeFirstThenTheInstallsThenNone(t *testing
 
 func TestChain_NoLimitsOfItsOwnIsAValue(t *testing.T) {
 	store := &fakeStore{own: map[workspaceid.ID]limits.Limits{"unlimited": {}}}
-	chain := limits.NewChain(store, limits.EnvDefaults{Monitors: ptr(10)})
+	chain := limits.NewChain(store, limits.FixedDefaults{Monitors: ptr(10)})
 
 	got, origin, err := chain.For(context.Background(), "unlimited")
 
@@ -80,7 +81,7 @@ func TestChain_NoLimitsOfItsOwnIsAValue(t *testing.T) {
 }
 
 func TestChain_AnInstallThatSetsNothingHasNoLimits(t *testing.T) {
-	chain := limits.NewChain(&fakeStore{}, limits.FromConfig(&config.Config{}))
+	chain := limits.NewChain(&fakeStore{}, limits.SettingsDefaults{Settings: installsettings.Static(&config.Config{})})
 
 	got, origin, err := chain.For(context.Background(), "any")
 
@@ -92,8 +93,8 @@ func TestChain_AnInstallThatSetsNothingHasNoLimits(t *testing.T) {
 	assert.Nil(t, snapshot.Lowest(limits.Monitors))
 }
 
-func TestFromConfig_ReadsEachVariableAndZeroIsNoLimit(t *testing.T) {
-	got, err := limits.FromConfig(&config.Config{
+func TestSettingsDefaults_ReadsEachVariableAndZeroIsNoLimit(t *testing.T) {
+	cfg := &config.Config{
 		WorkspaceLimitMonitors:         10,
 		WorkspaceLimitMinCheckInterval: 300,
 		WorkspaceLimitStatusPages:      1,
@@ -102,7 +103,9 @@ func TestFromConfig_ReadsEachVariableAndZeroIsNoLimit(t *testing.T) {
 		WorkspaceLimitOwnedWorkspaces:  2,
 		WorkspaceLimitProbesPerMonitor: 4,
 		WorkspaceLimitRetentionDays:    30,
-	}).Defaults(context.Background())
+	}
+	cfg.SetFromEnvironment("WORKSPACE_LIMIT_MONITORS", "WORKSPACE_LIMIT_CUSTOM_DOMAINS")
+	got, err := limits.SettingsDefaults{Settings: installsettings.Static(cfg)}.Defaults(context.Background())
 
 	require.NoError(t, err)
 	assert.Equal(t, limits.Limits{
@@ -115,7 +118,7 @@ func TestChain_KeepsWhatItReadForAFewSecondsAndForgetsItOnItsOwnWrite(t *testing
 	ctx := context.Background()
 	now := time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
 	store := &fakeStore{}
-	chain := limits.NewChain(store, limits.EnvDefaults{}, limits.WithClock(func() time.Time { return now }))
+	chain := limits.NewChain(store, limits.FixedDefaults{}, limits.WithClock(func() time.Time { return now }))
 
 	_, _, err := chain.For(ctx, "a")
 	require.NoError(t, err)
@@ -146,10 +149,47 @@ func TestChain_KeepsWhatItReadForAFewSecondsAndForgetsItOnItsOwnWrite(t *testing
 	assert.Equal(t, limits.OriginNone, origin, "removing them gives the workspace the install's defaults again")
 }
 
+// changingDefaults are install defaults that a test changes, as an instance admin saving a default
+// does, and that count how often they are asked
+type changingDefaults struct {
+	limits limits.Limits
+	asked  int
+	err    error
+}
+
+func (d *changingDefaults) Defaults(context.Context) (limits.Limits, error) {
+	d.asked++
+	return d.limits, d.err
+}
+
+func TestChain_AsksForTheInstallsDefaultsAtEachLookup(t *testing.T) {
+	ctx := context.Background()
+	now := time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
+	store := &fakeStore{}
+	defaults := &changingDefaults{limits: limits.Limits{Monitors: ptr(10)}}
+	chain := limits.NewChain(store, defaults, limits.WithClock(func() time.Time { return now }))
+	got, _, err := chain.For(ctx, "a")
+	require.NoError(t, err)
+	assert.Equal(t, 10, *got.Monitors)
+
+	defaults.limits = limits.Limits{Monitors: ptr(3)}
+	got, origin, err := chain.For(ctx, "a")
+
+	require.NoError(t, err)
+	assert.Equal(t, limits.OriginInstall, origin)
+	assert.Equal(t, 3, *got.Monitors, "a changed default applies within the cache of the own limits")
+	assert.Equal(t, 1, store.reads, "the own limits still come from the cache")
+	assert.Equal(t, 2, defaults.asked)
+
+	defaults.err = errors.New("settings are gone")
+	_, _, err = chain.For(ctx, "a")
+	assert.Error(t, err, "defaults it can't read are an error, not no limits")
+}
+
 func TestChain_AFailedReadIsAnErrorAndIsNotKept(t *testing.T) {
 	ctx := context.Background()
 	store := &fakeStore{err: errors.New("database is gone")}
-	chain := limits.NewChain(store, limits.EnvDefaults{})
+	chain := limits.NewChain(store, limits.FixedDefaults{})
 
 	_, _, err := chain.For(ctx, "a")
 	require.Error(t, err)

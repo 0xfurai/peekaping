@@ -5,7 +5,8 @@
 //
 // A workspace's limits come from the first of these that has any:
 //  1. the workspace's own limits, which an instance admin sets ("no limits" is a value of its own)
-//  2. the install's defaults (the WORKSPACE_LIMIT_* environment variables)
+//  2. the install's defaults, which are install settings: a WORKSPACE_LIMIT_* variable the
+//     environment sets, else the value an instance admin saved in Admin → Settings
 //  3. none
 //
 // So an install that sets nothing has no limits. A paid plan can be one more source in front of

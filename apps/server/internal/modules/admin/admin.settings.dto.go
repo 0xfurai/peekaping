@@ -1,8 +1,12 @@
 package admin
 
 import (
+	"encoding/json"
+
 	"peekaping/internal/httpx"
 	"peekaping/internal/installsettings"
+
+	"github.com/danielgtaylor/huma/v2"
 )
 
 // StringSettingResponse is an install setting's value and where it comes from
@@ -32,6 +36,27 @@ type SecretSettingResponse struct {
 	EnvVar string `json:"envVar" doc:"The environment variable that sets it, and locks it when set." example:"ACCOUNT_SMTP_PASSWORD"`
 }
 
+// LimitSettingResponse is a default limit: a number, or null for none, and where it comes from
+type LimitSettingResponse struct {
+	Value  *int   `json:"value" nullable:"true" doc:"The limit, or null for none."`
+	Source string `json:"source" enum:"environment,saved,default" doc:"Where the value comes from: the server's environment, saved in the admin area, or the default (none)."`
+	Locked bool   `json:"locked" doc:"Whether the server's environment sets the value. A locked setting can't be changed here."`
+	EnvVar string `json:"envVar" doc:"The environment variable that sets it, and locks it when set." example:"WORKSPACE_LIMIT_MONITORS"`
+}
+
+// DefaultLimitsSettingsResponse are the install's default limits (PP-160): the limits of a
+// workspace that has none of its own, by the names a workspace's own limits have
+type DefaultLimitsSettingsResponse struct {
+	Monitors         LimitSettingResponse `json:"monitors" doc:"How many active monitors a workspace may have."`
+	MinCheckInterval LimitSettingResponse `json:"min_check_interval" doc:"The shortest check interval and retry interval of a workspace's monitors, in seconds. MIN_CHECK_INTERVAL applies as well: the stricter wins."`
+	StatusPages      LimitSettingResponse `json:"status_pages" doc:"How many status pages a workspace may have."`
+	CustomDomains    LimitSettingResponse `json:"custom_domains" doc:"How many custom domains a workspace's status pages may have, together."`
+	Members          LimitSettingResponse `json:"members" doc:"How many members a workspace may have, with its pending invites counted."`
+	OwnedWorkspaces  LimitSettingResponse `json:"owned_workspaces" doc:"How many workspaces one user may own, counted against this default alone."`
+	ProbesPerMonitor LimitSettingResponse `json:"probes_per_monitor" doc:"How many probes one monitor may run on."`
+	RetentionDays    LimitSettingResponse `json:"retention_days" doc:"The longest data retention period a workspace may keep, in days. It is saved, but does not cap a workspace's data retention yet."`
+}
+
 // AccountSMTPSettingsResponse is the sender of account emails
 type AccountSMTPSettingsResponse struct {
 	Host     StringSettingResponse `json:"host"`
@@ -51,13 +76,20 @@ type InstallSettingsResponse struct {
 	AccountSMTP AccountSMTPSettingsResponse `json:"accountSmtp"`
 	// AccountEmails is whether the install has a sender for account emails now
 	AccountEmails bool `json:"accountEmails" doc:"Whether the install has a sender for account emails: an SMTP host is set."`
+	// WorkspaceLimits are the install's default limits
+	WorkspaceLimits DefaultLimitsSettingsResponse `json:"workspaceLimits"`
 }
 
 func stringSetting(f installsettings.Field[string]) StringSettingResponse {
 	return StringSettingResponse{Value: f.Value, Source: string(f.Source), Locked: f.Locked(), EnvVar: f.EnvVar}
 }
 
+func limitSetting(f installsettings.Field[*int]) LimitSettingResponse {
+	return LimitSettingResponse{Value: f.Value, Source: string(f.Source), Locked: f.Locked(), EnvVar: f.EnvVar}
+}
+
 func installSettingsResponse(v *installsettings.View) *InstallSettingsResponse {
+	l := v.WorkspaceLimits
 	return &InstallSettingsResponse{
 		SignupMode: stringSetting(v.SignupMode),
 		PublicURL:  stringSetting(v.PublicURL),
@@ -70,6 +102,16 @@ func installSettingsResponse(v *installsettings.View) *InstallSettingsResponse {
 			TLS:      stringSetting(v.SMTPTLS),
 		},
 		AccountEmails: v.SenderSet(),
+		WorkspaceLimits: DefaultLimitsSettingsResponse{
+			Monitors:         limitSetting(l.Monitors),
+			MinCheckInterval: limitSetting(l.MinCheckInterval),
+			StatusPages:      limitSetting(l.StatusPages),
+			CustomDomains:    limitSetting(l.CustomDomains),
+			Members:          limitSetting(l.Members),
+			OwnedWorkspaces:  limitSetting(l.OwnedWorkspaces),
+			ProbesPerMonitor: limitSetting(l.ProbesPerMonitor),
+			RetentionDays:    limitSetting(l.RetentionDays),
+		},
 	}
 }
 
@@ -86,11 +128,58 @@ type UpdateAccountSMTPDto struct {
 	TLS      *string `json:"tls,omitempty" doc:"How the connection is secured: starttls, tls or none. Empty clears it (starttls)."`
 }
 
+// LimitChange is one default limit in a change: a number saves it, null clears it, so that there is
+// no limit, and a limit left out stays as it is
+type LimitChange struct {
+	// sent is whether the request names the limit, as a number or as null
+	sent  bool
+	value *int
+}
+
+func (c *LimitChange) UnmarshalJSON(data []byte) error {
+	c.sent = true
+	return json.Unmarshal(data, &c.value)
+}
+
+func (LimitChange) Schema(huma.Registry) *huma.Schema {
+	minimum := 1.0
+	return &huma.Schema{Type: "integer", Format: "int64", Nullable: true, Minimum: &minimum}
+}
+
+// UpdateDefaultLimitsDto changes the install's default limits. A limit left out stays as it is.
+type UpdateDefaultLimitsDto struct {
+	Monitors         LimitChange `json:"monitors,omitempty" doc:"How many active monitors a workspace may have, 1 or more. Null clears it: no limit."`
+	MinCheckInterval LimitChange `json:"min_check_interval,omitempty" doc:"The shortest check interval of a workspace's monitors, in seconds: at least MIN_CHECK_INTERVAL. Null clears it: no limit."`
+	StatusPages      LimitChange `json:"status_pages,omitempty" doc:"How many status pages a workspace may have, 1 or more. Null clears it: no limit."`
+	CustomDomains    LimitChange `json:"custom_domains,omitempty" doc:"How many custom domains a workspace's status pages may have together, 1 or more. Null clears it: no limit."`
+	Members          LimitChange `json:"members,omitempty" doc:"How many members a workspace may have, with its pending invites, 1 or more. Null clears it: no limit."`
+	OwnedWorkspaces  LimitChange `json:"owned_workspaces,omitempty" doc:"How many workspaces one user may own, 1 or more. Null clears it: no limit."`
+	ProbesPerMonitor LimitChange `json:"probes_per_monitor,omitempty" doc:"How many probes one monitor may run on, 1 or more. Null clears it: no limit."`
+	RetentionDays    LimitChange `json:"retention_days,omitempty" doc:"The longest data retention period a workspace may keep, 1 to 36500 days. It is saved and checked, but does not cap a workspace's data retention yet. Null clears it: no limit." maximum:"36500"`
+}
+
+// change is the limits the request names, by name: nil for one it clears
+func (d UpdateDefaultLimitsDto) change() map[string]*int {
+	change := map[string]*int{}
+	for name, limit := range map[string]LimitChange{
+		installsettings.LimitMonitors: d.Monitors, installsettings.LimitMinCheckInterval: d.MinCheckInterval,
+		installsettings.LimitStatusPages: d.StatusPages, installsettings.LimitCustomDomains: d.CustomDomains,
+		installsettings.LimitMembers: d.Members, installsettings.LimitOwnedWorkspaces: d.OwnedWorkspaces,
+		installsettings.LimitProbesPerMonitor: d.ProbesPerMonitor, installsettings.LimitRetentionDays: d.RetentionDays,
+	} {
+		if limit.sent {
+			change[name] = limit.value
+		}
+	}
+	return change
+}
+
 // UpdateInstallSettingsDto is a partial change of the install settings
 type UpdateInstallSettingsDto struct {
-	SignupMode  *string               `json:"signupMode,omitempty" doc:"invite or open. Open needs a sender. Empty clears it (invite)."`
-	PublicURL   *string               `json:"publicUrl,omitempty" doc:"The web app's address, which the links in emails and notifications open. Empty clears it (the default)."`
-	AccountSMTP *UpdateAccountSMTPDto `json:"accountSmtp,omitempty"`
+	SignupMode      *string                 `json:"signupMode,omitempty" doc:"invite or open. Open needs a sender. Empty clears it (invite)."`
+	PublicURL       *string                 `json:"publicUrl,omitempty" doc:"The web app's address, which the links in emails and notifications open. Empty clears it (the default)."`
+	AccountSMTP     *UpdateAccountSMTPDto   `json:"accountSmtp,omitempty"`
+	WorkspaceLimits *UpdateDefaultLimitsDto `json:"workspaceLimits,omitempty" doc:"The install's default limits, the limits of a workspace that has none of its own. A limit left out stays as it is, a number saves it and null clears it."`
 }
 
 func (d UpdateInstallSettingsDto) change() installsettings.Change {
@@ -98,6 +187,9 @@ func (d UpdateInstallSettingsDto) change() installsettings.Change {
 	if smtp := d.AccountSMTP; smtp != nil {
 		change.SMTPHost, change.SMTPPort, change.SMTPUser = smtp.Host, smtp.Port, smtp.User
 		change.SMTPPassword, change.SMTPFrom, change.SMTPTLS = smtp.Password, smtp.From, smtp.TLS
+	}
+	if d.WorkspaceLimits != nil {
+		change.WorkspaceLimits = d.WorkspaceLimits.change()
 	}
 	return change
 }
@@ -121,7 +213,7 @@ type SettingErrorResponse struct {
 type SettingErrorBody struct {
 	Code string `json:"code" enum:"SETTING_LOCKED,INVALID_SETTING,OPEN_SIGNUP_NEEDS_SENDER,SENDER_NEEDED_FOR_OPEN_SIGNUP,NO_SENDER" example:"SETTING_LOCKED"`
 	// Field is the setting, as the request names it, or empty
-	Field string `json:"field,omitempty" doc:"The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host and the like." example:"signupMode"`
+	Field string `json:"field,omitempty" doc:"The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors and the like." example:"signupMode"`
 }
 
 type GetInstallSettingsInput = httpx.Input[httpx.NoBody, struct{}]

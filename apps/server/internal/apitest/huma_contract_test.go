@@ -418,6 +418,39 @@ func TestOpenAPI_WorkspaceSuspendedIsNotNullable(t *testing.T) {
 	}
 }
 
+// The description bounds a default retention_days as the server does, 1 to 36500 days
+func TestOpenAPI_DefaultRetentionDaysIsBounded(t *testing.T) {
+	a := newAppWithAdmin(t)
+	doc, err := jsonschema.UnmarshalJSON(a.request(t, "GET", "/openapi.json", nil).Body)
+	require.NoError(t, err)
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	require.NoError(t, compiler.AddResource("https://peekaping.test/openapi.json", doc))
+	schema, err := compiler.Compile("https://peekaping.test/openapi.json#/components/schemas/admin.UpdateDefaultLimitsDto")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		days   int
+		valid  bool
+		status int
+	}{
+		{1, true, http.StatusOK},
+		{36500, true, http.StatusOK},
+		{0, false, http.StatusBadRequest},
+		{36501, false, http.StatusBadRequest},
+	} {
+		t.Run(strconv.Itoa(tc.days), func(t *testing.T) {
+			body := map[string]any{"retention_days": tc.days}
+			if tc.valid {
+				assert.NoError(t, schema.Validate(body))
+			} else {
+				assert.Error(t, schema.Validate(body))
+			}
+			w := a.putSettings(t, map[string]any{"workspaceLimits": body})
+			assert.Equal(t, tc.status, w.Code, w.Body.String())
+		})
+	}
+}
+
 func TestOpenAPI_StatPointsDatabaseErrorMatchesSchema(t *testing.T) {
 	a := newAppWithAdmin(t)
 	id := a.createMonitor(t, "Database failure", "database-failure")
