@@ -407,9 +407,9 @@ func (r *RedisExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pro
 	opts.ReadTimeout = time.Duration(m.Timeout) * time.Second
 	opts.WriteTimeout = time.Duration(m.Timeout) * time.Second
 
-	// Dial through the guard while it is on. A dialer of ours replaces the one that go-redis makes,
-	// which also negotiates TLS, so that is done here.
-	if r.on() {
+	// Dial through the guard (see hasGuard). A dialer of ours replaces the one that go-redis makes,
+	// which also negotiates TLS, so that is done here, as go-redis does it.
+	if r.hasGuard() {
 		dialer := r.dialer(&net.Dialer{Timeout: opts.DialTimeout, KeepAlive: 5 * time.Minute})
 		tlsConfig := opts.TLSConfig
 		opts.Dialer = func(ctx context.Context, network, addr string) (net.Conn, error) {
