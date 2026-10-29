@@ -1908,8 +1908,10 @@
       "url_label": "Valvottava osoite"
     },
     "channel": {
+      "continue_unlinked": "Jatka liittämättä",
       "description": "Valitse, minne Peekaping lähettää hälytyksen, kun valvontasi kaatuu. Siitä tulee uusien valvontojen oletus.",
       "link_failed": "Kanava tallennettiin, mutta sen liittäminen valvontaan epäonnistui. Lisää se valvonnan muokkaussivulla.",
+      "retry_link": "Yritä liittää uudelleen",
       "title": "Saa ilmoituksia"
     },
     "done": {

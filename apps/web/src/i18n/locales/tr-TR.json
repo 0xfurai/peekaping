@@ -1908,8 +1908,10 @@
       "url_label": "İzlenecek adres"
     },
     "channel": {
+      "continue_unlinked": "Bağlamadan devam et",
       "description": "İzlemeniz çöktüğünde Peekaping'in uyarıyı nereye göndereceğini seçin. Yeni izlemeler için varsayılan olur.",
       "link_failed": "Kanal kaydedildi ancak izlemenize bağlanamadı. İzlemenin düzenleme sayfasından ekleyin.",
+      "retry_link": "Yeniden bağlamayı dene",
       "title": "Bildirim alın"
     },
     "done": {
