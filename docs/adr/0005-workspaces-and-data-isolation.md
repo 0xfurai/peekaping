@@ -36,7 +36,7 @@ A **workspace** owns monitors and everything around them. A user belongs to a wo
 | Invite members, change a role, remove a member (owners excepted) | | yes | yes |
 | API keys | | yes | yes |
 | Workspace settings (section 5) and the workspace's name | | yes | yes |
-| See the plan and usage | | yes | yes |
+| See the plan and usage | yes | yes | yes |
 | Change the plan and billing, delete the workspace, make or remove owners | | | yes |
 
 - Every workspace has at least one owner. The last owner can't leave, be removed or be made something else.
@@ -44,6 +44,7 @@ A **workspace** owns monitors and everything around them. A user belongs to a wo
 - A **viewer** role (sees everything, changes nothing) comes later, not in v1.
 - An **API key** belongs to one workspace and acts as an admin of it, never as an owner. Scripts and the Terraform provider keep what they reach in a workspace today. They lose two things: billing and deleting the workspace, which are new, and managing probes, which a key can do today but which move to the install (section 10).
 - The **plan** belongs to the workspace. A user who owns two workspaces pays for each. A workspace without a plan has no limits, which is every workspace on a self-hosted install.
+- Every member sees the workspace's limits and what it uses of each (`GET /workspace/limits`), so that the app can say why a write is refused. Only an instance admin (section 10) sets them: a workspace's own limits, and the install's defaults (section 5). A role in the workspace sets none (PP-160).
 
 ### 2. Where the workspace ID lives
 
@@ -104,7 +105,7 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 
 - The cleanup job goes workspace by workspace and deletes each one's heartbeats older than its own data retention period (PP-161). Stats keep their fixed retention for the whole install.
 - A notification goes only to the channels linked to the monitor, which are in its workspace by section 2.
-- Limits come from one interface keyed by the workspace ID, `limits.Source` (PP-160): the workspace's own limits, which an instance admin sets ("no limits" is a value), else the install's defaults (`WORKSPACE_LIMIT_*`), else none. An install that sets nothing has no limits. A paid plan can be one more source in front of them (PP-162).
+- Limits come from one interface keyed by the workspace ID, `limits.Source` (PP-160): the workspace's own limits, which an instance admin sets ("no limits" is a value), else the install's defaults, which are install settings (section 5), else none. An install that sets nothing has no limits. A paid plan can be one more source in front of them (PP-162).
 - A short in-process cache of workspace settings is allowed. With several api replicas, a changed setting then takes effect within the cache's lifetime.
 
 ### 5. Install and workspace settings
@@ -117,14 +118,15 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 | Error reports (`ERROR_REPORTING_ENABLED`) and the one-time notice (`TELEMETRY_NOTICE_SEEN`) | install | `settings` |
 | Notification history and TLS info retention (`NOTIFICATION_HISTORY_RETENTION_DAYS`, `TLS_INFO_RETENTION_DAYS`) | install | environment |
 | Signup mode (`SIGNUP_MODE`, section 11), the sender of account emails (`ACCOUNT_SMTP_*`) and the public URL (`CLIENT_URL`) (PP-373) | install | `settings` (`install.*`), with the environment winning |
+| Default limits of a workspace (`WORKSPACE_LIMIT_*`, PP-160) | install | `settings` (`install.workspace_limits.*`), with the environment winning |
 | Every other environment variable | install | environment |
 | Data retention period (`KEEP_DATA_PERIOD_DAYS`) | workspace | workspace settings |
 | Certificate expiry notification days (`cert_expiry_notify_days`) | workspace | workspace settings |
-| Plan | workspace | its own limits in workspace settings (`limits`, PP-160), the install's defaults in the environment; a paid plan's record later (PP-162) |
+| Plan | workspace | its own limits in workspace settings (`limits`, PP-160), else the install's default limits (the row above); a paid plan's record later (PP-162) |
 
 - `/settings/key/KEEP_DATA_PERIOD_DAYS` keeps its path and works on the request's workspace. Members read it, admins change it. A plan can cap it (PP-161).
-- Only an instance admin (section 10) can change install settings: the usage ping and error reports, and the signup mode, the sender of account emails and the public URL (PP-373).
-- The signup mode, the sender and the public URL resolve as the environment first, then the value saved in `settings`, then the default, through one resolver (`internal/installsettings`) that every reader asks at the moment it needs the value. A setting whose variable is set is locked: the admin area shows it as set by the server's environment and the API refuses to change it. So a home user changes them in the web app with no restart, and the cloud pins them in its config. Each process keeps the saved values for 5 seconds, so a change reaches the other api replicas within that, as a workspace setting does. Startup still checks the variables that are set, and a save checks the values it would leave the same way: open signup needs a sender either way. The SMTP password is write-only. The `CORS_ORIGINS` default stays the environment's `CLIENT_URL`, so that saving a public URL can't lock the admin out of the API.
+- Only an instance admin (section 10) can change install settings: the usage ping and error reports, the signup mode, the sender of account emails and the public URL (PP-373), and the default limits of a workspace (PP-160).
+- The signup mode, the sender, the public URL and the default limits resolve as the environment first, then the value saved in `settings`, then the default, through one resolver (`internal/installsettings`) that every reader asks at the moment it needs the value. A setting whose variable is set is locked: the admin area shows it as set by the server's environment and the API refuses to change it. So a home user changes them in the web app with no restart, and the cloud pins them in its config. Each process keeps the saved values for 5 seconds, so a change reaches the other api replicas within that, as a workspace setting does. Startup still checks the variables that are set, and a save checks the values it would leave the same way: open signup needs a sender either way. The SMTP password is write-only. The `CORS_ORIGINS` default stays the environment's `CLIENT_URL`, so that saving a public URL can't lock the admin out of the API.
 - A new workspace starts with today's defaults for a new install: a data retention period of 180 days and certificate expiry notifications at 7, 14 and 21 days.
 - On upgrade, the install's current values move to the upgrade's workspace (section 12). An install that never stored a data retention period keeps 365 days, the value it uses today when the setting is unset.
 

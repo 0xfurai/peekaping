@@ -222,11 +222,11 @@ A user who manages what belongs to the install rather than to a workspace: probe
 _Avoid_: Superuser, site admin, root
 
 **Install setting**:
-A setting of the whole install that an instance admin can change in the admin area: the signup mode, the sender of account emails and the public URL (`CLIENT_URL`, the address links open). Its value comes from the server's environment when its variable is set, which locks it, then from the value saved in the admin area, then from the default. The usage ping and error reports are install settings too, with switches of their own.
+A setting of the whole install that an instance admin can change in the admin area: the signup mode, the sender of account emails, the public URL (`CLIENT_URL`, the address links open) and the default limits of a workspace (`WORKSPACE_LIMIT_*`). Its value comes from the server's environment when its variable is set, which locks it, then from the value saved in the admin area, then from the default. The usage ping and error reports are install settings too, with switches of their own.
 _Avoid_: Global setting, system setting
 
 **Plan**:
-The limits a workspace is held to, such as how many active monitors it may have and its shortest check interval. They are the workspace's own, which an instance admin sets ("no limits" is one), or else the install's defaults (`WORKSPACE_LIMIT_*`), or else none: a self-hosted install that sets nothing has no limits, and on the cloud the defaults are the free tier. A write over a limit is refused, and lowering one pauses and deletes nothing: the newest active monitors past it are kept but don't run, which a monitor shows as over the limit.
+The limits a workspace is held to, such as how many active monitors it may have and its shortest check interval. They are the workspace's own, which an instance admin sets ("no limits" is one), or else the install's defaults, which are install settings (`WORKSPACE_LIMIT_*`), or else none: a self-hosted install that sets nothing has no limits, and on the cloud the defaults are the free tier. A write over a limit is refused, and lowering one pauses and deletes nothing: the newest active monitors past it are kept but don't run, which a monitor shows as over the limit.
 _Avoid_: Tier, subscription (that's the billing record), package, quota
 
 **Invite**:
