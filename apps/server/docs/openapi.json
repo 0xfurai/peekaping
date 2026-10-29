@@ -332,10 +332,13 @@
         "additionalProperties": true,
         "properties": {
           "accountSmtp": {
-            "$ref": "#/components/schemas/admin.UpdateAccountSMTPDto",
-            "type": [
-              "",
-              "null"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/admin.UpdateAccountSMTPDto"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "publicUrl": {
