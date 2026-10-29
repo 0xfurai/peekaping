@@ -35,4 +35,10 @@ describe("retentionCap", () => {
     expect(retentionCap(limitsWith(null))).toBeNull();
     expect(retentionCap(undefined)).toBeNull();
   });
+
+  it("is never longer than the settings API takes", () => {
+    expect(retentionCap(limitsWith(MAX_DATA_RETENTION_DAYS + 1))).toBe(MAX_DATA_RETENTION_DAYS);
+    expect(retentionCap(limitsWith(100000))).toBe(MAX_DATA_RETENTION_DAYS);
+    expect(retentionCap(limitsWith(MAX_DATA_RETENTION_DAYS))).toBe(MAX_DATA_RETENTION_DAYS);
+  });
 });

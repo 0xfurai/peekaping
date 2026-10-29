@@ -10,10 +10,13 @@ type RetentionLimits = { data?: { limits: { retention_days: { max?: number | nul
 
 /**
  * The longest data retention period the workspace may keep: its retention_days limit (PP-161), or
- * null when it has none or its limits aren't loaded.
+ * null when it has none or its limits aren't loaded. A limit longer than the settings API takes is
+ * that API's longest: the server refuses anything past it either way.
  */
-export const retentionCap = (limits: RetentionLimits | undefined): number | null =>
-  limits?.data?.limits.retention_days.max ?? null;
+export const retentionCap = (limits: RetentionLimits | undefined): number | null => {
+  const max = limits?.data?.limits.retention_days.max ?? null;
+  return max === null ? null : Math.min(max, MAX_DATA_RETENTION_DAYS);
+};
 
 /**
  * The retention field's schema: a whole number of days from 1, and no more than the workspace's
