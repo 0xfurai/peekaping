@@ -79,3 +79,36 @@ func TestAPIReference_EveryWorkspaceOperationDocumentsTheWorkspaceHeader(t *test
 	assert.Empty(t, workspaceHeaderParams(spec.Paths["/api/v1/auth/login"]["post"].Parameters), "login names no workspace")
 	assert.Empty(t, workspaceHeaderParams(spec.Paths["/api/v1/me"]["get"].Parameters), "/me names no workspace")
 }
+
+func TestAPIReference_EveryWorkspaceOperationDocumentsTheRateLimit(t *testing.T) {
+	a := newApp(t)
+	var spec struct {
+		Paths map[string]map[string]struct {
+			Parameters []specParameter `json:"parameters"`
+			Responses  map[string]struct {
+				Headers map[string]struct {
+					Schema map[string]any `json:"schema"`
+				} `json:"headers"`
+			} `json:"responses"`
+		} `json:"paths"`
+	}
+	w := a.request(t, http.MethodGet, "/openapi.json", nil)
+	require.Equal(t, http.StatusOK, w.Code)
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &spec))
+
+	checked := 0
+	for path, operations := range spec.Paths {
+		for method, op := range operations {
+			if len(workspaceHeaderParams(op.Parameters)) == 0 {
+				continue
+			}
+			checked++
+			response, ok := op.Responses["429"]
+			if assert.True(t, ok, "%s %s documents no 429", method, path) {
+				assert.Equal(t, "integer", response.Headers["Retry-After"].Schema["type"], "%s %s", method, path)
+			}
+		}
+	}
+	assert.Greater(t, checked, 30, "the workspace routes were found")
+	assert.NotContains(t, spec.Paths["/api/v1/me"]["get"].Responses, "429", "/me runs in no workspace and isn't counted")
+}

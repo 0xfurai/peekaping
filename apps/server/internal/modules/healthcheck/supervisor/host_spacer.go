@@ -168,6 +168,8 @@ func (s *HostSpacer) Reserve(hosts []string, maxWait time.Duration) Turn {
 		seen     = make(map[string]struct{}, len(hosts))
 		longest  time.Duration
 		farthest string
+		// farthestBucket is the bucket of farthest
+		farthestBucket *hostBucket
 	)
 	for _, host := range hosts {
 		host = normalizeHost(host)
@@ -179,12 +181,12 @@ func (s *HostSpacer) Reserve(hosts []string, maxWait time.Duration) Turn {
 		}
 		seen[host] = struct{}{}
 
-		bucket := s.bucket(host, now)
+		bucket := s.bucket(host, now, seen)
 		reservation := bucket.limiter.ReserveN(now, 1)
 		delay := reservation.DelayFrom(now)
 		reserved = append(reserved, taken{bucket, reservation, delay})
 		if delay > longest || farthest == "" {
-			longest, farthest = delay, host
+			longest, farthest, farthestBucket = delay, host, bucket
 		}
 	}
 
@@ -192,7 +194,7 @@ func (s *HostSpacer) Reserve(hosts []string, maxWait time.Duration) Turn {
 		for _, t := range reserved {
 			t.reservation.CancelAt(now)
 		}
-		bucket := s.hosts[farthest]
+		bucket := farthestBucket
 		bucket.skipped++
 		turn := Turn{Denied: true, Host: farthest}
 		if now.Sub(bucket.reportedAt) >= skipReportEvery {
@@ -226,13 +228,14 @@ func (s *HostSpacer) Wait(ctx context.Context, turn Turn) error {
 	return err
 }
 
-// bucket finds the host's bucket, or makes it. The caller holds mu.
-func (s *HostSpacer) bucket(host string, now time.Time) *hostBucket {
+// bucket finds the host's bucket, or makes it. Making room never forgets the buckets of held, the
+// hosts of the check that is taking its turns. The caller holds mu.
+func (s *HostSpacer) bucket(host string, now time.Time, held map[string]struct{}) *hostBucket {
 	if bucket, ok := s.hosts[host]; ok {
 		return bucket
 	}
 	if len(s.hosts) >= s.maxHosts {
-		s.evictOldest()
+		s.evictOldest(held)
 	}
 	bucket := &hostBucket{
 		limiter:   rate.NewLimiter(limitOf(s.perMinute), 1),
@@ -257,12 +260,16 @@ func (s *HostSpacer) sweep(now time.Time) {
 }
 
 // evictOldest forgets the bucket that has been idle the longest, to make room: the map is bounded
-// even for a flood of hosts, at the price of letting that host through unspaced once. The caller
-// holds mu.
-func (s *HostSpacer) evictOldest() {
+// even for a flood of hosts, at the price of letting that host through unspaced once. It keeps the
+// buckets of held, whose turns a check is taking, so the map can outgrow maxHosts by the hosts of
+// one check. The caller holds mu.
+func (s *HostSpacer) evictOldest(held map[string]struct{}) {
 	var oldest string
 	var oldestIdle time.Time
 	for host, bucket := range s.hosts {
+		if _, ok := held[host]; ok {
+			continue
+		}
 		if oldest == "" || bucket.idleAfter.Before(oldestIdle) {
 			oldest, oldestIdle = host, bucket.idleAfter
 		}
