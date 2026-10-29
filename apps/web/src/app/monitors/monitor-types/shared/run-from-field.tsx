@@ -86,7 +86,16 @@ const RunFrom = () => {
             labelledBy={labelId}
             onToggle={(id, ticked) => {
               probesChosenByHand.current = true;
-              setValue("probe_ids", toggleRunFrom(getValues("probe_ids"), id, ticked), { shouldDirty: true });
+              setValue(
+                "probe_ids",
+                toggleRunFrom(
+                  getValues("probe_ids"),
+                  choices.map((choice) => choice.id),
+                  id,
+                  ticked
+                ),
+                { shouldDirty: true }
+              );
             }}
           />
           {noneTicked && mode === "create" && (
