@@ -35,7 +35,7 @@ export type AdminDefaultLimitsSettingsResponse = {
    */
   probes_per_monitor: AdminLimitSettingResponse;
   /**
-   * The longest data retention period a workspace may keep, in days.
+   * The longest data retention period a workspace may keep, in days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer.
    */
   retention_days: AdminLimitSettingResponse;
   /**
@@ -237,7 +237,7 @@ export type AdminUpdateDefaultLimitsDto = {
    */
   probes_per_monitor?: number | null;
   /**
-   * The longest data retention period a workspace may keep, 1 to 36500 days. Null clears it: no limit.
+   * The longest data retention period a workspace may keep, 1 to 36500 days: the hourly cleanup deletes a workspace's heartbeats past it when the workspace's own period is longer. Null clears it: no limit.
    */
   retention_days?: number | null;
   /**
