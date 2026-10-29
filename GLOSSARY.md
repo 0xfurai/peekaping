@@ -218,8 +218,12 @@ What a member may do in their workspace. There are three. The member role manage
 _Avoid_: Permission, access level
 
 **Instance admin**:
-A user who manages what belongs to the install rather than to a workspace: probes, the usage ping and error reports, and the install's users (the admin area). It's a flag on the user, not a role, and gives no access to any workspace's data. The first user to sign up gets it, and an install upgraded to workspaces gives it to its existing users.
+A user who manages what belongs to the install rather than to a workspace: probes, the usage ping and error reports, the install settings, and the install's users (the admin area). It's a flag on the user, not a role, and gives no access to any workspace's data. The first user to sign up gets it, and an install upgraded to workspaces gives it to its existing users.
 _Avoid_: Superuser, site admin, root
+
+**Install setting**:
+A setting of the whole install that an instance admin can change in the admin area: the signup mode, the sender of account emails and the public URL (`CLIENT_URL`, the address links open). Its value comes from the server's environment when its variable is set, which locks it, then from the value saved in the admin area, then from the default. The usage ping and error reports are install settings too, with switches of their own.
+_Avoid_: Global setting, system setting
 
 **Plan**:
 The limits a workspace is held to, such as how many monitors it may have and its shortest check interval. A workspace without a plan has no limits, which is every workspace on a self-hosted install.
@@ -230,7 +234,7 @@ A link an admin or owner makes for an email address and a role. It works once, f
 _Avoid_: Invitation, join link
 
 **Signup mode**:
-Who may create an account on an install, set with `SIGNUP_MODE`. In `invite`, the default, the first user signs up and everyone after joins a workspace through an invite. In `open` anyone may sign up, and each new user gets a workspace of their own, unless they sign up through an invite: then they join the inviting workspace instead. The cloud runs `open`.
+Who may create an account on an install, an install setting (`SIGNUP_MODE`). In `invite`, the default, the first user signs up and everyone after joins a workspace through an invite. In `open` anyone may sign up, and each new user gets a workspace of their own, unless they sign up through an invite: then they join the inviting workspace instead. The cloud runs `open`.
 _Avoid_: Registration mode, signup policy
 
 **Suspension**:
@@ -238,7 +242,7 @@ A workspace held back with a reason. Its monitors are kept, listed and editable,
 _Avoid_: Disabled, frozen, paused (that's a monitor switched off by a person)
 
 **Account emails**:
-The emails an account gets: a password reset link, a verification link for its address, and an invite. It is also told, in a notice that carries no link, when an instance admin makes a password reset link for it or turns off its two-step verification. One sender sends them for the whole install, set with `ACCOUNT_SMTP_*`; it is separate from the SMTP settings of an email notification channel, and an install email channel is the one notification channel that sends through it. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
+The emails an account gets: a password reset link, a verification link for its address, and an invite. It is also told, in a notice that carries no link, when an instance admin makes a password reset link for it or turns off its two-step verification. One sender sends them for the whole install, an install setting (`ACCOUNT_SMTP_*`); it is separate from the SMTP settings of an email notification channel, and an install email channel is the one notification channel that sends through it. Without a sender they are off: there is no "Forgot password", nobody is asked to verify and invites are copied. A reset link works once for an hour and ends every session of the user; a verification link works once for 3 days, and the account records when it was verified.
 _Avoid_: Transactional email, system email
 
 ### Deployment
