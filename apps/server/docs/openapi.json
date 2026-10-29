@@ -99,6 +99,10 @@
           },
           "workspaceLimits": {
             "$ref": "#/components/schemas/admin.DefaultLimitsSettingsResponse"
+          },
+          "workspaceLimitsName": {
+            "$ref": "#/components/schemas/admin.StringSettingResponse",
+            "description": "The install's name for its default limits, such as Free tier, shown on a workspace's Usage page when its limits are the defaults. Empty for none."
           }
         },
         "required": [
@@ -106,7 +110,8 @@
           "publicUrl",
           "accountSmtp",
           "accountEmails",
-          "workspaceLimits"
+          "workspaceLimits",
+          "workspaceLimitsName"
         ],
         "type": "object"
       },
@@ -393,7 +398,7 @@
             "type": "string"
           },
           "field": {
-            "description": "The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors and the like.",
+            "description": "The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors, workspaceLimitsName and the like.",
             "examples": [
               "signupMode"
             ],
@@ -596,6 +601,13 @@
             "description": "The install's default limits, the limits of a workspace that has none of its own. A limit left out stays as it is, a number saves it and null clears it.",
             "type": [
               "",
+              "null"
+            ]
+          },
+          "workspaceLimitsName": {
+            "description": "The install's name for its default limits, such as Free tier: one line of at most 100 characters. Empty clears it.",
+            "type": [
+              "string",
               "null"
             ]
           }
@@ -1897,6 +1909,16 @@
       "limits.Report": {
         "additionalProperties": false,
         "properties": {
+          "installLimitsName": {
+            "description": "The install's name for its default limits, such as Free tier (WORKSPACE_LIMITS_NAME, or Admin → Settings), or null when it has none.",
+            "examples": [
+              "Free tier"
+            ],
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "limits": {
             "$ref": "#/components/schemas/limits.Uses"
           },
@@ -1912,7 +1934,8 @@
         },
         "required": [
           "source",
-          "limits"
+          "limits",
+          "installLimitsName"
         ],
         "type": "object"
       },
@@ -6471,7 +6494,7 @@
   "paths": {
     "/api/v1/admin/settings": {
       "get": {
-        "description": "Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*), the public URL (CLIENT_URL) and the default limits of a workspace (workspaceLimits, WORKSPACE_LIMIT_*), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now. A default limit is the limit of every workspace without limits of its own; its value is null for none.",
+        "description": "Only an instance admin may do this: any other user and any API key get 403. The signup mode (SIGNUP_MODE), the sender of account emails (ACCOUNT_SMTP_*), the public URL (CLIENT_URL), the default limits of a workspace (workspaceLimits, WORKSPACE_LIMIT_*) and the install's name for them (workspaceLimitsName, WORKSPACE_LIMITS_NAME), each with its value, where the value comes from (environment, saved or default) and whether it is locked. A setting whose environment variable is set takes the environment's value and is locked: it can't be changed here. The SMTP password is never returned, only whether one is set. accountEmails is whether the install has a sender now. A default limit is the limit of every workspace without limits of its own; its value is null for none. The name of the default limits is free text, such as Free tier, which a workspace's Usage page shows; empty for none.",
         "operationId": "getAdminSettings",
         "responses": {
           "200": {
@@ -6526,7 +6549,7 @@
         ]
       },
       "put": {
-        "description": "Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. In workspaceLimits a number saves a default limit, null clears it (no limit) and a limit left out stays: each is a whole number of 1 or more, min_check_interval at least MIN_CHECK_INTERVAL and retention_days at most 36500. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds, a default limit as well. The answer is the settings as GET shows them.",
+        "description": "Only an instance admin may do this. A partial change: a field left out stays as it is, and an empty string (a port of 0) clears the saved value, so that the setting falls back to its default. The password changes only when it is sent. In workspaceLimits a number saves a default limit, null clears it (no limit) and a limit left out stays: each is a whole number of 1 or more, min_check_interval at least MIN_CHECK_INTERVAL and retention_days at most 36500. workspaceLimitsName is one line of at most 100 characters, and empty clears it. A setting the server's environment sets is refused with 409 and the code SETTING_LOCKED, naming it in field. A value a setting can't hold is 400 INVALID_SETTING with the field. Open signup without a sender for account emails is 400 OPEN_SIGNUP_NEEDS_SENDER, and removing the sender while signup is open is 400 SENDER_NEEDED_FOR_OPEN_SIGNUP. A refused change saves nothing. A saved change takes effect at once on this server, and on the other api replicas within a few seconds, a default limit as well. The answer is the settings as GET shows them.",
         "operationId": "putAdminSettings",
         "requestBody": {
           "content": {
@@ -16809,7 +16832,7 @@
     },
     "/api/v1/workspace/limits": {
       "get": {
-        "description": "Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.",
+        "description": "Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (Admin → Settings, or WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. installLimitsName is the install's name for its default limits, such as Free tier (WORKSPACE_LIMITS_NAME), or null when it has none. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.",
         "operationId": "getWorkspaceLimits",
         "parameters": [
           {

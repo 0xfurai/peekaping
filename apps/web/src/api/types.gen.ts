@@ -53,6 +53,10 @@ export type AdminInstallSettingsResponse = {
   publicUrl: AdminStringSettingResponse;
   signupMode: AdminStringSettingResponse;
   workspaceLimits: AdminDefaultLimitsSettingsResponse;
+  /**
+   * The install's name for its default limits, such as Free tier, shown on a workspace's Usage page when its limits are the defaults. Empty for none.
+   */
+  workspaceLimitsName: AdminStringSettingResponse;
 };
 
 export type AdminIntSettingResponse = {
@@ -158,7 +162,7 @@ export type AdminSettingErrorBody = {
     | "SENDER_NEEDED_FOR_OPEN_SIGNUP"
     | "NO_SENDER";
   /**
-   * The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors and the like.
+   * The setting the refusal is about, as the request names it: signupMode, publicUrl, accountSmtp.host, workspaceLimits.monitors, workspaceLimitsName and the like.
    */
   field?: string;
 };
@@ -260,12 +264,17 @@ export type AdminUpdateInstallSettingsDto = {
    * The install's default limits, the limits of a workspace that has none of its own. A limit left out stays as it is, a number saves it and null clears it.
    */
   workspaceLimits?: AdminUpdateDefaultLimitsDto | null;
+  /**
+   * The install's name for its default limits, such as Free tier: one line of at most 100 characters. Empty clears it.
+   */
+  workspaceLimitsName?: string | null;
   [key: string]:
     | unknown
     | (AdminUpdateAccountSmtpDto | null)
     | (string | null)
     | (string | null)
     | (AdminUpdateDefaultLimitsDto | null)
+    | (string | null)
     | undefined;
 };
 
@@ -696,6 +705,10 @@ export type LimitsReachedResponse = {
 };
 
 export type LimitsReport = {
+  /**
+   * The install's name for its default limits, such as Free tier (WORKSPACE_LIMITS_NAME, or Admin → Settings), or null when it has none.
+   */
+  installLimitsName: string | null;
   limits: LimitsUses;
   /**
    * Where the workspace's limits come from.
