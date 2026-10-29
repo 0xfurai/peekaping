@@ -2118,6 +2118,7 @@
       "retention_days": "Tietojen säilytys (päivää)"
     },
     "none": "Ei rajaa",
-    "invalid": "Syötä kokonaisluku 1 tai suurempi tai jätä kenttä tyhjäksi, jos rajaa ei ole."
+    "invalid": "Syötä kokonaisluku 1 tai suurempi tai jätä kenttä tyhjäksi, jos rajaa ei ole.",
+    "retention_too_long": "Ei voi olla yli {{max}} päivää"
   }
 }

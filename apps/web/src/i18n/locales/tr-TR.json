@@ -2118,6 +2118,7 @@
       "retention_days": "Veri saklama (gün)"
     },
     "none": "Sınır yok",
-    "invalid": "1 veya daha büyük bir tam sayı girin ya da sınır istemiyorsanız boş bırakın."
+    "invalid": "1 veya daha büyük bir tam sayı girin ya da sınır istemiyorsanız boş bırakın.",
+    "retention_too_long": "{{max}} günden fazla olamaz"
   }
 }

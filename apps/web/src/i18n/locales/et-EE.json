@@ -2118,6 +2118,7 @@
       "retention_days": "Andmete säilitamine (päevades)"
     },
     "none": "Limiiti pole",
-    "invalid": "Sisesta täisarv alates 1 või jäta tühjaks, kui limiiti ei ole."
+    "invalid": "Sisesta täisarv alates 1 või jäta tühjaks, kui limiiti ei ole.",
+    "retention_too_long": "Ei tohi olla üle {{max}} päeva"
   }
 }

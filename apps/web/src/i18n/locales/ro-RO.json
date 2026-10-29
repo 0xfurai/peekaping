@@ -2117,6 +2117,7 @@
       "retention_days": "Păstrarea datelor (zile)"
     },
     "none": "Fără limită",
-    "invalid": "Introduceți un număr întreg egal cu 1 sau mai mare, sau lăsați câmpul gol pentru nicio limită."
+    "invalid": "Introduceți un număr întreg egal cu 1 sau mai mare, sau lăsați câmpul gol pentru nicio limită.",
+    "retention_too_long": "Nu poate fi mai mare de {{max}} zile"
   }
 }

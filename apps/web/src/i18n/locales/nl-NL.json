@@ -2118,6 +2118,7 @@
       "retention_days": "Gegevensbewaring (dagen)"
     },
     "none": "Geen limiet",
-    "invalid": "Voer een geheel getal van 1 of meer in, of laat het leeg voor geen limiet."
+    "invalid": "Voer een geheel getal van 1 of meer in, of laat het leeg voor geen limiet.",
+    "retention_too_long": "Mag niet meer zijn dan {{max}} dagen"
   }
 }

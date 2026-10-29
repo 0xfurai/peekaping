@@ -1,4 +1,5 @@
 import { isAxiosError } from "axios";
+import { z } from "zod";
 import type {
   AdminInstallSettingsResponse,
   AdminUpdateAccountSmtpDto,
@@ -91,7 +92,7 @@ export const installSettingsChange = (
   if (Object.keys(sender).length > 0) body.accountSmtp = sender;
 
   // A default limit emptied is sent as null, which clears it: no limit. The form's check keeps a
-  // value that is no whole number of 1 or more from being saved.
+  // value the server refuses from being saved (defaultLimitsSchema).
   const limits: AdminUpdateDefaultLimitsDto = {};
   for (const name of DEFAULT_LIMITS) {
     const setting = settings.workspaceLimits[name];
@@ -104,11 +105,58 @@ export const installSettingsChange = (
   return body;
 };
 
-/** Whether a typed default limit can be saved: blank for none, or a whole number of 1 or more. */
-export const isDefaultLimit = (typed: string): boolean => {
-  const value = typed.trim();
-  return value === "" || (/^\d+$/.test(value) && Number(value) >= 1);
+// The longest data retention period, in days, a default limit can hold: the server's
+// installsettings.MaxRetentionDays
+export const MAX_DEFAULT_RETENTION_DAYS = 36500;
+
+/**
+ * The whole numbers a default limit can be saved with, as the server checks them: 1 or more, the
+ * shortest check interval at least the install's MIN_CHECK_INTERVAL, since a smaller one would never
+ * apply, and a retention period at most MAX_DEFAULT_RETENTION_DAYS.
+ */
+export const defaultLimitBounds = (
+  name: DefaultLimit,
+  minCheckInterval: number
+): { min: number; max?: number } => {
+  if (name === "min_check_interval") return { min: Math.max(minCheckInterval, 1) };
+  if (name === "retention_days") return { min: 1, max: MAX_DEFAULT_RETENTION_DAYS };
+  return { min: 1 };
 };
+
+/**
+ * The schema of the typed default limits: each blank for none, or a whole number in its bounds, so
+ * that the form keeps a value the server refuses from being saved. minCheckInterval is the
+ * install's own, as /me states it, not the workspace's. A limit as it loaded, or locked by the
+ * environment, is not sent, so it is not checked: the environment's value or a raised
+ * MIN_CHECK_INTERVAL can leave it out of bounds, and that must not hold back the rest of a save.
+ */
+export const defaultLimitsSchema = (
+  t: Translate,
+  minCheckInterval: number,
+  loaded: AdminInstallSettingsResponse["workspaceLimits"]
+) =>
+  z.object(
+    Object.fromEntries(
+      DEFAULT_LIMITS.map((name) => {
+        const { min, max } = defaultLimitBounds(name, minCheckInterval);
+        const setting = loaded[name];
+        const check = z.string().superRefine((typed, ctx) => {
+          const value = typed.trim();
+          if (value === "" || setting.locked || value === (setting.value?.toString() ?? "")) return;
+          let message: string | undefined;
+          if (!/^\d+$/.test(value)) message = t("limits.invalid");
+          else if (Number(value) < min)
+            message =
+              name === "min_check_interval"
+                ? t("monitors.form.shared.intervals.interval_too_short", { minimum: min })
+                : t("limits.invalid");
+          else if (max !== undefined && Number(value) > max) message = t("limits.retention_too_long", { max });
+          if (message) ctx.addIssue({ code: z.ZodIssueCode.custom, message });
+        });
+        return [name, check];
+      })
+    ) as Record<DefaultLimit, z.ZodEffects<z.ZodString>>
+  );
 
 // Whether saving the change clears the saved password: a change of the host, port, security or
 // user that sends no password does, so that the password is never sent to another server

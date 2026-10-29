@@ -2118,6 +2118,7 @@
       "retention_days": "Datenaufbewahrung (Tage)"
     },
     "none": "Kein Limit",
-    "invalid": "Geben Sie eine ganze Zahl ab 1 ein oder lassen Sie das Feld leer, wenn es kein Limit geben soll."
+    "invalid": "Geben Sie eine ganze Zahl ab 1 ein oder lassen Sie das Feld leer, wenn es kein Limit geben soll.",
+    "retention_too_long": "Darf nicht mehr als {{max}} Tage betragen"
   }
 }

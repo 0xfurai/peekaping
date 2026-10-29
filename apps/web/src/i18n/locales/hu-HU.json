@@ -2118,6 +2118,7 @@
       "retention_days": "Adattartás (nap)"
     },
     "none": "Nincs korlát",
-    "invalid": "Adjon meg egy 1 vagy nagyobb egész számot, vagy hagyja üresen, ha nem kér korlátot."
+    "invalid": "Adjon meg egy 1 vagy nagyobb egész számot, vagy hagyja üresen, ha nem kér korlátot.",
+    "retention_too_long": "Nem lehet több {{max}} napnál"
   }
 }

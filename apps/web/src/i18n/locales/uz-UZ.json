@@ -2117,6 +2117,7 @@
       "retention_days": "Ma'lumotlarni saqlash (kun)"
     },
     "none": "Chegarasiz",
-    "invalid": "1 yoki undan katta butun son kiriting yoki chegara kerak bo'lmasa, bo'sh qoldiring."
+    "invalid": "1 yoki undan katta butun son kiriting yoki chegara kerak bo'lmasa, bo'sh qoldiring.",
+    "retention_too_long": "{{max}} kundan oshmasligi kerak"
   }
 }

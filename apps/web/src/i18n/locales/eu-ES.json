@@ -2118,6 +2118,7 @@
       "retention_days": "Datuen mantentzea (egunak)"
     },
     "none": "Mugarik gabe",
-    "invalid": "Sartu 1 edo handiagoa den zenbaki oso bat, edo utzi hutsik mugarik ez izateko."
+    "invalid": "Sartu 1 edo handiagoa den zenbaki oso bat, edo utzi hutsik mugarik ez izateko.",
+    "retention_too_long": "Ezin da {{max}} egun baino gehiago izan"
   }
 }
