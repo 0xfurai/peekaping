@@ -1,15 +1,13 @@
 import CreateEditNotificationChannel from "../components/create-edit-notification-channel";
 import type { NotificationChannelFormValues } from "../channel-types/registry";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getNotificationChannelsInfiniteQueryKey,
-  postNotificationChannelsMutation,
-} from "@/api/@tanstack/react-query.gen";
+import { postNotificationChannelsMutation } from "@/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import type { NotificationChannelModel } from "@/api";
 import { channelCreateBody } from "../channel-payload";
+import { invalidateChannelLists } from "../channel-queries";
 
 const CreateNotificationChannel = ({
   onSuccess,
@@ -24,9 +22,7 @@ const CreateNotificationChannel = ({
     onSuccess: (response) => {
       toast.success(t("notifications.messages.created_success"));
 
-      queryClient.invalidateQueries({
-        queryKey: getNotificationChannelsInfiniteQueryKey(),
-      });
+      invalidateChannelLists(queryClient);
       onSuccess(response.data);
     },
     onError: commonMutationErrorHandler(t("notifications.messages.create_failed")),
