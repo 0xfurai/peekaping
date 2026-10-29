@@ -202,6 +202,7 @@
         "password_set": "Bir parola ayarlı. Değiştirmek için yazın.",
         "password_not_set": "Parola ayarlı değil",
         "password_removed": "Kaydettiğinizde parola kaldırılır.",
+        "password_reenter": "Ana makineyi, bağlantı noktasını, güvenliği veya kullanıcıyı değiştirmek kayıtlı parolayı kaldırır. Parolayı yeniden girin.",
         "remove_password": "Parolayı kaldır",
         "keep_password": "Parolayı koru",
         "from": "Gönderen adresi"

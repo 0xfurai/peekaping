@@ -71,6 +71,17 @@ export const installSettingsChange = (
   return body;
 };
 
+// Whether saving the change clears the saved password: a change of the host, port, security or
+// user that sends no password does, so that the password is never sent to another server
+export const clearsSavedPassword = (
+  settings: AdminInstallSettingsResponse,
+  change: AdminUpdateInstallSettingsDto
+): boolean => {
+  const sender = change.accountSmtp;
+  if (!settings.accountSmtp.password.set || !sender || sender.password !== undefined) return false;
+  return [sender.host, sender.port, sender.user, sender.tls].some((value) => value !== undefined);
+};
+
 // The translation key of a setting's label, by its name in the admin API
 const FIELD_LABELS: Record<string, string> = {
   signupMode: "admin.settings.signup.label",

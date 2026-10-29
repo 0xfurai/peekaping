@@ -202,6 +202,7 @@
         "password_set": "Đã đặt mật khẩu. Nhập để thay thế.",
         "password_not_set": "Chưa đặt mật khẩu",
         "password_removed": "Mật khẩu sẽ bị xóa khi bạn lưu.",
+        "password_reenter": "Thay đổi máy chủ, cổng, bảo mật hoặc người dùng sẽ xóa mật khẩu đã lưu. Hãy nhập lại.",
         "remove_password": "Xóa mật khẩu",
         "keep_password": "Giữ mật khẩu",
         "from": "Địa chỉ người gửi"

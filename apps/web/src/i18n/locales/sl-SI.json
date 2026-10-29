@@ -202,6 +202,7 @@
         "password_set": "Geslo je nastavljeno. Vnesite novo, da ga zamenjate.",
         "password_not_set": "Geslo ni nastavljeno",
         "password_removed": "Geslo bo ob shranjevanju odstranjeno.",
+        "password_reenter": "S spremembo gostitelja, vrat, varnosti ali uporabnika se shranjeno geslo odstrani. Vnesite ga znova.",
         "remove_password": "Odstrani geslo",
         "keep_password": "Obdrži geslo",
         "from": "Naslov pošiljatelja"

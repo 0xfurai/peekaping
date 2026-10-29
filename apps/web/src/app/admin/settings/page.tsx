@@ -27,6 +27,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { useMe } from "@/hooks/useMe";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import {
+  clearsSavedPassword,
   installSettingsChange,
   installSettingsErrorMessage,
   installSettingsFormValues,
@@ -170,6 +171,8 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
   const smtp = settings.accountSmtp;
   const errors = form.formState.errors;
   const passwordTyped = watched.password !== "";
+  // A change of the server or user without a password clears the saved one on the server
+  const passwordGoes = clearsSavedPassword(settings, pendingChange);
 
   return (
     <form onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-6" noValidate>
@@ -227,7 +230,7 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
                 autoComplete="new-password"
                 readOnly={smtp.password.locked}
                 placeholder={
-                  removePassword && !passwordTyped
+                  (removePassword || passwordGoes) && !passwordTyped
                     ? t("admin.settings.sender.password_removed")
                     : smtp.password.set
                       ? t("admin.settings.sender.password_set")
@@ -235,7 +238,9 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
                 }
                 {...bind("password")}
               />
-              {smtp.password.set && !smtp.password.locked && !passwordTyped && (
+              {passwordGoes ? (
+                <p className="text-sm text-muted-foreground">{t("admin.settings.sender.password_reenter")}</p>
+              ) : smtp.password.set && !smtp.password.locked && !passwordTyped && (
                 <div className="flex flex-wrap items-center gap-2">
                   {removePassword ? (
                     <>
