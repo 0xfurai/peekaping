@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/modules/workspace/workspacehttp"
 	"peekaping/internal/ratelimit"
@@ -125,6 +126,12 @@ func (c *Controller) Register(ctx context.Context, input *RegisterInput) (*httpx
 		if errors.Is(err, ErrAdminExists) {
 			c.logger.Infow("Registration refused: the install has its admin already")
 			return nil, httpx.Fail(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		}
+		// The inviting workspace has as many members as its limit
+		var reached *limits.ReachedError
+		if errors.As(err, &reached) {
+			c.logger.Infow("Invite refused: the workspace has reached its members limit")
+			return nil, limits.Fail(reached)
 		}
 		// An invite that doesn't exist, can't be used or names another email is the visitor's
 		// problem, not the server's: it is logged as the refusal it is, without the token

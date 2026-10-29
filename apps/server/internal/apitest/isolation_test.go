@@ -242,6 +242,10 @@ var isolationCases = map[string]isolationCase{
 		// B's members are B's own: A's owner is not among them
 		return []isolationRequest{{own: true, status: http.StatusOK, forbid: []string{adminEmail}}}
 	}),
+	"GET /api/v1/workspace/limits": byID("", func(isolationIDs) []isolationRequest {
+		// B's limits and usage are counted in B: what A has is not in them
+		return []isolationRequest{{own: true, status: http.StatusOK}}
+	}),
 	"PATCH /api/v1/workspace/members/{userId}":  byID("member", withBody(map[string]any{"role": "member"})),
 	"DELETE /api/v1/workspace/members/{userId}": byID("member", plain),
 	"GET /api/v1/workspace/invites": byID("", func(isolationIDs) []isolationRequest {

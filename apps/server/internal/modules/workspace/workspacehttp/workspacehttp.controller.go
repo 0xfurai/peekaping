@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/workspace"
 	"peekaping/internal/ratelimit"
 	"peekaping/internal/utils"
@@ -18,8 +19,10 @@ import (
 // Controller answers the routes for a workspace's people, its invites and new workspaces
 type Controller struct {
 	service workspace.Service
-	logger  *zap.SugaredLogger
-	now     func() time.Time
+	// usage reports the workspace's limits and what it has of each (PP-160)
+	usage  *limits.Usage
+	logger *zap.SugaredLogger
+	now    func() time.Time
 
 	// The limits on POST /workspace/invites, which sends an email to any address: per caller (a
 	// user, or the API keys of a workspace) and per recipient. They count in this process's memory (see package ratelimit).
@@ -32,9 +35,9 @@ const (
 	maxInvitesPerRecipient = 3
 )
 
-func NewController(service workspace.Service, logger *zap.SugaredLogger) *Controller {
+func NewController(service workspace.Service, usage *limits.Usage, logger *zap.SugaredLogger) *Controller {
 	return &Controller{
-		service: service, logger: logger.Named("[workspace-controller]"), now: time.Now,
+		service: service, usage: usage, logger: logger.Named("[workspace-controller]"), now: time.Now,
 		inviteByCaller:    ratelimit.New(maxInvitesPerCaller, time.Hour),
 		inviteByRecipient: ratelimit.New(maxInvitesPerRecipient, time.Hour),
 	}
@@ -101,6 +104,22 @@ func (c *Controller) ListMembers(ctx context.Context, _ *ListMembersInput) (*htt
 		out[i] = memberResponse(m)
 	}
 	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Members retrieved successfully", out))
+}
+
+// GetLimits answers the workspace's limits, where they come from and what it has of each, for any
+// member of it and its API keys
+func (c *Controller) GetLimits(ctx context.Context, _ *GetLimitsInput) (*httpx.Output[utils.ApiResponse[*limits.Report]], error) {
+	id, err := Scope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// An API key has no user, and owns no workspace
+	userID, _ := httpx.Value(ctx, "userId").(string)
+	report, err := c.usage.Report(ctx, id, userID)
+	if err != nil {
+		return nil, c.fail(err)
+	}
+	return httpx.Reply(http.StatusOK, utils.NewSuccessResponse("Limits retrieved successfully", report))
 }
 
 func (c *Controller) ChangeRole(ctx context.Context, input *ChangeRoleInput) (*httpx.Output[utils.ApiResponse[*MemberResponse]], error) {

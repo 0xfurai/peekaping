@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -32,6 +33,9 @@ type InviteRepository interface {
 	// MarkAccepted records that the user joined through the invite. It returns false when the
 	// invite was used or revoked already, which is how a link works only once.
 	MarkAccepted(ctx context.Context, inviteID, userID string, at time.Time) (bool, error)
+	// CountPending is how many of the workspace's invites can still be accepted at the time:
+	// neither used nor revoked, and not expired
+	CountPending(ctx context.Context, id ID, at time.Time) (int, error)
 }
 
 type inviteModel struct {
@@ -156,4 +160,8 @@ func (r *SQLInviteRepository) MarkAccepted(ctx context.Context, inviteID, userID
 		Where("id = ?", inviteID).Where("accepted_at IS NULL").Where("revoked_at IS NULL").
 		Exec(ctx)
 	return changed(res, err)
+}
+
+func (r *SQLInviteRepository) CountPending(ctx context.Context, id ID, at time.Time) (int, error) {
+	return limits.CountPendingInvites(ctx, r.db, id, at)
 }

@@ -49,6 +49,20 @@ export type AdminLastOwnerWorkspace = {
   name: string;
 };
 
+export type AdminLimitValuesResponse = {
+  custom_domains: number | null;
+  members: number | null;
+  min_check_interval: number | null;
+  monitors: number | null;
+  /**
+   * The install's default, which a user's workspaces are counted against, whatever the source.
+   */
+  owned_workspaces: number | null;
+  probes_per_monitor: number | null;
+  retention_days: number | null;
+  status_pages: number | null;
+};
+
 export type AdminResetLinkResponse = {
   expiresAt: string;
   link: string;
@@ -174,10 +188,18 @@ export type AdminUpdateUserDto = {
 
 export type AdminUpdateWorkspaceDto = {
   /**
-   * Suspend (true) or resume (false) the workspace. Required.
+   * true removes the workspace's own limits, so that the install's defaults apply to it again. Not with limits.
+   */
+  clearLimits?: boolean;
+  /**
+   * Give the workspace limits of its own, which replace the install's defaults whole. A limit left out, or 0, is none, so {} is a workspace with no limits at all, whatever the defaults say. Not with clearLimits.
+   */
+  limits?: AdminWorkspaceLimitsDto;
+  /**
+   * Suspend (true) or resume (false) the workspace.
    */
   suspended?: boolean;
-  [key: string]: unknown | boolean | undefined;
+  [key: string]: unknown | boolean | AdminWorkspaceLimitsDto | undefined;
 };
 
 export type AdminUserResponse = {
@@ -205,6 +227,42 @@ export type AdminUsersPageResponse = {
   users: Array<AdminUserResponse>;
 };
 
+export type AdminWorkspaceLimitsDto = {
+  /**
+   * How many custom domains its status pages may have, together.
+   */
+  custom_domains?: number;
+  /**
+   * How many members it may have, with its pending invites counted.
+   */
+  members?: number;
+  /**
+   * The shortest check interval and retry interval of its monitors, in seconds. MIN_CHECK_INTERVAL applies as well: the stricter wins.
+   */
+  min_check_interval?: number;
+  /**
+   * How many active monitors the workspace may have.
+   */
+  monitors?: number;
+  /**
+   * How many probes one of its monitors may run on.
+   */
+  probes_per_monitor?: number;
+  /**
+   * The longest data retention period it may keep, in days.
+   */
+  retention_days?: number;
+  /**
+   * How many status pages it may have.
+   */
+  status_pages?: number;
+};
+
+export type AdminWorkspaceLimitsResponse = {
+  source: "workspace" | "install" | "none";
+  values: AdminLimitValuesResponse;
+};
+
 export type AdminWorkspaceMonitorsResponse = {
   active: number;
   paused: number;
@@ -214,6 +272,7 @@ export type AdminWorkspaceResponse = {
   createdAt: string;
   customDomains: number;
   id: string;
+  limits: AdminWorkspaceLimitsResponse;
   memberCount: number;
   monitors: AdminWorkspaceMonitorsResponse;
   name: string;
@@ -534,6 +593,46 @@ export type LimitsReachedResponse = {
   data: null;
   error: LimitsReachedError;
   message: string;
+};
+
+export type LimitsReport = {
+  limits: LimitsUses;
+  /**
+   * Where the workspace's limits come from.
+   */
+  source: "workspace" | "install" | "none";
+};
+
+export type LimitsUse = {
+  /**
+   * The limit, or null for none.
+   */
+  max: number | null;
+  /**
+   * Where the limit comes from: the workspace's own limits, the install's defaults, or none.
+   */
+  source: "workspace" | "install" | "none";
+  /**
+   * What the workspace has of it. For min_check_interval, the shortest interval that applies; for retention_days, the workspace's data retention period; for probes_per_monitor, the most probes a monitor runs on; for owned_workspaces, how many the caller owns (0 for an API key).
+   */
+  used: number;
+};
+
+export type LimitsUses = {
+  custom_domains: LimitsUse;
+  /**
+   * Members, with the pending invites counted.
+   */
+  members: LimitsUse;
+  min_check_interval: LimitsUse;
+  monitors: LimitsUse;
+  /**
+   * Counted per user, against the install's defaults alone.
+   */
+  owned_workspaces: LimitsUse;
+  probes_per_monitor: LimitsUse;
+  retention_days: LimitsUse;
+  status_pages: LimitsUse;
 };
 
 export type MaintenanceCreateUpdateDto = {
@@ -1708,6 +1807,11 @@ export type UtilsApiResponseMonitorStatPointsSummaryDto = {
 
 export type UtilsApiResponseNotificationChannelModel = {
   data: NotificationChannelModel;
+  message: string;
+};
+
+export type UtilsApiResponsePeekapingInternalLimitsReport = {
+  data: LimitsReport;
   message: string;
 };
 
@@ -2886,7 +2990,7 @@ export type PostAuthRegisterErrors = {
   /**
    * Forbidden
    */
-  403: HttpxErrorBody;
+  403: LimitsReachedResponse | HttpxErrorBody;
   /**
    * Not Found
    */
@@ -3900,7 +4004,7 @@ export type PostInvitesByTokenAcceptErrors = {
   /**
    * Forbidden
    */
-  403: HttpxErrorBody;
+  403: LimitsReachedResponse | HttpxErrorBody;
   /**
    * Not Found
    */
@@ -6431,6 +6535,10 @@ export type PostStatusPagesErrors = {
    */
   401: HttpxErrorBody;
   /**
+   * Forbidden
+   */
+  403: LimitsReachedResponse | HttpxErrorBody;
+  /**
    * Too Many Requests
    */
   429: HttpxErrorBody;
@@ -6743,6 +6851,10 @@ export type PatchStatusPagesByIdErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: LimitsReachedResponse | HttpxErrorBody;
   /**
    * Not Found
    */
@@ -7332,7 +7444,7 @@ export type PostWorkspaceInvitesErrors = {
   /**
    * Forbidden
    */
-  403: HttpxErrorBody;
+  403: LimitsReachedResponse | HttpxErrorBody;
   /**
    * Not Found
    */
@@ -7466,6 +7578,51 @@ export type PostWorkspaceLeaveResponses = {
 
 export type PostWorkspaceLeaveResponse =
   PostWorkspaceLeaveResponses[keyof PostWorkspaceLeaveResponses];
+
+export type GetWorkspaceLimitsData = {
+  body?: never;
+  headers?: {
+    /**
+     * The workspace the request runs in. Without it, the user's default workspace, the one they joined first. An API key always runs in its own workspace.
+     */
+    "X-Workspace-ID"?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/workspace/limits";
+};
+
+export type GetWorkspaceLimitsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: HttpxErrorBody;
+  /**
+   * Not Found
+   */
+  404: HttpxErrorBody;
+  /**
+   * Too Many Requests
+   */
+  429: HttpxErrorBody;
+  /**
+   * Internal Server Error
+   */
+  500: HttpxErrorBody;
+};
+
+export type GetWorkspaceLimitsError =
+  GetWorkspaceLimitsErrors[keyof GetWorkspaceLimitsErrors];
+
+export type GetWorkspaceLimitsResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponsePeekapingInternalLimitsReport;
+};
+
+export type GetWorkspaceLimitsResponse =
+  GetWorkspaceLimitsResponses[keyof GetWorkspaceLimitsResponses];
 
 export type GetWorkspaceMembersData = {
   body?: never;
@@ -7648,6 +7805,10 @@ export type PostWorkspacesErrors = {
    * Unauthorized
    */
   401: HttpxErrorBody;
+  /**
+   * Forbidden
+   */
+  403: LimitsReachedResponse | HttpxErrorBody;
   /**
    * Internal Server Error
    */

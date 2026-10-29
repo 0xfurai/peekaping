@@ -335,6 +335,9 @@ import type {
   PostWorkspaceLeaveData,
   PostWorkspaceLeaveResponses,
   PostWorkspaceLeaveErrors,
+  GetWorkspaceLimitsData,
+  GetWorkspaceLimitsResponses,
+  GetWorkspaceLimitsErrors,
   GetWorkspaceMembersData,
   GetWorkspaceMembersResponses,
   GetWorkspaceMembersErrors,
@@ -592,7 +595,7 @@ export const postAdminUsersByIdResetLink = <
 
 /**
  * List the workspaces of the install
- * Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended ("admin" when an instance admin suspended it, "unverified" when it waits for its owner to verify their email address) and since when. Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first.
+ * Only an instance admin may do this: any other user and any API key get 403. Every workspace with its name, when it was created, its owners' emails, how many members it has, how many monitors are active and paused, how many status pages and custom domains it has, and whether and why it is suspended ("admin" when an instance admin suspended it, "unverified" when it waits for its owner to verify their email address) and since when, and its limits: each value, null for none, and where they come from (its own, the install's defaults or none; owned_workspaces is always the install's). Counts and metadata only: never a monitor's target, a channel or anything else inside a workspace. q finds the workspaces whose name or whose owner's email contains it, ignoring case. The oldest workspace is first.
  */
 export const getAdminWorkspaces = <ThrowOnError extends boolean = false>(
   options?: Options<GetAdminWorkspacesData, ThrowOnError>
@@ -638,8 +641,8 @@ export const deleteAdminWorkspacesById = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Suspend or resume a workspace
- * Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. suspended is required. The answer is the workspace as the list shows it.
+ * Suspend or resume a workspace, or set its limits
+ * Only an instance admin may do this. suspended true suspends the workspace: its monitors stop running, its public status pages and badges answer 503 with the code STATUS_PAGE_UNAVAILABLE, and its members see that it is suspended. Nothing is deleted. suspended false resumes it: the monitors keep the state they had and run again, unless the workspace still waits for its owner to verify their email address, which is a hold of its own that resuming leaves. Suspending a suspended workspace, and resuming one that is not held by an admin, change nothing. limits gives the workspace limits of its own, which replace the install's defaults (WORKSPACE_LIMIT_*) whole: a limit left out, or 0, is none, so {} is a workspace with no limits at all; a value below 0 is 400. clearLimits true removes them, and the install's defaults apply again. A limit that is lowered pauses and deletes nothing. Each set and clear is logged. Name at least one of suspended, limits and clearLimits, and not both limits and clearLimits (400). The answer is the workspace as the list shows it.
  */
 export const patchAdminWorkspacesById = <ThrowOnError extends boolean = false>(
   options: Options<PatchAdminWorkspacesByIdData, ThrowOnError>
@@ -997,7 +1000,7 @@ export const postAuthRefresh = <ThrowOnError extends boolean = false>(
 
 /**
  * Register new admin
- * Who may register depends on SIGNUP_MODE. In invite mode (the default) it creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user (400). In open mode anyone may register: it creates the user and a workspace of their own, "My workspace", that they own. Only the install's very first user is an instance admin. The new workspace is suspended until the user verifies their email address (GET /me says so), and the verification email is sent. In open mode a client address may register 5 times an hour (429), an email that has an account is refused (409), and when the install uses Cloudflare Turnstile the body needs turnstileToken, which the server checks: a missing, refused or unchecked answer is 400. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite.
+ * Who may register depends on SIGNUP_MODE. In invite mode (the default) it creates the install's first user, who is its instance admin and the owner of its first workspace, and refuses once the install has a user (400). In open mode anyone may register: it creates the user and a workspace of their own, "My workspace", that they own. Only the install's very first user is an instance admin. The new workspace is suspended until the user verifies their email address (GET /me says so), and the verification email is sent. In open mode a client address may register 5 times an hour (429), an email that has an account is refused (409), and when the install uses Cloudflare Turnstile the body needs turnstileToken, which the server checks: a missing, refused or unchecked answer is 400. With inviteToken, the token of an invite link, it creates the user the invite names instead: they join the inviting workspace with the invite's role, get no workspace of their own and no instance admin flag. The email must be the invited one (403), and the invite must exist (404) and not be used, expired or revoked (410). An email that has an account already is refused (409): sign in and accept the invite. A workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members), and no account is made.
  */
 export const postAuthRegister = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthRegisterData, ThrowOnError>
@@ -1305,7 +1308,7 @@ export const getInvitesByToken = <ThrowOnError extends boolean = false>(
 
 /**
  * Accept an invite
- * A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken).
+ * A signed-in user whose account email is the invited one joins the workspace with the invite's role. A used, expired or revoked invite is refused (410), and so is one for another email (403). Someone without an account signs up through the invite instead (POST /auth/register with inviteToken). An invite counted against the members limit when it was made can be accepted; a workspace that has as many members as its limit refuses it (403 LIMIT_REACHED, limit members).
  */
 export const postInvitesByTokenAccept = <ThrowOnError extends boolean = false>(
   options: Options<PostInvitesByTokenAcceptData, ThrowOnError>
@@ -3213,7 +3216,7 @@ export const getWorkspaceInvites = <ThrowOnError extends boolean = false>(
 
 /**
  * Invite someone to the workspace
- * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or the API keys of a workspace together) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429. A caller that may not invite is refused before either limit counts.
+ * An admin or owner invites an email with a role; only an owner invites an owner. The answer holds the invite's link, once. It works once, for 7 days, for the account with that email. The link is also emailed to the invited address when the install sends account emails (ACCOUNT_SMTP_HOST is set); otherwise copy it to the person you invite. An earlier invite for the same email is revoked. Each invite can send an email, so a caller (a user, or the API keys of a workspace together) makes at most 20 an hour and one address gets at most 3 an hour; past either the answer is 429. A caller that may not invite is refused before either limit counts. A workspace whose members and pending invites are as many as its members limit is refused (403 LIMIT_REACHED, limit members); inviting a pending address again replaces its invite and takes no more room.
  */
 export const postWorkspaceInvites = <ThrowOnError extends boolean = false>(
   options: Options<PostWorkspaceInvitesData, ThrowOnError>
@@ -3291,6 +3294,34 @@ export const postWorkspaceLeave = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/api/v1/workspace/leave",
+    ...options,
+  });
+};
+
+/**
+ * Get the limits of the workspace
+ * Every member of the workspace (and an API key) sees its limits: for each, its value (null for none), what the workspace has of it and where it comes from: the workspace's own limits, which an instance admin sets, the install's defaults (WORKSPACE_LIMIT_*) or none. An install that sets no limits answers null for each. members counts the pending invites beside the members; owned_workspaces counts the caller's own workspaces (0 for an API key) against the install's defaults alone; min_check_interval is used as the shortest interval that applies, the stricter of MIN_CHECK_INTERVAL and the limit; retention_days as the workspace's data retention period.
+ */
+export const getWorkspaceLimits = <ThrowOnError extends boolean = false>(
+  options?: Options<GetWorkspaceLimitsData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetWorkspaceLimitsResponses,
+    GetWorkspaceLimitsErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        scheme: "bearer",
+        type: "http",
+      },
+      {
+        name: "X-API-Key",
+        type: "apiKey",
+      },
+    ],
+    url: "/api/v1/workspace/limits",
     ...options,
   });
 };
@@ -3388,7 +3419,7 @@ export const patchWorkspaceMembersByUserId = <
 
 /**
  * Create a workspace
- * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace.
+ * Any signed-in user makes a workspace and becomes its owner. It starts with the default settings of a new workspace. A user who owns as many workspaces as the install's WORKSPACE_LIMIT_OWNED_WORKSPACES is refused (403 LIMIT_REACHED, limit owned_workspaces).
  */
 export const postWorkspaces = <ThrowOnError extends boolean = false>(
   options: Options<PostWorkspacesData, ThrowOnError>

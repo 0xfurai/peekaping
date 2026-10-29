@@ -34,4 +34,13 @@ type Repository interface {
 	WorkspaceSuspended(ctx context.Context, workspaceID workspace.ID) (bool, error)
 	Update(ctx context.Context, workspaceID workspace.ID, id string, statusPage *UpdateModel) error
 	Delete(ctx context.Context, workspaceID workspace.ID, id string) error
+
+	// LockWorkspace holds the workspace until the transaction ctx carries ends, so that a count
+	// against one of its limits and the write after it see every other such write before or after
+	// them (limits.LockWorkspace)
+	LockWorkspace(ctx context.Context, workspaceID workspace.ID) error
+	// CountPages is how many status pages the workspace has
+	CountPages(ctx context.Context, workspaceID workspace.ID) (int, error)
+	// CountDomains is how many custom domains the workspace's pages have, together
+	CountDomains(ctx context.Context, workspaceID workspace.ID) (int, error)
 }

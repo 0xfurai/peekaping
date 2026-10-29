@@ -9,9 +9,9 @@ import (
 )
 
 // RegisterDependencies provides the install's Chain, as the Source the services enforce and as the
-// one place a workspace's own limits are written
+// one place a workspace's own limits are written, and the Usage that reports them
 func RegisterDependencies(container *dig.Container) error {
-	return utils.Provide(container, provideChain, func(c *Chain) Source { return c })
+	return utils.Provide(container, provideChain, func(c *Chain) Source { return c }, NewUsage)
 }
 
 func provideChain(db *bun.DB, cfg *config.Config) *Chain {

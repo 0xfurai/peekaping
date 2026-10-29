@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"peekaping/internal/dbtx"
+
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
@@ -45,7 +47,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 		UpdatedAt:    time.Now(),
 	}
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +57,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, 
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
+	err := dbtx.DB(ctx, r.db).NewSelect().Model(sm).Where("id = ?", id).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -66,7 +68,7 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 }
 
 func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q string) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil))
+	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil))
 
 	if q != "" {
 		query = query.Where("domain ILIKE ?", "%"+q+"%")
@@ -97,7 +99,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *M
 		UpdatedAt:    time.Now(),
 	}
 
-	_, err := r.db.NewUpdate().
+	_, err := dbtx.DB(ctx, r.db).NewUpdate().
 		Model(sm).
 		Where("id = ?", id).
 		OmitZero().
@@ -110,7 +112,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *M
 }
 
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *UpdateModel) (*Model, error) {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
 
 	query = query.Set("updated_at = ?", time.Now())
 
@@ -130,7 +132,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
 }
 
@@ -156,7 +158,7 @@ func (r *SQLRepositoryImpl) AddDomainToStatusPage(ctx context.Context, statusPag
 }
 
 func (r *SQLRepositoryImpl) RemoveDomainFromStatusPage(ctx context.Context, statusPageID, domain string) error {
-	_, err := r.db.NewDelete().
+	_, err := dbtx.DB(ctx, r.db).NewDelete().
 		Model((*sqlModel)(nil)).
 		Where("status_page_id = ? AND domain = ?", statusPageID, domain).
 		Exec(ctx)
@@ -165,7 +167,7 @@ func (r *SQLRepositoryImpl) RemoveDomainFromStatusPage(ctx context.Context, stat
 
 func (r *SQLRepositoryImpl) GetDomainsForStatusPage(ctx context.Context, statusPageID string) ([]*Model, error) {
 	var sms []*sqlModel
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(&sms).
 		Where("status_page_id = ?", statusPageID).
 		Order("created_at ASC").
@@ -183,7 +185,7 @@ func (r *SQLRepositoryImpl) GetDomainsForStatusPage(ctx context.Context, statusP
 
 func (r *SQLRepositoryImpl) FindByStatusPageAndDomain(ctx context.Context, statusPageID, domain string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(sm).
 		Where("status_page_id = ? AND domain = ?", statusPageID, domain).
 		Scan(ctx)
@@ -197,7 +199,7 @@ func (r *SQLRepositoryImpl) FindByStatusPageAndDomain(ctx context.Context, statu
 }
 
 func (r *SQLRepositoryImpl) DeleteAllDomainsForStatusPage(ctx context.Context, statusPageID string) error {
-	_, err := r.db.NewDelete().
+	_, err := dbtx.DB(ctx, r.db).NewDelete().
 		Model((*sqlModel)(nil)).
 		Where("status_page_id = ?", statusPageID).
 		Exec(ctx)
@@ -206,7 +208,7 @@ func (r *SQLRepositoryImpl) DeleteAllDomainsForStatusPage(ctx context.Context, s
 
 func (r *SQLRepositoryImpl) FindByDomain(ctx context.Context, domain string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().
+	err := dbtx.DB(ctx, r.db).NewSelect().
 		Model(sm).
 		Where("domain = ?", domain).
 		Scan(ctx)

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/workspace"
 )
 
@@ -104,6 +105,10 @@ type Workspace struct {
 	SuspendedAt *time.Time
 	// SuspendedReason is workspace.SuspendedByAdmin, workspace.SuspendedUnverified, or empty
 	SuspendedReason string
+	// Limits are what the workspace is held to (PP-160), and LimitsSource where they come from. The
+	// service fills them in: the repository reads none.
+	Limits       limits.Limits
+	LimitsSource limits.Origin
 }
 
 // The names of the admin actions, as the log says them
@@ -115,7 +120,9 @@ const (
 	ActionDisableTwoFA     = "disable_2fa"
 	ActionDeleteUser       = "delete_user"
 
-	ActionSuspendWorkspace = "suspend_workspace"
-	ActionResumeWorkspace  = "resume_workspace"
-	ActionDeleteWorkspace  = "delete_workspace"
+	ActionSuspendWorkspace     = "suspend_workspace"
+	ActionResumeWorkspace      = "resume_workspace"
+	ActionDeleteWorkspace      = "delete_workspace"
+	ActionSetWorkspaceLimits   = "set_workspace_limits"
+	ActionClearWorkspaceLimits = "clear_workspace_limits"
 )

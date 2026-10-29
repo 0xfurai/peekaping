@@ -144,7 +144,7 @@ func TestOpenAPI_CompleteAndAccurateContract(t *testing.T) {
 			assert.Contains(t, op.Responses["404"].Content, "application/json")
 		}
 	}
-	assert.Equal(t, 121, count)
+	assert.Equal(t, 122, count)
 	specCount := 0
 	for _, methods := range spec.Paths {
 		specCount += len(methods)
@@ -379,7 +379,8 @@ func TestOpenAPI_TelemetryEnabledIsNotNullable(t *testing.T) {
 	}
 }
 
-// A workspace PATCH refuses a null suspended like a missing one, so the description leaves null out.
+// A workspace PATCH refuses a null suspended or limits like a missing one, so the description leaves
+// null out.
 // The field stays optional: the PATCH grows other fields, and refusing an empty change is the
 // handler's job.
 func TestOpenAPI_WorkspaceSuspendedIsNotNullable(t *testing.T) {
@@ -400,6 +401,8 @@ func TestOpenAPI_WorkspaceSuspendedIsNotNullable(t *testing.T) {
 		{`{"suspended":true}`, true, 200},
 		{`{"suspended":false}`, true, 200},
 		{`{"suspended":null}`, false, 400},
+		{`{"limits":{}}`, true, 200},
+		{`{"limits":null}`, false, 400},
 	} {
 		t.Run(tc.body, func(t *testing.T) {
 			value, err := jsonschema.UnmarshalJSON(strings.NewReader(tc.body))

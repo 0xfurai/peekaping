@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -43,6 +44,13 @@ type MemberRepository interface {
 	// HasVerifiedMemberWithEmail is HasMemberWithEmail for a member whose account has verified the
 	// address (users.email_verified_at is set)
 	HasVerifiedMemberWithEmail(ctx context.Context, id ID, email string) (bool, error)
+	// CountMembers is how many members the workspace has, owners included
+	CountMembers(ctx context.Context, id ID) (int, error)
+	// CountOwned is how many workspaces the user is an owner of
+	CountOwned(ctx context.Context, userID string) (int, error)
+	// LockUser holds the user's row until the transaction ends, on PostgreSQL, so that two
+	// workspaces the user creates at once are counted one after the other (limits.LockUser)
+	LockUser(ctx context.Context, userID string) error
 }
 
 type SQLMemberRepository struct {
@@ -178,4 +186,16 @@ func (r *SQLMemberRepository) emailVerified(ctx context.Context, userID string, 
 		return false, nil
 	}
 	return verifiedAt != nil, err
+}
+
+func (r *SQLMemberRepository) CountMembers(ctx context.Context, id ID) (int, error) {
+	return limits.CountMembers(ctx, r.db, id)
+}
+
+func (r *SQLMemberRepository) CountOwned(ctx context.Context, userID string) (int, error) {
+	return limits.CountOwnedWorkspaces(ctx, r.db, userID)
+}
+
+func (r *SQLMemberRepository) LockUser(ctx context.Context, userID string) error {
+	return limits.LockUser(ctx, r.db, userID)
 }

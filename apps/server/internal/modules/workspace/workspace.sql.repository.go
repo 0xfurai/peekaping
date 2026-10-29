@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -224,6 +225,10 @@ func (r *SQLRepositoryImpl) ListIDsAnyWorkspace(ctx context.Context) ([]ID, erro
 		out[i] = ID(id)
 	}
 	return out, nil
+}
+
+func (r *SQLRepositoryImpl) LockWorkspace(ctx context.Context, id ID) error {
+	return limits.LockWorkspace(ctx, r.db, id)
 }
 
 func (r *SQLRepositoryImpl) LiftUnverifiedOwnedBy(ctx context.Context, userID string) ([]ID, error) {

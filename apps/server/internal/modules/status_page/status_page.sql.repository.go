@@ -6,6 +6,8 @@ import (
 	"errors"
 	"time"
 
+	"peekaping/internal/dbtx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/workspace"
 
 	"github.com/google/uuid"
@@ -82,7 +84,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -91,20 +93,20 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 }
 
 func (r *SQLRepositoryImpl) FindByID(ctx context.Context, workspaceID workspace.ID, id string) (*Model, error) {
-	return r.findOne(ctx, r.db.NewSelect().Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)))
+	return r.findOne(ctx, dbtx.DB(ctx, r.db).NewSelect().Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)))
 }
 
 func (r *SQLRepositoryImpl) FindByIDAnyWorkspace(ctx context.Context, id string) (*Model, error) {
-	return r.findOne(ctx, r.db.NewSelect().Where("id = ?", id))
+	return r.findOne(ctx, dbtx.DB(ctx, r.db).NewSelect().Where("id = ?", id))
 }
 
 func (r *SQLRepositoryImpl) FindBySlugAnyWorkspace(ctx context.Context, slug string) (*Model, error) {
-	return r.findOne(ctx, r.db.NewSelect().Where("slug = ?", slug))
+	return r.findOne(ctx, dbtx.DB(ctx, r.db).NewSelect().Where("slug = ?", slug))
 }
 
 func (r *SQLRepositoryImpl) WorkspaceSuspended(ctx context.Context, workspaceID workspace.ID) (bool, error) {
 	var suspended bool
-	err := r.db.NewSelect().Table("workspaces").
+	err := dbtx.DB(ctx, r.db).NewSelect().Table("workspaces").
 		ColumnExpr("(suspended_at IS NOT NULL OR admin_suspended_at IS NOT NULL)").
 		Where("id = ?", string(workspaceID)).Scan(ctx, &suspended)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -131,7 +133,7 @@ func (r *SQLRepositoryImpl) FindAll(
 	limit int,
 	q string,
 ) ([]*Model, error) {
-	query := r.db.NewSelect().Model((*sqlModel)(nil)).Where("workspace_id = ?", string(workspaceID))
+	query := dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)).Where("workspace_id = ?", string(workspaceID))
 
 	if q != "" {
 		query = query.Where("(LOWER(title) LIKE ? OR LOWER(description) LIKE ?)", "%"+q+"%", "%"+q+"%")
@@ -141,7 +143,7 @@ func (r *SQLRepositoryImpl) FindAll(
 }
 
 func (r *SQLRepositoryImpl) FindAllAnyWorkspace(ctx context.Context, page int, limit int) ([]*Model, error) {
-	return r.list(ctx, r.db.NewSelect().Model((*sqlModel)(nil)), page, limit)
+	return r.list(ctx, dbtx.DB(ctx, r.db).NewSelect().Model((*sqlModel)(nil)), page, limit)
 }
 
 func (r *SQLRepositoryImpl) list(ctx context.Context, query *bun.SelectQuery, page, limit int) ([]*Model, error) {
@@ -163,7 +165,7 @@ func (r *SQLRepositoryImpl) list(ctx context.Context, query *bun.SelectQuery, pa
 }
 
 func (r *SQLRepositoryImpl) Update(ctx context.Context, workspaceID workspace.ID, id string, statusPage *UpdateModel) error {
-	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
+	query := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID))
 
 	hasUpdates := false
 
@@ -223,7 +225,7 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, workspaceID workspace.ID
 }
 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
-	result, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	result, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
 	return requireOneRow(result, err)
 }
 
@@ -241,4 +243,16 @@ func requireOneRow(result sql.Result, err error) error {
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (r *SQLRepositoryImpl) LockWorkspace(ctx context.Context, workspaceID workspace.ID) error {
+	return limits.LockWorkspace(ctx, r.db, workspaceID)
+}
+
+func (r *SQLRepositoryImpl) CountPages(ctx context.Context, workspaceID workspace.ID) (int, error) {
+	return limits.CountStatusPages(ctx, r.db, workspaceID)
+}
+
+func (r *SQLRepositoryImpl) CountDomains(ctx context.Context, workspaceID workspace.ID) (int, error) {
+	return limits.CountCustomDomains(ctx, r.db, workspaceID)
 }

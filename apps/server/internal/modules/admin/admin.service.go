@@ -3,11 +3,13 @@ package admin
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
 	"peekaping/internal/dbtx"
 	"peekaping/internal/installsettings"
+	"peekaping/internal/limits"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/events"
@@ -45,6 +47,10 @@ type Service interface {
 	// verification: resuming leaves that one, and the workspace's monitors run again once no hold
 	// remains. Nothing is deleted. A change that changes nothing is not logged.
 	SetWorkspaceSuspended(ctx context.Context, actorID, workspaceID string, suspended bool) (*Workspace, error)
+	// SetWorkspaceLimits gives the workspace limits of its own (PP-160), which replace the install's
+	// defaults whole: an empty Limits is no limits at all. nil removes them, and the install's
+	// defaults apply again. ErrWorkspaceNotFound. Each set and clear is logged.
+	SetWorkspaceLimits(ctx context.Context, actorID, workspaceID string, own *limits.Limits) (*Workspace, error)
 	// DeleteWorkspace deletes the workspace and everything in it: ErrWorkspaceNotFound. Its
 	// monitors stop at once and its members' open sockets leave its rooms. The members keep their
 	// accounts. An admin may delete a workspace they are a member of.
@@ -79,6 +85,8 @@ type ServiceImpl struct {
 	settings   *installsettings.Resolver
 	logger     *zap.SugaredLogger
 	now        func() time.Time
+	// limits are the workspaces' limits, read for the list and written for one workspace (PP-160)
+	limits *limits.Chain
 }
 
 func NewService(
@@ -90,6 +98,7 @@ func NewService(
 	bus events.EventBus,
 	mailer *mailer.Mailer,
 	settings *installsettings.Resolver,
+	workspaceLimits *limits.Chain,
 	logger *zap.SugaredLogger,
 ) Service {
 	return &ServiceImpl{
@@ -103,6 +112,7 @@ func NewService(
 		settings:   settings,
 		logger:     logger.Named("[admin-service]"),
 		now:        time.Now,
+		limits:     workspaceLimits,
 	}
 }
 
@@ -329,7 +339,59 @@ func (s *ServiceImpl) announceLeft(ctx context.Context, userID string, membershi
 }
 
 func (s *ServiceImpl) ListWorkspaces(ctx context.Context, q string, page, limit int) ([]*Workspace, int, error) {
-	return s.repo.ListWorkspacesAnyWorkspace(ctx, q, page, limit)
+	workspaces, total, err := s.repo.ListWorkspacesAnyWorkspace(ctx, q, page, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+	if err := s.fillLimits(ctx, workspaces...); err != nil {
+		return nil, 0, err
+	}
+	return workspaces, total, nil
+}
+
+// fillLimits gives the workspaces their limits and where they come from, with one read for all of
+// them. owned_workspaces is the install's default for each: it is what a user's workspaces are
+// counted against.
+func (s *ServiceImpl) fillLimits(ctx context.Context, workspaces ...*Workspace) error {
+	snapshot := limits.Snapshot{}
+	if s.limits != nil {
+		var err error
+		if snapshot, err = s.limits.Snapshot(ctx); err != nil {
+			return fmt.Errorf("read the workspaces' limits: %w", err)
+		}
+	}
+	for _, w := range workspaces {
+		if w == nil {
+			continue
+		}
+		w.Limits, w.LimitsSource = snapshot.For(w.ID)
+		w.Limits.OwnedWorkspaces = snapshot.Defaults.OwnedWorkspaces
+	}
+	return nil
+}
+
+func (s *ServiceImpl) SetWorkspaceLimits(ctx context.Context, actorID, workspaceID string, own *limits.Limits) (*Workspace, error) {
+	found, err := s.repo.FindWorkspaceAnyWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	if found == nil {
+		return nil, ErrWorkspaceNotFound
+	}
+	// Outside a transaction: the Chain forgets what it read once the change is stored, so that this
+	// process can't cache what it read before the commit
+	if err := s.limits.SetOwn(ctx, found.ID, own); err != nil {
+		return nil, err
+	}
+	if own == nil {
+		s.logWorkspace(actorID, ActionClearWorkspaceLimits, workspaceID)
+	} else {
+		s.logWorkspace(actorID, ActionSetWorkspaceLimits, workspaceID)
+	}
+	if err := s.fillLimits(ctx, found); err != nil {
+		return nil, err
+	}
+	return found, nil
 }
 
 func (s *ServiceImpl) SetWorkspaceSuspended(ctx context.Context, actorID, workspaceID string, suspended bool) (*Workspace, error) {
@@ -365,6 +427,9 @@ func (s *ServiceImpl) SetWorkspaceSuspended(ctx context.Context, actorID, worksp
 				s.wake(ctx, workspace.ID(workspaceID))
 			}
 		}
+	}
+	if err := s.fillLimits(ctx, updated); err != nil {
+		return nil, err
 	}
 	return updated, nil
 }
