@@ -94,10 +94,18 @@ func (m *MockMonitorRepository) RecordLocationAnyWorkspace(ctx context.Context, 
 	return args.Error(0)
 }
 
-func (m *MockMonitorRepository) AddProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string) ([]string, error) {
+func (m *MockMonitorRepository) AddProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string) ([]string, int, error) {
 	args := m.Called(ctx, probeID, supportedTypes)
 	ids, _ := args.Get(0).([]string)
-	return ids, args.Error(1)
+	return ids, 0, args.Error(1)
+}
+
+// LockWorkspace and CountActive hold nothing and count nothing: the mock's workspaces have no
+// limits
+func (m *MockMonitorRepository) LockWorkspace(context.Context, workspace.ID) error { return nil }
+
+func (m *MockMonitorRepository) CountActive(context.Context, workspace.ID) (int, error) {
+	return 0, nil
 }
 
 func (m *MockMonitorRepository) ResetLocations(ctx context.Context, workspaceID workspace.ID, monitorID string) error {

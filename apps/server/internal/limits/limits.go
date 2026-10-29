@@ -182,8 +182,8 @@ func Reached(limit Name, max int) *ReachedError {
 // ReachedResponse is the answer to a write over one of the workspace's limits: a 403 with the
 // usual message, which names the limit and its value, and both in the error
 type ReachedResponse struct {
-	Message string       `json:"message" example:"the workspace has reached its limit of 10 active monitors"`
-	Data    httpx.Null   `json:"data"`
+	Message string        `json:"message" example:"the workspace has reached its limit of 10 active monitors"`
+	Data    httpx.Null    `json:"data"`
 	Error   *ReachedError `json:"error"`
 }
 

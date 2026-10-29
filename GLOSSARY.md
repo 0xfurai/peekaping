@@ -222,8 +222,8 @@ A user who manages what belongs to the install rather than to a workspace: probe
 _Avoid_: Superuser, site admin, root
 
 **Plan**:
-The limits a workspace is held to, such as how many monitors it may have and its shortest check interval. A workspace without a plan has no limits, which is every workspace on a self-hosted install.
-_Avoid_: Tier, subscription (that's the billing record), package
+The limits a workspace is held to, such as how many active monitors it may have and its shortest check interval. They are the workspace's own, which an instance admin sets ("no limits" is one), or else the install's defaults (`WORKSPACE_LIMIT_*`), or else none: a self-hosted install that sets nothing has no limits, and on the cloud the defaults are the free tier. A write over a limit is refused, and lowering one pauses and deletes nothing: the newest active monitors past it are kept but don't run, which a monitor shows as over the limit.
+_Avoid_: Tier, subscription (that's the billing record), package, quota
 
 **Invite**:
 A link an admin or owner makes for an email address and a role. It works once, for 7 days, until it is revoked. Opening it adds the account with that email to the workspace with the invite's role, or lets someone without an account sign up as a member of that workspace, with no workspace of their own. When the install has a sender for account emails, the link is also emailed to the invited address; the inviter can always copy it. The link's token is shown once and stored only as a hash.

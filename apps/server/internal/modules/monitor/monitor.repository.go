@@ -47,9 +47,16 @@ type MonitorRepository interface {
 	// AddProbeToAllAnyWorkspace adds the probe to every monitor of the install that isn't a push
 	// monitor, of one of the types (every type when there are none), and doesn't run on it yet,
 	// and returns the ids of the monitors it changed. A changed monitor has a new updated_at, and
-	// one that had no probe rows, and so ran on the local probe, gets that row as well. Call it in
-	// a transaction: the rows are many.
-	AddProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string) ([]string, error)
+	// one that had no probe rows, and so ran on the local probe, gets that row as well. A monitor
+	// that runs on as many probes as its workspace's limit allows (PP-160) is skipped, and the
+	// second value counts those. Call it in a transaction: the rows are many.
+	AddProbeToAllAnyWorkspace(ctx context.Context, probeID string, supportedTypes []string) ([]string, int, error)
+	// LockWorkspace holds the workspace until the transaction ctx carries ends, so that a count
+	// against one of its limits and the write that follows see no other such write beside them
+	// (limits.LockWorkspace)
+	LockWorkspace(ctx context.Context, workspaceID workspace.ID) error
+	// CountActive is how many active monitors the workspace has
+	CountActive(ctx context.Context, workspaceID workspace.ID) (int, error)
 	UpdateFull(ctx context.Context, workspaceID workspace.ID, id string, monitor *Model) error
 	UpdatePartial(ctx context.Context, workspaceID workspace.ID, id string, monitor *UpdateModel) error
 	// UpdatePartialAnyWorkspace is UpdatePartial for background work, which knows the monitor by its

@@ -260,6 +260,36 @@ A value below 20 stops startup with a configuration error: the timeout minimum (
 - Creating a monitor, or updating one with `PUT` or `PATCH`, with an `interval` or `retry_interval` below the minimum answers 400 with the code `INTERVAL_TOO_SHORT`, the `field` (`interval` or `retry_interval`) and the `minimum`, and a message that names the minimum in seconds. A `PATCH` that sends neither field is not refused because of a lower stored value, so a monitor stored with less can still be renamed or paused.
 - A monitor stored with less, because it was saved before the minimum was raised or imported, is checked at the minimum: the scheduler of `peekaping`, the stale-monitor watchdog and the assignments a remote probe is dealt use the minimum in its place. The API still shows the stored values, and the timeout is kept as stored; a longer interval only loosens the 0.8 rule.
 - `GET /api/v1/me` returns the minimum as `minCheckInterval`. The monitor form uses it as the minimum and the default for the interval and the retry interval, and so does Get started when it creates the first monitor.
+- A workspace can have a minimum of its own, as one of its [limits](#limits). Then the stricter of the two applies, on save and in the checks, and `INTERVAL_TOO_SHORT` names it as the `minimum`.
+
+### Limits
+
+A workspace's limits are what it is held to: how many active monitors it may have, its shortest check interval, how many probes one of its monitors runs on, and so on. On Peekaping Cloud they are the free tier. A self-hosted install has none unless its admin sets them, so an install that sets nothing is unchanged.
+
+A workspace's limits come from the first of these that has any:
+
+1. **The workspace's own limits**, which an instance admin sets for it. They replace the install's defaults whole, and "no limits" is a value of its own: a workspace given no limits has none, whatever the defaults say.
+2. **The install's defaults**, the variables below.
+3. **None.**
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `WORKSPACE_LIMIT_MONITORS` | int | No | `0` | How many active monitors a workspace may have. A paused monitor doesn't count |
+| `WORKSPACE_LIMIT_MIN_CHECK_INTERVAL` | int | No | `0` | The smallest `interval` and `retry_interval` of a workspace's monitors, in seconds, beside `MIN_CHECK_INTERVAL`: the stricter applies |
+| `WORKSPACE_LIMIT_PROBES_PER_MONITOR` | int | No | `0` | How many probes one monitor runs on |
+| `WORKSPACE_LIMIT_STATUS_PAGES` | int | No | `0` | How many status pages a workspace may have (enforced from a later release) |
+| `WORKSPACE_LIMIT_CUSTOM_DOMAINS` | int | No | `0` | How many custom domains a workspace's status pages may have, together (enforced from a later release) |
+| `WORKSPACE_LIMIT_MEMBERS` | int | No | `0` | How many members a workspace may have (enforced from a later release) |
+| `WORKSPACE_LIMIT_OWNED_WORKSPACES` | int | No | `0` | How many workspaces an owner of one may own (enforced from a later release) |
+| `WORKSPACE_LIMIT_RETENTION_DAYS` | int | No | `0` | The longest data retention period a workspace may keep, in days (enforced from a later release) |
+
+`0`, or a variable left unset, is no limit. A negative value stops startup with a configuration error. They apply to the api and to `peekaping`, and every api replica should set the same values.
+
+- A write over a limit answers 403 with the code `LIMIT_REACHED`, the `limit` and its value as `max`, and a message that names them: `{"message": "the workspace has reached its limit of 10 active monitors", "data": null, "error": {"code": "LIMIT_REACHED", "limit": "monitors", "max": 10}}`.
+- **Monitors.** Creating an active monitor, or resuming a paused one (`PATCH` or `PUT` with `active: true`), while the workspace has as many active monitors as its limit is refused. Creating a paused monitor, pausing one, and every other edit are not. Two such writes at once are counted one after the other, so they can't both take the last place.
+- **Over the limit.** Lowering a limit pauses and deletes nothing. When a workspace has more active monitors than its limit, the oldest ones up to the limit run, by when they were created, and the newer ones don't: they make no checks and no notifications, a push to one answers 403, and the API says `over_limit: true` on each, which the app shows as paused with the reason. Their `active` setting is left as it is, so they run again once they are within the limit: when the limit is raised, or the owner pauses or deletes older monitors to choose which ones stay. The scheduler picks such a change up within its reconcile interval (30 seconds).
+- **Probes.** A monitor created or updated with more `probe_ids` than the limit is refused with the `limit` `probes`; a save that keeps the probes a monitor has is not. A monitor created without probes runs on the first default probes, as many as the limit, in their order. Assigning a probe to every monitor skips a monitor that runs on as many probes as its workspace allows, and logs how many it skipped.
+- The api reads the limits at most every 5 seconds. A change made through one api replica applies there at once, and on the other replicas within those 5 seconds.
 
 ### Metrics Configuration
 

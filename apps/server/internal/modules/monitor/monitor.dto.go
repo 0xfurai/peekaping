@@ -148,7 +148,9 @@ type MonitorResponseDto struct {
 	shared.Monitor
 	// TypeDisabled repeats shared.Monitor.TypeDisabled, which the monitor's own JSON leaves out, as
 	// type_disabled
-	TypeDisabled    bool     `json:"type_disabled" doc:"True when the monitor's type is turned off on this install (DISABLED_MONITOR_TYPES). The monitor is kept and listed, but it is not checked, and nothing notifies for it; its active setting is left as it is, so it runs again if the type is turned back on. Such a monitor can still be edited, but not given a disabled type." example:"false"`
+	TypeDisabled bool `json:"type_disabled" doc:"True when the monitor's type is turned off on this install (DISABLED_MONITOR_TYPES). The monitor is kept and listed, but it is not checked, and nothing notifies for it; its active setting is left as it is, so it runs again if the type is turned back on. Such a monitor can still be edited, but not given a disabled type." example:"false"`
+	// OverLimit repeats shared.Monitor.OverLimit as over_limit
+	OverLimit       bool     `json:"over_limit" doc:"True when the monitor is active but past its workspace's limit of active monitors: the newest active monitors past the limit are not checked, and nothing notifies for them. Lowering a limit pauses and deletes nothing, so the monitor keeps its active setting and runs again once it is within the limit, when the limit is raised or an older monitor is paused or deleted." example:"false"`
 	NotificationIds []string `json:"notification_ids" nullable:"false" example:"6830ad485361f19c598d6d90"`
 	TagIds          []string `json:"tag_ids" nullable:"false" example:"6830ad485361f19c598d6d90,6830ad485361f19c598d6d91"`
 }

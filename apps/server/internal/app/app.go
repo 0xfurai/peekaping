@@ -26,6 +26,7 @@ import (
 	"peekaping/internal"
 	"peekaping/internal/config"
 	"peekaping/internal/infra"
+	"peekaping/internal/limits"
 	"peekaping/internal/mailer"
 	"peekaping/internal/modules/admin"
 	"peekaping/internal/modules/api_key"
@@ -93,6 +94,7 @@ func Register(container *dig.Container, cfg *config.Config) error {
 
 	return errors.Join(
 		heartbeat.RegisterDependencies(container),
+		limits.RegisterDependencies(container),
 		monitor.RegisterDependencies(container),
 		healthcheck.RegisterDependencies(container),
 		check.RegisterDependencies(container),

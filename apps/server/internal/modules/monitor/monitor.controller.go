@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"peekaping/internal/httpx"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor_notification"
 	"peekaping/internal/modules/monitor_tag"
@@ -98,7 +99,7 @@ func (ic *MonitorController) withLinks(ctx context.Context, monitors []*Model) (
 		for _, rel := range tagRels[m.ID] {
 			tagIds = append(tagIds, rel.TagID)
 		}
-		responses[i] = &MonitorResponseDto{Monitor: *m, TypeDisabled: m.TypeDisabled, NotificationIds: notificationIds, TagIds: tagIds}
+		responses[i] = &MonitorResponseDto{Monitor: *m, TypeDisabled: m.TypeDisabled, OverLimit: m.OverLimit, NotificationIds: notificationIds, TagIds: tagIds}
 	}
 	return responses, nil
 }
@@ -214,9 +215,12 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 		var tokenTaken *PushTokenAlreadyUsedError
 		var typeDisabled *MonitorTypeDisabledError
 		var tooShort *IntervalTooShortError
+		var reached *limits.ReachedError
 		switch {
 		case errors.As(err, &typeDisabled):
 			return nil, monitorTypeDisabledResponse(typeDisabled)
+		case errors.As(err, &reached):
+			return nil, limits.Fail(reached)
 		case errors.As(err, &tooShort):
 			return nil, intervalTooShortResponse(tooShort)
 		case errors.As(err, &invalidProbes):
@@ -242,6 +246,7 @@ func (ic *MonitorController) Create(ctx context.Context, input *CreateInput) (*h
 	response := &MonitorResponseDto{
 		Monitor:         *createdMonitor,
 		TypeDisabled:    createdMonitor.TypeDisabled,
+		OverLimit:       createdMonitor.OverLimit,
 		NotificationIds: distinct(monitor.NotificationIds),
 		TagIds:          distinct(monitor.TagIds),
 	}
@@ -312,9 +317,12 @@ func (ic *MonitorController) UpdateFull(ctx context.Context, input *UpdateFullIn
 		var tokenTaken *PushTokenAlreadyUsedError
 		var typeDisabled *MonitorTypeDisabledError
 		var tooShort *IntervalTooShortError
+		var reached *limits.ReachedError
 		switch {
 		case errors.As(err, &typeDisabled):
 			return nil, monitorTypeDisabledResponse(typeDisabled)
+		case errors.As(err, &reached):
+			return nil, limits.Fail(reached)
 		case errors.As(err, &tooShort):
 			return nil, intervalTooShortResponse(tooShort)
 		case errors.As(err, &invalidProbes):
@@ -383,6 +391,7 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 	var tokenTaken *PushTokenAlreadyUsedError
 	var typeDisabled *MonitorTypeDisabledError
 	var tooShort *IntervalTooShortError
+	var reached *limits.ReachedError
 	switch {
 	case errors.Is(err, ErrMonitorNotFound):
 		return httpx.Fail(http.StatusNotFound, utils.NewFailResponse("Monitor not found"))
@@ -400,6 +409,8 @@ func (ic *MonitorController) failWrite(action string, err error) error {
 		return pushTokenTakenResponse(tokenTaken)
 	case errors.As(err, &typeDisabled):
 		return monitorTypeDisabledResponse(typeDisabled)
+	case errors.As(err, &reached):
+		return limits.Fail(reached)
 	case errors.As(err, &tooShort):
 		return intervalTooShortResponse(tooShort)
 	}

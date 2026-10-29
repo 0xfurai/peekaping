@@ -41,10 +41,11 @@ func (d *DatabaseSource) ListActive(ctx context.Context, page int, limit int) ([
 }
 
 // Find reads the monitor, and returns nil when it is gone, its workspace is suspended, its type is
-// turned off or the local probe doesn't run it. ListActive leaves those monitors out the same way.
+// turned off, it is past its workspace's limit of active monitors or the local probe doesn't run
+// it. ListActive leaves those monitors out the same way.
 func (d *DatabaseSource) Find(ctx context.Context, monitorID string) (*shared.Monitor, error) {
 	mon, err := d.monitors.FindByIDAnyWorkspace(ctx, monitorID)
-	if err != nil || mon == nil || mon.WorkspaceSuspended || mon.TypeDisabled || !mon.RunsOn(shared.LocalProbeID) {
+	if err != nil || mon == nil || mon.WorkspaceSuspended || mon.TypeDisabled || mon.OverLimit || !mon.RunsOn(shared.LocalProbeID) {
 		return nil, err
 	}
 	return mon, nil
