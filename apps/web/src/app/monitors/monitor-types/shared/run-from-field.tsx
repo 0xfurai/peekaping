@@ -5,7 +5,7 @@ import { FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/
 import { useProbes } from "@/hooks/useProbes";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
-import { runFromAfterTypeChange, runFromChoices, runFromDefaultIds, toggleRunFrom, type RunFromChoice } from "./run-from";
+import { runFromChoices, runFromFormIds, toggleRunFrom, type RunFromChoice } from "./run-from";
 
 // The list itself: a checkbox for each choice, in a group named by the element labelledBy names
 export const RunFromList = ({
@@ -43,23 +43,22 @@ const RunFrom = () => {
   const labelId = useId();
 
   // A new monitor starts on the default probes for its type: when the probes load, and when the type
-  // changes, until the user has ticked something. After that, and for a saved monitor or a clone, a
-  // type change drops only the probes that don't run the new type. A saved monitor's own probes
-  // stay while its type does, even one the list leaves out.
+  // changes, until the user has ticked something. Until probe data loads (or when it fails to) it is
+  // on none, which the server reads as the default probes: the form can be submitted meanwhile.
+  // After that, and for a saved monitor or a clone, a type change drops only the probes that don't
+  // run the new type. A saved monitor's own probes stay while its type does, even one the list
+  // leaves out.
   const savedType = monitor?.data.type;
   const previousType = useRef<string | undefined>(undefined);
   useEffect(() => {
     const typeChanged = previousType.current !== undefined && previousType.current !== type;
     previousType.current = type;
-    if (probes.length === 0) return;
-    if (presetsProbes && !probesChosenByHand.current) {
-      setValue("probe_ids", runFromDefaultIds(probes, type));
-      return;
-    }
-    if (!typeChanged && savedType === type) return;
-    const current: string[] = getValues("probe_ids");
-    const kept = runFromAfterTypeChange(probes, type, current);
-    if (kept.join("\0") !== current.join("\0")) setValue("probe_ids", kept);
+    const next = runFromFormIds(probes, type, getValues("probe_ids"), {
+      presets: presetsProbes && !probesChosenByHand.current,
+      typeChanged,
+      typeIsSaved: savedType === type,
+    });
+    if (next) setValue("probe_ids", next);
   }, [presetsProbes, probesChosenByHand, savedType, setValue, getValues, type, probes]);
 
   // The form's resolver reports a probe that doesn't run the type, or none ticked on a saved monitor
