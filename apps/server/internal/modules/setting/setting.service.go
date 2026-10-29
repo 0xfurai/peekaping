@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"peekaping/internal/limits"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/modules/workspace"
 	"strconv"
@@ -72,12 +73,27 @@ type APIService interface {
 
 type APIServiceImpl struct {
 	workspaceSettings WorkspaceService
+	// limits are the workspaces' limits, whose retention_days caps the data retention period a
+	// save may set. nil is no limits.
+	limits limits.Source
+}
+
+// APIServiceOption changes what the settings API holds a save to
+type APIServiceOption func(*APIServiceImpl)
+
+// WithLimits holds a saved data retention period to the workspace's retention_days limit (PP-161)
+func WithLimits(source limits.Source) APIServiceOption {
+	return func(s *APIServiceImpl) { s.limits = source }
 }
 
 // NewAPIService serves the user-editable keys from the settings of workspaces. The install's own
 // settings are not reachable through it.
-func NewAPIService(workspaceSettings WorkspaceService) APIService {
-	return &APIServiceImpl{workspaceSettings}
+func NewAPIService(workspaceSettings WorkspaceService, opts ...APIServiceOption) APIService {
+	s := &APIServiceImpl{workspaceSettings: workspaceSettings}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 // IsUserEditable reports whether the settings API can reach key.
@@ -100,11 +116,31 @@ func (s *APIServiceImpl) SetByKey(ctx context.Context, workspaceID workspace.ID,
 		if entity.Type != "int" {
 			return nil, fmt.Errorf("%w: %s must have type int", ErrInvalidValue, key)
 		}
-		if _, err := ParseDataRetentionPeriod(entity.Value); err != nil {
+		days, err := ParseDataRetentionPeriod(entity.Value)
+		if err != nil {
+			return nil, err
+		}
+		if err := s.withinRetentionCap(ctx, workspaceID, days); err != nil {
 			return nil, err
 		}
 	}
 	return s.workspaceSettings.SetByKey(ctx, workspaceID, key, entity)
+}
+
+// withinRetentionCap refuses a data retention period longer than the workspace's retention_days
+// limit with a limits.ReachedError. A period at the cap, or any period without one, is fine.
+func (s *APIServiceImpl) withinRetentionCap(ctx context.Context, workspaceID workspace.ID, days int) error {
+	if s.limits == nil {
+		return nil
+	}
+	l, _, err := s.limits.For(ctx, workspaceID)
+	if err != nil {
+		return err
+	}
+	if l.RetentionDays != nil && days > *l.RetentionDays {
+		return limits.Reached(limits.RetentionDays, *l.RetentionDays)
+	}
+	return nil
 }
 
 func (s *APIServiceImpl) DeleteByKey(ctx context.Context, workspaceID workspace.ID, key string) error {

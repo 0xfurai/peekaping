@@ -682,7 +682,8 @@ export type LimitsReachedError = {
     | "custom_domains"
     | "members"
     | "owned_workspaces"
-    | "probes";
+    | "probes"
+    | "retention_days";
   /**
    * The limit's value for the workspace.
    */
@@ -6363,7 +6364,7 @@ export type PutSettingsKeyByKeyErrors = {
   /**
    * Forbidden
    */
-  403: HttpxErrorBody;
+  403: LimitsReachedResponse | HttpxErrorBody;
   /**
    * Not Found
    */

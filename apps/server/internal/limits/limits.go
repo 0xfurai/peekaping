@@ -160,7 +160,7 @@ func (s Snapshot) Lowest(name Name) *int {
 // services return it, and the controllers answer 403 with it as the error, through Fail.
 type ReachedError struct {
 	Code  string `json:"code" example:"LIMIT_REACHED"`
-	Limit Name   `json:"limit" enum:"monitors,status_pages,custom_domains,members,owned_workspaces,probes" doc:"The limit the request would go over." example:"monitors"`
+	Limit Name   `json:"limit" enum:"monitors,status_pages,custom_domains,members,owned_workspaces,probes,retention_days" doc:"The limit the request would go over." example:"monitors"`
 	Max   int    `json:"max" doc:"The limit's value for the workspace." example:"10"`
 }
 
@@ -170,6 +170,8 @@ func (e *ReachedError) Error() string {
 		return fmt.Sprintf("the workspace has reached its limit of %d active monitors", e.Max)
 	case Probes:
 		return fmt.Sprintf("a monitor of this workspace runs on at most %d probes", e.Max)
+	case RetentionDays:
+		return fmt.Sprintf("the workspace keeps data for at most %d days", e.Max)
 	default:
 		return fmt.Sprintf("the workspace has reached its limit of %d %s", e.Max, e.Limit)
 	}

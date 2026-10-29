@@ -216,4 +216,5 @@ func TestReachedError_NamesTheLimitAndItsValue(t *testing.T) {
 	assert.Equal(t, "LIMIT_REACHED", err.Code)
 	assert.Equal(t, "the workspace has reached its limit of 10 active monitors", err.Error())
 	assert.Equal(t, "a monitor of this workspace runs on at most 2 probes", limits.Reached(limits.Probes, 2).Error())
+	assert.Equal(t, "the workspace keeps data for at most 30 days", limits.Reached(limits.RetentionDays, 30).Error())
 }

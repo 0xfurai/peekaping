@@ -3658,7 +3658,7 @@ export const getSettingsKeyByKeyOptions = (
 
 /**
  * Set setting by key
- * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404. It is a setting of the request's workspace: members read it, admins and owners change it, and a member's change returns 403.
+ * Only KEEP_DATA_PERIOD_DAYS can be set, with type int and a whole number of days from 1 to 36500. Every other key returns 404. It is a setting of the request's workspace: members read it, admins and owners change it, and a member's change returns 403. A period longer than the workspace's retention_days limit is refused (403 LIMIT_REACHED, limit retention_days); one at the limit is saved.
  */
 export const putSettingsKeyByKeyMutation = (
   options?: Partial<Options<PutSettingsKeyByKeyData>>
