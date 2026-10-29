@@ -2046,8 +2046,10 @@
       "url_label": "Adress att övervaka"
     },
     "channel": {
+      "continue_unlinked": "Fortsätt utan att koppla",
       "description": "Välj vart Peekaping skickar ett larm när din övervakning går ner. Den blir standard för nya övervakningar.",
       "link_failed": "Kanalen sparades, men det gick inte att koppla den till din övervakning. Lägg till den på övervakningens redigeringssida.",
+      "retry_link": "Försök koppla igen",
       "title": "Få aviseringar"
     },
     "done": {

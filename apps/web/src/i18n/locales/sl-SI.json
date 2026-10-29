@@ -2046,8 +2046,10 @@
       "url_label": "Naslov za nadzor"
     },
     "channel": {
+      "continue_unlinked": "Nadaljuj brez povezave",
       "description": "Izberite, kam Peekaping pošlje opozorilo, ko vaš monitor odpove. Postal bo privzeti za nove monitorje.",
       "link_failed": "Kanal je shranjen, vendar povezava z monitorjem ni uspela. Dodajte ga na strani za urejanje monitorja.",
+      "retry_link": "Poskusi znova povezati",
       "title": "Prejemajte obvestila"
     },
     "done": {
