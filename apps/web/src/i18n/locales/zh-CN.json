@@ -73,6 +73,7 @@
     "no_tags_available": "没有可用标签",
     "please_refresh_page": "请刷新页面。",
     "required": "必填",
+    "retry": "重试",
     "save": "保存",
     "saving": "保存中…",
     "search": "搜索",
@@ -124,6 +125,33 @@
       "password_required": "密码为必填项",
       "password_min_length": "密码必须至少包含8个字符",
       "passwords_mismatch": "密码不匹配"
+    }
+  },
+  "invite": {
+    "accept": "接受邀请",
+    "accepting": "加入中...",
+    "creating": "创建中...",
+    "description": "你被邀请以 {{role}} 身份加入 {{workspace}}。",
+    "enter_failed": "您已加入该工作区，但打开失败。请重试。",
+    "errors": {
+      "other_email": "此邀请是发给另一个邮箱地址的。"
+    },
+    "for_email": "此邀请发给 {{email}}。",
+    "have_account": "已有账号？",
+    "open_app": "打开 Peekaping",
+    "other_account": "你当前以 {{current}} 登录，但此邀请是发给 {{invited}} 的。请先退出登录，再用 {{invited}} 登录或注册以接受邀请。",
+    "sign_in_instead": "改为登录",
+    "sign_out": "退出登录",
+    "signup_description": "设置密码以创建账号，并以 {{role}} 身份加入 {{workspace}}。",
+    "signup_submit": "创建账号并加入",
+    "title": "加入 {{workspace}}",
+    "unavailable": {
+      "accepted": "此邀请已被使用。",
+      "expired": "此邀请已过期，请重新索取。",
+      "not_found": "此邀请链接不存在。请检查是否完整复制了链接。",
+      "revoked": "此邀请已被撤销，请重新索取。",
+      "title": "此邀请无法使用",
+      "unknown": "此邀请无法使用，请重新索取。"
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "周四",
       "tue": "周二",
       "wed": "周三"
+    }
+  },
+  "members": {
+    "change_role_aria": "更改 {{email}} 的角色",
+    "errors": {
+      "account_exists": "使用此邮箱的账号已存在。请登录并接受邀请。",
+      "already_member": "此人已是该工作区的成员。",
+      "forbidden": "你在此工作区中的角色无权执行此操作。",
+      "generic": "出错了，请重试。",
+      "last_owner": "工作区至少需要一位所有者。",
+      "member_not_found": "此成员已不在该工作区中。"
+    },
+    "invite": {
+      "copied": "链接已复制",
+      "copy": "复制",
+      "creating": "创建中...",
+      "description": "为某个邮箱地址和角色生成链接。系统不会发送邮件：请复制链接并自行发送。",
+      "done": "完成",
+      "email_label": "邮箱",
+      "link_note": "此链接只能使用一次，7 天后过期。它只会在此刻显示，请在离开此页面前复制。",
+      "link_title": "邀请链接",
+      "role_label": "角色",
+      "submit": "创建邀请链接",
+      "title": "邀请他人"
+    },
+    "leave": {
+      "button": "退出工作区",
+      "confirm": "退出",
+      "description": "你将立即失去对此工作区及其数据的访问权限。",
+      "done": "你已退出工作区",
+      "last_owner": "你是最后一位所有者，因此无法退出。请先将另一位成员设为所有者。",
+      "refresh_failed": "您已退出该工作区，但加载您的工作区失败。请重试。",
+      "title": "退出此工作区"
+    },
+    "list": {
+      "description": "在此工作区中工作的所有人及其角色。",
+      "email": "邮箱",
+      "joined": "加入时间",
+      "role": "角色",
+      "title": "成员",
+      "you": "你"
+    },
+    "page_name": "成员",
+    "pending": {
+      "description": "尚未使用的邀请。已撤销邀请的链接将失效。",
+      "email": "邮箱",
+      "empty": "没有待处理的邀请。",
+      "expired": "已过期",
+      "expires": "过期时间",
+      "revoke": "撤销",
+      "revoke_aria": "撤销发给 {{email}} 的邀请",
+      "revoked": "邀请已撤销",
+      "role": "角色",
+      "title": "待处理的邀请"
+    },
+    "remove": "移除",
+    "remove_aria": "移除 {{email}}",
+    "remove_dialog": {
+      "confirm": "移除",
+      "description": "{{email}} 将立即失去对此工作区的访问权限。",
+      "title": "移除成员"
+    },
+    "removed": "成员已移除",
+    "role_updated": "角色已更新",
+    "roles": {
+      "admin": "管理员",
+      "member": "成员",
+      "owner": "所有者"
+    },
+    "settings_card": {
+      "description": "查看谁在此工作区中工作；如果你是管理员或所有者，还可以邀请他人并管理其角色。",
+      "open": "打开成员",
+      "title": "成员"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "间隔、重试、超时"
   },
   "workspaces": {
+    "create": "创建工作区",
+    "create_error": "创建工作区失败",
+    "create_first": "创建工作区",
+    "creating": "创建中...",
+    "enter": "打开工作区",
+    "entering": "打开中...",
+    "entry_failed": "工作区已创建，但打开失败。请重试。",
+    "name_label": "名称",
+    "name_placeholder": "我的团队",
+    "name_required": "请输入名称",
+    "new": "新建工作区",
+    "new_description": "工作区拥有各自的监控项、通知渠道、状态页面和成员。你将成为它的所有者。",
+    "new_title": "新建工作区",
     "none_description": "你的账号还不是任何工作区的成员，所以这里没有可显示的内容。请让管理工作区的人把你添加进去。",
-    "none_title": "你还不在任何工作区中"
+    "none_title": "你还不在任何工作区中",
+    "refresh_failed": "无法加载您的工作区。请检查网络连接后重试。",
+    "switcher_label": "切换工作区"
   }
 }

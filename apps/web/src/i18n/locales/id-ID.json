@@ -73,6 +73,7 @@
     "no_tags_available": "Tidak ada tag tersedia",
     "please_refresh_page": "Silakan muat ulang halaman.",
     "required": "Wajib",
+    "retry": "Coba lagi",
     "save": "Simpan",
     "saving": "Menyimpan...",
     "search": "Cari",
@@ -124,6 +125,33 @@
       "password_required": "Kata sandi wajib diisi",
       "password_min_length": "Kata sandi harus minimal 8 karakter",
       "passwords_mismatch": "Kata sandi tidak cocok"
+    }
+  },
+  "invite": {
+    "accept": "Terima undangan",
+    "accepting": "Bergabung...",
+    "creating": "Membuat...",
+    "description": "Anda diundang untuk bergabung dengan {{workspace}} sebagai {{role}}.",
+    "enter_failed": "Anda telah bergabung dengan ruang kerja, tetapi gagal membukanya. Coba lagi.",
+    "errors": {
+      "other_email": "Undangan ini untuk alamat email lain."
+    },
+    "for_email": "Undangan ini untuk {{email}}.",
+    "have_account": "Sudah punya akun?",
+    "open_app": "Buka Peekaping",
+    "other_account": "Anda masuk sebagai {{current}}, tetapi undangan ini untuk {{invited}}. Keluar, lalu masuk atau daftar dengan {{invited}} untuk menerimanya.",
+    "sign_in_instead": "Masuk saja",
+    "sign_out": "Keluar",
+    "signup_description": "Pilih kata sandi untuk membuat akun Anda dan bergabung dengan {{workspace}} sebagai {{role}}.",
+    "signup_submit": "Buat akun dan bergabung",
+    "title": "Bergabung dengan {{workspace}}",
+    "unavailable": {
+      "accepted": "Undangan ini sudah digunakan.",
+      "expired": "Undangan ini sudah kedaluwarsa. Minta yang baru.",
+      "not_found": "Tautan undangan ini tidak ada. Pastikan Anda menyalinnya secara lengkap.",
+      "revoked": "Undangan ini telah dicabut. Minta yang baru.",
+      "title": "Undangan ini tidak dapat digunakan",
+      "unknown": "Undangan ini tidak dapat digunakan. Minta yang baru."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "Kam",
       "tue": "Sel",
       "wed": "Rabu"
+    }
+  },
+  "members": {
+    "change_role_aria": "Ubah peran {{email}}",
+    "errors": {
+      "account_exists": "Akun dengan email ini sudah ada. Masuk dan terima undangan.",
+      "already_member": "Orang ini sudah menjadi anggota ruang kerja ini.",
+      "forbidden": "Peran Anda di ruang kerja ini tidak mengizinkan hal ini.",
+      "generic": "Terjadi kesalahan. Silakan coba lagi.",
+      "last_owner": "Ruang kerja memerlukan setidaknya satu pemilik.",
+      "member_not_found": "Anggota ini sudah tidak ada di ruang kerja."
+    },
+    "invite": {
+      "copied": "Tautan disalin",
+      "copy": "Salin",
+      "creating": "Membuat...",
+      "description": "Buat tautan untuk alamat email dan peran. Tidak ada email yang dikirim: salin tautan dan kirim sendiri.",
+      "done": "Selesai",
+      "email_label": "Email",
+      "link_note": "Tautan ini hanya berlaku sekali dan kedaluwarsa dalam 7 hari. Tautan hanya ditampilkan sekarang, jadi salin sebelum Anda meninggalkan halaman ini.",
+      "link_title": "Tautan undangan",
+      "role_label": "Peran",
+      "submit": "Buat tautan undangan",
+      "title": "Undang seseorang"
+    },
+    "leave": {
+      "button": "Tinggalkan ruang kerja",
+      "confirm": "Tinggalkan",
+      "description": "Anda langsung kehilangan akses ke ruang kerja ini beserta datanya.",
+      "done": "Anda telah meninggalkan ruang kerja",
+      "last_owner": "Anda adalah pemilik terakhir, jadi Anda tidak bisa pergi. Jadikan anggota lain sebagai pemilik terlebih dahulu.",
+      "refresh_failed": "Anda telah keluar dari ruang kerja, tetapi gagal memuat ruang kerja Anda. Coba lagi.",
+      "title": "Tinggalkan ruang kerja ini"
+    },
+    "list": {
+      "description": "Semua orang yang bekerja di ruang kerja ini beserta perannya.",
+      "email": "Email",
+      "joined": "Bergabung",
+      "role": "Peran",
+      "title": "Anggota",
+      "you": "Anda"
+    },
+    "page_name": "Anggota",
+    "pending": {
+      "description": "Undangan yang belum digunakan. Tautan undangan yang dicabut tidak lagi berfungsi.",
+      "email": "Email",
+      "empty": "Tidak ada undangan tertunda.",
+      "expired": "Kedaluwarsa",
+      "expires": "Berakhir",
+      "revoke": "Cabut",
+      "revoke_aria": "Cabut undangan untuk {{email}}",
+      "revoked": "Undangan dicabut",
+      "role": "Peran",
+      "title": "Undangan tertunda"
+    },
+    "remove": "Hapus",
+    "remove_aria": "Hapus {{email}}",
+    "remove_dialog": {
+      "confirm": "Hapus",
+      "description": "{{email}} langsung kehilangan akses ke ruang kerja ini.",
+      "title": "Hapus anggota"
+    },
+    "removed": "Anggota dihapus",
+    "role_updated": "Peran diperbarui",
+    "roles": {
+      "admin": "Admin",
+      "member": "Anggota",
+      "owner": "Pemilik"
+    },
+    "settings_card": {
+      "description": "Lihat siapa saja yang bekerja di ruang kerja ini dan, jika Anda admin atau pemilik, undang orang serta kelola peran mereka.",
+      "open": "Buka anggota",
+      "title": "Anggota"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "Interval, Ulang, Timeout"
   },
   "workspaces": {
+    "create": "Buat ruang kerja",
+    "create_error": "Gagal membuat ruang kerja",
+    "create_first": "Buat ruang kerja",
+    "creating": "Membuat...",
+    "enter": "Buka ruang kerja",
+    "entering": "Membuka...",
+    "entry_failed": "Ruang kerja berhasil dibuat, tetapi gagal dibuka. Coba lagi.",
+    "name_label": "Nama",
+    "name_placeholder": "Tim saya",
+    "name_required": "Masukkan nama",
+    "new": "Ruang kerja baru",
+    "new_description": "Ruang kerja memiliki pengawasan, saluran pemberitahuan, halaman status, dan anggotanya sendiri. Anda akan menjadi pemiliknya.",
+    "new_title": "Ruang kerja baru",
     "none_description": "Akun Anda bukan anggota ruang kerja mana pun, jadi tidak ada yang bisa ditampilkan di sini. Minta seseorang yang mengelola ruang kerja untuk menambahkan Anda.",
-    "none_title": "Anda belum berada di ruang kerja mana pun"
+    "none_title": "Anda belum berada di ruang kerja mana pun",
+    "refresh_failed": "Ruang kerja Anda tidak dapat dimuat. Periksa koneksi Anda dan coba lagi.",
+    "switcher_label": "Ganti ruang kerja"
   }
 }

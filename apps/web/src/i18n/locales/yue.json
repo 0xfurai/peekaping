@@ -73,6 +73,7 @@
     "no_tags_available": "無可用標籤",
     "please_refresh_page": "請刷新頁面。",
     "required": "必填",
+    "retry": "再試一次",
     "save": "儲存",
     "saving": "儲存中…",
     "search": "搜尋",
@@ -124,6 +125,33 @@
       "password_required": "必須輸入密碼",
       "password_min_length": "密碼必須至少 8 個字元",
       "passwords_mismatch": "兩個密碼唔同"
+    }
+  },
+  "invite": {
+    "accept": "接受邀請",
+    "accepting": "加入緊…",
+    "creating": "建立緊…",
+    "description": "你獲邀以 {{role}} 身份加入 {{workspace}}。",
+    "enter_failed": "你已經加入咗工作區，但係打開唔到。請再試一次。",
+    "errors": {
+      "other_email": "呢個邀請係俾另一個電郵地址嘅。"
+    },
+    "for_email": "呢個邀請係俾 {{email}} 嘅。",
+    "have_account": "已有帳戶？",
+    "open_app": "打開 Peekaping",
+    "other_account": "你而家以 {{current}} 登入，但呢個邀請係俾 {{invited}} 嘅。請先登出，然後用 {{invited}} 登入或者註冊嚟接受邀請。",
+    "sign_in_instead": "改為登入",
+    "sign_out": "登出",
+    "signup_description": "設定密碼嚟建立帳戶，並以 {{role}} 身份加入 {{workspace}}。",
+    "signup_submit": "建立帳戶並加入",
+    "title": "加入 {{workspace}}",
+    "unavailable": {
+      "accepted": "呢個邀請已經用過咗。",
+      "expired": "呢個邀請已經過期。請再問人攞個新嘅。",
+      "not_found": "呢條邀請連結唔存在。請檢查你有冇完整複製成條連結。",
+      "revoked": "呢個邀請已經被撤銷。請再問人攞個新嘅。",
+      "title": "呢個邀請用唔到",
+      "unknown": "呢個邀請用唔到。請再問人攞個新嘅。"
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "週四",
       "tue": "週二",
       "wed": "週三"
+    }
+  },
+  "members": {
+    "change_role_aria": "更改 {{email}} 嘅角色",
+    "errors": {
+      "account_exists": "已經有用呢個電郵嘅帳戶。請登入然後接受邀請。",
+      "already_member": "呢個人已經係呢個工作區嘅成員。",
+      "forbidden": "你喺呢個工作區嘅角色唔可以做呢個操作。",
+      "generic": "出咗啲問題，請再試一次。",
+      "last_owner": "工作區最少要有一位擁有者。",
+      "member_not_found": "呢位成員已經唔喺工作區入面。"
+    },
+    "invite": {
+      "copied": "已複製連結",
+      "copy": "複製",
+      "creating": "建立緊…",
+      "description": "為一個電郵地址同角色整一條連結。唔會寄電郵：請複製條連結然後自己傳送。",
+      "done": "完成",
+      "email_label": "電郵",
+      "link_note": "呢條連結只可以用一次，7 日後到期。佢只會喺而家顯示，所以離開呢頁之前請先複製。",
+      "link_title": "邀請連結",
+      "role_label": "角色",
+      "submit": "建立邀請連結",
+      "title": "邀請其他人"
+    },
+    "leave": {
+      "button": "離開工作區",
+      "confirm": "離開",
+      "description": "你會即刻失去呢個工作區同佢啲資料嘅存取權。",
+      "done": "你已經離開工作區",
+      "last_owner": "你係最後一位擁有者，所以唔可以離開。請先將另一位成員設為擁有者。",
+      "refresh_failed": "你已經離開咗工作區，但係載入唔到你嘅工作區。請再試一次。",
+      "title": "離開呢個工作區"
+    },
+    "list": {
+      "description": "喺呢個工作區入面做嘢嘅所有人同佢哋嘅角色。",
+      "email": "電郵",
+      "joined": "加入時間",
+      "role": "角色",
+      "title": "成員",
+      "you": "你"
+    },
+    "page_name": "成員",
+    "pending": {
+      "description": "仲未用過嘅邀請。已撤銷邀請嘅連結會失效。",
+      "email": "電郵",
+      "empty": "冇待處理嘅邀請。",
+      "expired": "已過期",
+      "expires": "到期",
+      "revoke": "撤銷",
+      "revoke_aria": "撤銷發俾 {{email}} 嘅邀請",
+      "revoked": "邀請已撤銷",
+      "role": "角色",
+      "title": "待處理嘅邀請"
+    },
+    "remove": "移除",
+    "remove_aria": "移除 {{email}}",
+    "remove_dialog": {
+      "confirm": "移除",
+      "description": "{{email}} 會即刻失去呢個工作區嘅存取權。",
+      "title": "移除成員"
+    },
+    "removed": "成員已移除",
+    "role_updated": "角色已更新",
+    "roles": {
+      "admin": "管理員",
+      "member": "成員",
+      "owner": "擁有者"
+    },
+    "settings_card": {
+      "description": "睇下邊個喺呢個工作區入面做嘢；如果你係管理員或者擁有者，仲可以邀請其他人同管理佢哋嘅角色。",
+      "open": "打開成員",
+      "title": "成員"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "間隔、重試、逾時"
   },
   "workspaces": {
+    "create": "新增工作區",
+    "create_error": "建立工作區失敗",
+    "create_first": "建立工作區",
+    "creating": "建立緊…",
+    "enter": "打開工作區",
+    "entering": "打開緊…",
+    "entry_failed": "工作區已經建立咗，但係打開唔到。請再試一次。",
+    "name_label": "名稱",
+    "name_placeholder": "我嘅團隊",
+    "name_required": "請輸入名稱",
+    "new": "新增工作區",
+    "new_description": "每個工作區都有自己嘅監控項目、通知渠道、狀態頁同成員。你會係佢嘅擁有者。",
+    "new_title": "新增工作區",
     "none_description": "你個帳戶唔係任何工作區嘅成員，所以呢度冇嘢可以顯示。請搵管理緊工作區嘅人將你加入去。",
-    "none_title": "你仲未喺任何工作區入面"
+    "none_title": "你仲未喺任何工作區入面",
+    "refresh_failed": "載入唔到你嘅工作區。請檢查網絡連線，然後再試一次。",
+    "switcher_label": "切換工作區"
   }
 }

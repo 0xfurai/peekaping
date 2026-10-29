@@ -73,6 +73,7 @@
     "no_tags_available": "Keine Tags verfügbar",
     "please_refresh_page": "Bitte aktualisieren Sie die Seite.",
     "required": "Erforderlich",
+    "retry": "Erneut versuchen",
     "save": "Speichern",
     "saving": "Speichern...",
     "search": "Suchen",
@@ -124,6 +125,33 @@
       "password_required": "Passwort ist erforderlich",
       "password_min_length": "Passwort muss mindestens 8 Zeichen lang sein.",
       "passwords_mismatch": "Passwörter stimmen nicht überein"
+    }
+  },
+  "invite": {
+    "accept": "Einladung annehmen",
+    "accepting": "Beitritt läuft...",
+    "creating": "Wird erstellt...",
+    "description": "Sie wurden eingeladen, {{workspace}} beizutreten, mit der Rolle: {{role}}.",
+    "enter_failed": "Sie sind dem Arbeitsbereich beigetreten, aber er konnte nicht geöffnet werden. Versuchen Sie es erneut.",
+    "errors": {
+      "other_email": "Diese Einladung gilt für eine andere E-Mail-Adresse."
+    },
+    "for_email": "Diese Einladung gilt für {{email}}.",
+    "have_account": "Haben Sie bereits ein Konto?",
+    "open_app": "Peekaping öffnen",
+    "other_account": "Sie sind als {{current}} angemeldet, aber diese Einladung gilt für {{invited}}. Melden Sie sich ab und melden Sie sich dann mit {{invited}} an oder registrieren Sie sich damit, um sie anzunehmen.",
+    "sign_in_instead": "Stattdessen anmelden",
+    "sign_out": "Abmelden",
+    "signup_description": "Wählen Sie ein Passwort, um Ihr Konto zu erstellen und {{workspace}} beizutreten, mit der Rolle: {{role}}.",
+    "signup_submit": "Konto erstellen und beitreten",
+    "title": "{{workspace}} beitreten",
+    "unavailable": {
+      "accepted": "Diese Einladung wurde bereits verwendet.",
+      "expired": "Diese Einladung ist abgelaufen. Fordern Sie eine neue an.",
+      "not_found": "Dieser Einladungslink existiert nicht. Prüfen Sie, ob Sie ihn vollständig kopiert haben.",
+      "revoked": "Diese Einladung wurde widerrufen. Fordern Sie eine neue an.",
+      "title": "Diese Einladung kann nicht verwendet werden",
+      "unknown": "Diese Einladung kann nicht verwendet werden. Fordern Sie eine neue an."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "Do",
       "tue": "Di",
       "wed": "Mi"
+    }
+  },
+  "members": {
+    "change_role_aria": "Rolle von {{email}} ändern",
+    "errors": {
+      "account_exists": "Ein Konto mit dieser E-Mail-Adresse existiert bereits. Melden Sie sich an und nehmen Sie die Einladung an.",
+      "already_member": "Diese Person ist bereits Mitglied dieses Arbeitsbereichs.",
+      "forbidden": "Ihre Rolle in diesem Arbeitsbereich erlaubt dies nicht.",
+      "generic": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "last_owner": "Ein Arbeitsbereich braucht mindestens einen Inhaber.",
+      "member_not_found": "Dieses Mitglied ist nicht mehr im Arbeitsbereich."
+    },
+    "invite": {
+      "copied": "Link kopiert",
+      "copy": "Kopieren",
+      "creating": "Wird erstellt...",
+      "description": "Erstellen Sie einen Link für eine E-Mail-Adresse und eine Rolle. Es wird keine E-Mail verschickt: Kopieren Sie den Link und senden Sie ihn selbst.",
+      "done": "Fertig",
+      "email_label": "E-Mail",
+      "link_note": "Dieser Link funktioniert nur einmal und läuft nach 7 Tagen ab. Er wird nur jetzt angezeigt, kopieren Sie ihn also, bevor Sie diese Seite verlassen.",
+      "link_title": "Einladungslink",
+      "role_label": "Rolle",
+      "submit": "Einladungslink erstellen",
+      "title": "Jemanden einladen"
+    },
+    "leave": {
+      "button": "Arbeitsbereich verlassen",
+      "confirm": "Verlassen",
+      "description": "Sie verlieren sofort den Zugriff auf diesen Arbeitsbereich und seine Daten.",
+      "done": "Sie haben den Arbeitsbereich verlassen",
+      "last_owner": "Sie sind der letzte Inhaber und können daher nicht austreten. Machen Sie zuerst ein anderes Mitglied zum Inhaber.",
+      "refresh_failed": "Sie haben den Arbeitsbereich verlassen, aber Ihre Arbeitsbereiche konnten nicht geladen werden. Versuchen Sie es erneut.",
+      "title": "Diesen Arbeitsbereich verlassen"
+    },
+    "list": {
+      "description": "Alle, die in diesem Arbeitsbereich arbeiten, und ihre Rolle.",
+      "email": "E-Mail",
+      "joined": "Beigetreten",
+      "role": "Rolle",
+      "title": "Mitglieder",
+      "you": "Sie"
+    },
+    "page_name": "Mitglieder",
+    "pending": {
+      "description": "Einladungen, die noch nicht verwendet wurden. Der Link einer widerrufenen Einladung funktioniert nicht mehr.",
+      "email": "E-Mail",
+      "empty": "Keine offenen Einladungen.",
+      "expired": "Abgelaufen",
+      "expires": "Läuft ab",
+      "revoke": "Widerrufen",
+      "revoke_aria": "Einladung für {{email}} widerrufen",
+      "revoked": "Einladung widerrufen",
+      "role": "Rolle",
+      "title": "Offene Einladungen"
+    },
+    "remove": "Entfernen",
+    "remove_aria": "{{email}} entfernen",
+    "remove_dialog": {
+      "confirm": "Entfernen",
+      "description": "{{email}} verliert sofort den Zugriff auf diesen Arbeitsbereich.",
+      "title": "Mitglied entfernen"
+    },
+    "removed": "Mitglied entfernt",
+    "role_updated": "Rolle aktualisiert",
+    "roles": {
+      "admin": "Admin",
+      "member": "Mitglied",
+      "owner": "Inhaber"
+    },
+    "settings_card": {
+      "description": "Sehen Sie, wer in diesem Arbeitsbereich arbeitet, und laden Sie als Admin oder Inhaber Personen ein und verwalten Sie deren Rollen.",
+      "open": "Mitglieder öffnen",
+      "title": "Mitglieder"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "Intervalle, Wiederholungen, Zeitüberschreitungen"
   },
   "workspaces": {
+    "create": "Arbeitsbereich erstellen",
+    "create_error": "Arbeitsbereich konnte nicht erstellt werden",
+    "create_first": "Arbeitsbereich erstellen",
+    "creating": "Wird erstellt...",
+    "enter": "Arbeitsbereich öffnen",
+    "entering": "Wird geöffnet...",
+    "entry_failed": "Der Arbeitsbereich wurde erstellt, konnte aber nicht geöffnet werden. Versuche es erneut.",
+    "name_label": "Name",
+    "name_placeholder": "Mein Team",
+    "name_required": "Namen eingeben",
+    "new": "Neuer Arbeitsbereich",
+    "new_description": "Ein Arbeitsbereich hat eigene Monitore, Benachrichtigungskanäle, Statusseiten und Mitglieder. Sie werden sein Inhaber.",
+    "new_title": "Neuer Arbeitsbereich",
     "none_description": "Ihr Konto ist in keinem Arbeitsbereich Mitglied, deshalb gibt es hier nichts anzuzeigen. Bitten Sie jemanden, der einen Arbeitsbereich betreut, Sie hinzuzufügen.",
-    "none_title": "Sie sind noch in keinem Arbeitsbereich"
+    "none_title": "Sie sind noch in keinem Arbeitsbereich",
+    "refresh_failed": "Ihre Arbeitsbereiche konnten nicht geladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "switcher_label": "Arbeitsbereich wechseln"
   }
 }

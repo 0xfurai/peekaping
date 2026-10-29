@@ -73,6 +73,7 @@
     "no_tags_available": "Nu există etichete disponibile",
     "please_refresh_page": "Vă rugăm să reîmprospătați pagina.",
     "required": "Obligatoriu",
+    "retry": "Încearcă din nou",
     "save": "Salvează",
     "saving": "Se salvează...",
     "search": "Căutare",
@@ -124,6 +125,33 @@
       "password_required": "Parola este obligatorie",
       "password_min_length": "Parola trebuie să aibă cel puțin 8 caractere",
       "passwords_mismatch": "Parolele nu se potrivesc"
+    }
+  },
+  "invite": {
+    "accept": "Acceptă invitația",
+    "accepting": "Se alătură...",
+    "creating": "Se creează...",
+    "description": "Ai fost invitat să te alături la {{workspace}} ca {{role}}.",
+    "enter_failed": "Te-ai alăturat spațiului de lucru, dar deschiderea lui a eșuat. Încearcă din nou.",
+    "errors": {
+      "other_email": "Această invitație este pentru o altă adresă de e-mail."
+    },
+    "for_email": "Această invitație este pentru {{email}}.",
+    "have_account": "Ai deja un cont?",
+    "open_app": "Deschide Peekaping",
+    "other_account": "Ești autentificat ca {{current}}, dar această invitație este pentru {{invited}}. Deconectează-te, apoi autentifică-te sau înregistrează-te cu {{invited}} ca să o accepți.",
+    "sign_in_instead": "Autentifică-te",
+    "sign_out": "Deconectare",
+    "signup_description": "Alege o parolă pentru a-ți crea contul și a te alătura la {{workspace}} ca {{role}}.",
+    "signup_submit": "Creează cont și alătură-te",
+    "title": "Alătură-te la {{workspace}}",
+    "unavailable": {
+      "accepted": "Această invitație a fost deja folosită.",
+      "expired": "Această invitație a expirat. Cere una nouă.",
+      "not_found": "Acest link de invitație nu există. Verifică dacă l-ai copiat întreg.",
+      "revoked": "Această invitație a fost revocată. Cere una nouă.",
+      "title": "Această invitație nu poate fi folosită",
+      "unknown": "Această invitație nu poate fi folosită. Cere una nouă."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "Joi",
       "tue": "Mar",
       "wed": "Mi"
+    }
+  },
+  "members": {
+    "change_role_aria": "Schimbă rolul lui {{email}}",
+    "errors": {
+      "account_exists": "Există deja un cont cu acest e-mail. Autentifică-te și acceptă invitația.",
+      "already_member": "Această persoană este deja membră a acestui spațiu de lucru.",
+      "forbidden": "Rolul tău din acest spațiu de lucru nu permite această acțiune.",
+      "generic": "Ceva nu a funcționat. Încearcă din nou.",
+      "last_owner": "Un spațiu de lucru are nevoie de cel puțin un proprietar.",
+      "member_not_found": "Acest membru nu mai este în spațiul de lucru."
+    },
+    "invite": {
+      "copied": "Link copiat",
+      "copy": "Copiază",
+      "creating": "Se creează...",
+      "description": "Creează un link pentru o adresă de e-mail și un rol. Nu se trimite niciun e-mail: copiază linkul și trimite-l tu.",
+      "done": "Gata",
+      "email_label": "E-mail",
+      "link_note": "Acest link funcționează o singură dată și expiră în 7 zile. Este afișat doar acum, așa că copiază-l înainte de a părăsi această pagină.",
+      "link_title": "Link de invitație",
+      "role_label": "Rol",
+      "submit": "Creează link de invitație",
+      "title": "Invită pe cineva"
+    },
+    "leave": {
+      "button": "Părăsește spațiul de lucru",
+      "confirm": "Părăsește",
+      "description": "Pierzi imediat accesul la acest spațiu de lucru și la datele lui.",
+      "done": "Ai părăsit spațiul de lucru",
+      "last_owner": "Ești ultimul proprietar, deci nu poți pleca. Fă mai întâi proprietar un alt membru.",
+      "refresh_failed": "Ai părăsit spațiul de lucru, dar încărcarea spațiilor tale de lucru a eșuat. Încearcă din nou.",
+      "title": "Părăsește acest spațiu de lucru"
+    },
+    "list": {
+      "description": "Toți cei care lucrează în acest spațiu de lucru și rolurile lor.",
+      "email": "E-mail",
+      "joined": "S-a alăturat",
+      "role": "Rol",
+      "title": "Membri",
+      "you": "tu"
+    },
+    "page_name": "Membri",
+    "pending": {
+      "description": "Invitații care nu au fost folosite încă. Linkul unei invitații revocate nu mai funcționează.",
+      "email": "E-mail",
+      "empty": "Nicio invitație în așteptare.",
+      "expired": "Expirată",
+      "expires": "Expiră",
+      "revoke": "Revocă",
+      "revoke_aria": "Revocă invitația pentru {{email}}",
+      "revoked": "Invitație revocată",
+      "role": "Rol",
+      "title": "Invitații în așteptare"
+    },
+    "remove": "Elimină",
+    "remove_aria": "Elimină {{email}}",
+    "remove_dialog": {
+      "confirm": "Elimină",
+      "description": "{{email}} pierde imediat accesul la acest spațiu de lucru.",
+      "title": "Elimină membrul"
+    },
+    "removed": "Membru eliminat",
+    "role_updated": "Rol actualizat",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Membru",
+      "owner": "Proprietar"
+    },
+    "settings_card": {
+      "description": "Vezi cine lucrează în acest spațiu de lucru și, dacă ești administrator sau proprietar, invită oameni și gestionează rolurile lor.",
+      "open": "Deschide membrii",
+      "title": "Membri"
     }
   },
   "messages": {
@@ -1592,7 +1693,22 @@
     "intervals_retries": "Intervale, Reîncercări, Timeout-uri"
   },
   "workspaces": {
+    "create": "Creează spațiu de lucru",
+    "create_error": "Nu s-a putut crea spațiul de lucru",
+    "create_first": "Creează un spațiu de lucru",
+    "creating": "Se creează...",
+    "enter": "Deschide spațiul de lucru",
+    "entering": "Se deschide...",
+    "entry_failed": "Spațiul de lucru a fost creat, dar deschiderea lui a eșuat. Încearcă din nou.",
+    "name_label": "Nume",
+    "name_placeholder": "Echipa mea",
+    "name_required": "Introdu un nume",
+    "new": "Spațiu de lucru nou",
+    "new_description": "Un spațiu de lucru are propriile monitoare, canale de notificare, pagini de stare și membri. Vei fi proprietarul lui.",
+    "new_title": "Spațiu de lucru nou",
     "none_description": "Contul tău nu este membru al niciunui spațiu de lucru, așa că nu este nimic de afișat aici. Roagă pe cineva care administrează un spațiu de lucru să te adauge.",
-    "none_title": "Nu faci încă parte dintr-un spațiu de lucru"
+    "none_title": "Nu faci încă parte dintr-un spațiu de lucru",
+    "refresh_failed": "Spațiile tale de lucru nu au putut fi încărcate. Verifică conexiunea și încearcă din nou.",
+    "switcher_label": "Schimbă spațiul de lucru"
   }
 }

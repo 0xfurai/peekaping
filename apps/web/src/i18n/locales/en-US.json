@@ -73,6 +73,7 @@
     "no_tags_available": "No tags available",
     "please_refresh_page": "Please refresh the page.",
     "required": "Required",
+    "retry": "Retry",
     "save": "Save",
     "saving": "Saving...",
     "search": "Search",
@@ -124,6 +125,33 @@
       "password_required": "Password is required",
       "password_min_length": "Password must be at least 8 characters",
       "passwords_mismatch": "Passwords don't match"
+    }
+  },
+  "invite": {
+    "accept": "Accept invite",
+    "accepting": "Joining...",
+    "creating": "Creating...",
+    "description": "You are invited to join {{workspace}} as {{role}}.",
+    "enter_failed": "You joined the workspace, but opening it failed. Try again.",
+    "errors": {
+      "other_email": "This invite is for another email address."
+    },
+    "for_email": "This invite is for {{email}}.",
+    "have_account": "Already have an account?",
+    "open_app": "Open Peekaping",
+    "other_account": "You are signed in as {{current}}, but this invite is for {{invited}}. Sign out, then sign in or sign up with {{invited}} to accept it.",
+    "sign_in_instead": "Sign in instead",
+    "sign_out": "Sign out",
+    "signup_description": "Choose a password to create your account and join {{workspace}} as {{role}}.",
+    "signup_submit": "Create account and join",
+    "title": "Join {{workspace}}",
+    "unavailable": {
+      "accepted": "This invite was already used.",
+      "expired": "This invite has expired. Ask for a new one.",
+      "not_found": "This invite link doesn't exist. Check that you copied all of it.",
+      "revoked": "This invite was revoked. Ask for a new one.",
+      "title": "This invite can't be used",
+      "unknown": "This invite can't be used. Ask for a new one."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "Thu",
       "tue": "Tue",
       "wed": "Wed"
+    }
+  },
+  "members": {
+    "change_role_aria": "Change the role of {{email}}",
+    "errors": {
+      "account_exists": "An account with this email exists already. Sign in and accept the invite.",
+      "already_member": "This person is already a member of this workspace.",
+      "forbidden": "Your role in this workspace doesn't allow this.",
+      "generic": "Something went wrong. Please try again.",
+      "last_owner": "A workspace needs at least one owner.",
+      "member_not_found": "This member isn't in the workspace any more."
+    },
+    "invite": {
+      "copied": "Link copied",
+      "copy": "Copy",
+      "creating": "Creating...",
+      "description": "Make a link for an email address and a role. Nothing is emailed: copy the link and send it yourself.",
+      "done": "Done",
+      "email_label": "Email",
+      "link_note": "This link works once and expires in 7 days. It is shown only now, so copy it before you leave this page.",
+      "link_title": "Invite link",
+      "role_label": "Role",
+      "submit": "Create invite link",
+      "title": "Invite someone"
+    },
+    "leave": {
+      "button": "Leave workspace",
+      "confirm": "Leave",
+      "description": "You lose access to this workspace and its data at once.",
+      "done": "You left the workspace",
+      "last_owner": "You are the last owner, so you can't leave. Make another member an owner first.",
+      "refresh_failed": "You left the workspace, but loading your workspaces failed. Try again.",
+      "title": "Leave this workspace"
+    },
+    "list": {
+      "description": "Everyone who works in this workspace, and their role.",
+      "email": "Email",
+      "joined": "Joined",
+      "role": "Role",
+      "title": "Members",
+      "you": "you"
+    },
+    "page_name": "Members",
+    "pending": {
+      "description": "Invites that were not used yet. A revoked invite's link stops working.",
+      "email": "Email",
+      "empty": "No pending invites.",
+      "expired": "Expired",
+      "expires": "Expires",
+      "revoke": "Revoke",
+      "revoke_aria": "Revoke the invite for {{email}}",
+      "revoked": "Invite revoked",
+      "role": "Role",
+      "title": "Pending invites"
+    },
+    "remove": "Remove",
+    "remove_aria": "Remove {{email}}",
+    "remove_dialog": {
+      "confirm": "Remove",
+      "description": "{{email}} loses access to this workspace at once.",
+      "title": "Remove member"
+    },
+    "removed": "Member removed",
+    "role_updated": "Role updated",
+    "roles": {
+      "admin": "Admin",
+      "member": "Member",
+      "owner": "Owner"
+    },
+    "settings_card": {
+      "description": "See who works in this workspace and, if you are an admin or owner, invite people and manage their roles.",
+      "open": "Open members",
+      "title": "Members"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "Intervals, Retries, Timeouts"
   },
   "workspaces": {
+    "create": "Create workspace",
+    "create_error": "Failed to create the workspace",
+    "create_first": "Create a workspace",
+    "creating": "Creating...",
+    "enter": "Open workspace",
+    "entering": "Opening...",
+    "entry_failed": "The workspace was created, but opening it failed. Try again.",
+    "name_label": "Name",
+    "name_placeholder": "My team",
+    "name_required": "Enter a name",
+    "new": "New workspace",
+    "new_description": "A workspace has its own monitors, notification channels, status pages and members. You will be its owner.",
+    "new_title": "New workspace",
     "none_description": "Your account isn't a member of any workspace, so there is nothing to show here. Ask someone who runs a workspace to add you.",
-    "none_title": "You're not in a workspace yet"
+    "none_title": "You're not in a workspace yet",
+    "refresh_failed": "Couldn't load your workspaces. Check your connection and try again.",
+    "switcher_label": "Switch workspace"
   }
 }

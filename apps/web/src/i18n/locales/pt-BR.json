@@ -73,6 +73,7 @@
     "no_tags_available": "Nenhum rótulo disponível",
     "please_refresh_page": "Atualize a página, por favor.",
     "required": "Obrigatório",
+    "retry": "Tentar novamente",
     "save": "Salvar",
     "saving": "Salvando...",
     "search": "Pesquisar",
@@ -124,6 +125,33 @@
       "password_required": "A senha é obrigatória",
       "password_min_length": "A senha deve ter pelo menos 8 caracteres",
       "passwords_mismatch": "As senhas não coincidem"
+    }
+  },
+  "invite": {
+    "accept": "Aceitar convite",
+    "accepting": "Entrando...",
+    "creating": "Criando...",
+    "description": "Você foi convidado para entrar em {{workspace}} como {{role}}.",
+    "enter_failed": "Você entrou no espaço de trabalho, mas não foi possível abri-lo. Tente novamente.",
+    "errors": {
+      "other_email": "Este convite é para outro endereço de e-mail."
+    },
+    "for_email": "Este convite é para {{email}}.",
+    "have_account": "Já tem uma conta?",
+    "open_app": "Abrir o Peekaping",
+    "other_account": "Você está conectado como {{current}}, mas este convite é para {{invited}}. Saia e depois entre ou cadastre-se com {{invited}} para aceitá-lo.",
+    "sign_in_instead": "Entrar",
+    "sign_out": "Sair",
+    "signup_description": "Escolha uma senha para criar sua conta e entrar em {{workspace}} como {{role}}.",
+    "signup_submit": "Criar conta e entrar",
+    "title": "Entrar em {{workspace}}",
+    "unavailable": {
+      "accepted": "Este convite já foi usado.",
+      "expired": "Este convite expirou. Peça um novo.",
+      "not_found": "Este link de convite não existe. Verifique se você copiou o link inteiro.",
+      "revoked": "Este convite foi revogado. Peça um novo.",
+      "title": "Este convite não pode ser usado",
+      "unknown": "Este convite não pode ser usado. Peça um novo."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "Qui",
       "tue": "Ter",
       "wed": "Qua"
+    }
+  },
+  "members": {
+    "change_role_aria": "Alterar a função de {{email}}",
+    "errors": {
+      "account_exists": "Já existe uma conta com este e-mail. Entre e aceite o convite.",
+      "already_member": "Esta pessoa já é membro deste espaço de trabalho.",
+      "forbidden": "Sua função neste espaço de trabalho não permite isso.",
+      "generic": "Algo deu errado. Tente novamente.",
+      "last_owner": "Um espaço de trabalho precisa de pelo menos um proprietário.",
+      "member_not_found": "Este membro não está mais no espaço de trabalho."
+    },
+    "invite": {
+      "copied": "Link copiado",
+      "copy": "Copiar",
+      "creating": "Criando...",
+      "description": "Crie um link para um endereço de e-mail e uma função. Nenhum e-mail é enviado: copie o link e envie você mesmo.",
+      "done": "Concluído",
+      "email_label": "E-mail",
+      "link_note": "Este link funciona uma vez e expira em 7 dias. Ele é exibido só agora, então copie-o antes de sair desta página.",
+      "link_title": "Link de convite",
+      "role_label": "Função",
+      "submit": "Criar link de convite",
+      "title": "Convidar alguém"
+    },
+    "leave": {
+      "button": "Sair do espaço de trabalho",
+      "confirm": "Sair",
+      "description": "Você perde o acesso a este espaço de trabalho e aos dados dele imediatamente.",
+      "done": "Você saiu do espaço de trabalho",
+      "last_owner": "Você é o último proprietário, então não pode sair. Torne outro membro proprietário primeiro.",
+      "refresh_failed": "Você saiu do espaço de trabalho, mas não foi possível carregar seus espaços de trabalho. Tente novamente.",
+      "title": "Sair deste espaço de trabalho"
+    },
+    "list": {
+      "description": "Todos que trabalham neste espaço de trabalho e suas funções.",
+      "email": "E-mail",
+      "joined": "Entrou em",
+      "role": "Função",
+      "title": "Membros",
+      "you": "você"
+    },
+    "page_name": "Membros",
+    "pending": {
+      "description": "Convites que ainda não foram usados. O link de um convite revogado deixa de funcionar.",
+      "email": "E-mail",
+      "empty": "Nenhum convite pendente.",
+      "expired": "Expirado",
+      "expires": "Expira em",
+      "revoke": "Revogar",
+      "revoke_aria": "Revogar o convite de {{email}}",
+      "revoked": "Convite revogado",
+      "role": "Função",
+      "title": "Convites pendentes"
+    },
+    "remove": "Remover",
+    "remove_aria": "Remover {{email}}",
+    "remove_dialog": {
+      "confirm": "Remover",
+      "description": "{{email}} perde o acesso a este espaço de trabalho imediatamente.",
+      "title": "Remover membro"
+    },
+    "removed": "Membro removido",
+    "role_updated": "Função atualizada",
+    "roles": {
+      "admin": "Administrador",
+      "member": "Membro",
+      "owner": "Proprietário"
+    },
+    "settings_card": {
+      "description": "Veja quem trabalha neste espaço de trabalho e, se você for administrador ou proprietário, convide pessoas e gerencie as funções delas.",
+      "open": "Abrir membros",
+      "title": "Membros"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "Intervalos, Tentativas, Timeouts"
   },
   "workspaces": {
+    "create": "Criar espaço de trabalho",
+    "create_error": "Falha ao criar o espaço de trabalho",
+    "create_first": "Criar um espaço de trabalho",
+    "creating": "Criando...",
+    "enter": "Abrir espaço de trabalho",
+    "entering": "Abrindo...",
+    "entry_failed": "O espaço de trabalho foi criado, mas não foi possível abri-lo. Tente novamente.",
+    "name_label": "Nome",
+    "name_placeholder": "Minha equipe",
+    "name_required": "Informe um nome",
+    "new": "Novo espaço de trabalho",
+    "new_description": "Um espaço de trabalho tem seus próprios monitores, canais de notificação, páginas de status e membros. Você será o proprietário.",
+    "new_title": "Novo espaço de trabalho",
     "none_description": "Sua conta não é membro de nenhum espaço de trabalho, então não há nada para mostrar aqui. Peça a quem administra um espaço de trabalho para adicionar você.",
-    "none_title": "Você ainda não está em nenhum espaço de trabalho"
+    "none_title": "Você ainda não está em nenhum espaço de trabalho",
+    "refresh_failed": "Não foi possível carregar seus espaços de trabalho. Verifique sua conexão e tente novamente.",
+    "switcher_label": "Trocar de espaço de trabalho"
   }
 }

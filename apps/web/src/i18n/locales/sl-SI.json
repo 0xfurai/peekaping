@@ -73,6 +73,7 @@
     "no_tags_available": "Oznake niso na voljo",
     "please_refresh_page": "Prosimo, osvežite stran.",
     "required": "Obvezno",
+    "retry": "Poskusi znova",
     "save": "Shrani",
     "saving": "Shranjevanje...",
     "search": "Išči",
@@ -124,6 +125,33 @@
       "password_required": "Geslo je obvezno",
       "password_min_length": "Geslo mora biti dolgo vsaj 8 znakov.",
       "passwords_mismatch": "Gesla se ne ujemata"
+    }
+  },
+  "invite": {
+    "accept": "Sprejmi povabilo",
+    "accepting": "Pridruževanje...",
+    "creating": "Ustvarjanje...",
+    "description": "Povabljeni ste, da se pridružite delovnemu prostoru {{workspace}} kot {{role}}.",
+    "enter_failed": "Pridružili ste se delovnemu prostoru, vendar ga ni bilo mogoče odpreti. Poskusite znova.",
+    "errors": {
+      "other_email": "To povabilo je za drug e-poštni naslov."
+    },
+    "for_email": "To povabilo je za {{email}}.",
+    "have_account": "Že imate račun?",
+    "open_app": "Odpri Peekaping",
+    "other_account": "Prijavljeni ste kot {{current}}, vendar je to povabilo za {{invited}}. Odjavite se, nato se prijavite ali registrirajte z {{invited}}, da ga sprejmete.",
+    "sign_in_instead": "Raje se prijavi",
+    "sign_out": "Odjava",
+    "signup_description": "Izberite geslo, da ustvarite račun in se pridružite delovnemu prostoru {{workspace}} kot {{role}}.",
+    "signup_submit": "Ustvari račun in se pridruži",
+    "title": "Pridružite se: {{workspace}}",
+    "unavailable": {
+      "accepted": "To povabilo je že bilo uporabljeno.",
+      "expired": "To povabilo je poteklo. Prosite za novo.",
+      "not_found": "Ta povezava povabila ne obstaja. Preverite, ali ste jo kopirali v celoti.",
+      "revoked": "To povabilo je bilo preklicano. Prosite za novo.",
+      "title": "Tega povabila ni mogoče uporabiti",
+      "unknown": "Tega povabila ni mogoče uporabiti. Prosite za novo."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "Črt",
       "tue": "to",
       "wed": "Sre."
+    }
+  },
+  "members": {
+    "change_role_aria": "Spremeni vlogo uporabnika {{email}}",
+    "errors": {
+      "account_exists": "Račun s tem e-poštnim naslovom že obstaja. Prijavite se in sprejmite povabilo.",
+      "already_member": "Ta oseba je že član tega delovnega prostora.",
+      "forbidden": "Vaša vloga v tem delovnem prostoru tega ne dovoljuje.",
+      "generic": "Nekaj je šlo narobe. Poskusite znova.",
+      "last_owner": "Delovni prostor potrebuje vsaj enega lastnika.",
+      "member_not_found": "Ta član ni več v delovnem prostoru."
+    },
+    "invite": {
+      "copied": "Povezava kopirana",
+      "copy": "Kopiraj",
+      "creating": "Ustvarjanje...",
+      "description": "Ustvarite povezavo za e-poštni naslov in vlogo. E-pošta se ne pošlje: kopirajte povezavo in jo pošljite sami.",
+      "done": "Končano",
+      "email_label": "E-pošta",
+      "link_note": "Ta povezava deluje samo enkrat in poteče čez 7 dni. Prikazana je samo zdaj, zato jo kopirajte, preden zapustite to stran.",
+      "link_title": "Povezava povabila",
+      "role_label": "Vloga",
+      "submit": "Ustvari povezavo povabila",
+      "title": "Povabite nekoga"
+    },
+    "leave": {
+      "button": "Zapusti delovni prostor",
+      "confirm": "Zapusti",
+      "description": "Takoj izgubite dostop do tega delovnega prostora in njegovih podatkov.",
+      "done": "Zapustili ste delovni prostor",
+      "last_owner": "Ste zadnji lastnik, zato ne morete oditi. Najprej imenujte drugega člana za lastnika.",
+      "refresh_failed": "Zapustili ste delovni prostor, vendar vaših delovnih prostorov ni bilo mogoče naložiti. Poskusite znova.",
+      "title": "Zapusti ta delovni prostor"
+    },
+    "list": {
+      "description": "Vsi, ki delajo v tem delovnem prostoru, in njihove vloge.",
+      "email": "E-pošta",
+      "joined": "Pridružitev",
+      "role": "Vloga",
+      "title": "Člani",
+      "you": "vi"
+    },
+    "page_name": "Člani",
+    "pending": {
+      "description": "Povabila, ki še niso bila uporabljena. Povezava preklicanega povabila preneha delovati.",
+      "email": "E-pošta",
+      "empty": "Ni čakajočih povabil.",
+      "expired": "Poteklo",
+      "expires": "Poteče",
+      "revoke": "Prekliči",
+      "revoke_aria": "Prekliči povabilo za {{email}}",
+      "revoked": "Povabilo preklicano",
+      "role": "Vloga",
+      "title": "Čakajoča povabila"
+    },
+    "remove": "Odstrani",
+    "remove_aria": "Odstrani {{email}}",
+    "remove_dialog": {
+      "confirm": "Odstrani",
+      "description": "{{email}} takoj izgubi dostop do tega delovnega prostora.",
+      "title": "Odstrani člana"
+    },
+    "removed": "Član odstranjen",
+    "role_updated": "Vloga posodobljena",
+    "roles": {
+      "admin": "Skrbnik",
+      "member": "Član",
+      "owner": "Lastnik"
+    },
+    "settings_card": {
+      "description": "Oglejte si, kdo dela v tem delovnem prostoru, in če ste skrbnik ali lastnik, povabite ljudi ter upravljajte njihove vloge.",
+      "open": "Odpri člane",
+      "title": "Člani"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "Intervali, Ponovitve, Časovne omejitve"
   },
   "workspaces": {
+    "create": "Ustvari delovni prostor",
+    "create_error": "Delovnega prostora ni bilo mogoče ustvariti",
+    "create_first": "Ustvari delovni prostor",
+    "creating": "Ustvarjanje...",
+    "enter": "Odpri delovni prostor",
+    "entering": "Odpiranje...",
+    "entry_failed": "Delovni prostor je bil ustvarjen, vendar ga ni bilo mogoče odpreti. Poskusite znova.",
+    "name_label": "Ime",
+    "name_placeholder": "Moja ekipa",
+    "name_required": "Vnesite ime",
+    "new": "Nov delovni prostor",
+    "new_description": "Delovni prostor ima svoje monitorje, kanale za obvestila, statusne strani in člane. Postali boste njegov lastnik.",
+    "new_title": "Nov delovni prostor",
     "none_description": "Vaš račun ni član nobenega delovnega prostora, zato tu ni ničesar za prikazati. Prosite nekoga, ki upravlja delovni prostor, naj vas doda.",
-    "none_title": "Še niste v nobenem delovnem prostoru"
+    "none_title": "Še niste v nobenem delovnem prostoru",
+    "refresh_failed": "Vaših delovnih prostorov ni bilo mogoče naložiti. Preverite povezavo in poskusite znova.",
+    "switcher_label": "Zamenjaj delovni prostor"
   }
 }

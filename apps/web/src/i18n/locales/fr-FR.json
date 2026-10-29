@@ -73,6 +73,7 @@
     "no_tags_available": "Aucun tag disponible",
     "please_refresh_page": "Veuillez actualiser la page.",
     "required": "Obligatoire",
+    "retry": "Réessayer",
     "save": "Enregistrer",
     "saving": "Sauvegarde en cours...",
     "search": "Rechercher",
@@ -124,6 +125,33 @@
       "password_required": "Le mot de passe est requis",
       "password_min_length": "Le mot de passe doit contenir au moins 8 caractères",
       "passwords_mismatch": "Les mots de passe ne correspondent pas"
+    }
+  },
+  "invite": {
+    "accept": "Accepter l'invitation",
+    "accepting": "Adhésion...",
+    "creating": "Création...",
+    "description": "Vous êtes invité à rejoindre {{workspace}} en tant que {{role}}.",
+    "enter_failed": "Vous avez rejoint l'espace de travail, mais son ouverture a échoué. Réessayez.",
+    "errors": {
+      "other_email": "Cette invitation est destinée à une autre adresse e-mail."
+    },
+    "for_email": "Cette invitation est destinée à {{email}}.",
+    "have_account": "Vous avez déjà un compte ?",
+    "open_app": "Ouvrir Peekaping",
+    "other_account": "Vous êtes connecté en tant que {{current}}, mais cette invitation est destinée à {{invited}}. Déconnectez-vous, puis connectez-vous ou inscrivez-vous avec {{invited}} pour l'accepter.",
+    "sign_in_instead": "Se connecter à la place",
+    "sign_out": "Se déconnecter",
+    "signup_description": "Choisissez un mot de passe pour créer votre compte et rejoindre {{workspace}} en tant que {{role}}.",
+    "signup_submit": "Créer le compte et rejoindre",
+    "title": "Rejoindre {{workspace}}",
+    "unavailable": {
+      "accepted": "Cette invitation a déjà été utilisée.",
+      "expired": "Cette invitation a expiré. Demandez-en une nouvelle.",
+      "not_found": "Ce lien d'invitation n'existe pas. Vérifiez que vous l'avez copié en entier.",
+      "revoked": "Cette invitation a été révoquée. Demandez-en une nouvelle.",
+      "title": "Cette invitation ne peut pas être utilisée",
+      "unknown": "Cette invitation ne peut pas être utilisée. Demandez-en une nouvelle."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "Jeu",
       "tue": "Mar",
       "wed": "Mer."
+    }
+  },
+  "members": {
+    "change_role_aria": "Modifier le rôle de {{email}}",
+    "errors": {
+      "account_exists": "Un compte avec cet e-mail existe déjà. Connectez-vous et acceptez l'invitation.",
+      "already_member": "Cette personne est déjà membre de cet espace de travail.",
+      "forbidden": "Votre rôle dans cet espace de travail ne permet pas cette action.",
+      "generic": "Une erreur s'est produite. Veuillez réessayer.",
+      "last_owner": "Un espace de travail doit avoir au moins un propriétaire.",
+      "member_not_found": "Ce membre n'est plus dans l'espace de travail."
+    },
+    "invite": {
+      "copied": "Lien copié",
+      "copy": "Copier",
+      "creating": "Création...",
+      "description": "Créez un lien pour une adresse e-mail et un rôle. Aucun e-mail n'est envoyé : copiez le lien et envoyez-le vous-même.",
+      "done": "Terminé",
+      "email_label": "E-mail",
+      "link_note": "Ce lien ne fonctionne qu'une fois et expire dans 7 jours. Il n'est affiché que maintenant, copiez-le donc avant de quitter cette page.",
+      "link_title": "Lien d'invitation",
+      "role_label": "Rôle",
+      "submit": "Créer un lien d'invitation",
+      "title": "Inviter quelqu'un"
+    },
+    "leave": {
+      "button": "Quitter l'espace de travail",
+      "confirm": "Quitter",
+      "description": "Vous perdez immédiatement l'accès à cet espace de travail et à ses données.",
+      "done": "Vous avez quitté l'espace de travail",
+      "last_owner": "Vous êtes le dernier propriétaire, vous ne pouvez donc pas partir. Nommez d'abord un autre membre propriétaire.",
+      "refresh_failed": "Vous avez quitté l'espace de travail, mais le chargement de vos espaces de travail a échoué. Réessayez.",
+      "title": "Quitter cet espace de travail"
+    },
+    "list": {
+      "description": "Toutes les personnes qui travaillent dans cet espace de travail, et leur rôle.",
+      "email": "E-mail",
+      "joined": "Rejoint le",
+      "role": "Rôle",
+      "title": "Membres",
+      "you": "vous"
+    },
+    "page_name": "Membres",
+    "pending": {
+      "description": "Invitations pas encore utilisées. Le lien d'une invitation révoquée cesse de fonctionner.",
+      "email": "E-mail",
+      "empty": "Aucune invitation en attente.",
+      "expired": "Expirée",
+      "expires": "Expire le",
+      "revoke": "Révoquer",
+      "revoke_aria": "Révoquer l'invitation de {{email}}",
+      "revoked": "Invitation révoquée",
+      "role": "Rôle",
+      "title": "Invitations en attente"
+    },
+    "remove": "Retirer",
+    "remove_aria": "Retirer {{email}}",
+    "remove_dialog": {
+      "confirm": "Retirer",
+      "description": "{{email}} perd immédiatement l'accès à cet espace de travail.",
+      "title": "Retirer le membre"
+    },
+    "removed": "Membre retiré",
+    "role_updated": "Rôle mis à jour",
+    "roles": {
+      "admin": "Administrateur",
+      "member": "Membre",
+      "owner": "Propriétaire"
+    },
+    "settings_card": {
+      "description": "Voyez qui travaille dans cet espace de travail et, si vous êtes administrateur ou propriétaire, invitez des personnes et gérez leurs rôles.",
+      "open": "Ouvrir les membres",
+      "title": "Membres"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "Intervalles, Réessais, Timeout"
   },
   "workspaces": {
+    "create": "Créer l'espace de travail",
+    "create_error": "Échec de la création de l'espace de travail",
+    "create_first": "Créer un espace de travail",
+    "creating": "Création...",
+    "enter": "Ouvrir l'espace de travail",
+    "entering": "Ouverture...",
+    "entry_failed": "L'espace de travail a été créé, mais son ouverture a échoué. Réessayez.",
+    "name_label": "Nom",
+    "name_placeholder": "Mon équipe",
+    "name_required": "Saisissez un nom",
+    "new": "Nouvel espace de travail",
+    "new_description": "Un espace de travail a ses propres moniteurs, canaux de notification, pages d'état et membres. Vous en serez le propriétaire.",
+    "new_title": "Nouvel espace de travail",
     "none_description": "Votre compte n'est membre d'aucun espace de travail, il n'y a donc rien à afficher ici. Demandez à une personne qui gère un espace de travail de vous y ajouter.",
-    "none_title": "Vous n'êtes encore dans aucun espace de travail"
+    "none_title": "Vous n'êtes encore dans aucun espace de travail",
+    "refresh_failed": "Impossible de charger vos espaces de travail. Vérifiez votre connexion et réessayez.",
+    "switcher_label": "Changer d'espace de travail"
   }
 }

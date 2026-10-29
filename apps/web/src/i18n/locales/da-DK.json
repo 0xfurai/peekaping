@@ -73,6 +73,7 @@
     "no_tags_available": "Ingen tags tilgængelige",
     "please_refresh_page": "Genindlæs siden, venligst.",
     "required": "Obligatorisk",
+    "retry": "Prøv igen",
     "save": "Gem",
     "saving": "Gemmer...",
     "search": "Søg",
@@ -124,6 +125,33 @@
       "password_required": "Adgangskode er påkrævet",
       "password_min_length": "Adgangskoden skal være mindst 8 tegn",
       "passwords_mismatch": "Adgangskoder matcher ikke"
+    }
+  },
+  "invite": {
+    "accept": "Accepter invitation",
+    "accepting": "Tilslutter...",
+    "creating": "Opretter...",
+    "description": "Du er inviteret til at deltage i {{workspace}} med rollen: {{role}}.",
+    "enter_failed": "Du er kommet med i arbejdsområdet, men det kunne ikke åbnes. Prøv igen.",
+    "errors": {
+      "other_email": "Denne invitation er til en anden e-mailadresse."
+    },
+    "for_email": "Denne invitation er til {{email}}.",
+    "have_account": "Har du allerede en konto?",
+    "open_app": "Åbn Peekaping",
+    "other_account": "Du er logget ind som {{current}}, men denne invitation er til {{invited}}. Log ud, og log derefter ind eller opret en konto med {{invited}} for at acceptere den.",
+    "sign_in_instead": "Log ind i stedet",
+    "sign_out": "Log ud",
+    "signup_description": "Vælg en adgangskode for at oprette din konto og deltage i {{workspace}} med rollen: {{role}}.",
+    "signup_submit": "Opret konto og deltag",
+    "title": "Deltag i {{workspace}}",
+    "unavailable": {
+      "accepted": "Denne invitation er allerede brugt.",
+      "expired": "Denne invitation er udløbet. Bed om en ny.",
+      "not_found": "Dette invitationslink findes ikke. Tjek, at du har kopieret hele linket.",
+      "revoked": "Denne invitation er tilbagekaldt. Bed om en ny.",
+      "title": "Denne invitation kan ikke bruges",
+      "unknown": "Denne invitation kan ikke bruges. Bed om en ny."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "tors",
       "tue": "Tirs",
       "wed": "ons"
+    }
+  },
+  "members": {
+    "change_role_aria": "Skift rolle for {{email}}",
+    "errors": {
+      "account_exists": "Der findes allerede en konto med denne e-mail. Log ind og accepter invitationen.",
+      "already_member": "Denne person er allerede medlem af dette arbejdsområde.",
+      "forbidden": "Din rolle i dette arbejdsområde tillader ikke dette.",
+      "generic": "Noget gik galt. Prøv igen.",
+      "last_owner": "Et arbejdsområde skal have mindst én ejer.",
+      "member_not_found": "Dette medlem er ikke længere i arbejdsområdet."
+    },
+    "invite": {
+      "copied": "Linket er kopieret",
+      "copy": "Kopiér",
+      "creating": "Opretter...",
+      "description": "Opret et link til en e-mailadresse og en rolle. Der sendes ingen e-mail: kopiér linket og send det selv.",
+      "done": "Færdig",
+      "email_label": "E-mail",
+      "link_note": "Linket kan kun bruges én gang og udløber efter 7 dage. Det vises kun nu, så kopiér det, før du forlader siden.",
+      "link_title": "Invitationslink",
+      "role_label": "Rolle",
+      "submit": "Opret invitationslink",
+      "title": "Inviter nogen"
+    },
+    "leave": {
+      "button": "Forlad arbejdsområde",
+      "confirm": "Forlad",
+      "description": "Du mister straks adgangen til dette arbejdsområde og dets data.",
+      "done": "Du har forladt arbejdsområdet",
+      "last_owner": "Du er den sidste ejer, så du kan ikke forlade det. Gør først et andet medlem til ejer.",
+      "refresh_failed": "Du har forladt arbejdsområdet, men dine arbejdsområder kunne ikke indlæses. Prøv igen.",
+      "title": "Forlad dette arbejdsområde"
+    },
+    "list": {
+      "description": "Alle, der arbejder i dette arbejdsområde, og deres rolle.",
+      "email": "E-mail",
+      "joined": "Tilsluttet",
+      "role": "Rolle",
+      "title": "Medlemmer",
+      "you": "dig"
+    },
+    "page_name": "Medlemmer",
+    "pending": {
+      "description": "Invitationer, der endnu ikke er brugt. Linket til en tilbagekaldt invitation holder op med at virke.",
+      "email": "E-mail",
+      "empty": "Ingen ventende invitationer.",
+      "expired": "Udløbet",
+      "expires": "Udløber",
+      "revoke": "Tilbagekald",
+      "revoke_aria": "Tilbagekald invitationen til {{email}}",
+      "revoked": "Invitationen er tilbagekaldt",
+      "role": "Rolle",
+      "title": "Ventende invitationer"
+    },
+    "remove": "Fjern",
+    "remove_aria": "Fjern {{email}}",
+    "remove_dialog": {
+      "confirm": "Fjern",
+      "description": "{{email}} mister straks adgangen til dette arbejdsområde.",
+      "title": "Fjern medlem"
+    },
+    "removed": "Medlemmet er fjernet",
+    "role_updated": "Rollen er opdateret",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Medlem",
+      "owner": "Ejer"
+    },
+    "settings_card": {
+      "description": "Se, hvem der arbejder i dette arbejdsområde, og inviter folk og administrer deres roller, hvis du er administrator eller ejer.",
+      "open": "Åbn medlemmer",
+      "title": "Medlemmer"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "Interval, gentagelser, tidsgrænser"
   },
   "workspaces": {
+    "create": "Opret arbejdsområde",
+    "create_error": "Arbejdsområdet kunne ikke oprettes",
+    "create_first": "Opret et arbejdsområde",
+    "creating": "Opretter...",
+    "enter": "Åbn arbejdsområde",
+    "entering": "Åbner...",
+    "entry_failed": "Arbejdsområdet blev oprettet, men det kunne ikke åbnes. Prøv igen.",
+    "name_label": "Navn",
+    "name_placeholder": "Mit team",
+    "name_required": "Angiv et navn",
+    "new": "Nyt arbejdsområde",
+    "new_description": "Et arbejdsområde har sine egne monitorer, notifikationskanaler, statussider og medlemmer. Du bliver ejer af det.",
+    "new_title": "Nyt arbejdsområde",
     "none_description": "Din konto er ikke medlem af noget arbejdsområde, så der er intet at vise her. Bed en, der styrer et arbejdsområde, om at tilføje dig.",
-    "none_title": "Du er endnu ikke i et arbejdsområde"
+    "none_title": "Du er endnu ikke i et arbejdsområde",
+    "refresh_failed": "Dine arbejdsområder kunne ikke indlæses. Tjek din forbindelse, og prøv igen.",
+    "switcher_label": "Skift arbejdsområde"
   }
 }

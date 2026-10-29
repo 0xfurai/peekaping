@@ -73,6 +73,7 @@
     "no_tags_available": "Siltid pole saadaval",
     "please_refresh_page": "Palun värskenda lehte.",
     "required": "Vajalik",
+    "retry": "Proovi uuesti",
     "save": "Salvesta",
     "saving": "Salvestamine...",
     "search": "Otsi",
@@ -124,6 +125,33 @@
       "password_required": "Parool on nõutav",
       "password_min_length": "Parool peab olema vähemalt 8 tähemärki",
       "passwords_mismatch": "Paroolid ei ühti"
+    }
+  },
+  "invite": {
+    "accept": "Võta kutse vastu",
+    "accepting": "Liitumine...",
+    "creating": "Loomine...",
+    "description": "Sind on kutsutud liituma tööruumiga {{workspace}} rolliga: {{role}}.",
+    "enter_failed": "Liitusite tööruumiga, kuid selle avamine ebaõnnestus. Proovige uuesti.",
+    "errors": {
+      "other_email": "See kutse on mõeldud teisele e-posti aadressile."
+    },
+    "for_email": "See kutse on mõeldud aadressile {{email}}.",
+    "have_account": "Sul on juba konto?",
+    "open_app": "Ava Peekaping",
+    "other_account": "Oled sisse logitud kasutajana {{current}}, kuid see kutse on mõeldud aadressile {{invited}}. Logi välja ning seejärel logi sisse või registreeru aadressiga {{invited}}, et see vastu võtta.",
+    "sign_in_instead": "Logi hoopis sisse",
+    "sign_out": "Logi välja",
+    "signup_description": "Vali parool, et luua oma konto ja liituda tööruumiga {{workspace}} rolliga: {{role}}.",
+    "signup_submit": "Loo konto ja liitu",
+    "title": "Liitu tööruumiga {{workspace}}",
+    "unavailable": {
+      "accepted": "Seda kutset on juba kasutatud.",
+      "expired": "See kutse on aegunud. Palu uut.",
+      "not_found": "Seda kutselinki ei ole olemas. Kontrolli, kas kopeerisid selle täielikult.",
+      "revoked": "See kutse on tühistatud. Palu uut.",
+      "title": "Seda kutset ei saa kasutada",
+      "unknown": "Seda kutset ei saa kasutada. Palu uut."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "N",
       "tue": "Te",
       "wed": "Kol"
+    }
+  },
+  "members": {
+    "change_role_aria": "Muuda kasutaja {{email}} rolli",
+    "errors": {
+      "account_exists": "Selle e-posti aadressiga konto on juba olemas. Logi sisse ja võta kutse vastu.",
+      "already_member": "See inimene on juba selle tööruumi liige.",
+      "forbidden": "Sinu roll selles tööruumis seda ei luba.",
+      "generic": "Midagi läks valesti. Proovi uuesti.",
+      "last_owner": "Tööruumil peab olema vähemalt üks omanik.",
+      "member_not_found": "See liige ei ole enam tööruumis."
+    },
+    "invite": {
+      "copied": "Link on kopeeritud",
+      "copy": "Kopeeri",
+      "creating": "Loomine...",
+      "description": "Loo link e-posti aadressi ja rolli jaoks. E-kirja ei saadeta: kopeeri link ja saada see ise.",
+      "done": "Valmis",
+      "email_label": "E-post",
+      "link_note": "See link töötab ainult üks kord ja aegub 7 päeva pärast. Seda näidatakse ainult praegu, seega kopeeri see enne selle lehe lahkumist.",
+      "link_title": "Kutselink",
+      "role_label": "Roll",
+      "submit": "Loo kutselink",
+      "title": "Kutsu keegi"
+    },
+    "leave": {
+      "button": "Lahku tööruumist",
+      "confirm": "Lahku",
+      "description": "Kaotad kohe juurdepääsu sellele tööruumile ja selle andmetele.",
+      "done": "Sa lahkusid tööruumist",
+      "last_owner": "Sa oled viimane omanik, seega ei saa lahkuda. Tee esmalt mõni teine liige omanikuks.",
+      "refresh_failed": "Lahkusite tööruumist, kuid teie tööruumide laadimine ebaõnnestus. Proovige uuesti.",
+      "title": "Lahku sellest tööruumist"
+    },
+    "list": {
+      "description": "Kõik, kes selles tööruumis töötavad, ja nende roll.",
+      "email": "E-post",
+      "joined": "Liitus",
+      "role": "Roll",
+      "title": "Liikmed",
+      "you": "sina"
+    },
+    "page_name": "Liikmed",
+    "pending": {
+      "description": "Kutsed, mida pole veel kasutatud. Tühistatud kutse link lakkab töötamast.",
+      "email": "E-post",
+      "empty": "Ootel kutseid pole.",
+      "expired": "Aegunud",
+      "expires": "Aegub",
+      "revoke": "Tühista",
+      "revoke_aria": "Tühista kasutaja {{email}} kutse",
+      "revoked": "Kutse on tühistatud",
+      "role": "Roll",
+      "title": "Ootel kutsed"
+    },
+    "remove": "Eemalda",
+    "remove_aria": "Eemalda {{email}}",
+    "remove_dialog": {
+      "confirm": "Eemalda",
+      "description": "{{email}} kaotab kohe juurdepääsu sellele tööruumile.",
+      "title": "Eemalda liige"
+    },
+    "removed": "Liige on eemaldatud",
+    "role_updated": "Roll on uuendatud",
+    "roles": {
+      "admin": "Haldur",
+      "member": "Liige",
+      "owner": "Omanik"
+    },
+    "settings_card": {
+      "description": "Vaata, kes selles tööruumis töötavad, ning kui oled haldur või omanik, kutsu inimesi ja halda nende rolle.",
+      "open": "Ava liikmed",
+      "title": "Liikmed"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "Intervallid, Kordused, Aegumised"
   },
   "workspaces": {
+    "create": "Loo tööruum",
+    "create_error": "Tööruumi loomine ebaõnnestus",
+    "create_first": "Loo tööruum",
+    "creating": "Loomine...",
+    "enter": "Ava tööruum",
+    "entering": "Avamine...",
+    "entry_failed": "Tööruum loodi, kuid selle avamine ebaõnnestus. Proovi uuesti.",
+    "name_label": "Nimi",
+    "name_placeholder": "Minu meeskond",
+    "name_required": "Sisesta nimi",
+    "new": "Uus tööruum",
+    "new_description": "Tööruumil on oma monitoorid, teavituskanalid, olekusivud ja liikmed. Sinust saab selle omanik.",
+    "new_title": "Uus tööruum",
     "none_description": "Sinu konto ei kuulu ühtegi tööruumi, seega pole siin midagi näidata. Palu tööruumi haldajal sind lisada.",
-    "none_title": "Sa ei ole veel üheski tööruumis"
+    "none_title": "Sa ei ole veel üheski tööruumis",
+    "refresh_failed": "Teie tööruume ei õnnestunud laadida. Kontrollige ühendust ja proovige uuesti.",
+    "switcher_label": "Vaheta tööruumi"
   }
 }

@@ -32,3 +32,19 @@ describe("AppSidebar", () => {
     expect(html).toContain(text("navigation.probes"));
   });
 });
+
+describe("AppSidebar workspace switcher", () => {
+  const OTHER = { id: "22222222-2222-4222-8222-222222222222", name: "Side project", role: "admin" as const };
+
+  it("is not there for a user with one workspace, so the sidebar looks as it did", () => {
+    const html = sidebar({ instanceAdmin: false, role: "owner" });
+    expect(html).not.toContain(text("workspaces.switcher_label"));
+    expect(html).not.toContain(">Main<");
+  });
+
+  it("is there for a user with two workspaces, showing the current one", () => {
+    const html = sidebar({ instanceAdmin: false, role: "owner", otherWorkspaces: [OTHER] });
+    expect(html).toContain(`aria-label="${text("workspaces.switcher_label")}"`);
+    expect(html).toContain(">Main<");
+  });
+});

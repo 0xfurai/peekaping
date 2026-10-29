@@ -36,4 +36,25 @@ describe("protected routes", () => {
       expect(html).not.toContain("data-redirect");
     }
   );
+
+  it("sends a user who just signed in from an invite back to it", () => {
+    const html = renderAs(
+      { instanceAdmin: false, role: "member" },
+      <Routes>{protectedRoutes}</Routes>,
+      "/login?next=%2Finvite%2Ftok_abc"
+    );
+    expect(html).toContain('data-redirect="/invite/tok_abc"');
+  });
+
+  it("sends a user who just signed in, with no or a foreign next address, to their workspace", () => {
+    for (const search of ["", "?next=https%3A%2F%2Fevil.example%2F", "?next=%2Fmonitors"]) {
+      const html = renderAs(
+        { instanceAdmin: false, role: "member" },
+        <Routes>{protectedRoutes}</Routes>,
+        `/login${search}`
+      );
+      // The workspace's own address, which goes on to its monitors
+      expect(html).toContain(`data-redirect="/w/${WORKSPACE_ID}`);
+    }
+  });
 });

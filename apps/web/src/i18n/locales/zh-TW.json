@@ -73,6 +73,7 @@
     "no_tags_available": "尚無標籤可用",
     "please_refresh_page": "請刷新頁面。",
     "required": "必填",
+    "retry": "重試",
     "save": "儲存",
     "saving": "儲存中…",
     "search": "搜尋",
@@ -124,6 +125,33 @@
       "password_required": "密碼為必填",
       "password_min_length": "密碼至少要 8 個字元",
       "passwords_mismatch": "密碼不一致"
+    }
+  },
+  "invite": {
+    "accept": "接受邀請",
+    "accepting": "加入中...",
+    "creating": "建立中...",
+    "description": "你受邀以 {{role}} 身分加入 {{workspace}}。",
+    "enter_failed": "您已加入該工作區，但開啟失敗。請重試。",
+    "errors": {
+      "other_email": "此邀請是寄給另一個電子郵件地址的。"
+    },
+    "for_email": "此邀請是寄給 {{email}} 的。",
+    "have_account": "已有帳號？",
+    "open_app": "開啟 Peekaping",
+    "other_account": "你目前以 {{current}} 登入，但此邀請是寄給 {{invited}} 的。請先登出，再用 {{invited}} 登入或註冊以接受邀請。",
+    "sign_in_instead": "改為登入",
+    "sign_out": "登出",
+    "signup_description": "設定密碼以建立帳號，並以 {{role}} 身分加入 {{workspace}}。",
+    "signup_submit": "建立帳號並加入",
+    "title": "加入 {{workspace}}",
+    "unavailable": {
+      "accepted": "此邀請已被使用。",
+      "expired": "此邀請已過期，請重新索取。",
+      "not_found": "此邀請連結不存在。請檢查是否完整複製了連結。",
+      "revoked": "此邀請已被撤銷，請重新索取。",
+      "title": "此邀請無法使用",
+      "unknown": "此邀請無法使用，請重新索取。"
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "週四",
       "tue": "週二",
       "wed": "週三"
+    }
+  },
+  "members": {
+    "change_role_aria": "變更 {{email}} 的角色",
+    "errors": {
+      "account_exists": "使用此電子郵件的帳號已存在。請登入並接受邀請。",
+      "already_member": "此人已是該工作區的成員。",
+      "forbidden": "你在此工作區中的角色無權執行此操作。",
+      "generic": "發生錯誤，請再試一次。",
+      "last_owner": "工作區至少需要一位擁有者。",
+      "member_not_found": "此成員已不在該工作區中。"
+    },
+    "invite": {
+      "copied": "連結已複製",
+      "copy": "複製",
+      "creating": "建立中...",
+      "description": "為某個電子郵件地址和角色建立連結。系統不會寄送郵件：請複製連結並自行傳送。",
+      "done": "完成",
+      "email_label": "電子郵件",
+      "link_note": "此連結只能使用一次，7 天後過期。它只會在此刻顯示，請在離開此頁面前複製。",
+      "link_title": "邀請連結",
+      "role_label": "角色",
+      "submit": "建立邀請連結",
+      "title": "邀請他人"
+    },
+    "leave": {
+      "button": "離開工作區",
+      "confirm": "離開",
+      "description": "你將立即失去對此工作區及其資料的存取權限。",
+      "done": "你已離開工作區",
+      "last_owner": "你是最後一位擁有者，因此無法離開。請先將另一位成員設為擁有者。",
+      "refresh_failed": "您已離開該工作區，但載入您的工作區失敗。請重試。",
+      "title": "離開此工作區"
+    },
+    "list": {
+      "description": "在此工作區中工作的所有人及其角色。",
+      "email": "電子郵件",
+      "joined": "加入時間",
+      "role": "角色",
+      "title": "成員",
+      "you": "你"
+    },
+    "page_name": "成員",
+    "pending": {
+      "description": "尚未使用的邀請。已撤銷邀請的連結將失效。",
+      "email": "電子郵件",
+      "empty": "沒有待處理的邀請。",
+      "expired": "已過期",
+      "expires": "到期時間",
+      "revoke": "撤銷",
+      "revoke_aria": "撤銷寄給 {{email}} 的邀請",
+      "revoked": "邀請已撤銷",
+      "role": "角色",
+      "title": "待處理的邀請"
+    },
+    "remove": "移除",
+    "remove_aria": "移除 {{email}}",
+    "remove_dialog": {
+      "confirm": "移除",
+      "description": "{{email}} 將立即失去對此工作區的存取權限。",
+      "title": "移除成員"
+    },
+    "removed": "成員已移除",
+    "role_updated": "角色已更新",
+    "roles": {
+      "admin": "管理員",
+      "member": "成員",
+      "owner": "擁有者"
+    },
+    "settings_card": {
+      "description": "查看誰在此工作區中工作；如果你是管理員或擁有者，還可以邀請他人並管理其角色。",
+      "open": "開啟成員",
+      "title": "成員"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "間隔、重試、逾時"
   },
   "workspaces": {
+    "create": "建立工作區",
+    "create_error": "建立工作區失敗",
+    "create_first": "建立工作區",
+    "creating": "建立中...",
+    "enter": "開啟工作區",
+    "entering": "開啟中...",
+    "entry_failed": "工作區已建立，但開啟失敗。請再試一次。",
+    "name_label": "名稱",
+    "name_placeholder": "我的團隊",
+    "name_required": "請輸入名稱",
+    "new": "新增工作區",
+    "new_description": "工作區擁有各自的監控項目、通知管道、狀態頁面和成員。你將成為它的擁有者。",
+    "new_title": "新增工作區",
     "none_description": "你的帳號還不是任何工作區的成員，所以這裡沒有可顯示的內容。請讓管理工作區的人把你加入。",
-    "none_title": "你還不在任何工作區中"
+    "none_title": "你還不在任何工作區中",
+    "refresh_failed": "無法載入您的工作區。請檢查網路連線後重試。",
+    "switcher_label": "切換工作區"
   }
 }

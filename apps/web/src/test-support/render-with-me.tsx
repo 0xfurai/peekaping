@@ -8,7 +8,14 @@ import enUS from "@/i18n/locales/en-US.json";
 
 export const WORKSPACE_ID = "11111111-1111-4111-8111-111111111111";
 
-export type Access = { instanceAdmin: boolean; role: "member" | "admin" | "owner" };
+export type Access = {
+  instanceAdmin: boolean;
+  role: "member" | "admin" | "owner";
+  // Workspaces the user belongs to besides the one in the address
+  otherWorkspaces?: { id: string; name: string; role: "member" | "admin" | "owner" }[];
+};
+
+export const USER_EMAIL = "user@example.com";
 
 // The English text of a key, as the page shows it
 export const text = (key: string): string => {
@@ -34,8 +41,8 @@ export const renderAs = (
   });
   queryClient.setQueryData(getMeQueryKey(), {
     data: {
-      user: { id: "u1", email: "user@example.com", instanceAdmin: access.instanceAdmin },
-      workspaces: [{ id: WORKSPACE_ID, name: "Main", role: access.role }],
+      user: { id: "u1", email: USER_EMAIL, instanceAdmin: access.instanceAdmin },
+      workspaces: [{ id: WORKSPACE_ID, name: "Main", role: access.role }, ...(access.otherWorkspaces ?? [])],
       defaultWorkspaceId: WORKSPACE_ID,
     },
   });

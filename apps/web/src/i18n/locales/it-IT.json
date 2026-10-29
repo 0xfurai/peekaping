@@ -73,6 +73,7 @@
     "no_tags_available": "Nessun tag disponibile",
     "please_refresh_page": "Aggiorna la pagina, per favore.",
     "required": "Richiesto",
+    "retry": "Riprova",
     "save": "Salva",
     "saving": "Salvataggio in corso...",
     "search": "Cerca",
@@ -124,6 +125,33 @@
       "password_required": "La password è obbligatoria",
       "password_min_length": "La password deve essere lunga almeno 8 caratteri",
       "passwords_mismatch": "Le password non corrispondono"
+    }
+  },
+  "invite": {
+    "accept": "Accetta invito",
+    "accepting": "Ingresso in corso...",
+    "creating": "Creazione...",
+    "description": "Hai ricevuto un invito a unirti a {{workspace}} come {{role}}.",
+    "enter_failed": "Sei entrato nello spazio di lavoro, ma l'apertura non è riuscita. Riprova.",
+    "errors": {
+      "other_email": "Questo invito è per un altro indirizzo e-mail."
+    },
+    "for_email": "Questo invito è per {{email}}.",
+    "have_account": "Hai già un account?",
+    "open_app": "Apri Peekaping",
+    "other_account": "Hai effettuato l'accesso come {{current}}, ma questo invito è per {{invited}}. Esci, poi accedi o registrati con {{invited}} per accettarlo.",
+    "sign_in_instead": "Accedi invece",
+    "sign_out": "Esci",
+    "signup_description": "Scegli una password per creare il tuo account e unirti a {{workspace}} come {{role}}.",
+    "signup_submit": "Crea account e unisciti",
+    "title": "Unisciti a {{workspace}}",
+    "unavailable": {
+      "accepted": "Questo invito è già stato usato.",
+      "expired": "Questo invito è scaduto. Chiedine uno nuovo.",
+      "not_found": "Questo link di invito non esiste. Controlla di averlo copiato per intero.",
+      "revoked": "Questo invito è stato revocato. Chiedine uno nuovo.",
+      "title": "Questo invito non può essere usato",
+      "unknown": "Questo invito non può essere usato. Chiedine uno nuovo."
     }
   },
   "maintenance": {
@@ -229,6 +257,79 @@
       "thu": "gio",
       "tue": "Mar",
       "wed": "Mer."
+    }
+  },
+  "members": {
+    "change_role_aria": "Cambia il ruolo di {{email}}",
+    "errors": {
+      "account_exists": "Esiste già un account con questa e-mail. Accedi e accetta l'invito.",
+      "already_member": "Questa persona è già membro di questo spazio di lavoro.",
+      "forbidden": "Il tuo ruolo in questo spazio di lavoro non lo consente.",
+      "generic": "Qualcosa è andato storto. Riprova.",
+      "last_owner": "Uno spazio di lavoro ha bisogno di almeno un proprietario.",
+      "member_not_found": "Questo membro non è più nello spazio di lavoro."
+    },
+    "invite": {
+      "copied": "Link copiato",
+      "copy": "Copia",
+      "creating": "Creazione...",
+      "description": "Crea un link per un indirizzo e-mail e un ruolo. Non viene inviata nessuna e-mail: copia il link e invialo tu.",
+      "done": "Fatto",
+      "email_label": "E-mail",
+      "link_note": "Questo link funziona una sola volta e scade tra 7 giorni. Viene mostrato solo ora, quindi copialo prima di lasciare questa pagina.",
+      "link_title": "Link di invito",
+      "role_label": "Ruolo",
+      "submit": "Crea link di invito",
+      "title": "Invita qualcuno"
+    },
+    "leave": {
+      "button": "Lascia lo spazio di lavoro",
+      "confirm": "Lascia",
+      "description": "Perdi subito l'accesso a questo spazio di lavoro e ai suoi dati.",
+      "done": "Hai lasciato lo spazio di lavoro",
+      "last_owner": "Sei l'ultimo proprietario, quindi non puoi andartene. Prima rendi proprietario un altro membro.",
+      "refresh_failed": "Hai lasciato lo spazio di lavoro, ma il caricamento dei tuoi spazi di lavoro non è riuscito. Riprova.",
+      "title": "Lascia questo spazio di lavoro"
+    },
+    "list": {
+      "description": "Tutte le persone che lavorano in questo spazio di lavoro e il loro ruolo.",
+      "email": "E-mail",
+      "joined": "Data di ingresso",
+      "role": "Ruolo",
+      "title": "Membri",
+      "you": "tu"
+    },
+    "page_name": "Membri",
+    "pending": {
+      "description": "Inviti non ancora utilizzati. Il link di un invito revocato smette di funzionare.",
+      "email": "E-mail",
+      "empty": "Nessun invito in sospeso.",
+      "expired": "Scaduto",
+      "expires": "Scade",
+      "revoke": "Revoca",
+      "revoke_aria": "Revoca l'invito per {{email}}",
+      "revoked": "Invito revocato",
+      "role": "Ruolo",
+      "title": "Inviti in sospeso"
+    },
+    "remove": "Rimuovi",
+    "remove_aria": "Rimuovi {{email}}",
+    "remove_dialog": {
+      "confirm": "Rimuovi",
+      "description": "{{email}} perde subito l'accesso a questo spazio di lavoro.",
+      "title": "Rimuovi membro"
+    },
+    "removed": "Membro rimosso",
+    "role_updated": "Ruolo aggiornato",
+    "roles": {
+      "admin": "Amministratore",
+      "member": "Membro",
+      "owner": "Proprietario"
+    },
+    "settings_card": {
+      "description": "Guarda chi lavora in questo spazio di lavoro e, se sei amministratore o proprietario, invita persone e gestisci i loro ruoli.",
+      "open": "Apri membri",
+      "title": "Membri"
     }
   },
   "messages": {
@@ -1593,7 +1694,22 @@
     "intervals_retries": "Intervalli, Riprovi, Timeout"
   },
   "workspaces": {
+    "create": "Crea spazio di lavoro",
+    "create_error": "Impossibile creare lo spazio di lavoro",
+    "create_first": "Crea uno spazio di lavoro",
+    "creating": "Creazione...",
+    "enter": "Apri spazio di lavoro",
+    "entering": "Apertura...",
+    "entry_failed": "Lo spazio di lavoro è stato creato, ma non è stato possibile aprirlo. Riprova.",
+    "name_label": "Nome",
+    "name_placeholder": "Il mio team",
+    "name_required": "Inserisci un nome",
+    "new": "Nuovo spazio di lavoro",
+    "new_description": "Uno spazio di lavoro ha i propri monitor, canali di notifica, pagine di stato e membri. Ne sarai il proprietario.",
+    "new_title": "Nuovo spazio di lavoro",
     "none_description": "Il tuo account non è membro di nessuno spazio di lavoro, quindi qui non c'è nulla da mostrare. Chiedi a chi gestisce uno spazio di lavoro di aggiungerti.",
-    "none_title": "Non fai ancora parte di nessuno spazio di lavoro"
+    "none_title": "Non fai ancora parte di nessuno spazio di lavoro",
+    "refresh_failed": "Impossibile caricare i tuoi spazi di lavoro. Controlla la connessione e riprova.",
+    "switcher_label": "Cambia spazio di lavoro"
   }
 }
