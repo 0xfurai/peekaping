@@ -3,8 +3,9 @@
 // ACCOUNT_SMTP_* settings. Without ACCOUNT_SMTP_HOST the mailer is off (Enabled is false) and the
 // app offers nothing that needs email.
 //
-// The notification channels have SMTP settings of their own, per channel. They share the client
-// (internal/smtpclient) and nothing else with this.
+// The SMTP notification channels have SMTP settings of their own, per channel. They share the client
+// (internal/smtpclient) and nothing else with this. The install email channel is the exception: it
+// sends through this sender, to a member of its workspace.
 package mailer
 
 import (

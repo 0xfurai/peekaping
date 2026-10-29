@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"sort"
 	"sync"
 	"testing"
@@ -218,7 +219,11 @@ func TestNotificationChannelsAPI_SecretChannelsCoverEveryProvider(t *testing.T) 
 		}
 	}
 	sort.Strings(fixtureTypes)
-	assert.Equal(t, a.registeredChannelTypes(t), fixtureTypes, "every notification channel type needs a case in secretChannels")
+	// The install email channel has no secret to hide, which TestSecretKeysPerProvider pins, and it
+	// can't be saved without a sender and a member to send to: install_email_channel_test.go
+	// covers it
+	registered := slices.DeleteFunc(a.registeredChannelTypes(t), func(channelType string) bool { return channelType == "install_email" })
+	assert.Equal(t, registered, fixtureTypes, "every notification channel type needs a case in secretChannels")
 }
 
 // A channel can outlive its type: the row stays when the provider is removed. Nothing knows which

@@ -20,7 +20,7 @@ import (
 
 // newRealRegistry returns the registry the app runs with
 func newRealRegistry() *ProviderRegistry {
-	return NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{})
+	return NewProviderRegistry(zap.NewNop().Sugar(), &config.Config{}, nil, nil)
 }
 
 // fieldKeys returns the sorted keys of each channel type's fields that match
@@ -48,6 +48,7 @@ func TestSecretKeysPerProvider(t *testing.T) {
 		"gotify":         {"application_token"},
 		"google_chat":    {"webhook_url"},
 		"grafana_oncall": {"grafana_oncall_url"},
+		"install_email":  {},
 		"line":           {"channel_access_token"},
 		"matrix":         {"access_token"},
 		"mattermost":     {"webhook_url"},
@@ -82,6 +83,7 @@ func TestEndpointKeysPerProvider(t *testing.T) {
 		"gotify":         {"server_url"},
 		"google_chat":    {"webhook_url"},
 		"grafana_oncall": {"grafana_oncall_url"},
+		"install_email":  {},
 		"line":           {},
 		"matrix":         {"homeserver_url"},
 		"mattermost":     {"webhook_url"},
@@ -140,6 +142,7 @@ func TestURLCredentialKeysPerProvider(t *testing.T) {
 		"gotify":         {"server_url"},
 		"google_chat":    {},
 		"grafana_oncall": {},
+		"install_email":  {},
 		"line":           {},
 		"matrix":         {"homeserver_url"},
 		"mattermost":     {},

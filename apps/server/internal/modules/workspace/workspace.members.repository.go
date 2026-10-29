@@ -40,6 +40,9 @@ type MemberRepository interface {
 	LockEmailVerified(ctx context.Context, userID string) (bool, error)
 	// HasMemberWithEmail is whether a member of the workspace has the email, ignoring case
 	HasMemberWithEmail(ctx context.Context, id ID, email string) (bool, error)
+	// HasVerifiedMemberWithEmail is HasMemberWithEmail for a member whose account has verified the
+	// address (users.email_verified_at is set)
+	HasVerifiedMemberWithEmail(ctx context.Context, id ID, email string) (bool, error)
 }
 
 type SQLMemberRepository struct {
@@ -127,6 +130,10 @@ func (r *SQLMemberRepository) LockOwners(ctx context.Context, id ID) ([]string, 
 
 func (r *SQLMemberRepository) HasMemberWithEmail(ctx context.Context, id ID, email string) (bool, error) {
 	return r.membersOf(ctx, id).Where("lower(u.email) = ?", strings.ToLower(email)).Exists(ctx)
+}
+
+func (r *SQLMemberRepository) HasVerifiedMemberWithEmail(ctx context.Context, id ID, email string) (bool, error) {
+	return r.membersOf(ctx, id).Where("lower(u.email) = ?", strings.ToLower(email)).Where("u.email_verified_at IS NOT NULL").Exists(ctx)
 }
 
 func changed(res sql.Result, err error) (bool, error) {
