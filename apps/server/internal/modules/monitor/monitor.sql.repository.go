@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
+	"sync"
 	"time"
 
 	"peekaping/internal/config"
@@ -121,6 +123,16 @@ func (r *SQLRepositoryImpl) overLimit(ctx context.Context, workspaceIDs []string
 	if lowest == nil {
 		return nil, nil
 	}
+	// A transaction reads its own writes, so it counts them itself and keeps nothing
+	inTx := dbtx.DB(ctx, r.db) != bun.IDB(r.db)
+	var generation uint64
+	if !inTx {
+		cached, ok, gen := r.overLimitCache.get(snapshot)
+		if ok {
+			return of(cached, workspaceIDs), nil
+		}
+		generation = gen
+	}
 	var counts []struct {
 		WorkspaceID string `bun:"workspace_id"`
 		Active      int    `bun:"active_count"`
@@ -146,7 +158,67 @@ func (r *SQLRepositoryImpl) overLimit(ctx context.Context, workspaceIDs []string
 			over[id] = *l.Monitors
 		}
 	}
+	if workspaceIDs == nil && !inTx {
+		r.overLimitCache.put(snapshot, over, generation)
+	}
 	return over, nil
+}
+
+// of returns the workspaces of over that are among workspaceIDs, or over when it is nil
+func of(over map[workspace.ID]int, workspaceIDs []string) map[workspace.ID]int {
+	if workspaceIDs == nil {
+		return over
+	}
+	some := map[workspace.ID]int{}
+	for _, id := range workspaceIDs {
+		if limit, ok := over[workspace.ID(id)]; ok {
+			some[workspace.ID(id)] = limit
+		}
+	}
+	return some
+}
+
+// overLimitCache keeps the workspaces over their limit of active monitors, of the whole install,
+// for a few seconds: a pass over many pages of monitors to run counts them once, not once a page.
+// It is kept with the limits it was counted by, and a change of them counts again. This process
+// forgets it when it creates, resumes, pauses or deletes a monitor; another replica's change takes
+// effect within it, as a change of limits does (limits.DefaultCacheFor).
+type overLimitCache struct {
+	mu       sync.Mutex
+	over     map[workspace.ID]int
+	snapshot limits.Snapshot
+	at       time.Time
+	kept     bool
+	// generation counts the changes this process made, so that a count that began before one is
+	// not kept after it
+	generation uint64
+}
+
+// get returns what is kept, when it was counted by snapshot and is fresh, and otherwise the
+// generation to put a new count with
+func (c *overLimitCache) get(snapshot limits.Snapshot) (map[workspace.ID]int, bool, uint64) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.kept && time.Since(c.at) < limits.DefaultCacheFor && reflect.DeepEqual(c.snapshot, snapshot) {
+		return c.over, true, c.generation
+	}
+	return nil, false, c.generation
+}
+
+func (c *overLimitCache) put(snapshot limits.Snapshot, over map[workspace.ID]int, generation uint64) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.generation == generation {
+		c.over, c.snapshot, c.at, c.kept = over, snapshot, time.Now(), true
+	}
+}
+
+// forget drops what is kept, after a write that may change which monitors are past a limit
+func (c *overLimitCache) forget() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.over, c.kept = nil, false
+	c.generation++
 }
 
 // markOverLimit says of each active monitor whether it is past its workspace's limit of active
@@ -343,6 +415,8 @@ type SQLRepositoryImpl struct {
 	disabledTypes []string
 	// limits are the workspaces' limits (PP-160). Without them no workspace has any.
 	limits limits.Source
+	// overLimitCache keeps the workspaces over their limit across the pages of a read
+	overLimitCache overLimitCache
 }
 
 // SQLRepositoryOption changes how the SQL repository behaves, for an install that has a reason to
@@ -408,6 +482,9 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, workspaceID workspace.ID
 	_, err := dbtx.DB(ctx, r.db).NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, pushTokenConflict(err)
+	}
+	if sm.Active {
+		r.overLimitCache.forget()
 	}
 
 	// A monitor without probes runs on the local one
@@ -944,6 +1021,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, workspaceID workspac
 	if err != nil {
 		return pushTokenConflict(err)
 	}
+	r.overLimitCache.forget()
 
 	rowAffected, err := result.RowsAffected()
 	if err != nil {
@@ -1072,6 +1150,9 @@ func (r *SQLRepositoryImpl) updatePartial(ctx context.Context, workspaceID *work
 	if err != nil {
 		return pushTokenConflict(err)
 	}
+	if monitor.Active != nil {
+		r.overLimitCache.forget()
+	}
 	if workspaceID != nil {
 		if err := requireOneRow(result, nil, id); err != nil {
 			return err
@@ -1096,6 +1177,7 @@ func pushTokenConflict(err error) error {
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, workspaceID workspace.ID, id string) error {
 	result, err := dbtx.DB(ctx, r.db).NewDelete().Model((*sqlModel)(nil)).
 		Where("id = ?", id).Where("workspace_id = ?", string(workspaceID)).Exec(ctx)
+	r.overLimitCache.forget()
 	return requireOneRow(result, err, id)
 }
 
