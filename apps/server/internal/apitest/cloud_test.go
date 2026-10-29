@@ -50,6 +50,7 @@ func withAllMonitorTypes(cfg *config.Config) { cfg.DisabledMonitorTypes = "" }
 func selfHosted(cfg *config.Config) {
 	cfg.SignupMode = config.SignupModeInvite
 	cfg.AccountSMTPHost, cfg.AccountSMTPUser, cfg.AccountSMTPPassword, cfg.AccountSMTPFrom = "", "", "", ""
+	cfg.AccountSMTPPort, cfg.AccountSMTPTLS = 587, config.AccountSMTPStartTLS
 }
 
 // verifyEmailDirectly verifies the user's email and lifts the suspension of the workspaces they own,
