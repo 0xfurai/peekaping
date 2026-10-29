@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "如何验证签名",
         "signing_secret_label": "签名密钥",
         "signing_secret_placeholder": "留空则发送未签名的请求"
+      },
+      "install_email": {
+        "description": "由此安装直接发送，无需 SMTP 服务器。",
+        "to_description": "此工作区的成员。其验证地址后才会发送通知。",
+        "to_label": "收件人",
+        "to_placeholder": "选择成员"
       }
     },
     "important": "重要通知",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "至少1天"
+    },
+    "workspace_name": {
+      "description": "显示在工作区切换器中以及对成员显示的名称。",
+      "title": "工作区名称"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "你的账号还不是任何工作区的成员，所以这里没有可显示的内容。请让管理工作区的人把你添加进去。",
     "none_title": "你还不在任何工作区中",
     "refresh_failed": "无法加载您的工作区。请检查网络连接后重试。",
+    "rename_error": "重命名工作区失败",
+    "rename_success": "工作区已重命名",
     "switcher_label": "切换工作区"
   }
 }

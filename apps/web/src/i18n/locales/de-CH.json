@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "So prüfen Sie die Signatur",
         "signing_secret_label": "Signaturschlüssel",
         "signing_secret_placeholder": "Leer lassen, um unsignierte Anfragen zu senden"
+      },
+      "install_email": {
+        "description": "Wird von dieser Installation gesendet, ein SMTP-Server ist nicht nötig.",
+        "to_description": "Ein Mitglied dieses Arbeitsbereichs. Benachrichtigungen werden gesendet, sobald es die Adresse bestätigt hat.",
+        "to_label": "Empfänger",
+        "to_placeholder": "Mitglied auswählen"
       }
     },
     "important": "Wichtige Benachrichtigungen",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Muss mindestens 1 Tag sein."
+    },
+    "workspace_name": {
+      "description": "Der Name, der in der Arbeitsbereichsauswahl und den Mitgliedern angezeigt wird.",
+      "title": "Name des Arbeitsbereichs"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Dein Konto ist in keinem Arbeitsbereich Mitglied, deshalb gibt es hier nichts anzuzeigen. Bitte jemanden, der einen Arbeitsbereich betreut, dich hinzuzufügen.",
     "none_title": "Du bist noch in keinem Arbeitsbereich",
     "refresh_failed": "Deine Arbeitsbereiche konnten nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.",
+    "rename_error": "Der Arbeitsbereich konnte nicht umbenannt werden",
+    "rename_success": "Arbeitsbereich umbenannt",
     "switcher_label": "Arbeitsbereich wechseln"
   }
 }

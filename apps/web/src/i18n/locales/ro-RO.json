@@ -1378,6 +1378,12 @@
         "signing_secret_docs_link": "Cum se verifică semnătura",
         "signing_secret_label": "Secret de semnare",
         "signing_secret_placeholder": "Lăsați gol pentru a trimite solicitări nesemnate"
+      },
+      "install_email": {
+        "description": "Trimis de această instalare, nu este nevoie de un server SMTP.",
+        "to_description": "Un membru al acestui spațiu de lucru. Notificările se trimit după ce își verifică adresa.",
+        "to_label": "Destinatar",
+        "to_placeholder": "Alegeți un membru"
       }
     },
     "important": "Notificări importante",
@@ -1729,6 +1735,10 @@
     },
     "validation": {
       "min_days": "Trebuie să fie cel puțin 1 zi"
+    },
+    "workspace_name": {
+      "description": "Numele afișat în comutatorul de spații de lucru și membrilor.",
+      "title": "Numele spațiului de lucru"
     }
   },
   "status": {
@@ -1871,6 +1881,8 @@
     "none_description": "Contul tău nu este membru al niciunui spațiu de lucru, așa că nu este nimic de afișat aici. Roagă pe cineva care administrează un spațiu de lucru să te adauge.",
     "none_title": "Nu faci încă parte dintr-un spațiu de lucru",
     "refresh_failed": "Spațiile tale de lucru nu au putut fi încărcate. Verifică conexiunea și încearcă din nou.",
+    "rename_error": "Redenumirea spațiului de lucru a eșuat",
+    "rename_success": "Spațiul de lucru a fost redenumit",
     "switcher_label": "Schimbă spațiul de lucru"
   }
 }

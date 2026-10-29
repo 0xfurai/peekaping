@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "署名の検証方法",
         "signing_secret_label": "署名シークレット",
         "signing_secret_placeholder": "空欄の場合、署名なしでリクエストを送信します"
+      },
+      "install_email": {
+        "description": "このインストールから送信されるため、SMTPサーバーは不要です。",
+        "to_description": "このワークスペースのメンバーです。アドレスを確認済みになると通知が送信されます。",
+        "to_label": "宛先",
+        "to_placeholder": "メンバーを選択"
       }
     },
     "important": "重要通知",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "最低1日必要です"
+    },
+    "workspace_name": {
+      "description": "ワークスペースの切り替えとメンバーに表示される名前です。",
+      "title": "ワークスペース名"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "このアカウントはどのワークスペースのメンバーでもないため、ここに表示できる内容はありません。ワークスペースを運営している人に追加を依頼してください。",
     "none_title": "まだどのワークスペースにも参加していません",
     "refresh_failed": "ワークスペースを読み込めませんでした。接続を確認して、もう一度お試しください。",
+    "rename_error": "ワークスペース名を変更できませんでした",
+    "rename_success": "ワークスペース名を変更しました",
     "switcher_label": "ワークスペースを切り替え"
   }
 }

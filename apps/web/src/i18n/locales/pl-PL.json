@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Jak zweryfikować podpis",
         "signing_secret_label": "Sekret podpisu",
         "signing_secret_placeholder": "Pozostaw puste, aby wysyłać niepodpisane żądania"
+      },
+      "install_email": {
+        "description": "Wysyła ją ta instalacja, serwer SMTP nie jest potrzebny.",
+        "to_description": "Członek tego obszaru roboczego. Powiadomienia są wysyłane, gdy zweryfikuje adres.",
+        "to_label": "Odbiorca",
+        "to_placeholder": "Wybierz członka"
       }
     },
     "important": "Ważne powiadomienia",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Musi być co najmniej 1 dzień"
+    },
+    "workspace_name": {
+      "description": "Nazwa wyświetlana w przełączniku obszarów roboczych i członkom.",
+      "title": "Nazwa obszaru roboczego"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Twoje konto nie jest członkiem żadnego obszaru roboczego, więc nie ma tu nic do pokazania. Poproś osobę zarządzającą obszarem roboczym, aby Cię dodała.",
     "none_title": "Nie należysz jeszcze do żadnego obszaru roboczego",
     "refresh_failed": "Nie udało się wczytać Twoich przestrzeni roboczych. Sprawdź połączenie i spróbuj ponownie.",
+    "rename_error": "Nie udało się zmienić nazwy obszaru roboczego",
+    "rename_success": "Zmieniono nazwę obszaru roboczego",
     "switcher_label": "Przełącz obszar roboczy"
   }
 }

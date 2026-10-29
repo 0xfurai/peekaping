@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { SECRET_PLACEHOLDER, configFieldKeys } from "../secrets";
-import { channelTypeOptions, channelTypes, channelFormSchema, getChannelType, isChannelType } from "./registry";
+import {
+  channelTypeOptions,
+  channelTypes,
+  channelFormSchema,
+  getChannelType,
+  isChannelType,
+  selectableChannelTypeOptions,
+} from "./registry";
 
 describe("notification channel type registry", () => {
   it("lists each type once, under the type its schema declares", () => {
@@ -18,6 +25,7 @@ describe("notification channel type registry", () => {
   it("lists the Type select's options alphabetically by label, ignoring case", () => {
     expect(channelTypeOptions.map((option) => option.label)).toEqual([
       "Discord",
+      "Email",
       "Email (SMTP)",
       "Google Chat",
       "Gotify",
@@ -45,6 +53,37 @@ describe("notification channel type registry", () => {
     for (const option of channelTypeOptions) {
       expect(getChannelType(option.value)?.displayName).toBe(option.label);
     }
+  });
+
+  it("offers the install email type only on an install with a sender, or to a channel saved with it", () => {
+    const values = (options: { value: string }[]) => options.map((option) => option.value);
+
+    expect(values(selectableChannelTypeOptions({ accountEmails: true }))).toContain("install_email");
+    expect(values(selectableChannelTypeOptions({ accountEmails: false }))).not.toContain("install_email");
+    expect(values(selectableChannelTypeOptions({ accountEmails: false, keep: "smtp" }))).not.toContain(
+      "install_email"
+    );
+    // A saved install email channel still opens and edits when the sender is gone
+    expect(values(selectableChannelTypeOptions({ accountEmails: false, keep: "install_email" }))).toContain(
+      "install_email"
+    );
+    // Nothing else is hidden
+    expect(selectableChannelTypeOptions({ accountEmails: false })).toHaveLength(channelTypeOptions.length - 1);
+  });
+
+  it("labels the install email type Email and keeps the SMTP type's label apart", () => {
+    expect(getChannelType("install_email")?.displayName).toBe("Email");
+    expect(getChannelType("smtp")?.displayName).toBe("Email (SMTP)");
+  });
+
+  it("sends the install email channel's recipient as its config", () => {
+    const result = channelFormSchema.safeParse({ name: "Me", type: "install_email", to: " alice@example.com " });
+    expect(result.success).toBe(true);
+    expect(result.success && JSON.parse(JSON.stringify(result.data))).toMatchObject({
+      type: "install_email",
+      to: "alice@example.com",
+    });
+    expect(channelFormSchema.safeParse({ name: "Me", type: "install_email", to: "" }).success).toBe(false);
   });
 
   it("starts a new channel on Email (SMTP)", () => {

@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Kaip patikrinti parašą",
         "signing_secret_label": "Pasirašymo paslaptis",
         "signing_secret_placeholder": "Palikite tuščią, kad būtų siunčiamos nepasirašytos užklausos"
+      },
+      "install_email": {
+        "description": "Siunčia šis diegimas, SMTP serverio nereikia.",
+        "to_description": "Šios darbo erdvės narys. Pranešimai siunčiami, kai jis patvirtina adresą.",
+        "to_label": "Gavėjas",
+        "to_placeholder": "Pasirinkite narį"
       }
     },
     "important": "Svarbūs pranešimai",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Turi būti ne mažiau kaip 1 diena"
+    },
+    "workspace_name": {
+      "description": "Pavadinimas, rodomas darbo erdvių perjungiklyje ir jos nariams.",
+      "title": "Darbo erdvės pavadinimas"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Jūsų paskyra nėra jokios darbo erdvės narė, todėl čia nėra ką rodyti. Paprašykite darbo erdvę valdančio asmens jus pridėti.",
     "none_title": "Dar nesate jokioje darbo erdvėje",
     "refresh_failed": "Nepavyko įkelti jūsų darbo sričių. Patikrinkite ryšį ir bandykite dar kartą.",
+    "rename_error": "Nepavyko pervadinti darbo erdvės",
+    "rename_success": "Darbo erdvė pervadinta",
     "switcher_label": "Perjungti darbo erdvę"
   }
 }

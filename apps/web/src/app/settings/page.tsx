@@ -43,6 +43,48 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TelemetryDocsLink } from "@/components/telemetry-docs-link";
+import { WorkspaceNameForm } from "@/components/workspace-name-form";
+import { useCurrentWorkspace } from "@/hooks/useCurrentWorkspace";
+import { useSaveWorkspaceName } from "@/hooks/useSaveWorkspaceName";
+import { workspaceErrorMessage } from "@/lib/workspace-errors";
+
+// The workspace's name, which an admin or owner changes. A member doesn't get the card: the
+// switcher shows them the name.
+const WorkspaceNameSetting = () => {
+  const { t } = useLocalizedTranslation();
+  const workspace = useCurrentWorkspace();
+  const { save, pending } = useSaveWorkspaceName();
+  if (!workspace) return null;
+
+  const submit = async (name: string) => {
+    try {
+      const result = await save(name, workspace.name);
+      if (result.kind === "renamed") toast.success(t("workspaces.rename_success"));
+    } catch (error) {
+      console.error(error);
+      toast.error(workspaceErrorMessage(error, t, t("workspaces.rename_error")));
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("settings.workspace_name.title")}</CardTitle>
+        <CardDescription>{t("settings.workspace_name.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {/* Keyed by the name so that a rename shown in /me resets the field to it */}
+        <WorkspaceNameForm
+          key={workspace.name}
+          name={workspace.name}
+          submitLabel={pending ? t("common.saving") : t("common.save")}
+          pending={pending}
+          onSubmit={submit}
+        />
+      </CardContent>
+    </Card>
+  );
+};
 
 const KeepDataPeriodSetting = () => {
   const { t } = useLocalizedTranslation();
@@ -317,7 +359,7 @@ const ErrorReportingSetting = () => {
 
 const SettingsPage = () => {
   const { t } = useLocalizedTranslation();
-  const { instanceAdmin } = useCurrentAccess();
+  const { instanceAdmin, canManageWorkspace } = useCurrentAccess();
   const workspacePath = useWorkspacePath();
   // The upgrade notice links to a card, such as /settings#error-reports
   const { hash } = useLocation();
@@ -327,6 +369,7 @@ const SettingsPage = () => {
   return (
     <Layout pageName={t("navigation.settings")}>
       <div className="max-w-xl flex flex-col gap-6">
+        {canManageWorkspace && <WorkspaceNameSetting />}
         <Card>
           <CardHeader>
             <CardTitle>{t("settings.timezone.title")}</CardTitle>

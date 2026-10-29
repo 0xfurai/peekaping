@@ -1379,6 +1379,12 @@
         "signing_secret_docs_link": "Kuidas allkirja kontrollida",
         "signing_secret_label": "Allkirjastamise saladus",
         "signing_secret_placeholder": "Jäta tühjaks, et saata allkirjastamata päringuid"
+      },
+      "install_email": {
+        "description": "Saadab see paigaldus, SMTP-serverit pole vaja.",
+        "to_description": "Selle tööruumi liige. Teavitused saadetakse pärast seda, kui ta on aadressi kinnitanud.",
+        "to_label": "Saaja",
+        "to_placeholder": "Vali liige"
       }
     },
     "important": "Olulised teated",
@@ -1730,6 +1736,10 @@
     },
     "validation": {
       "min_days": "Peab olema vähemalt 1 päev"
+    },
+    "workspace_name": {
+      "description": "Nimi, mida näidatakse tööruumi vahetajas ja selle liikmetele.",
+      "title": "Tööruumi nimi"
     }
   },
   "status": {
@@ -1872,6 +1882,8 @@
     "none_description": "Sinu konto ei kuulu ühtegi tööruumi, seega pole siin midagi näidata. Palu tööruumi haldajal sind lisada.",
     "none_title": "Sa ei ole veel üheski tööruumis",
     "refresh_failed": "Teie tööruume ei õnnestunud laadida. Kontrollige ühendust ja proovige uuesti.",
+    "rename_error": "Tööruumi ümbernimetamine ebaõnnestus",
+    "rename_success": "Tööruum on ümber nimetatud",
     "switcher_label": "Vaheta tööruumi"
   }
 }
