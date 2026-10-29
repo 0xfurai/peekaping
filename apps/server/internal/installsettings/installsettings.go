@@ -208,10 +208,14 @@ type Resolver struct {
 	lifetime time.Duration
 	now      func() time.Time
 
-	// mu guards the cache: values is nil until a read succeeded
-	mu       sync.Mutex
-	values   map[string]string
-	loadedAt time.Time
+	// mu guards the cache: values is nil until a read succeeded. stale makes the next call read
+	// again, and values stays what it answers when that read fails. generation counts this
+	// process's writes, so that a read that started before one is not kept.
+	mu         sync.Mutex
+	values     map[string]string
+	loadedAt   time.Time
+	stale      bool
+	generation uint64
 	// writing makes this process's updates one at a time, so that each checks what the last stored
 	writing sync.Mutex
 }
@@ -358,12 +362,12 @@ func (r *Resolver) Update(ctx context.Context, change Change) ([]string, error) 
 			err = r.store.DeleteByKey(ctx, s.key)
 		}
 		if err != nil {
-			r.invalidate()
+			r.invalidate(nil)
 			return nil, fmt.Errorf("failed to save %s: %w", s.field, err)
 		}
 		changed = append(changed, s.field)
 	}
-	r.invalidate()
+	r.invalidate(next)
 	return changed, nil
 }
 
@@ -445,13 +449,14 @@ func (r *Resolver) view(values map[string]string) *View {
 }
 
 // stored is the saved values, from the cache while it is fresh. A read that fails keeps what was
-// read before (nothing, the first time), logs, and is tried again on the next call.
+// read before or what this process saved since (nothing, the first time), logs, and is tried again
+// on the next call.
 func (r *Resolver) stored(ctx context.Context) map[string]string {
 	if r.store == nil {
 		return nil
 	}
 	r.mu.Lock()
-	if r.values != nil && r.now().Sub(r.loadedAt) < r.lifetime {
+	if r.values != nil && !r.stale && r.now().Sub(r.loadedAt) < r.lifetime {
 		values := r.values
 		r.mu.Unlock()
 		return values
@@ -466,11 +471,15 @@ func (r *Resolver) stored(ctx context.Context) map[string]string {
 	return values
 }
 
-// fresh reads the saved values from the store and keeps them in the cache
+// fresh reads the saved values from the store and keeps them in the cache, unless this process
+// wrote while it read
 func (r *Resolver) fresh(ctx context.Context) (map[string]string, error) {
 	if r.store == nil {
 		return map[string]string{}, nil
 	}
+	r.mu.Lock()
+	generation := r.generation
+	r.mu.Unlock()
 	values := make(map[string]string, len(all))
 	for _, s := range all {
 		saved, err := r.store.GetByKey(ctx, s.key)
@@ -482,15 +491,25 @@ func (r *Resolver) fresh(ctx context.Context) (map[string]string, error) {
 		}
 	}
 	r.mu.Lock()
-	r.values, r.loadedAt = values, r.now()
+	// A write that came in while the keys were read may have changed some of them: the caller gets
+	// what was read, but the cache keeps it only when no write came, or it would hold the old values
+	if r.generation == generation {
+		r.values, r.loadedAt, r.stale = values, r.now(), false
+	}
 	r.mu.Unlock()
 	return values, nil
 }
 
-// invalidate drops the cache, so that the next read sees this process's write
-func (r *Resolver) invalidate() {
+// invalidate makes the next call read again, so that it sees this process's write. The cache keeps
+// saved, the values the write stored, or what was read before when saved is nil, so that a failed
+// read answers them and not the defaults.
+func (r *Resolver) invalidate(saved map[string]string) {
 	r.mu.Lock()
-	r.values = nil
+	r.generation++
+	r.stale = true
+	if saved != nil {
+		r.values = saved
+	}
 	r.mu.Unlock()
 }
 
