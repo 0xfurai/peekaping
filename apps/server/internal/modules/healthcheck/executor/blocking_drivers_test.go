@@ -169,30 +169,37 @@ func TestDrivers_ReachAnAllowedTarget(t *testing.T) {
 	assert.Equal(t, 1, target.connections())
 }
 
-// A management API that redirects to a blocked address is refused on the redirect
+// A management API that redirects to a blocked address is refused on the redirect, also when the
+// guard is turned on while the check runs, as a probe's is at a hello
 func TestRabbitMQExecutor_BlocksARedirectToAPrivateTarget(t *testing.T) {
-	// Only 127.0.0.2 is blocked, so that the test can serve on 127.0.0.1 and redirect to it
-	guard := netguard.NewWithPrefixes(netip.MustParsePrefix("127.0.0.2/32"))
-	var blockedRequests atomic.Int32
-	target := "127.0.0.2:" + strconv.Itoa(closedPort(t))
-	if listener, err := net.Listen("tcp", "127.0.0.2:0"); err == nil {
-		blockedServer := &httptest.Server{Listener: listener, Config: &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			blockedRequests.Add(1)
-		})}}
-		blockedServer.Start()
-		t.Cleanup(blockedServer.Close)
-		target = listener.Addr().String()
+	for name, offAtFirst := range map[string]bool{"on from the start": false, "turned on while the check runs": true} {
+		t.Run(name, func(t *testing.T) {
+			// Only 127.0.0.2 is blocked, so that the test can serve on 127.0.0.1 and redirect to it
+			guard := netguard.NewWithPrefixes(netip.MustParsePrefix("127.0.0.2/32"))
+			guard.Set(!offAtFirst)
+			var blockedRequests atomic.Int32
+			target := "127.0.0.2:" + strconv.Itoa(closedPort(t))
+			if listener, err := net.Listen("tcp", "127.0.0.2:0"); err == nil {
+				blockedServer := &httptest.Server{Listener: listener, Config: &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					blockedRequests.Add(1)
+				})}}
+				blockedServer.Start()
+				t.Cleanup(blockedServer.Close)
+				target = listener.Addr().String()
+			}
+			first, firstRequests := countingServer(t, func(w http.ResponseWriter, r *http.Request) {
+				guard.Set(true)
+				http.Redirect(w, r, "http://"+target+"/", http.StatusFound)
+			})
+			config := fmt.Sprintf(`{"nodes": [%q], "username": "u", "password": "p"}`, first.URL)
+
+			result := guardedExecutor(t, "rabbitmq", guard).Execute(context.Background(), driverMonitor("rabbitmq", config), nil)
+
+			requireBlocked(t, result)
+			assert.Equal(t, int32(1), firstRequests.Load(), "the first node was reached")
+			assert.Zero(t, blockedRequests.Load(), "the address the redirect leads to saw no request")
+		})
 	}
-	first, firstRequests := countingServer(t, func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "http://"+target+"/", http.StatusFound)
-	})
-	config := fmt.Sprintf(`{"nodes": [%q], "username": "u", "password": "p"}`, first.URL)
-
-	result := guardedExecutor(t, "rabbitmq", guard).Execute(context.Background(), driverMonitor("rabbitmq", config), nil)
-
-	requireBlocked(t, result)
-	assert.Equal(t, int32(1), firstRequests.Load(), "the first node was reached")
-	assert.Zero(t, blockedRequests.Load(), "the address the redirect leads to saw no request")
 }
 
 // pgdriver is told to connect over TCP whatever the string says, which keeps its Unix socket out
