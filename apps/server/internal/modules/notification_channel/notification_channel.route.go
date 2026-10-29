@@ -31,7 +31,7 @@ func (uc *Route) ConnectRoute(
 	router := rg.Group("notification-channels")
 
 	router.Use(uc.middleware.WorkspaceAuth())
-	router.Document(httpx.WorkspaceIDHeader)
+	router.DocumentWorkspace()
 
 	httpx.Register(router, "GET", "", huma.Operation{Summary: "Get notification channels", Tags: []string{"notification_channel"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.FindAll)
 	httpx.Register(router, "POST", "", huma.Operation{Responses: map[string]*huma.Response{"400": httpx.ErrorVariants[utils.TargetNotAllowedResponse](router, 400)}, Summary: "Create notification channel", Tags: []string{"notification_channel"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, controller.Create)
