@@ -115,7 +115,7 @@ The probe reads its settings from the environment:
 | `PROBE_TOKEN` | | Required. The probe's token. |
 | `PROBE_ALLOW_INSECURE` | `false` | Allows a plain `http://` address to a host other than this machine (`localhost`, `127.0.0.1` and `::1`). The token then crosses the network unencrypted, so use it only on a network you trust. |
 | `PROBE_CONCURRENCY` | `128` | How many checks run at the same time. |
-| `BLOCK_PRIVATE_TARGETS` | `false` | Keeps this probe's checks from reaching loopback, private and link-local addresses, and cloud metadata. See [Blocking private targets](../architecture/api-server.md#blocking-private-targets). The probe also blocks them when the server it connects to has `BLOCK_PRIVATE_TARGETS` on, whatever this says. |
+| `BLOCK_PRIVATE_TARGETS` | `false` | Keeps this probe's checks from reaching loopback, private and link-local addresses, and cloud metadata. See [Blocking private targets](../architecture/api-server.md#blocking-private-targets). The probe also blocks them when the server it connects to has `BLOCK_PRIVATE_TARGETS` on, whatever this says. A server with it on gives no monitors to a probe from before this setting: upgrade the probes before turning it on at the server. |
 | `PROBE_READY_ADDR` | `127.0.0.1:8081` | Where `/ready` listens. The image's health check reads it. |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. |
 
