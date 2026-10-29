@@ -57,8 +57,9 @@ func createPlainLogin(t *testing.T, srv testservice.SQLServerServer) {
 // lockedTable is a global temporary table with one row, which another session
 // holds locked until release is called: a SELECT of it waits for release.
 // The wait ends when the test says, unlike a WAITFOR DELAY, which on the
-// hosted runner ends seconds early.
-func lockedTable(t *testing.T, srv testservice.SQLServerServer) (table string, release func()) {
+// hosted runner ends seconds early. blocked tells whether a request of another
+// session is waiting for the lock.
+func lockedTable(t *testing.T, srv testservice.SQLServerServer) (table string, blocked func() bool, release func()) {
 	t.Helper()
 	ctx := context.Background()
 	db := saDB(t, srv)
@@ -71,13 +72,24 @@ func lockedTable(t *testing.T, srv testservice.SQLServerServer) (table string, r
 	table = "##peekaping_locked"
 	_, err = conn.ExecContext(ctx, "IF OBJECT_ID('tempdb.."+table+"') IS NOT NULL DROP TABLE "+table+"; CREATE TABLE "+table+" (a int); INSERT INTO "+table+" VALUES (1)")
 	require.NoError(t, err)
+	var holder int
+	require.NoError(t, conn.QueryRowContext(ctx, "SELECT @@SPID").Scan(&holder))
 	tx, err := conn.BeginTx(ctx, nil)
 	require.NoError(t, err)
 	release = func() { _ = tx.Rollback() }
 	t.Cleanup(release)
-	_, err = tx.ExecContext(ctx, "UPDATE "+table+" SET a = 1")
+	// The update changes the row: SQL Server may let a reader past the lock of
+	// an update that leaves the row as it was.
+	_, err = tx.ExecContext(ctx, "UPDATE "+table+" SET a = 2")
 	require.NoError(t, err)
-	return table, release
+	// The pool's other connections are other sessions, so they see the waits
+	// on the holder's lock.
+	blocked = func() bool {
+		var waiting int
+		err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM sys.dm_exec_requests WHERE blocking_session_id = @p1", holder).Scan(&waiting)
+		return err == nil && waiting > 0
+	}
+	return table, blocked, release
 }
 
 // adoString is the connection string in the Server=...;Database=... form. The
@@ -164,19 +176,44 @@ func TestSQLServerExecutor_Integration(t *testing.T) {
 	}
 
 	// The Dial Timeout limits dialing; a query on the connection gets the
-	// monitor's whole timeout. The query waits for a lock that is released a
-	// second after the 2 second Dial Timeout.
+	// monitor's whole timeout. The lock is released only once the query waits
+	// for it, and 3 seconds later, past the 2 second Dial Timeout, so the wait
+	// doesn't count the dialing and the login.
 	t.Run("is up for a query that takes longer than the Dial Timeout", func(t *testing.T) {
-		table, release := lockedTable(t, srv)
-		const hold = 3 * time.Second
-		start := time.Now()
-		released := time.AfterFunc(hold, release)
-		defer released.Stop()
-		result := run(t, plainADO(unverifiedTLS+";Dial Timeout=2"), "SELECT a FROM "+table)
+		table, blocked, release := lockedTable(t, srv)
+		monitor := sqlServerMonitor(t, 10, SQLServerConfig{
+			DatabaseConnectionString: plainADO(unverifiedTLS + ";Dial Timeout=2"),
+			DatabaseQuery:            "SELECT a FROM " + table,
+		})
+		done := make(chan *Result, 1)
+		go func() { done <- exec.Execute(context.Background(), monitor, nil) }()
 
+		deadline := time.After(10 * time.Second)
+		for !blocked() {
+			select {
+			case result := <-done:
+				require.FailNow(t, "the check ended before its query waited for the lock", result.Message)
+			case <-deadline:
+				require.FailNow(t, "the query didn't wait for the lock within 10s")
+			case <-time.After(50 * time.Millisecond):
+			}
+		}
+		const hold = 3 * time.Second
+		select {
+		case result := <-done:
+			require.FailNow(t, "the query ended while it waited for the lock", result.Message)
+		case <-time.After(hold):
+		}
+		release()
+
+		var result *Result
+		select {
+		case result = <-done:
+		case <-time.After(10 * time.Second):
+			require.FailNow(t, "the check didn't end within 10s of the release")
+		}
 		assert.Equal(t, shared.MonitorStatusUp, result.Status, result.Message)
 		assert.Regexp(t, `^Query successful, ping: \d+ms, columns: 1, rows: 1$`, result.Message)
-		assert.GreaterOrEqual(t, time.Since(start), hold, "the query should have waited for the lock")
 	})
 
 	t.Run("is down for a wrong password", func(t *testing.T) {
