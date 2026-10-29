@@ -3,10 +3,13 @@ package executor
 import (
 	"context"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/url"
 	"peekaping/internal/modules/shared"
+	"peekaping/internal/netguard"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +32,7 @@ type MQTTConfig struct {
 }
 
 type MQTTExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -71,6 +75,19 @@ func (s *MQTTExecutor) Validate(configJSON string) error {
 	// "none" check type requires no additional validation
 
 	return nil
+}
+
+// Targets lists the broker host an MQTT check connects to
+func (s *MQTTExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[MQTTConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	u, err := url.Parse(mqttBrokerURL(cfg.Hostname, cfg.Port))
+	if err != nil || u.Hostname() == "" {
+		return nil, nil
+	}
+	return []string{u.Hostname()}, nil
 }
 
 func (m *MQTTExecutor) Execute(ctx context.Context, monitor *Monitor, proxyModel *Proxy) *Result {
@@ -245,6 +262,24 @@ func mqttBrokerURL(hostname string, port int) string {
 	return scheme + net.JoinHostPort(hostname, strconv.Itoa(port))
 }
 
+// openConnection opens the connection to a broker through the guard. The broker URL is mqtt:// or
+// mqtts:// (mqttBrokerURL writes no other), so there are no WebSocket or Unix socket brokers to
+// open: the guard is asked for the broker's address, and the TLS handshake of mqtts:// follows.
+func (m *MQTTExecutor) openConnection(timeout time.Duration) mqtt.OpenConnectionFunc {
+	return func(uri *url.URL, options mqtt.ClientOptions) (net.Conn, error) {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		dialer := m.dialer(&net.Dialer{Timeout: timeout})
+		switch uri.Scheme {
+		case "mqtt", "tcp":
+			return dialer.DialContext(ctx, "tcp", uri.Host)
+		case "mqtts", "ssl", "tls", "tcps":
+			return (&tls.Dialer{NetDialer: dialer, Config: options.TLSConfig}).DialContext(ctx, "tcp", uri.Host)
+		}
+		return nil, fmt.Errorf("%w: %s brokers", netguard.ErrBlocked, uri.Scheme)
+	}
+}
+
 // mqttAsync connects to MQTT broker, subscribes to topic and receives message as string
 func (m *MQTTExecutor) mqttAsync(ctx context.Context, hostname, topic string, options map[string]interface{}) (string, error) {
 	port, _ := options["port"].(int)
@@ -273,6 +308,11 @@ func (m *MQTTExecutor) mqttAsync(ctx context.Context, hostname, topic string, op
 	opts.SetWriteTimeout(timeout)
 	opts.SetKeepAlive(60 * time.Second)
 	opts.SetCleanSession(true)
+	if m.on() {
+		// paho opens the connection itself, and would send it through the all_proxy of the
+		// environment, whose far end the guard can't see. Open it here instead, through the guard.
+		opts.SetCustomOpenConnectionFn(m.openConnection(timeout))
+	}
 
 	if username != "" {
 		opts.SetUsername(username)

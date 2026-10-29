@@ -95,3 +95,13 @@ func ValidateConnectionStringWithOptions(connectionString string, supportedSchem
 
 	return nil
 }
+
+// connectionStringHosts returns the host of a connection string written as a URL, such as a
+// postgres:// or mysql:// one. A string that isn't a URL has none: the check reports it.
+func connectionStringHosts(connectionString string) []string {
+	u, err := url.Parse(connectionString)
+	if err != nil || u.Hostname() == "" {
+		return nil
+	}
+	return []string{u.Hostname()}
+}

@@ -23,6 +23,7 @@ type SnmpConfig struct {
 }
 
 type SnmpExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -42,6 +43,15 @@ func (s *SnmpExecutor) Validate(configJSON string) error {
 		return err
 	}
 	return GenericValidator(cfg.(*SnmpConfig))
+}
+
+// Targets lists the host an SNMP check queries
+func (s *SnmpExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[SnmpConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	return []string{cfg.Host}, nil
 }
 
 func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
@@ -66,6 +76,8 @@ func (s *SnmpExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		Version:   s.parseSnmpVersion(cfg.SnmpVersion),
 		Timeout:   time.Duration(m.Timeout) * time.Second,
 		Retries:   m.MaxRetries,
+		// The guard checks the address the target resolves to, before the socket connects
+		Control: s.guard.Control,
 	}
 
 	err = snmpClient.Connect()

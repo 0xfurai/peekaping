@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"net/http"
 	"peekaping/internal/modules/shared"
 	"strings"
@@ -29,6 +30,7 @@ type DockerConfig struct {
 }
 
 type DockerExecutor struct {
+	guarded
 	logger *zap.SugaredLogger
 }
 
@@ -37,6 +39,19 @@ func NewDockerExecutor(logger *zap.SugaredLogger) *DockerExecutor {
 }
 
 func init() { registerOptional("docker", NewDockerExecutor) }
+
+// withoutEnvironmentProxy has the Docker client connect to the daemon without the proxy that
+// HTTP_PROXY and HTTPS_PROXY name. The client's HTTPClient is a copy, but of a client that holds
+// the same transport.
+func withoutEnvironmentProxy() client.Opt {
+	return func(c *client.Client) error {
+		if transport, ok := c.HTTPClient().Transport.(*http.Transport); ok {
+			transport.Proxy = nil
+			return nil
+		}
+		return fmt.Errorf("cannot turn the proxy off on transport: %T", c.HTTPClient().Transport)
+	}
+}
 
 func (e *DockerExecutor) Unmarshal(configJSON string) (any, error) {
 	return GenericUnmarshal[DockerConfig](configJSON)
@@ -48,6 +63,44 @@ func (e *DockerExecutor) Validate(configJSON string) error {
 		return err
 	}
 	return GenericValidator(cfg.(*DockerConfig))
+}
+
+// Targets lists the host of the Docker daemon when the check connects to it over TCP. A socket has
+// no host: the guard refuses it when the check connects.
+func (e *DockerExecutor) Targets(configJSON string) ([]string, error) {
+	cfg, err := GenericUnmarshal[DockerConfig](configJSON)
+	if err != nil {
+		return nil, err
+	}
+	if cfg.ConnectionType != "tcp" {
+		return nil, nil
+	}
+	u, err := client.ParseHostURL(cfg.DockerDaemon)
+	if err != nil {
+		return []string{hostOf(cfg.DockerDaemon)}, nil
+	}
+	switch u.Scheme {
+	case "unix", "npipe":
+		return nil, nil
+	}
+	return []string{hostOf(u.Host)}, nil
+}
+
+// socketRefusal is the guard's refusal of a daemon that is reached over a Unix socket or a named
+// pipe, which is a socket for the guard's purposes: the daemon of a "socket" connection, or one
+// that a "tcp" connection names with unix:// or npipe://. The dialer refuses them as well, but
+// the Docker client hands it the socket's path as if it were a TCP address, which fails with a
+// less telling error.
+func (e *DockerExecutor) socketRefusal(cfg *DockerConfig) error {
+	network, address := "unix", cfg.DockerDaemon
+	if cfg.ConnectionType == "tcp" {
+		u, err := client.ParseHostURL(cfg.DockerDaemon)
+		if err != nil || (u.Scheme != "unix" && u.Scheme != "npipe") {
+			return nil
+		}
+		network, address = u.Scheme, u.Host
+	}
+	return e.guard.Control(network, address, nil)
 }
 
 func (e *DockerExecutor) createTLSConfig(cfg *DockerConfig) (*tls.Config, error) {
@@ -93,6 +146,12 @@ func (e *DockerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pr
 	}
 	cfg := cfgAny.(*DockerConfig)
 
+	if e.on() {
+		if err := e.socketRefusal(cfg); err != nil {
+			return DownResult(err, start, time.Now().UTC())
+		}
+	}
+
 	var cli *client.Client
 	var cliErr error
 
@@ -120,6 +179,17 @@ func (e *DockerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Pr
 				},
 			}
 			clientOpts = append(clientOpts, client.WithHTTPClient(httpClient))
+		}
+
+		// Dial through the guard while it is on. This comes after the HTTP client above, so it is
+		// the dial function of that client's transport that it replaces. The daemon is dialed
+		// itself: through a proxy from the environment, which WithHost sets up for a tcp://
+		// daemon, the guard would check the proxy's address and not the daemon's.
+		if e.on() {
+			clientOpts = append(clientOpts,
+				client.WithDialContext(e.dialer(&net.Dialer{Timeout: 32 * time.Second}).DialContext),
+				withoutEnvironmentProxy(),
+			)
 		}
 
 		cli, cliErr = client.NewClientWithOpts(clientOpts...)
