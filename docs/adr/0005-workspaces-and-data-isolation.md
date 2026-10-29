@@ -104,7 +104,7 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 
 - The cleanup job goes workspace by workspace and deletes each one's heartbeats older than its own data retention period (PP-161). Stats keep their fixed retention for the whole install.
 - A notification goes only to the channels linked to the monitor, which are in its workspace by section 2.
-- Limits come from the plan, through the interface PP-143 defines, keyed by the workspace ID (PP-160). The public build has no plans, so it has no limits.
+- Limits come from one interface keyed by the workspace ID, `limits.Source` (PP-160): the workspace's own limits, which an instance admin sets ("no limits" is a value), else the install's defaults (`WORKSPACE_LIMIT_*`), else none. An install that sets nothing has no limits. A paid plan can be one more source in front of them (PP-162).
 - A short in-process cache of workspace settings is allowed. With several api replicas, a changed setting then takes effect within the cache's lifetime.
 
 ### 5. Install and workspace settings
@@ -119,7 +119,7 @@ The api's ingest, the watchdog, the cleanup job, the certificate expiry checks a
 | Signup mode (`SIGNUP_MODE`, section 11) and every other environment variable | install | environment |
 | Data retention period (`KEEP_DATA_PERIOD_DAYS`) | workspace | workspace settings |
 | Certificate expiry notification days (`cert_expiry_notify_days`) | workspace | workspace settings |
-| Plan | workspace | its own record (PP-160, PP-162) |
+| Plan | workspace | its own limits in workspace settings (`limits`, PP-160), the install's defaults in the environment; a paid plan's record later (PP-162) |
 
 - `/settings/key/KEEP_DATA_PERIOD_DAYS` keeps its path and works on the request's workspace. Members read it, admins change it. A plan can cap it (PP-161).
 - Only an instance admin (section 10) can change install settings: today that's the usage ping and error reports.

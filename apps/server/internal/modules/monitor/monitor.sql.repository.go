@@ -91,10 +91,10 @@ func (r *SQLRepositoryImpl) runnable(ctx context.Context, q *bun.SelectQuery) (*
 	ids := make([]string, 0, len(over))
 	args := []any{nil, true}
 	cases := ""
-	for id, max := range over {
+	for id, limit := range over {
 		ids = append(ids, string(id))
 		cases += " WHEN ? THEN ?"
-		args = append(args, string(id), max)
+		args = append(args, string(id), limit)
 	}
 	args[0] = bun.In(ids)
 	return q.Where("(m.workspace_id NOT IN (?) OR "+activeAhead+" < CASE m.workspace_id"+cases+" END)", args...), nil
@@ -191,8 +191,8 @@ func (r *SQLRepositoryImpl) markOverLimit(ctx context.Context, models []*Model) 
 		ahead[place.ID] = place.Ahead
 	}
 	for _, m := range models {
-		if max, ok := over[m.WorkspaceID]; ok && m.Active {
-			m.OverLimit = ahead[m.ID] >= max
+		if limit, ok := over[m.WorkspaceID]; ok && m.Active {
+			m.OverLimit = ahead[m.ID] >= limit
 		}
 	}
 	return nil

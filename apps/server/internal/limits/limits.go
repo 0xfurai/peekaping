@@ -174,9 +174,9 @@ func (e *ReachedError) Error() string {
 	}
 }
 
-// Reached is the refusal of a write over the limit, whose value is max
-func Reached(limit Name, max int) *ReachedError {
-	return &ReachedError{Code: "LIMIT_REACHED", Limit: limit, Max: max}
+// Reached is the refusal of a write over the limit, which the workspace has at value
+func Reached(limit Name, value int) *ReachedError {
+	return &ReachedError{Code: "LIMIT_REACHED", Limit: limit, Max: value}
 }
 
 // ReachedResponse is the answer to a write over one of the workspace's limits: a 403 with the
