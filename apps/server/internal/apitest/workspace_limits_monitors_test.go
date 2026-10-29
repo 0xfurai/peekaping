@@ -8,6 +8,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"peekaping/internal/config"
 	"peekaping/internal/limits"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 )
 
 // PP-160: a workspace's limits. On the cloud they are its free tier; on a self-hosted install there
@@ -209,6 +211,14 @@ func TestLimits_Monitors_LoweringTheLimitLeavesEveryMonitorAndRunsTheOldest(t *t
 	})
 }
 
+// slowMonitors holds every count of active monitors a moment (countDelay), as slowPages does
+type slowMonitors struct{ monitor.MonitorRepository }
+
+func (r slowMonitors) CountActive(ctx context.Context, id workspace.ID) (int, error) {
+	time.Sleep(countDelay)
+	return r.MonitorRepository.CountActive(ctx, id)
+}
+
 // AC5: two creates at once at one below the limit end with one of them refused
 func TestLimits_Monitors_TwoCreatesAtOnceBelowTheLimitStoreOne(t *testing.T) {
 	backends := map[string]func(*config.Config){"SQLite": func(*config.Config) {}}
@@ -217,20 +227,28 @@ func TestLimits_Monitors_TwoCreatesAtOnceBelowTheLimitStoreOne(t *testing.T) {
 	}
 	for name, backend := range backends {
 		t.Run(name, func(t *testing.T) {
-			a := newAppWithAdmin(t, backend, withMonitorLimit(3))
+			// Every count is held a moment, so that creates at once all count before any of them
+			// writes, as they would if nothing held the workspace
+			a := newAppDecorated(t, func(container *dig.Container) error {
+				return container.Decorate(func(r monitor.MonitorRepository) monitor.MonitorRepository { return slowMonitors{r} })
+			}, backend, withMonitorLimit(3))
+			a.registerAdmin(t)
 			a.createHTTPMonitor(t, "One", "")
 			a.createHTTPMonitor(t, "Two", "")
 
 			const racers = 6
 			codes := make([]int, racers)
+			start := make(chan struct{})
 			var wg sync.WaitGroup
 			for i := range racers {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
+					<-start
 					codes[i] = a.request(t, http.MethodPost, monitorsPath, httpMonitorBody("Racer", ""), a.asAdmin).Code
 				}()
 			}
+			close(start)
 			wg.Wait()
 
 			created, refused := 0, 0
