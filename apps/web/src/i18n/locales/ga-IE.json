@@ -792,6 +792,10 @@
           "selected_proxy": "Próiseálaí roghnaithe",
           "title": "Próiseas"
         },
+        "run_from": {
+          "default_locations": "Ritheann sé ar na suíomhanna réamhshocraithe",
+          "label": "Rith ó"
+        },
         "tags": {
           "label": "Clibeanna",
           "no_tags": "Níl aon clibeanna ar fáil",

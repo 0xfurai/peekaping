@@ -792,6 +792,10 @@
           "selected_proxy": "البروكسي المحدد",
           "title": "وكيل"
         },
+        "run_from": {
+          "default_locations": "يعمل في المواقع الافتراضية",
+          "label": "التشغيل من"
+        },
         "tags": {
           "label": "الوسوم",
           "no_tags": "لا توجد وسوم",

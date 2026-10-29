@@ -792,6 +792,10 @@
           "selected_proxy": "Proxy đã chọn",
           "title": "Ủy quyền"
         },
+        "run_from": {
+          "default_locations": "Chạy tại các vị trí mặc định",
+          "label": "Chạy từ"
+        },
         "tags": {
           "label": "Thẻ",
           "no_tags": "Không có thẻ",

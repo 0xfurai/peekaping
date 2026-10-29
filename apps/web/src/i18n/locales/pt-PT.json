@@ -792,6 +792,10 @@
           "selected_proxy": "Proxy Selecionado",
           "title": "Proxy"
         },
+        "run_from": {
+          "default_locations": "Executa nas localizações predefinidas",
+          "label": "Executar a partir de"
+        },
         "tags": {
           "label": "Etiquetas",
           "no_tags": "Não há etiquetas disponíveis",

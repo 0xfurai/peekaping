@@ -7,7 +7,6 @@ import React, {
   useEffect,
 } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useMutation,
   useQueryClient,
@@ -37,13 +36,13 @@ import type { UtilsApiResponseMonitorMonitorResponseDto } from "@/api/types.gen"
 import { apiErrorCode, commonMutationErrorHandler } from "@/lib/utils";
 import {
   deserializeMonitor,
-  checkedMonitorFormSchema,
   monitorTypes,
   type MonitorFormValues,
 } from "../monitor-types/registry";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { useProbes } from "@/hooks/useProbes";
-import { probeTypeError, withEffectiveProbes } from "../monitor-types/shared/probe-support";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
+import { checkMonitorValues } from "../monitor-types/shared/check-values";
 import { useWorkspacePath } from "@/hooks/useWorkspacePath";
 
 type Mode = "create" | "edit";
@@ -108,6 +107,7 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   });
 
   const { probes } = useProbes();
+  const { instanceAdmin } = useCurrentAccess();
   const probesChosenByHand = useRef(false);
 
   const form = useForm<MonitorFormValues>({
@@ -116,15 +116,13 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     defaultValues: initialValues ?? monitorTypes[0].defaultValues,
     // The schema, and a check of the probe that it can't make: which probes run which types
     // comes from the probes query
-    resolver: async (values, context, options) => {
-      // A push monitor is checked and submitted on the local probe, as its probe field shows it
-      // (the form keeps the earlier selection for when the type changes back)
-      const effective = withEffectiveProbes(values);
-      const result = await zodResolver(checkedMonitorFormSchema)(effective, context, options);
-      const message = probeTypeError(effective, probes, monitor?.data);
-      if (!message) return result;
-      return { values: {}, errors: { ...result.errors, probe_ids: { type: "probe", message } } };
-    },
+    resolver: (values, context, options) =>
+      checkMonitorValues(values, context, options, {
+        probes,
+        saved: monitor?.data,
+        // Someone who isn't an instance admin may leave a new monitor on no probe
+        mayUseDefaultProbes: !instanceAdmin && mode === "create",
+      }),
   });
 
   // In edit mode the form shows the saved monitor once it is loaded

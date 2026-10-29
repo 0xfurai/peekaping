@@ -47,7 +47,9 @@ export const serializeMonitorBase = (
   resend_interval: values.resend_interval,
   notification_ids: values.notification_ids,
   tag_ids: values.tag_ids,
-  probe_ids: values.probe_ids,
+  // None ticked is no probe_ids rather than an empty list: a new monitor then runs on the default
+  // probes, and the API refuses an empty list
+  probe_ids: values.probe_ids.length ? values.probe_ids : undefined,
   location_rule: values.location_rule,
   // The threshold is only for "at least"; the form keeps one typed before a switch to another rule
   location_threshold: values.location_rule === "at_least" ? values.location_threshold : null,

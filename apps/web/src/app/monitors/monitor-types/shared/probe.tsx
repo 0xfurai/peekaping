@@ -4,12 +4,14 @@ import { MultiSelect } from "@/components/multi-select";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useProbes } from "@/hooks/useProbes";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { useMonitorFormContext } from "../../context/monitor-form-context";
 import { defaultProbeIds, probeIdsOf, probeRunsType } from "./probe-support";
+import RunFrom from "./run-from-field";
 
 // Where the monitor runs: one or more probes. It is left out until the install has a probe
-// besides the local one.
-const Probe = () => {
+// besides the local one. Someone who isn't an instance admin gets the plain "Run from" list.
+const ProbePicker = () => {
   const { t } = useLocalizedTranslation();
   const form = useFormContext();
   const { presetsProbes, probesChosenByHand } = useMonitorFormContext();
@@ -77,6 +79,11 @@ const Probe = () => {
       )}
     />
   );
+};
+
+const Probe = () => {
+  const { instanceAdmin } = useCurrentAccess();
+  return instanceAdmin ? <ProbePicker /> : <RunFrom />;
 };
 
 export default Probe;

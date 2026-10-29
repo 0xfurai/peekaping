@@ -3,6 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCurrentAccess } from "@/hooks/useCurrentAccess";
 import { useProbes } from "@/hooks/useProbes";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import { probeIdsOf } from "./probe-support";
@@ -15,12 +16,14 @@ const LocationRuleField = () => {
   const { t } = useLocalizedTranslation();
   const form = useFormContext();
   const { hasRemoteProbe } = useProbes();
+  // Someone who isn't an instance admin has the plain "Run from" list, with no rule to choose
+  const { instanceAdmin } = useCurrentAccess();
   const type: string = form.watch("type");
   const rule: LocationRule = form.watch("location_rule");
   const threshold: number | null = form.watch("location_threshold");
   const probeCount = probeIdsOf(type, form.watch("probe_ids")).length;
   const isPush = type === "push";
-  const visible = hasRemoteProbe && !isPush && probeCount > 1;
+  const visible = instanceAdmin && hasRemoteProbe && !isPush && probeCount > 1;
 
   // A rule whose number is missing, not a whole number from 1 up, or more than the monitor's
   // locations can't be saved, and with one probe the
@@ -29,13 +32,14 @@ const LocationRuleField = () => {
   // form holds (the serializer sends it on the any rule) for when the type changes back.
   const { setValue, trigger } = form;
   useEffect(() => {
-    if (isPush || probeCount > 1 || rule !== "at_least") return;
+    // Out of sight for a non-admin, a rule that can no longer be saved goes back to any as well
+    if (isPush || (instanceAdmin && probeCount > 1) || rule !== "at_least") return;
     const n = Number(threshold);
     if (threshold === null || !Number.isInteger(n) || n < 1 || n > probeCount) {
       setValue("location_rule", "any");
       setValue("location_threshold", null);
     }
-  }, [isPush, probeCount, rule, threshold, setValue]);
+  }, [isPush, instanceAdmin, probeCount, rule, threshold, setValue]);
 
   // The threshold's limit moves with the probes: check it when they or the number change, as the
   // probe field does, so that a message clears as soon as the number is right (the form only

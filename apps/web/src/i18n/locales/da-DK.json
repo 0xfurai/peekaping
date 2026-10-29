@@ -792,6 +792,10 @@
           "selected_proxy": "Valgt proxy",
           "title": "Proxy"
         },
+        "run_from": {
+          "default_locations": "Kører på standardplaceringerne",
+          "label": "Kør fra"
+        },
         "tags": {
           "label": "Etiketter",
           "no_tags": "Ingen tags tilgængelige",

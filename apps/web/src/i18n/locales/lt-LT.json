@@ -792,6 +792,10 @@
           "selected_proxy": "Pasirinktas tarpininkas",
           "title": "Proksi"
         },
+        "run_from": {
+          "default_locations": "Vykdoma numatytosiose vietose",
+          "label": "Vykdyti iš"
+        },
         "tags": {
           "label": "Žymės",
           "no_tags": "Nėra žymių",

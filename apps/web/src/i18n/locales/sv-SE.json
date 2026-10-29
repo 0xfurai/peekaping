@@ -792,6 +792,10 @@
           "selected_proxy": "Vald proxy",
           "title": "Proxy"
         },
+        "run_from": {
+          "default_locations": "Körs på standardplatserna",
+          "label": "Kör från"
+        },
         "tags": {
           "label": "Taggar",
           "no_tags": "Inga taggar tillgängliga",

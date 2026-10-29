@@ -792,6 +792,10 @@
           "selected_proxy": "已選取的代理伺服器",
           "title": "代理伺服器"
         },
+        "run_from": {
+          "default_locations": "在預設位置執行",
+          "label": "執行位置"
+        },
         "tags": {
           "label": "標籤",
           "no_tags": "暫無可用標籤",

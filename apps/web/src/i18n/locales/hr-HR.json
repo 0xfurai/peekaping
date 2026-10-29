@@ -792,6 +792,10 @@
           "selected_proxy": "Odabrani proxy",
           "title": "Proxy"
         },
+        "run_from": {
+          "default_locations": "Izvodi se na zadanim lokacijama",
+          "label": "Pokreni s"
+        },
         "tags": {
           "label": "Oznake",
           "no_tags": "Nema dostupnih oznaka",

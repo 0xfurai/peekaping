@@ -792,6 +792,10 @@
           "selected_proxy": "Выбраны праксі",
           "title": "Праксі"
         },
+        "run_from": {
+          "default_locations": "Працуе ў месцах па змаўчанні",
+          "label": "Запускаць з"
+        },
         "tags": {
           "label": "Тэгі",
           "no_tags": "Няма тэгаў",

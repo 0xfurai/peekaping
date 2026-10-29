@@ -792,6 +792,10 @@
           "selected_proxy": "Hautatutako proxy",
           "title": "hatziratz"
         },
+        "run_from": {
+          "default_locations": "Lehenetsitako kokapenetan exekutatzen da",
+          "label": "Exekutatu hemendik"
+        },
         "tags": {
           "label": "Etiketak",
           "no_tags": "Etiketarik ez",

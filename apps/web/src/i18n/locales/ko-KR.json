@@ -792,6 +792,10 @@
           "selected_proxy": "선택된 프록시",
           "title": "프록시"
         },
+        "run_from": {
+          "default_locations": "기본 위치에서 실행됩니다",
+          "label": "실행 위치"
+        },
         "tags": {
           "label": "태그",
           "no_tags": "태그가 없습니다",

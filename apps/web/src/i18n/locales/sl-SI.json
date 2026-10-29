@@ -792,6 +792,10 @@
           "selected_proxy": "Izbrani posrednik",
           "title": "Posrednik"
         },
+        "run_from": {
+          "default_locations": "Izvaja se na privzetih lokacijah",
+          "label": "Izvajaj iz"
+        },
         "tags": {
           "label": "Oznake",
           "no_tags": "Nobene oznake ni na voljo",

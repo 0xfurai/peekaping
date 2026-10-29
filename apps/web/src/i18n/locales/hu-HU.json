@@ -792,6 +792,10 @@
           "selected_proxy": "Kiválasztott Proxy",
           "title": "Proxy"
         },
+        "run_from": {
+          "default_locations": "Az alapértelmezett helyeken fut",
+          "label": "Futtatás innen"
+        },
         "tags": {
           "label": "Címkék",
           "no_tags": "Nincs elérhető címke",
