@@ -132,17 +132,26 @@ services:
   # MongoDB with the root user root, whose password is integration-test-password
   # (in the admin database). The tests check a wrong password and a wrong
   # authSource against it.
+  #
+  # Unlike internal/testservice, it doesn't create the user through the image's
+  # MONGO_INITDB_ROOT_* variables. With them the image runs a temporary server
+  # to create the user and then starts the real one, which on a slow disk can
+  # start before the temporary one has let go of port 27017: it then exits with
+  # "Address already in use" (seen on nexus-runner). Here one server runs with
+  # --auth, and the health check creates the user through the localhost
+  # exception, which lets a client on the server's own host create the first
+  # user. Once the user exists that call is refused, and the check signs in.
   mongodb:
     image: mongo:7
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: integration-test-password
+    command: ["mongod", "--auth", "--bind_ip_all"]
     ports:
       - "127.0.0.1:27018:27017"
     healthcheck:
-      # The image runs a temporary server on a socket to create the user, then
-      # restarts. Signing in over TCP answers only once the final server is up.
-      test: ["CMD", "mongosh", "--quiet", "--host", "127.0.0.1", "-u", "root", "-p", "integration-test-password", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet --host 127.0.0.1 --eval 'try { db.getSiblingDB("admin").createUser({user: "root", pwd: "integration-test-password", roles: ["root"]}) } catch (e) {}' &&
+          mongosh --quiet --host 127.0.0.1 -u root -p integration-test-password --authenticationDatabase admin --eval "db.adminCommand('ping')"
       interval: 2s
       timeout: 10s
       retries: 30
