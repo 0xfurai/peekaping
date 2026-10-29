@@ -228,9 +228,12 @@ func (r *SQLRepositoryImpl) AnyUser(ctx context.Context) (bool, error) {
 }
 
 func (r *SQLRepositoryImpl) RecordLogin(ctx context.Context, id string, at time.Time) error {
-	// updated_at stays: signing in doesn't change the account
+	// updated_at stays: signing in doesn't change the account. Two sign-ins can overlap and the
+	// earlier one commit last, so the time only moves forward.
+	at = at.UTC()
 	_, err := dbtx.DB(ctx, r.db).NewUpdate().Model((*sqlModel)(nil)).
-		Set("last_login_at = ?", at.UTC()).Where("id = ?", id).Exec(ctx)
+		Set("last_login_at = ?", at).Where("id = ?", id).
+		Where("last_login_at IS NULL OR last_login_at < ?", at).Exec(ctx)
 	return err
 }
 
