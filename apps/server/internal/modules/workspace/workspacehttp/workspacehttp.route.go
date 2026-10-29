@@ -44,7 +44,7 @@ func RegisterDependencies(container *dig.Container) error {
 func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	people := router.Group("workspace")
 	people.Use(r.middleware.WorkspaceAuth())
-	people.Document(httpx.WorkspaceIDHeader)
+	people.DocumentWorkspace()
 	{
 		httpx.Register(people, "PATCH", "", huma.Operation{Summary: "Rename the workspace", Description: "An admin or owner (or an API key) renames the workspace the request runs in. The name is trimmed and must be 1 to 255 characters. A member is refused (403).", Tags: []string{"workspace"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusInternalServerError}}, controller.RenameWorkspace)
 		httpx.Register(people, "GET", "members", huma.Operation{Summary: "List the members of the workspace", Description: "Every member of the workspace sees who is in it and with which role.", Tags: []string{"workspace"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusUnauthorized, http.StatusNotFound, http.StatusInternalServerError}}, controller.ListMembers)
@@ -58,7 +58,7 @@ func (r *Route) ConnectRoute(router *httpx.Router, controller *Controller) {
 	// Leaving is a user's own act: an API key has no user, so it can't
 	leaving := router.Group("workspace")
 	leaving.Use(r.middleware.WorkspaceJWTAuth())
-	leaving.Document(httpx.WorkspaceIDHeader)
+	leaving.DocumentWorkspace()
 	httpx.Register(leaving, "POST", "leave", huma.Operation{Summary: "Leave the workspace", Description: "The signed-in user leaves the workspace and loses access to it at once. The last owner can't leave (409).", Tags: []string{"workspace"}, DefaultStatus: http.StatusNoContent, Security: httpx.JWTOnly, Errors: []int{http.StatusUnauthorized, http.StatusNotFound, http.StatusConflict, http.StatusInternalServerError}}, controller.Leave)
 
 	// A new workspace belongs to the user, not to a workspace they are in
