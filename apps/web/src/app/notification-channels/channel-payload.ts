@@ -13,3 +13,8 @@ export const channelCreateBody = (
   active: true,
   is_default: isDefault,
 });
+
+// Whether the new channel page makes a default channel: when its address has `default=true`, as the
+// monitors empty state's link does. A new monitor ticks only the default channels, so a channel made
+// before the first monitor alerts for it without being ticked by hand.
+export const createsDefaultChannel = (searchParams: URLSearchParams): boolean => searchParams.get("default") === "true";

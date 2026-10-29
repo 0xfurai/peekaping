@@ -1406,7 +1406,8 @@
       "updated_success": "Cập nhật thông báo thành công"
     },
     "new": {
-      "title": "Kênh thông báo mới"
+      "title": "Kênh thông báo mới",
+      "default_hint": "Kênh này sẽ được chọn sẵn ở các monitor mới."
     },
     "no_important": "Không tìm thấy thông báo quan trọng.",
     "placeholders": {

@@ -273,8 +273,10 @@ func (s *SQLServerExecutor) validateQuery(query string) error {
 	return fmt.Errorf("query must start with one of: %s", strings.Join(allowedPrefixes, ", "))
 }
 
-// Targets lists the server a SQL Server check connects to, whichever form the connection string is
-// written in
+// Targets lists the servers a SQL Server check connects to, whichever form the connection string is
+// written in: the server, and the failover partner when there is one, which the driver dials when
+// the server can't be reached. The partner is dialed as written, as a host alone (its port is
+// FailoverPort), so it is listed that way.
 func (s *SQLServerExecutor) Targets(configJSON string) ([]string, error) {
 	cfg, err := GenericUnmarshal[SQLServerConfig](configJSON)
 	if err != nil {
@@ -288,7 +290,11 @@ func (s *SQLServerExecutor) Targets(configJSON string) ([]string, error) {
 	if err != nil || parsed.Host == "" {
 		return nil, nil
 	}
-	return []string{parsed.Host}, nil
+	targets := []string{parsed.Host}
+	if parsed.FailOverPartner != "" {
+		targets = append(targets, parsed.FailOverPartner)
+	}
+	return targets, nil
 }
 
 func (s *SQLServerExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {

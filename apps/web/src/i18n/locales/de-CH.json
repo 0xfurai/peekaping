@@ -1406,7 +1406,8 @@
       "updated_success": "Benachrichtigungsdienst erfolgreich aktualisiert"
     },
     "new": {
-      "title": "Neuer Benachrichtigungskanal"
+      "title": "Neuer Benachrichtigungskanal",
+      "default_hint": "Dieser Kanal wird bei neuen Monitoren angehakt."
     },
     "no_important": "Keine wichtigen Benachrichtigungen gefunden.",
     "placeholders": {

@@ -1406,7 +1406,8 @@
       "updated_success": "Obveščevalnik je bil uspešno posodobljen."
     },
     "new": {
-      "title": "Nova kanal za obvestila"
+      "title": "Nova kanal za obvestila",
+      "default_hint": "Ta kanal bo označen pri novih monitorjih."
     },
     "no_important": "Ni najdenih pomembnih obvestil.",
     "placeholders": {
