@@ -257,7 +257,7 @@
         "no_sender": "Ez dago posta-igorlerik. Gorde igorle bat lehenik."
       },
       "limits": {
-        "title": "Lan-eremu berrien muga lehenetsiak",
+        "title": "Muga lehenetsiak",
         "description": "Berezko mugarik ez duen lan-eremu bakoitzaren mugak. Utzi muga hutsik mugarik ez izateko. Lan-eremu bati Lan-eremuak orrian ematen zaizkion mugek hauek ordezkatzen dituzte."
       }
     }

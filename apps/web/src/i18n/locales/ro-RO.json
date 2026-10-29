@@ -257,7 +257,7 @@
         "no_sender": "Nu există expeditor de e-mail. Salvați mai întâi un expeditor."
       },
       "limits": {
-        "title": "Limite implicite pentru spațiile de lucru noi",
+        "title": "Limite implicite",
         "description": "Limitele fiecărui spațiu de lucru care nu are limite proprii. Lăsați o limită goală pentru a nu avea niciuna. Limitele date unui spațiu de lucru pe pagina Spații de lucru le înlocuiesc pe acestea."
       }
     }

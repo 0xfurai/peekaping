@@ -257,7 +257,7 @@
         "no_sender": "Es gibt keinen E-Mail-Absender. Speichern Sie zuerst einen Absender."
       },
       "limits": {
-        "title": "Standardlimits für neue Arbeitsbereiche",
+        "title": "Standardlimits",
         "description": "Die Limits jedes Arbeitsbereichs, der keine eigenen hat. Lassen Sie ein Limit leer, wenn es keins geben soll. Limits, die ein Arbeitsbereich auf der Seite Arbeitsbereiche erhält, ersetzen diese."
       }
     }

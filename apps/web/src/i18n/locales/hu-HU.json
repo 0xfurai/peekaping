@@ -257,7 +257,7 @@
         "no_sender": "Nincs e-mail-küldő. Előbb mentsen egy küldőt."
       },
       "limits": {
-        "title": "Alapértelmezett korlátok az új munkaterületeknek",
+        "title": "Alapértelmezett korlátok",
         "description": "Minden olyan munkaterület korlátai, amelynek nincsenek sajátjai. Hagyjon egy korlátot üresen, ha nem kér korlátot. A munkaterületnek a Munkaterületek oldalon adott korlátok felváltják ezeket."
       }
     }

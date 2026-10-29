@@ -257,7 +257,7 @@
         "no_sender": "Il n'y a pas d'expéditeur d'e-mails. Enregistrez d'abord un expéditeur."
       },
       "limits": {
-        "title": "Limites par défaut des nouveaux espaces de travail",
+        "title": "Limites par défaut",
         "description": "Les limites de tout espace de travail qui n'en a pas en propre. Laissez une limite vide pour ne pas en avoir. Les limites données à un espace de travail sur la page Espaces de travail remplacent celles-ci."
       }
     }

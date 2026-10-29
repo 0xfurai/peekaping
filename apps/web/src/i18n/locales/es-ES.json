@@ -257,7 +257,7 @@
         "no_sender": "No hay remitente de correo. Guarda primero un remitente."
       },
       "limits": {
-        "title": "Límites predeterminados para los espacios de trabajo nuevos",
+        "title": "Límites predeterminados",
         "description": "Los límites de todo espacio de trabajo que no tiene propios. Deja un límite en blanco para no tener ninguno. Los límites que se dan a un espacio de trabajo en la página Espacios de trabajo sustituyen a estos."
       }
     }

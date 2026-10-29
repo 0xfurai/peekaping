@@ -257,7 +257,7 @@
         "no_sender": "Ni pošiljatelja e-pošte. Najprej shranite pošiljatelja."
       },
       "limits": {
-        "title": "Privzete omejitve za nove delovne prostore",
+        "title": "Privzete omejitve",
         "description": "Omejitve vsakega delovnega prostora, ki nima lastnih. Omejitev pustite prazno, če je ne želite. Omejitve, ki jih delovni prostor dobi na strani Delovni prostori, nadomestijo te."
       }
     }

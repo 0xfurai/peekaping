@@ -257,7 +257,7 @@
         "no_sender": "Pochta joʻnatuvchisi yoʻq. Avval joʻnatuvchini saqlang."
       },
       "limits": {
-        "title": "Yangi ish maydonlari uchun standart chegaralar",
+        "title": "Standart chegaralar",
         "description": "O'z chegarasi bo'lmagan har bir ish maydonining chegaralari. Chegara kerak bo'lmasa, uni bo'sh qoldiring. Ish maydonlari sahifasida ish maydoniga berilgan chegaralar bularni almashtiradi."
       }
     }

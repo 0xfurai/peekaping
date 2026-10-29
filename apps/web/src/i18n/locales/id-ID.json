@@ -257,7 +257,7 @@
         "no_sender": "Tidak ada pengirim email. Simpan pengirim terlebih dahulu."
       },
       "limits": {
-        "title": "Batas default untuk ruang kerja baru",
+        "title": "Batas default",
         "description": "Batas setiap ruang kerja yang tidak punya batas sendiri. Kosongkan batas jika tidak ingin ada batas. Batas yang diberikan ke ruang kerja di halaman Ruang kerja menggantikan batas ini."
       }
     }

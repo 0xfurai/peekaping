@@ -257,7 +257,7 @@
         "no_sender": "Er is geen e-mailafzender. Sla eerst een afzender op."
       },
       "limits": {
-        "title": "Standaardlimieten voor nieuwe werkruimtes",
+        "title": "Standaardlimieten",
         "description": "De limieten van elke werkruimte die geen eigen limieten heeft. Laat een limiet leeg voor geen limiet. Limieten die een werkruimte op de pagina Werkruimtes krijgt, vervangen deze."
       }
     }

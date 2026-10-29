@@ -257,7 +257,7 @@
         "no_sender": "Det finns ingen e-postavsändare. Spara en avsändare först."
       },
       "limits": {
-        "title": "Standardgränser för nya arbetsytor",
+        "title": "Standardgränser",
         "description": "Gränserna för varje arbetsyta som inte har egna. Lämna en gräns tom för ingen gräns. Gränser som en arbetsyta får på sidan Arbetsytor ersätter dessa."
       }
     }

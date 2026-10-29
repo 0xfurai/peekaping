@@ -257,7 +257,7 @@
         "no_sender": "Nema pošiljatelja e-pošte. Najprije spremite pošiljatelja."
       },
       "limits": {
-        "title": "Zadana ograničenja za nove radne prostore",
+        "title": "Zadana ograničenja",
         "description": "Ograničenja svakog radnog prostora koji nema vlastita. Ostavite ograničenje prazno ako ga ne želite. Ograničenja koja radni prostor dobije na stranici Radni prostori zamjenjuju ova."
       }
     }

@@ -257,7 +257,7 @@
         "no_sender": "Không có người gửi email. Hãy lưu một người gửi trước."
       },
       "limits": {
-        "title": "Giới hạn mặc định cho không gian làm việc mới",
+        "title": "Giới hạn mặc định",
         "description": "Giới hạn của mọi không gian làm việc không có giới hạn riêng. Để trống một giới hạn nếu không muốn giới hạn đó. Các giới hạn được đặt cho một không gian làm việc ở trang Không gian làm việc sẽ thay thế các giới hạn này."
       }
     }

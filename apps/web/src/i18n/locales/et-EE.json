@@ -257,7 +257,7 @@
         "no_sender": "E-kirjade saatjat pole. Salvesta esmalt saatja."
       },
       "limits": {
-        "title": "Uute tööruumide vaikelimiidid",
+        "title": "Vaikelimiidid",
         "description": "Iga sellise tööruumi limiidid, millel pole omi. Jäta limiit tühjaks, kui seda ei ole. Tööruumile lehel Tööruumid antud limiidid asendavad need."
       }
     }

@@ -257,7 +257,7 @@
         "no_sender": "Nėra el. laiškų siuntėjo. Pirmiausia išsaugokite siuntėją."
       },
       "limits": {
-        "title": "Numatytosios naujų darbo erdvių ribos",
+        "title": "Numatytosios ribos",
         "description": "Kiekvienos darbo erdvės, neturinčios savų ribų, ribos. Palikite ribą tuščią, jei jos nereikia. Darbo erdvių puslapyje darbo erdvei suteiktos ribos pakeičia šias."
       }
     }

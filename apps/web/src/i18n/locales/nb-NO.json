@@ -257,7 +257,7 @@
         "no_sender": "Det finnes ingen e-postavsender. Lagre en avsender først."
       },
       "limits": {
-        "title": "Standardgrenser for nye arbeidsområder",
+        "title": "Standardgrenser",
         "description": "Grensene for hvert arbeidsområde som ikke har egne. La en grense stå tom for ingen grense. Grenser et arbeidsområde får på siden Arbeidsområder, erstatter disse."
       }
     }

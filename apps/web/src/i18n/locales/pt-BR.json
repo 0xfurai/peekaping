@@ -257,7 +257,7 @@
         "no_sender": "Não há remetente de e-mail. Salve um remetente primeiro."
       },
       "limits": {
-        "title": "Limites padrão para novos espaços de trabalho",
+        "title": "Limites padrão",
         "description": "Os limites de cada espaço de trabalho que não tem limites próprios. Deixe um limite em branco para não ter nenhum. Os limites dados a um espaço de trabalho na página Espaços de trabalho substituem estes."
       }
     }

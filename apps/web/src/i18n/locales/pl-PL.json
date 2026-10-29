@@ -257,7 +257,7 @@
         "no_sender": "Brak nadawcy e-maili. Najpierw zapisz nadawcę."
       },
       "limits": {
-        "title": "Domyślne limity dla nowych obszarów roboczych",
+        "title": "Domyślne limity",
         "description": "Limity każdego obszaru roboczego, który nie ma własnych. Zostaw limit pusty, aby go nie było. Limity nadane obszarowi roboczemu na stronie Obszary robocze zastępują te."
       }
     }

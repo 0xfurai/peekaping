@@ -257,7 +257,7 @@
         "no_sender": "E-posta göndericisi yok. Önce bir gönderici kaydedin."
       },
       "limits": {
-        "title": "Yeni çalışma alanları için varsayılan sınırlar",
+        "title": "Varsayılan sınırlar",
         "description": "Kendine ait sınırı olmayan her çalışma alanının sınırları. Sınır istemiyorsanız ilgili alanı boş bırakın. Bir çalışma alanına Çalışma alanları sayfasında verilen sınırlar bunların yerine geçer."
       }
     }

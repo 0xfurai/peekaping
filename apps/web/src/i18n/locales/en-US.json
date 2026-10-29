@@ -257,7 +257,7 @@
         "no_sender": "There is no email sender. Save a sender first."
       },
       "limits": {
-        "title": "Default limits for new workspaces",
+        "title": "Default limits",
         "description": "The limits of every workspace that has none of its own. Leave a limit blank for none. Limits a workspace is given on the Workspaces page replace these."
       }
     }
