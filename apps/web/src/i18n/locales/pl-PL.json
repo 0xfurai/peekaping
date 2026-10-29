@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Usuń obszar roboczy",
         "resume": "Wznów obszar roboczy",
-        "suspend": "Zawieś obszar roboczy"
+        "suspend": "Zawieś obszar roboczy",
+        "limits": "Limity"
       },
       "actions_aria": "Akcje dla {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Nazwa",
         "owners": "Właściciele",
         "status": "Status",
-        "status_pages": "Strony statusu"
+        "status_pages": "Strony statusu",
+        "limits": "Limity"
       },
       "confirm": {
         "cancel": "Anuluj",
@@ -163,7 +165,31 @@
         "suspended_admin": "Zawieszony przez administratora",
         "suspended_unverified": "Zawieszony do czasu weryfikacji adresu e-mail przez właściciela"
       },
-      "total": "Znaleziono: {{total}}"
+      "total": "Znaleziono: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} więcej",
+        "unlimited": "Bez limitów",
+        "source": {
+          "workspace": "Własne",
+          "install": "Domyślne ustawienia instalacji",
+          "none": "Nie ustawiono"
+        },
+        "dialog": {
+          "title": "Limity: {{name}}",
+          "description": "Czym ten obszar roboczy jest ograniczony. Obniżenie limitu niczego nie wstrzymuje ani nie usuwa: najnowsze monitory ponad limit przestają działać, dopóki znów nie będzie miejsca.",
+          "own": "Własne limity",
+          "own_help": "Zastępują one domyślne ustawienia instalacji. Zostaw limit pusty, aby go nie było.",
+          "unlimited": "Bez limitów",
+          "unlimited_help": "Żadnego limitu, cokolwiek mówią domyślne ustawienia instalacji.",
+          "defaults": "Użyj domyślnych ustawień instalacji",
+          "defaults_help": "Domyślne limity z sekcji Administracja → Ustawienia lub żadne, gdy instalacja ich nie ustawia.",
+          "save": "Zapisz limity",
+          "cancel": "Anuluj",
+          "saved": "Limity: {{name}} zostały zapisane",
+          "failed": "Nie udało się zapisać limitów."
+        }
+      }
     },
     "settings": {
       "page_name": "Ustawienia",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Otwarta rejestracja wymaga nadawcy e-maili, ponieważ nowe konta potwierdzają swój adres e-mail. Najpierw skonfiguruj nadawcę albo zrób to w tym samym zapisie.",
         "sender_needed": "Rejestracja jest otwarta, a nowe konta potrzebują nadawcy, aby potwierdzić swój adres e-mail. Najpierw przełącz rejestrację na tylko z zaproszeniem.",
         "no_sender": "Brak nadawcy e-maili. Najpierw zapisz nadawcę."
+      },
+      "limits": {
+        "title": "Domyślne limity dla nowych obszarów roboczych",
+        "description": "Limity każdego obszaru roboczego, który nie ma własnych. Zostaw limit pusty, aby go nie było. Limity nadane obszarowi roboczemu na stronie Obszary robocze zastępują te."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Opublikuj stronę statusu"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Maksymalna liczba działających monitorów w tym obszarze roboczym: {{max}}",
+      "status_pages": "Maksymalna liczba stron statusu w tym obszarze roboczym: {{max}}",
+      "custom_domains": "Maksymalna łączna liczba własnych domen na stronach statusu tego obszaru roboczego: {{max}}",
+      "members": "Maksymalna liczba członków tego obszaru roboczego, razem z oczekującymi zaproszeniami: {{max}}",
+      "owned_workspaces": "Maksymalna liczba obszarów roboczych, których możesz być właścicielem: {{max}}",
+      "probes": "Maksymalna liczba sond, na których może działać monitor w tym obszarze roboczym: {{max}}"
+    },
+    "names": {
+      "monitors": "Aktywne monitory",
+      "min_check_interval": "Najkrótszy interwał sprawdzania (sekundy)",
+      "status_pages": "Strony statusu",
+      "custom_domains": "Własne domeny",
+      "members": "Członkowie",
+      "owned_workspaces": "Obszary robocze, które może posiadać jeden użytkownik",
+      "probes_per_monitor": "Sondy na monitor",
+      "retention_days": "Przechowywanie danych (dni)"
+    },
+    "none": "Bez limitu",
+    "invalid": "Wpisz liczbę całkowitą równą 1 lub większą albo zostaw puste, aby nie było limitu."
   }
 }

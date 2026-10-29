@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Çalışma alanını sil",
         "resume": "Çalışma alanını devam ettir",
-        "suspend": "Çalışma alanını askıya al"
+        "suspend": "Çalışma alanını askıya al",
+        "limits": "Sınırlar"
       },
       "actions_aria": "{{name}} için işlemler",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Ad",
         "owners": "Sahipler",
         "status": "Durum",
-        "status_pages": "Durum sayfaları"
+        "status_pages": "Durum sayfaları",
+        "limits": "Sınırlar"
       },
       "confirm": {
         "cancel": "İptal",
@@ -163,7 +165,31 @@
         "suspended_admin": "Bir yönetici tarafından askıya alındı",
         "suspended_unverified": "Sahibi e-postasını doğrulayana kadar askıya alındı"
       },
-      "total": "{{total}} bulundu"
+      "total": "{{total}} bulundu",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} tane daha",
+        "unlimited": "Sınır yok",
+        "source": {
+          "workspace": "Kendine ait",
+          "install": "Kurulumun varsayılanları",
+          "none": "Ayarlanmadı"
+        },
+        "dialog": {
+          "title": "{{name}} sınırları",
+          "description": "Bu çalışma alanının tabi olduğu sınırlar. Bir sınırı düşürmek hiçbir şeyi duraklatmaz veya silmez: sınırı aşan en yeni izleyiciler, yeniden yer açılana kadar çalışmayı durdurur.",
+          "own": "Kendi sınırları",
+          "own_help": "Bunlar kurulumun varsayılanlarının yerine geçer. Sınır istemiyorsanız ilgili alanı boş bırakın.",
+          "unlimited": "Sınır yok",
+          "unlimited_help": "Kurulumun varsayılanları ne derse desin, hiçbir sınır yok.",
+          "defaults": "Kurulumun varsayılanlarını kullan",
+          "defaults_help": "Yönetici → Ayarlar bölümündeki varsayılan sınırlar; kurulum hiçbirini belirlemediyse sınır yok.",
+          "save": "Sınırları kaydet",
+          "cancel": "İptal",
+          "saved": "{{name}} sınırları kaydedildi",
+          "failed": "Sınırlar kaydedilemedi."
+        }
+      }
     },
     "settings": {
       "page_name": "Ayarlar",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Yeni hesaplar e-posta adreslerini doğruladığı için açık kayıt bir e-posta göndericisi gerektirir. Önce göndericiyi ayarlayın veya aynı kayıtta ayarlayın.",
         "sender_needed": "Kayıt açık ve yeni hesapların e-posta adreslerini doğrulamak için göndericiye ihtiyacı var. Önce kaydı yalnızca davetle olarak değiştirin.",
         "no_sender": "E-posta göndericisi yok. Önce bir gönderici kaydedin."
+      },
+      "limits": {
+        "title": "Yeni çalışma alanları için varsayılan sınırlar",
+        "description": "Kendine ait sınırı olmayan her çalışma alanının sınırları. Sınır istemiyorsanız ilgili alanı boş bırakın. Bir çalışma alanına Çalışma alanları sayfasında verilen sınırlar bunların yerine geçer."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Bir durum sayfası yayınlayın"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Bu çalışma alanında en fazla {{max}} izleyici çalışabilir",
+      "status_pages": "Bu çalışma alanında en fazla {{max}} durum sayfası olabilir",
+      "custom_domains": "Bu çalışma alanının durum sayfalarında toplam en fazla {{max}} özel alan adı olabilir",
+      "members": "Bu çalışma alanında, bekleyen davetler dahil, en fazla {{max}} üye olabilir",
+      "owned_workspaces": "En fazla {{max}} çalışma alanına sahip olabilirsiniz",
+      "probes": "Bu çalışma alanındaki bir izleyici en fazla {{max}} prob üzerinde çalışabilir"
+    },
+    "names": {
+      "monitors": "Etkin izleyiciler",
+      "min_check_interval": "En kısa kontrol aralığı (saniye)",
+      "status_pages": "Durum sayfaları",
+      "custom_domains": "Özel alan adları",
+      "members": "Üyeler",
+      "owned_workspaces": "Bir kullanıcının sahip olabileceği çalışma alanları",
+      "probes_per_monitor": "İzleyici başına prob",
+      "retention_days": "Veri saklama (gün)"
+    },
+    "none": "Sınır yok",
+    "invalid": "1 veya daha büyük bir tam sayı girin ya da sınır istemiyorsanız boş bırakın."
   }
 }

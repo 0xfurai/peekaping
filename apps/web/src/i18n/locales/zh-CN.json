@@ -107,7 +107,8 @@
       "actions": {
         "delete": "删除工作区",
         "resume": "恢复工作区",
-        "suspend": "暂停工作区"
+        "suspend": "暂停工作区",
+        "limits": "上限"
       },
       "actions_aria": "{{name}} 的操作",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "名称",
         "owners": "所有者",
         "status": "状态",
-        "status_pages": "状态页面"
+        "status_pages": "状态页面",
+        "limits": "上限"
       },
       "confirm": {
         "cancel": "取消",
@@ -163,7 +165,31 @@
         "suspended_admin": "已被管理员暂停",
         "suspended_unverified": "已暂停，直到所有者验证邮箱"
       },
-      "total": "找到 {{total}} 个"
+      "total": "找到 {{total}} 个",
+      "limits": {
+        "item": "{{name}}：{{value}}",
+        "more": "另有 {{number}} 项",
+        "unlimited": "无上限",
+        "source": {
+          "workspace": "自行设置",
+          "install": "安装的默认值",
+          "none": "未设置"
+        },
+        "dialog": {
+          "title": "{{name}} 的上限",
+          "description": "此工作区受到的限制。调低上限不会暂停或删除任何内容：超出上限的最新监控会停止运行，直到再次有空位。",
+          "own": "自有上限",
+          "own_help": "这些会取代安装的默认值。如不设某项上限，请将其留空。",
+          "unlimited": "无上限",
+          "unlimited_help": "完全没有上限，无论安装的默认值如何设置。",
+          "defaults": "使用安装的默认值",
+          "defaults_help": "管理 → 设置中的默认上限；如果安装未设置，则没有上限。",
+          "save": "保存上限",
+          "cancel": "取消",
+          "saved": "已保存 {{name}} 的上限",
+          "failed": "无法保存上限。"
+        }
+      }
     },
     "settings": {
       "page_name": "设置",
@@ -229,6 +255,10 @@
         "open_needs_sender": "开放注册需要邮件发件人，因为新账户需要验证邮箱地址。请先设置发件人，或在同一次保存中设置。",
         "sender_needed": "注册已开放，新账户需要发件人来验证邮箱地址。请先将注册切换为仅限邀请。",
         "no_sender": "没有邮件发件人。请先保存发件人。"
+      },
+      "limits": {
+        "title": "新工作区的默认上限",
+        "description": "所有没有自有上限的工作区的上限。如不设某项上限，请将其留空。在“工作区”页面为某个工作区设置的上限会取代这些默认值。"
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "发布状态页面"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "此工作区最多可以运行 {{max}} 个监控",
+      "status_pages": "此工作区最多可以有 {{max}} 个状态页面",
+      "custom_domains": "此工作区的状态页面加起来最多可以有 {{max}} 个自定义域名",
+      "members": "此工作区最多可以有 {{max}} 个成员（含待处理的邀请）",
+      "owned_workspaces": "你最多可以拥有 {{max}} 个工作区",
+      "probes": "此工作区中的一个监控最多可以在 {{max}} 个探针上运行"
+    },
+    "names": {
+      "monitors": "启用的监控",
+      "min_check_interval": "最短检查间隔（秒）",
+      "status_pages": "状态页面",
+      "custom_domains": "自定义域名",
+      "members": "成员",
+      "owned_workspaces": "一个用户可以拥有的工作区",
+      "probes_per_monitor": "每个监控的探针数",
+      "retention_days": "数据保留期限（天）"
+    },
+    "none": "无上限",
+    "invalid": "请输入 1 或更大的整数；如不设上限，请留空。"
   }
 }

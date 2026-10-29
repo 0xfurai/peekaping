@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Șterge spațiul de lucru",
         "resume": "Reactivează spațiul de lucru",
-        "suspend": "Suspendă spațiul de lucru"
+        "suspend": "Suspendă spațiul de lucru",
+        "limits": "Limite"
       },
       "actions_aria": "Acțiuni pentru {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Nume",
         "owners": "Proprietari",
         "status": "Stare",
-        "status_pages": "Pagini de stare"
+        "status_pages": "Pagini de stare",
+        "limits": "Limite"
       },
       "confirm": {
         "cancel": "Anulează",
@@ -163,7 +165,31 @@
         "suspended_admin": "Suspendat de un administrator",
         "suspended_unverified": "Suspendat până când proprietarul își verifică e-mailul"
       },
-      "total": "{{total}} găsite"
+      "total": "{{total}} găsite",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} în plus",
+        "unlimited": "Fără limite",
+        "source": {
+          "workspace": "Proprii",
+          "install": "Valorile implicite ale instalării",
+          "none": "Nesetate"
+        },
+        "dialog": {
+          "title": "Limitele pentru {{name}}",
+          "description": "Ce limitează acest spațiu de lucru. Scăderea unei limite nu oprește și nu șterge nimic: cele mai noi monitoare peste limită nu mai rulează până când este din nou loc.",
+          "own": "Limite proprii",
+          "own_help": "Acestea înlocuiesc valorile implicite ale instalării. Lăsați o limită goală pentru a nu avea niciuna.",
+          "unlimited": "Fără limite",
+          "unlimited_help": "Nicio limită, orice ar spune valorile implicite ale instalării.",
+          "defaults": "Folosește valorile implicite ale instalării",
+          "defaults_help": "Limitele implicite din Administrare → Setări, sau niciuna dacă instalarea nu setează.",
+          "save": "Salvează limitele",
+          "cancel": "Anulează",
+          "saved": "Limitele pentru {{name}} au fost salvate",
+          "failed": "Limitele nu au putut fi salvate."
+        }
+      }
     },
     "settings": {
       "page_name": "Setări",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Înregistrarea deschisă are nevoie de un expeditor de e-mail, pentru că conturile noi își verifică adresa de e-mail. Configurați mai întâi expeditorul sau în aceeași salvare.",
         "sender_needed": "Înregistrarea este deschisă, iar conturile noi au nevoie de expeditor pentru a-și verifica adresa de e-mail. Treceți mai întâi înregistrarea pe doar cu invitație.",
         "no_sender": "Nu există expeditor de e-mail. Salvați mai întâi un expeditor."
+      },
+      "limits": {
+        "title": "Limite implicite pentru spațiile de lucru noi",
+        "description": "Limitele fiecărui spațiu de lucru care nu are limite proprii. Lăsați o limită goală pentru a nu avea niciuna. Limitele date unui spațiu de lucru pe pagina Spații de lucru le înlocuiesc pe acestea."
       }
     }
   },
@@ -2063,5 +2093,27 @@
         "status_pages": "Publicați o pagină de stare"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Acest spațiu de lucru poate avea cel mult {{max}} monitoare în execuție",
+      "status_pages": "Acest spațiu de lucru poate avea cel mult {{max}} pagini de stare",
+      "custom_domains": "Paginile de stare ale acestui spațiu de lucru pot avea împreună cel mult {{max}} domenii personalizate",
+      "members": "Acest spațiu de lucru poate avea cel mult {{max}} membri, inclusiv invitațiile în așteptare",
+      "owned_workspaces": "Puteți deține cel mult {{max}} spații de lucru",
+      "probes": "Un monitor din acest spațiu de lucru poate rula pe cel mult {{max}} sonde"
+    },
+    "names": {
+      "monitors": "Monitoare active",
+      "min_check_interval": "Cel mai scurt interval de verificare (secunde)",
+      "status_pages": "Pagini de stare",
+      "custom_domains": "Domenii personalizate",
+      "members": "Membri",
+      "owned_workspaces": "Spații de lucru pe care le poate deține un utilizator",
+      "probes_per_monitor": "Sonde pe monitor",
+      "retention_days": "Păstrarea datelor (zile)"
+    },
+    "none": "Fără limită",
+    "invalid": "Introduceți un număr întreg egal cu 1 sau mai mare, sau lăsați câmpul gol pentru nicio limită."
   }
 }

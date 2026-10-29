@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Xóa không gian làm việc",
         "resume": "Khôi phục không gian làm việc",
-        "suspend": "Tạm ngưng không gian làm việc"
+        "suspend": "Tạm ngưng không gian làm việc",
+        "limits": "Giới hạn"
       },
       "actions_aria": "Thao tác cho {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Tên",
         "owners": "Chủ sở hữu",
         "status": "Trạng thái",
-        "status_pages": "Trang trạng thái"
+        "status_pages": "Trang trạng thái",
+        "limits": "Giới hạn"
       },
       "confirm": {
         "cancel": "Hủy",
@@ -163,7 +165,31 @@
         "suspended_admin": "Bị quản trị viên tạm ngưng",
         "suspended_unverified": "Tạm ngưng cho đến khi chủ sở hữu xác minh email"
       },
-      "total": "Tìm thấy {{total}}"
+      "total": "Tìm thấy {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} nữa",
+        "unlimited": "Không có giới hạn",
+        "source": {
+          "workspace": "Riêng",
+          "install": "Mặc định của bản cài đặt",
+          "none": "Chưa đặt"
+        },
+        "dialog": {
+          "title": "Giới hạn của {{name}}",
+          "description": "Những giới hạn mà không gian làm việc này phải tuân theo. Hạ một giới hạn không tạm dừng hay xóa gì cả: các giám sát mới nhất vượt giới hạn sẽ ngừng chạy cho đến khi lại có chỗ.",
+          "own": "Giới hạn riêng",
+          "own_help": "Các giới hạn này thay thế mặc định của bản cài đặt. Để trống một giới hạn nếu không muốn giới hạn đó.",
+          "unlimited": "Không có giới hạn",
+          "unlimited_help": "Hoàn toàn không giới hạn, bất kể mặc định của bản cài đặt nói gì.",
+          "defaults": "Dùng mặc định của bản cài đặt",
+          "defaults_help": "Các giới hạn mặc định trong Quản trị → Cài đặt, hoặc không có nếu bản cài đặt không đặt giới hạn nào.",
+          "save": "Lưu giới hạn",
+          "cancel": "Hủy",
+          "saved": "Đã lưu giới hạn của {{name}}",
+          "failed": "Không thể lưu các giới hạn."
+        }
+      }
     },
     "settings": {
       "page_name": "Cài đặt",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Đăng ký mở cần một người gửi email, vì tài khoản mới xác minh địa chỉ email. Hãy thiết lập người gửi trước, hoặc trong cùng lần lưu.",
         "sender_needed": "Đăng ký đang mở, và tài khoản mới cần người gửi để xác minh địa chỉ email. Hãy chuyển đăng ký sang chỉ qua lời mời trước.",
         "no_sender": "Không có người gửi email. Hãy lưu một người gửi trước."
+      },
+      "limits": {
+        "title": "Giới hạn mặc định cho không gian làm việc mới",
+        "description": "Giới hạn của mọi không gian làm việc không có giới hạn riêng. Để trống một giới hạn nếu không muốn giới hạn đó. Các giới hạn được đặt cho một không gian làm việc ở trang Không gian làm việc sẽ thay thế các giới hạn này."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Xuất bản trang trạng thái"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Không gian làm việc này có thể có tối đa {{max}} giám sát đang chạy",
+      "status_pages": "Không gian làm việc này có thể có tối đa {{max}} trang trạng thái",
+      "custom_domains": "Các trang trạng thái của không gian làm việc này có thể có tổng cộng tối đa {{max}} tên miền tùy chỉnh",
+      "members": "Không gian làm việc này có thể có tối đa {{max}} thành viên, tính cả lời mời đang chờ",
+      "owned_workspaces": "Bạn có thể sở hữu tối đa {{max}} không gian làm việc",
+      "probes": "Một giám sát trong không gian làm việc này có thể chạy trên tối đa {{max}} đầu dò"
+    },
+    "names": {
+      "monitors": "Giám sát đang hoạt động",
+      "min_check_interval": "Khoảng thời gian kiểm tra ngắn nhất (giây)",
+      "status_pages": "Trang trạng thái",
+      "custom_domains": "Tên miền tùy chỉnh",
+      "members": "Thành viên",
+      "owned_workspaces": "Không gian làm việc một người dùng có thể sở hữu",
+      "probes_per_monitor": "Đầu dò cho mỗi giám sát",
+      "retention_days": "Lưu trữ dữ liệu (ngày)"
+    },
+    "none": "Không giới hạn",
+    "invalid": "Nhập một số nguyên từ 1 trở lên, hoặc để trống nếu không muốn giới hạn."
   }
 }

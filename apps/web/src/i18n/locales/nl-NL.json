@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Werkruimte verwijderen",
         "resume": "Werkruimte hervatten",
-        "suspend": "Werkruimte opschorten"
+        "suspend": "Werkruimte opschorten",
+        "limits": "Limieten"
       },
       "actions_aria": "Acties voor {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Naam",
         "owners": "Eigenaren",
         "status": "Status",
-        "status_pages": "Statuspagina's"
+        "status_pages": "Statuspagina's",
+        "limits": "Limieten"
       },
       "confirm": {
         "cancel": "Annuleren",
@@ -163,7 +165,31 @@
         "suspended_admin": "Opgeschort door een beheerder",
         "suspended_unverified": "Opgeschort totdat de eigenaar het e-mailadres bevestigt"
       },
-      "total": "{{total}} gevonden"
+      "total": "{{total}} gevonden",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} meer",
+        "unlimited": "Geen limieten",
+        "source": {
+          "workspace": "Eigen",
+          "install": "Standaardwaarden van de installatie",
+          "none": "Niets ingesteld"
+        },
+        "dialog": {
+          "title": "Limieten van {{name}}",
+          "description": "Waaraan deze werkruimte is gebonden. Een limiet verlagen pauzeert en verwijdert niets: de nieuwste monitors boven de limiet draaien niet meer totdat er weer ruimte is.",
+          "own": "Eigen limieten",
+          "own_help": "Deze vervangen de standaardwaarden van de installatie. Laat een limiet leeg voor geen limiet.",
+          "unlimited": "Geen limieten",
+          "unlimited_help": "Helemaal geen limiet, wat de standaardwaarden van de installatie ook zeggen.",
+          "defaults": "Standaardwaarden van de installatie gebruiken",
+          "defaults_help": "De standaardlimieten van Beheer → Instellingen, of geen als de installatie er geen instelt.",
+          "save": "Limieten opslaan",
+          "cancel": "Annuleren",
+          "saved": "De limieten van {{name}} zijn opgeslagen",
+          "failed": "De limieten konden niet worden opgeslagen."
+        }
+      }
     },
     "settings": {
       "page_name": "Instellingen",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Open registratie heeft een e-mailafzender nodig, omdat nieuwe accounts hun e-mailadres bevestigen. Stel eerst de afzender in, of in dezelfde opslag.",
         "sender_needed": "De registratie is open, en nieuwe accounts hebben de afzender nodig om hun e-mailadres te bevestigen. Zet de registratie eerst op alleen op uitnodiging.",
         "no_sender": "Er is geen e-mailafzender. Sla eerst een afzender op."
+      },
+      "limits": {
+        "title": "Standaardlimieten voor nieuwe werkruimtes",
+        "description": "De limieten van elke werkruimte die geen eigen limieten heeft. Laat een limiet leeg voor geen limiet. Limieten die een werkruimte op de pagina Werkruimtes krijgt, vervangen deze."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Publiceer een statuspagina"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Deze werkruimte mag maximaal {{max}} draaiende monitors hebben",
+      "status_pages": "Deze werkruimte mag maximaal {{max}} statuspagina's hebben",
+      "custom_domains": "De statuspagina's van deze werkruimte mogen samen maximaal {{max}} aangepaste domeinen hebben",
+      "members": "Deze werkruimte mag maximaal {{max}} leden hebben, openstaande uitnodigingen meegeteld",
+      "owned_workspaces": "Je mag maximaal {{max}} werkruimtes bezitten",
+      "probes": "Een monitor in deze werkruimte mag op maximaal {{max}} probes draaien"
+    },
+    "names": {
+      "monitors": "Actieve monitors",
+      "min_check_interval": "Kortste controle-interval (seconden)",
+      "status_pages": "Statuspagina's",
+      "custom_domains": "Aangepaste domeinen",
+      "members": "Leden",
+      "owned_workspaces": "Werkruimtes die één gebruiker mag bezitten",
+      "probes_per_monitor": "Probes per monitor",
+      "retention_days": "Gegevensbewaring (dagen)"
+    },
+    "none": "Geen limiet",
+    "invalid": "Voer een geheel getal van 1 of meer in, of laat het leeg voor geen limiet."
   }
 }

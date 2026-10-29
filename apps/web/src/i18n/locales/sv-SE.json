@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Ta bort arbetsyta",
         "resume": "Återuppta arbetsyta",
-        "suspend": "Spärra arbetsyta"
+        "suspend": "Spärra arbetsyta",
+        "limits": "Gränser"
       },
       "actions_aria": "Åtgärder för {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Namn",
         "owners": "Ägare",
         "status": "Status",
-        "status_pages": "Status-sidor"
+        "status_pages": "Status-sidor",
+        "limits": "Gränser"
       },
       "confirm": {
         "cancel": "Avbryt",
@@ -163,7 +165,31 @@
         "suspended_admin": "Spärrad av en administratör",
         "suspended_unverified": "Spärrad tills ägaren verifierar sin e-post"
       },
-      "total": "{{total}} hittades"
+      "total": "{{total}} hittades",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} till",
+        "unlimited": "Inga gränser",
+        "source": {
+          "workspace": "Egna",
+          "install": "Installationens standardvärden",
+          "none": "Inga angivna"
+        },
+        "dialog": {
+          "title": "Gränser för {{name}}",
+          "description": "Vad den här arbetsytan är bunden av. Att sänka en gräns pausar och raderar ingenting: de nyaste övervakningarna över gränsen slutar köras tills det finns plats igen.",
+          "own": "Egna gränser",
+          "own_help": "De ersätter installationens standardvärden. Lämna en gräns tom för ingen gräns.",
+          "unlimited": "Inga gränser",
+          "unlimited_help": "Ingen gräns alls, vad installationens standardvärden än säger.",
+          "defaults": "Använd installationens standardvärden",
+          "defaults_help": "Standardgränserna under Admin → Inställningar, eller inga om installationen inte anger några.",
+          "save": "Spara gränser",
+          "cancel": "Avbryt",
+          "saved": "Gränserna för {{name}} är sparade",
+          "failed": "Det gick inte att spara gränserna."
+        }
+      }
     },
     "settings": {
       "page_name": "Inställningar",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Öppen registrering kräver en e-postavsändare, eftersom nya konton bekräftar sin e-postadress. Ställ in avsändaren först, eller i samma sparning.",
         "sender_needed": "Registreringen är öppen, och nya konton behöver avsändaren för att bekräfta sin e-postadress. Byt registreringen till endast med inbjudan först.",
         "no_sender": "Det finns ingen e-postavsändare. Spara en avsändare först."
+      },
+      "limits": {
+        "title": "Standardgränser för nya arbetsytor",
+        "description": "Gränserna för varje arbetsyta som inte har egna. Lämna en gräns tom för ingen gräns. Gränser som en arbetsyta får på sidan Arbetsytor ersätter dessa."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Publicera en statussida"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Den här arbetsytan kan ha högst {{max}} övervakningar igång",
+      "status_pages": "Den här arbetsytan kan ha högst {{max}} statussidor",
+      "custom_domains": "Statussidorna i den här arbetsytan kan ha högst {{max}} anpassade domäner tillsammans",
+      "members": "Den här arbetsytan kan ha högst {{max}} medlemmar, väntande inbjudningar inräknade",
+      "owned_workspaces": "Du kan äga högst {{max}} arbetsytor",
+      "probes": "En övervakning i den här arbetsytan kan köras på högst {{max}} sonder"
+    },
+    "names": {
+      "monitors": "Aktiva övervakningar",
+      "min_check_interval": "Kortaste kontrollintervall (sekunder)",
+      "status_pages": "Statussidor",
+      "custom_domains": "Anpassade domäner",
+      "members": "Medlemmar",
+      "owned_workspaces": "Arbetsytor som en användare får äga",
+      "probes_per_monitor": "Sonder per övervakning",
+      "retention_days": "Lagringstid för data (dagar)"
+    },
+    "none": "Ingen gräns",
+    "invalid": "Ange ett heltal på 1 eller mer, eller lämna fältet tomt för ingen gräns."
   }
 }

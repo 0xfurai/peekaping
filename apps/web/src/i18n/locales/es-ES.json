@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Eliminar espacio de trabajo",
         "resume": "Reanudar espacio de trabajo",
-        "suspend": "Suspender espacio de trabajo"
+        "suspend": "Suspender espacio de trabajo",
+        "limits": "Límites"
       },
       "actions_aria": "Acciones para {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Nombre",
         "owners": "Propietarios",
         "status": "Estado",
-        "status_pages": "Páginas de estado"
+        "status_pages": "Páginas de estado",
+        "limits": "Límites"
       },
       "confirm": {
         "cancel": "Cancelar",
@@ -163,7 +165,31 @@
         "suspended_admin": "Suspendido por un administrador",
         "suspended_unverified": "Suspendido hasta que el propietario verifique su correo electrónico"
       },
-      "total": "{{total}} encontrados"
+      "total": "{{total}} encontrados",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} más",
+        "unlimited": "Sin límites",
+        "source": {
+          "workspace": "Propios",
+          "install": "Valores predeterminados de la instalación",
+          "none": "Sin definir"
+        },
+        "dialog": {
+          "title": "Límites de {{name}}",
+          "description": "A qué está sujeto este espacio de trabajo. Bajar un límite no pausa ni elimina nada: los monitores más recientes que lo superan dejan de ejecutarse hasta que vuelva a haber sitio.",
+          "own": "Límites propios",
+          "own_help": "Sustituyen a los valores predeterminados de la instalación. Deja un límite en blanco para no tener ninguno.",
+          "unlimited": "Sin límites",
+          "unlimited_help": "Ningún límite en absoluto, digan lo que digan los valores predeterminados de la instalación.",
+          "defaults": "Usar los valores predeterminados de la instalación",
+          "defaults_help": "Los límites predeterminados de Administración → Configuración, o ninguno cuando la instalación no define ninguno.",
+          "save": "Guardar límites",
+          "cancel": "Cancelar",
+          "saved": "Se han guardado los límites de {{name}}",
+          "failed": "No se han podido guardar los límites."
+        }
+      }
     },
     "settings": {
       "page_name": "Configuración",
@@ -229,6 +255,10 @@
         "open_needs_sender": "El registro abierto necesita un remitente de correo, porque las cuentas nuevas verifican su dirección de correo. Configura primero el remitente, o en el mismo guardado.",
         "sender_needed": "El registro está abierto, y las cuentas nuevas necesitan el remitente para verificar su dirección de correo. Cambia primero el registro a solo con invitación.",
         "no_sender": "No hay remitente de correo. Guarda primero un remitente."
+      },
+      "limits": {
+        "title": "Límites predeterminados para los espacios de trabajo nuevos",
+        "description": "Los límites de todo espacio de trabajo que no tiene propios. Deja un límite en blanco para no tener ninguno. Los límites que se dan a un espacio de trabajo en la página Espacios de trabajo sustituyen a estos."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Publicar una página de estado"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Este espacio de trabajo puede tener como máximo {{max}} monitores en ejecución",
+      "status_pages": "Este espacio de trabajo puede tener como máximo {{max}} páginas de estado",
+      "custom_domains": "Las páginas de estado de este espacio de trabajo pueden tener como máximo {{max}} dominios personalizados en total",
+      "members": "Este espacio de trabajo puede tener como máximo {{max}} miembros, incluidas las invitaciones pendientes",
+      "owned_workspaces": "Puedes ser propietario de como máximo {{max}} espacios de trabajo",
+      "probes": "Un monitor de este espacio de trabajo puede ejecutarse en como máximo {{max}} sondas"
+    },
+    "names": {
+      "monitors": "Monitores activos",
+      "min_check_interval": "Intervalo de comprobación más corto (segundos)",
+      "status_pages": "Páginas de estado",
+      "custom_domains": "Dominios personalizados",
+      "members": "Miembros",
+      "owned_workspaces": "Espacios de trabajo que puede tener un usuario",
+      "probes_per_monitor": "Sondas por monitor",
+      "retention_days": "Retención de datos (días)"
+    },
+    "none": "Sin límite",
+    "invalid": "Introduce un número entero de 1 o más, o déjalo en blanco para no tener límite."
   }
 }

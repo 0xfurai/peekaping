@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Elimina spazio di lavoro",
         "resume": "Riattiva spazio di lavoro",
-        "suspend": "Sospendi spazio di lavoro"
+        "suspend": "Sospendi spazio di lavoro",
+        "limits": "Limiti"
       },
       "actions_aria": "Azioni per {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Nome",
         "owners": "Proprietari",
         "status": "Stato",
-        "status_pages": "Pagine di stato"
+        "status_pages": "Pagine di stato",
+        "limits": "Limiti"
       },
       "confirm": {
         "cancel": "Annulla",
@@ -163,7 +165,31 @@
         "suspended_admin": "Sospeso da un amministratore",
         "suspended_unverified": "Sospeso finché il proprietario non verifica la propria email"
       },
-      "total": "{{total}} trovati"
+      "total": "{{total}} trovati",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} altri",
+        "unlimited": "Nessun limite",
+        "source": {
+          "workspace": "Propri",
+          "install": "Valori predefiniti dell'installazione",
+          "none": "Nessuno impostato"
+        },
+        "dialog": {
+          "title": "Limiti di {{name}}",
+          "description": "A cosa è vincolato questo spazio di lavoro. Abbassare un limite non mette in pausa né elimina nulla: i monitor più recenti oltre il limite smettono di essere eseguiti finché non c'è di nuovo spazio.",
+          "own": "Limiti propri",
+          "own_help": "Sostituiscono i valori predefiniti dell'installazione. Lascia vuoto un limite per non averne.",
+          "unlimited": "Nessun limite",
+          "unlimited_help": "Nessun limite in assoluto, qualunque cosa dicano i valori predefiniti dell'installazione.",
+          "defaults": "Usa i valori predefiniti dell'installazione",
+          "defaults_help": "I limiti predefiniti di Amministrazione → Impostazioni, o nessuno quando l'installazione non ne imposta.",
+          "save": "Salva i limiti",
+          "cancel": "Annulla",
+          "saved": "I limiti di {{name}} sono stati salvati",
+          "failed": "Impossibile salvare i limiti."
+        }
+      }
     },
     "settings": {
       "page_name": "Impostazioni",
@@ -229,6 +255,10 @@
         "open_needs_sender": "La registrazione aperta richiede un mittente email, perché i nuovi account verificano il proprio indirizzo email. Configura prima il mittente, o nello stesso salvataggio.",
         "sender_needed": "La registrazione è aperta, e i nuovi account hanno bisogno del mittente per verificare il proprio indirizzo email. Passa prima la registrazione a solo su invito.",
         "no_sender": "Non c'è un mittente email. Salva prima un mittente."
+      },
+      "limits": {
+        "title": "Limiti predefiniti per i nuovi spazi di lavoro",
+        "description": "I limiti di ogni spazio di lavoro che non ne ha di propri. Lascia vuoto un limite per non averne. I limiti assegnati a uno spazio di lavoro nella pagina Spazi di lavoro sostituiscono questi."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Pubblica una pagina di stato"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Questo spazio di lavoro può avere al massimo {{max}} monitor in esecuzione",
+      "status_pages": "Questo spazio di lavoro può avere al massimo {{max}} pagine di stato",
+      "custom_domains": "Le pagine di stato di questo spazio di lavoro possono avere al massimo {{max}} domini personalizzati in totale",
+      "members": "Questo spazio di lavoro può avere al massimo {{max}} membri, inclusi gli inviti in sospeso",
+      "owned_workspaces": "Puoi possedere al massimo {{max}} spazi di lavoro",
+      "probes": "Un monitor di questo spazio di lavoro può essere eseguito su al massimo {{max}} sonde"
+    },
+    "names": {
+      "monitors": "Monitor attivi",
+      "min_check_interval": "Intervallo di verifica più breve (secondi)",
+      "status_pages": "Pagine di stato",
+      "custom_domains": "Domini personalizzati",
+      "members": "Membri",
+      "owned_workspaces": "Spazi di lavoro che un utente può possedere",
+      "probes_per_monitor": "Sonde per monitor",
+      "retention_days": "Conservazione dei dati (giorni)"
+    },
+    "none": "Nessun limite",
+    "invalid": "Inserisci un numero intero pari o superiore a 1, oppure lascia vuoto per nessun limite."
   }
 }

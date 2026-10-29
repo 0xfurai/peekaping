@@ -107,7 +107,8 @@
       "actions": {
         "delete": "워크스페이스 삭제",
         "resume": "워크스페이스 재개",
-        "suspend": "워크스페이스 일시 정지"
+        "suspend": "워크스페이스 일시 정지",
+        "limits": "한도"
       },
       "actions_aria": "{{name}}에 대한 작업",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "이름",
         "owners": "소유자",
         "status": "상태",
-        "status_pages": "상태 페이지"
+        "status_pages": "상태 페이지",
+        "limits": "한도"
       },
       "confirm": {
         "cancel": "취소",
@@ -163,7 +165,31 @@
         "suspended_admin": "관리자가 일시 정지함",
         "suspended_unverified": "소유자가 이메일을 인증할 때까지 일시 정지됨"
       },
-      "total": "{{total}}개 찾음"
+      "total": "{{total}}개 찾음",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}}개 더",
+        "unlimited": "한도 없음",
+        "source": {
+          "workspace": "자체 설정",
+          "install": "설치 기본값",
+          "none": "설정 없음"
+        },
+        "dialog": {
+          "title": "{{name}}의 한도",
+          "description": "이 워크스페이스에 적용되는 한도입니다. 한도를 낮춰도 아무것도 일시중지하거나 삭제하지 않습니다. 한도를 넘는 가장 최근 모니터는 여유가 생길 때까지 실행되지 않습니다.",
+          "own": "자체 한도",
+          "own_help": "설치 기본값 대신 적용됩니다. 한도를 두지 않으려면 비워 두세요.",
+          "unlimited": "한도 없음",
+          "unlimited_help": "설치 기본값과 상관없이 한도를 전혀 두지 않습니다.",
+          "defaults": "설치 기본값 사용",
+          "defaults_help": "관리자 → 설정의 기본 한도입니다. 설치에서 정하지 않았다면 한도가 없습니다.",
+          "save": "한도 저장",
+          "cancel": "취소",
+          "saved": "{{name}}의 한도를 저장했습니다",
+          "failed": "한도를 저장하지 못했습니다."
+        }
+      }
     },
     "settings": {
       "page_name": "설정",
@@ -229,6 +255,10 @@
         "open_needs_sender": "새 계정은 이메일 주소를 확인하므로 공개 가입에는 이메일 발신자가 필요합니다. 먼저 발신자를 설정하거나 같은 저장에서 설정하세요.",
         "sender_needed": "가입이 공개 상태이며, 새 계정은 이메일 주소를 확인하기 위해 발신자가 필요합니다. 먼저 가입을 초대 전용으로 바꾸세요.",
         "no_sender": "이메일 발신자가 없습니다. 먼저 발신자를 저장하세요."
+      },
+      "limits": {
+        "title": "새 워크스페이스의 기본 한도",
+        "description": "자체 한도가 없는 모든 워크스페이스에 적용되는 한도입니다. 한도를 두지 않으려면 비워 두세요. 워크스페이스 페이지에서 워크스페이스에 지정한 한도는 이 값을 대체합니다."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "상태 페이지 게시하기"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "이 워크스페이스에서 실행할 수 있는 모니터는 최대 {{max}}개입니다",
+      "status_pages": "이 워크스페이스의 상태 페이지는 최대 {{max}}개까지 만들 수 있습니다",
+      "custom_domains": "이 워크스페이스 상태 페이지의 사용자 지정 도메인은 모두 합쳐 최대 {{max}}개입니다",
+      "members": "이 워크스페이스의 구성원은 대기 중인 초대를 포함해 최대 {{max}}명입니다",
+      "owned_workspaces": "소유할 수 있는 워크스페이스는 최대 {{max}}개입니다",
+      "probes": "이 워크스페이스의 모니터 하나는 최대 {{max}}개의 프로브에서 실행할 수 있습니다"
+    },
+    "names": {
+      "monitors": "활성 모니터",
+      "min_check_interval": "가장 짧은 검사 간격(초)",
+      "status_pages": "상태 페이지",
+      "custom_domains": "사용자 지정 도메인",
+      "members": "구성원",
+      "owned_workspaces": "사용자 한 명이 소유할 수 있는 워크스페이스",
+      "probes_per_monitor": "모니터당 프로브",
+      "retention_days": "데이터 보존(일)"
+    },
+    "none": "한도 없음",
+    "invalid": "1 이상의 정수를 입력하거나, 한도를 두지 않으려면 비워 두세요."
   }
 }

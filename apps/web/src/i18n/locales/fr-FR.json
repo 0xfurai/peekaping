@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Supprimer l'espace de travail",
         "resume": "Réactiver l'espace de travail",
-        "suspend": "Suspendre l'espace de travail"
+        "suspend": "Suspendre l'espace de travail",
+        "limits": "Limites"
       },
       "actions_aria": "Actions pour {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Nom",
         "owners": "Propriétaires",
         "status": "Statut",
-        "status_pages": "Pages d'état"
+        "status_pages": "Pages d'état",
+        "limits": "Limites"
       },
       "confirm": {
         "cancel": "Annuler",
@@ -163,7 +165,31 @@
         "suspended_admin": "Suspendu par un administrateur",
         "suspended_unverified": "Suspendu jusqu'à ce que le propriétaire vérifie son e-mail"
       },
-      "total": "{{total}} trouvé(s)"
+      "total": "{{total}} trouvé(s)",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} de plus",
+        "unlimited": "Aucune limite",
+        "source": {
+          "workspace": "Les siennes",
+          "install": "Valeurs par défaut de l'installation",
+          "none": "Aucune définie"
+        },
+        "dialog": {
+          "title": "Limites de {{name}}",
+          "description": "Ce à quoi cet espace de travail est soumis. Abaisser une limite ne met rien en pause et ne supprime rien : les moniteurs les plus récents au-delà de la limite cessent de s'exécuter jusqu'à ce qu'il y ait de nouveau de la place.",
+          "own": "Ses propres limites",
+          "own_help": "Elles remplacent les valeurs par défaut de l'installation. Laissez une limite vide pour ne pas en avoir.",
+          "unlimited": "Aucune limite",
+          "unlimited_help": "Aucune limite du tout, quoi que disent les valeurs par défaut de l'installation.",
+          "defaults": "Utiliser les valeurs par défaut de l'installation",
+          "defaults_help": "Les limites par défaut d'Administration → Paramètres, ou aucune si l'installation n'en définit pas.",
+          "save": "Enregistrer les limites",
+          "cancel": "Annuler",
+          "saved": "Les limites de {{name}} sont enregistrées",
+          "failed": "Impossible d'enregistrer les limites."
+        }
+      }
     },
     "settings": {
       "page_name": "Paramètres",
@@ -229,6 +255,10 @@
         "open_needs_sender": "L'inscription ouverte nécessite un expéditeur d'e-mails, car les nouveaux comptes vérifient leur adresse e-mail. Configurez d'abord l'expéditeur, ou dans le même enregistrement.",
         "sender_needed": "L'inscription est ouverte, et les nouveaux comptes ont besoin de l'expéditeur pour vérifier leur adresse e-mail. Passez d'abord l'inscription en mode sur invitation uniquement.",
         "no_sender": "Il n'y a pas d'expéditeur d'e-mails. Enregistrez d'abord un expéditeur."
+      },
+      "limits": {
+        "title": "Limites par défaut des nouveaux espaces de travail",
+        "description": "Les limites de tout espace de travail qui n'en a pas en propre. Laissez une limite vide pour ne pas en avoir. Les limites données à un espace de travail sur la page Espaces de travail remplacent celles-ci."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Publier une page d'état"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Cet espace de travail peut avoir au plus {{max}} moniteurs en cours d'exécution",
+      "status_pages": "Cet espace de travail peut avoir au plus {{max}} pages d'état",
+      "custom_domains": "Les pages d'état de cet espace de travail peuvent avoir au plus {{max}} domaines personnalisés au total",
+      "members": "Cet espace de travail peut avoir au plus {{max}} membres, invitations en attente comprises",
+      "owned_workspaces": "Vous pouvez posséder au plus {{max}} espaces de travail",
+      "probes": "Un moniteur de cet espace de travail peut s'exécuter sur au plus {{max}} sondes"
+    },
+    "names": {
+      "monitors": "Moniteurs actifs",
+      "min_check_interval": "Intervalle de vérification le plus court (secondes)",
+      "status_pages": "Pages d'état",
+      "custom_domains": "Domaines personnalisés",
+      "members": "Membres",
+      "owned_workspaces": "Espaces de travail qu'un utilisateur peut posséder",
+      "probes_per_monitor": "Sondes par moniteur",
+      "retention_days": "Conservation des données (jours)"
+    },
+    "none": "Aucune limite",
+    "invalid": "Saisissez un nombre entier supérieur ou égal à 1, ou laissez le champ vide pour ne pas avoir de limite."
   }
 }

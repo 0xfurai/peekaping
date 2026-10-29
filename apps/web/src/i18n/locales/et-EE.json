@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Kustuta tööruum",
         "resume": "Taasta tööruum",
-        "suspend": "Peata tööruum"
+        "suspend": "Peata tööruum",
+        "limits": "Limiidid"
       },
       "actions_aria": "Tööruumi {{name}} toimingud",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Nimi",
         "owners": "Omanikud",
         "status": "Olek",
-        "status_pages": "Olekusivud"
+        "status_pages": "Olekusivud",
+        "limits": "Limiidid"
       },
       "confirm": {
         "cancel": "Tühista",
@@ -163,7 +165,31 @@
         "suspended_admin": "Halduri poolt peatatud",
         "suspended_unverified": "Peatatud, kuni omanik oma e-posti kinnitab"
       },
-      "total": "Leitud: {{total}}"
+      "total": "Leitud: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} veel",
+        "unlimited": "Limiite pole",
+        "source": {
+          "workspace": "Oma",
+          "install": "Paigalduse vaikeväärtused",
+          "none": "Määramata"
+        },
+        "dialog": {
+          "title": "Tööruumi {{name}} limiidid",
+          "description": "Mille järgi see tööruum töötab. Limiidi vähendamine ei peata ega kustuta midagi: limiiti ületavad uusimad monitoorid lõpetavad töö, kuni jälle on ruumi.",
+          "own": "Omad limiidid",
+          "own_help": "Need asendavad paigalduse vaikeväärtused. Jäta limiit tühjaks, kui seda ei ole.",
+          "unlimited": "Limiite pole",
+          "unlimited_help": "Üldse ei mingit limiiti, olenemata paigalduse vaikeväärtustest.",
+          "defaults": "Kasuta paigalduse vaikeväärtusi",
+          "defaults_help": "Vaikelimiidid jaotises Haldus → Seaded või mitte ühtegi, kui paigaldus ei määra.",
+          "save": "Salvesta limiidid",
+          "cancel": "Tühista",
+          "saved": "Tööruumi {{name}} limiidid on salvestatud",
+          "failed": "Limiitide salvestamine ebaõnnestus."
+        }
+      }
     },
     "settings": {
       "page_name": "Seaded",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Avatud registreerumine vajab e-kirjade saatjat, sest uued kontod kinnitavad oma e-posti aadressi. Seadista esmalt saatja või tee seda samas salvestuses.",
         "sender_needed": "Registreerumine on avatud ja uued kontod vajavad saatjat oma e-posti aadressi kinnitamiseks. Lülita esmalt registreerumine ainult kutsega režiimile.",
         "no_sender": "E-kirjade saatjat pole. Salvesta esmalt saatja."
+      },
+      "limits": {
+        "title": "Uute tööruumide vaikelimiidid",
+        "description": "Iga sellise tööruumi limiidid, millel pole omi. Jäta limiit tühjaks, kui seda ei ole. Tööruumile lehel Tööruumid antud limiidid asendavad need."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Avalda olekuleht"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Sellel tööruumil võib olla kuni {{max}} töötavat monitoori",
+      "status_pages": "Sellel tööruumil võib olla kuni {{max}} olekusivu",
+      "custom_domains": "Selle tööruumi olekusivudel võib kokku olla kuni {{max}} kohandatud domeeni",
+      "members": "Sellel tööruumil võib olla kuni {{max}} liiget, ootel kutsed kaasa arvatud",
+      "owned_workspaces": "Sa võid olla kuni {{max}} tööruumi omanik",
+      "probes": "Selle tööruumi monitoor võib töötada kuni {{max}} sondil"
+    },
+    "names": {
+      "monitors": "Aktiivsed monitoorid",
+      "min_check_interval": "Lühim kontrollintervall (sekundites)",
+      "status_pages": "Olekusivud",
+      "custom_domains": "Kohandatud domeenid",
+      "members": "Liikmed",
+      "owned_workspaces": "Tööruumid, mida üks kasutaja võib omada",
+      "probes_per_monitor": "Sonde monitoori kohta",
+      "retention_days": "Andmete säilitamine (päevades)"
+    },
+    "none": "Limiiti pole",
+    "invalid": "Sisesta täisarv alates 1 või jäta tühjaks, kui limiiti ei ole."
   }
 }

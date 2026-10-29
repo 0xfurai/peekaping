@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Delete workspace",
         "resume": "Resume workspace",
-        "suspend": "Suspend workspace"
+        "suspend": "Suspend workspace",
+        "limits": "Limits"
       },
       "actions_aria": "Actions for {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Name",
         "owners": "Owners",
         "status": "Status",
-        "status_pages": "Status pages"
+        "status_pages": "Status pages",
+        "limits": "Limits"
       },
       "confirm": {
         "cancel": "Cancel",
@@ -163,7 +165,31 @@
         "suspended_admin": "Suspended by an admin",
         "suspended_unverified": "Suspended until the owner verifies their email"
       },
-      "total": "{{total}} found"
+      "total": "{{total}} found",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} more",
+        "unlimited": "No limits",
+        "source": {
+          "workspace": "Its own",
+          "install": "Install's defaults",
+          "none": "None set"
+        },
+        "dialog": {
+          "title": "Limits of {{name}}",
+          "description": "What this workspace is held to. Lowering a limit pauses and deletes nothing: the newest monitors past it stop running until there is room again.",
+          "own": "Its own limits",
+          "own_help": "These replace the install's defaults. Leave a limit blank for none.",
+          "unlimited": "No limits",
+          "unlimited_help": "No limit at all, whatever the install's defaults say.",
+          "defaults": "Use the install's defaults",
+          "defaults_help": "The default limits of Admin → Settings, or none when the install sets none.",
+          "save": "Save limits",
+          "cancel": "Cancel",
+          "saved": "The limits of {{name}} are saved",
+          "failed": "Couldn't save the limits."
+        }
+      }
     },
     "settings": {
       "page_name": "Settings",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Open signup needs an email sender, because new accounts verify their email address. Set up the sender first, or in the same save.",
         "sender_needed": "Signup is open, and new accounts need the sender to verify their email address. Switch signup to invite only first.",
         "no_sender": "There is no email sender. Save a sender first."
+      },
+      "limits": {
+        "title": "Default limits for new workspaces",
+        "description": "The limits of every workspace that has none of its own. Leave a limit blank for none. Limits a workspace is given on the Workspaces page replace these."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Publish a status page"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "This workspace can have at most {{max}} monitors running",
+      "status_pages": "This workspace can have at most {{max}} status pages",
+      "custom_domains": "This workspace's status pages can have at most {{max}} custom domains together",
+      "members": "This workspace can have at most {{max}} members, pending invites included",
+      "owned_workspaces": "You can own at most {{max}} workspaces",
+      "probes": "A monitor in this workspace can run on at most {{max}} probes"
+    },
+    "names": {
+      "monitors": "Active monitors",
+      "min_check_interval": "Shortest check interval (seconds)",
+      "status_pages": "Status pages",
+      "custom_domains": "Custom domains",
+      "members": "Members",
+      "owned_workspaces": "Workspaces one user may own",
+      "probes_per_monitor": "Probes per monitor",
+      "retention_days": "Data retention (days)"
+    },
+    "none": "No limit",
+    "invalid": "Enter a whole number of 1 or more, or leave it blank for no limit."
   }
 }

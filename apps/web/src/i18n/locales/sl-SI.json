@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Izbriši delovni prostor",
         "resume": "Ponovno omogoči delovni prostor",
-        "suspend": "Začasno ustavi delovni prostor"
+        "suspend": "Začasno ustavi delovni prostor",
+        "limits": "Omejitve"
       },
       "actions_aria": "Dejanja za {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Ime",
         "owners": "Lastniki",
         "status": "Stanje",
-        "status_pages": "Statusne strani"
+        "status_pages": "Statusne strani",
+        "limits": "Omejitve"
       },
       "confirm": {
         "cancel": "Prekliči",
@@ -163,7 +165,31 @@
         "suspended_admin": "Začasno ustavil skrbnik",
         "suspended_unverified": "Začasno ustavljen, dokler lastnik ne potrdi e-pošte"
       },
-      "total": "Najdenih: {{total}}"
+      "total": "Najdenih: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "še +{{number}}",
+        "unlimited": "Brez omejitev",
+        "source": {
+          "workspace": "Lastne",
+          "install": "Privzete vrednosti namestitve",
+          "none": "Ni nastavljeno"
+        },
+        "dialog": {
+          "title": "Omejitve za {{name}}",
+          "description": "Kaj omejuje ta delovni prostor. Znižanje omejitve nič ne zaustavi in nič ne izbriše: najnovejši monitorji nad omejitvijo prenehajo teči, dokler spet ni prostora.",
+          "own": "Lastne omejitve",
+          "own_help": "Te nadomestijo privzete vrednosti namestitve. Omejitev pustite prazno, če je ne želite.",
+          "unlimited": "Brez omejitev",
+          "unlimited_help": "Sploh brez omejitve, karkoli govorijo privzete vrednosti namestitve.",
+          "defaults": "Uporabi privzete vrednosti namestitve",
+          "defaults_help": "Privzete omejitve iz Skrbništvo → Nastavitve ali nobena, če namestitev nobene ne nastavi.",
+          "save": "Shrani omejitve",
+          "cancel": "Prekliči",
+          "saved": "Omejitve za {{name}} so shranjene",
+          "failed": "Omejitev ni bilo mogoče shraniti."
+        }
+      }
     },
     "settings": {
       "page_name": "Nastavitve",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Odprta registracija potrebuje pošiljatelja e-pošte, ker novi računi potrdijo svoj e-poštni naslov. Najprej nastavite pošiljatelja ali to storite v istem shranjevanju.",
         "sender_needed": "Registracija je odprta in novi računi potrebujejo pošiljatelja, da potrdijo svoj e-poštni naslov. Najprej preklopite registracijo na samo s povabilom.",
         "no_sender": "Ni pošiljatelja e-pošte. Najprej shranite pošiljatelja."
+      },
+      "limits": {
+        "title": "Privzete omejitve za nove delovne prostore",
+        "description": "Omejitve vsakega delovnega prostora, ki nima lastnih. Omejitev pustite prazno, če je ne želite. Omejitve, ki jih delovni prostor dobi na strani Delovni prostori, nadomestijo te."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Objavite statusno stran"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Največje število monitorjev, ki lahko tečejo v tem delovnem prostoru: {{max}}",
+      "status_pages": "Največje število statusnih strani v tem delovnem prostoru: {{max}}",
+      "custom_domains": "Največje skupno število domen po meri na statusnih straneh tega delovnega prostora: {{max}}",
+      "members": "Največje število članov tega delovnega prostora, vključno s čakajočimi povabili: {{max}}",
+      "owned_workspaces": "Največje število delovnih prostorov, ki jih lahko imate v lasti: {{max}}",
+      "probes": "Največje število sond, na katerih lahko teče monitor v tem delovnem prostoru: {{max}}"
+    },
+    "names": {
+      "monitors": "Aktivni monitorji",
+      "min_check_interval": "Najkrajši interval preverjanja (sekunde)",
+      "status_pages": "Statusne strani",
+      "custom_domains": "Domene po meri",
+      "members": "Člani",
+      "owned_workspaces": "Delovni prostori, ki jih lahko ima en uporabnik",
+      "probes_per_monitor": "Sonde na monitor",
+      "retention_days": "Ohranjanje podatkov (dnevi)"
+    },
+    "none": "Brez omejitve",
+    "invalid": "Vnesite celo število 1 ali več ali pustite prazno, če omejitve ne želite."
   }
 }

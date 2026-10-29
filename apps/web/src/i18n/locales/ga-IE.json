@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Scrios an spás oibre",
         "resume": "Atosaigh an spás oibre",
-        "suspend": "Cuir an spás oibre ar fionraí"
+        "suspend": "Cuir an spás oibre ar fionraí",
+        "limits": "Teorainneacha"
       },
       "actions_aria": "Gníomhartha do {{name}}",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Ainm",
         "owners": "Úinéirí",
         "status": "Stádas",
-        "status_pages": "Leathanaigh stádais"
+        "status_pages": "Leathanaigh stádais",
+        "limits": "Teorainneacha"
       },
       "confirm": {
         "cancel": "Cealaigh",
@@ -163,7 +165,31 @@
         "suspended_admin": "Curtha ar fionraí ag riarthóir",
         "suspended_unverified": "Ar fionraí go dtí go bhfíoróidh an t-úinéir a ríomhphost"
       },
-      "total": "{{total}} aimsithe"
+      "total": "{{total}} aimsithe",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} eile",
+        "unlimited": "Gan teorainneacha",
+        "source": {
+          "workspace": "A cuid féin",
+          "install": "Réamhshocruithe na suiteála",
+          "none": "Níl aon cheann socraithe"
+        },
+        "dialog": {
+          "title": "Teorainneacha {{name}}",
+          "description": "Na teorainneacha atá ag an spás oibre seo. Ní chuireann laghdú teorann aon rud ar sos agus ní scriosann sé aon rud: stopann na monatóirí is nuaí thar an teorainn de rith go dtí go mbíonn spás arís ann.",
+          "own": "A theorainneacha féin",
+          "own_help": "Cuireann siad seo ionad réamhshocruithe na suiteála. Fág teorainn folamh gan teorainn.",
+          "unlimited": "Gan teorainneacha",
+          "unlimited_help": "Gan teorainn ar bith, is cuma cad a deir réamhshocruithe na suiteála.",
+          "defaults": "Úsáid réamhshocruithe na suiteála",
+          "defaults_help": "Réamhtheorainneacha Riar → Socruithe, nó ceann ar bith nuair nach socraíonn an tsuiteáil aon cheann.",
+          "save": "Sábháil na teorainneacha",
+          "cancel": "Cealaigh",
+          "saved": "Sábháladh teorainneacha {{name}}",
+          "failed": "Níorbh fhéidir na teorainneacha a shábháil."
+        }
+      }
     },
     "settings": {
       "page_name": "Socruithe",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Teastaíonn seoltóir ríomhphoist ó chlárú oscailte, mar go ndeimhníonn cuntais nua a seoladh ríomhphoist. Socraigh an seoltóir ar dtús, nó sa sábháil chéanna.",
         "sender_needed": "Tá an clárú oscailte, agus teastaíonn an seoltóir ó chuntais nua chun a seoladh ríomhphoist a dheimhniú. Athraigh an clárú go le cuireadh amháin ar dtús.",
         "no_sender": "Níl seoltóir ríomhphoist ann. Sábháil seoltóir ar dtús."
+      },
+      "limits": {
+        "title": "Réamhtheorainneacha do spásanna oibre nua",
+        "description": "Teorainneacha gach spáis oibre nach bhfuil aon cheann dá chuid féin aige. Fág teorainn folamh gan teorainn. Cuireann na teorainneacha a thugtar do spás oibre ar an leathanach Spásanna oibre ionad na gcinn seo."
       }
     }
   },
@@ -2063,5 +2093,27 @@
         "status_pages": "Foilsigh leathanach stádais"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Is féidir suas le {{max}} monatóir a bheith ag rith sa spás oibre seo",
+      "status_pages": "Is féidir suas le {{max}} leathanach stádais a bheith sa spás oibre seo",
+      "custom_domains": "Is féidir suas le {{max}} fearann saincheaptha a bheith ag leathanaigh stádais an spáis oibre seo le chéile",
+      "members": "Is féidir suas le {{max}} ball a bheith sa spás oibre seo, cuirí ar feitheamh san áireamh",
+      "owned_workspaces": "Is féidir leat a bheith i d'úinéir ar suas le {{max}} spás oibre",
+      "probes": "Is féidir le monatóir sa spás oibre seo rith ar suas le {{max}} tóireadóir"
+    },
+    "names": {
+      "monitors": "Monatóirí gníomhacha",
+      "min_check_interval": "An t-eatramh seiceála is giorra (soicindí)",
+      "status_pages": "Leathanaigh stádais",
+      "custom_domains": "Fearainn shaincheaptha",
+      "members": "Baill",
+      "owned_workspaces": "Spásanna oibre a fhéadfaidh úsáideoir amháin a bheith ina úinéir orthu",
+      "probes_per_monitor": "Tóireadóirí in aghaidh an mhonatóra",
+      "retention_days": "Coinneáil sonraí (laethanta)"
+    },
+    "none": "Gan teorainn",
+    "invalid": "Cuir isteach slánuimhir 1 nó níos mó, nó fág folamh é gan teorainn."
   }
 }

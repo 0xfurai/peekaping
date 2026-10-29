@@ -107,7 +107,8 @@
       "actions": {
         "delete": "Ištrinti darbo erdvę",
         "resume": "Tęsti darbo erdvės veiklą",
-        "suspend": "Sustabdyti darbo erdvę"
+        "suspend": "Sustabdyti darbo erdvę",
+        "limits": "Ribos"
       },
       "actions_aria": "{{name}} veiksmai",
       "columns": {
@@ -118,7 +119,8 @@
         "name": "Pavadinimas",
         "owners": "Savininkai",
         "status": "Būsena",
-        "status_pages": "Būsenos puslapiai"
+        "status_pages": "Būsenos puslapiai",
+        "limits": "Ribos"
       },
       "confirm": {
         "cancel": "Atšaukti",
@@ -163,7 +165,31 @@
         "suspended_admin": "Sustabdė administratorius",
         "suspended_unverified": "Sustabdyta, kol savininkas patvirtins el. paštą"
       },
-      "total": "Rasta: {{total}}"
+      "total": "Rasta: {{total}}",
+      "limits": {
+        "item": "{{name}}: {{value}}",
+        "more": "+{{number}} daugiau",
+        "unlimited": "Be ribų",
+        "source": {
+          "workspace": "Savos",
+          "install": "Diegimo numatytosios",
+          "none": "Nenustatyta"
+        },
+        "dialog": {
+          "title": "{{name}} ribos",
+          "description": "Kuo ši darbo erdvė apribota. Sumažinus ribą niekas nesustabdoma ir neištrinama: naujausi ribą viršijantys monitoriai nustoja veikti, kol vėl atsiras vietos.",
+          "own": "Savos ribos",
+          "own_help": "Jos pakeičia diegimo numatytąsias. Palikite ribą tuščią, jei jos nereikia.",
+          "unlimited": "Be ribų",
+          "unlimited_help": "Jokios ribos, ką bebūtų nustačiusios diegimo numatytosios.",
+          "defaults": "Naudoti diegimo numatytąsias",
+          "defaults_help": "Numatytosios ribos skiltyje Administravimas → Nustatymai arba jokių, jei diegimas jų nenustato.",
+          "save": "Išsaugoti ribas",
+          "cancel": "Atšaukti",
+          "saved": "{{name}} ribos išsaugotos",
+          "failed": "Ribų išsaugoti nepavyko."
+        }
+      }
     },
     "settings": {
       "page_name": "Nustatymai",
@@ -229,6 +255,10 @@
         "open_needs_sender": "Atvirai registracijai reikia el. laiškų siuntėjo, nes naujos paskyros patvirtina savo el. pašto adresą. Pirmiausia nustatykite siuntėją arba tai padarykite tame pačiame išsaugojime.",
         "sender_needed": "Registracija atvira, o naujoms paskyroms reikia siuntėjo el. pašto adresui patvirtinti. Pirmiausia perjunkite registraciją į tik su kvietimu.",
         "no_sender": "Nėra el. laiškų siuntėjo. Pirmiausia išsaugokite siuntėją."
+      },
+      "limits": {
+        "title": "Numatytosios naujų darbo erdvių ribos",
+        "description": "Kiekvienos darbo erdvės, neturinčios savų ribų, ribos. Palikite ribą tuščią, jei jos nereikia. Darbo erdvių puslapyje darbo erdvei suteiktos ribos pakeičia šias."
       }
     }
   },
@@ -2064,5 +2094,27 @@
         "status_pages": "Paskelbti būsenos puslapį"
       }
     }
+  },
+  "limits": {
+    "reached": {
+      "monitors": "Didžiausias šioje darbo erdvėje veikiančių monitorių skaičius: {{max}}",
+      "status_pages": "Didžiausias šios darbo erdvės būsenos puslapių skaičius: {{max}}",
+      "custom_domains": "Didžiausias bendras visų šios darbo erdvės būsenos puslapių pasirinktinių domenų skaičius: {{max}}",
+      "members": "Didžiausias šios darbo erdvės narių skaičius, įskaitant laukiančius kvietimus: {{max}}",
+      "owned_workspaces": "Didžiausias darbo erdvių, kurių savininkas galite būti, skaičius: {{max}}",
+      "probes": "Didžiausias zondų, kuriuose gali veikti šios darbo erdvės monitorius, skaičius: {{max}}"
+    },
+    "names": {
+      "monitors": "Aktyvūs monitoriai",
+      "min_check_interval": "Trumpiausias patikrinimo intervalas (sekundėmis)",
+      "status_pages": "Būsenos puslapiai",
+      "custom_domains": "Pasirinktiniai domenai",
+      "members": "Nariai",
+      "owned_workspaces": "Darbo erdvės, kurias gali turėti vienas naudotojas",
+      "probes_per_monitor": "Zondai vienam monitoriui",
+      "retention_days": "Duomenų saugojimas (dienomis)"
+    },
+    "none": "Be ribos",
+    "invalid": "Įveskite sveikąjį skaičių nuo 1 arba palikite tuščią, jei ribos nereikia."
   }
 }
