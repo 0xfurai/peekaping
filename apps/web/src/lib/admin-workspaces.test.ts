@@ -40,7 +40,7 @@ describe("workspaceActions", () => {
   });
 
   // Resume lifts only an admin's hold: the verification one stays until the owner verifies
-  it("offers only Suspend for a workspace held for its owner's email verification", () => {
+  it("offers Suspend, not Resume, for a workspace held for its owner's email verification", () => {
     const held = workspace({ suspended: true, suspendedReason: "unverified", suspendedAt: "2026-10-27T10:00:00Z" });
     expect(workspaceActions(held)).toEqual(["limits", "suspend", "delete"]);
   });

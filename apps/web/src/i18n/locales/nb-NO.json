@@ -2120,7 +2120,8 @@
       "retention_days": "Databeholdelse (dager)"
     },
     "none": "Ingen grense",
-    "invalid": "Skriv inn et helt tall på 1 eller mer, eller la feltet stå tomt for ingen grense."
+    "invalid": "Skriv inn et helt tall på 1 eller mer, eller la feltet stå tomt for ingen grense.",
+    "retention_too_long": "Kan ikke være over {{max}} dager"
   },
   "usage": {
     "title": "Bruk",

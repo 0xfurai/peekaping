@@ -2120,7 +2120,8 @@
       "retention_days": "Retensi data (hari)"
     },
     "none": "Tanpa batas",
-    "invalid": "Masukkan bilangan bulat 1 atau lebih, atau kosongkan untuk tanpa batas."
+    "invalid": "Masukkan bilangan bulat 1 atau lebih, atau kosongkan untuk tanpa batas.",
+    "retention_too_long": "Tidak boleh lebih dari {{max}} hari"
   },
   "usage": {
     "title": "Penggunaan",

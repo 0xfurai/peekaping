@@ -114,8 +114,9 @@ type DeleteUserInput = httpx.Input[httpx.NoBody, UserParams]
 // UpdateWorkspaceDto is the request to suspend or resume a workspace, or to set its own limits. It
 // names at least one of the three.
 type UpdateWorkspaceDto struct {
-	// Suspended holds the workspace back (true) or lets it run again (false)
-	Suspended *bool `json:"suspended,omitempty" doc:"Suspend (true) or resume (false) the workspace."`
+	// Suspended holds the workspace back (true) or lets it run again (false). A null reads as
+	// missing, so it is not nullable.
+	Suspended *bool `json:"suspended,omitempty" doc:"Suspend (true) or resume (false) the workspace." nullable:"false"`
 	// Limits gives the workspace limits of its own (PP-160), which replace the install's defaults
 	// whole: a limit left out, or 0, is none, so {} is no limits at all
 	Limits *WorkspaceLimitsDto `json:"limits,omitempty" doc:"Give the workspace limits of its own, which replace the install's defaults whole. A limit left out, or 0, is none, so {} is a workspace with no limits at all, whatever the defaults say. Not with clearLimits."`

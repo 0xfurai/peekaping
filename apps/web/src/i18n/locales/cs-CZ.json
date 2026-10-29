@@ -2120,7 +2120,8 @@
       "retention_days": "Uchovávání dat (dny)"
     },
     "none": "Bez limitu",
-    "invalid": "Zadejte celé číslo 1 nebo větší, nebo pole nechte prázdné, aby limit nebyl."
+    "invalid": "Zadejte celé číslo 1 nebo větší, nebo pole nechte prázdné, aby limit nebyl.",
+    "retention_too_long": "Nesmí být víc než {{max}} dní"
   },
   "usage": {
     "title": "Využití",

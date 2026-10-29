@@ -2120,7 +2120,8 @@
       "retention_days": "数据保留期限（天）"
     },
     "none": "无上限",
-    "invalid": "请输入 1 或更大的整数；如不设上限，请留空。"
+    "invalid": "请输入 1 或更大的整数；如不设上限，请留空。",
+    "retention_too_long": "不能多于 {{max}} 天"
   },
   "usage": {
     "title": "用量",

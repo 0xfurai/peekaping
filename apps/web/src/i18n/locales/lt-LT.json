@@ -2120,7 +2120,8 @@
       "retention_days": "Duomenų saugojimas (dienomis)"
     },
     "none": "Be ribos",
-    "invalid": "Įveskite sveikąjį skaičių nuo 1 arba palikite tuščią, jei ribos nereikia."
+    "invalid": "Įveskite sveikąjį skaičių nuo 1 arba palikite tuščią, jei ribos nereikia.",
+    "retention_too_long": "Negali būti daugiau nei {{max}} d."
   },
   "usage": {
     "title": "Naudojimas",

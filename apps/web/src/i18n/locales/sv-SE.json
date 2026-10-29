@@ -2120,7 +2120,8 @@
       "retention_days": "Lagringstid för data (dagar)"
     },
     "none": "Ingen gräns",
-    "invalid": "Ange ett heltal på 1 eller mer, eller lämna fältet tomt för ingen gräns."
+    "invalid": "Ange ett heltal på 1 eller mer, eller lämna fältet tomt för ingen gräns.",
+    "retention_too_long": "Får inte vara mer än {{max}} dagar"
   },
   "usage": {
     "title": "Användning",

@@ -2120,7 +2120,8 @@
       "retention_days": "Zadržavanje podataka (dani)"
     },
     "none": "Bez ograničenja",
-    "invalid": "Unesite ceo broj od 1 naviše ili ostavite prazno ako ne želite ograničenje."
+    "invalid": "Unesite ceo broj od 1 naviše ili ostavite prazno ako ne želite ograničenje.",
+    "retention_too_long": "Ne može biti više od {{max}} dana"
   },
   "usage": {
     "title": "Korišćenje",

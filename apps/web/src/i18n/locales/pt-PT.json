@@ -2120,7 +2120,8 @@
       "retention_days": "Retenção de dados (dias)"
     },
     "none": "Sem limite",
-    "invalid": "Introduza um número inteiro igual ou superior a 1, ou deixe em branco para não ter limite."
+    "invalid": "Introduza um número inteiro igual ou superior a 1, ou deixe em branco para não ter limite.",
+    "retention_too_long": "Não pode ser superior a {{max}} dias"
   },
   "usage": {
     "title": "Utilização",

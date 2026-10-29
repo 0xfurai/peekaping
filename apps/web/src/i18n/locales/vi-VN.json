@@ -2120,7 +2120,8 @@
       "retention_days": "Lưu trữ dữ liệu (ngày)"
     },
     "none": "Không giới hạn",
-    "invalid": "Nhập một số nguyên từ 1 trở lên, hoặc để trống nếu không muốn giới hạn."
+    "invalid": "Nhập một số nguyên từ 1 trở lên, hoặc để trống nếu không muốn giới hạn.",
+    "retention_too_long": "Không được lớn hơn {{max}} ngày"
   },
   "usage": {
     "title": "Mức sử dụng",

@@ -174,6 +174,24 @@ describe("InstallSettingsPage", () => {
     expect(tag(html, "install-limit-min_check_interval")).toContain('aria-describedby="install-limit-min_check_interval-source"');
   });
 
+  it("lets each default limit's input take only what the server takes", () => {
+    const html = page();
+    expect(tag(html, "install-limit-monitors")).toContain('min="1"');
+    expect(tag(html, "install-limit-monitors")).not.toContain("max=");
+    expect(tag(html, "install-limit-retention_days")).toContain('min="1"');
+    expect(tag(html, "install-limit-retention_days")).toContain('max="36500"');
+    expect(tag(html, "install-limit-min_check_interval")).toContain('min="20"');
+  });
+
+  it("starts the shortest check interval at the install's minimum, as /me states it", () => {
+    const html = renderAs({ instanceAdmin: true, role: "owner", minCheckInterval: 60 }, <InstallSettingsPage />, "/admin/settings", (queryClient) => {
+      queryClient.setQueryData(getAdminSettingsQueryKey(), { data: SETTINGS, message: "" });
+      queryClient.setQueryData(getTelemetryQueryKey(), { enabled: true, forced_off: false, notice_pending: false, payload: {} });
+      queryClient.setQueryData(getErrorReportingQueryKey(), { enabled: true, forced_off: false });
+    });
+    expect(tag(html, "install-limit-min_check_interval")).toContain('min="60"');
+  });
+
   it("shows a default limit of none blank", () => {
     const html = page();
     expect(around(html, "install-limit-members")).toContain(text("admin.settings.source.default"));

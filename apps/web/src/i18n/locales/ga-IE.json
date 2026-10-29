@@ -2119,7 +2119,8 @@
       "retention_days": "Coinneáil sonraí (laethanta)"
     },
     "none": "Gan teorainn",
-    "invalid": "Cuir isteach slánuimhir 1 nó níos mó, nó fág folamh é gan teorainn."
+    "invalid": "Cuir isteach slánuimhir 1 nó níos mó, nó fág folamh é gan teorainn.",
+    "retention_too_long": "Ní féidir leis a bheith níos mó ná {{max}} lá"
   },
   "usage": {
     "title": "Úsáid",

@@ -100,6 +100,42 @@ func TestHostSpacer_AMonitorWithTwoHostsWaitsForBoth(t *testing.T) {
 	assert.Equal(t, 3*time.Second, turn.Wait, "slow's turn is 3s away and fast's 1s")
 }
 
+func TestHostSpacer_AMonitorWithTwoHostsTakesBothTurnsWhenItStarts(t *testing.T) {
+	clock := newFakeClock()
+	spacer := newHostSpacer(60, clock.Now)
+	for range 5 {
+		require.False(t, spacer.Reserve([]string{"b.example.com"}, 10*time.Second).Denied)
+	}
+
+	both := spacer.Reserve([]string{"a.example.com", "b.example.com"}, 10*time.Second)
+	require.False(t, both.Denied)
+	require.Equal(t, 5*time.Second, both.Wait, "b's turn is 5s away")
+	start := clock.Now().Add(both.Wait)
+
+	clock.Advance(4500 * time.Millisecond)
+	alone := spacer.Reserve([]string{"a.example.com"}, 10*time.Second)
+
+	require.False(t, alone.Denied)
+	assert.False(t, clock.Now().Add(alone.Wait).Before(start.Add(time.Second)),
+		"the first check dials a when it starts, so a's next turn is a second after that, not before: waits %s", alone.Wait)
+}
+
+func TestHostSpacer_AMonitorWithTwoHostsGivesBothTurnsBack(t *testing.T) {
+	clock := newFakeClock()
+	spacer := newHostSpacer(60, clock.Now)
+	for range 5 {
+		require.False(t, spacer.Reserve([]string{"b.example.com"}, 10*time.Second).Denied)
+	}
+	both := spacer.Reserve([]string{"a.example.com", "b.example.com"}, 10*time.Second)
+	require.Equal(t, 5*time.Second, both.Wait)
+
+	both.Release()
+
+	assert.Zero(t, spacer.Reserve([]string{"a.example.com"}, 10*time.Second).Wait, "a is free again now")
+	assert.Equal(t, 5*time.Second, spacer.Reserve([]string{"b.example.com"}, 10*time.Second).Wait,
+		"b's turn is where it was before the cancelled check")
+}
+
 func TestHostSpacer_ADeniedMonitorTakesNoTurnOnItsOtherHosts(t *testing.T) {
 	clock := newFakeClock()
 	spacer := newHostSpacer(60, clock.Now)

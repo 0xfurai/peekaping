@@ -25,14 +25,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useMe } from "@/hooks/useMe";
+import { ABSOLUTE_MIN_CHECK_INTERVAL } from "@/hooks/useMinCheckInterval";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 import {
   clearsSavedPassword,
   DEFAULT_LIMITS,
+  defaultLimitBounds,
+  defaultLimitsSchema,
   installSettingsChange,
   installSettingsErrorMessage,
   installSettingsFormValues,
-  isDefaultLimit,
   type DefaultLimit,
   type InstallSettingsFormValues,
   type SettingSource,
@@ -42,7 +44,11 @@ import { cn } from "@/lib/utils";
 import Layout from "@/layout";
 import { ErrorReportingSetting, TelemetrySetting } from "./telemetry-settings";
 
-const createSchema = (t: (key: string) => string) =>
+const createSchema = (
+  t: (key: string, vars?: Record<string, unknown>) => string,
+  minCheckInterval: number,
+  settings: AdminInstallSettingsResponse
+) =>
   z.object({
     signupMode: z.string(),
     publicUrl: z.string(),
@@ -56,11 +62,7 @@ const createSchema = (t: (key: string) => string) =>
     password: z.string(),
     from: z.string(),
     tls: z.string(),
-    workspaceLimits: z.object(
-      Object.fromEntries(
-        DEFAULT_LIMITS.map((name) => [name, z.string().refine(isDefaultLimit, t("limits.invalid"))])
-      ) as Record<DefaultLimit, z.ZodEffects<z.ZodString>>
-    ),
+    workspaceLimits: defaultLimitsSchema(t, minCheckInterval, settings.workspaceLimits),
     workspaceLimitsName: z.string(),
   });
 
@@ -131,9 +133,15 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
   const queryClient = useQueryClient();
   const [removePassword, setRemovePassword] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // The server holds the shortest check interval to the install's MIN_CHECK_INTERVAL, which /me
+  // states; 20 while it loads
+  const minCheckInterval = Math.max(
+    useMe().data?.data?.minCheckInterval ?? ABSOLUTE_MIN_CHECK_INTERVAL,
+    ABSOLUTE_MIN_CHECK_INTERVAL
+  );
 
   const form = useForm({
-    resolver: zodResolver(createSchema(t)),
+    resolver: zodResolver(createSchema(t, minCheckInterval, settings)),
     values: installSettingsFormValues(settings),
     // A refetch while the admin types keeps what they typed
     resetOptions: { keepDirtyValues: true },
@@ -328,7 +336,7 @@ function InstallSettingsForm({ settings }: { settings: AdminInstallSettingsRespo
                     id={id}
                     {...describedBy(id, setting)}
                     type="number"
-                    min={1}
+                    {...defaultLimitBounds(name, minCheckInterval)}
                     inputMode="numeric"
                     placeholder={t("limits.none")}
                     readOnly={setting.locked}
