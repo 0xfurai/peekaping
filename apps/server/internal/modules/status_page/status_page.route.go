@@ -38,7 +38,7 @@ func (r *Route) ConnectRoute(rg *httpx.Router, controller *Controller) {
 	httpx.Register(sp, "GET", "/slug/{slug}/monitors/homepage", huma.Operation{Summary: "Get monitors for a status page by slug for homepage", Description: unavailableNote, Responses: unavailable(), Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Errors: []int{http.StatusInternalServerError, http.StatusNotFound}}, r.controller.GetMonitorsBySlugForHomepage)
 
 	sp.Use(r.middleware.WorkspaceAuth())
-	sp.Document(httpx.WorkspaceIDHeader)
+	sp.DocumentWorkspace()
 	{
 		httpx.Register(sp, "POST", "", huma.Operation{Summary: "Create a new status page", Responses: map[string]*huma.Response{"400": httpx.ErrorVariants2[DomainErrorResponse, SlugErrorResponse](sp, 400)}, Tags: []string{"status_page"}, DefaultStatus: http.StatusCreated, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, r.controller.Create)
 		httpx.Register(sp, "GET", "", huma.Operation{Summary: "Get all status pages", Tags: []string{"status_page"}, DefaultStatus: http.StatusOK, Security: httpx.SharedAuth, Errors: []int{http.StatusBadRequest, http.StatusInternalServerError, http.StatusUnauthorized}}, r.controller.FindAll)

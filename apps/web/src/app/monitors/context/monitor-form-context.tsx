@@ -138,15 +138,18 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   const typeSetByForm = useRef(startingType.type);
 
   const form = useForm<MonitorFormValues>({
-    // The interval and retry interval start at the install's minimum.
+    // A new monitor's interval and retry interval start at least at the install's minimum, a clone's
+    // too: its source may be stored below a minimum raised since. An edit shows what is stored.
     defaultValues:
-      initialValues ??
-      withMinimumIntervals(
-        channels?.data
-          ? { ...startingType.defaultValues, notification_ids: startingChannelIds.current }
-          : startingType.defaultValues,
-        minCheckInterval
-      ),
+      mode === "edit" && initialValues
+        ? initialValues
+        : withMinimumIntervals(
+            initialValues ??
+              (channels?.data
+                ? { ...startingType.defaultValues, notification_ids: startingChannelIds.current }
+                : startingType.defaultValues),
+            minCheckInterval
+          ),
     // The schema, and a check of the probe that it can't make: which probes run which types
     // comes from the probes query
     resolver: (values, context, options) =>
@@ -160,15 +163,15 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   });
 
   // The minimum arrives with /me, which the workspace layout has loaded by the time the form shows.
-  // If it comes later, a new monitor's intervals the user hasn't touched follow it.
+  // If it comes later, a new monitor's or a clone's intervals the user hasn't touched follow it.
   useEffect(() => {
-    if (mode !== "create" || initialValues) return;
+    if (mode !== "create") return;
     for (const name of ["interval", "retry_interval"] as const) {
       if (!form.getFieldState(name).isDirty && Number(form.getValues(name)) < minCheckInterval) {
         form.setValue(name, minCheckInterval);
       }
     }
-  }, [mode, initialValues, minCheckInterval, form]);
+  }, [mode, minCheckInterval, form]);
 
   // The default channels are ticked once, from this page's own answer. Not over a choice of the
   // user's: the channels they changed, or one they just made, stay.

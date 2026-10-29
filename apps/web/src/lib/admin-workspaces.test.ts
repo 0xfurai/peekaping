@@ -7,6 +7,7 @@ import {
   isStatusPageUnavailable,
   isSuspendedByAdmin,
   workspaceActions,
+  workspacesPageWithin,
 } from "./admin-workspaces";
 
 const workspace = (over: Partial<AdminWorkspaceResponse> = {}): AdminWorkspaceResponse =>
@@ -126,5 +127,18 @@ describe("isStatusPageUnavailable", () => {
     expect(isStatusPageUnavailable(answer(503, { message: "Service Unavailable" }))).toBe(false);
     expect(isStatusPageUnavailable(new Error("network"))).toBe(false);
     expect(isStatusPageUnavailable(null)).toBe(false);
+  });
+});
+
+describe("workspacesPageWithin", () => {
+  it("goes back to the last page when the list shrinks under the page", () => {
+    // 21 workspaces, on the second page of 20, and its one workspace deleted
+    expect(workspacesPageWithin(1, 20, 20)).toBe(0);
+    expect(workspacesPageWithin(4, 45, 20)).toBe(2);
+  });
+
+  it("keeps a page that still has workspaces, and the first page of an empty list", () => {
+    expect(workspacesPageWithin(1, 21, 20)).toBe(1);
+    expect(workspacesPageWithin(0, 0, 20)).toBe(0);
   });
 });

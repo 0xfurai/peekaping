@@ -202,6 +202,7 @@
         "password_set": "Há uma senha definida. Digite para substituí-la.",
         "password_not_set": "Nenhuma senha definida",
         "password_removed": "A senha será removida quando você salvar.",
+        "password_reenter": "Alterar o host, a porta, a segurança ou o usuário remove a senha salva. Digite-a novamente.",
         "remove_password": "Remover senha",
         "keep_password": "Manter senha",
         "from": "Endereço do remetente"

@@ -202,6 +202,7 @@
         "password_set": "Er is een wachtwoord ingesteld. Typ om het te vervangen.",
         "password_not_set": "Geen wachtwoord ingesteld",
         "password_removed": "Het wachtwoord wordt verwijderd wanneer je opslaat.",
+        "password_reenter": "Als je de host, poort, beveiliging of gebruiker wijzigt, wordt het opgeslagen wachtwoord verwijderd. Voer het opnieuw in.",
         "remove_password": "Wachtwoord verwijderen",
         "keep_password": "Wachtwoord behouden",
         "from": "Afzenderadres"
