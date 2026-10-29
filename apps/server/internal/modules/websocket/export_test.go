@@ -12,6 +12,12 @@ func OnConnection(s *Server, delay time.Duration, fn func(id string)) {
 	}
 }
 
+// OnConnected makes the server call fn, with the ID of the socket, last in its connection handler,
+// once it has checked the socket's session. Call it before the first client connects.
+func OnConnected(s *Server, fn func(id string)) {
+	s.onConnected = fn
+}
+
 // SweepEvery makes the server sweep its open sockets every interval. Call it before the first
 // client connects: the sweep starts with the first socket.
 func SweepEvery(s *Server, every time.Duration) {
